@@ -1,732 +1,1409 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proxy.quengel.org ([213.146.113.159]:34151 "EHLO
-	gerlin1.hsp-law.de" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751597AbZCJMBm (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:37219 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751049AbZCQFzj convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Mar 2009 08:01:42 -0400
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Twinhan DVB-T card does not tune with 2.6.29
-From: Ralf Gerbig <rge@quengel.org>
-Date: Tue, 10 Mar 2009 12:52:43 +0100
-Message-ID: <8763ihy4qc.fsf@gerlin1.hsp-law.de>
+	Tue, 17 Mar 2009 01:55:39 -0400
+From: "Subrahmanya, Chaithrika" <chaithrika@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 17 Mar 2009 11:25:21 +0530
+Subject: RE: [RFC 2/7] ARM: DaVinci: DM646x Video: ADV7343 video encoder
+ driver
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A8764C1D@dbde02.ent.ti.com>
+References: <1236935319-32730-1-git-send-email-chaithrika@ti.com>,<200903141513.33098.hverkuil@xs4all.nl>
+In-Reply-To: <200903141513.33098.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-=-="
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---=-=-=
+Hans,
 
-Hi Mauro, everybody else,
+Please see my response inline. For the comments common to THS7303
+and ADV7343 driver, I will do the changes to both the drivers.
 
-it is a Twinhan VisionPlus DVB, works perfectly with 2.6.28 and
-previous.
+>  Hi Chaithrika,
+>
+> Here is the review of this driver.
+>
+> On Friday 13 March 2009 10:08:39 chaithrika@ti.com wrote:
+> > From: Chaithrika U S <chaithrika@ti.com>
+> >
+> > ADV7343 video encoder driver
+> >
+> > Add ADV7473 I2C based video encoder driver. This follows the v4l2-
+> subdev
+> > framework.
+> >
+> > Signed-off-by: Chaithrika U S <chaithrika@ti.com>
+> > ---
+> > Applies to v4l-dvb repository located at
+> > http://linuxtv.org/hg/v4l-dvb/rev/1fd54a62abde
+> >
+> >  drivers/media/video/Kconfig   |    9 +
+> >  drivers/media/video/Makefile  |    1 +
+> >  drivers/media/video/adv7343.c |  730
+> +++++++++++++++++++++++++++++++++++++++++
+> >  include/media/adv7343.h       |  373 +++++++++++++++++++++
+> >  4 files changed, 1113 insertions(+), 0 deletions(-)
+> >  create mode 100644 drivers/media/video/adv7343.c
+> >  create mode 100644 include/media/adv7343.h
+> >
+> > diff --git a/drivers/media/video/Kconfig
+> b/drivers/media/video/Kconfig
+> > index 27f6397..16019e9 100644
+> > --- a/drivers/media/video/Kconfig
+> > +++ b/drivers/media/video/Kconfig
+> > @@ -426,6 +426,15 @@ config VIDEO_ADV7175
+> >          To compile this driver as a module, choose M here: the
+> >          module will be called adv7175.
+> >
+> > +config VIDEO_ADV7343
+> > +        tristate "ADV7343 video encoder"
+> > +        depends on I2C
+> > +        help
+> > +          Support for Analog Devices I2C bus based ADV7343 encoder.
+> > +
+> > +          To compile this driver as a module, choose M here: the
+> > +          module will be called adv7473.
+> > +
+> >  comment "Video improvement chips"
+> >
+> >  config VIDEO_UPD64031A
+> > diff --git a/drivers/media/video/Makefile
+> b/drivers/media/video/Makefile
+> > index 99b448e..7f9fc62 100644
+> > --- a/drivers/media/video/Makefile
+> > +++ b/drivers/media/video/Makefile
+> > @@ -49,6 +49,7 @@ obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
+> >  obj-$(CONFIG_VIDEO_SAA7191) += saa7191.o
+> >  obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
+> >  obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
+> > +obj-$(CONFIG_VIDEO_ADV7343) += adv7343.o
+> >  obj-$(CONFIG_VIDEO_VPX3220) += vpx3220.o
+> >  obj-$(CONFIG_VIDEO_BT819) += bt819.o
+> >  obj-$(CONFIG_VIDEO_BT856) += bt856.o
+> > diff --git a/drivers/media/video/adv7343.c
+> b/drivers/media/video/adv7343.c
+> > new file mode 100644
+> > index 0000000..c912f1d
+> > --- /dev/null
+> > +++ b/drivers/media/video/adv7343.c
+> > @@ -0,0 +1,730 @@
+> > +/*
+> > + * adv7343 - ADV7343 Video Encoder Driver
+> > + *
+> > + * Copyright (C) 2009 Texas Instruments Incorporated -
+> http://www.ti.com/
+> > + *
+> > + * This program is free software; you can redistribute it and/or
+> > + * modify it under the terms of the GNU General Public License as
+> > + * published by the Free Software Foundation version 2.
+> > + *
+> > + * This program is distributed .as is. WITHOUT ANY WARRANTY of any
+> > + * kind, whether express or implied; without even the implied
+> warranty
+> > + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> > + * GNU General Public License for more details.
+> > + */
+> > +
+> > +#include <linux/kernel.h>
+> > +#include <linux/init.h>
+> > +#include <linux/ctype.h>
+> > +#include <linux/i2c.h>
+> > +#include <linux/device.h>
+> > +#include <linux/delay.h>
+> > +#include <linux/module.h>
+> > +#include <linux/videodev2.h>
+> > +#include <linux/uaccess.h>
+> > +#include <linux/version.h>
+> > +
+> > +#include <media/adv7343.h>
+> > +#include <media/v4l2-device.h>
+> > +#include <media/v4l2-chip-ident.h>
+> > +#include <media/v4l2-i2c-drv.h>
+> > +
+> > +static int debug = 2;
+>
+> Not a module option. See ths7303 review for more info.
+I will update this.
 
-I tried rc6, rc7 and current git. The only thing that stands out (to
-my untrained eye) is:
+>
+> > +static unsigned char reg00 = 0x80;   /* Power Mode register */
+> > +static unsigned char reg01 = 0x00;   /* MODE_SELECT_REG */
+> > +static unsigned char reg02 = 0x20;   /* MODE_REG0 */
+> > +static unsigned char reg30 = 0x3C;   /* HD_MODE_REG1 */
+> > +static unsigned char reg35 = 0x00;   /* HD_MODE_REG6 */
+> > +static unsigned char reg80 = ADV7343_SD_MODE_REG1_DEFAULT; /*
+> SD_MODE_REG1 */
+> > +static unsigned char reg82 = ADV7343_SD_MODE_REG2_DEFAULT; /*
+> SD_MODE_REG2 */
+> > +
+> > +struct adv7343_state {
+> > +     struct i2c_client *client;
+>
+> Don't add this, obtain from v4l2_subdev instead.
+OK.
 
-IRQ 17/bt878: IRQF_DISABLED is not guaranteed on shared IRQs
+>
+> > +     u32 ident;
+> > +     struct v4l2_subdev sd;
+> > +     v4l2_std_id std;
+> > +     int output;
+> > +     int enable;
+> > +     int bright;
+> > +     int hue;
+> > +     int gain;
+> > +     int initialized;
+> > +     int video_enable;
+> > +     int ch_id;
+> > +};
+> > +
+> > +static inline struct adv7343_state *to_state(struct v4l2_subdev *sd)
+> > +{
+> > +     return container_of(sd, struct adv7343_state, sd);
+> > +}
+> > +
+> > +static inline int adv7343_write(struct v4l2_subdev *sd, u8 reg, u8
+> value)
+> > +{
+> > +     struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > +
+> > +     return i2c_smbus_write_byte_data(client, reg, value);
+> > +}
+> > +
+> > +struct adv7343_std_info
+> > +     adv7343_composite_std_info[ADV7343_COMPOSITE_NUM_STD] = {
+> > +     {
+> > +             ADV7343_SD_MODE_REG1, &reg80, SD_INPUT_MODE,
+> (~(SD_STD_MASK)),
+> > +             SD_STD_NTSC, 0x8C, 0x1F, 0x8D, 0x7C, 0x8E, 0xF0, 0x8F,
+> 0x21,
+> > +             V4L2_STD_NTSC,
+> > +     },
+> > +     {
+> > +             ADV7343_SD_MODE_REG1, &reg80, SD_INPUT_MODE,
+> (~(SD_STD_MASK)),
+> > +             SD_STD_PAL_BDGHI, 0x8C, 0xCB, 0x8D, 0x8A, 0x8E, 0x09,
+> 0x8F,
+> > +             0x2A, V4L2_STD_PAL,
+> > +     },
+> > +};
+> > +
+> > +struct adv7343_std_info
+> > +     adv7343_component_std_info[ADV7343_COMPONENT_NUM_STD] = {
+> > +     {
+> > +             ADV7343_HD_MODE_REG1, &reg30, HD_720P_INPUT_MODE,
+> > +             (~(STD_MODE_MASK << STD_MODE_SHIFT)),
+> > +             (STD_MODE_720P << STD_MODE_SHIFT),
+> > +             0x8C, 0x1F, 0x8D, 0x7C, 0x8E, 0xF0, 0x8F, 0x21,
+> > +             V4L2_STD_720P_60,
+> > +     },
+> > +     {
+> > +             ADV7343_HD_MODE_REG1, &reg30, HD_720P_INPUT_MODE,
+> > +             (~(STD_MODE_MASK << STD_MODE_SHIFT)),
+> > +             (STD_MODE_720P_25 << STD_MODE_SHIFT),
+> > +             0x8C, 0x1F, 0x8D, 0x7C, 0x8E, 0xF0, 0x8F, 0x21,
+> > +             V4L2_STD_720P_25,
+> > +     },
+> > +     {
+> > +             ADV7343_HD_MODE_REG1, &reg30, HD_720P_INPUT_MODE,
+> > +             (~(STD_MODE_MASK << STD_MODE_SHIFT)),
+> > +             (STD_MODE_720P_30 << STD_MODE_SHIFT),
+> > +             0x8C, 0x1F, 0x8D, 0x7C, 0x8E, 0xF0, 0x8F, 0x21,
+> > +             V4L2_STD_720P_30,
+> > +     },
+> > +     {
+> > +             ADV7343_HD_MODE_REG1, &reg30, HD_720P_INPUT_MODE,
+> > +             (~(STD_MODE_MASK << STD_MODE_SHIFT)),
+> > +             (STD_MODE_720P_50 << STD_MODE_SHIFT),
+> > +             0x8C, 0x1F, 0x8D, 0x7C, 0x8E, 0xF0, 0x8F, 0x21,
+> > +             V4L2_STD_720P_50,
+> > +     },
+> > +     {
+> > +             ADV7343_HD_MODE_REG1, &reg30, HD_1080I_INPUT_MODE,
+> > +             (~(STD_MODE_MASK << STD_MODE_SHIFT)),
+> > +             (STD_MODE_1080I << STD_MODE_SHIFT),
+> > +             0x8C, 0x1F, 0x8D, 0x7C, 0x8E, 0xF0, 0x8F, 0x21,
+> > +             V4L2_STD_1080I_30,
+> > +     },
+> > +     {
+> > +             ADV7343_HD_MODE_REG1, &reg30, HD_1080I_INPUT_MODE,
+> > +             (~(STD_MODE_MASK << STD_MODE_SHIFT)),
+> > +             (STD_MODE_1080I_25fps << STD_MODE_SHIFT),
+> > +             0x8C, 0x1F, 0x8D, 0x7C, 0x8E, 0xF0, 0x8F, 0x21,
+> > +             V4L2_STD_1080I_25,
+> > +     },
+> > +     {
+> > +             ADV7343_HD_MODE_REG1, &reg30, HD_720P_INPUT_MODE,
+> > +             (~(STD_MODE_MASK << STD_MODE_SHIFT)),
+> > +             (STD_MODE_525P << STD_MODE_SHIFT),
+> > +             0x8C, 0x1F, 0x8D, 0x7C, 0x8E, 0xF0, 0x8F, 0x21,
+> > +             V4L2_STD_480P_60,
+> > +     },
+> > +     {
+> > +             ADV7343_HD_MODE_REG1, &reg30, HD_720P_INPUT_MODE,
+> > +             (~(STD_MODE_MASK << STD_MODE_SHIFT)),
+> > +             (STD_MODE_625P << STD_MODE_SHIFT),
+> > +             0x8C, 0x1F, 0x8D, 0x7C, 0x8E, 0xF0, 0x8F, 0x21,
+> > +             V4L2_STD_576P_50,
+> > +     },
+> > +     {
+> > +             ADV7343_SD_MODE_REG1, &reg80, SD_INPUT_MODE,
+> (~(SD_STD_MASK)),
+> > +             SD_STD_NTSC, 0x8C, 0x1F, 0x8D, 0x7C, 0x8E, 0xF0, 0x8F,
+> 0x21,
+> > +             V4L2_STD_NTSC,
+> > +     },
+> > +     {
+> > +             ADV7343_SD_MODE_REG1, &reg80, SD_INPUT_MODE,
+> (~(SD_STD_MASK)),
+> > +             SD_STD_PAL_BDGHI, 0x8C, 0x1F, 0x8D, 0x7C, 0x8E, 0xF0,
+> 0x8F,
+> > +             0x21, V4L2_STD_PAL,
+> > +     },
+> > +     {
+> > +             ADV7343_HD_MODE_REG1, &reg30, HD_1080I_INPUT_MODE,
+> > +             (~(STD_MODE_MASK << STD_MODE_SHIFT)),
+> > +             (STD_MODE_1080P_24 << STD_MODE_SHIFT),
+> > +             0x8C, 0x1F, 0x8D, 0x7C, 0x8E, 0xF0, 0x8F, 0x21,
+> > +             V4L2_STD_1080P_24,
+> > +     },
+> > +     {
+> > +             ADV7343_HD_MODE_REG1, &reg30, HD_1080I_INPUT_MODE,
+> > +             (~(STD_MODE_MASK << STD_MODE_SHIFT)),
+> > +             (STD_MODE_1080P_25 << STD_MODE_SHIFT),
+> > +             0x8C, 0x1F, 0x8D, 0x7C, 0x8E, 0xF0, 0x8F, 0x21,
+> > +             V4L2_STD_1080I_25,
+> > +     },
+> > +     {
+> > +             ADV7343_HD_MODE_REG1, &reg30, HD_1080I_INPUT_MODE,
+> > +             (~(STD_MODE_MASK << STD_MODE_SHIFT)),
+> > +             (STD_MODE_1080P_30 << STD_MODE_SHIFT),
+> > +             0x8C, 0x1F, 0x8D, 0x7C, 0x8E, 0xF0, 0x8F, 0x21,
+> > +             V4L2_STD_1080P_30,
+> > +     },
+> > +};
+> > +
+> > +static struct adv7343_config
+> adv7343_configuration[ADV7343_NUM_CHANNELS] = {
+> > +     {
+> > +             .no_of_outputs = ADV7343_MAX_NO_OUTPUTS,
+> > +             .output[0] = {
+> > +                     .output_type    = ADV7343_COMPOSITE_ID,
+> > +                     .output_name    = VID_ENC_OUTPUT_COMPOSITE,
+> > +                     .no_of_standard = ADV7343_COMPOSITE_NUM_STD,
+> > +                     .def_std        = V4L2_STD_NTSC,
+> > +                     .std_info       = (struct adv7343_std_info *)
+> > +
+> &adv7343_composite_std_info,
+> > +                     .power_val      =
+> ADV7343_COMPOSITE_POWER_VALUE,
+> > +             },
+> > +             .output[1] = {
+> > +                     .output_type    = ADV7343_COMPONENT_ID,
+> > +                     .output_name    = VID_ENC_OUTPUT_COMPONENT,
+> > +                     .no_of_standard = ADV7343_COMPONENT_NUM_STD,
+> > +                     .def_std        = V4L2_STD_720P_60,
+> > +                     .std_info       = (struct adv7343_std_info *)
+> > +
+> &adv7343_component_std_info,
+> > +                     .power_val      =
+> ADV7343_COMPONENT_POWER_VALUE,
+> > +             },
+> > +             .output[2] = {
+> > +                     .output_type    = ADV7343_SVIDEO_ID,
+> > +                     .output_name    = VID_ENC_OUTPUT_SVIDEO,
+> > +                     .no_of_standard = ADV7343_SVIDEO_NUM_STD,
+> > +                     .def_std        = V4L2_STD_NTSC,
+> > +                     .std_info       = (struct adv7343_std_info *)
+> > +
+> &adv7343_composite_std_info,
+> > +                     .power_val      = ADV7343_SVIDEO_POWER_VALUE
+> > +             },
+> > +     },
+> > +};
+> > +
+> > +static struct adv7343_channel
+> adv7343_channel_info[ADV7343_NUM_CHANNELS] = {
+> > +     {
+> > +             .current_output = ADV7343_COMPOSITE_ID,
+> > +             .mode_info      = V4L2_STD_NTSC,
+> > +     }
+> > +};
+>
+> These arrays might be mixing user and device level concepts. See my
+> comments
+> on that at the end. It's not clear to me whether it is indeed the case,
+> I'll
+> leave it to you to take action if it's wrong and I'll review it the
+> next
+> round.
+>
+> > +static int adv7343_setstd(struct v4l2_subdev *sd, v4l2_std_id std)
+> > +{
+> > +     int err = 0;
+> > +     int i = 0;
+> > +     struct adv7343_std_info *std_info;
+> > +     int output_idx;
+> > +     u8 reg, val;
+> > +
+> > +     int ch_id = (to_state(sd))->ch_id;
+> > +     struct adv7343_config *config = &adv7343_configuration[ch_id];
+> > +
+> > +     v4l2_dbg(1, debug, sd, "Start of adv7343_setstd..\n");
+> > +     output_idx = adv7343_channel_info[ch_id].current_output;
+> > +     v4l2_dbg(1, debug, sd, "the output index is %d\n", output_idx);
+> > +
+> > +     for (i = 0; i < config->output[output_idx].no_of_standard; i++)
+> {
+> > +             std_info = &config->output[output_idx].std_info[i];
+> > +             if (std_info->stdid ==  std)
+> > +                     break;
+> > +     }
+> > +
+> > +     if (i == config->output[output_idx].no_of_standard) {
+> > +             v4l2_err(sd, "Invalid id...\n");
+> > +             return -EINVAL;
+> > +     }
+> > +
+> > +     val = *(config->output[output_idx].std_info[i].value);
+> > +     val &= config->output[output_idx].std_info[i].standard_val2;
+> > +     val |= config->output[output_idx].std_info[i].standard_val3;
+> > +     err |= adv7343_write(sd,
+> > +             config-
+> >output[output_idx].std_info[i].set_std_register, val);
+> > +     if (err < 0) {
+> > +             v4l2_err(sd, "Set standard failed\n");
+> > +             return err;
+> > +     }
+> > +     *(config->output[output_idx].std_info[i].value) = val;
+> > +
+> > +     val = reg01;
+> > +     val &= (~((u8) INPUT_MODE_MASK));
+> > +     val |= config->output[output_idx].std_info[i].outputmode_val1;
+> > +     err |= adv7343_write(sd, ADV7343_MODE_SELECT_REG, val);
+> > +     if (err < 0) {
+> > +             v4l2_err(sd, "Set standard failed\n");
+> > +             return err;
+> > +     }
+> > +     reg01 = val;
+> > +
+> > +     /* Store the standard in global object of adv7343 */
+> > +     adv7343_channel_info[ch_id].mode_info =
+> > +                             config-
+> >output[output_idx].std_info[i].stdid;
+> > +
+> > +     reg = config->output[output_idx].std_info[i].fsc0_reg;
+> > +     val = config->output[output_idx].std_info[i].fsc0_val;
+> > +     err |= adv7343_write(sd, reg, val);
+> > +
+> > +     reg = config->output[output_idx].std_info[i].fsc1_reg;
+> > +     val = config->output[output_idx].std_info[i].fsc1_val;
+> > +     err |= adv7343_write(sd, reg, val);
+> > +
+> > +     reg = config->output[output_idx].std_info[i].fsc2_reg;
+> > +     val = config->output[output_idx].std_info[i].fsc2_val;
+> > +     err |= adv7343_write(sd, reg, val);
+> > +
+> > +     reg = config->output[output_idx].std_info[i].fsc3_reg;
+> > +     val = config->output[output_idx].std_info[i].fsc3_val;
+> > +     err |= adv7343_write(sd, reg, val);
+> > +
+> > +     val = reg80;
+> > +
+> > +     if (std == V4L2_STD_NTSC)
+> > +             val &= 0x03;
+> > +     else if (std ==  V4L2_STD_PAL)
+> > +             val |= 0x04;
+> > +
+> > +     err |= adv7343_write(sd, ADV7343_SD_MODE_REG1, val);
+> > +
+> > +     reg80 = val;
+> > +
+> > +     v4l2_dbg(1, debug, sd, "</adv7343_setstd>\n");
+> > +
+> > +     return err;
+> > +}
+> > +
+> > +/* Following function is used to set output format in ADV7343
+> device. The index
+> > +   of the output format is  passed as the argument to this function.
+> */
+> > +static int adv7343_setoutput(struct v4l2_subdev *sd, int
+> output_type)
+> > +{
+> > +     unsigned char val;
+> > +     int i;
+> > +     int index;
+> > +     int err = 0;
+> > +     int ch_id = (to_state(sd))->ch_id;
+> > +     struct adv7343_config *config = &adv7343_configuration[ch_id];
+> > +
+> > +     v4l2_dbg(1, debug, sd, "Start of set output function.\n");
+> > +
+> > +     for (i = 0; i < config->no_of_outputs; i++) {
+> > +             if (output_type == config->output[i].output_type)
+> > +                     break;
+> > +     }
+> > +
+> > +     if (i == config->no_of_outputs) {
+> > +             v4l2_err(sd, "Invalid output\n");
+> > +             return -EINVAL;
+> > +     }
+> > +     index = i;
+> > +
+> > +     /* Enable Appropriate DAC */
+> > +     val = reg00;
+> > +     val &= 0x03;
+> > +     val |= config->output[index].power_val;
+> > +     err = adv7343_write(sd, ADV7343_POWER_MODE_REG, val);
+> > +
+> > +     reg00 = val;
+> > +
+> > +     /* Enable YUV output */
+> > +     val = reg02;
+> > +     val |= YUV_OUTPUT_SELECT;
+> > +     err |= adv7343_write(sd, ADV7343_MODE_REG0, val);
+> > +
+> > +     reg02 = val;
+> > +
+> > +     /* configure SD DAC Output 2 and SD DAC Output 1 bit to zero */
+> > +     val = reg82;
+> > +     val &= (SD_DAC_1_DI & SD_DAC_2_DI);
+> > +     err |= adv7343_write(sd, ADV7343_SD_MODE_REG2, val);
+> > +     if (err < 0)
+> > +             return err;
+> > +     reg82 = val;
+> > +
+> > +     /* configure ED/HD Color DAC Swap and ED/HD RGB Input Enable
+> bit to
+> > +      * zero */
+> > +     val = reg35;
+> > +     val &= (HD_RGB_INPUT_DI & HD_DAC_SWAP_DI);
+> > +     err |= adv7343_write(sd, ADV7343_HD_MODE_REG6, val);
+> > +     if (err < 0)
+> > +             return err;
+> > +     reg35 = val;
+> > +
+> > +     adv7343_channel_info[ch_id].current_output = index;
+> > +     adv7343_channel_info[ch_id].mode_info = config-
+> >output[index].def_std;
+> > +
+> > +     err |= adv7343_setstd(sd,
+> adv7343_channel_info[ch_id].mode_info);
+> > +
+> > +     if (err < 0)
+> > +             return err;
+> > +
+> > +     v4l2_dbg(1, debug, sd, "</adv7343_setoutput>\n");
+> > +
+> > +     return err;
+> > +}
+> > +
+> > +static int adv7343_getstd(struct v4l2_subdev *sd,
+> > +                             v4l2_std_id *stdid)
+> > +{
+> > +     int err = 0;
+> > +     int ch_id =  (to_state(sd))->ch_id;
+> > +     int output_idx;
+> > +
+> > +     v4l2_dbg(1, debug, sd, "In getstd function.\n");
+> > +     output_idx = adv7343_channel_info[ch_id].current_output;
+> > +
+> > +     *stdid = adv7343_channel_info[ch_id].mode_info;
+> > +
+> > +     return err;
+> > +}
+> > +
+> > +static int adv7343_log_status(struct v4l2_subdev *sd)
+> > +{
+> > +     struct adv7343_state *state = to_state(sd);
+> > +
+> > +     v4l2_info(sd, "Standard: %llu\n", state->std);
+> > +     v4l2_info(sd, "Output: %s\n", (state->output) ? "COMPOSITE" :
+> > +                                                     "COMPONENT");
+> > +     v4l2_info(sd, "Channel: %d\n", state->ch_id);
+> > +
+> > +     return 0;
+> > +}
+> > +
+> > +static int adv7343_initialize(struct v4l2_subdev *sd)
+> > +{
+> > +     int err = 0;
+> > +     int ch_id = (to_state(sd))->ch_id; /* for now */
+> > +     err |= adv7343_write(sd, ADV7343_SOFT_RESET,
+> > +                             ADV7343_SOFT_RESET_DEFAULT);
+> > +     err |= adv7343_write(sd, ADV7343_POWER_MODE_REG,
+> > +                             ADV7343_POWER_MODE_REG_DEFAULT);
+> > +
+> > +     err |= adv7343_write(sd, ADV7343_HD_MODE_REG1,
+> > +                             ADV7343_HD_MODE_REG1_DEFAULT);
+> > +     err |= adv7343_write(sd, ADV7343_HD_MODE_REG2,
+> > +                              ADV7343_HD_MODE_REG2_DEFAULT);
+> > +     err |= adv7343_write(sd, ADV7343_HD_MODE_REG3,
+> > +                             ADV7343_HD_MODE_REG3_DEFAULT);
+> > +     err |= adv7343_write(sd, ADV7343_HD_MODE_REG4,
+> > +                             ADV7343_HD_MODE_REG4_DEFAULT);
+> > +     err |= adv7343_write(sd, ADV7343_HD_MODE_REG5,
+> > +                             ADV7343_HD_MODE_REG5_DEFAULT);
+> > +     err |= adv7343_write(sd, ADV7343_HD_MODE_REG6,
+> > +                             ADV7343_HD_MODE_REG6_DEFAULT);
+> > +     err |= adv7343_write(sd, ADV7343_HD_MODE_REG7,
+> > +                             ADV7343_HD_MODE_REG7_DEFAULT);
+> > +
+> > +     err |= adv7343_write(sd, ADV7343_SD_MODE_REG1,
+> > +                             ADV7343_SD_MODE_REG1_DEFAULT);
+> > +     err |= adv7343_write(sd, ADV7343_SD_MODE_REG2,
+> > +                             ADV7343_SD_MODE_REG2_DEFAULT);
+> > +     err |= adv7343_write(sd, ADV7343_SD_MODE_REG3,
+> > +                             ADV7343_SD_MODE_REG3_DEFAULT);
+> > +     err |= adv7343_write(sd, ADV7343_SD_MODE_REG4,
+> > +                             ADV7343_SD_MODE_REG4_DEFAULT);
+> > +     err |= adv7343_write(sd, ADV7343_SD_MODE_REG5,
+> > +                             ADV7343_SD_MODE_REG5_DEFAULT);
+> > +     err |= adv7343_write(sd, ADV7343_SD_MODE_REG6,
+> > +                             ADV7343_SD_MODE_REG6_DEFAULT);
+> > +     err |= adv7343_write(sd, ADV7343_SD_MODE_REG7,
+> > +                             ADV7343_SD_MODE_REG7_DEFAULT);
+> > +     err |= adv7343_write(sd, ADV7343_SD_MODE_REG8,
+> > +                             ADV7343_SD_MODE_REG8_DEFAULT);
+> > +
+> > +     err |= adv7343_write(sd, ADV7343_SD_HUE_REG,
+> > +                             ADV7343_SD_HUE_REG_DEFAULT);
+> > +     err |= adv7343_write(sd, ADV7343_SD_CGMS_WSS0,
+> > +                             ADV7343_SD_CGMS_WSS0_DEFAULT);
+> > +     err |= adv7343_write(sd, ADV7343_SD_BRIGHTNESS_WSS,
+> > +                             ADV7343_SD_BRIGHTNESS_WSS_DEFAULT);
+> > +
+> > +     if (err < 0) {
+> > +             v4l2_err(sd, "Error in initializing!\n");
+> > +             err = -EINVAL;
+> > +             goto adv7343_init_exit;
+> > +     }
+> > +
+> > +     adv7343_channel_info[ch_id].current_output = 0;
+> > +     adv7343_channel_info[ch_id].mode_info =
+> > +                 adv7343_composite_std_info[0].stdid;
+> > +
+> > +     /* Configure for default video standard */
+> > +     err |= adv7343_setoutput(sd, adv7343_configuration[ch_id].
+> > +                                     output[0].output_type);
+> > +     err |= adv7343_setstd(sd, adv7343_configuration[ch_id].
+> > +                                     output[0].def_std);
+> > +
+> > +     if (err < 0) {
+> > +             err = -EINVAL;
+> > +             goto adv7343_init_exit;
+> > +     }
+> > +
+> > +     v4l2_dbg(1, debug, sd, "</adv7343_initialize>\n");
+> > +
+> > +adv7343_init_exit:
+> > +     return err;
+> > +}
+> > +
+> > +static int adv7343_reset(struct v4l2_subdev *sd, u32 val)
+> > +{
+> > +     v4l2_dbg(1, debug, sd, "Reset\n");
+> > +     return adv7343_initialize(sd);
+> > +}
+> > +
+> > +static int adv7343_init(struct v4l2_subdev *sd, u32 val)
+> > +{
+> > +     struct adv7343_state *state = to_state(sd);
+> > +     if (!state->initialized) {
+> > +             state->initialized = 1;
+> > +             v4l2_dbg(1, debug, sd, "Initializing Encoder\n");
+> > +             return adv7343_initialize(sd);
+> > +     }
+> > +
+> > +     return 0;
+> > +}
+> > +
+> > +static int adv7343_queryctrl(struct v4l2_subdev *sd, struct
+> v4l2_queryctrl *qc)
+> > +{
+> > +     switch (qc->id) {
+> > +     case V4L2_CID_BRIGHTNESS:
+> > +     case V4L2_CID_HUE:
+> > +             return v4l2_ctrl_query_fill_std(qc);
+>
+> Use v4l2_ctrl_query_fill instead. The fill_std function has been
+> removed
+> (that was a bad idea).
+>
+OK.
 
-messages, /proc/interrupts, modules, lspci included, config.gz
-attached.
+> > +     default:
+> > +             break;
+> > +     }
+> > +
+> > +     return 0;
+> > +}
+> > +
+> > +static int adv7343_s_ctrl(struct v4l2_subdev *sd, struct
+> v4l2_control *ctrl)
+> > +{
+> > +     struct adv7343_state *state = to_state(sd);
+> > +     int err = 0;
+> > +
+> > +     switch (ctrl->id) {
+> > +     case V4L2_CID_BRIGHTNESS:
+> > +             if (ctrl->value < 0 || ctrl->value > 127) {
+> > +                     v4l2_err(sd, "invalid brightness setting %d\n",
+> > +                                     ctrl->value);
+>
+> Recommend that you use v4l2_dbg for this instead.
+OK.
 
-I hope this helps,
+>
+> > +                     return -ERANGE;
+> > +             }
+> > +
+> > +             state->bright = ctrl->value;
+> > +             err = adv7343_write(sd, ADV7343_SD_BRIGHTNESS_WSS,
+> > +                                     state->bright);
+> > +             break;
+> > +
+> > +     case V4L2_CID_HUE:
+> > +             if (ctrl->value < 0 || ctrl->value > 255) {
+> > +                     v4l2_err(sd, "invalid hue settings %d\n", ctrl-
+> >value);
+> > +                     return -ERANGE;
+> > +             }
+> > +
+> > +             state->hue = ctrl->value;
+> > +             err = adv7343_write(sd, ADV7343_SD_HUE_REG, state-
+> >hue);
+> > +             break;
+> > +
+> > +     case V4L2_CID_GAIN:
+>
+> Why is there no V4L2_CID_GAIN case in queryctrl above?
+>
+> > +             if (ctrl->value < 0 || ctrl->value > 255) {
+> > +                     v4l2_err(sd, "invalid gain settings %d\n",
+> ctrl->value);
+> > +                     return -ERANGE;
+> > +             }
+> > +
+> > +             if ((ctrl->value > POSITIVE_GAIN_MAX) &&
+> > +                     (ctrl->value < NEGATIVE_GAIN_MIN)) {
+> > +                     v4l2_err(sd, "gain settings not within \
+> > +                                     the specified range\n");
+> > +                     return -ERANGE;
+> > +             } else {
+> > +                     state->gain = ctrl->value;
+> > +                     err = adv7343_write(sd,
+> ADV7343_DAC2_OUTPUT_LEVEL,
+> > +                                     state->gain);
+> > +             }
+> > +             break;
+> > +
+> > +     default:
+> > +             return -EINVAL;
+> > +     }
+> > +     if (err < 0)
+> > +             v4l2_err(sd, "Failed tp set the encoder controls\n");
+>
+> Typo: tp -> to
+Will be corrected.
 
-thanks Ralf
+>
+> > +
+> > +     return 0;
+> > +}
+> > +
+> > +static int adv7343_g_ctrl(struct v4l2_subdev *sd, struct
+> v4l2_control *ctrl)
+> > +{
+> > +     struct adv7343_state *state = to_state(sd);
+> > +
+> > +     switch (ctrl->id) {
+> > +     case V4L2_CID_BRIGHTNESS:
+> > +             ctrl->value = state->bright;
+> > +             break;
+> > +
+> > +     case V4L2_CID_HUE:
+> > +             ctrl->value = state->hue;
+> > +             break;
+> > +
+> > +     case V4L2_CID_GAIN:
+> > +             ctrl->value = state->gain;
+> > +             break;
+> > +
+> > +     default:
+> > +             return -EINVAL;
+> > +     }
+> > +
+> > +     return 0;
+> > +}
+> > +
+> > +static int adv7343_g_chip_ident(struct v4l2_subdev *sd,
+> > +                             struct v4l2_dbg_chip_ident *chip)
+> > +{
+> > +     struct adv7343_state *state = to_state(sd);
+> > +     struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > +
+> > +     return v4l2_chip_ident_i2c_client(client, chip, state->ident,
+> 0);
+> > +}
+> > +
+> > +static long adv7343_ioctl(struct v4l2_subdev *sd, unsigned cmd, void
+> *arg)
+> > +{
+> > +     int err = 0;
+> > +     v4l2_dbg(1, debug, sd, "ioctl\n");
+> > +     switch (cmd) {
+> > +     case ENCODER_GET_MODE:
+> > +             err = adv7343_getstd(sd, (v4l2_std_id *)arg);
+> > +             break;
+>
+> Not a good idea. The v4l-dvb master repository adds a .querystd
+> callback that
+> you should use instead. It's a recent addition that appears in 2.6.30.
+>
+OK, will do the necessary modifications.
 
+> > +
+> > +     default:
+> > +             break;
+> > +     }
+> > +
+> > +     return err;
+> > +}
+> > +
+> > +static const struct v4l2_subdev_core_ops adv7343_core_ops = {
+> > +     .log_status     = adv7343_log_status,
+> > +     .g_chip_ident   = adv7343_g_chip_ident,
+> > +     .g_ctrl         = adv7343_g_ctrl,
+> > +     .s_ctrl         = adv7343_s_ctrl,
+> > +     .queryctrl      = adv7343_queryctrl,
+> > +     .reset          = adv7343_reset,
+>
+> Do you really need a reset?
+I don't think it is needed.
 
+>
+> > +     .init           = adv7343_init,
+>
+> Do you really need an init? Better to init in the probe() function.
+> See also my comments about init in the ths7303 review.
+>
+OK.
 
+> > +     .ioctl          = adv7343_ioctl,
+> > +};
+> > +
+> > +static int adv7343_s_std_output(struct v4l2_subdev *sd, v4l2_std_id
+> std)
+> > +{
+> > +     struct adv7343_state *state = to_state(sd);
+> > +     int err = 0;
+> > +
+> > +     if (state->std == std)
+> > +             return 0;
+> > +
+> > +     err = adv7343_setstd(sd, std);
+> > +
+> > +     if (!err)
+> > +             state->std = std;
+> > +     else
+> > +             v4l2_err(sd, "s_std failed\n");
+> > +
+> > +     return err;
+> > +}
+> > +
+> > +static int adv7343_s_routing(struct v4l2_subdev *sd,
+> > +                             const struct v4l2_routing *route)
+> > +{
+> > +     struct adv7343_state *state = to_state(sd);
+> > +
+> > +     int err = 0;
+> > +
+> > +     if (state->output == route->output)
+> > +             return 0;
+> > +
+> > +     err = adv7343_setoutput(sd, route->output);
+> > +     if (err)
+> > +             v4l2_err(sd, "Error setting output\n");
+> > +     else
+> > +             state->output = route->output;
+> > +
+> > +     return err;
+> > +}
+> > +
+> > +static const struct v4l2_subdev_video_ops adv7343_video_ops = {
+> > +     .s_std_output   = adv7343_s_std_output,
+> > +     .s_routing      = adv7343_s_routing,
+> > +};
+> > +
+> > +static const struct v4l2_subdev_ops adv7343_ops = {
+> > +     .core   = &adv7343_core_ops,
+> > +     .video  = &adv7343_video_ops,
+> > +};
+> > +
+> > +static int adv7343_command(struct i2c_client *client, unsigned cmd,
+> void *arg)
+> > +{
+> > +     return v4l2_subdev_command(i2c_get_clientdata(client), cmd,
+> arg);
+> > +}
+>
+> Not needed, see my ths7303 review.
+OK.
 
-Kaffeine says:
-2.6.29:
+>
+> > +
+> > +static int adv7343_probe(struct i2c_client *client,
+> > +                             const struct i2c_device_id *id)
+> > +{
+> > +     struct adv7343_state *state;
+> > +
+> > +     if (!i2c_check_functionality(client->adapter,
+> I2C_FUNC_SMBUS_BYTE_DATA))
+> > +             return -ENODEV;
+> > +
+> > +     v4l2_info(client, "chip found @ 0x%x (%s)\n",
+> > +                     client->addr << 1, client->adapter->name);
+>
+> use v4l_info here.
+>
+OK.
 
-Tuning to: MDR FERNSEHEN / autocount: 0
-DvbCam::probe(): /dev/dvb/adapter0/ca0: : No such file or directory
-Using DVB device 0:0 "DST DVB-T"
-tuning DVB-T to 594000000 Hz
-inv:2 bw:0 fecH:2 fecL:9 mod:1 tm:1 gi:3 hier:0
-...............
+> > +
+> > +     state = kzalloc(sizeof(struct adv7343_state), GFP_KERNEL);
+> > +     if (state == NULL)
+> > +             return -ENOMEM;
+> > +
+> > +     state->client   = client;
+> > +     state->enable   = 1;
+> > +     state->ch_id    = 0;
+> > +     state->output   = -1;
+> > +     state->initialized = 0;
+> > +     state->ident = 0;
+> > +     v4l2_i2c_subdev_init(&state->sd, client, &adv7343_ops);
+> > +     v4l2_dbg(1, debug, client, "Registered the encoder\n");
+>
+> This v4l2_dbg doesn't add anything useful that v4l_info didn't already
+> say.
+>
+OK.
 
-Not able to lock to the signal on the given frequency
-Frontend closed
-Tuning delay: 1602 ms
-Tuning to: RTL Television / autocount: 0
-Using DVB device 0:0 "DST DVB-T"
-tuning DVB-T to 498000000 Hz
-inv:2 bw:0 fecH:2 fecL:9 mod:1 tm:1 gi:3 hier:0
-...............
+> > +
+> > +     return 0;
+> > +}
+> > +
+> > +static int adv7343_remove(struct i2c_client *client)
+> > +{
+> > +     struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> > +
+> > +     v4l2_device_unregister_subdev(sd);
+> > +     kfree(to_state(sd));
+> > +
+> > +     return 0;
+> > +}
+> > +
+> > +static const struct i2c_device_id adv7343_id[] = {
+> > +     {ADV7343_NAME, 0},
+> > +     {},
+> > +};
+> > +
+> > +MODULE_DEVICE_TABLE(i2c, adv7343_id);
+> > +
+> > +static struct v4l2_i2c_driver_data v4l2_i2c_data = {
+> > +     .name           = ADV7343_NAME,
+> > +     .command        = adv7343_command,
+> > +     .probe          = adv7343_probe,
+> > +     .remove         = adv7343_remove,
+> > +     .legacy_class   = I2C_CLASS_TV_ANALOG | I2C_CLASS_TV_DIGITAL,
+> > +     .id_table       = adv7343_id,
+> > +};
+> > +
+> > +static __init int init_adv7343(void)
+> > +{
+> > +     return 0;
+> > +}
+> > +
+> > +static __exit void exit_adv7343(void)
+> > +{
+> > +
+> > +}
+>
+> See my comments in the ths7303 review.
+>
+> > +
+> > +module_init(init_adv7343);
+> > +module_exit(exit_adv7343);
+> > +MODULE_LICENSE("GPL");
+> > diff --git a/include/media/adv7343.h b/include/media/adv7343.h
+> > new file mode 100644
+> > index 0000000..b7da4a6
+> > --- /dev/null
+> > +++ b/include/media/adv7343.h
+> > @@ -0,0 +1,373 @@
+> > +/*
+> > + * ADV7343 header file
+> > + *
+> > + * Copyright (C) 2009 Texas Instruments Incorporated -
+> http://www.ti.com/
+> > + *
+> > + * This program is free software; you can redistribute it and/or
+> > + * modify it under the terms of the GNU General Public License as
+> > + * published by the Free Software Foundation version 2.
+> > + *
+> > + * This program is distributed .as is. WITHOUT ANY WARRANTY of any
+> > + * kind, whether express or implied; without even the implied
+> warranty
+> > + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> > + * GNU General Public License for more details.
+> > + */
+> > +
+> > +#ifndef ADV7343_H
+> > +#define ADV7343_H
+> > +
+> > +#ifdef __KERNEL__
+>
+> Not needed. Files in include/media are internal to the kernel only.
+>
+> I'm not doing an in-depth review of this header. You first need to
+> split
+> it up in two parts: one adv7343_regs.h header that is included by the
+> adv7343.c
+> driver and is in the same directory as that driver: that header
+> contains all
+> the internal datastructures and defines (register addresses, etc.) that
+> it uses.
+>
+> The media/adv7343.h contains only the defines that other drivers need
+> to
+> interface with the adv7343 driver: in particular the routing
+> information
+> for the s_routing ops goes there.
+>
+> Once that's done I'll review it again.
+>
+OK, I understood your point, will modify the header files and its
+location.
 
-Not able to lock to the signal on the given frequency
-Frontend closed
-Tuning delay: 1602 ms
-Saved epg data : 4667 events (70 msecs)
+> One thing to keep in mind at all times is that you do not mix user-
+> level
+> input/output descriptions and device-level input/output descriptions.
+>
+> E.g. say that pin X is connected to the "Composite 1" output connector
+> on the board. The i2c driver has no knowledge of that. All it needs to
+> know is that pin X is the output pin. The platform driver, however, is
+> the one that has access to the actual board layout and should be
+> the driver that associates the "Composite 1" connector (a user-level
+> description) with pin X in the i2c device (a device-level description).
+>
+> The s_routing operations only deal with the device-level. How you
+> encode
+> the pins is purely device specific and goes into the media/adv7343.h
+> header. Depending on the i2c device you may have to specify both input
+> and
+> output pins. E.g. the input pin would be the pin that the videoport
+> sends
+> its data to, and the output pin is the pin that is connector to the
+> physical
+> connector on the board.
+>
+> Note that when the conversion of the legacy drivers is finished I want
+> to
+> modify the s_routing function a bit: instead of using the awkward
+> v4l2_routing struct you can just specify the input and output fields
+> directly
+> as arguments. And I think that I'll also add a config argument since
+> sometimes you need to specify addition configuration information. The
+> media/saa7115.h is an example of that where the output field is abused
+> to
+> pass config information.
+>
+The main purpose of the arrays is to set the relevant registers of the encoder
+based on the format being displayed. The adv7343_std_info structure is set of
+register values to be modified based on the standard.  The adv7343_config
+structure is a collection of output types supported and the corresponding register
+settings. The above registers are specific to the encoder only and the platform driver
+is not aware of these arrays. Hope I have understood your above explanation properly.
+I am of the opinion that the arrays are not mixing user and device level concepts.
 
-2.6.28:
+Thanks,
+Chaithrika
 
-Tuning to: RTL Television / autocount: 0
-DvbCam::probe(): /dev/dvb/adapter0/ca0: : No such file or directory
-Using DVB device 0:0 "DST DVB-T"
-tuning DVB-T to 498000000 Hz
-inv:2 bw:0 fecH:2 fecL:9 mod:1 tm:1 gi:3 hier:0
-. LOCKED.
-NOUT: 1
-dvbEvents 0:0 started
-Tuning delay: 559 ms
-pipe opened
-xine pipe opened /home/rge/.kaxtv.ts
-Asked to stop
-pipe closed
-Live stopped
-dvbstream::run() end
-dvbEvents 0:0 ended
-fdDvr closed
-Frontend closed
-Tuning to: NDR FS NDS / autocount: 1
-Using DVB device 0:0 "DST DVB-T"
-tuning DVB-T to 594000000 Hz
-inv:2 bw:0 fecH:2 fecL:9 mod:1 tm:1 gi:3 hier:0
-. LOCKED.
-NOUT: 1
-dvbEvents 0:0 started
-Tuning delay: 304 ms
-pipe opened
-xine pipe opened /home/rge/.kaxtv1.ts
-Asked to stop
-pipe closed
-Live stopped
-dvbstream::run() end
-dvbEvents 0:0 ended
-fdDvr closed
-Frontend closed
-Saved epg data : 5506 events (78 msecs)
-
-Messages 2.6.29-git-00143-g99adcd9
-Linux video capture interface: v2.00
-bttv: driver version 0.9.17 loaded
-bttv: using 8 buffers with 2080k (520 pages) each for capture
-bttv: Bt8xx card found (0).
-bttv0: Bt878 (rev 17) at 0000:02:07.0, irq: 17, latency: 32, mmio: 0xfdeff000
-bttv0: detected: Twinhan VisionPlus DVB [card=113], PCI subsystem ID is 1822:0001
-bttv0: using: Twinhan DST + clones [card=113,autodetected]
-IRQ 17/bttv0: IRQF_DISABLED is not guaranteed on shared IRQs
-bttv0: gpio: en=00000000, out=00000000 in=00fb0efe [pre-init]
-bttv0: risc main @ bf8ab000
-bttv0: gpio: en=00000000, out=00000000 in=00f92bfe [init]
-bttv0: tuner absent
-bttv0: add subdevice "dvb0"
-bt878: AUDIO driver version 0.0.0 loaded
-bt878: Bt878 AUDIO function found (0).
-bt878 0000:02:07.1: PCI INT A -> Link[APC2] -> GSI 17 (level, low) -> IRQ 17
-bt878_probe: card id=[0x11822],[ Twinhan VisionPlus DVB ] has DVB functions.
-bt878(0): Bt878 (rev 17) at 02:07.1, irq: 17, latency: 32, memory: 0xfdefe000
-IRQ 17/bt878: IRQF_DISABLED is not guaranteed on shared IRQs
-dvb_bt8xx: identified card0 as bttv0
-DVB: registering new adapter (bttv0)
-dst(0) dst_comm_init: Initializing DST.
-dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0001], outhigh=[0000]
-bttv0: gpio: en=00000001, out=00000000 in=00fbfffe [extern enable]
-bttv0: gpio: en=00000001, out=00000000 in=00fb46fe [extern write]
-dst(0) rdc_reset_state: Resetting state machine
-dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
-bttv0: gpio: en=00000003, out=00000002 in=00f9fffc [extern enable]
-bttv0: gpio: en=00000003, out=00000000 in=00fbe4fc [extern write]
-dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
-bttv0: gpio: en=00000003, out=00000000 in=00fb5dfc [extern enable]
-bttv0: gpio: en=00000003, out=00000002 in=00fb1afc [extern write]
-writing [ 00 06 00 00 00 00 00 fa ]
-bt-i2c: <W aa 00 06 00 00 00 00 00 fa >
-dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0000], outhigh=[0000]
-bttv0: gpio: en=00000000, out=00000000 in=00fbacfe [extern enable]
-bt-i2c: <R ab =ff >
-dst(0) read_dst: reply is 0xff
-dst(0) dst_wait_dst_ready: dst wait ready after 1
-bt-i2c: <R ab =20 =44 =54 =54 =44 =49 =47 =20 >
-dst(0) read_dst: reply is 0x20
-0x44 0x54 0x54 0x44 0x49 0x47 0x20
-dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0000], outhigh=[0000]
-bttv0: gpio: en=00000000, out=00000000 in=00fb1eff [extern enable]
-dst(0) dst_get_device_id: Recognise [DTTDIG]
-dst(0) dst_type_print: DST type: terrestrial
-DST type flags : 0x10 firmware version = 2
-dst(0) dst_comm_init: Initializing DST.
-dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0001], outhigh=[0000]
-bttv0: gpio: en=00000001, out=00000000 in=00f975fe [extern enable]
-bttv0: gpio: en=00000001, out=00000000 in=00fb03fe [extern write]
-dst(0) rdc_reset_state: Resetting state machine
-dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
-bttv0: gpio: en=00000003, out=00000002 in=00fbccfc [extern enable]
-bttv0: gpio: en=00000003, out=00000000 in=00f9ccfc [extern write]
-dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
-bttv0: gpio: en=00000003, out=00000000 in=00fbdcfc [extern enable]
-bttv0: gpio: en=00000003, out=00000002 in=00fbb7fc [extern write]
-writing [ 00 0a 00 00 00 00 00 f6 ]
-bt-i2c: <W aa 00 0a 00 00 00 00 00 f6 >
-dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0000], outhigh=[0000]
-bttv0: gpio: en=00000000, out=00000000 in=00fbadff [extern enable]
-bt-i2c: <R ab =ff >
-dst(0) read_dst: reply is 0xff
-dst(0) dst_wait_dst_ready: dst wait ready after 0
-bt-i2c: <R ab =00 =08 =ca =30 =10 =4c =2f =73 >
-dst(0) read_dst: reply is 0x0
-0x8 0xca 0x30 0x10 0x4c 0x2f 0x73
-dst(0) dst_get_mac: MAC Address=[00:08:ca:30:10:4c]
-DVB: registering adapter 0 frontend 0 (DST DVB-T)...
-
-2.6.28.7:
-
-Linux video capture interface: v2.00
-bttv: driver version 0.9.17 loaded
-bttv: using 8 buffers with 2080k (520 pages) each for capture
-bttv: Bt8xx card found (0).
-bttv0: Bt878 (rev 17) at 0000:02:07.0, irq: 17, latency: 32, mmio: 0xfdeff000
-bttv0: detected: Twinhan VisionPlus DVB [card=113], PCI subsystem ID is 1822:0001
-bttv0: using: Twinhan DST + clones [card=113,autodetected]
-bttv0: gpio: en=00000000, out=00000000 in=00fb5bfe [pre-init]
-bttv0: risc main @ 3cf54000
-bttv0: gpio: en=00000000, out=00000000 in=00fb5bfe [init]
-bttv0: tuner absent
-bttv0: add subdevice "dvb0"
-bt878: AUDIO driver version 0.0.0 loaded
-bt878: Bt878 AUDIO function found (0).
-bt878 0000:02:07.1: PCI INT A -> Link[APC2] -> GSI 17 (level, low) -> IRQ 17
-bt878_probe: card id=[0x11822],[ Twinhan VisionPlus DVB ] has DVB functions.
-bt878(0): Bt878 (rev 17) at 02:07.1, irq: 17, latency: 32, memory: 0xfdefe000
-dvb_bt8xx: identified card0 as bttv0
-DVB: registering new adapter (bttv0)
-dst(0) dst_comm_init: Initializing DST.
-dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0001], outhigh=[0000]
-bttv0: gpio: en=00000001, out=00000000 in=00f9b6fe [extern enable]
-bttv0: gpio: en=00000001, out=00000000 in=00fb52fe [extern write]
-dst(0) rdc_reset_state: Resetting state machine
-dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
-bttv0: gpio: en=00000003, out=00000002 in=00fbe6fc [extern enable]
-bttv0: gpio: en=00000003, out=00000000 in=00f963fc [extern write]
-dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
-bttv0: gpio: en=00000003, out=00000000 in=00fbd5fc [extern enable]
-bttv0: gpio: en=00000003, out=00000002 in=00fb0ffc [extern write]
-writing [ 00 06 00 00 00 00 00 fa ]
-bt-i2c: <W aa 00 06 00 00 00 00 00 fa >
-dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0000], outhigh=[0000]
-bttv0: gpio: en=00000000, out=00000000 in=00fb2ffe [extern enable]
-bt-i2c: <R ab =ff >
-dst(0) read_dst: reply is 0xff
-dst(0) dst_wait_dst_ready: dst wait ready after 1
-bt-i2c: <R ab =20 =44 =54 =54 =44 =49 =47 =20 >
-dst(0) read_dst: reply is 0x20
-0x44 0x54 0x54 0x44 0x49 0x47 0x20
-dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0000], outhigh=[0000]
-bttv0: gpio: en=00000000, out=00000000 in=00f96eff [extern enable]
-dst(0) dst_get_device_id: Recognise [DTTDIG]
-dst(0) dst_type_print: DST type: terrestrial
-DST type flags : 0x10 firmware version = 2
-dst(0) dst_comm_init: Initializing DST.
-dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0001], outhigh=[0000]
-bttv0: gpio: en=00000001, out=00000000 in=00fb39fe [extern enable]
-bttv0: gpio: en=00000001, out=00000000 in=00f9ddfe [extern write]
-dst(0) rdc_reset_state: Resetting state machine
-dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
-bttv0: gpio: en=00000003, out=00000002 in=00fbe5fc [extern enable]
-bttv0: gpio: en=00000003, out=00000000 in=00fb01fc [extern write]
-dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
-bttv0: gpio: en=00000003, out=00000000 in=00fb2efc [extern enable]
-bttv0: gpio: en=00000003, out=00000002 in=00fbecfc [extern write]
-writing [ 00 0a 00 00 00 00 00 f6 ]
-bt-i2c: <W aa 00 0a 00 00 00 00 00 f6 >
-dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0000], outhigh=[0000]
-bttv0: gpio: en=00000000, out=00000000 in=00fb1eff [extern enable]
-bt-i2c: <R ab =ff >
-dst(0) read_dst: reply is 0xff
-dst(0) dst_wait_dst_ready: dst wait ready after 0
-bt-i2c: <R ab =00 =08 =ca =30 =10 =4c =2f =73 >
-dst(0) read_dst: reply is 0x0
-0x8 0xca 0x30 0x10 0x4c 0x2f 0x73
-dst(0) dst_get_mac: MAC Address=[00:08:ca:10:4c:00]
-DVB: registering adapter 0 frontend 1601332596 (DST DVB-T)...
-dst(0) dst_set_freq: set Frequency 682000000
-dst(0) dst_set_frontend: Set Frequency=[682000000]
-dst(0) dst_write_tuna: type_flags 0x10 
-dst(0) dst_comm_init: Initializing DST.
-dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0001], outhigh=[0000]
-bttv0: gpio: en=00000001, out=00000000 in=00fbaefe [extern enable]
-bttv0: gpio: en=00000001, out=00000000 in=00fb62fe [extern write]
-dst(0) rdc_reset_state: Resetting state machine
-dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
-bttv0: gpio: en=00000003, out=00000002 in=00f921fc [extern enable]
-bttv0: gpio: en=00000003, out=00000000 in=00fbedfc [extern write]
-dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
-bttv0: gpio: en=00000003, out=00000000 in=00fbc5fc [extern enable]
-bttv0: gpio: en=00000003, out=00000002 in=00fbccfc [extern write]
-writing [ 0a 68 10 07 08 00 00 6f ]
-bt-i2c: <W aa 0a 68 10 07 08 00 00 6f >
-dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0000], outhigh=[0000]
-bttv0: gpio: en=00000000, out=00000000 in=00fb74fe [extern enable]
-bt-i2c: <R ab =ff >
-dst(0) read_dst: reply is 0xff
-dst(0) dst_wait_dst_ready: dst wait ready after 17
-bt-i2c: <R ab =0a =68 =00 =56 =39 =00 =00 =ff >
-dst(0) read_dst: reply is 0xa
-0x68 0x0 0x56 0x39 0x0 0x0 0xff
-function : dvb_dvr_open
-dvb_bt8xx: start_feed
-dvb_bt8xx: start_feed
-function : dvb_dmxdev_filter_set
-dvb_bt8xx: start_feed
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-function : dvb_dvr_poll
-[...]
-dmxdev: section callback 4e f1 3a 00 02 ef
-
-interupts-2.6.29-git-00143-g99adcd9:
-
-           CPU0       CPU1       CPU2       CPU3       
-  0:         41          0          0          3   IO-APIC-edge      timer
-  1:          0          0          1        679   IO-APIC-edge      i8042
-  6:          0          0          0          3   IO-APIC-edge      floppy
-  7:          1          0          0          0   IO-APIC-edge      parport0
-  8:          0          0          0          1   IO-APIC-edge      rtc0
-  9:          0          0          0          0   IO-APIC-fasteoi   acpi
- 14:          0          0          1        100   IO-APIC-edge      pata_amd
- 15:          0          0          0          0   IO-APIC-edge      pata_amd
- 16:          0          0          0         33   IO-APIC-fasteoi   sata_sil24, ohci1394, HDA Intel
- 17:          0          0          0         34   IO-APIC-fasteoi   bttv0, bt878
- 18:          0          0          0          2   IO-APIC-fasteoi   fcpcipnp
- 21:          0         10        781       8885   IO-APIC-fasteoi   sata_nv, HDA Intel
- 22:          0          5        743      19891   IO-APIC-fasteoi   sata_nv, ohci_hcd:usb2
- 23:          0          5        128      17205   IO-APIC-fasteoi   sata_nv, ehci_hcd:usb1
- 26:          0          3         68      36598   PCI-MSI-edge      inner
- 27:          0          2         77      36011   PCI-MSI-edge      outer
-NMI:          0          0          0          0   Non-maskable interrupts
-LOC:      18479      12585      12330      28107   Local timer interrupts
-RES:       7334       7904       6049       7152   Rescheduling interrupts
-CAL:        103        197        193        104   Function call interrupts
-TLB:       1306       1138        941        730   TLB shootdowns
-TRM:          0          0          0          0   Thermal event interrupts
-THR:          0          0          0          0   Threshold APIC interrupts
-SPU:          0          0          0          0   Spurious interrupts
-ERR:          1
-MIS:          0
-
-
-interupts-2.6.28.7:
-
-           CPU0       CPU1       CPU2       CPU3       
-  0:         41          0          1        277   IO-APIC-edge      timer
-  1:          0          1         80      22235   IO-APIC-edge      i8042
-  6:          0          0          0          3   IO-APIC-edge      floppy
-  7:          1          0          0          0   IO-APIC-edge      parport0
-  8:          0          0          0          1   IO-APIC-edge      rtc0
-  9:          0          0          0          0   IO-APIC-fasteoi   acpi
- 14:          0          0          0         96   IO-APIC-edge      pata_amd
- 15:          0          0          0          0   IO-APIC-edge      pata_amd
- 16:          0          0          0         29   IO-APIC-fasteoi   sata_sil24, ohci1394, HDA Intel
- 17:          0          0         15       4970   IO-APIC-fasteoi   bttv0, bt878
- 18:          0          0          0          2   IO-APIC-fasteoi   fcpcipnp
- 20:          0          4        286     138957   IO-APIC-fasteoi   ehci_hcd:usb1, HDA Intel
- 21:          1        368     129404    1685931   IO-APIC-fasteoi   sata_nv
- 22:          0        300     109509    3054730   IO-APIC-fasteoi   sata_nv
- 23:          0         49        848     136499   IO-APIC-fasteoi   sata_nv, ohci_hcd:usb2
-380:          0        231       9545    5827745   PCI-MSI-edge      outer
-381:          0        212       8358    4778392   PCI-MSI-edge      inner
-NMI:          0          0          0          0   Non-maskable interrupts
-LOC:    2065225    1275523     589089    2608517   Local timer interrupts
-RES:     487139     309466     439503     415886   Rescheduling interrupts
-CAL:        395        488        486        188   Function call interrupts
-TLB:      19918       9095      37597       9974   TLB shootdowns
-TRM:          0          0          0          0   Thermal event interrupts
-THR:          0          0          0          0   Threshold APIC interrupts
-SPU:          0          0          0          0   Spurious interrupts
-ERR:          1
-MIS:          0
-
-modules-2.6.29-git-00143-g99adcd9:
-
-dvb_bt8xx              13596  0 
-nxt6000                 7068  1 dvb_bt8xx
-mt352                   6428  1 dvb_bt8xx
-sp887x                  7164  1 dvb_bt8xx
-dst_ca                 12104  1 dvb_bt8xx
-tuner_simple           12676  1 dvb_bt8xx
-tuner_types            17656  1 tuner_simple
-or51211                 7548  1 dvb_bt8xx
-zl10353                 7472  1 dvb_bt8xx
-lgdt330x                8700  1 dvb_bt8xx
-dst                    26976  2 dvb_bt8xx,dst_ca
-dvb_core               87548  5 dvb_bt8xx,dst_ca,or51211,lgdt330x,dst
-cx24110                 7628  1 dvb_bt8xx
-bt878                  10296  2 dvb_bt8xx,dst
-bttv                  234868  2 dvb_bt8xx,bt878
-i2c_algo_bit            5692  1 bttv
-v4l2_common            14904  1 bttv
-videodev               38064  2 bttv,v4l2_common
-v4l1_compat            12604  1 videodev
-videobuf_dma_sg        11468  1 bttv
-videobuf_core          16284  2 bttv,videobuf_dma_sg
-btcx_risc               4352  1 bttv
-tveeprom               13292  1 bttv
-
-modules-2.6.8.7:
-
-dvb_bt8xx              13636  0 
-nxt6000                 7300  1 dvb_bt8xx
-mt352                   6660  1 dvb_bt8xx
-sp887x                  7364  1 dvb_bt8xx
-dst_ca                 12352  1 dvb_bt8xx
-tuner_simple           12820  1 dvb_bt8xx
-tuner_types            17920  1 tuner_simple
-or51211                 7876  1 dvb_bt8xx
-zl10353                 7624  1 dvb_bt8xx
-dst                    26824  2 dvb_bt8xx,dst_ca
-lgdt330x                8900  1 dvb_bt8xx
-dvb_core               81052  5 dvb_bt8xx,dst_ca,or51211,dst,lgdt330x
-cx24110                 7812  1 dvb_bt8xx
-bt878                  10584  2 dvb_bt8xx,dst
-bttv                  187684  2 dvb_bt8xx,bt878
-compat_ioctl32          8320  1 bttv
-videodev               31104  2 bttv,compat_ioctl32
-v4l1_compat            12548  1 videodev
-i2c_algo_bit            5828  1 bttv
-v4l2_common            12480  1 bttv
-videobuf_dma_sg        11716  1 bttv
-videobuf_core          16452  2 bttv,videobuf_dma_sg
-btcx_risc               4616  1 bttv
-tveeprom               13636  1 bttv
-
-
-lspci:
-
-00:00.0 RAM memory: nVidia Corporation C51 Host Bridge (rev a2)
-00:00.1 RAM memory: nVidia Corporation C51 Memory Controller 0 (rev a2)
-00:00.2 RAM memory: nVidia Corporation C51 Memory Controller 1 (rev a2)
-00:00.3 RAM memory: nVidia Corporation C51 Memory Controller 5 (rev a2)
-00:00.4 RAM memory: nVidia Corporation C51 Memory Controller 4 (rev a2)
-00:00.5 RAM memory: nVidia Corporation C51 Host Bridge (rev a2)
-00:00.6 RAM memory: nVidia Corporation C51 Memory Controller 3 (rev a2)
-00:00.7 RAM memory: nVidia Corporation C51 Memory Controller 2 (rev a2)
-00:04.0 PCI bridge: nVidia Corporation C51 PCI Express Bridge (rev a1)
-00:08.0 RAM memory: nVidia Corporation MCP55 Memory Controller (rev a1)
-00:09.0 ISA bridge: nVidia Corporation MCP55 LPC Bridge (rev a2)
-00:09.1 SMBus: nVidia Corporation MCP55 SMBus (rev a2)
-00:0a.0 USB Controller: nVidia Corporation MCP55 USB Controller (rev a1)
-00:0a.1 USB Controller: nVidia Corporation MCP55 USB Controller (rev a2)
-00:0c.0 IDE interface: nVidia Corporation MCP55 IDE (rev a1)
-00:0d.0 IDE interface: nVidia Corporation MCP55 SATA Controller (rev a2)
-00:0d.1 IDE interface: nVidia Corporation MCP55 SATA Controller (rev a2)
-00:0d.2 IDE interface: nVidia Corporation MCP55 SATA Controller (rev a2)
-00:0e.0 PCI bridge: nVidia Corporation MCP55 PCI bridge (rev a2)
-00:0e.1 Audio device: nVidia Corporation MCP55 High Definition Audio (rev a2)
-00:10.0 Bridge: nVidia Corporation MCP55 Ethernet (rev a2)
-00:11.0 Bridge: nVidia Corporation MCP55 Ethernet (rev a2)
-00:16.0 PCI bridge: nVidia Corporation MCP55 PCI Express bridge (rev a2)
-00:18.0 Host bridge: Advanced Micro Devices [AMD] Family 10h [Opteron, Athlon64, Sempron] HyperTransport Configuration
-00:18.1 Host bridge: Advanced Micro Devices [AMD] Family 10h [Opteron, Athlon64, Sempron] Address Map
-00:18.2 Host bridge: Advanced Micro Devices [AMD] Family 10h [Opteron, Athlon64, Sempron] DRAM Controller
-00:18.3 Host bridge: Advanced Micro Devices [AMD] Family 10h [Opteron, Athlon64, Sempron] Miscellaneous Control
-00:18.4 Host bridge: Advanced Micro Devices [AMD] Family 10h [Opteron, Athlon64, Sempron] Link Control
-01:00.0 VGA compatible controller: ATI Technologies Inc RV770 LE [Radeon HD 4800 Series]
-01:00.1 Audio device: ATI Technologies Inc HD48x0 audio
-02:07.0 Multimedia video controller: Brooktree Corporation Bt878 Video Capture (rev 11)
-02:07.1 Multimedia controller: Brooktree Corporation Bt878 Audio Capture (rev 11)
-02:08.0 Network controller: AVM GmbH Fritz!PCI v2.0 ISDN (rev 01)
-02:0b.0 FireWire (IEEE 1394): Texas Instruments TSB43AB22/A IEEE-1394a-2000 Controller (PHY/Link)
-03:00.0 Mass storage controller: Silicon Image, Inc. SiI 3132 Serial ATA Raid II Controller (rev 01)
-
-
---=-=-=
-Content-Type: application/octet-stream
-Content-Disposition: attachment;
- filename=config-2.6.29-git-00143-g99adcd9.gz
-Content-Transfer-Encoding: base64
-
-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
-AP8PKYOTWNzuAAA=
---=-=-=--
+> Regards,
+>
+>         Hans
+>
+> > +
+> > +/* Kernel Header files */
+> > +#include <linux/i2c.h>
+> > +#include <linux/device.h>
+> > +#include <linux/videodev2.h>
+> > +
+> > +#endif                               /* __KERNEL__ */
+> > +
+> > +#define ADV7343_NAME "adv7343"
+> > +
+> > +/** VID_ENC_NAME_MAX_CHARS
+> > + *
+> > + * Description:
+> > + * MAX characters in the name.
+> > + */
+> > +#define VID_ENC_NAME_MAX_CHARS       30
+> > +
+> > +/*
+> > + * constant strings for output names.
+> > + */
+> > +#define VID_ENC_OUTPUT_COMPOSITE     "COMPOSITE"
+> > +#define VID_ENC_OUTPUT_SVIDEO                "SVIDEO"
+> > +#define      VID_ENC_OUTPUT_COMPONENT        "COMPONENT"
+> > +
+> > +/* Internal IOCTL defines */
+> > +#define ENCODER_GET_MODE     _IOR('e', BASE_VIDIOC_PRIVATE + 1,
+> v4l2_std_id*)
+> > +
+> > +/* Macros */
+> > +#define ADV7343_MAX_GAMMA_COEFFS     (10)    /* Maximum Gamma
+> Coefficients */
+> > +
+> > +#ifdef __KERNEL__
+> > +
+> > +#define ADV7343_COMPOSITE_OUTPUT_NAME        "COMPOSITE"
+> > +#define ADV7343_COMPONENT_OUTPUT_NAME        "COMPONENT"
+> > +#define ADV7343_SVIDEO_OUTPUT_NAME   "SVIDEO"
+> > +#define ADV7343_COMPOSITE_ID (0)
+> > +#define ADV7343_COMPONENT_ID (1)
+> > +#define ADV7343_SVIDEO_ID    (2)
+> > +
+> > +#define ADV7343_COMPOSITE_NO_CONTROLS        (3)
+> > +#define ADV7343_COMPONENT_NO_CONTROLS        (1)
+> > +#define ADV7343_SVIDEO_NO_CONTROLS   (3)
+> > +
+> > +#define ADV7343_NUM_CHANNELS         (1)
+> > +
+> > +/* encoder standard related strctures */
+> > +#define ADV7343_MAX_NO_OUTPUTS               (3)
+> > +#define ADV7343_COMPOSITE_NUM_STD    (2)
+> > +#define ADV7343_COMPONENT_NUM_STD    (7+3+3)
+> > +#define ADV7343_SVIDEO_NUM_STD               (2)
+> > +#define ADV7343_MAX_NO_CONTROLS              (3)
+> > +#define ADV7343_VBI_NUM_SERVICES     (3)
+> > +
+> > +struct adv7343_std_info {
+> > +     unsigned char set_std_register;
+> > +     unsigned char *value;
+> > +     u32 outputmode_val1;
+> > +     u32 standard_val2;
+> > +     u32 standard_val3;
+> > +     u8 fsc0_reg, fsc0_val;
+> > +     u8 fsc1_reg, fsc1_val;
+> > +     u8 fsc2_reg, fsc2_val;
+> > +     u8 fsc3_reg, fsc3_val;
+> > +     v4l2_std_id stdid;
+> > +};
+> > +
+> > +struct adv7343_config {
+> > +     int no_of_outputs;
+> > +     struct {
+> > +             unsigned char power_val;
+> > +             int output_type;
+> > +             char output_name[VID_ENC_NAME_MAX_CHARS];
+> > +             int no_of_standard;
+> > +             v4l2_std_id def_std;
+> > +             struct adv7343_std_info *std_info;
+> > +     } output[ADV7343_MAX_NO_OUTPUTS];
+> > +     unsigned short services_set;
+> > +     u8 num_services;
+> > +};
+> > +
+> > +struct adv7343_channel {
+> > +     u8 current_output;
+> > +     v4l2_std_id mode_info;
+> > +     unsigned short services_set;
+> > +};
+> > +
+> > +#define ADV7343_VALID_FEATURE_VAL(val)       ((ADV7343_DISABLE ==
+> (val)) || \
+> > +                                     (ADV7343_ENABLE == (val)))
+> > +#define ADV7343_VALID_GAMMA_CURVE(val)       ((ADV7343_GAMMA_CURVE_A
+> == (val)) || \
+> > +                                     (ADV7343_GAMMA_CURVE_B ==
+> (val)))
+> > +
+> > +/* Register offset macros */
+> > +#define ADV7343_POWER_MODE_REG               (0x00)
+> > +#define ADV7343_MODE_SELECT_REG              (0x01)
+> > +#define ADV7343_MODE_REG0            (0x02)
+> > +#define ADV7343_CSC_MATRIX0          (0x03)
+> > +#define ADV7343_CSC_MATRIX1          (0x04)
+> > +#define ADV7343_CSC_MATRIX2          (0x05)
+> > +#define ADV7343_CSC_MATRIX3          (0x06)
+> > +#define ADV7343_CSC_MATRIX4          (0x07)
+> > +#define ADV7343_CSC_MATRIX5          (0x08)
+> > +#define ADV7343_CSC_MATRIX6          (0x09)
+> > +#define ADV7343_DAC1_OUTPUT_LEVEL    (0x0a)
+> > +#define ADV7343_DAC2_OUTPUT_LEVEL    (0x0b)
+> > +#define ADV7343_DAC_POWER_MODE               (0x0d)
+> > +#define ADV7343_CABLE_DETECTION              (0x10)
+> > +#define ADV7343_SBUS_READ            (0x12)
+> > +#define ADV7343_YBUS_READ            (0x13)
+> > +#define ADV7343_CBUS_READ            (0x14)
+> > +#define ADV7343_CONTROL_READ         (0x16)
+> > +#define ADV7343_SOFT_RESET           (0x17)
+> > +#define ADV7343_HD_MODE_REG1         (0x30)
+> > +#define ADV7343_HD_MODE_REG2         (0x31)
+> > +#define ADV7343_HD_MODE_REG3         (0x32)
+> > +#define ADV7343_HD_MODE_REG4         (0x33)
+> > +#define ADV7343_HD_MODE_REG5         (0x34)
+> > +#define ADV7343_HD_MODE_REG6         (0x35)
+> > +#define ADV7343_HD_Y_LEVEL           (0x36)
+> > +#define ADV7343_HD_CR_LEVEL          (0x37)
+> > +#define ADV7343_HD_CB_LEVEL          (0x38)
+> > +#define ADV7343_HD_MODE_REG7         (0x39)
+> > +#define ADV7343_HD_SHARPNESS_FLTR_GAIN       (0x40)
+> > +#define ADV7343_HD_CGMS_DATA_0               (0x41)
+> > +#define ADV7343_HD_CGMS_DATA_1               (0x42)
+> > +#define ADV7343_HD_CGMS_DATA_2               (0x43)
+> > +#define ADV7343_HD_GAMMA_A0          (0x44)
+> > +#define ADV7343_HD_GAMMA_A1          (0x45)
+> > +#define ADV7343_HD_GAMMA_A2          (0x46)
+> > +#define ADV7343_HD_GAMMA_A3          (0x47)
+> > +#define ADV7343_HD_GAMMA_A4          (0x48)
+> > +#define ADV7343_HD_GAMMA_A5          (0x49)
+> > +#define ADV7343_HD_GAMMA_A6          (0x4a)
+> > +#define ADV7343_HD_GAMMA_A7          (0x4b)
+> > +#define ADV7343_HD_GAMMA_A8          (0x4c)
+> > +#define ADV7343_HD_GAMMA_A9          (0x4d)
+> > +#define ADV7343_HD_GAMMA_B0          (0x4E)
+> > +#define ADV7343_HD_GAMMA_B1          (0x4F)
+> > +#define ADV7343_HD_GAMMA_B2          (0x50)
+> > +#define ADV7343_HD_GAMMA_B3          (0x51)
+> > +#define ADV7343_HD_GAMMA_B4          (0x52)
+> > +#define ADV7343_HD_GAMMA_B5          (0x53)
+> > +#define ADV7343_HD_GAMMA_B6          (0x54)
+> > +#define ADV7343_HD_GAMMA_B7          (0x55)
+> > +#define ADV7343_HD_GAMMA_B8          (0x56)
+> > +#define ADV7343_HD_GAMMA_B9          (0x57)
+> > +#define ADV7343_HD_ADPT_FLTR_GAIN1   (0x58)
+> > +#define ADV7343_HD_ADPT_FLTR_GAIN2   (0x59)
+> > +#define ADV7343_HD_ADPT_FLTR_GAIN3   (0x5a)
+> > +#define ADV7343_HD_ADPT_FLTR_THRLDA  (0x5b)
+> > +#define ADV7343_HD_ADPT_FLTR_THRLDB  (0x5c)
+> > +#define ADV7343_HD_ADPT_FLTR_THRLDC  (0x5d)
+> > +#define ADV7343_HD_CGMS_B0           (0x5E)
+> > +#define ADV7343_HD_CGMS_B1           (0x5F)
+> > +#define ADV7343_HD_CGMS_B2           (0x60)
+> > +#define ADV7343_HD_CGMS_B3           (0x61)
+> > +#define ADV7343_HD_CGMS_B4           (0x62)
+> > +#define ADV7343_HD_CGMS_B5           (0x63)
+> > +#define ADV7343_HD_CGMS_B6           (0x64)
+> > +#define ADV7343_HD_CGMS_B7           (0x65)
+> > +#define ADV7343_HD_CGMS_B8           (0x66)
+> > +#define ADV7343_HD_CGMS_B9           (0x67)
+> > +#define ADV7343_HD_CGMS_B10          (0x68)
+> > +#define ADV7343_HD_CGMS_B11          (0x69)
+> > +#define ADV7343_HD_CGMS_B12          (0x6A)
+> > +#define ADV7343_HD_CGMS_B13          (0x6B)
+> > +#define ADV7343_HD_CGMS_B14          (0x6C)
+> > +#define ADV7343_HD_CGMS_B15          (0x6D)
+> > +#define ADV7343_HD_CGMS_B16          (0x6E)
+> > +
+> > +#define ADV7343_SD_MODE_REG1         (0x80)
+> > +#define ADV7343_SD_MODE_REG2         (0x82)
+> > +#define ADV7343_SD_MODE_REG3         (0x83)
+> > +#define ADV7343_SD_MODE_REG4         (0x84)
+> > +#define ADV7343_SD_MODE_REG5         (0x86)
+> > +#define ADV7343_SD_MODE_REG6         (0x87)
+> > +#define ADV7343_SD_MODE_REG7         (0x88)
+> > +#define ADV7343_SD_MODE_REG8         (0x89)
+> > +#define ADV7343_SD_TIMING_REG0               (0x8A)
+> > +#define ADV7343_SD_TIMING_REG1               (0x8B)
+> > +#define ADV7343_SD_FSC_REG0          (0x8C)
+> > +#define ADV7343_SD_FSC_REG1          (0x8D)
+> > +#define ADV7343_SD_FSC_REG2          (0x8E)
+> > +#define ADV7343_SD_FSC_REG3          (0x8F)
+> > +#define ADV7343_SD_FSC_PHASE         (0x90)
+> > +#define ADV7343_SD_CLOSE_CAPTION_EVEN0       (0x91)
+> > +#define ADV7343_SD_CLOSE_CAPTION_EVEN1       (0x92)
+> > +#define ADV7343_SD_CLOSE_CAPTION_ODD0        (0x93)
+> > +#define ADV7343_SD_CLOSE_CAPTION_ODD1        (0x94)
+> > +#define ADV7343_SD_PEDESTAL_REG0     (0x95)
+> > +#define ADV7343_SD_PEDESTAL_REG1     (0x96)
+> > +#define ADV7343_SD_PEDESTAL_REG2     (0x97)
+> > +#define ADV7343_SD_PEDESTAL_REG3     (0x98)
+> > +#define ADV7343_SD_CGMS_WSS0         (0x99)
+> > +#define ADV7343_SD_CGMS_WSS1         (0x9A)
+> > +#define ADV7343_SD_CGMS_WSS2         (0x9B)
+> > +
+> > +#define ADV7343_SD_SCALE_LSB         (0x9C)
+> > +#define ADV7343_SD_Y_SCALE           (0x9D)
+> > +#define ADV7343_SD_CB_SCALE          (0x9E)
+> > +#define ADV7343_SD_CR_SCALE          (0x9F)
+> > +
+> > +#define ADV7343_SD_HUE_REG           (0xA0)
+> > +#define ADV7343_SD_BRIGHTNESS_WSS    (0xA1)
+> > +#define ADV7343_SD_LUMA_SSAF         (0xA2)
+> > +#define ADV7343_SD_DNR0                      (0xA3)
+> > +#define ADV7343_SD_DNR1                      (0xA4)
+> > +#define ADV7343_SD_DNR2                      (0xA5)
+> > +
+> > +#define ADV7343_SD_GAMMA_A0          (0xA6)
+> > +#define ADV7343_SD_GAMMA_A1          (0xA7)
+> > +#define ADV7343_SD_GAMMA_A2          (0xA8)
+> > +#define ADV7343_SD_GAMMA_A3          (0xA9)
+> > +#define ADV7343_SD_GAMMA_A4          (0xAA)
+> > +#define ADV7343_SD_GAMMA_A5          (0xAB)
+> > +#define ADV7343_SD_GAMMA_A6          (0xAC)
+> > +#define ADV7343_SD_GAMMA_A7          (0xAD)
+> > +#define ADV7343_SD_GAMMA_A8          (0xAE)
+> > +#define ADV7343_SD_GAMMA_A9          (0xAF)
+> > +#define ADV7343_SD_GAMMA_B0          (0xB0)
+> > +#define ADV7343_SD_GAMMA_B1          (0xB1)
+> > +#define ADV7343_SD_GAMMA_B2          (0xB2)
+> > +#define ADV7343_SD_GAMMA_B3          (0xB3)
+> > +#define ADV7343_SD_GAMMA_B4          (0xB4)
+> > +#define ADV7343_SD_GAMMA_B5          (0xB5)
+> > +#define ADV7343_SD_GAMMA_B6          (0xB6)
+> > +#define ADV7343_SD_GAMMA_B7          (0xB7)
+> > +#define ADV7343_SD_GAMMA_B8          (0xB8)
+> > +#define ADV7343_SD_GAMMA_B9          (0xB9)
+> > +#define ADV7343_SD_BRIGHTNESS_DETECT (0xBA)
+> > +#define ADV7343_FIELD_COUNT_REG              (0xBB)
+> > +#define ADV7343_10_BIT_INPUT         (0x7C)
+> > +
+> > +/* Default values for the registers */
+> > +#define ADV7343_POWER_MODE_REG_DEFAULT               (0x10)
+> > +#define ADV7343_HD_MODE_REG1_DEFAULT         (0x3C)  /* Changed
+> Default
+> > +                                                        720p EAVSAV
+> code*/
+> > +#define ADV7343_HD_MODE_REG2_DEFAULT         (0x01)  /* Changed
+> Pixel data
+> > +                                                        valid */
+> > +#define ADV7343_HD_MODE_REG3_DEFAULT         (0x00)  /* Color delay
+> 0 clks */
+> > +#define ADV7343_HD_MODE_REG4_DEFAULT         (0xE8)  /* Changed */
+> > +#define ADV7343_HD_MODE_REG5_DEFAULT         (0x08)
+> > +#define ADV7343_HD_MODE_REG6_DEFAULT         (0x00)
+> > +#define ADV7343_HD_MODE_REG7_DEFAULT         (0x00)
+> > +
+> > +#define ADV7343_SD_MODE_REG1_DEFAULT         (0x00)
+> > +#define ADV7343_SD_MODE_REG2_DEFAULT         (0xC9)
+> > +#define ADV7343_SD_MODE_REG3_DEFAULT         (0x10)
+> > +#define ADV7343_SD_MODE_REG4_DEFAULT         (0x01)
+> > +#define ADV7343_SD_MODE_REG5_DEFAULT         (0x02)
+> > +#define ADV7343_SD_MODE_REG6_DEFAULT         (0x0C)
+> > +#define ADV7343_SD_MODE_REG7_DEFAULT         (0x04)
+> > +#define ADV7343_SD_MODE_REG8_DEFAULT         (0x00)
+> > +#define ADV7343_SOFT_RESET_DEFAULT           (0x02)
+> > +#define ADV7343_COMPOSITE_POWER_VALUE                (0x80)
+> > +#define ADV7343_COMPONENT_POWER_VALUE                (0x1C)
+> > +#define ADV7343_SVIDEO_POWER_VALUE           (0x60)
+> > +#define ADV7343_SD_HUE_REG_DEFAULT           (127)
+> > +#define ADV7343_SD_BRIGHTNESS_WSS_DEFAULT    (0x03)
+> > +#define ADV7343_SD_CGMS_WSS0_DEFAULT         (0x10)
+> > +
+> > +/* Macros for the Mode Select Register */
+> > +#ifdef GENERATE_MASK
+> > +#undef GENERATE_MASK
+> > +#endif
+> > +#define GENERATE_MASK(bits, pos)     ((((0xFF) << (8 - bits)) >> \
+> > +                                     (8 - bits)) << pos)
+> > +
+> > +/* Bit masks for Mode Select Register */
+> > +#define INPUT_MODE_MASK                      (0x70)
+> > +#define SD_INPUT_MODE                        (0x00)
+> > +#define HD_720P_INPUT_MODE           (0x10)
+> > +#define HD_1080I_INPUT_MODE          (0x10)
+> > +
+> > +/* Bit masks for Mode Register 0 */
+> > +#define TEST_PATTERN_BLACK_BAR_EN    (0x04)
+> > +#define YUV_OUTPUT_SELECT            (0x20)
+> > +#define RGB_OUTPUT_SELECT            (0xDF)
+> > +
+> > +/* Bit masks for DAC output levels */
+> > +#define DAC_OUTPUT_LEVEL_MASK                (0xFF)
+> > +#define POSITIVE_GAIN_MAX            (0x40)
+> > +#define POSITIVE_GAIN_MIN            (0x00)
+> > +#define NEGATIVE_GAIN_MAX            (0xFF)
+> > +#define NEGATIVE_GAIN_MIN            (0xC0)
+> > +
+> > +/* Bit masks for soft reset register */
+> > +#define SOFT_RESET                   (0x02)
+> > +
+> > +/* Bit masks for HD Mode Register 1 */
+> > +#define OUTPUT_STD_MASK                      (0x03)
+> > +#define OUTPUT_STD_SHIFT             (0)
+> > +#define OUTPUT_STD_EIA0_2            (0x00)
+> > +#define OUTPUT_STD_EIA0_1            (0x01)
+> > +#define OUTPUT_STD_FULL                      (0x02)
+> > +#define EMBEDDED_SYNC                        (0x04)
+> > +#define EXTERNAL_SYNC                        (0xFB)
+> > +#define STD_MODE_SHIFT                       (3)
+> > +#define STD_MODE_MASK                        (0x1F)
+> > +#define STD_MODE_720P                        (0x05)
+> > +#define STD_MODE_720P_25             (0x08)
+> > +#define STD_MODE_720P_30             (0x07)
+> > +#define STD_MODE_720P_50             (0x06)
+> > +#define STD_MODE_1080I                       (0x0D)
+> > +#define STD_MODE_1080I_25fps         (0x0E)
+> > +#define STD_MODE_1080P_24            (0x12)
+> > +#define STD_MODE_1080P_25            (0x10)
+> > +#define STD_MODE_1080P_30            (0x0F)
+> > +#define STD_MODE_525P                        (0x00)
+> > +#define STD_MODE_625P                        (0x03)
+> > +
+> > +/* Bit masks for SD Mode Register 1 */
+> > +#define SD_STD_MASK                  (0x03)
+> > +#define SD_STD_NTSC                  (0x00)
+> > +#define SD_STD_PAL_BDGHI             (0x01)
+> > +#define SD_STD_PAL_M                 (0x02)
+> > +#define SD_STD_PAL_N                 (0x03)
+> > +#define SD_LUMA_FLTR_MASK            (0x7)
+> > +#define SD_LUMA_FLTR_SHIFT           (0x2)
+> > +#define SD_CHROMA_FLTR_MASK          (0x7)
+> > +#define SD_CHROMA_FLTR_SHIFT         (0x5)
+> > +
+> > +/* Bit masks for SD Mode Register 2 */
+> > +#define SD_PBPR_SSAF_EN                      (0x01)
+> > +#define SD_PBPR_SSAF_DI                      (0xFE)
+> > +#define SD_DAC_1_DI                  (0xFD)
+> > +#define SD_DAC_2_DI                  (0xFB)
+> > +#define SD_PEDESTAL_EN                       (0x08)
+> > +#define SD_PEDESTAL_DI                       (0xF7)
+> > +#define SD_SQUARE_PIXEL_EN           (0x10)
+> > +#define SD_SQUARE_PIXEL_DI           (0xEF)
+> > +#define SD_PIXEL_DATA_VALID          (0x40)
+> > +#define SD_ACTIVE_EDGE_EN            (0x80)
+> > +#define SD_ACTIVE_EDGE_DI            (0x7F)
+> > +
+> > +/* Bit masks for HD Mode Register 6 */
+> > +#define HD_RGB_INPUT_EN                      (0x02)
+> > +#define HD_RGB_INPUT_DI                      (0xFD)
+> > +#define HD_PBPR_SYNC_EN                      (0x04)
+> > +#define HD_PBPR_SYNC_DI                      (0xFB)
+> > +#define HD_DAC_SWAP_EN                       (0x08)
+> > +#define HD_DAC_SWAP_DI                       (0xF7)
+> > +#define HD_GAMMA_CURVE_A             (0xEF)
+> > +#define HD_GAMMA_CURVE_B             (0x10)
+> > +#define HD_GAMMA_EN                  (0x20)
+> > +#define HD_GAMMA_DI                  (0xDF)
+> > +#define HD_ADPT_FLTR_MODEB           (0x40)
+> > +#define HD_ADPT_FLTR_MODEA           (0xBF)
+> > +#define HD_ADPT_FLTR_EN                      (0x80)
+> > +#define HD_ADPT_FLTR_DI                      (0x7F)
+> > +
+> > +#endif                               /* End of #ifdef __KERNEL__ */
+> > +
+> > +#endif                               /* End of #ifndef ADV7343_H */
+>
+>
+>
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
