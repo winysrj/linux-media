@@ -1,80 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:4999 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751222AbZC2Jk7 (ORCPT
+Received: from mail4.sea5.speakeasy.net ([69.17.117.6]:58164 "EHLO
+	mail4.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751204AbZCQUXo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Mar 2009 05:40:59 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [linuxtv-commits] [hg:v4l-dvb] v4l2-ioctl: Check format for S_PARM and G_PARM
-Date: Sun, 29 Mar 2009 11:40:31 +0200
-Cc: linux-media@vger.kernel.org,
-	Trent Piepho via Mercurial <xyzzy@speakeasy.org>
-References: <E1LnqiQ-00077f-80@mail.linuxtv.org> <200903291106.19466.hverkuil@xs4all.nl> <20090329063545.1bab6a9e@pedra.chehab.org>
-In-Reply-To: <20090329063545.1bab6a9e@pedra.chehab.org>
+	Tue, 17 Mar 2009 16:23:44 -0400
+Date: Tue, 17 Mar 2009 13:23:42 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Jean Delvare <khali@linux-fr.org>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: bttv, tvaudio and ir-kbd-i2c probing conflict
+In-Reply-To: <20090317103142.51fe0c46@hyperion.delvare>
+Message-ID: <Pine.LNX.4.58.0903171314350.28292@shell2.speakeasy.net>
+References: <200903151344.01730.hverkuil@xs4all.nl> <20090315181207.36d951ac@hyperion.delvare>
+ <Pine.LNX.4.58.0903151038210.28292@shell2.speakeasy.net>
+ <20090315185313.4c15702c@hyperion.delvare> <20090316063402.1b0da1f3@gaivota.chehab.org>
+ <20090316121801.1c03d747@hyperion.delvare> <20090316095237.21775418@gaivota.chehab.org>
+ <20090316152802.7492dd20@hyperion.delvare> <Pine.LNX.4.58.0903161202330.28292@shell2.speakeasy.net>
+ <20090316224040.7672176a@hyperion.delvare> <Pine.LNX.4.58.0903161533090.28292@shell2.speakeasy.net>
+ <20090317103142.51fe0c46@hyperion.delvare>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903291140.31388.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 29 March 2009 11:35:45 Mauro Carvalho Chehab wrote:
-> On Sun, 29 Mar 2009 11:06:19 +0200
->
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > On Sunday 29 March 2009 10:50:02 Patch from Trent Piepho wrote:
-> > > The patch number 11260 was added via Trent Piepho
-> > > <xyzzy@speakeasy.org> to http://linuxtv.org/hg/v4l-dvb master
-> > > development tree.
-> > >
-> > > Kernel patches in this development tree may be modified to be
-> > > backward compatible with older kernels. Compatibility modifications
-> > > will be removed before inclusion into the mainstream Kernel
-> > >
-> > > If anyone has any objections, please let us know by sending a message
-> > > to: Linux Media Mailing List <linux-media@vger.kernel.org>
-> > >
-> > > ------
-> > >
-> > > From: Trent Piepho  <xyzzy@speakeasy.org>
-> > > v4l2-ioctl:  Check format for S_PARM and G_PARM
-> > >
-> > >
-> > > Return EINVAL if VIDIOC_S/G_PARM is called for a buffer type that the
-> > > driver doesn't define a ->vidioc_try_fmt_XXX() method for.  Several
-> > > other ioctls, like QUERYBUF, QBUF, and DQBUF, etc.  do this too.  It
-> > > saves each driver from having to check if the buffer type is one that
-> > > it supports.
+On Tue, 17 Mar 2009, Jean Delvare wrote:
+> On Mon, 16 Mar 2009 15:47:17 -0700 (PDT), Trent Piepho wrote:
+> > On Mon, 16 Mar 2009, Jean Delvare wrote:
+> > > You are unfair. The pull request came with a short log of all the
+> > > changes.
 > >
-> > Hi Trent,
+> > "short" log.  His entire series was decribed with fewer words than I would
+> > use on a single patch that changes ten lines.
+>
+> In general I tend to like detailed patch logs as much as you do. But in
+> this case Hans is doing almost all the work by himself and it is very
+> needed, and the faster completed, the better. So I am really to trade
+> log details for a faster conversion.
+
+I guess that I don't consider documentation to be optional.
+
+> > > (...)
+> > > I am not familiar enough with this part of the code to say. But I guess
+> > > it doesn't really matter, as it wasn't my point anyway.
 > >
-> > I wonder whether this change is correct. Looking at the spec I see that
-> > g/s_parm only supports VIDEO_CAPTURE, VIDEO_OUTPUT and PRIVATE or up.
-> >
-> > So what should happen if the type is VIDEO_OVERLAY? I think the
-> > g/s_parm implementation in v4l2-ioctl.c should first exclude the
-> > unsupported types before calling check_fmt.
+> > It seems like your point was that conversions to v4l2_subdev allow drivers
+> > to be more efficient remove lots of code.  The numbers I see just don't
+> > support that claim.
 >
-> Makes sense to me.
->
-> > I also wonder whether check_fmt shouldn't check for the presence of the
-> > s_fmt callbacks instead of try_fmt since try_fmt is an optional ioctl.
->
-> One developer suggested to merge try_fmt and s_fmt into one callback.
-> IMO, this makes sense, since I have the feeling that this will simplify
-> the code a little bit on the drivers. If we go this way, then we can
-> check for the new try_s_fmt callback.
+> No, sorry if I didn't make it clear, but that wasn't my point. My point
+> was only about the change in i2c binding model. This change clearly
+> results in a net shrink as far as lines of code are concerned.
 
-I agree with this. It's also easy to gradually migrate to such a new 
-callback since it is probably quite difficult to do this in one big bang 
-patch.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Does it?  When we can use the model as it's designed, then I think it's
+clearly much better.  But when one is emulating the detection behaviour,
+like it appears the bttv patches do, I don't see what's better.
