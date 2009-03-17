@@ -1,59 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from paja.nic.funet.fi ([193.166.3.10]:49956 "EHLO paja.nic.funet.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753904AbZCBUDP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Mar 2009 15:03:15 -0500
-Received: (from localhost user: 'kouhia' uid#241 fake: STDIN
-	(kouhia@paja.nic.funet.fi)) by nic.funet.fi id S81046AbZCBUDMO4HfA
-	for <linux-media@vger.kernel.org>; Mon, 2 Mar 2009 22:03:12 +0200
-From: Juhana Sadeharju <kouhia@nic.funet.fi>
-To: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Subject: Re: writing DVB recorder, questions
-Message-Id: <S81046AbZCBUDMO4HfA/20090302200312Z+2644@nic.funet.fi>
-Date: Mon, 2 Mar 2009 22:03:12 +0200
+Received: from mail12.syd.optusnet.com.au ([211.29.132.193]:47057 "EHLO
+	mail12.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750805AbZCQOX1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Mar 2009 10:23:27 -0400
+Received: from jenix (c220-239-230-109.thorn1.nsw.optusnet.com.au [220.239.230.109])
+	by mail12.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id n2HBxEFj019591
+	for <linux-media@vger.kernel.org>; Tue, 17 Mar 2009 22:59:16 +1100
+To: linux-media@vger.kernel.org
+Subject: No subsystem id (and therefore no =?UTF-8?Q?cx=38=38=5Fdvb=20loaded=29=20?=
+ =?UTF-8?Q?after=20reboot?=
+MIME-Version: 1.0
+Date: Tue, 17 Mar 2009 22:59:14 +1100
+From: Grant Gardner <grant@lastweekend.com.au>
+Message-ID: <e0f27036e7a5af1cc8e8a725b522593b@localhost>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-Now I record by taking the complete TS (demuxing PID 8192)
-and by skipping the video and audio packets of other TV channels
-that are listed in channels.conf (only video and audio PIDs are
-listed). That seems to work.
 
-I hope the recordings are ok. There is no way to verify them now.
 
-Xine is able to play the recordings more or less. Video may be
-visible or not. Audio can be selected but by default I hear the
-robovoice channel. For subtitles Xine gives the "fin" option but
-it does not work (works as bad as with Me-TV recordings, perhaps
-a bug in Xine?).
 
-Xine people could check the issue and have Xine modified for channel
-selection when the TS-file with multiple TV channels is played.
-The complete unmodified DVB stream could be playable.
 
-In any case, being able to record all necessary data for one
-TV channel without 70% extra data of other channels (10 GB vs. 3 GB),
-gives me more time to implement the proper recorder. If Xine
-will not be modified to play fuller TS files, I also need to write
-a post-recording filter for fixing the recordings.
+I'm looking for some pointers on debugging a problem with my DVICO
 
-Bad is that, even the DVB device allows read-only access, no
-DVB application will display the TV channel while my recorder
-is running. (dvbstream/mumudvb type applications are solution.)
+FusionHDTV Hybrid DVB-T card.
 
-About reliability:
-I'm unwilling to use mumudvb and dvbstream type solutions which
-use pipes. My dvbrec is based on shmrec which I wrote at 1998.
-Standard audio recorders at 1998 in Pentium 90 MHz made dropouts
-when Linux swapped or when I used other applications (as simple as
-Emacs). With shmrec, having two processes and properly tuned
-read-from-A/D and write-to-disk buffers, I achieved reliable
-recordings even when I used other applications.
 
-Because CPUs and disks are now faster, reliability issues are
-easily skipped because problems seems to not appear. But perfect
-recorder requires a reliable recorder part; other parts may be
-less reliable and must not affect the reliability of the recorder.
 
-Juhana
+The device was working perfectly prior to a reconfiguration of my machine,
+
+kernel upgrade etc...
+
+
+
+Now, on a cold start everything seems to start smoothly but I can't tune
+
+channels.
+
+
+
+Then, after a reboot the device is not detected due to "invalid subsystem
+
+id". As below lspci reports no subsystem information at all. 
+
+
+
+Comparing the lspci output seems to be around the "Region 0: Memory at
+
+ee000000 v de000000", but I'm not
+
+sure what this means, and whether fixing the reboot problem will fix the
+
+channel tuning problem.
+
+
+
+Running mythbuntu 8.10
+
+2.6.27-11-generic #1 SMP Thu Jan 29 19:28:32 UTC 2009 x86_64 GNU/Linux
+
+
+
+lspci -vvnn after cold start
+
+
+
+00:0a.0 Multimedia video controller [0400]: Conexant Systems, Inc.
+
+CX23880/1/2/3 PCI Video and Audio Decoder [14f1:8800] (rev 05)
+
+	Subsystem: DViCO Corporation Device [18ac:db40]
+
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+
+Stepping- SERR- FastB2B- DisINTx-
+
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort-
+
+<MAbort- >SERR- <PERR- INTx-
+
+	Latency: 32 (5000ns min, 13750ns max), Cache Line Size: 32 bytes
+
+	Interrupt: pin A routed to IRQ 18
+
+	Region 0: Memory at de000000 (32-bit, non-prefetchable) [size=16M]
+
+	Capabilities: [44] Vital Product Data <?>
+
+	Capabilities: [4c] Power Management version 2
+
+		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
+
+PME(D0-,D1-,D2-,D3hot-,D3cold-)
+
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+
+	Kernel driver in use: cx8800
+
+	Kernel modules: cx8800
+
+
+
+00:0a.1 Multimedia controller [0480]: Conexant Systems, Inc. CX23880/1/2/3
+
+PCI Video and Audio Decoder [Audio Port] [14f1:8811] (rev 05)
+
+	Subsystem: DViCO Corporation Device [18ac:db40]
+
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+
+Stepping- SERR- FastB2B- DisINTx-
+
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort-
+
+<MAbort- >SERR- <PERR- INTx-
+
+	Latency: 32 (1000ns min, 63750ns max), Cache Line Size: 32 bytes
+
+	Interrupt: pin A routed to IRQ 11
+
+	Region 0: Memory at df000000 (32-bit, non-prefetchable) [size=16M]
+
+	Capabilities: [4c] Power Management version 2
+
+		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
+
+PME(D0-,D1-,D2-,D3hot-,D3cold-)
+
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+
+	Kernel modules: cx88-alsa
+
+
+
+00:0a.2 Multimedia controller [0480]: Conexant Systems, Inc. CX23880/1/2/3
+
+PCI Video and Audio Decoder [MPEG Port] [14f1:8802] (rev 05)
+
+	Subsystem: DViCO Corporation Device [18ac:db40]
+
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+
+Stepping- SERR- FastB2B- DisINTx-
+
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort-
+
+<MAbort- >SERR- <PERR- INTx-
+
+	Latency: 32 (1500ns min, 22000ns max), Cache Line Size: 32 bytes
+
+	Interrupt: pin A routed to IRQ 18
+
+	Region 0: Memory at e0000000 (32-bit, non-prefetchable) [size=16M]
+
+	Capabilities: [4c] Power Management version 2
+
+		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
+
+PME(D0-,D1-,D2-,D3hot-,D3cold-)
+
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+
+	Kernel driver in use: cx88-mpeg driver manager
+
+	Kernel modules: cx8802
+
+
+
+
+
+lspci -vvnn after warm reboot
+
+
+
+00:0a.0 Multimedia video controller [0400]: Conexant Systems, Inc.
+
+CX23880/1/2/3 PCI Video and Audio Decoder [14f1:8800] (rev 05)
+
+      Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+
+Stepping- SERR- FastB2B- DisINTx-
+
+      Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+
+      Latency: 32 (5000ns min, 13750ns max), Cache Line Size: 32 bytes
+
+      Interrupt: pin A routed to IRQ 18
+
+      Region 0: Memory at ee000000 (32-bit, non-prefetchable) [size=16M]
+
+      Capabilities: [44] Vital Product Data <?>
+
+      Capabilities: [4c] Power Management version 2
+
+              Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
+
+PME(D0-,D1-,D2-,D3hot-,D3cold-)
+
+              Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+
+      Kernel driver in use: cx8800
+
+      Kernel modules: cx8800
