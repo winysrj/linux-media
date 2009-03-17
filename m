@@ -1,68 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp0.lie-comtel.li ([217.173.238.80]:50796 "EHLO
-	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752686AbZCDJFH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 04:05:07 -0500
-Message-ID: <49AE41DE.1000300@kaiser-linux.li>
-Date: Wed, 04 Mar 2009 09:54:54 +0100
-From: Thomas Kaiser <thomas@kaiser-linux.li>
-MIME-Version: 1.0
-To: kilgota@banach.math.auburn.edu
-CC: Kyle Guinn <elyk03@gmail.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: RFC on proposed patches to mr97310a.c for gspca and v4l
-References: <20090217200928.1ae74819@free.fr> <200902171907.40054.elyk03@gmail.com> <alpine.LNX.2.00.0903031746030.21483@banach.math.auburn.edu> <200903032050.13915.elyk03@gmail.com> <alpine.LNX.2.00.0903032247530.21793@banach.math.auburn.edu> <49AE3EA1.3090504@kaiser-linux.li>
-In-Reply-To: <49AE3EA1.3090504@kaiser-linux.li>
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Received: from rotring.dds.nl ([85.17.178.138]:47888 "EHLO rotring.dds.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755016AbZCQPaG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Mar 2009 11:30:06 -0400
+Subject: Re: Improve DKMS build of v4l-dvb?
+From: Alain Kalker <miki@dds.nl>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.58.0903130153220.28292@shell2.speakeasy.net>
+References: <1236612894.5982.72.camel@miki-desktop>
+	 <Pine.LNX.4.58.0903130153220.28292@shell2.speakeasy.net>
+Content-Type: text/plain
+Date: Tue, 17 Mar 2009 16:29:58 +0100
+Message-Id: <1237303798.5988.27.camel@miki-desktop>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thomas Kaiser wrote:
-> Hello Theodore
+Op vrijdag 13-03-2009 om 02:12 uur [tijdzone -0700], schreef Trent
+Piepho: 
+> On Mon, 9 Mar 2009, Alain Kalker wrote:
+> > Martin has an older version of the drivers packaged for building with
+> > DKMS on Ubuntu in his PPA[5], but it currently has some disadvantages:
+> >
+> > A. It builds all available drivers, no matter which hardware is actually
+> > installed in the system. This takes a lot of time, and may not be
+> > practical at all on systems with limited resources (e.g. embedded, MIDs,
+> > netbooks)
+> > B. It currently has no support for Jockey to detect installed hardware,
+> > so individual drivers can be selected.
+> >
+> > To address these issues, I would like to propose the following:
+> >
+> > A. Building individual drivers (i.e. sets of modules which constitute a
+> > fully-functional driver), without having to manually configure them
+> > using "make menuconfig"
+> >
+> > I see two possibilities for realizing this:
+> > Firstly: generating a .config with just one config variable for the
+> > requested driver set to 'm' merged with the config for the kernel being
+> > built for, and then doing a "make silentoldconfig". Big disatvantage is
+> > that full kernel source is required for the 'silentoldconfig' target to
+> > be available.
 > 
-> kilgota@banach.math.auburn.edu wrote:
->> Also, after the byte indicator for the compression algorithm there are 
->> some more bytes, and these almost definitely contain information which 
->> could be valuable while doing image processing on the output. If they 
->> are already kept and passed out of the module over to libv4lconvert, 
->> then it would be very easy to do something with those bytes if it is 
->> ever figured out precisely what they mean. But if it is not done now 
->> it would have to be done then and would cause even more trouble.
-> 
-> I sent it already in private mail to you. Here is the observation I made 
-> for the PAC207 SOF some years ago:
-> 
->  From usb snoop.
-> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx 00 00
-> 1. xx: looks like random value
-> 2. xx: changed from 0x03 to 0x0b
-> 3. xx: changed from 0x06 to 0x49
-> 4. xx: changed from 0x07 to 0x55
-> 5. xx: static 0x96
-> 6. xx: static 0x80
-> 7. xx: static 0xa0
-> 
-> And I did play in Linux and could identify some fields :-) .
-> In Linux the header looks like this:
-> 
-> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx F0 00
-> 1. xx: don't know but value is changing between 0x00 to 0x07
-> 2. xx: this is the actual pixel clock
-> 3. xx: this is changing according light conditions from 0x03 (dark) to
-> 0xfc (bright) (center)
-> 4. xx: this is changing according light conditions from 0x03 (dark) to
-> 0xfc (bright) (edge)
-> 5. xx: set value "Digital Gain of Red"
-> 6. xx: set value "Digital Gain of Green"
-> 7. xx: set value "Digital Gain of Blue"
-> 
-> Thomas
+> Does that actually work?  Figuring out that needs to be turned on to enable
+> some config options is a hard problem.  It's not just simple dependencies
+> between modules, but complex expressions that need to be satisfied.  E.g.,
+> something "depends on A || B", which do you turn on, A or B?  There are
+> multiple solutions so how does the code decide which is best?
 
-And I forgot to say that the center brightness sensor was used to do 
-auto brightness control in the old gspca driver. Pixel clock was changed 
-on the fly to get better brightness in dark light conditions.
+Well, make_kconfig.pl does quite a nice job trying to select as many
+drivers without causing conflicts.
 
-Thomas
+Anyway, you're quite right about this being a hard problem, and the
+fact that the Kconfig system wasn't designed to be very helpful in
+auto-selecting dependencies and resolving conflicts the same way modern
+package managers are, doesn't make it any easier.
+
+For the moment, I would suggest either to choose a default which works
+for most people, or ask the user (using any Kconfig menu tool, if only
+they didn't need write access to the kernel source, grrr!) to choose
+among alternatives if no combination of options can be selected
+automatically.
+
+> > Secondly, the script v4l/scripts/analyze_build.pl generates a list of
+> > modules that will get built for each Kconfig variable selected, but it
+> > currently has no way of determing all the module dependencies that make
+> > up a fully functional driver.
+> 
+> I just wrote analyze_build.pl to make it easier for developers to figure
+> out that source files make up a module and how to enable it.  It's not
+> actually used by the build system.  It's also not perfect when it comes to
+> parsing makefiles, i.e. it no where near a re-implementation of make's
+> parser in perl.  It understands the typical syntax used by the kernel
+> makefiles but sometimes there is some unusual bit of make code that it
+> won't parse.
+
+Nice work! I've been using it a lot while testing. I expect to use it
+also in a tool which will work like 'modinfo', except using module
+source files as input. I plan to add some nice extensions like showing
+the config options which enable a module, symbolic DeviceID/VendorID,
+values, etc.
+
+Kind regards,
+
+Alain
+
