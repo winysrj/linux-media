@@ -1,70 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rolfschumacher.eu ([195.8.233.65]:36982 "EHLO august.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1762210AbZCPVPz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2009 17:15:55 -0400
-Received: from [192.168.1.109] (HSI-KBW-078-042-216-040.hsi3.kabel-badenwuerttemberg.de [78.42.216.40])
-	(Authenticated sender: rolf)
-	by august.de (Postfix) with ESMTPA id 751711FE25
-	for <linux-media@vger.kernel.org>; Mon, 16 Mar 2009 22:15:53 +0100 (CET)
-Message-ID: <49BEC188.4010601@august.de>
-Date: Mon, 16 Mar 2009 22:15:52 +0100
-From: Rolf Schumacher <mailinglist@august.de>
+Received: from yw-out-2324.google.com ([74.125.46.30]:21138 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754811AbZCQWPd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Mar 2009 18:15:33 -0400
+Received: by yw-out-2324.google.com with SMTP id 3so202733ywj.1
+        for <linux-media@vger.kernel.org>; Tue, 17 Mar 2009 15:15:31 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: no /dev/dvb
+In-Reply-To: <1237327082.5040.174.camel@pete-desktop>
+References: <c785bba30903031051k292a95aeq68d91e5c2bc31fd6@mail.gmail.com>
+	 <1237327082.5040.174.camel@pete-desktop>
+Date: Tue, 17 Mar 2009 15:10:07 -0700
+Message-ID: <c785bba30903171510j5c1025f5hf238630612cf8662@mail.gmail.com>
+Subject: Re: 4vl + usb + arm
+From: Paul Thomas <pthomas8589@gmail.com>
+To: Pete Eberlein <pete@sensoray.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, dvb professionals,
+On Tue, Mar 17, 2009 at 2:58 PM, Pete Eberlein <pete@sensoray.com> wrote:
+> On Tue, 2009-03-03 at 11:51 -0700, Paul Thomas wrote:
+>> Hello, is anyone using a USB v4l device on an arm processor?
+>
+> While I haven't used a USB video device on an ARM board, I have tried
+> cross compiling the v4l sources for ARM.  Here's what I found:
+>
+> The v4l/Makefile.media uses the host strip binary on the ARM .ko files,
+> which doesn't work.  It could use $(CROSS_COMPILE)strip instead.  I
+> worked around the problem using a strip soft-link to arm-eabi-strip in
+> my cross tools bin directory.
+>
+> The v4l/firmware/Makefile assumes /lib/firmware, this could be
+> $(DESTDIR)/lib/firmware instead.
+>
+> Here are the make commands I used to build the v4l tree:
+>
+> PATH=/path/to/devkitARM/bin:$PATH make ARCH=arm CROSS_COMPILE=arm-eabi-
+> SRCDIR=/path/to/arm/kernel-src
+>
+> PATH=/path/to/devkitARM/bin:$PATH make ARCH=arm CROSS_COMPILE=arm-eabi-
+> DESTDIR=/path/to/arm/sysroot install
+>
+> I'd like to know if modules built this way work on actual hardware.
+>
+> Regards.
+> --
+> Pete Eberlein
+> Sensoray Co., Inc.
+> Email: pete@sensoray.com
+> http://www.sensoray.com
+>
+>
 
-I followed the advices on
-http://www.linuxtv.org/wiki/index.php/How_to_Obtain%2C_Build_and_Install_V4L-DVB_Device_Drivers#Optional_Pre-Compilation_Steps
+Pete,
 
-Build and Installation Instructions
+I've been able to get the v4l tree to compile fine. I use the "make
+release DIR=" to set the kernel DIR then make with the normal ARCH=
+and CROSS_COMPILE=, and this seems to work correctly. Since I posted
+we've had some limited success getting v4l devices working with arm.
+The main problem now seems to be that the processor we're using
+(at91rm9200) doesn't have a high-speed USB host.
 
-downloaded the v4l sources via mercurial,
-"make" and "sudo make install" finished without error messages.
+I've been talking with some of the folks at sensoray (Danil &
+Konstantin) about getting the 2251 or 2255 to work on our arm board.
 
-rebooted the computer
-
-dmesg shows the device:
-
----
-usb 2-1: new high speed USB device using ehci_hcd and address 6
-usb 2-1: configuration #1 chosen from 1 choice
-usb 2-1: New USB device found, idVendor=0b48, idProduct=300d
-usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-usb 2-1: Product: TT-USB2.0
-usb 2-1: Manufacturer: TechnoTrend
-usb 2-1: SerialNumber: LHKAMG
----
-
-no error if I unplug and plug it on USB again
-
-the connected box is a TechnoTrend CT 3560 CI
-I googled and found chipset names like TDA8274 + TDA10023
-did not find anything in wiki, so I could not determine module or driver
-names to be identified with lsmod.
-
-there is no created /dev/dvb or /dev/video device
-
-google did not help me answering the question "do I need firmware, and
-if so where to get it"
-
-uname -a shows
-Linux rolf9 2.6.28-7.slh.6-sidux-686 #1 SMP PREEMPT Sat Mar 14 02:30:40
-UTC 2009 i686 GNU/Linux
-
-for now I got stuck.
-
-Do you know of a next step towards having tv on my laptop?
-
-Rolf
-
-
-
-
-
+thanks,
+Paul
