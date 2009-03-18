@@ -1,59 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.versatel.nl ([62.58.50.88]:43575 "EHLO smtp1.versatel.nl"
+Received: from rolfschumacher.eu ([195.8.233.65]:52921 "EHLO august.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753701AbZC1Lm1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Mar 2009 07:42:27 -0400
-Message-ID: <49CE0D93.6000806@hhs.nl>
-Date: Sat, 28 Mar 2009 12:44:19 +0100
-From: Hans de Goede <j.w.r.degoede@hhs.nl>
+	id S1754205AbZCRGLo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Mar 2009 02:11:44 -0400
+Received: from [192.168.1.109] (HSI-KBW-095-208-074-011.hsi5.kabel-badenwuerttemberg.de [95.208.74.11])
+	(Authenticated sender: rolf)
+	by august.de (Postfix) with ESMTPA id 689FA1FE1D
+	for <linux-media@vger.kernel.org>; Wed, 18 Mar 2009 07:11:40 +0100 (CET)
+Message-ID: <49C0909B.30002@august.de>
+Date: Wed, 18 Mar 2009 07:11:39 +0100
+From: Rolf Schumacher <mailinglist@august.de>
 MIME-Version: 1.0
-To: Lamarque Vieira Souza <lamarque@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	video4linux-list@redhat.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Implement V4L2_CAP_STREAMING for zr364xx driver
-References: <200903252025.11544.lamarque@gmail.com>	<200903271539.27515.lamarque@gmail.com>	<20090328063448.66ff0340@pedra.chehab.org> <200903280711.37892.lamarque@gmail.com>
-In-Reply-To: <200903280711.37892.lamarque@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: linux-media@vger.kernel.org
+Subject: no video device
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03/28/2009 11:11 AM, Lamarque Vieira Souza wrote:
-> This patch implements V4L2_CAP_STREAMING for the zr364xx driver, by
-> converting the driver to use videobuf.
->
-> Tested with Creative PC-CAM 880.
->
-> It basically:
-> . implements V4L2_CAP_STREAMING using videobuf;
->
-> . re-implements V4L2_CAP_READWRITE using videobuf;
->
-> . copies cam->udev->product to the card field of the v4l2_capability struct.
-> That gives more information to the users about the webcam;
->
-> . moves the brightness setting code from before requesting a frame (in
-> read_frame) to the vidioc_s_ctrl ioctl. This way the brightness code is
-> executed only when the application requests a change in brightness and
-> not before every frame read;
->
-> . comments part of zr364xx_vidioc_try_fmt_vid_cap that says that Skype +
-> libv4l do not work.
->
+Hi, dvb professionals,
 
-Note that this may make things work, but is not correct, applications
-which properly honor the field value may get bitten by this. The correct
-fix is to unconditionally set the field value to V4L2_FIELD_NONE.
+I followed the advices on
+http://www.linuxtv.org/wiki/index.php/How_to_Obtain%2C_Build_and_Install_V4L-DVB_Device_Drivers#Optional_Pre-Compilation_Steps
+
+Build and Installation Instructions
+
+downloaded the v4l sources via mercurial,
+"make" and "sudo make install" finished without error messages.
+
+rebooted the computer
+
+dmesg shows the device:
+
+---
+usb 2-1: new high speed USB device using ehci_hcd and address 6
+usb 2-1: configuration #1 chosen from 1 choice
+usb 2-1: New USB device found, idVendor=0b48, idProduct=300d
+usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+usb 2-1: Product: TT-USB2.0
+usb 2-1: Manufacturer: TechnoTrend
+usb 2-1: SerialNumber: LHKAMG
+---
+
+no error if I unplug and plug it on USB again
+
+the connected box is a TechnoTrend CT 3560 CI
+I googled and found chipset names like TDA8274 + TDA10023
+did not find anything in wiki, so I could not determine module or driver
+names to be identified with lsmod.
+
+there is no created /dev/dvb or /dev/video device
+
+google did not help me answering the question "do I need firmware, and
+if so where to get it"
+
+uname -a shows
+Linux rolf9 2.6.28-7.slh.6-sidux-686 #1 SMP PREEMPT Sat Mar 14 02:30:40
+UTC 2009 i686 GNU/Linux
+
+for now I got stuck.
+
+Do you know of a next step towards having tv on my laptop?
+
+Rolf
 
 
-> This patch fixes zr364xx for applications such as mplayer,
-> Kopete+libv4l and Skype+libv4l can make use of the webcam that comes
-> with zr364xx chip.
->
-> Signed-off-by: Lamarque V. Souza<lamarque@gmail.com>
 
-<snip>
 
-Regards,
 
-Hans
+
+
