@@ -1,114 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:34098 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753643AbZC2XqZ (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3653 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753332AbZCRJ1V (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Mar 2009 19:46:25 -0400
-Date: Sun, 29 Mar 2009 18:58:59 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Adam Baker <linux@baker-net.org.uk>, linux-media@vger.kernel.org,
-	Hans de Goede <j.w.r.degoede@hhs.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: [PATCH v2 1/4] Sensor orientation reporting
-In-Reply-To: <200903300055.02723.hverkuil@xs4all.nl>
-Message-ID: <alpine.LNX.2.00.0903291854110.5281@banach.math.auburn.edu>
-References: <200903292309.31267.linux@baker-net.org.uk> <200903292317.10249.linux@baker-net.org.uk> <200903300055.02723.hverkuil@xs4all.nl>
+	Wed, 18 Mar 2009 05:27:21 -0400
+Message-ID: <37365.62.70.2.252.1237368437.squirrel@webmail.xs4all.nl>
+Date: Wed, 18 Mar 2009 10:27:17 +0100 (CET)
+Subject: Re: soc-camera -> v4l2-device: possible API extension requirements
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+Cc: "Linux Media Mailing List" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-
-On Mon, 30 Mar 2009, Hans Verkuil wrote:
-
-> On Monday 30 March 2009 00:17:10 Adam Baker wrote:
->> Add support to the SQ-905 driver to pass back to user space the
->> sensor orientation information obtained from the camera during init.
->> Modifies gspca and the videodev2.h header to create the necessary
->> API.
+> On Wed, 18 Mar 2009, Hans Verkuil wrote:
+>
+>> In v4l devices these i2c devices are an integral part of the v4l device.
+>> It is not like the sensor i2c devices that are basically independent
+>> devices. Also, many i2c drivers used by v4l have internal state, so
+>> unloading them on the fly and reloading them later will in general not
+>> work.
 >>
->> Signed-off-by: Adam Baker <linux@baker-net.org.uk>
->> ---
->> diff -r d8d701594f71 linux/drivers/media/video/gspca/gspca.c
->> --- a/linux/drivers/media/video/gspca/gspca.c	Sun Mar 29 08:45:36 2009
->> +0200 +++ b/linux/drivers/media/video/gspca/gspca.c	Sun Mar 29 23:00:08
->> 2009 +0100 @@ -1147,6 +1147,7 @@
->>  	if (input->index != 0)
->>  		return -EINVAL;
->>  	input->type = V4L2_INPUT_TYPE_CAMERA;
->> +	input->status = gspca_dev->cam.input_flags;
->>  	strncpy(input->name, gspca_dev->sd_desc->name,
->>  		sizeof input->name);
->>  	return 0;
->> diff -r d8d701594f71 linux/drivers/media/video/gspca/gspca.h
->> --- a/linux/drivers/media/video/gspca/gspca.h	Sun Mar 29 08:45:36 2009
->> +0200 +++ b/linux/drivers/media/video/gspca/gspca.h	Sun Mar 29 23:00:08
->> 2009 +0100 @@ -56,6 +56,7 @@
->>  				 * - cannot be > MAX_NURBS
->>  				 * - when 0 and bulk_size != 0 means
->>  				 *   1 URB and submit done by subdriver */
->> +	u32 input_flags;	/* value for ENUM_INPUT status flags */
->>  };
+>> If a v4l driver loads an i2c module and it can obtain a v4l2_subdev
+>> pointer successfully, then it increases the module's refcount to prevent
+>> it from being unloaded. This is by design.
 >>
->>  struct gspca_dev;
->> diff -r d8d701594f71 linux/drivers/media/video/gspca/sq905.c
->> --- a/linux/drivers/media/video/gspca/sq905.c	Sun Mar 29 08:45:36 2009
->> +0200 +++ b/linux/drivers/media/video/gspca/sq905.c	Sun Mar 29 23:00:08
->> 2009 +0100 @@ -360,6 +360,12 @@
->>  	gspca_dev->cam.nmodes = ARRAY_SIZE(sq905_mode);
->>  	if (!(ident & SQ905_HIRES_MASK))
->>  		gspca_dev->cam.nmodes--;
->> +
->> +	if (ident & SQ905_ORIENTATION_MASK)
->> +		gspca_dev->cam.input_flags = V4L2_IN_ST_VFLIP;
->> +	else
->> +		gspca_dev->cam.input_flags = V4L2_IN_ST_VFLIP |
->> +					     V4L2_IN_ST_HFLIP;
->>  	return 0;
->>  }
+>> Without autoprobing I also see no point in allowing an i2c module to be
+>> unloaded while in use. Reloading it won't re-attach it to the adapter
+>> anyway.
+>
+> Yes, that's what I thought was the case, and that's also something that I
+> am not quite convinced yet, that it is the best design for this situation.
+
+It really, really is :-)
+
+This is actually not something v4l-related. It's a consequence of the new
+i2c API.
+
+>> > 3. Currently soc-camera works in a way, that during probing of an i2c
+>> > (sub)device, the Master Clock of the host camera interface is turned
+>> on,
+>> > after the probing it is turned off again. Then it is turned on at
+>> first
+>> > open() and off at last close(). This should also be possible with the
+>> > module autoloading in v4l2_i2c_new_subdev(), but this adds even more
+>> > fragileness to the system.
+>> >
+>> > I think, a simple addition to the v4l2-device API could solve this
+>> > problems and make the API more transparent:
+>> >
+>> > 1. "hi, I am driver X's probing routine, going to probe device Y,
+>> please,
+>> > turn it on" (action: master clock on)
+>> >
+>> > 2. "probing for device Y completed (un)successfully" (action: master
+>> clock
+>> > off, if successful - create /dev/videoY)
+>> >
+>> > 3. "driver X is being unloaded, I am releasing device Y" (action: rip
+>> > /dev/videoY)
+>> >
+>> > We could agree on keeping /dev/videoY even when no sensor driver is
+>> > present and just return -ENODEV on open(), and thus simplify the above
+>> but
+>> > I am not sure if this is desired.
 >>
->> diff -r d8d701594f71 linux/include/linux/videodev2.h
->> --- a/linux/include/linux/videodev2.h	Sun Mar 29 08:45:36 2009 +0200
->> +++ b/linux/include/linux/videodev2.h	Sun Mar 29 23:00:08 2009 +0100
->> @@ -737,6 +737,11 @@
->>  #define V4L2_IN_ST_NO_SIGNAL   0x00000002
->>  #define V4L2_IN_ST_NO_COLOR    0x00000004
->>
->> +/* field 'status' - sensor orientation */
->> +/* If sensor is mounted upside down set both bits */
->> +#define V4L2_IN_ST_HFLIP       0x00000010 /* Output is flipped
->> horizontally */
->> +#define V4L2_IN_ST_VFLIP       0x00000020 /* Output is flipped
->> vertically */ +
->>  /* field 'status' - analog */
->>  #define V4L2_IN_ST_NO_H_LOCK   0x00000100  /* No horizontal sync lock */
->>  #define V4L2_IN_ST_COLOR_KILL  0x00000200  /* Color killer is active */
+>> I don't follow you. It is the adapter driver that controls which subdevs
+>> are loaded/probed, when they are loaded or unloaded and it can also
+>> decide
+>> when to start/stop the master clock. This new situation is different in
+>> that loading an i2c module will no longer work, the initiative has to
+>> come
+>> from the adapter/bridge/host/whatever driver who determines what has to
+>> be
+>> done based on platform board info.
 >
-> Hi Adam,
+> Ok, but how are we going to address this your comment:
 >
-> I've only one small comment: the V4L2_IN_ST_H/VFLIP comments talk
-> about 'Output' while these flags deal with an input. I know you mean the
-> output from the sensor, but the point of view in this API is the
-> application, and for the application it is an input.
+> 	/* Note: it is possible in the future that
+> 	   c->driver is NULL if the driver is still being loaded.
+> 	   We need better support from the kernel so that we
+> 	   can easily wait for the load to finish. */
+> 	if (client == NULL || client->driver == NULL)
+> 		return NULL;
 >
-> Other than that I'm happy with it.
->
-> Regards,
->
-> 	Hans
+> With just an
+> msleep(OUR_HARD_CODED_TIMEOUT_WE_BELIEVE_SHOULD_BE_ENOUGH_FOR_ALL)?:-)
 
-Hmmm. These two comments?
+As long as we load the modules first (and that's what this function does)
+this isn't an issue. But in the future we (that is, Jean Delvare and
+myself) want to allow udev to load the module for you. To properly
+implement this we need to listen to some notification from the kernel.
 
->> +#define V4L2_IN_ST_HFLIP       0x00000010 /* Output is flipped
->> horizontally */
->> +#define V4L2_IN_ST_VFLIP       0x00000020 /* Output is flipped
->> vertically */ +
+It will be complicated and in the few cases where this is supported (not
+in v4l AFAIK) there is indeed an msleep() like that :-)
 
-Perhaps one could change them to say /* Frames must be flipped ...
+This part is work-in-progress, so it can safely be ignored.
 
-instead.
+> Also one more point, that I don't see a problem currently with, but that
+> we have to keep in mind: soc-camera is aiming at supporting several
+> devices on one interface. E.g., there is a design, where two cameras are
+> connected to a host, that actually is only supposed to support one camera
+> at a time. So, they use some extra switching logic to activate one or
+> another camera. In this case the platform registers two cameras, they are
+> both probed - one after another, and that's also the reason, why the
+> default state "all /dev/videoN devices are closed" must be - no fixed
+> connection between a subdevice and a device. We actually have already
+> discussed this before, I think, just something to keep an eye on.
 
-Theodore Kilgore
+This shouldn't be a problem at all. The v4l2_subdev pointer is just that:
+a pointer to a struct created by the (in this case) i2c client instance.
+As long as you don't call that module it's not doing anything (assuming it
+didn't spawn some background task, of course). Just you just don't call
+the inactive subdev until you need it.
+
+Regards,
+
+        Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
