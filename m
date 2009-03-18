@@ -1,49 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.187]:36024 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752694AbZCLJtT (ORCPT
+Received: from mail01d.mail.t-online.hu ([84.2.42.6]:64080 "EHLO
+	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751361AbZCRRsu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 05:49:19 -0400
-Received: by fk-out-0910.google.com with SMTP id f33so49302fkf.5
-        for <linux-media@vger.kernel.org>; Thu, 12 Mar 2009 02:49:17 -0700 (PDT)
+	Wed, 18 Mar 2009 13:48:50 -0400
+Message-ID: <49C133F6.3020202@freemail.hu>
+Date: Wed, 18 Mar 2009 18:48:38 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-In-Reply-To: <50906.62.70.2.252.1236850101.squirrel@webmail.xs4all.nl>
-References: <50906.62.70.2.252.1236850101.squirrel@webmail.xs4all.nl>
-Date: Thu, 12 Mar 2009 10:49:16 +0100
-Message-ID: <23be820f0903120249n70778ddbh28c04286099cfc5b@mail.gmail.com>
-Subject: Re: disable v4l2-ctl logging --log-status in /var/log/messages
-From: Gregor Fuis <gujs.lists@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org
+CC: LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCH] gspca: add missing .type field check in VIDIOC_G_PARM
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 12, 2009 at 10:28 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
->> Hello,
->>
->> Is it possible to disable v4l2-ctl aplication logging into
->> /var/log/messages.
->> I am using it to control and monitor my PVR 150 cards and every time I
->> run v4l2-ctl -d /dev/video0 --log-status all output is logged into
->> /var/log/messages and some other linux log files.
->
-> All --log-status does is to tell the driver to show it's status in the
-> kernel log for debugging purposes. It cannot and should not be relied upon
-> for monitoring/controlling a driver.
->
-> What do you need it for anyway?
+From: Márton Németh <nm127@freemail.hu>
 
-I am just monitoring if signal is present on tuner, and what signal
-format is detected.
-These two lines:
-cx25840 1-0044: Video signal:              not present
-cx25840 1-0044: Detected format:           PAL-Nc
-I run this every minute and it is really annoying to have all this in
-my system logs.
-Is it possible to modify v4l2-ctl source to disable system logging?
+The gspca webcam driver does not check the .type field of struct v4l2_streamparm.
+This field is an input parameter for the driver according to V4L2 API specification,
+revision 0.24 [1]. Add the missing check.
 
-Regards,
-Gregor
+The missing check was recognised by v4l-test 0.10 [2] together with gspca_sunplus driver
+and with "Trust 610 LCD POWERC@M ZOOM" webcam. This patch was verified also with
+v4l-test 0.10.
+
+References:
+[1] V4L2 API specification, revision 0.24
+    http://v4l2spec.bytesex.org/spec/r11680.htm
+
+[2] v4l-test: Test environment for Video For Linux Two API
+    http://v4l-test.sourceforge.net/
+
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+--- linux-2.6.29-rc8/drivers/media/video/gspca/gspca.c.orig	2009-03-14 12:29:38.000000000 +0100
++++ linux-2.6.29-rc8/drivers/media/video/gspca/gspca.c	2009-03-18 16:51:03.000000000 +0100
+@@ -1320,6 +1320,9 @@ static int vidioc_g_parm(struct file *fi
+ {
+ 	struct gspca_dev *gspca_dev = priv;
+
++	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
+ 	memset(parm, 0, sizeof *parm);
+ 	parm->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	parm->parm.capture.readbuffers = gspca_dev->nbufread;
+
