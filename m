@@ -1,43 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:51021 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752045AbZCIXWy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2009 19:22:54 -0400
-Date: Mon, 9 Mar 2009 20:20:15 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Tobias Lorenz <tobias.lorenz@gmx.net>
-Cc: Joonyoung Shim <dofmind@gmail.com>, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com
-Subject: Re: About the radio-si470x driver for I2C interface
-Message-ID: <20090309202015.14c78009@pedra.chehab.org>
-In-Reply-To: <200903092333.38819.tobias.lorenz@gmx.net>
-References: <4e1455be0903051913x37562436y85eef9cba8b10ab0@mail.gmail.com>
-	<20090306074604.10926b03@pedra.chehab.org>
-	<200903092333.38819.tobias.lorenz@gmx.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from yw-out-2324.google.com ([74.125.46.31]:15477 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751571AbZCREh5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Mar 2009 00:37:57 -0400
+Received: by yw-out-2324.google.com with SMTP id 3so360776ywj.1
+        for <linux-media@vger.kernel.org>; Tue, 17 Mar 2009 21:37:55 -0700 (PDT)
+MIME-Version: 1.0
+Date: Wed, 18 Mar 2009 13:32:08 +0900
+Message-ID: <5e9665e10903172132g2c433879j14b292d8f5c96268@mail.gmail.com>
+Subject: About white balance control.
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: bill@thedirks.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	dongsoo45.kim@samsung.com,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"jongse.won@samsung.com" <jongse.won@samsung.com>,
+	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 9 Mar 2009 23:33:38 +0100
-Tobias Lorenz <tobias.lorenz@gmx.net> wrote:
+Hello,
 
-> Hi,
-> 
-> > The proper way is to break radio-si470x into two parts:
-> > 
-> > 	- A i2c adapter driver (similar to what we have on cx88-i2c, for
-> > 	  example, plus the radio part of cx88-video);
-> > 	- A radio driver (similar to tea5767.c).
-> > 
-> > This way, the i2c driver can be used on designs that use a different i2c adapter.
-> 
-> yes, this is why I already capsulated most of the USB functionality into own functions. I awaited that somewhen the si470x is used in the "usual" way by i2c.
-> 
-> I'm not sure, if we should split the driver into three files (generic/common, usb, i2c) or just implement the new functionality within the same file using macros/defines.
+I accidently realized today that I was using white balance control in wrong way.
 
-It is better to split. It will provide more flexibility.
+As far as I understand we've got
 
-Cheers,
-Mauro
+V4L2_CID_AUTO_WHITE_BALANCE which activate auto white balance
+adjustment in runtime,
+V4L2_CID_DO_WHITE_BALANCE_TEMPERATURE specifying absolute kelvin value
+
+but can't get what V4L2_CID_DO_WHITE_BALANCE is for.
+
+I think after issuing V4L2_CID_AUTO_WHITE_BALANCE and
+V4L2_CID_WHITE_BALANCE_TEMPERATURE,
+the white balance functionality works immediately. Isn't it right?
+
+What exactly is the button type V4L2_CID_DO_WHITE_BALANCE for? Because
+the V4L2 API document says that "(the value is ignored)". Does that
+mean that even we have issued V4L2_CID_AUTO_WHITE_BALANCE and
+V4L2_CID_WHITE_BALANCE_TEMPERATURE, we can't see the white balance
+working at that moment?
+
+And one more thing. If I want to serve several white balance presets,
+like cloudy, dawn, sunny and so on, what should I do?
+I think it should be supported as menu type, but most of drivers are
+using white balance CID with integer type...then what should I do?
+Define preset names with kelvin number like this?
+
+#define WB_CLOUDY 8000
+
+Pretty confusing... anyone knows what should I do?
+
+Nate
