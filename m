@@ -1,37 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mk-outboundfilter-6.mail.uk.tiscali.com ([212.74.114.14]:33300
-	"EHLO mk-outboundfilter-6.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761617AbZCPXgc (ORCPT
+Received: from yw-out-2324.google.com ([74.125.46.31]:26942 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751920AbZCRUJm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2009 19:36:32 -0400
-From: Adam Baker <linux@baker-net.org.uk>
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Subject: Re: [RFC][PATCH 0/2] Sensor orientation reporting
-Date: Mon, 16 Mar 2009 23:36:26 +0000
-Cc: linux-media@vger.kernel.org, kilgota@banach.math.auburn.edu,
-	"Jean-Francois Moine" <moinejf@free.fr>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-References: <200903152224.29388.linux@baker-net.org.uk> <49BE0709.9060300@hhs.nl>
-In-Reply-To: <49BE0709.9060300@hhs.nl>
+	Wed, 18 Mar 2009 16:09:42 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so218678ywb.1
+        for <linux-media@vger.kernel.org>; Wed, 18 Mar 2009 13:09:40 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+In-Reply-To: <49C15289.5070206@august.de>
+References: <49C15289.5070206@august.de>
+Date: Wed, 18 Mar 2009 16:09:40 -0400
+Message-ID: <412bdbff0903181309j24ce115drcecbdacd91d2902c@mail.gmail.com>
+Subject: Re: no video device
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Rolf Schumacher <mailinglist@august.de>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903162336.27533.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 16 March 2009, Hans de Goede wrote:
-> Both patches look good to me.
+On Wed, Mar 18, 2009 at 3:59 PM, Rolf Schumacher <mailinglist@august.de> wrote:
+> Hi, dvb professionals,
+>
+> I followed the advices on
+> http://www.linuxtv.org/wiki/index.php/How_to_Obtain%2C_Build_and_Install_V4L-DVB_Device_Drivers#Optional_Pre-Compilation_Steps
+>
+> Build and Installation Instructions
+>
+> downloaded the v4l sources via mercurial,
+> "make" and "sudo make install" finished without error messages.
+>
+> rebooted the computer
+>
+> dmesg shows the device:
+>
+> ---
+> usb 2-1: new high speed USB device using ehci_hcd and address 6
+> usb 2-1: configuration #1 chosen from 1 choice
+> usb 2-1: New USB device found, idVendor=0b48, idProduct=300d
+> usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+> usb 2-1: Product: TT-USB2.0
+> usb 2-1: Manufacturer: TechnoTrend
+> usb 2-1: SerialNumber: LHKAMG
+> ---
+>
+> no error if I unplug and plug it on USB again
+>
+> the connected box is a TechnoTrend CT 3560 CI
+> I googled and found chipset names like TDA8274 + TDA10023
+> did not find anything in wiki, so I could not determine module or driver
+> names to be identified with lsmod.
+>
+> there is no created /dev/dvb or /dev/video device
+>
+> google did not help me answering the question "do I need firmware, and
+> if so where to get it"
+>
+> uname -a shows
+> Linux rolf9 2.6.28-7.slh.6-sidux-686 #1 SMP PREEMPT Sat Mar 14 02:30:40
+> UTC 2009 i686 GNU/Linux
+>
+> for now I got stuck.
+>
+> Do you know of a next step towards having tv on my laptop?
 
-A complaint about lack of documentation wouldn't have gone amiss. 
-Unfortunately having just remembered that I should have done that I'm 
-struggling to get the current docbook to compile (So far I've suffered Ubuntu 
-not packaging an old enough docbook, missing character set definition files 
-and the Makefile depending on bash but not explicitly requesting it so 
-getting dash).
+I don't think the product is supported.  Just to be clear, you can't
+just modprobe the chip driver for whatever components happen to be in
+your device and expect it to work.
 
-It looks like it now builds the docs so I'm ready to start updating them.
+If you are lucky enough to have a product where all the chipset
+drivers are already written, then a developer needs to write a device
+profile in the bridge driver.  However, if it uses some components
+that are not supported, then it's a lot more work since an entire new
+driver needs to be written.
 
-Adam
+If you want to help make it work, you should start by creating a page
+in the linuxtv.org wiki, and include high resolution digital photos of
+the circuit board, so people can get an accurate inventory of what
+chips are in the device in question.  From there, perhaps a developer
+interested in adding the support can do the driver work.
+
+Cheers,
+
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
