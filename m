@@ -1,77 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:3355 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756115AbZCYHIJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2009 03:08:09 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@radix.net>
-Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: OK, 2.6.16-2.6.21: OK
-Date: Wed, 25 Mar 2009 08:08:24 +0100
-Cc: linux-media@vger.kernel.org
-References: <47547.62.70.2.252.1237885441.squirrel@webmail.xs4all.nl> <1237936725.4448.6.camel@palomino.walls.org>
-In-Reply-To: <1237936725.4448.6.camel@palomino.walls.org>
+Received: from mail.gmx.net ([213.165.64.20]:41087 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750782AbZCRIFF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Mar 2009 04:05:05 -0400
+Date: Wed, 18 Mar 2009 09:05:08 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: soc-camera -> v4l2-device: possible API extension requirements
+Message-ID: <Pine.LNX.4.64.0903180830190.4262@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903250808.24887.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 25 March 2009 00:18:45 Andy Walls wrote:
-> On Tue, 2009-03-24 at 10:04 +0100, Hans Verkuil wrote:
-> > Hmm, everything is OK.
-> >
-> > Let's enjoy this moment of perfection! It probably won't last long :-)
-> >
-> > Regards,
-> >
-> >        Hans
-> >
-> > > This message is generated daily by a cron job that builds v4l-dvb for
-> > > the kernels and architectures in the list below.
-> > >
-> > > Results of the daily build of v4l-dvb:
-> > >
-> > > date:        Tue Mar 24 08:33:25 CET 2009
-> > > path:        http://www.linuxtv.org/hg/v4l-dvb
-> > > changeset:   11153:56cf0f1772f7
-> > > gcc version: gcc (GCC) 4.3.1
-> > > hardware:    x86_64
-> > > host os:     2.6.26
-> > >
-> > > linux-2.6.22.19-armv5: OK
-> > > linux-2.6.23.12-armv5: OK
-> > > linux-2.6.24.7-armv5: OK
-> > > linux-2.6.25.11-armv5: OK
-> > > linux-2.6.26-armv5: OK
-> > > linux-2.6.27-armv5: OK
-> > > linux-2.6.28-armv5: OK
-> > > linux-2.6.29-armv5: OK
-> > > linux-2.6.27-armv5-ixp: OK
->
-> Sorry to rain on the parade, but:
->
->
-> linux-2.6.27-armv5-ixp: WARNINGS
->
->   CC [M]  /marune/build/v4l-dvb-master/v4l/sp887x.o
-> /tmp/ccqyC3HA.s:   CC [M]  /marune/build/v4l-dvb-master/v4l/nxt6000.o
->
->
-> the logs and the summary log appear to disagree.  Or maybe the assembler
-> was having a bad day.
+Hi Hans,
 
-Yes, it was having a bad day :-) There are a few assembler warnings that I 
-get with the arm compilation that I attempt to filter out. But every so 
-often these warnings get mixed in with other messages and my filter misses 
-them, so the build process still finds it. As you said, it was a bad day...
+I am doing the first step of the soc-camera integration with your 
+v4l2-device API. As discussed on IRC, this first step changes the probing 
+/ releasing procedures in soc-camera to match v4l2-device expectations. 
+While at it I came across a few points in your current API, which might 
+need to be changed to be used with soc-camera, or maybe I just 
+misunderstand something and you will be able to resolve my questions:
 
-Regards,
+1. this can be kept, maybe, just it doesn't seem very comfortable to me: 
+the fact that v4l2_i2c_new_subdev() relies on loading of the i2c driver 
+for the subdevice. First, you put the call to request_module() under 
+#ifdef MODULE
+which means, if v4l2-common.c is compiled as a module, it will also assume 
+that the i2c subdevice driver is a module, which doesn't have to be the 
+case. Secondly, this means manual unloading and loading of the module at a 
+later time will be impossible. No, I do not know why one would need this - 
+apart from during development. But even the inability to do this during 
+driver development already makes this questionable, IMHO. The only way I 
+see possible so far, is, for example, if I have the pxa-camera driver and 
+a sensor driver, then I can first unload the pxa-camera driver, which 
+should cause v4l2_device_unregister_subdev() to be called, then unload the 
+sensor driver, then load the pxa-camera driver again, which should then 
+auto-load the sensor driver.
 
-	Hans
+2. In a comment you write to v4l2_i2c_new_subdev():
+/* Load an i2c sub-device. It assumes that i2c_get_adapdata(adapter)
+   returns the v4l2_device and that i2c_get_clientdata(client)
+   returns the v4l2_subdev. */
+I don't think this is possible with generic SoC i2c adapters. On 
+soc-camera systems v4l2 subdevices are connected to generic i2c busses, 
+so, you cannot require, that "i2c_get_adapdata(adapter) returns the 
+v4l2_device."
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+3. Currently soc-camera works in a way, that during probing of an i2c 
+(sub)device, the Master Clock of the host camera interface is turned on, 
+after the probing it is turned off again. Then it is turned on at first 
+open() and off at last close(). This should also be possible with the 
+module autoloading in v4l2_i2c_new_subdev(), but this adds even more 
+fragileness to the system.
+
+I think, a simple addition to the v4l2-device API could solve this 
+problems and make the API more transparent:
+
+1. "hi, I am driver X's probing routine, going to probe device Y, please, 
+turn it on" (action: master clock on)
+
+2. "probing for device Y completed (un)successfully" (action: master clock 
+off, if successful - create /dev/videoY)
+
+3. "driver X is being unloaded, I am releasing device Y" (action: rip 
+/dev/videoY)
+
+We could agree on keeping /dev/videoY even when no sensor driver is 
+present and just return -ENODEV on open(), and thus simplify the above but 
+I am not sure if this is desired.
+
+I am sure I will have more questions or suggestions, I will keep posting 
+to this thread as they appear.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
