@@ -1,20 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2OAxu2q018082
-	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 06:59:56 -0400
-Received: from www.etchedpixels.co.uk (earthlight.etchedpixels.co.uk
-	[81.2.110.250])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n2OAxceH021373
-	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 06:59:38 -0400
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-To: video4linux-list@redhat.com, linux-kernel@vger.kernel.org
-Date: Tue, 24 Mar 2009 11:00:39 +0000
-Message-ID: <20090324105251.9763.24193.stgit@localhost.localdomain>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2ILiNV4031175
+	for <video4linux-list@redhat.com>; Wed, 18 Mar 2009 17:44:23 -0400
+Received: from web88204.mail.re2.yahoo.com (web88204.mail.re2.yahoo.com
+	[206.190.37.219])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n2ILi6Dr029183
+	for <video4linux-list@redhat.com>; Wed, 18 Mar 2009 17:44:06 -0400
+Message-ID: <325912.25752.qm@web88204.mail.re2.yahoo.com>
+Date: Wed, 18 Mar 2009 14:44:05 -0700 (PDT)
+From: Dwaine Garden <dwainegarden@rogers.com>
+To: linux-dvb@linuxtv.org, Linux and Kernel Video <video4linux-list@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 Cc: 
-Subject: [PATCH] pluto2: silence spew of card hung up messages
+Subject: Patch: usbvision: Convert the usbvision->lock semaphore to the
+	mutex API
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,47 +27,19 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-If the card is ejected on some systems you get a spew of messages as other
-shared IRQ devices interrupt between the card eject and the card IRQ
-disable.
-
-We don't need to spew them all out
-
-Closes #7472
-
-Signed-off-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
----
-
- drivers/media/dvb/pluto2/pluto2.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
-
-
-diff --git a/drivers/media/dvb/pluto2/pluto2.c b/drivers/media/dvb/pluto2/pluto2.c
-index d101b30..ee89623 100644
---- a/drivers/media/dvb/pluto2/pluto2.c
-+++ b/drivers/media/dvb/pluto2/pluto2.c
-@@ -116,6 +116,7 @@ struct pluto {
- 
- 	/* irq */
- 	unsigned int overflow;
-+	unsigned int dead;
- 
- 	/* dma */
- 	dma_addr_t dma_addr;
-@@ -336,8 +337,10 @@ static irqreturn_t pluto_irq(int irq, void *dev_id)
- 		return IRQ_NONE;
- 
- 	if (tscr == 0xffffffff) {
--		// FIXME: maybe recover somehow
--		dev_err(&pluto->pdev->dev, "card hung up :(\n");
-+		if (pluto->dead == 0)
-+			dev_err(&pluto->pdev->dev, "card has hung or been ejected.\n");
-+		/* It's dead Jim */
-+		pluto->dead = 1;
- 		return IRQ_HANDLED;
- 	}
- 
-
+Looking at this patch.=A0 I have a couple of stupid questions.=0A=0A- up(&u=
+sbvision->lock);=0A=0A+ mutex_unlock(&usbvision->lock);=0A=0A=A0=0A=0A+#if =
+LINUX_VERSION_CODE > KERNEL_VERSION(2,6,15)=0A=0A+#include <linux/mutex.h>=
+=0A=0A+#endif=0A=0A#include <media/v4l2-common.h>=0A=0A#include <media/tune=
+r.h>=0A=0A#include <linux/videodev2.h>=0A=0A@@ -397,7 +400,11 @@ struct usb=
+_usbvision {=0A=0Aunsigned char iface; /* Video interface number */=0A=0Aun=
+signed char ifaceAlt; /* Alt settings */=0A=0Aunsigned char Vin_Reg2_Preset=
+;=0A=0A- struct semaphore lock;=0A=0A+#if LINUX_VERSION_CODE > KERNEL_VERSI=
+ON(2,6,15)=0A=0A+ struct mutex=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 lo=
+ck;=0A=0A+#else=0A=0A+ struct semaphore=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 lock;=
+=0A=0A+#endif=0A=0ADo we really need to check the kernel version?=A0=A0 We =
+just removed all the old susbvision->lock semaphores to the mutex API=0A=A0=
+=0ADwaine=0A
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
