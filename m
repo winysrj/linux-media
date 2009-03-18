@@ -1,54 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.237]:50666 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751013AbZCaSi1 convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3674 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755090AbZCRWfU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2009 14:38:27 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so3163671rvb.1
-        for <linux-media@vger.kernel.org>; Tue, 31 Mar 2009 11:38:25 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <412bdbff0903311017r77efad0exa65af2b2676c452b@mail.gmail.com>
-References: <3731df090903311002m58d499b4xca37c56feccfa235@mail.gmail.com>
-	 <412bdbff0903311017r77efad0exa65af2b2676c452b@mail.gmail.com>
-Date: Tue, 31 Mar 2009 11:38:25 -0700
-Message-ID: <3731df090903311138lbbd095fg5ad1ca772822fd93@mail.gmail.com>
-Subject: Re: Including firmware for XC5000?
-From: Dave Johansen <davejohansen@gmail.com>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
+	Wed, 18 Mar 2009 18:35:20 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: davinci-linux-open-source@linux.davincidsp.com, chaithrika@ti.com
+Subject: Re: [RFC 4/7] ARM: DaVinci: DM646x Video: Defintions for standards supported by display
+Date: Wed, 18 Mar 2009 23:35:26 +0100
 Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+References: <1236934897-32160-1-git-send-email-chaithrika@ti.com> <200903141427.09177.hverkuil@xs4all.nl>
+In-Reply-To: <200903141427.09177.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903182335.26742.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 31, 2009 at 10:17 AM, Devin Heitmueller
-<devin.heitmueller@gmail.com> wrote:
-> On Tue, Mar 31, 2009 at 1:02 PM, Dave Johansen <davejohansen@gmail.com> wrote:
->> I just bought a DViCO FusionHDTV7 Dual Express and I was able to get
->> it working after downloading and install the firmware (
->> http://linuxtv.org/wiki/index.php/DViCO_FusionHDTV7_Dual_Express#Firmware
->> ), but my question is could that firmware be added to a distribution
->> (like Mythbuntu 9.04) so it could work out of the box? Or are there
->> legal/technical reasons that prevent that?
->> Thanks,
->> Dave
+Hi Chaithrika,
+
+Just a quick note: getting these digital TV standards sorted out is the main 
+blocking issue for the DM646x. Without this nothing can get merged. In 
+addition, extending the V4L2 API will take time and usually takes several 
+review cycles. So I recommend that this gets a high priority.
+
+I'm not sure if the importance of this came across in my initial review. My 
+apologies if that wasn't clear.
+
+Regards,
+
+	Hans
+
+On Saturday 14 March 2009 14:27:09 Hans Verkuil wrote:
+> On Friday 13 March 2009 10:01:37 chaithrika@ti.com wrote:
+> > From: Chaithrika U S <chaithrika@ti.com>
+> >
+> > Add defintions for Digital TV Standards supported by display driver
+> >
+> > Signed-off-by: Chaithrika U S <chaithrika@ti.com>
+> > ---
+> > Applies to v4l-dvb repository located at
+> > http://linuxtv.org/hg/v4l-dvb/rev/1fd54a62abde
+> >
+> >  include/linux/videodev2.h |   12 ++++++++++++
+> >  1 files changed, 12 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > index 7a8eafd..df4a622 100644
+> > --- a/include/linux/videodev2.h
+> > +++ b/include/linux/videodev2.h
+> > @@ -704,6 +704,18 @@ typedef __u64 v4l2_std_id;
+> >  #define V4L2_STD_ALL            (V4L2_STD_525_60	|\
+> >  				 V4L2_STD_625_50)
+> >
+> > +#define V4L2_STD_720P_60        ((v4l2_std_id)(0x0001000000000000ULL))
+> > +#define V4L2_STD_1080I_30       ((v4l2_std_id)(0x0002000000000000ULL))
+> > +#define V4L2_STD_1080I_25       ((v4l2_std_id)(0x0004000000000000ULL))
+> > +#define V4L2_STD_480P_60        ((v4l2_std_id)(0x0008000000000000ULL))
+> > +#define V4L2_STD_576P_50        ((v4l2_std_id)(0x0010000000000000ULL))
+> > +#define V4L2_STD_720P_25        ((v4l2_std_id)(0x0020000000000000ULL))
+> > +#define V4L2_STD_720P_30        ((v4l2_std_id)(0x0040000000000000ULL))
+> > +#define V4L2_STD_720P_50        ((v4l2_std_id)(0x0080000000000000ULL))
+> > +#define V4L2_STD_1080P_25       ((v4l2_std_id)(0x0100000000000000ULL))
+> > +#define V4L2_STD_1080P_30       ((v4l2_std_id)(0x0200000000000000ULL))
+> > +#define V4L2_STD_1080P_24       ((v4l2_std_id)(0x0400000000000000ULL))
+> > +
+> >  struct v4l2_standard {
+> >  	__u32		     index;
+> >  	v4l2_std_id          id;
 >
-> There are legal issues since Xceive has not given permission to
-> redistribute the binary image.  I am continuing to work the issue with
-> them.
+> This requires an RFC. I'm not convinced that using v4l2_std_id is the
+> best approach. If you look at the CEA-861-D you see a lot more standards
+> (and E adds even more). Not to mention that when the DM646x is used in
+> combination with e.g. an FPGA then it should be possible to supply the
+> driver with custom timings as well. The v4l2_std_id type was never
+> designed for that.
 >
-> Believe me, I would *love* to get it bundled into the distros, and I
-> am working towards that goal.
+> My gut feeling is that v4l2_std_id should be effectively frozen and used
+> for the old TV broadcast standards only, and that a new API should be
+> created to setup these digital formats.
+>
+> I've discussed this with Manju in the past, and I suggest that TI should
+> make a proposal in the form of an RFC that we can then discuss on the
+> mailinglists. One of the disadvantages of being the first who needs these
+> HDTV formats. The advantage of being the first is that you can design it
+> yourself, of course!
 >
 > Regards,
 >
-> Devin
->
-> --
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
->
+> 	Hans
 
-Ya, that's what I figured. Well, hopefully it will be worked out soon.
-Dave
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
