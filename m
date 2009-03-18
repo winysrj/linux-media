@@ -1,74 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:46509 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750865AbZCILjg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Mar 2009 07:39:36 -0400
-Date: Mon, 9 Mar 2009 12:39:42 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: mike@compulab.co.il,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 4/4] pxa_camera: Fix overrun condition on last buffer
-In-Reply-To: <1236282351-28471-5-git-send-email-robert.jarzmik@free.fr>
-Message-ID: <Pine.LNX.4.64.0903091236540.3992@axis700.grange>
-References: <1236282351-28471-1-git-send-email-robert.jarzmik@free.fr>
- <1236282351-28471-2-git-send-email-robert.jarzmik@free.fr>
- <1236282351-28471-3-git-send-email-robert.jarzmik@free.fr>
- <1236282351-28471-4-git-send-email-robert.jarzmik@free.fr>
- <1236282351-28471-5-git-send-email-robert.jarzmik@free.fr>
+Received: from rv-out-0506.google.com ([209.85.198.236]:42905 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754828AbZCRQR6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Mar 2009 12:17:58 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so73348rvb.1
+        for <linux-media@vger.kernel.org>; Wed, 18 Mar 2009 09:17:56 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Wed, 18 Mar 2009 21:47:56 +0530
+Message-ID: <d9ec170c0903180917k691f9d01pe4cb4231efe282e4@mail.gmail.com>
+Subject: ISP Configuration for RAW Bayer sensor
+From: Suresh Rao <sureshraomr@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com, saaguirre@ti.com,
+	hvaibhav@ti.com, tuukka.o.toivonen@nokia.com,
+	klimov.linux@gmail.com, david.cohen@nokia.com,
+	antti.koskipaa@nokia.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 5 Mar 2009, Robert Jarzmik wrote:
+Hi,
 
-> The last buffer queued will often overrun, as the DMA chain
-> is finished, and the time the dma irq handler is activated,
+I am working with MT9V023 RAW sensor.  The data format from the sensor is
 
-s/and the time/and during the time/ ?
+B G B G B G B G ...
+G R G R G R G R ...
+B G B G B G B G ...
+G R G R G R G R ........      [ Format 1]
 
-> the QIF fifos are filled by the sensor.
-> 
-> The fix is to ignore the overrun condition on the last
-> queued buffer, and restart the capture only on intermediate
-> buffers of the chain.
-> 
-> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-> ---
->  drivers/media/video/pxa_camera.c |    8 ++++++--
->  1 files changed, 6 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-> index 16bf0a3..dd56c35 100644
-> --- a/drivers/media/video/pxa_camera.c
-> +++ b/drivers/media/video/pxa_camera.c
-> @@ -734,14 +734,18 @@ static void pxa_camera_dma_irq(int channel, struct pxa_camera_dev *pcdev,
->  		status & DCSR_ENDINTR ? "EOF " : "", vb, DDADR(channel));
->  
->  	if (status & DCSR_ENDINTR) {
-> -		if (camera_status & overrun) {
-> +		/*
-> +		 * It's normal if the last frame creates an overrun, as there
-> +		 * are no more DMA descriptors to fetch from QIF fifos
-> +		 */
-> +		if (camera_status & overrun
-> +		    && !list_is_last(pcdev->capture.next, &pcdev->capture)) {
->  			dev_dbg(pcdev->dev, "FIFO overrun! CISR: %x\n",
->  				camera_status);
->  			pxa_camera_stop_capture(pcdev);
->  			pxa_camera_start_capture(pcdev);
->  			goto out;
->  		}
-> -
->  		buf->active_dma &= ~act_dma;
+The sources I am using for ISP drivers are pulled on top of
+linux-omap-2.6.29-rc7 from [git pull
+git://git.gitorious.org/omap3camera/mainline.git v4l iommu omap3camera
+base].
 
-This empty like removal doesn't belong to the fix, I'll remove it when 
-committing, and amend the commit message as above. Please, comment if you 
-disagree.
+I want to use the ISP on the OMAP for doing interpolation and format
+conversion to UYVY.  I am able to capture the images from the sensor,
+however I notice that the color information is missing.  I dug the
+sources and found that in the RAW capture mode ISP is getting
+configured to input format
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+G R G R G R G R ...
+B G B G B G B G ...
+G R G R G R G R ...
+B G B G B G B G ...          [Format 2]
+
+Has anyone tried sensors with BGGR ( Format 1) on OMAP?
+
+Can anyone give me some pointers or information on how to configure
+ISP for BGGR (Format 1)
+
+Thanks in advance for all the help.
+
+Thanks,
+Suresh
