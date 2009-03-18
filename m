@@ -1,122 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f177.google.com ([209.85.219.177]:50305 "EHLO
-	mail-ew0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750810AbZCFE6y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 23:58:54 -0500
-Received: by ewy25 with SMTP id 25so126221ewy.37
-        for <linux-media@vger.kernel.org>; Thu, 05 Mar 2009 20:58:51 -0800 (PST)
-From: Kyle Guinn <elyk03@gmail.com>
-To: kilgota@banach.math.auburn.edu
-Subject: Re: [PATCH] for the file gspca/mr97310a.c
-Date: Thu, 5 Mar 2009 22:58:47 -0600
-Cc: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>,
-	"Jean-Francois Moine" <moinejf@free.fr>
-References: <alpine.LNX.2.00.0903052031490.28557@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.0903052031490.28557@banach.math.auburn.edu>
+Received: from nav6.org ([219.93.2.80]:48983 "EHLO nav6.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751030AbZCRA0f (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Mar 2009 20:26:35 -0400
+Message-ID: <49C03FAE.9060009@nav6.org>
+Date: Wed, 18 Mar 2009 09:26:22 +0900
+From: Ang Way Chuang <wcang@nav6.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: Grant Gardner <grant@lastweekend.com.au>
+CC: linux-media@vger.kernel.org
+Subject: Re: No subsystem id (and therefore no cx88_dvb loaded) after reboot
+References: <e0f27036e7a5af1cc8e8a725b522593b@localhost>
+In-Reply-To: <e0f27036e7a5af1cc8e8a725b522593b@localhost>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903052258.48365.elyk03@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 05 March 2009 20:34:27 kilgota@banach.math.auburn.edu wrote:
-> Signed-off-by: Theodore Kilgore <kilgota@auburn.edu>
-> ----------------------------------------------------------------------
-> --- mr97310a.c.old	2009-02-23 23:59:07.000000000 -0600
-> +++ mr97310a.c	2009-03-05 19:14:13.000000000 -0600
-> @@ -29,9 +29,7 @@ MODULE_LICENSE("GPL");
->   /* specific webcam descriptor */
->   struct sd {
->   	struct gspca_dev gspca_dev;  /* !! must be the first item */
-> -
->   	u8 sof_read;
-> -	u8 header_read;
->   };
->
->   /* V4L2 controls supported by the driver */
-> @@ -100,12 +98,9 @@ static int sd_init(struct gspca_dev *gsp
->
->   static int sd_start(struct gspca_dev *gspca_dev)
->   {
-> -	struct sd *sd = (struct sd *) gspca_dev;
->   	__u8 *data = gspca_dev->usb_buf;
->   	int err_code;
->
-> -	sd->sof_read = 0;
-> -
+I experience similar problem with HVR4000 Lite cards that we have in the 
+lab. The card can't tune after cold boot, but a reboot will fix the 
+problem. I will check whether it has the similar invalid subsystem id 
+problem.
 
-Good catch, I didn't realize this was kzalloc'd.
+Grant Gardner wrote:
+> 
+> 
+> I'm looking for some pointers on debugging a problem with my DVICO
+> FusionHDTV Hybrid DVB-T card.
+> 
+> The device was working perfectly prior to a reconfiguration of my machine,
+> kernel upgrade etc...
+> 
+> Now, on a cold start everything seems to start smoothly but I can't tune
+> channels.
+> 
+> Then, after a reboot the device is not detected due to "invalid subsystem
+> id". As below lspci reports no subsystem information at all. 
+> 
+> Comparing the lspci output seems to be around the "Region 0: Memory at
+> ee000000 v de000000", but I'm not
+> sure what this means, and whether fixing the reboot problem will fix the
+> channel tuning problem.
+> 
+> Running mythbuntu 8.10
+> 2.6.27-11-generic #1 SMP Thu Jan 29 19:28:32 UTC 2009 x86_64 GNU/Linux
+> 
+> lspci -vvnn after cold start
+> 
+> 00:0a.0 Multimedia video controller [0400]: Conexant Systems, Inc.
+> CX23880/1/2/3 PCI Video and Audio Decoder [14f1:8800] (rev 05)
+> 	Subsystem: DViCO Corporation Device [18ac:db40]
+> 	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+> Stepping- SERR- FastB2B- DisINTx-
+> 	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort-
+> <MAbort- >SERR- <PERR- INTx-
+> 	Latency: 32 (5000ns min, 13750ns max), Cache Line Size: 32 bytes
+> 	Interrupt: pin A routed to IRQ 18
+> 	Region 0: Memory at de000000 (32-bit, non-prefetchable) [size=16M]
+> 	Capabilities: [44] Vital Product Data <?>
+> 	Capabilities: [4c] Power Management version 2
+> 		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
+> PME(D0-,D1-,D2-,D3hot-,D3cold-)
+> 		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+> 	Kernel driver in use: cx8800
+> 	Kernel modules: cx8800
+> 
+> 00:0a.1 Multimedia controller [0480]: Conexant Systems, Inc. CX23880/1/2/3
+> PCI Video and Audio Decoder [Audio Port] [14f1:8811] (rev 05)
+> 	Subsystem: DViCO Corporation Device [18ac:db40]
+> 	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+> Stepping- SERR- FastB2B- DisINTx-
+> 	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort-
+> <MAbort- >SERR- <PERR- INTx-
+> 	Latency: 32 (1000ns min, 63750ns max), Cache Line Size: 32 bytes
+> 	Interrupt: pin A routed to IRQ 11
+> 	Region 0: Memory at df000000 (32-bit, non-prefetchable) [size=16M]
+> 	Capabilities: [4c] Power Management version 2
+> 		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
+> PME(D0-,D1-,D2-,D3hot-,D3cold-)
+> 		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+> 	Kernel modules: cx88-alsa
+> 
+> 00:0a.2 Multimedia controller [0480]: Conexant Systems, Inc. CX23880/1/2/3
+> PCI Video and Audio Decoder [MPEG Port] [14f1:8802] (rev 05)
+> 	Subsystem: DViCO Corporation Device [18ac:db40]
+> 	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+> Stepping- SERR- FastB2B- DisINTx-
+> 	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort-
+> <MAbort- >SERR- <PERR- INTx-
+> 	Latency: 32 (1500ns min, 22000ns max), Cache Line Size: 32 bytes
+> 	Interrupt: pin A routed to IRQ 18
+> 	Region 0: Memory at e0000000 (32-bit, non-prefetchable) [size=16M]
+> 	Capabilities: [4c] Power Management version 2
+> 		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
+> PME(D0-,D1-,D2-,D3hot-,D3cold-)
+> 		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+> 	Kernel driver in use: cx88-mpeg driver manager
+> 	Kernel modules: cx8802
+> 
+> 
+> lspci -vvnn after warm reboot
+> 
+> 00:0a.0 Multimedia video controller [0400]: Conexant Systems, Inc.
+> CX23880/1/2/3 PCI Video and Audio Decoder [14f1:8800] (rev 05)
+>       Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
+> Stepping- SERR- FastB2B- DisINTx-
+>       Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+> <TAbort- <MAbort- >SERR- <PERR- INTx-
+>       Latency: 32 (5000ns min, 13750ns max), Cache Line Size: 32 bytes
+>       Interrupt: pin A routed to IRQ 18
+>       Region 0: Memory at ee000000 (32-bit, non-prefetchable) [size=16M]
+>       Capabilities: [44] Vital Product Data <?>
+>       Capabilities: [4c] Power Management version 2
+>               Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
+> PME(D0-,D1-,D2-,D3hot-,D3cold-)
+>               Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+>       Kernel driver in use: cx8800
+>       Kernel modules: cx8800
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
->   	/* Note:  register descriptions guessed from MR97113A driver */
->
->   	data[0] = 0x01;
-> @@ -285,40 +280,29 @@ static void sd_pkt_scan(struct gspca_dev
->   			__u8 *data,                   /* isoc packet */
->   			int len)                      /* iso packet length */
->   {
-> -	struct sd *sd = (struct sd *) gspca_dev;
->   	unsigned char *sof;
->
->   	sof = pac_find_sof(gspca_dev, data, len);
->   	if (sof) {
->   		int n;
-> -
-> +		int marker_len = sizeof pac_sof_marker;
-
-The value doesn't change; there's no need to use a variable for this.
-
->   		/* finish decoding current frame */
->   		n = sof - data;
-> -		if (n > sizeof pac_sof_marker)
-> -			n -= sizeof pac_sof_marker;
-> +		if (n > marker_len)
-> +			n -= marker_len;
->   		else
->   			n = 0;
->   		frame = gspca_frame_add(gspca_dev, LAST_PACKET, frame,
->   					data, n);
-> -		sd->header_read = 0;
-> -		gspca_frame_add(gspca_dev, FIRST_PACKET, frame, NULL, 0);
-> -		len -= sof - data;
-> +		/* Start next frame. */
-> +		gspca_frame_add(gspca_dev, FIRST_PACKET, frame,
-> +			pac_sof_marker, marker_len);
-> +		len -= n;
-> +		len -= marker_len;
-> +		if (len < 0)
-> +			len = 0;
-
-len -= sof - data; is a shorter way to find the remaining length.
-
->   		data = sof;
->   	}
-> -	if (sd->header_read < 7) {
-> -		int needed;
-> -
-> -		/* skip the rest of the header */
-> -		needed = 7 - sd->header_read;
-> -		if (len <= needed) {
-> -			sd->header_read += len;
-> -			return;
-> -		}
-> -		data += needed;
-> -		len -= needed;
-> -		sd->header_read = 7;
-> -	}
-> -
->   	gspca_frame_add(gspca_dev, INTER_PACKET, frame, data, len);
->   }
->
-> @@ -337,6 +321,7 @@ static const struct sd_desc sd_desc = {
->   /* -- module initialisation -- */
->   static const __devinitdata struct usb_device_id device_table[] = {
->   	{USB_DEVICE(0x08ca, 0x0111)},
-> +	{USB_DEVICE(0x093a, 0x010f)},
-
-This change is unrelated; maybe it should be in a different patch?  Don't 
-forget to update Documentation/video4linux/gspca.txt with the new camera.
-
--Kyle
