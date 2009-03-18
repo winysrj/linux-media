@@ -1,148 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:64198 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753606AbZC0Qmx (ORCPT
+Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:3810 "EHLO
+	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752744AbZCRImD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2009 12:42:53 -0400
-Received: by fxm2 with SMTP id 2so1105002fxm.37
-        for <linux-media@vger.kernel.org>; Fri, 27 Mar 2009 09:42:49 -0700 (PDT)
-Subject: Re: [question] about open/release and
- vidioc_g_input/vidioc_s_input functions
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-In-Reply-To: <200903240806.39540.hverkuil@xs4all.nl>
-References: <1237850047.31041.162.camel@tux.localhost>
-	 <200903240806.39540.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Fri, 27 Mar 2009 19:44:05 +0300
-Message-Id: <1238172245.4200.10.camel@tux.localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 18 Mar 2009 04:42:03 -0400
+Message-ID: <52074.62.70.2.252.1237365718.squirrel@webmail.xs4all.nl>
+Date: Wed, 18 Mar 2009 09:41:58 +0100 (CET)
+Subject: Re: soc-camera -> v4l2-device: possible API extension requirements
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+Cc: "Linux Media Mailing List" <linux-media@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello, Hans
+Hi Guennadi,
 
-On Tue, 2009-03-24 at 08:06 +0100, Hans Verkuil wrote:
-> On Tuesday 24 March 2009 00:14:07 Alexey Klimov wrote:
-> > Hello, all
-> >
-> > ...
-> >  static int terratec_open(struct file *file)
-> > {
-> >         return 0;
-> > }
-> >
-> > static int terratec_release(struct file *file)
-> > {
-> >         return 0;
-> > }
-> > ...
-> >
-> > ...
-> >
-> > Such code used in many radio-drivers as i understand.
-> >
-> > Is it good to place this empty and almost empty functions in:
-> > (here i see two variants)
-> >
-> > 1) In header file that be in linux/drivers/media/radio/ directory.
-> > Later, we can move some generic/or repeating code in this header.
-> >
-> > 2) In any v4l header. What header may contain this ?
-> >
-> > ?
-> >
-> > For what ? Well, as i understand we can decrease amount of lines and
-> > provide this simple generic functions. It's like
-> > video_device_release_empty function behaviour. Maybe not only radio
-> > drivers can use such vidioc_g_input and vidioc_s_input.
-> >
-> > Is it worth ?
-> 
-> I don't think it is worth doing this for g/s_input. I think it is useful to 
-> have them here: it makes it very clear that there is just a single input 
-> and the overhead in both lines and actual bytes is minimal.
-> 
-> But for the empty open and release functions you could easily handle that in 
-> v4l2-dev.c: if you leave the open and release callbacks to NULL, then 
-> v4l2_open and v4l2_release can just return 0. That would be nice.
-> 
-> Regards,
-> 
-> 	Hans
-> 
+> Hi Hans,
+>
+> I am doing the first step of the soc-camera integration with your
+> v4l2-device API. As discussed on IRC, this first step changes the probing
+> / releasing procedures in soc-camera to match v4l2-device expectations.
+> While at it I came across a few points in your current API, which might
+> need to be changed to be used with soc-camera, or maybe I just
+> misunderstand something and you will be able to resolve my questions:
+>
+> 1. this can be kept, maybe, just it doesn't seem very comfortable to me:
+> the fact that v4l2_i2c_new_subdev() relies on loading of the i2c driver
+> for the subdevice. First, you put the call to request_module() under
+> #ifdef MODULE
+> which means, if v4l2-common.c is compiled as a module, it will also assume
+> that the i2c subdevice driver is a module, which doesn't have to be the
+> case.
 
-May i ask help with this ?
-Hans, should it be looks like:
+Ah, good catch. That's not right. The intention is to test whether module
+support is configured at all in the kernel, but I think that is
+CONFIG_MODULE or something like that. I'll change this.
 
-diff -r 56cf0f1772f7 linux/drivers/media/radio/radio-terratec.c
---- a/linux/drivers/media/radio/radio-terratec.c	Mon Mar 23 19:18:34 2009 -0300
-+++ b/linux/drivers/media/radio/radio-terratec.c	Fri Mar 27 19:32:38 2009 +0300
-@@ -333,20 +333,8 @@
- 	return a->index ? -EINVAL : 0;
- }
- 
--static int terratec_open(struct file *file)
--{
--	return 0;
--}
--
--static int terratec_release(struct file *file)
--{
--	return 0;
--}
--
- static const struct v4l2_file_operations terratec_fops = {
- 	.owner		= THIS_MODULE,
--	.open           = terratec_open,
--	.release        = terratec_release,
- 	.ioctl		= video_ioctl2,
- };
- 
-diff -r 56cf0f1772f7 linux/drivers/media/video/v4l2-dev.c
---- a/linux/drivers/media/video/v4l2-dev.c	Mon Mar 23 19:18:34 2009 -0300
-+++ b/linux/drivers/media/video/v4l2-dev.c	Fri Mar 27 19:32:38 2009 +0300
-@@ -264,7 +264,10 @@
- 	/* and increase the device refcount */
- 	video_get(vdev);
- 	mutex_unlock(&videodev_lock);
--	ret = vdev->fops->open(filp);
-+	if (vdev->fops->open == NULL)
-+		ret = 0;
-+	else
-+		ret = vdev->fops->open(filp);
- 	/* decrease the refcount in case of an error */
- 	if (ret)
- 		video_put(vdev);
-@@ -275,7 +278,12 @@
- static int v4l2_release(struct inode *inode, struct file *filp)
- {
- 	struct video_device *vdev = video_devdata(filp);
--	int ret = vdev->fops->release(filp);
-+	int ret;
-+
-+	if (vdev->fops->release == NULL)
-+		ret = 0;
-+	else
-+		ret = vdev->fops->release(filp);
- 
- 	/* decrease the refcount unconditionally since the release()
- 	   return value is ignored. */
+> Secondly, this means manual unloading and loading of the module at a
+> later time will be impossible. No, I do not know why one would need this -
+> apart from during development. But even the inability to do this during
+> driver development already makes this questionable, IMHO. The only way I
+> see possible so far, is, for example, if I have the pxa-camera driver and
+> a sensor driver, then I can first unload the pxa-camera driver, which
+> should cause v4l2_device_unregister_subdev() to be called, then unload the
+> sensor driver, then load the pxa-camera driver again, which should then
+> auto-load the sensor driver.
 
-?
+In v4l devices these i2c devices are an integral part of the v4l device.
+It is not like the sensor i2c devices that are basically independent
+devices. Also, many i2c drivers used by v4l have internal state, so
+unloading them on the fly and reloading them later will in general not
+work.
 
-Or in v4l2_open function i can check if vdev->fops->open == NULL before
-video_get(vdev); (increasing the device refcount), and if it's NULL then
-unlock_mutex and return 0 ?
-And the same in v4l2_release - just return 0 in the begining of function
-in case vdev->fops->release == NULL ?
+If a v4l driver loads an i2c module and it can obtain a v4l2_subdev
+pointer successfully, then it increases the module's refcount to prevent
+it from being unloaded. This is by design.
 
-What approach is better ?
+Without autoprobing I also see no point in allowing an i2c module to be
+unloaded while in use. Reloading it won't re-attach it to the adapter
+anyway.
+
+BTW, when developing I usually run 'make unload' from the top v4l-dvb
+directory. That will unload all v4l drivers.
+
+> 2. In a comment you write to v4l2_i2c_new_subdev():
+> /* Load an i2c sub-device. It assumes that i2c_get_adapdata(adapter)
+>    returns the v4l2_device and that i2c_get_clientdata(client)
+>    returns the v4l2_subdev. */
+> I don't think this is possible with generic SoC i2c adapters. On
+> soc-camera systems v4l2 subdevices are connected to generic i2c busses,
+> so, you cannot require, that "i2c_get_adapdata(adapter) returns the
+> v4l2_device."
+
+Good point, I'll look at this. I don't think it is difficult to change,
+although I will probably wait until several pending driver conversions are
+merged. Then I can fix this in one sweep.
+
+>
+> 3. Currently soc-camera works in a way, that during probing of an i2c
+> (sub)device, the Master Clock of the host camera interface is turned on,
+> after the probing it is turned off again. Then it is turned on at first
+> open() and off at last close(). This should also be possible with the
+> module autoloading in v4l2_i2c_new_subdev(), but this adds even more
+> fragileness to the system.
+>
+> I think, a simple addition to the v4l2-device API could solve this
+> problems and make the API more transparent:
+>
+> 1. "hi, I am driver X's probing routine, going to probe device Y, please,
+> turn it on" (action: master clock on)
+>
+> 2. "probing for device Y completed (un)successfully" (action: master clock
+> off, if successful - create /dev/videoY)
+>
+> 3. "driver X is being unloaded, I am releasing device Y" (action: rip
+> /dev/videoY)
+>
+> We could agree on keeping /dev/videoY even when no sensor driver is
+> present and just return -ENODEV on open(), and thus simplify the above but
+> I am not sure if this is desired.
+
+I don't follow you. It is the adapter driver that controls which subdevs
+are loaded/probed, when they are loaded or unloaded and it can also decide
+when to start/stop the master clock. This new situation is different in
+that loading an i2c module will no longer work, the initiative has to come
+from the adapter/bridge/host/whatever driver who determines what has to be
+done based on platform board info.
+
+> I am sure I will have more questions or suggestions, I will keep posting
+> to this thread as they appear.
+
+Looking forward to this!
+
+Regards,
+
+        Hans
 
 -- 
-Best regards, Klimov Alexey
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
