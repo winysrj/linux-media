@@ -1,127 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3653 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753332AbZCRJ1V (ORCPT
+Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:50279 "EHLO
+	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753105AbZCSHe0 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2009 05:27:21 -0400
-Message-ID: <37365.62.70.2.252.1237368437.squirrel@webmail.xs4all.nl>
-Date: Wed, 18 Mar 2009 10:27:17 +0100 (CET)
-Subject: Re: soc-camera -> v4l2-device: possible API extension requirements
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-Cc: "Linux Media Mailing List" <linux-media@vger.kernel.org>
+	Thu, 19 Mar 2009 03:34:26 -0400
+Date: Thu, 19 Mar 2009 00:34:23 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+cc: David Ellingsworth <david@identd.dyndns.org>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] gspca: add missing .type field check in VIDIOC_G_PARM
+In-Reply-To: <49C1DD0C.4050500@freemail.hu>
+Message-ID: <Pine.LNX.4.58.0903190032530.28292@shell2.speakeasy.net>
+References: <49C133F6.3020202@freemail.hu> <30353c3d0903181445i409604e8r33678f7ce09d0288@mail.gmail.com>
+ <49C1DD0C.4050500@freemail.hu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=X-UNKNOWN
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-> On Wed, 18 Mar 2009, Hans Verkuil wrote:
+On Thu, 19 Mar 2009, [ISO-8859-1] Németh Márton wrote:
+> David Ellingsworth wrote:
+> > 2009/3/18 Németh Márton <nm127@freemail.hu>:
+> >> From: Márton Németh <nm127@freemail.hu>
+> >>
+> >> The gspca webcam driver does not check the .type field of struct v4l2_streamparm.
+> >> This field is an input parameter for the driver according to V4L2 API specification,
+> >> revision 0.24 [1]. Add the missing check.
+> >>
+> >> The missing check was recognised by v4l-test 0.10 [2] together with gspca_sunplus driver
+> >> and with "Trust 610 LCD POWERC@M ZOOM" webcam. This patch was verified also with
+> >> v4l-test 0.10.
+> >>
+> >> References:
+> >> [1] V4L2 API specification, revision 0.24
+> >>    http://v4l2spec.bytesex.org/spec/r11680.htm
+> >>
+> >> [2] v4l-test: Test environment for Video For Linux Two API
+> >>    http://v4l-test.sourceforge.net/
+> >>
+> >> Signed-off-by: Márton Németh <nm127@freemail.hu>
+> >> ---
+> >> --- linux-2.6.29-rc8/drivers/media/video/gspca/gspca.c.orig     2009-03-14 12:29:38.000000000 +0100
+> >> +++ linux-2.6.29-rc8/drivers/media/video/gspca/gspca.c  2009-03-18 16:51:03.000000000 +0100
+> >> @@ -1320,6 +1320,9 @@ static int vidioc_g_parm(struct file *fi
+> >>  {
+> >>        struct gspca_dev *gspca_dev = priv;
+> >>
+> >> +       if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> >> +               return -EINVAL;
+> >> +
+> >>        memset(parm, 0, sizeof *parm);
+> >>        parm->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> > ^^^^^^^^^^^^^^^^^^^
+> > This line should be deleted as it's no longer needed.
 >
->> In v4l devices these i2c devices are an integral part of the v4l device.
->> It is not like the sensor i2c devices that are basically independent
->> devices. Also, many i2c drivers used by v4l have internal state, so
->> unloading them on the fly and reloading them later will in general not
->> work.
->>
->> If a v4l driver loads an i2c module and it can obtain a v4l2_subdev
->> pointer successfully, then it increases the module's refcount to prevent
->> it from being unloaded. This is by design.
->>
->> Without autoprobing I also see no point in allowing an i2c module to be
->> unloaded while in use. Reloading it won't re-attach it to the adapter
->> anyway.
+> Because memset() clears the whole parm structure this line is necessary. In other
+> drivers the following code is there:
 >
-> Yes, that's what I thought was the case, and that's also something that I
-> am not quite convinced yet, that it is the best design for this situation.
+>     tmp = parm->type;
+>     memset(parm, 0, sizeof(*parm));
+>     parm->type = parm;
 
-It really, really is :-)
-
-This is actually not something v4l-related. It's a consequence of the new
-i2c API.
-
->> > 3. Currently soc-camera works in a way, that during probing of an i2c
->> > (sub)device, the Master Clock of the host camera interface is turned
->> on,
->> > after the probing it is turned off again. Then it is turned on at
->> first
->> > open() and off at last close(). This should also be possible with the
->> > module autoloading in v4l2_i2c_new_subdev(), but this adds even more
->> > fragileness to the system.
->> >
->> > I think, a simple addition to the v4l2-device API could solve this
->> > problems and make the API more transparent:
->> >
->> > 1. "hi, I am driver X's probing routine, going to probe device Y,
->> please,
->> > turn it on" (action: master clock on)
->> >
->> > 2. "probing for device Y completed (un)successfully" (action: master
->> clock
->> > off, if successful - create /dev/videoY)
->> >
->> > 3. "driver X is being unloaded, I am releasing device Y" (action: rip
->> > /dev/videoY)
->> >
->> > We could agree on keeping /dev/videoY even when no sensor driver is
->> > present and just return -ENODEV on open(), and thus simplify the above
->> but
->> > I am not sure if this is desired.
->>
->> I don't follow you. It is the adapter driver that controls which subdevs
->> are loaded/probed, when they are loaded or unloaded and it can also
->> decide
->> when to start/stop the master clock. This new situation is different in
->> that loading an i2c module will no longer work, the initiative has to
->> come
->> from the adapter/bridge/host/whatever driver who determines what has to
->> be
->> done based on platform board info.
->
-> Ok, but how are we going to address this your comment:
->
-> 	/* Note: it is possible in the future that
-> 	   c->driver is NULL if the driver is still being loaded.
-> 	   We need better support from the kernel so that we
-> 	   can easily wait for the load to finish. */
-> 	if (client == NULL || client->driver == NULL)
-> 		return NULL;
->
-> With just an
-> msleep(OUR_HARD_CODED_TIMEOUT_WE_BELIEVE_SHOULD_BE_ENOUGH_FOR_ALL)?:-)
-
-As long as we load the modules first (and that's what this function does)
-this isn't an issue. But in the future we (that is, Jean Delvare and
-myself) want to allow udev to load the module for you. To properly
-implement this we need to listen to some notification from the kernel.
-
-It will be complicated and in the few cases where this is supported (not
-in v4l AFAIK) there is indeed an msleep() like that :-)
-
-This part is work-in-progress, so it can safely be ignored.
-
-> Also one more point, that I don't see a problem currently with, but that
-> we have to keep in mind: soc-camera is aiming at supporting several
-> devices on one interface. E.g., there is a design, where two cameras are
-> connected to a host, that actually is only supposed to support one camera
-> at a time. So, they use some extra switching logic to activate one or
-> another camera. In this case the platform registers two cameras, they are
-> both probed - one after another, and that's also the reason, why the
-> default state "all /dev/videoN devices are closed" must be - no fixed
-> connection between a subdevice and a device. We actually have already
-> discussed this before, I think, just something to keep an eye on.
-
-This shouldn't be a problem at all. The v4l2_subdev pointer is just that:
-a pointer to a struct created by the (in this case) i2c client instance.
-As long as you don't call that module it's not doing anything (assuming it
-didn't spawn some background task, of course). Just you just don't call
-the inactive subdev until you need it.
-
-Regards,
-
-        Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
+The memset isn't needed anymore either, I put it into v4l2_ioctl.  I
+removed most of the code like that but I may have missed some drivers.
