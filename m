@@ -1,17 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from rv-out-0506.google.com ([209.85.198.231])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tutuyu@usc.edu>) id 1LiEqP-0006Mz-Ba
-	for linux-dvb@linuxtv.org; Fri, 13 Mar 2009 22:23:06 +0100
-Received: by rv-out-0506.google.com with SMTP id l9so1818741rvb.41
-	for <linux-dvb@linuxtv.org>; Fri, 13 Mar 2009 14:22:59 -0700 (PDT)
-MIME-Version: 1.0
-Date: Fri, 13 Mar 2009 14:22:59 -0700
-Message-ID: <cae4ceb0903131422q7a4bdaa2j7ba7c92ebc4baccc@mail.gmail.com>
-From: Tu-Tu Yu <tutuyu@usc.edu>
+Received: from n1b.bullet.mail.ac4.yahoo.com ([76.13.13.71])
+	by www.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <albatrosmwdvb@yahoo.com>) id 1LkOUV-0000zy-4e
+	for linux-dvb@linuxtv.org; Thu, 19 Mar 2009 21:05:25 +0100
+Message-ID: <811682.64908.qm@web59911.mail.ac4.yahoo.com>
+Date: Thu, 19 Mar 2009 13:04:47 -0700 (PDT)
+From: Marek Marek <albatrosmwdvb@yahoo.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Question about if HVR1200 support 64Bit
-Reply-To: linux-media@vger.kernel.org
+In-Reply-To: <8CB76A5CB99620E-C80-3B5D@WEBMAIL-MY17.sysops.aol.com>
+MIME-Version: 1.0
+Subject: Re: [linux-dvb] Compro VideoMate E600F analog - someone please take
+	pity on me and help me.
+Reply-To: linux-media@vger.kernel.org, albatrosmwdvb@yahoo.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -25,10 +25,29 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi there:
-I wanna know if the driver for HVR 1200 support 64bit.
-Thank you!
-Audrey
+
+hi
+
+i use comprodtv 4 only and nothing else... are there any others i don't know. comprodtv work fine for me so i don't search any others. i really sorry i bought this card but who knew. there's only one way for us - to wait :) maybe somebody will make this impossible work and bring this card to work. then we will be glad :)
+
+
+> Hello,
+> 
+> it seems, Compro has some curious things, that makes the
+> driver 
+> development difficult. Having the same problem with a T750 
+> (http://linuxtv.org/wiki/index.php/Compro_Videomate_T750).
+> 
+> @Marek: under Windows, do you use the bundled ComproDTV
+> software? Is 
+> there perhaps an other software, that can recognize this
+> card in 
+> Windows, and can use the analog features of it?
+
+
+
+      
+
 
 _______________________________________________
 linux-dvb users mailing list
