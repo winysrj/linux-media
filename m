@@ -1,20 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2C0gDxM012102
-	for <video4linux-list@redhat.com>; Wed, 11 Mar 2009 20:42:13 -0400
-Received: from mail.cdma-2000.org (238.30.232.72.static.reverse.ltdomains.com
-	[72.232.30.238])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2C0fqXb023430
-	for <video4linux-list@redhat.com>; Wed, 11 Mar 2009 20:41:52 -0400
-Received: from weekend.pc (port-210-pool-91-187-5.infonet.by [91.187.5.210])
-	by mail.cdma-2000.org (Postfix) with ESMTP id C4B4F173480A
-	for <video4linux-list@redhat.com>; Thu, 12 Mar 2009 02:41:49 +0200 (EET)
-Message-ID: <49B85A45.1060203@altlinux.ru>
-Date: Thu, 12 Mar 2009 02:41:41 +0200
-From: Grigory Milev <week@altlinux.ru>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2JJBSDS008668
+	for <video4linux-list@redhat.com>; Thu, 19 Mar 2009 15:11:28 -0400
+Received: from nlpi053.prodigy.net (nlpi053.sbcis.sbc.com [207.115.36.82])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n2JJBBFC001599
+	for <video4linux-list@redhat.com>; Thu, 19 Mar 2009 15:11:12 -0400
+Received: from [192.168.0.201] (adsl-99-144-235-121.dsl.emhril.sbcglobal.net
+	[99.144.235.121]) (authenticated bits=0)
+	by nlpi053.prodigy.net (8.13.8 smtpauth/dk/map_regex/8.13.8) with ESMTP
+	id n2JJB34u017252
+	for <video4linux-list@redhat.com>; Thu, 19 Mar 2009 14:11:10 -0500
+Message-ID: <49C298C8.3080100@xnet.com>
+Date: Thu, 19 Mar 2009 14:11:04 -0500
+From: stuart <stuart@xnet.com>
 MIME-Version: 1.0
 To: video4linux-list@redhat.com
-Subject: AverMedia CardBus Plus (E501R)
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: Help w/ATSC tuner (kworld 120)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -22,62 +25,36 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0967078067=="
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---===============0967078067==
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="------------enigA04C5A377DF9224DE714B850"
+Hi...
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigA04C5A377DF9224DE714B850
-Content-Type: text/plain; charset=KOI8-R
-Content-Transfer-Encoding: quoted-printable
+I know the v4l support of (what I think is the newest) Kworld 120 is not 
+100 % (for instance I don't think you can switch between NTSC and ATSC 
+w/o a power cycle -or- use the remote control).  However, I had been 
+using it for months for ATSC reception w/o any problems.  Then, after a 
+Debinan (unstable) update, I lost the card.  I assume I had picked up a 
+new release of v4l.  So I tried to re-compile & install my source copy 
+of v4l I downloaded last July - but that didn't work. I then downloaded, 
+compiled & installed the most recent v4l today - but that didn't work 
+either.  Currently, the tuner acts as if the signal is weak.  The 
+picture is pixelated and breaks up.  I have swapped the antenna lead 
+with a set-top-box ATSC tuner.  The set-top-box appears to work well 
+with either it's own antenna lead or the Kworld's antenna lead.
 
-Does any body know, why support for this card don't exists in v4l2
-kernel drivers?
-May be sombody know how to use Radio and IR on this card.
+So, now I'm wondering - could something have happened to v4l in the last 
+9 months?  For instance, could a v4l code change effect the Kworld 120's 
+AGC feature?
 
-Thanks.
+FYI: The same antenna provides signals for another Kworld 110 tuner and 
+a Happauge NTSC tuner (both in a different computer) as well as a number 
+of other appliances.   All of which appear to be working fine.
 
---=20
-+--------------------------------------------------------+
-Grigory Milev	mailto:week@altlinux.ru
-ALT Linux Team	http://www.altlinux.ru
-+--------------------------------------------------------+
-Life too beautiful and interesting. Don't worry, be happy.
-
-
-
---------------enigA04C5A377DF9224DE714B850
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
-
-iD8DBQFJuFpIav1l8psGKzIRAnESAJ9bkSGMSXzPZA8NQWRu9o2/Zdmt+gCfeNoq
-E1s46ocUmlGIX2SbaIs9YPg=
-=y6ud
------END PGP SIGNATURE-----
-
---------------enigA04C5A377DF9224DE714B850--
-
-
---===============0967078067==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+...thanks
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---===============0967078067==--
