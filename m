@@ -1,107 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1802 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758293AbZC3SX0 (ORCPT
+Received: from mail01a.mail.t-online.hu ([84.2.40.6]:55802 "EHLO
+	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754192AbZCSGwv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2009 14:23:26 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2UINMsm028686
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 30 Mar 2009 20:23:22 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 30 Mar 2009 20:23:22 +0200 (CEST)
-Message-Id: <200903301823.n2UINMsm028686@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: OK, 2.6.16-2.6.21: WARNINGS
+	Thu, 19 Mar 2009 02:52:51 -0400
+Message-ID: <49C1EBBB.1080109@freemail.hu>
+Date: Thu, 19 Mar 2009 07:52:43 +0100
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+MIME-Version: 1.0
+To: David Ellingsworth <david@identd.dyndns.org>,
+	Jean-Francois Moine <moinejf@free.fr>
+CC: linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] gspca: add missing .type field check in VIDIOC_G_PARM
+References: <49C133F6.3020202@freemail.hu> <30353c3d0903181445i409604e8r33678f7ce09d0288@mail.gmail.com> <49C1DD0C.4050500@freemail.hu>
+In-Reply-To: <49C1DD0C.4050500@freemail.hu>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Németh Márton wrote:
+From: Márton Németh <nm127@freemail.hu>
 
-Results of the daily build of v4l-dvb:
+The gspca webcam driver does not check the .type field of struct v4l2_streamparm.
+This field is an input parameter for the driver according to V4L2 API specification,
+revision 0.24 [1]. Add the missing check.
 
-date:        Mon Mar 30 19:00:06 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11317:ff5430b54ac2
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+The missing check was recognised by v4l-test 0.10 [2] together with gspca_sunplus driver
+and with "Trust 610 LCD POWERC@M ZOOM" webcam. This patch was verified also with
+v4l-test 0.10.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-m32r: OK
-linux-2.6.22.19-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29-x86_64: OK
-fw/apps: OK
-sparse (linux-2.6.29): ERRORS
-linux-2.6.16.61-i686: WARNINGS
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+References:
+[1] V4L2 API specification, revision 0.24
+   http://v4l2spec.bytesex.org/spec/r11680.htm
 
-Detailed results are available here:
+[2] v4l-test: Test environment for Video For Linux Two API
+    http://v4l-test.sourceforge.net/
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+--- linux-2.6.29-rc8/drivers/media/video/gspca/gspca.c.orig	2009-03-14 12:29:38.000000000 +0100
++++ linux-2.6.29-rc8/drivers/media/video/gspca/gspca.c	2009-03-19 07:14:40.000000000 +0100
+@@ -1319,9 +1319,14 @@ static int vidioc_g_parm(struct file *fi
+ 			struct v4l2_streamparm *parm)
+ {
+ 	struct gspca_dev *gspca_dev = priv;
++	enum v4l2_buf_type type;
 
-Full logs are available here:
++	if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	type = parm->type;
+ 	memset(parm, 0, sizeof *parm);
+-	parm->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	parm->type = type;
+ 	parm->parm.capture.readbuffers = gspca_dev->nbufread;
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+ 	if (gspca_dev->sd_desc->get_streamparm) {
