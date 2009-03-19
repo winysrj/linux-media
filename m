@@ -1,23 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mailout.assembly.state.ny.us ([204.97.104.4])
+Received: from mout.perfora.net ([74.208.4.195])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <m+linuxdvb@mattyo.net>) id 1LeWAb-0007ox-Dt
-	for linux-dvb@linuxtv.org; Tue, 03 Mar 2009 16:04:34 +0100
-Received: from mail1.nysa.us (nysa-bh1.assembly.state.ny.us [204.97.104.30])
-	by mailout.assembly.state.ny.us (8.14.1/8.14.1) with ESMTP id
-	n23F3uAM031878
-	for <linux-dvb@linuxtv.org>; Tue, 3 Mar 2009 10:03:57 -0500
-Received: from [10.2.10.171] ([10.2.10.171])
-	by mail1.nysa.us (8.14.2/8.14.2) with ESMTP id n23F3uIU016513
-	for <linux-dvb@linuxtv.org>; Tue, 3 Mar 2009 10:03:56 -0500
-Message-ID: <49AD46DC.4080701@mattyo.net>
-Date: Tue, 03 Mar 2009 10:03:56 -0500
-From: Matt Garretson <m+linuxdvb@mattyo.net>
+	(envelope-from <tlenz@vorgon.com>) id 1Lk7oZ-0005DF-7a
+	for linux-dvb@linuxtv.org; Thu, 19 Mar 2009 03:17:00 +0100
+Message-ID: <000401c9a838$c690c0a0$0a00a8c0@vorg>
+From: "Timothy D. Lenz" <tlenz@vorgon.com>
+To: <linux-dvb@linuxtv.org>
+References: <000701c9a5de$09033e20$0a00a8c0@vorg>
+	<49BE5B36.1080901@linuxtv.org>
+	<003a01c9a69a$0de42640$0a00a8c0@vorg>
+	<1237252028.3303.41.camel@palomino.walls.org>
+Date: Wed, 18 Mar 2009 19:16:49 -0700
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <mailman.1.1236078001.32084.linux-dvb@linuxtv.org>
-In-Reply-To: <mailman.1.1236078001.32084.linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] WinTV HVR-1800 analog Satus
+Subject: Re: [linux-dvb] FusionHDTV7 and v4l causes kernel panic
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -32,26 +27,72 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Steven Toth wrote:
-> Dustin Coates wrote:
-> > Any update on the status of analouge for this card? I really would  
-> 
-> Last I checked it worked fine for me.
+I've added
+    console=ttyS0,115200 console=tty0
+to the kernel command line options and with out the console=tty0 part the dump no longer shows on the monitor, so redirect seems to
+work but loging the serial port on a second computer gets nothing. I tested the connection with echo and that worked but the kernel
+dump won't go out the port.  The last 2 lines of the screen are:
+
+EIP: [<c012a8c6>] queue_work+0x3/0x68 SS:ESP 0068:f778dd24
+Kernel panic - not syncing: Fatal exception in interrupt
+
+Any way to get the dump to go out the serial port?
+
+----- Original Message ----- 
+From: "Andy Walls" <awalls@radix.net>
+To: "Timothy D. Lenz" <tlenz@vorgon.com>
+Cc: <linux-media@vger.kernel.org>
+Sent: Monday, March 16, 2009 6:07 PM
+Subject: Re: [linux-dvb] FusionHDTV7 and v4l causes kernel panic
 
 
+> On Mon, 2009-03-16 at 17:46 -0700, Timothy D. Lenz wrote:
+> > When it panics, there is no log, just a bunch of stuff that that scrolls fast on the main monitor then cold lock.
+> >  No way to scroll
+> > back.
+>
+> Not even Shift+PageUp ?
+>
+>
+>
+> >  I looked at the logs and the ones that are text had nothing about it.
+>
+> Digital camera or pencil and paper will be least complex way to capture
+> the ooops data.  Please don't leave out the "Code" bytes at the bottom
+> and do your best to make sure those are absolutely correct.
+>
+> Regards,
+> Andy
+>
+>
+> > ----- Original Message ----- 
+> > From: "Steven Toth" <stoth@linuxtv.org>
+> > To: <linux-media@vger.kernel.org>
+> > Cc: <linux-dvb@linuxtv.org>
+> > Sent: Monday, March 16, 2009 6:59 AM
+> > Subject: Re: [linux-dvb] FusionHDTV7 and v4l causes kernel panic
+> >
+> >
+> > > Timothy D. Lenz wrote:
+> > > > Using kernel 2.6.26.8 and v4l from a few days ago. When I modprobe cx23885 to load the drivers, I get kernel panic
+> > >
+> > > We'll need the oops.
+> > >
+> > > - Steve
+> > >
+> > > _______________________________________________
+> > > linux-dvb users mailing list
+> > > For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> > > linux-dvb@linuxtv.org
+> > > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+>
 
-Does anyone have an HVR-1800 (digital or analog) coexisting with a 
-PVR-250?  Mythtv-setup crashes for me when scanning ATSC/QAM channels
-on the HVR-1800.  Admittedly, I haven't tried to debug it beyond that.
-But I'm just wondering if these IVTV and DVB devices can coexist at
-all.
-
-Also, does the 2.6.27 kernel have recent enough v4l/dvb stuff for the 
-HVR-1800 merged in, or should I still be pulling from the linuxtv 
-repository?
-
-Thanks...
--Matt
 
 _______________________________________________
 linux-dvb users mailing list
