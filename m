@@ -1,214 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:35726 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753976AbZCYT1f (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2009 15:27:35 -0400
-Date: Wed, 25 Mar 2009 20:27:44 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Sid Boyce <sboyce@blueyonder.co.uk>
-Subject: Asus PG221 monitor camera sensor not recognised
-Message-ID: <Pine.LNX.4.64.0903252026380.5795@axis700.grange>
+Received: from mail5.sea5.speakeasy.net ([69.17.117.7]:50329 "EHLO
+	mail5.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755278AbZCSWRU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Mar 2009 18:17:20 -0400
+Date: Thu, 19 Mar 2009 15:17:18 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Devin Heitmueller <devin.heitmueller@gmail.com>,
+	Ang Way Chuang <wcang@nav6.org>,
+	VDR User <user.vdr@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: The right way to interpret the content of SNR, signal strength
+ 	and BER from HVR 4000 Lite
+In-Reply-To: <Pine.LNX.4.58.0903191229370.28292@shell2.speakeasy.net>
+Message-ID: <Pine.LNX.4.58.0903191457580.28292@shell2.speakeasy.net>
+References: <49B9BC93.8060906@nav6.org> <a3ef07920903121923r77737242ua7129672ec557a97@mail.gmail.com>
+ <49B9DECC.5090102@nav6.org> <412bdbff0903130727p719b63a0u3c4779b3bec7520b@mail.gmail.com>
+ <Pine.LNX.4.58.0903131404430.28292@shell2.speakeasy.net>
+ <412bdbff0903131432r1233ab67sb7327638f7cf1e02@mail.gmail.com>
+ <Pine.LNX.4.58.0903131649380.28292@shell2.speakeasy.net>
+ <20090319101601.2eba0397@pedra.chehab.org> <Pine.LNX.4.58.0903191229370.28292@shell2.speakeasy.net>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Forwarding to linux-media for a better chance for a reply.
+On Thu, 19 Mar 2009, Trent Piepho wrote:
+> Since the driver often needs to use a logarithm from dvb-math to find SNR,
+> you have code like this in the driver (from lgdt3305.c):
+>         /* report SNR in dB * 10 */
+>         *snr = (state->snr / ((1 << 24) / 10));
+>
+> > The SNR(dB) will be given by:
+> > 	SNR(dB) = driver_SNR_measure / 256;
+>
+> For the driver side, also from lgdt3305 which has both formats with an
+> ifdef:
+>         /* convert from 8.24 fixed-point to 8.8 */
+>         *snr = (state->snr) >> 16;
+>
+> FWIW, converting to decimal to print using only integer math:
+>
+> 	/* decimal fixed point */
+> 	printf("%d.%d dB\n", snr / 10, snr % 10);
+>
+> 	/* binary fixed point */
+> 	printf("%d.%02d dB\n", snr >> 8, (snr & 0xff) * 100 >> 8);
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+One more example, converting SNR into a 32-bit floating point number using
+only integer operations.  These don't do negative numbers but if the SNR
+format used a sign bit it would be very easy to add, as IEEE 754 floating
+point uses a sign bit too.  I would need to think about it more to do 2's
+complement.
 
----------- Forwarded message ----------
-Date: Wed, 25 Mar 2009 17:08:05 +0000
-From: Sid Boyce <sboyce@blueyonder.co.uk>
-To: linux-usb@vger.kernel.org
-Subject: Asus PG221 monitor camera sensor not recognised
+For binary fixed point the conversion to a float is exact.  For decimal
+fixed point it's not.  For example 334 (33.4 dB) will become 33.400002 dB
+when converted to floating point.
 
-The camera has never worked though it used to be enumerated as
-/dev/videoX with sensor s5k83a in earlier kernels.
-gspca: main v2.4.0 registered
-gspca: probing 0402:5602
-ALi m5602: Probing for a po1030 sensor
-ALi m5602: Probing for a mt9m111 sensor
-ALi m5602: Probing for a s5k4aa sensor
-ALi m5602: Probing for an ov9650 sensor
-ALi m5602: Probing for a s5k83a sensor
-ALi m5602: Failed to find a sensor
-ALi m5602: ALi m5602 webcam failed
-usbcore: registered new interface driver ALi m5602
-ALi m5602: registered
+/* For 8.8 binary fixed point, this is the no-float version of:
+ * float snr_to_float(u16 snr) { return snr / 256.0 } */
+u32 snr_to_float(u16 snr)
+{
+        unsigned int e = 23 - __fls(snr);
+        return snr ? ((snr << e) & 0x7fffff) | ((142 - e) << 23) : 0;
+}
 
-lsusb -vv
-Bus 001 Device 012: ID 0402:5602 ALi Corp. Video Camera Controller
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  idVendor           0x0402 ALi Corp.
-  idProduct          0x5602 Video Camera Controller
-  bcdDevice            1.00
-  iManufacturer           0
-  iProduct                1 USB2.0 Camera
-  iSerial                 0
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength          101
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0
-    bmAttributes         0xa0
-      (Bus Powered)
-      Remote Wakeup
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           2
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               4
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       1
-      bNumEndpoints           2
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x1400  3x 1024 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0010  1x 16 bytes
-        bInterval               4
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       2
-      bNumEndpoints           2
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x1380  3x 896 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0010  1x 16 bytes
-        bInterval               4
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       3
-      bNumEndpoints           2
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface              0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x1300  3x 768 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0010  1x 16 bytes
-        bInterval               4
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0
-  bDeviceProtocol         0
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
+/* For .1 decimal fixed point.  NOTE:  This will overflow the 32-bit
+ * intermediate value if SNR is above 1638.3 dB!  This is the no-float
+ * version of:
+ * float snr_to_float(u16 snr) { return snr / 10.0 } */
+u32 snr10_to_float(u16 snr)
+{
+        unsigned int e = 23 - __fls(snr / 10);
+        return snr ? ((((snr << e) + 5) / 10) & 0x7fffff) | (150 - e) << 23 : 0;
+}
 
-Regards
-Sid.
--- 
-Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
-Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
-Specialist, Cricket Coach
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+You'd use the function like this:
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+	float f;
+	*(u32 *)&f = snr_to_float(snr);
