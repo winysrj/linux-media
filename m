@@ -1,992 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:42428 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752617AbZCHQyT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2009 12:54:19 -0400
-Date: Sun, 8 Mar 2009 13:54:11 -0300 (BRT)
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Alain Kalker <miki@dds.nl>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: Problem with changeset 10837: causes "make all" not to build
- many modules
-In-Reply-To: <1236439661.7569.132.camel@miki-desktop>
-Message-ID: <alpine.LRH.2.00.0903081354030.17407@pedra.chehab.org>
-References: <4e1455be0903051913x37562436y85eef9cba8b10ab0@mail.gmail.com>  <20090306074604.10926b03@pedra.chehab.org> <1236439661.7569.132.camel@miki-desktop>
+Received: from rv-out-0506.google.com ([209.85.198.237]:24234 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755295AbZCSN7P convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Mar 2009 09:59:15 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so579812rvb.1
+        for <linux-media@vger.kernel.org>; Thu, 19 Mar 2009 06:59:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: MULTIPART/Mixed; boundary="=-EjcUob24cTHaUxKE9fHz"
-Content-ID: <alpine.LRH.2.00.0903081342241.17407@pedra.chehab.org>
+In-Reply-To: <200903190942.43219.tuukka.o.toivonen@nokia.com>
+References: <d9ec170c0903180917k691f9d01pe4cb4231efe282e4@mail.gmail.com>
+	 <200903190942.43219.tuukka.o.toivonen@nokia.com>
+Date: Thu, 19 Mar 2009 19:29:13 +0530
+Message-ID: <d9ec170c0903190659t70ede200w301c0105f7323c7f@mail.gmail.com>
+Subject: Re: ISP Configuration for RAW Bayer sensor
+From: Suresh Rao <sureshraomr@gmail.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi Tuukka,
 
---=-EjcUob24cTHaUxKE9fHz
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Content-ID: <alpine.LRH.2.00.0903081342242.17407@pedra.chehab.org>
+Thanks a lot for the patch, I will try this.
 
-Hi Alain,
+I tried similar thing but on the sensor side and it worked, ie., I
+skip the very first line from readout and get the desired format for
+the ISP.
 
-On Sat, 7 Mar 2009, Alain Kalker wrote:
+Thanks,
+Suresh
 
-> Mauro,
+On Thu, Mar 19, 2009 at 1:12 PM, Tuukka.O Toivonen
+<tuukka.o.toivonen@nokia.com> wrote:
+> On Wednesday 18 March 2009 18:17:56 ext Suresh Rao wrote:
+>> I am working with MT9V023 RAW sensor.  The data format from the sensor is
+>>
+>> B G B G B G B G ...
+>> G R G R G R G R ...
+>> B G B G B G B G ...
+>> G R G R G R G R ........      [ Format 1]
+> [...]
+>> I want to use the ISP on the OMAP for doing interpolation and format
+>> conversion to UYVY.  I am able to capture the images from the sensor,
+>> however I notice that the color information is missing.  I dug the
+>> sources and found that in the RAW capture mode ISP is getting
+>> configured to input format
+>>
+>> G R G R G R G R ...
+>> B G B G B G B G ...
+>> G R G R G R G R ...
+>> B G B G B G B G ...          [Format 2]
+>>
+>> Has anyone tried sensors with BGGR ( Format 1) on OMAP?
+>>
+>> Can anyone give me some pointers or information on how to configure
+>> ISP for BGGR (Format 1)
 >
-> Your latest changeset causes many modules (100 in total!) not to be
-> built anymore when doing "make all", i.e. without doing any "make
-> xconfig"/"make gconfig".
+> If you can live with losing a few pixels (maybe sensor has a few extra)
+> I recommend to configure ISP to crop away the topmost line.
 >
-> I think this is related to the config variables for the frontend drivers
-> no longer being defined when DVB_FE_CUSTOMISE=n , so the card drivers
-> cannot depend on them anymore.
-
-Thanks to warning me about that!
-
-This seems to be yet another difference between the in-kernel and the 
-out-of-tree building environment.
-
-This is what I get when unsetting DVB_FE_CUSTOMISE at the -git tree, and 
-selecting all dvb drivers with 'm':
-
-$ grep -f /tmp/fe .config
-# CONFIG_DVB_FE_CUSTOMISE is not set
-CONFIG_DVB_STB0899=m
-CONFIG_DVB_STB6100=m
-CONFIG_DVB_CX24110=m
-CONFIG_DVB_CX24123=m
-CONFIG_DVB_MT312=m
-CONFIG_DVB_ZL10036=m
-CONFIG_DVB_S5H1420=m
-CONFIG_DVB_STV0288=m
-CONFIG_DVB_STB6000=m
-CONFIG_DVB_STV0299=m
-CONFIG_DVB_STV6110=m
-CONFIG_DVB_STV0900=m
-CONFIG_DVB_TDA8083=m
-CONFIG_DVB_TDA10086=m
-CONFIG_DVB_TDA8261=m
-CONFIG_DVB_VES1X93=m
-CONFIG_DVB_TUNER_ITD1000=m
-CONFIG_DVB_TUNER_CX24113=m
-CONFIG_DVB_TDA826X=m
-CONFIG_DVB_TUA6100=m
-CONFIG_DVB_CX24116=m
-CONFIG_DVB_SI21XX=m
-CONFIG_DVB_SP8870=m
-CONFIG_DVB_SP887X=m
-CONFIG_DVB_CX22700=m
-CONFIG_DVB_CX22702=m
-CONFIG_DVB_L64781=m
-CONFIG_DVB_TDA1004X=m
-CONFIG_DVB_NXT6000=m
-CONFIG_DVB_MT352=m
-CONFIG_DVB_ZL10353=m
-CONFIG_DVB_DIB3000MB=m
-CONFIG_DVB_DIB3000MC=m
-CONFIG_DVB_DIB7000M=m
-CONFIG_DVB_DIB7000P=m
-CONFIG_DVB_TDA10048=m
-CONFIG_DVB_VES1820=m
-CONFIG_DVB_TDA10021=m
-CONFIG_DVB_TDA10023=m
-CONFIG_DVB_STV0297=m
-CONFIG_DVB_NXT200X=m
-CONFIG_DVB_OR51211=m
-CONFIG_DVB_OR51132=m
-CONFIG_DVB_BCM3510=m
-CONFIG_DVB_LGDT330X=m
-CONFIG_DVB_S5H1409=m
-CONFIG_DVB_AU8522=m
-CONFIG_DVB_S5H1411=m
-CONFIG_DVB_PLL=m
-CONFIG_DVB_TUNER_DIB0070=m
-CONFIG_DVB_LNBP21=m
-CONFIG_DVB_ISL6405=m
-CONFIG_DVB_ISL6421=m
-CONFIG_DVB_LGS8GL5=m
-CONFIG_DVB_AF9013=m
-
-So, everything seems OK. The 4 unused frontends (lgdt3304, dvb_dummy_fe, 
-s921 and drx397xD) weren't selected. Only the ones that are required by 
-the selected drivers (in the above case, I've selected everything) are 
-handled.
-
-It seems that some fix is needed at our building system to solve this 
-issue.
-
-I'll try to identify what's happening.
-
-Cheers,
-Mauro
---=-EjcUob24cTHaUxKE9fHz
-Content-Type: TEXT/X-PATCH; name=dot.config.diff.6f1afb4c6fab-6bd427caa0cb; charset=UTF-8
-Content-ID: <alpine.LRH.2.00.0903081342243.17407@pedra.chehab.org>
-Content-Description: 
-Content-Disposition: attachment; filename=dot.config.diff.6f1afb4c6fab-6bd427caa0cb
-
---- v4l-dvb/v4l/.config	2009-03-07 15:22:26.000000000 +0100
-
-+++ v4l-dvb-tip/v4l/.config	2009-03-07 16:02:55.000000000 +0100
-
-@@ -1,28 +1,28 @@
-
- CONFIG_MEDIA_TUNER_TDA18271=m
-
- CONFIG_USB_DSBR=m
-
--CONFIG_VIDEO_CX88_VP3054=m
-
-+# CONFIG_VIDEO_CX88_VP3054 is not set
-
- CONFIG_DAB=y
-
- CONFIG_DVB_USB=m
-
--CONFIG_DVB_DUMMY_FE=m
-
-+# CONFIG_DVB_DUMMY_FE is not set
-
- CONFIG_USB_GSPCA_OV534=m
-
- CONFIG_USB_STKWEBCAM=m
-
--CONFIG_DVB_S5H1420=m
-
--CONFIG_DVB_CX22700=m
-
-+# CONFIG_DVB_S5H1420 is not set
-
-+# CONFIG_DVB_CX22700 is not set
-
- CONFIG_SOC_CAMERA=m
-
- CONFIG_VIDEO_CX88_BLACKBIRD=m
-
- CONFIG_USB_VICAM=m
-
- CONFIG_VIDEO_USBVISION=m
-
--CONFIG_DVB_SP8870=m
-
--CONFIG_DVB_BUDGET_AV=m
-
-+# CONFIG_DVB_SP8870 is not set
-
-+# CONFIG_DVB_BUDGET_AV is not set
-
- CONFIG_MEDIA_TUNER=m
-
--CONFIG_DVB_TUNER_DIB0070=m
-
-+# CONFIG_DVB_TUNER_DIB0070 is not set
-
- CONFIG_VIDEO_VPX3220=m
-
- CONFIG_MEDIA_TUNER_TDA827X=m
-
- CONFIG_USB_GSPCA_SPCA561=m
-
- # CONFIG_USB_STV06XX is not set
-
- CONFIG_VIDEO_SAA7110=m
-
- CONFIG_VIDEO_ZORAN_BUZ=m
-
--CONFIG_DVB_BT8XX=m
-
-+# CONFIG_DVB_BT8XX is not set
-
- CONFIG_VIDEO_SAA7127=m
-
- CONFIG_DVB_USB_AF9005=m
-
- CONFIG_USB_GSPCA_PAC7311=m
-
-@@ -30,40 +30,40 @@
-
- CONFIG_VIDEO_WM8739=m
-
- CONFIG_RADIO_MAESTRO=m
-
- CONFIG_VIDEO_CPIA=m
-
--CONFIG_DVB_CX22702=m
-
-+# CONFIG_DVB_CX22702 is not set
-
- CONFIG_VIDEOBUF_GEN=m
-
--CONFIG_DVB_B2C2_FLEXCOP_PCI=m
-
-+# CONFIG_DVB_B2C2_FLEXCOP_PCI is not set
-
- CONFIG_RADIO_AZTECH=m
-
- CONFIG_VIDEO_BT848=m
-
- CONFIG_VIDEO_VIVI=m
-
--CONFIG_DVB_USB_CXUSB=m
-
-+# CONFIG_DVB_USB_CXUSB is not set
-
- CONFIG_USB_GSPCA_FINEPIX=m
-
- CONFIG_SOC_CAMERA_MT9V022=m
-
- CONFIG_SND_FM801=m
-
- CONFIG_RADIO_SF16FMI=m
-
- # CONFIG_VIDEO_HELPER_CHIPS_AUTO is not set
-
--CONFIG_DVB_ISL6405=m
-
-+# CONFIG_DVB_ISL6405 is not set
-
- CONFIG_DVB_USB_VP702X=m
-
- CONFIG_DVB_USB_DEBUG=y
-
- CONFIG_MEDIA_TUNER_XC2028=m
-
--CONFIG_DVB_USB_ANYSEE=m
-
-+# CONFIG_DVB_USB_ANYSEE is not set
-
- CONFIG_VIDEO_BT856=m
-
- CONFIG_RADIO_CADET=m
-
- CONFIG_USB_M5602=m
-
- CONFIG_VIDEO_PVRUSB2_DEBUGIFC=y
-
- CONFIG_USB_GSPCA_SONIXJ=m
-
--CONFIG_DVB_USB_DIBUSB_MB_FAULTY=y
-
--CONFIG_DVB_DRX397XD=m
-
-+# CONFIG_DVB_USB_DIBUSB_MB_FAULTY is not set
-
-+# CONFIG_DVB_DRX397XD is not set
-
- CONFIG_VIDEO_CX25840=m
-
- CONFIG_VIDEO_VP27SMPX=m
-
--CONFIG_DVB_B2C2_FLEXCOP_USB=m
-
-+# CONFIG_DVB_B2C2_FLEXCOP_USB is not set
-
- CONFIG_VIDEO_TVP5150=m
-
- CONFIG_VIDEO_SAA5246A=m
-
- CONFIG_MEDIA_TUNER_SIMPLE=m
-
- CONFIG_VIDEO_TEA6415C=m
-
--CONFIG_DVB_OR51211=m
-
-+# CONFIG_DVB_OR51211 is not set
-
- CONFIG_VIDEO_OVCAMCHIP=m
-
--CONFIG_DVB_AV7110_OSD=y
-
-+# CONFIG_DVB_AV7110_OSD is not set
-
- CONFIG_VIDEO_ZORAN_LML33=m
-
- CONFIG_USB_PWC_INPUT_EVDEV=y
-
- CONFIG_SOC_CAMERA_MT9M111=m
-
-@@ -72,115 +72,115 @@
-
- CONFIG_SOC_CAMERA_OV772X=m
-
- CONFIG_VIDEO_CX88=m
-
- CONFIG_VIDEO_W9966=m
-
--CONFIG_DVB_S5H1411=m
-
-+# CONFIG_DVB_S5H1411 is not set
-
- CONFIG_VIDEO_TCM825X=m
-
- CONFIG_USB_S2255=m
-
- CONFIG_RADIO_ZOLTRIX=m
-
--CONFIG_DVB_PLL=m
-
--CONFIG_DVB_LGDT330X=m
-
-+# CONFIG_DVB_PLL is not set
-
-+# CONFIG_DVB_LGDT330X is not set
-
- CONFIG_RADIO_TYPHOON_PROC_FS=y
-
--CONFIG_DVB_STB0899=m
-
-+# CONFIG_DVB_STB0899 is not set
-
- CONFIG_SND_FM801_TEA575X_BOOL=y
-
--CONFIG_DVB_LNBP21=m
-
--CONFIG_DVB_B2C2_FLEXCOP=m
-
-+# CONFIG_DVB_LNBP21 is not set
-
-+# CONFIG_DVB_B2C2_FLEXCOP is not set
-
- CONFIG_USB_GSPCA_SONIXB=m
-
- CONFIG_USB_GSPCA_ZC3XX=m
-
--CONFIG_VIDEO_BT848_DVB=y
-
-+# CONFIG_VIDEO_BT848_DVB is not set
-
- CONFIG_VIDEO_ZORAN_DC10=m
-
- CONFIG_DVB_USB_CINERGY_T2=m
-
- CONFIG_RADIO_TERRATEC=m
-
- CONFIG_VIDEO_KS0127=m
-
--CONFIG_DVB_VES1820=m
-
--CONFIG_VIDEO_PVRUSB2_DVB=y
-
-+# CONFIG_DVB_VES1820 is not set
-
-+# CONFIG_VIDEO_PVRUSB2_DVB is not set
-
- CONFIG_VIDEO_DEV=m
-
- CONFIG_VIDEO_SAA717X=m
-
- CONFIG_RADIO_TEA5764=m
-
- CONFIG_MT9M001_PCA9536_SWITCH=y
-
- CONFIG_MEDIA_TUNER_MT20XX=m
-
--CONFIG_VIDEO_CX23885=m
-
-+# CONFIG_VIDEO_CX23885 is not set
-
- CONFIG_USB_DABUSB=m
-
--CONFIG_DVB_BUDGET=m
-
--CONFIG_DVB_VES1X93=m
-
-+# CONFIG_DVB_BUDGET is not set
-
-+# CONFIG_DVB_VES1X93 is not set
-
- CONFIG_VIDEO_ALLOW_V4L1=y
-
- CONFIG_VIDEO_CS5345=m
-
- # CONFIG_RADIO_GEMTEK_PROBE is not set
-
- CONFIG_USB_GSPCA_SPCA506=m
-
--CONFIG_DVB_ISL6421=m
-
-+# CONFIG_DVB_ISL6421 is not set
-
- CONFIG_USB_GSPCA_PAC207=m
-
--CONFIG_DVB_NXT6000=m
-
-+# CONFIG_DVB_NXT6000 is not set
-
- CONFIG_DVB_TTUSB_DEC=m
-
- CONFIG_SND_FM801_TEA575X=m
-
--CONFIG_DVB_USB_NOVA_T_USB2=m
-
-+# CONFIG_DVB_USB_NOVA_T_USB2 is not set
-
- CONFIG_MEDIA_TUNER_XC5000=m
-
- CONFIG_RADIO_MAXIRADIO=m
-
--CONFIG_DVB_TDA10048=m
-
-+# CONFIG_DVB_TDA10048 is not set
-
- CONFIG_MEDIA_TUNER_MXL5005S=m
-
- CONFIG_MEDIA_TUNER_TEA5761=m
-
- CONFIG_VIDEO_TDA7432=m
-
- CONFIG_VIDEOBUF_DMA_SG=m
-
- CONFIG_MEDIA_TUNER_MT2266=m
-
--CONFIG_VIDEO_CX18=m
-
--CONFIG_DVB_TDA1004X=m
-
-+# CONFIG_VIDEO_CX18 is not set
-
-+# CONFIG_DVB_TDA1004X is not set
-
- CONFIG_VIDEO_MXB=m
-
--CONFIG_DVB_STV6110=m
-
-+# CONFIG_DVB_STV6110 is not set
-
- CONFIG_VIDEO_ADV7170=m
-
- CONFIG_DVB_DYNAMIC_MINORS=y
-
- CONFIG_SOC_CAMERA_PLATFORM=m
-
- CONFIG_VIDEO_TDA9840=m
-
- # CONFIG_VIDEO_PXA27x is not set
-
--CONFIG_DVB_TDA10023=m
-
-+# CONFIG_DVB_TDA10023 is not set
-
- CONFIG_VIDEO_V4L2=m
-
--CONFIG_DVB_S5H1409=m
-
--CONFIG_DVB_USB_DIBUSB_MB=m
-
-+# CONFIG_DVB_S5H1409 is not set
-
-+# CONFIG_DVB_USB_DIBUSB_MB is not set
-
- CONFIG_VIDEO_SAA7134_ALSA=m
-
- CONFIG_VIDEO_IR_I2C=m
-
--CONFIG_DVB_USB_AF9015=m
-
--CONFIG_DVB_B2C2_FLEXCOP_DEBUG=y
-
-+# CONFIG_DVB_USB_AF9015 is not set
-
-+# CONFIG_DVB_B2C2_FLEXCOP_DEBUG is not set
-
- CONFIG_VIDEO_SAA6588=m
-
- # CONFIG_VIDEO_MX3 is not set
-
- CONFIG_MEDIA_TUNER_TEA5767=m
-
--CONFIG_DVB_L64781=m
-
-+# CONFIG_DVB_L64781 is not set
-
- CONFIG_DVB_CAPTURE_DRIVERS=y
-
- CONFIG_USB_GSPCA_TV8532=m
-
--CONFIG_DVB_LGDT3304=m
-
-+# CONFIG_DVB_LGDT3304 is not set
-
- CONFIG_RADIO_ADAPTERS=y
-
--CONFIG_DVB_USB_OPERA1=m
-
--CONFIG_DVB_MT352=m
-
-+# CONFIG_DVB_USB_OPERA1 is not set
-
-+# CONFIG_DVB_MT352 is not set
-
- CONFIG_RADIO_GEMTEK_PCI=m
-
--CONFIG_DVB_USB_M920X=m
-
-+# CONFIG_DVB_USB_M920X is not set
-
- CONFIG_VIDEO_PVRUSB2_SYSFS=y
-
--CONFIG_DVB_USB_DIGITV=m
-
-+# CONFIG_DVB_USB_DIGITV is not set
-
- CONFIG_VIDEO_MSP3400=m
-
- CONFIG_VIDEO_BWQCAM=m
-
--CONFIG_DVB_USB_UMT_010=m
-
-+# CONFIG_DVB_USB_UMT_010 is not set
-
- CONFIG_USB_GSPCA_SUNPLUS=m
-
- CONFIG_SOC_CAMERA_TW9910=m
-
- CONFIG_USB_W9968CF=m
-
- CONFIG_MEDIA_TUNER_MXL5007T=m
-
- CONFIG_USB_SN9C102=m
-
- CONFIG_SOC_CAMERA_MT9M001=m
-
--CONFIG_DVB_DIB3000MB=m
-
-+# CONFIG_DVB_DIB3000MB is not set
-
- CONFIG_RADIO_GEMTEK=m
-
- CONFIG_VIDEO_CQCAM=m
-
--CONFIG_DVB_LGS8GL5=m
-
-+# CONFIG_DVB_LGS8GL5 is not set
-
- CONFIG_RADIO_RTRACK2=m
-
- CONFIG_VIDEO_TUNER=m
-
- CONFIG_USB_GSPCA_OV519=m
-
--CONFIG_DVB_USB_DIBUSB_MC=m
-
-+# CONFIG_DVB_USB_DIBUSB_MC is not set
-
- CONFIG_VIDEO_PMS=m
-
- # CONFIG_DVB_FE_CUSTOMISE is not set
-
- CONFIG_USB_OV511=m
-
- CONFIG_MT9V022_PCA9536_SWITCH=y
-
- CONFIG_VIDEO_CAPTURE_DRIVERS=y
-
- CONFIG_VIDEOBUF_DMA_CONTIG=m
-
--CONFIG_DVB_AF9013=m
-
-+# CONFIG_DVB_AF9013 is not set
-
- CONFIG_VIDEO_ADV_DEBUG=y
-
- CONFIG_VIDEO_SAA711X=m
-
--CONFIG_DVB_MT312=m
-
-+# CONFIG_DVB_MT312 is not set
-
- CONFIG_VIDEO_CX88_ALSA=m
-
- # CONFIG_VIDEO_OMAP2 is not set
-
--CONFIG_DVB_CX24116=m
-
--CONFIG_DVB_USB_DW2102=m
-
-+# CONFIG_DVB_CX24116 is not set
-
-+# CONFIG_DVB_USB_DW2102 is not set
-
- CONFIG_SND_BT87X=m
-
- CONFIG_VIDEO_MEDIA=m
-
- CONFIG_VIDEO_EM28XX=m
-
-@@ -192,76 +192,76 @@
-
- CONFIG_VIDEO_STRADIS=m
-
- CONFIG_USB_ZC0301=m
-
- CONFIG_USB_SI470X=m
-
--CONFIG_DVB_OR51132=m
-
-+# CONFIG_DVB_OR51132 is not set
-
- CONFIG_VIDEO_TDA9875=m
-
--CONFIG_VIDEO_CX88_DVB=m
-
-+# CONFIG_VIDEO_CX88_DVB is not set
-
- CONFIG_DVB_SIANO_SMS1XXX_SMS_IDS=y
-
- CONFIG_USB_GSPCA_SPCA501=m
-
- CONFIG_USB_GSPCA_SPCA508=m
-
- CONFIG_USB_GSPCA_SPCA505=m
-
- CONFIG_MEDIA_TUNER_MT2060=m
-
--CONFIG_DVB_AU8522=m
-
-+# CONFIG_DVB_AU8522 is not set
-
- CONFIG_RADIO_TYPHOON=m
-
- CONFIG_VIDEO_CS53L32A=m
-
--CONFIG_DVB_BUDGET_PATCH=m
-
-+# CONFIG_DVB_BUDGET_PATCH is not set
-
- CONFIG_SOC_CAMERA_MT9T031=m
-
--CONFIG_DVB_ZL10353=m
-
--CONFIG_DVB_CX24110=m
-
-+# CONFIG_DVB_ZL10353 is not set
-
-+# CONFIG_DVB_CX24110 is not set
-
- # CONFIG_DVB_AV7110_FIRMWARE is not set
-
- CONFIG_USB_GSPCA=m
-
--CONFIG_DVB_DIB7000M=m
-
--CONFIG_VIDEO_SAA7134_DVB=m
-
-+# CONFIG_DVB_DIB7000M is not set
-
-+# CONFIG_VIDEO_SAA7134_DVB is not set
-
- CONFIG_USB_GSPCA_VC032X=m
-
- CONFIG_DVB_SIANO_SMS1XXX=m
-
- CONFIG_VIDEO_ADV7175=m
-
- CONFIG_VIDEO_EM28XX_ALSA=m
-
- CONFIG_VIDEO_USBVIDEO=m
-
--CONFIG_DVB_DIB3000MC=m
-
-+# CONFIG_DVB_DIB3000MC is not set
-
- CONFIG_MEDIA_TUNER_MC44S803=m
-
--CONFIG_DVB_TDA8261=m
-
-+# CONFIG_DVB_TDA8261 is not set
-
- CONFIG_VIDEO_MEYE=m
-
- CONFIG_VIDEO_CX88_MPEG=m
-
- CONFIG_USB_QUICKCAM_MESSENGER=m
-
- CONFIG_DVB_BUDGET_CORE=m
-
--CONFIG_DVB_TDA8083=m
-
-+# CONFIG_DVB_TDA8083 is not set
-
- CONFIG_VIDEO_CX2341X=m
-
- # CONFIG_VIDEO_SH_MOBILE_CEU is not set
-
- CONFIG_DVB_CORE=m
-
- CONFIG_VIDEO_IVTV=m
-
- CONFIG_USB_GSPCA_SQ905=m
-
--CONFIG_DVB_TUNER_CX24113=m
-
--CONFIG_DVB_STB6100=m
-
--CONFIG_DVB_AV7110=m
-
--CONFIG_VIDEO_EM28XX_DVB=m
-
--CONFIG_DVB_STV0299=m
-
-+# CONFIG_DVB_TUNER_CX24113 is not set
-
-+# CONFIG_DVB_STB6100 is not set
-
-+# CONFIG_DVB_AV7110 is not set
-
-+# CONFIG_VIDEO_EM28XX_DVB is not set
-
-+# CONFIG_DVB_STV0299 is not set
-
- CONFIG_MEDIA_TUNER_QT1010=m
-
- # CONFIG_VIDEO_M32R_AR is not set
-
- CONFIG_VIDEO_CPIA2=m
-
- CONFIG_VIDEO_SAA7146_VV=m
-
- CONFIG_USB_KONICAWC=m
-
--CONFIG_DVB_USB_DIB0700=m
-
-+# CONFIG_DVB_USB_DIB0700 is not set
-
- CONFIG_VIDEO_PVRUSB2=m
-
- CONFIG_VIDEO_SAA7134=m
-
- CONFIG_VIDEO_TVP514X=m
-
--CONFIG_DVB_TUA6100=m
-
-+# CONFIG_DVB_TUA6100 is not set
-
- CONFIG_VIDEO_CAFE_CCIC=m
-
- CONFIG_USB_PWC_DEBUG=y
-
- CONFIG_USB_GSPCA_SPCA500=m
-
- CONFIG_TTPCI_EEPROM=m
-
--CONFIG_DVB_NXT200X=m
-
-+# CONFIG_DVB_NXT200X is not set
-
- CONFIG_VIDEO_ZORAN_ZR36060=m
-
- CONFIG_MEDIA_TUNER_TDA8290=m
-
- CONFIG_VIDEO_SAA7185=m
-
- CONFIG_USB_STV680=m
-
- CONFIG_VIDEO_TEA6420=m
-
--CONFIG_DVB_STV0297=m
-
-+# CONFIG_DVB_STV0297 is not set
-
- CONFIG_RADIO_SF16FMR2=m
-
- CONFIG_USB_ZR364XX=m
-
- CONFIG_VIDEOBUF_VMALLOC=m
-
- CONFIG_VIDEO_CPIA_USB=m
-
- CONFIG_USB_PWC=m
-
--CONFIG_DVB_USB_DTV5100=m
-
--CONFIG_DVB_DM1105=m
-
-+# CONFIG_DVB_USB_DTV5100 is not set
-
-+# CONFIG_DVB_DM1105 is not set
-
- # CONFIG_RADIO_TEA5764_XTAL is not set
-
- CONFIG_DVB_USB_DTT200U=m
-
- CONFIG_VIDEO_TVEEPROM=m
-
-@@ -269,31 +269,31 @@
-
- CONFIG_VIDEO_HEXIUM_GEMINI=m
-
- CONFIG_VIDEO_ZORAN_LML33R10=m
-
- CONFIG_VIDEO_CPIA_PP=m
-
--CONFIG_DVB_TDA10021=m
-
-+# CONFIG_DVB_TDA10021 is not set
-
- CONFIG_VIDEO_ZORAN_AVS6EYES=m
-
- CONFIG_MEDIA_TUNER_TDA9887=m
-
--CONFIG_DVB_USB_AU6610=m
-
-+# CONFIG_DVB_USB_AU6610 is not set
-
- CONFIG_VIDEO_SAA7191=m
-
- CONFIG_MEDIA_ATTACH=y
-
- CONFIG_RADIO_TRUST=m
-
--CONFIG_DVB_USB_GL861=m
-
-+# CONFIG_DVB_USB_GL861 is not set
-
- CONFIG_USB_GSPCA_ETOMS=m
-
- CONFIG_VIDEO_FB_IVTV=m
-
- CONFIG_VIDEO_BT819=m
-
- CONFIG_VIDEO_SAA7146=m
-
--CONFIG_DVB_TUNER_ITD1000=m
-
-+# CONFIG_DVB_TUNER_ITD1000 is not set
-
- CONFIG_VIDEO_BTCX=m
-
- CONFIG_VIDEO_V4L1_COMPAT=y
-
- CONFIG_VIDEOBUF_DVB=m
-
--CONFIG_DVB_S921=m
-
-+# CONFIG_DVB_S921 is not set
-
- # CONFIG_VIDEO_FIXED_MINOR_RANGES is not set
-
- CONFIG_DVB_USB_VP7045=m
-
- CONFIG_VIDEO_ZORAN=m
-
--CONFIG_DVB_CX24123=m
-
-+# CONFIG_DVB_CX24123 is not set
-
- CONFIG_RADIO_RTRACK=m
-
- CONFIG_USB_MR800=m
-
- CONFIG_MEDIA_TUNER_MT2131=m
-
--CONFIG_DVB_STV0288=m
-
-+# CONFIG_DVB_STV0288 is not set
-
- CONFIG_MEDIA_TUNER_CUSTOMIZE=y
-
- CONFIG_USB_VIDEO_CLASS=m
-
- CONFIG_VIDEO_HEXIUM_ORION=m
-
-@@ -301,34 +301,34 @@
-
- CONFIG_USB_GSPCA_MR97310A=m
-
- CONFIG_VIDEO_UPD64031A=m
-
- CONFIG_VIDEO_TVAUDIO=m
-
--CONFIG_DVB_PLUTO2=m
-
--CONFIG_DVB_STB6000=m
-
--CONFIG_DVB_BUDGET_CI=m
-
-+# CONFIG_DVB_PLUTO2 is not set
-
-+# CONFIG_DVB_STB6000 is not set
-
-+# CONFIG_DVB_BUDGET_CI is not set
-
- CONFIG_DVB_USB_GP8PSK=m
-
- CONFIG_USB_IBMCAM=m
-
- CONFIG_SND_BT87X_OVERCLOCK=y
-
--CONFIG_DVB_USB_TTUSB2=m
-
--CONFIG_DVB_TDA826X=m
-
--CONFIG_DVB_TDA10086=m
-
--CONFIG_DVB_TTUSB_BUDGET=m
-
-+# CONFIG_DVB_USB_TTUSB2 is not set
-
-+# CONFIG_DVB_TDA826X is not set
-
-+# CONFIG_DVB_TDA10086 is not set
-
-+# CONFIG_DVB_TTUSB_BUDGET is not set
-
- CONFIG_VIDEO_TLV320AIC23B=m
-
- CONFIG_VIDEO_WM8775=m
-
- # CONFIG_VIDEO_VINO is not set
-
--CONFIG_DVB_SP887X=m
-
--CONFIG_DVB_DIB7000P=m
-
-+# CONFIG_DVB_SP887X is not set
-
-+# CONFIG_DVB_DIB7000P is not set
-
- CONFIG_USB_GSPCA_CONEX=m
-
- CONFIG_USB_ET61X251=m
-
- CONFIG_VIDEO_V4L1=m
-
- # CONFIG_VIDEO_M32R_AR_M64278 is not set
-
- CONFIG_USB_SE401=m
-
--CONFIG_DVB_SI21XX=m
-
--CONFIG_DVB_ZL10036=m
-
--CONFIG_DVB_BCM3510=m
-
--CONFIG_DVB_STV0900=m
-
-+# CONFIG_DVB_SI21XX is not set
-
-+# CONFIG_DVB_ZL10036 is not set
-
-+# CONFIG_DVB_BCM3510 is not set
-
-+# CONFIG_DVB_STV0900 is not set
-
- CONFIG_VIDEO_SAA5249=m
-
- CONFIG_DVB_USB_AF9005_REMOTE=m
-
--CONFIG_VIDEO_AU0828=m
-
-+# CONFIG_VIDEO_AU0828 is not set
-
- CONFIG_VIDEO_ZORAN_DC30=m
-
--CONFIG_DVB_USB_A800=m
-
-+# CONFIG_DVB_USB_A800 is not set
-
- CONFIG_V4L_USB_DRIVERS=y
-
- CONFIG_USB_VIDEO_CLASS_INPUT_EVDEV=y
-
-
---=-EjcUob24cTHaUxKE9fHz--
+> Here's couple of old _example_ patches how to configure the cropping.
+> Just gives an idea where to start...
+>
+> - Tuukka
+>
+>
+> diff --git a/drivers/media/video/isp/ispccdc.c b/drivers/media/video/isp/ispccdc.c
+> index 2288bc9..87870f1 100644
+> --- a/drivers/media/video/isp/ispccdc.c
+> +++ b/drivers/media/video/isp/ispccdc.c
+> @@ -1189,13 +1189,13 @@ int ispccdc_config_size(u32 input_w, u32 input_h, u32 output_w, u32 output_h)
+>                                                ISPCCDC_HORZ_INFO);
+>                } else {
+>                        if (ispccdc_obj.ccdc_inpfmt == CCDC_RAW) {
+> -                               omap_writel(1 << ISPCCDC_HORZ_INFO_SPH_SHIFT
+> -                                               | ((ispccdc_obj.ccdcout_w - 1)
+> +                               omap_writel(0 << ISPCCDC_HORZ_INFO_SPH_SHIFT
+> +                                               | (ispccdc_obj.ccdcout_w
+>                                                << ISPCCDC_HORZ_INFO_NPH_SHIFT),
+>                                                ISPCCDC_HORZ_INFO);
+>                        } else {
+>                                omap_writel(0 << ISPCCDC_HORZ_INFO_SPH_SHIFT
+> -                                               | ((ispccdc_obj.ccdcout_w - 1)
+> +                                               | (ispccdc_obj.ccdcout_w
+>                                                << ISPCCDC_HORZ_INFO_NPH_SHIFT),
+>                                                ISPCCDC_HORZ_INFO);
+>                        }
+> @@ -1227,7 +1227,7 @@ int ispccdc_config_size(u32 input_w, u32 input_h, u32 output_w, u32 output_h)
+>                                        ISPCCDC_VP_OUT_VERT_NUM_SHIFT),
+>                                        ISPCCDC_VP_OUT);
+>                omap_writel(0 << ISPCCDC_HORZ_INFO_SPH_SHIFT |
+> -                                       ((ispccdc_obj.ccdcout_w - 1) <<
+> +                                       (ispccdc_obj.ccdcout_w <<
+>                                        ISPCCDC_HORZ_INFO_NPH_SHIFT),
+>                                        ISPCCDC_HORZ_INFO);
+>                omap_writel(0 << ISPCCDC_VERT_START_SLV0_SHIFT,
+> diff --git a/drivers/media/video/isp/ispccdc.c
+> b/drivers/media/video/isp/ispccdc.c
+> index f5957b2..6afaabf 100644
+> --- a/drivers/media/video/isp/ispccdc.c
+> +++ b/drivers/media/video/isp/ispccdc.c
+> @@ -478,7 +478,7 @@ EXPORT_SYMBOL(ispccdc_enable_lsc);
+>   **/
+>  void ispccdc_config_crop(u32 left, u32 top, u32 height, u32 width)
+>  {
+> -       ispccdc_obj.ccdcin_woffset = left + ((left + 1) % 2);
+> +       ispccdc_obj.ccdcin_woffset = left + (left % 2);
+>         ispccdc_obj.ccdcin_hoffset = top + (top % 2);
+>
+>         ispccdc_obj.crop_w = width - (width % 16);
+> @@ -1166,7 +1166,7 @@ int ispccdc_config_size(u32 input_w, u32 input_h,
+> u32 output_w, u32 output_h)
+>                                         ISPCCDC_FMT_VERT);
+>                 omap_writel((ispccdc_obj.ccdcout_w <<
+>                                         ISPCCDC_VP_OUT_HORZ_NUM_SHIFT) |
+> -                                       (ispccdc_obj.ccdcout_h <<
+> +                                       (ispccdc_obj.ccdcout_h - 1 <<
+>                                         ISPCCDC_VP_OUT_VERT_NUM_SHIFT),
+>                                         ISPCCDC_VP_OUT);
+>                 omap_writel((((ispccdc_obj.ccdcout_h - 25) &
+>
+>
+>
