@@ -1,50 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.30]:53157 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760729AbZCaOeF convert rfc822-to-8bit (ORCPT
+Received: from mail00a.mail.t-online.hu ([84.2.40.5]:60790 "EHLO
+	mail00a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754032AbZCSF72 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2009 10:34:05 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so2456259ywb.1
-        for <linux-media@vger.kernel.org>; Tue, 31 Mar 2009 07:34:02 -0700 (PDT)
+	Thu, 19 Mar 2009 01:59:28 -0400
+Message-ID: <49C1DD0C.4050500@freemail.hu>
+Date: Thu, 19 Mar 2009 06:50:04 +0100
+From: =?ISO-8859-1?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
 MIME-Version: 1.0
-In-Reply-To: <49D228EA.3090302@linuxtv.org>
-References: <15ed362e0903301947rf0de73eo8edbd8cbcd5b5abd@mail.gmail.com>
-	 <412bdbff0903301957i77c36f10hcb9e9cb919124057@mail.gmail.com>
-	 <15ed362e0903302039g6d9575cnca5d9b62b566db72@mail.gmail.com>
-	 <49D228EA.3090302@linuxtv.org>
-Date: Tue, 31 Mar 2009 10:34:02 -0400
-Message-ID: <412bdbff0903310734r3002e083j9c7f83bfc9855c7d@mail.gmail.com>
-Subject: Re: XC5000 DVB-T/DMB-TH support
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Steven Toth <stoth@linuxtv.org>
-Cc: David Wong <davidtlwong@gmail.com>, linux-media@vger.kernel.org
+To: David Ellingsworth <david@identd.dyndns.org>
+CC: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] gspca: add missing .type field check in VIDIOC_G_PARM
+References: <49C133F6.3020202@freemail.hu> <30353c3d0903181445i409604e8r33678f7ce09d0288@mail.gmail.com>
+In-Reply-To: <30353c3d0903181445i409604e8r33678f7ce09d0288@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 31, 2009 at 10:30 AM, Steven Toth <stoth@linuxtv.org> wrote:
-> Hmm.
->
->>                priv->freq_hz = params->frequency - 1750000;
->
-> Prior to reading this I would of sworn blind that we'd witnessed the XC5000
-> working on DVB-T devices, it's been a while and now I'm doubting that
-> belief.
+David Ellingsworth wrote:
+> 2009/3/18 Németh Márton <nm127@freemail.hu>:
+>> From: Márton Németh <nm127@freemail.hu>
+>>
+>> The gspca webcam driver does not check the .type field of struct v4l2_streamparm.
+>> This field is an input parameter for the driver according to V4L2 API specification,
+>> revision 0.24 [1]. Add the missing check.
+>>
+>> The missing check was recognised by v4l-test 0.10 [2] together with gspca_sunplus driver
+>> and with "Trust 610 LCD POWERC@M ZOOM" webcam. This patch was verified also with
+>> v4l-test 0.10.
+>>
+>> References:
+>> [1] V4L2 API specification, revision 0.24
+>>    http://v4l2spec.bytesex.org/spec/r11680.htm
+>>
+>> [2] v4l-test: Test environment for Video For Linux Two API
+>>    http://v4l-test.sourceforge.net/
+>>
+>> Signed-off-by: Márton Németh <nm127@freemail.hu>
+>> ---
+>> --- linux-2.6.29-rc8/drivers/media/video/gspca/gspca.c.orig     2009-03-14 12:29:38.000000000 +0100
+>> +++ linux-2.6.29-rc8/drivers/media/video/gspca/gspca.c  2009-03-18 16:51:03.000000000 +0100
+>> @@ -1320,6 +1320,9 @@ static int vidioc_g_parm(struct file *fi
+>>  {
+>>        struct gspca_dev *gspca_dev = priv;
+>>
+>> +       if (parm->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+>> +               return -EINVAL;
+>> +
+>>        memset(parm, 0, sizeof *parm);
+>>        parm->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> ^^^^^^^^^^^^^^^^^^^
+> This line should be deleted as it's no longer needed.
 
-Yeah, the code doesn't currently have DVB-T support.  If you specify
-any modulation other than the VSB or QAM modulations, it returns
--EINVAL..
+Because memset() clears the whole parm structure this line is necessary. In other
+drivers the following code is there:
 
-If I had a board and a generator, I could probably bring it up pretty quick.
+    tmp = parm->type;
+    memset(parm, 0, sizeof(*parm));
+    parm->type = parm;
 
-Also, as I later told David in an off-list email, I believe I was
-mistaken about the offset needing to be 1750000.  I think it should
-actually be 2570000 for DVB-T.
+Maybe changing the code similar to this would be easier to read?
 
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+	Márton Németh
