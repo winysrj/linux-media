@@ -1,52 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:23721 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753048AbZCORxY (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:40615 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753564AbZCSNMX convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2009 13:53:24 -0400
-Date: Sun, 15 Mar 2009 18:53:13 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: bttv, tvaudio and ir-kbd-i2c probing conflict
-Message-ID: <20090315185313.4c15702c@hyperion.delvare>
-In-Reply-To: <Pine.LNX.4.58.0903151038210.28292@shell2.speakeasy.net>
-References: <200903151344.01730.hverkuil@xs4all.nl>
-	<20090315181207.36d951ac@hyperion.delvare>
-	<Pine.LNX.4.58.0903151038210.28292@shell2.speakeasy.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Thu, 19 Mar 2009 09:12:23 -0400
+From: "Subrahmanya, Chaithrika" <chaithrika@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Thu, 19 Mar 2009 18:42:09 +0530
+Subject: RE: [RFC 4/7] ARM: DaVinci: DM646x Video: Defintions for standards
+ supported by display
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A8764C2F@dbde02.ent.ti.com>
+References: <1236934897-32160-1-git-send-email-chaithrika@ti.com>
+ <200903141427.09177.hverkuil@xs4all.nl>,<200903182335.26742.hverkuil@xs4all.nl>
+In-Reply-To: <200903182335.26742.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 15 Mar 2009 10:42:41 -0700 (PDT), Trent Piepho wrote:
-> On Sun, 15 Mar 2009, Jean Delvare wrote:
-> > On Sun, 15 Mar 2009 13:44:01 +0100, Hans Verkuil wrote:
-> > This is the typical multifunction device problem. It isn't specifically
-> > related to I2C, the exact same problem happens for other devices, for
-> > example a PCI south bridge including hardware monitoring and SMBus, or
-> > a Super-I/O chip including hardware monitoring, parallel port,
-> > infrared, watchdog, etc. Linux currently only allows one driver to bind
-> > to a given device, so it becomes very difficult to make per-function
-> > drivers for such devices.
+Hi Hans,
+
+As of now we will provide support for SD, soon we will add support for HD too. 
+I am working on the review comments and will submit the revised patches soon.
+This time the patch set will be divided into two
+Set 1 - support for ADV7343 and THS7303 drivers.
+Set 2 - VPIF display driver related patches
+
+Thanks,
+Chaithrika
+ 
+________________________________________
+From: Hans Verkuil [hverkuil@xs4all.nl]
+Sent: Thursday, March 19, 2009 4:05 AM
+To: davinci-linux-open-source@linux.davincidsp.com; Subrahmanya, Chaithrika
+Cc: linux-media@vger.kernel.org
+Subject: Re: [RFC 4/7] ARM: DaVinci: DM646x Video: Defintions for standards supported by display
+
+Hi Chaithrika,
+
+Just a quick note: getting these digital TV standards sorted out is the main
+blocking issue for the DM646x. Without this nothing can get merged. In
+addition, extending the V4L2 API will take time and usually takes several
+review cycles. So I recommend that this gets a high priority.
+
+I'm not sure if the importance of this came across in my initial review. My
+apologies if that wasn't clear.
+
+Regards,
+
+        Hans
+
+On Saturday 14 March 2009 14:27:09 Hans Verkuil wrote:
+> On Friday 13 March 2009 10:01:37 chaithrika@ti.com wrote:
+> > From: Chaithrika U S <chaithrika@ti.com>
 > >
-> > For very specific devices, it isn't necessarily a big problem. You can
-> > simply make an all-in-one driver for that specific device. The real
-> > problem is when the device in question is fully compatible with other
-> > devices which only implement functionality A _and_ fully compatible with
-> > other devices which only implement functionality B. You don't really
-> > want to support functions A and B in the same driver if most devices
-> > out there have either function but not both.
-> 
-> You can also split the "device" into multiple devices.  Most SoCs have one
-> register block where all kinds of devices, from i2c controllers to network
-> adapters, exist.  This is shown to linux as many devices, rather than one
-> massive multifunction device.
+> > Add defintions for Digital TV Standards supported by display driver
+> >
+> > Signed-off-by: Chaithrika U S <chaithrika@ti.com>
+> > ---
+> > Applies to v4l-dvb repository located at
+> > http://linuxtv.org/hg/v4l-dvb/rev/1fd54a62abde
+> >
+> >  include/linux/videodev2.h |   12 ++++++++++++
+> >  1 files changed, 12 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > index 7a8eafd..df4a622 100644
+> > --- a/include/linux/videodev2.h
+> > +++ b/include/linux/videodev2.h
+> > @@ -704,6 +704,18 @@ typedef __u64 v4l2_std_id;
+> >  #define V4L2_STD_ALL            (V4L2_STD_525_60   |\
+> >                              V4L2_STD_625_50)
+> >
+> > +#define V4L2_STD_720P_60        ((v4l2_std_id)(0x0001000000000000ULL))
+> > +#define V4L2_STD_1080I_30       ((v4l2_std_id)(0x0002000000000000ULL))
+> > +#define V4L2_STD_1080I_25       ((v4l2_std_id)(0x0004000000000000ULL))
+> > +#define V4L2_STD_480P_60        ((v4l2_std_id)(0x0008000000000000ULL))
+> > +#define V4L2_STD_576P_50        ((v4l2_std_id)(0x0010000000000000ULL))
+> > +#define V4L2_STD_720P_25        ((v4l2_std_id)(0x0020000000000000ULL))
+> > +#define V4L2_STD_720P_30        ((v4l2_std_id)(0x0040000000000000ULL))
+> > +#define V4L2_STD_720P_50        ((v4l2_std_id)(0x0080000000000000ULL))
+> > +#define V4L2_STD_1080P_25       ((v4l2_std_id)(0x0100000000000000ULL))
+> > +#define V4L2_STD_1080P_30       ((v4l2_std_id)(0x0200000000000000ULL))
+> > +#define V4L2_STD_1080P_24       ((v4l2_std_id)(0x0400000000000000ULL))
+> > +
+> >  struct v4l2_standard {
+> >     __u32                index;
+> >     v4l2_std_id          id;
+>
+> This requires an RFC. I'm not convinced that using v4l2_std_id is the
+> best approach. If you look at the CEA-861-D you see a lot more standards
+> (and E adds even more). Not to mention that when the DM646x is used in
+> combination with e.g. an FPGA then it should be possible to supply the
+> driver with custom timings as well. The v4l2_std_id type was never
+> designed for that.
+>
+> My gut feeling is that v4l2_std_id should be effectively frozen and used
+> for the old TV broadcast standards only, and that a new API should be
+> created to setup these digital formats.
+>
+> I've discussed this with Manju in the past, and I suggest that TI should
+> make a proposal in the form of an RFC that we can then discuss on the
+> mailinglists. One of the disadvantages of being the first who needs these
+> HDTV formats. The advantage of being the first is that you can design it
+> yourself, of course!
+>
+> Regards,
+>
+>       Hans
 
-It really depends on the device type. You can't split an I2C or PCI
-device that way.
 
--- 
-Jean Delvare
+
+--
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
