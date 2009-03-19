@@ -1,69 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-10.arcor-online.net ([151.189.21.50]:59981 "EHLO
-	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751367AbZCCRvd convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Mar 2009 12:51:33 -0500
-Message-ID: <31997377.1236102687174.JavaMail.ngmail@webmail18.arcor-online.net>
-Date: Tue, 3 Mar 2009 18:51:27 +0100 (CET)
-From: ronny.bantin@nexgo.de
-To: patrick.boettcher@desy.de
-Subject: Aw: Re: Support for SkyStar USB 2 ?
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <alpine.LRH.1.10.0903031816520.25473@pub6.ifh.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-References: <alpine.LRH.1.10.0903031816520.25473@pub6.ifh.de> <25314470.1236090890821.JavaMail.ngmail@webmail15.arcor-online.net> <26537179.1236096877826.JavaMail.ngmail@webmail13.arcor-online.net>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4068 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752182AbZCSTSM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Mar 2009 15:18:12 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2JJI5TT041734
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 19 Mar 2009 20:18:09 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 19 Mar 2009 20:18:05 +0100 (CET)
+Message-Id: <200903191918.n2JJI5TT041734@smtp-vbr8.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: OK, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Patrick,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Im pretty sure thats the same components.
-The following microchips are on the board:
+Results of the daily build of v4l-dvb:
 
-1x Technisat Flexcop IIB MMRY3-000 0628
-1x PLX NET2282-AB35PC (PCI-USB Bridge)
-1x ISL6421
-and some other very small chips.
-In the tuner bracket:
-1x 24113A-12Z
-1x CX24123-11Z
+date:        Thu Mar 19 19:00:06 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11108:bd057d88e454
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-I will send the pictures tomorrow from my work office, because I have only Light-DSL at home.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-rc8-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-rc8-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-rc8-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc8-i686: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc8-m32r: OK
+linux-2.6.22.19-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-rc8-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-rc8-powerpc64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-rc8-x86_64: OK
+fw/apps: OK
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc8): ERRORS
 
-Best Regards Ronny.
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
------ Original Nachricht ----
-Von:     Patrick Boettcher <patrick.boettcher@desy.de>
-An:      ronny.bantin@nexgo.de
-Datum:   03.03.2009 18:18
-Betreff: Re: Support for SkyStar USB 2 ?
+Full logs are available here:
 
-> Hi Ronny,
-> 
-> On Tue, 3 Mar 2009, ronny.bantin@nexgo.de wrote:
-> > the current flexcop-usb driver supports only USB 1.1 devices. Is there any
-> plan to support USB
-> > 2.0 devices ? The device id is "13d0:2282". For testing I have simply
-> changed the "flexcop_usb_table"
-> > structur to this ids. But of course is does not work.
-> 
-> >
-> > The hardware components are the same of the SkyStar2 PCI (CX24113
-> tuner...).
-> 
-> Are you sure about that?
-> 
-> Can you please send hires-pictures of the innards of the USB box?
-> 
-> Patrick.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-Erwischt! Bei Arcor sehen Sie die besten Promi-Bilder riesengroß und in Top-Qualität. Hier finden Sie die schönsten Schnappschüsse auf dem roten Teppich, lernen die Frauen des Womanizers Boris Becker kennen und schauen den Royals ins Wohnzimmer. Viel Spaß auf Ihrer virtuellen Reise durch die Welt der Stars und Sternchen: http://vip.arcor.de.
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
