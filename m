@@ -1,131 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:3905 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756336AbZCaVDl (ORCPT
+Received: from mu-out-0910.google.com ([209.85.134.190]:11279 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755813AbZCSOSu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2009 17:03:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: Re: [RFC] Stand-alone Resizer/Previewer Driver support under V4L2 framework
-Date: Tue, 31 Mar 2009 23:03:27 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"R, Sivaraj" <sivaraj@ti.com>, "Hadli, Manjunath" <mrh@ti.com>,
-	"Shah, Hardik" <hardik.shah@ti.com>,
-	"Kumar, Purushotam" <purushotam@ti.com>
-References: <19F8576C6E063C45BE387C64729E73940427E3F70B@dbde02.ent.ti.com> <200903301902.21783.hverkuil@xs4all.nl> <19F8576C6E063C45BE387C64729E73940427E3F8F1@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940427E3F8F1@dbde02.ent.ti.com>
+	Thu, 19 Mar 2009 10:18:50 -0400
+Received: by mu-out-0910.google.com with SMTP id g7so194556muf.1
+        for <linux-media@vger.kernel.org>; Thu, 19 Mar 2009 07:18:47 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+In-Reply-To: <20090319110303.7a53f9bb@pedra.chehab.org>
+References: <1237467800.19717.37.camel@tux.localhost>
+	 <20090319110303.7a53f9bb@pedra.chehab.org>
+Date: Thu, 19 Mar 2009 17:18:47 +0300
+Message-ID: <208cbae30903190718l10911cc1j2a6f4f21b7f2b107@mail.gmail.com>
+Subject: Re: [patch review] radio/Kconfig: introduce 3 groups: isa, pci, and
+	others drivers
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Douglas Schilling Landgraf <dougsland@gmail.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903312303.27492.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 31 March 2009 10:53:02 Hiremath, Vaibhav wrote:
-> Thanks,
-> Vaibhav Hiremath
+On Thu, Mar 19, 2009 at 5:03 PM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> On Thu, 19 Mar 2009 16:03:20 +0300
+> Alexey Klimov <klimov.linux@gmail.com> wrote:
 >
-> > > APPROACH 3 -
-> > > ----------
-> > >
-> > > .....
-> > >
-> > > (Any other approach which I could not think of would be
-> >
-> > appreciated)
-> >
-> > > I would prefer second approach, since this will provide standard
-> > > interface to applications independent on underneath hardware.
-> > >
-> > > There may be many number of such configuration parameters required
-> >
-> > for
-> >
-> > > different such devices, we need to work on this and come up with
-> >
-> > some
-> >
-> > > standard capability fields covering most of available devices.
-> > >
-> > > Does anybody have some other opinions on this?
-> > > Any suggestions will be helpful here,
-> >
-> > FYI: I have very little time to look at this for the next 2-3 weeks.
-> > As you
-> > know I'm working on the last pieces of the v4l2_subdev conversion
-> > for 2.6.30
-> > that should be finished this week. After that I'm attending the
-> > Embedded
-> > Linux Conference in San Francisco.
-> >
-> > But I always thought that something like this would be just a
-> > regular video
-> > device that can do both 'output' and 'capture'. For a resizer I
-> > would
-> > expect that you set the 'output' size (the size of your source
-> > image) and
-> > the 'capture' size (the size of the resized image), then just send
-> > the
-> > frames to the device (== resizer) and get them back on the capture
-> > side.
+>> Hello, all
+>> What do you think about such patch that makes selecting of radio drivers
+>> in menuconfig more comfortable ?
 >
-> [Hiremath, Vaibhav] Yes, it is possible to do that.
+> Frankly, I don't see any gain: If the user doesn't have ISA (or doesn't want to
+> have), it should have already unselected the ISA sub-menu. The remaining PCI
+> and USB drivers are few. So, creating menus for them seem overkill.
 >
-> Hans,
->
-> I went through the link referred by Sergio and I think we should inherit
-> some implementation for CODECs here for such devices.
->
-> V4L2_BUF_TYPE_CODECIN - To access the input format.
-> V4L2_BUF_TYPE_CODECOUT - To access the output format.
->
-> It makes sense, since such memory-to-memory devices will mostly being
-> used from codecs context. And this would be more clear from user
-> application.
+> We could eventually reorganize the item order, and adding a few comments to
+> indicate the drivers that are ISA, PCI, PCIe and USB (something similar to what
+> was done at DVB frontend part of the menu), but still, I can't see much value.
 
-I haven't had the time to look at this yet.
-
-> And as acknowledged by you, we can use VIDIOC_S_FMT for setting
-> parameters.
->
-> One thing I am not able to convince myself is that, using "priv" field
-> for custom configuration. I would prefer and recommend capability based
-> interface, where application will query the capability of the device for
-> luma enhancement, filter coefficients (number of coeff and depth),
-> interpolation type, etc...
-
-These things are always hard to do since the capabilities are so hardware 
-dependent. You either end up with a controls-like API (where you basically 
-can enumerate the capabilities), or you go for a split API: part is for 
-common functionality, and another part is purely device specific.
-
-> This way we can make sure that, any such future devices can be adapted by
-> this framework.
->
->
->
-> Hans,
-> Have you get a chance to look at Video-Buf layer issues I mentioned in
-> original draft?
-
-No, but videobuf is more Mauro's expertise.
-
-As I said, I will have very little time to really look into this until some 
-2-3 weeks from now :-(
-
-Regards,
-
-	Hans
-
+Okay, well, sorry for bothering.
+Only one point here - if user want to unselect radio drivers in
+menuconfig, for example - pci and isa in some bad config file he
+should pick a lot of times, and with this patch only 2 times.
+But, okay.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Best regards, Klimov Alexey
