@@ -1,54 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web86703.mail.ird.yahoo.com ([217.146.188.144]:22298 "HELO
-	web86703.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752142AbZCVI4J convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Mar 2009 04:56:09 -0400
-Message-ID: <509292.77960.qm@web86703.mail.ird.yahoo.com>
-Date: Sun, 22 Mar 2009 08:49:24 +0000 (GMT)
-From: Philip Poole <philip_poole@btinternet.com>
-Subject: Can't tune to Astra 2D (because of Symbol Rate 220000?)
-To: linux-media@vger.kernel.org
+Received: from smtp.nokia.com ([192.100.122.233]:41445 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752295AbZCSHm7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Mar 2009 03:42:59 -0400
+From: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>
+To: ext Suresh Rao <sureshraomr@gmail.com>
+Subject: Re: ISP Configuration for RAW Bayer sensor
+Date: Thu, 19 Mar 2009 09:42:42 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <d9ec170c0903180917k691f9d01pe4cb4231efe282e4@mail.gmail.com>
+In-Reply-To: <d9ec170c0903180917k691f9d01pe4cb4231efe282e4@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903190942.43219.tuukka.o.toivonen@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wednesday 18 March 2009 18:17:56 ext Suresh Rao wrote:
+> I am working with MT9V023 RAW sensor.  The data format from the sensor is
+> 
+> B G B G B G B G ...
+> G R G R G R G R ...
+> B G B G B G B G ...
+> G R G R G R G R ........      [ Format 1]
+[...]
+> I want to use the ISP on the OMAP for doing interpolation and format
+> conversion to UYVY.  I am able to capture the images from the sensor,
+> however I notice that the color information is missing.  I dug the
+> sources and found that in the RAW capture mode ISP is getting
+> configured to input format
+> 
+> G R G R G R G R ...
+> B G B G B G B G ...
+> G R G R G R G R ...
+> B G B G B G B G ...          [Format 2]
+> 
+> Has anyone tried sensors with BGGR ( Format 1) on OMAP?
+> 
+> Can anyone give me some pointers or information on how to configure
+> ISP for BGGR (Format 1)
 
-Hi all,
+If you can live with losing a few pixels (maybe sensor has a few extra)
+I recommend to configure ISP to crop away the topmost line.
 
-Essentially I'm a Linux DVB newbie, and am struggling with this.
-Basically I want to just record BBC HD, and watch it elsewhere via UPnP server (Mediatomb).
-I
-have three tuners. A Hauppauge WinTV DVB-S USB tuner. This works fine.
-It can tune to the required transponder (Astra 2D, 10847, Vertical,
-Symbol Rate 220000), but it seems to have a bandwidth limit of about
-6Mbps (I suspect its because its USB 1.1) and so it can handle SD based
-video streams, but not HD.
-So I have two other cards from Ebay. Both PCI this time. A Technisat Skystar 2 and more recently (due to this one's failure) a Hauppauge WinTV DVB-S rev 1.3.
-I
-deliberately chose the Hauppauge as it was revision 1.3 (and apparently
-well supported), and a different chipset to the Skystar 2. It's obvious
-they're different as I had to download and install firmware for the
-1.3, which I didn't have to for the Skystar 2.
-They
-both work, recognised by the kernel and appear in /dev/dvb, and can
-tune to stuff (typically with a symbol rate of 275000) but both
-completely fail to Freesat channels (basically Astra 2D) because (I
-think) the symbol rate is 220000. Very weird!
-I'm using Fedora 9 essentially out of the box, nothing peculiar done to change it.
+Here's couple of old _example_ patches how to configure the cropping.
+Just gives an idea where to start...
 
-So,
-is this a known problem? Has anybody else seen this? Is there a DVB-S
-card that will tune to this fairly standard scenario? I've seen a
-Compro VideoMate S300 do it in Windows, but that card isn't supported
-in Linux. Or, is it a LinuxTV/Kernel version problem (I'm sorry, I'm
-not sure which version of the Kernel I'm using definitely 2.6.x, I'm
-aware from the box at the moment so can't tell just now.)
+- Tuukka
 
-Help!
 
-Cheers,
-Phil 
+diff --git a/drivers/media/video/isp/ispccdc.c b/drivers/media/video/isp/ispccdc.c
+index 2288bc9..87870f1 100644
+--- a/drivers/media/video/isp/ispccdc.c
++++ b/drivers/media/video/isp/ispccdc.c
+@@ -1189,13 +1189,13 @@ int ispccdc_config_size(u32 input_w, u32 input_h, u32 output_w, u32 output_h)
+ 						ISPCCDC_HORZ_INFO);
+ 		} else {
+ 			if (ispccdc_obj.ccdc_inpfmt == CCDC_RAW) {
+-				omap_writel(1 << ISPCCDC_HORZ_INFO_SPH_SHIFT
+-						| ((ispccdc_obj.ccdcout_w - 1)
++				omap_writel(0 << ISPCCDC_HORZ_INFO_SPH_SHIFT
++						| (ispccdc_obj.ccdcout_w
+ 						<< ISPCCDC_HORZ_INFO_NPH_SHIFT),
+ 						ISPCCDC_HORZ_INFO);
+ 			} else {
+ 				omap_writel(0 << ISPCCDC_HORZ_INFO_SPH_SHIFT
+-						| ((ispccdc_obj.ccdcout_w - 1)
++						| (ispccdc_obj.ccdcout_w
+ 						<< ISPCCDC_HORZ_INFO_NPH_SHIFT),
+ 						ISPCCDC_HORZ_INFO);
+ 			}
+@@ -1227,7 +1227,7 @@ int ispccdc_config_size(u32 input_w, u32 input_h, u32 output_w, u32 output_h)
+ 					ISPCCDC_VP_OUT_VERT_NUM_SHIFT),
+ 					ISPCCDC_VP_OUT);
+ 		omap_writel(0 << ISPCCDC_HORZ_INFO_SPH_SHIFT |
+-					((ispccdc_obj.ccdcout_w - 1) <<
++					(ispccdc_obj.ccdcout_w <<
+ 					ISPCCDC_HORZ_INFO_NPH_SHIFT),
+ 					ISPCCDC_HORZ_INFO);
+ 		omap_writel(0 << ISPCCDC_VERT_START_SLV0_SHIFT,
+diff --git a/drivers/media/video/isp/ispccdc.c 
+b/drivers/media/video/isp/ispccdc.c
+index f5957b2..6afaabf 100644
+--- a/drivers/media/video/isp/ispccdc.c
++++ b/drivers/media/video/isp/ispccdc.c
+@@ -478,7 +478,7 @@ EXPORT_SYMBOL(ispccdc_enable_lsc);
+   **/
+  void ispccdc_config_crop(u32 left, u32 top, u32 height, u32 width)
+  {
+-       ispccdc_obj.ccdcin_woffset = left + ((left + 1) % 2);
++       ispccdc_obj.ccdcin_woffset = left + (left % 2);
+         ispccdc_obj.ccdcin_hoffset = top + (top % 2);
+
+         ispccdc_obj.crop_w = width - (width % 16);
+@@ -1166,7 +1166,7 @@ int ispccdc_config_size(u32 input_w, u32 input_h, 
+u32 output_w, u32 output_h)
+                                         ISPCCDC_FMT_VERT);
+                 omap_writel((ispccdc_obj.ccdcout_w <<
+                                         ISPCCDC_VP_OUT_HORZ_NUM_SHIFT) |
+-                                       (ispccdc_obj.ccdcout_h <<
++                                       (ispccdc_obj.ccdcout_h - 1 <<
+                                         ISPCCDC_VP_OUT_VERT_NUM_SHIFT),
+                                         ISPCCDC_VP_OUT);
+                 omap_writel((((ispccdc_obj.ccdcout_h - 25) &
+
 
