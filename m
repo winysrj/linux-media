@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mout.perfora.net ([74.208.4.194])
+Received: from imo-d21.mx.aol.com ([205.188.144.207])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tlenz@vorgon.com>) id 1LkjMt-0007XS-IZ
-	for linux-dvb@linuxtv.org; Fri, 20 Mar 2009 19:22:56 +0100
-Message-ID: <008a01c9a988$e11cd7a0$0a00a8c0@vorg>
-From: "Timothy D. Lenz" <tlenz@vorgon.com>
-To: <linux-dvb@linuxtv.org>
-References: <000701c9a5de$09033e20$0a00a8c0@vorg><49BE5B36.1080901@linuxtv.org>
-	<003a01c9a69a$0de42640$0a00a8c0@vorg><1237252028.3303.41.camel@palomino.walls.org><000401c9a838$c690c0a0$0a00a8c0@vorg>
-	<1237430932.3303.103.camel@palomino.walls.org>
-Date: Fri, 20 Mar 2009 11:22:47 -0700
+	(envelope-from <td9678td@aim.com>) id 1LkHQ9-0005X9-IH
+	for linux-dvb@linuxtv.org; Thu, 19 Mar 2009 13:32:28 +0100
+Received: from td9678td@aim.com
+	by imo-d21.mx.aol.com  (mail_out_v39.1.) id m.c68.4923fa8e (37035)
+	for <linux-dvb@linuxtv.org>; Thu, 19 Mar 2009 08:31:47 -0400 (EDT)
+References: <221784.66631.qm@web59912.mail.ac4.yahoo.com>
+To: linux-dvb@linuxtv.org
+Date: Thu, 19 Mar 2009 08:31:43 -0400
+In-Reply-To: <221784.66631.qm@web59912.mail.ac4.yahoo.com>
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] FusionHDTV7 and v4l causes kernel panic
+From: td9678td@aim.com
+Message-Id: <8CB76A5CB99620E-C80-3B5D@WEBMAIL-MY17.sysops.aol.com>
+Subject: Re: [linux-dvb] Compro VideoMate E600F analog - someone please take
+ pity on me and help me.
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -26,148 +29,309 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Not sure where I was suposed to reply to. When replying I find the replys are coming from diffrent lists and out look is picking
-that up. At the bottom it says v4l related stuff should go to linux-media@vger.kernel.org, but the thread started in
-linux-dvb@linuxtv.org. So I'm re-replying in linux-dvb@linuxtv.org.
+Hello,
 
-After searching the internet for ways to redirect the error to serial or other system and not getting to work, I typed out by hand
-what is on the screen minus the cpu dump which is mostly scrolled off anyway and thus gone. In trying to get the dump out ttyS0 I
-found I was getting different dumps to screen.
-When I use:
-  kernel /boot/vmlinuz-2.6.26.8.20090311.1 root=/dev/hda1 ro quiet console=ttyS0,115200n8 console=tty0
+it seems, Compro has some curious things, that makes the driver 
+development difficult. Having the same problem with a T750 
+(http://linuxtv.org/wiki/index.php/Compro_Videomate_T750).
 
-I get:
-Call Trace:
- [<f8aa406f>] netup_ci_slot_status+0x2e/0x34 [cx23885]
- [<f8aa07ff>] cx23885_irq+0x327/0x3d8 [cx23885]
- [<c013d10c>] handle_IRQ_event+0x1a/0x3f
- [<c013df36>] handle_fasteoi_irq+0x76/0xab
- [<c0105236>] do_IRQ+0x4f/0x65
- [<c010366f>] common_interrupt+0x23/0x28
- =======================
-Code: 00 74 04 0f 0b eb fe 89 d8 e8 ed a3 ff ff ba 01 00 00 00 5b 89 d0 5e c3 51
- 89 d1 8b 15 20 ba 3e c0 e8 52 ff ff ff 5a c3 53 89 c3 <f0> 0f ba 2a 00 19 c0 31
- c9 85 c0 75 54 8d 42 04 39 42 04 74 04
-EIP: [<c012a8c6>] queue_work+0x3/0x68 SS:ESR 0068:f7733f40
-Kernel panic - not syncing: Fatal exception in interrupt
-
-When I use the default setting:
-  kernel /boot/vmlinuz-2.6.26.8.20090311.1 root=/dev/hda1 ro quiet
-
-I get:
-Call Trace:
- [<f8aa406f>] netup_ci_slot_status+0x2e/0x34 [cx23885]
- [<f8aa07ff>] cx23885_irq+0x327/0x3d8 [cx23885]
- [<c013d10c>] handle_IRQ_event+0x1a/0x3f
- [<c013df36>] handle_fasteoi_irq+0x76/0xab
- [<c0105236>] do_IRQ+0x4f/0x65
- [<c010366f>] common_interrupt+0x23/0x28
- [<c0308096>] _spin_unlock_irq+0x5/0x19
- [<c011e3ba>] do_syslog+0x12f/0x2f1
- [<c010369c>] reschedule_interrupt+0x28/0x30
- [<c012cd38>] autoremove_wake_function+0x0/0x2d
- [<c018f27a>] kmsg_read+0x0/0x36
- [<c01888cf>] proc_reg_read+0x60/0x73
- [<c018886f>] proc_reg_read+0x0/0x73
- [<c015d9cf>] vfs_read+0x81/0xf4
- [<c015dada>] sys_read+0x3c/0x63
- [<c0102c7d>] sysenter_past_esp+0x6a/0x91
- =======================
-Code: 00 74 04 0f 0b eb fe 89 d8 e8 ed a3 ff ff ba 01 00 00 00 5b 89 d0 5e c3 51
- 89 d1 8b 15 20 ba 3e c0 e8 52 ff ff ff 5a c3 53 89 c3 <f0> 0f ba 2a 00 19 c0 31
- c9 85 c0 75 54 8d 42 04 39 42 04 74 04
-EIP: [<c012a8c6>] queue_work+0x3/0x68 SS:ESR 0068:f7693e7c
-Kernel panic - not syncing: Fatal exception in interrupt
-
-It may be a bit different each time because I think I've seen longer "Call Trace" dumps
-
------ Original Message ----- 
-From: "Andy Walls" <awalls@radix.net>
-To: <linux-media@vger.kernel.org>
-Cc: <linux-dvb@linuxtv.org>
-Sent: Wednesday, March 18, 2009 7:48 PM
-Subject: Re: [linux-dvb] FusionHDTV7 and v4l causes kernel panic
+@Marek: under Windows, do you use the bundled ComproDTV software? Is 
+there perhaps an other software, that can recognize this card in 
+Windows, and can use the analog features of it?
 
 
-> On Wed, 2009-03-18 at 19:16 -0700, Timothy D. Lenz wrote:
-> > I've added
-> >     console=ttyS0,115200 console=tty0
-> > to the kernel command line options and with out the console=tty0 part the dump no longer shows on the monitor, so redirect seems
-to
-> > work but loging the serial port on a second computer gets nothing. I tested the connection with echo and that worked but the
-kernel
-> > dump won't go out the port.  The last 2 lines of the screen are:
-> >
-> > EIP: [<c012a8c6>] queue_work+0x3/0x68 SS:ESP 0068:f778dd24
-> > Kernel panic - not syncing: Fatal exception in interrupt
->
-> Hmm.  The only thing in the cx23885 driver that tries to schedule work,
-> and thus the only thing that could possibly pass in a bad argument, is
-> the netup_ci_slot_status() function.  It gets called when an IRQ comes
-> in indicating a GPIO[01] event, and the driver thinks the card is a
-> NetUp Dual DVB-S2 CI card.
->
-> That's consistent with the "fatal exception in interrupt", but without
-> the backtrace, one can't be completely sure this call to queue work was
-> initiated by the cx23885 driver and a problem with cx23885 data
-> structures.  (But it is the most likely scenario, IMO)
-> I just can't see how netup_ci_slot_status() get's called for your card.
->
->
-> > Any way to get the dump to go out the serial port?
->
-> Does 9600 baud help? (Just a guess.)
->
-> Regards,
-> Andy
->
-> > ----- Original Message ----- 
-> > From: "Andy Walls" <awalls@radix.net>
-> > To: "Timothy D. Lenz" <tlenz@vorgon.com>
-> > Cc: <linux-media@vger.kernel.org>
-> > Sent: Monday, March 16, 2009 6:07 PM
-> > Subject: Re: [linux-dvb] FusionHDTV7 and v4l causes kernel panic
-> >
-> >
-> > > On Mon, 2009-03-16 at 17:46 -0700, Timothy D. Lenz wrote:
-> > > > When it panics, there is no log, just a bunch of stuff that that scrolls fast on the main monitor then cold lock.
-> > > >  No way to scroll
-> > > > back.
-> > >
-> > > Not even Shift+PageUp ?
-> > >
-> > >
-> > >
-> > > >  I looked at the logs and the ones that are text had nothing about it.
-> > >
-> > > Digital camera or pencil and paper will be least complex way to capture
-> > > the ooops data.  Please don't leave out the "Code" bytes at the bottom
-> > > and do your best to make sure those are absolutely correct.
-> > >
-> > > Regards,
-> > > Andy
-> > >
-> > >
-> > > > ----- Original Message ----- 
-> > > > From: "Steven Toth" <stoth@linuxtv.org>
-> > > > To: <linux-media@vger.kernel.org>
-> > > > Cc: <linux-dvb@linuxtv.org>
-> > > > Sent: Monday, March 16, 2009 6:59 AM
-> > > > Subject: Re: [linux-dvb] FusionHDTV7 and v4l causes kernel panic
-> > > >
-> > > >
-> > > > > Timothy D. Lenz wrote:
-> > > > > > Using kernel 2.6.26.8 and v4l from a few days ago. When I modprobe cx23885 to load the drivers, I get kernel panic
-> > > > >
-> > > > > We'll need the oops.
-> > > > >
-> > > > > - Steve
-> > > > >
-> > > > > _______________________________________________
-> > > > > linux-dvb users mailing list
-> > > > > For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> > > > > linux-dvb@linuxtv.org
-> > > > > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+
+-----Original Message-----
+From: Marek Marek <albatrosmwdvb@yahoo.com>
+To: linux-dvb@linuxtv.org
+Sent: Sun, 15 Mar 2009 10:02 pm
+Subject: [linux-dvb] Compro VideoMate E600F analog - someone please 
+take pity on me and help me.
+
+
+I have Compro VideoMate E600F analog PCIe TV/FM capture card with MPEG 
+II A/V Encoder. I use Gentoo 2008.0 with 2.6.25-gentoo-r7 x86_64 
+kernel. There's no any support for this card on the V4L/DVB repository 
+yet, so anybody help me?
+
+Conexant CX23885-13Z PCIe A/V Decoder
+Conexant CX23417-11Z MPEG II A/V Encoder
+XCeive XC2028ACQ Video Tuner
+
+lsmod:
+Module                  Size  Used by
+tuner_xc2028           18992  1
+tuner                  24972  0
+cx25840                26096  0
+cx23885               100348  0
+cx2341x                11268  1 cx23885
+videobuf_dma_sg        11844  1 cx23885
+fglrx                2278056  27
+btcx_risc               4232  1 cx23885
+tveeprom               13508  1 cx23885
+videobuf_dvb            5060  1 cx23885
+dvb_core               74996  1 videobuf_dvb
+snd_hda_intel         331316  5
+videobuf_core          16516  3 cx23885,videobuf_dma_sg,videobuf_dvb
+
+dmesg:
+v4l1_compat: module is already loaded
+videodev: exports duplicate symbol video_unregister_device (owned by 
+kernel)
+compat_ioctl32: exports duplicate symbol v4l_compat_ioctl32 (owned by 
+kernel)
+cx23885 driver version 0.0.1 loaded
+ACPI: PCI Interrupt 0000:02:00.0[A] -> GSI 16 (level, low) -> IRQ 16
+CORE cx23885[0]: subsystem: 185b:e800, board: Compro Videomate E600F 
+[card=12,autodetected]
+cx23885[0]: i2c bus 0 registered
+cx23885[0]: i2c bus 1 registered
+cx23885[0]: i2c bus 2 registered
+tveeprom 1-0050: Encountered bad packet header [ff]. Corrupt or not a 
+Hauppauge eeprom.
+cx23885[0]: warning: unknown hauppauge model #0
+cx23885[0]: hauppauge eeprom: model=0
+v4l2_common: exports duplicate symbol v4l2_i2c_attach (owned by kernel)
+cx25840' 3-0044: cx25  0-21 found @ 0x88 (cx23885[0])
+v4l2_common: exports duplicate symbol v4l2_i2c_attach (owned by kernel)
+v4l1_compat: module is already loaded
+videodev: exports duplicate symbol video_unregister_device (owned by 
+kernel)
+tuner' 1-0068: chip found @ 0xd0 (cx23885[0])
+tuner' 2-0061: chip found @ 0xc2 (cx23885[0])
+xc2028 2-0061: creating new instance
+xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner
+xc2028 2-0061: destroying instance
+xc2028 2-0061: creating new instance
+xc2028 2-0061: type set to XCeive xc2028/xc3028 tuner
+cx23885[0]/0: registered device video31 [v4l2]
+cx23885[0]/1: registered ALSA audio device
+xc2028 2-0061: Loading 80 firmware images from xc3028-v27.fw, type: 
+xc2028 firmware, ver 2.7
+xc2028 2-0061: Loading firmware for type=BASE (1), id 0000000000000000.
+xc2028 2-0061: Loading firmware for type=(0), id 000000000000b700.
+SCODE (20000000), id 000000000000b700:
+xc2028 2-0061: Loading SCODE for type=MONO SCODE HAS_IF_4320 
+(60008000), id 0000000000008000.
+cx25840' 3-0044: loaded v4l-cx23885-avcore-01.fw firmware (16382 bytes)
+cx23885[0]: registered device video31 [mpeg]
+cx23885_dev_checkrevision() Hardware revision = 0xb0
+cx23885[0]/0: found at 0000:02:00.0, rev: 2, irq: 16, latency: 0, mmio: 
+0xfd600000
+PCI: Setting latency timer of device 0000:02:00.0 to 64
+
+patch:
+diff -Naur 
+czysty/cx23885-audio/linux/drivers/media/video/cx23885/cx23885-cards.c 
+cx23885-audio/linux/drivers/media/video/cx23885/cx23885-cards.c
+--- 
+czysty/cx23885-audio/linux/drivers/media/video/cx23885/cx23885-cards.c  
+    2009-03-15 21:25:47.000000000 +0100
++++ cx23885-audio/linux/drivers/media/video/cx23885/cx23885-cards.c     
+2009-03-15 21:39:56.000000000 +0100
+@@ -178,6 +178,33 @@
+                .portb          = CX23885_MPEG_DVB,
+                .portc          = CX23885_MPEG_DVB,
+        },
++       [CX23885_BOARD_COMPRO_VIDEOMATE_E600F] = {
++               .name           = "Compro Videomate E600F",
++               .porta          = CX23885_ANALOG_VIDEO,
++               .portb          = CX23885_MPEG_ENCODER,
++               .tuner_type     = TUNER_XC2028,
++               .tuner_addr     = 0x61,
++               .input          = {{
++                       .type   = CX23885_VMUX_TELEVISION,
++                       .vmux   =       CX25840_VIN7_CH3 |
++                                       CX25840_VIN5_CH2 |
++                                       CX25840_VIN2_CH1,
++                       .gpio0  = 0,
++               }, {
++                       .type   = CX23885_VMUX_COMPOSITE1,
++                       .vmux   =       CX25840_VIN7_CH3 |
++                                       CX25840_VIN4_CH2 |
++                                       CX25840_VIN6_CH1,
++                       .gpio0  = 0,
++               }, {
++                       .type   = CX23885_VMUX_SVIDEO,
++                       .vmux   =       CX25840_VIN7_CH3 |
++                                       CX25840_VIN4_CH2 |
++                                       CX25840_VIN8_CH1 |
++                                       CX25840_SVIDEO_ON,
++                       .gpio0  = 0,
++               } },
++       },
+ };
+ const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
+
+@@ -253,6 +280,10 @@
+                .subvendor = 0x18ac,
+                .subdevice = 0xdb78,
+                 .card      = 
+CX23885_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL_EXP,
++       },{
++               .subvendor = 0x185b,
++               .subdevice = 0xe800,
++               .card      = CX23885_BOARD_COMPRO_VIDEOMATE_E600F,
+        },
+ };
+ const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
+@@ -372,6 +403,7 @@
+        case CX23885_BOARD_HAUPPAUGE_HVR1400:
+        case CX23885_BOARD_HAUPPAUGE_HVR1500:
+        case CX23885_BOARD_HAUPPAUGE_HVR1500Q:
++       case CX23885_BOARD_COMPRO_VIDEOMATE_E600F:
+                /* Tuner Reset Command */
+                if (command == 0)
+                        bitmask = 0x04;
+@@ -515,6 +547,15 @@
+                mdelay(20);
+                cx_set(GP0_IO, 0x000f000f);
+                break;
++        case CX23885_BOARD_COMPRO_VIDEOMATE_E600F:
++               /* GPIO-2  xc3008 tuner reset */
++               /* Put the parts into reset and back */
++                cx_set(GP0_IO, 0x00040000);
++                mdelay(20);
++                cx_clear(GP0_IO, 0x00000004);
++                mdelay(20);
++                cx_set(GP0_IO, 0x00040004);
++                break;
+        }
+ }
+
+@@ -555,6 +596,7 @@
+        case CX23885_BOARD_HAUPPAUGE_HVR1500:
+        case CX23885_BOARD_HAUPPAUGE_HVR1500Q:
+        case CX23885_BOARD_HAUPPAUGE_HVR1400:
++       case CX23885_BOARD_COMPRO_VIDEOMATE_E600F:
+                if (dev->i2c_bus[0].i2c_rc == 0)
+                        hauppauge_eeprom(dev, eeprom+0x80);
+                break;
+@@ -602,6 +644,7 @@
+        case CX23885_BOARD_HAUPPAUGE_HVR1200:
+        case CX23885_BOARD_HAUPPAUGE_HVR1700:
+        case CX23885_BOARD_HAUPPAUGE_HVR1400:
++       case CX23885_BOARD_COMPRO_VIDEOMATE_E600F:
+        default:
+                 ts2->gen_ctrl_val  = 0xc; /* Serial bus + punctured 
+clock */
+                ts2->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+@@ -616,6 +659,7 @@
+        case CX23885_BOARD_HAUPPAUGE_HVR1800lp:
+        case CX23885_BOARD_HAUPPAUGE_HVR1700:
+        case CX23885_BOARD_HAUPPAUGE_HVR1500:
++       case CX23885_BOARD_COMPRO_VIDEOMATE_E600F:
+                request_module("cx25840");
+                break;
+        }
+diff -Naur 
+czysty/cx23885-audio/linux/drivers/media/video/cx23885/cx23885.h 
+cx23885-audio/linux/drivers/media/video/cx23885/cx23885.h
+--- czysty/cx23885-audio/linux/drivers/media/video/cx23885/cx23885.h    
+2009-03-15 21:25:47.000000000 +0100
++++ cx23885-audio/linux/drivers/media/video/cx23885/cx23885.h   
+2009-03-15 21:39:50.000000000 +0100
+@@ -66,6 +66,7 @@
+ #define CX23885_BOARD_HAUPPAUGE_HVR1400        9
+ #define CX23885_BOARD_DVICO_FUSIONHDTV_7_DUAL_EXP 10
+ #define CX23885_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL_EXP 11
++#define CX23885_BOARD_COMPRO_VIDEOMATE_E600F   12
+
+  /* Currently unsupported by the driver: PAL/H, NTSC/Kr, SECAM B/G/H/LC 
+*/
+ #define CX23885_NORMS (\
+
+lspci -vvnn:
+02:00.0 Multimedia video controller [0400]: Conexant Systems, Inc. 
+CX23885 PCI Video and Audio Decoder [14f1:8852] (rev 02)
+        Subsystem: Compro Technology, Inc. Device [185b:e800]
+         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- 
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 0, Cache Line Size: 4 bytes
+        Interrupt: pin A routed to IRQ 16
+         Region 0: Memory at fd600000 (64-bit, non-prefetchable) 
+[size=2M]
+        Capabilities: [40] Express (v1) Endpoint, MSI 00
+                 DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s 
+<64ns, L1 <1us
+                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
+                 DevCtl: Report errors: Correctable- Non-Fatal- Fatal- 
+Unsupported-
+                        RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
+                        MaxPayload 128 bytes, MaxReadReq 512 bytes
+                 DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ 
+AuxPwr- TransPend-
+                 LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, 
+Latency L0 <2us, L1 <4us
+                        ClockPM- Surprise- LLActRep- BwNot-
+                 LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- 
+CommClk+
+                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+                 LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ 
+DLActive- BWMgmt- ABWMgmt-
+        Capabilities: [80] Power Management version 2
+                 Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA 
+PME(D0+,D1+,D2+,D3hot+,D3cold-)
+                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+        Capabilities: [90] Vital Product Data
+                Not readable
+        Capabilities: [a0] MSI: Mask- 64bit+ Count=1/1 Enable-
+                Address: 0000000000000000  Data: 0000
+        Capabilities: [100] Advanced Error Reporting
+                 UESta:  DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- 
+UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq+ ACSViol-
+                 UEMsk:  DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt- 
+UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
+                 UESvrt: DLP+ SDES- TLP- FCP+ CmpltTO- CmpltAbrt- 
+UnxCmplt- RxOF+ MalfTLP+ ECRC- UnsupReq- ACSViol-
+                 CESta:  RxErr- BadTLP- BadDLLP- Rollover- Timeout- 
+NonFatalErr-
+                 CEMsk:  RxErr- BadTLP- BadDLLP- Rollover- Timeout- 
+NonFatalErr-
+                 AERCap: First Error Pointer: 14, GenCap- CGenEn- 
+ChkCap- ChkEn-
+        Capabilities: [200] Virtual Channel <?>
+        Kernel driver in use: cx23885
+        Kernel modules: cx23885
+
+i2cdetect -l:
+i2c-0   smbus           SMBus PIIX4 adapter at 0b00             SMBus 
+adapter
+i2c-1   i2c             cx23885[0]                              I2C 
+adapter
+i2c-2   i2c             cx23885[0]                              I2C 
+adapter
+i2c-3   i2c             cx23885[0]                              I2C 
+adapter
+
+cat /dev/v4l/video*:
+cat: /dev/v4l/video0: No such device
+cat: /dev/v4l/video1: No such device
+
+Detailed info:
+http://linuxtv.org/wiki/index.php/Compro_VideoMate_E600F
+
+Someone help me please?
+Thanks for any help.
+
+Marek Wasilow
+
+PS: Sorry for my poor english...
+
+
+
+
+
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
 
 
 _______________________________________________
