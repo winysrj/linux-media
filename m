@@ -1,98 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3883 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753903AbZCITrI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2009 15:47:08 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: V4L2 spec
-Date: Mon, 9 Mar 2009 20:47:16 +0100
-Cc: wk <handygewinnspiel@gmx.de>, linux-media@vger.kernel.org
-References: <200903061523.15766.hverkuil@xs4all.nl> <49B14D3C.3010001@gmx.de> <alpine.LRH.2.00.0903090803010.6607@caramujo.chehab.org>
-In-Reply-To: <alpine.LRH.2.00.0903090803010.6607@caramujo.chehab.org>
+Received: from email.brin.com ([208.89.164.15]:45703 "EHLO email.brin.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751685AbZCSWkx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Mar 2009 18:40:53 -0400
+Date: Thu, 19 Mar 2009 16:38:04 -0600 (MDT)
+From: Bob Ingraham <bobi@brin.com>
+To: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
+Message-ID: <1002969792.105131237502284915.JavaMail.root@email>
+In-Reply-To: <1519873602.105111237502250958.JavaMail.root@email>
+Subject: Weird TS Stream from DMX_SET_PES_FILTER
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903092047.16329.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 09 March 2009 12:08:39 Mauro Carvalho Chehab wrote:
-> On Fri, 6 Mar 2009, wk wrote:
-> > Hans Verkuil wrote:
-> >>  Hi Mauro,
-> >>
-> >>  I noticed that there is an ancient V4L2 spec in our tree in the
-> >> v4l/API directory. Is that spec used in any way? I don't think so, so
-> >> I suggest that it is removed.
->
-> OK.
->
-> >>  The V4L1 spec that is there should probably be moved to the v4l2-spec
-> >>  directory as that is where people would look for it. We can just keep
-> >> it there for reference.
->
-> Nah. Let's just strip and point to some place where V4L1 doc is
-> available, adding some warning that the API is outdated and will be
-> removed from kernel soon.
+Hello,
 
-I don't think we should remove the doc from the repo until all drivers are 
-converted to v4l2.
+I've been using the Linux DVB API to grab DBV-S MPEG2 video packets using a TechniSat S2 card.
 
-> >>  The documentation on www.linuxtv.org is also out of date. How are we
-> >> going to update that?
->
-> Make a proposal. I'll then updade it acordingly.
+But something seems odd about DMX_SET_PES_FILTER.
 
-Can you just update it with the latest version compiled from v4l-dvb?
+It returns a TS packets for my pid just fine, but by MPEG2 frames have no PES headers!  The raw compressed MPEG2 frames just immediately follow the TS/adapation-field headers directly.
 
-> >>  I think that a good schedule would be right after a kernel merge
-> >> window closes. The spec at that moment is the spec for that new kernel
-> >> and that's a good moment to update the website.
+When I wrote my TS packet decoder, I was expecting to have to decode PES headers after the TS header. But instead I found the raw compressed frames.
 
-Updating it whenever a merge window closes seems to make sense to me, so I 
-propose that we do that.
+They decode fine (with ffmpeg's libavcodec mpeg2 decoder,) and they look fine when rendered using SDL.
 
-> >>  The current spec is really old, though, and should be updated asap.
-> >>
-> >>  Note that the specs from the daily build are always available from
-> >>  www.xs4all.nl/~hverkuil/spec. I've modified the build to upload the
-> >>  dvbapi.pdf as well.
->
-> Maybe we can add a script to daily update at linuxtv.org for the specs as
-> well.
+But besides my own program, I can't get vlc or mplayer to decode this stream. Both vlc and mplayer sense a TS stream, but then they never render anything because, I suspect, that they can't find PES headers.
 
-That would be a good plan.
+So, two questions:
 
-Regards,
+1. Am I crazy or is DMX_SET_PES_FILTER returning a non-standard TS stream?
 
-	Hans
+2. Is there a way to receive a compliant MPEG-TS (or MPEG2-PS,) stream?
+
+3. Should I use DMX_SET_FILTER instead?
+
+4. If so, what goes in the filter/mask members of the dmx_filter_t struct?
 
 
-> > Wouldn't it make sense to merge both apis, v4l2 and dvb together?
-> >
-> > - dvb api is completely outdated, would be good to be rewritten anyway.
-> > - v4l2 and dvb share the same hg
-> > - v4l2 and dvb share the same wiki
-> > - a lot of developers are active in both topics
-> > - any person interested in video and tv could be directed to the same
-> > file
-> >
-> > Just some thoughts to the topic..
->
-> I think so. The better would be to convert DVB api to docbook (as used by
-> all other kernel documents), and add a developers document for the kernel
-> API for both at the kernel documentation structure).
->
-> However, this is a huge task that someone should volunteer for doing,
-> otherwise, it won't happen.
->
-> Cheers,
-> Mauro
+Thanks,
+Bob
 
+PS: I use the following to filter on my video stream pid (0x1344):
 
+ struct dmx_pes_filter_params f;
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+ memset(&f, 0, sizeof(f));
+ f.pid = (uint16_t) pid;
+ f.input = DMX_IN_FRONTEND;
+ f.output = DMX_OUT_TS_TAP;
+ f.pes_type = DMX_PES_OTHER;
+ f.flags   = DMX_IMMEDIATE_START;
+
