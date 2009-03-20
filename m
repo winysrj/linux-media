@@ -1,20 +1,19 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55786 "EHLO bear.ext.ti.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58005 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751732AbZC3PUL convert rfc822-to-8bit (ORCPT
+	id S1753744AbZCTJIe convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2009 11:20:11 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"psp_video@list.ti.com - Video discussion list for PSP Video team (May
-	contain non-TIers)" <psp_video@list.ti.com>
-Date: Mon, 30 Mar 2009 20:49:54 +0530
-Subject: RE: BT656 Support and MMDC support on top of OMAP3EVM
-Message-ID: <19F8576C6E063C45BE387C64729E73940427E3F72D@dbde02.ent.ti.com>
-References: <19F8576C6E063C45BE387C64729E73940427CBFCEE@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940427CBFCEE@dbde02.ent.ti.com>
+	Fri, 20 Mar 2009 05:08:34 -0400
+From: "Shah, Hardik" <hardik.shah@ti.com>
+To: Koen Kooi <k.kooi@student.utwente.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Jadav, Brijesh R" <brijesh.j@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+Date: Fri, 20 Mar 2009 14:38:19 +0530
+Subject: RE: [PATCH 3/3] V4L2 Driver for OMAP3/3 DSS.
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FAF6EDB3@dbde02.ent.ti.com>
+In-Reply-To: <6EDD6EAA-E1DC-4F71-BB6E-01574AC2D968@student.utwente.nl>
 Content-Language: en-US
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -24,46 +23,49 @@ List-ID: <linux-media.vger.kernel.org>
 
 
 
-Thanks,
-Vaibhav Hiremath
-
 > -----Original Message-----
-> From: Hiremath, Vaibhav
-> Sent: Thursday, March 19, 2009 5:57 PM
-> To: linux-media@vger.kernel.org
-> Cc: linux-omap@vger.kernel.org; psp_video@list.ti.com - Video
-> discussion list for PSP Video team (May contain non-TIers)
-> Subject: [PSP_VIDEO] BT656 Support and MMDC support on top of
-> OMAP3EVM
+> From: Koen Kooi [mailto:k.kooi@student.utwente.nl]
+> Sent: Friday, March 20, 2009 2:34 PM
+> To: Shah, Hardik
+> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Jadav, Brijesh R;
+> Hiremath, Vaibhav
+> Subject: Re: [PATCH 3/3] V4L2 Driver for OMAP3/3 DSS.
 > 
-> Hi,
 > 
-> I am getting some private requests for supporting BT656 and Multi-
-> Media Daughter card on top of latest Kernel + Sakari's latest ISP-
-> Camera patches/repository. So I am posting the patch supporting
-> BT656 and MMDC support with all the review comments fixed (received
-> from earlier posts).
+> Op 20 mrt 2009, om 06:20 heeft Hardik Shah het volgende geschreven:
+> >
+> > --- a/drivers/media/video/Kconfig
+> > +++ b/drivers/media/video/Kconfig
+> > @@ -711,6 +711,26 @@ config VIDEO_CAFE_CCIC
+> > 	  CMOS camera controller.  This is the controller found on first-
+> > 	  generation OLPC systems.
+> >
+> > +#config VIDEO_OMAP3
+> > +#        tristate "OMAP 3 Camera support"
+> > +#	select VIDEOBUF_GEN
+> > +#	select VIDEOBUF_DMA_SG
+> > +#	depends on VIDEO_V4L2 && ARCH_OMAP34XX
+> > +#	---help---
+> > +#	  Driver for an OMAP 3 camera controller.
+> > +
+> > +config VIDEO_OMAP3
+> > +	bool "OMAP2/OMAP3 Camera and V4L2-DSS drivers"
+> > +	select VIDEOBUF_GEN
+> > +	select VIDEOBUF_DMA_SG
+> > +	select OMAP2_DSS
+> > +	depends on VIDEO_DEV && (ARCH_OMAP24XX || ARCH_OMAP34XX)
+> > +	default y
+> > +	---help---
+> > +        V4L2 DSS and Camera driver support for OMAP2/3 based boards.
 > 
-> Please note that, hence forth I will try to avoid submitting patches
-> on top of V4L2-int framework. The next immediate activity would be
-> migration to sub-device framework.
 > 
-> Sakari,
+> Copy/paste error?
 > 
-> How about merging these patches (BT656 support patch) into your
-> repository so that I don't have to maintain and re-submit the
-> patches again and again.
+> regards,
 > 
-[Hiremath, Vaibhav] Sakari,
+> Koen
+[Shah, Hardik] Yes,
+I will correct it,  Its indeed copy paste error
 
-I have not heard back anything from you on this, if you don't see any issues then I request you to merge these patches into your private branch/repository. So that people will be able to use it directly.
-
-> If you feel it should be done, then please let me know if you have
-> any review comments I will try to fix immediately and provide you a
-> patch.
-> 
-> The patches are following this mail.
-> 
-> Thanks,
-> Vaibhav Hiremath
-
+Regards,
+Hardik
