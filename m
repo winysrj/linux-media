@@ -1,59 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aybabtu.com ([69.60.117.155]:40123 "EHLO aybabtu.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752877AbZCGVKM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Mar 2009 16:10:12 -0500
-Date: Sat, 7 Mar 2009 21:48:39 +0100
-From: Robert Millan <rmh@aybabtu.com>
-To: mchehab@infradead.org, linux-media@vger.kernel.org,
-	video4linux-list@redhat.com
-Subject: [PATCH] Conceptronic CTVFMI2 PCI Id
-Message-ID: <20090307204839.GA16591@thorin>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="ibTvN161/egqYuK8"
-Content-Disposition: inline
+Received: from bombadil.infradead.org ([18.85.46.34]:43032 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751048AbZCTGdV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Mar 2009 02:33:21 -0400
+Date: Fri, 20 Mar 2009 03:32:52 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Jonathan Cameron <jic23@cam.ac.uk>,
+	linux-media@vger.kernel.org, g.liakhovetski@gmx.de
+Subject: Re: RFC: ov7670 soc-camera driver
+Message-ID: <20090320033252.20572221@pedra.chehab.org>
+In-Reply-To: <200903160846.12487.hverkuil@xs4all.nl>
+References: <49BD3669.1070409@cam.ac.uk>
+	<20090315162338.3be11fec@bike.lwn.net>
+	<200903160846.12487.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
---ibTvN161/egqYuK8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+On Mon, 16 Mar 2009 08:46:12 +0100
+Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
 
-Hi,
+> > I think it's necessary, really.  Having two drivers for the same device
+> > seems like a bad idea.  As Hans noted, he's already put quite a bit of
+> > work into generalizing the ov7670 driver; I think it would be best to
+> > work with him to get a driver that works for everybody.
+> 
+> Just FYI: I'll try to get my ov7670 code merged this week. I'm waiting for 
+> Mauro to merge a pending pull request of mine, and then I'll rebase 
+> my 'cafe2' tree and send out a pull request for it.
 
-My BTTV_BOARD_CONCEPTRONIC_CTVFMI2 card wasn't auto-detected, here's a patch
-that adds its PCI id.
+The cafe2 code were merged today. As said, the better is to use the existing
+ov7670 code, instead of just creating another.
 
-lspci -nnv output:
-
-05:06.0 Multimedia video controller [0400]: Brooktree Corporation Bt878 Video Capture [109e:036e] (rev 11)
-05:06.1 Multimedia controller [0480]: Brooktree Corporation Bt878 Audio Capture [109e:0878] (rev 11)
-
--- 
-Robert Millan
-
-  The DRM opt-in fallacy: "Your data belongs to us. We will decide when (and
-  how) you may access your data; but nobody's threatening your freedom: we
-  still allow you to remove your data and not access it at all."
-
---ibTvN161/egqYuK8
-Content-Type: text/x-diff; charset=us-ascii
-Content-Disposition: attachment; filename="bttv_conceptronic.diff"
-
-diff --git a/drivers/media/video/bt8xx/bttv-cards.c b/drivers/media/video/bt8xx/bttv-cards.c
-index d24dcc0..2ddda54 100644
---- a/drivers/media/video/bt8xx/bttv-cards.c
-+++ b/drivers/media/video/bt8xx/bttv-cards.c
-@@ -289,6 +289,8 @@ static struct CARD {
- 	/* Duplicate PCI ID, reconfigure for this board during the eeprom read.
- 	* { 0x13eb0070, BTTV_BOARD_HAUPPAUGE_IMPACTVCB,  "Hauppauge ImpactVCB" }, */
- 
-+	{ 0x109e036e, BTTV_BOARD_CONCEPTRONIC_CTVFMI2,	"Conceptronic CTVFMi v2"},
-+
- 	/* DVB cards (using pci function .1 for mpeg data xfer) */
- 	{ 0x001c11bd, BTTV_BOARD_PINNACLESAT,   "Pinnacle PCTV Sat" },
- 	{ 0x01010071, BTTV_BOARD_NEBULA_DIGITV, "Nebula Electronics DigiTV" },
-
---ibTvN161/egqYuK8--
+Cheers,
+Mauro
