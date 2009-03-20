@@ -1,96 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3392 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752539AbZCJXgE (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3793 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752280AbZCTHTE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Mar 2009 19:36:04 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2ANZxf2078489
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 11 Mar 2009 00:36:00 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 11 Mar 2009 00:35:59 +0100 (CET)
-Message-Id: <200903102336.n2ANZxf2078489@smtp-vbr4.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Fri, 20 Mar 2009 03:19:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+Subject: Re: Some possible missing v4l2_subdev IOCTLs.
+Date: Fri, 20 Mar 2009 08:19:17 +0100
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"camera@ok.research.nokia.com" <camera@ok.research.nokia.com>,
+	"Menon, Nishanth" <nm@ti.com>, "Lakhani, Amish" <amish@ti.com>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <A24693684029E5489D1D202277BE89442E6B1E33@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE89442E6B1E33@dlee02.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903200819.18011.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Friday 20 March 2009 03:24:49 Aguirre Rodriguez, Sergio Alberto wrote:
+> Hi Hans,
+>
+> I did a quick analysis of the subdev, and noticed that some video ioctls
+> for the subdevices aren't there...
+>
+> [gs]_crop
+> [gs]_parm
+> enum_frameintervals
+> enum_framesizes
+> enum_fmt_cap
+>
+> I noticed this because we currently use them for a "best sensor output"
+> selection before sending the image to the OMAP3 ISP.
+>
+> Any particular reason why these aren't there?
 
-Results of the daily build of v4l-dvb:
+Because no other i2c drivers needed them until now. I try to avoid adding 
+code that nobody is using. 
 
-date:        Tue Mar 10 23:15:13 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10922:39c257ae5063
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Note that gs_parm was just added. And in video_ops there is already an 
+enum_fmt. Feel free to add crop and the enum_frame* ops. If you mail me a 
+patch, then I'll commit it.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-rc7-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-rc7-armv5-ixp: OK
-linux-2.6.27-armv5-omap2: ERRORS
-linux-2.6.28-armv5-omap2: ERRORS
-linux-2.6.29-rc7-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-rc7-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc7-m32r: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-rc7-mips: OK
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29-rc7-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29-rc7-x86_64: WARNINGS
-fw/apps: WARNINGS
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc7): ERRORS
+Regards,
 
-Detailed results are available here:
+	Hans
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
