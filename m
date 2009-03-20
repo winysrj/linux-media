@@ -1,21 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from cp-out11.libero.it ([212.52.84.111])
+Received: from mout.perfora.net ([74.208.4.194])
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <vic@zini-associati.it>) id 1Li63s-0005ol-BO
-	for linux-dvb@linuxtv.org; Fri, 13 Mar 2009 13:00:26 +0100
-Received: from router.ciencio.homeip.net (151.65.182.112) by
-	cp-out11.libero.it (8.5.016.1)
-	id 49AFAC4900B9084F for linux-dvb@linuxtv.org;
-	Fri, 13 Mar 2009 12:59:50 +0100
-Received: from [10.0.0.101] (unknown [10.0.0.101])
-	by router.ciencio.homeip.net (Postfix) with ESMTP id 074321B6
-	for <linux-dvb@linuxtv.org>; Fri, 13 Mar 2009 12:58:38 +0100 (CET)
-Message-ID: <49BA4A7C.1010204@zini-associati.it>
-Date: Fri, 13 Mar 2009 12:58:52 +0100
-From: ciencio <vic@zini-associati.it>
+	(envelope-from <tlenz@vorgon.com>) id 1LkjMt-0007XS-IZ
+	for linux-dvb@linuxtv.org; Fri, 20 Mar 2009 19:22:56 +0100
+Message-ID: <008a01c9a988$e11cd7a0$0a00a8c0@vorg>
+From: "Timothy D. Lenz" <tlenz@vorgon.com>
+To: <linux-dvb@linuxtv.org>
+References: <000701c9a5de$09033e20$0a00a8c0@vorg><49BE5B36.1080901@linuxtv.org>
+	<003a01c9a69a$0de42640$0a00a8c0@vorg><1237252028.3303.41.camel@palomino.walls.org><000401c9a838$c690c0a0$0a00a8c0@vorg>
+	<1237430932.3303.103.camel@palomino.walls.org>
+Date: Fri, 20 Mar 2009 11:22:47 -0700
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] lifeview NOT LV3H broblem with dvb
+Subject: Re: [linux-dvb] FusionHDTV7 and v4l causes kernel panic
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -30,59 +26,148 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello all,
-I'm trying to make the card in the object working on my Ubuntu Intrepid box.
-At the moment i'm focused on the dvb-T part, so I've blacklisted the 
-analog driver in order to not have any possible conflict.
-The cx88-dvb modules is modprobed without any problem and lsmod gives 
-this result:
+Not sure where I was suposed to reply to. When replying I find the replys are coming from diffrent lists and out look is picking
+that up. At the bottom it says v4l related stuff should go to linux-media@vger.kernel.org, but the thread started in
+linux-dvb@linuxtv.org. So I'm re-replying in linux-dvb@linuxtv.org.
 
-zl10353                15752  1
-cx88_dvb               28420  0
-cx88_vp3054_i2c        10752  1 cx88_dvb
-tuner_xc2028           30772  2
-tuner                  36036  0
-v4l2_common            23808  1 tuner
-cx8802                 23684  1 cx88_dvb
-cx88xx                 79144  2 cx88_dvb,cx8802
-videodev               49312  3 tuner,v4l2_common,cx88xx
-v4l1_compat            21892  1 videodev
-ir_common              56068  1 cx88xx
-i2c_algo_bit           14340  2 cx88_vp3054_i2c,cx88xx
-tveeprom               20356  1 cx88xx
-btcx_risc              12552  2 cx8802,cx88xx
-videobuf_dvb           15236  1 cx88_dvb
-videobuf_dma_sg        20612  3 cx88_dvb,cx8802,cx88xx
-videobuf_core          26372  4 cx8802,cx88xx,videobuf_dvb,videobuf_dma_sg
-dvb_core               94336  2 cx88_dvb,videobuf_dvb
+After searching the internet for ways to redirect the error to serial or other system and not getting to work, I typed out by hand
+what is on the screen minus the cpu dump which is mostly scrolled off anyway and thus gone. In trying to get the dump out ttyS0 I
+found I was getting different dumps to screen.
+When I use:
+  kernel /boot/vmlinuz-2.6.26.8.20090311.1 root=/dev/hda1 ro quiet console=ttyS0,115200n8 console=tty0
 
-When I try to scan using Kaffeine the result is the following
-Not able to lock to the signal on the given frequency
-Frontend closed
-dvbsi: Cant tune DVB
-Using DVB device 0:0 "Zarlink ZL10353 DVB-T"
-tuning DVB-T to 466000000 Hz
-inv:2 bw:0 fecH:9 fecL:9 mod:6 tm:2 gi:4 hier:4
-.FE_READ_STATUS: Remote I/O error
+I get:
+Call Trace:
+ [<f8aa406f>] netup_ci_slot_status+0x2e/0x34 [cx23885]
+ [<f8aa07ff>] cx23885_irq+0x327/0x3d8 [cx23885]
+ [<c013d10c>] handle_IRQ_event+0x1a/0x3f
+ [<c013df36>] handle_fasteoi_irq+0x76/0xab
+ [<c0105236>] do_IRQ+0x4f/0x65
+ [<c010366f>] common_interrupt+0x23/0x28
+ =======================
+Code: 00 74 04 0f 0b eb fe 89 d8 e8 ed a3 ff ff ba 01 00 00 00 5b 89 d0 5e c3 51
+ 89 d1 8b 15 20 ba 3e c0 e8 52 ff ff ff 5a c3 53 89 c3 <f0> 0f ba 2a 00 19 c0 31
+ c9 85 c0 75 54 8d 42 04 39 42 04 74 04
+EIP: [<c012a8c6>] queue_work+0x3/0x68 SS:ESR 0068:f7733f40
+Kernel panic - not syncing: Fatal exception in interrupt
 
-Repeated for all the frequences.
+When I use the default setting:
+  kernel /boot/vmlinuz-2.6.26.8.20090311.1 root=/dev/hda1 ro quiet
 
-while dmesg reports is a occurrence of:
-[ 1409.689323] zl10353_read_register: readreg error (reg=6, ret==-6)
-[ 1410.190219] zl10353: write to reg 55 failed (err = -6)!
-[ 1410.191169] zl10353: write to reg ea failed (err = -6)!
-[ 1410.192132] zl10353: write to reg ea failed (err = -6)!
-[ 1410.192879] zl10353: write to reg 56 failed (err = -6)!
-[ 1410.193623] zl10353: write to reg 5e failed (err = -6)!
-[ 1410.194392] zl10353: write to reg 5c failed (err = -6)!
-[ 1410.195137] zl10353: write to reg 64 failed (err = -6)!
+I get:
+Call Trace:
+ [<f8aa406f>] netup_ci_slot_status+0x2e/0x34 [cx23885]
+ [<f8aa07ff>] cx23885_irq+0x327/0x3d8 [cx23885]
+ [<c013d10c>] handle_IRQ_event+0x1a/0x3f
+ [<c013df36>] handle_fasteoi_irq+0x76/0xab
+ [<c0105236>] do_IRQ+0x4f/0x65
+ [<c010366f>] common_interrupt+0x23/0x28
+ [<c0308096>] _spin_unlock_irq+0x5/0x19
+ [<c011e3ba>] do_syslog+0x12f/0x2f1
+ [<c010369c>] reschedule_interrupt+0x28/0x30
+ [<c012cd38>] autoremove_wake_function+0x0/0x2d
+ [<c018f27a>] kmsg_read+0x0/0x36
+ [<c01888cf>] proc_reg_read+0x60/0x73
+ [<c018886f>] proc_reg_read+0x0/0x73
+ [<c015d9cf>] vfs_read+0x81/0xf4
+ [<c015dada>] sys_read+0x3c/0x63
+ [<c0102c7d>] sysenter_past_esp+0x6a/0x91
+ =======================
+Code: 00 74 04 0f 0b eb fe 89 d8 e8 ed a3 ff ff ba 01 00 00 00 5b 89 d0 5e c3 51
+ 89 d1 8b 15 20 ba 3e c0 e8 52 ff ff ff 5a c3 53 89 c3 <f0> 0f ba 2a 00 19 c0 31
+ c9 85 c0 75 54 8d 42 04 39 42 04 74 04
+EIP: [<c012a8c6>] queue_work+0x3/0x68 SS:ESR 0068:f7693e7c
+Kernel panic - not syncing: Fatal exception in interrupt
 
-I really don't know what to look at, if someone could help, even just to 
-say where to look...
+It may be a bit different each time because I think I've seen longer "Call Trace" dumps
 
--- 
-vic
+----- Original Message ----- 
+From: "Andy Walls" <awalls@radix.net>
+To: <linux-media@vger.kernel.org>
+Cc: <linux-dvb@linuxtv.org>
+Sent: Wednesday, March 18, 2009 7:48 PM
+Subject: Re: [linux-dvb] FusionHDTV7 and v4l causes kernel panic
 
+
+> On Wed, 2009-03-18 at 19:16 -0700, Timothy D. Lenz wrote:
+> > I've added
+> >     console=ttyS0,115200 console=tty0
+> > to the kernel command line options and with out the console=tty0 part the dump no longer shows on the monitor, so redirect seems
+to
+> > work but loging the serial port on a second computer gets nothing. I tested the connection with echo and that worked but the
+kernel
+> > dump won't go out the port.  The last 2 lines of the screen are:
+> >
+> > EIP: [<c012a8c6>] queue_work+0x3/0x68 SS:ESP 0068:f778dd24
+> > Kernel panic - not syncing: Fatal exception in interrupt
+>
+> Hmm.  The only thing in the cx23885 driver that tries to schedule work,
+> and thus the only thing that could possibly pass in a bad argument, is
+> the netup_ci_slot_status() function.  It gets called when an IRQ comes
+> in indicating a GPIO[01] event, and the driver thinks the card is a
+> NetUp Dual DVB-S2 CI card.
+>
+> That's consistent with the "fatal exception in interrupt", but without
+> the backtrace, one can't be completely sure this call to queue work was
+> initiated by the cx23885 driver and a problem with cx23885 data
+> structures.  (But it is the most likely scenario, IMO)
+> I just can't see how netup_ci_slot_status() get's called for your card.
+>
+>
+> > Any way to get the dump to go out the serial port?
+>
+> Does 9600 baud help? (Just a guess.)
+>
+> Regards,
+> Andy
+>
+> > ----- Original Message ----- 
+> > From: "Andy Walls" <awalls@radix.net>
+> > To: "Timothy D. Lenz" <tlenz@vorgon.com>
+> > Cc: <linux-media@vger.kernel.org>
+> > Sent: Monday, March 16, 2009 6:07 PM
+> > Subject: Re: [linux-dvb] FusionHDTV7 and v4l causes kernel panic
+> >
+> >
+> > > On Mon, 2009-03-16 at 17:46 -0700, Timothy D. Lenz wrote:
+> > > > When it panics, there is no log, just a bunch of stuff that that scrolls fast on the main monitor then cold lock.
+> > > >  No way to scroll
+> > > > back.
+> > >
+> > > Not even Shift+PageUp ?
+> > >
+> > >
+> > >
+> > > >  I looked at the logs and the ones that are text had nothing about it.
+> > >
+> > > Digital camera or pencil and paper will be least complex way to capture
+> > > the ooops data.  Please don't leave out the "Code" bytes at the bottom
+> > > and do your best to make sure those are absolutely correct.
+> > >
+> > > Regards,
+> > > Andy
+> > >
+> > >
+> > > > ----- Original Message ----- 
+> > > > From: "Steven Toth" <stoth@linuxtv.org>
+> > > > To: <linux-media@vger.kernel.org>
+> > > > Cc: <linux-dvb@linuxtv.org>
+> > > > Sent: Monday, March 16, 2009 6:59 AM
+> > > > Subject: Re: [linux-dvb] FusionHDTV7 and v4l causes kernel panic
+> > > >
+> > > >
+> > > > > Timothy D. Lenz wrote:
+> > > > > > Using kernel 2.6.26.8 and v4l from a few days ago. When I modprobe cx23885 to load the drivers, I get kernel panic
+> > > > >
+> > > > > We'll need the oops.
+> > > > >
+> > > > > - Steve
+> > > > >
+> > > > > _______________________________________________
+> > > > > linux-dvb users mailing list
+> > > > > For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> > > > > linux-dvb@linuxtv.org
+> > > > > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 
 _______________________________________________
