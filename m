@@ -1,66 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:35126 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753045AbZCQBFu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2009 21:05:50 -0400
-Subject: Re: [linux-dvb] FusionHDTV7 and v4l causes kernel panic
-From: Andy Walls <awalls@radix.net>
-To: "Timothy D. Lenz" <tlenz@vorgon.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <003a01c9a69a$0de42640$0a00a8c0@vorg>
-References: <000701c9a5de$09033e20$0a00a8c0@vorg>
-	 <49BE5B36.1080901@linuxtv.org>  <003a01c9a69a$0de42640$0a00a8c0@vorg>
-Content-Type: text/plain
-Date: Mon, 16 Mar 2009 21:07:08 -0400
-Message-Id: <1237252028.3303.41.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from gs8a.inmotionhosting.com ([216.193.219.253]:36091 "EHLO
+	gs8.inmotionhosting.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751944AbZCTHj2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Mar 2009 03:39:28 -0400
+Message-ID: <49C32A65.4050009@thedirks.org>
+Date: Thu, 19 Mar 2009 22:32:21 -0700
+From: Bill Dirks <bill@thedirks.org>
+MIME-Version: 1.0
+To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+CC: Laurent Pinchart <laurent.pinchart@skynet.be>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, dongsoo45.kim@samsung.com,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"jongse.won@samsung.com" <jongse.won@samsung.com>,
+	=?UTF-8?B?6rmA7ZiV7KSA?= <riverful.kim@samsung.com>
+Subject: Re: About white balance control.
+References: <5e9665e10903172132g2c433879j14b292d8f5c96268@mail.gmail.com>	 <200903181129.52130.laurent.pinchart@skynet.be> <5e9665e10903180417w2035de8bp2d4f7775035804e0@mail.gmail.com>
+In-Reply-To: <5e9665e10903180417w2035de8bp2d4f7775035804e0@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-03-16 at 17:46 -0700, Timothy D. Lenz wrote:
-> When it panics, there is no log, just a bunch of stuff that that scrolls fast on the main monitor then cold lock.
->  No way to scroll
-> back.
+DO_WHITE_BALANCE is intended to do a one-shot white balance calibration 
+and then hold it. So you would hold up, for example, a white piece of 
+paper in front of the camera and click the do white balance. Then the 
+white balance should be correct as long as the lighting doesn't change. 
+This can work better than auto white balance which can be fooled by 
+colored walls, etc. Some video cameras used to have a button like this.
 
-Not even Shift+PageUp ?
-
-
-
->  I looked at the logs and the ones that are text had nothing about it.
-
-Digital camera or pencil and paper will be least complex way to capture
-the ooops data.  Please don't leave out the "Code" bytes at the bottom
-and do your best to make sure those are absolutely correct.
-
-Regards,
-Andy
+Bill.
 
 
-> ----- Original Message ----- 
-> From: "Steven Toth" <stoth@linuxtv.org>
-> To: <linux-media@vger.kernel.org>
-> Cc: <linux-dvb@linuxtv.org>
-> Sent: Monday, March 16, 2009 6:59 AM
-> Subject: Re: [linux-dvb] FusionHDTV7 and v4l causes kernel panic
-> 
-> 
-> > Timothy D. Lenz wrote:
-> > > Using kernel 2.6.26.8 and v4l from a few days ago. When I modprobe cx23885 to load the drivers, I get kernel panic
-> >
-> > We'll need the oops.
-> >
-> > - Steve
-> >
-> > _______________________________________________
-> > linux-dvb users mailing list
-> > For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> > linux-dvb@linuxtv.org
-> > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Dongsoo, Nathaniel Kim wrote:
+> Thank you Pingchart.
+>
+> So, V4L2_CID_DO_WHITE_BALANCE acts WB adjustment at every single time
+> it has issued when device is in manual WB mode like
+> V4L2_CID_WHITE_BALANCE_TEMPERATURE? Now I get it.
+> But CID still missing for white balance presets like "cloudy",
+> "sunny", "fluorescent"and so on.
+> I think some sort of menu type CID could be useful to handle them,
+> because WB presets differ for each devices.
+> Cheers,
+>
+> Nate
+>
+> 2009/3/18 Laurent Pinchart <laurent.pinchart@skynet.be>:
+>   
+>> Hi Kim,
+>>
+>> On Wednesday 18 March 2009 05:32:08 Dongsoo, Nathaniel Kim wrote:
+>>     
+>>> Hello,
+>>>
+>>> I accidently realized today that I was using white balance control in wrong
+>>> way.
+>>>
+>>> As far as I understand we've got
+>>>
+>>> V4L2_CID_AUTO_WHITE_BALANCE which activate auto white balance
+>>> adjustment in runtime, V4L2_CID_DO_WHITE_BALANCE_TEMPERATURE specifying
+>>> absolute kelvin value
+>>>       
+>> I suppose you mean V4L2_CID_WHITE_BALANCE_TEMPERATURE here.
+>>
+>>     
+>>> but can't get what V4L2_CID_DO_WHITE_BALANCE is for.
+>>>
+>>> I think after issuing V4L2_CID_AUTO_WHITE_BALANCE and
+>>> V4L2_CID_WHITE_BALANCE_TEMPERATURE,
+>>> the white balance functionality works immediately. Isn't it right?
+>>>
+>>> What exactly is the button type V4L2_CID_DO_WHITE_BALANCE for? Because
+>>> the V4L2 API document says that "(the value is ignored)". Does that
+>>> mean that even we have issued V4L2_CID_AUTO_WHITE_BALANCE and
+>>> V4L2_CID_WHITE_BALANCE_TEMPERATURE, we can't see the white balance
+>>> working at that moment?
+>>>       
+>> V4L2_CID_AUTO_WHITE_BALANCE to enables or disables automatic white balance
+>> adjustment. When automatic white balance is enabled the device adjusts the
+>> white balance continuously.
+>>
+>> V4L2_CID_WHITE_BALANCE_TEMPERATURE controls the white balance adjustment
+>> manually. The control is only effective when automatic white balance is
+>> disabled.
+>>
+>> V4L2_CID_DO_WHITE_BALANCE instructs the device to run the automatic white
+>> balance adjustment algorithm once and use the results for white balance
+>> correction. It only makes sense when automatic white balance is disabled.
+>>
+>>     
+>>> And one more thing. If I want to serve several white balance presets,
+>>> like cloudy, dawn, sunny and so on, what should I do?
+>>> I think it should be supported as menu type, but most of drivers are
+>>> using white balance CID with integer type...then what should I do?
+>>> Define preset names with kelvin number like this?
+>>>
+>>> #define WB_CLOUDY 8000
+>>>
+>>> Pretty confusing... anyone knows what should I do?
+>>>       
+>> Best regards,
+>>
+>> Laurent Pinchart
+>>
+>>
+>>     
+>
+>
+>
+>   
