@@ -1,71 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f176.google.com ([209.85.220.176]:61682 "EHLO
-	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751760AbZCEMAA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 07:00:00 -0500
-Received: by fxm24 with SMTP id 24so3311851fxm.37
-        for <linux-media@vger.kernel.org>; Thu, 05 Mar 2009 03:59:56 -0800 (PST)
-Date: Thu, 5 Mar 2009 21:01:10 +0900
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "Hans J. Koch" <hjk@linutronix.de>,
-	"hermann pitton" <hermann-pitton@arcor.de>,
-	"Hans J. Koch" <koch@hjk-az.de>, video4linux-list@redhat.com,
-	linux-media@vger.kernel.org
-Subject: Re: saa7134 and RDS
-Message-ID: <20090305210110.6c5f88e2@glory.loctelecom.ru>
-In-Reply-To: <200903041845.45469.hverkuil@xs4all.nl>
-References: <28050.62.70.2.252.1236161035.squirrel@webmail.xs4all.nl>
-	<20090304210246.75a5b602@glory.loctelecom.ru>
-	<200903041845.45469.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3763 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755621AbZCTTKy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Mar 2009 15:10:54 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2KJApjq041465
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 20 Mar 2009 20:10:51 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 20 Mar 2009 20:10:51 +0100 (CET)
+Message-Id: <200903201910.n2KJApjq041465@smtp-vbr15.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I build fresh video4linux with your patch and my config for our cards.
-In a dmesg i see : found RDS decoder.
-cat /dev/radio0 give me some slow junk data. Is this RDS data??
-Have you any tools for testing RDS?
-I try build rdsd from Hans J. Koch, but build crashed with:
+Results of the daily build of v4l-dvb:
 
-rdshandler.cpp: In member function ‘void std::RDShandler::delete_client(std::RDSclient*)’:
-rdshandler.cpp:363: error: no matching function for call to ‘find(__gnu_cxx::__normal_iterator<std::RDSclient**, std::vector<std::RDSclient*, std::allocator<std::RDSclient*> > >, __gnu_cxx::__normal_iterator<std::RDSclient**, std::vector<std::RDSclient*, std::allocator<std::RDSclient*> > >, std::RDSclient*&)’
+date:        Fri Mar 20 19:00:05 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11126:61d2e6e33e90
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-P.S. Debian Lenny.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-rc8-armv5: OK
+linux-2.6.27-armv5-ixp: ERRORS
+linux-2.6.28-armv5-ixp: ERRORS
+linux-2.6.29-rc8-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: ERRORS
+linux-2.6.29-rc8-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-rc8-i686: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-rc8-m32r: OK
+linux-2.6.22.19-mips: WARNINGS
+linux-2.6.26-mips: ERRORS
+linux-2.6.27-mips: ERRORS
+linux-2.6.28-mips: ERRORS
+linux-2.6.29-rc8-mips: ERRORS
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29-rc8-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-rc8-x86_64: OK
+fw/apps: OK
+sparse (linux-2.6.28): ERRORS
+sparse (linux-2.6.29-rc8): ERRORS
 
-With my best regards, Dmitry.
+Detailed results are available here:
 
-> On Wednesday 04 March 2009 13:02:46 Dmitri Belimov wrote:
-> > > Dmitri,
-> > >
-> > > I have a patch pending to fix this for the saa7134 driver. The i2c
-> > > problems are resolved, so this shouldn't be a problem anymore.
-> >
-> > Good news!
-> >
-> > > The one thing that is holding this back is that I first want to
-> > > finalize the RFC regarding the RDS support. I posted an RFC a few
-> > > weeks ago, but I need to make a second version and for that I
-> > > need to do a bit of research into the US version of RDS. And I
-> > > haven't found the time to do that yet.
-> >
-> > Yes, I found your discussion in linux-media mailing list. If you
-> > need any information from chip vendor I'll try find. I can get it
-> > under NDA and help you.
-> >
-> > > I'll see if I can get the patch merged anyway.
-> 
-> I've attached my patch for the saa7134. I want to wait with the final
-> pull request until I've finished the RDS RFC, but this gives you
-> something to play with.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> -- 
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
