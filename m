@@ -1,96 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4877 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753237AbZCUTMh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Mar 2009 15:12:37 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2LJCYEx006356
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 21 Mar 2009 20:12:35 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 21 Mar 2009 20:12:34 +0100 (CET)
-Message-Id: <200903211912.n2LJCYEx006356@smtp-vbr10.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail1.radix.net ([207.192.128.31]:63427 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753879AbZCTAVk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Mar 2009 20:21:40 -0400
+Subject: Re: v4l2-subdev missing video ops
+From: Andy Walls <awalls@radix.net>
+To: Pete Eberlein <pete@sensoray.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+In-Reply-To: <1237506920.5572.13.camel@pete-desktop>
+References: <1237506920.5572.13.camel@pete-desktop>
+Content-Type: text/plain
+Date: Thu, 19 Mar 2009 20:22:55 -0400
+Message-Id: <1237508575.3278.21.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Thu, 2009-03-19 at 16:55 -0700, Pete Eberlein wrote:
+> Hello Hans,
+> 
+> I'm looking at converting the go7007 staging driver to use the subdev
+> API.  I don't see any v4l2_subdev_video_ops for VIDIOC_S_INPUT
 
-Results of the daily build of v4l-dvb:
+I believe you want
 
-date:        Sat Mar 21 19:00:06 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11126:61d2e6e33e90
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+v4l2_subdev_video_ops.s_routing
+and
+v4l2_subdev_audio_ops.s_routing
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-rc8-armv5: OK
-linux-2.6.27-armv5-ixp: ERRORS
-linux-2.6.28-armv5-ixp: ERRORS
-linux-2.6.29-rc8-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: ERRORS
-linux-2.6.29-rc8-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-rc8-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc8-m32r: OK
-linux-2.6.22.19-mips: WARNINGS
-linux-2.6.26-mips: ERRORS
-linux-2.6.27-mips: ERRORS
-linux-2.6.28-mips: ERRORS
-linux-2.6.29-rc8-mips: ERRORS
-linux-2.6.27-powerpc64: ERRORS
-linux-2.6.28-powerpc64: ERRORS
-linux-2.6.29-rc8-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29-rc8-x86_64: OK
-fw/apps: OK
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc8): ERRORS
+to effect an input change.
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+>  nor
+> VIDIOC_S_STD. 
 
-Full logs are available here:
+The cx25840 module and the cx18 driver use
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+v4l2_subdev_tuner_ops.s_std
 
-The V4L2 specification from this daily build is here:
+for the digitizer, whether or not it's a tuner input for which the
+standard is being set.
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+A quick grep in linux/drivers/media/video:
 
-The DVB API specification from this daily build is here:
+$ grep -R -B3  '\.s_std[^_]' *
 
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+shows this is likely the case for quite a driver modules.
+
+Regards,
+Andy
+
+>  Were those overlooked, or should I use the generic
+> v4l2_subdev_core_ops->ioctl?
+>   (The chip in particular does not have a
+> tuner, but it does have multiple inputs (svidio, composite) and supports
+> NTSC or PAL.)
+>
+> Thanks.
 
