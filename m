@@ -1,26 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2OMTfca027629
-	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 18:29:41 -0400
-Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.27])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2OMTJYV007928
-	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 18:29:19 -0400
-Received: by qw-out-2122.google.com with SMTP id 8so1304352qwh.39
-	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 15:29:18 -0700 (PDT)
-From: Lamarque Vieira Souza <lamarque@gmail.com>
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-Date: Tue, 24 Mar 2009 19:29:09 -0300
-References: <200903231708.08860.lamarque@gmail.com> <49C8AF04.7070208@hhs.nl>
-	<200903241909.59494.lamarque@gmail.com>
-In-Reply-To: <200903241909.59494.lamarque@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2KK2hq2011425
+	for <video4linux-list@redhat.com>; Fri, 20 Mar 2009 16:02:43 -0400
+Received: from mail-gx0-f171.google.com (mail-gx0-f171.google.com
+	[209.85.217.171])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2KK2PYb006548
+	for <video4linux-list@redhat.com>; Fri, 20 Mar 2009 16:02:25 -0400
+Received: by gxk19 with SMTP id 19so3298840gxk.3
+	for <video4linux-list@redhat.com>; Fri, 20 Mar 2009 13:02:25 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903241929.10498.lamarque@gmail.com>
-Cc: video4linux-list@redhat.com
-Subject: Re: Skype and libv4
+In-Reply-To: <1237578912.26159.13.camel@T60p>
+References: <1237575285.26159.2.camel@T60p>
+	<412bdbff0903201228t4cb4b6c8m17763c27878434ed@mail.gmail.com>
+	<1237578912.26159.13.camel@T60p>
+Date: Fri, 20 Mar 2009 16:02:25 -0400
+Message-ID: <412bdbff0903201302ib6758a8ue76a8dd235cfa4cb@mail.gmail.com>
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Mikhail Jiline <misha@epiphan.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
+	mchehab@infradead.org
+Subject: Re: [PATCH] V4L: em28xx: add support for Digitus/Plextor PX-AV200U
+	grabbers
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,24 +34,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-
-	By the way, the message "Skype Xv: No suitable overlay format found" was gone 
-when I apply this patch, it was only one problem, not two. That makes the 
-think that this message is misleading. It is not a Xv overlay problem, it is 
-just Skype that does not recognize the format returned by the v4l2's driver 
-(or libv4l in my case).
-
-Em Tuesday 24 March 2009, Lamarque Vieira Souza escreveu:
-> 	Hi,
+On Fri, Mar 20, 2009 at 3:55 PM, Mikhail Jiline <misha@epiphan.com> wrote:
+>> Is this patch incomplete?  Where is the registration for the USB ID of
+>> the device?
 >
-> 	Applying this patch to libv4l makes Skype works with my webcam without
-> changing the driver. Do you think the patch is ok?
+> The patch is complete. This device (as many others) doesn't have unique
+> VID/PID, it uses generic eb1a:2821, which is already associated with
+> ex28xx (see drivers/media/video/em28xx/em28xx-cards.c:1103)
+>
+> Regards,
+> Misha.
 
+Yeah, something still seems wrong here.  In cases where the device
+uses one of the Empia generic USB ids, you need to have either an i2c
+hash entry of an eeprom hash entry.  That's how it knows which device
+to associate it with in those cases.
+
+Did you try this patch?  If so, can you send the full dmesg output
+after connecting the device?
+
+Devin
 
 -- 
-Lamarque V. Souza
-http://www.geographicguide.com/brazil.htm
-Linux User #57137 - http://counter.li.org/
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
