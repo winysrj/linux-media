@@ -1,60 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.174]:23372 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751089AbZCWVve convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2009 17:51:34 -0400
-Received: by wf-out-1314.google.com with SMTP id 29so3036363wff.4
-        for <linux-media@vger.kernel.org>; Mon, 23 Mar 2009 14:51:32 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <49C80321.60402@kaiser-linux.li>
-References: <49C80321.60402@kaiser-linux.li>
-Date: Mon, 23 Mar 2009 14:51:30 -0700
-Message-ID: <c785bba30903231451q535707e5j881bccf99ad8c6e3@mail.gmail.com>
-Subject: Re: gspca in the LinuxTv wiki
-From: Paul Thomas <pthomas8589@gmail.com>
-To: Thomas Kaiser <v4l@kaiser-linux.li>
+Received: from mail.gmx.net ([213.165.64.20]:50389 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752079AbZCTUrK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Mar 2009 16:47:10 -0400
 Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
+Date: Fri, 20 Mar 2009 21:47:07 +0100
+From: "Hans Werner" <HWerner4@gmx.de>
+In-Reply-To: <20090304141715.0a1af14d@pedra.chehab.org>
+Message-ID: <20090320204707.227110@gmx.net>
+MIME-Version: 1.0
+References: <200903022218.24259.hverkuil@xs4all.nl>
+ <20090304141715.0a1af14d@pedra.chehab.org>
+Subject: Re: Results of the 'dropping support for kernels <2.6.22' poll
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I like it. Can we add a section for tested architectures (i.e. x86,
-x86_64, arm, sparc, etc...).
+> Hans,
+> 
+> On Mon, 2 Mar 2009 22:18:24 +0100
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> 
+> > In the final analysis I'm the boss of my own time. And I've decided that
+> > once the conversion of all the i2c modules is finished I'll stop
+> spending 
+> > time on the compatibility code for kernels <2.6.22 as it is simply no 
+> > longer an effective use of my time. If someone else wants to spend time
+> on 
+> > that, then that's great and I will of course answer questions or help in
+> > whatever way is needed.
+> > 
+> > I know that Mauro thinks he can keep the backwards compat code in by
+> doing 
+> > nifty code transformations. It would be nice if he succeeds (and I have
+> no 
+> > doubt that it is possible given enough time and effort), but personally
+> I 
+> > think it is time better spent elsewhere.
+> 
+> It required just a couple of hours today, in order to add the I2C
+> conversion
+> rules on the backport tree:
+> 
+> 	http://linuxtv.org/hg/~mchehab/backport/
+> 
+> There, I used, as example, the tea6415c.c file that you sent me, meant to
+> be an
+> example of a driver converted to use just the new I2C API. I've removed
+> from it
+> all the other #ifdefs for 2.6.26, so, the module doesn't have any compat
+> bits
+> (except for "compat.h" that can also be handled by the script). I didn't
+> compile
+> the entire tree, since several drivers will break, as they aren't ported
+> yet
+> to the new I2C style.
+> 
+> Maybe a few adjustments on the backport.pl may be needed, after having all
+> drivers converted to 2.6.22, since the final version may need some other
+> patching rules.
+> 
+> That's said, the backport tree is still an experimental work. The scripts
+> require more time to be tested, and the Makefiles need some cleanups.
 
-thanks,
-Paul
+Mauro,
 
-On Mon, Mar 23, 2009 at 2:46 PM, Thomas Kaiser <v4l@kaiser-linux.li> wrote:
->
-> I was thinking about updating my page [1] with the results I get with gspca
-> V2. But I think it would be better to have this info on the LinuxTV wiki.
-> Unfortunately, I did not find a page for gspca. So I thought I should start
-> one, but I don't think this is the right thing because there are other
-> drivers available for webcams.
->
-> Why not start a "Webcam compatibly page" similar to my page [1]?
-> - a photo of the webcam
-> - USB ID
-> - capabilities of the cam
-> - the chipsets when known
-> - driver + version (+ kernel version), at the time tested
-> - application used for testing (version)
-> - links with some information to other interesting pages
-> - and some more you can think of
->
-> What you guys think about it?
->
->
-> [1] http://www.kaiser-linux.li/index.php/Linux_and_Webcams
->
-> Thomas
->
-> PS: the only reference I found about gspca on the LinuxTV wiki:
-> http://www.linuxtv.org/wiki/index.php/Development:_Reverse_Engineering_USB_Webcams#gspca
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+neat, but I still think time spent on backporting work would be better
+spent on cutting-edge development. Two hours here ... two hours there
+... it all adds up to a significant investment of time.
+
+> Beside the fact that we don't need to strip support for legacy kernels,
+> the
+> advantage of using this method is that we can evolute to a new development
+> model. As several developers already required, we should really use the
+> standard -git tree as everybody's else. This will simplify a lot the way
+> we
+> work, and give us more agility to send patches upstream.
+
+Great! Do you have a plan for how soon a move to the standard git tree
+will happen? The sooner the better IMO.
+
+> With this backport script, plus the current v4l-dvb building systems, and
+> after
+> having all backport rules properly mapped, we can generate a "test tree"
+> based on -git drivers/media, for the users to test the drivers against
+> their
+> kernels, and still use a clean tree for development.
+> 
+> Cheers,
+> Mauro
+
+If I understand correctly you are suggesting that a backporting
+system would continue to exist?
+
+Why? Surely this would be a heavy ball-and-chain to drag around for 
+eternity. Why not lose the backporting and go for the simplicity and 
+agility you mentioned above?
+
+Regards,
+Hans W.
+
+-- 
+Release early, release often.
+
+Psssst! Schon vom neuen GMX MultiMessenger gehört? Der kann`s mit allen: http://www.gmx.net/de/go/multimessenger01
