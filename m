@@ -1,38 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:57511 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753921AbZC0NmJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2009 09:42:09 -0400
-Received: by fxm2 with SMTP id 2so1029563fxm.37
-        for <linux-media@vger.kernel.org>; Fri, 27 Mar 2009 06:42:07 -0700 (PDT)
-Message-ID: <49CCD72F.3070603@gmail.com>
-Date: Fri, 27 Mar 2009 15:39:59 +0200
-From: Darius Augulis <augulis.darius@gmail.com>
+Received: from rouge.crans.org ([138.231.136.3]:57970 "EHLO rouge.crans.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753744AbZCTJI3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Mar 2009 05:08:29 -0400
+Message-ID: <49C35D3D.7070300@crans.org>
+Date: Fri, 20 Mar 2009 10:09:17 +0100
+From: Brice Dubost <dubost@crans.org>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/5] CSI camera interface driver for MX1
-References: <49C89F00.1020402@gmail.com>	<Pine.LNX.4.64.0903261405520.5438@axis700.grange>	<49CBD53C.6060700@gmail.com>	<20090326170910.6926d8de@pedra.chehab.org>	<49CC9E53.9070805@gmail.com> <20090327075625.276376b1@pedra.chehab.org>
-In-Reply-To: <20090327075625.276376b1@pedra.chehab.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: linux-media@vger.kernel.org
+CC: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Weird TS Stream from DMX_SET_PES_FILTER
+References: <1002969792.105131237502284915.JavaMail.root@email>
+In-Reply-To: <1002969792.105131237502284915.JavaMail.root@email>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
- > On Fri, 27 Mar 2009 11:37:23 +0200
- > Darius Augulis <augulis.darius@gmail.com> wrote:
- >
- >> Mauro Carvalho Chehab wrote:
- >>> Hi Darius,
- >>>
- >>> Please always base your patches against the last v4l-dvb tree or linux-next.
- >>> This is specially important those days, where v4l core is suffering several
- >>> changes.
- >
- > Btw, you shouldn't be c/c a list that requires subscription. Every time I send
- > something, I got such errors:
+Bob Ingraham wrote:
+> Hello,
+> 
+> I've been using the Linux DVB API to grab DBV-S MPEG2 video packets using a TechniSat S2 card.
+> 
+> But something seems odd about DMX_SET_PES_FILTER.
+> 
+> It returns a TS packets for my pid just fine, but by MPEG2 frames have no PES headers!  The raw compressed MPEG2 frames just immediately follow the TS/adapation-field headers directly.
+> 
+> When I wrote my TS packet decoder, I was expecting to have to decode PES headers after the TS header. But instead I found the raw compressed frames.
+> 
+> They decode fine (with ffmpeg's libavcodec mpeg2 decoder,) and they look fine when rendered using SDL.
+> 
+> But besides my own program, I can't get vlc or mplayer to decode this stream. Both vlc and mplayer sense a TS stream, but then they never render anything because, I suspect, that they can't find PES headers.
+> 
+> So, two questions:
+> 
+> 1. Am I crazy or is DMX_SET_PES_FILTER returning a non-standard TS stream?
+> 
+> 2. Is there a way to receive a compliant MPEG-TS (or MPEG2-PS,) stream?
+> 
+> 3. Should I use DMX_SET_FILTER instead?
+> 
+> 4. If so, what goes in the filter/mask members of the dmx_filter_t struct?
+> 
+> 
+> Thanks,
+> Bob
+> 
+> PS: I use the following to filter on my video stream pid (0x1344):
+> 
+>  struct dmx_pes_filter_params f;
+> 
+>  memset(&f, 0, sizeof(f));
+>  f.pid = (uint16_t) pid;
+>  f.input = DMX_IN_FRONTEND;
+>  f.output = DMX_OUT_TS_TAP;
+>  f.pes_type = DMX_PES_OTHER;
+>  f.flags   = DMX_IMMEDIATE_START;
+> 
+> 
 
-I sent it to ARM Linux ML, because it has lot of ARM stuff and there are people who maintain ARM/MXC.
-You probably could remove some CC from your reply message?
+Hello,
+I use exactly the same parameters and I get a raw mpeg2-TS stream (ie
+packet of 188 bytes with the TS headers as defined in the mpeg2-ts norm)
+
+If you want your stream to be read with VLC you need also the PAT and
+the PMT pids. If you want the sound you'll need also the PCR pid.
+
+I don't know how to get the PES headers
+
+Hope this information will help you
+
+Regards
+
+-- 
+Brice
