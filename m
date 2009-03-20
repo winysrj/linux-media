@@ -1,69 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:58361 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752341AbZCZJyn (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2147 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751066AbZCTHLR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2009 05:54:43 -0400
-Date: Thu, 26 Mar 2009 06:54:36 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: vasaka@gmail.com
-Cc: Linux Media <linux-media@vger.kernel.org>
-Subject: Re: patchwork tool
-Message-ID: <20090326065436.7f22af82@pedra.chehab.org>
-In-Reply-To: <36c518800903260222j2ae177e9g9d3ad5f5b9d8d37d@mail.gmail.com>
-References: <36c518800903251619j371b31bbyb6731d26c1357a34@mail.gmail.com>
-	<20090326053409.6a310c6a@pedra.chehab.org>
-	<36c518800903260222j2ae177e9g9d3ad5f5b9d8d37d@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Fri, 20 Mar 2009 03:11:17 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Pete Eberlein <pete@sensoray.com>
+Subject: Re: v4l2-subdev missing video ops
+Date: Fri, 20 Mar 2009 08:11:31 +0100
+Cc: linux-media@vger.kernel.org
+References: <1237506920.5572.13.camel@pete-desktop>
+In-Reply-To: <1237506920.5572.13.camel@pete-desktop>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903200811.31533.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 26 Mar 2009 11:22:26 +0200
-vasaka@gmail.com wrote:
+On Friday 20 March 2009 00:55:20 Pete Eberlein wrote:
+> Hello Hans,
+>
+> I'm looking at converting the go7007 staging driver to use the subdev
+> API. 
 
-> On Thu, Mar 26, 2009 at 10:34 AM, Mauro Carvalho Chehab
-> <mchehab@infradead.org> wrote:
-> > On Thu, 26 Mar 2009 01:19:08 +0200
-> > vasaka@gmail.com wrote:
-> >
-> >> Hello,
-> >>
-> >> how should I format my post in order to patchwork tool understand
-> >> included patch correctly,
-> >
-> > If patchwork is not adding your patches there, then it means that the patches
-> > are broken (for example, line-wrapped), or that you're attaching it, and your
-> > emailer are using the wrong mime encoding type for diffs.
-> >
-> >> should I just format it like in v4l-dvb/README.patches described?
-> >> then how should I add additional comments to the mail which I do not
-> >> want to be in the patch log?
-> >
-> > All comments you add on your patch will be part of the commit message (except
-> > for the meta-tags, like from:).
-> >
-> >> It seems it is possible without special comment symbols.
-> >
-> >
-> > Cheers,
-> > Mauro
-> >
-> 
-> can it be that patch made by
-> $diff -uprN v4l-dvb.orig v4l-dvb.my > patch.patch
-> and make commit in .my tree did not complain still broken?
-> 
-> does gmail's web interface plain text mail composer has known issues,
-> which can interfere with sending patches?
+Hoorah! :-)
 
-I never used a web interface to send patches. Since patches should be sent
-inline, and such interfaces do line wrapping, they aren't good for patch
-submission. 
+> I don't see any v4l2_subdev_video_ops for VIDIOC_S_INPUT nor 
+> VIDIOC_S_STD.  Were those overlooked, or should I use the generic
+> v4l2_subdev_core_ops->ioctl?  (The chip in particular does not have a
+> tuner, but it does have multiple inputs (svidio, composite) and supports
+> NTSC or PAL.)
 
-Also, probably, they'll encode the attachments with text/plain or
-application/octet-stream, instead of the proper text/x-patch mime type.
+S_STD exists, but it is in tuner_ops. I know, I know, that's the wrong 
+place. I'll move it to video_ops once all conversions are done.
 
-Cheers,
-Mauro
+S_INPUT must not be used in subdevices. S_INPUT deals with user-level inputs 
+(e.g. "Composite", "S-Video", "Tuner"), not with the sub-device-level 
+inputs/outputs (e.g. PIN-X, PIN-Y). Sub-devices know nothing about the 
+user-level since that's a board-level informations. Sub-devices only know 
+about their own input and output pins. The adapter driver is responsible 
+for mapping an S_INPUT ioctl to video/s_routing and audio/s_routing subdev 
+ops. These routing commands tell the sub-device on what pin(s) it receives 
+its input data and what pin(s) are used for the output.
+
+What values you put in the v4l2_routing struct is sub-device dependent and 
+is defined in the include/media/<subdev>.h header.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
