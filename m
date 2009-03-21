@@ -1,89 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49666 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753953AbZCDPlD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 10:41:03 -0500
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"stanley.miao" <stanley.miao@windriver.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
-	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	MiaoStanley <stanleymiao@hotmail.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>,
-	Tony Lindgren <tony@atomide.com>
-Date: Wed, 4 Mar 2009 09:40:04 -0600
-Subject: RE: [RFC 0/5] Sensor drivers for OMAP3430SDP and LDP camera
-Message-ID: <A24693684029E5489D1D202277BE89442E2968B6@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE89442E1D95E5@dlee02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from tichy.grunau.be ([85.131.189.73]:60874 "EHLO tichy.grunau.be"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751706AbZCUBkh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Mar 2009 21:40:37 -0400
+Date: Sat, 21 Mar 2009 02:40:17 +0100
+From: Janne Grunau <j@jannau.net>
+To: linux-media@vger.kernel.org
+Cc: Simon Peter <klik.atekon.de@googlemail.com>
+Subject: Re: HD PVR question
+Message-ID: <20090321014017.GE5383@aniel>
+References: <85d71c370903201823v55eebc9ar89bf8b3213b72e82@mail.gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <85d71c370903201823v55eebc9ar89bf8b3213b72e82@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Simon,
 
+answering to linux-media@vger.kernel.org since such things should be
+asked and archieved on a mailing list.
 
-> From: stanley.miao [mailto:stanley.miao@windriver.com]
-> > Aguirre Rodriguez, Sergio Alberto wrote:
-> > > This patch series depends on the following patches:
-> > >
-> > >  - "Add TWL4030 registers", posted by Tuukka Toivonen on March 2nd.
-> > >  - "OMAP3 ISP and camera drivers" patch series, posted by Sakari Ailus
-> > on
-> > >    March 3rd. (Please follow his instructions to pull from
-> gitorious.org
-> > server)
-> > >
-> > > This has been tested with:
-> > >  - SDP3430-VG5.0.1 with OMAP3430-ES3.1 daughter board upgrade.
-> > >  - Camkit V3.0.1 with MT9P012 and OV3640 sensors
-> > >  - LDP with OV3640 sensor
-> > >
-> > > Sergio Aguirre (5):
-> > >   MT9P012: Add driver
-> > >   DW9710: Add driver
-> > >   OV3640: Add driver
-> > >
-> > Hi, Sergio,
-> >
-> > You forgot to send the 3rd patch, "OV3640: Add driver".
+On Sat, Mar 21, 2009 at 02:23:33AM +0100, Simon Peter wrote:
 > 
-> Hmm, weird... I'm sure I have sent the 5 patches to both linux-omap and
-> linux-media MLs... But, according to http://patchwork.kernel.org/ linux-
-> omap didn't receive that patch you're telling me...
-> 
-> Anyways, resending that last patch to linux-omap only.
-> 
-> Thanks for the interest.
+> is there a way to set the resolution to 720x576 in the Linux driver
+> when capturing S-Video?
 
-Stanley,
+If you feed a pal signal into the S-Video input the resolution should be
+720 or 704 to 576. You have to select the s-video input and set the
+standard to pal variant with 50Hz. But if you don't do that you won't
+get any data.
 
-I don't know why this patch is not making it... I resent it twice now, and it doesn't arrive to the list...
+There is to my knowledge no scaler in the device.
 
-Tony,
-
-Is this patch "OV3640: Add driver" being held on a mail filter somewhere?
-
-Regards,
-Sergio
-> 
-> >
-> > Stanley.
-> >
-> > >   OMAP3430SDP: Add support for Camera Kit v3
-> > >   LDP: Add support for built-in camera
-> > >
-> >
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Janne
