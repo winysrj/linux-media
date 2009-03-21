@@ -1,95 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:59224 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753189AbZCKBF7 (ORCPT
+Received: from mail-in-04.arcor-online.net ([151.189.21.44]:45263 "EHLO
+	mail-in-04.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750745AbZCUEHz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Mar 2009 21:05:59 -0400
-Date: Tue, 10 Mar 2009 20:18:37 -0500 (CDT)
-From: kilgota@banach.math.auburn.edu
-To: Jean-Francois Moine <moinejf@free.fr>
-cc: linux-media@vger.kernel.org
-Subject: A question about documentation. 
-In-Reply-To: <49B0DAF4.50408@redhat.com>
-Message-ID: <alpine.LNX.2.00.0903101952230.13483@banach.math.auburn.edu>
-References: <alpine.LNX.2.00.0903052031490.28557@banach.math.auburn.edu> <200903052258.48365.elyk03@gmail.com> <alpine.LNX.2.00.0903052317070.28734@banach.math.auburn.edu> <49B0DAF4.50408@redhat.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+	Sat, 21 Mar 2009 00:07:55 -0400
+Subject: Re: Failure to read saa7134/saa6752hs MPEG output
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Gordon Smith <spider.karma+video4linux-list@gmail.com>
+Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
+In-Reply-To: <2df568dc0903201324rc5c4982x45ce071c39ddc74b@mail.gmail.com>
+References: <2df568dc0903201324rc5c4982x45ce071c39ddc74b@mail.gmail.com>
+Content-Type: text/plain
+Date: Sat, 21 Mar 2009 05:02:57 +0100
+Message-Id: <1237608177.13642.8.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
-Recently, I submitted a driver for the SQ905C cameras, for which I (partly 
-due to being new to kernel video support) did not provide any update to 
-Documentation/video4linux/gspca.txt.
+Am Freitag, den 20.03.2009, 14:24 -0600 schrieb Gordon Smith:
+> Hello -
+> 
+> I'm unable to read or stream compressed data from saa7134/saa6752hs.
+> 
+> I have a RTD Technologies VFG7350 (saa7134 based, two channel,
+> hardware encoder per channel, no tuner) running current v4l-dvb in
+> debian 2.6.26-1.
+> 
+> MPEG2-TS data is normally available on /dev/video2 and /dev/video3.
+> 
+> Previously there were parameters for the saa6752hs module named
+> "force" and "ignore" to modify i2c addresses. The current module
+> appears to lack those parameters and may be using incorrect i2c addresses.
+> 
+> Current dmesg:
+> 
+> [   13.388944] saa6752hs 3-0020: chip found @ 0x40 (saa7133[0])
+> [   13.588458] saa6752hs 4-0020: chip found @ 0x40 (saa7133[1])
+> 
+> Prior dmesg (~2.6.25-gentoo-r7 + v4l-dvb ???):
+> 
+> saa6752hs 1-0021: saa6752hs: chip found @ 0x42
+> saa6752hs 1-0021: saa6752hs: chip found @ 0x42
+> 
+> Prior modprobe.conf entry:
+> options saa6752hs force=0x1,0x21,0x2,0x21 ignore=0x0,0x20,0x1,0x20,0x2,0x20
+> 
+> 
+> $ v4l2-dbg --device /dev/video2 --info
+> Driver info:
+>         Driver name   : saa7134
+>         Card type     : RTD Embedded Technologies VFG73
+>         Bus info      : PCI:0000:02:08.0
+>         Driver version: 526
+>         Capabilities  : 0x05000001
+>                 Video Capture
+>                 Read/Write
+>                 Streaming
+> 
+> Streaming is a listed capability but the capture example at
+> http://v4l2spec.bytesex.org/spec/capture-example.html fails
+> during request for buffers.
+> 
+> $ v4l2-capture --device /dev/video2 --mmap
+> /dev/video2 does not support memory mapping
+> 
+> v4l2-capture.c:
+>         req.count               = 4;
+>         req.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+>         req.memory              = V4L2_MEMORY_MMAP;
+> 
+>         if (-1 == xioctl (fd, VIDIOC_REQBUFS, &req)) {
+>                 if (EINVAL == errno) {
+>                         fprintf (stderr, "%s does not support "
+>                                  "memory mapping\n", dev_name);
+> 
+> 
+> A read() results in EIO error:
+> 
+> $ v4l2-capture --device /dev/video0 --read
+> read error 5, Input/output error
+> 
+> v4l2-capture.c:
+>                 if (-1 == read (fd, buffers[0].start, buffers[0].length)) {
+>                         switch (errno) {
+>             ...
+>                         default:
+>                                 errno_exit ("read");
+> 
+> 
+> This behavior does not change if the saa6752hs module is not loaded.
+> 
+> Is there still a way to modify the i2c address(es) for the saa6752hs module?
+> 
+> Any pointers are appreciated.
+> 
+> Gordon
+> 
 
-I have not heard what has happened to the driver. I assume that what is 
-going on is there is a race condition about getting things into 2.6.29, 
-and there is not time to do a proper evaluation. While I am curious about 
-the actual problem, though, that is not my question here.
+thanks for the report.
 
-Someone pointed out to me that I probably should have updated the 
-aforementioned doc file. So I do have a question about that.
+It was probably forgotten that the prior insmod option had a reason.
 
-Here is the way that gspca.txt looks now (excerpt follows):
+Try to change it to 0x21 in saa7134-i2c.c
 
-List of the webcams known by gspca.
-
-The modules are:
-         gspca_main      main driver
-         gspca_xxxx      subdriver module with xxxx as follows
-
-xxxx            vend:prod
-----
-spca501         0000:0000       MystFromOri Unknow Camera
-m5602           0402:5602       ALi Video Camera Controller
-spca501         040a:0002       Kodak DVC-325
-spca500         040a:0300       Kodak EZ200
-
-(and so on)
-
-Well, now comes the question. I notice that each line in the file 
-corresponds to a USB Vendor:Product ID, and each line corresponds to one 
-camera, by brand name and model. Apparently, there is some blessed 
-universe in which I have not been living the last few years, in which 
-there is such a one-to-one correspondence.
-
-Below, I give the list of supported cameras. extracted from 
-libgphoto2/camlibs/digigr8. which as far as I am able to know is 
-supporting precisely the same set of cameras as does the module sq905c.c
-
-My question is obvious: Which of them do I list? All of them? A sampling 
-of them? Or what?
-
-Theodore Kilgore
-
-(list follows)
-
-----------------------------------------------------
-
-static const struct {
-         char *name;
-         CameraDriverStatus status;
-         unsigned short idVendor;
-         unsigned short idProduct;
-} models[] = {
-         {"Digigr8", 				0x2770, 0x905c},
-         {"Che-Ez Snap SNAP-U", 			0x2770, 0x905c},
-         {"DC-N130t", 				0x2770, 0x905C},
-         {"Soundstar TDC-35", 			0x2770, 0x905c},
-         {"Nexxtech Mini Digital Camera", 	0x2770, 0x905c},
- 	{"Vivitar Vivicam35", 			0x2770, 0x905c},
-         {"Praktica Slimpix", 			0x2770, 0x905c},
-         {"ZINA Mini Digital Keychain Camera", 	0x2770, 0x905c},
-         {"Pixie Princess Jelly-Soft", 		0x2770, 0x905c},
-         {"Sakar Micro Digital 2428x", 		0x2770, 0x905c},
-         {"Jazz JDC9", 				0x2770, 0x905c},
-         {"Disney pix micro", 			0x2770, 0x9050},
-         {"Suprema Digital Keychain Camera",	0x2770, 0x913d},
- 	{"Sakar 28290 and 28292  Digital Concepts Styleshot",
-                         			0x2770, 0x913d},
- 	{"Sakar 23070  Crayola Digital Camera", 0x2770, 0x913d},
- 	{"Sakar 92045  Spiderman", 		0x2770, 0x913d},
- 	{NULL,0,0,0}
+static char *i2c_devs[128] = {
+	[ 0x20      ] = "mpeg encoder (saa6752hs)",
+	[ 0xa0 >> 1 ] = "eeprom",
+	[ 0xc0 >> 1 ] = "tuner (analog)",
+	[ 0x86 >> 1 ] = "tda9887",
+	[ 0x5a >> 1 ] = "remote control",
 };
 
-As I said, which one(s) of these to list?
+and report if your cards a usable again.
+
+Seems we need the chip address per card without that insmod option and
+reliable probing.
+
+Cheers,
+Hermann
+
+
