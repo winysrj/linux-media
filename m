@@ -1,115 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:36237 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750871AbZCSCrl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2009 22:47:41 -0400
-Subject: Re: [linux-dvb] FusionHDTV7 and v4l causes kernel panic
-From: Andy Walls <awalls@radix.net>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-In-Reply-To: <000401c9a838$c690c0a0$0a00a8c0@vorg>
-References: <000701c9a5de$09033e20$0a00a8c0@vorg>
-	 <49BE5B36.1080901@linuxtv.org> <003a01c9a69a$0de42640$0a00a8c0@vorg>
-	 <1237252028.3303.41.camel@palomino.walls.org>
-	 <000401c9a838$c690c0a0$0a00a8c0@vorg>
-Content-Type: text/plain
-Date: Wed, 18 Mar 2009 22:48:52 -0400
-Message-Id: <1237430932.3303.103.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:62231 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751204AbZCVVHl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Mar 2009 17:07:41 -0400
+Received: by fxm2 with SMTP id 2so1551483fxm.37
+        for <linux-media@vger.kernel.org>; Sun, 22 Mar 2009 14:07:38 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <49BBEFC3.5070901@gmail.com>
+References: <49BBEFC3.5070901@gmail.com>
+Date: Sun, 22 Mar 2009 22:07:38 +0100
+Message-ID: <19a3b7a80903221407v76ce3a42m7d4a6e99755660d4@mail.gmail.com>
+Subject: Re: [PATCH] add new frequency table for Strasbourg, France
+From: Christoph Pfister <christophpfister@gmail.com>
+To: benjamin.zores@gmail.com
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2009-03-18 at 19:16 -0700, Timothy D. Lenz wrote:
-> I've added
->     console=ttyS0,115200 console=tty0
-> to the kernel command line options and with out the console=tty0 part the dump no longer shows on the monitor, so redirect seems to
-> work but loging the serial port on a second computer gets nothing. I tested the connection with echo and that worked but the kernel
-> dump won't go out the port.  The last 2 lines of the screen are:
-> 
-> EIP: [<c012a8c6>] queue_work+0x3/0x68 SS:ESP 0068:f778dd24
-> Kernel panic - not syncing: Fatal exception in interrupt
+2009/3/14, Benjamin Zores <benjamin.zores@gmail.com>:
+> Hi,
+>
+> Attached patch updates the current dvb-t/fr-Strasbourg file with
+> relevant transponders frequency values.
 
-Hmm.  The only thing in the cx23885 driver that tries to schedule work,
-and thus the only thing that could possibly pass in a bad argument, is
-the netup_ci_slot_status() function.  It gets called when an IRQ comes
-in indicating a GPIO[01] event, and the driver thinks the card is a
-NetUp Dual DVB-S2 CI card.
+I've removed the 167k offset, added channel 69 and committed the file.
 
-That's consistent with the "fatal exception in interrupt", but without
-the backtrace, one can't be completely sure this call to queue work was
-initiated by the cx23885 driver and a problem with cx23885 data
-structures.  (But it is the most likely scenario, IMO)
-I just can't see how netup_ci_slot_status() get's called for your card.
+> Please commit,
+>
+> Ben
 
+Thanks,
 
-> Any way to get the dump to go out the serial port?
-
-Does 9600 baud help? (Just a guess.)
-
-Regards,
-Andy
-
-> ----- Original Message ----- 
-> From: "Andy Walls" <awalls@radix.net>
-> To: "Timothy D. Lenz" <tlenz@vorgon.com>
-> Cc: <linux-media@vger.kernel.org>
-> Sent: Monday, March 16, 2009 6:07 PM
-> Subject: Re: [linux-dvb] FusionHDTV7 and v4l causes kernel panic
-> 
-> 
-> > On Mon, 2009-03-16 at 17:46 -0700, Timothy D. Lenz wrote:
-> > > When it panics, there is no log, just a bunch of stuff that that scrolls fast on the main monitor then cold lock.
-> > >  No way to scroll
-> > > back.
-> >
-> > Not even Shift+PageUp ?
-> >
-> >
-> >
-> > >  I looked at the logs and the ones that are text had nothing about it.
-> >
-> > Digital camera or pencil and paper will be least complex way to capture
-> > the ooops data.  Please don't leave out the "Code" bytes at the bottom
-> > and do your best to make sure those are absolutely correct.
-> >
-> > Regards,
-> > Andy
-> >
-> >
-> > > ----- Original Message ----- 
-> > > From: "Steven Toth" <stoth@linuxtv.org>
-> > > To: <linux-media@vger.kernel.org>
-> > > Cc: <linux-dvb@linuxtv.org>
-> > > Sent: Monday, March 16, 2009 6:59 AM
-> > > Subject: Re: [linux-dvb] FusionHDTV7 and v4l causes kernel panic
-> > >
-> > >
-> > > > Timothy D. Lenz wrote:
-> > > > > Using kernel 2.6.26.8 and v4l from a few days ago. When I modprobe cx23885 to load the drivers, I get kernel panic
-> > > >
-> > > > We'll need the oops.
-> > > >
-> > > > - Steve
-> > > >
-> > > > _______________________________________________
-> > > > linux-dvb users mailing list
-> > > > For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> > > > linux-dvb@linuxtv.org
-> > > > http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> > >
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > >
-> >
-> 
-> 
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> 
-
+Christoph
