@@ -1,53 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:45607 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750924AbZCVJsb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Mar 2009 05:48:31 -0400
-Date: Sun, 22 Mar 2009 10:45:54 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Cc: "Trent Piepho" <xyzzy@speakeasy.org>,
-	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: qv4l2 (was [PATCH] LED control)
-Message-ID: <20090322104554.5c56698e@free.fr>
-In-Reply-To: <36896.62.70.2.252.1237279540.squirrel@webmail.xs4all.nl>
-References: <36896.62.70.2.252.1237279540.squirrel@webmail.xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from outmailhost.telefonica.net ([213.4.149.242]:56185 "EHLO
+	ctsmtpout2.frontal.correo" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752673AbZCVVbR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Mar 2009 17:31:17 -0400
+Received: from jar.dominio (80.25.230.35) by ctsmtpout2.frontal.correo (7.2.056.6) (authenticated as jareguero$telefonica.net)
+        id 49B4D7130056B319 for linux-media@vger.kernel.org; Sun, 22 Mar 2009 22:31:14 +0100
+From: Jose Alberto Reguero <jareguero@telefonica.net>
+To: linux-media@vger.kernel.org
+Subject: Bug in  mxl5005s driver
+Date: Sun, 22 Mar 2009 22:31:12 +0100
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903222231.12769.jareguero@telefonica.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 17 Mar 2009 09:45:40 +0100 (CET)
-"Hans Verkuil" <hverkuil@xs4all.nl> wrote:
-	[snip]
-> > Actually, there are a few programs that can handle the webcam
-> > parameters. In fact I know only 'v4l2-ctl': I did not succeeded to
-> > compile qv4l2
-> 
-> What compile errors do you get?
-> 
-> If you do not have qt3 installed, then it will be interesting to see
-> if you can compile the qv4l2 in my ~hverkuil/v4l-dvb-qv4l2 tree which
-> is qt4. It still needs more cleanup and tweaking before I can merge
-> that in the v4l-dvb tree, though.
+In line 3992:
 
-Hello Hans,
+        if (fe->ops.info.type == FE_ATSC) {
+                switch (params->u.vsb.modulation) {
+                case VSB_8:
+                        req_mode = MXL_ATSC; break;
+                default:
+                case QAM_64:
+                case QAM_256:
+                case QAM_AUTO:
+                        req_mode = MXL_QAM; break;
+                }
+        } else
+                req_mode = MXL_DVBT;
 
-Yes, I have qt4. I got your tree and the qv4l2 generation is OK.
+req_mode is filled with MXL_ATSC, MXL_QAM, or MXL_DVBT
 
-I could change the controls of my webcam (but, indeed, the JPEG
-parameters).
+and in line 4007 req_mode is used like params->u.vsb.modulation
 
-Little problem: if I directly do 'start capture', the program loops
-displaying the single word: 'dqbuf'.
+                switch (req_mode) {
+                case VSB_8:
+                case QAM_64:
+                case QAM_256:
+                case QAM_AUTO:
+                        req_bw  = MXL5005S_BANDWIDTH_6MHZ;
+                        break;
+                default:
+                        /* Assume DVB-T */
+                        switch (params->u.ofdm.bandwidth) {
+                        case BANDWIDTH_6_MHZ:
+                                req_bw  = MXL5005S_BANDWIDTH_6MHZ;
+                                break;
+                        case BANDWIDTH_7_MHZ:
+                                req_bw  = MXL5005S_BANDWIDTH_7MHZ;
+                                break;
+                        case BANDWIDTH_AUTO:
+                        case BANDWIDTH_8_MHZ:
 
-Otherwise, streaming works fine, but the CPU load is heavy: 85%
-(vm: 40Mb) versus 60% with gtk+ (vm: 15Mb) and 8% with vlc (vm: 137Mb).
 
-Regards.
+Jose Alberto Reguero
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+
