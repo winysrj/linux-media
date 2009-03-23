@@ -1,28 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from [86.34.125.186] (helo=pa-gw.localdomain)
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <bogdan@embit.ro>) id 1LfwHL-0002Is-Mk
-	for linux-dvb@linuxtv.org; Sat, 07 Mar 2009 14:09:24 +0100
-Received: from pa-mx-2.embit.ro (unknown [89.32.222.3])
-	by pa-gw.localdomain (Postfix) with ESMTP id BA30FEF111
-	for <linux-dvb@linuxtv.org>; Sat,  7 Mar 2009 15:09:19 +0200 (EET)
-Received: from localhost (pa-mx-2.embit.ro [127.0.0.1])
-	by pa-mx-2.embit.ro (Postfix) with ESMTP id AD55A165806E
-	for <linux-dvb@linuxtv.org>; Sat,  7 Mar 2009 15:09:19 +0200 (EET)
-Received: from pa-mx-2.embit.ro ([127.0.0.1])
-	by localhost (pa-mx-1.embit.ro [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id DEiWGEkcP04X for <linux-dvb@linuxtv.org>;
-	Sat,  7 Mar 2009 15:09:18 +0200 (EET)
-Received: from dromi.xdev.ro (unknown [89.32.216.194])
-	by pa-mx-2.embit.ro (Postfix) with ESMTPSA id 8076C165805C
-	for <linux-dvb@linuxtv.org>; Sat,  7 Mar 2009 15:09:18 +0200 (EET)
-Message-ID: <49B271FE.7030400@embit.ro>
-Date: Sat, 07 Mar 2009 15:09:18 +0200
-From: Bogdan Timofte <bogdan@embit.ro>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] No success with Technisat Skystar HD2 PCI
-Reply-To: linux-media@vger.kernel.org, bogdan@embit.ro
+In-Reply-To: <51821.47198.qm@web56805.mail.re3.yahoo.com>
+References: <878323.51314.qm@web56803.mail.re3.yahoo.com>
+	<49C3A5E4.9010908@linuxtv.org>
+	<412bdbff0903200725k699a2b40xdfa69e9113239c0d@mail.gmail.com>
+	<51821.47198.qm@web56805.mail.re3.yahoo.com>
+Date: Sun, 22 Mar 2009 20:01:23 -0400
+Message-ID: <412bdbff0903221701v49c3370ai7c877281b2953ff5@mail.gmail.com>
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: ZhanMa <zhan@digilinksoftware.com>
+Cc: linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Linux driver for Hauppauge WinTV-HVR 950Q
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -30,136 +19,103 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+On Sun, Mar 22, 2009 at 1:59 PM, ZhanMa <zhan@digilinksoftware.com> wrote:
+> Hi Steven and Devin,
+>
+> Please ignore the last email, I just used 'dvbscan', and found it can load
+> the xc5000 firmware, so I think that it will load the firmware at certain
+> conditions.
+>
+> While, when run 'dvbscan', I got "Unable to query frontend status":
+>
+> #./dvbscan /usr/share/dvb/atsc/us-ATSC-center-frequencies-8VSB
+> xc5000: xc5000_init()
+> =A0xc5000_init() , call xc_load_fw_and_init_tuner()
+> =A0[xc_load_fw_and_init_tuner]
+> xc5000: xc5000_is_firmware_loaded() returns False id =3D 0x2000
+> =A0[xc_load_fw_and_init_tuner] call xc5000_fwupload
+> xc5000: waiting for firmware upload (dvb-fe-xc5000-1.1.fw)...
+> xc5000: firmware read 12332 bytes.
+> xc5000: firmware upload
+> xc5000: xc5000_TunerReset()
+> au0828_tuner_callback()
+> =A0[xc_load_fw_and_init_tuner] call xc_initialize
+> xc5000: xc_initialize()
+> xc5000: *** ADC envelope (0-1023) =3D 49183
+> xc5000: *** Frequency error =3D 896234 Hz
+> xc5000: *** Lock status (0-Wait, 1-Locked, 2-No-signal) =3D 32831
+> xc5000: *** HW: V0e.01, FW: V02.0f
+> xc5000: *** Horizontal sync frequency =3D 16106 Hz
+> xc5000: *** Frame lines =3D 49215
+> xc5000: *** Quality (0:<8dB, 7:>56dB) =3D 32831
+> xc5000: xc5000_set_params() frequency=3D177028615 (Hz)
+> xc5000: xc5000_set_params() VSB modulation
+> xc5000: xc5000_set_params() frequency=3D175278615 (compensated)
+> xc5000: xc_SetSignalSource(0) Source =3D ANTENNA
+> xc5000: xc_SetTVStandard(0x8002,0x00c0)
+> xc5000: xc_SetTVStandard() Standard =3D DTV6
+> xc5000: xc_set_IF_frequency(freq_khz =3D 6000) freq_code =3D 0x1800
+> xc5000: xc_tune_channel(175278615)
+> xc5000: xc_set_RF_frequency(175278615)
+> xc5000: *** ADC envelope (0-1023) =3D 49279
+> xc5000: *** Frequency error =3D 896234 Hz
+> xc5000: *** Lock status (0-Wait, 1-Locked, 2-No-signal) =3D 32831
+> xc5000: *** HW: V0f.01, FW: V02.0f
+> xc5000: *** Horizontal sync frequency =3D 15862 Hz
+> xc5000: *** Frame lines =3D 49279
+> xc5000: *** Quality (0:<8dB, 7:>56dB) =3D 32831
+> Unable to query frontend status
+> xc5000: xc5000_sleep()
+>
+>
+> Actually, before, I tried the dvbscan on my laptop with Fedora Core 8, li=
+nux
+> kernel 2.6.25, and v4l-dvb is dated about March 18, but I got the same
+> problem.
+>
+> Jason
 
-I am trying to install a Technisat Skystar HD2 PCI ard without succes:
+Hello Jason,
 
-uname -a
-Linux test 2.6.27.19-170.2.35.fc10.i686 #1 SMP Mon Feb 23 13:21:22 EST 
-2009 i686 i686 i386 GNU/Linux
+Step 1:  Please update to the latest version of the v4l-dvb code.  I
+don't want to be in a situation where I am debugging old code, and
+this will make it easier to send you patches to get more debugging
+info.
 
-hg clone http://mercurial.intuxication.org/hg/s2-liplianin
-make
-make install
+Step 2:  Please use pastebin to include the full dmesg output.  Users
+often send what they believe is relevant, and this often does not
+include critical information.  This also allows me to get some context
+as to what else is going on in the system.
 
-lspci -vv
-01:02.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV PCI 
-Bridge Controller [Ver 1.0] (rev 01)
-        Subsystem: Device 1ae4:0003
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
-ParErr- Stepping- SERR+ FastB2B- DisINTx-
-        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort- 
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-        Latency: 64 (2000ns min, 63750ns max)
-        Interrupt: pin A routed to IRQ 12
-        Region 0: Memory at df200000 (32-bit, prefetchable) [size=4K]
-        Kernel modules: mantis
+Step 3: Please try using the "scan" tool as opposed to the "dvbscan"
+tool.  I know that scan works as expected and want to rule out some
+sort of application issue.  Also be sure to provide the exact command
+line that you ran.
 
-modprobe mantis
-Segmentation fault
+Are you trying to scan for digital channels over the air, or are you
+trying to scan for digital cable?  And do you know that you can
+actually receive channels in your location (have you tried it with the
+same antenna in the same location under Windows?)
 
-dmesg output:
+In older versions of the code, the firmware gets loaded on the first
+use, as opposed to when the driver gets started up (this behavior
+changed on Mar 18th).  Also bear in mind that it takes ten to twelve
+seconds to load the firmware (this is a known issue with the i2c bus
+that I am actively debugging).
 
-Mantis 0000:01:02.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
-=== Interrupts[ffffffff/ffffffff]= [* DMA enabl ** INT IRQ-0 *<1>BUG: 
-unable to handle kernel NULL pointer dereference at 00000068
-IP: [<c041b913>] __ticket_spin_lock+0x8/0x19
-*pde = 00000000
-Oops: 0002 [#1] SMP
-Modules linked in: mantis(+) lnbp21 mb86a16 stb6100 tda10021 tda10023 
-stb0899 stv0299 dvb_core i2c_i801 i2c_core ppdev tg3 parport_pc 
-e752x_edac parport edac_core pcspkr serio_raw iTCO_wdt 
-iTCO_vendor_support i6300esb libphy floppy ata_generic pata_acpi [last 
-unloaded: scsi_wait_scan]
+Devin
 
-Pid: 11058, comm:
-EIP: 0060:[<c041b913>] EFLAGS: 00010046 CPU: 1
-EIP is at __ticket_spin_lock+0x8/0x19
-EAX: 00000068 EBX: 00000068 ECX: 00000001 EDX: 00000100
-ESI: 00000082 EDI: 0000009c EBP: f61f8df8 ESP: f61f8df8
- DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
-Process modprobe (pid: 11058, ti=f61f8000 task=f6144ce0 task.ti=f61f8000)
-Stack: f61f8e08 c06aae64 00000068 00000001 f61f8e20 c0421f53 00000003 
-ffffffff
-       f60e7800 0000009c f61f8e3c f8e2b6ed 00000000 00000000 00000202 
-f7803860
-       f8e2b604 f61f8e5c c0465a70 00000080 00000012 01200000 df200000 
-f60e7800
-Call Trace:
- [<c06aae64>] ? _spin_lock_irqsave+0x29/0x30
- [<c0421f53>] ? __wake_up+0x15/0x3b
- [<f8e2b6ed>] ? mantis_pci_irq+0xe9/0x240 [mantis]
- [<f8e2b604>] ? mantis_pci_irq+0x0/0x240 [mantis]
- [<c0465a70>] ? request_irq+0xbb/0x10c
- [<f8e2da97>] ? mantis_pci_probe+0x1a3/0x3bf [mantis]
- [<c0594481>] ? get_device+0x13/0x18
- [<c052a4f3>] ? pci_device_probe+0x39/0x59
- [<c05969c4>] ? driver_probe_device+0xa0/0x136
- [<c0596a94>] ? __driver_attach+0x3a/0x59
- [<c05963ea>] ? bus_for_each_dev+0x3b/0x63
- [<c0596869>] ? driver_attach+0x14/0x16
- [<c0596a5a>] ? __driver_attach+0x0/0x59
- [<c0595e5e>] ? bus_add_driver+0x9d/0x1ba
- [<c0596c1b>] ? driver_register+0x81/0xe1
- [<c043ef62>] ? autoremove_wake_function+0x0/0x33
- [<c052a6b2>] ? __pci_register_driver+0x3f/0x6d
- [<f8e2dcca>] ? mantis_pci_init+0x17/0x19 [mantis]
- [<c0401125>] ? _stext+0x3d/0x115
- [<f8e2dcb3>] ? mantis_pci_init+0x0/0x19 [mantis]
- [<c044e155>] ? sys_init_module+0x87/0x178
- [<c0404c8a>] ? syscall_call+0x7/0xb
- =======================
-Code: 84 c0 0f 95 c0 0f b6 c0 c3 55 8b 10 89 e5 5d 89 d0 c1 f8 08 29 d0 
-25 ff 00 00 00 48 0f 9f c0 0f b6 c0 c3 55 ba 00 01 00 00 89 e5 <f0> 66 
-0f c1 10 38 f2 74 06 f3 90 8a 10 eb f6 5d c3 55 89 e5 53
-EIP: [<c041b913>] __ticket_spin_lock+0x8/0x19 SS:ESP 0068:f61f8df8
----[ end trace bca33cf69333abb8 ]---
-lsmod output
-lsmod
-Module                  Size  Used by
-saa7115                17840  0
-v4l2_common            13440  1 saa7115
-mantis                 20488  1
-mantis_core            30208  1 mantis
-tda665x                 7040  1 mantis
-lnbp21                  5760  1 mantis
-mb86a16                21120  1 mantis
-stb6100                10372  1 mantis
-tda10021                9348  1 mantis
-tda10023                9860  1 mantis
-zl10353                10376  1 mantis
-stb0899                35588  1 mantis
-stv0299                12680  1 mantis
-dvb_core               75880  2 mantis_core,stv0299
-i2c_dev                 9480  0
-tg3                   107524  0
-iTCO_wdt               13732  0
-ppdev                  10372  0
-pcspkr                  6272  0
-iTCO_vendor_support     6916  1 iTCO_wdt
-parport_pc             25620  0
-i2c_i801               12048  0
-i6300esb                8984  0
-i2c_core               21396  15 
-saa7115,v4l2_common,mantis,mantis_core,tda665x,lnbp21,mb86a16,stb6100,tda10021,tda10023,zl10353,stb0899,stv0299,i2c_dev,i2c_i801
-parport                31956  2 ppdev,parport_pc
-libphy                 18560  1 tg3
-e752x_edac             15244  0
-serio_raw               8836  0
-edac_core              36780  1 e752x_edac
-floppy                 51988  0
-ata_generic             8452  0
-pata_acpi               7680  0
+-- =
 
-
-Any idea about what is wrong?
-
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 _______________________________________________
 linux-dvb users mailing list
