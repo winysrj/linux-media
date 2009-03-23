@@ -1,41 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:59415 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:54365 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755540AbZCQRVp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Mar 2009 13:21:45 -0400
-Message-ID: <49BFDC24.8050905@gmx.de>
-Date: Tue, 17 Mar 2009 18:21:40 +0100
-From: wk <handygewinnspiel@gmx.de>
+	id S1756390AbZCWIPe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Mar 2009 04:15:34 -0400
+Date: Mon, 23 Mar 2009 09:15:38 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: morimoto.kuninori@renesas.com
+cc: Linux Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] ov772x: add edge contrl support
+In-Reply-To: <u8wmw1x4c.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0903230911130.4527@axis700.grange>
+References: <uab7c249a.wl%morimoto.kuninori@renesas.com>
+ <Pine.LNX.4.64.0903230829510.4476@axis700.grange> <u8wmw1x4c.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
-To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-CC: benjamin.zores@gmail.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH] add new frequency table for Strasbourg, France
-References: <49BBEFC3.5070901@gmail.com> <alpine.DEB.2.00.0903160803030.4176@ybpnyubfg.ybpnyqbznva> <49BE9B50.5050506@gmail.com> <49BEB20A.1030209@gmx.de> <alpine.DEB.2.00.0903170237550.4176@ybpnyubfg.ybpnyqbznva>
-In-Reply-To: <alpine.DEB.2.00.0903170237550.4176@ybpnyubfg.ybpnyqbznva>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, 23 Mar 2009, morimoto.kuninori@renesas.com wrote:
 
-> Then there must be something ``wrong'' with `w_scan' making
-> incorrect assumptions about the data which it's parsing.
->
->   
-No - i do not think so.
-All of the frequencies found are with 166kHz offset.
-w_scan does not use any of these 166k offsets, that means this frequency 
-data was transmitted as exactly such a number in some NIT w_scan parsed.
+> Dear Guennadi
+> 
+> Thank you for checking
+> 
+> > Wouldn't it be easier to use
+> > 
+> > 	unsigned char	edge_strength;
+> > 	unsigned char	edge_threshold;
+> > 	unsigned char	edge_low;
+> > 	unsigned char	edge_high;
+> > 
+> > and thus avoid all that shifting?
+> 
+> Yes. it is easier to use.
+> But, driver should judge whether to use this setting or not.
+> Because this setting is optional.
+> 
+> Because user setting might be 0,
+> we can not judge it like this.
+>   if (edge_xxx)
+>        ov772x_mask_set( xxxx )
+> 
+> So, we can use un-used bit to judge whether to use it.
+> and edge_strength and edge_threshold have un-used bit.
+> But edge_low and edge_high doesn't have un-used bit.
+> 
+> Another way to judge it is to use pointer or to add another variable.
+> But I don't like these style.
+> What do you think about this ?
 
-w_scan calculates DVB-T center freqs as "center freq = (306000000 + 
-channel * 8000000) Hz" for this range.
-And NIT parsing is the same as dvbscan.
+Is edge_strength == 0 a useful edge configuration? Cannot you use it as a 
+test whether to set all edge parameters or not? If you cannot, well, just 
+do the same as what you have done with 32-bits - use one bit in strength 
+as "edge enable" - just exactly in the same way as in your patch. Like
 
-> What has disturbed me is how this offset has been applied
-> across the board by `w_scan',
-Again, w_scan does not use these offsets.
+	if (edge_strength & EDGE_ENABLE) {
+		set_strength;
+		set_threshold;
+		set_low;
+		set_high;
+	}
 
-Some dvbsnoop output as suggested and additional some scan with service 
-names (either dvbscan or w_scan), vdr channels.conf would be fine, would 
-really help to see whats going on here.
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski
