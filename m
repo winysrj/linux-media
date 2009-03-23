@@ -1,85 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.187]:62899 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753935AbZCGOhn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2009 09:37:43 -0500
-Subject: Re: [PATCH 9/9] omap34xxcam: Add camera driver
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	saaguirre@ti.com, tuukka.o.toivonen@nokia.com,
-	dongsoo.kim@gmail.com
-In-Reply-To: <49AFDD0B.80804@maxwell.research.nokia.com>
-References: <49AD0128.5090503@maxwell.research.nokia.com>
-	 <1236074816-30018-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-	 <1236074816-30018-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-	 <1236074816-30018-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-	 <1236074816-30018-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-	 <1236074816-30018-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-	 <1236074816-30018-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-	 <1236074816-30018-7-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-	 <1236074816-30018-8-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-	 <1236074816-30018-9-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-	 <1236101460.10927.109.camel@tux.localhost>
-	 <49AFDD0B.80804@maxwell.research.nokia.com>
-Content-Type: text/plain
-Date: Sat, 07 Mar 2009 17:38:17 +0300
-Message-Id: <1236436697.1863.21.camel@tux.localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.atmel.fr ([81.80.104.162]:42088 "EHLO atmel-es2.atmel.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754936AbZCWQPE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Mar 2009 12:15:04 -0400
+Message-ID: <49C7B57C.7040809@atmel.com>
+Date: Mon, 23 Mar 2009 17:14:52 +0100
+From: Sedji Gaouaou <sedji.gaouaou@atmel.com>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: atmel v4l2 soc driver
+References: <49B789F8.3070906@atmel.com> <Pine.LNX.4.64.0903111100050.4818@axis700.grange> <49C7A8DF.3040101@atmel.com> <Pine.LNX.4.64.0903231632020.6370@axis700.grange> <49C7B226.6000302@atmel.com> <Pine.LNX.4.64.0903231705080.6370@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0903231705080.6370@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello, Sakari Ailus
+Well I am confused now...Should I still convert the atmel ISI driver to 
+a soc driver?
+My concern was not to release a driver for the ov9655, but to have one 
+which is working so I could test my atmel-soc driver :)
+Because I only have an ov9655 sensor here...
 
-On Thu, 2009-03-05 at 16:09 +0200, Sakari Ailus wrote:
-> Alexey Klimov wrote:
-> >> +static int vidioc_g_fmt_vid_cap(struct file *file, void *fh,
-> >> +				struct v4l2_format *f)
-> >> +{
-> >> +	struct omap34xxcam_fh *ofh = fh;
-> >> +	struct omap34xxcam_videodev *vdev = ofh->vdev;
-> >> +
-> >> +	if (vdev->vdev_sensor == v4l2_int_device_dummy())
-> >> +		return -EINVAL;
-> >> +
-> >> +	mutex_lock(&vdev->mutex);
-> >> +	f->fmt.pix = vdev->pix;
-> >> +	mutex_unlock(&vdev->mutex);
-> > 
-> > Hmmmm, you are using mutex_lock to lock reading from vdev structure..
-> > Well, i don't if this is right approach. I am used to that mutex_lock is
-> > used to prevent _changing_ of members in structure..
+Regards
+Sedji
+
+Guennadi Liakhovetski a écrit :
+> On Mon, 23 Mar 2009, Sedji Gaouaou wrote:
 > 
-> The vdev->mutex is acquired since we want to prevent concurrent access 
-> to vdev->pix. Otherwise it might change while we are reading it, right?
-
-I thought more about this and looks like that i was wrong. You are
-right. You are reading structure, and i wasn't able to notice that first
-time. Sorry for bothering about this.
-
-<snip>
-
-> >> +static int omap34xxcam_device_register(struct v4l2_int_device *s)
-> >> +{
-> >> +	struct omap34xxcam_videodev *vdev = s->u.slave->master->priv;
-> >> +	struct omap34xxcam_hw_config hwc;
-> >> +	int rval;
-> >> +
-> >> +	/* We need to check rval just once. The place is here. */
-> > 
-> > I didn't understand this comment. You doing nothin in next few lines
-> > with int variable rval(which introduced in this function). Is comment
-> > talking about struct v4l2_int_device *s ?
+>> Guennadi Liakhovetski a écrit :
+>>> Wouldn't ov9655 be similar enough to ov9650 as used in stk-sensor.c? Hans,
+>>> would that one also be converted to v4l2-device? If so, Sedji, you don't
+>>> need to write yet another driver for it. 
+>> I had a look at the stk-sensor file. Does it follow the soc arch?
 > 
-> Yes. If the g_priv() succeeds now it will succeed in future, too. This 
-> comes from the platform data through the slave device.
+> No, it does not. But soc-camera is going to be converted to v4l2-device, 
+> so, if stkweb is going to be converted too, then the driver will be 
+> re-used.
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> 
 
-Well, okay. I mean that for me this comment looks ambiguous. Please, if
-you don't mind it's better not to use word "rval" because it  creates
-confusion with int rval;.
-
-
--- 
-Best regards, Klimov Alexey
 
