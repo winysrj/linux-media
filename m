@@ -1,18 +1,31 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2OMshiV006510
-	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 18:54:43 -0400
-Received: from web65409.mail.ac4.yahoo.com (web65409.mail.ac4.yahoo.com
-	[76.13.9.29])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n2OMsOgY017094
-	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 18:54:24 -0400
-Message-ID: <751977.60511.qm@web65409.mail.ac4.yahoo.com>
-Date: Tue, 24 Mar 2009 15:54:23 -0700 (PDT)
-From: Tom Watson <sdc695@yahoo.com>
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2NElfik003887
+	for <video4linux-list@redhat.com>; Mon, 23 Mar 2009 10:47:41 -0400
+Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.29])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2NElMFx010944
+	for <video4linux-list@redhat.com>; Mon, 23 Mar 2009 10:47:22 -0400
+Received: by yw-out-2324.google.com with SMTP id 3so1233932ywj.81
+	for <video4linux-list@redhat.com>; Mon, 23 Mar 2009 07:47:21 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Subject: But all I want to do is view my webcam...
+In-Reply-To: <1237816050.3833.20.camel@T60p>
+References: <1237575285.26159.2.camel@T60p>
+	<412bdbff0903201228t4cb4b6c8m17763c27878434ed@mail.gmail.com>
+	<1237578912.26159.13.camel@T60p>
+	<412bdbff0903201302ib6758a8ue76a8dd235cfa4cb@mail.gmail.com>
+	<1237579738.26159.16.camel@T60p>
+	<412bdbff0903201314r5105d373ofe6614ee08431d4b@mail.gmail.com>
+	<1237816050.3833.20.camel@T60p>
+Date: Mon, 23 Mar 2009 10:47:21 -0400
+Message-ID: <412bdbff0903230747i1ebc4487x2636369e6b20ce8f@mail.gmail.com>
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Mikhail Jiline <misha@epiphan.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com, linux-kernel@vger.kernel.org,
+	mchehab@infradead.org
+Subject: Re: [PATCH] V4L: em28xx: add support for Digitus/Plextor PX-AV200U
+	grabbers
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,40 +37,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On Mon, Mar 23, 2009 at 9:47 AM, Mikhail Jiline <misha@epiphan.com> wrote:
+> Here is the output from the version with em28xx_i2c_hash hint. Update patch is below.
+<snip>
 
-So I tried 'xawtv'.  It gave "No space left on device", which sounds weird to me.  Some information:
-[~]$ /sbin/lsusb
-Bus 001 Device 009: ID 0c45:6029 Microdia Triplex i-mini PC Camera
-...[there were other USB devices]...
-[tsw@xytar7a ~]$ xawtv -hwscan
-This is xawtv-3.95, running on Linux/i686 (2.6.26.8-57.fc8)
-looking for available devices
-port 68-68
-    type : Xvideo, image scaler
-    name : XV_SWOV
+Ok, that looks better.  You should no longer need the "card=" line
+with that patch.
 
-/dev/video0: No space left on device
-[~]$ xawtv
-This is xawtv-3.95, running on Linux/i686 (2.6.26.8-57.fc8)
-xinerama 0: 1600x1200+0+0
-can't open /dev/video0: No space left on device
-v4l2: open /dev/video0: No space left on device
-v4l2: open /dev/video0: No space left on device
-v4l: open /dev/video0: No space left on device
-no video grabber device available
-[~]$  
-[~]$ ls -l /dev/vid*
-lrwxrwxrwx 1 root root     6 Mar 24 15:40 /dev/video -> video0
-crw-rw-rw- 1 root root 81, 0 Mar 24 15:40 /dev/video0
+Did you verify that both video inputs were working as expected?  Also,
+did you confirm the audio support works?  If so, please remove the
+"valid        = EM28XX_BOARD_NOT_VALIDATED", submit a final patch, and
+I will check it in.
 
-The 'dev' entries were created by plugging in the USB WebCam.  I just want to see my picture.  I thought it would be "easy".  It probably is, but then I'm the difficult one.  Any advice?
+Thanks,
 
-Thanks.
+Devin
+
 -- 
-Tom Watson
-
-
-      
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
