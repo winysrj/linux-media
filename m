@@ -1,56 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:45251 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751941AbZCDClS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Mar 2009 21:41:18 -0500
-Message-ID: <49ADEA4A.4080800@linuxtv.org>
-Date: Wed, 04 Mar 2009 03:41:14 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from mail.gmx.net ([213.165.64.20]:42354 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755784AbZCWQGD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Mar 2009 12:06:03 -0400
+Date: Mon, 23 Mar 2009 17:06:13 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sedji Gaouaou <sedji.gaouaou@atmel.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: atmel v4l2 soc driver
+In-Reply-To: <49C7B226.6000302@atmel.com>
+Message-ID: <Pine.LNX.4.64.0903231705080.6370@axis700.grange>
+References: <49B789F8.3070906@atmel.com> <Pine.LNX.4.64.0903111100050.4818@axis700.grange>
+ <49C7A8DF.3040101@atmel.com> <Pine.LNX.4.64.0903231632020.6370@axis700.grange>
+ <49C7B226.6000302@atmel.com>
 MIME-Version: 1.0
-To: Roel Kluin <roel.kluin@gmail.com>
-CC: mchehab@redhat.com, linux-media@vger.kernel.org
-Subject: Re: V4L/DVB: dvb_dmx_swfilter_section_copy_dump() assignment or addition?
-References: <49ADAB54.5020004@gmail.com>
-In-Reply-To: <49ADAB54.5020004@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Roel,
+On Mon, 23 Mar 2009, Sedji Gaouaou wrote:
 
-Roel Kluin wrote:
-> vi drivers/media/dvb/dvb-core/dvb_demux.c +214
+> Guennadi Liakhovetski a écrit :
+> > 
+> > Wouldn't ov9655 be similar enough to ov9650 as used in stk-sensor.c? Hans,
+> > would that one also be converted to v4l2-device? If so, Sedji, you don't
+> > need to write yet another driver for it. 
 > 
-> and note:
-> 
-> static int dvb_dmx_swfilter_section_copy_dump(struct dvb_demux_feed *feed,
->                                               const u8 *buf, u8 len)
-> {
-> 	...
->         if (sec->tsfeedp + len > DMX_MAX_SECFEED_SIZE) {
-> 		...
->                 len = DMX_MAX_SECFEED_SIZE - sec->tsfeedp;
-> 		    ^------------shouldn't this be '+='?
+> I had a look at the stk-sensor file. Does it follow the soc arch?
 
-No. Read it like this: If there isn't enough space for 'len' bytes,
-then reduce 'len' to the number of bytes available.
+No, it does not. But soc-camera is going to be converted to v4l2-device, 
+so, if stkweb is going to be converted too, then the driver will be 
+re-used.
 
->         }
-> 
-> 	if (len <= 0)
->                 return 0;
-> 
-> Also note: len cannot be less than 0 since it's an u8.
-
-Yes. This function seems to be overcautious in other places, too.
-These two checks can probably get removed:
-
-        if (sec->tsfeedp >= DMX_MAX_SECFEED_SIZE)
-                return 0;
-
-        if (limit > DMX_MAX_SECFEED_SIZE)
-                return -1;      /* internal error should never happen */
-
-Regards,
-Andreas
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
