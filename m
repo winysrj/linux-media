@@ -1,92 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2706 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751519AbZCXHGX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2009 03:06:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Alexey Klimov <klimov.linux@gmail.com>
-Subject: Re: [question] about open/release and vidioc_g_input/vidioc_s_input functions
-Date: Tue, 24 Mar 2009 08:06:39 +0100
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-References: <1237850047.31041.162.camel@tux.localhost>
-In-Reply-To: <1237850047.31041.162.camel@tux.localhost>
+Received: from mail.gmx.net ([213.165.64.20]:60346 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754846AbZCWJ5Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Mar 2009 05:57:25 -0400
+Date: Mon, 23 Mar 2009 10:57:29 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+cc: Linux Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2] ov772x: add edge contrl support
+In-Reply-To: <u4oxk1sf3.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0903231054470.4871@axis700.grange>
+References: <u4oxk1sf3.wl%morimoto.kuninori@renesas.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903240806.39540.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 24 March 2009 00:14:07 Alexey Klimov wrote:
-> Hello, all
->
-> After last convertion of radio drivers to use v4l2_device we have such
-> code in many radio drivers:
-> (it's radio-terratec.c for example)
->
-> ...
->  static int terratec_open(struct file *file)
-> {
->         return 0;
-> }
->
-> static int terratec_release(struct file *file)
-> {
->         return 0;
-> }
-> ...
->
-> and
->
-> ...
-> static int vidioc_g_input(struct file *filp, void *priv, unsigned int
-> *i)
-> {
->         *i = 0;
->         return 0;
-> }
->
-> static int vidioc_s_input(struct file *filp, void *priv, unsigned int i)
-> {
->         return i ? -EINVAL : 0;
-> }
-> ...
->
-> Such code used in many radio-drivers as i understand.
->
-> Is it good to place this empty and almost empty functions in:
-> (here i see two variants)
->
-> 1) In header file that be in linux/drivers/media/radio/ directory.
-> Later, we can move some generic/or repeating code in this header.
->
-> 2) In any v4l header. What header may contain this ?
->
-> ?
->
-> For what ? Well, as i understand we can decrease amount of lines and
-> provide this simple generic functions. It's like
-> video_device_release_empty function behaviour. Maybe not only radio
-> drivers can use such vidioc_g_input and vidioc_s_input.
->
-> Is it worth ?
+On Mon, 23 Mar 2009, Kuninori Morimoto wrote:
 
-I don't think it is worth doing this for g/s_input. I think it is useful to 
-have them here: it makes it very clear that there is just a single input 
-and the overhead in both lines and actual bytes is minimal.
+> 
+> Signed-off-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> ---
+> I used flags to judge though
+> I said I use edge_threshold un-used 4 bit.
+> 
+> v1 -> v2
+> o add struct ov772x_edge_ctrl
+> o add new flags
+> 
+>  drivers/media/video/ov772x.c |   31 +++++++++++++++++++++++++++++++
+>  include/media/ov772x.h       |   26 +++++++++++++++++++++++---
+>  2 files changed, 54 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
+> index 34c9819..ae832e6 100644
+> --- a/drivers/media/video/ov772x.c
+> +++ b/drivers/media/video/ov772x.c
+> @@ -816,6 +816,37 @@ static int ov772x_set_params(struct ov772x_priv *priv, u32 width, u32 height,
+>  	ov772x_reset(priv->client);
+>  
+>  	/*
+> +	 * set Edge Ctrl
+> +	 */
+> +	if (priv->info->flags & OV772X_FLAG_EDGE_STRENGTH) {
+> +		ret = ov772x_mask_set(priv->client, EDGE0, 0x1F,
+> +				      priv->info->edgectrl.strength);
+> +		if (ret < 0)
+> +			goto ov772x_set_fmt_error;
+> +	}
+> +
+> +	if (priv->info->flags & OV772X_FLAG_EDGE_THRESHOLD) {
+> +		ret = ov772x_mask_set(priv->client, EDGE1, 0x0F,
+> +				      priv->info->edgectrl.threshold);
+> +		if (ret < 0)
+> +			goto ov772x_set_fmt_error;
+> +	}
+> +
+> +	if (priv->info->flags & OV772X_FLAG_EDGE_LOW) {
+> +		ret = ov772x_mask_set(priv->client, EDGE2, 0xFF,
+> +				      priv->info->edgectrl.low);
+> +		if (ret < 0)
+> +			goto ov772x_set_fmt_error;
+> +	}
+> +
+> +	if (priv->info->flags & OV772X_FLAG_EDGE_HIGH) {
+> +		ret = ov772x_mask_set(priv->client, EDGE3, 0xFF,
+> +				      priv->info->edgectrl.high);
+> +		if (ret < 0)
+> +			goto ov772x_set_fmt_error;
+> +	}
 
-But for the empty open and release functions you could easily handle that in 
-v4l2-dev.c: if you leave the open and release callbacks to NULL, then 
-v4l2_open and v4l2_release can just return 0. That would be nice.
+No idea, does it really make sense to set low edge without setting high? 
+or to set threshold without strength?
 
-Regards,
+> +
+> +	/*
+>  	 * set size format
+>  	 */
+>  	ret = ov772x_write_array(priv->client, priv->win->regs);
+> diff --git a/include/media/ov772x.h b/include/media/ov772x.h
+> index 57db48d..c5051c7 100644
+> --- a/include/media/ov772x.h
+> +++ b/include/media/ov772x.h
+> @@ -13,14 +13,34 @@
+>  
+>  #include <media/soc_camera.h>
+>  
+> -/* for flags */
+> -#define OV772X_FLAG_VFLIP     0x00000001 /* Vertical flip image */
+> -#define OV772X_FLAG_HFLIP     0x00000002 /* Horizontal flip image */
+> +/*
+> + * for flags
+> + */
+> +#define OV772X_FLAG_VFLIP		(1 << 0) /* Vertical flip image */
+> +#define OV772X_FLAG_HFLIP		(1 << 1) /* Horizontal flip image */
+> +#define OV772X_FLAG_EDGE_STRENGTH	(1 << 2) /* Edge Ctrl strength */
+> +#define OV772X_FLAG_EDGE_THRESHOLD	(1 << 3) /* Edge ctrl threshold */
+> +#define OV772X_FLAG_EDGE_LOW		(1 << 4) /* Edge ctrl low */
+> +#define OV772X_FLAG_EDGE_HIGH		(1 << 5) /* Edge ctrl high */
+>  
+> +/*
+> + * for Edge ctrl
+> + */
 
-	Hans
+Please, explain in the comment what this edge controls are good for, at 
+least approximately, so people without the datasheet have a chance to 
+understand what's going on here.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> +struct ov772x_edge_ctrl {
+> +	unsigned char strength;  /* strength control */
+> +	unsigned char threshold; /* threshold control */
+> +	unsigned char low;       /* strength Low point control */
+> +	unsigned char high;      /* strength High point control */
+> +};
+> +
+> +/*
+> + * ov772x camera info
+> + */
+>  struct ov772x_camera_info {
+>  	unsigned long          buswidth;
+>  	unsigned long          flags;
+>  	struct soc_camera_link link;
+> +	struct ov772x_edge_ctrl edgectrl;
+>  };
+>  
+>  #endif /* __OV772X_H__ */
+> -- 
+> 1.5.6.3
+> 
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
