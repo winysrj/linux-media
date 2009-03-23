@@ -1,82 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.232]:33746 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755631AbZCBIJ4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Mar 2009 03:09:56 -0500
+Received: from web56908.mail.re3.yahoo.com ([66.196.97.97]:23808 "HELO
+	web56908.mail.re3.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750822AbZCWNwG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Mar 2009 09:52:06 -0400
+Message-ID: <871136.15243.qm@web56908.mail.re3.yahoo.com>
+References: <164695.77575.qm@web56903.mail.re3.yahoo.com>  <412bdbff0903161118o2d038bdetc4d52851e35451df@mail.gmail.com>  <63160.21731.qm@web56906.mail.re3.yahoo.com>  <1237251478.3303.37.camel@palomino.walls.org>  <954486.20343.qm@web56908.mail.re3.yahoo.com>  <1237425168.3303.94.camel@palomino.walls.org> <de8cad4d0903220853v4b871e91x7de6efebfb376034@mail.gmail.com>
+Date: Mon, 23 Mar 2009 06:52:01 -0700 (PDT)
+From: Corey Taylor <johnfivealive@yahoo.com>
+Subject: Re: Problems with Hauppauge HVR 1600 and cx18 driver
+To: Brandon Jenkins <bcjenkins@tvwhere.com>,
+	Andy Walls <awalls@radix.net>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <de8cad4d0903220853v4b871e91x7de6efebfb376034@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <A24693684029E5489D1D202277BE894416429F9F@dlee02.ent.ti.com>
-References: <Acl1IyATAKAzUiSPQiOOAI2yzi0iWQ==>
-	 <A24693684029E5489D1D202277BE894416429F9F@dlee02.ent.ti.com>
-Date: Mon, 2 Mar 2009 17:09:54 +0900
-Message-ID: <5e9665e10903020009y7fe7d0d0j356708e1c3149cac@mail.gmail.com>
-Subject: Re: [REVIEW PATCH 09/14] OMAP: CAM: Add ISP Core
-From: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	Sakari Ailus <sakari.ailus@nokia.com>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
 
-reviewing ISP driver, I found that we've got no querymenu support in
-ISP and also omap3 camera interface driver.
+> Andy,
 
-+/**
-+ * struct vcontrol - Video control structure.
-+ * @qc: V4L2 Query control structure.
-+ * @current_value: Current value of the control.
-+ */
-+static struct vcontrol {
-+       struct v4l2_queryctrl qc;
-+       int current_value;
-+} video_control[] = {
+> I am noticing an improvement in pixelation by setting the bufsize to
+> 64k. I will monitor over the next week and report back. I am running 3
+> HVR-1600s and the IRQs are coming up shared with the USB which also
+> supports my HD PVR capture device. Monday nights are usually one of
+> the busier nights for recording so I will know how well this holds up.
 
-<snip>
+> Thanks for the tip!
 
-+       {
-+               {
-+                       .id = V4L2_CID_PRIVATE_ISP_COLOR_FX,
-+                       .type = V4L2_CTRL_TYPE_INTEGER,
-+                       .name = "Color Effects",
-+                       .minimum = PREV_DEFAULT_COLOR,
-+                       .maximum = PREV_BW_COLOR,
-+                       .step = 1,
-+                       .default_value = PREV_DEFAULT_COLOR,
-+               },
-+               .current_value = PREV_DEFAULT_COLOR,
-+       }
-+};
+> Brandon
 
-I think we should make it menu type for this color FX control.
-If that kind of control has no menu information, user has no way to
-figure out what kind of FX supported by device.
-BTW if we make querymenu support in omap3 camera subsystem, we should
-make querymenu support for v4l2 int device also.
-I think I've seen before a patch which intent to use querymenu in v4l2
-int device, but no patch for omap3 ISP and camera interface.
-Can I make a patch and post on linux-omap, linux-media list? of course
-if you don't mind.
-Or...am I digging wrong way? I mean.. querymenu for omap3 camera subsystem.
-Please let me know :)
+Hi Andy and Brandon, I too tried various different bufsizes as suggested and I still see very noticeable pixelation/tearing regardless of the setting.
 
-Cheers,
+I even upgraded my motherboard this past weekend to an Asus AM2+ board with
+Phenon II X3 CPU. Still the same problems with the card in a brand new
+setup.
 
-Nate
+I also tried modifying the cx18 source code as Andy suggested and that made more debug warning show up in my syslog, but still did not resolve the issue. Haven't tried this yet with the new motherboard though.
 
--- 
-========================================================
-DongSoo(Nathaniel), Kim
-Engineer
-Mobile S/W Platform Lab.
-Telecommunication R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
-========================================================
+Is it possible that this card is more sensitive to hiccups in the signal coming from the cable line? Or interference from other close-by cables and electronic equipment?
+
+When recording/watching Live TV through MythTV, I see that ffmpeg is constantly outputting various errors related to the video stream. I can post those here if you think it's relevant.
+
+Shoud I just return this card and get one with a different chipset? Or do you think driver updates can solve the issue?
+
+I'm happy to hold on to this card if it means I can contribute in some way to fixing the problem, if it's fixable : )
+
+
+      
