@@ -1,125 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.230]:29486 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752530AbZCJFnx (ORCPT
+Received: from smtp0.lie-comtel.li ([217.173.238.80]:62570 "EHLO
+	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750906AbZCWXiu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Mar 2009 01:43:53 -0400
-Received: by rv-out-0506.google.com with SMTP id g37so2039857rvb.1
-        for <linux-media@vger.kernel.org>; Mon, 09 Mar 2009 22:43:51 -0700 (PDT)
+	Mon, 23 Mar 2009 19:38:50 -0400
+Message-ID: <49C81D86.1020309@kaiser-linux.li>
+Date: Tue, 24 Mar 2009 00:38:46 +0100
+From: Thomas Kaiser <v4l@kaiser-linux.li>
 MIME-Version: 1.0
-Date: Tue, 10 Mar 2009 14:43:51 +0900
-Message-ID: <66cf70750903092243v7c1ba7c0of95d0bdc836116be@mail.gmail.com>
-Subject: Compro VideoMate U90
-From: scott <scottlegs@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Paul Thomas <pthomas8589@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: gspca in the LinuxTv wiki
+References: <49C80321.60402@kaiser-linux.li> <c785bba30903231451q535707e5j881bccf99ad8c6e3@mail.gmail.com>
+In-Reply-To: <c785bba30903231451q535707e5j881bccf99ad8c6e3@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-I recently bought a Compro VideoMate U90, described on the box as a
-"USB 2.0 DVB-T Stick with Remote".
+Paul Thomas wrote:
+> I like it. Can we add a section for tested architectures (i.e. x86,
+> x86_64, arm, sparc, etc...).
 
-When plugging it in, /var/log/messages simply says:
+Hi Paul
 
-Mar 10 12:50:49 sonata kernel: [60359.936022] usb 4-5: new high speed
-USB device using ehci_hcd and address 3
-Mar 10 12:50:49 sonata kernel: [60360.070474] usb 4-5: configuration
-#1 chosen from 1 choice
+I think this is welcome, when it starts....
 
-On my system (Kubuntu 8.10), it registers as a "VideoMate U150", which
-appears to be a similar (same?) device available in Taiwan. Does
-anyone have any more information about this device, or advice on how
-to get it working?
+This is a suggestion, which does not mean that I do all the stuff.
 
-Regards,
-Scott.
+I will get up the webcams from my page to the LinuxTv wiki with all 
+information I can provide....
 
-Some more info below:
-U90 page: http://www.comprousa.com/en/product/u90/u90.html
-U150 page (english translation):
-http://translate.google.com/translate?prev=hp&hl=en&u=http%3A%2F%2Fwww.comprousa.com%2Ftw%2Fproduct%2Fu150%2Fu150.html&sl=auto&tl=en
+But I hope other people will contribute, too?
 
-$ uname -srvmo
-Linux 2.6.27-13-generic #1 SMP Thu Feb 26 07:31:49 UTC 2009 x86_64 GNU/Linux
+Thomas
 
-$ sudo lsusb -v
- Bus 004 Device 003: ID 185b:0150 Compro
- Device Descriptor:
- bLength                18
- bDescriptorType         1
- bcdUSB               2.00
- bDeviceClass            0 (Defined at Interface level)
- bDeviceSubClass         0
- bDeviceProtocol         0
- bMaxPacketSize0        64
- idVendor           0x185b Compro
- idProduct          0x0150
- bcdDevice            1.00
- iManufacturer           1 COMPRO
- iProduct                2 VideoMate U150
- iSerial                 3 00000172
- bNumConfigurations      1
- Configuration Descriptor:
- bLength                 9
- bDescriptorType         2
- wTotalLength           41
- bNumInterfaces          1
- bConfigurationValue     1
- iConfiguration          4 USB2.0-Bulk&Iso
- bmAttributes         0xa0
- (Bus Powered)
- Remote Wakeup
- MaxPower              500mA
- Interface Descriptor:
- bLength                 9
- bDescriptorType         4
- bInterfaceNumber        0
- bAlternateSetting       0
- bNumEndpoints           1
- bInterfaceClass       255 Vendor Specific Class
- bInterfaceSubClass    255 Vendor Specific Subclass
- bInterfaceProtocol    255 Vendor Specific Protocol
- iInterface              5 Bulk-In, Interface
- Endpoint Descriptor:
- bLength                 7
- bDescriptorType         5
- bEndpointAddress     0x81  EP 1 IN
- bmAttributes            2
- Transfer Type            Bulk
- Synch Type               None
- Usage Type               Data
- wMaxPacketSize     0x0200  1x 512 bytes
- bInterval               0
- Interface Descriptor:
- bLength                 9
- bDescriptorType         4
- bInterfaceNumber        0
- bAlternateSetting       1
- bNumEndpoints           1
- bInterfaceClass       255 Vendor Specific Class
- bInterfaceSubClass    255 Vendor Specific Subclass
- bInterfaceProtocol    255 Vendor Specific Protocol
- iInterface              6 Iso-In, Interface
- Endpoint Descriptor:
- bLength                 7
- bDescriptorType         5
- bEndpointAddress     0x81  EP 1 IN
- bmAttributes            1
- Transfer Type            Isochronous
- Synch Type               None
- Usage Type               Data
- wMaxPacketSize     0x03ac  1x 940 bytes
- bInterval               1
- Device Qualifier (for other device speed):
- bLength                10
- bDescriptorType         6
- bcdUSB               2.00
- bDeviceClass            0 (Defined at Interface level)
- bDeviceSubClass         0
- bDeviceProtocol         0
- bMaxPacketSize0        64
- bNumConfigurations      2
- Device Status:     0x0000
- (Bus Powered)
+> 
+> thanks,
+> Paul
+> 
+> On Mon, Mar 23, 2009 at 2:46 PM, Thomas Kaiser <v4l@kaiser-linux.li> wrote:
+>> I was thinking about updating my page [1] with the results I get with gspca
+>> V2. But I think it would be better to have this info on the LinuxTV wiki.
+>> Unfortunately, I did not find a page for gspca. So I thought I should start
+>> one, but I don't think this is the right thing because there are other
+>> drivers available for webcams.
+>>
+>> Why not start a "Webcam compatibly page" similar to my page [1]?
+>> - a photo of the webcam
+>> - USB ID
+>> - capabilities of the cam
+>> - the chipsets when known
+>> - driver + version (+ kernel version), at the time tested
+>> - application used for testing (version)
+>> - links with some information to other interesting pages
+>> - and some more you can think of
+>>
+>> What you guys think about it?
+>>
+>>
+>> [1] http://www.kaiser-linux.li/index.php/Linux_and_Webcams
+>>
+>> Thomas
+>>
+>> PS: the only reference I found about gspca on the LinuxTV wiki:
+>> http://www.linuxtv.org/wiki/index.php/Development:_Reverse_Engineering_USB_Webcams#gspca
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
