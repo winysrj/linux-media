@@ -1,60 +1,249 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from os.inf.tu-dresden.de ([141.76.48.99]:56065 "EHLO
-	os.inf.tu-dresden.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757337AbZCYXsS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2009 19:48:18 -0400
-Date: Thu, 26 Mar 2009 00:09:32 +0100
-From: "Udo A. Steinberg" <udo@hypervisor.org>
-To: darron@kewl.org, v4l-dvb-maintainer@linuxtv.org,
-	linux-media@vger.kernel.org
-Cc: mchehab@redhat.com
-Subject: Hauppauge/IR breakage with 2.6.28/2.6.29
-Message-ID: <20090326000932.6aa1a456@laptop.hypervisor.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/O6LBErVZ3_8wUDQolMDHF6_";
- protocol="application/pgp-signature"; micalg=PGP-SHA1
+Received: from bear.ext.ti.com ([192.94.94.41]:39056 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752943AbZCWM5W (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Mar 2009 08:57:22 -0400
+Received: from dflp53.itg.ti.com ([128.247.5.6])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n2NCvG87025887
+	for <linux-media@vger.kernel.org>; Mon, 23 Mar 2009 07:57:21 -0500
+From: Chaithrika U S <chaithrika@ti.com>
+To: linux-media@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	Chaithrika U S <chaithrika@ti.com>
+Subject: [PATCH] v4l2-subdev: THS7303 video amplifier driver
+Date: Mon, 23 Mar 2009 08:38:15 -0400
+Message-Id: <1237811895-26949-1-git-send-email-chaithrika@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/O6LBErVZ3_8wUDQolMDHF6_
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+TI THS7303 video amplifier driver code
 
-Hi,
+This patch adds driver for TI THS7303 video amplifier. This driver is
+implemented as a v4l2 sub device. Tested on TI DM646x EVM.
 
-The following patch
-http://kerneltrap.org/mailarchive/git-commits-head/2008/10/13/3643574
-that was added between 2.6.27 and 2.6.28 has resulted in my Hauppauge
-WinTV IR remote not working anymore. I've tracked down the breakage to:
+This patch applies on top of the ADV7343 driver patch submitted prior to
+this. The dependency is due to the modification of the
+'Kconfig', 'Makefile', 'v4l2-chip-ident.h' files by both the patches.
 
-if (dev!=3D0x1e && dev!=3D0x1f)=20
-  return 0;
+Signed-off-by: Chaithrika U S <chaithrika@ti.com>
+---
+ drivers/media/video/Kconfig     |    9 ++
+ drivers/media/video/Makefile    |    1 +
+ drivers/media/video/ths7303.c   |  158 +++++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-chip-ident.h |    3 +
+ 4 files changed, 171 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/ths7303.c
 
-in drivers/media/video/ir-kbd-i2c.c
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 49ff639..9747e4d 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -435,6 +435,15 @@ config VIDEO_ADV7343
+           To compile this driver as a module, choose M here: the
+           module will be called adv7343.
+ 
++config VIDEO_THS7303
++	tristate "THS7303 Video Amplifier"
++	depends on I2C
++	help
++	  Support for TI THS7303 video amplifier
++
++	  To compile this driver as a module, choose M here: the
++          module will be called ths7303.
++
+ comment "Video improvement chips"
+ 
+ config VIDEO_UPD64031A
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index eaa5a49..4dc10de 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -55,6 +55,7 @@ obj-$(CONFIG_VIDEO_BT819) += bt819.o
+ obj-$(CONFIG_VIDEO_BT856) += bt856.o
+ obj-$(CONFIG_VIDEO_BT866) += bt866.o
+ obj-$(CONFIG_VIDEO_KS0127) += ks0127.o
++obj-$(CONFIG_VIDEO_THS7303) += ths7303.o
+ 
+ obj-$(CONFIG_VIDEO_ZORAN) += zoran/
+ 
+diff --git a/drivers/media/video/ths7303.c b/drivers/media/video/ths7303.c
+new file mode 100644
+index 0000000..ae94910
+--- /dev/null
++++ b/drivers/media/video/ths7303.c
+@@ -0,0 +1,158 @@
++/*
++ * ths7303- THS7303 Video Amplifier driver
++ *
++ * Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation version 2.
++ *
++ * This program is distributed .as is. WITHOUT ANY WARRANTY of any
++ * kind, whether express or implied; without even the implied warranty
++ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/ctype.h>
++#include <linux/i2c.h>
++#include <linux/device.h>
++#include <linux/delay.h>
++#include <linux/module.h>
++#include <linux/uaccess.h>
++#include <linux/videodev2.h>
++
++#include <media/v4l2-device.h>
++#include <media/v4l2-subdev.h>
++#include <media/v4l2-chip-ident.h>
++
++MODULE_DESCRIPTION("TI THS7303 video amplifier driver");
++MODULE_AUTHOR("Chaithrika U S");
++MODULE_LICENSE("GPL");
++
++#define THS7303_NAME	"ths7303"
++
++static int debug = 1;
++module_param(debug, int, 0644);
++MODULE_PARM_DESC(debug, "Debug level 0-1");
++
++struct ths7303_state {
++	struct v4l2_subdev sd;
++};
++
++/* following function is used to set ths7303 */
++static int ths7303_setvalue(struct v4l2_subdev *sd, v4l2_std_id std)
++{
++	int err = 0;
++	u8 val;
++	struct i2c_client *client;
++
++	client = v4l2_get_subdevdata(sd);
++
++	if (std & V4L2_STD_ALL) {
++		val = 0x02;
++		v4l2_dbg(1, debug, sd, "setting value for SDTV format\n");
++	} else {
++		val = 0x00;
++		v4l2_dbg(1, debug, sd, "disabling all channels\n");
++	}
++
++	err |= i2c_smbus_write_byte_data(client, 0x01, val);
++	err |= i2c_smbus_write_byte_data(client, 0x02, val);
++	err |= i2c_smbus_write_byte_data(client, 0x03, val);
++
++	if (err)
++		v4l2_err(sd, "write failed\n");
++
++	return err;
++}
++
++static int ths7303_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
++{
++	return ths7303_setvalue(sd, norm);
++}
++
++static int ths7303_g_chip_ident(struct v4l2_subdev *sd,
++				struct v4l2_dbg_chip_ident *chip)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++
++	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_THS7303, 0);
++}
++
++static const struct v4l2_subdev_tuner_ops ths7303_tuner_ops = {
++	.s_std	= ths7303_s_std,
++};
++
++static const struct v4l2_subdev_core_ops ths7303_core_ops = {
++	.g_chip_ident = ths7303_g_chip_ident,
++};
++
++static const struct v4l2_subdev_ops ths7303_ops = {
++	.core	= &ths7303_core_ops,
++	.tuner 	= &ths7303_tuner_ops,
++};
++
++static int ths7303_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	struct ths7303_state *state;
++	v4l2_std_id std_id = V4L2_STD_NTSC;
++
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
++		return -ENODEV;
++
++	v4l_info(client, "chip found @ 0x%x (%s)\n",
++			client->addr << 1, client->adapter->name);
++
++	state = kzalloc(sizeof(struct ths7303_state), GFP_KERNEL);
++	if (state == NULL)
++		return -ENOMEM;
++
++	v4l2_i2c_subdev_init(&state->sd, client, &ths7303_ops);
++
++	return ths7303_setvalue(&state->sd, std_id);
++
++}
++
++static int ths7303_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++
++	v4l2_device_unregister_subdev(sd);
++	kfree(container_of(sd, struct ths7303_state, sd));
++
++	return 0;
++}
++
++static const struct i2c_device_id ths7303_id[] = {
++	{THS7303_NAME, 0},
++	{},
++};
++
++MODULE_DEVICE_TABLE(i2c, ths7303_id);
++
++static struct i2c_driver ths7303_driver = {
++	.driver = {
++		.owner	= THIS_MODULE,
++		.name	= THS7303_NAME,
++	},
++	.probe		= ths7303_probe,
++	.remove		= ths7303_remove,
++	.id_table	= ths7303_id,
++};
++
++static int __init ths7303_init(void)
++{
++	return i2c_add_driver(&ths7303_driver);
++}
++
++static void __exit ths7303_exit(void)
++{
++	i2c_del_driver(&ths7303_driver);
++}
++
++module_init(ths7303_init);
++module_exit(ths7303_exit);
++
+diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
+index 66cd877..4d7e227 100644
+--- a/include/media/v4l2-chip-ident.h
++++ b/include/media/v4l2-chip-ident.h
+@@ -137,6 +137,9 @@ enum {
+ 	/* module saa7191: just ident 7191 */
+ 	V4L2_IDENT_SAA7191 = 7191,
+ 
++	/* module ths7303: just ident 7303 */
++	V4L2_IDENT_THS7303 = 7303,
++
+ 	/* module adv7343: just ident 7343 */
+ 	V4L2_IDENT_ADV7343 = 7343,
+ 
+-- 
+1.5.6
 
-My remote sends with dev=3D0x0 and is the following model:
-http://www.phphuoc.com/reviews/tvtuner_hauppauge_wintv_theater/index_files/=
-image001.jpg
-
-Removing the check results in the remote working again. Is there a way to
-convince the remote to send a different dev? Otherwise I guess the check
-should be relaxed.
-
-Cheers,
-
-	- Udo
-
---Sig_/O6LBErVZ3_8wUDQolMDHF6_
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAknKua0ACgkQnhRzXSM7nSk+3wCeOm9FCv4Fa02X0xYEozh+qfxy
-6ewAn3IX/sw+awHI+fQ63m2MJZEOszua
-=X6FX
------END PGP SIGNATURE-----
-
---Sig_/O6LBErVZ3_8wUDQolMDHF6_--
