@@ -1,19 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2OGRdIC001644
-	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 12:27:39 -0400
-Received: from smtp105.biz.mail.re2.yahoo.com (smtp105.biz.mail.re2.yahoo.com
-	[206.190.52.174])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n2OGQpZB030734
-	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 12:27:04 -0400
-Message-ID: <49C909C8.8050107@migmasys.com>
-Date: Tue, 24 Mar 2009 12:26:48 -0400
-From: Ming Liu <mliu@migmasys.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2NNWF2d024761
+	for <video4linux-list@redhat.com>; Mon, 23 Mar 2009 19:32:15 -0400
+Received: from mail-bw0-f170.google.com (mail-bw0-f170.google.com
+	[209.85.218.170])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n2NNVvBM016031
+	for <video4linux-list@redhat.com>; Mon, 23 Mar 2009 19:31:57 -0400
+Received: by bwz18 with SMTP id 18so1943660bwz.3
+	for <video4linux-list@redhat.com>; Mon, 23 Mar 2009 16:31:57 -0700 (PDT)
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+In-Reply-To: <200903232011.41319.lamarque@gmail.com>
+References: <200903231217.45740.lamarque@gmail.com>
+	<1237842462.31041.81.camel@tux.localhost>
+	<200903232011.41319.lamarque@gmail.com>
+Date: Tue, 24 Mar 2009 02:31:56 +0300
+Message-ID: <208cbae30903231631k33a66a12t29b0f0bdd4c2f0dc@mail.gmail.com>
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Lamarque Vieira Souza <lamarque@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: strange problem with KMC-4400R
+Cc: video4linux-list@redhat.com
+Subject: Re: Patch implementing V4L2_CAP_STREAMING for zr364xx driver
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,23 +32,70 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hello, Lamarque
 
-I am working on KMC-4400R card. I tried to write a program to use two 
-channels from the card by following the example program of V4l2. 
-However, I met a very strange problem.
+On Tue, Mar 24, 2009 at 2:11 AM, Lamarque Vieira Souza
+<lamarque@gmail.com>wrote:
 
-When I kept capturing image, there were several lines following the 
-moving objects like a ghost (sometimes more than one ghost) on the 
-collected image. I can not figure out what causes this problem and how 
-to fix it. The standard xawtv does not have this problem when only one 
-channel is displayed.
+<snip>
 
-Any comments will be helpful and many thanks in advance.
 
-Sincerely yours
-Ming
+>
+> > +static void read_pipe_completion(struct urb *purb)
+> > +{
+> > +     struct zr364xx_pipeinfo *pipe_info;
+> > +     struct zr364xx_camera *cam;
+> > +     int status;
+> > +     int pipe;
+> > +
+> > +     pipe_info = purb->context;
+> > +     DBG("%s %p, status %d\n", __func__, purb, purb->status);
+> > +     if (pipe_info == NULL) {
+> > +             err("no context!");
+> >
+> >
+> > +             return;
+> > +     }
+> > +
+> > +     cam = pipe_info->cam;
+> > +     if (cam == NULL) {
+> > +             err("no context!");
+> >
+> > Do you use err() macro from usb.h ?
+> > If yes - as i know it's better not to use this macros, because this
+> macros
+> > can suddenly became deprecated. It's more comfortable to use printk or
+> > dev_err.
+>
+>         Well, s2255drc.c uses it, since my changes are based on that I
+> supposed it
+> could be used. I will change them to printk's.
 
+
+I saw situation when there were troubles because driver used info() and
+warn() macroses and usb.h wasn't contain these macroses and next-kernel tree
+was some kind of broken. It's definitely  uncomfortable.
+
+> Also, our current maillist is linux-media@vger.kernel.org.
+> > It's better to post patches there.
+>
+>         Ok. When I finish to remove some code I will post the new patch
+> there. That
+> also explain why this list is so calm compared to the other kernel lists I
+> have been to. By the way, do you understande something about pixelformats?
+> I
+> need to convert YUV 4:2:0 into YUV 4:2:2 (UYVY) in libv4l to make my webcam
+> work with Skype. Actually the frame is decoded into uncompressed jpeg
+> before
+> it is converted to YUV 4:2:0, so maybe I do not need to YUV 4:2:0 into YUV
+> 4:2:2 (UYVY). I am just not used to the pixel format details.
+
+
+Sorry, i can't help you with that :(
+It's one more reason to ask linux-media kernel list.
+
+-- 
+Best regards, Klimov Alexey
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
