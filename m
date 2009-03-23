@@ -1,250 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:50766 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751725AbZCaMOt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2009 08:14:49 -0400
-Received: by fxm2 with SMTP id 2so2403208fxm.37
-        for <linux-media@vger.kernel.org>; Tue, 31 Mar 2009 05:14:46 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <200903310013.00369.hverkuil@xs4all.nl>
-References: <1238432987.4027.12.camel@tux.localhost>
-	 <200903310013.00369.hverkuil@xs4all.nl>
-Date: Tue, 31 Mar 2009 16:14:46 +0400
-Message-ID: <208cbae30903310514p47917487i96decea17d0288@mail.gmail.com>
-Subject: Re: [review] dsbr100 radio: convert to to v4l2_device
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Douglas Schilling Landgraf <dougsland@gmail.com>,
+Received: from tichy.grunau.be ([85.131.189.73]:40241 "EHLO tichy.grunau.be"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750796AbZCWUuB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Mar 2009 16:50:01 -0400
+Date: Mon, 23 Mar 2009 21:49:40 +0100
+From: Janne Grunau <j@jannau.net>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
 	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Subject: Re: linux-next: Tree for March 23 (media/video/hdpvr)
+Message-ID: <20090323204940.GA5079@aniel>
+References: <20090323205454.d0cbf721.sfr@canb.auug.org.au> <49C7D965.5080202@oracle.com>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="SUOF0GtieIMvvwua"
+Content-Disposition: inline
+In-Reply-To: <49C7D965.5080202@oracle.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello, Hans
-Thanks for review.
 
-On Tue, Mar 31, 2009 at 2:13 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>
->> I'm still confused about messages like v4l2_err and about unplugging
->> procedure.
->
-> For a simple device like this unregistering the v4l2_device in the disconnect
-> is OK. Although the best method would be to call v4l2_device_disconnect()
-> in the disconnect function and postpone the v4l2_device_unregister() until the
-> usb_dsbr100_video_device_release function.
+--SUOF0GtieIMvvwua
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I switched to v4l2_device_disconnect. Looks good, thanks.
+Hi,
 
-> What is really missing in the v4l2 core is a release function that is called
-> when the last video device node is closed. The video_release function is only
-> called when that particular video device is released, but for drivers that
-> open multiple device nodes you still have to put in administration to wait
-> until really the last user of any device node disappears.
->
-> I might add a feature like that to the v4l2 core in the future. It shouldn't
-> be too hard.
->
-> Anyway, that's not relevant for a simple USB radio device :-)
->
-> Re: the v4l2_err functions: v4l2_device_register sets up a standard unique
-> driver prefix that can be used for logging. Since the 'name' can be
-> overwritten by the driver you have more flexibility than the standard
-> dev_info functions. I also have some ideas on how to improve there functions.
+On Mon, Mar 23, 2009 at 11:48:05AM -0700, Randy Dunlap wrote:
+> Stephen Rothwell wrote:
+> > 
+> > Changes since 20090320:
+> 
+> > The v4l-dvb tree gained a build failure for which I have reverted 3 commits.
+> 
+> drivers/built-in.o: In function `hdpvr_disconnect':
+> hdpvr-core.c:(.text+0xf3894): undefined reference to `i2c_del_adapter'
+> drivers/built-in.o: In function `hdpvr_register_i2c_adapter':
+> (.text+0xf4145): undefined reference to `i2c_add_adapter'
+> 
+> 
+> CONFIG_I2C is not enabled.
 
-Well, my question was - should i remove dev_ messages and use v4l2_
-messages everywhere in driver ?
+following patch should fix that.
 
->> I tested it with my radio device and it works(unplugging works also
->> without oopses).
->> Douglas, if you can find some free time to test patch it will be very
->> good too :)
->>
->> --
->> diff -r f86c84534cb4 linux/drivers/media/radio/dsbr100.c
->> --- a/linux/drivers/media/radio/dsbr100.c     Sun Mar 29 22:54:35 2009 -0300
->> +++ b/linux/drivers/media/radio/dsbr100.c     Mon Mar 30 21:00:51 2009 +0400
->> @@ -32,6 +32,9 @@
->>   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
->>
->>   History:
->> +
->> + Version 0.45:
->> +     Converted to v4l2_device.
->>
->>   Version 0.44:
->>       Add suspend/resume functions, fix unplug of device,
->> @@ -88,7 +91,7 @@
->>  #include <linux/slab.h>
->>  #include <linux/input.h>
->>  #include <linux/videodev2.h>
->> -#include <media/v4l2-common.h>
->> +#include <media/v4l2-device.h>
->>  #include <media/v4l2-ioctl.h>
->>  #include <linux/usb.h>
->>  #include "compat.h"
->> @@ -98,39 +101,8 @@
->>   */
->>  #include <linux/version.h>   /* for KERNEL_VERSION MACRO     */
->>
->> -#define DRIVER_VERSION "v0.44"
->> -#define RADIO_VERSION KERNEL_VERSION(0, 4, 4)
->> -
->> -static struct v4l2_queryctrl radio_qctrl[] = {
->> -     {
->> -             .id            = V4L2_CID_AUDIO_MUTE,
->> -             .name          = "Mute",
->> -             .minimum       = 0,
->> -             .maximum       = 1,
->> -             .default_value = 1,
->> -             .type          = V4L2_CTRL_TYPE_BOOLEAN,
->> -     },
->> -/* HINT: the disabled controls are only here to satify kradio and such apps */
->> -     {       .id             = V4L2_CID_AUDIO_VOLUME,
->> -             .flags          = V4L2_CTRL_FLAG_DISABLED,
->> -     },
->> -     {
->> -             .id             = V4L2_CID_AUDIO_BALANCE,
->> -             .flags          = V4L2_CTRL_FLAG_DISABLED,
->> -     },
->> -     {
->> -             .id             = V4L2_CID_AUDIO_BASS,
->> -             .flags          = V4L2_CTRL_FLAG_DISABLED,
->> -     },
->> -     {
->> -             .id             = V4L2_CID_AUDIO_TREBLE,
->> -             .flags          = V4L2_CTRL_FLAG_DISABLED,
->> -     },
->> -     {
->> -             .id             = V4L2_CID_AUDIO_LOUDNESS,
->> -             .flags          = V4L2_CTRL_FLAG_DISABLED,
->> -     },
->> -};
->> +#define DRIVER_VERSION "v0.45"
->> +#define RADIO_VERSION KERNEL_VERSION(0, 4, 5)
->>
->>  #define DRIVER_AUTHOR "Markus Demleitner <msdemlei@tucana.harvard.edu>"
->>  #define DRIVER_DESC "D-Link DSB-R100 USB FM radio driver"
->> @@ -168,6 +140,8 @@
->>  struct dsbr100_device {
->>       struct usb_device *usbdev;
->>       struct video_device videodev;
->> +     struct v4l2_device v4l2_dev;
->> +
->>       u8 *transfer_buffer;
->>       struct mutex lock;      /* buffer locking */
->>       int curfreq;
->> @@ -387,6 +361,7 @@
->>       mutex_unlock(&radio->lock);
->>
->>       video_unregister_device(&radio->videodev);
->> +     v4l2_device_unregister(&radio->v4l2_dev);
->>  }
->>
->>
->> @@ -482,14 +457,11 @@
->>  static int vidioc_queryctrl(struct file *file, void *priv,
->>                               struct v4l2_queryctrl *qc)
->>  {
->> -     int i;
->> +     switch (qc->id) {
->> +     case V4L2_CID_AUDIO_MUTE:
->> +             return v4l2_ctrl_query_fill(qc, 0, 1, 1, 1);
->> +     }
->>
->> -     for (i = 0; i < ARRAY_SIZE(radio_qctrl); i++) {
->> -             if (qc->id && qc->id == radio_qctrl[i].id) {
->> -                     memcpy(qc, &(radio_qctrl[i]), sizeof(*qc));
->> -                     return 0;
->> -             }
->> -     }
->>       return -EINVAL;
->>  }
->>
->> @@ -686,22 +658,15 @@
->>       .vidioc_s_input     = vidioc_s_input,
->>  };
->>
->> -/* V4L2 interface */
->> -static struct video_device dsbr100_videodev_data = {
->> -     .name           = "D-Link DSB-R 100",
->> -     .fops           = &usb_dsbr100_fops,
->> -     .ioctl_ops      = &usb_dsbr100_ioctl_ops,
->> -     .release        = usb_dsbr100_video_device_release,
->> -};
->> -
->>  /* check if the device is present and register with v4l and usb if it is */
->>  static int usb_dsbr100_probe(struct usb_interface *intf,
->>                               const struct usb_device_id *id)
->>  {
->>       struct dsbr100_device *radio;
->> +     struct v4l2_device *v4l2_dev;
->>       int retval;
->>
->> -     radio = kmalloc(sizeof(struct dsbr100_device), GFP_KERNEL);
->> +     radio = kzalloc(sizeof(struct dsbr100_device), GFP_KERNEL);
->>
->>       if (!radio)
->>               return -ENOMEM;
->> @@ -713,17 +678,35 @@
->>               return -ENOMEM;
->>       }
->>
->> +     v4l2_dev = &radio->v4l2_dev;
->> +     strlcpy(v4l2_dev->name, "dsbr100", sizeof(v4l2_dev->name));
->
-> Try to leave this out and let v4l2_device_register fill it in based on the
-> parent device. It should generate a decent name. If you create it yourself,
-> then make sure it is a unique name.
+Janne
 
-I removed this line and it works fine. It looks like v4l2_dev->name
-contains the same name that used in dev_info/err/warn messages.
+ps: Mauro, I'll send a pull request shortly
 
->> +
->> +     retval = v4l2_device_register(&intf->dev, v4l2_dev);
->> +     if (retval < 0) {
->> +             v4l2_err(v4l2_dev, "couldn't register v4l2_device\n");
->> +             kfree(radio->transfer_buffer);
->> +             kfree(radio);
->> +             return retval;
->> +     }
->> +
->> +     strlcpy(radio->videodev.name, v4l2_dev->name, sizeof(radio->videodev.name));
->> +     radio->videodev.v4l2_dev = v4l2_dev;
->> +     radio->videodev.fops = &usb_dsbr100_fops;
->> +     radio->videodev.ioctl_ops = &usb_dsbr100_ioctl_ops;
->> +     radio->videodev.release = usb_dsbr100_video_device_release;
->> +
->>       mutex_init(&radio->lock);
->> -     radio->videodev = dsbr100_videodev_data;
->>
->>       radio->removed = 0;
->>       radio->users = 0;
->>       radio->usbdev = interface_to_usbdev(intf);
->>       radio->curfreq = FREQ_MIN * FREQ_MUL;
->>       video_set_drvdata(&radio->videodev, radio);
->> +
->>       retval = video_register_device(&radio->videodev, VFL_TYPE_RADIO, radio_nr);
->>       if (retval < 0) {
->>               dev_err(&intf->dev, "couldn't register video device\n");
->> +             v4l2_device_unregister(v4l2_dev);
->>               kfree(radio->transfer_buffer);
->>               kfree(radio);
->>               return -EIO;
->
-> Looks good otherwise.
->
-> Regards,
->
->       Hans
->
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+--SUOF0GtieIMvvwua
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline; filename="hdpvr_without_i2c.diff"
 
-I sent updated version of patch to Douglas to test. If test will be
-good patch will be posted to maillist.
+make hdpvr build without CONFIG_I2C
 
-Thank you,
--- 
-best regards, Klimov Alexey
+Signed-off-by: Janne Grunau <j@jannau.net>
+---
+diff --git a/drivers/media/video/hdpvr/Makefile b/drivers/media/video/hdpvr/Makefile
+index 79ad2e1..145163b 100644
+--- a/drivers/media/video/hdpvr/Makefile
++++ b/drivers/media/video/hdpvr/Makefile
+@@ -1,4 +1,6 @@
+-hdpvr-objs	:= hdpvr-control.o hdpvr-core.o hdpvr-i2c.o hdpvr-video.o
++hdpvr-objs := hdpvr-control.o hdpvr-core.o hdpvr-video.o
++
++hdpvr-$(CONFIG_I2C) += hdpvr-i2c.o
+ 
+ obj-$(CONFIG_VIDEO_HDPVR) += hdpvr.o
+ 
+diff --git a/drivers/media/video/hdpvr/hdpvr-core.c b/drivers/media/video/hdpvr/hdpvr-core.c
+index e7300b5..dadb2e7 100644
+--- a/drivers/media/video/hdpvr/hdpvr-core.c
++++ b/drivers/media/video/hdpvr/hdpvr-core.c
+@@ -21,6 +21,7 @@
+ #include <linux/usb.h>
+ #include <linux/mutex.h>
+ #include <linux/i2c.h>
++#include <linux/autoconf.h>
+ 
+ #include <linux/videodev2.h>
+ #include <media/v4l2-dev.h>
+@@ -389,12 +390,14 @@ static void hdpvr_disconnect(struct usb_interface *interface)
+ 	mutex_unlock(&dev->io_mutex);
+ 
+ 	/* deregister I2C adapter */
++#ifdef CONFIG_I2C
+ 	mutex_lock(&dev->i2c_mutex);
+ 	if (dev->i2c_adapter)
+ 		i2c_del_adapter(dev->i2c_adapter);
+ 	kfree(dev->i2c_adapter);
+ 	dev->i2c_adapter = NULL;
+ 	mutex_unlock(&dev->i2c_mutex);
++#endif /* CONFIG_I2C */
+ 
+ 	atomic_dec(&dev_nr);
+ 
+
+--SUOF0GtieIMvvwua--
