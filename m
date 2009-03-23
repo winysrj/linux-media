@@ -1,60 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:50949 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754141AbZCEUgG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Mar 2009 15:36:06 -0500
-Date: Thu, 5 Mar 2009 21:36:02 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Trent Piepho <xyzzy@speakeasy.org>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jean Delvare <khali@linux-fr.org>
-Subject: Re: Results of the 'dropping support for kernels <2.6.22' poll
-In-Reply-To: <Pine.LNX.4.58.0903051217070.24268@shell2.speakeasy.net>
-Message-ID: <Pine.LNX.4.64.0903052129510.4980@axis700.grange>
-References: <200903022218.24259.hverkuil@xs4all.nl> <20090304141715.0a1af14d@pedra.chehab.org>
- <Pine.LNX.4.64.0903051954460.4980@axis700.grange>
- <Pine.LNX.4.58.0903051217070.24268@shell2.speakeasy.net>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from bombadil.infradead.org ([18.85.46.34]:47153 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751080AbZCWWiy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Mar 2009 18:38:54 -0400
+Date: Mon, 23 Mar 2009 19:38:53 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Pierre Ossman <drzeus@drzeus.cx>
+Cc: Uri Shkolnik <uris@siano-ms.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/1 re-submit 1] sdio: add low level i/o functions for
+ workarounds
+Message-ID: <20090323193853.4fc0531c@pedra.chehab.org>
+In-Reply-To: <20090322153534.0c64de1e@mjolnir.ossman.eu>
+References: <20090314074201.5c4a1ce1@pedra.chehab.org>
+	<20090322153534.0c64de1e@mjolnir.ossman.eu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 5 Mar 2009, Trent Piepho wrote:
+On Sun, 22 Mar 2009 15:35:34 +0100
+Pierre Ossman <drzeus@drzeus.cx> wrote:
 
-> On Thu, 5 Mar 2009, Guennadi Liakhovetski wrote:
-> > On Wed, 4 Mar 2009, Mauro Carvalho Chehab wrote:
-> > > Beside the fact that we don't need to strip support for legacy kernels, the
-> > > advantage of using this method is that we can evolute to a new development
-> > > model. As several developers already required, we should really use the
-> > > standard -git tree as everybody's else. This will simplify a lot the way we
-> > > work, and give us more agility to send patches upstream.
-> > >
-> > > With this backport script, plus the current v4l-dvb building systems, and after
-> > > having all backport rules properly mapped, we can generate a "test tree"
-> > > based on -git drivers/media, for the users to test the drivers against their
-> > > kernels, and still use a clean tree for development.
-> >
-> > Sorry, switching to git is great, but just to make sure I understood you
-> > right: by "-git drivers/media" you don't mean it is going to be a git tree
-> > of only drivers/media, but it is going to be a normal complete Linux
-> > kernel tree, right?
+> On Sat, 14 Mar 2009 07:42:01 -0300
+> Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
 > 
-> So there will be no way we can test a driver without switching to a new
-> kernel hourly?  And there is no way we can test someone else's tree without
-> compiling an entirely new kernel and rebooting?  And every tree we want to
-> work on requires a complete copy of the entire kernel source?
+> > Hi Pierre,
+> > 
+> > Uri sent me this patchset, as part of the changes for supporting some devices
+> > from Siano.
+> > 
+> > The changeset looks fine, although I have no experiences with MMC. Are you
+> > applying it on your tree, or do you prefer if I apply here?
+> > 
+> > If you're applying on yours, this is my ack:
+> > Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > 
+> 
+> This should probably go in your tree with the patch for the Siano SDIO
+> driver. 
 
-AFAIR, Mauro wanted to provide snapshots for those who absolutely prefer 
-to work with partial trees. Although, to be honest, I don't understand 
-what makes video drivers so special. Think about audio drivers, or 
-network, including WLAN. I never heard about those subsystems working with 
-or providing subtree snapshots. If only before specific drivers or 
-subsystems are included in the mainline, but not long after that.
+Ok, I'll add it on my -git at the proper time.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+> The problem is that that driver isn't ready yet. I was going
+> to do a final cleanup once the USB separations patches were done, but
+> those never materialised.
+
+So, if I understood you well, you want me first to apply the USB patches first,
+or is it something that is still pending from Siano side?
+
+
+Cheers,
+Mauro
