@@ -1,26 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2BFaUjB011133
-	for <video4linux-list@redhat.com>; Wed, 11 Mar 2009 11:36:30 -0400
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.171])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n2BFa98B017973
-	for <video4linux-list@redhat.com>; Wed, 11 Mar 2009 11:36:09 -0400
-Received: by wf-out-1314.google.com with SMTP id 25so58385wfc.6
-	for <video4linux-list@redhat.com>; Wed, 11 Mar 2009 08:36:08 -0700 (PDT)
-From: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
-To: video4linux-list@redhat.com
-Date: Wed, 11 Mar 2009 10:36:04 -0500
-References: <49B7D4A0.7040503@xnet.com>
-In-Reply-To: <49B7D4A0.7040503@xnet.com>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2OLBEgq019832
+	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 17:11:14 -0400
+Received: from mail-qy0-f104.google.com (mail-qy0-f104.google.com
+	[209.85.221.104])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2OLAsXw010303
+	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 17:10:54 -0400
+Received: by qyk2 with SMTP id 2so3423872qyk.23
+	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 14:10:53 -0700 (PDT)
+From: Lamarque Vieira Souza <lamarque@gmail.com>
+To: "Theodoros V. Kalamatianos" <thkala@softlab.ece.ntua.gr>
+Date: Tue, 24 Mar 2009 18:10:44 -0300
+References: <200903231708.08860.lamarque@gmail.com>
+	<200903241605.07230.lamarque@gmail.com>
+	<alpine.LMD.1.10.0903242247470.17631@infinity.deepcore.ngn>
+In-Reply-To: <alpine.LMD.1.10.0903242247470.17631@infinity.deepcore.ngn>
 MIME-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200903111036.05151.vanessaezekowitz@gmail.com>
-Subject: Re: Getting endless messages: "kernel: [<number.] cx88[0]: Calling
-	XC2028/3023 callback" in /var/log/messages / Kword 120 ATSC
-	tuner stopped working
+Message-Id: <200903241810.44995.lamarque@gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: Skype and libv4l
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,22 +34,42 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Wednesday 11 March 2009 10:11:28 stuart wrote:
+Em Tuesday 24 March 2009, Theodoros V. Kalamatianos escreveu:
+> On Tue, 24 Mar 2009, Lamarque Vieira Souza wrote:
+> >>> LD_PRELOAD=/usr/lib32/libv4l2.so /opt/skype/skype
+> >>>
+> >>>        /opt/skype/skype is the binary executable. There is not error
+> >>> message about LD_PRELOAD or libv4l. Skype returns:
+> >>>
+> >>> Skype V4L2: Could not find a suitable capture format
+> >>> Skype V4L2: Could not find a suitable capture format
+> >>> Starting the process...
+> >>> Skype Xv: Xv ports available: 4
+> >>> Skype XShm: XShm support enabled
+> >>> Skype Xv: Using Xv port 131
+> >>> Skype Xv: No suitable overlay format found
+>
+> Keep in mind that LD_PRELOAD will be silently ignored for static binaries
+> and it will simply NOT WORK. Are you certain that you are not using the
+> static version of Skype?
 
-> Hi...
-> 
-> Getting endless messages: "kernel: [<number.] cx88[0]: Calling 
-> XC2028/3023 callback" in /var/log/messages.
+	I am using the static version of Skype, but Skype is statically linked 
+against Qt4 only, it is dynamically linked against all other libraries. Now I 
+can get log using LIBV4L2_LOG_FILENAME if I preload this way:
 
-In point of fact, my ATSC 120 also does this.
+LD_PRELOAD=/usr/lib32/libv4l/v4l2convert.so /opt/skype/skype
 
-However, it still seems to work fine, at least in digital mode.  I haven't used the analog side in a while.
+	I have found the problem. The vidioc_try_fmt_vid_cap function in the driver 
+return -EINVAL if the fmt.pix.field is different from V4L2_FIELD_ANY or 
+V4L2_FIELD_NONE. Skype seems to set this field as V4L2_FIELD_INTERLACED. 
+Because of that libv4l assumes that all destination formats (YUV420 included) 
+are invalid. Commenting this part of the driver makes Skype work and it is 
+showing pictures. YES!!! :-)
 
 -- 
-"There are some things in life worth obsessing over.  Most
-things aren't, and when you learn that, life improves."
-http://starbase.globalpc.net/~vanessa/
-Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
+Lamarque V. Souza
+http://www.geographicguide.com/brazil.htm
+Linux User #57137 - http://counter.li.org/
 
 --
 video4linux-list mailing list
