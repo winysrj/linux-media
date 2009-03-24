@@ -1,126 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp0.lie-comtel.li ([217.173.238.80]:64392 "EHLO
-	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756280AbZCEU3M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 15:29:12 -0500
-Message-ID: <49B03614.5020701@kaiser-linux.li>
-Date: Thu, 05 Mar 2009 21:29:08 +0100
-From: Thomas Kaiser <v4l@kaiser-linux.li>
+Received: from banach.math.auburn.edu ([131.204.45.3]:50799 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752171AbZCXAMA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Mar 2009 20:12:00 -0400
+Date: Mon, 23 Mar 2009 19:24:50 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Thomas Kaiser <v4l@kaiser-linux.li>
+cc: linux-media@vger.kernel.org
+Subject: Re: gspca in the LinuxTv wiki
+In-Reply-To: <49C80321.60402@kaiser-linux.li>
+Message-ID: <alpine.LNX.2.00.0903231902140.13696@banach.math.auburn.edu>
+References: <49C80321.60402@kaiser-linux.li>
 MIME-Version: 1.0
-To: kilgota@banach.math.auburn.edu
-CC: Kyle Guinn <elyk03@gmail.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: RFC on proposed patches to mr97310a.c for gspca and v4l
-References: <20090217200928.1ae74819@free.fr> <200902171907.40054.elyk03@gmail.com> <alpine.LNX.2.00.0903031746030.21483@banach.math.auburn.edu> <200903032050.13915.elyk03@gmail.com> <alpine.LNX.2.00.0903032247530.21793@banach.math.auburn.edu> <49AE3EA1.3090504@kaiser-linux.li> <49AE41DE.1000300@kaiser-linux.li> <alpine.LNX.2.00.0903041248020.22500@banach.math.auburn.edu> <49AFCD5B.4050100@kaiser-linux.li> <alpine.LNX.2.00.0903051221510.27780@banach.math.auburn.edu> <49B025B2.1040309@kaiser-linux.li> <alpine.LNX.2.00.0903051337130.27979@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.0903051337130.27979@banach.math.auburn.edu>
-Content-Type: text/plain; charset=US-ASCII; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kilgota@banach.math.auburn.edu wrote:
->>> That of course is a guess. OTOH it could be on a scale of 0 to 0x80, 
->>> or it could be that only the digits 0 through 9 are actually used, 
->>> and the basis is then 100, or too many other variations to count. 
->>> Also what is considered a "normal" or an "average" value? The trouble 
->>> with your suggestion of a scale from 0 to 0xff is that it makes 
->>> sense, and in a situation like this one obviously can not assume that.
->>
->> I don't really understand what you try to tell with this sentence:
->> "and in a situation like this one obviously can not assume that."
-> 
-> I mean, your interpretation of 0 to 0xff is a natural and sensible 
-> interpretation (for us). But what one can not assume is, it made sense 
-> to those who constructed the system. Perhaps those guys were setting it 
-> all up differently.
 
-You are right, we don't know what the developer were thinking, 
-unfortunately,
 
-You have to turn yourself in a webcam developer and think how you would 
-do it. When you find, by observing/testing the cam, that it looks 
-similar as you thought about how to do it, the observation should be true!
+On Mon, 23 Mar 2009, Thomas Kaiser wrote:
 
-> 
->>
->> The values changed from 0x03 (dark) to 0xfc (bright), for me does this 
->> mean that the scale goes from 0x00 to 0xff!? Or I am wrong?
-> 
-> Well, if you have actual data to back up your impressions about this, 
-> then clearly you have evidence. So that is good, obviously.
+>
+> I was thinking about updating my page [1] with the results I get with gspca 
+> V2. But I think it would be better to have this info on the LinuxTV wiki. 
+> Unfortunately, I did not find a page for gspca. So I thought I should start 
+> one, but I don't think this is the right thing because there are other 
+> drivers available for webcams.
+>
+> Why not start a "Webcam compatibly page" similar to my page [1]?
+> - a photo of the webcam
+> - USB ID
+> - capabilities of the cam
+> - the chipsets when known
+> - driver + version (+ kernel version), at the time tested
+> - application used for testing (version)
+> - links with some information to other interesting pages
+> - and some more you can think of
+>
+> What you guys think about it?
+>
+>
+> [1] http://www.kaiser-linux.li/index.php/Linux_and_Webcams
+>
+> Thomas
 
-I will do this again in the next couple of weeks (lens removed).
+Your web page looks nice, as a start. But it is, like most web pages which 
+deal with Linux support for category X, Y, or Z of hardware, not up to 
+date. Goes with the territory, I guess.
 
-> 
->>
->>>
->>> What I am suspecting is that these things have some kind of standard 
->>> definitions, which are not necessarily done by logic but by 
->>> convention, and there is a document out there somewhere which lays it 
->>> all down. The document could have been produced by Microsoft, for 
->>> example, which doubtless has its own problems reducing chaos to order 
->>> in the industry, or by some kind of consortium of camera 
->>> manufacturers, or something like that. I really do strongly suspect 
->>> that the interpretation of all of this is written down somewhere. But 
->>> I don't know where to look.
->>
->> I believe that this documents are exists, but not available for 
->> public:-( Just company confidential.
-> 
-> That may be true. If so, then such documentation is indeed not 
-> available. But sometimes a document is published and available, and one 
-> just is not aware of the fact.
-> 
->>
->> Anyway most of the Linux webcam drivers were done by re-engineering 
->> the Windoz driver (usbsnoop). That said, all information about the 
->> cams is "a guess".
-> 
-> Very true. Also true about the still cameras that I supported in 
-> libgphoto2. There are no secrets kept on the USB bus. But what is done 
-> inside the computer does not appear on the USB bus and there is no log 
-> of it.
-> 
->>
->> For the brightness thing, I just was working with a light and studied 
->> what is changing in the header of the frame. At this time I did this, 
->> I was not aware that I could remove the lens of the webcam to be more 
->> sensible to light change and get more precise results.
->>
->> During the work I did for the PAC7311 Pixart chip I found out that 
->> removing the lens and put light directly to the sensor does help a lot 
->> to figure out how the cam is working.
->>
->> And with this idea in mind, we could even get further to guess the 
->> compression algo from a cam.
->>
->> Assuming that the sensor has a Bayer pattern.
->> - remove lens.
->> - put white light on the sensor
->> - use color filter an put each spectrum (RGB) on the sensor
->> - check the stream and find out what is changing in the stream 
->> according to the different light conditions.
->>
->> Looks like I get off topic, now ;-)
-> 
-> But it is very interesting nevertheless.
+However, I do have one question. How are you going to list the various 
+cameras?
 
-I think so, I didn't try with the color filter :-(
+Probably, one needs to list them by brand name and model and by USB ID, 
+too, as Michel Xaard did with his list in the first place. But then it 
+will become a mighty long list. For, the same camera gets recycled in lots 
+of different "brands" and "models." This is the kind of information which 
+someone needs who is buying a camera, because the camera does not come 
+with the USB ID printed on the outside of the package.
 
-> 
->>
->> Something else comes in my mind. Would it good to document all this 
->> what we are talking bout somewhere on a webpage?
->>
->> Thomas
-> 
-> Perhaps so. Also a good idea to try to collect some people who have 
-> similar interests and are trying to work on similar problems. I have 
-> been trying to do that for a while, but with mixed and limited success.
+But OTOH this causes a problem, too, because the manufacturers of cameras 
+(probably some of them are not exactly manufacturers but rather packagers) 
+are switching the electronics inside the device any time they feel like 
+it, or if they get a large quantity of chips at a good price, or whatever. 
+I have seen it happen several times that a certain camera keeps the make 
+and model, but it gets a new USB Vendor:Product number. And, worst of all, 
+it may have previously been well supported but now it is not. Someone who 
+goes and buys the camera based upon the make and model which are 
+stencilled on the outside of the camera and printed on the packaging 
+material can end up being stung.
 
-May be, some people read this and have the same felling. Let's see what 
-happens.
+Therefore, I would recommend that all possible ways to identify a camera, 
+however insignificant those ways might appear to be, should be preserved.
 
-Thomas
+As one example of this kind of information, there is a cheap camera 
+distributor in the US called sakar.com. Their cameras always come with a 
+little, insignificant number on the outside of the package somewhere. It 
+is usually five digits long, and is sometimes found associated with the 
+UPC barcode on the package and is found nowhere else. If you want to know 
+which camera it is, that number is essential. But it is too typical of all 
+of us that we throw away things which appear insignificant. Who would 
+think that the bubble-pack card which the camera is packaged in will 
+contain information that can be obtained nowhere else, or otherwise only 
+by good luck or by trial and error? But, alas, it is true.
+
+Very specific example: The Sakar KidzCam (old version) was an SQ905 
+camera and thus well supported. The Sakar KidzCam (new version) is a 
+Jeilin JL2005B and uses a particularly nasty compression algorithm which 
+has eluded all attempts to figure out. The packaging in the store looks 
+identical for both of them. The cameras physically look identical. The 
+only way you could tell them apart in the store is by those little bitty, 
+insignificant-looking code numbers on the packaging material.
+
+I could give several other examples, too.
+
+Theodore Kilgore
