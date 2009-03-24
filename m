@@ -1,150 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.nav6.org ([219.93.2.80]:48017 "EHLO nav6.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751250AbZCRH7t (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2009 03:59:49 -0400
-Message-ID: <49C0A9E8.1080403@nav6.org>
-Date: Wed, 18 Mar 2009 16:59:36 +0900
-From: Ang Way Chuang <wcang@nav6.org>
+Received: from mail2.sea5.speakeasy.net ([69.17.117.4]:44124 "EHLO
+	mail2.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755305AbZCXMEs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Mar 2009 08:04:48 -0400
+Date: Tue, 24 Mar 2009 05:04:45 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Devin Heitmueller <devin.heitmueller@gmail.com>,
+	Hans Werner <HWerner4@gmx.de>, linux-media@vger.kernel.org
+Subject: Re: Results of the 'dropping support for kernels <2.6.22' poll
+In-Reply-To: <20090321143556.4169c15d@pedra.chehab.org>
+Message-ID: <Pine.LNX.4.58.0903231739340.28292@shell2.speakeasy.net>
+References: <200903022218.24259.hverkuil@xs4all.nl> <20090304141715.0a1af14d@pedra.chehab.org>
+ <20090320204707.227110@gmx.net> <20090320192046.15d32407@pedra.chehab.org>
+ <412bdbff0903201903g270b4be1nb55e6d881e46efc2@mail.gmail.com>
+ <20090321000416.1ce9aaef@pedra.chehab.org> <412bdbff0903210505s75e446cfq35768c3878415e48@mail.gmail.com>
+ <20090321143556.4169c15d@pedra.chehab.org>
 MIME-Version: 1.0
-To: Grant Gardner <grant@lastweekend.com.au>
-CC: linux-media@vger.kernel.org
-Subject: Re: No subsystem id (and therefore no cx88_dvb loaded) after reboot
-References: <e0f27036e7a5af1cc8e8a725b522593b@localhost> <49C03FAE.9060009@nav6.org>
-In-Reply-To: <49C03FAE.9060009@nav6.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ang Way Chuang wrote:
-> I experience similar problem with HVR4000 Lite cards that we have in the 
-> lab. The card can't tune after cold boot, but a reboot will fix the 
-> problem. I will check whether it has the similar invalid subsystem id 
-> problem.
+On Sat, 21 Mar 2009, Mauro Carvalho Chehab wrote:
+> > When this thread was started, it was about dropping support for
+> > kernels < 2.6.22.  However, it has turned into a thread about moving
+> > to git and dropping support for *all* kernels less than the bleeding
+> > edge -rc candidate (only supporting them through a backport system for
+> > testers).  The two are very different things.
 
-Unfortunately, I can't reproduce the cold boot tuning problem now. We'll 
-send syslog information if our partner universities report the similar 
-issue. Sorry.
+Yes they are very different things.  I do not like a poll about dropping
+the current build system being disguised as a poll about dropping support
+for very old kernels.  How about a new poll, "should developers be required
+to have multiple systems and spend the majority of their time recompiling
+new kernels and testing nvidia and wireless drivers?"
 
-> 
-> Grant Gardner wrote:
->>
->>
->> I'm looking for some pointers on debugging a problem with my DVICO
->> FusionHDTV Hybrid DVB-T card.
->>
->> The device was working perfectly prior to a reconfiguration of my 
->> machine,
->> kernel upgrade etc...
->>
->> Now, on a cold start everything seems to start smoothly but I can't tune
->> channels.
->>
->> Then, after a reboot the device is not detected due to "invalid subsystem
->> id". As below lspci reports no subsystem information at all.
->> Comparing the lspci output seems to be around the "Region 0: Memory at
->> ee000000 v de000000", but I'm not
->> sure what this means, and whether fixing the reboot problem will fix the
->> channel tuning problem.
->>
->> Running mythbuntu 8.10
->> 2.6.27-11-generic #1 SMP Thu Jan 29 19:28:32 UTC 2009 x86_64 GNU/Linux
->>
->> lspci -vvnn after cold start
->>
->> 00:0a.0 Multimedia video controller [0400]: Conexant Systems, Inc.
->> CX23880/1/2/3 PCI Video and Audio Decoder [14f1:8800] (rev 05)
->>     Subsystem: DViCO Corporation Device [18ac:db40]
->>     Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
->> Stepping- SERR- FastB2B- DisINTx-
->>     Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- 
->> <TAbort-
->> <MAbort- >SERR- <PERR- INTx-
->>     Latency: 32 (5000ns min, 13750ns max), Cache Line Size: 32 bytes
->>     Interrupt: pin A routed to IRQ 18
->>     Region 0: Memory at de000000 (32-bit, non-prefetchable) [size=16M]
->>     Capabilities: [44] Vital Product Data <?>
->>     Capabilities: [4c] Power Management version 2
->>         Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
->> PME(D0-,D1-,D2-,D3hot-,D3cold-)
->>         Status: D0 PME-Enable- DSel=0 DScale=0 PME-
->>     Kernel driver in use: cx8800
->>     Kernel modules: cx8800
->>
->> 00:0a.1 Multimedia controller [0480]: Conexant Systems, Inc. 
->> CX23880/1/2/3
->> PCI Video and Audio Decoder [Audio Port] [14f1:8811] (rev 05)
->>     Subsystem: DViCO Corporation Device [18ac:db40]
->>     Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
->> Stepping- SERR- FastB2B- DisINTx-
->>     Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- 
->> <TAbort-
->> <MAbort- >SERR- <PERR- INTx-
->>     Latency: 32 (1000ns min, 63750ns max), Cache Line Size: 32 bytes
->>     Interrupt: pin A routed to IRQ 11
->>     Region 0: Memory at df000000 (32-bit, non-prefetchable) [size=16M]
->>     Capabilities: [4c] Power Management version 2
->>         Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
->> PME(D0-,D1-,D2-,D3hot-,D3cold-)
->>         Status: D0 PME-Enable- DSel=0 DScale=0 PME-
->>     Kernel modules: cx88-alsa
->>
->> 00:0a.2 Multimedia controller [0480]: Conexant Systems, Inc. 
->> CX23880/1/2/3
->> PCI Video and Audio Decoder [MPEG Port] [14f1:8802] (rev 05)
->>     Subsystem: DViCO Corporation Device [18ac:db40]
->>     Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
->> Stepping- SERR- FastB2B- DisINTx-
->>     Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- 
->> <TAbort-
->> <MAbort- >SERR- <PERR- INTx-
->>     Latency: 32 (1500ns min, 22000ns max), Cache Line Size: 32 bytes
->>     Interrupt: pin A routed to IRQ 18
->>     Region 0: Memory at e0000000 (32-bit, non-prefetchable) [size=16M]
->>     Capabilities: [4c] Power Management version 2
->>         Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
->> PME(D0-,D1-,D2-,D3hot-,D3cold-)
-currently, though we're working on a commercial implementation of the
-RTP profile.
+> It is important to discuss a new model, since the current one has some flaws,
+> like:
 
-If you're interested in the GPL'ed UDP profile code, we can email it to
-you in a week or two (we'll eventually make it available on our website
-as well, but currently it needs to be cleaned up a bit).
+These are problems caused by having a large project with multiple areas of
+maintainership and many developers working simulaniously.  Switching to a
+full kernel tree and dropping cross kernel building support isn't going to
+a help.
 
-T.C.
->>         Status: D0 PME-Enable- DSel=0 DScale=0 PME-
->>     Kernel driver in use: cx88-mpeg driver manager
->>     Kernel modules: cx8802
->>
->>
->> lspci -vvnn after warm reboot
->>
->> 00:0a.0 Multimedia video controller [0400]: Conexant Systems, Inc.
->> CX23880/1/2/3 PCI Video and Audio Decoder [14f1:8800] (rev 05)
->>       Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
->> Stepping- SERR- FastB2B- DisINTx-
->>       Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
->> <TAbort- <MAbort- >SERR- <PERR- INTx-
->>       Latency: 32 (5000ns min, 13750ns max), Cache Line Size: 32 bytes
->>       Interrupt: pin A routed to IRQ 18
->>       Region 0: Memory at ee000000 (32-bit, non-prefetchable) [size=16M]
->>       Capabilities: [44] Vital Product Data <?>
->>       Capabilities: [4c] Power Management version 2
->>               Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA
->> PME(D0-,D1-,D2-,D3hot-,D3cold-)
->>               Status: D0 PME-Enable- DSel=0 DScale=0 PME-
->>       Kernel driver in use: cx8800
->>       Kernel modules: cx8800
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> 
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> - bug fixes are sometimes postponed, since they depend on the bleeding edge
+> patches;
 
+Full kernel source will just make this worse!  Your v4l patch needs some
+very recent change to pci core?  With a full tree, the v4l-dvb maintainer
+will have to wait until the pci maintainer accepts the patch and puts it
+into his tree.  Then the v4l-dvb maintainer will have to pull the pci tree.
+That won't just give you the one patch you need, but 100 other patches in
+the tree.  Then and only then can any v4l-dvb devlopers work on their patch
+that needs the pci fix.
+
+With the current system a v4l-dvb devloper can pick just the pci patch he
+needs and put it into his kernel or he can get the pci tree.  Then he's
+free to develop a v4l-dvb patch that needs the pci patch.  He can probably
+even do his v4l-dvb patch in a compatible manner, so that it can go in the
+v4l-dvb tree before the pci patch has even appeared in the pci tree.
+
+> - our model is different from the rest of Linux kernel community;
+
+Their model is worse.  Why make things worse just to help people who choose
+not to learn new things?
+
+> - it is hard to merge patches that needs coordination with changes outside
+> drivers/media;
+
+It's hard to merge patches that touch multiple areas of maintainership even
+if everyone uses full trees.
+
+> - the need of conversion for each -hg patch into -git;
+
+It's done by an automated script.  It allows fixing the large number of
+mistakes commited to the v4l-dvb tree.
+
+> - the need of backport upstream changes at the building system, and keeping
+> track of such changes.
+
+You will still have patches that touch drivers/media that don't go in via
+the v4l-dvb tree.  Just look at any system with a full tree, you'll see
+commits that touch that system's files and went in as some system wide
+cleanup patch via another maintainer's tree.  So you'll still have to merge
+these patches.
+
+> - the increased volume of patches on v4l/dvb made our development model
+> incredible complex for submitting work upstream, since it doesn't scale well,
+> and has caused some hard to solve merge conflicts.
+
+More patches means more merge conflicts.  Why does have an out of tree
+build system have anything to do with it?
+
+> You can even use a spare git clone, where, for example, only drivers/media will
+> be cloned on your local machine.
+
+Which is useless.  You can't build or run drivers/media only kernel tree!
