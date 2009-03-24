@@ -1,22 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx2.redhat.com (mx2.redhat.com [10.255.15.25])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2S6uOkJ030471
-	for <video4linux-list@redhat.com>; Sat, 28 Mar 2009 02:56:24 -0400
-Received: from mail-in-05.arcor-online.net (mail-in-05.arcor-online.net
-	[151.189.21.45])
-	by mx2.redhat.com (8.13.8/8.13.8) with ESMTP id n2S6uDNW006721
-	for <video4linux-list@redhat.com>; Sat, 28 Mar 2009 02:56:13 -0400
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Gordon Smith <spider.karma+video4linux-list@gmail.com>
-In-Reply-To: <2df568dc0903271004p4f2e551fo4c459d2759062d2b@mail.gmail.com>
-References: <2df568dc0903271004p4f2e551fo4c459d2759062d2b@mail.gmail.com>
-Content-Type: text/plain
-Date: Sat, 28 Mar 2009 07:52:54 +0100
-Message-Id: <1238223174.3432.4.camel@pc07.localdom.local>
-Mime-Version: 1.0
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2OJ6aLd003105
+	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 15:06:36 -0400
+Received: from mail-qy0-f104.google.com (mail-qy0-f104.google.com
+	[209.85.221.104])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n2OJ5GZ3017175
+	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 15:05:16 -0400
+Received: by qyk2 with SMTP id 2so3313038qyk.23
+	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 12:05:16 -0700 (PDT)
+From: Lamarque Vieira Souza <lamarque@gmail.com>
+To: Markus Rechberger <mrechberger@gmail.com>
+Date: Tue, 24 Mar 2009 16:05:06 -0300
+References: <200903231708.08860.lamarque@gmail.com>
+	<200903241542.32631.lamarque@gmail.com>
+	<d9def9db0903241158h6324e805j68682c42098648cd@mail.gmail.com>
+In-Reply-To: <d9def9db0903241158h6324e805j68682c42098648cd@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903241605.07230.lamarque@gmail.com>
 Cc: video4linux-list@redhat.com
-Subject: Re: saa7134 encoded data loss
+Subject: Re: Skype and libv4l
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,107 +34,91 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Em Tuesday 24 March 2009, Markus Rechberger escreveu:
+> On Tue, Mar 24, 2009 at 7:42 PM, Lamarque Vieira Souza
+>
+> <lamarque@gmail.com> wrote:
+> >        It must be some problem in LD_PRELOAD, even setting
+> > LIBV4L2_LOG_FILENAME the file is not created. I am running skype like
+> > this:
+> >
+> > LD_PRELOAD=/usr/lib32/libv4l2.so /opt/skype/skype
+> >
+> >        /opt/skype/skype is the binary executable. There is not error
+> > message about LD_PRELOAD or libv4l. Skype returns:
+> >
+> > Skype V4L2: Could not find a suitable capture format
+> > Skype V4L2: Could not find a suitable capture format
+> > Starting the process...
+> > Skype Xv: Xv ports available: 4
+> > Skype XShm: XShm support enabled
+> > Skype Xv: Using Xv port 131
+> > Skype Xv: No suitable overlay format found
+>
+> this is a problem of your graphiccard or graphic driver, look for
+> xorg.org tweaks.
 
-Am Freitag, den 27.03.2009, 11:04 -0600 schrieb Gordon Smith:
-> Hello -
-> 
-> I have a RTD Technologies VFG7350 (saa7134 based, no tuner) running current
-> v4l-dvb in debian 2.6.26-1.
-> 
-> Using live555 MediaServer, I can capture MPEG output:
-> {{{
-> cat /dev/video2 > test.ts
-> }}}
-> and stream without error to VLC client for as long as I care to watch.
-> 
-> If I use live555 test program to stream directly to network:
-> {{{
-> $ cat /dev/video2 | sudo ./testMPEG2TransportStreamer
-> }}}
-> the client shows continuous partial data loss after a variable amount of
-> time (~2.5 minutes).
-> 
-> I believe the test program uses the same underlying code as MediaServer, but
-> I haven't verified that yet.
-> 
-> 
-> I'd like to ask if the dmesg output below shows abnormality?
-> 
-> saa7134 modprobe.d settings:
-> {{{
-> options saa7134 core_debug=1 ts_debug=1 video_debug=1
-> }}}
-> 
-> dmesg during error free playback:
-> {{{
-> [  867.865020] saa7133[0]/ts: buffer_activate [cedce480]<7>saa7133[0]/ts: -
-> [top]     buf=cedce480 next=cedce180
-> [  867.865036] saa7133[0]/core: dmabits: task=0x00 ctrl=0x20 irq=0x30000
-> split=yes
-> [  867.865045] saa7133[0]/core: buffer_next #2 prev=caa80f2c/next=cedce1ac
-> [  867.865254] saa7133[0]/core: buffer_queue caa80e40
-> [  867.878682] saa7133[0]/core: buffer_finish cedce480
-> [  867.878695] saa7133[0]/core: buffer_next cedce180
-> [prev=caa80e6c/next=cedce1ac]
-> [  867.878703] saa7133[0]/ts: buffer_activate [cedce180]<7>saa7133[0]/ts: -
-> [bottom]  buf=cedce180 next=cedce780
-> [  867.878718] saa7133[0]/core: dmabits: task=0x00 ctrl=0x20 irq=0x30000
-> split=yes
-> [  867.878727] saa7133[0]/core: buffer_next #2 prev=caa80e6c/next=cedce7ac
-> [  867.878934] saa7133[0]/core: buffer_queue cedce480
-> [  867.892339] saa7133[0]/core: buffer_finish cedce180
-> [  867.892353] saa7133[0]/core: buffer_next cedce780
-> [prev=cedce4ac/next=cedce7ac]
-> }}}
+	Well, there are two problems above: the "Skype V4L2: Could not find a 
+suitable capture format" and the "Skype Xv: No suitable overlay format found". 
+I am trying to fix the first one for now, after that I am going to try to fix 
+the other. As I said before the webcam works with Kopete (64-bit) and with 
+mplayer (32-bit and 64-bit), so the Xv problem must be Skype specific, but I 
+cannot test this problem until I fix the first one.
 
-that is normal.
+> Markus
+>
+> >        OBS: compat-ioctl32.ko is being used by the driver so it should
+> > support 32- bit ioctl.
+> >
+> > Em Tuesday 24 March 2009, Lamarque Vieira Souza escreveu:
+> >>       Hi,
+> >>
+> >> Em Tuesday 24 March 2009, Hans de Goede escreveu:
+> >> > On 03/23/2009 09:08 PM, Lamarque Vieira Souza wrote:
+> >> > >   Hi all,
+> >> > >
+> >> > >   I am trying to make Skype work with my webcam (Creative PC-CAM
+> >> > > 880, driver zr364xx). By what I have found Skype only supports YU12,
+> >> > > YUYV and UYVY pixel formats, which libv4l supports as source formats
+> >> > > only and not as destination formats.
+> >> >
+> >> > YU12 is the same as YUV420 (planar) which skype does support. I assure
+> >> > you that skype works with libv4l for cams which have a native format
+> >> > which skype does not understand.
+> >>
+> >>       My fault here (+/-), I created a function to decode fourcc hex
+> >> numbers to names and it returns V4L2_PIX_FMT_YU12 instead of
+> >> V4L2_PIX_FMT_YUV420. I did not know they are synonyms. Anyway, it seems
+> >> lib4l 0.5.9 (32-bit) is not working with Skype (32-bit) while lib4l
+> >> 0.5.3 (64-bit) is working with Kopete (64-bit) patched to work with
+> >> libv4l (no LD_PRELOAD). I will keep on trying to figure out why.
+> >>
+> >> > What is an other issue with skype is that it insists on asking
+> >> > 320x240, so if the driver for your cam cannot deliver 320x240 and
+> >> > libv4l fails to make 320x240 out of it in someway (see below) then
+> >> > skype will fail.
+> >> >
+> >> > libv4l will crop 352x288 to 320x240 especially for skype, and it will
+> >> > downscale 640x480 to 320x240 for the same reason.
+> >>
+> >>       The driver delivers 320x240 as default.
+> >
+> > --
+> > Lamarque V. Souza
+> > http://www.geographicguide.com/brazil.htm
+> > Linux User #57137 - http://counter.li.org/
+> >
+> > --
+> > video4linux-list mailing list
+> > Unsubscribe
+> > mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> > https://www.redhat.com/mailman/listinfo/video4linux-list
 
-> dmesg during packet loss:
-> {{{
-> [  570.720624] saa7133[0]/ts: buffer_activate [caa67e20]<7>saa7133[0]/ts: -
-> [bottom]  buf=caa67e20 next=caa67e20
-> [  570.720640] saa7133[0]/core: dmabits: task=0x00 ctrl=0x20 irq=0x30000
-> split=yes
-> [  570.720649] saa7133[0]/core: buffer_next #2 prev=cf97c714/next=cf97c714
-> [  570.729136] saa7133[0]/core: buffer_queue cedce180
-> [  570.734314] saa7133[0]/core: buffer_finish caa67e20
-> [  570.734325] saa7133[0]/core: buffer_next cedce180
-> [prev=cedce1ac/next=cedce1ac]
-> [  570.734333] saa7133[0]/ts: buffer_activate [cedce180]<7>saa7133[0]/ts: -
-> [top]     buf=cedce180 next=cedce180
-> [  570.734349] saa7133[0]/core: dmabits: task=0x00 ctrl=0x20 irq=0x30000
-> split=yes
-> [  570.734358] saa7133[0]/core: buffer_next #2 prev=cf97c714/next=cf97c714
-> [  570.747999] saa7133[0]/core: buffer_finish cedce180
-> [  570.748009] saa7133[0]/core: buffer_next 00000000
-> [  570.748019] saa7133[0]/core: dmabits: task=0x00 ctrl=0x00 irq=0x0
-> split=yes
-> [  570.749162] saa7133[0]/core: buffer_queue cedce780
-> [  570.773149] saa7133[0]/core: buffer_queue cedce900
-> [  570.773160] saa7133[0]/ts: buffer_activate [cedce900]<7>saa7133[0]/ts: -
-> [top]     buf=cedce900 next=cedce780
-> [  570.773177] saa7133[0]/core: dmabits: task=0x00 ctrl=0x20 irq=0x30000
-> split=yes
-> [  570.789159] saa7133[0]/core: buffer_queue cedce540
-> [  570.800566] saa7133[0]/core: buffer_finish cedce900
-> [  570.800578] saa7133[0]/core: buffer_next cedce780
-> [prev=cedce56c/next=cedce7ac]
-> }}}
-> 
-> In particular, is this ok?
-> {{{
-> [  570.748009] saa7133[0]/core: buffer_next 00000000
-> [  570.748019] saa7133[0]/core: dmabits: task=0x00 ctrl=0x00 irq=0x0
-> split=yes
-> }}}
-> It does not appear during normal playback.
 
-No, it is not.
-
-Cheers,
-Hermann
-
+-- 
+Lamarque V. Souza
+http://www.geographicguide.com/brazil.htm
+Linux User #57137 - http://counter.li.org/
 
 --
 video4linux-list mailing list
