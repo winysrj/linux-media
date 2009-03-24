@@ -1,40 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:33887 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752414AbZC0KEc (ORCPT
+Received: from pfepa.post.tele.dk ([195.41.46.235]:33323 "EHLO
+	pfepa.post.tele.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751887AbZCXVjT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2009 06:04:32 -0400
-Date: Fri, 27 Mar 2009 07:04:24 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: David Wong <davidtlwong@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] CXUSB D680 DMB using unified lgs8gxx driver
-Message-ID: <20090327070424.1ea257c9@pedra.chehab.org>
-In-Reply-To: <15ed362e0903170856g17e5fa47i9fb3ac927c2d25a5@mail.gmail.com>
-References: <15ed362e0903170856g17e5fa47i9fb3ac927c2d25a5@mail.gmail.com>
+	Tue, 24 Mar 2009 17:39:19 -0400
+Date: Tue, 24 Mar 2009 22:41:18 +0100
+From: Sam Ravnborg <sam@ravnborg.org>
+To: Stoyan Gaydarov <stoyboyker@gmail.com>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 12/13] [drivers/media] changed ioctls to unlocked
+Message-ID: <20090324214118.GA24441@uranus.ravnborg.org>
+References: <1237929168-15341-13-git-send-email-stoyboyker@gmail.com> <20090324212445.224fd377@lxorguk.ukuu.org.uk> <6d291e080903241431m3816e0a0sb55070e1d992054d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <6d291e080903241431m3816e0a0sb55070e1d992054d@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 17 Mar 2009 23:56:57 +0800
-David Wong <davidtlwong@gmail.com> wrote:
-
-> This patch replace the use of lgs8gl5 driver by unified lgs8gxx driver, for
-> CXUSB D680 DMB (MagicPro ProHDTV)
+On Tue, Mar 24, 2009 at 04:31:54PM -0500, Stoyan Gaydarov wrote:
+> On Tue, Mar 24, 2009 at 4:24 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
+> >
+> >> -static int dabusb_ioctl (struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg)
+> >> +static long dabusb_ioctl (struct file *file, unsigned int cmd, unsigned long arg)
+> >>  {
+> >> +     lock_kernel();
+> >>       pdabusb_t s = (pdabusb_t) file->private_data;
+> >
+> > After the variables or you'll get lots of warnings from gcc
+> >
+> >
 > 
-> David T.L. Wong
+> Unfortunately I am not familiar with this driver and as such i was not
+> sure if the variable required the lock to be accessed or not so as to
+> play it safe i put it before the variable. But i can resubmit this
+> patch if there are no problems.
 
-Patch is ok. However, as it depends on the previous one, I'll mark it as RFC. When you submit back the previous patch (plus the API patch), re-submit the other patches on this series.
+Please do so.
 
-Also, since those patches are dependent, please number they at the subject, as:
+It is considered better style to first decalre the variable and then later
+assign it.
+So this would allow you to move the assignment after the lock_kernel(),
 
-[PATCH 01/05] 
-...
-[PATCH 05/05] 
-
-This allows us to be sure about the proper patch order to apply.
-
-Cheers,
-Mauro
+	Sam
