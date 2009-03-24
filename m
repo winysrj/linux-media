@@ -1,47 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web56903.mail.re3.yahoo.com ([66.196.97.92]:32551 "HELO
-	web56903.mail.re3.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751706AbZCPSK5 (ORCPT
+Received: from smtp0.lie-comtel.li ([217.173.238.80]:60569 "EHLO
+	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750863AbZCXHNi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2009 14:10:57 -0400
-Message-ID: <164695.77575.qm@web56903.mail.re3.yahoo.com>
-Date: Mon, 16 Mar 2009 11:10:54 -0700 (PDT)
-From: Corey Taylor <johnfivealive@yahoo.com>
-Subject: Problems with Hauppauge HVR 1600 and cx18 driver
-To: linux-media@vger.kernel.org
+	Tue, 24 Mar 2009 03:13:38 -0400
+Message-ID: <49C8881F.9020104@kaiser-linux.li>
+Date: Tue, 24 Mar 2009 08:13:35 +0100
+From: Thomas Kaiser <v4l@kaiser-linux.li>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+CC: linux-media@vger.kernel.org
+Subject: Re: gspca in the LinuxTv wiki
+References: <49C80321.60402@kaiser-linux.li> <alpine.LNX.2.00.0903231902140.13696@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0903231902140.13696@banach.math.auburn.edu>
+Content-Type: text/plain; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Theodore Kilgore wrote:
+> But OTOH this causes a problem, too, because the manufacturers of 
+> cameras (probably some of them are not exactly manufacturers but rather 
+> packagers) are switching the electronics inside the device any time they 
+> feel like it, or if they get a large quantity of chips at a good price, 
+> or whatever. I have seen it happen several times that a certain camera 
+> keeps the make and model, but it gets a new USB Vendor:Product number. 
+> And, worst of all, it may have previously been well supported but now it 
+> is not. Someone who goes and buys the camera based upon the make and 
+> model which are stencilled on the outside of the camera and printed on 
+> the packaging material can end up being stung.
 
-Hi, I just recently bought a Hauppauge Win TV HVR-1600 card and am using it with MythTV running on Ubuntu Intrepid 8.10 64-bit edition.
+Ok, just a example. See 
+http://www.kaiser-linux.li/index.php/Linux_and_Webcams#Typhoon_Easycam_USB_330K
 
-My hardware is an Asus A8N VM-CSM Motherboard with an Athlon 64 single core CPU.
+At the time I bought this cam it had a sn9c102 bridge and PAS202 and was 
+working great with gspca. Some time later, somebody reported to me that 
+he has the same cam but with a PAC7311. So I just updated my page with 
+the new information. AS of coincident, I was working on the PAC7311 at 
+the time I got this report!
 
-I'm using the cx18 driver compiled from Mercurial (as of last weekend) and download the latest firmware files available from Hauppauge.
+Anyway, with a good and nice looking page on the LinuxTV wiki, you can 
+get more interest from some other people and they may sign up and 
+correct the page or ad new information (like this cam has now this chipset).
 
-The card is working and I'm able to tune in clear QAM channels on Comcast Cable in Boston.
-
-The
-problem is that when recording HD content I see excessive tearing in
-the recorded video. I thought it might be my on-board video causing
-this but I transferred a recording over to another machine and the
-video plays back with the same artifacts and tearing as when I play it
-on the machine that recorded the video.
-
-I previously had the KWorld ATSC 110 running in the same machine and it recorded HD content with no noticeable visual artifacts on the same cable line.
-
-I've tried tweaking many different settings both in MythTV and in X11 and nothing has made the problem go away.
-
-Is this card perhaps more sensistive to signal disruptions in my cable line perhaps?
-
-If
-no, I was thinking that the problem could be due to driver problems in
-the current development code. Are there any workaround for this problem
-or should I give up and switch back to my KWorld card?
-
-Thanks very much!
+Thomas
 
 
-      
