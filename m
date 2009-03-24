@@ -1,13 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-MIME-Version: 1.0
-Date: Thu, 12 Mar 2009 10:14:38 +0100
-Message-ID: <23be820f0903120214j3104a4e2jb56d1250c9a3331a@mail.gmail.com>
-From: Gregor Fuis <gujs.lists@gmail.com>
-To: linux-media@vger.kernel.org, video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2O26XcE013847
+	for <video4linux-list@redhat.com>; Mon, 23 Mar 2009 22:06:33 -0400
+Received: from mail-in-11.arcor-online.net (mail-in-11.arcor-online.net
+	[151.189.21.51])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n2O269eY031496
+	for <video4linux-list@redhat.com>; Mon, 23 Mar 2009 22:06:09 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Gordon Smith <spider.karma+video4linux-list@gmail.com>
+In-Reply-To: <2df568dc0903231033t30ed26afr80b413e889b096ae@mail.gmail.com>
+References: <2df568dc0903201324rc5c4982x45ce071c39ddc74b@mail.gmail.com>
+	<1237608177.13642.8.camel@pc07.localdom.local>
+	<2df568dc0903231033t30ed26afr80b413e889b096ae@mail.gmail.com>
+Content-Type: text/plain
+Date: Tue, 24 Mar 2009 03:03:52 +0100
+Message-Id: <1237860232.4023.14.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: disable v4l2-ctl logging --log-status in /var/log/messages
+Cc: video4linux-list@redhat.com
+Subject: Re: Failure to read saa7134/saa6752hs MPEG output
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -17,18 +28,173 @@ List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
-List-ID: <linux-media.vger.kernel.org>
+List-ID: <video4linux-list@redhat.com>
 
-Hello,
+Hi,
 
-Is it possible to disable v4l2-ctl application logging into
-/var/log/messages.
-I am using it to control and monitor my PVR 150 cards and every time I run
-v4l2-ctl -d /dev/video0 --log-status all output is logged into
-/var/log/messages and some other linux log files.
+Am Montag, den 23.03.2009, 11:33 -0600 schrieb Gordon Smith:
+> On Fri, Mar 20, 2009 at 10:02 PM, hermann pitton
+> <hermann-pitton@arcor.de> wrote:
+> >
+> > Hi,
+> >
+> > Am Freitag, den 20.03.2009, 14:24 -0600 schrieb Gordon Smith:
+> > > Hello -
+> > >
+> > > I'm unable to read or stream compressed data from saa7134/saa6752hs.
+> > >
+> > > I have a RTD Technologies VFG7350 (saa7134 based, two channel,
+> > > hardware encoder per channel, no tuner) running current v4l-dvb in
+> > > debian 2.6.26-1.
+> > >
+> > > MPEG2-TS data is normally available on /dev/video2 and /dev/video3.
+> > >
+> > > Previously there were parameters for the saa6752hs module named
+> > > "force" and "ignore" to modify i2c addresses. The current module
+> > > appears to lack those parameters and may be using incorrect i2c addresses.
+> > >
+> > > Current dmesg:
+> > >
+> > > [   13.388944] saa6752hs 3-0020: chip found @ 0x40 (saa7133[0])
+> > > [   13.588458] saa6752hs 4-0020: chip found @ 0x40 (saa7133[1])
+> > >
+> > > Prior dmesg (~2.6.25-gentoo-r7 + v4l-dvb ???):
+> > >
+> > > saa6752hs 1-0021: saa6752hs: chip found @ 0x42
+> > > saa6752hs 1-0021: saa6752hs: chip found @ 0x42
+> > >
+> > > Prior modprobe.conf entry:
+> > > options saa6752hs force=0x1,0x21,0x2,0x21 ignore=0x0,0x20,0x1,0x20,0x2,0x20
+> > >
+> > >
+> > > $ v4l2-dbg --device /dev/video2 --info
+> > > Driver info:
+> > >         Driver name   : saa7134
+> > >         Card type     : RTD Embedded Technologies VFG73
+> > >         Bus info      : PCI:0000:02:08.0
+> > >         Driver version: 526
+> > >         Capabilities  : 0x05000001
+> > >                 Video Capture
+> > >                 Read/Write
+> > >                 Streaming
+> > >
+> > > Streaming is a listed capability but the capture example at
+> > > http://v4l2spec.bytesex.org/spec/capture-example.html fails
+> > > during request for buffers.
+> > >
+> > > $ v4l2-capture --device /dev/video2 --mmap
+> > > /dev/video2 does not support memory mapping
+> > >
+> > > v4l2-capture.c:
+> > >         req.count               = 4;
+> > >         req.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> > >         req.memory              = V4L2_MEMORY_MMAP;
+> > >
+> > >         if (-1 == xioctl (fd, VIDIOC_REQBUFS, &req)) {
+> > >                 if (EINVAL == errno) {
+> > >                         fprintf (stderr, "%s does not support "
+> > >                                  "memory mapping\n", dev_name);
+> > >
+> > >
+> > > A read() results in EIO error:
+> > >
+> > > $ v4l2-capture --device /dev/video0 --read
+> > > read error 5, Input/output error
+> > >
+> > > v4l2-capture.c:
+> > >                 if (-1 == read (fd, buffers[0].start, buffers[0].length)) {
+> > >                         switch (errno) {
+> > >             ...
+> > >                         default:
+> > >                                 errno_exit ("read");
+> > >
+> > >
+> > > This behavior does not change if the saa6752hs module is not loaded.
+> > >
+> > > Is there still a way to modify the i2c address(es) for the saa6752hs module?
+> > >
+> > > Any pointers are appreciated.
+> > >
+> > > Gordon
+> > >
+> >
+> > thanks for the report.
+> >
+> > It was probably forgotten that the prior insmod option had a reason.
+> >
+> > Try to change it to 0x21 in saa7134-i2c.c
+> >
+> > static char *i2c_devs[128] = {
+> >        [ 0x20      ] = "mpeg encoder (saa6752hs)",
+> >        [ 0xa0 >> 1 ] = "eeprom",
+> >        [ 0xc0 >> 1 ] = "tuner (analog)",
+> >        [ 0x86 >> 1 ] = "tda9887",
+> >        [ 0x5a >> 1 ] = "remote control",
+> > };
+> >
+> > and report if your cards a usable again.
+> >
+> > Seems we need the chip address per card without that insmod option and
+> > reliable probing.
+> >
+> > Cheers,
+> > Hermann
+> 
+> Hermann -
+> 
+> I made the change to saa7134-i2c.c but the i2c address did not change.
+> I added my initials (gms) to dmesg, so I know I'm loading the new
+> module.
+> 
+> I set i2c_debug=1 for saa7134. Here is one device:
+> 
+> [   13.369175] saa7130/34: v4l2 driver version 0.2.14-gms loaded
+> [   13.369294] saa7133[0]: found at 0000:02:08.0, rev: 17, irq: 11,
+> latency: 32, mmio: 0x80000000
+> [   13.369310] saa7133[0]: subsystem: 1435:7350, board: RTD Embedded
+> Technologies VFG7350 [card=72,autodetected]
+> [   13.369335] saa7133[0]: board init: gpio is 10000
+> [   13.472509] saa7133[0]: i2c xfer: < a0 00 >
+> [   13.480139] saa7133[0]: i2c xfer: < a1 =35 =14 =50 =73 =ff =ff =ff
+> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
+> ....snip...
+> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff >
+> [   13.520135] saa7133[0]: i2c eeprom 00: 35 14 50 73 ff ff ff ff ff
+> ff ff ff ff ff ff ff
+> ....snip...
+> [   13.520467] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff ff ff
+> [   13.608743] saa6752hs 1-0020: chip found (gms) @ 0x40 (saa7133[0])
+> [   13.608762] saa7133[0]: i2c xfer: < 40 13 >
+> [   13.616164] saa7133[0]: i2c xfer: < 41 =13 =13 =13 =13 =13 =13 =13
+> =13 =13 =13 =13 =13 >
+> [   13.624161] saa6752hs i2c attach [addr=0x20,client=saa6752hs]
+> [   13.624337] saa7133[0]: registered device video0 [v4l2]
+> [   13.624390] saa7133[0]: registered device vbi0
 
-Best Regards,
-Gregor
+yes, sorry, there is more to change.
+
+The 0x20 address is also hard coded in saa7134-core.c, saa7134-empress.c
+and saa6752hs.c.
+
+I also don't find your old insmod option for multiple addresses back to
+2.6.18 for now. I'll try to find some time to look up the history next
+days.
+
+With the wrong address and i2c_debug=1 you should see a bunch of ERROR:
+NO DEVICE stuff from 0x40 and 0x41 if you try "cat /dev/video2" mpeg.
+
+Is it really detected at 0x42 with i2c_scan=1 ?
+Except on i2c_debug level the code seems to tolerate all wrong addresses
+without warnings.
+
+Cheers,
+Hermann
+
+
+
+
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
