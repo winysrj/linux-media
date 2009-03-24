@@ -1,41 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nav6.org ([219.93.2.80]:33348 "EHLO nav6.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751124AbZCMETn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2009 00:19:43 -0400
-Message-ID: <49B9DECC.5090102@nav6.org>
-Date: Fri, 13 Mar 2009 13:19:24 +0900
-From: Ang Way Chuang <wcang@nav6.org>
-MIME-Version: 1.0
-To: VDR User <user.vdr@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: The right way to interpret the content of SNR, signal strength
- 	and BER from HVR 4000 Lite
-References: <49B9BC93.8060906@nav6.org> <a3ef07920903121923r77737242ua7129672ec557a97@mail.gmail.com>
-In-Reply-To: <a3ef07920903121923r77737242ua7129672ec557a97@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from rv-out-0506.google.com ([209.85.198.235]:52847 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754584AbZCXVjg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Mar 2009 17:39:36 -0400
+From: stoyboyker@gmail.com
+To: linux-kernel@vger.kernel.org
+Cc: Stoyan Gaydarov <stoyboyker@gmail.com>, linux-media@vger.kernel.org
+Subject: [PATCH 12/13][Resubmit][drivers/media] changed ioctls to unlocked
+Date: Tue, 24 Mar 2009 16:38:31 -0500
+Message-Id: <1237930711-16200-1-git-send-email-stoyboyker@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VDR User wrote:
-> On Thu, Mar 12, 2009 at 6:53 PM, Ang Way Chuang <wcang@nav6.org> wrote:
->> Hi all,
->>        I've looked through the mailing list and there seems to be no
->> standard
->> way to interpret to content of SNR, signal strength and BER returned
->> from the DVB API. So, I wonder if someone knows how to interpret these
->> values at least for HVR 4000 Lite? Thanks.
-> 
-> I've seen talk about converting everything to report SNR/STR in dB
-> which is a great idea if it ever happens.  I know a lot of guys not on
-> the mailing list who've been waiting for that.
+From: Stoyan Gaydarov <stoyboyker@gmail.com>
 
-Yes, please :)
+Signed-off-by: Stoyan Gaydarov <stoyboyker@gmail.com>
+---
+ drivers/media/dvb/bt8xx/dst_ca.c |    7 +++++--
+ drivers/media/video/dabusb.c     |   11 ++++++++---
+ 2 files changed, 13 insertions(+), 5 deletions(-)
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/dvb/bt8xx/dst_ca.c b/drivers/media/dvb/bt8xx/dst_ca.c
+index 0258451..d3487c5 100644
+--- a/drivers/media/dvb/bt8xx/dst_ca.c
++++ b/drivers/media/dvb/bt8xx/dst_ca.c
+@@ -552,8 +552,10 @@ free_mem_and_exit:
+ 	return result;
+ }
+ 
+-static int dst_ca_ioctl(struct inode *inode, struct file *file, unsigned int cmd, unsigned long ioctl_arg)
++static long dst_ca_ioctl(struct file *file, unsigned int cmd, unsigned long ioctl_arg)
+ {
++	lock_kernel();
++
+ 	struct dvb_device* dvbdev = (struct dvb_device*) file->private_data;
+ 	struct dst_state* state = (struct dst_state*) dvbdev->priv;
+ 	struct ca_slot_info *p_ca_slot_info;
+@@ -647,6 +649,7 @@ static int dst_ca_ioctl(struct inode *inode, struct file *file, unsigned int cmd
+ 	kfree (p_ca_slot_info);
+ 	kfree (p_ca_caps);
+ 
++	unlock_kernel();
+ 	return result;
+ }
+ 
+@@ -684,7 +687,7 @@ static ssize_t dst_ca_write(struct file *file, const char __user *buffer, size_t
+ 
+ static struct file_operations dst_ca_fops = {
+ 	.owner = THIS_MODULE,
+-	.ioctl = dst_ca_ioctl,
++	.unlocked_ioctl = dst_ca_ioctl,
+ 	.open = dst_ca_open,
+ 	.release = dst_ca_release,
+ 	.read = dst_ca_read,
+diff --git a/drivers/media/video/dabusb.c b/drivers/media/video/dabusb.c
+index 298810d..c31e76f 100644
+--- a/drivers/media/video/dabusb.c
++++ b/drivers/media/video/dabusb.c
+@@ -657,22 +657,26 @@ static int dabusb_release (struct inode *inode, struct file *file)
+ 	return 0;
+ }
+ 
+-static int dabusb_ioctl (struct inode *inode, struct file *file, unsigned int cmd, unsigned long arg)
++static long dabusb_ioctl (struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	pdabusb_t s = (pdabusb_t) file->private_data;
+ 	pbulk_transfer_t pbulk;
+ 	int ret = 0;
+ 	int version = DABUSB_VERSION;
+ 
++	lock_kernel();
+ 	dbg("dabusb_ioctl");
+ 
+-	if (s->remove_pending)
++	if (s->remove_pending) {
++		unlock_kernel();
+ 		return -EIO;
++	}
+ 
+ 	mutex_lock(&s->mutex);
+ 
+ 	if (!s->usbdev) {
+ 		mutex_unlock(&s->mutex);
++		unlock_kernel();
+ 		return -EIO;
+ 	}
+ 
+@@ -713,6 +717,7 @@ static int dabusb_ioctl (struct inode *inode, struct file *file, unsigned int cm
+ 		break;
+ 	}
+ 	mutex_unlock(&s->mutex);
++	unlock_kernel();
+ 	return ret;
+ }
+ 
+@@ -721,7 +726,7 @@ static const struct file_operations dabusb_fops =
+ 	.owner =	THIS_MODULE,
+ 	.llseek =	no_llseek,
+ 	.read =		dabusb_read,
+-	.ioctl =	dabusb_ioctl,
++	.unlocked_ioctl =	dabusb_ioctl,
+ 	.open =		dabusb_open,
+ 	.release =	dabusb_release,
+ };
+-- 
+1.6.2.1
 
