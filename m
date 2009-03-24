@@ -1,128 +1,300 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:38928 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751668AbZC1Wfu convert rfc822-to-8bit (ORCPT
+Received: from mail-in-04.arcor-online.net ([151.189.21.44]:46039 "EHLO
+	mail-in-04.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753049AbZCXVHm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Mar 2009 18:35:50 -0400
-Received: by fxm2 with SMTP id 2so1478132fxm.37
-        for <linux-media@vger.kernel.org>; Sat, 28 Mar 2009 15:35:47 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <49CEA0BC.4050107@hansson.se>
-References: <49CEA0BC.4050107@hansson.se>
-Date: Sat, 28 Mar 2009 23:35:46 +0100
-Message-ID: <d9def9db0903281535n76d91619hdce82a24459f9960@mail.gmail.com>
-Subject: Re: Can't load firmware - HVR4000
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Lars Fredriksson <lf@hansson.se>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Tue, 24 Mar 2009 17:07:42 -0400
+Subject: Re: Failure to read saa7134/saa6752hs MPEG output
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Gordon Smith <spider.karma+video4linux-list@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	"Robert W. Boone" <rboone@rtd.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, video4linux-list@redhat.com
+In-Reply-To: <2df568dc0903241242j12c07039o3169de0ada62bfcb@mail.gmail.com>
+References: <2df568dc0903201324rc5c4982x45ce071c39ddc74b@mail.gmail.com>
+	 <1237860232.4023.14.camel@pc07.localdom.local>
+	 <1237920433.4964.30.camel@pc07.localdom.local>
+	 <200903242015.21905.hverkuil@xs4all.nl>
+	 <2df568dc0903241242j12c07039o3169de0ada62bfcb@mail.gmail.com>
+Content-Type: text/plain
+Date: Tue, 24 Mar 2009 22:03:39 +0100
+Message-Id: <1237928619.4964.33.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Mar 28, 2009 at 11:12 PM, Lars Fredriksson <lf@hansson.se> wrote:
-> Hi!
->
-> I have recently moved my HVR4000 to a new machine, but now I can't load the
-> firmware :-(
->
-> I'm running Gentoo 2008.0, kernel 2.6.29 and I've tried both with the
-> drivers included in the kernel and with v4l-drivers outside the kernel but I
-> get the same result :-(
->
-> When the machine starts up it loads the correct modules and I get a
-> /dev/dvb/adapter0, but when I for example tries to do a scan I get an error
-> message that it can't load the firmware (see the end of this mail) - what
-> can I have done wrong, is there something with my kernel maybe? I have the
-> firmware in /lib/firmware and I've tried with two different firmwares, one
-> of them is the one I used eralier on the other installation ...
->
-> Any hints?
->
 
-disable i2c-dev in the kernel ... or blacklist it from loading.
+Am Dienstag, den 24.03.2009, 13:42 -0600 schrieb Gordon Smith:
+> On Tue, Mar 24, 2009 at 1:15 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > On Tuesday 24 March 2009 19:47:13 hermann pitton wrote:
+> >> Am Dienstag, den 24.03.2009, 03:03 +0100 schrieb hermann pitton:
+> >> > Hi,
+> >> >
+> >> > Am Montag, den 23.03.2009, 11:33 -0600 schrieb Gordon Smith:
+> >> > > On Fri, Mar 20, 2009 at 10:02 PM, hermann pitton
+> >> > >
+> >> > > <hermann-pitton@arcor.de> wrote:
+> >> > > > Hi,
+> >> > > >
+> >> > > > Am Freitag, den 20.03.2009, 14:24 -0600 schrieb Gordon Smith:
+> >> > > > > Hello -
+> >> > > > >
+> >> > > > > I'm unable to read or stream compressed data from
+> >> > > > > saa7134/saa6752hs.
+> >> > > > >
+> >> > > > > I have a RTD Technologies VFG7350 (saa7134 based, two channel,
+> >> > > > > hardware encoder per channel, no tuner) running current v4l-dvb
+> >> > > > > in debian 2.6.26-1.
+> >> > > > >
+> >> > > > > MPEG2-TS data is normally available on /dev/video2 and
+> >> > > > > /dev/video3.
+> >> > > > >
+> >> > > > > Previously there were parameters for the saa6752hs module named
+> >> > > > > "force" and "ignore" to modify i2c addresses. The current module
+> >> > > > > appears to lack those parameters and may be using incorrect i2c
+> >> > > > > addresses.
+> >> > > > >
+> >> > > > > Current dmesg:
+> >> > > > >
+> >> > > > > [   13.388944] saa6752hs 3-0020: chip found @ 0x40 (saa7133[0])
+> >> > > > > [   13.588458] saa6752hs 4-0020: chip found @ 0x40 (saa7133[1])
+> >> > > > >
+> >> > > > > Prior dmesg (~2.6.25-gentoo-r7 + v4l-dvb ???):
+> >> > > > >
+> >> > > > > saa6752hs 1-0021: saa6752hs: chip found @ 0x42
+> >> > > > > saa6752hs 1-0021: saa6752hs: chip found @ 0x42
+> >> > > > >
+> >> > > > > Prior modprobe.conf entry:
+> >> > > > > options saa6752hs force=0x1,0x21,0x2,0x21
+> >> > > > > ignore=0x0,0x20,0x1,0x20,0x2,0x20
+> >>
+> >> It was disabled by Hans when converting to v4l2_subdev here.
+> >> http://linuxtv.org/hg/v4l-dvb/rev/c41af551e79f
+> >>
+> >> It is only valid for kernels < 2.6.22 now in saa6752hs.
+> >>
+> >> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 22)
+> >> /* Addresses to scan */
+> >> static unsigned short normal_i2c[] = {0x20, I2C_CLIENT_END};
+> >>
+> >> I2C_CLIENT_INSMOD;
+> >> +#endif
+> >>
+> >> And we only have that single 0x20 address in saa7134-core.c etc.
+> >> That should be the problem.
+> >>
+> >> > > > > $ v4l2-dbg --device /dev/video2 --info
+> >> > > > > Driver info:
+> >> > > > >         Driver name   : saa7134
+> >> > > > >         Card type     : RTD Embedded Technologies VFG73
+> >> > > > >         Bus info      : PCI:0000:02:08.0
+> >> > > > >         Driver version: 526
+> >> > > > >         Capabilities  : 0x05000001
+> >> > > > >                 Video Capture
+> >> > > > >                 Read/Write
+> >> > > > >                 Streaming
+> >> > > > >
+> >> > > > > Streaming is a listed capability but the capture example at
+> >> > > > > http://v4l2spec.bytesex.org/spec/capture-example.html fails
+> >> > > > > during request for buffers.
+> >> > > > >
+> >> > > > > $ v4l2-capture --device /dev/video2 --mmap
+> >> > > > > /dev/video2 does not support memory mapping
+> >> > > > >
+> >> > > > > v4l2-capture.c:
+> >> > > > >         req.count               = 4;
+> >> > > > >         req.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> >> > > > >         req.memory              = V4L2_MEMORY_MMAP;
+> >> > > > >
+> >> > > > >         if (-1 == xioctl (fd, VIDIOC_REQBUFS, &req)) {
+> >> > > > >                 if (EINVAL == errno) {
+> >> > > > >                         fprintf (stderr, "%s does not support "
+> >> > > > >                                  "memory mapping\n", dev_name);
+> >> > > > >
+> >> > > > >
+> >> > > > > A read() results in EIO error:
+> >> > > > >
+> >> > > > > $ v4l2-capture --device /dev/video0 --read
+> >> > > > > read error 5, Input/output error
+> >> > > > >
+> >> > > > > v4l2-capture.c:
+> >> > > > >                 if (-1 == read (fd, buffers[0].start,
+> >> > > > > buffers[0].length)) { switch (errno) {
+> >> > > > >             ...
+> >> > > > >                         default:
+> >> > > > >                                 errno_exit ("read");
+> >> > > > >
+> >> > > > >
+> >> > > > > This behavior does not change if the saa6752hs module is not
+> >> > > > > loaded.
+> >> > > > >
+> >> > > > > Is there still a way to modify the i2c address(es) for the
+> >> > > > > saa6752hs module?
+> >> > > > >
+> >> > > > > Any pointers are appreciated.
+> >> > > > >
+> >> > > > > Gordon
+> >> > > >
+> >> > > > thanks for the report.
+> >> > > >
+> >> > > > It was probably forgotten that the prior insmod option had a
+> >> > > > reason.
+> >> > > >
+> >> > > > Try to change it to 0x21 in saa7134-i2c.c
+> >> > > >
+> >> > > > static char *i2c_devs[128] = {
+> >> > > >        [ 0x20      ] = "mpeg encoder (saa6752hs)",
+> >> > > >        [ 0xa0 >> 1 ] = "eeprom",
+> >> > > >        [ 0xc0 >> 1 ] = "tuner (analog)",
+> >> > > >        [ 0x86 >> 1 ] = "tda9887",
+> >> > > >        [ 0x5a >> 1 ] = "remote control",
+> >> > > > };
+> >> > > >
+> >> > > > and report if your cards a usable again.
+> >> > > >
+> >> > > > Seems we need the chip address per card without that insmod option
+> >> > > > and reliable probing.
+> >> > > >
+> >> > > > Cheers,
+> >> > > > Hermann
+> >> > >
+> >> > > Hermann -
+> >> > >
+> >> > > I made the change to saa7134-i2c.c but the i2c address did not
+> >> > > change. I added my initials (gms) to dmesg, so I know I'm loading the
+> >> > > new module.
+> >> > >
+> >> > > I set i2c_debug=1 for saa7134. Here is one device:
+> >> > >
+> >> > > [   13.369175] saa7130/34: v4l2 driver version 0.2.14-gms loaded
+> >> > > [   13.369294] saa7133[0]: found at 0000:02:08.0, rev: 17, irq: 11,
+> >> > > latency: 32, mmio: 0x80000000
+> >> > > [   13.369310] saa7133[0]: subsystem: 1435:7350, board: RTD Embedded
+> >> > > Technologies VFG7350 [card=72,autodetected]
+> >> > > [   13.369335] saa7133[0]: board init: gpio is 10000
+> >> > > [   13.472509] saa7133[0]: i2c xfer: < a0 00 >
+> >> > > [   13.480139] saa7133[0]: i2c xfer: < a1 =35 =14 =50 =73 =ff =ff =ff
+> >> > > =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
+> >> > > ....snip...
+> >> > > =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
+> >> > > =ff =ff > [   13.520135] saa7133[0]: i2c eeprom 00: 35 14 50 73 ff ff
+> >> > > ff ff ff ff ff ff ff ff ff ff
+> >> > > ....snip...
+> >> > > [   13.520467] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
+> >> > > ff ff ff ff ff ff ff
+> >> > > [   13.608743] saa6752hs 1-0020: chip found (gms) @ 0x40 (saa7133[0])
+> >> > > [   13.608762] saa7133[0]: i2c xfer: < 40 13 >
+> >> > > [   13.616164] saa7133[0]: i2c xfer: < 41 =13 =13 =13 =13 =13 =13 =13
+> >> > > =13 =13 =13 =13 =13 >
+> >> > > [   13.624161] saa6752hs i2c attach [addr=0x20,client=saa6752hs]
+> >> > > [   13.624337] saa7133[0]: registered device video0 [v4l2]
+> >> > > [   13.624390] saa7133[0]: registered device vbi0
+> >> >
+> >> > yes, sorry, there is more to change.
+> >> >
+> >> > The 0x20 address is also hard coded in saa7134-core.c,
+> >> > saa7134-empress.c and saa6752hs.c.
+> >> >
+> >> > I also don't find your old insmod option for multiple addresses back to
+> >> > 2.6.18 for now. I'll try to find some time to look up the history next
+> >> > days.
+> >>
+> >> See above, static unsigned short normal_i2c[] seems to have allowed to
+> >> set even 0x21, but only 0x20 was visible there.
+> >>
+> >> > With the wrong address and i2c_debug=1 you should see a bunch of ERROR:
+> >> > NO DEVICE stuff from 0x40 and 0x41 if you try "cat /dev/video2" mpeg.
+> >> >
+> >> > Is it really detected at 0x42 with i2c_scan=1 ?
+> >> > Except on i2c_debug level the code seems to tolerate all wrong
+> >> > addresses without warnings.
+> >>
+> >> Please provide the i2c_scan with the device detected at 0x42. I seem to
+> >> find all card related mails from Robert W. Boone from RTD, but not that
+> >> different address information.
+> >>
+> >> We should wait until Hans is back from the Linux embedded conference,
+> >> since he is working on it and I don't even have a working empress
+> >> device, but it seems we need a solution for multiple addresses here too.
+> >>
+> >> If I did not miss anything greping around after lunch, the attached
+> >> patch might work as an interim for you.
+> >
+> > It's good to know that this device can also appear on address 0x42. I'll fix
+> > this properly this weekend. I need to do some work to add saa6588 support
+> > to saa7134 as well, so I can do this at the same time.
+> >
+> > BTW, please post to the new linux-media list rather than the obsolete
+> > video4linux list. I'm no longer subscribed there which is why I didn't see
+> > this earlier.
+> >
+> > Regards,
+> >
+> >        Hans
+> >
+> > --
+> > Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> >
+> 
+> I have Hermann's data request to verify 0x42 address.
+> 
+> >From RTD Linux Application Note, there is a pcf8574 for digital I/O at 0x40..
+> The saa6752hs is at 0x21.
+> 
+> Here is edited dmesg with i2_scan for first channel:
+> 
+> [   13.268713] Linux video capture interface: v2.00
+> [   13.418744] saa7130/34: v4l2 driver version 0.2.14-gms1 loaded
+> [   13.418875] saa7133[0]: found at 0000:02:08.0, rev: 17, irq: 11,
+> latency: 32, mmio: 0x80000000
+> [   13.418891] saa7133[0]: subsystem: 1435:7350, board: RTD Embedded
+> Technologies VFG7350 [card=72,autodetected]
+> [   13.418918] saa7133[0]: board init: gpio is 10000
+> [   13.520522] saa7133[0]: i2c xfer: < a0 00 >
+> [   13.528156] saa7133[0]: i2c xfer: < a1 =35 =14 =50 =73 =ff =ff =ff
+> =ff =ff =ff =ff =ff =ff =ff =ff =ff
+> ....snip...
+> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
+> =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff >
+> [   13.568135] saa7133[0]: i2c eeprom 00: 35 14 50 73 ff ff ff ff ff
+> ff ff ff ff ff ff ff
+> ....snip...
+> [   13.568467] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff ff ff
+> [   13.812492] saa7133[1]: i2c xfer: < 01 ERROR: NO_DEVICE
+> [   13.812640] saa7133[1]: i2c xfer: < 03 ERROR: NO_DEVICE
+> ....snip...
+> [   13.816919] saa7133[1]: i2c xfer: < 3d ERROR: NO_DEVICE
+> [   13.817066] saa7133[1]: i2c xfer: < 3f ERROR: NO_DEVICE
+> [   13.817214] saa7133[1]: i2c xfer: < 41 >
+> [   13.824136] saa7133[1]: i2c xfer: < 43 >
+> [   13.832136] saa7133[1]: i2c xfer: < 45 ERROR: NO_DEVICE
+> [   13.832285] saa7133[1]: i2c xfer: < 47 ERROR: NO_DEVICE
+> ...snip...
+> [   13.838640] saa7133[1]: i2c xfer: < 9d ERROR: NO_DEVICE
+> [   13.838788] saa7133[1]: i2c xfer: < 9f ERROR: NO_DEVICE
+> [   13.838935] saa7133[1]: i2c xfer: < a1 >
+> [   13.844136] saa7133[1]: i2c xfer: < a3 ERROR: NO_DEVICE
+> [   13.844285] saa7133[1]: i2c xfer: < a5 ERROR: NO_DEVICE
+> ....snip...
+> [   13.850787] saa7133[1]: i2c xfer: < fd ERROR: NO_DEVICE
+> [   13.850935] saa7133[1]: i2c xfer: < ff ERROR: NO_DEVICE
+> [   13.678908] saa6752hs 1-0021: chip found (gms1) @ 0x42 (saa7133[0])
+> [   13.678926] saa7133[0]: i2c xfer: < 42 13 >
+> [   13.684221] saa7133[0]: i2c xfer: < 43 =05 =07 =00 =00 =56 =31 =42
+> =34 =02 =06 =00 =00 >
+> [   13.692156] saa6752hs 1-0021: support AC-3
+> [   13.692177] saa6752hs i2c attach [addr=0x21,client=saa6752hs]
+> [   13.692380] saa7133[0]: registered device video0 [v4l2]
+> [   13.692433] saa7133[0]: registered device vbi0
 
-Markus
+Ah, that pcf8574 was most confusing.
 
-> Best regards, Lars Fredriksson
->
-> dmesg output;
-> -----
-> [  743.541920] cx24116_firmware_ondemand: Waiting for firmware upload
-> (dvb-fe-cx24116.fw)...
-> [  743.541927] i2c-adapter i2c-2: firmware: requesting dvb-fe-cx24116.fw
-> [  743.541945] ------------[ cut here ]------------
-> [  743.541948] WARNING: at fs/sysfs/dir.c:462 sysfs_add_one+0x2a/0x36()
-> [  743.541950] Hardware name: M61SME-S2L
-> [  743.541952] sysfs: duplicate filename 'i2c-2' can not be created
-> [  743.541954] Modules linked in: cx22702 isl6421 cx24116 cx88_dvb
-> cx88_vp3054_i2c videobuf_dvb dvb_core wm8775 tuner_simple tuner_types
-> tda9887 tda8290 tuner cx8800 cx88_alsa cx8802 cx88xx ir_common v4l2_common
-> videodev v4l1_compat tveeprom videobuf_dma_sg videobuf_core btcx_risc
-> [  743.541972] Pid: 4043, comm: kdvb-ad-0-fe-0 Tainted: G        W  2.6.29
-> #1
-> [  743.541974] Call Trace:
-> [  743.541980]  [<c102580b>] warn_slowpath+0x74/0x8a
-> [  743.541985]  [<c114cc4d>] ? idr_get_empty_slot+0x155/0x230
-> [  743.541989]  [<c114cdfe>] ? ida_get_new_above+0xd6/0x153
-> [  743.541993]  [<c108ef1b>] ? wait_on_inode+0x24/0x2a
-> [  743.541996]  [<c108efd6>] ? ifind+0x45/0x57
-> [  743.542000]  [<c10bbbe1>] sysfs_add_one+0x2a/0x36
-> [  743.542014]  [<c10bc050>] create_dir+0x43/0x68
-> [  743.542017]  [<c10bc0a2>] sysfs_create_dir+0x2d/0x41
-> [  743.542021]  [<c114d772>] ? kobject_get+0x12/0x17
-> [  743.542024]  [<c114d827>] kobject_add_internal+0xb0/0x154
-> [  743.542027]  [<c114d976>] kobject_add_varg+0x35/0x41
-> [  743.542030]  [<c114dce8>] kobject_add+0x49/0x4f
-> [  743.542034]  [<c11d8669>] device_add+0x73/0x40d
-> [  743.542037]  [<c114d5a2>] ? kobject_init_internal+0x12/0x28
-> [  743.542040]  [<c114d60a>] ? kobject_init+0x35/0x5a
-> [  743.542043]  [<c11d8a15>] device_register+0x12/0x15
-> [  743.542046]  [<c11dddbb>] _request_firmware+0x177/0x346
-> [  743.542051]  [<c11de003>] request_firmware+0xa/0xc
-> [  743.542056]  [<f7d86525>] cx24116_cmd_execute+0xa5/0x528 [cx24116]
-> [  743.542063]  [<c12a8d59>] ? bit_xfer+0x391/0x39c
-> [  743.542067]  [<f7d870fd>] cx24116_sleep+0x40/0x82 [cx24116]
-> [  743.542071]  [<f7d8f0b6>] ? isl6421_set_voltage+0x5f/0x6c [isl6421]
-> [  743.542084]  [<f7d5e3bd>] dvb_frontend_thread+0x44c/0x480 [dvb_core]
-> [  743.542089]  [<c1035405>] ? autoremove_wake_function+0x0/0x33
-> [  743.542099]  [<f7d5df71>] ? dvb_frontend_thread+0x0/0x480 [dvb_core]
-> [  743.542103]  [<c1035331>] kthread+0x3b/0x62
-> [  743.542106]  [<c10352f6>] ? kthread+0x0/0x62
-> [  743.542110]  [<c10036cb>] kernel_thread_helper+0x7/0x10
-> [  743.542113] ---[ end trace 9ed00f8504e5c157 ]---
-> [  743.542118] kobject_add_internal failed for i2c-2 with -EEXIST, don't try
-> to register things with the same name in the same directory.
-> [  743.542122] Pid: 4043, comm: kdvb-ad-0-fe-0 Tainted: G        W  2.6.29
-> #1
-> [  743.542124] Call Trace:
-> [  743.542126]  [<c114d893>] kobject_add_internal+0x11c/0x154
-> [  743.542130]  [<c114d976>] kobject_add_varg+0x35/0x41
-> [  743.542133]  [<c114dce8>] kobject_add+0x49/0x4f
-> [  743.542135]  [<c11d8669>] device_add+0x73/0x40d
-> [  743.542138]  [<c114d5a2>] ? kobject_init_internal+0x12/0x28
-> [  743.542141]  [<c114d60a>] ? kobject_init+0x35/0x5a
-> [  743.542144]  [<c11d8a15>] device_register+0x12/0x15
-> [  743.542147]  [<c11dddbb>] _request_firmware+0x177/0x346
-> [  743.542151]  [<c11de003>] request_firmware+0xa/0xc
-> [  743.542155]  [<f7d86525>] cx24116_cmd_execute+0xa5/0x528 [cx24116]
-> [  743.542159]  [<c12a8d59>] ? bit_xfer+0x391/0x39c
-> [  743.542163]  [<f7d870fd>] cx24116_sleep+0x40/0x82 [cx24116]
-> [  743.542166]  [<f7d8f0b6>] ? isl6421_set_voltage+0x5f/0x6c [isl6421]
-> [  743.542175]  [<f7d5e3bd>] dvb_frontend_thread+0x44c/0x480 [dvb_core]
-> [  743.542179]  [<c1035405>] ? autoremove_wake_function+0x0/0x33
-> [  743.542188]  [<f7d5df71>] ? dvb_frontend_thread+0x0/0x480 [dvb_core]
-> [  743.542192]  [<c1035331>] kthread+0x3b/0x62
-> [  743.542195]  [<c10352f6>] ? kthread+0x0/0x62
-> [  743.542198]  [<c10036cb>] kernel_thread_helper+0x7/0x10
-> [  743.542201] i2c-adapter i2c-2: fw_register_device: device_register failed
-> [  743.542204] cx24116_firmware_ondemand: Waiting for firmware upload(2)...
-> [  743.542206] cx24116_firmware_ondemand: No firmware uploaded (timeout or
-> file not found?)
-> [  743.542209] cx24116_cmd_execute(): Unable initialise the firmware
-> -----
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Gordon and Hans, Thanks.
+
+Cheers,
+Hermann
+
+
