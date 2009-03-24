@@ -1,54 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:32818 "EHLO smtp4-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751561AbZCYUkc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2009 16:40:32 -0400
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] pxa-camera: simplify the .buf_queue path by merging two loops
-References: <1236986240-24115-1-git-send-email-robert.jarzmik@free.fr>
-	<1236986240-24115-2-git-send-email-robert.jarzmik@free.fr>
-	<1236986240-24115-3-git-send-email-robert.jarzmik@free.fr>
-	<1236986240-24115-4-git-send-email-robert.jarzmik@free.fr>
-	<Pine.LNX.4.64.0903161153200.4409@axis700.grange>
-	<87hc1tdzv2.fsf@free.fr>
-	<Pine.LNX.4.64.0903250935090.5795@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Wed, 25 Mar 2009 21:40:20 +0100
-In-Reply-To: <Pine.LNX.4.64.0903250935090.5795@axis700.grange> (Guennadi Liakhovetski's message of "Wed\, 25 Mar 2009 09\:37\:15 +0100 \(CET\)")
-Message-ID: <87r60lpc97.fsf@free.fr>
+Received: from yw-out-2324.google.com ([74.125.46.30]:28154 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753548AbZCXXNs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Mar 2009 19:13:48 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so2789132ywb.1
+        for <linux-media@vger.kernel.org>; Tue, 24 Mar 2009 16:13:46 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Date: Tue, 24 Mar 2009 17:13:42 -0600
+Message-ID: <2df568dc0903241613h3d1d8217y5bf8dff5d69de690@mail.gmail.com>
+Subject: saa7134 streaming broken?
+From: Gordon Smith <spider.karma+video4linux-list@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
-
-> pxa_dma_update_sg_tail() is called only once, runs exactly the same loop as the
-> caller and has to recalculate the last element in an sg-list, that the caller
-> has already calculated. Eliminate redundancy by merging the two loops and
-> re-using the calculated pointer. This also saves a bit of performance which is
-> always good during video-capture.
->
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->
-> On Mon, 16 Mar 2009, Robert Jarzmik wrote:
->
->> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
->> 
->> > pxa_dma_update_sg_tail is called only here, why not inline it and also put 
->> > inside one loop?
->> As for the inline, I'm pretty sure you know it is automatically done by gcc.
->> 
->> As for moving it inside the loop, that would certainly improve performance. Yet
->> I find it more readable/maintainable that way, and will leave it. But I won't be
->> bothered at all if you retransform it back to your view, that's up to you.
->
-> Robert, this is what I'm going to apply on top of your patch-series. 
-> Please, object:-)
-Here you are : :)
-Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
-
---
-Robert
+SGVsbG8gLQoKSSBoYXZlIGEgUlREIFRlY2hub2xvZ2llcyBWRkc3MzUwIChzYWE3MTM0IGJhc2Vk
+LCB0d28gY2hhbm5lbCwgbm8gdHVuZXIpLgoKSSdkIGxpa2UgdG8gc3RyZWFtIHRoZSBjb21wcmVz
+c2VkIGRhdGEuCgpJL08gcmVhZCB3b3JrczoKwqDCoMKgIHY0bDItYXBwcy90ZXN0L2NhcHR1cmUt
+ZXhhbXBsZSAtLWRldmljZSAvZGV2L3ZpZGVvMiAtLXJlYWQKCmJ1dCBzdHJlYW1pbmcgZG9lcyBu
+b3Q6CgokIHY0bDItYXBwcy90ZXN0L2NhcHR1cmUtZXhhbXBsZSAtLWRldmljZSAvZGV2L3ZpZGVv
+MiAtLW1tYXAKL2Rldi92aWRlbzIgZG9lcyBub3Qgc3VwcG9ydCBtZW1vcnkgbWFwcGluZzogSW52
+YWxpZCBhcmd1bWVudAoKVGhpcyBpcyBlcnJvciBFSU5WQUwgZnJvbSBpb2N0bCggVklESU9DX1JF
+UUJVRlMgKS4KClN0cmVhbWluZyBpcyBsaXN0ZWQgYXMgYSBjYXBhYmlsaXR5IG9mIHRoZSBkZXZp
+Y2U6CgokIHY0bDItZGJnIC0tZGV2aWNlIC9kZXYvdmlkZW8yIC0taW5mbwpEcml2ZXIgaW5mbzoK
+wqDCoMKgwqDCoMKgwqAgRHJpdmVyIG5hbWXCoMKgIDogc2FhNzEzNArCoMKgwqDCoMKgwqDCoCBD
+YXJkIHR5cGXCoMKgwqDCoCA6IFJURCBFbWJlZGRlZCBUZWNobm9sb2dpZXMgVkZHNzMKwqDCoMKg
+wqDCoMKgwqAgQnVzIGluZm/CoMKgwqDCoMKgIDogUENJOjAwMDA6MDI6MDguMArCoMKgwqDCoMKg
+wqDCoCBEcml2ZXIgdmVyc2lvbjogNTI2CsKgwqDCoMKgwqDCoMKgIENhcGFiaWxpdGllc8KgIDog
+MHgwNTAwMDAwMQrCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgVmlkZW8gQ2FwdHVyZQrC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgUmVhZC9Xcml0ZQrCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqAgU3RyZWFtaW5nCgoKSXMgdGhlcmUgaG9wZSB0aGF0IHN0cmVhbWluZyBj
+YW4gd29yaz8KClRoYW5rIHlvdSwKR29yZG9uCg==
