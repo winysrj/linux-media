@@ -1,22 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n24043Ij004268
-	for <video4linux-list@redhat.com>; Tue, 3 Mar 2009 19:04:03 -0500
-Received: from cdptpa-omtalb.mail.rr.com (cdptpa-omtalb.mail.rr.com
-	[75.180.132.120])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2403kh1026904
-	for <video4linux-list@redhat.com>; Tue, 3 Mar 2009 19:03:46 -0500
-Message-ID: <49ADC561.3090403@nc.rr.com>
-Date: Tue, 03 Mar 2009 19:03:45 -0500
-From: Andrew Robinson <awrobinson-ml@nc.rr.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2OIh2rE015868
+	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 14:43:02 -0400
+Received: from mail-qy0-f104.google.com (mail-qy0-f104.google.com
+	[209.85.221.104])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2OIgfPp007839
+	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 14:42:41 -0400
+Received: by qyk2 with SMTP id 2so3291803qyk.23
+	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 11:42:41 -0700 (PDT)
+From: Lamarque Vieira Souza <lamarque@gmail.com>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+Date: Tue, 24 Mar 2009 15:42:31 -0300
+References: <200903231708.08860.lamarque@gmail.com> <49C8AF04.7070208@hhs.nl>
+	<200903241311.10902.lamarque@gmail.com>
+In-Reply-To: <200903241311.10902.lamarque@gmail.com>
 MIME-Version: 1.0
-To: semantikous@yahoo.com
-References: <702621.62683.qm@web59709.mail.ac4.yahoo.com>
-In-Reply-To: <702621.62683.qm@web59709.mail.ac4.yahoo.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903241542.32631.lamarque@gmail.com>
 Cc: video4linux-list@redhat.com
-Subject: Re: linux newbie tv card help
+Subject: Re: Skype and libv4l
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,30 +33,62 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Robert Lastname wrote:
-> Hello, I quit windows not too long ago and have no idea how to install a tv card.  I searched the internet but still don't know how any of this works.  Here is what I want to know:
-> 
-> Would someone please give me a quick run down of the steps needed to install a card.  I don't need anything in detail---just the very basics of what, in general, is going on.
-> 
-> like
-> 
-> 1. install card
-> 2. install v4l-dev, v4l-apps
-> 3. find chipset drivers and install.
-> etc etc
-> 
-> I don't know where to begin, as so far what I've read is overwhelming and I can't make out what comes first and what comes after.  I want to take this one step at a time and I can't tell if I missed something important.
+	It must be some problem in LD_PRELOAD, even setting LIBV4L2_LOG_FILENAME the 
+file is not created. I am running skype like this:
 
-Start at linux-tv.org. Find a reference for the particular tuner card 
-you have. Follow those references.
+LD_PRELOAD=/usr/lib32/libv4l2.so /opt/skype/skype
 
-If you are using a very recent version of Linux, chances are, the 
-drivers already exist in the kernel. You'll probably need to install 
-some ancillary software, like v4l-apps. You'll need an application to 
-view the TV. I use MythTV, which is a whole Tivo-like system. But again, 
-start at linux-tv.org.
+	/opt/skype/skype is the binary executable. There is not error message about 
+LD_PRELOAD or libv4l. Skype returns:
 
-Andrew Robinson
+Skype V4L2: Could not find a suitable capture format
+Skype V4L2: Could not find a suitable capture format
+Starting the process...
+Skype Xv: Xv ports available: 4
+Skype XShm: XShm support enabled
+Skype Xv: Using Xv port 131
+Skype Xv: No suitable overlay format found
+
+	OBS: compat-ioctl32.ko is being used by the driver so it should support 32-
+bit ioctl.
+
+Em Tuesday 24 March 2009, Lamarque Vieira Souza escreveu:
+> 	Hi,
+>
+> Em Tuesday 24 March 2009, Hans de Goede escreveu:
+> > On 03/23/2009 09:08 PM, Lamarque Vieira Souza wrote:
+> > > 	Hi all,
+> > >
+> > > 	I am trying to make Skype work with my webcam (Creative PC-CAM 880,
+> > > driver zr364xx). By what I have found Skype only supports YU12, YUYV
+> > > and UYVY pixel formats, which libv4l supports as source formats only
+> > > and not as destination formats.
+> >
+> > YU12 is the same as YUV420 (planar) which skype does support. I assure
+> > you that skype works with libv4l for cams which have a native format
+> > which skype does not understand.
+>
+> 	My fault here (+/-), I created a function to decode fourcc hex numbers to
+> names and it returns V4L2_PIX_FMT_YU12 instead of V4L2_PIX_FMT_YUV420. I
+> did not know they are synonyms. Anyway, it seems lib4l 0.5.9 (32-bit) is
+> not working with Skype (32-bit) while lib4l 0.5.3 (64-bit) is working with
+> Kopete (64-bit) patched to work with libv4l (no LD_PRELOAD). I will keep on
+> trying to figure out why.
+>
+> > What is an other issue with skype is that it insists on asking 320x240,
+> > so if the driver for your cam cannot deliver 320x240 and libv4l fails to
+> > make 320x240 out of it in someway (see below) then skype will fail.
+> >
+> > libv4l will crop 352x288 to 320x240 especially for skype, and it will
+> > downscale 640x480 to 320x240 for the same reason.
+>
+> 	The driver delivers 320x240 as default.
+
+
+-- 
+Lamarque V. Souza
+http://www.geographicguide.com/brazil.htm
+Linux User #57137 - http://counter.li.org/
 
 --
 video4linux-list mailing list
