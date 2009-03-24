@@ -1,23 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2ONDSkW014982
-	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 19:13:28 -0400
-Received: from mail.uni-paderborn.de (mail.uni-paderborn.de [131.234.142.9])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2OND6lV024107
-	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 19:13:06 -0400
-Received: from e177036182.adsl.alicedsl.de ([85.177.36.182]
-	helo=[192.168.0.124]) by mail.uni-paderborn.de with esmtpsa
-	(TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32) (Exim 4.63 hoth)
-	id 1LmFns-0002ma-SP
-	for video4linux-list@redhat.com; Wed, 25 Mar 2009 00:13:05 +0100
-Message-ID: <49C9698C.10607@campus.upb.de>
-Date: Wed, 25 Mar 2009 00:15:24 +0100
-From: David Woitkowski <jarrn@campus.upb.de>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2O9wENb021594
+	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 05:58:15 -0400
+Received: from smtp6.versatel.nl (smtp6.versatel.nl [62.58.50.97])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2O9vtcs017838
+	for <video4linux-list@redhat.com>; Tue, 24 Mar 2009 05:57:55 -0400
+Message-ID: <49C8AF04.7070208@hhs.nl>
+Date: Tue, 24 Mar 2009 10:59:32 +0100
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=windows-1252; format=flowed
+To: Lamarque Vieira Souza <lamarque@gmail.com>
+References: <200903231708.08860.lamarque@gmail.com>
+In-Reply-To: <200903231708.08860.lamarque@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: Cinergy Hybrid T USB XS (0ccd:0042) not working
+Cc: video4linux-list@redhat.com
+Subject: Re: Skype and libv4l
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,116 +27,28 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On 03/23/2009 09:08 PM, Lamarque Vieira Souza wrote:
+> 	Hi all,
+>
+> 	I am trying to make Skype work with my webcam (Creative PC-CAM 880, driver
+> zr364xx). By what I have found Skype only supports YU12, YUYV and UYVY pixel
+> formats, which libv4l supports as source formats only and not as destination
+> formats.
 
-I'm currently fiddling around with my Terratec Cinergy Hybrid T USB XS
+YU12 is the same as YUV420 (planar) which skype does support. I assure you that
+skype works with libv4l for cams which have a native format which skype does
+not understand.
 
-$ lsusb
-Bus 008 Device 007: ID 0ccd:0042 TerraTec Electronic GmbH Cinergy Hybrid
-T XS
+What is an other issue with skype is that it insists on asking 320x240, so if the
+driver for your cam cannot deliver 320x240 and libv4l fails to make 320x240 out of
+it in someway (see below) then skype will fail.
 
-$ uname -r
-2.6.27-11-generic
-(it's a ubuntu 8.10 machine)
+libv4l will crop 352x288 to 320x240 especially for skype, and it will downscale
+640x480 to 320x240 for the same reason.
 
-I have installed the latest em28xx-new drivers provided by Markus
-Rechberger and get
+Regards,
 
-$ modprobe em28xx device_mode=1
-$ modprobe em28xx-dvb
-(attaching the device)
-$ dmesg
-[ 5155.748881] em28xx v4l2 driver version 0.0.1 loaded
-[ 5155.750479] usbcore: registered new interface driver em28xx
-[ 5169.348074] usb 8-2: new high speed USB device using ehci_hcd and
-address 7
-[ 5169.494648] usb 8-2: configuration #1 chosen from 1 choice
-[ 5169.496087] em28xx: new video device (0ccd:0042): interface 0, class 255
-[ 5169.496099] em28xx: device is attached to a USB 2.0 bus
-[ 5169.496105] em28xx #0: Alternate settings: 8
-[ 5169.496110] em28xx #0: Alternate setting 0, max size= 0
-[ 5169.496114] em28xx #0: Alternate setting 1, max size= 0
-[ 5169.496119] em28xx #0: Alternate setting 2, max size= 1448
-[ 5169.496123] em28xx #0: Alternate setting 3, max size= 2048
-[ 5169.496128] em28xx #0: Alternate setting 4, max size= 2304
-[ 5169.496132] em28xx #0: Alternate setting 5, max size= 2580
-[ 5169.496136] em28xx #0: Alternate setting 6, max size= 2892
-[ 5169.496140] em28xx #0: Alternate setting 7, max size= 3072
-[ 5169.743938] attach_inform: tvp5150 detected.
-[ 5169.808565] tvp5150 0-005c: tvp5150am1 detected.
-[ 5171.360938] successfully attached tuner
-[ 5171.367995] em28xx #0: V4L2 VBI device registered as /dev/vbi0
-[ 5171.386199] em28xx #0: V4L2 device registered as /dev/video1
-[ 5171.386657] em2880-dvb.c: DVB Init
-[ 5171.687691] DVB: registering new adapter (em2880 DVB-T)
-[ 5171.687943] DVB: registering frontend 0 (Zarlink MT352 DVB-T)...
-[ 5171.691406] input: em2880/em2870 remote control as
-/devices/virtual/input/input11
-[ 5171.737150] em28xx-input.c: remote control handler attached
-[ 5171.737157] em28xx #0: Found Terratec Hybrid XS
-
-everything seems to be all right but actually nothing I've tested so far
-works.
-
-My current attempts cover dvb-t:
-
-$ scan /usr/share/doc/dvb-utils/examples/scan/dvb-t/de-Bielefeld >
-channels.conf
-scanning /usr/share/doc/dvb-utils/examples/scan/dvb-t/de-Bielefeld
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 514000000 0 2 9 1 1 3 0
-initial transponder 554000000 0 1 9 3 1 3 0
-initial transponder 570000000 0 2 9 1 1 3 0
->>> tune to: 
-514000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to: 
-514000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE 
-
-(tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to: 
-554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to: 
-554000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_1_2:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE 
-
-(tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to: 
-570000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to: 
-570000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE 
-
-(tuning failed)
-WARNING: >>> tuning failed!!!
-ERROR: initial tuning failed
-dumping lists (0 services)
-Done.
-
-and after that attempt I got
-$ dmesg
-... as before ...
-[ 5171.691406] input: em2880/em2870 remote control as
-/devices/virtual/input/input11
-[ 5171.737150] em28xx-input.c: remote control handler attached
-[ 5171.737157] em28xx #0: Found Terratec Hybrid XS
-[ 5191.914643] em28xx_dvb_init
-[ 5205.996064] powered down zl10353
-[ 5308.636444] tvp5150 0-005c: tvp5150am1 detected.
-[ 5712.944647] em28xx_dvb_init
-[ 5727.073036] powered down zl10353
-
-Any hints? Is there any possibility this is a variant of the 0042 not
-covered by the em28xx-new? (BTW: I tried analogue TV too just recieving
-white noise with no signal on every channel)
-
-I am willing to debug this but have no clue where to start.
-
-Thanks for your help,
-
-David
+Hans
 
 --
 video4linux-list mailing list
