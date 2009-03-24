@@ -1,19 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from vps1.tull.net ([66.180.172.116])
-	by www.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <nick@tull.net>) id 1LmQmQ-0004YM-2Y
-	for linux-dvb@linuxtv.org; Wed, 25 Mar 2009 11:56:19 +0100
-Date: Wed, 25 Mar 2009 21:55:00 +1100
-From: Nick Andrew <nick-linuxtv@nick-andrew.net>
-To: damien benoist <damien_benoist@yahoo.com>
-Message-ID: <20090325105500.GA15523@mail.local.tull.net>
-References: <399594.31785.qm@web50512.mail.re2.yahoo.com>
-	<445861.72728.qm@web24402.mail.ird.yahoo.com>
+Received: from yx-out-2324.google.com ([74.125.44.30])
+	by www.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <poplyra@gmail.com>) id 1LlwqQ-0008Qx-Ng
+	for linux-dvb@linuxtv.org; Tue, 24 Mar 2009 03:59:10 +0100
+Received: by yx-out-2324.google.com with SMTP id 8so1732105yxm.41
+	for <linux-dvb@linuxtv.org>; Mon, 23 Mar 2009 19:58:22 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <445861.72728.qm@web24402.mail.ird.yahoo.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] xine interupts (buffering) after kernel upgrade
+Date: Mon, 23 Mar 2009 23:58:22 -0300
+Message-ID: <ff07fffe0903231958o3a9fb617y567e7cdc13dd34df@mail.gmail.com>
+From: Christian Lyra <lyra@pop-pr.rnp.br>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] problem with KNC1 DVB-C MK3 and TPs ~300Mhz
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -22,33 +19,49 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-G'day Damien,
+Hi there,
 
-On Mon, Mar 23, 2009 at 05:55:57PM +0000, damien benoist wrote:
-> My tuner is: "lifeview TV Walker Swift SE"
-> It's been working without problems for about 2 years now
-> with different kernels.
+I=B4m playing with a satelco easywatch card (or should be... ) and it
+works very nicely with a lot of channels and transponders. But there
+are two transponders (309mhz and 321hz) where the video and sound
+skips a lot, or dont work/lock at all. Another person had reported the
+same problem on IRC today. Perhaps this issue is somewhat related to
+the thread "[linux-dvb] TechnoTrend C-1501 - Locking issues on
+388Mhz".
 
-What's the output from "lsusb -v" ?
+Here is the dmesg:
 
-> It works well with kernel 2.6.26.2.
-> I have the following problem with kernel 2.6.28.8:
-> (I've had it with some other 2.6.28.x and if I remember well with
-> some 2.6.27.x)
+[    2.819472] Linux video capture interface: v2.00
+[    2.830678] saa7146: register extension 'budget_av'.
+[    2.830770] budget_av 0000:00:00.0: enabling device (0000 -> 0002)
+[    2.831231] saa7146: found saa7146 @ mem ffffc20000024000 (revision
+1, irq 16) (0x1894,0x0022).
+[    2.831244] saa7146 (0): dma buffer size 192512
+[    2.831251] DVB: registering new adapter (KNC1 DVB-C MK3)
+[    2.867975] adapter failed MAC signature check
+[    2.867986] encoded MAC from EEPROM was
+ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff
+[    3.071061] budget_av: saa7113_init(): saa7113 not found on KNC card
+[    3.131338] KNC1-0: MAC addr =3D 00:09:d6:6d:9f:db
+[    3.338376] DVB: registering adapter 0 frontend 0 (Philips TDA10023 DVB-=
+C)...
+[    3.340258] budget-av: ci interface initialised.
 
-I think you'll need to narrow the target down to within 1 kernel
-revision.
+the list of good transponders are: 129, 135, 465, 525, 531, 537, 555,
+585, and 591
 
-Nick.
--- 
-PGP Key ID = 0x418487E7                      http://www.nick-andrew.net/
-PGP Key fingerprint = B3ED 6894 8E49 1770 C24A  67E3 6266 6EB9 4184 87E7
+any hints?
+
+-- =
+
+Christian Lyra
+PoP-PR/RNP
 
 _______________________________________________
 linux-dvb users mailing list
