@@ -1,75 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:62040 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757497AbZCDTWa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 14:22:30 -0500
-Message-ID: <49AED4DC.5050507@nokia.com>
-Date: Wed, 04 Mar 2009 21:22:04 +0200
-From: Sakari Ailus <sakari.ailus@nokia.com>
-Reply-To: sakari.ailus@maxwell.research.nokia.com
+Received: from banach.math.auburn.edu ([131.204.45.3]:55599 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760299AbZCXRHT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Mar 2009 13:07:19 -0400
+Date: Tue, 24 Mar 2009 12:20:08 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Thomas Kaiser <v4l@kaiser-linux.li>
+cc: linux-media@vger.kernel.org
+Subject: Re: gspca in the LinuxTv wiki
+In-Reply-To: <49C8881F.9020104@kaiser-linux.li>
+Message-ID: <alpine.LNX.2.00.0903241155070.14363@banach.math.auburn.edu>
+References: <49C80321.60402@kaiser-linux.li> <alpine.LNX.2.00.0903231902140.13696@banach.math.auburn.edu> <49C8881F.9020104@kaiser-linux.li>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [REVIEW PATCH 11/14] OMAP34XXCAM: Add driver
-References: <5e9665e10903021848u328e0cd4m5186344be15b817@mail.gmail.com> <200903030836.55692.hverkuil@xs4all.nl> <5e9665e10903031642h2aa38c22o73a8db6714846031@mail.gmail.com> <200903040839.48104.hverkuil@xs4all.nl>
-In-Reply-To: <200903040839.48104.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> On Wednesday 04 March 2009 01:42:13 DongSoo(Nathaniel) Kim wrote:
->> Thank you for your kind explanation Hans.
->>
->> Problem is omap3 camera subsystem is making device node for every int
->> device attached to it.
-> 
-> That's wrong. Multiple devices should only be created if they can all be 
-> used at the same time. Otherwise there should be just one device that uses 
-> S_INPUT et al to select between the inputs.
 
-There might be situations where multiple device nodes would be 
-beneficial even if they cannot be used simultaneously in all cases.
 
-Currently the omap34xxcam camera driver creates one device per camera. A 
-camera in this case contains an isp (or camera controller), image 
-sensor, lens and flash. The properties like maximum frame rate or 
-resolution of a camera are usually (almost) completely defined by those 
-of the sensor, lens and flash. This affects also cropping capabilities.
+On Tue, 24 Mar 2009, Thomas Kaiser wrote:
 
-Several programs can access video devices simultaneously. What happens 
-if another program switches the input when the first one doesn't expect 
-it? The original user won't notice the change, instead of getting -EBUSY 
-when trying to open the other video device.
+> Theodore Kilgore wrote:
+>> But OTOH this causes a problem, too, because the manufacturers of cameras 
+>> (probably some of them are not exactly manufacturers but rather packagers) 
+>> are switching the electronics inside the device any time they feel like it, 
+>> or if they get a large quantity of chips at a good price, or whatever. I 
+>> have seen it happen several times that a certain camera keeps the make and 
+>> model, but it gets a new USB Vendor:Product number. And, worst of all, it 
+>> may have previously been well supported but now it is not. Someone who goes 
+>> and buys the camera based upon the make and model which are stencilled on 
+>> the outside of the camera and printed on the packaging material can end up 
+>> being stung.
+>
+> Ok, just a example. See 
+> http://www.kaiser-linux.li/index.php/Linux_and_Webcams#Typhoon_Easycam_USB_330K
+>
+> At the time I bought this cam it had a sn9c102 bridge and PAS202 and was 
+> working great with gspca. Some time later, somebody reported to me that he 
+> has the same cam but with a PAC7311. So I just updated my page with the new 
+> information. AS of coincident, I was working on the PAC7311 at the time I got 
+> this report!
 
-In short, it's been just more clear to have one device per camera. There 
-may be other reasons but these come to mind this time.
 
-> BTW, do I understand correctly that e.g. lens drivers also get their 
-> own /dev/videoX node? Please tell me I'm mistaken! Since that would be so 
-> very wrong.
+So, I see. You have had to face similar problems. Fun, isn't it?
 
-Yes, you're mistaken this time. :)
+>
+> Anyway, with a good and nice looking page on the LinuxTV wiki, you can get 
+> more interest from some other people and they may sign up and correct the 
+> page or ad new information (like this cam has now this chipset).
 
-The contents of a video devices are defined in platform data.
+Yes, perhaps this will help. Somehow we all have to figure out a way to 
+keep on top of these things, and the information is always shifting 
+around. The idea of doing things in Wiki style, and letting people sign up 
+and add information, is probably good, too.
 
-> I hope that the conversion to v4l2_subdev will take place soon. You are 
-> basically stuck in a technological dead-end :-(
+I mention a couple of other, similar efforts to keep track of various 
+devices, hoping it is possible for some wise person to come up with a way 
+to avoid the problems which are associated with those efforts:
 
-Making things working properly in camera and ISP drivers has taken much 
-more time than was anticipated and v4l2_subdev framework has developed a 
-lot during that time. You're right --- we'll start thinking of how and 
-when to move to v4l2_subdev.
+Related to the Gphoto project, we have a similar information web page, 
+listing Linux compatibility for still cameras. Unfortunately, it seems 
+that the web page is maintained by one individual, and he is snowed under. 
+He has plenty of other work, too, of course, and he works hard. So it is 
+in no way a criticism of him if I say that the page is always hopelessly 
+out of date, not even managing to keep up with a complete list of the 
+cameras which are already supported in libgphoto2.
 
-Thanks.
+There is also the list of usb devices at qbik.ch and it is (again very 
+naturally) always out of date, too. It does operate more in the Wiki 
+style, in that everyone can start an account there, sign up and add 
+devices. However, the model they use fails, to the extent that it is not 
+possible to edit what someone else has entered, and it seems not possible 
+to send a mail to someone in charge, who can repair a stale entry. I am 
+thinking of such a thing as an entry which says that device soandso does 
+not work. Then someone (me or you, for instance) succeeds in supporting 
+the device. So, we can go and add the information that now it works, in a 
+comment to the existing entry. But even before anyone looks at those 
+comments, beside the entry is a big red X which indicates that it does not 
+work. And the person who originally filed the report is the only one who 
+can change that big red X, and that person has now disappeared. If by good 
+luck you are the one who created that original entry, then you and only 
+you can remove that big red X. But if it was not originally your entry, 
+you can't even if you know better.
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+So, as I said, I mention these parallel attempts at documentation with the 
+hope that their problems can somehow be avoided. Perhaps it is good to try 
+to do that.
+
+Good luck,
+
+Theodore Kilgore
