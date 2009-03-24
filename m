@@ -1,85 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.191]:65278 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754904AbZC0Pou (ORCPT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4270 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754441AbZCXJEF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2009 11:44:50 -0400
-Received: by fk-out-0910.google.com with SMTP id 18so476601fkq.5
-        for <linux-media@vger.kernel.org>; Fri, 27 Mar 2009 08:44:47 -0700 (PDT)
+	Tue, 24 Mar 2009 05:04:05 -0400
+Received: from webmail.xs4all.nl (dovemail2.xs4all.nl [194.109.26.4])
+	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2O941Qt007450
+	for <linux-media@vger.kernel.org>; Tue, 24 Mar 2009 10:04:01 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Message-ID: <47547.62.70.2.252.1237885441.squirrel@webmail.xs4all.nl>
+Date: Tue, 24 Mar 2009 10:04:01 +0100 (CET)
+Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: OK,
+      2.6.16-2.6.21: OK
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
 MIME-Version: 1.0
-Date: Fri, 27 Mar 2009 18:44:46 +0300
-Message-ID: <208cbae30903270844r55d0d48eidb5a9ad6f8309f53@mail.gmail.com>
-Subject: trouble with v4l-dvb compilation, compat.h: redefinition of
-	'usb_endpoint_type'
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Linux Media <linux-media@vger.kernel.org>
-Cc: Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hmm, everything is OK.
 
-I went to /usr/src/linux and run "git pull" (so i get 2.6.29-git1),
-and make new kernel.
-Then i updated v4l-dvb repository(hg pull, hg update) and configured
-to compile, for example dsbr100 radio driver.
-I get such message:
+Let's enjoy this moment of perfection! It probably won't last long :-)
 
-tux v4l-dvb # make
-make -C /w/new/v4l-dvb/v4l
-make[1]: Entering directory `/w/new/v4l-dvb/v4l'
-./scripts/make_myconfig.pl
-make[1]: Leaving directory `/w/new/v4l-dvb/v4l'
-make[1]: Entering directory `/w/new/v4l-dvb/v4l'
-perl scripts/make_config_compat.pl /lib/modules/2.6.29/source
-./.myconfig ./config-compat.h
-creating symbolic links...
-Kernel build directory is /lib/modules/2.6.29/build
-make -C /lib/modules/2.6.29/build SUBDIRS=/w/new/v4l-dvb/v4l  modules
-make[2]: Entering directory `/usr/src/linux-2.6'
-  CC [M]  /w/new/v4l-dvb/v4l/tuner-xc2028.o
-  CC [M]  /w/new/v4l-dvb/v4l/tuner-simple.o
-  CC [M]  /w/new/v4l-dvb/v4l/tuner-types.o
-  CC [M]  /w/new/v4l-dvb/v4l/mt20xx.o
-  CC [M]  /w/new/v4l-dvb/v4l/tda8290.o
-  CC [M]  /w/new/v4l-dvb/v4l/tea5767.o
-  CC [M]  /w/new/v4l-dvb/v4l/tea5761.o
-  CC [M]  /w/new/v4l-dvb/v4l/tda9887.o
-  CC [M]  /w/new/v4l-dvb/v4l/xc5000.o
-  CC [M]  /w/new/v4l-dvb/v4l/mc44s803.o
-  CC [M]  /w/new/v4l-dvb/v4l/v4l2-dev.o
-  CC [M]  /w/new/v4l-dvb/v4l/v4l2-ioctl.o
-  CC [M]  /w/new/v4l-dvb/v4l/v4l2-device.o
-  CC [M]  /w/new/v4l-dvb/v4l/v4l2-subdev.o
-  LD [M]  /w/new/v4l-dvb/v4l/videodev.o
-  CC [M]  /w/new/v4l-dvb/v4l/v4l2-int-device.o
-  CC [M]  /w/new/v4l-dvb/v4l/v4l2-common.o
-/w/new/v4l-dvb/v4l/v4l2-common.c: In function 'v4l2_i2c_new_subdev':
-/w/new/v4l-dvb/v4l/v4l2-common.c:834: warning: format not a string
-literal and no format arguments
-/w/new/v4l-dvb/v4l/v4l2-common.c: In function 'v4l2_i2c_new_probed_subdev':
-/w/new/v4l-dvb/v4l/v4l2-common.c:902: warning: format not a string
-literal and no format arguments
-  CC [M]  /w/new/v4l-dvb/v4l/v4l1-compat.o
-  CC [M]  /w/new/v4l-dvb/v4l/dsbr100.o
-In file included from /w/new/v4l-dvb/v4l/dsbr100.c:94:
-/w/new/v4l-dvb/v4l/compat.h:396: error: redefinition of 'usb_endpoint_type'
-include/linux/usb/ch9.h:377: error: previous definition of
-'usb_endpoint_type' was here
-make[3]: *** [/w/new/v4l-dvb/v4l/dsbr100.o] Error 1
-make[2]: *** [_module_/w/new/v4l-dvb/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-2.6'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/w/new/v4l-dvb/v4l'
-make: *** [all] Error 2
-tux v4l-dvb #
+Regards,
 
-Well, i have such messages for radio-si470x and radio-mr800 too.
-This drivers compile ok in kernel from kernel.org.
-As i understand this is compat.h trouble ?
+       Hans
+
+> This message is generated daily by a cron job that builds v4l-dvb for
+> the kernels and architectures in the list below.
+>
+> Results of the daily build of v4l-dvb:
+>
+> date:        Tue Mar 24 08:33:25 CET 2009
+> path:        http://www.linuxtv.org/hg/v4l-dvb
+> changeset:   11153:56cf0f1772f7
+> gcc version: gcc (GCC) 4.3.1
+> hardware:    x86_64
+> host os:     2.6.26
+>
+> linux-2.6.22.19-armv5: OK
+> linux-2.6.23.12-armv5: OK
+> linux-2.6.24.7-armv5: OK
+> linux-2.6.25.11-armv5: OK
+> linux-2.6.26-armv5: OK
+> linux-2.6.27-armv5: OK
+> linux-2.6.28-armv5: OK
+> linux-2.6.29-armv5: OK
+> linux-2.6.27-armv5-ixp: OK
+> linux-2.6.28-armv5-ixp: OK
+> linux-2.6.29-armv5-ixp: OK
+> linux-2.6.28-armv5-omap2: OK
+> linux-2.6.29-armv5-omap2: OK
+> linux-2.6.22.19-i686: OK
+> linux-2.6.23.12-i686: OK
+> linux-2.6.24.7-i686: OK
+> linux-2.6.25.11-i686: OK
+> linux-2.6.26-i686: OK
+> linux-2.6.27-i686: OK
+> linux-2.6.28-i686: OK
+> linux-2.6.29-i686: OK
+> linux-2.6.23.12-m32r: OK
+> linux-2.6.24.7-m32r: OK
+> linux-2.6.25.11-m32r: OK
+> linux-2.6.26-m32r: OK
+> linux-2.6.27-m32r: OK
+> linux-2.6.28-m32r: OK
+> linux-2.6.29-m32r: OK
+> linux-2.6.22.19-mips: OK
+> linux-2.6.26-mips: OK
+> linux-2.6.27-mips: OK
+> linux-2.6.28-mips: OK
+> linux-2.6.29-mips: OK
+> linux-2.6.27-powerpc64: OK
+> linux-2.6.28-powerpc64: OK
+> linux-2.6.29-powerpc64: OK
+> linux-2.6.22.19-x86_64: OK
+> linux-2.6.23.12-x86_64: OK
+> linux-2.6.24.7-x86_64: OK
+> linux-2.6.25.11-x86_64: OK
+> linux-2.6.26-x86_64: OK
+> linux-2.6.27-x86_64: OK
+> linux-2.6.28-x86_64: OK
+> linux-2.6.29-x86_64: OK
+> fw/apps: OK
+> sparse (linux-2.6.29): ERRORS
+> linux-2.6.16.61-i686: OK
+> linux-2.6.17.14-i686: OK
+> linux-2.6.18.8-i686: OK
+> linux-2.6.19.5-i686: OK
+> linux-2.6.20.21-i686: OK
+> linux-2.6.21.7-i686: OK
+> linux-2.6.16.61-x86_64: OK
+> linux-2.6.17.14-x86_64: OK
+> linux-2.6.18.8-x86_64: OK
+> linux-2.6.19.5-x86_64: OK
+> linux-2.6.20.21-x86_64: OK
+> linux-2.6.21.7-x86_64: OK
+>
+> Detailed results are available here:
+>
+> http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+>
+> Full logs are available here:
+>
+> http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+>
+> The V4L2 specification from this daily build is here:
+>
+> http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+>
+> The DVB API specification from this daily build is here:
+>
+> http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
 
 -- 
-Best regards, Klimov Alexey
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
