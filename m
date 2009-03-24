@@ -1,104 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.sea5.speakeasy.net ([69.17.117.3]:46321 "EHLO
-	mail1.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758786AbZCMITU (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2264 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752127AbZCXHTM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2009 04:19:20 -0400
-Date: Fri, 13 Mar 2009 01:19:17 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: "Erik S. Beiser" <erikb@bu.edu>
-cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] cx88: Add IR support to pcHDTV HD3000 & HD5500
-In-Reply-To: <49B09734.9050302@bu.edu>
-Message-ID: <Pine.LNX.4.58.0903130027270.28292@shell2.speakeasy.net>
-References: <49A9E4F0.1030005@bu.edu> <Pine.LNX.4.58.0903041330510.24268@shell2.speakeasy.net>
- <49B09734.9050302@bu.edu>
+	Tue, 24 Mar 2009 03:19:12 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: [REVIEWv2] bttv v4l2_subdev conversion
+Date: Tue, 24 Mar 2009 08:19:26 +0100
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <200903192124.52524.hverkuil@xs4all.nl> <200903210949.21924.hverkuil@xs4all.nl> <Pine.LNX.4.58.0903231724300.28292@shell2.speakeasy.net>
+In-Reply-To: <Pine.LNX.4.58.0903231724300.28292@shell2.speakeasy.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903240819.26398.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 5 Mar 2009, Erik S. Beiser wrote:
-> Thanks for your comments, Trent.  My responses below:
+On Tuesday 24 March 2009 01:38:04 Trent Piepho wrote:
+> On Sat, 21 Mar 2009, Hans Verkuil wrote:
+> > On Saturday 21 March 2009 06:56:18 Trent Piepho wrote:
+> > > It seems like one could still disable loading modules for that bttv
+> > > might think it needs.  When you're testing modules that have not been
+> > > installed, any calls to request_module() will load the wrong version
+> > > and cause all sorts of breakage.  It should still be possible to
+> > > disable any attempts by the driver to do that.
+> >
+> > The idea is to either let the driver use the card definition info and
+> > probing to detect the audio chip, or to tell it which one to load
+> > explicitly. That's sufficient in my opinion.
 >
-> Trent Piepho wrote:
-> > On Sat, 28 Feb 2009, Erik S. Beiser wrote:
+> I still think it should be possible to prevent the driver from calling
+> request_module().  If you're trying to test drivers then a call to
+> request_module can cause a kernel oops.
+
+You mean you want to be able to load the driver without loading any audio 
+module? Or do you mean something else? It must be me, but I still don't 
+understand what scenario you are trying to prevent. Note that just calling 
+request_module() doesn't do anything but load the module in memory. Without 
+autoprobing it will never attach to a i2c adapter.
+
+> > I'll remove it. I'll probably put it back in a future patch when I'll
+> > start working on RDS. Currently you can read from a radio device in
+> > bttv and it will allow that even when there is no rds on board. I
+> > intended to use this pointer later in the radio fops to test whether
+> > reading is allowed.
+>
+> Don't you have a has_saa6588 field in the bttv core struct that would
+> allow the same thing?
+
+Yeah, that would work as well: if I can't attach the saa6588 module, then I 
+can set that field to 0 and check that field elsewhere.
+
+> > > > --- a/linux/drivers/media/video/bt8xx/bttv.h	Thu Mar 19 20:53:32
+> > > > 2009 +0100 +++ b/linux/drivers/media/video/bt8xx/bttv.h	Thu Mar 19
+> > > > 21:15:53 2009 +0100 @@ -242,6 +242,7 @@
+> > > >  	unsigned int msp34xx_alt:1;
+> > > >
+> > > >  	unsigned int no_video:1; /* video pci function is unused */
+> > > > +	unsigned int has_saa6588:1;
+> > >
+> > > How about not adding this?  It's unused and I just removed a bunch of
+> > > unused fields from here.  Add it when someone can actually make use
+> > > of it.
 > >
-> >> cx88: Add IR support to pcHDTV HD3000 & HD5500
-> >>
-> >> Signed-off-by: Erik S. Beiser <erikb@bu.edu>
-> >>
-> >> ---
-> >>
-> >> Idea originally from http://www.pchdtv.com/forum/viewtopic.php?t=1529
-> >> I made it into this small patch and added the HD3000 support also, which I have  I've actually
-> >> been using this for over a year, updating for new kernel versions.  I'm tired of doing so,
-> >> and would like to try and have it merged upstream -- I hope I got all the patch-mechanics
-> >> correct.  I just updated and tested it today on 2.6.28.7 vanilla.  Thanks.
+> > No. If you add a new card definition and that card has a saa6588, then
+> > this bit should be available for you. Otherwise I just know that people
+> > will just skip that chip ('Hey! I can't set it! Oh, I'll skip it
+> > then...') instead of asking for adding saa6588 support.
 > >
-> > You forgot a patch description.
-> Ok, I had looked around and saw many patches that had the one-liner
-> descriptions, which I thought would be sufficient for a four line
-> patch.  At your request, I can add a couple lines description when I
-> fix it (see below).
+> > The only reason it's not used is that the one board that can have it
+> > has to test for it dynamically as it is an add-on.
+>
+> Do you really think anyone is going to add a new card defition to bttv
+> that has a saa6588?  All these years and there is only one obscure card
+> that has a saa6588 as an add on.  No one even makes bttv cards with
+> tuners anymore. The only bttv cards we've seen added in a long time are
+> multi-chip cards with no tuners.
 
-You won't see such patch descriptions from me.  Clearly your patch made
-some very significant changes and assumptions that really should have in
-the description.
+I wasn't thinking so much of new devices as existing devices that never 
+recorded the presence of a saa6588. We use 17 bits of the 32 available in 
+the bitfield. This will be the 18th. I see absolutely no problem with that.
 
-> > Since neither the HD-3000 or HD-5500 came with a remote, and at least my
-> > HD-3000 didn't even come with an IR receiver.  So I have to ask why
-> > configuring the driver to work a remote you happened to have is any more
-> > correct than configuring it to work a remote someone else happens to have?
-> True, the vendor doesn't seem to sell a remote or IR receiver with
-> these cards.  I was actually surprised when I got mine to see the jack
-> for an IR receiver, which can be made to work if one has those parts
-> from another source.  I don't think that because these cards were sold
-> without a remote and receiver should mean that we don't expose the
-> receiver functionality.  I didn't see that happening elsewhere, so I
-> adopted this 'worksforme' solution.  You have a valid point about the
-> key mapping, which I did not fully consider.  I don't have a good
-> justification.  OTOH how does someone with one of those cards use a
-> remote different from what came with their card?  Is that possible?
+> > Looking at it I should add a comment, though.
+> >
+> > > >  	unsigned int tuner_type;  /* tuner chip type */
+> > > >  	unsigned int tda9887_conf;
+> > > >  	unsigned int svhs, dig;
+> > > > +	unsigned int has_saa6588:1;
+> > >
+> > > You're better off not using a bitfield here.  Because of padding, it
+> > > still takes 32 bits (or more, depending on the alignment of
+> > > bttv_pll_info) in the struct but takes more code to use.
+> >
+> > Mauro wants a bitfield, he gets a bitfield. I'm not going
+> > back-and-forth on this. Personally I don't care one way or the other.
+>
+> So Mauro, why a bit field?  It doesn't save any space here.
 
-The problem with exposing the receiver this way is that it's unlikely to be
-useful to anyone but yourself.  Given the significant performance cost of
-enabling ir sampling, and the very limited usefulness, I don't think this
-belongs in the kernel.
+Because this clearly shows that it is a on-off value and not an integer that 
+can have other values as well.
 
-> All I'm really trying to accomplish is to somehow get inputs from a
-> remote exposed through some device, with which I could parse stuff
-> with lirc.  This method exposed it via a /dev/input/eventN node.  I
-> admit I hadn't paid too much attention to the keymapping before.
-> (Just trying to get the thing to work.)  But you prompted me to dig
-> deeper, and I see that in drivers/media/common/ir-keymaps.c there is a
-> ir_codes_empty mapping.  I tried it tonight with that mapping instead,
-> and a /dev/input/eventN device was created, but I don't seem to get
-> anything from it.  Which I guess isn't too surprising, but if so, then
-> how can I go about generically exposing signals from the IR port to
-> userspace?
+Regards,
 
-You might look at the patches from Jon Simrl that try to add IR support to
-the input system.  They use configfs to define remote keycodes.
+	Hans
 
-You could also create a device the exports the raw timings to lircd to
-decode.  I think lircd might still use the "mode2" interface I created for
-the ir serial driver over a decade ago.  That would be easy to copy.
-
-> > This patch also causes these cards to generate 101 interrupts per second
-> > per card, even when not in use.  That seems pretty costly for a card that
-> > doesn't even come with an ir sensor.
-> Whoa, I didn't realize that.  Can you point me to how I can verify
-> that?  Is that simply an effect of the ir->sampling type?  Might a
-> different type be preferred?  I could do some experimenting.
-
-Just look at /proc/interrupts.  The ir sampling mode isn't documented in
-the cx23880 datasheet, but it looks like it samples gpio16 at about 250 us
-intervals and generate an interrupt each time 32 samples are ready.  Hugely
-inefficient.  A serial port ir receiver would be much better.  The cx23880
-can operate that way with gpio22 and gpio23, but I think the mpeg ts
-interface uses those gpios.
-
-Maybe there is some way to turn on the remote sampling when something is
-listening for remote events?
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
