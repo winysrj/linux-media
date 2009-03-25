@@ -1,74 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wmproxy2-g27.free.fr ([212.27.42.92]:16284 "EHLO
-	wmproxy2-g27.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754424AbZCKNsu convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:3817 "EHLO
+	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752413AbZCYTYW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Mar 2009 09:48:50 -0400
-Date: Wed, 11 Mar 2009 14:48:45 +0100 (CET)
-From: robert.jarzmik@free.fr
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: ospite@studenti.unina.it, mike@compulab.co.il,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-ID: <651370679.3318401236779325568.JavaMail.root@zimbra20-e3.priv.proxad.net>
-In-Reply-To: <722242271.3317321236779109198.JavaMail.root@zimbra20-e3.priv.proxad.net>
-Subject: Re: [PATCH] pxa_camera: Redesign DMA handling
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+	Wed, 25 Mar 2009 15:24:22 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr17.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2PJOK1e071122
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 25 Mar 2009 20:24:20 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 25 Mar 2009 20:24:20 +0100 (CET)
+Message-Id: <200903251924.n2PJOK1e071122@smtp-vbr17.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: OK
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------ Mail Original -----
-De: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-À: "Robert Jarzmik" <robert.jarzmik@free.fr>
-Cc: ospite@studenti.unina.it, mike@compulab.co.il, "Linux Media Mailing List" <linux-media@vger.kernel.org>
-Envoyé: Mercredi 11 Mars 2009 13h22:19 GMT +01:00 Amsterdam / Berlin / Berne / Rome / Stockholm / Vienne
-Objet: Re: [PATCH] pxa_camera: Redesign DMA handling
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Hi Robert,
+Results of the daily build of v4l-dvb:
 
-On Wed, 4 Mar 2009, Robert Jarzmik wrote:
+date:        Wed Mar 25 19:00:03 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11153:56cf0f1772f7
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
-> 
-> > (moved to the new v4l list)
-> >
-> >> The DMA transfers in pxa_camera showed some weaknesses in
-> >> multiple queued buffers context :
-> >>  - poll/select problem
-> >>    The order between list pcdev->capture and DMA chain was
-> >>    not the same. This creates a discrepancy between video
-> >>    buffers marked as "done" by the IRQ handler, and the
-> >>    really finished video buffer.
-> >
-> > Could you please describe where and how the order could get wrong?
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-i686: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-m32r: OK
+linux-2.6.22.19-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-powerpc64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-x86_64: OK
+fw/apps: OK
+sparse (linux-2.6.29): ERRORS
+linux-2.6.16.61-i686: OK
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: OK
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
-> Now after I've explained to you how the present DMA-chaining works, do you 
-> still think the order can be swapped? If so, I need a new explanation:-)
+Detailed results are available here:
 
-Nope. I totally removed that comment from the commit. I only left poll/select
-problem, with "select timeout" on capture_example from v4l tree. The buffer
-swap must have been my poor understanding of the DMA chain at that time.
-I added instead the evolution from "DMA stopped chaining" into "DMA hot chaining"
-with fallback path is the chaining was done too late before DMA stopped.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-> because, as we now know, this doesn't hold - we just use one (last) dummy 
-> descriptor from the new buffer to append it to the current sg_tail, which 
-> seems correct to me.
-You're right.
+Full logs are available here:
 
-Even now I'm on the new DMA handling (your "hot chaining" suggestion), I'm
-still thinking about what was wrong with the old code. As you may have seen,
-I've asked for help on LAK to understand the DMA controller better.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-BTW, I've retouched the comments inside that patch. I wonder if I should let you
-make a review of the last posted patch, or repost a full V2 serie after I complete
-my full non-regression test cases ?
-Either way, I think there will be a third converging iteration (V3).
+The V4L2 specification from this daily build is here:
 
-What do you think is easier for you ?
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
-Cheers.
+The DVB API specification from this daily build is here:
 
---
-Robert
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
