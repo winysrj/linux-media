@@ -1,44 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:43924 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754627AbZCETqG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Mar 2009 14:46:06 -0500
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: g.liakhovetski@gmx.de, mike@compulab.co.il
-Cc: linux-media@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH 0/4] pxa_camera: Redesign DMA handling
-Date: Thu,  5 Mar 2009 20:45:47 +0100
-Message-Id: <1236282351-28471-1-git-send-email-robert.jarzmik@free.fr>
+Received: from mail01a.mail.t-online.hu ([84.2.40.6]:54685 "EHLO
+	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753059AbZCYQvs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Mar 2009 12:51:48 -0400
+Message-ID: <49CA611B.5050902@freemail.hu>
+Date: Wed, 25 Mar 2009 17:51:39 +0100
+From: =?ISO-8859-2?Q?N=E9meth_M=E1rton?= <nm127@freemail.hu>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+CC: LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCH] v4l2: fill reserved fields of VIDIOC_ENUMAUDIO also
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset, formerly known as "pxa_camera: Redesign DMA handling", attempts
-so simplify the code for all DMA related parts of pxa_camera host driver.
+From: Márton Németh <nm127@freemail.hu>
 
-As asked for by Guennadi and Mike, the original patch was split up into 4
-patches :
- - one to address the YUV planar format hole (page alignment)
- - one to redesign the DMA
- - one for code style change
- - one for lately discovered overrun issue
+When enumerating audio inputs with VIDIOC_ENUMAUDIO the gspca_sunplus driver
+does not fill the reserved fields of the struct v4l2_audio with zeros as
+required by V4L2 API revision 0.24 [1]. Add the missing initializations to
+the V4L2 framework.
 
-A decision about enforcing a size for pxa_camera_set_fmt() to be a multiple of 8
-was not done yet. Meanwhile, the patchset doesn't make any hypothesis about the
-image size, and even a weird size like 223 x 111 will work. If such a decision
-was to be taken, patch 1 would have to amended.
+The patch was tested with v4l-test 0.10 [2] with gspca_sunplus driver and
+with Trust 610 LCD POWERC@M ZOOM webcam.
 
-Powermanagment with suspend to RAM, then resume in the middle of a capture does
-work.
+References:
+[1] V4L2 API specification, revision 0.24
+    http://v4l2spec.bytesex.org/spec/r8242.htm
 
-As Mike noticed, YUV planar format overlay was not tested after these changes.
+[2] v4l-test: Test environment for Video For Linux Two API
+    http://v4l-test.sourceforge.net/
 
-Robert Jarzmik (4):
-  pxa_camera: remove YUV planar formats hole
-  pxa_camera: Redesign DMA handling
-  pxa_camera: Coding style sweeping
-  pxa_camera: Fix overrun condition on last buffer
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+--- linux-2.6.29/drivers/media/video/v4l2-ioctl.c.orig	2009-03-24 00:12:14.000000000 +0100
++++ linux-2.6.29/drivers/media/video/v4l2-ioctl.c	2009-03-25 17:11:27.000000000 +0100
+@@ -1363,9 +1363,13 @@ static long __video_do_ioctl(struct file
+ 	case VIDIOC_ENUMAUDIO:
+ 	{
+ 		struct v4l2_audio *p = arg;
++		__u32 index = p->index;
 
- drivers/media/video/pxa_camera.c |  474 ++++++++++++++++++++++----------------
- 1 files changed, 277 insertions(+), 197 deletions(-)
-
+ 		if (!ops->vidioc_enumaudio)
+ 			break;
++
++		memset(p, 0, sizeof(*p));
++		p->index = index;
+ 		ret = ops->vidioc_enumaudio(file, fh, p);
+ 		if (!ret)
+ 			dbgarg(cmd, "index=%d, name=%s, capability=0x%x, "
