@@ -1,34 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53175 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754594AbZCGAAy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Mar 2009 19:00:54 -0500
-Date: Fri, 6 Mar 2009 15:59:58 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: sfr@canb.auug.org.au, linux-next@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@infradead.org, Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH -next] dvb/frontends: fix duplicate 'debug' symbol
-Message-Id: <20090306155958.11b4a186.akpm@linux-foundation.org>
-In-Reply-To: <49B1949E.2000300@oracle.com>
-References: <20090306191311.697e7b97.sfr@canb.auug.org.au>
-	<49B1949E.2000300@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mx2.redhat.com ([66.187.237.31]:38278 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752823AbZCYKQ4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Mar 2009 06:16:56 -0400
+Message-ID: <49CA04F7.4010603@redhat.com>
+Date: Wed, 25 Mar 2009 11:18:31 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: Ricardo Jorge da Fonseca Marques Ferreira <storm@sys49152.net>
+Subject: v4l parent for usb device interface or device?
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 06 Mar 2009 13:24:46 -0800
-Randy Dunlap <randy.dunlap@oracle.com> wrote:
+<take 2 this time to the new list, hoping it gets some more attention>
 
-> It would also be Good if arch/x86/kernel/entry_32.S didn't have a
-> non-static 'debug' symbol.  OTOH, it helps catch things like this one.
+Hi,
 
-heh, yes, it's a feature.  We should put it in init/main.c, along with
-100-odd other dont-do-that-dopey symbols.
+Today it came to my attention (through a libv4l bugreport) that
+the uvc driver and the gspca driver handle the setting of
+the v4l parent for usb webcams differently.
+
+The probe function for an usb driver gets passed in a
+"struct usb_interface *intf" parameter.
+
+uvc sets parent to:
+
+vdev->parent = &intf->dev;
+
+gspca uses:
+struct usb_device *dev = interface_to_usbdev(intf);
+vdev.parent = &dev->dev;
+
+Looking at what for example the usb mass-storage driver
+does (with my multi function printer/scanner with cardreader),
+which matches UVC, and thinking about how this is supposed to
+work with multifunction devices in general, I believe the uvc
+driver behaviour is correct, but before writing a patch for
+gspca, I thought it would be good to first discuss this on the
+list.
+
+So what do you think ?
+
+Thanks & Regards,
+
+Hans
 
 
+p.s.
 
+This mainly influences what the /sys/class/video4linux/video#/device
+symlink will point to, which libv4l uses.
