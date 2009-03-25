@@ -1,17 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-gx0-f165.google.com ([209.85.217.165])
+Received: from kenny.juvepoland.com ([193.218.153.206] ident=postfix)
 	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <laks.810@gmail.com>) id 1LhK8z-000865-R1
-	for linux-dvb@linuxtv.org; Wed, 11 Mar 2009 09:50:31 +0100
-Received: by gxk9 with SMTP id 9so2603279gxk.17
-	for <linux-dvb@linuxtv.org>; Wed, 11 Mar 2009 01:49:55 -0700 (PDT)
-MIME-Version: 1.0
-Date: Wed, 11 Mar 2009 14:19:54 +0530
-Message-ID: <30d7af70903110149v2ac7ddb2qf0e892ffebe4581f@mail.gmail.com>
-From: Lakshmi Vallathol <laks.810@gmail.com>
+	(envelope-from <railis@juvepoland.com>) id 1LmUrQ-0006Tz-DQ
+	for linux-dvb@linuxtv.org; Wed, 25 Mar 2009 16:17:45 +0100
+Received: from railis.localnet (unknown [89.231.206.135])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by kenny.juvepoland.com (Postfix) with ESMTP id 4E9E8466A
+	for <linux-dvb@linuxtv.org>; Wed, 25 Mar 2009 16:17:31 +0100 (CET)
+From: Dominik Sito <railis@juvepoland.com>
 To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary=001636e1faec98d4590464d3f348
-Subject: [linux-dvb] demux device not getting registered
+Date: Wed, 25 Mar 2009 16:17:44 +0100
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200903251617.44107.railis@juvepoland.com>
+Subject: [linux-dvb] SkyStar USB 2.0 - support knowledge
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -20,88 +23,26 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---001636e1faec98d4590464d3f348
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Hello.
 
-hello,
+First, I want to apoligise to the foolish questions, but I need to know 
+something more about development. Is there any testing drivers able 
+to use and check? Which driver is working up already? What are the 
+differences between preverious version of this model (Skystar USB)? 
+How far is the development (if it's any...)? What is/isn't actually working? 
+Is this develop in kernel already?
 
-We have a problem in our demux device getting detected.. we have
-writen a program code in c++ in linux. the error that it shows while
-compiling is that the demux device does not get detected nor does the
-streams. please do help us with this.. and reply immediately .
-thank you ,
-
---001636e1faec98d4590464d3f348
-Content-Type: text/plain; charset=US-ASCII; name="1st application.txt"
-Content-Disposition: attachment; filename="1st application.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: file0
-
-Ly9pbmNsdWRpbmcgbGlicmFyaWVzLy8NCg0KI2luY2x1ZGU8c3RkaW8uaD4NCiNpbmNsdWRlPHN0
-ZGxpYi5oPg0KI2luY2x1ZGU8cHRocmVhZC5oPg0KI2luY2x1ZGU8bGludXgvdHlvZXMuaD4NCiNp
-bmNsdWRlIDx1bmlzdGQuaD4NCg0KLy9kZWZpbmluZyB0aGUgbWFjcm9zLy8NCg0KI2RlZmluZSBE
-RU1VWF9ERVZJQ0UgL2Rldi9kdmIvYWRhcHRlcjAvZGVtdXgwDQojZGVmaW5lIE1FTV9TVEFSVF9B
-RERSIDBYM0MwMDAwMA0KI2RlZmluZSBNRU1fU0laRSAwWDEwMDAwMDANCiNkZWZpbmUgVEhSRUFE
-X1NMRUVQX1RJTUUgICAxMCoxMDAwDQojZGVmaW5lIE1BWF9TRUNUSU9OX1NJWkUgICAgKDQqMTAy
-NCkNCnN0YXRpYyB1bnNpZ25lZCBpbnQgbU1lbVNwYWNlSGFuZGxlPS0xOw0Kc3RhdGljIHB0aHJl
-YWRfbXV0ZXhfdCBiZ2V0X21lbV9tdXRleD1QVEhSRUFEX01VVEVYX0lOSVRJQUxJWkVSOg0KDQpz
-dGF0aWMgYm9vbCB0aHJlYWRfc3RhdHVzPUZBTFNFOw0KaW50ICphZGRyZXNzOw0KDQp0eXBlZGVm
-IHN0cnVjdCANCnsNCglpbnQgcGlkOw0KCWludCBCdWZmZXJTaXplOw0KCWludCBmZDsNCglwdGhy
-ZWFkX3QgdGhyZWFkOw0KCWludCBUaW1lT3V0Ow0KCWJvb2wgdGhyZWFkX3N0YXR1czsNCn1QY0Rt
-eERhdGFUeXBlOw0Kdm9pZCBtYWluKCkNCnsNCkNvbmZpZ3VyZURldmljZShpbnQgcGlkLGludCBi
-dWZmZXJzaXplLGludCAqZXJyb3IsaW50ICpzdWJjcmlkKTsNCn0NCnZvaWQgbUluaXRtZW0oKQ0K
-ew0KCXB0aHJlYWRfbXV0ZXhfbG9jaygmYmdldF9tZW1fbXV0ZXgpOw0KCWJwb29sKE1FTV9TVEFS
-VF9BRERSLE1FTV9TSVpFKTsNCglwdGhyZWFkX211dGV4X3VubG9jaygmYmdldF9tZW1fbXV0ZXgp
-Ow0KfQ0KaW50IG1NYWxsb2Moc2l6ZV90IHNpemUpDQp7DQoJcHRocmVhZF9tdXRleF9sb2NrKCZi
-Z2V0X21lbV9tdXRleCk7DQoJKmFkZHJlc3M9YmdldChzaXplKTsNCglwdGhyZWFkX211dGV4X3Vu
-bG9jaygmYmdldF9tZW1fbXV0ZXgpOw0KCXJldHVybiBhZGRyZXNzOw0KfQ0Kdm9pZCBtRnJlZSgp
-DQp7DQoJcHRocmVhZF9tdXRleF9sb2NrKCZiZ2V0X21lbV9tdXRleCk7DQoJYnJlbChhZGRyZXNz
-KTsNCglwdGhyZWFkX211dGV4X3VubG9jaygmYmdldF9tZW1fbXV0ZXgpOw0KfQ0Kdm9pZCBDb25m
-aWd1cmVEZXZpY2UoaW50IHBpZCxpbnQgYnVmZmVyc2l6ZSxpbnQgKmVycm9yLGludCAqc3ViY3Jp
-ZCkNCg0KewlpbnQgZmQ7DQoJUGNEbXhEYXRhVHlwZSogRmlsdGVyOw0KCWlmKGZkPShvcGVuKERF
-TVVYX0RFVklDRSwoT19SRFdSfE9fTk9OQkxPQ0spKSk8MCk7DQoJew0KCQlwZXJyb3IoImVycm9y
-IGluIG9wZW5pbmcgREVNVVhfREVWSUNFIik7DQoJCXJldHVybiBtTWVtU3BhY2VIYW5kbGU7DQoJ
-fQ0KCWVsc2UNCgl7DQoJCWlmIChpb2N0bChmZCwgRE1YX1NFVF9CVUZGRVJfU0laRSwgQnVmZmVy
-U2l6ZSkgPT0gLTEpDQogICAgICAgIAl7DQogICAgICAgICAgICAJCXByaW50ZigiRXJyb3Igd2hp
-bGUgc2V0dGluZyB0aGUgYnVmZmVyIHNpemUhISFcbiIpOw0KICAgICAgICAJfQ0KCQllbHNlDQoJ
-CXsNCgkJCUZpbHRlciA9IChQY0RteERhdGFUeXBlKiltTWFsbG9jTWVtKHNpemVvZihQY0RteERh
-dGFUeXBlKSk7DQogICAgICAgICAgICAJCWlmKEZpbHRlciAhPSBOVUxMKQ0KCQkJew0KCQkJCXN0
-cnVjdCBkbXhfcGVzX2ZpbHRlcl9wYXJhbXMgZnA7DQoJCQkJbWVtc2V0KEZpbHRlciwwLERNWF9T
-RVRfQlVGRkVSX1NJWkUpOw0KCQkJCWZwLmlucHV0ICAgICA9IERNWF9JTl9GUk9OVEVORDsNCgkJ
-CQlmcC5vdXRwdXQgICAgPSBETVhfT1VUX1RBUDsNCgkJCQlmcC5wZXNfdHlwZSAgPSBETVhfUEVT
-X09USEVSOw0KCQkJCWZwLmZsYWdzICAgICA9IERNWF9JTU1FRElBVEVfU1RBUlQ7DQoJCQkJZnAu
-cGlkICAgICAgID0gcGlkOw0KDQoJCQkJaWYgKGlvY3RsKGZkLERNWF9TRVRfRklMVEVSLCZmcCkg
-PCAwKQ0KCQkJCXsNCgkJCQkJbUZyZWUoKTsNCgkJCQkJRmlsdGVyPU5VTEw7DQoJCQkJCXBlcnJv
-cigiZXJyb3IgaW4gc2V0dGluZyB0aGUgZmlsdGVyIik7DQoJCQkJfSANCgkJCQllbHNlDQoJCQkJ
-ew0KCQkJCQlwdGhyZWFkX3QgcDsNCiAgICAgICAgICAgICAgICAgICAgICAgIAkJRmlsdGVyLT50
-aHJlYWRfc3RhdHVzID0gRkFMU0U7DQogICAgICAgICAgICAgICAgICAgIAkJCXB0aHJlYWRfY3Jl
-YXRlKCZwLCBOVUxMLCBwY2RteF9wZXNfdGhyZWFkLCAodm9pZCopRmlsdGVyKTsNCiAgICAgICAg
-ICAgICAgICAgICAgCQkJRmlsdGVyLT50aHJlYWQgPSBwOw0KCQkJCX0NCgkJCX0NCgkJfQ0KCQkN
-CgkJY2xvc2UoZmQpOwkNCgl9DQp9DQp2b2lkICpwY2RteF9wZXNfdGhyZWFkKHZvaWQqIGFyZykN
-CnsNCglQY0RteERhdGFUeXBlICpGaWx0ZXIgPSAoUGNEbXhEYXRhVHlwZSopYXJnOw0KICAgIAlp
-bnQgKmJ1ZjsNCiAgICAJaW50IGJ5dGVzOw0KCWludCBsZW5ndGg9MDsNCg0KICAgCSB3aGlsZSgh
-RmlsdGVyLT50aHJlYWRfc3RhdHVzKQ0KICAgIAl7DQoJCXVzbGVlcChUSFJFQURfU0xFRVBfVElN
-RSk7DQogICAgICAgIAlidWYgPSAoaW50KiltTWFsbG9jTWVtKE1BWF9TRUNUSU9OX1NJWkUpOw0K
-ICAgICAgICAJaWYoYnVmID09IE5VTEwpIGNvbnRpbnVlOw0KICAgICAgICAJYnl0ZXMgPSByZWFk
-KEZpbHRlci0+ZmQsIGJ1ZiwgTUFYX1NFQ1RJT05fU0laRSk7DQoJCWxlbmd0aD1sZW5ndGgrYnl0
-ZXM7DQoJCWlmIChieXRlcyA8IDApDQogICAgICAgIAl7DQogICAgICAgIAkJbUZyZWVNZW0oYnVm
-KTsJDQoJCX0NCgl9DQoNCgkNCgl2b2lkICpoYW5kbGU9TlVMTDsNCgloYW5kbGU9Zm9wZW4oIi9o
-b21lL2xha3NobWkvMXN0YXBwLnR4dCIsIndiIik7DQoJZndyaXRlKGhhbmRsZSxzaXplKGludCks
-bGVuZ3RoLGJ1Zik7DQoJZmNsb3NlKGhhbmRsZSk7DQoJDQp9DQoJDQo=
---001636e1faec98d4590464d3f348
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+I'll really gratefull if I'll recieve any information about that.
+Regards.
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---001636e1faec98d4590464d3f348--
