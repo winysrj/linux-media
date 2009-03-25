@@ -1,49 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.30]:62826 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750695AbZCaEyv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2009 00:54:51 -0400
-Received: by yx-out-2324.google.com with SMTP id 31so2310523yxl.1
-        for <linux-media@vger.kernel.org>; Mon, 30 Mar 2009 21:54:49 -0700 (PDT)
+Received: from web110807.mail.gq1.yahoo.com ([67.195.13.230]:28133 "HELO
+	web110807.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753435AbZCYInu convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Mar 2009 04:43:50 -0400
+Message-ID: <82346.5913.qm@web110807.mail.gq1.yahoo.com>
+Date: Wed, 25 Mar 2009 01:43:48 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: Re: [PATCH 1/1 re-submit 1] sdio: add low level i/o functions for workarounds
+To: Uri Shkolnik <uris@siano-ms.com>, Pierre Ossman <drzeus@drzeus.cx>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <15ed362e0903170855k2ec1e5afm613de692c237e34d@mail.gmail.com>
-References: <15ed362e0903170855k2ec1e5afm613de692c237e34d@mail.gmail.com>
-Date: Tue, 31 Mar 2009 00:54:49 -0400
-Message-ID: <412bdbff0903302154w5ddb3fc8m684bcb5092942561@mail.gmail.com>
-Subject: Re: [PATCH] Support for Legend Silicon LGS8913/LGS8GL5/LGS8GXX China
-	DMB-TH digital demodulator
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: David Wong <davidtlwong@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 17, 2009 at 11:55 AM, David Wong <davidtlwong@gmail.com> wrote:
-> This patch contains the unified driver for Legend Silicon LGS8913 and
-> LGS8GL5. It should replace lgs8gl5.c in media/dvb/frontends
->
-> David T.L. Wong
 
-David,
 
-The questions you posed tonight on a separate thread about making the
-xc5000 work with this device prompts the question:
 
-Do you know that this driver you submitted actually works?  Have you
-successfully achieved lock with this driver and been able to view the
-stream?
+--- On Tue, 3/24/09, Pierre Ossman <drzeus@drzeus.cx> wrote:
 
-It is great to see the improvements and more generic support, but if
-you don't have it working in at least one device, then it probably
-shouldn't be submitted upstream yet, and it definitely should not be
-replacing an existing driver.
+> From: Pierre Ossman <drzeus@drzeus.cx>
+> Subject: Re: [PATCH 1/1 re-submit 1] sdio: add low level i/o functions for workarounds
+> To: "Uri Shkolnik" <uris@siano-ms.com>
+> Cc: "Mauro Carvalho Chehab" <mchehab@infradead.org>, "Linux Media Mailing List" <linux-media@vger.kernel.org>
+> Date: Tuesday, March 24, 2009, 10:04 PM
+> On Sun, 22 Mar 2009 16:48:39 +0200
+> "Uri Shkolnik" <uris@siano-ms.com>
+> wrote:
+> 
+> > Hi Pierre,
+> > 
+> > The USB separation patches are ready, and will be
+> committed for review
+> > shortly (SDIO stack workaround + Siano SDIO driver
+> were the first to be
+> > re-re-re-committed, SPI will be next, and after them
+> the "core" which
+> > includes the 'separation' code). You can view one (of
+> many) older commit
+> > operations @
+> > http://patchwork.kernel.org/project/linux-media/list/?submitter=Uri&stat
+> > e=*
+> > 
+> 
+> I see. Could you hold off on the SDIO patches and allow me
+> to do a
+> final cleanup once you have the separation patches done?
+> Then I can
+> send them directly to Mauro and we can have this merged
+> quickly.
+> 
+> Rgds
+> -- 
+>      -- Pierre Ossman
+> 
+>   WARNING: This correspondence is being monitored by
+> the
+>   Swedish government. Make sure your server uses
+> encryption
+>   for SMTP traffic and consider using PGP for
+> end-to-end
+>   encryption.
+> 
 
-Devin
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+
+Hi Pierre,
+
+The SDIO patches are part of (at least) dozen patches needed to upgrade the Siano's offering for Linux kernel.
+
+The order is -
+1) SDIO SMS interface driver and SDIO stack patch (add)
+2) SPI interface driver (add)
+3) USB interface driver (modify)
+4) IR port (add)
+5) USB v3 (modify)
+6-15(?) ) "Core" and "Cards" modifications
+
+
+The order of the patches places the SDIO among the first to be submitted for review (interface drivers must be patched before the "core", in order to make the various commits pass bisect tests).
+
+I suggest that we'll continue the submission, and I'll cc you on ALL submissions. You will be able to review, and either ask for modification and/or suggest your on supplementary patches at any stage. 
+
+
+Regards, 
+________________________________
+
+Uri Shkolnik
+
+
+
+      
