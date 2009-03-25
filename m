@@ -1,80 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from os.inf.tu-dresden.de ([141.76.48.99]:54600 "EHLO
-	os.inf.tu-dresden.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752735AbZCZBjB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2009 21:39:01 -0400
-Date: Thu, 26 Mar 2009 02:38:41 +0100
-From: "Udo A. Steinberg" <udo@hypervisor.org>
-To: Darron Broad <darron@kewl.org>
-Cc: v4l-dvb-maintainer@linuxtv.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com
-Subject: Re: Hauppauge/IR breakage with 2.6.28/2.6.29
-Message-ID: <20090326023841.40ab3ad1@laptop.hypervisor.org>
-In-Reply-To: <29212.1238027207@kewl.org>
-References: <20090326000932.6aa1a456@laptop.hypervisor.org>
-	<29212.1238027207@kewl.org>
+Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:46045 "EHLO
+	smtp.ossman.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753824AbZCYTlX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Mar 2009 15:41:23 -0400
+Date: Wed, 25 Mar 2009 20:41:15 +0100
+From: Pierre Ossman <drzeus@drzeus.cx>
+To: Uri Shkolnik <urishk@yahoo.com>
+Cc: Uri Shkolnik <uris@siano-ms.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/1 re-submit 1] sdio: add low level i/o functions for
+ workarounds
+Message-ID: <20090325204115.550a58b9@mjolnir.ossman.eu>
+In-Reply-To: <82346.5913.qm@web110807.mail.gq1.yahoo.com>
+References: <82346.5913.qm@web110807.mail.gq1.yahoo.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/4rDDy=NHUIJ0FbsxFzLqImj";
- protocol="application/pgp-signature"; micalg=PGP-SHA1
+Content-Type: multipart/signed; micalg=PGP-SHA1; protocol="application/pgp-signature"; boundary="=_freyr.ossman.eu-30585-1238010076-0001-2"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_/4rDDy=NHUIJ0FbsxFzLqImj
+This is a MIME-formatted message.  If you see this text it means that your
+E-mail software does not support MIME-formatted messages.
+
+--=_freyr.ossman.eu-30585-1238010076-0001-2
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: quoted-printable
 
-On Thu, 26 Mar 2009 00:26:47 +0000 Darron Broad (DB) wrote:
+On Wed, 25 Mar 2009 01:43:48 -0700 (PDT)
+Uri Shkolnik <urishk@yahoo.com> wrote:
 
-DB> It's something I forget to deal with in that patch. A solution
-DB> would be to allow a device address to be a module param to
-DB> override the more modern addresses of 0x1e and 0x1f.
-DB>=20
-DB> I can't remember addresses off the top of my head but I believe
-DB> the modern silver remotes use 0x1f and the older black ones
-DB> use 0x1e. I think the black one I have came with a now dead
-DB> DEC2000.
-DB>=20
-DB> The problem with reverting the patch is that it makes modern
-DB> systems unusable as HTPCs when the television uses RC5. This
-DB> is a more important IMHO than supporting what in reality is
-DB> an obsolete remote control.
+>=20
+> Hi Pierre,
+>=20
+> The SDIO patches are part of (at least) dozen patches needed to upgrade t=
+he Siano's offering for Linux kernel.
+>=20
+> The order is -
+> 1) SDIO SMS interface driver and SDIO stack patch (add)
+> 2) SPI interface driver (add)
+> 3) USB interface driver (modify)
+> 4) IR port (add)
+> 5) USB v3 (modify)
+> 6-15(?) ) "Core" and "Cards" modifications
+>=20
 
-Hi,
+I'm not sure where the separation comes in here. So far the driver has
+had a common entrypoint that calls all the different interface specific
+startup routines.
 
-Maybe there aren't many old remotes out there anymore, but from looking at
-the table at http://www.sbprojects.com/knowledge/ir/rc5.htm it appears the
-remote is not doing anything wrong by using RC5 address 0x0 to talk to what
-could be considered a TV (card).
+>=20
+> The order of the patches places the SDIO among the first to be submitted =
+for review (interface drivers must be patched before the "core", in order t=
+o make the various commits pass bisect tests).
+>=20
 
-The more fundamental issue here is that both devices/remotes use the same
-RC5 address - not surprising if you own two devices of the same device clas=
-s.
+I take it you're referring to your internal repo? Mainline only
+contains the USB interface so splitting that up into a core and
+interface driver shouldn't cause any bisect problems.
 
-So I'm all for your suggestion of adding a parameter that will allow the
-user to either specify the address(es) to accept or ignore. Which of the
-following options would you consider most convenient for the unknowing user?
+> I suggest that we'll continue the submission, and I'll cc you on ALL subm=
+issions. You will be able to review, and either ask for modification and/or=
+ suggest your on supplementary patches at any stage.=20
+>=20
 
-1) parameter specifies the only device id that ir-kbd-i2c will accept
-2) parameter specifies a 32-bit mask of acceptable device ids. Any device id
-   whose bit is set will be accepted, others will be filtered
-3) parameter specifies a 32-bit mask of device ids to filter. Any device id
-   whose bit is set will be filtered, others will be accepted
+I'd prefer to not build a huge monolith just to later take it apart,
+but I can live with it.
 
-Cheers,
+Rgds
+--=20
+     -- Pierre Ossman
 
-	- Udo
+  WARNING: This correspondence is being monitored by the
+  Swedish government. Make sure your server uses encryption
+  for SMTP traffic and consider using PGP for end-to-end
+  encryption.
 
---Sig_/4rDDy=NHUIJ0FbsxFzLqImj
-Content-Type: application/pgp-signature; name=signature.asc
+--=_freyr.ossman.eu-30585-1238010076-0001-2
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment; filename=signature.asc
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+Version: GnuPG v2.0.11 (GNU/Linux)
 
-iEUEARECAAYFAknK3KEACgkQnhRzXSM7nSnaCACfWdtkumTN2vj0AaG5viqwO0KW
-exMAmMY+ugbsve0pxzL8amHb6WTtuwU=
-=Hs+c
+iEYEARECAAYFAknKiN0ACgkQ7b8eESbyJLh+VgCggwPexT++ScwWHQtIn4M/vCa9
+ZSUAnRVBJ7UjRLw3qjB+cks4vfi0e/33
+=VhJm
 -----END PGP SIGNATURE-----
 
---Sig_/4rDDy=NHUIJ0FbsxFzLqImj--
+--=_freyr.ossman.eu-30585-1238010076-0001-2--
