@@ -1,42 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mk-outboundfilter-5.mail.uk.tiscali.com ([212.74.114.1]:54778
-	"EHLO mk-outboundfilter-5.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752475AbZCOWYe (ORCPT
+Received: from smtp-out2.blueyonder.co.uk ([195.188.213.5]:56944 "EHLO
+	smtp-out2.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753321AbZCZB3s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2009 18:24:34 -0400
-From: Adam Baker <linux@baker-net.org.uk>
-To: linux-media@vger.kernel.org, kilgota@banach.math.auburn.edu,
-	Hans de Goede <j.w.r.degoede@hhs.nl>,
-	"Jean-Francois Moine" <moinejf@free.fr>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [RFC][PATCH 0/2] Sensor orientation reporting
-Date: Sun, 15 Mar 2009 22:24:28 +0000
+	Wed, 25 Mar 2009 21:29:48 -0400
+Message-ID: <49CABAF8.4030306@blueyonder.co.uk>
+Date: Wed, 25 Mar 2009 23:15:04 +0000
+From: Sid Boyce <sboyce@blueyonder.co.uk>
+Reply-To: sboyce@blueyonder.co.uk
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903152224.29388.linux@baker-net.org.uk>
+To: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Asus PG221 monitor camera sensor not recognised
+References: <Pine.LNX.4.64.0903252026380.5795@axis700.grange> <49CA9228.5030105@gmail.com>
+In-Reply-To: <49CA9228.5030105@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Erik Andrén wrote:
+> 
+> 
+> Guennadi Liakhovetski wrote:
+>> Forwarding to linux-media for a better chance for a reply.
+> 
+>> ---
+>> Guennadi Liakhovetski, Ph.D.
+>> Freelance Open-Source Software Developer
+> 
+>> ---------- Forwarded message ----------
+>> Date: Wed, 25 Mar 2009 17:08:05 +0000
+>> From: Sid Boyce <sboyce@blueyonder.co.uk>
+>> To: linux-usb@vger.kernel.org
+>> Subject: Asus PG221 monitor camera sensor not recognised
+> 
+>> The camera has never worked though it used to be enumerated as
+>> /dev/videoX with sensor s5k83a in earlier kernels.
+>> gspca: main v2.4.0 registered
+>> gspca: probing 0402:5602
+>> ALi m5602: Probing for a po1030 sensor
+>> ALi m5602: Probing for a mt9m111 sensor
+>> ALi m5602: Probing for a s5k4aa sensor
+>> ALi m5602: Probing for an ov9650 sensor
+>> ALi m5602: Probing for a s5k83a sensor
+>> ALi m5602: Failed to find a sensor
+>> ALi m5602: ALi m5602 webcam failed
+>> usbcore: registered new interface driver ALi m5602
+>> ALi m5602: registered
+> 
+> 
+> Hi,
+> I've been in contact with Sid last year and I still need usb snoops
+> from using the cam in windows in order to help him further.
+> 
+> Best regards,
+> Erik
 
-I've finally got round to writing a sample patch to support the proposed 
-mechanism of reporting sensor orientation to user space. It is split into 2 
-parts, part 1 contains the kernel changes and part 2 the libv4l changes. In 
-order to keep the patch simple I haven't attempted to add support to libv4l 
-for HFLIP and VFLIP but just assumed for now that if a cam needs one then it 
-needs both. If the basic idea gets accepted then fixing that is purely a user 
-space change.
+OK, I shall see what I can do, but no Windows available.
+Regards
+Sid.
+-- 
+Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
+Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
+Specialist, Cricket Coach
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
 
-I also haven't provided an implementation of VIDIOC_ENUMINPUT in libv4l that 
-updates the flags to reflect what libv4l has done to the image. Hans Verkuil 
-originally said he wanted to leave the orientation information available to 
-the user app but I suspect that is actually undesirable. If an app is 
-designed to work without libv4l and to re-orient an image as required then if 
-someone runs it with the LD_PRELOAD capability of libv4l then correct 
-operation depends upon reporting the corrected orientation to the app, not 
-the original orientation.
-
-Adam
