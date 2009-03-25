@@ -1,75 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailrelay009.isp.belgacom.be ([195.238.6.176]:51816 "EHLO
-	mailrelay009.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758939AbZC0QRx (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2140 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754512AbZCYO6x (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2009 12:17:53 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: how about adding FOCUS mode?
-Date: Fri, 27 Mar 2009 17:19:00 +0100
-Cc: "Kim, Heung Jun" <riverful@gmail.com>, bill@thedirks.org,
-	linux-media@vger.kernel.org
-References: <b64afca20903262320g1bd35163lcce41724dd5db965@mail.gmail.com> <200903270824.28092.hverkuil@xs4all.nl>
-In-Reply-To: <200903270824.28092.hverkuil@xs4all.nl>
+	Wed, 25 Mar 2009 10:58:53 -0400
+Message-ID: <20232.62.70.2.252.1237993114.squirrel@webmail.xs4all.nl>
+Date: Wed, 25 Mar 2009 15:58:34 +0100 (CET)
+Subject: Re: v4l parent for usb device interface or device?
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Laurent Pinchart" <laurent.pinchart@skynet.be>
+Cc: "Hans de Goede" <hdegoede@redhat.com>, linux-media@vger.kernel.org,
+	"Ricardo Jorge da Fonseca Marques Ferreira" <storm@sys49152.net>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903271719.00404.laurent.pinchart@skynet.be>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-On Friday 27 March 2009 08:24:27 Hans Verkuil wrote:
-> On Friday 27 March 2009 07:20:51 Kim, Heung Jun wrote:
-> > Hello, Hans & everyone.
-> >
-> > I'm trying to adapt the various FOCUS MODE int the NEC ISP driver.
-> > NEC ISP supports 4 focus mode, AUTO/MACRO/MANUAL/FULL or NORMAL.
-> > but, i think that it's a little insufficient to use V4L2 FOCUS Feature.
-> >
-> > so, suggest that,
-> >
-> > - change V4L2_CID_FOCUS_AUTO's type from boolean to interger, and add
-> > the following enumerations for CID values.
-> >
-> > enum v4l2_focus_mode {
-> >     V4L2_FOCUS_AUTO            = 0,
-> >     V4L2_FOCUS_MACRO        = 1,
-> >     V4L2_FOCUS_MANUAL        = 2,
-> >     V4L2_FOCUS_NORMAL        = 3,
-> >     V4L2_FOCUS_LASTP        = 3,
-> > };
-> >
-> > how about this usage? i wanna get some advice about FOCUS MODE.
-
-V4L2_CID_FOCUS_AUTO is meant to change the auto-focus mode. Can you describe 
-FOCUS_MACRO and FOCUS_NORMAL in more details ? Are they auto-focus modes or 
-just focus presets ?
-
-> This seems more logical to me:
+> Hi Hans,
 >
-> enum v4l2_focus_mode {
->     V4L2_FOCUS_MANUAL = 0,
->     V4L2_FOCUS_AUTO_NORMAL = 1,
->     V4L2_FOCUS_AUTO_MACRO = 2,
-> };
+> On Wednesday 25 March 2009 11:18:31 Hans de Goede wrote:
+>> <take 2 this time to the new list, hoping it gets some more attention>
+>>
+>> Hi,
+>>
+>> Today it came to my attention (through a libv4l bugreport) that
+>> the uvc driver and the gspca driver handle the setting of
+>> the v4l parent for usb webcams differently.
+>>
+>> The probe function for an usb driver gets passed in a
+>> "struct usb_interface *intf" parameter.
+>>
+>> uvc sets parent to:
+>>
+>> vdev->parent = &intf->dev;
+>>
+>> gspca uses:
+>> struct usb_device *dev = interface_to_usbdev(intf);
+>> vdev.parent = &dev->dev;
+>>
+>> Looking at what for example the usb mass-storage driver
+>> does (with my multi function printer/scanner with cardreader),
+>> which matches UVC, and thinking about how this is supposed to
+>> work with multifunction devices in general, I believe the uvc
+>> driver behaviour is correct, but before writing a patch for
+>> gspca, I thought it would be good to first discuss this on the
+>> list.
+>>
+>> So what do you think ?
 >
-> At least this maps the current boolean values correctly. I'm not sure from
-> your decription what the fourth auto focus mode is supposed to be.
-
-Does an auto-macro focus mode really exists ?
-
-> But I think it might be better to have a separate control that allows you
-> to set the auto-focus mode. I can imagine that different devices might have
-> different auto-focus modes.
+> I obviously agree with you :-)
 >
-> I've CC-ed Laurent since this is more his field than mine.
+> USB class drivers bind to interfaces instead of devices to support
+> composite
+> (multifunction) devices. While drivers for vendor-specific USB devices can
+> bind to the device, in which case the parent could be a USB device, we
+> need to
+> have some consistency in the sysfs symlinks. Using a USB interface as the
+> video device parent regardless of the device type makes sense.
+
+If the parent should indeed become the usb_interface, then we should make
+all v4l usb drivers consistent. And update v4l2-framework.txt. I've
+noticed before that it seems to be random what is used as the parent. I'm
+no USB expert, so I'm relying on your input.
 
 Regards,
 
-Laurent Pinchart
+       Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
