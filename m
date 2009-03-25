@@ -1,38 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.tut.by ([195.137.160.40]:51973 "EHLO
-	cluster-ldap.tutby.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751432AbZC1PnR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Mar 2009 11:43:17 -0400
-From: "Igor M. Liplianin" <liplianin@tut.by>
-To: linux-dvb@linuxtv.org, linux-media@vger.kernel.org,
-	Mauro Chehab <mchehab@infradead.org>,
-	Bernd =?utf-8?q?Strau=C3=9F?= <no_bs@web.de>
-Subject: Re: [linux-dvb] Patch: IR-support for Tevii s460
-Date: Sat, 28 Mar 2009 17:43:08 +0200
-References: <1619240981@web.de>
-In-Reply-To: <1619240981@web.de>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200903281743.08676.liplianin@tut.by>
+Received: from kroah.org ([198.145.64.141]:54081 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753763AbZCYA3t (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Mar 2009 20:29:49 -0400
+From: Greg Kroah-Hartman <gregkh@suse.de>
+To: linux-kernel@vger.kernel.org
+Cc: Kay Sievers <kay.sievers@vrfy.org>, mchehab@infradead.org,
+	linux-media@vger.kernel.org
+Subject: [PATCH 17/61] v4l: struct device - replace bus_id with dev_name(), dev_set_name()
+Date: Tue, 24 Mar 2009 17:26:21 -0700
+Message-Id: <1237940825-22904-17-git-send-email-gregkh@suse.de>
+In-Reply-To: <20090325001659.GA22461@kroah.com>
+References: <20090325001659.GA22461@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 26 March 2009 21:02:40 Bernd Strauß wrote:
-> The remote control which comes with this card doesn't work out of the box.
-> This patch changes that. Works with LIRC and /dev/input/eventX.
->
-> _______________________________________________________________________
-> DSL zum Nulltarif + 20 Euro ExtraprДmie bei Online-Bestellung Эber die
-> DSL Freundschaftswerbung! http://dsl.web.de/?ac=OM.AD.AD008K15279B7069a
-Did you see my repository?
-Oh, I'm shure, you did!
-It is here quite some time already. Also TeVii s420.
-However, I'm not against it, only want my name being mentioned :)
+From: Kay Sievers <kay.sievers@vrfy.org>
 
+Cc: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org
+Acked-by: Greg Kroah-Hartman <gregkh@suse.de>
+Signed-off-by: Kay Sievers <kay.sievers@vrfy.org>
+---
+ drivers/media/radio/radio-tea5764.c |    3 ++-
+ drivers/media/video/v4l2-device.c   |    2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/radio/radio-tea5764.c b/drivers/media/radio/radio-tea5764.c
+index 4d35308..3936238 100644
+--- a/drivers/media/radio/radio-tea5764.c
++++ b/drivers/media/radio/radio-tea5764.c
+@@ -298,7 +298,8 @@ static int vidioc_querycap(struct file *file, void  *priv,
+ 
+ 	strlcpy(v->driver, dev->dev.driver->name, sizeof(v->driver));
+ 	strlcpy(v->card, dev->name, sizeof(v->card));
+-	snprintf(v->bus_info, sizeof(v->bus_info), "I2C:%s", dev->dev.bus_id);
++	snprintf(v->bus_info, sizeof(v->bus_info),
++		 "I2C:%s", dev_name(&dev->dev));
+ 	v->version = RADIO_VERSION;
+ 	v->capabilities = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
+ 	return 0;
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index cf9d4c7..8a4b74f 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -34,7 +34,7 @@ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
+ 	spin_lock_init(&v4l2_dev->lock);
+ 	v4l2_dev->dev = dev;
+ 	snprintf(v4l2_dev->name, sizeof(v4l2_dev->name), "%s %s",
+-			dev->driver->name, dev->bus_id);
++			dev->driver->name, dev_name(dev));
+ 	dev_set_drvdata(dev, v4l2_dev);
+ 	return 0;
+ }
 -- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+1.6.2
+
