@@ -1,138 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4570 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751245AbZC3L6q (ORCPT
+Received: from yx-out-2324.google.com ([74.125.44.29]:23177 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753291AbZCYOiJ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2009 07:58:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hardik Shah <hardik.shah@ti.com>
-Subject: Re: [PATCH 2/3] New V4L2 CIDs for OMAP class of Devices.
-Date: Mon, 30 Mar 2009 13:58:40 +0200
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	Brijesh Jadav <brijesh.j@ti.com>,
-	Vaibhav Hiremath <hvaibhav@ti.com>
-References: <1237526397-14101-1-git-send-email-hardik.shah@ti.com>
-In-Reply-To: <1237526397-14101-1-git-send-email-hardik.shah@ti.com>
+	Wed, 25 Mar 2009 10:38:09 -0400
+Received: by yx-out-2324.google.com with SMTP id 31so59875yxl.1
+        for <linux-media@vger.kernel.org>; Wed, 25 Mar 2009 07:38:07 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903301358.40555.hverkuil@xs4all.nl>
+In-Reply-To: <49C970C9.20407@gmail.com>
+References: <49B9BC93.8060906@nav6.org>
+	 <412bdbff0903191536n525a2facp5bc9637ebea88ff4@mail.gmail.com>
+	 <49C2D4DB.6060509@gmail.com> <49C33DE7.1050906@gmail.com>
+	 <1237689919.3298.179.camel@palomino.walls.org>
+	 <412bdbff0903221800j2f9e1137u7776191e2e75d9d2@mail.gmail.com>
+	 <412bdbff0903241439u472be49mbc2588abfc1d675d@mail.gmail.com>
+	 <49C96A37.4020905@gmail.com>
+	 <Pine.LNX.4.64.0903250128110.11676@shogun.pilppa.org>
+	 <49C970C9.20407@gmail.com>
+Date: Wed, 25 Mar 2009 10:38:07 -0400
+Message-ID: <412bdbff0903250738l23a3b04fpdebbad502897bf57@mail.gmail.com>
+Subject: Re: The right way to interpret the content of SNR, signal strength
+	and BER from HVR 4000 Lite
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: Mika Laitio <lamikr@pilppa.org>, Andy Walls <awalls@radix.net>,
+	linux-media@vger.kernel.org, Trent Piepho <xyzzy@speakeasy.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Ang Way Chuang <wcang@nav6.org>,
+	VDR User <user.vdr@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 20 March 2009 06:19:57 Hardik Shah wrote:
-> Added V4L2_CID_BG_COLOR for background color setting.
-> Added V4L2_CID_ROTATION for rotation setting.
-> Above two ioclts are indepth discussed. Posting
-> again with the driver usage.
-> 
-> V4L2 supports chroma keying added new flags for the
-> source chroma keying which is exactly opposite of the
-> chorma keying supported by V4L2.  In current implementation
-> video data is replaced by the graphics buffer data for some
-> specific color.  While for the source chroma keying grahics
-> data is replaced by the video data for some specific color.
-> Both are exactly opposite so are mutually exclusive
-> 
-> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-> Signed-off-by: Hardik Shah <hardik.shah@ti.com>
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> ---
->  linux/drivers/media/video/v4l2-common.c |    7 +++++++
->  linux/include/linux/videodev2.h         |    6 +++++-
->  2 files changed, 12 insertions(+), 1 deletions(-)
-> 
-> diff --git a/linux/drivers/media/video/v4l2-common.c b/linux/drivers/media/video/v4l2-common.c
-> index 3c42316..fa408f0 100644
-> --- a/linux/drivers/media/video/v4l2-common.c
-> +++ b/linux/drivers/media/video/v4l2-common.c
-> @@ -422,6 +422,8 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_CHROMA_AGC:		return "Chroma AGC";
->  	case V4L2_CID_COLOR_KILLER:		return "Color Killer";
->  	case V4L2_CID_COLORFX:			return "Color Effects";
-> +	case V4L2_CID_ROTATION:                 return "Rotation";
+On Tue, Mar 24, 2009 at 7:46 PM, Manu Abraham <abraham.manu@gmail.com> wrote:
+> Mika Laitio wrote:
+>>>>> That said, the solution takes the approach of "revolutionary" as
+>>>>> opposed to "evolutionary", which always worries me.  While providing a
+>>>>> much more powerful interface, it also means all of the applications
+>>>>> will have to properly support all of the various possible
+>>>>> representations of the data, increasing the responsibility in userland
+>>>>> considerably.
+>>>
+>>> Not necessarily, the application can simply chose to support what
+>>> the driver provides as is, thereby doing no translations at all.
+>>
+>>> From the end user point of view it is not very usefull if he has 2
+>> different cards and application can not show any usefull signal goodness
+>> info in a way that would be easy to compare. So I think the attempt to
+>> standardize to db is good.
+>
+> The first part: For comparison having a standardized value is good.
+>
+> True.
+>
+> But the problem that surrounds it:
+>
+> To do this, a driver should support statistics in dB. For a device
+> which doesn't show statistics in dB, for reasons
+> (a) device uses a different format
+>
+> (b) enough information is not available to do a conversion
+>    (too less information, or a reverse engineered driver)
+>
+> (c) the conversion to be done makes things too complex in kernel land.
+>
+> So you have very less devices to do a comparison between.
+>
+> The other way to do this:
+>
+> Suppose, the driver that doesn't support a dB format (relative
+> doesn't mean unknown) provides the information in a relative format.
+> And the driver that provides the information in dB format, but that
+> information you get, can be converted in to a relative floor -
+> ceiling format (conversion handled by application, or by a library)
+>
+> This is a quick way.
+>
+> Now, which all devices do provide a scale in dB, which is really
+> comparable ? There are many different parameters, quickly hacked
+> together to be called SNR. In the terms you mention, you will be
+> comparing things like
+>
+> SNR to CNR etc based on the device type.
+>
+> So eventually your comparison is wrong.
+>
+>
+>> Maybe there could then in addition be some other optional method for
+>> also getting data in some hw specific format in a way that Manu suggested.
+>> But there should anyway be mandatory to have this one "standard goodness
+>> value" in a way that does not require apps to make any complicate
+>> comparisons... (I bet half of those apps would be broken for years)
+>
+>
+> In the way i mentioned, it leaves to the application to choose from
+> different styles such as
+>
+> (1) display parameters from the drivers, in their own native format
+> (This is a completely human readable format, in which you can see
+> the real scales)
+>
+> (2) convert parameters to a specific format.
+> (The very important part here is that the application is free to
+> convert from format A with driver X and  format B with driver Y, to
+> get it into a unified format. if you really need the feature what
+> you mentioned, you need this feature, rather than have all drivers
+> being modified to provide one standard format)
+>
+> To make things look simple, i have a sample application which does
+> (1) to make things look simple.
+>
+> If you choose to do (2) It will be just doing the conversion one
+> time in a library or application, once rather than doing it multiple
+> times in unknown ways and formats.
 
-I'm having second thoughts about this name. I think V4L2_CID_ROTATE is better,
-since it is an action ('you rotate an image') rather than a status ('what is
-the rotation of an image').
+Hello Manu,
 
-What do you think?
+First off, a large part of your argument lies in the notion that many
+of the devices do not support representing the SNR in dB.  However,
+when I sent around the list in an attempt to do an inventory of what
+formats were used by different demods, you didn't provide any actual
+information.  Could you please look at the following list, and if you
+know of how "unknown" demods do their SNR, provide the information?
 
-> +	case V4L2_CID_BG_COLOR:                 return "Background color";
-> 
->  	/* MPEG controls */
->  	case V4L2_CID_MPEG_CLASS: 		return "MPEG Encoder Controls";
-> @@ -547,6 +549,10 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
->  		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
->  		min = max = step = def = 0;
->  		break;
-> +	case V4L2_CID_BG_COLOR:
-> +		 qctrl->type = V4L2_CTRL_TYPE_INTEGER;
-> +		 step = 1;
-> +		 break;
+http://www.devinheitmueller.com/snr.txt
 
-Set the min to 0 and max to 0xffffff.
+My argument for doing it in dB was based on the inventory suggesting
+that the vast majority of *known* devices do it that way.  If this is
+incorrect, then how about providing some actual data so we have better
+decision making?
 
->  	default:
->  		qctrl->type = V4L2_CTRL_TYPE_INTEGER;
->  		break;
-> @@ -571,6 +577,7 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
->  	case V4L2_CID_BLUE_BALANCE:
->  	case V4L2_CID_GAMMA:
->  	case V4L2_CID_SHARPNESS:
-> +	case V4L2_CID_BG_COLOR:
+I do agree that people should not be putting CNR data into the SNR
+field.  If there are known cases where that happens, they should be
+removed.  The CNR can be used to represent the "strength" field, but
+it is not the same as the SNR and shouldn't be treated as such.  Also,
+things like putting AGC feedback in that field should be removed as
+well (or moved to the strength field).
 
-This definitely isn't a slider control.
+I haven't raised this argument yet, but I also believe that once we
+make this change, all the cases where the format for the SNR is
+"unknown" should be "#ifdef 0" and return ENOSYS.  If nobody can tell
+us what the format is, it's better to return nothing at all then
+mislead users with garbage data.
 
->  		qctrl->flags |= V4L2_CTRL_FLAG_SLIDER;
->  		break;
->  	case V4L2_CID_PAN_RELATIVE:
-> diff --git a/linux/include/linux/videodev2.h b/linux/include/linux/videodev2.h
-> index 2c83935..592d1c8 100644
-> --- a/linux/include/linux/videodev2.h
-> +++ b/linux/include/linux/videodev2.h
-> @@ -548,6 +548,7 @@ struct v4l2_framebuffer {
->  #define V4L2_FBUF_CAP_LOCAL_ALPHA	0x0010
->  #define V4L2_FBUF_CAP_GLOBAL_ALPHA	0x0020
->  #define V4L2_FBUF_CAP_LOCAL_INV_ALPHA	0x0040
-> +#define V4L2_FBUF_CAP_SRC_CHROMAKEY	0x0080
->  /*  Flags for the 'flags' field. */
->  #define V4L2_FBUF_FLAG_PRIMARY		0x0001
->  #define V4L2_FBUF_FLAG_OVERLAY		0x0002
-> @@ -555,6 +556,7 @@ struct v4l2_framebuffer {
->  #define V4L2_FBUF_FLAG_LOCAL_ALPHA	0x0008
->  #define V4L2_FBUF_FLAG_GLOBAL_ALPHA	0x0010
->  #define V4L2_FBUF_FLAG_LOCAL_INV_ALPHA	0x0020
-> +#define V4L2_FBUF_FLAG_SRC_CHROMAKEY	0x0040
-> 
->  struct v4l2_clip {
->  	struct v4l2_rect        c;
-> @@ -882,6 +884,8 @@ enum v4l2_power_line_frequency {
->  #define V4L2_CID_CHROMA_AGC                     (V4L2_CID_BASE+29)
->  #define V4L2_CID_COLOR_KILLER                   (V4L2_CID_BASE+30)
->  #define V4L2_CID_COLORFX			(V4L2_CID_BASE+31)
-> +#define V4L2_CID_ROTATION                     	(V4L2_CID_BASE+32)
-> +#define V4L2_CID_BG_COLOR                       (V4L2_CID_BASE+33)
->  enum v4l2_colorfx {
->  	V4L2_COLORFX_NONE	= 0,
->  	V4L2_COLORFX_BW		= 1,
-> @@ -889,7 +893,7 @@ enum v4l2_colorfx {
->  };
-> 
->  /* last CID + 1 */
-> -#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+32)
-> +#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+34)
-> 
->  /*  MPEG-class control IDs defined by V4L2 */
->  #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
-> --
-> 1.5.6
-
-Regards,
-
-	Hans
+Devin
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
