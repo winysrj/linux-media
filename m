@@ -1,60 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.30]:54816 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754621AbZCPQon (ORCPT
+Received: from mailrelay009.isp.belgacom.be ([195.238.6.176]:10575 "EHLO
+	mailrelay009.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754381AbZCYOua (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2009 12:44:43 -0400
-Date: Mon, 16 Mar 2009 09:44:35 -0700
-From: Brandon Philips <brandon@ifup.org>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <gregkh@suse.de>, laurent.pinchart@skynet.be,
-	linux-media@vger.kernel.org, linux-usb@vger.kernel.org
-Subject: Re: S4 hang with uvcvideo causing "Unlink after no-IRQ? Controller
-	is probably using the wrong IRQ."
-Message-ID: <20090316164435.GA5310@jenkins.ifup.org>
-References: <20090313194647.GC21008@jenkins.ifup.org> <Pine.LNX.4.44L0.0903131647500.5149-100000@iolanthe.rowland.org>
+	Wed, 25 Mar 2009 10:50:30 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: v4l parent for usb device interface or device?
+Date: Wed, 25 Mar 2009 15:51:28 +0100
+Cc: linux-media@vger.kernel.org,
+	Ricardo Jorge da Fonseca Marques Ferreira
+	<storm@sys49152.net>
+References: <49CA04F7.4010603@redhat.com>
+In-Reply-To: <49CA04F7.4010603@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.0903131647500.5149-100000@iolanthe.rowland.org>
+Message-Id: <200903251551.28320.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 16:50 Fri 13 Mar 2009, Alan Stern wrote:
-> On Fri, 13 Mar 2009, Brandon Philips wrote:
-> 
-> > On 14:03 Fri 13 Mar 2009, Alan Stern wrote:
-> > > On Fri, 13 Mar 2009, Brandon Philips wrote:
-> > > 
-> > > > > Okay, not much information there but it's a start.  Here's a more 
-> > > > > informative patch to try instead.
-> > > > 
-> > > > Here is the log:
-> > > >  http://ifup.org/~philips/467317/pearl-alan-debug-2.log
-> > > 
-> > > I still can't tell what's happening.  Here's yet another patch.
-> > 
-> > http://ifup.org/~philips/467317/pearl-alan-debug-3.log
-> 
-> I think I see the problem; the patch below is an attempted fix.
-> Hopefully it will get your system working.
+Hi Hans,
 
-That fixes it, thanks. This was originally found in a 2.6.27 based
-Kernel so the fix can go off to stable@ too.
+On Wednesday 25 March 2009 11:18:31 Hans de Goede wrote:
+> <take 2 this time to the new list, hoping it gets some more attention>
+>
+> Hi,
+>
+> Today it came to my attention (through a libv4l bugreport) that
+> the uvc driver and the gspca driver handle the setting of
+> the v4l parent for usb webcams differently.
+>
+> The probe function for an usb driver gets passed in a
+> "struct usb_interface *intf" parameter.
+>
+> uvc sets parent to:
+>
+> vdev->parent = &intf->dev;
+>
+> gspca uses:
+> struct usb_device *dev = interface_to_usbdev(intf);
+> vdev.parent = &dev->dev;
+>
+> Looking at what for example the usb mass-storage driver
+> does (with my multi function printer/scanner with cardreader),
+> which matches UVC, and thinking about how this is supposed to
+> work with multifunction devices in general, I believe the uvc
+> driver behaviour is correct, but before writing a patch for
+> gspca, I thought it would be good to first discuss this on the
+> list.
+>
+> So what do you think ?
 
-Tested-by: Brandon Philips <bphilips@suse.de>
+I obviously agree with you :-)
 
-> Index: usb-2.6/drivers/usb/host/ehci-q.c
-> ===================================================================
-> --- usb-2.6.orig/drivers/usb/host/ehci-q.c
-> +++ usb-2.6/drivers/usb/host/ehci-q.c
-> @@ -1127,7 +1127,7 @@ static void start_unlink_async (struct e
->  	prev->qh_next = qh->qh_next;
->  	wmb ();
->  
-> -	if (unlikely (ehci_to_hcd(ehci)->state == HC_STATE_HALT)) {
-> +	if (unlikely(!HC_IS_RUNNING(ehci_to_hcd(ehci)->state))) {
->  		/* if (unlikely (qh->reclaim != 0))
->  		 *	this will recurse, probably not much
->  		 */
-> 
+USB class drivers bind to interfaces instead of devices to support composite 
+(multifunction) devices. While drivers for vendor-specific USB devices can 
+bind to the device, in which case the parent could be a USB device, we need to 
+have some consistency in the sysfs symlinks. Using a USB interface as the 
+video device parent regardless of the device type makes sense.
+
+Best regards,
+
+Laurent Pinchart
+
