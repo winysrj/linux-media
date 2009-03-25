@@ -1,169 +1,214 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:49428 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:35726 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751383AbZCLTLP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 15:11:15 -0400
-Date: Thu, 12 Mar 2009 20:11:27 +0100 (CET)
+	id S1753976AbZCYT1f (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Mar 2009 15:27:35 -0400
+Date: Wed, 25 Mar 2009 20:27:44 +0100 (CET)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/5] pcm990 baseboard: add camera bus width switch
- setting
-In-Reply-To: <20090312141819.GN425@pengutronix.de>
-Message-ID: <alpine.DEB.2.00.0903122008160.9725@axis700.grange>
-References: <1236857239-2146-1-git-send-email-s.hauer@pengutronix.de> <1236857239-2146-2-git-send-email-s.hauer@pengutronix.de> <1236857239-2146-3-git-send-email-s.hauer@pengutronix.de> <Pine.LNX.4.64.0903121405150.4896@axis700.grange>
- <20090312141819.GN425@pengutronix.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Sid Boyce <sboyce@blueyonder.co.uk>
+Subject: Asus PG221 monitor camera sensor not recognised
+Message-ID: <Pine.LNX.4.64.0903252026380.5795@axis700.grange>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-...one more thing. I noticed, that after patch 2 the cameras would stop 
-work, because iclink->gpio would be set to 0. Which would break bisection. 
-Ok, this is rather theoretical, still I modified the patches a bit. 
-Please, have a look, if you're ok with these changes, that's how I'm going 
-to commit them. Affected are patches 2/5 and 5/5. I'm just quoting them 
-below.
+Forwarding to linux-media for a better chance for a reply.
 
-Thanks
-Guennadi
 ---
 Guennadi Liakhovetski, Ph.D.
 Freelance Open-Source Software Developer
 
->From 80912f8e2bbbf0f81318c68e1bd5f69fc9537795 Mon Sep 17 00:00:00 2001
-From: Sascha Hauer <s.hauer@pengutronix.de>
-Date: Thu, 12 Mar 2009 20:04:43 +0100
-Subject: [PATCH] pcm990 baseboard: add camera bus width switch setting
+---------- Forwarded message ----------
+Date: Wed, 25 Mar 2009 17:08:05 +0000
+From: Sid Boyce <sboyce@blueyonder.co.uk>
+To: linux-usb@vger.kernel.org
+Subject: Asus PG221 monitor camera sensor not recognised
 
-Some Phytec cameras have a I2C GPIO expander which allows it to
-switch between different sensor bus widths. This was previously
-handled in the camera driver. Since handling of this switch
-varies on several boards the cameras are used on, the board
-support seems a better place to handle the switch
+The camera has never worked though it used to be enumerated as
+/dev/videoX with sensor s5k83a in earlier kernels.
+gspca: main v2.4.0 registered
+gspca: probing 0402:5602
+ALi m5602: Probing for a po1030 sensor
+ALi m5602: Probing for a mt9m111 sensor
+ALi m5602: Probing for a s5k4aa sensor
+ALi m5602: Probing for an ov9650 sensor
+ALi m5602: Probing for a s5k83a sensor
+ALi m5602: Failed to find a sensor
+ALi m5602: ALi m5602 webcam failed
+usbcore: registered new interface driver ALi m5602
+ALi m5602: registered
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- arch/arm/mach-pxa/pcm990-baseboard.c |   54 ++++++++++++++++++++++++++++-----
- 1 files changed, 45 insertions(+), 9 deletions(-)
+lsusb -vv
+Bus 001 Device 012: ID 0402:5602 ALi Corp. Video Camera Controller
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0
+  bDeviceProtocol         0
+  bMaxPacketSize0        64
+  idVendor           0x0402 ALi Corp.
+  idProduct          0x5602 Video Camera Controller
+  bcdDevice            1.00
+  iManufacturer           0
+  iProduct                1 USB2.0 Camera
+  iSerial                 0
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength          101
+    bNumInterfaces          1
+    bConfigurationValue     1
+    iConfiguration          0
+    bmAttributes         0xa0
+      (Bus Powered)
+      Remote Wakeup
+    MaxPower              500mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           2
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0000  1x 0 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            3
+          Transfer Type            Interrupt
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0000  1x 0 bytes
+        bInterval               4
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       1
+      bNumEndpoints           2
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x1400  3x 1024 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            3
+          Transfer Type            Interrupt
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0010  1x 16 bytes
+        bInterval               4
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       2
+      bNumEndpoints           2
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x1380  3x 896 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            3
+          Transfer Type            Interrupt
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0010  1x 16 bytes
+        bInterval               4
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       3
+      bNumEndpoints           2
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass    255 Vendor Specific Subclass
+      bInterfaceProtocol    255 Vendor Specific Protocol
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x1300  3x 768 bytes
+        bInterval               1
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x82  EP 2 IN
+        bmAttributes            3
+          Transfer Type            Interrupt
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0010  1x 16 bytes
+        bInterval               4
+Device Qualifier (for other device speed):
+  bLength                10
+  bDescriptorType         6
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0
+  bDeviceProtocol         0
+  bMaxPacketSize0        64
+  bNumConfigurations      1
+Device Status:     0x0000
+  (Bus Powered)
 
-diff --git a/arch/arm/mach-pxa/pcm990-baseboard.c b/arch/arm/mach-pxa/pcm990-baseboard.c
-index f46698e..90a3990 100644
---- a/arch/arm/mach-pxa/pcm990-baseboard.c
-+++ b/arch/arm/mach-pxa/pcm990-baseboard.c
-@@ -380,14 +380,50 @@ static struct pca953x_platform_data pca9536_data = {
- 	.gpio_base	= NR_BUILTIN_GPIO + 1,
- };
- 
--static struct soc_camera_link iclink[] = {
--	{
--		.bus_id	= 0, /* Must match with the camera ID above */
--		.gpio	= NR_BUILTIN_GPIO + 1,
--	}, {
--		.bus_id	= 0, /* Must match with the camera ID above */
--		.gpio	= -ENXIO,
-+static int gpio_bus_switch;
-+
-+static int pcm990_camera_set_bus_param(struct soc_camera_link *link,
-+		unsigned long flags)
-+{
-+	if (gpio_bus_switch <= 0) {
-+		if (flags == SOCAM_DATAWIDTH_10)
-+			return 0;
-+		else
-+			return -EINVAL;
-+	}
-+
-+	if (flags & SOCAM_DATAWIDTH_8)
-+		gpio_set_value(gpio_bus_switch, 1);
-+	else
-+		gpio_set_value(gpio_bus_switch, 0);
-+
-+	return 0;
-+}
-+
-+static unsigned long pcm990_camera_query_bus_param(struct soc_camera_link *link)
-+{
-+	int ret;
-+
-+	if (!gpio_bus_switch) {
-+		ret = gpio_request(NR_BUILTIN_GPIO + 1, "camera");
-+		if (!ret) {
-+			gpio_bus_switch = NR_BUILTIN_GPIO + 1;
-+			gpio_direction_output(gpio_bus_switch, 0);
-+		} else
-+			gpio_bus_switch = -EINVAL;
- 	}
-+
-+	if (gpio_bus_switch > 0)
-+		return SOCAM_DATAWIDTH_8 | SOCAM_DATAWIDTH_10;
-+	else
-+		return SOCAM_DATAWIDTH_10;
-+}
-+
-+static struct soc_camera_link iclink = {
-+	.bus_id	= 0, /* Must match with the camera ID above */
-+	.gpio = NR_BUILTIN_GPIO + 1,
-+	.query_bus_param = pcm990_camera_query_bus_param,
-+	.set_bus_param = pcm990_camera_set_bus_param,
- };
- 
- /* Board I2C devices. */
-@@ -398,10 +434,10 @@ static struct i2c_board_info __initdata pcm990_i2c_devices[] = {
- 		.platform_data = &pca9536_data,
- 	}, {
- 		I2C_BOARD_INFO("mt9v022", 0x48),
--		.platform_data = &iclink[0], /* With extender */
-+		.platform_data = &iclink, /* With extender */
- 	}, {
- 		I2C_BOARD_INFO("mt9m001", 0x5d),
--		.platform_data = &iclink[0], /* With extender */
-+		.platform_data = &iclink, /* With extender */
- 	},
- };
- #endif /* CONFIG_VIDEO_PXA27x ||CONFIG_VIDEO_PXA27x_MODULE */
+Regards
+Sid.
 -- 
-1.5.4
+Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
+Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
+Specialist, Cricket Coach
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
 
-
->From 2d9b3eb219c391f9d626ae63835c8224ea8ef10e Mon Sep 17 00:00:00 2001
-From: Sascha Hauer <s.hauer@pengutronix.de>
-Date: Thu, 12 Mar 2009 20:06:01 +0100
-Subject: [PATCH] soc-camera: remove now unused gpio member of struct soc_camera_link
-
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- arch/arm/mach-pxa/pcm990-baseboard.c |    1 -
- include/media/soc_camera.h           |    2 --
- 2 files changed, 0 insertions(+), 3 deletions(-)
-
-diff --git a/arch/arm/mach-pxa/pcm990-baseboard.c b/arch/arm/mach-pxa/pcm990-baseboard.c
-index 90a3990..6112740 100644
---- a/arch/arm/mach-pxa/pcm990-baseboard.c
-+++ b/arch/arm/mach-pxa/pcm990-baseboard.c
-@@ -421,7 +421,6 @@ static unsigned long pcm990_camera_query_bus_param(struct soc_camera_link *link)
- 
- static struct soc_camera_link iclink = {
- 	.bus_id	= 0, /* Must match with the camera ID above */
--	.gpio = NR_BUILTIN_GPIO + 1,
- 	.query_bus_param = pcm990_camera_query_bus_param,
- 	.set_bus_param = pcm990_camera_set_bus_param,
- };
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index b44fa09..3701368 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -95,8 +95,6 @@ struct soc_camera_host_ops {
- struct soc_camera_link {
- 	/* Camera bus id, used to match a camera and a bus */
- 	int bus_id;
--	/* GPIO number to switch between 8 and 10 bit modes */
--	unsigned int gpio;
- 	/* Per camera SOCAM_SENSOR_* bus flags */
- 	unsigned long flags;
- 	/* Optional callbacks to power on or off and reset the sensor */
--- 
-1.5.4
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
