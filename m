@@ -1,191 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4594 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755304AbZC0Quq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2009 12:50:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Alexey Klimov <klimov.linux@gmail.com>
-Subject: Re: [question] about open/release and vidioc_g_input/vidioc_s_input functions
-Date: Fri, 27 Mar 2009 17:50:18 +0100
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-References: <1237850047.31041.162.camel@tux.localhost> <200903240806.39540.hverkuil@xs4all.nl> <1238172245.4200.10.camel@tux.localhost>
-In-Reply-To: <1238172245.4200.10.camel@tux.localhost>
+Received: from mx2.redhat.com ([66.187.237.31]:51315 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751175AbZCYKO1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Mar 2009 06:14:27 -0400
+Message-ID: <49CA0457.1090708@redhat.com>
+Date: Wed, 25 Mar 2009 11:15:51 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903271750.19032.hverkuil@xs4all.nl>
+To: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+CC: Hans de Goede <j.w.r.degoede@hhs.nl>, linux-media@vger.kernel.org
+Subject: Re: libv4l, yuv420 and gspca-stv06xx conversion
+References: <49C7E5A1.9010501@gmail.com>
+In-Reply-To: <49C7E5A1.9010501@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 27 March 2009 17:44:05 Alexey Klimov wrote:
-> Hello, Hans
->
-> On Tue, 2009-03-24 at 08:06 +0100, Hans Verkuil wrote:
-> > On Tuesday 24 March 2009 00:14:07 Alexey Klimov wrote:
-> > > Hello, all
-> > >
-> > > ...
-> > >  static int terratec_open(struct file *file)
-> > > {
-> > >         return 0;
-> > > }
-> > >
-> > > static int terratec_release(struct file *file)
-> > > {
-> > >         return 0;
-> > > }
-> > > ...
-> > >
-> > > ...
-> > >
-> > > Such code used in many radio-drivers as i understand.
-> > >
-> > > Is it good to place this empty and almost empty functions in:
-> > > (here i see two variants)
-> > >
-> > > 1) In header file that be in linux/drivers/media/radio/ directory.
-> > > Later, we can move some generic/or repeating code in this header.
-> > >
-> > > 2) In any v4l header. What header may contain this ?
-> > >
-> > > ?
-> > >
-> > > For what ? Well, as i understand we can decrease amount of lines and
-> > > provide this simple generic functions. It's like
-> > > video_device_release_empty function behaviour. Maybe not only radio
-> > > drivers can use such vidioc_g_input and vidioc_s_input.
-> > >
-> > > Is it worth ?
-> >
-> > I don't think it is worth doing this for g/s_input. I think it is
-> > useful to have them here: it makes it very clear that there is just a
-> > single input and the overhead in both lines and actual bytes is
-> > minimal.
-> >
-> > But for the empty open and release functions you could easily handle
-> > that in v4l2-dev.c: if you leave the open and release callbacks to
-> > NULL, then v4l2_open and v4l2_release can just return 0. That would be
-> > nice.
-> >
-> > Regards,
-> >
-> > 	Hans
->
-> May i ask help with this ?
-> Hans, should it be looks like:
->
-> diff -r 56cf0f1772f7 linux/drivers/media/radio/radio-terratec.c
-> --- a/linux/drivers/media/radio/radio-terratec.c	Mon Mar 23 19:18:34 2009
-> -0300 +++ b/linux/drivers/media/radio/radio-terratec.c	Fri Mar 27
-> 19:32:38 2009 +0300 @@ -333,20 +333,8 @@
->  	return a->index ? -EINVAL : 0;
->  }
->
-> -static int terratec_open(struct file *file)
-> -{
-> -	return 0;
-> -}
-> -
-> -static int terratec_release(struct file *file)
-> -{
-> -	return 0;
-> -}
-> -
->  static const struct v4l2_file_operations terratec_fops = {
->  	.owner		= THIS_MODULE,
-> -	.open           = terratec_open,
-> -	.release        = terratec_release,
->  	.ioctl		= video_ioctl2,
->  };
->
-> diff -r 56cf0f1772f7 linux/drivers/media/video/v4l2-dev.c
-> --- a/linux/drivers/media/video/v4l2-dev.c	Mon Mar 23 19:18:34 2009 -0300
-> +++ b/linux/drivers/media/video/v4l2-dev.c	Fri Mar 27 19:32:38 2009 +0300
-> @@ -264,7 +264,10 @@
->  	/* and increase the device refcount */
->  	video_get(vdev);
->  	mutex_unlock(&videodev_lock);
-> -	ret = vdev->fops->open(filp);
-> +	if (vdev->fops->open == NULL)
-> +		ret = 0;
-> +	else
-> +		ret = vdev->fops->open(filp);
->  	/* decrease the refcount in case of an error */
->  	if (ret)
->  		video_put(vdev);
-> @@ -275,7 +278,12 @@
->  static int v4l2_release(struct inode *inode, struct file *filp)
->  {
->  	struct video_device *vdev = video_devdata(filp);
-> -	int ret = vdev->fops->release(filp);
-> +	int ret;
-> +
-> +	if (vdev->fops->release == NULL)
-> +		ret = 0;
-> +	else
-> +		ret = vdev->fops->release(filp);
->
->  	/* decrease the refcount unconditionally since the release()
->  	   return value is ignored. */
->
-> ?
->
-> Or in v4l2_open function i can check if vdev->fops->open == NULL before
-> video_get(vdev); (increasing the device refcount), and if it's NULL then
-> unlock_mutex and return 0 ?
-> And the same in v4l2_release - just return 0 in the begining of function
-> in case vdev->fops->release == NULL ?
->
-> What approach is better ?
 
-This is simpler:
 
-diff -r 2e0c6ff1bda3 linux/drivers/media/video/v4l2-dev.c
---- a/linux/drivers/media/video/v4l2-dev.c      Mon Mar 23 19:01:18 2009 
-+0100
-+++ b/linux/drivers/media/video/v4l2-dev.c      Fri Mar 27 17:47:51 2009 
-+0100
-@@ -250,7 +250,7 @@
- static int v4l2_open(struct inode *inode, struct file *filp)
- {
-        struct video_device *vdev;
--       int ret;
-+       int ret = 0;
+On 03/23/2009 08:40 PM, Erik Andrén wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+>
+> Hi Hans,
+> I'm trying to get gstreamer and the yuv420 format conversion in
+> libv4l to play nice with the gspca-stv06xx driver. Currently this is
+> not working.
+>
+> The resolution of the vv6410 sensor is 356*292 pixels and the native
+> format of the camera is V4L2_PIX_FMT_SGRBG8.
+> This produces a total image size of 103952 bytes which gets page
+> aligned to 106496.
+>
+> When requesting to conversion to yuv420 in gstreamer I launch
+> gst-launch with the following parameters:
+> gst-launch-0.10 -v v4l2src queue-size=4 ! ffmpegcolorspace ! xvimageink
+>
+> gstreamer then proceeds with complaining that it received a frame of
+>   size 155928 bytes but it expected a frame of size 156512 bytes.
+>
+> The delivered 155928 size seems sane as 155928 / 356 gives 438 and
+> 155928 / 292 gives 534.
+>
+> Furthermore, the difference between the received size and the
+> expected size is 584 bytes which is 2x the height.
+>
+> Anyhow, I hacked libv4l2.c and padded the frame with 584 in order to
+> acheive the requested 156512 bytes. This worked and yielded the
+> attached image.
+>
+> I'm currently at loss what's the root cause of this.
+>
+> Could the page align interfer somehow with the frame size?
+> What's the correct image size? The converted image is clearly correct.
+>
 
-        /* Check if the video device is available */
-        mutex_lock(&videodev_lock);
-@@ -264,7 +264,9 @@
-        /* and increase the device refcount */
-        video_get(vdev);
-        mutex_unlock(&videodev_lock);
--       ret = vdev->fops->open(filp);
-+       if (vdev->fops->open)
-+               ret = vdev->fops->open(filp);
-+
-        /* decrease the refcount in case of an error */
-        if (ret)
-                video_put(vdev);
-@@ -275,7 +277,10 @@
- static int v4l2_release(struct inode *inode, struct file *filp)
- {
-        struct video_device *vdev = video_devdata(filp);
--       int ret = vdev->fops->release(filp);
-+       int ret = 0;
-+
-+       if (vdev->fops->release)
-+               ret = vdev->fops->release(filp);
+I think that something in the gstreamer stack expect the U and V planes of
+the YUV planar data, to have each line start 32 bit word aligned. So they
+expect us to add 2 bytes of padding after each line of U and V data.
 
-        /* decrease the refcount unconditionally since the release()
-           return value is ignored. */
+That would give us 2 x (292 / 2) extra bytes for the U and for the V plane,
+so 2 x (2 x (292 / 2)) = 584 bytes of additional data, and would also
+explain the color banding in the image you've attached.
+
+Now the question is, is gstreamer right in assuming this padding?
+
+The v4l2 standard is pretty clear on this:
+http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec/c2030.htm#V4L2-PIX-FORMAT
+
+And then the bytesperline description, clearly says the what gstreamer expects is wrong.
+But what is normal for other YUV420 planar data producing sources?
 
 Regards,
 
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Hans
