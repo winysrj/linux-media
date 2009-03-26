@@ -1,79 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ayden.softclick-it.de ([217.160.202.102]:53486 "EHLO
-	ayden.softclick-it.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755620AbZCATuc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Mar 2009 14:50:32 -0500
-Message-ID: <49AAE742.8090101@to-st.de>
-Date: Sun, 01 Mar 2009 20:51:30 +0100
-From: Tobias Stoeber <tobi@to-st.de>
-Reply-To: tobi@to-st.de
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: POLL: for/against dropping support for kernels < 2.6.22
-References: <200902221115.01464.hverkuil@xs4all.nl>
-In-Reply-To: <200902221115.01464.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Received: from gateway-1237.mvista.com ([63.81.120.158]:40803 "EHLO
+	gateway-1237.mvista.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754617AbZCZNwN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Mar 2009 09:52:13 -0400
+Subject: Re: [PATCH 0/4] ARM: DaVinci: DM646x Video: DM646x display driver
+From: Steve Chen <schen@mvista.com>
+To: Chaithrika U S <chaithrika@ti.com>
+Cc: linux-media@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com
+In-Reply-To: <1238073682-9838-1-git-send-email-chaithrika@ti.com>
+References: <1238073682-9838-1-git-send-email-chaithrika@ti.com>
+Content-Type: text/plain
+Date: Thu, 26 Mar 2009 08:52:28 -0500
+Message-Id: <1238075548.3080.117.camel@linux-1lbu.site>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
-
-Hans Verkuil schrieb:
-> So here is a quick poll, please reply either to the list or directly to me 
-> with your yes/no answer and (optional but welcome) a short explanation to 
-> your standpoint. It doesn't matter if you are a user or developer, I'd like 
-> to see your opinion regardless.
+On Thu, 2009-03-26 at 09:21 -0400, Chaithrika U S wrote:
+> Display driver for TI DM646x EVM
 > 
-> Please DO NOT reply to the replies, I'll summarize the results in a week's 
-> time and then we can discuss it further.
+> Signed-off-by: Chaithrika U S <chaithrika@ti.com>
 > 
-> Should we drop support for kernels <2.6.22 in our v4l-dvb repository?
+> This patch set has been updated with the review comments for the RFC sent earlier.
 > 
-
-X : Yes
-
-> _: No
+> These patches add the display driver support for TI DM646x EVM.
+> This patch set has been tested for basic display functionality for
+> Composite and Component outputs.
 > 
-> Optional question:
+> Patch 1: Display device platform and board setup
+> Patch 2: VPIF driver
+> Patch 3: DM646x display driver
+> Patch 4: Makefile and config files modifications for Display
 > 
-> Why:
+> Some of the features like the HBI/VBI support are not yet implemented. 
+> Also there are some known issues in the code implementation like 
+> fine tuning to be done to TRY_FMT ioctl.The USERPTR usage has not been 
+> tested extensively.
+> 
+> These patches are based on the drivers written by:
+>         Manjunath Hadli <mrh@ti.com>
+>         Brijesh Jadav <brijesh.j@ti.com>
 
-I am voting for "Yes" because ...
+Please add authors and significant contributors of the patch in the
+signed-off list
 
-a) developers complain about technical reasons (changes to i2c etc.) 
-which - in the words of the developers - make it harder to provide a 
-backward compatibility. This is a valid reason.
+> 
+> The files have been renamed as per the discussion. The header files have been 
+> moved to the same directory as the driver. Currently, the driver supports SDTV
+> formats only.
+>  
+> -Chaithrika
+> 
+> 
+> _______________________________________________
+> Davinci-linux-open-source mailing list
+> Davinci-linux-open-source@linux.davincidsp.com
+> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
 
-b) I hope, that the resources freed will leed to a better v4l / dvb 
-subsystem (and to surrounding tasks as, for instance, having 
-documentation that is in line with the state of development etc.)
-
-Maybe this also frees time, to really think about the direction of 
-subsystem and whether it must be really depended that much to specific 
-kernel versions, especially for devices like USB.
-
-c) in the end: it would also not be of any value to insist on support 
-for older kernels, because the users are dependend on developers and in 
-some way in "their hands"  ...
-
-d) I furthermore hope, that there will be snapshots (as archives) 
-provided to allow for more recent device support to pre-2.6.22 kernel 
-users (as provided by the kernel itself)
-
-It should a least be stated (in the wiki) which devices are supported 
-from what kernel version upwards, so users then can select - as it 
-always has been - older hardware.
-
-In the end, the process of having a poll including the question of "Why" 
-gives an interesting view into how - at least some - developers and 
-"users" see the facts and what hopes expactations exist.
-
-In a way I am a bit shocked about some of the replies, which - just my 
-personal opinion - placed ease and development speed above the users 
-(and I don't have in mind those "users" here, who have a broad technical 
-knowledge and resources to *really* know what they are doing when 
-upgrading to recent or even git kernels!) of this "product" of development.
-
-Regards, Tobias
