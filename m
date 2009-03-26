@@ -1,22 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2B9WOmq011675
-	for <video4linux-list@redhat.com>; Wed, 11 Mar 2009 05:32:24 -0400
-Received: from relay01.genetsis.com (relay01.genetsis.com [82.144.102.102])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2B9W4ws001649
-	for <video4linux-list@redhat.com>; Wed, 11 Mar 2009 05:32:05 -0400
-Received: from dragnmail01.intranet.domccr.es (unknown [82.144.118.97])
-	by relay01.genetsis.com (Postfix) with ESMTP id 74D2AA5C1
-	for <video4linux-list@redhat.com>; Wed, 11 Mar 2009 10:32:03 +0100 (CET)
-Message-ID: <8F6D811624318142856E608CDFA656FC0210F3F8@sic_alc_107>
-From: =?iso-8859-1?Q?=22Mar=EDn_Carre=F1o=2C_David=22?= <dmarin@sice.com>
-To: video4linux-list@redhat.com
-Date: Wed, 11 Mar 2009 10:33:14 +0100
+From: Lamarque Vieira Souza <lamarque@gmail.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Date: Thu, 26 Mar 2009 10:36:56 -0300
+References: <200903231708.08860.lamarque@gmail.com>
+	<200903251117.07201.lamarque@gmail.com>
+	<49CB4D4E.6030901@redhat.com>
+In-Reply-To: <49CB4D4E.6030901@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-Subject: BTTV-gpio driver for user-space access
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903261036.57317.lamarque@gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: Skype and libv4
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,39 +25,46 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello.
+Em Thursday 26 March 2009, Hans de Goede escreveu:
+> Hi all,
+>
+> Not quite, the correct behaviour is:
+> "If the field value is set to an unsupported value, then set the field
+> value to *a* value that the driver accepts"
 
-=20
+	Now I get it. This webcam only accepts V4L2_FIELD_NONE, so commenting that 
+part of try_fmt makes it compliant with v4l2 standard. Thank you for helping 
+me with this. The zr364xx's maintainer contacted me yesterday, he is busy 
+theses days, when he has more time he is going to take a look at my changes. 
+With lucky the changes will be in 2.6.30. At least 2.6.29 sets the 
+compat_ioctl32 automatically for all drivers, in 2.6.28.8 I had to set it in 
+the driver to make Skype and mplayer (32-bit) work, one less change for the 
+driver :-)
 
-Has anyone source code of a driver for accessing bt878 gpios from =
-userspace?
+> This takes in to account certain devices can support multiple field types,
+> which is the whole purpose of the field value.
+>
+> And yes unfortunately many many v4l drivers have various bugs in their
+> implementation, in some cases I do work around driver bugs in libv4l, but
+> it this case that would hurt proper use of the field value, and that is not
+> acceptable, so fixing the driver is the only solution.
 
-=20
+	Have you tried to contact the drivers' maintainers for fixing those bugs?
 
-Specifically I want to access GPIO pins of a IVC-100G video card. And =
-before
-developing it from scratch, I'd like to know if anyone has already done =
-it.
+> Note, that the v4l2 API is pretty well documented, and the correct
+> behaviour as I describe it can be found in the docs too:
+> http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec/r10944.htm
+>
+> And the "Return Value" section, note how EINVAL is only supposed to be
+> returned up on an invalid, or unsupported type value. And also from the
+> description: "Drivers should not return an error code unless the input is
+> ambiguous"
 
-=20
 
-Thank you all.
-
-=20
-
-David Mar=EDn Carre=F1o=20
-
-S.I.C.E.=20
-
-Direcci=F3n T=E9cnica.=20
-
-Tfno 91 623 22 30
-
-E-mail: dmarin@sice.com
-
-=20
-
-=20
+-- 
+Lamarque V. Souza
+http://www.geographicguide.com/brazil.htm
+Linux User #57137 - http://counter.li.org/
 
 --
 video4linux-list mailing list
