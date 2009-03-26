@@ -1,96 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1781 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756439AbZCNTWp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Mar 2009 15:22:45 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2EJMgka005811
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 14 Mar 2009 20:22:42 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 14 Mar 2009 20:22:42 +0100 (CET)
-Message-Id: <200903141922.n2EJMgka005811@smtp-vbr4.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+Received: from joan.kewl.org ([212.161.35.248]:51613 "EHLO joan.kewl.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752052AbZCZA47 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Mar 2009 20:56:59 -0400
+From: Darron Broad <darron@kewl.org>
+To: "Udo A. Steinberg" <udo@hypervisor.org>
+cc: darron@kewl.org, v4l-dvb-maintainer@linuxtv.org,
+	linux-media@vger.kernel.org, mchehab@redhat.com
+Subject: Re: Hauppauge/IR breakage with 2.6.28/2.6.29 
+In-reply-to: <20090326000932.6aa1a456@laptop.hypervisor.org> 
+References: <20090326000932.6aa1a456@laptop.hypervisor.org>
+Date: Thu, 26 Mar 2009 00:26:47 +0000
+Message-ID: <29212.1238027207@kewl.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+In message <20090326000932.6aa1a456@laptop.hypervisor.org>, "Udo A. Steinberg" wrote:
+>
+>Hi,
+>
+>The following patch
+>http://kerneltrap.org/mailarchive/git-commits-head/2008/10/13/3643574
+>that was added between 2.6.27 and 2.6.28 has resulted in my Hauppauge
+>WinTV IR remote not working anymore. I've tracked down the breakage to:
+>
+>if (dev!=3D0x1e && dev!=3D0x1f)=20
+>  return 0;
+>
+>in drivers/media/video/ir-kbd-i2c.c
+>
+>My remote sends with dev=3D0x0 and is the following model:
+>http://www.phphuoc.com/reviews/tvtuner_hauppauge_wintv_theater/index_files/=
+>image001.jpg
+>
+>Removing the check results in the remote working again. Is there a way to
+>convince the remote to send a different dev? Otherwise I guess the check
+>should be relaxed.
 
-Results of the daily build of v4l-dvb:
+You are correct. I happen to have one of those ancient remote
+controls myself and it does use device address 0.
 
-date:        Sat Mar 14 19:00:07 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11038:626c136ec221
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Please refer to http://www.sbprojects.com/knowledge/ir/rc5.htm
+for an overview of device addresses.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-rc7-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-rc7-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-rc7-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29-rc7-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc7-m32r: OK
-linux-2.6.22.19-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-rc7-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29-rc7-powerpc64: OK
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29-rc7-x86_64: WARNINGS
-fw/apps: WARNINGS
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc7): ERRORS
+It's something I forget to deal with in that patch. A solution
+would be to allow a device address to be a module param to
+override the more modern addresses of 0x1e and 0x1f.
 
-Detailed results are available here:
+I can't remember addresses off the top of my head but I believe
+the modern silver remotes use 0x1f and the older black ones
+use 0x1e. I think the black one I have came with a now dead
+DEC2000.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+The problem with reverting the patch is that it makes modern
+systems unusable as HTPCs when the television uses RC5. This
+is a more important IMHO than supporting what in reality is
+an obsolete remote control.
 
-Full logs are available here:
+cya!
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+--
 
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+ // /
+{:)==={ Darron Broad <darron@kewl.org>
+ \\ \ 
 
