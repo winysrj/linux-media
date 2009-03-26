@@ -1,42 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mk-outboundfilter-4.mail.uk.tiscali.com ([212.74.114.32]:30727
-	"EHLO mk-outboundfilter-4.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753963AbZCDOJ6 (ORCPT
+Received: from cdptpa-omtalb.mail.rr.com ([75.180.132.123]:37607 "EHLO
+	cdptpa-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756145AbZCZAFO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Mar 2009 09:09:58 -0500
-Message-ID: <49AE8BB3.3010501@nildram.co.uk>
-Date: Wed, 04 Mar 2009 14:09:55 +0000
-From: Lou Otway <lotway@nildram.co.uk>
-Reply-To: lotway@nildram.co.uk
-MIME-Version: 1.0
+	Wed, 25 Mar 2009 20:05:14 -0400
+Received: from abadon.pezed.lan ([76.177.10.171])
+          by cdptpa-omta04.mail.rr.com with ESMTP
+          id <20090326000510.DQXY532.cdptpa-omta04.mail.rr.com@abadon.pezed.lan>
+          for <linux-media@vger.kernel.org>;
+          Thu, 26 Mar 2009 00:05:10 +0000
+From: Mark Stocker <mark@ale8.org>
 To: linux-media@vger.kernel.org
-Subject: TT S2-3200 and CAMs
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Subject: cx23885 / HVR-1250 progress?
+Date: Wed, 25 Mar 2009 20:05:08 -0400
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903252005.08257.mark@ale8.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi all,
 
-I've been testing the TT S2-3200 card and while it performs well for FTA
-services I have been unable to get it working with encrypted services using
-the CI slot.
+I have an HVR-1250 card working fine, but of course with the digital tuning 
+only.  I was just wondering if there is any future worked planned for this 
+chipset/card (Analog input, IR remote support)?  I've searched high and low 
+for a datasheet for the chipset in order to try to finish up the driver, but 
+I've been unsuccessful in finding anything.
 
-With VLC I am able to tune to the transponder and pick up all the services
-but they are not decrypted, unencrypted services work fine.
-
-Using a DVB-S card with CI I am able to tune successfully, proving the CAMs
-are valid. This leads me to believe there may be a problem with the drivers
-for the S2-3200.
-
-Has anyone managed to get CAMs working with this card?
-
-Any advice gratefully recieved.
-
-Many thanks,
-
-Lou
---
-Lou Otway
-mailto:lotway@nildram.co.uk
+Thanks!
 
