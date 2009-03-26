@@ -1,73 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1352 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757754AbZCMPsU (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1601 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751004AbZCZHYh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2009 11:48:20 -0400
+	Thu, 26 Mar 2009 03:24:37 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: davinci-linux-open-source@linux.davincidsp.com
-Subject: Re: [RFC 0/7] ARM: DaVinci: DM646x Video: DM646x display driver
-Date: Fri, 13 Mar 2009 16:48:35 +0100
-Cc: chaithrika@ti.com, linux-media@vger.kernel.org
-References: <1236934590-31501-1-git-send-email-chaithrika@ti.com>
-In-Reply-To: <1236934590-31501-1-git-send-email-chaithrika@ti.com>
+To: "Udo A. Steinberg" <udo@hypervisor.org>
+Subject: Re: [PATCH] Allow the user to restrict the RC5 address
+Date: Thu, 26 Mar 2009 08:24:01 +0100
+Cc: mchehab@redhat.com, Darron Broad <darron@kewl.org>,
+	v4l-dvb-maintainer@linuxtv.org, linux-media@vger.kernel.org,
+	Steven Toth <stoth@hauppauge.com>
+References: <20090326033453.7d90236d@laptop.hypervisor.org>
+In-Reply-To: <20090326033453.7d90236d@laptop.hypervisor.org>
 MIME-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200903131648.35612.hverkuil@xs4all.nl>
+Message-Id: <200903260824.01970.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 13 March 2009 09:56:30 chaithrika@ti.com wrote:
-> Display driver for TI DM646x EVM
+On Thursday 26 March 2009 03:34:53 Udo A. Steinberg wrote:
+> Mauro,
 >
-> Signed-off-by: Chaithrika U S <chaithrika@ti.com>
->
-> This patch set is being submitted to get review and opinion on the
-> approaches used to implement the sub devices and display drivers.
->
-> This set adds the display driver support for TI DM646x EVM.
-> This patch set has been tested for basic display functionality for
-> Composite and Component outputs.
->
-> Patch 1: Display device platform and board setup
-> Patch 2: ADV7343 video encoder driver
-> Patch 3: THS7303 video amplifier driver
-> Patch 4: Defintions for standards supported by display
-> Patch 5: Makefile and config files modifications for Display
-> Patch 6: VPIF driver
-> Patch 7: DM646x display driver
->
-> The 'v4l2-subdevice' interface has been used to interact with the encoder
-> and video amplifier.
->
-> Some of the features like the HBI/VBI support are not yet implemented.
-> Also there are some known issues in the code implementation like
-> fine tuning to be done to TRY_FMT ioctl and ENUM_OUTPUT ioctl.The USERPTR
-> usage has not been tested extensively,also some HD standards are yet to
-> be tested.
->
-> These patches are based on the drivers written by:
->         Manjunath Hadli <mrh@ti.com>
->         Brijesh Jadav <brijesh.j@ti.com>
->
-> -Chaithrika
+> This patch allows users with multiple remotes to specify an RC5 address
+> for a remote from which key codes will be accepted. If no address is
+> specified, the default value of 0 accepts key codes from any remote. This
+> replaces the current hard-coded address checks, which are too
+> restrictive.
 
-Thanks!
+I think this should be reviewed by Steve Toth first (CC-ed him).
 
-I'll review these patches in the coming days. I'll probably review the 
-ADV7343 and THS7303 first before continuing with the others.
+One thing that this patch breaks is if you have multiple Hauppauge remotes, 
+some sending 0x1e, some 0x1f. With this patch I can't use both, only one.
 
-I suspect that the adv7343 and ths7303 can probably be merged quickly after 
-a few changes. The main drivers in patches 6 & 7 will probably require some 
-more thought. Since I've been working with this device for over a year now 
-I can bring in a user-perspective as well :-)
+It might be better to have an option to explicitly allow old Hauppauge 
+remotes that send 0x00.
+
+Or an heuristic: if you see a remote with device 0x1e or 0x1f, then filter 
+remotes with device 0x00 afterwards.
+
+A third option might be to extend the hauppauge option, allowing you to 
+specify '2=Old WinTV remote' or something like that, and if set device 0x00 
+will be allowed.
 
 Regards,
 
 	Hans
+
+>
+>
+> Signed-off-by: Udo Steinberg <udo@hypervisor.org>
+>
+>
+> --- linux-2.6.29/drivers/media/video/ir-kbd-i2c.c	2009-03-24
+> 00:12:14.000000000 +0100 +++
+> linux-2.6.29/drivers/media/video/ir-kbd-i2c.new	2009-03-26
+> 03:12:11.000000000 +0100 @@ -58,6 +58,9 @@
+>  module_param(hauppauge, int, 0644);    /* Choose Hauppauge remote */
+>  MODULE_PARM_DESC(hauppauge, "Specify Hauppauge remote: 0=black, 1=grey
+> (defaults to 0)");
+>
+> +static unsigned int device;
+> +module_param(device, uint, 0644);    /* RC5 device address */
+> +MODULE_PARM_DESC(device, "Specify device address: 0=any (defaults to
+> 0)");
+>
+>  #define DEVNAME "ir-kbd-i2c"
+>  #define dprintk(level, fmt, arg...)	if (debug >= level) \
+> @@ -104,8 +107,8 @@
+>  		/* invalid key press */
+>  		return 0;
+>
+> -	if (dev!=0x1e && dev!=0x1f)
+> -		/* not a hauppauge remote */
+> +	if (device && device != dev)
+> +		/* not an acceptable remote */
+>  		return 0;
+>
+>  	if (!range)
+
+
 
 -- 
 Hans Verkuil - video4linux developer - sponsored by TANDBERG
