@@ -1,74 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2140 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754512AbZCYO6x (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:40567 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753888AbZCZIeV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2009 10:58:53 -0400
-Message-ID: <20232.62.70.2.252.1237993114.squirrel@webmail.xs4all.nl>
-Date: Wed, 25 Mar 2009 15:58:34 +0100 (CET)
-Subject: Re: v4l parent for usb device interface or device?
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Laurent Pinchart" <laurent.pinchart@skynet.be>
-Cc: "Hans de Goede" <hdegoede@redhat.com>, linux-media@vger.kernel.org,
-	"Ricardo Jorge da Fonseca Marques Ferreira" <storm@sys49152.net>
-MIME-Version: 1.0
+	Thu, 26 Mar 2009 04:34:21 -0400
+Date: Thu, 26 Mar 2009 05:34:09 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: vasaka@gmail.com
+Cc: Linux Media <linux-media@vger.kernel.org>
+Subject: Re: patchwork tool
+Message-ID: <20090326053409.6a310c6a@pedra.chehab.org>
+In-Reply-To: <36c518800903251619j371b31bbyb6731d26c1357a34@mail.gmail.com>
+References: <36c518800903251619j371b31bbyb6731d26c1357a34@mail.gmail.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, 26 Mar 2009 01:19:08 +0200
+vasaka@gmail.com wrote:
 
-> Hi Hans,
->
-> On Wednesday 25 March 2009 11:18:31 Hans de Goede wrote:
->> <take 2 this time to the new list, hoping it gets some more attention>
->>
->> Hi,
->>
->> Today it came to my attention (through a libv4l bugreport) that
->> the uvc driver and the gspca driver handle the setting of
->> the v4l parent for usb webcams differently.
->>
->> The probe function for an usb driver gets passed in a
->> "struct usb_interface *intf" parameter.
->>
->> uvc sets parent to:
->>
->> vdev->parent = &intf->dev;
->>
->> gspca uses:
->> struct usb_device *dev = interface_to_usbdev(intf);
->> vdev.parent = &dev->dev;
->>
->> Looking at what for example the usb mass-storage driver
->> does (with my multi function printer/scanner with cardreader),
->> which matches UVC, and thinking about how this is supposed to
->> work with multifunction devices in general, I believe the uvc
->> driver behaviour is correct, but before writing a patch for
->> gspca, I thought it would be good to first discuss this on the
->> list.
->>
->> So what do you think ?
->
-> I obviously agree with you :-)
->
-> USB class drivers bind to interfaces instead of devices to support
-> composite
-> (multifunction) devices. While drivers for vendor-specific USB devices can
-> bind to the device, in which case the parent could be a USB device, we
-> need to
-> have some consistency in the sysfs symlinks. Using a USB interface as the
-> video device parent regardless of the device type makes sense.
+> Hello,
+> 
+> how should I format my post in order to patchwork tool understand
+> included patch correctly,
 
-If the parent should indeed become the usb_interface, then we should make
-all v4l usb drivers consistent. And update v4l2-framework.txt. I've
-noticed before that it seems to be random what is used as the parent. I'm
-no USB expert, so I'm relying on your input.
+If patchwork is not adding your patches there, then it means that the patches
+are broken (for example, line-wrapped), or that you're attaching it, and your
+emailer are using the wrong mime encoding type for diffs.
 
-Regards,
+> should I just format it like in v4l-dvb/README.patches described?
+> then how should I add additional comments to the mail which I do not
+> want to be in the patch log?
 
-       Hans
+All comments you add on your patch will be part of the commit message (except
+for the meta-tags, like from:).
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> It seems it is possible without special comment symbols.
 
+
+Cheers,
+Mauro
