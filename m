@@ -1,127 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:4657 "EHLO
-	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751354AbZCPPfK (ORCPT
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:42706 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754080AbZCZWHu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2009 11:35:10 -0400
-Message-ID: <55926.62.70.2.252.1237217691.squirrel@webmail.xs4all.nl>
-Date: Mon, 16 Mar 2009 16:34:51 +0100 (CET)
-Subject: Re: REVIEW: bttv conversion to v4l2_subdev
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "Trent Piepho" <xyzzy@speakeasy.org>, linux-media@vger.kernel.org
+	Thu, 26 Mar 2009 18:07:50 -0400
+Date: Thu, 26 Mar 2009 22:07:13 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Dave Strauss <Dave.Strauss@zoran.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Darius Augulis <augulis.darius@gmail.com>,
+	linux-arm-kernel@lists.arm.linux.org.uk,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: [PATCH 1/5] CSI camera interface driver for MX1
+Message-ID: <20090326220713.GC32555@n2100.arm.linux.org.uk>
+References: <49C89F00.1020402@gmail.com> <Pine.LNX.4.64.0903261405520.5438@axis700.grange> <49CBD53C.6060700@gmail.com> <20090326170910.6926d8de@pedra.chehab.org> <Pine.LNX.4.64.0903262116410.5438@axis700.grange> <49CBF437.7030603@zoran.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <49CBF437.7030603@zoran.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, Mar 26, 2009 at 05:31:35PM -0400, Dave Strauss wrote:
+> Newbie question -- where does one find checkpatch.pl?  And are there any other
+> tools we should be running on patches before we submit them?
 
-> On Mon, 16 Mar 2009 14:04:19 +0100 (CET)
-> "Hans Verkuil" <hverkuil@xs4all.nl> wrote:
->
->>
->> >> > Based on this principle, IMO, the probing function should, by
->> default,
->> >> > probe
->> >> > for tvaudio, if it doesn't find another audio device. You may
->> >> eventually
->> >> > ask
->> >> > for people to report, to warn us that the board entry is broken,
->> but
->> >> we
->> >> > shouln't intentionally break a device that we're almost sure that
->> >> requires
->> >> > tvaudio or tda7432.
->> >>
->> >> OK. In other words it would be better to probe for:
->> >>
->> >> 1) msp3400
->> >> 2) msp3400_alt
->> >> 3) tda7432
->> >> 4) tvaudio
->> >>
->> >> and return as soon as we find a chip. So tvaudio is probed
->> >> unconditionally, effectively ignoring the needs_tvaudio flag and only
->> >> honoring the tvaudio module option (although I'm not sure whether
->> that
->> >> is
->> >> still needed in that case).
->> >
->> > IMO, we should handle the needs_tvaudio with a different behaviour:
->> using
->> > such kind of
->> > glue only when we're sure about the tv audio chips used for a certain
->> > board. If
->> > unsure, use the auto probing. Otherwise, we'll probe just that know
->> > chip(s) range.
->>
->> I have to admit that I've no idea what you mean. My patch replicates the
->> original behavior of 'modprobe tvaudio' where all i2c addresses are
->> probed
->> that tvaudio supports (from the normal_i2c array in tvaudio.c). We
->> cannot
->> do a subset of this since it was never administrated which chip in
->> particular is on the board, just that it is one of the chips supported
->> by
->> tvaudio.
->>
->> If you want to be able to select particular devices, then you need to
->> administrate that in the card definitions. That's out of scope of this
->> patch IMHO.
->
-> You got my idea wrong. I'm just saying that maybe the better is to have
-> the
-> default probing behaviour by default.
->
-> However, if the board has a defined set of tv audio modules that we're
-> sure,
-> then we may override the automatic loading order.
->
-> So, the final implementation would be something like:
->
-> 1) Try the modules that has explicit arguments at modprobe, or that
-> needs_foo
-> first;
-> 2) Try the probing way;
-> 3) Give up trying to load an audio driver, printing an error message.
->
-> If we eventually found any bttv board without any audio driver, then we
-> can add
-> a no_audio bit field to skip the probing process.
->
-> Note: since we can't really trust much on what we have (due to the
-> non-standard
-> ways of probing the drivers, that it is possible with bttv), IMO, that
-> the logic you've implemented, with the adjustments I've proposed seem
-> enough,
-> but this is just my 2 cents.
->
-> We really need some feedback from the users to be sure if the bttv driver
-> is
-> properly working with the new logic, to be more certain that this approach
-> is
-> ok.
+scripts/checkpatch.pl in the kernel source.
 
-I'll redo my bttv tree incorporating all your review comments on Tuesday
-or Wednesday.
+Sparse is another tool which can be used while building the kernel to
+increase the build time checking, but it can be quite noisy, so please
+only look at stuff which pops up for your specific area.
 
-One request: I have a v4l-dvb pull request pending. Can you take a look at
-that? It does contain the tvaudio change as well: feel free to skip that
-one if you want me to split that change up into two patches (one for the
-mute bug fix, and one for the tda9875 merge). But besides build fixes and
-some housekeeping changes that tree also contains a patch for a new
-v4l2_device_disconnect function. Both pvrusb2 and my cafe/ov7670
-conversion need that to go in first.
+Also, avoid using __force to shut up sparse warnings - sparse's address
+space separation via use of __user and __iomem tags are supposed to _only_
+be casted away by the final level of code (iow, the bits which really
+do the accesses.)  It's preferred to leave the warnings in place rather
+than silence them.
 
-Especially Mike Isely is waiting for this to go in so that he can create
-the pull request for the pvrusb2 conversion. And a very big 'Thank you!'
-to him for doing that work!
+In other words:
 
-Regards,
+static int blah(void __iomem *ptr)
+{
+	void *foo = ptr;
+	...
+}
 
-      Hans
+will generate a sparse warning.  The right solution to this is:
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+static int blah(void __iomem *ptr)
+{
+	void __iomem *foo = ptr;
+	...
+}
 
+but if that's not possible for whatever reason, leave it as is and
+definitely do *not* silence it like this:
+
+static int blah(void __iomem *ptr)
+{
+	void *foo = (void __force *)ptr;
+	...
+}
+
+The point of __iomem is to allow static checking that pointers for MMIO
+aren't dereferenced without using the correct accessors, and adding
+such __force casts negates the purpose of sparse.
