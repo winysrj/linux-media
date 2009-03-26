@@ -1,83 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f169.google.com ([209.85.218.169]:59263 "EHLO
-	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751972AbZCZKHf (ORCPT
+Received: from smtp-out3.blueyonder.co.uk ([195.188.213.6]:55455 "EHLO
+	smtp-out3.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750925AbZCZEPH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2009 06:07:35 -0400
-Received: by bwz17 with SMTP id 17so447082bwz.37
-        for <linux-media@vger.kernel.org>; Thu, 26 Mar 2009 03:07:32 -0700 (PDT)
+	Thu, 26 Mar 2009 00:15:07 -0400
+Message-ID: <49CB0146.9040507@blueyonder.co.uk>
+Date: Thu, 26 Mar 2009 04:15:02 +0000
+From: Sid Boyce <sboyce@blueyonder.co.uk>
+Reply-To: sboyce@blueyonder.co.uk
 MIME-Version: 1.0
-In-Reply-To: <20090326065436.7f22af82@pedra.chehab.org>
-References: <36c518800903251619j371b31bbyb6731d26c1357a34@mail.gmail.com>
-	 <20090326053409.6a310c6a@pedra.chehab.org>
-	 <36c518800903260222j2ae177e9g9d3ad5f5b9d8d37d@mail.gmail.com>
-	 <20090326065436.7f22af82@pedra.chehab.org>
-Date: Thu, 26 Mar 2009 13:07:32 +0300
-Message-ID: <208cbae30903260307p21ca2bebt11e1de28992f41e4@mail.gmail.com>
-Subject: Re: patchwork tool
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: vasaka@gmail.com, Linux Media <linux-media@vger.kernel.org>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: gspca: Logitech QuickCam Messenger no go (was Re: Asus PG221
+ monitor camera sensor not recognised)
+References: <Pine.LNX.4.64.0903252026380.5795@axis700.grange> <49CA9228.5030105@gmail.com> <49CABAF8.4030306@blueyonder.co.uk> <Pine.LNX.4.64.0903260022450.5795@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0903260022450.5795@axis700.grange>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Mar 26, 2009 at 12:54 PM, Mauro Carvalho Chehab
-<mchehab@infradead.org> wrote:
->
-> On Thu, 26 Mar 2009 11:22:26 +0200
-> vasaka@gmail.com wrote:
->
-> > On Thu, Mar 26, 2009 at 10:34 AM, Mauro Carvalho Chehab
-> > <mchehab@infradead.org> wrote:
-> > > On Thu, 26 Mar 2009 01:19:08 +0200
-> > > vasaka@gmail.com wrote:
-> > >
-> > >> Hello,
-> > >>
-> > >> how should I format my post in order to patchwork tool understand
-> > >> included patch correctly,
-> > >
-> > > If patchwork is not adding your patches there, then it means that the patches
-> > > are broken (for example, line-wrapped), or that you're attaching it, and your
-> > > emailer are using the wrong mime encoding type for diffs.
-> > >
-> > >> should I just format it like in v4l-dvb/README.patches described?
-> > >> then how should I add additional comments to the mail which I do not
-> > >> want to be in the patch log?
-> > >
-> > > All comments you add on your patch will be part of the commit message (except
-> > > for the meta-tags, like from:).
-> > >
-> > >> It seems it is possible without special comment symbols.
-> > >
-> > >
-> > > Cheers,
-> > > Mauro
-> > >
-> >
-> > can it be that patch made by
-> > $diff -uprN v4l-dvb.orig v4l-dvb.my > patch.patch
-> > and make commit in .my tree did not complain still broken?
-> >
-> > does gmail's web interface plain text mail composer has known issues,
-> > which can interfere with sending patches?
->
-> I never used a web interface to send patches. Since patches should be sent
-> inline, and such interfaces do line wrapping, they aren't good for patch
-> submission.
+Guennadi Liakhovetski wrote:
+> sorry for hijacking the thread, just a quick notice to say, that my 
+> Logitech QuickCam Messenger webcam (USB_DEVICE(0x046d, 0x08da)) is not 
+> working with recent kernels either, but, it used to work with out-of-tree 
+> gspca, I think, gspcav1-20071224 did work (I might still be able to bring 
+> up the machine with which I used it back then and even boot that kernel), 
+> so, it shouldn't be very difficult to fix it again. I noticed, that that 
+> older version used a different sensor with this camera, so, I tried 
+> "force_sensor=tas5130cxx" with 2.6.28, but it didn't help either.
+> 
+> Notice, this is not very high priority for me, that's why I'm only 
+> reporting it now, but it would be good to have it fixed some time...
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> 
+> 
 
-Well, i have never heard of such interface in gmail. If someone knows
-about it please let me know.
+I shall subscribe to linux-media. Earlier kernels said it found the
+sensor, but it did not work. In order to provide a usbsnoop dump, I
+would have to borrow a Windows box or try installing Windows in a
+VirtualBox VM and doing it that way hopefully. At present I am having a
+problem getting VirtualBox to start on this box, something is strange as
+certain apps when started as root stall at futex(0x69db9c,
+FUTEX_WAIT_PRIVATE, 1, NULL for VirtualBox and same type of problem with
+qjackctl while they work as user. VirtualBox however now fails to start
+as user with:-
+ lancelot@tindog:~/ftp/Mar09/JAVA-SDR/Radio/Radio> VirtualBox
+/usr/bin/VirtualBox: line 72: /usr/lib/virtualbox/VirtualBox: Permission
+denied
+/usr/bin/VirtualBox: line 72: exec: /usr/lib/virtualbox/VirtualBox:
+cannot execute: Success
+Looks like I shall have to do a fresh install as problem carried over
+from a hard drive with bad blocks and a shutdown due to watercooling
+failure.
 
-> Also, probably, they'll encode the attachments with text/plain or
-> application/octet-stream, instead of the proper text/x-patch mime type.
+Likewise it's not critical as I have a Logitech Pro 9000 that has always
+worked with the uvcvideo driver.
+Regards
+Sid.
+-- 
+Sid Boyce ... Hamradio License G3VBV, Licensed Private Pilot
+Emeritus IBM/Amdahl Mainframes and Sun/Fujitsu Servers Tech Support
+Specialist, Cricket Coach
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
 
-Vasily, may be this file can help you with mail clients
-linux/Documentation/email-clients.txt and instructions how to send
-patch correctly.
-For example, mutt and evolution works fine with gmail.
-
---
-Best regards, Klimov Alexey
