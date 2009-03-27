@@ -1,24 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2NHXxYT012940
-	for <video4linux-list@redhat.com>; Mon, 23 Mar 2009 13:33:59 -0400
-Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.29])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n2NHXbhx015213
-	for <video4linux-list@redhat.com>; Mon, 23 Mar 2009 13:33:37 -0400
-Received: by yx-out-2324.google.com with SMTP id 8so1288544yxm.81
-	for <video4linux-list@redhat.com>; Mon, 23 Mar 2009 10:33:37 -0700 (PDT)
+From: Lamarque Vieira Souza <lamarque@gmail.com>
+To: dean <dean@sensoray.com>
+Date: Thu, 26 Mar 2009 22:31:17 -0300
+References: <20090326160017.048668E03F1@hormel.redhat.com>
+	<49CBB06E.4070305@sensoray.com>
+In-Reply-To: <49CBB06E.4070305@sensoray.com>
 MIME-Version: 1.0
-In-Reply-To: <1237608177.13642.8.camel@pc07.localdom.local>
-References: <2df568dc0903201324rc5c4982x45ce071c39ddc74b@mail.gmail.com>
-	<1237608177.13642.8.camel@pc07.localdom.local>
-Date: Mon, 23 Mar 2009 11:33:36 -0600
-Message-ID: <2df568dc0903231033t30ed26afr80b413e889b096ae@mail.gmail.com>
-From: Gordon Smith <spider.karma+video4linux-list@gmail.com>
-To: hermann pitton <hermann-pitton@arcor.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Failure to read saa7134/saa6752hs MPEG output
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903262231.18841.lamarque@gmail.com>
+Cc: hdegoede@redhat.com, video4linux-list@redhat.com, Greg KH <greg@kroah.com>
+Subject: Re: Skype and libv4
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,144 +24,105 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Mar 20, 2009 at 10:02 PM, hermann pitton
-<hermann-pitton@arcor.de> wrote:
+Em Thursday 26 March 2009, dean escreveu:
+> Hi, Please see comments below:
+> > Subject:
+> > Re: Skype and libv4
+> > From:
+> > Lamarque Vieira Souza <lamarque@gmail.com>
+> > Date:
+> > Thu, 26 Mar 2009 10:36:56 -0300
+> > To:
+> > Hans de Goede <hdegoede@redhat.com>
+> >
+> > To:
+> > Hans de Goede <hdegoede@redhat.com>
+> > CC:
+> > video4linux-list@redhat.com
+> >
+> > Em Thursday 26 March 2009, Hans de Goede escreveu:
+> >> Hi all,
+> >>
+> >> Not quite, the correct behaviour is:
+> >> "If the field value is set to an unsupported value, then set the field
+> >> value to *a* value that the driver accepts"
+> >
+> > 	Now I get it. This webcam only accepts V4L2_FIELD_NONE, so commenting
+> > that part of try_fmt makes it compliant with v4l2 standard. Thank you for
+> > helping me with this. The zr364xx's maintainer contacted me yesterday, he
+> > is busy theses days, when he has more time he is going to take a look at
+> > my changes. With lucky the changes will be in 2.6.30. At least 2.6.29
+> > sets the compat_ioctl32 automatically for all drivers, in 2.6.28.8 I had
+> > to set it in the driver to make Skype and mplayer (32-bit) work, one less
+> > change for the driver :-)
 >
-> Hi,
->
-> Am Freitag, den 20.03.2009, 14:24 -0600 schrieb Gordon Smith:
-> > Hello -
-> >
-> > I'm unable to read or stream compressed data from saa7134/saa6752hs.
-> >
-> > I have a RTD Technologies VFG7350 (saa7134 based, two channel,
-> > hardware encoder per channel, no tuner) running current v4l-dvb in
-> > debian 2.6.26-1.
-> >
-> > MPEG2-TS data is normally available on /dev/video2 and /dev/video3.
-> >
-> > Previously there were parameters for the saa6752hs module named
-> > "force" and "ignore" to modify i2c addresses. The current module
-> > appears to lack those parameters and may be using incorrect i2c addresses.
-> >
-> > Current dmesg:
-> >
-> > [   13.388944] saa6752hs 3-0020: chip found @ 0x40 (saa7133[0])
-> > [   13.588458] saa6752hs 4-0020: chip found @ 0x40 (saa7133[1])
-> >
-> > Prior dmesg (~2.6.25-gentoo-r7 + v4l-dvb ???):
-> >
-> > saa6752hs 1-0021: saa6752hs: chip found @ 0x42
-> > saa6752hs 1-0021: saa6752hs: chip found @ 0x42
-> >
-> > Prior modprobe.conf entry:
-> > options saa6752hs force=0x1,0x21,0x2,0x21 ignore=0x0,0x20,0x1,0x20,0x2,0x20
-> >
-> >
-> > $ v4l2-dbg --device /dev/video2 --info
-> > Driver info:
-> >         Driver name   : saa7134
-> >         Card type     : RTD Embedded Technologies VFG73
-> >         Bus info      : PCI:0000:02:08.0
-> >         Driver version: 526
-> >         Capabilities  : 0x05000001
-> >                 Video Capture
-> >                 Read/Write
-> >                 Streaming
-> >
-> > Streaming is a listed capability but the capture example at
-> > http://v4l2spec.bytesex.org/spec/capture-example.html fails
-> > during request for buffers.
-> >
-> > $ v4l2-capture --device /dev/video2 --mmap
-> > /dev/video2 does not support memory mapping
-> >
-> > v4l2-capture.c:
-> >         req.count               = 4;
-> >         req.type                = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> >         req.memory              = V4L2_MEMORY_MMAP;
-> >
-> >         if (-1 == xioctl (fd, VIDIOC_REQBUFS, &req)) {
-> >                 if (EINVAL == errno) {
-> >                         fprintf (stderr, "%s does not support "
-> >                                  "memory mapping\n", dev_name);
-> >
-> >
-> > A read() results in EIO error:
-> >
-> > $ v4l2-capture --device /dev/video0 --read
-> > read error 5, Input/output error
-> >
-> > v4l2-capture.c:
-> >                 if (-1 == read (fd, buffers[0].start, buffers[0].length)) {
-> >                         switch (errno) {
-> >             ...
-> >                         default:
-> >                                 errno_exit ("read");
-> >
-> >
-> > This behavior does not change if the saa6752hs module is not loaded.
-> >
-> > Is there still a way to modify the i2c address(es) for the saa6752hs module?
-> >
-> > Any pointers are appreciated.
-> >
-> > Gordon
-> >
->
-> thanks for the report.
->
-> It was probably forgotten that the prior insmod option had a reason.
->
-> Try to change it to 0x21 in saa7134-i2c.c
->
-> static char *i2c_devs[128] = {
->        [ 0x20      ] = "mpeg encoder (saa6752hs)",
->        [ 0xa0 >> 1 ] = "eeprom",
->        [ 0xc0 >> 1 ] = "tuner (analog)",
->        [ 0x86 >> 1 ] = "tda9887",
->        [ 0x5a >> 1 ] = "remote control",
-> };
->
-> and report if your cards a usable again.
->
-> Seems we need the chip address per card without that insmod option and
-> reliable probing.
->
-> Cheers,
-> Hermann
+> The lack of V4L2_FIELD_NONE caused what sort of problems in these
+> applications/drivers?  Did you the driver recover without it?
 
-Hermann -
+	Skype+libv4l did not work and let the driver in unsable state (no application 
+worked until I reloaded the driver). mplayer and Kopete+libv4l work without 
+changing this part of the driver because they probably passed V4L2_FIELD_ANY, 
+which makes the driver return V4L2_FIELD_NONE. Skypes passes 
+V4L2_FIELD_INTERLACED, which this card does not support. 
 
-I made the change to saa7134-i2c.c but the i2c address did not change.
-I added my initials (gms) to dmesg, so I know I'm loading the new
-module.
+	One strange thing is that Skype returns two error messages: one about the 
+v4l2 format and this one "Skype Xv: No suitable overlay format found". I think 
+this message is misleading because there is no problem with Xv's overlay, it 
+just the stream format from the v4l2's driver that was not recognized. I have 
+seen several people on the Internet with problem with Skype and this error 
+message, maybe the drivers they are using is doing the wrong thing in try_fmt 
+too. meye.c is another one which probably has this problem with Skype.
 
-I set i2c_debug=1 for saa7134. Here is one device:
+> >> This takes in to account certain devices can support multiple field
+> >> types, which is the whole purpose of the field value.
+> >>
+> >> And yes unfortunately many many v4l drivers have various bugs in their
+> >> implementation, in some cases I do work around driver bugs in libv4l,
+> >> but it this case that would hurt proper use of the field value, and that
+> >> is not acceptable, so fixing the driver is the only solution.
+>
+> Can you elaborate on the V4L drivers with bugs?  If they aren't
+> identified, they won't be fixed.
+>
+> > 	Have you tried to contact the drivers' maintainers for fixing those
+> > bugs?
+> >
+> >> Note, that the v4l2 API is pretty well documented, and the correct
+> >> behaviour as I describe it can be found in the docs too:
+> >> http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec/r10944.ht
+> >>m
+> >>
+> >> And the "Return Value" section, note how EINVAL is only supposed to be
+> >> returned up on an invalid, or unsupported type value. And also from the
+> >> description: "Drivers should not return an error code unless the input
+> >> is ambiguous"
+> >
+> > ------------------------------------------------------------------------
+> >
+> > --
+> > video4linux-list mailing list
+> > Unsubscribe
+> > mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> > https://www.redhat.com/mailman/listinfo/video4linux-list
+>
+> I also have a question about the removal of videobuf_waiton in the
+> patch.  Only 3 other drivers are using videobuf_waiton. Should
+> videobuf_waiton be removed from them also?  I believe it was in vivi.c
+> at some point, but I'll have to double check...
 
-[   13.369175] saa7130/34: v4l2 driver version 0.2.14-gms loaded
-[   13.369294] saa7133[0]: found at 0000:02:08.0, rev: 17, irq: 11,
-latency: 32, mmio: 0x80000000
-[   13.369310] saa7133[0]: subsystem: 1435:7350, board: RTD Embedded
-Technologies VFG7350 [card=72,autodetected]
-[   13.369335] saa7133[0]: board init: gpio is 10000
-[   13.472509] saa7133[0]: i2c xfer: < a0 00 >
-[   13.480139] saa7133[0]: i2c xfer: < a1 =35 =14 =50 =73 =ff =ff =ff
-=ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff
-...snip...
-=ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff =ff >
-[   13.520135] saa7133[0]: i2c eeprom 00: 35 14 50 73 ff ff ff ff ff
-ff ff ff ff ff ff ff
-...snip...
-[   13.520467] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff ff
-[   13.608743] saa6752hs 1-0020: chip found (gms) @ 0x40 (saa7133[0])
-[   13.608762] saa7133[0]: i2c xfer: < 40 13 >
-[   13.616164] saa7133[0]: i2c xfer: < 41 =13 =13 =13 =13 =13 =13 =13
-=13 =13 =13 =13 =13 >
-[   13.624161] saa6752hs i2c attach [addr=0x20,client=saa6752hs]
-[   13.624337] saa7133[0]: registered device video0 [v4l2]
-[   13.624390] saa7133[0]: registered device vbi0
+	I think it should be removed. As far as I understand videobuf_waiton(&buf-
+>vb, 0, 0) will block forever until the video buffer list is emptied, but if 
+the driver is an unload module state nobody will empty the list. If the 
+application works as expected it will empty the list before closing the device 
+and everything works, but Skype was not working properly because of the 
+V4L2_FIELD_INTERLACED problem, it issued some vidioc_qbuf calls but no 
+vidioc_dqbuf calls reached the driver accordingly to my logs, so the dead lock 
+when trying to unload the driver's module.
+
+-- 
+Lamarque V. Souza
+http://www.geographicguide.com/brazil.htm
+Linux User #57137 - http://counter.li.org/
 
 --
 video4linux-list mailing list
