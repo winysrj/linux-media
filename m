@@ -1,35 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.9]:35243 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752055AbZCMKVQ (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:55744 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934100AbZC0BEp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2009 06:21:16 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: Steven Toth <stoth@linuxtv.org>
-Subject: About multifrontend - initalisation of dvb_frontend.id value
-Date: Fri, 13 Mar 2009 11:21:05 +0100
-Cc: linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+	Thu, 26 Mar 2009 21:04:45 -0400
+Received: from 200.220.139.66.nipcable.com ([200.220.139.66] helo=pedra.chehab.org)
+	by bombadil.infradead.org with esmtpsa (Exim 4.69 #1 (Red Hat Linux))
+	id 1Ln0V1-0005Zj-Or
+	for linux-media@vger.kernel.org; Fri, 27 Mar 2009 01:04:44 +0000
+Date: Thu, 26 Mar 2009 22:04:39 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Fw: [PATCH] pluto2: silence spew of card hung up messages
+Message-ID: <20090326220439.2d84f9e5@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903131121.06048.zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steven!
 
-You merged / developed multifrontend support. And patch 9222:44d82b67e0b8 
-added a field id to struct dvb_frontend. So who is responsible for setting 
-this to useful value? I found no comment about this, better would be to add 
-one.
 
-As I discovered earlier a lot of frontend drivers use kmalloc so the fields 
-not used by them are not properly set to zero.
+Forwarded message:
 
-Is it required that frontend/demod drivers use kzalloc for all unknown/maybe 
-new fields to be properly set?
+Date: Thu, 26 Mar 2009 20:47:48 +0000
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: linux-kernel@vger.kernel.org, mchehab@infradead.org
+Subject: [PATCH] pluto2: silence spew of card hung up messages
 
-Regards
-Matthias
+
+If the card is ejected on some systems you get a spew of messages as other
+shared IRQ devices interrupt between the card eject and the card IRQ
+disable.
+
+We don't need to spew them all out
+
+Closes #7472
+
+Signed-off-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+---
+
+ drivers/media/dvb/pluto2/pluto2.c |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
+
+
+diff --git a/drivers/media/dvb/pluto2/pluto2.c b/drivers/media/dvb/pluto2/pluto2.c
+index d101b30..ee89623 100644
+--- a/drivers/media/dvb/pluto2/pluto2.c
++++ b/drivers/media/dvb/pluto2/pluto2.c
+@@ -116,6 +116,7 @@ struct pluto {
+ 
+ 	/* irq */
+ 	unsigned int overflow;
++	unsigned int dead;
+ 
+ 	/* dma */
+ 	dma_addr_t dma_addr;
+@@ -336,8 +337,10 @@ static irqreturn_t pluto_irq(int irq, void *dev_id)
+ 		return IRQ_NONE;
+ 
+ 	if (tscr == 0xffffffff) {
+-		// FIXME: maybe recover somehow
+-		dev_err(&pluto->pdev->dev, "card hung up :(\n");
++		if (pluto->dead == 0)
++			dev_err(&pluto->pdev->dev, "card has hung or been ejected.\n");
++		/* It's dead Jim */
++		pluto->dead = 1;
+ 		return IRQ_HANDLED;
+ 	}
+ 
+
+
+
+
+
+Cheers,
+Mauro
