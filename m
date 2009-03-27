@@ -1,144 +1,357 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fmmailgate04.web.de ([217.72.192.242]:43123 "EHLO
-	fmmailgate04.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754205AbZC1QPk convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:59466 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752083AbZC0J5e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Mar 2009 12:15:40 -0400
-Received: from web.de
-	by fmmailgate04.web.de (Postfix) with SMTP id 9CE9E6090ABB
-	for <linux-media@vger.kernel.org>; Sat, 28 Mar 2009 17:15:37 +0100 (CET)
-Date: Sat, 28 Mar 2009 17:15:35 +0100
-Message-Id: <1622164526@web.de>
-MIME-Version: 1.0
-From: =?iso-8859-15?Q?Bernd_Strau=DF?= <no_bs@web.de>
-To: linux-media@vger.kernel.org
-Subject: [Patch] IR support for TeVii S460 DVB-S card
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: 8BIT
+	Fri, 27 Mar 2009 05:57:34 -0400
+Date: Fri, 27 Mar 2009 06:57:26 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: David Wong <davidtlwong@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Support for Legend Silicon LGS8913/LGS8GL5/LGS8GXX
+ China  DMB-TH digital demodulator
+Message-ID: <20090327065726.5e4b4211@pedra.chehab.org>
+In-Reply-To: <15ed362e0903170855k2ec1e5afm613de692c237e34d@mail.gmail.com>
+References: <15ed362e0903170855k2ec1e5afm613de692c237e34d@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-changeset:   11251:58f9585b7d94
-tag:         tip
-user:        root
-date:        Sat Mar 28 15:19:20 2009 +0100
-files:       linux/drivers/media/common/ir-keymaps.c linux/drivers/media/video/cx88/cx88-input.c linux/include/media/ir-common.h
-description:
+On Tue, 17 Mar 2009 23:55:05 +0800
+David Wong <davidtlwong@gmail.com> wrote:
 
-IR support for TeVii S460
+> +#undef USE_FAKE_SIGNAL_STRENGTH
 
-From: Bernd Strauss <no_bs@web.de>
+Hmm... why do you need this upstream? Is the signal strength working? If so,
+just remove this test code.
 
-The remote control that comes with this card doesn't work out of the box.
-This patch fixes that. Works with LIRC and /dev/input/eventX.
+> +
+> +static void lgs8gxx_auto_lock(struct lgs8gxx_state *priv);
 
-Priority: normal
+I don't see why do you need to prototype this function.
 
-Signed-off-by: Bernd Strauss <no_bs@web.de>
+> +
+> +static int debug = 0;
+
+Don't initialize static vars to zero. Kernel already does this, and static
+initialization requires eats some space.
+
+> +static int lgs8gxx_set_fe(struct dvb_frontend *fe,
+> +			  struct dvb_frontend_parameters *fe_params)
+> +{
+> +	struct lgs8gxx_state *priv = fe->demodulator_priv;
+> +
+> +	dprintk("%s\n", __func__);
+> +
+> +	/* set frequency */
+> +	if (fe->ops.tuner_ops.set_params) {
+> +		fe->ops.tuner_ops.set_params(fe, fe_params);
+> +		if (fe->ops.i2c_gate_ctrl)
+> +			fe->ops.i2c_gate_ctrl(fe, 0);
+> +	}
+> +
+> +	/* Hardcoded to use auto as much as possible */
+> +	fe_params->u.ofdm.code_rate_HP = FEC_AUTO;
+> +	fe_params->u.ofdm.guard_interval = GUARD_INTERVAL_AUTO;
+> +	fe_params->u.ofdm.transmission_mode = TRANSMISSION_MODE_AUTO;
+
+Hmm... this is weird.
+
+That's said, maybe you may need some DVBS2 API additions for DMB. You should
+propose some API additions and provide a patch for it.
+
+> +	/* FEC. No exact match for DMB-TH, pick approx. value */
+> +	switch(t & LGS_FEC_MASK) {
+> +	case  LGS_FEC_0_4: /* FEC 0.4 */
+> +		translated_fec = FEC_1_2;
+> +		break;
+> +	case  LGS_FEC_0_6: /* FEC 0.6 */
+> +		translated_fec = FEC_2_3;
+> +		break;
+> +	case  LGS_FEC_0_8: /* FEC 0.8 */
+> +		translated_fec = FEC_5_6;
+> +		break;
+> +	default:
+> +		translated_fec = FEC_1_2;
+> +	}
+
+Same here: if there's no exact match, we should first patch the core files to
+improve the API, and then use the correct values.
+
+> +	fe_params->u.ofdm.code_rate_HP =
+> +	fe_params->u.ofdm.code_rate_LP = translated_fec;
+
+The above seems weird. It would be better to do:
+
++	fe_params->u.ofdm.code_rate_HP = translated_fec;
++	fe_params->u.ofdm.code_rate_LP = translated_fec;
+
+The gcc optimizer will produce the same code, but this way would be cleaner for
+those who are reading the source code.
+
+> +static
+> +int lgs8gxx_get_tune_settings(struct dvb_frontend *fe,
+> +			      struct dvb_frontend_tune_settings *fesettings)
+> +{
+> +	/* FIXME: copy from tda1004x.c */
+
+It would be nice if you fix those FIXME's.
+
+> +	fesettings->min_delay_ms = 800;
+> +	/* Drift compensation makes no sense for DVB-T */
+
+DVB-T???
+
+> +static int lgs8gxx_read_snr(struct dvb_frontend *fe, u16 *snr)
+> +{
+> +	struct lgs8gxx_state *priv = fe->demodulator_priv;
+> +	u8 t;
+> +	*snr = 0;
+> +
+> +	lgs8gxx_read_reg(priv, 0x95, &t);
+> +	dprintk("AVG Noise=0x%02X\n", t);
+> +	*snr = 256 - t;
+> +	*snr <<= 8;
+> +	dprintk("snr=0x%x\n", *snr);
+> +	
+> +	return 0;
+> +}
+
+I dunno if you are following all those discussions about SNR. We're trying to
+standardize the meaning for all those status reads (SNR, signal strength, etc.
+
+Nothing were decided yet, but while we don't take a decision, the better is if
+you provide some comments at the source code specifying what's the unit for
+each of those status (dB? 0.1 dB steps? dB * 256 ?).
+
+> +static struct dvb_frontend_ops lgs8gxx_ops = {
+> +	.info = {
+> +		.name = "Legend Silicon LGS8913/LGS8GXX DMB-TH",
+> +		.type = FE_OFDM,
+> +		.frequency_min = 474000000,
+> +		.frequency_max = 858000000,
+> +		.frequency_stepsize = 10000,
+> +		.caps =
+> +		    FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
+> +		    FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
+> +		    FE_CAN_QPSK |
+> +		    FE_CAN_QAM_16 | FE_CAN_QAM_64 | FE_CAN_QAM_AUTO |
+> +		    FE_CAN_TRANSMISSION_MODE_AUTO | FE_CAN_GUARD_INTERVAL_AUTO
+> +	},
+
+Also here we should reflect the proper DMB parameters, after the API additions.
+
+--- 
+
+Before submitting patches, please check they with checkpatch.pl ( see
+http://linuxtv.org/hg/v4l-dvb/raw-file/tip/README.patches for the submission
+procedures). 
+
+Please fix the CodingStyle errors detected by the tool:
 
 
-diff -r 2adf4a837334 linux/drivers/media/common/ir-keymaps.c
---- a/linux/drivers/media/common/ir-keymaps.c	Sat Mar 28 06:55:35 2009 -0300
-+++ b/linux/drivers/media/common/ir-keymaps.c	Sat Mar 28 15:15:04 2009 +0100
-@@ -2800,3 +2800,59 @@
- 	[0x1b] = KEY_B,		/*recall*/
- };
- EXPORT_SYMBOL_GPL(ir_codes_dm1105_nec);
-+
-+/* TeVii S460 DVB-S/S2
-+   Bernd Strauss <no_bs@web.de>
-+*/
-+IR_KEYTAB_TYPE ir_codes_tevii_s460[IR_KEYTAB_SIZE] = {
-+	[0x0a] = KEY_POWER,
-+	[0x0c] = KEY_MUTE,
-+	[0x11] = KEY_1,
-+	[0x12] = KEY_2,
-+	[0x13] = KEY_3,
-+	[0x14] = KEY_4,
-+	[0x15] = KEY_5,
-+	[0x16] = KEY_6,
-+	[0x17] = KEY_7,
-+	[0x18] = KEY_8,
-+	[0x19] = KEY_9,
-+	[0x1a] = KEY_LAST,		/* 'recall' / 'event info' */
-+	[0x10] = KEY_0,
-+	[0x1b] = KEY_FAVORITES,
-+
-+	[0x09] = KEY_VOLUMEUP,
-+	[0x0f] = KEY_VOLUMEDOWN,
-+	[0x05] = KEY_TUNER,		/* 'live mode' */
-+	[0x07] = KEY_PVR,		/* 'play mode' */
-+	[0x08] = KEY_CHANNELUP,
-+	[0x06] = KEY_CHANNELDOWN,
-+	[0x00] = KEY_UP,
-+	[0x03] = KEY_LEFT,
-+	[0x1f] = KEY_OK,        
-+	[0x02] = KEY_RIGHT,
-+	[0x01] = KEY_DOWN,
-+	[0x1c] = KEY_MENU,
-+	[0x1d] = KEY_BACK,
-+
-+	[0x40] = KEY_PLAYPAUSE,
-+	[0x1e] = KEY_REWIND,		/* '<<' */
-+	[0x4d] = KEY_FASTFORWARD,	/* '>>' */
-+	[0x44] = KEY_EPG,
-+	[0x04] = KEY_RECORD,
-+	[0x0b] = KEY_TIME,              /* 'timer' */
-+	[0x0e] = KEY_OPEN,
-+	[0x4c] = KEY_INFO,
-+	[0x41] = KEY_AB,                /* 'A/B' */
-+	[0x43] = KEY_AUDIO,
-+	[0x45] = KEY_SUBTITLE,
-+	[0x4a] = KEY_LIST,
-+	[0x46] = KEY_F1,		/* 'F1' / 'satellite' */
-+	[0x47] = KEY_F2,		/* 'F2' / 'provider' */
-+	[0x5e] = KEY_F3,		/* 'F3' / 'transp' */
-+	[0x5c] = KEY_F4,		/* 'F4' / 'favorites' */
-+	[0x52] = KEY_F5,		/* 'F5' / 'all' */
-+	[0x5a] = KEY_F6,
-+	[0x56] = KEY_SWITCHVIDEOMODE,	/* 'mon' */
-+	[0x58] = KEY_ZOOM,		/* 'FS' */
-+};
-+EXPORT_SYMBOL_GPL(ir_codes_tevii_s460);
-diff -r 2adf4a837334 linux/drivers/media/video/cx88/cx88-input.c
---- a/linux/drivers/media/video/cx88/cx88-input.c	Sat Mar 28 06:55:35 2009 -0300
-+++ b/linux/drivers/media/video/cx88/cx88-input.c	Sat Mar 28 15:15:04 2009 +0100
-@@ -330,6 +330,11 @@
- 		ir->mask_keycode = 0x7e;
- 		ir->polling = 100; /* ms */
- 		break;
-+	case CX88_BOARD_TEVII_S460:
-+		ir_codes = ir_codes_tevii_s460;
-+		ir_type = IR_TYPE_PD;
-+		ir->sampling = 0xff00; /* address */
-+		break;
- 	}
- 
- 	if (NULL == ir_codes) {
-@@ -436,6 +441,7 @@
- 	switch (core->boardnr) {
- 	case CX88_BOARD_TERRATEC_CINERGY_1400_DVB_T1:
- 	case CX88_BOARD_DNTV_LIVE_DVB_T_PRO:
-+	case CX88_BOARD_TEVII_S460:
- 		ircode = ir_decode_pulsedistance(ir->samples, ir->scount, 1, 4);
- 
- 		if (ircode == 0xffffffff) { /* decoding error */
-diff -r 2adf4a837334 linux/include/media/ir-common.h
---- a/linux/include/media/ir-common.h	Sat Mar 28 06:55:35 2009 -0300
-+++ b/linux/include/media/ir-common.h	Sat Mar 28 15:15:04 2009 +0100
-@@ -162,6 +162,7 @@
- extern IR_KEYTAB_TYPE ir_codes_kworld_plus_tv_analog[IR_KEYTAB_SIZE];
- extern IR_KEYTAB_TYPE ir_codes_kaiomy[IR_KEYTAB_SIZE];
- extern IR_KEYTAB_TYPE ir_codes_dm1105_nec[IR_KEYTAB_SIZE];
-+extern IR_KEYTAB_TYPE ir_codes_tevii_s460[IR_KEYTAB_SIZE];
- #endif
- 
- /*
+ERROR: do not initialise statics to 0 or NULL
+#91: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:43:
++static int debug = 0;
 
-__________________________________________________________________________
-Verschicken Sie SMS direkt vom Postfach aus - in alle deutschen und viele 
-ausländische Netze zum gleichen Preis! 
-https://produkte.web.de/webde_sms/sms
+WARNING: printk() should include KERN_ facility level
+#145: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:97:
++		printk("%s: reg=0x%02X, data=0x%02X\n", __func__, reg, b1[0]);
+
+ERROR: do not use C99 // comments
+#164: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:116:
++	if_conf = 0x10; // AGC output on;
+
+ERROR: spaces required around that ':' (ctx:VxV)
+#167: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:119:
++		((config->ext_adc) ? 0x80:0x00) |
+ 		                         ^
+
+ERROR: spaces required around that ':' (ctx:VxV)
+#168: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:120:
++		((config->if_neg_center) ? 0x04:0x00) |
+ 		                               ^
+
+ERROR: spaces required around that ':' (ctx:VxV)
+#169: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:121:
++		((config->if_freq == 0) ? 0x08:0x00) | /* Baseband */
+ 		                              ^
+
+ERROR: spaces required around that ':' (ctx:VxV)
+#170: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:122:
++		((config->ext_adc && config->adc_signed) ? 0x02:0x00) |
+ 		                                               ^
+
+ERROR: spaces required around that ':' (ctx:VxV)
+#171: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:123:
++		((config->ext_adc && config->if_neg_edge) ? 0x01:0x00);
+ 		                                                ^
+
+WARNING: braces {} are not necessary for single statement blocks
+#216: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:168:
++	if (priv->config->prod == LGS8GXX_PROD_LGS8913) {
++		lgs8gxx_write_reg(priv, 0xC6, 0x01);
++	}
+
+ERROR: do not use C99 // comments
+#223: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:175:
++	// clear FEC self reset
+
+WARNING: braces {} are not necessary for single statement blocks
+#244: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:196:
++	if (priv->config->prod == LGS8GXX_PROD_LGS8G52) {
++		lgs8gxx_write_reg(priv, 0xD9, 0x40);
++	}
+
+ERROR: trailing whitespace
+#300: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:252:
++^Iint err; $
+
+ERROR: space required after that ',' (ctx:VxV)
+#327: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:279:
++	int i,j;
+ 	     ^
+
+ERROR: spaces required around that '=' (ctx:WxV)
+#338: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:290:
++		for (j =0 ; j < 2; j++) {
+ 		       ^
+
+ERROR: trailing statements should be on next line
+#341: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:293:
++			if (err) goto out;
++			if (err) goto out;
+ERROR: trailing statements should be on next line
+#342: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:294:
++			if (locked) goto locked;
++			if (locked) goto locked;
+ERROR: spaces required around that '=' (ctx:WxV)
+#344: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:296:
++		for (j =0 ; j < 2; j++) {
+ 		       ^
+
+ERROR: trailing statements should be on next line
+#347: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:299:
++			if (err) goto out;
++			if (err) goto out;
+ERROR: trailing statements should be on next line
+#348: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:300:
++			if (locked) goto locked;
++			if (locked) goto locked;
+ERROR: trailing statements should be on next line
+#352: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:304:
++		if (err) goto out;
++		if (err) goto out;
+ERROR: trailing statements should be on next line
+#353: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:305:
++		if (locked) goto locked;
++		if (locked) goto locked;
+ERROR: do not use C99 // comments
+#381: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:333:
++	//u8 ctrl_frame = 0, mode = 0, rate = 0;
+
+ERROR: trailing whitespace
+#395: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:347:
++^I$
+
+WARNING: braces {} are not necessary for single statement blocks
+#404: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:356:
++	if (priv->config->prod == LGS8GXX_PROD_LGS8913) {
++		lgs8gxx_write_reg(priv, 0xC0, detected_param);
++	}
+
+ERROR: do not use C99 // comments
+#407: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:359:
++	//lgs8gxx_soft_reset(priv);
+
+WARNING: suspect code indent for conditional statements (8, 8)
+#412: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:364:
++	if (gi == 0x2)
++	switch(gi) {
+
+ERROR: space required before the open parenthesis '('
+#413: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:365:
++	switch(gi) {
+
+ERROR: trailing whitespace
+#467: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:419:
++^Ilgs8gxx_write_reg(priv, 0x2C, 0); $
+
+WARNING: line over 80 characters
+#477: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:429:
++	struct lgs8gxx_state *priv = (struct lgs8gxx_state *)fe->demodulator_priv;
+
+WARNING: braces {} are not necessary for single statement blocks
+#493: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:445:
++	if (config->prod == LGS8GXX_PROD_LGS8913) {
++		lgs8913_init(priv);
++	}
+
+WARNING: suspect code indent for conditional statements (8, 8)
+#550: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:502:
++	if ((fe_params->u.ofdm.code_rate_HP == FEC_AUTO) ||
+[...]
++	} else {
+
+ERROR: space required before the open parenthesis '('
+#629: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:581:
++	switch(t & LGS_FEC_MASK) {
+
+ERROR: space required before the open parenthesis '('
+#646: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:598:
++	switch(t & SC_MASK) {
+
+WARNING: line over 80 characters
+#707: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:659:
++			*fe_status |= FE_HAS_VITERBI | FE_HAS_SYNC | FE_HAS_LOCK;
+
+ERROR: trailing whitespace
+#724: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:676:
++^Idprintk("%s()\n", __func__);^I$
+
+ERROR: space prohibited before that close parenthesis ')'
+#734: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:686:
++	if (v < 0x100 )
+
+ERROR: trailing whitespace
+#748: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:700:
++^I^I$
+
+ERROR: trailing whitespace
+#818: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:770:
++^I$
+
+ERROR: "foo* bar" should be "foo *bar"
+#865: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:817:
++static int lgs8gxx_i2c_gate_ctrl(struct dvb_frontend* fe, int enable)
+
+WARNING: braces {} are not necessary for any arm of this statement
+#871: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:823:
++	if (enable) {
+[...]
++	} else {
+[...]
+
+WARNING: line over 80 characters
+#872: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:824:
++		return lgs8gxx_write_reg(priv, 0x01, 0x80 | priv->config->tuner_address);
+
+ERROR: do not use C99 // comments
+#896: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:848:
++	//.sleep = lgs8gxx_sleep,
+
+ERROR: space required after that ',' (ctx:VxV)
+#917: FILE: linux/drivers/media/dvb/frontends/lgs8gxx.c:869:
++	dprintk("%s()\n",__func__);
+ 	                ^
+
+ERROR: trailing whitespace
+#1111: FILE: linux/drivers/media/dvb/frontends/lgs8gxx_priv.h:58:
++#define GI_595^I0x01^I$
 
 
 
+Cheers,
+Mauro
