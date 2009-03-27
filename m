@@ -1,331 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110808.mail.gq1.yahoo.com ([67.195.13.231]:35484 "HELO
-	web110808.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752114AbZCLNB3 (ORCPT
+Received: from mail-in-05.arcor-online.net ([151.189.21.45]:40280 "EHLO
+	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751617AbZC0XYV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 09:01:29 -0400
-Message-ID: <662082.75656.qm@web110808.mail.gq1.yahoo.com>
-Date: Thu, 12 Mar 2009 06:01:26 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH 1/1 re-submit 1] sdio: add low level i/o functions for workarounds
+	Fri, 27 Mar 2009 19:24:21 -0400
+Subject: Re: [linux-dvb] TechnoTrend C-1501 - Locking issues on 388Mhz
+From: hermann pitton <hermann-pitton@arcor.de>
 To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Cc: klaas de waal <klaas.de.waal@gmail.com>,
+	Oliver Endriss <o.endriss@gmx.de>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	linux-media@vger.kernel.org, linux-dvb@linuxtv.org,
+	erik_bies@hotmail.com
+In-Reply-To: <20090327073858.25d11327@pedra.chehab.org>
+References: <7b41dd970903251353n46f55bbfg687c1cfa42c5b824@mail.gmail.com>
+	 <1238111503.4783.23.camel@pc07.localdom.local>
+	 <20090326210929.32235862@pedra.chehab.org>
+	 <1238114810.4783.32.camel@pc07.localdom.local>
+	 <20090326220225.72b122b2@pedra.chehab.org>
+	 <1238117947.4783.48.camel@pc07.localdom.local>
+	 <20090327073858.25d11327@pedra.chehab.org>
+Content-Type: text/plain
+Date: Sat, 28 Mar 2009 00:23:55 +0100
+Message-Id: <1238196235.6530.38.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
-sdio: add low level i/o functions for workarounds
+Am Freitag, den 27.03.2009, 07:38 -0300 schrieb Mauro Carvalho Chehab:
+> On Fri, 27 Mar 2009 02:39:07 +0100
+> hermann pitton <hermann-pitton@arcor.de> wrote:
+> 
+> > But my main concern is, if it once arrived at patchwork formally, it is
+> > out of sight for most of us and might miss proper review, except you are
+> > sure you can always guarantee that. I don't want to start to argue about
+> > all what happened in the past.
+> > 
+> > So, at least, if some patch arrived there mysteriously ;), the
+> > linux-media list should be informed that it is there now and last time
+> > to speak off, in case anything is not fully clear, before vanishing into
+> > some black hole until you find it in the next kernel release ...
+> 
+> The only way to send patches to patchwork is to submit it via linux-media list.
+> There's no other way. So, all patch discussions and reviews should happen at
+> the ML, by replying at the patch email (or by replying another reply).
+> Patchwork will keep track of such replies as well.
+> 
 
-From: Pierre Ossman <drzeus@drzeus.cx>
+What happened so far with this patches is quite funny,
+for me some black hole seems to be involved.
 
-Some shoddy hardware doesn't properly adhere to the register model
-of SDIO, but treats the system like a series of transaction. That means
-that the drivers must have full control over what goes the bus (and the
-core cannot optimize transactions or work around problems in host
-controllers).
-This commit adds some low level functions that gives SDIO drivers the
-ability to send specific register access commands. They should only be
-used when the hardware is truly broken though.
+Klaas did send them the first time, also directly to me, on Tue, 24 Mar
+2009 23:14:11 +0100.
 
-The patch has been done against 2.6.29-rc7 .
+Now I can see you have pulled them in already on Wednesday.
+http://linuxtv.org/hg/v4l-dvb/rev/5efa9fbc8a88
 
-Signed-off-by: Pierre Ossman <drzeus@drzeus.cx>
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+There is no trace anymore on patchwork visible to me.
+http://patchwork.kernel.org/project/linux-media/list
+So I don't know how you processed them.
 
+Most confusing is, that Klaas obviously did not receive a mail
+notification from linuxtv-commits that his patch came in.
 
-diff -uNr linux-2.6.29-rc7.prestine/drivers/mmc/core/sdio_io.c linux-2.6.29-rc7_sdio_patch/drivers/mmc/core/sdio_io.c
---- linux-2.6.29-rc7.prestine/drivers/mmc/core/sdio_io.c	2009-03-04 03:05:22.000000000 +0200
-+++ linux-2.6.29-rc7_sdio_patch/drivers/mmc/core/sdio_io.c	2009-03-12 12:22:42.000000000 +0200
-@@ -635,3 +635,252 @@
- 		*err_ret = ret;
- }
- EXPORT_SYMBOL_GPL(sdio_f0_writeb);
-+
-+/**
-+ *	sdio_read_bytes - low level byte mode transfer from an SDIO function
-+ *	@func: SDIO function to access
-+ *	@dst: buffer to store the data
-+ *	@addr: address to begin reading from
-+ *	@bytes: number of bytes to read
-+ *
-+ *	Performs a byte mode transfer from the address space of the given
-+ *	SDIO function. The address is increased for each byte. Return
-+ *	value indicates if the transfer succeeded or not.
-+ *
-+ *	Note: This is a low level function that should only be used as a
-+ *	workaround when the hardware has a crappy register abstraction
-+ *	that relies on specific SDIO operations.
-+ */
-+int sdio_read_bytes(struct sdio_func *func, void *dst,
-+	unsigned int addr, int bytes)
-+{
-+	if (bytes > sdio_max_byte_size(func))
-+		return -EINVAL;
-+
-+	return mmc_io_rw_extended(func->card, 0, func->num, addr, 1,
-+			dst, 1, bytes);
-+}
-+EXPORT_SYMBOL_GPL(sdio_read_bytes);
-+
-+/**
-+ *	sdio_read_bytes_noincr - low level byte mode transfer from an SDIO function
-+ *	@func: SDIO function to access
-+ *	@dst: buffer to store the data
-+ *	@addr: address to begin reading from
-+ *	@bytes: number of bytes to read
-+ *
-+ *	Performs a byte mode transfer from the address space of the given
-+ *	SDIO function. The address is NOT increased for each byte. Return
-+ *	value indicates if the transfer succeeded or not.
-+ *
-+ *	Note: This is a low level function that should only be used as a
-+ *	workaround when the hardware has a crappy register abstraction
-+ *	that relies on specific SDIO operations.
-+ */
-+int sdio_read_bytes_noincr(struct sdio_func *func, void *dst,
-+	unsigned int addr, int bytes)
-+{
-+	if (bytes > sdio_max_byte_size(func))
-+		return -EINVAL;
-+
-+	return mmc_io_rw_extended(func->card, 0, func->num, addr, 0,
-+			dst, 1, bytes);
-+}
-+EXPORT_SYMBOL_GPL(sdio_read_bytes_noincr);
-+
-+/**
-+ *	sdio_read_blocks - low level block mode transfer from an SDIO function
-+ *	@func: SDIO function to access
-+ *	@dst: buffer to store the data
-+ *	@addr: address to begin reading from
-+ *	@block: number of blocks to read
-+ *
-+ *	Performs a block mode transfer from the address space of the given
-+ *	SDIO function. The address is increased for each byte. Return
-+ *	value indicates if the transfer succeeded or not.
-+ *
-+ *	The block size needs to be explicitly changed by calling
-+ *	sdio_set_block_size().
-+ *
-+ *	Note: This is a low level function that should only be used as a
-+ *	workaround when the hardware has a crappy register abstraction
-+ *	that relies on specific SDIO operations.
-+ */
-+int sdio_read_blocks(struct sdio_func *func, void *dst,
-+	unsigned int addr, int blocks)
-+{
-+	if (!func->card->cccr.multi_block)
-+		return -EINVAL;
-+
-+	if (blocks > func->card->host->max_blk_count)
-+		return -EINVAL;
-+	if (blocks > (func->card->host->max_seg_size / func->cur_blksize))
-+		return -EINVAL;
-+	if (blocks > 511)
-+		return -EINVAL;
-+
-+	return mmc_io_rw_extended(func->card, 0, func->num, addr, 1,
-+			dst, blocks, func->cur_blksize);
-+}
-+EXPORT_SYMBOL_GPL(sdio_read_blocks);
-+
-+/**
-+ *	sdio_read_blocks_noincr - low level block mode transfer from an SDIO function
-+ *	@func: SDIO function to access
-+ *	@dst: buffer to store the data
-+ *	@addr: address to begin reading from
-+ *	@block: number of blocks to read
-+ *
-+ *	Performs a block mode transfer from the address space of the given
-+ *	SDIO function. The address is NOT increased for each byte. Return
-+ *	value indicates if the transfer succeeded or not.
-+ *
-+ *	The block size needs to be explicitly changed by calling
-+ *	sdio_set_block_size().
-+ *
-+ *	Note: This is a low level function that should only be used as a
-+ *	workaround when the hardware has a crappy register abstraction
-+ *	that relies on specific SDIO operations.
-+ */
-+int sdio_read_blocks_noincr(struct sdio_func *func, void *dst,
-+	unsigned int addr, int blocks)
-+{
-+	if (!func->card->cccr.multi_block)
-+		return -EINVAL;
-+
-+	if (blocks > func->card->host->max_blk_count)
-+		return -EINVAL;
-+	if (blocks > (func->card->host->max_seg_size / func->cur_blksize))
-+		return -EINVAL;
-+	if (blocks > 511)
-+		return -EINVAL;
-+
-+	return mmc_io_rw_extended(func->card, 0, func->num, addr, 0,
-+			dst, blocks, func->cur_blksize);
-+}
-+EXPORT_SYMBOL_GPL(sdio_read_blocks_noincr);
-+
-+/**
-+ *	sdio_write_bytes - low level byte mode transfer to an SDIO function
-+ *	@func: SDIO function to access
-+ *	@addr: address to start writing to
-+ *	@src: buffer that contains the data to write
-+ *	@bytes: number of bytes to write
-+ *
-+ *	Performs a byte mode transfer to the address space of the given
-+ *	SDIO function. The address is increased for each byte. Return
-+ *	value indicates if the transfer succeeded or not.
-+ *
-+ *	Note: This is a low level function that should only be used as a
-+ *	workaround when the hardware has a crappy register abstraction
-+ *	that relies on specific SDIO operations.
-+ */
-+int sdio_write_bytes(struct sdio_func *func, unsigned int addr,
-+	 void *src, int bytes)
-+{
-+	if (bytes > sdio_max_byte_size(func))
-+		return -EINVAL;
-+
-+	return mmc_io_rw_extended(func->card, 1, func->num, addr, 1,
-+			src, 1, bytes);
-+}
-+EXPORT_SYMBOL_GPL(sdio_write_bytes);
-+
-+/**
-+ *	sdio_write_bytes_noincr - low level byte mode transfer to an SDIO function
-+ *	@func: SDIO function to access
-+ *	@addr: address to start writing to
-+ *	@src: buffer that contains the data to write
-+ *	@bytes: number of bytes to write
-+ *
-+ *	Performs a byte mode transfer to the address space of the given
-+ *	SDIO function. The address is NOT increased for each byte. Return
-+ *	value indicates if the transfer succeeded or not.
-+ *
-+ *	Note: This is a low level function that should only be used as a
-+ *	workaround when the hardware has a crappy register abstraction
-+ *	that relies on specific SDIO operations.
-+ */
-+int sdio_write_bytes_noincr(struct sdio_func *func, unsigned int addr,
-+	void *src, int bytes)
-+{
-+	if (bytes > sdio_max_byte_size(func))
-+		return -EINVAL;
-+
-+	return mmc_io_rw_extended(func->card, 1, func->num, addr, 0,
-+			src, 1, bytes);
-+}
-+EXPORT_SYMBOL_GPL(sdio_write_bytes_noincr);
-+
-+/**
-+ *	sdio_read_blocks - low level block mode transfer to an SDIO function
-+ *	@func: SDIO function to access
-+ *	@addr: address to start writing to
-+ *	@src: buffer that contains the data to write
-+ *	@block: number of blocks to write
-+ *
-+ *	Performs a block mode transfer to the address space of the given
-+ *	SDIO function. The address is increased for each byte. Return
-+ *	value indicates if the transfer succeeded or not.
-+ *
-+ *	The block size needs to be explicitly changed by calling
-+ *	sdio_set_block_size().
-+ *
-+ *	Note: This is a low level function that should only be used as a
-+ *	workaround when the hardware has a crappy register abstraction
-+ *	that relies on specific SDIO operations.
-+ */
-+int sdio_write_blocks(struct sdio_func *func, unsigned int addr,
-+	void *src, int blocks)
-+{
-+	if (!func->card->cccr.multi_block)
-+		return -EINVAL;
-+
-+	if (blocks > func->card->host->max_blk_count)
-+		return -EINVAL;
-+	if (blocks > (func->card->host->max_seg_size / func->cur_blksize))
-+		return -EINVAL;
-+	if (blocks > 511)
-+		return -EINVAL;
-+
-+	return mmc_io_rw_extended(func->card, 1, func->num, addr, 1,
-+			src, blocks, func->cur_blksize);
-+}
-+EXPORT_SYMBOL_GPL(sdio_write_blocks);
-+
-+/**
-+ *	sdio_read_blocks_noincr - low level block mode transfer to an SDIO function
-+ *	@func: SDIO function to access
-+ *	@addr: address to start writing to
-+ *	@src: buffer that contains the data to write
-+ *	@block: number of blocks to write
-+ *
-+ *	Performs a block mode transfer to the address space of the given
-+ *	SDIO function. The address is NOT increased for each byte. Return
-+ *	value indicates if the transfer succeeded or not.
-+ *
-+ *	The block size needs to be explicitly changed by calling
-+ *	sdio_set_block_size().
-+ *
-+ *	Note: This is a low level function that should only be used as a
-+ *	workaround when the hardware has a crappy register abstraction
-+ *	that relies on specific SDIO operations.
-+ */
-+int sdio_write_blocks_noincr(struct sdio_func *func, unsigned int addr,
-+	void *src, int blocks)
-+{
-+	if (!func->card->cccr.multi_block)
-+		return -EINVAL;
-+
-+	if (blocks > func->card->host->max_blk_count)
-+		return -EINVAL;
-+	if (blocks > (func->card->host->max_seg_size / func->cur_blksize))
-+		return -EINVAL;
-+	if (blocks > 511)
-+		return -EINVAL;
-+
-+	return mmc_io_rw_extended(func->card, 1, func->num, addr, 0,
-+			src, blocks, func->cur_blksize);
-+}
-+EXPORT_SYMBOL_GPL(sdio_write_blocks_noincr);
-+
-diff -uNr linux-2.6.29-rc7.prestine/include/linux/mmc/sdio_func.h linux-2.6.29-rc7_sdio_patch/include/linux/mmc/sdio_func.h
---- linux-2.6.29-rc7.prestine/include/linux/mmc/sdio_func.h	2009-03-04 03:05:22.000000000 +0200
-+++ linux-2.6.29-rc7_sdio_patch/include/linux/mmc/sdio_func.h	2009-03-12 11:51:55.000000000 +0200
-@@ -150,5 +150,31 @@
- extern void sdio_f0_writeb(struct sdio_func *func, unsigned char b,
- 	unsigned int addr, int *err_ret);
- 
-+/*
-+ * Low-level I/O functions for hardware that doesn't properly abstract
-+ * the register space. Don't use these unless you absolutely have to.
-+ */
-+
-+extern int sdio_read_bytes(struct sdio_func *func, void *dst,
-+	unsigned int addr, int bytes);
-+extern int sdio_read_bytes_noincr(struct sdio_func *func, void *dst,
-+	unsigned int addr, int bytes);
-+
-+extern int sdio_read_blocks(struct sdio_func *func, void *dst,
-+	unsigned int addr, int blocks);
-+extern int sdio_read_blocks_noincr(struct sdio_func *func, void *dst,
-+	unsigned int addr, int blocks);
-+
-+extern int sdio_write_bytes(struct sdio_func *func, unsigned int addr,
-+	 void *src, int bytes);
-+extern int sdio_write_bytes_noincr(struct sdio_func *func, unsigned int addr,
-+	void *src, int bytes);
-+
-+extern int sdio_write_blocks(struct sdio_func *func, unsigned int addr,
-+	void *src, int blocks);
-+extern int sdio_write_blocks_noincr(struct sdio_func *func, unsigned int addr,
-+	void *src, int blocks);
-+
-+
- #endif
+Last message date: Fri Feb 15 19:45:02 CET 2008
+Archived on: Fri Feb 15 19:45:04 CET 2008 
+
+Is it broken or only the archive not up to date?
+
+Why else he would have posted a second time on
+Wed, 25 Mar 2009 21:53:02 +0100 not knowing anything about the status of
+his patches, which made me believe I should try to help him?
+
+The timestamp on your mercurial commit of them is
+Wed Mar 25 20:53:02 2009 +0000 (2 days ago)
+That is the time when his second email arrived converted to Greenwich
+time? Or how could you commit within the same second that mail arrived?
+
+This is the time the patches have on both of his original mails.
+--- a/linux/drivers/media/common/tuners/tda827x.c Tue Mar 24 21:12:47 2009 +0000
+--- a/linux/drivers/media/common/tuners/tda827x.c Tue Mar 24 21:12:47 2009 +0000
+
+How can I ever know when they were really added and if they went through
+patchwork :)
+
+I was just about to suggest Klaas should try again with [PATCH] in the
+subject until they are listed at patchwork.
+
+Cheers,
+Hermann
 
 
 
-      
+
+
+
+
+
