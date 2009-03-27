@@ -1,71 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail12.sea5.speakeasy.net ([69.17.117.14]:47591 "EHLO
-	mail12.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752826AbZC2KWB (ORCPT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4535 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753642AbZC0Uej convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Mar 2009 06:22:01 -0400
-Date: Sun, 29 Mar 2009 03:21:58 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org
-Subject: Re: [linuxtv-commits] [hg:v4l-dvb] v4l2-ioctl: Check format for
- S_PARM and G_PARM
-In-Reply-To: <200903291106.19466.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.58.0903290256360.28292@shell2.speakeasy.net>
-References: <E1LnqiQ-00077f-80@mail.linuxtv.org> <200903291106.19466.hverkuil@xs4all.nl>
+	Fri, 27 Mar 2009 16:34:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: [PATCH] v4l2: fill reserved fields of VIDIOC_ENUMAUDIO also
+Date: Fri, 27 Mar 2009 21:34:07 +0100
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	=?iso-8859-1?q?N=E9meth_M=E1rton?= <nm127@freemail.hu>,
+	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+References: <49CA611B.5050902@freemail.hu> <20090327131729.0842bdec@pedra.chehab.org> <Pine.LNX.4.58.0903271241360.28292@shell2.speakeasy.net>
+In-Reply-To: <Pine.LNX.4.58.0903271241360.28292@shell2.speakeasy.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200903272134.07576.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 29 Mar 2009, Hans Verkuil wrote:
-> On Sunday 29 March 2009 10:50:02 Patch from Trent Piepho wrote:
-> > From: Trent Piepho  <xyzzy@speakeasy.org>
-> > v4l2-ioctl:  Check format for S_PARM and G_PARM
+On Friday 27 March 2009 20:45:40 Trent Piepho wrote:
+> On Fri, 27 Mar 2009, Mauro Carvalho Chehab wrote:
+> > On Wed, 25 Mar 2009 17:51:39 +0100
 > >
+> > Németh Márton <nm127@freemail.hu> wrote:
+> > > From: Márton Németh <nm127@freemail.hu>
+> > >
+> > > When enumerating audio inputs with VIDIOC_ENUMAUDIO the gspca_sunplus
+> > > driver does not fill the reserved fields of the struct v4l2_audio
+> > > with zeros as required by V4L2 API revision 0.24 [1]. Add the missing
+> > > initializations to the V4L2 framework.
+> > >
+> > > The patch was tested with v4l-test 0.10 [2] with gspca_sunplus driver
+> > > and with Trust 610 LCD POWERC@M ZOOM webcam.
 > >
-> > Return EINVAL if VIDIOC_S/G_PARM is called for a buffer type that the
-> > driver doesn't define a ->vidioc_try_fmt_XXX() method for.  Several other
-> > ioctls, like QUERYBUF, QBUF, and DQBUF, etc.  do this too.  It saves each
-> > driver from having to check if the buffer type is one that it supports.
+> > It didn't apply against the development tree. Anyway, a recent patch
+> > removed the need of memset there. the memory fill with zero now happens
+> > at the same code we copy the structure values.
 >
-> Hi Trent,
->
-> I wonder whether this change is correct. Looking at the spec I see that
-> g/s_parm only supports VIDEO_CAPTURE, VIDEO_OUTPUT and PRIVATE or up.
->
-> So what should happen if the type is VIDEO_OVERLAY? I think the g/s_parm
-> implementation in v4l2-ioctl.c should first exclude the unsupported types
-> before calling check_fmt.
+> That code is in video_ioctl2, which gspca doesn't use.
 
-This change doesn't actually enable g/s_parm for VIDEO_OVERLAY (or
-VBI_CAPTURE).  It's the later bttv and saa7146 changes that do that.  I
-considered this when I made those changes, as mentioned in those patch
-descriptions, but decided it was better to allow it.
+Yes, gspca does use video_ioctl2. You're probably confused with uvcvideo, 
+which doesn't use it.
 
-In those drivers g_parm only returns the frame rate, which seems just as
-valid for VIDEO_OVERLAY as it does for VIDEO_CAPTURE.  Why should the
-driver not be allowed to return the frame rate for video overlay?  Why
-should setting the overlay frame rate not be allowed?  Those seems like
-perfectly reasonable operations to me.
+Regards,
 
-The spec doesn't explicitly say that only VIDEO_CAPTURE, VIDEO_OUTPUT and
-PRIVATE are supported.  It says the "capture" field of the parm union is
-used when type is VIDEO_CAPTURE, the "output" field is used for
-VIDEO_OUTPUT, and "raw_data" is used for PRIVATE or higher.  You're right
-in that it doesn't say what you're supposed to use for VIDEO_OVERLAY,
-VBI_CAPTURE or any other buffer types.  But it doesn't say they're not
-allowed either.  IMHO, it's likely the spec authors' intent wasn't to not
-allow g_parm with VIDEO_OVERLAY, but rather that they just didn't think of
-that case.
+	Hans
 
-Thinking about it now, I think what makes the most sense is to use
-"capture" for VIDEO_OVERLAY, VBI_CAPTURE, and SLICED_VBI_CAPTURE.  And use
-"output" for VBI_OUTPUT, SLICED_VBI_OUTPUT and VIDEO_OUTPUT_OVERLAY.
-
-> I also wonder whether check_fmt shouldn't check for the presence of the
-> s_fmt callbacks instead of try_fmt since try_fmt is an optional ioctl.
-
-I noticed that too.  saa7146 doesn't have a try_fmt call for vbi_capture
-but is apparently supposed to support it.  I sent a message about that
-earlier.
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
