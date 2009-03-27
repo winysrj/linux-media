@@ -1,96 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1848 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751673AbZCRTTd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2009 15:19:33 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2IJJUZ1058243
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 18 Mar 2009 20:19:30 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 18 Mar 2009 20:19:30 +0100 (CET)
-Message-Id: <200903181919.n2IJJUZ1058243@smtp-vbr9.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+Received: from mailrelay009.isp.belgacom.be ([195.238.6.176]:32155 "EHLO
+	mailrelay009.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752157AbZC0OOV convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Mar 2009 10:14:21 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: =?utf-8?q?N=C3=A9meth_M=C3=A1rton?= <nm127@freemail.hu>
+Subject: Re: [PATCH] uvcvideo: add zero fill for VIDIOC_ENUM_FMT
+Date: Fri, 27 Mar 2009 15:15:27 +0100
+Cc: linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+References: <49C9D652.5040104@freemail.hu>
+In-Reply-To: <49C9D652.5040104@freemail.hu>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200903271515.28146.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Wednesday 25 March 2009 07:59:30 Németh Márton wrote:
+> From: Márton Németh <nm127@freemail.hu>
+>
+> When enumerating formats with VIDIOC_ENUM_FMT the uvcvideo driver does not
+> fill the reserved fields of the struct v4l2_fmtdesc with zeros as required
+> by V4L2 API revision 0.24 [1]. Add the missing initializations.
+>
+> The patch was tested with v4l-test 0.10 [2] with CNF7129 webcam found on
+> EeePC 901.
+>
+> References:
+> [1] V4L2 API specification, revision 0.24
+>     http://v4l2spec.bytesex.org/spec/r8367.htm
+>
+> [2] v4l-test: Test environment for Video For Linux Two API
+>     http://v4l-test.sourceforge.net/
+>
+> Signed-off-by: Márton Németh <nm127@freemail.hu>
 
-Results of the daily build of v4l-dvb:
+Applied, thanks.
 
-date:        Wed Mar 18 19:00:07 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11094:f5af3128fde9
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+> ---
+> --- linux-2.6.29/drivers/media/video/uvc/uvc_v4l2.c.orig	2009-03-24
+> 00:12:14.000000000 +0100 +++
+> linux-2.6.29/drivers/media/video/uvc/uvc_v4l2.c	2009-03-25
+> 07:24:42.000000000 +0100 @@ -673,11 +673,19 @@ static long
+> uvc_v4l2_do_ioctl(struct fil
+>  	{
+>  		struct v4l2_fmtdesc *fmt = arg;
+>  		struct uvc_format *format;
+> +		__u32 index;
+> +		enum v4l2_buf_type type;
+>
+>  		if (fmt->type != video->streaming->type ||
+>  		    fmt->index >= video->streaming->nformats)
+>  			return -EINVAL;
+>
+> +		index = fmt->index;
+> +		type = fmt->type;
+> +		memset(fmt, 0, sizeof(*fmt));
+> +		fmt->index = index;
+> +		fmt->type = type;
+> +
+>  		format = &video->streaming->format[fmt->index];
+>  		fmt->flags = 0;
+>  		if (format->flags & UVC_FMT_FLAG_COMPRESSED)
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-rc8-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-rc8-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-rc8-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-rc8-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc8-m32r: OK
-linux-2.6.22.19-mips: WARNINGS
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-rc8-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29-rc8-powerpc64: OK
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29-rc8-x86_64: OK
-fw/apps: OK
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc8): ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+Laurent Pinchart
 
