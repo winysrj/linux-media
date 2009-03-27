@@ -1,117 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.178]:61096 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752985AbZC1CRe convert rfc822-to-8bit (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.155]:17849 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759014AbZC0Jgd convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2009 22:17:34 -0400
-Received: by wa-out-1112.google.com with SMTP id j5so845680wah.21
-        for <linux-media@vger.kernel.org>; Fri, 27 Mar 2009 19:17:32 -0700 (PDT)
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"Kim, Heung Jun" <riverful@gmail.com>,
-	Bill Dirks <bill@thedirks.org>, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, dongsoo45.kim@samsung.com
-Message-Id: <9FB01D5C-4894-4513-8962-7294E0D85EBD@gmail.com>
-From: Dongsoo Kim <dongsoo.kim@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-In-Reply-To: <200903271719.00404.laurent.pinchart@skynet.be>
-Content-Type: text/plain; charset=EUC-KR; format=flowed; delsp=yes
+	Fri, 27 Mar 2009 05:36:33 -0400
+Received: by fg-out-1718.google.com with SMTP id 16so145fgg.17
+        for <linux-media@vger.kernel.org>; Fri, 27 Mar 2009 02:36:29 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <49CA0457.1090708@redhat.com>
+References: <49C7E5A1.9010501@gmail.com> <49CA0457.1090708@redhat.com>
+Date: Fri, 27 Mar 2009 10:36:29 +0100
+Message-ID: <62e5edd40903270236x35157732mbf81c699afdd0fd0@mail.gmail.com>
+Subject: Re: libv4l, yuv420 and gspca-stv06xx conversion
+From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Hans de Goede <j.w.r.degoede@hhs.nl>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Subject: Re: how about adding FOCUS mode?
-Date: Sat, 28 Mar 2009 11:17:27 +0900
-References: <b64afca20903262320g1bd35163lcce41724dd5db965@mail.gmail.com> <200903270824.28092.hverkuil@xs4all.nl> <200903271719.00404.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-
-2009. 03. 28, ¿ÀÀü 1:19, Laurent Pinchart ÀÛ¼º:
-
-> Hi,
->
-> On Friday 27 March 2009 08:24:27 Hans Verkuil wrote:
->> On Friday 27 March 2009 07:20:51 Kim, Heung Jun wrote:
->>> Hello, Hans & everyone.
->>>
->>> I'm trying to adapt the various FOCUS MODE int the NEC ISP driver.
->>> NEC ISP supports 4 focus mode, AUTO/MACRO/MANUAL/FULL or NORMAL.
->>> but, i think that it's a little insufficient to use V4L2 FOCUS  
->>> Feature.
->>>
->>> so, suggest that,
->>>
->>> - change V4L2_CID_FOCUS_AUTO's type from boolean to interger, and  
->>> add
->>> the following enumerations for CID values.
->>>
->>> enum v4l2_focus_mode {
->>>    V4L2_FOCUS_AUTO            = 0,
->>>    V4L2_FOCUS_MACRO        = 1,
->>>    V4L2_FOCUS_MANUAL        = 2,
->>>    V4L2_FOCUS_NORMAL        = 3,
->>>    V4L2_FOCUS_LASTP        = 3,
->>> };
->>>
->>> how about this usage? i wanna get some advice about FOCUS MODE.
->
-> V4L2_CID_FOCUS_AUTO is meant to change the auto-focus mode. Can you  
-> describe
-> FOCUS_MACRO and FOCUS_NORMAL in more details ? Are they auto-focus  
-> modes or
-> just focus presets ?
-
-
-As far as I know, they represent focus lens movement range.
-If you set to AF macro, focus lens scans near range first, so that  
-focusing movement could finish earlier.
-
-
+2009/3/25 Hans de Goede <hdegoede@redhat.com>:
 >
 >
->> This seems more logical to me:
+> On 03/23/2009 08:40 PM, Erik Andrén wrote:
 >>
->> enum v4l2_focus_mode {
->>    V4L2_FOCUS_MANUAL = 0,
->>    V4L2_FOCUS_AUTO_NORMAL = 1,
->>    V4L2_FOCUS_AUTO_MACRO = 2,
->> };
+>> -----BEGIN PGP SIGNED MESSAGE-----
+>> Hash: SHA1
 >>
->> At least this maps the current boolean values correctly. I'm not  
->> sure from
->> your decription what the fourth auto focus mode is supposed to be.
->
-> Does an auto-macro focus mode really exists ?
-
-
-Sure, you can find in some digital camera or brand new high end camera  
-phones.
-
-By the way, sorry for answering instead of heungjun Kim. I work with  
-him actually.
-Is it OK?
-
-Cheers,
-
-Nate
-
->
->
->> But I think it might be better to have a separate control that  
->> allows you
->> to set the auto-focus mode. I can imagine that different devices  
->> might have
->> different auto-focus modes.
+>> Hi Hans,
+>> I'm trying to get gstreamer and the yuv420 format conversion in
+>> libv4l to play nice with the gspca-stv06xx driver. Currently this is
+>> not working.
 >>
->> I've CC-ed Laurent since this is more his field than mine.
+>> The resolution of the vv6410 sensor is 356*292 pixels and the native
+>> format of the camera is V4L2_PIX_FMT_SGRBG8.
+>> This produces a total image size of 103952 bytes which gets page
+>> aligned to 106496.
+>>
+>> When requesting to conversion to yuv420 in gstreamer I launch
+>> gst-launch with the following parameters:
+>> gst-launch-0.10 -v v4l2src queue-size=4 ! ffmpegcolorspace ! xvimageink
+>>
+>> gstreamer then proceeds with complaining that it received a frame of
+>>  size 155928 bytes but it expected a frame of size 156512 bytes.
+>>
+>> The delivered 155928 size seems sane as 155928 / 356 gives 438 and
+>> 155928 / 292 gives 534.
+>>
+>> Furthermore, the difference between the received size and the
+>> expected size is 584 bytes which is 2x the height.
+>>
+>> Anyhow, I hacked libv4l2.c and padded the frame with 584 in order to
+>> acheive the requested 156512 bytes. This worked and yielded the
+>> attached image.
+>>
+>> I'm currently at loss what's the root cause of this.
+>>
+>> Could the page align interfer somehow with the frame size?
+>> What's the correct image size? The converted image is clearly correct.
+>>
+>
+> I think that something in the gstreamer stack expect the U and V planes of
+> the YUV planar data, to have each line start 32 bit word aligned. So they
+> expect us to add 2 bytes of padding after each line of U and V data.
+>
+> That would give us 2 x (292 / 2) extra bytes for the U and for the V plane,
+> so 2 x (2 x (292 / 2)) = 584 bytes of additional data, and would also
+> explain the color banding in the image you've attached.
+>
+> Now the question is, is gstreamer right in assuming this padding?
+>
+
+You're right in that gstreamer expects:
+
+        outsize = GST_ROUND_UP_4 (*w) * GST_ROUND_UP_2 (*h);
+        outsize += 2 * ((GST_ROUND_UP_8 (*w) / 2) * (GST_ROUND_UP_2 (*h) / 2));
+
+I tried to hack around this by changing the 8 to a 4 which produces
+the same image as when I added the 584 offset.
+My take is that the alignment is also used somewhere else in the
+gstreamer stack. I'll try to post on their devel list and see if I can
+get any tips on how to resolve this problem.
+
+Best regards,
+Erik
+
+
+> The v4l2 standard is pretty clear on this:
+> http://www.linuxtv.org/downloads/video4linux/API/V4L2_API/spec/c2030.htm#V4L2-PIX-FORMAT
+>
+> And then the bytesperline description, clearly says the what gstreamer
+> expects is wrong.
+> But what is normal for other YUV420 planar data producing sources?
 >
 > Regards,
 >
-> Laurent Pinchart
+> Hans
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux- 
-> media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
