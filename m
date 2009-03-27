@@ -1,37 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:45925 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752714AbZCHRKo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2009 13:10:44 -0400
-Date: Sun, 8 Mar 2009 12:23:04 -0500 (CDT)
-From: kilgota@banach.math.auburn.edu
-To: Hans de Goede <hdegoede@redhat.com>
-cc: Cc:;
-Subject: [PATCH] for the file libv4lconvert/mr97310a.c 
-Message-ID: <alpine.LNX.2.00.0903081217500.8834@banach.math.auburn.edu>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Received: from a-sasl-fastnet.sasl.smtp.pobox.com ([207.106.133.19]:59857 "EHLO
+	sasl.smtp.pobox.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933416AbZC0Aoj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Mar 2009 20:44:39 -0400
+Received: from localhost.localdomain (unknown [127.0.0.1])
+	by a-sasl-fastnet.sasl.smtp.pobox.com (Postfix) with ESMTP id 834C2A5BD4
+	for <linux-media@vger.kernel.org>; Thu, 26 Mar 2009 20:44:37 -0400 (EDT)
+Received: from [192.168.1.8] (unknown [118.208.70.220]) (using TLSv1 with
+ cipher AES128-SHA (128/128 bits)) (No client certificate requested) by
+ a-sasl-fastnet.sasl.smtp.pobox.com (Postfix) with ESMTPSA id D7D6DA5BD3 for
+ <linux-media@vger.kernel.org>; Thu, 26 Mar 2009 20:44:36 -0400 (EDT)
+Message-Id: <210E56CC-CD08-4EB0-B38B-3804D6CA082B@pobox.com>
+From: Torgeir Veimo <torgeir@pobox.com>
+To: linux-media@vger.kernel.org
+In-Reply-To: <20090326185729.GA10352@linuxtv.org>
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Subject: Re: [linux-dvb] [ADMIN] linuxtv.org is moving
+Date: Fri, 27 Mar 2009 10:44:33 +1000
+References: <20090325162541.GB22582@linuxtv.org>
+ <20090326185729.GA10352@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-This patch introduces an offset of 12 bytes before starting the 
-decompression of a frame. This needs to be done to compensate for a change 
-in the gspca driver, where headers are now preserved instead of 
-suppressed.
+On 27 Mar 2009, at 04:57, Johannes Stezenbach wrote:
+
+> On Wed, Mar 25, 2009 at 05:25:41PM +0100, Johannes Stezenbach wrote:
+>>
+>> linuxtv.org will move to a new server machine tomorrow. Expect
+>> some downtime during the move and please be patient. Everything
+>> on the old machine will be rsynced to the new machine right before
+>> the switch so nothing should get lost.
+>
+> The move is done, but the DNS updates are not out there yet,
+> so especially mail won't work yet until the caches are updated,
+> but everything else should.
+>
+> The new IP address is 217.160.6.122.
 
 
-Signed-off-by: Theodore Kilgore <kilgota@auburn.edu>
---------------------------------------------------------------------------
---- mr97310a.c.old	2009-03-01 15:37:38.000000000 -0600
-+++ mr97310a.c.new	2009-02-18 22:39:48.000000000 -0600
-@@ -102,6 +102,9 @@ void v4lconvert_decode_mr97310a(const un
-  	if (!decoder_initialized)
-  		init_mr97310a_decoder();
+So how do I unsubscribe from linux-dvb? It seems that I still gets  
+some mails from this list, but information on how to unsubscribe is  
+lost from the website.
 
-+	/* remove the header */
-+	inp += 12;
-+
-  	bitpos = 0;
+-- 
+Torgeir Veimo
+torgeir@pobox.com
 
-  	/* main decoding loop */
+
+
+
