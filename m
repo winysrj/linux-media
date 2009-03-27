@@ -1,20 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n213UfVu016351
-	for <video4linux-list@redhat.com>; Sat, 28 Feb 2009 22:30:41 -0500
-Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.248])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n213UK4x001469
-	for <video4linux-list@redhat.com>; Sat, 28 Feb 2009 22:30:20 -0500
-Received: by an-out-0708.google.com with SMTP id b2so1208650ana.36
-	for <video4linux-list@redhat.com>; Sat, 28 Feb 2009 19:30:20 -0800 (PST)
 MIME-Version: 1.0
-Date: Sat, 28 Feb 2009 21:30:20 -0600
-Message-ID: <855c2fad0902281930p12943d92wd53bc7637af615cb@mail.gmail.com>
-From: Anil Ramachandran <cloud9ine@gmail.com>
-To: video4linux-list@redhat.com
+In-Reply-To: <49CA8EA3.5040905@redhat.com>
+References: <49C27C1B.10705@gmail.com> <49C7D898.3030102@redhat.com>
+	<49C93889.8030009@gmail.com> <49C93CB2.4040208@redhat.com>
+	<e26aa8c30903251252g609d4d6ela268aed3fe99c490@mail.gmail.com>
+	<49CA8EA3.5040905@redhat.com>
+Date: Fri, 27 Mar 2009 10:14:31 +0100
+Message-ID: <e26aa8c30903270214q4b08dee6t32cb32a966ee8619@mail.gmail.com>
+From: Riccardo Magliocchetti <riccardo.magliocchetti@gmail.com>
+To: Hans de Goede <hdegoede@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: KWorld 340U - need help.
+Cc: video4linux-list@redhat.com
+Subject: Re: webcam doesn't working with programs using libv4l
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,101 +24,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Pardon me if I am posting without enough research, but I have scoured the
-internet a whole day and done my best.
+On Wed, Mar 25, 2009 at 9:05 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+>
+> Ok,
+>
+> There seems to be an error of some sort of the way munmap is getting called
+> by
+> gstreamer on the memory buffers, if you look in the log file you will see:
+>
+> libv4l2: Passing mmap((nil), 2621440, ..., 0, through to the driver
+>
+> And then later on:
+>
+> libv4l2: v4l2 unknown munmap 0xf4200000, -2141226112
+>
+> The unknown munmap message is normal, as the mmap was passed through to the
+> driver. But the -2141226112 as size for the buffer to unmap is way off.
+>
+> This also explains why the uvc driver thinks the device is not closed yet,
+> because
+> the maps are still active. The device is actually being closed, before its
+> re-opened from the log:
+>
+> libv4l2: close: 23
+> libv4l2: open: 25
+>
+>
+> No idea though what is causing the size argument to the munmap to get messed
+> up like this.
 
-I have a KWorld 340U which is an em2870 device. I used the patch mentioned
-at http://www.mail-archive.com/em28xx@mcentral.de/msg02008.html to install
-the driver, but I am still confused on the firmware. em28xx help websites
-drive me to xc3028 firmware but my tuner is a TDA18271 as per the driver
-patch. I have modprobed both em28xx and em28xx-dvb and when i plug in the
-module, the driver seems to be associated.
+Hans, thanks for your analysis will try to poke gstreamer devs.
 
-usb 8-2: new high speed USB device using ehci_hcd and address 8
-> usb 8-2: configuration #1 chosen from 1 choice
-> em28xx: new video device (1b80:a340): interface 0, class 255
-> em28xx: device is attached to a USB 2.0 bus
-> em28xx #0: Alternate settings: 8
-> em28xx #0: Alternate setting 0, max size= 0
-> em28xx #0: Alternate setting 1, max size= 0
-> em28xx #0: Alternate setting 2, max size= 1448
-> em28xx #0: Alternate setting 3, max size= 2048
-> em28xx #0: Alternate setting 4, max size= 2304
-> em28xx #0: Alternate setting 5, max size= 2580
-> em28xx #0: Alternate setting 6, max size= 2892
-> em28xx #0: Alternate setting 7, max size= 3072
-> em2880-dvb.c: DVB Init
-> tda18271 1-0060: creating new instance
-> TDA18271HD/C2 detected @ 1-0060
-> DVB: registering new adapter (em2880 DVB-T)
-> DVB: registering frontend 0 (LG 3304)...
-> em28xx #0: Found KWorld ATSC 340U
-> usb 8-2: New USB device found, idVendor=1b80, idProduct=a340
-> usb 8-2: New USB device strings: Mfr=0, Product=1, SerialNumber=0
-> usb 8-2: Product: USB 2870 Device
->
+-- 
+Riccardo Magliocchetti
 
-But my dmesg does not seem to have the eeprom listing etc that I typically
-see on other people's logs. Further, on scanning using Kaffeine or dvbscan
-using the US-ATSC-Center-Frequencies-8VSB channel profile, (I live in St.
-Louis, MO, US) I end up with
-
- DvbCam::probe(): /dev/dvb/adapter0/ca0: : No such file or directory
-> Using DVB device 0:0 "LG 3304"
-> tuning ATSC to 57028000
-> inv:2 mod:7
-> . LOCKED.
-> Transponders: 1/68
-> scanMode=1
-> parseMGT called for 0x1ffb 0xc7
->
-> Invalid section length or timeout: pid=8187
->
-> Could not find MGT in stream.  Cannot continue
-> Frontend closed
-> Using DVB device 0:0 "LG 3304"
-> tuning ATSC to 63028000
-> inv:2 mod:7
-> ..................................................
->
-> Not able to lock to the signal on the given frequency
-> Frontend closed
-> dvbsi: Cant tune DVB
-> Using DVB device 0:0 "LG 3304"
-> tuning ATSC to 69028000
-> inv:2 mod:7
-> ..................................................
->
-> Not able to lock to the signal on the given frequency
-> Frontend closed
-> dvbsi: Cant tune DVB
-> Using DVB device 0:0 "LG 3304"
-> tuning ATSC to 79028000
-> inv:2 mod:7
-> ..................................................
->
-> Not able to lock to the signal on the given frequency
-> Frontend closed
-> dvbsi: Cant tune DVB
-> Using DVB device 0:0 "LG 3304"
-> tuning ATSC to 85028000
-> inv:2 mod:7
-> ..............................................
-> Invalid section length or timeout: pid=16
->
-> ....
->
-> Not able to lock to the signal on the given frequency
-> Frontend closed
-> dvbsi: Cant tune DVB
->
-
-
-It seems the first tuning operation succeeds in getting a lock but then
-times out and then all the rest fail. I am not sure what is next but I think
-this may be related to firmware, or to me not loading all required modules.
-If anybody has a helpful clue, I would appreciate it. I am running OpenSuse
-11.1 32 bit.
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
