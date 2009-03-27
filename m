@@ -1,113 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3709 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753888AbZCFSyY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Mar 2009 13:54:24 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id n26IsD7p063331
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 6 Mar 2009 19:54:21 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 6 Mar 2009 19:54:13 +0100 (CET)
-Message-Id: <200903061854.n26IsD7p063331@smtp-vbr5.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
+Received: from smtpi2.ngi.it ([88.149.128.21]:59811 "EHLO smtpi2.ngi.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751308AbZC0KSY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Mar 2009 06:18:24 -0400
+Received: from [127.0.0.1] (81-174-56-138.static.ngi.it [81.174.56.138])
+	by smtpi2.ngi.it (8.13.8/8.13.8) with ESMTP id n2R9EZc9010757
+	for <linux-media@vger.kernel.org>; Fri, 27 Mar 2009 10:14:36 +0100
+Message-ID: <49CC98FA.1030106@robertoragusa.it>
+Date: Fri, 27 Mar 2009 10:14:34 +0100
+From: Roberto Ragusa <mail@robertoragusa.it>
+MIME-Version: 1.0
+CC: linux-media@vger.kernel.org
+Subject: Re: The right way to interpret the content of SNR, signal strength
+ 	and BER from HVR 4000 Lite
+References: <49B9BC93.8060906@nav6.org>	 <Pine.LNX.4.58.0903131404430.28292@shell2.speakeasy.net>	 <412bdbff0903131432r1233ab67sb7327638f7cf1e02@mail.gmail.com>	 <Pine.LNX.4.58.0903131649380.28292@shell2.speakeasy.net>	 <20090319101601.2eba0397@pedra.chehab.org>	 <Pine.LNX.4.58.0903191229370.28292@shell2.speakeasy.net>	 <Pine.LNX.4.58.0903191457580.28292@shell2.speakeasy.net>	 <412bdbff0903191536n525a2facp5bc9637ebea88ff4@mail.gmail.com>	 <49C2D4DB.6060509@gmail.com> <49C33DE7.1050906@gmail.com> <a3ef07920903200807l501889bfu87d7906a082127e7@mail.gmail.com>
+In-Reply-To: <a3ef07920903200807l501889bfu87d7906a082127e7@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.)
+VDR User wrote:
+> On Thu, Mar 19, 2009 at 11:55 PM, Manu Abraham <abraham.manu@gmail.com> wrote:
+>> * At the peak, you will get the maximum quality
+>> * falling down the slope to the left and right you will get falling
+>> signal strengths
+>> * Still rolling down, you will get increasing ERROR's, with still
+>> UNCORRECTABLES being steady.
+>> * Still falling down at the thresholds where you are about to loose
+>> frontend LOCK, you will see UNCORRECTABLE's getting incremented.
+>>
+>> Couple this logic into a program, with a feedback to the ROTOR and
+>> you get an automated satellite positioner, with a good fine tuned
+>> position.
+>
+> This would make for a very very useful tool to have.  I can't count
+> the number of times I've seen people inquire about tools to help them
+> aim their dish and this sounds like the perfect solution to that long
+> standing problem.  Especially if it returned the network id once it's
+> achieve a lock so the user can see if he's pointed to the correct
+> satellite.
 
-Results of the daily build of v4l-dvb:
+If you have a motor and you are able to automatically peak satellites,
+the only thing missing is a program to find all the signals automatically,
+including the ones which are turned on and off in a matter of minutes.
 
-date:        Fri Mar  6 19:00:03 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10837:6bd427caa0cb
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Just google for *blindscan* (and maybe my name) to find a
+utility I wrote years ago and abandoned after failing to get
+the corresponding mt312-autosymbolrate kernel patch integrated.
 
-linux-2.6.16.61-armv5: OK
-linux-2.6.17.14-armv5: OK
-linux-2.6.18.8-armv5: OK
-linux-2.6.19.5-armv5: OK
-linux-2.6.20.21-armv5: OK
-linux-2.6.21.7-armv5: OK
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-rc7-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-rc7-armv5-ixp: OK
-linux-2.6.27-armv5-omap2: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-rc7-armv5-omap2: OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-rc7-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc7-m32r: OK
-linux-2.6.16.61-mips: ERRORS
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-rc7-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29-rc7-powerpc64: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: OK
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29-rc7-x86_64: WARNINGS
-fw/apps: WARNINGS
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc7): ERRORS
+Next step, automatically upload found signals on some site, maybe
+including a frame from the received video stream and let users
+comment/moderate interesting ones on a sort of forum. :-)
+Hmmmm, feeds...
 
-Detailed results are available here:
+Best regards.
+-- 
+   Roberto Ragusa    mail at robertoragusa.it
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
