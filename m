@@ -1,45 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx38.mail.ru ([94.100.176.52]:64981 "EHLO mx38.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760135AbZCOThQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2009 15:37:16 -0400
-Received: from [78.36.179.73] (port=51890 helo=localhost.localdomain)
-	by mx38.mail.ru with asmtp
-	id 1Liw93-000LqX-00
-	for linux-media@vger.kernel.org; Sun, 15 Mar 2009 22:37:13 +0300
-Date: Sun, 15 Mar 2009 22:50:37 +0300
-From: Goga777 <goga777@bk.ru>
-To: linux-media@vger.kernel.org
-Subject: BUG: cx88 can't find device struct. Can't proceed with open
-Message-ID: <20090315225037.0196a446@bk.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:50788 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750846AbZC0Hfr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Mar 2009 03:35:47 -0400
+Date: Fri, 27 Mar 2009 08:35:47 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: morimoto.kuninori@renesas.com
+cc: Linux Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v3] ov772x: add edge contrl support
+In-Reply-To: <u3ad214an.wl%morimoto.kuninori@renesas.com>
+Message-ID: <Pine.LNX.4.64.0903270828200.4635@axis700.grange>
+References: <uvdpzuw4t.wl%morimoto.kuninori@renesas.com>
+ <Pine.LNX.4.64.0903241019030.4451@axis700.grange> <u3ad214an.wl%morimoto.kuninori@renesas.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Hello Morimoto-san
 
-I have that errors during of system loading . How is it fix it ?
+On Wed, 25 Mar 2009, morimoto.kuninori@renesas.com wrote:
 
-in syslog I can see
+> > Whatever this "edge" does, isn't it so, that "threshold," "upper," and 
+> > "lower" parameters configure it and "strength" actually enforces the 
+> > changes? Say, if strength == 0, edge control is off, and as soon as you 
+> > switch it to != 0, it is on with all the configured parameters? If my 
+> > guess is right, wouldn't it make sense to first configure parameters and 
+> > then set strength? If you agree, I'll just swap them when committing, so, 
+> > you don't have to resend. Just please either confirm that you agree, or 
+> > explain why I am wrong.
+> 
+> I don't know detail of these register's order.
+> Because my datasheet doesn't have detail explain.
+> 
+> For example, does "strength" actually enforce
+> all of configured parameters change ?
+> 
+> So, I tried to test whether these register setting
+> order were important.
+> 
+> It seems to be independent apparently respectively.
+> For example, I can change only "upper" register and
+> the setting was effective.
 
-Mar 15 21:50:26 localhost pulseaudio[3572]: main.c: setrlimit(RLIMIT_NICE, (31, 31)) failed: Operation not permitted
-Mar 15 21:50:26 localhost pulseaudio[3572]: main.c: setrlimit(RLIMIT_RTPRIO, (9, 9)) failed: Operation not permitted
-Mar 15 21:50:26 localhost pulseaudio[3572]: shm.c: shm_open() failed: Permission denied
-Mar 15 21:50:26 localhost pulseaudio[3572]: core.c: failed to allocate shared memory pool. Falling back to a normal memory pool.
-Mar 15 21:50:26 localhost kernel: [   47.341579] BUG: cx88 can't find device struct. Can't proceed with open
-Mar 15 21:50:26 localhost pulseaudio[3572]: alsa-util.c: Error opening PCM device hw:1: No such device
-Mar 15 21:50:26 localhost pulseaudio[3572]: module.c: Failed to load  module "module-alsa-source" (argument: "device_id=1 source_name=alsa_input.pci_14f1_8
-811_alsa_capture_0"): initialization failed.
-Mar 15 21:50:26 localhost pulseaudio[3572]: alsa-util.c: Device front:0 doesn't support 44100 Hz, changed to 48000 Hz.
-Mar 15 21:50:26 localhost pulseaudio[3572]: alsa-util.c: Device front:0 doesn't support 44100 Hz, changed to 48000 Hz.
+So, you _do_ know what that parameter does - if you can verify what effect 
+it produces on the camera? So, that's just what I was asking - what do 
+these settings do? What changes do you observe when you manipulate them? 
+And this your observation actually suffices to me to preserve your 
+original order of register writes. If documentation says nothing about it, 
+and as long as it works - we can keep it.
 
-here's my dmesg
-http://paste.org.ru/?pdmods
+> So, I will ask to maker about these register's behavior.
+> Because it seems to relate to other register.
+> So, please ignore this patch until I get answer. sorry.
 
-I'm using liplanin-dvb with current dvb-v4l 
-kernel 2.6.27
+Well, I don't think we have to wait for an answer for too long. If they 
+don't reply within 1-2 days, let's just take the patch as is (with the 
+single minor correction I proposed).
 
+> > +#define OV772X_EDGECTRL(s, t, u, l)	\
+> > +{					\
+> > +	.strength	= (s & 0x1F),	\
+> > +	.threshold	= (t & 0x0F),	\
+> > +	.upper		= (u & 0xFF),	\
+> > +	.lower		= (l & 0xFF),	\
+> > +}
+> 
+> I will fix this in next =)
 
-Goga
+That's up to you. This is a minor formatting correction, which I can do 
+myself when merging. But if you like, you can send an update, sure.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
