@@ -1,114 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.10]:57892 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751020AbZC2TgK (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:44430 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932786AbZC0AJk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Mar 2009 15:36:10 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] saa7134: Add analog RF tuner support for Avermedia A700 DVB-S Hybrid+FM card
-Date: Sun, 29 Mar 2009 20:36:02 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	panagonov <panagonov@mail.bg>
-MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_j28zJRDzlnBWKCh"
-Message-Id: <200903292136.03369.zzam@gentoo.org>
+	Thu, 26 Mar 2009 20:09:40 -0400
+Date: Thu, 26 Mar 2009 21:09:29 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: klaas de waal <klaas.de.waal@gmail.com>,
+	Oliver Endriss <o.endriss@gmx.de>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	linux-media@vger.kernel.org, linux-dvb@linuxtv.org,
+	erik_bies@hotmail.com
+Subject: Re: [linux-dvb] TechnoTrend C-1501 - Locking issues on 388Mhz
+Message-ID: <20090326210929.32235862@pedra.chehab.org>
+In-Reply-To: <1238111503.4783.23.camel@pc07.localdom.local>
+References: <7b41dd970903251353n46f55bbfg687c1cfa42c5b824@mail.gmail.com>
+	<1238111503.4783.23.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Boundary-00=_j28zJRDzlnBWKCh
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Fri, 27 Mar 2009 00:51:43 +0100
+hermann pitton <hermann-pitton@arcor.de> wrote:
 
-Hi list!
+> Hi Klaas,
+> 
+> Am Mittwoch, den 25.03.2009, 21:53 +0100 schrieb klaas de waal:
+> > (2nd try, this should be now  in "plain text" instead of HTML)
+> > 
+> > Hi Hermann,
+> > 
+> > Thanks for your "howto" on making a proper patch.
+> > After a "make commit" in my local v4l-dvb tree, and filling in the
+> > template I got the following output.
+> > I confess I do not know if this has now ended up somewhere in
+> > linuxtv.org or that it is just local.
+> > However, here it is:
+> 
+> your patches are still local, but they are at least on the proper list
+> now. Without starting with [PATCH] in the subject Mauro's scripts to add
+> them to patchwork automatically likely will still not find them.
 
-The attached patch enables the XC2028 analog tuner used on the Avermedia A700 
-DVB-S Hybrid+FM card.
+The patchwork scripts are the ones that came with the product. They are not
+developed by me ;)
 
-Regards
-Matthias
+Anyway, if patchwork didn't catch is because the inlined patch is broken, or it is
+not inlined and were attached with a wrong mime type.
 
---Boundary-00=_j28zJRDzlnBWKCh
-Content-Type: text/x-diff;
-  charset="utf-8";
-  name="avertv_a700_hybrid_rf_tuner.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
-	filename="avertv_a700_hybrid_rf_tuner.diff"
 
-saa7134: add analog RF tuner support for Avermedia A700 DVB-S Hybrid+FM card
-
-Thanks to panagonov <panagonov@mail.bg> for requesting support and testing patches.
-
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
-
-Index: v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c
-===================================================================
---- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-cards.c
-+++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-cards.c
-@@ -4546,12 +4546,17 @@ struct saa7134_board saa7134_boards[] = 
- 		/* Matthias Schwarzott <zzam@gentoo.org> */
- 		.name           = "Avermedia DVB-S Hybrid+FM A700",
- 		.audio_clock    = 0x00187de7,
--		.tuner_type     = TUNER_ABSENT, /* TUNER_XC2028 */
-+		.tuner_type     = TUNER_XC2028,
- 		.radio_type     = UNSET,
- 		.tuner_addr     = ADDR_UNSET,
- 		.radio_addr     = ADDR_UNSET,
- 		.mpeg           = SAA7134_MPEG_DVB,
- 		.inputs         = { {
-+			.name   = name_tv,
-+			.vmux   = 4,
-+			.amux   = TV,
-+			.tv     = 1,
-+		}, {
- 			.name = name_comp,
- 			.vmux = 1,
- 			.amux = LINE1,
-@@ -4560,6 +4565,10 @@ struct saa7134_board saa7134_boards[] = 
- 			.vmux = 6,
- 			.amux = LINE1,
- 		} },
-+		.radio = {
-+			.name = name_radio,
-+			.amux = TV,
-+		},
- 	},
- 	[SAA7134_BOARD_BEHOLD_H6] = {
- 		/* Igor Kuznetsov <igk@igk.ru> */
-@@ -5989,6 +5998,11 @@ static int saa7134_xc2028_callback(struc
- 			msleep(10);
- 			saa7134_set_gpio(dev, 21, 1);
- 		break;
-+		case SAA7134_BOARD_AVERMEDIA_A700_HYBRID:
-+			saa7134_set_gpio(dev, 18, 0);
-+			msleep(10);
-+			saa7134_set_gpio(dev, 18, 1);
-+		break;
- 		}
- 	return 0;
- 	}
-@@ -6361,10 +6375,6 @@ int saa7134_board_init1(struct saa7134_d
- 		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x0c0007cd, 0x0c0007cd);
- 		break;
- 	case SAA7134_BOARD_AVERMEDIA_A700_HYBRID:
--		printk("%s: %s: hybrid analog/dvb card\n"
--		       "%s: Sorry, of the analog inputs, only analog s-video and composite "
--		       "are supported for now.\n",
--			dev->name, card(dev).name, dev->name);
- 	case SAA7134_BOARD_AVERMEDIA_A700_PRO:
- 		/* write windows gpio values */
- 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x80040100, 0x80040100);
-@@ -6428,6 +6438,7 @@ static void saa7134_tuner_setup(struct s
- 		case SAA7134_BOARD_AVERMEDIA_A16D:
- 		case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
- 		case SAA7134_BOARD_AVERMEDIA_M103:
-+		case SAA7134_BOARD_AVERMEDIA_A700_HYBRID:
- 			ctl.demod = XC3028_FE_ZARLINK456;
- 			break;
- 		default:
-
---Boundary-00=_j28zJRDzlnBWKCh--
+Cheers,
+Mauro
