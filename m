@@ -1,50 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.atmel.fr ([81.80.104.162]:42088 "EHLO atmel-es2.atmel.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754936AbZCWQPE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2009 12:15:04 -0400
-Message-ID: <49C7B57C.7040809@atmel.com>
-Date: Mon, 23 Mar 2009 17:14:52 +0100
-From: Sedji Gaouaou <sedji.gaouaou@atmel.com>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1299 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751607AbZC0HYl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Mar 2009 03:24:41 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Kim, Heung Jun" <riverful@gmail.com>
+Subject: Re: how about adding FOCUS mode?
+Date: Fri, 27 Mar 2009 08:24:27 +0100
+Cc: bill@thedirks.org, linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@skynet.be>
+References: <b64afca20903262320g1bd35163lcce41724dd5db965@mail.gmail.com>
+In-Reply-To: <b64afca20903262320g1bd35163lcce41724dd5db965@mail.gmail.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: atmel v4l2 soc driver
-References: <49B789F8.3070906@atmel.com> <Pine.LNX.4.64.0903111100050.4818@axis700.grange> <49C7A8DF.3040101@atmel.com> <Pine.LNX.4.64.0903231632020.6370@axis700.grange> <49C7B226.6000302@atmel.com> <Pine.LNX.4.64.0903231705080.6370@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0903231705080.6370@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200903270824.28092.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Well I am confused now...Should I still convert the atmel ISI driver to 
-a soc driver?
-My concern was not to release a driver for the ov9655, but to have one 
-which is working so I could test my atmel-soc driver :)
-Because I only have an ov9655 sensor here...
+On Friday 27 March 2009 07:20:51 Kim, Heung Jun wrote:
+> Hello, Hans & everyone.
+>
+> I'm trying to adapt the various FOCUS MODE int the NEC ISP driver.
+> NEC ISP supports 4 focus mode, AUTO/MACRO/MANUAL/FULL or NORMAL.
+> but, i think that it's a little insufficient to use V4L2 FOCUS Feature.
+>
+> so, suggest that,
+>
+> - change V4L2_CID_FOCUS_AUTO's type from boolean to interger, and add
+> the following enumerations for CID values.
+>
+> enum v4l2_focus_mode {
+>     V4L2_FOCUS_AUTO            = 0,
+>     V4L2_FOCUS_MACRO        = 1,
+>     V4L2_FOCUS_MANUAL        = 2,
+>     V4L2_FOCUS_NORMAL        = 3,
+>     V4L2_FOCUS_LASTP        = 3,
+> };
+>
+> how about this usage? i wanna get some advice about FOCUS MODE.
 
-Regards
-Sedji
+This seems more logical to me:
 
-Guennadi Liakhovetski a �crit :
-> On Mon, 23 Mar 2009, Sedji Gaouaou wrote:
-> 
->> Guennadi Liakhovetski a �crit :
->>> Wouldn't ov9655 be similar enough to ov9650 as used in stk-sensor.c? Hans,
->>> would that one also be converted to v4l2-device? If so, Sedji, you don't
->>> need to write yet another driver for it. 
->> I had a look at the stk-sensor file. Does it follow the soc arch?
-> 
-> No, it does not. But soc-camera is going to be converted to v4l2-device, 
-> so, if stkweb is going to be converted too, then the driver will be 
-> re-used.
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> 
+enum v4l2_focus_mode {
+    V4L2_FOCUS_MANUAL = 0,
+    V4L2_FOCUS_AUTO_NORMAL = 1,
+    V4L2_FOCUS_AUTO_MACRO = 2,
+};
+
+At least this maps the current boolean values correctly. I'm not sure from 
+your decription what the fourth auto focus mode is supposed to be.
+
+But I think it might be better to have a separate control that allows you to 
+set the auto-focus mode. I can imagine that different devices might have 
+different auto-focus modes.
+
+I've CC-ed Laurent since this is more his field than mine.
+
+Regards,
+
+	Hans
+
+>
+> Thanks,
+> Riverful
 
 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
