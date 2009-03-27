@@ -1,58 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3436 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752040AbZCPHqG (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:55751 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934112AbZC0BEz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2009 03:46:06 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Jonathan Corbet <corbet@lwn.net>
-Subject: Re: RFC: ov7670 soc-camera driver
-Date: Mon, 16 Mar 2009 08:46:12 +0100
-Cc: Jonathan Cameron <jic23@cam.ac.uk>, linux-media@vger.kernel.org,
-	g.liakhovetski@gmx.de
-References: <49BD3669.1070409@cam.ac.uk> <20090315162338.3be11fec@bike.lwn.net>
-In-Reply-To: <20090315162338.3be11fec@bike.lwn.net>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+	Thu, 26 Mar 2009 21:04:55 -0400
+Received: from 200.220.139.66.nipcable.com ([200.220.139.66] helo=pedra.chehab.org)
+	by bombadil.infradead.org with esmtpsa (Exim 4.69 #1 (Red Hat Linux))
+	id 1Ln0VB-000645-Rc
+	for linux-media@vger.kernel.org; Fri, 27 Mar 2009 01:04:54 +0000
+Date: Thu, 26 Mar 2009 22:04:49 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Fw: [PATCH] firedtv: wrong types in printk
+Message-ID: <20090326220449.7ad106be@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903160846.12487.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 15 March 2009 23:23:38 Jonathan Corbet wrote:
-> On Sun, 15 Mar 2009 17:10:01 +0000
->
-> Jonathan Cameron <jic23@cam.ac.uk> wrote:
-> > The primary control on this chip related to shutter rate is actualy
-> > the frame rate. There are rather complex (and largerly undocumented)
-> > interactions between this setting and the auto brightness controls
-> > etc. Anyone have any suggestions on a better way of specifying this?
->
-> Welcome to the world of the ov7670!  My conclusion, after working with
-> this sensor, is that is consists of something like 150 analog tweakers
-> disguised as digital registers.  Everything interacts with everything
-> else, many of the settings are completely undocumented, and that's not
-> to mention the weird multiplexor at 0x79.  It's hard to make this thing
-> work if you don't have a blessed set of settings from OmniVision.
->
-> > Clearly this driver shares considerable portions of code with
-> > Jonathan Corbet's driver (in tree). It would be complex to combine
-> > the two drivers, but perhaps people feel this would be worthwhile?
->
-> I think it's necessary, really.  Having two drivers for the same device
-> seems like a bad idea.  As Hans noted, he's already put quite a bit of
-> work into generalizing the ov7670 driver; I think it would be best to
-> work with him to get a driver that works for everybody.
 
-Just FYI: I'll try to get my ov7670 code merged this week. I'm waiting for 
-Mauro to merge a pending pull request of mine, and then I'll rebase 
-my 'cafe2' tree and send out a pull request for it.
 
-Regards,
+Forwarded message:
 
-	Hans
+Date: Thu, 26 Mar 2009 21:41:15 +0000
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: linux-kernel@vger.kernel.org, mchehab@infradead.org
+Subject: [PATCH] firedtv: wrong types in printk
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
+size_t is not int...
+
+Signed-off-by: Alan Cox <alan@lxorguk.ukuu.org.uk>
+---
+
+ drivers/media/dvb/firewire/firedtv-avc.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+
+diff --git a/drivers/media/dvb/firewire/firedtv-avc.c b/drivers/media/dvb/firewire/firedtv-avc.c
+index b55d9cc..424ed5d 100644
+--- a/drivers/media/dvb/firewire/firedtv-avc.c
++++ b/drivers/media/dvb/firewire/firedtv-avc.c
+@@ -150,7 +150,7 @@ static void debug_fcp(const u8 *data, size_t length)
+ 		subunit_type = data[1] >> 3;
+ 		subunit_id = data[1] & 7;
+ 		op = subunit_type == 0x1e || subunit_id == 5 ? ~0 : data[2];
+-		printk(KERN_INFO "%ssu=%x.%x l=%d: %-8s - %s\n",
++		printk(KERN_INFO "%ssu=%x.%x l=%Zd: %-8s - %s\n",
+ 		       prefix, subunit_type, subunit_id, length,
+ 		       debug_fcp_ctype(data[0]),
+ 		       debug_fcp_opcode(op, data, length));
+
+
+
+
+
+Cheers,
+Mauro
