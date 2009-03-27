@@ -1,54 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4535 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753642AbZC0Uej convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2009 16:34:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Subject: Re: [PATCH] v4l2: fill reserved fields of VIDIOC_ENUMAUDIO also
-Date: Fri, 27 Mar 2009 21:34:07 +0100
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	=?iso-8859-1?q?N=E9meth_M=E1rton?= <nm127@freemail.hu>,
-	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-References: <49CA611B.5050902@freemail.hu> <20090327131729.0842bdec@pedra.chehab.org> <Pine.LNX.4.58.0903271241360.28292@shell2.speakeasy.net>
-In-Reply-To: <Pine.LNX.4.58.0903271241360.28292@shell2.speakeasy.net>
+Received: from bar.sig21.net ([80.81.252.164]:56164 "EHLO bar.sig21.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754385AbZC0JtD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Mar 2009 05:49:03 -0400
+Received: from p54bdfa0f.dip.t-dialin.net ([84.189.250.15] helo=abc.local)
+	by bar.sig21.net with esmtpsa (TLS-1.0:RSA_ARCFOUR_SHA1:16)
+	(Exim 4.63)
+	(envelope-from <js@sig21.net>)
+	id 1Ln8gN-0000v0-77
+	for linux-media@vger.kernel.org; Fri, 27 Mar 2009 10:48:59 +0100
+Received: from js by abc.local with local (Exim 4.69)
+	(envelope-from <js@sig21.net>)
+	id 1Ln8gU-00045z-RG
+	for linux-media@vger.kernel.org; Fri, 27 Mar 2009 10:49:06 +0100
+Date: Fri, 27 Mar 2009 10:49:06 +0100
+From: Johannes Stezenbach <js@linuxtv.org>
+To: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] [ADMIN] linuxtv.org is moving
+Message-ID: <20090327094906.GB15722@linuxtv.org>
+References: <20090325162541.GB22582@linuxtv.org> <20090326185729.GA10352@linuxtv.org> <210E56CC-CD08-4EB0-B38B-3804D6CA082B@pobox.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Message-Id: <200903272134.07576.hverkuil@xs4all.nl>
+In-Reply-To: <210E56CC-CD08-4EB0-B38B-3804D6CA082B@pobox.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 27 March 2009 20:45:40 Trent Piepho wrote:
-> On Fri, 27 Mar 2009, Mauro Carvalho Chehab wrote:
-> > On Wed, 25 Mar 2009 17:51:39 +0100
-> >
-> > Németh Márton <nm127@freemail.hu> wrote:
-> > > From: Márton Németh <nm127@freemail.hu>
-> > >
-> > > When enumerating audio inputs with VIDIOC_ENUMAUDIO the gspca_sunplus
-> > > driver does not fill the reserved fields of the struct v4l2_audio
-> > > with zeros as required by V4L2 API revision 0.24 [1]. Add the missing
-> > > initializations to the V4L2 framework.
-> > >
-> > > The patch was tested with v4l-test 0.10 [2] with gspca_sunplus driver
-> > > and with Trust 610 LCD POWERC@M ZOOM webcam.
-> >
-> > It didn't apply against the development tree. Anyway, a recent patch
-> > removed the need of memset there. the memory fill with zero now happens
-> > at the same code we copy the structure values.
+On Fri, Mar 27, 2009 at 10:44:33AM +1000, Torgeir Veimo wrote:
 >
-> That code is in video_ioctl2, which gspca doesn't use.
+> So how do I unsubscribe from linux-dvb? It seems that I still gets some 
+> mails from this list, but information on how to unsubscribe is lost from 
+> the website.
 
-Yes, gspca does use video_ioctl2. You're probably confused with uvcvideo, 
-which doesn't use it.
+Every mail from the list contains the link for the
+Mailman web interface.
 
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Johannes
