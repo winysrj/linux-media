@@ -1,45 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:30273 "EHLO mail.kapsi.fi"
+Received: from tichy.grunau.be ([85.131.189.73]:37066 "EHLO tichy.grunau.be"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752074AbZCORa3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2009 13:30:29 -0400
-Message-ID: <49BD3B31.8030308@iki.fi>
-Date: Sun, 15 Mar 2009 19:30:25 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S1753024AbZC0U7q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Mar 2009 16:59:46 -0400
+Date: Fri, 27 Mar 2009 21:59:23 +0100
+From: Janne Grunau <j@jannau.net>
+To: David Brownell <david-b@pacbell.net>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@skynet.be>,
+	linux-media@vger.kernel.org,
+	Ricardo Jorge da Fonseca Marques Ferreira
+	<storm@sys49152.net>, linux-usb@vger.kernel.org
+Subject: Re: v4l parent for usb device interface or device?
+Message-ID: <20090327205923.GA6064@aniel>
+References: <20232.62.70.2.252.1237993114.squirrel@webmail.xs4all.nl> <49CB7545.2050301@redhat.com> <20090327005124.GD2349@aniel> <200903261831.55746.david-b@pacbell.net>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org, pureherz@gmail.com
-CC: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] EC168 and MT2060
-References: <1237129041.7993.38.camel@0ri0n>
-In-Reply-To: <1237129041.7993.38.camel@0ri0n>
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200903261831.55746.david-b@pacbell.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-moi,
+On Thu, Mar 26, 2009 at 06:31:55PM -0700, David Brownell wrote:
+> On Thursday 26 March 2009, Janne Grunau wrote:
+> 
+> > I noticed a problem after 
+> > changing the hdpvr driver accordingly.
+> > 
+> > With parent set to the usb interface there is no longer easy access to
+> > the usb device properties like the serial number through sysfs. I know
+> > that a couple of user with more than one device use the serial number
+> > to set static device nodes through udev.
+> 
+> The serial number is still available, but it's coupled to the USB
+> device not its interface.  Make your udev script hop up a level or
+> two in the driver model tree, as appropriate.
 
-t.Hgch wrote:
-> I also followed this post to get streams from the EC168:
-> https://www.dealextreme.com/forums/Default.dx/sku.8325~threadid.278942
-> However my card is a MinTv usb 2.0 dvb-t DUTV002, which seems to be
-> using a MT2060 tuner. Some channels where partially received. Let me
+yes, ATTRS{} still matches. There are udev howtos around which suggest
+ATTRS{} just matches one level up and not the entire path. I tried it but
+had unfortunately a typo in the udev rule. Sorry for the noise.
 
-Partially received? If there is really MT2060 tuner then channels should 
-  not be received at all.
-
-> know if you have any idea of how i could solve this.
-
-I can look usb-sniffs if you will take.
-http://www.pcausa.com/Utilities/UsbSnoop/default.htm
-
-One sec sniff to channel where it lock is enough, log size will increase 
-very rapidly when streaming picture...
-
-One big problem to make this device really working is lack of specs... I 
-am very interested if someone could help getting specs.
-
-regards
-Antti
--- 
-http://palosaari.fi/
+Janne
