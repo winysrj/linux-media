@@ -1,45 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dd18532.kasserver.com ([85.13.139.13]:42050 "EHLO
-	dd18532.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754575AbZCAUqt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Mar 2009 15:46:49 -0500
-Date: Sun, 1 Mar 2009 21:46:46 +0100
-From: Carsten Meier <cm@trexity.de>
-To: Markus Rechberger <mrechberger@gmail.com>
-Cc: Henrik Beckman <henrik.list@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: Cinergy HTC USB XS HD, DVB-C suported ?
-Message-ID: <20090301214646.73fe52a6@tuvok>
-In-Reply-To: <d9def9db0902280629w44f83670o4140d9239eb30a7a@mail.gmail.com>
-References: <af2e95fa0902280620r244167b2rb9efa16abd8a1ff4@mail.gmail.com>
-	<d9def9db0902280629w44f83670o4140d9239eb30a7a@mail.gmail.com>
+Received: from bombadil.infradead.org ([18.85.46.34]:38375 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751286AbZC0KLy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Mar 2009 06:11:54 -0400
+Date: Fri, 27 Mar 2009 07:11:43 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Alexey Klimov <klimov.linux@gmail.com>
+Cc: Alessio Igor Bogani <abogani@texware.it>,
+	LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+	video4linux-list@redhat.com
+Subject: Re: [PATCH] radio-mr800.c: Missing mutex include
+Message-ID: <20090327071143.59619399@pedra.chehab.org>
+In-Reply-To: <1237326128.2141.17.camel@tux.localhost>
+References: <1237323618-6464-1-git-send-email-abogani@texware.it>
+	<1237326128.2141.17.camel@tux.localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Sat, 28 Feb 2009 15:29:24 +0100
-schrieb Markus Rechberger <mrechberger@gmail.com>:
+On Wed, 18 Mar 2009 00:42:08 +0300
+Alexey Klimov <klimov.linux@gmail.com> wrote:
 
-> On Sat, Feb 28, 2009 at 3:20 PM, Henrik Beckman
-> <henrik.list@gmail.com> wrote:
-> > Hi,
-> >
-> > Can anyone verify if the Cinergy HTC USB XS HD is working in DVB-C
-> > mode ?
-> > http://www.terratec.net/en/products/technical-data/produkte_technische_daten_en_57350.html
-> >
-> > Sorry for adding to the signal noise ratio, I´ll promise to update
-> > the wiki.
-> >
+> On Tue, 2009-03-17 at 22:00 +0100, Alessio Igor Bogani wrote:
+> > radio-mr800.c uses struct mutex, so while <linux/mutex.h> seems to be
+> > pulled in indirectly by one of the headers it already includes, the
+> > right thing is to include it directly.
 > 
-> it is fully working (DVB-C, DVB-T, analog TV and radio), some things
-> have to be cleared up before the drivers will be published.
+> 
+> Hello, Alessio
+> 
+> Patch looks okay for my eyes.
+> If it useful it should be applied.
+> 
+> Thank you!
+> 
+> Mauro, if patch is okay please apply it.
+> If you need my ack - here it is:
+> Acked-by: Alexey Klimov <klimov.linux@gmail.com>
 
-Hi,
-
-is there a rough timeline when this will happen? I wanna buy that
-device, but without a driver it doesn't make much sense.
+If the mutex.h were already included by another kernel header, I don't see why
+to include it again. If a later patch remove the mutex.h from the header, then
+the patch author should take care of this change anyway.
 
 Cheers,
-Carsten
+Mauro
