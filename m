@@ -1,83 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-01-bos.mailhop.org ([63.208.196.178]:64626 "EHLO
-	mho-01-bos.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754920AbZCQQp0 (ORCPT
+Received: from mail12.sea5.speakeasy.net ([69.17.117.14]:59940 "EHLO
+	mail12.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758108AbZC0VMq convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Mar 2009 12:45:26 -0400
-Date: Tue, 17 Mar 2009 09:45:25 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Kevin Hilman <khilman@deeprootsystems.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Steve Sakoman <sakoman@gmail.com>, linux-media@vger.kernel.org,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Manjunath Hadli <mrh@ti.com>,
-	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: Re: Embedded Linux Conference
-Message-ID: <20090317164525.GT19229@atomide.com>
-References: <200903051749.13016.hverkuil@xs4all.nl> <20090316225653.GP19229@atomide.com> <5e088bd90903161714y45918d6cn9e81cd73db1ebbac@mail.gmail.com> <200903170809.10467.hverkuil@xs4all.nl> <49BFB8A8.3080201@deeprootsystems.com>
+	Fri, 27 Mar 2009 17:12:46 -0400
+Date: Fri, 27 Mar 2009 14:12:44 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	=?iso-8859-1?q?N=E9meth_M=E1rton?= <nm127@freemail.hu>,
+	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] v4l2: fill reserved fields of VIDIOC_ENUMAUDIO also
+In-Reply-To: <200903272134.07576.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.58.0903271406080.28292@shell2.speakeasy.net>
+References: <49CA611B.5050902@freemail.hu> <20090327131729.0842bdec@pedra.chehab.org>
+ <Pine.LNX.4.58.0903271241360.28292@shell2.speakeasy.net>
+ <200903272134.07576.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <49BFB8A8.3080201@deeprootsystems.com>
+Content-Type: TEXT/PLAIN; charset=X-UNKNOWN
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Kevin Hilman <khilman@deeprootsystems.com> [090317 07:50]:
-> Hans Verkuil wrote:
->> On Tuesday 17 March 2009 01:14:28 Steve Sakoman wrote:
->>> On Mon, Mar 16, 2009 at 3:56 PM, Tony Lindgren <tony@atomide.com> wrote:
->>>> * Kevin Hilman <khilman@deeprootsystems.com> [090316 15:52]:
->>>>> Hans Verkuil <hverkuil@xs4all.nl> writes:
->>>>>> Just FYI:
->>>>>>
->>>>>> I'll be attending the Embedded Linux Conference in San Francisco,
->>>>>> April 6th-8th (http://www.embeddedlinuxconference.com/elc_2009).
->>>>>>
->>>>>> This might be a good opportunity to discuss omap and davinci V4L2
->>>>>> issues face-to-face. Let me know if you are interested.
->>>>> I will be there as well, and while not directly involved with V4L2,
->>>>> I'm involved in various parts of getting OMAP and DaVinci devices
->>>>> supported in mainline kernels.
->>>> Yeah I'll be in town too and will be dropping by at the conf
->>>> here and there.
->>>>
->>>> Maybe let's arrange something to get some beers one night during
->>>> the conf?
->>> I'll be there too.  How about Wednesday evening for beers?
->>>
->>> Steve
->>
->> On Wednesday evening there is the 'social event', which means free food 
->> and beer :-). So I'd say that evening is covered.
->>
->> However, I'd welcome dinner on Sunday evening. Having arrived that day 
->> from Europe I won't be a sparkling conversationalist but it beats 
->> having dinner by your own and gives us a chance to meet one another.
->>
+On Fri, 27 Mar 2009, Hans Verkuil wrote:
+> On Friday 27 March 2009 20:45:40 Trent Piepho wrote:
+> > On Fri, 27 Mar 2009, Mauro Carvalho Chehab wrote:
+> > > On Wed, 25 Mar 2009 17:51:39 +0100
+> > >
+> > > Németh Márton <nm127@freemail.hu> wrote:
+> > > > From: Márton Németh <nm127@freemail.hu>
+> > > >
+> > > > When enumerating audio inputs with VIDIOC_ENUMAUDIO the gspca_sunplus
+> > > > driver does not fill the reserved fields of the struct v4l2_audio
+> > > > with zeros as required by V4L2 API revision 0.24 [1]. Add the missing
+> > > > initializations to the V4L2 framework.
+> > > >
+> > > > The patch was tested with v4l-test 0.10 [2] with gspca_sunplus driver
+> > > > and with Trust 610 LCD POWERC@M ZOOM webcam.
+> > >
+> > > It didn't apply against the development tree. Anyway, a recent patch
+> > > removed the need of memset there. the memory fill with zero now happens
+> > > at the same code we copy the structure values.
+> >
+> > That code is in video_ioctl2, which gspca doesn't use.
 >
-> I won't be arriving until late Sunday night, and I imagine others may be  
-> arrving Monday morning.
->
-> How about Monday night after the Dinner (ends at 7pm [1]) we meet for  
-> beers.  I'll let someone local (Tony) pick the venue.
+> Yes, gspca does use video_ioctl2. You're probably confused with uvcvideo,
+> which doesn't use it.
 
-OK, let's plan for Monday night then. I'll find some place with
-drinks easily available, and within walking distance from the
-conference.
-
-I've added a placeholder for the event where I'll post the details
-later on:
-
-http://www.muru.com/linux/omap/events/
-
-To get a rough idea how many people we'll have, please reply to this
-thread, or send me an email if you're planning to attend.
-
-Cheers,
-
-Tony
-
-
-> [1] http://www.embeddedlinuxconference.com/elc_2009/program.html
+You're right, I was thinking about Németh's earlier patches for the same
+things in uvcvideo.  This patch wasn't for gspca anyway, it was for the
+v4l2 core, and Mauro's right it's not necessary as my patch series fixed
+all these problems.
