@@ -1,66 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:39242 "EHLO mx2.redhat.com"
+Received: from mail.work.de ([212.12.32.20]:43065 "EHLO mail.work.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757915AbZC0Jd7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2009 05:33:59 -0400
-Message-ID: <49CC9DEF.8020009@redhat.com>
-Date: Fri, 27 Mar 2009 10:35:43 +0100
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1751708AbZC0TAW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Mar 2009 15:00:22 -0400
+Message-ID: <49CD2232.4060701@gmail.com>
+Date: Fri, 27 Mar 2009 23:00:02 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: linux-media@vger.kernel.org,
-	Ricardo Jorge da Fonseca Marques Ferreira
-	<storm@sys49152.net>
-Subject: [PATCH]: gspca: use usb interface as parent
-Content-Type: multipart/mixed;
- boundary="------------000400080905020709020107"
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+CC: Mika Laitio <lamikr@pilppa.org>, Andy Walls <awalls@radix.net>,
+	linux-media@vger.kernel.org, Trent Piepho <xyzzy@speakeasy.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Ang Way Chuang <wcang@nav6.org>,
+	VDR User <user.vdr@gmail.com>
+Subject: Re: The right way to interpret the content of SNR, signal strength
+ 	and BER from HVR 4000 Lite
+References: <49B9BC93.8060906@nav6.org> <49C33DE7.1050906@gmail.com>	 <1237689919.3298.179.camel@palomino.walls.org>	 <412bdbff0903221800j2f9e1137u7776191e2e75d9d2@mail.gmail.com>	 <412bdbff0903241439u472be49mbc2588abfc1d675d@mail.gmail.com>	 <49C96A37.4020905@gmail.com>	 <Pine.LNX.4.64.0903250128110.11676@shogun.pilppa.org>	 <49C970C9.20407@gmail.com>	 <412bdbff0903250738l23a3b04fpdebbad502897bf57@mail.gmail.com>	 <49CAA9EC.8000904@gmail.com> <412bdbff0903251527i5fa6a534j17ce9dad4204da05@mail.gmail.com>
+In-Reply-To: <412bdbff0903251527i5fa6a534j17ce9dad4204da05@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------000400080905020709020107
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Devin Heitmueller wrote:
+> On Wed, Mar 25, 2009 at 6:02 PM, Manu Abraham <abraham.manu@gmail.com> wrote:
+>> Sure, of course. Here is an updated list based on the information
+>> that you accumulated. I have corrected some of them, which were not
+>> accurate.
+> 
+> Before I comment any further on your email, could you please clarify
+> what you mean by "Relative, confirms to API".  The current DVB API
+> specification does not specify any units of measure for the content of
+> the field, so I am not sure what you mean by this.
 
-Hi all,
+Sorry about not responding earlier, wasn't feeling well at all and
+hence.
 
-As discussed in the:
-"v4l parent for usb device interface or device?"
-thread, here is a patch for gspca to make it use
-the usb interface as its parent device, instead
-of the usb device.
+By Relative, i meant dimensionless, but still it makes some sense
+based on some documented references.
+
+What i mean "relative" is that the API expects something like this.
+http://linuxtv.org/hg/dvb-apps/file/5fbdd3f898b1/util/szap/README
 
 Regards,
-
-Hans
-
-p.s.
-
-I'll also push a patch to my libv4l repo, with
-matching libv4l changes so that libv4l's upside
-down cam detections stays working with this change.
-
-Note: this libv4l patch also fixes libv4l upside
-down detection for the new device numbering style.
-
---------------000400080905020709020107
-Content-Type: text/plain;
- name="gspca-use-usb-interface-as-parent.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="gspca-use-usb-interface-as-parent.patch"
-
-diff -r c28651a2c2c3 linux/drivers/media/video/gspca/gspca.c
---- a/linux/drivers/media/video/gspca/gspca.c	Thu Mar 26 09:44:15 2009 +0100
-+++ b/linux/drivers/media/video/gspca/gspca.c	Fri Mar 27 10:32:24 2009 +0100
-@@ -1958,7 +1958,7 @@
- 
- 	/* init video stuff */
- 	memcpy(&gspca_dev->vdev, &gspca_template, sizeof gspca_template);
--	gspca_dev->vdev.parent = &dev->dev;
-+	gspca_dev->vdev.parent = &intf->dev;
- 	gspca_dev->module = module;
- 	gspca_dev->present = 1;
- 	ret = video_register_device(&gspca_dev->vdev,
-
---------------000400080905020709020107--
+Manu
