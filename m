@@ -1,59 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp0.lie-comtel.li ([217.173.238.80]:59734 "EHLO
-	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753614AbZCRUKK (ORCPT
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:53885 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751498AbZC0IZ7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2009 16:10:10 -0400
-Message-ID: <49C1551E.1000700@kaiser-linux.li>
-Date: Wed, 18 Mar 2009 21:10:06 +0100
-From: Thomas Kaiser <v4l@kaiser-linux.li>
+	Fri, 27 Mar 2009 04:25:59 -0400
+Date: Fri, 27 Mar 2009 08:25:25 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Holger Schurig <hs4233@mail.mn-solutions.de>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk,
+	Dave Strauss <Dave.Strauss@zoran.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Darius Augulis <augulis.darius@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: [PATCH 1/5] CSI camera interface driver for MX1
+Message-ID: <20090327082525.GB20557@n2100.arm.linux.org.uk>
+References: <49C89F00.1020402@gmail.com> <49CBF437.7030603@zoran.com> <20090326220713.GC32555@n2100.arm.linux.org.uk> <200903270833.27864.hs4233@mail.mn-solutions.de>
 MIME-Version: 1.0
-To: Anders Blomdell <anders.blomdell@control.lth.se>
-CC: Linux Media <linux-media@vger.kernel.org>,
-	Thomas Champagne <lafeuil@gmail.com>
-Subject: Re: Topro 6800 driver [JPEG decoding solved]
-References: <49A8661A.4090907@control.lth.se>	<49B194A7.4030808@kaiser-linux.li>	<49B50740.3000902@control.lth.se>	<49B50E16.8080703@kaiser-linux.li> <49B56542.1090408@control.lth.se> <49B57799.3020504@kaiser-linux.li> <49B57C1D.3060600@control.lth.se> <49B57F7D.1020108@kaiser-linux.li> <49B62023.2090206@control.lth.se> <49B65BA7.6070700@kaiser-linux.li> <49B68F34.60802@control.lth.se> <49B6A495.9060204@kaiser-linux.li> <49B7D41B.4040801@control.lth.se> <49C00484.7060601@kaiser-linux.li>
-In-Reply-To: <49C00484.7060601@kaiser-linux.li>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200903270833.27864.hs4233@mail.mn-solutions.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thomas Kaiser wrote:
-> Hello Anders
+On Fri, Mar 27, 2009 at 08:33:27AM +0100, Holger Schurig wrote:
+> > Sparse is another tool which can be used while building the
+> > kernel to increase the build time checking, but it can be
+> > quite noisy, so please only look at stuff which pops up for
+> > your specific area.
 > 
-> Good news, I could decode a frame which I extracted from the usbsnoobs I 
-> did :-). See attached picture frame3-03.jpg. It uses the quality 0.
+> To get rid of some of the warnings, you can analyze only the 
+> parts of the source that you're working on. You just need sparse 
+> in your PATH and issue:
 > 
-> Your black frame you sent me gets now correctly decode, too (frameA-01.jpg)
+> $ make SUBDIRS=arch/arm/mach-mx2 C=2
 > 
-> I found the Huffman table in the Windoz driver file (TP6810.sys) at 
-> offset 0x2a59c. The QTable which I found in a text file on my Windoz box 
-> can be found in this driver file, also.
 > 
-> I attached some binary files which I used to build the 2 attached jpeg.
+> Unfortunately, the arm tree is a bit different to mainline linux, 
+> because
 > 
-> For example use:
-> cat FFD8-Q0-320x240.bin huffman1.bin FFDA.bin frame3-3.bin >frame3-03.jpg
-> to make the picture frame3-03.jpg.
-> 
-> This information should the cam get going in Linux ;-)
-> 
-> Happy Hacking,
-> 
-> Thomas
-> 
-> PS: I sent this to the linux-media mail list, because somebody else is 
-> interested about this information, too.
-> 
+> $ make SUBDIRS=arch/arm C=2
+> arch/arm/Makefile:31: *** Recursive variable `KBUILD_CFLAGS' 
+> references itself (eventually).  Stop.
+> make: *** [_module_arch/arm] Error 2
 
-Just some comments about the observation you made on the frame header:
+Line 31 is the KBUILD_CFLAGS line of:
 
-ff d8 ff fe 28 3c 01
+ifeq ($(CONFIG_FRAME_POINTER),y)
+KBUILD_CFLAGS   +=-fno-omit-frame-pointer -mapcs -mno-sched-prolog
+endif
 
-- Byte 6: Yes, it is the current quality setting
-- Byte 4 & 5: I think it is related to resolution. My snoops were done with 320x240 (0x141e) and Anders were made with 640x480 (0x283c), twice as big!
-- The rest is static
-
-Thomas
-
+which is _not_ a recursive definition.  Either your make is broken or
+you have local changes to that line.
