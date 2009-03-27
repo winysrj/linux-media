@@ -1,110 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:1646 "EHLO
-	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754107AbZCATRL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Mar 2009 14:17:11 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr3.xs4all.nl (8.13.8/8.13.8) with ESMTP id n21JH6te054849
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 1 Mar 2009 20:17:06 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 1 Mar 2009 20:17:06 +0100 (CET)
-Message-Id: <200903011917.n21JH6te054849@smtp-vbr3.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
+Received: from bombadil.infradead.org ([18.85.46.34]:47334 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759319AbZC0QvH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Mar 2009 12:51:07 -0400
+Date: Fri, 27 Mar 2009 13:50:55 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Darius Augulis <augulis.darius@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/5] CSI camera interface driver for MX1
+Message-ID: <20090327135055.7e3e7aaf@pedra.chehab.org>
+In-Reply-To: <49CCD72F.3070603@gmail.com>
+References: <49C89F00.1020402@gmail.com>
+	<Pine.LNX.4.64.0903261405520.5438@axis700.grange>
+	<49CBD53C.6060700@gmail.com>
+	<20090326170910.6926d8de@pedra.chehab.org>
+	<49CC9E53.9070805@gmail.com>
+	<20090327075625.276376b1@pedra.chehab.org>
+	<49CCD72F.3070603@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.)
+On Fri, 27 Mar 2009 15:39:59 +0200
+Darius Augulis <augulis.darius@gmail.com> wrote:
 
-Results of the daily build of v4l-dvb:
+> Mauro Carvalho Chehab wrote:
+>  > On Fri, 27 Mar 2009 11:37:23 +0200
+>  > Darius Augulis <augulis.darius@gmail.com> wrote:
+>  >
+>  >> Mauro Carvalho Chehab wrote:
+>  >>> Hi Darius,
+>  >>>
+>  >>> Please always base your patches against the last v4l-dvb tree or linux-next.
+>  >>> This is specially important those days, where v4l core is suffering several
+>  >>> changes.
+>  >
+>  > Btw, you shouldn't be c/c a list that requires subscription. Every time I send
+>  > something, I got such errors:
+> 
+> I sent it to ARM Linux ML, because it has lot of ARM stuff and there are people who maintain ARM/MXC.
+> You probably could remove some CC from your reply message?
 
-date:        Sun Mar  1 19:00:04 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10778:c770b20d15c6
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+If the subject is important to ARM people, the reply messages should be there
+as well. Otherwise you shouldn't c/c it since the beginning ;)
 
-linux-2.6.16.61-armv5: OK
-linux-2.6.17.14-armv5: OK
-linux-2.6.18.8-armv5: OK
-linux-2.6.19.5-armv5: OK
-linux-2.6.20.21-armv5: OK
-linux-2.6.21.7-armv5: OK
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-rc5-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-rc5-armv5-ixp: OK
-linux-2.6.27-armv5-omap2: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-rc5-armv5-omap2: OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-rc5-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc5-m32r: OK
-linux-2.6.16.61-mips: ERRORS
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-rc5-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29-rc5-powerpc64: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: OK
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29-rc5-x86_64: WARNINGS
-fw/apps: WARNINGS
-spec: OK
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc5): ERRORS
+Subscribers only list are not good for patches discussion, and aren't
+recommended by Linux practices. 
 
-Detailed results are available here:
+The issues become evident on such discussions where more than one
+subsystem is envolved. 
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+We've switched this year to linux-media@vger.kernel.org mainly due to that: the
+anti-spam filters at VGER are so efficient that we don't need to be
+subscribers-only anymore. I suggest that you try to argue with ARM list
+maintainer to do the same. 
 
-Full logs are available here:
+At the mean time, please c/c only lists that don't require subscriptions, since
+people shouldn't be forced to subscribe just to reply an email, and it is not
+polite to send emails refusing their comments.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+Cheers,
+Mauro
