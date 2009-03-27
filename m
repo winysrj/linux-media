@@ -1,42 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:37666 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753618AbZCWPj4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2009 11:39:56 -0400
-Date: Mon, 23 Mar 2009 16:40:06 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sedji Gaouaou <sedji.gaouaou@atmel.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: atmel v4l2 soc driver
-In-Reply-To: <49C7A8DF.3040101@atmel.com>
-Message-ID: <Pine.LNX.4.64.0903231632020.6370@axis700.grange>
-References: <49B789F8.3070906@atmel.com> <Pine.LNX.4.64.0903111100050.4818@axis700.grange>
- <49C7A8DF.3040101@atmel.com>
+Received: from mx2.redhat.com ([66.187.237.31]:39242 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757915AbZC0Jd7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Mar 2009 05:33:59 -0400
+Message-ID: <49CC9DEF.8020009@redhat.com>
+Date: Fri, 27 Mar 2009 10:35:43 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: linux-media@vger.kernel.org,
+	Ricardo Jorge da Fonseca Marques Ferreira
+	<storm@sys49152.net>
+Subject: [PATCH]: gspca: use usb interface as parent
+Content-Type: multipart/mixed;
+ boundary="------------000400080905020709020107"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 23 Mar 2009, Sedji Gaouaou wrote:
+This is a multi-part message in MIME format.
+--------------000400080905020709020107
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> I am writing a driver for the ov9655 sensor from Omnivision.
-> To do so I am using the ov772x.c file as an example.
-> But I don't understant, because it seems that I never enter the video_probe
-> function...
-> Do you have any idea what could I do wrong? Is it coming from a wrong i2c
-> config?
+Hi all,
 
-Wouldn't ov9655 be similar enough to ov9650 as used in stk-sensor.c? Hans, 
-would that one also be converted to v4l2-device? If so, Sedji, you don't 
-need to write yet another driver for it.
+As discussed in the:
+"v4l parent for usb device interface or device?"
+thread, here is a patch for gspca to make it use
+the usb interface as its parent device, instead
+of the usb device.
 
-What concerns your probing problem - you most likely are missing platform 
-bindings in your board code. See arch/arm/mach-pxa/pcm990-baseboard.c for 
-an example.
+Regards,
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Hans
+
+p.s.
+
+I'll also push a patch to my libv4l repo, with
+matching libv4l changes so that libv4l's upside
+down cam detections stays working with this change.
+
+Note: this libv4l patch also fixes libv4l upside
+down detection for the new device numbering style.
+
+--------------000400080905020709020107
+Content-Type: text/plain;
+ name="gspca-use-usb-interface-as-parent.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="gspca-use-usb-interface-as-parent.patch"
+
+diff -r c28651a2c2c3 linux/drivers/media/video/gspca/gspca.c
+--- a/linux/drivers/media/video/gspca/gspca.c	Thu Mar 26 09:44:15 2009 +0100
++++ b/linux/drivers/media/video/gspca/gspca.c	Fri Mar 27 10:32:24 2009 +0100
+@@ -1958,7 +1958,7 @@
+ 
+ 	/* init video stuff */
+ 	memcpy(&gspca_dev->vdev, &gspca_template, sizeof gspca_template);
+-	gspca_dev->vdev.parent = &dev->dev;
++	gspca_dev->vdev.parent = &intf->dev;
+ 	gspca_dev->module = module;
+ 	gspca_dev->present = 1;
+ 	ret = video_register_device(&gspca_dev->vdev,
+
+--------------000400080905020709020107--
