@@ -1,75 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1627 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752817AbZCQIpx (ORCPT
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:53479 "EHLO
+	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752317AbZC1RDu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Mar 2009 04:45:53 -0400
-Message-ID: <36896.62.70.2.252.1237279540.squirrel@webmail.xs4all.nl>
-Date: Tue, 17 Mar 2009 09:45:40 +0100 (CET)
-Subject: Re: qv4l2 (was [PATCH] LED control)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Jean-Francois Moine" <moinejf@free.fr>
-Cc: "Trent Piepho" <xyzzy@speakeasy.org>,
-	"Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Sat, 28 Mar 2009 13:03:50 -0400
+Received: from steven-toths-macbook-pro.local
+ (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta5.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KH800FCY7ECFP70@mta5.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Sat, 28 Mar 2009 13:03:48 -0400 (EDT)
+Date: Sat, 28 Mar 2009 13:03:47 -0400
+From: Steven Toth <stoth@linuxtv.org>
+Subject: Re: V4L2 Advanced Codec questions
+In-reply-to: <200903281622.44690.hverkuil@xs4all.nl>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Message-id: <49CE5873.8000603@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <49CBA64F.2080506@linuxtv.org>
+ <200903281622.44690.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-> On Sun, 15 Mar 2009 08:14:56 -0700 (PDT)
-> Trent Piepho <xyzzy@speakeasy.org> wrote:
->
->> > - this asks to have a kernel generated with CONFIG_NEW_LEDS,
+Hans Verkuil wrote:
+> On Thursday 26 March 2009 16:59:11 Steven Toth wrote:
+>> Hello!
 >>
->> So?
+>> I want to open a couple of HVR22xx items up for discussion.
 >>
->> > - the user must use some new program to
->> > access /sys/class/leds/<device>,
+>> The HVR-22xx analog encoder is capable of encoded to all kinds of video
+>> and audio codecs in various containers formats.
 >>
->> echo, cat?
+>>  From memory, wm9, mpeg4, mpeg2, divx, AAC, AC3, Windows audio codecs in
+>> asf, ts, ps, avi containers, depending on various firmware license
+>> enablements and configuration options. Maybe more, maybe, I'll draw up a
+>> complete list when I begin to focus on analog.
 >>
->> > - he must know how the LEDs of his webcam are named in the /sys
->> > tree.
+>> Any single encoder on the HVR22xx can produce (if licensed) any of the
+>> formats above. However, due to a lack of CPU horsepower in the RISC
+>> engine, the board is not completely symmetrical when the encoders are
+>> running concurrently. This is the main reason why Hauppauge have disabled
+>> these features in the windows driver.
 >>
->> Just give them a name like video0:power and it will be easy enough to
->> associate them with the device.  I think links in sysfs would do it
->> to, /sys/class/video4linux/video0/device/<ledname> or something like
->> that.
+>> It's possible for example to get two concurrent MPEG2 PS streams but only
+>> if the bitrate is limited to 6Mbps, which we also do in the windows
+>> driver.
 >>
->> The advantage of using the led class is that you get support for
->> triggers and automatic blink functions, etc.
->
-> Sorry for I don't see the usage of blinking the LEDs for a webcam.
->
-> Again, using the led class makes me wonder about:
->
-> 1) The end users.
->
-> Many Linux users don't know the kernel internal, nor which of the too
-> many applications they should use to make their devices work. If no
-> developper creates a tool to handle the webcams, the users have to
-> search again and again. Even if there is a full documentation, they
-> will try anything and eventually ask the kernel developpers why they
-> cannot have their LEDs switched on.
->
-> Actually, there are a few programs that can handle the webcam
-> parameters. In fact I know only 'v4l2-ctl': I did not succeeded to
-> compile qv4l2
+>> Apart from the fact that we (the LinuxTV community) will need to
+>> determine what's possible concurrently, and what isn't, it does raise
+>> interesting issues for the V4L2 API.
+>>
+>> So, how do we expose this advanced codec and hardware encoder limitation
+>> information through v4l2 to the applications?
+>>
+>> Do we, don't we?
+> 
+> Hi Steve,
+> 
+> If I understand it correctly, then a single analog source can be encoded to 
+> multiple formats at the same time, right?
 
-What compile errors do you get?
+No.
 
-If you do not have qt3 installed, then it will be interesting to see if
-you can compile the qv4l2 in my ~hverkuil/v4l-dvb-qv4l2 tree which is qt4.
-It still needs more cleanup and tweaking before I can merge that in the
-v4l-dvb tree, though.
+> 
+> Or is it that multiple analog sources can each be encoded to some format? Or 
+> a combination of both?
 
-Regards,
+Multiple analog sources can produce multiple formats, CPU power permitting.
 
-        Hans
+> 
+> Is there a limit to the number of concurrent encoders (except for CPU 
+> horsepower)?
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Not that I'm aware of, yet.
 
+> 
+> Basically, since you can have multiple encoders, you also need multiple 
+> videoX nodes, once for each encoder. And I would expect that an application 
+> can just setup each encoder. Whenever you start an encoder the driver might 
+> either accept it or return -ENOSPC if there aren't enough resources.
+
+This is fine, and expected.
+
+> 
+> You have to document the restrictions in a document, but otherwise I don't 
+> see any reason why implementing this would cause any problems.
+> 
+> Adding new containers and codecs is easy: just add the missing ones to enum 
+> v4l2_mpeg_stream_type, v4l2_mpeg_audio_encoding and 
+> v4l2_mpeg_video_encoding and add any additional controls that are needed to 
+> implement each codec/container.
+
+Ahh, this is the magic information I was looking for.
+
+> 
+> In theory you can reduce the number of possible containers/codecs/bitrates 
+> in the controls according to the remaining resources. But I think that will 
+> be too complicated to do for too little gain, not only in the driver but 
+> also in the application.
+
+I think this is going to be the major issue and it will start to reflect itself 
+through the API into the application. We'll see, maybe not.
+
+Thanks,
+
+Steve
