@@ -1,76 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40485 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751225AbZCDFq6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 00:46:58 -0500
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: "stanley.miao" <stanley.miao@windriver.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
-	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	MiaoStanley <stanleymiao@hotmail.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
-Date: Tue, 3 Mar 2009 23:46:42 -0600
-Subject: RE: [RFC 0/5] Sensor drivers for OMAP3430SDP and LDP camera
-Message-ID: <A24693684029E5489D1D202277BE89442E1D95E5@dlee02.ent.ti.com>
-In-Reply-To: <49AE14E7.2010709@windriver.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4295 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757267AbZC1PW5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Mar 2009 11:22:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Steven Toth <stoth@linuxtv.org>
+Subject: Re: V4L2 Advanced Codec questions
+Date: Sat, 28 Mar 2009 16:22:44 +0100
+Cc: linux-media@vger.kernel.org
+References: <49CBA64F.2080506@linuxtv.org>
+In-Reply-To: <49CBA64F.2080506@linuxtv.org>
 MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903281622.44690.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thursday 26 March 2009 16:59:11 Steven Toth wrote:
+> Hello!
+>
+> I want to open a couple of HVR22xx items up for discussion.
+>
+> The HVR-22xx analog encoder is capable of encoded to all kinds of video
+> and audio codecs in various containers formats.
+>
+>  From memory, wm9, mpeg4, mpeg2, divx, AAC, AC3, Windows audio codecs in
+> asf, ts, ps, avi containers, depending on various firmware license
+> enablements and configuration options. Maybe more, maybe, I'll draw up a
+> complete list when I begin to focus on analog.
+>
+> Any single encoder on the HVR22xx can produce (if licensed) any of the
+> formats above. However, due to a lack of CPU horsepower in the RISC
+> engine, the board is not completely symmetrical when the encoders are
+> running concurrently. This is the main reason why Hauppauge have disabled
+> these features in the windows driver.
+>
+> It's possible for example to get two concurrent MPEG2 PS streams but only
+> if the bitrate is limited to 6Mbps, which we also do in the windows
+> driver.
+>
+> Apart from the fact that we (the LinuxTV community) will need to
+> determine what's possible concurrently, and what isn't, it does raise
+> interesting issues for the V4L2 API.
+>
+> So, how do we expose this advanced codec and hardware encoder limitation
+> information through v4l2 to the applications?
+>
+> Do we, don't we?
 
+Hi Steve,
 
-> -----Original Message-----
-> From: stanley.miao [mailto:stanley.miao@windriver.com]
-> Sent: Tuesday, March 03, 2009 11:43 PM
-> To: Aguirre Rodriguez, Sergio Alberto
-> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Sakari Ailus;
-> Tuukka.O Toivonen; Hiroshi DOYU; DongSoo(Nathaniel) Kim; MiaoStanley;
-> Nagalla, Hari; Hiremath, Vaibhav; Lakhani, Amish; Menon, Nishanth
-> Subject: Re: [RFC 0/5] Sensor drivers for OMAP3430SDP and LDP camera
-> 
-> Aguirre Rodriguez, Sergio Alberto wrote:
-> > This patch series depends on the following patches:
-> >
-> >  - "Add TWL4030 registers", posted by Tuukka Toivonen on March 2nd.
-> >  - "OMAP3 ISP and camera drivers" patch series, posted by Sakari Ailus
-> on
-> >    March 3rd. (Please follow his instructions to pull from gitorious.org
-> server)
-> >
-> > This has been tested with:
-> >  - SDP3430-VG5.0.1 with OMAP3430-ES3.1 daughter board upgrade.
-> >  - Camkit V3.0.1 with MT9P012 and OV3640 sensors
-> >  - LDP with OV3640 sensor
-> >
-> > Sergio Aguirre (5):
-> >   MT9P012: Add driver
-> >   DW9710: Add driver
-> >   OV3640: Add driver
-> >
-> Hi, Sergio,
-> 
-> You forgot to send the 3rd patch, "OV3640: Add driver".
+If I understand it correctly, then a single analog source can be encoded to 
+multiple formats at the same time, right?
 
-Hmm, weird... I'm sure I have sent the 5 patches to both linux-omap and linux-media MLs... But, according to http://patchwork.kernel.org/ linux-omap didn't receive that patch you're telling me...
+Or is it that multiple analog sources can each be encoded to some format? Or 
+a combination of both?
 
-Anyways, resending that last patch to linux-omap only.
+Is there a limit to the number of concurrent encoders (except for CPU 
+horsepower)?
 
-Thanks for the interest.
+Basically, since you can have multiple encoders, you also need multiple 
+videoX nodes, once for each encoder. And I would expect that an application 
+can just setup each encoder. Whenever you start an encoder the driver might 
+either accept it or return -ENOSPC if there aren't enough resources.
 
-> 
-> Stanley.
-> 
-> >   OMAP3430SDP: Add support for Camera Kit v3
-> >   LDP: Add support for built-in camera
-> >
-> 
+You have to document the restrictions in a document, but otherwise I don't 
+see any reason why implementing this would cause any problems.
 
+Adding new containers and codecs is easy: just add the missing ones to enum 
+v4l2_mpeg_stream_type, v4l2_mpeg_audio_encoding and 
+v4l2_mpeg_video_encoding and add any additional controls that are needed to 
+implement each codec/container.
+
+In theory you can reduce the number of possible containers/codecs/bitrates 
+in the controls according to the remaining resources. But I think that will 
+be too complicated to do for too little gain, not only in the driver but 
+also in the application.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
