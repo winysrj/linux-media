@@ -1,105 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.170]:53206 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751238AbZCIIB1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Mar 2009 04:01:27 -0400
-Received: by wf-out-1314.google.com with SMTP id 28so1829950wfa.4
-        for <linux-media@vger.kernel.org>; Mon, 09 Mar 2009 01:01:25 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <200903090841.46902.hverkuil@xs4all.nl>
-References: <5e9665e10903081842h2c8a7185lc9a7e2a6d0f63a2a@mail.gmail.com>
-	 <200903090841.46902.hverkuil@xs4all.nl>
-Date: Mon, 9 Mar 2009 17:01:25 +0900
-Message-ID: <5e9665e10903090101g9c774a8m898b396cb904b28@mail.gmail.com>
-Subject: Re: Is there any reference for v4l2-subdev?
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"jongse.won@samsung.com" <jongse.won@samsung.com>,
-	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail-in-12.arcor-online.net ([151.189.21.52]:44108 "EHLO
+	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750726AbZC1Etq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Mar 2009 00:49:46 -0400
+Subject: Re: [linux-dvb] TechnoTrend C-1501 - Locking issues on 388Mhz
+From: hermann pitton <hermann-pitton@arcor.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	erik_bies@hotmail.com, Michael Krufky <mkrufky@linuxtv.org>,
+	linux-dvb@linuxtv.org
+In-Reply-To: <1238214756.3421.3.camel@pc07.localdom.local>
+References: <7b41dd970903251353n46f55bbfg687c1cfa42c5b824@mail.gmail.com>
+	 <1238111503.4783.23.camel@pc07.localdom.local>
+	 <20090326210929.32235862@pedra.chehab.org>
+	 <1238114810.4783.32.camel@pc07.localdom.local>
+	 <20090326220225.72b122b2@pedra.chehab.org>
+	 <1238117947.4783.48.camel@pc07.localdom.local>
+	 <20090327073858.25d11327@pedra.chehab.org>
+	 <1238196235.6530.38.camel@pc07.localdom.local>
+	 <20090328005859.044431a8@pedra.chehab.org>
+	 <1238214756.3421.3.camel@pc07.localdom.local>
+Content-Type: text/plain
+Date: Sat, 28 Mar 2009 05:48:49 +0100
+Message-Id: <1238215729.3421.7.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thank you Hans,
 
-Now it is so clear.
-Thank you for your clear explanation. I'll be posting a new camera
-module (sensor+ISP) driver sooner or later.
+Am Samstag, den 28.03.2009, 05:32 +0100 schrieb hermann pitton:
+> Am Samstag, den 28.03.2009, 00:58 -0300 schrieb Mauro Carvalho Chehab:
+> > On Sat, 28 Mar 2009 00:23:55 +0100
+> > hermann pitton <hermann-pitton@arcor.de> wrote:
+> > 
+> > > Hi,
+> > > 
+> > > Am Freitag, den 27.03.2009, 07:38 -0300 schrieb Mauro Carvalho Chehab:
+> > > > On Fri, 27 Mar 2009 02:39:07 +0100
+> > > > hermann pitton <hermann-pitton@arcor.de> wrote:
+> > > > 
+> > > > > But my main concern is, if it once arrived at patchwork formally, it is
+> > > > > out of sight for most of us and might miss proper review, except you are
+> > > > > sure you can always guarantee that. I don't want to start to argue about
+> > > > > all what happened in the past.
+> > > > > 
+> > > > > So, at least, if some patch arrived there mysteriously ;), the
+> > > > > linux-media list should be informed that it is there now and last time
+> > > > > to speak off, in case anything is not fully clear, before vanishing into
+> > > > > some black hole until you find it in the next kernel release ...
+> > > > 
+> > > > The only way to send patches to patchwork is to submit it via linux-media list.
+> > > > There's no other way. So, all patch discussions and reviews should happen at
+> > > > the ML, by replying at the patch email (or by replying another reply).
+> > > > Patchwork will keep track of such replies as well.
+> > > > 
+> > > 
+> > > What happened so far with this patches is quite funny,
+> > > for me some black hole seems to be involved.
+> > > 
+> > > Klaas did send them the first time, also directly to me, on Tue, 24 Mar
+> > > 2009 23:14:11 +0100.
+> > > 
+> > > Now I can see you have pulled them in already on Wednesday.
+> > > http://linuxtv.org/hg/v4l-dvb/rev/5efa9fbc8a88
+> > > 
+> > > There is no trace anymore on patchwork visible to me.
+> > > http://patchwork.kernel.org/project/linux-media/list
+> > > So I don't know how you processed them.
+> > 
+> > The above link uses the default patchwork filtering. By default it shows only
+> > patches where there's an action required (e. g. New or Under Review patches).
+> > 
+> > To view a full list of the patches, you need to click at filters and select any.
+> > 
+> > You'll see all patches:
+> > 	http://patchwork.kernel.org/project/linux-media/list/?state=*
+> > 
+> > In the specific case od Klaas, this is his patch:
+> > 
+> > http://patchwork.kernel.org/patch/14405/
+> > 
+> > > Most confusing is, that Klaas obviously did not receive a mail
+> > > notification from linuxtv-commits that his patch came in.
+> > 
+> > > 
+> > > Last message date: Fri Feb 15 19:45:02 CET 2008
+> > > Archived on: Fri Feb 15 19:45:04 CET 2008 
+> > > 
+> > > Is it broken or only the archive not up to date?
+> > > 
+> > 
+> > I've received the notification here:
+> > 
+> > From: Patch from klaas de waal  <hg-commit@linuxtv.org>
+> > To: linuxtv-commits@linuxtv.org
+> > Cc: , Mauro Carvalho Chehab <mchehab@redhat.com>, klaas de waal <klaas.de.waal@gmail.com>
+> > Subject: [linuxtv-commits] [hg:v4l-dvb] tda827x: fix locking issues with DVB-C
+> > Date: Fri, 27 Mar 2009 18:05:01 +0100
+> > Reply-To: klaas de waal via Mercurial <klaas.de.waal@gmail.com>
+> > Sender: linuxtv-commits-bounces@linuxtv.org
+> > 
+> > The patch number 11236 was added via Mauro Carvalho Chehab <mchehab@redhat.com>
+> > to http://linuxtv.org/hg/v4l-dvb master development tree.
+> > 
+> > Klaas should be received this also. Maybe some anti-spam filtering on his side?
+> > 
+> > You'll probably see this also at the linuxtv-commits archives.
+> > 
+> > > Why else he would have posted a second time on
+> > > Wed, 25 Mar 2009 21:53:02 +0100 not knowing anything about the status of
+> > > his patches, which made me believe I should try to help him?
+> > > 
+> > > The timestamp on your mercurial commit of them is
+> > > Wed Mar 25 20:53:02 2009 +0000 (2 days ago)
+> > > That is the time when his second email arrived converted to Greenwich
+> > > time? Or how could you commit within the same second that mail arrived?
+> > 
+> > > This is the time the patches have on both of his original mails.
+> > > --- a/linux/drivers/media/common/tuners/tda827x.c Tue Mar 24 21:12:47 2009 +0000
+> > > --- a/linux/drivers/media/common/tuners/tda827x.c Tue Mar 24 21:12:47 2009 +0000
+> > 
+> > The import scripts will try to preserve the original date of the sent email.
+> > 
+> > So, the date there is when the code were presented to public.
+> > 
+> > > How can I ever know when they were really added and if they went through
+> > > patchwork :)
+> > > 
+> > > I was just about to suggest Klaas should try again with [PATCH] in the
+> > > subject until they are listed at patchwork.
+> > 
+> > If the patch was received by patchwork, and "disappeared", all you need to do
+> > is to click on filter and select a proper filter, like:
+> > 
+> > http://patchwork.kernel.org/project/linux-media/list/?submitter=klaas&state=*
+> > 
+> > This will present all patches authored by "klaas", and their state. Ah, if you
+> > click on the patch, you'll see all the patch history, including the
+> > sent/received emails. Even this email should be added there by patchwork ;)
+> > 
+> > Cheers,
+> > Mauro
+> 
+> Mauro, you are joking.
+> 
+> How I ever could come to that from here?
+> http://patchwork.kernel.org/project/linux-media/list
+> 
+> I'm forced to read the source code.
+> 
+> There seems to be some serious utf8 bug too.
+
+Ok, I can see now you can click at least one of the 2mm buttons, of
+course all self explaining :)
+
 Cheers,
-
-Nate
-
-
-On Mon, Mar 9, 2009 at 4:41 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Monday 09 March 2009 02:42:03 Dongsoo Nathaniel Kim wrote:
->> Hello Hans,
->>
->> I've been working on camera device based on v4l2-int-device until now,
->> but to follow latest work of yours I decided to make my driver in v4l2
->> subdev before I send patch to the list.
->> So I'm trying to find any passable driver to reference but I haven't
->> found any one yet.
->> Only thing I could find was v4l2-framework.txt for now. Am I missing
->> something? I've not look into every single repository in hg yet, but
->> which one could be the right one I am looking for?
->> Please give me a guideline if there are some further work besides
->> v4l2-framework.txt.
->> Cheers,
->>
->> Nate
->
-> Hi Nate,
->
-> In the master v4l-dvb (www.linuxtv.org/hg/v4l-dvb) almost all i2c modules
-> have been converted. It can however be confusing due to the use of
-> backwards compatibility headers v4l2-i2c-drv.h and v4l2-i2c-drv-legacy.h.
-> The latter will disappear once all adapter drivers have been converted. The
-> first is still needed since the v4l-dvb master also supports kernels <
-> 2.6.22.
->
-> There has been a lot of discussion about that and it looks like
-> v4l2-i2c-drv.h will probably disappear as well in the future as we will
-> attempt to do the backwards compatibility in a different way.
->
-> Since you don't need such compatibility, you can ignore those headers and
-> only concentrate on the subdev changes.
->
-> Good examples are wm8739.c and saa7115.c. Note that there are no sensor
-> drivers converted as these are currently all soc-camera or v4l2-int based.
-> I'm sure that you will need to add new ops to v4l2-subdev.h for sensor
-> drivers.
->
-> The v4l-dvb master also contains several PCI and USB drivers that are
-> converted to use v4l2_device/v4l2_subdev. Probably the best to look at is
-> saa7134. Also interesting is cx18 since that models the analog digitizer
-> part of the cx23418 device as a subdev, thus demonstrating that sub-devices
-> do not have to be actual i2c devices.
->
-> It would be great if at least one sensor driver could be implemented in
-> v4l2_subdev before the 2.6.30 merge window opens. Any changes that need to
-> be made to v4l2_subdev to support such drivers will then be in the 2.6.30
-> tree which will make it easier for you to track compared to v4l-dvb.
->
-> Regards,
->
->        Hans
->
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
->
+Hermann
 
 
-
--- 
-========================================================
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
-========================================================
