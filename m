@@ -1,89 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:38666 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754064AbZCQIfM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Mar 2009 04:35:12 -0400
-Date: Tue, 17 Mar 2009 09:28:54 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] LED control
-Message-ID: <20090317092854.55f27763@free.fr>
-In-Reply-To: <Pine.LNX.4.58.0903150805140.28292@shell2.speakeasy.net>
-References: <20090314125923.4229cd93@free.fr>
-	<20090314091747.21153855@pedra.chehab.org>
-	<Pine.LNX.4.58.0903141315300.28292@shell2.speakeasy.net>
-	<20090315105037.6266687a@free.fr>
-	<Pine.LNX.4.58.0903150805140.28292@shell2.speakeasy.net>
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:59857 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751991AbZC1Fwq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Mar 2009 01:52:46 -0400
+Subject: Re: [linux-dvb] TechnoTrend C-1501 - Locking issues on 388Mhz
+From: hermann pitton <hermann-pitton@arcor.de>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org, erik_bies@hotmail.com,
+	Michael Krufky <mkrufky@linuxtv.org>
+In-Reply-To: <1238215729.3421.7.camel@pc07.localdom.local>
+References: <7b41dd970903251353n46f55bbfg687c1cfa42c5b824@mail.gmail.com>
+	 <1238111503.4783.23.camel@pc07.localdom.local>
+	 <20090326210929.32235862@pedra.chehab.org>
+	 <1238114810.4783.32.camel@pc07.localdom.local>
+	 <20090326220225.72b122b2@pedra.chehab.org>
+	 <1238117947.4783.48.camel@pc07.localdom.local>
+	 <20090327073858.25d11327@pedra.chehab.org>
+	 <1238196235.6530.38.camel@pc07.localdom.local>
+	 <20090328005859.044431a8@pedra.chehab.org>
+	 <1238214756.3421.3.camel@pc07.localdom.local>
+	 <1238215729.3421.7.camel@pc07.localdom.local>
+Content-Type: text/plain
+Date: Sat, 28 Mar 2009 06:51:40 +0100
+Message-Id: <1238219500.3421.47.camel@pc07.localdom.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 15 Mar 2009 08:14:56 -0700 (PDT)
-Trent Piepho <xyzzy@speakeasy.org> wrote:
 
-> > - this asks to have a kernel generated with CONFIG_NEW_LEDS,  
+Am Samstag, den 28.03.2009, 05:48 +0100 schrieb hermann pitton:
+> Am Samstag, den 28.03.2009, 05:32 +0100 schrieb hermann pitton:
+> > Am Samstag, den 28.03.2009, 00:58 -0300 schrieb Mauro Carvalho Chehab:
+> > > On Sat, 28 Mar 2009 00:23:55 +0100
+> > > hermann pitton <hermann-pitton@arcor.de> wrote:
+> > > 
+> > > > Hi,
+> > > > 
+> > > > Am Freitag, den 27.03.2009, 07:38 -0300 schrieb Mauro Carvalho Chehab:
+> > > > > On Fri, 27 Mar 2009 02:39:07 +0100
+> > > > > hermann pitton <hermann-pitton@arcor.de> wrote:
+> > > > > 
+> > > > > > But my main concern is, if it once arrived at patchwork formally, it is
+> > > > > > out of sight for most of us and might miss proper review, except you are
+> > > > > > sure you can always guarantee that. I don't want to start to argue about
+> > > > > > all what happened in the past.
+> > > > > > 
+> > > > > > So, at least, if some patch arrived there mysteriously ;), the
+> > > > > > linux-media list should be informed that it is there now and last time
+> > > > > > to speak off, in case anything is not fully clear, before vanishing into
+> > > > > > some black hole until you find it in the next kernel release ...
+> > > > > 
+> > > > > The only way to send patches to patchwork is to submit it via linux-media list.
+> > > > > There's no other way. So, all patch discussions and reviews should happen at
+> > > > > the ML, by replying at the patch email (or by replying another reply).
+> > > > > Patchwork will keep track of such replies as well.
+> > > > > 
+> > > > 
+> > > > What happened so far with this patches is quite funny,
+> > > > for me some black hole seems to be involved.
+> > > > 
+> > > > Klaas did send them the first time, also directly to me, on Tue, 24 Mar
+> > > > 2009 23:14:11 +0100.
+> > > > 
+> > > > Now I can see you have pulled them in already on Wednesday.
+> > > > http://linuxtv.org/hg/v4l-dvb/rev/5efa9fbc8a88
+> > > > 
+> > > > There is no trace anymore on patchwork visible to me.
+> > > > http://patchwork.kernel.org/project/linux-media/list
+> > > > So I don't know how you processed them.
+> > > 
+> > > The above link uses the default patchwork filtering. By default it shows only
+> > > patches where there's an action required (e. g. New or Under Review patches).
+> > > 
+> > > To view a full list of the patches, you need to click at filters and select any.
+> > > 
+> > > You'll see all patches:
+> > > 	http://patchwork.kernel.org/project/linux-media/list/?state=*
+> > > 
+> > > In the specific case od Klaas, this is his patch:
+> > > 
+> > > http://patchwork.kernel.org/patch/14405/
+> > > 
+> > > > Most confusing is, that Klaas obviously did not receive a mail
+> > > > notification from linuxtv-commits that his patch came in.
+> > > 
+> > > > 
+> > > > Last message date: Fri Feb 15 19:45:02 CET 2008
+> > > > Archived on: Fri Feb 15 19:45:04 CET 2008 
+> > > > 
+> > > > Is it broken or only the archive not up to date?
+> > > > 
+> > > 
+> > > I've received the notification here:
+> > > 
+> > > From: Patch from klaas de waal  <hg-commit@linuxtv.org>
+> > > To: linuxtv-commits@linuxtv.org
+> > > Cc: , Mauro Carvalho Chehab <mchehab@redhat.com>, klaas de waal <klaas.de.waal@gmail.com>
+> > > Subject: [linuxtv-commits] [hg:v4l-dvb] tda827x: fix locking issues with DVB-C
+> > > Date: Fri, 27 Mar 2009 18:05:01 +0100
+> > > Reply-To: klaas de waal via Mercurial <klaas.de.waal@gmail.com>
+> > > Sender: linuxtv-commits-bounces@linuxtv.org
+> > > 
+> > > The patch number 11236 was added via Mauro Carvalho Chehab <mchehab@redhat.com>
+> > > to http://linuxtv.org/hg/v4l-dvb master development tree.
+> > > 
+> > > Klaas should be received this also. Maybe some anti-spam filtering on his side?
+> > > 
+> > > You'll probably see this also at the linuxtv-commits archives.
+> > > 
+> > > > Why else he would have posted a second time on
+> > > > Wed, 25 Mar 2009 21:53:02 +0100 not knowing anything about the status of
+> > > > his patches, which made me believe I should try to help him?
+> > > > 
+> > > > The timestamp on your mercurial commit of them is
+> > > > Wed Mar 25 20:53:02 2009 +0000 (2 days ago)
+> > > > That is the time when his second email arrived converted to Greenwich
+> > > > time? Or how could you commit within the same second that mail arrived?
+> > > 
+> > > > This is the time the patches have on both of his original mails.
+> > > > --- a/linux/drivers/media/common/tuners/tda827x.c Tue Mar 24 21:12:47 2009 +0000
+> > > > --- a/linux/drivers/media/common/tuners/tda827x.c Tue Mar 24 21:12:47 2009 +0000
+> > > 
+> > > The import scripts will try to preserve the original date of the sent email.
+> > > 
+> > > So, the date there is when the code were presented to public.
+> > > 
+> > > > How can I ever know when they were really added and if they went through
+> > > > patchwork :)
+> > > > 
+> > > > I was just about to suggest Klaas should try again with [PATCH] in the
+> > > > subject until they are listed at patchwork.
+> > > 
+> > > If the patch was received by patchwork, and "disappeared", all you need to do
+> > > is to click on filter and select a proper filter, like:
+> > > 
+> > > http://patchwork.kernel.org/project/linux-media/list/?submitter=klaas&state=*
+> > > 
+> > > This will present all patches authored by "klaas", and their state. Ah, if you
+> > > click on the patch, you'll see all the patch history, including the
+> > > sent/received emails. Even this email should be added there by patchwork ;)
+> > > 
+> > > Cheers,
+> > > Mauro
+> > 
+> > Mauro, you are joking.
+> > 
+> > How I ever could come to that from here?
+> > http://patchwork.kernel.org/project/linux-media/list
+> > 
+> > I'm forced to read the source code.
+> > 
+> > There seems to be some serious utf8 bug too.
 > 
-> So?
->
-> > - the user must use some new program to
-> > access /sys/class/leds/<device>,  
-> 
-> echo, cat?
-> 
-> > - he must know how the LEDs of his webcam are named in the /sys
-> > tree.  
-> 
-> Just give them a name like video0:power and it will be easy enough to
-> associate them with the device.  I think links in sysfs would do it
-> to, /sys/class/video4linux/video0/device/<ledname> or something like
-> that.
-> 
-> The advantage of using the led class is that you get support for
-> triggers and automatic blink functions, etc.
+> Ok, I can see now you can click at least one of the 2mm buttons, of
+> course all self explaining :)
 
-Sorry for I don't see the usage of blinking the LEDs for a webcam.
+One last comment on it, hopefully all goes well, but it did not go like
+I would have preferred it.
 
-Again, using the led class makes me wonder about:
+It was not waited for, if somebody has eventually already the detailed
+programming instructions for that one. It likely is the case after all
+these years.
 
-1) The end users.
+The patch was never tested by those eventually affected on the other
+side, since at least I would have await that this direction is confirmed
+to still be right previously :)
 
-Many Linux users don't know the kernel internal, nor which of the too
-many applications they should use to make their devices work. If no
-developper creates a tool to handle the webcams, the users have to
-search again and again. Even if there is a full documentation, they
-will try anything and eventually ask the kernel developpers why they
-cannot have their LEDs switched on.
+The driver maintainer, who has also high credits for moderating within
+unrelated conflicting stuff he did not cause at all over years, did not
+give a statement yet. My, wait at least a week after the patches are
+around since ever anyway, except for getting the LNA config quiet.
 
-Actually, there are a few programs that can handle the webcam
-parameters. In fact I know only 'v4l2-ctl': I did not succeeded to
-compile qv4l2; v4l2ucp has been removed from Debian; and, anyway, these
-programs don't handle the VIDIOC_G_JPEGCOMP and VIDIOC_S_JPEGCOMP
-ioctls.
+Cheers,
+Hermann
 
-2) The memory overhead.
 
-Using the led class adds more kernel code and asks the webcam drivers
-to create a new device. Also, the function called for changing the LED
-brighness cannot sleep, so the use a workqueue is required.
 
-On contrary, with a webcam control, only one byte (for 8 LEDs) is added
-to the webcam structure and the change is immediatly done in the ioctl.
 
-3) The development time.
 
-I already spent 2 hours to look how the led class was working. I am not
-sure to develop a full LED mechanism in less than 5 to 8 hours, and, as
-I cannot test it by myself, I will have to wait for testers to know if
-the various protections (USB access, USB disconnection) work in all
-cases.
 
-Otherwise, adding a new control in a driver may be done in less than
-half an hour, and, sure, it will work well at the first go!
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
