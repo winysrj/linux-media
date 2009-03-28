@@ -1,28 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.190]:8519 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753130AbZCYHgZ (ORCPT
+Received: from hrndva-commlb.mail.rr.com ([71.74.57.9]:37111 "EHLO
+	hrndva-commlb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754097AbZC1LIj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Mar 2009 03:36:25 -0400
-Received: by fk-out-0910.google.com with SMTP id 18so1154419fkq.5
-        for <linux-media@vger.kernel.org>; Wed, 25 Mar 2009 00:36:22 -0700 (PDT)
-Message-ID: <49C9DE75.2000600@gmail.com>
-Date: Wed, 25 Mar 2009 09:34:13 +0200
-From: Darius Augulis <augulis.darius@gmail.com>
+	Sat, 28 Mar 2009 07:08:39 -0400
+Received: from rrcs-agw-01.hrndva.rr.com ([24.28.200.151])
+          by hrndva-comm-mta03.mail.rr.com with ESMTP
+          id <20090328110837.ZQVX17816.hrndva-comm-mta03.mail.rr.com@rrcs-agw-01.hrndva.rr.com>
+          for <linux-media@vger.kernel.org>;
+          Sat, 28 Mar 2009 11:08:37 +0000
+Message-Id: <7h9gbp$ckvk2m@rrcs-agw-01b.hrndva.rr.com>
+From: Siemens Online Promo <feetfirst@winch.twcbc.com>
+Reply-To: siemens12@rocketmail.com
+To: <info@lotto.com>
+Subject: Your email ID
+Date: Sat, 28 Mar 2009 6:08:37 -0500
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: how to disable mail sending in this ML?
-Content-Type: text/plain; charset=ISO-8859-13; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+Your email ID has been awarded £750.000.00 GBP in our recent Siemens  Online Promotion draw,Contact this office with your details and sent to: siemens12@btinternet.com
 
-subj.
-Want to still subscribed, but don't need all these posts in my mailbox.
-How to disable?
-
-Thanks.
-
-
+Name:....................
+Country:.................
+Sex:.....................
+Age: .....................
+Address:...................
