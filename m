@@ -1,29 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35498 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753343AbZCLWCf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Mar 2009 18:02:35 -0400
-Message-ID: <49B98677.9030102@iki.fi>
-Date: Fri, 13 Mar 2009 00:02:31 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
+Received: from mail12.sea5.speakeasy.net ([69.17.117.14]:51363 "EHLO
+	mail12.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752269AbZC1Uq5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Mar 2009 16:46:57 -0400
+Received: from shell2.sea5.speakeasy.net ([69.17.116.3])
+          (envelope-sender <xyzzy@speakeasy.org>)
+          by mail12.sea5.speakeasy.net (qmail-ldap-1.03) with AES256-SHA encrypted SMTP
+          for <linux-media@vger.kernel.org>; 28 Mar 2009 20:46:54 -0000
+Date: Sat, 28 Mar 2009 13:46:54 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
 To: linux-media@vger.kernel.org
-CC: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] getting started
-References: <49B982A5.7010103@august.de>
-In-Reply-To: <49B982A5.7010103@august.de>
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: saa7146 vbi capture broken?
+Message-ID: <Pine.LNX.4.58.0903281336200.28292@shell2.speakeasy.net>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rolf Schumacher wrote:
-> File not found: /lib/modules/2.6.28-7.slh.3-sidux-686/build/.config at
-> ./scripts/make_kconfig.pl line 32, <IN> line 4.
-
-kernel-devel, kernel-headers, linux-devel or linux-headers package is 
-missing. Package name varies from distribution to distribution...
-
-
--- 
-http://palosaari.fi/
+While working on another patch I noticed a flaw I think is preventing VBI
+capture on saa7146 from working.  The v4l2-ioctl code will not allow
+VIDIOC_(Q|DQ|REQ|QUERY)BUFS ioctls for a given buffer type unless the driver
+provides a ->vidioc_try_fmt_foo() method for that buffer type.  SAA7146
+only provides try_fmt methods for video_capture and video_overlay, NOT
+vbi_capture.  Has anyone actually used saa7146 for VBI capture?
