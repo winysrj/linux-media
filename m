@@ -1,62 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55592 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753307AbZCEXC5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 18:02:57 -0500
-From: "Curran, Dominic" <dcurran@ti.com>
-To: Alexey Klimov <klimov.linux@gmail.com>
-CC: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
-	MiaoStanley <stanleymiao@hotmail.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
-Date: Thu, 5 Mar 2009 17:02:44 -0600
-Subject: RE: [PATCH 4/5] OMAP3430SDP: Add support for Camera Kit v3
-Message-ID: <96DA7A230D3B2F42BA3EF203A7A1B3B5012EAC2699@dlee07.ent.ti.com>
-In-Reply-To: <208cbae30903051405p7588b3a9pb17338ec99dc749a@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from banach.math.auburn.edu ([131.204.45.3]:58356 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753449AbZC1Tz4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Mar 2009 15:55:56 -0400
+Date: Sat, 28 Mar 2009 15:08:55 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Jean-Francois Moine <moinejf@free.fr>
+cc: linux-media@vger.kernel.org
+Subject: A question about Documentation/video4linux/gspca.txt
+In-Reply-To: <20090327200106.7cae9bec@free.fr>
+Message-ID: <alpine.LNX.2.00.0903281437310.4041@banach.math.auburn.edu>
+References: <1238170102.3791.8.camel@tux.localhost> <20090327200106.7cae9bec@free.fr>
 MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+I notice that sq905.c and sq905c.c have now been added to the gspca tree.
 
-> -----Original Message-----
-> From: Alexey Klimov [mailto:klimov.linux@gmail.com]
-> Sent: Thursday, March 05, 2009 4:05 PM
-> To: Curran, Dominic
-> Cc: DongSoo(Nathaniel) Kim; Aguirre Rodriguez, Sergio Alberto; linux-
-> media@vger.kernel.org; linux-omap@vger.kernel.org; Sakari Ailus; Tuukka.O
-> Toivonen; Hiroshi DOYU; MiaoStanley; Nagalla, Hari; Hiremath, Vaibhav;
-> Lakhani, Amish; Menon, Nishanth
-> Subject: Re: [PATCH 4/5] OMAP3430SDP: Add support for Camera Kit v3
->
-> >> > +               /* out of standby */
-> >> > +               gpio_set_value(MT9P012_STANDBY_GPIO, 0);
-> >> > +               udelay(1000);
-> >>
-> >> It seems better using msleep rather than udelay for 1000us much. Just
-> >> to be safe :)
-> >> How about you?
-> >>
-> >
-> > Why is msleep safer than udelay ?
->
-> I have small guess that he is wondering why you are using big delays
-> with help of udelay(). (It's may be obvious but as we know udelay uses
-> cpu loops to make delay and msleep calls to scheduler) So, msleep is
-> more flexible and "softer" but if you need precise time or you can't
-> sleep in code you need udelay. Sometimes using udelay is reasonably
-> required.
->
+But now a question about the documentation. None of that has been 
+addressed, as yet, neither for the sq905 nor for the sq905c cameras. The 
+code has been added to the tree, but the accompanying documentation 
+is, as yet, missing. I would be glad to provide it, but it seems to me 
+that a policy question comes up, about just what to add. There are lots of 
+cameras.
 
-Ah, I did not know that msleep() called scheduler.
-Thank you.
+
+Here is the problem:
+
+The sq905 module supports, as far as I know, the entire list of cameras 
+which are supported by libgphoto2/camlibs/sq905, and probably more which I 
+did not list there because I got tired of adding yet another camera when, 
+in fact, functionally they were all pretty much equivalent (My bad. I 
+know that I missed a few of them, but I was more inexperienced back 
+then). In any event, the support for 24 cameras is explicitly listed 
+there.
+
+The sq905c module supports, as far as I know, the entire list of cameras 
+which are supported by libgphoto2/camlibs/digigr8. The support for 16 
+cameras (or 17, if the line in libgphoto2/camlibs/digigr8/library.c 
+"Sakar 28290 and 28292  Digital Concepts Styleshot"
+which refers to two cameras differing only in the color of the case 
+is counted as referring to two cameras).
+
+Thus, if the documentation would be provided in 
+linux/Documentation/video4linux/gspca.txt it would amount to a total of 41 
+new entries, for these two new modules alone. Should all 41 of them be 
+added? I would think that they all ought to be listed somewhere, but 
+should the somewhere be there, or somewhere else? That is the question.
+
+One possibility might be to refer the curious reader to the existing list 
+in the relevant file in libgphoto2, for example, since these are all 
+dual-mode cameras. If that were done, then it would be only needed to put 
+the USB Vendor:Product number into the gspca.txt file, along with a 
+pointer to the full information.
+
+Theodore Kilgore
