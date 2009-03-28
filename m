@@ -1,88 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from powered.by.root24.eu ([91.121.20.142]:38481 "EHLO Root24.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752373AbZCOWGe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2009 18:06:34 -0400
-Message-ID: <49BD7BDF.6060105@ionic.de>
-Date: Sun, 15 Mar 2009 23:06:23 +0100
-From: Mihai Moldovan <ionic@ionic.de>
-MIME-Version: 1.0
-To: =?UTF-8?B?TWF0ZXVzeiBKxJlkcmFzaWs=?= <m.jedrasik@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Pinnacle PCTV Hybrid Pro Card (310c)... once again...
-References: <49BC3DEE.9050307@ionic.de>	 <d9def9db0903141641g457b9cdar317b0d8e5f132150@mail.gmail.com>	 <49BC4535.6090700@ionic.de>	 <d9def9db0903141725q86476e9i7fdf97d9198484ac@mail.gmail.com>	 <49BC5788.50207@ionic.de> <1237082593.1970.2.camel@compal> <49BCD9BC.8070702@ionic.de>
-In-Reply-To: <49BCD9BC.8070702@ionic.de>
-Content-Type: multipart/signed; micalg=pgp-sha512;
- protocol="application/pgp-signature";
- boundary="------------enig2C43EEC2D31B4CB496AC1356"
+Received: from wa-out-1112.google.com ([209.85.146.178]:61096 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752985AbZC1CRe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Mar 2009 22:17:34 -0400
+Received: by wa-out-1112.google.com with SMTP id j5so845680wah.21
+        for <linux-media@vger.kernel.org>; Fri, 27 Mar 2009 19:17:32 -0700 (PDT)
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	"Kim, Heung Jun" <riverful@gmail.com>,
+	Bill Dirks <bill@thedirks.org>, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, dongsoo45.kim@samsung.com
+Message-Id: <9FB01D5C-4894-4513-8962-7294E0D85EBD@gmail.com>
+From: Dongsoo Kim <dongsoo.kim@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+In-Reply-To: <200903271719.00404.laurent.pinchart@skynet.be>
+Content-Type: text/plain; charset=EUC-KR; format=flowed; delsp=yes
+Content-Transfer-Encoding: 8BIT
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Subject: Re: how about adding FOCUS mode?
+Date: Sat, 28 Mar 2009 11:17:27 +0900
+References: <b64afca20903262320g1bd35163lcce41724dd5db965@mail.gmail.com> <200903270824.28092.hverkuil@xs4all.nl> <200903271719.00404.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig2C43EEC2D31B4CB496AC1356
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-* On 15.03.2009 11:34, I myself wrote:
-> * On 15.03.2009 03:03, Mateusz J=C4=99drasik wrote:
->> To answer any questions that were posed at me, I have not been
->> using the card much, but were able to get analog picture (no
->> sound) with it using Ubuntu 8.10 stock kernel - I'm guessing
->> 2.6.27 at the time.
+
+2009. 03. 28, 오전 1:19, Laurent Pinchart 작성:
+
+> Hi,
 >
-> Cool, this would be a great start, really! I will switch to
-> in-kernel drivers again, too (thought 2.6.28.7 ones.) Let's see
-> whether this does work...
-Tried out the stock Kernel drivers and experienced following:
-
-  - DVB-T is working fine, at least with VLC... Kaffeine leaves the
-card in an unusable state sometimes which can be only solved be
-re-plugging the card, really weird stuff...
-
-  - radio is still not working and it actually does break analog TV
-output (obviously? Needs further investigation!)
-
-  - analog TV is working fine now in picture but the sound fails on
-full scale - can this problem be addressed by anyone here? What
-exactly is wrong with it? I read about sound working with this
-usbaudio.sh script, but it's ALSA only... could OSS support be
-possibly integrated?
-
-
->> Stay tuned.
+> On Friday 27 March 2009 08:24:27 Hans Verkuil wrote:
+>> On Friday 27 March 2009 07:20:51 Kim, Heung Jun wrote:
+>>> Hello, Hans & everyone.
+>>>
+>>> I'm trying to adapt the various FOCUS MODE int the NEC ISP driver.
+>>> NEC ISP supports 4 focus mode, AUTO/MACRO/MANUAL/FULL or NORMAL.
+>>> but, i think that it's a little insufficient to use V4L2 FOCUS  
+>>> Feature.
+>>>
+>>> so, suggest that,
+>>>
+>>> - change V4L2_CID_FOCUS_AUTO's type from boolean to interger, and  
+>>> add
+>>> the following enumerations for CID values.
+>>>
+>>> enum v4l2_focus_mode {
+>>>    V4L2_FOCUS_AUTO            = 0,
+>>>    V4L2_FOCUS_MACRO        = 1,
+>>>    V4L2_FOCUS_MANUAL        = 2,
+>>>    V4L2_FOCUS_NORMAL        = 3,
+>>>    V4L2_FOCUS_LASTP        = 3,
+>>> };
+>>>
+>>> how about this usage? i wanna get some advice about FOCUS MODE.
 >
-> But I cannot tune anything! ;-)
-Done - tuned in correctly now. :-)
-
-Best regards,
-
-
-Mihai
+> V4L2_CID_FOCUS_AUTO is meant to change the auto-focus mode. Can you  
+> describe
+> FOCUS_MACRO and FOCUS_NORMAL in more details ? Are they auto-focus  
+> modes or
+> just focus presets ?
 
 
+As far as I know, they represent focus lens movement range.
+If you set to AF macro, focus lens scans near range first, so that  
+focusing movement could finish earlier.
 
---------------enig2C43EEC2D31B4CB496AC1356
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+>
+>
+>> This seems more logical to me:
+>>
+>> enum v4l2_focus_mode {
+>>    V4L2_FOCUS_MANUAL = 0,
+>>    V4L2_FOCUS_AUTO_NORMAL = 1,
+>>    V4L2_FOCUS_AUTO_MACRO = 2,
+>> };
+>>
+>> At least this maps the current boolean values correctly. I'm not  
+>> sure from
+>> your decription what the fourth auto focus mode is supposed to be.
+>
+> Does an auto-macro focus mode really exists ?
 
-iQIcBAEBCgAGBQJJvXviAAoJEB/WLtluJTqHOM4P/0lh1I+ktExBIN0U4IAr4nPt
-nf+FfupAz1wb+ssgG1F94TJAvcb/gxewAJKSkcYoVeoJrWJmS2F0eFjywcAcEWJj
-ZD4hg4YHWCFUwwmUNmfDvoa5x5CMu90KJFadHIiMwxyrKKVA12llEe+ROye7xO/E
-mrgd3fysLbP8OkEyjzbBU+vKJFnUfuQr1m+njQnU/b3OK+X2eoKsyACVmgsaJ6ul
-7G9OQT912t06KfdvvXg5ZOyPyBbYJG4IzDhKHefXzYdASkFA7EYofOOJj27ldiqx
-89vU5l8wr+WXljiHvs2e4e1ieInyeOGOUDCVIAt6FmwwwWoPw9qAty0H9D+Y6dzp
-W0DAKB9sEW2RRIKD8NJVFa5IWXvqNFvb5BBqmWfAih5mM+sGA9VTkVWFwxH4nzng
-E5KUYIkK1VzbCd0g/DxeEnbNAdErgh2fjEdJR+QSNdloioU8I4yWU0KOlSPkn1tZ
-SkPB1cgLjr4cI4z/C1Hh/HQU+LoDOtcvxvp7ZDFiJIpO4A3c8gnVaSJ0/iMVhDD5
-Ef48hSoyL9ZjW+zAamoZvOgxajJbPxczwJmr7mDUhKLb8W8GjjhHhy+eRwBFrr9+
-vRv1hqKuSI2TpTsZ7+S3SYXnjsn7JT1ARpU86O1OYxEDYTrkfkzhErl8IhqKyMmA
-9alEoh9cSUyHdqc9NwHH
-=lYg3
------END PGP SIGNATURE-----
 
---------------enig2C43EEC2D31B4CB496AC1356--
+Sure, you can find in some digital camera or brand new high end camera  
+phones.
+
+By the way, sorry for answering instead of heungjun Kim. I work with  
+him actually.
+Is it OK?
+
+Cheers,
+
+Nate
+
+>
+>
+>> But I think it might be better to have a separate control that  
+>> allows you
+>> to set the auto-focus mode. I can imagine that different devices  
+>> might have
+>> different auto-focus modes.
+>>
+>> I've CC-ed Laurent since this is more his field than mine.
+>
+> Regards,
+>
+> Laurent Pinchart
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux- 
+> media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
