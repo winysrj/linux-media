@@ -1,67 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:54365 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1756390AbZCWIPe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Mar 2009 04:15:34 -0400
-Date: Mon, 23 Mar 2009 09:15:38 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: morimoto.kuninori@renesas.com
-cc: Linux Media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] ov772x: add edge contrl support
-In-Reply-To: <u8wmw1x4c.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.0903230911130.4527@axis700.grange>
-References: <uab7c249a.wl%morimoto.kuninori@renesas.com>
- <Pine.LNX.4.64.0903230829510.4476@axis700.grange> <u8wmw1x4c.wl%morimoto.kuninori@renesas.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4212 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752974AbZC1TXh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Mar 2009 15:23:37 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2SJNYC9035421
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 28 Mar 2009 20:23:34 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 28 Mar 2009 20:23:34 +0100 (CET)
+Message-Id: <200903281923.n2SJNYC9035421@smtp-vbr14.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 23 Mar 2009, morimoto.kuninori@renesas.com wrote:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> Dear Guennadi
-> 
-> Thank you for checking
-> 
-> > Wouldn't it be easier to use
-> > 
-> > 	unsigned char	edge_strength;
-> > 	unsigned char	edge_threshold;
-> > 	unsigned char	edge_low;
-> > 	unsigned char	edge_high;
-> > 
-> > and thus avoid all that shifting?
-> 
-> Yes. it is easier to use.
-> But, driver should judge whether to use this setting or not.
-> Because this setting is optional.
-> 
-> Because user setting might be 0,
-> we can not judge it like this.
->   if (edge_xxx)
->        ov772x_mask_set( xxxx )
-> 
-> So, we can use un-used bit to judge whether to use it.
-> and edge_strength and edge_threshold have un-used bit.
-> But edge_low and edge_high doesn't have un-used bit.
-> 
-> Another way to judge it is to use pointer or to add another variable.
-> But I don't like these style.
-> What do you think about this ?
+Results of the daily build of v4l-dvb:
 
-Is edge_strength == 0 a useful edge configuration? Cannot you use it as a 
-test whether to set all edge parameters or not? If you cannot, well, just 
-do the same as what you have done with 32-bits - use one bit in strength 
-as "edge enable" - just exactly in the same way as in your patch. Like
+date:        Sat Mar 28 19:00:05 CET 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11250:2adf4a837334
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-	if (edge_strength & EDGE_ENABLE) {
-		set_strength;
-		set_threshold;
-		set_low;
-		set_high;
-	}
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-m32r: OK
+linux-2.6.22.19-mips: OK
+linux-2.6.26-mips: WARNINGS
+linux-2.6.27-mips: WARNINGS
+linux-2.6.28-mips: WARNINGS
+linux-2.6.29-mips: WARNINGS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29-x86_64: WARNINGS
+fw/apps: WARNINGS
+sparse (linux-2.6.29): ERRORS
+linux-2.6.16.61-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
