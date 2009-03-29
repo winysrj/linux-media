@@ -1,45 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:60812 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751037AbZCNMSP (ORCPT
+Received: from mk-outboundfilter-6.mail.uk.tiscali.com ([212.74.114.14]:55321
+	"EHLO mk-outboundfilter-6.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752949AbZC2WWP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Mar 2009 08:18:15 -0400
-Date: Sat, 14 Mar 2009 09:17:47 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] LED control
-Message-ID: <20090314091747.21153855@pedra.chehab.org>
-In-Reply-To: <20090314125923.4229cd93@free.fr>
-References: <20090314125923.4229cd93@free.fr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Sun, 29 Mar 2009 18:22:15 -0400
+From: Adam Baker <linux@baker-net.org.uk>
+To: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 2/4] Specify SHELL in documentation Makefile
+Date: Sun, 29 Mar 2009 23:22:08 +0100
+Cc: Hans de Goede <j.w.r.degoede@hhs.nl>,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	kilgota@banach.math.auburn.edu, Hans Verkuil <hverkuil@xs4all.nl>
+References: <200903292309.31267.linux@baker-net.org.uk> <200903292317.10249.linux@baker-net.org.uk>
+In-Reply-To: <200903292317.10249.linux@baker-net.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903292322.08660.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 14 Mar 2009 12:59:23 +0100
-Jean-Francois Moine <moinejf@free.fr> wrote:
+The Makefile for the V4L2 spec uses bash extensions but
+was using the default system shell, change it to explicitly
+request bash.
 
-> +	    <entry><constant>V4L2_CID_LEDS</constant></entry>
-> +	    <entry>integer</entry>
-> +	    <entry>Switch on or off the LEDs or illuminators of the device.
-> +In the control value, each LED may be coded in one bit (0: off, 1: on) or in
-> +many bits (light intensity).</entry>
-> +	  </row>
-> +	  <row>
+Signed-off-by: Adam Baker <linux@baker-net.org.uk>
 
-The idea of having some sort of control over the LEDs is interesting, but we
-should have a better way of controlling it. If the LED may have more than one
-bit, maybe the better would be to create more than one CID entry. Something like:
+---
+diff -r d8d701594f71 v4l2-spec/Makefile
+--- a/v4l2-spec/Makefile	Sun Mar 29 08:45:36 2009 +0200
++++ b/v4l2-spec/Makefile	Sun Mar 29 22:59:16 2009 +0100
+@@ -1,5 +1,6 @@
+ # Also update in v4l2.sgml!
+ VERSION = 0.25
++SHELL=/bin/bash
+ 
+ SGMLS = \
+ 	biblio.sgml \
 
-V4L2_CID_LED_POWER	- for showing that the camera is being used
-V4L2_CID_LED_LIGHT	- for normal white light
-V4L2_CID_LED_INFRARED	- for dark light, using infrared
-...
-
-This way a driver can enumberate what kind of leds are available, and get the
-power intensity range for each individual one.
-
-Cheers,
-Mauro
