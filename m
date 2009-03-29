@@ -1,52 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from n5a.bullet.mud.yahoo.com ([209.191.126.232]:46794 "HELO
-	n5a.bullet.mud.yahoo.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932696AbZC0Bhm (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:40015 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750810AbZC2Krh convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2009 21:37:42 -0400
-From: David Brownell <david-b@pacbell.net>
-To: Janne Grunau <j@jannau.net>
-Subject: Re: v4l parent for usb device interface or device?
-Date: Thu, 26 Mar 2009 18:31:55 -0700
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@skynet.be>,
-	linux-media@vger.kernel.org,
-	Ricardo Jorge da Fonseca Marques Ferreira
-	<storm@sys49152.net>, linux-usb@vger.kernel.org
-References: <20232.62.70.2.252.1237993114.squirrel@webmail.xs4all.nl> <49CB7545.2050301@redhat.com> <20090327005124.GD2349@aniel>
-In-Reply-To: <20090327005124.GD2349@aniel>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200903261831.55746.david-b@pacbell.net>
+	Sun, 29 Mar 2009 06:47:37 -0400
+Date: Sun, 29 Mar 2009 07:47:14 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Juan =?ISO-8859-1?B?SmVz+nMgR2FyY+1h?= de Soria Lucena
+	<skandalfo@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] Add AVerMedia A310 USB IDs to CE6230 driver.
+Message-ID: <20090329074714.4e893ae9@pedra.chehab.org>
+In-Reply-To: <49CF5013.70901@iki.fi>
+References: <b0bb99640903281936u43ba9a84l6cfa5c8d3d00de0e@mail.gmail.com>
+	<49CF5013.70901@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 26 March 2009, Janne Grunau wrote:
+On Sun, 29 Mar 2009 13:40:19 +0300
+Antti Palosaari <crope@iki.fi> wrote:
+
+> hello
 > 
-> While I generally agree that setting parent to the usb interface is
-> probably correct for multifunction devices
-
-Make that "all" devices.  :)
-
-
-> I noticed a problem after 
-> changing the hdpvr driver accordingly.
+> Juan Jesús García de Soria Lucena wrote:
+> > El día 28 de marzo de 2009 22:05, Mauro Carvalho Chehab
+> > <mchehab@infradead.org> escribió:
+> >> So, please send the patch you did for analysis. Please submit it as explained at [1].
+> >>
+> >> [1] http://linuxtv.org/hg/v4l-dvb/raw-file/tip/README.patches
+> > 
+> > Add AVerMedia A310 USB IDs to CE6230 driver.
+> > 
+> > From: Juan Jesús García de Soria Lucena <skandalfo@gmail.com>
+> > 
+> > The CE6230 DVB USB driver works correctly for the AVerMedia A310 USB2.0
+> > DVB-T tuner. Add the required USB ID's and hardware names so that the
+> > driver will handle it.
+> > 
+> > Priority: normal
+> > 
+> > Signed-off-by: Juan Jesús García de Soria Lucena <skandalfo@gmail.com>
+> > 
+> > diff -r b1596c6517c9 -r 71dd4cff4eb6 linux/drivers/media/dvb/dvb-usb/ce6230.c
 > 
-> With parent set to the usb interface there is no longer easy access to
-> the usb device properties like the serial number through sysfs. I know
-> that a couple of user with more than one device use the serial number
-> to set static device nodes through udev.
+> Thank you. Patch looks 100% correct and good for me.
+> 
+> Mauro, should I pick up and add this my devel tree and PULL-request or 
+> is there now patchwork which handles this? Current procedure is not 
+> clear for me...
 
-The serial number is still available, but it's coupled to the USB
-device not its interface.  Make your udev script hop up a level or
-two in the driver model tree, as appropriate.
+Any ways will work. 
 
+In fact, it is easier to get from Patchwork since otherwise I'll need to
+manually check what patches you got from the mailing list and manually update
+its status at the Patchwork.
 
+If you prefer me to pick it from patchwork, just reply with your acked-by:
 
+Patchwork will automatically fold the acked together with the patch when I
+download the patch to apply.
 
-
-
+Cheers,
+Mauro
