@@ -1,47 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tichy.grunau.be ([85.131.189.73]:33358 "EHLO tichy.grunau.be"
+Received: from mail.kapsi.fi ([217.30.184.167]:39444 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757175AbZC2O73 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Mar 2009 10:59:29 -0400
-Received: from localhost (unknown [78.52.195.10])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by tichy.grunau.be (Postfix) with ESMTPSA id DF6D190002
-	for <linux-media@vger.kernel.org>; Sun, 29 Mar 2009 16:59:06 +0200 (CEST)
-Date: Sun, 29 Mar 2009 16:59:08 +0200
-From: Janne Grunau <j@jannau.net>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 5 of 8] pvrusb2: use usb_interface.dev for
-	v4l2_device_register
-Message-ID: <20090329145908.GF17855@aniel>
-References: <patchbomb.1238338474@aniel>
+	id S1754235AbZC2LyL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Mar 2009 07:54:11 -0400
+Message-ID: <49CF6157.1050807@iki.fi>
+Date: Sun, 29 Mar 2009 14:53:59 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/x-patch; charset=us-ascii
-Content-Disposition: inline; filename="pvrusb2_usb_intf_v4l2_dev.diff"
-In-Reply-To: <patchbomb.1238338474@aniel>
+To: Olivier MENUEL <olivier.menuel@free.fr>,
+	Laurent Haond <lhaond@bearstech.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: AverMedia Volar Black HD (A850)
+References: <200903291334.00879.olivier.menuel@free.fr>
+In-Reply-To: <200903291334.00879.olivier.menuel@free.fr>
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-# HG changeset patch
-# User Janne Grunau <j@jannau.net>
-# Date 1238338428 -7200
-# Node ID 2d52ac089920f9ac36960c0245442fd89a06bb75
-# Parent  01af508490af3bc9c939c36001d6989e2c147aa0
-pvrusb2: use usb_interface.dev for v4l2_device_register
+Olivier MENUEL wrote:
+> Hi,
+> 
+> Does anyone knows how to get this card work on linux : AverMedia Volar Black HD (A850)
+> lsusb id is : 07ca:850a
+> 
+> I tried this project : http://linuxtv.org/hg/~anttip/af9015_aver_a850/ which seems to be specifically for this card but it does not work (The .num_device_descs has not been correctly set).
+> I tried to fix the .num_device_descs and also tried to add my card in the af9015.c file of the official v4l-dvb project.
+> 
+> My card is now correctly detected and dirs are created in the /dev/dvb, but it seems initialization fails :
+> 
+  > I guess the problem is here :  [ 1164.478066] af9015: command failed:2
 
-Priority: normal
+No it is not biggest problem - it only says that 2nd FE (you have dual 
+tuner) will be disabled because it fails.
 
-Signed-off-by: Janne Grunau <j@jannau.net>
+> It's probably a firmware issue, I'm using this firmware http://otit.fi/~crope/v4l-dvb/af9015/af9015_firmware_cutter/firmware_files/
+> I'm completely stuck and have no idea what else could be done.
 
-diff -r 01af508490af -r 2d52ac089920 linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c
---- a/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	Sun Mar 29 16:53:48 2009 +0200
-+++ b/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	Sun Mar 29 16:53:48 2009 +0200
-@@ -2591,7 +2591,7 @@
- 	hdw->ctl_read_urb = usb_alloc_urb(0,GFP_KERNEL);
- 	if (!hdw->ctl_read_urb) goto fail;
- 
--	if (v4l2_device_register(&usb_dev->dev, &hdw->v4l2_dev) != 0) {
-+	if (v4l2_device_register(&intf->dev, &hdw->v4l2_dev) != 0) {
- 		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
- 			   "Error registering with v4l core, giving up");
- 		goto fail;
+The main problem seems to be that AverMedia does not use standard nor 
+reference settings. That's very typical in case of AverMedia, I don't 
+know why...
+Someone should find correct settings used from usb-sniffs and configure 
+that device as needed. It is a little bit hard for me add support 
+because I don't have device. But I can try to look sniff and guess what 
+should be changed.
+
+I was waiting for if Laurent can fix that device. Laurent, are you still 
+working with that?
+
+Sniffs are welcome.
+
+regards
+Antti
+-- 
+http://palosaari.fi/
