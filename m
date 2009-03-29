@@ -1,98 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2.sea5.speakeasy.net ([69.17.117.4]:44124 "EHLO
-	mail2.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755305AbZCXMEs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2009 08:04:48 -0400
-Date: Tue, 24 Mar 2009 05:04:45 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Devin Heitmueller <devin.heitmueller@gmail.com>,
-	Hans Werner <HWerner4@gmx.de>, linux-media@vger.kernel.org
-Subject: Re: Results of the 'dropping support for kernels <2.6.22' poll
-In-Reply-To: <20090321143556.4169c15d@pedra.chehab.org>
-Message-ID: <Pine.LNX.4.58.0903231739340.28292@shell2.speakeasy.net>
-References: <200903022218.24259.hverkuil@xs4all.nl> <20090304141715.0a1af14d@pedra.chehab.org>
- <20090320204707.227110@gmx.net> <20090320192046.15d32407@pedra.chehab.org>
- <412bdbff0903201903g270b4be1nb55e6d881e46efc2@mail.gmail.com>
- <20090321000416.1ce9aaef@pedra.chehab.org> <412bdbff0903210505s75e446cfq35768c3878415e48@mail.gmail.com>
- <20090321143556.4169c15d@pedra.chehab.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail45.e.nsc.no ([193.213.115.45]:50707 "EHLO mail45.e.nsc.no"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751857AbZC2StR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Mar 2009 14:49:17 -0400
+Subject: gpsca kernel BUG when disconnecting camera while streaming with
+ mmap (2.6.29-rc8)
+From: Stian Skjelstad <stian@nixia.no>
+To: moinejf@free.fr
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain
+Date: Sun, 29 Mar 2009 19:25:03 +0200
+Message-Id: <1238347504.5232.17.camel@laptop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 21 Mar 2009, Mauro Carvalho Chehab wrote:
-> > When this thread was started, it was about dropping support for
-> > kernels < 2.6.22.  However, it has turned into a thread about moving
-> > to git and dropping support for *all* kernels less than the bleeding
-> > edge -rc candidate (only supporting them through a backport system for
-> > testers).  The two are very different things.
+usb 2-2: new full speed USB device using uhci_hcd and address 47
+usb 2-2: New USB device found, idVendor=041e, idProduct=4034
+usb 2-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+usb 2-2: Product: WebCam Instant 
+usb 2-2: Manufacturer: Creative Labs  
+usb 2-2: configuration #1 chosen from 1 choice
+gspca: probing 041e:4034
+zc3xx: probe sif 0x0007
+zc3xx: probe sensor -> 0f
+zc3xx: Find Sensor PAS106
+gspca: probe ok
+usb 2-2: USB disconnect, address 47
+gspca: urb status: -108
+gspca: urb status: -108
+gspca: disconnect complete
+BUG: unable to handle kernel NULL pointer dereference at 00000014
+IP: [<c02bc98e>] usb_set_interface+0x1e/0x1e0
+*pde = 00000000 
+Oops: 0000 [#1] PREEMPT 
+last sysfs file: /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
+Modules linked in: sd_mod usb_storage ipv6 cpufreq_ondemand acpi_cpufreq
+ohci_hcd fuse gspca_zc3xx gspca_main videodev snd_intel8x0m snd_intel8x0
+v4l1_compat snd_ac97_codec i915 ac97_bus snd_pcm intelfb snd_timer snd
+ide_cd_mod cfbcopyarea yenta_socket rtc cfbimgblt uhci_hcd
+snd_page_alloc rsrc_nonstatic e100 i2c_i801 cdrom rng_core cfbfillrect
+pcmcia_core evdev
 
-Yes they are very different things.  I do not like a poll about dropping
-the current build system being disguised as a poll about dropping support
-for very old kernels.  How about a new poll, "should developers be required
-to have multiple systems and spend the majority of their time recompiling
-new kernels and testing nvidia and wireless drivers?"
+Pid: 8383, comm: gtkv4ltest Not tainted (2.6.29-rc8 #1) TravelMate 620  
+EIP: 0060:[<c02bc98e>] EFLAGS: 00210282 CPU: 0
+EIP is at usb_set_interface+0x1e/0x1e0
+EAX: 00000000 EBX: 00000000 ECX: 00000000 EDX: ffffff8f
+ESI: 00000000 EDI: 00000000 EBP: ed9b26e0 ESP: cd68fd20
+ DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068
+Process gtkv4ltest (pid: 8383, ti=cd68e000 task=c2722ac0
+task.ti=cd68e000)
+Stack:
+ c036e720 c04986e0 ed964b40 c2722ac0 c011dcdb c04987a0 c036e720 ed9b2000
+ ed9b2000 ed9b26c8 ed9b26e0 f04981b8 ed9b2000 ed9b26c8 ed9b2000 f04989e5
+ c86f96fc fffffe00 f0498aa1 f0498a20 f049a420 00000001 e6973880 f0484c75
+Call Trace:
+ [<c011dcdb>] check_preempt_wakeup+0xbb/0x150
+ [<f04981b8>] gspca_set_alt0+0x18/0x50 [gspca_main]
+ [<f04989e5>] gspca_stream_off+0x35/0x70 [gspca_main]
+ [<f0498aa1>] vidioc_streamoff+0x81/0xe0 [gspca_main]
+ [<f0498a20>] vidioc_streamoff+0x0/0xe0 [gspca_main]
+ [<f0484c75>] __video_do_ioctl+0x1a25/0x3e40 [videodev]
+ [<c01550cb>] find_lock_page+0x1b/0x70
+ [<c0155717>] filemap_fault+0x137/0x4a0
+ [<c01555e0>] filemap_fault+0x0/0x4a0
+ [<c0167eda>] __do_fault+0x1aa/0x410
+ [<c01555e0>] filemap_fault+0x0/0x4a0
+ [<c0169bc2>] handle_mm_fault+0x162/0x630
+ [<f04871c8>] video_ioctl2+0x138/0x330 [videodev]
+ [<c017ea8d>] do_sync_read+0xcd/0x110
+ [<f0487090>] video_ioctl2+0x0/0x330 [videodev]
+ [<f04821f3>] v4l2_unlocked_ioctl+0x33/0x40 [videodev]
+ [<f04821c0>] v4l2_unlocked_ioctl+0x0/0x40 [videodev]
+ [<c018b95b>] vfs_ioctl+0x2b/0x90
+ [<c018bb7b>] do_vfs_ioctl+0x7b/0x5d0
+ [<c024bcf3>] tty_write+0x1a3/0x1e0
+ [<c013e821>] getnstimeofday+0x51/0x120
+ [<c013e821>] getnstimeofday+0x51/0x120
+ [<c018c10d>] sys_ioctl+0x3d/0x70
+ [<c0103371>] sysenter_do_call+0x12/0x25
+ [<c0360000>] quirk_nopcipci+0x1a/0x3f
+Code: 24 c3 8d 74 26 00 8d bc 27 00 00 00 00 83 ec 2c 89 5c 24 1c 89 c3
+89 74 24 20 89 ce 89 7c 24 24 89 d7 ba 8f ff ff ff 89 6c 24 28 <83> 78
+14 08 75 1c 89 d0 8b 5c 24 1c 8b 74 24 20 8b 7c 24 24 8b 
+EIP: [<c02bc98e>] usb_set_interface+0x1e/0x1e0 SS:ESP 0068:cd68fd20
+---[ end trace 082baebd8c6b9cd1 ]---
 
-> It is important to discuss a new model, since the current one has some flaws,
-> like:
+Stian Skjelstad
 
-These are problems caused by having a large project with multiple areas of
-maintainership and many developers working simulaniously.  Switching to a
-full kernel tree and dropping cross kernel building support isn't going to
-a help.
 
-> - bug fixes are sometimes postponed, since they depend on the bleeding edge
-> patches;
-
-Full kernel source will just make this worse!  Your v4l patch needs some
-very recent change to pci core?  With a full tree, the v4l-dvb maintainer
-will have to wait until the pci maintainer accepts the patch and puts it
-into his tree.  Then the v4l-dvb maintainer will have to pull the pci tree.
-That won't just give you the one patch you need, but 100 other patches in
-the tree.  Then and only then can any v4l-dvb devlopers work on their patch
-that needs the pci fix.
-
-With the current system a v4l-dvb devloper can pick just the pci patch he
-needs and put it into his kernel or he can get the pci tree.  Then he's
-free to develop a v4l-dvb patch that needs the pci patch.  He can probably
-even do his v4l-dvb patch in a compatible manner, so that it can go in the
-v4l-dvb tree before the pci patch has even appeared in the pci tree.
-
-> - our model is different from the rest of Linux kernel community;
-
-Their model is worse.  Why make things worse just to help people who choose
-not to learn new things?
-
-> - it is hard to merge patches that needs coordination with changes outside
-> drivers/media;
-
-It's hard to merge patches that touch multiple areas of maintainership even
-if everyone uses full trees.
-
-> - the need of conversion for each -hg patch into -git;
-
-It's done by an automated script.  It allows fixing the large number of
-mistakes commited to the v4l-dvb tree.
-
-> - the need of backport upstream changes at the building system, and keeping
-> track of such changes.
-
-You will still have patches that touch drivers/media that don't go in via
-the v4l-dvb tree.  Just look at any system with a full tree, you'll see
-commits that touch that system's files and went in as some system wide
-cleanup patch via another maintainer's tree.  So you'll still have to merge
-these patches.
-
-> - the increased volume of patches on v4l/dvb made our development model
-> incredible complex for submitting work upstream, since it doesn't scale well,
-> and has caused some hard to solve merge conflicts.
-
-More patches means more merge conflicts.  Why does have an out of tree
-build system have anything to do with it?
-
-> You can even use a spare git clone, where, for example, only drivers/media will
-> be cloned on your local machine.
-
-Which is useless.  You can't build or run drivers/media only kernel tree!
