@@ -1,48 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [195.7.61.12] ([195.7.61.12]:33478 "EHLO killala.koala.ie"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751087AbZCBX2r (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Mar 2009 18:28:47 -0500
-Received: from [195.7.61.7] (cozumel.koala.ie [195.7.61.7])
+Received: from williams.wu-wien.ac.at ([137.208.8.38]:47970 "EHLO
+	williams.wu-wien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750749AbZC2QBS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Mar 2009 12:01:18 -0400
+Received: from jo.lan ([195.16.255.206])
 	(authenticated bits=0)
-	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id n22NSi87008850
-	for <linux-media@vger.kernel.org>; Mon, 2 Mar 2009 23:28:45 GMT
-Message-ID: <49AC6BAC.9040901@koala.ie>
-Date: Mon, 02 Mar 2009 23:28:44 +0000
-From: Simon Kenyon <simon@koala.ie>
-MIME-Version: 1.0
+	by williams.wu-wien.ac.at (8.13.8/8.13.8/Debian-3) with ESMTP id n2TFp4r3002704
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 29 Mar 2009 17:51:05 +0200
+From: Johannes Fichtinger <lists@fichtinger.org>
 To: linux-media@vger.kernel.org
-Subject: Re: Results of the 'dropping support for kernels <2.6.22' poll
-References: <200903022218.24259.hverkuil@xs4all.nl> <alpine.LNX.2.00.0903021610280.16643@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.0903021610280.16643@banach.math.auburn.edu>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Subject: Compilation w/ on Kernel 2.6.29 on Debian SID
+Date: Sun, 29 Mar 2009 17:50:58 +0200
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903291750.58954.lists@fichtinger.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-kilgota@banach.math.auburn.edu wrote:
-> Just one comment. IIRC, I was the one who mentioned the eeePC, having 
-> recently bought one. I mentioned it, not because I disagree with 
-> anything else you write here, but because, in fact, I agree. Frankly, 
-> I think the use of the 2.6.21 kernel in the eeePC is somewhat perverse 
-> and just a little bit weird.
->
-> Essentially, the eeePC and the other Intel-based netbooks are not some 
-> kind of exotic hardware platforms, which might provide an explanation 
-> or excuse for using some "specially crafted" but old kernel. No. In 
-> fact, the eeePC and almost all the other current netbooks are just a 
-> new (and attractive) combination of some fairly standard types of 
-> hardware. Practically every hardware component in them is better 
-> supported in more recent kernels, with the possible exception of a 
-> wireless device which may not yet be supported in any kernel, new or 
-> old. Therefore, instead of worrying about whether to support and 
-> provide indulgence for apparently inexplicable behavior, let us hope 
-> that a decision of this nature will serve as a needed message.
-just as another data point
-i have an eee 900 and i run gentoo on it
-i have 2.6.27 running just fine (wireless and all)
+Hello,
 
-i know gentoo is a little too hardcore for most people
-but living with a distro kernel forever is not a real requirement
---
-simon
+on my debian SID system using the new kernel 2.6.29-1-686 with both 
+linux-headers-2.6.29-1-686 and linux-headers-2.6.29-1-common installed, a 
+root@jo:/usr/src/v4l-dvb# make
+
+on the v4l code downloaded this morning results in a compilation error:
+
+---------------------------
+make -C /usr/src/v4l-dvb/v4l
+make[1]: Entering directory `/usr/src/v4l-dvb/v4l'
+perl 
+scripts/make_config_compat.pl /lib/modules/2.6.29-1-686/build ./.myconfig ./config-compat.h
+File not found: /lib/modules/2.6.29-1-686/build/include/linux/netdevice.h at 
+scripts/make_config_compat.pl line 15.
+make[1]: *** [config-compat.h] Error 2
+make[1]: Leaving directory `/usr/src/v4l-dvb/v4l'
+make: *** [all] Error 2
+root@jo:/usr/src/v4l-dvb#     
+---------------------------
+
+The problem sounds to me related to Debian Bug #521515[1], so I am not sure at 
+all if this is a Debian or v4l issue. Any ideas how to get the v4l compiled 
+with the new 2.6.29 kernel in Debian?
+
+Best,
+Johannes
+
+
+
+
+[1] http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=+Bug%23521515%3A
