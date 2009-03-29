@@ -1,148 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from warsl404pip6.highway.telekom.at ([195.3.96.89]:11879 "EHLO
-	email.aon.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751923AbZCHOVR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Mar 2009 10:21:17 -0400
-Message-ID: <49B3D45B.6000606@yahoo.de>
-Date: Sun, 08 Mar 2009 15:21:15 +0100
-From: Elmar Stellnberger <estellnb@yahoo.de>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2628 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751020AbZC2Wz1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Mar 2009 18:55:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Adam Baker <linux@baker-net.org.uk>
+Subject: Re: [PATCH v2 1/4] Sensor orientation reporting
+Date: Mon, 30 Mar 2009 00:55:02 +0200
+Cc: linux-media@vger.kernel.org, Hans de Goede <j.w.r.degoede@hhs.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	kilgota@banach.math.auburn.edu
+References: <200903292309.31267.linux@baker-net.org.uk> <200903292317.10249.linux@baker-net.org.uk>
+In-Reply-To: <200903292317.10249.linux@baker-net.org.uk>
 MIME-Version: 1.0
-To: Patrick Boettcher <patrick.boettcher@desy.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Technisat Skystar 2 on Suse Linux 11.1, kernel 2.6.27.19-3.2-default
-References: <49B2BAAE.8040808@yahoo.de> <alpine.LRH.1.10.0903071945470.27410@pub5.ifh.de> <49B2F2E1.3090206@yahoo.de> <alpine.LRH.1.10.0903080837330.27410@pub5.ifh.de>
-In-Reply-To: <alpine.LRH.1.10.0903080837330.27410@pub5.ifh.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903300055.02723.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  Besides the direct replay issues I would like to stream the channels
-to watch them on another computer anyway.
+On Monday 30 March 2009 00:17:10 Adam Baker wrote:
+> Add support to the SQ-905 driver to pass back to user space the
+> sensor orientation information obtained from the camera during init.
+> Modifies gspca and the videodev2.h header to create the necessary
+> API.
+>
+> Signed-off-by: Adam Baker <linux@baker-net.org.uk>
+> ---
+> diff -r d8d701594f71 linux/drivers/media/video/gspca/gspca.c
+> --- a/linux/drivers/media/video/gspca/gspca.c	Sun Mar 29 08:45:36 2009
+> +0200 +++ b/linux/drivers/media/video/gspca/gspca.c	Sun Mar 29 23:00:08
+> 2009 +0100 @@ -1147,6 +1147,7 @@
+>  	if (input->index != 0)
+>  		return -EINVAL;
+>  	input->type = V4L2_INPUT_TYPE_CAMERA;
+> +	input->status = gspca_dev->cam.input_flags;
+>  	strncpy(input->name, gspca_dev->sd_desc->name,
+>  		sizeof input->name);
+>  	return 0;
+> diff -r d8d701594f71 linux/drivers/media/video/gspca/gspca.h
+> --- a/linux/drivers/media/video/gspca/gspca.h	Sun Mar 29 08:45:36 2009
+> +0200 +++ b/linux/drivers/media/video/gspca/gspca.h	Sun Mar 29 23:00:08
+> 2009 +0100 @@ -56,6 +56,7 @@
+>  				 * - cannot be > MAX_NURBS
+>  				 * - when 0 and bulk_size != 0 means
+>  				 *   1 URB and submit done by subdriver */
+> +	u32 input_flags;	/* value for ENUM_INPUT status flags */
+>  };
+>
+>  struct gspca_dev;
+> diff -r d8d701594f71 linux/drivers/media/video/gspca/sq905.c
+> --- a/linux/drivers/media/video/gspca/sq905.c	Sun Mar 29 08:45:36 2009
+> +0200 +++ b/linux/drivers/media/video/gspca/sq905.c	Sun Mar 29 23:00:08
+> 2009 +0100 @@ -360,6 +360,12 @@
+>  	gspca_dev->cam.nmodes = ARRAY_SIZE(sq905_mode);
+>  	if (!(ident & SQ905_HIRES_MASK))
+>  		gspca_dev->cam.nmodes--;
+> +
+> +	if (ident & SQ905_ORIENTATION_MASK)
+> +		gspca_dev->cam.input_flags = V4L2_IN_ST_VFLIP;
+> +	else
+> +		gspca_dev->cam.input_flags = V4L2_IN_ST_VFLIP |
+> +					     V4L2_IN_ST_HFLIP;
+>  	return 0;
+>  }
+>
+> diff -r d8d701594f71 linux/include/linux/videodev2.h
+> --- a/linux/include/linux/videodev2.h	Sun Mar 29 08:45:36 2009 +0200
+> +++ b/linux/include/linux/videodev2.h	Sun Mar 29 23:00:08 2009 +0100
+> @@ -737,6 +737,11 @@
+>  #define V4L2_IN_ST_NO_SIGNAL   0x00000002
+>  #define V4L2_IN_ST_NO_COLOR    0x00000004
+>
+> +/* field 'status' - sensor orientation */
+> +/* If sensor is mounted upside down set both bits */
+> +#define V4L2_IN_ST_HFLIP       0x00000010 /* Output is flipped
+> horizontally */
+> +#define V4L2_IN_ST_VFLIP       0x00000020 /* Output is flipped
+> vertically */ +
+>  /* field 'status' - analog */
+>  #define V4L2_IN_ST_NO_H_LOCK   0x00000100  /* No horizontal sync lock */
+>  #define V4L2_IN_ST_COLOR_KILL  0x00000200  /* Color killer is active */
 
-> ifconfig eth0 |g "inet Adress"
-  inet Adresse:192.168.0.14  Bcast:192.168.255.255  Maske:255.255.0.0
+Hi Adam,
 
-> grep 3sat channels.conf
-3sat;ZDFvision:11953:h:S19.2E:27500:210:220=deu,221=2ch;225=deu:230:0:28007:1:1079:0
+I've only one small comment: the V4L2_IN_ST_H/VFLIP comments talk 
+about 'Output' while these flags deal with an input. I know you mean the 
+output from the sensor, but the point of view in this API is the 
+application, and for the application it is an input.
 
-> dvbstream -f 11953 -p H -s 27500 -v 210 -a 220 -udp -net 192.168.0.14:5100
+Other than that I'm happy with it.
 
-promises to do the thing.
-Is there any possibility to stream a file recorded by kaffeine as well?
+Regards,
 
-----------------------------------------------------------------
+	Hans
 
- Nevertheless up to now I could not connect with any client:
->mplayer rtp://192.168.0.14:5100
-...
-mplayer: could not connect to socket
-mplayer: No such file or directory
-Failed to open LIRC support. You will not be able to use your remote
-control.
-
-Playing rtp://192.168.0.14:5100.
-STREAM_RTP, URL: rtp://192.168.0.14:5100
-Failed to connect to server
-rtp_streaming_start failed
-No stream found to handle url rtp://192.168.0.14:5100
-
-
-Exiting... (End of file)
-
-
-
-  Chaining dumprtp and mplayer does not work either.
-Insetead of ts2ps I had to use replex, because Opensuse
-does not offer ts2ps:
-
-> dumprtp 192.168.0.14 5100 | replex -t MPEG2 | mplayer -cache 2048 -
-replex version 0.1.6.8
-using stdin as input
-using stdout as output
-Rtp dump
-Using 192.168.0.14:5100
-bind failed: Cannot assign requested address
-Checking for TS: failed
-Checking for AVI: failed
-Checking for PS: confirmed(maybe)
-read 0.00 MB
-Can't find all required streams
-Please check if audio and video have standard IDs (0xc0 or 0xe0)
-MPlayer dev-SVN-r27637-4.3-openSUSE Linux 11.1 (i686)-Packman (C)
-2000-2008 MPlayer Team
-CPU: AMD Athlon(TM) XP 3000+ (Family: 6, Model: 10, Stepping: 0)
-CPUflags:  MMX: 1 MMX2: 1 3DNow: 1 3DNow2: 1 SSE: 1 SSE2: 0
-Compiled with runtime CPU detection.
-Can't open joystick device /dev/input/js0: No such file or directory
-Can't init input joystick
-mplayer: could not connect to socket
-mplayer: No such file or directory
-Failed to open LIRC support. You will not be able to use your remote
-control.
-
-Playing -.
-Reading from stdin...
-Cache fill:  0.00% (0 bytes)
-
-
-Exiting... (End of file)
-
-
-
-
-
-Patrick Boettcher schrieb:
-> Hi Elmar,
-> 
-> On Sat, 7 Mar 2009, Elmar Stellnberger wrote:
-> 
->>> dvbscan -adapter 0 -frontend 0 -demux 0 /usr/share/dvb/dvb-s/Astra-19.2E
->> Failed to set frontend
-> 
-> I have the same problem with that scan, please use the older one called
-> scan.
-> 
-> Are you running the szap below as root, but kaffeine as a normal user ?
-> 
-> If so, make sure that you are in the group video.
-> 
->> downloading channel.conf from Astra1
->> has not brought me force.
->>
->>> szap 3sat
->> reading channels from file '/home/elm/.szap/channels.conf'
->> zapping to 20 '3sat':
->> sat 0, frequency = 11954 MHz V, symbolrate 27500000, vpid = 0x00d2, apid
->> = 0x00dc sid = 0x0000
->> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->> status 00 | signal 0000 | snr 6b2b | ber 00000000 | unc fffffffe |
->> status 00 | signal 0000 | snr 7f02 | ber 00007e00 | unc fffffffe |
->> status 01 | signal aa7e | snr 3d47 | ber 0000ffe8 | unc fffffffe |
->> status 00 | signal 0000 | snr 7fc5 | ber 0000fff0 | unc fffffffe |
->> status 00 | signal 0000 | snr 2232 | ber 00006ef0 | unc fffffffe |
->> status 00 | signal 0000 | snr 1fdd | ber 00000058 | unc fffffffe |
->> status 00 | signal 0000 | snr 19b3 | ber 00000000 | unc fffffffe |
->> status 02 | signal 0000 | snr 192f | ber 00000000 | unc fffffffe |
->> status 00 | signal 0035 | snr 8469 | ber 00000000 | unc fffffffe |
-> 
-> This is the first proof that your device is present and the driver is
-> correctly loaded. Please check the output of the dmesg-program to check
-> for lines starting with b2c2-flexcop.
-> 
->> what should that output mean?
-> 
-> it means, it can't synchronize the channel on that frequency. This can
-> have a whole bunch of explaination - not necessarily only the driver.
-> 
->> why does szap not terminate?
-> 
-> It stays in the monitoring loop. Normal.
-> 
-> Patrick.
-> 
-> -- 
->   Mail: patrick.boettcher@desy.de
->   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
-> 
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
