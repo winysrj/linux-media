@@ -1,27 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.233]:39455 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751730AbZCaRCH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2009 13:02:07 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so3122351rvb.1
-        for <linux-media@vger.kernel.org>; Tue, 31 Mar 2009 10:02:05 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 31 Mar 2009 10:02:05 -0700
-Message-ID: <3731df090903311002m58d499b4xca37c56feccfa235@mail.gmail.com>
-Subject: Including firmware for XC5000?
-From: Dave Johansen <davejohansen@gmail.com>
+Received: from tichy.grunau.be ([85.131.189.73]:42319 "EHLO tichy.grunau.be"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752861AbZC2MhJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Mar 2009 08:37:09 -0400
+Received: from localhost (unknown [78.52.195.10])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by tichy.grunau.be (Postfix) with ESMTPSA id 9F32C90002
+	for <linux-media@vger.kernel.org>; Sun, 29 Mar 2009 14:36:46 +0200 (CEST)
+Date: Sun, 29 Mar 2009 14:36:48 +0200
+From: Janne Grunau <j@jannau.net>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH 0 of 6] Use usb_interface.dev for v4l2_device_register
+Message-ID: <20090329123647.GA637@aniel>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I just bought a DViCO FusionHDTV7 Dual Express and I was able to get
-it working after downloading and install the firmware (
-http://linuxtv.org/wiki/index.php/DViCO_FusionHDTV7_Dual_Express#Firmware
-), but my question is could that firmware be added to a distribution
-(like Mythbuntu 9.04) so it could work out of the box? Or are there
-legal/technical reasons that prevent that?
-Thanks,
-Dave
+Hi,
+
+the documentation suggest and the current usb driver are using struct device
+from the usb_device. As discussed for video_device parent the usb_interface
+should be used. This has the advantage that v4l2_device_register creates
+meaningfull names, for example "hdpvr usb2-3:1.0" instead of "usb 2-3".
+
+This patch series updates Documentation/video4linux/v4l2-framework.txt and
+hopefully all usb drivers uing v4l2_device.
+
+The pvrusb2 and au0828 drivers are already overriding v4l2_device.name with a
+driver name and a device counter. I removed that code since I suspect it was
+only added to get meaningful names.
+If the current names are preferred I'll update the patches.
+
+regards,
+Janne
+
