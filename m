@@ -1,78 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f178.google.com ([209.85.218.178]:38465 "EHLO
-	mail-bw0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751892AbZCEWF0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 17:05:26 -0500
+Received: from banach.math.auburn.edu ([131.204.45.3]:34098 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753643AbZC2XqZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Mar 2009 19:46:25 -0400
+Date: Sun, 29 Mar 2009 18:58:59 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Adam Baker <linux@baker-net.org.uk>, linux-media@vger.kernel.org,
+	Hans de Goede <j.w.r.degoede@hhs.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jean-Francois Moine <moinejf@free.fr>
+Subject: Re: [PATCH v2 1/4] Sensor orientation reporting
+In-Reply-To: <200903300055.02723.hverkuil@xs4all.nl>
+Message-ID: <alpine.LNX.2.00.0903291854110.5281@banach.math.auburn.edu>
+References: <200903292309.31267.linux@baker-net.org.uk> <200903292317.10249.linux@baker-net.org.uk> <200903300055.02723.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <96DA7A230D3B2F42BA3EF203A7A1B3B5012EAC2043@dlee07.ent.ti.com>
-References: <5e9665e10903041858j7d2177abjfa1193532553059c@mail.gmail.com>
-	 <96DA7A230D3B2F42BA3EF203A7A1B3B5012EAC2043@dlee07.ent.ti.com>
-Date: Fri, 6 Mar 2009 01:05:23 +0300
-Message-ID: <208cbae30903051405p7588b3a9pb17338ec99dc749a@mail.gmail.com>
-Subject: Re: [PATCH 4/5] OMAP3430SDP: Add support for Camera Kit v3
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: "Curran, Dominic" <dcurran@ti.com>
-Cc: "DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
-	MiaoStanley <stanleymiao@hotmail.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello, all
 
-On Thu, Mar 5, 2009 at 7:42 PM, Curran, Dominic <dcurran@ti.com> wrote:
->
-> Hi Kim
->
->> -----Original Message-----
->> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
->> owner@vger.kernel.org] On Behalf Of DongSoo(Nathaniel) Kim
->> Sent: Wednesday, March 04, 2009 8:58 PM
->> To: Aguirre Rodriguez, Sergio Alberto
->> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Sakari Ailus;
->> Tuukka.O Toivonen; Hiroshi DOYU; MiaoStanley; Nagalla, Hari; Hiremath,
->> Vaibhav; Lakhani, Amish; Menon, Nishanth
->> Subject: Re: [PATCH 4/5] OMAP3430SDP: Add support for Camera Kit v3
->>
->> Hi Sergio,
->>
->>
->>
->> On Wed, Mar 4, 2009 at 5:44 AM, Aguirre Rodriguez, Sergio Alberto
->> <saaguirre@ti.com> wrote:
->> > +               /* turn on analog power */
->> > +               twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
->> > +                               VAUX_2_8_V, TWL4030_VAUX2_DEDICATED);
->> > +               twl4030_i2c_write_u8(TWL4030_MODULE_PM_RECEIVER,
->> > +                               VAUX_DEV_GRP_P1, TWL4030_VAUX2_DEV_GRP);
->> > +
->> > +               /* out of standby */
->> > +               gpio_set_value(MT9P012_STANDBY_GPIO, 0);
->> > +               udelay(1000);
->>
->> It seems better using msleep rather than udelay for 1000us much. Just
->> to be safe :)
->> How about you?
->>
->
-> Why is msleep safer than udelay ?
 
-I have small guess that he is wondering why you are using big delays
-with help of udelay(). (It's may be obvious but as we know udelay uses
-cpu loops to make delay and msleep calls to scheduler) So, msleep is
-more flexible and "softer" but if you need precise time or you can't
-sleep in code you need udelay. Sometimes using udelay is reasonably
-required.
+On Mon, 30 Mar 2009, Hans Verkuil wrote:
 
--- 
-Best regards, Klimov Alexey
+> On Monday 30 March 2009 00:17:10 Adam Baker wrote:
+>> Add support to the SQ-905 driver to pass back to user space the
+>> sensor orientation information obtained from the camera during init.
+>> Modifies gspca and the videodev2.h header to create the necessary
+>> API.
+>>
+>> Signed-off-by: Adam Baker <linux@baker-net.org.uk>
+>> ---
+>> diff -r d8d701594f71 linux/drivers/media/video/gspca/gspca.c
+>> --- a/linux/drivers/media/video/gspca/gspca.c	Sun Mar 29 08:45:36 2009
+>> +0200 +++ b/linux/drivers/media/video/gspca/gspca.c	Sun Mar 29 23:00:08
+>> 2009 +0100 @@ -1147,6 +1147,7 @@
+>>  	if (input->index != 0)
+>>  		return -EINVAL;
+>>  	input->type = V4L2_INPUT_TYPE_CAMERA;
+>> +	input->status = gspca_dev->cam.input_flags;
+>>  	strncpy(input->name, gspca_dev->sd_desc->name,
+>>  		sizeof input->name);
+>>  	return 0;
+>> diff -r d8d701594f71 linux/drivers/media/video/gspca/gspca.h
+>> --- a/linux/drivers/media/video/gspca/gspca.h	Sun Mar 29 08:45:36 2009
+>> +0200 +++ b/linux/drivers/media/video/gspca/gspca.h	Sun Mar 29 23:00:08
+>> 2009 +0100 @@ -56,6 +56,7 @@
+>>  				 * - cannot be > MAX_NURBS
+>>  				 * - when 0 and bulk_size != 0 means
+>>  				 *   1 URB and submit done by subdriver */
+>> +	u32 input_flags;	/* value for ENUM_INPUT status flags */
+>>  };
+>>
+>>  struct gspca_dev;
+>> diff -r d8d701594f71 linux/drivers/media/video/gspca/sq905.c
+>> --- a/linux/drivers/media/video/gspca/sq905.c	Sun Mar 29 08:45:36 2009
+>> +0200 +++ b/linux/drivers/media/video/gspca/sq905.c	Sun Mar 29 23:00:08
+>> 2009 +0100 @@ -360,6 +360,12 @@
+>>  	gspca_dev->cam.nmodes = ARRAY_SIZE(sq905_mode);
+>>  	if (!(ident & SQ905_HIRES_MASK))
+>>  		gspca_dev->cam.nmodes--;
+>> +
+>> +	if (ident & SQ905_ORIENTATION_MASK)
+>> +		gspca_dev->cam.input_flags = V4L2_IN_ST_VFLIP;
+>> +	else
+>> +		gspca_dev->cam.input_flags = V4L2_IN_ST_VFLIP |
+>> +					     V4L2_IN_ST_HFLIP;
+>>  	return 0;
+>>  }
+>>
+>> diff -r d8d701594f71 linux/include/linux/videodev2.h
+>> --- a/linux/include/linux/videodev2.h	Sun Mar 29 08:45:36 2009 +0200
+>> +++ b/linux/include/linux/videodev2.h	Sun Mar 29 23:00:08 2009 +0100
+>> @@ -737,6 +737,11 @@
+>>  #define V4L2_IN_ST_NO_SIGNAL   0x00000002
+>>  #define V4L2_IN_ST_NO_COLOR    0x00000004
+>>
+>> +/* field 'status' - sensor orientation */
+>> +/* If sensor is mounted upside down set both bits */
+>> +#define V4L2_IN_ST_HFLIP       0x00000010 /* Output is flipped
+>> horizontally */
+>> +#define V4L2_IN_ST_VFLIP       0x00000020 /* Output is flipped
+>> vertically */ +
+>>  /* field 'status' - analog */
+>>  #define V4L2_IN_ST_NO_H_LOCK   0x00000100  /* No horizontal sync lock */
+>>  #define V4L2_IN_ST_COLOR_KILL  0x00000200  /* Color killer is active */
+>
+> Hi Adam,
+>
+> I've only one small comment: the V4L2_IN_ST_H/VFLIP comments talk
+> about 'Output' while these flags deal with an input. I know you mean the
+> output from the sensor, but the point of view in this API is the
+> application, and for the application it is an input.
+>
+> Other than that I'm happy with it.
+>
+> Regards,
+>
+> 	Hans
+
+Hmmm. These two comments?
+
+>> +#define V4L2_IN_ST_HFLIP       0x00000010 /* Output is flipped
+>> horizontally */
+>> +#define V4L2_IN_ST_VFLIP       0x00000020 /* Output is flipped
+>> vertically */ +
+
+Perhaps one could change them to say /* Frames must be flipped ...
+
+instead.
+
+Theodore Kilgore
