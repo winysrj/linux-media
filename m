@@ -1,98 +1,352 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:39269 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752719AbZCNN6I (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Mar 2009 09:58:08 -0400
-Subject: Re: [PATCH] LED control
-From: Andy Walls <awalls@radix.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org
-In-Reply-To: <20090314091747.21153855@pedra.chehab.org>
-References: <20090314125923.4229cd93@free.fr>
-	 <20090314091747.21153855@pedra.chehab.org>
+Received: from mu-out-0910.google.com ([209.85.134.190]:24990 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751293AbZC2XUA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Mar 2009 19:20:00 -0400
+Received: by mu-out-0910.google.com with SMTP id g7so749504muf.1
+        for <linux-media@vger.kernel.org>; Sun, 29 Mar 2009 16:19:57 -0700 (PDT)
+Subject: [patch 2/2 review] pci-isa radios: remove open and release
+ functions
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Douglas Schilling Landgraf <dougsland@gmail.com>,
+	linux-media@vger.kernel.org
 Content-Type: text/plain
-Date: Sat, 14 Mar 2009 09:58:21 -0400
-Message-Id: <1237039101.3272.24.camel@palomino.walls.org>
+Date: Mon, 30 Mar 2009 03:19:54 +0400
+Message-Id: <1238368794.21620.36.camel@tux.localhost>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-03-14 at 09:17 -0300, Mauro Carvalho Chehab wrote:
-> On Sat, 14 Mar 2009 12:59:23 +0100
-> Jean-Francois Moine <moinejf@free.fr> wrote:
-> 
-> > +	    <entry><constant>V4L2_CID_LEDS</constant></entry>
-> > +	    <entry>integer</entry>
-> > +	    <entry>Switch on or off the LEDs or illuminators of the device.
-> > +In the control value, each LED may be coded in one bit (0: off, 1: on) or in
-> > +many bits (light intensity).</entry>
-> > +	  </row>
-> > +	  <row>
-> 
-> The idea of having some sort of control over the LEDs is interesting, but we
-> should have a better way of controlling it. If the LED may have more than one
-> bit, maybe the better would be to create more than one CID entry. Something like:
-> 
-> V4L2_CID_LED_POWER	- for showing that the camera is being used
-> V4L2_CID_LED_LIGHT	- for normal white light
-> V4L2_CID_LED_INFRARED	- for dark light, using infrared
-> ...
-> 
-> This way a driver can enumberate what kind of leds are available, and get the
-> power intensity range for each individual one.
+From: Alexey Klimov <klimov.linux@gmail.com>
 
-Just some random thought of mine of the subject of LED control:
+Patch removes empty open and release functions in pci and isa radio
+drivers, setting them to NULL. V4L module doesn't call for them due to
+previous patch.
+
+Priority: normal
+
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+
+--
+diff -r a38076781c9a linux/drivers/media/radio/radio-aimslab.c
+--- a/linux/drivers/media/radio/radio-aimslab.c	Mon Mar 30 01:14:44 2009 +0400
++++ b/linux/drivers/media/radio/radio-aimslab.c	Mon Mar 30 02:05:12 2009 +0400
+@@ -356,20 +356,8 @@
+ 	return a->index ? -EINVAL : 0;
+ }
+ 
+-static int rtrack_open(struct file *file)
+-{
+-	return 0;
+-}
+-
+-static int rtrack_release(struct file *file)
+-{
+-	return 0;
+-}
+-
+ static const struct v4l2_file_operations rtrack_fops = {
+ 	.owner		= THIS_MODULE,
+-	.open           = rtrack_open,
+-	.release        = rtrack_release,
+ 	.ioctl		= video_ioctl2,
+ };
+ 
+diff -r a38076781c9a linux/drivers/media/radio/radio-aztech.c
+--- a/linux/drivers/media/radio/radio-aztech.c	Mon Mar 30 01:14:44 2009 +0400
++++ b/linux/drivers/media/radio/radio-aztech.c	Mon Mar 30 02:05:12 2009 +0400
+@@ -319,20 +319,8 @@
+ 	return -EINVAL;
+ }
+ 
+-static int aztech_open(struct file *file)
+-{
+-	return 0;
+-}
+-
+-static int aztech_release(struct file *file)
+-{
+-	return 0;
+-}
+-
+ static const struct v4l2_file_operations aztech_fops = {
+ 	.owner		= THIS_MODULE,
+-	.open           = aztech_open,
+-	.release        = aztech_release,
+ 	.ioctl		= video_ioctl2,
+ };
+ 
+diff -r a38076781c9a linux/drivers/media/radio/radio-gemtek-pci.c
+--- a/linux/drivers/media/radio/radio-gemtek-pci.c	Mon Mar 30 01:14:44 2009 +0400
++++ b/linux/drivers/media/radio/radio-gemtek-pci.c	Mon Mar 30 02:05:12 2009 +0400
+@@ -357,20 +357,8 @@
+ 
+ MODULE_DEVICE_TABLE(pci, gemtek_pci_id);
+ 
+-static int gemtek_pci_open(struct file *file)
+-{
+-	return 0;
+-}
+-
+-static int gemtek_pci_release(struct file *file)
+-{
+-	return 0;
+-}
+-
+ static const struct v4l2_file_operations gemtek_pci_fops = {
+ 	.owner		= THIS_MODULE,
+-	.open           = gemtek_pci_open,
+-	.release        = gemtek_pci_release,
+ 	.ioctl		= video_ioctl2,
+ };
+ 
+diff -r a38076781c9a linux/drivers/media/radio/radio-gemtek.c
+--- a/linux/drivers/media/radio/radio-gemtek.c	Mon Mar 30 01:14:44 2009 +0400
++++ b/linux/drivers/media/radio/radio-gemtek.c	Mon Mar 30 02:05:12 2009 +0400
+@@ -376,20 +376,9 @@
+ /*
+  * Video 4 Linux stuff.
+  */
+-static int gemtek_open(struct file *file)
+-{
+-	return 0;
+-}
+-
+-static int gemtek_release(struct file *file)
+-{
+-	return 0;
+-}
+ 
+ static const struct v4l2_file_operations gemtek_fops = {
+ 	.owner		= THIS_MODULE,
+-	.open		= gemtek_open,
+-	.release	= gemtek_release,
+ 	.ioctl		= video_ioctl2,
+ };
+ 
+diff -r a38076781c9a linux/drivers/media/radio/radio-maestro.c
+--- a/linux/drivers/media/radio/radio-maestro.c	Mon Mar 30 01:14:44 2009 +0400
++++ b/linux/drivers/media/radio/radio-maestro.c	Mon Mar 30 02:05:12 2009 +0400
+@@ -293,20 +293,8 @@
+ 	return a->index ? -EINVAL : 0;
+ }
+ 
+-static int maestro_open(struct file *file)
+-{
+-	return 0;
+-}
+-
+-static int maestro_release(struct file *file)
+-{
+-	return 0;
+-}
+-
+ static const struct v4l2_file_operations maestro_fops = {
+ 	.owner		= THIS_MODULE,
+-	.open           = maestro_open,
+-	.release        = maestro_release,
+ 	.ioctl		= video_ioctl2,
+ };
+ 
+diff -r a38076781c9a linux/drivers/media/radio/radio-maxiradio.c
+--- a/linux/drivers/media/radio/radio-maxiradio.c	Mon Mar 30 01:14:44 2009 +0400
++++ b/linux/drivers/media/radio/radio-maxiradio.c	Mon Mar 30 02:05:12 2009 +0400
+@@ -340,20 +340,8 @@
+ 	return -EINVAL;
+ }
+ 
+-static int maxiradio_open(struct file *file)
+-{
+-	return 0;
+-}
+-
+-static int maxiradio_release(struct file *file)
+-{
+-	return 0;
+-}
+-
+ static const struct v4l2_file_operations maxiradio_fops = {
+ 	.owner		= THIS_MODULE,
+-	.open           = maxiradio_open,
+-	.release        = maxiradio_release,
+ 	.ioctl          = video_ioctl2,
+ };
+ 
+diff -r a38076781c9a linux/drivers/media/radio/radio-rtrack2.c
+--- a/linux/drivers/media/radio/radio-rtrack2.c	Mon Mar 30 01:14:44 2009 +0400
++++ b/linux/drivers/media/radio/radio-rtrack2.c	Mon Mar 30 02:05:12 2009 +0400
+@@ -261,20 +261,8 @@
+ 	return a->index ? -EINVAL : 0;
+ }
+ 
+-static int rtrack2_open(struct file *file)
+-{
+-	return 0;
+-}
+-
+-static int rtrack2_release(struct file *file)
+-{
+-	return 0;
+-}
+-
+ static const struct v4l2_file_operations rtrack2_fops = {
+ 	.owner		= THIS_MODULE,
+-	.open           = rtrack2_open,
+-	.release        = rtrack2_release,
+ 	.ioctl		= video_ioctl2,
+ };
+ 
+diff -r a38076781c9a linux/drivers/media/radio/radio-sf16fmi.c
+--- a/linux/drivers/media/radio/radio-sf16fmi.c	Mon Mar 30 01:14:44 2009 +0400
++++ b/linux/drivers/media/radio/radio-sf16fmi.c	Mon Mar 30 02:05:12 2009 +0400
+@@ -261,20 +261,8 @@
+ 	return a->index ? -EINVAL : 0;
+ }
+ 
+-static int fmi_open(struct file *file)
+-{
+-	return 0;
+-}
+-
+-static int fmi_release(struct file *file)
+-{
+-	return 0;
+-}
+-
+ static const struct v4l2_file_operations fmi_fops = {
+ 	.owner		= THIS_MODULE,
+-	.open           = fmi_open,
+-	.release        = fmi_release,
+ 	.ioctl		= video_ioctl2,
+ };
+ 
+diff -r a38076781c9a linux/drivers/media/radio/radio-sf16fmr2.c
+--- a/linux/drivers/media/radio/radio-sf16fmr2.c	Mon Mar 30 01:14:44 2009 +0400
++++ b/linux/drivers/media/radio/radio-sf16fmr2.c	Mon Mar 30 02:05:12 2009 +0400
+@@ -378,20 +378,8 @@
+ 	return a->index ? -EINVAL : 0;
+ }
+ 
+-static int fmr2_open(struct file *file)
+-{
+-	return 0;
+-}
+-
+-static int fmr2_release(struct file *file)
+-{
+-	return 0;
+-}
+-
+ static const struct v4l2_file_operations fmr2_fops = {
+ 	.owner          = THIS_MODULE,
+-	.open           = fmr2_open,
+-	.release        = fmr2_release,
+ 	.ioctl          = video_ioctl2,
+ };
+ 
+diff -r a38076781c9a linux/drivers/media/radio/radio-terratec.c
+--- a/linux/drivers/media/radio/radio-terratec.c	Mon Mar 30 01:14:44 2009 +0400
++++ b/linux/drivers/media/radio/radio-terratec.c	Mon Mar 30 02:05:12 2009 +0400
+@@ -333,20 +333,8 @@
+ 	return a->index ? -EINVAL : 0;
+ }
+ 
+-static int terratec_open(struct file *file)
+-{
+-	return 0;
+-}
+-
+-static int terratec_release(struct file *file)
+-{
+-	return 0;
+-}
+-
+ static const struct v4l2_file_operations terratec_fops = {
+ 	.owner		= THIS_MODULE,
+-	.open           = terratec_open,
+-	.release        = terratec_release,
+ 	.ioctl		= video_ioctl2,
+ };
+ 
+diff -r a38076781c9a linux/drivers/media/radio/radio-trust.c
+--- a/linux/drivers/media/radio/radio-trust.c	Mon Mar 30 01:14:44 2009 +0400
++++ b/linux/drivers/media/radio/radio-trust.c	Mon Mar 30 02:05:12 2009 +0400
+@@ -339,20 +339,8 @@
+ 	return a->index ? -EINVAL : 0;
+ }
+ 
+-static int trust_open(struct file *file)
+-{
+-	return 0;
+-}
+-
+-static int trust_release(struct file *file)
+-{
+-	return 0;
+-}
+-
+ static const struct v4l2_file_operations trust_fops = {
+ 	.owner		= THIS_MODULE,
+-	.open           = trust_open,
+-	.release        = trust_release,
+ 	.ioctl		= video_ioctl2,
+ };
+ 
+diff -r a38076781c9a linux/drivers/media/radio/radio-typhoon.c
+--- a/linux/drivers/media/radio/radio-typhoon.c	Mon Mar 30 01:14:44 2009 +0400
++++ b/linux/drivers/media/radio/radio-typhoon.c	Mon Mar 30 02:05:12 2009 +0400
+@@ -315,20 +315,8 @@
+ 	return 0;
+ }
+ 
+-static int typhoon_open(struct file *file)
+-{
+-	return 0;
+-}
+-
+-static int typhoon_release(struct file *file)
+-{
+-	return 0;
+-}
+-
+ static const struct v4l2_file_operations typhoon_fops = {
+ 	.owner		= THIS_MODULE,
+-	.open           = typhoon_open,
+-	.release        = typhoon_release,
+ 	.ioctl		= video_ioctl2,
+ };
+ 
+diff -r a38076781c9a linux/drivers/media/radio/radio-zoltrix.c
+--- a/linux/drivers/media/radio/radio-zoltrix.c	Mon Mar 30 01:14:44 2009 +0400
++++ b/linux/drivers/media/radio/radio-zoltrix.c	Mon Mar 30 02:05:12 2009 +0400
+@@ -371,21 +371,9 @@
+ 	return a->index ? -EINVAL : 0;
+ }
+ 
+-static int zoltrix_open(struct file *file)
+-{
+-	return 0;
+-}
+-
+-static int zoltrix_release(struct file *file)
+-{
+-	return 0;
+-}
+-
+ static const struct v4l2_file_operations zoltrix_fops =
+ {
+ 	.owner		= THIS_MODULE,
+-	.open           = zoltrix_open,
+-	.release        = zoltrix_release,
+ 	.ioctl		= video_ioctl2,
+ };
+ 
 
 
-I have an EVK board that has 4 LED's on it.  
-
-They are red and of the on/off type. (Although I suppose someday someone
-might install a dual color LED unit (red & green) or tri-color LED unit
-(red yellow green) on a piece of equipment.)
-
-They are controlled by GPIOs.
-
-Right now the cx18 driver implicitly controls them when switching
-between audio inputs, tuner, and radio.  However, I was going to
-internally make an "LED Controller" v4l2_subdevice to handle them.
-
-
-So I agree that *if* giving control of LEDs to the user application
-supports valid use cases, then the API spec needs some more thought.
-
-There are at least these uses for LED's in devices:
-
-1. Simple indicator/display
-2. Subject matter illumination for video/image capture (I'm guessing)
-3. Area illimunation to provide a reference level to an on board sensor
-(i.e. IR motion detection?)
-4. Transmission of data (e.g IR remotes)
-
-
-The first questions to answer in all of these cases
-
-1. "Should this be controllable from userspace?"
-
-2. "Should it be a user control?"
-(When the whole sensor orientation feedback thing came up and Hans spoke
-of a good "fit" in the API for sensor feedback, I concluded that there
-isn't a terribly good place in the V4L2 API for sensor feedback,
-miscellaneous input, or indicator status.  Nor is there a good way to
-enumerate them.  Maybe I'm missing something.)
-
-For a subcase of a display indicator to indicate device "power on", if
-the driver can control that at all (they should be tied to the output of
-a voltage regulator really) why would you want a use app to "lie" to the
-user and say power is off?
-
-OK.  That's the end of my random thoughts.
-
-Regards,
-Andy
-
-
-> Cheers,
-> Mauro
-
+-- 
+Best regards, Klimov Alexey
 
