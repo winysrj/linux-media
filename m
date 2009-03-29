@@ -1,85 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.190]:65248 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752397AbZCGJCm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Mar 2009 04:02:42 -0500
-Received: by fk-out-0910.google.com with SMTP id f33so284346fkf.5
-        for <linux-media@vger.kernel.org>; Sat, 07 Mar 2009 01:02:39 -0800 (PST)
-Date: Sat, 7 Mar 2009 18:02:24 +0900
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "Hans J. Koch" <hjk@linutronix.de>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	"Hans J. Koch" <koch@hjk-az.de>, video4linux-list@redhat.com,
-	linux-media@vger.kernel.org
-Subject: Re: saa7134 and RDS
-Message-ID: <20090307180224.7b65522d@glory.loctelecom.ru>
-In-Reply-To: <200903070954.08696.hverkuil@xs4all.nl>
-References: <54836.62.70.2.252.1236254830.squirrel@webmail.xs4all.nl>
-	<200903051736.44582.hverkuil@xs4all.nl>
-	<20090307015506.GC3058@local>
-	<200903070954.08696.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail.kapsi.fi ([217.30.184.167]:33209 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752334AbZC2Rej (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Mar 2009 13:34:39 -0400
+Message-ID: <49CFB126.7000006@iki.fi>
+Date: Sun, 29 Mar 2009 20:34:30 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Olivier MENUEL <omenuel@laposte.net>
+CC: Laurent Haond <lhaond@bearstech.com>, linux-media@vger.kernel.org
+Subject: Re: AverMedia Volar Black HD (A850)
+References: <200903291334.00879.olivier.menuel@free.fr> <200903291430.22118.olivier.menuel@free.fr> <49CF845E.1070002@iki.fi> <200903291919.54610.omenuel@laposte.net>
+In-Reply-To: <200903291919.54610.omenuel@laposte.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi 
+Olivier MENUEL wrote:
+> 
+> Antti Palosaari wrote:
+>> Could you take longer sniff. Probably 2 sniffs.
+>> 1) successful tune to channel using 1st tuner
+>> 2) successful tune to channel using 2nd tuner
+>>
+>> One sec is enough, log increases very fast when streaming picture....
+> 
+> I'm not sure what the 2nd tuner is.
+> This is a quite cheap DVB-T card.
+> They don't say anything special on the box except that you can watch HDTV with it.
+> So, I'm guessing the 2nd tuner would be for HD channels ?
 
-I build rdsd. But can't start. See log:
+ah shit, there is not even 2nd tuner! This device eeprom is totally crap 
+and useless, you cannot trust any values it does contain :(
+Eeprom says:
+1) there is 2 tuners
+* bullshit there is only one
+2) 0x38 is 2nd fe i2c addr
+* 0x38 is reserved for 1st FE and cannot be even changed.
+3) xtal is 28000
+* not sure yet
+4) tuner is MXL5005
+* could be
+5) used IF is 36125
+* I doubt that no, for Maxlinear tuner other IF is typically used
 
-Fri Mar  6 03:44:20 2009 RDS handler initialized.
-Fri Mar  6 03:44:20 2009 Added source definition: Beholder M6 Exra
-Fri Mar  6 03:44:20 2009 RDS sources setup OK.
-Fri Mar  6 03:44:20 2009 Unix domain socket created and listening.
-Fri Mar  6 03:44:20 2009 TCP/IP socket created and listening.
-Fri Mar  6 03:44:20 2009 Using V4L2 for Beholder M6 Exra
-Fri Mar  6 03:44:20 2009 open_sources() failed.
-Fri Mar  6 03:44:20 2009 rdsd terminating with error code 13
+totally wrongly configured device, designers must be weenies :(
 
-With my best regards, Dmitry.
+> Or is there a radio tuner in it ? There's nothing about it on the box, but there is a radio switch in the averTV software. But I can't find any channel when scanning for radio channels ...
+> So, I guess it does not handle radio ...
+> 
+> Anyway, I don't need HDTV nor radio. Normal TV is enough for me.
+> Only special thing I can see on the box is that there is blue light on the device when the signal is detected (maybe you'll see weird stuff in the sniff because of that...). But I don't care about that light either.
+> 
+> I sniffed a regular TV channel and a HD channel (I truncated the end of the log as they were too big to send by emails). You'll find them in attachments.
+> 
+>> I did look your sniffs and immediately found some bad values :( There is 
+>> byte in eeprom which tells 2nd demodulator i2c address, and guess what 
+>> there was - i2c address of 1st integrated af9015 demodulator :( There 
+>> should be 38 as i2c addr of 1st demod and 3a as 2nd demod.
+> 
+> you're impressive ;)
+> But I don't know much about these. Is it hard to fix ? Is it something to change in the af9015 driver ? Or does it need a completely different driver ?
+> Or is it in the firmware ?
+> If you can tell me where these addresses are I can try to change them and retest
 
-> On Saturday 07 March 2009 02:55:06 Hans J. Koch wrote:
-> > On Thu, Mar 05, 2009 at 05:36:44PM +0100, Hans Verkuil wrote:
-> > > On Thursday 05 March 2009 13:07:10 Hans Verkuil wrote:
-> > > > > Hi Hans
-> > > > >
-> > > > > I build fresh video4linux with your patch and my config for
-> > > > > our cards. In a dmesg i see : found RDS decoder.
-> > > > > cat /dev/radio0 give me some slow junk data. Is this RDS
-> > > > > data?? Have you any tools for testing RDS?
-> > > > > I try build rdsd from Hans J. Koch, but build crashed with:
-> > > > >
-> > > > > rdshandler.cpp: In member function âvoid
-> > > > > std::RDShandler::delete_client(std::RDSclient*)â:
-> > > > > rdshandler.cpp:363: error: no matching function for call to
-> > > > > âfind(__gnu_cxx::__normal_iterator<std::RDSclient**,
-> > > > > std::vector<std::RDSclient*, std::allocator<std::RDSclient*>
-> > > > > > >, __gnu_cxx::__normal_iterator<std::RDSclient**,
-> > > > > std::vector<std::RDSclient*, std::allocator<std::RDSclient*>
-> > > > > > >, std::RDSclient*&)â
-> > > >
-> > > > Ah yes, that's right. I had to hack the C++ source to make this
-> > > > compile. I'll see if I can post a patch for this tonight.
-> > >
-> > > Attached is the diff that makes rdsd compile on my system.
-> >
-> > Great, thanks! The problem is, I really haven't got the time for RDS
-> > anymore. I simply cannot test your patch and check it in. From your
-> > previous contributions I know you as a competent and trustworthy v4l
-> > developer and would give you write access to the repository.
-> > Interested?
-> 
-> Erm, not really. When the API is finalized I want to make some sort
-> of a simple reference utility/library for this and add it to v4l-dvb.
-> To be honest, I think having a daemon just complicates matters
-> unnecessarily.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> 
-> -- 
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+This device have bad eeprom and thus all configuration values are needed 
+to discover from elsewhere. I will continue...
+
+regards
+Antti
+-- 
+http://palosaari.fi/
