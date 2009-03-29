@@ -1,77 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4655 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751445AbZCEJci (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 04:32:38 -0500
-Message-ID: <19261.62.70.2.252.1236245550.squirrel@webmail.xs4all.nl>
-Date: Thu, 5 Mar 2009 10:32:30 +0100 (CET)
-Subject: Re: identifying camera sensor
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Trent Piepho" <xyzzy@speakeasy.org>
-Cc: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Sakari Ailus" <sakari.ailus@maxwell.research.nokia.com>,
-	"camera@ok.research.nokia.com" <camera@ok.research.nokia.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:42144 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751102AbZC2KvQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Mar 2009 06:51:16 -0400
+Message-ID: <49CF529C.7080904@iki.fi>
+Date: Sun, 29 Mar 2009 13:51:08 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: =?ISO-8859-1?Q?Juan_Jes=FAs_Garc=EDa_de_Soria_Lucena?=
+	<skandalfo@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] Add AVerMedia A310 USB IDs to CE6230 driver.
+References: <b0bb99640903281936u43ba9a84l6cfa5c8d3d00de0e@mail.gmail.com>
+In-Reply-To: <b0bb99640903281936u43ba9a84l6cfa5c8d3d00de0e@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Juan Jesús García de Soria Lucena wrote:
+> Add AVerMedia A310 USB IDs to CE6230 driver.
+> 
+> From: Juan Jesús García de Soria Lucena <skandalfo@gmail.com>
+> 
+> The CE6230 DVB USB driver works correctly for the AVerMedia A310 USB2.0
+> DVB-T tuner. Add the required USB ID's and hardware names so that the
+> driver will handle it.
+> 
+> Priority: normal
+> 
+> Signed-off-by: Juan Jesús García de Soria Lucena <skandalfo@gmail.com>
 
-> On Thu, 5 Mar 2009, Hans Verkuil wrote:
->>
->> ENUMINPUT is probably a better solution: you can say something like
->> "Camera 1 (sensor1)", "Camera 2 (sensor2)".
->>
->> It remains a bit of a hack, though.
->
-> Maybe use some of the reserved bits in v4l2_input to show not only the
-> sensor orientation, but also manufacturer, model, and revision?  I wonder
-> if there are enough bits for that?
+Acked-by: Antti Palosaari <crope@iki.fi>
 
-I was just brainstorming, seeing what options there are. As I said, it's a
-hack so it is not a very good option.
 
-> How does this discussion go?  I point out that using reserved bits is not
-> sustainable, does not allow enumeration of supplied properties, and
-> provides no meta-data for the self-documentation of those properties.  The
-> control interface provides all these things.  Then you point out that
-> these
-> aren't "controls" and say end of discussion.
-
-Reserved bits are there for a reason. If a particular bit of information
-it a perfect match with for that API, then it seems utterly pointless to
-me to decide not to use them 'just because we might run out in the
-future'.
-
-> Though if one had considered allowing the control api to be used to
-> provide
-> sensor properties, then the solution to this problem would now be quite
-> simple and obvious.
-
-In this case you want to have device names. While not impossible, it is
-very hard to pass strings over the control api. Lots of issues with 32-64
-bit compatibility and copying to/from user space. Also, in this case the
-control API is NOT a good match, since this isn't a single piece of data,
-instead you can have multiple sensor devices or other video enhancement
-devices that an application might need to know about. Which is why my last
-brainstorm suggestion was an ENUM_CHIPS ioctl.
-
-Note: the reason we want names instead of IDs is that the kernel is moving
-away from hardcoded IDs to strings in general. It's the same reason why
-the i2c core is moving away from driver IDs and adapter IDs.
-
-But the big question is whether the application really needs to know the
-chip in question, or needs to know capabilities of the device. The made a
-good point there in your previous email. I'm not comfortable exporting
-information about internal devices unless there is a very good reason for
-it.
-
-Regards,
-
-       Hans
-
+regards
+Antti
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
+http://palosaari.fi/
