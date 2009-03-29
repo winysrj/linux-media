@@ -1,53 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-02.arcor-online.net ([151.189.21.42]:34574 "EHLO
-	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754224AbZC1DES (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2009 23:04:18 -0400
-Subject: Re: [linux-dvb] TechnoTrend C-1501 - Locking issues on 388Mhz
-From: hermann pitton <hermann-pitton@arcor.de>
+Received: from tichy.grunau.be ([85.131.189.73]:52206 "EHLO tichy.grunau.be"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753317AbZC2Mke (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Mar 2009 08:40:34 -0400
+Date: Sun, 29 Mar 2009 14:40:13 +0200
+From: Janne Grunau <j@jannau.net>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	erik_bies@hotmail.com, Michael Krufky <mkrufky@linuxtv.org>,
-	linux-dvb@linuxtv.org
-In-Reply-To: <1238196235.6530.38.camel@pc07.localdom.local>
-References: <7b41dd970903251353n46f55bbfg687c1cfa42c5b824@mail.gmail.com>
-	 <1238111503.4783.23.camel@pc07.localdom.local>
-	 <20090326210929.32235862@pedra.chehab.org>
-	 <1238114810.4783.32.camel@pc07.localdom.local>
-	 <20090326220225.72b122b2@pedra.chehab.org>
-	 <1238117947.4783.48.camel@pc07.localdom.local>
-	 <20090327073858.25d11327@pedra.chehab.org>
-	 <1238196235.6530.38.camel@pc07.localdom.local>
-Content-Type: text/plain
-Date: Sat, 28 Mar 2009 04:03:23 +0100
-Message-Id: <1238209403.3445.16.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Cc: Srinivasa Deevi <srinivasa.deevi@conexant.com>
+Subject: [PATCH 2 of 6] cx321xx: use usb_interface.dev for
+	v4l2_device_register
+Message-ID: <20090329124013.GC637@aniel>
+References: <patchbomb.1238329154@aniel>
+MIME-Version: 1.0
+Content-Type: text/x-patch; charset=us-ascii
+Content-Disposition: inline; filename="v4l2_device_usb_interface-2.patch"
+In-Reply-To: <patchbomb.1238329154@aniel>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[snip]
-> This is the time the patches have on both of his original mails.
-> --- a/linux/drivers/media/common/tuners/tda827x.c Tue Mar 24 21:12:47 2009 +0000
-> --- a/linux/drivers/media/common/tuners/tda827x.c Tue Mar 24 21:12:47 2009 +0000
+# HG changeset patch
+# User Janne Grunau <j@jannau.net>
+# Date 1238190165 -3600
+# Node ID edca57a287041646c86b404852ef9abf0ecd6c72
+# Parent  602a8fff1ba466ec4fb4816d0fb0725c8650c311
+cx321xx: use usb_interface.dev for v4l2_device_register
 
-Hmm, how this could ever happen?
+From: Janne Grunau <j@jannau.net>
 
-I'm not able to copy and paste this from evolution with even the
-recommended preformatted option enabled. How I could ever submit any
-further patches?
+removes the explicitly set v4l2_device.name
 
-> How can I ever know when they were really added and if they went through
-> patchwork :)
+Priority: normal
 
-So I tried several editors and did still provide such BS.
+Signed-off-by: Janne Grunau <j@jannau.net>
 
-The last time I remember to have seen such was in 2005 with SECAM L' and
-it was going on over half a year.
-
-Cheers,
-Hermann
-
-
-
+diff -r 602a8fff1ba4 -r edca57a28704 linux/drivers/media/video/cx231xx/cx231xx-cards.c
+--- a/linux/drivers/media/video/cx231xx/cx231xx-cards.c	Fri Mar 27 22:34:06 2009 +0100
++++ b/linux/drivers/media/video/cx231xx/cx231xx-cards.c	Fri Mar 27 22:42:45 2009 +0100
+@@ -683,9 +683,7 @@
+ 	 */
+ 
+ 	/* Create v4l2 device */
+-	snprintf(dev->v4l2_dev.name, sizeof(dev->v4l2_dev.name),
+-					"%s-%03d", "cx231xx", nr);
+-	retval = v4l2_device_register(&udev->dev, &dev->v4l2_dev);
++	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
+ 	if (retval) {
+ 		cx231xx_errdev("v4l2_device_register failed\n");
+ 		cx231xx_devused &= ~(1 << nr);
