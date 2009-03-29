@@ -1,352 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.190]:24990 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751293AbZC2XUA (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2093 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757016AbZC2PJv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Mar 2009 19:20:00 -0400
-Received: by mu-out-0910.google.com with SMTP id g7so749504muf.1
-        for <linux-media@vger.kernel.org>; Sun, 29 Mar 2009 16:19:57 -0700 (PDT)
-Subject: [patch 2/2 review] pci-isa radios: remove open and release
- functions
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Douglas Schilling Landgraf <dougsland@gmail.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Mon, 30 Mar 2009 03:19:54 +0400
-Message-Id: <1238368794.21620.36.camel@tux.localhost>
-Mime-Version: 1.0
+	Sun, 29 Mar 2009 11:09:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Jean Delvare <khali@linux-fr.org>
+Subject: Re: Status of v4l2_subdev conversion
+Date: Sun, 29 Mar 2009 16:09:26 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, Douglas Landgraf <dougsland@gmail.com>
+References: <200903291422.08806.hverkuil@xs4all.nl> <20090329160137.303588d6@hyperion.delvare>
+In-Reply-To: <20090329160137.303588d6@hyperion.delvare>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903291609.26281.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Alexey Klimov <klimov.linux@gmail.com>
+On Sunday 29 March 2009 16:01:37 Jean Delvare wrote:
+> On Sun, 29 Mar 2009 14:22:08 +0200, Hans Verkuil wrote:
+> > Hi Mauro,
+> >
+> > For your information, this is the current status:
+> >
+> > - Steve Toth tested the HVR-1800 for me, so I've posted the pull
+> > request for the converted cx23885 driver.
+> >
+> > - The cx88 driver is also finished. I'm waiting for a last test by Jean
+> > Delvare before I post that one as well.
+>
+> Testing complete, it seems to work just fine. Thanks!
+>
+> > - Added support for saa6588 to saa7134: needed to drop the legacy i2c
+> > API from saa6588. This is in my pull request for my v4l-dvb tree.
+> >
+> > - Douglas has almost finished the em28xx driver conversion.
+> >
+> > - Jean Delvare is working on the ir-kbd-i2c conversion.
+> >
+> > That last conversion is stand-alone (i.e. has no impact on the internal
+> > v4l API) and I don't think it prevents pushing our v4l-dvb changes to
+> > 2.6.30.
+> >
+> > When the first four items are finished and merged into v4l-dvb, then I
+> > have a to do a few final cleanup actions to make everything ready for
+> > the 2.6.30 merge:
+> >
+> > - Remove v4l2-i2c-drv-legacy.h from the remaining i2c drivers. Remove
+> > the files v4l2-i2c-drv-legacy.h and v4l2-common.c since these are no
+> > longer used. Cleanup v4l2-common.h since the internal ioctls are no
+> > longer needed. Update v4l2-framework.txt, removing any references to
+> > the legacy behavior.
+> >
+> > - Fix two subdev callbacks that are in the wrong place (s_std belongs
+> > to the video ops, s_standby belongs to the tuner ops).
+> >
+> > - Add a load_fw callback to the core ops and use that were appropriate
+> > instead of the init callback. Analyze whether the init callback can be
+> > removed altogether.
+> >
+> > - Analyze how the probe addresses are used in the v4l2 drivers and move
+> > those lists over to the appropriate i2c driver headers.
+> >
+> > - Add enum_frameintervals and enum_framesizes callbacks for use with
+> > omap.
+> >
+> > - Check for any remaining uses of I2C_DRIVERID and remove them.
+>
+> Note that this isn't urgent as far as I am concerned. Driver IDs can
+> stay as long as they are needed. I _do_ expect them to become useless
+> thanks to the improved design, and then we can remove the structure
+> fields, but we can wait and see if I am correct, no need to rush.
 
-Patch removes empty open and release functions in pci and isa radio
-drivers, setting them to NULL. V4L module doesn't call for them due to
-previous patch.
+These all disappear after the convertion. They are simply no longer used.
 
-Priority: normal
+> > This shouldn't take much time to implement.
+>
+> Thanks for all your work Hans.
 
-Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+There is one other task I have to do: I've just discovered that I still need 
+to use the old autoprobing API for kernels < 2.6.25. While the 
+i2c_new_probed_device API exists from kernel 2.6.22 onwards they have a bug 
+causing a kernel oops in i2c_smbus_xfer when attempting to probe i2c 
+addresses in the range 0x30-0x37 and 0x50-0x5f (7-bit). These addresses can 
+contain an eeprom and so the probe mechanism attempts to read a byte 
+instead of relying on an SMBUS_QUICK probe. Unfortunately that byte read is 
+broken.
 
---
-diff -r a38076781c9a linux/drivers/media/radio/radio-aimslab.c
---- a/linux/drivers/media/radio/radio-aimslab.c	Mon Mar 30 01:14:44 2009 +0400
-+++ b/linux/drivers/media/radio/radio-aimslab.c	Mon Mar 30 02:05:12 2009 +0400
-@@ -356,20 +356,8 @@
- 	return a->index ? -EINVAL : 0;
- }
- 
--static int rtrack_open(struct file *file)
--{
--	return 0;
--}
--
--static int rtrack_release(struct file *file)
--{
--	return 0;
--}
--
- static const struct v4l2_file_operations rtrack_fops = {
- 	.owner		= THIS_MODULE,
--	.open           = rtrack_open,
--	.release        = rtrack_release,
- 	.ioctl		= video_ioctl2,
- };
- 
-diff -r a38076781c9a linux/drivers/media/radio/radio-aztech.c
---- a/linux/drivers/media/radio/radio-aztech.c	Mon Mar 30 01:14:44 2009 +0400
-+++ b/linux/drivers/media/radio/radio-aztech.c	Mon Mar 30 02:05:12 2009 +0400
-@@ -319,20 +319,8 @@
- 	return -EINVAL;
- }
- 
--static int aztech_open(struct file *file)
--{
--	return 0;
--}
--
--static int aztech_release(struct file *file)
--{
--	return 0;
--}
--
- static const struct v4l2_file_operations aztech_fops = {
- 	.owner		= THIS_MODULE,
--	.open           = aztech_open,
--	.release        = aztech_release,
- 	.ioctl		= video_ioctl2,
- };
- 
-diff -r a38076781c9a linux/drivers/media/radio/radio-gemtek-pci.c
---- a/linux/drivers/media/radio/radio-gemtek-pci.c	Mon Mar 30 01:14:44 2009 +0400
-+++ b/linux/drivers/media/radio/radio-gemtek-pci.c	Mon Mar 30 02:05:12 2009 +0400
-@@ -357,20 +357,8 @@
- 
- MODULE_DEVICE_TABLE(pci, gemtek_pci_id);
- 
--static int gemtek_pci_open(struct file *file)
--{
--	return 0;
--}
--
--static int gemtek_pci_release(struct file *file)
--{
--	return 0;
--}
--
- static const struct v4l2_file_operations gemtek_pci_fops = {
- 	.owner		= THIS_MODULE,
--	.open           = gemtek_pci_open,
--	.release        = gemtek_pci_release,
- 	.ioctl		= video_ioctl2,
- };
- 
-diff -r a38076781c9a linux/drivers/media/radio/radio-gemtek.c
---- a/linux/drivers/media/radio/radio-gemtek.c	Mon Mar 30 01:14:44 2009 +0400
-+++ b/linux/drivers/media/radio/radio-gemtek.c	Mon Mar 30 02:05:12 2009 +0400
-@@ -376,20 +376,9 @@
- /*
-  * Video 4 Linux stuff.
-  */
--static int gemtek_open(struct file *file)
--{
--	return 0;
--}
--
--static int gemtek_release(struct file *file)
--{
--	return 0;
--}
- 
- static const struct v4l2_file_operations gemtek_fops = {
- 	.owner		= THIS_MODULE,
--	.open		= gemtek_open,
--	.release	= gemtek_release,
- 	.ioctl		= video_ioctl2,
- };
- 
-diff -r a38076781c9a linux/drivers/media/radio/radio-maestro.c
---- a/linux/drivers/media/radio/radio-maestro.c	Mon Mar 30 01:14:44 2009 +0400
-+++ b/linux/drivers/media/radio/radio-maestro.c	Mon Mar 30 02:05:12 2009 +0400
-@@ -293,20 +293,8 @@
- 	return a->index ? -EINVAL : 0;
- }
- 
--static int maestro_open(struct file *file)
--{
--	return 0;
--}
--
--static int maestro_release(struct file *file)
--{
--	return 0;
--}
--
- static const struct v4l2_file_operations maestro_fops = {
- 	.owner		= THIS_MODULE,
--	.open           = maestro_open,
--	.release        = maestro_release,
- 	.ioctl		= video_ioctl2,
- };
- 
-diff -r a38076781c9a linux/drivers/media/radio/radio-maxiradio.c
---- a/linux/drivers/media/radio/radio-maxiradio.c	Mon Mar 30 01:14:44 2009 +0400
-+++ b/linux/drivers/media/radio/radio-maxiradio.c	Mon Mar 30 02:05:12 2009 +0400
-@@ -340,20 +340,8 @@
- 	return -EINVAL;
- }
- 
--static int maxiradio_open(struct file *file)
--{
--	return 0;
--}
--
--static int maxiradio_release(struct file *file)
--{
--	return 0;
--}
--
- static const struct v4l2_file_operations maxiradio_fops = {
- 	.owner		= THIS_MODULE,
--	.open           = maxiradio_open,
--	.release        = maxiradio_release,
- 	.ioctl          = video_ioctl2,
- };
- 
-diff -r a38076781c9a linux/drivers/media/radio/radio-rtrack2.c
---- a/linux/drivers/media/radio/radio-rtrack2.c	Mon Mar 30 01:14:44 2009 +0400
-+++ b/linux/drivers/media/radio/radio-rtrack2.c	Mon Mar 30 02:05:12 2009 +0400
-@@ -261,20 +261,8 @@
- 	return a->index ? -EINVAL : 0;
- }
- 
--static int rtrack2_open(struct file *file)
--{
--	return 0;
--}
--
--static int rtrack2_release(struct file *file)
--{
--	return 0;
--}
--
- static const struct v4l2_file_operations rtrack2_fops = {
- 	.owner		= THIS_MODULE,
--	.open           = rtrack2_open,
--	.release        = rtrack2_release,
- 	.ioctl		= video_ioctl2,
- };
- 
-diff -r a38076781c9a linux/drivers/media/radio/radio-sf16fmi.c
---- a/linux/drivers/media/radio/radio-sf16fmi.c	Mon Mar 30 01:14:44 2009 +0400
-+++ b/linux/drivers/media/radio/radio-sf16fmi.c	Mon Mar 30 02:05:12 2009 +0400
-@@ -261,20 +261,8 @@
- 	return a->index ? -EINVAL : 0;
- }
- 
--static int fmi_open(struct file *file)
--{
--	return 0;
--}
--
--static int fmi_release(struct file *file)
--{
--	return 0;
--}
--
- static const struct v4l2_file_operations fmi_fops = {
- 	.owner		= THIS_MODULE,
--	.open           = fmi_open,
--	.release        = fmi_release,
- 	.ioctl		= video_ioctl2,
- };
- 
-diff -r a38076781c9a linux/drivers/media/radio/radio-sf16fmr2.c
---- a/linux/drivers/media/radio/radio-sf16fmr2.c	Mon Mar 30 01:14:44 2009 +0400
-+++ b/linux/drivers/media/radio/radio-sf16fmr2.c	Mon Mar 30 02:05:12 2009 +0400
-@@ -378,20 +378,8 @@
- 	return a->index ? -EINVAL : 0;
- }
- 
--static int fmr2_open(struct file *file)
--{
--	return 0;
--}
--
--static int fmr2_release(struct file *file)
--{
--	return 0;
--}
--
- static const struct v4l2_file_operations fmr2_fops = {
- 	.owner          = THIS_MODULE,
--	.open           = fmr2_open,
--	.release        = fmr2_release,
- 	.ioctl          = video_ioctl2,
- };
- 
-diff -r a38076781c9a linux/drivers/media/radio/radio-terratec.c
---- a/linux/drivers/media/radio/radio-terratec.c	Mon Mar 30 01:14:44 2009 +0400
-+++ b/linux/drivers/media/radio/radio-terratec.c	Mon Mar 30 02:05:12 2009 +0400
-@@ -333,20 +333,8 @@
- 	return a->index ? -EINVAL : 0;
- }
- 
--static int terratec_open(struct file *file)
--{
--	return 0;
--}
--
--static int terratec_release(struct file *file)
--{
--	return 0;
--}
--
- static const struct v4l2_file_operations terratec_fops = {
- 	.owner		= THIS_MODULE,
--	.open           = terratec_open,
--	.release        = terratec_release,
- 	.ioctl		= video_ioctl2,
- };
- 
-diff -r a38076781c9a linux/drivers/media/radio/radio-trust.c
---- a/linux/drivers/media/radio/radio-trust.c	Mon Mar 30 01:14:44 2009 +0400
-+++ b/linux/drivers/media/radio/radio-trust.c	Mon Mar 30 02:05:12 2009 +0400
-@@ -339,20 +339,8 @@
- 	return a->index ? -EINVAL : 0;
- }
- 
--static int trust_open(struct file *file)
--{
--	return 0;
--}
--
--static int trust_release(struct file *file)
--{
--	return 0;
--}
--
- static const struct v4l2_file_operations trust_fops = {
- 	.owner		= THIS_MODULE,
--	.open           = trust_open,
--	.release        = trust_release,
- 	.ioctl		= video_ioctl2,
- };
- 
-diff -r a38076781c9a linux/drivers/media/radio/radio-typhoon.c
---- a/linux/drivers/media/radio/radio-typhoon.c	Mon Mar 30 01:14:44 2009 +0400
-+++ b/linux/drivers/media/radio/radio-typhoon.c	Mon Mar 30 02:05:12 2009 +0400
-@@ -315,20 +315,8 @@
- 	return 0;
- }
- 
--static int typhoon_open(struct file *file)
--{
--	return 0;
--}
--
--static int typhoon_release(struct file *file)
--{
--	return 0;
--}
--
- static const struct v4l2_file_operations typhoon_fops = {
- 	.owner		= THIS_MODULE,
--	.open           = typhoon_open,
--	.release        = typhoon_release,
- 	.ioctl		= video_ioctl2,
- };
- 
-diff -r a38076781c9a linux/drivers/media/radio/radio-zoltrix.c
---- a/linux/drivers/media/radio/radio-zoltrix.c	Mon Mar 30 01:14:44 2009 +0400
-+++ b/linux/drivers/media/radio/radio-zoltrix.c	Mon Mar 30 02:05:12 2009 +0400
-@@ -371,21 +371,9 @@
- 	return a->index ? -EINVAL : 0;
- }
- 
--static int zoltrix_open(struct file *file)
--{
--	return 0;
--}
--
--static int zoltrix_release(struct file *file)
--{
--	return 0;
--}
--
- static const struct v4l2_file_operations zoltrix_fops =
- {
- 	.owner		= THIS_MODULE,
--	.open           = zoltrix_open,
--	.release        = zoltrix_release,
- 	.ioctl		= video_ioctl2,
- };
- 
+The main i2c drivers that have addresses in those ranges are tvaudio and 
+tvp5150.
 
+In the case of kernels 2.6.25 and 2.6.26 this bug was fixed in the stable 
+series.
+
+I really should have remembered this, since I fixed this i2c bug myself :-(
+
+Regards,
+
+	Hans
 
 -- 
-Best regards, Klimov Alexey
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
