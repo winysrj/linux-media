@@ -1,43 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:35722 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751222AbZCHSvy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Mar 2009 14:51:54 -0400
-Date: Sun, 8 Mar 2009 15:51:25 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: VDR User <user.vdr@gmail.com>
-Cc: Peter Baartz <baartzy@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: Kconfig changes in /hg/v4l-dvb caused dvb_usb_cxusb to stop
- building
-Message-ID: <20090308155125.5f8afe07@caramujo.chehab.org>
-In-Reply-To: <a3ef07920903081138n25f00be1k282061ed17bf406@mail.gmail.com>
-References: <d18a06340903080108p3d06e2ajd2f4f1026f1eef40@mail.gmail.com>
-	<20090308140304.3cf9370a@caramujo.chehab.org>
-	<a3ef07920903081138n25f00be1k282061ed17bf406@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from tichy.grunau.be ([85.131.189.73]:52208 "EHLO tichy.grunau.be"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752866AbZC2Ml4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Mar 2009 08:41:56 -0400
+Received: from localhost (unknown [78.52.195.10])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by tichy.grunau.be (Postfix) with ESMTPSA id 3337390002
+	for <linux-media@vger.kernel.org>; Sun, 29 Mar 2009 14:41:33 +0200 (CEST)
+Date: Sun, 29 Mar 2009 14:41:35 +0200
+From: Janne Grunau <j@jannau.net>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 3 of 6] usbvision: use usb_interface.dev for
+	v4l2_device_register
+Message-ID: <20090329124135.GD637@aniel>
+References: <patchbomb.1238329154@aniel>
+MIME-Version: 1.0
+Content-Type: text/x-patch; charset=us-ascii
+Content-Disposition: inline; filename="v4l2_device_usb_interface-3.patch"
+In-Reply-To: <patchbomb.1238329154@aniel>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 8 Mar 2009 11:38:06 -0700
-VDR User <user.vdr@gmail.com> wrote:
+# HG changeset patch
+# User Janne Grunau <j@jannau.net>
+# Date 1238190800 -3600
+# Node ID 09d6b9873181402892bb746d101b1b22b245208d
+# Parent  edca57a287041646c86b404852ef9abf0ecd6c72
+usbvision: use usb_interface.dev for v4l2_device_register
 
-> On Sun, Mar 8, 2009 at 10:03 AM, Mauro Carvalho Chehab
-> <mchehab@infradead.org> wrote:
-> > This seems to be caused by a bug at the out-of-tree building system. I'm
-> > currently checking what's going wrong.
-> 
-> Yesterday I grabbed a fresh clone of v4l and compiled drivers for my
-> nexus-s.  Only that none of the required frontend modules were enabled
-> automatically as they should be when I selected AV7110.  I had to
-> manually go enable them by hand.  Luckily I knew which ones were
-> needed but I'm sure a ton of users have no clue.
+From: Janne Grunau <j@jannau.net>
 
-Hopefully, it should be fixed right now. I did a one-line change at the scripts
-that does the .config initialization. At least, on my tests, everything seems
-to be fine right now with -hg.
+Priority: normal
 
+Signed-off-by: Janne Grunau <j@jannau.net>
 
-Cheers,
-Mauro
+diff -r edca57a28704 -r 09d6b9873181 linux/drivers/media/video/usbvision/usbvision-video.c
+--- a/linux/drivers/media/video/usbvision/usbvision-video.c	Fri Mar 27 22:42:45 2009 +0100
++++ b/linux/drivers/media/video/usbvision/usbvision-video.c	Fri Mar 27 22:53:20 2009 +0100
+@@ -1530,7 +1530,8 @@
+  * Returns NULL on error, a pointer to usb_usbvision else.
+  *
+  */
+-static struct usb_usbvision *usbvision_alloc(struct usb_device *dev)
++static struct usb_usbvision *usbvision_alloc(struct usb_device *dev,
++					     struct usb_interface *intf)
+ {
+ 	struct usb_usbvision *usbvision;
+ 
+@@ -1539,7 +1540,7 @@
+ 		return NULL;
+ 
+ 	usbvision->dev = dev;
+-	if (v4l2_device_register(&dev->dev, &usbvision->v4l2_dev))
++	if (v4l2_device_register(&intf->dev, &usbvision->v4l2_dev))
+ 		goto err_free;
+ 
+ 	mutex_init(&usbvision->lock);	/* available */
+@@ -1677,7 +1678,8 @@
+ 		return -ENODEV;
+ 	}
+ 
+-	if ((usbvision = usbvision_alloc(dev)) == NULL) {
++	usbvision = usbvision_alloc(dev, intf);
++	if (usbvision == NULL) {
+ 		dev_err(&intf->dev, "%s: couldn't allocate USBVision struct\n", __func__);
+ 		return -ENOMEM;
+ 	}
