@@ -1,80 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.sea5.speakeasy.net ([69.17.117.3]:55963 "EHLO
-	mail1.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751434AbZCSULc (ORCPT
+Received: from mail-qy0-f118.google.com ([209.85.221.118]:36750 "EHLO
+	mail-qy0-f118.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753021AbZC2OZ5 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Mar 2009 16:11:32 -0400
-Date: Thu, 19 Mar 2009 13:11:29 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Devin Heitmueller <devin.heitmueller@gmail.com>,
-	Ang Way Chuang <wcang@nav6.org>,
-	VDR User <user.vdr@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: The right way to interpret the content of SNR, signal strength
- 	and BER from HVR 4000 Lite
-In-Reply-To: <20090319101601.2eba0397@pedra.chehab.org>
-Message-ID: <Pine.LNX.4.58.0903191229370.28292@shell2.speakeasy.net>
-References: <49B9BC93.8060906@nav6.org> <a3ef07920903121923r77737242ua7129672ec557a97@mail.gmail.com>
- <49B9DECC.5090102@nav6.org> <412bdbff0903130727p719b63a0u3c4779b3bec7520b@mail.gmail.com>
- <Pine.LNX.4.58.0903131404430.28292@shell2.speakeasy.net>
- <412bdbff0903131432r1233ab67sb7327638f7cf1e02@mail.gmail.com>
- <Pine.LNX.4.58.0903131649380.28292@shell2.speakeasy.net>
- <20090319101601.2eba0397@pedra.chehab.org>
+	Sun, 29 Mar 2009 10:25:57 -0400
+Received: by qyk16 with SMTP id 16so2967289qyk.33
+        for <linux-media@vger.kernel.org>; Sun, 29 Mar 2009 07:25:55 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <1238297237.3235.42.camel@palomino.walls.org>
+References: <164695.77575.qm@web56903.mail.re3.yahoo.com>
+	 <412bdbff0903161118o2d038bdetc4d52851e35451df@mail.gmail.com>
+	 <63160.21731.qm@web56906.mail.re3.yahoo.com>
+	 <1237251478.3303.37.camel@palomino.walls.org>
+	 <954486.20343.qm@web56908.mail.re3.yahoo.com>
+	 <1237425168.3303.94.camel@palomino.walls.org>
+	 <de8cad4d0903220853v4b871e91x7de6efebfb376034@mail.gmail.com>
+	 <871136.15243.qm@web56908.mail.re3.yahoo.com>
+	 <1238297237.3235.42.camel@palomino.walls.org>
+Date: Sun, 29 Mar 2009 10:25:54 -0400
+Message-ID: <de8cad4d0903290725t2e7764a8pe2c0d1b7d67ea8c4@mail.gmail.com>
+Subject: Re: Problems with Hauppauge HVR 1600 and cx18 driver
+From: Brandon Jenkins <bcjenkins@tvwhere.com>
+To: Andy Walls <awalls@radix.net>
+Cc: Corey Taylor <johnfivealive@yahoo.com>,
+	linux-media@vger.kernel.org, ivtv-devel@ivtvdriver.org,
+	ivtv-users@ivtv-driver.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 19 Mar 2009, Mauro Carvalho Chehab wrote:
-> that we should discuss about it for some time, comparing each alternatives we
-> have, focused on SNR only. Later, use can use the same approach for the
-> other quality measurements on DVB.
+On Sat, Mar 28, 2009 at 11:27 PM, Andy Walls <awalls@radix.net> wrote:
+> On Mon, 2009-03-23 at 06:52 -0700, Corey Taylor wrote:
+>> > Andy,
+>>
+>> > I am noticing an improvement in pixelation by setting the bufsize to
+>> > 64k. I will monitor over the next week and report back. I am running 3
+>> > HVR-1600s and the IRQs are coming up shared with the USB which also
+>> > supports my HD PVR capture device. Monday nights are usually one of
+>> > the busier nights for recording so I will know how well this holds up.
+>>
+>> > Thanks for the tip!
+>>
+>> > Brandon
+>>
+>> Hi Andy and Brandon, I too tried various different bufsizes as suggested and I still see very noticeable pixelation/tearing regardless of the setting.
+>>
+>> I even upgraded my motherboard this past weekend to an Asus AM2+ board with
+>> Phenon II X3 CPU. Still the same problems with the card in a brand new
+>> setup.
+>>
+>> I also tried modifying the cx18 source code as Andy suggested and that
+>> made more debug warning show up in my syslog, but still did not
+>> resolve the issue. Haven't tried this yet with the new motherboard
+>> though.
+>>
+>> Is it possible that this card is more sensitive to hiccups in the
+>> signal coming from the cable line? Or interference from other close-by
+>> cables and electronic equipment?
+>>
+>> When recording/watching Live TV through MythTV, I see that ffmpeg is
+>> constantly outputting various errors related to the video stream. I
+>> can post those here if you think it's relevant.
+>>
+>> Shoud I just return this card and get one with a different chipset? Or
+>> do you think driver updates can solve the issue?
+>>
+>> I'm happy to hold on to this card if it means I can contribute in some
+>> way to fixing the problem, if it's fixable : )
 >
-> In order to start such discussions, I'm summarizing both proposals under the
-> same perspective.
+> Corey and Brandon,
 >
-> I'm also presenting some criteria that are important on this scope
+> I found a race condition between the cx driver and the CX23418 firmware.
+> I have a patch that mitigates the problem here:
 >
-> People are welcome to contribute and to argue in favor/against each one.
+> http://linuxtv.org/hg/~awalls/cx18/rev/9f5f44e0ce6c
 >
+> I think the final form of the patch could be better.  However, this
+> patch essentially eliminated any artifacts I was getting playing back
+> digital TV.  I also had positive results running mplayer without the
+> "-cache" command line for both digital and analog captures.
+>
+> I haven't tested on a single processor machine, nor in a multicard
+> setup, but things looked good enough that I thought it ready for test by
+> others.
+>
+> Let me know if it helps or not.
+>
+> Regards,
+> Andy
+>
+>
+Hi Andy,
 
-> So, on both proposals, we have 1 bit for signal and 15 bits to be used for
-> storing the absolute numbering representation.
+I have cloned this tree and loaded on the server. I'll let you know
+over the next couple of days if there is any improvement.
 
-One could always use a normal 2's complement signed number to indicate
-negative SNR.  The only problem was the structure uses a u16 instead of an
-s16.
+Thanks!
 
-> The SNR(dB) will be given by:
-> 	SNR(dB) = driver_SNR_measure / 10;
-
-Since the driver often needs to use a logarithm from dvb-math to find SNR,
-you have code like this in the driver (from lgdt3305.c):
-        /* report SNR in dB * 10 */
-        *snr = (state->snr / ((1 << 24) / 10));
-
-> The SNR(dB) will be given by:
-> 	SNR(dB) = driver_SNR_measure / 256;
-
-For the driver side, also from lgdt3305 which has both formats with an
-ifdef:
-        /* convert from 8.24 fixed-point to 8.8 */
-        *snr = (state->snr) >> 16;
-
-FWIW, converting to decimal to print using only integer math:
-
-	/* decimal fixed point */
-	printf("%d.%d dB\n", snr / 10, snr % 10);
-
-	/* binary fixed point */
-	printf("%d.%02d dB\n", snr >> 8, (snr & 0xff) * 100 >> 8);
-
-On modern CPUs, integer division and modulus are by far the most
-expensive operations, so the latter is probably faster since it replaces
-two div/mod operations by a single integer multiply (cheaper than
-division) and three much cheaper shifts or masks.
-
-> Also, due to historical reasons, the frequency is represented as a 62.5 Hz step
-> (or 62.5 kHz step, depending on a capability field), and this works fine: all
-
-One could say the v4l1/2 use frequency in MHz in 28.4 binary fixed point.
+Brandon
