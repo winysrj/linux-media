@@ -1,68 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2879 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757513AbZCPNEd (ORCPT
+Received: from mk-outboundfilter-1.mail.uk.tiscali.com ([212.74.114.37]:39983
+	"EHLO mk-outboundfilter-1.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752157AbZC2WRQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Mar 2009 09:04:33 -0400
-Message-ID: <45192.62.70.2.252.1237208659.squirrel@webmail.xs4all.nl>
-Date: Mon, 16 Mar 2009 14:04:19 +0100 (CET)
-Subject: Re: REVIEW: bttv conversion to v4l2_subdev
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "Trent Piepho" <xyzzy@speakeasy.org>, linux-media@vger.kernel.org
+	Sun, 29 Mar 2009 18:17:16 -0400
+From: Adam Baker <linux@baker-net.org.uk>
+To: linux-media@vger.kernel.org, Hans de Goede <j.w.r.degoede@hhs.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Jean-Francois Moine" <moinejf@free.fr>
+Subject: Re: [PATCH v2 1/4] Sensor orientation reporting
+Date: Sun, 29 Mar 2009 23:17:10 +0100
+Cc: kilgota@banach.math.auburn.edu, Hans Verkuil <hverkuil@xs4all.nl>
+References: <200903292309.31267.linux@baker-net.org.uk>
+In-Reply-To: <200903292309.31267.linux@baker-net.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903292317.10249.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add support to the SQ-905 driver to pass back to user space the
+sensor orientation information obtained from the camera during init.
+Modifies gspca and the videodev2.h header to create the necessary
+API.
 
->> > Based on this principle, IMO, the probing function should, by default,
->> > probe
->> > for tvaudio, if it doesn't find another audio device. You may
->> eventually
->> > ask
->> > for people to report, to warn us that the board entry is broken, but
->> we
->> > shouln't intentionally break a device that we're almost sure that
->> requires
->> > tvaudio or tda7432.
->>
->> OK. In other words it would be better to probe for:
->>
->> 1) msp3400
->> 2) msp3400_alt
->> 3) tda7432
->> 4) tvaudio
->>
->> and return as soon as we find a chip. So tvaudio is probed
->> unconditionally, effectively ignoring the needs_tvaudio flag and only
->> honoring the tvaudio module option (although I'm not sure whether that
->> is
->> still needed in that case).
->
-> IMO, we should handle the needs_tvaudio with a different behaviour: using
-> such kind of
-> glue only when we're sure about the tv audio chips used for a certain
-> board. If
-> unsure, use the auto probing. Otherwise, we'll probe just that know
-> chip(s) range.
-
-I have to admit that I've no idea what you mean. My patch replicates the
-original behavior of 'modprobe tvaudio' where all i2c addresses are probed
-that tvaudio supports (from the normal_i2c array in tvaudio.c). We cannot
-do a subset of this since it was never administrated which chip in
-particular is on the board, just that it is one of the chips supported by
-tvaudio.
-
-If you want to be able to select particular devices, then you need to
-administrate that in the card definitions. That's out of scope of this
-patch IMHO.
-
-Regards,
-
-       Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Signed-off-by: Adam Baker <linux@baker-net.org.uk>
+---
+diff -r d8d701594f71 linux/drivers/media/video/gspca/gspca.c
+--- a/linux/drivers/media/video/gspca/gspca.c	Sun Mar 29 08:45:36 2009 +0200
++++ b/linux/drivers/media/video/gspca/gspca.c	Sun Mar 29 23:00:08 2009 +0100
+@@ -1147,6 +1147,7 @@
+ 	if (input->index != 0)
+ 		return -EINVAL;
+ 	input->type = V4L2_INPUT_TYPE_CAMERA;
++	input->status = gspca_dev->cam.input_flags;
+ 	strncpy(input->name, gspca_dev->sd_desc->name,
+ 		sizeof input->name);
+ 	return 0;
+diff -r d8d701594f71 linux/drivers/media/video/gspca/gspca.h
+--- a/linux/drivers/media/video/gspca/gspca.h	Sun Mar 29 08:45:36 2009 +0200
++++ b/linux/drivers/media/video/gspca/gspca.h	Sun Mar 29 23:00:08 2009 +0100
+@@ -56,6 +56,7 @@
+ 				 * - cannot be > MAX_NURBS
+ 				 * - when 0 and bulk_size != 0 means
+ 				 *   1 URB and submit done by subdriver */
++	u32 input_flags;	/* value for ENUM_INPUT status flags */
+ };
+ 
+ struct gspca_dev;
+diff -r d8d701594f71 linux/drivers/media/video/gspca/sq905.c
+--- a/linux/drivers/media/video/gspca/sq905.c	Sun Mar 29 08:45:36 2009 +0200
++++ b/linux/drivers/media/video/gspca/sq905.c	Sun Mar 29 23:00:08 2009 +0100
+@@ -360,6 +360,12 @@
+ 	gspca_dev->cam.nmodes = ARRAY_SIZE(sq905_mode);
+ 	if (!(ident & SQ905_HIRES_MASK))
+ 		gspca_dev->cam.nmodes--;
++
++	if (ident & SQ905_ORIENTATION_MASK)
++		gspca_dev->cam.input_flags = V4L2_IN_ST_VFLIP;
++	else
++		gspca_dev->cam.input_flags = V4L2_IN_ST_VFLIP |
++					     V4L2_IN_ST_HFLIP;
+ 	return 0;
+ }
+ 
+diff -r d8d701594f71 linux/include/linux/videodev2.h
+--- a/linux/include/linux/videodev2.h	Sun Mar 29 08:45:36 2009 +0200
++++ b/linux/include/linux/videodev2.h	Sun Mar 29 23:00:08 2009 +0100
+@@ -737,6 +737,11 @@
+ #define V4L2_IN_ST_NO_SIGNAL   0x00000002
+ #define V4L2_IN_ST_NO_COLOR    0x00000004
+ 
++/* field 'status' - sensor orientation */
++/* If sensor is mounted upside down set both bits */
++#define V4L2_IN_ST_HFLIP       0x00000010 /* Output is flipped horizontally 
+*/
++#define V4L2_IN_ST_VFLIP       0x00000020 /* Output is flipped vertically */
++
+ /* field 'status' - analog */
+ #define V4L2_IN_ST_NO_H_LOCK   0x00000100  /* No horizontal sync lock */
+ #define V4L2_IN_ST_COLOR_KILL  0x00000200  /* Color killer is active */
 
