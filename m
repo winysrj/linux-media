@@ -1,86 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp0.lie-comtel.li ([217.173.238.80]:54946 "EHLO
-	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758087AbZCETTT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 14:19:19 -0500
-Message-ID: <49B025B2.1040309@kaiser-linux.li>
-Date: Thu, 05 Mar 2009 20:19:14 +0100
-From: Thomas Kaiser <v4l@kaiser-linux.li>
-MIME-Version: 1.0
-To: kilgota@banach.math.auburn.edu
-CC: Kyle Guinn <elyk03@gmail.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: RFC on proposed patches to mr97310a.c for gspca and v4l
-References: <20090217200928.1ae74819@free.fr> <200902171907.40054.elyk03@gmail.com> <alpine.LNX.2.00.0903031746030.21483@banach.math.auburn.edu> <200903032050.13915.elyk03@gmail.com> <alpine.LNX.2.00.0903032247530.21793@banach.math.auburn.edu> <49AE3EA1.3090504@kaiser-linux.li> <49AE41DE.1000300@kaiser-linux.li> <alpine.LNX.2.00.0903041248020.22500@banach.math.auburn.edu> <49AFCD5B.4050100@kaiser-linux.li> <alpine.LNX.2.00.0903051221510.27780@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.0903051221510.27780@banach.math.auburn.edu>
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Received: from mail1.radix.net ([207.192.128.31]:36992 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751294AbZC2Daq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Mar 2009 23:30:46 -0400
+Subject: Re: Problems with Hauppauge HVR 1600 and cx18 driver
+From: Andy Walls <awalls@radix.net>
+To: Corey Taylor <johnfivealive@yahoo.com>,
+	Brandon Jenkins <bcjenkins@tvwhere.com>
+Cc: linux-media@vger.kernel.org, ivtv-devel@ivtvdriver.org,
+	ivtv-users@ivtv-driver.org
+In-Reply-To: <871136.15243.qm@web56908.mail.re3.yahoo.com>
+References: <164695.77575.qm@web56903.mail.re3.yahoo.com>
+	 <412bdbff0903161118o2d038bdetc4d52851e35451df@mail.gmail.com>
+	 <63160.21731.qm@web56906.mail.re3.yahoo.com>
+	 <1237251478.3303.37.camel@palomino.walls.org>
+	 <954486.20343.qm@web56908.mail.re3.yahoo.com>
+	 <1237425168.3303.94.camel@palomino.walls.org>
+	 <de8cad4d0903220853v4b871e91x7de6efebfb376034@mail.gmail.com>
+	 <871136.15243.qm@web56908.mail.re3.yahoo.com>
+Content-Type: text/plain
+Date: Sat, 28 Mar 2009 23:27:17 -0400
+Message-Id: <1238297237.3235.42.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Theodore
-
-kilgota@banach.math.auburn.edu wrote:
->> For the brightness, I guess, 0 means dark and 0xff completely bright 
->> (sensor is in saturation)?
+On Mon, 2009-03-23 at 06:52 -0700, Corey Taylor wrote:
+> > Andy,
 > 
-> That of course is a guess. OTOH it could be on a scale of 0 to 0x80, or 
-> it could be that only the digits 0 through 9 are actually used, and the 
-> basis is then 100, or too many other variations to count. Also what is 
-> considered a "normal" or an "average" value? The trouble with your 
-> suggestion of a scale from 0 to 0xff is that it makes sense, and in a 
-> situation like this one obviously can not assume that.
-
-I don't really understand what you try to tell with this sentence:
-"and in a situation like this one obviously can not assume that."
-
-The values changed from 0x03 (dark) to 0xfc (bright), for me does this 
-mean that the scale goes from 0x00 to 0xff!? Or I am wrong?
-
+> > I am noticing an improvement in pixelation by setting the bufsize to
+> > 64k. I will monitor over the next week and report back. I am running 3
+> > HVR-1600s and the IRQs are coming up shared with the USB which also
+> > supports my HD PVR capture device. Monday nights are usually one of
+> > the busier nights for recording so I will know how well this holds up.
 > 
-> What I am suspecting is that these things have some kind of standard 
-> definitions, which are not necessarily done by logic but by convention, 
-> and there is a document out there somewhere which lays it all down. The 
-> document could have been produced by Microsoft, for example, which 
-> doubtless has its own problems reducing chaos to order in the industry, 
-> or by some kind of consortium of camera manufacturers, or something like 
-> that. I really do strongly suspect that the interpretation of all of 
-> this is written down somewhere. But I don't know where to look.
+> > Thanks for the tip!
+> 
+> > Brandon
+> 
+> Hi Andy and Brandon, I too tried various different bufsizes as suggested and I still see very noticeable pixelation/tearing regardless of the setting.
+> 
+> I even upgraded my motherboard this past weekend to an Asus AM2+ board with
+> Phenon II X3 CPU. Still the same problems with the card in a brand new
+> setup.
+> 
+> I also tried modifying the cx18 source code as Andy suggested and that
+> made more debug warning show up in my syslog, but still did not
+> resolve the issue. Haven't tried this yet with the new motherboard
+> though.
+> 
+> Is it possible that this card is more sensitive to hiccups in the
+> signal coming from the cable line? Or interference from other close-by
+> cables and electronic equipment?
+> 
+> When recording/watching Live TV through MythTV, I see that ffmpeg is
+> constantly outputting various errors related to the video stream. I
+> can post those here if you think it's relevant.
+> 
+> Shoud I just return this card and get one with a different chipset? Or
+> do you think driver updates can solve the issue?
+> 
+> I'm happy to hold on to this card if it means I can contribute in some
+> way to fixing the problem, if it's fixable : )
 
-I believe that this documents are exists, but not available for 
-public:-( Just company confidential.
+Corey and Brandon,
 
-Anyway most of the Linux webcam drivers were done by re-engineering the 
-Windoz driver (usbsnoop). That said, all information about the cams is 
-"a guess".
+I found a race condition between the cx driver and the CX23418 firmware.
+I have a patch that mitigates the problem here:
 
-For the brightness thing, I just was working with a light and studied 
-what is changing in the header of the frame. At this time I did this, I 
-was not aware that I could remove the lens of the webcam to be more 
-sensible to light change and get more precise results.
+http://linuxtv.org/hg/~awalls/cx18/rev/9f5f44e0ce6c
 
-During the work I did for the PAC7311 Pixart chip I found out that 
-removing the lens and put light directly to the sensor does help a lot 
-to figure out how the cam is working.
+I think the final form of the patch could be better.  However, this
+patch essentially eliminated any artifacts I was getting playing back
+digital TV.  I also had positive results running mplayer without the
+"-cache" command line for both digital and analog captures.
 
-And with this idea in mind, we could even get further to guess the 
-compression algo from a cam.
+I haven't tested on a single processor machine, nor in a multicard
+setup, but things looked good enough that I thought it ready for test by
+others.
 
-Assuming that the sensor has a Bayer pattern.
-- remove lens.
-- put white light on the sensor
-- use color filter an put each spectrum (RGB) on the sensor
-- check the stream and find out what is changing in the stream according 
-to the different light conditions.
+Let me know if it helps or not.
 
-Looks like I get off topic, now ;-)
-
-Something else comes in my mind. Would it good to document all this what 
-we are talking bout somewhere on a webpage?
-
-Thomas
-
-
+Regards,
+Andy
 
