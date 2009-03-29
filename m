@@ -1,67 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:54491 "EHLO
-	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750713AbZCEU5T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 15:57:19 -0500
-Date: Thu, 5 Mar 2009 12:57:16 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jean Delvare <khali@linux-fr.org>
-Subject: Re: Results of the 'dropping support for kernels <2.6.22' poll
-In-Reply-To: <Pine.LNX.4.64.0903052129510.4980@axis700.grange>
-Message-ID: <Pine.LNX.4.58.0903051243270.24268@shell2.speakeasy.net>
-References: <200903022218.24259.hverkuil@xs4all.nl> <20090304141715.0a1af14d@pedra.chehab.org>
- <Pine.LNX.4.64.0903051954460.4980@axis700.grange>
- <Pine.LNX.4.58.0903051217070.24268@shell2.speakeasy.net>
- <Pine.LNX.4.64.0903052129510.4980@axis700.grange>
+Received: from dyn60-31.dsl.spy.dnainternet.fi ([83.102.60.31]:54459 "EHLO
+	shogun.pilppa.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751400AbZC2JTV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Mar 2009 05:19:21 -0400
+Date: Sun, 29 Mar 2009 12:18:52 +0300 (EEST)
+From: Mika Laitio <lamikr@pilppa.org>
+To: Lars Fredriksson <lf@hansson.se>
+cc: linux-media@vger.kernel.org
+Subject: Re: Can't load firmware - HVR4000
+In-Reply-To: <49CEAC86.1090302@hansson.se>
+Message-ID: <Pine.LNX.4.64.0903291218330.25001@shogun.pilppa.org>
+References: <49CEA0BC.4050107@hansson.se> <d9def9db0903281535n76d91619hdce82a24459f9960@mail.gmail.com>
+ <49CEAC86.1090302@hansson.se>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 5 Mar 2009, Guennadi Liakhovetski wrote:
-> On Thu, 5 Mar 2009, Trent Piepho wrote:
-> > On Thu, 5 Mar 2009, Guennadi Liakhovetski wrote:
-> > > On Wed, 4 Mar 2009, Mauro Carvalho Chehab wrote:
-> > > > Beside the fact that we don't need to strip support for legacy kernels, the
-> > > > advantage of using this method is that we can evolute to a new development
-> > > > model. As several developers already required, we should really use the
-> > > > standard -git tree as everybody's else. This will simplify a lot the way we
-> > > > work, and give us more agility to send patches upstream.
-> > > >
-> > > > With this backport script, plus the current v4l-dvb building systems, and after
-> > > > having all backport rules properly mapped, we can generate a "test tree"
-> > > > based on -git drivers/media, for the users to test the drivers against their
-> > > > kernels, and still use a clean tree for development.
-> > >
-> > > Sorry, switching to git is great, but just to make sure I understood you
-> > > right: by "-git drivers/media" you don't mean it is going to be a git tree
-> > > of only drivers/media, but it is going to be a normal complete Linux
-> > > kernel tree, right?
-> >
-> > So there will be no way we can test a driver without switching to a new
-> > kernel hourly?  And there is no way we can test someone else's tree without
-> > compiling an entirely new kernel and rebooting?  And every tree we want to
-> > work on requires a complete copy of the entire kernel source?
->
-> AFAIR, Mauro wanted to provide snapshots for those who absolutely prefer
-> to work with partial trees. Although, to be honest, I don't understand
-> what makes video drivers so special. Think about audio drivers, or
-> network, including WLAN. I never heard about those subsystems working with
-> or providing subtree snapshots. If only before specific drivers or
-> subsystems are included in the mainline, but not long after that.
+> The firmware loads correctly now!
 
-ALSA used a partial tree, but their system was much worse than v4l-dvb's.
-I think the reason more systems don't do it is that setting up the build
-system we have with v4l-dvb was a lot of work.  They don't have that.
+Which devices requires i2c-dev module? I mean if I want to buy new dvb 
+devices in addition of hvr-4000 and hvr-1300, should I then avoid some 
+devices...
 
-Lots of subsystems are more tightly connected to the kernel and compiling
-the subsystem out of tree against any kernel just wouldn't work.  Some
-subsystems (like say gpio or led) mostly provide a framework to the rest of
-the kernel so working on them without the rest of the tree doesn't make
-sense either.  Or they don't get many patches and don't have many active
-maintainers so they don't really have any development SCM at all.  Just
-some patches through email that get applied by one maintainer.
+Mika
