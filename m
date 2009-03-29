@@ -1,54 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail11d.verio-web.com ([204.202.242.86]:6559 "HELO
-	mail11d.verio-web.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751280AbZCQWEv (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4321 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750781AbZC2SXT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Mar 2009 18:04:51 -0400
-Received: from mx91.stngva01.us.mxservers.net (198.173.112.8)
-	by mail11d.verio-web.com (RS ver 1.0.95vs) with SMTP id 2-0542687087
-	for <linux-media@vger.kernel.org>; Tue, 17 Mar 2009 17:58:09 -0400 (EDT)
-Subject: Re: 4vl + usb + arm
-From: Pete Eberlein <pete@sensoray.com>
-To: Paul Thomas <pthomas8589@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <c785bba30903031051k292a95aeq68d91e5c2bc31fd6@mail.gmail.com>
-References: <c785bba30903031051k292a95aeq68d91e5c2bc31fd6@mail.gmail.com>
-Content-Type: text/plain
-Date: Tue, 17 Mar 2009 14:58:02 -0700
-Message-Id: <1237327082.5040.174.camel@pete-desktop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sun, 29 Mar 2009 14:23:19 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2TINGLP016096
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 29 Mar 2009 20:23:16 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 29 Mar 2009 20:23:16 +0200 (CEST)
+Message-Id: <200903291823.n2TINGLP016096@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: OK, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2009-03-03 at 11:51 -0700, Paul Thomas wrote:
-> Hello, is anyone using a USB v4l device on an arm processor?
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-While I haven't used a USB video device on an ARM board, I have tried
-cross compiling the v4l sources for ARM.  Here's what I found:
+Results of the daily build of v4l-dvb:
 
-The v4l/Makefile.media uses the host strip binary on the ARM .ko files,
-which doesn't work.  It could use $(CROSS_COMPILE)strip instead.  I
-worked around the problem using a strip soft-link to arm-eabi-strip in
-my cross tools bin directory.
+date:        Sun Mar 29 19:00:05 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11280:df7a51ffa2ba
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-The v4l/firmware/Makefile assumes /lib/firmware, this could be
-$(DESTDIR)/lib/firmware instead.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-i686: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-m32r: OK
+linux-2.6.22.19-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-powerpc64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-x86_64: OK
+fw/apps: OK
+sparse (linux-2.6.29): ERRORS
+linux-2.6.16.61-i686: WARNINGS
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
-Here are the make commands I used to build the v4l tree:
+Detailed results are available here:
 
-PATH=/path/to/devkitARM/bin:$PATH make ARCH=arm CROSS_COMPILE=arm-eabi-
-SRCDIR=/path/to/arm/kernel-src
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-PATH=/path/to/devkitARM/bin:$PATH make ARCH=arm CROSS_COMPILE=arm-eabi-
-DESTDIR=/path/to/arm/sysroot install
+Full logs are available here:
 
-I'd like to know if modules built this way work on actual hardware.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-Regards.
--- 
-Pete Eberlein
-Sensoray Co., Inc.
-Email: pete@sensoray.com
-http://www.sensoray.com
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
