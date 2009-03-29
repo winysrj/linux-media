@@ -1,161 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:49658 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750875AbZCZUJY (ORCPT
+Received: from smtpfb1-g21.free.fr ([212.27.42.9]:34843 "EHLO
+	smtpfb1-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753896AbZC2SRP convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2009 16:09:24 -0400
-Date: Thu, 26 Mar 2009 17:09:10 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Darius Augulis <augulis.darius@gmail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-arm-kernel@lists.arm.linux.org.uk,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: [PATCH 1/5] CSI camera interface driver for MX1
-Message-ID: <20090326170910.6926d8de@pedra.chehab.org>
-In-Reply-To: <49CBD53C.6060700@gmail.com>
-References: <49C89F00.1020402@gmail.com>
-	<Pine.LNX.4.64.0903261405520.5438@axis700.grange>
-	<49CBD53C.6060700@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Sun, 29 Mar 2009 14:17:15 -0400
+Received: from smtp3-g21.free.fr (smtp3-g21.free.fr [212.27.42.3])
+	by smtpfb1-g21.free.fr (Postfix) with ESMTP id C219077FC4E
+	for <linux-media@vger.kernel.org>; Sun, 29 Mar 2009 20:17:08 +0200 (CEST)
+From: Olivier MENUEL <omenuel@laposte.net>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: AverMedia Volar Black HD (A850)
+Date: Sun, 29 Mar 2009 20:15:49 +0200
+Cc: Laurent Haond <lhaond@bearstech.com>, linux-media@vger.kernel.org
+References: <200903291334.00879.olivier.menuel@free.fr> <200903291919.54610.omenuel@laposte.net> <49CFB126.7000006@iki.fi>
+In-Reply-To: <49CFB126.7000006@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200903292015.49152.omenuel@laposte.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Darius,
 
-On Thu, 26 Mar 2009 21:19:24 +0200
-Darius Augulis <augulis.darius@gmail.com> wrote:
+ok
+Thanks
 
-> Guennadi Liakhovetski wrote:
-> > Sascha,
-> >
-> > would you prefer me to pull this via soc-camera or you'd prefer to handle 
-> > it in your mxc tree? I think it's better to pull it via v4l, so, I'd need 
-> > your acks for platform parts, especially for the assembly, ksyms and FIQ 
-> > code.
-> >
-> > Hi Darius,
-> >   
-> Hi Guennadi, Sascha,
+Let me know if I can help you in anyway
+
+Antti Palosaari wrote :
 > 
-> > On Tue, 24 Mar 2009, Darius wrote:
-> >
-> > Please, send your patches inline next time. Also, as noticed inline, 
-> > you'll have to rebase this onto a current v4l stack, e.g., linux-next.
-> >   
+> Olivier MENUEL wrote:
+> > 
+> > Antti Palosaari wrote:
+> >> Could you take longer sniff. Probably 2 sniffs.
+> >> 1) successful tune to channel using 1st tuner
+> >> 2) successful tune to channel using 2nd tuner
+> >>
+> >> One sec is enough, log increases very fast when streaming picture....
+> > 
+> > I'm not sure what the 2nd tuner is.
+> > This is a quite cheap DVB-T card.
+> > They don't say anything special on the box except that you can watch HDTV with it.
+> > So, I'm guessing the 2nd tuner would be for HD channels ?
 > 
-> ok, I just started to use stgit now.
-
-Please always base your patches against the last v4l-dvb tree or linux-next.
-This is specially important those days, where v4l core is suffering several
-changes.
+> ah shit, there is not even 2nd tuner! This device eeprom is totally crap 
+> and useless, you cannot trust any values it does contain :(
+> Eeprom says:
+> 1) there is 2 tuners
+> * bullshit there is only one
+> 2) 0x38 is 2nd fe i2c addr
+> * 0x38 is reserved for 1st FE and cannot be even changed.
+> 3) xtal is 28000
+> * not sure yet
+> 4) tuner is MXL5005
+> * could be
+> 5) used IF is 36125
+> * I doubt that no, for Maxlinear tuner other IF is typically used
 > 
-> > From: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-> >
-> > Driver for i.MX1/L camera (CSI) host.
-> >
-> > Signed-off-by: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-> >
-> > You are forwarding his patch, so, you have to sign-off under it. Why isn't 
-> > he submitting it himself?
-> >   
+> totally wrongly configured device, designers must be weenies :(
 > 
-> clear. This is because we work together on two archs - MXC and Gemini.
-> Paulius will maintain all our Gemini patches and I will take care about 
-> MXC, also old patches from Paulius.
-> I will need some time to study this CSI and driver code, then I could 
-> fix your comments.
-> Thank you for review and notes!
-
-Still, it is better to send this via v4l-dvb patch, to avoid merge conflicts
-and breakages due to API differences.
-> >> +/* buffer for one video frame */
-> >> +struct imx_buffer {
-> >> +	/* common v4l buffer stuff -- must be first */
-> >> +	struct videobuf_buffer vb;
-> >>     
-> >
-> > Here you have one space
-> >
-> >   
-> >> +
-> >> +	const struct soc_camera_data_format        *fmt;
-> >>     
-> >
-> > Here you have 8 spaces
-> >
-> >   
-> >> +
-> >> +	int			inwork;
-> >>     
-> >
-> > Here you have tabs. Please, unify.
-
-Please always check your patches with checkpatch.pl. This will point such issues.
-
-> >> +static int imx_videobuf_prepare(struct videobuf_queue *vq,
-> >> +		struct videobuf_buffer *vb, enum v4l2_field field)
-> >> +{
-> >> +	struct soc_camera_device *icd = vq->priv_data;
-> >> +	struct imx_buffer *buf = container_of(vb, struct imx_buffer, vb);
-> >> +	int ret;
-> >> +
-> >> +	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
-> >> +		vb, vb->baddr, vb->bsize);
-> >> +
-> >> +	/* Added list head initialization on alloc */
-> >> +	WARN_ON(!list_empty(&vb->queue));
-
-Hmm... why do you need such warning?
-
-> >> +static void imx_videobuf_release(struct videobuf_queue *vq,
-> >> +				 struct videobuf_buffer *vb)
-> >> +{
-> >> +	struct imx_buffer *buf = container_of(vb, struct imx_buffer, vb);
-> >> +#ifdef DEBUG
-
-I haven't seen where you are defining DEBUG. if those debug stuff are needed
-only during development, it is better to remove it, to avoid polluting upstream
-with useless code.
-
-> >> +static void imx_camera_dma_irq(int channel, void *data)
-> >> +{
-> >> +	struct imx_camera_dev *pcdev = data;
-> >> +	struct imx_buffer *buf;
-> >> +	unsigned long flags;
-> >> +	struct videobuf_buffer *vb;
-> >> +
-> >> +	spin_lock_irqsave(&pcdev->lock, flags);
-> >> +
-> >> +	imx_dma_disable(channel);
-> >> +
-> >> +	if (unlikely(!pcdev->active)) {
-> >> +		dev_err(pcdev->dev, "DMA End IRQ with no active buffer\n");
-> >> +		goto out;
-> >> +	}
-> >> +
-> >> +	vb = &pcdev->active->vb;
-> >> +	buf = container_of(vb, struct imx_buffer, vb);
-> >> +	WARN_ON(buf->inwork || list_empty(&vb->queue));
-
-Why do you need a warning here?
-
-> >> + * Copyright (C) 2008, Darius Augulis <augulis.darius@gmail.com>
-> >> + *
-> >> + *
-> >> + * This program is free software; you can redistribute it and/or modify
-> >> + * it under the terms of the GNU General Public License as published by
-> >> + * the Free Software Foundation; either version 2 of the License, or
-> >> + * (at your option) any later version.
-> >>     
-> >
-> > Here >= 2 again
-
-About the licensing, you can use both GPLv2 only or GPLv2 or later. It is
-better to use the same for all drivers.
-
-Cheers,
-Mauro
+> > Or is there a radio tuner in it ? There's nothing about it on the box, but there is a radio switch in the averTV software. But I can't find any channel when scanning for radio channels ...
+> > So, I guess it does not handle radio ...
+> > 
+> > Anyway, I don't need HDTV nor radio. Normal TV is enough for me.
+> > Only special thing I can see on the box is that there is blue light on the device when the signal is detected (maybe you'll see weird stuff in the sniff because of that...). But I don't care about that light either.
+> > 
+> > I sniffed a regular TV channel and a HD channel (I truncated the end of the log as they were too big to send by emails). You'll find them in attachments.
+> > 
+> >> I did look your sniffs and immediately found some bad values :( There is 
+> >> byte in eeprom which tells 2nd demodulator i2c address, and guess what 
+> >> there was - i2c address of 1st integrated af9015 demodulator :( There 
+> >> should be 38 as i2c addr of 1st demod and 3a as 2nd demod.
+> > 
+> > you're impressive ;)
+> > But I don't know much about these. Is it hard to fix ? Is it something to change in the af9015 driver ? Or does it need a completely different driver ?
+> > Or is it in the firmware ?
+> > If you can tell me where these addresses are I can try to change them and retest
+> 
+> This device have bad eeprom and thus all configuration values are needed 
+> to discover from elsewhere. I will continue...
+> 
+> regards
+> Antti
