@@ -1,62 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:52838 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754119AbZCFQUS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Mar 2009 11:20:18 -0500
-Message-ID: <49B14D3C.3010001@gmx.de>
-Date: Fri, 06 Mar 2009 17:20:12 +0100
-From: wk <handygewinnspiel@gmx.de>
+Received: from smtp2.versatel.nl ([62.58.50.89]:33150 "EHLO smtp2.versatel.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752323AbZC3I2Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Mar 2009 04:28:24 -0400
+Message-ID: <49D0831E.4090707@hhs.nl>
+Date: Mon, 30 Mar 2009 10:30:22 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: V4L2 spec
-References: <200903061523.15766.hverkuil@xs4all.nl>
-In-Reply-To: <200903061523.15766.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Adam Baker <linux@baker-net.org.uk>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	kilgota@banach.math.auburn.edu, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v2 4/4] Add support to libv4l to use orientation from
+ VIDIOC_ENUMINPUT
+References: <200903292309.31267.linux@baker-net.org.uk> <200903292322.08660.linux@baker-net.org.uk> <200903292325.16499.linux@baker-net.org.uk> <200903292328.09957.linux@baker-net.org.uk>
+In-Reply-To: <200903292328.09957.linux@baker-net.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> Hi Mauro,
+On 03/30/2009 12:28 AM, Adam Baker wrote:
+> Add check to libv4l of the sensor orientation as reported by
+> VIDIOC_ENUMINPUT
 >
-> I noticed that there is an ancient V4L2 spec in our tree in the v4l/API 
-> directory. Is that spec used in any way? I don't think so, so I suggest 
-> that it is removed.
+> Signed-off-by: Adam Baker<linux@baker-net.org.uk>
 >
-> The V4L1 spec that is there should probably be moved to the v4l2-spec 
-> directory as that is where people would look for it. We can just keep it 
-> there for reference.
->
-> The documentation on www.linuxtv.org is also out of date. How are we going 
-> to update that?
->
-> I think that a good schedule would be right after a kernel merge window 
-> closes. The spec at that moment is the spec for that new kernel and that's 
-> a good moment to update the website.
->
-> The current spec is really old, though, and should be updated asap.
->
-> Note that the specs from the daily build are always available from 
-> www.xs4all.nl/~hverkuil/spec. I've modified the build to upload the 
-> dvbapi.pdf as well.
->
-> Regards,
->
-> 	Hans
->
->   
 
-Wouldn't it make sense to merge both apis, v4l2 and dvb together?
+Looks good, thanks. I'll apply this to my libv4l tree, as soon
+as its certain that the matching kernel changes will go in to
+the kernel without any API changes.
 
-- dvb api is completely outdated, would be good to be rewritten anyway.
-- v4l2 and dvb share the same hg
-- v4l2 and dvb share the same wiki
-- a lot of developers are active in both topics
-- any person interested in video and tv could be directed to the same file
+Thanks & Regards,
 
-Just some thoughts to the topic..
+Hans
 
---Winfried
+> ---
+> diff -r a647c2dfa989 v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert.c
+> --- a/v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert.c	Tue Jan 20 11:25:54 2009 +0100
+> +++ b/v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert.c	Sun Mar 29 22:59:56 2009 +0100
+> @@ -29,6 +29,11 @@
+>   #define MIN(a,b) (((a)<(b))?(a):(b))
+>   #define ARRAY_SIZE(x) ((int)sizeof(x)/(int)sizeof((x)[0]))
+>
+> +/* Workaround this potentially being missing from videodev2.h */
+> +#ifndef V4L2_IN_ST_VFLIP
+> +#define V4L2_IN_ST_VFLIP       0x00000020 /* Output is flipped vertically */
+> +#endif
+> +
+>   /* Note for proper functioning of v4lconvert_enum_fmt the first entries in
+>     supported_src_pixfmts must match with the entries in supported_dst_pixfmts */
+>   #define SUPPORTED_DST_PIXFMTS \
+> @@ -134,6 +139,7 @@
+>     int i, j;
+>     struct v4lconvert_data *data = calloc(1, sizeof(struct v4lconvert_data));
+>     struct v4l2_capability cap;
+> +  struct v4l2_input input;
+>
+>     if (!data)
+>       return NULL;
+> @@ -161,6 +167,13 @@
+>
+>     /* Check if this cam has any special flags */
+>     data->flags = v4lconvert_get_flags(data->fd);
+> +  if ((syscall(SYS_ioctl, fd, VIDIOC_G_INPUT,&input.index) == 0)&&
+> +      (syscall(SYS_ioctl, fd, VIDIOC_ENUMINPUT,&input) == 0)) {
+> +    /* Don't yet support independent HFLIP and VFLIP so getting
+> +     * image the right way up is highest priority. */
+> +    if (input.status&  V4L2_IN_ST_VFLIP)
+> +      data->flags |= V4LCONVERT_ROTATE_180;
+> +  }
+>     if (syscall(SYS_ioctl, fd, VIDIOC_QUERYCAP,&cap) == 0) {
+>       if (!strcmp((char *)cap.driver, "uvcvideo"))
+>         data->flags |= V4LCONVERT_IS_UVC;
+>
+>
 
