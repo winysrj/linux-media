@@ -1,75 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail7.sea5.speakeasy.net ([69.17.117.9]:51027 "EHLO
-	mail7.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756606AbZCGABM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Mar 2009 19:01:12 -0500
-Date: Fri, 6 Mar 2009 16:01:09 -0800 (PST)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jean Delvare <khali@linux-fr.org>
-Subject: Re: Results of the 'dropping support for kernels <2.6.22' poll
-In-Reply-To: <Pine.LNX.4.64.0903052315530.4980@axis700.grange>
-Message-ID: <Pine.LNX.4.58.0903061532210.24268@shell2.speakeasy.net>
-References: <200903022218.24259.hverkuil@xs4all.nl> <20090304141715.0a1af14d@pedra.chehab.org>
- <Pine.LNX.4.64.0903051954460.4980@axis700.grange>
- <Pine.LNX.4.58.0903051217070.24268@shell2.speakeasy.net>
- <Pine.LNX.4.64.0903052129510.4980@axis700.grange>
- <Pine.LNX.4.58.0903051243270.24268@shell2.speakeasy.net>
- <Pine.LNX.4.64.0903052315530.4980@axis700.grange>
+Received: from mail.gmx.net ([213.165.64.20]:51049 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751013AbZC3OzQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Mar 2009 10:55:16 -0400
+Received: from lyakh (helo=localhost)
+	by axis700.grange with local-esmtp (Exim 4.63)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1LoItZ-00020O-7Q
+	for linux-media@vger.kernel.org; Mon, 30 Mar 2009 16:55:25 +0200
+Date: Mon, 30 Mar 2009 16:55:25 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] mt9m001: fix advertised pixel clock polarity
+Message-ID: <Pine.LNX.4.64.0903301654000.4455@axis700.grange>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 5 Mar 2009, Guennadi Liakhovetski wrote:
-> On Thu, 5 Mar 2009, Trent Piepho wrote:
-> > ALSA used a partial tree, but their system was much worse than v4l-dvb's.
-> > I think the reason more systems don't do it is that setting up the build
-> > system we have with v4l-dvb was a lot of work.  They don't have that.
->
-> Right, it was a lot of work, it is still quite a bit of work (well, I'm
-> not doing that work directly, but it affetcs me too, when I have to adjust
-> patches, that I generated from a complete kernel tree to fit
-> compatibility-"emhanced" versions), and it is not going to be less work.
+MT9M001 datasheet says, that the data is ready on the falling edge of the pixel
+clock, but the driver wrongly sets the SOCAM_PCLK_SAMPLE_RISING flag. Changing
+this doesn't seem to produce any visible difference, still, it is better to
+comply to the datasheet.
 
-Why must you generate your patches from a different tree?  One could just
-as well say that the linux kernel indentation style is more work, since
-they use GNU style have to translate their patch from a re-indented tree.
+Reported-by: Sascha Oppermann <oppermann@garage-computers.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-You could just make your patches in the v4l-dvb tree and then you wouldn't
-have the translate them.  In fact it could be easier, as you can develop
-your patches against the kernel you are using now instead of needing to
-switch to the latest kernel from a few hours ago.
+Objections?
 
-I wish I could use the v4l-dvb system for embedded system development in
-other areas.  In my experience most embedded hardware can't run the stock
-kernel.  Most embedded system development is for new systems that don't
-have all their code in the stock kernel yet.  They often have very device
-specific things that aren't even wanted in the kernel.  So you end up
-needing to do development with an older kernel that works for your device,
-e.g. the kernel that came with the BSP.
+ drivers/media/video/mt9m001.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-In order to submit your patches, you then have to port them to the latest
-kernel.  Not only is that extra work, you now have two patches, one in your
-device tree and one in your kernel.org tree.  If you fix one patch you have
-to manually keep the other in sync.  The v4l-dvb is much better as you can
-have just _one_ patch that works on _both_ kernels.
+diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
+index fa7e509..684f62f 100644
+--- a/drivers/media/video/mt9m001.c
++++ b/drivers/media/video/mt9m001.c
+@@ -207,7 +207,7 @@ static unsigned long mt9m001_query_bus_param(struct soc_camera_device *icd)
+ 	struct mt9m001 *mt9m001 = container_of(icd, struct mt9m001, icd);
+ 	struct soc_camera_link *icl = mt9m001->client->dev.platform_data;
+ 	/* MT9M001 has all capture_format parameters fixed */
+-	unsigned long flags = SOCAM_PCLK_SAMPLE_RISING |
++	unsigned long flags = SOCAM_PCLK_SAMPLE_FALLING |
+ 		SOCAM_HSYNC_ACTIVE_HIGH | SOCAM_VSYNC_ACTIVE_HIGH |
+ 		SOCAM_DATA_ACTIVE_HIGH | SOCAM_MASTER;
+ 
+-- 
+1.5.4
 
-> > Lots of subsystems are more tightly connected to the kernel and compiling
-> > the subsystem out of tree against any kernel just wouldn't work.  Some
-> > subsystems (like say gpio or led) mostly provide a framework to the rest of
-> > the kernel so working on them without the rest of the tree doesn't make
-> > sense either.  Or they don't get many patches and don't have many active
-> > maintainers so they don't really have any development SCM at all.  Just
-> > some patches through email that get applied by one maintainer.
->
-> That's why I didn't give LED or GPIO or SPI or I2C or SCSI or ATA or MMC
-> or MTD or ... as examples, but audio and network, which are also largely
-> "consumer" interfaces and are actively developed.
-
-Audio was out of tree.  If they had a better system, like v4l-dvb does,
-they might well still be out of tree.  And aren't there some wireless
-packages that are out of tree?
