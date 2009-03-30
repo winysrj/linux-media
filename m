@@ -1,67 +1,186 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.28]:44150 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751791AbZCDBLI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 20:11:08 -0500
-Received: by yw-out-2324.google.com with SMTP id 5so2024416ywh.1
-        for <linux-media@vger.kernel.org>; Tue, 03 Mar 2009 17:11:06 -0800 (PST)
+Received: from bear.ext.ti.com ([192.94.94.41]:52932 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751327AbZC3Oe7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Mar 2009 10:34:59 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
+	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"Jadav, Brijesh R" <brijesh.j@ti.com>,
+	"R, Sivaraj" <sivaraj@ti.com>, "Hadli, Manjunath" <mrh@ti.com>,
+	"Shah, Hardik" <hardik.shah@ti.com>,
+	"Kumar, Purushotam" <purushotam@ti.com>
+Date: Mon, 30 Mar 2009 20:04:42 +0530
+Subject: [RFC] Stand-alone Resizer/Previewer Driver support under V4L2
+ framework
+Message-ID: <19F8576C6E063C45BE387C64729E73940427E3F70B@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Date: Tue, 3 Mar 2009 19:11:06 -0600
-Message-ID: <819c946f0903031711ob76bd5dsac27c68eb6a92aee@mail.gmail.com>
-Subject: em28xx problems
-From: jim Peters <jiminycricket180@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Linux media group,
-I hope I am asking this in the proper place and fashion, if not,
-please let me know.
-I have an old USB video capture device that I used some on windows a
-few years ago and just the other day I found it and tried it on my
-Mythtv box. It is a "Super Digital Video Dazzle Series USB 2.0 Box".
-It is recognized on my system as a "eMPIA Technology, Inc. GrabBeeX+
-Video Encoder", the board itself contains a em2800-02 chip as well as
-a SAA1713H chip, the tuner is a "Shengyi Electronics" model TSY5311-N.
+Hi,
 
-In both Mythtv an Tvtime I have Composite and S-video but the NTSC
-tuner is not showing up.
+With reference to the mail-thread started by Sakari on Resizer driver interface,
 
-Here are the relevant lines from Dmesg
+http://marc.info/?l=linux-omap&m=123628392325716&w=2
 
-em28xx v4l2 driver version 0.1.0 loaded
-em28xx new video device (eb1a:2801): interface 0, class 255
-em28xx Has usb audio class
-em28xx #0: Alternate settings: 4
-em28xx #0: Alternate setting 0, max size= 0
-em28xx #0: Alternate setting 1, max size= 644
-em28xx #0: Alternate setting 2, max size= 1288
-em28xx #0: Alternate setting 3, max size= 2580
-em28xx #0: em28xx chip ID = 9
-saa7115' 2-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
-tuner' 2-0061: chip found @ 0xc2 (em28xx #0)
-tuner' 2-0063: chip found @ 0xc6 (em28xx #0)
-tuner-simple 2-0061: creating new instance
-tuner-simple 2-0061: type set to 0 (Temic PAL (4002 FH5))
-em28xx #0: AC97 command still being executed: not handled properly!
-em28xx #0: AC97 command still being executed: not handled properly!
-em28xx #0: AC97 command still being executed: not handled properly!
-em28xx #0: AC97 command still being executed: not handled properly!
-em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
-em28xx #0: Found eMPIA Technology, Inc. GrabBeeX+ Video Encoder
-em28xx audio device (eb1a:2801): interface 1, class 1
-usbcore: registered new interface driver em28xx
-usbcore: registered new interface driver snd-usb-audio
+I would like to bring some issues and propose changes to adapt such devices under V4L2 framework. Sorry for delayed response on this mail-thread, actually I was on vacation.
 
-I see it finds the tuner as a "Temic PAL (4002 FH5)" which I know is
-incorrect because it's an NTSC tuner, I did try adding "tuner = 69"
-(Tena TNF 5335 and similar models) to my modeprobe options but this
-had no effect on the tuner working. (of course I am not sure that is
-even the correct one to use, I just found 1 reference to it being
-correct on the web.)
+As proposed by Sakari, I do agree with the approach of having V4L2 interface for memory-to-memory operation of the ISP (like resizer and previewer), but I would like to bring some important aspects/issues here - 
 
-Is it possible to get TV working with this device?
+	- Some drawbacks of V4L2-buf layer framework for such kind of devices
+	- Need for backward compatibility. 
 
-Thanks, Jim
+Drawbacks for V4L2-Buf layer - 
+-----------------------------
+
+1} In case of resizer driver, the input buffer will always be different than output buffer. 
+
+In case of Mmapped buffer there is no issue, since driver allocates maximum of input and output. User doesn't have control on this, although there is loss of memory from system point of view. 
+
+In case of User Pointer Exchange, User would expect and may allocate different sizes of buffers for input and output which V4L2-buf layer doesn't support with single queue. And to address this, I think here we need to have either of following approaches - 
+
+	- Use two separate buffer queues, one for input and another for output.
+	- Or hack the driver for v4l2_buffer, internally using different buffer params for input and output. [Not recommended]
+
+Please note that sometimes application receives buffers from another driver or from some codecs engine that's why input and output buffer will never be of same size.
+
+2) V4L2-buf layer doesn't support IOMEM coming from user application. Just to give low level details about this - 
+
+When application tries to configure for 'V4L2_MEMORY_USERPTR' with buffer coming from another driver (which is iomampped), then QUEUEBUF ioctl will fail from 'videobuf_iolock' --> videobuf_dma_init_user_locked --> get_user_pages.
+
+In 'get_user_pages' it checks for IOMEM flag and returns error, which is expected behavior from Kernel point of view. We are trying to map buffer which is already mapped to kernel by another driver.
+
+One thing I am not able to understand, how nobody came across such use-case which is very common. And to address this issue we need to add support for IOMEM in V4L2-buf layer.
+
+NOTE: Currently both of these issues have been addressed as a custom implementation for our internal use case.
+
+Backward Compatibility - 
+-----------------------
+
+This is an important aspect, since similar hardware modules are available on Davinci as well as on OMAP and their driver interface is completely different.
+
+On Davinci, resizer driver is supported through plane char driver interface which handles all data/buffer processing and control paths. It maintains internal queue for priority of resizing tasks and stuff.
+
+The driver is present under /drivers/char/Davinci.
+
+Here I feel, V4L2 way is better, since all image processing drivers should go under "drivers/media/video/". And again we can make use of readily available V4L2 framework interface for data and control path to manage buffers. We should enhance V4L2 framework to support such devices.
+
+
+Proposed Required Changes -
+--------------------------
+
+I am putting some high level changes required to be done for supporting such devices - 
+
+	- Enhancement in V4L2-buf layer for above issues
+
+	- Will be directly using sub-device frame-work and have to enhance it to support such devices.
+
+	- Below are the parameters we need to configure for Resizer from user application - 
+
+  __s32 in_hsize;    /* input frame horizontal size.*/
+  __s32 in_vsize;    /* input frame vertical size */
+  __s32 in_pitch;    /* offset between 2 rows of input frame.*/
+  __s32 inptyp;      /* for determining 16 bit or 8 bit data.*/
+  __s32 vert_starting_pixel; /* vertical starting pixel in input.*/
+  __s32 horz_starting_pixel; /* horizontal starting pixel in input.*/
+  __s32 cbilin;      /* filter with luma or bi-linear interpolation.*/
+  __s32 pix_fmt;     /* UYVY or YUYV */
+  __s32 out_hsize;   /* output frame horizontal size. */
+  __s32 out_vsize;   /* output frame vertical size.*/
+  __s32 out_pitch;   /* offset between 2 rows of output frame.*/
+  __s32 hstph;       /* for specifying horizontal starting phase.*/
+  __s32 vstph;       /* for specifying vertical starting phase.*/
+  __u16 tap4filt_coeffs[32]; /* horizontal filtercoefficients.*/
+  __u16 tap7filt_coeffs[32]; /* vertical filter coefficients. */
+  struct rsz_yenh yenh_params;
+
+(Pasted from previous patches posted by Sergio)
+
+
+Putting one sample proposal using VIDIOC_S_FMT -
+
+APPROACH 1 -
+----------
+
+Either we can add this under "struct v4l2_format" or need to enhance "stuct v4l2_crop" to support such device.
+
+We can use 'VIDIOC_S_FMT' ioctl to configure the resizer parameters. From top level it will look something like -
+
+struct v4l2_buffer buf;
+struct v4l2_format fmt;
+struct rsz_parm parm;	/*Contains custom configuration specific to module other than input and output params*/
+
+<Fill the "rsz_parm" structure>
+
+fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+fmt.fmt.pix.width = IN_WIDTH;
+fmt.fmt.pix.height = IN_HEIGHT;
+fmt.fmt.pix.bytesperline= IN_WIDTH*2;
+fmt.fmt.pix.pixelformat= V4L2_PIX_FMT_YUYV/V4L2_PIX_FMT_UYVY
+fmt.fmt.pix.priv = &parm;
+
+ret = ioctl(rsz_fd, VIDIOC_S_FMT, &fmt);
+if(ret<0) {
+	perror("Set Format failed\n");
+	return -1;
+}
+
+To set output buffer we can use VIDIOC_S_FMT
+
+fmt.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+fmt.fmt.pix.width = OUT_WIDTH;
+fmt.fmt.pix.height = OUT_HEIGHT;
+fmt.fmt.pix.bytesperline= OUT_WIDTH*2;
+
+ret = ioctl(rsz_fd, VIDIOC_S_FMT, &fmt);
+if(ret<0) {
+	perror("Set Format failed\n");
+	return -1;
+}
+	
+In case of resizer driver we would need to call VIDIOC_S_FMT twice, one for input params and second for output params. And in case of Previewer we need to call VIDIOC_S_FMT only once, with all required params as a part of custom struct (priv).
+
+
+APPROACH 2 -
+----------
+
+Instead of using "priv" variable, we can make it capability based interface. For this we have to create separate class of devices, called "V4L2_BUF_TYPE_VIDEO_RESIZE" with "struct v4l2_fmt_resize" and "struct v4l2_fmt_previewer".
+
+And depending on the capability application will configure params using VIDIOC_S_FMT.
+
+In both the cases we need to add one IOCTL to trigger the operation and this should be standard, should be common for all such memory-to-memory device operations.
+
+ 
+APPROACH 3 -
+----------
+
+.....
+
+(Any other approach which I could not think of would be appreciated)
+
+
+I would prefer second approach, since this will provide standard interface to applications independent on underneath hardware.
+ 
+There may be many number of such configuration parameters required for different such devices, we need to work on this and come up with some standard capability fields covering most of available devices.
+
+Does anybody have some other opinions on this? 
+Any suggestions will be helpful here, 
+
+
+Thanks,
+Vaibhav Hiremath
+Platform Support Products
+Texas Instruments Inc
+Ph: +91-80-25099927
+
