@@ -1,93 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.windriver.com ([147.11.1.11]:65386 "EHLO mail.wrs.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753027AbZCJJD7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Mar 2009 05:03:59 -0400
-Subject: RE: [PATCH 5/5] LDP: Add support for built-in camera
-From: "stanley.miao" <stanley.miao@windriver.com>
-Reply-To: stanley.miao@windriver.com
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	Hiroshi DOYU <Hiroshi.DOYU@nokia.com>,
-	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	MiaoStanley <stanleymiao@hotmail.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Lakhani, Amish" <amish@ti.com>, "Menon, Nishanth" <nm@ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE89442E40F747@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE89442E40F747@dlee02.ent.ti.com>
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Date: Tue, 10 Mar 2009 17:03:41 +0800
-Message-Id: <1236675821.6759.33.camel@localhost>
-Mime-Version: 1.0
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4855 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751561AbZC3Nm1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Mar 2009 09:42:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Daniel =?iso-8859-1?q?Gl=F6ckner?= <dg@emlix.com>
+Subject: Re: [patch 5/5] saa7121 driver for s6000 data port
+Date: Mon, 30 Mar 2009 15:41:52 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Chris Zankel <chris@zankel.net>, linux-media@vger.kernel.org
+References: <13003.62.70.2.252.1238080086.squirrel@webmail.xs4all.nl> <200903301450.05240.hverkuil@xs4all.nl> <49D0CAEA.1070405@emlix.com>
+In-Reply-To: <49D0CAEA.1070405@emlix.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200903301541.52497.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-03-09 at 15:24 -0500, Aguirre Rodriguez, Sergio Alberto
-wrote:
-> Hi,
-> 
-> > -----Original Message-----
-> > From: stanley.miao [mailto:stanley.miao@windriver.com]
-> 
-> <snip>
-> 
-> > > +static struct i2c_board_info __initdata ldp_i2c_boardinfo_2[] = {
-> > > +#if defined(CONFIG_VIDEO_OV3640) || defined(CONFIG_VIDEO_OV3640_MODULE)
-> > > +	{
-> > > +		I2C_BOARD_INFO("ov3640", OV3640_I2C_ADDR),
-> > > +		.platform_data = &ldp_ov3640_platform_data,
-> > > +	},
-> > > +#endif
-> > > +};
-> > >
-> > This new added i2c_board_info was not registered.
-> > After I added this line,
+On Monday 30 March 2009 15:36:42 Daniel Glöckner wrote:
+> On 03/30/2009 02:50 PM, Hans Verkuil wrote:
+> > On Monday 30 March 2009 14:12:10 Daniel Glöckner wrote:
+> >> - valid CRC and line number in digital blanking?
 > > 
-> > omap_register_i2c_bus(2, 400, ldp_i2c_boardinfo_2,
-> >                         ARRAY_SIZE(ldp_i2c_boardinfo_2));
-> > 
-> > the sensor was found. but the test still failed. A lot of error came out
-> > when I run my test program.
-> > 
-> > <3>CSI2: ComplexIO Error IRQ 80
-> > CSI2: ComplexIO Error IRQ 80
-> > <3>CSI2: ComplexIO Error IRQ c2
-> > CSI2: ComplexIO Error IRQ c2
-> > <3>CSI2: ComplexIO Error IRQ c2
-> > CSI2: ComplexIO Error IRQ c2
-> > <3>CSI2: ComplexIO Error IRQ c6
-> > CSI2: ComplexIO Error IRQ c6
-> > <3>CSI2: ECC correction failed
-> > CSI2: ECC correction failed
-> > <3>CSI2: ComplexIO Error IRQ 6
-> > CSI2: ComplexIO Error IRQ 6
-> > <3>CSI2: ComplexIO Error IRQ 6
-> > CSI2: ComplexIO Error IRQ 6
-> > <3>CSI2: ComplexIO Error IRQ 6
-> > CSI2: ComplexIO Error IRQ 6
-> > <3>CSI2: ComplexIO Error IRQ 6
-> > CSI2: ComplexIO Error IRQ 6
-> > 
+> > Do you really need to control these?
 > 
-> Oops, my mistake. Missed to add that struct there... Fixed now.
+> Not on this board..
 > 
-> About the CSI2 errors you're receiving... Which version of LDP are you using? Which Silicon revision has (ES2.1 or ES3.0)?
+> > It's a PAL/NTSC encoder, so the standard specified with s_std_output will
+> > map to the corresponding values that you need to put in. This is knowledge
+> > that the i2c driver implements.
+> 
+> There is a micron camera connected to the controller that can output any
+> resolution up to 1600x1200 and we don't have standard ids for all those HD
+> formats supported by encoders like the ADV7197. It would be really nice to
+> have an interface that covers all this while being symmetric for input and output.
 
-ZOOM1 board(LDP3430-VG1.0.0-1), omap3430 ES2.1.
+This is a known issue. I expect to see some proposals for this in the near
+future since Texas Instruments need this as well for their davinci architecture.
 
-When I use your old version patch, sometimes the test succeed, sometimes
-failed(no data was generated and no error). This version, always failed.
+Regards,
 
-Thanks.
-Stanley.
+	Hans
 
-> 
-> Regards,
-> Sergio
-> > 
-> > Stanley.
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
