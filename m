@@ -1,96 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4813 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752193AbZCVTLH (ORCPT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:56330 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752374AbZC3DNh convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Mar 2009 15:11:07 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2MJB2ib005355
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 22 Mar 2009 20:11:02 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 22 Mar 2009 20:11:02 +0100 (CET)
-Message-Id: <200903221911.n2MJB2ib005355@smtp-vbr5.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Sun, 29 Mar 2009 23:13:37 -0400
+From: "Subrahmanya, Chaithrika" <chaithrika@ti.com>
+To: Steve Chen <schen@mvista.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+Date: Mon, 30 Mar 2009 08:40:53 +0530
+Subject: RE: [PATCH 0/4] ARM: DaVinci: DM646x Video: DM646x display driver
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A8764C3F@dbde02.ent.ti.com>
+References: <1238073682-9838-1-git-send-email-chaithrika@ti.com>,<1238075548.3080.117.camel@linux-1lbu.site>
+In-Reply-To: <1238075548.3080.117.camel@linux-1lbu.site>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+> On Thu, 2009-03-26 at 09:21 -0400, Chaithrika U S wrote:
+> > Display driver for TI DM646x EVM
+> >
+> > Signed-off-by: Chaithrika U S <chaithrika@ti.com>
+> >
+> > This patch set has been updated with the review comments for the RFC
+> sent earlier.
+> >
+> > These patches add the display driver support for TI DM646x EVM.
+> > This patch set has been tested for basic display functionality for
+> > Composite and Component outputs.
+> >
+> > Patch 1: Display device platform and board setup
+> > Patch 2: VPIF driver
+> > Patch 3: DM646x display driver
+> > Patch 4: Makefile and config files modifications for Display
+> >
+> > Some of the features like the HBI/VBI support are not yet
+> implemented.
+> > Also there are some known issues in the code implementation like
+> > fine tuning to be done to TRY_FMT ioctl.The USERPTR usage has not
+> been
+> > tested extensively.
+> >
+> > These patches are based on the drivers written by:
+> >         Manjunath Hadli <mrh@ti.com>
+> >         Brijesh Jadav <brijesh.j@ti.com>
+> 
+> Please add authors and significant contributors of the patch in the
+> signed-off list
+> 
+Steve,
 
-Results of the daily build of v4l-dvb:
+I will include the sign-offs in the next version of the patch.
 
-date:        Sun Mar 22 19:00:06 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11135:91098251ab91
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Regards,
+Chaithrika
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-rc8-armv5: OK
-linux-2.6.27-armv5-ixp: ERRORS
-linux-2.6.28-armv5-ixp: ERRORS
-linux-2.6.29-rc8-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: ERRORS
-linux-2.6.29-rc8-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-rc8-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc8-m32r: OK
-linux-2.6.22.19-mips: WARNINGS
-linux-2.6.26-mips: ERRORS
-linux-2.6.27-mips: ERRORS
-linux-2.6.28-mips: ERRORS
-linux-2.6.29-rc8-mips: ERRORS
-linux-2.6.27-powerpc64: ERRORS
-linux-2.6.28-powerpc64: ERRORS
-linux-2.6.29-rc8-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29-rc8-x86_64: OK
-fw/apps: OK
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc8): ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+> >
+> > The files have been renamed as per the discussion. The header files
+> have been
+> > moved to the same directory as the driver. Currently, the driver
+> supports SDTV
+> > formats only.
+> >
+> > -Chaithrika
+> >
+> >
+> > _______________________________________________
+> > Davinci-linux-open-source mailing list
+> > Davinci-linux-open-source@linux.davincidsp.com
+> > http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-
+> source
+> 
