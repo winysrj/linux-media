@@ -1,69 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:54305 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751123AbZC2Jfw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Mar 2009 05:35:52 -0400
-Date: Sun, 29 Mar 2009 06:35:45 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Trent Piepho via Mercurial <xyzzy@speakeasy.org>
-Subject: Re: [linuxtv-commits] [hg:v4l-dvb] v4l2-ioctl: Check format for
- S_PARM and G_PARM
-Message-ID: <20090329063545.1bab6a9e@pedra.chehab.org>
-In-Reply-To: <200903291106.19466.hverkuil@xs4all.nl>
-References: <E1LnqiQ-00077f-80@mail.linuxtv.org>
-	<200903291106.19466.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from rtr.ca ([76.10.145.34]:52706 "EHLO mail.rtr.ca"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750962AbZC3RFV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Mar 2009 13:05:21 -0400
+Message-ID: <49D0FBCE.8050408@rtr.ca>
+Date: Mon, 30 Mar 2009 13:05:18 -0400
+From: Mark Lord <lkml@rtr.ca>
+MIME-Version: 1.0
+To: Michael Krufky <mkrufky@linuxtv.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: bttv ir patch from Mark Lord
+References: <200903301835.55023.hverkuil@xs4all.nl> <49D0F5E1.2030108@linuxtv.org> <49D0F720.7060700@rtr.ca> <49D0F85D.20802@linuxtv.org>
+In-Reply-To: <49D0F85D.20802@linuxtv.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 29 Mar 2009 11:06:19 +0200
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
-
-> On Sunday 29 March 2009 10:50:02 Patch from Trent Piepho wrote:
-> > The patch number 11260 was added via Trent Piepho <xyzzy@speakeasy.org>
-> > to http://linuxtv.org/hg/v4l-dvb master development tree.
-> >
-> > Kernel patches in this development tree may be modified to be backward
-> > compatible with older kernels. Compatibility modifications will be
-> > removed before inclusion into the mainstream Kernel
-> >
-> > If anyone has any objections, please let us know by sending a message to:
-> > 	Linux Media Mailing List <linux-media@vger.kernel.org>
-> >
-> > ------
-> >
-> > From: Trent Piepho  <xyzzy@speakeasy.org>
-> > v4l2-ioctl:  Check format for S_PARM and G_PARM
-> >
-> >
-> > Return EINVAL if VIDIOC_S/G_PARM is called for a buffer type that the
-> > driver doesn't define a ->vidioc_try_fmt_XXX() method for.  Several other
-> > ioctls, like QUERYBUF, QBUF, and DQBUF, etc.  do this too.  It saves each
-> > driver from having to check if the buffer type is one that it supports.
+Michael Krufky wrote:
+> Mark Lord wrote:
+>> Michael Krufky wrote:
+>>> Hans Verkuil wrote:
+>>>> Hi Mike,
+>>>>
+>>>> The attached patch should be queued for 2.6.29.X. It corresponds to 
+>>>> changeset 11098 (v4l2-common: remove incorrect MODULE test) in our 
+>>>> v4l-dvb tree and is part of the initial set of git patches going 
+>>>> into 2.6.30.
+>>>>
+>>>> Without this patch loading ivtv as a module while v4l2-common is 
+>>>> compiled into the kernel will cause a delayed load of the i2c 
+>>>> modules that ivtv needs since request_module is never called directly.
+>>>>
+>>>> While it is nice to see the delayed load in action, it is not so 
+>>>> nice in that ivtv fails to do a lot of necessary i2c initializations 
+>>>> and will oops later on with a division-by-zero.
+>>>>
+>>>> Thanks to Mark Lord for reporting this and helping me figure out 
+>>>> what was wrong.
+>>>>
+>>>> Regards,
+>>>>
+>>>>     Hans
+>>>>
+>>>>   
+>>> Got it, thanks.
+>>>
+>>> In the future, please point to hash codes rather than revision ID's 
+>>> -- my rev IDs are not the same as yours, but hash codes are always 
+>>> unique.
+>>>
+>>> I'll queue this the moment Linus merges Mauro's pending request.
+>> ..
+>>
+>> Can either of you guys figure out how to get this patch (or something
+>> equivalent) merged?  It's been pending for some time now.
+>>
+>> Thanks.
+>>
+>> Message-ID: <49884CCB.3070309@rtr.ca>
+>> Date: Tue, 03 Feb 2009 08:55:23 -0500
+>> From: Mark Lord <lkml@rtr.ca>
+>> MIME-Version: 1.0
+>> To: video4linux-list@redhat.com, Linux Kernel 
+>> <linux-kernel@vger.kernel.org>
+>> Subject: [PATCH] ir-kbd-i2c: support Hauppauge HVR-1600 R/C port
+>> Content-Type: text/plain; charset=UTF-8; format=flowed
+>> Content-Transfer-Encoding: 7bit
+>>
+>> (resending, with video4linux-list@redhat.com this time)
+>>
+>> Update the ir-kbd-i2c driver to recognize the remote-control port
+>> on the Hauppauge HV-1600 hybrid tuner card.
+>>
+>> Signed-off-by: Mark Lord <mlord@pobox.com>
+>>
+>> --- old/drivers/media/video/ir-kbd-i2c.c    2008-12-24 
+>> 18:26:37.000000000 -0500
+>> +++ linux/drivers/media/video/ir-kbd-i2c.c    2009-02-01 
+>> 13:08:19.000000000 -0500
+>> @@ -354,6 +354,11 @@
+>>             } else {
+>>                 ir_codes    = ir_codes_rc5_tv;
+>>             }
+>> +        } else if (adap->id == I2C_HW_B_CX2341X) {
+>> +            name        = "Hauppauge";
+>> +            ir_type     = IR_TYPE_RC5;
+>> +            ir->get_key = get_key_haup_xvr;
+>> +            ir_codes    = ir_codes_hauppauge_new;
+>>         } else {
+>>             /* Handled by saa7134-input */
+>>             name        = "SAA713x remote";
+>> @@ -449,7 +454,7 @@
+>>        That's why we probe 0x1a (~0x34) first. CB
+>>     */
+>>
+>> -    static const int probe_bttv[] = { 0x1a, 0x18, 0x4b, 0x64, 0x30, -1};
+>> +    static const int probe_bttv[] = { 0x1a, 0x18, 0x4b, 0x64, 0x30, 
+>> 0x71, -1};
+>>     static const int probe_saa7134[] = { 0x7a, 0x47, 0x71, 0x2d, -1 };
+>>     static const int probe_em28XX[] = { 0x30, 0x47, -1 };
+>>     static const int probe_cx88[] = { 0x18, 0x6b, 0x71, -1 };
+>>
 > 
-> Hi Trent,
-> 
-> I wonder whether this change is correct. Looking at the spec I see that 
-> g/s_parm only supports VIDEO_CAPTURE, VIDEO_OUTPUT and PRIVATE or up.
-> 
-> So what should happen if the type is VIDEO_OVERLAY? I think the g/s_parm 
-> implementation in v4l2-ioctl.c should first exclude the unsupported types 
-> before calling check_fmt.
+> looks like a zilog, and you should use LIRC for that.
+..
 
-Makes sense to me.
+It's a Hauppauge remote port, just like the one on the (supported) PVR-250.
+And I don't want the LIRC monstrosity when there's a perfectly good
+kernel driver to run it directly.  The patch does not prevent others
+from using LIRC. 
 
-> I also wonder whether check_fmt shouldn't check for the presence of the 
-> s_fmt callbacks instead of try_fmt since try_fmt is an optional ioctl.
+> PLEASE  DO NOT HIJAAK unrelated threads with unrelated emails.
+..
 
-One developer suggested to merge try_fmt and s_fmt into one callback.
-IMO, this makes sense, since I have the feeling that this will simplify the
-code a little bit on the drivers. If we go this way, then we can check for
-the new try_s_fmt callback.
+"Hijack", not "HIJAAK".  :)
 
-Cheers,
-Mauro
+thanks.
