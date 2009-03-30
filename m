@@ -1,20 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2RH52mH003254
-	for <video4linux-list@redhat.com>; Fri, 27 Mar 2009 13:05:02 -0400
-Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.242])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n2RH4hI5021727
-	for <video4linux-list@redhat.com>; Fri, 27 Mar 2009 13:04:43 -0400
-Received: by an-out-0708.google.com with SMTP id c2so779031anc.36
-	for <video4linux-list@redhat.com>; Fri, 27 Mar 2009 10:04:43 -0700 (PDT)
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2U8G7QL013182
+	for <video4linux-list@redhat.com>; Mon, 30 Mar 2009 04:16:07 -0400
+Received: from psi1.forpsi.com (smtpa.forpsi.com [81.2.195.204])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n2U8Dmm2024189
+	for <video4linux-list@redhat.com>; Mon, 30 Mar 2009 04:13:49 -0400
+Message-ID: <49D07F3B.3090807@heckler-koch.cz>
+Date: Mon, 30 Mar 2009 10:13:47 +0200
+From: "kosa@heckler-koch.cz" <kosa@heckler-koch.cz>
 MIME-Version: 1.0
-Date: Fri, 27 Mar 2009 11:04:42 -0600
-Message-ID: <2df568dc0903271004p4f2e551fo4c459d2759062d2b@mail.gmail.com>
-From: Gordon Smith <spider.karma+video4linux-list@gmail.com>
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=UTF-8
+References: <49C8C0EF.1090500@heckler-koch.cz>
+	<26aa882f0903241026n524b90f9w3898fa9aaaf0cd05@mail.gmail.com>
+In-Reply-To: <26aa882f0903241026n524b90f9w3898fa9aaaf0cd05@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: saa7134 encoded data loss
+Subject: Re: multi channel
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,100 +27,67 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello -
-
-I have a RTD Technologies VFG7350 (saa7134 based, no tuner) running current
-v4l-dvb in debian 2.6.26-1.
-
-Using live555 MediaServer, I can capture MPEG output:
-{{{
-cat /dev/video2 > test.ts
-}}}
-and stream without error to VLC client for as long as I care to watch.
-
-If I use live555 test program to stream directly to network:
-{{{
-$ cat /dev/video2 | sudo ./testMPEG2TransportStreamer
-}}}
-the client shows continuous partial data loss after a variable amount of
-time (~2.5 minutes).
-
-I believe the test program uses the same underlying code as MediaServer, but
-I haven't verified that yet.
-
-
-I'd like to ask if the dmesg output below shows abnormality?
-
-saa7134 modprobe.d settings:
-{{{
-options saa7134 core_debug=1 ts_debug=1 video_debug=1
-}}}
-
-dmesg during error free playback:
-{{{
-[  867.865020] saa7133[0]/ts: buffer_activate [cedce480]<7>saa7133[0]/ts: -
-[top]     buf=cedce480 next=cedce180
-[  867.865036] saa7133[0]/core: dmabits: task=0x00 ctrl=0x20 irq=0x30000
-split=yes
-[  867.865045] saa7133[0]/core: buffer_next #2 prev=caa80f2c/next=cedce1ac
-[  867.865254] saa7133[0]/core: buffer_queue caa80e40
-[  867.878682] saa7133[0]/core: buffer_finish cedce480
-[  867.878695] saa7133[0]/core: buffer_next cedce180
-[prev=caa80e6c/next=cedce1ac]
-[  867.878703] saa7133[0]/ts: buffer_activate [cedce180]<7>saa7133[0]/ts: -
-[bottom]  buf=cedce180 next=cedce780
-[  867.878718] saa7133[0]/core: dmabits: task=0x00 ctrl=0x20 irq=0x30000
-split=yes
-[  867.878727] saa7133[0]/core: buffer_next #2 prev=caa80e6c/next=cedce7ac
-[  867.878934] saa7133[0]/core: buffer_queue cedce480
-[  867.892339] saa7133[0]/core: buffer_finish cedce180
-[  867.892353] saa7133[0]/core: buffer_next cedce780
-[prev=cedce4ac/next=cedce7ac]
-}}}
-
-dmesg during packet loss:
-{{{
-[  570.720624] saa7133[0]/ts: buffer_activate [caa67e20]<7>saa7133[0]/ts: -
-[bottom]  buf=caa67e20 next=caa67e20
-[  570.720640] saa7133[0]/core: dmabits: task=0x00 ctrl=0x20 irq=0x30000
-split=yes
-[  570.720649] saa7133[0]/core: buffer_next #2 prev=cf97c714/next=cf97c714
-[  570.729136] saa7133[0]/core: buffer_queue cedce180
-[  570.734314] saa7133[0]/core: buffer_finish caa67e20
-[  570.734325] saa7133[0]/core: buffer_next cedce180
-[prev=cedce1ac/next=cedce1ac]
-[  570.734333] saa7133[0]/ts: buffer_activate [cedce180]<7>saa7133[0]/ts: -
-[top]     buf=cedce180 next=cedce180
-[  570.734349] saa7133[0]/core: dmabits: task=0x00 ctrl=0x20 irq=0x30000
-split=yes
-[  570.734358] saa7133[0]/core: buffer_next #2 prev=cf97c714/next=cf97c714
-[  570.747999] saa7133[0]/core: buffer_finish cedce180
-[  570.748009] saa7133[0]/core: buffer_next 00000000
-[  570.748019] saa7133[0]/core: dmabits: task=0x00 ctrl=0x00 irq=0x0
-split=yes
-[  570.749162] saa7133[0]/core: buffer_queue cedce780
-[  570.773149] saa7133[0]/core: buffer_queue cedce900
-[  570.773160] saa7133[0]/ts: buffer_activate [cedce900]<7>saa7133[0]/ts: -
-[top]     buf=cedce900 next=cedce780
-[  570.773177] saa7133[0]/core: dmabits: task=0x00 ctrl=0x20 irq=0x30000
-split=yes
-[  570.789159] saa7133[0]/core: buffer_queue cedce540
-[  570.800566] saa7133[0]/core: buffer_finish cedce900
-[  570.800578] saa7133[0]/core: buffer_next cedce780
-[prev=cedce56c/next=cedce7ac]
-}}}
-
-In particular, is this ok?
-{{{
-[  570.748009] saa7133[0]/core: buffer_next 00000000
-[  570.748019] saa7133[0]/core: dmabits: task=0x00 ctrl=0x00 irq=0x0
-split=yes
-}}}
-It does not appear during normal playback.
+Jackson Yee wrote:
+> 2009/3/24 kosa@heckler-koch.cz <kosa@heckler-koch.cz>:
+>   
+>> hi all, i am pretty new to video for linux. Last weekend i have successfully installed aver nv3000 (4 analog video-in pci card) on my debian machine. As i am new to video, i quickly found out that many cards have only one chip for 4 video inputs and work with signal as channels 1-4(as /dev/video0 witch 4 channels). My question is if there is some documentation or whatever where can i start to learn how to work with these multi channels to be able to view all 4 channels at the same time. When searching the web i found some software called zone minder, where they have the source in perl, so i hope i can understand their solution to use it in different place.
+>>     
+>
+> Pavel,
+>
+> Here's a quick overview for you:
+>
+> * These multiple input cards are used mostly in surveillance systems
+> where you have a number of cameras hooked up to one card. These cards
+> are unsuitable for normal television capture unless you only want to
+> do one input at a time because your frame rate will be divided between
+> different channels (e.g. a normal 29.97 fps NTSC signal will become 7
+> fps or less when you're using multiple inputs simultaneously). Cards
+> do exist which have one chip per channel, but they are far more
+> expensive.
+>
+> * The chip is normally a Brooktree BT878 because they're cheap and
+> effective, although other chips are available. The Linux bttv driver
+> does a good job of supporting most common cards, although some of the
+> more esoteric ones aren't supported. For assured support,
+> bluecherry.net is by far the best.
+>
+> * Zoneminder is a good program, and so is motion at
+>
+> http://www.lavrsen.dk/twiki/bin/view/Motion/WebHome
+>
+> They both have good documentation and performance. I have written my
+> own web server in Python for motion which can be located at
+>
+> http://www.lavrsen.dk/twiki/bin/view/Motion/PossumCam
+>
+> although I have not had time to work on it recently. Zoneminder
+> includes everything including the kitchen sink, and as such can be a
+> pain to start working and managing. Motion is much simpler to install
+> and manage, but requires add-on tools for further functionality.
+>
+> * For testing the inputs, TVTime and XawTV are indispensable.
+>
+> I'll try to add this information to the linuxtv.org wiki later on
+> today, although any administrators familiar with the wiki are welcome
+> to copy and paste the above.
+>
+> Regards,
+> Jackson Yee
+> The Possum Company
+> 540-818-4079
+> me@gotpossum.com
+>
+>   
+Hi and thank you for links, will check it. For now i have obtain aver nv
+5000 with 4 chips for 4 inputs(each 25fps). At this time i have only
+tested 2 video inputs at the same time. I still have to investigate a
+little bit as this card have Bt878 chip, for which i have to set Pan-Nc
+settings in xawtv(but in vlc just setting  PAL makes the video not shown
+correctly).
+pavel
 
 
-Thanks for your assistance,
-Gordon
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
