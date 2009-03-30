@@ -1,99 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.sea5.speakeasy.net ([69.17.117.3]:44677 "EHLO
-	mail1.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754120AbZC3Pfz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Mar 2009 11:35:55 -0400
-Date: Mon, 30 Mar 2009 08:35:53 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org
-Subject: Re: [linuxtv-commits] [hg:v4l-dvb] v4l2-ioctl: Check format for
- S_PARM and G_PARM
-In-Reply-To: <200903291331.30045.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.58.0903300814180.28292@shell2.speakeasy.net>
-References: <E1LnqiQ-00077f-80@mail.linuxtv.org> <200903291242.36594.hverkuil@xs4all.nl>
- <Pine.LNX.4.58.0903290352480.28292@shell2.speakeasy.net>
- <200903291331.30045.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mx3.utsp.utwente.nl ([130.89.2.14]:42429 "EHLO mx.utwente.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751441AbZC3PYt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Mar 2009 11:24:49 -0400
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
+	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"Jadav, Brijesh R" <brijesh.j@ti.com>,
+	"R, Sivaraj" <sivaraj@ti.com>, "Hadli, Manjunath" <mrh@ti.com>,
+	"Shah, Hardik" <hardik.shah@ti.com>,
+	"Kumar, Purushotam" <purushotam@ti.com>
+Message-Id: <0835E36E-BB8D-4B15-BFD7-1430350B8E18@student.utwente.nl>
+From: Koen Kooi <k.kooi@student.utwente.nl>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940427E3F70B@dbde02.ent.ti.com>
+Content-Type: multipart/signed; protocol="application/pgp-signature"; micalg=pgp-sha1; boundary="Apple-Mail-5-273918330"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Subject: Re: [RFC] Stand-alone Resizer/Previewer Driver support under V4L2 framework
+Date: Mon, 30 Mar 2009 17:23:59 +0200
+References: <19F8576C6E063C45BE387C64729E73940427E3F70B@dbde02.ent.ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 29 Mar 2009, Hans Verkuil wrote:
-> On Sunday 29 March 2009 13:03:13 Trent Piepho wrote:
-> > How does overlay depend on video capture in any way?  It's perfectly
-> > reasonable for a driver to support _only_ overlay and not video capture.
-> > The zr36067 chip is only designed to support uncompressed data for video
-> > overlay for example.  Allowing uncompressed video capture is a hack that
-> > the driver didn't have at one point.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--Apple-Mail-5-273918330
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
+
+Op 30 mrt 2009, om 16:34 heeft Hiremath, Vaibhav het volgende  
+geschreven:
+
+> Hi,
 >
-> Ah. Live and learn. In that case the spec is out of date and needs to be
-> updated.
-
-Do you mean there is something in the spec that makes overlay depend on
-video capture?  Or that s/g_parm don't mention buffer types other than
-video capture and video output?
-
-> > > No, I agree with the spec in that I see no use case for it. Should
-> > > there be one, then I'd like to see that in an actual driver
-> > > implementation and in that case the spec should be adjusted as well.
-> >
-> > How about getting the frame rate of video overlay?  Works with bttv.
+> With reference to the mail-thread started by Sakari on Resizer  
+> driver interface,
 >
-> Hmm, I grepped only on s_parm, not on g_parm.
-
-It would be nice to use s_parm with drivers like bttv to reduce the frame
-rate.  With multi-chip capture cards running out of bus bandwidth is a big
-problem.  Reducing the frame rate is one way to deal with it.  The bt8x8
-and cx2388x chips do have a temporal decimation feature and I've tried to
-add support for it but I never got it to work correctly.
-
-> > > In addition, g/s_parm is only used in combination with webcams/sensors
-> > > for which overlays and vbi are irrelevant.
-> >
-> > There are several drivers for non-webcams, like bttv, saa7134, and
-> > saa7146, that support g_parm.  Why is returning the frame rate for video
-> > capture not valid?  Why does the number of buffers used for read() mode
-> > only make sense for webcams?
+> http://marc.info/?l=linux-omap&m=123628392325716&w=2
 >
-> OK, I'd forgot to check for the usage of g_parm. My bad.
+> I would like to bring some issues and propose changes to adapt such  
+> devices under V4L2 framework. Sorry for delayed response on this  
+> mail-thread, actually I was on vacation.
 
-There is also a default g_parm handler in video_ioctl2 that might be used
-if the driver doesn't provide one.  I don't know what drivers actually use
-it.
+I extracted a patch from that branch, but I can't figure out how to  
+actually enable the resizer on beagleboard, overo and omapzoom, since  
+the patches to do that seem to be missing from the branches of the ISP  
+tree. Any clue where I can get those?
+Also, any test apps for the new code? AIUI dmai doesn't understand the  
+new code yet.
 
-> > > > Thinking about it now, I think what makes the most sense is to use
-> > > > "capture" for VIDEO_OVERLAY, VBI_CAPTURE, and SLICED_VBI_CAPTURE.
-> > > > And use "output" for VBI_OUTPUT, SLICED_VBI_OUTPUT and
-> > > > VIDEO_OUTPUT_OVERLAY.
->
-> You're absolutely correct. I was too hasty.
->
-> Can you update the spec to reflect this?
+regards,
 
-I'll try, but I hear the doc build system is quite a challenge.
+Koen
 
-> > > > > I also wonder whether check_fmt shouldn't check for the presence of
-> > > > > the s_fmt callbacks instead of try_fmt since try_fmt is an optional
-> > > > > ioctl.
-> > > >
-> > > > I noticed that too.  saa7146 doesn't have a try_fmt call for
-> > > > vbi_capture but is apparently supposed to support it.  I sent a
-> > > > message about that earlier.
-> > >
-> > > I saw that. So why not check for s_fmt instead of try_fmt? That would
-> > > solve this potential problem.
-> >
-> > Because that's clearly a change that belongs in another patch.
->
-> OK, great.
+--Apple-Mail-5-273918330
+content-type: application/pgp-signature; x-mac-type=70674453;
+	name=PGP.sig
+content-description: Dit deel van het bericht is digitaal ondertekend
+content-disposition: inline; filename=PGP.sig
+content-transfer-encoding: 7bit
 
-My patch just called check_fmt() for s/g_parm.  I haven't touched
-check_fmt().  But you're right that try_fmt is optional so it makes a bad
-test.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (Darwin)
 
-Maybe it should use g_fmt?  saa7146 doesn't provide a s_fmt call either for
-vbi capture, only g_fmt.  Though maybe this is a bug in saa7146?  It seems
-like any driver that provides g_fmt can always just use that same method
-for s_fmt as well and be correct.
+iD8DBQFJ0OQRMkyGM64RGpERAi7mAJ9CpjCrpN9dPQsQFO+G2LKUANIhuwCdFBJX
+wR87MLrixtrix+w3qL1DzpQ=
+=GOkn
+-----END PGP SIGNATURE-----
+
+--Apple-Mail-5-273918330--
