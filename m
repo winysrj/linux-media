@@ -1,48 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp0.lie-comtel.li ([217.173.238.80]:60569 "EHLO
-	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750863AbZCXHNi (ORCPT
+Received: from qw-out-2122.google.com ([74.125.92.26]:57818 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755337AbZC3VhZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2009 03:13:38 -0400
-Message-ID: <49C8881F.9020104@kaiser-linux.li>
-Date: Tue, 24 Mar 2009 08:13:35 +0100
-From: Thomas Kaiser <v4l@kaiser-linux.li>
+	Mon, 30 Mar 2009 17:37:25 -0400
+Received: by qw-out-2122.google.com with SMTP id 8so2755376qwh.37
+        for <linux-media@vger.kernel.org>; Mon, 30 Mar 2009 14:37:23 -0700 (PDT)
 MIME-Version: 1.0
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-CC: linux-media@vger.kernel.org
-Subject: Re: gspca in the LinuxTv wiki
-References: <49C80321.60402@kaiser-linux.li> <alpine.LNX.2.00.0903231902140.13696@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.0903231902140.13696@banach.math.auburn.edu>
-Content-Type: text/plain; charset=US-ASCII; format=flowed
+Date: Mon, 30 Mar 2009 14:37:23 -0700
+Message-ID: <3731df090903301437k49c310bbha71946ab14c0d6c9@mail.gmail.com>
+Subject: Correct signal strength and SNR output for DViCO FusionHDTV7 Dual
+	Express?
+From: Dave Johansen <davejohansen@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Theodore Kilgore wrote:
-> But OTOH this causes a problem, too, because the manufacturers of 
-> cameras (probably some of them are not exactly manufacturers but rather 
-> packagers) are switching the electronics inside the device any time they 
-> feel like it, or if they get a large quantity of chips at a good price, 
-> or whatever. I have seen it happen several times that a certain camera 
-> keeps the make and model, but it gets a new USB Vendor:Product number. 
-> And, worst of all, it may have previously been well supported but now it 
-> is not. Someone who goes and buys the camera based upon the make and 
-> model which are stencilled on the outside of the camera and printed on 
-> the packaging material can end up being stung.
+I am trying to get a MythTV setup working with a DViCO FusionHDTV7
+Dual Express using Mythbuntu 8.10 and I have been able to generate a
+channels.conf file using the latest v4l-dvb source code and the scan
+utility that comes with the dvb-utils in Mythbuntu (the dvbscan
+utility in latest dvb-apps source code give me the error "Unable to
+query frontend status"). I am also able to watch channels using
+mplayer, but the the problem is that MythTV does not identify any
+channels. I am able to watch channels using MythTV, but I have to
+manually enter the channel data since the tuning is not working.
 
-Ok, just a example. See 
-http://www.kaiser-linux.li/index.php/Linux_and_Webcams#Typhoon_Easycam_USB_330K
+The belief is that the signal strength and SNR output must be
+incorrect and that is causing the problem with MythTV. I would like to
+help get this fixed, so others don't have the problems that I have run
+into, so what can I do to help get the signal strength and SNR outputs
+working?
 
-At the time I bought this cam it had a sn9c102 bridge and PAS202 and was 
-working great with gspca. Some time later, somebody reported to me that 
-he has the same cam but with a PAC7311. So I just updated my page with 
-the new information. AS of coincident, I was working on the PAC7311 at 
-the time I got this report!
+If it's helpful, I have attached an example output using azap with one
+of the channels that I can watch with mplayer:
 
-Anyway, with a good and nice looking page on the LinuxTV wiki, you can 
-get more interest from some other people and they may sign up and 
-correct the page or ad new information (like this cam has now this chipset).
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+tuning to 503028615 Hz
+video pid 0x0011, audio pid 0x0014
+status 01 | signal e000 | snr e450 | ber 00000000 | unc 00000000 |
+status 1f | signal 00ff | snr 00ff | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 00ff | snr 00ff | ber 00000ab7 | unc 00000ab7 | FE_HAS_LOCK
+status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
 
-Thomas
-
-
+Thanks,
+Dave
