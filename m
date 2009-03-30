@@ -1,47 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43179 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932952AbZC0AVG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Mar 2009 20:21:06 -0400
-Message-ID: <49CC1BEA.20305@iki.fi>
-Date: Fri, 27 Mar 2009 02:20:58 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail.gmx.net ([213.165.64.20]:41005 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754977AbZC3IsN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Mar 2009 04:48:13 -0400
+Date: Mon, 30 Mar 2009 10:48:10 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Kay Sievers <kay.sievers@vrfy.org>
+Subject: [PATCH] soc-camera: fix breakage caused by 1fa5ae857bb14f6046205171d98506d8112dd74e
+Message-ID: <Pine.LNX.4.64.0903301044130.4455@axis700.grange>
 MIME-Version: 1.0
-To: Johannes Stezenbach <js@linuxtv.org>
-CC: linux-dvb@linuxtv.org, vdr@linuxtv.org,
-	v4l-dvb-maintainer@linuxtv.org, linux-media@vger.kernel.org
-Subject: Re: [ADMIN] linuxtv.org is moving
-References: <20090325162541.GB22582@linuxtv.org> <20090326185729.GA10352@linuxtv.org>
-In-Reply-To: <20090326185729.GA10352@linuxtv.org>
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Johannes Stezenbach wrote:
-> On Wed, Mar 25, 2009 at 05:25:41PM +0100, Johannes Stezenbach wrote:
->> linuxtv.org will move to a new server machine tomorrow. Expect
->> some downtime during the move and please be patient. Everything
->> on the old machine will be rsynced to the new machine right before
->> the switch so nothing should get lost.
-> 
-> The move is done, but the DNS updates are not out there yet,
-> so especially mail won't work yet until the caches are updated,
-> but everything else should.
-> 
-> The new IP address is 217.160.6.122.
+soc-camera re-uses struct devices multiple times in calls to device_register(),
+therefore it has to reset the embedded struct kobject to avoid the "tried to
+init an initialized object" error, which then also erases its name. Now with
+the transition to kobject's name for device names, we have to re-initialise the
+name before each call to device_register().
 
-[crope@localhost v4l-dvb]$ hg push 
-ssh://anttip@linuxtv.org/hg/~anttip/af9015
-pushing to ssh://anttip@linuxtv.org/hg/~anttip/af9015
-searching for changes
-remote: abort: No space left on device
-[crope@localhost v4l-dvb]$ host linuxtv.org
-linuxtv.org has address 217.160.6.122
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-I removed 5-6 my old devel trees, still no space :o
+Kay, is this an acceptable fix? Or should I rather replace 
 
-regards
-Antti
+	memset(&icd->dev.kobj, 0, sizeof(icd->dev.kobj));
+
+with just some variant of
+
+	kobj->state_initialized = 0;
+
+?
+
+ drivers/media/video/soc_camera.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index 6d8bfd4..0e890cc 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -764,7 +764,10 @@ static int soc_camera_s_register(struct file *file, void *fh,
+ 
+ static int device_register_link(struct soc_camera_device *icd)
+ {
+-	int ret = device_register(&icd->dev);
++	int ret = dev_set_name(&icd->dev, "%u-%u", icd->iface, icd->devnum);
++
++	if (!ret)
++		ret = device_register(&icd->dev);
+ 
+ 	if (ret < 0) {
+ 		/* Prevent calling device_unregister() */
+@@ -1060,7 +1063,6 @@ int soc_camera_device_register(struct soc_camera_device *icd)
+ 
+ 	icd->devnum = num;
+ 	icd->dev.bus = &soc_camera_bus_type;
+-	dev_set_name(&icd->dev, "%u-%u", icd->iface, icd->devnum);
+ 
+ 	icd->dev.release	= dummy_release;
+ 	icd->use_count		= 0;
 -- 
-http://palosaari.fi/
+1.5.4
+
