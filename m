@@ -1,73 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rolfschumacher.eu ([195.8.233.65]:51831 "EHLO august.de"
+Received: from mx1.emlix.com ([193.175.82.87]:60460 "EHLO mx1.emlix.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751111AbZCRT7I (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Mar 2009 15:59:08 -0400
-Received: from [192.168.1.109] (HSI-KBW-095-208-074-011.hsi5.kabel-badenwuerttemberg.de [95.208.74.11])
-	(Authenticated sender: rolf)
-	by august.de (Postfix) with ESMTPA id 6E9E91FE1D
-	for <linux-media@vger.kernel.org>; Wed, 18 Mar 2009 20:59:06 +0100 (CET)
-Message-ID: <49C15289.5070206@august.de>
-Date: Wed, 18 Mar 2009 20:59:05 +0100
-From: Rolf Schumacher <mailinglist@august.de>
+	id S1756980AbZC3J4e (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Mar 2009 05:56:34 -0400
+Message-ID: <49D09749.507@emlix.com>
+Date: Mon, 30 Mar 2009 11:56:25 +0200
+From: =?ISO-8859-1?Q?Daniel_Gl=F6ckner?= <dg@emlix.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: no video device
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Chris Zankel <chris@zankel.net>, linux-media@vger.kernel.org
+Subject: Re: [patch 5/5] saa7121 driver for s6000 data port
+References: <13003.62.70.2.252.1238080086.squirrel@webmail.xs4all.nl>
+In-Reply-To: <13003.62.70.2.252.1238080086.squirrel@webmail.xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, dvb professionals,
+On 03/26/2009 04:08 PM, Hans Verkuil wrote:
+> I've been working on a new framework for devices like this and almost all
+> i2c v4l drivers are now converted to v4l2_subdev in our v4l-dvb tree. It
+> will also be merged in 2.6.30. Please take a look at v4l2-framework.txt in
+> the v4l-dvb repository for more information.
+> 
+> I'm sure you will have questions later, please don't hesitate to ask! It's
+> a recent development but very much needed. Otherwise we will end up with a
+> lot of duplicate i2c drivers, each tied to their own platform or
+> framework. That's clearly something we do not want.
 
-I followed the advices on
-http://www.linuxtv.org/wiki/index.php/How_to_Obtain%2C_Build_and_Install_V4L-DVB_Device_Drivers#Optional_Pre-Compilation_Steps
+Hi Hans,
 
-Build and Installation Instructions
+the problem I see with the v4l2-framework in this case is that in its current
+state it does not allow to exchange information regarding the bus parameters
+between the sub device and the controller.
 
-downloaded the v4l sources via mercurial,
-"make" and "sudo make install" finished without error messages.
+It seems the soc-camera framework is a better choice here, but to make it work
+with the saa7121 one would first have to implement support for video output.
 
-rebooted the computer
-
-dmesg shows the device:
-
----
-usb 2-1: new high speed USB device using ehci_hcd and address 6
-usb 2-1: configuration #1 chosen from 1 choice
-usb 2-1: New USB device found, idVendor=0b48, idProduct=300d
-usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-usb 2-1: Product: TT-USB2.0
-usb 2-1: Manufacturer: TechnoTrend
-usb 2-1: SerialNumber: LHKAMG
----
-
-no error if I unplug and plug it on USB again
-
-the connected box is a TechnoTrend CT 3560 CI
-I googled and found chipset names like TDA8274 + TDA10023
-did not find anything in wiki, so I could not determine module or driver
-names to be identified with lsmod.
-
-there is no created /dev/dvb or /dev/video device
-
-google did not help me answering the question "do I need firmware, and
-if so where to get it"
-
-uname -a shows
-Linux rolf9 2.6.28-7.slh.6-sidux-686 #1 SMP PREEMPT Sat Mar 14 02:30:40
-UTC 2009 i686 GNU/Linux
-
-for now I got stuck.
-
-Do you know of a next step towards having tv on my laptop?
-
-Rolf
+What do you recommend?
 
 
+  Daniel
 
+-- 
+Dipl.-Math. Daniel Glöckner, emlix GmbH, http://www.emlix.com
+Fon +49 551 30664-0, Fax -11, Bahnhofsallee 1b, 37081 Göttingen, Germany
+Geschäftsführung: Dr. Uwe Kracke, Dr. Cord Seele, Ust-IdNr.: DE 205 198 055
+Sitz der Gesellschaft: Göttingen, Amtsgericht Göttingen HR B 3160
 
-
-
-
-
+emlix - your embedded linux partner
