@@ -1,100 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp6-g21.free.fr ([212.27.42.6]:59670 "EHLO smtp6-g21.free.fr"
+Received: from rtr.ca ([76.10.145.34]:43598 "EHLO mail.rtr.ca"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759132AbZCMXRe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Mar 2009 19:17:34 -0400
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: g.liakhovetski@gmx.de
-Cc: linux-media@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH v2 4/4] pxa_camera: Fix overrun condition on last buffer
-Date: Sat, 14 Mar 2009 00:17:20 +0100
-Message-Id: <1236986240-24115-5-git-send-email-robert.jarzmik@free.fr>
-In-Reply-To: <1236986240-24115-4-git-send-email-robert.jarzmik@free.fr>
-References: <1236986240-24115-1-git-send-email-robert.jarzmik@free.fr>
- <1236986240-24115-2-git-send-email-robert.jarzmik@free.fr>
- <1236986240-24115-3-git-send-email-robert.jarzmik@free.fr>
- <1236986240-24115-4-git-send-email-robert.jarzmik@free.fr>
+	id S1752578AbZC3Rbx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Mar 2009 13:31:53 -0400
+Message-ID: <49D10206.5060105@rtr.ca>
+Date: Mon, 30 Mar 2009 13:31:50 -0400
+From: Mark Lord <lkml@rtr.ca>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-media@vger.kernel.org,
+	Linux Kernel <linux-kernel@vger.kernel.org>
+Subject: Re: bttv ir patch from Mark Lord
+References: <200903301835.55023.hverkuil@xs4all.nl> <49D0FBCE.8050408@rtr.ca> <49D0FC14.6010109@rtr.ca> <200903301911.40249.hverkuil@xs4all.nl>
+In-Reply-To: <200903301911.40249.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The last buffer queued will often overrun, as the DMA chain
-is finished, and the time the dma irq handler is activated,
-the QIF fifos are filled by the sensor.
+Hans Verkuil wrote:
+>
+> It's best to wait a bit. Jean Delvare is working on this ir-kbd-i2c driver 
+> right now and when he's finished it should be much easier to add this. Most 
+> importantly you can add this new i2c address to the cx18 driver rather than 
+> add it to the probe_bttv list, which is rather overloaded anyway.
+> 
+> He should be finished within 1-3 weeks I guess. Probably sooner rather than 
+> later. Just watch the linux-media list for it.
+..
 
-The fix is to ignore the overrun condition on the last
-queued buffer, and restart the capture only on intermediate
-buffers of the chain.
+Thanks.  I'll just watch for it arriving upstream in 2.6.31 (?) then,
+if the current ir-kbd-i2c patch doesn't end up in 2.6.30 already.
 
-Moreover, a fix was added to the very unlikely condition
-where in YUV422P mode, one channel overruns while another
-completes at the very same time. The capture is restarted
-after the overrun as before, but the other channel
-completion is now ignored.
+Good idea on the cleanup in there, too.  It was looking a bit tattered
+around the edges, and my patch doesn't really help much with that aspect. :)
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- drivers/media/video/pxa_camera.c |   25 ++++++++++++++++++++-----
- 1 files changed, 20 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-index a0ca982..35e54fc 100644
---- a/drivers/media/video/pxa_camera.c
-+++ b/drivers/media/video/pxa_camera.c
-@@ -623,6 +623,7 @@ static void pxa_camera_stop_capture(struct pxa_camera_dev *pcdev)
- 	cicr0 = __raw_readl(pcdev->base + CICR0) & ~CICR0_ENB;
- 	__raw_writel(cicr0, pcdev->base + CICR0);
- 
-+	pcdev->active = NULL;
- 	dev_dbg(pcdev->dev, "%s\n", __func__);
- }
- 
-@@ -696,7 +697,6 @@ static void pxa_camera_wakeup(struct pxa_camera_dev *pcdev,
- 
- 	if (list_empty(&pcdev->capture)) {
- 		pxa_camera_stop_capture(pcdev);
--		pcdev->active = NULL;
- 		for (i = 0; i < pcdev->channels; i++)
- 			pcdev->sg_tail[i] = NULL;
- 		return;
-@@ -764,10 +764,20 @@ static void pxa_camera_dma_irq(int channel, struct pxa_camera_dev *pcdev,
- 		goto out;
- 	}
- 
--	if (!pcdev->active) {
--		dev_err(pcdev->dev, "DMA End IRQ with no active buffer!\n");
-+	/*
-+	 * pcdev->active should not be NULL in DMA irq handler.
-+	 *
-+	 * But there is one corner case : if capture was stopped due to an
-+	 * overrun of channel 1, and at that same channel 2 was completed.
-+	 *
-+	 * When handling the overrun in DMA irq for channel 1, we'll stop the
-+	 * capture and restart it (and thus set pcdev->active to NULL). But the
-+	 * DMA irq handler will already be pending for channel 2. So on entering
-+	 * the DMA irq handler for channel 2 there will be no active buffer, yet
-+	 * that is normal.
-+	 */
-+	if (!pcdev->active)
- 		goto out;
--	}
- 
- 	vb = &pcdev->active->vb;
- 	buf = container_of(vb, struct pxa_buffer, vb);
-@@ -778,7 +788,12 @@ static void pxa_camera_dma_irq(int channel, struct pxa_camera_dev *pcdev,
- 		status & DCSR_ENDINTR ? "EOF " : "", vb, DDADR(channel));
- 
- 	if (status & DCSR_ENDINTR) {
--		if (camera_status & overrun) {
-+		/*
-+		 * It's normal if the last frame creates an overrun, as there
-+		 * are no more DMA descriptors to fetch from QIF fifos
-+		 */
-+		if (camera_status & overrun
-+		    && !list_is_last(pcdev->capture.next, &pcdev->capture)) {
- 			dev_dbg(pcdev->dev, "FIFO overrun! CISR: %x\n",
- 				camera_status);
- 			pxa_camera_stop_capture(pcdev);
--- 
-1.5.6.5
-
+Cheers
