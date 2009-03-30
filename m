@@ -1,107 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:60077 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756870AbZCESRU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Mar 2009 13:17:20 -0500
-Date: Thu, 5 Mar 2009 12:29:12 -0600 (CST)
-From: kilgota@banach.math.auburn.edu
-To: Thomas Kaiser <v4l@kaiser-linux.li>
-cc: Kyle Guinn <elyk03@gmail.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: RFC on proposed patches to mr97310a.c for gspca and v4l
-In-Reply-To: <49AFCD5B.4050100@kaiser-linux.li>
-Message-ID: <alpine.LNX.2.00.0903051221510.27780@banach.math.auburn.edu>
-References: <20090217200928.1ae74819@free.fr> <200902171907.40054.elyk03@gmail.com> <alpine.LNX.2.00.0903031746030.21483@banach.math.auburn.edu> <200903032050.13915.elyk03@gmail.com> <alpine.LNX.2.00.0903032247530.21793@banach.math.auburn.edu>
- <49AE3EA1.3090504@kaiser-linux.li> <49AE41DE.1000300@kaiser-linux.li> <alpine.LNX.2.00.0903041248020.22500@banach.math.auburn.edu> <49AFCD5B.4050100@kaiser-linux.li>
+Received: from mx1.emlix.com ([193.175.82.87]:55563 "EHLO mx1.emlix.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753805AbZC3MMS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Mar 2009 08:12:18 -0400
+Message-ID: <49D0B71A.5080801@emlix.com>
+Date: Mon, 30 Mar 2009 14:12:10 +0200
+From: =?ISO-8859-1?Q?Daniel_Gl=F6ckner?= <dg@emlix.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Chris Zankel <chris@zankel.net>, linux-media@vger.kernel.org
+Subject: Re: [patch 5/5] saa7121 driver for s6000 data port
+References: <13003.62.70.2.252.1238080086.squirrel@webmail.xs4all.nl> <49D09749.507@emlix.com> <200903301203.02327.hverkuil@xs4all.nl>
+In-Reply-To: <200903301203.02327.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 03/30/2009 12:03 PM, Hans Verkuil wrote:
+> What exactly do you need? If there is something missing, then it should be 
+> added. But my guess is that you can pass such information via the s_routing 
+> callback. That's what all other drivers that use v4l2_subdev do.
+
+The s_routing callback looks very limited. One can pass only two u32 values.
+
+The parameters that have to be negotiated are:
+- What is the on-wire video format?
+- how many data lines are connected?
+- synchronization using embedded SAV/EAV codes or using dedicated pins?
+- polarity of sync lines?
+- valid CRC and line number in digital blanking?
+- what is the layout of the digital image?
+- how many odd lines are there? how many even? (including blanking)
+- how many horizontal pixels? (incl. blanking)
+- where is the active region?
+- on which pixels/lines do we start/end horizontal/vertical sync?
+
+>> It seems the soc-camera framework is a better choice here, but to make it
+>> work with the saa7121 one would first have to implement support for video
+>> output.
+> 
+> This framework will also be converted to use v4l2_subdev for the 
+> communication with i2c drivers.
+
+So it shouldn't matter which one I chose?
+
+> Actually, I recommend that you first look at the existing saa7127.c source.
+> I don't know how many differences there are between the saa7121 and 
+> saa7127, but perhaps support for the saa7121 can be added there rather than 
+> introducing a new driver. Of course, that only works if the differences are 
+> not too big.
+
+The chips appear to be very similar, sharing most of the registers. However, the
+aforementioned problem still exists with this driver. A driver connecting this
+sub device must know beforehand that it has to send standard BT.656 video frames
+with SAV/EAV codes.
+
+  Daniel
 
 
-On Thu, 5 Mar 2009, Thomas Kaiser wrote:
+-- 
+Dipl.-Math. Daniel Glöckner, emlix GmbH, http://www.emlix.com
+Fon +49 551 30664-0, Fax -11, Bahnhofsallee 1b, 37081 Göttingen, Germany
+Geschäftsführung: Dr. Uwe Kracke, Dr. Cord Seele, Ust-IdNr.: DE 205 198 055
+Sitz der Gesellschaft: Göttingen, Amtsgericht Göttingen HR B 3160
 
-> Hello Theodore
->
-> kilgota@banach.math.auburn.edu wrote:
->> 
->> 
->> On Wed, 4 Mar 2009, Thomas Kaiser wrote:
->> As to the actual contents of the header, as you describe things,
->> 
->> 0. Do you have any idea how to account for the discrepancy between
->>
->>>>  From usb snoop.
->>>> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx 00 00
->> and
->>>> In Linux the header looks like this:
->>>> 
->>>> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx F0 00
->> 
->> (I am referring to the 00 00 as opposed to F0 00)? Or could this have 
->> happened somehow just because these were not two identical sessions?
->
-> Doesn't remember what the differences was. The first is from Windoz 
-> (usbsnoop) and the second is from Linux.
->
->> 
->>>> 1. xx: don't know but value is changing between 0x00 to 0x07
->> 
->> as I said, this signifies the image format, qua compression algorithm in 
->> use, or if 00 then no compression.
->
-> On the PAC207, the compression can be controlled with a register called 
-> "Compression Balance size". So, I guess, depending on the value set in the 
-> register this value in the header will show what compression level is set.
->
->> 
->>>> 2. xx: this is the actual pixel clock
->> 
->> So there is a control setting for this?
->
-> Yes, in the PAC207, register 2. (12 MHz divided by the value set).
->
->> 
->>>> 3. xx: this is changing according light conditions from 0x03 (dark) to
->>>> 0xfc (bright) (center)
->>>> 4. xx: this is changing according light conditions from 0x03 (dark) to
->>>> 0xfc (bright) (edge)
->>>> 5. xx: set value "Digital Gain of Red"
->>>> 6. xx: set value "Digital Gain of Green"
->>>> 7. xx: set value "Digital Gain of Blue"
->> 
->> Does anyone have any idea of how actually to use this information/ for 
->> example, since a lot of cameras are reporting some kind of similar looking 
->> information, does anyone know if there are any kinds of standard scales for 
->> these entries? Just what are they supposed to signify, and how exactly is 
->> one supposed to use such values, if they have been presented? When I say "a 
->> lot of cameras," understand, I mean still cameras as well as webcams, and 
->> cameras with a lot of different chipsets in them, too. So this is a 
->> question whether there is any standard system for the presentation of such 
->> data, and how it might constructively be used in image processing. I have 
->> had questions about this kind of thing for a long time, and I do not know 
->> where to look for the answers.
->
-> For the brightness, I guess, 0 means dark and 0xff completely bright (sensor 
-> is in saturation)?
-
-That of course is a guess. OTOH it could be on a scale of 0 to 0x80, or it 
-could be that only the digits 0 through 9 are actually used, and the basis 
-is then 100, or too many other variations to count. Also what is 
-considered a "normal" or an "average" value? The trouble with your 
-suggestion of a scale from 0 to 0xff is that it makes sense, and in a 
-situation like this one obviously can not assume that.
-
-What I am suspecting is that these things have some kind of standard 
-definitions, which are not necessarily done by logic but by convention, 
-and there is a document out there somewhere which lays it all down. The 
-document could have been produced by Microsoft, for example, which 
-doubtless has its own problems reducing chaos to order in the industry, or 
-by some kind of consortium of camera manufacturers, or something like 
-that. I really do strongly suspect that the interpretation of all of this 
-is written down somewhere. But I don't know where to look.
-
-Theodore Kilgore
+emlix - your embedded linux partner
