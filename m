@@ -1,57 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:35256 "EHLO
-	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751994AbZCXWIP (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4570 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751245AbZC3L6q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2009 18:08:15 -0400
-Received: from steven-toths-macbook-pro.local
- (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta5.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KH100BI06TFKIM0@mta5.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Tue, 24 Mar 2009 18:08:12 -0400 (EDT)
-Date: Tue, 24 Mar 2009 18:08:03 -0400
-From: Steven Toth <stoth@linuxtv.org>
-Subject: Re: The right way to interpret the content of SNR,
- signal strength and BER from HVR 4000 Lite
-In-reply-to: <412bdbff0903241439u472be49mbc2588abfc1d675d@mail.gmail.com>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-Cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
-	Trent Piepho <xyzzy@speakeasy.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ang Way Chuang <wcang@nav6.org>,
-	VDR User <user.vdr@gmail.com>,
-	Manu Abraham <abraham.manu@gmail.com>
-Message-id: <49C959C3.3060402@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <49B9BC93.8060906@nav6.org>
- <Pine.LNX.4.58.0903131649380.28292@shell2.speakeasy.net>
- <20090319101601.2eba0397@pedra.chehab.org>
- <Pine.LNX.4.58.0903191229370.28292@shell2.speakeasy.net>
- <Pine.LNX.4.58.0903191457580.28292@shell2.speakeasy.net>
- <412bdbff0903191536n525a2facp5bc9637ebea88ff4@mail.gmail.com>
- <49C2D4DB.6060509@gmail.com> <49C33DE7.1050906@gmail.com>
- <1237689919.3298.179.camel@palomino.walls.org>
- <412bdbff0903221800j2f9e1137u7776191e2e75d9d2@mail.gmail.com>
- <412bdbff0903241439u472be49mbc2588abfc1d675d@mail.gmail.com>
+	Mon, 30 Mar 2009 07:58:46 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hardik Shah <hardik.shah@ti.com>
+Subject: Re: [PATCH 2/3] New V4L2 CIDs for OMAP class of Devices.
+Date: Mon, 30 Mar 2009 13:58:40 +0200
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	Brijesh Jadav <brijesh.j@ti.com>,
+	Vaibhav Hiremath <hvaibhav@ti.com>
+References: <1237526397-14101-1-git-send-email-hardik.shah@ti.com>
+In-Reply-To: <1237526397-14101-1-git-send-email-hardik.shah@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903301358.40555.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> Let me ask this rhetorical question: if we did nothing more than just
->> normalize the SNR to provide a consistent value in dB, and did nothing
->> more than normalize the existing strength field to be 0-100%, leaving
->> it up to the driver author to decide the actual heuristic, what
->> percentage of user's needs would be fulfilled?
+On Friday 20 March 2009 06:19:57 Hardik Shah wrote:
+> Added V4L2_CID_BG_COLOR for background color setting.
+> Added V4L2_CID_ROTATION for rotation setting.
+> Above two ioclts are indepth discussed. Posting
+> again with the driver usage.
+> 
+> V4L2 supports chroma keying added new flags for the
+> source chroma keying which is exactly opposite of the
+> chorma keying supported by V4L2.  In current implementation
+> video data is replaced by the graphics buffer data for some
+> specific color.  While for the source chroma keying grahics
+> data is replaced by the video data for some specific color.
+> Both are exactly opposite so are mutually exclusive
+> 
+> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+> Signed-off-by: Hardik Shah <hardik.shah@ti.com>
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+>  linux/drivers/media/video/v4l2-common.c |    7 +++++++
+>  linux/include/linux/videodev2.h         |    6 +++++-
+>  2 files changed, 12 insertions(+), 1 deletions(-)
+> 
+> diff --git a/linux/drivers/media/video/v4l2-common.c b/linux/drivers/media/video/v4l2-common.c
+> index 3c42316..fa408f0 100644
+> --- a/linux/drivers/media/video/v4l2-common.c
+> +++ b/linux/drivers/media/video/v4l2-common.c
+> @@ -422,6 +422,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_CHROMA_AGC:		return "Chroma AGC";
+>  	case V4L2_CID_COLOR_KILLER:		return "Color Killer";
+>  	case V4L2_CID_COLORFX:			return "Color Effects";
+> +	case V4L2_CID_ROTATION:                 return "Rotation";
 
-We don't need a new API and more complexity and/or code confusion, just 
-standardize on the unit values for the existing APIs.
+I'm having second thoughts about this name. I think V4L2_CID_ROTATE is better,
+since it is an action ('you rotate an image') rather than a status ('what is
+the rotation of an image').
 
-1) SNR in either units of db or units of .1 db (I don't care which, although I 
-prefer the later).
+What do you think?
 
-2) Strength as a percentage.
+> +	case V4L2_CID_BG_COLOR:                 return "Background color";
+> 
+>  	/* MPEG controls */
+>  	case V4L2_CID_MPEG_CLASS: 		return "MPEG Encoder Controls";
+> @@ -547,6 +549,10 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+>  		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+>  		min = max = step = def = 0;
+>  		break;
+> +	case V4L2_CID_BG_COLOR:
+> +		 qctrl->type = V4L2_CTRL_TYPE_INTEGER;
+> +		 step = 1;
+> +		 break;
 
-The approach Devin outlined above has my support.
+Set the min to 0 and max to 0xffffff.
 
-- Steve
+>  	default:
+>  		qctrl->type = V4L2_CTRL_TYPE_INTEGER;
+>  		break;
+> @@ -571,6 +577,7 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+>  	case V4L2_CID_BLUE_BALANCE:
+>  	case V4L2_CID_GAMMA:
+>  	case V4L2_CID_SHARPNESS:
+> +	case V4L2_CID_BG_COLOR:
+
+This definitely isn't a slider control.
+
+>  		qctrl->flags |= V4L2_CTRL_FLAG_SLIDER;
+>  		break;
+>  	case V4L2_CID_PAN_RELATIVE:
+> diff --git a/linux/include/linux/videodev2.h b/linux/include/linux/videodev2.h
+> index 2c83935..592d1c8 100644
+> --- a/linux/include/linux/videodev2.h
+> +++ b/linux/include/linux/videodev2.h
+> @@ -548,6 +548,7 @@ struct v4l2_framebuffer {
+>  #define V4L2_FBUF_CAP_LOCAL_ALPHA	0x0010
+>  #define V4L2_FBUF_CAP_GLOBAL_ALPHA	0x0020
+>  #define V4L2_FBUF_CAP_LOCAL_INV_ALPHA	0x0040
+> +#define V4L2_FBUF_CAP_SRC_CHROMAKEY	0x0080
+>  /*  Flags for the 'flags' field. */
+>  #define V4L2_FBUF_FLAG_PRIMARY		0x0001
+>  #define V4L2_FBUF_FLAG_OVERLAY		0x0002
+> @@ -555,6 +556,7 @@ struct v4l2_framebuffer {
+>  #define V4L2_FBUF_FLAG_LOCAL_ALPHA	0x0008
+>  #define V4L2_FBUF_FLAG_GLOBAL_ALPHA	0x0010
+>  #define V4L2_FBUF_FLAG_LOCAL_INV_ALPHA	0x0020
+> +#define V4L2_FBUF_FLAG_SRC_CHROMAKEY	0x0040
+> 
+>  struct v4l2_clip {
+>  	struct v4l2_rect        c;
+> @@ -882,6 +884,8 @@ enum v4l2_power_line_frequency {
+>  #define V4L2_CID_CHROMA_AGC                     (V4L2_CID_BASE+29)
+>  #define V4L2_CID_COLOR_KILLER                   (V4L2_CID_BASE+30)
+>  #define V4L2_CID_COLORFX			(V4L2_CID_BASE+31)
+> +#define V4L2_CID_ROTATION                     	(V4L2_CID_BASE+32)
+> +#define V4L2_CID_BG_COLOR                       (V4L2_CID_BASE+33)
+>  enum v4l2_colorfx {
+>  	V4L2_COLORFX_NONE	= 0,
+>  	V4L2_COLORFX_BW		= 1,
+> @@ -889,7 +893,7 @@ enum v4l2_colorfx {
+>  };
+> 
+>  /* last CID + 1 */
+> -#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+32)
+> +#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+34)
+> 
+>  /*  MPEG-class control IDs defined by V4L2 */
+>  #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
+> --
+> 1.5.6
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
