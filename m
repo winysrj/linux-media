@@ -1,110 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1223 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753603AbZCDTRh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Mar 2009 14:17:37 -0500
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id n24JHY78037318
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 4 Mar 2009 20:17:34 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 4 Mar 2009 20:17:34 +0100 (CET)
-Message-Id: <200903041917.n24JHY78037318@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] ERRORS: armv5 armv5-ixp armv5-omap2 i686 m32r mips powerpc64 x86_64 v4l-dvb build
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2006 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750922AbZC3LxF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Mar 2009 07:53:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hardik Shah <hardik.shah@ti.com>
+Subject: Re: [PATCH 1/3] Documentation for new V4L2 CIDs added.
+Date: Mon, 30 Mar 2009 13:52:57 +0200
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	Brijesh Jadav <brijesh.j@ti.com>,
+	Vaibhav Hiremath <hvaibhav@ti.com>
+References: <1237526389-13835-1-git-send-email-hardik.shah@ti.com>
+In-Reply-To: <1237526389-13835-1-git-send-email-hardik.shah@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903301352.58079.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.)
+Hi Hardik,
 
-Results of the daily build of v4l-dvb:
+OK, so it took a little longer than a week. So sue me :-)
 
-date:        Wed Mar  4 19:00:07 CET 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   10821:4b288a26993d
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Here is the review:On Friday 20 March 2009 06:19:49 Hardik Shah wrote:
+> 1. Updated for V4L2_CID_BG_COLOR
+> 2. Updated for V4L2_CID_ROTATION
+> Both of the above are discussed in length with community
+> 3. Updated for new flags and capability field added
+> to v4l2_frame buffer structure.
+> 
+> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+> Signed-off-by: Hardik Shah <hardik.shah@ti.com>
+> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> ---
+>  v4l2-spec/controls.sgml      |   19 ++++++++++++++++++-
+>  v4l2-spec/vidioc-g-fbuf.sgml |   19 +++++++++++++++++++
+>  2 files changed, 37 insertions(+), 1 deletions(-)
+> 
+> diff --git a/v4l2-spec/controls.sgml b/v4l2-spec/controls.sgml
+> index 477a970..79e2c28 100644
+> --- a/v4l2-spec/controls.sgml
+> +++ b/v4l2-spec/controls.sgml
+> @@ -281,10 +281,27 @@ minimum value disables backlight compensation.</entry>
+>  <constant>V4L2_COLORFX_SEPIA</constant> (2).</entry>
+>  	  </row>
+>  	  <row>
+> + 	    <entry><constant>V4L2_CID_ROTATION</constant></entry>
+> + 	    <entry>integer</entry>
+> + 	    <entry>Rotates the image by specified angle. Common angles are 90, 270,
+> +and 180. Rotating the image to 90 and 270 will reverse the height and width of
+> +the display window.  Its is necessary to set the new height and width of the picture
 
-linux-2.6.16.61-armv5: OK
-linux-2.6.17.14-armv5: OK
-linux-2.6.18.8-armv5: OK
-linux-2.6.19.5-armv5: OK
-linux-2.6.20.21-armv5: OK
-linux-2.6.21.7-armv5: OK
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-rc5-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-rc5-armv5-ixp: OK
-linux-2.6.27-armv5-omap2: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-rc5-armv5-omap2: OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-rc5-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-rc5-m32r: OK
-linux-2.6.16.61-mips: ERRORS
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-rc5-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29-rc5-powerpc64: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29-rc5-x86_64: WARNINGS
-fw/apps: WARNINGS
-spec: OK
-sparse (linux-2.6.28): ERRORS
-sparse (linux-2.6.29-rc5): ERRORS
+Typo: 'Its' -> 'It'
 
-Detailed results are available here:
+> +using S_FMT ioctl see <xref linkend="vidioc-g-fmt"> according to the rotation angle selected</entry>
+> + 	  </row>
+> + 	  <row>
+> + 	    <entry><constant>V4L2_CID_BG_COLOR</constant></entry>
+> + 	    <entry>integer</entry>
+> + 	    <entry>Sets the background color on the current output device.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+Typo: 'on' -> 'of'
 
-Full logs are available here:
+> +Background color needs to be specified in the RGB24 format.  The supplied 32
+> +bit value is intepreted as Bits 0-7 Red color information, Bits 8-15 Green color
+> +information, Bits 16-23 Blue color information and Bits 24-31 must be
+> +zero.</entry>
+> +	  </row>
+> +	  <row>
+>  	    <entry><constant>V4L2_CID_LASTP1</constant></entry>
+>  	    <entry></entry>
+>  	    <entry>End of the predefined control IDs (currently
+> -<constant>V4L2_CID_COLORFX</constant> + 1).</entry>
+> +<constant>V4L2_CID_BG_COLOR</constant> + 1).</entry>
+>  	  </row>
+>  	  <row>
+>  	    <entry><constant>V4L2_CID_PRIVATE_BASE</constant></entry>
+> diff --git a/v4l2-spec/vidioc-g-fbuf.sgml b/v4l2-spec/vidioc-g-fbuf.sgml
+> index 6781b53..27d1e29 100644
+> --- a/v4l2-spec/vidioc-g-fbuf.sgml
+> +++ b/v4l2-spec/vidioc-g-fbuf.sgml
+> @@ -336,6 +336,13 @@ alpha value. Alpha blending makes no sense for destructive overlays.</entry>
+>  inverted alpha channel of the framebuffer or VGA signal. Alpha
+>  blending makes no sense for destructive overlays.</entry>
+>  	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_FBUF_CAP_SRC_CHROMAKEY</constant></entry>
+> +	    <entry>0x0080</entry>
+> +	    <entry>The device supports source chorma keying. Framebuffer
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+Typo: chorma -> chroma
 
-The V4L2 specification from this daily build is here:
+> +images will be replaced by the video images.  Exactly
+> +opposite of <constant>V4L2_FBUF_CAP_CHROMAKEY</constant></entry>
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+Hmm. This is a bit obscure. CAP_CHROMAKEY means that framebuffer pixels with
+the chromakey color are replaced by video pixels. CAP_SRC_CHROMAKEY means
+that video pixels with the chromakey color are replaced by the framebuffer
+pixels. At least the way I read it this is the opposite of what you wrote.
+
+It pays to be very precise here since it can get confusing very quickly.
+
+> +	  </row>
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> @@ -411,6 +418,18 @@ images, but with an inverted alpha value. The blend function is:
+>  output = framebuffer pixel * (1 - alpha) + video pixel * alpha. The
+>  actual alpha depth depends on the framebuffer pixel format.</entry>
+>  	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_FBUF_FLAG_SRC_CHROMAKEY</constant></entry>
+> +	    <entry>0x0040</entry>
+> +	    <entry>Use chroma-keying. The chroma-key color is
+
+Write: 'Use source chroma-keying.' to prevent confusion with
+V4L2_FBUF_FLAG_CHROMAKEY.
+
+> +determined by the <structfield>chromakey</structfield> field of
+> +&v4l2-window; and negotiated with the &VIDIOC-S-FMT; ioctl, see <xref
+> +linkend="overlay"> and <xref linkend="osd">.
+> +Since any one of the chorma keying can be active at a time as both
+
+Typo: chorma -> chroma
+
+> +of them are exactly opposite same <structfield>chromakey</structfield>
+
+Typo: 'opposite same' -> 'opposite the same'
+
+> +field of &v4l2-window; can be used to set the chroma key for source
+> +keying also.</entry>
+> +	  </row>
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> --
+> 1.5.6
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
