@@ -1,50 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:37570 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750756AbZCDAPr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Mar 2009 19:15:47 -0500
-Date: Tue, 3 Mar 2009 18:28:14 -0600 (CST)
-From: kilgota@banach.math.auburn.edu
-To: Adam Baker <linux@baker-net.org.uk>
-cc: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] Support alternate resolutions for sq905
-In-Reply-To: <200903032320.48037.linux@baker-net.org.uk>
-Message-ID: <alpine.LNX.2.00.0903031820150.21483@banach.math.auburn.edu>
-References: <200903032320.48037.linux@baker-net.org.uk>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3039 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756000AbZC3RLv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Mar 2009 13:11:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mark Lord <lkml@rtr.ca>
+Subject: Re: bttv ir patch from Mark Lord
+Date: Mon, 30 Mar 2009 19:11:40 +0200
+Cc: Michael Krufky <mkrufky@linuxtv.org>, linux-media@vger.kernel.org,
+	Linux Kernel <linux-kernel@vger.kernel.org>
+References: <200903301835.55023.hverkuil@xs4all.nl> <49D0FBCE.8050408@rtr.ca> <49D0FC14.6010109@rtr.ca>
+In-Reply-To: <49D0FC14.6010109@rtr.ca>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200903301911.40249.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On Tue, 3 Mar 2009, Adam Baker wrote:
-
-> Add support for the alternate resolutions offered by SQ-905 based cameras. As
-> well as 320x240 all cameras can do 160x120 and some can do 640x480.
+On Monday 30 March 2009 19:06:28 Mark Lord wrote:
+> Michael Krufky wrote:
+> > Mark Lord wrote:
+> >> Michael Krufky wrote:
+> >>> Hans Verkuil wrote:
+> >>>> Hi Mike,
+> >>>>
+> >>>> The attached patch should be queued for 2.6.29.X. It corresponds to
+> >>>> changeset 11098 (v4l2-common: remove incorrect MODULE test) in our
+> >>>> v4l-dvb tree and is part of the initial set of git patches going
+> >>>> into 2.6.30.
+> >>>>
+> >>>> Without this patch loading ivtv as a module while v4l2-common is
+> >>>> compiled into the kernel will cause a delayed load of the i2c
+> >>>> modules that ivtv needs since request_module is never called
+> >>>> directly.
+> >>>>
+> >>>> While it is nice to see the delayed load in action, it is not so
+> >>>> nice in that ivtv fails to do a lot of necessary i2c initializations
+> >>>> and will oops later on with a division-by-zero.
+> >>>>
+> >>>> Thanks to Mark Lord for reporting this and helping me figure out
+> >>>> what was wrong.
+> >>>>
+> >>>> Regards,
+> >>>>
+> >>>>     Hans
+> >>>
+> >>> Got it, thanks.
+> >>>
+> >>> In the future, please point to hash codes rather than revision ID's
+> >>> -- my rev IDs are not the same as yours, but hash codes are always
+> >>> unique.
+> >>>
+> >>> I'll queue this the moment Linus merges Mauro's pending request.
+> >>
+> >> ..
+> >>
+> >> Can either of you guys figure out how to get this patch (or something
+> >> equivalent) merged?  It's been pending for some time now.
+> >>
+> >> Thanks.
+> >>
+> >> Message-ID: <49884CCB.3070309@rtr.ca>
+> >> Date: Tue, 03 Feb 2009 08:55:23 -0500
+> >> From: Mark Lord <lkml@rtr.ca>
+> >> MIME-Version: 1.0
+> >> To: video4linux-list@redhat.com, Linux Kernel
+> >> <linux-kernel@vger.kernel.org> Subject: [PATCH] ir-kbd-i2c: support
+> >> Hauppauge HVR-1600 R/C port Content-Type: text/plain; charset=UTF-8;
+> >> format=flowed
+> >> Content-Transfer-Encoding: 7bit
+> >>
+> >> (resending, with video4linux-list@redhat.com this time)
+> >>
+> >> Update the ir-kbd-i2c driver to recognize the remote-control port
+> >> on the Hauppauge HV-1600 hybrid tuner card.
+> >>
+> >> Signed-off-by: Mark Lord <mlord@pobox.com>
+> >>
+> >> --- old/drivers/media/video/ir-kbd-i2c.c    2008-12-24
+> >> 18:26:37.000000000 -0500 +++ linux/drivers/media/video/ir-kbd-i2c.c   
+> >> 2009-02-01 13:08:19.000000000 -0500 @@ -354,6 +354,11 @@
+> >>             } else {
+> >>                 ir_codes    = ir_codes_rc5_tv;
+> >>             }
+> >> +        } else if (adap->id == I2C_HW_B_CX2341X) {
+> >> +            name        = "Hauppauge";
+> >> +            ir_type     = IR_TYPE_RC5;
+> >> +            ir->get_key = get_key_haup_xvr;
+> >> +            ir_codes    = ir_codes_hauppauge_new;
+> >>         } else {
+> >>             /* Handled by saa7134-input */
+> >>             name        = "SAA713x remote";
+> >> @@ -449,7 +454,7 @@
+> >>        That's why we probe 0x1a (~0x34) first. CB
+> >>     */
+> >>
+> >> -    static const int probe_bttv[] = { 0x1a, 0x18, 0x4b, 0x64, 0x30,
+> >> -1}; +    static const int probe_bttv[] = { 0x1a, 0x18, 0x4b, 0x64,
+> >> 0x30, 0x71, -1}; static const int probe_saa7134[] = { 0x7a, 0x47,
+> >> 0x71, 0x2d, -1 }; static const int probe_em28XX[] = { 0x30, 0x47, -1
+> >> };
+> >>     static const int probe_cx88[] = { 0x18, 0x6b, 0x71, -1 };
+> >
+> > looks like a zilog, and you should use LIRC for that.
 >
-> Signed-off-by: Adam Baker <linux@baker-net.org.uk>
-> ---
-> The patch to detect orientation needs to follow this as that is also simplified by
-> the modified identity check that this introduces.
-
-Since you all got a copy of the patch, I don't reproduce it here, munged 
-by a
-
+> ..
 >
+> It's a Hauppauge remote port, just like the one on the (supported)
+> PVR-250. And I don't want the LIRC monstrosity when there's a perfectly
+> good kernel driver to run it directly.  The patch does not prevent others
+> from using LIRC.
+>
+> > PLEASE  DO NOT HIJAAK unrelated threads with unrelated emails.
+>
+> ..
+>
+> "Hijack", not "HIJAAK".   :)
+>
+> Resending to copy linux-kernel again.
+> Please do not edit/delete lists from the email headers, thanks.
+>
+> thanks.
 
-at the beginning of each line. But I would like to add a comment about the 
-640x480 resolution:
+It's best to wait a bit. Jean Delvare is working on this ir-kbd-i2c driver 
+right now and when he's finished it should be much easier to add this. Most 
+importantly you can add this new i2c address to the cx18 driver rather than 
+add it to the probe_bttv list, which is rather overloaded anyway.
 
-It should be obvious that, since the SQ905 cameras use bulk transport and 
-since they do not do compression in streaming mode, the 640x480 streaming 
-is choppy. Nevertheless, those cameras which have big enough sensors to 
-support it can operate at 640x480 in streaming mode. Therefore, it seems 
-appropriate to support that resolution. If nothing else, it would be 
-useful for intermittent or timed frame grabbing, or such like 
-applications.
+He should be finished within 1-3 weeks I guess. Probably sooner rather than 
+later. Just watch the linux-media list for it.
 
-Oh, and it should be needless to say, but in order to satisfy all 
-formalities
+Regards,
 
-Signed-off-by: Theodore Kilgore <kilgota@auburn.edu>
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
