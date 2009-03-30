@@ -1,43 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tichy.grunau.be ([85.131.189.73]:40156 "EHLO tichy.grunau.be"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755140AbZC2O52 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Mar 2009 10:57:28 -0400
-Received: from localhost (unknown [78.52.195.10])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by tichy.grunau.be (Postfix) with ESMTPSA id D35E290002
-	for <linux-media@vger.kernel.org>; Sun, 29 Mar 2009 16:57:05 +0200 (CEST)
-Date: Sun, 29 Mar 2009 16:57:07 +0200
-From: Janne Grunau <j@jannau.net>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0 of 8] Use usb_interface.dev for v4l2_device_register -
-	try 2
-Message-ID: <20090329145707.GA17855@aniel>
+Received: from mail.hauppauge.com ([167.206.143.4]:3087 "EHLO
+	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753870AbZC3QkT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Mar 2009 12:40:19 -0400
+Message-ID: <49D0F5E1.2030108@linuxtv.org>
+Date: Mon, 30 Mar 2009 12:40:01 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Mark Lord <lkml@rtr.ca>, linux-media@vger.kernel.org
+Subject: Re: Patch for 2.6.29 stable series: remove #ifdef MODULE nonsense
+References: <200903301835.55023.hverkuil@xs4all.nl>
+In-Reply-To: <200903301835.55023.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hans Verkuil wrote:
+> Hi Mike,
+>
+> The attached patch should be queued for 2.6.29.X. It corresponds to 
+> changeset 11098 (v4l2-common: remove incorrect MODULE test) in our v4l-dvb 
+> tree and is part of the initial set of git patches going into 2.6.30.
+>
+> Without this patch loading ivtv as a module while v4l2-common is compiled 
+> into the kernel will cause a delayed load of the i2c modules that ivtv 
+> needs since request_module is never called directly.
+>
+> While it is nice to see the delayed load in action, it is not so nice in 
+> that ivtv fails to do a lot of necessary i2c initializations and will oops 
+> later on with a division-by-zero.
+>
+> Thanks to Mark Lord for reporting this and helping me figure out what was 
+> wrong.
+>
+> Regards,
+>
+> 	Hans
+>
+>   
+Got it, thanks.
 
-try 2: fixed typo in the cx231xx driver name, the name is set explicitly in
-cx2311 not pvrusb2, spltted v4l2_device_register changes and name changes.
+In the future, please point to hash codes rather than revision ID's -- 
+my rev IDs are not the same as yours, but hash codes are always unique.
 
-the documentation suggest and the current usb driver are using struct device
-from the usb_device. As discussed for video_device parent the usb_interface
-should be used. This has the advantage that v4l2_device_register creates
-meaningfull names, for example "hdpvr usb2-3:1.0" instead of "usb 2-3".
+I'll queue this the moment Linus merges Mauro's pending request.
 
-This patch series updates Documentation/video4linux/v4l2-framework.txt and
-hopefully all usb drivers uing v4l2_device.
+Cheers,
 
-The cx231xx and au0828 drivers are already overriding v4l2_device.name with a
-driver name and a device counter. I removed that code since I suspect it was
-only added to get meaningful names.
-If the current names are preferred just NAK the patches removing that code.
-
-regards,
-Janne
-
+Mike
