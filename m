@@ -1,45 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail4.sea5.speakeasy.net ([69.17.117.6]:37053 "EHLO
-	mail4.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752251AbZCNUQP (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1802 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758293AbZC3SX0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Mar 2009 16:16:15 -0400
-Date: Sat, 14 Mar 2009 13:16:11 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] LED control
-In-Reply-To: <20090314091747.21153855@pedra.chehab.org>
-Message-ID: <Pine.LNX.4.58.0903141315300.28292@shell2.speakeasy.net>
-References: <20090314125923.4229cd93@free.fr> <20090314091747.21153855@pedra.chehab.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Mon, 30 Mar 2009 14:23:26 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id n2UINMsm028686
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 30 Mar 2009 20:23:22 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 30 Mar 2009 20:23:22 +0200 (CEST)
+Message-Id: <200903301823.n2UINMsm028686@smtp-vbr14.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: OK, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 14 Mar 2009, Mauro Carvalho Chehab wrote:
-> On Sat, 14 Mar 2009 12:59:23 +0100
-> Jean-Francois Moine <moinejf@free.fr> wrote:
->
-> > +	    <entry><constant>V4L2_CID_LEDS</constant></entry>
-> > +	    <entry>integer</entry>
-> > +	    <entry>Switch on or off the LEDs or illuminators of the device.
-> > +In the control value, each LED may be coded in one bit (0: off, 1: on) or in
-> > +many bits (light intensity).</entry>
-> > +	  </row>
-> > +	  <row>
->
-> The idea of having some sort of control over the LEDs is interesting, but we
-> should have a better way of controlling it. If the LED may have more than one
-> bit, maybe the better would be to create more than one CID entry. Something like:
->
-> V4L2_CID_LED_POWER	- for showing that the camera is being used
-> V4L2_CID_LED_LIGHT	- for normal white light
-> V4L2_CID_LED_INFRARED	- for dark light, using infrared
-> ...
->
-> This way a driver can enumberate what kind of leds are available, and get the
-> power intensity range for each individual one.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-There is already a sysfs led interface, you could just have the driver
-export the leds to the led subsystem and use that.
+Results of the daily build of v4l-dvb:
+
+date:        Mon Mar 30 19:00:06 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11317:ff5430b54ac2
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
+
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-i686: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-m32r: OK
+linux-2.6.22.19-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-powerpc64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-x86_64: OK
+fw/apps: OK
+sparse (linux-2.6.29): ERRORS
+linux-2.6.16.61-i686: WARNINGS
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
