@@ -1,25 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from yx-out-2324.google.com ([74.125.44.30])
-	by www.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <poplyra@gmail.com>) id 1LmI55-0005LI-Bt
-	for linux-dvb@linuxtv.org; Wed, 25 Mar 2009 02:39:00 +0100
-Received: by yx-out-2324.google.com with SMTP id 8so2081358yxm.41
-	for <linux-dvb@linuxtv.org>; Tue, 24 Mar 2009 18:38:54 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <7b41dd970903241514g677c1071raf1010653fd6b7e8@mail.gmail.com>
-References: <7b41dd970809290235x48f63938ic56318ba3064a71b@mail.gmail.com>
-	<c4d80f839f7e2e838b04f6c37c68d9c0@10.0.0.2>
-	<7b41dd970810091315h1433fa7du56e5754a1684019d@mail.gmail.com>
-	<1223598995.4825.12.camel@pc10.localdom.local>
-	<7b41dd970810121321m715f7a81nf2c6e07485603571@mail.gmail.com>
-	<loom.20090225T203249-735@post.gmane.org>
-	<1235712905.2748.29.camel@pc10.localdom.local>
-	<7b41dd970903241514g677c1071raf1010653fd6b7e8@mail.gmail.com>
-Date: Tue, 24 Mar 2009 22:38:54 -0300
-Message-ID: <ff07fffe0903241838j278bbc4agfc94a23f2ab018cb@mail.gmail.com>
-From: Christian Lyra <lyra@pop-pr.rnp.br>
+Received: from mail21.extendcp.co.uk ([79.170.40.21])
+	by mail.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <mailing-lists@enginuities.com>) id 1LoeYS-0002ms-Bn
+	for linux-dvb@linuxtv.org; Tue, 31 Mar 2009 16:03:05 +0200
+Received: from 220-244-170-229.static.tpgi.com.au ([220.244.170.229]
+	helo=cobra.localnet) by mail21.extendcp.com with esmtpa (Exim 4.63)
+	id 1LoeYN-0006t8-Uc
+	for linux-dvb@linuxtv.org; Tue, 31 Mar 2009 15:03:00 +0100
+From: Stuart <mailing-lists@enginuities.com>
 To: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TechnoTrend C-1501 - Locking issues on 388Mhz
+Date: Wed, 1 Apr 2009 01:04:03 +1100
+References: <200903140506.00723.mailing-lists@enginuities.com>
+	<49CCEEAF.4000703@iki.fi> <49D13111.9020300@iki.fi>
+In-Reply-To: <49D13111.9020300@iki.fi>
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200904010104.06886.mailing-lists@enginuities.com>
+Subject: Re: [linux-dvb] Patch for DigitalNow TinyTwin remote.
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -28,56 +25,148 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi
->> > > Hi,
->> > > Am Donnerstag, den 09.10.2008, 22:15 +0200 schrieb klaas de waal:
->> > > =A0The table starts a new segment at 390MHz,
->> > > > it then starts to use VCO2 instead of VCO1.
->> > > > I have now (hack, hack) changed the segment start from 390 to 395M=
-Hz
->> > > > so that the 388MHz is still tuned with VCO1, and this works OK!!
->
-> TechnoTrend C-1501 DVB-C card does not lock on 388MHz.
-> I assume that existing frequency table is valid for DVB-T. This is sugges=
-ted
-> by the name of the table: tda827xa_dvbt.
-> Added a table for DVB-C with the name tda827xa_dvbc.
-> Added runtime selection of the DVB-C table when the tuner is type FE_QAM.
-> This should leave the behaviour of this driver with with DVB_T tuners
-> unchanged.
-> This modification is in file tda827x.c
+Hi Antti,
 
-I imagine if there=B4s something similar to my card, as it doesnt seem
-to use the same tuner. dmesg only says this:
+> Could you make patch asap to get support for remote?
 
-[    3.611107] Linux video capture interface: v2.00
-[    3.621431] saa7146: register extension 'budget_av'.
-[    3.621513] budget_av 0000:00:00.0: enabling device (0000 -> 0002)
-[    3.621757] saa7146: found saa7146 @ mem ffffc20000024000 (revision
-1, irq 16) (0x1894,0x0022).
-[    3.621768] saa7146 (0): dma buffer size 192512
-[    3.621773] DVB: registering new adapter (KNC1 DVB-C MK3)
-[    3.655279] adapter failed MAC signature check
-[    3.655292] encoded MAC from EEPROM was
-ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff
-[    3.858310] budget_av: saa7113_init(): saa7113 not found on KNC card
-[    3.918489] KNC1-0: MAC addr =3D 00:09:d6:6d:9f:db
-[    4.112763] DVB: registering adapter 0 frontend 0 (Philips TDA10023 DVB-=
-C)...
-[    4.112896] budget-av: ci interface initialised.
+I'm still working on why the remote doesn't work with usbhid. I've included two 
+patches, one applies to af9015 (b0ba0a6dfca1) and the other to kernel 2.6.29 (to 
+stop HID from claiming the device and repeating key presses) which will allow 
+the remote to work as the AzureWave remote through polling. I haven't fixed up 
+the ir/key tables in af9015.h yet.
 
-What tunner this card use?
+> take sniff:
+> http://www.pcausa.com/Utilities/UsbSnoop/default.htm
+> use parser to sniff:
+> v4l2-apps/util/parse-sniffusb2.pl
+> and try to look parsed log. You can see USB-protocol rather easily by 
+> comparing driver code and sniff.
 
--- =
+I've taken some usb sniffs, unfortunately parse-sniffusb2.pl didn't give any 
+output (so I'm not sure what it should look like) but here's a snippet from 
+the remote when pressing '1':
 
-Christian Lyra
-PoP-PR/RNP
+[369218 ms]  <<<  URB 13 coming back  <<<
+    00000000: 00 00 1e 00 00 00 00 00
+[369218 ms]  >>>  URB 15 going down  >>>
+[369218 ms]  <<<  URB 14 coming back  <<<
+    00000000: 00 00 1e 00 00 00 00 00
+[369218 ms]  >>>  URB 16 going down  >>>
+[369308 ms]  <<<  URB 15 coming back  <<<
+    00000000: 00 00 00 00 00 00 00 00
+[369308 ms]  >>>  URB 17 going down  >>>
+
+>From a usb keyboard I get this:
+
+[16732 ms]  <<<  URB 7 coming back  <<<
+    00000000: 00 00 1e 00 00 00 00 00
+[16732 ms]  >>>  URB 10 going down  >>>
+[16820 ms]  <<<  URB 8 coming back  <<<
+    00000000: 00 00 00 00 00 00 00 00
+[16820 ms]  >>>  URB 11 going down  >>>
+
+Obviously the incoming URB with '1e' is a key press corresponding to '1' and the 
+incoming URB with all '00' is a key release.
+
+> I haven't looked repeating issue yet... and it even does not rise up in
+> my Linux box. Don't know why. I have Fedora 10 x86_64 2.7.27.
+
+I've been looking in to this and the further I look the more complicated it 
+seems to become!
+
+Using usbmon/debugfs I can see the same behaviour in Windows/Linux for the usb 
+keyboard, the remote on the other hand has a lot of traffic from the polling and 
+only showed packets corresponding to key presses (no key releases in Linux).
+
+It seems that when a key is pressed on either the keyboard or the remote at some 
+point 'hid_irq_in' is called in drivers/hid/usbhid/hid-core.c which in turn 
+calls 'hid_input_report' from drivers/hid/hid-core.c which calls 
+'hid_report_raw_event' in the same file, this in turn calls the various drivers 
+that have claimed the device (input, dev, raw).
+
+If I add the TinyTwin device to hid_blacklist in drivers/hid/hid-core.c and 
+write a driver providing a function for raw_event so it is called instead of 
+'hid_report_raw_event' I can provide a 'fake' key release which to a degree 
+worked, only I would see the keys pressed twice because the af9015 driver 
+still generated events as well.
+
+If I disable polling with:
+
+echo "1" > /sys/module/dvb_usb/parameters/disable_rc_polling
+
+I find that pressing a key on the remote generates a key press and then ~17.5 
+seconds later the remote generates a key release. Any key presses (pressing any 
+key on the remote) before the key release generates another key press for the 
+first key, not the one actually pressed!
+
+So far I've found a minor difference between the two firmware sent to the device 
+and I'm going through usb sniffs to see what it does under Windows to see if 
+this has any effect on the remote....
+
+Regards,
+
+Stuart
+
+af9015-b0ba0a6dfca1_tinytwin_remote.patch:
+--- orig/drivers/media/dvb/dvb-usb/af9015.c	2009-03-31 07:57:51.000000000 +1100
++++ new/drivers/media/dvb/dvb-usb/af9015.c	2009-03-31 11:44:16.000000000 +1100
+@@ -785,17 +785,14 @@ static int af9015_read_config(struct usb
+ 				  ARRAY_SIZE(af9015_ir_table_leadtek);
+ 				break;
+ 			case USB_VID_VISIONPLUS:
+-				if (udev->descriptor.idProduct ==
+-				cpu_to_le16(USB_PID_AZUREWAVE_AD_TU700)) {
+-					af9015_properties[i].rc_key_map =
+-					  af9015_rc_keys_twinhan;
+-					af9015_properties[i].rc_key_map_size =
+-					  ARRAY_SIZE(af9015_rc_keys_twinhan);
+-					af9015_config.ir_table =
+-					  af9015_ir_table_twinhan;
+-					af9015_config.ir_table_size =
+-					  ARRAY_SIZE(af9015_ir_table_twinhan);
+-				}
++				af9015_properties[i].rc_key_map =
++				  af9015_rc_keys_twinhan;
++				af9015_properties[i].rc_key_map_size =
++				  ARRAY_SIZE(af9015_rc_keys_twinhan);
++				af9015_config.ir_table =
++				  af9015_ir_table_twinhan;
++				af9015_config.ir_table_size =
++				  ARRAY_SIZE(af9015_ir_table_twinhan);
+ 				break;
+ 			case USB_VID_KWORLD_2:
+ 				/* TODO: use correct rc keys */
+
+kernel-2.6.29_tinytwin_remote_patch.diff:
+--- orig/drivers/hid/hid-core.c	2009-03-24 10:12:14.000000000 +1100
++++ new/drivers/hid/hid-core.c	2009-03-31 15:08:13.000000000 +1100
+@@ -1629,6 +1629,7 @@ static const struct hid_device_id hid_ig
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_WISEGROUP, USB_DEVICE_ID_1_PHIDGETSERVO_20) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_WISEGROUP, USB_DEVICE_ID_8_8_4_IF_KIT) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_YEALINK, USB_DEVICE_ID_YEALINK_P1K_P4K_B2K) },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_DIGITALNOW, USB_DEVICE_ID_DIGITALNOW_TINYTWIN) 
+},
+ 	{ }
+ };
+ 
+--- orig/drivers/hid/hid-ids.h	2009-03-24 10:12:14.000000000 +1100
++++ new/drivers/hid/hid-ids.h	2009-03-31 15:09:05.000000000 +1100
+@@ -420,4 +420,7 @@
+ #define USB_VENDOR_ID_KYE		0x0458
+ #define USB_DEVICE_ID_KYE_GPEN_560	0x5003
+ 
++#define USB_VENDOR_ID_DIGITALNOW	0x13d3
++#define USB_DEVICE_ID_DIGITALNOW_TINYTWIN	0x3226
++
+ #endif
+
+
 
 _______________________________________________
 linux-dvb users mailing list
