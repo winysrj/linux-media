@@ -1,43 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail8.sea5.speakeasy.net ([69.17.117.10]:35599 "EHLO
-	mail8.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751604AbZCOXqj (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.229]:41627 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759421AbZCaQur convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Mar 2009 19:46:39 -0400
-Date: Sun, 15 Mar 2009 16:46:36 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Andy Walls <awalls@radix.net>
-cc: Jean Delvare <khali@linux-fr.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: bttv, tvaudio and ir-kbd-i2c probing conflict
-In-Reply-To: <1237145673.3314.47.camel@palomino.walls.org>
-Message-ID: <Pine.LNX.4.58.0903151637370.28292@shell2.speakeasy.net>
-References: <200903151344.01730.hverkuil@xs4all.nl>  <20090315181207.36d951ac@hyperion.delvare>
- <1237145673.3314.47.camel@palomino.walls.org>
+	Tue, 31 Mar 2009 12:50:47 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so3117619rvb.1
+        for <linux-media@vger.kernel.org>; Tue, 31 Mar 2009 09:50:45 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <37219a840903301446o36d61b0end913c5e2c10806b6@mail.gmail.com>
+References: <3731df090903301437k49c310bbha71946ab14c0d6c9@mail.gmail.com>
+	 <37219a840903301446o36d61b0end913c5e2c10806b6@mail.gmail.com>
+Date: Tue, 31 Mar 2009 09:50:45 -0700
+Message-ID: <3731df090903310950i47882aa5xf4982218ef1f78e3@mail.gmail.com>
+Subject: Re: Correct signal strength and SNR output for DViCO FusionHDTV7 Dual
+	Express?
+From: Dave Johansen <davejohansen@gmail.com>
+To: Michael Krufky <mkrufky@linuxtv.org>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 15 Mar 2009, Andy Walls wrote:
-> On Sun, 2009-03-15 at 18:12 +0100, Jean Delvare wrote:
+On Mon, Mar 30, 2009 at 2:46 PM, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> On Mon, Mar 30, 2009 at 5:37 PM, Dave Johansen <davejohansen@gmail.com> wrote:
+>> I am trying to get a MythTV setup working with a DViCO FusionHDTV7
+>> Dual Express using Mythbuntu 8.10 and I have been able to generate a
+>> channels.conf file using the latest v4l-dvb source code and the scan
+>> utility that comes with the dvb-utils in Mythbuntu (the dvbscan
+>> utility in latest dvb-apps source code give me the error "Unable to
+>> query frontend status"). I am also able to watch channels using
+>> mplayer, but the the problem is that MythTV does not identify any
+>> channels. I am able to watch channels using MythTV, but I have to
+>> manually enter the channel data since the tuning is not working.
+>>
+>> The belief is that the signal strength and SNR output must be
+>> incorrect and that is causing the problem with MythTV. I would like to
+>> help get this fixed, so others don't have the problems that I have run
+>> into, so what can I do to help get the signal strength and SNR outputs
+>> working?
+>>
+>> If it's helpful, I have attached an example output using azap with one
+>> of the channels that I can watch with mplayer:
+>>
+>> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>> tuning to 503028615 Hz
+>> video pid 0x0011, audio pid 0x0014
+>> status 01 | signal e000 | snr e450 | ber 00000000 | unc 00000000 |
+>> status 1f | signal 00ff | snr 00ff | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>> status 1f | signal 00ff | snr 00ff | ber 00000ab7 | unc 00000ab7 | FE_HAS_LOCK
+>> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>>
+>> Thanks,
+>> Dave
 >
-> > This is the typical multifunction device problem. It isn't specifically
-> > related to I2C,
+> That is a great signal reading.  0xfa = 25.0 dB , 0xff = 25.5 dB  ...
+>  so, you're teetering between 25.0 and 25.5 -- you have a great
+> signal.
 >
-> But the specific problem that Hans' brings up is precisely a Linux
-> kernel I2C subsystem *software* prohibition on two i2c_clients binding
-> to the same address on the same adapter.
+> SNR is reported in 0.1 dB by the driver that your device uses.
+>
+> Ignore what mythtv says about signal status -- userspace cant read
+> kernelspace signal statistics properly yet.
+>
+> Regards,
+>
+> Mike
+>
 
-For a lot of i2c devices, it would be difficult for two drivers to access
-the device at the same time without some kind of locking.
+OK, that's good to know. Is there currently work being done to make it
+so userspace has access to the signal statistics? Is there anything I
+can do to help out with that?
 
-If you take the reads and writes of one driver and then intersperse the
-reads and writes of another driver, the resulting sequence from the i2c
-device's point of view is completely broken.
-
-But, I suppose there are some devices where if the drivers all use
-i2c_smbus_read/write_byte/word_data or equivalent atomic transactions
-with i2c_transfer(), then you could get away with two drivers talking to
-the same chip.
+Dave
