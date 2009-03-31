@@ -1,64 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:53989 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752816AbZC0K4c (ORCPT
+Received: from mail.hauppauge.com ([167.206.143.4]:1242 "EHLO
+	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758886AbZCaNXQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Mar 2009 06:56:32 -0400
-Date: Fri, 27 Mar 2009 07:56:25 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Darius Augulis <augulis.darius@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 1/5] CSI camera interface driver for MX1
-Message-ID: <20090327075625.276376b1@pedra.chehab.org>
-In-Reply-To: <49CC9E53.9070805@gmail.com>
-References: <49C89F00.1020402@gmail.com>
-	<Pine.LNX.4.64.0903261405520.5438@axis700.grange>
-	<49CBD53C.6060700@gmail.com>
-	<20090326170910.6926d8de@pedra.chehab.org>
-	<49CC9E53.9070805@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Tue, 31 Mar 2009 09:23:16 -0400
+Message-ID: <49D21938.3000907@linuxtv.org>
+Date: Tue, 31 Mar 2009 09:23:04 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+MIME-Version: 1.0
+To: stable@kernel.org
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [2.6.29.y PATCH] V4L: v4l2-common: remove incorrect MODULE test
+Content-Type: multipart/mixed;
+ boundary="------------020403040400090205040704"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 27 Mar 2009 11:37:23 +0200
-Darius Augulis <augulis.darius@gmail.com> wrote:
-
-> Mauro Carvalho Chehab wrote:
-> > Hi Darius,
-> > 
-> > Please always base your patches against the last v4l-dvb tree or linux-next.
-> > This is specially important those days, where v4l core is suffering several
-> > changes.
->
-
-Btw, you shouldn't be c/c a list that requires subscription. Every time I send
-something, I got such errors:
-
-From: linux-arm-kernel-bounces@lists.arm.linux.org.uk
-To: mchehab@infradead.org
-Subject: Your message to Linux-arm-kernel awaits moderator approval
-Date: Fri, 27 Mar 2009 10:34:51 +0000
-Sender: linux-arm-kernel-bounces@lists.arm.linux.org.uk
-
-Your mail to 'Linux-arm-kernel' with the subject
-
-    Re: [PATCH 1/5] CSI camera interface driver for MX1
-
-Is being held until the list moderator can review it for approval.
-
-The reason it is being held:
-
-    Post by non-member to a members-only list
-
-Either the message will get posted to the list, or you will receive
-notification of the moderator's decision.  If you would like to cancel
-this posting, please visit the following URL:
-
-    http://lists.arm.linux.org.uk/mailman/confirm/linux-arm-kernel/f04eda1d528be13a0d486acf4663a17ca96b05bd
+This is a multi-part message in MIME format.
+--------------020403040400090205040704
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
 
-Cheers,
-Mauro
+
+--------------020403040400090205040704
+Content-Type: text/x-diff;
+ name="0001-V4L-v4l2-common-remove-incorrect-MODULE-test.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename*0="0001-V4L-v4l2-common-remove-incorrect-MODULE-test.patch"
+
+>From ba6b8068cf8f428f296762146cef6aafc4686f81 Mon Sep 17 00:00:00 2001
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Wed, 18 Mar 2009 15:48:01 -0300
+Subject: [PATCH] V4L: v4l2-common: remove incorrect MODULE test
+
+v4l2-common doesn't have to be a module for it to call request_module().
+Just remove that test.
+
+Without this patch loading ivtv as a module while v4l2-common is compiled
+into the kernel will cause a delayed load of the i2c modules that ivtv
+needs since request_module is never called directly.
+
+While it is nice to see the delayed load in action, it is not so nice in
+that ivtv fails to do a lot of necessary i2c initializations and will oops
+later on with a division-by-zero.
+
+Thanks to Mark Lord for reporting this and helping me figure out what was
+wrong.
+
+Thanks-to: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Thanks-to: Mark Lord <lkml@rtr.ca>
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
+(cherry picked from commit d64260d58865004c6354e024da3450fdd607ea07)
+---
+ drivers/media/video/v4l2-common.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
+index b8f2be8..907cd02 100644
+--- a/drivers/media/video/v4l2-common.c
++++ b/drivers/media/video/v4l2-common.c
+@@ -910,10 +910,10 @@ struct v4l2_subdev *v4l2_i2c_new_subdev(struct i2c_adapter *adapter,
+ 	struct i2c_board_info info;
+ 
+ 	BUG_ON(!dev);
+-#ifdef MODULE
++
+ 	if (module_name)
+ 		request_module(module_name);
+-#endif
++
+ 	/* Setup the i2c board info with the device type and
+ 	   the device address. */
+ 	memset(&info, 0, sizeof(info));
+@@ -958,10 +958,10 @@ struct v4l2_subdev *v4l2_i2c_new_probed_subdev(struct i2c_adapter *adapter,
+ 	struct i2c_board_info info;
+ 
+ 	BUG_ON(!dev);
+-#ifdef MODULE
++
+ 	if (module_name)
+ 		request_module(module_name);
+-#endif
++
+ 	/* Setup the i2c board info with the device type and
+ 	   the device address. */
+ 	memset(&info, 0, sizeof(info));
+-- 
+1.5.4.3
+
+
+--------------020403040400090205040704--
