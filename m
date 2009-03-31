@@ -1,100 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:56717 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752895AbZCAHhG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Mar 2009 02:37:06 -0500
-Date: Sun, 1 Mar 2009 08:26:35 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Anders Blomdell <anders.blomdell@control.lth.se>
-Cc: Thomas Champagne <lafeuil@gmail.com>,
-	Linux Media <linux-media@vger.kernel.org>,
-	Thomas Kaiser <v4l@kaiser-linux.li>
-Subject: Re: Topro 6800 driver
-Message-ID: <20090301082635.0905afea@free.fr>
-In-Reply-To: <49A95428.1090306@control.lth.se>
-References: <49A8661A.4090907@control.lth.se>
-	<20090228113135.4bbbc294@free.fr>
-	<49A95428.1090306@control.lth.se>
-Mime-Version: 1.0
+Received: from fg-out-1718.google.com ([72.14.220.159]:24748 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756410AbZCaUon convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Mar 2009 16:44:43 -0400
+Received: by fg-out-1718.google.com with SMTP id e12so82227fga.17
+        for <linux-media@vger.kernel.org>; Tue, 31 Mar 2009 13:44:39 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <3731df090903310957v119c97e9vbca96d1293d3aef8@mail.gmail.com>
+References: <3731df090903301437k49c310bbha71946ab14c0d6c9@mail.gmail.com>
+	 <412bdbff0903301447k6bd27643s7188c17e3ca2798e@mail.gmail.com>
+	 <3731df090903310957v119c97e9vbca96d1293d3aef8@mail.gmail.com>
+Date: Tue, 31 Mar 2009 16:44:39 -0400
+Message-ID: <37219a840903311344o56723b21m84e67adcbd1011cd@mail.gmail.com>
+Subject: Re: Correct signal strength and SNR output for DViCO FusionHDTV7 Dual
+	Express?
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Dave Johansen <davejohansen@gmail.com>
+Cc: Devin Heitmueller <devin.heitmueller@gmail.com>,
+	linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 28 Feb 2009 16:11:36 +0100
-Anders Blomdell <anders.blomdell@control.lth.se> wrote:
+On Tue, Mar 31, 2009 at 12:57 PM, Dave Johansen <davejohansen@gmail.com> wrote:
+> On Mon, Mar 30, 2009 at 2:47 PM, Devin Heitmueller
+> <devin.heitmueller@gmail.com> wrote:
+>> On Mon, Mar 30, 2009 at 5:37 PM, Dave Johansen <davejohansen@gmail.com> wrote:
+>>> I am trying to get a MythTV setup working with a DViCO FusionHDTV7
+>>> Dual Express using Mythbuntu 8.10 and I have been able to generate a
+>>> channels.conf file using the latest v4l-dvb source code and the scan
+>>> utility that comes with the dvb-utils in Mythbuntu (the dvbscan
+>>> utility in latest dvb-apps source code give me the error "Unable to
+>>> query frontend status"). I am also able to watch channels using
+>>> mplayer, but the the problem is that MythTV does not identify any
+>>> channels. I am able to watch channels using MythTV, but I have to
+>>> manually enter the channel data since the tuning is not working.
+>>>
+>>> The belief is that the signal strength and SNR output must be
+>>> incorrect and that is causing the problem with MythTV. I would like to
+>>> help get this fixed, so others don't have the problems that I have run
+>>> into, so what can I do to help get the signal strength and SNR outputs
+>>> working?
+>>>
+>>> If it's helpful, I have attached an example output using azap with one
+>>> of the channels that I can watch with mplayer:
+>>>
+>>> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>>> tuning to 503028615 Hz
+>>> video pid 0x0011, audio pid 0x0014
+>>> status 01 | signal e000 | snr e450 | ber 00000000 | unc 00000000 |
+>>> status 1f | signal 00ff | snr 00ff | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>>> status 1f | signal 00ff | snr 00ff | ber 00000ab7 | unc 00000ab7 | FE_HAS_LOCK
+>>> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>>> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>>> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>>> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>>> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>>> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>>> status 1f | signal 00fa | snr 00fa | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>>>
+>>> Thanks,
+>>> Dave
+>>
+>> Hello Dave,
+>>
+>> There has been an ongoing discussion about the representation of SNR
+>> and strength to applications such as MythTV.  Currently it is very
+>> inconsistent across drivers.
+>>
+>> To my knowledge, MythTV does not rely on either of these fields during
+>> its scanning.  It relies entirely on the FE_HAS_LOCK to make it's
+>> determination.
+>>
+>> You should probably see what additional logging capabilities are
+>> available in MythTV.
+>>
+>> Also, you might want to see if you can change the lock timeout in your
+>> application, as some applications may have the interval set to a value
+>> too short, which results in it timing out before the lock is acquired.
+>>
+>> Devin
+>>
+>> --
+>> Devin J. Heitmueller
+>> http://www.devinheitmueller.com
+>> AIM: devinheitmueller
+>>
+>
+> So, I tried upping the tuning timeout and MythTV under Mythbuntu 8.10
+> was able to find 1 of the channels (I can find 19 using scan and
+> azap).
+>
+> I then downloaded the Mythbuntu 9.04 beta and got a new antenna. The
+> driver worked out of the box so I didn't need to download/compile the
+> latest v4l-dvb drivers, and it was able to get all 19 channels in
+> MythTV (it took 3 or 4 scans to finally get them all). I realize that
+> that wasn't the most scientific approach, so I will re-try with the
+> old antenna and see if it was the antenna or the software upgrade that
+> did the trick.
+>
+> I also tried cranking the tuning timeout up to 15 seconds and it still
+> couldn't find all of the channels during every scan. Is that something
+> that I need to look into from a MythTV perspective? Or is there
+> something wrong with v4l-dvb that's causing that?
 
-> Jean-Francois Moine wrote:
-> > Thomas Champagne (See To:) was also writing a driver for this
-> > webcam. Maybe you may merge your codes...
-> Thomas, if you have DQT/Huffman tables for this camera, please drop
-> me a note.
-> 
-> > About the JPEG images, the Huffman table is always the same 
-> Does this mean that it's the same for all JPEG images or only for one 
-> camera?
-> 
-> If it's the same for all images, it should mean that I have a way to 
-> determine how much I have to chop off after the 0xfffe tag (no
-> illegal huffman codes -> possibly chop at the correct position).
-> 
-> Comments anyone?
+MythTV's channel scanner is undergoing heavy changes in svn trunk.  By
+the time 0.22 comes out, I suspect that MythTV's built-in channel
+scanner will be of a much higher quality.
 
-I already explained it:
+If you want to get all your channels, I recommend creating your own
+channels.conf using the command line utilities, then import that into
+mythtv via mythtv-setup.
 
-- when a packet starts with '55 ff d8', it is the first part of the
-  image. This one should start at the offset 8 of the packet.
-                                      ~~~~~~~~
-
->  > and the
-> > quantization tables depend on the compression quality.
-> > 
-> > From the USB trace I had from Thomas, I saw that:
-> > 
-> > - when a packet starts with '55 ff d8', it is the first part of the
-> >   image. This one should start at the offset 8 of the packet.
-> > 
-> > - when a packet starts with 'cc', it is the next part of the image.
-> This is even in the docs, and is implemented in the driver.
-> 
-> > In the function pkt_scan, when finding the image start, you must add
-> > the JPEG header: 'ff d8', DQT, huffman table, SOF0 and SOS.
-> OK, will see if I can find the DQT (and possibly the Huffman table)
-> in the windows driver (as suggested by Thomas Kaiser).
-
-See below.
-
-> > As we don't know the quality used by the webcam, in my test
-> > repository, I added a control for that: the JPEG header is created
-> > at streamon time, and the quantization tables may be modified by
-> > the control on the fly (have a look at stk014.c for an example).
-> > 
-> > This solution is not the right one: the JPEG quality must be set by
-> > the VIDIOC_S_JPEGCOMP ioctl instead of VIDIOC_S_CTRL. I think I
-> > will update the concerned subdrivers next week.
-> I'll look into that monday.
-
-In gspca, the file "jpeg.h" contains all the material to build a
-complete JPEG header. With the new mechanism of my test repository, you
-must:
-
-- at streamon time (function sd_start):
-	- allocate a buffer for the JPEG header,
-	- set the resolution and number of samplesY (0x22 or 0x21) by
-		the function jpeg_define,
-	- set the quantization tables by the function jpeg_set_qual,
-	  the quality being in percent (15..95).
-
-- when getting the start of a new image in sd_pkt_scan, add the JPEG
-  header as the first packet.
-
-- at streamoff time (function sd_stop0), free the JPEG header.
-
-- on VIDIOC_S_JPEGCOMP (function sd_set_jcomp which you must create),
-  redefine the quantization tables by jpeg_set_qual.
-
-Cheers.
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+-Mike
