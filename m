@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2477UCG016417
-	for <video4linux-list@redhat.com>; Wed, 4 Mar 2009 02:07:30 -0500
-Received: from smtp6-g21.free.fr (smtp6-g21.free.fr [212.27.42.6])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n2477Cgs011930
-	for <video4linux-list@redhat.com>; Wed, 4 Mar 2009 02:07:13 -0500
-Date: Wed, 4 Mar 2009 08:05:41 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: amol verule <amol.debian@gmail.com>
-Message-ID: <20090304080541.0a12cf2c@free.fr>
-In-Reply-To: <77ca8eab0903020539l6a5d015aucba5e222c5466088@mail.gmail.com>
-References: <77ca8eab0903020539l6a5d015aucba5e222c5466088@mail.gmail.com>
-Mime-Version: 1.0
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n2VEXdQl006709
+	for <video4linux-list@redhat.com>; Tue, 31 Mar 2009 10:33:39 -0400
+Received: from mail-gx0-f171.google.com (mail-gx0-f171.google.com
+	[209.85.217.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n2VEW2pD019901
+	for <video4linux-list@redhat.com>; Tue, 31 Mar 2009 10:32:02 -0400
+Received: by gxk19 with SMTP id 19so5417906gxk.3
+	for <video4linux-list@redhat.com>; Tue, 31 Mar 2009 07:32:02 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <49D227A3.5000601@linuxtv.org>
+References: <49D20B0B.1030701@australiaonline.net.au>
+	<49D227A3.5000601@linuxtv.org>
+Date: Tue, 31 Mar 2009 10:32:02 -0400
+Message-ID: <412bdbff0903310732n3d767d0cy46933a8a446ae3e4@mail.gmail.com>
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Steven Toth <stoth@linuxtv.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
-Subject: Re: application for microdia 0c45:6130
+Subject: Re: No scan with DViCo FusionHDTV DVB-T Dual Express
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,28 +31,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, 2 Mar 2009 19:09:36 +0530
-amol verule <amol.debian@gmail.com> wrote:
+On Tue, Mar 31, 2009 at 10:24 AM, Steven Toth <stoth@linuxtv.org> wrote:
+> ... and it may not have a xc3028 onboard, or may have the low power version
+> which is why the firmware fails to load. A few other things come to mind but
+> given that the vendor has switch subid details, it's probably best to cross
+> reference with the wiki to ensure it still has the same parts.
 
-> hi to all,
->             i am having device webcam of 0c45:6130 .with camorama it
-> is showing blank screen as well not working with ekiga.so can please
-> tell me which application should i use to use my webcam?
->              /dev/video0 is created means device is detected properly.
+If it does have the low power version on board (the xc3028L), do *not*
+load the regular firmware or else you will burn out the chip.
 
-Hi Amol,
+> Assuming the wiki entry truly doesn't exist, maybe you could create it with
+> the newer rev details, maybe with some pictures and component details?
 
-The images of your webcam are JPEG compressed. You must use the v4l
-library wrapper for most applications but mplayer and vlc (0.9.x).
+If it's a brand new board, you should definitely take some pictures
+before trying the regular xc3028 firmware.
 
-Otherwise, your webcam may be handled by two different drivers: sn9c102
-and gspca. Which one are you using?
-
-Regards.
+Devin
 
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
