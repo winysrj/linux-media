@@ -1,50 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.31]:57193 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754067AbZCVPxX convert rfc822-to-8bit (ORCPT
+Received: from cinke.fazekas.hu ([195.199.244.225]:36410 "EHLO
+	cinke.fazekas.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754811AbZCaWOq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Mar 2009 11:53:23 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so1780407ywb.1
-        for <linux-media@vger.kernel.org>; Sun, 22 Mar 2009 08:53:20 -0700 (PDT)
+	Tue, 31 Mar 2009 18:14:46 -0400
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-In-Reply-To: <1237425168.3303.94.camel@palomino.walls.org>
-References: <164695.77575.qm@web56903.mail.re3.yahoo.com>
-	 <412bdbff0903161118o2d038bdetc4d52851e35451df@mail.gmail.com>
-	 <63160.21731.qm@web56906.mail.re3.yahoo.com>
-	 <1237251478.3303.37.camel@palomino.walls.org>
-	 <954486.20343.qm@web56908.mail.re3.yahoo.com>
-	 <1237425168.3303.94.camel@palomino.walls.org>
-Date: Sun, 22 Mar 2009 11:53:20 -0400
-Message-ID: <de8cad4d0903220853v4b871e91x7de6efebfb376034@mail.gmail.com>
-Subject: Re: Problems with Hauppauge HVR 1600 and cx18 driver
-From: Brandon Jenkins <bcjenkins@tvwhere.com>
-To: Andy Walls <awalls@radix.net>
-Cc: Corey Taylor <johnfivealive@yahoo.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
+Subject: [PATCH 3 of 3] cx88: avoid reprogramming every audio register on A2
+	stereo/mono change
+Message-Id: <119acaa1dee387960325.1238536913@roadrunner.athome>
+In-Reply-To: <patchbomb.1238536910@roadrunner.athome>
+Date: Wed, 01 Apr 2009 00:01:53 +0200
+From: Marton Balint <cus@fazekas.hu>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Mar 18, 2009 at 9:12 PM, Andy Walls <awalls@radix.net> wrote:
+# HG changeset patch
+# User Marton Balint <cus@fazekas.hu>
+# Date 1238535357 -7200
+# Node ID 119acaa1dee387960325ba637c6257af2b0fd3af
+# Parent  d2cbecf047e8f45f49f20bd19b95dfd86c134e33
+cx88: avoid reprogramming every audio register on A2 stereo/mono change
 
-> 2.  Try modifying the enc_ts_bufsize module parameter from it's default
-> of 32 k, down to 4 k or up to 128 k.  With a smaller size, the loss of
-> any one buffer from the encoder will not have such a devastating effect
-> on the MPEG TS, but interrupts will happen more frequently.  With a
-> larger size, you're less likely to see the timeout errors in your logs,
-> and the interrupt rate will be lower.
->
-> Make sure you use enc_ts_bufs=64 when you set the buffer size small.
->
+From: Marton Balint <cus@fazekas.hu>
 
-Andy,
+This patch changes cx88_set_stereo to avoid resetting all of the audio
+registers on stereo/mono change if the audio standard is A2, and set only the
+AUD_CTL register. The benefit of this method is that it eliminates the annoying
+clicking noise on setting the audio mode to stereo or mono.
 
-I am noticing an improvement in pixelation by setting the bufsize to
-64k. I will monitor over the next week and report back. I am running 3
-HVR-1600s and the IRQs are coming up shared with the USB which also
-supports my HD PVR capture device. Monday nights are usually one of
-the busier nights for recording so I will know how well this holds up.
+The driver had used the same method 1.5 years ago (and for FM radio it still
+does), but a pretty big cleanup commit changed it to the "complete audio reset"
+method, although the reason for this move was not clear. (If somebody knows why
+it was necessary, please let me know!)
 
-Thanks for the tip!
+The original commit: http://linuxtv.org/hg/v4l-dvb/rev/ffe313541d7d
 
-Brandon
+Priority: normal
+
+Signed-off-by: Marton Balint <cus@fazekas.hu>
+
+diff -r d2cbecf047e8 -r 119acaa1dee3 linux/drivers/media/video/cx88/cx88-tvaudio.c
+--- a/linux/drivers/media/video/cx88/cx88-tvaudio.c	Tue Mar 31 03:21:56 2009 +0200
++++ b/linux/drivers/media/video/cx88/cx88-tvaudio.c	Tue Mar 31 23:35:57 2009 +0200
+@@ -938,20 +938,18 @@
+ 				set_audio_standard_A2(core, EN_A2_FORCE_MONO1);
+ 			} else {
+ 				/* TODO: Add A2 autodection */
++				mask = 0x3f;
+ 				switch (mode) {
+ 				case V4L2_TUNER_MODE_MONO:
+ 				case V4L2_TUNER_MODE_LANG1:
+-					set_audio_standard_A2(core,
+-							      EN_A2_FORCE_MONO1);
++					ctl = EN_A2_FORCE_MONO1;
+ 					break;
+ 				case V4L2_TUNER_MODE_LANG2:
+-					set_audio_standard_A2(core,
+-							      EN_A2_FORCE_MONO2);
++					ctl = EN_A2_FORCE_MONO2;
+ 					break;
+ 				case V4L2_TUNER_MODE_STEREO:
+ 				case V4L2_TUNER_MODE_LANG1_LANG2:
+-					set_audio_standard_A2(core,
+-							      EN_A2_FORCE_STEREO);
++					ctl = EN_A2_FORCE_STEREO;
+ 					break;
+ 				}
+ 			}
