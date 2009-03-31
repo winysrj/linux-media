@@ -1,55 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dyn60-31.dsl.spy.dnainternet.fi ([83.102.60.31]:43576 "EHLO
-	shogun.pilppa.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754615AbZCXXiz (ORCPT
+Received: from ti-out-0910.google.com ([209.85.142.185]:41717 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755104AbZCaFTi convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2009 19:38:55 -0400
-Date: Wed, 25 Mar 2009 01:28:38 +0200 (EET)
-From: Mika Laitio <lamikr@pilppa.org>
-To: Manu Abraham <abraham.manu@gmail.com>
-cc: Devin Heitmueller <devin.heitmueller@gmail.com>,
-	Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
-	Trent Piepho <xyzzy@speakeasy.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ang Way Chuang <wcang@nav6.org>,
-	VDR User <user.vdr@gmail.com>
-Subject: Re: The right way to interpret the content of SNR, signal strength
- and BER from HVR 4000 Lite
-In-Reply-To: <49C96A37.4020905@gmail.com>
-Message-ID: <Pine.LNX.4.64.0903250128110.11676@shogun.pilppa.org>
-References: <49B9BC93.8060906@nav6.org>  <Pine.LNX.4.58.0903131649380.28292@shell2.speakeasy.net>
-  <20090319101601.2eba0397@pedra.chehab.org>  <Pine.LNX.4.58.0903191229370.28292@shell2.speakeasy.net>
-  <Pine.LNX.4.58.0903191457580.28292@shell2.speakeasy.net>
- <412bdbff0903191536n525a2facp5bc9637ebea88ff4@mail.gmail.com>
- <49C2D4DB.6060509@gmail.com> <49C33DE7.1050906@gmail.com>
- <1237689919.3298.179.camel@palomino.walls.org>
- <412bdbff0903221800j2f9e1137u7776191e2e75d9d2@mail.gmail.com>
- <412bdbff0903241439u472be49mbc2588abfc1d675d@mail.gmail.com>
- <49C96A37.4020905@gmail.com>
+	Tue, 31 Mar 2009 01:19:38 -0400
+Received: by ti-out-0910.google.com with SMTP id i7so1919291tid.23
+        for <linux-media@vger.kernel.org>; Mon, 30 Mar 2009 22:19:35 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+In-Reply-To: <412bdbff0903302154w5ddb3fc8m684bcb5092942561@mail.gmail.com>
+References: <15ed362e0903170855k2ec1e5afm613de692c237e34d@mail.gmail.com>
+	 <412bdbff0903302154w5ddb3fc8m684bcb5092942561@mail.gmail.com>
+Date: Tue, 31 Mar 2009 13:19:35 +0800
+Message-ID: <15ed362e0903302219o18915401w5fe9605c3028f832@mail.gmail.com>
+Subject: Re: [PATCH] Support for Legend Silicon LGS8913/LGS8GL5/LGS8GXX China
+	DMB-TH digital demodulator
+From: David Wong <davidtlwong@gmail.com>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->>> That said, the solution takes the approach of "revolutionary" as
->>> opposed to "evolutionary", which always worries me.  While providing a
->>> much more powerful interface, it also means all of the applications
->>> will have to properly support all of the various possible
->>> representations of the data, increasing the responsibility in userland
->>> considerably.
+Devin
+
+The unified LGS8GXX driver surely work on some DMB-TH devices I have.
+They are:
+TECHGEAR HDTVC USB (also for MagicPro ProHDTV USB as they are the same
+hardware with same USB ID)
+ASUS U3100 Mini DMB-TH USB
+
+Timothy Lee tested with this unified driver for his MagicPro ProHDTV USB too.
+ASUS patch is sent to Alan Knowles, don't know his result yet.
+
+David
+
+On Tue, Mar 31, 2009 at 12:54 PM, Devin Heitmueller
+<devin.heitmueller@gmail.com> wrote:
+> On Tue, Mar 17, 2009 at 11:55 AM, David Wong <davidtlwong@gmail.com> wrote:
+>> This patch contains the unified driver for Legend Silicon LGS8913 and
+>> LGS8GL5. It should replace lgs8gl5.c in media/dvb/frontends
+>>
+>> David T.L. Wong
 >
-> Not necessarily, the application can simply chose to support what
-> the driver provides as is, thereby doing no translations at all.
-
->From the end user point of view it is not very usefull if he has 2 
-different cards and application can not show any usefull signal goodness 
-info in a way that would be easy to compare. So I think the attempt to 
-standardize to db is good.
-
-Maybe there could then in addition be some other optional method for also 
-getting data in some hw specific format in a way that Manu suggested.
-But there should anyway be mandatory to have this one "standard goodness 
-value" in a way that does not require apps to make any complicate 
-comparisons... (I bet half of those apps would be broken for years)
-
-Mika
+> David,
+>
+> The questions you posed tonight on a separate thread about making the
+> xc5000 work with this device prompts the question:
+>
+> Do you know that this driver you submitted actually works?  Have you
+> successfully achieved lock with this driver and been able to view the
+> stream?
+>
+> It is great to see the improvements and more generic support, but if
+> you don't have it working in at least one device, then it probably
+> shouldn't be submitted upstream yet, and it definitely should not be
+> replacing an existing driver.
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
+>
