@@ -1,70 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 82-117-125-11.tcdsl.calypso.net ([82.117.125.11]:48787 "EHLO
-	smtp.ossman.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753096AbZCXUE0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Mar 2009 16:04:26 -0400
-Date: Tue, 24 Mar 2009 21:04:19 +0100
-From: Pierre Ossman <drzeus@drzeus.cx>
-To: "Uri Shkolnik" <uris@siano-ms.com>
-Cc: "Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/1 re-submit 1] sdio: add low level i/o functions for
- workarounds
-Message-ID: <20090324210419.6992ee34@mjolnir.ossman.eu>
-In-Reply-To: <3E442BA883529143B4AB72530285FC5D01B9E6DD@s-mail.siano-ms.ent>
-References: <20090314074201.5c4a1ce1@pedra.chehab.org>
-	<20090322153534.0c64de1e@mjolnir.ossman.eu>
-	<3E442BA883529143B4AB72530285FC5D01B9E6DD@s-mail.siano-ms.ent>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1; protocol="application/pgp-signature"; boundary="=_freyr.ossman.eu-18705-1237925060-0001-2"
+Received: from vervifontaine.sonytel.be ([80.88.33.193]:50504 "EHLO
+	vervifontaine.sonycom.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1760674AbZCaNeM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Mar 2009 09:34:12 -0400
+Date: Tue, 31 Mar 2009 15:34:10 +0200 (CEST)
+From: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+To: linux-media@vger.kernel.org
+cc: Linux Kernel Development <linux-kernel@vger.kernel.org>
+Subject: [PATCH] dvb: Remove reference to obsolete linux-dvb@linuxtv.org
+Message-ID: <alpine.LRH.2.00.0903311529050.13151@vixen.sonytel.be>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a MIME-formatted message.  If you see this text it means that your
-E-mail software does not support MIME-formatted messages.
+linux-dvb@linuxtv.org auto-responds with:
 
---=_freyr.ossman.eu-18705-1237925060-0001-2
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+| This ML is deprecated. Please use linux-media@vger.kernel.org instead.
+| For more info about linux-media@vger.kernel.org, please read:
+| http://vger.kernel.org/vger-lists.html#linux-media
 
-On Sun, 22 Mar 2009 16:48:39 +0200
-"Uri Shkolnik" <uris@siano-ms.com> wrote:
+Hence remove it from MAINTAINERS.
 
-> Hi Pierre,
->=20
-> The USB separation patches are ready, and will be committed for review
-> shortly (SDIO stack workaround + Siano SDIO driver were the first to be
-> re-re-re-committed, SPI will be next, and after them the "core" which
-> includes the 'separation' code). You can view one (of many) older commit
-> operations @
-> http://patchwork.kernel.org/project/linux-media/list/?submitter=3DUri&stat
-> e=3D*
->=20
+Signed-off-by: Geert Uytterhoeven <Geert.Uytterhoeven@sonycom.com>
+---
+There are still a few references to it in various docs and source files
 
-I see. Could you hold off on the SDIO patches and allow me to do a
-final cleanup once you have the separation patches done? Then I can
-send them directly to Mauro and we can have this merged quickly.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index c5f4e9d..3c07ced 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -1538,7 +1538,6 @@ S:	Maintained
+ DVB SUBSYSTEM AND DRIVERS
+ P:	LinuxTV.org Project
+ M:	linux-media@vger.kernel.org
+-L:	linux-dvb@linuxtv.org (subscription required)
+ W:	http://linuxtv.org/
+ T:	git kernel.org:/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
+ S:	Maintained
 
-Rgds
---=20
-     -- Pierre Ossman
+With kind regards,
 
-  WARNING: This correspondence is being monitored by the
-  Swedish government. Make sure your server uses encryption
-  for SMTP traffic and consider using PGP for end-to-end
-  encryption.
+Geert Uytterhoeven
+Software Architect
 
---=_freyr.ossman.eu-18705-1237925060-0001-2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=signature.asc
+Sony Techsoft Centre Europe
+The Corporate Village · Da Vincilaan 7-D1 · B-1935 Zaventem · Belgium
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.11 (GNU/Linux)
+Phone:    +32 (0)2 700 8453
+Fax:      +32 (0)2 700 8622
+E-mail:   Geert.Uytterhoeven@sonycom.com
+Internet: http://www.sony-europe.com/
 
-iEYEARECAAYFAknJPMYACgkQ7b8eESbyJLi/dgCfYnYvuAB7MpKpujXaXzc4eBJh
-ur0AoKhze/12r+cE2irExsZnWiZabcV6
-=SmUA
------END PGP SIGNATURE-----
-
---=_freyr.ossman.eu-18705-1237925060-0001-2--
+A division of Sony Europe (Belgium) N.V.
+VAT BE 0413.825.160 · RPR Brussels
+Fortis · BIC GEBABEBB · IBAN BE41293037680010
