@@ -1,20 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail2.ewetel.de ([212.6.122.196])
+Received: from mail.mavian.it ([84.246.147.253])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <spieluhr@ewetel.net>) id 1LsMKh-0005mG-Kr
-	for linux-dvb@linuxtv.org; Fri, 10 Apr 2009 21:24:12 +0200
-Received: from [192.168.1.5] (host-091-097-097-137.ewe-ip-backbone.de
-	[91.97.97.137])
-	by mail2.ewetel.de (8.12.1/8.12.9) with ESMTP id n3AJNZYe002241
-	for <linux-dvb@linuxtv.org>; Fri, 10 Apr 2009 21:23:37 +0200 (CEST)
-Message-ID: <49DF9CB7.5080802@ewetel.net>
-Date: Fri, 10 Apr 2009 21:23:35 +0200
-From: Hartmut <spieluhr@ewetel.net>
-MIME-Version: 1.0
+	(envelope-from <roa@libero.it>) id 1Lp74b-000786-I7
+	for linux-dvb@linuxtv.org; Wed, 01 Apr 2009 22:30:11 +0200
+From: ROASCIO Paolo <roa@libero.it>
 To: linux-dvb@linuxtv.org
-References: <621110570904100418r9d7e583j5ae4982a77e9dba9@mail.gmail.com>
-In-Reply-To: <621110570904100418r9d7e583j5ae4982a77e9dba9@mail.gmail.com>
-Subject: Re: [linux-dvb] SkyStar HD2 (TwinHan VP-1041/Mantis) S2API support
+Date: Wed, 1 Apr 2009 22:29:31 +0200
+References: <49646315.20709@cdmon.com>
+In-Reply-To: <49646315.20709@cdmon.com>
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_r680JBF5i+r5IIc"
+Message-Id: <200904012229.31367.roa@libero.it>
+Subject: Re: [linux-dvb] support for remote in lifeview pci trio
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,503 +21,205 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1647553187=="
-Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
---===============1647553187==
-Content-Type: multipart/alternative;
- boundary="------------090402000606020900090606"
-
-This is a multi-part message in MIME format.
---------------090402000606020900090606
-Content-Type: text/plain; charset=ISO-8859-1
+--Boundary-00=_r680JBF5i+r5IIc
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I have the same card since 6 weeks and it works in "non HD-TV-mode" on
-opensuse 11.0. The driver is: Driver used:
-http://mercurial.intuxication.org/hg/s2-liplianin. From what you wrote I
-think the card is working. But try to scan in this way:
+Il Wednesday 07 January 2009 09:08:53 Jordi Moles Blanco ha scritto:
+> hi,
+>
+> i've been googling and trying some things during days with no luck.
+>
+> i want to get the remote which comes with this card working, and i only
+> found old posts like this one:
+>
+> http://www.spinics.net/lists/vfl/msg29862.html
+>
+> which assures that the patch gets the remote to work on that card.
 
-scan-s2 -a 1 -s 0 -x 0 -t 1 /usr/share/dvb/dvb-s/Astra-19.2E >
-~/.szap/channels1.conf
+Hello, attached is the patch ported to 2.6.28, note that this is my very first 
+time in c coding, then this may be an ugly piece of code (but at least works 
+for me)...
 
-This worked for me. -a 1 is the my second TV-card, you should use 0, -s
-0 is OK, -x 0 finds only free-to-air-channels, t -1 finds only TV. You
-output in dmesg is OK, shows that the card is working.
+> i downloaded the latest v4l source code and tried to patch it with the
+> code proposed on that post, but var names have changed and i don't have
+> a clue on how to apply it properly.
+>
+> i haven't seen any more recent post, so i guess it may still be in a
+> to-do list, or may be it was rejected for some reason to go into the
+> main-line.
+>
+> Could anyone tell me if this patch will ever be included? or... what v4l
+> version could i download to be able to patch it as described?
 
-Hartmut
+No, the reason is the polling code as already discussed on this list, then the 
+patch is only for use of who want to apply it himself without any support...
+
+> Thanks.
+
+Bye Paolo
+
+
+
+--Boundary-00=_r680JBF5i+r5IIc
+Content-Type: text/x-diff;
+  charset="iso-8859-1";
+  name="flydvb_trio_remote_final_2.6.28.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="flydvb_trio_remote_final_2.6.28.diff"
+
+diff -U 3 -H -d -r -N -- linux-2.6.28.orig/drivers/media/video/ir-kbd-i2c.c linux-2.6.28/drivers/media/video/ir-kbd-i2c.c
+--- linux-2.6.28.orig/drivers/media/video/ir-kbd-i2c.c	2008-12-25 00:26:37.000000000 +0100
++++ linux-2.6.28/drivers/media/video/ir-kbd-i2c.c	2009-03-23 20:16:59.000000000 +0100
+@@ -340,6 +340,7 @@
+ 		ir_type     = IR_TYPE_RC5;
+ 		ir_codes    = ir_codes_fusionhdtv_mce;
+ 		break;
++	case 0x0b:
+ 	case 0x7a:
+ 	case 0x47:
+ 	case 0x71:
+@@ -450,16 +451,18 @@
+ 	*/
  
-Dave Lister schrieb:
-> Hello all,
->
-> I'd like to ask for your help. After weeks of research and
-> deliberation I bought two SkyStar HD2 PCI cards (quite a lot money for
-> me). It seemed to be working for everybody. BUT I have already spent
-> two days reading mailing lists, downloading repositories, compiling
-> drivers, apps, kernels and bending code to make it compile. Please,
-> does anybody know how to help me?
->
-> In short the driver doesn't seem to communicate with the card at all.
-> It's unable to send DiSEqC commands (not necessary in my case), unable
-> to tune the tuner, unable to report any signal strength info etc. I
-> have a dark sense of foreboding about this, because as things stand
-> now, it seems I'll have to recoup my losses (can't return these cards)
-> and buy different ones, possibly more expensive. Just these two cost
-> me half my month's salary. I was so damn sure they'll work - from all
-> the reports and success stories on the web, even LinuxTV said so. If
-> you knew my wife... I mean this is going to be a disaster. :(
->
->
-> Drivers tried: http://jusst.de/hg/multiproto,
-> http://jusst.de/hg/mantis (couldn't make it compile)
-> Driver used: http://mercurial.intuxication.org/hg/s2-liplianin
-> Kernels tried w/driver: Debian 2.6.29; Debian 2.6.26; vanilla 2.6.29
-> DVB apps/utils: 1.1.1+rev1207-4
-> S2API DVB apps/utils: http://mercurial.intuxication.org/hg/{szap-s2,scan-s2}
->
-> lspci -vv:
-> 07:01.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV
-> PCI Bridge Controller [Ver 1.0] (rev 01)
-> 	Subsystem: Device 1ae4:0003
-> 	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-> Stepping- SERR- FastB2B- DisINTx-
-> 	Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort-
-> <TAbort+ <MAbort- >SERR- <PERR+ INTx-
-> 	Latency: 32 (2000ns min, 63750ns max)
-> 	Interrupt: pin A routed to IRQ 19
-> 	Region 0: Memory at ec200000 (32-bit, prefetchable) [size=4K]
-> 	Kernel driver in use: Mantis
-> 	Kernel modules: mantis
->
-> Boot-up dmesg:
-> [    6.704959] Mantis 0000:07:01.0: PCI INT A -> GSI 19 (level, low) -> IRQ 19
-> [    6.705100] irq: 19, latency: 32
-> [    6.705101]  memory: 0xec200000, mmio: 0xf8286000
-> [    6.705183] found a VP-1041 PCI DSS/DVB-S/DVB-S2 device on (07:01.0),
-> [    6.705228]     Mantis Rev 1 [1ae4:0003], irq: 19, latency: 32
-> [    6.705261]     memory: 0xec200000, mmio: 0xf8286000
-> [    6.708020]     MAC Address=[00:08:c9:e0:40:6a]
-> [    6.708075] mantis_alloc_buffers (0): DMA=0x35d40000 cpu=0xf5d40000
-> size=65536
-> [    6.708128] mantis_alloc_buffers (0): RISC=0x36327000
-> cpu=0xf6327000 size=1000
-> [    6.708179] DVB: registering new adapter (Mantis dvb adapter)
-> [    7.253355] stb0899_attach: Attaching STB0899
-> [    7.253397] mantis_frontend_init (0): found STB0899 DVB-S/DVB-S2
-> frontend @0x68
-> [    7.253449] stb6100_attach: Attaching STB6100
-> [    7.253836] LNBx2x attached on addr=8DVB: registering adapter 0
-> frontend 0 (STB0899 Multistandard)...
-> [    7.253938] mantis_ca_init (0): Registering EN50221 device
-> [    7.254033] mantis_ca_init (0): Registered EN50221 device
-> [    7.254096] mantis_hif_init (0): Adapter(0) Initializing Mantis
-> Host Interface
->
-> Sat cable has 98% signal, Astra 19.2E, working in a TV/STB sitting
-> right next to the PC. I reconnect the cable from the TV into SkyStar
-> and try tuning:
->
-> birko:~# scan-s2 -v /usr/share/dvb/dvb-s/Astra-19.2E
-> API major 5, minor 0
-> ERROR: Cannot open rotor configuration file 'rotor.conf'.
-> scanning /usr/share/dvb/dvb-s/Astra-19.2E
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> initial transponder DVB-S  12551500 V 22000000 5/6 AUTO AUTO
-> initial transponder DVB-S2 12551500 V 22000000 5/6 AUTO AUTO
-> ----------------------------------> Using DVB-S
->   
->>>> tune to: 12551:vC56S0:S0.0W:22000:
->>>>         
-> DiSEqC: uncommitted switch pos 0
-> DiSEqC: switch pos 0, 13V, hiband (index 2)
-> DVB-S IF freq is 1951500
->   
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>>         
-> WARNING: >>> tuning failed!!!
-> ----------------------------------> Using DVB-S2
->   
->>>> tune to: 12551:vC56S1:S0.0W:22000:
->>>>         
-> DiSEqC: uncommitted switch pos 0
-> DiSEqC: switch pos 0, 13V, hiband (index 2)
-> DVB-S IF freq is 1951500
->   
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>> tuning status == 0x00
->>>>         
-> WARNING: >>> tuning failed!!!
-> ERROR: initial tuning failed
-> dumping lists (0 services)
-> Done.
->
-> Meanwhile, this is written to dmesg (repeating):
-> [43395.935293] stb6100_set_bandwidth: Bandwidth=51610000
-> [43395.943657] stb6100_get_bandwidth: Bandwidth=10000000
-> [43395.970435] stb6100_get_bandwidth: Bandwidth=10000000
-> [43396.062102] stb6100_set_frequency: Frequency=1951500
-> [43396.070464] stb6100_get_frequency: Frequency=0
-> [43396.084862] stb6100_get_bandwidth: Bandwidth=10000000
-> [43396.622789] stb6100_set_bandwidth: Bandwidth=51610000
-> [43396.631150] stb6100_get_bandwidth: Bandwidth=10000000
-> [43396.657947] stb6100_get_bandwidth: Bandwidth=10000000
-> [43396.754182] stb6100_set_frequency: Frequency=1951500
-> [43396.762548] stb6100_get_frequency: Frequency=0
-> [43396.776884] stb6100_get_bandwidth: Bandwidth=10000000
-> [43397.314789] stb6100_set_bandwidth: Bandwidth=51610000
-> [43397.323151] stb6100_get_bandwidth: Bandwidth=10000000
-> [43397.349932] stb6100_get_bandwidth: Bandwidth=10000000
-> [43397.442099] stb6100_set_frequency: Frequency=1951500
-> [43397.450460] stb6100_get_frequency: Frequency=0
-> [43397.464861] stb6100_get_bandwidth: Bandwidth=10000000
-> [43398.002788] stb6100_set_bandwidth: Bandwidth=51610000
-> [43398.011150] stb6100_get_bandwidth: Bandwidth=10000000
-> [43398.037932] stb6100_get_bandwidth: Bandwidth=10000000
-> [43398.130098] stb6100_set_frequency: Frequency=1951500
-> [43398.138459] stb6100_get_frequency: Frequency=0
->
-> Szap/szap-s2 also doesn't work. The channel in question is the same
-> one, being displayed on TV/STB, when I re-plug the sat. cable into the
-> TV (not changing channels, STB has it locked and as soon as I provide
-> signal, it works). The STB parallel-story is there for you to see
-> there are no switching issues, no signal weakness, etc.
->
-> birko:~# szap-s2 -c channels.conf CT1
-> reading channels from file 'channels.conf'
-> zapping to 3 'CT1':
-> delivery DVB-S2, modulation QPSK
-> sat 0, frequency 12382 MHz V, symbolrate 27500000, coderate 3/4, rolloff 0.35
-> vpid 0x0065, apid 0x006f, sid 0x4f5b
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> FE_SET_TONE failed: Connection timed out
-> FE_DISEQC_SEND_BURST failed: Connection timed out
-> FE_SET_TONE failed: Connection timed out
-> status 00 | signal 006f | snr 0001 | ber 00000000 | unc fffffffe |
-> status 00 | signal 006f | snr 0001 | ber 00000000 | unc fffffffe |
-> status 00 | signal 006f | snr 0001 | ber 00000000 | unc fffffffe |
-> ... repeated; same values even if sat. cable disconnected ...
->
-> Meanwhile in dmesg:
-> [43679.573136] mantis start feed & dma
-> [43679.602799] stb6100_set_bandwidth: Bandwidth=47125000
-> [43679.611161] stb6100_get_bandwidth: Bandwidth=10000000
-> [43679.710092] stb6100_set_frequency: Frequency=1782000
-> [43679.718453] stb6100_get_frequency: Frequency=0
-> [43680.947291] stb6100_set_bandwidth: Bandwidth=47125000
-> [43680.955653] stb6100_get_bandwidth: Bandwidth=10000000
-> [43681.050093] stb6100_set_frequency: Frequency=1782000
-> [43681.058454] stb6100_get_frequency: Frequency=0
-> [43682.286788] stb6100_set_bandwidth: Bandwidth=47125000
-> [43682.295149] stb6100_get_bandwidth: Bandwidth=10000000
-> [43682.394092] stb6100_set_frequency: Frequency=1782000
-> [43682.402453] stb6100_get_frequency: Frequency=0
-> [43683.630788] stb6100_set_bandwidth: Bandwidth=47125000
-> [43683.639150] stb6100_get_bandwidth: Bandwidth=10000000
-> [43683.652591] mantis stop feed and dma
->
->
-> What do you think? Is there any chance of finding a working driver?
->
-> Thank you,
-> David Lister
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
->   
+ 	static const int probe_bttv[] = { 0x1a, 0x18, 0x4b, 0x64, 0x30, -1};
+-	static const int probe_saa7134[] = { 0x7a, 0x47, 0x71, 0x2d, -1 };
++	static const int probe_saa7134[] = {0x0b, 0x7a, 0x47, 0x71, 0x2d, -1 };
+ 	static const int probe_em28XX[] = { 0x30, 0x47, -1 };
+ 	static const int probe_cx88[] = { 0x18, 0x6b, 0x71, -1 };
+ 	static const int probe_cx23885[] = { 0x6b, -1 };
+-	const int *probe;
++	const int *probe = NULL;
++	struct i2c_client c;
+ 	struct i2c_msg msg = {
+ 		.flags = I2C_M_RD,
+ 		.len = 0,
+ 		.buf = NULL,
+ 	};
++	unsigned char buf;
+ 	int i, rc;
+ 
+ 	switch (adap->id) {
+@@ -485,8 +488,21 @@
+ 		return 0;
+ 	}
+ 
++	memset(&c,0,sizeof(c));
++	c.adapter = adap;
++
+ 	for (i = 0; -1 != probe[i]; i++) {
+-		msg.addr = probe[i];
++		c.addr = probe[i];
++		msg.addr = c.addr;
++
++		/* if the card is a FlyDVB Trio... */
++		if (c.adapter->id == I2C_HW_SAA7134 && probe[i] == 0x0b) {
++		/* ...enable the ir */
++			buf = 0 ;
++			if (1 != i2c_master_send(&c,&buf,1))
++				dprintk(1,"Unable to enable ir receiver.\n");
++		}
++		
+ 		rc = i2c_transfer(adap, &msg, 1);
+ 		dprintk(1,"probe 0x%02x @ %s: %s\n",
+ 			probe[i], adap->name,
+diff -U 3 -H -d -r -N -- linux-2.6.28.orig/drivers/media/video/saa7134/saa7134-cards.c linux-2.6.28/drivers/media/video/saa7134/saa7134-cards.c
+--- linux-2.6.28.orig/drivers/media/video/saa7134/saa7134-cards.c	2008-12-25 00:26:37.000000000 +0100
++++ linux-2.6.28/drivers/media/video/saa7134/saa7134-cards.c	2009-04-01 22:17:31.000000000 +0200
+@@ -5971,6 +5971,7 @@
+ 	case SAA7134_BOARD_UPMOST_PURPLE_TV:
+ 	case SAA7134_BOARD_MSI_TVATANYWHERE_PLUS:
+ 	case SAA7134_BOARD_HAUPPAUGE_HVR1110:
++	case SAA7134_BOARD_FLYDVB_TRIO:
+ 	case SAA7134_BOARD_BEHOLD_607_9FM:
+ 	case SAA7134_BOARD_BEHOLD_M6:
+ 	case SAA7134_BOARD_BEHOLD_M63:
+diff -U 3 -H -d -r -N -- linux-2.6.28.orig/drivers/media/video/saa7134/saa7134-i2c.c linux-2.6.28/drivers/media/video/saa7134/saa7134-i2c.c
+--- linux-2.6.28.orig/drivers/media/video/saa7134/saa7134-i2c.c	2008-12-25 00:26:37.000000000 +0100
++++ linux-2.6.28/drivers/media/video/saa7134/saa7134-i2c.c	2009-03-20 19:03:25.000000000 +0100
+@@ -333,6 +333,7 @@
+ 	/* Am I an i2c remote control? */
+ 
+ 	switch (client->addr) {
++		case 0x0b:
+ 		case 0x7a:
+ 		case 0x47:
+ 		case 0x71:
+diff -U 3 -H -d -r -N -- linux-2.6.28.orig/drivers/media/video/saa7134/saa7134-input.c linux-2.6.28/drivers/media/video/saa7134/saa7134-input.c
+--- linux-2.6.28.orig/drivers/media/video/saa7134/saa7134-input.c	2008-12-25 00:26:37.000000000 +0100
++++ linux-2.6.28/drivers/media/video/saa7134/saa7134-input.c	2009-04-01 21:25:31.000000000 +0200
+@@ -118,6 +118,50 @@
+ 
+ /* --------------------- Chip specific I2C key builders ----------------- */
+ 
++static int get_key_lifeview(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++{
++	unsigned long b;
++	int gpio;
++
++	/* We need this to access GPIO. Used by the saa_readl macro. */
++	struct saa7134_dev *dev = ir->c.adapter->algo_data;
++
++	if (dev == NULL) {
++		dprintk("get_key_lifeview: "
++			"ir->c.adapter->algo_data is NULL!\n");
++		return -EIO;
++	}
++
++	/* rising SAA7134_GPIO_GPRESCAN reads the status */
++	saa_clearb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
++	saa_setb(SAA7134_GPIO_GPMODE3, SAA7134_GPIO_GPRESCAN);
++
++	gpio = saa_readl(SAA7134_GPIO_GPSTATUS0 >> 2);
++
++	if (0x40000 &~ gpio)
++		return 0;	/* No button press */
++
++	/* No button press - only before first key pressed */
++	if (b == 0xFF)
++		return 0;
++
++	/* poll IR chip */
++	b = 0;
++	if (1 != i2c_master_send(&ir->c, (char *)&b, 1)) {
++		i2cdprintk("send wake up byte to pic16C505 failed\n");
++		return -EIO;
++	}
++	if (1 != i2c_master_recv(&ir->c, (char *)&b, 1)) {
++		i2cdprintk("read error\n");
++		return -EIO;
++	}
++
++	/* Button pressed */
++	*ir_key = b;
++	*ir_raw = b;
++	return 1;
++}
++
+ static int get_key_msi_tvanywhere_plus(struct IR_i2c *ir, u32 *ir_key,
+ 				       u32 *ir_raw)
+ {
+@@ -688,6 +732,11 @@
+ 		ir->get_key   = get_key_purpletv;
+ 		ir->ir_codes  = ir_codes_purpletv;
+ 		break;
++	case SAA7134_BOARD_FLYDVB_TRIO:
++		snprintf(ir->c.name, sizeof(ir->c.name), "Lifeview");
++		ir->get_key   = get_key_lifeview;
++		ir->ir_codes  = ir_codes_flydvb;
++		break;
+ 	case SAA7134_BOARD_MSI_TVATANYWHERE_PLUS:
+ 		snprintf(ir->c.name, sizeof(ir->c.name), "MSI TV@nywhere Plus");
+ 		ir->get_key  = get_key_msi_tvanywhere_plus;
 
-
---------------090402000606020900090606
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
-  <title></title>
-</head>
-<body bgcolor="#ffffff" text="#000000">
-I have the same card since 6 weeks and it works in "non HD-TV-mode" on
-opensuse 11.0. The driver is: Driver used:
-<a class="moz-txt-link-freetext"
- href="http://mercurial.intuxication.org/hg/s2-liplianin">http://mercurial.intuxication.org/hg/s2-liplianin</a>.
->From what you wrote
-I think the card is working. But try to scan in this way:<br>
-<br>
-scan-s2 -a 1 -s 0 -x 0 -t 1 /usr/share/dvb/dvb-s/Astra-19.2E &gt;
-~/.szap/channels1.conf<br>
-<br>
-This worked for me. -a 1 is the my second TV-card, you should use 0, -s
-0 is OK, -x 0 finds only free-to-air-channels, t -1 finds only TV. You
-output in dmesg is OK, shows that the card is working.<br>
-<br>
-Hartmut<br>
-&nbsp;<br>
-Dave Lister schrieb:
-<blockquote
- cite="mid:621110570904100418r9d7e583j5ae4982a77e9dba9@mail.gmail.com"
- type="cite">
-  <pre wrap="">Hello all,
-
-I'd like to ask for your help. After weeks of research and
-deliberation I bought two SkyStar HD2 PCI cards (quite a lot money for
-me). It seemed to be working for everybody. BUT I have already spent
-two days reading mailing lists, downloading repositories, compiling
-drivers, apps, kernels and bending code to make it compile. Please,
-does anybody know how to help me?
-
-In short the driver doesn't seem to communicate with the card at all.
-It's unable to send DiSEqC commands (not necessary in my case), unable
-to tune the tuner, unable to report any signal strength info etc. I
-have a dark sense of foreboding about this, because as things stand
-now, it seems I'll have to recoup my losses (can't return these cards)
-and buy different ones, possibly more expensive. Just these two cost
-me half my month's salary. I was so damn sure they'll work - from all
-the reports and success stories on the web, even LinuxTV said so. If
-you knew my wife... I mean this is going to be a disaster. :(
-
-
-Drivers tried: <a class="moz-txt-link-freetext"
- href="http://jusst.de/hg/multiproto">http://jusst.de/hg/multiproto</a>,
-<a class="moz-txt-link-freetext" href="http://jusst.de/hg/mantis">http://jusst.de/hg/mantis</a> (couldn't make it compile)
-Driver used: <a class="moz-txt-link-freetext"
- href="http://mercurial.intuxication.org/hg/s2-liplianin">http://mercurial.intuxication.org/hg/s2-liplianin</a>
-Kernels tried w/driver: Debian 2.6.29; Debian 2.6.26; vanilla 2.6.29
-DVB apps/utils: 1.1.1+rev1207-4
-S2API DVB apps/utils: <a class="moz-txt-link-freetext"
- href="http://mercurial.intuxication.org/hg/">http://mercurial.intuxication.org/hg/</a>{szap-s2,scan-s2}
-
-lspci -vv:
-07:01.0 Multimedia controller: Twinhan Technology Co. Ltd Mantis DTV
-PCI Bridge Controller [Ver 1.0] (rev 01)
-	Subsystem: Device 1ae4:0003
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-Stepping- SERR- FastB2B- DisINTx-
-	Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium &gt;TAbort-
-&lt;TAbort+ &lt;MAbort- &gt;SERR- &lt;PERR+ INTx-
-	Latency: 32 (2000ns min, 63750ns max)
-	Interrupt: pin A routed to IRQ 19
-	Region 0: Memory at ec200000 (32-bit, prefetchable) [size=4K]
-	Kernel driver in use: Mantis
-	Kernel modules: mantis
-
-Boot-up dmesg:
-[    6.704959] Mantis 0000:07:01.0: PCI INT A -&gt; GSI 19 (level, low) -&gt; IRQ 19
-[    6.705100] irq: 19, latency: 32
-[    6.705101]  memory: 0xec200000, mmio: 0xf8286000
-[    6.705183] found a VP-1041 PCI DSS/DVB-S/DVB-S2 device on (07:01.0),
-[    6.705228]     Mantis Rev 1 [1ae4:0003], irq: 19, latency: 32
-[    6.705261]     memory: 0xec200000, mmio: 0xf8286000
-[    6.708020]     MAC Address=[00:08:c9:e0:40:6a]
-[    6.708075] mantis_alloc_buffers (0): DMA=0x35d40000 cpu=0xf5d40000
-size=65536
-[    6.708128] mantis_alloc_buffers (0): RISC=0x36327000
-cpu=0xf6327000 size=1000
-[    6.708179] DVB: registering new adapter (Mantis dvb adapter)
-[    7.253355] stb0899_attach: Attaching STB0899
-[    7.253397] mantis_frontend_init (0): found STB0899 DVB-S/DVB-S2
-frontend @0x68
-[    7.253449] stb6100_attach: Attaching STB6100
-[    7.253836] LNBx2x attached on addr=8DVB: registering adapter 0
-frontend 0 (STB0899 Multistandard)...
-[    7.253938] mantis_ca_init (0): Registering EN50221 device
-[    7.254033] mantis_ca_init (0): Registered EN50221 device
-[    7.254096] mantis_hif_init (0): Adapter(0) Initializing Mantis
-Host Interface
-
-Sat cable has 98% signal, Astra 19.2E, working in a TV/STB sitting
-right next to the PC. I reconnect the cable from the TV into SkyStar
-and try tuning:
-
-birko:~# scan-s2 -v /usr/share/dvb/dvb-s/Astra-19.2E
-API major 5, minor 0
-ERROR: Cannot open rotor configuration file 'rotor.conf'.
-scanning /usr/share/dvb/dvb-s/Astra-19.2E
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder DVB-S  12551500 V 22000000 5/6 AUTO AUTO
-initial transponder DVB-S2 12551500 V 22000000 5/6 AUTO AUTO
-----------------------------------&gt; Using DVB-S
-  </pre>
-  <blockquote type="cite">
-    <blockquote type="cite">
-      <blockquote type="cite">
-        <pre wrap="">tune to: 12551:vC56S0:S0.0W:22000:
-        </pre>
-      </blockquote>
-    </blockquote>
-  </blockquote>
-  <pre wrap=""><!---->DiSEqC: uncommitted switch pos 0
-DiSEqC: switch pos 0, 13V, hiband (index 2)
-DVB-S IF freq is 1951500
-  </pre>
-  <blockquote type="cite">
-    <blockquote type="cite">
-      <blockquote type="cite">
-        <pre wrap="">tuning status == 0x00
-tuning status == 0x00
-tuning status == 0x00
-tuning status == 0x00
-tuning status == 0x00
-tuning status == 0x00
-tuning status == 0x00
-tuning status == 0x00
-tuning status == 0x00
-tuning status == 0x00
-        </pre>
-      </blockquote>
-    </blockquote>
-  </blockquote>
-  <pre wrap=""><!---->WARNING: &gt;&gt;&gt; tuning failed!!!
-----------------------------------&gt; Using DVB-S2
-  </pre>
-  <blockquote type="cite">
-    <blockquote type="cite">
-      <blockquote type="cite">
-        <pre wrap="">tune to: 12551:vC56S1:S0.0W:22000:
-        </pre>
-      </blockquote>
-    </blockquote>
-  </blockquote>
-  <pre wrap=""><!---->DiSEqC: uncommitted switch pos 0
-DiSEqC: switch pos 0, 13V, hiband (index 2)
-DVB-S IF freq is 1951500
-  </pre>
-  <blockquote type="cite">
-    <blockquote type="cite">
-      <blockquote type="cite">
-        <pre wrap="">tuning status == 0x00
-tuning status == 0x00
-tuning status == 0x00
-tuning status == 0x00
-tuning status == 0x00
-tuning status == 0x00
-tuning status == 0x00
-tuning status == 0x00
-tuning status == 0x00
-tuning status == 0x00
-        </pre>
-      </blockquote>
-    </blockquote>
-  </blockquote>
-  <pre wrap=""><!---->WARNING: &gt;&gt;&gt; tuning failed!!!
-ERROR: initial tuning failed
-dumping lists (0 services)
-Done.
-
-Meanwhile, this is written to dmesg (repeating):
-[43395.935293] stb6100_set_bandwidth: Bandwidth=51610000
-[43395.943657] stb6100_get_bandwidth: Bandwidth=10000000
-[43395.970435] stb6100_get_bandwidth: Bandwidth=10000000
-[43396.062102] stb6100_set_frequency: Frequency=1951500
-[43396.070464] stb6100_get_frequency: Frequency=0
-[43396.084862] stb6100_get_bandwidth: Bandwidth=10000000
-[43396.622789] stb6100_set_bandwidth: Bandwidth=51610000
-[43396.631150] stb6100_get_bandwidth: Bandwidth=10000000
-[43396.657947] stb6100_get_bandwidth: Bandwidth=10000000
-[43396.754182] stb6100_set_frequency: Frequency=1951500
-[43396.762548] stb6100_get_frequency: Frequency=0
-[43396.776884] stb6100_get_bandwidth: Bandwidth=10000000
-[43397.314789] stb6100_set_bandwidth: Bandwidth=51610000
-[43397.323151] stb6100_get_bandwidth: Bandwidth=10000000
-[43397.349932] stb6100_get_bandwidth: Bandwidth=10000000
-[43397.442099] stb6100_set_frequency: Frequency=1951500
-[43397.450460] stb6100_get_frequency: Frequency=0
-[43397.464861] stb6100_get_bandwidth: Bandwidth=10000000
-[43398.002788] stb6100_set_bandwidth: Bandwidth=51610000
-[43398.011150] stb6100_get_bandwidth: Bandwidth=10000000
-[43398.037932] stb6100_get_bandwidth: Bandwidth=10000000
-[43398.130098] stb6100_set_frequency: Frequency=1951500
-[43398.138459] stb6100_get_frequency: Frequency=0
-
-Szap/szap-s2 also doesn't work. The channel in question is the same
-one, being displayed on TV/STB, when I re-plug the sat. cable into the
-TV (not changing channels, STB has it locked and as soon as I provide
-signal, it works). The STB parallel-story is there for you to see
-there are no switching issues, no signal weakness, etc.
-
-birko:~# szap-s2 -c channels.conf CT1
-reading channels from file 'channels.conf'
-zapping to 3 'CT1':
-delivery DVB-S2, modulation QPSK
-sat 0, frequency 12382 MHz V, symbolrate 27500000, coderate 3/4, rolloff 0.35
-vpid 0x0065, apid 0x006f, sid 0x4f5b
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-FE_SET_TONE failed: Connection timed out
-FE_DISEQC_SEND_BURST failed: Connection timed out
-FE_SET_TONE failed: Connection timed out
-status 00 | signal 006f | snr 0001 | ber 00000000 | unc fffffffe |
-status 00 | signal 006f | snr 0001 | ber 00000000 | unc fffffffe |
-status 00 | signal 006f | snr 0001 | ber 00000000 | unc fffffffe |
-... repeated; same values even if sat. cable disconnected ...
-
-Meanwhile in dmesg:
-[43679.573136] mantis start feed &amp; dma
-[43679.602799] stb6100_set_bandwidth: Bandwidth=47125000
-[43679.611161] stb6100_get_bandwidth: Bandwidth=10000000
-[43679.710092] stb6100_set_frequency: Frequency=1782000
-[43679.718453] stb6100_get_frequency: Frequency=0
-[43680.947291] stb6100_set_bandwidth: Bandwidth=47125000
-[43680.955653] stb6100_get_bandwidth: Bandwidth=10000000
-[43681.050093] stb6100_set_frequency: Frequency=1782000
-[43681.058454] stb6100_get_frequency: Frequency=0
-[43682.286788] stb6100_set_bandwidth: Bandwidth=47125000
-[43682.295149] stb6100_get_bandwidth: Bandwidth=10000000
-[43682.394092] stb6100_set_frequency: Frequency=1782000
-[43682.402453] stb6100_get_frequency: Frequency=0
-[43683.630788] stb6100_set_bandwidth: Bandwidth=47125000
-[43683.639150] stb6100_get_bandwidth: Bandwidth=10000000
-[43683.652591] mantis stop feed and dma
-
-
-What do you think? Is there any chance of finding a working driver?
-
-Thank you,
-David Lister
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead <a
- class="moz-txt-link-abbreviated"
- href="mailto:linux-media@vger.kernel.org">linux-media@vger.kernel.org</a>
-<a class="moz-txt-link-abbreviated" href="mailto:linux-dvb@linuxtv.org">linux-dvb@linuxtv.org</a>
-<a class="moz-txt-link-freetext"
- href="http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb">http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb</a>
-
-  </pre>
-</blockquote>
-<br>
-</body>
-</html>
-
---------------090402000606020900090606--
-
-
---===============1647553187==
+--Boundary-00=_r680JBF5i+r5IIc
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -530,4 +230,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1647553187==--
+--Boundary-00=_r680JBF5i+r5IIc--
