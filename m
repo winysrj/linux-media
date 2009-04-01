@@ -1,38 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:57250 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753309AbZDARzy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Apr 2009 13:55:54 -0400
-To: Darius Augulis <augulis.darius@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: soc_camera_open() not called
-References: <49D37485.7030805@gmail.com> <49D3788D.2070406@gmail.com>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Wed, 01 Apr 2009 19:55:39 +0200
-In-Reply-To: <49D3788D.2070406@gmail.com> (Darius Augulis's message of "Wed\, 01 Apr 2009 17\:22\:05 +0300")
-Message-ID: <87zlf0cl7o.fsf@free.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from smtp.nokia.com ([192.100.122.233]:38483 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752293AbZDAJrv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Apr 2009 05:47:51 -0400
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx06.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n319leYj020863
+	for <linux-media@vger.kernel.org>; Wed, 1 Apr 2009 12:47:45 +0300
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCH 3/3] FMTx: si4713: Add Kconfig and Makefile entries
+Date: Wed,  1 Apr 2009 12:43:31 +0300
+Message-Id: <1238579011-12435-4-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1238579011-12435-3-git-send-email-eduardo.valentin@nokia.com>
+References: <1238579011-12435-1-git-send-email-eduardo.valentin@nokia.com>
+ <1238579011-12435-2-git-send-email-eduardo.valentin@nokia.com>
+ <1238579011-12435-3-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Darius Augulis <augulis.darius@gmail.com> writes:
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ drivers/media/radio/Kconfig  |   12 ++++++++++++
+ drivers/media/radio/Makefile |    2 ++
+ 2 files changed, 14 insertions(+), 0 deletions(-)
 
-> Darius Augulis wrote:
->> Hi,
->>
->> I'm trying to launch mx1_camera based on new v4l and soc-camera tree.
->> After loading mx1_camera module, I see that .add callback is not called.
->> In debug log I see that soc_camera_open() is not called too.
->> What should call this function? Is this my driver problem?
->> p.s. loading sensor driver does not change situation.
+diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+index 3315cac..b7f9ab9 100644
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -339,6 +339,18 @@ config RADIO_ZOLTRIX_PORT
+ 	help
+ 	  Enter the I/O port of your Zoltrix radio card.
+ 
++config I2C_SI4713
++	tristate "Silicon Labs Si4713 FM Radio Transmitter support"
++	depends on I2C && VIDEO_V4L2
++	---help---
++	  Say Y here if you want support to Si4713 FM Radio Transmitter.
++	  This device can transmit audio through FM. It can transmit
++	  EDS and EBDS signals as well. This device driver supports only
++	  i2c bus.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called fmtx-si4713.
++
+ config USB_DSBR
+ 	tristate "D-Link/GemTek USB FM radio support"
+ 	depends on USB && VIDEO_V4L2
+diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
+index 0f2b35b..3b1a4ec 100644
+--- a/drivers/media/radio/Makefile
++++ b/drivers/media/radio/Makefile
+@@ -15,6 +15,8 @@ obj-$(CONFIG_RADIO_ZOLTRIX) += radio-zoltrix.o
+ obj-$(CONFIG_RADIO_GEMTEK) += radio-gemtek.o
+ obj-$(CONFIG_RADIO_GEMTEK_PCI) += radio-gemtek-pci.o
+ obj-$(CONFIG_RADIO_TRUST) += radio-trust.o
++obj-$(CONFIG_I2C_SI4713) += fmtx-si4713.o
++fmtx-si4713-objs := radio-si4713.o si4713.o
+ obj-$(CONFIG_RADIO_MAESTRO) += radio-maestro.o
+ obj-$(CONFIG_USB_DSBR) += dsbr100.o
+ obj-$(CONFIG_USB_SI470X) += radio-si470x.o
+-- 
+1.6.2.GIT
 
-Are you by any chance using last 2.6.29 kernel ?
-If so, would [1] be the answer to your question ?
-
-Cheers
-
---
-Robert
-
-[1] http://lkml.org/lkml/2009/3/24/625
