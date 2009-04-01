@@ -1,57 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:15765 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752993AbZDMB4Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Apr 2009 21:56:24 -0400
-Received: from epmmp2 (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0KI0003ZGNKY5H@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 13 Apr 2009 10:46:10 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0KI0007YBNKYBU@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 13 Apr 2009 10:46:10 +0900 (KST)
-Date: Mon, 13 Apr 2009 10:46:10 +0900
-From: Joonyoung Shim <jy0922.shim@samsung.com>
-Subject: Re: About the radio-si470x driver for I2C interface
-In-reply-to: <200904122256.12305.tobias.lorenz@gmx.net>
-To: Tobias Lorenz <tobias.lorenz@gmx.net>
-Cc: klimov.linux@gmail.com, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com
-Message-id: <49E29962.5010209@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7BIT
-References: <4e1455be0903051913x37562436y85eef9cba8b10ab0@mail.gmail.com>
- <4e1455be0904011754l2c51cf2fi6336d07d591cbb71@mail.gmail.com>
- <49D4180B.4040805@samsung.com> <200904122256.12305.tobias.lorenz@gmx.net>
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:55555 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764181AbZDAOYU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Apr 2009 10:24:20 -0400
+Received: by fxm2 with SMTP id 2so57925fxm.37
+        for <linux-media@vger.kernel.org>; Wed, 01 Apr 2009 07:24:17 -0700 (PDT)
+Message-ID: <49D3788D.2070406@gmail.com>
+Date: Wed, 01 Apr 2009 17:22:05 +0300
+From: Darius Augulis <augulis.darius@gmail.com>
+MIME-Version: 1.0
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: soc_camera_open() not called
+References: <49D37485.7030805@gmail.com>
+In-Reply-To: <49D37485.7030805@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-13; format=flowed
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 4/13/2009 5:56 AM, Tobias Lorenz wrote:
-> Hi Joonyoung,
+Darius Augulis wrote:
+> Hi,
 > 
-> Hi Alexey,
+> I'm trying to launch mx1_camera based on new v4l and soc-camera tree.
+> After loading mx1_camera module, I see that .add callback is not called.
+> In debug log I see that soc_camera_open() is not called too.
+> What should call this function? Is this my driver problem?
+> p.s. loading sensor driver does not change situation.
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> I've split the driver into a couple of segments:
-> 
-> - radio-si470x-common.c is for common functions
-> 
-> - radio-si470x-usb.c are the usb support functions
-> 
-> - radio-si470x-i2c.c is an untested prototyped file for your i2c support
-> functions
-> 
-> - radio-si470x.h is a header file with everything required by the c-files
-> 
-> I hope this is a basis we can start on with i2c support. What do you think?
-> 
-> The URL is:
-> 
-> http://linuxtv.org/hg/~tlorenz/v4l-dvb
 
-It looks good, i will test with implementing the i2c functions.
-
-Thanks.
+actually I thought about soc_camera_probe(), not soc_camera_open().
+But the problem still the same. video_probe in my driver is not called.
