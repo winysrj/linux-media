@@ -1,45 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailfilter2.ihug.co.nz ([203.109.136.2]:56610 "EHLO
-	mailfilter2.ihug.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756230AbZDEApD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Apr 2009 20:45:03 -0400
-Message-ID: <49D7FF59.1000806@yahoo.co.nz>
-Date: Sun, 05 Apr 2009 12:46:17 +1200
-From: Kevin Wells <wells_kevin@yahoo.co.nz>
-MIME-Version: 1.0
-To: Steven Toth <stoth@linuxtv.org>
-CC: linux-media@vger.kernel.org
-Subject: [PATCH 4/4] tm6000: Clear bit in tm6000_devused when board is disconnected.
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mu-out-0910.google.com ([209.85.134.189]:51583 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757634AbZDAABO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Mar 2009 20:01:14 -0400
+Received: by mu-out-0910.google.com with SMTP id g7so1201210muf.1
+        for <linux-media@vger.kernel.org>; Tue, 31 Mar 2009 17:01:10 -0700 (PDT)
+Subject: [patch review] radio-si470x: fix possible bug with freeing memory
+ order
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Tobias Lorenz <tobias.lorenz@gmx.net>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>
+Cc: Linux Media <linux-media@vger.kernel.org>
+Content-Type: text/plain
+Date: Wed, 01 Apr 2009 04:01:04 +0400
+Message-Id: <1238544064.6154.38.camel@tux.localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-# HG changeset patch
-# User Kevin Wells <kevin.wells@kahusoft.com>
-# Date 1238885821 -43200
-# Node ID ca10a33f275b6fefa15ef651df9b657834a28bb0
-# Parent  02d3a231b99e1eef922679f1381eecd0b9990d23
-Clear bit in tm6000_devused when board is disconnected.
+Hello, all
 
-From: Kevin Wells <kevin.wells@kahusoft.com>
+There is probably bug when cleanup occurs in si470x_usb_driver_probe.
+We do kmalloc for radio->buffer and when it's fail we
+kfree(radio->buffer). The same with si470x_get_all_registers() and 
+si470x_get_scratch_page_versions(). When this functions failed we go to
+err_all and try to free radio->buffer before allocation memory for this.
 
-Priority: normal
+--
+Patch fixes cleanup procedure in si470x_usb_driver_probe. Add new label
+err_video and change order of freeing memory.
 
-Signed-off-by: Kevin Wells <kevin.wells@kahusoft.com>
-
-diff -r 02d3a231b99e -r ca10a33f275b 
-linux/drivers/media/video/tm6000/tm6000-cards.c
---- a/linux/drivers/media/video/tm6000/tm6000-cards.c    Sun Apr 05 
-10:45:44 2009 +1200
-+++ b/linux/drivers/media/video/tm6000/tm6000-cards.c    Sun Apr 05 
-10:57:01 2009 +1200
-@@ -559,6 +559,8 @@
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+--
+diff -r 5567e82c34a0 linux/drivers/media/radio/radio-si470x.c
+--- a/linux/drivers/media/radio/radio-si470x.c	Tue Mar 31 07:24:14 2009 -0300
++++ b/linux/drivers/media/radio/radio-si470x.c	Wed Apr 01 03:48:31 2009 +0400
+@@ -1687,7 +1687,7 @@
+ 	/* show some infos about the specific si470x device */
+ 	if (si470x_get_all_registers(radio) < 0) {
+ 		retval = -EIO;
+-		goto err_all;
++		goto err_video;
+ 	}
+ 	printk(KERN_INFO DRIVER_NAME ": DeviceID=0x%4.4hx ChipID=0x%4.4hx\n",
+ 			radio->registers[DEVICEID], radio->registers[CHIPID]);
+@@ -1695,7 +1695,7 @@
+ 	/* get software and hardware versions */
+ 	if (si470x_get_scratch_page_versions(radio) < 0) {
+ 		retval = -EIO;
+-		goto err_all;
++		goto err_video;
+ 	}
+ 	printk(KERN_INFO DRIVER_NAME
+ 			": software version %d, hardware version %d\n",
+@@ -1728,7 +1728,7 @@
+ 	radio->buffer = kmalloc(radio->buf_size, GFP_KERNEL);
+ 	if (!radio->buffer) {
+ 		retval = -EIO;
+-		goto err_all;
++		goto err_video;
+ 	}
  
-     dev->state |= DEV_DISCONNECTED;
+ 	/* rds buffer configuration */
+@@ -1750,8 +1750,9 @@
  
-+    tm6000_devused &= ~(1 << dev->devno);
-+
-     usb_put_dev(dev->udev);
- 
-     mutex_unlock(&dev->lock);
+ 	return 0;
+ err_all:
++	kfree(radio->buffer);
++err_video:
+ 	video_device_release(radio->videodev);
+-	kfree(radio->buffer);
+ err_radio:
+ 	kfree(radio);
+ err_initial:
+
+
+
+-- 
+Best regards, Klimov Alexey
+
