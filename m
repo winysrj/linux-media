@@ -1,45 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196]:61803 "EHLO
-	mta1.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751628AbZDYPLJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Apr 2009 11:11:09 -0400
-Received: from mbp.kernelscience.com
- (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta1.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KIN00D7OWUIS520@mta1.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Sat, 25 Apr 2009 11:11:09 -0400 (EDT)
-Date: Sat, 25 Apr 2009 11:11:06 -0400
-From: Steven Toth <stoth@linuxtv.org>
-Subject: Request for hardware
-In-reply-to: <412bdbff0904250621m7f43735eu730fac87bd121b57@mail.gmail.com>
-To: linux-media@vger.kernel.org, linux-dvb <linux-dvb@linuxtv.org>
-Cc: Devin Heitmueller <devin.heitmueller@gmail.com>,
-	Peter Hoyland <Peter.Hoyland@t-online.de>
-Message-id: <49F3280A.7090700@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <49F2DCBD.20105@freenet.de>
- <412bdbff0904250621m7f43735eu730fac87bd121b57@mail.gmail.com>
+Received: from mail-bw0-f169.google.com ([209.85.218.169]:42949 "EHLO
+	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764925AbZDAOHJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Apr 2009 10:07:09 -0400
+Received: by bwz17 with SMTP id 17so47335bwz.37
+        for <linux-media@vger.kernel.org>; Wed, 01 Apr 2009 07:07:06 -0700 (PDT)
+Message-ID: <49D37485.7030805@gmail.com>
+Date: Wed, 01 Apr 2009 17:04:53 +0300
+From: Darius Augulis <augulis.darius@gmail.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: soc_camera_open() not called
+Content-Type: text/plain; charset=ISO-8859-13; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> This device is supported in Markus's closed source driver only.  It
-> will not be merged into the mainline kernel, and there are no plans at
-> this time for anyone else to reverse engineer the Micronas demod and
-> write an open source driver.
+Hi,
 
-Message to all:
-
-If some kind individual would mail me a Cinergy HTC USB stick, with the Micronas 
-Demod, then I'd be happy to spend my free time reverse engineering the demod and 
-creating a GPL driver.
-
-I'm tired of the Micronas nonsense so let's get a barebones GPL driver in v4l-dvb.
-
-If someone will ship me the hardware I'll do the rest.
-
-- Steve
-
-
+I'm trying to launch mx1_camera based on new v4l and soc-camera tree.
+After loading mx1_camera module, I see that .add callback is not called.
+In debug log I see that soc_camera_open() is not called too.
+What should call this function? Is this my driver problem?
+p.s. loading sensor driver does not change situation.
