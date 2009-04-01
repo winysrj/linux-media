@@ -1,102 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110814.mail.gq1.yahoo.com ([67.195.13.237]:42884 "HELO
-	web110814.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1758013AbZDEIMx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Apr 2009 04:12:53 -0400
-Message-ID: <635462.50750.qm@web110814.mail.gq1.yahoo.com>
-Date: Sun, 5 Apr 2009 01:12:51 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [0904_2] Siano: core header - add definitions and structures
-To: LinuxML <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:50143 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758125AbZDAVBI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Apr 2009 17:01:08 -0400
+Received: by fxm2 with SMTP id 2so229823fxm.37
+        for <linux-media@vger.kernel.org>; Wed, 01 Apr 2009 14:01:04 -0700 (PDT)
+Subject: [RFC] BKL in open functions in drivers
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Alessio Igor Bogani <abogani@texware.it>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain
+Date: Thu, 02 Apr 2009 01:00:56 +0400
+Message-Id: <1238619656.3986.88.camel@tux.localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello,
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1238690859 -10800
-# Node ID 05cf6606192642241ff25a152e249118cb8a129b
-# Parent  c3f0f50d46058f07fb355d8e5531f35cfd0ca37e
-[PATCH] [0904_2] Siano: core header - add definitions and structures
+Few days ago Alessio Igor Bogani<abogani@texware.it> sent me patch
+that removes BKLs like lock/unlock_kernel() in open call and place mutex
+there in media/radio/radio-mr800.c.
+This patch broke the driver, so we figured out new approah. We added one
+more mutex lock that was used in open call. The patch is below: 
 
-From: Uri Shkolnik <uris@siano-ms.com>
-
-Add new definitions (of Siano's protocol messages),
-and protocol structures (for future commits usage)
-
-Priority: normal
-
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-
-diff -r c3f0f50d4605 -r 05cf66061926 linux/drivers/media/dvb/siano/smscoreapi.h
---- a/linux/drivers/media/dvb/siano/smscoreapi.h	Thu Apr 02 19:32:10 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Thu Apr 02 19:47:39 2009 +0300
-@@ -55,6 +55,7 @@ along with this program.  If not, see <h
- #define min(a, b) (((a) < (b)) ? (a) : (b))
- #endif
+diff -r ffa5df73ebeb linux/drivers/media/radio/radio-mr800.c
+--- a/linux/drivers/media/radio/radio-mr800.c Fri Mar 13 00:43:34 2009
++0000
++++ b/linux/drivers/media/radio/radio-mr800.c	Thu Apr 02 00:40:56 2009
++0400
+@@ -163,6 +163,7 @@
  
-+#define SMS_PROTOCOL_MAX_RAOUNDTRIP_MS				(10000)
- #define SMS_ALLOC_ALIGNMENT					128
- #define SMS_DMA_ALIGNMENT					16
- #define SMS_ALIGN_ADDRESS(addr) \
-@@ -170,6 +171,7 @@ struct smsclient_params_t {
- #define MSG_SMS_GET_PID_FILTER_LIST_RES		609
- #define MSG_SMS_GET_STATISTICS_REQ			615
- #define MSG_SMS_GET_STATISTICS_RES			616
-+#define MSG_SMS_HO_PER_SLICES_IND			630
- #define MSG_SMS_SET_ANTENNA_CONFIG_REQ		651
- #define MSG_SMS_SET_ANTENNA_CONFIG_RES		652
- #define MSG_SMS_GET_STATISTICS_EX_REQ		653
-@@ -199,6 +201,13 @@ struct smsclient_params_t {
- #define MSG_SMS_GPIO_CONFIG_EX_RES			713
- #define MSG_SMS_ISDBT_TUNE_REQ				776
- #define MSG_SMS_ISDBT_TUNE_RES				777
-+#define MSG_SMS_TRANSMISSION_IND			782
-+#define MSG_SMS_START_IR_REQ				800
-+#define MSG_SMS_START_IR_RES				801
-+#define MSG_SMS_IR_SAMPLES_IND				802
-+#define MSG_SMS_SIGNAL_DETECTED_IND			827
-+#define MSG_SMS_NO_SIGNAL_IND				828
-+
+ 	unsigned char *buffer;
+ 	struct mutex lock;	/* buffer locking */
++	struct mutex open;
+ 	int curfreq;
+ 	int stereo;
+ 	int users;
+@@ -570,7 +571,7 @@
+ 	struct amradio_device *radio = video_get_drvdata(video_devdata(file));
+ 	int retval;
  
- #define SMS_INIT_MSG_EX(ptr, type, src, dst, len) do { \
- 	(ptr)->msgType = type; (ptr)->msgSrcId = src; (ptr)->msgDstId = dst; \
-@@ -206,6 +215,15 @@ struct smsclient_params_t {
- } while (0)
- #define SMS_INIT_MSG(ptr, type, len) \
- 	SMS_INIT_MSG_EX(ptr, type, 0, HIF_TASK, len)
-+enum SMS_DVB3_EVENTS {
-+	DVB3_EVENT_INIT = 0,
-+	DVB3_EVENT_SLEEP,
-+	DVB3_EVENT_HOTPLUG,
-+	DVB3_EVENT_FE_LOCK,
-+	DVB3_EVENT_FE_UNLOCK,
-+	DVB3_EVENT_UNC_OK,
-+	DVB3_EVENT_UNC_ERR
-+};
+-	lock_kernel();
++	mutex_lock(&radio->open);
  
- enum SMS_DEVICE_MODE {
- 	DEVICE_MODE_NONE = -1,
-@@ -230,8 +248,13 @@ struct SmsMsgHdr_ST {
- };
+ 	radio->users = 1;
+ 	radio->muted = 1;
+@@ -580,7 +581,7 @@
+ 		amradio_dev_warn(&radio->videodev->dev,
+ 			"radio did not start up properly\n");
+ 		radio->users = 0;
+-		unlock_kernel();
++		mutex_unlock(&radio->open);
+ 		return -EIO;
+ 	}
  
- struct SmsMsgData_ST {
--	struct SmsMsgHdr_ST	xMsgHeader;
--	u32			msgData[1];
-+	struct SmsMsgHdr_ST xMsgHeader;
-+	u32 msgData[1];
-+};
-+
-+struct SmsMsgData_ST2 {
-+	struct SmsMsgHdr_ST xMsgHeader;
-+	u32 msgData[2];
- };
+@@ -594,7 +595,7 @@
+ 		amradio_dev_warn(&radio->videodev->dev,
+ 			"set frequency failed\n");
  
- struct SmsDataDownload_ST {
+-	unlock_kernel();
++	mutex_unlock(&radio->open);
+ 	return 0;
+ }
+ 
+@@ -735,6 +736,7 @@
+ 	radio->stereo = -1;
+ 
+ 	mutex_init(&radio->lock);
++	mutex_init(&radio->open);
+ 
+ 	video_set_drvdata(radio->videodev, radio);
+ 	retval = video_register_device(radio->videodev, VFL_TYPE_RADIO,
+radio_nr);
 
+I tested such approach using stress tool that tries to open /dev/radio0
+few hundred times. Looks fine. 
 
+So, questions are:
 
-      
+1) What for is lock/unlock_kernel() used in open?
+2) Can it be replaced by mutex, for example?
+
+Please, comments, exaplanations are more than welcome.
+
+Thanks,
+-- 
+best regards, Klimov Alexey
+
