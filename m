@@ -1,46 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:37473 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752218AbZDUNs6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2009 09:48:58 -0400
-Message-ID: <49EDCE9F.2030700@maxwell.research.nokia.com>
-Date: Tue, 21 Apr 2009 16:48:15 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-MIME-Version: 1.0
-To: "Weng, Wending" <WWeng@rheinmetall.ca>
-CC: linux-media@vger.kernel.org,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: Re: need help for omap3 isp-camera interface
-References: <C01FCF206F5D8D4C89B210408D7DB39C29B6BA@mail2.oerlikon.ca>
-In-Reply-To: <C01FCF206F5D8D4C89B210408D7DB39C29B6BA@mail2.oerlikon.ca>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from bombadil.infradead.org ([18.85.46.34]:60800 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751281AbZDAJhf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Apr 2009 05:37:35 -0400
+Date: Wed, 1 Apr 2009 06:37:18 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Mike Isely <isely@pobox.com>
+Cc: isely@isely.net, Janne Grunau <j@jannau.net>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 5 of 8] pvrusb2: use usb_interface.dev for
+ v4l2_device_register
+Message-ID: <20090401063718.69e28bd2@caramujo.chehab.org>
+In-Reply-To: <Pine.LNX.4.64.0903312059100.7804@cnc.isely.net>
+References: <patchbomb.1238338474@aniel>
+	<20090329145908.GF17855@aniel>
+	<Pine.LNX.4.64.0903312059100.7804@cnc.isely.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Weng, Wending wrote:
-> Hi All,
+On Tue, 31 Mar 2009 21:02:16 -0500 (CDT)
+Mike Isely <isely@isely.net> wrote:
+
 > 
-> I'm working on video image capture(omap3 isp) interface(PSP 1.0.2),
-> and have met many difficulties. At the camera side, the 8 bits BT656
-> signal are connected to cam_d[0-7], which looks OK. The cam_fld,
-> cam_hs and cam_vs are also connected, At the omap3 side, I use
-> saMmapLoopback.c, it runs, however, it receives only HS_VS_IRQ, but
-> no any image data. I checked FLDSTAT(CCDC_SYN_MODE), it's never
-> changed. Right now, I don't know what to check, if you can give some
-> suggestions, your help will be greatly appreciated. Thanks in
-> advance.
+> This patch will not at all impact the operation of the pvrusb2 driver, 
+> and if associating with the USB interface's device node is preferred 
+> then I'm fine with it.
+> 
+> Acked-by: Mike Isely <isely@pobox.com>
+> 
+> Mauro: Is this series going to be pulled into v4l-dvb or shall I just 
+> bring this one specific change into my pvrusb2 repo?  Is there any 
+> reason not to pull it?
 
-I haven't been using the parallel interface nor I know anyone else who 
-would have. Sergio, any idea?
+I'll take care on it on the next time I'll apply patchwork patches. I suspect
+that Janne preferred to send via email for people to better analyse the impacts.
+> 
+>   -Mike
+> 
+> 
+> On Sun, 29 Mar 2009, Janne Grunau wrote:
+> 
+> > # HG changeset patch
+> > # User Janne Grunau <j@jannau.net>
+> > # Date 1238338428 -7200
+> > # Node ID 2d52ac089920f9ac36960c0245442fd89a06bb75
+> > # Parent  01af508490af3bc9c939c36001d6989e2c147aa0
+> > pvrusb2: use usb_interface.dev for v4l2_device_register
+> > 
+> > Priority: normal
+> > 
+> > Signed-off-by: Janne Grunau <j@jannau.net>
+> > 
+> > diff -r 01af508490af -r 2d52ac089920 linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c
+> > --- a/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	Sun Mar 29 16:53:48 2009 +0200
+> > +++ b/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	Sun Mar 29 16:53:48 2009 +0200
+> > @@ -2591,7 +2591,7 @@
+> >  	hdw->ctl_read_urb = usb_alloc_urb(0,GFP_KERNEL);
+> >  	if (!hdw->ctl_read_urb) goto fail;
+> >  
+> > -	if (v4l2_device_register(&usb_dev->dev, &hdw->v4l2_dev) != 0) {
+> > +	if (v4l2_device_register(&intf->dev, &hdw->v4l2_dev) != 0) {
+> >  		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
+> >  			   "Error registering with v4l core, giving up");
+> >  		goto fail;
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
 
-Anyway, this sounds like a problem in the parallel receiver side. You 
-could try also configuring the VD1 IRQ to happen much earlier, say on 
-10th line. See ISPCCDC_VDINT handling in ispccdc.c.
 
-I'm going to update the patchset as soon as I get linux-omap booting again.
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+
+Cheers,
+Mauro
