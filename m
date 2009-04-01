@@ -1,49 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:60841 "EHLO
-	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751214AbZDYRfp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Apr 2009 13:35:45 -0400
-Date: Sat, 25 Apr 2009 10:35:44 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Linux and Kernel Video <video4linux-list@redhat.com>
-cc: Erik de Castro Lopo <erik@bcode.com>, linux-media@vger.kernel.org
-Subject: Re: Compling drivers from v4l-dvb hg tree
-In-Reply-To: <20090425081654.3e9932f1.erik@bcode.com>
-Message-ID: <Pine.LNX.4.58.0904251030570.3753@shell2.speakeasy.net>
-References: <20090424170352.313f1feb.erik@bcode.com>
- <412bdbff0904240625y3902243em5a643380b036e08f@mail.gmail.com>
- <20090425080356.69e0ed9d.erik@bcode.com> <412bdbff0904241509r29b0859fl22abe2fe78e59daa@mail.gmail.com>
- <20090425081654.3e9932f1.erik@bcode.com>
+Received: from znsun1.ifh.de ([141.34.1.16]:65324 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753618AbZDAH1B (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Apr 2009 03:27:01 -0400
+Date: Wed, 1 Apr 2009 09:26:19 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Dominik Sito <railis@juvepoland.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Does skystar dvb usb2 card work in linux ?
+In-Reply-To: <200903312004.45039.railis@juvepoland.com>
+Message-ID: <alpine.LRH.1.10.0904010922440.21921@pub4.ifh.de>
+References: <267bb6670903311039j7d37afcelf66d6a9cecd3637c@mail.gmail.com> <200903312004.45039.railis@juvepoland.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 25 Apr 2009, Erik de Castro Lopo wrote:
-> On Fri, 24 Apr 2009 18:09:17 -0400
-> Devin Heitmueller <devin.heitmueller@gmail.com> wrote:
+Hi Dominik,
+
+On Tue, 31 Mar 2009, Dominik Sito wrote:
+
+> Tuesday 31 March 2009 19:39:28 a dehqan napisa?(a):
+>> In The Name Of God
+>>
+>> I'll be thankfull if you guide ;
+>> Does skystar dvb usb2 card work in linux ?Does it have linux driver ?
+>> has anyone tested it ?
+>>
+>> regards dehqan
 >
-> > > Ok, but how do I patch the v4l-dvb sources into a linux kernel tree?
-> >
-> > You don't.
+> I think it's still undone. I have not clear information, but there would be
+> any information about that. I'm not sure, but flexcop-usb isn't
+> supported by USB 2.0. If i'm wrong please enlight me.
+> Regards
 
-You can, make kernel-links
+As of today there is no support for the USB2 version of Technisat's 
+device. Technisat is not planning to add support, maybe they can't due to 
+NDA(s) with their USB-2-PCI-bridge provider.
 
-> > The v4l-dvb sources are maintained out-of-tree, and override whatever
-> > is in the linux kernel tree.  Periodically, the v4l-dvb maintainer
-> > syncs with the kernel tree and the changes are pushed upstream into
-> > the mainline kernel.  This approach allows for the v4l-dvb project to
-> > be used with kernel releases other than the current bleeding edge
-> > kernel.
->
-> Ok,  but the instructions on http://linuxtv.org/repo compiles the
-> driver for the current running kernel. How do I compile it for
-> another kernel, ie an x86 embedded device that I normally do not
-> compile on?
+I don't know for sure whether support can be added to the 
+flexcop-usb.c-driver or not, but I assume not, because it is using a 
+different USB-2-PCI-bridge and I have doubt that the USB high level 
+interface is similar to the one used in flexcop-usb.
 
-See "make help", it explains this.  Use "make release
-DIR=/other/kernel/src/dir" to compile for any kernel you want.  I haven't
-tried cross-compiling v4l-dvb so I'm not sure how that will work.  I'd just
-try the standard ARCH and CROSS_COMPILE settings like a kernel build uses
-and see what happens.
+Patrick.
+
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
