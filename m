@@ -1,83 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.234]:21257 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759048AbZDQHco (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Apr 2009 03:32:44 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so797832rvb.1
-        for <linux-media@vger.kernel.org>; Fri, 17 Apr 2009 00:32:44 -0700 (PDT)
+Received: from bear.ext.ti.com ([192.94.94.41]:51910 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751158AbZDAEhQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Apr 2009 00:37:16 -0400
+From: "Subrahmanya, Chaithrika" <chaithrika@ti.com>
+To: Trent Piepho <xyzzy@speakeasy.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+Date: Wed, 1 Apr 2009 10:05:08 +0530
+Subject: RE: [PATCH 3/4] ARM: DaVinci: DM646x Video: Add VPIF display driver
+Message-ID: <EAF47CD23C76F840A9E7FCE10091EFAB02A8764C46@dbde02.ent.ti.com>
+References: <1238073752-9930-1-git-send-email-chaithrika@ti.com>
+ <200903301552.07252.hverkuil@xs4all.nl>,<Pine.LNX.4.58.0903301410550.28292@shell2.speakeasy.net>
+In-Reply-To: <Pine.LNX.4.58.0903301410550.28292@shell2.speakeasy.net>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.0904170912550.5119@axis700.grange>
-References: <5e9665e10904151712o5fa3076dr85ad12fc7f04914d@mail.gmail.com>
-	 <Pine.LNX.4.64.0904162147370.4947@axis700.grange>
-	 <5e9665e10904162346g37a29778ub0fd4c9f5c11f1df@mail.gmail.com>
-	 <Pine.LNX.4.64.0904170852450.5119@axis700.grange>
-	 <5e9665e10904170008q51283185g17f203e2bc969f30@mail.gmail.com>
-	 <Pine.LNX.4.64.0904170912550.5119@axis700.grange>
-Date: Fri, 17 Apr 2009 16:32:44 +0900
-Message-ID: <5e9665e10904170032lce96483xe0cfa288483fa1ed@mail.gmail.com>
-Subject: Re: [RFC] Making Samsung S3C64XX camera interface driver in SoC
-	camera subsystem
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	kernel@pengutronix.de,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>,
-	"jongse.won@samsung.com" <jongse.won@samsung.com>,
-	dongsoo45.kim@samsung.com, Hans Verkuil <hverkuil@xs4all.nl>,
-	"Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 17, 2009 at 4:15 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> On Fri, 17 Apr 2009, Dongsoo, Nathaniel Kim wrote:
->
->> Hi Guennadi,
->>
->> On Fri, Apr 17, 2009 at 4:00 PM, Guennadi Liakhovetski
->> <g.liakhovetski@gmx.de> wrote:
->> > On Fri, 17 Apr 2009, Dongsoo, Nathaniel Kim wrote:
->> >
->> >> 1. make preview device a video output
->> >> => it makes sense. but codec path also has dedicated DMA to frame buffer.
->> >> What should we do with that? I have no idea by now.
->> >
->> > Add a V4L2_CAP_VIDEO_OVERLAY capability and if the user requests
->> > V4L2_BUF_TYPE_VIDEO_OVERLAY - configure direct output to framebuffer?
->> >
->>
->> OK that's an idea. Then we can use preview as video output device and
->> codec device as a capture device with overlay capability.
->
-> Actually, if I interpret the "Camera interface overview" figure (20-1)
-> correctly, both capture and output channels have the overlay capability,
-> so, you can enable it for both of them and configure the respective one
-> accordingly.
+> On Mon, 30 Mar 2009, Hans Verkuil wrote:
+> > On Thursday 26 March 2009 14:22:32 Chaithrika U S wrote:
+> > > +                           /* one field is displayed configure the
+> next
+> > > +                              frame if it is available else hold
+> on current
+> > > +                              frame */
+> 
+> Comment isn't in standard format with *'s on the side.  If you split
+> this
+> into multiple functions like Hans suggested it wouldn't be indented so
+> much.
+> 
+OK, I will take care of this
 
-You are right. both of them can have overlay capability. I just forgot
-that It could be configured like that. Thank you.
+> > > +static int vpif_enum_fmt_vid_out(struct file *file, void  *priv,
+> > > +                                   struct v4l2_fmtdesc *fmt)
+> > > +{
+> > > +   unsigned int index = 0;
+> > > +
+> > > +   if (fmt->index != 0) {
+> > > +           v4l2_err(&vpif_obj.v4l2_dev, "Invalid format index\n");
+> > > +           return -EINVAL;
+> > > +   }
+> > > +
+> > > +   /* Fill in the information about format */
+> > > +   index = fmt->index;
+> > > +   memset(fmt, 0, sizeof(*fmt));
+> >
+> > For most if not all of these functions v4l2_ioctl2 will take care of
+> zeroing
+> > the structs.
+> 
+> It is supposed to be all of them.  If there are any I missed let me
+> know so
+> I can fix it.
+> 
+> > > +static int vpif_g_fmt_vid_out(struct file *file, void *priv,
+> > > +                           struct v4l2_format *fmt)
+> > > +{
+> [...]
+> > > +   /* Check the validity of the buffer type */
+> > > +   if (common->fmt.type != fmt->type)
+> > > +           return -EINVAL;
+> > > +
+> > > +   if (V4L2_BUF_TYPE_VIDEO_OUTPUT != fmt->type) {
+> > > +           if (vid_ch->std_info.vbi_supported == 0)
+> > > +                   return -EINVAL;
+> > > +   }
+> 
+> All XXX_fmt_vid_out methods will only be called with fmt->type equal to
+> VIDEO_OUTPUT.  You don't need to check.
+> 
+OK. 
 
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
->
+> > > +static int vpif_s_fmt_vid_out(struct file *file, void *priv,
+> > > +                           struct v4l2_format *fmt)
+> > > +{
+> > > +   if (V4L2_BUF_TYPE_VIDEO_OUTPUT == fmt->type) {
+> 
+> Don't need this check.
+OK, will  be updated.
 
+> 
+> > > +           struct v4l2_pix_format *pixfmt = &fmt->fmt.pix;
+> > > +           /* Check for valid field format */
+> > > +           ret = vpif_check_format(channel, pixfmt);
+> > > +           if (ret)
+> > > +                   return ret;
+> 
+> Rather than fail if the format requested isn't acceptable to the
+> driver,
+> you should modify the requested format to something that is.  For
+> example,
+> if you need an even number of lines and they ask for an odd number,
+> reduce
+> the number of lines by 1 instead of failing.
+> 
+OK, will look into this
 
+> > > +static int vpif_enum_output(struct file *file, void *fh,
+> > > +                           struct v4l2_output *output)
+> > > +{
+> > > +
+> > > +   struct vpif_config *config = vpif_dev->platform_data;
+> > > +   int index = output->index;
+> > > +
+> > > +   memset(output, 0, sizeof(*output));
+> > > +   if (index > config->output_count) {
+> > > +           v4l2_dbg(1, debug, &vpif_obj.v4l2_dev,
+> > > +                                           "Invalid output
+> index\n");
+> > > +           return -EINVAL;
+> > > +   }
+> > > +
+> > > +   output->index = index;
+> 
+> Another save index, memset, restore index sequence that isn't needed.
+OK.
 
--- 
-========================================================
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
-========================================================
+> 
+> > > +#define ISALIGNED(a)    (0 == (a%8))
+> >
+> > Here you need parenthesis: (0 == ((a) % 8))
+> 
+> If 'a' isn't unsigned, then (0 == ((a) & 7)) will be more efficient.
+> For
+> unsigned values the compiler should be able to make the transformation
+> to
+> using & instead of %, but not for signed.
+> 
+OK.
+
+> > > +struct vpif_config_params {
+> > > +   u8 min_numbuffers;
+> > > +   u8 numbuffers[VPIF_DISPLAY_NUM_CHANNELS];
+> > > +   u32 min_bufsize[VPIF_DISPLAY_NUM_CHANNELS];
+> > > +   u32 channel_bufsize[VPIF_DISPLAY_NUM_CHANNELS];
+> > > +};
+> 
+> If you put the larger fields first the structure will be padded less.
+ Will update this.
+
+Thanks,
+Chaithrika
