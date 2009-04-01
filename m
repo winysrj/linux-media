@@ -1,37 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:35604 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1757784AbZDHJh7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Apr 2009 05:37:59 -0400
-Date: Wed, 8 Apr 2009 11:38:04 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH/RFC] soc-camera: Convert to a platform driver
-In-Reply-To: <87skkkdunm.fsf@free.fr>
-Message-ID: <Pine.LNX.4.64.0904081137310.4722@axis700.grange>
-References: <Pine.LNX.4.64.0904061207530.4285@axis700.grange> <87iqlgkykd.fsf@free.fr>
- <87skkkdunm.fsf@free.fr>
+Received: from znsun1.ifh.de ([141.34.1.16]:33577 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760464AbZDAHgQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Apr 2009 03:36:16 -0400
+Date: Wed, 1 Apr 2009 09:35:58 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Alan Nisota <alannisota@gmail.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Remove support for Genpix-CW3K (damages hardware)
+In-Reply-To: <49D2338C.7040703@gmail.com>
+Message-ID: <alpine.LRH.1.10.0904010934590.21921@pub4.ifh.de>
+References: <49D2338C.7040703@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 7 Apr 2009, Robert Jarzmik wrote:
+Hi Alan,
 
-> Robert Jarzmik <robert.jarzmik@free.fr> writes:
-> 
-> > I'll test fully this weekend.
-> I just made a first try, just to prepare my weekend. Even with Ming Lei patch
-> reverted, and all statically built, I have no camera detected ...
-> 
-> Is there something I need to know before attempting the brute force method
-> (ie. DEBUG, printks etc ...) ?
+On Tue, 31 Mar 2009, Alan Nisota wrote:
 
-Try with the patch-stack I mentioned in the previous mail, will see then.
+> I have been informed by the manufacturer that the patch currently in the v4l 
+> tree to support the Genpix-CW3K version of the hardware will actually damage 
+> the firmware on recent units.  As he seems to not want this hardware 
+> supported in Linux, and I do not know how to detect the difference between 
+> affected and not-affected units, I am requesting the immediate removal of 
+> support for this device.  This patch removes a portion of the changeset 
+> dce7e08ed2b1 applied 2007-08-18 relating to this specific device.
+>
+> Signed off by: Alan Nisota <anisota@gmail.com>
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Don't you think it is enough to put a Kconfig option to activate the 
+USB-IDs (by default: off) rather than throwing everything away?
+
+Patrick.
+
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
