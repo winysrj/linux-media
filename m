@@ -1,93 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:22454 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752406AbZDVIXS (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.239]:26705 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753573AbZDACed convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Apr 2009 04:23:18 -0400
-Subject: Re: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
-From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
-Reply-To: tomi.valkeinen@nokia.com
-To: ext Hardik Shah <hardik.shah@ti.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Brijesh Jadav <brijesh.j@ti.com>,
-	Vaibhav Hiremath <hvaibhav@ti.com>
-In-Reply-To: <1240381551-11012-1-git-send-email-hardik.shah@ti.com>
-References: <1240381551-11012-1-git-send-email-hardik.shah@ti.com>
-Content-Type: text/plain
-Date: Wed, 22 Apr 2009 11:22:58 +0300
-Message-Id: <1240388578.12545.14.camel@tubuntu>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 31 Mar 2009 22:34:33 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so3343826rvb.1
+        for <linux-media@vger.kernel.org>; Tue, 31 Mar 2009 19:34:31 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <412bdbff0903311844ye3323fbh1cc633cea4216149@mail.gmail.com>
+References: <15ed362e0903301947rf0de73eo8edbd8cbcd5b5abd@mail.gmail.com>
+	 <412bdbff0903301957i77c36f10hcb9e9cb919124057@mail.gmail.com>
+	 <15ed362e0903302039g6d9575cnca5d9b62b566db72@mail.gmail.com>
+	 <49D228EA.3090302@linuxtv.org>
+	 <412bdbff0903310734r3002e083j9c7f83bfc9855c7d@mail.gmail.com>
+	 <15ed362e0903311838w19c03f37ob9e893d35ea5cd92@mail.gmail.com>
+	 <412bdbff0903311844ye3323fbh1cc633cea4216149@mail.gmail.com>
+Date: Wed, 1 Apr 2009 10:34:31 +0800
+Message-ID: <15ed362e0903311934h6e6bbbc5q70971ee4c0dfaaa8@mail.gmail.com>
+Subject: Re: XC5000 DVB-T/DMB-TH support
+From: David Wong <davidtlwong@gmail.com>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+Cc: Steven Toth <stoth@linuxtv.org>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wed, Apr 1, 2009 at 9:44 AM, Devin Heitmueller
+<devin.heitmueller@gmail.com> wrote:
+> On Tue, Mar 31, 2009 at 9:38 PM, David Wong <davidtlwong@gmail.com> wrote:
+>> Thanks Devin. The demod locks after using -2750000.
+>>
+>> David.
+>
+> That's great news.  If you send me a patch (including your SOB), I
+> will put it into the xc5000 patch series I am putting together this
+> week.
+>
+> Regards,
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
+>
 
-On Wed, 2009-04-22 at 08:25 +0200, ext Hardik Shah wrote:
-> This is the version 5th of the Driver.
-> 
-> Following are the features supported.
-> 1. Provides V4L2 user interface for the video pipelines of DSS
-> 2. Basic streaming working on LCD and TV.
-> 3. Support for various pixel formats like YUV, UYVY, RGB32, RGB24, RGB565
-> 4. Supports Alpha blending.
-> 5. Supports Color keying both source and destination.
-> 6. Supports rotation with RGB565 and RGB32 pixels formats.
-> 7. Supports cropping.
-> 8. Supports Background color setting.
-> 9. Works on latest DSS2 library from Tomi
-> http://www.bat.org/~tomba/git/linux-omap-dss.git/
-> 10. 1/4x scaling added.  Detail testing left
-> 
-> TODOS
-> 1. Ioctls needs to be added for color space conversion matrix
-> coefficient programming.
-> 2. To be tested on DVI resolutions.
-> 
-> Comments fixed from community.
-> 1. V4L2 Driver for OMAP3/3 DSS.
-> 2.  Conversion of the custom ioctls to standard V4L2 ioctls like alpha blending,
-> color keying, rotation and back ground color setting
-> 3.  Re-organised the code as per community comments.
-> 4.  Added proper copyright year.
-> 5.  Added module name in printk
-> 6.  Kconfig option copy/paste error
-> 7.  Module param desc addded.
-> 8.  Query control implemented using standard query_fill
-> 9.  Re-arranged if-else constructs.
-> 10. Changed to use mutex instead of semaphore.
-> 11. Removed dual usage of rotation angles.
-> 12. Implemented function to convert the V4L2 angle to DSS angle.
-> 13. Y-position was set half by video driver for TV output
-> Now its done by DSS so removed that.
-> 14. Minor cleanup
-> 15. Added support to pass the page offset to application.
-> 14. Minor cleanup
-> 15. Added support to pass the page offset to application.
-> 16. Renamed V4L2_CID_ROTATION to V4L2_CID_ROTATE
-> 17. Major comment from Hans fixed.
-> 18. Copy right year changed.
-> 19. Added module name for each error/warning print message.
-> 
-> Changes from Previous Version.
-> 1. Supported YUV rotation.
-> 2. Supported Flipping.
-> 3. Rebased line with Tomi's latest DSS2 master branch with commit  id
-> f575a02edf2218a18d6f2ced308b4f3e26b44ce2.
-> 4. Kconfig option removed to select between the TV and LCD.
-> Now supported dynamically by DSS2 library.
-> 5. Kconfig option for the NTSC_M and PAL_BDGHI mode but not
-> supported by DSS2.  so it will not work now.
+No problem. But how about frequency compensation value for DTV7?
+We know DTV6 and DTV8 settings now, just DTV7 is missing for FE_OFDM.
 
-There is basic support for this. See the DSS doc:
-
-/sys/devices/platform/omapdss/display? directory:
-...
-timings         Display timings (pixclock,xres/hfp/hbp/hsw,yres/vfp/vbp/vsw)
-                When writing, two special timings are accepted for tv-out:
-                "pal" and "ntsc"
-
- Tomi
-
-
+David
