@@ -1,46 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:37379 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755329AbZDFLF4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Apr 2009 07:05:56 -0400
-Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
- model
-From: Andy Walls <awalls@radix.net>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Mike Isely <isely@pobox.com>,
-	isely@isely.net, LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20090406110430.400d4608@hyperion.delvare>
-References: <20090404142427.6e81f316@hyperion.delvare>
-	 <Pine.LNX.4.64.0904041045380.32720@cnc.isely.net>
-	 <20090405010539.187e6268@hyperion.delvare>
-	 <200904050746.47451.hverkuil@xs4all.nl>
-	 <20090405160519.629ee7d0@hyperion.delvare>
-	 <1238960152.3337.84.camel@morgan.walls.org>
-	 <20090406110430.400d4608@hyperion.delvare>
-Content-Type: text/plain
-Date: Mon, 06 Apr 2009 08:06:50 -0400
-Message-Id: <1239019610.3157.8.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from yx-out-2324.google.com ([74.125.44.28]:40552 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753592AbZDADUV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Mar 2009 23:20:21 -0400
+Received: by yx-out-2324.google.com with SMTP id 31so2761649yxl.1
+        for <linux-media@vger.kernel.org>; Tue, 31 Mar 2009 20:20:19 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <15ed362e0903312012w733db706g6d617336f98c642f@mail.gmail.com>
+References: <15ed362e0903312012w733db706g6d617336f98c642f@mail.gmail.com>
+Date: Tue, 31 Mar 2009 23:20:19 -0400
+Message-ID: <412bdbff0903312020o6c495845pab3ac4e7f23c5edd@mail.gmail.com>
+Subject: Re: [PATCH] XC5000 support for DVB-T 6MHz and 8MHz
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: David Wong <davidtlwong@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-04-06 at 11:04 +0200, Jean Delvare wrote:
-> Hi Andy,
+2009/3/31 David Wong <davidtlwong@gmail.com>:
+> This patch add XC5000 supports for DVB-T 6MHz and 8MHz bandwidth.
+>
+> Signed-off-by: David T.L. Wong <davidtlwong@gmail.com>
 
+At first glance the patch looks sane.
 
-> I'm all for adding
-> support for more boards, however I'd rather do this _after_ the i2c
-> model conversion is done, so that we have a proper changelog entry
-> saying that we added support for the PVR-150, and that it gets proper
-> testing. Hiding support addition in a larger patch would probably do
-> as much harm as good.
+Mauro, please do not merge this directly.  I am preparing a series of
+xc5000 patches this week, and I will include this patch in the series
+(which will get reviewed by stoth).  Also, I don't want this to go in
+without having done at least some sanity testing under ATSC to ensure
+it doesn't introduce any regressions (not that I think it will).
 
+Thanks,
 
-Makes sens to me.  Especially when I just simply, blindly added 0x71 in
-my initial testing, I got a kernel Oops.
+Devin
 
-Regards,
-Andy
-
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
