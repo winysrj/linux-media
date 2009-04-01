@@ -1,216 +1,245 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:46633 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760793AbZDCVp2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2009 17:45:28 -0400
-Received: by mail-fx0-f158.google.com with SMTP id 2so1154392fxm.37
-        for <linux-media@vger.kernel.org>; Fri, 03 Apr 2009 14:45:26 -0700 (PDT)
-Subject: [patch 2/2] radio-mr800: convert to to v4l2_device
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Douglas Schilling Landgraf <dougsland@gmail.com>
-Cc: linux-media@vger.kernel.org, klimov.linux@gmail.com
-Content-Type: text/plain
-Date: Sat, 04 Apr 2009 01:45:27 +0400
-Message-Id: <1238795127.3102.14.camel@tux.localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from znsun1.ifh.de ([141.34.1.16]:48319 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751018AbZDAP1o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Apr 2009 11:27:44 -0400
+Date: Wed, 1 Apr 2009 17:27:04 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Gabriele Dini Ciacci <dark.schneider@iol.it>
+cc: Devin Heitmueller <devin.heitmueller@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] Drivers for Pinnacle pctv200e and pctv60e
+In-Reply-To: <20090401004702.539afbda@gdc1>
+Message-ID: <alpine.LRH.1.10.0904011716370.21921@pub4.ifh.de>
+References: <20090329155608.396d2257@gdc1> <20090331075610.53620db8@pedra.chehab.org> <20090331212052.152d2ffc@gdc1> <412bdbff0903311359i3f3883dds2d870c93e23d08f2@mail.gmail.com> <20090331233524.4000cb61@gdc1> <412bdbff0903311451w776c7b68t22fc3acbcd23fe64@mail.gmail.com>
+ <20090401004702.539afbda@gdc1>
+MIME-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="579715599-435502645-1238599624=:21921"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-radio-mr800: convert to to v4l2_device.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+--579715599-435502645-1238599624=:21921
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+
+Hi,
+
+On Wed, 1 Apr 2009, Gabriele Dini Ciacci wrote:
+
+> On Tue, 31 Mar 2009 17:51:23 -0400
+> Devin Heitmueller <devin.heitmueller@gmail.com> wrote:
+>
+>> On Tue, Mar 31, 2009 at 5:35 PM, Gabriele Dini Ciacci
+>> <dark.schneider@iol.it> wrote:
+>>> I it's so, say me how to make or where to look to create a profile
+>>> for the existing driver.
+>>>
+>>> I am willing to do the work.
+>>>
+>>> (when I first wrote the driver to me it seemed that this was the
+>>> simplet way.
+>>>
+>>> Meanwhile I will try to look at the Cypress FX2
+>>
+>> As Michael Krufky pointed out to me off-list, I was not exactly
+>> correct here.
+>>
+>> While there are indeed drivers based on the same FX2 chip in your
+>> device, it may be possible to reuse an existing driver, or you may
+>> need a whole new driver, depending on how much the firmware varies
+>> between your product versus the others.  You may want to look at the
+>> pvrusb2 and cxusb drivers, which also use the FX2 chip, and see what
+>> similarities exist in terms of the API and command set.  If it is not
+>> similar to any of the others, then writing a new driver is probably
+>> the correct approach.
+>>
+>> Regards,
+>>
+>> Devin
+>>
+>
+> Fine perfect, thanks,
+
+Attached you can find my attempts from 2005. I2C should work, please 
+re-use this implementation as it nicely splits i2c_transfer from the rest 
+of the required functionality.
+
+I think I still have the pctv 200e somewhere in a box... I may get it 
+back, undust it and try.
+
+Patrick.
+
 --
-diff -r 4cd17f5a20cc linux/drivers/media/radio/radio-mr800.c
---- a/linux/drivers/media/radio/radio-mr800.c	Thu Apr 02 20:50:21 2009 -0300
-+++ b/linux/drivers/media/radio/radio-mr800.c	Sat Apr 04 01:32:08 2009 +0400
-@@ -43,6 +43,7 @@
-  * 			Douglas Schilling Landgraf <dougsland@gmail.com> and
-  * 			David Ellingsworth <david@identd.dyndns.org>
-  * 			for discussion, help and support.
-+ * Version 0.11:	Converted to v4l2_device.
-  *
-  * Many things to do:
-  * 	- Correct power managment of device (suspend & resume)
-@@ -59,7 +60,7 @@
- #include <linux/slab.h>
- #include <linux/input.h>
- #include <linux/videodev2.h>
--#include <media/v4l2-common.h>
-+#include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <linux/usb.h>
- #include <linux/version.h>	/* for KERNEL_VERSION MACRO */
-@@ -68,8 +69,8 @@
- /* driver and module definitions */
- #define DRIVER_AUTHOR "Alexey Klimov <klimov.linux@gmail.com>"
- #define DRIVER_DESC "AverMedia MR 800 USB FM radio driver"
--#define DRIVER_VERSION "0.10"
--#define RADIO_VERSION KERNEL_VERSION(0, 1, 0)
-+#define DRIVER_VERSION "0.11"
-+#define RADIO_VERSION KERNEL_VERSION(0, 1, 1)
- 
- MODULE_AUTHOR(DRIVER_AUTHOR);
- MODULE_DESCRIPTION(DRIVER_DESC);
-@@ -114,38 +115,6 @@
- module_param(radio_nr, int, 0);
- MODULE_PARM_DESC(radio_nr, "Radio Nr");
- 
--static struct v4l2_queryctrl radio_qctrl[] = {
--	{
--		.id            = V4L2_CID_AUDIO_MUTE,
--		.name          = "Mute",
--		.minimum       = 0,
--		.maximum       = 1,
--		.step	       = 1,
--		.default_value = 1,
--		.type          = V4L2_CTRL_TYPE_BOOLEAN,
--	},
--/* HINT: the disabled controls are only here to satify kradio and such apps */
--	{	.id		= V4L2_CID_AUDIO_VOLUME,
--		.flags		= V4L2_CTRL_FLAG_DISABLED,
--	},
--	{
--		.id		= V4L2_CID_AUDIO_BALANCE,
--		.flags		= V4L2_CTRL_FLAG_DISABLED,
--	},
--	{
--		.id		= V4L2_CID_AUDIO_BASS,
--		.flags		= V4L2_CTRL_FLAG_DISABLED,
--	},
--	{
--		.id		= V4L2_CID_AUDIO_TREBLE,
--		.flags		= V4L2_CTRL_FLAG_DISABLED,
--	},
--	{
--		.id		= V4L2_CID_AUDIO_LOUDNESS,
--		.flags		= V4L2_CTRL_FLAG_DISABLED,
--	},
--};
--
- static int usb_amradio_probe(struct usb_interface *intf,
- 			     const struct usb_device_id *id);
- static void usb_amradio_disconnect(struct usb_interface *intf);
-@@ -160,6 +129,7 @@
- 	/* reference to USB and video device */
- 	struct usb_device *usbdev;
- 	struct video_device *videodev;
-+	struct v4l2_device v4l2_dev;
- 
- 	unsigned char *buffer;
- 	struct mutex lock;	/* buffer locking */
-@@ -332,6 +302,7 @@
- 
- 	usb_set_intfdata(intf, NULL);
- 	video_unregister_device(radio->videodev);
-+	v4l2_device_disconnect(&radio->v4l2_dev);
- }
- 
- /* vidioc_querycap - query device capabilities */
-@@ -466,14 +437,11 @@
- static int vidioc_queryctrl(struct file *file, void *priv,
- 				struct v4l2_queryctrl *qc)
- {
--	int i;
-+	switch (qc->id) {
-+	case V4L2_CID_AUDIO_MUTE:
-+		return v4l2_ctrl_query_fill(qc, 0, 1, 1, 1);
-+	}
- 
--	for (i = 0; i < ARRAY_SIZE(radio_qctrl); i++) {
--		if (qc->id && qc->id == radio_qctrl[i].id) {
--			memcpy(qc, &(radio_qctrl[i]), sizeof(*qc));
--			return 0;
--		}
--	}
- 	return -EINVAL;
- }
- 
-@@ -674,34 +642,29 @@
- 	.vidioc_s_input     = vidioc_s_input,
- };
- 
--static void usb_amradio_device_release(struct video_device *videodev)
-+static void usb_amradio_video_device_release(struct video_device *videodev)
- {
- 	struct amradio_device *radio = video_get_drvdata(videodev);
- 
- 	/* we call v4l to free radio->videodev */
- 	video_device_release(videodev);
- 
-+	v4l2_device_unregister(&radio->v4l2_dev);
-+
- 	/* free rest memory */
- 	kfree(radio->buffer);
- 	kfree(radio);
- }
--
--/* V4L2 interface */
--static struct video_device amradio_videodev_template = {
--	.name		= "AverMedia MR 800 USB FM Radio",
--	.fops		= &usb_amradio_fops,
--	.ioctl_ops 	= &usb_amradio_ioctl_ops,
--	.release	= usb_amradio_device_release,
--};
- 
- /* check if the device is present and register with v4l and usb if it is */
- static int usb_amradio_probe(struct usb_interface *intf,
- 				const struct usb_device_id *id)
- {
- 	struct amradio_device *radio;
-+	struct v4l2_device *v4l2_dev;
- 	int retval;
- 
--	radio = kmalloc(sizeof(struct amradio_device), GFP_KERNEL);
-+	radio = kzalloc(sizeof(struct amradio_device), GFP_KERNEL);
- 
- 	if (!radio) {
- 		dev_err(&intf->dev, "kmalloc for amradio_device failed\n");
-@@ -716,6 +679,15 @@
- 		return -ENOMEM;
- 	}
- 
-+	v4l2_dev = &radio->v4l2_dev;
-+	retval = v4l2_device_register(&intf->dev, v4l2_dev);
-+	if (retval < 0) {
-+		dev_err(&intf->dev, "couldn't register v4l2_device\n");
-+		kfree(radio->buffer);
-+		kfree(radio);
-+		return retval;
-+	}
-+
- 	radio->videodev = video_device_alloc();
- 
- 	if (!radio->videodev) {
-@@ -725,8 +697,11 @@
- 		return -ENOMEM;
- 	}
- 
--	memcpy(radio->videodev, &amradio_videodev_template,
--		sizeof(amradio_videodev_template));
-+	strlcpy(radio->videodev->name, v4l2_dev->name, sizeof(radio->videodev->name));
-+	radio->videodev->v4l2_dev = v4l2_dev;
-+	radio->videodev->fops = &usb_amradio_fops;
-+	radio->videodev->ioctl_ops = &usb_amradio_ioctl_ops;
-+	radio->videodev->release = usb_amradio_video_device_release;
- 
- 	radio->removed = 0;
- 	radio->users = 0;
-@@ -737,10 +712,12 @@
- 	mutex_init(&radio->lock);
- 
- 	video_set_drvdata(radio->videodev, radio);
-+
- 	retval = video_register_device(radio->videodev,	VFL_TYPE_RADIO,	radio_nr);
- 	if (retval < 0) {
- 		dev_err(&intf->dev, "could not register video device\n");
- 		video_device_release(radio->videodev);
-+		v4l2_device_unregister(v4l2_dev);
- 		kfree(radio->buffer);
- 		kfree(radio);
- 		return -EIO;
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
+--579715599-435502645-1238599624=:21921
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=pctv.h
+Content-Transfer-Encoding: BASE64
+Content-Description: 
+Content-Disposition: attachment; filename=pctv.h
 
+LyogRFZCIFVTQiBjb21wbGlhbnQgbGludXggZHJpdmVyIGZvciB0aGUgUGlu
+bmFjbGUgUENUViAyMDBlIERWQi1UIFVTQjIuMCByZWNlaXZlci4NCiAqDQog
+KiBDb3B5cmlnaHQgKEMpIDIwMDUgUGF0cmljayBCb2V0dGNoZXIgKHBhdHJp
+Y2suYm9ldHRjaGVyQGRlc3kuZGUpDQogKg0KICogIFRoaXMgcHJvZ3JhbSBp
+cyBmcmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQv
+b3IgbW9kaWZ5IGl0DQogKiAgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUg
+R2VuZXJhbCBQdWJsaWMgTGljZW5zZSBhcyBwdWJsaXNoZWQgYnkgdGhlIEZy
+ZWUNCiAqICBTb2Z0d2FyZSBGb3VuZGF0aW9uLCB2ZXJzaW9uIDIuDQogKg0K
+ICogc2VlIERvY3VtZW50YXRpb24vZHZiL1JFQURNRS5kdmItdXNiIGZvciBt
+b3JlIGluZm9ybWF0aW9uDQogKi8NCg0KI2lmbmRlZiBfRFZCX1VTQl9QQ1RW
+X0hfDQojZGVmaW5lIF9EVkJfVVNCX1BDVFZfSF8NCg0KI2RlZmluZSBEVkJf
+VVNCX0xPR19QUkVGSVggInBjdHYiDQojaW5jbHVkZSAiZHZiLXVzYi5oIg0K
+DQpleHRlcm4gaW50IGR2Yl91c2JfcGN0dl9kZWJ1ZzsNCiNkZWZpbmUgZGVi
+X2luZm8oYXJncy4uLikgICBkcHJpbnRrKGR2Yl91c2JfcGN0dl9kZWJ1Zyww
+eDAxLGFyZ3MpDQoNCiNkZWZpbmUgQ01EX0kyQ19XUklURSAgMHgwMQ0KLyog
+b3V0OiA8YWRkciA8PCAxPiA8b2xlbj4gPGJ1Zj5bb2xlbl0NCiAqICBpbjog
+MHgwMCAqLw0KDQojZGVmaW5lIENNRF9JMkNfUkVBRCAgIDB4MDINCi8qIG91
+dDogPGFkZHIgPDwgMT4gPG9sZW4+IDxpbGVuPiA8YnVmPltvbGVuXQ0KICog
+IGluOiAweDAwIDxidWY+W2lsZW5dICovDQoNCiNkZWZpbmUgQ01EX0dQSU9f
+VFVORVIgMHgxNg0KLyogb3V0OiA8b25vZmY+DQogKiAgaW46IDB4MDAgKi8N
+Cg0KLy8jZGVmaW5lIENNRF9TVFJFQU1JTkcgIDB4MTgNCi8qIG91dDogPG9u
+b2ZmPg0KICogIGluOiAweDAwICovDQoNCg0KI2VuZGlmDQo=
 
--- 
-Best regards, Klimov Alexey
+--579715599-435502645-1238599624=:21921
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=pctv.c
+Content-Transfer-Encoding: BASE64
+Content-Description: 
+Content-Disposition: attachment; filename=pctv.c
 
+LyogRFZCIFVTQiBjb21wbGlhbnQgbGludXggZHJpdmVyIGZvciB0aGUgUGlu
+bmFjbGUgUENUViAyMDBlIERWQi1UIFVTQjIuMCByZWNlaXZlci4NCiAqDQog
+KiBDb3B5cmlnaHQgKEMpIDIwMDUgUGF0cmljayBCb2V0dGNoZXIgKHBhdHJp
+Y2suYm9ldHRjaGVyQGRlc3kuZGUpDQogKg0KICoJVGhpcyBwcm9ncmFtIGlz
+IGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9v
+ciBtb2RpZnkgaXQNCiAqCXVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdl
+bmVyYWwgUHVibGljIExpY2Vuc2UgYXMgcHVibGlzaGVkIGJ5IHRoZSBGcmVl
+DQogKglTb2Z0d2FyZSBGb3VuZGF0aW9uLCB2ZXJzaW9uIDIuDQogKg0KICog
+c2VlIERvY3VtZW50YXRpb24vZHZiL1JFQURNRS5kdmItdXNiIGZvciBtb3Jl
+IGluZm9ybWF0aW9uDQogKi8NCiNpbmNsdWRlICJwY3R2LmgiDQoNCiNpbmNs
+dWRlICJtdDM1Mi5oIg0KDQovKiBkZWJ1ZyAqLw0KaW50IGR2Yl91c2JfcGN0
+dl9kZWJ1ZzsNCm1vZHVsZV9wYXJhbV9uYW1lZChkZWJ1ZyxkdmJfdXNiX3Bj
+dHZfZGVidWcsIGludCwgMDY0NCk7DQpNT0RVTEVfUEFSTV9ERVNDKGRlYnVn
+LCAic2V0IGRlYnVnZ2luZyBsZXZlbCAoMT1kZWJ1ZyAob3ItYWJsZSkpLiIg
+RFZCX1VTQl9ERUJVR19TVEFUVVMpOw0KDQpzdGF0aWMgaW50IHBjdHZfbXNn
+KHN0cnVjdCBkdmJfdXNiX2RldmljZSAqZCwgdTggY21kLA0KCQl1OCAqd2J1
+ZiwgaW50IHdsZW4sIHU4ICpyYnVmLCBpbnQgcmxlbikNCnsNCglpbnQgcmV0
+Ow0KCXU4IHNuZGJ1Zlt3bGVuKzFdLA0KCSAgIHJjdmJ1ZltybGVuKzJdOw0K
+CW1lbXNldChzbmRidWYsMCx3bGVuKzEpOw0KDQoJc25kYnVmWzBdID0gY21k
+Ow0KCW1lbWNweSgmc25kYnVmWzFdLHdidWYsd2xlbik7DQoNCglpZiAoKHJl
+dCA9IGR2Yl91c2JfZ2VuZXJpY19ydyhkLHNuZGJ1Zix3bGVuKzEscmN2YnVm
+LHJsZW4rMiwwKSkgPCAwKQ0KCQlyZXR1cm4gcmV0Ow0KDQoJaWYgKHJjdmJ1
+ZlswXSAhPSBzbmRidWZbMF0gfHwNCgkJcmN2YnVmWzFdICE9IDB4MDApDQoJ
+CWVycigicHJvYmFibHkgYSB4ZmVyIGVycm9yIik7DQoNCgltZW1jcHkocmJ1
+ZiwmcmN2YnVmWzJdLHJsZW4pOw0KDQoJaWYgKHJsZW4gPiAwKQ0KCQlkZWJf
+aW5mbygicmJ1ZlswXTogJXgsIHJsZW46ICVkXG4iLHJidWZbMF0scmxlbik7
+DQoNCglyZXR1cm4gMDsNCn0NCg0Kc3RhdGljIGludCBwY3R2X2kyY194ZmVy
+KHN0cnVjdCBpMmNfYWRhcHRlciAqYWRhcCxzdHJ1Y3QgaTJjX21zZyBtc2db
+XSxpbnQgbnVtKQ0Kew0KCXN0cnVjdCBkdmJfdXNiX2RldmljZSAqZCA9IGky
+Y19nZXRfYWRhcGRhdGEoYWRhcCk7DQoJc3RhdGljIHU4IG9idWZbMjU1XTsN
+CglpbnQgaSxyZWFkOzsNCg0KCWlmIChkb3duX2ludGVycnVwdGlibGUoJmQt
+PmkyY19zZW0pIDwgMCkNCgkJcmV0dXJuIC1FQUdBSU47DQoNCglpZiAobnVt
+ID4gMikNCgkJd2FybigibW9yZSB0aGFuIDIgaTJjIG1lc3NhZ2VzIGF0IGEg
+dGltZSBpcyBub3QgaGFuZGxlZCB5ZXQuIFRPRE8uIik7DQoNCglmb3IgKGkg
+PSAwOyBpIDwgbnVtOyBpKyspIHsNCgkJcmVhZCA9IGkrMSA8IG51bSAmJiAo
+bXNnW2krMV0uZmxhZ3MgJiBJMkNfTV9SRCk7DQoNCgkJb2J1ZlswXSA9IG1z
+Z1tpXS5hZGRyIDw8IDE7DQoJCW9idWZbMV0gPSBtc2dbaV0ubGVuOw0KDQoJ
+CS8qIHJlYWQgcmVxdWVzdCAqLw0KCQlpZiAocmVhZCkNCgkJCW9idWZbMl0g
+PSBtc2dbaSsxXS5sZW47DQoNCgkJbWVtY3B5KCZvYnVmWzIrcmVhZF0sbXNn
+W2ldLmJ1Zixtc2dbaV0ubGVuKTsNCg0KCQlpZiAocmVhZCkNCgkJCXBjdHZf
+bXNnKGQsQ01EX0kyQ19SRUFELG9idWYsbXNnW2ldLmxlbiszLG1zZ1tpKzFd
+LmJ1Zixtc2dbaSsxXS5sZW4pOw0KCQllbHNlDQoJCQlwY3R2X21zZyhkLENN
+RF9JMkNfV1JJVEUsb2J1Zixtc2dbaV0ubGVuKzIsTlVMTCwwKTsNCg0KCQlp
+ICs9IHJlYWQ7DQoNCgl9DQoNCgl1cCgmZC0+aTJjX3NlbSk7DQoJcmV0dXJu
+IGk7DQp9DQoNCnN0YXRpYyB1MzIgcGN0dl9pMmNfZnVuYyhzdHJ1Y3QgaTJj
+X2FkYXB0ZXIgKmFkYXB0ZXIpDQp7DQoJcmV0dXJuIEkyQ19GVU5DX0kyQzsN
+Cn0NCg0Kc3RhdGljIHN0cnVjdCBpMmNfYWxnb3JpdGhtIHBjdHZfaTJjX2Fs
+Z28gPSB7DQoJLm5hbWUgICAgICAgICAgPSAiUGlubmFjbGUgUENUViBVU0Ig
+STJDIGFsZ29yaXRobSIsDQoJLmlkICAgICAgICAgICAgPSBJMkNfQUxHT19C
+SVQsDQoJLm1hc3Rlcl94ZmVyICAgPSBwY3R2X2kyY194ZmVyLA0KCS5mdW5j
+dGlvbmFsaXR5ID0gcGN0dl9pMmNfZnVuYywNCn07DQoNCi8qIEdQSU8gKi8N
+CnN0YXRpYyB2b2lkIHBjdHZfZ3Bpb190dW5lcihzdHJ1Y3QgZHZiX3VzYl9k
+ZXZpY2UgKmQsIGludCBvbm9mZikNCnsNCi8vc3RydWN0IGN4dXNiX3N0YXRl
+ICpzdCA9IGQtPnByaXY7DQoJdTggbzsNCg0KLy8JaWYgKHN0LT5ncGlvX3dy
+aXRlX3N0YXRlW0dQSU9fVFVORVJdID09IG9ub2ZmKQ0KLy8JCXJldHVybjsN
+Cg0KCW8gPSBvbm9mZjsNCglwY3R2X21zZyhkLENNRF9HUElPX1RVTkVSLCZv
+LDEsTlVMTCwwKTsNCn0NCg0Kc3RhdGljIGludCBwY3R2X3Bvd2VyX2N0cmwo
+c3RydWN0IGR2Yl91c2JfZGV2aWNlICpkLCBpbnQgb25vZmYpDQp7DQoJcmV0
+dXJuIDA7DQp9DQoNCnN0YXRpYyBpbnQgcGN0dl9zdHJlYW1pbmdfY3RybChz
+dHJ1Y3QgZHZiX3VzYl9kZXZpY2UgKmQsIGludCBvbm9mZikNCnsNCglyZXR1
+cm4gMDsNCn0NCg0Kc3RhdGljIGludCBwY3R2X210MzUyX2RlbW9kX2luaXQo
+c3RydWN0IGR2Yl9mcm9udGVuZCAqZmUpDQp7DQoJc3RhdGljIHU4IHJlc2V0
+X2J1ZltdID0geyAweDg5LCAweGJkLCAgMHg4YSwgMHgyOCwgMHg1MCwgMHg4
+MCB9Ow0KCXN0YXRpYyB1OCBpbml0X2J1ZltdID0geyAweDUwLCAweDAwLCAw
+eDhlLCAweDQwLCAgMHg1NiwgMHgzMSwgMHg1NywgMHhiNSwNCgkJMHg4Yiwg
+MHgwOSwgMHg4OCwgMHgwZCwgMHg3YiwgMHgwNCwgMHg1MywgMHhmNCwgMHg1
+ZSwgMHgwMSwgMHg1NCwNCgkJMHg3MywgMHg1NSwgMHgxYywgMHg3NSwgMHgz
+MCwgMHg2NywgMHgxYywgMHg2NywgMHgwMCB9Ow0KCWludCBpOw0KDQoJZm9y
+IChpID0gMDsgaSA8IEFSUkFZX1NJWkUocmVzZXRfYnVmKTsgaSArPSAyKQ0K
+CQltdDM1Ml93cml0ZShmZSwgJnJlc2V0X2J1ZltpXSwgMik7DQoNCgltc2xl
+ZXAoMSk7DQoNCglmb3IgKGkgPSAwOyBpIDwgQVJSQVlfU0laRShpbml0X2J1
+Zik7IGkgKz0gMikNCgkJbXQzNTJfd3JpdGUoZmUsICZpbml0X2J1ZltpXSwg
+Mik7DQoNCglyZXR1cm4gMDsNCn0NCg0Kc3RhdGljIHN0cnVjdCBtdDM1Ml9j
+b25maWcgcGN0dl9tdDM1Ml9jb25maWcgPSB7DQoJLmRlbW9kX2FkZHJlc3Mg
+PSAweDFmLA0KDQoJLmRlbW9kX2luaXQgPSBwY3R2X210MzUyX2RlbW9kX2lu
+aXQsDQoNCi8vLnBsbF9pbml0ID0gTlVMTCwgLyogaXQnbGwgYmUgbXQyMDYw
+X2luaXQgKi8NCgkucGxsX3NldCA9IGR2Yl91c2JfcGxsX3NldCwgLyogcHJv
+YmFibHkgbm90LCBpdCdzIHJhdGhlciBtdDIwNjBfc2V0ICovDQp9Ow0KDQov
+KiBDYWxsYmFja3MgZm9yIERWQiBVU0IgKi8NCnN0YXRpYyBpbnQgcGN0dl90
+dW5lcl9hdHRhY2goc3RydWN0IGR2Yl91c2JfZGV2aWNlICpkKQ0Kew0KCXU4
+IGJwbGxbNF0gPSB7IDB4MGIsIDB4ZGMsIDB4OWMsIDB4YTAgfTsNCglkLT5w
+bGxfYWRkciA9IDB4NjE7DQoJbWVtY3B5KGQtPnBsbF9pbml0LGJwbGwsNCk7
+DQoJZC0+cGxsX2Rlc2MgPSAmZHZiX3BsbF9mbWQxMjE2bWU7DQoJcmV0dXJu
+IDA7DQp9DQoNCnN0YXRpYyBpbnQgcGN0dl9mcm9udGVuZF9hdHRhY2goc3Ry
+dWN0IGR2Yl91c2JfZGV2aWNlICpkKQ0Kew0KCXU4IG89MCxpPTA7DQoNCglw
+Y3R2X21zZyhkLDB4MTAsJm8sMSwmaSwxKTsNCg0KCXBjdHZfbXNnKGQsMHgx
+NSxOVUxMLDAsTlVMTCwwKTsNCg0KCXBjdHZfZ3Bpb190dW5lcihkLCAwKTsN
+CglpZiAoKGQtPmZlID0gbXQzNTJfYXR0YWNoKCZwY3R2X210MzUyX2NvbmZp
+ZywgJmQtPmkyY19hZGFwKSkgIT0gTlVMTCkNCgkJcmV0dXJuIDA7DQoNCgly
+ZXR1cm4gLUVJTzsNCn0NCg0KLyogRFZCIFVTQiBEcml2ZXIgc3R1ZmYgKi8N
+CnN0YXRpYyBzdHJ1Y3QgZHZiX3VzYl9wcm9wZXJ0aWVzIHBjdHZfcHJvcGVy
+dGllczsNCg0Kc3RhdGljIGludCBwY3R2X3Byb2JlKHN0cnVjdCB1c2JfaW50
+ZXJmYWNlICppbnRmLA0KCQljb25zdCBzdHJ1Y3QgdXNiX2RldmljZV9pZCAq
+aWQpDQp7DQoJcmV0dXJuIGR2Yl91c2JfZGV2aWNlX2luaXQoaW50ZiwmcGN0
+dl9wcm9wZXJ0aWVzLFRISVNfTU9EVUxFLE5VTEwpOw0KfQ0KDQpzdGF0aWMg
+c3RydWN0IHVzYl9kZXZpY2VfaWQgcGN0dl90YWJsZSBbXSA9IHsNCgkJeyBV
+U0JfREVWSUNFKFVTQl9WSURfUElOTkFDTEUsIFVTQl9QSURfUENUVl8yMDBF
+KSB9LA0KCQl7fQkJLyogVGVybWluYXRpbmcgZW50cnkgKi8NCn07DQpNT0RV
+TEVfREVWSUNFX1RBQkxFICh1c2IsIHBjdHZfdGFibGUpOw0KDQpzdGF0aWMg
+c3RydWN0IGR2Yl91c2JfcHJvcGVydGllcyBwY3R2X3Byb3BlcnRpZXMgPSB7
+DQoJLmNhcHMgPSBEVkJfVVNCX0lTX0FOX0kyQ19BREFQVEVSLA0KDQoJLnNp
+emVfb2ZfcHJpdiAgICAgPSAwLA0KDQoJLnN0cmVhbWluZ19jdHJsICAgPSBw
+Y3R2X3N0cmVhbWluZ19jdHJsLA0KCS5wb3dlcl9jdHJsICAgICAgID0gcGN0
+dl9wb3dlcl9jdHJsLA0KCS5mcm9udGVuZF9hdHRhY2ggID0gcGN0dl9mcm9u
+dGVuZF9hdHRhY2gsDQoJLnR1bmVyX2F0dGFjaCAgICAgPSBwY3R2X3R1bmVy
+X2F0dGFjaCwNCg0KCS5pMmNfYWxnbyAgICAgICAgID0gJnBjdHZfaTJjX2Fs
+Z28sDQoNCgkuZ2VuZXJpY19idWxrX2N0cmxfZW5kcG9pbnQgPSAweDAxLA0K
+CS8qIHBhcmFtZXRlciBmb3IgdGhlIE1QRUcyLWRhdGEgdHJhbnNmZXIgKi8N
+CgkudXJiID0gew0KCQkudHlwZSA9IERWQl9VU0JfQlVMSywNCgkJLmNvdW50
+ID0gNywNCgkJLmVuZHBvaW50ID0gMHgwMiwNCgkJLnUgPSB7DQoJCQkuYnVs
+ayA9IHsNCgkJCQkuYnVmZmVyc2l6ZSA9IDQwOTYsDQoJCQl9DQoJCX0NCgl9
+LA0KDQoJLm51bV9kZXZpY2VfZGVzY3MgPSAxLA0KCS5kZXZpY2VzID0gew0K
+CQl7ICAgIlBpbm5hY2xlIDIwMGUgRFZCLVQgVVNCMi4wIiwNCgkJCXsgTlVM
+TCB9LA0KCQkJeyAmcGN0dl90YWJsZVswXSwgTlVMTCB9LA0KCQl9LA0KCX0N
+Cn07DQoNCnN0YXRpYyBzdHJ1Y3QgdXNiX2RyaXZlciBwY3R2X2RyaXZlciA9
+IHsNCgkub3duZXIJCT0gVEhJU19NT0RVTEUsDQoJLm5hbWUJCT0gInBjdHZf
+MjAwZSIsDQoJLnByb2JlCQk9IHBjdHZfcHJvYmUsDQoJLmRpc2Nvbm5lY3Qg
+PSBkdmJfdXNiX2RldmljZV9leGl0LA0KCS5pZF90YWJsZQk9IHBjdHZfdGFi
+bGUsDQp9Ow0KDQovKiBtb2R1bGUgc3R1ZmYgKi8NCnN0YXRpYyBpbnQgX19p
+bml0IHBjdHZfbW9kdWxlX2luaXQodm9pZCkNCnsNCglpbnQgcmVzdWx0Ow0K
+CWlmICgocmVzdWx0ID0gdXNiX3JlZ2lzdGVyKCZwY3R2X2RyaXZlcikpKSB7
+DQoJCWVycigidXNiX3JlZ2lzdGVyIGZhaWxlZC4gRXJyb3IgbnVtYmVyICVk
+IixyZXN1bHQpOw0KCQlyZXR1cm4gcmVzdWx0Ow0KCX0NCg0KCXJldHVybiAw
+Ow0KfQ0KDQpzdGF0aWMgdm9pZCBfX2V4aXQgcGN0dl9tb2R1bGVfZXhpdCh2
+b2lkKQ0Kew0KCS8qIGRlcmVnaXN0ZXIgdGhpcyBkcml2ZXIgZnJvbSB0aGUg
+VVNCIHN1YnN5c3RlbSAqLw0KCXVzYl9kZXJlZ2lzdGVyKCZwY3R2X2RyaXZl
+cik7DQp9DQoNCm1vZHVsZV9pbml0IChwY3R2X21vZHVsZV9pbml0KTsNCm1v
+ZHVsZV9leGl0IChwY3R2X21vZHVsZV9leGl0KTsNCg0KTU9EVUxFX0FVVEhP
+UigiUGF0cmljayBCb2V0dGNoZXIgPHBhdHJpY2suYm9ldHRjaGVyQGRlc3ku
+ZGU+Iik7DQpNT0RVTEVfREVTQ1JJUFRJT04oIkRyaXZlciBmb3IgUGlubmFj
+bGUgMjAwZSBEVkItVCBVU0IyLjAgcmVjZWl2ZXIiKTsNCk1PRFVMRV9WRVJT
+SU9OKCIxLjAtYWxwaGEiKTsNCk1PRFVMRV9MSUNFTlNFKCJHUEwiKTsNCg==
+
+--579715599-435502645-1238599624=:21921--
