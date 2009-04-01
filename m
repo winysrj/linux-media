@@ -1,24 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.viadmin.org ([195.145.128.101])
+Received: from mail21.extendcp.co.uk ([79.170.40.21])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <henrik-dvb@prak.org>) id 1Lt3tM-0007tn-2I
-	for linux-dvb@linuxtv.org; Sun, 12 Apr 2009 19:54:53 +0200
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by www.viadmin.org (Postfix) with ESMTP id 120C71860B
-	for <linux-dvb@linuxtv.org>; Sun, 12 Apr 2009 19:54:18 +0200 (CEST)
-Received: from www.viadmin.org ([127.0.0.1])
-	by localhost (www.viadmin.org [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id EzDUKbbKKtuf for <linux-dvb@linuxtv.org>;
-	Sun, 12 Apr 2009 19:53:53 +0200 (CEST)
-Date: Sun, 12 Apr 2009 19:53:53 +0200
-From: "H. Langos" <henrik-dvb@prak.org>
+	(envelope-from <mailing-lists@enginuities.com>) id 1Lp0i3-0006YG-Th
+	for linux-dvb@linuxtv.org; Wed, 01 Apr 2009 15:42:29 +0200
+Received: from 220-244-237-138-qld-pppoe.tpgi.com.au ([220.244.237.138]
+	helo=cobra.localnet) by mail21.extendcp.com with esmtpa (Exim 4.63)
+	id 1Lp0hz-0004Q9-NV
+	for linux-dvb@linuxtv.org; Wed, 01 Apr 2009 14:42:24 +0100
+From: Stuart <mailing-lists@enginuities.com>
 To: linux-dvb@linuxtv.org
-Message-ID: <20090412175352.GC12581@www.viadmin.org>
-References: <20090411221740.GB12581@www.viadmin.org>
+Date: Thu, 2 Apr 2009 00:43:47 +1100
+References: <200903140506.00723.mailing-lists@enginuities.com>
+	<49D23920.5010903@iki.fi> <49D24315.8020107@iki.fi>
+In-Reply-To: <49D24315.8020107@iki.fi>
 MIME-Version: 1.0
 Content-Disposition: inline
-In-Reply-To: <20090411221740.GB12581@www.viadmin.org>
-Subject: Re: [linux-dvb] DVB-T USB dib0700 device recomendations?
+Message-Id: <200904020043.48389.mailing-lists@enginuities.com>
+Subject: Re: [linux-dvb] Patch for DigitalNow TinyTwin remote.
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -33,77 +31,112 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, Apr 12, 2009 at 12:17:40AM +0200, H. Langos wrote:
-> I've been trying to minimize energy consumption and noise on my vdr system.
-> One of the most important factors apart from a hardware pid filter seems to
-> be the usb buffer size. I've collected some data about that on my wiki user 
-> page: http://www.linuxtv.org/wiki/index.php/User:Hlangos
-> 
-> Greping through the sources I've seen that the dib0700 driver uses a HUGE
-> usb buffer of 39480 bytes. This looks very promising. But before running 
-> out in the street and buying the first dib0700 device I'd like to know if 
-> there are any devices that are 
-> 
-> - especially good (sensitive reception, fast switch time, sensible tuner 
->   data (usable for comparing different antennas) and so on)
-> 
-> or 
-> 
-> - especially bad (invers of the above plus hardware bugs, annoyances and so
->   on..)
-> 
-> any feedback is appreciated. 
-> 
-> cheers
-> -henrik
-> 
-> PS: A "full" remote (not one of those pesky credit card sized things that get 
-> eaten by the hoover) would be a plus. 
+> But the reason I pressure you is that merge window for 2.6.30 is open
+> only few days. After that we cannot put new code / functionality until
+> 2.6.31 opens and it is very many months from that day.
+>
+> 1.) I suggest that you make very small patch adding basic support for
+> TinyTwin remote (mainly add device IDs to same places as TwinHan).
 
-Just to remind ppl what the dib0700 driver supports:
+There are two patches in my last email which I believe achieve this. One simply 
+removes the if statement so that the AzureWave IR tables are assigned for the 
+TinyTwin. The other adds the TinyTwin to the HID ignore list so that there are 
+no repeat key presses. I've included them at the end of this email as well.
 
-# grep "{   \"" dib0700_devices.c | sort
-                        {   "Artec T14BR DVB-T",
-                        {   "Asus My Cinema-U3000Hybrid",
-                        {   "ASUS My Cinema U3000 Mini DVBT Tuner",
-                        {   "ASUS My Cinema U3100 Mini DVBT Tuner",
-                        {   "AVerMedia AVerTV DVB-T Express",
-                        {   "AVerMedia AVerTV DVB-T Volar",
-                        {   "Compro Videomate U500",
-                        {   "DiBcom STK7070PD reference design",
-                        {   "DiBcom STK7070P reference design",
-                        {   "DiBcom STK7700D reference design",
-                        {   "DiBcom STK7700P reference design",
-                        {   "Gigabyte U7000",
-                        {   "Gigabyte U8000-RH",
-                        {   "Hauppauge Nova-T 500 Dual DVB-T",
-                        {   "Hauppauge Nova-TD-500 (84xxx)",
-                        {   "Hauppauge Nova-TD Stick (52009)",
-                        {   "Hauppauge Nova-TD Stick/Elgato Eye-TV Diversity",
-                        {   "Hauppauge Nova-T MyTV.t",
-                        {   "Hauppauge Nova-T Stick",
-                        {   "Hauppauge Nova-T Stick",
-                        {   "Leadtek Winfast DTV Dongle (STK7700P based)",
-                        {   "Pinnacle Expresscard 320cx",
-                        {   "Pinnacle PCTV 2000e",
-                        {   "Pinnacle PCTV 72e",
-                        {   "Pinnacle PCTV 73e",
-                        {   "Pinnacle PCTV Dual DVB-T Diversity Stick",
-                        {   "Pinnacle PCTV DVB-T Flash Stick",
-                        {   "Pinnacle PCTV HD Pro USB Stick",
-                        {   "Pinnacle PCTV HD USB Stick",
-                        {   "Terratec Cinergy DT XS Diversity",
-                        {   "Terratec Cinergy HT Express",
-                        {   "Terratec Cinergy HT USB XE",
-                        {   "Terratec Cinergy T Express",
-                        {   "Terratec Cinergy T USB XXS",
-                        {   "Uniwill STK7700P based (Hama and others)",
-                        {   "Yuan EC372S",
-                        {   "YUAN High-Tech STK7700PH",
+> 2.) Make other patch *later* that fix repeating issue. This one can be
+> added to the  2.6.30 later (there many release candidates in next
+> months) as bug fix.
 
-cheers
--henrik
+I've been looking through usb sniffs when plugging the TinyTwin in and can't see 
+much that's different. There's a slight difference in the first 4 bytes of each 
+packet sent for the firmware, for example the first packet for each:
+
+Linux:   00 51 00 00
+Windows: 38 51 00 c0
+
+The IR table download is also sent slightly differently, in Linux it's:
+
+21 .. 00 9a 56 00 00 01 00
+
+from
+
+struct req_t req = {WRITE_MEMORY, 0, 0, 0, 0, 1, NULL};
+req.addr = 0x9a56
+
+While Windows is:
+
+21 .. 38 9a 56 4e 80 01 00
+
+which would be
+
+struct req_t req = {WRITE_MEMORY, AF9015_I2C_DEMOD, 0, 4e, 80, 1, NULL};
+req.addr = 0x9a56
+
+I'm not sure what req.mbox = 0x4e or req.addr_len = 0x80 mean.
+
+There are also a few addresses either different or missing (0xd508, 0xd73a, 
+0xaeff, ...) in various . I'm not sure if any of them could have anything to do 
+with how the IR behaves...
+
+I'll try and check these to see if they make any difference when I get a chance.
+
+Regards,
+
+Stuart
+
+af9015-b0ba0a6dfca1_tinytwin_remote.patch:
+--- orig/drivers/media/dvb/dvb-usb/af9015.c	2009-03-31 07:57:51.000000000 +1100
++++ new/drivers/media/dvb/dvb-usb/af9015.c	2009-03-31 11:44:16.000000000 +1100
+@@ -785,17 +785,14 @@ static int af9015_read_config(struct usb
+ 				  ARRAY_SIZE(af9015_ir_table_leadtek);
+ 				break;
+ 			case USB_VID_VISIONPLUS:
+-				if (udev->descriptor.idProduct ==
+-				cpu_to_le16(USB_PID_AZUREWAVE_AD_TU700)) {
+-					af9015_properties[i].rc_key_map =
+-					  af9015_rc_keys_twinhan;
+-					af9015_properties[i].rc_key_map_size =
+-					  ARRAY_SIZE(af9015_rc_keys_twinhan);
+-					af9015_config.ir_table =
+-					  af9015_ir_table_twinhan;
+-					af9015_config.ir_table_size =
+-					  ARRAY_SIZE(af9015_ir_table_twinhan);
+-				}
++				af9015_properties[i].rc_key_map =
++				  af9015_rc_keys_twinhan;
++				af9015_properties[i].rc_key_map_size =
++				  ARRAY_SIZE(af9015_rc_keys_twinhan);
++				af9015_config.ir_table =
++				  af9015_ir_table_twinhan;
++				af9015_config.ir_table_size =
++				  ARRAY_SIZE(af9015_ir_table_twinhan);
+ 				break;
+ 			case USB_VID_KWORLD_2:
+ 				/* TODO: use correct rc keys */
+
+kernel-2.6.29_tinytwin_remote_patch.diff:
+--- orig/drivers/hid/hid-core.c	2009-03-24 10:12:14.000000000 +1100
++++ new/drivers/hid/hid-core.c	2009-03-31 15:08:13.000000000 +1100
+@@ -1629,6 +1629,7 @@ static const struct hid_device_id hid_ig
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_WISEGROUP, USB_DEVICE_ID_1_PHIDGETSERVO_20) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_WISEGROUP, USB_DEVICE_ID_8_8_4_IF_KIT) },
+ 	{ HID_USB_DEVICE(USB_VENDOR_ID_YEALINK, USB_DEVICE_ID_YEALINK_P1K_P4K_B2K) },
++	{ HID_USB_DEVICE(USB_VENDOR_ID_DIGITALNOW, USB_DEVICE_ID_DIGITALNOW_TINYTWIN) 
+},
+ 	{ }
+ };
  
+--- orig/drivers/hid/hid-ids.h	2009-03-24 10:12:14.000000000 +1100
++++ new/drivers/hid/hid-ids.h	2009-03-31 15:09:05.000000000 +1100
+@@ -420,4 +420,7 @@
+ #define USB_VENDOR_ID_KYE		0x0458
+ #define USB_DEVICE_ID_KYE_GPEN_560	0x5003
+ 
++#define USB_VENDOR_ID_DIGITALNOW	0x13d3
++#define USB_DEVICE_ID_DIGITALNOW_TINYTWIN	0x3226
++
+ #endif
+
 
 _______________________________________________
 linux-dvb users mailing list
