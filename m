@@ -1,110 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:46543 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755138AbZDIQzg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2009 12:55:36 -0400
-Received: by fxm2 with SMTP id 2so684541fxm.37
-        for <linux-media@vger.kernel.org>; Thu, 09 Apr 2009 09:55:34 -0700 (PDT)
+Received: from mail-ew0-f165.google.com ([209.85.219.165]:39570 "EHLO
+	mail-ew0-f165.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750927AbZDAUEA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Apr 2009 16:04:00 -0400
+Received: by ewy9 with SMTP id 9so231700ewy.37
+        for <linux-media@vger.kernel.org>; Wed, 01 Apr 2009 13:03:57 -0700 (PDT)
+Message-ID: <49D3C815.6000004@gmail.com>
+Date: Wed, 01 Apr 2009 13:01:25 -0700
+From: Alan Nisota <alannisota@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <49DE27CB.6080600@linuxtv.org>
-References: <49DE0891.9010506@yahoo.gr>
-	 <412bdbff0904090839v43772f6dk7f2ac47ef417f45f@mail.gmail.com>
-	 <20090409124810.6c9f73bb@pedra.chehab.org>
-	 <d9def9db0904090852v63b71413r616369babeff1d95@mail.gmail.com>
-	 <49DE2226.7030406@linuxtv.org>
-	 <d9def9db0904090932o4438902bt83d303f0853e5e11@mail.gmail.com>
-	 <49DE27CB.6080600@linuxtv.org>
-Date: Thu, 9 Apr 2009 18:55:34 +0200
-Message-ID: <d9def9db0904090955n1e487f0dof534daad9e49ef2e@mail.gmail.com>
-Subject: Re: Multiple em28xx devices
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Steven Toth <stoth@linuxtv.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>,
-	rvf16 <rvf16@yahoo.gr>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Patrick Boettcher <patrick.boettcher@desy.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Remove support for Genpix-CW3K (damages hardware)
+References: <49D2338C.7040703@gmail.com> <alpine.LRH.1.10.0904010934590.21921@pub4.ifh.de>
+In-Reply-To: <alpine.LRH.1.10.0904010934590.21921@pub4.ifh.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 9, 2009 at 6:52 PM, Steven Toth <stoth@linuxtv.org> wrote:
-> Markus Rechberger wrote:
->>
->> On Thu, Apr 9, 2009 at 6:28 PM, Steven Toth <stoth@linuxtv.org> wrote:
->>>
->>> Markus Rechberger wrote:
->>>>
->>>> On Thu, Apr 9, 2009 at 5:48 PM, Mauro Carvalho Chehab
->>>> <mchehab@infradead.org> wrote:
->>>>>
->>>>> On Thu, 9 Apr 2009 11:39:47 -0400
->>>>> Devin Heitmueller <devin.heitmueller@gmail.com> wrote:
->>>>>
->>>>>> 2009/4/9 rvf16 <rvf16@yahoo.gr>:
->>>>>>>
->>>>>>> So does the upstream driver support all the rest ?
->>>>>>> Analog TV
->>>>>>
->>>>>> Yes
->>>>>>
->>>>>>> FM radio
->>>>>>
->>>>>> No
->>>>>
->>>>> Yes, it does support FM radio, provided that you proper add radio
->>>>> specific
->>>>> configuration at em28xx-cards.c.
->>>>>
->>>> I plan to add support for it to the existing kerneldriver anyway, but
->>>> by using userspace drivers.
->>>> Those drivers are just ontop of everything and no changes are required
->>>> for the existing drivers.
->>>>
->>>> I'll just intercept all the calls as I do right now already with the
->>>> latest device. I ported the entire configuration framework to userland
->>>> and it also works on Apple OSX without any change. I'm just using
->>>> usbfs for it, PCI config support is possible by using libpci or
->>>> opening the corresponding node in the proc filesystem too. This time
->>>> there's nothing you can do against it since it requires no change as
->>>> it is.
->>>
->>> Userspace drivers won't be accepted but it's not worth re-opening that
->>> old
->>> wound - especially since I haven't followed this specific thread.
->>>
->>
->> no problem, as I wrote it sits ontop of everything not needing any kernel
->> hooks.
+Patrick Boettcher wrote:
+> Hi Alan,
 >
-> That's fine, if it's not derived then I have no problem with you keeping
-> control over your own code.
+> Don't you think it is enough to put a Kconfig option to activate the 
+> USB-IDs (by default: off) rather than throwing everything away?
 >
+We could, but honestly, there are likely few people using this device 
+who don't have to patch their kernel anyway, and it is a trivial patch 
+to apply.  There have been 4 incarnations of the CW3K as the 
+manufacturer has tried to actively make it not work in Linux (and users 
+have found ways around that for each subsequent revision).  When I 
+created the patch, I was not aware that the developer would take this 
+stance.  Only the 1st batch of devices works with the existing code, and 
+I'm not aware of any way to detect the device version. 
 
-this is the difference with the latest drivers. Noone depends on
-anyone anymore, while
-it will still add fully working support out of linuxtv available
-through nearly all kernelversions
-without having to recompile them.
+Given the manufacturer's stance and the potential to unknowingly damage 
+the device (I've been informed that the manufacturer has stated that use 
+of the Linux drivers with the CW3K will void any manufacturer's 
+warranty), I would rather remove support for this piece of hardware 
+outright.  I believe the manufacturer still supports the 8PSK->USB and 
+Skywalker1 versions of the hardware on Linux (plus a new Skywalker2 
+which requires a kernel patch to enable).
 
->>
->>> I _am_ interested in the fact that you've ported GPL code (frameworks
->>> and/or
->>> drivers) to Apple, creating derived works.
->>>
->>
->> hehe, I did not touch any GPL code.
->>
->>> Obviously you'll need to make those changes to the community. Where can I
->>> download these?
->>
->> The framework will be opened when it's time to be opened, right now
->> it's only available to interested developers.
->
-> Ahh, if it's not GPL code (or derived from GPL) then I'm not interested in
-> it, and I'm not interested in paying you for access.
->
 
-good.
-
-Markus
