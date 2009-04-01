@@ -1,195 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-13.arcor-online.net ([151.189.21.53]:53126 "EHLO
-	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752561AbZDES5u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Apr 2009 14:57:50 -0400
-Subject: Re: Kernel 2.6.29 breaks DVB-T ASUSTeK Tiger LNA Hybrid
-	Capture	Device
-From: hermann pitton <hermann-pitton@arcor.de>
-To: ramsoft@virgilio.it, Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <49D77ACC.9050606@virgilio.it>
-References: <loom.20090403T201901-786@post.gmane.org>
-	 <1238805912.3498.18.camel@pc07.localdom.local>
-	 <1238806956.3498.26.camel@pc07.localdom.local>
-	 <49D77ACC.9050606@virgilio.it>
-Content-Type: text/plain
-Date: Sun, 05 Apr 2009 20:22:33 +0200
-Message-Id: <1238955753.6627.29.camel@pc07.localdom.local>
-Mime-Version: 1.0
+Received: from mail.uni-paderborn.de ([131.234.142.9]:64992 "EHLO
+	mail.uni-paderborn.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753204AbZDAJTA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Apr 2009 05:19:00 -0400
+Message-ID: <49D32B16.2070101@hni.uni-paderborn.de>
+Date: Wed, 01 Apr 2009 10:51:34 +0200
+From: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Questinons regarding soc_camera / pxa_camera
+References: <49CBB13F.7090609@hni.uni-paderborn.de> <Pine.LNX.4.64.0903261831430.5438@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0903261831430.5438@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Guennadi Liakhovetski schrieb:
+> (moving to the new v4l list)
+>
+> On Thu, 26 Mar 2009, Stefan Herbrechtsmeier wrote:
+>
+>   
+>> --- a/linux/drivers/media/video/soc_camera.c    Sun Mar 22 08:53:36 2009 -0300
+>> +++ b/linux/drivers/media/video/soc_camera.c    Thu Mar 26 15:35:43 2009 +0100
+>> @@ -238,7 +238,7 @@ static int soc_camera_init_user_formats(
+>>     icd->num_user_formats = fmts;
+>>     fmts = 0;
+>>
+>> -    dev_dbg(&icd->dev, "Found %d supported formats.\n", fmts);
+>> +    dev_dbg(&icd->dev, "Found %d supported formats.\n",
+>> icd->num_user_formats);
+>>
+>>     /* Second pass - actually fill data formats */
+>>     for (i = 0; i < icd->num_formats; i++)
+>>
+>> I thing this was wrong or ' fmts = 0;' must be under the output.
+>>     
+>
+> Right, I'd prefer the latter though - to move the "fmts = 0;" assignment 
+> down.
+>
+>   
+Should I generate a PATCH or will you change it by our own?
+>> @@ -675,8 +675,8 @@ static int soc_camera_cropcap(struct fil
+>>     a->bounds.height        = icd->height_max;
+>>     a->defrect.left            = icd->x_min;
+>>     a->defrect.top            = icd->y_min;
+>> -    a->defrect.width        = DEFAULT_WIDTH;
+>> -    a->defrect.height        = DEFAULT_HEIGHT;
+>> +    a->defrect.width        = icd->width_max;
+>> +    a->defrect.height        = icd->height_max;
+>>     a->pixelaspect.numerator    = 1;
+>>     a->pixelaspect.denominator    = 1;
+>>
+>> What was the reason to use fix values? Because of the current implementation
+>> of crop,
+>> the default value can get bigger than the max value.
+>>     
+>
+> Yes, you're right again, taking scaling into account. Although, setting 
+> default to maximum doesn't seem a very good idea to me either. Maybe we'd 
+> have to add an extra parameter to struct soc_camera_device, but I'm 
+> somewhat reluctant to change this now, because all those fields from the 
+> struct will have to disappear anyway with the v4l2-subdev transition, at 
+> which point, I think, all these requests will have to be passed down to 
+> drivers.
+>   
+OK, what is the timetable / plan for the soc_camera to v4l2-subdev 
+transition?
+>> Is there some ongoing work regarding the crop implementation on soc_camera?
+>> If I understand the documentation [1] right, the crop vales should represent
+>> the area
+>> of the capture device before scaling. What was the reason for the current
+>> implementation
+>> combing crop and fmt values?
+>>     
+>
+> See this discussion: 
+> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/68 
+> besides, my idea was, that the user cannot be bothered with all scalings / 
+> croppings that take place in host and client devices (on camera 
+> controllers and / or sensors). My understanding was: the user uses S_FMT 
+> to request a window of a certain size, say 640x480, the drivers shall try 
+> to fit as much into it as possible using scaling. How many hardware pixels 
+> are now used to build this VGA window the user has no idea about.
+If we use the real pixels for CROP, the user can calculate the scale.
+(see 1.11.3 Examples for "Image Cropping, Insertion and Scaling" in the 
+documentation)
 
-Am Samstag, den 04.04.2009, 17:20 +0200 schrieb Ra.M.:
-> hermann pitton ha scritto:
-> > Am Samstag, den 04.04.2009, 02:45 +0200 schrieb hermann pitton:
-> >   
-> >> Hi Ralph,
-> >>
-> >> Am Freitag, den 03.04.2009, 20:49 +0000 schrieb Ralph:
-> >>     
-> >>> ASUSTeK Tiger LNA Hybrid Capture Device PCI - Analog/DVB-T card
-> >>> Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video
-> >>> Broadcast Decoder (rev d1)
-> >>>
-> >>> Works perfectly with kernel 2.6.28.4 (or older).
-> >>> Recently, I have switched to 2.6.29 (same .config as 2.6.28.4) and now, at
-> >>> boot
-> >>> time, I get the message:
-> >>>
-> >>> IRQ 18/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-> >>>
-> >>> Signal strength is very low and Kaffeine is unable to tune in any channel.
-> >>> Same problem with kernel 2.6.29.1
-> >>>
-> >>> -------------------------------------
-> >>>
-> >>> Messages from /var/log/dmesg
-> >>>
-> >>> saa7134 0000:03:0a.0: PCI INT A -> Link[APC3] -> GSI 18 (level, low) -> \
-> >>>  IRQ 18
-> >>> saa7133[0]: found at 0000:03:0a.0, rev: 209, irq: 18, latency: 32, mmio: \
-> >>> 0xfdefe000
-> >>> saa7133[0]: subsystem: 1043:4871, board: ASUS P7131 4871 \
-> >>> [card=111,autodetected]
-> >>> saa7133[0]: board init: gpio is 0
-> >>> IRQ 18/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-> >>> saa7133[0]: i2c eeprom 00: 43 10 71 48 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-> >>> saa7133[0]: i2c eeprom 10: ff ff ff 0f ff 20 ff ff ff ff ff ff ff ff ff ff
-> >>> saa7133[0]: i2c eeprom 20: 01 40 01 02 03 00 01 03 08 ff 00 cf ff ff ff ff
-> >>> saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> >>> saa7133[0]: i2c eeprom 40: ff 21 00 c2 96 10 03 22 15 50 ff ff ff ff ff ff
-> >>> saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> >>> saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> >>> saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> >>> saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> >>> saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> >>> saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> >>> saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> >>> saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> >>> saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> >>> saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> >>> saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> >>> tuner' 2-004b: chip found @ 0x96 (saa7133[0])
-> >>> tda829x 2-004b: setting tuner address to 61
-> >>> tda829x 2-004b: type set to tda8290+75a
-> >>> saa7133[0]: registered device video0 [v4l2]
-> >>> saa7133[0]: registered device vbi0
-> >>> dvb_init() allocating 1 frontend
-> >>> DVB: registering new adapter (saa7133[0])
-> >>> DVB: registering adapter 0 frontend -32769 (Philips TDA10046H DVB-T)...
-> >>> tda1004x: setting up plls for 48MHz sampling clock
-> >>> tda1004x: timeout waiting for DSP ready
-> >>> tda1004x: found firmware revision 0 -- invalid
-> >>> tda1004x: trying to boot from eeprom
-> >>> tda1004x: timeout waiting for DSP ready
-> >>> tda1004x: found firmware revision 0 -- invalid
-> >>> tda1004x: waiting for firmware upload...
-> >>> saa7134 0000:03:0a.0: firmware: requesting dvb-fe-tda10046.fw
-> >>> tda1004x: found firmware revision 29 -- ok
-> >>> saa7134 ALSA driver for DMA sound loaded
-> >>> IRQ 18/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-> >>> saa7133[0]/alsa: saa7133[0] at 0xfdefe000 irq 18 registered as card -1
-> >>>
-> >>>       
-> >> thanks for your report, as announced previously, I unfortunately did not
-> >> have time to run with latest always ... (guess why ...)
-> >>
-> >> The driver always worked with shared IRQs, if not, it was always a
-> >> limitation of certain hardware or mostly in some combination with binary
-> >> only drivers.
-> >>
-> >> If the above should be the case in general now, and not only caused by
-> >> some blacklist, no print out in that direction, the driver is pretty
-> >> broken again.
-> >>
-> >> I for sure don't have all for last months, but that
-> >> "IRQF_DISABLED is not guaranteed on shared IRQs" for sure does not come
-> >> from us here.
-> >>     
-> >
-> > Do use something unusual like pollirq or something?
-> >
-> > We only have in saa7134-core.c
-> >
-> > 	/* initialize hardware #1 */
-> > 	saa7134_board_init1(dev);
-> > 	saa7134_hwinit1(dev);
-> >
-> > 	/* get irq */
-> > 	err = request_irq(pci_dev->irq, saa7134_irq,
-> > 			  IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
-> > 	if (err < 0) {
-> > 		printk(KERN_ERR "%s: can't get IRQ %d\n",
-> > 		       dev->name,pci_dev->irq);
-> > 		goto fail3;
-> > 	}
-> >
-> > and in saa7134-alsa.c
-> >
-> > 	err = request_irq(dev->pci->irq, saa7134_alsa_irq,
-> > 				IRQF_SHARED | IRQF_DISABLED, dev->name,
-> > 				(void*) &dev->dmasound);
-> >
-> > 	if (err < 0) {
-> > 		printk(KERN_ERR "%s: can't get IRQ %d for ALSA\n",
-> > 			dev->name, dev->pci->irq);
-> > 		goto __nodev;
-> > 	}
-> >
-> > Have fun ;)
-> > Hermann
-> >
-> >
-> >
-> >   
-> No, I do not use pollirq.
-> 
-> I have read that many users have had problems with 2.6.29 and IRQs.
-> Those problems affect WiFi cards, Ethernet cards, DVB-T cards, etc.
-> 
-> For example:
-> 
-> http://article.gmane.org/gmane.linux.uml.devel/12098
-> http://www.gossamer-threads.com/lists/linux/kernel/1044282
-> http://zen-sources.org/content/irqfshared-irqfdisabled-fix-2629-rc
-> 
-> In all cases, at boot time appears the message:
-> 
-> IRQ XY: IRQF_DISABLED is not guaranteed on shared IRQs
-> 
-> So, probably, there is a kernel bug in the IRQs management of the
-> 2.6.29 and 2.6.29.1
-> 
+> Then you 
+> can use S_CROP to select sub-windows from _that_ area. If you want a 
+> different resolution, you use S_FMT again (after stopping the running 
+> capture), etc. 
+Do you mean you can use S_CROP during a running capture?
+What happen if you change the width or height of the sub-windows. This 
+will change the resolution
+/ size of the image.
 
-did build a 2.6.29.1 now and your report is correct!
+I only know the camera driver side of this functions and don't know how 
+it is used,  but I would used
+S_FMT do set the output format and S_CROP to select the real sensor size 
+and position.
+For example S_FMT with 320x240 set the sensor area to 1280x960 (max). 
+S_CROP with 600x400 set
+the sensor area to 640x480, because this is the next supported scale 
+(1,2,4,8) for the fix output format.
+If I understand the documentation right, S_CROP would use the old scale 
+(4) and change the format to
+200x100 to get the requested sensor area.
 
-DVB-T on saa7134 is broken at least for all tda10046 and tda8275 stuff
-and it is not restricted to devices with LNA.
+I think for now I take over your implementation of S_FMT and S_CROP.
+After the v4l2-subdev transition we can update the implementations.
 
-For what I can see so far, it is not related to the IRQF_DISABLED print
-out, since only a warning for now and removing it from the driver
-doesn't change anything.
-
-saa7134 DVB-S, analog TV and saa7134-alsa are not affected.
-
-Installing the current mercurial v4l-dvb on 2.6.29.1 does fix it.
-
-If on that saa7134-dvb.ko and saa7134.ko are replaced with the ones from
-2.6.29.1 the breakage is back again. The related dvb and tuner modules
-tolerate such exchange on a first rough test.
-
-As you reported, symptoms are tumbling signal and SNR between very low
-and 100%, as if tuning and AGC would never stabilize.
-
-I suspect failing i2c stuff is involved. Did not notice anything like
-that on various mercurial versions during the last months.
-
-Cheers,
-Hermann
-
-
+Regards
+    Stefan
