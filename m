@@ -1,125 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:52542 "EHLO
-	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751099AbZD0Tbk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2009 15:31:40 -0400
-Date: Mon, 27 Apr 2009 12:31:39 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: MJPEG-tools user list <mjpeg-users@lists.sourceforge.net>
-cc: Andrew Morton <akpm@linux-foundation.org>, roel.kluin@gmail.com,
-	linux-media@vger.kernel.org
-Subject: Re: [Mjpeg-users] [PATCH] zoran: invalid test on unsigned
-In-Reply-To: <20090427165256.57940d06@lxorguk.ukuu.org.uk>
-Message-ID: <Pine.LNX.4.58.0904271039510.3753@shell2.speakeasy.net>
-References: <49F48183.50302@gmail.com> <20090427165256.57940d06@lxorguk.ukuu.org.uk>
+Received: from wf-out-1314.google.com ([209.85.200.175]:26233 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755012AbZDBKZq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Apr 2009 06:25:46 -0400
+Received: by wf-out-1314.google.com with SMTP id 29so568037wff.4
+        for <linux-media@vger.kernel.org>; Thu, 02 Apr 2009 03:25:44 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Thu, 2 Apr 2009 19:25:44 +0900
+Message-ID: <5e9665e10904020325t3567c442t2fce7bcc32aa8940@mail.gmail.com>
+Subject: Compile error in v4l2-spec
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 27 Apr 2009, Alan Cox wrote:
-> On Sun, 26 Apr 2009 17:45:07 +0200
-> Roel Kluin <roel.kluin@gmail.com> wrote:
-> > fmt->index is unsigned. test doesn't work
-> >
-> > Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
-> > ---
-> > Is there another test required?
-> >
-> > +++ b/drivers/media/video/zoran/zoran_driver.c
-> > @@ -1871,7 +1871,7 @@ static int zoran_enum_fmt(struct zoran *zr, struct v4l2_fmtdesc *fmt, int flag)
-> >  		if (num == fmt->index)
-> >  			break;
-> >  	}
-> > -	if (fmt->index < 0 /* late, but not too late */  || i == NUM_FORMATS)
-> > +	if (i == NUM_FORMATS)
-> >  		return -EINVAL;
->
-> If it's unsigned then don't we need i >= NUM_FORMATS ?
+Hi,
 
-That part of the patch is fine.  It turns out there is another problem that
-already existed in this function.  It's clearer with a few more lines of
-context.
+I'm trying to make some v4l2-spec document on my own, but having some
+problem with compiling those.
+To be clear, I should let you know about the repo that I'm working on.
+I'm working on Mauro's repo (http://linuxtv.org/hg/v4l-dvb/)
+and trying to compile v4l2-spec in that.
+Latest changeset that I have in it is
 
-        int num = -1, i;
-        for (i = 0; i < NUM_FORMATS; i++) {
-                if (zoran_formats[i].flags & flag)
-                        num++;
-                if (num == fmt->index)
-                        break;
-        }
-      	if (i == NUM_FORMATS)
-                return -EINVAL;
-	/* stuff to return format i */
+changeset:   11341:4c7466ea8d64
+tag:         tip
+parent:      11335:23836942be90
+parent:      11340:2f6cf8db5325
+user:        Mauro Carvalho Chehab <mchehab@redhat.com>
+date:        Wed Apr 01 07:36:31 2009 -0300
+summary:     merge: http://linuxtv.org/hg/~anttip/af9015/
 
-The v4l2 api enumerates formats separately for each buffer type, e.g. there
-is one list of formats for video capture and a different list for video
-output.  The driver just has one list of formats and each format is flagged
-with the type(s) it can be used with.  So when someone requests the capture
-format at index 2 we search the list and return the 3rd capture format we
-find.  Since we don't know how many capture formats there are (NUM_FORMATS
-is the number of formats in the driver's single list, i.e. the union of all
-format types) we can't reject an index that is too large until after
-searching the whole list.
 
-The problem with this code is if someone requests a format at fmt->index ==
-(unsigned)-1.  If the first format in the array doesn't have the requested
-type then num will still be -1 when it's compared to fmt->index and there
-will appear to be a match.
+and I'm having errors like following
 
-Here's a patch to redo the function that should fix everything:
+Using catalogs: /etc/sgml/catalog
+Using stylesheet: /home/kdsoo/work/v4l-dvb/v4l2-spec/custom.dsl#html
+Working on: /home/kdsoo/work/v4l-dvb/v4l2-spec/v4l2.sgml
+openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/v4l2.sgml:1:55:W: cannot
+generate system identifier for public text "-//OASIS//DTD DocBook
+V3.1//EN"
+openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:2:0:E:
+character "-" not allowed in declaration subset
+openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:13:0:E:
+character "-" not allowed in declaration subset
+openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:80:0:E:
+character "-" not allowed in declaration subset
+openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:83:0:E:
+character "-" not allowed in declaration subset
+openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:116:0:E:
+character "-" not allowed in declaration subset
+openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:166:0:E:
+character "-" not allowed in declaration subset
+openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:183:0:E:
+character "-" not allowed in declaration subset
+openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:209:0:E:
+character "-" not allowed in declaration subset
+...................
+<snip>
 
-zoran: fix bug when enumerating format -1
 
-If someone requests a format at fmt->index == (unsigned)-1 and the first
-format in the array doesn't have the requested type then num will still be
--1 when it's compared to fmt->index and there will appear to be a match.
+I don't have any clue about this. What should I do?
+I'm trying this on my Ubuntu 8.10 machine.
+Any help should be appreciated.
+Cheers,
 
-Restructure the loop so this can't happen.  It's simpler this way too.  The
-unnecessary check for (unsigned)fmt->index < 0 found by Roel Kluin
-<roel.kluin@gmail.com> is removed this way too.
+Nate
 
-Signed-off-by: Trent Piepho <xyzzy@speakeasy.org>
-
-diff -r 63eba6df4b8a -r c247021eb11c linux/drivers/media/video/zoran/zoran_driver.c
---- a/linux/drivers/media/video/zoran/zoran_driver.c    Mon Apr 27 12:13:04 2009 -0700
-+++ b/linux/drivers/media/video/zoran/zoran_driver.c    Mon Apr 27 12:25:51 2009 -0700
-@@ -1871,22 +1871,20 @@ static int zoran_querycap(struct file *f
-
- static int zoran_enum_fmt(struct zoran *zr, struct v4l2_fmtdesc *fmt, int flag)
- {
--       int num = -1, i;
--
--       for (i = 0; i < NUM_FORMATS; i++) {
--               if (zoran_formats[i].flags & flag)
--                       num++;
--               if (num == fmt->index)
--                       break;
--       }
--       if (fmt->index < 0 /* late, but not too late */  || i == NUM_FORMATS)
--               return -EINVAL;
--
--       strncpy(fmt->description, zoran_formats[i].name, sizeof(fmt->description)-1);
--       fmt->pixelformat = zoran_formats[i].fourcc;
--       if (zoran_formats[i].flags & ZORAN_FORMAT_COMPRESSED)
--               fmt->flags |= V4L2_FMT_FLAG_COMPRESSED;
--       return 0;
-+       unsigned int num, i;
-+
-+       for (num = i = 0; i < NUM_FORMATS; i++) {
-+               if (zoran_formats[i].flags & flag && num++ == fmt->index) {
-+                       strncpy(fmt->description, zoran_formats[i].name,
-+                               sizeof(fmt->description) - 1);
-+                       /* fmt struct pre-zeroed, so adding '\0' not neeed */
-+                       fmt->pixelformat = zoran_formats[i].fourcc;
-+                       if (zoran_formats[i].flags & ZORAN_FORMAT_COMPRESSED)
-+                               fmt->flags |= V4L2_FMT_FLAG_COMPRESSED;
-+                       return 0;
-+               }
-+       }
-+       return -EINVAL;
- }
-
- static int zoran_enum_fmt_vid_cap(struct file *file, void *__fh,
-
+-- 
+========================================================
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
+========================================================
