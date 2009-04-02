@@ -1,57 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from woodbine.london.02.net ([87.194.255.145]:46402 "EHLO
-	woodbine.london.02.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751019AbZDZVER (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Apr 2009 17:04:17 -0400
-Received: from [192.168.0.6] (78.86.110.75) by woodbine.london.02.net (8.5.016.1)
-        id 49D39EA9012ED54E for linux-media@vger.kernel.org; Sun, 26 Apr 2009 21:58:05 +0100
-Message-ID: <49F4CADD.7040001@archifishal.co.uk>
-Date: Sun, 26 Apr 2009 21:58:05 +0100
-From: Alex Macfarlane Smith <nospam@archifishal.co.uk>
-Reply-To: alex@archifishal.co.uk
+Received: from rv-out-0506.google.com ([209.85.198.237]:27491 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752337AbZDBOxw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Apr 2009 10:53:52 -0400
+Received: by rv-out-0506.google.com with SMTP id g37so2808794rvb.5
+        for <linux-media@vger.kernel.org>; Thu, 02 Apr 2009 07:53:50 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: dib0700: Any known issues with CPU usage?
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <49D4CC16.1010309@linuxtv.org>
+References: <15ed362e0904020309k4b286690u6d4d421e321cd91e@mail.gmail.com>
+	 <49D4CC16.1010309@linuxtv.org>
+Date: Thu, 2 Apr 2009 22:53:50 +0800
+Message-ID: <15ed362e0904020753pbc3b739qbccba774f1ef1592@mail.gmail.com>
+Subject: Re: API for China DTV standard
+From: David Wong <davidtlwong@gmail.com>
+To: Steven Toth <stoth@linuxtv.org>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've been wondering about this for a while, and am reasonably convinced 
-there may be a problem in the linuxtv version of the dib0700 (or one of 
-its submodules).
+On Thu, Apr 2, 2009 at 10:30 PM, Steven Toth <stoth@linuxtv.org> wrote:
+> David Wong wrote:
+>>
+>> I would like to initiate a discussion of v4l-dvb API proposal for China
+>> DTV.
+>>
+>> Some of you may heard about China DTV standard as DMB-T/H, it is not
+>> totally correctly.
+>> China standard GB20600-2006 is indeed a union of DMB-TH(multi-carrier)
+>> and ADTB-T(single carrier).
+>>
+>> For API inclusion, I just read the standard document for GB20600. I am
+>> not very good in that electronics area,
+>> but I gather the following information of parameters, hope I don't
+>> miss anything:
+>>
+>> Number of Carriers:  C=1, C=3780
+>> Constellations: 4QAM, 4QAM-NR, 16QAM, 32QAM, 64QAM
+>> FEC(LDPC): rate = 0.4,  rate = 0.6, rate = 0.8
+>> Frame body size: always 3780 symbols
+>> Frame header size:  420 symbols (1/10 guard interval), 595 symbols
+>> (0.136 guard interval), 945 symbols (1/5 guard interval)
+>> Time domain symbol interleave: M=240(B=52), M=720(B=52)
+>>
+>> Despite "C=1" and "interleave", I don't know if DVB has such
+>> interleave, I see a chance to extend the current FE_OFDM structure (in
+>> dvb_frontend_parameters).
+>> Or should we create a new structure, like the separation of FE_ATSC
+>> and FE_OFDM?
+>
+> No new structures are required. The existing user facing structures are
+> fine.
+>
+> The S2API will need new properties/types for Constellations, frame header
+> size symbol interleave etc.
+>
+> I suggest:
+>
+> 1) Identify new #defines EG. M_240_52, M_720_52
+> 2) Identify new property types EG. GET/SET_FRAME_BODY_SIZE
+> 3) Update the dvb-core property_cache so dvb-core has a place to store these
+> values.
+> 4) Update dvb-core so that it can interpret you GET/SET_FRAME_BOSY_SIZE and
+> other messages.
+>
+> No user API changes required.
+>
+> - Steve
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-I've got a Hauppauge WinTV-NOVA-TD-500 (84xxx) PCI card 
-(http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-T-500 - 
-which seems to have been hacked incidentally).
+You means because union DVB-T and GB20600, there's a need to get/set
+frame body size?
 
-Today I installed a 2.6.29.1 kernel with the dib0700 module etc. 
-installed (and it all works fine, barring the remote control), which 
-shows in top:
+Frame body is always 3780 symbols in GB20600, only frame header is changeable.
+Frame header , A.K.A guard interval, is filled with Pseudo-random Number(PN).
+So there are three defined frame header modes:
+  PN420, 420 symbols, 420 / (420 + 3780) = 1/10 guard interval
+  PN595, 595 symbols, 595 / (595 + 3780) = 0.136 guard interval
+  PN945, 945 symbols, 945 / (945 + 3780) = 1/5 guard interval
 
-top - 21:25:03 up  4:06,  2 users,  load average: 0.00, 0.00, 0.00
-Tasks: 144 total,   1 running, 143 sleeping,   0 stopped,   0 zombie
+Also, new TRANSMISSION_MODE (C=1 and C=3780) need to be added besides
+2K and 8K mode.
 
-
-However, if I do nothing else except install the latest linuxtv drivers 
-from mercurial and then reboot:
-
-top - 21:54:45 up 30 min,  3 users,  load average: 0.50, 0.53, 0.43
-Tasks: 147 total,   1 running, 146 sleeping,   0 stopped,   0 zombie
-
-
-You can see the load average is significantly higher. (and if I forcibly 
-remove the module, the load average will eventually drop to 0)
-
-The only user-facing difference I'm aware of is that the linuxtv version 
-supports the remote control, whereas the kernel version doesn't - would 
-this cause a big jump in CPU usage, or is there something else going on 
-here?
-
-If there's any more info needed to get to the bottom of this, don't 
-hesitate to ask :)
-
-Thanks for your help,
-
-Alex.
+Cheers,
+David
