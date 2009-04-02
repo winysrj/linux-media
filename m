@@ -1,60 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:36301 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755224AbZDFKz7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Apr 2009 06:55:59 -0400
-Subject: Re: Test results for ir-kbd-i2c.c changes (Re: [PATCH 0/6]
- ir-kbd-i2c  conversion to the new i2c binding model)
-From: Andy Walls <awalls@radix.net>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Mike Isely <isely@pobox.com>
-In-Reply-To: <20090406105436.05ecaf4d@hyperion.delvare>
-References: <20090404142427.6e81f316@hyperion.delvare>
-	 <20090405070116.17ecadef@pedra.chehab.org>
-	 <20090405164024.1459e4fe@hyperion.delvare>
-	 <1238977379.2796.19.camel@morgan.walls.org>
-	 <20090406105436.05ecaf4d@hyperion.delvare>
-Content-Type: text/plain
-Date: Mon, 06 Apr 2009 07:56:22 -0400
-Message-Id: <1239018982.3157.3.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from mk-outboundfilter-2.mail.uk.tiscali.com ([212.74.114.38]:47451
+	"EHLO mk-outboundfilter-2.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752220AbZDBWya (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Apr 2009 18:54:30 -0400
+From: Adam Baker <linux@baker-net.org.uk>
+To: "Stian Skjelstad" <stian@nixia.no>
+Subject: Re: gpsca kernel BUG when disconnecting camera while streaming with mmap (2.6.29-rc8)
+Date: Thu, 2 Apr 2009 23:54:24 +0100
+Cc: "'Jean-Francois Moine'" <moinejf@free.fr>,
+	linux-media@vger.kernel.org
+References: <1238347504.5232.17.camel@laptop> <20090402091112.5411b711@free.fr> <000301c9b363$d0533ce0$70f9b6a0$@no>
+In-Reply-To: <000301c9b363$d0533ce0$70f9b6a0$@no>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200904022354.24951.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-04-06 at 10:54 +0200, Jean Delvare wrote:
-> Hi Andy,
+On Thursday 02 Apr 2009, Stian Skjelstad wrote:
+> > Stian Skjelstad <stian@nixia.no> wrote:
+> > 	[snip]
+> >
+> > > usb 2-2: USB disconnect, address 47
+> >>
+> >> gspca: urb status: -108
+> >> gspca: urb status: -108
+> >> gspca: disconnect complete
+> >> BUG: unable to handle kernel NULL pointer dereference at 00000014
+> >> IP: [<c02bc98e>] usb_set_interface+0x1e/0x1e0
+> >> *pde = 00000000
+> >> Oops: 0000 [#1] PREEMPT
+> >
+> >	[snip]
+> >
+> >You did not tell which version of gspca you use. If it is the one of a
+> >kernel older than 2.6.30, you should update. Also, may this problem
+> >be reproduced?
+>
+> I'm using the built in one. I'm going to upgrade to 2.6.29 very soon. And
+> if problem still persists, I can build gspca outside the kernel instead.
+>
 
+2.6.29 isn't good enough, you need the patch at
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=d08e2ce0ebb38f2b66d875a09ebab3ed548354ee
+which only hit Linus' tree 3 days ago.
 
-> Note that struct IR_i2c_init_data only contains the fields I needed at
-> the moment, but it would be trivial to extend it to allow bridge
-> drivers to pass more setup information if needed, for example ir_type.
+I'm not sure whether it is appropriate for that patch to go to -stable. There 
+are other patches that affect the relevant code but that one looks like it is 
+a fix for a real bug that should apply cleanly to 2.6.29.
 
-Yeah, I could have mucked with it myself, but communicating back the
-whole merged diff would have been a hassle.  I was just testing anyway.
+I guess if you are able to confirm if it fixes 2.6.29 for you that would be a 
+good indication it is appropriate for -stable.
 
-
-> > Success.
-> 
-> OK, good to know that adding support for the cx18 will be possible and
-> easy. I propose that we postpone this addition until after my code is
-> merged though, to avoid making the situation more complex than it
-> already is.
-
-Yeah.  So far one user has asked for it.
-
-
-> Thanks a lot for the testing!
-
-
-You're welcome.
-
-Sorry for being such a pain to what I suspect you hoped was to be a
-"simple" change.
-
-Regards,
-Andy
-
+Adam
 
