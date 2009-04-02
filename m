@@ -1,68 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:33534 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755742AbZDCIta (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Apr 2009 04:49:30 -0400
-Date: Fri, 3 Apr 2009 10:49:32 +0200 (CEST)
-From: Guennadi Liakhovetski <lg@denx.de>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] mx3-camera: fix to match the new clock naming
-In-Reply-To: <20090403082844.GM23731@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.0904031047040.4729@axis700.grange>
-References: <Pine.LNX.4.64.0904021145040.5263@axis700.grange>
- <20090403082844.GM23731@pengutronix.de>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1295 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752215AbZDBQgp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Apr 2009 12:36:45 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: eduardo.valentin@nokia.com
+Subject: Re: [PATCH 0/3] FM Transmitter driver
+Date: Thu, 2 Apr 2009 18:36:37 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
+References: <1238579011-12435-1-git-send-email-eduardo.valentin@nokia.com> <200904020947.11256.hverkuil@xs4all.nl> <20090402120211.GJ13493@esdhcp037198.research.nokia.com>
+In-Reply-To: <20090402120211.GJ13493@esdhcp037198.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200904021836.37467.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 3 Apr 2009, Sascha Hauer wrote:
-
-> On Thu, Apr 02, 2009 at 11:49:55AM +0200, Guennadi Liakhovetski wrote:
-> > With the i.MX31 transition to clkdev clock names have changed, fix the 
-> > driver to use the new name.
+On Thursday 02 April 2009 14:02:11 Eduardo Valentin wrote:
+> Hi Hans,
+> 
+> On Thu, Apr 02, 2009 at 09:47:11AM +0200, ext Hans Verkuil wrote:
+> > On Wednesday 01 April 2009 11:43:28 Eduardo Valentin wrote:
+> > > Hello Mauro and v4l guys,
+> > >
+> > > This series contains a v4l2 radio driver which
+> > > adds support for Silabs si4713 devices. That is
+> > > a FM transmitter device.
+> > >
+> > > As you should know, v4l2 does not contain representation
+> > > of FM Transmitters (at least that I know). So this driver
+> > > was written highly based on FM receivers API, which can
+> > > cover most of basic functionality. However, as expected,
+> > > there are some properties which were not covered.
+> > > For those properties, sysfs nodes were added in order
+> > > to get user interactions.
+> > >
+> > > Comments are wellcome.
 > > 
-> > Signed-off-by: Guennadi Liakhovetski <lg@denx.de>
-> > ---
-> > diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-> > index 70629e1..7e6b51d 100644
-> > --- a/drivers/media/video/mx3_camera.c
-> > +++ b/drivers/media/video/mx3_camera.c
-> > @@ -1100,7 +1100,7 @@ static int mx3_camera_probe(struct platform_device *pdev)
-> >  	}
-> >  	memset(mx3_cam, 0, sizeof(*mx3_cam));
-> >  
-> > -	mx3_cam->clk = clk_get(&pdev->dev, "csi_clk");
-> > +	mx3_cam->clk = clk_get(&pdev->dev, "csi");
+> > Can you explain in reasonable detail the extra properties needed for a 
+> > device like this? You will need to document that anyway :-) Rather than 
+> > implementing a private API it would be much more interesting to turn this 
+> > into a public V4L2 API that everyone can use.
 > 
-> clk_get(&pdev->dev, NULL) please. The name is only for distinguishing
-> the clocks when there is more than one clock per device which isn't the
-> case here.
+> Yes, here is a little description of them:
 > 
-> I just see that it's
+> Pilot is an audible tone sent by the device.
 > 
-> _REGISTER_CLOCK("mx3-camera.0", "csi", csi_clk)
+> pilot_frequency - Configures the frequency of the stereo pilot tone.
+> pilot_deviation - Configures pilot tone frequency deviation level.
+> pilot_enabled - Enables or disables the pilot tone feature.
 > 
-> Should be
+> The si4713 device is capable of applying audio compression to the transmitted signal.
 > 
-> _REGISTER_CLOCK("mx3-camera.0", NULL, csi_clk)
+> acomp_enabled - Enables or disables the audio dynamic range control feature.
+> acomp_gain - Sets the gain for audio dynamic range control.
+> acomp_threshold - Sets the threshold level for audio dynamic range control.
+> acomp_attack_time - Sets the attack time for audio dynamic range control.
+> acomp_release_time - Sets the release time for audio dynamic range control.
 > 
-> instead.
+> Limiter setups audio deviation limiter feature. Once a over deviation occurs,
+> it is possible to adjust the front-end gain of the audio input and always
+> prevent over deviation.
+> 
+> limiter_enabled - Enables or disables the limiter feature.
+> limiter_deviation - Configures audio frequency deviation level.
+> limiter_release_time - Sets the limiter release time.
+> 
+> power_level - Sets the output power level for signal transmission.
 
-Right, that's why. What should we do now?
+Hmm, there are two ways to implement these: either make a bunch of VIDIOC's
+for each of these categories, or use extended controls to set all these
+values. I'm hardly an expert on FM transmitters, but it all seems reasonable
+to me (i.e., not too specific for this chip).
 
-1. We leave this patch as is, and remove the connection ID later
-2. I make a single patch that changes both, you ack it, and I pull it via 
-V4L.
-3. I make two patches, you ack the ARM part and I pull them via V$L.
-4. We do not want to pull two patches via different trees
+I am leaning towards extended controls, since that's so easy to extend if
+needed in the future. And I still intend to add sysfs support to controls
+in the future. On the other hand, it's a bit harder to use compared to normal
+VIDIOCs.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
+> 
+> RDS related
+> 
+> rds_enabled - Enables or disables the RDS feature.
+> rds_ps_name - Sets the RDS ps name field for transmission.
+> rds_radio_text - Sets the RDS radio text for transmission.
+> rds_pi - Sets the RDS PI field for transmission.
+> rds_pty - Sets the RDS PTY field for transmission.
 
-DENX Software Engineering GmbH,     MD: Wolfgang Denk & Detlev Zundel
-HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
-Phone: +49-8142-66989-0 Fax: +49-8142-66989-80  Email: office@denx.de
+So you set the fields and the RDS encoder will just start using them?
+
+This too can be done with controls (needs some work, though, to support
+string controls).
+
+> 
+> Region related
+> 
+> Setting region will affect other region properties.
+> 
+> region_bottom_frequency
+> region_channel_spacing
+> region_preemphasis
+> region_top_frequency
+
+I do not know enough about FM transmissions to judge this. Are these region
+properties something that is regulated by some standards commision? Do they
+also apply when you modulate this over a TV/radio cable system? Do you have
+some documentation or links that I can look at to learn more about this?
+
+> stereo_enabled - Enables or disables stereo mode.
+> 
+> > 
+> > How does one pass the audio and rds data to the driver? Note that for 2.6.31 
+> > we will finalize the V4L2 RDS decoder API (I recently posted an RFC for 
+> > that, but I haven't had the time to implement the few changes needed). It 
+> > would be nice if rds modulator support would be modeled after this 
+> > demodulator API if possible.
+> 
+> I see. This is good. I think the best way is to have a rds modulator
+> interface. This driver have implemented it as sys properties, as
+> described above.
+
+I don't think there is that much overlap, though. The similarities are
+probably limited to some flags.
+
+> 
+> > 
+> > Does region information really belong in the driver? Perhaps this should be 
+> > in a user-space library? (just a suggestion, I'm not sure at this stage).
+> 
+> Ok. Yes, this could be better to implement in user land. However,
+> depending on region that would restrict other properties as well.
+> So, letting user space control that, would allow device operate in wrong
+> intervals for frequencies for instance.
+
+But if you are in region A and you setup the device for region B, then it's
+wrong as well, right?
+
+I also wonder if there are legal requirements that have to be followed here?
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
