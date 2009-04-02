@@ -1,83 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:57468 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750972AbZDPI6d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Apr 2009 04:58:33 -0400
-Date: Thu, 16 Apr 2009 10:58:35 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: Re: [PATCH 5/5] soc-camera: Convert to a platform driver
-In-Reply-To: <5e9665e10904151919p50c695e2s35140402d2c7345c@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0904161032050.4947@axis700.grange>
-References: <Pine.LNX.4.64.0904151356480.4729@axis700.grange>
- <Pine.LNX.4.64.0904151403500.4729@axis700.grange>
- <5e9665e10904151919p50c695e2s35140402d2c7345c@mail.gmail.com>
+Received: from ey-out-2122.google.com ([74.125.78.25]:47820 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760559AbZDBX2Z convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Apr 2009 19:28:25 -0400
+Received: by ey-out-2122.google.com with SMTP id 4so204243eyf.37
+        for <linux-media@vger.kernel.org>; Thu, 02 Apr 2009 16:28:22 -0700 (PDT)
+Date: Thu, 02 Apr 2009 19:28:15 -0400
+From: Manu <eallaud@gmail.com>
+Subject: Re : Re : epg data grabber
+To: linux-media@vger.kernel.org
+References: <49D53B8A.7020900@koala.ie> <1238713191.7516.2@manu-laptop>
+	<49D544DD.1060001@koala.ie>
+In-Reply-To: <49D544DD.1060001@koala.ie> (from simon@koala.ie on Thu Apr  2
+	19:06:05 2009)
+Message-Id: <1238714895.7516.3@manu-laptop>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 16 Apr 2009, Dongsoo, Nathaniel Kim wrote:
-
-> Hello Guennadi,
+Le 02.04.2009 19:06:05, Simon Kenyon a écrit :
+> Manu wrote:
+> > Le 02.04.2009 18:26:18, Simon Kenyon a écrit :
+> >   
+> >> i've been hacking together a epg data grabber
+> >> taking pieces from here, there and everywhere
+> >>
+> >> the basic idea is to grab data off-air and generate xmltv format
+> xml
+> >> files
+> >>
+> >> the plan is to support DVB, Freesat, Sky (UK and IT) and 
+> >> MediaHighway1
+> >> and 2
+> >> i have the first two working and am working on the rest
+> >>
+> >> is this of interest to the linuxtv.org community
+> >> i asked the xmltv people, but they are strictly perl. i do 
+> >> understand.
+> >>
+> >> very little of this is original work of mine. just some applied 
+> >> google
+> >>
+> >> and a smidgen of C
+> >>
+> >> i could put it up on sf.net if there is no room on linutv.org
+> >>
+> >> if anyone wants the work in progress, then please let me know
+> >> it is big released under GPL 3
+> >>
+> >> i want to get it out there because i'm pretty soon going to be at
+> the 
+> >> end of my knowledge and would appreciate help
+> >>
+> >>     
+> >
+> > Hi Simon,
+> > I have hacked something for what is supposedly mediaHighway epg (it
+> is 
+> > used on CanalSat Caraibes which is affiliated to Canal Satellite
+> from 
+> > France). I actually have a patch against mythtv (it uses the 
+> scanner
+> to 
+> > get the epg directly).
+> > I can provide my patches if needed (will need some time to sort
+> things 
+> > out abit, especially if you want a stand alone version).
+> > Bye
+> > Manu
+> >   
+> i am doing it "stand alone" so i can see what is going on
+> i would propose to do  mythtv version but that is some way off
 > 
+> don't modify your stuff. i already extracted the freesat code from 
+> the
 > 
-> Reviewing your patch, I've got curious about a thing.
-> I think your soc camera subsystem is covering multiple camera
-> devices(sensors) in one target board, but if that is true I'm afraid
-> I'm confused how to handle them properly.
-> Because according to your patch, video_dev_create() takes camera
-> device as parameter and it seems to be creating device node for each
-> camera devices.
-
-This patch is a preparatory step for the v4l2-(sub)dev conversion. With it 
-yes (I think) a video device will be created for every registered on the 
-platform level camera, but only the one(s) that probed successfully will 
-actually work, others will return -ENODEV on open().
-
-> It means, if I have one camera host and several camera devices, there
-> should be several device nodes for camera devices but cannot be used
-> at the same time. Because typical camera host(camera interface) can
-> handle only one camera device at a time. But multiple device nodes
-> mean "we can open and handle them at the same time".
+> mythtv code base
+> that was a couple of hours work
 > 
-> How about registering camera host device as v4l2 device and make
-> camera device a input device which could be handled using
-> VIDIOC_S_INPUT/G_INPUT api?
 
-There are also cases, when you have several cameras simultaneously (think 
-for example about stereo vision), even though we don't have any such cases 
-just yet.
+Hmm I might have a stadn alone version around, give me a few days and I 
+can find that, life is busy right now ;-)
+Bye
+Manu
 
-> Actually, I'm working on S3C64xx camera interface driver with soc
-> camera subsystem,
-
-Looking forward to it!:-)
-
-> and I'm facing that issue right now because I've got
-> dual camera on my target board.
-
-Good, I think, there also has been a similar design based on a pxa270 SoC. 
-How are cameras switched in your case? You probably have some additional 
-hardware logic to switch between them, right? So, you need some code to 
-control that. I think, you should even be able to do this automatically in 
-your platform code using power hooks from the struct soc_camera_link. You 
-could fail to power on a camera if another camera is currently active. In 
-fact, I have to add a return code test to the call to icl->power(icl, 1) 
-in soc_camera_open(), I'll do this for the final v4l2-dev version. Would 
-this work for you or do you have another requirements? In which case, can 
-you describe your use-case in more detail - should both cameras be open by 
-applications simultaneously (looks like not), do you need a more explicit 
-switching control, than just "first open switches," which shouldn't be the 
-case, since you can even create a separate task, that does nothing but 
-just keeps the required camera device open.
-
-> I hope you to consider this concept, and also want to know your opinion.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
