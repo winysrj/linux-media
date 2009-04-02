@@ -1,195 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cmpxchg.org ([85.214.51.133]:57033 "EHLO cmpxchg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754238AbZDTK4R (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 06:56:17 -0400
-Date: Mon, 20 Apr 2009 12:55:00 +0200
-From: Johannes Weiner <hannes@cmpxchg.org>
-To: Magnus Damm <magnus.damm@gmail.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	linux-mm@kvack.org, lethal@linux-sh.org
-Subject: Re: [PATCH][RFC] videobuf-dma-config: zero copy USERPTR support
-Message-ID: <20090420105459.GB6674@cmpxchg.org>
-References: <20090420100003.8113.14986.sendpatchset@rx1.opensource.se>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090420100003.8113.14986.sendpatchset@rx1.opensource.se>
+Received: from mail-bw0-f169.google.com ([209.85.218.169]:60751 "EHLO
+	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754923AbZDBMiL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Apr 2009 08:38:11 -0400
+Received: by bwz17 with SMTP id 17so488024bwz.37
+        for <linux-media@vger.kernel.org>; Thu, 02 Apr 2009 05:38:08 -0700 (PDT)
+Message-ID: <49D4B12C.2050601@gmail.com>
+Date: Thu, 02 Apr 2009 15:35:56 +0300
+From: Darius Augulis <augulis.darius@gmail.com>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	tom.leiming@gmail.com
+Subject: Re: soc_camera_open() not called
+References: <49D37485.7030805@gmail.com> <49D3788D.2070406@gmail.com> <87zlf0cl7o.fsf@free.fr> <49D3AE13.9070201@gmail.com> <87r60cmd94.fsf@free.fr> <Pine.LNX.4.64.0904012359260.5389@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0904012359260.5389@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 20, 2009 at 07:00:03PM +0900, Magnus Damm wrote:
-> From: Magnus Damm <damm@igel.co.jp>
+Guennadi Liakhovetski wrote:
+> On Wed, 1 Apr 2009, Robert Jarzmik wrote:
 > 
-> Zero copy video frame capture from user space using V4L2 USERPTR.
+>> Darius Augulis <augulis.darius@gmail.com> writes:
+>>
+>>>>> Darius Augulis wrote:
+>>>>>     
+>>>>>> Hi,
+>>>>>>
+>>>>>> I'm trying to launch mx1_camera based on new v4l and soc-camera tree.
+>>>>>> After loading mx1_camera module, I see that .add callback is not called.
+>>>>>> In debug log I see that soc_camera_open() is not called too.
+>>>>>> What should call this function? Is this my driver problem?
+>>>>>> p.s. loading sensor driver does not change situation.
+>>>>>>       
+>>>> Are you by any chance using last 2.6.29 kernel ?
+>>>> If so, would [1] be the answer to your question ?
+>>>>
+>>>> [1] http://lkml.org/lkml/2009/3/24/625
+>>> thanks. it means we should expect soc-camera fix for this?
+>>> I'm using 2.6.29-git8, but seems it's not fixed yet.
+>> No, I don't think so.
 > 
-> This patch adds USERPTR support to the videobuf-dma-contig buffer code.
-> Since videobuf-dma-contig is designed to handle physically contiguous
-> memory, this patch modifies the videobuf-dma-contig code to only accept
-> a pointer physically contiguous memory. For now only VM_PFNMAP vmas are
-> supported, so forget hotplug.
+> You're right.
 > 
-> On SuperH Mobile we use this approach for our V4L2 CEU driver together
-> with various multimedia accelerator blocks that are exported to user 
-> space using UIO. The UIO kernel code exports physically contiugous memory
-> to user space and lets the user space application mmap() this memory and
-> pass a pointer using the USERPTR interface for V4L2 zero copy operation.
+>> The last time I checked there had to be an amendement to the patch which
+>> introduced the driver core regression, as it touches other areas as well
+>> (sound/soc and mtd from memory).
+>>
+>> I think Guennadi can confirm this, as he's the one who raised the issue in the
+>> first place.
 > 
-> With this approach we support zero copy capture, hardware scaling and
-> various forms of hardware encoding.
+> If Darius had followed the thread you referred to he would have come down 
+> to this message
 > 
-> Hopefully this patch is useful for other SoCs. For user space example
-> code I suggest having a look at the USERPTR implementation in capture.c.
+> http://lkml.org/lkml/2009/3/26/202
 > 
-> Any comments? Does anyone need to use memory backed by struct page?
+> which provides a reply as to "what should be fixed," and yes, Ming Lei has 
+> already provided a patch to fix this, it should hit mainstream... some 
+> time before -rc1.
+
+could you please send me this patch or show where is it available?
+
 > 
-> Signed-off-by: Magnus Damm <damm@igel.co.jp>
+> Thanks
+> Guennadi
 > ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
->  drivers/media/video/videobuf-dma-contig.c |  138 +++++++++++++++++++++++++++--
->  1 file changed, 131 insertions(+), 7 deletions(-)
-> 
-> --- 0001/drivers/media/video/videobuf-dma-contig.c
-> +++ work/drivers/media/video/videobuf-dma-contig.c	2009-04-20 18:04:32.000000000 +0900
-> @@ -17,6 +17,8 @@
->  #include <linux/init.h>
->  #include <linux/module.h>
->  #include <linux/mm.h>
-> +#include <linux/hugetlb.h>
-> +#include <linux/pagemap.h>
->  #include <linux/dma-mapping.h>
->  #include <media/videobuf-dma-contig.h>
->  
-> @@ -25,6 +27,7 @@ struct videobuf_dma_contig_memory {
->  	void *vaddr;
->  	dma_addr_t dma_handle;
->  	unsigned long size;
-> +	int is_userptr;
->  };
->  
->  #define MAGIC_DC_MEM 0x0733ac61
-> @@ -108,6 +111,117 @@ static struct vm_operations_struct video
->  	.close    = videobuf_vm_close,
->  };
->  
-> +static void videobuf_dma_contig_user_put(struct videobuf_dma_contig_memory *mem)
-> +{
-> +	mem->is_userptr = 0;
-> +	mem->dma_handle = 0;
-> +	mem->size = 0;
-> +}
-> +
-> +/* modelled after follow_phys() in mm/memory.c */
-> +static int get_pfn(struct vm_area_struct *vma,
-> +		   unsigned long address, unsigned long *pfnp)
-> +{
-> +	struct mm_struct *mm = vma->vm_mm;
-> +	pgd_t *pgd;
-> +	pud_t *pud;
-> +	pmd_t *pmd;
-> +	pte_t *ptep, pte;
-> +	spinlock_t *ptl;
-> +
-> +	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)))
-> +		goto no_page_table;
-> +
-> +	pgd = pgd_offset(mm, address);
-> +	if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
-> +		goto no_page_table;
-> +
-> +	pud = pud_offset(pgd, address);
-> +	if (pud_none(*pud) || unlikely(pud_bad(*pud)))
-> +		goto no_page_table;
-> +
-> +	pmd = pmd_offset(pud, address);
-> +	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
-> +		goto no_page_table;
-> +
-> +	/* We cannot handle huge page PFN maps. Luckily they don't exist. */
-> +	if (pmd_huge(*pmd))
-> +		goto no_page_table;
-> +
-> +	ptep = pte_offset_map_lock(mm, pmd, address, &ptl);
-> +	if (!ptep)
-> +		goto no_page_table;
-> +
-> +	pte = *ptep;
-> +	if (!pte_present(pte))
-> +		goto unlock;
-> +
-> +	*pfnp = pte_pfn(pte);
-> +	pte_unmap_unlock(ptep, ptl);
-> +	return 0;
-> +unlock:
-> +	pte_unmap_unlock(ptep, ptl);
-> +no_page_table:
-> +	return -EINVAL;
-> +}
 
-It would be nice to have a follow_pfn() instead that shares its body
-with follow_phys().
-
-> +static int videobuf_dma_contig_user_get(struct videobuf_dma_contig_memory *mem,
-> +					struct videobuf_buffer *vb)
-> +{
-> +	struct mm_struct *mm = current->mm;
-> +	struct vm_area_struct *vma;
-> +	unsigned long prev_pfn, this_pfn;
-> +	unsigned long pages_done, user_address;
-> +	int ret;
-> +
-> +	mem->size = PAGE_ALIGN(vb->size);
-> +	mem->is_userptr = 0;
-> +	ret = -EINVAL;
-> +
-> +	down_read(&mm->mmap_sem);
-> +
-> +	vma = find_vma(mm, vb->baddr);
-> +	if (!vma)
-> +		goto out_up;
-> +
-> +	if ((vb->baddr + mem->size) > vma->vm_end)
-> +		goto out_up;
-> +
-> +	pages_done = 0;
-> +	prev_pfn = 0; /* kill warning */
-> +	user_address = vb->baddr;
-> +
-> +	while (pages_done < (mem->size >> PAGE_SHIFT)) {
-> +		ret = get_pfn(vma, user_address, &this_pfn);
-> +		if (ret)
-> +			break;
-> +
-> +		if (pages_done == 0) {
-> +			prev_pfn = this_pfn;
-> +			mem->dma_handle = this_pfn << PAGE_SHIFT;
-> +		} else {
-> +			if (this_pfn != (prev_pfn + 1))
-> +				ret = -EFAULT;
-
-} else if (...) ?
-
-> +		}
-> +
-> +		if (ret)
-> +			break;
-> +
-> +		prev_pfn = this_pfn;
-> +		user_address += PAGE_SIZE;
-> +		pages_done++;
-> +	}
-> +
-> +	if (!ret && pages_done)
-
-If ret is zero, pages_done is always non-zero.
-
-> +		mem->is_userptr = 1;
-> +
-> + out_up:
-> +	up_read(&current->mm->mmap_sem);
-> +
-> +	return ret;
-> +}
-> +
-
-	Hannes
