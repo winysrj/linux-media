@@ -1,116 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3243 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751279AbZDMSUj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Apr 2009 14:20:39 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id n3DIKYCS006043
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 13 Apr 2009 20:20:38 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 13 Apr 2009 20:20:34 +0200 (CEST)
-Message-Id: <200904131820.n3DIKYCS006043@smtp-vbr6.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+Received: from relais.videotron.ca ([24.201.245.36]:14559 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932755AbZDBXiH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Apr 2009 19:38:07 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from localhost.localdomain ([70.81.178.230])
+ by VL-MO-MR001.ip.videotron.ca
+ (Sun Java(tm) System Messaging Server 6.3-4.01 (built Aug  3 2007; 32bit))
+ with ESMTP id <0KHH00FXTYZGES00@VL-MO-MR001.ip.videotron.ca> for
+ linux-media@vger.kernel.org; Thu, 02 Apr 2009 19:38:05 -0400 (EDT)
+Message-id: <49D54C5A.1000200@videotron.ca>
+Date: Thu, 02 Apr 2009 19:38:02 -0400
+From: Michel Dansereau <Michel.Dansereau@videotron.ca>
+To: Steven Toth <stoth@linuxtv.org>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Wintv-1250 - EEPROM decoding - V4L DVB
+References: <49CFC642.3030408@videotron.ca> <49CFFECB.4080902@linuxtv.org>
+ <49D1532C.4050106@videotron.ca> <49D22A0B.6040500@linuxtv.org>
+ <49D2A608.2070400@videotron.ca> <49D4CF18.3060807@linuxtv.org>
+In-reply-to: <49D4CF18.3060807@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi,
+    The label says E2D9.
+Michel
 
-Results of the daily build of v4l-dvb:
 
-date:        Mon Apr 13 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11445:dba0b6fae413
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
-
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-rc1-armv5: ERRORS
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-rc1-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: OK
-linux-2.6.30-rc1-i686: ERRORS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-rc1-m32r: ERRORS
-linux-2.6.22.19-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29.1-mips: OK
-linux-2.6.30-rc1-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-rc1-x86_64: ERRORS
-fw/apps: WARNINGS
-sparse (linux-2.6.29.1): OK
-sparse (linux-2.6.30-rc1): OK
-linux-2.6.16.61-i686: WARNINGS
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+Steven Toth wrote:
+> Michel Dansereau wrote:
+>> Steve,
+>>    Point taken about dropping the mailing list.
+>>    Thanks!
+>> Michel
+>
+> Thanks, one last question.
+>
+> Look a the white Hauppauge label on the HVR-1250 tuner, its should say 
+> something like Rev NNNN.
+>
+> What is your rev?
+>
+> - Steve
+>
 
