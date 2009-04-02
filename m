@@ -1,108 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:60245 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:58493 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752362AbZDUK2r (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2009 06:28:47 -0400
-Date: Tue, 21 Apr 2009 12:28:51 +0200 (CEST)
+	id S1762247AbZDBRyE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Apr 2009 13:54:04 -0400
+Date: Thu, 2 Apr 2009 19:54:17 +0200 (CEST)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"jongse.won@samsung.com" <jongse.won@samsung.com>,
-	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>
-Subject: Re: Applying SoC camera framework on multi-functional camera interface
-In-Reply-To: <5e9665e10904201833k42a733fdh40b11f499744c85f@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0904210839160.6551@axis700.grange>
-References: <5e9665e10904201833k42a733fdh40b11f499744c85f@mail.gmail.com>
+To: Darius Augulis <augulis.darius@gmail.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	paulius.zaleckas@teltonika.lt,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: [RFC PATCH V2] Add camera (CSI) driver for MX1
+In-Reply-To: <49D4FAF0.9060305@gmail.com>
+Message-ID: <Pine.LNX.4.64.0904021952220.5263@axis700.grange>
+References: <20090330145310.20826.77060.stgit@localhost.localdomain>
+ <Pine.LNX.4.64.0904010034300.12031@axis700.grange> <49D4FAF0.9060305@gmail.com>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 21 Apr 2009, Dongsoo, Nathaniel Kim wrote:
+On Thu, 2 Apr 2009, Darius Augulis wrote:
 
-> Hello,
 > 
-> One of my recent work is making S3C64XX camera interface driver with
-> SoC camera framework. Thanks to Guennadi, SoC camera framework is so
-> clear and easy to follow. Actually I didn't need to worry about my
-> whole driver structure, the framework almost has everything that I
-> need.
+> > > + * struct mx1_camera_pdata - i.MX1/i.MXL camera platform data
+> > > + * @init:	Init board resources
+> > > + * @exit:	Release board resources
+> > > + * @mclk_10khz:	master clock frequency in 10kHz units
+> > > + * @flags:	MX1 camera platform flags
+> > > + */
+> > > +struct mx1_camera_pdata {
+> > > +	int (*init)(struct device *);
+> > > +	int (*exit)(struct device *);
+> > >     
+> > 
+> > I thought the agreement was to avoid these .init() and .exit() hooks in new
+> > code...
+> >   
 > 
-> But here is a problem that I couldn't make up my mind while
-> implementing some of the features of S3C64XX camera IP.
-> As you know, S3C64XX camera IP has scaler and rotator capability on
-> it's own which can be used standalone even memory to memory scaling
-> and rotating jobs.
-> If you want to know in detail please take a look at the user manual
-> (just remind if you have already seen this)  :
-> http://www.ebv.com/fileadmin/products/Products/Samsung/S3C6400/S3C6400X_UserManual_rev1-0_2008-02_661558um.pdf
+> Should I config board statically during system start-up?
+
+Unless you have some special requirements why you want to do this 
+dynamically - yes.
+
 > 
-> Telling you about the driver concept that I wanted to make is like following:
 > 
-> (I want to select inputs like external camera and MSDMA using
-> S_INPUT'/G_INPUT but we don't have them in SoC camera framework.
-> So this should be the version of design with current SoC camera framework.)
+> > > +static void mx1_videobuf_queue(struct videobuf_queue *vq,
+> > > +						struct videobuf_buffer *vb)
+> > > +{
+> > > +	struct soc_camera_device *icd = vq->priv_data;
+> > > +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> > > +	struct mx1_camera_dev *pcdev = ici->priv;
+> > > +	struct mx1_buffer *buf = container_of(vb, struct mx1_buffer, vb);
+> > > +
+> > > +	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
+> > > +		vb, vb->baddr, vb->bsize);
+> > > +
+> > > +	list_add_tail(&vb->queue, &pcdev->capture);
+> > >     
+> > 
+> > No, you had a spinlock here and in DMA ISR in the previous version, and it
+> > was correct. Without that lock the above list_add races with list_del_init()
+> > in mx1_camera_wakeup().
+> >   
 > 
-> 1. S3C64XX has preview and codec path
-> 2. Each preview and codec path can have external camera and MSDMA for input
-> 3. make external camera and MSDMA device nodes for each preview and codec.
->   => Let's assume that we have camera A and B, then it should go like this
->   /dev/video0 (camera A on preview device)
->   /dev/video1 (camera B on preview device)
->   /dev/video2 (MSDMA on preview device)
->   /dev/video3 (camera A on codec device)
->   /dev/video4 (camera B on codec device)
->   /dev/video5 (MSDMA on codec device)
+> what can save and help for the spinlock on single-core system? mx3 there does
+> not have spinlock.
 
-My proposal was a bit different. You don't need two different output 
-devices per camera - video3 and video4. I suggested to make preview a pure 
-output device, without the ability to select the input. So, if you 
-activate (open) video1, video3 will get data from the first camera. If you 
-activate video2, video3 will preview camera 2.
-
-Also, you can have a look at arch/sh/boards/mach-migor/setup.c for an 
-example of handling two cameras on one interface. The only difference to 
-what I have proposed is that they block on open(video1) if video0 is in 
-use and the other way round. Whereas I suggested to return -EBUSY. You can 
-choose.
-
-> 4. Those device nodes are "device" in SoC camera framework (and S3C
-> camera interface should be "host" device)
->  => External camera devices can be made in SoC camera device. Fair enough.
-> 
->   But MSMDA? what should I do If I want to make it as a "device"
-> driver in SoC camera framework?
->   Any reference that I could have? because I can't find any "device"
-> drivers besides camera sensor,isp drivers.
->   Please let me know if there is any.
-
-Actually, last time we talked about it I didn't realise, that you can 
-configure the preview path to read data from memory while your codec path 
-processes data from the camera, is this really the case? I didn't study 
-the datasheet in enough detail.
-
-Well, you might look at drivers/media/video/soc_camera_platform.c for an 
-example of a simple "pseudo" camera driver. Of course, with your two 
-additional devices you don't want to add extra platform devices and extra 
-probing. In fact, you can do this with the "old" (currently in the 
-mainline) soc-camera model, where client drivers actively report 
-themselves to the soc-camera core using soc_camera_device_register() / 
-soc_camera_device_unregister() and the core doesn't care about the nature 
-of those drivers. This is not going to be the case with the new platform / 
-v4l2-subdev infrastructure, which is pretty tightly bound to i2c... So, 
-we'll have to extend it too.
-
-I would suggest you reserve slots for those two from-memory video devices 
-in your design, base your design on latest patches on this list (see the 
-patches I just submitted) and concentrate on camera-devices for now. Then 
-we shall see how to add non-i2c video data-sources to the framework.
+The IRQ can interrupt you while you're manipulating the list in 
+mx1_videobuf_queue(), and corrupt the list. This is not just a spinlock, 
+it also disables interrupts. Also, think about preemptible kernels.
 
 Thanks
 Guennadi
 ---
 Guennadi Liakhovetski, Ph.D.
 Freelance Open-Source Software Developer
-http://www.open-technology.de/
