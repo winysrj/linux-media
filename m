@@ -1,76 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:5767 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752611AbZDQUcv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Apr 2009 16:32:51 -0400
-Received: from jdelvare.pck.nerim.net ([62.212.121.182] helo=hyperion.delvare)
-	by services.gcu-squad.org (GCU Mailer Daemon) with esmtpsa id 1LuvpE-00029H-9L
-	(TLSv1:AES256-SHA:256)
-	(envelope-from <khali@linux-fr.org>)
-	for linux-media@vger.kernel.org; Fri, 17 Apr 2009 23:42:20 +0200
-Date: Fri, 17 Apr 2009 22:32:45 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Subject: [PATCH 4/6] ir-kbd-i2c: Don't assume all IR receivers are supported
-Message-ID: <20090417223245.6af63a45@hyperion.delvare>
-In-Reply-To: <20090417222927.7a966350@hyperion.delvare>
-References: <20090417222927.7a966350@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from [195.7.61.12] ([195.7.61.12]:44902 "EHLO killala.koala.ie"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751262AbZDBXGI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Apr 2009 19:06:08 -0400
+Received: from [195.7.61.29] (joburg.koala.ie [195.7.61.29])
+	(authenticated bits=0)
+	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id n32N651i018984
+	for <linux-media@vger.kernel.org>; Fri, 3 Apr 2009 00:06:06 +0100
+Message-ID: <49D544DD.1060001@koala.ie>
+Date: Fri, 03 Apr 2009 00:06:05 +0100
+From: Simon Kenyon <simon@koala.ie>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: Re : epg data grabber
+References: <49D53B8A.7020900@koala.ie> <1238713191.7516.2@manu-laptop>
+In-Reply-To: <1238713191.7516.2@manu-laptop>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The code in ir_probe makes the dangerous assumption that all IR
-receivers are supported by the driver. The new i2c model makes it
-possible for bridge drivers to instantiate IR devices before they are
-supported, therefore the ir-kbd-i2c drivers must be made more robust
-to not spam the logs or even crash on unsupported IR devices. Simply,
-the driver will not bind to the unsupported devices.
+Manu wrote:
+> Le 02.04.2009 18:26:18, Simon Kenyon a écrit :
+>   
+>> i've been hacking together a epg data grabber
+>> taking pieces from here, there and everywhere
+>>
+>> the basic idea is to grab data off-air and generate xmltv format xml
+>> files
+>>
+>> the plan is to support DVB, Freesat, Sky (UK and IT) and 
+>> MediaHighway1
+>> and 2
+>> i have the first two working and am working on the rest
+>>
+>> is this of interest to the linuxtv.org community
+>> i asked the xmltv people, but they are strictly perl. i do 
+>> understand.
+>>
+>> very little of this is original work of mine. just some applied 
+>> google
+>>
+>> and a smidgen of C
+>>
+>> i could put it up on sf.net if there is no room on linutv.org
+>>
+>> if anyone wants the work in progress, then please let me know
+>> it is big released under GPL 3
+>>
+>> i want to get it out there because i'm pretty soon going to be at the 
+>> end of my knowledge and would appreciate help
+>>
+>>     
+>
+> Hi Simon,
+> I have hacked something for what is supposedly mediaHighway epg (it is 
+> used on CanalSat Caraibes which is affiliated to Canal Satellite from 
+> France). I actually have a patch against mythtv (it uses the scanner to 
+> get the epg directly).
+> I can provide my patches if needed (will need some time to sort things 
+> out abit, especially if you want a stand alone version).
+> Bye
+> Manu
+>   
+i am doing it "stand alone" so i can see what is going on
+i would propose to do  mythtv version but that is some way off
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Andy Walls <awalls@radix.net>
----
- linux/drivers/media/video/ir-kbd-i2c.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+don't modify your stuff. i already extracted the freesat code from the 
+mythtv code base
+that was a couple of hours work
 
---- v4l-dvb.orig/linux/drivers/media/video/ir-kbd-i2c.c	2009-04-07 21:35:53.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/ir-kbd-i2c.c	2009-04-07 22:49:10.000000000 +0200
-@@ -307,7 +307,7 @@ static void ir_work(struct work_struct *
- static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- {
- 	IR_KEYTAB_TYPE *ir_codes = NULL;
--	const char *name;
-+	const char *name = NULL;
- 	int ir_type;
- 	struct IR_i2c *ir;
- 	struct input_dev *input_dev;
-@@ -389,8 +389,7 @@ static int ir_probe(struct i2c_client *c
- 		ir_codes    = ir_codes_avermedia_cardbus;
- 		break;
- 	default:
--		/* shouldn't happen */
--		printk(DEVNAME ": Huh? unknown i2c address (0x%02x)?\n", addr);
-+		dprintk(1, DEVNAME ": Unsupported i2c address 0x%02x\n", addr);
- 		err = -ENODEV;
- 		goto err_out_free;
- 	}
-@@ -405,6 +404,14 @@ static int ir_probe(struct i2c_client *c
- 		ir->get_key = init_data->get_key;
- 	}
- 
-+	/* Make sure we are all setup before going on */
-+	if (!name || !ir->get_key || !ir_codes) {
-+		dprintk(1, DEVNAME ": Unsupported device at address 0x%02x\n",
-+			addr);
-+		err = -ENODEV;
-+		goto err_out_free;
-+	}
-+
- 	/* Sets name */
- 	snprintf(ir->name, sizeof(ir->name), "i2c IR (%s)", name);
- 	ir->ir_codes = ir_codes;
-
--- 
-Jean Delvare
+regards
+--
+simon
