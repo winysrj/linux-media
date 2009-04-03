@@ -1,52 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail47.e.nsc.no ([193.213.115.47]:47121 "EHLO mail47.e.nsc.no"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752616AbZDCGiu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Apr 2009 02:38:50 -0400
-Subject: Re: gpsca kernel BUG when disconnecting camera while streaming
- with mmap (2.6.29-rc8)
-From: Stian Skjelstad <stian@nixia.no>
-To: Adam Baker <linux@baker-net.org.uk>
-Cc: "'Jean-Francois Moine'" <moinejf@free.fr>,
-	linux-media@vger.kernel.org
-In-Reply-To: <200904022354.24951.linux@baker-net.org.uk>
-References: <1238347504.5232.17.camel@laptop>
-	 <20090402091112.5411b711@free.fr> <000301c9b363$d0533ce0$70f9b6a0$@no>
-	 <200904022354.24951.linux@baker-net.org.uk>
-Content-Type: text/plain
-Date: Fri, 03 Apr 2009 08:33:33 +0200
-Message-Id: <1238740413.5794.4.camel@laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:41096 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1760943AbZDCMPa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Apr 2009 08:15:30 -0400
+Date: Fri, 3 Apr 2009 14:15:34 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Darius Augulis <augulis.darius@gmail.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	paulius.zaleckas@teltonika.lt
+Subject: Re: [PATCH V4] Add camera (CSI) driver for MX1
+In-Reply-To: <20090403113054.11098.67516.stgit@localhost.localdomain>
+Message-ID: <Pine.LNX.4.64.0904031352350.4729@axis700.grange>
+References: <20090403113054.11098.67516.stgit@localhost.localdomain>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> > >You did not tell which version of gspca you use. If it is the one of a
-> > >kernel older than 2.6.30, you should update. Also, may this problem
-> > >be reproduced?
-> >
-> > I'm using the built in one. I'm going to upgrade to 2.6.29 very soon. And
-> > if problem still persists, I can build gspca outside the kernel instead.
-> >
+On Fri, 3 Apr 2009, Darius Augulis wrote:
+
+> From: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
 > 
-> 2.6.29 isn't good enough, you need the patch at
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=d08e2ce0ebb38f2b66d875a09ebab3ed548354ee
-> which only hit Linus' tree 3 days ago.
-> 
-> I'm not sure whether it is appropriate for that patch to go to -stable. There 
-> are other patches that affect the relevant code but that one looks like it is 
-> a fix for a real bug that should apply cleanly to 2.6.29.
-> 
-> I guess if you are able to confirm if it fixes 2.6.29 for you that would be a 
-> good indication it is appropriate for -stable.
+> Signed-off-by: Darius Augulis <augulis.darius@gmail.com>
+> Signed-off-by: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
 
-That patch does not help. It still panics inside gspca_set_alt0 when
-calling STREAM_OFF, so something else causes gspca_dev->present not to
-be cleared.
+Ok, I'll just swap these two Sob's to reflect the processing chain, add a 
+description like
 
-Another detail I noticed is that VIDIOC_DQBUF returns EAGAIN after I
-have disconnected the camera.... Will try another version when I find
-the time for it.
+Add support for CMOS Sensor Interface on i.MX1 and i.MXL SoCs.
 
-Stian Skjelstad
+and fix a couple of trivial conflicts, which probably appear, because you 
+based your patches on an MXC tree, and not on current linux-next. 
+Wondering, if it still will work then... At least it compiles. BTW, should 
+it really also work with IMX? Then you might want to change this
 
+	depends on VIDEO_DEV && ARCH_MX1 && SOC_CAMERA
+
+to
+
+	depends on VIDEO_DEV && (ARCH_MX1 || ARCH_IMX) && SOC_CAMERA
+
+but you can do this later, maybe, when you actually get a chance to test 
+it on IMX (if you haven't done so yet).
+
+Sascha, we need your ack for the ARM part.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
