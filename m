@@ -1,73 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:54656 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760370AbZDIIlo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2009 04:41:44 -0400
-Received: by fxm2 with SMTP id 2so474932fxm.37
-        for <linux-media@vger.kernel.org>; Thu, 09 Apr 2009 01:41:43 -0700 (PDT)
+Received: from smtp.nokia.com ([192.100.122.230]:36746 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755479AbZDCKQO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2009 06:16:14 -0400
+Date: Fri, 3 Apr 2009 13:12:30 +0300
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: ext Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
+Subject: Re: [PATCH 0/3] FM Transmitter driver
+Message-ID: <20090403101230.GL13493@esdhcp037198.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+References: <1238579011-12435-1-git-send-email-eduardo.valentin@nokia.com> <200904020947.11256.hverkuil@xs4all.nl> <20090402120211.GJ13493@esdhcp037198.research.nokia.com> <200904021836.37467.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Date: Thu, 9 Apr 2009 10:41:42 +0200
-Message-ID: <e9a4f5af0904090141h462c2909q65dded8cde1632a2@mail.gmail.com>
-Subject: firedtv and ca-module
-From: Johannes Tang Kristensen <linuxmedia@tangkristensen.dk>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200904021836.37467.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Thu, Apr 02, 2009 at 06:36:37PM +0200, ext Hans Verkuil wrote:
+> On Thursday 02 April 2009 14:02:11 Eduardo Valentin wrote:
+> > Hi Hans,
+> > 
+> > On Thu, Apr 02, 2009 at 09:47:11AM +0200, ext Hans Verkuil wrote:
+> > > On Wednesday 01 April 2009 11:43:28 Eduardo Valentin wrote:
+> > > > Hello Mauro and v4l guys,
+> > > >
+> > > > This series contains a v4l2 radio driver which
+> > > > adds support for Silabs si4713 devices. That is
+> > > > a FM transmitter device.
+> > > >
+> > > > As you should know, v4l2 does not contain representation
+> > > > of FM Transmitters (at least that I know). So this driver
+> > > > was written highly based on FM receivers API, which can
+> > > > cover most of basic functionality. However, as expected,
+> > > > there are some properties which were not covered.
+> > > > For those properties, sysfs nodes were added in order
+> > > > to get user interactions.
+> > > >
+> > > > Comments are wellcome.
+> > > 
+> > > Can you explain in reasonable detail the extra properties needed for a 
+> > > device like this? You will need to document that anyway :-) Rather than 
+> > > implementing a private API it would be much more interesting to turn this 
+> > > into a public V4L2 API that everyone can use.
+> > 
+> > Yes, here is a little description of them:
+> > 
+> > Pilot is an audible tone sent by the device.
+> > 
+> > pilot_frequency - Configures the frequency of the stereo pilot tone.
+> > pilot_deviation - Configures pilot tone frequency deviation level.
+> > pilot_enabled - Enables or disables the pilot tone feature.
+> > 
+> > The si4713 device is capable of applying audio compression to the transmitted signal.
+> > 
+> > acomp_enabled - Enables or disables the audio dynamic range control feature.
+> > acomp_gain - Sets the gain for audio dynamic range control.
+> > acomp_threshold - Sets the threshold level for audio dynamic range control.
+> > acomp_attack_time - Sets the attack time for audio dynamic range control.
+> > acomp_release_time - Sets the release time for audio dynamic range control.
+> > 
+> > Limiter setups audio deviation limiter feature. Once a over deviation occurs,
+> > it is possible to adjust the front-end gain of the audio input and always
+> > prevent over deviation.
+> > 
+> > limiter_enabled - Enables or disables the limiter feature.
+> > limiter_deviation - Configures audio frequency deviation level.
+> > limiter_release_time - Sets the limiter release time.
+> > 
+> > power_level - Sets the output power level for signal transmission.
+> 
+> Hmm, there are two ways to implement these: either make a bunch of VIDIOC's
+> for each of these categories, or use extended controls to set all these
+> values. I'm hardly an expert on FM transmitters, but it all seems reasonable
+> to me (i.e., not too specific for this chip).
+> 
+> I am leaning towards extended controls, since that's so easy to extend if
+> needed in the future. And I still intend to add sysfs support to controls
+> in the future. On the other hand, it's a bit harder to use compared to normal
+> VIDIOCs.
 
-I'm having trouble using the firedtv driver to watch scrambled
-channels using a ca-module. Here's my setup: I have a firedtv c/ci
-tuner with an irdeto cam, and am running Fedora 10 with a 2.6.29.1
-kernel. In general I have no problems with FTA channels, but scrambled
-channels do not always work. I've tested my setup on a macbook in mac
-osx using eyetv, and here I can watch scrambled channels without any
-problems, so I doubt my problems are hardware related.
+Could you please explain more about extended controls vs. VIDIOC's? Pointing
+drivers which uses one of those also would be worth. But yes, looks like
+moving this properties to some sort of v4l2 control looks better implementation.
 
-I have tried to track down the problem using various dvb-apps, and the
-app I've had the best results with is gnutv from dvb-apps. If I try to
-tune to a scrambled channel I get the following:
+> 
+> > 
+> > RDS related
+> > 
+> > rds_enabled - Enables or disables the RDS feature.
+> > rds_ps_name - Sets the RDS ps name field for transmission.
+> > rds_radio_text - Sets the RDS radio text for transmission.
+> > rds_pi - Sets the RDS PI field for transmission.
+> > rds_pty - Sets the RDS PTY field for transmission.
+> 
+> So you set the fields and the RDS encoder will just start using them?
 
-[root@hp-laptop gnutv]# ./gnutv -channels ./channels.conf -out file
-test.mpg "3+"
-CAM Application type: 01
-CAM Application manufacturer: cafe
-CAM Manufacturer code: babe
-CAM Menu string: Irdeto Access
-CAM supports the following ca system ids:
-Using frontend "FireDTV C/CI", type DVB-C
-status SCVYL | signal ff00 | snr 2525 | ber 000000be | unc 00000000 |
-FE_HAS_LOCK
+Once you have rds_enabled set, yes, it will transmit them.
 
-and then it hangs. But if I kill the process and try again it works and I get:
+> 
+> This too can be done with controls (needs some work, though, to support
+> string controls).
 
-[root@hp-laptop gnutv]# ./gnutv -channels ./channels.conf -out file
-test.mpg "3+"
-CAM Application type: 01
-CAM Application manufacturer: cafe
-CAM Manufacturer code: babe
-CAM Menu string: Irdeto Access
-CAM supports the following ca system ids:
-Using frontend "FireDTV C/CI", type DVB-C
-status SCVYL | signal ff00 | snr 2525 | ber 00000082 | unc 00000000 |
-FE_HAS_LOCK
-Received new PMT - sending to CAM...
+Yes, true.
 
-So I need to "tune" the channel twice for it to work. After this first
-time it keeps working even if I stop gnutv and start it again, as long
-as I want to watch the same channel. As soon as try to watch a
-different channel I again need to "tune" it twice before it works.
+> 
+> > 
+> > Region related
+> > 
+> > Setting region will affect other region properties.
+> > 
+> > region_bottom_frequency
+> > region_channel_spacing
+> > region_preemphasis
+> > region_top_frequency
+> 
+> I do not know enough about FM transmissions to judge this. Are these region
+> properties something that is regulated by some standards commision? Do they
+> also apply when you modulate this over a TV/radio cable system? Do you have
+> some documentation or links that I can look at to learn more about this?
+> 
+> > stereo_enabled - Enables or disables stereo mode.
+> > 
+> > > 
+> > > How does one pass the audio and rds data to the driver? Note that for 2.6.31 
+> > > we will finalize the V4L2 RDS decoder API (I recently posted an RFC for 
+> > > that, but I haven't had the time to implement the few changes needed). It 
+> > > would be nice if rds modulator support would be modeled after this 
+> > > demodulator API if possible.
+> > 
+> > I see. This is good. I think the best way is to have a rds modulator
+> > interface. This driver have implemented it as sys properties, as
+> > described above.
+> 
+> I don't think there is that much overlap, though. The similarities are
+> probably limited to some flags.
+> 
+> > 
+> > > 
+> > > Does region information really belong in the driver? Perhaps this should be 
+> > > in a user-space library? (just a suggestion, I'm not sure at this stage).
+> > 
+> > Ok. Yes, this could be better to implement in user land. However,
+> > depending on region that would restrict other properties as well.
+> > So, letting user space control that, would allow device operate in wrong
+> > intervals for frequencies for instance.
+> 
+> But if you are in region A and you setup the device for region B, then it's
+> wrong as well, right?
+> 
+> I also wonder if there are legal requirements that have to be followed here?
 
-Well that's not completely true. Because after playing around with
-several different channels it appears there might be a pattern. If I
-have been able to successfully watch a scrambled channel by tuning it
-twice as described above then I can watch all channels in the mux
-without having to tune twice again. The problem only appears again
-when I try to watch a channel in a different mux.
+Yes, the region thing is somehow bound to limits of specific area rules / regulation.
+For instance, Europe frequencies limits are
+	.bottom_frequency	= 8750,
+	.top_frequency		= 10800,
 
-I hope that some of you can make some sense of my problem. Please let
-me know if I can provide any additional information.
 
-/Johs
+BTW, maybe I'm making some confusion, but is there two different APIs for radios?
+What is the difference in roles of things that goes into drivers/media/radio and
+drivers/media/common/tuners?
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
+-- 
+Eduardo Valentin
