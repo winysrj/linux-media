@@ -1,25 +1,40 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3P8HkCC007660
-	for <video4linux-list@redhat.com>; Sat, 25 Apr 2009 04:17:46 -0400
-Received: from mail.kapsi.fi (mail.kapsi.fi [217.30.184.167])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3P8HRxo014287
-	for <video4linux-list@redhat.com>; Sat, 25 Apr 2009 04:17:28 -0400
-Message-ID: <49F2C710.2000906@iki.fi>
-Date: Sat, 25 Apr 2009 11:17:20 +0300
-From: Antti Palosaari <crope@iki.fi>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n33DhqdZ010976
+	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 09:43:52 -0400
+Received: from node02.cambriumhosting.nl (node02.cambriumhosting.nl
+	[217.19.16.163])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n33DhVEY009045
+	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 09:43:31 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by node02.cambriumhosting.nl (Postfix) with ESMTP id 17E1DB0000DF
+	for <video4linux-list@redhat.com>;
+	Fri,  3 Apr 2009 15:43:31 +0200 (CEST)
+Received: from node02.cambriumhosting.nl ([127.0.0.1])
+	by localhost (node02.cambriumhosting.nl [127.0.0.1]) (amavisd-new,
+	port 10024)
+	with ESMTP id s0QA5+VzjciU for <video4linux-list@redhat.com>;
+	Fri,  3 Apr 2009 15:43:29 +0200 (CEST)
+Received: from ashley.powercraft.nl (84-245-3-195.dsl.cambrium.nl
+	[84.245.3.195])
+	by node02.cambriumhosting.nl (Postfix) with ESMTP id 74AA6B000173
+	for <video4linux-list@redhat.com>;
+	Fri,  3 Apr 2009 15:43:29 +0200 (CEST)
+Received: from [192.168.1.239] (unknown [192.168.1.239])
+	by ashley.powercraft.nl (Postfix) with ESMTPSA id 8537B23BC501
+	for <video4linux-list@redhat.com>;
+	Fri,  3 Apr 2009 15:12:29 +0200 (CEST)
+Message-ID: <49D6127F.2020406@powercraft.nl>
+Date: Fri, 03 Apr 2009 15:43:27 +0200
+From: Jelle de Jong <jelledejong@powercraft.nl>
 MIME-Version: 1.0
-To: Jelle de Jong <jelledejong@powercraft.nl>
-References: <49D644CD.1040307@powercraft.nl>
-	<49D64E45.2070303@powercraft.nl>	<49DC5033.4000803@powercraft.nl>
-	<49F1B2A4.3060404@powercraft.nl> <49F20259.1090302@iki.fi>
-	<49F2C312.4030808@powercraft.nl>
-In-Reply-To: <49F2C312.4030808@powercraft.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: video4linux-list@redhat.com
+References: <49D610CC.6070405@powercraft.nl>
+In-Reply-To: <49D610CC.6070405@powercraft.nl>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: one dvb-t devices not working with mplayer the other is, what
- is going wrong?
+Subject: Re: request list of usb dvb-t devices that work with vanilla 2.6.29
+ kernel
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,123 +46,60 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 04/25/2009 11:00 AM, Jelle de Jong wrote:
-> Antti Palosaari wrote:
->> On 04/24/2009 03:37 PM, Jelle de Jong wrote:
->>> Jelle de Jong wrote:
->>>> Jelle de Jong wrote:
->>>>> Jelle de Jong wrote:
->>>>>> Hello everybody,
->>>>>>
->>>>>> As you may read in my previous thread, i am trying to switch from my
->>>>>> em28xx devices to a device that works with gpl compliant upstream kernel
->>>>>> source code.
->>>>>>
->>>>>> My em28xx devices all played back video and audio only dvb-t channels:
->>>>>> Pinnacle PCTV Hybrid Pro Stick 330e
->>>>>> Terratec Cinergy Hybrid T USB XS
->>>>>> Hauppauge WinTV HVR 900
->>>>>>
->>>>>> I build script for this to automate the process, however i now swiched to
->>>>>> my dvb-t only usb device:
->>>>>> Afatech AF9015 DVB-T USB2.0 stick
->>>>>>
->>>>>> And it with totem-xine it plays the same as the em28xx devices, so the
->>>>>> devices does kind of works (see the totem-xine bug, please commit to this
->>>>>> bug if you have the same behavior)
->>>>>>
->>>>>> # device info
->>>>>> http://debian.pastebin.com/d3e942c02
->>>>>>
->>>>>> # totem-xine bug
->>>>>> http://bugzilla.gnome.org/show_bug.cgi?id=554319
->>>>>>
->>>>>> # mplayer issue
->>>>>> http://debian.pastebin.com/d34d92e64
->>>>>> ^ anybody have any idea what the heck goes on why doesn't mplayer work
->>>>>> with this device, nothing changed in the commands i used.
->>>>>>
->>>>>> using:
->>>>>> mplayer
->>>>>> Version: 1:1.0.rc2svn20090330-0.0
->>>>>> linux-image-2.6.29-1-686
->>>>>> Version: 2.6.29-1
->>>>>>
->>>>>> Thanks in advance, for any help.
->>>>>>
->>>>>> Best regards,
->>>>>>
->>>>>> Jelle de Jong
->>>>> some more info:
->>>>>
->>>>> device0 (not working, Afatech AF9013 DVB-T)
->>>>> http://filebin.ca/ypxkw/mplayer0.log
->>>>>
->>>>> device1 (working, Micronas DRX3973D DVB-T, em28xx, markus not gpl code)
->>>>> http://filebin.ca/zecdjm/mplayer1.log
->>>>>
->>>>> device2 (working, Zarlink MT352 DVB-T, em28xx, markus not gpl code)
->>>>> http://filebin.ca/fzxtcx/mplayer2.log
->>>>>
->>>>> All devices work with totem-xine but only the em28xx devices works with
->>>>> mplayer, whats going on?
->>>>>
->>>> Anybody?
->>>>
->>>> Best regards,
->>>>
->>>> Jelle
->>>>
->>> Would somebody be willing to test this with there device, see the first
->>> mail for the commands I used, they are in the attached files.
->>>
->>> Being able to use mplayer to listen to dvb-t radio is mandatory for me.
->> I use tzap&  mplayer always when testing driver. Never seen troubles you
->> have. And I have very many AF9015 devices. How did you launch mplayer?
->>
->> Antti
->
->
-> I don't use tzap directly.
->
-> This is what I do:
->
-> # step 1: I use wscan to to make a channel list, there are some serious
-> issues under Linux that I cant solve but like to know what is being done
-> about is. The wscan tool cant get the signal strength of the channel it
-> found, so it may find duplicated channels on multiple frequencies with
-> different strengths. wscan should be able to eliminate all the duplicated
-> channels with inferiour quality. But there is no API in v4l to do this.
->
-> ~/.wscan/wscan -t 3 -E 0 -O 0 -X tzap>  ~/.wscan/channels.conf
-> cp --verbose ~/.wscan/channels.conf ~/.mplayer/channels.conf
->
-> # step 2: I run the mplayer command to play one of the stream
-> /usr/bin/mplayer -dvbin timeout=10 dvb://"3FM(Digitenne)"
+Jelle de Jong wrote:
+> Hello everybody,
+> 
+> I have been trying for years now to get support for usb based devices
+> that makes it possible to watch FTA dvb-t channels in Europa.
+> 
+> I have bought more then 6 devices already and none of them work with the
+> stock vanilla kernel (or with fedora, debian kernel packages)
+> 
+> I had hopes for the em28xx drivers, and spent a lots of time in the last
+> years to Markus Rechberger. I made documentation did testing, compiled
+> packages, did a lot of mailing and irc chats, etcetera.
+> 
+> I always hoped the code and work would be merged back with the official
+> upstream kernel code so all this work would not be needed anymore and the
+> devices will all just work with the new kernel releases.
+> 
+> I spent time sending emails and talking to developers to see how we could
+> help Markus get his code back into the kernel.
+> 
+> But the situation is just sick, and there are real attitude issues on
+> both sides.
+> 
+> I have gave up my hopes on getting a good healthy development process for
+> the em28xx project. I am kind of said about this, because I don't give up
+> easy and currently slowly feels that the em28xx project maybe hurting the
+> free software community more then its doing good...
+> 
+> I now need new devices that do not need the em28xx code, I gave up hopes
+> on getting analog and dvb-t to work with one usb hybrid devices, so I am
+> going for a dvb-t only device.
+> 
+> Can somebody help me provide a list of devices that i can buy in stores
+> and that are supported in the 2.6.29 stock kernel or have high
+> possibilities to get full support in the future.
+> 
+> I would also like to point out I need a feature that allows scanning the
+> signal strength of a dvd-t channel so I can create an fully automated FTA
+> signal scanning systems that removes weaker supplicated channels.
+> 
+> Best regards, (but kind of disappointed)
+> 
+> Jelle de Jong
+> 
 
-Works just OK here.
+I just took one of my devices out ot the storage that did not work with
+previous kernels but now works out of the box with 2.6.29:
+- Afatech AF9015 DVB-T USB2.0 stick http://debian.pastebin.com/d3e942c02
 
-> I automated this scanning and playing system with scripts, they are
-> attached together with the logs of the commands I run.
+a list of more devices is really helpful.
 
-device0.log
-AF9015: you are using very old firmware. Otherwise it seems to be OK.
+Best regards,
 
-device3.log
-em28xx: crashes the Kernel => sure have problems. Are you mixing the 
-drivers from v4l-dvb and from mcentral.de?
-
-> These systems work with the em28xx devices but not with the AF9015
-
-
-I think the reason is that you have tainted your Kernel with em28xx 
-drivers which makes it crashing. Please install clean v4l-dvb from 
-linuxtv.org, install new firmware reboot machine and test again.
-
-regards
-Antti
--- 
-http://palosaari.fi/
+Jelle de Jong
 
 --
 video4linux-list mailing list
