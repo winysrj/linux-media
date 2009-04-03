@@ -1,29 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3MCTYqh023739
-	for <video4linux-list@redhat.com>; Wed, 22 Apr 2009 08:29:34 -0400
-Received: from mout3.freenet.de (mout3.freenet.de [195.4.92.93])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3MCTIjj031125
-	for <video4linux-list@redhat.com>; Wed, 22 Apr 2009 08:29:19 -0400
-Received: from [195.4.92.24] (helo=14.mx.freenet.de)
-	by mout3.freenet.de with esmtpa (ID exim) (port 25) (Exim 4.69 #88)
-	id 1LwbZm-0001OJ-8z
-	for video4linux-list@redhat.com; Wed, 22 Apr 2009 14:29:18 +0200
-Received: from www3.emo.freenet-rz.de ([194.97.107.200]:16584)
-	by 14.mx.freenet.de with esmtpa (ID exim) (port 25) (Exim 4.69 #79)
-	id 1LwbZm-0003fU-8G
-	for video4linux-list@redhat.com; Wed, 22 Apr 2009 14:29:18 +0200
-Received: from www-data by www3.emo.freenet-rz.de with local (Exim 4.67 1
-	(Panther_1)) id 1LwbZl-00027n-E5
-	for <video4linux-list@redhat.com>; Wed, 22 Apr 2009 14:29:17 +0200
-To: video4linux-list@redhat.com
-From: judith.baumgarten@freenet.de
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n33FAXPW014365
+	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 11:10:33 -0400
+Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.28])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n33FADdj027861
+	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 11:10:14 -0400
+Received: by yx-out-2324.google.com with SMTP id 8so655525yxm.81
+	for <video4linux-list@redhat.com>; Fri, 03 Apr 2009 08:10:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Message-Id: <E1LwbZl-00027n-E5@www3.emo.freenet-rz.de>
-Date: Wed, 22 Apr 2009 14:29:17 +0200
+In-Reply-To: <d9def9db0904030755i1ea5c514p23f2556f37578a48@mail.gmail.com>
+References: <49D610CC.6070405@powercraft.nl>
+	<412bdbff0904030747s3d1e956al168cc75b0208a3f0@mail.gmail.com>
+	<d9def9db0904030755i1ea5c514p23f2556f37578a48@mail.gmail.com>
+Date: Fri, 3 Apr 2009 11:10:13 -0400
+Message-ID: <412bdbff0904030810i477b2cffp2f753c9ad66b9564@mail.gmail.com>
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Markus Rechberger <mrechberger@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8bit
-Subject: setting values to CICR2 register in PXA320 Quick Capture Interface
+Cc: video4linux-list@redhat.com
+Subject: Re: request list of usb dvb-t devices that work with vanilla 2.6.29
+	kernel
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,25 +32,46 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+On Fri, Apr 3, 2009 at 10:55 AM, Markus Rechberger
+<mrechberger@gmail.com> wrote:
+> There are already some business customers who deployed Micronas based solutions
+> in a legal way.
+>
+>> 2.  A lack of interest on the part of developers with access to DVB-T.
+>>  While support for ATSC based em28xx devices has grown considerably in
+>> the last year, there doesn't seem to be any developers with DVB-T who
+>> are interested in doing the work.  Many of the devices in question
+>> could be made to work with relatively little effort, but a developer
+>> needs to do the work to add the device profile (including the GPIOs)
+>> and iron out any integration bugs.  There haven't been any developers
+>> with both the hardware and access to DVB-T interested in stepping up
+>> to the task.
+>>
+>
+> We currently make use of the crossover driver solution which moves the
+> drivers into userland
+> and even makes them work with the existing in-kernel as well as with
+> other unix based operating
+> systems. There are plenty of advantages starting with we can provide
+> one single driver for multiple
+> kernel versions - as long as the USB ID is in the driver the userland
+> crossoversolution will work with it
+> and improve its functionality.
+>
+> Regards,
+> Markus
 
-I want to set various parameters in the Quick Capture Interface for a PXA320 processor. I think, I found a way to do this, for resolution and pixel clock parameters, but there is no way to set the parameters of CICR2 using the actual pxa_camera driver. It seems the driver  just implements the master mode, and I wondered why. Is it not usefull to run a pxa_camera in slave mode?
+Just to be clear so that there is no confusion for other readers,
+Markus is talking about a closed source product offering.  For people
+who don't care about open versus closed source, then this is certainly
+an option for them to explore.
 
-Nevertheless. CICR2 contains also the BLW (Beginning-of-Line Pixel Clock Wait Count) parameter, which is used in master and slave mode. So I wondered, why there isn't a way to set it (Or have I just missed it?).
-Here some extra information: I use V4L2 in combination with soc_camera interface and a PXA320 host. The soc_camera interface and pxa_camera driver are out of the 2.6.29 kernel.
+Devin
 
-Thanks
-Judith
-
-
-
-
-
-
-
-#adBox3 {display:none;}
-
-
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
