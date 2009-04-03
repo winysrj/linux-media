@@ -1,210 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:51027 "EHLO smtp4-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755667AbZDOUgZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Apr 2009 16:36:25 -0400
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 5/5] soc-camera: Convert to a platform driver
-References: <Pine.LNX.4.64.0904151356480.4729@axis700.grange>
-	<Pine.LNX.4.64.0904151403500.4729@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Wed, 15 Apr 2009 22:36:14 +0200
-Message-ID: <87r5ztmz7l.fsf@free.fr>
+Received: from mail1.one.lv ([62.85.54.7]:45432 "HELO mail1.one.lv"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751334AbZDCH2a (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Apr 2009 03:28:30 -0400
+Date: Fri, 3 Apr 2009 10:21:45 +0300 (GMT+03:00)
+From: Dakteris Kirurgs <Kirurgs@one.lv>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Message-ID: <29656576.109901.1238743306188.JavaMail.root@www3.one.lv>
+Subject: DTV2000H rev. J support (patch included)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed;
+	boundary="----=_Part_109898_1854382.1238743305993"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+------=_Part_109898_1854382.1238743305993
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Content-Description: 
 
-> Convert soc-camera core to a platform driver. With this approach I2C
-> devices are no longer statically registered in platform code, instead they
-> are registered dynamically by the soc-camera core, when a match with a
-> host driver is found. With this patch all platforms and all soc-camera
-> device drivers are converted too. This is a preparatory step for the
-> v4l-subdev conversion.
->
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->
-> Ok, here goes the bad guy. Hit it hard, hit it as hard as you can.
->
+Hi!
 
-> Robert, I addressed your wishes from your previous comments, but kept the 
-> semicolon rearrangement hunk. I think, it is better not to terminate a 
-> define with a semicolon, if you like, we can make this a separate patch.
-Yep, I'd like to. That's because of merge conflict with current patches through
-arm tree. It will be easier for Eric or me to handle that other patch conflict,
-thus letting the true v4l patch through.
+I have an Leadtek DTV200H rev. J hybrid card, I bought it like a half of year back. It's not the same as regular DTV2000, rev. J was mentioned to be Vista compatible or so, they changed smth, like GPIO values.
+There was this guy Zbynek Hrabovsky who made path and posted it to kernel mailing list (I think), but he got quite funny responses and nothing really evolved.
+I want to help to support this card out of the box.
 
-> @@ -754,20 +756,21 @@ static struct platform_device var = {			\
->  		.platform_data = pdata,			\
->  		.parent	= tparent,			\
->  	},						\
-> -};
-> +}
->  #define MIO_SIMPLE_DEV(var, strname, pdata)	\
->  	MIO_PARENT_DEV(var, strname, NULL, pdata)
->  
-> -MIO_SIMPLE_DEV(mioa701_gpio_keys, "gpio-keys",	    &mioa701_gpio_keys_data)
-> +MIO_SIMPLE_DEV(mioa701_gpio_keys, "gpio-keys",	    &mioa701_gpio_keys_data);
->  MIO_PARENT_DEV(mioa701_backlight, "pwm-backlight",  &pxa27x_device_pwm0.dev,
->  		&mioa701_backlight_data);
-> -MIO_SIMPLE_DEV(mioa701_led,	  "leds-gpio",	    &gpio_led_info)
-> -MIO_SIMPLE_DEV(pxa2xx_pcm,	  "pxa2xx-pcm",	    NULL)
-> -MIO_SIMPLE_DEV(pxa2xx_ac97,	  "pxa2xx-ac97",    NULL)
-> -MIO_PARENT_DEV(mio_wm9713_codec,  "wm9713-codec",   &pxa2xx_ac97.dev, NULL)
-> -MIO_SIMPLE_DEV(mioa701_sound,	  "mioa701-wm9713", NULL)
-> -MIO_SIMPLE_DEV(mioa701_board,	  "mioa701-board",  NULL)
-> +MIO_SIMPLE_DEV(mioa701_led,	  "leds-gpio",	    &gpio_led_info);
-> +MIO_SIMPLE_DEV(pxa2xx_pcm,	  "pxa2xx-pcm",	    NULL);
-> +MIO_SIMPLE_DEV(pxa2xx_ac97,	  "pxa2xx-ac97",    NULL);
-> +MIO_PARENT_DEV(mio_wm9713_codec,  "wm9713-codec",   &pxa2xx_ac97.dev, NULL);
-> +MIO_SIMPLE_DEV(mioa701_sound,	  "mioa701-wm9713", NULL);
-> +MIO_SIMPLE_DEV(mioa701_board,	  "mioa701-board",  NULL);
+I made a patch for 2.6.29 kernel, which differs from Zbynek's patch, however GPIO values were taken from his patch (video ones), I don't know about radio ones at all. I'll attach the patch to this email, I'll attach dmesg output as well.
+There are some problems with this card and driver currently. The card works only when computer is started for the second time - from the cold start card doesn't work at all, then I restart computer and card starts working. I suspect this is because of two TV inputs.
+The card have 2 TV inputs: one digital + analog and second only analog. This patch works with one TV input only (the first I think), previously I remember to have both of them working, only change in patch was vmux = 0 for both TV inputs. Now I changed them for 0 and 1 respectively. I don't have that knowledge to know what should be what.
+I really hope You guys can help with this. I haven't tested digital video and dmesg show funny messages about frontend not to be supported.
+I really hope this can be finished finally.
+If You will need anything, please ask, I'll do whatever I can to help.
 
->  MIO_SIMPLE_DEV(gpio_vbus,	  "gpio-vbus",      &gpio_vbus_data);
-> +MIO_SIMPLE_DEV(mioa701_camera,	  "soc-camera-pdrv",&iclink[0]);
-                                                              \
-                                                               -> still broken
-                                                          (should be &iclink)
-> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-> @@ -917,6 +921,11 @@ static int mt9m111_video_probe(struct soc_camera_device *icd)
->  	    to_soc_camera_host(icd->dev.parent)->nr != icd->iface)
->  		return -ENODEV;
->  
-> +	/* Switch master clock on */
-> +	ret = soc_camera_video_start(icd, &client->dev);
-> +	if (ret)
-> +		return ret;
-> +
-Well, I'd wish to keep only out "return" point where return value is given back
-by another function (ie. have goto evid).
-The reason behind is when debuggin, it's easier to put one printk("%d", ret),
-and see what happened.
+regards
+Kirurgs
 
-As the legacy mt9m111 style is :
- - either return <immediate value>
- - or if single occurence return func(foo)
- - or error path with gotos
-I'd like that "return ret" to be transformed into "goto evid" or the like.
+-------------------------------------------------------------------------------
+http://www.one.lv - Tavs mobilais e-pasts!
 
-> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-> @@ -794,103 +791,70 @@ static void scan_add_host(struct soc_camera_host *ici)
->  
->  	list_for_each_entry(icd, &devices, list) {
->  		if (icd->iface == ici->nr) {
-> +			int ret;
->  			icd->dev.parent = ici->dev;
-> -			device_register_link(icd);
-> -		}
-> -	}
-> -
-> -	mutex_unlock(&list_lock);
-> -}
-> -
-> -/* return: 0 if no match found or a match found and
-> - * device_register() successful, error code otherwise */
-> -static int scan_add_device(struct soc_camera_device *icd)
-> -{
-> -	struct soc_camera_host *ici;
-> -	int ret = 0;
-> -
-> -	mutex_lock(&list_lock);
-> -
-> -	list_add_tail(&icd->list, &devices);
-> -
-> -	/* Watch out for class_for_each_device / class_find_device API by
-> -	 * Dave Young <hidave.darkstar@gmail.com> */
-> -	list_for_each_entry(ici, &hosts, list) {
-> -		if (icd->iface == ici->nr) {
-> -			ret = 1;
-> -			icd->dev.parent = ici->dev;
-> -			break;
-> +			dev_set_name(&icd->dev, "%u-%u", icd->iface,
-> +				     icd->devnum);
-> +			ret = device_register(&icd->dev);
-> +			if (ret < 0) {
-> +				icd->dev.parent = NULL;
-> +				dev_err(&icd->dev,
-> +					"Cannot register device: %d\n", ret);
-> +			}
->  		}
->  	}
->  
->  	mutex_unlock(&list_lock);
-> -
-> -	if (ret)
-> -		ret = device_register_link(icd);
-> -
-> -	return ret;
->  }
->  
-> +static int video_dev_create(struct soc_camera_device *icd);
-> +/* Called during host-driver probe */
->  static int soc_camera_probe(struct device *dev)
->  {
->  	struct soc_camera_device *icd = to_soc_camera_dev(dev);
-> -	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-> +	struct soc_camera_link *icl = to_soc_camera_link(icd);
->  	int ret;
-> +	struct i2c_client *client;
-> +	struct i2c_adapter *adap = i2c_get_adapter(icl->i2c_adapter_id);
->  
-> -	/*
-> -	 * Possible race scenario:
-> -	 * modprobe <camera-host-driver> triggers __func__
-> -	 * at this moment respective <camera-sensor-driver> gets rmmod'ed
-> -	 * to protect take module references.
-> -	 */
-> -
-> -	if (!try_module_get(icd->ops->owner)) {
-> -		dev_err(&icd->dev, "Couldn't lock sensor driver.\n");
-> -		ret = -EINVAL;
-> -		goto emgd;
-> -	}
-> -
-> -	if (!try_module_get(ici->ops->owner)) {
-> -		dev_err(&icd->dev, "Couldn't lock capture bus driver.\n");
-> -		ret = -EINVAL;
-> -		goto emgi;
-> +	if (!adap) {
-> +		ret = -ENODEV;
-> +		dev_err(dev, "Cannot get I2C adapter %d\n", icl->i2c_adapter_id);
-> +		goto ei2cga;
->  	}
->  
-> -	mutex_lock(&icd->video_lock);
-> +	dev_info(dev, "Probing %s\n", dev_name(dev));
->  
-> -	/* We only call ->add() here to activate and probe the camera.
-> -	 * We shall ->remove() and deactivate it immediately afterwards. */
-> -	ret = ici->ops->add(icd);
-> -	if (ret < 0)
-> -		goto eiadd;
-> +	client = i2c_new_device(adap, icl->board_info);
-> +	if (!client) {
-> +		ret = -ENOMEM;
-> +		goto ei2cnd;
-> +	}
->  
-> -	ret = icd->ops->probe(icd);
-> -	if (ret >= 0) {
-> -		const struct v4l2_queryctrl *qctrl;
-> +	/*
-> +	 * We set icd drvdata at two locations - here and in
-> +	 * soc_camera_video_start(). Depending on the module loading /
-> +	 * initialisation order one of these locations will be entered first
-> +	 */
-> +	/* Use to_i2c_client(dev) to recover the i2c client */
-> +	dev_set_drvdata(&icd->dev, &client->dev);
-I didn't find any reference to unsetting the driver data. Is it normal ?
+Tagad lasi savu e-pastu ar mobilo telefonu - wap.one.lv!
+------=_Part_109898_1854382.1238743305993
+Content-Type: application/octet-stream; name=dmesg_output.txt
+Content-Transfer-Encoding: 7bit
+Content-Description: dmesg_output.txt
+Content-Disposition: attachment; filename=dmesg_output.txt
 
-I must admit I didn't go fully through soc_camera* ... I'll try harder in the
-next days.
+cx88_audio 0000:00:0c.1: PCI INT A -> Link[LNKA] -> GSI 10 (level, low) -> IRQ 10
+cx88[0]: subsystem: 107d:6f2b, board: WinFast DTV2000H J [card=100,autodetected], frontend(s): 1
+cx88[0]: TV tuner type 63, Radio tuner type -1
+tuner' 0-0043: chip found @ 0x86 (cx88[0])
+tuner' 0-0061: chip found @ 0xc2 (cx88[0])
+tuner' 0-0063: chip found @ 0xc6 (cx88[0])
+input: cx88 IR (WinFast DTV2000H J) as /devices/pci0000:00/0000:00:0c.1/input/input4
+IRQ 10/cx88[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
+cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
+cx8800 0000:00:0c.0: PCI INT A -> Link[LNKA] -> GSI 10 (level, low) -> IRQ 10
+cx88[0]/0: found at 0000:00:0c.0, rev: 5, irq: 10, latency: 32, mmio: 0xe4000000
+IRQ 10/cx88[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+cx88[0]/0: registered device video0 [v4l2]
+cx88[0]/0: registered device vbi0
+cx88[0]/0: registered device radio0
+cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
+cx88[0]/2: cx2388x 8802 Driver Manager
+cx88-mpeg driver manager 0000:00:0c.2: PCI INT A -> Link[LNKA] -> GSI 10 (level, low) -> IRQ 10
+cx88[0]/2: found at 0000:00:0c.2, rev: 5, irq: 10, latency: 32, mmio: 0xe6000000
+IRQ 10/cx88[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+cx88/2: cx2388x dvb driver version 0.0.6 loaded
+cx88/2: registering cx8802 driver, type: dvb access: shared
+cx88[0]/2: subsystem: 107d:6f2b, board: WinFast DTV2000H J [card=100]
+cx88[0]/2: cx2388x based DVB/ATSC card
+cx8802_alloc_frontends() allocating 1 frontend(s)
+cx88[0]/2: The frontend of your DVB/ATSC card isn't supported yet
+cx88[0]/2: frontend initialization failed
+cx88[0]/2: dvb_register failed (err = -22)
+cx88[0]/2: cx8802 probe failed, err = -22
 
-Cheers.
+------=_Part_109898_1854382.1238743305993
+Content-Type: application/octet-stream; name=add_dtv200hj.patch
+Content-Transfer-Encoding: 7bit
+Content-Description: add_dtv200hj.patch
+Content-Disposition: attachment; filename=add_dtv200hj.patch
 
---
-Robert
+diff -rup 28/drivers/media/video/cx88/cx88-cards.c 29/drivers/media/video/cx88/cx88-cards.c
+--- 28/drivers/media/video/cx88/cx88-cards.c	2009-03-24 01:12:14.000000000 +0200
++++ 29/drivers/media/video/cx88/cx88-cards.c	2009-03-31 11:56:29.000000000 +0300
+@@ -1281,6 +1281,51 @@ static const struct cx88_board cx88_boar
+ 		},
+ 		.mpeg           = CX88_MPEG_DVB,
+ 	},
++	[CX88_BOARD_WINFAST_DTV2000H_2] = {
++		.name           = "WinFast DTV2000H J",
++		.tuner_type     = TUNER_PHILIPS_FMD1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.input          = {{
++			.type   = CX88_VMUX_TELEVISION,
++			.vmux   = 0,
++			.gpio0  = 0x00017300,
++			.gpio1  = 0x00008207,
++			.gpio2  = 0x00000000,
++			.gpio3  = 0x02000000,
++		}, {
++			.type   = CX88_VMUX_TELEVISION,
++			.vmux   = 1,
++			.gpio0  = 0x00018300,
++			.gpio1  = 0x0000f207,
++			.gpio2  = 0x00017304,
++			.gpio3  = 0x02000000,
++		}, {
++			.type   = CX88_VMUX_COMPOSITE1,
++			.vmux = 2,
++			.gpio0 = 0x00018301,
++			.gpio1 = 0x0000f207,
++			.gpio2 = 0x00017304,
++			.gpio3 = 0x02000000,
++		}, {
++			.type   = CX88_VMUX_SVIDEO,
++			.vmux = 3,
++			.gpio0 = 0x00018301,
++			.gpio1 = 0x0000f207,
++			.gpio2 = 0x00017304,
++			.gpio3 = 0x02000000,
++		}},
++		.radio = {
++			 .type  = CX88_RADIO,
++			 .gpio0 = 0x00015702,
++			 .gpio1 = 0x0000f207,
++			 .gpio2 = 0x00015702,
++			 .gpio3 = 0x02000000,
++		},
++		.mpeg       = CX88_MPEG_DVB,
++	},
+ 	[CX88_BOARD_GENIATECH_DVBS] = {
+ 		.name          = "Geniatech DVB-S",
+ 		.tuner_type    = TUNER_ABSENT,
+@@ -2187,6 +2232,10 @@ static const struct cx88_subid cx88_subi
+ 		.subdevice = 0x665e,
+ 		.card      = CX88_BOARD_WINFAST_DTV2000H,
+ 	},{
++		.subvendor = 0x107d,
++		.subdevice = 0x6f2b,
++		.card      = CX88_BOARD_WINFAST_DTV2000H_2,
++	},{
+ 		.subvendor = 0x18ac,
+ 		.subdevice = 0xd800, /* FusionHDTV 3 Gold (original revision) */
+ 		.card      = CX88_BOARD_DVICO_FUSIONHDTV_3_GOLD_Q,
+diff -rup 28/drivers/media/video/cx88/cx88-input.c 29/drivers/media/video/cx88/cx88-input.c
+--- 28/drivers/media/video/cx88/cx88-input.c	2009-03-24 01:12:14.000000000 +0200
++++ 29/drivers/media/video/cx88/cx88-input.c	2009-03-31 11:56:52.000000000 +0300
+@@ -231,6 +231,7 @@ int cx88_ir_init(struct cx88_core *core,
+ 		ir->sampling = 1;
+ 		break;
+ 	case CX88_BOARD_WINFAST_DTV2000H:
++	case CX88_BOARD_WINFAST_DTV2000H_2:
+ 		ir_codes = ir_codes_winfast;
+ 		ir->gpio_addr = MO_GP0_IO;
+ 		ir->mask_keycode = 0x8f8;
+diff -rup 28/drivers/media/video/cx88/cx88-mpeg.c 29/drivers/media/video/cx88/cx88-mpeg.c
+--- 28/drivers/media/video/cx88/cx88-mpeg.c	2009-03-24 01:12:14.000000000 +0200
++++ 29/drivers/media/video/cx88/cx88-mpeg.c	2009-03-31 11:58:35.000000000 +0300
+@@ -92,6 +92,12 @@ static int cx8802_start_dma(struct cx880
+ 	/* FIXME: this needs a review.
+ 	 * also: move to cx88-blackbird + cx88-dvb source files? */
+ 
++	/* switch signal input to antena */
++	/*
++	if ((core->boardnr) == CX88_BOARD_WINFAST_DTV2000H_2)
++		cx_write(MO_GP0_IO, 0x00017300);
++	*/
++
+ 	dprintk( 1, "core->active_type_id = 0x%08x\n", core->active_type_id);
+ 
+ 	if ( (core->active_type_id == CX88_MPEG_DVB) &&
+diff -rup 28/drivers/media/video/cx88/cx88.h 29/drivers/media/video/cx88/cx88.h
+--- 28/drivers/media/video/cx88/cx88.h	2009-03-24 01:12:14.000000000 +0200
++++ 29/drivers/media/video/cx88/cx88.h	2009-03-31 12:00:04.000000000 +0300
+@@ -231,6 +231,7 @@ extern struct sram_channel cx88_sram_cha
+ #define CX88_BOARD_SATTRADE_ST4200         76
+ #define CX88_BOARD_TBS_8910                77
+ #define CX88_BOARD_PROF_6200               78
++#define CX88_BOARD_WINFAST_DTV2000H_2      100
+ 
+ enum cx88_itype {
+ 	CX88_VMUX_COMPOSITE1 = 1,
+
+------=_Part_109898_1854382.1238743305993--
