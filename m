@@ -1,17 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.168])
-	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tutuyu@usc.edu>) id 1LyW1y-0005Y9-5E
-	for linux-dvb@linuxtv.org; Mon, 27 Apr 2009 20:58:18 +0200
-Received: by wf-out-1314.google.com with SMTP id 28so62588wff.17
-	for <linux-dvb@linuxtv.org>; Mon, 27 Apr 2009 11:58:12 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20])
+	by mail.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <markus.o.hahn@gmx.de>) id 1LpgWM-0000Zv-PD
+	for linux-dvb@linuxtv.org; Fri, 03 Apr 2009 12:21:12 +0200
+Date: Fri, 03 Apr 2009 12:20:32 +0200
+From: "Markus Oliver Hahn" <markus.o.hahn@gmx.de>
+Message-ID: <20090403102032.15320@gmx.net>
 MIME-Version: 1.0
-Date: Mon, 27 Apr 2009 11:58:11 -0700
-Message-ID: <cae4ceb0904271158l56cfc840t858ef5042b1e42f@mail.gmail.com>
-From: Tu-Tu Yu <tutuyu@usc.edu>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] HVR1200 stop after RF tracking filter calibration
-	complete
+Subject: [linux-dvb]  APIs
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -20,30 +17,31 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dear sirs:
-After I installed the HVR1200, it stop when we tune the frequency.
-Could anyone tell me what should i do for this situation? Thank you.
-The message in the log is below
+Hi there, =
 
-kernel: cx23885_dev_checkrevision() Hardware revision unknown 0x0
-kernel: cx23885[0]/0: found at 0000:0b:00.0, rev: 4, irq: 16, latency:
-0, mmio: 0xfea00000
-kernel: tda10048_firmware_upload: waiting for firmware upload
-(dvb-fe-tda10048-1.0.fw)...
-kernel: firmware: requesting dvb-fe-tda10048-1.0.fw
-kernel: tda10048_firmware_upload: firmware read 24878 bytes.
-kernel: tda10048_firmware_upload: firmware uploading
-kernel: tda10048_firmware_upload: firmware uploaded
-kernel: tda18271: performing RF tracking filter calibration
-kernel: tda18271: RF tracking filter calibration complete
+I just read this: =
 
-Audrey
+
+http://linuxtv.org/news.php?entry=3D2008-09-23.mchehab
+
+but where can I get the t S2API Documentation? =
+
+
+regards =
+
+
+
+-- =
+
+Neu: GMX FreeDSL Komplettanschluss mit DSL 6.000 Flatrate + Telefonanschlus=
+s f=FCr nur 17,95 Euro/mtl.!* http://dsl.gmx.de/?ac=3DOM.AD.PD003K11308T456=
+9a
 
 _______________________________________________
 linux-dvb users mailing list
