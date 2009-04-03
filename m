@@ -1,170 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.28]:63086 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753785AbZDPJiC convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Apr 2009 05:38:02 -0400
-Received: by yx-out-2324.google.com with SMTP id 31so259668yxl.1
-        for <linux-media@vger.kernel.org>; Thu, 16 Apr 2009 02:38:00 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20]:49682 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755714AbZDCKWG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Apr 2009 06:22:06 -0400
+Date: Fri, 3 Apr 2009 12:22:08 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Darius Augulis <augulis.darius@gmail.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	paulius.zaleckas@teltonika.lt
+Subject: Re: [PATCH V3] Add camera (CSI) driver for MX1
+In-Reply-To: <20090403080923.3222.80609.stgit@localhost.localdomain>
+Message-ID: <Pine.LNX.4.64.0904031204280.4729@axis700.grange>
+References: <20090403080923.3222.80609.stgit@localhost.localdomain>
 MIME-Version: 1.0
-In-Reply-To: <49E6F972.5070309@redhat.com>
-References: <49E5D4DE.6090108@hhs.nl>
-	 <78877a450904152316s7fb3282m9ac9374a52877ecb@mail.gmail.com>
-	 <49E6F972.5070309@redhat.com>
-Date: Thu, 16 Apr 2009 19:38:00 +1000
-Message-ID: <78877a450904160238h637c926du51570db86f06a84@mail.gmail.com>
-Subject: Re: libv4l release: 0.5.97: the whitebalance release!
-From: Gilles Gigan <gilles.gigan@gmail.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Hans de Goede <j.w.r.degoede@hhs.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
-The patch  fixes the problem.
+Ok, we're almost there:-) Should be the last iteration.
 
-Gilles
+On Fri, 3 Apr 2009, Darius Augulis wrote:
 
-On Thu, Apr 16, 2009 at 7:25 PM, Hans de Goede <hdegoede@redhat.com> wrote:
->
->
-> On 04/16/2009 08:16 AM, Gilles Gigan wrote:
->>
->> Hans,
->> I have tested libv4lconvert with a PCI hauppauge hvr1300 DVB-T and
->> found that v4lconvert_create() returns NULL. The problem comes from
->> the shm_open calls in v4lcontrol_create() in libv4lcontrol.c (lines
->> 187&  190). libv4lconvert constructs the shared memory name based on
->> the video device's name. And in this case the video device's name
->> (literally "Hauppauge WinTV-HVR1300 DVB-T/H") contains a slash, which
->> makes both calls to shm_open() fail. I can put together a quick patch
->> to replace '/' with '-' or white spaces if you want.
->> Gilles
->>
->
-> Hi,
->
-> Thanks for reporting this! Can you please test the attached patch to see if
-> it
-> fixes this?
->
-> Thanks,
->
-> Hans
->
->
->>
->> On Wed, Apr 15, 2009 at 10:36 PM, Hans de Goede<j.w.r.degoede@hhs.nl>
->>  wrote:
->>>
->>> Hi All,
->>>
->>> As the version number shows this is a beta release of the 0.6.x series,
->>> the big change here is the addition of video processing to libv4l
->>> currently this only does whitebalance and normalizing (which turns out
->>> to be useless for most cams) but the basic framework for doing video
->>> processing, and being able to control it through fake v4l2 controls using
->>> for example v4l2ucp is there.
->>>
->>> Currently only whitebalancing is enabled and only on Pixarts (pac)
->>> webcams
->>> (which benefit tremendously from this). To test this with other webcams
->>> (after instaling this release) do:
->>>
->>> export LIBV4LCONTROL_CONTROLS=15
->>> LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so v4l2ucp&
->>>
->>> Notice the whitebalance and normalize checkboxes in v4l2ucp,
->>> as well as low and high limits for normalize.
->>>
->>> Now start your favorite webcam viewing app and play around with the
->>> 2 checkboxes. Note normalize seems to be useless in most cases. If
->>> whitebalancing makes a *strongly noticable* difference for your webcam
->>> please mail me info about your cam (the usb id), then I can add it to
->>> the list of cams which will have the whitebalancing algorithm (and the
->>> v4l2
->>> control to enable/disable it) enabled by default.
->>>
->>> Unfortunately doing videoprocessing can be quite expensive, as for
->>> example
->>> whitebalancing is quite hard todo in yuv space, so doing white balancing
->>> with the pac7302, with an apps which wants yuv changes the flow from
->>> pixart-jpeg ->  yuv420 ->  rotate90
->>> to:
->>> pixart-jpeg ->  rgb24 ->  whitebalance ->  yuv420 ->  rotate90
->>>
->>> This is not a problem for cams which deliver (compressed) raw bayer,
->>> as bayer is rgb too, so I've implemented a version of the whitebalancing
->>> algorithm which operates directly on bayer data, so for bayer cams
->>> (like the pac207) it goes from:
->>> bayer->  yuv
->>> to:
->>> bayer ->  whitebalance ->  yuv
->>>
->>> For the near future I plan to change the code so that the analyse phase
->>> (which does not get done every frame) creates per component look up
->>> tables,
->>> this will make it easier to stack multiple "effects" in one pass without
->>> special casing it as the current special normalize+whitebalance in one
->>> pass code. Then we can add for example gamma correction with a negligible
->>> performance impact (when already doing white balancing that is).
->>>
->>>
->>> libv4l-0.5.97
->>> -------------
->>> * As the version number shows this is a beta release of the 0.6.x series,
->>>  the big change here is the addition of video processing to libv4l
->>>  currently this only does whitebalance and normalizing (which turns out
->>>  to be useless for most cams) but the basic framework for doing video
->>>  processing, and being able to control it through fake v4l2 controls
->>> using
->>>  for example v4l2ucp is there.
->>>  The initial version of this code was written by 3 of my computer science
->>>  students: Elmar Kleijn, Sjoerd Piepenbrink and Radjnies Bhansingh
->>> * Currently whitebalancing gets enabled based on USB-ID's and it only
->>> gets
->>>  enabled for Pixart webcam's. You can force it being enabled with other
->>>  webcams by setting the environment variable LIBV4LCONTROL_CONTROLS, this
->>>  sets a bitmask enabling certain v4l2 controls which control the video
->>>  processing set it to 15 to enable both whitebalancing and normalize. You
->>>  can then change the settings using a v4l2 control panel like v4l2ucp
->>> * Only report / allow supported destination formats in enum_fmt / try_fmt
->>> /
->>>  g_fmt / s_fmt when processing, rotating or flipping.
->>> * Some applications / libs (*cough* gstreamer *cough*) will not work
->>>  correctly with planar YUV formats when the width is not a multiple of 8,
->>>  so crop widths which are not a multiple of 8 to the nearest multiple of
->>> 8
->>>  when converting to planar YUV
->>> * Add dependency generation to libv4l by: Gilles Gigan
->>> <gilles.gigan@gmail.com>
->>> * Add support to use orientation from VIDIOC_ENUMINPUT by:
->>>  Adam Baker<linux@baker-net.org.uk>
->>> * sn9c20x cams have occasional bad jpeg frames, drop these to avoid the
->>>  flickering effect they cause, by: Brian Johnson<brijohn@gmail.com>
->>> * adjust libv4l's upside down cam detection to also work with devices
->>>  which have the usb interface as parent instead of the usb device
->>> * fix libv4l upside down detection for the new v4l minor numbering scheme
->>> * fix reading outside of the source memory when doing yuv420->rgb
->>> conversion
->>>
->>>
->>> Get it here:
->>> http://people.atrpms.net/~hdegoede/libv4l-0.5.97.tar.gz
->>>
->>> Regards,
->>>
->>> Hans
->>>
->>>
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>
->
+> From: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+> 
+> Changelog since V2:
+> - My signed-off line added
+> - Makefile updated
+> - .init and .exit removed from pdata
+> - includes sorted
+> - Video memory limit added
+> - Pointers in free_buffer() fixed
+> - Indentation fixed
+> - Spinlocks added
+> - PM implementation removed
+> - Added missed clk_put()
+> - pdata test added
+> - CSI device renamed
+> - Platform flags fixed
+> - "i.MX" replaced by "MX1" in debug prints
+
+I usually put such changelogs below the "---" line, so it doesn't appear 
+in the git commit message, and here you just put a short description of 
+the patch.
+
+> 
+> Signed-off-by: Darius Augulis <augulis.darius@gmail.com>
+> Signed-off-by: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+> ---
+
+[snip]
+
+> diff --git a/arch/arm/plat-mxc/include/mach/memory.h b/arch/arm/plat-mxc/include/mach/memory.h
+> index e0783e6..7113b3e 100644
+> --- a/arch/arm/plat-mxc/include/mach/memory.h
+> +++ b/arch/arm/plat-mxc/include/mach/memory.h
+> @@ -24,4 +24,12 @@
+>  #define PHYS_OFFSET		UL(0x80000000)
+>  #endif
+>  
+> +#if defined(CONFIG_MX1_VIDEO)
+
+This #ifdef is not needed any more now, the file is not compiled if 
+CONFIG_MX1_VIDEO is not defined.
+
+> +	/* Make choises, based on platform choice */
+> +	if ((common_flags & SOCAM_VSYNC_ACTIVE_HIGH) &&
+> +		(common_flags & SOCAM_VSYNC_ACTIVE_LOW)) {
+> +			if (pcdev->pdata->flags & MX1_CAMERA_VSYNC_HIGH)
+> +				common_flags &= ~SOCAM_VSYNC_ACTIVE_LOW;
+> +			else
+> +				common_flags &= ~SOCAM_VSYNC_ACTIVE_HIGH;
+> +	}
+> +
+> +	if ((common_flags & SOCAM_PCLK_SAMPLE_RISING) &&
+> +		(common_flags & SOCAM_PCLK_SAMPLE_FALLING)) {
+> +			if (pcdev->pdata->flags & MX1_CAMERA_PCLK_RISING)
+> +				common_flags &= ~SOCAM_PCLK_SAMPLE_FALLING;
+> +			else
+> +				common_flags &= ~SOCAM_PCLK_SAMPLE_RISING;
+> +	}
+> +
+> +	if ((common_flags & SOCAM_DATA_ACTIVE_HIGH) &&
+> +		(common_flags & SOCAM_DATA_ACTIVE_LOW)) {
+> +			if (pcdev->pdata->flags & MX1_CAMERA_DATA_HIGH)
+> +				common_flags &= ~SOCAM_DATA_ACTIVE_LOW;
+> +			else
+> +				common_flags &= ~SOCAM_DATA_ACTIVE_HIGH;
+> +	}
+
+In all three clauses above pdata can be NULL.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
