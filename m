@@ -1,52 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bar.sig21.net ([80.81.252.164]:43881 "EHLO bar.sig21.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755167AbZD0WN7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2009 18:13:59 -0400
-Date: Tue, 28 Apr 2009 00:14:16 +0200
-From: Johannes Stezenbach <js@linuxtv.org>
-To: "H. Langos" <henrik-dvb@prak.org>
+Received: from bombadil.infradead.org ([18.85.46.34]:46210 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762347AbZDCMQF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2009 08:16:05 -0400
+Date: Fri, 3 Apr 2009 09:15:56 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Uri Shkolnik <urishk@yahoo.com>
 Cc: linux-media@vger.kernel.org
-Subject: Re: wiki on linixtv.org locked
-Message-ID: <20090427221416.GA22707@linuxtv.org>
-References: <20090427164321.GN2895@www.viadmin.org> <20090427173741.GA20847@linuxtv.org> <20090427202925.GO2895@www.viadmin.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090427202925.GO2895@www.viadmin.org>
+Subject: Re: [PATCH - RECALL] siano: smsendian & smsdvb - binding the
+ smsendian to smsdvb
+Message-ID: <20090403091556.35bef9bc@pedra.chehab.org>
+In-Reply-To: <370876.54570.qm@web110804.mail.gq1.yahoo.com>
+References: <370876.54570.qm@web110804.mail.gq1.yahoo.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 27, 2009 at 10:29:25PM +0200, H. Langos wrote:
+Uri,
+
+On Fri, 3 Apr 2009 03:20:38 -0700 (PDT)
+Uri Shkolnik <urishk@yahoo.com> wrote:
+
+> Hi,
 > 
-> the next step would be to update the mediwiki software to 1.11.1 if you have
-> $wgEnableAPI = true, that is. (i know it is only a XSS that hits internet 
-> explorer users ..  but hey, they are people, too ;-)
-
-I will update to 1.14.0. This is the current version, and it is
-also used by wiki.kernel.org (there is a secret plan to eventually
-move the wiki there). And all the shiny new anti-spam extensions
-don't seem to work with 1.11 anymore...
-
-> if i remember right, the linuxtv wiki only allows editing to registered 
-> users. therefore you could simply temporarily disable new user registration
-> and enable editing again for registered users.
-
-I will do the update first.
-
-> then i'd suggest installing the reCAPTCHA extention. not only will it
-> prevent bots from registering, you also help to digitize old books.
+> The last patch in the series ("siano: smsendian & smsdvb - binding the smsendian to smsdvb") breaks the driver, please ignore it.
 > 
-> http://recaptcha.net/plugins/mediawiki/
-
-Looked at that and noticed they don't provide any statement
-regarding confidentiality / data protection. Who knows if
-they aren't creating a huge database of who did what in Wikis
-and Blogs around the net...
-
-Besides that, this wouldn't have stopped the present attack
-since the bot used does a manual login assisted by a human user.
-To thwart that I'd have to enable the captcha for every page save...
 
 
-Johannes
+It will be very hard (again) to handle your patch series. Especially when
+sending a big series of patches like this, you should number the patches, for
+they to be applied at the proper order. 
+
+Also, when a patch is broken, you should reply to that patch, without changing
+the subject. The original message ID will be properly handled by patchwork, and
+the reply message will be folded with the original patch.
+
+In this case, this is the message ID of your patch message:
+Message-ID: <622468.86074.qm@web110805.mail.gq1.yahoo.com>
+
+However, your "RECALL" email doesn't contain any reference tag to the original
+message (since you didn't reply to your message). So, emailers and patchwork
+won't associate the reply with the patch you want to discard.
+
+Cheers,
+Mauro
