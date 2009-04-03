@@ -1,87 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp121.rog.mail.re2.yahoo.com ([206.190.53.26]:21796 "HELO
-	smtp121.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751915AbZDLRoa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Apr 2009 13:44:30 -0400
-Message-ID: <49E226EB.9010205@rogers.com>
-Date: Sun, 12 Apr 2009 13:37:47 -0400
-From: CityK <cityk@rogers.com>
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:63549 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933995AbZDCPgj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2009 11:36:39 -0400
+Received: by fxm2 with SMTP id 2so1033491fxm.37
+        for <linux-media@vger.kernel.org>; Fri, 03 Apr 2009 08:36:36 -0700 (PDT)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: mp3geek <mp3geek@gmail.com>
+Subject: Re: SDMC DM1105N not being detected
+Date: Fri, 3 Apr 2009 18:36:19 +0300
+Cc: linux-media@vger.kernel.org
+References: <e6ac15e50904022156u40221c3fib15d1b4cdf36461@mail.gmail.com> <e6ac15e50904022202k1f71120bgc10837efd1ec0f24@mail.gmail.com>
+In-Reply-To: <e6ac15e50904022202k1f71120bgc10837efd1ec0f24@mail.gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Jean Delvare <khali@linux-fr.org>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
-  model
-References: <20090404142427.6e81f316@hyperion.delvare>	<Pine.LNX.4.64.0904041045380.32720@cnc.isely.net>	<20090405010539.187e6268@hyperion.delvare>	<200904050746.47451.hverkuil@xs4all.nl>	<20090405143748.GC10556@aniel>	<1238953174.3337.12.camel@morgan.walls.org>	<20090405183154.GE10556@aniel>	<1238957897.3337.50.camel@morgan.walls.org>	<20090405222250.64ed67ae@hyperion.delvare>	<1238966523.6627.63.camel@pc07.localdom.local>	<20090406104045.58da67c7@hyperion.delvare>	<1239052236.4925.20.camel@pc07.localdom.local>	<20090407112715.6caf2e89@hyperion.delvare>	<49DC13D3.4080201@rogers.com> <20090408083102.027ba170@pedra.chehab.org>
-In-Reply-To: <20090408083102.027ba170@pedra.chehab.org>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200904031836.19523.liplianin@tut.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> On Tue, 07 Apr 2009 23:02:43 -0400
-> CityK <cityk@rogers.com> wrote:
+On 3 April 2009 08:02:20 mp3geek wrote:
+> Not even being detected in Linux 2.6.29.1, I have the modules "dm1105"
+> loaded, but since its not even being detected by linux..
 >
->   
->> Regarding the KS003 (& KS007; the other "mystery" chip):
->>
->> Upon further investigation of some info from a post from last year
->> (http://www.linuxtv.org/pipermail/linux-dvb/2008-January/022634.html),
->> it appears that these (assuming that they are the same IC across the
->> various MSI, Leadtek & KWorld cards; and I believe that to be true) are
->> the "AT8PS54/S56" chip from "Feeling Technology" ... the datasheet for
->> that part is available through a google search .... probing further (as
->> I had never heard of FT before and so I looked them up), it looks like
->> FT renamed and/or upgraded the chip to the "FM8PS54/S56" ... the near
->> identical datasheet for that second version is also available:
->> http://www.feeling-tech.com.tw/km-master/front/bin/ptdetail.phtml?Part=M1-05&Category=100018
->>     
+> lspci -vv shows this (I'm assuming this is the card..), dmesg shows
+> nothing dvb being loaded
 >
-> From what I've investigated, several of those IR chips are micro-controllers like
-> the one you pointed. I've seen a few boards whose IR chip is not masked. On
-> those, I always went into some micro-controller datasheet.
+> 00:0b.0 Ethernet controller: Device 195d:1105 (rev 10)
+>    Subsystem: Device 195d:1105
+>    Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop-
+> ParErr- Stepping- SERR- FastB2B- DisINTx-
+>    Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort-
+> <TAbort- <MAbort- >SERR- <PERR- INTx-
+>    Latency: 30 (4000ns min, 8000ns max), Cache Line Size: 32 bytes
+>    Interrupt: pin A routed to IRQ 5
+>    Region 0: I/O ports at 9400 [size=256]
 >
-> Those IR's with a micro-controller have some software inside it to decode one IR
-> protocol and generate scan-code sequences that can be received via GPIO or via
-> I2C, depending on the firmware content.
 >
-> The datasheet of those chips are useless, since the behaviour of the
-> device is programmed inside their ROM/EEPROM [1]. So, even being the same chip,
-> you could have two "K007" devices with different firmwares, listening on
-> different i2c addresses and eventually generating different scan-codes for the
-> same IR.
->
-> On the other hand, for USB devices and for bttv, saa7134 and cx88, there are
-> some easy ways to monitor what i2c messages or GPIO pins are involved with IR.
-> In general, the IR received messages generated by the firmware are some header,
-> a scan code, a repeat key bit and a trailer. So, it is not hard to generate a
-> get-key routine to get the scan code and the repeat bit from the protocol.
->
-> That's why the modern ir-kbd-i2c approach is to select the proper IR parameters
-> after binding the module, at the bridge driver. The bridge driver is the one
-> who knows what's the IR scan code of the original IR (to set it as the
-> default), and the proper get-key function. With the new i2c behaviour, the
-> bridge driver can also specify the proper i2c address for each device.
->
-> Cheers,
-> Mauro
->
-> [1] It doesn't seem to be practical for me to get their internal software.In
-> general, such micro-controllers block EEPROM/ROM read of the software inside.
-> If this is the case of this chip, the only remaining option to get the internal
-> software would be to cut the plastic and try to see the state of each eeprom
-> bit with the help of a good microscope. 
-> Anyway, assuming that there are some way to read the ROM content, in order to
-> see the device behavior, one should remove the chip from the board, get the
-> ROM/EEPROM content, write a disassembler for this processor, disassemble the
-> code and analyse the results. This would be a real hard work, would take a lot
-> of time, and I doubt that this would help to improve the driver, since we
-> already know how to read scan codes from those devices.
+> The chip says the following, SDMC DM1105N, EasyTV-DVBS V1.0B
+> (2008-04-26), 0735 E280034
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Thanks for the detailed response Mauro. I've actually been wondering
-about whether the specific "KS00x" designation/label might refer to the
-embedded firmware or to a dataline, so that thought is certainly
-consistent with your description.
+I wrote code to support card with subsystem/device 195d/1105, but no one reported success, so I 
+decided to not include it in commit :(
+
+It was more then one year ago
+
+http://liplianin.at.tut.by/dvblipl.tar.bz2
+
+http://liplianin.at.tut.by/ds110en.html
+-- 
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
