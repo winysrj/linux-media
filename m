@@ -1,38 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n33HHcxb002431
-	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 13:17:38 -0400
-Received: from node01.cambriumhosting.nl (node01.cambriumhosting.nl
-	[217.19.16.162])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n33HHHte027039
-	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 13:17:17 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by node01.cambriumhosting.nl (Postfix) with ESMTP id A2C54B000087
-	for <video4linux-list@redhat.com>;
-	Fri,  3 Apr 2009 19:17:16 +0200 (CEST)
-Received: from node01.cambriumhosting.nl ([127.0.0.1])
-	by localhost (node01.cambriumhosting.nl [127.0.0.1]) (amavisd-new,
-	port 10024)
-	with ESMTP id WQ4ghaoLcIUV for <video4linux-list@redhat.com>;
-	Fri,  3 Apr 2009 19:17:11 +0200 (CEST)
-Received: from ashley.powercraft.nl (84-245-3-195.dsl.cambrium.nl
-	[84.245.3.195])
-	by node01.cambriumhosting.nl (Postfix) with ESMTP id 0AEDAB0000BD
-	for <video4linux-list@redhat.com>;
-	Fri,  3 Apr 2009 19:17:11 +0200 (CEST)
-Received: from [192.168.1.239] (unknown [192.168.1.239])
-	by ashley.powercraft.nl (Postfix) with ESMTPSA id 65A9A23BC501
-	for <video4linux-list@redhat.com>;
-	Fri,  3 Apr 2009 18:46:11 +0200 (CEST)
-Message-ID: <49D644CD.1040307@powercraft.nl>
-Date: Fri, 03 Apr 2009 19:18:05 +0200
-From: Jelle de Jong <jelledejong@powercraft.nl>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n33H9rZB030025
+	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 13:09:53 -0400
+Received: from mail-gx0-f171.google.com (mail-gx0-f171.google.com
+	[209.85.217.171])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n33H9LC6002036
+	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 13:09:35 -0400
+Received: by mail-gx0-f171.google.com with SMTP id 19so2506534gxk.3
+	for <video4linux-list@redhat.com>; Fri, 03 Apr 2009 10:09:35 -0700 (PDT)
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <49D62CBB.7070800@powercraft.nl>
+References: <49D610CC.6070405@powercraft.nl>
+	<412bdbff0904030747s3d1e956al168cc75b0208a3f0@mail.gmail.com>
+	<49D62CBB.7070800@powercraft.nl>
+Date: Fri, 3 Apr 2009 13:09:34 -0400
+Message-ID: <412bdbff0904031009t56ed8f22pcba899169b3f4305@mail.gmail.com>
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Jelle de Jong <jelledejong@powercraft.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: one dvb-t devices not working with mplayer the other is, what is
- going wrong?
+Cc: video4linux-list@redhat.com
+Subject: Re: request list of usb dvb-t devices that work with vanilla 2.6.29
+	kernel
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -44,47 +33,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello everybody,
+On Fri, Apr 3, 2009 at 11:35 AM, Jelle de Jong
+<jelledejong@powercraft.nl> wrote:
+> Thanks for the quick response, I am aware of the situation and the
+> specifics of the Micronas case. I talked with Marcus several times about
+> ways to handle this to make the driver available for the gpl compliant
+> upstream kernel.
+>
+> I can also confirm that the analog part of most of my em28xx devices do
+> work, so currently I am recommending customers two buy two usb devices
+> one for analog and one for dvb-t.
+>
+> If you want I can sent you an em28xx device with dvb-t and analog i got
+> tree of those lying around here.
+>
+> Best regards,
+>
+> Jelle de Jong
 
-As you may read in my previous thread, i am trying to switch from my
-em28xx devices to a device that works with gpl compliant upstream kernel
-source code.
+Hello Jelle,
 
-My em28xx devices all played back video and audio only dvb-t channels:
-Pinnacle PCTV Hybrid Pro Stick 330e
-Terratec Cinergy Hybrid T USB XS
-Hauppauge WinTV HVR 900
+Once I receive the Terratec device you mentioned, I will see if I can
+get it up and running in the mainline kernel (at which point I will
+mail it back to you).
 
-I build script for this to automate the process, however i now swiched to
-my dvb-t only usb device:
-Afatech AF9015 DVB-T USB2.0 stick
+Cheers,
 
-And it with totem-xine it plays the same as the em28xx devices, so the
-devices does kind of works (see the totem-xine bug, please commit to this
-bug if you have the same behavior)
+Devin
 
-# device info
-http://debian.pastebin.com/d3e942c02
-
-# totem-xine bug
-http://bugzilla.gnome.org/show_bug.cgi?id=554319
-
-# mplayer issue
-http://debian.pastebin.com/d34d92e64
-^ anybody have any idea what the heck goes on why doesn't mplayer work
-with this device, nothing changed in the commands i used.
-
-using:
-mplayer
-Version: 1:1.0.rc2svn20090330-0.0
-linux-image-2.6.29-1-686
-Version: 2.6.29-1
-
-Thanks in advance, for any help.
-
-Best regards,
-
-Jelle de Jong
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
