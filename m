@@ -1,44 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.28]:23682 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752077AbZDABoF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2009 21:44:05 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so2727208ywb.1
-        for <linux-media@vger.kernel.org>; Tue, 31 Mar 2009 18:44:03 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20]:56928 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1757356AbZDCL0I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Apr 2009 07:26:08 -0400
+Date: Fri, 3 Apr 2009 13:26:11 +0200 (CEST)
+From: Guennadi Liakhovetski <lg@denx.de>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v2] mx3-camera: adapt the clock definition and the driver to
+ the new clock naming
+In-Reply-To: <20090403085401.GO23731@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.0904031321550.4729@axis700.grange>
+References: <Pine.LNX.4.64.0904021145040.5263@axis700.grange>
+ <20090403082844.GM23731@pengutronix.de> <Pine.LNX.4.64.0904031047040.4729@axis700.grange>
+ <20090403085401.GO23731@pengutronix.de>
 MIME-Version: 1.0
-In-Reply-To: <15ed362e0903311838w19c03f37ob9e893d35ea5cd92@mail.gmail.com>
-References: <15ed362e0903301947rf0de73eo8edbd8cbcd5b5abd@mail.gmail.com>
-	 <412bdbff0903301957i77c36f10hcb9e9cb919124057@mail.gmail.com>
-	 <15ed362e0903302039g6d9575cnca5d9b62b566db72@mail.gmail.com>
-	 <49D228EA.3090302@linuxtv.org>
-	 <412bdbff0903310734r3002e083j9c7f83bfc9855c7d@mail.gmail.com>
-	 <15ed362e0903311838w19c03f37ob9e893d35ea5cd92@mail.gmail.com>
-Date: Tue, 31 Mar 2009 21:44:02 -0400
-Message-ID: <412bdbff0903311844ye3323fbh1cc633cea4216149@mail.gmail.com>
-Subject: Re: XC5000 DVB-T/DMB-TH support
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: David Wong <davidtlwong@gmail.com>
-Cc: Steven Toth <stoth@linuxtv.org>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 31, 2009 at 9:38 PM, David Wong <davidtlwong@gmail.com> wrote:
-> Thanks Devin. The demod locks after using -2750000.
->
-> David.
+With the i.MX31 transition to clkdev clock names have changed, but mistakenly
+the "mx3-camera.0" has been registered with a non-NULL connection ID, which is
+not necessary, since this is the only clock, used by the capture interface
+driver. Fix the clock definition and the driver to use NULL as a connection ID.
 
-That's great news.  If you send me a patch (including your SOB), I
-will put it into the xc5000 patch series I am putting together this
-week.
+Signed-off-by: Guennadi Liakhovetski <lg@denx.de>
+---
 
-Regards,
+Clock connection IDs fixed to NULL. Sascha, please, ack.
 
-Devin
+ arch/arm/mach-mx3/clock.c        |    2 +-
+ drivers/media/video/mx3_camera.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/arch/arm/mach-mx3/clock.c b/arch/arm/mach-mx3/clock.c
+index ca46f48..9957a11 100644
+--- a/arch/arm/mach-mx3/clock.c
++++ b/arch/arm/mach-mx3/clock.c
+@@ -533,7 +533,7 @@ static struct clk_lookup lookups[] __initdata = {
+ 	_REGISTER_CLOCK(NULL, "kpp", kpp_clk)
+ 	_REGISTER_CLOCK("fsl-usb2-udc", "usb", usb_clk1)
+ 	_REGISTER_CLOCK("fsl-usb2-udc", "usb_ahb", usb_clk2)
+-	_REGISTER_CLOCK("mx3-camera.0", "csi", csi_clk)
++	_REGISTER_CLOCK("mx3-camera.0", NULL, csi_clk)
+ 	_REGISTER_CLOCK("imx-uart.0", NULL, uart1_clk)
+ 	_REGISTER_CLOCK("imx-uart.1", NULL, uart2_clk)
+ 	_REGISTER_CLOCK("imx-uart.2", NULL, uart3_clk)
+diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
+index 70629e1..c462b81 100644
+--- a/drivers/media/video/mx3_camera.c
++++ b/drivers/media/video/mx3_camera.c
+@@ -1100,7 +1100,7 @@ static int mx3_camera_probe(struct platform_device *pdev)
+ 	}
+ 	memset(mx3_cam, 0, sizeof(*mx3_cam));
+ 
+-	mx3_cam->clk = clk_get(&pdev->dev, "csi_clk");
++	mx3_cam->clk = clk_get(&pdev->dev, NULL);
+ 	if (IS_ERR(mx3_cam->clk)) {
+ 		err = PTR_ERR(mx3_cam->clk);
+ 		goto eclkget;
 -- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+1.5.4
+
