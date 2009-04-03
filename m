@@ -1,76 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.245]:26832 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755184AbZDTMWM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 08:22:12 -0400
-Received: by an-out-0708.google.com with SMTP id d40so821090and.1
-        for <linux-media@vger.kernel.org>; Mon, 20 Apr 2009 05:22:11 -0700 (PDT)
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:55305 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755467AbZDCMyt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2009 08:54:49 -0400
+Received: by fxm2 with SMTP id 2so967881fxm.37
+        for <linux-media@vger.kernel.org>; Fri, 03 Apr 2009 05:54:47 -0700 (PDT)
+Message-ID: <49D60692.9050204@gmail.com>
+Date: Fri, 03 Apr 2009 15:52:34 +0300
+From: Darius Augulis <augulis.darius@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20090420085628.31512f60@pedra.chehab.org>
-References: <1214127575.4974.7.camel@jaswinder.satnam> <a3ef07920904191055j4205ad8du3173a8a2328a214e@mail.gmail.com>
-	<1240167036.3589.310.camel@macbook.infradead.org> <a3ef07920904191214p7be3a0eem7f7abd91ffb374d2@mail.gmail.com>
-	<1240170449.3589.334.camel@macbook.infradead.org> <a3ef07920904191340x6a4e9c5o5c51fe0169cbddab@mail.gmail.com>
-	<1240174908.3589.387.camel@macbook.infradead.org> <28a25ce0904191441h3adc43b3y8265a639e8c025cc@mail.gmail.com>
-	<20090420085628.31512f60@pedra.chehab.org>
-From: =?UTF-8?B?Um9tw6Fu?= <roman.pena.perez@gmail.com>
-Date: Mon, 20 Apr 2009 14:21:56 +0200
-Message-ID: <28a25ce0904200521k5906c517n53b7ef7566b7ae4d@mail.gmail.com>
-Subject: Re: [linux-dvb] [PATCH] firmware: convert av7110 driver to
-	request_firmware()
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, David Woodhouse <dwmw2@infradead.org>,
-	linux-dvb <linux-dvb@linuxtv.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Sascha Hauer <s.hauer@pengutronix.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	paulius.zaleckas@teltonika.lt
+Subject: Re: [PATCH V4] Add camera (CSI) driver for MX1
+References: <20090403113054.11098.67516.stgit@localhost.localdomain> <Pine.LNX.4.64.0904031352350.4729@axis700.grange> <20090403122939.GT23731@pengutronix.de> <Pine.LNX.4.64.0904031437540.4729@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0904031437540.4729@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/4/20 Mauro Carvalho Chehab <mchehab@infradead.org>:
-> On Sun, 19 Apr 2009 23:41:58 +0200
-> Román <roman.pena.perez@gmail.com> wrote:
+Guennadi Liakhovetski wrote:
+> On Fri, 3 Apr 2009, Sascha Hauer wrote:
 >
->> 2009/4/19 David Woodhouse <dwmw2@infradead.org>:
->> > On Sun, 2009-04-19 at 13:40 -0700, VDR User wrote:
->> >>
->> >> To be absolutely clear; users compiling dvb drivers outside of the
->> >> kernel should copy v4l-dvb/linux/firmware/av7110/bootcode.bin.ihex to
->> >> /lib/firmware/av7110/bootcode.bin correct?
->> >
->> > Run 'objcopy -Iihex -Obinary bootcode.bin.ihex bootcode.bin' first, then
->> > copy the resulting bootcode.bin file to /lib/firmware/av7110/
->> >
->>
->> That doesn't seem very *obvious* to me, actually.
+>   
+>> On Fri, Apr 03, 2009 at 02:15:34PM +0200, Guennadi Liakhovetski wrote:
+>>     
+>>> Wondering, if it still will work then... At least it compiles. BTW, should 
+>>> it really also work with IMX? Then you might want to change this
+>>>
+>>> 	depends on VIDEO_DEV && ARCH_MX1 && SOC_CAMERA
+>>>
+>>> to
+>>>
+>>> 	depends on VIDEO_DEV && (ARCH_MX1 || ARCH_IMX) && SOC_CAMERA
+>>>       
+>> This shouldn't be necessary. ARCH_IMX does not have the platform part to
+>> make use of this driver and will never get it.
+>>     
 >
-> If you see INSTALL file at v4l-dvb tree, you'll see:
+> Confused... Then why the whole that "IMX/MX1" in the driver? And why will 
+> it never get it - are they compatible or not? Or just there's no demand / 
+> chips are EOLed or something...
 >
-> ...
-> Firmware rules:
->
-> firmware        - Create the firmware files that are enclosed at the
->                  tree.
->                  Notice: Only a very few firmwares are currently here
->
-> firmware_install- Install firmware files under /lib/firmware
-> ...
->
-> So, all you would need to do to install firmwares with -hg is to run:
->        make firmware_install
->
-> Anyway, since firmware install is very fast, and in order to avoid such issues,
-> I've just committed a patch that will run firmware_install when you do a "make
-> install".
->
->
->
-> Cheers,
-> Mauro
->
+>   
 
-I'm sorry, my fault. As I said, I never had the necessity to install
-any firmware.
-The patch sounds good, I don't need it myself, but thank you anyway.
+in Linux kernel "imx" is the old name of "mx1".
+mx1 contains of two processors: i.MX1 and i.MXL.
 
-Regards,
-Román
+>>> but you can do this later, maybe, when you actually get a chance to test 
+>>> it on IMX (if you haven't done so yet).
+>>>
+>>> Sascha, we need your ack for the ARM part.
+>>>       
+>> I'm OK with this driver: I have never worked with FIQs though so I can't
+>> say much to it.
+>>     
+>
+> Ok, I take it as an "Acked-by" then:-)
+>
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+>
+>   
+
