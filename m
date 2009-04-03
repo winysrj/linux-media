@@ -1,22 +1,40 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3L3UJhZ025792
-	for <video4linux-list@redhat.com>; Mon, 20 Apr 2009 23:30:19 -0400
-Received: from nlpi053.prodigy.net (nlpi053.sbcis.sbc.com [207.115.36.82])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n3L3TCmP013566
-	for <video4linux-list@redhat.com>; Mon, 20 Apr 2009 23:29:12 -0400
-Message-ID: <49ED3D94.2020303@xnet.com>
-Date: Mon, 20 Apr 2009 22:29:24 -0500
-From: stuart <stuart@xnet.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n33Hw4cE026943
+	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 13:58:04 -0400
+Received: from node01.cambriumhosting.nl (node01.cambriumhosting.nl
+	[217.19.16.162])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n33HvfUB016516
+	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 13:57:42 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by node01.cambriumhosting.nl (Postfix) with ESMTP id 171D2B0000BD
+	for <video4linux-list@redhat.com>;
+	Fri,  3 Apr 2009 19:57:41 +0200 (CEST)
+Received: from node01.cambriumhosting.nl ([127.0.0.1])
+	by localhost (node01.cambriumhosting.nl [127.0.0.1]) (amavisd-new,
+	port 10024)
+	with ESMTP id Ikwj0EClp+XL for <video4linux-list@redhat.com>;
+	Fri,  3 Apr 2009 19:57:35 +0200 (CEST)
+Received: from ashley.powercraft.nl (84-245-3-195.dsl.cambrium.nl
+	[84.245.3.195])
+	by node01.cambriumhosting.nl (Postfix) with ESMTP id 85E9CB000082
+	for <video4linux-list@redhat.com>;
+	Fri,  3 Apr 2009 19:57:35 +0200 (CEST)
+Received: from [192.168.1.239] (unknown [192.168.1.239])
+	by ashley.powercraft.nl (Postfix) with ESMTPSA id EEEFF23BC501
+	for <video4linux-list@redhat.com>;
+	Fri,  3 Apr 2009 19:26:35 +0200 (CEST)
+Message-ID: <49D64E45.2070303@powercraft.nl>
+Date: Fri, 03 Apr 2009 19:58:29 +0200
+From: Jelle de Jong <jelledejong@powercraft.nl>
 MIME-Version: 1.0
 To: video4linux-list@redhat.com
-References: <49EC7CBF.2070109@xnet.com>
-	<133336.82215.qm@web88206.mail.re2.yahoo.com>
-In-Reply-To: <133336.82215.qm@web88206.mail.re2.yahoo.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+References: <49D644CD.1040307@powercraft.nl>
+In-Reply-To: <49D644CD.1040307@powercraft.nl>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: Dwaine Garden VE3GIF <dwainegarden@rogers.com>
-Subject: Re: Where is the v4l remote howto?  (kworld 110)
+Subject: Re: one dvb-t devices not working with mplayer the other is, what
+ is going wrong?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,70 +46,66 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-
-Thank you Dwaine for posting this kworld 110 patch to the v4l software.
-
-So what you are indicating is that this patch, that has been around 
-going on 2 years, is still not part of the v4l distribution?  Why?  (I 
-have a feeling I should not direct this question to Dwaine as much as 
-toward those controlling the v4l project.)
-
-And if v4l is not going to support the IR feature of tuner cards... 
-well... is there a way to easily disable the IR part of v4l?  I mean, 
-from what I can tell, v4l "gets in the way" of lirc making it impossible 
-for lirc to access the IR hardware.
-
-Dwaine, I just tried the patch on a version of v4l I pulled some time 
-ago (about 8 months).  It looks like more the half the "hunks" fail. 
-Guess I'll have to do some hand merging if I want this to be successful.
-
-I'll work on this a bit more.  But now I'm wondering if this is what 
-people actually do?  I mean, is it worth anyone's time to keep fixing 
-v4l (patching it) each time the old v4l gets over-written by a system 
-update?
-
-I'm guessing - but are most people giving up on their tuner's IR port 
-and using dedicated IR / USB dongles instead?
-
--thanks again Dwaine
-
-
-
-Dwaine Garden VE3GIF wrote:
-> Here is the original patch that I had.  It worked, just the repeat keys 
-> did not work.   It has not been compiled against a recent kernel though, 
-> so it might need to small patching to compile.
+Jelle de Jong wrote:
+> Hello everybody,
 > 
+> As you may read in my previous thread, i am trying to switch from my
+> em28xx devices to a device that works with gpl compliant upstream kernel
+> source code.
 > 
+> My em28xx devices all played back video and audio only dvb-t channels:
+> Pinnacle PCTV Hybrid Pro Stick 330e
+> Terratec Cinergy Hybrid T USB XS
+> Hauppauge WinTV HVR 900
 > 
-> ------------------------------------------------------------------------
-> *From:* stuart <stuart@xnet.com>
-> *To:* video4linux-list@redhat.com
-> *Sent:* Monday, April 20, 2009 9:46:39 AM
-> *Subject:* Where is the v4l remote howto? (kworld 110)
+> I build script for this to automate the process, however i now swiched to
+> my dvb-t only usb device:
+> Afatech AF9015 DVB-T USB2.0 stick
 > 
+> And it with totem-xine it plays the same as the em28xx devices, so the
+> devices does kind of works (see the totem-xine bug, please commit to this
+> bug if you have the same behavior)
 > 
-> Hi...
+> # device info
+> http://debian.pastebin.com/d3e942c02
 > 
-> Remote control for tuner cards appears dicey and a bit confusing.  My 
-> impression is that it's no were near as rock solid as the efforts here 
-> (@ v4l) to support the tuner portion of the cards.  So I've always been 
-> willing to put in some work.  When I used an analog happauge tuner card 
-> I went to some length to get lirc working.  Now as I switch to digital, 
-> I find my self wanting to use an old but well supported kworld 110 ATSC 
-> tuner.  I assume this means I will be using v4l keyboard events instead 
-> of the lirc kernel modules.  However, I've not found a good source of 
-> information as to how to go about this.  It's more likely I haven't 
-> googled properly.  Can anyone point me in the right direction?
+> # totem-xine bug
+> http://bugzilla.gnome.org/show_bug.cgi?id=554319
 > 
-> ...thanks
+> # mplayer issue
+> http://debian.pastebin.com/d34d92e64
+> ^ anybody have any idea what the heck goes on why doesn't mplayer work
+> with this device, nothing changed in the commands i used.
 > 
+> using:
+> mplayer
+> Version: 1:1.0.rc2svn20090330-0.0
+> linux-image-2.6.29-1-686
+> Version: 2.6.29-1
 > 
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com 
-> <mailto:video4linux-list-request@redhat.com>?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
+> Thanks in advance, for any help.
+> 
+> Best regards,
+> 
+> Jelle de Jong
+
+some more info:
+
+device0 (not working, Afatech AF9013 DVB-T)
+http://filebin.ca/ypxkw/mplayer0.log
+
+device1 (working, Micronas DRX3973D DVB-T, em28xx, markus not gpl code)
+http://filebin.ca/zecdjm/mplayer1.log
+
+device2 (working, Zarlink MT352 DVB-T, em28xx, markus not gpl code)
+http://filebin.ca/fzxtcx/mplayer2.log
+
+All devices work with totem-xine but only the em28xx devices works with
+mplayer, whats going on?
+
+Best reagards,
+
+Jelle de Jong
 
 --
 video4linux-list mailing list
