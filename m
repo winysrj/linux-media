@@ -1,116 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4535 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751694AbZDJSXI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Apr 2009 14:23:08 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id n3AIN1YU083840
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 10 Apr 2009 20:23:05 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 10 Apr 2009 20:23:01 +0200 (CEST)
-Message-Id: <200904101823.n3AIN1YU083840@smtp-vbr15.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:43508 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754814AbZDCTTd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2009 15:19:33 -0400
+Date: Fri, 3 Apr 2009 21:19:31 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Guennadi Liakhovetski <lg@denx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2] mx3-camera: adapt the clock definition and the
+	driver to the new clock naming
+Message-ID: <20090403191931.GZ23731@pengutronix.de>
+References: <Pine.LNX.4.64.0904021145040.5263@axis700.grange> <20090403082844.GM23731@pengutronix.de> <Pine.LNX.4.64.0904031047040.4729@axis700.grange> <20090403085401.GO23731@pengutronix.de> <Pine.LNX.4.64.0904031321550.4729@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0904031321550.4729@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Fri, Apr 03, 2009 at 01:26:11PM +0200, Guennadi Liakhovetski wrote:
+> With the i.MX31 transition to clkdev clock names have changed, but mistakenly
+> the "mx3-camera.0" has been registered with a non-NULL connection ID, which is
+> not necessary, since this is the only clock, used by the capture interface
+> driver. Fix the clock definition and the driver to use NULL as a connection ID.
+> 
+> Signed-off-by: Guennadi Liakhovetski <lg@denx.de>
 
-Results of the daily build of v4l-dvb:
+Acked-by Sascha Hauer <s.hauer@pengutronix,de>
 
-date:        Fri Apr 10 19:00:06 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11445:dba0b6fae413
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+> ---
+> 
+> Clock connection IDs fixed to NULL. Sascha, please, ack.
+> 
+>  arch/arm/mach-mx3/clock.c        |    2 +-
+>  drivers/media/video/mx3_camera.c |    2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/arch/arm/mach-mx3/clock.c b/arch/arm/mach-mx3/clock.c
+> index ca46f48..9957a11 100644
+> --- a/arch/arm/mach-mx3/clock.c
+> +++ b/arch/arm/mach-mx3/clock.c
+> @@ -533,7 +533,7 @@ static struct clk_lookup lookups[] __initdata = {
+>  	_REGISTER_CLOCK(NULL, "kpp", kpp_clk)
+>  	_REGISTER_CLOCK("fsl-usb2-udc", "usb", usb_clk1)
+>  	_REGISTER_CLOCK("fsl-usb2-udc", "usb_ahb", usb_clk2)
+> -	_REGISTER_CLOCK("mx3-camera.0", "csi", csi_clk)
+> +	_REGISTER_CLOCK("mx3-camera.0", NULL, csi_clk)
+>  	_REGISTER_CLOCK("imx-uart.0", NULL, uart1_clk)
+>  	_REGISTER_CLOCK("imx-uart.1", NULL, uart2_clk)
+>  	_REGISTER_CLOCK("imx-uart.2", NULL, uart3_clk)
+> diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
+> index 70629e1..c462b81 100644
+> --- a/drivers/media/video/mx3_camera.c
+> +++ b/drivers/media/video/mx3_camera.c
+> @@ -1100,7 +1100,7 @@ static int mx3_camera_probe(struct platform_device *pdev)
+>  	}
+>  	memset(mx3_cam, 0, sizeof(*mx3_cam));
+>  
+> -	mx3_cam->clk = clk_get(&pdev->dev, "csi_clk");
+> +	mx3_cam->clk = clk_get(&pdev->dev, NULL);
+>  	if (IS_ERR(mx3_cam->clk)) {
+>  		err = PTR_ERR(mx3_cam->clk);
+>  		goto eclkget;
+> -- 
+> 1.5.4
+> 
+> 
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-rc1-armv5: ERRORS
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-rc1-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: OK
-linux-2.6.30-rc1-i686: ERRORS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-rc1-m32r: ERRORS
-linux-2.6.22.19-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29.1-mips: OK
-linux-2.6.30-rc1-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-rc1-x86_64: ERRORS
-fw/apps: WARNINGS
-sparse (linux-2.6.29.1): OK
-sparse (linux-2.6.30-rc1): OK
-linux-2.6.16.61-i686: WARNINGS
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
