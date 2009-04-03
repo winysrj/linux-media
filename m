@@ -1,25 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3OMHDsN018225
-	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 18:17:13 -0400
-Received: from mail.bcode.com (mail.bcode.com [150.101.204.108] (may be
-	forged))
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3OMGtCd019210
-	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 18:16:56 -0400
-Date: Sat, 25 Apr 2009 08:16:54 +1000
-From: Erik de Castro Lopo <erik@bcode.com>
-To: video4linux-list@redhat.com
-Message-Id: <20090425081654.3e9932f1.erik@bcode.com>
-In-Reply-To: <412bdbff0904241509r29b0859fl22abe2fe78e59daa@mail.gmail.com>
-References: <20090424170352.313f1feb.erik@bcode.com>
-	<412bdbff0904240625y3902243em5a643380b036e08f@mail.gmail.com>
-	<20090425080356.69e0ed9d.erik@bcode.com>
-	<412bdbff0904241509r29b0859fl22abe2fe78e59daa@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n33Jaqpp028259
+	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 15:36:53 -0400
+Received: from mail-gx0-f171.google.com (mail-gx0-f171.google.com
+	[209.85.217.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n33JaXIm005839
+	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 15:36:33 -0400
+Received: by gxk19 with SMTP id 19so2661315gxk.3
+	for <video4linux-list@redhat.com>; Fri, 03 Apr 2009 12:36:33 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <cb69f9670904031221s23122b03i8c4002c54cd612df@mail.gmail.com>
+References: <cb69f9670904031221s23122b03i8c4002c54cd612df@mail.gmail.com>
+Date: Fri, 3 Apr 2009 15:36:33 -0400
+Message-ID: <412bdbff0904031236u5bf32a5ald6615abe86076cb6@mail.gmail.com>
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: kenny wang <smartkenny@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: Re: Compling drivers from v4l-dvb hg tree
-Reply-To: video4linux-list@redhat.com
+Cc: video4linux-list@redhat.com
+Subject: Re: Question about analog mode of WinTV-HVR-950Q
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,40 +30,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 24 Apr 2009 18:09:17 -0400
-Devin Heitmueller <devin.heitmueller@gmail.com> wrote:
+On Fri, Apr 3, 2009 at 3:21 PM, kenny wang <smartkenny@gmail.com> wrote:
+> Hi, all
+>
+> I have a WinTV-HVR-950Q and analog cable. The device works for ATSC on linux
+> 2.6.29.1-git, but I want to use it with the analog cable. My question is:
+> under the analog mode, is it /dev/vedio0 or /dev/dvb/adapter0?
+>
+> Thanks.
+>
+> Kenny
 
-> > Ok, but how do I patch the v4l-dvb sources into a linux kernel tree?
-> 
-> You don't.
-> 
-> The v4l-dvb sources are maintained out-of-tree, and override whatever
-> is in the linux kernel tree.  Periodically, the v4l-dvb maintainer
-> syncs with the kernel tree and the changes are pushed upstream into
-> the mainline kernel.  This approach allows for the v4l-dvb project to
-> be used with kernel releases other than the current bleeding edge
-> kernel.
+Analog mode is under /dev/video0.
 
-Ok,  but the instructions on http://linuxtv.org/repo compiles the
-driver for the current running kernel. How do I compile it for 
-another kernel, ie an x86 embedded device that I normally do not
-compile on?
+Devin
 
-Erik
 -- 
-=======================
-erik de castro lopo
-senior design engineer
-
-bCODE
-level 2, 2a glen street
-milsons point
-sydney nsw 2061
-australia
-
-tel +61 (0)2 9954 4411
-fax +61 (0)2 9954 4422
-www.bcode.com
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
