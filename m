@@ -1,85 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110814.mail.gq1.yahoo.com ([67.195.13.237]:43977 "HELO
-	web110814.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757865AbZDEKZI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Apr 2009 06:25:08 -0400
-Message-ID: <225276.3555.qm@web110814.mail.gq1.yahoo.com>
-Date: Sun, 5 Apr 2009 03:25:06 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [0904_12] Siano: unified the debug filter module parameter (dvb and core)
-To: LinuxML <linux-media@vger.kernel.org>
+Received: from wf-out-1314.google.com ([209.85.200.168]:10868 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751861AbZDCCtW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Apr 2009 22:49:22 -0400
+Received: by wf-out-1314.google.com with SMTP id 29so968777wff.4
+        for <linux-media@vger.kernel.org>; Thu, 02 Apr 2009 19:49:21 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <5e9665e10904020325t3567c442t2fce7bcc32aa8940@mail.gmail.com>
+References: <5e9665e10904020325t3567c442t2fce7bcc32aa8940@mail.gmail.com>
+Date: Fri, 3 Apr 2009 11:49:21 +0900
+Message-ID: <5e9665e10904021949uf3884c7s64bb362f4363fb16@mail.gmail.com>
+Subject: Re: Compile error in v4l2-spec
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1238744721 -10800
-# Node ID 5b86da897fbaf03ea4f5bca50abeaad15634f1d9
-# Parent  01979ae55ffec22d74b77681613f38bd606be227
-[PATCH] [0904_12] Siano: unified the debug filter module parameter (dvb and core)
+I'm answering myself.
+I solved compile error that I mentioned yesterday,
 
-From: Uri Shkolnik <uris@siano-ms.com>
+Problem is all about DTD and sh in ubuntu distribution.
+I'm still not sure what package do I exactly need to solve this
+problem, but I did like following.
 
-The sms_debug module parameter sets the debug filter
-for the smsmdtv module. It has been moved to the core
-component, and replace the smsdvb's.
+I searched all the packages related with sgml and selected which
+contains DTD things.
+sudo apt-cache search sgml | grep DTD
+and install all of them. (shame ;-()
 
-Priority: normal
+and also do the same thing with docbook with DTD things like this,
+sudo apt-cache search docbook | grep DTD
 
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+and remove /bin/sh which is symbolic linked to /bin/dash
+and make a symbolic link with bash (not sure this is right)
 
-diff -r 01979ae55ffe -r 5b86da897fba linux/drivers/media/dvb/siano/smscoreapi.c
---- a/linux/drivers/media/dvb/siano/smscoreapi.c	Fri Apr 03 10:26:48 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smscoreapi.c	Fri Apr 03 10:45:21 2009 +0300
-@@ -34,8 +34,8 @@
- #include "smscoreapi.h"
- #include "sms-cards.h"
- 
--static int sms_dbg;
--module_param_named(debug, sms_dbg, int, 0644);
-+int sms_debug;
-+module_param_named(debug, sms_debug, int, 0644);
- MODULE_PARM_DESC(debug, "set debug level (info=1, adv=2 (or-able))");
- 
- struct smscore_device_notifyee_t {
-diff -r 01979ae55ffe -r 5b86da897fba linux/drivers/media/dvb/siano/smscoreapi.h
---- a/linux/drivers/media/dvb/siano/smscoreapi.h	Fri Apr 03 10:26:48 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Fri Apr 03 10:45:21 2009 +0300
-@@ -627,6 +627,7 @@ int smscore_led_state(struct smscore_dev
- int smscore_led_state(struct smscore_device_t *core, int led);
- 
- /* ------------------------------------------------------------------------ */
-+extern int sms_debug;
- 
- #define DBG_INFO 1
- #define DBG_ADV  2
-@@ -635,7 +636,7 @@ int smscore_led_state(struct smscore_dev
- 	printk(kern "%s: " fmt "\n", __func__, ##arg)
- 
- #define dprintk(kern, lvl, fmt, arg...) do {\
--	if (sms_dbg & lvl) \
-+	if (sms_debug & lvl) \
- 		sms_printk(kern, fmt, ##arg); } while (0)
- 
- #define sms_log(fmt, arg...) sms_printk(KERN_INFO, fmt, ##arg)
-diff -r 01979ae55ffe -r 5b86da897fba linux/drivers/media/dvb/siano/smsdvb.c
---- a/linux/drivers/media/dvb/siano/smsdvb.c	Fri Apr 03 10:26:48 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smsdvb.c	Fri Apr 03 10:45:21 2009 +0300
-@@ -63,9 +63,6 @@ static struct list_head g_smsdvb_clients
- static struct list_head g_smsdvb_clients;
- static struct mutex g_smsdvb_clientslock;
- 
--static int sms_dbg;
--module_param_named(debug, sms_dbg, int, 0644);
--MODULE_PARM_DESC(debug, "set debug level (info=1, adv=2 (or-able))");
- 
- /* Events that may come from DVB v3 adapter */
- static void sms_board_dvb3_event(struct smscore_device_t *coredev,
+and finally I've got single compiled html v4l2 spec.
+
+Cheers,
+
+Nate
+
+On Thu, Apr 2, 2009 at 7:25 PM, Dongsoo, Nathaniel Kim
+<dongsoo.kim@gmail.com> wrote:
+> Hi,
+>
+> I'm trying to make some v4l2-spec document on my own, but having some
+> problem with compiling those.
+> To be clear, I should let you know about the repo that I'm working on.
+> I'm working on Mauro's repo (http://linuxtv.org/hg/v4l-dvb/)
+> and trying to compile v4l2-spec in that.
+> Latest changeset that I have in it is
+>
+> changeset:   11341:4c7466ea8d64
+> tag:         tip
+> parent:      11335:23836942be90
+> parent:      11340:2f6cf8db5325
+> user:        Mauro Carvalho Chehab <mchehab@redhat.com>
+> date:        Wed Apr 01 07:36:31 2009 -0300
+> summary:     merge: http://linuxtv.org/hg/~anttip/af9015/
+>
+>
+> and I'm having errors like following
+>
+> Using catalogs: /etc/sgml/catalog
+> Using stylesheet: /home/kdsoo/work/v4l-dvb/v4l2-spec/custom.dsl#html
+> Working on: /home/kdsoo/work/v4l-dvb/v4l2-spec/v4l2.sgml
+> openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/v4l2.sgml:1:55:W: cannot
+> generate system identifier for public text "-//OASIS//DTD DocBook
+> V3.1//EN"
+> openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:2:0:E:
+> character "-" not allowed in declaration subset
+> openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:13:0:E:
+> character "-" not allowed in declaration subset
+> openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:80:0:E:
+> character "-" not allowed in declaration subset
+> openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:83:0:E:
+> character "-" not allowed in declaration subset
+> openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:116:0:E:
+> character "-" not allowed in declaration subset
+> openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:166:0:E:
+> character "-" not allowed in declaration subset
+> openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:183:0:E:
+> character "-" not allowed in declaration subset
+> openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:209:0:E:
+> character "-" not allowed in declaration subset
+> ...................
+> <snip>
+>
+>
+> I don't have any clue about this. What should I do?
+> I'm trying this on my Ubuntu 8.10 machine.
+> Any help should be appreciated.
+> Cheers,
+>
+> Nate
+>
+> --
+> ========================================================
+> DongSoo, Nathaniel Kim
+> Engineer
+> Mobile S/W Platform Lab.
+> Digital Media & Communications R&D Centre
+> Samsung Electronics CO., LTD.
+> e-mail : dongsoo.kim@gmail.com
+>          dongsoo45.kim@samsung.com
+> ========================================================
+>
 
 
 
-      
+-- 
+========================================================
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
+========================================================
