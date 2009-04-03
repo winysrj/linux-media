@@ -1,72 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f208.google.com ([209.85.217.208]:54810 "EHLO
-	mail-gx0-f208.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753276AbZDNTRR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Apr 2009 15:17:17 -0400
-Received: by gxk4 with SMTP id 4so5884269gxk.13
-        for <linux-media@vger.kernel.org>; Tue, 14 Apr 2009 12:17:16 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 14 Apr 2009 15:17:16 -0400
-Message-ID: <b24e53350904141217v474222e5ye042880075bef9c4@mail.gmail.com>
-Subject: [PATCH 1/1] em28xx: Fix for Slow Memory Leak
-From: Robert Krakora <rob.krakora@messagenetsystems.com>
-To: linux-media@vger.kernel.org
+Received: from bombadil.infradead.org ([18.85.46.34]:45299 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754755AbZDCLyN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2009 07:54:13 -0400
+Date: Fri, 3 Apr 2009 08:54:03 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Uri Shkolnik <urishk@yahoo.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] siano: smsdvb - add support for old dvb-core version
+Message-ID: <20090403085403.29c50b7a@pedra.chehab.org>
+In-Reply-To: <216221.27575.qm@web110810.mail.gq1.yahoo.com>
+References: <216221.27575.qm@web110810.mail.gq1.yahoo.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-em28xx: Fix for Slow Memory Leak
+Uri,
 
-From: Robert Krakora <rob.krakora@messagenetsystems.com>
+I didn't started yet to analyse your patch series, but the subject of this
+message called my attention.
 
-Test Code:  (Provided by Douglas)
+Backport patches is something that should never go upstream.
 
-v4l-dvb/v4l2-apps/test/stress-buffer.c
+On Fri, 3 Apr 2009 04:36:09 -0700 (PDT)
+Uri Shkolnik <urishk@yahoo.com> wrote:
 
-The audio DMA area was never being freed and would slowly leak over
-time as the v4l device was opened and closed by an application.
+> # HG changeset patch
+> # User Uri Shkolnik <uris@siano-ms.com>
+> # Date 1238758726 -10800
+> # Node ID c582116cfbb96671629143fced33e3f88c28b3c7
+> # Parent  856813745905e07d9fc6be5e136fdf7060c6fc37
+> siano: smsdvb - add support for old dvb-core version
+> 
+> From: Uri Shkolnik <uris@siano-ms.com>
+> 
+> Multiple user takes the new driver sources from the LinuxTV
+> repository, but neglect to upgrade the dvb-core (this is
+> true especially for tiny and embedded device). This patch
+> enables the smsdvb to work with older version of dvb-core.
+> 
+> This patch also add one more handling of message endianity.
 
-Thanks again to Douglas for generating the test code to help locate
-memory leaks!!!
+Never mix two different issues on the same patch.
 
-Priority: normal
+In this specific case, since the backport patch will be removed from upstream
+submission, the message endian changes should be on a separate patch, in order
+to get its way upstream.
 
-Signed-off-by: Robert Krakora <rob.krakora@messagenetsystems.com>
-
-diff -r 5567e82c34a0 linux/drivers/media/video/em28xx/em28xx-audio.c
---- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Tue Mar 31
-07:24:14 2009 -0300
-+++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Tue Apr 14
-10:16:45 2009 -0400
-@@ -278,6 +278,7 @@
- #endif
-
-        dprintk("Allocating vbuffer\n");
-+
-        if (runtime->dma_area) {
-                if (runtime->dma_bytes > size)
-                        return 0;
-@@ -385,6 +386,18 @@
-        mutex_lock(&dev->lock);
-        dev->adev.users--;
-        em28xx_audio_analog_set(dev);
-+       if (substream == dev->adev.capture_pcm_substream)
-+       {
-+               if (substream && substream->runtime &&
-substream->runtime->dma_area) {
-+                       dprintk("freeing\n");
-+                       vfree(substream->runtime->dma_area);
-+                       substream->runtime->dma_area = NULL;
-+               }
-+       }
-+       else
-+       {
-+               em28xx_errdev("substream(%p) !=
-dev->adev.capture_pcm_substream(%p)\n", substream,
-dev->adev.capture_pcm_substream);
-+       }
-        mutex_unlock(&dev->lock);
-
-        return 0;
+Cheers,
+Mauro
