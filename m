@@ -1,121 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-03.arcor-online.net ([151.189.21.43]:54291 "EHLO
-	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754220AbZDTBjl (ORCPT
+Received: from mail-in-13.arcor-online.net ([151.189.21.53]:46172 "EHLO
+	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755546AbZDDAuF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Apr 2009 21:39:41 -0400
-Subject: Re: [linux-dvb] [PATCH] firmware: convert av7110 driver to
-	request_firmware()
+	Fri, 3 Apr 2009 20:50:05 -0400
+Subject: Re: Kernel 2.6.29 breaks DVB-T ASUSTeK Tiger LNA Hybrid Capture
+	Device
 From: hermann pitton <hermann-pitton@arcor.de>
-To: linux-media@vger.kernel.org
-Cc: David Woodhouse <dwmw2@infradead.org>,
-	linux-dvb <linux-dvb@linuxtv.org>, VDR User <user.vdr@gmail.com>
-In-Reply-To: <28a25ce0904191441h3adc43b3y8265a639e8c025cc@mail.gmail.com>
-References: <1214127575.4974.7.camel@jaswinder.satnam>
-	 <a3ef07920904191055j4205ad8du3173a8a2328a214e@mail.gmail.com>
-	 <1240167036.3589.310.camel@macbook.infradead.org>
-	 <a3ef07920904191214p7be3a0eem7f7abd91ffb374d2@mail.gmail.com>
-	 <1240170449.3589.334.camel@macbook.infradead.org>
-	 <a3ef07920904191340x6a4e9c5o5c51fe0169cbddab@mail.gmail.com>
-	 <1240174908.3589.387.camel@macbook.infradead.org>
-	 <28a25ce0904191441h3adc43b3y8265a639e8c025cc@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Date: Mon, 20 Apr 2009 03:38:32 +0200
-Message-Id: <1240191512.4168.15.camel@pc07.localdom.local>
+To: Ralph <ramsoft@virgilio.it>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <loom.20090403T201901-786@post.gmane.org>
+References: <loom.20090403T201901-786@post.gmane.org>
+Content-Type: text/plain
+Date: Sat, 04 Apr 2009 02:45:12 +0200
+Message-Id: <1238805912.3498.18.camel@pc07.localdom.local>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Ralph,
 
-Am Sonntag, den 19.04.2009, 23:41 +0200 schrieb Román: 
-> 2009/4/19 David Woodhouse <dwmw2@infradead.org>:
-> > On Sun, 2009-04-19 at 13:40 -0700, VDR User wrote:
-> >>
-> >> To be absolutely clear; users compiling dvb drivers outside of the
-> >> kernel should copy v4l-dvb/linux/firmware/av7110/bootcode.bin.ihex to
-> >> /lib/firmware/av7110/bootcode.bin correct?
-> >
-> > Run 'objcopy -Iihex -Obinary bootcode.bin.ihex bootcode.bin' first, then
-> > copy the resulting bootcode.bin file to /lib/firmware/av7110/
-> >
+Am Freitag, den 03.04.2009, 20:49 +0000 schrieb Ralph:
+> ASUSTeK Tiger LNA Hybrid Capture Device PCI - Analog/DVB-T card
+> Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video
+> Broadcast Decoder (rev d1)
 > 
-> That doesn't seem very *obvious* to me, actually.
-> After ten year of using gnu/linux, I don't consider myself a newbie,
-> but I didn't know what was the purpose of that command (if I ever knew
-> it existed). Maybe it's just I never had the need for such a tool.
+> Works perfectly with kernel 2.6.28.4 (or older).
+> Recently, I have switched to 2.6.29 (same .config as 2.6.28.4) and now, at
+> boot
+> time, I get the message:
 > 
-> > We didn't want to put raw binary files into the kernel source tree so we
-> > converted them to a simple hex form instead.
-> >
+> IRQ 18/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
 > 
-> IMHO that's the right direction.
+> Signal strength is very low and Kaffeine is unable to tune in any channel.
+> Same problem with kernel 2.6.29.1
 > 
-> > As I said, the makefiles in the kernel tree get this right, and convert
-> > them to binary for you and automatically install them. It shouldn't be
-> > hard to fix the v4l tree to do it too, but as I also said, I'm not
-> > particularly interested in doing that myself.
-> >
-> > --
-> > dwmw2
-> >
+> -------------------------------------
 > 
-> Well, VDR *just wanted it fixed*: that's what he asked for in its
-> first message on this thread.
+> Messages from /var/log/dmesg
 > 
-> At least, David, you gave some useful information; but I found your
-> attitude -and please note I don't want to offend you personally- more
-> or less annoying. I don't understand why you said so lightly he was
-> trolling, specially when he is a somewhat active participant on this
-> list, I know you didn't either, but if I had to say someone was
-> trolling in here, you'll be my first candidate. Derek simply pointed
-> out a problem on the v4l-dvb tree. I think the most of us don't have
-> much time to spend on this kind of volunteer projects, so we should
-> avoid wasting it on sterile arguments.
+> saa7134 0000:03:0a.0: PCI INT A -> Link[APC3] -> GSI 18 (level, low) -> \
+>  IRQ 18
+> saa7133[0]: found at 0000:03:0a.0, rev: 209, irq: 18, latency: 32, mmio: \
+> 0xfdefe000
+> saa7133[0]: subsystem: 1043:4871, board: ASUS P7131 4871 \
+> [card=111,autodetected]
+> saa7133[0]: board init: gpio is 0
+> IRQ 18/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+> saa7133[0]: i2c eeprom 00: 43 10 71 48 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+> saa7133[0]: i2c eeprom 10: ff ff ff 0f ff 20 ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 20: 01 40 01 02 03 00 01 03 08 ff 00 cf ff ff ff ff
+> saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 40: ff 21 00 c2 96 10 03 22 15 50 ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> tuner' 2-004b: chip found @ 0x96 (saa7133[0])
+> tda829x 2-004b: setting tuner address to 61
+> tda829x 2-004b: type set to tda8290+75a
+> saa7133[0]: registered device video0 [v4l2]
+> saa7133[0]: registered device vbi0
+> dvb_init() allocating 1 frontend
+> DVB: registering new adapter (saa7133[0])
+> DVB: registering adapter 0 frontend -32769 (Philips TDA10046H DVB-T)...
+> tda1004x: setting up plls for 48MHz sampling clock
+> tda1004x: timeout waiting for DSP ready
+> tda1004x: found firmware revision 0 -- invalid
+> tda1004x: trying to boot from eeprom
+> tda1004x: timeout waiting for DSP ready
+> tda1004x: found firmware revision 0 -- invalid
+> tda1004x: waiting for firmware upload...
+> saa7134 0000:03:0a.0: firmware: requesting dvb-fe-tda10046.fw
+> tda1004x: found firmware revision 29 -- ok
+> saa7134 ALSA driver for DMA sound loaded
+> IRQ 18/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+> saa7133[0]/alsa: saa7133[0] at 0xfdefe000 irq 18 registered as card -1
 > 
-> Once again, excuse me if I did offend you. That was not my intention.
-> 
-> Regards,
-> 
-> --
->   Román
-> 
 
-giving seemingly the troll then, but asking just some simple questions,
-likely already answered over all this years ...
+thanks for your report, as announced previously, I unfortunately did not
+have time to run with latest always ... (guess why ...)
 
-The firmware download for the tda10046 was broken for months, likely
-half a year.
+The driver always worked with shared IRQs, if not, it was always a
+limitation of certain hardware or mostly in some combination with binary
+only drivers.
 
-Technotrend changed the URL and LifeView disappeared somehow.
+If the above should be the case in general now, and not only caused by
+some blacklist, no print out in that direction, the driver is pretty
+broken again.
 
-Now we have a "fix", Douglas had the fun to promote it.
-
-The firmware versions still differ between revision 20 and 29.
-
-Some OEMs, as far as i can tell, controlled on that other OS, that
-firmware updates should only be made on such revisions of the chips
-really in need and later ones should not be touched.
-
-This could mean that the flashing itself inherits some known risks only.
-
-For what I have seen so far, it also could be the other way round
-sometimes, let the old chips with the old firmware and don't touch them.
-
-How do you know about this?
-
-Related, they get a substantial load on their servers to serve also
-cards not even produced by them. Who did ask them to still tolerate this
-and how sure you know they deliver the correct stuff, given that
-revision 20 and 29 are around for free choice ?
-
-Have there been any tries to ask Philips/NXP what to use on what and can
-we be confident that the latest version is always suitable for all stuff
-around? I just don't know and have some doubts.
+I for sure don't have all for last months, but that
+"IRQF_DISABLED is not guaranteed on shared IRQs" for sure does not come
+from us here.
 
 Cheers,
 Hermann
+
+
+
+
 
 
 
