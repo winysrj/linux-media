@@ -1,31 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:51339 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932198AbZDIRhc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2009 13:37:32 -0400
-Message-ID: <49DE3257.7010009@e-tobi.net>
-Date: Thu, 09 Apr 2009 19:37:27 +0200
-From: Tobi <listaccount@e-tobi.net>
+Received: from rv-out-0506.google.com ([209.85.198.229]:32133 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750829AbZDDERx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Apr 2009 00:17:53 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so1454914rvb.1
+        for <linux-media@vger.kernel.org>; Fri, 03 Apr 2009 21:17:51 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Userspace issue with DVB driver includes
-References: <49DDA100.1030205@e-tobi.net> <20090409074534.2cf32df0@pedra.chehab.org> <49DE2301.5090406@e-tobi.net>
-In-Reply-To: <49DE2301.5090406@e-tobi.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <200904031836.19523.liplianin@tut.by>
+References: <e6ac15e50904022156u40221c3fib15d1b4cdf36461@mail.gmail.com>
+	 <e6ac15e50904022202k1f71120bgc10837efd1ec0f24@mail.gmail.com>
+	 <200904031836.19523.liplianin@tut.by>
+Date: Sat, 4 Apr 2009 17:17:51 +1300
+Message-ID: <e6ac15e50904032117l650e939agb578cf6db58949b4@mail.gmail.com>
+Subject: Re: SDMC DM1105N not being detected
+From: mp3geek <mp3geek@gmail.com>
+To: "Igor M. Liplianin" <liplianin@me.by>
+Cc: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=001636e91130d8f6080466b2f2a0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tobi wrote:
+--001636e91130d8f6080466b2f2a0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-> I've applied both patches to 2.6.29.1, but the problem still remains.
-> 
-> It's hard to figure out, who to blame for this.
+Shows up now, but doesnt load the frontend :/
 
-The root of the problem seems to be a clash between linux/types.h which
-defines some POSIX types also defined in glibc's stdint.h. I'm not sure,
-who to blame for this glibc or the kernel...
-The problem seems not to be restricted to the DVB drivers, so this is
-probably the wrong list, but any comments are welcome!
+DVB: registering new adapter (dm1105)
+dm1105 0000:00:08.0: MAC ff:ff:ff:ff:ff:ff
+dm1105 0000:00:08.0: could not attach frontend
 
-Tobias
+00:08.0 Ethernet controller: Unknown device 195d:1105 (rev 10)
+    Subsystem: Unknown device 195d:1105
+    Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV+ VGASnoop-
+ParErr- Stepping- SERR- FastB2B-
+    Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort-
+<TAbort- <MAbort- >SERR- <PERR-
+    Interrupt: pin A routed to IRQ 11
+    Region 0: I/O ports at 9400 [size=256]
+
+
+> I wrote code to support card with subsystem/device 195d/1105, but no one reported success, so I
+> decided to not include it in commit :(
+>
+> It was more then one year ago
+>
+> http://liplianin.at.tut.by/dvblipl.tar.bz2
+>
+> http://liplianin.at.tut.by/ds110en.html
+> --
+> Igor M. Liplianin
+> Microsoft Windows Free Zone - Linux used for all Computing Tasks
+>
+
+--001636e91130d8f6080466b2f2a0
+Content-Type: text/x-patch; charset=US-ASCII; name="wip1.patch"
+Content-Disposition: attachment; filename="wip1.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_ft3sjz5r0
+
+ZGlmZiAtTmF1ciBzMi1saXBsaWFuaW4tb3JnL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2RtMTEw
+NS9kbTExMDUuYyBzMi1saXBsaWFuaW4vbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZG0xMTA1L2Rt
+MTEwNS5jCi0tLSBzMi1saXBsaWFuaW4tb3JnL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2RtMTEw
+NS9kbTExMDUuYwkyMDA5LTA0LTA0IDE1OjI1OjI4LjAwMDAwMDAwMCArMTMwMAorKysgczItbGlw
+bGlhbmluL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2RtMTEwNS9kbTExMDUuYwkyMDA5LTA0LTA0
+IDE2OjU5OjIwLjAwMDAwMDAwMCArMTMwMApAQCAtNTQsMTIgKzU0LDIxIEBACiAjaWZuZGVmIFBD
+SV9ERVZJQ0VfSURfRE0xMTA1CiAjZGVmaW5lIFBDSV9ERVZJQ0VfSURfRE0xMTA1CTB4MDM2Zgog
+I2VuZGlmCisjaWZuZGVmIFBDSV9ERVZJQ0VfSURfRE0xMTA1UworI2RlZmluZSBQQ0lfREVWSUNF
+X0lEX0RNMTEwNVMJMHgxMTA1CisjZW5kaWYKKyNpZm5kZWYgUENJX1ZFTkRPUl9JRF9BWEVTUwor
+I2RlZmluZSBQQ0lfVkVORE9SX0lEX0FYRVNTCTB4MTk1ZAorI2VuZGlmCiAjaWZuZGVmIFBDSV9E
+RVZJQ0VfSURfRFcyMDAyCiAjZGVmaW5lIFBDSV9ERVZJQ0VfSURfRFcyMDAyCTB4MjAwMgogI2Vu
+ZGlmCiAjaWZuZGVmIFBDSV9ERVZJQ0VfSURfRFcyMDA0CiAjZGVmaW5lIFBDSV9ERVZJQ0VfSURf
+RFcyMDA0CTB4MjAwNAogI2VuZGlmCisjaWZuZGVmIFBDSV9ERVZJQ0VfSURfRE0wNQorI2RlZmlu
+ZSBQQ0lfREVWSUNFX0lEX0RNMDUJMHgxMTA1CisjZW5kaWYKIC8qIC0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tICovCiAvKiBzZG1jIGRtMTEwNSByZWdpc3Rl
+cnMgKi8KIApAQCAtMTUwLDYgKzE1OSwxMSBAQAogI2RlZmluZSBETTExMDVfTE5CXzEzVgkJCQkw
+eDAwMDEwMTAwCiAjZGVmaW5lIERNMTEwNV9MTkJfMThWCQkJCTB4MDAwMDAxMDAKIAorLyogR1BJ
+TydzIGZvciBMTkIgcG93ZXIgY29udHJvbCBmb3IgQXhlc3MgRE0wNSAtIEVYUEVSSU1FTlRBTCEq
+LworI2RlZmluZSBETTA1X0xOQl9NQVNLCQkJCTB4ZmZmZmZmZmMKKyNkZWZpbmUgRE0wNV9MTkJf
+MTNWCQkJCTB4M2ZmZmQKKyNkZWZpbmUgRE0wNV9MTkJfMThWCQkJCTB4M2ZmZmMKKwogc3RhdGlj
+IGludCBpcl9kZWJ1ZzsKIG1vZHVsZV9wYXJhbShpcl9kZWJ1ZywgaW50LCAwNjQ0KTsKIE1PRFVM
+RV9QQVJNX0RFU0MoaXJfZGVidWcsICJlbmFibGUgZGVidWdnaW5nIGluZm9ybWF0aW9uIGZvciBJ
+UiBkZWNvZGluZyIpOwpAQCAtMzE2LDcgKzMzMCw4IEBACiBzdGF0aWMgaW50IGRtMTEwNWR2Yl9z
+ZXRfdm9sdGFnZShzdHJ1Y3QgZHZiX2Zyb250ZW5kICpmZSwgZmVfc2VjX3ZvbHRhZ2VfdCB2b2x0
+YWdlKQogewogCXN0cnVjdCBkbTExMDVkdmIgKmRtMTEwNWR2YiA9IGZyb250ZW5kX3RvX2RtMTEw
+NWR2YihmZSk7Ci0KKwlzd2l0Y2ggKGRtMTEwNWR2Yi0+cGRldi0+c3Vic3lzdGVtX2RldmljZSl7
+CisJY2FzZSBQQ0lfREVWSUNFX0lEX0RXMjAwMjoKIAkJaWYgKHZvbHRhZ2UgPT0gU0VDX1ZPTFRB
+R0VfMTgpIHsKIAkJCW91dGwoRE0xMTA1X0xOQl9NQVNLLCBkbV9pb19tZW0oRE0xMTA1X0dQSU9D
+VFIpKTsKIAkJCW91dGwoRE0xMTA1X0xOQl8xOFYsIGRtX2lvX21lbShETTExMDVfR1BJT1ZBTCkp
+OwpAQCAtMzI1LDcgKzM0MCwxOSBAQAogCQkJb3V0bChETTExMDVfTE5CX01BU0ssIGRtX2lvX21l
+bShETTExMDVfR1BJT0NUUikpOwogCQkJb3V0bChETTExMDVfTE5CXzEzViwgZG1faW9fbWVtKERN
+MTEwNV9HUElPVkFMKSk7CiAJCX0KLQorCQlicmVhazsKKwkKKwljYXNlIFBDSV9ERVZJQ0VfSURf
+RE0wNToKKyAgICAgICAgICAgICAgICBpZiAodm9sdGFnZSA9PSBTRUNfVk9MVEFHRV8xOCkgewor
+ICAgICAgICAgICAgICAgIAlvdXRsKERNMDVfTE5CX01BU0ssIGRtX2lvX21lbShETTExMDVfR1BJ
+T0NUUikpOyAKKyAgICAgICAgICAgICAgICAJb3V0bChETTA1X0xOQl8xOFYsIGRtX2lvX21lbShE
+TTExMDVfR1BJT1ZBTCkpOyAKKyAgICAgICAgICAgICAgICB9ZWxzZSAgIHsKKyAgICAgICAgICAg
+ICAgICAvKkxOQiBPTi0xM1YgYnkgZGVmYXVsdCEqLworICAgICAgICAgICAgICAgIAlvdXRsKERN
+MDVfTE5CX01BU0ssIGRtX2lvX21lbShETTExMDVfR1BJT0NUUikpOyAKKyAgICAgICAgICAgICAg
+ICAJb3V0bChETTA1X0xOQl8xM1YsIGRtX2lvX21lbShETTExMDVfR1BJT1ZBTCkpOyAKKyAgICAg
+ICAgICAgICAgICB9CisgICAgICAgICAgICAgICAgYnJlYWs7CisgICAgICAgIH0KIAlyZXR1cm4g
+MDsKIH0KIApAQCAtNjMyLDYgKzY1OSw3IEBACiAJCQkJCQkJZG0xMTA1ZHZiX3NldF92b2x0YWdl
+OwogCQl9CiAJCWJyZWFrOworCQogCWNhc2UgUENJX0RFVklDRV9JRF9EVzIwMDQ6CiAJCWRtMTEw
+NWR2Yi0+ZmUgPSBkdmJfYXR0YWNoKAogCQkJY3gyNDExNl9hdHRhY2gsICZzZXJpdF9zcDI2MzNf
+Y29uZmlnLApAQCAtODcwLDYgKzg5OCwxMSBAQAogCQkuc3VidmVuZG9yID0gUENJX0FOWV9JRCwK
+IAkJLnN1YmRldmljZSA9IFBDSV9ERVZJQ0VfSURfRFcyMDA0LAogCX0sIHsKKwkJLnZlbmRvciA9
+IFBDSV9WRU5ET1JfSURfQVhFU1MsCisJCS5kZXZpY2UgPSBQQ0lfREVWSUNFX0lEX0RNMTEwNVMs
+CisJCS5zdWJ2ZW5kb3IgPSBQQ0lfQU5ZX0lELAorCQkuc3ViZGV2aWNlID0gUENJX0RFVklDRV9J
+RF9ETTA1LAkJCisJfSwgewogCQkvKiBlbXB0eSAqLwogCX0sCiB9Owo=
+--001636e91130d8f6080466b2f2a0--
