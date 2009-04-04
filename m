@@ -1,139 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:1056 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753408AbZDRPx7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Apr 2009 11:53:59 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: Re: [RFC] Stand-alone Resizer/Previewer Driver support under V4L2 framework
-Date: Sat, 18 Apr 2009 17:53:47 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"R, Sivaraj" <sivaraj@ti.com>, "Hadli, Manjunath" <mrh@ti.com>,
-	"Shah, Hardik" <hardik.shah@ti.com>,
-	"Kumar, Purushotam" <purushotam@ti.com>
-References: <19F8576C6E063C45BE387C64729E73940427E3F70B@dbde02.ent.ti.com> <200903301902.21783.hverkuil@xs4all.nl> <19F8576C6E063C45BE387C64729E73940427E3F8F1@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E73940427E3F8F1@dbde02.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Received: from mail1.radix.net ([207.192.128.31]:61726 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751465AbZDDWlv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 4 Apr 2009 18:41:51 -0400
+Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
+	model
+From: Andy Walls <awalls@radix.net>
+To: Mike Isely <isely@pobox.com>
+Cc: Jean Delvare <khali@linux-fr.org>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <1238883855.2995.30.camel@morgan.walls.org>
+References: <20090404142427.6e81f316@hyperion.delvare>
+	 <20090404142837.3e12824c@hyperion.delvare>
+	 <1238852529.2845.34.camel@morgan.walls.org>
+	 <Pine.LNX.4.64.0904041059080.32720@cnc.isely.net>
+	 <1238883855.2995.30.camel@morgan.walls.org>
+Content-Type: text/plain
+Date: Sat, 04 Apr 2009 18:39:11 -0400
+Message-Id: <1238884751.2995.38.camel@morgan.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200904181753.47515.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 31 March 2009 10:53:02 Hiremath, Vaibhav wrote:
-> Thanks,
-> Vaibhav Hiremath
->
-> > > APPROACH 3 -
-> > > ----------
-> > >
-> > > .....
-> > >
-> > > (Any other approach which I could not think of would be
-> >
-> > appreciated)
-> >
-> > > I would prefer second approach, since this will provide standard
-> > > interface to applications independent on underneath hardware.
-> > >
-> > > There may be many number of such configuration parameters required
-> >
-> > for
-> >
-> > > different such devices, we need to work on this and come up with
-> >
-> > some
-> >
-> > > standard capability fields covering most of available devices.
-> > >
-> > > Does anybody have some other opinions on this?
-> > > Any suggestions will be helpful here,
-> >
-> > FYI: I have very little time to look at this for the next 2-3 weeks.
-> > As you
-> > know I'm working on the last pieces of the v4l2_subdev conversion
-> > for 2.6.30
-> > that should be finished this week. After that I'm attending the
-> > Embedded
-> > Linux Conference in San Francisco.
-> >
-> > But I always thought that something like this would be just a
-> > regular video
-> > device that can do both 'output' and 'capture'. For a resizer I
-> > would
-> > expect that you set the 'output' size (the size of your source
-> > image) and
-> > the 'capture' size (the size of the resized image), then just send
-> > the
-> > frames to the device (== resizer) and get them back on the capture
-> > side.
->
-> [Hiremath, Vaibhav] Yes, it is possible to do that.
->
-> Hans,
->
-> I went through the link referred by Sergio and I think we should inherit
-> some implementation for CODECs here for such devices.
->
-> V4L2_BUF_TYPE_CODECIN - To access the input format.
-> V4L2_BUF_TYPE_CODECOUT - To access the output format.
->
-> It makes sense, since such memory-to-memory devices will mostly being
-> used from codecs context. And this would be more clear from user
-> application.
+On Sat, 2009-04-04 at 18:25 -0400, Andy Walls wrote:
+> On Sat, 2009-04-04 at 11:05 -0500, Mike Isely wrote:
 
-To be honest, I don't see the need for this. I think TYPE_VIDEO_CAPTURE and 
-TYPE_VIDEO_OUTPUT are perfectly fine.
+> So my rough outline of an idea (which probably runs slightly afoul of
+> Hans' media_controller device, but we don't have it yet):
+> 
+> 1. Add a function to the v4l2 framework to iterate over all the
+> v4l2_device's that are registered (if there isn't one already).
+> 
+> 2. Add a method to the v4l2_device class to return the IR subdevice for
+> a given v4l2_device:
+> 
+> 	v4l2_subdev *v4l2_device_get_ir_subdev(v4l2_device *dev);
+> 
+> and if it returns NULL, that device has no IR chip.
+> 
+> 
+> 3. To the v4l2_subdev framework add:
+> 
+> 	struct v4l2_subdev_ir_ops {
+> 		(*enumerate) (v4l2_subdev *sd, /* bus_type, bus #, addr for Rx, addr for Tx */);
+> 		(*claim) (v4l2_subdev *sd, /* claiming driver name string, going-away callback function pointer */);
+> 		(*release) (v4l2_subdev *sd, /* handle */);
+> 		bool (*is_claimed) (v4l2_subdev *sd, /* output string of the "owner" */);
+> 		/* Or maybe just */
+> 		(*send) (v4l2_subdev *sd, /* data buffer */);
+> 		(*receive) (v4l2_subdev *sd, /* data buffer */);
+> 	}
+> 
+> and have the bridge driver support these.  (I also had some in mind for
+> the IR micro-controller debug/programming port, but the above will fit
+> the task at hand I think.)
+> 
+> 
+> OK so that's all a bit rough around the edges.  The idea is a uniform
+> call in for ir-kdb-i2c or lirc_foo or ir_foo to get at an IR chip behind
+> a bridge device, that the bridge device driver itself cares about very
+> little.  *Except* ir driver modules would be coordinated by the bridge
+> driver in what they can and cannot do to get at the IR device.  This
+> coordination prevents bad things on the bridge chip's I2C bus(es) or
+> from having modules racing to get the IR device.  That way whatever
+> module the user loads will get first shot at claiming the IR chip.  This
+> also provides a discovery mechanism four use by ir driver modules that
+> is informed by the bridge chip driver.  I think lirc_foo can also still
+> use it's current way of doing business too. 
+> 
+> It really just looks like a small subset of what Hans intended for the
+> media controller, so maybe this would be a good chance to get some
+> "lessons learned."
 
-> And as acknowledged by you, we can use VIDIOC_S_FMT for setting
-> parameters.
->
-> One thing I am not able to convince myself is that, using "priv" field
-> for custom configuration.
-
-I agree. Especially since you cannot use it as a pointer to addition 
-information.
-
-> I would prefer and recommend capability based 
-> interface, where application will query the capability of the device for
-> luma enhancement, filter coefficients (number of coeff and depth),
-> interpolation type, etc...
->
-> This way we can make sure that, any such future devices can be adapted by
-> this framework.
-
-The big question is how many of these capabilities are 'generic' and how 
-many are very much hardware specific. I am leaning towards using the 
-extended control API for this. It's a bit awkward to implement in drivers 
-at the moment, but that should improve in the future when a lot of the 
-control handling code will move into the new core framework.
-
-I really need to know more about the sort of features that omap/davinci 
-offer (and preferably also for similar devices by other manufacturers).
-
->
->
-> Hans,
-> Have you get a chance to look at Video-Buf layer issues I mentioned in
-> original draft?
-
-I've asked Magnus Damm to take a look at this. I know he did some work in 
-this area and he may have fixed some of these issues already. Very useful, 
-that Embedded Linux conference...
+Oops.  That leaves DTV only devices with IR out in the cold, unless they
+start to implement a v4l2_device and IR v4l2_subdev as well, or unless
+they were never used with ir-kbd-i2c in the first place.
 
 Regards,
+Andy
 
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
