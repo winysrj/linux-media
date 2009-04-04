@@ -1,78 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1479 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752724AbZDKKsj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Apr 2009 06:48:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Brandon Jenkins <bcjenkins@tvwhere.com>
-Subject: Re: ir-kbd-i2c Compile Warnings
-Date: Sat, 11 Apr 2009 12:48:31 +0200
-Cc: linux-media@vger.kernel.org
-References: <de8cad4d0904100710u1cdd9568ud3190b1e97e792e3@mail.gmail.com> <de8cad4d0904101659r7564ae3cne075ea355aff73ac@mail.gmail.com>
-In-Reply-To: <de8cad4d0904101659r7564ae3cne075ea355aff73ac@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200904111248.31390.hverkuil@xs4all.nl>
+Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:4446 "EHLO
+	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751566AbZDDSSm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Apr 2009 14:18:42 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr3.xs4all.nl (8.13.8/8.13.8) with ESMTP id n34IIdio083033
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 4 Apr 2009 20:18:39 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 4 Apr 2009 20:18:39 +0200 (CEST)
+Message-Id: <200904041818.n34IIdio083033@smtp-vbr3.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: OK, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 11 April 2009 01:59:00 Brandon Jenkins wrote:
-> On Fri, Apr 10, 2009 at 10:10 AM, Brandon Jenkins <bcjenkins@tvwhere.com> 
-wrote:
-> > Hello all,
-> >
-> > Fresh clone of V4L this morning running on a fully patched ArchLinux
-> > 64-bit system:
-> >
-> > /root/drivers/v4l-dvb/v4l/ir-kbd-i2c.o
-> > /root/drivers/v4l-dvb/v4l/ir-kbd-i2c.c: In function 'ir_attach':
-> > /root/drivers/v4l-dvb/v4l/ir-kbd-i2c.c:429: warning:
-> > 'i2c_attach_client' is deprecated (declared at
-> > include/linux/i2c.h:434)
-> > /root/drivers/v4l-dvb/v4l/ir-kbd-i2c.c:468: warning:
-> > 'i2c_detach_client' is deprecated (declared at
-> > include/linux/i2c.h:435)
-> > /root/drivers/v4l-dvb/v4l/ir-kbd-i2c.c: In function 'ir_detach':
-> > /root/drivers/v4l-dvb/v4l/ir-kbd-i2c.c:484: warning:
-> > 'i2c_detach_client' is deprecated (declared at
-> > include/linux/i2c.h:435)
-> >
-> > Brandon
-> >
-> > uname -a
-> > Linux sagetv-server 2.6.29-ARCH #1 SMP PREEMPT Wed Apr 8 12:39:28 CEST
-> > 2009 x86_64 Intel(R) Core(TM)2 Quad CPU Q6600 @ 2.40GHz GenuineIntel
-> > GNU/Linux
->
-> Rolling back to kernel:
->
-> Linux sagetv-server 2.6.28-ARCH #1 SMP PREEMPT Tue Mar 17 07:22:53 CET
-> 2009 x86_64 Intel(R) Core(TM)2 Quad CPU Q6600 @ 2.40GHz GenuineIntel
-> GNU/Linux
->
-> Does not produce the same warnings.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Known harmless issue for 2.6.29. Jean Delvare and others are working on 
-removing these deprecated calls for 2.6.30.
+Results of the daily build of v4l-dvb:
 
-Regards,
+date:        Sat Apr  4 19:00:04 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11346:4cd17f5a20cc
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-	Hans
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-i686: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-m32r: OK
+linux-2.6.22.19-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-powerpc64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-x86_64: OK
+fw/apps: OK
+sparse (linux-2.6.29): OK
+linux-2.6.16.61-i686: WARNINGS
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
->
-> Thanks,
->
-> Brandon
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
+Full logs are available here:
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
