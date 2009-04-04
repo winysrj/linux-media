@@ -1,39 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.172]:11443 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760317AbZD0TJa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2009 15:09:30 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so71032wfd.4
-        for <linux-media@vger.kernel.org>; Mon, 27 Apr 2009 12:09:29 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <cae4ceb0904271158l56cfc840t858ef5042b1e42f@mail.gmail.com>
-References: <cae4ceb0904271158l56cfc840t858ef5042b1e42f@mail.gmail.com>
-Date: Mon, 27 Apr 2009 12:09:29 -0700
-Message-ID: <cae4ceb0904271209k56c73f26m94adfa01d71daeaa@mail.gmail.com>
-Subject: HVR1200 stop after RF tracking filter calibration complete
-From: Tu-Tu Yu <tutuyu@usc.edu>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail1.radix.net ([207.192.128.31]:61110 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752907AbZDDWcH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 4 Apr 2009 18:32:07 -0400
+Subject: Re: [PATCH 1/6] cx18: Fix the handling of i2c bus registration
+	error
+From: Andy Walls <awalls@radix.net>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Mike Isely <isely@pobox.com>
+In-Reply-To: <20090404162355.511d872d@hyperion.delvare>
+References: <20090404142427.6e81f316@hyperion.delvare>
+	 <20090404142651.44757ccb@hyperion.delvare>
+	 <1238849160.2845.12.camel@morgan.walls.org>
+	 <20090404162355.511d872d@hyperion.delvare>
+Content-Type: text/plain
+Date: Sat, 04 Apr 2009 18:30:43 -0400
+Message-Id: <1238884243.2995.34.camel@morgan.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear sirs:
-After I installed the HVR1200, it stop when we tune the frequency.
-Could anyone tell me what should i do for this situation? Thank you.
-The message in the log is below
+On Sat, 2009-04-04 at 16:23 +0200, Jean Delvare wrote:
+> Hi Andy,
+> 
+> Thanks for the fast review.
+> 
+> On Sat, 04 Apr 2009 08:46:00 -0400, Andy Walls wrote:
 
-kernel: cx23885_dev_checkrevision() Hardware revision unknown 0x0
-kernel: cx23885[0]/0: found at 0000:0b:00.0, rev: 4, irq: 16, latency:
-0, mmio: 0xfea00000
-kernel: tda10048_firmware_upload: waiting for firmware upload
-(dvb-fe-tda10048-1.0.fw)...
-kernel: firmware: requesting dvb-fe-tda10048-1.0.fw
-kernel: tda10048_firmware_upload: firmware read 24878 bytes.
-kernel: tda10048_firmware_upload: firmware uploading
-kernel: tda10048_firmware_upload: firmware uploaded
-kernel: tda18271: performing RF tracking filter calibration
-kernel: tda18271: RF tracking filter calibration complete
+> 
+> Correct, actually my initial attempt looked like this. But then patch
+> 3/6 adds code, which makes "your" solution 2 lines bigger, while "my"
+> solution stays as is, so the difference between both becomes very thin.
+> 
+> Some developers (including me) prefer to have a single error path,
+> others hate gotos more than (potential) code duplication. I didn't know
+> what you'd prefer as the driver maintainer. If you want me to use the
+> variant without gotos, I can do that, no problem.
 
-Audrey
+Meh, whichever way you like is fine for now.  If I really decide to care
+about it, I'll muck with it when I get the hardware I2C masters working.
+I'll have to touch that section of code at that time anyway.
+
+Acked-by: Andy Walls <awalls@radix.net>
+
+Regards,
+Andy
+
+
