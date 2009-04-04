@@ -1,57 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:42374 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754300AbZDHLU7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2009 07:20:59 -0400
-Received: by fxm2 with SMTP id 2so73838fxm.37
-        for <linux-media@vger.kernel.org>; Wed, 08 Apr 2009 04:20:57 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <faf98b150904060452m35b4ef58m94cfb02ca8bd1334@mail.gmail.com>
-References: <faf98b150904060452m35b4ef58m94cfb02ca8bd1334@mail.gmail.com>
-Date: Wed, 8 Apr 2009 13:20:57 +0200
-Message-ID: <faf98b150904080420j146c022ma19603af74e9e566@mail.gmail.com>
-Subject: [PATCH] Enabling of the Winfast TV2000 XP Global TV capture card
-	remote control
-From: Pieter Van Schaik <vansterpc@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from zone0.gcu-squad.org ([212.85.147.21]:35308 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751379AbZDDVNw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Apr 2009 17:13:52 -0400
+Date: Sat, 4 Apr 2009 23:13:33 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Mike Isely <isely@pobox.com>
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: [PATCH] pvrusb2: Drop client_register/unregister stubs
+Message-ID: <20090404231333.5e136f83@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pieter Van Schaik <vansterpc@gmail.com>
-Date: Mon, Apr 6, 2009 at 1:52 PM
-Subject: [PATCH] Enabling of the Winfast TV2000 XP Global TV capture
-card  remote control
-To: linux-media@vger.kernel.org
+The client_register and client_unregister methods are optional so
+there is no point in defining stub ones. Especially when these methods
+are likely to be removed soon.
 
-
-From: Pieter C van Schaik <vansterpc@gmail.com>
-
-The Winfast TV2000 XP Global video capture card IR remote keys were
-not initialized and handled in cx88-input.c; added two corresponding
-case statements, where this card's remote works exactly the same as
-the DTV1000's.
-
-Signed-off-by: Pieter C van Schaik <vansterpc@gmail.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
---- linux-2.6.29/drivers/media/video/cx88/cx88-input.c.orig
-2009-04-01 12:38:34.000000000 +0200
-+++ linux-2.6.29/drivers/media/video/cx88/cx88-input.c  2009-04-01
-12:39:07.000000000 +0200
-@@ -92,6 +92,7 @@ static void cx88_ir_handle_key(struct cx
-               gpio=(gpio & 0x7fd) + (auxgpio & 0xef);
-               break;
-       case CX88_BOARD_WINFAST_DTV1000:
-+       case CX88_BOARD_WINFAST_TV2000_XP_GLOBAL:
-               gpio = (gpio & 0x6ff) | ((cx_read(MO_GP1_IO) << 8) & 0x900);
-               auxgpio = gpio;
-               break;
-@@ -239,6 +240,7 @@ int cx88_ir_init(struct cx88_core *core,
-               break;
-       case CX88_BOARD_WINFAST2000XP_EXPERT:
-       case CX88_BOARD_WINFAST_DTV1000:
-+       case CX88_BOARD_WINFAST_TV2000_XP_GLOBAL:
-               ir_codes = ir_codes_winfast;
-               ir->gpio_addr = MO_GP0_IO;
-               ir->mask_keycode = 0x8f8;
+ linux/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c |   12 ------------
+ 1 file changed, 12 deletions(-)
+
+--- v4l-dvb.orig/linux/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c	2009-04-04 13:58:40.000000000 +0200
++++ v4l-dvb/linux/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c	2009-04-04 22:12:21.000000000 +0200
+@@ -595,16 +595,6 @@ static u32 pvr2_i2c_functionality(struct
+ 	return I2C_FUNC_SMBUS_EMUL | I2C_FUNC_I2C;
+ }
+ 
+-static int pvr2_i2c_attach_inform(struct i2c_client *client)
+-{
+-	return 0;
+-}
+-
+-static int pvr2_i2c_detach_inform(struct i2c_client *client)
+-{
+-	return 0;
+-}
+-
+ static struct i2c_algorithm pvr2_i2c_algo_template = {
+ 	.master_xfer   = pvr2_i2c_xfer,
+ 	.functionality = pvr2_i2c_functionality,
+@@ -617,8 +607,6 @@ static struct i2c_adapter pvr2_i2c_adap_
+ 	.owner         = THIS_MODULE,
+ 	.class	       = 0,
+ 	.id            = I2C_HW_B_BT848,
+-	.client_register = pvr2_i2c_attach_inform,
+-	.client_unregister = pvr2_i2c_detach_inform,
+ };
+ 
+ 
+
+-- 
+Jean Delvare
