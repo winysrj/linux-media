@@ -1,86 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-01.arcor-online.net ([151.189.21.41]:38670 "EHLO
-	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756586AbZDFVPs (ORCPT
+Received: from mail-in-05.arcor-online.net ([151.189.21.45]:50902 "EHLO
+	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750873AbZDDBHZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Apr 2009 17:15:48 -0400
-Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
-	model
+	Fri, 3 Apr 2009 21:07:25 -0400
+Subject: Re: Kernel 2.6.29 breaks DVB-T ASUSTeK Tiger LNA Hybrid Capture
+	Device
 From: hermann pitton <hermann-pitton@arcor.de>
-To: Jean Delvare <khali@linux-fr.org>, Mark Schultz <n9xmj@yahoo.com>,
-	Brian Rogers <brian_rogers@comcast.net>,
-	Oldrich Jedlicka <oldium.pro@seznam.cz>
-Cc: Andy Walls <awalls@radix.net>, Janne Grunau <j@jannau.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mike Isely <isely@pobox.com>, isely@isely.net,
-	LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jarod Wilson <jarod@redhat.com>
-In-Reply-To: <20090406104045.58da67c7@hyperion.delvare>
-References: <20090404142427.6e81f316@hyperion.delvare>
-	 <Pine.LNX.4.64.0904041045380.32720@cnc.isely.net>
-	 <20090405010539.187e6268@hyperion.delvare>
-	 <200904050746.47451.hverkuil@xs4all.nl> <20090405143748.GC10556@aniel>
-	 <1238953174.3337.12.camel@morgan.walls.org> <20090405183154.GE10556@aniel>
-	 <1238957897.3337.50.camel@morgan.walls.org>
-	 <20090405222250.64ed67ae@hyperion.delvare>
-	 <1238966523.6627.63.camel@pc07.localdom.local>
-	 <20090406104045.58da67c7@hyperion.delvare>
+To: Ralph <ramsoft@virgilio.it>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <1238805912.3498.18.camel@pc07.localdom.local>
+References: <loom.20090403T201901-786@post.gmane.org>
+	 <1238805912.3498.18.camel@pc07.localdom.local>
 Content-Type: text/plain
-Date: Mon, 06 Apr 2009 23:10:36 +0200
-Message-Id: <1239052236.4925.20.camel@pc07.localdom.local>
+Date: Sat, 04 Apr 2009 03:02:36 +0200
+Message-Id: <1238806956.3498.26.camel@pc07.localdom.local>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean,
 
-Am Montag, den 06.04.2009, 10:40 +0200 schrieb Jean Delvare:
-> On Sun, 05 Apr 2009 23:22:03 +0200, drunk and tired hermann pitton wrote:
-
-don't tell me the French vine is always better.
-You likely know who introduced that currency once :)
-
-> > Hmm, I'm still "happy" with the broken DVB-T for saa7134 on 2.6.29,
-> > tasting some Chianti vine now and need to sleep soon, but I'm also not
-> > that confident that your saa7134 MSI TV@nywhere Plus i2c remote does
-> > work addressing it directly, since previous reports always said it
-> > becomes only visible at all after other devices are probed previously.
+Am Samstag, den 04.04.2009, 02:45 +0200 schrieb hermann pitton:
+> Hi Ralph,
+> 
+> Am Freitag, den 03.04.2009, 20:49 +0000 schrieb Ralph:
+> > ASUSTeK Tiger LNA Hybrid Capture Device PCI - Analog/DVB-T card
+> > Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video
+> > Broadcast Decoder (rev d1)
 > > 
-> > Unfortunately I can't test it, but will try to reach some with such
-> > hardware and ask for testing, likely not on the list currently.
+> > Works perfectly with kernel 2.6.28.4 (or older).
+> > Recently, I have switched to 2.6.29 (same .config as 2.6.28.4) and now, at
+> > boot
+> > time, I get the message:
+> > 
+> > IRQ 18/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+> > 
+> > Signal strength is very low and Kaffeine is unable to tune in any channel.
+> > Same problem with kernel 2.6.29.1
+> > 
+> > -------------------------------------
+> > 
+> > Messages from /var/log/dmesg
+> > 
+> > saa7134 0000:03:0a.0: PCI INT A -> Link[APC3] -> GSI 18 (level, low) -> \
+> >  IRQ 18
+> > saa7133[0]: found at 0000:03:0a.0, rev: 209, irq: 18, latency: 32, mmio: \
+> > 0xfdefe000
+> > saa7133[0]: subsystem: 1043:4871, board: ASUS P7131 4871 \
+> > [card=111,autodetected]
+> > saa7133[0]: board init: gpio is 0
+> > IRQ 18/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+> > saa7133[0]: i2c eeprom 00: 43 10 71 48 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+> > saa7133[0]: i2c eeprom 10: ff ff ff 0f ff 20 ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom 20: 01 40 01 02 03 00 01 03 08 ff 00 cf ff ff ff ff
+> > saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom 40: ff 21 00 c2 96 10 03 22 15 50 ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > tuner' 2-004b: chip found @ 0x96 (saa7133[0])
+> > tda829x 2-004b: setting tuner address to 61
+> > tda829x 2-004b: type set to tda8290+75a
+> > saa7133[0]: registered device video0 [v4l2]
+> > saa7133[0]: registered device vbi0
+> > dvb_init() allocating 1 frontend
+> > DVB: registering new adapter (saa7133[0])
+> > DVB: registering adapter 0 frontend -32769 (Philips TDA10046H DVB-T)...
+> > tda1004x: setting up plls for 48MHz sampling clock
+> > tda1004x: timeout waiting for DSP ready
+> > tda1004x: found firmware revision 0 -- invalid
+> > tda1004x: trying to boot from eeprom
+> > tda1004x: timeout waiting for DSP ready
+> > tda1004x: found firmware revision 0 -- invalid
+> > tda1004x: waiting for firmware upload...
+> > saa7134 0000:03:0a.0: firmware: requesting dvb-fe-tda10046.fw
+> > tda1004x: found firmware revision 29 -- ok
+> > saa7134 ALSA driver for DMA sound loaded
+> > IRQ 18/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+> > saa7133[0]/alsa: saa7133[0] at 0xfdefe000 irq 18 registered as card -1
+> > 
 > 
-> Thanks for the heads up. I was curious about this as well. The original
-> comment said that the MSI TV@nywhere Plus IR receiver would not respond
-> to _probes_ before another device on the I2C bus was accessed. I didn't
-> know for sure if this only applied to the probe sequence or to any
-> attempt to access the IR receiver. As we no longer need to probe for
-> the device, I thought it may be OK to remove the extra code. But
-> probably the removal of the extra code should be delayed until we find
-> one tester to confirm the exact behavior. Here, done.
+> thanks for your report, as announced previously, I unfortunately did not
+> have time to run with latest always ... (guess why ...)
 > 
-> Anyone out there with a MSI TV@nywhere Plus that could help with
-> testing?
+> The driver always worked with shared IRQs, if not, it was always a
+> limitation of certain hardware or mostly in some combination with binary
+> only drivers.
+> 
+> If the above should be the case in general now, and not only caused by
+> some blacklist, no print out in that direction, the driver is pretty
+> broken again.
+> 
+> I for sure don't have all for last months, but that
+> "IRQF_DISABLED is not guaranteed on shared IRQs" for sure does not come
+> from us here.
 
-Here is a link to one of the initial reports by Henry, others are close
-to it.
+Do use something unusual like pollirq or something?
 
-http://marc.info/?l=linux-video&m=113324147429459&w=2
+We only have in saa7134-core.c
 
-There are two different variants of that MSI card, but that undocumented
-KS003 chip is the same on them.
+	/* initialize hardware #1 */
+	saa7134_board_init1(dev);
+	saa7134_hwinit1(dev);
 
-We still have lots of for the remote unsupported cards with KS chips,
-many from Kworld. Some of these chips are also seen on cx88xx cards
-already and other drivers may follow.
+	/* get irq */
+	err = request_irq(pci_dev->irq, saa7134_irq,
+			  IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
+	if (err < 0) {
+		printk(KERN_ERR "%s: can't get IRQ %d\n",
+		       dev->name,pci_dev->irq);
+		goto fail3;
+	}
 
-Henry doesn't have this card anymore, but maybe Mark and Brian can test
-and Oldrich might give feedback for the Avermedia.
+and in saa7134-alsa.c
 
-Cheers,
+	err = request_irq(dev->pci->irq, saa7134_alsa_irq,
+				IRQF_SHARED | IRQF_DISABLED, dev->name,
+				(void*) &dev->dmasound);
+
+	if (err < 0) {
+		printk(KERN_ERR "%s: can't get IRQ %d for ALSA\n",
+			dev->name, dev->pci->irq);
+		goto __nodev;
+	}
+
+Have fun ;)
 Hermann
-
-
 
 
