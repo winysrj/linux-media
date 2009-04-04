@@ -1,122 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.youplala.net ([88.191.51.216]:36824 "EHLO mail.youplala.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751437AbZD3KsN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2009 06:48:13 -0400
-Received: from [134.32.138.73] (unknown [134.32.138.73])
-	by mail.youplala.net (Postfix) with ESMTPSA id 0797BD880AC
-	for <linux-media@vger.kernel.org>; Thu, 30 Apr 2009 12:48:00 +0200 (CEST)
-Subject: Re: Nova-T 500 does not survive reboot
-From: Nicolas Will <nico@youplala.net>
-To: linux-media@vger.kernel.org
-In-Reply-To: <loom.20090430T101124-541@post.gmane.org>
-References: <1241068523.4632.8.camel@youkaida>
-	 <loom.20090430T101124-541@post.gmane.org>
-Content-Type: text/plain
-Date: Thu, 30 Apr 2009 11:47:18 +0100
-Message-Id: <1241088438.5237.16.camel@acropora>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from web110810.mail.gq1.yahoo.com ([67.195.13.233]:22713 "HELO
+	web110810.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754482AbZDDMrn convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 4 Apr 2009 08:47:43 -0400
+Message-ID: <802860.3364.qm@web110810.mail.gq1.yahoo.com>
+Date: Sat, 4 Apr 2009 05:47:40 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: Re: [PATCH - RECALL] siano: smsendian & smsdvb - binding the smsendian to smsdvb
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-04-30 at 10:16 +0000, Eduard Huguet wrote:
-> Nicolas Will <nico <at> youplala.net> writes:
+
+
+
+--- On Sat, 4/4/09, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+
+> From: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Subject: Re: [PATCH - RECALL] siano: smsendian & smsdvb - binding the smsendian to smsdvb
+> To: "Uri Shkolnik" <urishk@yahoo.com>
+> Cc: linux-media@vger.kernel.org
+> Date: Saturday, April 4, 2009, 12:14 AM
+> On Fri, 3 Apr 2009 13:31:32 -0700
+> (PDT)
+> Uri Shkolnik <urishk@yahoo.com>
+> wrote:
 > 
 > > 
-> > Hello all,
+> > --- On Fri, 4/3/09, Mauro Carvalho Chehab <mchehab@infradead.org>
+> wrote:
 > > 
-> > I am running an hg clone from a few days ago with firmware 1.20 on a
-> > 64-bit Ubuntu Intrepid (2.6.27 kernel).
+> > From: Mauro Carvalho Chehab <mchehab@infradead.org>
+> > Subject: Re: [PATCH - RECALL] siano: smsendian &
+> smsdvb - binding the smsendian to smsdvb
+> > To: "Uri Shkolnik" <urishk@yahoo.com>
+> > Cc: linux-media@vger.kernel.org
+> > Date: Friday, April 3, 2009, 3:15 PM
 > > 
-> > I have noticed that for some time now the card/driver/firmware
-> > combination does not like warm reboots.
+> > Uri,
 > > 
-> > If I reboot the system and try to use any Nova-T 500 tuner, I
-> > immediately get the mt2060 I2C errors.
+> > On Fri, 3 Apr 2009 03:20:38 -0700 (PDT)
+> > Uri Shkolnik <urishk@yahoo.com>
+> wrote:
 > > 
-> > If I completely shut down the system, remove the power, then reboot, all
-> > is fine.
+> > > Hi,
+> > > 
+> > > The last patch in the series ("siano: smsendian
+> & smsdvb - binding the smsendian to smsdvb") breaks the
+> driver, please ignore it.
+> > > 
 > > 
-> > I have missed most of the linux-media traffic, I was still stuck on
-> > linux-dvb. Have I missed some discussions about this?
 > > 
-> > Thanks!
+> > It will be very hard (again) to handle your patch
+> series. Especially when
+> > sending a big series of patches like this, you should
+> number the patches, for
+> > they to be applied at the proper order. 
 > > 
-> > Nico
-> Hi, Nicholas
+> > Also, when a patch is broken, you should reply to that
+> patch, without changing
+> > the subject. The original message ID will be properly
+> handled by patchwork, and
+> > the reply message will be folded with the original
+> patch.
+> > 
+> > In this case, this is the message ID of your patch
+> message:
+> > Message-ID: <622468.86074.qm@web110805.mail.gq1.yahoo.com>
+> > 
+> > However, your "RECALL" email doesn't contain any
+> reference tag to the original
+> > message (since you didn't reply to your message). So,
+> emailers and patchwork
+> > won't associate the reply with the patch you want to
+> discard.
+> > 
+> > Cheers,
+> > Mauro
+> > 
+> > Hi Mauro,
+> > 
+> > 
+> > 
+> > 
+> > 1) Backport patch ("siano: smsdvb - add support for
+> old dvb-core version") - If this patch causes problem,
+> discard it (trashing it does not affect the other patches),
+> let me know, and I'll submit only the one-line endian
+> change. (We'll support old embedded devices, etc. using
+> specific vendor patch from our customer support team, and
+> the kernel version will not have any backport code).
+> > 
+> > 2) I'll add global serial indication to the patches
+> from now on. Regarding the already submmited patches, is it
+> OK if I'll email you a text list of patches with their
+> order? 
 > 
-> I posted the very same thing 3 days ago:
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/4973
-
-Argh, I missed it (I don't really like gmame's archiving... I will need
-to get used to it).
-
-I have the same :
-
-
-Apr 29 22:42:41 favia kernel: [   72.272045] ehci_hcd 0000:07:01.2: force halt; handhake ffffc20000666814 00004000 00000000 -> -110
-
-
-then
-
-
-Apr 29 22:43:02 favia kernel: [   92.900094] mt2060 I2C write failed
-Apr 29 22:43:02 favia kernel: [   92.905830] mt2060 I2C write failed (len=2)
-Apr 29 22:43:02 favia kernel: [   92.905835] mt2060 I2C write failed (len=6)
-Apr 29 22:43:02 favia kernel: [   92.905838] mt2060 I2C read failed
-Apr 29 22:43:02 favia kernel: [   92.912552] mt2060 I2C read failed
-Apr 29 22:43:02 favia kernel: [   92.920572] mt2060 I2C read failed
-Apr 29 22:43:02 favia kernel: [   92.928552] mt2060 I2C read failed
-Apr 29 22:43:02 favia kernel: [   92.936554] mt2060 I2C read failed
-Apr 29 22:43:02 favia kernel: [   92.944552] mt2060 I2C read failed
-...............
-
-and at one point I get the following before I shut down
-
-
-Apr 29 22:44:27 favia kernel: [  177.818215] dvb-usb: could not submit URB no. 0 - get them all back
-Apr 29 22:44:27 favia kernel: [  177.818222] dvb-usb: error while enabling fifo.
-
-
-
-
+> Yes, if you provide me the patch numbers at patchwork. I
+> just need a simple
+> list of patchwork sequence numbers, in the expected order.
+> 
+> > 3) Recall message - I didn't know about the reply
+> option and I'll do that from now on. (Any day you learn
+> something new, and that fact distinguish you from the
+> dead....:-) )
+> 
+> No problem.
+> > 
+> > 4) If it's OK with you, I'll hold further submission,
+> until the already submited patches will be reviewed and
+> commited.
+> 
+> Seems the better for me.
+> 
+> > 5) Some related question... I emailed all patches to
+> you and CC the "linux-media@vger.kernel.org"
+> ML. I can not see any post other than your replys on the ML
+> and nothing on http://patchwork.kernel.org/project/linux-media/list/
+> .  Any idea why?
+> 
+> If patchwork didn't got, then the patch is broken. You
+> don't need to CC me, but you need to be sure that patchwork
+> will catch they. For patchwork to do his job, you should be
+> sure that your emailer won't do line wrapping, and avoid use
+> attachments. Mime processing is tricky and some emailers set
+> the wrong mime type for attachments.
+> 
+> > Have a great weekend,
+> 
+> Same to you.
+> > 
+> > Regards,
+> > 
+> > Uri
+> > 
+> >       
 > 
 > 
-> This is something that has been occuring lately, since some months ago. I don't
-> know when exactly was this bug introduced, but it has been in HG for a couple of
-> months at least. I can remenber that other guy posted about this issue some time
-> ago, but I can't find the link.
-
-
-I'm with that too. I was just really busy at the time to dig into it.
-
-
-
 > 
 > 
-> And for what I see, Janne Grunau is also having problems with the card. See what
-> he have just posted...:
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/4973
+> Cheers,
+> Mauro
+> 
+
+Hi Mauro,
+
+I'm watching closely http://patchwork.kernel.org/project/linux-media/list/  and this ML.
+
+Until now, none of my patches appears anywhere. It seems that either html tags or other formatting issue, prevent the robot from processing my patches (I can see submissions from today, while my two days old are absent).
+
+I'll wait till tomorrow (just in case) and if nothing will happen, I'll re-submit my patches (and make sure they are pure text...).
+If so, I'll also add patches numeration, and remove the backport one.
 
 
-I saw that one too, it arrived as I subscribed to the proper list.
+Regards,
 
-I'm not directly concerned now, but I will be facing this too when I
-will want to upgrade my system to the current Ubuntu release.
+Uri
 
 
-Soooooo...
-
-What can I/we do to help track/fix this?
-
-I'm game for a bit of testing, within reason, though, at the system is
-in production.
-
-Do you know if the issue is the same with a Nova-TD stick? If it is,
-then I could be able to use debugging as an excuse to buy one, and then
-add 2 tuners to the system when all is done :o)
-
-Nico
-http://www.youplala.net/linux/home-theater-pc/
-
+      
