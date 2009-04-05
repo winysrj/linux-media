@@ -1,46 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.171]:13731 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751941AbZDVGbg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Apr 2009 02:31:36 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so125552wfd.4
-        for <linux-media@vger.kernel.org>; Tue, 21 Apr 2009 23:31:36 -0700 (PDT)
-MIME-Version: 1.0
-Date: Wed, 22 Apr 2009 15:31:35 +0900
-Message-ID: <5e9665e10904212331x421eb6yb09a3e4acd198e1f@mail.gmail.com>
-Subject: JPEG sync with OMAP3 camera interface
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"jongse.won@samsung.com" <jongse.won@samsung.com>,
-	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>,
-	dongsoo45.kim@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([18.85.46.34]:41174 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758570AbZDEKBc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Apr 2009 06:01:32 -0400
+Date: Sun, 5 Apr 2009 07:01:16 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: LMML <linux-media@vger.kernel.org>, Andy Walls <awalls@radix.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Mike Isely <isely@pobox.com>
+Subject: Re: [PATCH 0/6] ir-kbd-i2c conversion to the new i2c binding model
+Message-ID: <20090405070116.17ecadef@pedra.chehab.org>
+In-Reply-To: <20090404142427.6e81f316@hyperion.delvare>
+References: <20090404142427.6e81f316@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Sat, 4 Apr 2009 14:24:27 +0200
+Jean Delvare <khali@linux-fr.org> wrote:
 
-I'm working on OMAP3 with external camera module which has JPEG
-encoder feature and connected to parallel interface.
-I tried to sync JPEG data like the instruction on OMAP3 user manual
-but don't even know what to check to sync JPEG data properly.
-I'm using Sakari's camera interface which seems to not considering
-about JPEG yet.
-Anybody knows about what to check and how to sync JPEG data? I don't
-have any clue. ;-(
+> Hi all,
+> 
+> Here finally comes my conversion of ir-kbd-i2c to the new i2c binding
+> model. I've split it into 6 pieces for easier review. Firstly there are
+> 2 preliminary patches:
+> 
+> media-video-01-cx18-fix-i2c-error-handling.patch
+> media-video-02-ir-kbd-i2c-dont-abuse-client-name.patch
+> 
+> Then 2 patches doing the actual conversion:
+> 
+> media-video-03-ir-kbd-i2c-convert-to-new-style.patch
+> media-video-04-configure-ir-receiver.patch
+> 
+> And lastly 2 patches cleaning up saa7134-input thanks to the new
+> possibilities offered by the conversion:
+> 
+> media-video-05-saa7134-input-cleanup-msi-ir.patch
+> media-video-06-saa7134-input-cleanup-avermedia-cardbus.patch
+> 
+> This patch set is against the v4l-dvb repository, but I didn't pay
+> attention to the compatibility issues. I simply build-tested it on
+> 2.6.27 and 2.6.29.
+> 
+> This patch set touches many different drivers and I can't test any of
+> them. My only TV card with an IR receiver doesn't make use of
+> ir-kbd-i2c. So I would warmly welcome testers. The more testing my
+> changes can get, the better.
+> 
+> And of course I welcome reviews and comments as well. I had to touch
+> many drivers I don't know anything about so it is possible that I
+> missed something.
+> 
+> I'll post all 6 patches as replies to this post. They can also be
+> temporarily downloaded from:
+>   http://jdelvare.pck.nerim.net/linux/ir-kbd-i2c/
+> Additionally I've put a combined patch there, to make testing easier:
+>   http://jdelvare.pck.nerim.net/linux/ir-kbd-i2c/ir-kbd-i2c-conversion-ALL-IN-ONE.patch
+> But for review the individual patches are much better.
+> 
+> Thanks,
+
+>From the discussions we already have, I noticed some points to take care of:
+
+1) about the lirc support, I don't think we should change a kernel driver due
+to an out-of-tree kernel driver. As I've commented on PATCH 3/6 discussion, we
+need to better address this with lirc developers;
+
+2) the way Mike is proposing to solve the issue with pvrusb2 will break
+userspace usage for people that have those devices whose IR work with the
+in-kernel IR i2c driver. This means that we'll cause a kernel regression due to
+an out-of-tree driver;
+
+3) So far, nobody gave us any positive return that the new IR model is working with
+any of the touched drivers. So, more tests are needed. I'm expecting to have a
+positive reply for each of the touched drivers. People, please test!
+
+Since the merge window is almost finished, IMO, we should postpone those
+changes to 2.6.31, to better address the lirc issue and to give people more
+time for testing, applying the changesets after the end of the merge window at
+the v4l/dvb development tree. This will help people to test, review and propose
+changes if needed.
+
 Cheers,
-
-Nate
-
--- 
-=
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
+Mauro
