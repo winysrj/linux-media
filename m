@@ -1,57 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f165.google.com ([209.85.219.165]:48648 "EHLO
-	mail-ew0-f165.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758762AbZDNSnQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Apr 2009 14:43:16 -0400
+Received: from web110801.mail.gq1.yahoo.com ([67.195.13.224]:31285 "HELO
+	web110801.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750955AbZDESED convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Apr 2009 14:04:03 -0400
+Message-ID: <128480.39030.qm@web110801.mail.gq1.yahoo.com>
+Date: Sun, 5 Apr 2009 11:04:00 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: Re: [PATCH] [0904_11] Siano: smsendian & smsdvb - binding the smsendian to smsdvb
+To: LinuxML <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <1239733669.5344.72.camel@subratamodak.linux.ibm.com>
-References: <1239733669.5344.72.camel@subratamodak.linux.ibm.com>
-Date: Tue, 14 Apr 2009 22:43:13 +0400
-Message-ID: <a4423d670904141143i164e7350me0598c2b820422ab@mail.gmail.com>
-Subject: Re: [BUILD FAILURE 04/04] Next April 14 : x86_64 randconfig
-	[drivers/media/video/cx231xx/cx231xx-alsa.ko]
-From: Alexander Beregalov <a.beregalov@gmail.com>
-To: subrata@linux.vnet.ibm.com
-Cc: Ingo Molnar <mingo@elte.hu>, Greg KH <greg@kroah.com>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next <linux-next@vger.kernel.org>,
-	sachinp <sachinp@linux.vnet.ibm.com>,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	"Rafael J. Wysocki" <rjw@sisk.pl>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/4/14 Subrata Modak <subrata@linux.vnet.ibm.com>:
-> Observed the following build error:
-> ---
-> Kernel: arch/x86/boot/bzImage is ready Â (#1)
-> Â Building modules, stage 2.
-> Â MODPOST 578 modules
-> ERROR:
-> "snd_pcm_period_elapsed" [drivers/media/video/cx231xx/cx231xx-alsa.ko]
-> undefined!
-> ERROR: "snd_card_create" [drivers/media/video/cx231xx/cx231xx-alsa.ko]
-> undefined!
-> ERROR:
-> "snd_pcm_hw_constraint_integer" [drivers/media/video/cx231xx/cx231xx-alsa.ko] undefined!
-> ERROR:
-> "snd_pcm_link_rwlock" [drivers/media/video/cx231xx/cx231xx-alsa.ko]
-> undefined!
-> ERROR: "snd_pcm_set_ops" [drivers/media/video/cx231xx/cx231xx-alsa.ko]
-> undefined!
-> ERROR: "snd_pcm_lib_ioctl" [drivers/media/video/cx231xx/cx231xx-alsa.ko]
-> undefined!
-> ERROR: "snd_card_free" [drivers/media/video/cx231xx/cx231xx-alsa.ko]
-> undefined!
-> ERROR: "snd_card_register" [drivers/media/video/cx231xx/cx231xx-alsa.ko]
-> undefined!
-> ERROR: "snd_pcm_new" [drivers/media/video/cx231xx/cx231xx-alsa.ko]
-> undefined!
-> make[1]: *** [__modpost] Error 1
-> make: *** [modules] Error 2
-> ---
 
-It is the same problem as #02.
+
+
+--- On Sun, 4/5/09, Uri Shkolnik <urishk@yahoo.com> wrote:
+
+> From: Uri Shkolnik <urishk@yahoo.com>
+> Subject: [PATCH] [0904_11] Siano: smsendian & smsdvb - binding the smsendian to smsdvb
+> To: "LinuxML" <linux-media@vger.kernel.org>
+> Date: Sunday, April 5, 2009, 1:20 PM
+> 
+> # HG changeset patch
+> # User Uri Shkolnik <uris@siano-ms.com>
+> # Date 1238743608 -10800
+> # Node ID 01979ae55ffec22d74b77681613f38bd606be227
+> # Parent  ec7ee486fb86d51bdb48e6a637a6ddd52e9e08c2
+> [PATCH] [0904_11] Siano: smsendian & smsdvb - binding
+> the smsendian to smsdvb
+> 
+> From: Uri Shkolnik <uris@siano-ms.com>
+> 
+> Bind the smsendian, which manipulates some Siano's messages
+> content
+> when using Siano chip-set with big-endian target, 
+> with the DVB-API v3 client adapter.
+> 
+> Priority: normal
+> 
+> Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+> 
+> diff -r ec7ee486fb86 -r 01979ae55ffe
+> linux/drivers/media/dvb/siano/Makefile
+> ---
+> a/linux/drivers/media/dvb/siano/Makefile   
+> Fri Apr 03 10:10:22 2009 +0300
+> +++
+> b/linux/drivers/media/dvb/siano/Makefile   
+> Fri Apr 03 10:26:48 2009 +0300
+> @@ -1,4 +1,4 @@ sms1xxx-objs := smscoreapi.o sms-cards.o
+> -sms1xxx-objs := smscoreapi.o sms-cards.o
+> +sms1xxx-objs := smscoreapi.o sms-cards.o smsendian.o
+>  
+>  obj-$(CONFIG_DVB_SIANO_SMS1XXX) += sms1xxx.o
+>  obj-$(CONFIG_DVB_SIANO_SMS1XXX) += smsusb.o
+> diff -r ec7ee486fb86 -r 01979ae55ffe
+> linux/drivers/media/dvb/siano/smsdvb.c
+> ---
+> a/linux/drivers/media/dvb/siano/smsdvb.c   
+> Fri Apr 03 10:10:22 2009 +0300
+> +++
+> b/linux/drivers/media/dvb/siano/smsdvb.c   
+> Fri Apr 03 10:26:48 2009 +0300
+> @@ -24,7 +24,7 @@ along with this program.  If not,
+> see <h
+>  #include <asm/byteorder.h>
+>  
+>  #include "smscoreapi.h"
+> -/*#include "smsendian.h"*/
+> +#include "smsendian.h"
+>  #include "sms-cards.h"
+>  
+>  #ifndef DVB_DEFINE_MOD_OPT_ADAPTER_NR
+> @@ -52,7 +52,7 @@ struct smsdvb_client_t {
+>      fe_status_t fe_status;
+>      int fe_ber, fe_snr, fe_unc,
+> fe_signal_strength;
+>  
+> -    struct completion tune_done,
+> stat_done;
+> +    struct completion tune_done;
+>  
+>      /* todo: save freq/band instead whole
+> struct */
+>      struct dvb_frontend_parameters
+> fe_params;
+> @@ -114,7 +114,7 @@ static int smsdvb_onresponse(void
+> *conte
+>      u32 *pMsgData = (u32 *) phdr + 1;
+>      /*u32 MsgDataLen = phdr->msgLength -
+> sizeof(struct SmsMsgHdr_ST);*/
+>  
+> -    /*smsendian_handle_rx_message((struct
+> SmsMsgData_ST *) phdr);*/
+> +    smsendian_handle_rx_message((struct
+> SmsMsgData_ST *) phdr);
+>  
+>      switch (phdr->msgType) {
+>      case MSG_SMS_DVBT_BDA_DATA:
+> @@ -271,7 +271,7 @@ static int smsdvb_start_feed(struct
+> dvb_
+>      PidMsg.xMsgHeader.msgLength =
+> sizeof(PidMsg);
+>      PidMsg.msgData[0] = feed->pid;
+>  
+> -    /* smsendian_handle_tx_message((struct
+> SmsMsgHdr_ST *)&PidMsg); */
+> +    smsendian_handle_tx_message((struct
+> SmsMsgHdr_ST *)&PidMsg);
+>      return
+> smsclient_sendrequest(client->smsclient, &PidMsg,
+>             
+> sizeof(PidMsg));
+>  }
+> @@ -291,7 +291,7 @@ static int smsdvb_stop_feed(struct
+> dvb_d
+>      PidMsg.xMsgHeader.msgLength =
+> sizeof(PidMsg);
+>      PidMsg.msgData[0] = feed->pid;
+>  
+> -    /* smsendian_handle_tx_message((struct
+> SmsMsgHdr_ST *)&PidMsg); */
+> +    smsendian_handle_tx_message((struct
+> SmsMsgHdr_ST *)&PidMsg);
+>      return
+> smsclient_sendrequest(client->smsclient, &PidMsg,
+>             
+> sizeof(PidMsg));
+>  }
+> @@ -302,7 +302,7 @@ static int
+> smsdvb_sendrequest_and_wait(s
+>  {
+>      int rc;
+>  
+> -    /* smsendian_handle_tx_message((struct
+> SmsMsgHdr_ST *)buffer); */
+> +    smsendian_handle_tx_message((struct
+> SmsMsgHdr_ST *)buffer);
+>      rc =
+> smsclient_sendrequest(client->smsclient, buffer, size);
+>      if (rc < 0)
+>          return rc;
+> 
+> 
+> 
+>       
+> --
+> To unsubscribe from this list: send the line "unsubscribe
+> linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+This patch is voided and been replaced by another (newer) patch.
+
+
+      
