@@ -1,120 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.seznam.cz ([77.75.72.43]:35437 "EHLO smtp.seznam.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755006AbZDNSrV convert rfc822-to-8bit (ORCPT
+Received: from web110816.mail.gq1.yahoo.com ([67.195.13.239]:27659 "HELO
+	web110816.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752018AbZDELsG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Apr 2009 14:47:21 -0400
-To: LMML <linux-media@vger.kernel.org>
-Subject: [PATCH][RESEND] Added support for AVerMedia Cardbus Plus
-Content-Disposition: inline
-From: Oldrich Jedlicka <oldium.pro@seznam.cz>
-Date: Tue, 14 Apr 2009 20:47:17 +0200
+	Sun, 5 Apr 2009 07:48:06 -0400
+Message-ID: <220734.24824.qm@web110816.mail.gq1.yahoo.com>
+Date: Sun, 5 Apr 2009 04:48:03 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH] [0904_16] Siano: smsdvb - additional case of endian handling.
+To: LinuxML <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <200904142047.17371.oldium.pro@seznam.cz>
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Here comes the full support for AVerMedia Cardbus Plus (E501R) - including
-remote control. TV, Composite and FM radio tested, I don't have S-Video to 
-test. I've figured out that the radio works only with xtal frequency 13MHz.
 
-Now without word-wrapping.
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1238758726 -10800
+# Node ID c582116cfbb96671629143fced33e3f88c28b3c7
+# Parent  856813745905e07d9fc6be5e136fdf7060c6fc37
+siano: smsdvb - add support for old dvb-core version
+[PATCH] [0904_16] Siano: smsdvb - additional case of endian handling.
 
-Signed-off-by: Oldřich Jedlička <oldium.pro@seznam.cz>
----
-diff -r dba0b6fae413 linux/drivers/media/video/saa7134/saa7134.h
---- a/linux/drivers/media/video/saa7134/saa7134.h	Thu Apr 09 08:21:42 2009 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134.h	Mon Apr 13 23:21:53 2009 +0200
-@@ -282,6 +282,7 @@
- #define SAA7134_BOARD_HAUPPAUGE_HVR1120     155
- #define SAA7134_BOARD_HAUPPAUGE_HVR1110R3   156
- #define SAA7134_BOARD_AVERMEDIA_STUDIO_507UA 157
-+#define SAA7134_BOARD_AVERMEDIA_CARDBUS_501 158
+From: Uri Shkolnik <uris@siano-ms.com>
+
+Additional case of endian handling.
+
+Priority: normal
+
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+
+diff -r 856813745905 -r c582116cfbb9 linux/drivers/media/dvb/siano/smsdvb.c
+- a/linux/drivers/media/dvb/siano/smsdvb.c	Fri Apr 03 14:30:50 2009 +0300
++ b/linux/drivers/media/dvb/siano/smsdvb.c	Fri Apr 03 14:38:46 2009 +0300
+@@ -273,7 +273,7 @@ static int smsdvb_start_feed(struct dvb_
+ 	PidMsg.xMsgHeader.msgLength = sizeof(PidMsg);
+ 	PidMsg.msgData[0] = feed->pid;
  
- #define SAA7134_MAXBOARDS 32
- #define SAA7134_INPUT_MAX 8
-diff -r dba0b6fae413 linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Thu Apr 09 08:21:42 2009 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Mon Apr 13 23:21:53 2009 +0200
-@@ -1669,6 +1669,39 @@
- 			.amux = LINE1,
- 		},
- 	},
-+	[SAA7134_BOARD_AVERMEDIA_CARDBUS_501] = {
-+		/* Oldrich Jedlicka <oldium.pro@seznam.cz> */
-+		.name           = "AVerMedia Cardbus TV/Radio (E501R)",
-+		.audio_clock    = 0x187de7,
-+		.tuner_type     = TUNER_ALPS_TSBE5_PAL,
-+		.radio_type     = TUNER_TEA5767,
-+		.tuner_addr	= 0x61,
-+		.radio_addr	= 0x60,
-+		.tda9887_conf   = TDA9887_PRESENT,
-+		.gpiomask       = 0x08000000,
-+		.inputs         = {{
-+			.name = name_tv,
-+			.vmux = 1,
-+			.amux = TV,
-+			.tv   = 1,
-+			.gpio = 0x08000000,
-+		},{
-+			.name = name_comp1,
-+			.vmux = 3,
-+			.amux = LINE1,
-+			.gpio = 0x08000000,
-+		},{
-+			.name = name_svideo,
-+			.vmux = 8,
-+			.amux = LINE1,
-+			.gpio = 0x08000000,
-+		}},
-+		.radio = {
-+			.name = name_radio,
-+			.amux = LINE2,
-+			.gpio = 0x00000000,
-+		},
-+	},
- 	[SAA7134_BOARD_CINERGY400_CARDBUS] = {
- 		.name           = "Terratec Cinergy 400 mobile",
- 		.audio_clock    = 0x187de7,
-@@ -5104,6 +5137,13 @@
- 		.subdevice    = 0xd6ee,
- 		.driver_data  = SAA7134_BOARD_AVERMEDIA_CARDBUS,
- 	},{
-+		/* AVerMedia CardBus */
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
-+		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
-+		.subdevice    = 0xb7e9,
-+		.driver_data  = SAA7134_BOARD_AVERMEDIA_CARDBUS_501,
-+	},{
- 		/* TransGear 3000TV */
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
- 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
-@@ -6341,6 +6381,16 @@
- 		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0xffffffff, 0xffffffff);
- 		msleep(10);
- 		break;
-+	case SAA7134_BOARD_AVERMEDIA_CARDBUS_501:
-+		/* power-down tuner chip */
-+		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x08400000, 0x08400000);
-+		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x08400000, 0);
-+		msleep(10);
-+		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x08400000, 0x08400000);
-+		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x08400000, 0x08400000);
-+		msleep(10);
-+		dev->has_remote = SAA7134_REMOTE_I2C;
-+		break;
- 	case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
- 		saa7134_set_gpio(dev, 23, 0);
- 		msleep(10);
-@@ -6782,6 +6832,7 @@
+-	/* smsendian_handle_tx_message((struct SmsMsgHdr_ST *)&PidMsg); */
++	smsendian_handle_tx_message((struct SmsMsgHdr_ST *)&PidMsg);
+ 	return smsclient_sendrequest(client->smsclient, &PidMsg,
+ 			sizeof(PidMsg));
+ }
+@@ -546,10 +546,15 @@ static int smsdvb_hotplug(struct smscore
+ 	}
  
- 	switch (dev->board) {
- 	case SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM:
-+	case SAA7134_BOARD_AVERMEDIA_CARDBUS_501:
- 	{
- 		struct v4l2_priv_tun_config tea5767_cfg;
- 		struct tea5767_ctrl ctl;
+
+
+
+      
