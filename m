@@ -1,110 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:60776 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755585AbZDMJ10 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Apr 2009 05:27:26 -0400
-Message-ID: <49E30575.4060202@retrodesignfan.eu>
-Date: Mon, 13 Apr 2009 11:27:17 +0200
-From: Marco Borm <linux-dvb@retrodesignfan.eu>
+Received: from tichy.grunau.be ([85.131.189.73]:46586 "EHLO tichy.grunau.be"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751847AbZDEScV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Apr 2009 14:32:21 -0400
+Date: Sun, 5 Apr 2009 20:31:54 +0200
+From: Janne Grunau <j@jannau.net>
+To: Andy Walls <awalls@radix.net>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Jean Delvare <khali@linux-fr.org>,
+	Mike Isely <isely@pobox.com>, isely@isely.net,
+	LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jarod Wilson <jarod@redhat.com>
+Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
+	model
+Message-ID: <20090405183154.GE10556@aniel>
+References: <20090404142427.6e81f316@hyperion.delvare> <Pine.LNX.4.64.0904041045380.32720@cnc.isely.net> <20090405010539.187e6268@hyperion.delvare> <200904050746.47451.hverkuil@xs4all.nl> <20090405143748.GC10556@aniel> <1238953174.3337.12.camel@morgan.walls.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] DVB-T USB dib0700 device recommendations?
-References: <20090411221740.GB12581@www.viadmin.org>	<49E2A0E1.4020407@retrodesignfan.eu> <d9def9db0904122354g3e6a8603mcbf69cfb96799b8d@mail.gmail.com>
-In-Reply-To: <d9def9db0904122354g3e6a8603mcbf69cfb96799b8d@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1238953174.3337.12.camel@morgan.walls.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Markus,
+On Sun, Apr 05, 2009 at 01:39:33PM -0400, Andy Walls wrote:
+> On Sun, 2009-04-05 at 16:37 +0200, Janne Grunau wrote:
+> > 
+> > I would guess that it won't work. There is an effort to merge lirc. It's
+> > currently stalled though.
+> 
+> Perhaps you and Jarrod and Christopher have already discussed this,
+> but...
+> 
+> Instead of trying to push all of the LIRC kernel components through in
+> one big patch set, perhaps it would be easier to just get the lirc_dev
+> and any other needed infrastructure components in first.
+> 
+> If one focuses on satisfying the LKML comments to lirc_dev and the
+> Makefile to get that kernel module in the kernel, then, at least for
+> video card hosted IR devices, there is an infrastructure to which to
+> hook new or rewritten i2c IR driver modules.
 
-it seams that you don't know what the Hauppauge Nova-T 500 is:
-Its not a USB device itself, its a PCI card with a VIA PCI/USB-Bridge 
-Chip connected to multiple DIBcom USB chips:
-http://www.bttv-gallery.de/high/bttv-gallery.html
+I guess lkml would NAK patches adding infrastructure only bits but we
+will probably for the next patchset concentrate on a few lirc drivers.
+Christopher doesn't participate in the merge attempt.
 
-I bought the card with the idea in mind that it uses low power USB 
-technology, but that was a mistake.
-Next time I will buy a real usb device and know it isn't allowed to eat 
-more than 2.5W.
+> >  A git tree is available at
+> > 
+> > git://git.wilsonet.com/linux-2.6-lirc.git
+> > 
+> > Jared Wilson and I were working on it (mainly last september). Since the
+> > IR on the HD PVR is also driven by the same zilog chip as on other
+> > hauppauge devices I'll take of lirc_zilog. Help converting the i2c
+> > drivers to the new i2c model is welcome. General cleanup of lirc to make
+> > it ready for mainline is of course wellcome too.
+> 
+> I can help with this.  I'm mainly concerned with lirc_dev, lirc_i2c (for
+> Rx only use of the zilog at 0x71), lirc_zilog, and lirc_mceusb2.  That's
+> because, of course, I have devices that use those modules. :)
 
+I have devices for lirc_zilog (which should probably be merged with
+lirc_i2c) and lirc serial. Jarod has at least mce usb and imon devices.
+That are probably the devices we'll concentrate on the next submission.
 
-Greetings,
-Marco
+> lirc_dev and the API header would be my first priority, if you need
+> help.  Did anyone consolidate all the comments from the LKML on Jarrod's
+> patch submission?
 
-Markus Rechberger wrote:
-> On Mon, Apr 13, 2009 at 4:18 AM, Marco Borm <linux-dvb@retrodesignfan.eu> wrote:
->   
->> Hi Henrik,
->>
->> one of the cards in my system is the dib0700 based "'Hauppauge Nova-T 500".
->> Compared with the "TerraTec Cinergy 1400" I would say that the receiver
->> sensitivity is worse but the main problem I have is that the card
->> consumes a loot of energy (8-13W), which is much more than the
->> Terratec(5-6W).
->>     
->
-> That's a little bit weird USB itself should provide max 5V 500mA which would be
-> 2.5 Watt; if it requires more then the device has to be self powered.
->
-> Maybe you can try to use a different USB device (eg. storage) just for
-> testing the
-> consumption. USB is supposed to require alot power (the controller).
-> You might try to unload the ehci/ohci driver too.
->
-> Markus
->
->   
->> I calculated this using measure values of the whole system captured with
->> a Conrad/Voltcraft Energy Monitor 3000.
->> Personally I am little bit shocked about that and wondering if this can
->> be true because the dib is a USB-device, but the Voltcraft is one of the
->> better measurement device.
->> Maybe the VIA usb-hub controller on the board is the problem?!
->>
->> Would be interesting of someone has the same or other experiences with
->> this card or other PCI based cards. Hauppauge ignores all my questions,
->> so I can't recomment products of this manufacturer anyway.
->>
->>
->> Greetings,
->> Marco
->>
->> H. Langos wrote:
->>     
->>> I've been trying to minimize energy consumption [...] But before running
->>> out in the street and buying the first dib0700 device I'd like to know if
->>> there are any devices that are
->>>
->>> - especially good [...]
->>>
->>> or
->>>
->>> - especially bad [...]
->>>
->>>
->>> _______________________________________________
->>> linux-dvb users mailing list
->>> For V4L/DVB development, please use instead linux-media@vger.kernel.org
->>> linux-dvb@linuxtv.org
->>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>>
->>>
->>>       
->> _______________________________________________
->> linux-dvb users mailing list
->> For V4L/DVB development, please use instead linux-media@vger.kernel.org
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
->>     
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
->   
+no and I lost track which comments were already handled.
 
+Janne
