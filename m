@@ -1,89 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:47820 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760559AbZDBX2Z convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Apr 2009 19:28:25 -0400
-Received: by ey-out-2122.google.com with SMTP id 4so204243eyf.37
-        for <linux-media@vger.kernel.org>; Thu, 02 Apr 2009 16:28:22 -0700 (PDT)
-Date: Thu, 02 Apr 2009 19:28:15 -0400
-From: Manu <eallaud@gmail.com>
-Subject: Re : Re : epg data grabber
-To: linux-media@vger.kernel.org
-References: <49D53B8A.7020900@koala.ie> <1238713191.7516.2@manu-laptop>
-	<49D544DD.1060001@koala.ie>
-In-Reply-To: <49D544DD.1060001@koala.ie> (from simon@koala.ie on Thu Apr  2
-	19:06:05 2009)
-Message-Id: <1238714895.7516.3@manu-laptop>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
+Received: from cnc.isely.net ([64.81.146.143]:36623 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752234AbZDESsH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Apr 2009 14:48:07 -0400
+Date: Sun, 5 Apr 2009 13:48:02 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+Reply-To: Mike Isely <isely@pobox.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Jean Delvare <khali@linux-fr.org>,
+	LMML <linux-media@vger.kernel.org>,
+	Andy Walls <awalls@radix.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Mike Isely at pobox <isely@pobox.com>
+Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
+ model
+In-Reply-To: <200904050746.47451.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0904051340570.32738@cnc.isely.net>
+References: <20090404142427.6e81f316@hyperion.delvare>
+ <Pine.LNX.4.64.0904041045380.32720@cnc.isely.net> <20090405010539.187e6268@hyperion.delvare>
+ <200904050746.47451.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le 02.04.2009 19:06:05, Simon Kenyon a écrit :
-> Manu wrote:
-> > Le 02.04.2009 18:26:18, Simon Kenyon a écrit :
-> >   
-> >> i've been hacking together a epg data grabber
-> >> taking pieces from here, there and everywhere
-> >>
-> >> the basic idea is to grab data off-air and generate xmltv format
-> xml
-> >> files
-> >>
-> >> the plan is to support DVB, Freesat, Sky (UK and IT) and 
-> >> MediaHighway1
-> >> and 2
-> >> i have the first two working and am working on the rest
-> >>
-> >> is this of interest to the linuxtv.org community
-> >> i asked the xmltv people, but they are strictly perl. i do 
-> >> understand.
-> >>
-> >> very little of this is original work of mine. just some applied 
-> >> google
-> >>
-> >> and a smidgen of C
-> >>
-> >> i could put it up on sf.net if there is no room on linutv.org
-> >>
-> >> if anyone wants the work in progress, then please let me know
-> >> it is big released under GPL 3
-> >>
-> >> i want to get it out there because i'm pretty soon going to be at
-> the 
-> >> end of my knowledge and would appreciate help
-> >>
-> >>     
-> >
-> > Hi Simon,
-> > I have hacked something for what is supposedly mediaHighway epg (it
-> is 
-> > used on CanalSat Caraibes which is affiliated to Canal Satellite
-> from 
-> > France). I actually have a patch against mythtv (it uses the 
-> scanner
-> to 
-> > get the epg directly).
-> > I can provide my patches if needed (will need some time to sort
-> things 
-> > out abit, especially if you want a stand alone version).
-> > Bye
-> > Manu
-> >   
-> i am doing it "stand alone" so i can see what is going on
-> i would propose to do  mythtv version but that is some way off
-> 
-> don't modify your stuff. i already extracted the freesat code from 
-> the
-> 
-> mythtv code base
-> that was a couple of hours work
-> 
+On Sun, 5 Apr 2009, Hans Verkuil wrote:
 
-Hmm I might have a stadn alone version around, give me a few days and I 
-can find that, life is busy right now ;-)
-Bye
-Manu
+   [...]
 
+> 
+> Let's keep it simple: add a 'load_ir_kbd_i2c' module option for those 
+> drivers that did not autoload this module. The driver author can refine 
+> things later (I'll definitely will do that for ivtv).
+
+Yes, and I will do the same for pvrusb2.  Simple is good.
+
+
+> 
+> It will be interesting if someone can find out whether lirc will work at all 
+> once autoprobing is removed from i2c. If it isn't, then perhaps that will 
+> wake them up to the realization that they really need to move to the 
+> kernel.
+
+It's probably going to break, and that will wake them up.  There's no 
+choice otherwise.
+
+
+> 
+> The new mechanism is the right way to do it: the adapter driver has all the 
+> information if, where and what IR is used and so should be the one to tell 
+> the kernel what to do. Attempting to autodetect and magically figure out 
+> what IR might be there is awkward and probably impossible to get right 
+> 100%.
+> 
+> Hell, it's wrong already: if you have another board that already loads 
+> ir-kbd-i2c then if you load ivtv or pvrusb2 afterwards you get ir-kbd-i2c 
+> whether you like it or not, because ir-kbd-i2c will connect to your i2c 
+> adapter like a leech. So with the addition of a module option you at least 
+> give back control of this to the user.
+
+Yes, I know this is a possibility.  It sucks and long term the new 
+mechanism is the solution.  I don't want anyone to think I am against 
+the new mechanism.  I'm for it.  But I'd like to minimize the damage 
+potential on the way there.
+
+
+> 
+> When this initial conversion is done I'm pretty sure we can improve 
+> ir-kbd-i2c to make it easier to let the adapter driver tell it what to do. 
+> So we don't need those horrible adapter ID tests and other magic that's 
+> going on in that driver. But that's phase two.
+
+My impression (at least for pvrusb2-driven devices) is that the later IR 
+receivers require a completely different driver to work properly; one 
+can't just bolt additional features into ir-kbd-i2c for this.  In lirc's 
+case, a different driver is in fact used.  But you know this already.
+
+I haven't looked at ir-kbd-i2c in a while, but one other thing I 
+seriously did not like about it was that the mapping of IR codes to key 
+events was effectively hardcoded in the driver.  That makes it difficult 
+to make the same driver work with different kinds of remotes.  Even if 
+the bridge driver (e.g. pvrusb2) were to supply such a map, that's still 
+wrong because it's within the realm of possibility that the user might 
+actually want to use a different remote transmitter (provided it is 
+compatible enough to work with the receiver hardware).  The lirc 
+architecture solves this easily via a conf file in userspace.  In fact, 
+lirc can map multiple mappings to a single receiver, permitting it to 
+work concurrently with more than one remote.  But is such a thing even 
+possible with ir-kbd-i2c?  I know this is one reason people tend to 
+choose lirc.
+
+  -Mike
+
+-- 
+
+Mike Isely
+isely @ pobox (dot) com
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
