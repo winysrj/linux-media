@@ -1,77 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f169.google.com ([209.85.218.169]:60751 "EHLO
-	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754923AbZDBMiL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Apr 2009 08:38:11 -0400
-Received: by bwz17 with SMTP id 17so488024bwz.37
-        for <linux-media@vger.kernel.org>; Thu, 02 Apr 2009 05:38:08 -0700 (PDT)
-Message-ID: <49D4B12C.2050601@gmail.com>
-Date: Thu, 02 Apr 2009 15:35:56 +0300
-From: Darius Augulis <augulis.darius@gmail.com>
+Received: from bay0-omc3-s40.bay0.hotmail.com ([65.54.246.240]:45612 "EHLO
+	bay0-omc3-s40.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759003AbZDEEK7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Apr 2009 00:10:59 -0400
+Message-ID: <BAY102-W466CBB0DF0E6662A739191CF870@phx.gbl>
+From: Thomas Nicolai <nickotym@hotmail.com>
+To: <devin.heitmueller@gmail.com>
+CC: <linux-media@vger.kernel.org>
+Subject: =?windows-1256?Q?RE:_HVR-15?= =?windows-1256?Q?00_tuner_s?=
+ =?windows-1256?Q?eems_to_be?= =?windows-1256?Q?_recognize?=
+ =?windows-1256?Q?d=2C_but_won?= =?windows-1256?Q?t_turn_on.?=
+ =?windows-1256?Q?=FE?=
+Date: Sat, 4 Apr 2009 23:10:57 -0500
+In-Reply-To: <412bdbff0902171256y6545d970n6f7bd347f446ad7c@mail.gmail.com>
+References: <BAY102-W4373037E0F62A04672AC72CFB80@phx.gbl>
+	 <BAY102-W279D1B5B2A645C46C9099CCFB40@phx.gbl>
+ 	 <412bdbff0902162114v4764e320y7f17664d166c6b43@mail.gmail.com>
+ 	 <BAY102-W54F614817092361870868DCFB40@phx.gbl>
+ 	 <412bdbff0902162148k398db187ma6510d0903741e73@mail.gmail.com>
+ 	 <BAY102-W41AFA57978CB8940FABF84CFB40@phx.gbl>
+ 	 <412bdbff0902171021l6bcfc1f4o6d4903949da70b0d@mail.gmail.com>
+ 	 <BAY102-W289218AB686D66E1F3BD4ACFB40@phx.gbl>
+ 	 <412bdbff0902171245m5e6a8deerfcd14a340f65fa4f@mail.gmail.com>
+ 	 <BAY102-W2159CF565B5E47F670249DCFB40@phx.gbl>
+ <412bdbff0902171256y6545d970n6f7bd347f446ad7c@mail.gmail.com>
+Content-Type: text/plain; charset="windows-1256"
+Content-Transfer-Encoding: 8bit
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	tom.leiming@gmail.com
-Subject: Re: soc_camera_open() not called
-References: <49D37485.7030805@gmail.com> <49D3788D.2070406@gmail.com> <87zlf0cl7o.fsf@free.fr> <49D3AE13.9070201@gmail.com> <87r60cmd94.fsf@free.fr> <Pine.LNX.4.64.0904012359260.5389@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0904012359260.5389@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski wrote:
-> On Wed, 1 Apr 2009, Robert Jarzmik wrote:
-> 
->> Darius Augulis <augulis.darius@gmail.com> writes:
->>
->>>>> Darius Augulis wrote:
->>>>>     
->>>>>> Hi,
->>>>>>
->>>>>> I'm trying to launch mx1_camera based on new v4l and soc-camera tree.
->>>>>> After loading mx1_camera module, I see that .add callback is not called.
->>>>>> In debug log I see that soc_camera_open() is not called too.
->>>>>> What should call this function? Is this my driver problem?
->>>>>> p.s. loading sensor driver does not change situation.
->>>>>>       
->>>> Are you by any chance using last 2.6.29 kernel ?
->>>> If so, would [1] be the answer to your question ?
->>>>
->>>> [1] http://lkml.org/lkml/2009/3/24/625
->>> thanks. it means we should expect soc-camera fix for this?
->>> I'm using 2.6.29-git8, but seems it's not fixed yet.
->> No, I don't think so.
-> 
-> You're right.
-> 
->> The last time I checked there had to be an amendement to the patch which
->> introduced the driver core regression, as it touches other areas as well
->> (sound/soc and mtd from memory).
->>
->> I think Guennadi can confirm this, as he's the one who raised the issue in the
->> first place.
-> 
-> If Darius had followed the thread you referred to he would have come down 
-> to this message
-> 
-> http://lkml.org/lkml/2009/3/26/202
-> 
-> which provides a reply as to "what should be fixed," and yes, Ming Lei has 
-> already provided a patch to fix this, it should hit mainstream... some 
-> time before -rc1.
 
-could you please send me this patch or show where is it available?
+Finally found more time to work on this.  When i try 
 
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
+sudo modprobe tuner-xc2028 no_poweroff=1
+
+
+It returns:
+
+tuner_xc2028: Unknown parameter `no_poweroff'
+
+
+any thoughts?
+
+
+Nick
+
+
+
+----------------------------------------
+> Date: Tue, 17 Feb 2009 15:56:00 -0500
+> Subject: Re: HVR-1500 tuner seems to be recognized, but wont turn on.þ
+> From: devin.heitmueller@gmail.com
+> To: nickotym@hotmail.com
+> CC: linux-media@vger.kernel.org
+>
+> 2009/2/17 Thomas Nicolai :
+>>
+>> I will try those suggestions this evening. did he feel this should be done in addition to the modprobe tunerxc-2028 no_poweroff=1 debug=1 ?
+>
+> Please do both commands. That way we will get both sets of debugging
+> messages and you only have to do the capture once.
+>
+> Regards,
+>
+> Devin
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
 
+_________________________________________________________________
+Rediscover Hotmail®: Now available on your iPhone or BlackBerry
+http://windowslive.com/RediscoverHotmail?ocid=TXT_TAGLM_WL_HM_Rediscover_Mobile1_042009
