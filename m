@@ -1,245 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:48319 "EHLO znsun1.ifh.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751018AbZDAP1o (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Apr 2009 11:27:44 -0400
-Date: Wed, 1 Apr 2009 17:27:04 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Gabriele Dini Ciacci <dark.schneider@iol.it>
-cc: Devin Heitmueller <devin.heitmueller@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] Drivers for Pinnacle pctv200e and pctv60e
-In-Reply-To: <20090401004702.539afbda@gdc1>
-Message-ID: <alpine.LRH.1.10.0904011716370.21921@pub4.ifh.de>
-References: <20090329155608.396d2257@gdc1> <20090331075610.53620db8@pedra.chehab.org> <20090331212052.152d2ffc@gdc1> <412bdbff0903311359i3f3883dds2d870c93e23d08f2@mail.gmail.com> <20090331233524.4000cb61@gdc1> <412bdbff0903311451w776c7b68t22fc3acbcd23fe64@mail.gmail.com>
- <20090401004702.539afbda@gdc1>
+Received: from fg-out-1718.google.com ([72.14.220.157]:45550 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751941AbZDESxY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Apr 2009 14:53:24 -0400
+Received: by fg-out-1718.google.com with SMTP id 16so149092fgg.17
+        for <linux-media@vger.kernel.org>; Sun, 05 Apr 2009 11:53:21 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="579715599-435502645-1238599624=:21921"
+In-Reply-To: <20090405195219.08e63cea@free.fr>
+References: <49D7C17B.80708@gmail.com> <20090405195219.08e63cea@free.fr>
+Date: Sun, 5 Apr 2009 20:53:21 +0200
+Message-ID: <62e5edd40904051153h2ae9fd71t41aa239d5ebc650a@mail.gmail.com>
+Subject: Re: libv4l: Possibility of changing the current pixelformat on the
+	fly
+From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: Hans de Goede <j.w.r.degoede@hhs.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
---579715599-435502645-1238599624=:21921
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-
-Hi,
-
-On Wed, 1 Apr 2009, Gabriele Dini Ciacci wrote:
-
-> On Tue, 31 Mar 2009 17:51:23 -0400
-> Devin Heitmueller <devin.heitmueller@gmail.com> wrote:
+2009/4/5 Jean-Francois Moine <moinejf@free.fr>:
+> On Sat, 04 Apr 2009 22:22:19 +0200
+> Erik Andrén <erik.andren@gmail.com> wrote:
+>        [snip]
+>> When flipping the image horizontally, vertically or both, the sensor
+>> pixel ordering changes. In the m5602 driver I was able to compensate
+>> for this in the bridge code. In the stv06xx I don't have this
+>> option. One way of solving this problem is by changing the
+>> pixelformat on the fly, i. e V4L2_PIX_FMT_SGRB8 is the normal
+>> format. When a vertical flip is required, change the format to
+>> V4L2_SBGGR8.
+>>
+>> My current understanding of libv4l is that it probes the pixelformat
+>>   upon device open. In order for this to work we would need either
+>> poll the current pixelformat regularly or implement some kind of
+>> notification mechanism upon a flipping request.
+>>
+>> What do you think is this the right way to go or is there another
+>> alternative.
 >
->> On Tue, Mar 31, 2009 at 5:35 PM, Gabriele Dini Ciacci
->> <dark.schneider@iol.it> wrote:
->>> I it's so, say me how to make or where to look to create a profile
->>> for the existing driver.
->>>
->>> I am willing to do the work.
->>>
->>> (when I first wrote the driver to me it seemed that this was the
->>> simplet way.
->>>
->>> Meanwhile I will try to look at the Cypress FX2
->>
->> As Michael Krufky pointed out to me off-list, I was not exactly
->> correct here.
->>
->> While there are indeed drivers based on the same FX2 chip in your
->> device, it may be possible to reuse an existing driver, or you may
->> need a whole new driver, depending on how much the firmware varies
->> between your product versus the others.  You may want to look at the
->> pvrusb2 and cxusb drivers, which also use the FX2 chip, and see what
->> similarities exist in terms of the API and command set.  If it is not
->> similar to any of the others, then writing a new driver is probably
->> the correct approach.
->>
->> Regards,
->>
->> Devin
->>
+> Hi Erik,
 >
-> Fine perfect, thanks,
+> I saw such a problem in some other webcams. When doing a flip, the
+> sensor scans the pixels in the reverse order. So,
+>        R G R G
+>        G B G B
+> becomes
+>        B G B G
+>        G R G R
+>
+> The solution is to start the scan one line lower or higher for VFLIP
+> and one pixel on the left or on the right for HFLIP.
+>
 
-Attached you can find my attempts from 2005. I2C should work, please 
-re-use this implementation as it nicely splits i2c_transfer from the rest 
-of the required functionality.
+As I wrote in my original email I haven't found out a way to adjust
+this when using the vv6410 sensor.
 
-I think I still have the pctv 200e somewhere in a box... I may get it 
-back, undust it and try.
+> May you do this with all the sensors of the stv06xx?
 
-Patrick.
+This issue is vv6410 specific.
 
---
-   Mail: patrick.boettcher@desy.de
-   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
---579715599-435502645-1238599624=:21921
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=pctv.h
-Content-Transfer-Encoding: BASE64
-Content-Description: 
-Content-Disposition: attachment; filename=pctv.h
+Best regards,
+Erik Andrén
 
-LyogRFZCIFVTQiBjb21wbGlhbnQgbGludXggZHJpdmVyIGZvciB0aGUgUGlu
-bmFjbGUgUENUViAyMDBlIERWQi1UIFVTQjIuMCByZWNlaXZlci4NCiAqDQog
-KiBDb3B5cmlnaHQgKEMpIDIwMDUgUGF0cmljayBCb2V0dGNoZXIgKHBhdHJp
-Y2suYm9ldHRjaGVyQGRlc3kuZGUpDQogKg0KICogIFRoaXMgcHJvZ3JhbSBp
-cyBmcmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQv
-b3IgbW9kaWZ5IGl0DQogKiAgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBHTlUg
-R2VuZXJhbCBQdWJsaWMgTGljZW5zZSBhcyBwdWJsaXNoZWQgYnkgdGhlIEZy
-ZWUNCiAqICBTb2Z0d2FyZSBGb3VuZGF0aW9uLCB2ZXJzaW9uIDIuDQogKg0K
-ICogc2VlIERvY3VtZW50YXRpb24vZHZiL1JFQURNRS5kdmItdXNiIGZvciBt
-b3JlIGluZm9ybWF0aW9uDQogKi8NCg0KI2lmbmRlZiBfRFZCX1VTQl9QQ1RW
-X0hfDQojZGVmaW5lIF9EVkJfVVNCX1BDVFZfSF8NCg0KI2RlZmluZSBEVkJf
-VVNCX0xPR19QUkVGSVggInBjdHYiDQojaW5jbHVkZSAiZHZiLXVzYi5oIg0K
-DQpleHRlcm4gaW50IGR2Yl91c2JfcGN0dl9kZWJ1ZzsNCiNkZWZpbmUgZGVi
-X2luZm8oYXJncy4uLikgICBkcHJpbnRrKGR2Yl91c2JfcGN0dl9kZWJ1Zyww
-eDAxLGFyZ3MpDQoNCiNkZWZpbmUgQ01EX0kyQ19XUklURSAgMHgwMQ0KLyog
-b3V0OiA8YWRkciA8PCAxPiA8b2xlbj4gPGJ1Zj5bb2xlbl0NCiAqICBpbjog
-MHgwMCAqLw0KDQojZGVmaW5lIENNRF9JMkNfUkVBRCAgIDB4MDINCi8qIG91
-dDogPGFkZHIgPDwgMT4gPG9sZW4+IDxpbGVuPiA8YnVmPltvbGVuXQ0KICog
-IGluOiAweDAwIDxidWY+W2lsZW5dICovDQoNCiNkZWZpbmUgQ01EX0dQSU9f
-VFVORVIgMHgxNg0KLyogb3V0OiA8b25vZmY+DQogKiAgaW46IDB4MDAgKi8N
-Cg0KLy8jZGVmaW5lIENNRF9TVFJFQU1JTkcgIDB4MTgNCi8qIG91dDogPG9u
-b2ZmPg0KICogIGluOiAweDAwICovDQoNCg0KI2VuZGlmDQo=
-
---579715599-435502645-1238599624=:21921
-Content-Type: TEXT/PLAIN; charset=US-ASCII; name=pctv.c
-Content-Transfer-Encoding: BASE64
-Content-Description: 
-Content-Disposition: attachment; filename=pctv.c
-
-LyogRFZCIFVTQiBjb21wbGlhbnQgbGludXggZHJpdmVyIGZvciB0aGUgUGlu
-bmFjbGUgUENUViAyMDBlIERWQi1UIFVTQjIuMCByZWNlaXZlci4NCiAqDQog
-KiBDb3B5cmlnaHQgKEMpIDIwMDUgUGF0cmljayBCb2V0dGNoZXIgKHBhdHJp
-Y2suYm9ldHRjaGVyQGRlc3kuZGUpDQogKg0KICoJVGhpcyBwcm9ncmFtIGlz
-IGZyZWUgc29mdHdhcmU7IHlvdSBjYW4gcmVkaXN0cmlidXRlIGl0IGFuZC9v
-ciBtb2RpZnkgaXQNCiAqCXVuZGVyIHRoZSB0ZXJtcyBvZiB0aGUgR05VIEdl
-bmVyYWwgUHVibGljIExpY2Vuc2UgYXMgcHVibGlzaGVkIGJ5IHRoZSBGcmVl
-DQogKglTb2Z0d2FyZSBGb3VuZGF0aW9uLCB2ZXJzaW9uIDIuDQogKg0KICog
-c2VlIERvY3VtZW50YXRpb24vZHZiL1JFQURNRS5kdmItdXNiIGZvciBtb3Jl
-IGluZm9ybWF0aW9uDQogKi8NCiNpbmNsdWRlICJwY3R2LmgiDQoNCiNpbmNs
-dWRlICJtdDM1Mi5oIg0KDQovKiBkZWJ1ZyAqLw0KaW50IGR2Yl91c2JfcGN0
-dl9kZWJ1ZzsNCm1vZHVsZV9wYXJhbV9uYW1lZChkZWJ1ZyxkdmJfdXNiX3Bj
-dHZfZGVidWcsIGludCwgMDY0NCk7DQpNT0RVTEVfUEFSTV9ERVNDKGRlYnVn
-LCAic2V0IGRlYnVnZ2luZyBsZXZlbCAoMT1kZWJ1ZyAob3ItYWJsZSkpLiIg
-RFZCX1VTQl9ERUJVR19TVEFUVVMpOw0KDQpzdGF0aWMgaW50IHBjdHZfbXNn
-KHN0cnVjdCBkdmJfdXNiX2RldmljZSAqZCwgdTggY21kLA0KCQl1OCAqd2J1
-ZiwgaW50IHdsZW4sIHU4ICpyYnVmLCBpbnQgcmxlbikNCnsNCglpbnQgcmV0
-Ow0KCXU4IHNuZGJ1Zlt3bGVuKzFdLA0KCSAgIHJjdmJ1ZltybGVuKzJdOw0K
-CW1lbXNldChzbmRidWYsMCx3bGVuKzEpOw0KDQoJc25kYnVmWzBdID0gY21k
-Ow0KCW1lbWNweSgmc25kYnVmWzFdLHdidWYsd2xlbik7DQoNCglpZiAoKHJl
-dCA9IGR2Yl91c2JfZ2VuZXJpY19ydyhkLHNuZGJ1Zix3bGVuKzEscmN2YnVm
-LHJsZW4rMiwwKSkgPCAwKQ0KCQlyZXR1cm4gcmV0Ow0KDQoJaWYgKHJjdmJ1
-ZlswXSAhPSBzbmRidWZbMF0gfHwNCgkJcmN2YnVmWzFdICE9IDB4MDApDQoJ
-CWVycigicHJvYmFibHkgYSB4ZmVyIGVycm9yIik7DQoNCgltZW1jcHkocmJ1
-ZiwmcmN2YnVmWzJdLHJsZW4pOw0KDQoJaWYgKHJsZW4gPiAwKQ0KCQlkZWJf
-aW5mbygicmJ1ZlswXTogJXgsIHJsZW46ICVkXG4iLHJidWZbMF0scmxlbik7
-DQoNCglyZXR1cm4gMDsNCn0NCg0Kc3RhdGljIGludCBwY3R2X2kyY194ZmVy
-KHN0cnVjdCBpMmNfYWRhcHRlciAqYWRhcCxzdHJ1Y3QgaTJjX21zZyBtc2db
-XSxpbnQgbnVtKQ0Kew0KCXN0cnVjdCBkdmJfdXNiX2RldmljZSAqZCA9IGky
-Y19nZXRfYWRhcGRhdGEoYWRhcCk7DQoJc3RhdGljIHU4IG9idWZbMjU1XTsN
-CglpbnQgaSxyZWFkOzsNCg0KCWlmIChkb3duX2ludGVycnVwdGlibGUoJmQt
-PmkyY19zZW0pIDwgMCkNCgkJcmV0dXJuIC1FQUdBSU47DQoNCglpZiAobnVt
-ID4gMikNCgkJd2FybigibW9yZSB0aGFuIDIgaTJjIG1lc3NhZ2VzIGF0IGEg
-dGltZSBpcyBub3QgaGFuZGxlZCB5ZXQuIFRPRE8uIik7DQoNCglmb3IgKGkg
-PSAwOyBpIDwgbnVtOyBpKyspIHsNCgkJcmVhZCA9IGkrMSA8IG51bSAmJiAo
-bXNnW2krMV0uZmxhZ3MgJiBJMkNfTV9SRCk7DQoNCgkJb2J1ZlswXSA9IG1z
-Z1tpXS5hZGRyIDw8IDE7DQoJCW9idWZbMV0gPSBtc2dbaV0ubGVuOw0KDQoJ
-CS8qIHJlYWQgcmVxdWVzdCAqLw0KCQlpZiAocmVhZCkNCgkJCW9idWZbMl0g
-PSBtc2dbaSsxXS5sZW47DQoNCgkJbWVtY3B5KCZvYnVmWzIrcmVhZF0sbXNn
-W2ldLmJ1Zixtc2dbaV0ubGVuKTsNCg0KCQlpZiAocmVhZCkNCgkJCXBjdHZf
-bXNnKGQsQ01EX0kyQ19SRUFELG9idWYsbXNnW2ldLmxlbiszLG1zZ1tpKzFd
-LmJ1Zixtc2dbaSsxXS5sZW4pOw0KCQllbHNlDQoJCQlwY3R2X21zZyhkLENN
-RF9JMkNfV1JJVEUsb2J1Zixtc2dbaV0ubGVuKzIsTlVMTCwwKTsNCg0KCQlp
-ICs9IHJlYWQ7DQoNCgl9DQoNCgl1cCgmZC0+aTJjX3NlbSk7DQoJcmV0dXJu
-IGk7DQp9DQoNCnN0YXRpYyB1MzIgcGN0dl9pMmNfZnVuYyhzdHJ1Y3QgaTJj
-X2FkYXB0ZXIgKmFkYXB0ZXIpDQp7DQoJcmV0dXJuIEkyQ19GVU5DX0kyQzsN
-Cn0NCg0Kc3RhdGljIHN0cnVjdCBpMmNfYWxnb3JpdGhtIHBjdHZfaTJjX2Fs
-Z28gPSB7DQoJLm5hbWUgICAgICAgICAgPSAiUGlubmFjbGUgUENUViBVU0Ig
-STJDIGFsZ29yaXRobSIsDQoJLmlkICAgICAgICAgICAgPSBJMkNfQUxHT19C
-SVQsDQoJLm1hc3Rlcl94ZmVyICAgPSBwY3R2X2kyY194ZmVyLA0KCS5mdW5j
-dGlvbmFsaXR5ID0gcGN0dl9pMmNfZnVuYywNCn07DQoNCi8qIEdQSU8gKi8N
-CnN0YXRpYyB2b2lkIHBjdHZfZ3Bpb190dW5lcihzdHJ1Y3QgZHZiX3VzYl9k
-ZXZpY2UgKmQsIGludCBvbm9mZikNCnsNCi8vc3RydWN0IGN4dXNiX3N0YXRl
-ICpzdCA9IGQtPnByaXY7DQoJdTggbzsNCg0KLy8JaWYgKHN0LT5ncGlvX3dy
-aXRlX3N0YXRlW0dQSU9fVFVORVJdID09IG9ub2ZmKQ0KLy8JCXJldHVybjsN
-Cg0KCW8gPSBvbm9mZjsNCglwY3R2X21zZyhkLENNRF9HUElPX1RVTkVSLCZv
-LDEsTlVMTCwwKTsNCn0NCg0Kc3RhdGljIGludCBwY3R2X3Bvd2VyX2N0cmwo
-c3RydWN0IGR2Yl91c2JfZGV2aWNlICpkLCBpbnQgb25vZmYpDQp7DQoJcmV0
-dXJuIDA7DQp9DQoNCnN0YXRpYyBpbnQgcGN0dl9zdHJlYW1pbmdfY3RybChz
-dHJ1Y3QgZHZiX3VzYl9kZXZpY2UgKmQsIGludCBvbm9mZikNCnsNCglyZXR1
-cm4gMDsNCn0NCg0Kc3RhdGljIGludCBwY3R2X210MzUyX2RlbW9kX2luaXQo
-c3RydWN0IGR2Yl9mcm9udGVuZCAqZmUpDQp7DQoJc3RhdGljIHU4IHJlc2V0
-X2J1ZltdID0geyAweDg5LCAweGJkLCAgMHg4YSwgMHgyOCwgMHg1MCwgMHg4
-MCB9Ow0KCXN0YXRpYyB1OCBpbml0X2J1ZltdID0geyAweDUwLCAweDAwLCAw
-eDhlLCAweDQwLCAgMHg1NiwgMHgzMSwgMHg1NywgMHhiNSwNCgkJMHg4Yiwg
-MHgwOSwgMHg4OCwgMHgwZCwgMHg3YiwgMHgwNCwgMHg1MywgMHhmNCwgMHg1
-ZSwgMHgwMSwgMHg1NCwNCgkJMHg3MywgMHg1NSwgMHgxYywgMHg3NSwgMHgz
-MCwgMHg2NywgMHgxYywgMHg2NywgMHgwMCB9Ow0KCWludCBpOw0KDQoJZm9y
-IChpID0gMDsgaSA8IEFSUkFZX1NJWkUocmVzZXRfYnVmKTsgaSArPSAyKQ0K
-CQltdDM1Ml93cml0ZShmZSwgJnJlc2V0X2J1ZltpXSwgMik7DQoNCgltc2xl
-ZXAoMSk7DQoNCglmb3IgKGkgPSAwOyBpIDwgQVJSQVlfU0laRShpbml0X2J1
-Zik7IGkgKz0gMikNCgkJbXQzNTJfd3JpdGUoZmUsICZpbml0X2J1ZltpXSwg
-Mik7DQoNCglyZXR1cm4gMDsNCn0NCg0Kc3RhdGljIHN0cnVjdCBtdDM1Ml9j
-b25maWcgcGN0dl9tdDM1Ml9jb25maWcgPSB7DQoJLmRlbW9kX2FkZHJlc3Mg
-PSAweDFmLA0KDQoJLmRlbW9kX2luaXQgPSBwY3R2X210MzUyX2RlbW9kX2lu
-aXQsDQoNCi8vLnBsbF9pbml0ID0gTlVMTCwgLyogaXQnbGwgYmUgbXQyMDYw
-X2luaXQgKi8NCgkucGxsX3NldCA9IGR2Yl91c2JfcGxsX3NldCwgLyogcHJv
-YmFibHkgbm90LCBpdCdzIHJhdGhlciBtdDIwNjBfc2V0ICovDQp9Ow0KDQov
-KiBDYWxsYmFja3MgZm9yIERWQiBVU0IgKi8NCnN0YXRpYyBpbnQgcGN0dl90
-dW5lcl9hdHRhY2goc3RydWN0IGR2Yl91c2JfZGV2aWNlICpkKQ0Kew0KCXU4
-IGJwbGxbNF0gPSB7IDB4MGIsIDB4ZGMsIDB4OWMsIDB4YTAgfTsNCglkLT5w
-bGxfYWRkciA9IDB4NjE7DQoJbWVtY3B5KGQtPnBsbF9pbml0LGJwbGwsNCk7
-DQoJZC0+cGxsX2Rlc2MgPSAmZHZiX3BsbF9mbWQxMjE2bWU7DQoJcmV0dXJu
-IDA7DQp9DQoNCnN0YXRpYyBpbnQgcGN0dl9mcm9udGVuZF9hdHRhY2goc3Ry
-dWN0IGR2Yl91c2JfZGV2aWNlICpkKQ0Kew0KCXU4IG89MCxpPTA7DQoNCglw
-Y3R2X21zZyhkLDB4MTAsJm8sMSwmaSwxKTsNCg0KCXBjdHZfbXNnKGQsMHgx
-NSxOVUxMLDAsTlVMTCwwKTsNCg0KCXBjdHZfZ3Bpb190dW5lcihkLCAwKTsN
-CglpZiAoKGQtPmZlID0gbXQzNTJfYXR0YWNoKCZwY3R2X210MzUyX2NvbmZp
-ZywgJmQtPmkyY19hZGFwKSkgIT0gTlVMTCkNCgkJcmV0dXJuIDA7DQoNCgly
-ZXR1cm4gLUVJTzsNCn0NCg0KLyogRFZCIFVTQiBEcml2ZXIgc3R1ZmYgKi8N
-CnN0YXRpYyBzdHJ1Y3QgZHZiX3VzYl9wcm9wZXJ0aWVzIHBjdHZfcHJvcGVy
-dGllczsNCg0Kc3RhdGljIGludCBwY3R2X3Byb2JlKHN0cnVjdCB1c2JfaW50
-ZXJmYWNlICppbnRmLA0KCQljb25zdCBzdHJ1Y3QgdXNiX2RldmljZV9pZCAq
-aWQpDQp7DQoJcmV0dXJuIGR2Yl91c2JfZGV2aWNlX2luaXQoaW50ZiwmcGN0
-dl9wcm9wZXJ0aWVzLFRISVNfTU9EVUxFLE5VTEwpOw0KfQ0KDQpzdGF0aWMg
-c3RydWN0IHVzYl9kZXZpY2VfaWQgcGN0dl90YWJsZSBbXSA9IHsNCgkJeyBV
-U0JfREVWSUNFKFVTQl9WSURfUElOTkFDTEUsIFVTQl9QSURfUENUVl8yMDBF
-KSB9LA0KCQl7fQkJLyogVGVybWluYXRpbmcgZW50cnkgKi8NCn07DQpNT0RV
-TEVfREVWSUNFX1RBQkxFICh1c2IsIHBjdHZfdGFibGUpOw0KDQpzdGF0aWMg
-c3RydWN0IGR2Yl91c2JfcHJvcGVydGllcyBwY3R2X3Byb3BlcnRpZXMgPSB7
-DQoJLmNhcHMgPSBEVkJfVVNCX0lTX0FOX0kyQ19BREFQVEVSLA0KDQoJLnNp
-emVfb2ZfcHJpdiAgICAgPSAwLA0KDQoJLnN0cmVhbWluZ19jdHJsICAgPSBw
-Y3R2X3N0cmVhbWluZ19jdHJsLA0KCS5wb3dlcl9jdHJsICAgICAgID0gcGN0
-dl9wb3dlcl9jdHJsLA0KCS5mcm9udGVuZF9hdHRhY2ggID0gcGN0dl9mcm9u
-dGVuZF9hdHRhY2gsDQoJLnR1bmVyX2F0dGFjaCAgICAgPSBwY3R2X3R1bmVy
-X2F0dGFjaCwNCg0KCS5pMmNfYWxnbyAgICAgICAgID0gJnBjdHZfaTJjX2Fs
-Z28sDQoNCgkuZ2VuZXJpY19idWxrX2N0cmxfZW5kcG9pbnQgPSAweDAxLA0K
-CS8qIHBhcmFtZXRlciBmb3IgdGhlIE1QRUcyLWRhdGEgdHJhbnNmZXIgKi8N
-CgkudXJiID0gew0KCQkudHlwZSA9IERWQl9VU0JfQlVMSywNCgkJLmNvdW50
-ID0gNywNCgkJLmVuZHBvaW50ID0gMHgwMiwNCgkJLnUgPSB7DQoJCQkuYnVs
-ayA9IHsNCgkJCQkuYnVmZmVyc2l6ZSA9IDQwOTYsDQoJCQl9DQoJCX0NCgl9
-LA0KDQoJLm51bV9kZXZpY2VfZGVzY3MgPSAxLA0KCS5kZXZpY2VzID0gew0K
-CQl7ICAgIlBpbm5hY2xlIDIwMGUgRFZCLVQgVVNCMi4wIiwNCgkJCXsgTlVM
-TCB9LA0KCQkJeyAmcGN0dl90YWJsZVswXSwgTlVMTCB9LA0KCQl9LA0KCX0N
-Cn07DQoNCnN0YXRpYyBzdHJ1Y3QgdXNiX2RyaXZlciBwY3R2X2RyaXZlciA9
-IHsNCgkub3duZXIJCT0gVEhJU19NT0RVTEUsDQoJLm5hbWUJCT0gInBjdHZf
-MjAwZSIsDQoJLnByb2JlCQk9IHBjdHZfcHJvYmUsDQoJLmRpc2Nvbm5lY3Qg
-PSBkdmJfdXNiX2RldmljZV9leGl0LA0KCS5pZF90YWJsZQk9IHBjdHZfdGFi
-bGUsDQp9Ow0KDQovKiBtb2R1bGUgc3R1ZmYgKi8NCnN0YXRpYyBpbnQgX19p
-bml0IHBjdHZfbW9kdWxlX2luaXQodm9pZCkNCnsNCglpbnQgcmVzdWx0Ow0K
-CWlmICgocmVzdWx0ID0gdXNiX3JlZ2lzdGVyKCZwY3R2X2RyaXZlcikpKSB7
-DQoJCWVycigidXNiX3JlZ2lzdGVyIGZhaWxlZC4gRXJyb3IgbnVtYmVyICVk
-IixyZXN1bHQpOw0KCQlyZXR1cm4gcmVzdWx0Ow0KCX0NCg0KCXJldHVybiAw
-Ow0KfQ0KDQpzdGF0aWMgdm9pZCBfX2V4aXQgcGN0dl9tb2R1bGVfZXhpdCh2
-b2lkKQ0Kew0KCS8qIGRlcmVnaXN0ZXIgdGhpcyBkcml2ZXIgZnJvbSB0aGUg
-VVNCIHN1YnN5c3RlbSAqLw0KCXVzYl9kZXJlZ2lzdGVyKCZwY3R2X2RyaXZl
-cik7DQp9DQoNCm1vZHVsZV9pbml0IChwY3R2X21vZHVsZV9pbml0KTsNCm1v
-ZHVsZV9leGl0IChwY3R2X21vZHVsZV9leGl0KTsNCg0KTU9EVUxFX0FVVEhP
-UigiUGF0cmljayBCb2V0dGNoZXIgPHBhdHJpY2suYm9ldHRjaGVyQGRlc3ku
-ZGU+Iik7DQpNT0RVTEVfREVTQ1JJUFRJT04oIkRyaXZlciBmb3IgUGlubmFj
-bGUgMjAwZSBEVkItVCBVU0IyLjAgcmVjZWl2ZXIiKTsNCk1PRFVMRV9WRVJT
-SU9OKCIxLjAtYWxwaGEiKTsNCk1PRFVMRV9MSUNFTlNFKCJHUEwiKTsNCg==
-
---579715599-435502645-1238599624=:21921--
+>
+> Cheers.
+>
+> --
+> Ken ar c'hentan |             ** Breizh ha Linux atav! **
+> Jef             |               http://moinejf.free.fr/
+>
