@@ -1,82 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.187]:60659 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750793AbZDSWmS convert rfc822-to-8bit (ORCPT
+Received: from web110808.mail.gq1.yahoo.com ([67.195.13.231]:27108 "HELO
+	web110808.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1757835AbZDEKbe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Apr 2009 18:42:18 -0400
-Received: by mu-out-0910.google.com with SMTP id g7so633486muf.1
-        for <linux-media@vger.kernel.org>; Sun, 19 Apr 2009 15:42:16 -0700 (PDT)
+	Sun, 5 Apr 2009 06:31:34 -0400
+Message-ID: <943396.95266.qm@web110808.mail.gq1.yahoo.com>
+Date: Sun, 5 Apr 2009 03:31:32 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH] [0904_13] Siano: move DVB_API and remove redundant code
+To: LinuxML <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <200904191818.n3JIISWN021959@smtp-vbr12.xs4all.nl>
-References: <200904191818.n3JIISWN021959@smtp-vbr12.xs4all.nl>
-Date: Mon, 20 Apr 2009 02:42:15 +0400
-Message-ID: <208cbae30904191542l4e3996cejf1df9cadfb187dfe@mail.gmail.com>
-Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS,
-	2.6.16-2.6.21: ERRORS
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Apr 19, 2009 at 10:18 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> This message is generated daily by a cron job that builds v4l-dvb for
-> the kernels and architectures in the list below.
->
-> Results of the daily build of v4l-dvb:
->
-> date:        Sun Apr 19 19:00:03 CEST 2009
-> path:        http://www.linuxtv.org/hg/v4l-dvb
-> changeset:   11517:cda79523a93c
-> gcc version: gcc (GCC) 4.3.1
-> hardware:    x86_64
-> host os:     2.6.26
->
-> linux-2.6.22.19-armv5: OK
-> linux-2.6.23.12-armv5: OK
-> linux-2.6.24.7-armv5: OK
-> linux-2.6.25.11-armv5: OK
-> linux-2.6.26-armv5: OK
-> linux-2.6.27-armv5: OK
-> linux-2.6.28-armv5: OK
-> linux-2.6.29.1-armv5: OK
-> linux-2.6.30-rc1-armv5: OK
-> linux-2.6.27-armv5-ixp: OK
-> linux-2.6.28-armv5-ixp: OK
-> linux-2.6.29.1-armv5-ixp: OK
-> linux-2.6.30-rc1-armv5-ixp: WARNINGS
-> linux-2.6.28-armv5-omap2: OK
-> linux-2.6.29.1-armv5-omap2: OK
-> linux-2.6.30-rc1-armv5-omap2: WARNINGS
-> linux-2.6.22.19-i686: WARNINGS
-> linux-2.6.23.12-i686: ERRORS
-> linux-2.6.24.7-i686: OK
-> linux-2.6.25.11-i686: OK
-> linux-2.6.26-i686: OK
-> linux-2.6.27-i686: OK
-> linux-2.6.28-i686: OK
-> linux-2.6.29.1-i686: OK
-> linux-2.6.30-rc1-i686: WARNINGS
 
-When trying to compile v4l-dvb tree under 2.6.30-rc2 (up-to-date) i
-have such error with pvr2 module:
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1238755204 -10800
+# Node ID f65a29f0f9a66f82a91525ae0085a15f00ac91c2
+# Parent  897669fdeb3be75a2bde978557b5398a4a7d8914
+[PATCH] [0904_13] Siano: move DVB_API and remove redundant code
 
-  CC [M]  /w/new/v4l-dvb/v4l/pvrusb2-hdw.o
-/w/new/v4l-dvb/v4l/pvrusb2-hdw.c: In function 'pvr2_upload_firmware1':
-/w/new/v4l-dvb/v4l/pvrusb2-hdw.c:1474: error: implicit declaration of
-function 'usb_settoggle'
-/w/new/v4l-dvb/v4l/pvrusb2-hdw.c: In function 'pvr2_hdw_load_modules':
-/w/new/v4l-dvb/v4l/pvrusb2-hdw.c:2133: warning: format not a string
-literal and no format arguments
-make[3]: *** [/w/new/v4l-dvb/v4l/pvrusb2-hdw.o] Error 1
-make[2]: *** [_module_/w/new/v4l-dvb/v4l] Error 2
+From: Uri Shkolnik <uris@siano-ms.com>
 
-It's probably due to this git commit:
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=3444b26afa145148951112534f298bdc554ec789
+The DVB-API related information has been moved from the core header
+to the smsdvb, and the redundant code has been removed from the
+core header.
 
-I don't have idea how to fix it fast and correctly.
+This code has been moved since it is used only by
+the smsdvb client component.
 
--- 
-Best regards, Klimov Alexey
+Priority: normal
+
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+
+diff -r 897669fdeb3b -r f65a29f0f9a6 linux/drivers/media/dvb/siano/smscoreapi.h
+--- a/linux/drivers/media/dvb/siano/smscoreapi.h	Fri Apr 03 13:31:13 2009 +0300
++++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Fri Apr 03 13:40:04 2009 +0300
+@@ -36,15 +36,6 @@ along with this program.  If not, see <h
+ #include <asm/page.h>
+ 
+ /* #include "smsir.h" */
+-
+-#define SMS_DVB3_SUBSYS
+-#ifdef SMS_DVB3_SUBSYS
+-#include "dmxdev.h"
+-#include "dvbdev.h"
+-#include "dvb_demux.h"
+-#include "dvb_frontend.h"
+-
+-#endif
+ 
+ #define kmutex_init(_p_) mutex_init(_p_)
+ #define kmutex_lock(_p_) mutex_lock(_p_)
+diff -r 897669fdeb3b -r f65a29f0f9a6 linux/drivers/media/dvb/siano/smsdvb.c
+--- a/linux/drivers/media/dvb/siano/smsdvb.c	Fri Apr 03 13:31:13 2009 +0300
++++ b/linux/drivers/media/dvb/siano/smsdvb.c	Fri Apr 03 13:40:04 2009 +0300
+@@ -22,6 +22,11 @@ along with this program.  If not, see <h
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <asm/byteorder.h>
++
++#include "dmxdev.h"
++#include "dvbdev.h"
++#include "dvb_demux.h"
++#include "dvb_frontend.h"
+ 
+ #include "smscoreapi.h"
+ /*#include "smsendian.h"*/
+@@ -52,7 +57,7 @@ struct smsdvb_client_t {
+ 	fe_status_t fe_status;
+ 	int fe_ber, fe_snr, fe_unc, fe_signal_strength;
+ 
+-	struct completion tune_done, stat_done;
++	struct completion tune_done;
+ 
+ 	/* todo: save freq/band instead whole struct */
+ 	struct dvb_frontend_parameters fe_params;
+
+
+
+      
