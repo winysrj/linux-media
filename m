@@ -1,58 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3973 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484AbZDMLK1 (ORCPT
+Received: from web110807.mail.gq1.yahoo.com ([67.195.13.230]:31169 "HELO
+	web110807.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1757054AbZDEKSF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Apr 2009 07:10:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: Re: tuner-core i2c address range check: time to remove them?
-Date: Mon, 13 Apr 2009 13:10:18 +0200
-Cc: Mike Krufky <mkrufky@linuxtv.org>
-References: <200903292253.01684.hverkuil@xs4all.nl>
-In-Reply-To: <200903292253.01684.hverkuil@xs4all.nl>
+	Sun, 5 Apr 2009 06:18:05 -0400
+Message-ID: <827426.7180.qm@web110807.mail.gq1.yahoo.com>
+Date: Sun, 5 Apr 2009 03:18:01 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH] [0904_10] Siano: smsdvb - add events mechanism
+To: LinuxML <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200904131310.18758.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 29 March 2009 22:53:01 Hans Verkuil wrote:
-> Hi all,
->
-> The tuner-core.c source contains this warning since 2.6.24:
->
-> tuner_warn("Support for tuners in i2c address range 0x64 thru 0x6f\n");
-> tuner_warn("will soon be dropped. This message indicates that your\n");
-> tuner_warn("hardware has a %s tuner at i2c address 0x%02x.\n",
->                    t->name, t->i2c->addr);
-> tuner_warn("To ensure continued support for your device, please\n");
-> tuner_warn("send a copy of this message, along with full dmesg\n");
-> tuner_warn("output to v4l-dvb-maintainer@linuxtv.org\n");
-> tuner_warn("Please use subject line: \"obsolete tuner i2c address.\"\n");
-> tuner_warn("driver: %s, addr: 0x%02x, type: %d (%s)\n",
->                    t->i2c->adapter->name, t->i2c->addr, t->type,
-> t->name);
->
-> Isn't it time to remove these i2c addresses? I don't believe we ever had
-> a real tuner at such an address.
->
-> With the ongoing v4l2_subdev conversion I need to do a bit of cleanup in
-> tuner-core.c as well, so it would be a good time for me to combine it
-> (and it gets rid of an ugly cx88 hack in tuner-core.c as well).
->
-> Regards,
->
-> 	Hans
 
-Mike, please let me know if I can remove this!
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1238742622 -10800
+# Node ID ec7ee486fb86d51bdb48e6a637a6ddd52e9e08c2
+# Parent  020ba7b31c963bd36d607848198e9e4258a6f80e
+[PATCH] [0904_10] Siano: smsdvb - add events mechanism
 
-Thanks,
+From: Uri Shkolnik <uris@siano-ms.com>
 
-	Hans
+Add events mechanism that will notify the "cards" component
+(which represent the specific hardware target) for DVB related
+events.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Priority: normal
+
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+
+diff -r 020ba7b31c96 -r ec7ee486fb86 linux/drivers/media/dvb/siano/smsdvb.c
+--- a/linux/drivers/media/dvb/siano/smsdvb.c	Thu Apr 02 21:33:14 2009 +0300
++++ b/linux/drivers/media/dvb/siano/smsdvb.c	Fri Apr 03 10:10:22 2009 +0300
+@@ -66,6 +66,45 @@ static int sms_dbg;
+ static int sms_dbg;
+ module_param_named(debug, sms_dbg, int, 0644);
+ MODULE_PARM_DESC(debug, "set debug level (info=1, adv=2 (or-able))");
++
++/* Events that may come from DVB v3 adapter */
++static void sms_board_dvb3_event(struct smscore_device_t *coredev,
++		enum SMS_DVB3_EVENTS event) {
++	switch (event) {
++	case DVB3_EVENT_INIT:
++		sms_debug("DVB3_EVENT_INIT");
++		/* sms_board_event(coredev, BOARD_EVENT_BIND); */
++		break;
++	case DVB3_EVENT_SLEEP:
++		sms_debug("DVB3_EVENT_SLEEP");
++		/* sms_board_event(coredev, BOARD_EVENT_POWER_SUSPEND); */
++		break;
++	case DVB3_EVENT_HOTPLUG:
++		sms_debug("DVB3_EVENT_HOTPLUG");
++		/* sms_board_event(coredev, BOARD_EVENT_POWER_INIT); */
++		break;
++	case DVB3_EVENT_FE_LOCK:
++		sms_debug("DVB3_EVENT_FE_LOCK");
++		/* sms_board_event(coredev, BOARD_EVENT_FE_LOCK); */
++		break;
++	case DVB3_EVENT_FE_UNLOCK:
++		sms_debug("DVB3_EVENT_FE_UNLOCK");
++		/* sms_board_event(coredev, BOARD_EVENT_FE_UNLOCK); */
++		break;
++	case DVB3_EVENT_UNC_OK:
++		sms_debug("DVB3_EVENT_UNC_OK");
++		/* sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_OK); */
++		break;
++	case DVB3_EVENT_UNC_ERR:
++		sms_debug("DVB3_EVENT_UNC_ERR");
++		/* sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_ERRORS); */
++		break;
++
++	default:
++		sms_err("Unknown dvb3 api event");
++		break;
++	}
++}
+ 
+ static int smsdvb_onresponse(void *context, struct smscore_buffer_t *cb)
+ {
+@@ -174,17 +213,15 @@ static int smsdvb_onresponse(void *conte
+ 		client->fe_status = 0;
+ 	}
+ 
+-	/*
+-	 if (client->fe_status & FE_HAS_LOCK)
+-	 sms_board_dvb3_event(client->coredev, DVB3_EVENT_FE_LOCK);
+-	 else
+-	 sms_board_dvb3_event(client->coredev, DVB3_EVENT_FE_UNLOCK);
++	if (client->fe_status & FE_HAS_LOCK)
++		sms_board_dvb3_event(client->coredev, DVB3_EVENT_FE_LOCK);
++	else
++		sms_board_dvb3_event(client->coredev, DVB3_EVENT_FE_UNLOCK);
+ 
+-	 if (client->sms_stat_dvb.ReceptionData.ErrorTSPackets == 0)
+-	 sms_board_dvb3_event(client->coredev, DVB3_EVENT_UNC_OK);
+-	 else
+-	 sms_board_dvb3_event(client->coredev, DVB3_EVENT_UNC_ERR);
+-	 */
++	if (client->sms_stat_dvb.ReceptionData.ErrorTSPackets == 0)
++		sms_board_dvb3_event(client->coredev, DVB3_EVENT_UNC_OK);
++	else
++		sms_board_dvb3_event(client->coredev, DVB3_EVENT_UNC_ERR);
+ 
+ 	if (client->fe_status & FE_HAS_LOCK)
+ 		sms_board_led_feedback(client->coredev,
+@@ -346,13 +383,12 @@ static int smsdvb_set_frontend(struct dv
+ 			       struct dvb_frontend_parameters *fep)
+ {
+ 	struct smsdvb_client_t *client =
+-	container_of(fe, struct smsdvb_client_t, frontend);
++	    container_of(fe, struct smsdvb_client_t, frontend);
+ 
+ 	struct {
+ 		struct SmsMsgHdr_ST Msg;
+ 		u32 Data[3];
+ 	} Msg;
+-	int ret;
+ 
+ 	Msg.Msg.msgSrcId = DVBT_BDA_CONTROL_MSG_ID;
+ 	Msg.Msg.msgDstId = HIF_TASK;
+@@ -387,7 +423,8 @@ static int smsdvb_set_frontend(struct dv
+ 	}
+ 
+ 	/* Disable LNA, if any. An error is returned if no LNA is present */
+-	ret = sms_board_lna_control(client->coredev, 0);
++	{
++	int ret = sms_board_lna_control(client->coredev, 0);
+ 	if (ret == 0) {
+ 		fe_status_t status;
+ 
+@@ -403,7 +440,7 @@ static int smsdvb_set_frontend(struct dv
+ 		/* previous tune didnt lock - enable LNA and tune again */
+ 		sms_board_lna_control(client->coredev, 1);
+ 	}
+-
++	}
+ 	return smsdvb_sendrequest_and_wait(client, &Msg, sizeof(Msg),
+ 					   &client->tune_done);
+ }
+@@ -428,6 +465,7 @@ static int smsdvb_init(struct dvb_fronte
+ 	struct smsdvb_client_t *client =
+ 		container_of(fe, struct smsdvb_client_t, frontend);
+ 
++	sms_board_dvb3_event(client->coredev, DVB3_EVENT_INIT);
+ 	sms_board_power(client->coredev, 1);
+ 
+ 	return 0;
+@@ -438,6 +476,7 @@ static int smsdvb_sleep(struct dvb_front
+ 	struct smsdvb_client_t *client =
+ 		container_of(fe, struct smsdvb_client_t, frontend);
+ 
++	sms_board_dvb3_event(client->coredev, DVB3_EVENT_SLEEP);
+ 	sms_board_led_feedback(client->coredev, SMS_LED_OFF);
+ 	sms_board_power(client->coredev, 0);
+ 
+@@ -572,6 +611,7 @@ static int smsdvb_hotplug(struct smscore
+ 
+ 	sms_info("success");
+ 
++	sms_board_dvb3_event(coredev, DVB3_EVENT_HOTPLUG);
+ 	sms_board_setup(coredev);
+ 
+ 	return 0;
+@@ -614,8 +654,8 @@ void smsdvb_module_exit(void)
+ 	kmutex_lock(&g_smsdvb_clientslock);
+ 
+ 	while (!list_empty(&g_smsdvb_clients))
+-	       smsdvb_unregister_client(
+-			(struct smsdvb_client_t *) g_smsdvb_clients.next);
++		smsdvb_unregister_client((struct smsdvb_client_t *)
++					 g_smsdvb_clients.next);
+ 
+ 	kmutex_unlock(&g_smsdvb_clientslock);
+ }
+
+
+
+      
