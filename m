@@ -1,40 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37342 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S936354AbZDIUbS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Apr 2009 16:31:18 -0400
-Message-ID: <49DE5B0F.6080604@iki.fi>
-Date: Thu, 09 Apr 2009 23:31:11 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mailfilter2.ihug.co.nz ([203.109.136.2]:56610 "EHLO
+	mailfilter2.ihug.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756230AbZDEApD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Apr 2009 20:45:03 -0400
+Message-ID: <49D7FF59.1000806@yahoo.co.nz>
+Date: Sun, 05 Apr 2009 12:46:17 +1200
+From: Kevin Wells <wells_kevin@yahoo.co.nz>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: chrisneilbrown@gmail.com, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] AVerTV Volar DVB-T USB GPS 805
-References: <91591f560904090409x15481f87ra1d7211ec35bc569@mail.gmail.com> <49DDD897.4000409@iki.fi>
-In-Reply-To: <49DDD897.4000409@iki.fi>
-Content-Type: text/plain; charset=us-ascii; format=flowed
+To: Steven Toth <stoth@linuxtv.org>
+CC: linux-media@vger.kernel.org
+Subject: [PATCH 4/4] tm6000: Clear bit in tm6000_devused when board is disconnected.
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Antti Palosaari wrote:
-> Chris Brown wrote:
->> This device doesnt seem to work
->> I've tried several different modules referenced in the dvb-t usb page on 
->> linuxtv
->> Any ideas?
->>
->> Bus 001 Device 003: ID 07ca:a805 AVerMedia Technologies, Inc.
->> Bus 001 Device 004: ID 0471:082d Philips
->> Bus 001 Device 002: ID 0409:005a NEC Corp. HighSpeed Hub
-> 
-> What does lsusb -vv -d 07ca:a805 says?
+# HG changeset patch
+# User Kevin Wells <kevin.wells@kahusoft.com>
+# Date 1238885821 -43200
+# Node ID ca10a33f275b6fefa15ef651df9b657834a28bb0
+# Parent  02d3a231b99e1eef922679f1381eecd0b9990d23
+Clear bit in tm6000_devused when board is disconnected.
 
-That was af9015 with MXL5003S (tuner ID 13). It is now working and patch 
-is waiting for PULL to the master, will request that soon.
-http://linuxtv.org/hg/~anttip/af9015
+From: Kevin Wells <kevin.wells@kahusoft.com>
 
-thanks
-Antti
--- 
-http://palosaari.fi/
+Priority: normal
+
+Signed-off-by: Kevin Wells <kevin.wells@kahusoft.com>
+
+diff -r 02d3a231b99e -r ca10a33f275b 
+linux/drivers/media/video/tm6000/tm6000-cards.c
+--- a/linux/drivers/media/video/tm6000/tm6000-cards.c    Sun Apr 05 
+10:45:44 2009 +1200
++++ b/linux/drivers/media/video/tm6000/tm6000-cards.c    Sun Apr 05 
+10:57:01 2009 +1200
+@@ -559,6 +559,8 @@
+ 
+     dev->state |= DEV_DISCONNECTED;
+ 
++    tm6000_devused &= ~(1 << dev->devno);
++
+     usb_put_dev(dev->udev);
+ 
+     mutex_unlock(&dev->lock);
