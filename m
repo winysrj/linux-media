@@ -1,35 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f165.google.com ([209.85.219.165]:52240 "EHLO
-	mail-ew0-f165.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753345AbZDIIQI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2009 04:16:08 -0400
-Received: by ewy9 with SMTP id 9so543199ewy.37
-        for <linux-media@vger.kernel.org>; Thu, 09 Apr 2009 01:16:06 -0700 (PDT)
+Received: from mailfilter6.ihug.co.nz ([203.109.136.6]:32706 "EHLO
+	mailfilter6.ihug.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755693AbZDEAsF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Apr 2009 20:48:05 -0400
+Message-ID: <49D8000E.80501@yahoo.co.nz>
+Date: Sun, 05 Apr 2009 12:49:18 +1200
+From: Kevin Wells <wells_kevin@yahoo.co.nz>
 MIME-Version: 1.0
-In-Reply-To: <9093495a0904080000p24ce8427s553b004904ce904e@mail.gmail.com>
-References: <3a665c760904052342h4bfdd7f7xce14e868c1c1169@mail.gmail.com>
-	 <3a665c760904072339t46fb9766r82903e11aa2cf0e6@mail.gmail.com>
-	 <9093495a0904080000p24ce8427s553b004904ce904e@mail.gmail.com>
-Date: Thu, 9 Apr 2009 16:16:05 +0800
-Message-ID: <3a665c760904090116p4a640f5fqed343b3e34763dbb@mail.gmail.com>
-Subject: Re: Question about ci drivers in dvb
-From: loody <miloody@gmail.com>
-To: Sharwan Joram <sharwan.joram@gmail.com>
-Cc: Kernel newbies <kernelnewbies@nl.linux.org>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Steven Toth <stoth@linuxtv.org>
+CC: linux-media@vger.kernel.org
+Subject: [PATCH 1/4] tm6000: Remove reference to em28xx from error message.
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi:
+# HG changeset patch
+# User Kevin Wells <kevin.wells@kahusoft.com>
+# Date 1238839620 -46800
+# Node ID a293d5babca03bb5a7f21ecb659d55e447194e49
+# Parent  3d58b6531a818aafdacde895c34e4517a4dc4104
+Remove reference to em28xx from error message.
 
-2009/4/8 Sharwan Joram <sharwan.joram@gmail.com>:
-> Luc was working on to provide the support for this device on Linux in Year
-> 2008. I'am not sure about it's current status but you can visit the project
-> home page and  check the  status : http://www.bsc-bvba.be/linux/dvb/
->
-> Regards
-> Sharwan
-thanks for your kind help,
-miloody
+From: Kevin Wells <kevin.wells@kahusoft.com>
+
+Priority: normal
+
+Signed-off-by: Kevin Wells <kevin.wells@kahusoft.com>
+
+diff -r 3d58b6531a81 -r a293d5babca0 
+linux/drivers/media/video/tm6000/tm6000-cards.c
+--- a/linux/drivers/media/video/tm6000/tm6000-cards.c    Fri Nov 28 
+08:39:00 2008 -0200
++++ b/linux/drivers/media/video/tm6000/tm6000-cards.c    Sat Apr 04 
+23:07:00 2009 +1300
+@@ -378,7 +378,7 @@
+     /* Check to see next free device and mark as used */
+     nr=find_first_zero_bit(&tm6000_devused,TM6000_MAXBOARDS);
+     if (nr >= TM6000_MAXBOARDS) {
+-        printk ("tm6000: Supports only %i em28xx 
+boards.\n",TM6000_MAXBOARDS);
++        printk("tm6000: Only supports %i boards.\n", TM6000_MAXBOARDS);
+         usb_put_dev(usbdev);
+         return -ENOMEM;
+     }
