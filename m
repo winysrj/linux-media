@@ -1,180 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110804.mail.gq1.yahoo.com ([67.195.13.227]:32871 "HELO
-	web110804.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751016AbZDELmN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Apr 2009 07:42:13 -0400
-Message-ID: <629811.69312.qm@web110804.mail.gq1.yahoo.com>
-Date: Sun, 5 Apr 2009 04:42:11 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [0904_14] Siano: assemble all components to one kernel module
-To: LinuxML <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from mail1.radix.net ([207.192.128.31]:64805 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753610AbZDEUVN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Apr 2009 16:21:13 -0400
+Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
+	model
+From: Andy Walls <awalls@radix.net>
+To: Mike Isely <isely@pobox.com>
+Cc: Jean Delvare <khali@linux-fr.org>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <Pine.LNX.4.64.0904051315490.32738@cnc.isely.net>
+References: <20090404142427.6e81f316@hyperion.delvare>
+	 <20090404142837.3e12824c@hyperion.delvare>
+	 <Pine.LNX.4.64.0904041045380.32720@cnc.isely.net>
+	 <20090405010539.187e6268@hyperion.delvare>
+	 <Pine.LNX.4.64.0904041807300.32720@cnc.isely.net>
+	 <20090405161803.70810455@hyperion.delvare>
+	 <Pine.LNX.4.64.0904051315490.32738@cnc.isely.net>
+Content-Type: text/plain
+Date: Sun, 05 Apr 2009 16:19:52 -0400
+Message-Id: <1238962792.3337.122.camel@morgan.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sun, 2009-04-05 at 13:33 -0500, Mike Isely wrote:
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1238756860 -10800
-# Node ID 616e696ce6f0c0d76a1aaea8b36e0345112c5ab6
-# Parent  f65a29f0f9a66f82a91525ae0085a15f00ac91c2
-[PATCH] [0904_14] Siano: assemble all components to one kernel module
+>  Also, lirc makes it possible to userspace map the underlying 
+> IR codes to keybindings and associate multiple different remotes - all 
+> of that is apparently hardcoded in ir-kbd-i2c.
 
-From: Uri Shkolnik <uris@siano-ms.com>
+Yes.  My first remote for my PC was an HP OEM'ed and customized unit.
+LIRC's text configuration files made support for the remote's
+non-standard keys a task for 'vi' and not 'make'.
 
-Previously, the support for Siano-based devices
-has been combined from several kernel modules. 
-This patch assembles all into single kernel module.
-
-Priority: normal
-
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-
-diff -r f65a29f0f9a6 -r 616e696ce6f0 linux/drivers/media/dvb/siano/Makefile
---- a/linux/drivers/media/dvb/siano/Makefile	Fri Apr 03 13:40:04 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/Makefile	Fri Apr 03 14:07:40 2009 +0300
-@@ -1,8 +1,6 @@ sms1xxx-objs := smscoreapi.o sms-cards.o
--sms1xxx-objs := smscoreapi.o sms-cards.o
-+sms1xxx-objs := smscoreapi.o sms-cards.o smsusb.o smsdvb.o smsendian.o
- 
- obj-$(CONFIG_DVB_SIANO_SMS1XXX) += sms1xxx.o
--obj-$(CONFIG_DVB_SIANO_SMS1XXX) += smsusb.o
--obj-$(CONFIG_DVB_SIANO_SMS1XXX) += smsdvb.o
- 
- EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
- 
-diff -r f65a29f0f9a6 -r 616e696ce6f0 linux/drivers/media/dvb/siano/smscoreapi.c
---- a/linux/drivers/media/dvb/siano/smscoreapi.c	Fri Apr 03 13:40:04 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smscoreapi.c	Fri Apr 03 14:07:40 2009 +0300
-@@ -1321,8 +1321,8 @@ static int __init smscore_module_init(vo
- 	}
- #endif
- 
--#if 0 /* def SMS_DVB_CLIENT */
--	/* DVB Register */
-+#ifdef SMS_DVB3_SUBSYS
-+	/* DVB v.3 Register */
- 	rc = smsdvb_register();
- 	if (rc) {
- 		sms_err("Error registering DVB client.\n");
-@@ -1339,7 +1339,7 @@ static int __init smscore_module_init(vo
- 	}
- #endif
- 
--#if 0 /* def SMS_USB_BUS_DRV */
-+#ifdef SMS_USB_DRV
- 	/* USB Register */
- 	rc = smsusb_register();
- 	if (rc) {
-@@ -1385,8 +1385,7 @@ static void __exit smscore_module_exit(v
- 	smschar_unregister();
- #endif
- 
--#if 0 /* def SMS_DVB_CLIENT */
--	/* DVB UnRegister */
-+#ifdef SMS_DVB3_SUBSYS
- 	smsdvb_unregister();
- #endif
- 
-@@ -1395,8 +1394,9 @@ static void __exit smscore_module_exit(v
- 	smsnet_unregister();
- #endif
- 
--#if 0 /* def SMS_USB_BUS_DRV */
--	/* Unregister USB */
-+	/* Unegister interfaces objects */
-+#ifdef SMS_USB_DRV
-+	/* USB unregister */
- 	smsusb_unregister();
- #endif
- 
-diff -r f65a29f0f9a6 -r 616e696ce6f0 linux/drivers/media/dvb/siano/smscoreapi.h
---- a/linux/drivers/media/dvb/siano/smscoreapi.h	Fri Apr 03 13:40:04 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Fri Apr 03 14:07:40 2009 +0300
-@@ -617,6 +617,17 @@ int smscore_get_board_id(struct smscore_
- 
- int smscore_led_state(struct smscore_device_t *core, int led);
- 
-+
-+#ifdef SMS_DVB3_SUBSYS
-+extern int smsdvb_register(void);
-+extern void smsdvb_unregister(void);
-+#endif
-+
-+#ifdef SMS_USB_DRV
-+extern int smsusb_register(void);
-+extern void smsusb_unregister(void);
-+#endif
-+
- /* ------------------------------------------------------------------------ */
- 
- #define DBG_INFO 1
-diff -r f65a29f0f9a6 -r 616e696ce6f0 linux/drivers/media/dvb/siano/smsdvb.c
---- a/linux/drivers/media/dvb/siano/smsdvb.c	Fri Apr 03 13:40:04 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smsdvb.c	Fri Apr 03 14:07:40 2009 +0300
-@@ -638,7 +638,7 @@ adapter_error:
- 	return rc;
- }
- 
--int smsdvb_module_init(void)
-+int smsdvb_register(void)
- {
- 	int rc;
- 
-@@ -652,7 +652,7 @@ int smsdvb_module_init(void)
- 	return rc;
- }
- 
--void smsdvb_module_exit(void)
-+void smsdvb_unregister(void)
- {
- 	smscore_unregister_hotplug(smsdvb_hotplug);
- 
-@@ -665,9 +665,6 @@ void smsdvb_module_exit(void)
- 	kmutex_unlock(&g_smsdvb_clientslock);
- }
- 
--module_init(smsdvb_module_init);
--module_exit(smsdvb_module_exit);
--
- MODULE_DESCRIPTION("SMS DVB subsystem adaptation module");
- MODULE_AUTHOR("Siano Mobile Silicon, INC. (uris@siano-ms.com)");
- MODULE_LICENSE("GPL");
-diff -r f65a29f0f9a6 -r 616e696ce6f0 linux/drivers/media/dvb/siano/smsusb.c
---- a/linux/drivers/media/dvb/siano/smsusb.c	Fri Apr 03 13:40:04 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smsusb.c	Fri Apr 03 14:07:40 2009 +0300
-@@ -539,7 +539,7 @@ static struct usb_driver smsusb_driver =
- 	.resume			= smsusb_resume,
- };
- 
--int smsusb_module_init(void)
-+int smsusb_register(void)
- {
- 	int rc = usb_register(&smsusb_driver);
- 	if (rc)
-@@ -550,16 +550,13 @@ int smsusb_module_init(void)
- 	return rc;
- }
- 
--void smsusb_module_exit(void)
-+void smsusb_unregister(void)
- {
--	sms_debug("");
- 	/* Regular USB Cleanup */
- 	usb_deregister(&smsusb_driver);
-+	sms_info("end");
- }
- 
--module_init(smsusb_module_init);
--module_exit(smsusb_module_exit);
--
--MODULE_DESCRIPTION("Driver for the Siano SMS1XXX USB dongle");
-+MODULE_DESCRIPTION("Driver for the Siano SMS1xxx USB dongle");
- MODULE_AUTHOR("Siano Mobile Silicon, INC. (uris@siano-ms.com)");
- MODULE_LICENSE("GPL");
+Key mappings belong in configuration files - not hard coded in the
+kernel.
 
 
 
-      
+>   Wierd or not, your 
+> change makes it hard(er) on those who legitimately wish to use lirc.  
+> Here's an interesting summary:
+> 
+> If fact, the only pvrusb2-driven hardware from Hauppauge that is known 
+> to work with ir-kbd-i2c are the old 29xxx and 24xxx model series (not 
+> the "MCE" series).  Those devices are out of production, AFAIK.  The 
+> current devices being sold by Hauppauge don't work at all with 
+> ir-kbd-i2c and probably never will.
+> 
+> Perhaps one can conclude that there hasn't been a lot of pressure (that 
+> I know about) to deal with updating / enhancing / replacing ir-kbd-i2c 
+> because lirc happens to be filling the niche better in many cases.
+
+Here is where LIRC may be its own worst enemy.  LIRC has filled some
+shortcomings in the kernel for support of IR device functions for so
+long (LWN says LIRC is 10 years old), that large numbers of users have
+come to depend on its operation, while at the same time apparently
+removing impetus for doing much to update the in kernel IR device
+support.
+
+Some of the discussion on the LKML about why an input layer device is
+sufficient for handling most, but not all cases is interesting:
+
+http://lkml.org/lkml/2008/9/11/63
+
+Gerd also enlightens us on why we have ir-kdb-i2c in kernel in that
+post.  It appears that ir-kbd-i2c was written to avoid using LIRC for TV
+card I2C IR devices for the most common use cases.  As such, it's a 90%
+(80%, 70% ?) solution: no blasting, no raw IR parsing for unknown
+protocols, only the most "common" remotes supported, and, of course, no
+support for non-I2C devices.
+
+
+My needs don't fit that unfortunately.  I need IR blasting, an uncommon
+remote supported, and both USB and I2C IR device support.
+
+
+Regards,
+Andy
+
