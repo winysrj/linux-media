@@ -1,62 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:2287 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751482AbZDDMYt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Apr 2009 08:24:49 -0400
-Date: Sat, 4 Apr 2009 14:24:27 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Andy Walls <awalls@radix.net>, Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Mike Isely <isely@pobox.com>
-Subject: [PATCH 0/6] ir-kbd-i2c conversion to the new i2c binding model
-Message-ID: <20090404142427.6e81f316@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from web110811.mail.gq1.yahoo.com ([67.195.13.234]:20725 "HELO
+	web110811.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1757383AbZDEIJS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Apr 2009 04:09:18 -0400
+Message-ID: <230177.85090.qm@web110811.mail.gq1.yahoo.com>
+Date: Sun, 5 Apr 2009 01:09:16 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH] [0904_1] Siano: core header - update license and include files
+To: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
 
-Here finally comes my conversion of ir-kbd-i2c to the new i2c binding
-model. I've split it into 6 pieces for easier review. Firstly there are
-2 preliminary patches:
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1238689930 -10800
+# Node ID c3f0f50d46058f07fb355d8e5531f35cfd0ca37e
+# Parent  7311d23c3355629b617013cd51223895a2423770
+[PATCH] [0904_1] Siano: core header - update license and included files
 
-media-video-01-cx18-fix-i2c-error-handling.patch
-media-video-02-ir-kbd-i2c-dont-abuse-client-name.patch
+From: Uri Shkolnik <uris@siano-ms.com>
 
-Then 2 patches doing the actual conversion:
+This patch does not include any implementation changes.
+It update the smscoreapi.h license to be identical to 
+other Siano's headers and the #include files list.
 
-media-video-03-ir-kbd-i2c-convert-to-new-style.patch
-media-video-04-configure-ir-receiver.patch
 
-And lastly 2 patches cleaning up saa7134-input thanks to the new
-possibilities offered by the conversion:
+Priority: normal
 
-media-video-05-saa7134-input-cleanup-msi-ir.patch
-media-video-06-saa7134-input-cleanup-avermedia-cardbus.patch
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
 
-This patch set is against the v4l-dvb repository, but I didn't pay
-attention to the compatibility issues. I simply build-tested it on
-2.6.27 and 2.6.29.
+diff -r 7311d23c3355 -r c3f0f50d4605 linux/drivers/media/dvb/siano/smscoreapi.h
+--- a/linux/drivers/media/dvb/siano/smscoreapi.h	Sun Mar 15 12:05:57 2009 +0200
++++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Thu Apr 02 19:32:10 2009 +0300
+@@ -1,26 +1,26 @@
+-/*
+- *  Driver for the Siano SMS1xxx USB dongle
+- *
+- *  author: Anatoly Greenblat
+- *
+- *  Copyright (c), 2005-2008 Siano Mobile Silicon, Inc.
+- *
+- *  This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License version 2 as
+- *  published by the Free Software Foundation;
+- *
+- *  Software distributed under the License is distributed on an "AS IS"
+- *  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.
+- *
+- *  See the GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- */
++/****************************************************************
+ 
+-#ifndef __smscoreapi_h__
+-#define __smscoreapi_h__
++Siano Mobile Silicon, Inc.
++MDTV receiver kernel modules.
++Copyright (C) 2006-2008, Uri Shkolnik, Anatoly Greenblat
++
++This program is free software: you can redistribute it and/or modify
++it under the terms of the GNU General Public License as published by
++the Free Software Foundation, either version 2 of the License, or
++(at your option) any later version.
++
++ This program is distributed in the hope that it will be useful,
++but WITHOUT ANY WARRANTY; without even the implied warranty of
++MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++GNU General Public License for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program.  If not, see <http://www.gnu.org/licenses/>.
++
++****************************************************************/
++
++#ifndef __SMS_CORE_API_H__
++#define __SMS_CORE_API_H__
+ 
+ #include <linux/version.h>
+ #include <linux/device.h>
+@@ -28,15 +28,23 @@
+ #include <linux/mm.h>
+ #include <linux/scatterlist.h>
+ #include <linux/types.h>
++#include <linux/mutex.h>
++#include <linux/compat.h>
++#include <linux/wait.h>
++#include <linux/timer.h>
++
+ #include <asm/page.h>
+-#include <linux/mutex.h>
+-#include "compat.h"
+ 
++/* #include "smsir.h" */
++
++#define SMS_DVB3_SUBSYS
++#ifdef SMS_DVB3_SUBSYS
+ #include "dmxdev.h"
+ #include "dvbdev.h"
+ #include "dvb_demux.h"
+ #include "dvb_frontend.h"
+ 
++#endif
+ 
+ #define kmutex_init(_p_) mutex_init(_p_)
+ #define kmutex_lock(_p_) mutex_lock(_p_)
+@@ -598,4 +606,4 @@ int smscore_led_state(struct smscore_dev
+ 	dprintk(KERN_DEBUG, DBG_ADV, fmt, ##arg)
+ 
+ 
+-#endif /* __smscoreapi_h__ */
++#endif /* __SMS_CORE_API_H__ */
 
-This patch set touches many different drivers and I can't test any of
-them. My only TV card with an IR receiver doesn't make use of
-ir-kbd-i2c. So I would warmly welcome testers. The more testing my
-changes can get, the better.
 
-And of course I welcome reviews and comments as well. I had to touch
-many drivers I don't know anything about so it is possible that I
-missed something.
 
-I'll post all 6 patches as replies to this post. They can also be
-temporarily downloaded from:
-  http://jdelvare.pck.nerim.net/linux/ir-kbd-i2c/
-Additionally I've put a combined patch there, to make testing easier:
-  http://jdelvare.pck.nerim.net/linux/ir-kbd-i2c/ir-kbd-i2c-conversion-ALL-IN-ONE.patch
-But for review the individual patches are much better.
-
-Thanks,
--- 
-Jean Delvare
+      
