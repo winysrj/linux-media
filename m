@@ -1,86 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.29]:36141 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751741AbZDNMwk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Apr 2009 08:52:40 -0400
-Received: by yx-out-2324.google.com with SMTP id 31so2642491yxl.1
-        for <linux-media@vger.kernel.org>; Tue, 14 Apr 2009 05:52:38 -0700 (PDT)
+Received: from web110804.mail.gq1.yahoo.com ([67.195.13.227]:31278 "HELO
+	web110804.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752525AbZDEI0x convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Apr 2009 04:26:53 -0400
+Message-ID: <205937.93854.qm@web110804.mail.gq1.yahoo.com>
+Date: Sun, 5 Apr 2009 01:26:50 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH] [0904_5] Siano: core header - indentation
+To: LinuxML <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <49E40322.5040600@orthfamily.net>
-References: <49E40322.5040600@orthfamily.net>
-Date: Tue, 14 Apr 2009 08:52:38 -0400
-Message-ID: <412bdbff0904140552m52c0106q960f7c0ee40757c@mail.gmail.com>
-Subject: Re: [linux-dvb] Pinnacle HD Stick (801e SE) and i2c issues
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 13, 2009 at 11:29 PM, John Orth <john@orthfamily.net> wrote:
-> First, thanks to all for the wonderful v4l project.  I am able to get
-> this card going in Ubuntu 9.04 on my laptop (Dell Vostro 1700) with no
-> changes apart from copying the correct firmware.  What fantastic
-> progress. :)
->
-> I have been trying very hard to get this USB tuner to work on my Asus
-> M3A78-EM board in Ubuntu 9.04 with no success.  I have tried the stock
-> Jaunty kernel, the mainline (vanilla?) kernel, the included kernel
-> modules, and modules compiled from v4l Mercurial with no success.
-> Generally speaking, after a cold boot, the stick will work for a while.
-> It will scan channels, lock one or two, and then I will receive a filter
-> timeout.  Once the filter has timed out, not even a cold boot will
-> revive the stick.  I have to power down the system, remove the stick,
-> and place it in a different USB port.  Once I have done this, I am able
-> to filter/lock with varying degrees of success.  Sometimes it will allow
-> me to generate a full channels.conf, sometimes not.  However, once
-> hitting the "filter timeout" error, dmesg gets flooded with:
->
-> ---
-> s5h1411_writereg: writereg error 0x19 0xf5 0x0000, ret == 0)
-> dib0700: i2c write error (status = -108)
-> ---
->
-> The filter timeout occurs after running "scan tuning.dat > channels.conf"
-> The file tuning.dat is generated via "w_scan -fa -x > tuning.dat"
->
-> The firmware dvb-fe-xc5000-1.1.fw was copied to /lib/firmware per the
-> v4l Wiki instructions.
->
-> lspci of working system:  http://pastebin.com/f31efd30a
-> lspci of non-working system:  http://pastebin.com/fa80c2f7
->
-> Is there something major I'm overlooking?  Are there any known issues
-> with this hardware combination?  I am willing to test any changes to the
-> xc5000 driver if needed.
->
-> Thanks!
-> John
 
-Hello John,
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1238692457 -10800
+# Node ID eb9fed366b2bb2b8a99760f52b9c0e40d72a71e0
+# Parent  83b19eba46dd4f8253d02c26db4f42728d60e28f
+[PATCH] [0904_5] Siano: core header - indentation
 
-I added support for that device.  A couple of questions:
+From: Uri Shkolnik <uris@siano-ms.com>
 
-1.  Are you sure the port on the PC supports USB 2.0?
+Some more indentation for the smscoreapi.h
+There are no implementation changes in this patch.
 
-2.  Which application are you using to test with?
+Priority: normal
 
-3.  Are you doing anything with suspend/resume on the PC?
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
 
-4.  Are you plugged directly into the USB port, or are you using any
-sort of USB extension cable?
+diff -r 83b19eba46dd -r eb9fed366b2b linux/drivers/media/dvb/siano/smscoreapi.h
+--- a/linux/drivers/media/dvb/siano/smscoreapi.h	Thu Apr 02 20:07:49 2009 +0300
++++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Thu Apr 02 20:14:17 2009 +0300
+@@ -55,14 +55,14 @@ along with this program.  If not, see <h
+ #define min(a, b) (((a) < (b)) ? (a) : (b))
+ #endif
+ 
+-#define SMS_PROTOCOL_MAX_RAOUNDTRIP_MS				(10000)
+-#define SMS_ALLOC_ALIGNMENT					128
+-#define SMS_DMA_ALIGNMENT					16
++#define SMS_PROTOCOL_MAX_RAOUNDTRIP_MS			(10000)
++#define SMS_ALLOC_ALIGNMENT				128
++#define SMS_DMA_ALIGNMENT				16
+ #define SMS_ALIGN_ADDRESS(addr) \
+ 	((((uintptr_t)(addr)) + (SMS_DMA_ALIGNMENT-1)) & ~(SMS_DMA_ALIGNMENT-1))
+ 
+-#define SMS_DEVICE_FAMILY2					1
+-#define SMS_ROM_NO_RESPONSE					2
++#define SMS_DEVICE_FAMILY2				1
++#define SMS_ROM_NO_RESPONSE				2
+ #define SMS_DEVICE_NOT_READY				0x8000000
+ 
+ enum sms_device_type_st {
+@@ -93,13 +93,13 @@ struct smscore_buffer_t {
+ struct smscore_buffer_t {
+ 	/* public members, once passed to clients can be changed freely */
+ 	struct list_head entry;
+-	int				size;
+-	int				offset;
++	int size;
++	int offset;
+ 
+ 	/* private members, read-only for clients */
+-	void			*p;
+-	dma_addr_t		phys;
+-	unsigned long	offset_in_common;
++	void *p;
++	dma_addr_t phys;
++	unsigned long offset_in_common;
+ };
+ 
+ struct smsdevice_params_t {
+@@ -126,7 +126,6 @@ struct smsclient_params_t {
+ 	int data_type;
+ 	onresponse_t onresponse_handler;
+ 	onremove_t onremove_handler;
+-
+ 	void *context;
+ };
+ 
+@@ -262,13 +261,14 @@ struct smscore_device_t {
+ #define MSG_SMS_SIGNAL_DETECTED_IND			827
+ #define MSG_SMS_NO_SIGNAL_IND				828
+ 
+-
+ #define SMS_INIT_MSG_EX(ptr, type, src, dst, len) do { \
+ 	(ptr)->msgType = type; (ptr)->msgSrcId = src; (ptr)->msgDstId = dst; \
+ 	(ptr)->msgLength = len; (ptr)->msgFlags = 0; \
+ } while (0)
++
+ #define SMS_INIT_MSG(ptr, type, len) \
+ 	SMS_INIT_MSG_EX(ptr, type, 0, HIF_TASK, len)
++
+ enum SMS_DVB3_EVENTS {
+ 	DVB3_EVENT_INIT = 0,
+ 	DVB3_EVENT_SLEEP,
+@@ -324,11 +324,12 @@ struct SmsVersionRes_ST {
+ 	u8 Step; /* 0 - Step A */
+ 	u8 MetalFix; /* 0 - Metal 0 */
+ 
+-	u8 FirmwareId; /* 0xFF ï¿½ ROM, otherwise the
+-	 * value indicated by
+-	 * SMSHOSTLIB_DEVICE_MODES_E */
+-	u8 SupportedProtocols; /* Bitwise OR combination of
++	/* FirmwareId 0xFF if ROM, otherwise the
++	 * value indicated by SMSHOSTLIB_DEVICE_MODES_E */
++	u8 FirmwareId;
++	/* SupportedProtocols Bitwise OR combination of
+ 	 * supported protocols */
++	u8 SupportedProtocols;
+ 
+ 	u8 VersionMajor;
+ 	u8 VersionMinor;
+@@ -362,10 +363,12 @@ struct SMSHOSTLIB_STATISTICS_ST {
+ 	s32 SNR; /* dB */
+ 	u32 BER; /* Post Viterbi BER [1E-5] */
+ 	u32 FIB_CRC; /* CRC errors percentage, valid only for DAB */
+-	u32 TS_PER; /* Transport stream PER, 0xFFFFFFFF indicate N/A,
++	/* Transport stream PER, 0xFFFFFFFF indicate N/A,
+ 	 * valid only for DVB-T/H */
+-	u32 MFER; /* DVB-H frame error rate in percentage,
++	u32 TS_PER;
++	/* DVB-H frame error rate in percentage,
+ 	 * 0xFFFFFFFF indicate N/A, valid only for DVB-H */
++	u32 MFER;
+ 	s32 RSSI; /* dBm */
+ 	s32 InBandPwr; /* In band power in dBM */
+ 	s32 CarrierOffset; /* Carrier Offset in bin/1024 */
+@@ -373,8 +376,9 @@ struct SMSHOSTLIB_STATISTICS_ST {
+ 	/* Transmission parameters, valid only for DVB-T/H */
+ 	u32 Frequency; /* Frequency in Hz */
+ 	u32 Bandwidth; /* Bandwidth in MHz */
+-	u32 TransmissionMode; /* Transmission Mode, for DAB modes 1-4,
++	/* Transmission Mode, for DAB modes 1-4,
+ 	 * for DVB-T/H FFT mode carriers in Kilos */
++	u32 TransmissionMode;
+ 	u32 ModemState; /* from SMS_DvbModemState_ET */
+ 	u32 GuardInterval; /* Guard Interval, 1 divided by value */
+ 	u32 CodeRate; /* Code Rate from SMS_DvbModemState_ET */
 
-Once I know the answers to the above questions, I will see what I can
-figure out.
 
-Regards,
 
-Devin
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+      
