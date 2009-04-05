@@ -1,78 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:57108 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758871AbZDJLbo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Apr 2009 07:31:44 -0400
-Message-ID: <49DF2EBB.4020602@redhat.com>
-Date: Fri, 10 Apr 2009 13:34:19 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Adam Baker <linux@baker-net.org.uk>
-CC: linux-media@vger.kernel.org, Hans de Goede <j.w.r.degoede@hhs.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	kilgota@banach.math.auburn.edu, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v2 4/4] Add support to libv4l to use orientation from
- VIDIOC_ENUMINPUT
-References: <200903292309.31267.linux@baker-net.org.uk> <200903292322.08660.linux@baker-net.org.uk> <200903292325.16499.linux@baker-net.org.uk> <200903292328.09957.linux@baker-net.org.uk>
-In-Reply-To: <200903292328.09957.linux@baker-net.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1407 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751694AbZDESTu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Apr 2009 14:19:50 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id n35IJlhb003236
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 5 Apr 2009 20:19:47 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 5 Apr 2009 20:19:47 +0200 (CEST)
+Message-Id: <200904051819.n35IJlhb003236@smtp-vbr14.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: OK, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I've applied this to my tree, it will be part of the next libv4l
-release.
+Results of the daily build of v4l-dvb:
 
-Regards,
+date:        Sun Apr  5 19:00:09 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11392:151524ab300a
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Hans
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29-i686: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29-m32r: OK
+linux-2.6.22.19-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29-mips: OK
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29-powerpc64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29-x86_64: OK
+fw/apps: OK
+sparse (linux-2.6.29): OK
+linux-2.6.16.61-i686: WARNINGS
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
-On 03/30/2009 12:28 AM, Adam Baker wrote:
-> Add check to libv4l of the sensor orientation as reported by
-> VIDIOC_ENUMINPUT
->
-> Signed-off-by: Adam Baker<linux@baker-net.org.uk>
->
-> ---
-> diff -r a647c2dfa989 v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert.c
-> --- a/v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert.c	Tue Jan 20 11:25:54 2009 +0100
-> +++ b/v4l2-apps/lib/libv4l/libv4lconvert/libv4lconvert.c	Sun Mar 29 22:59:56 2009 +0100
-> @@ -29,6 +29,11 @@
->   #define MIN(a,b) (((a)<(b))?(a):(b))
->   #define ARRAY_SIZE(x) ((int)sizeof(x)/(int)sizeof((x)[0]))
->
-> +/* Workaround this potentially being missing from videodev2.h */
-> +#ifndef V4L2_IN_ST_VFLIP
-> +#define V4L2_IN_ST_VFLIP       0x00000020 /* Output is flipped vertically */
-> +#endif
-> +
->   /* Note for proper functioning of v4lconvert_enum_fmt the first entries in
->     supported_src_pixfmts must match with the entries in supported_dst_pixfmts */
->   #define SUPPORTED_DST_PIXFMTS \
-> @@ -134,6 +139,7 @@
->     int i, j;
->     struct v4lconvert_data *data = calloc(1, sizeof(struct v4lconvert_data));
->     struct v4l2_capability cap;
-> +  struct v4l2_input input;
->
->     if (!data)
->       return NULL;
-> @@ -161,6 +167,13 @@
->
->     /* Check if this cam has any special flags */
->     data->flags = v4lconvert_get_flags(data->fd);
-> +  if ((syscall(SYS_ioctl, fd, VIDIOC_G_INPUT,&input.index) == 0)&&
-> +      (syscall(SYS_ioctl, fd, VIDIOC_ENUMINPUT,&input) == 0)) {
-> +    /* Don't yet support independent HFLIP and VFLIP so getting
-> +     * image the right way up is highest priority. */
-> +    if (input.status&  V4L2_IN_ST_VFLIP)
-> +      data->flags |= V4LCONVERT_ROTATE_180;
-> +  }
->     if (syscall(SYS_ioctl, fd, VIDIOC_QUERYCAP,&cap) == 0) {
->       if (!strcmp((char *)cap.driver, "uvcvideo"))
->         data->flags |= V4LCONVERT_IS_UVC;
->
->
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
