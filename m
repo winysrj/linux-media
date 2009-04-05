@@ -1,61 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:52087 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755894AbZDTPso (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 11:48:44 -0400
-Date: Mon, 20 Apr 2009 12:48:39 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Uri Shkolnik <urishk@yahoo.com>
-Cc: LinuxML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] [0904_8] Siano: add messages handling for big-endian
- target
-Message-ID: <20090420124839.72121ed1@pedra.chehab.org>
-In-Reply-To: <204559.6386.qm@web110811.mail.gq1.yahoo.com>
-References: <204559.6386.qm@web110811.mail.gq1.yahoo.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mailfilter11.ihug.co.nz ([203.109.136.11]:24971 "EHLO
+	mailfilter11.ihug.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756368AbZDEAyq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Apr 2009 20:54:46 -0400
+Message-ID: <49D7FF4F.3020707@kahusoft.com>
+Date: Sun, 05 Apr 2009 12:46:07 +1200
+From: Kevin Wells <kevin.wells@kahusoft.com>
+MIME-Version: 1.0
+To: Steven Toth <stoth@linuxtv.org>
+CC: linux-media@vger.kernel.org
+Subject: [PATCH 1/4] tm6000: Remove reference to em28xx from error message.
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 5 Apr 2009 01:59:50 -0700 (PDT)
-Uri Shkolnik <urishk@yahoo.com> wrote:
+# HG changeset patch
+# User Kevin Wells <kevin.wells@kahusoft.com>
+# Date 1238839620 -46800
+# Node ID a293d5babca03bb5a7f21ecb659d55e447194e49
+# Parent  3d58b6531a818aafdacde895c34e4517a4dc4104
+Remove reference to em28xx from error message.
 
-> 
-> Add code that modify the content of Siano's protocol
-> messages when running with big-endian target.
+From: Kevin Wells <kevin.wells@kahusoft.com>
 
-Maybe due to one of the other patches that weren't applied, but this one didn't compile: 
+Priority: normal
 
-/home/v4l/master/v4l/smsdvb.c:49: error: field 'sms_stat_dvb' has incomplete type
-/home/v4l/master/v4l/smsdvb.c: In function 'smsdvb_onresponse':
-/home/v4l/master/v4l/smsdvb.c:95: error: invalid application of 'sizeof' to incomplete type 'struct TRANSMISSION_STATISTICS_S' 
-/home/v4l/master/v4l/smsdvb.c:95: error: invalid application of 'sizeof' to incomplete type 'struct TRANSMISSION_STATISTICS_S' 
-/home/v4l/master/v4l/smsdvb.c:101: error: implicit declaration of function 'CORRECT_STAT_BANDWIDTH'
-/home/v4l/master/v4l/smsdvb.c:102: error: implicit declaration of function 'CORRECT_STAT_TRANSMISSON_MODE'
-/home/v4l/master/v4l/smsdvb.c:109: error: storage size of 'SignalStatusData' isn't known
-/home/v4l/master/v4l/smsdvb.c:125: error: dereferencing pointer to incomplete type
-/home/v4l/master/v4l/smsdvb.c:126: error: dereferencing pointer to incomplete type
-/home/v4l/master/v4l/smsdvb.c:127: error: dereferencing pointer to incomplete type
-/home/v4l/master/v4l/smsdvb.c:128: error: dereferencing pointer to incomplete type
-/home/v4l/master/v4l/smsdvb.c:129: error: dereferencing pointer to incomplete type
-/home/v4l/master/v4l/smsdvb.c:130: error: dereferencing pointer to incomplete type
-/home/v4l/master/v4l/smsdvb.c:131: error: implicit declaration of function 'CORRECT_STAT_RSSI'
-/home/v4l/master/v4l/smsdvb.c:133: error: dereferencing pointer to incomplete type
-/home/v4l/master/v4l/smsdvb.c:134: error: dereferencing pointer to incomplete type
-/home/v4l/master/v4l/smsdvb.c:135: error: dereferencing pointer to incomplete type
-/home/v4l/master/v4l/smsdvb.c:136: error: dereferencing pointer to incomplete type
-/home/v4l/master/v4l/smsdvb.c:141: error: dereferencing pointer to incomplete type
-/home/v4l/master/v4l/smsdvb.c:145: error: dereferencing pointer to incomplete type
-/home/v4l/master/v4l/smsdvb.c:148: error: dereferencing pointer to incomplete type
-/home/v4l/master/v4l/smsdvb.c:149: error: dereferencing pointer to incomplete type
-/home/v4l/master/v4l/smsdvb.c:151: error: dereferencing pointer to incomplete type
-/home/v4l/master/v4l/smsdvb.c:152: error: dereferencing pointer to incomplete type
-/home/v4l/master/v4l/smsdvb.c:153: error: dereferencing pointer to incomplete type
-/home/v4l/master/v4l/smsdvb.c:109: warning: unused variable 'SignalStatusData'
-make[3]: *** [/home/v4l/master/v4l/smsdvb.o] Error 1
+Signed-off-by: Kevin Wells <kevin.wells@kahusoft.com>
 
-
-Cheers,
-Mauro
+diff -r 3d58b6531a81 -r a293d5babca0 
+linux/drivers/media/video/tm6000/tm6000-cards.c
+--- a/linux/drivers/media/video/tm6000/tm6000-cards.c    Fri Nov 28 
+08:39:00 2008 -0200
++++ b/linux/drivers/media/video/tm6000/tm6000-cards.c    Sat Apr 04 
+23:07:00 2009 +1300
+@@ -378,7 +378,7 @@
+     /* Check to see next free device and mark as used */
+     nr=find_first_zero_bit(&tm6000_devused,TM6000_MAXBOARDS);
+     if (nr >= TM6000_MAXBOARDS) {
+-        printk ("tm6000: Supports only %i em28xx 
+boards.\n",TM6000_MAXBOARDS);
++        printk("tm6000: Only supports %i boards.\n", TM6000_MAXBOARDS);
+         usb_put_dev(usbdev);
+         return -ENOMEM;
+     }
