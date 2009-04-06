@@ -1,214 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:58838 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752219AbZDTSx5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 14:53:57 -0400
-Date: Mon, 20 Apr 2009 15:53:52 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Uri Shkolnik <urishk@yahoo.com>
-Cc: LinuxML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] [0904_13] Siano: move DVB_API and remove redundant code
-Message-ID: <20090420155352.2b4f565e@pedra.chehab.org>
-In-Reply-To: <490244.50773.qm@web110815.mail.gq1.yahoo.com>
-References: <490244.50773.qm@web110815.mail.gq1.yahoo.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:1971 "EHLO
+	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750909AbZDFO5S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 10:57:18 -0400
+Message-ID: <60676.207.214.87.58.1239029832.squirrel@webmail.xs4all.nl>
+Date: Mon, 6 Apr 2009 16:57:12 +0200 (CEST)
+Subject: RE: [PATCH 3/3] V4L2 Driver for OMAP3/3 DSS.
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Shah, Hardik" <hardik.shah@ti.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Jadav, Brijesh R" <brijesh.j@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 20 Apr 2009 11:24:11 -0700 (PDT)
-Uri Shkolnik <urishk@yahoo.com> wrote:
 
-> 
-> 
-> 
-> --- On Mon, 4/20/09, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
-> 
-> > From: Mauro Carvalho Chehab <mchehab@infradead.org>
-> > Subject: Re: [PATCH] [0904_13] Siano: move DVB_API and remove redundant code
-> > To: "Uri Shkolnik" <urishk@yahoo.com>
-> > Cc: "LinuxML" <linux-media@vger.kernel.org>
-> > Date: Monday, April 20, 2009, 9:19 PM
-> > On Mon, 20 Apr 2009 11:07:57 -0700
-> > (PDT)
-> > Uri Shkolnik <urishk@yahoo.com>
-> > wrote:
-> > 
-> > > 
-> > > 
-> > > 
-> > > --- On Mon, 4/20/09, Mauro Carvalho Chehab <mchehab@infradead.org>
-> > wrote:
-> > > 
-> > > > From: Mauro Carvalho Chehab <mchehab@infradead.org>
-> > > > Subject: Re: [PATCH] [0904_13] Siano: move
-> > DVB_API and remove redundant code
-> > > > To: "Uri Shkolnik" <urishk@yahoo.com>
-> > > > Cc: "LinuxML" <linux-media@vger.kernel.org>
-> > > > Date: Monday, April 20, 2009, 9:02 PM
-> > > > On Sun, 5 Apr 2009 03:31:32 -0700
-> > > > (PDT)
-> > > > Uri Shkolnik <urishk@yahoo.com>
-> > > > wrote:
-> > > > 
-> > > > > 
-> > > > > # HG changeset patch
-> > > > > # User Uri Shkolnik <uris@siano-ms.com>
-> > > > > # Date 1238755204 -10800
-> > > > > # Node ID
-> > f65a29f0f9a66f82a91525ae0085a15f00ac91c2
-> > > > > # Parent 
-> > > > 897669fdeb3be75a2bde978557b5398a4a7d8914
-> > > > > [PATCH] [0904_13] Siano: move DVB_API and
-> > remove
-> > > > redundant code
-> > > > > 
-> > > > > From: Uri Shkolnik <uris@siano-ms.com>
-> > > > > 
-> > > > > The DVB-API related information has been
-> > moved from
-> > > > the core header
-> > > > > to the smsdvb, and the redundant code has
-> > been removed
-> > > > from the
-> > > > > core header.
-> > > > > 
-> > > > > This code has been moved since it is used
-> > only by
-> > > > > the smsdvb client component.
-> > > > 
-> > > > This patch depends on the previous patches that I
-> > asked
-> > > > some changes. Please
-> > > > re-submit it together with the other patches that
-> > weren't
-> > > > committed. It is
-> > > > probably not much valuable to commit the later
-> > patches, so
-> > > > I'll stop analysing
-> > > > the code here.
-> > > > 
-> > > > The patch itself looks sane to my eyes.
-> > > > > 
-> > > > > Priority: normal
-> > > > > 
-> > > > > Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-> > > > > 
-> > > > > diff -r 897669fdeb3b -r f65a29f0f9a6
-> > > > linux/drivers/media/dvb/siano/smscoreapi.h
-> > > > > ---
-> > > >
-> > a/linux/drivers/media/dvb/siano/smscoreapi.h   
-> > > > Fri Apr 03 13:31:13 2009 +0300
-> > > > > +++
-> > > >
-> > b/linux/drivers/media/dvb/siano/smscoreapi.h   
-> > > > Fri Apr 03 13:40:04 2009 +0300
-> > > > > @@ -36,15 +36,6 @@ along with this
-> > program.  If
-> > > > not, see <h
-> > > > >  #include <asm/page.h>
-> > > > >  
-> > > > >  /* #include "smsir.h" */
-> > > > > -
-> > > > > -#define SMS_DVB3_SUBSYS
-> > > > > -#ifdef SMS_DVB3_SUBSYS
-> > > > > -#include "dmxdev.h"
-> > > > > -#include "dvbdev.h"
-> > > > > -#include "dvb_demux.h"
-> > > > > -#include "dvb_frontend.h"
-> > > > > -
-> > > > > -#endif
-> > > > >  
-> > > > >  #define kmutex_init(_p_) mutex_init(_p_)
-> > > > >  #define kmutex_lock(_p_) mutex_lock(_p_)
-> > > > > diff -r 897669fdeb3b -r f65a29f0f9a6
-> > > > linux/drivers/media/dvb/siano/smsdvb.c
-> > > > > ---
-> > > > a/linux/drivers/media/dvb/siano/smsdvb.c   
-> > > > Fri Apr 03 13:31:13 2009 +0300
-> > > > > +++
-> > > > b/linux/drivers/media/dvb/siano/smsdvb.c   
-> > > > Fri Apr 03 13:40:04 2009 +0300
-> > > > > @@ -22,6 +22,11 @@ along with this
-> > program.  If
-> > > > not, see <h
-> > > > >  #include <linux/module.h>
-> > > > >  #include <linux/init.h>
-> > > > >  #include <asm/byteorder.h>
-> > > > > +
-> > > > > +#include "dmxdev.h"
-> > > > > +#include "dvbdev.h"
-> > > > > +#include "dvb_demux.h"
-> > > > > +#include "dvb_frontend.h"
-> > > > >  
-> > > > >  #include "smscoreapi.h"
-> > > > >  /*#include "smsendian.h"*/
-> > > > > @@ -52,7 +57,7 @@ struct smsdvb_client_t {
-> > > > >      fe_status_t fe_status;
-> > > > >      int fe_ber, fe_snr, fe_unc,
-> > > > fe_signal_strength;
-> > > > >  
-> > > > > -    struct completion tune_done,
-> > > > stat_done;
-> > > > > +    struct completion tune_done;
-> > > > >  
-> > > > >      /* todo: save freq/band
-> > > > instead whole struct */
-> > > > >      struct
-> > > > dvb_frontend_parameters fe_params;
-> > > > > 
-> > > > > 
-> > > > > 
-> > > > >       
-> > > > > --
-> > > > > To unsubscribe from this list: send the
-> > line
-> > > > "unsubscribe linux-media" in
-> > > > > the body of a message to majordomo@vger.kernel.org
-> > > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > > > 
-> > > > 
-> > > > 
-> > > > 
-> > > > Cheers,
-> > > > Mauro
-> > > > 
-> > > 
-> > > OK
-> > > 
-> > > I'll submit patches to fix the various rejects on the
-> > coming Wednesday (I'm ooo tomorrow).
-> > > 
-> > > BTW - is it possible for me to clone the current tree
-> > you currently have? (after applying the approved patches),
-> > it will help me for future patches.
-> > 
-> > Sure. The better is to apply your patches over the fresh
-> > clone. You can use
-> > the ./hgimport script to help you to pick the patches from
-> > your old tree.
-> > 
-> > Cheers,
-> > Mauro
-> > 
-> 
-> Regarding the ./hgimport script - how do I tell that script to refer to your tree and not to any other hg tree? Isn't the default look-up is the dvb-api trunk?
+> Hi Hans,
+> Please find my comments inline. Most of the comments are taken care of.
 
-It has no defaults. You can point it to a remote URL or to a local path.
-> 
-> 
-> Regards,
-> 
-> Uri
-> 
-> 
->       
+> 2.  In DSS rotation is accomplished by some memory algorithm but its quite
+> costly so -1 is essentially same as 0 degree but with out the overhead.
+> But if mirroring is on then we have to do the 0 degree rotation with
+> overhead using some memory techniques.  So from user point of view he will
+> only be setting 0 but internally driver will take it as -1 or 0 depending
+> upon the mirroring selected.
 
+Hi Hardik,
 
+I just looked over these comments and I'll do a full review in the weekend
+when I'm back from San Francisco. But just one quick remark regarding this
+magic -1 number: wouldn't it be better to write a small inline function
+like this:
 
+/* return true if we need to rotate or mirror, return false if we
+   don't have to do anything here. */
+static inline int needs_rotate(struct foo *foo)
+{
+    return foo->rotate != 0 || foo->mirror;
+}
 
-Cheers,
-Mauro
+I think this is much more understandable. It's up to you, though.
+
+Regards,
+
+        Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
