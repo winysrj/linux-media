@@ -1,68 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.30]:40822 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756827AbZDNPyc convert rfc822-to-8bit (ORCPT
+Received: from mail-in-12.arcor-online.net ([151.189.21.52]:50538 "EHLO
+	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752391AbZDFBxN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Apr 2009 11:54:32 -0400
-Received: by yx-out-2324.google.com with SMTP id 31so2720550yxl.1
-        for <linux-media@vger.kernel.org>; Tue, 14 Apr 2009 08:54:31 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <49E492D0.3070101@orthfamily.net>
-References: <49E40322.5040600@orthfamily.net>
-	 <412bdbff0904140552m52c0106q960f7c0ee40757c@mail.gmail.com>
-	 <49E492D0.3070101@orthfamily.net>
-Date: Tue, 14 Apr 2009 11:54:31 -0400
-Message-ID: <412bdbff0904140854x69a700a5pcbff84853ef9f8dd@mail.gmail.com>
-Subject: Re: [linux-dvb] Pinnacle HD Stick (801e SE) and i2c issues
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: John Orth <john@orthfamily.net>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Sun, 5 Apr 2009 21:53:13 -0400
+Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
+	model
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andy Walls <awalls@radix.net>
+Cc: Jean Delvare <khali@linux-fr.org>, Janne Grunau <j@jannau.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mike Isely <isely@pobox.com>, isely@isely.net,
+	LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jarod Wilson <jarod@redhat.com>
+In-Reply-To: <1238968804.4647.22.camel@morgan.walls.org>
+References: <20090404142427.6e81f316@hyperion.delvare>
+	 <Pine.LNX.4.64.0904041045380.32720@cnc.isely.net>
+	 <20090405010539.187e6268@hyperion.delvare>
+	 <200904050746.47451.hverkuil@xs4all.nl> <20090405143748.GC10556@aniel>
+	 <1238953174.3337.12.camel@morgan.walls.org> <20090405183154.GE10556@aniel>
+	 <1238957897.3337.50.camel@morgan.walls.org>
+	 <20090405222250.64ed67ae@hyperion.delvare>
+	 <1238966523.6627.63.camel@pc07.localdom.local>
+	 <1238968804.4647.22.camel@morgan.walls.org>
+Content-Type: text/plain
+Date: Mon, 06 Apr 2009 03:49:57 +0200
+Message-Id: <1238982597.3697.12.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 14, 2009 at 9:42 AM, John Orth <john@orthfamily.net> wrote:
-> Thank you for your prompt response, Devin.
->>
->> 1.  Are you sure the port on the PC supports USB 2.0?
->
-> According to the M3A78-EM spec, all 6 USB ports are 2.0, so I don't think
-> that is the issue.  I will double-check this, though.
->>
->> 2.  Which application are you using to test with?
->
-> I am using MythTV to view video, the "scan" utility from the Ubuntu package
-> dvb-apps, and I compiled "w_scan" from source.
->>
->> 3.  Are you doing anything with suspend/resume on the PC?
->
-> Not at the moment.  The only power save feature I have enabled is turning
-> off the monitor, but these issues occur before the system is idle long
-> enough for that to take place.
->>
->> 4.  Are you plugged directly into the USB port, or are you using any
->> sort of USB extension cable?
->
-> Yes, my 801e SE came with a short (~3") USB extension cable which I am using
-> to snake the device out the back of the media shelf.  Not a huge deal if it
-> needs to be removed, though.
 
-Hmm...  Yeah, don't worry about the 3" cable that came with the 801e.
-I just asked because I've seen 6 foot cables that had issues.
+Hi Andy,
 
-I suspect this is probably some issue with the USB host chipset.  The
-error messages you provided suggest a problem sending commands to the
-dib0700 USB bridge, so this does not appear to be related to the
-s5h1411 or the xc5000.
+Am Sonntag, den 05.04.2009, 18:00 -0400 schrieb Andy Walls:
+> On Sun, 2009-04-05 at 23:22 +0200, hermann pitton wrote:
+> > Am Sonntag, den 05.04.2009, 22:22 +0200 schrieb Jean Delvare:
+> > > On Sun, 05 Apr 2009 14:58:17 -0400, Andy Walls wrote:
+> 
+> 
+> > What can not be translated to the input system I would like to know.
+> > Andy seems to have closer looked into that.
+> 
+> 1. IR blasting: sending IR codes to transmit out to a cable convertor
+> box, DTV to analog convertor box, or similar devices to change channels
+> before recording starts.  An input interface doesn't work well for
+> output.
+> 
+> 2. Sending raw IR samples to user space: user space applications can
+> then decode or match an unknown or non-standard IR remote protocol in
+> user space software.  Timing information to go along with the sample
+> data probably needs to be preserved.   I'm assuming the input interface
+> currently doesn't support that.
+> 
+> That's all the Gerd mentioned.
+> 
+> 
+> One more nice feature to have, that I'm not sure how easily the input
+> system could support:
+> 
+> 3. specifying remote control code to key/button translations with a
+> configuration file instead of recompiling a module.
+> 
+> In effect there are actually two devices the ir-kbd-i2c input driver is
+> supporting in various combinations: an IR receiver and an IR remote.
+> 
+> 
+> Regards,
+> Andy
+> 
 
-I'll have to take a look at the code and see what I can figure out.
-Do other high speed USB devices work with your host without any
-problem (like USB hard drives, etc?)
+you always end up with something transmitting series of 0s and 1s.
 
-Devin
+It does not matter if the medium is infrared, infradead ;), wireless or
+whats or ever.
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+If it spares a chip for the remote and you have to get it from IRQs
+triggered, you have to do that.
+
+It could also be some voltage change, a ultrasound beeper or what ever.
+
+The first place for such is the input layer and nothing out of the
+kernel.
+
+Cheers,
+Hermann
+
+
