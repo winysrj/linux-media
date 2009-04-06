@@ -1,110 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:49035 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752050AbZDWBIY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Apr 2009 21:08:24 -0400
-Subject: Re: [PATCH] FM1216ME_MK3 some changes
-From: Andy Walls <awalls@radix.net>
-To: Dmitri Belimov <d.belimov@gmail.com>
-Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
-In-Reply-To: <20090422174848.1be88f61@glory.loctelecom.ru>
-References: <20090422174848.1be88f61@glory.loctelecom.ru>
-Content-Type: text/plain
-Date: Wed, 22 Apr 2009 22:08:54 -0400
-Message-Id: <1240452534.3232.70.camel@palomino.walls.org>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:18385 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753724AbZDFIyr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 04:54:47 -0400
+Date: Mon, 6 Apr 2009 10:54:36 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Andy Walls <awalls@radix.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Mike Isely <isely@pobox.com>
+Subject: Re: Test results for ir-kbd-i2c.c changes (Re: [PATCH 0/6]
+ ir-kbd-i2c  conversion to the new i2c binding model)
+Message-ID: <20090406105436.05ecaf4d@hyperion.delvare>
+In-Reply-To: <1238977379.2796.19.camel@morgan.walls.org>
+References: <20090404142427.6e81f316@hyperion.delvare>
+	<20090405070116.17ecadef@pedra.chehab.org>
+	<20090405164024.1459e4fe@hyperion.delvare>
+	<1238977379.2796.19.camel@morgan.walls.org>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dmitri,
+Hi Andy,
 
-
-On Wed, 2009-04-22 at 17:48 +1000, Dmitri Belimov wrote:
-> Hi All
-> 
-> 1. Change middle band. In the end of the middle band the sensitivity of receiver not good.
-> If we switch to higher band, sensitivity more better. Hardware trick.
-
-This concerns me slightly as it does not match the datasheet (hence the
-design objectives) of the FM1236ME_MK3.
-
-How are you measuring sensitivity?  Do you know if it really is the
-middle-band preselector filter (and PLL and Mixer) or is it a problem
-with the input signal?  How do you know it is not manufacturing
-variations in the preselector filters with the particular tuner assembly
-you are testing?
-
-Also, as an alternative to using a different frequency for the
-bandswitch, have you considered setting the Auxillary Byte in the tuner
-chip (Infineon TUA6030?) to use external AGC and experimented with
-changing the tuner AGC take-over point (TOP) in the TDA9887?
-
-By maximizing the gain in the tuner chip, but avoiding clipping, with
-the proper TOP setting, you minimize the contributions by the rest of
-the receive chain to the overall receiver Noise Figure:
-
-http://en.wikipedia.org/wiki/Friis_formulas_for_noise
-
-This may be a way to improve receiver sensitivity that does not conflict
-with the data sheet specification.
-
-
-
-
-> 2. Set correct highest freq of the higher band.
-
-:)
-
-This bothers me too; all the tuners in tuner-types.c have it set too
-high (999.0 MHz).  I think I rememeber at time when all the tuner_range
-definitions had a real value there.
-
-It would be nice to have a real value there for all the tuners.  The
-function tuner-simple.c:simple_config_lookup() would then prevent
-attempts to tune to an unsupported frequnecy.
-
-
-
-> 3. Set charge pump bit
-
-This will improve the time to initially tune to a frequency, but will
-likely add some noise as the PLL continues to maintain lock on the
-signal.  If there is no way to turn off the CP after the lock bit is set
-in the tuner, it's probably better to leave it off for lower noise and
-just live with slower tuning.
-
-Leaving the CP bit set should be especially noticable ad FM noise when
-set to tune to FM radio stations.  From the FM1236ME_MK3 datasheet:
-"It is recommended to set CP=0 in the FM mode at all times."
-But the VHF low band control byte is also used when setting FM radio
-(AFAICT with a quick look at the code.)
-
-Regards,
-Andy
-
-> diff -r 43dbc8ebb5a2 linux/drivers/media/common/tuners/tuner-types.c
-> --- a/linux/drivers/media/common/tuners/tuner-types.c	Tue Jan 27 23:47:50 2009 -0200
-> +++ b/linux/drivers/media/common/tuners/tuner-types.c	Tue Apr 21 09:44:38 2009 +1000
-> @@ -557,9 +557,9 @@
->  /* ------------ TUNER_PHILIPS_FM1216ME_MK3 - Philips PAL ------------ */
->  
->  static struct tuner_range tuner_fm1216me_mk3_pal_ranges[] = {
-> -	{ 16 * 158.00 /*MHz*/, 0x8e, 0x01, },
-> -	{ 16 * 442.00 /*MHz*/, 0x8e, 0x02, },
-> -	{ 16 * 999.99        , 0x8e, 0x04, },
-> +	{ 16 * 158.00 /*MHz*/, 0xc6, 0x01, },
-> +	{ 16 * 441.00 /*MHz*/, 0xc6, 0x02, },
-> +	{ 16 * 864.00        , 0xc6, 0x04, },
->  };
->  
+On Sun, 05 Apr 2009 20:22:59 -0400, Andy Walls wrote:
+> I tested your original patch set so you can get some real feedback.  The
+> news is good, but I'll bore you with the details first. :)
 > 
 > 
-> Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+> 1. My setup:
 > 
-> With my best regards, Dmitry.
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
+> HVR-1600: Hauppauge model 74041, rev C5B2, serial# 891351
+>   has no radio, has IR receiver, has IR transmitter (Zilog Z8F0811)
+> 
+> Hauppauge Remote: Grey top side & black bottom side;
+>   with 4 colored buttons Red, Green, Yellow, Blue;
+>   Numbers inside battery cover:
+> 	A415-HPG
+> 	M25909070211590
+> 
+> uname -a: 
+> Linux morgan.walls.org 2.6.27.9-73.fc9.x86_64 #1 SMP Tue Dec 16 14:54:03
+> EST 2008 x86_64 x86_64 x86_64 GNU/Linux
+> 
+> v4l-dvb: pulled this morning.
+> 
+> 
+> 2. OK, my first test had no effect, because I'm an idiot. :)
+> In the cx18 driver, I didn't remove the I2C addresses in your original
+> patch, and I didn't add 0x71 as a valid address.
+> 
+> 
+> 
+> 3. My second test had bad results:
+> 
+> # modprobe ir-kbd-i2c debug=3 hauppauge=1
+> 
+> Message from syslogd@morgan at Apr  5 18:47:14 ...
+> kernel:Oops: 0010 [1] SMP 
+> 
+> Message from syslogd@morgan at Apr  5 18:47:14 ...
+> kernel:Code:  Bad RIP value.
+> 
+> Message from syslogd@morgan at Apr  5 18:47:14 ...
+> kernel:CR2: 0000000000000000
+> 
+> 
+> input: i2c IR (SAA713x remote) as /devices/virtual/input/input6
+> ir-kbd-i2c: i2c IR (SAA713x remote) detected at i2c-1/1-0071/ir0 [cx18 i2c driver #0-0]
+> ir-kbd-i2c: ir_poll_key
+> BUG: unable to handle kernel NULL pointer dereference at 0000000000000000
+> IP: [<0000000000000000>] 0x0
+> PGD 71c36067 PUD 2cca2067 PMD 0 
+> Oops: 0010 [1] SMP 
+> CPU 0 
+> Modules linked in: ir_kbd_i2c(+) ir_common mxl5005s s5h1409 tuner_simple tuner_types cs5345 tuner cx18 dvb_core cx2341x v4l2_common videodev v4l1_compat v4l2_compat_ioctl32 tveeprom i2c_algo_bit fuse ipt_REJECT nf_conntrack_ipv4 iptable_filter ip_tables ip6t_REJECT xt_tcpudp nf_conntrack_ipv6 xt_state nf_conntrack ip6table_filter ip6_tables x_tables cpufreq_ondemand powernow_k8 freq_table loop dm_multipath scsi_dh ipv6 snd_hda_intel snd_seq_dummy snd_seq_oss snd_seq_midi_event snd_seq snd_seq_device snd_pcm_oss snd_mixer_oss snd_pcm i2c_piix4 snd_timer snd_page_alloc ppdev parport_pc snd_hwdep i2c_core shpchp parport pcspkr snd soundcore sr_mod r8169 mii k8temp hwmon cdrom sg floppy dm_snapshot dm_zero dm_mirror dm_log dm_mod pata_acpi ata_generic pata_atiixp libata sd_mod scsi_mod crc_t10dif ext3 jbd mbcache uhci_hcd ohci_hcd ehci_hcd [last unloaded: tveeprom]
+> Pid: 9, comm: events/0 Not tainted 2.6.27.9-73.fc9.x86_64 #1
+> RIP: 0010:[<0000000000000000>]  [<0000000000000000>] 0x0
+> RSP: 0018:ffff880077bede58  EFLAGS: 00010286
+> RAX: 000000000000001b RBX: ffff88005e73ee30 RCX: 000000000000ccc6
+> RDX: ffffffffa031ba00 RSI: ffffffffa031ba04 RDI: ffff88005e73ec00
+> RBP: ffff880077bede80 R08: ffff880077bec000 R09: 000000000000ccc6
+> R10: 00000126a7e22b3d R11: ffff880073159bd8 R12: ffff88005e73ec00
+> R13: 0000000000000064 R14: ffffffffa0318371 R15: ffff880077804908
+> FS:  00007fa0409126f0(0000) GS:ffffffff814ad100(0000) knlGS:0000000000000000
+> CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
+> CR2: 0000000000000000 CR3: 00000000569f6000 CR4: 00000000000006e0
+> DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+> Process events/0 (pid: 9, threadinfo ffff880077bec000, task ffff880077bbdb80)
+> Stack:  ffffffffa03183df ffff880077bede80 ffff88005e73ee38 ffff880077804900
+>  ffff88005e73ee30 ffff880077bedec0 ffffffff8104fe45 ffff880077bedec0
+>  ffff880077804900 ffff880077804918 ffff880077804908 ffff880077beded0
+> Call Trace:
+>  [<ffffffffa03183df>] ? ir_work+0x6e/0xd2 [ir_kbd_i2c]
+>  [<ffffffff8104fe45>] run_workqueue+0xa3/0x146
+>  [<ffffffff8104ffdd>] worker_thread+0xf5/0x109
+>  [<ffffffff81053741>] ? autoremove_wake_function+0x0/0x38
+>  [<ffffffff8104fee8>] ? worker_thread+0x0/0x109
+>  [<ffffffff810533d7>] kthread+0x49/0x76
+>  [<ffffffff810116e9>] child_rip+0xa/0x11
+>  [<ffffffff81010a07>] ? restore_args+0x0/0x30
+>  [<ffffffff8105338e>] ? kthread+0x0/0x76
+>  [<ffffffff810116df>] ? child_rip+0x0/0x11
+> 
+> 
+> Code:  Bad RIP value.
+> RIP  [<0000000000000000>] 0x0
+>  RSP <ffff880077bede58>
+> CR2: 0000000000000000
+> ---[ end trace 6076b08e85151d70 ]---
+> 
+> 
+> That's because in ir-kbd-i2c.c:ir_poll_key(), ir->get_key() was a NULL
+> function pointer.
+> 
+> I realized that ir-kbd-i2c.c:ir_probe() would need a fix-up for address
+> 0x71 for cx18 (and ivtv) or I would need to set the parameters via
+> struct IR_i2c_init_data.  
+> 
+> There's a usable get_key function for Hauppauge remotes in ir-kbd-i2c,
+> but no way via struct IR_i2c_init_data to specify that one wants to use
+> it from the bridge driver.  Nor is there a way to set the RC5 ir_type
+> from the bridge driver.  So mucking with ir-kbd-i2c.c for address 0x71
+> is what I did next.
 
+Yeah, ir-kbd-i2c is messy, setup for some boards is done in the
+ir-kbd-i2c driver itself and for some other boards it is done in the
+bridge driver. I presume that the idea was to avoid code duplication on
+one hand and bloating ir-kbd-i2c with board-specific functions on the
+other hand. But the result is pretty confusing IMHO. There's room for
+cleanups there, even though getting rid of the legacy model and merging
+lirc into the kernel tree have higher priority at the moment.
+
+Note that struct IR_i2c_init_data only contains the fields I needed at
+the moment, but it would be trivial to extend it to allow bridge
+drivers to pass more setup information if needed, for example ir_type.
+
+> 4. For my third test I modified a few lines in ir-kbd-i2c:ir_probe.c:
+> 	...
+>         case 0x7a:
+>         case 0x47:
+>         case 0x71:
+>         case 0x2d:
+>                 if (adap->id == I2C_HW_B_CX2388x ||
+>                     adap->id == I2C_HW_B_CX2341X   ) {
+>                         /* Handled by cx88-input */
+>                         name = adap->id == I2C_HW_B_CX2341X ? "CX2341X remote"
+>                                                             : "CX2388x remote";
+>                         ir_type     = IR_TYPE_RC5;
+>                         ir->get_key = get_key_haup_xvr;
+>                         if (hauppauge == 1) {
+> 	...
+> 
+> # modprobe ir-kbd-i2c debug=1 hauppauge=1
+> (pressing number buttons on the remote)
+> # 1345678920
+> # dmesg
+> input: i2c IR (CX2341X remote) as /devices/virtual/input/input15
+> ir-kbd-i2c: i2c IR (CX2341X remote) detected at i2c-1/1-0071/ir0 [cx18 i2c driver #0-0]
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t1 dev=30 code=1
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t1 dev=30 code=1
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t1 dev=30 code=3
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t1 dev=30 code=3
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t0 dev=30 code=4
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t0 dev=30 code=4
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t1 dev=30 code=5
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t0 dev=30 code=6
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t1 dev=30 code=7
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t1 dev=30 code=7
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t0 dev=30 code=8
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t0 dev=30 code=8
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t1 dev=30 code=9
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t1 dev=30 code=2
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t1 dev=30 code=2
+> ir-kbd-i2c: ir hauppauge (rc5): s1 r1 t0 dev=30 code=0
+> 
+> 
+> Success.
+
+OK, good to know that adding support for the cx18 will be possible and
+easy. I propose that we postpone this addition until after my code is
+merged though, to avoid making the situation more complex than it
+already is.
+
+Thanks a lot for the testing!
+
+-- 
+Jean Delvare
