@@ -1,52 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-10.arcor-online.net ([151.189.21.50]:43298 "EHLO
-	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751775AbZDZCeF (ORCPT
+Received: from mail1009.centrum.cz ([90.183.38.139]:34636 "EHLO
+	mail1009.centrum.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753978AbZDFUkx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 16:40:53 -0400
+Received: by mail1009.centrum.cz id S738251264AbZDFUki (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Apr 2009 22:34:05 -0400
-Subject: Re: [PATCH v2] Enabling of the Winfast TV2000 XP Global TV capture
-	card  remote control
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Pieter Van Schaik <vansterpc@gmail.com>, mchehab@infradead.org
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <faf98b150904232135l7593612dr68b7ed9cac9af385@mail.gmail.com>
-References: <faf98b150904232135l7593612dr68b7ed9cac9af385@mail.gmail.com>
-Content-Type: text/plain
-Date: Sun, 26 Apr 2009 04:29:11 +0200
-Message-Id: <1240712951.3714.13.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 6 Apr 2009 22:40:38 +0200
+Date: Mon, 06 Apr 2009 22:40:38 +0200
+From: "Miroslav =?UTF-8?Q?=20=C5=A0ustek?=" <sustmidown@centrum.cz>
+To: <linux-media@vger.kernel.org>
+Cc: <cus@fazekas.hu>, <mchehab@redhat.com>
+MIME-Version: 1.0
+Message-ID: <200904062240.1773@centrum.cz>
+References: <200904062233.30966@centrum.cz> <200904062234.8192@centrum.cz> <200904062235.15206@centrum.cz> <200904062236.31983@centrum.cz> <200904062237.27161@centrum.cz> <200904062238.10335@centrum.cz> <200904062239.877@centrum.cz> <200904062240.9520@centrum.cz>
+In-Reply-To: <200904062240.9520@centrum.cz>
+Subject: cx88-dsp.c: missing __divdi3 on 32bit kernel
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello,
+Commit 02fde69f31dc (and 7152a23142bc) on http://linuxtv.org/hg/v4l-dvb/
+adds new file cx88-dsp.c which uses 64bit divisions, but these are somehow
+not supported on 32bit kernels.
 
-Am Freitag, den 24.04.2009, 06:35 +0200 schrieb Pieter Van Schaik:
-> This patch is for supporting the remote control of the Winfast TV2000
-> XP Global TV capture card. A case statement was added in order to
-> initialize the GPIO data structures as well as a case statement for
-> handling the keys correctly when pressed.
-> 
-> Thanks to Hermann for all his help
-> 
-> Regards
-> Pieter van Schaik
+message during compile:
+WARNING: "__divdi3" [/root/v4l-dvb/v4l/cx88xx.ko] undefined
 
-Mauro,
+Maybe we can use only s32, but I don't know if it's precise enough for that magic math.
+Or use some ugly hacks to do 64bit division with 32bit variables.
 
-please give some further comments, how to proceed within this
-"patchwork" stuff.
+What hardware do I need to test the cx88-dsp code?
 
-For what I can see, you get some of out of sync patches so far.
+Any suggestions?
 
-Do you do the sync and can I ignore such remaining efforts, or do you
-prefer people are waiting until this is somehow properly lined up again?
-
-I have nothing important and nobody cared about the oops on the Compro
-T750F stuff, on which I was not involved, but I would like to have a
-warning in for the Asus 3in1 not to use a rotor with it.
-
-Cheers,
-Hermann
-
- 
+- Miroslav
 
