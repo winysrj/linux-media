@@ -1,22 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3FAxAuj021500
-	for <video4linux-list@redhat.com>; Wed, 15 Apr 2009 06:59:10 -0400
-Received: from sohosted4.com (ns1.sohosted4.com [195.8.208.32])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3FAwuFS008770
-	for <video4linux-list@redhat.com>; Wed, 15 Apr 2009 06:58:56 -0400
-Date: Wed, 15 Apr 2009 12:59:18 +0200
-To: Brian <linuxtv@leafcom.co.uk>
-Message-ID: <20090415105918.GA5232@pazuzu.ehv.virtualproteins.com>
-References: <49E5BAF4.6020200@leafcom.co.uk>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n36F8B90010673
+	for <video4linux-list@redhat.com>; Mon, 6 Apr 2009 11:08:11 -0400
+Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n36F7UZh030147
+	for <video4linux-list@redhat.com>; Mon, 6 Apr 2009 11:07:31 -0400
+Received: by qw-out-2122.google.com with SMTP id 8so1360170qwh.39
+	for <video4linux-list@redhat.com>; Mon, 06 Apr 2009 08:07:29 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <49E5BAF4.6020200@leafcom.co.uk>
-From: hlambermont@virtualproteins.com (Hans Lambermont)
-Cc: video4linux-list@redhat.com
-Subject: Re: Hauppauge DVB s/s2 card: Problem installing driver
-Reply-To: video4linux-list@redhat.com
+Date: Tue, 7 Apr 2009 00:07:28 +0900
+Message-ID: <b3095c50904060807h697ad42cwde338a673c1776f5@mail.gmail.com>
+From: Juan Diego <juantascon@gmail.com>
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: question
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,13 +26,14 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Brian wrote on 20090415:
-...
-> File not found: /lib/modules/2.6.24-23-generic/build/.config at ./scripts/ make_kconfig.pl line 32, <IN> line 4.
+Hi, my name is Juan Diego
 
-You need to install the kernel headers and sources.
+I would like to make some tests using some v4l applications and I
+would like to know if there is a way to create a "virtual° v4l device
+using a video file to act as a camera
 
--- Hans Lambermont
+thanks for your help
+bye
 
 --
 video4linux-list mailing list
