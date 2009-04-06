@@ -1,25 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from casper.infradead.org ([85.118.1.10])
-	by mail.linuxtv.org with esmtp (Exim 4.63) (envelope-from
-	<BATV+4e201fa2c735d38e8b61+2065+infradead.org+dwmw2@casper.srs.infradead.org>)
-	id 1Lve9C-00007f-UR
-	for linux-dvb@linuxtv.org; Sun, 19 Apr 2009 23:01:56 +0200
-From: David Woodhouse <dwmw2@infradead.org>
-To: VDR User <user.vdr@gmail.com>
-In-Reply-To: <a3ef07920904191340x6a4e9c5o5c51fe0169cbddab@mail.gmail.com>
-References: <1214127575.4974.7.camel@jaswinder.satnam>
-	<a3ef07920904191055j4205ad8du3173a8a2328a214e@mail.gmail.com>
-	<1240167036.3589.310.camel@macbook.infradead.org>
-	<a3ef07920904191214p7be3a0eem7f7abd91ffb374d2@mail.gmail.com>
-	<1240170449.3589.334.camel@macbook.infradead.org>
-	<a3ef07920904191340x6a4e9c5o5c51fe0169cbddab@mail.gmail.com>
-Date: Sun, 19 Apr 2009 22:01:48 +0100
-Message-Id: <1240174908.3589.387.camel@macbook.infradead.org>
-Mime-Version: 1.0
-Cc: Jaswinder Singh <jaswinder@infradead.org>,
-	linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [PATCH] firmware: convert av7110 driver to
- request_firmware()
+Received: from mail-fx0-f165.google.com ([209.85.220.165])
+	by mail.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <dehqan65@gmail.com>) id 1Lquas-0000yI-2V
+	for linux-dvb@linuxtv.org; Mon, 06 Apr 2009 21:34:54 +0200
+Received: by fxm9 with SMTP id 9so1957956fxm.17
+	for <linux-dvb@linuxtv.org>; Mon, 06 Apr 2009 12:34:20 -0700 (PDT)
+MIME-Version: 1.0
+Date: Tue, 7 Apr 2009 00:04:20 +0430
+Message-ID: <267bb6670904061234n5b53a155q81acec7d46b24483@mail.gmail.com>
+From: a dehqan <dehqan65@gmail.com>
+To: linux-dvb@linuxtv.org, linux-media@vger.kernel.org
+Subject: [linux-dvb] Does SnaZio* DtvPVR-S USB card work in linux ?
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -28,35 +19,46 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============0497007877=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, 2009-04-19 at 13:40 -0700, VDR User wrote:
-> 
-> To be absolutely clear; users compiling dvb drivers outside of the
-> kernel should copy v4l-dvb/linux/firmware/av7110/bootcode.bin.ihex to
-> /lib/firmware/av7110/bootcode.bin correct?
+--===============0497007877==
+Content-Type: multipart/alternative; boundary=001485f7947026044f0466e7fcee
 
-Run 'objcopy -Iihex -Obinary bootcode.bin.ihex bootcode.bin' first, then
-copy the resulting bootcode.bin file to /lib/firmware/av7110/
+--001485f7947026044f0466e7fcee
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-We didn't want to put raw binary files into the kernel source tree so we
-converted them to a simple hex form instead.
+In The Name Of God
 
-As I said, the makefiles in the kernel tree get this right, and convert
-them to binary for you and automatically install them. It shouldn't be
-hard to fix the v4l tree to do it too, but as I also said, I'm not
-particularly interested in doing that myself.
+I'll be thankfull if you guide ;
+Does SnaZio* DtvPVR-S USB card work in linux ?Does it have linux driver ?
+has anyone tested it ?
 
--- 
-dwmw2
+regards dehqan
 
+--001485f7947026044f0466e7fcee
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+<br><div class="gmail_quote">In The Name Of God<br><br>I&#39;ll be thankfull if you guide ;<br>Does SnaZio* DtvPVR-S USB card work in linux ?Does it have linux driver ?<br>has anyone tested it ?<br><br>regards dehqan<br>
+</div><br>
+
+--001485f7947026044f0466e7fcee--
+
+
+--===============0497007877==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0497007877==--
