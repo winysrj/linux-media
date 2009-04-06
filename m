@@ -1,76 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web32103.mail.mud.yahoo.com ([68.142.207.117]:30311 "HELO
-	web32103.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752011AbZDUMqJ convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2009 08:46:09 -0400
-Message-ID: <86952.30815.qm@web32103.mail.mud.yahoo.com>
-Date: Tue, 21 Apr 2009 05:46:06 -0700 (PDT)
-From: Agustin <gatoguan-os@yahoo.com>
-Reply-To: gatoguan-os@yahoo.com
-Subject: Re: [PATCH] v4l2-subdev: add a v4l2_i2c_new_dev_subdev() function
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-i2c@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from cnc.isely.net ([64.81.146.143]:57086 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751132AbZDFCwf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Apr 2009 22:52:35 -0400
+Date: Sun, 5 Apr 2009 21:52:31 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+Reply-To: Mike Isely <isely@pobox.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Andy Walls <awalls@radix.net>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Jean Delvare <khali@linux-fr.org>, Janne Grunau <j@jannau.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	LMML <linux-media@vger.kernel.org>,
+	Jarod Wilson <jarod@redhat.com>,
+	Mike Isely at pobox <isely@pobox.com>
+Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
+ model
+In-Reply-To: <20090405225102.531a2075@pedra.chehab.org>
+Message-ID: <Pine.LNX.4.64.0904052104010.2076@cnc.isely.net>
+References: <20090404142427.6e81f316@hyperion.delvare>
+ <Pine.LNX.4.64.0904041045380.32720@cnc.isely.net> <20090405010539.187e6268@hyperion.delvare>
+ <200904050746.47451.hverkuil@xs4all.nl> <20090405143748.GC10556@aniel>
+ <1238953174.3337.12.camel@morgan.walls.org> <20090405183154.GE10556@aniel>
+ <1238957897.3337.50.camel@morgan.walls.org> <20090405222250.64ed67ae@hyperion.delvare>
+ <1238966523.6627.63.camel@pc07.localdom.local> <1238968804.4647.22.camel@morgan.walls.org>
+ <20090405225102.531a2075@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sun, 5 Apr 2009, Mauro Carvalho Chehab wrote:
 
-On 21/4/09, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> On Tue, 21 Apr 2009, Agustin wrote:
+> On Sun, 05 Apr 2009 18:00:04 -0400
+> Andy Walls <awalls@radix.net> wrote:
+> 
+> > On Sun, 2009-04-05 at 23:22 +0200, hermann pitton wrote:
+> > > Am Sonntag, den 05.04.2009, 22:22 +0200 schrieb Jean Delvare:
+> > > > On Sun, 05 Apr 2009 14:58:17 -0400, Andy Walls wrote:
 > > 
-> > Hi,
 > > 
-> > On 21/4/09, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> > > Video (sub)devices, connecting to SoCs over generic i2c busses cannot 
-> > > provide a pointer to struct v4l2_device in i2c-adapter driver_data, and 
-> > > provide their own i2c_board_info data, including a platform_data field. 
-> > > Add a v4l2_i2c_new_dev_subdev() API function that does exactly the same
-> > > as v4l2_i2c_new_subdev() but uses different parameters, and make 
-> > > v4l2_i2c_new_subdev() a wrapper around it.
+> > > What can not be translated to the input system I would like to know.
+> > > Andy seems to have closer looked into that.
 > > 
-> > [snip]
+> > 1. IR blasting: sending IR codes to transmit out to a cable convertor
+> > box, DTV to analog convertor box, or similar devices to change channels
+> > before recording starts.  An input interface doesn't work well for
+> > output.
+> 
+> On my understanding, IR output is a separate issue. AFAIK, only a very few ivtv
+> devices support IR output. I'm not sure how this is currently implemented.
+
+For the pvrusb2 driver, MCE style 24xxx devices (2nd generation 24xxx) 
+and HVR-1950 devices have IR blasting capabilities.  At the moment, 
+people have gotten this to work on the 24xxx model with the appropriate 
+lirc driver.  In theory it should be doable for HVR-1950 as well (and 
+the pvrusb2 does what is needed to make it possible) but I don't think 
+anyone has succeeded there yet.
+
+Sure IR output as a concept and interface is a separate issue.  But it 
+can be implemented in the same chip (which is the case in the two 
+examples I list above).  So the issue is not separate; it must be dealt 
+with as a whole.  Two drivers implementing different features but trying 
+to share one chip is just not fun.
+
+
+> 
+> 
+> > 2. Sending raw IR samples to user space: user space applications can
+> > then decode or match an unknown or non-standard IR remote protocol in
+> > user space software.  Timing information to go along with the sample
+> > data probably needs to be preserved.   I'm assuming the input interface
+> > currently doesn't support that.
+> 
+> If the driver processes correctly the IR samples, I don't see why you would
+> need to pass the raw protocols to userspace. Maybe we need to add some ioctls
+> at the API to allow certain controls, like, for example, ask kernel to decode
+> IR using RC4 instead or RC5, on devices that supports more than one IR protocol.
+
+Ugh.  Why should v4l-dvb get into this business when it's already solved 
+somewhere else?  In userspace even.
+
+I see in so many other places people arguing for V4L functionality that 
+needs to be kicked out of the kernel and put into userspace.  For 
+example, there's all that silliness over pixel formats that I'm soon 
+going to have to deal with...
+
+Yet in this case with IR, there already exists a subsystem that does 
+*more* than ir-kbd-i2c.c, AND it does all the crazy configuration / 
+control in userspace - and yet you argue that ir-kbd-i2c.c should be 
+preferred?  Purely because lirc is not in-tree?  Well heck, lirc should 
+be in-tree.  Let's help them get there and forget ever having to deal 
+with IR again ourselves.  Let them do it.
+
+
+> 
+> > That's all the Gerd mentioned.
 > > 
-> > I am wondering about this ongoing effort and its pursued goal: is it
-> > to hierarchize the v4l architecture, adding new abstraction levels?
-> > If so, what for?
+> > 
+> > One more nice feature to have, that I'm not sure how easily the input
+> > system could support:
+> > 
+> > 3. specifying remote control code to key/button translations with a
+> > configuration file instead of recompiling a module.
+> 
+> The input and the current drivers that use input already supports this feature.
+> You just need to load a new code table to replace the existing one.
+> 
+> See v4l2-apps/util/keytable.c to see how easy is to change a key code. It
+> contains a complete code to fully replace a key code table. Also, the Makefile
+> there will extract the current keytables for the in-kernel drivers.
+> 
+> Btw, with only 12 lines, you can create a keycode replace "hello world!":
+> 
+> #include <fcntl.h>		/* due to O_RDONLY */
+> #include <stdio.h>		/* open() */
+> #include <linux/input.h>	/* input ioctls and keycode macros */
+> #include <sys/ioctl.h>		/* ioctl() */
+> void main(void)
+> {
+> 	int codes[2];
+> 	int fd = open("/dev/video0", O_RDONLY);	/* Hmm.. in real apps, we should check for errors */
+> 	codes[0] = 10;				/* Scan code */
+> 	codes[1] = KEY_UP;			/* Key code */
+> 	ioctl(fd, EVIOCSKEYCODE, codes);	/* hello world! */
+> }
 
-> Driver-reuse. soc-camera framework will be able to use all available and 
-> new v4l2-subdev drivers, and vice versa.
+I just looked at this.  I freely admit I haven't noticed this before, 
+but having looked at it now, and having examined ir-kbd-i2c.c, I still 
+don't see the whole picture here:
 
-Well, "Driver reuse." sounds more as a mantra than a reason for me. Then I can't find any "available" v4l2-subdev driver in 2.6.29.
+1. The switch statement in ir-kbd-i2c.c:ir_attach() is apparently 
+implicitly trying to assume a particular type of remote based on the I2C 
+address of the IR receiver it's talking to.  Yuck.  That's really not 
+right at all.  The IR receiver used does not automatically mean which 
+remote is used.  What if the vendor switches remotes?  That's happened 
+with the PVR-USB2 hardware in the past (based on photos I've seen).  
+Who's to say the next remote to be supplied is compatible?
 
-I assume this subdev stuff plays a mayor role in current V4L2 architecture refactorization. Then we probably should take this opportunity to relieve V4L APIs from all its explicit I2C mangling, because...
+2. Your example above is opening the video device endpoint and issuing 
+ioctl()s that are not part of V4L.  That is supposed to work?!?
 
-> > To me, as an eventual driver developer, this makes it harder to 
-> > integrate my own drivers, as I use I2C and V4L in my system but I
-> > don't want them to be tightly coupled.
+3. A given IR remote may be described by much more than what 'scan 
+codes' it produces.  I don't know a lot about IR, but looking at the 
+typical lirc definition for a remote, there's obvious timing and 
+protocol parameters as well.  Just being able to swap scan codes around 
+is not always going to be enough.
 
-> This conversion shouldn't make the coupling any tighter.
+4. I imagine that the input event framework in the kernel has a means 
+for programmatic mapping of scan codes to key codes, but looking at 
+ir-kbd-i2c.c, it appears to only be selecting from among a very small 
+set of kernel-compiled translation tables.  I must be missing something 
+here.
 
-But still I think V4L system should not be aware of I2C at all.
+In an earlier post (from Andy?) some history was dug up about 
+ir-kbd-i2c.c.  From what I understand, the only reason ir-kbd-i2c.c came 
+into existence was because lirc was late in supporting 2.6.x series 
+kernels and Gerd needed *something* to allow IR to work.  So he created 
+this module, knowing full well that it didn't cover all possible cases.  
+Rather it covered the common cases he cared about.  That was a while 
+ago.  And we need to do all the cases - or at least not mess up what 
+already exists elsewhere that does handle the "uncommon" cases.  The 
+lirc drivers do work in 2.6.  And apparently they were on the scene 
+before ir-kbd-i2c.c, just unfortunately not in-tree.  The lirc drivers 
+really need to get into the kernel.  From where I'm sitting the long 
+term goal should be to get lirc into the kernel.
 
-To me, V4L is a kernel subsystem in charge of moving multimedia data from/to userspace/hardware, and the APIs should reflect just that.
+  -Mike
 
-If one V4L driver uses I2C for device control, what does V4L have to say about that, really? Or why V4L would never care about usb or SPI links?
 
-I2C and V4L should stay cleanly and clearly apart.
+-- 
 
-> > Of course I can ignore this "subdev" stuff and just link against 
-> > soc-camera which is what I need, and manage I2C without V4L knowing 
-> > about it. Which is what I do.
-
-> You won't be able to. The only link to woc-camera will be the
-> v4l2-subdev link. Already now with this patch many essential
-> soc-camera API operations are gone.
-
-I guess you mean that I will have to use v4l2-subdev interface to connect to soc-camera, and not to surrender my I2C management to an I2C-extraneous subsystem. Is that right?
-
-(Sorry for arriving this late to the discussion just to critizise your good efforts.)
-
-Regards,
---Agustín.
+Mike Isely
+isely @ pobox (dot) com
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
