@@ -1,116 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:53336 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750881AbZDSX7U (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Apr 2009 19:59:20 -0400
-Date: Sun, 19 Apr 2009 18:59:18 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-Reply-To: Mike Isely <isely@pobox.com>
-To: Alexey Klimov <klimov.linux@gmail.com>
-cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS,  2.6.16-2.6.21:
- ERRORS
-In-Reply-To: <208cbae30904191542l4e3996cejf1df9cadfb187dfe@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0904191849280.19718@cnc.isely.net>
-References: <200904191818.n3JIISWN021959@smtp-vbr12.xs4all.nl>
- <208cbae30904191542l4e3996cejf1df9cadfb187dfe@mail.gmail.com>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:28302 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755237AbZDFLLp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 07:11:45 -0400
+Date: Mon, 6 Apr 2009 13:11:20 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Andy Walls <awalls@radix.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Mike Isely <isely@pobox.com>
+Subject: Re: Test results for ir-kbd-i2c.c changes (Re: [PATCH 0/6]
+ ir-kbd-i2c  conversion to the new i2c binding model)
+Message-ID: <20090406131120.35f0c48d@hyperion.delvare>
+In-Reply-To: <1239018982.3157.3.camel@palomino.walls.org>
+References: <20090404142427.6e81f316@hyperion.delvare>
+	<20090405070116.17ecadef@pedra.chehab.org>
+	<20090405164024.1459e4fe@hyperion.delvare>
+	<1238977379.2796.19.camel@morgan.walls.org>
+	<20090406105436.05ecaf4d@hyperion.delvare>
+	<1239018982.3157.3.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 20 Apr 2009, Alexey Klimov wrote:
+Hi Andy,
 
-   [...]
-
-> When trying to compile v4l-dvb tree under 2.6.30-rc2 (up-to-date) i
-> have such error with pvr2 module:
+On Mon, 06 Apr 2009 07:56:22 -0400, Andy Walls wrote:
+> On Mon, 2009-04-06 at 10:54 +0200, Jean Delvare wrote:
+> > Thanks a lot for the testing!
 > 
->   CC [M]  /w/new/v4l-dvb/v4l/pvrusb2-hdw.o
-> /w/new/v4l-dvb/v4l/pvrusb2-hdw.c: In function 'pvr2_upload_firmware1':
-> /w/new/v4l-dvb/v4l/pvrusb2-hdw.c:1474: error: implicit declaration of
-> function 'usb_settoggle'
-> /w/new/v4l-dvb/v4l/pvrusb2-hdw.c: In function 'pvr2_hdw_load_modules':
-> /w/new/v4l-dvb/v4l/pvrusb2-hdw.c:2133: warning: format not a string
-> literal and no format arguments
-> make[3]: *** [/w/new/v4l-dvb/v4l/pvrusb2-hdw.o] Error 1
-> make[2]: *** [_module_/w/new/v4l-dvb/v4l] Error 2
+> You're welcome.
 > 
-> It's probably due to this git commit:
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=3444b26afa145148951112534f298bdc554ec789
-> 
-> I don't have idea how to fix it fast and correctly.
+> Sorry for being such a pain to what I suspect you hoped was to be a
+> "simple" change.
 
-This might explain things a bit.  The following thread took place on 
-linux-usb on 7-April:
-
-<quote>
-
-On Tue, 7 Apr 2009, Greg KH wrote:
-
-> On Tue, Apr 07, 2009 at 05:31:55PM +0000, David Vrabel wrote:
-> > Wireless USB endpoint state has a sequence number and a current
-> > window and not just a single toggle bit.  So allow HCDs to provide a
-> > endpoint_reset method and call this or clear the software toggles as
-> > required (after a clear halt).
-> >
-> > usb_settoggle() and friends are then HCD internal and are moved into
-> > core/hcd.h.
->
-> You remove this api, yet the pvrusb2 driver used it, and you don't seem
-> to have resolved the issue where it was calling it:
->
-> > diff --git a/drivers/media/video/pvrusb2/pvrusb2-hdw.c b/drivers/media/video/pvrusb2/pvrusb2-hdw.c
-> > index fa304e5..b86682d 100644
-> > --- a/drivers/media/video/pvrusb2/pvrusb2-hdw.c
-> > +++ b/drivers/media/video/pvrusb2/pvrusb2-hdw.c
-> > @@ -1418,7 +1418,6 @@ static int pvr2_upload_firmware1(struct pvr2_hdw *hdw)
-> >             return ret;
-> >     }
-> >
-> > -   usb_settoggle(hdw->usb_dev, 0 & 0xf, !(0 & USB_DIR_IN), 0);
-> >     usb_clear_halt(hdw->usb_dev, usb_sndbulkpipe(hdw->usb_dev, 0 & 0x7f));
-> >
-> >     pipe = usb_sndctrlpipe(hdw->usb_dev, 0);
->
-> Should usb_reset_endpoint() be called here instead?
->
-
-Speaking as the maintainer of that driver, I'm OK with accepting this
-as-is for now.  This is a sequence that should not interfere with normal
-driver operation.  I will look at this further a little later (not
-likely before the merge window closes) and if this change turns out to
-cause a problem I'll make a follow-up fix upstream.
-
-Acked-By: Mike Isely <isely@pobox.com>
-
-  -Mike
-
-</quote>
-
-So the kernel already has this; it just needs to be pulled back into 
-v4l-dvb.  It's an obvious trivial thing for now and I've acked it there.  
-Obviously we're getting had here because you're compiling against a 
-kernel snapshot that's been changed but v4l-dvb doesn't have the 
-corresponding change in its local copy of the pvrusb2 driver.  Part of 
-the fun of synchronizing changes from different trees :-(
-
-Mauro:  If you just want to take this as-is (or find the git commit and 
-pull it down), I'm fine.  Otherwise I'll set up a repo that you can pull 
-from with this single-line change.  The above changeset also has the 
-following attributions:
-
-From: David Vrabel <david.vrabel@csr.com>
-Signed-off-by: David Vrabel <david.vrabel@csr.com>
-
-  -Mike
-
-
+You must be kidding. For one thing, I never expected it to be a simple
+change ;) For another, you're helping me a lot with your comments and
+testing. Thanks!
 
 -- 
-
-Mike Isely
-isely @ pobox (dot) com
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+Jean Delvare
