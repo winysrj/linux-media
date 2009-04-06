@@ -1,83 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:20329 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752309AbZDDXFx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Apr 2009 19:05:53 -0400
-Date: Sun, 5 Apr 2009 01:05:39 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Mike Isely <isely@pobox.com>
-Cc: isely@isely.net, LMML <linux-media@vger.kernel.org>,
-	Andy Walls <awalls@radix.net>,
+Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:53317 "EHLO
+	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759989AbZDFWR3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 18:17:29 -0400
+Date: Mon, 6 Apr 2009 15:17:21 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Dongsoo Kim <dongsoo.kim@gmail.com>
+Cc: Kevin Hilman <khilman@deeprootsystems.com>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
-  model
-Message-ID: <20090405010539.187e6268@hyperion.delvare>
-In-Reply-To: <Pine.LNX.4.64.0904041045380.32720@cnc.isely.net>
-References: <20090404142427.6e81f316@hyperion.delvare>
-	<20090404142837.3e12824c@hyperion.delvare>
-	<Pine.LNX.4.64.0904041045380.32720@cnc.isely.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Steve Sakoman <sakoman@gmail.com>, linux-media@vger.kernel.org,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Manjunath Hadli <mrh@ti.com>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: Re: Embedded Linux Conference
+Message-ID: <20090406221721.GC394@atomide.com>
+References: <200903051749.13016.hverkuil@xs4all.nl> <20090316225653.GP19229@atomide.com> <5e088bd90903161714y45918d6cn9e81cd73db1ebbac@mail.gmail.com> <200903170809.10467.hverkuil@xs4all.nl> <49BFB8A8.3080201@deeprootsystems.com> <20090317164525.GT19229@atomide.com> <1A273197-550B-4D21-A29E-BB955D8ADF8D@gmail.com> <20090406215810.GA394@atomide.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20090406215810.GA394@atomide.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mike,
-
-On Sat, 4 Apr 2009 10:51:01 -0500 (CDT), Mike Isely wrote:
+* Tony Lindgren <tony@atomide.com> [090406 15:12]:
+> * Dongsoo Kim <dongsoo.kim@gmail.com> [090317 10:36]:
 > 
-> Nacked-by: Mike Isely <isely@pobox.com>
+> <snip snip>
 > 
-> This will interfere with the alternative use of LIRC drivers (which work 
-> in more cases that ir-kbd).
+> >>> How about Monday night after the Dinner (ends at 7pm [1]) we meet for
+> >>> beers.  I'll let someone local (Tony) pick the venue.
+> >>
+> >> OK, let's plan for Monday night then. I'll find some place with
+> >> drinks easily available, and within walking distance from the
+> >> conference.
+> >>
+> >> I've added a placeholder for the event where I'll post the details
+> >> later on:
+> >>
+> >> http://www.muru.com/linux/omap/events/
+> 
+> OK, let's meet at Harry's bar 7pm at 2020 Fillmore St
+> between Pine and California St. They're closed until 4pm,
+> so there's no reservation. But as it's Monday night, I'd
+> assume there's plenty of space. In case of last minute
+> changes, please check the page above.
 
-Why then is ir-kbd in the kernel tree and not LIRC drivers?
+It's about 3 block walk from j-town, here's the map link too:
 
-> It will thus break some peoples' use of the driver.
-
-Do you think it will, or did you test and it actually does? If it
-indeed breaks, please explain why, so that a solution can be found.
-
-> Also we have better information on what i2c addresses needed to 
-> be probed based on the model of the device
-
-This is excellent news. As I said in the header comment of the patch,
-avoiding probing when we know what the IR receiver is and at which
-address it sits is the way to go. Please send me all the information
-you have and I'll be happy to add a patch to the series, that skips
-probing whenever possible. Or write that patch yourself if you prefer.
-
-> - and some devices supported 
-> by this device are not from Hauppauge so you are making a too-strong 
-> assumption that IR should be probed this way in all cases.
-
-I didn't make any assumption, sorry. I simply copied the code from
-ir-kbd-i2c. If my code does the wrong thing for some devices, that was
-already the case before. And this will certainly be easier to fix after
-my changes than before.
-
-On top of that, the "Hauppauge trick" is really only the order in which
-the addresses are probed. Just because a specific order is better for
-Hauppauge boards, doesn't mean it won't work for non-Hauppauge boards.
-
-> Also, unless 
-> ir-kbd has suddenly improved, this will not work at all for HVR-1950 
-> class devices nor MCE type PVR-24xxx devices (different incompatible IR 
-> receiver).
-
-I'm sorry but you can't blame me for ir-kbd-i2c not supporting some
-devices. I updated the driver to make use of the new binding model, but
-that's about all I did.
-
-> This is why the pvrusb2 driver has never directly attempted to load 
-> ir-kbd.
-
-The pvrusb2 driver however abuses the bttv driver's I2C adapter ID
-(I2C_HW_B_BT848) and was thus affected when ir-kbd-i2c is loaded. This
-is the only reason why my patch touches the pvrusb2 driver. If you tell
-me you want the ir-kbd-i2c driver to leave pvrusb2 alone, I can drop
-all the related changes from my patch, that's very easy.
-
--- 
-Jean Delvare
+http://maps.google.com/maps?hl=en&ie=UTF8&q=2020+fillmore+st,+san+francisco&fb=1&split=1&gl=us&cid=0,0,11092845507326846205&ei=JXvaSbmzGKectAOLjZzXBg&ll=37.788811,-122.433593&spn=0.011328,0.015407&z=16&iwloc=A
+ 
+> Tony
