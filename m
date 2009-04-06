@@ -1,157 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110804.mail.gq1.yahoo.com ([67.195.13.227]:43275 "HELO
-	web110804.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753804AbZDTSIF convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 14:08:05 -0400
-Message-ID: <66643.35699.qm@web110804.mail.gq1.yahoo.com>
-Date: Mon, 20 Apr 2009 11:07:57 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: Re: [PATCH] [0904_13] Siano: move DVB_API and remove redundant code
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: LinuxML <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail1.radix.net ([207.192.128.31]:37379 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755329AbZDFLF4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Apr 2009 07:05:56 -0400
+Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
+ model
+From: Andy Walls <awalls@radix.net>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, Mike Isely <isely@pobox.com>,
+	isely@isely.net, LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <20090406110430.400d4608@hyperion.delvare>
+References: <20090404142427.6e81f316@hyperion.delvare>
+	 <Pine.LNX.4.64.0904041045380.32720@cnc.isely.net>
+	 <20090405010539.187e6268@hyperion.delvare>
+	 <200904050746.47451.hverkuil@xs4all.nl>
+	 <20090405160519.629ee7d0@hyperion.delvare>
+	 <1238960152.3337.84.camel@morgan.walls.org>
+	 <20090406110430.400d4608@hyperion.delvare>
+Content-Type: text/plain
+Date: Mon, 06 Apr 2009 08:06:50 -0400
+Message-Id: <1239019610.3157.8.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, 2009-04-06 at 11:04 +0200, Jean Delvare wrote:
+> Hi Andy,
 
 
+> I'm all for adding
+> support for more boards, however I'd rather do this _after_ the i2c
+> model conversion is done, so that we have a proper changelog entry
+> saying that we added support for the PVR-150, and that it gets proper
+> testing. Hiding support addition in a larger patch would probably do
+> as much harm as good.
 
---- On Mon, 4/20/09, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
 
-> From: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Subject: Re: [PATCH] [0904_13] Siano: move DVB_API and remove redundant code
-> To: "Uri Shkolnik" <urishk@yahoo.com>
-> Cc: "LinuxML" <linux-media@vger.kernel.org>
-> Date: Monday, April 20, 2009, 9:02 PM
-> On Sun, 5 Apr 2009 03:31:32 -0700
-> (PDT)
-> Uri Shkolnik <urishk@yahoo.com>
-> wrote:
-> 
-> > 
-> > # HG changeset patch
-> > # User Uri Shkolnik <uris@siano-ms.com>
-> > # Date 1238755204 -10800
-> > # Node ID f65a29f0f9a66f82a91525ae0085a15f00ac91c2
-> > # Parent 
-> 897669fdeb3be75a2bde978557b5398a4a7d8914
-> > [PATCH] [0904_13] Siano: move DVB_API and remove
-> redundant code
-> > 
-> > From: Uri Shkolnik <uris@siano-ms.com>
-> > 
-> > The DVB-API related information has been moved from
-> the core header
-> > to the smsdvb, and the redundant code has been removed
-> from the
-> > core header.
-> > 
-> > This code has been moved since it is used only by
-> > the smsdvb client component.
-> 
-> This patch depends on the previous patches that I asked
-> some changes. Please
-> re-submit it together with the other patches that weren't
-> committed. It is
-> probably not much valuable to commit the later patches, so
-> I'll stop analysing
-> the code here.
-> 
-> The patch itself looks sane to my eyes.
-> > 
-> > Priority: normal
-> > 
-> > Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-> > 
-> > diff -r 897669fdeb3b -r f65a29f0f9a6
-> linux/drivers/media/dvb/siano/smscoreapi.h
-> > ---
-> a/linux/drivers/media/dvb/siano/smscoreapi.h   
-> Fri Apr 03 13:31:13 2009 +0300
-> > +++
-> b/linux/drivers/media/dvb/siano/smscoreapi.h   
-> Fri Apr 03 13:40:04 2009 +0300
-> > @@ -36,15 +36,6 @@ along with this program.  If
-> not, see <h
-> >  #include <asm/page.h>
-> >  
-> >  /* #include "smsir.h" */
-> > -
-> > -#define SMS_DVB3_SUBSYS
-> > -#ifdef SMS_DVB3_SUBSYS
-> > -#include "dmxdev.h"
-> > -#include "dvbdev.h"
-> > -#include "dvb_demux.h"
-> > -#include "dvb_frontend.h"
-> > -
-> > -#endif
-> >  
-> >  #define kmutex_init(_p_) mutex_init(_p_)
-> >  #define kmutex_lock(_p_) mutex_lock(_p_)
-> > diff -r 897669fdeb3b -r f65a29f0f9a6
-> linux/drivers/media/dvb/siano/smsdvb.c
-> > ---
-> a/linux/drivers/media/dvb/siano/smsdvb.c   
-> Fri Apr 03 13:31:13 2009 +0300
-> > +++
-> b/linux/drivers/media/dvb/siano/smsdvb.c   
-> Fri Apr 03 13:40:04 2009 +0300
-> > @@ -22,6 +22,11 @@ along with this program.  If
-> not, see <h
-> >  #include <linux/module.h>
-> >  #include <linux/init.h>
-> >  #include <asm/byteorder.h>
-> > +
-> > +#include "dmxdev.h"
-> > +#include "dvbdev.h"
-> > +#include "dvb_demux.h"
-> > +#include "dvb_frontend.h"
-> >  
-> >  #include "smscoreapi.h"
-> >  /*#include "smsendian.h"*/
-> > @@ -52,7 +57,7 @@ struct smsdvb_client_t {
-> >      fe_status_t fe_status;
-> >      int fe_ber, fe_snr, fe_unc,
-> fe_signal_strength;
-> >  
-> > -    struct completion tune_done,
-> stat_done;
-> > +    struct completion tune_done;
-> >  
-> >      /* todo: save freq/band
-> instead whole struct */
-> >      struct
-> dvb_frontend_parameters fe_params;
-> > 
-> > 
-> > 
-> >       
-> > --
-> > To unsubscribe from this list: send the line
-> "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-> 
-> 
-> Cheers,
-> Mauro
-> 
-
-OK
-
-I'll submit patches to fix the various rejects on the coming Wednesday (I'm ooo tomorrow).
-
-BTW - is it possible for me to clone the current tree you currently have? (after applying the approved patches), it will help me for future patches.
-
+Makes sens to me.  Especially when I just simply, blindly added 0x71 in
+my initial testing, I got a kernel Oops.
 
 Regards,
+Andy
 
-Uri
-
-
-      
