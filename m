@@ -1,24 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n375bFR4015424
-	for <video4linux-list@redhat.com>; Tue, 7 Apr 2009 01:37:15 -0400
-Received: from mail-bw0-f170.google.com (mail-bw0-f170.google.com
-	[209.85.218.170])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n375asnB012252
-	for <video4linux-list@redhat.com>; Tue, 7 Apr 2009 01:36:55 -0400
-Received: by bwz18 with SMTP id 18so2147592bwz.3
-	for <video4linux-list@redhat.com>; Mon, 06 Apr 2009 22:36:54 -0700 (PDT)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n36EGKWp027412
+	for <video4linux-list@redhat.com>; Mon, 6 Apr 2009 10:16:20 -0400
+Received: from mail-gx0-f171.google.com (mail-gx0-f171.google.com
+	[209.85.217.171])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n36EFaEh001054
+	for <video4linux-list@redhat.com>; Mon, 6 Apr 2009 10:16:00 -0400
+Received: by mail-gx0-f171.google.com with SMTP id 19so4604051gxk.3
+	for <video4linux-list@redhat.com>; Mon, 06 Apr 2009 07:16:00 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <0A882F4D99BBF6449D58E61AAFD7EDD6102F959B@pdsmsx502.ccr.corp.intel.com>
-References: <0A882F4D99BBF6449D58E61AAFD7EDD6102F959B@pdsmsx502.ccr.corp.intel.com>
-Date: Tue, 7 Apr 2009 09:36:54 +0400
-Message-ID: <208cbae30904062236g6c4805b8xb99a89b3ba70583b@mail.gmail.com>
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
+In-Reply-To: <49DA0B1E.3010704@linuxtv.org>
+References: <49D20B0B.1030701@australiaonline.net.au>
+	<49D227A3.5000601@linuxtv.org>
+	<49D2FE07.5060906@australiaonline.net.au>
+	<49D60DA2.5040904@australiaonline.net.au>
+	<49DA0B1E.3010704@linuxtv.org>
+Date: Mon, 6 Apr 2009 10:16:00 -0400
+Message-ID: <412bdbff0904060716y44bd932cm81ca214425bdf355@mail.gmail.com>
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Steven Toth <stoth@linuxtv.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
-Subject: Re: How to submit a new v4l2 driver to the community.
+Cc: video4linux-list@redhat.com
+Subject: Re: No scan with DViCo FusionHDTV DVB-T Dual Express
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,29 +34,31 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello, Xiaolin
-
-On Tue, Apr 7, 2009 at 9:23 AM, Zhang, Xiaolin <xiaolin.zhang@intel.com> wrote:
-> Hi guys,
+On Mon, Apr 6, 2009 at 10:01 AM, Steven Toth <stoth@linuxtv.org> wrote:
+> Yes and no, they're largely the same. For some reason I thought we'd used
+> the 3028 firmware with the 3008 in the past, maybe this no longer holds. up.
 >
-> Quick question, how to submit a new v4l2 driver (for Intel Moorestown MID platform) to Linux upstream kernel? Is there any process or guide need to be follow? We are going to prepare and release the camera driver to community.
+> I'm surprised you're seeing the "Incorrect readback of firmware version"
+> error.
 >
-> Many thanks.
+> Would any xc3028 guru's like to comment?
 >
-> BRs
-> Xiaolin
+> - Steve
 
-Take a look in linuxtv wiki:
-http://www.linuxtv.org/wiki/index.php/Development:_How_to_submit_patches
-http://www.linuxtv.org/wiki/index.php/Development:_Submitting_Patches
-And probably you want to see all wiki pages:
-http://www.linuxtv.org/wiki/index.php/Main_Page
+I would have to look at the code, but my first guess would probably be
+a combination of the tuner still being held in reset along with not
+properly detecting a the failure to read the register on the i2c bus
+(failing silently).
 
-By the way, our new development list is linux-media on vger.kernel.org.
-Feel free to ask any other questions :)
+Can we get a full pastebin of the dmesg output from bootup? (the dmesg
+sent was truncated by the user)
+
+Devin
 
 -- 
-Best regards, Klimov Alexey
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
