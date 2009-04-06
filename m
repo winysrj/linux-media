@@ -1,55 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:15209 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751635AbZDIO0w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2009 10:26:52 -0400
-Received: by qw-out-2122.google.com with SMTP id 8so732781qwh.37
-        for <linux-media@vger.kernel.org>; Thu, 09 Apr 2009 07:26:51 -0700 (PDT)
-Date: Thu, 9 Apr 2009 11:26:45 -0300
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-Cc: linux-media@vger.kernel.org, rvf16@yahoo.gr,
-	Linux-DVB Mailing List <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] Multiple em28xx devices
-Message-ID: <20090409112645.07897e43@gmail.com>
-In-Reply-To: <412bdbff0904090720n51841374waf16179c77f8886d@mail.gmail.com>
-References: <49DE00B0.4060509@yahoo.gr>
-	<20090409111442.38124a31@gmail.com>
-	<412bdbff0904090720n51841374waf16179c77f8886d@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mx2.redhat.com ([66.187.237.31]:39974 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756278AbZDFNOH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Apr 2009 09:14:07 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Janne Grunau <j@jannau.net>
+Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding model
+Date: Mon, 6 Apr 2009 09:13:32 -0400
+Cc: Andy Walls <awalls@radix.net>, Hans Verkuil <hverkuil@xs4all.nl>,
+	Jean Delvare <khali@linux-fr.org>,
+	Mike Isely <isely@pobox.com>, isely@isely.net,
+	LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <20090404142427.6e81f316@hyperion.delvare> <1238953174.3337.12.camel@morgan.walls.org> <20090405183154.GE10556@aniel>
+In-Reply-To: <20090405183154.GE10556@aniel>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200904060913.32976.jarod@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Devin,
-
-On Thu, 9 Apr 2009 10:20:33 -0400
-Devin Heitmueller <devin.heitmueller@gmail.com> wrote:
-
-> On Thu, Apr 9, 2009 at 10:14 AM, Douglas Schilling Landgraf
-> > Please use upstream repository, we do not support sources from
-> > http://mcentral.de/hg/~mrec/em28xx-new this is a parallel project.
-> >
-> > For additional info how to download upstream tree see:
-> > http://www.linuxtv.org/wiki/index.php/How_to_Obtain%2C_Build_and_Install_V4L-DVB_Device_Drivers
-> >
-> > Cheers,
-> > Douglas
+On Sunday 05 April 2009 14:31:54 Janne Grunau wrote:
+> On Sun, Apr 05, 2009 at 01:39:33PM -0400, Andy Walls wrote:
+> > On Sun, 2009-04-05 at 16:37 +0200, Janne Grunau wrote:
+> > > 
+> > > I would guess that it won't work. There is an effort to merge lirc. It's
+> > > currently stalled though.
+> > 
+> > Perhaps you and Jarrod and Christopher have already discussed this,
+> > but...
+> > 
+> > Instead of trying to push all of the LIRC kernel components through in
+> > one big patch set, perhaps it would be easier to just get the lirc_dev
+> > and any other needed infrastructure components in first.
+> > 
+> > If one focuses on satisfying the LKML comments to lirc_dev and the
+> > Makefile to get that kernel module in the kernel, then, at least for
+> > video card hosted IR devices, there is an infrastructure to which to
+> > hook new or rewritten i2c IR driver modules.
 > 
-> Douglas,
+> I guess lkml would NAK patches adding infrastructure only bits but we
+> will probably for the next patchset concentrate on a few lirc drivers.
+
+Yep, my thoughts exactly.
+
+> Christopher doesn't participate in the merge attempt.
+
+Christoph has been giving decent feedback and merging the git tree changes
+back into lirc cvs of late, but no, he's not directly participating in
+the effort to merge lirc into the kernel.
+
+> > >  A git tree is available at
+> > > 
+> > > git://git.wilsonet.com/linux-2.6-lirc.git
+> > > 
+> > > Jared Wilson and I were working on it (mainly last september). Since the
+> > > IR on the HD PVR is also driven by the same zilog chip as on other
+> > > hauppauge devices I'll take of lirc_zilog. Help converting the i2c
+> > > drivers to the new i2c model is welcome. General cleanup of lirc to make
+> > > it ready for mainline is of course wellcome too.
+> > 
+> > I can help with this.  I'm mainly concerned with lirc_dev, lirc_i2c (for
+> > Rx only use of the zilog at 0x71), lirc_zilog, and lirc_mceusb2.  That's
+> > because, of course, I have devices that use those modules. :)
 > 
-> Unless he is willing to do without dvb support, he's not going to be
-> able to use the upstream em28xx driver with the Terratec XS.  
+> I have devices for lirc_zilog (which should probably be merged with
+> lirc_i2c) and lirc serial. Jarod has at least mce usb and imon devices.
+> That are probably the devices we'll concentrate on the next submission.
 
-The idea behind that email is to inform that we do not support any
-parallel project. 
+Indeed, we should focus on serial, i2c/zilog, mceusb2 and imon. I think
+they're by far the most popular and the best maintained, and between
+Janne and myself, we can actually test all of them ourselves.
 
-> I've got
-> a device being mailed to me, at which point I will be able to get the
-> dvb support working.
+> > lirc_dev and the API header would be my first priority, if you need
+> > help.  Did anyone consolidate all the comments from the LKML on Jarrod's
+> > patch submission?
+> 
+> no and I lost track which comments were already handled.
 
-Great, good news!
+I think we've got just about everything handled, but I should go back over
+the stack of comments before we resubmit... I was hoping to have something
+ready for 2.6.30, but work keeps getting in the way...
 
-Cheers,
-Douglas
+-- 
+Jarod Wilson
+jarod@redhat.com
