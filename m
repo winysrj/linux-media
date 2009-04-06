@@ -1,61 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.hauppauge.com ([167.206.143.4]:4556 "EHLO
-	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751837AbZDNFsA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Apr 2009 01:48:00 -0400
-Message-ID: <49E4238C.6000500@linuxtv.org>
-Date: Tue, 14 Apr 2009 01:47:56 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2500 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753662AbZDFXSM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 19:18:12 -0400
+Message-ID: <63374.207.214.87.58.1239059885.squirrel@webmail.xs4all.nl>
+Date: Tue, 7 Apr 2009 01:18:05 +0200 (CEST)
+Subject: Re: Embedded Linux Conference
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Tony Lindgren" <tony@atomide.com>
+Cc: "Dongsoo Kim" <dongsoo.kim@gmail.com>,
+	"Kevin Hilman" <khilman@deeprootsystems.com>,
+	"Steve Sakoman" <sakoman@gmail.com>, linux-media@vger.kernel.org,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Manjunath Hadli" <mrh@ti.com>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: tuner-core i2c address range check: time to remove them?
-References: <200903292253.01684.hverkuil@xs4all.nl> <200904131310.18758.hverkuil@xs4all.nl>
-In-Reply-To: <200904131310.18758.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> On Sunday 29 March 2009 22:53:01 Hans Verkuil wrote:
->> Hi all,
->>
->> The tuner-core.c source contains this warning since 2.6.24:
->>
->> tuner_warn("Support for tuners in i2c address range 0x64 thru 0x6f\n");
->> tuner_warn("will soon be dropped. This message indicates that your\n");
->> tuner_warn("hardware has a %s tuner at i2c address 0x%02x.\n",
->>                    t->name, t->i2c->addr);
->> tuner_warn("To ensure continued support for your device, please\n");
->> tuner_warn("send a copy of this message, along with full dmesg\n");
->> tuner_warn("output to v4l-dvb-maintainer@linuxtv.org\n");
->> tuner_warn("Please use subject line: \"obsolete tuner i2c address.\"\n");
->> tuner_warn("driver: %s, addr: 0x%02x, type: %d (%s)\n",
->>                    t->i2c->adapter->name, t->i2c->addr, t->type,
->> t->name);
->>
->> Isn't it time to remove these i2c addresses? I don't believe we ever had
->> a real tuner at such an address.
->>
->> With the ongoing v4l2_subdev conversion I need to do a bit of cleanup in
->> tuner-core.c as well, so it would be a good time for me to combine it
->> (and it gets rid of an ugly cx88 hack in tuner-core.c as well).
->>
->> Regards,
->>
->> 	Hans
-> 
-> Mike, please let me know if I can remove this!
 
-Hans,
+> * Dongsoo Kim <dongsoo.kim@gmail.com> [090317 10:36]:
+>
+> <snip snip>
+>
+>>>> How about Monday night after the Dinner (ends at 7pm [1]) we meet for
+>>>> beers.  I'll let someone local (Tony) pick the venue.
+>>>
+>>> OK, let's plan for Monday night then. I'll find some place with
+>>> drinks easily available, and within walking distance from the
+>>> conference.
+>>>
+>>> I've added a placeholder for the event where I'll post the details
+>>> later on:
+>>>
+>>> http://www.muru.com/linux/omap/events/
+>
+> OK, let's meet at Harry's bar 7pm at 2020 Fillmore St
+> between Pine and California St. They're closed until 4pm,
+> so there's no reservation. But as it's Monday night, I'd
+> assume there's plenty of space. In case of last minute
+> changes, please check the page above.
 
-The warning message can be removed now, but please note that i2c address 
-0x64 *is* a valid i2c address for a tuner.
+Not sure whether it will be as quiet as you hope:
 
-I believe that 0x65 thru 0x6f can be removed.
+http://www.harrysbarsf.com/
+
+There's apparently some championship game going on today.
+
+Note that I and a few others will meet up in the hotel's lobby at 6pm to
+go to have dinner somewhere. Whoever is interested is free to join us.
 
 Regards,
 
-Mike
+      Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
