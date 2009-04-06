@@ -1,44 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197]:54693 "EHLO
-	mta2.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759330AbZDTW2M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 18:28:12 -0400
-Received: from steven-toths-macbook-pro.local
- (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta2.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KIF001VE7QY12X0@mta2.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Mon, 20 Apr 2009 18:28:11 -0400 (EDT)
-Date: Mon, 20 Apr 2009 18:28:10 -0400
-From: Steven Toth <stoth@linuxtv.org>
-Subject: Re: Hauppauge HVR-1500 (aka HP RM436AA#ABA)
-In-reply-to: <1240265172.5388.184.camel@mountainboyzlinux0>
-To: pghben@yahoo.com
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-id: <49ECF6FA.70805@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7BIT
-References: <23cedc300904170207w74f50fc1v3858b663de61094c@mail.gmail.com>
- <BAY102-W34E8EA79DEE83E18177655CF7B0@phx.gbl> <49E9C4EA.30706@linuxtv.org>
- <loom.20090420T150829-849@post.gmane.org> <49EC9A08.50603@linuxtv.org>
- <1240245715.5388.126.camel@mountainboyzlinux0> <49ECA8DD.9090708@linuxtv.org>
- <1240249684.5388.146.camel@mountainboyzlinux0> <49ECBCF0.3060806@linuxtv.org>
- <1240255677.5388.153.camel@mountainboyzlinux0> <49ECD553.9090707@linuxtv.org>
- <1240259904.5388.178.camel@mountainboyzlinux0> <49ECEEA3.6010203@linuxtv.org>
- <1240265172.5388.184.camel@mountainboyzlinux0>
+Received: from mail1.radix.net ([207.192.128.31]:36301 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755224AbZDFKz7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Apr 2009 06:55:59 -0400
+Subject: Re: Test results for ir-kbd-i2c.c changes (Re: [PATCH 0/6]
+ ir-kbd-i2c  conversion to the new i2c binding model)
+From: Andy Walls <awalls@radix.net>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Mike Isely <isely@pobox.com>
+In-Reply-To: <20090406105436.05ecaf4d@hyperion.delvare>
+References: <20090404142427.6e81f316@hyperion.delvare>
+	 <20090405070116.17ecadef@pedra.chehab.org>
+	 <20090405164024.1459e4fe@hyperion.delvare>
+	 <1238977379.2796.19.camel@morgan.walls.org>
+	 <20090406105436.05ecaf4d@hyperion.delvare>
+Content-Type: text/plain
+Date: Mon, 06 Apr 2009 07:56:22 -0400
+Message-Id: <1239018982.3157.3.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> If there is anything I can do that will help you find the bug, please 
-> let me know..
+On Mon, 2009-04-06 at 10:54 +0200, Jean Delvare wrote:
+> Hi Andy,
+
+
+> Note that struct IR_i2c_init_data only contains the fields I needed at
+> the moment, but it would be trivial to extend it to allow bridge
+> drivers to pass more setup information if needed, for example ir_type.
+
+Yeah, I could have mucked with it myself, but communicating back the
+whole merged diff would have been a hassle.  I was just testing anyway.
+
+
+> > Success.
 > 
-> I want to thank you again for being so patient, helpful, and attentive. 
-> I really do appreciate it.
+> OK, good to know that adding support for the cx18 will be possible and
+> easy. I propose that we postpone this addition until after my code is
+> merged though, to avoid making the situation more complex than it
+> already is.
+
+Yeah.  So far one user has asked for it.
+
+
+> Thanks a lot for the testing!
+
 
 You're welcome.
 
-I'll look into this tonight and see what I can find.
+Sorry for being such a pain to what I suspect you hoped was to be a
+"simple" change.
 
-- Steve
+Regards,
+Andy
+
+
