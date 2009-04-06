@@ -1,41 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail10.dotsterhost.com ([66.11.233.3]:60978 "HELO
-	mail10.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757073AbZDVTMT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Apr 2009 15:12:19 -0400
-Message-ID: <49EF6C0C.5090305@orthfamily.net>
-Date: Wed, 22 Apr 2009 15:12:12 -0400
-From: John Orth <john@orthfamily.net>
-MIME-Version: 1.0
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Pinnacle HD Stick (801e SE) and i2c issues
-References: <49E40322.5040600@orthfamily.net>	 <412bdbff0904140552m52c0106q960f7c0ee40757c@mail.gmail.com>	 <49E492D0.3070101@orthfamily.net> <412bdbff0904140854x69a700a5pcbff84853ef9f8dd@mail.gmail.com> <49E4B5D9.20101@orthfamily.net>
-In-Reply-To: <49E4B5D9.20101@orthfamily.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mx2.redhat.com ([66.187.237.31]:42294 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757705AbZDFWkW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Apr 2009 18:40:22 -0400
+Received: from int-mx2.corp.redhat.com (int-mx2.corp.redhat.com [172.16.27.26])
+	by mx2.redhat.com (8.13.8/8.13.8) with ESMTP id n36MeLc9017980
+	for <linux-media@vger.kernel.org>; Mon, 6 Apr 2009 18:40:21 -0400
+Received: from ns3.rdu.redhat.com (ns3.rdu.redhat.com [10.11.255.199])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n36MeMNL021688
+	for <linux-media@vger.kernel.org>; Mon, 6 Apr 2009 18:40:23 -0400
+Received: from pedra.chehab.org (vpn-12-109.rdu.redhat.com [10.11.12.109])
+	by ns3.rdu.redhat.com (8.13.8/8.13.8) with ESMTP id n36MeJ9g008745
+	for <linux-media@vger.kernel.org>; Mon, 6 Apr 2009 18:40:20 -0400
+Date: Mon, 6 Apr 2009 19:40:12 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Fw: [PATCH resend] PWC: fix build error when CONFIG_INPUT=m
+Message-ID: <20090406194012.3f51428a@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It turns out that the issues I was having with the Asus M3A78-EM and 
-Pinnacle HDTV Stick 801e SE were completely unrelated to the v4l 
-driver.  I added a PCI USB 2.0 card and plugged the tuner stick into 
-that and things are working, and working very well I might add. 
 
-The original issue was that, after a seemingly random time of usage, 
-dmesg would get filled with:
 
+Forwarded message:
+
+Date: Mon, 6 Apr 2009 14:59:31 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,        lkml <linux-kernel@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@skynet.be>,        "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH resend] PWC: fix build error when CONFIG_INPUT=m
+
+
+From: Randy Dunlap <randy.dunlap@oracle.com>
+
+Fix build errors when USB_PWC=y and INPUT=m.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 ---
-s5h1411_writereg: writereg error 0x19 0xf5 0x0000, ret == 0)
-dib0700: i2c write error (status = -108)
----
+ drivers/media/video/pwc/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-and the tuner would cease to work in any fashion without a cold boot and 
-switching the USB port to which the tuner was attached.
+--- mmotm-2009-0214-0049.orig/drivers/media/video/pwc/Kconfig
++++ mmotm-2009-0214-0049/drivers/media/video/pwc/Kconfig
+@@ -39,7 +39,7 @@ config USB_PWC_DEBUG
+ config USB_PWC_INPUT_EVDEV
+ 	bool "USB Philips Cameras input events device support"
+ 	default y
+-	depends on USB_PWC && INPUT
++	depends on USB_PWC=INPUT || INPUT=y
+ 	---help---
+ 	  This option makes USB Philips cameras register the snapshot button as
+ 	  an input device to report button events.
 
-Thanks much to Devin Heitmueller for all his help.  This actually is an 
-issue with the USB host controller on the AMD SB700, so the PCI card was 
-a great and inexpensive (~10 USD) workaround.
 
-John
+-- 
+
+Cheers,
+Mauro
