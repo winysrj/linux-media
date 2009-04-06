@@ -1,84 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110801.mail.gq1.yahoo.com ([67.195.13.224]:37325 "HELO
-	web110801.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753117AbZD0MJs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2009 08:09:48 -0400
-Message-ID: <483873.44528.qm@web110801.mail.gq1.yahoo.com>
-Date: Mon, 27 Apr 2009 05:09:47 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [0904_7_1] Siano: smsdvb - modify license
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: LinuxML <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197]:50311 "EHLO
+	mta2.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752556AbZDFNsy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 09:48:54 -0400
+Received: from steven-toths-macbook-pro.local
+ (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta2.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KHO00GW8MDEPT10@mta2.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Mon, 06 Apr 2009 09:48:51 -0400 (EDT)
+Date: Mon, 06 Apr 2009 09:48:50 -0400
+From: Steven Toth <stoth@linuxtv.org>
+Subject: Re: Hauppauge WinTV-HVR-4000 / Nova-HD-S2
+In-reply-to: <49D5CF7C.2060704@yahoo.co.nz>
+To: Kevin Wells <wells_kevin@yahoo.co.nz>
+Cc: Jonas Kvinge <linuxtv@closetothewind.net>,
+	linux-media@vger.kernel.org
+Message-id: <49DA0842.7030306@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <49D56335.2020506@closetothewind.net> <49D5CF7C.2060704@yahoo.co.nz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Kevin Wells wrote:
+> Jonas Kvinge wrote:
+>> Whats the command to extract the firmware from the new driver release at
+>> http://www.wintvcd.co.uk/drivers/88x_2_123_27056_WHQL.zip
+>>
+>> The driver at http://www.wintvcd.co.uk/drivers/88x_2_122_26109_WHQL.zip
+>> is no longer available, so the link on
+>> http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000 is broken.
+>>   
+> Hi Jonas,
+> 
+> I can't remember the exact command off the top of my head. But I can
+> tell you how to work it out.
+> 
+> The problem is how to determine the offset to use. Look at this hex dump
+> from the start of each firmware file:
+> 
+>     dvb-fe-cx24116-1.20.79.0.fw:
+>         00000000  02 11 f9 ec 33 50 03 12
+> 
+>     dvb-fe-cx24116-1.22.82.0.fw:
+>         00000000  02 11 fb ec 33 50 03 12
+> 
+>     dvb-fe-cx24116-1.23.86.1.fw:
+>         00000000  02 12 02 ec 33 50 03 12
+> 
+> Note the magic `33 50 03 12` bytes that appear at offset 4 in each
+> firmware file. You can use that to determine the offset of the firmware
+> in the `hcw88bda.sys` file (at least for the existing firmware files).
+> 
+> I used `hd hcw88bda.sys | more` and typed `/33 50 03 12` in `more` to
+> find the offset. Make sure to subtract 4 from the offset of the `33 50
+> 03 12` bytes. Convert the offset from hex to decimal and use that as the
+> `skip` amount for the `dd` command.
+> 
+> Verify the extracted firmware using `md5sum`.
+> 
+> Perhaps when you get it to work you could update the wiki page you
+> mentioned.
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1240832608 -10800
-# Node ID 39bbe3b24abaaa3e049a855cb51be0b917b0c711
-# Parent  4a0b207a424af7f05d8eb417a698a82a61dd086f
-Siano: smsdvb - Fix licese to match all other Siano's files
+This:
 
-From: Uri Shkolnik <uris@siano-ms.com>
-
-Siano: smsdvb - Fix license to match all other Siano's files
-
-Priority: normal
-
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-
-diff -r 4a0b207a424a -r 39bbe3b24aba linux/drivers/media/dvb/siano/smsdvb.c
---- a/linux/drivers/media/dvb/siano/smsdvb.c	Thu Apr 02 20:50:24 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smsdvb.c	Mon Apr 27 14:43:28 2009 +0300
-@@ -1,23 +1,23 @@
--/*
-- *  Driver for the Siano SMS1xxx USB dongle
-- *
-- *  Author: Uri Shkolni
-- *
-- *  Copyright (c), 2005-2008 Siano Mobile Silicon, Inc.
-- *
-- *  This program is free software; you can redistribute it and/or modify
-- *  it under the terms of the GNU General Public License version 2 as
-- *  published by the Free Software Foundation;
-- *
-- *  Software distributed under the License is distributed on an "AS IS"
-- *  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.
-- *
-- *  See the GNU General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-- */
-+/****************************************************************
-+
-+Siano Mobile Silicon, Inc.
-+MDTV receiver kernel modules.
-+Copyright (C) 2006-2008, Uri Shkolnik
-+
-+This program is free software: you can redistribute it and/or modify
-+it under the terms of the GNU General Public License as published by
-+the Free Software Foundation, either version 2 of the License, or
-+(at your option) any later version.
-+
-+ This program is distributed in the hope that it will be useful,
-+but WITHOUT ANY WARRANTY; without even the implied warranty of
-+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+GNU General Public License for more details.
-+
-+You should have received a copy of the GNU General Public License
-+along with this program.  If not, see <http://www.gnu.org/licenses/>.
-+
-+****************************************************************/
- 
- #include <linux/module.h>
- #include <linux/init.h>
+http://www.steventoth.net/linux/cx24116/
 
 
-
-      
