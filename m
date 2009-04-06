@@ -1,108 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:59319 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754286AbZDTTyS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 15:54:18 -0400
-Date: Mon, 20 Apr 2009 16:54:13 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Dean A." <dean@sensoray.com>
-Cc: linux-media@vger.kernel.org, video4linux-list@redhat.com
-Subject: Re: patch: s2255drv high quality mode and video status querying
-Message-ID: <20090420165413.049552c5@pedra.chehab.org>
-In-Reply-To: <tkrat.2351cf1cef386315@sensoray.com>
-References: <tkrat.2351cf1cef386315@sensoray.com>
+Received: from cnc.isely.net ([64.81.146.143]:43519 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751968AbZDFDxI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Apr 2009 23:53:08 -0400
+Date: Sun, 5 Apr 2009 22:53:04 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+Reply-To: Mike Isely <isely@pobox.com>
+To: Jean Delvare <khali@linux-fr.org>
+cc: LMML <linux-media@vger.kernel.org>, Andy Walls <awalls@radix.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Mike Isely at pobox <isely@pobox.com>
+Subject: pvrusb2 IR changes coming [was: [PATCH 3/6] ir-kbd-i2c: Switch to
+ the new-style device binding model]
+In-Reply-To: <Pine.LNX.4.64.0904051315490.32738@cnc.isely.net>
+Message-ID: <Pine.LNX.4.64.0904052226270.2076@cnc.isely.net>
+References: <20090404142427.6e81f316@hyperion.delvare>
+ <20090404142837.3e12824c@hyperion.delvare> <Pine.LNX.4.64.0904041045380.32720@cnc.isely.net>
+ <20090405010539.187e6268@hyperion.delvare> <Pine.LNX.4.64.0904041807300.32720@cnc.isely.net>
+ <20090405161803.70810455@hyperion.delvare> <Pine.LNX.4.64.0904051315490.32738@cnc.isely.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 7 Apr 2009 10:56:36 -0700 (PDT)
-"Dean A." <dean@sensoray.com> wrote:
 
-> From: Dean Anderson <dean@sensoray.com>
-> 
-> This patch adds V4L2 video status capability and V4L2_MODE_HIGHQUALITY
-> operation.
+Jean:
 
-Hi Dean,
+Here's a description of what I've got on the front burner right now:
 
-I have a few comments to add over Trent's one.
+1. The pvrusb2 driver now can unambiguously know if it is dealing with a 
+device that is known to have ir-kbd-i2c compatible IR capabilities.
 
-> 
-> Signed-off-by: Dean Anderson <dean@sensoray.com>
-> 
-> --- v4l-dvb-1e670024659d/linux/drivers/media/video/s2255drv.c.orig	2009-04-07 10:38:42.000000000 -0700
-> +++ v4l-dvb-1e670024659d/linux/drivers/media/video/s2255drv.c	2009-04-07 10:42:51.000000000 -0700
-> @@ -57,7 +57,8 @@
->  
->  #define FIRMWARE_FILE_NAME "f2255usb.bin"
->  
-> -
-> +#define S2255_REV_MAJOR 1
-> +#define S2255_REV_MINOR 20
->  
-> +
->  #define S2255_MAJOR_VERSION	1
->  #define S2255_MINOR_VERSION	13
+2. There is a new module option, "disable_autoload_ir_kbd", which if 
+present and set to 1 will indicate that ir-kbd should not be loaded.
 
-Hmm... Why you need two different major/minor versions on your driver?
+2. Based upon (1) and (2), the driver will optionally attempt to load 
+ir-kbd using the code from your patch.
 
+3. In the pvrusb2 case, the only i2c address that currently matters is 
+0x18 (though I have some suspicions about another case but that can be 
+dealt with later), so I trimmed the probe list in the register function 
+you had added.
 
-> @@ -1207,8 +1236,8 @@ static int s2255_set_mode(struct s2255_d
->  			  struct s2255_mode *mode)
->  {
->  	int res;
-> -	u32 *buffer;
-> -	unsigned long chn_rev;
-> +	__le32 *buffer;
-> +	u32 chn_rev;
+Since calling i2c_new_probed_device() for a non-existent target driver 
+doesn't cause any harm, then merging the above now should not result in 
+any kind of regression.  So it can go in even before the rest of your 
+changes.  That I believe also removes the objection Mauro had - this way 
+there's no issues / dependencies.  I've tested this enough to know that 
+it at least doesn't do any further harm.
 
-Also, please don't mix more than one thing at the same patch. Clearly, you did
-some endiannes fix at the same patch. Please split it into different patches.
+I will put this up in a changeset shortly.
 
-> +static int s2255_cmd_status(struct s2255_dev *dev, unsigned long chn,
-> +			    u32 *pstatus)
-> +{
-> +	int res;
-> +	__le32 *buffer;
-> +	u32 chn_rev;
-> +
-> +	mutex_lock(&dev->lock);
-> +	chn_rev = G_chnmap[chn];
-> +	dprintk(4, "s2255_get_status: chan %d\n", chn_rev);
-> +	buffer = kzalloc(512, GFP_KERNEL);
-> +	if (buffer == NULL) {
-> +		dev_err(&dev->udev->dev, "out of mem\n");
-> +		mutex_unlock(&dev->lock);
-> +		return -ENOMEM;
-> +	}
-> +	/* form the get vid status command */
-> +	buffer[0] = IN_DATA_TOKEN;
-> +	buffer[1] = cpu_to_le32(chn_rev);
-> +	buffer[2] = CMD_STATUS;
-> +	*pstatus = 0;
-> +	dev->vidstatus_ready[chn] = 0;
-> +	res = s2255_write_config(dev->udev, (unsigned char *)buffer, 512);
-> +	kfree(buffer);
-> +	wait_event_timeout(dev->wait_vidstatus[chn],
-> +			   (dev->vidstatus_ready[chn] != 0),
-> +			   msecs_to_jiffies(S2255_VIDSTATUS_TIMEOUT));
-> +	if (dev->vidstatus_ready[chn] != 1) {
-> +		printk(KERN_DEBUG "s2255: no vidstatus response\n");
-> +		res = -EFAULT;
-> +	}
-> +	*pstatus = dev->vidstatus[chn];
-> +	dprintk(4, "s2255: vid status %d\n", *pstatus);
-> +	mutex_unlock(&dev->lock);
-> +	return res;
-> +}
-> +
+With all that said, we should not ignore lirc and instead do whatever is 
+reasonable to help ensure it continues to work.  Though admittedly 
+there's been plenty of opportunity to update and this whole transition 
+has been going on for a long time.  The stuff I describe above should at 
+least keep the pvrusb2 driver out of the fray for now.
 
-Also, please split "high quality mode" from "video status querying". You should
-provide one patch per different feature you're adding.
+  -Mike
 
 
-Cheers,
-Mauro
+-- 
+
+Mike Isely
+isely @ pobox (dot) com
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
