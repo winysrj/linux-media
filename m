@@ -1,177 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:55332 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753639AbZD0X3E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2009 19:29:04 -0400
-Received: by fxm2 with SMTP id 2so225490fxm.37
-        for <linux-media@vger.kernel.org>; Mon, 27 Apr 2009 16:29:00 -0700 (PDT)
-Date: Mon, 27 Apr 2009 19:29:05 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Andy Walls <awalls@radix.net>
-Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH] FM1216ME_MK3 some changes
-Message-ID: <20090427192905.3ad2b88c@glory.loctelecom.ru>
-In-Reply-To: <1240537394.3231.37.camel@palomino.walls.org>
-References: <20090422174848.1be88f61@glory.loctelecom.ru>
-	<1240452534.3232.70.camel@palomino.walls.org>
-	<20090423203618.4ac2bc6f@glory.loctelecom.ru>
-	<1240537394.3231.37.camel@palomino.walls.org>
+Received: from bombadil.infradead.org ([18.85.46.34]:58720 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751993AbZDFRpB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 13:45:01 -0400
+Date: Mon, 6 Apr 2009 14:44:08 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+Cc: David Wong <davidtlwong@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] Support for Legend Silicon LGS8913/LGS8GL5/LGS8GXX
+ China  DMB-TH digital demodulator
+Message-ID: <20090406144408.63b2ef71@pedra.chehab.org>
+In-Reply-To: <412bdbff0903302154w5ddb3fc8m684bcb5092942561@mail.gmail.com>
+References: <15ed362e0903170855k2ec1e5afm613de692c237e34d@mail.gmail.com>
+	<412bdbff0903302154w5ddb3fc8m684bcb5092942561@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/hbf/9fNMczN+.c+jNjKud5Z"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/hbf/9fNMczN+.c+jNjKud5Z
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Tue, 31 Mar 2009 00:54:49 -0400
+Devin Heitmueller <devin.heitmueller@gmail.com> wrote:
 
-Hi All
+> On Tue, Mar 17, 2009 at 11:55 AM, David Wong <davidtlwong@gmail.com> wrote:
+> > This patch contains the unified driver for Legend Silicon LGS8913 and
+> > LGS8GL5. It should replace lgs8gl5.c in media/dvb/frontends
+> >
+> > David T.L. Wong
+> 
+> David,
+> 
+> The questions you posed tonight on a separate thread about making the
+> xc5000 work with this device prompts the question:
+> 
+> Do you know that this driver you submitted actually works?  Have you
+> successfully achieved lock with this driver and been able to view the
+> stream?
+> 
+> It is great to see the improvements and more generic support, but if
+> you don't have it working in at least one device, then it probably
+> shouldn't be submitted upstream yet, and it definitely should not be
+> replacing an existing driver.
 
-Step by step.
+We need to do some tests before replacing the existing one. Yet, it is better
+to have a generic device than specific ones. Do you have any card with lg8gl5?
+If so, could you please test the new driver for us?
 
-This is patch for change only range of FM1216ME_MK3. Slow tunning is not a big problem.
+Anyway, I'm applying what we currently have.
 
-diff -r b40d628f830d linux/drivers/media/common/tuners/tuner-types.c
---- a/linux/drivers/media/common/tuners/tuner-types.c	Fri Apr 24 01:46:41 2009 -0300
-+++ b/linux/drivers/media/common/tuners/tuner-types.c	Tue Apr 28 03:35:42 2009 +1000
-@@ -558,8 +558,8 @@
- 
- static struct tuner_range tuner_fm1216me_mk3_pal_ranges[] = {
- 	{ 16 * 158.00 /*MHz*/, 0x8e, 0x01, },
--	{ 16 * 442.00 /*MHz*/, 0x8e, 0x02, },
--	{ 16 * 999.99        , 0x8e, 0x04, },
-+	{ 16 * 441.00 /*MHz*/, 0x8e, 0x02, },
-+	{ 16 * 864.00        , 0x8e, 0x04, },
- };
- 
- static struct tuner_params tuner_fm1216me_mk3_params[] = {
-
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-
-
-With my best regards, Dmitry.
-
-> Hi Dmitri,
-> 
-> Thank you for you responses.
-> 
-> Just a few more comments...
-> 
-> On Thu, 2009-04-23 at 20:36 +1000, Dmitri Belimov wrote:
-> > Hi Andy
-> > 
-> > > Dmitri,
-> > > 
-> > > 
-> > > On Wed, 2009-04-22 at 17:48 +1000, Dmitri Belimov wrote:
-> > > > Hi All
-> > > > 
-> > > > 1. Change middle band. In the end of the middle band the
-> > > > sensitivity of receiver not good. If we switch to higher band,
-> > > > sensitivity more better. Hardware trick.
-> > > 
-> 
-> > Several years a go your customers write some messages about bad
-> > quality of TV if frequency of TV is the end of band. It can be low
-> > band or middle. Our hardware engeneer make some tests with hardware
-> > TV generator and our TV tuners.
-> > 
-> > If we set default frequency range for low and middle band, quality
-> > of TV signal on 159MHz and 442 MHz is bad. When we make our changes
-> > with moving end of bands the quality of TV much better. And our
-> > system programmer for OS Windows use changed bands for drivers.
-> > Customers be happy.
-> 
-> OK.  A properly run experiment wins over theory every time. :)
-> 
-> 
-> 
-> > You can test it if in your placement available TV programm on
-> > 159MHz or 442MHz. This trick can be usefull for other tuners.
-> 
-> If you look at tveeprom.c, a number of other tuners are using that
-> tuner definition:
-> 
-> $ grep FM1216ME_MK3 tveeprom.c
-> 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FQ1216ME MK3"},
-> 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FM1216 ME
-> MK3"}, { TUNER_PHILIPS_FM1216ME_MK3, 	"LG S001D MK3"},
-> 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"LG S701D MK3"},
-> 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FQ1216LME
-> MK3"}, { TUNER_PHILIPS_FM1216ME_MK3, 	"TCL MFPE05 2"},
-> 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"TCL MPE05-2"},
-> 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FM1216ME MK5"},
-> 
-> If your change makes things bad for the other tuners, we'll probably
-> have to create an alternate entry for the other tuners instead of
-> using the FM1216ME_MK3 defintion.  I suspect most of them are clones
-> of the FM1216ME MK3 however, so it probably won't matter.
-> 
-> > > > 3. Set charge pump bit
-> > > 
-> > > This will improve the time to initially tune to a frequency, but
-> > > will likely add some noise as the PLL continues to maintain lock
-> > > on the signal.  If there is no way to turn off the CP after the
-> > > lock bit is set in the tuner, it's probably better to leave it
-> > > off for lower noise and just live with slower tuning.
-> > 
-> > We discuss with our windows system programmer about it. He sad that
-> > in analog TV mode noise from PLL don't give any problem.
-> 
-> I would be concerned about phase noise affecting the colors or any FM
-> sound carriers.  If the noise isn't noticably affecting colors to the
-> human eye (do color bars look OK?), or sound to the human ear, then
-> OK.
-> 
-> 
-> >  But in digital TV mode
-> > noise from PLL decreased BER.
-> 
-> I thought the FM1216ME MK3 was an analog only tuner.  I guess I don't
-> know DVB-T or cable in Europe well enough.
-> 
-> 
-> > > Leaving the CP bit set should be especially noticable ad FM noise
-> > > when set to tune to FM radio stations.  From the FM1236ME_MK3
-> > > datasheet: "It is recommended to set CP=0 in the FM mode at all
-> > > times." But the VHF low band control byte is also used when
-> > > setting FM radio (AFAICT with a quick look at the code.)
-> > 
-> > Yes. You are right. We can swith CP off in FM mode.
-> 
-> OK.  Thank you.
-> 
-> > With my best regards, Dmitry.
-> 
-> 
-> Regards,
-> Andy
-> 
-> 
-> 
-
---MP_/hbf/9fNMczN+.c+jNjKud5Z
-Content-Type: text/x-patch; name=behold_mk3_range.patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=behold_mk3_range.patch
-
-diff -r b40d628f830d linux/drivers/media/common/tuners/tuner-types.c
---- a/linux/drivers/media/common/tuners/tuner-types.c	Fri Apr 24 01:46:41 2009 -0300
-+++ b/linux/drivers/media/common/tuners/tuner-types.c	Tue Apr 28 03:35:42 2009 +1000
-@@ -558,8 +558,8 @@
- 
- static struct tuner_range tuner_fm1216me_mk3_pal_ranges[] = {
- 	{ 16 * 158.00 /*MHz*/, 0x8e, 0x01, },
--	{ 16 * 442.00 /*MHz*/, 0x8e, 0x02, },
--	{ 16 * 999.99        , 0x8e, 0x04, },
-+	{ 16 * 441.00 /*MHz*/, 0x8e, 0x02, },
-+	{ 16 * 864.00        , 0x8e, 0x04, },
- };
- 
- static struct tuner_params tuner_fm1216me_mk3_params[] = {
-
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-
---MP_/hbf/9fNMczN+.c+jNjKud5Z--
+Cheers,
+Mauro
