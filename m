@@ -1,31 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:21355 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750874AbZDBFQv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Apr 2009 01:16:51 -0400
-Received: by qw-out-2122.google.com with SMTP id 8so490793qwh.37
-        for <linux-media@vger.kernel.org>; Wed, 01 Apr 2009 22:16:48 -0700 (PDT)
-MIME-Version: 1.0
-Date: Thu, 2 Apr 2009 00:16:48 -0500
-Message-ID: <e3538fbd0904012216g48da5006hb170974530bdcea3@mail.gmail.com>
-Subject: Broken ioctls for the mpeg encoder on the HVR-1800
-From: Joseph Yasi <joe.yasi@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx2.redhat.com ([66.187.237.31]:51109 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752507AbZDFWkH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Apr 2009 18:40:07 -0400
+Received: from int-mx2.corp.redhat.com (int-mx2.corp.redhat.com [172.16.27.26])
+	by mx2.redhat.com (8.13.8/8.13.8) with ESMTP id n36Me5xO017959
+	for <linux-media@vger.kernel.org>; Mon, 6 Apr 2009 18:40:05 -0400
+Received: from ns3.rdu.redhat.com (ns3.rdu.redhat.com [10.11.255.199])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n36Me6jV021648
+	for <linux-media@vger.kernel.org>; Mon, 6 Apr 2009 18:40:07 -0400
+Received: from pedra.chehab.org (vpn-12-109.rdu.redhat.com [10.11.12.109])
+	by ns3.rdu.redhat.com (8.13.8/8.13.8) with ESMTP id n36Me369008558
+	for <linux-media@vger.kernel.org>; Mon, 6 Apr 2009 18:40:04 -0400
+Date: Mon, 6 Apr 2009 19:39:56 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Fw: [PATCH resend] UVC: uvc_status_cleanup(): undefined reference
+ to `input_unregister_device'
+Message-ID: <20090406193956.3aff488e@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
 
-With the cx23885 driver that shipped with 2.6.29, as well as the
-latest hg driver, the analog mpeg encoder device for the HVR-1800 does
-not respond to the VIDIOC_QUERYCAP ioctl, returning ENOTTY.  This
-ioctl previously worked with the driver in 2.6.28.  The preview device
-does respond to the ioctl properly, and I am able to tune and set the
-input via the preview device.  I can also capture MPEG using a simple
-cat /dev/video1 > out.mpg.  Are the ioctls supposed to work on the
-mpeg device, or should it be tuned via the preview device only?
 
-Thanks,
-Joe Yasi
+Forwarded message:
+
+Date: Mon, 6 Apr 2009 14:57:55 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,        lkml <linux-kernel@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@skynet.be>,        "Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: [PATCH resend] UVC: uvc_status_cleanup(): undefined reference to `input_unregister_device'
+
+
+From: Randy Dunlap <randy.dunlap@oracle.com>
+
+Fix build errors when USB_VIDEO_CLASS=y and INPUT=m.
+Fixes kernel bugzilla #12671.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@skynet.be>
+---
+ drivers/media/video/uvc/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- mmotm-2009-0214-0049.orig/drivers/media/video/uvc/Kconfig
++++ mmotm-2009-0214-0049/drivers/media/video/uvc/Kconfig
+@@ -9,7 +9,7 @@ config USB_VIDEO_CLASS
+ config USB_VIDEO_CLASS_INPUT_EVDEV
+ 	bool "UVC input events device support"
+ 	default y
+-	depends on USB_VIDEO_CLASS && INPUT
++	depends on USB_VIDEO_CLASS=INPUT || INPUT=y
+ 	---help---
+ 	  This option makes USB Video Class devices register an input device
+ 	  to report button events.
+
+
+
+-- 
+
+Cheers,
+Mauro
