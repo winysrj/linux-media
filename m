@@ -1,81 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.30]:11533 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753757AbZDJUk4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Apr 2009 16:40:56 -0400
-Received: by yx-out-2324.google.com with SMTP id 31so1278264yxl.1
-        for <linux-media@vger.kernel.org>; Fri, 10 Apr 2009 13:40:55 -0700 (PDT)
+Received: from bear.ext.ti.com ([192.94.94.41]:49650 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752195AbZDFLvD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 07:51:03 -0400
+From: "Shah, Hardik" <hardik.shah@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Date: Mon, 6 Apr 2009 17:20:25 +0530
+Subject: RE: [PATCH 0/3] V4L2 driver for OMAP2/3 with new CIDs.
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB102FD2@dbde02.ent.ti.com>
+In-Reply-To: <200903200826.19558.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Date: Fri, 10 Apr 2009 22:40:54 +0200
-Message-ID: <621110570904101340y3d342cc8r4f3b2cb80ffbbc70@mail.gmail.com>
-Subject: Re: SkyStar HD2 (TwinHan VP-1041) S2API/multiproto issues
-From: Dave Lister <foceni@gmail.com>
-To: Markus Rechberger <mrechberger@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/4/10 Markus Rechberger <mrechberger@gmail.com>:
-> On Fri, Apr 10, 2009 at 1:30 PM, Dave Lister <foceni@gmail.com> wrote:
->> ...
->> Drivers tried: http://jusst.de/hg/multiproto,
->> http://jusst.de/hg/mantis (couldn't make it compile)
->
-> hmm this seems to work fine with linux 2.6.27 maybe try to downgrade
-> your kernel?
->
-
-Thank you for the tip! I presume you mean the
-http://jusst.de/hg/mantis driver. When I was trying mantis tree with
-kernels 2.6.26 & 2.6.29 yesterday, I got this compilation error in
-both cases (mentioning for archival purposes, to help others):
-
-In file included from /n/data/src/mantis/v4l/tuner-xc2028.h:10,
-                from /n/data/src/mantis/v4l/tuner-xc2028.c:21:
-./v4l/dvb_frontend.h:52: error: field 'fe_params' has incomplete type
-./v4l/dvb_frontend.h:297: warning: 'struct dvbfe_info' declared inside
-parameter list
-./v4l/dvb_frontend.h:299: warning: 'enum dvbfe_delsys' declared inside
-parameter list
-./v4l/dvb_frontend.h:316: error: field 'fe_events' has incomplete type
-./v4l/dvb_frontend.h:317: error: field 'fe_params' has incomplete type
-./v4l/dvb_frontend.h:354: warning: 'enum dvbfe_fec' declared inside
-parameter list
-./v4l/dvb_frontend.h:354: warning: 'enum dvbfe_modulation' declared
-inside parameter list
-make[3]: *** [./v4l/tuner-xc2028.o] Error 1
+Hi All,
 
 
-Now, trying again (and harder) as you suggested, I realized my
-kernel's V4L headers (linux/dvb/frontend.h, etc) were taking
-precedence over mantis tree. I "fixed" it (just moved conflicting
-headers), but still ended up with the same fatal error as yesterday -
-struct net_device doesn't have a member called "priv". Turns out this
-incompatibility was introduced somewhere between 2.6.28-29. Debian
-2.6.26 kernel worked fine this time and the driver compiled!
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Friday, March 20, 2009 12:56 PM
+> To: Shah, Hardik
+> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH 0/3] V4L2 driver for OMAP2/3 with new CIDs.
+> 
+> On Friday 20 March 2009 06:18:44 Shah, Hardik wrote:
+> > Hi All,
+> > I will be posting series of three patches for the V4L2 driver on the
+> > OMAP2/3 DSS.
+> 
+> Thanks! I'll review this within the week.
+[Shah, Hardik] I have fixed most of the comments and re-posting the patches.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > Patch 1 -
+> > This is the second revision of the patch.
+> > Documentation added for the following new CIDs and bit fields added in
+> > V4L2 framework.
+> >
+> > V4L2_CID_BG_COLOR: Added new CID for setting of the back ground color on
+> > the output device. V4L2_CID_ROTATION: Added new CID for setting up of the
+> > rotation on the device. Both of the above ioctls are discussed in detail.
+> >
+> > V4L2_FBUF_FLAG_SRC_CHROMAKEY: Added the flags bit field to the flags
+> > field of the v4l2_framebuffer structure for supporting the source chroma
+> > keying.  It's exactly opposite of the chroma keying supported with the
+> > flag V4L2_FBUF_FLAG_CHROMAKEY.
+> >
+> > V4L2_FBUF_CAP_SRC_CHROMAKEY:  Added the capability bit field for the
+> > capability field of the v4l2_framebuffer structure.
+> >
+> > Documentation change related to the new bit field for the source chroma
+> > keying is new from the previous version.
+> >
+> > Patch 2 -
+> > Added New Control IDs for OMAP class of Devices as discussed above.  This
+> > is the third revision of the patch of adding the new control IDs and bit
+> > fields.
+> >
+> > V4L2_FBUF_CAP_SRC_CHROMAKEY and V4L2_FBUF_FLAG_SRC_CHROMAKEY are newly
+> > added compared to previous revision of patch.
+> >
+> > New Ioctl for programming the color space conversion matrix is dropped
+> > from this patch as the accompanying driver with this patch is not still
+> > having implementation for the same.  Related documentation is also
+> > removed.
+> >
+> > I will submit a separate patch for that with the necessary changes in
+> > driver to support the programming of the color space conversion. Some
+> > changes are required in DSS2 library also for doing the same.
+> >
+> > Patch 3 -
+> > This is a review patch since the DSS2 library is still to be accepted in
+> > community This is the third revision of the patch.
+> > This patch contains the V4L2 driver on the OMAP3 DSS2 using all of the
+> > above newly implemented CIDS and bit fields.  Following are the changes
+> > in the driver compared to the previous version.
+> >
+> > 1.  Added the chroma keying support.
+> > 2.  Added alpha blending support.
+> > 3.  Minor community comment fixed.
+> > 4.  Ported to work with Tomi's latest DSS2 library with minor
+> > modification in DSS2 library.  Path to Tomi's DSS2 library is
+> > http://www.bat.org/~tomba/git/linux-omap-dss.git/ commit id
+> > bc6dc4c7fabb8ba3bfe637a6c5dc271595a1bef6
+> >
+> > All the comments and inputs are welcomed.
+> >
+> > Thanks and Regards
+> > Hardik Shah
+> >
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+> 
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
-Thanks to your heads up, I can finally scan and zap channels! :) There
-are still some issues, though. Perhaps you or somebody else will be
-able to help me. I tried several versions of dvb-apps/utils (deb,
-http://linuxtv.org/hg/dvb-apps, s2-liplianin,
-http://jusst.de/manu/scan.tar.bz2) and the only one working is the
-Debian package. This means, however, that I cannot use DVB-S2. To make
-it short:
-
-1) Where do I get working S2-enabled dvb-apps for the mantis tree?
-2) Zapping and scanning is _extremely_ slow - szap takes about 30
-seconds to lock on any channel. Is it normal?
-3) DiSEqC is not working with the standard packaged dvb-apps (-s 0, -s
-1). Is DiSEqC supported at all?
-4) I'm using trunk MythTV and compiled it yesterday against
-liplianin-s2. Do I need any patches (b/c of mantis driver) or will
-clean recompilation work (considering S2, etc)?
-
-I'll welcome any suggestions that might point me in the right direction.
-
-Thank you,
---
-David Lister
