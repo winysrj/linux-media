@@ -1,40 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.188]:60190 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935780AbZDIQcF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2009 12:32:05 -0400
-Message-ID: <49DE2301.5090406@e-tobi.net>
-Date: Thu, 09 Apr 2009 18:32:01 +0200
-From: Tobi <listaccount@e-tobi.net>
+Received: from mail-ew0-f165.google.com ([209.85.219.165]:54666 "EHLO
+	mail-ew0-f165.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752409AbZDFGmo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 02:42:44 -0400
+Received: by ewy9 with SMTP id 9so1758248ewy.37
+        for <linux-media@vger.kernel.org>; Sun, 05 Apr 2009 23:42:40 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Userspace issue with DVB driver includes
-References: <49DDA100.1030205@e-tobi.net> <20090409074534.2cf32df0@pedra.chehab.org>
-In-Reply-To: <20090409074534.2cf32df0@pedra.chehab.org>
+Date: Mon, 6 Apr 2009 14:42:40 +0800
+Message-ID: <3a665c760904052342h4bfdd7f7xce14e868c1c1169@mail.gmail.com>
+Subject: Question about ci drivers in dvb
+From: loody <miloody@gmail.com>
+To: Kernel newbies <kernelnewbies@nl.linux.org>,
+	linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-Mauro Carvalho Chehab wrote:
-
-> I suspect that this were the upstream change that affected your work, right?
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=b852d36b86902abb272b0f2dd7a56dd2d17ea88c
-
-Yes, at least I thought so.
-
-> There are two changesets that will likely fix this issue:
-> 
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=85efde6f4e0de9577256c5f0030088d3fd4347c1
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=9adfbfb611307060db54691bc7e6d53fdc12312b
-> 
-> Could you please try to apply they on 2.6.29 and see if those will solve the
-> issue? If so, then we should probably add those on 2.6.29.2. 
-
-I've applied both patches to 2.6.29.1, but the problem still remains.
-
-It's hard to figure out, who to blame for this.
-
-Tobias
+Dear all:
+I have read ci.txt under documents/dvb, and at end of it, it mentions
+about apdu protocol defined in en50221.
+but I cannot see this part of source in dvb_ca_en50221.c.
+Is this part implemented at other place or I check the wrong document?
+appreciate your help,
+miloody
