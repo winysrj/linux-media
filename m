@@ -1,92 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:51619 "EHLO
-	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753510AbZDTSUo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 14:20:44 -0400
-Received: from steven-toths-macbook-pro.local
- (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta5.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KIE004GYWA8G5K0@mta5.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Mon, 20 Apr 2009 14:20:33 -0400 (EDT)
-Date: Mon, 20 Apr 2009 14:20:32 -0400
-From: Steven Toth <stoth@linuxtv.org>
-Subject: Re: Hauppauge HVR-1500 (aka HP RM436AA#ABA)
-In-reply-to: <1240249684.5388.146.camel@mountainboyzlinux0>
-To: linux-media@vger.kernel.org
-Message-id: <49ECBCF0.3060806@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7BIT
-References: <23cedc300904170207w74f50fc1v3858b663de61094c@mail.gmail.com>
- <BAY102-W34E8EA79DEE83E18177655CF7B0@phx.gbl> <49E9C4EA.30706@linuxtv.org>
- <loom.20090420T150829-849@post.gmane.org> <49EC9A08.50603@linuxtv.org>
- <1240245715.5388.126.camel@mountainboyzlinux0> <49ECA8DD.9090708@linuxtv.org>
- <1240249684.5388.146.camel@mountainboyzlinux0>
+Received: from mail4.sea5.speakeasy.net ([69.17.117.6]:54025 "EHLO
+	mail4.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750981AbZDFEoG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 00:44:06 -0400
+Date: Sun, 5 Apr 2009 21:44:02 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Mike Isely <isely@pobox.com>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Andy Walls <awalls@radix.net>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Jean Delvare <khali@linux-fr.org>, Janne Grunau <j@jannau.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	LMML <linux-media@vger.kernel.org>,
+	Jarod Wilson <jarod@redhat.com>
+Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
+ model
+In-Reply-To: <Pine.LNX.4.64.0904052104010.2076@cnc.isely.net>
+Message-ID: <Pine.LNX.4.58.0904052121540.5134@shell2.speakeasy.net>
+References: <20090404142427.6e81f316@hyperion.delvare>
+ <Pine.LNX.4.64.0904041045380.32720@cnc.isely.net> <20090405010539.187e6268@hyperion.delvare>
+ <200904050746.47451.hverkuil@xs4all.nl> <20090405143748.GC10556@aniel>
+ <1238953174.3337.12.camel@morgan.walls.org> <20090405183154.GE10556@aniel>
+ <1238957897.3337.50.camel@morgan.walls.org> <20090405222250.64ed67ae@hyperion.delvare>
+ <1238966523.6627.63.camel@pc07.localdom.local> <1238968804.4647.22.camel@morgan.walls.org>
+ <20090405225102.531a2075@pedra.chehab.org> <Pine.LNX.4.64.0904052104010.2076@cnc.isely.net>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->>
->> Step 2. What happens when you try to use azap and what does syslog subsequently 
->> look like?
->>
->> - Steve
-> Since there is no channels.conf file by default,  in the past, I have 
-> tried using w_scan to generate one.
+On Sun, 5 Apr 2009, Mike Isely wrote:
+> 1. The switch statement in ir-kbd-i2c.c:ir_attach() is apparently
+> implicitly trying to assume a particular type of remote based on the I2C
+> address of the IR receiver it's talking to.  Yuck.  That's really not
+> right at all.  The IR receiver used does not automatically mean which
+> remote is used.  What if the vendor switches remotes?  That's happened
+> with the PVR-USB2 hardware in the past (based on photos I've seen).
+> Who's to say the next remote to be supplied is compatible?
 
-If you know MCE works then put you zip into antennaweb.org and find out the 
-physical channels and create a channels.conf by hand. Match the channels that 
-work on MCE mentally with one or two channels you want to tune under linux.
+IMHO, the way the remote supported is compiled into the kernel is absurd.
+The system I setup 12 years ago was better than this.  At least the remote
+was compiled into a userspace daemon and multiple remotes were supported at
+the same time.  The keycode system I used had a remote id/key id split, so
+you could have volume up key on any remote control the mixer but make the
+power buttons on different remotes turn on different apps.
 
-So, under MCE find a major network ABC, NBC or CBS that works perfectly for you 
-then locate the RF channel on antenna web.org.
+> 3. A given IR remote may be described by much more than what 'scan
+> codes' it produces.  I don't know a lot about IR, but looking at the
+> typical lirc definition for a remote, there's obvious timing and
+> protocol parameters as well.  Just being able to swap scan codes around
+> is not always going to be enough.
 
-Report back here with the RF channel reported by antennaweb for a couple of 
-channels and I'll help you with a fake channels.conf.
+A remote typically sends a header sequence of a long pulse and space before
+the code.  The length of the pulse on the space varies greatly by remote
+and makes a good way to identify the remote when multiple ones are
+supported.
 
-> This slowly scans all through all frequencies, though the light on the 
-> tuner card does not come on. At the end it says no channels found and 
-> does not create the channels.conf file.
-> While I am trying to tune in over-the-air signals in a fairly rural 
-> area, the card works on 20+ channels in mce.
+Then a pulse coded remote sends a sequence bits, usually 8 to 32.  The
+length of the pulse identifies 1s or 0s.  Different remotes have different
+pulse lengths and different spaces between them.  RC5 remotes use
+Manchester encoding for this part.
 
-Agreed, w_scan not working is interesting.
+When you hold a key down some remotes just repeat the same sequence over
+and over again.  Some repeat the scan code but omit the header part.  Some
+send out a special pulse sequence to indicate the last key is being held
+down.  With the latter two methods you can tell the difference between a
+key being held down and a key being pressed repeatedly.  With the first you
+have guess based on how fast the repeats are coming in.  This is very
+different than a keyboard, which sends a code when you press a key and
+another when you release it.
 
-> 
-> Today, I just used a channels.conf file for broadcast channels in a 
-> different us city which I found posted online and tuned to an arbitrary 
-> channel. Still no activity light. status fields in azap ouput are 0 
-> signals and noise both 87.
-> 
-> But the good news is that dmesg says it loaded the firmware for at least 
-> part of the card:
-> ....snip.....
-> [12250.084481] firmware: requesting xc3028-v27.fw
-> [12250.113053] xc2028 3-0061: Loading 80 firmware images from 
-> xc3028-v27.fw, type: xc2028 firmware, ver 2.7
-> [12250.140031] xc2028 3-0061: Loading firmware for type=BASE (1), id 
-> 0000000000000000.
-> [12251.105854] xc2028 3-0061: Loading firmware for type=D2633 DTV6 ATSC 
-> (10030), id 0000000000000000.
-> ....snip....
-
-This is good news, the card and driver look fine. You probably just need a 
-channels.conf (and perhaps w_scan has a bug?).
-
-I don't use w_scan so I can't comment much on this.
-
-> 
-> Thank you so much for looking at this. I cannot begin to tell you how 
-> much I appreciate it. I hope it is just something small, or something I 
-> am doing wrong that is keeping this from working.
-
-Probably.
-
-> 
-> Ben
-> p.s. sorry about the faux-pas
-> 
-
-That's fine. :)
-
-- Steve
+The rate at which remotes repeat varies greatly.  You might find that one
+remote makes your volume change annoying slowly while another is much too
+fast to be usable.  Remote keys usually start repeating without delay, so
+if you let a toggle like 'mute' repeat it becomes almost impossible to hit
+it just once.  Entering numbers becomes impossible as well.
