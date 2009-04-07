@@ -1,116 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3657 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752906AbZDTSUi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 14:20:38 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id n3KIKaYQ020340
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 20 Apr 2009 20:20:37 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 20 Apr 2009 20:20:36 +0200 (CEST)
-Message-Id: <200904201820.n3KIKaYQ020340@smtp-vbr11.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from smtp4-g21.free.fr ([212.27.42.4]:57238 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751570AbZDGIDD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Apr 2009 04:03:03 -0400
+Date: Tue, 7 Apr 2009 09:57:18 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: "Tom & Merry Cada" <thecadas@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Compile of gspca
+Message-ID: <20090407095718.3f15b8a6@free.fr>
+In-Reply-To: <dbfdd9d80904061015g1f34dbael113fccfd667cb77b@mail.gmail.com>
+References: <dbfdd9d80904021914s3a0cc0a4ufb444d81915e612b@mail.gmail.com>
+	<dbfdd9d80904061015g1f34dbael113fccfd667cb77b@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Mon, 6 Apr 2009 13:15:26 -0400
+"Tom & Merry Cada" <thecadas@gmail.com> wrote:
 
-Results of the daily build of v4l-dvb:
+> Video in skype works great. However, now the sound does not work
+> (sigh...). The USB mic is shown in ALSA mixer as card 1 with the gain
+> up at max. The mic is shown in the pulseaudio mixer as an input
+> device, but no sound to either skype or the gnome sound recorder.
+> 
+> Is this a problem with gspca, or with the other components (ALSA,
+> pulseaudio, OSS, or whatever - too many choices!). An external mic
+> through the on-board sound card works properly.
+> 
+> Any suggestions or direction would be most welcome.
 
-date:        Mon Apr 20 19:00:05 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11562:fd645c976997
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Hello Tom,
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-rc2-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-rc2-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-rc2-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: OK
-linux-2.6.30-rc2-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-rc2-m32r: OK
-linux-2.6.22.19-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29.1-mips: OK
-linux-2.6.30-rc2-mips: WARNINGS
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29.1-powerpc64: OK
-linux-2.6.30-rc2-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-rc2-x86_64: WARNINGS
-fw/apps: WARNINGS
-sparse (linux-2.6.29.1): OK
-sparse (linux-2.6.30-rc2): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+I know that some integrated microphones do not work with gspca, and,
+sorry, I could not find yet why...
 
-Detailed results are available here:
+Regards.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
