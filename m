@@ -1,19 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3O74BVF027718
-	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 03:04:11 -0400
-Received: from mail.bcode.com (mail.bcode.com [150.101.204.108] (may be
-	forged))
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3O73s9c001519
-	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 03:03:55 -0400
-Date: Fri, 24 Apr 2009 17:03:52 +1000
-From: Erik de Castro Lopo <erik@bcode.com>
-To: video4linux-list@redhat.com
-Message-Id: <20090424170352.313f1feb.erik@bcode.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Subject: Compling drivers from v4l-dvb hg tree
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n375P4eC011850
+	for <video4linux-list@redhat.com>; Tue, 7 Apr 2009 01:25:04 -0400
+Received: from mga11.intel.com (mga11.intel.com [192.55.52.93])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n375Ok89008074
+	for <video4linux-list@redhat.com>; Tue, 7 Apr 2009 01:24:46 -0400
+From: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
+To: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Date: Tue, 7 Apr 2009 13:23:58 +0800
+Message-ID: <0A882F4D99BBF6449D58E61AAFD7EDD6102F959B@pdsmsx502.ccr.corp.intel.com>
+Content-Language: en-US
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Subject: How to submit a new v4l2 driver to the community.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,26 +25,18 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all,
+Hi guys,
 
-What's the recommended way for compiling drivers from v4l-dvb hg tree?
+Quick question, how to submit a new v4l2 driver (for Intel Moorestown MID p=
+latform) to Linux upstream kernel? Is there any process or guide need to be=
+ follow? We are going to prepare and release the camera driver to community=
+.
 
-Cheers,
-Erik
--- 
-=======================
-erik de castro lopo
-senior design engineer
+Many thanks.
 
-bCODE
-level 2, 2a glen street
-milsons point
-sydney nsw 2061
-australia
+BRs
+Xiaolin
 
-tel +61 (0)2 9954 4411
-fax +61 (0)2 9954 4422
-www.bcode.com
 
 --
 video4linux-list mailing list
