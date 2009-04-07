@@ -1,70 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:55305 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755467AbZDCMyt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2009 08:54:49 -0400
-Received: by fxm2 with SMTP id 2so967881fxm.37
-        for <linux-media@vger.kernel.org>; Fri, 03 Apr 2009 05:54:47 -0700 (PDT)
-Message-ID: <49D60692.9050204@gmail.com>
-Date: Fri, 03 Apr 2009 15:52:34 +0300
-From: Darius Augulis <augulis.darius@gmail.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Sascha Hauer <s.hauer@pengutronix.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	paulius.zaleckas@teltonika.lt
-Subject: Re: [PATCH V4] Add camera (CSI) driver for MX1
-References: <20090403113054.11098.67516.stgit@localhost.localdomain> <Pine.LNX.4.64.0904031352350.4729@axis700.grange> <20090403122939.GT23731@pengutronix.de> <Pine.LNX.4.64.0904031437540.4729@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0904031437540.4729@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from zone0.gcu-squad.org ([212.85.147.21]:35753 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752040AbZDGJ1j (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2009 05:27:39 -0400
+Date: Tue, 7 Apr 2009 11:27:15 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: Mark Schultz <n9xmj@yahoo.com>,
+	Brian Rogers <brian_rogers@comcast.net>,
+	Oldrich Jedlicka <oldium.pro@seznam.cz>,
+	Andy Walls <awalls@radix.net>, Janne Grunau <j@jannau.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mike Isely <isely@pobox.com>, isely@isely.net,
+	LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jarod Wilson <jarod@redhat.com>
+Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
+  model
+Message-ID: <20090407112715.6caf2e89@hyperion.delvare>
+In-Reply-To: <1239052236.4925.20.camel@pc07.localdom.local>
+References: <20090404142427.6e81f316@hyperion.delvare>
+	<Pine.LNX.4.64.0904041045380.32720@cnc.isely.net>
+	<20090405010539.187e6268@hyperion.delvare>
+	<200904050746.47451.hverkuil@xs4all.nl>
+	<20090405143748.GC10556@aniel>
+	<1238953174.3337.12.camel@morgan.walls.org>
+	<20090405183154.GE10556@aniel>
+	<1238957897.3337.50.camel@morgan.walls.org>
+	<20090405222250.64ed67ae@hyperion.delvare>
+	<1238966523.6627.63.camel@pc07.localdom.local>
+	<20090406104045.58da67c7@hyperion.delvare>
+	<1239052236.4925.20.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski wrote:
-> On Fri, 3 Apr 2009, Sascha Hauer wrote:
->
->   
->> On Fri, Apr 03, 2009 at 02:15:34PM +0200, Guennadi Liakhovetski wrote:
->>     
->>> Wondering, if it still will work then... At least it compiles. BTW, should 
->>> it really also work with IMX? Then you might want to change this
->>>
->>> 	depends on VIDEO_DEV && ARCH_MX1 && SOC_CAMERA
->>>
->>> to
->>>
->>> 	depends on VIDEO_DEV && (ARCH_MX1 || ARCH_IMX) && SOC_CAMERA
->>>       
->> This shouldn't be necessary. ARCH_IMX does not have the platform part to
->> make use of this driver and will never get it.
->>     
->
-> Confused... Then why the whole that "IMX/MX1" in the driver? And why will 
-> it never get it - are they compatible or not? Or just there's no demand / 
-> chips are EOLed or something...
->
->   
+On Mon, 06 Apr 2009 23:10:36 +0200, hermann pitton wrote:
+> Am Montag, den 06.04.2009, 10:40 +0200 schrieb Jean Delvare:
+> > Anyone out there with a MSI TV@nywhere Plus that could help with
+> > testing?
+> 
+> Here is a link to one of the initial reports by Henry, others are close
+> to it.
+> 
+> http://marc.info/?l=linux-video&m=113324147429459&w=2
+> 
+> There are two different variants of that MSI card, but that undocumented
+> KS003 chip is the same on them.
 
-in Linux kernel "imx" is the old name of "mx1".
-mx1 contains of two processors: i.MX1 and i.MXL.
+Great, thanks for the pointer. If I understand correctly, the KS003
+has a state machine flow which causes the chip to stop answering when
+an invalid address is used on the bus and start answering again when a
+valid address other than his own is used. As the old i2c model relied a
+lot on probing, I am not surprised that this was a problem in the past.
+But with the new model, probes should become infrequent, so I suspect
+that the workaround may no longer be needed... except when i2c_scan=1
+is used.
 
->>> but you can do this later, maybe, when you actually get a chance to test 
->>> it on IMX (if you haven't done so yet).
->>>
->>> Sascha, we need your ack for the ARM part.
->>>       
->> I'm OK with this driver: I have never worked with FIQs though so I can't
->> say much to it.
->>     
->
-> Ok, I take it as an "Acked-by" then:-)
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
->
->   
+I'd rather keep the workaround in place for the time being, and only
+once the ir-kbd-i2c changes have settled, try to remove it if someone
+really cares.
 
+-- 
+Jean Delvare
