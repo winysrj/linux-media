@@ -1,24 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3OIIRiF008790
-	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 14:18:27 -0400
-Received: from mail.kapsi.fi (mail.kapsi.fi [217.30.184.167])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3OII861006402
-	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 14:18:08 -0400
-Message-ID: <49F20259.1090302@iki.fi>
-Date: Fri, 24 Apr 2009 21:18:01 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n375igKC018294
+	for <video4linux-list@redhat.com>; Tue, 7 Apr 2009 01:44:42 -0400
+Received: from mga02.intel.com (mga02.intel.com [134.134.136.20])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n375iLZl029638
+	for <video4linux-list@redhat.com>; Tue, 7 Apr 2009 01:44:22 -0400
+From: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
+To: Alexey Klimov <klimov.linux@gmail.com>
+Date: Tue, 7 Apr 2009 13:43:07 +0800
+Message-ID: <0A882F4D99BBF6449D58E61AAFD7EDD6102F95E7@pdsmsx502.ccr.corp.intel.com>
+References: <0A882F4D99BBF6449D58E61AAFD7EDD6102F959B@pdsmsx502.ccr.corp.intel.com>
+	<208cbae30904062236g6c4805b8xb99a89b3ba70583b@mail.gmail.com>
+In-Reply-To: <208cbae30904062236g6c4805b8xb99a89b3ba70583b@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-2022-jp"
 MIME-Version: 1.0
-To: Jelle de Jong <jelledejong@powercraft.nl>
-References: <49D644CD.1040307@powercraft.nl>
-	<49D64E45.2070303@powercraft.nl>	<49DC5033.4000803@powercraft.nl>
-	<49F1B2A4.3060404@powercraft.nl>
-In-Reply-To: <49F1B2A4.3060404@powercraft.nl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: one dvb-t devices not working with mplayer the other is, what
- is going wrong?
+Content-Transfer-Encoding: 8bit
+Cc: "video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Subject: RE: How to submit a new v4l2 driver to the community.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,83 +29,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 04/24/2009 03:37 PM, Jelle de Jong wrote:
-> Jelle de Jong wrote:
->> Jelle de Jong wrote:
->>> Jelle de Jong wrote:
->>>> Hello everybody,
->>>>
->>>> As you may read in my previous thread, i am trying to switch from my
->>>> em28xx devices to a device that works with gpl compliant upstream kernel
->>>> source code.
->>>>
->>>> My em28xx devices all played back video and audio only dvb-t channels:
->>>> Pinnacle PCTV Hybrid Pro Stick 330e
->>>> Terratec Cinergy Hybrid T USB XS
->>>> Hauppauge WinTV HVR 900
->>>>
->>>> I build script for this to automate the process, however i now swiched to
->>>> my dvb-t only usb device:
->>>> Afatech AF9015 DVB-T USB2.0 stick
->>>>
->>>> And it with totem-xine it plays the same as the em28xx devices, so the
->>>> devices does kind of works (see the totem-xine bug, please commit to this
->>>> bug if you have the same behavior)
->>>>
->>>> # device info
->>>> http://debian.pastebin.com/d3e942c02
->>>>
->>>> # totem-xine bug
->>>> http://bugzilla.gnome.org/show_bug.cgi?id=554319
->>>>
->>>> # mplayer issue
->>>> http://debian.pastebin.com/d34d92e64
->>>> ^ anybody have any idea what the heck goes on why doesn't mplayer work
->>>> with this device, nothing changed in the commands i used.
->>>>
->>>> using:
->>>> mplayer
->>>> Version: 1:1.0.rc2svn20090330-0.0
->>>> linux-image-2.6.29-1-686
->>>> Version: 2.6.29-1
->>>>
->>>> Thanks in advance, for any help.
->>>>
->>>> Best regards,
->>>>
->>>> Jelle de Jong
->>> some more info:
->>>
->>> device0 (not working, Afatech AF9013 DVB-T)
->>> http://filebin.ca/ypxkw/mplayer0.log
->>>
->>> device1 (working, Micronas DRX3973D DVB-T, em28xx, markus not gpl code)
->>> http://filebin.ca/zecdjm/mplayer1.log
->>>
->>> device2 (working, Zarlink MT352 DVB-T, em28xx, markus not gpl code)
->>> http://filebin.ca/fzxtcx/mplayer2.log
->>>
->>> All devices work with totem-xine but only the em28xx devices works with
->>> mplayer, whats going on?
->>>
->> Anybody?
->>
->> Best regards,
->>
->> Jelle
->>
->
-> Would somebody be willing to test this with there device, see the first
-> mail for the commands I used, they are in the attached files.
->
-> Being able to use mplayer to listen to dvb-t radio is mandatory for me.
+Thanks very much. It is really helpful.
 
-I use tzap & mplayer always when testing driver. Never seen troubles you 
-have. And I have very many AF9015 devices. How did you launch mplayer?
+BRs
+Xiaolin
 
-Antti
+-----Original Message-----
+From: Alexey Klimov [mailto:klimov.linux@gmail.com] 
+Sent: 2009年4月7日 13:37
+To: Zhang, Xiaolin
+Cc: video4linux-list@redhat.com
+Subject: Re: How to submit a new v4l2 driver to the community.
+
+Hello, Xiaolin
+
+On Tue, Apr 7, 2009 at 9:23 AM, Zhang, Xiaolin <xiaolin.zhang@intel.com> wrote:
+> Hi guys,
+>
+> Quick question, how to submit a new v4l2 driver (for Intel Moorestown MID platform) to Linux upstream kernel? Is there any process or guide need to be follow? We are going to prepare and release the camera driver to community.
+>
+> Many thanks.
+>
+> BRs
+> Xiaolin
+
+Take a look in linuxtv wiki:
+http://www.linuxtv.org/wiki/index.php/Development:_How_to_submit_patches
+http://www.linuxtv.org/wiki/index.php/Development:_Submitting_Patches
+And probably you want to see all wiki pages:
+http://www.linuxtv.org/wiki/index.php/Main_Page
+
+By the way, our new development list is linux-media on vger.kernel.org.
+Feel free to ask any other questions :)
+
 -- 
-http://palosaari.fi/
+Best regards, Klimov Alexey
 
 --
 video4linux-list mailing list
