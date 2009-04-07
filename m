@@ -1,40 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n33DhqdZ010976
-	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 09:43:52 -0400
-Received: from node02.cambriumhosting.nl (node02.cambriumhosting.nl
-	[217.19.16.163])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n33DhVEY009045
-	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 09:43:31 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by node02.cambriumhosting.nl (Postfix) with ESMTP id 17E1DB0000DF
-	for <video4linux-list@redhat.com>;
-	Fri,  3 Apr 2009 15:43:31 +0200 (CEST)
-Received: from node02.cambriumhosting.nl ([127.0.0.1])
-	by localhost (node02.cambriumhosting.nl [127.0.0.1]) (amavisd-new,
-	port 10024)
-	with ESMTP id s0QA5+VzjciU for <video4linux-list@redhat.com>;
-	Fri,  3 Apr 2009 15:43:29 +0200 (CEST)
-Received: from ashley.powercraft.nl (84-245-3-195.dsl.cambrium.nl
-	[84.245.3.195])
-	by node02.cambriumhosting.nl (Postfix) with ESMTP id 74AA6B000173
-	for <video4linux-list@redhat.com>;
-	Fri,  3 Apr 2009 15:43:29 +0200 (CEST)
-Received: from [192.168.1.239] (unknown [192.168.1.239])
-	by ashley.powercraft.nl (Postfix) with ESMTPSA id 8537B23BC501
-	for <video4linux-list@redhat.com>;
-	Fri,  3 Apr 2009 15:12:29 +0200 (CEST)
-Message-ID: <49D6127F.2020406@powercraft.nl>
-Date: Fri, 03 Apr 2009 15:43:27 +0200
-From: Jelle de Jong <jelledejong@powercraft.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n37CDOnx026609
+	for <video4linux-list@redhat.com>; Tue, 7 Apr 2009 08:13:25 -0400
+Received: from smtp124.mail.mud.yahoo.com (smtp124.mail.mud.yahoo.com
+	[209.191.84.227])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n37CD3HY009149
+	for <video4linux-list@redhat.com>; Tue, 7 Apr 2009 08:13:03 -0400
+Message-ID: <B04853C77D9C4A42AB0D88388BC38DDF@server>
+From: =?iso-8859-1?Q?Pyt=E1goras_Cordeiro?= <procurad0r@yahoo.com.br>
+To: <video4linux-list@redhat.com>
+Date: Tue, 7 Apr 2009 09:12:48 -0300
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-References: <49D610CC.6070405@powercraft.nl>
-In-Reply-To: <49D610CC.6070405@powercraft.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Subject: Re: request list of usb dvb-t devices that work with vanilla 2.6.29
- kernel
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Subject: USB TV BOX with TM5600 and id=6000:0001
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -46,61 +26,23 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Jelle de Jong wrote:
-> Hello everybody,
-> 
-> I have been trying for years now to get support for usb based devices
-> that makes it possible to watch FTA dvb-t channels in Europa.
-> 
-> I have bought more then 6 devices already and none of them work with the
-> stock vanilla kernel (or with fedora, debian kernel packages)
-> 
-> I had hopes for the em28xx drivers, and spent a lots of time in the last
-> years to Markus Rechberger. I made documentation did testing, compiled
-> packages, did a lot of mailing and irc chats, etcetera.
-> 
-> I always hoped the code and work would be merged back with the official
-> upstream kernel code so all this work would not be needed anymore and the
-> devices will all just work with the new kernel releases.
-> 
-> I spent time sending emails and talking to developers to see how we could
-> help Markus get his code back into the kernel.
-> 
-> But the situation is just sick, and there are real attitude issues on
-> both sides.
-> 
-> I have gave up my hopes on getting a good healthy development process for
-> the em28xx project. I am kind of said about this, because I don't give up
-> easy and currently slowly feels that the em28xx project maybe hurting the
-> free software community more then its doing good...
-> 
-> I now need new devices that do not need the em28xx code, I gave up hopes
-> on getting analog and dvb-t to work with one usb hybrid devices, so I am
-> going for a dvb-t only device.
-> 
-> Can somebody help me provide a list of devices that i can buy in stores
-> and that are supported in the 2.6.29 stock kernel or have high
-> possibilities to get full support in the future.
-> 
-> I would also like to point out I need a feature that allows scanning the
-> signal strength of a dvd-t channel so I can create an fully automated FTA
-> signal scanning systems that removes weaker supplicated channels.
-> 
-> Best regards, (but kind of disappointed)
-> 
-> Jelle de Jong
-> 
+Hello,=20
+I have a USB TV BOX equal to that posted this link:=20
 
-I just took one of my devices out ot the storage that did not work with
-previous kernels but now works out of the box with 2.6.29:
-- Afatech AF9015 DVB-T USB2.0 stick http://debian.pastebin.com/d3e942c02
+http://lists-archives.org/video4linux/21853-problems-setting-up-sabrent-m=
+ini-stick-usb-2-0-tv-tuner-tv-usbst-6000-0001.html=20
 
-a list of more devices is really helpful.
-
-Best regards,
-
-Jelle de Jong
-
+I'm trying to make it work ... For this I'm using the v4l driver TM6010 =
+provided by Mauro.=20
+To compile and install was quiet, but I managed to get the firmware by =
+file tridvid.sys that came on the installation CD for Windows XP.=20
+Using the tool in perl that is in the package of driver, occurs error in =
+the hash.=20
+Can you explain how I could get with this firmware for this TVBOX?=20
+Got some firmware available on the internet, but when I try to run the =
+PC hangs and the leds caps lock and num blink.=20
+Thank you,
+Pyt=E1goras.'.
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
