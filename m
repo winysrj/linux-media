@@ -1,87 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ammma.de ([213.83.39.131]:23237 "EHLO ammma.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750940AbZD3IDW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2009 04:03:22 -0400
-Received: from ammma.net (hydra.ammma.mil [192.168.110.1])
-	by ammma.de (8.11.6/8.11.6/AMMMa AG) with ESMTP id n3U86fU18014
-	for <linux-media@vger.kernel.org>; Thu, 30 Apr 2009 10:06:41 +0200
-Received: from neo.wg.de (hydra.ammma.mil [192.168.110.1])
-	by ammma.net (8.12.11.20060308/8.12.11/AMMMa AG) with ESMTP id n3U83JMw023804
-	for <linux-media@vger.kernel.org>; Thu, 30 Apr 2009 10:03:19 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by neo.wg.de (Postfix) with ESMTP id D2F21436DB6
-	for <linux-media@vger.kernel.org>; Thu, 30 Apr 2009 10:03:18 +0200 (CEST)
-Received: from neo.wg.de ([127.0.0.1])
-	by localhost (neo.wg.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id qKHP0PVr6Pf3 for <linux-media@vger.kernel.org>;
-	Thu, 30 Apr 2009 10:03:12 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by neo.wg.de (Postfix) with ESMTP id 2AA2144B912
-	for <linux-media@vger.kernel.org>; Thu, 30 Apr 2009 10:03:12 +0200 (CEST)
-Message-ID: <20090430100312.51659d22f1swmssg@neo.wg.de>
-Date: Thu, 30 Apr 2009 10:03:12 +0200
-From: Jan Schneider <jan@horde.org>
-To: linux-media@vger.kernel.org
-Subject: Re: PID discontinuity problems on TT C-2300
-References: <20090423101312.11774iwfe0qamnms@neo.wg.de>
-In-Reply-To: <20090423101312.11774iwfe0qamnms@neo.wg.de>
+Received: from muru.com ([72.249.23.125]:34303 "EHLO muru.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752211AbZDGBpc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Apr 2009 21:45:32 -0400
+Date: Tue, 7 Apr 2009 01:45:29 +0000
+From: Tony Lindgren <tony@atomide.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Dongsoo Kim <dongsoo.kim@gmail.com>,
+	Kevin Hilman <khilman@deeprootsystems.com>,
+	Steve Sakoman <sakoman@gmail.com>, linux-media@vger.kernel.org,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Manjunath Hadli <mrh@ti.com>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: Re: Embedded Linux Conference
+Message-ID: <20090407014529.GB18715@muru.com>
+References: <63374.207.214.87.58.1239059885.squirrel@webmail.xs4all.nl> <20090406234539.GA18715@muru.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=ISO-8859-1;
- DelSp="Yes";
- format="flowed"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20090406234539.GA18715@muru.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Anyone?
+On Mon, Apr 06, 2009 at 11:45:39PM +0000, Tony Lindgren wrote:
+> On Tue, Apr 07, 2009 at 01:18:05AM +0200, Hans Verkuil wrote:
+> > 
+> > > * Dongsoo Kim <dongsoo.kim@gmail.com> [090317 10:36]:
+> > >
+> > > <snip snip>
+> > >
+> > >>>> How about Monday night after the Dinner (ends at 7pm [1]) we meet for
+> > >>>> beers.  I'll let someone local (Tony) pick the venue.
+> > >>>
+> > >>> OK, let's plan for Monday night then. I'll find some place with
+> > >>> drinks easily available, and within walking distance from the
+> > >>> conference.
+> > >>>
+> > >>> I've added a placeholder for the event where I'll post the details
+> > >>> later on:
+> > >>>
+> > >>> http://www.muru.com/linux/omap/events/
+> > >
+> > > OK, let's meet at Harry's bar 7pm at 2020 Fillmore St
+> > > between Pine and California St. They're closed until 4pm,
+> > > so there's no reservation. But as it's Monday night, I'd
+> > > assume there's plenty of space. In case of last minute
+> > > changes, please check the page above.
+> > 
+> > Not sure whether it will be as quiet as you hope:
+> > 
+> > http://www.harrysbarsf.com/
+> > 
+> > There's apparently some championship game going on today.
+> 
+> Just spoke withem on the phone, they'll just have some
+> basketball on tv. So let's meet there and if it's too loud
+> we can go somewhere else.
 
-Zitat von Jan Schneider <jan@horde.org>:
+Oops, Harry's bar is completely packed, let's meet at the
+bar next door to Haary's, it's called The Grove.
 
-> Hi,
->
-> I tried to get help from the MythTV community to no avail. Maybe  
-> it's a hardware/driver/dvb subsystem problem, I have no idea.
->
-> I see two symptoms, some recordings are generated empty, i.e. Myth  
-> thinks it has recorded something, but there is no video file created.
->
-> Sometimes, recordings just stop in the middle. This is the only case  
-> where I get a useful log entry *at all*.
-> But it doesn't say anything more than:
-> 2009-04-22 23:03:07.318 DVBRec(1:0): PID 0x215 discontinuity detected
-> with different PIDs. This message is continuously being logged until  
-> the end of the scheduled recordings, sometime interrupted by a single:
-> 2009-04-22 23:03:11.220 AddTSPacket: Out of sync!!! Need to wait for  
-> next payloa
-> dStart PID: 0x10, continuity counter: 15 (expected 12).
->
-> Please help me someone, no component of this system is logging  
-> *anything* useful, this used to work one day, and I'm running out of  
-> ideas and motivation into frustration.
->
-> Beside several things I also tried running a recent v4l-dvb hg  
-> checkout. No change.
->
-> Jan.
->
-> -- 
-> Do you need professional PHP or Horde consulting?
-> http://horde.org/consulting/
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
-
-Jan.
-
--- 
-Do you need professional PHP or Horde consulting?
-http://horde.org/consulting/
-
+Tony
