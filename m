@@ -1,108 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:60001 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1761030AbZDCKy0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Apr 2009 06:54:26 -0400
-Date: Fri, 3 Apr 2009 12:54:30 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Darius Augulis <augulis.darius@gmail.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	paulius.zaleckas@teltonika.lt
-Subject: Re: [PATCH V3] Add camera (CSI) driver for MX1
-In-Reply-To: <49D5E8A5.1080608@gmail.com>
-Message-ID: <Pine.LNX.4.64.0904031252210.4729@axis700.grange>
-References: <20090403080923.3222.80609.stgit@localhost.localdomain>
- <Pine.LNX.4.64.0904031204280.4729@axis700.grange> <49D5E8A5.1080608@gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail1.radix.net ([207.192.128.31]:47369 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754177AbZDGLOh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Apr 2009 07:14:37 -0400
+Subject: Re: [PATCH 1/6] cx18: Fix the handling of i2c bus registration
+ error
+From: Andy Walls <awalls@radix.net>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Mike Isely <isely@pobox.com>
+In-Reply-To: <20090407113113.14651a6a@hyperion.delvare>
+References: <20090404142427.6e81f316@hyperion.delvare>
+	 <20090404142651.44757ccb@hyperion.delvare>
+	 <1238849160.2845.12.camel@morgan.walls.org>
+	 <20090407113113.14651a6a@hyperion.delvare>
+Content-Type: text/plain
+Date: Tue, 07 Apr 2009 08:14:44 -0400
+Message-Id: <1239106484.3153.0.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 3 Apr 2009, Darius Augulis wrote:
-
-> Guennadi Liakhovetski wrote:
-> > Ok, we're almost there:-) Should be the last iteration.
-> > 
-> > On Fri, 3 Apr 2009, Darius Augulis wrote:
-> > 
-> >   
-> > > From: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+On Tue, 2009-04-07 at 11:31 +0200, Jean Delvare wrote:
+> On Sat, 04 Apr 2009 08:46:00 -0400, Andy Walls wrote:
+> > On Sat, 2009-04-04 at 14:26 +0200, Jean Delvare wrote:
+> > > * Return actual error values as returned by the i2c subsystem, rather
+> > >   than 0 or 1.
+> > > * If the registration of the second bus fails, unregister the first one
+> > >   before exiting, otherwise we are leaking resources.
 > > > 
-> > > Changelog since V2:
-> > > - My signed-off line added
-> > > - Makefile updated
-> > > - .init and .exit removed from pdata
-> > > - includes sorted
-> > > - Video memory limit added
-> > > - Pointers in free_buffer() fixed
-> > > - Indentation fixed
-> > > - Spinlocks added
-> > > - PM implementation removed
-> > > - Added missed clk_put()
-> > > - pdata test added
-> > > - CSI device renamed
-> > > - Platform flags fixed
-> > > - "i.MX" replaced by "MX1" in debug prints
-> > >     
-> > 
-> > I usually put such changelogs below the "---" line, so it doesn't appear in
-> > the git commit message, and here you just put a short description of the
-> > patch.
-> > 
-> >   
-> > > Signed-off-by: Darius Augulis <augulis.darius@gmail.com>
-> > > Signed-off-by: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
+> > > Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> > > Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> > > Cc: Andy Walls <awalls@radix.net>
 > > > ---
-> > >     
+> > >  linux/drivers/media/video/cx18/cx18-i2c.c |   16 +++++++++++++---
+> > >  1 file changed, 13 insertions(+), 3 deletions(-)
+> > > 
+> > > --- v4l-dvb.orig/linux/drivers/media/video/cx18/cx18-i2c.c	2009-03-01 16:09:09.000000000 +0100
+> > > +++ v4l-dvb/linux/drivers/media/video/cx18/cx18-i2c.c	2009-04-03 18:45:18.000000000 +0200
+> > > @@ -214,7 +214,7 @@ static struct i2c_algo_bit_data cx18_i2c
+> > >  /* init + register i2c algo-bit adapter */
+> > >  int init_cx18_i2c(struct cx18 *cx)
+> > >  {
+> > > -	int i;
+> > > +	int i, err;
+> > >  	CX18_DEBUG_I2C("i2c init\n");
+> > >  
+> > >  	for (i = 0; i < 2; i++) {
+> > > @@ -273,8 +273,18 @@ int init_cx18_i2c(struct cx18 *cx)
+> > >  	cx18_call_hw(cx, CX18_HW_GPIO_RESET_CTRL,
+> > >  		     core, reset, (u32) CX18_GPIO_RESET_I2C);
+> > >  
+> > > -	return i2c_bit_add_bus(&cx->i2c_adap[0]) ||
+> > > -		i2c_bit_add_bus(&cx->i2c_adap[1]);
+> > > +	err = i2c_bit_add_bus(&cx->i2c_adap[0]);
+> > > +	if (err)
+> > > +		goto err;
+> > > +	err = i2c_bit_add_bus(&cx->i2c_adap[1]);
+> > > +	if (err)
+> > > +		goto err_del_bus_0;
+> > > +	return 0;
+> > > +
+> > > + err_del_bus_0:
+> > > + 	i2c_del_adapter(&cx->i2c_adap[0]);
+> > > + err:
+> > > +	return err;
+> > >  }
+> > >  
+> > >  void exit_cx18_i2c(struct cx18 *cx)
 > > 
-> > [snip]
-> > 
-> >   
-> > > diff --git a/arch/arm/plat-mxc/include/mach/memory.h
-> > > b/arch/arm/plat-mxc/include/mach/memory.h
-> > > index e0783e6..7113b3e 100644
-> > > --- a/arch/arm/plat-mxc/include/mach/memory.h
-> > > +++ b/arch/arm/plat-mxc/include/mach/memory.h
-> > > @@ -24,4 +24,12 @@
-> > >  #define PHYS_OFFSET		UL(0x80000000)
-> > >  #endif
-> > >  +#if defined(CONFIG_MX1_VIDEO)
-> > >     
-> > 
-> > This #ifdef is not needed any more now, the file is not compiled if
-> > CONFIG_MX1_VIDEO is not defined.
-> >   
-> this header file is included by arch/arm/include/asm/memory.h
-> By default dma bufer size is only 2Mbytes. If we remove this ifdef, this bufer
-> will be increased to re-defined size.
-> Therefore I suggest to leave this ifdef.
+> > Reviewed-by: Andy Walls <awalls@radix.net>
 
-Ouch, sorry, I meant this one:
+If it matters:
 
-diff --git a/arch/arm/mach-mx1/ksym_mx1.c b/arch/arm/mach-mx1/ksym_mx1.c
-new file mode 100644
-index 0000000..9f1116b
---- /dev/null
-+++ b/arch/arm/mach-mx1/ksym_mx1.c
-@@ -0,0 +1,20 @@
-+/*
-+ * Exported ksyms of ARCH_MX1
-+ *
-+ * Copyright (C) 2008, Darius Augulis <augulis.darius@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/platform_device.h>
-+#include <linux/module.h>
-+
-+#if defined(CONFIG_MX1_VIDEO)
+Acked-by: Andy Walls <awalls@radix.net>
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Regards,
+Andy
+
+> [Context edited for clarity.]
+> 
+> Mauro, can you please apply this patch now? It is a bug fix not
+> directly related to my ir-kbd-i2c work, it would be nice to have it
+> applied quickly so that I don't have to carry the patch around.
+> 
+> Thanks,
+
