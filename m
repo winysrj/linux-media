@@ -1,40 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:47048 "EHLO
-	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757533AbZDBOcT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Apr 2009 10:32:19 -0400
-Received: from steven-toths-macbook-pro.local
- (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta5.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KHH001DB9PCNV80@mta5.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Thu, 02 Apr 2009 10:32:01 -0400 (EDT)
-Date: Thu, 02 Apr 2009 10:31:59 -0400
-From: Steven Toth <stoth@linuxtv.org>
-Subject: Re: Broken ioctls for the mpeg encoder on the HVR-1800
-In-reply-to: <e3538fbd0904012216g48da5006hb170974530bdcea3@mail.gmail.com>
-To: Joseph Yasi <joe.yasi@gmail.com>
-Cc: linux-media@vger.kernel.org
-Message-id: <49D4CC5F.9030101@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <e3538fbd0904012216g48da5006hb170974530bdcea3@mail.gmail.com>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:9069 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750696AbZDGMgu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2009 08:36:50 -0400
+Date: Tue, 7 Apr 2009 14:36:17 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Mike Isely <isely@pobox.com>, isely@isely.net,
+	LMML <linux-media@vger.kernel.org>,
+	Andy Walls <awalls@radix.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Janne Grunau <j@jannau.net>,
+	Jarod Wilson <jarod@redhat.com>
+Subject: Re: [RFC] Anticipating lirc breakage
+Message-ID: <20090407143617.2c2adbf7@hyperion.delvare>
+In-Reply-To: <20090407075029.21d14f4a@pedra.chehab.org>
+References: <20090406174448.118f574e@hyperion.delvare>
+	<Pine.LNX.4.64.0904070049470.2076@cnc.isely.net>
+	<20090407120209.1d42bacd@hyperion.delvare>
+	<20090407075029.21d14f4a@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Joseph Yasi wrote:
-> Hello,
+Hi Mauro,
+
+On Tue, 7 Apr 2009 07:50:29 -0300, Mauro Carvalho Chehab wrote:
+> On Tue, 7 Apr 2009 12:02:09 +0200
+> Jean Delvare <khali@linux-fr.org> wrote:
 > 
-> With the cx23885 driver that shipped with 2.6.29, as well as the
-> latest hg driver, the analog mpeg encoder device for the HVR-1800 does
-> not respond to the VIDIOC_QUERYCAP ioctl, returning ENOTTY.  This
-> ioctl previously worked with the driver in 2.6.28.  The preview device
-> does respond to the ioctl properly, and I am able to tune and set the
-> input via the preview device.  I can also capture MPEG using a simple
-> cat /dev/video1 > out.mpg.  Are the ioctls supposed to work on the
-> mpeg device, or should it be tuned via the preview device only?
+> > Hi Mike,
+> > 
+> > Glad to see we all mostly agree on what to do now. I'll still answer
+> > some of your questions below, to clarify things even more.
+> 
+> I don't understand why you are preferring to do some workaround, spending
+> energy to add hooks at the kernel drivers to support out-of-tree drivers,
+> instead of working to provide the proper solution.
 
-Most of the ioctls I tested were against the preview device, although some do 
-work on the encoder device itself (bitrate etc).
+What I am proposing isn't a workaround, it is a fundamental part of
+the solution, and it is even the approach which requires the minimum
+amount of changes. This is as straightforward a solution as you can
+hope for.
 
-- Steve
+> I'm against adding any hook on kernel to support an out-of-tree driver.
+
+I do not plan to add any hook. The plan is to instantiate all IR
+devices we know are present, and let ir-kbd-i2c bind to the ones it
+supports. The fact that another out-of-tree driver may optionally bind
+to these devices is a side effect.
+
+I would love to say "let's just ignore lirc altogether", however 1* I
+don't think it makes any sense to break user systems when it is trivial
+for us to not break them and 2* I don't think it is smart to be rude
+with lirc developers are the exact moment they decide to attempt to
+merge their drivers in the kernel tree.
+
+> From what I understood, lirc developers are interested on merging lirc drivers.
+> We all agree that ir-kbd-i2c doesn't address all i2c IR's, and that lirc
+> drivers provide support for the remaining ones.
+
+Yes, this is my understanding as well.
+
+> So, let's just forget the workarounds and go straight to the point: focus on
+> merging lirc-i2c drivers.
+
+Will this happen next week? I fear not. Which is why I can't wait for
+it. And anyway, in order to merge the lirc_i2c driver, it must be
+turned into a new-style I2C driver first, so bridge drivers must be
+prepared for this, which is _exactly_ what my patches are doing.
+
+-- 
+Jean Delvare
