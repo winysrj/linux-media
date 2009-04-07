@@ -1,40 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailfilter6.ihug.co.nz ([203.109.136.6]:28251 "EHLO
-	mailfilter6.ihug.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755487AbZDEAon (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Apr 2009 20:44:43 -0400
-Message-ID: <49D7FF44.8010705@yahoo.co.nz>
-Date: Sun, 05 Apr 2009 12:45:56 +1200
-From: Kevin Wells <wells_kevin@yahoo.co.nz>
-MIME-Version: 1.0
-To: Steven Toth <stoth@linuxtv.org>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: tm6010 development repository
-References: <49D32574.1060908@yahoo.co.nz> <49D4CDBA.9060802@linuxtv.org>
-In-Reply-To: <49D4CDBA.9060802@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from zone0.gcu-squad.org ([212.85.147.21]:18695 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751562AbZDGPza (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2009 11:55:30 -0400
+Date: Tue, 7 Apr 2009 17:55:17 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] tda7432: Delete old driver history
+Message-ID: <20090407175517.34102671@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Steven Toth wrote:
-> Kevin Wells wrote:
->> I've started trying to understand the code in the following repository:
->>
->>     http://www.linuxtv.org/hg/~mchehab/tm6010/
->>
->> I have a few patches I would like to apply. How should I do this?
-> Submit the patches to the list and I'll try to get some time to create 
-> and maintain a ~stoth/tm6010 tree. I think I can get the nova-s-usb2 
-> running with just a little effort.
-Thanks Steve. Sorry for the slow reply. I'm doing this in my limited 
-spare time.
+The history of changes does belong to git.
 
-Patches to follow. Nothing exciting. Just trying to make the code more 
-robust. Patches are very granular. Let me know if that doesn't work for you.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+In general I wouldn't care too much but it happens that this specific
+comment triggers a false positive in one of my scripts, so I'd rather
+get rid of it.
 
-Knowing the driver works on the nova-s-usb2 would be encouraging. I'm 
-trying to get it to work on an hvr-900h.
+ linux/drivers/media/video/tda7432.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
-Kevin
+--- v4l-dvb.orig/linux/drivers/media/video/tda7432.c	2009-04-06 10:10:25.000000000 +0200
++++ v4l-dvb/linux/drivers/media/video/tda7432.c	2009-04-07 17:44:59.000000000 +0200
+@@ -20,20 +20,6 @@
+  * loudness - set between 0 and 15 for varying degrees of loudness effect
+  *
+  * maxvol   - set maximium volume to +20db (1), default is 0db(0)
+- *
+- *
+- *  Revision: 0.7 - maxvol module parm to set maximium volume 0db or +20db
+- *  				store if muted so we can return it
+- *  				change balance only if flaged to
+- *  Revision: 0.6 - added tone controls
+- *  Revision: 0.5 - Fixed odd balance problem
+- *  Revision: 0.4 - added muting
+- *  Revision: 0.3 - Fixed silly reversed volume controls.  :)
+- *  Revision: 0.2 - Cleaned up #defines
+- *			fixed volume control
+- *          Added I2C_DRIVERID_TDA7432
+- *			added loudness insmod control
+- *  Revision: 0.1 - initial version
+  */
+ 
+ #include <linux/module.h>
+
+
+-- 
+Jean Delvare
