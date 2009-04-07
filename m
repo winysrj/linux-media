@@ -1,20 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3387wdE013028
-	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 04:07:58 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.155])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3387gVP018209
-	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 04:07:42 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so448750fgg.7
-	for <video4linux-list@redhat.com>; Fri, 03 Apr 2009 01:07:41 -0700 (PDT)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n375e7oJ016559
+	for <video4linux-list@redhat.com>; Tue, 7 Apr 2009 01:40:07 -0400
+Received: from mail-gx0-f171.google.com (mail-gx0-f171.google.com
+	[209.85.217.171])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n375dimw012989
+	for <video4linux-list@redhat.com>; Tue, 7 Apr 2009 01:39:45 -0400
+Received: by gxk19 with SMTP id 19so5413426gxk.3
+	for <video4linux-list@redhat.com>; Mon, 06 Apr 2009 22:39:44 -0700 (PDT)
 MIME-Version: 1.0
-Date: Fri, 3 Apr 2009 10:07:41 +0200
-Message-ID: <a2831f3f0904030107n6f015784p8c9814fbb84d2c84@mail.gmail.com>
-From: Butrus Damaskus <butrus.butrus@gmail.com>
+Date: Mon, 6 Apr 2009 22:39:44 -0700
+Message-ID: <bfa9a8f30904062239l2d096accj47c1fb8d50eafcf7@mail.gmail.com>
+From: Christopher Pascoe <linuxdvb@itee.uq.edu.au>
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: Can I use I2C on saa7134?
+Cc: 
+Subject: Re: No scan with DViCo FusionHDTV DVB-T Dual Express
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,19 +28,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello!
+(Hopefully this email will join the thread - I just joined the list briefly
+so I could post.)
 
-I found that there is i2c bus on my saa7134 that I could add an
-pinheader to the board and hook my own i2c chips (my motherboard
-doesn't provide i2c/smbus header). Is it possible to use it under
-linux? Or would it mean I would need to hack the card's driver?
+I had a few minutes while stuck on a bus and had a look at the code in
+v4l-dvb tip.  It appears that the driver there has at least two problems -
+it resets the wrong (or no) tuner in the callback and it potentially locks
+up the I2C bus through tinkering with the zl10353's gate_control logic.  The
+first alone would cause an "incorrect readback of firmware version" message
+after the first tune.  The second would explain the device subids
+disappearing and your having to use card=11 for the board to be found.
 
-(Actually I run some older kernel on that particular machine just now
-and there is a registered device for the motheboard's i2c bus but not
-for saa7134...)
+Try the patch at
+http://www.itee.uq.edu.au/~chrisp/Linux-DVB/DVICO/dual-digital-express-dvb-t-fix-20090407-1.patch.
+ It probably addresses these two issues (it's not even compile tested,
+so
+if it doesn't build I'm sure you get the idea) and see if it makes any
+difference.
 
-Thank You!
-
+Regards,
+Chris
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
