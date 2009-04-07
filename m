@@ -1,138 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199]:62286 "EHLO
-	mta4.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751720AbZDTQzN (ORCPT
+Received: from mail-in-08.arcor-online.net ([151.189.21.48]:37589 "EHLO
+	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752490AbZDGDUu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 12:55:13 -0400
-Received: from steven-toths-macbook-pro.local
- (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta4.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KIE00DQ4SBI1SE0@mta4.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Mon, 20 Apr 2009 12:54:55 -0400 (EDT)
-Date: Mon, 20 Apr 2009 12:54:53 -0400
-From: Steven Toth <stoth@linuxtv.org>
-Subject: Re: Hauppauge HVR-1500 (aka HP RM436AA#ABA)
-In-reply-to: <1240245715.5388.126.camel@mountainboyzlinux0>
-To: linux-media@vger.kernel.org
-Message-id: <49ECA8DD.9090708@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7BIT
-References: <23cedc300904170207w74f50fc1v3858b663de61094c@mail.gmail.com>
- <BAY102-W34E8EA79DEE83E18177655CF7B0@phx.gbl> <49E9C4EA.30706@linuxtv.org>
- <loom.20090420T150829-849@post.gmane.org> <49EC9A08.50603@linuxtv.org>
- <1240245715.5388.126.camel@mountainboyzlinux0>
+	Mon, 6 Apr 2009 23:20:50 -0400
+Subject: Re: [RFC] Anticipating lirc breakage
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andy Walls <awalls@radix.net>
+Cc: Jean Delvare <khali@linux-fr.org>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Mike Isely <isely@pobox.com>, Janne Grunau <j@jannau.net>,
+	Jarod Wilson <jarod@redhat.com>
+In-Reply-To: <1239067237.3852.40.camel@palomino.walls.org>
+References: <20090406174448.118f574e@hyperion.delvare>
+	 <1239067237.3852.40.camel@palomino.walls.org>
+Content-Type: text/plain
+Date: Tue, 07 Apr 2009 05:15:12 +0200
+Message-Id: <1239074112.3693.30.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Benster & Jeremy wrote:
-> Here is the relevant part of dmesg output:
-> ....snip....
-> [   18.088998] Linux video capture interface: v2.00
-> ....snip....
-> [   18.455776] cx23885 driver version 0.0.1 loaded
-> [   18.459188] ACPI: PCI Interrupt Link [LK2E] enabled at IRQ 17
-> [   18.459205] cx23885 0000:01:00.0: PCI INT A -> Link[LK2E] -> GSI 17 
-> (level, high) -> IRQ 17
-> [   18.461662] CORE cx23885[0]: subsystem: 0070:7717, board: Hauppauge 
-> WinTV-HVR1500 [card=6,autodetected]
-> [   18.570050] cx23885[0]: i2c bus 0 registered
-> [   18.570196] cx23885[0]: i2c bus 1 registered
-> [   18.570252] cx23885[0]: i2c bus 2 registered
-> [   18.596795] tveeprom 2-0050: Hauppauge model 77001, rev D3C0, serial# 
-> 1624435
-> [   18.596800] tveeprom 2-0050: MAC address is 00-0D-FE-18-C9-73
-> [   18.596803] tveeprom 2-0050: tuner model is Xceive XC3028 (idx 120, 
-> type 71)
-> [   18.596807] tveeprom 2-0050: TV standards NTSC(M) ATSC/DVB Digital 
-> (eeprom 0x88)
-> [   18.596810] tveeprom 2-0050: audio processor is CX23885 (idx 39)
-> [   18.596813] tveeprom 2-0050: decoder processor is CX23885 (idx 33)
-> [   18.596816] tveeprom 2-0050: has no radio
-> [   18.596818] cx23885[0]: hauppauge eeprom: model=77001
-> [   18.596822] cx23885[0]: cx23885 based dvb card
-> ....snip....
-> [   18.765151] phy0: Selected rate control algorithm 'pid'
-> [   18.801503] xc2028 3-0061: creating new instance
-> [   18.801509] xc2028 3-0061: type set to XCeive xc2028/xc3028 tuner
-> [   18.801517] DVB: registering new adapter (cx23885[0])
-> [   18.801522] DVB: registering frontend 0 (Samsung S5H1409 QAM/8VSB 
-> Frontend)...
-> [   18.802148] cx23885_dev_checkrevision() Hardware revision = 0xb0
-> [   18.802157] cx23885[0]/0: found at 0000:01:00.0, rev: 2, irq: 17, 
-> latency: 0, mmio: 0xc4000000
-> [   19.802164] cx23885 0000:01:00.0: setting latency timer to 64
-> 
-> and lspci:
-> 
-> ....snip....
-> #I'm leaving this in since it mentions i2c
-> 00:0a.1 0c05: 10de:0264 (rev a3)
-> Subsystem: 103c:30b7
-> Flags: 66MHz, fast devsel, IRQ 10
-> I/O ports at 3040 [size=64]
-> I/O ports at 3000 [size=64]
-> Capabilities: [44] Power Management version 2
-> Kernel driver in use: nForce2_smbus
-> Kernel modules: i2c-nforce2
-> ....snip....
-> 01:00.0 0400: 14f1:8852 (rev 02)
-> Subsystem: 0070:7717
-> Flags: bus master, fast devsel, latency 0, IRQ 17
-> Memory at c4000000 (64-bit, non-prefetchable) [size=2M]
-> Capabilities: [40] Express Endpoint, MSI 00
-> Capabilities: [80] Power Management version 2
-> Capabilities: [90] Vital Product Data <?>
-> Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+ Queue=0/0 
-> Enable-
-> Capabilities: [100] Advanced Error Reporting <?>
-> Capabilities: [200] Virtual Channel <?>
-> Kernel driver in use: cx23885
-> Kernel modules: cx23885
-> ....snip....
-> 07:05.4 0880: 1180:0852 (rev ff) (prog-if ff)
-> !!! Unknown header type 7f
-> ....snip....
-> 
-> I think I may not have the debug=1 options turned on right now. I will 
-> turn them on and re-post if that would help you.
-> 
-> Ben
-> 
-> On Mon, 2009-04-20 at 11:51 -0400, Steven Toth wrote:
->> Ben Heggy wrote:
->> > I'm having the same issues (recognized - but won't turn on) with the same card
->> > and would be delighted to join the open discussion and to try to help to provide
->> > any information necessary to debug this issue. 
->> > 
->> > To this point, I have enabled debug options on what I think are the related
->> > modules and have seen nothing that appears to be an error, but am also noticing
->> > that there should be some messages about loading firmware for the various chips
->> > and they don't appear (I did put the firmware files in /lib/firmware but I
->> > cannot find references to their correct md5sums to verify they are correct)
->> > 
->> > I'm a newbie to linux, but was once (20 years ago) a system manager on a
->> > vax/unix system, so I can find my way around a bit better than average.
->> > 
->> > Tell me what info you want to see or what actions to try and I will gladly act
->> > immediately.
->>
->> Connect the card.
->>
->> Cold boot the system, boot linux, use the dmesg command.
->>
->> Do you see any evidence of the cx23885 driver recognizing your card?
->>
->> Use the lspci -vn command to display attached PCI(e) devices, is the card present?
->>
->> - Steve
+Hi,
 
-(A minor thing, please don't top post. Replies go under the previous messages - 
-that's mailing list protocol)
+Am Montag, den 06.04.2009, 21:20 -0400 schrieb Andy Walls:
+> On Mon, 2009-04-06 at 17:44 +0200, Jean Delvare wrote:
+> > Hi all,
+> > 
+> > In the light of recent discussions and planed changes to the i2c
+> > subsystem and the ir-kbd-i2c driver, I will try to summarize the
+> > situation and make some proposals. Note that I am really not sure what
+> > we want to do, so this is a true request for opinions.
+> 
+> 
+> 
+> > The bottom line is that we have to instantiate I2C devices for IR
+> > components regardless of the driver which will handle them (ir-kbd-i2c,
+> > lirc_i2c or another one). I can think of two different strategies here:
+> > 
+> > 1* Instantiate driver-neutral I2C devices, named for example
+> >   "ir_video". Let both ir-kbd-i2c and lirc_i2c (and possibly others)
+> >   bind to them. The first loaded driver gets to bind to the device.
+> >   This isn't so different from the current situation, the only
+> >   difference being that the choice of addresses to probe is moved to
+> >   the bridge drivers. We can even go with separate names for some
+> >   devices (for example "ir_zilog"), as each I2C driver can list which
+> >   devices it supports.
+> > 
+> > 2* Let the bridge drivers decide whether ir-kbd-i2c or lirc_i2c
+> >    should drive any given device, by instantiating I2C devices with
+> >    different names, for example "ir_kbd" for ir-kbd-i2c and "lirc" for
+> >    lirc_i2c. This might give better out-of-the-box results for some
+> >    devices and would make it possible to let the device drivers auto-load.
+> >    There's a problem though for IR devices which are supported by both
+> >    ir-kbd-i2c and lirc_i2c: not every user installs lirc, so it's not
+> >    clear what devices should be created. We could default to "ir_kbd"
+> >    and switch to "lirc" using a module parameter, as Mike Isely
+> >    proposed for pvrusb2.
+> > 
+> > I have a clear preference for the first strategy. I feel that creating
+> > devices for a specific driver is the wrong way to go, as we will
+> > certainly want to merge ir-kbd-i2c and lirc_i2c into a single driver in
+> > the future. However, I am not familiar enough with IR receivers to know
+> > for sure if the first strategy will work. I would welcome comments on
+> > this. Does anyone see a problem with strategy #1? Does anyone see
+> > notable advantages in strategy #2?
+> 
+> I have a preference for #1.
+> 
+> Strategy #1 gives flexibility and control for *every* user.
+> 
+> Strategy #2 has better turn-key operation for *most* users.
+> 
+> So strategy #1 gives better flexibility to the user to fix problems at
+> the cost of some base complexity to get up and running (maybe).  More
+> problems, but hopefully all resolvable with moderate effort.
+> 
+> So strategy #2 gives most users a no-brainer experience, but to fix
+> problems, steps of dauting complexity or risk for the inexperienced user
+> may be needed (maybe).  Fewer problems, more effort to resolve the
+> problem cases.
+> 
+> 
+> I don't mind talking a user through a problem with strategy #1 in place.
+> All the pieces are there, it's just a matter of troubleshooting the
+> configuration: lsmod, dmesg, service lircd stop, modprobe -r lirc_i2c
+> lirc_dev, ....
+> 
+> 
+> I wouldn't want to talk a user through problems with strategy #2 in
+> place:
+> 
+> Me: "Ok, so download the latest v4l-dvb/lirc tarball, edit this string
+> in this file, compile, install, unload, reload, and viola!"
+> 
+> User: "I've done all that.  It says something about unresolved symbol.
+> What does that mean?  I'm using
+> $DISTRO_OTHER_THAN_ANDYS_PREFERRED_DISTRO..."
+> 
+> Me: (begin attempting to remove the wall with my forehead...)
+> 
+> 
+> > If we go with strategy #1 then my original patch set is probably very
+> > similar to the solution. The only differences would be the name of the
+> > I2C devices being created ("ir_video" instead of "ir-kbd") and the list
+> > of addresses being probed (we'd need to add the addresses lirc_i2c
+> > supports but ir-kbd-i2c does not.)
+> 
+> May I ask, why the virtual chip names like "ir_video"?  Almost every I2C
+> IR chip should have a unique part number on it.  Maybe just use the name
+> of the chip as - well - the name of the I2C chip at the address:
+> "KS003", "Z8F0811", "PIC64xx", "CX2584x IR", etc.  That way it is almost
+> unambiguous what the IR chip part is at the I2C address, and also what
+> the IR chip driver module needs to support.
 
-Thanks, initialization looks good.
+just to have mentioned it.
 
-Step 2. What happens when you try to use azap and what does syslog subsequently 
-look like?
+On such remote "systems" not having any chip for it on the receiver side
+and generating IRQs on GPIOs good for that, they are at least connected
+to the on board clock, even the printing on the chip of the transmitter
+side might be washed out intentionally. (Asus PC-39)
 
-- Steve
+Also they are 3.3Volts only on the receiver and you can't find a
+replacement on the markets, at least last time I tried.
+(if connected, that gpio goes high)
+
+> I suppose this is a bit problematic for micrcontroller chips with
+> different controller code images, but slight additions to the name can
+> take care of that: "Z8F0811 Hauppauge", "Z8F0811 Acme".
+>                                                  ^^^^
+>                                                   +-- ficticious company
+> 
+> It seems obvious to me.  (So there must be something wrong with it. ;] )
+> 
+
+;)
+
+> 
+> 
+> >  We would also need to ensure that
+> > ir-kbd-i2c doesn't crash when it sees a device at an address it doesn't
+> > support.
+> 
+> Yes, because when that module crashes, a short time later one's keyboard
+> will be unusable.  I guess that's a consequence of oopsing in a module
+> hooked into the input event system.
+
+Yes, but it is just some input.
+
+> Regards,
+> Andy
+> 
+
+Cheers,
+Hermann
+
+
