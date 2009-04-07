@@ -1,118 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.uni-paderborn.de ([131.234.142.9]:64992 "EHLO
-	mail.uni-paderborn.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753204AbZDAJTA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Apr 2009 05:19:00 -0400
-Message-ID: <49D32B16.2070101@hni.uni-paderborn.de>
-Date: Wed, 01 Apr 2009 10:51:34 +0200
-From: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Questinons regarding soc_camera / pxa_camera
-References: <49CBB13F.7090609@hni.uni-paderborn.de> <Pine.LNX.4.64.0903261831430.5438@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0903261831430.5438@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from bombadil.infradead.org ([18.85.46.34]:47336 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751626AbZDGCRT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 22:17:19 -0400
+Date: Mon, 6 Apr 2009 23:17:02 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Timothy Lee <timothy.lee@siriushk.com>
+Cc: Devin Heitmueller <devin.heitmueller@gmail.com>,
+	David Wong <davidtlwong@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] Support for Legend Silicon LGS8913/LGS8GL5/LGS8GXX
+ China  DMB-TH digital demodulator
+Message-ID: <20090406231702.6b09d190@pedra.chehab.org>
+In-Reply-To: <49DAA42C.8070302@siriushk.com>
+References: <15ed362e0903170855k2ec1e5afm613de692c237e34d@mail.gmail.com>
+	<412bdbff0903302154w5ddb3fc8m684bcb5092942561@mail.gmail.com>
+	<20090406144408.63b2ef71@pedra.chehab.org>
+	<49DAA42C.8070302@siriushk.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski schrieb:
-> (moving to the new v4l list)
->
-> On Thu, 26 Mar 2009, Stefan Herbrechtsmeier wrote:
->
->   
->> --- a/linux/drivers/media/video/soc_camera.c    Sun Mar 22 08:53:36 2009 -0300
->> +++ b/linux/drivers/media/video/soc_camera.c    Thu Mar 26 15:35:43 2009 +0100
->> @@ -238,7 +238,7 @@ static int soc_camera_init_user_formats(
->>     icd->num_user_formats = fmts;
->>     fmts = 0;
->>
->> -    dev_dbg(&icd->dev, "Found %d supported formats.\n", fmts);
->> +    dev_dbg(&icd->dev, "Found %d supported formats.\n",
->> icd->num_user_formats);
->>
->>     /* Second pass - actually fill data formats */
->>     for (i = 0; i < icd->num_formats; i++)
->>
->> I thing this was wrong or ' fmts = 0;' must be under the output.
->>     
->
-> Right, I'd prefer the latter though - to move the "fmts = 0;" assignment 
-> down.
->
->   
-Should I generate a PATCH or will you change it by our own?
->> @@ -675,8 +675,8 @@ static int soc_camera_cropcap(struct fil
->>     a->bounds.height        = icd->height_max;
->>     a->defrect.left            = icd->x_min;
->>     a->defrect.top            = icd->y_min;
->> -    a->defrect.width        = DEFAULT_WIDTH;
->> -    a->defrect.height        = DEFAULT_HEIGHT;
->> +    a->defrect.width        = icd->width_max;
->> +    a->defrect.height        = icd->height_max;
->>     a->pixelaspect.numerator    = 1;
->>     a->pixelaspect.denominator    = 1;
->>
->> What was the reason to use fix values? Because of the current implementation
->> of crop,
->> the default value can get bigger than the max value.
->>     
->
-> Yes, you're right again, taking scaling into account. Although, setting 
-> default to maximum doesn't seem a very good idea to me either. Maybe we'd 
-> have to add an extra parameter to struct soc_camera_device, but I'm 
-> somewhat reluctant to change this now, because all those fields from the 
-> struct will have to disappear anyway with the v4l2-subdev transition, at 
-> which point, I think, all these requests will have to be passed down to 
-> drivers.
->   
-OK, what is the timetable / plan for the soc_camera to v4l2-subdev 
-transition?
->> Is there some ongoing work regarding the crop implementation on soc_camera?
->> If I understand the documentation [1] right, the crop vales should represent
->> the area
->> of the capture device before scaling. What was the reason for the current
->> implementation
->> combing crop and fmt values?
->>     
->
-> See this discussion: 
-> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/68 
-> besides, my idea was, that the user cannot be bothered with all scalings / 
-> croppings that take place in host and client devices (on camera 
-> controllers and / or sensors). My understanding was: the user uses S_FMT 
-> to request a window of a certain size, say 640x480, the drivers shall try 
-> to fit as much into it as possible using scaling. How many hardware pixels 
-> are now used to build this VGA window the user has no idea about.
-If we use the real pixels for CROP, the user can calculate the scale.
-(see 1.11.3 Examples for "Image Cropping, Insertion and Scaling" in the 
-documentation)
+On Tue, 07 Apr 2009 08:54:04 +0800
+Timothy Lee <timothy.lee@siriushk.com> wrote:
 
-> Then you 
-> can use S_CROP to select sub-windows from _that_ area. If you want a 
-> different resolution, you use S_FMT again (after stopping the running 
-> capture), etc. 
-Do you mean you can use S_CROP during a running capture?
-What happen if you change the width or height of the sub-windows. This 
-will change the resolution
-/ size of the image.
+> Dear Mauro,
+> 
+> I wrote the original lgs8gl5 driver by reverse-engineering my USB TV 
+> stick using UsbSnoop.
+> 
+> I've been working together with David to make sure his lgs8gxx driver 
+> works with my TV stick, so yes, the generic driver actually works.  :)
 
-I only know the camera driver side of this functions and don't know how 
-it is used,  but I would used
-S_FMT do set the output format and S_CROP to select the real sensor size 
-and position.
-For example S_FMT with 320x240 set the sensor area to 1280x960 (max). 
-S_CROP with 600x400 set
-the sensor area to 640x480, because this is the next supported scale 
-(1,2,4,8) for the fix output format.
-If I understand the documentation right, S_CROP would use the old scale 
-(4) and change the format to
-200x100 to get the requested sensor area.
+Great! You should sign a patch together, removing the legacy module and using
+the newer one instead. It would be better to have this merged at the
+development tree for a while, to be sure that this won't cause regressions.
 
-I think for now I take over your implementation of S_FMT and S_CROP.
-After the v4l2-subdev transition we can update the implementations.
-
-Regards
-    Stefan
+Cheers,
+Mauro
