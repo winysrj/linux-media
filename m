@@ -1,62 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.lncsa.com ([212.99.8.243]:40834 "EHLO sargon.lncsa.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751392AbZDUHzG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2009 03:55:06 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by sargon.lncsa.com (Postfix) with ESMTP id F2F243071F60
-	for <linux-media@vger.kernel.org>; Tue, 21 Apr 2009 09:48:04 +0200 (CEST)
-Received: from sargon.lncsa.com ([127.0.0.1])
-	by localhost (sargon.lncsa.com [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id YLyVTyx+TeRA for <linux-media@vger.kernel.org>;
-	Tue, 21 Apr 2009 09:48:04 +0200 (CEST)
-Received: from zenon.apartia.fr (zenon.apartia.fr [10.0.3.1])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(Client CN "zenon.apartia.fr", Issuer "ca.apartia.fr" (verified OK))
-	by sargon.lncsa.com (Postfix) with ESMTP id CF3A43071F5F
-	for <linux-media@vger.kernel.org>; Tue, 21 Apr 2009 09:48:04 +0200 (CEST)
-Received: from galba.apartia.fr (galba.apartia.fr [10.0.3.119])
-	by zenon.apartia.fr (Postfix) with ESMTP id 8050E5B940335
-	for <linux-media@vger.kernel.org>; Tue, 21 Apr 2009 09:48:01 +0200 (CEST)
-Date: Tue, 21 Apr 2009 09:48:01 +0200
-From: Louis-David Mitterrand <vindex+lists-linux-media@apartia.org>
-To: linux-media@vger.kernel.org
-Subject: Nova-TD usb dual tuner issue
-Message-ID: <20090421074801.GA18549@apartia.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from ti-out-0910.google.com ([209.85.142.191]:51228 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754189AbZDGWuB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2009 18:50:01 -0400
+Received: by ti-out-0910.google.com with SMTP id i7so2566237tid.23
+        for <linux-media@vger.kernel.org>; Tue, 07 Apr 2009 15:50:00 -0700 (PDT)
+From: Huang Weiyi <weiyi.huang@gmail.com>
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, Huang Weiyi <weiyi.huang@gmail.com>
+Subject: [PATCH] V4L/DVB: cx231xx: remove unused #include <linux/version.h>'s
+Date: Wed,  8 Apr 2009 06:49:46 +0800
+Message-Id: <1239144586-1792-1-git-send-email-weiyi.huang@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Remove unused #include <linux/version.h>'s in
+  drivers/media/video/cx231xx/cx231xx-avcore.c
+  drivers/media/video/cx231xx/cx231xx-vbi.c
 
-When I connect my Nova-TD dual tuner usb stick to my debian/sid box with
-2.6.29.1 kernel I can only use the second tuner (mplayer
-dvb://2@<tvchannel>). When trying to use the first one (dvb://1@...)
-tuning is extremely bad and an image barely appears with many errors.
+Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
+---
+ drivers/media/video/cx231xx/cx231xx-avcore.c |    1 -
+ drivers/media/video/cx231xx/cx231xx-vbi.c    |    1 -
+ 2 files changed, 0 insertions(+), 2 deletions(-)
 
-I tried switching the antennas to no avail, the problem persists.
-
-Is this a know problem, or do I just have a bad stick ?
-
-Thanks,
-
-PS: here is the syslog output when connecting the stick:
-
-	usb 2-2: new high speed USB device using ehci_hcd and address 3
-	Apr 19 15:33:50 delos kernel: usb 2-2: configuration #1 chosen from 1 choice
-	Apr 19 15:33:50 delos kernel: dvb-usb: found a 'Hauppauge Nova-TD Stick (52009)' in cold state, will try to load a firmware
-	Apr 19 15:33:50 delos kernel: usb 2-2: firmware: requesting dvb-usb-dib0700-1.20.fw
-	Apr 19 15:33:50 delos kernel: dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
-	Apr 19 15:33:50 delos kernel: dib0700: firmware started successfully.
-	Apr 19 15:33:51 delos kernel: dvb-usb: found a 'Hauppauge Nova-TD Stick (52009)' in warm state.
-	Apr 19 15:33:51 delos kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-	Apr 19 15:33:51 delos kernel: DVB: registering new adapter (Hauppauge Nova-TD Stick (52009))
-	Apr 19 15:33:51 delos kernel: DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
-	Apr 19 15:33:51 delos kernel: DiB0070: successfully identified
-	Apr 19 15:33:51 delos kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-	Apr 19 15:33:51 delos kernel: DVB: registering new adapter (Hauppauge Nova-TD Stick (52009))
-	Apr 19 15:33:51 delos kernel: DVB: registering adapter 1 frontend 0 (DiBcom 7000PC)...
-	Apr 19 15:33:52 delos kernel: DiB0070: successfully identified
+diff --git a/drivers/media/video/cx231xx/cx231xx-avcore.c b/drivers/media/video/cx231xx/cx231xx-avcore.c
+index 1be3881..6a94640 100644
+--- a/drivers/media/video/cx231xx/cx231xx-avcore.c
++++ b/drivers/media/video/cx231xx/cx231xx-avcore.c
+@@ -29,7 +29,6 @@
+ #include <linux/bitmap.h>
+ #include <linux/usb.h>
+ #include <linux/i2c.h>
+-#include <linux/version.h>
+ #include <linux/mm.h>
+ #include <linux/mutex.h>
+ 
+diff --git a/drivers/media/video/cx231xx/cx231xx-vbi.c b/drivers/media/video/cx231xx/cx231xx-vbi.c
+index 9418052..e97b802 100644
+--- a/drivers/media/video/cx231xx/cx231xx-vbi.c
++++ b/drivers/media/video/cx231xx/cx231xx-vbi.c
+@@ -26,7 +26,6 @@
+ #include <linux/bitmap.h>
+ #include <linux/usb.h>
+ #include <linux/i2c.h>
+-#include <linux/version.h>
+ #include <linux/mm.h>
+ #include <linux/mutex.h>
+ 
+-- 
+1.6.0.4
 
