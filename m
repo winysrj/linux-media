@@ -1,74 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41379 "EHLO arroyo.ext.ti.com"
+Received: from cantor.suse.de ([195.135.220.2]:32800 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751294AbZDONe1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Apr 2009 09:34:27 -0400
-From: "Shah, Hardik" <hardik.shah@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
-Date: Wed, 15 Apr 2009 19:04:08 +0530
-Subject: RE: [PATCH 3/3] V4L2 Driver for OMAP3/3 DSS.
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB25183A@dbde02.ent.ti.com>
-In-Reply-To: <60676.207.214.87.58.1239029832.squirrel@webmail.xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	id S1754171AbZDHXvr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Apr 2009 19:51:47 -0400
+Date: Wed, 8 Apr 2009 16:40:25 -0700
+From: Greg KH <gregkh@suse.de>
+To: Alexey Klimov <klimov.linux@gmail.com>
+Cc: David Vrabel <david.vrabel@csr.com>, linux-usb@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] usb: add reset endpoint operations
+Message-ID: <20090408234025.GA28532@suse.de>
+References: <1239212193-27618-1-git-send-email-david.vrabel@csr.com> <1239212193-27618-2-git-send-email-david.vrabel@csr.com> <208cbae30904081636x71e7675egad7566bc601cb2cf@mail.gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <208cbae30904081636x71e7675egad7566bc601cb2cf@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, Apr 09, 2009 at 03:36:51AM +0400, Alexey Klimov wrote:
+> (added linux-media maillist)
+> 
+> Hello, David
+> 
+> On Wed, Apr 8, 2009 at 9:36 PM, David Vrabel <david.vrabel@csr.com> wrote:
+> > Wireless USB endpoint state has a sequence number and a current
+> > window and not just a single toggle bit.  So allow HCDs to provide a
+> > endpoint_reset method and call this or clear the software toggles as
+> > required (after a clear halt, set configuration etc.).
+> >
+> > usb_settoggle() and friends are then HCD internal and are moved into
+> > core/hcd.h and all device drivers call usb_reset_endpoint() instead.
+> >
+> > If the device endpoint state has been reset (with a clear halt) but
+> > the host endpoint state has not then subsequent data transfers will
+> > not complete. The device will only work again after it is reset or
+> > disconnected.
+> >
+> > Signed-off-by: David Vrabel <david.vrabel@csr.com>
+> > ---
+> >  drivers/block/ub.c                        |   20 ++++-----
+> >  drivers/isdn/hisax/st5481_usb.c           |    9 +----
+> >  drivers/media/video/pvrusb2/pvrusb2-hdw.c |    1 -
+> 
+> Looks like you change file under /drivers/video. It's better at least
+> to add linux-media maillist  or driver maintainer (not only linux-usb
+> list) to let developers know that you change drivers.
 
+He's already gotten an Ack from this driver author on the last time this
+patch was sent out.  Don't know why he forgot to add it to this version
+of the patch, it should still be valid :)
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Monday, April 06, 2009 8:27 PM
-> To: Shah, Hardik
-> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Jadav, Brijesh R;
-> Hiremath, Vaibhav
-> Subject: RE: [PATCH 3/3] V4L2 Driver for OMAP3/3 DSS.
-> 
-> 
-> > Hi Hans,
-> > Please find my comments inline. Most of the comments are taken care of.
-> 
-> > 2.  In DSS rotation is accomplished by some memory algorithm but its quite
-> > costly so -1 is essentially same as 0 degree but with out the overhead.
-> > But if mirroring is on then we have to do the 0 degree rotation with
-> > overhead using some memory techniques.  So from user point of view he will
-> > only be setting 0 but internally driver will take it as -1 or 0 depending
-> > upon the mirroring selected.
-> 
-> Hi Hardik,
-> 
-> I just looked over these comments and I'll do a full review in the weekend
-> when I'm back from San Francisco. But just one quick remark regarding this
-> magic -1 number: wouldn't it be better to write a small inline function
-> like this:
-> 
-> /* return true if we need to rotate or mirror, return false if we
->    don't have to do anything here. */
-> static inline int needs_rotate(struct foo *foo)
-> {
->     return foo->rotate != 0 || foo->mirror;
-> }
-> 
-> I think this is much more understandable. It's up to you, though.
-> 
-> Regards,
-[Shah, Hardik] Hi All,
-Any comment on this series of patches will be appreciated.
+thanks,
 
-Hans,
-Did you get a chance to look at it?
-
-> 
->         Hans
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
-> 
-
+greg k-h
