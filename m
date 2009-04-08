@@ -1,46 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:56045 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752500AbZDKLKR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Apr 2009 07:10:17 -0400
-Date: Sat, 11 Apr 2009 08:09:53 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	Marton Balint <cus@fazekas.hu>, linux-media@vger.kernel.org
-Subject: Re: linux-next: Tree for April 9
-Message-ID: <20090411080953.0c22cf4e@pedra.chehab.org>
-In-Reply-To: <20090410231158.33b85dc1.akpm@linux-foundation.org>
-References: <20090409163305.8c7a0371.sfr@canb.auug.org.au>
-	<20090410231158.33b85dc1.akpm@linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from arroyo.ext.ti.com ([192.94.94.40]:50289 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932807AbZDHLmW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Apr 2009 07:42:22 -0400
+Received: from dflp53.itg.ti.com ([128.247.5.6])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n38BgHoU003476
+	for <linux-media@vger.kernel.org>; Wed, 8 Apr 2009 06:42:22 -0500
+From: Chaithrika U S <chaithrika@ti.com>
+To: linux-media@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	Chaithrika U S <chaithrika@ti.com>,
+	Manjunath Hadli <mrh@ti.com>, Brijesh Jadav <brijesh.j@ti.com>
+Subject: [PATCH v2 4/4] ARM: DaVinci: DM646x Video:  Makefile and config files modifications for Display
+Date: Wed,  8 Apr 2009 07:19:02 -0400
+Message-Id: <1239189542-19985-1-git-send-email-chaithrika@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 10 Apr 2009 23:11:58 -0700
-Andrew Morton <akpm@linux-foundation.org> wrote:
+Makefile and Kconfig changes
 
-> On Thu, 9 Apr 2009 16:33:05 +1000 Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> 
-> > I have created today's linux-next tree at
-> > git://git.kernel.org/pub/scm/linux/kernel/git/sfr/linux-next.git
-> 
-> It has a link failure with i386 allmodconfig due to missing __divdi3.
-> 
-> It's due to this statement in drivers/media/video/cx88/cx88-dsp.c's
-> int_goertzel():
-> 
->         return (u32)(((s64)s_prev2*s_prev2 + (s64)s_prev*s_prev -
->                       (s64)coeff*s_prev2*s_prev/32768)/N/N);
-> 
-> that gem will need to be converted to use div64() or similar, please.
+Modifies and adds the video Makefiles and Kconfig files to support DM646x Video
+display device
 
-Updated to use do_div().
+Signed-off-by: Manjunath Hadli <mrh@ti.com>
+Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+Signed-off-by: Chaithrika U S <chaithrika@ti.com>
+---
+Applies to v4l-dvb repository
 
+ drivers/media/video/Kconfig          |   22 ++++++++++++++++++++++
+ drivers/media/video/Makefile         |    2 ++
+ drivers/media/video/davinci/Makefile |    9 +++++++++
+ 3 files changed, 33 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/davinci/Makefile
 
-Cheers,
-Mauro
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 9d48da2..d53013e 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -467,6 +467,28 @@ config VIDEO_UPD64083
+ 
+ endmenu # encoder / decoder chips
+ 
++config DISPLAY_DAVINCI_DM646X_EVM
++        tristate "DM646x EVM Video Display"
++        depends on VIDEO_DEV && MACH_DAVINCI_DM646X_EVM
++        select VIDEOBUF_DMA_CONTIG
++        select VIDEO_DAVINCI_VPIF
++        select VIDEO_ADV7343
++        select VIDEO_THS7303
++        help
++          Support for DaVinci based display device.
++
++          To compile this driver as a module, choose M here: the
++          module will be called davincihd_display.
++
++config VIDEO_DAVINCI_VPIF
++        tristate "DaVinci VPIF Driver"
++        depends on DISPLAY_DAVINCI_DM646X_EVM
++        help
++          Support for DaVinci VPIF Driver.
++
++          To compile this driver as a module, choose M here: the
++          module will be called vpif.
++
+ config VIDEO_VIVI
+ 	tristate "Virtual Video Driver"
+ 	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 3f1a035..98d32d7 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -152,6 +152,8 @@ obj-$(CONFIG_VIDEO_AU0828) += au0828/
+ 
+ obj-$(CONFIG_USB_VIDEO_CLASS)	+= uvc/
+ 
++obj-$(CONFIG_ARCH_DAVINCI)	+= davinci/
++
+ EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
+ EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
+ EXTRA_CFLAGS += -Idrivers/media/common/tuners
+diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
+new file mode 100644
+index 0000000..7fe9bce
+--- /dev/null
++++ b/drivers/media/video/davinci/Makefile
+@@ -0,0 +1,9 @@
++#
++# Makefile for the davinci video device drivers.
++#
++
++# VPIF
++obj-$(CONFIG_VIDEO_DAVINCI_VPIF) += vpif.o
++
++#DM646x EVM Display driver
++obj-$(CONFIG_DISPLAY_DAVINCI_DM646X_EVM) += vpif_display.o
+-- 
+1.5.6
+
