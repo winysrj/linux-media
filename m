@@ -1,17 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1952 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753525AbZDPMkZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Apr 2009 08:40:25 -0400
-Message-ID: <31771.62.70.2.252.1239885621.squirrel@webmail.xs4all.nl>
-Date: Thu, 16 Apr 2009 14:40:21 +0200 (CEST)
-Subject: Re: [PATCH 5/5] soc-camera: Convert to a platform driver
+Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:3130 "EHLO
+	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753624AbZDHWK4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2009 18:10:56 -0400
+Received: from webmail.xs4all.nl (dovemail10.xs4all.nl [194.109.26.12])
+	by smtp-vbr17.xs4all.nl (8.13.8/8.13.8) with ESMTP id n38MAsNM045634
+	for <linux-media@vger.kernel.org>; Thu, 9 Apr 2009 00:10:54 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Message-ID: <61526.207.214.87.58.1239228654.squirrel@webmail.xs4all.nl>
+Date: Thu, 9 Apr 2009 00:10:54 +0200 (CEST)
+Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS,
+      2.6.16-2.6.21: WARNINGS
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-Cc: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
-	"Robert Jarzmik" <robert.jarzmik@free.fr>
+To: linux-media@vger.kernel.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
@@ -19,95 +20,103 @@ Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-> On Thu, 16 Apr 2009, Dongsoo, Nathaniel Kim wrote:
+> This message is generated daily by a cron job that builds v4l-dvb for
+> the kernels and architectures in the list below.
 >
->> My concern is all about the logical thing. "Why can't we open device
->> node even if it is not opened from any other process."
+> Results of the daily build of v4l-dvb:
 >
-> The answer is of course "because the other node is currently active," but
-> I can understand the sort of "confusion" that the user might have: we have
-> two "independent" device nodes, but only one of them can be active at any
-> given time. So, in a way you're right, this might not be very intuitive.
+> date:        Wed Apr  8 19:00:06 CEST 2009
+> path:        http://www.linuxtv.org/hg/v4l-dvb
+> changeset:   11441:202a1c7ec379
+> gcc version: gcc (GCC) 4.3.1
+> hardware:    x86_64
+> host os:     2.6.26
 >
->> I have been working on dual camera with Linux for few years, and
->> everybody who I'm working with wants not to fail opening camera device
->> node in the first place. Actually I'm mobile phone developer and I've
->> been seeing so many exceptional cases in field with dual camera
->> applications. With all my experiences, I got my conclusion which is
->> "Don't make user get confused with device opening failure". I want you
->> to know that no offence but just want to make it better.
+> linux-2.6.22.19-armv5: OK
+> linux-2.6.23.12-armv5: OK
+> linux-2.6.24.7-armv5: OK
+> linux-2.6.25.11-armv5: OK
+> linux-2.6.26-armv5: OK
+> linux-2.6.27-armv5: OK
+> linux-2.6.28-armv5: OK
+> linux-2.6.29.1-armv5: OK
+> linux-2.6.30-rc1-armv5: ERRORS
+> linux-2.6.27-armv5-ixp: OK
+> linux-2.6.28-armv5-ixp: OK
+> linux-2.6.29.1-armv5-ixp: OK
+> linux-2.6.30-rc1-armv5-ixp: ERRORS
+> linux-2.6.28-armv5-omap2: OK
+> linux-2.6.29.1-armv5-omap2: OK
+> linux-2.6.30-rc1-armv5-omap2: ERRORS
+> linux-2.6.22.19-i686: WARNINGS
+> linux-2.6.23.12-i686: ERRORS
+> linux-2.6.24.7-i686: ERRORS
+> linux-2.6.25.11-i686: ERRORS
+> linux-2.6.26-i686: OK
+> linux-2.6.27-i686: OK
+> linux-2.6.28-i686: OK
+> linux-2.6.29.1-i686: OK
+> linux-2.6.30-rc1-i686: ERRORS
+> linux-2.6.23.12-m32r: OK
+> linux-2.6.24.7-m32r: OK
+> linux-2.6.25.11-m32r: OK
+> linux-2.6.26-m32r: OK
+> linux-2.6.27-m32r: OK
+> linux-2.6.28-m32r: OK
+> linux-2.6.29.1-m32r: OK
+> linux-2.6.30-rc1-m32r: ERRORS
+> linux-2.6.22.19-mips: OK
+> linux-2.6.26-mips: OK
+> linux-2.6.27-mips: OK
+> linux-2.6.28-mips: OK
+> linux-2.6.29.1-mips: OK
+> linux-2.6.30-rc1-mips: ERRORS
+> linux-2.6.27-powerpc64: WARNINGS
+> linux-2.6.28-powerpc64: WARNINGS
+> linux-2.6.29.1-powerpc64: WARNINGS
+> linux-2.6.30-rc1-powerpc64: ERRORS
+> linux-2.6.22.19-x86_64: WARNINGS
+> linux-2.6.23.12-x86_64: ERRORS
+> linux-2.6.24.7-x86_64: ERRORS
+> linux-2.6.25.11-x86_64: ERRORS
+> linux-2.6.26-x86_64: WARNINGS
+> linux-2.6.27-x86_64: WARNINGS
+> linux-2.6.28-x86_64: WARNINGS
+> linux-2.6.29.1-x86_64: WARNINGS
+> linux-2.6.30-rc1-x86_64: ERRORS
+> fw/apps: WARNINGS
+> sparse (linux-2.6.29.1): OK
+> sparse (linux-2.6.30-rc1): OK
+> linux-2.6.16.61-i686: WARNINGS
+> linux-2.6.17.14-i686: WARNINGS
+> linux-2.6.18.8-i686: WARNINGS
+> linux-2.6.19.5-i686: WARNINGS
+> linux-2.6.20.21-i686: WARNINGS
+> linux-2.6.21.7-i686: WARNINGS
+> linux-2.6.16.61-x86_64: WARNINGS
+> linux-2.6.17.14-x86_64: WARNINGS
+> linux-2.6.18.8-x86_64: WARNINGS
+> linux-2.6.19.5-x86_64: WARNINGS
+> linux-2.6.20.21-x86_64: WARNINGS
+> linux-2.6.21.7-x86_64: WARNINGS
 >
-> Sure, I appreciate your opinion and respect your experience, but let's
-> have a look at the current concept:
+> Detailed results are available here:
 >
-> 1. the platform has N cameras on camera interface X
-> 2. soc_camera.c finds the matching interface X and creates M (<= N) nodes
-> for all successfully probed devices.
-> 3. in the beginning, as long as no device is open, all cameras are powered
-> down / inactive.
-> 4. you then open() one of them, it gets powered on / activated, the others
-> become unaccessible as long as one is used.
-> 5. this way switching is easy - you're sure, that when no device is open,
-> all cameras are powered down, so, you can safely select any of them.
-> 6. module reference-counting is easy too - every open() of a device-node
-> increments the use-count
+> http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 >
-> With your proposed approach:
+> Full logs are available here:
 >
-> 1. the platform has N cameras on camera interface X.
-> 2. as long as at least one camera probed successfully for interface X, you
-> create a videoX device and count inputs for it - successfully probed
-> cameras.
-> 3. you open videoX, one "default" camera gets activated immediately - not
-> all applications issue S_INPUT, so, there has to be a default.
-> 4. if an S_INPUT is issued, you have to verify, whether any camera is
-> currently active / capturing, if none - switch to the requested one, if
-> one is active - return -EBUSY.
-> 5. reference-counting and guaranteeing consistency is more difficult, as
-> well as handling camera driver loading / unloading.
->
-> So, I would say, your approach adds complexity and asymmetry. Can it be
-> that one camera client has several inputs itself? E.g., a decoder? In any
-> case, I wouldn't do this now, if we do decide in favour of your approach,
-> then only after the v4l2-device transition, please.
+> http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-If you have mutually exclusive sources, then those should be implemented
-as one device with multiple inputs. There is really no difference between
-a TV capture driver that selects between a tuner and S-Video input, and a
-camera driver that selects between multiple cameras.
+Can someone take a look at these warnings and errors? Looking at the log
+these seem to be pretty easy to fix (compat stuff for the most part).
 
-A completely different question is whether soc-camera should be used at
-all for this. The RFC Nate posted today said that this implementation was
-based around the S3C64XX SoC. The limitation of allowing only one camera
-at a time is a limitation of the hardware implementation, not of the SoC
-as far as I could tell.
+I don't have the time for this for several more days, so I'd appreciate it
+if someone could take a look at this for me.
 
-Given the fact that the SoC also supports codecs and other fun stuff, I
-really wonder whether there shouldn't be a proper driver for that SoC that
-supports all those features. Similar to what TI is doing for their davinci
-platform. It is my understanding that soc-camera is really meant as a
-simple framework around a sensor device, and not as a full-featured
-implementation for codecs, previews, etc. Please correct me if I'm wrong.
+Thanks,
 
-Regards,
-
-          Hans
-
->> But the mt9v022 case, I should need some research.
->
-> Ok.
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
+        Hans
 
 -- 
 Hans Verkuil - video4linux developer - sponsored by TANDBERG
