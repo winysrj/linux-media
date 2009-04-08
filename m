@@ -1,30 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n37E49DI018105
-	for <video4linux-list@redhat.com>; Tue, 7 Apr 2009 10:04:10 -0400
-Received: from mail-qy0-f104.google.com (mail-qy0-f104.google.com
-	[209.85.221.104])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n37E3X8d009534
-	for <video4linux-list@redhat.com>; Tue, 7 Apr 2009 10:03:33 -0400
-Received: by qyk2 with SMTP id 2so4667646qyk.23
-	for <video4linux-list@redhat.com>; Tue, 07 Apr 2009 07:03:33 -0700 (PDT)
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n38HJCag012673
+	for <video4linux-list@redhat.com>; Wed, 8 Apr 2009 13:19:12 -0400
+Received: from mail-ew0-f170.google.com (mail-ew0-f170.google.com
+	[209.85.219.170])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n38HIrFd022484
+	for <video4linux-list@redhat.com>; Wed, 8 Apr 2009 13:18:53 -0400
+Received: by ewy18 with SMTP id 18so245516ewy.3
+	for <video4linux-list@redhat.com>; Wed, 08 Apr 2009 10:18:53 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <49DB5046.8010608@australiaonline.net.au>
-References: <49D20B0B.1030701@australiaonline.net.au>
-	<49D227A3.5000601@linuxtv.org>
-	<49D2FE07.5060906@australiaonline.net.au>
-	<49D60DA2.5040904@australiaonline.net.au>
-	<49DA0B1E.3010704@linuxtv.org>
-	<412bdbff0904060716y44bd932cm81ca214425bdf355@mail.gmail.com>
-	<49DB5046.8010608@australiaonline.net.au>
-Date: Tue, 7 Apr 2009 10:03:33 -0400
-Message-ID: <412bdbff0904070703p59adc34atc514387b54aa5597@mail.gmail.com>
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: john knops <jknops@australiaonline.net.au>
+From: Pirlouwi <pirlouwi@gmail.com>
+Date: Wed, 8 Apr 2009 19:18:37 +0200
+Message-ID: <34d8b2fe0904081018j7b91d3d1j9e03c5724264c2df@mail.gmail.com>
+To: Linux and Kernel Video <video4linux-list@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: No scan with DViCo FusionHDTV DVB-T Dual Express
+Subject: Belkin DVD Creator
+Reply-To: pirlouwi@gmail.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,28 +28,243 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Tue, Apr 7, 2009 at 9:08 AM, john knops
-<jknops@australiaonline.net.au> wrote:
->> Devin
->>
->> attached are complete dmesg outputs when using both 32bit & 64bit xc3028
->> extracted from HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip
+Hi,
+I would like to know if there is an existing linux support for this device:
 
-Hello John,
+#lsusb
+Bus 001 Device 005: ID 050d:0210 Belkin Components F5U228 Hi-Speed USB 2.0
+DVD Creator
 
-Just to be clear, there is no "32 bit" versus "64 bit" version of the
-firmware.  It's the same firmware.
+#usbview
+Hi-Speed USB DVD Creator
+Manufacturer: BELKIN
+Speed: 480Mb/s (high)
+USB Version:  2.00
+Device Class: 00(>ifc )
+Device Subclass: 00
+Device Protocol: 00
+Maximum Default Endpoint Size: 64
+Number of Configurations: 1
+Vendor Id: 050d
+Product Id: 0210
+Revision Number:  0.01
 
-I think Christopher is on the right track.  You should try out the
-patch he sent and see if it helps.
+Config Number: 1
+    Number of Interfaces: 3
+    Attributes: 80
+    MaxPower Needed: 484mA
 
-Devin
+    Interface Number: 0
+        Name: (none)
+        Alternate Number: 0
+        Class: ff(vend.)
+        Sub Class: ff
+        Protocol: ff
+        Number of Endpoints: 3
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+            Endpoint Address: 81
+            Direction: in
+            Attribute: 3
+            Type: Int.
+            Max Packet Size: 0
+            Interval: 2ms
 
+            Endpoint Address: 82
+            Direction: in
+            Attribute: 1
+            Type: Isoc
+            Max Packet Size: 0
+            Interval: 125us
+
+            Endpoint Address: 83
+            Direction: in
+            Attribute: 2
+            Type: Bulk
+            Max Packet Size: 512
+            Interval: 0ms
+
+    Interface Number: 0
+        Name: (none)
+        Alternate Number: 1
+        Class: ff(vend.)
+        Sub Class: ff
+        Protocol: ff
+        Number of Endpoints: 3
+
+            Endpoint Address: 81
+            Direction: in
+            Attribute: 3
+            Type: Int.
+            Max Packet Size: 2
+            Interval: 2ms
+
+            Endpoint Address: 82
+            Direction: in
+            Attribute: 1
+            Type: Isoc
+            Max Packet Size: 512
+            Interval: 125us
+
+            Endpoint Address: 83
+            Direction: in
+            Attribute: 2
+            Type: Bulk
+            Max Packet Size: 512
+            Interval: 0ms
+
+    Interface Number: 0
+        Name: (none)
+        Alternate Number: 2
+        Class: ff(vend.)
+        Sub Class: ff
+        Protocol: ff
+        Number of Endpoints: 3
+
+            Endpoint Address: 81
+            Direction: in
+            Attribute: 3
+            Type: Int.
+            Max Packet Size: 2
+            Interval: 2ms
+
+            Endpoint Address: 82
+            Direction: in
+            Attribute: 1
+            Type: Isoc
+            Max Packet Size: 1020
+            Interval: 125us
+
+            Endpoint Address: 83
+            Direction: in
+            Attribute: 2
+            Type: Bulk
+            Max Packet Size: 512
+            Interval: 0ms
+
+    Interface Number: 0
+        Name: (none)
+        Alternate Number: 3
+        Class: ff(vend.)
+        Sub Class: ff
+        Protocol: ff
+        Number of Endpoints: 3
+
+            Endpoint Address: 81
+            Direction: in
+            Attribute: 3
+            Type: Int.
+            Max Packet Size: 2
+            Interval: 2ms
+
+            Endpoint Address: 82
+            Direction: in
+            Attribute: 1
+            Type: Isoc
+            Max Packet Size: 1024
+            Interval: 125us
+
+            Endpoint Address: 83
+            Direction: in
+            Attribute: 2
+            Type: Bulk
+            Max Packet Size: 512
+            Interval: 0ms
+
+    Interface Number: 0
+        Name: (none)
+        Alternate Number: 4
+        Class: ff(vend.)
+        Sub Class: ff
+        Protocol: ff
+        Number of Endpoints: 3
+
+            Endpoint Address: 81
+            Direction: in
+            Attribute: 3
+            Type: Int.
+            Max Packet Size: 2
+            Interval: 2ms
+
+            Endpoint Address: 82
+            Direction: in
+            Attribute: 1
+            Type: Isoc
+            Max Packet Size: 2048
+            Interval: 125us
+
+            Endpoint Address: 83
+            Direction: in
+            Attribute: 2
+            Type: Bulk
+            Max Packet Size: 512
+            Interval: 0ms
+
+    Interface Number: 0
+        Name: (none)
+        Alternate Number: 5
+        Class: ff(vend.)
+        Sub Class: ff
+        Protocol: ff
+        Number of Endpoints: 3
+
+            Endpoint Address: 81
+            Direction: in
+            Attribute: 3
+            Type: Int.
+            Max Packet Size: 2
+            Interval: 2ms
+
+            Endpoint Address: 82
+            Direction: in
+            Attribute: 1
+            Type: Isoc
+            Max Packet Size: 3072
+            Interval: 125us
+
+            Endpoint Address: 83
+            Direction: in
+            Attribute: 2
+            Type: Bulk
+            Max Packet Size: 512
+            Interval: 0ms
+
+    Interface Number: 1
+        Name: snd-usb-audio
+        Alternate Number: 0
+        Class: 01(audio)
+        Sub Class: 01
+        Protocol: 00
+        Number of Endpoints: 0
+
+    Interface Number: 2
+        Name: snd-usb-audio
+        Alternate Number: 0
+        Class: 01(audio)
+        Sub Class: 02
+        Protocol: 00
+        Number of Endpoints: 1
+
+            Endpoint Address: 84
+            Direction: in
+            Attribute: 1
+            Type: Isoc
+            Max Packet Size: 0
+            Interval: 1ms
+
+    Interface Number: 2
+        Name: snd-usb-audio
+        Alternate Number: 1
+        Class: 01(audio)
+        Sub Class: 02
+        Protocol: 00
+        Number of Endpoints: 1
+
+            Endpoint Address: 84
+            Direction: in
+            Attribute: 1
+            Type: Isoc
+            Max Packet Size: 9
+            Interval: 1ms
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
