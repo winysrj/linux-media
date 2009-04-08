@@ -1,61 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2-g21.free.fr ([212.27.42.2]:34672 "EHLO smtp2-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756773AbZDPTE6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Apr 2009 15:04:58 -0400
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/5] soc-camera: convert to platform device
-References: <Pine.LNX.4.64.0904151356480.4729@axis700.grange>
-	<87ljq1mz7f.fsf@free.fr> <87tz4o7al6.fsf@free.fr>
-	<Pine.LNX.4.64.0904161955140.4947@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Thu, 16 Apr 2009 21:04:47 +0200
-In-Reply-To: <Pine.LNX.4.64.0904161955140.4947@axis700.grange> (Guennadi Liakhovetski's message of "Thu\, 16 Apr 2009 20\:14\:38 +0200 \(CEST\)")
-Message-ID: <87d4bch12o.fsf@free.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from bombadil.infradead.org ([18.85.46.34]:44475 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764577AbZDHLbY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2009 07:31:24 -0400
+Date: Wed, 8 Apr 2009 08:31:02 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: CityK <cityk@rogers.com>
+Cc: Jean Delvare <khali@linux-fr.org>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
+  model
+Message-ID: <20090408083102.027ba170@pedra.chehab.org>
+In-Reply-To: <49DC13D3.4080201@rogers.com>
+References: <20090404142427.6e81f316@hyperion.delvare>
+	<Pine.LNX.4.64.0904041045380.32720@cnc.isely.net>
+	<20090405010539.187e6268@hyperion.delvare>
+	<200904050746.47451.hverkuil@xs4all.nl>
+	<20090405143748.GC10556@aniel>
+	<1238953174.3337.12.camel@morgan.walls.org>
+	<20090405183154.GE10556@aniel>
+	<1238957897.3337.50.camel@morgan.walls.org>
+	<20090405222250.64ed67ae@hyperion.delvare>
+	<1238966523.6627.63.camel@pc07.localdom.local>
+	<20090406104045.58da67c7@hyperion.delvare>
+	<1239052236.4925.20.camel@pc07.localdom.local>
+	<20090407112715.6caf2e89@hyperion.delvare>
+	<49DC13D3.4080201@rogers.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+On Tue, 07 Apr 2009 23:02:43 -0400
+CityK <cityk@rogers.com> wrote:
 
->>  - I unload and reload mt9m111 and pxa_camera
->>     => not any better
->
-> Actually, I think, in this case it should be found again, as long as you 
-> reload pxa-camera while i2c-pxa is already loaded.
-Damn, you're right. I cross-checked, and reloading pxa_camera rescans the
-sensor.
+> Regarding the KS003 (& KS007; the other "mystery" chip):
+> 
+> Upon further investigation of some info from a post from last year
+> (http://www.linuxtv.org/pipermail/linux-dvb/2008-January/022634.html),
+> it appears that these (assuming that they are the same IC across the
+> various MSI, Leadtek & KWorld cards; and I believe that to be true) are
+> the "AT8PS54/S56" chip from "Feeling Technology" ... the datasheet for
+> that part is available through a google search .... probing further (as
+> I had never heard of FT before and so I looked them up), it looks like
+> FT renamed and/or upgraded the chip to the "FM8PS54/S56" ... the near
+> identical datasheet for that second version is also available:
+> http://www.feeling-tech.com.tw/km-master/front/bin/ptdetail.phtml?Part=M1-05&Category=100018
 
->> What I'm getting at is that if soc_camera is loaded before the i2c host driver,
->> no camera will get any chance to work. Is that normal considering the new driver
->> model ?
->> I was naively thinking that there would be a "rescan" when the "control" was
->> being available for a sensor.
->
-> Yes, unfortunately, it is "normal":-( On the one hand, we shouldn't really 
-> spend _too_ much time on this intermediate version, because, as I said, it 
-> is just a preparatory step for v4l2-subdev. We just have to make sure it 
-> doesn't introduce any significant regressions and doesn't crash too often. 
-OK. So from my side everything is OK (let aside my nitpicking in mioa701.c and
-mt9m111.c).
+>From what I've investigated, several of those IR chips are micro-controllers like
+the one you pointed. I've seen a few boards whose IR chip is not masked. On
+those, I always went into some micro-controller datasheet.
 
-> OTOH, this is also how it is with v4l2-subdev. With it you first must have 
-> the i2c-adapter driver loaded. Then, when a match between a camera host 
-> and a camera client (sensor) platform device is detected, it is reported 
-> to the v4l2-subdev core, which loads the respective camera i2c driver.
-OK, why not.
+Those IR's with a micro-controller have some software inside it to decode one IR
+protocol and generate scan-code sequences that can be received via GPIO or via
+I2C, depending on the firmware content.
 
-> If you then unload the camera-host and i2c adapter drivers, and then you load
-> the camera-host driver, it then fails to get the adapter, and if you then load
-> it, nothing else happens. To reprobe you have to unload and reload the camera
-> host driver.
+The datasheet of those chips are useless, since the behaviour of the
+device is programmed inside their ROM/EEPROM [1]. So, even being the same chip,
+you could have two "K007" devices with different firmwares, listening on
+different i2c addresses and eventually generating different scan-codes for the
+same IR.
 
-So be it. I'm sure we'll be through it once more in the v4l2-subdev transition,
-so I'll let aside any objection I could mutter :)
+On the other hand, for USB devices and for bttv, saa7134 and cx88, there are
+some easy ways to monitor what i2c messages or GPIO pins are involved with IR.
+In general, the IR received messages generated by the firmware are some header,
+a scan code, a repeat key bit and a trailer. So, it is not hard to generate a
+get-key routine to get the scan code and the repeat bit from the protocol.
 
-Cheers.
+That's why the modern ir-kbd-i2c approach is to select the proper IR parameters
+after binding the module, at the bridge driver. The bridge driver is the one
+who knows what's the IR scan code of the original IR (to set it as the
+default), and the proper get-key function. With the new i2c behaviour, the
+bridge driver can also specify the proper i2c address for each device.
 
---
-Robert
+Cheers,
+Mauro
+
+[1] It doesn't seem to be practical for me to get their internal software.In
+general, such micro-controllers block EEPROM/ROM read of the software inside.
+If this is the case of this chip, the only remaining option to get the internal
+software would be to cut the plastic and try to see the state of each eeprom
+bit with the help of a good microscope. 
+Anyway, assuming that there are some way to read the ROM content, in order to
+see the device behavior, one should remove the chip from the board, get the
+ROM/EEPROM content, write a disassembler for this processor, disassemble the
+code and analyse the results. This would be a real hard work, would take a lot
+of time, and I doubt that this would help to improve the driver, since we
+already know how to read scan codes from those devices.
