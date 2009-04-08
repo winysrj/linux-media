@@ -1,52 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4632 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754975AbZDBSjk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Apr 2009 14:39:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Alexey Klimov <klimov.linux@gmail.com>
-Subject: Re: [RFC] BKL in open functions in drivers
-Date: Thu, 2 Apr 2009 20:39:12 +0200
-Cc: linux-media@vger.kernel.org,
-	Alessio Igor Bogani <abogani@texware.it>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <1238619656.3986.88.camel@tux.localhost> <200904020929.22359.hverkuil@xs4all.nl> <208cbae30904021125y4597a04crc3b201b6c88ae79c@mail.gmail.com>
-In-Reply-To: <208cbae30904021125y4597a04crc3b201b6c88ae79c@mail.gmail.com>
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:42374 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754300AbZDHLU7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2009 07:20:59 -0400
+Received: by fxm2 with SMTP id 2so73838fxm.37
+        for <linux-media@vger.kernel.org>; Wed, 08 Apr 2009 04:20:57 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200904022039.12719.hverkuil@xs4all.nl>
+In-Reply-To: <faf98b150904060452m35b4ef58m94cfb02ca8bd1334@mail.gmail.com>
+References: <faf98b150904060452m35b4ef58m94cfb02ca8bd1334@mail.gmail.com>
+Date: Wed, 8 Apr 2009 13:20:57 +0200
+Message-ID: <faf98b150904080420j146c022ma19603af74e9e566@mail.gmail.com>
+Subject: [PATCH] Enabling of the Winfast TV2000 XP Global TV capture card
+	remote control
+From: Pieter Van Schaik <vansterpc@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 02 April 2009 20:25:10 Alexey Klimov wrote:
-> On Thu, Apr 2, 2009 at 11:29 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
-> [...]
-> 
-> >> So, questions are:
-> >>
-> >> 1) What for is lock/unlock_kernel() used in open?
-> >
-> > It's pointless. Just remove it.
-> 
-> Actually, i can see lock/unlock_kernel() in open in other V4L drivers too.
-> What for is it used in other drivers?
+From: Pieter Van Schaik <vansterpc@gmail.com>
+Date: Mon, Apr 6, 2009 at 1:52 PM
+Subject: [PATCH] Enabling of the Winfast TV2000 XP Global TV capture
+card  remote control
+To: linux-media@vger.kernel.org
 
-If I remember correctly these lock/unlock_kernel() calls were originally
-handled in the part of the kernel that calls us in turn. An effort was made
-not too long ago to move it this out of the core kernel and into each driver,
-allowing each driver to replace these calls by proper mutexes, or remove it
-altogether if it isn't needed. I strongly suspect that in 80-90% of the cases
-the v4l driver does not actually need to use it and in the remaining 10-20% 
-it can be replaced by a regular mutex.
 
-Regards,
+From: Pieter C van Schaik <vansterpc@gmail.com>
 
-	Hans
+The Winfast TV2000 XP Global video capture card IR remote keys were
+not initialized and handled in cx88-input.c; added two corresponding
+case statements, where this card's remote works exactly the same as
+the DTV1000's.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Signed-off-by: Pieter C van Schaik <vansterpc@gmail.com>
+---
+--- linux-2.6.29/drivers/media/video/cx88/cx88-input.c.orig
+2009-04-01 12:38:34.000000000 +0200
++++ linux-2.6.29/drivers/media/video/cx88/cx88-input.c  2009-04-01
+12:39:07.000000000 +0200
+@@ -92,6 +92,7 @@ static void cx88_ir_handle_key(struct cx
+               gpio=(gpio & 0x7fd) + (auxgpio & 0xef);
+               break;
+       case CX88_BOARD_WINFAST_DTV1000:
++       case CX88_BOARD_WINFAST_TV2000_XP_GLOBAL:
+               gpio = (gpio & 0x6ff) | ((cx_read(MO_GP1_IO) << 8) & 0x900);
+               auxgpio = gpio;
+               break;
+@@ -239,6 +240,7 @@ int cx88_ir_init(struct cx88_core *core,
+               break;
+       case CX88_BOARD_WINFAST2000XP_EXPERT:
+       case CX88_BOARD_WINFAST_DTV1000:
++       case CX88_BOARD_WINFAST_TV2000_XP_GLOBAL:
+               ir_codes = ir_codes_winfast;
+               ir->gpio_addr = MO_GP0_IO;
+               ir->mask_keycode = 0x8f8;
