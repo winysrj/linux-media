@@ -1,135 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:49033 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:60368 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752081AbZDPKaL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Apr 2009 06:30:11 -0400
-Date: Thu, 16 Apr 2009 12:30:13 +0200 (CEST)
+	id S1758201AbZDHJhR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Apr 2009 05:37:17 -0400
+Date: Wed, 8 Apr 2009 11:37:21 +0200 (CEST)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: Re: [PATCH 5/5] soc-camera: Convert to a platform driver
-In-Reply-To: <5e9665e10904160300k7e581910r73710d8ffe5230a8@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0904161214200.4947@axis700.grange>
-References: <Pine.LNX.4.64.0904151356480.4729@axis700.grange>
- <Pine.LNX.4.64.0904151403500.4729@axis700.grange>
- <5e9665e10904151919p50c695e2s35140402d2c7345c@mail.gmail.com>
- <Pine.LNX.4.64.0904161032050.4947@axis700.grange>
- <5e9665e10904160300k7e581910r73710d8ffe5230a8@mail.gmail.com>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH/RFC] soc-camera: Convert to a platform driver
+In-Reply-To: <87iqlgkykd.fsf@free.fr>
+Message-ID: <Pine.LNX.4.64.0904080950560.4722@axis700.grange>
+References: <Pine.LNX.4.64.0904061207530.4285@axis700.grange> <87iqlgkykd.fsf@free.fr>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 16 Apr 2009, Dongsoo, Nathaniel Kim wrote:
+Hi Robert,
 
-> Hello Guennadi,
-> 
-> On Thu, Apr 16, 2009 at 5:58 PM, Guennadi Liakhovetski
-> <g.liakhovetski@gmx.de> wrote:
-> > On Thu, 16 Apr 2009, Dongsoo, Nathaniel Kim wrote:
-> >
-> >> Hello Guennadi,
-> >>
-> >>
-> >> Reviewing your patch, I've got curious about a thing.
-> >> I think your soc camera subsystem is covering multiple camera
-> >> devices(sensors) in one target board, but if that is true I'm afraid
-> >> I'm confused how to handle them properly.
-> >> Because according to your patch, video_dev_create() takes camera
-> >> device as parameter and it seems to be creating device node for each
-> >> camera devices.
-> >
-> > This patch is a preparatory step for the v4l2-(sub)dev conversion. With it
-> > yes (I think) a video device will be created for every registered on the
-> > platform level camera, but only the one(s) that probed successfully will
-> > actually work, others will return -ENODEV on open().
-> >
-> >> It means, if I have one camera host and several camera devices, there
-> >> should be several device nodes for camera devices but cannot be used
-> >> at the same time. Because typical camera host(camera interface) can
-> >> handle only one camera device at a time. But multiple device nodes
-> >> mean "we can open and handle them at the same time".
-> >>
-> >> How about registering camera host device as v4l2 device and make
-> >> camera device a input device which could be handled using
-> >> VIDIOC_S_INPUT/G_INPUT api?
-> >
-> > There are also cases, when you have several cameras simultaneously (think
-> > for example about stereo vision), even though we don't have any such cases
-> > just yet.
-> 
-> I think, there are some specific camera interfaces for stereo camera.
-> Like stereo camera controller chip from Epson.
-> 
-> But in case of camera interface which can handle only one single
-> camera at a time, I'm strongly believing that we should use only one
-> device node for camera.
-> I mean device node should be the camera interface not the sensor
-> device. If you are using stereo camera controller chip, you can make
-> that with a couple of device nodes, like /dev/video0 and /dev/video1.
+On Tue, 7 Apr 2009, Robert Jarzmik wrote:
 
-There are also some generic CMOS camera sensors, that support stereo mode, 
-e.g., mt9v022. In this case you would do the actual stereo processing in 
-host software, I think. The sensors just provide some synchronisation 
-possibilities. And you would need both sensors in user-space over video0 
-and video1. Also, i.MX31 datasheet says the (single) camera interface can 
-handle up to two cameras (simultaneously), however, I haven't found any 
-details how this could be supported in software, but I didn't look hard 
-either, because I didn't need it until now.
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+> 
+> > This is more or less the final version of the first step of the 
+> > v4l2-subdev conversion, hence, all affected driver authors / platform 
+> > maintainers are encouraged to review and test. I have eliminated 
+> 
+> OK, here goes a preliminary review for the bits I maintain. I'll test fully this
+> weekend.
 
-> >> Actually, I'm working on S3C64xx camera interface driver with soc
-> >> camera subsystem,
-> >
-> > Looking forward to it!:-)
-> >
-> >> and I'm facing that issue right now because I've got
-> >> dual camera on my target board.
-> >
-> > Good, I think, there also has been a similar design based on a pxa270 SoC.
-> > How are cameras switched in your case? You probably have some additional
-> > hardware logic to switch between them, right? So, you need some code to
-> > control that. I think, you should even be able to do this automatically in
-> > your platform code using power hooks from the struct soc_camera_link. You
-> > could fail to power on a camera if another camera is currently active. In
-> > fact, I have to add a return code test to the call to icl->power(icl, 1)
-> > in soc_camera_open(), I'll do this for the final v4l2-dev version. Would
-> > this work for you or do you have another requirements? In which case, can
-> > you describe your use-case in more detail - should both cameras be open by
-> > applications simultaneously (looks like not), do you need a more explicit
-> > switching control, than just "first open switches," which shouldn't be the
-> > case, since you can even create a separate task, that does nothing but
-> > just keeps the required camera device open.
-> >
-> 
-> Yes exactly right. My H/W is designed to share data pins and mclk,
-> pclk pins between both of cameras.
-> And they have to work mutually exclusive.
-> For now I'm working on s3c64xx with soc camera subsystem, so no way to
-> make dual camera control with VIDIOC_S_INPUT, VIDIOC_G_INPUT. But the
-> prior version of my driver was made to control dual camera with those
-> S_INPUT/G_INPUT api.
-> Actually with single device node and switching camera with S_INPUT and
-> G_INPUT, there is no way to mis-control dual camera.
-> Because both of cameras work mutually exclusive.
-> 
-> To make it easier, you can take a look at my presentation file which I
-> gave a talk at CELF ELC2009 in San Francisco.
-> Here it is the presentation file
-> 
-> http://tree.celinuxforum.org/CelfPubWiki/ELC2009Presentations?action=AttachFile&do=get&target=Framework_for_digital_camera_in_linux-in_detail.ppt
-> 
-> I think it is more decent way to control dual camera. No need to check
-> whether the sensor is available or not using this way. Just use
-> G_INPUT to check current active sensor and do S_INPUT to switch into
-> another one.
+Great, thanks.
 
-I understand your idea, but I don't see any significant advantages with it 
-or any problems with the current implementation. Notice, that this "one 
-video device node per one camera client" concept has been there since the 
-first version of soc-camera, it is not something new, that is coming now 
-with the v4l2-subdev conversion. So, unless you provide some strong 
-reasons I don't see a need to change this concept so far.
+> As a side note, I tried to apply your patch on top of linux-next-20090406. I was
+> a bit tedious. Would you tell me which tree you're based against, or even better
+> some git url ?
+
+Look under
+
+http://gross-embedded.homelinux.org/~lyakh/v4l-20090408/
+
+that's based on linux-next of 30.03.2009 (commit ID in 0000-base on 
+linux-next history branch).
+
+> <snip>
+> > diff --git a/arch/arm/mach-pxa/mioa701.c b/arch/arm/mach-pxa/mioa701.c
+> > index 97c93a7..5c8aabf 100644
+> > --- a/arch/arm/mach-pxa/mioa701.c
+> > +++ b/arch/arm/mach-pxa/mioa701.c
+> > @@ -724,19 +724,19 @@ struct pxacamera_platform_data mioa701_pxacamera_platform_data = {
+> >  	.mclk_10khz = 5000,
+> >  };
+> >  
+> > -static struct soc_camera_link iclink = {
+> > -	.bus_id	= 0, /* Must match id in pxa27x_device_camera in device.c */
+> > -};
+> > -
+> >  /* Board I2C devices. */
+> I would rather have :
+> /*
+>  * Board I2C devices
+>  */
+> The remaining /* blurpblurg */ forms are a leftover in device comments.
+> 
+> <snip>
+> > @@ -754,20 +754,21 @@ static struct platform_device var = {			\
+> >  		.platform_data = pdata,			\
+> >  		.parent	= tparent,			\
+> >  	},						\
+> > -};
+> > +}
+> No cookie for you for removing that semi-colon.
+
+I believe this is correct. It is good to have
+
+#define macro(x) do_something(x)
+
+and then use
+
+	macro(x1);
+	macro(x2);
+
+rather than
+
+#define macro(x) do_something(x);
+
+	macro(x1)
+	macro(x2)
+
+And you do have semicolons everywhere where you use MIO_PARENT_DEV and 
+MIO_SIMPLE_DEV, so, probably, that change doesn't belong to this patch, 
+but it is correct.
+
+> >  #define MIO_SIMPLE_DEV(var, strname, pdata)	\
+> >  	MIO_PARENT_DEV(var, strname, NULL, pdata)
+> >  
+> > -MIO_SIMPLE_DEV(mioa701_gpio_keys, "gpio-keys",	    &mioa701_gpio_keys_data)
+> > +MIO_SIMPLE_DEV(mioa701_gpio_keys, "gpio-keys",	    &mioa701_gpio_keys_data);
+> >  MIO_PARENT_DEV(mioa701_backlight, "pwm-backlight",  &pxa27x_device_pwm0.dev,
+> >  		&mioa701_backlight_data);
+> > -MIO_SIMPLE_DEV(mioa701_led,	  "leds-gpio",	    &gpio_led_info)
+> > -MIO_SIMPLE_DEV(pxa2xx_pcm,	  "pxa2xx-pcm",	    NULL)
+> > -MIO_SIMPLE_DEV(pxa2xx_ac97,	  "pxa2xx-ac97",    NULL)
+> > -MIO_PARENT_DEV(mio_wm9713_codec,  "wm9713-codec",   &pxa2xx_ac97.dev, NULL)
+> > -MIO_SIMPLE_DEV(mioa701_sound,	  "mioa701-wm9713", NULL)
+> > -MIO_SIMPLE_DEV(mioa701_board,	  "mioa701-board",  NULL)
+> > +MIO_SIMPLE_DEV(mioa701_led,	  "leds-gpio",	    &gpio_led_info);
+> > +MIO_SIMPLE_DEV(pxa2xx_pcm,	  "pxa2xx-pcm",	    NULL);
+> > +MIO_SIMPLE_DEV(pxa2xx_ac97,	  "pxa2xx-ac97",    NULL);
+> > +MIO_PARENT_DEV(mio_wm9713_codec,  "wm9713-codec",   &pxa2xx_ac97.dev, NULL);
+> > +MIO_SIMPLE_DEV(mioa701_sound,	  "mioa701-wm9713", NULL);
+> > +MIO_SIMPLE_DEV(mioa701_board,	  "mioa701-board",  NULL);
+> >  MIO_SIMPLE_DEV(gpio_vbus,	  "gpio-vbus",      &gpio_vbus_data);
+> Please, don't change the indentation. You will face :
+>  (a) conficts with patches in this merge window
+>  (b) that's not the object of your patch anyway
+>  (c) I like that indentation in that very specific case
+> 
+> > +MIO_SIMPLE_DEV(mioa701_camera,	  "soc-camera-pdrv",&&iclink[0]);
+>                                                             ^
+>                                                   isn't &iclink enough ?
+
+Oops, yeah, sure.
+
+> >  static struct platform_device *devices[] __initdata = {
+> >  	&mioa701_gpio_keys,
+> > @@ -781,6 +782,7 @@ static struct platform_device *devices[] __initdata = {
+> >  	&strataflash,
+> >  	&gpio_vbus,
+> >  	&mioa701_board,
+> > +	&mioa701_camera,
+> Please invert mioa701_board and mioa701_camera. The board should always be last
+> for suspend/resume purpose (yes, that would have deserved a comment, I hear you
+> :))
+
+ok
+
+> >  };
+> >  
+> >  static void mioa701_machine_exit(void);
+> > @@ -825,7 +827,6 @@ static void __init mioa701_machine_init(void)
+> >  
+> >  	pxa_set_i2c_info(&i2c_pdata);
+> >  	pxa_set_camera_info(&mioa701_pxacamera_platform_data);
+> > -	i2c_register_board_info(0, ARRAY_AND_SIZE(mioa701_i2c_devices));
+> I'm wondering which version of mioa701.c had that line ... strange ...
+
+commit 8e7ccddf0fd22617a3edc28ab2ce2fac0fb94823
+Author: Robert Jarzmik <robert.jarzmik@free.fr>
+Date:   Sat Nov 15 16:09:54 2008 +0100
+
+    [ARM] pxa/MioA701: add camera support for Mio A701 board.
+
+> > diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+> > index cdd1ddb..425aec2 100644
+> > --- a/drivers/media/video/mt9m111.c
+> > +++ b/drivers/media/video/mt9m111.c
+> <snip>
+> > @@ -938,40 +955,42 @@ static int mt9m111_video_probe(struct soc_camera_device *icd)
+> >  
+> >  	dev_info(&icd->dev, "Detected a MT9M11x chip ID %x\n", data);
+> >  
+> > -	ret = soc_camera_video_start(icd);
+> > -	if (ret)
+> > -		goto eisis;
+> > -
+> >  	mt9m111->autoexposure = 1;
+> >  	mt9m111->autowhitebalance = 1;
+> >  
+> >  	mt9m111->swap_rgb_even_odd = 1;
+> >  	mt9m111->swap_rgb_red_blue = 1;
+> >  
+> > -	return 0;
+> > -eisis:
+> >  ei2c:
+> > +	soc_camera_video_stop(icd);
+> > +
+> >  	return ret;
+> >  }
+> >  
+> >  static void mt9m111_video_remove(struct soc_camera_device *icd)
+> >  {
+> > -	struct mt9m111 *mt9m111 = container_of(icd, struct mt9m111, icd);
+> > +	struct i2c_client *client = to_i2c_client(icd->control);
+> >  
+> > -	dev_dbg(&icd->dev, "Video %x removed: %p, %p\n", mt9m111->client->addr,
+> > -		mt9m111->icd.dev.parent, mt9m111->icd.vdev);
+> > -	soc_camera_video_stop(&mt9m111->icd);
+> > +	dev_dbg(&icd->dev, "Video %x removed: %p, %p\n", client->addr,
+> > +		icd->dev.parent, icd->vdev);
+> > +	icd->ops = NULL;
+> I don't understand the icd->ops = NULL here. It's not symmetrical with
+> mt9m111_video_probe. Shouldn't that be in mt9m111_remove ?
+
+*_video_remove is called from *_remove now, so, doesn't matter really.
+
+> More generally, I saw all the heavy work on mt9m111 driver conversion. I
+> wondered if there shouldn't be a wrapper function to convert an icd structure
+> into an mt9m111 structre. If I had done that straight away, you wouldn't have
+> had that much work ...
+
+Well, it was about the same for all device drivers, so... But at least 
+your reg_{read,write,set,clear} macros did help in a later patch:-)
 
 Thanks
 Guennadi
