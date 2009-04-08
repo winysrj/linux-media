@@ -1,105 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58066 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755834AbZDFLvq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 07:51:46 -0400
-From: "Shah, Hardik" <hardik.shah@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
-Date: Mon, 6 Apr 2009 17:21:10 +0530
-Subject: RE: [PATCH 2/3] New V4L2 CIDs for OMAP class of Devices.
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB102FD4@dbde02.ent.ti.com>
-In-Reply-To: <200903301358.40555.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mrbusi1.netcologne.de ([195.14.230.6]:37356 "EHLO
+	mrbusi1.netcologne.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757682AbZDHPJI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2009 11:09:08 -0400
+Received: from merkur.jueling.ath.cx (xdsl-87-78-142-137.netcologne.de [87.78.142.137])
+	by mrbusi1.netcologne.de (Postfix) with ESMTPS id EC6FE1A0033
+	for <linux-media@vger.kernel.org>; Wed,  8 Apr 2009 17:03:18 +0200 (CEST)
+From: Marcel Jueling <Marcel.Jueling@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Add Conceptronic USB2.0 DVB-T CTVDIGRCU V3.0
+Date: Wed, 8 Apr 2009 17:03:07 +0200
 MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200904081703.07540.Marcel.Jueling@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-Please find my comments inline.
+# HG changeset patch
+# User Marcel Jueling <Marcel@Jueling.de>
+# Date 1239055416 -7200
+# Node ID 7975c4afd177f5171be54c35b51a7c674b25e666
+# Parent 8e6c672abd5690eb89263673a4d312fcc76d26ed
+New device: Conceptronic USB2.0 DVB-T CTVDIGRCU V3.0
 
-Regards,
-Hardik Shah
+From: Marcel Jueling <Marcel@Jueling.de>
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Monday, March 30, 2009 5:29 PM
-> To: Shah, Hardik
-> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Jadav, Brijesh R;
-> Hiremath, Vaibhav
-> Subject: Re: [PATCH 2/3] New V4L2 CIDs for OMAP class of Devices.
-> 
-> On Friday 20 March 2009 06:19:57 Hardik Shah wrote:
-> > Added V4L2_CID_BG_COLOR for background color setting.
-> > Added V4L2_CID_ROTATION for rotation setting.
-> > Above two ioclts are indepth discussed. Posting
-> > again with the driver usage.
-> >
-> > ---
-> >  linux/drivers/media/video/v4l2-common.c |    7 +++++++
-> >  linux/include/linux/videodev2.h         |    6 +++++-
-> >  2 files changed, 12 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/linux/drivers/media/video/v4l2-common.c
-> b/linux/drivers/media/video/v4l2-common.c
-> > index 3c42316..fa408f0 100644
-> > --- a/linux/drivers/media/video/v4l2-common.c
-> > +++ b/linux/drivers/media/video/v4l2-common.c
-> > @@ -422,6 +422,8 @@ const char *v4l2_ctrl_get_name(u32 id)
-> >  	case V4L2_CID_CHROMA_AGC:		return "Chroma AGC";
-> >  	case V4L2_CID_COLOR_KILLER:		return "Color Killer";
-> >  	case V4L2_CID_COLORFX:			return "Color Effects";
-> > +	case V4L2_CID_ROTATION:                 return "Rotation";
-> 
-> I'm having second thoughts about this name. I think V4L2_CID_ROTATE is better,
-> since it is an action ('you rotate an image') rather than a status ('what is
-> the rotation of an image').
-> 
-> What do you think?
-[Shah, Hardik] Yes, it should be V4L2_CID_ROTATE as V4L2_CID_HFLIP.
-> 
-> > +	case V4L2_CID_BG_COLOR:                 return "Background color";
-> >
-> >  	/* MPEG controls */
-> >  	case V4L2_CID_MPEG_CLASS: 		return "MPEG Encoder Controls";
-> > @@ -547,6 +549,10 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl,
-> s32 min, s32 max, s32 ste
-> >  		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
-> >  		min = max = step = def = 0;
-> >  		break;
-> > +	case V4L2_CID_BG_COLOR:
-> > +		 qctrl->type = V4L2_CTRL_TYPE_INTEGER;
-> > +		 step = 1;
-> > +		 break;
-> 
-> Set the min to 0 and max to 0xffffff.
-[Shah, Hardik] Added
-> 
-> >  	default:
-> >  		qctrl->type = V4L2_CTRL_TYPE_INTEGER;
-> >  		break;
-> > @@ -571,6 +577,7 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl,
-> s32 min, s32 max, s32 ste
-> >  	case V4L2_CID_BLUE_BALANCE:
-> >  	case V4L2_CID_GAMMA:
-> >  	case V4L2_CID_SHARPNESS:
-> > +	case V4L2_CID_BG_COLOR:
-> 
-> This definitely isn't a slider control.
-[Shah, Hardik] Removed
-> 
-> > --
-> > 1.5.6
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Signed-off-by: Marcel Jueling <Marcel@Jueling.de>
 
+--- a/linux/drivers/media/dvb/dvb-usb/af9015.c	Mon Apr 06 18:01:26 2009 -0300
++++ b/linux/drivers/media/dvb/dvb-usb/af9015.c	Tue Apr 07 00:03:36 2009 +0200
+@@ -1254,16 +1254,17 @@
+ 	{USB_DEVICE(USB_VID_TERRATEC,  USB_PID_TERRATEC_CINERGY_T_USB_XE_REV2)},
+ 	{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_KWORLD_PC160_2T)},
+ 	{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_VOLAR_X)},
+-/* 10 */{USB_DEVICE(USB_VID_XTENSIONS, USB_PID_XTENSIONS_XD_380)},
++/* 10 */{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_CONCEPTRONIC_CTVDIGRCU)},
++	{USB_DEVICE(USB_VID_XTENSIONS, USB_PID_XTENSIONS_XD_380)},
+ 	{USB_DEVICE(USB_VID_MSI_2,     USB_PID_MSI_DIGIVOX_DUO)},
+ 	{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_VOLAR_X_2)},
+ 	{USB_DEVICE(USB_VID_TELESTAR,  USB_PID_TELESTAR_STARSTICK_2)},
+-	{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A309)},
+-/* 15 */{USB_DEVICE(USB_VID_MSI_2,     USB_PID_MSI_DIGI_VOX_MINI_III)},
++/* 15 */{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A309)},
++	{USB_DEVICE(USB_VID_MSI_2,     USB_PID_MSI_DIGI_VOX_MINI_III)},
+ 	{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_KWORLD_395U)},
+ 	{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_KWORLD_395U_2)},
+ 	{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_KWORLD_395U_3)},
+-	{USB_DEVICE(USB_VID_AFATECH,   USB_PID_TREKSTOR_DVBT)},
++/* 20 */{USB_DEVICE(USB_VID_AFATECH,   USB_PID_TREKSTOR_DVBT)},
+ 	{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A850)},
+ 	{0},
+ };
+@@ -1324,7 +1325,7 @@
+ 
+ 		.i2c_algo = &af9015_i2c_algo,
+ 
+-		.num_device_descs = 9,
++		.num_device_descs = 10,
+ 		.devices = {
+ 			{
+ 				.name = "Afatech AF9015 DVB-T USB2.0 stick",
+@@ -1372,6 +1373,11 @@
+ 			{
+ 				.name = "AVerMedia AVerTV DVB-T Volar X",
+ 				.cold_ids = {&af9015_usb_table[9], NULL},
++				.warm_ids = {NULL},
++			},
++			{
++				.name = "Conceptronic DVB-T CTVDIGRCU V3.0",
++				.cold_ids = {&af9015_usb_table[10], NULL},
+ 				.warm_ids = {NULL},
+ 			},
+ 		}
+@@ -1433,51 +1439,51 @@
+ 		.devices = {
+ 			{
+ 				.name = "Xtensions XD-380",
+-				.cold_ids = {&af9015_usb_table[10], NULL},
++				.cold_ids = {&af9015_usb_table[11], NULL},
+ 				.warm_ids = {NULL},
+ 			},
+ 			{
+ 				.name = "MSI DIGIVOX Duo",
+-				.cold_ids = {&af9015_usb_table[11], NULL},
++				.cold_ids = {&af9015_usb_table[12], NULL},
+ 				.warm_ids = {NULL},
+ 			},
+ 			{
+ 				.name = "Fujitsu-Siemens Slim Mobile USB DVB-T",
+-				.cold_ids = {&af9015_usb_table[12], NULL},
++				.cold_ids = {&af9015_usb_table[13], NULL},
+ 				.warm_ids = {NULL},
+ 			},
+ 			{
+ 				.name = "Telestar Starstick 2",
+-				.cold_ids = {&af9015_usb_table[13], NULL},
++				.cold_ids = {&af9015_usb_table[14], NULL},
+ 				.warm_ids = {NULL},
+ 			},
+ 			{
+ 				.name = "AVerMedia A309",
+-				.cold_ids = {&af9015_usb_table[14], NULL},
++				.cold_ids = {&af9015_usb_table[15], NULL},
+ 				.warm_ids = {NULL},
+ 			},
+ 			{
+ 				.name = "MSI Digi VOX mini III",
+-				.cold_ids = {&af9015_usb_table[15], NULL},
++				.cold_ids = {&af9015_usb_table[16], NULL},
+ 				.warm_ids = {NULL},
+ 			},
+ 			{
+ 				.name = "KWorld USB DVB-T TV Stick II " \
+ 					"(VS-DVB-T 395U)",
+-				.cold_ids = {&af9015_usb_table[16],
+-					     &af9015_usb_table[17],
+-					     &af9015_usb_table[18], NULL},
++				.cold_ids = {&af9015_usb_table[17],
++					     &af9015_usb_table[18],
++					     &af9015_usb_table[19], NULL},
+ 				.warm_ids = {NULL},
+ 			},
+ 			{
+ 				.name = "TrekStor DVB-T USB Stick",
+-				.cold_ids = {&af9015_usb_table[19], NULL},
++				.cold_ids = {&af9015_usb_table[20], NULL},
+ 				.warm_ids = {NULL},
+ 			},
+ 			{
+ 				.name = "AverMedia AVerTV Volar Black HD " \
+ 					"(A850)",
+-				.cold_ids = {&af9015_usb_table[20], NULL},
++				.cold_ids = {&af9015_usb_table[21], NULL},
+ 				.warm_ids = {NULL},
+ 			},
+ 		}
+--- a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Mon Apr 06 18:01:26 
+2009 -0300
++++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Tue Apr 07 00:03:36 2009 
++0200
+@@ -80,6 +80,7 @@
+ #define USB_PID_COMPRO_DVBU2000_UNK_WARM		0x010d
+ #define USB_PID_COMPRO_VIDEOMATE_U500			0x1e78
+ #define USB_PID_COMPRO_VIDEOMATE_U500_PC		0x1e80
++#define USB_PID_CONCEPTRONIC_CTVDIGRCU			0xe397
+ #define USB_PID_CONEXANT_D680_DMB			0x86d6
+ #define USB_PID_DIBCOM_HOOK_DEFAULT			0x0064
+ #define USB_PID_DIBCOM_HOOK_DEFAULT_REENUM		0x0065
