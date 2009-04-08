@@ -1,48 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:43451 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753570AbZDPRte (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Apr 2009 13:49:34 -0400
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/5] soc-camera: convert to platform device
-References: <Pine.LNX.4.64.0904151356480.4729@axis700.grange>
-	<87ljq1mz7f.fsf@free.fr>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Thu, 16 Apr 2009 19:49:25 +0200
-In-Reply-To: <87ljq1mz7f.fsf@free.fr> (Robert Jarzmik's message of "Wed\, 15 Apr 2009 22\:36\:20 +0200")
-Message-ID: <87tz4o7al6.fsf@free.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from devils.ext.ti.com ([198.47.26.153]:46740 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932767AbZDHLlU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2009 07:41:20 -0400
+Received: from dflp53.itg.ti.com ([128.247.5.6])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n38BfAJO003936
+	for <linux-media@vger.kernel.org>; Wed, 8 Apr 2009 06:41:15 -0500
+From: Chaithrika U S <chaithrika@ti.com>
+To: linux-media@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	Manjunath Hadli <mrh@ti.com>, Brijesh Jadav <brijesh.j@ti.com>,
+	Chaithrika U S <chaithrika@ti.com>
+Subject: [PATCH v2 0/4] ARM: DaVinci: DM646x Video: DM646x display driver
+Date: Wed,  8 Apr 2009 07:17:56 -0400
+Message-Id: <1239189476-19863-1-git-send-email-chaithrika@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Robert Jarzmik <robert.jarzmik@free.fr> writes:
+Display driver for TI DM646x EVM
 
-> I need to make some additionnal tests with I2C loading/unloading, but otherwise
-> it works perfectly for (soc_camera / pxa_camera /mt9m111 combination).
+Signed-off-by: Manjunath Hadli <mrh@ti.com>
+Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+Signed-off-by: Chaithrika U S <chaithrika@ti.com>
 
-Guennadi,
+These patches add the display driver support for TI DM646x EVM.
+This patch set has been tested for basic display functionality for
+Composite and Component outputs.
 
-I made some testing, and there is something I don't understand in the new device
-model.
-This is the testcase I'm considering :
- - I unload i2c-pxa, pxa-camera, mt9m111, soc-camera modules
- - I load pxa-camera, mt9m111, soc-camera modules
- - I then load i2c-pxa
-    => the mt9m111 is not detected
- - I unload and reload mt9m111 and pxa_camera
-    => not any better
- - I unload soc_camera, mt9m111, pxa_camera and reload
-    => this time the video device is detected
+In this version of the patches, the review comments got for the earlier version
+have been incorporated. The standard information(timings) has been moved to 
+the display driver. The display driver has been modified accordingly.
+Also simplified the code by removing the redundant vpif_stdinfo data structure. 
 
-What I'm getting at is that if soc_camera is loaded before the i2c host driver,
-no camera will get any chance to work. Is that normal considering the new driver
-model ?
-I was naively thinking that there would be a "rescan" when the "control" was
-being available for a sensor.
+Patch 1: Display device platform and board setup
+Patch 2: VPIF driver
+Patch 3: DM646x display driver
+Patch 4: Makefile and config files modifications for Display
 
-Cheers.
+Some of the features like the HBI/VBI support are not yet implemented. 
+Also there are some known issues in the code implementation like 
+fine tuning to be done to TRY_FMT ioctl.The USERPTR usage has not been 
+tested extensively.
 
---
-Robert
+-Chaithrika
+
+
