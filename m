@@ -1,140 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-07.arcor-online.net ([151.189.21.47]:46695 "EHLO
-	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751720AbZDWBzE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Apr 2009 21:55:04 -0400
-Subject: Re: [PATCH] FM1216ME_MK3 some changes
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Andy Walls <awalls@radix.net>
-Cc: Dmitri Belimov <d.belimov@gmail.com>, video4linux-list@redhat.com,
-	linux-media@vger.kernel.org
-In-Reply-To: <1240452534.3232.70.camel@palomino.walls.org>
-References: <20090422174848.1be88f61@glory.loctelecom.ru>
-	 <1240452534.3232.70.camel@palomino.walls.org>
-Content-Type: text/plain
-Date: Thu, 23 Apr 2009 03:52:49 +0200
-Message-Id: <1240451569.10367.18.camel@pc07.localdom.local>
+Received: from main.gmane.org ([80.91.229.2]:54781 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753688AbZDHW4M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Apr 2009 18:56:12 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1Lrggl-0000ET-4X
+	for linux-media@vger.kernel.org; Wed, 08 Apr 2009 22:56:11 +0000
+Received: from 63.84.broadband6.iol.cz ([88.101.84.63])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 08 Apr 2009 22:56:11 +0000
+Received: from sustmidown by 63.84.broadband6.iol.cz with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 08 Apr 2009 22:56:11 +0000
+To: linux-media@vger.kernel.org
+From: Miroslav =?utf-8?b?xaB1c3Rlaw==?= <sustmidown@centrum.cz>
+Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS,      2.6.16-2.6.21: WARNINGS
+Date: Wed, 8 Apr 2009 22:56:00 +0000 (UTC)
+Message-ID: <loom.20090408T221914-837@post.gmane.org>
+References: <61526.207.214.87.58.1239228654.squirrel@webmail.xs4all.nl>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hans Verkuil <hverkuil <at> xs4all.nl> writes:
+> 
+> Can someone take a look at these warnings and errors? Looking at the log
+> these seem to be pretty easy to fix (compat stuff for the most part).
+> 
+> I don't have the time for this for several more days, so I'd appreciate it
+> if someone could take a look at this for me.
+> 
+> Thanks,
+> 
+>         Hans
+> 
 
-Hi Andy and Dmitry,
+Yes, it looks like my version of kernel luckily built, but other (older)
+versions have problems.
 
-Am Mittwoch, den 22.04.2009, 22:08 -0400 schrieb Andy Walls:
-> Dmitri,
-> 
-> 
-> On Wed, 2009-04-22 at 17:48 +1000, Dmitri Belimov wrote:
-> > Hi All
-> > 
-> > 1. Change middle band. In the end of the middle band the sensitivity of receiver not good.
-> > If we switch to higher band, sensitivity more better. Hardware trick.
+Here: http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/4400
+Marton Balint sent patch with <linux/div64.h> include and changed 'div_s64_rem'
+to 'div_s64'. But kernels older than 2.26.x have neither 'div_s64' nor
+'div_s64_rem'.
 
-first of all, Dmitry, you need to send all your patches, also the prior
-ones, to linux-media@vger.kernel.org. Only there "patchwork" will parse
-for them and you might eventually find them here.
-http://patchwork.kernel.org/project/linux-media/list
-http://patchwork.kernel.org/project/linux-media/list/?state=*
+Better apply this patch instead that from Marton.
+It uses 'do_div' which is much longer supported.
 
-You seem to have missed that completely and thanks to Andy to start to
-comment on this one, even only on video4linux previously.
+With 'do_div' results should be same but for completeness here are some
+appointments:
 
-> This concerns me slightly as it does not match the datasheet (hence the
-> design objectives) of the FM1236ME_MK3.
-> 
-> How are you measuring sensitivity?  Do you know if it really is the
-> middle-band preselector filter (and PLL and Mixer) or is it a problem
-> with the input signal?  How do you know it is not manufacturing
-> variations in the preselector filters with the particular tuner assembly
-> you are testing?
+ * 'do_div' does computation with unsigned numbers.
+ * So we need to pass dividend as unsigned (its ABS) and then alter the sign of
+the result (if dividend was negative).
+ * But function 'int_goertzel' returns u32 so if we pass dividend as u64 (cast
+from s64), then no sign change is needed before returning. */
+ * Also, divisor is N*N, so it will be always non-negative.
+ * I think that some implementations(platforms) of 'do_div' requires divisor to
+be 32bit. That's why I rather use u32 for divisor (and not u64). (Here
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/4337
+Marton wrote that N is at most 576.)
 
-I did not look into the datasheet again, we did not have it at all for a
-very long time, but we had a similar case already and that time we made
-the decision like it can be found in this thread. No complaints ever
-until today.
 
-http://marc.info/?l=linux-video&m=112639247330257&w=2
+----- FILE: cx88-dsp_64bit_math3.patch -----
 
-Did not look up all frequency tables again, but if it is the same again,
-I would say the risk of doing something wrong is close to zero.
+cx88-dsp: again fixing 64bit math on 32bit kernels
 
-For the rest I never noticed any difference and we have it on lots of
-other tuners like that. And, that one still means a lot of _different_
-tuners and different manufacturers, filters definitely differ! ...
+From: Miroslav Sustek <sustmidown@centrum.cz>
+Signed-off-by: Miroslav Sustek <sustmidown@centrum.cz>
 
-> Also, as an alternative to using a different frequency for the
-> bandswitch, have you considered setting the Auxillary Byte in the tuner
-> chip (Infineon TUA6030?) to use external AGC and experimented with
-> changing the tuner AGC take-over point (TOP) in the TDA9887?
-> 
-> By maximizing the gain in the tuner chip, but avoiding clipping, with
-> the proper TOP setting, you minimize the contributions by the rest of
-> the receive chain to the overall receiver Noise Figure:
-> 
-> http://en.wikipedia.org/wiki/Friis_formulas_for_noise
-> 
-> This may be a way to improve receiver sensitivity that does not conflict
-> with the data sheet specification.
-> 
-> 
-> 
-> 
-> > 2. Set correct highest freq of the higher band.
-> 
-> :)
-> 
-> This bothers me too; all the tuners in tuner-types.c have it set too
-> high (999.0 MHz).  I think I rememeber at time when all the tuner_range
-> definitions had a real value there.
-> 
-> It would be nice to have a real value there for all the tuners.  The
-> function tuner-simple.c:simple_config_lookup() would then prevent
-> attempts to tune to an unsupported frequnecy.
-> 
-> 
-> 
-> > 3. Set charge pump bit
-> 
-> This will improve the time to initially tune to a frequency, but will
-> likely add some noise as the PLL continues to maintain lock on the
-> signal.  If there is no way to turn off the CP after the lock bit is set
-> in the tuner, it's probably better to leave it off for lower noise and
-> just live with slower tuning.
-> 
-> Leaving the CP bit set should be especially noticable ad FM noise when
-> set to tune to FM radio stations.  From the FM1236ME_MK3 datasheet:
-> "It is recommended to set CP=0 in the FM mode at all times."
-> But the VHF low band control byte is also used when setting FM radio
-> (AFAICT with a quick look at the code.)
-> 
-> Regards,
-> Andy
-> 
-> > diff -r 43dbc8ebb5a2 linux/drivers/media/common/tuners/tuner-types.c
-> > --- a/linux/drivers/media/common/tuners/tuner-types.c	Tue Jan 27 23:47:50 2009 -0200
-> > +++ b/linux/drivers/media/common/tuners/tuner-types.c	Tue Apr 21 09:44:38 2009 +1000
-> > @@ -557,9 +557,9 @@
-> >  /* ------------ TUNER_PHILIPS_FM1216ME_MK3 - Philips PAL ------------ */
-> >  
-> >  static struct tuner_range tuner_fm1216me_mk3_pal_ranges[] = {
-> > -	{ 16 * 158.00 /*MHz*/, 0x8e, 0x01, },
-> > -	{ 16 * 442.00 /*MHz*/, 0x8e, 0x02, },
-> > -	{ 16 * 999.99        , 0x8e, 0x04, },
-> > +	{ 16 * 158.00 /*MHz*/, 0xc6, 0x01, },
-> > +	{ 16 * 441.00 /*MHz*/, 0xc6, 0x02, },
-> > +	{ 16 * 864.00        , 0xc6, 0x04, },
-> >  };
-> >  
-> > 
-> > 
-> > Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-> > 
-> > With my best regards, Dmitry.
 
-Cheers,
-Hermann
-
+diff -r 77ebdc14cc24 linux/drivers/media/video/cx88/cx88-dsp.c
+--- a/linux/drivers/media/video/cx88/cx88-dsp.c	Wed Apr 08 14:01:19 2009 -0300
++++ b/linux/drivers/media/video/cx88/cx88-dsp.c	Thu Apr 09 00:52:27 2009 +0200
+@@ -22,6 +22,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/jiffies.h>
++#include <linux/math64.h>
+ 
+ #include "cx88.h"
+ #include "cx88-reg.h"
+@@ -101,8 +102,8 @@
+ 	s32 coeff = 2*int_cos(freq);
+ 	u32 i;
+ 
+-	s64 tmp;
+-	u32 remainder;
++	u64 tmp;
++	u32 divisor;
+ 
+ 	for (i = 0; i < N; i++) {
+ 		s32 s = x[i] + ((s64)coeff*s_prev/32768) - s_prev2;
+@@ -115,7 +116,10 @@
+ 
+ 	/* XXX: N must be low enough so that N*N fits in s32.
+ 	 * Else we need two divisions. */
+-	return (u32) div_s64_rem(tmp, N*N, &remainder);
++	divisor = N*N;
++	do_div(tmp, divisor);
++
++	return (u32) tmp;
+ }
+ 
+ static u32 freq_magnitude(s16 x[], u32 N, u32 freq)
 
