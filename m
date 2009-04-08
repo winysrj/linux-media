@@ -1,80 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:37490 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751759AbZD1S7B (ORCPT
+Received: from mail-in-10.arcor-online.net ([151.189.21.50]:50312 "EHLO
+	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752007AbZDHWGo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2009 14:59:01 -0400
-Date: Tue, 28 Apr 2009 15:58:53 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: Pieter Van Schaik <vansterpc@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] Enabling of the Winfast TV2000 XP Global TV capture
- card  remote control
-Message-ID: <20090428155853.03a9c6e8@pedra.chehab.org>
-In-Reply-To: <1240712951.3714.13.camel@pc07.localdom.local>
-References: <faf98b150904232135l7593612dr68b7ed9cac9af385@mail.gmail.com>
-	<1240712951.3714.13.camel@pc07.localdom.local>
+	Wed, 8 Apr 2009 18:06:44 -0400
+Subject: Re: Kernel 2.6.29 breaks DVB-T ASUSTeK Tiger LNA Hybrid Capture
+	Device
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Thomas Horsten <thomas@horsten.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <5d932cdc0904081249j59bccc7cg864753d22479d9a8@mail.gmail.com>
+References: <5d932cdc0904081249j59bccc7cg864753d22479d9a8@mail.gmail.com>
+Content-Type: text/plain
+Date: Wed, 08 Apr 2009 23:57:01 +0200
+Message-Id: <1239227821.9855.5.camel@pc07.localdom.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 26 Apr 2009 04:29:11 +0200
-hermann pitton <hermann-pitton@arcor.de> wrote:
 
+Am Mittwoch, den 08.04.2009, 20:49 +0100 schrieb Thomas Horsten:
+> Hi,
 > 
-> Am Freitag, den 24.04.2009, 06:35 +0200 schrieb Pieter Van Schaik:
-> > This patch is for supporting the remote control of the Winfast TV2000
-> > XP Global TV capture card. A case statement was added in order to
-> > initialize the GPIO data structures as well as a case statement for
-> > handling the keys correctly when pressed.
-> > 
-> > Thanks to Hermann for all his help
-> > 
-> > Regards
-> > Pieter van Schaik
-
-
-Pieter,
-
-You forgot your SOB on your v2 patch. Could you please send a v3 with it enclosed?
-
-> Mauro,
+> Sorry for breaking in-reply-to-chain but I wasn't subscribed to the list.
 > 
-> please give some further comments, how to proceed within this
-> "patchwork" stuff.
+> > did build a 2.6.29.1 now and your report is correct!
+> >
+> > DVB-T on saa7134 is broken at least for all tda10046 and tda8275 stuff
+> > and it is not restricted to devices with LNA.
+> >
+> > For what I can see so far, it is not related to the IRQF_DISABLED print
+> > out, since only a warning for now and removing it from the driver
+> > doesn't change anything.
+> >
+> > saa7134 DVB-S, analog TV and saa7134-alsa are not affected.
+> >
+> > Installing the current mercurial v4l-dvb on 2.6.29.1 does fix it.
+> >
+> > If on that saa7134-dvb.ko and saa7134.ko are replaced with the ones from
+> > 2.6.29.1 the breakage is back again. The related dvb and tuner modules
+> > tolerate such exchange on a first rough test.
+> >
+> > As you reported, symptoms are tumbling signal and SNR between very low
+> > and 100%, as if tuning and AGC would never stabilize.
+> >
+> > I suspect failing i2c stuff is involved. Did not notice anything like
+> > that on various mercurial versions during the last months.
 > 
-> For what I can see, you get some of out of sync patches so far?
+> I have the same issue (I think) on a Hauppauge WinTV Nova-T DVB-T
+> card. Here is the output from my old kernel, 2.6.28.7 when everything
+> worked:
 > 
-> Do you do the sync and can I ignore such remaining efforts, or do you
-> prefer people are waiting until this is somehow properly lined up again?
-
-Hermann,
-
-Sorry, but I didn't understand what you're meaning. 
-
-I generally run some scripts that read the patchwork patches based on the
-internal patchwork numbering representation (in general, it is from the oldest
-to the newest one).
-
-However, sometimes I skip patches or I update they manually at web interface,
-due to a countless number of reasons (duplicated patches, obsoleted patches,
-patches that generate more discusions, etc...).
-
-So, don't expect that I'll apply the patches on any particular order. If you
-really need patches to be applied sequentially, please number they with [PATCH x/y].
-
-In this specific case, should I need to apply a patch before this one for it to work?
-
+> cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
+> cx8800 0000:13:09.0: PCI INT A -> GSI 29 (level, low) -> IRQ 29
+> cx88[0]: subsystem: 0070:9002, board: Hauppauge Nova-T DVB-T
+> [card=18,autodetected], frontend(s): 1
+> cx88[0]: TV tuner type 4, Radio tuner type -1
+> cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
+> dib0700: loaded with support for 8 different device-types
+> dvb-usb: found a 'Hauppauge Nova-T 500 Dual DVB-T' in cold state, will
+> try to load a firmware
+> usb 5-1: firmware: requesting dvb-usb-dib0700-1.20.fw
+> input: PC Speaker as /class/input/input3
+> ACPI: PCI Interrupt Link [LACI] enabled at IRQ 22
+> Intel ICH 0000:00:04.0: PCI INT A -> Link[LACI] -> GSI 22 (level,
+> high) -> IRQ 22
+> Intel ICH 0000:00:04.0: setting latency timer to 64
+> tveeprom 2-0050: Hauppauge model 90002, rev C176, serial# 471851
+> tveeprom 2-0050: MAC address is 00-0D-FE-07-33-2B
+> tveeprom 2-0050: tuner model is Thompson DTT7592 (idx 76, type 4)
+> tveeprom 2-0050: TV standards ATSC/DVB Digital (eeprom 0x80)
+> tveeprom 2-0050: audio processor is None (idx 0)
+> tveeprom 2-0050: decoder processor is CX882 (idx 25)
+> tveeprom 2-0050: has no radio, has IR receiver, has no IR transmitter
+> cx88[0]: hauppauge eeprom: model=90002
+> input: cx88 IR (Hauppauge Nova-T DVB-T as /class/input/input4
+> cx88[0]/0: found at 0000:13:09.0, rev: 5, irq: 29, latency: 165, mmio:
+> 0xd9000000
+> cx88[0]/0: registered device video0 [v4l2]
+> cx88[0]/0: registered device vbi0
+> cx88[0]/2: cx2388x 8802 Driver Manager
+> cx88-mpeg driver manager 0000:13:09.2: PCI INT A -> GSI 29 (level,
+> low) -> IRQ 29
+> cx88[0]/2: found at 0000:13:09.2, rev: 5, irq: 29, latency: 64, mmio: 0xda000000
+> cx8802_probe() allocating 1 frontend(s)
 > 
-> I have nothing important and nobody cared about the oops on the Compro
-> T750F stuff, on which I was not involved, but I would like to have a
-> warning in for the Asus 3in1 not to use a rotor with it.
+> With 2.6.29.1 I get this:
+> 
+> cx88/0: cx2388x v4l2 driver version 0.0.6 loaded
+> cx8800 0000:13:09.0: PCI INT A -> GSI 29 (level, low) -> IRQ 29
+> cx88[0]: subsystem: 0070:9002, board: Hauppauge Nova-T DVB-T [card=18,autodetect
+> ed], frontend(s): 1
+> cx88[0]: TV tuner type 4, Radio tuner type -1
+> cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.6 loaded
+> dib0700: loaded with support for 8 different device-types
+> dvb-usb: found a 'Hauppauge Nova-T 500 Dual DVB-T' in warm state.
+> dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+> DVB: registering new adapter (Hauppauge Nova-T 500 Dual DVB-T)
+> tveeprom 3-0050: Hauppauge model 90002, rev C176, serial# 471851
+> tveeprom 3-0050: MAC address is 00-0D-FE-07-33-2B
+> tveeprom 3-0050: tuner model is Thompson DTT7592 (idx 76, type 4)
+> tveeprom 3-0050: TV standards ATSC/DVB Digital (eeprom 0x80)
+> tveeprom 3-0050: audio processor is None (idx 0)
+> tveeprom 3-0050: decoder processor is CX882 (idx 25)
+> tveeprom 3-0050: has no radio, has IR receiver, has no IR transmitter
+> cx88[0]: hauppauge eeprom: model=90002
+> input: cx88 IR (Hauppauge Nova-T DVB-T as /class/input/input4
+> DVB: registering adapter 0 frontend 0 (DiBcom 3000MC/P)...
+> MT2060: successfully identified (IF1 = 1222)
+> cx88[0]/0: found at 0000:13:09.0, rev: 5, irq: 29, latency: 165, mmio:
+> 0xd9000000
+> IRQ 29/cx88[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+> cx88[0]/0: registered device video0 [v4l2]
+> cx88[0]/0: registered device vbi0
+> ACPI: PCI Interrupt Link [LACI] enabled at IRQ 22
+> Intel ICH 0000:00:04.0: PCI INT A -> Link[LACI] -> GSI 22 (level,
+> high) -> IRQ 22
+> Intel ICH 0000:00:04.0: setting latency timer to 64
+> input: ImPS/2 Logitech Wheel Mouse as /class/input/input5
+> intel8x0_measure_ac97_clock: measured 54864 usecs
+> intel8x0: clocking to 46887
+> cx88[0]/2: cx2388x 8802 Driver Manager
+> cx88-mpeg driver manager 0000:13:09.2: PCI INT A -> GSI 29 (level,
+> low) -> IRQ 29
+> cx88[0]/2: found at 0000:13:09.2, rev: 5, irq: 29, latency: 64, mmio: 0xda000000
+> IRQ 29/cx88[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+> cx88/2: cx2388x dvb driver version 0.0.6 loaded
+> cx88/2: registering cx8802 driver, type: dvb access: shared
+> cx88[0]/2: subsystem: 0070:9002, board: Hauppauge Nova-T DVB-T [card=18]
+> cx88[0]/2: cx2388x based DVB/ATSC card
+> cx8802_alloc_frontends() allocating 1 frontend(s)
+> 
+> I have the same symptoms as described previously in the thread, the
+> tuner is found but it will not get a lock in MythTV on any of the
+> channels and has seemingly random signal strength and SNR levels on
+> all the channels.
+> 
+> When the tuner is being used I get a lot of these messages from dmesg,
+> suggesting an i2c problem:
+> 
+> Apr  7 07:54:12 omega kernel: mt2060 I2C read failed
+> Apr  7 11:38:07 omega kernel: mt2060 I2C write failed
+> Apr  7 11:38:07 omega kernel: mt2060 I2C write failed (len=2)
+> Apr  7 11:38:07 omega kernel: mt2060 I2C write failed (len=6)
+> Apr  7 11:38:07 omega kernel: mt2060 I2C read failed
+> Apr  7 11:38:08 omega last message repeated 9 times
+> 
+> These seem to happen whenever MythTV attempts to access the tuner.
+> 
+> Thanks,
+> Thomas
 
-I dunno what patches are you referring. Could you please point their patchwork
-numbers?
+Hi Thomas,
+
+does it make any difference too with the current mercurial v4l-dvb ?
+
+I did not look any further, since some tones coming currently from above
+I don't like, more those from Linus after having 800 plus patches.
 
 Cheers,
-Mauro
+Hermann
+
+
