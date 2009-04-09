@@ -1,15 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from 87-194-101-244.bethere.co.uk ([87.194.101.244] helo=marcm.co.uk)
-	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <marcmltd@marcm.co.uk>) id 1LqRyJ-0002vt-KK
-	for linux-dvb@linuxtv.org; Sun, 05 Apr 2009 15:01:13 +0200
-Content-class: urn:content-classes:message
-Date: Sun, 5 Apr 2009 14:00:27 +0100
+Received: from n7.bullet.re3.yahoo.com ([68.142.237.92])
+	by mail.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <rvf16@yahoo.gr>) id 1LrutQ-0001l6-AH
+	for linux-dvb@linuxtv.org; Thu, 09 Apr 2009 16:06:13 +0200
+Message-ID: <49DE00B0.4060509@yahoo.gr>
+Date: Thu, 09 Apr 2009 17:05:36 +0300
+From: rvf16 <rvf16@yahoo.gr>
 MIME-Version: 1.0
-Message-ID: <6F732ACED223C5478F0C244EF5D6BA31030685@marcm-serv01.MARCM.local>
-From: "Marc Murphy" <marcmltd@marcm.co.uk>
-To: <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] Writing a new driver help please
+To: Linux-DVB Mailing List <linux-dvb@linuxtv.org>
+Subject: [linux-dvb] Multiple em28xx devices
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -18,113 +17,83 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1485215849=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
+Hello.
 
---===============1485215849==
-Content-class: urn:content-classes:message
-Content-Type: multipart/alternative;
-	boundary="----_=_NextPart_001_01C9B5EE.8C09456F"
+I am trying to use two Terratec Cinergy Hybrid T USB XS FM tuners, at 
+the same time, on the same system.
+Both work great when used solely.
+When used simultaneously the second one gives the following error :
 
-This is a multi-part message in MIME format.
+v4l2: unable to open '/dev/video1': No space left on device
 
-------_=_NextPart_001_01C9B5EE.8C09456F
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+I am using the em28xx-new-b2e841c05e94 driver from 
+http://mcentral.de/hg/~mrec/em28xx-new on a Fedora 6 system.
+I have opened this topic in the em28xx mailing list 
+http://mcentral.de/pipermail/em28xx/ but it seems it is not maintained 
+any more.
 
-Hi All,
-I'm new to DVB and attempting to write a driver to use on an embedded =
-platform that I am developing.
-I have used the current micronas demod with a kernel driver that I wrote =
-to enable my system to tune and stream live TS.
-=20
-However I thought it would be good to bring my driver up to the spec of =
-DVB and need a few pointers.  I have taken an example driver but they =
-all seem to be working off either USB or PCI, my system uses neither.  I =
-have the standard i2c for microcode initialisation and control but the =
-TS comes directly into my micro.
-=20
-Is there a simple way to write a basic driver that uses the standard DVB =
-framework so that I can register a device without having to use PCI or =
-USB ?  What I have tried so far it to add an adaptor and then add a =
-device.
-=20
-It seems to be working up to the point of the second call to sysfs to =
-create the symbolic link to video0.
-I don't fully understand what is going on or whether there is anything I =
-need to initialise before attempting to create the device but I can post =
-code snippets if that would help.
-=20
-I hope somebody out there understands what I am going on about.
-=20
-Thanks
-Marc.
-=20
+According to comments on relevant problems (the following is for spca5xx 
+driver for cameras with same problem) :
+-----------------------
+When other USB devices are present on the same host controller bus as 
+the camera, the bandwidth requirements of the spca5xx driver are not 
+being met, with some hardware configurations.
+The spca5xx driver is asking for more bandwidth than is available which 
+results in these error messages.
+-----------------------
 
-------_=_NextPart_001_01C9B5EE.8C09456F
-Content-Type: text/html;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+We are, under these circumstances, advised to either insert the device 
+in another USB socket or even install a PCI card with extra USB sockets 
+so that the device ends up in different bus.
+I tried to insert the second device in another usb socket but it always 
+ends up at the same bus with the first one :
 
-<HTML dir=3Dltr><HEAD>=0A=
-<META http-equiv=3DContent-Type content=3D"text/html; charset=3Dunicode">=0A=
-<META content=3D"MSHTML 6.00.6001.18203" name=3DGENERATOR></HEAD>=0A=
-<BODY>=0A=
-<DIV id=3DidOWAReplyText9494 dir=3Dltr>=0A=
-<DIV dir=3Dltr><FONT face=3DArial color=3D#000000 size=3D2>Hi =
-All,</FONT></DIV>=0A=
-<DIV dir=3Dltr><FONT face=3DArial size=3D2>I'm new to DVB and attempting =
-to write a driver to use on an embedded platform that I am =
-developing.</FONT></DIV>=0A=
-<DIV dir=3Dltr><FONT face=3DArial size=3D2>I have used the current =
-micronas&nbsp;demod with a kernel driver that I wrote to enable my =
-system to tune and stream live TS.</FONT></DIV>=0A=
-<DIV dir=3Dltr><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>=0A=
-<DIV dir=3Dltr><FONT face=3DArial size=3D2>However I thought it would be =
-good to bring my driver up to the spec of DVB and need a few =
-pointers.&nbsp; I have taken an example driver but they all seem to be =
-working off either USB or PCI, my system uses neither.&nbsp; I have the =
-standard i2c for microcode initialisation and control but the TS comes =
-directly into my micro.</FONT></DIV>=0A=
-<DIV dir=3Dltr><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>=0A=
-<DIV dir=3Dltr><FONT face=3DArial size=3D2>Is there a simple way to =
-write a basic driver that uses the standard DVB framework so that I can =
-register a device without having to use PCI or USB ?&nbsp; What I have =
-tried so far it to add an adaptor and then add a device.</FONT></DIV>=0A=
-<DIV dir=3Dltr><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>=0A=
-<DIV dir=3Dltr><FONT face=3DArial size=3D2>It seems to be working up to =
-the point of the second call to sysfs to create the symbolic link to =
-video0.</FONT></DIV>=0A=
-<DIV dir=3Dltr><FONT face=3DArial size=3D2>I don't fully understand what =
-is going on or whether there is anything I need to initialise before =
-attempting to create the device but I can post code snippets if that =
-would help.</FONT></DIV>=0A=
-<DIV dir=3Dltr><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>=0A=
-<DIV dir=3Dltr><FONT face=3DArial size=3D2>I hope somebody out there =
-understands what I am going on about.</FONT></DIV>=0A=
-<DIV dir=3Dltr><FONT face=3DArial size=3D2></FONT>&nbsp;</DIV>=0A=
-<DIV dir=3Dltr><FONT face=3DArial size=3D2>Thanks</FONT></DIV>=0A=
-<DIV dir=3Dltr><FONT face=3DArial size=3D2>Marc.</FONT></DIV>=0A=
-<DIV dir=3Dltr><FONT face=3DArial color=3D#000000 size=3D2><SPAN =
-style=3D"FONT-SIZE: 10pt"></SPAN>&nbsp;</DIV></DIV></FONT></BODY></HTML>
-------_=_NextPart_001_01C9B5EE.8C09456F--
+#lsusb
+Bus 005 Device 014: ID 0ccd:0072 TerraTec Electronic GmbH
+Bus 005 Device 015: ID 0ccd:0072 TerraTec Electronic GmbH
+Bus 005 Device 001: ID 0000:0000 Bus 002 Device 006: ID 046d:c50e 
+Logitech, Inc. MX-1000 Cordless Mouse Receiver
+Bus 002 Device 001: ID 0000:0000 Bus 004 Device 001: ID 0000:0000 Bus 
+003 Device 001: ID 0000:0000 Bus 001 Device 001: ID 0000:0000
+which happens to a lot of people from what i have seen.
+
+As this is a laptop with 4 USB sockets :
+
+# lspci | grep USB
+00:1d.0 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI 
+#1 (rev 01)
+00:1d.1 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI 
+#2 (rev 01)
+00:1d.2 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI 
+#3 (rev 01)
+00:1d.3 USB Controller: Intel Corporation 82801G (ICH7 Family) USB UHCI 
+#4 (rev 01)
+00:1d.7 USB Controller: Intel Corporation 82801G (ICH7 Family) USB2 EHCI 
+Controller (rev 01)
+
+i cannot install a PCI card with extra USB sockets so there goes 
+workaround number two.
+
+In spca5xx case a developer patched the driver so that the bandwidth was 
+throttled in such a way that two devices used simultaneously would never 
+exceed maximum.
+
+Can that be done with em28xx?
+If not, is there any other workaround to this problem?
+
+Thank you.
+Regards.
 
 
---===============1485215849==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1485215849==--
