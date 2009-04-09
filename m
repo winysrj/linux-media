@@ -1,57 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:35308 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751379AbZDDVNw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Apr 2009 17:13:52 -0400
-Date: Sat, 4 Apr 2009 23:13:33 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Mike Isely <isely@pobox.com>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: [PATCH] pvrusb2: Drop client_register/unregister stubs
-Message-ID: <20090404231333.5e136f83@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198]:32784 "EHLO
+	mta3.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753548AbZDIQ4c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2009 12:56:32 -0400
+Received: from steven-toths-macbook-pro.local
+ (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta3.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KHU00AF4F23JNK0@mta3.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Thu, 09 Apr 2009 12:56:28 -0400 (EDT)
+Date: Thu, 09 Apr 2009 12:56:27 -0400
+From: Steven Toth <stoth@linuxtv.org>
+Subject: Re: Multiple em28xx devices
+In-reply-to: <d9def9db0904090932o4438902bt83d303f0853e5e11@mail.gmail.com>
+To: Markus Rechberger <mrechberger@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>,
+	rvf16 <rvf16@yahoo.gr>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-id: <49DE28BB.5060408@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <49DE0891.9010506@yahoo.gr>
+ <412bdbff0904090839v43772f6dk7f2ac47ef417f45f@mail.gmail.com>
+ <20090409124810.6c9f73bb@pedra.chehab.org>
+ <d9def9db0904090852v63b71413r616369babeff1d95@mail.gmail.com>
+ <49DE2226.7030406@linuxtv.org>
+ <d9def9db0904090932o4438902bt83d303f0853e5e11@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The client_register and client_unregister methods are optional so
-there is no point in defining stub ones. Especially when these methods
-are likely to be removed soon.
+>> Obviously you'll need to make those changes to the community. Where can I
+>> download these?
+> 
+> The framework will be opened when it's time to be opened, right now
+> it's only available to interested developers.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- linux/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c |   12 ------------
- 1 file changed, 12 deletions(-)
+Sorry, I meant to ask the obvious question in my last email...
 
---- v4l-dvb.orig/linux/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c	2009-04-04 13:58:40.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c	2009-04-04 22:12:21.000000000 +0200
-@@ -595,16 +595,6 @@ static u32 pvr2_i2c_functionality(struct
- 	return I2C_FUNC_SMBUS_EMUL | I2C_FUNC_I2C;
- }
- 
--static int pvr2_i2c_attach_inform(struct i2c_client *client)
--{
--	return 0;
--}
--
--static int pvr2_i2c_detach_inform(struct i2c_client *client)
--{
--	return 0;
--}
--
- static struct i2c_algorithm pvr2_i2c_algo_template = {
- 	.master_xfer   = pvr2_i2c_xfer,
- 	.functionality = pvr2_i2c_functionality,
-@@ -617,8 +607,6 @@ static struct i2c_adapter pvr2_i2c_adap_
- 	.owner         = THIS_MODULE,
- 	.class	       = 0,
- 	.id            = I2C_HW_B_BT848,
--	.client_register = pvr2_i2c_attach_inform,
--	.client_unregister = pvr2_i2c_detach_inform,
- };
- 
- 
+Why is this being discussed on the open-source ML if it's not v4l-dvb code, or 
+targeted for merging as v4l-dvb code?
 
--- 
-Jean Delvare
+- Steve
