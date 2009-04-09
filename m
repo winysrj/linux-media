@@ -1,100 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:38343 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752486AbZD3PKp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2009 11:10:45 -0400
-Date: Thu, 30 Apr 2009 10:24:17 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Wolfram Sang <w.sang@pengutronix.de>
-cc: linux-media@vger.kernel.org
-Subject: Re: Donating a mr97310 based elta-media 8212dc (0x093a:0x010e)
-In-Reply-To: <20090430022847.GA15183@pengutronix.de>
-Message-ID: <alpine.LNX.2.00.0904300953330.21567@banach.math.auburn.edu>
-References: <20090430022847.GA15183@pengutronix.de>
+Received: from wf-out-1314.google.com ([209.85.200.168]:2306 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752867AbZDIVud (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2009 17:50:33 -0400
+Received: by wf-out-1314.google.com with SMTP id 29so812297wff.4
+        for <linux-media@vger.kernel.org>; Thu, 09 Apr 2009 14:50:32 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Date: Fri, 10 Apr 2009 06:50:32 +0900
+Message-ID: <5e9665e10904091450u3e70cda8w9e1d57e45365a32b@mail.gmail.com>
+Subject: [RFC] White Balance control for digital camera
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, g.liakhovetski@gmx.de,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	laurent.pinchart@skynet.be
+Cc: "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"jongse.won@samsung.com" <jongse.won@samsung.com>,
+	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello everyone,
 
-On Thu, 30 Apr 2009, Wolfram Sang wrote:
+I'm posting this RFC one more time because it seems to everyone has
+been forgot this, and I'll be appreciated if any of you who is reading
+this mailing list give me comment.
 
-> Hi all,
->
-> I recently found an elta media dc8212 camera (usb-id: 0x093a:0x010e) in a pile
-> of old hardware. When looking for linux-support (out of curiosity, I don't need
-> the cam), I saw that there is activity regarding these types of camera
-> (mr97310) right now. As I am currently busy in other departments of the kernel,
-> I was wondering if somebody here is interested in getting the camera to do
-> further research? If so, just drop me a mail and I will send it free-of-charge.
->
-> Regards,
->
->   Wolfram
->
-> PS: The camera still works. Just checked with another OS on a friend's machine.
->
-> -- 
-> Pengutronix e.K.                           | Wolfram Sang                |
-> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
->
+I'm adding some choices for you to make it easier. (even the option
+for that this is a pointless discussion)
 
-Hi,
 
-If you want to do such a thing, I think it is very kind of you. As for 
-myself, I suspect that I already have three or four similar cameras, and 
-so I probably do not really need another one. Also, judging from your 
-e-mail address you are in Germany and I am in the US, making it a less 
-desirable prospect to ship such an object for such a distance.
 
-Therefore, I would offer the suggestion that the camera should go to Kyle 
-Guin, who wrote the kernel support, or, if he is also in the US (I do not 
-know where he lives) then perhaps to Thomas Kaiser, who lives a bit closer 
-to you. I think that all three of us are equally interested but as I said 
-I do not believe that I need another one of these cameras. In case that I 
-have missed someone else who might be interested, that is inadvertent on 
-my part.
+I've got a big question popping up handling white balance with
+V4L2_CID_WHITE_BALANCE_TEMPERATURE CID.
 
-Judging from the Vendor:Product number which you report, it is one of the 
-small MR97310 cameras for which the OEM driver was called the "CIF" 
-driver. Indeed, these cameras are not supported right now, so the matter 
-is interesting.
+Because in digital camera we generally control over user interface
+with pre-defined white balance name. I mean, user controls white
+balance with presets not with kelvin number.
+I'm very certain that TEMPERATURE CID is needed in many of video
+capture devices, but also 100% sure that white balance preset control
+is also necessary for digital cameras.
+How can we control white balance through preset name with existing V4L2 API?
 
-I do suspect at this point that the clue to getting these cameras to work 
-is probably to be found in the initialization sequence. I did manage 
-(finally!) to get one of my old test machines running Windows to accept a 
-driver installation and to give me a sniff or two. My preliminary analysis 
-from that experience is, first, the initialization sequence is a bit 
-different, and, second, the frame data seems to look different from what I 
-get with the current initialization sequence on Linux. I also tried to 
-convert a couple of frame data outputs from a sniff log back into binary 
-format, to see if I could get something out which looks like a picture. I 
-think I did. Not a very good picture, but it seems that I got something 
-more than mere noise. I also found out that some of my small cameras with 
-the same ID will stream, and some will not. Those which will not stream 
-have a rather strange failure mode: they go through all the motions, but 
-they produce nothing but a string of repetitions of the SOF marker -- and 
-this with the OEM driver software, too. But you say that yours actually 
-worked.
+For now, I define preset names in user space with supported color
+temperature preset in driver like following.
 
-Finally, I would ask one question:
+#define MANUAL_WB_TUNGSTEN 3000
+#define MANUAL_WB_FLUORESCENT 4000
+#define MANUAL_WB_SUNNY 5500
+#define MANUAL_WB_CLOUDY 6000
 
-In the libgphoto2 driver for these cameras, I have a listing for
+and make driver to handle those presets like this. (I split in several
+ranges to make driver pretend to be generic)
 
-{"Elta Medi@ digi-cam", GP_DRIVER_STATUS_EXPERIMENTAL, 0x093a, 0x010e},
+case V4L2_CID_WHITE_BALANCE_TEMPERATURE:
+               if (vc->value < 3500) {
+                       /* tungsten */
+                       err = ce131f_cmds(c, ce131f_wb_tungsten);
+               } else if (vc->value < 4100) {
+                       /* fluorescent */
+                       err = ce131f_cmds(c, ce131f_wb_fluorescent);
+               } else if (vc->value < 6000) {
+                       /* sunny */
+                       err = ce131f_cmds(c, ce131f_wb_sunny);
+               } else if (vc->value < 6500) {
+                       /* cloudy */
+                       err = ce131f_cmds(c, ce131f_wb_cloudy);
+               } else {
+                       printk(KERN_INFO "%s: unsupported kelvin
+range\n", __func__);
+               }
+               ......
 
-Do you think this is the same camera, or a different one? Yours has a 
-model number, and my listing does not. Elta could of course have produced 
-two "different" cameras with the same guts inside, and sold them under two 
-different model descriptions. I have seen lots of that kind of thing from 
-other camera vendors. So should there be a separate entry listing this one 
-by model number? The reason I do not know the answers to such questions 
-is that, obviously, I have never seen either one of these two cameras. The 
-first one was reported to me, just like the one which you are offering to 
-us.
+I think this way seems to be ugly. Don't you think that another CID is
+necessary to handle WB presets?
+Because most of mobile camera modules can't make various color
+temperatures in expecting kelvin number with user parameter.
 
-Also might you be interested to try it out as a still camera, with 
-libgphoto2, before surrendering it to someone else?
+So, here you are some options you can chose to give your opinion.(or
+you can make your own opinion)
 
-Theodore Kilgore
+(A). Make a new CID to handle well known white balance presets
+Like V4L2_CID_WHITE_BALANCE_PRESET for CID and enum values like
+following for value
+
+enum v4l2_whitebalance_presets {
+     V4L2_WHITEBALANCE_TUNGSTEN  = 0,
+     V4L2_WHITEBALANCE_FLUORESCENT,
+     V4L2_WHITEBALANCE_SUNNY,
+     V4L2_WHITEBALANCE_CLOUDY,
+....
+
+(B). Define well known kelvin number in videodev2.h as preset name and
+share with user space
+Like following
+
+#define V4L2_WHITEBALANCE_TUNGSTEN 3000
+#define V4L2_WHITEBALANCE_FLUORESCENT 4000
+#define V4L2_WHITEBALANCE_SUNNY 5500
+#define V4L2_WHITEBALANCE_CLOUDY 6000
+
+and use those defined values with V4L2_CID_WHITE_BALANCE_TEMPERATURE
+
+urgh.....
+
+(C). Leave it alone. It's a pointless discussion. we are good with
+existing WB API.
+(really?)
+
+
+I'm very surprised about this kind of needs were not issued yet.
+
+Any opinion will be appreciated.
+Regards,
+
+Nate
+
+-- 
+========================================================
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
+========================================================
