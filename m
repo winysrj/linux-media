@@ -1,16 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from rv-out-0506.google.com ([209.85.198.228])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tutuyu@usc.edu>) id 1LubUy-0004QV-Aa
-	for linux-dvb@linuxtv.org; Fri, 17 Apr 2009 02:00:05 +0200
-Received: by rv-out-0506.google.com with SMTP id k40so541480rvb.41
-	for <linux-dvb@linuxtv.org>; Thu, 16 Apr 2009 16:59:58 -0700 (PDT)
+	(envelope-from <bainorama@gmail.com>) id 1LroLu-00043v-KJ
+	for linux-dvb@linuxtv.org; Thu, 09 Apr 2009 09:07:11 +0200
+Received: by rv-out-0506.google.com with SMTP id k40so416392rvb.41
+	for <linux-dvb@linuxtv.org>; Thu, 09 Apr 2009 00:07:05 -0700 (PDT)
 MIME-Version: 1.0
-Date: Thu, 16 Apr 2009 16:59:57 -0700
-Message-ID: <cae4ceb0904161659q50808ff8p965b3b1b46f14ab1@mail.gmail.com>
-From: Tu-Tu Yu <tutuyu@usc.edu>
+Date: Thu, 9 Apr 2009 19:07:05 +1200
+Message-ID: <8de7a23f0904090007x3905ee7dp817efe67044b8223@mail.gmail.com>
+From: Alastair Bain <bainorama@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] About HVR1250 cant load the driver
+Subject: [linux-dvb] HVR-1700 - can't open or scan
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,62 +19,62 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1841264767=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dear Sirs:
-I have tried to install HVR 1200 in my machine...
-I follow the step on the website. But it seems like i didn't load the
-driver. Could somebody tell me which step i did wrong?
-Thank you so much!!!!
-Audrey
+--===============1841264767==
+Content-Type: multipart/alternative; boundary=000e0cd20a4a44796c046719e5b7
+
+--000e0cd20a4a44796c046719e5b7
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+I'm trying to get the Hauppauge HVR-1700 working on a Mythbuntu 9.04 b
+install. Looks like the modules are all loading, firmware is being loaded,
+device appears in /dev etc, but I can't seem to do anything with it. dvbscan
+fails around ln 315,
+
+dvbfe_get_info(fe, DVBFE_INFO_LOCKSTATUS, &feinfo,
+                                DVBFE_INFO_QUERYTYPE_IMMEDIATE, 0)
+returns DVBFE_INFO_QUERYTYPE_LOCKCHANGE
+
+Anyone have any clues as to what I can do to fix this? Kernel trace is at
+http://pastebin.com/m7671e816.
+
+Kind Regards,
+Alastair
+
+--000e0cd20a4a44796c046719e5b7
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+I&#39;m trying to get the Hauppauge HVR-1700 working on a Mythbuntu 9.04 b =
+install. Looks like the modules are all loading, firmware is being loaded, =
+device appears in /dev etc, but I can&#39;t seem to do anything with it. dv=
+bscan fails around ln 315,<br>
+<br>dvbfe_get_info(fe, DVBFE_INFO_LOCKSTATUS, &amp;feinfo,<br>=A0=A0=A0 =A0=
+=A0=A0 =A0=A0=A0 =A0=A0=A0 =A0=A0=A0 =A0=A0=A0 =A0=A0=A0 =A0=A0=A0 DVBFE_IN=
+FO_QUERYTYPE_IMMEDIATE, 0)<br>returns DVBFE_INFO_QUERYTYPE_LOCKCHANGE<br><b=
+r>Anyone have any clues as to what I can do to fix this? Kernel trace is at=
+ <a href=3D"http://pastebin.com/m7671e816">http://pastebin.com/m7671e816</a=
+>.<br>
+<br>Kind Regards,<br>Alastair<br><br>
+
+--000e0cd20a4a44796c046719e5b7--
 
 
-   1. Change into the v4l-dvb directory:
-
-      cd v4l-dvb
-
-   2. Build the modules:
-
-      make
-
-   3. Install the modules:
-
-      make install
-
-   4. Download the files from http://steventoth.net/linux/hvr1200/ and
-follow the instructions in the readme.txt
-   (on this step i do sh extract.sh on one machine and then copy those
-3 files to both /lib/firmware and /lib/firmware/2.6.26, because the
-machine i am using now doesn't support unzip)
-
-   5. add this line to /etc/modules.d/dvb:
-   (on this step because there is no modules.d/dvb file in my machine
-so i create it by mkdir)
-
-after i reboot, and scan, it shows:
-
-     scanning /usr/share/dvb/dvb-t/uk-Oxford
-     using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-     initial transponder 578000000 0 3 9 1 0 0 0
-     initial transponder 850000000 0 2 9 3 0 0 0
-     initial transponder 713833000 0 2 9 3 0 0 0
-     initial transponder 721833000 0 3 9 1 0 0 0
-     initial transponder 690000000 0 3 9 1 0 0 0
-     initial transponder 538000000 0 3 9 1 0 0 0
-      >>> tune to:
-578000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-     WARNING: >>> tuning failed!!!
-     >>> tune to:
-578000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-(tuning failed)
-     WARNING: >>> tuning failed!!!
+--===============1841264767==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1841264767==--
