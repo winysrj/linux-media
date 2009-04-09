@@ -1,46 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:2458 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760000AbZD1QpK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2009 12:45:10 -0400
-Received: by qw-out-2122.google.com with SMTP id 5so567107qwd.37
-        for <linux-media@vger.kernel.org>; Tue, 28 Apr 2009 09:45:09 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:37342 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S936354AbZDIUbS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Apr 2009 16:31:18 -0400
+Message-ID: <49DE5B0F.6080604@iki.fi>
+Date: Thu, 09 Apr 2009 23:31:11 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <b24e53350904280942s1cb0df20wc5b5e4ba671fc008@mail.gmail.com>
-References: <412bdbff0904271903o6a66c48co87b8b1829be2f62f@mail.gmail.com>
-	 <b24e53350904280942s1cb0df20wc5b5e4ba671fc008@mail.gmail.com>
-Date: Tue, 28 Apr 2009 12:45:09 -0400
-Message-ID: <412bdbff0904280945j15e0600aq72a6a8aba36bc1e7@mail.gmail.com>
-Subject: Re: Panic in HVR-950q caused by changeset 11356
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Robert Krakora <rob.krakora@gmail.com>
-Cc: Janne Grunau <j@jannau.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Josh Watzman <jwatzman@andrew.cmu.edu>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org
+CC: chrisneilbrown@gmail.com, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] AVerTV Volar DVB-T USB GPS 805
+References: <91591f560904090409x15481f87ra1d7211ec35bc569@mail.gmail.com> <49DDD897.4000409@iki.fi>
+In-Reply-To: <49DDD897.4000409@iki.fi>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 28, 2009 at 12:42 PM, Robert Krakora <rob.krakora@gmail.com> wrote:
-> Devin:
->
-> I vote to roll it back until the ramifications of the changeset are
-> better understood.  ;-)
->
-> Best Regards,
+Antti Palosaari wrote:
+> Chris Brown wrote:
+>> This device doesnt seem to work
+>> I've tried several different modules referenced in the dvb-t usb page on 
+>> linuxtv
+>> Any ideas?
+>>
+>> Bus 001 Device 003: ID 07ca:a805 AVerMedia Technologies, Inc.
+>> Bus 001 Device 004: ID 0471:082d Philips
+>> Bus 001 Device 002: ID 0409:005a NEC Corp. HighSpeed Hub
+> 
+> What does lsusb -vv -d 07ca:a805 says?
 
-Robert,
+That was af9015 with MXL5003S (tuner ID 13). It is now working and patch 
+is waiting for PULL to the master, will request that soon.
+http://linuxtv.org/hg/~anttip/af9015
 
-I discussed it at length with Janneg on #linuxtv this morning.  A pull
-request has been submitted with the fix, marked high priority.
-
-Thanks,
-
-Devin
-
+thanks
+Antti
 -- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+http://palosaari.fi/
