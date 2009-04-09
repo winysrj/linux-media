@@ -1,39 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f176.google.com ([209.85.219.176]:59218 "EHLO
-	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753171AbZDZPb2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Apr 2009 11:31:28 -0400
-Received: by ewy24 with SMTP id 24so1751900ewy.37
-        for <linux-media@vger.kernel.org>; Sun, 26 Apr 2009 08:31:26 -0700 (PDT)
-Message-ID: <49F47E4E.4020804@gmail.com>
-Date: Sun, 26 Apr 2009 17:31:26 +0200
-From: Roel Kluin <roel.kluin@gmail.com>
+Received: from mail-gx0-f160.google.com ([209.85.217.160]:56877 "EHLO
+	mail-gx0-f160.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935006AbZDIPvW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2009 11:51:22 -0400
+Received: by gxk4 with SMTP id 4so1557508gxk.13
+        for <linux-media@vger.kernel.org>; Thu, 09 Apr 2009 08:51:20 -0700 (PDT)
 MIME-Version: 1.0
-To: aospan@netup.ru, mchehab@redhat.com,
-	Andrew Morton <akpm@linux-foundation.org>
-CC: linux-media@vger.kernel.org
-Subject: [PATCH] V4L/DVB: &/&& typo
+In-Reply-To: <20090409124810.6c9f73bb@pedra.chehab.org>
+References: <49DE0891.9010506@yahoo.gr>
+	 <412bdbff0904090839v43772f6dk7f2ac47ef417f45f@mail.gmail.com>
+	 <20090409124810.6c9f73bb@pedra.chehab.org>
+Date: Thu, 9 Apr 2009 11:51:20 -0400
+Message-ID: <412bdbff0904090851m2f165d53iadb106b238e813ee@mail.gmail.com>
+Subject: Re: Multiple em28xx devices
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: rvf16 <rvf16@yahoo.gr>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-binary/logical and typo
+On Thu, Apr 9, 2009 at 11:48 AM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> On Thu, 9 Apr 2009 11:39:47 -0400
+> Devin Heitmueller <devin.heitmueller@gmail.com> wrote:
+>
+>> 2009/4/9 rvf16 <rvf16@yahoo.gr>:
+>> > So does the upstream driver support all the rest ?
+>> > Analog TV
+>> Yes
+>>
+>> > FM radio
+>> No
+>
+> Yes, it does support FM radio, provided that you proper add radio specific
+> configuration at em28xx-cards.c.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
----
-diff --git a/drivers/media/video/cx23885/cimax2.c b/drivers/media/video/cx23885/cimax2.c
-index 9a65369..08582e5 100644
---- a/drivers/media/video/cx23885/cimax2.c
-+++ b/drivers/media/video/cx23885/cimax2.c
-@@ -312,7 +312,7 @@ static void netup_read_ci_status(struct work_struct *work)
- 		"TS config = %02x\n", __func__, state->ci_i2c_addr, 0, buf[0],
- 		buf[32]);
- 
--	if (buf[0] && 1)
-+	if (buf[0] & 1)
- 		state->status = DVB_CA_EN50221_POLL_CAM_PRESENT |
- 			DVB_CA_EN50221_POLL_CAM_READY;
- 	else
+Guess I haven't been watching the tree close enough then.  :-)  I will
+see about adding the profiles for the various em28xx devices I have.
 
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
