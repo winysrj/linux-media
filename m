@@ -1,73 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mk-outboundfilter-6.mail.uk.tiscali.com ([212.74.114.14]:7742
-	"EHLO mk-outboundfilter-6.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753830AbZDRWpx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Apr 2009 18:45:53 -0400
-From: Adam Baker <linux@baker-net.org.uk>
-To: video4linux-list@redhat.com
-Subject: [PATCH][libv4l] Support V4L2_CTRL_FLAG_NEXT_CTRL for fake controls
-Date: Sat, 18 Apr 2009 23:45:48 +0100
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	SPCA50x Linux Device Driver Development
-	<spca50x-devs@lists.sourceforge.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <49E5D4DE.6090108@hhs.nl> <49E9B989.70602@redhat.com> <200904182044.06879.linux@baker-net.org.uk>
-In-Reply-To: <200904182044.06879.linux@baker-net.org.uk>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="windows-1252"
+Received: from mail1.radix.net ([207.192.128.31]:53385 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752254AbZDIBiH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Apr 2009 21:38:07 -0400
+Subject: Re: When is a wake_up() not a wake up?
+From: Andy Walls <awalls@radix.net>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Linux Kernel <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.58.0904040356210.5134@shell2.speakeasy.net>
+References: <1238798924.3130.72.camel@palomino.walls.org>
+	 <Pine.LNX.4.58.0904040356210.5134@shell2.speakeasy.net>
+Content-Type: text/plain
+Date: Wed, 08 Apr 2009 22:38:46 -0400
+Message-Id: <1239244727.19075.34.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200904182345.48441.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The "fake" controls added by libv4l to provide whitebalance on some cameras do 
-not respect the V4L2_CTRL_FLAG_NEXT_CTRL and hence don't appear on control 
-programs that try to use that flag if there are any driver controls that do 
-support the flag. Add support for V4L2_CTRL_FLAG_NEXT_CTRL
+On Sat, 2009-04-04 at 04:07 -0700, Trent Piepho wrote:
+> On Fri, 3 Apr 2009, Andy Walls wrote:
+> > 1. A work queue thread or read() call needs to send a command to the
+> > CX23418 using the cx18_api_call() function
+> > 2. It fills out a mailbox with a command for the CX23418
+> > 3. It prepares to wait, just in case a wait is needed
+> > 4. A SW1 interrupt is sent to the CX23418 telling it a mailbox is ready
+> > 5. The ack filed in the mailbox, a PCI MMIO location, is checked to see
+> > if the mailbox was ack'ed already
+> > 6. If not, schedule_timeout() for up to 10 msecs (a near eternity...)
+> > 7. Clean up the wait and move on
+> 
+> 10ms isn't that long.  With a 100 HZ kernel it's only one jiffie.  The
+> shortest time msleep() can sleep on a 100 HZ kernel is 20 ms.
+> 
+> Is it possible that it's simply taking more than 10 ms for your process to
+> get run?
 
-Signed-off-by: Adam Baker <linux@baker-net.org.uk>
----
-This isn't extensively tested but v4l2ucp (and my version does use the flag) now
-lists both fake and original control for a camera with both and adds the fake controls
-for a camera with none.
----
---- libv4l-0.5.97/libv4lconvert/control/libv4lcontrol.c	2009-04-14 09:17:02.000000000 +0100
-+++ new/libv4lconvert/control/libv4lcontrol.c	2009-04-18 23:36:28.000000000 +0100
-@@ -280,7 +280,10 @@
- {
-   int i;
-   struct v4l2_queryctrl *ctrl = arg;
-+  int retval;
-+  __u32 orig_id=ctrl->id;
- 
-+  /* if we have an exact match return it */
-   for (i = 0; i < V4LCONTROL_COUNT; i++)
-     if ((data->controls & (1 << i)) &&
- 	ctrl->id == fake_controls[i].id) {
-@@ -288,7 +291,21 @@
-       return 0;
-     }
- 
--  return syscall(SYS_ioctl, data->fd, VIDIOC_QUERYCTRL, arg);
-+  /* find out what the kernel driver would respond. */
-+  retval = syscall(SYS_ioctl, data->fd, VIDIOC_QUERYCTRL, arg);
-+
-+  /* if any of our controls have an id > orig_id but less than
-+     ctrl->id then return that control instead. */
-+  if (orig_id & V4L2_CTRL_FLAG_NEXT_CTRL)
-+    for (i = 0; i < V4LCONTROL_COUNT; i++)
-+      if ((data->controls & (1 << i)) &&
-+          (fake_controls[i].id > (orig_id & ~V4L2_CTRL_FLAG_NEXT_CTRL)) &&
-+          (fake_controls[i].id <= ctrl->id)) {
-+        memcpy(ctrl, &fake_controls[i], sizeof(struct v4l2_queryctrl));
-+        retval = 0;
-+      }
-+
-+  return retval;
- }
- 
- int v4lcontrol_vidioc_g_ctrl(struct v4lcontrol_data *data, void *arg)
+After some testing with fine grained timestamps as you suggested, that
+indeed appears to be the case.
+
+For the high volume API command I care about, in 6097 out of 6100
+samples, the firmware acknowledgment interrupt comes back in and the
+process is awakened back to TASK_RUNNABLE in under 150 us.  0 out of
+6100 samples finished the wakeup to TASK_RUNNABLE faster than 55 us.
+However, I had 22 samples, where coming back from schedule_timeout()
+took 10 msec or greater, despite the wakeup happening in under 150 us.
+
+So the simple answer is to poll the ack field of the mailbox, with some
+50 us busy waits perhaps, for this one high volume API command.
+
+Regards,
+Andy
 
