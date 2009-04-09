@@ -1,60 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:41914 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751218AbZDER5f (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Apr 2009 13:57:35 -0400
-Date: Sun, 5 Apr 2009 19:52:19 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Erik =?ISO-8859-1?Q?Andr=E9n?= <erik.andren@gmail.com>
-Cc: Hans de Goede <j.w.r.degoede@hhs.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: libv4l: Possibility of changing the current pixelformat on the
- fly
-Message-ID: <20090405195219.08e63cea@free.fr>
-In-Reply-To: <49D7C17B.80708@gmail.com>
-References: <49D7C17B.80708@gmail.com>
+Received: from mail-qy0-f118.google.com ([209.85.221.118]:44566 "EHLO
+	mail-qy0-f118.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750739AbZDIOOw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2009 10:14:52 -0400
+Received: by qyk16 with SMTP id 16so1304841qyk.33
+        for <linux-media@vger.kernel.org>; Thu, 09 Apr 2009 07:14:51 -0700 (PDT)
+Date: Thu, 9 Apr 2009 11:14:42 -0300
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: rvf16@yahoo.gr, Linux-DVB Mailing List <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Multiple em28xx devices
+Message-ID: <20090409111442.38124a31@gmail.com>
+In-Reply-To: <49DE00B0.4060509@yahoo.gr>
+References: <49DE00B0.4060509@yahoo.gr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 04 Apr 2009 22:22:19 +0200
-Erik Andrén <erik.andren@gmail.com> wrote:
-	[snip]
-> When flipping the image horizontally, vertically or both, the sensor
-> pixel ordering changes. In the m5602 driver I was able to compensate
-> for this in the bridge code. In the stv06xx I don't have this
-> option. One way of solving this problem is by changing the
-> pixelformat on the fly, i. e V4L2_PIX_FMT_SGRB8 is the normal
-> format. When a vertical flip is required, change the format to
-> V4L2_SBGGR8.
+Hello rvf16,
+
+On Thu, 09 Apr 2009 17:05:36 +0300
+rvf16 <rvf16@yahoo.gr> wrote:
+
+> Hello.
 > 
-> My current understanding of libv4l is that it probes the pixelformat
->   upon device open. In order for this to work we would need either
-> poll the current pixelformat regularly or implement some kind of
-> notification mechanism upon a flipping request.
+> I am trying to use two Terratec Cinergy Hybrid T USB XS FM tuners, at 
+> the same time, on the same system.
+> Both work great when used solely.
+> When used simultaneously the second one gives the following error :
 > 
-> What do you think is this the right way to go or is there another
-> alternative.
+> v4l2: unable to open '/dev/video1': No space left on device
+> 
+> I am using the em28xx-new-b2e841c05e94 driver from 
+> http://mcentral.de/hg/~mrec/em28xx-new on a Fedora 6 system.
+> I have opened this topic in the em28xx mailing list 
+> http://mcentral.de/pipermail/em28xx/ but it seems it is not
+> maintained any more.
+> 
+> According to comments on relevant problems (the following is for
+> spca5xx driver for cameras with same problem) :
+> -----------------------
+> When other USB devices are present on the same host controller bus as 
+> the camera, the bandwidth requirements of the spca5xx driver are not 
+> being met, with some hardware configurations.
+> The spca5xx driver is asking for more bandwidth than is available
+> which results in these error messages.
+> -----------------------
+> 
+> We are, under these circumstances, advised to either insert the
+> device in another USB socket or even install a PCI card with extra
+> USB sockets so that the device ends up in different bus.
+> I tried to insert the second device in another usb socket but it
+> always ends up at the same bus with the first one :
+> 
+> #lsusb
+> Bus 005 Device 014: ID 0ccd:0072 TerraTec Electronic GmbH
+> Bus 005 Device 015: ID 0ccd:0072 TerraTec Electronic GmbH
+> Bus 005 Device 001: ID 0000:0000 Bus 002 Device 006: ID 046d:c50e 
+> Logitech, Inc. MX-1000 Cordless Mouse Receiver
+> Bus 002 Device 001: ID 0000:0000 Bus 004 Device 001: ID 0000:0000 Bus 
+> 003 Device 001: ID 0000:0000 Bus 001 Device 001: ID 0000:0000
+> which happens to a lot of people from what i have seen.
+> 
+> As this is a laptop with 4 USB sockets :
+> 
+> # lspci | grep USB
+> 00:1d.0 USB Controller: Intel Corporation 82801G (ICH7 Family) USB
+> UHCI #1 (rev 01)
+> 00:1d.1 USB Controller: Intel Corporation 82801G (ICH7 Family) USB
+> UHCI #2 (rev 01)
+> 00:1d.2 USB Controller: Intel Corporation 82801G (ICH7 Family) USB
+> UHCI #3 (rev 01)
+> 00:1d.3 USB Controller: Intel Corporation 82801G (ICH7 Family) USB
+> UHCI #4 (rev 01)
+> 00:1d.7 USB Controller: Intel Corporation 82801G (ICH7 Family) USB2
+> EHCI Controller (rev 01)
+> 
+> i cannot install a PCI card with extra USB sockets so there goes 
+> workaround number two.
+> 
+> In spca5xx case a developer patched the driver so that the bandwidth
+> was throttled in such a way that two devices used simultaneously
+> would never exceed maximum.
+> 
+> Can that be done with em28xx?
+> If not, is there any other workaround to this problem?
 
-Hi Erik,
+Please use upstream repository, we do not support sources from
+http://mcentral.de/hg/~mrec/em28xx-new this is a parallel project.
 
-I saw such a problem in some other webcams. When doing a flip, the
-sensor scans the pixels in the reverse order. So,
-	R G R G
-	G B G B
-becomes
-	B G B G
-	G R G R
+For additional info how to download upstream tree see:
+http://www.linuxtv.org/wiki/index.php/How_to_Obtain%2C_Build_and_Install_V4L-DVB_Device_Drivers
 
-The solution is to start the scan one line lower or higher for VFLIP
-and one pixel on the left or on the right for HFLIP.
-
-May you do this with all the sensors of the stv06xx?
-
-Cheers.
-
--- 
-Ken ar c'hentan	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Cheers,
+Douglas
