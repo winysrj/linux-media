@@ -1,116 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1896 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752857AbZDRSSq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Apr 2009 14:18:46 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id n3IIIiwV008132
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 18 Apr 2009 20:18:44 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 18 Apr 2009 20:18:44 +0200 (CEST)
-Message-Id: <200904181818.n3IIIiwV008132@smtp-vbr13.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:46543 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755138AbZDIQzg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2009 12:55:36 -0400
+Received: by fxm2 with SMTP id 2so684541fxm.37
+        for <linux-media@vger.kernel.org>; Thu, 09 Apr 2009 09:55:34 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <49DE27CB.6080600@linuxtv.org>
+References: <49DE0891.9010506@yahoo.gr>
+	 <412bdbff0904090839v43772f6dk7f2ac47ef417f45f@mail.gmail.com>
+	 <20090409124810.6c9f73bb@pedra.chehab.org>
+	 <d9def9db0904090852v63b71413r616369babeff1d95@mail.gmail.com>
+	 <49DE2226.7030406@linuxtv.org>
+	 <d9def9db0904090932o4438902bt83d303f0853e5e11@mail.gmail.com>
+	 <49DE27CB.6080600@linuxtv.org>
+Date: Thu, 9 Apr 2009 18:55:34 +0200
+Message-ID: <d9def9db0904090955n1e487f0dof534daad9e49ef2e@mail.gmail.com>
+Subject: Re: Multiple em28xx devices
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Steven Toth <stoth@linuxtv.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>,
+	rvf16 <rvf16@yahoo.gr>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Thu, Apr 9, 2009 at 6:52 PM, Steven Toth <stoth@linuxtv.org> wrote:
+> Markus Rechberger wrote:
+>>
+>> On Thu, Apr 9, 2009 at 6:28 PM, Steven Toth <stoth@linuxtv.org> wrote:
+>>>
+>>> Markus Rechberger wrote:
+>>>>
+>>>> On Thu, Apr 9, 2009 at 5:48 PM, Mauro Carvalho Chehab
+>>>> <mchehab@infradead.org> wrote:
+>>>>>
+>>>>> On Thu, 9 Apr 2009 11:39:47 -0400
+>>>>> Devin Heitmueller <devin.heitmueller@gmail.com> wrote:
+>>>>>
+>>>>>> 2009/4/9 rvf16 <rvf16@yahoo.gr>:
+>>>>>>>
+>>>>>>> So does the upstream driver support all the rest ?
+>>>>>>> Analog TV
+>>>>>>
+>>>>>> Yes
+>>>>>>
+>>>>>>> FM radio
+>>>>>>
+>>>>>> No
+>>>>>
+>>>>> Yes, it does support FM radio, provided that you proper add radio
+>>>>> specific
+>>>>> configuration at em28xx-cards.c.
+>>>>>
+>>>> I plan to add support for it to the existing kerneldriver anyway, but
+>>>> by using userspace drivers.
+>>>> Those drivers are just ontop of everything and no changes are required
+>>>> for the existing drivers.
+>>>>
+>>>> I'll just intercept all the calls as I do right now already with the
+>>>> latest device. I ported the entire configuration framework to userland
+>>>> and it also works on Apple OSX without any change. I'm just using
+>>>> usbfs for it, PCI config support is possible by using libpci or
+>>>> opening the corresponding node in the proc filesystem too. This time
+>>>> there's nothing you can do against it since it requires no change as
+>>>> it is.
+>>>
+>>> Userspace drivers won't be accepted but it's not worth re-opening that
+>>> old
+>>> wound - especially since I haven't followed this specific thread.
+>>>
+>>
+>> no problem, as I wrote it sits ontop of everything not needing any kernel
+>> hooks.
+>
+> That's fine, if it's not derived then I have no problem with you keeping
+> control over your own code.
+>
 
-Results of the daily build of v4l-dvb:
+this is the difference with the latest drivers. Noone depends on
+anyone anymore, while
+it will still add fully working support out of linuxtv available
+through nearly all kernelversions
+without having to recompile them.
 
-date:        Sat Apr 18 19:00:04 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11517:cda79523a93c
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+>>
+>>> I _am_ interested in the fact that you've ported GPL code (frameworks
+>>> and/or
+>>> drivers) to Apple, creating derived works.
+>>>
+>>
+>> hehe, I did not touch any GPL code.
+>>
+>>> Obviously you'll need to make those changes to the community. Where can I
+>>> download these?
+>>
+>> The framework will be opened when it's time to be opened, right now
+>> it's only available to interested developers.
+>
+> Ahh, if it's not GPL code (or derived from GPL) then I'm not interested in
+> it, and I'm not interested in paying you for access.
+>
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-rc1-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-rc1-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: OK
-linux-2.6.30-rc1-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-rc1-m32r: OK
-linux-2.6.22.19-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29.1-mips: OK
-linux-2.6.30-rc1-mips: WARNINGS
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29.1-powerpc64: OK
-linux-2.6.30-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-rc1-x86_64: WARNINGS
-fw/apps: OK
-sparse (linux-2.6.29.1): OK
-sparse (linux-2.6.30-rc1): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+good.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+Markus
