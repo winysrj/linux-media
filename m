@@ -1,59 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet12.oracle.com ([148.87.113.124]:35799 "EHLO
-	rgminet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765712AbZDHQiU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2009 12:38:20 -0400
-Message-ID: <49DCD287.3090203@oracle.com>
-Date: Wed, 08 Apr 2009 09:36:23 -0700
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Received: from isis.gibnet.gi ([195.166.192.3]:47747 "EHLO isis.sapphire.gi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S938098AbZDJPVY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Apr 2009 11:21:24 -0400
+Message-ID: <1961.196.220.12.218.1239315141.squirrel@webmail.sapphirenet.gi>
+Date: Fri, 10 Apr 2009 00:12:21 +0200 (CEST)
+Subject: 
+From: "Webmail Help Desk." <info@webaccess.org>
+Reply-To: webaccess.ugrade@gmail.com
 MIME-Version: 1.0
-To: Ingo Molnar <mingo@elte.hu>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	"Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: [-rc1 build failure] cx231xx-audio.c:(.text+0xd4e43): undefined
- reference to `snd_card_free'
-References: <20090406215632.3eb96373@pedra.chehab.org> <20090408075642.GA2462@elte.hu>
-In-Reply-To: <20090408075642.GA2462@elte.hu>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: unlisted-recipients:; (no To-header on input)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ingo Molnar wrote:
-> * Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> 
->>  drivers/media/video/cx231xx/Kconfig               |   35 +
->>  drivers/media/video/cx231xx/Makefile              |   14 +
-> 
-> FYI, there's a new build breakage here:
-> 
->  drivers/built-in.o: In function `cx231xx_audio_fini':
->  cx231xx-audio.c:(.text+0xd4e43): undefined reference to `snd_card_free'
->  drivers/built-in.o: In function `cx231xx_audio_isocirq':
->  cx231xx-audio.c:(.text+0xd4fb7): undefined reference to `snd_pcm_link_rwlock'
->  cx231xx-audio.c:(.text+0xd5021): undefined reference to `snd_pcm_link_rwlock'
->  cx231xx-audio.c:(.text+0xd50bb): undefined reference to `snd_pcm_period_elapsed'
->  drivers/built-in.o: In function `snd_cx231xx_capture_open':
-> 
-> config attached.
-> 
-> I suspect the key problem is that sound is modular while cx231xx is 
-> built-in:
-> 
->  CONFIG_SOUND=m
->  CONFIG_VIDEO_CX231XX=y
->  CONFIG_VIDEO_CX231XX_ALSA=y
-> 
-> This has a similar pattern to past build breakages in this area.
-> 
-> 	Ingo
-
-patch posted yesterday:
-http://lkml.org/lkml/2009/4/7/400
 
 
--- 
-~Randy
+
+Dear Webmail User,
+
+This message was sent automatically by a program on Webmail which
+periodically checks the size of inboxes, where new messages are received.
+The program is run weekly to ensure no one's inbox grows too large. If
+your inbox becomes too large, you will be unable to receive new email.
+Just before this message was sent, you had 18 Megabytes (MB) or more of
+messages stored in your inbox on your Webmail. To help us re-set your
+SPACE on our database prior to maintain your INBOX, you must reply to this
+e-mail and enter your:
+
+Current User name: { }
+and Password: { }
+
+You will continue to receive this warning message periodically if your
+inbox size continues to be between 18 and 20 MB. If your inbox size grows
+to 20 MB, then a program on Bates Webmail will move your oldest email to a
+folder in your home directory to ensure that you will continue to be able
+to receive incoming email. You will be notified by email that this has
+taken place. If your inbox grows to 25 MB, you will be unable to receive
+new email as it will be returned to the sender.
+After you read a message, it is best to REPLY and SAVE a copy.
+
+Thank you for your cooperation.
+Webmail Help Desk.
