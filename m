@@ -1,47 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46740 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932767AbZDHLlU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2009 07:41:20 -0400
-Received: from dflp53.itg.ti.com ([128.247.5.6])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n38BfAJO003936
-	for <linux-media@vger.kernel.org>; Wed, 8 Apr 2009 06:41:15 -0500
-From: Chaithrika U S <chaithrika@ti.com>
-To: linux-media@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Manjunath Hadli <mrh@ti.com>, Brijesh Jadav <brijesh.j@ti.com>,
-	Chaithrika U S <chaithrika@ti.com>
-Subject: [PATCH v2 0/4] ARM: DaVinci: DM646x Video: DM646x display driver
-Date: Wed,  8 Apr 2009 07:17:56 -0400
-Message-Id: <1239189476-19863-1-git-send-email-chaithrika@ti.com>
+Received: from qw-out-2122.google.com ([74.125.92.25]:15209 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751635AbZDIO0w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2009 10:26:52 -0400
+Received: by qw-out-2122.google.com with SMTP id 8so732781qwh.37
+        for <linux-media@vger.kernel.org>; Thu, 09 Apr 2009 07:26:51 -0700 (PDT)
+Date: Thu, 9 Apr 2009 11:26:45 -0300
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+Cc: linux-media@vger.kernel.org, rvf16@yahoo.gr,
+	Linux-DVB Mailing List <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] Multiple em28xx devices
+Message-ID: <20090409112645.07897e43@gmail.com>
+In-Reply-To: <412bdbff0904090720n51841374waf16179c77f8886d@mail.gmail.com>
+References: <49DE00B0.4060509@yahoo.gr>
+	<20090409111442.38124a31@gmail.com>
+	<412bdbff0904090720n51841374waf16179c77f8886d@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Display driver for TI DM646x EVM
+Hello Devin,
 
-Signed-off-by: Manjunath Hadli <mrh@ti.com>
-Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-Signed-off-by: Chaithrika U S <chaithrika@ti.com>
+On Thu, 9 Apr 2009 10:20:33 -0400
+Devin Heitmueller <devin.heitmueller@gmail.com> wrote:
 
-These patches add the display driver support for TI DM646x EVM.
-This patch set has been tested for basic display functionality for
-Composite and Component outputs.
+> On Thu, Apr 9, 2009 at 10:14 AM, Douglas Schilling Landgraf
+> > Please use upstream repository, we do not support sources from
+> > http://mcentral.de/hg/~mrec/em28xx-new this is a parallel project.
+> >
+> > For additional info how to download upstream tree see:
+> > http://www.linuxtv.org/wiki/index.php/How_to_Obtain%2C_Build_and_Install_V4L-DVB_Device_Drivers
+> >
+> > Cheers,
+> > Douglas
+> 
+> Douglas,
+> 
+> Unless he is willing to do without dvb support, he's not going to be
+> able to use the upstream em28xx driver with the Terratec XS.  
 
-In this version of the patches, the review comments got for the earlier version
-have been incorporated. The standard information(timings) has been moved to 
-the display driver. The display driver has been modified accordingly.
-Also simplified the code by removing the redundant vpif_stdinfo data structure. 
+The idea behind that email is to inform that we do not support any
+parallel project. 
 
-Patch 1: Display device platform and board setup
-Patch 2: VPIF driver
-Patch 3: DM646x display driver
-Patch 4: Makefile and config files modifications for Display
+> I've got
+> a device being mailed to me, at which point I will be able to get the
+> dvb support working.
 
-Some of the features like the HBI/VBI support are not yet implemented. 
-Also there are some known issues in the code implementation like 
-fine tuning to be done to TRY_FMT ioctl.The USERPTR usage has not been 
-tested extensively.
+Great, good news!
 
--Chaithrika
-
-
+Cheers,
+Douglas
