@@ -1,32 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:49694 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752260AbZDTR3p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 13:29:45 -0400
-Date: Mon, 20 Apr 2009 14:29:39 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Uri Shkolnik <urishk@yahoo.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] [0904_1] Siano: core header - update license and
- include files
-Message-ID: <20090420142939.4b166841@pedra.chehab.org>
-In-Reply-To: <771581.17466.qm@web110805.mail.gq1.yahoo.com>
-References: <771581.17466.qm@web110805.mail.gq1.yahoo.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail.kapsi.fi ([217.30.184.167]:53637 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756971AbZDILOj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Apr 2009 07:14:39 -0400
+Message-ID: <49DDD897.4000409@iki.fi>
+Date: Thu, 09 Apr 2009 14:14:31 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org, chrisneilbrown@gmail.com
+CC: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] AVerTV Volar DVB-T USB GPS 805
+References: <91591f560904090409x15481f87ra1d7211ec35bc569@mail.gmail.com>
+In-Reply-To: <91591f560904090409x15481f87ra1d7211ec35bc569@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 20 Apr 2009 10:11:46 -0700 (PDT)
-Uri Shkolnik <urishk@yahoo.com> wrote:
+Chris Brown wrote:
+> Hello
+> 
+> This device doesnt seem to work
+> I've tried several different modules referenced in the dvb-t usb page on 
+> linuxtv
+> Any ideas?
+> 
+> Bus 001 Device 003: ID 07ca:a805 AVerMedia Technologies, Inc.
+> Bus 001 Device 004: ID 0471:082d Philips
+> Bus 001 Device 002: ID 0409:005a NEC Corp. HighSpeed Hub
 
-> Just to make sure (sorry to be a little nagger about it...)
-> Should I ignore the old request to replace "compat.h" with <linux/compat.h>, and stay with "compat.h" ?
+What does lsusb -vv -d 07ca:a805 says?
 
-Yes. I never requested such change, nor I understand why someone suggested you
-to do such change.
-
-Cheers,
-Mauro
+Antti
+-- 
+http://palosaari.fi/
