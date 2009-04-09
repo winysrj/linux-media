@@ -1,172 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39584 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752622AbZDNJKG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Apr 2009 05:10:06 -0400
-Date: Tue, 14 Apr 2009 11:10:05 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/5] pcm990 baseboard: add camera bus width switch
-	setting
-Message-ID: <20090414091005.GA14383@pengutronix.de>
-References: <1236857239-2146-1-git-send-email-s.hauer@pengutronix.de> <1236857239-2146-2-git-send-email-s.hauer@pengutronix.de> <1236857239-2146-3-git-send-email-s.hauer@pengutronix.de> <Pine.LNX.4.64.0903121405150.4896@axis700.grange> <20090312141819.GN425@pengutronix.de> <Pine.LNX.4.64.0904092339320.4841@axis700.grange> <Pine.LNX.4.64.0904141053230.1587@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0904141053230.1587@axis700.grange>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3367 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756879AbZDISUq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2009 14:20:46 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id n39IKhDx081056
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 9 Apr 2009 20:20:44 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 9 Apr 2009 20:20:43 +0200 (CEST)
+Message-Id: <200904091820.n39IKhDx081056@smtp-vbr12.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 14, 2009 at 10:57:32AM +0200, Guennadi Liakhovetski wrote:
-> On Thu, 9 Apr 2009, Guennadi Liakhovetski wrote:
-> 
-> > Hi Sascha,
-> > 
-> > something, that skipped both of us:
-> 
-> ...and one more:
-> 
-> > On Thu, 12 Mar 2009, Sascha Hauer wrote:
-> > 
-> > > Some Phytec cameras have a I2C GPIO expander which allows it to
-> > > switch between different sensor bus widths. This was previously
-> > > handled in the camera driver. Since handling of this switch
-> > > varies on several boards the cameras are used on, the board
-> > > support seems a better place to handle the switch
-> > > 
-> > > Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-> > > ---
-> > >  arch/arm/mach-pxa/pcm990-baseboard.c |   53 ++++++++++++++++++++++++++++------
-> > >  1 files changed, 44 insertions(+), 9 deletions(-)
-> > > 
-> > > diff --git a/arch/arm/mach-pxa/pcm990-baseboard.c b/arch/arm/mach-pxa/pcm990-baseboard.c
-> > > index 34841c7..fd8f786 100644
-> > > --- a/arch/arm/mach-pxa/pcm990-baseboard.c
-> > > +++ b/arch/arm/mach-pxa/pcm990-baseboard.c
-> > > @@ -381,14 +381,49 @@ static struct pca953x_platform_data pca9536_data = {
-> > >  	.gpio_base	= NR_BUILTIN_GPIO + 1,
-> > >  };
-> > >  
-> > > -static struct soc_camera_link iclink[] = {
-> > > -	{
-> > > -		.bus_id	= 0, /* Must match with the camera ID above */
-> > > -		.gpio	= NR_BUILTIN_GPIO + 1,
-> > > -	}, {
-> > > -		.bus_id	= 0, /* Must match with the camera ID above */
-> > > -		.gpio	= -ENXIO,
-> > > +static int gpio_bus_switch;
-> > > +
-> > > +static int pcm990_camera_set_bus_param(struct soc_camera_link *link,
-> > > +		unsigned long flags)
-> > > +{
-> > > +	if (gpio_bus_switch <= 0) {
-> > > +		if (flags == SOCAM_DATAWIDTH_10)
-> > > +			return 0;
-> > > +		else
-> > > +			return -EINVAL;
-> > > +	}
-> > > +
-> > > +	if (flags & SOCAM_DATAWIDTH_8)
-> > > +		gpio_set_value(gpio_bus_switch, 1);
-> > > +	else
-> > > +		gpio_set_value(gpio_bus_switch, 0);
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +
-> > > +static unsigned long pcm990_camera_query_bus_param(struct soc_camera_link *link)
-> > > +{
-> > > +	int ret;
-> > > +
-> > > +	if (!gpio_bus_switch) {
-> > > +		ret = gpio_request(NR_BUILTIN_GPIO + 1, "camera");
-> > 
-> > There's no gpio_free() now... So, for example, you cannot unload the 
-> > extender driver any more, unloading i2c adapter driver (i2c-pxa) produces 
-> > ugly stuff like
-> > 
-> > pca953x 0-0041: gpiochip_remove() failed, -16
-> > 
-> > So, we either have to request and free the GPIO in each query / set, or we 
-> > need an explicit .free_bus() call in soc_camera_link. None of the two 
-> > really pleases me, but maybe the latter is slightly less ugly, what do you 
-> > think?
-> > 
-> > Thanks
-> > Guennadi
-> > 
-> > > +		if (!ret) {
-> > > +			gpio_bus_switch = NR_BUILTIN_GPIO + 1;
-> > > +			gpio_direction_output(gpio_bus_switch, 0);
-> > > +		} else
-> > > +			gpio_bus_switch = -EINVAL;
-> > >  	}
-> 
-> If you first do not load pca953x and try to start capture, thus calling 
-> pcm990_camera_query_bus_param(), gpio_request() will fail and you get 
-> gpio_bus_switch < 0. Then if you load pca953x it doesn't help any more - 
-> by testing for "if (!gpio_bus_switch)" you do not retry after the first 
-> error.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-So how do we proceed? Add init/exit functions for the bus?
+Results of the daily build of v4l-dvb:
 
-Sascha
+date:        Thu Apr  9 19:00:04 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11445:dba0b6fae413
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-> 
-> Thanks
-> Guennadi
-> 
-> > > +
-> > > +	if (gpio_bus_switch > 0)
-> > > +		return SOCAM_DATAWIDTH_8 | SOCAM_DATAWIDTH_10;
-> > > +	else
-> > > +		return SOCAM_DATAWIDTH_10;
-> > > +}
-> > > +
-> > > +static struct soc_camera_link iclink = {
-> > > +	.bus_id	= 0, /* Must match with the camera ID above */
-> > > +	.query_bus_param = pcm990_camera_query_bus_param,
-> > > +	.set_bus_param = pcm990_camera_set_bus_param,
-> > >  };
-> > >  
-> > >  /* Board I2C devices. */
-> > > @@ -399,10 +434,10 @@ static struct i2c_board_info __initdata pcm990_i2c_devices[] = {
-> > >  		.platform_data = &pca9536_data,
-> > >  	}, {
-> > >  		I2C_BOARD_INFO("mt9v022", 0x48),
-> > > -		.platform_data = &iclink[0], /* With extender */
-> > > +		.platform_data = &iclink, /* With extender */
-> > >  	}, {
-> > >  		I2C_BOARD_INFO("mt9m001", 0x5d),
-> > > -		.platform_data = &iclink[0], /* With extender */
-> > > +		.platform_data = &iclink, /* With extender */
-> > >  	},
-> > >  };
-> > >  #endif /* CONFIG_VIDEO_PXA27x ||CONFIG_VIDEO_PXA27x_MODULE */
-> > > -- 
-> > > 1.5.6.5
-> > > 
-> > > -- 
-> > > Pengutronix e.K.                           |                             |
-> > > Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-> > > Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-> > > Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
-> > > 
-> > 
-> > ---
-> > Guennadi Liakhovetski, Ph.D.
-> > Freelance Open-Source Software Developer
-> > 
-> 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> 
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-rc1-armv5: ERRORS
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29.1-armv5-ixp: OK
+linux-2.6.30-rc1-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: OK
+linux-2.6.30-rc1-i686: ERRORS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-rc1-m32r: ERRORS
+linux-2.6.22.19-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29.1-mips: OK
+linux-2.6.30-rc1-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-rc1-x86_64: ERRORS
+fw/apps: WARNINGS
+sparse (linux-2.6.29.1): OK
+sparse (linux-2.6.30-rc1): OK
+linux-2.6.16.61-i686: WARNINGS
+linux-2.6.17.14-i686: OK
+linux-2.6.18.8-i686: OK
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: OK
+linux-2.6.18.8-x86_64: OK
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
