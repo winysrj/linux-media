@@ -1,49 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.241]:38881 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756635AbZDKSHd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Apr 2009 14:07:33 -0400
-Received: by an-out-0708.google.com with SMTP id d14so1355592and.1
-        for <linux-media@vger.kernel.org>; Sat, 11 Apr 2009 11:07:32 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <621110570904110547v6b22ad5fv4db760816cb67338@mail.gmail.com>
-References: <621110570904100418r9d7e583j5ae4982a77e9dba9@mail.gmail.com>
-	 <49DF9CB7.5080802@ewetel.net>
-	 <621110570904101437g5843eb21h8a0c894cc9bb48d@mail.gmail.com>
-	 <a3ef07920904101559me72e8f7xa288b99bcc4a058@mail.gmail.com>
-	 <621110570904110547v6b22ad5fv4db760816cb67338@mail.gmail.com>
-Date: Sat, 11 Apr 2009 20:07:31 +0200
-Message-ID: <621110570904111107p2395bd4dq47dfd31e48444660@mail.gmail.com>
-Subject: Re: [linux-dvb] SkyStar HD2 (TwinHan VP-1041/Mantis) S2API support
-From: Dave Lister <foceni@gmail.com>
-To: VDR User <user.vdr@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197]:38771 "EHLO
+	mta2.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764625AbZDIOEF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2009 10:04:05 -0400
+Received: from steven-toths-macbook-pro.local
+ (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta2.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KHU0068M72DSG70@mta2.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Thu, 09 Apr 2009 10:03:52 -0400 (EDT)
+Date: Thu, 09 Apr 2009 10:03:48 -0400
+From: Steven Toth <stoth@linuxtv.org>
+Subject: Re: [linux-dvb] HVR-1700 - can't open or scan
+In-reply-to: <8de7a23f0904090007x3905ee7dp817efe67044b8223@mail.gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Message-id: <49DE0044.10700@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <8de7a23f0904090007x3905ee7dp817efe67044b8223@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/4/11 Dave Lister <foceni@gmail.com>:
->
-> RESULTS (using "s2" dvb-apps):
-> - scanning DVB-S works
-> - scanning DVB-S2 doesn't work
-> - zapping DVB-S is fast
->
-> BUT there is a big problem now; even when I have FE_HAS_LOCK,
-> /dev/dvb/adapter0/dvr0 is dead; trying to read dvr0 blocks as if there
-> was no lock! Any suggestions? I'd really like to make this work - this
-> driver seems the best of both worlds! :)
->
+Alastair Bain wrote:
+> I'm trying to get the Hauppauge HVR-1700 working on a Mythbuntu 9.04 b 
+> install. Looks like the modules are all loading, firmware is being 
+> loaded, device appears in /dev etc, but I can't seem to do anything with 
+> it. dvbscan fails around ln 315,
+> 
+> dvbfe_get_info(fe, DVBFE_INFO_LOCKSTATUS, &feinfo,
+>                                 DVBFE_INFO_QUERYTYPE_IMMEDIATE, 0)
+> returns DVBFE_INFO_QUERYTYPE_LOCKCHANGE
+> 
+> Anyone have any clues as to what I can do to fix this? Kernel trace is 
+> at http://pastebin.com/m7671e816.
 
-My bad, didn't know -r had to be used with szap. :) Now both drivers
-(mantis-v4l, liplianin-s2) seem to work fine, although when I do
-something with DVB-S2, I loose signal altogether and have to reboot.
-Module reload doesn't help, so I'd say the drivers botch something
-inside the HW. :) Will report back as soon as I know more.
+trace looks fine.
 
-Thank you for helping me out, everybody!
+Try tzap then report back.
 
--- 
-David Lister
+- Steve
