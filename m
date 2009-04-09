@@ -1,125 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.168]:10868 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751861AbZDCCtW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Apr 2009 22:49:22 -0400
-Received: by wf-out-1314.google.com with SMTP id 29so968777wff.4
-        for <linux-media@vger.kernel.org>; Thu, 02 Apr 2009 19:49:21 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <5e9665e10904020325t3567c442t2fce7bcc32aa8940@mail.gmail.com>
-References: <5e9665e10904020325t3567c442t2fce7bcc32aa8940@mail.gmail.com>
-Date: Fri, 3 Apr 2009 11:49:21 +0900
-Message-ID: <5e9665e10904021949uf3884c7s64bb362f4363fb16@mail.gmail.com>
-Subject: Re: Compile error in v4l2-spec
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:61687 "EHLO
+	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936588AbZDIQwb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2009 12:52:31 -0400
+Received: from steven-toths-macbook-pro.local
+ (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta5.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KHU008INEVG6Q40@mta5.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Thu, 09 Apr 2009 12:52:29 -0400 (EDT)
+Date: Thu, 09 Apr 2009 12:52:27 -0400
+From: Steven Toth <stoth@linuxtv.org>
+Subject: Re: Multiple em28xx devices
+In-reply-to: <d9def9db0904090932o4438902bt83d303f0853e5e11@mail.gmail.com>
+To: Markus Rechberger <mrechberger@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>,
+	rvf16 <rvf16@yahoo.gr>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-id: <49DE27CB.6080600@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <49DE0891.9010506@yahoo.gr>
+ <412bdbff0904090839v43772f6dk7f2ac47ef417f45f@mail.gmail.com>
+ <20090409124810.6c9f73bb@pedra.chehab.org>
+ <d9def9db0904090852v63b71413r616369babeff1d95@mail.gmail.com>
+ <49DE2226.7030406@linuxtv.org>
+ <d9def9db0904090932o4438902bt83d303f0853e5e11@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Markus Rechberger wrote:
+> On Thu, Apr 9, 2009 at 6:28 PM, Steven Toth <stoth@linuxtv.org> wrote:
+>> Markus Rechberger wrote:
+>>> On Thu, Apr 9, 2009 at 5:48 PM, Mauro Carvalho Chehab
+>>> <mchehab@infradead.org> wrote:
+>>>> On Thu, 9 Apr 2009 11:39:47 -0400
+>>>> Devin Heitmueller <devin.heitmueller@gmail.com> wrote:
+>>>>
+>>>>> 2009/4/9 rvf16 <rvf16@yahoo.gr>:
+>>>>>> So does the upstream driver support all the rest ?
+>>>>>> Analog TV
+>>>>> Yes
+>>>>>
+>>>>>> FM radio
+>>>>> No
+>>>> Yes, it does support FM radio, provided that you proper add radio
+>>>> specific
+>>>> configuration at em28xx-cards.c.
+>>>>
+>>> I plan to add support for it to the existing kerneldriver anyway, but
+>>> by using userspace drivers.
+>>> Those drivers are just ontop of everything and no changes are required
+>>> for the existing drivers.
+>>>
+>>> I'll just intercept all the calls as I do right now already with the
+>>> latest device. I ported the entire configuration framework to userland
+>>> and it also works on Apple OSX without any change. I'm just using
+>>> usbfs for it, PCI config support is possible by using libpci or
+>>> opening the corresponding node in the proc filesystem too. This time
+>>> there's nothing you can do against it since it requires no change as
+>>> it is.
+>> Userspace drivers won't be accepted but it's not worth re-opening that old
+>> wound - especially since I haven't followed this specific thread.
+>>
+> 
+> no problem, as I wrote it sits ontop of everything not needing any kernel hooks.
 
-I'm answering myself.
-I solved compile error that I mentioned yesterday,
+That's fine, if it's not derived then I have no problem with you keeping control 
+over your own code.
 
-Problem is all about DTD and sh in ubuntu distribution.
-I'm still not sure what package do I exactly need to solve this
-problem, but I did like following.
+> 
+>> I _am_ interested in the fact that you've ported GPL code (frameworks and/or
+>> drivers) to Apple, creating derived works.
+>>
+> 
+> hehe, I did not touch any GPL code.
+> 
+>> Obviously you'll need to make those changes to the community. Where can I
+>> download these?
+> 
+> The framework will be opened when it's time to be opened, right now
+> it's only available to interested developers.
 
-I searched all the packages related with sgml and selected which
-contains DTD things.
-sudo apt-cache search sgml | grep DTD
-and install all of them. (shame ;-()
+Ahh, if it's not GPL code (or derived from GPL) then I'm not interested in it, 
+and I'm not interested in paying you for access.
 
-and also do the same thing with docbook with DTD things like this,
-sudo apt-cache search docbook | grep DTD
+- Steve
 
-and remove /bin/sh which is symbolic linked to /bin/dash
-and make a symbolic link with bash (not sure this is right)
-
-and finally I've got single compiled html v4l2 spec.
-
-Cheers,
-
-Nate
-
-On Thu, Apr 2, 2009 at 7:25 PM, Dongsoo, Nathaniel Kim
-<dongsoo.kim@gmail.com> wrote:
-> Hi,
->
-> I'm trying to make some v4l2-spec document on my own, but having some
-> problem with compiling those.
-> To be clear, I should let you know about the repo that I'm working on.
-> I'm working on Mauro's repo (http://linuxtv.org/hg/v4l-dvb/)
-> and trying to compile v4l2-spec in that.
-> Latest changeset that I have in it is
->
-> changeset:   11341:4c7466ea8d64
-> tag:         tip
-> parent:      11335:23836942be90
-> parent:      11340:2f6cf8db5325
-> user:        Mauro Carvalho Chehab <mchehab@redhat.com>
-> date:        Wed Apr 01 07:36:31 2009 -0300
-> summary:     merge: http://linuxtv.org/hg/~anttip/af9015/
->
->
-> and I'm having errors like following
->
-> Using catalogs: /etc/sgml/catalog
-> Using stylesheet: /home/kdsoo/work/v4l-dvb/v4l2-spec/custom.dsl#html
-> Working on: /home/kdsoo/work/v4l-dvb/v4l2-spec/v4l2.sgml
-> openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/v4l2.sgml:1:55:W: cannot
-> generate system identifier for public text "-//OASIS//DTD DocBook
-> V3.1//EN"
-> openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:2:0:E:
-> character "-" not allowed in declaration subset
-> openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:13:0:E:
-> character "-" not allowed in declaration subset
-> openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:80:0:E:
-> character "-" not allowed in declaration subset
-> openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:83:0:E:
-> character "-" not allowed in declaration subset
-> openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:116:0:E:
-> character "-" not allowed in declaration subset
-> openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:166:0:E:
-> character "-" not allowed in declaration subset
-> openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:183:0:E:
-> character "-" not allowed in declaration subset
-> openjade:/home/kdsoo/work/v4l-dvb/v4l2-spec/entities.sgml:209:0:E:
-> character "-" not allowed in declaration subset
-> ...................
-> <snip>
->
->
-> I don't have any clue about this. What should I do?
-> I'm trying this on my Ubuntu 8.10 machine.
-> Any help should be appreciated.
-> Cheers,
->
-> Nate
->
-> --
-> ========================================================
-> DongSoo, Nathaniel Kim
-> Engineer
-> Mobile S/W Platform Lab.
-> Digital Media & Communications R&D Centre
-> Samsung Electronics CO., LTD.
-> e-mail : dongsoo.kim@gmail.com
->          dongsoo45.kim@samsung.com
-> ========================================================
->
-
-
-
--- 
-========================================================
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
-========================================================
