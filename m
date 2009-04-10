@@ -1,84 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:35481 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752883AbZDRLZp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Apr 2009 07:25:45 -0400
-Message-ID: <49E9B989.70602@redhat.com>
-Date: Sat, 18 Apr 2009 13:29:13 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from wf-out-1314.google.com ([209.85.200.174]:30935 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756596AbZDJUoc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Apr 2009 16:44:32 -0400
+Received: by wf-out-1314.google.com with SMTP id 29so1217775wff.4
+        for <linux-media@vger.kernel.org>; Fri, 10 Apr 2009 13:44:31 -0700 (PDT)
 MIME-Version: 1.0
-To: =?windows-1252?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
-CC: Adam Baker <linux@baker-net.org.uk>,
-	Hans de Goede <j.w.r.degoede@hhs.nl>,
-	Linux and Kernel Video <video4linux-list@redhat.com>,
-	SPCA50x Linux Device Driver Development
-	<spca50x-devs@lists.sourceforge.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: libv4l release: 0.5.97: the whitebalance release!
-References: <49E5D4DE.6090108@hhs.nl> <200904152326.59464.linux@baker-net.org.uk> <49E66787.2080301@hhs.nl> <200904162146.59742.linux@baker-net.org.uk> <49E843CB.6050306@redhat.com> <49E8D808.9070804@gmail.com>
-In-Reply-To: <49E8D808.9070804@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <alpine.LNX.2.00.0904101217260.4270@banach.math.auburn.edu>
+References: <5e9665e10904091450u3e70cda8w9e1d57e45365a32b@mail.gmail.com>
+	 <alpine.LNX.2.00.0904101217260.4270@banach.math.auburn.edu>
+Date: Sat, 11 Apr 2009 05:44:31 +0900
+Message-ID: <5e9665e10904101344p1272dd5j4820bc36f9cedbf7@mail.gmail.com>
+Subject: Re: [RFC] White Balance control for digital camera
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, g.liakhovetski@gmx.de,
+	Mauro Carvalho Chehab <mchehab@infrade4ad.org>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	laurent.pinchart@skynet.be,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"jongse.won@ssamsung.com"@banach.math.auburn.edu,
+	jongse.won@samsung.com, riverful.kim@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 04/17/2009 09:27 PM, Erik Andrén wrote:
+On Sat, Apr 11, 2009 at 2:39 AM, Theodore Kilgore
+<kilgota@banach.math.auburn.edu> wrote:
 >
-> Hans de Goede wrote:
+>
+> On Fri, 10 Apr 2009, Dongsoo, Nathaniel Kim wrote:
+>
+>> Hello everyone,
 >>
->> On 04/16/2009 10:46 PM, Adam Baker wrote:
->>> On Thursday 16 Apr 2009, Hans de Goede wrote:
->>>> On 04/16/2009 12:26 AM, Adam Baker wrote:
->>>>> On Wednesday 15 Apr 2009, Hans de Goede wrote:
->>>>>> Currently only whitebalancing is enabled and only on Pixarts (pac)
->>>>>> webcams (which benefit tremendously from this). To test this with
->>>>>> other
->>>>>> webcams (after instaling this release) do:
->>>>>>
->>>>>> export LIBV4LCONTROL_CONTROLS=15
->>>>>> LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so v4l2ucp&
->>>>> Strangely while those instructions give me a whitebalance control
->>>>> for the
->>>>> sq905 based camera I can't get it to appear for a pac207 based camera
->>>>> regardless of whether LIBV4LCONTROL_CONTROLS is set.
->>>> Thats weird, there is a small bug in the handling of pac207
->>>> cams with usb id 093a:2476 causing libv4l to not automatically
->>>> enable whitebalancing (and the control) for cams with that id,
->>>> but if you have LIBV4LCONTROL_CONTROLS set (exported!) both
->>>> when loading v4l2ucp (you must preload v4l2convert.so!) and
->>>> when loading your viewer, then it should work.
->>>>
->>> I've tested it by plugging in the sq905 camera, verifying the
->>> whitebablance
->>> control is present and working, unplugging the sq905 and plugging in the
->>> pac207 and using up arrow to restart v4l2ucp and svv so I think I've
->>> eliminated most finger trouble possibilities. The pac207 is id
->>> 093a:2460 so
->>> not the problem id. I'll have to investigate more thoroughly later.
->>>
->> Does the pac207 perhaps have a / in its "card" string (see v4l-info
->> output) ?
->> if so try out this patch:
->> http://linuxtv.org/hg/~hgoede/libv4l/rev/1e08d865690a
+>> I'm posting this RFC one more time because it seems to everyone has
+>> been forgot this, and I'll be appreciated if any of you who is reading
+>> this mailing list give me comment.
+>
+> I don't know much about the topic, and I wish I did.
+>
+>> I've got a big question popping up handling white balance with
+>> V4L2_CID_WHITE_BALANCE_TEMPERATURE CID.
 >>
+>> Because in digital camera we generally control over user interface
+>> with pre-defined white balance name. I mean, user controls white
+>> balance with presets not with kelvin number.
+>> I'm very certain that TEMPERATURE CID is needed in many of video
+>> capture devices, but also 100% sure that white balance preset control
+>> is also necessary for digital cameras.
+>> How can we control white balance through preset name with existing V4L2
+>> API?
 >
-> I have the same issue as Adam when trying to test this with my
-> gspca_stv06xx based Quickcam Web camera i. e no whitebalancing
-> controls show up. I'm attaching a dump which logs all available
-> pixformats and v4l2ctrls showing that libv4l is properly loaded.
-> (And yes, LIBV4LCONTROL_CONTROLS is exported and set to 15).
->
-> Best regards,
-> Erik
+> Let's broaden the question to include digital still cameras, which present
+> similar problems. They present data related to this kind of thing, that is
+> obvious. But are there any standard meanings to what is there? Do you know
+> anything about that? Can you help?
 >
 
-Ah, you are using v4l2-ctl, not v4l2ucp, and that uses V4L2_CTRL_FLAG_NEXT_CTRL
-control enumeration. My code doesn't handle V4L2_CTRL_FLAG_NEXT_CTRL (which is
-a bug). I'm not sure when I'll have time to fix this. Patches welcome, or in
-the mean time use v4l2ucp to play with the controls.
+Exactly right, but we need to see this on the top of the user space first.
+Because there could be several types of camera devices could be handled.
+I mean, the device that I'm intending to handle is based on I2C device
+and the "digital still camera" you issued is totally based on USB
+communication.
+That could be different in driver implementation point of view, but
+user in user space should be using in same manner.
+And I think I can help to coordinate how to handle them in user space
+with V4L2 API, but not so much with usb communication with digital
+still cameras.(but I really want to help indeed)
+Actually my expertise is totally based on mobile camera devices like
+camera phone. Even though they are "mobile" camera modules, they are
+very close to regular digital camera in performance and quality level
+now days.
 
-Regards,
+> Two examples:
+>
+> The SQ905 and SQ905C cameras in stillcam mode use an allocation table, which
+> presents on each line some data about the given image. In this line, byte 0
+> is a one-byte code for pixel dimensions and compression setting. Then some
+> more bytes give the starting and ending locations of the photo in the
+> camera's memory (actually irrelevant and superfluous information, because
+> you can only ask for the photos in sequence, and with a command which has
+> nothing to do with its memory location at all). Then some more bytes
+> obviously have something to do with contrast, brightness, white balance,
+> color balance, and so on. But I have no more idea than the Man in the Moon
+> how those bytes are supposed to be interpreted. The SQ905 gives no such
+> equivalent information while in streaming mode, and so there is nothing at
+> all which could be done with the nonexistent information. But the SQ905C
+> does obviously give such information, in a few bytes in the header of each
+> frame.
 
-Hans
+As far as I know, SQ905 (is that actually cheez camera?) is a regular
+digital camera not a mobile camera module, so in that case it could be
+handled in gspca and totally control through usb_control_msg.
+And with my experience, I think I can help you if I have any kind of
+datasheet or user manual for that.
+But even if I don't have datasheet and don't know which message field
+means what I'm intending to do, I think it could be possible to make
+it compatible with the parameters I'm trying to make in v4l2 control.
+
+>
+> The MR97310A cameras give similar information in the header of the photo
+> itself (and in this case the camera does the same thing in webcam mode,
+> too). Again, I have no idea either what these mysterious bytes are supposed
+> to mean, and how to use them constructively.
+>
+> I could mention several other examples, too, but these will do for a start.
+
+OK I've got what you mean. Can I have any information like user manual
+or datasheet for those SQ and MR devices?
+If we make a white balance preset api in v4l2, then we should have to
+implement that functionality in every single camera drivers in v4l2 if
+those devices are supporting for white balance presets.
+
+I want to make this clear that if we have white balance preset api in
+v4l2, then we can handle every camera device's white balance more user
+friendly.
+
+Thank you for your opinion by the way.
+
+Nate
+
+>
+> Are there any agreed-upon standards about this kind of thing, in the camera
+> industry? Is there any source of information about it?
+>
+> Theodore Kilgore
+>
+
+
+
+-- 
+========================================================
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
+========================================================
