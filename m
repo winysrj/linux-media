@@ -1,31 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2-g21.free.fr ([212.27.42.2]:41293 "EHLO smtp2-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756639AbZDOUgU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Apr 2009 16:36:20 -0400
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 4/5] soc-camera: simplify register access routines in multiple sensor drivers
-References: <Pine.LNX.4.64.0904151356480.4729@axis700.grange>
-	<Pine.LNX.4.64.0904151402540.4729@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Wed, 15 Apr 2009 22:36:11 +0200
-Message-ID: <87ws9lmz7o.fsf@free.fr>
+Received: from host11.oneononeinternet.com ([209.239.43.35]:40686 "EHLO
+	host11.oneononeinternet.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753931AbZDKBJ1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Apr 2009 21:09:27 -0400
+From: "Cyberus UpgradeTeam" <infoupgrade@cyberus.ca>
+Reply-To: soupgradeteam222@gmail.com
+Subject: Dear Email User
+Date: Fri, 10 Apr 2009 10:54:41 -0500
+Message-Id: <20090410155441.M82625@cyberus.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset=iso-8859-1
+To: unlisted-recipients:; (no To-header on input)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+Dear Cyberus Webmail User,   
 
-> Register access routines only need the I2C client, not the soc-camera device
-> context.
->
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-For mt9m111.c :
-Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
+To complete your account activation with us, you are required to reply to 
+this message and enter your password in the spaces provided (*********) you 
+are required to do this before the next 48 hours of receipt of this email or 
+your database will be erased and de-activated from our database.    
 
-Cheers.
+Full Name:...
+Email Id:...
+Password: .....  
+Phone Number..... 
 
---
-Robert
+Thank you for using Cyberus Mail Account.
+Cyberus UpgradeTeam.
