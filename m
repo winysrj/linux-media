@@ -1,78 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f118.google.com ([209.85.221.118]:34723 "EHLO
-	mail-qy0-f118.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750952AbZDXBFd (ORCPT
+Received: from yx-out-2324.google.com ([74.125.44.30]:11533 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753757AbZDJUk4 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Apr 2009 21:05:33 -0400
-Received: by qyk16 with SMTP id 16so1737389qyk.33
-        for <linux-media@vger.kernel.org>; Thu, 23 Apr 2009 18:05:32 -0700 (PDT)
-Date: Thu, 23 Apr 2009 22:05:25 -0300
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] uvc: Add Microsoft VX 500 webcam
-Message-ID: <20090423220525.307f1f6a@gmail.com>
-In-Reply-To: <200904202007.31599.laurent.pinchart@skynet.be>
-References: <68cac7520904150003n150bff9bp616cc49e684d947d@mail.gmail.com>
-	<200904151146.52459.laurent.pinchart@skynet.be>
-	<20090415104808.13062f47@gmail.com>
-	<200904202007.31599.laurent.pinchart@skynet.be>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Fri, 10 Apr 2009 16:40:56 -0400
+Received: by yx-out-2324.google.com with SMTP id 31so1278264yxl.1
+        for <linux-media@vger.kernel.org>; Fri, 10 Apr 2009 13:40:55 -0700 (PDT)
+MIME-Version: 1.0
+Date: Fri, 10 Apr 2009 22:40:54 +0200
+Message-ID: <621110570904101340y3d342cc8r4f3b2cb80ffbbc70@mail.gmail.com>
+Subject: Re: SkyStar HD2 (TwinHan VP-1041) S2API/multiproto issues
+From: Dave Lister <foceni@gmail.com>
+To: Markus Rechberger <mrechberger@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Laurent,
+2009/4/10 Markus Rechberger <mrechberger@gmail.com>:
+> On Fri, Apr 10, 2009 at 1:30 PM, Dave Lister <foceni@gmail.com> wrote:
+>> ...
+>> Drivers tried: http://jusst.de/hg/multiproto,
+>> http://jusst.de/hg/mantis (couldn't make it compile)
+>
+> hmm this seems to work fine with linux 2.6.27 maybe try to downgrade
+> your kernel?
+>
 
-On Mon, 20 Apr 2009 20:07:31 +0200
-Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
+Thank you for the tip! I presume you mean the
+http://jusst.de/hg/mantis driver. When I was trying mantis tree with
+kernels 2.6.26 & 2.6.29 yesterday, I got this compilation error in
+both cases (mentioning for archival purposes, to help others):
 
-> Hi Douglas,
-> 
-> On Wednesday 15 April 2009 15:48:08 Douglas Schilling Landgraf wrote:
-> > Hello Laurent,
-> >
-> > On Wed, 15 Apr 2009 11:46:52 +0200
-> >
-> > Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
-> > > Hi Douglas,
-> > >
-> > > On Wednesday 15 April 2009 09:03:45 Douglas Schilling Landgraf
-> > > wrote:
-> > > > Hello Laurent,
-> > > >
-> > > >     Attached patch for the following:
-> > > >
-> > > >     Added Microsoft VX 500 webcam to uvc driver.
-> > > >
-> > > > Signed-off-by: Douglas Schilling Landgraf <dougsland@redhat.com>
-> > >
-> > > Could you please send me the output of
-> > >
-> > > lsusb -v -d 045e:074a
-> > >
-> > > using usbutils 0.72 or newer (0.73+ preferred) ?
-> >
-> > usbutils-0.73-2
-> >
-> > > Have you tried the latest driver ?
-> >
-> > Yes
-> >
-> > > The MINMAX quirk isn't required
-> > > anymore for most cameras (although the two supported Microsoft
-> > > webcams still need it, so I doubt it will work as-is).
-> >
-> > Indeed, attached new patch.
-> 
-> The new patch shouldn't be needed at all, as it doesn't declare any
-> quirk. The camera should work out of the box using the latest driver.
+In file included from /n/data/src/mantis/v4l/tuner-xc2028.h:10,
+                from /n/data/src/mantis/v4l/tuner-xc2028.c:21:
+./v4l/dvb_frontend.h:52: error: field 'fe_params' has incomplete type
+./v4l/dvb_frontend.h:297: warning: 'struct dvbfe_info' declared inside
+parameter list
+./v4l/dvb_frontend.h:299: warning: 'enum dvbfe_delsys' declared inside
+parameter list
+./v4l/dvb_frontend.h:316: error: field 'fe_events' has incomplete type
+./v4l/dvb_frontend.h:317: error: field 'fe_params' has incomplete type
+./v4l/dvb_frontend.h:354: warning: 'enum dvbfe_fec' declared inside
+parameter list
+./v4l/dvb_frontend.h:354: warning: 'enum dvbfe_modulation' declared
+inside parameter list
+make[3]: *** [./v4l/tuner-xc2028.o] Error 1
 
-It doesn't work to me. :-(
- 
-> Best regards,
-> 
-> Laurent Pinchart
-> 
+
+Now, trying again (and harder) as you suggested, I realized my
+kernel's V4L headers (linux/dvb/frontend.h, etc) were taking
+precedence over mantis tree. I "fixed" it (just moved conflicting
+headers), but still ended up with the same fatal error as yesterday -
+struct net_device doesn't have a member called "priv". Turns out this
+incompatibility was introduced somewhere between 2.6.28-29. Debian
+2.6.26 kernel worked fine this time and the driver compiled!
+
+Thanks to your heads up, I can finally scan and zap channels! :) There
+are still some issues, though. Perhaps you or somebody else will be
+able to help me. I tried several versions of dvb-apps/utils (deb,
+http://linuxtv.org/hg/dvb-apps, s2-liplianin,
+http://jusst.de/manu/scan.tar.bz2) and the only one working is the
+Debian package. This means, however, that I cannot use DVB-S2. To make
+it short:
+
+1) Where do I get working S2-enabled dvb-apps for the mantis tree?
+2) Zapping and scanning is _extremely_ slow - szap takes about 30
+seconds to lock on any channel. Is it normal?
+3) DiSEqC is not working with the standard packaged dvb-apps (-s 0, -s
+1). Is DiSEqC supported at all?
+4) I'm using trunk MythTV and compiled it yesterday against
+liplianin-s2. Do I need any patches (b/c of mantis driver) or will
+clean recompilation work (considering S2, etc)?
+
+I'll welcome any suggestions that might point me in the right direction.
+
+Thank you,
+--
+David Lister
