@@ -1,44 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail00d.mail.t-online.hu ([84.2.42.5]:54271 "EHLO
-	mail00d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760413AbZD2S6d (ORCPT
+Received: from qw-out-2122.google.com ([74.125.92.27]:62209 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750837AbZDJX7B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Apr 2009 14:58:33 -0400
-Message-ID: <49F8A325.7060303@freemail.hu>
-Date: Wed, 29 Apr 2009 20:57:41 +0200
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+	Fri, 10 Apr 2009 19:59:01 -0400
+Received: by qw-out-2122.google.com with SMTP id 8so1534264qwh.37
+        for <linux-media@vger.kernel.org>; Fri, 10 Apr 2009 16:59:00 -0700 (PDT)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-CC: LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCH] v4l2: fill the reserved fields of VIDIOC_REQBUFS ioctl
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <de8cad4d0904100710u1cdd9568ud3190b1e97e792e3@mail.gmail.com>
+References: <de8cad4d0904100710u1cdd9568ud3190b1e97e792e3@mail.gmail.com>
+Date: Fri, 10 Apr 2009 19:59:00 -0400
+Message-ID: <de8cad4d0904101659r7564ae3cne075ea355aff73ac@mail.gmail.com>
+Subject: Re: ir-kbd-i2c Compile Warnings
+From: Brandon Jenkins <bcjenkins@tvwhere.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The parameter of VIDIOC_REQBUFS is a pointer to struct v4l2_requestbuffers.
-This structure has reserved fields which has to be filled with zeros
-according to the V4L2 API specification, revision 0.24 [1].
+On Fri, Apr 10, 2009 at 10:10 AM, Brandon Jenkins <bcjenkins@tvwhere.com> wrote:
+> Hello all,
+>
+> Fresh clone of V4L this morning running on a fully patched ArchLinux
+> 64-bit system:
+>
+> /root/drivers/v4l-dvb/v4l/ir-kbd-i2c.o
+> /root/drivers/v4l-dvb/v4l/ir-kbd-i2c.c: In function 'ir_attach':
+> /root/drivers/v4l-dvb/v4l/ir-kbd-i2c.c:429: warning:
+> 'i2c_attach_client' is deprecated (declared at
+> include/linux/i2c.h:434)
+> /root/drivers/v4l-dvb/v4l/ir-kbd-i2c.c:468: warning:
+> 'i2c_detach_client' is deprecated (declared at
+> include/linux/i2c.h:435)
+> /root/drivers/v4l-dvb/v4l/ir-kbd-i2c.c: In function 'ir_detach':
+> /root/drivers/v4l-dvb/v4l/ir-kbd-i2c.c:484: warning:
+> 'i2c_detach_client' is deprecated (declared at
+> include/linux/i2c.h:435)
+>
+> Brandon
+>
+> uname -a
+> Linux sagetv-server 2.6.29-ARCH #1 SMP PREEMPT Wed Apr 8 12:39:28 CEST
+> 2009 x86_64 Intel(R) Core(TM)2 Quad CPU Q6600 @ 2.40GHz GenuineIntel
+> GNU/Linux
+>
 
-The patch was tested with v4l-test 0.13 [2] with vivi driver.
+Rolling back to kernel:
 
-References:
-[1] V4L2 API specification, revision 0.24
-    http://v4l2spec.bytesex.org/spec/r13696.htm
+Linux sagetv-server 2.6.28-ARCH #1 SMP PREEMPT Tue Mar 17 07:22:53 CET
+2009 x86_64 Intel(R) Core(TM)2 Quad CPU Q6600 @ 2.40GHz GenuineIntel
+GNU/Linux
 
-[2] v4l-test: Test environment for Video For Linux Two API
-    http://v4l-test.sourceforge.net/
+Does not produce the same warnings.
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
----
---- linux-2.6.30-rc3/drivers/media/video/v4l2-ioctl.c.orig	2009-04-22 05:07:00.000000000 +0200
-+++ linux-2.6.30-rc3/drivers/media/video/v4l2-ioctl.c	2009-04-29 19:07:46.000000000 +0200
-@@ -1818,6 +1818,7 @@ static unsigned long cmd_input_size(unsi
- 		CMDINSIZE(G_SLICED_VBI_CAP,	sliced_vbi_cap,	type);
- 		CMDINSIZE(ENUM_FRAMESIZES,	frmsizeenum,	pixel_format);
- 		CMDINSIZE(ENUM_FRAMEINTERVALS,	frmivalenum,	height);
-+		CMDINSIZE(REQBUFS,		requestbuffers, memory);
- 	default:
- 		return _IOC_SIZE(cmd);
- 	}
+Thanks,
+
+Brandon
