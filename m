@@ -1,46 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bar.sig21.net ([80.81.252.164]:43203 "EHLO bar.sig21.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752932AbZD0RhZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2009 13:37:25 -0400
-Date: Mon, 27 Apr 2009 19:37:41 +0200
-From: Johannes Stezenbach <js@linuxtv.org>
-To: "H. Langos" <henrik-dvb@prak.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: wiki on linixtv.org locked
-Message-ID: <20090427173741.GA20847@linuxtv.org>
-References: <20090427164321.GN2895@www.viadmin.org>
+Received: from an-out-0708.google.com ([209.85.132.241]:38881 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756635AbZDKSHd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Apr 2009 14:07:33 -0400
+Received: by an-out-0708.google.com with SMTP id d14so1355592and.1
+        for <linux-media@vger.kernel.org>; Sat, 11 Apr 2009 11:07:32 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090427164321.GN2895@www.viadmin.org>
+In-Reply-To: <621110570904110547v6b22ad5fv4db760816cb67338@mail.gmail.com>
+References: <621110570904100418r9d7e583j5ae4982a77e9dba9@mail.gmail.com>
+	 <49DF9CB7.5080802@ewetel.net>
+	 <621110570904101437g5843eb21h8a0c894cc9bb48d@mail.gmail.com>
+	 <a3ef07920904101559me72e8f7xa288b99bcc4a058@mail.gmail.com>
+	 <621110570904110547v6b22ad5fv4db760816cb67338@mail.gmail.com>
+Date: Sat, 11 Apr 2009 20:07:31 +0200
+Message-ID: <621110570904111107p2395bd4dq47dfd31e48444660@mail.gmail.com>
+Subject: Re: [linux-dvb] SkyStar HD2 (TwinHan VP-1041/Mantis) S2API support
+From: Dave Lister <foceni@gmail.com>
+To: VDR User <user.vdr@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 27, 2009 at 06:43:21PM +0200, H. Langos wrote:
-> 
-> Yesterday a stupid kid vandalized a bunch of pages on the linuxtv wiki and 
-> a sysop locked to database to undo the damage. 
-> 
-> I would have preferred to undo that damage by simply taking a look at 
-> the users contribution page and using the handy-dandy undo function as a
-> mere wiki user. 
-> 
-> It would have deprived that individual the satifaction of gaining the 
-> sysop's attention with his anti-social behavior, but thats probably a 
-> policy decision that is not mine to make.
+2009/4/11 Dave Lister <foceni@gmail.com>:
+>
+> RESULTS (using "s2" dvb-apps):
+> - scanning DVB-S works
+> - scanning DVB-S2 doesn't work
+> - zapping DVB-S is fast
+>
+> BUT there is a big problem now; even when I have FE_HAS_LOCK,
+> /dev/dvb/adapter0/dvr0 is dead; trying to read dvr0 blocks as if there
+> was no lock! Any suggestions? I'd really like to make this work - this
+> driver seems the best of both worlds! :)
+>
 
-The damage was done by a bot script and it affected as many pages
-as the edit rate limiter would allow it to do until I noticed it.
-If you search for "GRAWP'S MASSIVE" you'll see this is not
-limited to linuxtv.org.
+My bad, didn't know -r had to be used with szap. :) Now both drivers
+(mantis-v4l, liplianin-s2) seem to work fine, although when I do
+something with DVB-S2, I loose signal altogether and have to reboot.
+Module reload doesn't help, so I'd say the drivers botch something
+inside the HW. :) Will report back as soon as I know more.
 
-> Anyway .. Now, after about 24h the wiki is still locked.
-> Any reason for that?
+Thank you for helping me out, everybody!
 
-It is locked until I had time to take measures to prevent
-similar damage from happening again right away. I'm
-open to suggestions if someone has experience with this.
-
-
-Johannes
+-- 
+David Lister
