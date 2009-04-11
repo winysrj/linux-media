@@ -1,81 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60749 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752531AbZDUE7n convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:56045 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752500AbZDKLKR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2009 00:59:43 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Weng, Wending" <WWeng@rheinmetall.ca>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 21 Apr 2009 10:29:30 +0530
-Subject: RE: need help for omap3 isp-camera interface
-Message-ID: <19F8576C6E063C45BE387C64729E739404280C5D2C@dbde02.ent.ti.com>
-References: <C01FCF206F5D8D4C89B210408D7DB39C29B6BA@mail2.oerlikon.ca>
-In-Reply-To: <C01FCF206F5D8D4C89B210408D7DB39C29B6BA@mail2.oerlikon.ca>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Sat, 11 Apr 2009 07:10:17 -0400
+Date: Sat, 11 Apr 2009 08:09:53 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Marton Balint <cus@fazekas.hu>, linux-media@vger.kernel.org
+Subject: Re: linux-next: Tree for April 9
+Message-ID: <20090411080953.0c22cf4e@pedra.chehab.org>
+In-Reply-To: <20090410231158.33b85dc1.akpm@linux-foundation.org>
+References: <20090409163305.8c7a0371.sfr@canb.auug.org.au>
+	<20090410231158.33b85dc1.akpm@linux-foundation.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Weng,
+On Fri, 10 Apr 2009 23:11:58 -0700
+Andrew Morton <akpm@linux-foundation.org> wrote:
 
-Thanks,
-Vaibhav Hiremath
-Platform Support Products
-Texas Instruments Inc
-Ph: +91-80-25099927
-
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Weng, Wending
-> Sent: Tuesday, April 21, 2009 8:32 AM
-> To: linux-media@vger.kernel.org
-> Subject: need help for omap3 isp-camera interface
+> On Thu, 9 Apr 2009 16:33:05 +1000 Stephen Rothwell <sfr@canb.auug.org.au> wrote:
 > 
-> Hi All,
+> > I have created today's linux-next tree at
+> > git://git.kernel.org/pub/scm/linux/kernel/git/sfr/linux-next.git
 > 
->    I'm working on video image capture(omap3 isp) interface(PSP
-> 1.0.2), and have met many difficulties. At the camera side, the 8
-> bits BT656 signal are connected to cam_d[0-7], which looks OK. The
-> cam_fld, cam_hs and cam_vs are also connected, At the omap3 side, I
-> use saMmapLoopback.c, it runs, however, it receives only HS_VS_IRQ,
-> but no any image data. I checked FLDSTAT(CCDC_SYN_MODE), it's never
-> changed.
-
-
-[Hiremath, Vaibhav] Depends on above description I believe you are using 8 bit interface in BT656 mode, where CAM[0-7] goes to OMAP_CAM[0-7].
-
-You will have to check for data_shift register configuration, look into the function "omap34xxcamisp_configure_interface" where we are configuring this value. 
-
-In PSP1.0.2 the configuration -
-------------------------------
-Interface - TVP[0-9] -> CAM[D2-D11]
-CCDC_SYN_MODE.INMODE[12-13] = 0x2 --> YCbCr data in 8 bit mode
-TVP5146 FMT1[ --> Configured to 10 bit 4:2:2 mode
-ISP_CNTRL.SHIFT[6-7] = 0x2 --> 4 bit shift, CamExt[13-4] -> Cam[9-0]
-
-With above configuration we are ignoring 2 LSB's from TVP5146 and processing 8bits (MSB's) coming from it.
- 
-
-For your configuration -
-----------------------
-Interface - CAM_BT[7-0] --> CAM[7-0]
-CCDC_SYN_MODE.INMODE[12-13] = 0x2 --> YCbCr data in 8 bit mode
-ISP_CNTRL.SHIFT[6-7] = 0x0 --> 0 bit shift, CamExt[13-0] -> Cam[13-0]
-
-It should work.
-
-
-> Right now, I don't know what to check, if you can give some
-> suggestions, your help will be greatly appreciated. Thanks in
-> advance.
+> It has a link failure with i386 allmodconfig due to missing __divdi3.
 > 
-> Wending Weng
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-
-> media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> It's due to this statement in drivers/media/video/cx88/cx88-dsp.c's
+> int_goertzel():
+> 
+>         return (u32)(((s64)s_prev2*s_prev2 + (s64)s_prev*s_prev -
+>                       (s64)coeff*s_prev2*s_prev/32768)/N/N);
+> 
+> that gem will need to be converted to use div64() or similar, please.
 
+Updated to use do_div().
+
+
+Cheers,
+Mauro
