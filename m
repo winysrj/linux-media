@@ -1,69 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from muru.com ([72.249.23.125]:54322 "EHLO muru.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751256AbZDGAQc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Apr 2009 20:16:32 -0400
-Date: Mon, 6 Apr 2009 23:45:39 +0000
-From: Tony Lindgren <tony@atomide.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Tony Lindgren <tony@atomide.com>,
-	Dongsoo Kim <dongsoo.kim@gmail.com>,
-	Kevin Hilman <khilman@deeprootsystems.com>,
-	Steve Sakoman <sakoman@gmail.com>, linux-media@vger.kernel.org,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Manjunath Hadli <mrh@ti.com>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
-Subject: Re: Embedded Linux Conference
-Message-ID: <20090406234539.GA18715@muru.com>
-References: <63374.207.214.87.58.1239059885.squirrel@webmail.xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <63374.207.214.87.58.1239059885.squirrel@webmail.xs4all.nl>
+Received: from wa-out-1112.google.com ([209.85.146.182]:31999 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754473AbZDLC4V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Apr 2009 22:56:21 -0400
+Received: by wa-out-1112.google.com with SMTP id j5so822086wah.21
+        for <linux-media@vger.kernel.org>; Sat, 11 Apr 2009 19:56:19 -0700 (PDT)
+Message-Id: <3C37DD03-2647-4CC8-8844-6975F1744AEC@gmail.com>
+From: Mino Taoyama <mtaoyama@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Subject: Patch for Lorex QLR0440 (BTTV)
+Date: Sat, 11 Apr 2009 19:56:17 -0700
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 07, 2009 at 01:18:05AM +0200, Hans Verkuil wrote:
-> 
-> > * Dongsoo Kim <dongsoo.kim@gmail.com> [090317 10:36]:
-> >
-> > <snip snip>
-> >
-> >>>> How about Monday night after the Dinner (ends at 7pm [1]) we meet for
-> >>>> beers.  I'll let someone local (Tony) pick the venue.
-> >>>
-> >>> OK, let's plan for Monday night then. I'll find some place with
-> >>> drinks easily available, and within walking distance from the
-> >>> conference.
-> >>>
-> >>> I've added a placeholder for the event where I'll post the details
-> >>> later on:
-> >>>
-> >>> http://www.muru.com/linux/omap/events/
-> >
-> > OK, let's meet at Harry's bar 7pm at 2020 Fillmore St
-> > between Pine and California St. They're closed until 4pm,
-> > so there's no reservation. But as it's Monday night, I'd
-> > assume there's plenty of space. In case of last minute
-> > changes, please check the page above.
-> 
-> Not sure whether it will be as quiet as you hope:
-> 
-> http://www.harrysbarsf.com/
-> 
-> There's apparently some championship game going on today.
+I'm new to this list so please be kind if I do something improper.
 
-Just spoke withem on the phone, they'll just have some
-basketball on tv. So let's meet there and if it's too loud
-we can go somewhere else.
+I have a patch that adds support for the Lorex QLR0440 CCTV card.  It  
+is 4 channel multiplex input to a single BT878. It doesn't have an  
+EEPROM so it can't be automatically identified. The change was that  
+the card has an external video mux that is controlled by GPIO[16:17].
 
-> Note that I and a few others will meet up in the hotel's lobby at 6pm to
-> go to have dinner somewhere. Whoever is interested is free to join us.> 
-> Regards,
+Below is the "hg diff".  I have tested it on my system and it works  
+for me.
 
-There are some nice Japanese restaurants in mall next to the hotel.
+Can someone please let me know if I changed the code appropriately and  
+if I created the patch correctly so that it can be submitted?
 
-Regards,
+Thanks,
+Mino
+--------
 
-Tony
+diff -r dba0b6fae413 linux/Documentation/video4linux/CARDLIST.bttv
+--- a/linux/Documentation/video4linux/CARDLIST.bttv	Thu Apr 09  
+08:21:42 2009 -0300
++++ b/linux/Documentation/video4linux/CARDLIST.bttv	Sat Apr 11  
+18:24:08 2009 -0700
+@@ -158,3 +158,4 @@
+  157 -> Geovision GV-800(S) (master)                        [800a:763d]
+  158 -> Geovision GV-800(S) (slave)                         [800b: 
+763d,800c:763d,800d:763d]
+  159 -> ProVideo PV183                                       
+[1830 
+: 
+1540,1831 
+:1540,1832:1540,1833:1540,1834:1540,1835:1540,1836:1540,1837:1540]
++160 -> Lorex QLR0440
+diff -r dba0b6fae413 linux/drivers/media/video/bt8xx/bttv-cards.c
+--- a/linux/drivers/media/video/bt8xx/bttv-cards.c	Thu Apr 09 08:21:42  
+2009 -0300
++++ b/linux/drivers/media/video/bt8xx/bttv-cards.c	Sat Apr 11 18:24:08  
+2009 -0700
+@@ -79,6 +79,9 @@
+  static void gv800s_muxsel(struct bttv *btv, unsigned int input);
+  static void gv800s_init(struct bttv *btv);
+
++static void qlr0440_muxsel(struct bttv *btv, unsigned int input);
++static void qlr0440_init(struct bttv *btv);
++
+  static int terratec_active_radio_upgrade(struct bttv *btv);
+  static int tea5757_read(struct bttv *btv);
+  static int tea5757_write(struct bttv *btv, int value);
+@@ -2940,6 +2943,18 @@
+  		.tuner_type     = TUNER_ABSENT,
+  		.tuner_addr	= ADDR_UNSET,
+  	},
++	[BTTV_BOARD_LOREX_QLR0440] = {
++		.name           = "Lorex QLR0440",
++		.video_inputs   = 4,
++		/* .audio_inputs= 0, */
++		.svhs           = NO_SVHS,
++		.muxsel         = MUXSEL(2, 2, 2, 2),
++		.muxsel_hook    = qlr0440_muxsel,
++		.needs_tvaudio  = 0,
++		.pll            = PLL_28,
++		.tuner_type     = TUNER_ABSENT,
++		.tuner_addr	= ADDR_UNSET,
++	},
+  };
+
+  static const unsigned int bttv_num_tvcards = ARRAY_SIZE(bttv_tvcards);
+@@ -3471,6 +3486,8 @@
+  	case BTTV_BOARD_GEOVISION_GV800S:
+  		gv800s_init(btv);
+  		break;
++	case BTTV_BOARD_LOREX_QLR0440:
++		qlr0440_init(btv);
+  	}
+
+  	/* pll configuration */
+@@ -4913,6 +4930,20 @@
+  	master[btv->c.nr+3] = btv;
+  }
+
++static void qlr0440_muxsel(struct bttv *btv, unsigned int input)
++{
++	/* video mux */
++	gpio_bits(0x030000, input << 16);
++}
++
++static void qlr0440_init(struct bttv *btv)
++{
++	/* enable gpio bits, mask obtained via btSpy */
++	gpio_inout(0xffffff, 0x030000);
++	gpio_write(0x000000);
++}
++
++
+  /*  
+----------------------------------------------------------------------- */
+  /* motherboard chipset specific  
+stuff                                      */
+
+diff -r dba0b6fae413 linux/drivers/media/video/bt8xx/bttv.h
+--- a/linux/drivers/media/video/bt8xx/bttv.h	Thu Apr 09 08:21:42 2009  
+-0300
++++ b/linux/drivers/media/video/bt8xx/bttv.h	Sat Apr 11 18:24:08 2009  
+-0700
+@@ -186,7 +186,7 @@
+  #define BTTV_BOARD_GEOVISION_GV800S	   0x9d
+  #define BTTV_BOARD_GEOVISION_GV800S_SL	   0x9e
+  #define BTTV_BOARD_PV183                   0x9f
+-
++#define BTTV_BOARD_LOREX_QLR0440           0xa0
+
+  /* more card-specific defines */
+  #define PT2254_L_CHANNEL 0x10
+
