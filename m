@@ -1,61 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f166.google.com ([209.85.217.166]:58216 "EHLO
-	mail-gx0-f166.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756595AbZD1CDj (ORCPT
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:61870 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754440AbZDMGyL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2009 22:03:39 -0400
-Received: by gxk10 with SMTP id 10so614182gxk.13
-        for <linux-media@vger.kernel.org>; Mon, 27 Apr 2009 19:03:39 -0700 (PDT)
+	Mon, 13 Apr 2009 02:54:11 -0400
+Received: by fxm2 with SMTP id 2so1874431fxm.37
+        for <linux-media@vger.kernel.org>; Sun, 12 Apr 2009 23:54:09 -0700 (PDT)
 MIME-Version: 1.0
-Date: Mon, 27 Apr 2009 22:03:39 -0400
-Message-ID: <412bdbff0904271903o6a66c48co87b8b1829be2f62f@mail.gmail.com>
-Subject: Panic in HVR-950q caused by changeset 11356
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Janne Grunau <j@jannau.net>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Vincent Krakora <rob.krakora@gmail.com>,
-	Josh Watzman <jwatzman@andrew.cmu.edu>
+In-Reply-To: <49E2A0E1.4020407@retrodesignfan.eu>
+References: <20090411221740.GB12581@www.viadmin.org>
+	 <49E2A0E1.4020407@retrodesignfan.eu>
+Date: Mon, 13 Apr 2009 08:54:09 +0200
+Message-ID: <d9def9db0904122354g3e6a8603mcbf69cfb96799b8d@mail.gmail.com>
+Subject: Re: [linux-dvb] DVB-T USB dib0700 device recommendations?
+From: Markus Rechberger <mrechberger@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Janne,
+On Mon, Apr 13, 2009 at 4:18 AM, Marco Borm <linux-dvb@retrodesignfan.eu> wrote:
+> Hi Henrik,
+>
+> one of the cards in my system is the dib0700 based "'Hauppauge Nova-T 500".
+> Compared with the "TerraTec Cinergy 1400" I would say that the receiver
+> sensitivity is worse but the main problem I have is that the card
+> consumes a loot of energy (8-13W), which is much more than the
+> Terratec(5-6W).
 
-Ok, so now I need to better understand the nature of changeset 11356.
-It turns up I spent the entire afternoon debugging a kernel panic on
-usb disconnect, which ended up being due to this patch:
+That's a little bit weird USB itself should provide max 5V 500mA which would be
+2.5 Watt; if it requires more then the device has to be self powered.
 
-au0828: use usb_interface.dev for v4l2_device_register
-http://linuxtv.org/hg/v4l-dvb/rev/33810c734a0d
+Maybe you can try to use a different USB device (eg. storage) just for
+testing the
+consumption. USB is supposed to require alot power (the controller).
+You might try to unload the ehci/ohci driver too.
 
-The change to pass the interface->dev to v4l2_device_register()
-effectively overwrote the interface data, so while I thought
-usb_set_intfdata() was storing the au0828_dev *, in fact it was
-holding a v4l2_device *.  When au0828_usb_disconnect() eventually gets
-called, the call to usb_get_intfdata() returned the v4l2_device, and
-presto - instant panic.
+Markus
 
-So, either I can roll back this change, or I can make the call to
-usb_set_intfdata() *after* the call to v4l2_device_register().
-However, I don't know what else that might screw up (I haven't traced
-out everything in v4l2-device that might expect a v4l2_device * to be
-stored there).
-
-Suggestions?
-
-Perhaps if you could provide some additional background as to what
-prompted this change, it will help me better understand the correct
-course of action at this point.
-
-Devin
-
-cc: Robert Krakora and Josh Watzman since they both independently
-reported what I believe to be the exact same issue (the stack is
-slightly different because in their case as it crashed in the
-dvb_unregister portion of the usb_disconnect routine).
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+> I calculated this using measure values of the whole system captured with
+> a Conrad/Voltcraft Energy Monitor 3000.
+> Personally I am little bit shocked about that and wondering if this can
+> be true because the dib is a USB-device, but the Voltcraft is one of the
+> better measurement device.
+> Maybe the VIA usb-hub controller on the board is the problem?!
+>
+> Would be interesting of someone has the same or other experiences with
+> this card or other PCI based cards. Hauppauge ignores all my questions,
+> so I can't recomment products of this manufacturer anyway.
+>
+>
+> Greetings,
+> Marco
+>
+> H. Langos wrote:
+>> I've been trying to minimize energy consumption [...] But before running
+>> out in the street and buying the first dib0700 device I'd like to know if
+>> there are any devices that are
+>>
+>> - especially good [...]
+>>
+>> or
+>>
+>> - especially bad [...]
+>>
+>>
+>> _______________________________________________
+>> linux-dvb users mailing list
+>> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>
+>>
+>
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
