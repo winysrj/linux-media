@@ -1,18 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-gx0-f161.google.com ([209.85.217.161])
+Received: from moutng.kundenserver.de ([212.227.126.188])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <poplyra@gmail.com>) id 1LuxaZ-0000sP-Qd
-	for linux-dvb@linuxtv.org; Sat, 18 Apr 2009 01:35:20 +0200
-Received: by gxk5 with SMTP id 5so2896991gxk.17
-	for <linux-dvb@linuxtv.org>; Fri, 17 Apr 2009 16:34:45 -0700 (PDT)
+	(envelope-from <linux-dvb@retrodesignfan.eu>) id 1LtVNX-0003oL-RX
+	for linux-dvb@linuxtv.org; Tue, 14 Apr 2009 01:15:52 +0200
+Message-ID: <49E3C77F.2050508@retrodesignfan.eu>
+Date: Tue, 14 Apr 2009 01:15:11 +0200
+From: Marco Borm <linux-dvb@retrodesignfan.eu>
 MIME-Version: 1.0
-In-Reply-To: <200904171633.54211.lyra@pop-pr.rnp.br>
-References: <200904171633.54211.lyra@pop-pr.rnp.br>
-Date: Fri, 17 Apr 2009 20:34:44 -0300
-Message-ID: <ff07fffe0904171634k7e8210ebw85cfc153cde7cdbc@mail.gmail.com>
-From: Christian Lyra <lyra@pop-pr.rnp.br>
 To: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Current state of DVB-C support
+References: <20090411221740.GB12581@www.viadmin.org>	<49E2A0E1.4020407@retrodesignfan.eu>	<d9def9db0904122354g3e6a8603mcbf69cfb96799b8d@mail.gmail.com>	<20090413113109.GD12581@www.viadmin.org>
+	<1239661530.15301.72.camel@pc07.localdom.local>
+In-Reply-To: <1239661530.15301.72.camel@pc07.localdom.local>
+Subject: Re: [linux-dvb] DVB-T USB dib0700 device recommendations?
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -21,59 +20,50 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-
+hermann pitton wrote:
+> Hi Guys,
 >
-> =A0 =A0 =A0 =A0My first attempt to use a DVB-C was with a KNC1 card. I ju=
-st had to
-> download the latest source from dvb repository, compile and install.
-> The card was identified, I could scan channels and watch TV. BUT some
-> channels works very badly, as the card couldnt lock properly on a few
-> transponders (309mhz and 321mhz). Running a czap on those channels
-> shows that the card keep "locking" and loosing the lock.
-> =A0 =A0 =A0 =A0I thought that the problem could be something with my cabl=
-ing, so I
-> tried my card at a friend=B4s house with the same results. I also tried a
-> attenuator, but without success too.
+> [snip]
+>   
+>>>> Hauppauge ignores all my questions,
+>>>> so I can't recomment products of this manufacturer anyway.
+>>>>         
+>> Good to know. Thank you!
+>>
+>> cheers
+>> -henrik
+>>
+>> --
+>>     
 >
-> =A0 =A0 =A0 =A0On my second attempt I bought a twinhan CAB ci card. Card =
-identified,
-> but scan didnt worked. Some googleing later, I got it working by
-> commenting the line 1360 in dst.c (!(state->dst_type =3D=3D
-> DST_TYPE_IS_CABLE) &&). To my surprise this card has NO problem locking
-> on 309mhz and 321mhz channels. It seems to take a little longer to
-> lock/changing channels compared to my twinhan DVB-S card (I=B4m comparing
-> apples and oranges, right?), but so far it=B4s working ok.
+> I try to avoid, when ever possible, to participate in such statements.
 >
-> =A0 =A0 =A0 =A0My third attempt was with a technisat cablestar HD2 card. =
-I used the
-> mantis repository to get the card working (is the mantis driver already
-> merged with v4l-dvb?). Again, I can scan channels, but the card could
-> not =A0lock on those Transponders. In fact it also take a lot longer to
-> lock on a channel, but after it got a lock, it works right.
+> I don't even posses currently and never did previously any Hauppauge
+> device.
 >
-> =A0 =A0 =A0 =A0Since twinhan works fine, I supose that there=B4s no probl=
-em with my
-> cable/splitter. Also, I supose that the chance of two disctinct broken
-> tuners is low. A recent thread on TT-1501 shows that, if I understood
-> it right, there=B4s a kind of table where a power level is set to each
-> frequency range. Is it possible that my two cards didnt worked on those
-> especif transporders because of this kind of setting?
+> That you may end up in some m$ support only ring in somewhere on the
+> planet is also very likely too, but we also had very different results
+> in the past even for that.
+>
+> In fact, Hauppauge's GNU/Linux support, let's say during the last five
+> years, is such outstanding well, [...]
+>   
+Good to hear that the support on the backend is much better than on the 
+early years of DVB+Linux.
+Anyway as a customer I can't recommended products of a manufacturer if 
+the customer "support" complete ignores any questions, and I don't asked 
+something about linux.
+But of course I am currently unable to appoint any company with good 
+customer support, so maybe it doesn't make sense to use such a criteria 
+if you want to buy something...
 
-Just a note: both non-working cards uses a tda10023 chip, so I think
-it should a good start pointing...
-
-
--- =
-
-Christian Lyra
-PoP-PR/RNP
+Marco
 
 _______________________________________________
 linux-dvb users mailing list
