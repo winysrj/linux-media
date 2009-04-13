@@ -1,120 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from waikiki.ops.eusc.inter.net ([84.23.254.155]:61885 "EHLO
-	waikiki.ops.eusc.inter.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755184AbZDSSW0 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Apr 2009 14:22:26 -0400
-Received: from waikiki.ops.eusc.inter.net ([10.155.10.19] helo=localhost)
-	by waikiki.ops.eusc.inter.net with esmtpsa (Exim 4.69)
-	id 1LvbHT-000Lit-IL
-	for linux-media@vger.kernel.org; Sun, 19 Apr 2009 19:58:15 +0200
-Message-Id: <E63C5667-D18B-4D13-9D88-15293E1B12B2@snafu.de>
-From: Armin Schenker <sar@snafu.de>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed; delsp=yes
-Content-Transfer-Encoding: 8BIT
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Subject: Add Elgato EyeTV DTT deluxe to dibcom driver
-Date: Sun, 19 Apr 2009 19:58:14 +0200
+Received: from mail.work.de ([212.12.32.20]:51297 "EHLO mail.work.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751330AbZDMX5q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Apr 2009 19:57:46 -0400
+Message-ID: <49E3D16E.3070307@gmail.com>
+Date: Tue, 14 Apr 2009 03:57:34 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
+MIME-Version: 1.0
+To: Dave Lister <foceni@gmail.com>
+CC: VDR User <user.vdr@gmail.com>, linux-media@vger.kernel.org,
+	linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] SkyStar HD2 issues, signal sensitivity, etc.
+References: <621110570904131518w220106d7u67934966dbb8c7dd@mail.gmail.com>
+In-Reply-To: <621110570904131518w220106d7u67934966dbb8c7dd@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch introduces support for DVB-T for the following dibcom based  
-card:
-Elgato EyeTV DTT deluxe (USB-ID: 0fd9:0020)
-
-Patch tested with Ubuntu 8.10 and Totem/gstream for watching TV in  
-Berlin, see also  following log:
-Apr 19 17:05:30 parallels-ubuntu kernel: [ 1320.452301] usb 1-1: new  
-high speed USB device using ehci_hcd and address 4
-Apr 19 17:05:30 parallels-ubuntu kernel: [ 1320.630760] usb 1-1:  
-configuration #1 chosen from 1 choice
-Apr 19 17:05:30 parallels-ubuntu kernel: [ 1320.676135] dvb-usb: found  
-a 'Elgato EyeTV Dtt Dlx PD378S' in warm state.
-Apr 19 17:05:30 parallels-ubuntu kernel: [ 1320.686115] dvb-usb: will  
-pass the complete MPEG2 transport stream to the software demuxer.
-Apr 19 17:05:30 parallels-ubuntu kernel: [ 1320.689773] DVB:  
-registering new adapter (Elgato EyeTV Dtt Dlx PD378S)
-Apr 19 17:05:31 parallels-ubuntu kernel: [ 1321.401068] DVB:  
-registering adapter 0 frontend 0 (DiBcom 7000PC)...
-Apr 19 17:05:32 parallels-ubuntu kernel: [ 1322.039172] DiB0070:  
-successfully identified
-Apr 19 17:05:32 parallels-ubuntu kernel: [ 1322.052382] input: IR- 
-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:1d. 
-7/usb1/1-1/input/input6
-Apr 19 17:05:32 parallels-ubuntu kernel: [ 1322.076363] dvb-usb:  
-schedule remote query interval to 50 msecs.
-Apr 19 17:05:32 parallels-ubuntu kernel: [ 1322.076373] dvb-usb:  
-Elgato EyeTV Dtt Dlx PD378S successfully initialized and connected.
-
+Dave Lister wrote:
+> 2009/4/12 VDR User <user.vdr@gmail.com>:
+>> On Sat, Apr 11, 2009 at 5:47 AM, Dave Lister <foceni@gmail.com> wrote:
+>>> 2009/4/11 VDR User <user.vdr@gmail.com>:
+>>>> There is a new mantis tree being uploaded at:
+>>>> http://jusst.de/hg/mantis-v4l
+>>>>
+>>>> Please try this tree.  The upload should finish within 2 hours and is
+>>>> using DVB api 5 (aka s2api).
+>>> RESULTS (using "s2" dvb-apps):
+>>> - scanning DVB-S works
+>>> - scanning DVB-S2 doesn't work
+>>> - zapping DVB-S is fast
+>>>
+>> Can you please try a fresh clone of the tree?  I believe the fixes
+>> have now been applied.  Thanks!
+>>
+> 
+> Ok, I did and it seems fine. I mean for a Linux DVB-S2 card. :)
+> Compared to liplianin driver, only minus is non-working DiSEqC.
+> Because I am using a multiswitch,  I had to switch to liplianin. I am
+> sorry, but I'm definitely keeping an eye on your driver as well and
+> will be testing it as it gets updated!
+> 
+> For other SkyStar HD2 users, this is a summary as of 2009.04.14:
+>   - kernel 2.6.29 + mantis-v4l works (except DiSEqC as far as I can tell)
 
 
-
---- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	2009-04-19  
-19:26:33.000000000 +0200
-+++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	2009-04-19  
-10:58:16.000000000 +0200
-@@ -1497,6 +1497,7 @@ struct usb_device_id dib0700_usb_id_tabl
-  	{ USB_DEVICE(USB_VID_HAUPPAUGE, USB_PID_HAUPPAUGE_TIGER_ATSC_B210) },
-  	{ USB_DEVICE(USB_VID_YUAN,	USB_PID_YUAN_MC770) },
-  	{ USB_DEVICE(USB_VID_ELGATO,	USB_PID_ELGATO_EYETV_DTT) },
-+	{ USB_DEVICE(USB_VID_ELGATO,	USB_PID_ELGATO_EYETV_DTT_Dlx) },
-  	{ 0 }		/* Terminating entry */
-  };
-  MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
-@@ -1696,7 +1697,7 @@ struct dvb_usb_device_properties dib0700
-  			},
-  		},
-
--		.num_device_descs = 11,
-+		.num_device_descs = 12,
-  		.devices = {
-  			{   "DiBcom STK7070P reference design",
-  				{ &dib0700_usb_id_table[15], NULL },
-@@ -1742,6 +1743,10 @@ struct dvb_usb_device_properties dib0700
-  				{ &dib0700_usb_id_table[45], NULL },
-  				{ NULL },
-  			},
-+			{   "Elgato EyeTV Dtt Dlx PD378S",
-+				{ &dib0700_usb_id_table[50], NULL },
-+				{ NULL },
-+			},
-  		},
-
-  		.rc_interval      = DEFAULT_RC_INTERVAL,
-
---- a/linux/drivers/media/dvb/dvb-usb/dvb-usb.h	2009-04-19  
-19:26:08.000000000 +0200
-+++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb.h	2009-04-19  
-11:02:54.000000000 +0200
-@@ -224,7 +224,7 @@ struct dvb_usb_device_properties {
-  	int generic_bulk_ctrl_endpoint;
-
-  	int num_device_descs;
--	struct dvb_usb_device_description devices[11];
-+	struct dvb_usb_device_description devices[12];
-  };
-
-  /**
+Diseqc works fine over here, with the VP-1041 and other cards, using
+the mantis-v4l tree.
 
 
---- a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2009-04-19  
-19:24:49.000000000 +0200
-+++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2009-04-19  
-10:39:18.000000000 +0200
-@@ -253,5 +253,6 @@
-  #define USB_PID_MSI_DIGI_VOX_MINI_III                   0x8807
-  #define USB_PID_SONY_PLAYTV				0x0003
-  #define USB_PID_ELGATO_EYETV_DTT			0x0021
-+#define USB_PID_ELGATO_EYETV_DTT_Dlx			0x0020
-
-  #endif
+>   - kernel 2.6.29 + s2-liplianin works just as reliably + DiSEqC
 
 
+The s2-liplianin tree doesn't use an updated tree for the mantis
+based devices unfortunately. It is stuck with older changesets of
+the mantis tree.
 
----
-Grüße Armin Schenker
-sar@snafu.de
+The s2-liplianin tree contains (ed) ? some clock related changes
+which were not favourable for the STB0899 demodulator, which is
+capable of causing potential hardware damage.
 
 
+> Common issues:
+>   - zapping DVB-S2 channel causes tuner HW lockup (loss of signal until reboot)
+>   - zap DVB-S2 channel => AWFUL ultra-high pitched noise emitted from
+> the card (capacitors or coils?) - makes your head hurt in about 30mins
+>   - very poor TS (picture data) quality; signal = 95%, SNR = 70%,
+> STB/TV gives superb picture, but SkyStar/PC picture is corrupted every
+> few seconds, sound glitches, etc. (as if the signal was like 40% on
+> STB) - confirmed in VDR (Xine), MythTV, mplayer.
+> 
+> These issues are present with both of my two SkyStar cards, which
+> hopefully eliminates faulty HW. To be frank, 
+
+The cards what i have don't have the issues whatsoever you mention.
+
+There could be multiple causes, since the cards that i have don't
+have the troubles whatsoever you mention.
+
+* If you had those changes on your hardware and your card was
+susceptible to such issues, then that could be a possible reason.
+
+* There are quite some hardware pirates, as noted here ..
+
+In any of your cases, If you have hardware related issues please
+contact to your supplier to have it checked/replaced by them.
+
+NOTE: Always try to stick with a tree that's a mainline tree or the
+development tree, rather than tree's with unknown changes.
+
+Regards,
+Manu
 
