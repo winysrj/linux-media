@@ -1,49 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tichy.grunau.be ([85.131.189.73]:52583 "EHLO tichy.grunau.be"
+Received: from smtp2-g21.free.fr ([212.27.42.2]:47643 "EHLO smtp2-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750840AbZDALOI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Apr 2009 07:14:08 -0400
-Date: Wed, 1 Apr 2009 13:13:41 +0200
-From: Janne Grunau <j@jannau.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Mike Isely <isely@pobox.com>, isely@isely.net,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 5 of 8] pvrusb2: use usb_interface.dev for
-	v4l2_device_register
-Message-ID: <20090401111341.GA26440@aniel>
-References: <patchbomb.1238338474@aniel> <20090329145908.GF17855@aniel> <Pine.LNX.4.64.0903312059100.7804@cnc.isely.net> <20090401063718.69e28bd2@caramujo.chehab.org>
+	id S1752666AbZDMUgZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Apr 2009 16:36:25 -0400
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] pxa_camera: Documentation of the FSM
+References: <1239641940-27918-1-git-send-email-robert.jarzmik@free.fr>
+	<Pine.LNX.4.64.0904132208050.1587@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Mon, 13 Apr 2009 22:36:12 +0200
+In-Reply-To: <Pine.LNX.4.64.0904132208050.1587@axis700.grange> (Guennadi Liakhovetski's message of "Mon\, 13 Apr 2009 22\:16\:46 +0200 \(CEST\)")
+Message-ID: <87tz4s9tqb.fsf@free.fr>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090401063718.69e28bd2@caramujo.chehab.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 01, 2009 at 06:37:18AM -0300, Mauro Carvalho Chehab wrote:
-> On Tue, 31 Mar 2009 21:02:16 -0500 (CDT)
-> Mike Isely <isely@isely.net> wrote:
-> 
-> > 
-> > This patch will not at all impact the operation of the pvrusb2 driver, 
-> > and if associating with the USB interface's device node is preferred 
-> > then I'm fine with it.
-> > 
-> > Acked-by: Mike Isely <isely@pobox.com>
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-Thanks, added.
+>
+> Cool, nice:-) One question though: shouldn't the "capture list empty" 
+> transition start from "Videobuf released" state?
+Absolutely. Nice catch. I just cross-checked my hand-made schema, and you're
+right.
 
-> > Mauro: Is this series going to be pulled into v4l-dvb or shall I just 
-> > bring this one specific change into my pvrusb2 repo?  Is there any 
-> > reason not to pull it?
-> 
-> I'll take care on it on the next time I'll apply patchwork patches.
+> Or maybe you want to reorginise the "Videobuf released" and "Frame completed"
+> states a bit to separate cases
+> - capture list empty
+> - capture list not empty
+>   - DMA still running - hot-linking success
+>   - DMA stopped - restart
+Well, granted that the transition "capture list empty" was badly put, this is
+not needed anymore, is it ?
 
-You don't need to. My plan was to send a pull request once I have enough
-feedback. I should have said that in the intro mail.
+Cheers.
 
-> I suspect
-> that Janne preferred to send via email for people to better analyse the impacts.
+--
+Robert
 
-Yes, exactly.
+>From 8f33b15891c8fe8ee317a8d0d7293d05fda3c6e6 Mon Sep 17 00:00:00 2001
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Mon, 13 Apr 2009 18:52:56 +0200
+Subject: [PATCH] pxa_camera: Documentation of the FSM
 
-Janne
+After DMA redesign, the pxa_camera dynamic behaviour should
+be documented so that future contributors understand how it
+works, and improve it.
+
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+---
+ Documentation/video4linux/pxa_camera.txt |   49 ++++++++++++++++++++++++++++++
+ 1 files changed, 49 insertions(+), 0 deletions(-)
+
+diff --git a/Documentation/video4linux/pxa_camera.txt b/Documentation/video4linux/pxa_camera.txt
+index b1137f9..4f6d0ca 100644
+--- a/Documentation/video4linux/pxa_camera.txt
++++ b/Documentation/video4linux/pxa_camera.txt
+@@ -26,6 +26,55 @@ Global video workflow
+ 
+      Once the last buffer is filled in, the QCI interface stops.
+ 
++  c) Capture global finite state machine schema
++
++      +----+                             +---+  +----+
++      | DQ |                             | Q |  | DQ |
++      |    v                             |   v  |    v
++    +-----------+                     +------------------------+
++    |   STOP    |                     | Wait for capture start |
++    +-----------+         Q           +------------------------+
+++-> | QCI: stop | ------------------> | QCI: run               | <------------+
++|   | DMA: stop |                     | DMA: stop              |              |
++|   +-----------+             +-----> +------------------------+              |
++|                            /                            |                   |
++|                           /             +---+  +----+   |                   |
++|capture list empty        /              | Q |  | DQ |   | QCI Irq EOF       |
++|                         /               |   v  |    v   v                   |
++|   +--------------------+             +----------------------+               |
++|   | DMA hotlink missed |             |    Capture running   |               |
++|   +--------------------+             +----------------------+               |
++|   | QCI: run           |     +-----> | QCI: run             | <-+           |
++|   | DMA: stop          |    /        | DMA: run             |   |           |
++|   +--------------------+   /         +----------------------+   | Other     |
++|     ^                     /DMA still            |               | channels  |
++|     | capture list       /  running             | DMA Irq End   | not       |
++|     | not empty         /                       |               | finished  |
++|     |                  /                        v               | yet       |
++|   +----------------------+           +----------------------+   |           |
++|   |  Videobuf released   |           |  Channel completed   |   |           |
++|   +----------------------+           +----------------------+   |           |
+++-- | QCI: run             |           | QCI: run             | --+           |
++    | DMA: run             |           | DMA: run             |               |
++    +----------------------+           +----------------------+               |
++               ^                      /           |                           |
++               |          no overrun /            | overrun                   |
++               |                    /             v                           |
++    +--------------------+         /   +----------------------+               |
++    |  Frame completed   |        /    |     Frame overran    |               |
++    +--------------------+ <-----+     +----------------------+ restart frame |
++    | QCI: run           |             | QCI: stop            | --------------+
++    | DMA: run           |             | DMA: stop            |
++    +--------------------+             +----------------------+
++
++    Legend: - each box is a FSM state
++            - each arrow is the condition to transition to another state
++            - an arrow with a comment is a mandatory transition (no condition)
++            - arrow "Q" means : a buffer was enqueued
++            - arrow "DQ" means : a buffer was dequeued
++            - "QCI: stop" means the QCI interface is not enabled
++            - "DMA: stop" means all 3 DMA channels are stopped
++            - "DMA: run" means at least 1 DMA channel is still running
+ 
+ DMA usage
+ ---------
+-- 
+1.6.2.1
+
