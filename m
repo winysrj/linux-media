@@ -1,73 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from postie.bluegum.com ([125.255.44.10]:59404 "EHLO
-	postie.bluegum.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757852AbZDOLgh (ORCPT
+Received: from qw-out-2122.google.com ([74.125.92.25]:24197 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752087AbZDMWmU convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Apr 2009 07:36:37 -0400
-Received: from mailhub.bluegum.com (jackie.bluegum.com [192.168.9.17])
-	by postie.bluegum.com (Postfix) with ESMTP id 6893310002
-	for <linux-media@vger.kernel.org>; Wed, 15 Apr 2009 21:27:05 +1000 (EST)
-Received: from chesty.bluegum.com (chesty.bluegum.com [192.168.9.36])
-	by mailhub.bluegum.com (Postfix) with ESMTP id 385B1ACCD
-	for <linux-media@vger.kernel.org>; Wed, 15 Apr 2009 21:26:51 +1000 (EST)
-From: Lindsay Harris <lindsay@bluegum.com>
-To: linux-media@vger.kernel.org
-Subject: Bug & fix for drivers/media/dvb/dvb-usb/cxusb.c
-Date: Wed, 15 Apr 2009 21:26:50 +1000
+	Mon, 13 Apr 2009 18:42:20 -0400
+Received: by qw-out-2122.google.com with SMTP id 8so2633638qwh.37
+        for <linux-media@vger.kernel.org>; Mon, 13 Apr 2009 15:42:19 -0700 (PDT)
+From: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Reponse from Geniatech Re: X8000A and KWorld ATSC 120
+Date: Mon, 13 Apr 2009 17:42:17 -0500
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
 Content-Disposition: inline
-Message-Id: <200904152126.50903.lindsay@bluegum.com>
+Message-Id: <200904131742.17404.vanessaezekowitz@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!   I'm new to the list,  mostly joining to report a bug (with fix) 
-for the DViCO dual digital card,   using the XC3028 tuner.
+Hi all.  As a follow-up to the remote control support issue for the Kworld ATSC 120, Geniatech sent me a very encouraging reply today.  
 
-I'm using suse kernels,  which is currently 2.6.27.21.   I downloaded 
-the 2.6.29.1 kernel,  and the relevant pieces of code have not 
-changed.  This driver worked fine in the 2.6.25.16 kernel.
-
-Symptom: card detects carrier,   but does not lock onto it.
-Cause: the driver was NOT loading the SCODE for the card.
+Anyone want to take Fang up on his offer?
 
 
-PATCH (against 2.6.29.1):
-====================================================
-lindsay@chesty:/working/build/linux-2.6.29.1/drivers/media/dvb/dvb-usb> 
-diff -u cxusb.c FIXED-cxusb.c
---- cxusb.c     2009-04-03 07:55:27.000000000 +1100
-+++ FIXED-cxusb.c       2009-04-15 21:01:15.000000000 +1000
-@@ -34,6 +34,7 @@
- #include "mt352_priv.h"
- #include "zl10353.h"
- #include "tuner-xc2028.h"
-+#include "tuner-xc2028-types.h"
- #include "tuner-simple.h"
- #include "mxl5005s.h"
- #include "dib7000p.h"
-@@ -775,7 +776,7 @@
-        static struct xc2028_ctrl ctl = {
-                .fname       = XC2028_DEFAULT_FIRMWARE,
-                .max_len     = 64,
--               .demod       = XC3028_FE_ZARLINK456,
-+               .scode_table = ZARLINK456,
-        };
+----------  Forwarded Message  ----------
 
-        /* FIXME: generalize & move to common area */
-====================================================
+Subject: 答复: Technical request regarding the HDTV Thriller X8000A
+Date: Monday 13 April 2009
+From: "Fang" <Fjj@geniatech.com>
+To: "'Vanessa Ezekowitz'" <vanessaezekowitz@gmail.com>
 
-Explanation: Setting the .demod element above results in 
-the "int_freq" parameter to load_scode() 
-(drivers/media/common/tuners/tuner-xc2028.c) being non-zero (value is 
-derived from the .demod line above).  The first if() is false, and 
-it's all downhill from there.
+Dear Vanessa Ezekowitz:
 
-The above patch puts things back to the state of the 2.6.25.16 kernel.  
-Tested on both IA32 and AMD 64 systems.
 
-Thanks,
+Thanks for your inquiry. 
 
-Lindsay
+My name is Fang, product manager of Geniatech. 
+
+1st, we can provide you the remote decoder IC information, including I2C address, r/w API, it is simple, read I2C address every 150ms, and you can get the the key stroke decoding value. 
+
+2nd, we have step products and both follow this protocol, so it is useful for all our products.
+
+3rd, we'd like to support you directly from the Geniatech, that card is designed by us. 
+
+Finnally,  I'd like to ask you if you can port more linux drivers if we send you samples and tech informations for our other 2 ATSC products: X8350 and X8550. 
+
+I will send you more detailed tech information to you about the remote IC whatever your answer is. 
+
+Best Regards
+Fang  
+
+-----邮件原件-----
+发件人: Vanessa Ezekowitz [mailto:vanessaezekowitz@gmail.com] 
+发送时间: 2009年4月10日 5:36
+收件人: support@geniatech.com
+主题: Technical request regarding the HDTV Thriller X8000A
+
+THIS IS NOT A USER SUPPORT OR DRIVER REQUEST - WE ALREADY HAVE DRIVERS.
+
+THIS IS A PROGRAMMER'S REQUEST FOR TECHNICAL INFORMATION.
+
+To whom it may concern,
+
+Some time back, I wrote you asking about technical information regarding the Thriller X8000A board.  I never received a reply, so I am writing again.
+
+I own a card that is a chip-for-chip, wire-for-wire clone of the Thriller X8000A, the Kworld HD PCI 120 (also called the "ATSC 120" for short) - it is programmatically indistinguishable from your card.  My apologies in advance if I have mistaken which company first made this particular card.
+
+Anyway...  The manufacturer of my card is refusing to answer my question, claiming that the data I request has been outright lost and can't even be communicated between departments within the company.
+
+So now, I turn to you, as the maker of a 100% compatible card.
+
+We of the Linux community have successfully written open-source drivers for most of the ATSC120/X8000A's  features, except for one:  we wish to add support for this card's remote control unit.
+
+The Linux Community, whom I am sure you are aware represents a very large, rapidly growing market, cannot in good conscience recommend any cards, Geniatech or otherwise, which lack complete programming information.
+
+QUESTION:
+
+On my particular card, this appears to be a 20 pin SMD IC near the IR sensor connector.  the manufacturer of my cloned card has deliberately removed all the markings from the chip, save for a single green dot of paint, and users who own your card have reported similar circumstances.
+
+Is this mystery chip the remote decoder/receiver chip as I suspect?
+
+What is the part number of this chip?
+
+What I2C address does it occupy?
+
+Where can I acquire a datasheet for it?
+
+I await your reply.
+
+--
+"There are some things in life worth obsessing over.  Most things aren't, and when you learn that, life improves."
+http://starbase.globalpc.net/~vanessa/
+Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
