@@ -1,53 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.hauppauge.com ([167.206.143.4]:4680 "EHLO
-	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753304AbZDJE7Z (ORCPT
+Received: from wf-out-1314.google.com ([209.85.200.172]:63255 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751212AbZDMWhP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Apr 2009 00:59:25 -0400
-Message-ID: <49DED220.6000701@linuxtv.org>
-Date: Fri, 10 Apr 2009 00:59:12 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+	Mon, 13 Apr 2009 18:37:15 -0400
+Received: by wf-out-1314.google.com with SMTP id 29so2350778wff.4
+        for <linux-media@vger.kernel.org>; Mon, 13 Apr 2009 15:37:15 -0700 (PDT)
+Date: Mon, 13 Apr 2009 15:36:46 -0700
+From: Brandon Philips <brandon@ifup.org>
+To: phil <phil@csldevices.co.uk>, linux-media@vger.kernel.org
+Cc: prjmgr@linuxdriverproject.org
+Subject: Re: dvb-t reciever card
+Message-ID: <20090413223646.GB9763@jenkins.ifup.org>
+References: <49DCCB57.4090903@csldevices.co.uk>
 MIME-Version: 1.0
-To: Edwin Windes <ewindes@winlund.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: v4l-dvb - nxt2004 question
-References: <ad3842890904091914v31b7dff2g18d855d850e9da31@mail.gmail.com>
-In-Reply-To: <ad3842890904091914v31b7dff2g18d855d850e9da31@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <49DCCB57.4090903@csldevices.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Edwin Windes wrote:
-> Mike - don't know if you still exist at this address...
-> 
-> Once upon a time you wrote this:
->   
-> http://lists-archives.org/video4linux/10378-kworld-atsc110-philips-tuv1236d-f-h-multiple-inputs.html
-> 
-> I used that information to hack the driver for my ATSC-110 card - 
-> swapping the digital inputs so that I could tune QAM/Analog on one 
-> input, and ATSC on the other.
-> 
-> I'm rebuilding my PVR box, and I'd like to use the latest V4L-DVB 
-> sources.  But, the source code is quite different in that area, and I 
-> haven't found anything that looks like it's selecting an antenna input.  
-> Would you have any idea where I should be focusing?  I'm not sure if 
-> it's even possible anymore.
-> 
-> Thanks for any info you might be able to share, and thanks for your 
-> efforts to get the driver working in the first place!
-> 
-> -- 
-> Ed Windes
-> ewindes@winlund.com <mailto:ewindes@winlund.com>
+On 17:05 Wed 08 Apr 2009, phil wrote:
+> I work for a company that is currently developing a new DVB-T receiver  
+> PCI card and we would like your help to get a Linux device driver  
+> written and into the mainline kernel.
 
-I've added cc to the linux-media mailing list.  Please include cc to 
-linux-media@vger.kernel.org when asking these types of questions.
+The people with DVB-T expertise are on the linux-media@vger.kernel.org
+mailing list. CC'ing them to see if anyone is interested in working
+through the NDA process and writing the driver.
 
-You can specify the rf input path behavior by using the atv_input / 
-dtv_input module options.  see output of "modinfo tuner-simple"
+Cheers,
 
-Regards,
+	Brandon
 
-Mike
+> We plan to release our products specifications when launched, but until  
+> then we do require that an NDA is signed by anyone that would be willing  
+> to help out. I have briefly looked through some of the past archives of  
+> this list and I see that there has been some reference to NDAs from the  
+> Linux Foundation, we would be more than happy with using one of these  
+> and would appreciate it if someone could provide us with more  
+> information on them.
+>
+> Due to the fact that this is a DVB-T card any developer wishing to help  
+> should ideally be located in a country which has DVB-T broadcast signals  
+> in order to test any equipment which we supply.
+>
+> Please copy me in on any reponses as I believe I'm still awaiting  
+> authorisation to be subscribed to this list.
