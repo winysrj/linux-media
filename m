@@ -1,25 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.mcpsmd.org ([205.222.6.113]:12181 "EHLO HUBA.mcpsmd.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753658AbZDXBIs convert rfc822-to-8bit (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:49568 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755456AbZDMKba (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Apr 2009 21:08:48 -0400
-Content-Class: urn:content-classes:message
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Subject: Your Mailbox Has Exceeded Its Storage Limit
-Date: Thu, 23 Apr 2009 21:02:28 -0400
-Message-ID: <4E50929AC0DA38429C7387F1B4774A1501CDEF62@EVMAIL02.mcpsmd.org>
-From: "Davidson, Jeffrey H." <Jeffrey_H_Davidson@mcpsmd.org>
-To: unlisted-recipients:; (no To-header on input)
+	Mon, 13 Apr 2009 06:31:30 -0400
+Received: from epmmp1 (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KI10009VBWG4G@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 13 Apr 2009 19:31:28 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0KI100AVOBWG1E@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 13 Apr 2009 19:31:28 +0900 (KST)
+Date: Mon, 13 Apr 2009 19:31:28 +0900
+From: Joonyoung Shim <jy0922.shim@samsung.com>
+Subject: Re: About the radio-si470x driver for I2C interface
+In-reply-to: <200904131215.05703.tobias.lorenz@gmx.net>
+To: Tobias Lorenz <tobias.lorenz@gmx.net>
+Cc: klimov.linux@gmail.com, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com
+Message-id: <49E31480.7050100@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7BIT
+References: <4e1455be0903051913x37562436y85eef9cba8b10ab0@mail.gmail.com>
+ <49E29962.5010209@samsung.com> <49E2CDEA.4080409@samsung.com>
+ <200904131215.05703.tobias.lorenz@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Your mailbox has exceeded the storage limit set by your administrator. You may not be able to send or receive new mail until your mailbox size is increased by your system administrator. You are required to contact your system administrator through e-mail with your Username:{ } and Password:{ } to increase your storage limit.
+> I'm not sure about the consequences in case of renaming the radio-si470x
+> module. But it would be consequent to add the appendix -usb and -i2c to
+> the current name.
+> 
+> I applied the patch as follows:
 
-System Administrator
-E-mail: webct002@live.com
+Okay, your patch is better.
+Thanks.
 
-You will continue to receive this warning message periodically if your inbox size continues to exceed its size limit.
-This email is intended only for the use of the individual or entity to which it is addressed and contains information that is privileged and confidential.
+I will post the i2c part soon after testing.
