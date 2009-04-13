@@ -1,67 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:37129 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752590AbZDTSFE (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4014 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754933AbZDMLUB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 14:05:04 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: Douglas Schilling Landgraf <dougsland@gmail.com>
-Subject: Re: [PATCH] uvc: Add Microsoft VX 500 webcam
-Date: Mon, 20 Apr 2009 20:07:31 +0200
+	Mon, 13 Apr 2009 07:20:01 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Chaithrika U S <chaithrika@ti.com>
+Subject: Re: [PATCH v2 0/4] ARM: DaVinci: DM646x Video: DM646x display driver
+Date: Mon, 13 Apr 2009 13:19:52 +0200
 Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <68cac7520904150003n150bff9bp616cc49e684d947d@mail.gmail.com> <200904151146.52459.laurent.pinchart@skynet.be> <20090415104808.13062f47@gmail.com>
-In-Reply-To: <20090415104808.13062f47@gmail.com>
+	davinci-linux-open-source@linux.davincidsp.com,
+	Manjunath Hadli <mrh@ti.com>, Brijesh Jadav <brijesh.j@ti.com>
+References: <1239189476-19863-1-git-send-email-chaithrika@ti.com>
+In-Reply-To: <1239189476-19863-1-git-send-email-chaithrika@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
+Content-Type: text/plain;
   charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200904202007.31599.laurent.pinchart@skynet.be>
+Message-Id: <200904131319.53148.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Douglas,
+On Wednesday 08 April 2009 13:17:56 Chaithrika U S wrote:
+> Display driver for TI DM646x EVM
+>
+> Signed-off-by: Manjunath Hadli <mrh@ti.com>
+> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+> Signed-off-by: Chaithrika U S <chaithrika@ti.com>
+>
+> These patches add the display driver support for TI DM646x EVM.
+> This patch set has been tested for basic display functionality for
+> Composite and Component outputs.
+>
+> In this version of the patches, the review comments got for the earlier
+> version have been incorporated. The standard information(timings) has
+> been moved to the display driver. The display driver has been modified
+> accordingly. Also simplified the code by removing the redundant
+> vpif_stdinfo data structure.
+>
+> Patch 1: Display device platform and board setup
+> Patch 2: VPIF driver
+> Patch 3: DM646x display driver
+> Patch 4: Makefile and config files modifications for Display
+>
+> Some of the features like the HBI/VBI support are not yet implemented.
+> Also there are some known issues in the code implementation like
+> fine tuning to be done to TRY_FMT ioctl.The USERPTR usage has not been
+> tested extensively.
 
-On Wednesday 15 April 2009 15:48:08 Douglas Schilling Landgraf wrote:
-> Hello Laurent,
->
-> On Wed, 15 Apr 2009 11:46:52 +0200
->
-> Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
-> > Hi Douglas,
-> >
-> > On Wednesday 15 April 2009 09:03:45 Douglas Schilling Landgraf wrote:
-> > > Hello Laurent,
-> > >
-> > >     Attached patch for the following:
-> > >
-> > >     Added Microsoft VX 500 webcam to uvc driver.
-> > >
-> > > Signed-off-by: Douglas Schilling Landgraf <dougsland@redhat.com>
-> >
-> > Could you please send me the output of
-> >
-> > lsusb -v -d 045e:074a
-> >
-> > using usbutils 0.72 or newer (0.73+ preferred) ?
->
-> usbutils-0.73-2
->
-> > Have you tried the latest driver ?
->
-> Yes
->
-> > The MINMAX quirk isn't required
-> > anymore for most cameras (although the two supported Microsoft
-> > webcams still need it, so I doubt it will work as-is).
->
-> Indeed, attached new patch.
+Time permitting I'll review this during the weekend. During a very 
+superficial scan I saw a few things that could be improved, but I think it 
+only needs one more cycle before it can be merged. It looks much, much 
+better now!
 
-The new patch shouldn't be needed at all, as it doesn't declare any quirk. The 
-camera should work out of the box using the latest driver.
+Regards,
 
-Best regards,
+	Hans
 
-Laurent Pinchart
+>
+> -Chaithrika
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
