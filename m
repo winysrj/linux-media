@@ -1,134 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f169.google.com ([209.85.218.169]:58035 "EHLO
-	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750877AbZDDWJe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Apr 2009 18:09:34 -0400
-Received: by bwz17 with SMTP id 17so1395583bwz.37
-        for <linux-media@vger.kernel.org>; Sat, 04 Apr 2009 15:09:31 -0700 (PDT)
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39584 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752622AbZDNJKG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Apr 2009 05:10:06 -0400
+Date: Tue, 14 Apr 2009 11:10:05 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/5] pcm990 baseboard: add camera bus width switch
+	setting
+Message-ID: <20090414091005.GA14383@pengutronix.de>
+References: <1236857239-2146-1-git-send-email-s.hauer@pengutronix.de> <1236857239-2146-2-git-send-email-s.hauer@pengutronix.de> <1236857239-2146-3-git-send-email-s.hauer@pengutronix.de> <Pine.LNX.4.64.0903121405150.4896@axis700.grange> <20090312141819.GN425@pengutronix.de> <Pine.LNX.4.64.0904092339320.4841@axis700.grange> <Pine.LNX.4.64.0904141053230.1587@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <b02f340d0904031619s747325av93f163498f773186@mail.gmail.com>
-References: <b02f340d0904031619s747325av93f163498f773186@mail.gmail.com>
-Date: Sun, 5 Apr 2009 01:09:31 +0300
-Message-ID: <b02f340d0904041509w5d744aedl9821c2af9bb1a751@mail.gmail.com>
-Subject: Driver for STK7700D?
-From: ankostis <ankostis@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0904141053230.1587@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi (Matthias?),
+On Tue, Apr 14, 2009 at 10:57:32AM +0200, Guennadi Liakhovetski wrote:
+> On Thu, 9 Apr 2009, Guennadi Liakhovetski wrote:
+> 
+> > Hi Sascha,
+> > 
+> > something, that skipped both of us:
+> 
+> ...and one more:
+> 
+> > On Thu, 12 Mar 2009, Sascha Hauer wrote:
+> > 
+> > > Some Phytec cameras have a I2C GPIO expander which allows it to
+> > > switch between different sensor bus widths. This was previously
+> > > handled in the camera driver. Since handling of this switch
+> > > varies on several boards the cameras are used on, the board
+> > > support seems a better place to handle the switch
+> > > 
+> > > Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+> > > ---
+> > >  arch/arm/mach-pxa/pcm990-baseboard.c |   53 ++++++++++++++++++++++++++++------
+> > >  1 files changed, 44 insertions(+), 9 deletions(-)
+> > > 
+> > > diff --git a/arch/arm/mach-pxa/pcm990-baseboard.c b/arch/arm/mach-pxa/pcm990-baseboard.c
+> > > index 34841c7..fd8f786 100644
+> > > --- a/arch/arm/mach-pxa/pcm990-baseboard.c
+> > > +++ b/arch/arm/mach-pxa/pcm990-baseboard.c
+> > > @@ -381,14 +381,49 @@ static struct pca953x_platform_data pca9536_data = {
+> > >  	.gpio_base	= NR_BUILTIN_GPIO + 1,
+> > >  };
+> > >  
+> > > -static struct soc_camera_link iclink[] = {
+> > > -	{
+> > > -		.bus_id	= 0, /* Must match with the camera ID above */
+> > > -		.gpio	= NR_BUILTIN_GPIO + 1,
+> > > -	}, {
+> > > -		.bus_id	= 0, /* Must match with the camera ID above */
+> > > -		.gpio	= -ENXIO,
+> > > +static int gpio_bus_switch;
+> > > +
+> > > +static int pcm990_camera_set_bus_param(struct soc_camera_link *link,
+> > > +		unsigned long flags)
+> > > +{
+> > > +	if (gpio_bus_switch <= 0) {
+> > > +		if (flags == SOCAM_DATAWIDTH_10)
+> > > +			return 0;
+> > > +		else
+> > > +			return -EINVAL;
+> > > +	}
+> > > +
+> > > +	if (flags & SOCAM_DATAWIDTH_8)
+> > > +		gpio_set_value(gpio_bus_switch, 1);
+> > > +	else
+> > > +		gpio_set_value(gpio_bus_switch, 0);
+> > > +
+> > > +	return 0;
+> > > +}
+> > > +
+> > > +static unsigned long pcm990_camera_query_bus_param(struct soc_camera_link *link)
+> > > +{
+> > > +	int ret;
+> > > +
+> > > +	if (!gpio_bus_switch) {
+> > > +		ret = gpio_request(NR_BUILTIN_GPIO + 1, "camera");
+> > 
+> > There's no gpio_free() now... So, for example, you cannot unload the 
+> > extender driver any more, unloading i2c adapter driver (i2c-pxa) produces 
+> > ugly stuff like
+> > 
+> > pca953x 0-0041: gpiochip_remove() failed, -16
+> > 
+> > So, we either have to request and free the GPIO in each query / set, or we 
+> > need an explicit .free_bus() call in soc_camera_link. None of the two 
+> > really pleases me, but maybe the latter is slightly less ugly, what do you 
+> > think?
+> > 
+> > Thanks
+> > Guennadi
+> > 
+> > > +		if (!ret) {
+> > > +			gpio_bus_switch = NR_BUILTIN_GPIO + 1;
+> > > +			gpio_direction_output(gpio_bus_switch, 0);
+> > > +		} else
+> > > +			gpio_bus_switch = -EINVAL;
+> > >  	}
+> 
+> If you first do not load pca953x and try to start capture, thus calling 
+> pcm990_camera_query_bus_param(), gpio_request() will fail and you get 
+> gpio_bus_switch < 0. Then if you load pca953x it doesn't help any more - 
+> by testing for "if (!gpio_bus_switch)" you do not retry after the first 
+> error.
 
-i have also a STK7700D tv-tuner card.
-Can anybody inform me with any updates regarding the letter to
-Microtune for Linux support?
+So how do we proceed? Add init/exit functions for the bus?
 
-(i know that it is 2 years since Matthias sent the letter and probably
-he is not on the list any more,
-but its never bad to try...)
+Sascha
 
-Has anyone else any infos about this tuner?
-Is the driver[1] for MT2266 chip compatible?
+> 
+> Thanks
+> Guennadi
+> 
+> > > +
+> > > +	if (gpio_bus_switch > 0)
+> > > +		return SOCAM_DATAWIDTH_8 | SOCAM_DATAWIDTH_10;
+> > > +	else
+> > > +		return SOCAM_DATAWIDTH_10;
+> > > +}
+> > > +
+> > > +static struct soc_camera_link iclink = {
+> > > +	.bus_id	= 0, /* Must match with the camera ID above */
+> > > +	.query_bus_param = pcm990_camera_query_bus_param,
+> > > +	.set_bus_param = pcm990_camera_set_bus_param,
+> > >  };
+> > >  
+> > >  /* Board I2C devices. */
+> > > @@ -399,10 +434,10 @@ static struct i2c_board_info __initdata pcm990_i2c_devices[] = {
+> > >  		.platform_data = &pca9536_data,
+> > >  	}, {
+> > >  		I2C_BOARD_INFO("mt9v022", 0x48),
+> > > -		.platform_data = &iclink[0], /* With extender */
+> > > +		.platform_data = &iclink, /* With extender */
+> > >  	}, {
+> > >  		I2C_BOARD_INFO("mt9m001", 0x5d),
+> > > -		.platform_data = &iclink[0], /* With extender */
+> > > +		.platform_data = &iclink, /* With extender */
+> > >  	},
+> > >  };
+> > >  #endif /* CONFIG_VIDEO_PXA27x ||CONFIG_VIDEO_PXA27x_MODULE */
+> > > -- 
+> > > 1.5.6.5
+> > > 
+> > > -- 
+> > > Pengutronix e.K.                           |                             |
+> > > Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+> > > Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+> > > Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+> > > 
+> > 
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > 
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> 
 
-
-Thanks in Advance,
- Kostis
-
-
-[1] http://tomoyo.sourceforge.jp/cgi-bin/lxr/source/drivers/media/common/tuners/mt2266.c
-
-
- > Hello Patrick,
-
-> thank you for your reply. I've send a request for a datasheet to
-> Microtune.
->
-> I've BCC'ed you, hope you don't mind.
->
-> Am Donnerstag, den 11.01.2007, 09:40 +0100 schrieb Patrick Boettcher:
-> > Hi Matthias,
-> >
-> > This is explained very easy.
-> >
-> > The STK7700D ref design was done with MT2266 from Microtune. As of today,
-> > there is no OpenSource driver for this RF tuner.
-> >
-> > All I can do is, to ask you to contact Microtune and your notebook vendor
-> > for that. When there are enough people asking for it, it may change the
-> > minds.
-> >
-> > Patrick.
-> >
-> > --
-> >   Mail: patrick.boettcher at desy.de
-> >   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
-> >
-> > On Thu, 11 Jan 2007, Matthias Hentges wrote:
-> >
-> > > Hello all,
-> > >
-> > > I'm trying to get the DVB-T USB device built into my new notebook
-> > > working.
-> > >
-> > > The device uses an STK7700D chip so I hacked dvb-usb-ids.h and added my
-> > > vendor:device IDs to fake a Hauppauge Nova-T Stick.
-> > >
-> > > The following output of dmesg shows the module loading and firmware
-> > > insertion:
-> > >
-> > > dvb-usb: found a 'Hauppauge Nova-T Stick' in cold state, will try to
-> > > load a firm
-> > > ware
-> > > [...]
-> > > dvb-usb: downloading firmware from file 'dvb-usb-dib0700-01.fw'
-> > > dib0700: firmware started successfully.
-> > > dvb-usb: found a 'Hauppauge Nova-T Stick' in warm state.
-> > > **WARNING** I2C adapter driver [Hauppauge Nova-T Stick] forgot to
-> > > specify physical device; fix it!
-> > > dvb-usb: will pass the complete MPEG2 transport stream to the software
-> > > demuxer.
-> > > DVB: registering new adapter (Hauppauge Nova-T Stick).
-> > > **WARNING** I2C adapter driver [DiBX000 tuner I2C bus] forgot to specify
-> > > physical device; fix it!
-> > > DVB: registering frontend 0 (DiBcom 7000PC)...
-> > > mt2060 I2C read failed
-> > > dvb-usb: Hauppauge Nova-T Stick successfully initialized and connected.
-> > > usbcore: registered new interface driver dvb_usb_dib0700
-> > >
-> > > While the firmware is inserted just fine, the **WARNING** messages don't
-> > > look good to me. And indeed, tuning does not work:
-> > >
-> > > scanning /usr/share/doc/dvb-utils/examples/scan/dvb-t/de-Koeln-Bonn
-> > > using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux1'
-> > > initial transponder 538000000 0 2 9 1 1 3 0
-> > > initial transponder 514000000 0 2 9 1 1 3 0
-> > > initial transponder 698000000 0 2 9 1 1 3 0
-> > > initial transponder 650000000 0 2 9 1 1 3 0
-> > > initial transponder 826000000 0 2 9 1 1 3 0
-> > > initial transponder 834000000 0 2 9 1 1 3 0
-> > > >>> tune to:
-> > > 538000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-> > > WARNING: >>> tuning failed!!!
-> > > >>> tune to:
-> > > 538000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE (tuning failed)
-> > > WARNING: >>> tuning failed!!!
-> > > >>> tune to:
-> > > 514000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-> > > WARNING: >>> tuning failed!!!
-> > > [...]
-> > > >>> tune to:
-> > > 834000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE (tuning failed)
-> > > WARNING: >>> tuning failed!!!
-> > > ERROR: initial tuning failed
-> > > dumping lists (0 services)
-> > > Done.
-> > >
-> > > A lsusb-vvv dump is attached.
-> > >
-> > > I would appreciate any pointers in the right direction ;)
-> > > I'm using kernel 2.6.4.20-rc4 and latest dvb sources.
-> > >
-> > > Thanks
-> > > Matthias Hentges
-> > >
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
