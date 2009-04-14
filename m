@@ -1,55 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:6324 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754640AbZDFJEm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 05:04:42 -0400
-Date: Mon, 6 Apr 2009 11:04:30 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Andy Walls <awalls@radix.net>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, Mike Isely <isely@pobox.com>,
-	isely@isely.net, LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
-  model
-Message-ID: <20090406110430.400d4608@hyperion.delvare>
-In-Reply-To: <1238960152.3337.84.camel@morgan.walls.org>
-References: <20090404142427.6e81f316@hyperion.delvare>
-	<Pine.LNX.4.64.0904041045380.32720@cnc.isely.net>
-	<20090405010539.187e6268@hyperion.delvare>
-	<200904050746.47451.hverkuil@xs4all.nl>
-	<20090405160519.629ee7d0@hyperion.delvare>
-	<1238960152.3337.84.camel@morgan.walls.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail.work.de ([212.12.32.20]:51361 "EHLO mail.work.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750827AbZDNAAe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Apr 2009 20:00:34 -0400
+Message-ID: <49E3D21D.7010406@gmail.com>
+Date: Tue, 14 Apr 2009 04:00:29 +0400
+From: Manu Abraham <abraham.manu@gmail.com>
+MIME-Version: 1.0
+To: Dave Lister <foceni@gmail.com>
+CC: VDR User <user.vdr@gmail.com>, linux-media@vger.kernel.org,
+	linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] SkyStar HD2 issues, signal sensitivity, etc.
+References: <621110570904131518w220106d7u67934966dbb8c7dd@mail.gmail.com> <49E3D16E.3070307@gmail.com>
+In-Reply-To: <49E3D16E.3070307@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
-
-On Sun, 05 Apr 2009 15:35:52 -0400, Andy Walls wrote:
-> --- v4l-dvb.orig/linux/drivers/media/video/ivtv/ivtv-i2c.c	2009-04-04 10:53:08.000000000 +0200
-> +++ v4l-dvb/linux/drivers/media/video/ivtv/ivtv-i2c.c	2009-04-04 10:58:36.000000000 +0200
-> [snip]
-> -
-> +		const unsigned short addr_list[] = {
-> +			0x1a, 0x18, 0x64, 0x30,
-> +			I2C_CLIENT_END
-> +		};
-> [snip]
+Manu Abraham wrote:
+> Dave Lister wrote:
+>> 2009/4/12 VDR User <user.vdr@gmail.com>:
+>>> On Sat, Apr 11, 2009 at 5:47 AM, Dave Lister <foceni@gmail.com> wrote:
+>>>> 2009/4/11 VDR User <user.vdr@gmail.com>:
+>>>>> There is a new mantis tree being uploaded at:
+>>>>> http://jusst.de/hg/mantis-v4l
+>>>>>
+>>>>> Please try this tree.  The upload should finish within 2 hours and is
+>>>>> using DVB api 5 (aka s2api).
+>>>> RESULTS (using "s2" dvb-apps):
+>>>> - scanning DVB-S works
+>>>> - scanning DVB-S2 doesn't work
+>>>> - zapping DVB-S is fast
+>>>>
+>>> Can you please try a fresh clone of the tree?  I believe the fixes
+>>> have now been applied.  Thanks!
+>>>
+>> Ok, I did and it seems fine. I mean for a Linux DVB-S2 card. :)
+>> Compared to liplianin driver, only minus is non-working DiSEqC.
+>> Because I am using a multiswitch,  I had to switch to liplianin. I am
+>> sorry, but I'm definitely keeping an eye on your driver as well and
+>> will be testing it as it gets updated!
+>>
+>> For other SkyStar HD2 users, this is a summary as of 2009.04.14:
+>>   - kernel 2.6.29 + mantis-v4l works (except DiSEqC as far as I can tell)
 > 
 > 
-> I just noticed you're missing address 0x71 for ivtv.  At least some
-> PVR-150 boards have a Zilog chip at that address.
+> Diseqc works fine over here, with the VP-1041 and other cards, using
+> the mantis-v4l tree.
+> 
+> 
+>>   - kernel 2.6.29 + s2-liplianin works just as reliably + DiSEqC
+> 
+> 
+> The s2-liplianin tree doesn't use an updated tree for the mantis
+> based devices unfortunately. It is stuck with older changesets of
+> the mantis tree.
+> 
+> The s2-liplianin tree contains (ed) ? some clock related changes
+> which were not favourable for the STB0899 demodulator, which is
+> capable of causing potential hardware damage.
+> 
+> 
+>> Common issues:
+>>   - zapping DVB-S2 channel causes tuner HW lockup (loss of signal until reboot)
+>>   - zap DVB-S2 channel => AWFUL ultra-high pitched noise emitted from
+>> the card (capacitors or coils?) - makes your head hurt in about 30mins
+>>   - very poor TS (picture data) quality; signal = 95%, SNR = 70%,
+>> STB/TV gives superb picture, but SkyStar/PC picture is corrupted every
+>> few seconds, sound glitches, etc. (as if the signal was like 40% on
+>> STB) - confirmed in VDR (Xine), MythTV, mplayer.
+>>
+>> These issues are present with both of my two SkyStar cards, which
+>> hopefully eliminates faulty HW. To be frank, 
+> 
+> The cards what i have don't have the issues whatsoever you mention.
+> 
+> There could be multiple causes, since the cards that i have don't
+> have the troubles whatsoever you mention.
+> 
+> * If you had those changes on your hardware and your card was
+> susceptible to such issues, then that could be a possible reason.
+> 
+> * There are quite some hardware pirates, as noted here ..
 
-Thanks for reporting. The list above is taken directly from the
-original ir-kbd-i2c driver (minus address 0x4b which Hans Verkuil told
-me was useless for the ivtv and cx18 adapters). I'm all for adding
-support for more boards, however I'd rather do this _after_ the i2c
-model conversion is done, so that we have a proper changelog entry
-saying that we added support for the PVR-150, and that it gets proper
-testing. Hiding support addition in a larger patch would probably do
-as much harm as good.
 
--- 
-Jean Delvare
+Added the missing link.
+
+http://www.twinhan.com/news_071011-1.asp
+
+> 
+> In any of your cases, If you have hardware related issues please
+> contact to your supplier to have it checked/replaced by them.
+> 
+> NOTE: Always try to stick with a tree that's a mainline tree or the
+> development tree, rather than tree's with unknown changes.
+> 
+> Regards,
+> Manu
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
