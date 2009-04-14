@@ -1,90 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:61687 "EHLO
-	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936588AbZDIQwb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2009 12:52:31 -0400
-Received: from steven-toths-macbook-pro.local
- (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta5.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KHU008INEVG6Q40@mta5.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Thu, 09 Apr 2009 12:52:29 -0400 (EDT)
-Date: Thu, 09 Apr 2009 12:52:27 -0400
-From: Steven Toth <stoth@linuxtv.org>
-Subject: Re: Multiple em28xx devices
-In-reply-to: <d9def9db0904090932o4438902bt83d303f0853e5e11@mail.gmail.com>
-To: Markus Rechberger <mrechberger@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>,
-	rvf16 <rvf16@yahoo.gr>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-id: <49DE27CB.6080600@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <49DE0891.9010506@yahoo.gr>
- <412bdbff0904090839v43772f6dk7f2ac47ef417f45f@mail.gmail.com>
- <20090409124810.6c9f73bb@pedra.chehab.org>
- <d9def9db0904090852v63b71413r616369babeff1d95@mail.gmail.com>
- <49DE2226.7030406@linuxtv.org>
- <d9def9db0904090932o4438902bt83d303f0853e5e11@mail.gmail.com>
+Received: from bombadil.infradead.org ([18.85.46.34]:39503 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751300AbZDNLyR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Apr 2009 07:54:17 -0400
+Date: Tue, 14 Apr 2009 08:54:02 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, g.liakhovetski@gmx.de,
+	Jean-Francois Moine <moinejf@free.fr>,
+	laurent.pinchart@skynet.be,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"jongse.won@samsung.com" <jongse.won@samsung.com>,
+	=?UTF-8?B?6rmA7ZiV7KSA?= <riverful.kim@samsung.com>
+Subject: Re: [RFC] White Balance control for digital camera
+Message-ID: <20090414085402.10293cfd@pedra.chehab.org>
+In-Reply-To: <5e9665e10904091450u3e70cda8w9e1d57e45365a32b@mail.gmail.com>
+References: <5e9665e10904091450u3e70cda8w9e1d57e45365a32b@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Markus Rechberger wrote:
-> On Thu, Apr 9, 2009 at 6:28 PM, Steven Toth <stoth@linuxtv.org> wrote:
->> Markus Rechberger wrote:
->>> On Thu, Apr 9, 2009 at 5:48 PM, Mauro Carvalho Chehab
->>> <mchehab@infradead.org> wrote:
->>>> On Thu, 9 Apr 2009 11:39:47 -0400
->>>> Devin Heitmueller <devin.heitmueller@gmail.com> wrote:
->>>>
->>>>> 2009/4/9 rvf16 <rvf16@yahoo.gr>:
->>>>>> So does the upstream driver support all the rest ?
->>>>>> Analog TV
->>>>> Yes
->>>>>
->>>>>> FM radio
->>>>> No
->>>> Yes, it does support FM radio, provided that you proper add radio
->>>> specific
->>>> configuration at em28xx-cards.c.
->>>>
->>> I plan to add support for it to the existing kerneldriver anyway, but
->>> by using userspace drivers.
->>> Those drivers are just ontop of everything and no changes are required
->>> for the existing drivers.
->>>
->>> I'll just intercept all the calls as I do right now already with the
->>> latest device. I ported the entire configuration framework to userland
->>> and it also works on Apple OSX without any change. I'm just using
->>> usbfs for it, PCI config support is possible by using libpci or
->>> opening the corresponding node in the proc filesystem too. This time
->>> there's nothing you can do against it since it requires no change as
->>> it is.
->> Userspace drivers won't be accepted but it's not worth re-opening that old
->> wound - especially since I haven't followed this specific thread.
->>
-> 
-> no problem, as I wrote it sits ontop of everything not needing any kernel hooks.
+On Fri, 10 Apr 2009 06:50:32 +0900
+"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com> wrote:
 
-That's fine, if it's not derived then I have no problem with you keeping control 
-over your own code.
-
+> Hello everyone,
 > 
->> I _am_ interested in the fact that you've ported GPL code (frameworks and/or
->> drivers) to Apple, creating derived works.
->>
+> I'm posting this RFC one more time because it seems to everyone has
+> been forgot this, and I'll be appreciated if any of you who is reading
+> this mailing list give me comment.
 > 
-> hehe, I did not touch any GPL code.
+> I'm adding some choices for you to make it easier. (even the option
+> for that this is a pointless discussion)
 > 
->> Obviously you'll need to make those changes to the community. Where can I
->> download these?
 > 
-> The framework will be opened when it's time to be opened, right now
-> it's only available to interested developers.
+> 
+> I've got a big question popping up handling white balance with
+> V4L2_CID_WHITE_BALANCE_TEMPERATURE CID.
+> 
+> Because in digital camera we generally control over user interface
+> with pre-defined white balance name. I mean, user controls white
+> balance with presets not with kelvin number.
+> I'm very certain that TEMPERATURE CID is needed in many of video
+> capture devices, but also 100% sure that white balance preset control
+> is also necessary for digital cameras.
+> How can we control white balance through preset name with existing V4L2 API?
+> 
+> For now, I define preset names in user space with supported color
+> temperature preset in driver like following.
+> 
+> #define MANUAL_WB_TUNGSTEN 3000
+> #define MANUAL_WB_FLUORESCENT 4000
+> #define MANUAL_WB_SUNNY 5500
+> #define MANUAL_WB_CLOUDY 6000
+> 
+> and make driver to handle those presets like this. (I split in several
+> ranges to make driver pretend to be generic)
+> 
+> case V4L2_CID_WHITE_BALANCE_TEMPERATURE:
+>                if (vc->value < 3500) {
+>                        /* tungsten */
+>                        err = ce131f_cmds(c, ce131f_wb_tungsten);
+>                } else if (vc->value < 4100) {
+>                        /* fluorescent */
+>                        err = ce131f_cmds(c, ce131f_wb_fluorescent);
+>                } else if (vc->value < 6000) {
+>                        /* sunny */
+>                        err = ce131f_cmds(c, ce131f_wb_sunny);
+>                } else if (vc->value < 6500) {
+>                        /* cloudy */
+>                        err = ce131f_cmds(c, ce131f_wb_cloudy);
+>                } else {
+>                        printk(KERN_INFO "%s: unsupported kelvin
+> range\n", __func__);
+>                }
+>                ......
+> 
+> I think this way seems to be ugly. Don't you think that another CID is
+> necessary to handle WB presets?
+> Because most of mobile camera modules can't make various color
+> temperatures in expecting kelvin number with user parameter.
+> 
+> So, here you are some options you can chose to give your opinion.(or
+> you can make your own opinion)
+> 
+> (A). Make a new CID to handle well known white balance presets
+> Like V4L2_CID_WHITE_BALANCE_PRESET for CID and enum values like
+> following for value
+> 
+> enum v4l2_whitebalance_presets {
+>      V4L2_WHITEBALANCE_TUNGSTEN  = 0,
+>      V4L2_WHITEBALANCE_FLUORESCENT,
+>      V4L2_WHITEBALANCE_SUNNY,
+>      V4L2_WHITEBALANCE_CLOUDY,
+> ....
+> 
+> (B). Define well known kelvin number in videodev2.h as preset name and
+> share with user space
+> Like following
+> 
+> #define V4L2_WHITEBALANCE_TUNGSTEN 3000
+> #define V4L2_WHITEBALANCE_FLUORESCENT 4000
+> #define V4L2_WHITEBALANCE_SUNNY 5500
+> #define V4L2_WHITEBALANCE_CLOUDY 6000
+> 
+> and use those defined values with V4L2_CID_WHITE_BALANCE_TEMPERATURE
+> 
+> urgh.....
+> 
+> (C). Leave it alone. It's a pointless discussion. we are good with
+> existing WB API.
+> (really?)
+> 
+> 
+> I'm very surprised about this kind of needs were not issued yet.
+> 
 
-Ahh, if it's not GPL code (or derived from GPL) then I'm not interested in it, 
-and I'm not interested in paying you for access.
+I vote for (B). This is better than creating another user control for something
+that were already defined. The drivers that don't support specifying the color
+temperature, in Kelvin should round to the closest supported value, and return
+the proper configured value when questioned.
 
-- Steve
 
+Cheers,
+Mauro
