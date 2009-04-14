@@ -1,164 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-10.arcor-online.net ([151.189.21.50]:33699 "EHLO
-	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751288AbZD1AOz (ORCPT
+Received: from smtp.seznam.cz ([77.75.72.43]:35437 "EHLO smtp.seznam.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755006AbZDNSrV convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2009 20:14:55 -0400
-Subject: Re: [PATCH] FM1216ME_MK3 some changes
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Dmitri Belimov <d.belimov@gmail.com>
-Cc: Andy Walls <awalls@radix.net>, video4linux-list@redhat.com,
-	linux-media@vger.kernel.org
-In-Reply-To: <20090427192905.3ad2b88c@glory.loctelecom.ru>
-References: <20090422174848.1be88f61@glory.loctelecom.ru>
-	 <1240452534.3232.70.camel@palomino.walls.org>
-	 <20090423203618.4ac2bc6f@glory.loctelecom.ru>
-	 <1240537394.3231.37.camel@palomino.walls.org>
-	 <20090427192905.3ad2b88c@glory.loctelecom.ru>
-Content-Type: text/plain
-Date: Tue, 28 Apr 2009 02:11:42 +0200
-Message-Id: <1240877502.13282.10.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 14 Apr 2009 14:47:21 -0400
+To: LMML <linux-media@vger.kernel.org>
+Subject: [PATCH][RESEND] Added support for AVerMedia Cardbus Plus
+Content-Disposition: inline
+From: Oldrich Jedlicka <oldium.pro@seznam.cz>
+Date: Tue, 14 Apr 2009 20:47:17 +0200
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <200904142047.17371.oldium.pro@seznam.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Here comes the full support for AVerMedia Cardbus Plus (E501R) - including
+remote control. TV, Composite and FM radio tested, I don't have S-Video to 
+test. I've figured out that the radio works only with xtal frequency 13MHz.
 
-Am Montag, den 27.04.2009, 19:29 +1000 schrieb Dmitri Belimov:
-> Hi All
-> 
-> Step by step.
-> 
-> This is patch for change only range of FM1216ME_MK3. Slow tunning is not a big problem.
-> 
-> diff -r b40d628f830d linux/drivers/media/common/tuners/tuner-types.c
-> --- a/linux/drivers/media/common/tuners/tuner-types.c	Fri Apr 24 01:46:41 2009 -0300
-> +++ b/linux/drivers/media/common/tuners/tuner-types.c	Tue Apr 28 03:35:42 2009 +1000
-> @@ -558,8 +558,8 @@
->  
->  static struct tuner_range tuner_fm1216me_mk3_pal_ranges[] = {
->  	{ 16 * 158.00 /*MHz*/, 0x8e, 0x01, },
-> -	{ 16 * 442.00 /*MHz*/, 0x8e, 0x02, },
-> -	{ 16 * 999.99        , 0x8e, 0x04, },
-> +	{ 16 * 441.00 /*MHz*/, 0x8e, 0x02, },
-> +	{ 16 * 864.00        , 0x8e, 0x04, },
->  };
->  
->  static struct tuner_params tuner_fm1216me_mk3_params[] = {
-> 
-> Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+Now without word-wrapping.
 
-if it does help anything for having all above 441 MHz in UHF ranges.
-
-Acked-by: Hermann Pitton <hermann-pitton@arcor.de>
-
-There is simply no known broadcast in that gap on other freq. tables.
-
-Can you please enlighten us who/what broadcasts there?
-
-> 
-> With my best regards, Dmitry.
-> 
-> > Hi Dmitri,
-
-Cheers,
-Hermann
-
-> > Thank you for you responses.
-> > 
-> > Just a few more comments...
-> > 
-> > On Thu, 2009-04-23 at 20:36 +1000, Dmitri Belimov wrote:
-> > > Hi Andy
-> > > 
-> > > > Dmitri,
-> > > > 
-> > > > 
-> > > > On Wed, 2009-04-22 at 17:48 +1000, Dmitri Belimov wrote:
-> > > > > Hi All
-> > > > > 
-> > > > > 1. Change middle band. In the end of the middle band the
-> > > > > sensitivity of receiver not good. If we switch to higher band,
-> > > > > sensitivity more better. Hardware trick.
-> > > > 
-> > 
-> > > Several years a go your customers write some messages about bad
-> > > quality of TV if frequency of TV is the end of band. It can be low
-> > > band or middle. Our hardware engeneer make some tests with hardware
-> > > TV generator and our TV tuners.
-> > > 
-> > > If we set default frequency range for low and middle band, quality
-> > > of TV signal on 159MHz and 442 MHz is bad. When we make our changes
-> > > with moving end of bands the quality of TV much better. And our
-> > > system programmer for OS Windows use changed bands for drivers.
-> > > Customers be happy.
-> > 
-> > OK.  A properly run experiment wins over theory every time. :)
-> > 
-> > 
-> > 
-> > > You can test it if in your placement available TV programm on
-> > > 159MHz or 442MHz. This trick can be usefull for other tuners.
-> > 
-> > If you look at tveeprom.c, a number of other tuners are using that
-> > tuner definition:
-> > 
-> > $ grep FM1216ME_MK3 tveeprom.c
-> > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FQ1216ME MK3"},
-> > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FM1216 ME
-> > MK3"}, { TUNER_PHILIPS_FM1216ME_MK3, 	"LG S001D MK3"},
-> > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"LG S701D MK3"},
-> > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FQ1216LME
-> > MK3"}, { TUNER_PHILIPS_FM1216ME_MK3, 	"TCL MFPE05 2"},
-> > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"TCL MPE05-2"},
-> > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FM1216ME MK5"},
-> > 
-> > If your change makes things bad for the other tuners, we'll probably
-> > have to create an alternate entry for the other tuners instead of
-> > using the FM1216ME_MK3 defintion.  I suspect most of them are clones
-> > of the FM1216ME MK3 however, so it probably won't matter.
-> > 
-> > > > > 3. Set charge pump bit
-> > > > 
-> > > > This will improve the time to initially tune to a frequency, but
-> > > > will likely add some noise as the PLL continues to maintain lock
-> > > > on the signal.  If there is no way to turn off the CP after the
-> > > > lock bit is set in the tuner, it's probably better to leave it
-> > > > off for lower noise and just live with slower tuning.
-> > > 
-> > > We discuss with our windows system programmer about it. He sad that
-> > > in analog TV mode noise from PLL don't give any problem.
-> > 
-> > I would be concerned about phase noise affecting the colors or any FM
-> > sound carriers.  If the noise isn't noticably affecting colors to the
-> > human eye (do color bars look OK?), or sound to the human ear, then
-> > OK.
-> > 
-> > 
-> > >  But in digital TV mode
-> > > noise from PLL decreased BER.
-> > 
-> > I thought the FM1216ME MK3 was an analog only tuner.  I guess I don't
-> > know DVB-T or cable in Europe well enough.
-> > 
-> > 
-> > > > Leaving the CP bit set should be especially noticable ad FM noise
-> > > > when set to tune to FM radio stations.  From the FM1236ME_MK3
-> > > > datasheet: "It is recommended to set CP=0 in the FM mode at all
-> > > > times." But the VHF low band control byte is also used when
-> > > > setting FM radio (AFAICT with a quick look at the code.)
-> > > 
-> > > Yes. You are right. We can swith CP off in FM mode.
-> > 
-> > OK.  Thank you.
-> > 
-> > > With my best regards, Dmitry.
-> > 
-> > 
-> > Regards,
-> > Andy
-> > 
-> > 
-> > 
-
+Signed-off-by: Oldřich Jedlička <oldium.pro@seznam.cz>
+---
+diff -r dba0b6fae413 linux/drivers/media/video/saa7134/saa7134.h
+--- a/linux/drivers/media/video/saa7134/saa7134.h	Thu Apr 09 08:21:42 2009 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134.h	Mon Apr 13 23:21:53 2009 +0200
+@@ -282,6 +282,7 @@
+ #define SAA7134_BOARD_HAUPPAUGE_HVR1120     155
+ #define SAA7134_BOARD_HAUPPAUGE_HVR1110R3   156
+ #define SAA7134_BOARD_AVERMEDIA_STUDIO_507UA 157
++#define SAA7134_BOARD_AVERMEDIA_CARDBUS_501 158
+ 
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
+diff -r dba0b6fae413 linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Thu Apr 09 08:21:42 2009 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Mon Apr 13 23:21:53 2009 +0200
+@@ -1669,6 +1669,39 @@
+ 			.amux = LINE1,
+ 		},
+ 	},
++	[SAA7134_BOARD_AVERMEDIA_CARDBUS_501] = {
++		/* Oldrich Jedlicka <oldium.pro@seznam.cz> */
++		.name           = "AVerMedia Cardbus TV/Radio (E501R)",
++		.audio_clock    = 0x187de7,
++		.tuner_type     = TUNER_ALPS_TSBE5_PAL,
++		.radio_type     = TUNER_TEA5767,
++		.tuner_addr	= 0x61,
++		.radio_addr	= 0x60,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.gpiomask       = 0x08000000,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 1,
++			.amux = TV,
++			.tv   = 1,
++			.gpio = 0x08000000,
++		},{
++			.name = name_comp1,
++			.vmux = 3,
++			.amux = LINE1,
++			.gpio = 0x08000000,
++		},{
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++			.gpio = 0x08000000,
++		}},
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++			.gpio = 0x00000000,
++		},
++	},
+ 	[SAA7134_BOARD_CINERGY400_CARDBUS] = {
+ 		.name           = "Terratec Cinergy 400 mobile",
+ 		.audio_clock    = 0x187de7,
+@@ -5104,6 +5137,13 @@
+ 		.subdevice    = 0xd6ee,
+ 		.driver_data  = SAA7134_BOARD_AVERMEDIA_CARDBUS,
+ 	},{
++		/* AVerMedia CardBus */
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
++		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
++		.subdevice    = 0xb7e9,
++		.driver_data  = SAA7134_BOARD_AVERMEDIA_CARDBUS_501,
++	},{
+ 		/* TransGear 3000TV */
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
+@@ -6341,6 +6381,16 @@
+ 		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0xffffffff, 0xffffffff);
+ 		msleep(10);
+ 		break;
++	case SAA7134_BOARD_AVERMEDIA_CARDBUS_501:
++		/* power-down tuner chip */
++		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x08400000, 0x08400000);
++		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x08400000, 0);
++		msleep(10);
++		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x08400000, 0x08400000);
++		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x08400000, 0x08400000);
++		msleep(10);
++		dev->has_remote = SAA7134_REMOTE_I2C;
++		break;
+ 	case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
+ 		saa7134_set_gpio(dev, 23, 0);
+ 		msleep(10);
+@@ -6782,6 +6832,7 @@
+ 
+ 	switch (dev->board) {
+ 	case SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM:
++	case SAA7134_BOARD_AVERMEDIA_CARDBUS_501:
+ 	{
+ 		struct v4l2_priv_tun_config tea5767_cfg;
+ 		struct tea5767_ctrl ctl;
