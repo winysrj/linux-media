@@ -1,19 +1,19 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.seznam.cz ([77.75.72.43]:57751 "EHLO smtp.seznam.cz"
+Received: from smtp.seznam.cz ([77.75.72.43]:35807 "EHLO smtp.seznam.cz"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757727AbZDNSsS convert rfc822-to-8bit (ORCPT
+	id S1759829AbZDNSoQ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Apr 2009 14:48:18 -0400
+	Tue, 14 Apr 2009 14:44:16 -0400
+From: =?utf-8?q?Old=C5=99ich_Jedli=C4=8Dka?= <oldium.pro@seznam.cz>
 To: LMML <linux-media@vger.kernel.org>
-Subject: [PATCH][RESEND] Use correct sampling rate for TV/FM radio
-Content-Disposition: inline
-From: Oldrich Jedlicka <oldium.pro@seznam.cz>
-Date: Tue, 14 Apr 2009 20:48:14 +0200
+Subject: [PATCH] Use correct sampling rate for TV/FM radio
+Date: Tue, 14 Apr 2009 20:44:08 +0200
 MIME-Version: 1.0
 Content-Type: text/plain;
   charset="utf-8"
 Content-Transfer-Encoding: 8BIT
-Message-Id: <200904142048.14713.oldium.pro@seznam.cz>
+Content-Disposition: inline
+Message-Id: <200904142044.08714.oldium.pro@seznam.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -25,13 +25,13 @@ everything (TV, radio, LINE1/2).
 Now it should be possible to just use the card without the need to change the
 capture rate from 48kHz to 32kHz. Enjoy :-)
 
-Now without word-wrapping.
-
 Signed-off-by: Oldřich Jedlička <oldium.pro@seznam.cz>
 ---
 diff -r dba0b6fae413 linux/drivers/media/video/saa7134/saa7134-alsa.c
---- a/linux/drivers/media/video/saa7134/saa7134-alsa.c	Thu Apr 09 08:21:42 2009 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-alsa.c	Mon Apr 13 23:07:22 2009 +0200
+--- a/linux/drivers/media/video/saa7134/saa7134-alsa.c	Thu Apr 09 08:21:42 
+2009 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-alsa.c	Mon Apr 13 23:07:22 
+2009 +0200
 @@ -465,6 +465,29 @@
  	.periods_max =		1024,
  };
