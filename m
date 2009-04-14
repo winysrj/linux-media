@@ -1,84 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110808.mail.gq1.yahoo.com ([67.195.13.231]:27108 "HELO
-	web110808.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757835AbZDEKbe (ORCPT
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:47263 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753190AbZDNMxC convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Apr 2009 06:31:34 -0400
-Message-ID: <943396.95266.qm@web110808.mail.gq1.yahoo.com>
-Date: Sun, 5 Apr 2009 03:31:32 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [0904_13] Siano: move DVB_API and remove redundant code
-To: LinuxML <linux-media@vger.kernel.org>
+	Tue, 14 Apr 2009 08:53:02 -0400
+Received: by fxm2 with SMTP id 2so2412026fxm.37
+        for <linux-media@vger.kernel.org>; Tue, 14 Apr 2009 05:53:00 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <20090414091233.3ea2f6e4@pedra.chehab.org>
+References: <200903262049.10425.vasily@scopicsoftware.com>
+	 <200904131317.01731.hverkuil@xs4all.nl>
+	 <36c518800904131808m67482f2ex54307dfab91ccdf0@mail.gmail.com>
+	 <20090414091233.3ea2f6e4@pedra.chehab.org>
+Date: Tue, 14 Apr 2009 15:53:00 +0300
+Message-ID: <36c518800904140553m41fcbd34rb265e0993dd76689@mail.gmail.com>
+Subject: Re: [REVIEW] v4l2 loopback
+From: vasaka@gmail.com
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, Apr 14, 2009 at 3:12 PM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> On Tue, 14 Apr 2009 04:08:41 +0300
+> vasaka@gmail.com wrote:
+>
+>> On Mon, Apr 13, 2009 at 2:17 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> > On Thursday 26 March 2009 19:49:10 Vasily wrote:
+>> >> Hello, please review the new version of v4l2 loopback driver.
+>> >> I fixed up comments to the previous submission, waiting for the new ones
+>> >> :-), reposting for patchwork tool
+>> >>
+>> >> ---
+>> >> This patch introduces v4l2 loopback module
+>> >>
+>> >> From: Vasily Levin <vasaka@gmail.com>
+>> >>
+>> >> This is v4l2 loopback driver which can be used to make available any
+>> >> userspace video as v4l2 device. Initialy it was written to make
+>> >> videoeffects available to Skype, but in fact it have many more uses.
+>> >
+>> > Hi Vasily,
+>> >
+>> > It's still on my todo list, but I have had very little time. If you still
+>> > haven't seen a review in two weeks time, then please send me a reminder.
+>> >
+>> > Sorry about this, normally I review things like this much sooner but it has
+>> > been very hectic lately.
+>> >
+>> > Regards,
+>> >
+>> >        Hans
+>>
+>> Hi Hans,
+>>
+>> Thanks for updating, driver is still waiting for review, I am glad to
+>> here that it is on a todo list :-)
+>
+> Vasily,
+>
+> It is on my todo list. I've postponed it since it is valuable to have some
+> discussions about this driver.
+>
+> The issue I see is that the V4L drivers are meant to support real devices. This
+> driver that is a loopback for some userspace driver. I don't discuss its value
+> for testing purposes or other random usage, but I can't see why this should be
+> at upstream kernel.
+>
+> So, I'm considering to add it at v4l-dvb tree, but as an out-of-tree driver
+> only. For this to happen, probably, we'll need a few adjustments at v4l build.
+>
+> Cheers,
+> Mauro
+>
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1238755204 -10800
-# Node ID f65a29f0f9a66f82a91525ae0085a15f00ac91c2
-# Parent  897669fdeb3be75a2bde978557b5398a4a7d8914
-[PATCH] [0904_13] Siano: move DVB_API and remove redundant code
+Mauro,
 
-From: Uri Shkolnik <uris@siano-ms.com>
+ok, let it be out-of -tree driver, this is also good as I do not have
+to adapt the driver to each new kernel, but I want to argue alittle
+about Inclusion of the driver into upstream kernel.
 
-The DVB-API related information has been moved from the core header
-to the smsdvb, and the redundant code has been removed from the
-core header.
+ Main reason for inclusion to the kernel is ease of use, as I
+understand installing the out-of-tree driver for some kernel needs
+downloading of the whole v4l-dvb tree(am I right?).
 
-This code has been moved since it is used only by
-the smsdvb client component.
+ Loopback gives one opportunities to do many fun things with video
+streams and when it needs just one step to begin using it chances that
+someone will do something useful with the driver are higher.
 
-Priority: normal
+ Awareness that there is such thing as loopback is also. If the driver
+is in upstream tree - more people will see it and more chances that
+more people will participate in loopback getiing better.
 
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+ vivi is an upstream driver :-)
 
-diff -r 897669fdeb3b -r f65a29f0f9a6 linux/drivers/media/dvb/siano/smscoreapi.h
---- a/linux/drivers/media/dvb/siano/smscoreapi.h	Fri Apr 03 13:31:13 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Fri Apr 03 13:40:04 2009 +0300
-@@ -36,15 +36,6 @@ along with this program.  If not, see <h
- #include <asm/page.h>
- 
- /* #include "smsir.h" */
--
--#define SMS_DVB3_SUBSYS
--#ifdef SMS_DVB3_SUBSYS
--#include "dmxdev.h"
--#include "dvbdev.h"
--#include "dvb_demux.h"
--#include "dvb_frontend.h"
--
--#endif
- 
- #define kmutex_init(_p_) mutex_init(_p_)
- #define kmutex_lock(_p_) mutex_lock(_p_)
-diff -r 897669fdeb3b -r f65a29f0f9a6 linux/drivers/media/dvb/siano/smsdvb.c
---- a/linux/drivers/media/dvb/siano/smsdvb.c	Fri Apr 03 13:31:13 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smsdvb.c	Fri Apr 03 13:40:04 2009 +0300
-@@ -22,6 +22,11 @@ along with this program.  If not, see <h
- #include <linux/module.h>
- #include <linux/init.h>
- #include <asm/byteorder.h>
-+
-+#include "dmxdev.h"
-+#include "dvbdev.h"
-+#include "dvb_demux.h"
-+#include "dvb_frontend.h"
- 
- #include "smscoreapi.h"
- /*#include "smsendian.h"*/
-@@ -52,7 +57,7 @@ struct smsdvb_client_t {
- 	fe_status_t fe_status;
- 	int fe_ber, fe_snr, fe_unc, fe_signal_strength;
- 
--	struct completion tune_done, stat_done;
-+	struct completion tune_done;
- 
- 	/* todo: save freq/band instead whole struct */
- 	struct dvb_frontend_parameters fe_params;
-
-
-
-      
+Vasily
