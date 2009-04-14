@@ -1,64 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.189]:49834 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753743AbZDHXLu convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2009 19:11:50 -0400
-Received: by fk-out-0910.google.com with SMTP id 18so163374fkq.5
-        for <linux-media@vger.kernel.org>; Wed, 08 Apr 2009 16:11:48 -0700 (PDT)
+Received: from yx-out-2324.google.com ([74.125.44.29]:36141 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751741AbZDNMwk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Apr 2009 08:52:40 -0400
+Received: by yx-out-2324.google.com with SMTP id 31so2642491yxl.1
+        for <linux-media@vger.kernel.org>; Tue, 14 Apr 2009 05:52:38 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <61526.207.214.87.58.1239228654.squirrel@webmail.xs4all.nl>
-References: <61526.207.214.87.58.1239228654.squirrel@webmail.xs4all.nl>
-Date: Thu, 9 Apr 2009 03:11:48 +0400
-Message-ID: <208cbae30904081611p604ec790kbbd2fac4daf358c3@mail.gmail.com>
-Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS,
-	2.6.16-2.6.21: WARNINGS
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
+In-Reply-To: <49E40322.5040600@orthfamily.net>
+References: <49E40322.5040600@orthfamily.net>
+Date: Tue, 14 Apr 2009 08:52:38 -0400
+Message-ID: <412bdbff0904140552m52c0106q960f7c0ee40757c@mail.gmail.com>
+Subject: Re: [linux-dvb] Pinnacle HD Stick (801e SE) and i2c issues
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 9, 2009 at 2:10 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+On Mon, Apr 13, 2009 at 11:29 PM, John Orth <john@orthfamily.net> wrote:
+> First, thanks to all for the wonderful v4l project.  I am able to get
+> this card going in Ubuntu 9.04 on my laptop (Dell Vostro 1700) with no
+> changes apart from copying the correct firmware.  What fantastic
+> progress. :)
 >
-> Can someone take a look at these warnings and errors? Looking at the log
-> these seem to be pretty easy to fix (compat stuff for the most part).
+> I have been trying very hard to get this USB tuner to work on my Asus
+> M3A78-EM board in Ubuntu 9.04 with no success.  I have tried the stock
+> Jaunty kernel, the mainline (vanilla?) kernel, the included kernel
+> modules, and modules compiled from v4l Mercurial with no success.
+> Generally speaking, after a cold boot, the stick will work for a while.
+> It will scan channels, lock one or two, and then I will receive a filter
+> timeout.  Once the filter has timed out, not even a cold boot will
+> revive the stick.  I have to power down the system, remove the stick,
+> and place it in a different USB port.  Once I have done this, I am able
+> to filter/lock with varying degrees of success.  Sometimes it will allow
+> me to generate a full channels.conf, sometimes not.  However, once
+> hitting the "filter timeout" error, dmesg gets flooded with:
 >
-> I don't have the time for this for several more days, so I'd appreciate it
-> if someone could take a look at this for me.
+> ---
+> s5h1411_writereg: writereg error 0x19 0xf5 0x0000, ret == 0)
+> dib0700: i2c write error (status = -108)
+> ---
 >
-> Thanks,
+> The filter timeout occurs after running "scan tuning.dat > channels.conf"
+> The file tuning.dat is generated via "w_scan -fa -x > tuning.dat"
 >
->        Hans
+> The firmware dvb-fe-xc5000-1.1.fw was copied to /lib/firmware per the
+> v4l Wiki instructions.
+>
+> lspci of working system:  http://pastebin.com/f31efd30a
+> lspci of non-working system:  http://pastebin.com/fa80c2f7
+>
+> Is there something major I'm overlooking?  Are there any known issues
+> with this hardware combination?  I am willing to test any changes to the
+> xc5000 driver if needed.
+>
+> Thanks!
+> John
 
-Well, i already posted about problems with compat.h and usb_endpoint_type.
-The subject was "trouble with v4l-dvb compilation, compat.h:
-redefinition of 'usb_endpoint_type". Here it is:
-http://www.spinics.net/lists/linux-media/msg03965.html
+Hello John,
 
-I wish i know how to patch that thing right but i don't know that.
-My cuurent workaroung for that is:
+I added support for that device.  A couple of questions:
 
-diff -r 77ebdc14cc24 v4l/compat.h
---- a/v4l/compat.h      Wed Apr 08 14:01:19 2009 -0300
-+++ b/v4l/compat.h      Thu Apr 09 03:08:07 2009 +0400
-@@ -392,11 +392,13 @@
- }
- #endif
+1.  Are you sure the port on the PC supports USB 2.0?
 
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 30)
- #ifdef NEED_USB_ENDPOINT_TYPE
- static inline int usb_endpoint_type(const struct usb_endpoint_descriptor *epd)
- {
-        return epd->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK;
- }
-+#endif
- #endif
- #endif /* __LINUX_USB_H */
+2.  Which application are you using to test with?
 
-but as i i understand it's bad. If someone can repair it correctly it
-will be cool.
+3.  Are you doing anything with suspend/resume on the PC?
+
+4.  Are you plugged directly into the USB port, or are you using any
+sort of USB extension cable?
+
+Once I know the answers to the above questions, I will see what I can
+figure out.
+
+Regards,
+
+Devin
 
 -- 
-Best regards, Klimov Alexey
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
