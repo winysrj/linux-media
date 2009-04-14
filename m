@@ -1,49 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web32107.mail.mud.yahoo.com ([68.142.207.121]:27105 "HELO
-	web32107.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751644AbZDUJg7 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2009 05:36:59 -0400
-Message-ID: <182771.15423.qm@web32107.mail.mud.yahoo.com>
-Date: Tue, 21 Apr 2009 02:36:59 -0700 (PDT)
-From: Agustin <gatoguan-os@yahoo.com>
-Reply-To: gatoguan-os@yahoo.com
-Subject: Re: [PATCH] v4l2-subdev: add a v4l2_i2c_new_dev_subdev() function
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from yx-out-2324.google.com ([74.125.44.28]:48241 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751496AbZDNTVd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Apr 2009 15:21:33 -0400
+Received: by yx-out-2324.google.com with SMTP id 31so2803845yxl.1
+        for <linux-media@vger.kernel.org>; Tue, 14 Apr 2009 12:21:31 -0700 (PDT)
+Date: Tue, 14 Apr 2009 16:21:26 -0300
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: Robert Krakora <rob.krakora@messagenetsystems.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] em28xx: Fix for Slow Memory Leak
+Message-ID: <20090414162126.19aaccc9@gmail.com>
+In-Reply-To: <b24e53350904141217v474222e5ye042880075bef9c4@mail.gmail.com>
+References: <b24e53350904141217v474222e5ye042880075bef9c4@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello Robert,
 
-Hi,
+On Tue, 14 Apr 2009 15:17:16 -0400
+Robert Krakora <rob.krakora@messagenetsystems.com> wrote:
 
---- On 21/4/09, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> Video (sub)devices, connecting to SoCs over generic i2c busses cannot 
-> provide a pointer to struct v4l2_device in i2c-adapter driver_data, and 
-> provide their own i2c_board_info data, including a platform_data field. 
-> Add a v4l2_i2c_new_dev_subdev() API function that does exactly the same
-> as v4l2_i2c_new_subdev() but uses different parameters, and make 
-> v4l2_i2c_new_subdev() a wrapper around it.
+> em28xx: Fix for Slow Memory Leak
 
-[snip]
+Thanks, I am going to test and commit your patch.
 
-I am wondering about this ongoing effort and its pursued goal: is it to hierarchize the v4l architecture, adding new abstraction levels? If so, what for?
-
-To me, as an eventual driver developer, this makes it harder to integrate my own drivers, as I use I2C and V4L in my system but I don't want them to be tightly coupled.
-
-Of course I can ignore this "subdev" stuff and just link against soc-camera which is what I need, and manage I2C without V4L knowing about it. Which is what I do.
-
-So, which is the point I am missing?
-
-Regards,
---Agustín.
-
---
-Agustin Ferrin Pozuelo
-Embedded Systems Consultant
-http://embedded.ferrin.org
-Tel. +34 610502587
+Cheers,
+Douglas
+> From: Robert Krakora <rob.krakora@messagenetsystems.com>
+> 
+> Test Code:  (Provided by Douglas)
+> 
+> v4l-dvb/v4l2-apps/test/stress-buffer.c
+> 
+> The audio DMA area was never being freed and would slowly leak over
+> time as the v4l device was opened and closed by an application.
+> 
+> Thanks again to Douglas for generating the test code to help locate
+> memory leaks!!!
+> 
+> Priority: normal
+> 
+> Signed-off-by: Robert Krakora <rob.krakora@messagenetsystems.com>
+> 
+> diff -r 5567e82c34a0 linux/drivers/media/video/em28xx/em28xx-audio.c
+> --- a/linux/drivers/media/video/em28xx/em28xx-audio.c   Tue Mar 31
+> 07:24:14 2009 -0300
+> +++ b/linux/drivers/media/video/em28xx/em28xx-audio.c   Tue Apr 14
+> 10:16:45 2009 -0400
+> @@ -278,6 +278,7 @@
+>  #endif
+> 
+>         dprintk("Allocating vbuffer\n");
+> +
+>         if (runtime->dma_area) {
+>                 if (runtime->dma_bytes > size)
+>                         return 0;
+> @@ -385,6 +386,18 @@
+>         mutex_lock(&dev->lock);
+>         dev->adev.users--;
+>         em28xx_audio_analog_set(dev);
+> +       if (substream == dev->adev.capture_pcm_substream)
+> +       {
+> +               if (substream && substream->runtime &&
+> substream->runtime->dma_area) {
+> +                       dprintk("freeing\n");
+> +                       vfree(substream->runtime->dma_area);
+> +                       substream->runtime->dma_area = NULL;
+> +               }
+> +       }
+> +       else
+> +       {
+> +               em28xx_errdev("substream(%p) !=
+> dev->adev.capture_pcm_substream(%p)\n", substream,
+> dev->adev.capture_pcm_substream);
+> +       }
+>         mutex_unlock(&dev->lock);
+> 
+>         return 0;
+> --
+> To unsubscribe from this list: send the line "unsubscribe
+> linux-media" in the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
