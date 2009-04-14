@@ -1,14 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.gmx.net ([213.165.64.20])
-	by mail.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <markus.o.hahn@gmx.de>) id 1LpgWM-0000Zv-PD
-	for linux-dvb@linuxtv.org; Fri, 03 Apr 2009 12:21:12 +0200
-Date: Fri, 03 Apr 2009 12:20:32 +0200
-From: "Markus Oliver Hahn" <markus.o.hahn@gmx.de>
-Message-ID: <20090403102032.15320@gmx.net>
+Received: from auth-2.ukservers.net ([217.10.138.132])
+	by mail.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <linuxtv@nzbaxters.com>) id 1Ltby9-0004Af-C5
+	for linux-dvb@linuxtv.org; Tue, 14 Apr 2009 08:18:06 +0200
+Message-ID: <0d2601c9bcc8$b16f6b00$7501010a@ad.sytec.com>
+From: "Simon Baxter" <linuxtv@nzbaxters.com>
+To: "Glenn Sommer" <glemsom@gmail.com>,
+	"Ernst Persson" <ernstp@gmail.com>
+References: <d65b1b150812170433j717c673ak4489cdbbc10c29a3@mail.gmail.com><8e2e399f0812202343o2b88ab1ap4c92d0e99dd90af0@mail.gmail.com>
+	<d65b1b150812300632u7f66c092le77e66acf888c691@mail.gmail.com>
+Date: Tue, 14 Apr 2009 18:17:28 +1200
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb]  APIs
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] TT c-1501 getting timed out waiting for end of xfer
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -17,31 +21,24 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi there, =
+>I just tested with kernel 2.6.28 and latest snapshot of v4l-dvb.
+> And I still get those timeouts!
+>
+> The card seems to run fine though.
+> Occasionally I have problems locking on to channels... Though - I
+> don't think that's related to the drivers (I think it's a CAM issue).
 
-I just read this: =
+I'm getting those messages on my c-1501 too.  Have a c-1500 in the same 
+machine, without these errors.
 
+Did you get to the bottom of it? 
 
-http://linuxtv.org/news.php?entry=3D2008-09-23.mchehab
-
-but where can I get the t S2API Documentation? =
-
-
-regards =
-
-
-
--- =
-
-Neu: GMX FreeDSL Komplettanschluss mit DSL 6.000 Flatrate + Telefonanschlus=
-s f=FCr nur 17,95 Euro/mtl.!* http://dsl.gmx.de/?ac=3DOM.AD.PD003K11308T456=
-9a
 
 _______________________________________________
 linux-dvb users mailing list
