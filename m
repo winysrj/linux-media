@@ -1,71 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:58822 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752344AbZDGCFi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Apr 2009 22:05:38 -0400
-Date: Mon, 6 Apr 2009 23:03:29 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES for 2.6.30] V4L/DVB updates
-Message-ID: <20090406230329.5cf3d517@pedra.chehab.org>
-In-Reply-To: <20090406222940.02258999@pedra.chehab.org>
-References: <20090406215632.3eb96373@pedra.chehab.org>
-	<alpine.LFD.2.00.0904061808580.4010@localhost.localdomain>
-	<20090406222940.02258999@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mailrelay009.isp.belgacom.be ([195.238.6.176]:30736 "EHLO
+	mailrelay009.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751330AbZDNPVO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Apr 2009 11:21:14 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC] White Balance control for digital camera
+Date: Tue, 14 Apr 2009 17:23:22 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	g.liakhovetski@gmx.de, "Jean-Francois Moine" <moinejf@free.fr>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"jongse.won@samsung.com" <jongse.won@samsung.com>,
+	=?utf-8?q?=EA=B9=80=ED=98=95=EC=A4=80?= <riverful.kim@samsung.com>
+References: <5e9665e10904091450u3e70cda8w9e1d57e45365a32b@mail.gmail.com> <20090414085402.10293cfd@pedra.chehab.org> <200904141650.59580.hverkuil@xs4all.nl>
+In-Reply-To: <200904141650.59580.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200904141723.23175.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
-On Mon, 6 Apr 2009 22:29:40 -0300
-Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+On Tuesday 14 April 2009 16:50:59 Hans Verkuil wrote:
+> On Tuesday 14 April 2009 13:54:02 Mauro Carvalho Chehab wrote:
+> > On Fri, 10 Apr 2009 06:50:32 +0900
+> >
+> > "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com> wrote:
+> > > Hello everyone,
+> > >
+> > > I'm posting this RFC one more time because it seems to everyone has
+> > > been forgot this, and I'll be appreciated if any of you who is reading
+> > > this mailing list give me comment.
+> > >
+> > > I'm adding some choices for you to make it easier. (even the option
+> > > for that this is a pointless discussion)
+> > >
+> > >
+> > >
+> > > I've got a big question popping up handling white balance with
+> > > V4L2_CID_WHITE_BALANCE_TEMPERATURE CID.
+> > >
+> > > Because in digital camera we generally control over user interface
+> > > with pre-defined white balance name. I mean, user controls white
+> > > balance with presets not with kelvin number.
+> > > I'm very certain that TEMPERATURE CID is needed in many of video
+> > > capture devices, but also 100% sure that white balance preset control
+> > > is also necessary for digital cameras.
+> > > How can we control white balance through preset name with existing V4L2
+> > > API?
+> > >
+> > > For now, I define preset names in user space with supported color
+> > > temperature preset in driver like following.
+> > >
+> > > #define MANUAL_WB_TUNGSTEN 3000
+> > > #define MANUAL_WB_FLUORESCENT 4000
+> > > #define MANUAL_WB_SUNNY 5500
+> > > #define MANUAL_WB_CLOUDY 6000
+> > >
+> > > and make driver to handle those presets like this. (I split in several
+> > > ranges to make driver pretend to be generic)
+> > >
+> > > case V4L2_CID_WHITE_BALANCE_TEMPERATURE:
+> > >                if (vc->value < 3500) {
+> > >                        /* tungsten */
+> > >                        err = ce131f_cmds(c, ce131f_wb_tungsten);
+> > >                } else if (vc->value < 4100) {
+> > >                        /* fluorescent */
+> > >                        err = ce131f_cmds(c, ce131f_wb_fluorescent);
+> > >                } else if (vc->value < 6000) {
+> > >                        /* sunny */
+> > >                        err = ce131f_cmds(c, ce131f_wb_sunny);
+> > >                } else if (vc->value < 6500) {
+> > >                        /* cloudy */
+> > >                        err = ce131f_cmds(c, ce131f_wb_cloudy);
+> > >                } else {
+> > >                        printk(KERN_INFO "%s: unsupported kelvin
+> > > range\n", __func__);
+> > >                }
+> > >                ......
+> > >
+> > > I think this way seems to be ugly. Don't you think that another CID is
+> > > necessary to handle WB presets?
+> > > Because most of mobile camera modules can't make various color
+> > > temperatures in expecting kelvin number with user parameter.
+> > >
+> > > So, here you are some options you can chose to give your opinion.(or
+> > > you can make your own opinion)
+> > >
+> > > (A). Make a new CID to handle well known white balance presets
+> > > Like V4L2_CID_WHITE_BALANCE_PRESET for CID and enum values like
+> > > following for value
+> > >
+> > > enum v4l2_whitebalance_presets {
+> > >      V4L2_WHITEBALANCE_TUNGSTEN  = 0,
+> > >      V4L2_WHITEBALANCE_FLUORESCENT,
+> > >      V4L2_WHITEBALANCE_SUNNY,
+> > >      V4L2_WHITEBALANCE_CLOUDY,
+> > > ....
+> > >
+> > > (B). Define well known kelvin number in videodev2.h as preset name and
+> > > share with user space
+> > > Like following
+> > >
+> > > #define V4L2_WHITEBALANCE_TUNGSTEN 3000
+> > > #define V4L2_WHITEBALANCE_FLUORESCENT 4000
+> > > #define V4L2_WHITEBALANCE_SUNNY 5500
+> > > #define V4L2_WHITEBALANCE_CLOUDY 6000
+> > >
+> > > and use those defined values with V4L2_CID_WHITE_BALANCE_TEMPERATURE
+> > >
+> > > urgh.....
+> > >
+> > > (C). Leave it alone. It's a pointless discussion. we are good with
+> > > existing WB API.
+> > > (really?)
+> > >
+> > >
+> > > I'm very surprised about this kind of needs were not issued yet.
+> >
+> > I vote for (B). This is better than creating another user control for
+> > something that were already defined. The drivers that don't support
+> > specifying the color temperature, in Kelvin should round to the closest
+> > supported value, and return the proper configured value when questioned.
+>
+> I'm going with A. My reasoning is that presets 1) differ per device, 2)
+> will normally be better tested than a random temperature value.
+>
+> Remember that the control API is meant to export the options that the
+> device supports to the application. So the presets cannot be defined as
+> macros but must really come from the device driver. An application can then
+> show the available presets to the user.
+>
+> I wonder if these two aren't mutually exclusive: you either can use any
+> value, or only use presets.
+>
+> Laurent, I see that uvc supports it: does the uvc standard mention anything
+> with regards to presets?
 
-> 
-> On Mon, 6 Apr 2009 18:11:34 -0700 (PDT)
-> Linus Torvalds <torvalds@linux-foundation.org> wrote:
-> 
-> > 
-> > 
-> > On Mon, 6 Apr 2009, Mauro Carvalho Chehab wrote:
-> > > 
-> > > Please pull from:
-> > >         ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git for_linus
-> > 
-> > Have you rebased your tree and pushed out multiple versions of it?
-> > 
-> > I'm getting very confusing things from the mirrors, which are subtly 
-> > different from the copy on master.
-> > 
-> > This all looks like it was rebased just hours ago, and to top it off, it 
-> > looks like you actually change stuff you had exported earlier.
-> > 
-> > Don't do that. Really. It's very annoying. More than annoying, in fact. 
-> > This had better simply not happen again!
-> 
-> Yes, unfortunately I had to rebase. I noticed that one of the patches were
-> creating a file that didn't belong to that changeset, creating a file on the
-> wrong place (at -p2 diff format).
-> 
-> We should be discussing during this kernel cycle about migrating our
-> development tree to use -git (instead of Mercurial). I hope that this will
-> avoid to detect such errors so late, and avoid a few conversion issues we
-> currently have.
-> 
-> Sorry for the mess.
+The UVC specification defines two white balance controls (red and blue 
+components, and temperature). It doesn't mention any preset.
 
-In order to test, I did a fresh local clone of your tree and applied mine on
-the top of it. Everything worked as expected. Compilation also worked properly.
+If a camera supports a continuous range of temperatures, presets will likely 
+be known good values computed/measured by the camera manufacturer. It makes 
+sense to report them in addition to the continuous white balance temperature 
+control.
 
-I'll do my best to not rebase it anymore after exporting.
+Regards,
 
-Could you please pull from:
-	ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git for_linus
+Laurent Pinchart
 
--- 
-
-Cheers,
-Mauro
