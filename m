@@ -1,118 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:41285 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755663AbZDTPCv (ORCPT
+Received: from smtp-out112.alice.it ([85.37.17.112]:3362 "EHLO
+	smtp-out112.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751817AbZDNOFH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 11:02:51 -0400
-Date: Mon, 20 Apr 2009 12:02:44 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Uri Shkolnik <urishk@yahoo.com>
-Cc: LinuxML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] [0904_7] Siano: smsdvb - modify license header and
- included file list.
-Message-ID: <20090420120244.0661741a@pedra.chehab.org>
-In-Reply-To: <399946.98112.qm@web110811.mail.gq1.yahoo.com>
-References: <399946.98112.qm@web110811.mail.gq1.yahoo.com>
+	Tue, 14 Apr 2009 10:05:07 -0400
+Date: Tue, 14 Apr 2009 16:04:50 +0200
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [REVIEW] v4l2 loopback
+Message-Id: <20090414160450.4ac1a498.ospite@studenti.unina.it>
+In-Reply-To: <36c518800904140553m41fcbd34rb265e0993dd76689@mail.gmail.com>
+References: <200903262049.10425.vasily@scopicsoftware.com>
+	<200904131317.01731.hverkuil@xs4all.nl>
+	<36c518800904131808m67482f2ex54307dfab91ccdf0@mail.gmail.com>
+	<20090414091233.3ea2f6e4@pedra.chehab.org>
+	<36c518800904140553m41fcbd34rb265e0993dd76689@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Tue__14_Apr_2009_16_04_50_+0200_oKmCmq3oIqJPmD7b"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 5 Apr 2009 01:37:23 -0700 (PDT)
-Uri Shkolnik <urishk@yahoo.com> wrote:
+--Signature=_Tue__14_Apr_2009_16_04_50_+0200_oKmCmq3oIqJPmD7b
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> 
-> # HG changeset patch
-> # User Uri Shkolnik <uris@siano-ms.com>
-> # Date 1238695774 -10800
-> # Node ID 7b5d5a3a7b8e80359e770041ca4c8cf407d893d6
-> # Parent  4a0b207a424af7f05d8eb417a698a82a61dd086f
-> [PATCH] [0904_7] Siano: smsdvb - modify license header
-> and included file list.
-> 
-> From: Uri Shkolnik <uris@siano-ms.com>
-> 
-> smsdvb.c (client for DVB-API v3) - modify license header
-> and included file list. Removing white spaces.
-> There are no implementation changes.
+On Tue, 14 Apr 2009 15:53:00 +0300
+vasaka@gmail.com wrote:
 
-Please split it into different patches:
-	license changes;
-	whitespacing and CodingStyle cleanups;
-	compat patch;
-	init_completion patch.
+> On Tue, Apr 14, 2009 at 3:12 PM, Mauro Carvalho Chehab
+> <mchehab@infradead.org> wrote:
+>
+> > The issue I see is that the V4L drivers are meant to support real devic=
+es. This
+> > driver that is a loopback for some userspace driver. I don't discuss it=
+s value
+> > for testing purposes or other random usage, but I can't see why this sh=
+ould be
+> > at upstream kernel.
+> >
+> > So, I'm considering to add it at v4l-dvb tree, but as an out-of-tree dr=
+iver
+> > only. For this to happen, probably, we'll need a few adjustments at v4l=
+ build.
+> >
+> > Cheers,
+> > Mauro
+> >
+>=20
+> Mauro,
+>=20
+> ok, let it be out-of -tree driver, this is also good as I do not have
+> to adapt the driver to each new kernel, but I want to argue alittle
+> about Inclusion of the driver into upstream kernel.
+>=20
+>  Main reason for inclusion to the kernel is ease of use, as I
+> understand installing the out-of-tree driver for some kernel needs
+> downloading of the whole v4l-dvb tree(am I right?).
+>=20
+>  Loopback gives one opportunities to do many fun things with video
+> streams and when it needs just one step to begin using it chances that
+> someone will do something useful with the driver are higher.
+>
 
-> 
-> 
-> Priority: normal
-> 
-> Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-> 
-> +
-> +#ifndef DVB_DEFINE_MOD_OPT_ADAPTER_NR
-> +#define DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr) \
-> +		static short adapter_nr[] = \
-> +		{[0 ... (8 - 1)] = -1 }; \
-> +		module_param_array(adapter_nr, short, NULL, 0444); \
-> +		MODULE_PARM_DESC(adapter_nr, "DVB adapter numbers")
-> +#define SMS_DVB_OLD_DVB_REGISTER_ADAPTER
-> +#endif
->  
+I, as a target user of vloopback, agree that having it in mainline
+would be really handy. Think that with a stable vloopback solution,
+with device detection and parameter setting, we can really make PTP
+digicams as webcams[1] useful, right now this is tricky and very
+uncomfortable on kernel update.
 
-Why do you need to add such test? If this is due to compat issues, please add
-it into a separate patch, and patch also v4l/scripts/gentree.pl to discard
-those changes when submitting it upstream.
+>  Awareness that there is such thing as loopback is also. If the driver
+> is in upstream tree - more people will see it and more chances that
+> more people will participate in loopback getiing better.
+>=20
+>  vivi is an upstream driver :-)
+>
 
-> +	/*
-> +	 if (client->fe_status & FE_HAS_LOCK)
-> +	 sms_board_dvb3_event(client->coredev, DVB3_EVENT_FE_LOCK);
-> +	 else
-> +	 sms_board_dvb3_event(client->coredev, DVB3_EVENT_FE_UNLOCK);
-> +	 if (client->sms_stat_dvb.ReceptionData.ErrorTSPackets == 0)
-> +	 sms_board_dvb3_event(client->coredev, DVB3_EVENT_UNC_OK);
-> +	 else
-> +	 sms_board_dvb3_event(client->coredev, DVB3_EVENT_UNC_ERR);
-> +	 */
+Even vivi can be seen as a particular case of a vloopback device, can't
+it?
 
-The indentation of the above code is completely wrong. Also, it is much better to comment experimental codes like the above with:
+Regards,
+   Antonio
 
-#if 0
-	/* Some reason why the code is commented */
+[1]
+http://shell.studenti.unina.it/~ospite/section/it/dev/canoncam.html#English
 
-	(the code)
-#endif
+--=20
+A: Because it messes up the order in which people normally read text.
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
 
-> -		.caps = FE_CAN_INVERSION_AUTO |
-> -			FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
-> -			FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
-> -			FE_CAN_QPSK | FE_CAN_QAM_16 | FE_CAN_QAM_64 |
-> -			FE_CAN_QAM_AUTO | FE_CAN_TRANSMISSION_MODE_AUTO |
-> -			FE_CAN_GUARD_INTERVAL_AUTO |
-> -			FE_CAN_RECOVER |
-> -			FE_CAN_HIERARCHY_AUTO,
-> +		 FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
-> +		 FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
-> +		 FE_CAN_QPSK | FE_CAN_QAM_16 | FE_CAN_QAM_64 |
-> +		 FE_CAN_QAM_AUTO | FE_CAN_TRANSMISSION_MODE_AUTO |
-> +		 FE_CAN_GUARD_INTERVAL_AUTO |
-> +		 FE_CAN_RECOVER | FE_CAN_HIERARCHY_AUTO,
+  Web site: http://www.studenti.unina.it/~ospite
+Public key: http://www.studenti.unina.it/~ospite/aopubkey.asc
 
-I suspect that you run some tool like indent to "fix" indentation. It should be
-noticed that sometimes indent produces very bad results. 
+--Signature=_Tue__14_Apr_2009_16_04_50_+0200_oKmCmq3oIqJPmD7b
+Content-Type: application/pgp-signature
 
-In the above, the previous way is correct.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
-> @@ -541,7 +563,6 @@ static int smsdvb_hotplug(struct smscore
->  	client->coredev = coredev;
->  
->  	init_completion(&client->tune_done);
-> -	init_completion(&client->stat_done);
->  
->  	kmutex_lock(&g_smsdvb_clientslock);
+iEYEARECAAYFAknkmAIACgkQ5xr2akVTsAGWZgCeJX8rLeGLhk/undtVYUo0z2n5
+HNIAniwTnqoz7jv8SOU/SO5ieVrDIQGJ
+=rrm2
+-----END PGP SIGNATURE-----
 
-The above is unrelated to the other changes. Please break it into a separate
-changeset, providing an explanation: why do we need to remove it.
-
-Cheers,
-Mauro
+--Signature=_Tue__14_Apr_2009_16_04_50_+0200_oKmCmq3oIqJPmD7b--
