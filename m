@@ -1,78 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:45093 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751941AbZDUSKw convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1660 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756402AbZDNOvF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2009 14:10:52 -0400
-Date: Tue, 21 Apr 2009 15:10:45 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: Uri Shkolnik <urishk@yahoo.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [0904_14] Siano: assemble all components to one kernel
- module
-Message-ID: <20090421151045.49724d59@pedra.chehab.org>
-In-Reply-To: <Pine.LNX.4.58.0904211046580.3753@shell2.speakeasy.net>
-References: <142898.44509.qm@web110807.mail.gq1.yahoo.com>
-	<Pine.LNX.4.58.0904211046580.3753@shell2.speakeasy.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Tue, 14 Apr 2009 10:51:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [RFC] White Balance control for digital camera
+Date: Tue, 14 Apr 2009 16:50:59 +0200
+Cc: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	g.liakhovetski@gmx.de, Jean-Francois Moine <moinejf@free.fr>,
+	laurent.pinchart@skynet.be,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"jongse.won@samsung.com" <jongse.won@samsung.com>,
+	=?utf-8?q?=EA=B9=80=ED=98=95=EC=A4=80?= <riverful.kim@samsung.com>
+References: <5e9665e10904091450u3e70cda8w9e1d57e45365a32b@mail.gmail.com> <20090414085402.10293cfd@pedra.chehab.org>
+In-Reply-To: <20090414085402.10293cfd@pedra.chehab.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200904141650.59580.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 21 Apr 2009 10:54:40 -0700 (PDT)
-Trent Piepho <xyzzy@speakeasy.org> wrote:
-
-> On Tue, 21 Apr 2009, Uri Shkolnik wrote:
-> > --- On Tue, 4/21/09, Trent Piepho <xyzzy@speakeasy.org> wrote:
-> > > From: Trent Piepho <xyzzy@speakeasy.org>
-> > > Subject: Re: [PATCH] [0904_14] Siano: assemble all components to one kernel module
-> > > To: "Uri Shkolnik" <urishk@yahoo.com>
-> > > Cc: "Mauro Carvalho Chehab" <mchehab@infradead.org>, "LinuxML" <linux-media@vger.kernel.org>
-> > > Date: Tuesday, April 21, 2009, 6:17 AM
-> > > On Mon, 20 Apr 2009, Uri Shkolnik
-> > > wrote:
-> > > >
-> > > > "better to have the BUS configurable, e. g. just
-> > > because you have USB interface, it doesn't mean that you
-> > > want siano for USB, instead of using SDIO."
-> > > >
-> > > > Since the module is using dynamic registration, I
-> > > don't find it a problem.
-> > > > When the system has both USB and SDIO buses, both USB
-> > > and SDIO interface driver will be compiled and linked to the
-> > > module. When a Siano based device (or multiple Siano
-> > > devices) will be connected, they will be register internally
-> > > in the core and activated. Any combination is allow
-> > > (multiple SDIO, multiple USB and any mix).
-> > >
-> > > This is not the way linux drivers normally work. 
-> > > Usually there are
-> > > multiple modules so that only the ones that need to be
-> > > loaded are loaded.
-> > > It sounds like you are designing this to be custom compiled
-> > > for each
-> > > system, but that's not usually they way things work.
+On Tuesday 14 April 2009 13:54:02 Mauro Carvalho Chehab wrote:
+> On Fri, 10 Apr 2009 06:50:32 +0900
+>
+> "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com> wrote:
+> > Hello everyone,
 > >
-> > I think I didn't express myself clearly.
+> > I'm posting this RFC one more time because it seems to everyone has
+> > been forgot this, and I'll be appreciated if any of you who is reading
+> > this mailing list give me comment.
 > >
-> > Lets say that someone build a kernel X.
-> > This kernel has (from all buses) only USB. The Siano module will build with USB interface driver at this system.
+> > I'm adding some choices for you to make it easier. (even the option
+> > for that this is a pointless discussion)
 > >
-> > If the system includes SDIO and OMAP SPI/SPP, the module build will discard the USB interface driver, but the SDIO and the OMAP SPI will be built.
+> >
+> >
+> > I've got a big question popping up handling white balance with
+> > V4L2_CID_WHITE_BALANCE_TEMPERATURE CID.
+> >
+> > Because in digital camera we generally control over user interface
+> > with pre-defined white balance name. I mean, user controls white
+> > balance with presets not with kelvin number.
+> > I'm very certain that TEMPERATURE CID is needed in many of video
+> > capture devices, but also 100% sure that white balance preset control
+> > is also necessary for digital cameras.
+> > How can we control white balance through preset name with existing V4L2
+> > API?
+> >
+> > For now, I define preset names in user space with supported color
+> > temperature preset in driver like following.
+> >
+> > #define MANUAL_WB_TUNGSTEN 3000
+> > #define MANUAL_WB_FLUORESCENT 4000
+> > #define MANUAL_WB_SUNNY 5500
+> > #define MANUAL_WB_CLOUDY 6000
+> >
+> > and make driver to handle those presets like this. (I split in several
+> > ranges to make driver pretend to be generic)
+> >
+> > case V4L2_CID_WHITE_BALANCE_TEMPERATURE:
+> >                if (vc->value < 3500) {
+> >                        /* tungsten */
+> >                        err = ce131f_cmds(c, ce131f_wb_tungsten);
+> >                } else if (vc->value < 4100) {
+> >                        /* fluorescent */
+> >                        err = ce131f_cmds(c, ce131f_wb_fluorescent);
+> >                } else if (vc->value < 6000) {
+> >                        /* sunny */
+> >                        err = ce131f_cmds(c, ce131f_wb_sunny);
+> >                } else if (vc->value < 6500) {
+> >                        /* cloudy */
+> >                        err = ce131f_cmds(c, ce131f_wb_cloudy);
+> >                } else {
+> >                        printk(KERN_INFO "%s: unsupported kelvin
+> > range\n", __func__);
+> >                }
+> >                ......
+> >
+> > I think this way seems to be ugly. Don't you think that another CID is
+> > necessary to handle WB presets?
+> > Because most of mobile camera modules can't make various color
+> > temperatures in expecting kelvin number with user parameter.
+> >
+> > So, here you are some options you can chose to give your opinion.(or
+> > you can make your own opinion)
+> >
+> > (A). Make a new CID to handle well known white balance presets
+> > Like V4L2_CID_WHITE_BALANCE_PRESET for CID and enum values like
+> > following for value
+> >
+> > enum v4l2_whitebalance_presets {
+> >      V4L2_WHITEBALANCE_TUNGSTEN  = 0,
+> >      V4L2_WHITEBALANCE_FLUORESCENT,
+> >      V4L2_WHITEBALANCE_SUNNY,
+> >      V4L2_WHITEBALANCE_CLOUDY,
+> > ....
+> >
+> > (B). Define well known kelvin number in videodev2.h as preset name and
+> > share with user space
+> > Like following
+> >
+> > #define V4L2_WHITEBALANCE_TUNGSTEN 3000
+> > #define V4L2_WHITEBALANCE_FLUORESCENT 4000
+> > #define V4L2_WHITEBALANCE_SUNNY 5500
+> > #define V4L2_WHITEBALANCE_CLOUDY 6000
+> >
+> > and use those defined values with V4L2_CID_WHITE_BALANCE_TEMPERATURE
+> >
+> > urgh.....
+> >
+> > (C). Leave it alone. It's a pointless discussion. we are good with
+> > existing WB API.
+> > (really?)
+> >
+> >
+> > I'm very surprised about this kind of needs were not issued yet.
+>
+> I vote for (B). This is better than creating another user control for
+> something that were already defined. The drivers that don't support
+> specifying the color temperature, in Kelvin should round to the closest
+> supported value, and return the proper configured value when questioned.
 
-The patch you've provided just merge everything. If you're proposing a newer
-model, you should send a patchset with the complete Kbuild refactor. For now,
-it is better to postpone this patch until we merge non-kbuild changes.
+I'm going with A. My reasoning is that presets 1) differ per device, 2) will 
+normally be better tested than a random temperature value.
 
-> Can you name another driver that works this way?  It is considered better
-> to build a new module for a different interface.  That way one can decide
-> at run time if the interface is needed or not and only load the module if
-> needed.  If everything is built into one module then one must decide at
-> compile time what interfaces to support.  But it is often the case that
-> kernels are compiled on different systems than run them.
+Remember that the control API is meant to export the options that the device 
+supports to the application. So the presets cannot be defined as macros but 
+must really come from the device driver. An application can then show the 
+available presets to the user.
 
-This model also sounds different to me from what I've seen so far.
+I wonder if these two aren't mutually exclusive: you either can use any 
+value, or only use presets.
 
-Cheers,
-Mauro
+Laurent, I see that uvc supports it: does the uvc standard mention anything 
+with regards to presets?
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
