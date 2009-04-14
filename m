@@ -1,109 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:54781 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753688AbZDHW4M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Apr 2009 18:56:12 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1Lrggl-0000ET-4X
-	for linux-media@vger.kernel.org; Wed, 08 Apr 2009 22:56:11 +0000
-Received: from 63.84.broadband6.iol.cz ([88.101.84.63])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 08 Apr 2009 22:56:11 +0000
-Received: from sustmidown by 63.84.broadband6.iol.cz with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 08 Apr 2009 22:56:11 +0000
-To: linux-media@vger.kernel.org
-From: Miroslav =?utf-8?b?xaB1c3Rlaw==?= <sustmidown@centrum.cz>
-Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS,      2.6.16-2.6.21: WARNINGS
-Date: Wed, 8 Apr 2009 22:56:00 +0000 (UTC)
-Message-ID: <loom.20090408T221914-837@post.gmane.org>
-References: <61526.207.214.87.58.1239228654.squirrel@webmail.xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from mail10.dotsterhost.com ([66.11.233.3]:41826 "HELO
+	mail10.dotsterhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751314AbZDNQMS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Apr 2009 12:12:18 -0400
+Message-ID: <49E4B5D9.20101@orthfamily.net>
+Date: Tue, 14 Apr 2009 12:12:09 -0400
+From: John Orth <john@orthfamily.net>
+MIME-Version: 1.0
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Pinnacle HD Stick (801e SE) and i2c issues
+References: <49E40322.5040600@orthfamily.net>	 <412bdbff0904140552m52c0106q960f7c0ee40757c@mail.gmail.com>	 <49E492D0.3070101@orthfamily.net> <412bdbff0904140854x69a700a5pcbff84853ef9f8dd@mail.gmail.com>
+In-Reply-To: <412bdbff0904140854x69a700a5pcbff84853ef9f8dd@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil <at> xs4all.nl> writes:
-> 
-> Can someone take a look at these warnings and errors? Looking at the log
-> these seem to be pretty easy to fix (compat stuff for the most part).
-> 
-> I don't have the time for this for several more days, so I'd appreciate it
-> if someone could take a look at this for me.
-> 
-> Thanks,
-> 
->         Hans
-> 
+I'm not much of a hardware guy (I know enough to get around) so 
+hopefully I don't sound too inept here.
+> I suspect this is probably some issue with the USB host chipset.  The
+> error messages you provided suggest a problem sending commands to the
+> dib0700 USB bridge, so this does not appear to be related to the
+> s5h1411 or the xc5000.
+>   
+That was my initial thought as well, but I don't have a great 
+understanding of what exactly the i2c bus does and how it works with the 
+other hardware.  Is it possible that some other piece of hardware 
+(non-USB, and non-USB host chipset) is impacting this?  The only reason 
+I ask is that I have a PCI wireless card that is using the kernel 
+rtl8185 driver (which thus far could best be described as "functional") 
+and network traffic often gets dropped for several seconds.  Is it worth 
+unloading the rtl8185 module and seeing if that makes a difference?
 
-Yes, it looks like my version of kernel luckily built, but other (older)
-versions have problems.
+Also, would more output from dmesg (or any other command) be helpful?
+> I'll have to take a look at the code and see what I can figure out.
+> Do other high speed USB devices work with your host without any
+> problem (like USB hard drives, etc?)
+>   
+The only other devices I have attempted to attach are a 2GB flash drive 
+and a wireless keyboard/mouse combo.  Those devices work without any 
+issues, but I don't think they qualify as "high speed."  I do have a USB 
+2.0 hard drive, though.  I'll hook that up and see what happens.
 
-Here: http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/4400
-Marton Balint sent patch with <linux/div64.h> include and changed 'div_s64_rem'
-to 'div_s64'. But kernels older than 2.26.x have neither 'div_s64' nor
-'div_s64_rem'.
-
-Better apply this patch instead that from Marton.
-It uses 'do_div' which is much longer supported.
-
-With 'do_div' results should be same but for completeness here are some
-appointments:
-
- * 'do_div' does computation with unsigned numbers.
- * So we need to pass dividend as unsigned (its ABS) and then alter the sign of
-the result (if dividend was negative).
- * But function 'int_goertzel' returns u32 so if we pass dividend as u64 (cast
-from s64), then no sign change is needed before returning. */
- * Also, divisor is N*N, so it will be always non-negative.
- * I think that some implementations(platforms) of 'do_div' requires divisor to
-be 32bit. That's why I rather use u32 for divisor (and not u64). (Here
-http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/4337
-Marton wrote that N is at most 576.)
-
-
------ FILE: cx88-dsp_64bit_math3.patch -----
-
-cx88-dsp: again fixing 64bit math on 32bit kernels
-
-From: Miroslav Sustek <sustmidown@centrum.cz>
-Signed-off-by: Miroslav Sustek <sustmidown@centrum.cz>
-
-
-diff -r 77ebdc14cc24 linux/drivers/media/video/cx88/cx88-dsp.c
---- a/linux/drivers/media/video/cx88/cx88-dsp.c	Wed Apr 08 14:01:19 2009 -0300
-+++ b/linux/drivers/media/video/cx88/cx88-dsp.c	Thu Apr 09 00:52:27 2009 +0200
-@@ -22,6 +22,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/jiffies.h>
-+#include <linux/math64.h>
- 
- #include "cx88.h"
- #include "cx88-reg.h"
-@@ -101,8 +102,8 @@
- 	s32 coeff = 2*int_cos(freq);
- 	u32 i;
- 
--	s64 tmp;
--	u32 remainder;
-+	u64 tmp;
-+	u32 divisor;
- 
- 	for (i = 0; i < N; i++) {
- 		s32 s = x[i] + ((s64)coeff*s_prev/32768) - s_prev2;
-@@ -115,7 +116,10 @@
- 
- 	/* XXX: N must be low enough so that N*N fits in s32.
- 	 * Else we need two divisions. */
--	return (u32) div_s64_rem(tmp, N*N, &remainder);
-+	divisor = N*N;
-+	do_div(tmp, divisor);
-+
-+	return (u32) tmp;
- }
- 
- static u32 freq_magnitude(s16 x[], u32 N, u32 freq)
+Thanks again!
+John
 
