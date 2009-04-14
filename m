@@ -1,106 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4910 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751327AbZDFSUF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 14:20:05 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id n36IJx7c035860
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 6 Apr 2009 20:20:03 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 6 Apr 2009 20:19:59 +0200 (CEST)
-Message-Id: <200904061820.n36IJx7c035860@smtp-vbr10.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: WARNINGS
+Received: from rv-out-0506.google.com ([209.85.198.225]:36021 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750746AbZDNJaJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Apr 2009 05:30:09 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so2524519rvb.1
+        for <linux-media@vger.kernel.org>; Tue, 14 Apr 2009 02:30:08 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20090414002341.48b6d974@pedra.chehab.org>
+References: <loom.20090403T201901-786@post.gmane.org>
+	 <1238805912.3498.18.camel@pc07.localdom.local>
+	 <1238806956.3498.26.camel@pc07.localdom.local>
+	 <49D77ACC.9050606@virgilio.it>
+	 <1238955753.6627.29.camel@pc07.localdom.local>
+	 <20090414002341.48b6d974@pedra.chehab.org>
+Date: Tue, 14 Apr 2009 17:30:08 +0800
+Message-ID: <15ed362e0904140230j5116e527p64afc9a1a47fb9bc@mail.gmail.com>
+Subject: Re: Kernel 2.6.29 breaks DVB-T ASUSTeK Tiger LNA Hybrid Capture
+	Device
+From: David Wong <davidtlwong@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: hermann pitton <hermann-pitton@arcor.de>, ramsoft@virgilio.it,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Tue, Apr 14, 2009 at 11:23 AM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> On Sun, 05 Apr 2009 20:22:33 +0200
+> hermann pitton <hermann-pitton@arcor.de> wrote:
+>
+>> Hi,
+>>
+>> Am Samstag, den 04.04.2009, 17:20 +0200 schrieb Ra.M.:
+>> > hermann pitton ha scritto:
+>> > > Am Samstag, den 04.04.2009, 02:45 +0200 schrieb hermann pitton:
+>> > >
+>> > >> Hi Ralph,
+>> > >>
+>> > >> Am Freitag, den 03.04.2009, 20:49 +0000 schrieb Ralph:
+>> > >>
+>> > >>> ASUSTeK Tiger LNA Hybrid Capture Device PCI - Analog/DVB-T card
+>> > >>> Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video
+>> > >>> Broadcast Decoder (rev d1)
+>> > >>>
+>> > >>> Works perfectly with kernel 2.6.28.4 (or older).
+>> > >>> Recently, I have switched to 2.6.29 (same .config as 2.6.28.4) and now, at
+>> > >>> boot
+>> > >>> time, I get the message:
+>> > >>>
+>> > >>> IRQ 18/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+>> > >>>
+>> > >>> Signal strength is very low and Kaffeine is unable to tune in any channel.
+>> > >>> Same problem with kernel 2.6.29.1
+>> > >>>
+>> > >>> -------------------------------------
+>> > >>>
+>> > >>> Messages from /var/log/dmesg
+>> > >>>
+>> > >>> saa7134 0000:03:0a.0: PCI INT A -> Link[APC3] -> GSI 18 (level, low) -> \
+>> > >>>  IRQ 18
+>> > >>> saa7133[0]: found at 0000:03:0a.0, rev: 209, irq: 18, latency: 32, mmio: \
+>> > >>> 0xfdefe000
+>> > >>> saa7133[0]: subsystem: 1043:4871, board: ASUS P7131 4871 \
+>> > >>> [card=111,autodetected]
+>> > >>> saa7133[0]: board init: gpio is 0
+>> > >>> IRQ 18/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+>> > >>> saa7133[0]: i2c eeprom 00: 43 10 71 48 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+>> > >>> saa7133[0]: i2c eeprom 10: ff ff ff 0f ff 20 ff ff ff ff ff ff ff ff ff ff
+>> > >>> saa7133[0]: i2c eeprom 20: 01 40 01 02 03 00 01 03 08 ff 00 cf ff ff ff ff
+>> > >>> saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> > >>> saa7133[0]: i2c eeprom 40: ff 21 00 c2 96 10 03 22 15 50 ff ff ff ff ff ff
+>> > >>> saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> > >>> saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> > >>> saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> > >>> saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> > >>> saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> > >>> saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> > >>> saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> > >>> saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> > >>> saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> > >>> saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> > >>> saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>> > >>> tuner' 2-004b: chip found @ 0x96 (saa7133[0])
+>> > >>> tda829x 2-004b: setting tuner address to 61
+>> > >>> tda829x 2-004b: type set to tda8290+75a
+>> > >>> saa7133[0]: registered device video0 [v4l2]
+>> > >>> saa7133[0]: registered device vbi0
+>> > >>> dvb_init() allocating 1 frontend
+>> > >>> DVB: registering new adapter (saa7133[0])
+>> > >>> DVB: registering adapter 0 frontend -32769 (Philips TDA10046H DVB-T)...
+>> > >>> tda1004x: setting up plls for 48MHz sampling clock
+>> > >>> tda1004x: timeout waiting for DSP ready
+>> > >>> tda1004x: found firmware revision 0 -- invalid
+>> > >>> tda1004x: trying to boot from eeprom
+>> > >>> tda1004x: timeout waiting for DSP ready
+>> > >>> tda1004x: found firmware revision 0 -- invalid
+>> > >>> tda1004x: waiting for firmware upload...
+>> > >>> saa7134 0000:03:0a.0: firmware: requesting dvb-fe-tda10046.fw
+>> > >>> tda1004x: found firmware revision 29 -- ok
+>> > >>> saa7134 ALSA driver for DMA sound loaded
+>> > >>> IRQ 18/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+>> > >>> saa7133[0]/alsa: saa7133[0] at 0xfdefe000 irq 18 registered as card -1
+>> > >>>
+>> > >>>
+>> > >> thanks for your report, as announced previously, I unfortunately did not
+>> > >> have time to run with latest always ... (guess why ...)
+>> > >>
+>> > >> The driver always worked with shared IRQs, if not, it was always a
+>> > >> limitation of certain hardware or mostly in some combination with binary
+>> > >> only drivers.
+>> > >>
+>> > >> If the above should be the case in general now, and not only caused by
+>> > >> some blacklist, no print out in that direction, the driver is pretty
+>> > >> broken again.
+>> > >>
+>> > >> I for sure don't have all for last months, but that
+>> > >> "IRQF_DISABLED is not guaranteed on shared IRQs" for sure does not come
+>> > >> from us here.
+>> > >>
+>> > >
+>> > > Do use something unusual like pollirq or something?
+>> > >
+>> > > We only have in saa7134-core.c
+>> > >
+>> > >   /* initialize hardware #1 */
+>> > >   saa7134_board_init1(dev);
+>> > >   saa7134_hwinit1(dev);
+>> > >
+>> > >   /* get irq */
+>> > >   err = request_irq(pci_dev->irq, saa7134_irq,
+>> > >                     IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
+>> > >   if (err < 0) {
+>> > >           printk(KERN_ERR "%s: can't get IRQ %d\n",
+>> > >                  dev->name,pci_dev->irq);
+>> > >           goto fail3;
+>> > >   }
+>> > >
+>> > > and in saa7134-alsa.c
+>> > >
+>> > >   err = request_irq(dev->pci->irq, saa7134_alsa_irq,
+>> > >                           IRQF_SHARED | IRQF_DISABLED, dev->name,
+>> > >                           (void*) &dev->dmasound);
+>> > >
+>> > >   if (err < 0) {
+>> > >           printk(KERN_ERR "%s: can't get IRQ %d for ALSA\n",
+>> > >                   dev->name, dev->pci->irq);
+>> > >           goto __nodev;
+>> > >   }
+>> > >
+>> > > Have fun ;)
+>> > > Hermann
+>> > >
+>> > >
+>> > >
+>> > >
+>> > No, I do not use pollirq.
+>> >
+>> > I have read that many users have had problems with 2.6.29 and IRQs.
+>> > Those problems affect WiFi cards, Ethernet cards, DVB-T cards, etc.
+>> >
+>> > For example:
+>> >
+>> > http://article.gmane.org/gmane.linux.uml.devel/12098
+>> > http://www.gossamer-threads.com/lists/linux/kernel/1044282
+>> > http://zen-sources.org/content/irqfshared-irqfdisabled-fix-2629-rc
+>> >
+>> > In all cases, at boot time appears the message:
+>> >
+>> > IRQ XY: IRQF_DISABLED is not guaranteed on shared IRQs
+>> >
+>> > So, probably, there is a kernel bug in the IRQs management of the
+>> > 2.6.29 and 2.6.29.1
+>> >
+>>
+>> did build a 2.6.29.1 now and your report is correct!
+>>
+>> DVB-T on saa7134 is broken at least for all tda10046 and tda8275 stuff
+>> and it is not restricted to devices with LNA.
+>>
+>> For what I can see so far, it is not related to the IRQF_DISABLED print
+>> out, since only a warning for now and removing it from the driver
+>> doesn't change anything.
+>>
+>> saa7134 DVB-S, analog TV and saa7134-alsa are not affected.
+>>
+>> Installing the current mercurial v4l-dvb on 2.6.29.1 does fix it.
+>>
+>> If on that saa7134-dvb.ko and saa7134.ko are replaced with the ones from
+>> 2.6.29.1 the breakage is back again. The related dvb and tuner modules
+>> tolerate such exchange on a first rough test.
+>>
+>> As you reported, symptoms are tumbling signal and SNR between very low
+>> and 100%, as if tuning and AGC would never stabilize.
+>>
+>> I suspect failing i2c stuff is involved. Did not notice anything like
+>> that on various mercurial versions during the last months.
+>
+> Hermann,
+>
+> Could you please try to bisect the patch that broke it? The instructions for
+> bisecting with mercurial are available at README.patches file.
+>
+> Cheers,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Results of the daily build of v4l-dvb:
+Sorry for interrupt.
+Would your saa7134 i2c problem is due to the i2c quirk?
+I have problem on the saa7134 i2c quirk that I have to totally disable
+it on my work-in-progress card.
+Just a little suggestion that trying disable the i2c quirk like this change set:
+http://linuxtv.org/hg/~mkrufky/dmbth/rev/781ffa6c43d3
 
-date:        Mon Apr  6 19:00:05 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11397:02fde69f31dc
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
-
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-m32r: OK
-linux-2.6.22.19-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29-x86_64: OK
-fw/apps: OK
-sparse (linux-2.6.29): OK
-linux-2.6.16.61-i686: WARNINGS
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+David.
