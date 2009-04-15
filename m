@@ -1,26 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n33Euokj001849
-	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 10:56:50 -0400
-Received: from mail-bw0-f170.google.com (mail-bw0-f170.google.com
-	[209.85.218.170])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n33EtYx4018303
-	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 10:56:01 -0400
-Received: by bwz18 with SMTP id 18so1003771bwz.3
-	for <video4linux-list@redhat.com>; Fri, 03 Apr 2009 07:55:34 -0700 (PDT)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3FAkScj014901
+	for <video4linux-list@redhat.com>; Wed, 15 Apr 2009 06:46:28 -0400
+Received: from smtp-out2.blueyonder.co.uk (smtp-out2.blueyonder.co.uk
+	[195.188.213.5])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3FAkEFO002257
+	for <video4linux-list@redhat.com>; Wed, 15 Apr 2009 06:46:14 -0400
+Received: from [172.23.170.140] (helo=anti-virus02-07)
+	by smtp-out2.blueyonder.co.uk with smtp (Exim 4.52)
+	id 1Lu2dB-0001fX-KF
+	for video4linux-list@redhat.com; Wed, 15 Apr 2009 11:46:13 +0100
+Received: from [77.97.147.200] (helo=[192.168.178.23])
+	by asmtp-out2.blueyonder.co.uk with esmtpa (Exim 4.52)
+	id 1Lu2dB-000805-0c
+	for video4linux-list@redhat.com; Wed, 15 Apr 2009 11:46:13 +0100
+Message-ID: <49E5BAF4.6020200@leafcom.co.uk>
+Date: Wed, 15 Apr 2009 11:46:12 +0100
+From: Brian <linuxtv@leafcom.co.uk>
 MIME-Version: 1.0
-In-Reply-To: <412bdbff0904030747s3d1e956al168cc75b0208a3f0@mail.gmail.com>
-References: <49D610CC.6070405@powercraft.nl>
-	<412bdbff0904030747s3d1e956al168cc75b0208a3f0@mail.gmail.com>
-Date: Fri, 3 Apr 2009 16:55:33 +0200
-Message-ID: <d9def9db0904030755i1ea5c514p23f2556f37578a48@mail.gmail.com>
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: request list of usb dvb-t devices that work with vanilla 2.6.29
-	kernel
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: Hauppauge DVB s/s2 card: Problem installing driver
+Reply-To: linuxtv@leafcom.co.uk
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,113 +34,61 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Apr 3, 2009 at 4:47 PM, Devin Heitmueller
-<devin.heitmueller@gmail.com> wrote:
-> On Fri, Apr 3, 2009 at 9:36 AM, Jelle de Jong <jelledejong@powercraft.nl> wrote:
->> Hello everybody,
->>
->> I have been trying for years now to get support for usb based devices
->> that makes it possible to watch FTA dvb-t channels in Europa.
->>
->> I have bought more then 6 devices already and none of them work with the
->> stock vanilla kernel (or with fedora, debian kernel packages)
->>
->> I had hopes for the em28xx drivers, and spent a lots of time in the last
->> years to Markus Rechberger. I made documentation did testing, compiled
->> packages, did a lot of mailing and irc chats, etcetera.
->>
->> I always hoped the code and work would be merged back with the official
->> upstream kernel code so all this work would not be needed anymore and the
->> devices will all just work with the new kernel releases.
->>
->> I spent time sending emails and talking to developers to see how we could
->> help Markus get his code back into the kernel.
->>
->> But the situation is just sick, and there are real attitude issues on
->> both sides.
->>
->> I have gave up my hopes on getting a good healthy development process for
->> the em28xx project. I am kind of said about this, because I don't give up
->> easy and currently slowly feels that the em28xx project maybe hurting the
->> free software community more then its doing good...
->>
->> I now need new devices that do not need the em28xx code, I gave up hopes
->> on getting analog and dvb-t to work with one usb hybrid devices, so I am
->> going for a dvb-t only device.
->>
->> Can somebody help me provide a list of devices that i can buy in stores
->> and that are supported in the 2.6.29 stock kernel or have high
->> possibilities to get full support in the future.
->>
->> I would also like to point out I need a feature that allows scanning the
->> signal strength of a dvd-t channel so I can create an fully automated FTA
->> signal scanning systems that removes weaker supplicated channels.
->>
->> Best regards, (but kind of disappointed)
->>
->> Jelle de Jong
->
-> Hello Jelle,
->
-> I see an email like this every few months, and it continues to sadden
-> me.  I'm not going to write yet another email casting blame on whose
-> fault it is.  But let's look at what today's problems are and what
-> would need to happen going forward.
->
-> First off, the problem is not really the em28xx driver itself anymore.
->  The in-kernel driver itself is relatively mature and capable of
-> handling new devices provided a new device profile is created in
-> em28xx-cards.c.  I've pushed something like 45 patches in in the last
-> year, and Mauro has pushed many more.  Empia has provided datasheets
-> for em2860/em2880 and em2874, and the driver is pretty feature
-> complete.  Support for a variety of new devices has been added in the
-> last year.
->
-> So what is the problem today?  Why do your devices not work?
->
-> I believe the answer is a combination of two problems:
->
-> 1.  A lack of driver support for Micronas demodulators - this is a
-> sticky issue.  The Micronas demodulator is overly complicated relative
-> to other demods, and there hasn't been an interest in investing the
-> time to reverse engineer it (not when there are so many alternatives
-> available that are much easier to program).  My efforts to get
-> Micronas to allow me to release the reference driver code failed out
-> of concern for "trade secrets and intellectual property concerns".
-> The only reason those devices work in the mcentral.de tree is because
-> he continues to redistribute their source code without a license.  If
-> we had a proper license, I would be more than willing to merge this
-> into the mainline.  With Empia using Micronas more and more in their
-> newer reference designs, we should expect to see more products that
-> fall into this category.
->
+DISTRIB_ID=Ubuntu
+DISTRIB_RELEASE=8.04
+DISTRIB_CODENAME=hardy
+DISTRIB_DESCRIPTION="Ubuntu 8.04.2"
+GNU/Linux 2.6.24-23-generic
+'Build Essential' is installed. Reports as latest version.
 
-There are already some business customers who deployed Micronas based solutions
-in a legal way.
+I have tried installing this WinTV Nova DVB S2 card: card (see it here
+tinyurl.com/cw3upv) using two similar methods using different sources.
+Both give the same kind of problem. I have got the firmware down OK but I
+am having problems installing the driver. Below is a listing of the part
+of the installation where the problem arises (file missing for the 'make')
 
-> 2.  A lack of interest on the part of developers with access to DVB-T.
->  While support for ATSC based em28xx devices has grown considerably in
-> the last year, there doesn't seem to be any developers with DVB-T who
-> are interested in doing the work.  Many of the devices in question
-> could be made to work with relatively little effort, but a developer
-> needs to do the work to add the device profile (including the GPIOs)
-> and iron out any integration bugs.  There haven't been any developers
-> with both the hardware and access to DVB-T interested in stepping up
-> to the task.
->
+As you can see it can't find a file in the 'build' directory. Not
+surprising as that directory doesn't exist. So I made a 'build' directory
+but still it wouldn't work. I have some experience with Linux but it is
+limited. I am using Ubuntu 8.04, fully updated to latest version, kernel
+2.6.24-23-generic .
+Can anyone tell me how I can proceed from here please?
 
-We currently make use of the crossover driver solution which moves the
-drivers into userland
-and even makes them work with the existing in-kernel as well as with
-other unix based operating
-systems. There are plenty of advantages starting with we can provide
-one single driver for multiple
-kernel versions - as long as the USB ID is in the driver the userland
-crossoversolution will work with it
-and improve its functionality.
+..................................
+brian@MC:/usr/local/src/liplianindvb$ ls
+COPYING   INSTALL  mailimport  README          v4l        v4l_experimental
+hgimport  linux    Makefile    README.patches  v4l2-apps
+brian@MC:/usr/local/src/liplianindvb$ sudo make
+[sudo] password for brian:  
+make -C /usr/local/src/liplianindvb/v4l
+make[1]: Entering directory `/usr/local/src/liplianindvb/v4l'
+Updating/Creating .config
+Preparing to compile for kernel version 2.6.24
+File not found: /lib/modules/2.6.24-23-generic/build/.config at ./scripts/
+make_kconfig.pl line 32, <IN> line 4.
+make[1]: *** No rule to make target `.myconfig', needed by `config-
+compat.h'. Stop.
+make[1]: Leaving directory `/usr/local/src/liplianindvb/v4l'
+make: *** [all] Error 2
+brian@MC:/usr/local/src/liplianindvb$
+........................................................................
 
-Regards,
-Markus
+and slightly different setup here... same problem
+brian@MC:/usr/local/src/v4l-dvb/v4l$ ls
+compat.h Kconfig.sound Makefile.kernel obsolete.txt
+firmware Makefile Makefile.media scripts
+i2c-compat.h Makefile.kern24 Makefile.sound versions.txt
+brian@MC:/usr/local/src/v4l-dvb/v4l$ sudo make Updating/Creating
+.config Preparing to compile for kernel version 2.6.24 File not found:
+/lib/modules/2.6.24-23-generic/build/.config at ./scripts/make_kconfig.pl
+line 32, <IN> line 4.
+make: *** No rule to make target `.myconfig', needed by `config-compat.h'.
+Stop.
+brian@MC:/usr/local/src/v4l-dvb/v4l$
+...................
+
+
+
 
 --
 video4linux-list mailing list
