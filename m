@@ -1,597 +1,272 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110811.mail.gq1.yahoo.com ([67.195.13.234]:25251 "HELO
-	web110811.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1767037AbZDEOGW convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Apr 2009 10:06:22 -0400
-Message-ID: <663737.91393.qm@web110811.mail.gq1.yahoo.com>
-Date: Sun, 5 Apr 2009 01:23:37 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [0904_4] Siano: core header indentation
-To: LinuxML <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-in-02.arcor-online.net ([151.189.21.42]:54937 "EHLO
+	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753369AbZDOXAi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Apr 2009 19:00:38 -0400
+Subject: Re: Kernel 2.6.29 breaks DVB-T ASUSTeK Tiger LNA Hybrid Capture
+	Device
+From: hermann pitton <hermann-pitton@arcor.de>
+To: David Wong <davidtlwong@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>, ramsoft@virgilio.it,
+	linux-media@vger.kernel.org
+In-Reply-To: <1239744837.3806.55.camel@pc07.localdom.local>
+References: <loom.20090403T201901-786@post.gmane.org>
+	 <1238805912.3498.18.camel@pc07.localdom.local>
+	 <1238806956.3498.26.camel@pc07.localdom.local>
+	 <49D77ACC.9050606@virgilio.it>
+	 <1238955753.6627.29.camel@pc07.localdom.local>
+	 <20090414002341.48b6d974@pedra.chehab.org>
+	 <15ed362e0904140230j5116e527p64afc9a1a47fb9bc@mail.gmail.com>
+	 <1239744837.3806.55.camel@pc07.localdom.local>
+Content-Type: text/plain
+Date: Thu, 16 Apr 2009 00:49:13 +0200
+Message-Id: <1239835753.7512.45.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1238692069 -10800
-# Node ID 83b19eba46dd4f8253d02c26db4f42728d60e28f
-# Parent  19925582e5dded86fccce7d8c9965285c1240836
-siano: core header identation
-[PATCH] [0904_4] Siano: core header indentation
+just a short update.
 
-From: Uri Shkolnik <uris@siano-ms.com>
+Am Dienstag, den 14.04.2009, 23:33 +0200 schrieb hermann pitton:
+> Hi,
+> 
+> Am Dienstag, den 14.04.2009, 17:30 +0800 schrieb David Wong:
+> > On Tue, Apr 14, 2009 at 11:23 AM, Mauro Carvalho Chehab
+> > <mchehab@infradead.org> wrote:
+> > > On Sun, 05 Apr 2009 20:22:33 +0200
+> > > hermann pitton <hermann-pitton@arcor.de> wrote:
+> > >
+> > >> Hi,
+> > >>
+> > >> Am Samstag, den 04.04.2009, 17:20 +0200 schrieb Ra.M.:
+> > >> > hermann pitton ha scritto:
+> > >> > > Am Samstag, den 04.04.2009, 02:45 +0200 schrieb hermann pitton:
+> > >> > >
+> > >> > >> Hi Ralph,
+> > >> > >>
+> > >> > >> Am Freitag, den 03.04.2009, 20:49 +0000 schrieb Ralph:
+> > >> > >>
+> > >> > >>> ASUSTeK Tiger LNA Hybrid Capture Device PCI - Analog/DVB-T card
+> > >> > >>> Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video
+> > >> > >>> Broadcast Decoder (rev d1)
+> > >> > >>>
+> > >> > >>> Works perfectly with kernel 2.6.28.4 (or older).
+> > >> > >>> Recently, I have switched to 2.6.29 (same .config as 2.6.28.4) and now, at
+> > >> > >>> boot
+> > >> > >>> time, I get the message:
+> > >> > >>>
+> > >> > >>> IRQ 18/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+> > >> > >>>
+> > >> > >>> Signal strength is very low and Kaffeine is unable to tune in any channel.
+> > >> > >>> Same problem with kernel 2.6.29.1
+> > >> > >>>
+> > >> > >>> -------------------------------------
+> > >> > >>>
+> > >> > >>> Messages from /var/log/dmesg
+> > >> > >>>
+> > >> > >>> saa7134 0000:03:0a.0: PCI INT A -> Link[APC3] -> GSI 18 (level, low) -> \
+> > >> > >>>  IRQ 18
+> > >> > >>> saa7133[0]: found at 0000:03:0a.0, rev: 209, irq: 18, latency: 32, mmio: \
+> > >> > >>> 0xfdefe000
+> > >> > >>> saa7133[0]: subsystem: 1043:4871, board: ASUS P7131 4871 \
+> > >> > >>> [card=111,autodetected]
+> > >> > >>> saa7133[0]: board init: gpio is 0
+> > >> > >>> IRQ 18/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+> > >> > >>> saa7133[0]: i2c eeprom 00: 43 10 71 48 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+> > >> > >>> saa7133[0]: i2c eeprom 10: ff ff ff 0f ff 20 ff ff ff ff ff ff ff ff ff ff
+> > >> > >>> saa7133[0]: i2c eeprom 20: 01 40 01 02 03 00 01 03 08 ff 00 cf ff ff ff ff
+> > >> > >>> saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > >> > >>> saa7133[0]: i2c eeprom 40: ff 21 00 c2 96 10 03 22 15 50 ff ff ff ff ff ff
+> > >> > >>> saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > >> > >>> saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > >> > >>> saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > >> > >>> saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > >> > >>> saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > >> > >>> saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > >> > >>> saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > >> > >>> saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > >> > >>> saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > >> > >>> saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > >> > >>> saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > >> > >>> tuner' 2-004b: chip found @ 0x96 (saa7133[0])
+> > >> > >>> tda829x 2-004b: setting tuner address to 61
+> > >> > >>> tda829x 2-004b: type set to tda8290+75a
+> > >> > >>> saa7133[0]: registered device video0 [v4l2]
+> > >> > >>> saa7133[0]: registered device vbi0
+> > >> > >>> dvb_init() allocating 1 frontend
+> > >> > >>> DVB: registering new adapter (saa7133[0])
+> > >> > >>> DVB: registering adapter 0 frontend -32769 (Philips TDA10046H DVB-T)...
+> > >> > >>> tda1004x: setting up plls for 48MHz sampling clock
+> > >> > >>> tda1004x: timeout waiting for DSP ready
+> > >> > >>> tda1004x: found firmware revision 0 -- invalid
+> > >> > >>> tda1004x: trying to boot from eeprom
+> > >> > >>> tda1004x: timeout waiting for DSP ready
+> > >> > >>> tda1004x: found firmware revision 0 -- invalid
+> > >> > >>> tda1004x: waiting for firmware upload...
+> > >> > >>> saa7134 0000:03:0a.0: firmware: requesting dvb-fe-tda10046.fw
+> > >> > >>> tda1004x: found firmware revision 29 -- ok
+> > >> > >>> saa7134 ALSA driver for DMA sound loaded
+> > >> > >>> IRQ 18/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+> > >> > >>> saa7133[0]/alsa: saa7133[0] at 0xfdefe000 irq 18 registered as card -1
+> > >> > >>>
+> > >> > >>>
+> > >> > >> thanks for your report, as announced previously, I unfortunately did not
+> > >> > >> have time to run with latest always ... (guess why ...)
+> > >> > >>
+> > >> > >> The driver always worked with shared IRQs, if not, it was always a
+> > >> > >> limitation of certain hardware or mostly in some combination with binary
+> > >> > >> only drivers.
+> > >> > >>
+> > >> > >> If the above should be the case in general now, and not only caused by
+> > >> > >> some blacklist, no print out in that direction, the driver is pretty
+> > >> > >> broken again.
 
-smscoreapi.h - indentation and removing lots of white spaces
-There are no implementation changes in this patch.
+The problem seems to be limited to only some cards.
 
-Priority: normal
+> > >> > >> I for sure don't have all for last months, but that
+> > >> > >> "IRQF_DISABLED is not guaranteed on shared IRQs" for sure does not come
+> > >> > >> from us here.
+> > >> > >>
+> > >> > >
+> > >> > > Do use something unusual like pollirq or something?
+> > >> > >
+> > >> > > We only have in saa7134-core.c
+> > >> > >
+> > >> > >   /* initialize hardware #1 */
+> > >> > >   saa7134_board_init1(dev);
+> > >> > >   saa7134_hwinit1(dev);
+> > >> > >
+> > >> > >   /* get irq */
+> > >> > >   err = request_irq(pci_dev->irq, saa7134_irq,
+> > >> > >                     IRQF_SHARED | IRQF_DISABLED, dev->name, dev);
+> > >> > >   if (err < 0) {
+> > >> > >           printk(KERN_ERR "%s: can't get IRQ %d\n",
+> > >> > >                  dev->name,pci_dev->irq);
+> > >> > >           goto fail3;
+> > >> > >   }
+> > >> > >
+> > >> > > and in saa7134-alsa.c
+> > >> > >
+> > >> > >   err = request_irq(dev->pci->irq, saa7134_alsa_irq,
+> > >> > >                           IRQF_SHARED | IRQF_DISABLED, dev->name,
+> > >> > >                           (void*) &dev->dmasound);
+> > >> > >
+> > >> > >   if (err < 0) {
+> > >> > >           printk(KERN_ERR "%s: can't get IRQ %d for ALSA\n",
+> > >> > >                   dev->name, dev->pci->irq);
+> > >> > >           goto __nodev;
+> > >> > >   }
+> > >> > >
+> > >> > > Have fun ;)
+> > >> > > Hermann
+> > >> > >
+> > >> > >
+> > >> > >
+> > >> > >
+> > >> > No, I do not use pollirq.
+> > >> >
+> > >> > I have read that many users have had problems with 2.6.29 and IRQs.
+> > >> > Those problems affect WiFi cards, Ethernet cards, DVB-T cards, etc.
+> > >> >
+> > >> > For example:
+> > >> >
+> > >> > http://article.gmane.org/gmane.linux.uml.devel/12098
+> > >> > http://www.gossamer-threads.com/lists/linux/kernel/1044282
+> > >> > http://zen-sources.org/content/irqfshared-irqfdisabled-fix-2629-rc
+> > >> >
+> > >> > In all cases, at boot time appears the message:
+> > >> >
+> > >> > IRQ XY: IRQF_DISABLED is not guaranteed on shared IRQs
+> > >> >
+> > >> > So, probably, there is a kernel bug in the IRQs management of the
+> > >> > 2.6.29 and 2.6.29.1
+> > >> >
+> > >>
+> > >> did build a 2.6.29.1 now and your report is correct!
+> > >>
+> > >> DVB-T on saa7134 is broken at least for all tda10046 and tda8275 stuff
+> > >> and it is not restricted to devices with LNA.
 
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+That was too soon, but devices with and without LNA are reported.
 
-diff -r 19925582e5dd -r 83b19eba46dd linux/drivers/media/dvb/siano/smscoreapi.h
---- a/linux/drivers/media/dvb/siano/smscoreapi.h	Thu Apr 02 19:56:01 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Thu Apr 02 20:07:49 2009 +0300
-@@ -103,31 +103,31 @@ struct smscore_buffer_t {
- };
- 
- struct smsdevice_params_t {
--	struct device	*device;
-+	struct device *device;
- 
--	int				buffer_size;
--	int				num_buffers;
-+	int buffer_size;
-+	int num_buffers;
- 
--	char			devpath[32];
--	unsigned long	flags;
-+	char devpath[32];
-+	unsigned long flags;
- 
--	setmode_t		setmode_handler;
--	detectmode_t	detectmode_handler;
--	sendrequest_t	sendrequest_handler;
--	preload_t		preload_handler;
--	postload_t		postload_handler;
-+	setmode_t setmode_handler;
-+	detectmode_t detectmode_handler;
-+	sendrequest_t sendrequest_handler;
-+	preload_t preload_handler;
-+	postload_t postload_handler;
- 
--	void			*context;
-+	void *context;
- 	enum sms_device_type_st device_type;
- };
- 
- struct smsclient_params_t {
--	int				initial_id;
--	int				data_type;
--	onresponse_t	onresponse_handler;
--	onremove_t		onremove_handler;
-+	int initial_id;
-+	int data_type;
-+	onresponse_t onresponse_handler;
-+	onremove_t onremove_handler;
- 
--	void			*context;
-+	void *context;
- };
- 
- struct smscore_device_t {
-@@ -185,26 +185,26 @@ struct smscore_device_t {
- };
- 
- /* GPIO definitions for antenna frequency domain control (SMS8021) */
--#define SMS_ANTENNA_GPIO_0					1
--#define SMS_ANTENNA_GPIO_1					0
-+#define SMS_ANTENNA_GPIO_0				1
-+#define SMS_ANTENNA_GPIO_1				0
- 
--#define BW_8_MHZ							0
--#define BW_7_MHZ							1
--#define BW_6_MHZ							2
--#define BW_5_MHZ							3
--#define BW_ISDBT_1SEG						4
--#define BW_ISDBT_3SEG						5
-+#define BW_8_MHZ					0
-+#define BW_7_MHZ					1
-+#define BW_6_MHZ					2
-+#define BW_5_MHZ					3
-+#define BW_ISDBT_1SEG					4
-+#define BW_ISDBT_3SEG					5
- 
- #define MSG_HDR_FLAG_SPLIT_MSG				4
- 
--#define MAX_GPIO_PIN_NUMBER					31
-+#define MAX_GPIO_PIN_NUMBER				31
- 
--#define HIF_TASK							11
--#define SMS_HOST_LIB						150
-+#define HIF_TASK					11
-+#define SMS_HOST_LIB					150
- #define DVBT_BDA_CONTROL_MSG_ID				201
- 
- #define SMS_MAX_PAYLOAD_SIZE				240
--#define SMS_TUNE_TIMEOUT					500
-+#define SMS_TUNE_TIMEOUT				500
- 
- #define MSG_SMS_GPIO_CONFIG_REQ				507
- #define MSG_SMS_GPIO_CONFIG_RES				508
-@@ -212,45 +212,45 @@ struct smscore_device_t {
- #define MSG_SMS_GPIO_SET_LEVEL_RES			510
- #define MSG_SMS_GPIO_GET_LEVEL_REQ			511
- #define MSG_SMS_GPIO_GET_LEVEL_RES			512
--#define MSG_SMS_RF_TUNE_REQ					561
--#define MSG_SMS_RF_TUNE_RES					562
-+#define MSG_SMS_RF_TUNE_REQ				561
-+#define MSG_SMS_RF_TUNE_RES				562
- #define MSG_SMS_INIT_DEVICE_REQ				578
- #define MSG_SMS_INIT_DEVICE_RES				579
- #define MSG_SMS_ADD_PID_FILTER_REQ			601
- #define MSG_SMS_ADD_PID_FILTER_RES			602
--#define MSG_SMS_REMOVE_PID_FILTER_REQ		603
--#define MSG_SMS_REMOVE_PID_FILTER_RES		604
--#define MSG_SMS_DAB_CHANNEL					607
--#define MSG_SMS_GET_PID_FILTER_LIST_REQ		608
--#define MSG_SMS_GET_PID_FILTER_LIST_RES		609
-+#define MSG_SMS_REMOVE_PID_FILTER_REQ			603
-+#define MSG_SMS_REMOVE_PID_FILTER_RES			604
-+#define MSG_SMS_DAB_CHANNEL				607
-+#define MSG_SMS_GET_PID_FILTER_LIST_REQ			608
-+#define MSG_SMS_GET_PID_FILTER_LIST_RES			609
- #define MSG_SMS_GET_STATISTICS_REQ			615
- #define MSG_SMS_GET_STATISTICS_RES			616
- #define MSG_SMS_HO_PER_SLICES_IND			630
--#define MSG_SMS_SET_ANTENNA_CONFIG_REQ		651
--#define MSG_SMS_SET_ANTENNA_CONFIG_RES		652
--#define MSG_SMS_GET_STATISTICS_EX_REQ		653
--#define MSG_SMS_GET_STATISTICS_EX_RES		654
--#define MSG_SMS_SLEEP_RESUME_COMP_IND		655
-+#define MSG_SMS_SET_ANTENNA_CONFIG_REQ			651
-+#define MSG_SMS_SET_ANTENNA_CONFIG_RES			652
-+#define MSG_SMS_GET_STATISTICS_EX_REQ			653
-+#define MSG_SMS_GET_STATISTICS_EX_RES			654
-+#define MSG_SMS_SLEEP_RESUME_COMP_IND			655
- #define MSG_SMS_DATA_DOWNLOAD_REQ			660
- #define MSG_SMS_DATA_DOWNLOAD_RES			661
--#define MSG_SMS_SWDOWNLOAD_TRIGGER_REQ		664
--#define MSG_SMS_SWDOWNLOAD_TRIGGER_RES		665
--#define MSG_SMS_SWDOWNLOAD_BACKDOOR_REQ		666
--#define MSG_SMS_SWDOWNLOAD_BACKDOOR_RES		667
-+#define MSG_SMS_SWDOWNLOAD_TRIGGER_REQ			664
-+#define MSG_SMS_SWDOWNLOAD_TRIGGER_RES			665
-+#define MSG_SMS_SWDOWNLOAD_BACKDOOR_REQ			666
-+#define MSG_SMS_SWDOWNLOAD_BACKDOOR_RES			667
- #define MSG_SMS_GET_VERSION_EX_REQ			668
- #define MSG_SMS_GET_VERSION_EX_RES			669
--#define MSG_SMS_SET_CLOCK_OUTPUT_REQ		670
-+#define MSG_SMS_SET_CLOCK_OUTPUT_REQ			670
- #define MSG_SMS_I2C_SET_FREQ_REQ			685
- #define MSG_SMS_GENERIC_I2C_REQ				687
- #define MSG_SMS_GENERIC_I2C_RES				688
- #define MSG_SMS_DVBT_BDA_DATA				693
--#define MSG_SW_RELOAD_REQ					697
--#define MSG_SMS_DATA_MSG					699
-+#define MSG_SW_RELOAD_REQ				697
-+#define MSG_SMS_DATA_MSG				699
- #define MSG_SW_RELOAD_START_REQ				702
- #define MSG_SW_RELOAD_START_RES				703
- #define MSG_SW_RELOAD_EXEC_REQ				704
- #define MSG_SW_RELOAD_EXEC_RES				705
--#define MSG_SMS_SPI_INT_LINE_SET_REQ		710
-+#define MSG_SMS_SPI_INT_LINE_SET_REQ			710
- #define MSG_SMS_GPIO_CONFIG_EX_REQ			712
- #define MSG_SMS_GPIO_CONFIG_EX_RES			713
- #define MSG_SMS_ISDBT_TUNE_REQ				776
-@@ -294,11 +294,11 @@ enum SMS_DEVICE_MODE {
- };
- 
- struct SmsMsgHdr_ST {
--	u16	msgType;
--	u8	msgSrcId;
--	u8	msgDstId;
--	u16	msgLength; /* Length of entire message, including header */
--	u16	msgFlags;
-+	u16 msgType;
-+	u8 msgSrcId;
-+	u8 msgDstId;
-+	u16 msgLength; /* Length of entire message, including header */
-+	u16 msgFlags;
- };
- 
- struct SmsMsgData_ST {
-@@ -312,42 +312,42 @@ struct SmsMsgData_ST2 {
- };
- 
- struct SmsDataDownload_ST {
--	struct SmsMsgHdr_ST	xMsgHeader;
--	u32			MemAddr;
--	u8			Payload[SMS_MAX_PAYLOAD_SIZE];
-+	struct SmsMsgHdr_ST xMsgHeader;
-+	u32 MemAddr;
-+	u8 Payload[SMS_MAX_PAYLOAD_SIZE];
- };
- 
- struct SmsVersionRes_ST {
--	struct SmsMsgHdr_ST	xMsgHeader;
-+	struct SmsMsgHdr_ST xMsgHeader;
- 
--	u16		ChipModel; /* e.g. 0x1102 for SMS-1102 "Nova" */
--	u8		Step; /* 0 - Step A */
--	u8		MetalFix; /* 0 - Metal 0 */
-+	u16 ChipModel; /* e.g. 0x1102 for SMS-1102 "Nova" */
-+	u8 Step; /* 0 - Step A */
-+	u8 MetalFix; /* 0 - Metal 0 */
- 
--	u8		FirmwareId; /* 0xFF � ROM, otherwise the
--				     * value indicated by
--				     * SMSHOSTLIB_DEVICE_MODES_E */
--	u8		SupportedProtocols; /* Bitwise OR combination of
--					     * supported protocols */
-+	u8 FirmwareId; /* 0xFF � ROM, otherwise the
-+	 * value indicated by
-+	 * SMSHOSTLIB_DEVICE_MODES_E */
-+	u8 SupportedProtocols; /* Bitwise OR combination of
-+	 * supported protocols */
- 
--	u8		VersionMajor;
--	u8		VersionMinor;
--	u8		VersionPatch;
--	u8		VersionFieldPatch;
-+	u8 VersionMajor;
-+	u8 VersionMinor;
-+	u8 VersionPatch;
-+	u8 VersionFieldPatch;
- 
--	u8		RomVersionMajor;
--	u8		RomVersionMinor;
--	u8		RomVersionPatch;
--	u8		RomVersionFieldPatch;
-+	u8 RomVersionMajor;
-+	u8 RomVersionMinor;
-+	u8 RomVersionPatch;
-+	u8 RomVersionFieldPatch;
- 
--	u8		TextLabel[34];
-+	u8 TextLabel[34];
- };
- 
- struct SmsFirmware_ST {
--	u32			CheckSum;
--	u32			Length;
--	u32			StartAddress;
--	u8			Payload[1];
-+	u32 CheckSum;
-+	u32 Length;
-+	u32 StartAddress;
-+	u8 Payload[1];
- };
- 
- struct SMSHOSTLIB_STATISTICS_ST {
-@@ -359,22 +359,22 @@ struct SMSHOSTLIB_STATISTICS_ST {
- 	u32 IsExternalLNAOn; /* 0 - external LNA off, 1 - external LNA on */
- 
- 	/* Reception quality */
--	s32  SNR; /* dB */
-+	s32 SNR; /* dB */
- 	u32 BER; /* Post Viterbi BER [1E-5] */
--	u32 FIB_CRC;	/* CRC errors percentage, valid only for DAB */
-+	u32 FIB_CRC; /* CRC errors percentage, valid only for DAB */
- 	u32 TS_PER; /* Transport stream PER, 0xFFFFFFFF indicate N/A,
--		     * valid only for DVB-T/H */
-+	 * valid only for DVB-T/H */
- 	u32 MFER; /* DVB-H frame error rate in percentage,
--		   * 0xFFFFFFFF indicate N/A, valid only for DVB-H */
--	s32  RSSI; /* dBm */
--	s32  InBandPwr; /* In band power in dBM */
--	s32  CarrierOffset; /* Carrier Offset in bin/1024 */
-+	 * 0xFFFFFFFF indicate N/A, valid only for DVB-H */
-+	s32 RSSI; /* dBm */
-+	s32 InBandPwr; /* In band power in dBM */
-+	s32 CarrierOffset; /* Carrier Offset in bin/1024 */
- 
- 	/* Transmission parameters, valid only for DVB-T/H */
- 	u32 Frequency; /* Frequency in Hz */
- 	u32 Bandwidth; /* Bandwidth in MHz */
- 	u32 TransmissionMode; /* Transmission Mode, for DAB modes 1-4,
--			       * for DVB-T/H FFT mode carriers in Kilos */
-+	 * for DVB-T/H FFT mode carriers in Kilos */
- 	u32 ModemState; /* from SMS_DvbModemState_ET */
- 	u32 GuardInterval; /* Guard Interval, 1 divided by value */
- 	u32 CodeRate; /* Code Rate from SMS_DvbModemState_ET */
-@@ -387,7 +387,7 @@ struct SMSHOSTLIB_STATISTICS_ST {
- 	u32 BurstDuration; /* Current burst duration in mSec */
- 	u32 BurstCycleTime; /* Current burst cycle time in mSec */
- 	u32 CalculatedBurstCycleTime; /* Current burst cycle time in mSec,
--				       * as calculated by demodulator */
-+	 * as calculated by demodulator */
- 	u32 NumOfRows; /* Number of rows in MPE table */
- 	u32 NumOfPaddCols; /* Number of padding columns in MPE table */
- 	u32 NumOfPunctCols; /* Number of puncturing columns in MPE table */
-@@ -395,11 +395,11 @@ struct SMSHOSTLIB_STATISTICS_ST {
- 	u32 ErrorTSPackets; /* Number of erroneous transport-stream packets */
- 	u32 TotalTSPackets; /* Total number of transport-stream packets */
- 	u32 NumOfValidMpeTlbs; /* Number of MPE tables which do not include
--				* errors after MPE RS decoding */
-+	 * errors after MPE RS decoding */
- 	u32 NumOfInvalidMpeTlbs; /* Number of MPE tables which include errors
--				  * after MPE RS decoding */
-+	 * after MPE RS decoding */
- 	u32 NumOfCorrectedMpeTlbs; /* Number of MPE tables which were corrected
--				    * by MPE RS decoding */
-+	 * by MPE RS decoding */
- 
- 	/* Common params */
- 	u32 BERErrorCount; /* Number of errornous SYNC bits. */
-@@ -413,7 +413,7 @@ struct SMSHOSTLIB_STATISTICS_ST {
- 
- 	/* DVB-H TPS parameters */
- 	u32 CellId; /* TPS Cell ID in bits 15..0, bits 31..16 zero;
--		     * if set to 0xFFFFFFFF cell_id not yet recovered */
-+	 * if set to 0xFFFFFFFF cell_id not yet recovered */
- 
- };
- 
-@@ -432,9 +432,9 @@ struct SMSHOSTLIB_ISDBT_LAYER_STAT_ST {
- struct SMSHOSTLIB_ISDBT_LAYER_STAT_ST {
- 	/* Per-layer information */
- 	u32 CodeRate; /* Code Rate from SMSHOSTLIB_CODE_RATE_ET,
--		       * 255 means layer does not exist */
-+	 * 255 means layer does not exist */
- 	u32 Constellation; /* Constellation from SMSHOSTLIB_CONSTELLATION_ET,
--			    * 255 means layer does not exist */
-+	 * 255 means layer does not exist */
- 	u32 BER; /* Post Viterbi BER [1E-5], 0xFFFFFFFF indicate N/A */
- 	u32 BERErrorCount; /* Post Viterbi Error Bits Count */
- 	u32 BERBitCount; /* Post Viterbi Total Bits Count */
-@@ -443,23 +443,23 @@ struct SMSHOSTLIB_ISDBT_LAYER_STAT_ST {
- 	u32 ErrorTSPackets; /* Number of erroneous transport-stream packets */
- 	u32 TotalTSPackets; /* Total number of transport-stream packets */
- 	u32 TILdepthI; /* Time interleaver depth I parameter,
--			* 255 means layer does not exist */
-+	 * 255 means layer does not exist */
- 	u32 NumberOfSegments; /* Number of segments in layer A,
--			       * 255 means layer does not exist */
-+	 * 255 means layer does not exist */
- 	u32 TMCCErrors; /* TMCC errors */
- };
- 
- struct SMSHOSTLIB_STATISTICS_ISDBT_ST {
- 	u32 StatisticsType; /* Enumerator identifying the type of the
--				* structure.  Values are the same as
--				* SMSHOSTLIB_DEVICE_MODES_E
--				*
--				* This field MUST always be first in any
--				* statistics structure */
-+	 * structure.  Values are the same as
-+	 * SMSHOSTLIB_DEVICE_MODES_E
-+	 *
-+	 * This field MUST always be first in any
-+	 * statistics structure */
- 
- 	u32 FullSize; /* Total size of the structure returned by the modem.
--		       * If the size requested by the host is smaller than
--		       * FullSize, the struct will be truncated */
-+	 * If the size requested by the host is smaller than
-+	 * FullSize, the struct will be truncated */
- 
- 	/* Common parameters */
- 	u32 IsRfLocked; /* 0 - not locked, 1 - locked */
-@@ -467,10 +467,10 @@ struct SMSHOSTLIB_STATISTICS_ISDBT_ST {
- 	u32 IsExternalLNAOn; /* 0 - external LNA off, 1 - external LNA on */
- 
- 	/* Reception quality */
--	s32  SNR; /* dB */
--	s32  RSSI; /* dBm */
--	s32  InBandPwr; /* In band power in dBM */
--	s32  CarrierOffset; /* Carrier Offset in Hz */
-+	s32 SNR; /* dB */
-+	s32 RSSI; /* dBm */
-+	s32 InBandPwr; /* In band power in dBM */
-+	s32 CarrierOffset; /* Carrier Offset in Hz */
- 
- 	/* Transmission parameters */
- 	u32 Frequency; /* Frequency in Hz */
-@@ -484,7 +484,7 @@ struct SMSHOSTLIB_STATISTICS_ISDBT_ST {
- 
- 	/* Per-layer information */
- 	/* Layers A, B and C */
--	struct SMSHOSTLIB_ISDBT_LAYER_STAT_ST	LayerInfo[3];
-+	struct SMSHOSTLIB_ISDBT_LAYER_STAT_ST LayerInfo[3];
- 	/* Per-layer statistics, see SMSHOSTLIB_ISDBT_LAYER_STAT_ST */
- 
- 	/* Interface information */
-@@ -494,30 +494,30 @@ struct SMSHOSTLIB_STATISTICS_ISDBT_ST {
- 
- struct SMSHOSTLIB_STATISTICS_DVB_ST {
- 	u32 StatisticsType; /* Enumerator identifying the type of the
--			     * structure.  Values are the same as
--			     * SMSHOSTLIB_DEVICE_MODES_E
--			     * This field MUST always first in any
--			     * statistics structure */
-+	 * structure.  Values are the same as
-+	 * SMSHOSTLIB_DEVICE_MODES_E
-+	 * This field MUST always first in any
-+	 * statistics structure */
- 
- 	u32 FullSize; /* Total size of the structure returned by the modem.
--		       * If the size requested by the host is smaller than
--		       * FullSize, the struct will be truncated */
-+	 * If the size requested by the host is smaller than
-+	 * FullSize, the struct will be truncated */
- 	/* Common parameters */
- 	u32 IsRfLocked; /* 0 - not locked, 1 - locked */
- 	u32 IsDemodLocked; /* 0 - not locked, 1 - locked */
- 	u32 IsExternalLNAOn; /* 0 - external LNA off, 1 - external LNA on */
- 
- 	/* Reception quality */
--	s32  SNR; /* dB */
-+	s32 SNR; /* dB */
- 	u32 BER; /* Post Viterbi BER [1E-5] */
- 	u32 BERErrorCount; /* Number of errornous SYNC bits. */
- 	u32 BERBitCount; /* Total number of SYNC bits. */
- 	u32 TS_PER; /* Transport stream PER, 0xFFFFFFFF indicate N/A */
- 	u32 MFER; /* DVB-H frame error rate in percentage,
--		   * 0xFFFFFFFF indicate N/A, valid only for DVB-H */
--	s32  RSSI; /* dBm */
--	s32  InBandPwr; /* In band power in dBM */
--	s32  CarrierOffset; /* Carrier Offset in bin/1024 */
-+	 * 0xFFFFFFFF indicate N/A, valid only for DVB-H */
-+	s32 RSSI; /* dBm */
-+	s32 InBandPwr; /* In band power in dBM */
-+	s32 CarrierOffset; /* Carrier Offset in bin/1024 */
- 
- 	/* Transmission parameters */
- 	u32 Frequency; /* Frequency in Hz */
-@@ -527,7 +527,7 @@ struct SMSHOSTLIB_STATISTICS_DVB_ST {
- 	u32 GuardInterval; /* Guard Interval, 1 divided by value */
- 	u32 CodeRate; /* Code Rate from SMSHOSTLIB_CODE_RATE_ET */
- 	u32 LPCodeRate; /* Low Priority Code Rate from
--			 * SMSHOSTLIB_CODE_RATE_ET */
-+	 * SMSHOSTLIB_CODE_RATE_ET */
- 	u32 Hierarchy; /* Hierarchy from SMSHOSTLIB_HIERARCHY_ET */
- 	u32 Constellation; /* Constellation from SMSHOSTLIB_CONSTELLATION_ET */
- 
-@@ -536,7 +536,7 @@ struct SMSHOSTLIB_STATISTICS_DVB_ST {
- 	u32 BurstDuration; /* Current burst duration in mSec */
- 	u32 BurstCycleTime; /* Current burst cycle time in mSec */
- 	u32 CalculatedBurstCycleTime; /* Current burst cycle time in mSec,
--				       * as calculated by demodulator */
-+	 * as calculated by demodulator */
- 	u32 NumOfRows; /* Number of rows in MPE table */
- 	u32 NumOfPaddCols; /* Number of padding columns in MPE table */
- 	u32 NumOfPunctCols; /* Number of puncturing columns in MPE table */
-@@ -545,23 +545,23 @@ struct SMSHOSTLIB_STATISTICS_DVB_ST {
- 	u32 TotalTSPackets; /* Total number of transport-stream packets */
- 
- 	u32 NumOfValidMpeTlbs; /* Number of MPE tables which do not include
--				* errors after MPE RS decoding */
-+	 * errors after MPE RS decoding */
- 	u32 NumOfInvalidMpeTlbs; /* Number of MPE tables which include
--				  * errors after MPE RS decoding */
-+	 * errors after MPE RS decoding */
- 	u32 NumOfCorrectedMpeTlbs; /* Number of MPE tables which were
--				    * corrected by MPE RS decoding */
-+	 * corrected by MPE RS decoding */
- 
- 	u32 NumMPEReceived; /* DVB-H, Num MPE section received */
- 
- 	/* DVB-H TPS parameters */
- 	u32 CellId; /* TPS Cell ID in bits 15..0, bits 31..16 zero;
--		     * if set to 0xFFFFFFFF cell_id not yet recovered */
-+	 * if set to 0xFFFFFFFF cell_id not yet recovered */
- 	u32 DvbhSrvIndHP; /* DVB-H service indication info,
--			   * bit 1 - Time Slicing indicator,
--			   * bit 0 - MPE-FEC indicator */
-+	 * bit 1 - Time Slicing indicator,
-+	 * bit 0 - MPE-FEC indicator */
- 	u32 DvbhSrvIndLP; /* DVB-H service indication info,
--			   * bit 1 - Time Slicing indicator,
--			   * bit 0 - MPE-FEC indicator */
-+	 * bit 1 - Time Slicing indicator,
-+	 * bit 0 - MPE-FEC indicator */
- 
- 	/* Interface information */
- 	u32 SmsToHostTxErrors; /* Total number of transmission errors. */
-@@ -569,16 +569,16 @@ struct SMSHOSTLIB_STATISTICS_DVB_ST {
- };
- 
- struct SMSHOSTLIB_I2C_REQ_ST {
--	u32	DeviceAddress; /* I2c device address */
--	u32	WriteCount; /* number of bytes to write */
--	u32	ReadCount; /* number of bytes to read */
--	u8	Data[1];
-+	u32 DeviceAddress; /* I2c device address */
-+	u32 WriteCount; /* number of bytes to write */
-+	u32 ReadCount; /* number of bytes to read */
-+	u8 Data[1];
- };
- 
- struct SMSHOSTLIB_I2C_RES_ST {
--	u32	Status; /* non-zero value in case of failure */
--	u32	ReadCount; /* number of bytes read */
--	u8	Data[1];
-+	u32 Status; /* non-zero value in case of failure */
-+	u32 ReadCount; /* number of bytes read */
-+	u8 Data[1];
- };
- #endif
- 
-@@ -615,51 +615,49 @@ extern void smscore_unregister_hotplug(h
- extern void smscore_unregister_hotplug(hotplug_t hotplug);
- 
- extern int smscore_register_device(struct smsdevice_params_t *params,
--				   struct smscore_device_t **coredev);
-+		struct smscore_device_t **coredev);
- extern void smscore_unregister_device(struct smscore_device_t *coredev);
- 
- extern int smscore_start_device(struct smscore_device_t *coredev);
- extern int smscore_load_firmware(struct smscore_device_t *coredev,
--				 char *filename,
--				 loadfirmware_t loadfirmware_handler);
-+		char *filename, loadfirmware_t loadfirmware_handler);
- 
- extern int smscore_set_device_mode(struct smscore_device_t *coredev, int mode);
- extern int smscore_get_device_mode(struct smscore_device_t *coredev);
- 
- extern int smscore_register_client(struct smscore_device_t *coredev,
--				    struct smsclient_params_t *params,
--				    struct smscore_client_t **client);
-+		struct smsclient_params_t *params,
-+		struct smscore_client_t **client);
- extern void smscore_unregister_client(struct smscore_client_t *client);
- 
--extern int smsclient_sendrequest(struct smscore_client_t *client,
--				 void *buffer, size_t size);
-+extern int smsclient_sendrequest(struct smscore_client_t *client, void *buffer,
-+		size_t size);
- extern void smscore_onresponse(struct smscore_device_t *coredev,
--			       struct smscore_buffer_t *cb);
-+		struct smscore_buffer_t *cb);
- 
- #if 1
- extern int smscore_get_common_buffer_size(struct smscore_device_t *coredev);
- extern int smscore_map_common_buffer(struct smscore_device_t *coredev,
--				      struct vm_area_struct *vma);
--extern int smscore_get_fw_filename(struct smscore_device_t *coredev,
--				   int mode, char *filename);
--extern int smscore_send_fw_file(struct smscore_device_t *coredev,
--				u8 *ufwbuf, int size);
-+		struct vm_area_struct *vma);
-+extern int smscore_get_fw_filename(struct smscore_device_t *coredev, int mode,
-+		char *filename);
-+extern int smscore_send_fw_file(struct smscore_device_t *coredev, u8 *ufwbuf,
-+		int size);
- #endif
- 
--extern
--struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t *coredev);
-+extern struct smscore_buffer_t *smscore_getbuffer(
-+		struct smscore_device_t *coredev);
- extern void smscore_putbuffer(struct smscore_device_t *coredev,
--			      struct smscore_buffer_t *cb);
-+		struct smscore_buffer_t *cb);
- 
- int smscore_configure_gpio(struct smscore_device_t *coredev, u32 pin,
--			   struct smscore_gpio_config *pinconfig);
-+		struct smscore_gpio_config *pinconfig);
- int smscore_set_gpio(struct smscore_device_t *coredev, u32 pin, int level);
- 
- void smscore_set_board_id(struct smscore_device_t *core, int id);
- int smscore_get_board_id(struct smscore_device_t *core);
- 
- int smscore_led_state(struct smscore_device_t *core, int led);
--
- 
- /* ------------------------------------------------------------------------ */
- 
+> > >> For what I can see so far, it is not related to the IRQF_DISABLED print
+> > >> out, since only a warning for now and removing it from the driver
+> > >> doesn't change anything.
+> > >>
+> > >> saa7134 DVB-S, analog TV and saa7134-alsa are not affected.
+> > >>
+> > >> Installing the current mercurial v4l-dvb on 2.6.29.1 does fix it.
 
+That is confirmed on the Tiger LNA Hybrid too.
 
+> > >> If on that saa7134-dvb.ko and saa7134.ko are replaced with the ones from
+> > >> 2.6.29.1 the breakage is back again. The related dvb and tuner modules
+> > >> tolerate such exchange on a first rough test.
+> > >>
+> > >> As you reported, symptoms are tumbling signal and SNR between very low
+> > >> and 100%, as if tuning and AGC would never stabilize.
+> > >>
+> > >> I suspect failing i2c stuff is involved. Did not notice anything like
+> > >> that on various mercurial versions during the last months.
+> > >
+> > > Hermann,
+> > >
+> > > Could you please try to bisect the patch that broke it? The instructions for
+> > > bisecting with mercurial are available at README.patches file.
+> 
+> hmm, current mercurial is not broken for DVB-T on the 2.6.29.1.
+> So we would have to find out if mercurial was ever bad.
+> 
+> Your on the 2.6.29 missing i2c gate control fixes made no difference too
+> porting them to 2.6.29.1. I was thinking about to test next if it is
+> already broken on the rc1 to come closer to it.
+> 
+> > Sorry for interrupt.
+> > Would your saa7134 i2c problem is due to the i2c quirk?
+> > I have problem on the saa7134 i2c quirk that I have to totally disable
+> > it on my work-in-progress card.
+> > Just a little suggestion that trying disable the i2c quirk like this change set:
+> > http://linuxtv.org/hg/~mkrufky/dmbth/rev/781ffa6c43d3
+> > 
+> > David.
+> 
+> I have quite some cards and never had problems with that.
+> The tuner status read out is also the same on the broken 2.6.29 and on
+> working mercurial v4l-dvb and quirks are still enabled.
+> 
+> Unfortunately I can't promise any time soon for excessive bisecting,
+> but I'll try to check if it is already on 29-rc1.
+> 
+> BTW, someone must disable the IR on the VIDEOMATE_T750 or add the
+> missing. People can't even boot up it seems. Must go to stable too.
 
-      
+I saw the trouble so far only on the Medion Quad CTX944 in the blue dual
+MSI PCI slot and on the CTX948 in the same machine in a standard slot.
+It is treated like the 0x007 subdevice of the Quad.
+
+I can't easily change cards in that AMD quad core mini ATX machine.
+
+So trying some other direction first.
+
+After 1 Gigabyte of Fedora 10 updates on a x86_64 K8 machine, not used
+for a few weeks, and having a 2.6.29.1 there with the same config, the
+Asus Tiger 3in1 with still working LNA loading external firmware and the
+first Asus Tiger ever, that one with firmware eeprom and antenna input
+switch not suitable for the mounted connectors, are fine.
+
+A second Medion Quad in this machine, only the 0x0007 subdevice is
+functional in an orange MSI PCI slot, doesn't matter and just to have
+mentioned it, shows the same problems for DVB-T.
+
+Hopefully only a few users are affected then and a pattern should become
+visible. Thanks to all reporting and giving hints so far.
+
+Cheers,
+Hermann
+
+Please report any other cards with new DVB-T problems on 2.6.29.
+
