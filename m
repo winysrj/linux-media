@@ -1,166 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110810.mail.gq1.yahoo.com ([67.195.13.233]:22713 "HELO
-	web110810.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754482AbZDDMrn convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 4 Apr 2009 08:47:43 -0400
-Message-ID: <802860.3364.qm@web110810.mail.gq1.yahoo.com>
-Date: Sat, 4 Apr 2009 05:47:40 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: Re: [PATCH - RECALL] siano: smsendian & smsdvb - binding the smsendian to smsdvb
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org
+Received: from banach.math.auburn.edu ([131.204.45.3]:55225 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755357AbZDOXqv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Apr 2009 19:46:51 -0400
+Date: Wed, 15 Apr 2009 18:59:56 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Thomas Kaiser <v4l@kaiser-linux.li>
+cc: Kyle Guinn <elyk03@gmail.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Some questions about mr97310 controls (continuing previous thread
+ on mr97310a.c)
+In-Reply-To: <49AFCD5B.4050100@kaiser-linux.li>
+Message-ID: <alpine.LNX.2.00.0904151850240.9310@banach.math.auburn.edu>
+References: <20090217200928.1ae74819@free.fr> <200902171907.40054.elyk03@gmail.com> <alpine.LNX.2.00.0903031746030.21483@banach.math.auburn.edu> <200903032050.13915.elyk03@gmail.com> <alpine.LNX.2.00.0903032247530.21793@banach.math.auburn.edu>
+ <49AE3EA1.3090504@kaiser-linux.li> <49AE41DE.1000300@kaiser-linux.li> <alpine.LNX.2.00.0903041248020.22500@banach.math.auburn.edu> <49AFCD5B.4050100@kaiser-linux.li>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
 
+Thomas,
 
---- On Sat, 4/4/09, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
-
-> From: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Subject: Re: [PATCH - RECALL] siano: smsendian & smsdvb - binding the smsendian to smsdvb
-> To: "Uri Shkolnik" <urishk@yahoo.com>
-> Cc: linux-media@vger.kernel.org
-> Date: Saturday, April 4, 2009, 12:14 AM
-> On Fri, 3 Apr 2009 13:31:32 -0700
-> (PDT)
-> Uri Shkolnik <urishk@yahoo.com>
-> wrote:
-> 
-> > 
-> > --- On Fri, 4/3/09, Mauro Carvalho Chehab <mchehab@infradead.org>
-> wrote:
-> > 
-> > From: Mauro Carvalho Chehab <mchehab@infradead.org>
-> > Subject: Re: [PATCH - RECALL] siano: smsendian &
-> smsdvb - binding the smsendian to smsdvb
-> > To: "Uri Shkolnik" <urishk@yahoo.com>
-> > Cc: linux-media@vger.kernel.org
-> > Date: Friday, April 3, 2009, 3:15 PM
-> > 
-> > Uri,
-> > 
-> > On Fri, 3 Apr 2009 03:20:38 -0700 (PDT)
-> > Uri Shkolnik <urishk@yahoo.com>
-> wrote:
-> > 
-> > > Hi,
-> > > 
-> > > The last patch in the series ("siano: smsendian
-> & smsdvb - binding the smsendian to smsdvb") breaks the
-> driver, please ignore it.
-> > > 
-> > 
-> > 
-> > It will be very hard (again) to handle your patch
-> series. Especially when
-> > sending a big series of patches like this, you should
-> number the patches, for
-> > they to be applied at the proper order. 
-> > 
-> > Also, when a patch is broken, you should reply to that
-> patch, without changing
-> > the subject. The original message ID will be properly
-> handled by patchwork, and
-> > the reply message will be folded with the original
-> patch.
-> > 
-> > In this case, this is the message ID of your patch
-> message:
-> > Message-ID: <622468.86074.qm@web110805.mail.gq1.yahoo.com>
-> > 
-> > However, your "RECALL" email doesn't contain any
-> reference tag to the original
-> > message (since you didn't reply to your message). So,
-> emailers and patchwork
-> > won't associate the reply with the patch you want to
-> discard.
-> > 
-> > Cheers,
-> > Mauro
-> > 
-> > Hi Mauro,
-> > 
-> > 
-> > 
-> > 
-> > 1) Backport patch ("siano: smsdvb - add support for
-> old dvb-core version") - If this patch causes problem,
-> discard it (trashing it does not affect the other patches),
-> let me know, and I'll submit only the one-line endian
-> change. (We'll support old embedded devices, etc. using
-> specific vendor patch from our customer support team, and
-> the kernel version will not have any backport code).
-> > 
-> > 2) I'll add global serial indication to the patches
-> from now on. Regarding the already submmited patches, is it
-> OK if I'll email you a text list of patches with their
-> order? 
-> 
-> Yes, if you provide me the patch numbers at patchwork. I
-> just need a simple
-> list of patchwork sequence numbers, in the expected order.
-> 
-> > 3) Recall message - I didn't know about the reply
-> option and I'll do that from now on. (Any day you learn
-> something new, and that fact distinguish you from the
-> dead....:-) )
-> 
-> No problem.
-> > 
-> > 4) If it's OK with you, I'll hold further submission,
-> until the already submited patches will be reviewed and
-> commited.
-> 
-> Seems the better for me.
-> 
-> > 5) Some related question... I emailed all patches to
-> you and CC the "linux-media@vger.kernel.org"
-> ML. I can not see any post other than your replys on the ML
-> and nothing on http://patchwork.kernel.org/project/linux-media/list/
-> .  Any idea why?
-> 
-> If patchwork didn't got, then the patch is broken. You
-> don't need to CC me, but you need to be sure that patchwork
-> will catch they. For patchwork to do his job, you should be
-> sure that your emailer won't do line wrapping, and avoid use
-> attachments. Mime processing is tricky and some emailers set
-> the wrong mime type for attachments.
-> 
-> > Have a great weekend,
-> 
-> Same to you.
-> > 
-> > Regards,
-> > 
-> > Uri
-> > 
-> >       
-> 
-> 
-> 
-> 
-> Cheers,
-> Mauro
-> 
-
-Hi Mauro,
-
-I'm watching closely http://patchwork.kernel.org/project/linux-media/list/  and this ML.
-
-Until now, none of my patches appears anywhere. It seems that either html tags or other formatting issue, prevent the robot from processing my patches (I can see submissions from today, while my two days old are absent).
-
-I'll wait till tomorrow (just in case) and if nothing will happen, I'll re-submit my patches (and make sure they are pure text...).
-If so, I'll also add patches numeration, and remove the backport one.
+A few questions in the text below.
 
 
-Regards,
+On Thu, 5 Mar 2009, Thomas Kaiser wrote:
 
-Uri
+> Hello Theodore
+>
+> kilgota@banach.math.auburn.edu wrote:
+>> 
+>> 
+>> On Wed, 4 Mar 2009, Thomas Kaiser wrote:
+>> As to the actual contents of the header, as you describe things,
+>> 
+>> 0. Do you have any idea how to account for the discrepancy between
+>>
+>>>>  From usb snoop.
+>>>> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx 00 00
+>> and
+>>>> In Linux the header looks like this:
+>>>> 
+>>>> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx F0 00
+>> 
+>> (I am referring to the 00 00 as opposed to F0 00)? Or could this have 
+>> happened somehow just because these were not two identical sessions?
+
+In case I did not answer this one, I suspect it was probably different 
+sessions. I can think of no other explanation which makes sense to me.
+
+>
+> Doesn't remember what the differences was. The first is from Windoz 
+> (usbsnoop) and the second is from Linux.
+>
+>> 
+>>>> 1. xx: don't know but value is changing between 0x00 to 0x07
+>> 
+>> as I said, this signifies the image format, qua compression algorithm in 
+>> use, or if 00 then no compression.
+>
+> On the PAC207, the compression can be controlled with a register called 
+> "Compression Balance size". So, I guess, depending on the value set in the 
+> register this value in the header will show what compression level is set.
+
+One of my questions:
+
+Just how does it work to set the "Compression Balance size"? Is this some 
+kind of special command sequence? Are we able to set this to whatever we 
+want?
 
 
-      
+>
+>> 
+>>>> 2. xx: this is the actual pixel clock
+>> 
+>> So there is a control setting for this?
+>
+> Yes, in the PAC207, register 2. (12 MHz divided by the value set).
+>
+>> 
+>>>> 3. xx: this is changing according light conditions from 0x03 (dark) to
+>>>> 0xfc (bright) (center)
+>>>> 4. xx: this is changing according light conditions from 0x03 (dark) to
+>>>> 0xfc (bright) (edge)
+>>>> 5. xx: set value "Digital Gain of Red"
+>>>> 6. xx: set value "Digital Gain of Green"
+>>>> 7. xx: set value "Digital Gain of Blue"
+
+
+Varying some old questions: Precisely what is meant by the value of 
+"Digital Gain for XX" where XX is one of Red, Green, or Blue? On what 
+scale is this measured? Is is some kind of standardized scale? Or is it 
+something which is camera-specific? Also what is does "set" mean in this 
+context? This last in view of the fact that this is data which the camera 
+provides for our presumed information, not something which we are sending 
+to the camera?
+
+Theodore Kilgore
