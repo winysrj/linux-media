@@ -1,69 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.viadmin.org ([195.145.128.101]:59885 "EHLO www.viadmin.org"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41379 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751638AbZD0U3w (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2009 16:29:52 -0400
-Date: Mon, 27 Apr 2009 22:29:25 +0200
-From: "H. Langos" <henrik-dvb@prak.org>
-To: Johannes Stezenbach <js@linuxtv.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: wiki on linixtv.org locked
-Message-ID: <20090427202925.GO2895@www.viadmin.org>
-References: <20090427164321.GN2895@www.viadmin.org> <20090427173741.GA20847@linuxtv.org>
+	id S1751294AbZDONe1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Apr 2009 09:34:27 -0400
+From: "Shah, Hardik" <hardik.shah@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Jadav, Brijesh R" <brijesh.j@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+Date: Wed, 15 Apr 2009 19:04:08 +0530
+Subject: RE: [PATCH 3/3] V4L2 Driver for OMAP3/3 DSS.
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB25183A@dbde02.ent.ti.com>
+In-Reply-To: <60676.207.214.87.58.1239029832.squirrel@webmail.xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090427173741.GA20847@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hi johannes,
 
-thank you for your quick reply.
 
-On Mon, Apr 27, 2009 at 07:37:41PM +0200, Johannes Stezenbach wrote:
-> On Mon, Apr 27, 2009 at 06:43:21PM +0200, H. Langos wrote:
-> > 
-> > Yesterday a stupid kid vandalized a bunch of pages on the linuxtv wiki and 
-> > a sysop locked to database to undo the damage. 
-> ...
-> The damage was done by a bot script and it affected as many pages
-> as the edit rate limiter would allow it to do until I noticed it.
-> If you search for "GRAWP'S MASSIVE" you'll see this is not
-> limited to linuxtv.org.
-
-ah, ok ..  so it is a stupid kid with scripting knowledge. :-)
-
-> > Anyway .. Now, after about 24h the wiki is still locked.
-> > Any reason for that?
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Monday, April 06, 2009 8:27 PM
+> To: Shah, Hardik
+> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Jadav, Brijesh R;
+> Hiremath, Vaibhav
+> Subject: RE: [PATCH 3/3] V4L2 Driver for OMAP3/3 DSS.
 > 
-> It is locked until I had time to take measures to prevent
-> similar damage from happening again right away. I'm
-> open to suggestions if someone has experience with this.
+> 
+> > Hi Hans,
+> > Please find my comments inline. Most of the comments are taken care of.
+> 
+> > 2.  In DSS rotation is accomplished by some memory algorithm but its quite
+> > costly so -1 is essentially same as 0 degree but with out the overhead.
+> > But if mirroring is on then we have to do the 0 degree rotation with
+> > overhead using some memory techniques.  So from user point of view he will
+> > only be setting 0 but internally driver will take it as -1 or 0 depending
+> > upon the mirroring selected.
+> 
+> Hi Hardik,
+> 
+> I just looked over these comments and I'll do a full review in the weekend
+> when I'm back from San Francisco. But just one quick remark regarding this
+> magic -1 number: wouldn't it be better to write a small inline function
+> like this:
+> 
+> /* return true if we need to rotate or mirror, return false if we
+>    don't have to do anything here. */
+> static inline int needs_rotate(struct foo *foo)
+> {
+>     return foo->rotate != 0 || foo->mirror;
+> }
+> 
+> I think this is much more understandable. It's up to you, though.
+> 
+> Regards,
+[Shah, Hardik] Hi All,
+Any comment on this series of patches will be appreciated.
 
-first of all. please, replace "sigh..." with a more informative locking
-message. 
+Hans,
+Did you get a chance to look at it?
 
-the next step would be to update the mediwiki software to 1.11.1 if you have
-$wgEnableAPI = true, that is. (i know it is only a XSS that hits internet 
-explorer users ..  but hey, they are people, too ;-)
-
-if i remember right, the linuxtv wiki only allows editing to registered 
-users. therefore you could simply temporarily disable new user registration
-and enable editing again for registered users.
-
-then i'd suggest installing the reCAPTCHA extention. not only will it
-prevent bots from registering, you also help to digitize old books.
-
-http://recaptcha.net/plugins/mediawiki/
-
-with that in place you can re-enable new user registration. you can even 
-make logins optional and require captcha solving for anonymous edits. this
-would probably improve the wiki in general as new users would not jump through 
-yet another loop just in order to help other users... i know, new users can
-cost more time than they are worth but hope springs eternaly :-)
-
-cheers
--henrik
-
+> 
+>         Hans
+> 
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> 
 
