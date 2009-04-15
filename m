@@ -1,52 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.169]:4780 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758546AbZDQH3d convert rfc822-to-8bit (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.236]:46748 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751004AbZDOGK7 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Apr 2009 03:29:33 -0400
-Received: by wf-out-1314.google.com with SMTP id 29so790506wff.4
-        for <linux-media@vger.kernel.org>; Fri, 17 Apr 2009 00:29:31 -0700 (PDT)
+	Wed, 15 Apr 2009 02:10:59 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so2956484rvb.1
+        for <linux-media@vger.kernel.org>; Tue, 14 Apr 2009 23:10:58 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.0904151356480.4729@axis700.grange>
-References: <Pine.LNX.4.64.0904151356480.4729@axis700.grange>
-Date: Fri, 17 Apr 2009 16:29:30 +0900
-Message-ID: <5e9665e10904170029g56c0be23i9116c28b4a723314@mail.gmail.com>
-Subject: Re: [PATCH 0/5] soc-camera: convert to platform device
+In-Reply-To: <200904141650.59580.hverkuil@xs4all.nl>
+References: <5e9665e10904091450u3e70cda8w9e1d57e45365a32b@mail.gmail.com>
+	 <20090414085402.10293cfd@pedra.chehab.org>
+	 <200904141650.59580.hverkuil@xs4all.nl>
+Date: Wed, 15 Apr 2009 15:10:58 +0900
+Message-ID: <5e9665e10904142310l1e8d7ea0r355125970fbb038a@mail.gmail.com>
+Subject: Re: [RFC] White Balance control for digital camera
 From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	g.liakhovetski@gmx.de, Jean-Francois Moine <moinejf@free.fr>,
+	laurent.pinchart@skynet.be,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"jongse.won@samsung.com" <jongse.won@samsung.com>,
+	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hello Hans,
 
-I've got one more thing to ask.
-Is SoC camera framework supporting for selecting video standards
-between camera interface and external camera module? I mean ITU-R BT
-601 and 656 things.
-Or any different way that I'm not aware is supported?
-
-On Wed, Apr 15, 2009 at 9:17 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> This patch series is a preparation for the v4l2-subdev conversion. Please,
-> review and test. My current patch-stack in the form of a
-> (manually-created) quilt-series is at
-> http://www.open-technology.de/download/20090415/ based on linux-next
-> history branch, commit ID in 0000-base file. Don't be surprised, that
-> patch-set also contains a few not directly related patches.
+On Tue, Apr 14, 2009 at 11:50 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Tuesday 14 April 2009 13:54:02 Mauro Carvalho Chehab wrote:
+>> On Fri, 10 Apr 2009 06:50:32 +0900
+>>
+>> "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com> wrote:
+>> > Hello everyone,
+>> >
+>> > I'm posting this RFC one more time because it seems to everyone has
+>> > been forgot this, and I'll be appreciated if any of you who is reading
+>> > this mailing list give me comment.
+>> >
+>> > I'm adding some choices for you to make it easier. (even the option
+>> > for that this is a pointless discussion)
+>> >
+>> >
+>> >
+>> > I've got a big question popping up handling white balance with
+>> > V4L2_CID_WHITE_BALANCE_TEMPERATURE CID.
+>> >
+>> > Because in digital camera we generally control over user interface
+>> > with pre-defined white balance name. I mean, user controls white
+>> > balance with presets not with kelvin number.
+>> > I'm very certain that TEMPERATURE CID is needed in many of video
+>> > capture devices, but also 100% sure that white balance preset control
+>> > is also necessary for digital cameras.
+>> > How can we control white balance through preset name with existing V4L2
+>> > API?
+>> >
+>> > For now, I define preset names in user space with supported color
+>> > temperature preset in driver like following.
+>> >
+>> > #define MANUAL_WB_TUNGSTEN 3000
+>> > #define MANUAL_WB_FLUORESCENT 4000
+>> > #define MANUAL_WB_SUNNY 5500
+>> > #define MANUAL_WB_CLOUDY 6000
+>> >
+>> > and make driver to handle those presets like this. (I split in several
+>> > ranges to make driver pretend to be generic)
+>> >
+>> > case V4L2_CID_WHITE_BALANCE_TEMPERATURE:
+>> >                if (vc->value < 3500) {
+>> >                        /* tungsten */
+>> >                        err = ce131f_cmds(c, ce131f_wb_tungsten);
+>> >                } else if (vc->value < 4100) {
+>> >                        /* fluorescent */
+>> >                        err = ce131f_cmds(c, ce131f_wb_fluorescent);
+>> >                } else if (vc->value < 6000) {
+>> >                        /* sunny */
+>> >                        err = ce131f_cmds(c, ce131f_wb_sunny);
+>> >                } else if (vc->value < 6500) {
+>> >                        /* cloudy */
+>> >                        err = ce131f_cmds(c, ce131f_wb_cloudy);
+>> >                } else {
+>> >                        printk(KERN_INFO "%s: unsupported kelvin
+>> > range\n", __func__);
+>> >                }
+>> >                ......
+>> >
+>> > I think this way seems to be ugly. Don't you think that another CID is
+>> > necessary to handle WB presets?
+>> > Because most of mobile camera modules can't make various color
+>> > temperatures in expecting kelvin number with user parameter.
+>> >
+>> > So, here you are some options you can chose to give your opinion.(or
+>> > you can make your own opinion)
+>> >
+>> > (A). Make a new CID to handle well known white balance presets
+>> > Like V4L2_CID_WHITE_BALANCE_PRESET for CID and enum values like
+>> > following for value
+>> >
+>> > enum v4l2_whitebalance_presets {
+>> >      V4L2_WHITEBALANCE_TUNGSTEN  = 0,
+>> >      V4L2_WHITEBALANCE_FLUORESCENT,
+>> >      V4L2_WHITEBALANCE_SUNNY,
+>> >      V4L2_WHITEBALANCE_CLOUDY,
+>> > ....
+>> >
+>> > (B). Define well known kelvin number in videodev2.h as preset name and
+>> > share with user space
+>> > Like following
+>> >
+>> > #define V4L2_WHITEBALANCE_TUNGSTEN 3000
+>> > #define V4L2_WHITEBALANCE_FLUORESCENT 4000
+>> > #define V4L2_WHITEBALANCE_SUNNY 5500
+>> > #define V4L2_WHITEBALANCE_CLOUDY 6000
+>> >
+>> > and use those defined values with V4L2_CID_WHITE_BALANCE_TEMPERATURE
+>> >
+>> > urgh.....
+>> >
+>> > (C). Leave it alone. It's a pointless discussion. we are good with
+>> > existing WB API.
+>> > (really?)
+>> >
+>> >
+>> > I'm very surprised about this kind of needs were not issued yet.
+>>
+>> I vote for (B). This is better than creating another user control for
+>> something that were already defined. The drivers that don't support
+>> specifying the color temperature, in Kelvin should round to the closest
+>> supported value, and return the proper configured value when questioned.
 >
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
+> I'm going with A. My reasoning is that presets 1) differ per device, 2) will
+> normally be better tested than a random temperature value.
+>
+
+I totally agree with you.
+
+> Remember that the control API is meant to export the options that the device
+> supports to the application. So the presets cannot be defined as macros but
+> must really come from the device driver. An application can then show the
+> available presets to the user.
+>
+> I wonder if these two aren't mutually exclusive: you either can use any
+> value, or only use presets.
+
+Don't worry about that. Generally, it is possible to use both of them
+if they are supported by device. I mean, if device supports kelvin,
+you can control WB with kelvin value. And if device is supports
+presets, you can control WB with them also.
+Difference between them should be a optimization in quality of WB
+controlled Image. Because even though kelvin temperature is the key of
+controlling white balance, there could be another factor to make a
+batter white balance for some specific circumstances.
+So, white balance presets are containing a optimized white balance
+control from sensor manufacturer.
+One thing should be taken carefully when we are making a new control
+for white balance preset. Which is like following case:
+
+Set sensor white balance to "daylight" preset. + make some change with
+kelvin temperature with white balance control = Sensor is not exactly
+in "daylight" white balance preset status.
+
+So if device is supporting both of ways to control white balance, we
+should make driver to care about the relationship and status between
+both controls.
+
+Cheers,
+
+Nate
+
+
+>
+> Laurent, I see that uvc supports it: does the uvc standard mention anything
+> with regards to presets?
+>
+> Regards,
+>
+>        Hans
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
 >
 
 
