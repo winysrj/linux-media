@@ -1,174 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:39839 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751623AbZDDM1v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Apr 2009 08:27:51 -0400
-Date: Sat, 4 Apr 2009 14:27:42 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Andy Walls <awalls@radix.net>, Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Mike Isely <isely@pobox.com>
-Subject: [PATCH 2/6] ir-kbd-i2c: Don't use i2c_client.name for our own needs
-Message-ID: <20090404142742.2a304354@hyperion.delvare>
-In-Reply-To: <20090404142427.6e81f316@hyperion.delvare>
-References: <20090404142427.6e81f316@hyperion.delvare>
+Received: from mail-in-04.arcor-online.net ([151.189.21.44]:50676 "EHLO
+	mail-in-04.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752923AbZDPALE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Apr 2009 20:11:04 -0400
+Subject: Re: [linux-dvb] DVB-T USB dib0700 device recomendations?
+From: hermann pitton <hermann-pitton@arcor.de>
+To: linux-media@vger.kernel.org
+Cc: Lars Buerding <lindvb@metatux.net>, linux-dvb@linuxtv.org
+In-Reply-To: <20090415100642.GA2895@www.viadmin.org>
+References: <20090411221740.GB12581@www.viadmin.org>
+	 <20090412175352.GC12581@www.viadmin.org> <49E4B07A.4030205@metatux.net>
+	 <20090415100642.GA2895@www.viadmin.org>
+Content-Type: text/plain
+Date: Thu, 16 Apr 2009 01:59:40 +0200
+Message-Id: <1239839980.7512.67.camel@pc07.localdom.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In the standard device driver binding model, the name field of
-struct i2c_client is used to match devices to their drivers, so we
-must stop using it for internal purposes. Define a separate field
-in struct IR_i2c as a replacement, and use it.
+Hi Heinrich,
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- linux/drivers/media/video/cx231xx/cx231xx-input.c |    2 +-
- linux/drivers/media/video/em28xx/em28xx-cards.c   |    6 +++---
- linux/drivers/media/video/em28xx/em28xx-input.c   |    2 +-
- linux/drivers/media/video/ir-kbd-i2c.c            |    5 +++--
- linux/drivers/media/video/saa7134/saa7134-input.c |   12 ++++++------
- linux/include/media/ir-kbd-i2c.h                  |    1 +
- 6 files changed, 15 insertions(+), 13 deletions(-)
+Am Mittwoch, den 15.04.2009, 12:06 +0200 schrieb Heinrich Langos:
+> Hi Lars,
+> 
+> On Tue, Apr 14, 2009 at 05:49:14PM +0200, Lars Buerding wrote:
+> > Hello Hendrik,
+> > 
+> > >> out in the street and buying the first dib0700 device I'd like to know if 
+> > >> there are any devices that are 
+> > >>
+> > >> - especially good (sensitive reception, fast switch time, sensible tuner 
+> > >>   data (usable for comparing different antennas) and so on)
+> > >>
+> > >> or 
+> > >>
+> > >> - especially bad (invers of the above plus hardware bugs, annoyances and so
+> > >>   on..)
+> > >>     
+> > 
+> > I bought this model a while ago:
+> > { "Hauppauge Nova-TD Stick/Elgato Eye-TV Diversity",
+> > 
+> > This is the "Nova-TD" equipped with one standard and one small RF Connector
+> > (Adapter Small -> Standard is included). There is another model with two
+> > small RF-Connectors,  I dont know anything about this one.
+> > 
+> > 
+> > positive:
+> > - standard Hauppauge remote-control (until now, I did not find a better
+> >   one for my VDR)
+> 
+> Did you take a look at the Terratec remotes? They look quite good to me,too 
+> with color buttons and so on.. It looks a little cheaper than the
+> HAuppauge's remote but hopefully that's just due to the choice of colors.. 
+> 
+> Even the XXS seems to come with the full 48 buttons remote.
+> http://www.terratec.net/en/products/pictures/produkt_bilder_en_9706.html
+> 
+> > - 2 seperate tuners
+> > 
+> > 
+> > negative:
+> > - I have massive problems receiving weak signals. If you dont live directly
+> >   beneath the radio tower, just dont buy it. For me, this is the main reason
+> >   why I just cant use it at home.
+> 
+> I do live close to the radio tower but some receivers have problem with some
+> channels when using a stick antenna. Thats why I switched to a cheapo do it
+> yourself double quad. Here's the link to the instructions in German:
+> http://www.cnet.de/praxis/wochenend/41001557/die+beste+eigenbau_dvb_t_antenne+doppelquad+fuer+5+euro+basteln.htm
 
---- v4l-dvb.orig/linux/drivers/media/video/cx231xx/cx231xx-input.c	2009-03-13 09:59:49.000000000 +0100
-+++ v4l-dvb/linux/drivers/media/video/cx231xx/cx231xx-input.c	2009-04-03 19:02:28.000000000 +0200
-@@ -37,7 +37,7 @@ MODULE_PARM_DESC(ir_debug, "enable debug
- 
- #define i2cdprintk(fmt, arg...) \
- 	if (ir_debug) { \
--		printk(KERN_DEBUG "%s/ir: " fmt, ir->c.name , ## arg); \
-+		printk(KERN_DEBUG "%s/ir: " fmt, ir->name , ## arg); \
- 	}
- 
- #define dprintk(fmt, arg...) \
---- v4l-dvb.orig/linux/drivers/media/video/em28xx/em28xx-cards.c	2009-04-03 14:18:26.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/em28xx/em28xx-cards.c	2009-04-03 18:56:40.000000000 +0200
-@@ -1921,19 +1921,19 @@ void em28xx_set_ir(struct em28xx *dev, s
- 	case (EM2820_BOARD_TERRATEC_CINERGY_250):
- 		ir->ir_codes = ir_codes_em_terratec;
- 		ir->get_key = em28xx_get_key_terratec;
--		snprintf(ir->c.name, sizeof(ir->c.name),
-+		snprintf(ir->name, sizeof(ir->name),
- 			 "i2c IR (EM28XX Terratec)");
- 		break;
- 	case (EM2820_BOARD_PINNACLE_USB_2):
- 		ir->ir_codes = ir_codes_pinnacle_grey;
- 		ir->get_key = em28xx_get_key_pinnacle_usb_grey;
--		snprintf(ir->c.name, sizeof(ir->c.name),
-+		snprintf(ir->name, sizeof(ir->name),
- 			 "i2c IR (EM28XX Pinnacle PCTV)");
- 		break;
- 	case (EM2820_BOARD_HAUPPAUGE_WINTV_USB_2):
- 		ir->ir_codes = ir_codes_hauppauge_new;
- 		ir->get_key = em28xx_get_key_em_haup;
--		snprintf(ir->c.name, sizeof(ir->c.name),
-+		snprintf(ir->name, sizeof(ir->name),
- 			 "i2c IR (EM2840 Hauppauge)");
- 		break;
- 	case (EM2820_BOARD_MSI_VOX_USB_2):
---- v4l-dvb.orig/linux/drivers/media/video/em28xx/em28xx-input.c	2009-03-13 09:59:49.000000000 +0100
-+++ v4l-dvb/linux/drivers/media/video/em28xx/em28xx-input.c	2009-04-03 18:56:40.000000000 +0200
-@@ -41,7 +41,7 @@ MODULE_PARM_DESC(ir_debug, "enable debug
- 
- #define i2cdprintk(fmt, arg...) \
- 	if (ir_debug) { \
--		printk(KERN_DEBUG "%s/ir: " fmt, ir->c.name , ## arg); \
-+		printk(KERN_DEBUG "%s/ir: " fmt, ir->name , ## arg); \
- 	}
- 
- #define dprintk(fmt, arg...) \
---- v4l-dvb.orig/linux/drivers/media/video/ir-kbd-i2c.c	2009-03-13 09:59:49.000000000 +0100
-+++ v4l-dvb/linux/drivers/media/video/ir-kbd-i2c.c	2009-04-03 18:56:40.000000000 +0200
-@@ -346,6 +346,7 @@ static int ir_attach(struct i2c_adapter
- 
- 	ir->c.adapter = adap;
- 	ir->c.addr    = addr;
-+	snprintf(ir->c.name, sizeof(ir->c.name), "ir-kbd");
- 
- 	i2c_set_clientdata(&ir->c, ir);
- 
-@@ -419,7 +420,7 @@ static int ir_attach(struct i2c_adapter
- 	}
- 
- 	/* Sets name */
--	snprintf(ir->c.name, sizeof(ir->c.name), "i2c IR (%s)", name);
-+	snprintf(ir->name, sizeof(ir->name), "i2c IR (%s)", name);
- 	ir->ir_codes = ir_codes;
- 
- 	/* register i2c device
-@@ -444,7 +445,7 @@ static int ir_attach(struct i2c_adapter
- 	/* init + register input device */
- 	ir_input_init(input_dev, &ir->ir, ir_type, ir->ir_codes);
- 	input_dev->id.bustype = BUS_I2C;
--	input_dev->name       = ir->c.name;
-+	input_dev->name       = ir->name;
- 	input_dev->phys       = ir->phys;
- 
- 	err = input_register_device(ir->input);
---- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-input.c	2009-03-01 16:09:10.000000000 +0100
-+++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-input.c	2009-04-03 18:56:40.000000000 +0200
-@@ -60,7 +60,7 @@ MODULE_PARM_DESC(disable_other_ir, "disa
- #define dprintk(fmt, arg...)	if (ir_debug) \
- 	printk(KERN_DEBUG "%s/ir: " fmt, dev->name , ## arg)
- #define i2cdprintk(fmt, arg...)    if (ir_debug) \
--	printk(KERN_DEBUG "%s/ir: " fmt, ir->c.name , ## arg)
-+	printk(KERN_DEBUG "%s/ir: " fmt, ir->name , ## arg)
- 
- /* Helper functions for RC5 and NEC decoding at GPIO16 or GPIO18 */
- static int saa7134_rc5_irq(struct saa7134_dev *dev);
-@@ -693,7 +693,7 @@ void saa7134_set_i2c_ir(struct saa7134_d
- 	switch (dev->board) {
- 	case SAA7134_BOARD_PINNACLE_PCTV_110i:
- 	case SAA7134_BOARD_PINNACLE_PCTV_310i:
--		snprintf(ir->c.name, sizeof(ir->c.name), "Pinnacle PCTV");
-+		snprintf(ir->name, sizeof(ir->name), "Pinnacle PCTV");
- 		if (pinnacle_remote == 0) {
- 			ir->get_key   = get_key_pinnacle_color;
- 			ir->ir_codes = ir_codes_pinnacle_color;
-@@ -703,17 +703,17 @@ void saa7134_set_i2c_ir(struct saa7134_d
- 		}
- 		break;
- 	case SAA7134_BOARD_UPMOST_PURPLE_TV:
--		snprintf(ir->c.name, sizeof(ir->c.name), "Purple TV");
-+		snprintf(ir->name, sizeof(ir->name), "Purple TV");
- 		ir->get_key   = get_key_purpletv;
- 		ir->ir_codes  = ir_codes_purpletv;
- 		break;
- 	case SAA7134_BOARD_MSI_TVATANYWHERE_PLUS:
--		snprintf(ir->c.name, sizeof(ir->c.name), "MSI TV@nywhere Plus");
-+		snprintf(ir->name, sizeof(ir->name), "MSI TV@nywhere Plus");
- 		ir->get_key  = get_key_msi_tvanywhere_plus;
- 		ir->ir_codes = ir_codes_msi_tvanywhere_plus;
- 		break;
- 	case SAA7134_BOARD_HAUPPAUGE_HVR1110:
--		snprintf(ir->c.name, sizeof(ir->c.name), "HVR 1110");
-+		snprintf(ir->name, sizeof(ir->name), "HVR 1110");
- 		ir->get_key   = get_key_hvr1110;
- 		ir->ir_codes  = ir_codes_hauppauge_new;
- 		break;
-@@ -722,7 +722,7 @@ void saa7134_set_i2c_ir(struct saa7134_d
- 	case SAA7134_BOARD_BEHOLD_M63:
- 	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
- 	case SAA7134_BOARD_BEHOLD_H6:
--		snprintf(ir->c.name, sizeof(ir->c.name), "BeholdTV");
-+		snprintf(ir->name, sizeof(ir->name), "BeholdTV");
- 		ir->get_key   = get_key_beholdm6xx;
- 		ir->ir_codes  = ir_codes_behold;
- 		break;
---- v4l-dvb.orig/linux/include/media/ir-kbd-i2c.h	2009-03-13 09:59:49.000000000 +0100
-+++ v4l-dvb/linux/include/media/ir-kbd-i2c.h	2009-04-03 18:56:40.000000000 +0200
-@@ -15,6 +15,7 @@ struct IR_i2c {
- 	unsigned char          old;
- 
- 	struct delayed_work    work;
-+	char                   name[32];
- 	char                   phys[32];
- 	int                    (*get_key)(struct IR_i2c*, u32*, u32*);
- };
+I really like that kind of input.
 
--- 
-Jean Delvare
+Especially for the follow up version, with dedicated antennas for each
+transponder frequency. 
+
+I do confirm, that it has the potential to replace two amplifiers, one
+external and one on the card under bad reception conditions, not to talk
+about the antenna itself and about what all that might cost else
+installed by an expert on light-speed coming into your home ...
+
+> And here's the google translation:
+> 
+> http://translate.google.com/translate?hl=en&sl=de&u=http://www.cnet.de/praxis/wochenend/41001557/die%2Bbeste%2Beigenbau_dvb_t_antenne%2Bdoppelquad%2Bfuer%2B5%2Beuro%2Bbasteln.htm&ei=mKLlScbqIMGPsAam-KWtCw&sa=X&oi=translate&resnum=1&ct=result&prev=/search%3Fq%3Dhttp://www.cnet.de/praxis/wochenend/41001557/die%252Bbeste%252Beigenbau_dvb_t_antenne%252Bdoppelquad%252Bfuer%252B5%252Beuro%252Bbasteln.htm%26hl%3Den%26client%3Diceweasel-a%26rls%3Dorg.debian:en-US:unofficial
+> 
+> > - it does not work with my AMD-Board (SB700-Chipset), I have no problems
+> >   using it on my Laptop (Intel-Chipset) and another AMD-Desktop
+> > (Nvidia-Chipset).
+> >   I have found several reports in Mailinglists mentioning the same problems.
+> 
+> Thats wierd. So the usb controler on the Nova-TD and the host controler on
+> the SB700 are incompatible? 
+> 
+> > I also have a "Hauppauge Nova-T USB-2" (dib3000, large metal case) and a
+> > "Hauppauge WinTV Ministick" (Siano sms1xx-Chipset), the RF-Part of both
+> > devices is a far better one compared to the Nova-TD.
+> 
+> Is there a way to truely compare different receiver's quality? The
+> information that femon and tzap report (SNR, BER, UNC) are only what the
+> receiver itself says. 
+
+Not yet and hard to come by, also lots of different antennas and
+amplification. 
+
+Cheers,
+Hermann
+
+
+
