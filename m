@@ -1,34 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:39889 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755411AbZDBJtu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Apr 2009 05:49:50 -0400
-Date: Thu, 2 Apr 2009 11:49:55 +0200 (CEST)
-From: Guennadi Liakhovetski <lg@denx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Sascha Hauer <s.hauer@pengutronix.de>
-Subject: [PATCH] mx3-camera: fix to match the new clock naming
-Message-ID: <Pine.LNX.4.64.0904021145040.5263@axis700.grange>
+Received: from smtp4-g21.free.fr ([212.27.42.4]:51103 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752490AbZDOUgb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Apr 2009 16:36:31 -0400
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/5] soc-camera: convert to platform device
+References: <Pine.LNX.4.64.0904151356480.4729@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Wed, 15 Apr 2009 22:36:20 +0200
+Message-ID: <87ljq1mz7f.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With the i.MX31 transition to clkdev clock names have changed, fix the 
-driver to use the new name.
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-Signed-off-by: Guennadi Liakhovetski <lg@denx.de>
----
-diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-index 70629e1..7e6b51d 100644
---- a/drivers/media/video/mx3_camera.c
-+++ b/drivers/media/video/mx3_camera.c
-@@ -1100,7 +1100,7 @@ static int mx3_camera_probe(struct platform_device *pdev)
- 	}
- 	memset(mx3_cam, 0, sizeof(*mx3_cam));
- 
--	mx3_cam->clk = clk_get(&pdev->dev, "csi_clk");
-+	mx3_cam->clk = clk_get(&pdev->dev, "csi");
- 	if (IS_ERR(mx3_cam->clk)) {
- 		err = PTR_ERR(mx3_cam->clk);
- 		goto eclkget;
+> This patch series is a preparation for the v4l2-subdev conversion. Please, 
+> review and test. My current patch-stack in the form of a 
+> (manually-created) quilt-series is at 
+> http://www.open-technology.de/download/20090415/ based on linux-next 
+> history branch, commit ID in 0000-base file. Don't be surprised, that 
+> patch-set also contains a few not directly related patches.
+
+Right, apart from a few comments, the bright side is your serie resists my full
+test campaign.
+
+I need to make some additionnal tests with I2C loading/unloading, but otherwise
+it works perfectly for (soc_camera / pxa_camera /mt9m111 combination).
+
+Cheers.
+
+--
+Robert
