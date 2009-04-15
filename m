@@ -1,115 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:37943 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764658AbZDIKpu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2009 06:45:50 -0400
-Date: Thu, 9 Apr 2009 07:45:34 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Tobi <listaccount@e-tobi.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Userspace issue with DVB driver includes
-Message-ID: <20090409074534.2cf32df0@pedra.chehab.org>
-In-Reply-To: <49DDA100.1030205@e-tobi.net>
-References: <49DDA100.1030205@e-tobi.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from an-out-0708.google.com ([209.85.132.244]:3088 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751432AbZDOHDr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Apr 2009 03:03:47 -0400
+Received: by an-out-0708.google.com with SMTP id d14so2802749and.1
+        for <linux-media@vger.kernel.org>; Wed, 15 Apr 2009 00:03:46 -0700 (PDT)
+MIME-Version: 1.0
+Date: Wed, 15 Apr 2009 04:03:45 -0300
+Message-ID: <68cac7520904150003n150bff9bp616cc49e684d947d@mail.gmail.com>
+Subject: [PATCH] uvc: Add Microsoft VX 500 webcam
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: multipart/mixed; boundary=002215046c9b7108420467928ca1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 09 Apr 2009 09:17:20 +0200
-Tobi <listaccount@e-tobi.net> wrote:
+--002215046c9b7108420467928ca1
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-> Hello!
-> 
-> I think it was the change from asm/types.h to linux/types.h:
-> 
-> -#include <asm/types.h>
-> +#include <linux/types.h>
-> 
-> ...which somehow broke the VDR build with recent DVB driver releases (see
-> snippet A below).
-> 
-> The common workaround/solution to this seems to be to add a
-> "-D__KERNEL_STRICT_NAMES".
-> 
-> But this feels wrong to me.
-> 
-> Reordering the includes and making sure <sys/*> is included before
-> <linux/*> solves this issue too.
-> 
-> But ideally the include order shouldn't matter at all.
-> 
-> So my question is: How to deal with this? What's the recommended way for
-> userspace applications to include linux/dvb headers?
-> 
-> Here's a small example, that fails to compile with 2.6.29:
-> 
-> // #include <sys/types.h>
-> // #define __KERNEL_STRICT_NAMES
-> 
-> #include <linux/dvb/frontend.h>
-> #include <linux/dvb/video.h>
-> 
-> int main()
-> {
->     return 0;
-> }
-> 
-> Two workarounds to this problem are to define __KERNEL_STRICT_NAMES or
-> including <sys/*> before the linux/dvb includes.
-> 
-> Any comments, suggestions?
+Hello Laurent,
 
-Hi Tobi,
+    Attached patch for the following:
 
-I suspect that this were the upstream change that affected your work, right?
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=b852d36b86902abb272b0f2dd7a56dd2d17ea88c
+    Added Microsoft VX 500 webcam to uvc driver.
 
-There are two changesets that will likely fix this issue:
+Signed-off-by: Douglas Schilling Landgraf <dougsland@redhat.com>
 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=85efde6f4e0de9577256c5f0030088d3fd4347c1
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=9adfbfb611307060db54691bc7e6d53fdc12312b
+Thanks,
+Douglas
 
-Could you please try to apply they on 2.6.29 and see if those will solve the
-issue? If so, then we should probably add those on 2.6.29.2. 
+--002215046c9b7108420467928ca1
+Content-Type: application/octet-stream; name="uvc-microsoft-vx500.diff"
+Content-Disposition: attachment; filename="uvc-microsoft-vx500.diff"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_ftjo7tp60
 
-Anyway, in order to keep v4l-dvb aligned with upstream, I'll backport the above
-changesets into the development tree.
-
-> 
-> Please see also:
-> 
-> http://www.linuxtv.org/pipermail/linux-dvb/2009-March/031934.html
-> 
-> bye,
-> 
-> Tobias
-> 
-> --- snippet A ---
-> 
-> In file included from /usr/include/netinet/in.h:24,
->                  from /usr/include/arpa/inet.h:23,
->                  from config.h:13,
->                  from channels.h:13,
->                  from device.h:13,
->                  from dvbdevice.h:15,
->                  from dvbdevice.c:10:
-> /usr/include/stdint.h:41: error: conflicting declaration 'typedef long int
-> int64_t'
-> /usr/include/linux/types.h:98: error: 'int64_t' has a previous declaration
-> as 'typedef __s64 int64_t'
-> /usr/include/stdint.h:56: error: conflicting declaration 'typedef long
-> unsigned int uint64_t'
-> /usr/include/linux/types.h:96: error: 'uint64_t' has a previous
-> declaration as 'typedef __u64 uint64_t'
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
-
-Cheers,
-Mauro
+ZGlmZiAtciAwMzc0YmQ4MWMyYmIgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby91dmMvdXZjX2Ry
+aXZlci5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vdXZjL3V2Y19kcml2ZXIuYwlU
+dWUgQXByIDE0IDE1OjAzOjM5IDIwMDkgLTAzMDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS92
+aWRlby91dmMvdXZjX2RyaXZlci5jCVdlZCBBcHIgMTUgMDM6MzQ6NTcgMjAwOSAtMDMwMApAQCAt
+MTc3OCw2ICsxNzc4LDE1IEBACiAJICAuYkludGVyZmFjZVN1YkNsYXNzCT0gMSwKIAkgIC5iSW50
+ZXJmYWNlUHJvdG9jb2wJPSAwLAogCSAgLmRyaXZlcl9pbmZvCQk9IFVWQ19RVUlSS19QUk9CRV9N
+SU5NQVggfSwKKwkvKiBNaWNyb3NvZnQgTGlmZWNhbSBWWC01MDAgKi8KKwl7IC5tYXRjaF9mbGFn
+cwkJPSBVU0JfREVWSUNFX0lEX01BVENIX0RFVklDRQorCQkJCXwgVVNCX0RFVklDRV9JRF9NQVRD
+SF9JTlRfSU5GTywKKwkgIC5pZFZlbmRvcgkJPSAweDA0NWUsCisJICAuaWRQcm9kdWN0CQk9IDB4
+MDc0YSwKKwkgIC5iSW50ZXJmYWNlQ2xhc3MJPSBVU0JfQ0xBU1NfVklERU8sCisJICAuYkludGVy
+ZmFjZVN1YkNsYXNzCT0gMSwKKwkgIC5iSW50ZXJmYWNlUHJvdG9jb2wJPSAwLAorCSAgLmRyaXZl
+cl9pbmZvCQk9IFVWQ19RVUlSS19QUk9CRV9NSU5NQVggfSwKIAkvKiBNaWNyb3NvZnQgTGlmZWNh
+bSBWWC03MDAwICovCiAJeyAubWF0Y2hfZmxhZ3MJCT0gVVNCX0RFVklDRV9JRF9NQVRDSF9ERVZJ
+Q0UKIAkJCQl8IFVTQl9ERVZJQ0VfSURfTUFUQ0hfSU5UX0lORk8sCg==
+--002215046c9b7108420467928ca1--
