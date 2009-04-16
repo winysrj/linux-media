@@ -1,177 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:24333 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752470AbZDQUaj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Apr 2009 16:30:39 -0400
-Received: from jdelvare.pck.nerim.net ([62.212.121.182] helo=hyperion.delvare)
-	by services.gcu-squad.org (GCU Mailer Daemon) with esmtpsa id 1Luvn5-0004rN-3R
-	(TLSv1:AES256-SHA:256)
-	(envelope-from <khali@linux-fr.org>)
-	for linux-media@vger.kernel.org; Fri, 17 Apr 2009 23:40:07 +0200
-Date: Fri, 17 Apr 2009 22:30:32 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Subject: [PATCH 1/6] ir-kbd-i2c: Don't use i2c_client.name for our own needs
-Message-ID: <20090417223032.4671a22d@hyperion.delvare>
-In-Reply-To: <20090417222927.7a966350@hyperion.delvare>
-References: <20090417222927.7a966350@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:38806 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1756580AbZDPNT5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Apr 2009 09:19:57 -0400
+Date: Thu, 16 Apr 2009 15:20:03 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: [PATCH 5/5] soc-camera: Convert to a platform driver
+In-Reply-To: <31771.62.70.2.252.1239885621.squirrel@webmail.xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0904161500440.4947@axis700.grange>
+References: <31771.62.70.2.252.1239885621.squirrel@webmail.xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In the standard device driver binding model, the name field of
-struct i2c_client is used to match devices to their drivers, so we
-must stop using it for internal purposes. Define a separate field
-in struct IR_i2c as a replacement, and use it.
+On Thu, 16 Apr 2009, Hans Verkuil wrote:
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> If you have mutually exclusive sources, then those should be implemented
+> as one device with multiple inputs. There is really no difference between
+> a TV capture driver that selects between a tuner and S-Video input, and a
+> camera driver that selects between multiple cameras.
+> 
+> A completely different question is whether soc-camera should be used at
+> all for this. The RFC Nate posted today said that this implementation was
+> based around the S3C64XX SoC. The limitation of allowing only one camera
+> at a time is a limitation of the hardware implementation, not of the SoC
+> as far as I could tell.
+
+This is the opposite to how I understood it. S3C6400 only has one set of 
+camera interface signals, so, it is supposed to only handle one camera (at 
+a time). As for mutual exclusivity - this is not enforced by the 
+soc-camera framework, rather it is a limitation of the hardware - SoC and 
+implementation. The implementor wants to prohibit access to the inactive 
+camera, and that's where the conflict arises. The framework would then 
+have to treat a solution with one host and multiple cameras differently 
+depending on board implementation: if they are not mutually exclusive map 
+them to multiple video devices, if they are - map them to multiple inputs 
+on one video device...
+
+> Given the fact that the SoC also supports codecs and other fun stuff, I
+> really wonder whether there shouldn't be a proper driver for that SoC that
+> supports all those features. Similar to what TI is doing for their davinci
+> platform. It is my understanding that soc-camera is really meant as a
+> simple framework around a sensor device, and not as a full-featured
+> implementation for codecs, previews, etc. Please correct me if I'm wrong.
+
+Having briefly looked at s3c6400, its video interface doesn't seem to be 
+more advanced than, for instance, that of the PXA270 SoC. Ok, maybe only 
+the preview path is missing on PXA.
+
+soc-camera framework has been designed as a standard framework between 
+SoCs and video data sources with the primary goal to allow driver reuse. 
+The functionality that it implements is what was required at that time, 
+plus what has been added since then. Yes, it does impose a couple of 
+simplifications on the current V4L2 API. So, of course, a decision has to 
+be made either or not to use it in every specific case.
+
+Thanks
+Guennadi
 ---
- linux/drivers/media/video/cx231xx/cx231xx-input.c |    2 +-
- linux/drivers/media/video/em28xx/em28xx-cards.c   |    6 +++---
- linux/drivers/media/video/em28xx/em28xx-input.c   |    2 +-
- linux/drivers/media/video/ir-kbd-i2c.c            |    5 +++--
- linux/drivers/media/video/saa7134/saa7134-input.c |   12 ++++++------
- linux/include/media/ir-kbd-i2c.h                  |    1 +
- 6 files changed, 15 insertions(+), 13 deletions(-)
-
---- v4l-dvb.orig/linux/drivers/media/video/cx231xx/cx231xx-input.c	2009-04-08 11:27:31.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/cx231xx/cx231xx-input.c	2009-04-17 12:54:18.000000000 +0200
-@@ -37,7 +37,7 @@ MODULE_PARM_DESC(ir_debug, "enable debug
- 
- #define i2cdprintk(fmt, arg...) \
- 	if (ir_debug) { \
--		printk(KERN_DEBUG "%s/ir: " fmt, ir->c.name , ## arg); \
-+		printk(KERN_DEBUG "%s/ir: " fmt, ir->name , ## arg); \
- 	}
- 
- #define dprintk(fmt, arg...) \
---- v4l-dvb.orig/linux/drivers/media/video/em28xx/em28xx-cards.c	2009-04-17 11:22:56.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/em28xx/em28xx-cards.c	2009-04-17 12:54:18.000000000 +0200
-@@ -1948,19 +1948,19 @@ void em28xx_set_ir(struct em28xx *dev, s
- 	case (EM2820_BOARD_TERRATEC_CINERGY_250):
- 		ir->ir_codes = ir_codes_em_terratec;
- 		ir->get_key = em28xx_get_key_terratec;
--		snprintf(ir->c.name, sizeof(ir->c.name),
-+		snprintf(ir->name, sizeof(ir->name),
- 			 "i2c IR (EM28XX Terratec)");
- 		break;
- 	case (EM2820_BOARD_PINNACLE_USB_2):
- 		ir->ir_codes = ir_codes_pinnacle_grey;
- 		ir->get_key = em28xx_get_key_pinnacle_usb_grey;
--		snprintf(ir->c.name, sizeof(ir->c.name),
-+		snprintf(ir->name, sizeof(ir->name),
- 			 "i2c IR (EM28XX Pinnacle PCTV)");
- 		break;
- 	case (EM2820_BOARD_HAUPPAUGE_WINTV_USB_2):
- 		ir->ir_codes = ir_codes_hauppauge_new;
- 		ir->get_key = em28xx_get_key_em_haup;
--		snprintf(ir->c.name, sizeof(ir->c.name),
-+		snprintf(ir->name, sizeof(ir->name),
- 			 "i2c IR (EM2840 Hauppauge)");
- 		break;
- 	case (EM2820_BOARD_MSI_VOX_USB_2):
---- v4l-dvb.orig/linux/drivers/media/video/em28xx/em28xx-input.c	2009-04-08 11:27:31.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/em28xx/em28xx-input.c	2009-04-17 12:54:18.000000000 +0200
-@@ -41,7 +41,7 @@ MODULE_PARM_DESC(ir_debug, "enable debug
- 
- #define i2cdprintk(fmt, arg...) \
- 	if (ir_debug) { \
--		printk(KERN_DEBUG "%s/ir: " fmt, ir->c.name , ## arg); \
-+		printk(KERN_DEBUG "%s/ir: " fmt, ir->name , ## arg); \
- 	}
- 
- #define dprintk(fmt, arg...) \
---- v4l-dvb.orig/linux/drivers/media/video/ir-kbd-i2c.c	2009-04-08 11:27:31.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/ir-kbd-i2c.c	2009-04-17 12:54:18.000000000 +0200
-@@ -346,6 +346,7 @@ static int ir_attach(struct i2c_adapter
- 
- 	ir->c.adapter = adap;
- 	ir->c.addr    = addr;
-+	snprintf(ir->c.name, sizeof(ir->c.name), "ir-kbd");
- 
- 	i2c_set_clientdata(&ir->c, ir);
- 
-@@ -419,7 +420,7 @@ static int ir_attach(struct i2c_adapter
- 	}
- 
- 	/* Sets name */
--	snprintf(ir->c.name, sizeof(ir->c.name), "i2c IR (%s)", name);
-+	snprintf(ir->name, sizeof(ir->name), "i2c IR (%s)", name);
- 	ir->ir_codes = ir_codes;
- 
- 	/* register i2c device
-@@ -444,7 +445,7 @@ static int ir_attach(struct i2c_adapter
- 	/* init + register input device */
- 	ir_input_init(input_dev, &ir->ir, ir_type, ir->ir_codes);
- 	input_dev->id.bustype = BUS_I2C;
--	input_dev->name       = ir->c.name;
-+	input_dev->name       = ir->name;
- 	input_dev->phys       = ir->phys;
- 
- 	err = input_register_device(ir->input);
---- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-input.c	2009-04-17 11:22:56.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-input.c	2009-04-17 12:54:18.000000000 +0200
-@@ -60,7 +60,7 @@ MODULE_PARM_DESC(disable_other_ir, "disa
- #define dprintk(fmt, arg...)	if (ir_debug) \
- 	printk(KERN_DEBUG "%s/ir: " fmt, dev->name , ## arg)
- #define i2cdprintk(fmt, arg...)    if (ir_debug) \
--	printk(KERN_DEBUG "%s/ir: " fmt, ir->c.name , ## arg)
-+	printk(KERN_DEBUG "%s/ir: " fmt, ir->name , ## arg)
- 
- /* Helper functions for RC5 and NEC decoding at GPIO16 or GPIO18 */
- static int saa7134_rc5_irq(struct saa7134_dev *dev);
-@@ -694,7 +694,7 @@ void saa7134_set_i2c_ir(struct saa7134_d
- 	switch (dev->board) {
- 	case SAA7134_BOARD_PINNACLE_PCTV_110i:
- 	case SAA7134_BOARD_PINNACLE_PCTV_310i:
--		snprintf(ir->c.name, sizeof(ir->c.name), "Pinnacle PCTV");
-+		snprintf(ir->name, sizeof(ir->name), "Pinnacle PCTV");
- 		if (pinnacle_remote == 0) {
- 			ir->get_key   = get_key_pinnacle_color;
- 			ir->ir_codes = ir_codes_pinnacle_color;
-@@ -704,17 +704,17 @@ void saa7134_set_i2c_ir(struct saa7134_d
- 		}
- 		break;
- 	case SAA7134_BOARD_UPMOST_PURPLE_TV:
--		snprintf(ir->c.name, sizeof(ir->c.name), "Purple TV");
-+		snprintf(ir->name, sizeof(ir->name), "Purple TV");
- 		ir->get_key   = get_key_purpletv;
- 		ir->ir_codes  = ir_codes_purpletv;
- 		break;
- 	case SAA7134_BOARD_MSI_TVATANYWHERE_PLUS:
--		snprintf(ir->c.name, sizeof(ir->c.name), "MSI TV@nywhere Plus");
-+		snprintf(ir->name, sizeof(ir->name), "MSI TV@nywhere Plus");
- 		ir->get_key  = get_key_msi_tvanywhere_plus;
- 		ir->ir_codes = ir_codes_msi_tvanywhere_plus;
- 		break;
- 	case SAA7134_BOARD_HAUPPAUGE_HVR1110:
--		snprintf(ir->c.name, sizeof(ir->c.name), "HVR 1110");
-+		snprintf(ir->name, sizeof(ir->name), "HVR 1110");
- 		ir->get_key   = get_key_hvr1110;
- 		ir->ir_codes  = ir_codes_hauppauge_new;
- 		break;
-@@ -723,7 +723,7 @@ void saa7134_set_i2c_ir(struct saa7134_d
- 	case SAA7134_BOARD_BEHOLD_M63:
- 	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
- 	case SAA7134_BOARD_BEHOLD_H6:
--		snprintf(ir->c.name, sizeof(ir->c.name), "BeholdTV");
-+		snprintf(ir->name, sizeof(ir->name), "BeholdTV");
- 		ir->get_key   = get_key_beholdm6xx;
- 		ir->ir_codes  = ir_codes_behold;
- 		break;
---- v4l-dvb.orig/linux/include/media/ir-kbd-i2c.h	2009-04-08 11:27:31.000000000 +0200
-+++ v4l-dvb/linux/include/media/ir-kbd-i2c.h	2009-04-17 12:54:18.000000000 +0200
-@@ -15,6 +15,7 @@ struct IR_i2c {
- 	unsigned char          old;
- 
- 	struct delayed_work    work;
-+	char                   name[32];
- 	char                   phys[32];
- 	int                    (*get_key)(struct IR_i2c*, u32*, u32*);
- };
-
--- 
-Jean Delvare
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
