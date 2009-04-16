@@ -1,87 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:36315 "EHLO smtp3-g21.free.fr"
+Received: from smtp2-g21.free.fr ([212.27.42.2]:34672 "EHLO smtp2-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751835AbZDMQ7L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Apr 2009 12:59:11 -0400
+	id S1756773AbZDPTE6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Apr 2009 15:04:58 -0400
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/5] soc-camera: convert to platform device
+References: <Pine.LNX.4.64.0904151356480.4729@axis700.grange>
+	<87ljq1mz7f.fsf@free.fr> <87tz4o7al6.fsf@free.fr>
+	<Pine.LNX.4.64.0904161955140.4947@axis700.grange>
 From: Robert Jarzmik <robert.jarzmik@free.fr>
-To: g.liakhovetski@gmx.de
-Cc: linux-media@vger.kernel.org,
-	Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH] pxa_camera: Documentation of the FSM
-Date: Mon, 13 Apr 2009 18:59:00 +0200
-Message-Id: <1239641940-27918-1-git-send-email-robert.jarzmik@free.fr>
+Date: Thu, 16 Apr 2009 21:04:47 +0200
+In-Reply-To: <Pine.LNX.4.64.0904161955140.4947@axis700.grange> (Guennadi Liakhovetski's message of "Thu\, 16 Apr 2009 20\:14\:38 +0200 \(CEST\)")
+Message-ID: <87d4bch12o.fsf@free.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After DMA redesign, the pxa_camera dynamic behaviour should
-be documented so that future contributors understand how it
-works, and improve it.
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
----
- Documentation/video4linux/pxa_camera.txt |   49 ++++++++++++++++++++++++++++++
- 1 files changed, 49 insertions(+), 0 deletions(-)
+>>  - I unload and reload mt9m111 and pxa_camera
+>>     => not any better
+>
+> Actually, I think, in this case it should be found again, as long as you 
+> reload pxa-camera while i2c-pxa is already loaded.
+Damn, you're right. I cross-checked, and reloading pxa_camera rescans the
+sensor.
 
-diff --git a/Documentation/video4linux/pxa_camera.txt b/Documentation/video4linux/pxa_camera.txt
-index b1137f9..b595e94 100644
---- a/Documentation/video4linux/pxa_camera.txt
-+++ b/Documentation/video4linux/pxa_camera.txt
-@@ -26,6 +26,55 @@ Global video workflow
- 
-      Once the last buffer is filled in, the QCI interface stops.
- 
-+  c) Capture global finite state machine schema
-+
-+      +----+                             +---+  +----+
-+      | DQ |                             | Q |  | DQ |
-+      |    v                             |   v  |    v
-+    +-----------+                     +------------------------+
-+    |   STOP    |                     | Wait for capture start |
-+    +-----------+         Q           +------------------------+
-++-> | QCI: stop | ------------------> | QCI: run               | <------------+
-+|   | DMA: stop |                     | DMA: stop              |              |
-+|   +-----------+             +-----> +------------------------+              |
-+|                            /                            |                   |
-+|                           /             +---+  +----+   |                   |
-+|capture list empty        /              | Q |  | DQ |   | QCI Irq EOF       |
-+|                         /               |   v  |    v   v                   |
-+|   +--------------------+             +----------------------+               |
-+|   | DMA hotlink missed |             |    Capture running   |               |
-+|   +--------------------+             +----------------------+               |
-+|   | QCI: run           |     +-----> | QCI: run             | <-+           |
-+|   | DMA: stop          |    /        | DMA: run             |   |           |
-+|   +--------------------+   /         +----------------------+   | Other     |
-+|     ^                     /DMA still            |               | channels  |
-+|     | capture list       /  running             | DMA Irq End   | not       |
-+|     | not empty         /                       |               | finished  |
-+|     |                  /                        v               | yet       |
-+|   +----------------------+           +----------------------+   |           |
-+|   |  Videobuf released   |           |  Channel completed   |   |           |
-+|   +----------------------+           +----------------------+   |           |
-+|   | QCI: run             |           | QCI: run             | --+           |
-+|   | DMA: run             |           | DMA: run             |               |
-+|   +----------------------+           +----------------------+               |
-+|              ^                      /           |                           |
-+|              |          no overrun /            | overrun                   |
-+|              |                    /             v                           |
-+|   +--------------------+         /   +----------------------+               |
-+|   |  Frame completed   |        /    |     Frame overran    |               |
-+|   +--------------------+ <-----+     +----------------------+ restart frame |
-++-- | QCI: run           |             | QCI: stop            | --------------+
-+    | DMA: run           |             | DMA: stop            |
-+    +--------------------+             +----------------------+
-+
-+    Legend: - each box is a FSM state
-+            - each arrow is the condition to transition to another state
-+            - an arrow with a comment is a mandatory transition (no condition)
-+            - arrow "Q" means : a buffer was enqueued
-+            - arrow "DQ" means : a buffer was dequeued
-+            - "QCI: stop" means the QCI interface is not enabled
-+            - "DMA: stop" means all 3 DMA channels are stopped
-+            - "DMA: run" means at least 1 DMA channel is still running
- 
- DMA usage
- ---------
--- 
-1.6.2.1
+>> What I'm getting at is that if soc_camera is loaded before the i2c host driver,
+>> no camera will get any chance to work. Is that normal considering the new driver
+>> model ?
+>> I was naively thinking that there would be a "rescan" when the "control" was
+>> being available for a sensor.
+>
+> Yes, unfortunately, it is "normal":-( On the one hand, we shouldn't really 
+> spend _too_ much time on this intermediate version, because, as I said, it 
+> is just a preparatory step for v4l2-subdev. We just have to make sure it 
+> doesn't introduce any significant regressions and doesn't crash too often. 
+OK. So from my side everything is OK (let aside my nitpicking in mioa701.c and
+mt9m111.c).
 
+> OTOH, this is also how it is with v4l2-subdev. With it you first must have 
+> the i2c-adapter driver loaded. Then, when a match between a camera host 
+> and a camera client (sensor) platform device is detected, it is reported 
+> to the v4l2-subdev core, which loads the respective camera i2c driver.
+OK, why not.
+
+> If you then unload the camera-host and i2c adapter drivers, and then you load
+> the camera-host driver, it then fails to get the adapter, and if you then load
+> it, nothing else happens. To reprobe you have to unload and reload the camera
+> host driver.
+
+So be it. I'm sure we'll be through it once more in the v4l2-subdev transition,
+so I'll let aside any objection I could mutter :)
+
+Cheers.
+
+--
+Robert
