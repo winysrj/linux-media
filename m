@@ -1,22 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail21.extendcp.co.uk ([79.170.40.21])
-	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mailing-lists@enginuities.com>) id 1LpBWz-0006DX-H5
-	for linux-dvb@linuxtv.org; Thu, 02 Apr 2009 03:15:47 +0200
-Received: from [220.245.35.222] (helo=cobra.localnet)
-	by mail21.extendcp.com with esmtpa (Exim 4.69) id 1LpBWv-0006Np-Iz
-	for linux-dvb@linuxtv.org; Thu, 02 Apr 2009 02:15:41 +0100
-From: Stuart <mailing-lists@enginuities.com>
-To: linux-dvb@linuxtv.org
-Date: Thu, 2 Apr 2009 12:17:08 +1100
-References: <200903140506.00723.mailing-lists@enginuities.com>
-	<200904020043.48389.mailing-lists@enginuities.com>
-	<49D3ECE4.4030008@iki.fi>
-In-Reply-To: <49D3ECE4.4030008@iki.fi>
+Received: from mail.gmx.net ([213.165.64.20])
+	by mail.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <markus.o.hahn@gmx.de>) id 1LuNbT-0008Hf-07
+	for linux-dvb@linuxtv.org; Thu, 16 Apr 2009 11:09:52 +0200
+Date: Thu, 16 Apr 2009 11:09:16 +0200
+From: "Markus Oliver Hahn" <markus.o.hahn@gmx.de>
+Message-ID: <20090416090916.118390@gmx.net>
 MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200904021217.09037.mailing-lists@enginuities.com>
-Subject: Re: [linux-dvb] Patch for DigitalNow TinyTwin remote.
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb]  tt budget(_ci)  S2 - 1600
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -25,46 +17,36 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Patch to provide basic support for DigitalNow TinyTwin Remote.
+Hi there =
 
-Signed-off-by: Stuart Hall <mailing-lists@enginuities.com>
 
-af9015-b0ba0a6dfca1_tinytwin_remote.patch
---- orig/drivers/media/dvb/dvb-usb/af9015.c	2009-03-31 07:57:51.000000000 +1100
-+++ new/drivers/media/dvb/dvb-usb/af9015.c	2009-03-31 11:44:16.000000000 +1100
-@@ -785,17 +785,14 @@ static int af9015_read_config(struct usb
- 				  ARRAY_SIZE(af9015_ir_table_leadtek);
- 				break;
- 			case USB_VID_VISIONPLUS:
--				if (udev->descriptor.idProduct ==
--				cpu_to_le16(USB_PID_AZUREWAVE_AD_TU700)) {
--					af9015_properties[i].rc_key_map =
--					  af9015_rc_keys_twinhan;
--					af9015_properties[i].rc_key_map_size =
--					  ARRAY_SIZE(af9015_rc_keys_twinhan);
--					af9015_config.ir_table =
--					  af9015_ir_table_twinhan;
--					af9015_config.ir_table_size =
--					  ARRAY_SIZE(af9015_ir_table_twinhan);
--				}
-+				af9015_properties[i].rc_key_map =
-+				  af9015_rc_keys_twinhan;
-+				af9015_properties[i].rc_key_map_size =
-+				  ARRAY_SIZE(af9015_rc_keys_twinhan);
-+				af9015_config.ir_table =
-+				  af9015_ir_table_twinhan;
-+				af9015_config.ir_table_size =
-+				  ARRAY_SIZE(af9015_ir_table_twinhan);
- 				break;
- 			case USB_VID_KWORLD_2:
- 				/* TODO: use correct rc keys */
+@Manu, =
 
+I have seen that you are working on DVB-S2 1600 =
+
+pci card and Im pleased that you getting forward. =
+
+
+But I`m wondering why you use the budget_ci insead of =
+
+budget.c. The tt-s2 1600 dosn`t have any CI connector, =
+
+
+I will try the modules and tell you how the work. =
+
+
+regards markus =
+
+-- =
+
+Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt? Der kann`s mit allen: =
+http://www.gmx.net/de/go/multimessenger01
 
 _______________________________________________
 linux-dvb users mailing list
