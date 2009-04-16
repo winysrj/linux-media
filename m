@@ -1,80 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:33760 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752127AbZDQXf6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Apr 2009 19:35:58 -0400
-Date: Fri, 17 Apr 2009 18:35:55 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-Reply-To: Mike Isely <isely@pobox.com>
-To: Jean Delvare <khali@linux-fr.org>
-cc: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 2/6] ir-kbd-i2c: Switch to the new-style device binding
- model
-In-Reply-To: <20090417223105.28b8957e@hyperion.delvare>
-Message-ID: <Pine.LNX.4.64.0904171831300.19718@cnc.isely.net>
-References: <20090417222927.7a966350@hyperion.delvare>
- <20090417223105.28b8957e@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from mk-outboundfilter-1.mail.uk.tiscali.com ([212.74.114.37]:34358
+	"EHLO mk-outboundfilter-1.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752208AbZDPUrG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Apr 2009 16:47:06 -0400
+From: Adam Baker <linux@baker-net.org.uk>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+Subject: Re: libv4l release: 0.5.97: the whitebalance release!
+Date: Thu, 16 Apr 2009 21:46:59 +0100
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	SPCA50x Linux Device Driver Development
+	<spca50x-devs@lists.sourceforge.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <49E5D4DE.6090108@hhs.nl> <200904152326.59464.linux@baker-net.org.uk> <49E66787.2080301@hhs.nl>
+In-Reply-To: <49E66787.2080301@hhs.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="windows-1252"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200904162146.59742.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thursday 16 Apr 2009, Hans de Goede wrote:
+> On 04/16/2009 12:26 AM, Adam Baker wrote:
+> > On Wednesday 15 Apr 2009, Hans de Goede wrote:
+> >> Currently only whitebalancing is enabled and only on Pixarts (pac)
+> >> webcams (which benefit tremendously from this). To test this with other
+> >> webcams (after instaling this release) do:
+> >>
+> >> export LIBV4LCONTROL_CONTROLS=15
+> >> LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so v4l2ucp&
+> >
+> > Strangely while those instructions give me a whitebalance control for the
+> > sq905 based camera I can't get it to appear for a pac207 based camera
+> > regardless of whether LIBV4LCONTROL_CONTROLS is set.
+>
+> Thats weird, there is a small bug in the handling of pac207
+> cams with usb id 093a:2476 causing libv4l to not automatically
+> enable whitebalancing (and the control) for cams with that id,
+> but if you have LIBV4LCONTROL_CONTROLS set (exported!) both
+> when loading v4l2ucp (you must preload v4l2convert.so!) and
+> when loading your viewer, then it should work.
+>
 
-I thought we were going to leave the pvrusb2 driver out of this since 
-I've already got a change ready that also includes additional logic to 
-take into account the properties of the hardware device (i.e. only 
-activate ir-kbd-i2c when we know it has a chance of working).
+I've tested it by plugging in the sq905 camera, verifying the whitebablance 
+control is present and working, unplugging the sq905 and plugging in the 
+pac207 and using up arrow to restart v4l2ucp and svv so I think I've 
+eliminated most finger trouble possibilities. The pac207 is id 093a:2460 so 
+not the problem id. I'll have to investigate more thoroughly later.
 
-  -Mike
+> >> Notice the whitebalance and normalize checkboxes in v4l2ucp,
+> >> as well as low and high limits for normalize.
+> >>
+> >> Now start your favorite webcam viewing app and play around with the
+> >> 2 checkboxes. Note normalize seems to be useless in most cases. If
+> >> whitebalancing makes a *strongly noticable* difference for your webcam
+> >> please mail me info about your cam (the usb id), then I can add it to
+> >> the list of cams which will have the whitebalancing algorithm (and the
+> >> v4l2 control to enable/disable it) enabled by default.
+> >
+> > The whitebalance works really well with the sq905 (ID 2770:9120). Without
+> > it the image is very red when using artificial light, with auto
+> > whitebalance the colours look slightly desaturated but otherwise fine.
+>
+> Good to hear it helps for the sq905 too, is that the only know id for sq905
+> cams ?
+
+Yes
+
+Adam
 
 
-On Fri, 17 Apr 2009, Jean Delvare wrote:
-
-> Let card drivers probe for IR receiver devices and instantiate them if
-> found. Ultimately it would be better if we could stop probing
-> completely, but I suspect this won't be possible for all card types.
-> 
-> There's certainly room for cleanups. For example, some drivers are
-> sharing I2C adapter IDs, so they also had to share the list of I2C
-> addresses being probed for an IR receiver. Now that each driver
-> explicitly says which addresses should be probed, maybe some addresses
-> can be dropped from some drivers.
-> 
-> Also, the special cases in saa7134-i2c should probably be handled on a
-> per-board basis. This would be more efficient and less risky than always
-> probing extra addresses on all boards. I'll give it a try later.
-> 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Cc: Andy Walls <awalls@radix.net>
-> Cc: Mike Isely <isely@pobox.com>
-> ---
->  linux/drivers/media/video/bt8xx/bttv-i2c.c           |   21 +
->  linux/drivers/media/video/cx231xx/cx231xx-cards.c    |   11 
->  linux/drivers/media/video/cx231xx/cx231xx-i2c.c      |    3 
->  linux/drivers/media/video/cx231xx/cx231xx.h          |    1 
->  linux/drivers/media/video/cx23885/cx23885-i2c.c      |   12 +
->  linux/drivers/media/video/cx88/cx88-i2c.c            |   13 +
->  linux/drivers/media/video/em28xx/em28xx-cards.c      |   20 +
->  linux/drivers/media/video/em28xx/em28xx-i2c.c        |    3 
->  linux/drivers/media/video/em28xx/em28xx-input.c      |    6 
->  linux/drivers/media/video/em28xx/em28xx.h            |    1 
->  linux/drivers/media/video/ir-kbd-i2c.c               |  200 +++---------------
->  linux/drivers/media/video/ivtv/ivtv-i2c.c            |   31 ++
->  linux/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c |   24 ++
->  linux/drivers/media/video/saa7134/saa7134-i2c.c      |    3 
->  linux/drivers/media/video/saa7134/saa7134-input.c    |   86 ++++++-
->  linux/drivers/media/video/saa7134/saa7134.h          |    1 
->  linux/include/media/ir-kbd-i2c.h                     |    2 
->  17 files changed, 244 insertions(+), 194 deletions(-)
-
-   [...]
-
--- 
-
-Mike Isely
-isely @ pobox (dot) com
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
