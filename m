@@ -1,112 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:55289 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755247AbZDXQk2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Apr 2009 12:40:28 -0400
-Date: Fri, 24 Apr 2009 18:40:40 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Paul Mundt <lethal@linux-sh.org>
-Subject: [PATCH 6/8] soc-camera: unify i2c device platform data to point to
- struct soc_camera_link
-In-Reply-To: <Pine.LNX.4.64.0904241818130.8309@axis700.grange>
-Message-ID: <Pine.LNX.4.64.0904241834230.8309@axis700.grange>
-References: <Pine.LNX.4.64.0904241818130.8309@axis700.grange>
+Received: from qw-out-2122.google.com ([74.125.92.24]:57188 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752148AbZDPDpp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Apr 2009 23:45:45 -0400
+Received: by qw-out-2122.google.com with SMTP id 8so262405qwh.37
+        for <linux-media@vger.kernel.org>; Wed, 15 Apr 2009 20:45:44 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <Pine.LNX.4.64.0904151358070.4729@axis700.grange>
+References: <Pine.LNX.4.64.0904151356480.4729@axis700.grange>
+	 <Pine.LNX.4.64.0904151358070.4729@axis700.grange>
+Date: Thu, 16 Apr 2009 11:39:09 +0800
+Message-ID: <f17812d70904152039u1c5c1350j2732b6e75554e477@mail.gmail.com>
+Subject: Re: [PATCH 1/5] soc-camera: add a free_bus method to struct
+	soc_camera_link
+From: Eric Miao <eric.y.miao@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Needed for a smooth transition to soc-camera as a platform driver.
+On Wed, Apr 15, 2009 at 8:17 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> Currently pcm990 camera bus-width management functions request a GPIO and never
+> free it again. With this approach the GPIO extender driver cannot be unloaded
+> once camera drivers have been loaded, also unloading theb i2c-pxa bus driver
+> produces errors, because the GPIO extender driver cannot unregister properly.
+> Another problem is, that if camera drivers are once loaded before the GPIO
+> extender driver, the platform code marks the GPIO unavailable and only a reboot
+> helps to recover. Adding an explicit free_bus method and using it in mt9m001
+> and mt9v022 drivers fixes these problems.
+>
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+>
+> Eric, need your ack for the arch/arm/mach-pxa part. Sascha's wouldn't hurt
+> either:-)
+>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+Yes, the mach-pxa/ part looks OK to me.
 
-Ok, this one will be a bit more difficult - it does touch two boards and 
-two drivers. But changes are minimal, so, I hope we manage it to push it 
-this way. Of course, I could replace it with about 3 stepwise patches, 
-adding wrapper macros, etc, but it's not worth the effort.
-
-For review __ONLY__ for now - will re-submit after I have pushed 1/8
-
- arch/sh/boards/board-ap325rxa.c   |    2 +-
- arch/sh/boards/mach-migor/setup.c |    4 ++--
- drivers/media/video/ov772x.c      |    6 ++++--
- drivers/media/video/tw9910.c      |    6 ++++--
- 4 files changed, 11 insertions(+), 7 deletions(-)
-
-diff --git a/arch/sh/boards/board-ap325rxa.c b/arch/sh/boards/board-ap325rxa.c
-index 39e4691..54c5cd1 100644
---- a/arch/sh/boards/board-ap325rxa.c
-+++ b/arch/sh/boards/board-ap325rxa.c
-@@ -414,7 +414,7 @@ static struct i2c_board_info __initdata ap325rxa_i2c_devices[] = {
- 	},
- 	{
- 		I2C_BOARD_INFO("ov772x", 0x21),
--		.platform_data = &ov7725_info,
-+		.platform_data = &ov7725_info.link,
- 	},
- };
- 
-diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
-index 1ee1de0..c4b97e1 100644
---- a/arch/sh/boards/mach-migor/setup.c
-+++ b/arch/sh/boards/mach-migor/setup.c
-@@ -430,11 +430,11 @@ static struct i2c_board_info migor_i2c_devices[] = {
- 	},
- 	{
- 		I2C_BOARD_INFO("ov772x", 0x21),
--		.platform_data = &ov7725_info,
-+		.platform_data = &ov7725_info.link,
- 	},
- 	{
- 		I2C_BOARD_INFO("tw9910", 0x45),
--		.platform_data = &tw9910_info,
-+		.platform_data = &tw9910_info.link,
- 	},
- };
- 
-diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-index c0d9112..0bce255 100644
---- a/drivers/media/video/ov772x.c
-+++ b/drivers/media/video/ov772x.c
-@@ -1067,10 +1067,12 @@ static int ov772x_probe(struct i2c_client *client,
- 	struct i2c_adapter        *adapter = to_i2c_adapter(client->dev.parent);
- 	int                        ret;
- 
--	info = client->dev.platform_data;
--	if (!info)
-+	if (!client->dev.platform_data)
- 		return -EINVAL;
- 
-+	info = container_of(client->dev.platform_data,
-+			    struct ov772x_camera_info, link);
-+
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
- 		dev_err(&adapter->dev,
- 			"I2C-Adapter doesn't support "
-diff --git a/drivers/media/video/tw9910.c b/drivers/media/video/tw9910.c
-index a399476..aa5065e 100644
---- a/drivers/media/video/tw9910.c
-+++ b/drivers/media/video/tw9910.c
-@@ -875,10 +875,12 @@ static int tw9910_probe(struct i2c_client *client,
- 	const struct tw9910_scale_ctrl *scale;
- 	int                             i, ret;
- 
--	info = client->dev.platform_data;
--	if (!info)
-+	if (!client->dev.platform_data)
- 		return -EINVAL;
- 
-+	info = container_of(client->dev.platform_data,
-+			    struct tw9910_video_info, link);
-+
- 	if (!i2c_check_functionality(to_i2c_adapter(client->dev.parent),
- 				     I2C_FUNC_SMBUS_BYTE_DATA)) {
- 		dev_err(&client->dev,
--- 
-1.6.2.4
-
+Acked-by: Eric Miao <eric.miao@marvell.com>
