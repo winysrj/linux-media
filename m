@@ -1,18 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from auth-2.ukservers.net ([217.10.138.132])
+Received: from mail-ew0-f164.google.com ([209.85.219.164])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <linuxtv@nzbaxters.com>) id 1Ltby9-0004Af-C5
-	for linux-dvb@linuxtv.org; Tue, 14 Apr 2009 08:18:06 +0200
-Message-ID: <0d2601c9bcc8$b16f6b00$7501010a@ad.sytec.com>
-From: "Simon Baxter" <linuxtv@nzbaxters.com>
-To: "Glenn Sommer" <glemsom@gmail.com>,
-	"Ernst Persson" <ernstp@gmail.com>
-References: <d65b1b150812170433j717c673ak4489cdbbc10c29a3@mail.gmail.com><8e2e399f0812202343o2b88ab1ap4c92d0e99dd90af0@mail.gmail.com>
-	<d65b1b150812300632u7f66c092le77e66acf888c691@mail.gmail.com>
-Date: Tue, 14 Apr 2009 18:17:28 +1200
+	(envelope-from <ben.pezzei@gmail.com>) id 1LuGS8-0001vJ-PK
+	for linux-dvb@linuxtv.org; Thu, 16 Apr 2009 03:31:45 +0200
+Received: by ewy8 with SMTP id 8so165240ewy.17
+	for <linux-dvb@linuxtv.org>; Wed, 15 Apr 2009 18:31:11 -0700 (PDT)
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] TT c-1501 getting timed out waiting for end of xfer
+Date: Thu, 16 Apr 2009 03:31:11 +0200
+Message-ID: <b01190d0904151831g4f4dc73eq7b82add1baa92d06@mail.gmail.com>
+From: ben pezzei <ben.pezzei@gmail.com>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Progress on the twinhan vp1034 CI?
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -27,18 +25,18 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->I just tested with kernel 2.6.28 and latest snapshot of v4l-dvb.
-> And I still get those timeouts!
->
-> The card seems to run fine though.
-> Occasionally I have problems locking on to channels... Though - I
-> don't think that's related to the drivers (I think it's a CAM issue).
+Hello
 
-I'm getting those messages on my c-1501 too.  Have a c-1500 in the same 
-machine, without these errors.
+I am just wondering if there is any progress of the CI Module of the
+vp1034 dvb-s cards?
 
-Did you get to the bottom of it? 
+I checked out the most recent sources from http://jusst.de/hg/mantis-v4l/
+but unfortunately the relevant mantis_ca-Stuff is commented out.
 
+Is there any chance that there will be an update soon or is there perhaps some
+help needed?
+
+greetings
 
 _______________________________________________
 linux-dvb users mailing list
