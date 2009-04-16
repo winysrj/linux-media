@@ -1,19 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.kapsi.fi ([217.30.184.167] ident=Debian-exim)
+Received: from rv-out-0506.google.com ([209.85.198.228])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <crope@iki.fi>) id 1Lp950-0002hX-PT
-	for linux-dvb@linuxtv.org; Thu, 02 Apr 2009 00:38:45 +0200
-Message-ID: <49D3ECE4.4030008@iki.fi>
-Date: Thu, 02 Apr 2009 01:38:28 +0300
-From: Antti Palosaari <crope@iki.fi>
+	(envelope-from <tutuyu@usc.edu>) id 1LubUy-0004QV-Aa
+	for linux-dvb@linuxtv.org; Fri, 17 Apr 2009 02:00:05 +0200
+Received: by rv-out-0506.google.com with SMTP id k40so541480rvb.41
+	for <linux-dvb@linuxtv.org>; Thu, 16 Apr 2009 16:59:58 -0700 (PDT)
 MIME-Version: 1.0
-To: Stuart <mailing-lists@enginuities.com>
-References: <200903140506.00723.mailing-lists@enginuities.com>	<49D23920.5010903@iki.fi>
-	<49D24315.8020107@iki.fi>
-	<200904020043.48389.mailing-lists@enginuities.com>
-In-Reply-To: <200904020043.48389.mailing-lists@enginuities.com>
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Patch for DigitalNow TinyTwin remote.
+Date: Thu, 16 Apr 2009 16:59:57 -0700
+Message-ID: <cae4ceb0904161659q50808ff8p965b3b1b46f14ab1@mail.gmail.com>
+From: Tu-Tu Yu <tutuyu@usc.edu>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] About HVR1250 cant load the driver
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -28,99 +25,53 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hei Stuart,
-Mainly I need your signed-off-by tag, please reply with tag.
-http://kerneltrap.org/taxonomy/term/245
-Signed-off-by: forename surname <email@address>
+Dear Sirs:
+I have tried to install HVR 1200 in my machine...
+I follow the step on the website. But it seems like i didn't load the
+driver. Could somebody tell me which step i did wrong?
+Thank you so much!!!!
+Audrey
 
-See comments below,
-Stuart wrote:
->> But the reason I pressure you is that merge window for 2.6.30 is open
->> only few days. After that we cannot put new code / functionality until
->> 2.6.31 opens and it is very many months from that day.
->>
->> 1.) I suggest that you make very small patch adding basic support for
->> TinyTwin remote (mainly add device IDs to same places as TwinHan).
-> 
-> There are two patches in my last email which I believe achieve this. One simply 
-> removes the if statement so that the AzureWave IR tables are assigned for the 
-> TinyTwin. The other adds the TinyTwin to the HID ignore list so that there are 
-> no repeat key presses. I've included them at the end of this email as well.
-> 
->> 2.) Make other patch *later* that fix repeating issue. This one can be
->> added to the  2.6.30 later (there many release candidates in next
->> months) as bug fix.
-> 
-> I've been looking through usb sniffs when plugging the TinyTwin in and can't see 
-> much that's different. There's a slight difference in the first 4 bytes of each 
-> packet sent for the firmware, for example the first packet for each:
-> 
-> Linux:   00 51 00 00
-> Windows: 38 51 00 c0
 
-I think demodulator address field (0x38) is not valid - it is just don't 
-care in that case.
+   1. Change into the v4l-dvb directory:
 
-> The IR table download is also sent slightly differently, in Linux it's:
-> 
-> 21 .. 00 9a 56 00 00 01 00
-> 
-> from
-> 
-> struct req_t req = {WRITE_MEMORY, 0, 0, 0, 0, 1, NULL};
-> req.addr = 0x9a56
-> 
-> While Windows is:
-> 
-> 21 .. 38 9a 56 4e 80 01 00
-> 
-> which would be
-> 
-> struct req_t req = {WRITE_MEMORY, AF9015_I2C_DEMOD, 0, 4e, 80, 1, NULL};
-> req.addr = 0x9a56
+      cd v4l-dvb
 
-yes, but same here.
+   2. Build the modules:
 
-> I'm not sure what req.mbox = 0x4e or req.addr_len = 0x80 mean.
+      make
 
-hmm, not sure if mbox have meaning. I doubt no meaning, if I remember 
-correctly it is also used only by demodulator. Same probably for 
-addr_len. But I check those later.
+   3. Install the modules:
 
-> There are also a few addresses either different or missing (0xd508, 0xd73a, 
-> 0xaeff, ...) in various . I'm not sure if any of them could have anything to do 
-> with how the IR behaves...
+      make install
 
-I doubt no.
+   4. Download the files from http://steventoth.net/linux/hvr1200/ and
+follow the instructions in the readme.txt
+   (on this step i do sh extract.sh on one machine and then copy those
+3 files to both /lib/firmware and /lib/firmware/2.6.26, because the
+machine i am using now doesn't support unzip)
 
-> I'll try and check these to see if they make any difference when I get a chance.
+   5. add this line to /etc/modules.d/dvb:
+   (on this step because there is no modules.d/dvb file in my machine
+so i create it by mkdir)
 
-Thank. You have done rather much work for this :)
+after i reboot, and scan, it shows:
 
-> 
-> Regards,
-> 
-> Stuart
-> 
-> af9015-b0ba0a6dfca1_tinytwin_remote.patch:
-
-This patch is fine, I will apply it when got your signed-off-by.
-
-> kernel-2.6.29_tinytwin_remote_patch.diff:
-> --- orig/drivers/hid/hid-core.c	2009-03-24 10:12:14.000000000 +1100
-> +++ new/drivers/hid/hid-core.c	2009-03-31 15:08:13.000000000 +1100
-
-> --- orig/drivers/hid/hid-ids.h	2009-03-24 10:12:14.000000000 +1100
-> +++ new/drivers/hid/hid-ids.h	2009-03-31 15:09:05.000000000 +1100
-
-I don't like to touch other than dvb-modules :o I will not apply this to 
-my tree / pull-request until whole repeating issue is clear. Why it 
-comes and why it does not occur every machine.
-
-regards
-Antti
--- 
-http://palosaari.fi/
+     scanning /usr/share/dvb/dvb-t/uk-Oxford
+     using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+     initial transponder 578000000 0 3 9 1 0 0 0
+     initial transponder 850000000 0 2 9 3 0 0 0
+     initial transponder 713833000 0 2 9 3 0 0 0
+     initial transponder 721833000 0 3 9 1 0 0 0
+     initial transponder 690000000 0 3 9 1 0 0 0
+     initial transponder 538000000 0 3 9 1 0 0 0
+      >>> tune to:
+578000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+     WARNING: >>> tuning failed!!!
+     >>> tune to:
+578000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+(tuning failed)
+     WARNING: >>> tuning failed!!!
 
 _______________________________________________
 linux-dvb users mailing list
