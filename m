@@ -1,106 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1166 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757686AbZDCSSW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2009 14:18:22 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id n33IIIwg005849
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 3 Apr 2009 20:18:18 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 3 Apr 2009 20:18:18 +0200 (CEST)
-Message-Id: <200904031818.n33IIIwg005849@smtp-vbr9.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: OK, 2.6.16-2.6.21: WARNINGS
+Received: from rv-out-0506.google.com ([209.85.198.230]:55464 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752188AbZDPAMY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Apr 2009 20:12:24 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so142955rvb.1
+        for <linux-media@vger.kernel.org>; Wed, 15 Apr 2009 17:12:23 -0700 (PDT)
+MIME-Version: 1.0
+Date: Thu, 16 Apr 2009 09:12:23 +0900
+Message-ID: <5e9665e10904151712o5fa3076dr85ad12fc7f04914d@mail.gmail.com>
+Subject: [RFC] Making Samsung S3C64XX camera interface driver in SoC camera
+	subsystem
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: kernel@pengutronix.de,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>,
+	"jongse.won@samsung.com" <jongse.won@samsung.com>,
+	dongsoo45.kim@samsung.com, Hans Verkuil <hverkuil@xs4all.nl>,
+	"Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hello,
 
-Results of the daily build of v4l-dvb:
+I'm planing to make a new camera interface driver for S3C64XX from Samsung.
+Even if it already has a driver, it seems to be re-designed for some
+reasons. If you are interested in, take a look at following repository
+(http://git.kernel.org/?p=linux/kernel/git/eyryu_ap/samsung-ap-2.6.24.git;a=summary)
+drivers/media/video/s3c_* files
 
-date:        Fri Apr  3 19:00:04 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11346:4cd17f5a20cc
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Before beginning to implement a new driver for that, I need to clarify
+some of features about how to implement in driver.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-m32r: OK
-linux-2.6.22.19-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29-x86_64: OK
-fw/apps: OK
-sparse (linux-2.6.29): OK
-linux-2.6.16.61-i686: WARNINGS
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+Please take a look at the diagram on page 610 of following user manual
+of s3c6400.
+http://www.ebv.com/fileadmin/products/Products/Samsung/S3C6400/S3C6400X_UserManual_rev1-0_2008-02_661558um.pdf
 
-Detailed results are available here:
+It seems to have a couple of path for camera data named codec and
+preview, and they could be used at the same time.
+It means that it has no problem making those two paths into
+independent device nodes like /dev/video0 and /dev/video1
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+But there is a limit of size using both of paths at the same time. I
+mean, If you are using preview path and camera sensor is running with
+1280*720 resolution (which seems to be the max resolution could be
+handled by preview path), codec path can't use resolution bigger than
+1280*720 at the same time because camera sensor can't produce
+different resolution at a time.
 
-Full logs are available here:
+And also we should face a big problem when we are making dual camera
+system with s3c64xx. Dual camera with single camera interface has some
+restriction using clock and data path, because they have to be shared
+between both of cameras.
+I suppose to handle them with VIDIOC_S_INPUT and G_INPUT. And with
+those, we can handle dual camera with single camera interface in a
+decent way.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+But the thing is that there should be a problem using dual camera with
+preview and codec path of s3c64xx. Even if we have each preview, and
+codec device node and can't open them concurrently when user is
+attempting to open each camera sensor like "camera A with preview node
+and camera B with codec node". Because both of those camera sensors
+are sharing same data path and clock source, and s3c64xx camera
+interface only can handle one camera at a time.
 
-The V4L2 specification failed to build, but the last compiled spec is here:
+So, what I am concerned is how to make it a elegant driver which has
+two device nodes handling multiple sensors as input devices.
+Sounds complicated but I'm asking you to help me with any opinion
+about designing this driver. Any opinion about these issues will be
+greatly helpful to me.
+Cheers,
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+Nate
