@@ -1,21 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from simmts12.bellnexxia.net ([206.47.199.141]:44430 "EHLO
-	simmts12-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753205AbZD2XuC convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Apr 2009 19:50:02 -0400
-From: <sgstool@bellnet.ca>
-Reply-To: agenttofficer@gmail.com
-To: <info@winner.org>
-Subject: **JACKPOT**JOY WINNER**
-Date: Wed, 29 Apr 2009 19:50:00 -0400
+Received: from yw-out-2324.google.com ([74.125.46.28]:62880 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752285AbZDPGQV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Apr 2009 02:16:21 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so225951ywb.1
+        for <linux-media@vger.kernel.org>; Wed, 15 Apr 2009 23:16:20 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+In-Reply-To: <49E5D4DE.6090108@hhs.nl>
+References: <49E5D4DE.6090108@hhs.nl>
+Date: Thu, 16 Apr 2009 16:16:20 +1000
+Message-ID: <78877a450904152316s7fb3282m9ac9374a52877ecb@mail.gmail.com>
+Subject: Re: libv4l release: 0.5.97: the whitebalance release!
+From: Gilles Gigan <gilles.gigan@gmail.com>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
-Message-Id: <20090429235000.NKJL1599.simmts12-srv.bellnexxia.net@simip9-ac.srvr.bell.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-You were selected for the sum of  £750,000 GBP. Verify this mail 
-immediately by sending in your information. This will include your name, address, age, phone number etc to  agenttofficer@gmail.com
+Hans,
+I have tested libv4lconvert with a PCI hauppauge hvr1300 DVB-T and
+found that v4lconvert_create() returns NULL. The problem comes from
+the shm_open calls in v4lcontrol_create() in libv4lcontrol.c (lines
+187 & 190). libv4lconvert constructs the shared memory name based on
+the video device's name. And in this case the video device's name
+(literally "Hauppauge WinTV-HVR1300 DVB-T/H") contains a slash, which
+makes both calls to shm_open() fail. I can put together a quick patch
+to replace '/' with '-' or white spaces if you want.
+Gilles
 
+
+On Wed, Apr 15, 2009 at 10:36 PM, Hans de Goede <j.w.r.degoede@hhs.nl> wrote:
+> Hi All,
+>
+> As the version number shows this is a beta release of the 0.6.x series,
+> the big change here is the addition of video processing to libv4l
+> currently this only does whitebalance and normalizing (which turns out
+> to be useless for most cams) but the basic framework for doing video
+> processing, and being able to control it through fake v4l2 controls using
+> for example v4l2ucp is there.
+>
+> Currently only whitebalancing is enabled and only on Pixarts (pac) webcams
+> (which benefit tremendously from this). To test this with other webcams
+> (after instaling this release) do:
+>
+> export LIBV4LCONTROL_CONTROLS=15
+> LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so v4l2ucp&
+>
+> Notice the whitebalance and normalize checkboxes in v4l2ucp,
+> as well as low and high limits for normalize.
+>
+> Now start your favorite webcam viewing app and play around with the
+> 2 checkboxes. Note normalize seems to be useless in most cases. If
+> whitebalancing makes a *strongly noticable* difference for your webcam
+> please mail me info about your cam (the usb id), then I can add it to
+> the list of cams which will have the whitebalancing algorithm (and the v4l2
+> control to enable/disable it) enabled by default.
+>
+> Unfortunately doing videoprocessing can be quite expensive, as for example
+> whitebalancing is quite hard todo in yuv space, so doing white balancing
+> with the pac7302, with an apps which wants yuv changes the flow from
+> pixart-jpeg -> yuv420 -> rotate90
+> to:
+> pixart-jpeg -> rgb24 -> whitebalance -> yuv420 -> rotate90
+>
+> This is not a problem for cams which deliver (compressed) raw bayer,
+> as bayer is rgb too, so I've implemented a version of the whitebalancing
+> algorithm which operates directly on bayer data, so for bayer cams
+> (like the pac207) it goes from:
+> bayer- > yuv
+> to:
+> bayer -> whitebalance -> yuv
+>
+> For the near future I plan to change the code so that the analyse phase
+> (which does not get done every frame) creates per component look up tables,
+> this will make it easier to stack multiple "effects" in one pass without
+> special casing it as the current special normalize+whitebalance in one
+> pass code. Then we can add for example gamma correction with a negligible
+> performance impact (when already doing white balancing that is).
+>
+>
+> libv4l-0.5.97
+> -------------
+> * As the version number shows this is a beta release of the 0.6.x series,
+>  the big change here is the addition of video processing to libv4l
+>  currently this only does whitebalance and normalizing (which turns out
+>  to be useless for most cams) but the basic framework for doing video
+>  processing, and being able to control it through fake v4l2 controls using
+>  for example v4l2ucp is there.
+>  The initial version of this code was written by 3 of my computer science
+>  students: Elmar Kleijn, Sjoerd Piepenbrink and Radjnies Bhansingh
+> * Currently whitebalancing gets enabled based on USB-ID's and it only gets
+>  enabled for Pixart webcam's. You can force it being enabled with other
+>  webcams by setting the environment variable LIBV4LCONTROL_CONTROLS, this
+>  sets a bitmask enabling certain v4l2 controls which control the video
+>  processing set it to 15 to enable both whitebalancing and normalize. You
+>  can then change the settings using a v4l2 control panel like v4l2ucp
+> * Only report / allow supported destination formats in enum_fmt / try_fmt /
+>  g_fmt / s_fmt when processing, rotating or flipping.
+> * Some applications / libs (*cough* gstreamer *cough*) will not work
+>  correctly with planar YUV formats when the width is not a multiple of 8,
+>  so crop widths which are not a multiple of 8 to the nearest multiple of 8
+>  when converting to planar YUV
+> * Add dependency generation to libv4l by: Gilles Gigan
+> <gilles.gigan@gmail.com>
+> * Add support to use orientation from VIDIOC_ENUMINPUT by:
+>  Adam Baker <linux@baker-net.org.uk>
+> * sn9c20x cams have occasional bad jpeg frames, drop these to avoid the
+>  flickering effect they cause, by: Brian Johnson <brijohn@gmail.com>
+> * adjust libv4l's upside down cam detection to also work with devices
+>  which have the usb interface as parent instead of the usb device
+> * fix libv4l upside down detection for the new v4l minor numbering scheme
+> * fix reading outside of the source memory when doing yuv420->rgb conversion
+>
+>
+> Get it here:
+> http://people.atrpms.net/~hdegoede/libv4l-0.5.97.tar.gz
+>
+> Regards,
+>
+> Hans
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
