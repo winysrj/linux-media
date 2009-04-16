@@ -1,131 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1287 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752595AbZDTTcx (ORCPT
+Received: from smtp0.lie-comtel.li ([217.173.238.80]:65458 "EHLO
+	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751906AbZDPQKj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 15:32:53 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	Magnus Damm <magnus.damm@gmail.com>
-Subject: Re: [RFC] Stand-alone Resizer/Previewer Driver support under V4L2 framework
-Date: Mon, 20 Apr 2009 21:32:40 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"R, Sivaraj" <sivaraj@ti.com>, "Hadli, Manjunath" <mrh@ti.com>,
-	"Shah, Hardik" <hardik.shah@ti.com>,
-	"Kumar, Purushotam" <purushotam@ti.com>
-References: <19F8576C6E063C45BE387C64729E73940427E3F70B@dbde02.ent.ti.com> <200904181753.47515.hverkuil@xs4all.nl> <19F8576C6E063C45BE387C64729E739404280C5B5E@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E739404280C5B5E@dbde02.ent.ti.com>
+	Thu, 16 Apr 2009 12:10:39 -0400
+Message-ID: <49E7587C.6010803@kaiser-linux.li>
+Date: Thu, 16 Apr 2009 18:10:36 +0200
+From: Thomas Kaiser <v4l@kaiser-linux.li>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+CC: Kyle Guinn <elyk03@gmail.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Some questions about mr97310 controls (continuing previous thread
+ on mr97310a.c)
+References: <20090217200928.1ae74819@free.fr> <200902171907.40054.elyk03@gmail.com> <alpine.LNX.2.00.0903031746030.21483@banach.math.auburn.edu> <200903032050.13915.elyk03@gmail.com> <alpine.LNX.2.00.0903032247530.21793@banach.math.auburn.edu> <49AE3EA1.3090504@kaiser-linux.li> <49AE41DE.1000300@kaiser-linux.li> <alpine.LNX.2.00.0903041248020.22500@banach.math.auburn.edu> <49AFCD5B.4050100@kaiser-linux.li> <alpine.LNX.2.00.0904151850240.9310@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0904151850240.9310@banach.math.auburn.edu>
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200904202132.40347.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 20 April 2009 12:31:53 Hiremath, Vaibhav wrote:
-> Thanks,
-> Vaibhav Hiremath
->
-> > -----Original Message-----
-> > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> > Sent: Saturday, April 18, 2009 9:24 PM
-> > To: Hiremath, Vaibhav
-> > Cc: linux-media@vger.kernel.org; Aguirre Rodriguez, Sergio Alberto;
-> > DongSoo(Nathaniel) Kim; Toivonen Tuukka.O (Nokia-D/Oulu); linux-
-> > omap@vger.kernel.org; Nagalla, Hari; Sakari Ailus; Jadav, Brijesh R;
-> > R, Sivaraj; Hadli, Manjunath; Shah, Hardik; Kumar, Purushotam
-> > Subject: Re: [RFC] Stand-alone Resizer/Previewer Driver support
-> > under V4L2 framework
-> >
-> > On Tuesday 31 March 2009 10:53:02 Hiremath, Vaibhav wrote:
-> > > Thanks,
-> > > Vaibhav Hiremath
-> > >
-> > > > > APPROACH 3 -
-> > > > > ----------
-> > > > >
-> > > > > .....
-> > >
-> > > It makes sense, since such memory-to-memory devices will mostly
-> >
-> > being
-> >
-> > > used from codecs context. And this would be more clear from user
-> > > application.
-> >
-> > To be honest, I don't see the need for this. I think
-> > TYPE_VIDEO_CAPTURE and
-> > TYPE_VIDEO_OUTPUT are perfectly fine.
->
-> [Hiremath, Vaibhav] Agreed, and you will also find implementation of
-> driver aligned to this which I have shared with you.
->
-> > > And as acknowledged by you, we can use VIDIOC_S_FMT for setting
-> > > parameters.
-> > >
-> > > One thing I am not able to convince myself is that, using "priv"
-> >
-> > field
-> >
-> > > for custom configuration.
-> >
-> > I agree. Especially since you cannot use it as a pointer to addition
-> > information.
-> >
-> > > I would prefer and recommend capability based
-> > > interface, where application will query the capability of the
-> >
-> > device for
-> >
-> > > luma enhancement, filter coefficients (number of coeff and depth),
-> > > interpolation type, etc...
-> > >
-> > > This way we can make sure that, any such future devices can be
-> >
-> > adapted by
-> >
-> > > this framework.
-> >
-> > The big question is how many of these capabilities are 'generic' and
-> > how
-> > many are very much hardware specific. I am leaning towards using the
-> > extended control API for this. It's a bit awkward to implement in
-> > drivers
-> > at the moment, but that should improve in the future when a lot of
-> > the
-> > control handling code will move into the new core framework.
-> >
-> > I really need to know more about the sort of features that
-> > omap/davinci
-> > offer (and preferably also for similar devices by other
-> > manufacturers).
->
-> [Hiremath, Vaibhav] Hans, Can we have IRC session for this? We will
-> discuss this in detail and try to get closure on it.
->
-> Again I would request you to join me and mauro on IRC chat, I will be
-> staying online tomorrow.
+Hello Theodore
 
-No problem (assuming we don't have another major network outage as we had 
-today at work). It would be helpful if you could mail a summary of the 
-capabilities that are needed but are not yet in the API. Also note that I 
-have to leave at 16:15 (UTC+2).
+My answers/comments inline .....
 
-Magnus, does the SuperH also have resizing/previewer capabilities? And if 
-so, is there a datasheet available with detailed information?
+On 04/16/2009 01:59 AM, Theodore Kilgore wrote:
+> 
+> 
+> Thomas,
+> 
+> A few questions in the text below.
+> 
+> 
+> On Thu, 5 Mar 2009, Thomas Kaiser wrote:
+> 
+>> Hello Theodore
+>>
+>> kilgota@banach.math.auburn.edu wrote:
+>>>
+>>>
+>>> On Wed, 4 Mar 2009, Thomas Kaiser wrote:
+>>> As to the actual contents of the header, as you describe things,
+>>>
+>>> 0. Do you have any idea how to account for the discrepancy between
+>>>
+>>>>>  From usb snoop.
+>>>>> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx 00 00
+>>> and
+>>>>> In Linux the header looks like this:
+>>>>>
+>>>>> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx F0 00
+>>>
+>>> (I am referring to the 00 00 as opposed to F0 00)? Or could this have 
+>>> happened somehow just because these were not two identical sessions?
+> 
+> In case I did not answer this one, I suspect it was probably different 
+> sessions. I can think of no other explanation which makes sense to me.
+> 
+>>
+>> Doesn't remember what the differences was. The first is from Windoz 
+>> (usbsnoop) and the second is from Linux.
+>>
+>>>
+>>>>> 1. xx: don't know but value is changing between 0x00 to 0x07
+>>>
+>>> as I said, this signifies the image format, qua compression algorithm 
+>>> in use, or if 00 then no compression.
+>>
+>> On the PAC207, the compression can be controlled with a register 
+>> called "Compression Balance size". So, I guess, depending on the value 
+>> set in the register this value in the header will show what 
+>> compression level is set.
+> 
+> One of my questions:
+> 
+> Just how does it work to set the "Compression Balance size"? Is this 
+> some kind of special command sequence? Are we able to set this to 
+> whatever we want?
 
-Regards,
+It looks like. One can set a value from 0x0 to 0xff in the "Compression 
+Balance size" register (reg 0x4a).
+In the pac207 Linux driver, this register is set to 0xff to turn off the 
+compression. While we use compression 0x88 is set (I think the same 
+value like in Windoz). Hans did play with this register and found out 
+that the compression changes with different values.
 
-	Hans
+Hans, may you explain a bit more what you found out?
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> 
+> 
+>>
+>>>
+>>>>> 2. xx: this is the actual pixel clock
+>>>
+>>> So there is a control setting for this?
+>>
+>> Yes, in the PAC207, register 2. (12 MHz divided by the value set).
+>>
+>>>
+>>>>> 3. xx: this is changing according light conditions from 0x03 (dark) to
+>>>>> 0xfc (bright) (center)
+>>>>> 4. xx: this is changing according light conditions from 0x03 (dark) to
+>>>>> 0xfc (bright) (edge)
+>>>>> 5. xx: set value "Digital Gain of Red"
+>>>>> 6. xx: set value "Digital Gain of Green"
+>>>>> 7. xx: set value "Digital Gain of Blue"
+> 
+> 
+> Varying some old questions: Precisely what is meant by the value of 
+> "Digital Gain for XX" where XX is one of Red, Green, or Blue? On what 
+> scale is this measured? Is is some kind of standardized scale? Or is it 
+> something which is camera-specific? Also what is does "set" mean in this 
+> context? This last in view of the fact that this is data which the 
+> camera provides for our presumed information, not something which we are 
+> sending to the camera?
+
+When I recall correctly, I just saw that this fields in the header have 
+the same value which I set in the "digital gain of Red/Green/Blue" 
+registers. Therefor, I called it "set" value. But I don't remember if a 
+change of these registers had any impact on the picture.
+
+The range for these registers is from 0x0 to 0xff but as I don't know 
+what they do, I don't know any more :-(
+
+Thomas
