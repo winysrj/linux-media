@@ -1,145 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110812.mail.gq1.yahoo.com ([67.195.13.235]:45096 "HELO
-	web110812.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750841AbZDEMHU (ORCPT
+Received: from banach.math.auburn.edu ([131.204.45.3]:32813 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753290AbZDPWho (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Apr 2009 08:07:20 -0400
-Message-ID: <20771.44005.qm@web110812.mail.gq1.yahoo.com>
-Date: Sun, 5 Apr 2009 05:07:17 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [0904_19] Siano: sms-cards - update cards (targets) component header
-To: LinuxML <linux-media@vger.kernel.org>
+	Thu, 16 Apr 2009 18:37:44 -0400
+Date: Thu, 16 Apr 2009 17:50:48 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Thomas Kaiser <v4l@kaiser-linux.li>
+cc: Kyle Guinn <elyk03@gmail.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Some questions about mr97310 controls (continuing previous thread
+ on mr97310a.c)
+In-Reply-To: <49E7587C.6010803@kaiser-linux.li>
+Message-ID: <alpine.LNX.2.00.0904161738120.10418@banach.math.auburn.edu>
+References: <20090217200928.1ae74819@free.fr> <200902171907.40054.elyk03@gmail.com> <alpine.LNX.2.00.0903031746030.21483@banach.math.auburn.edu> <200903032050.13915.elyk03@gmail.com> <alpine.LNX.2.00.0903032247530.21793@banach.math.auburn.edu>
+ <49AE3EA1.3090504@kaiser-linux.li> <49AE41DE.1000300@kaiser-linux.li> <alpine.LNX.2.00.0903041248020.22500@banach.math.auburn.edu> <49AFCD5B.4050100@kaiser-linux.li> <alpine.LNX.2.00.0904151850240.9310@banach.math.auburn.edu>
+ <49E7587C.6010803@kaiser-linux.li>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1238760946 -10800
-# Node ID 8377a5e61286b90e293e287cefc9638d2ddd938e
-# Parent  ab731e3cec5cb076b8f87f827c3c97a4dd84e0ca
-[PATCH] [0904_19] Siano: sms-cards - update cards (targets) component header
 
-From: Uri Shkolnik <uris@siano-ms.com>
+On Thu, 16 Apr 2009, Thomas Kaiser wrote:
 
-sms-cards component holds all target-specific information.
-The component' header has been added with:
-1) Include the infra-red header
-2) More target types (definitions)
-3) Structure for various GPIO usage
-4) Extend "sms_board" struct to include
-    a) GPIO structure
-    b) IR structure
-5) Some 'extern' declartion (for future commits usage)
-6) "Board Events" structure
-7) "board event" function prototype.
+> Hello Theodore
+>
+> My answers/comments inline .....
 
-All modifications are in the declaration level only.
-
-Priority: normal
-
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-
-diff -r ab731e3cec5c -r 8377a5e61286 linux/drivers/media/dvb/siano/sms-cards.h
---- a/linux/drivers/media/dvb/siano/sms-cards.h	Fri Apr 03 15:00:32 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/sms-cards.h	Fri Apr 03 15:15:46 2009 +0300
-@@ -22,6 +22,7 @@
- 
- #include <linux/usb.h>
- #include "smscoreapi.h"
-+#include "smsir.h"
- 
- #define SMS_BOARD_UNKNOWN 0
- #define SMS1XXX_BOARD_SIANO_STELLAR 1
-@@ -34,6 +35,41 @@
- #define SMS1XXX_BOARD_HAUPPAUGE_WINDHAM 8
- #define SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD 9
- #define SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2 10
-+#define SMS1XXX_BOARD_SIANO_NICE	11
-+#define SMS1XXX_BOARD_SIANO_VENICE	12
-+
-+struct sms_board_gpio_cfg {
-+	int lna_vhf_exist;
-+	int lna_vhf_ctrl;
-+	int lna_uhf_exist;
-+	int lna_uhf_ctrl;
-+	int lna_uhf_d_ctrl;
-+	int lna_sband_exist;
-+	int lna_sband_ctrl;
-+	int lna_sband_d_ctrl;
-+	int foreign_lna0_ctrl;
-+	int foreign_lna1_ctrl;
-+	int foreign_lna2_ctrl;
-+	int rf_switch_vhf;
-+	int rf_switch_uhf;
-+	int rf_switch_sband;
-+	int leds_power;
-+	int led0;
-+	int led1;
-+	int led2;
-+	int led3;
-+	int led4;
-+	int ir;
-+	int eeprom_wp;
-+	int mrc_sense;
-+	int mrc_pdn_resetn;
-+	int mrc_gp0; /* mrcs spi int */
-+	int mrc_gp1;
-+	int mrc_gp2;
-+	int mrc_gp3;
-+	int mrc_gp4;
-+	int host_spi_gsp_ts_int;
-+};
- 
- struct sms_board {
- 	enum sms_device_type_st type;
-@@ -41,9 +77,14 @@ struct sms_board {
- 
- 	/* gpios */
- 	int led_power, led_hi, led_lo, lna_ctrl, rf_switch;
-+	struct sms_board_gpio_cfg board_cfg;
-+	enum ir_kb_type ir_kb_type;
- };
- 
- struct sms_board *sms_get_board(int id);
-+
-+extern struct usb_device_id smsusb_id_table[];
-+extern struct smscore_device_t *coredev;
- 
- int sms_board_setup(struct smscore_device_t *coredev);
- 
-@@ -56,4 +97,28 @@ int sms_board_lna_control(struct smscore
- 
- extern int sms_board_load_modules(int id);
- 
-+enum SMS_BOARD_EVENTS {
-+	BOARD_EVENT_POWER_INIT,
-+	BOARD_EVENT_POWER_SUSPEND,
-+	BOARD_EVENT_POWER_RESUME,
-+	BOARD_EVENT_BIND,
-+	BOARD_EVENT_SCAN_PROG,
-+	BOARD_EVENT_SCAN_COMP,
-+	BOARD_EVENT_EMERGENCY_WARNING_SIGNAL,
-+	BOARD_EVENT_FE_LOCK,
-+	BOARD_EVENT_FE_UNLOCK,
-+	BOARD_EVENT_DEMOD_LOCK,
-+	BOARD_EVENT_DEMOD_UNLOCK,
-+	BOARD_EVENT_RECEPTION_MAX_4,
-+	BOARD_EVENT_RECEPTION_3,
-+	BOARD_EVENT_RECEPTION_2,
-+	BOARD_EVENT_RECEPTION_1,
-+	BOARD_EVENT_RECEPTION_LOST_0,
-+	BOARD_EVENT_MULTIPLEX_OK,
-+	BOARD_EVENT_MULTIPLEX_ERRORS
-+};
-+
-+int sms_board_event(struct smscore_device_t *coredev,
-+		enum SMS_BOARD_EVENTS gevent);
-+
- #endif /* __SMS_CARDS_H__ */
+Mine, too. I will also cut out some currently non-interesting parts, in 
+the interest of saving space.
 
 
+>
+> On 04/16/2009 01:59 AM, Theodore Kilgore wrote:
+>> 
+>> 
+>> Thomas,
+>> 
+>> A few questions in the text below.
+>> 
+>> 
+>> On Thu, 5 Mar 2009, Thomas Kaiser wrote:
+>> 
+>>> Hello Theodore
+>>> 
+>>> kilgota@banach.math.auburn.edu wrote:
 
-      
+>>>>>>  From usb snoop.
+>>>>>> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx 00 00
+>>>> and
+>>>>>> In Linux the header looks like this:
+>>>>>> 
+>>>>>> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx F0 00
+
+>>>> 
+>>>>>> 1. xx: don't know but value is changing between 0x00 to 0x07
+>>>> 
+>>>> as I said, this signifies the image format, qua compression algorithm in 
+>>>> use, or if 00 then no compression.
+>>> 
+>>> On the PAC207, the compression can be controlled with a register called 
+>>> "Compression Balance size". So, I guess, depending on the value set in the 
+>>> register this value in the header will show what compression level is set.
+>> 
+>> One of my questions:
+>> 
+>> Just how does it work to set the "Compression Balance size"? Is this some 
+>> kind of special command sequence? Are we able to set this to whatever we 
+>> want?
+>
+> It looks like. One can set a value from 0x0 to 0xff in the "Compression 
+> Balance size" register (reg 0x4a).
+> In the pac207 Linux driver, this register is set to 0xff to turn off the 
+> compression. While we use compression 0x88 is set (I think the same value 
+> like in Windoz). Hans did play with this register and found out that the 
+> compression changes with different values.
+
+I wonder how this relates to the mr97310a. There is no such register 
+present, that I can see.
+
+>
+> Hans, may you explain a bit more what you found out?
+
+(Yes, please.)
+
+>>>>>> 2. xx: this is the actual pixel clock
+>>>> 
+>>>> So there is a control setting for this?
+>>> 
+>>> Yes, in the PAC207, register 2. (12 MHz divided by the value set).
+
+Again, I wonder how this might translate for the mr97310a ...
+
+The following is pretty much the same, it seems.
+
+>>>>>> 3. xx: this is changing according light conditions from 0x03 (dark) to
+>>>>>> 0xfc (bright) (center)
+>>>>>> 4. xx: this is changing according light conditions from 0x03 (dark) to
+>>>>>> 0xfc (bright) (edge)
+>>>>>> 5. xx: set value "Digital Gain of Red"
+>>>>>> 6. xx: set value "Digital Gain of Green"
+>>>>>> 7. xx: set value "Digital Gain of Blue"
+>> 
+>> 
+>> Varying some old questions: Precisely what is meant by the value of 
+>> "Digital Gain for XX" where XX is one of Red, Green, or Blue? On what scale 
+>> is this measured? Is is some kind of standardized scale? Or is it something 
+>> which is camera-specific? Also what is does "set" mean in this context? 
+>> This last in view of the fact that this is data which the camera provides 
+>> for our presumed information, not something which we are sending to the 
+>> camera?
+>
+> When I recall correctly, I just saw that this fields in the header have the 
+> same value which I set in the "digital gain of Red/Green/Blue" registers. 
+> Therefor, I called it "set" value. But I don't remember if a change of these 
+> registers had any impact on the picture.
+
+Hmmm. My experience is that these settings depend purely on the frame, and 
+whether the camera is pointed at something bright or something dark, that 
+kind of thing. Thus my idea was to try to use the information, somehow, in 
+a constructive way. It never occurred to me, actually, that it is possible 
+to "set" these things by issuing commands to a camera. But what do I know?
+
+>
+> The range for these registers is from 0x0 to 0xff but as I don't know what 
+> they do, I don't know any more :-(
+
+Yes, that I can understand.
+
+Theodore Kilgore
