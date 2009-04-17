@@ -1,59 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.sissa.it ([147.122.11.135]:44218 "EHLO smtp.sissa.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751644AbZDVNrF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Apr 2009 09:47:05 -0400
-Received: from ozzy.localnet (dhpc-2-02.sissa.it [147.122.2.182])
-	by smtp.sissa.it (Postfix) with ESMTP id 243BA1B48093
-	for <linux-media@vger.kernel.org>; Wed, 22 Apr 2009 15:27:50 +0200 (CEST)
-From: Nicola Soranzo <nsoranzo@tiscali.it>
-To: Linux Media <linux-media@vger.kernel.org>
-Subject: [PATCH] Make firmware before install
-Date: Wed, 22 Apr 2009 15:28:11 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Received: from zone0.gcu-squad.org ([212.85.147.21]:35021 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759834AbZDQQ51 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Apr 2009 12:57:27 -0400
+Date: Fri, 17 Apr 2009 18:57:18 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Oldrich Jedlicka <oldium.pro@seznam.cz>
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 6/6] saa7134: Simplify handling of IR on AVerMedia
+ Cardbus
+Message-ID: <20090417185718.010524ca@hyperion.delvare>
+In-Reply-To: <200904171816.06125.oldium.pro@seznam.cz>
+References: <200904092312.51891.oldium.pro@seznam.cz>
+	<20090417154520.6a35bb30@hyperion.delvare>
+	<200904171816.06125.oldium.pro@seznam.cz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200904221528.13225.nsoranzo@tiscali.it>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Presently with the usual:
+On Fri, 17 Apr 2009 18:16:06 +0200, Oldrich Jedlicka wrote:
+> Hi Jean,
+> 
+> On Friday 17 of April 2009 at 15:45:20, Jean Delvare wrote:
+> > Hi Oldrich,
+> >
+> > On Thu, 9 Apr 2009 23:12:51 +0200, Oldrich Jedlicka wrote:
+> > > On Saturday 04 of April 2009 at 14:31:37, Jean Delvare wrote:
+> [sniff]
+> > > > @@ -753,6 +737,10 @@ void saa7134_probe_i2c_ir(struct saa7134
+> > > >  		init_data.get_key = get_key_beholdm6xx;
+> > > >  		init_data.ir_codes = ir_codes_behold;
+> > > >  		break;
+> > > > +	case SAA7134_BOARD_AVERMEDIA_CARDBUS:
+> > > > +	case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
+> > > > +		info.addr = 0x40;
+> > > > +		break;
+> > > >  	}
+> > >
+> > > The Avermedia Cardbus (E500 - SAA7134_BOARD_AVERMEDIA_CARDBUS) doesn't
+> > > have remote control as far as I know. The first model was Cardbus Plus
+> > > (E501R) which is not supported (yet), but Grigory Milev reported that it
+> > > works with small patching. I plan to send patches after some more
+> > > testing.
+> >
+> > OK, I've removed case SAA7134_BOARD_AVERMEDIA_CARDBUS from my patch,
+> > thanks for letting me know.
+> 
+> You can add SAA7134_BOARD_AVERMEDIA_501 there - if my patch for it get 
+> accepted :-)
 
-make && sudo make install
+Obviously I can't add it before your own patch is in ;)
 
-firmware is not built during make, but in the second step with root privileges,
-which should be avoided.
-This patch adds firmware dependency to the default make target.
-Moreover, one more file (ihex2fw) should be deleted by firmware clean.
-
-Priority: normal
-
-Signed-off-by: Nicola Soranzo <nsoranzo@tiscali.it>
-
----
-diff -r 2a6d95947fa1 -r bf39a52e7f49 v4l/Makefile
---- a/v4l/Makefile	Sun Apr 19 20:21:03 2009 +0000
-+++ b/v4l/Makefile	Wed Apr 22 15:18:13 2009 +0200
-@@ -39,7 +39,7 @@
- #################################################
- # default compilation rule
- 
--default:: config-compat.h Makefile.media links oss
-+default:: config-compat.h Makefile.media links oss firmware
- 	@echo Kernel build directory is $(OUTDIR)
- 	$(MAKE) -C $(OUTDIR) SUBDIRS=$(PWD) $(MYCFLAGS) modules
- 	./scripts/rmmod.pl check
-diff -r 2a6d95947fa1 -r bf39a52e7f49 v4l/firmware/Makefile
---- a/v4l/firmware/Makefile	Sun Apr 19 20:21:03 2009 +0000
-+++ b/v4l/firmware/Makefile	Wed Apr 22 15:18:13 2009 +0200
-@@ -7,6 +7,7 @@
- default: $(TARGETS)
- 
- clean:
-+	-rm -f ihex2fw
- 	-rm -f $(TARGETS)
- 
- distclean: clean
-
+-- 
+Jean Delvare
