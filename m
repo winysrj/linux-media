@@ -1,113 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:50696 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753852AbZDUI5M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2009 04:57:12 -0400
-Date: Tue, 21 Apr 2009 10:57:16 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] v4l2-subdev: add a v4l2_i2c_new_dev_subdev() function
-Message-ID: <Pine.LNX.4.64.0904211051280.6551@axis700.grange>
+Received: from wf-out-1314.google.com ([209.85.200.175]:41013 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754444AbZDQGqs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Apr 2009 02:46:48 -0400
+Received: by wf-out-1314.google.com with SMTP id 29so777694wff.4
+        for <linux-media@vger.kernel.org>; Thu, 16 Apr 2009 23:46:47 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <Pine.LNX.4.64.0904162147370.4947@axis700.grange>
+References: <5e9665e10904151712o5fa3076dr85ad12fc7f04914d@mail.gmail.com>
+	 <Pine.LNX.4.64.0904162147370.4947@axis700.grange>
+Date: Fri, 17 Apr 2009 15:46:47 +0900
+Message-ID: <5e9665e10904162346g37a29778ub0fd4c9f5c11f1df@mail.gmail.com>
+Subject: Re: [RFC] Making Samsung S3C64XX camera interface driver in SoC
+	camera subsystem
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	kernel@pengutronix.de,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>,
+	"jongse.won@samsung.com" <jongse.won@samsung.com>,
+	dongsoo45.kim@samsung.com, Hans Verkuil <hverkuil@xs4all.nl>,
+	"Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Video (sub)devices, connecting to SoCs over generic i2c busses cannot 
-provide a pointer to struct v4l2_device in i2c-adapter driver_data, and 
-provide their own i2c_board_info data, including a platform_data field. 
-Add a v4l2_i2c_new_dev_subdev() API function that does exactly the same as 
-v4l2_i2c_new_subdev() but uses different parameters, and make 
-v4l2_i2c_new_subdev() a wrapper around it.
+Hi Guennadi,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
-diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-index 1da8cb8..c55fc99 100644
---- a/drivers/media/video/v4l2-common.c
-+++ b/drivers/media/video/v4l2-common.c
-@@ -783,8 +783,6 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
- }
- EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
- 
--
--
- /* Load an i2c sub-device. It assumes that i2c_get_adapdata(adapter)
-    returns the v4l2_device and that i2c_get_clientdata(client)
-    returns the v4l2_subdev. */
-@@ -792,23 +790,34 @@ struct v4l2_subdev *v4l2_i2c_new_subdev(struct i2c_adapter *adapter,
- 		const char *module_name, const char *client_type, u8 addr)
- {
- 	struct v4l2_device *dev = i2c_get_adapdata(adapter);
--	struct v4l2_subdev *sd = NULL;
--	struct i2c_client *client;
- 	struct i2c_board_info info;
- 
--	BUG_ON(!dev);
--
--	if (module_name)
--		request_module(module_name);
--
- 	/* Setup the i2c board info with the device type and
- 	   the device address. */
- 	memset(&info, 0, sizeof(info));
- 	strlcpy(info.type, client_type, sizeof(info.type));
- 	info.addr = addr;
- 
-+	return v4l2_i2c_new_dev_subdev(adapter, module_name, &info, dev);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev);
-+
-+/* Load an i2c sub-device. It assumes that i2c_get_clientdata(client)
-+   returns the v4l2_subdev. */
-+struct v4l2_subdev *v4l2_i2c_new_dev_subdev(struct i2c_adapter *adapter,
-+		const char *module_name, const struct i2c_board_info *info,
-+		struct v4l2_device *dev)
-+{
-+	struct v4l2_subdev *sd = NULL;
-+	struct i2c_client *client;
-+
-+	BUG_ON(!dev);
-+
-+	if (module_name)
-+		request_module(module_name);
-+
- 	/* Create the i2c client */
--	client = i2c_new_device(adapter, &info);
-+	client = i2c_new_device(adapter, info);
- 	/* Note: it is possible in the future that
- 	   c->driver is NULL if the driver is still being loaded.
- 	   We need better support from the kernel so that we
-@@ -835,7 +844,7 @@ error:
- 		i2c_unregister_device(client);
- 	return sd;
- }
--EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev);
-+EXPORT_SYMBOL_GPL(v4l2_i2c_new_dev_subdev);
- 
- /* Probe and load an i2c sub-device. It assumes that i2c_get_adapdata(adapter)
-    returns the v4l2_device and that i2c_get_clientdata(client)
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index 3a69056..0722b00 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -131,6 +131,7 @@ struct i2c_driver;
- struct i2c_adapter;
- struct i2c_client;
- struct i2c_device_id;
-+struct i2c_board_info;
- struct v4l2_device;
- struct v4l2_subdev;
- struct v4l2_subdev_ops;
-@@ -144,6 +145,10 @@ int v4l2_i2c_attach(struct i2c_adapter *adapter, int address, struct i2c_driver
-    The client_type argument is the name of the chip that's on the adapter. */
- struct v4l2_subdev *v4l2_i2c_new_subdev(struct i2c_adapter *adapter,
- 		const char *module_name, const char *client_type, u8 addr);
-+/* Same as above but uses user-provided v4l2_device and i2c_board_info */
-+struct v4l2_subdev *v4l2_i2c_new_dev_subdev(struct i2c_adapter *adapter,
-+		const char *module_name, const struct i2c_board_info *info,
-+		struct v4l2_device *dev);
- /* Probe and load an i2c module and return an initialized v4l2_subdev struct.
-    Only call request_module if module_name != NULL.
-    The client_type argument is the name of the chip that's on the adapter. */
+
+On Fri, Apr 17, 2009 at 4:58 AM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> On Thu, 16 Apr 2009, Dongsoo, Nathaniel Kim wrote:
+>
+>> Hello,
+>>
+>> I'm planing to make a new camera interface driver for S3C64XX from Samsung.
+>> Even if it already has a driver, it seems to be re-designed for some
+>> reasons. If you are interested in, take a look at following repository
+>> (http://git.kernel.org/?p=linux/kernel/git/eyryu_ap/samsung-ap-2.6.24.git;a=summary)
+>> drivers/media/video/s3c_* files
+>>
+>> Before beginning to implement a new driver for that, I need to clarify
+>> some of features about how to implement in driver.
+>>
+>> Please take a look at the diagram on page 610 of following user manual
+>> of s3c6400.
+>> http://www.ebv.com/fileadmin/products/Products/Samsung/S3C6400/S3C6400X_UserManual_rev1-0_2008-02_661558um.pdf
+>>
+>> It seems to have a couple of path for camera data named codec and
+>> preview, and they could be used at the same time.
+>> It means that it has no problem making those two paths into
+>> independent device nodes like /dev/video0 and /dev/video1
+>>
+>> But there is a limit of size using both of paths at the same time. I
+>> mean, If you are using preview path and camera sensor is running with
+>> 1280*720 resolution (which seems to be the max resolution could be
+>> handled by preview path), codec path can't use resolution bigger than
+>> 1280*720 at the same time because camera sensor can't produce
+>> different resolution at a time.
+>>
+>> And also we should face a big problem when we are making dual camera
+>> system with s3c64xx. Dual camera with single camera interface has some
+>> restriction using clock and data path, because they have to be shared
+>> between both of cameras.
+>> I suppose to handle them with VIDIOC_S_INPUT and G_INPUT. And with
+>> those, we can handle dual camera with single camera interface in a
+>> decent way.
+>>
+>> But the thing is that there should be a problem using dual camera with
+>> preview and codec path of s3c64xx. Even if we have each preview, and
+>> codec device node and can't open them concurrently when user is
+>> attempting to open each camera sensor like "camera A with preview node
+>> and camera B with codec node". Because both of those camera sensors
+>> are sharing same data path and clock source, and s3c64xx camera
+>> interface only can handle one camera at a time.
+>>
+>> So, what I am concerned is how to make it a elegant driver which has
+>> two device nodes handling multiple sensors as input devices.
+>> Sounds complicated but I'm asking you to help me with any opinion
+>> about designing this driver. Any opinion about these issues will be
+>> greatly helpful to me.
+>
+> Ok, now I understand your comments to my soc-camera thread better. Now,
+> what about making one (or more) video devices with V4L2_CAP_VIDEO_CAPTURE
+> type and one with V4L2_CAP_VIDEO_OUTPUT? Then you can use your capture
+> type devices to switch between cameras and to configure input, and your
+> output device to configure preview? Then you can use soc-camera to control
+> your capture devices (if you want to of course) and implement an output
+> device directly. It should be a much simpler device, because it will not
+> be communicating with the cameras and only modify various preview
+> parameters.
+>
+
+It's a cool idea! Adding my understanding to your comment,
+
+1. make preview device a video output
+=> it makes sense. but codec path also has dedicated DMA to frame buffer.
+What should we do with that? I have no idea by now.
+
+2. preview device can have two inputs
+   a) input from camera device : ok it's an ordinary way
+   b) input from MSDMA : we can give RGB data upto 720P to preview
+device with rotating and resizing supported
+
+Does it sound ok?
+BTW, OMAP3 has similar feature with this. omap vout something?
+And by now I'm gonna make my driver with soc camera subsystem without
+VIDIOC_S_INPUT/G_INPUT, but I'm still desperate for that.
+Thank you for your opinion. I deeply appreciate that.
+Cheers,
+
+Nate
+
+
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+>
+
+
+
+-- 
+========================================================
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
+========================================================
