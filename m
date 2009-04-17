@@ -1,25 +1,18 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from an-out-0708.google.com ([209.85.132.251])
+Received: from mail-gx0-f161.google.com ([209.85.217.161])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <roman.pena.perez@gmail.com>) id 1LvemI-0004jp-WA
-	for linux-dvb@linuxtv.org; Sun, 19 Apr 2009 23:42:19 +0200
-Received: by an-out-0708.google.com with SMTP id d14so705575and.41
-	for <linux-dvb@linuxtv.org>; Sun, 19 Apr 2009 14:42:14 -0700 (PDT)
+	(envelope-from <poplyra@gmail.com>) id 1LuxaZ-0000sP-Qd
+	for linux-dvb@linuxtv.org; Sat, 18 Apr 2009 01:35:20 +0200
+Received: by gxk5 with SMTP id 5so2896991gxk.17
+	for <linux-dvb@linuxtv.org>; Fri, 17 Apr 2009 16:34:45 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1240174908.3589.387.camel@macbook.infradead.org>
-References: <1214127575.4974.7.camel@jaswinder.satnam>
-	<a3ef07920904191055j4205ad8du3173a8a2328a214e@mail.gmail.com>
-	<1240167036.3589.310.camel@macbook.infradead.org>
-	<a3ef07920904191214p7be3a0eem7f7abd91ffb374d2@mail.gmail.com>
-	<1240170449.3589.334.camel@macbook.infradead.org>
-	<a3ef07920904191340x6a4e9c5o5c51fe0169cbddab@mail.gmail.com>
-	<1240174908.3589.387.camel@macbook.infradead.org>
-From: =?UTF-8?B?Um9tw6Fu?= <roman.pena.perez@gmail.com>
-Date: Sun, 19 Apr 2009 23:41:58 +0200
-Message-ID: <28a25ce0904191441h3adc43b3y8265a639e8c025cc@mail.gmail.com>
-To: David Woodhouse <dwmw2@infradead.org>, linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [PATCH] firmware: convert av7110 driver to
-	request_firmware()
+In-Reply-To: <200904171633.54211.lyra@pop-pr.rnp.br>
+References: <200904171633.54211.lyra@pop-pr.rnp.br>
+Date: Fri, 17 Apr 2009 20:34:44 -0300
+Message-ID: <ff07fffe0904171634k7e8210ebw85cfc153cde7cdbc@mail.gmail.com>
+From: Christian Lyra <lyra@pop-pr.rnp.br>
+To: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Current state of DVB-C support
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -28,47 +21,62 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-MjAwOS80LzE5IERhdmlkIFdvb2Rob3VzZSA8ZHdtdzJAaW5mcmFkZWFkLm9yZz46Cj4gT24gU3Vu
-LCAyMDA5LTA0LTE5IGF0IDEzOjQwIC0wNzAwLCBWRFIgVXNlciB3cm90ZToKPj4KPj4gVG8gYmUg
-YWJzb2x1dGVseSBjbGVhcjsgdXNlcnMgY29tcGlsaW5nIGR2YiBkcml2ZXJzIG91dHNpZGUgb2Yg
-dGhlCj4+IGtlcm5lbCBzaG91bGQgY29weSB2NGwtZHZiL2xpbnV4L2Zpcm13YXJlL2F2NzExMC9i
-b290Y29kZS5iaW4uaWhleCB0bwo+PiAvbGliL2Zpcm13YXJlL2F2NzExMC9ib290Y29kZS5iaW4g
-Y29ycmVjdD8KPgo+IFJ1biAnb2JqY29weSAtSWloZXggLU9iaW5hcnkgYm9vdGNvZGUuYmluLmlo
-ZXggYm9vdGNvZGUuYmluJyBmaXJzdCwgdGhlbgo+IGNvcHkgdGhlIHJlc3VsdGluZyBib290Y29k
-ZS5iaW4gZmlsZSB0byAvbGliL2Zpcm13YXJlL2F2NzExMC8KPgoKVGhhdCBkb2Vzbid0IHNlZW0g
-dmVyeSAqb2J2aW91cyogdG8gbWUsIGFjdHVhbGx5LgpBZnRlciB0ZW4geWVhciBvZiB1c2luZyBn
-bnUvbGludXgsIEkgZG9uJ3QgY29uc2lkZXIgbXlzZWxmIGEgbmV3YmllLApidXQgSSBkaWRuJ3Qg
-a25vdyB3aGF0IHdhcyB0aGUgcHVycG9zZSBvZiB0aGF0IGNvbW1hbmQgKGlmIEkgZXZlciBrbmV3
-Cml0IGV4aXN0ZWQpLiBNYXliZSBpdCdzIGp1c3QgSSBuZXZlciBoYWQgdGhlIG5lZWQgZm9yIHN1
-Y2ggYSB0b29sLgoKPiBXZSBkaWRuJ3Qgd2FudCB0byBwdXQgcmF3IGJpbmFyeSBmaWxlcyBpbnRv
-IHRoZSBrZXJuZWwgc291cmNlIHRyZWUgc28gd2UKPiBjb252ZXJ0ZWQgdGhlbSB0byBhIHNpbXBs
-ZSBoZXggZm9ybSBpbnN0ZWFkLgo+CgpJTUhPIHRoYXQncyB0aGUgcmlnaHQgZGlyZWN0aW9uLgoK
-PiBBcyBJIHNhaWQsIHRoZSBtYWtlZmlsZXMgaW4gdGhlIGtlcm5lbCB0cmVlIGdldCB0aGlzIHJp
-Z2h0LCBhbmQgY29udmVydAo+IHRoZW0gdG8gYmluYXJ5IGZvciB5b3UgYW5kIGF1dG9tYXRpY2Fs
-bHkgaW5zdGFsbCB0aGVtLiBJdCBzaG91bGRuJ3QgYmUKPiBoYXJkIHRvIGZpeCB0aGUgdjRsIHRy
-ZWUgdG8gZG8gaXQgdG9vLCBidXQgYXMgSSBhbHNvIHNhaWQsIEknbSBub3QKPiBwYXJ0aWN1bGFy
-bHkgaW50ZXJlc3RlZCBpbiBkb2luZyB0aGF0IG15c2VsZi4KPgo+IC0tCj4gZHdtdzIKPgoKV2Vs
-bCwgVkRSICpqdXN0IHdhbnRlZCBpdCBmaXhlZCo6IHRoYXQncyB3aGF0IGhlIGFza2VkIGZvciBp
-biBpdHMKZmlyc3QgbWVzc2FnZSBvbiB0aGlzIHRocmVhZC4KCkF0IGxlYXN0LCBEYXZpZCwgeW91
-IGdhdmUgc29tZSB1c2VmdWwgaW5mb3JtYXRpb247IGJ1dCBJIGZvdW5kIHlvdXIKYXR0aXR1ZGUg
-LWFuZCBwbGVhc2Ugbm90ZSBJIGRvbid0IHdhbnQgdG8gb2ZmZW5kIHlvdSBwZXJzb25hbGx5LSBt
-b3JlCm9yIGxlc3MgYW5ub3lpbmcuIEkgZG9uJ3QgdW5kZXJzdGFuZCB3aHkgeW91IHNhaWQgc28g
-bGlnaHRseSBoZSB3YXMKdHJvbGxpbmcsIHNwZWNpYWxseSB3aGVuIGhlIGlzIGEgc29tZXdoYXQg
-YWN0aXZlIHBhcnRpY2lwYW50IG9uIHRoaXMKbGlzdCwgSSBrbm93IHlvdSBkaWRuJ3QgZWl0aGVy
-LCBidXQgaWYgSSBoYWQgdG8gc2F5IHNvbWVvbmUgd2FzCnRyb2xsaW5nIGluIGhlcmUsIHlvdSds
-bCBiZSBteSBmaXJzdCBjYW5kaWRhdGUuIERlcmVrIHNpbXBseSBwb2ludGVkCm91dCBhIHByb2Js
-ZW0gb24gdGhlIHY0bC1kdmIgdHJlZS4gSSB0aGluayB0aGUgbW9zdCBvZiB1cyBkb24ndCBoYXZl
-Cm11Y2ggdGltZSB0byBzcGVuZCBvbiB0aGlzIGtpbmQgb2Ygdm9sdW50ZWVyIHByb2plY3RzLCBz
-byB3ZSBzaG91bGQKYXZvaWQgd2FzdGluZyBpdCBvbiBzdGVyaWxlIGFyZ3VtZW50cy4KCk9uY2Ug
-YWdhaW4sIGV4Y3VzZSBtZSBpZiBJIGRpZCBvZmZlbmQgeW91LiBUaGF0IHdhcyBub3QgbXkgaW50
-ZW50aW9uLgoKUmVnYXJkcywKCi0tCiAgUm9tw6FuCgpfX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgdXNlcnMgbWFpbGluZyBsaXN0CkZvciBW
-NEwvRFZCIGRldmVsb3BtZW50LCBwbGVhc2UgdXNlIGluc3RlYWQgbGludXgtbWVkaWFAdmdlci5r
-ZXJuZWwub3JnCmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2Nn
-aS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+Hi,
+
+>
+> =A0 =A0 =A0 =A0My first attempt to use a DVB-C was with a KNC1 card. I ju=
+st had to
+> download the latest source from dvb repository, compile and install.
+> The card was identified, I could scan channels and watch TV. BUT some
+> channels works very badly, as the card couldnt lock properly on a few
+> transponders (309mhz and 321mhz). Running a czap on those channels
+> shows that the card keep "locking" and loosing the lock.
+> =A0 =A0 =A0 =A0I thought that the problem could be something with my cabl=
+ing, so I
+> tried my card at a friend=B4s house with the same results. I also tried a
+> attenuator, but without success too.
+>
+> =A0 =A0 =A0 =A0On my second attempt I bought a twinhan CAB ci card. Card =
+identified,
+> but scan didnt worked. Some googleing later, I got it working by
+> commenting the line 1360 in dst.c (!(state->dst_type =3D=3D
+> DST_TYPE_IS_CABLE) &&). To my surprise this card has NO problem locking
+> on 309mhz and 321mhz channels. It seems to take a little longer to
+> lock/changing channels compared to my twinhan DVB-S card (I=B4m comparing
+> apples and oranges, right?), but so far it=B4s working ok.
+>
+> =A0 =A0 =A0 =A0My third attempt was with a technisat cablestar HD2 card. =
+I used the
+> mantis repository to get the card working (is the mantis driver already
+> merged with v4l-dvb?). Again, I can scan channels, but the card could
+> not =A0lock on those Transponders. In fact it also take a lot longer to
+> lock on a channel, but after it got a lock, it works right.
+>
+> =A0 =A0 =A0 =A0Since twinhan works fine, I supose that there=B4s no probl=
+em with my
+> cable/splitter. Also, I supose that the chance of two disctinct broken
+> tuners is low. A recent thread on TT-1501 shows that, if I understood
+> it right, there=B4s a kind of table where a power level is set to each
+> frequency range. Is it possible that my two cards didnt worked on those
+> especif transporders because of this kind of setting?
+
+Just a note: both non-working cards uses a tda10023 chip, so I think
+it should a good start pointing...
+
+
+-- =
+
+Christian Lyra
+PoP-PR/RNP
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
