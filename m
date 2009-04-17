@@ -1,52 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110816.mail.gq1.yahoo.com ([67.195.13.239]:27659 "HELO
-	web110816.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752018AbZDELsG (ORCPT
+Received: from zone0.gcu-squad.org ([212.85.147.21]:39251 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751909AbZDQN5A (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Apr 2009 07:48:06 -0400
-Message-ID: <220734.24824.qm@web110816.mail.gq1.yahoo.com>
-Date: Sun, 5 Apr 2009 04:48:03 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [0904_16] Siano: smsdvb - additional case of endian handling.
-To: LinuxML <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	Fri, 17 Apr 2009 09:57:00 -0400
+Date: Fri, 17 Apr 2009 15:56:51 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Andy Walls <awalls@radix.net>, LMML <linux-media@vger.kernel.org>
+Subject: [PATCH] cx18: Fix the handling of i2c bus registration error
+Message-ID: <20090417155651.5925badc@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+* Return actual error values as returned by the i2c subsystem, rather
+  than 0 or 1.
+* If the registration of the second bus fails, unregister the first one
+  before exiting, otherwise we are leaking resources.
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1238758726 -10800
-# Node ID c582116cfbb96671629143fced33e3f88c28b3c7
-# Parent  856813745905e07d9fc6be5e136fdf7060c6fc37
-siano: smsdvb - add support for old dvb-core version
-[PATCH] [0904_16] Siano: smsdvb - additional case of endian handling.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Acked-by: Andy Walls <awalls@radix.net>
+---
+Mauro, can you please apply this fix now?
 
-From: Uri Shkolnik <uris@siano-ms.com>
+ linux/drivers/media/video/cx18/cx18-i2c.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
-Additional case of endian handling.
-
-Priority: normal
-
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-
-diff -r 856813745905 -r c582116cfbb9 linux/drivers/media/dvb/siano/smsdvb.c
-- a/linux/drivers/media/dvb/siano/smsdvb.c	Fri Apr 03 14:30:50 2009 +0300
-+ b/linux/drivers/media/dvb/siano/smsdvb.c	Fri Apr 03 14:38:46 2009 +0300
-@@ -273,7 +273,7 @@ static int smsdvb_start_feed(struct dvb_
- 	PidMsg.xMsgHeader.msgLength = sizeof(PidMsg);
- 	PidMsg.msgData[0] = feed->pid;
+--- v4l-dvb.orig/linux/drivers/media/video/cx18/cx18-i2c.c	2009-03-01 16:09:09.000000000 +0100
++++ v4l-dvb/linux/drivers/media/video/cx18/cx18-i2c.c	2009-04-03 18:45:18.000000000 +0200
+@@ -214,7 +214,7 @@ static struct i2c_algo_bit_data cx18_i2c
+ /* init + register i2c algo-bit adapter */
+ int init_cx18_i2c(struct cx18 *cx)
+ {
+-	int i;
++	int i, err;
+ 	CX18_DEBUG_I2C("i2c init\n");
  
--	/* smsendian_handle_tx_message((struct SmsMsgHdr_ST *)&PidMsg); */
-+	smsendian_handle_tx_message((struct SmsMsgHdr_ST *)&PidMsg);
- 	return smsclient_sendrequest(client->smsclient, &PidMsg,
- 			sizeof(PidMsg));
+ 	for (i = 0; i < 2; i++) {
+@@ -273,8 +273,18 @@ int init_cx18_i2c(struct cx18 *cx)
+ 	cx18_call_hw(cx, CX18_HW_GPIO_RESET_CTRL,
+ 		     core, reset, (u32) CX18_GPIO_RESET_I2C);
+ 
+-	return i2c_bit_add_bus(&cx->i2c_adap[0]) ||
+-		i2c_bit_add_bus(&cx->i2c_adap[1]);
++	err = i2c_bit_add_bus(&cx->i2c_adap[0]);
++	if (err)
++		goto err;
++	err = i2c_bit_add_bus(&cx->i2c_adap[1]);
++	if (err)
++		goto err_del_bus_0;
++	return 0;
++
++ err_del_bus_0:
++ 	i2c_del_adapter(&cx->i2c_adap[0]);
++ err:
++	return err;
  }
-@@ -546,10 +546,15 @@ static int smsdvb_hotplug(struct smscore
- 	}
  
+ void exit_cx18_i2c(struct cx18 *cx)
 
 
-
-      
+-- 
+Jean Delvare
