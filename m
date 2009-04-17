@@ -1,114 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:46217 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755529AbZDFXKH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Apr 2009 19:10:07 -0400
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1Lqxx4-0008AQ-Vf
-	for linux-media@vger.kernel.org; Mon, 06 Apr 2009 23:10:03 +0000
-Received: from 63.84.broadband6.iol.cz ([88.101.84.63])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 06 Apr 2009 23:10:02 +0000
-Received: from sustmidown by 63.84.broadband6.iol.cz with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 06 Apr 2009 23:10:02 +0000
-To: linux-media@vger.kernel.org
-From: Miroslav =?utf-8?b?xaB1c3Rlaw==?= <sustmidown@centrum.cz>
-Subject: [PATCH] Re: cx88-dsp.c: missing =?utf-8?b?X19kaXZkaTM=?= on 32bit kernel
-Date: Mon, 6 Apr 2009 23:07:04 +0000 (UTC)
-Message-ID: <loom.20090406T230214-297@post.gmane.org>
-References: <200904062233.30966@centrum.cz> <200904062234.8192@centrum.cz> <200904062235.15206@centrum.cz> <200904062236.31983@centrum.cz> <200904062237.27161@centrum.cz> <200904062238.10335@centrum.cz> <200904062239.877@centrum.cz> <200904062240.9520@centrum.cz> <200904062240.1773@centrum.cz>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:58411 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1759079AbZDQHAo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Apr 2009 03:00:44 -0400
+Date: Fri, 17 Apr 2009 09:00:44 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	kernel@pengutronix.de,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>,
+	"jongse.won@samsung.com" <jongse.won@samsung.com>,
+	dongsoo45.kim@samsung.com, Hans Verkuil <hverkuil@xs4all.nl>,
+	"Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>
+Subject: Re: [RFC] Making Samsung S3C64XX camera interface driver in SoC
+ camera subsystem
+In-Reply-To: <5e9665e10904162346g37a29778ub0fd4c9f5c11f1df@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0904170852450.5119@axis700.grange>
+References: <5e9665e10904151712o5fa3076dr85ad12fc7f04914d@mail.gmail.com>
+ <Pine.LNX.4.64.0904162147370.4947@axis700.grange>
+ <5e9665e10904162346g37a29778ub0fd4c9f5c11f1df@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Well this patch should solve it.
+On Fri, 17 Apr 2009, Dongsoo, Nathaniel Kim wrote:
 
-I don't know how many samples are processed so:
-First patch is for situation when N*N fits in s32.
-Second one uses two divisions, but doesn't have any abnormal restrictions for N.
+> Hi Guennadi,
+> 
+> 
+> On Fri, Apr 17, 2009 at 4:58 AM, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
+> >
+> > Ok, now I understand your comments to my soc-camera thread better. Now,
+> > what about making one (or more) video devices with V4L2_CAP_VIDEO_CAPTURE
+> > type and one with V4L2_CAP_VIDEO_OUTPUT? Then you can use your capture
+> > type devices to switch between cameras and to configure input, and your
+> > output device to configure preview? Then you can use soc-camera to control
+> > your capture devices (if you want to of course) and implement an output
+> > device directly. It should be a much simpler device, because it will not
+> > be communicating with the cameras and only modify various preview
+> > parameters.
+> >
+> 
+> It's a cool idea! Adding my understanding to your comment,
+> 
+> 1. make preview device a video output
+> => it makes sense. but codec path also has dedicated DMA to frame buffer.
+> What should we do with that? I have no idea by now.
 
-Personally I think that two divisions won't hurt. :)
+Add a V4L2_CAP_VIDEO_OVERLAY capability and if the user requests 
+V4L2_BUF_TYPE_VIDEO_OVERLAY - configure direct output to framebuffer?
 
+> 2. preview device can have two inputs
+>    a) input from camera device : ok it's an ordinary way
+>    b) input from MSDMA : we can give RGB data upto 720P to preview
+> device with rotating and resizing supported
+> 
+> Does it sound ok?
 
+Yes, looks good to me:-)
 
------ FILE: cx88-dsp_64bit_math1.patch -----
+> BTW, OMAP3 has similar feature with this. omap vout something?
+> And by now I'm gonna make my driver with soc camera subsystem without
+> VIDIOC_S_INPUT/G_INPUT, but I'm still desperate for that.
 
-cx88-dsp: fixing 64bit math on 32bit kernels
+Don't dispair - better send a patch when good times return (i.e., when we 
+are fully with v4l2-subdev):-)
 
-Note the limitation of N.
-Personally I know nothing about possible size of samples array.
-
-From: Miroslav Sustek <sustmidown@centrum.cz>
-Signed-off-by: Miroslav Sustek <sustmidown@centrum.cz>
-
-diff -r 8aa1d865373c linux/drivers/media/video/cx88/cx88-dsp.c
---- a/linux/drivers/media/video/cx88/cx88-dsp.c	Wed Apr 01 20:25:00 2009 +0000
-+++ b/linux/drivers/media/video/cx88/cx88-dsp.c	Tue Apr 07 00:08:48 2009 +0200
-@@ -100,13 +100,22 @@
- 	s32 s_prev2 = 0;
- 	s32 coeff = 2*int_cos(freq);
- 	u32 i;
-+
-+	s64 tmp;
-+	u32 remainder;
-+
- 	for (i = 0; i < N; i++) {
- 		s32 s = x[i] + ((s64)coeff*s_prev/32768) - s_prev2;
- 		s_prev2 = s_prev;
- 		s_prev = s;
- 	}
--	return (u32)(((s64)s_prev2*s_prev2 + (s64)s_prev*s_prev -
--		      (s64)coeff*s_prev2*s_prev/32768)/N/N);
-+
-+	tmp = (s64)s_prev2*s_prev2 + (s64)s_prev*s_prev -
-+		      (s64)coeff*s_prev2*s_prev/32768;
-+
-+	/* XXX: N must be low enough so that N*N fits in s32.
-+	 * Else we need two divisions. */
-+	return (u32) div_s64_rem(tmp, N*N, &remainder);
- }
- 
- static u32 freq_magnitude(s16 x[], u32 N, u32 freq)
-
-
-
------ FILE: cx88-dsp_64bit_math2.patch -----
-
-cx88-dsp: fixing 64bit math on 32bit kernels
-
-From: Miroslav Sustek <sustmidown@centrum.cz>
-Signed-off-by: Miroslav Sustek <sustmidown@centrum.cz>
-
-diff -r 8aa1d865373c linux/drivers/media/video/cx88/cx88-dsp.c
---- a/linux/drivers/media/video/cx88/cx88-dsp.c	Wed Apr 01 20:25:00 2009 +0000
-+++ b/linux/drivers/media/video/cx88/cx88-dsp.c	Tue Apr 07 00:26:10 2009 +0200
-@@ -100,13 +100,22 @@
- 	s32 s_prev2 = 0;
- 	s32 coeff = 2*int_cos(freq);
- 	u32 i;
-+
-+	s64 tmp;
-+	u32 remainder;
-+
- 	for (i = 0; i < N; i++) {
- 		s32 s = x[i] + ((s64)coeff*s_prev/32768) - s_prev2;
- 		s_prev2 = s_prev;
- 		s_prev = s;
- 	}
--	return (u32)(((s64)s_prev2*s_prev2 + (s64)s_prev*s_prev -
--		      (s64)coeff*s_prev2*s_prev/32768)/N/N);
-+
-+	tmp = (s64)s_prev2*s_prev2 + (s64)s_prev*s_prev -
-+		      (s64)coeff*s_prev2*s_prev/32768;
-+
-+	tmp = div_s64_rem(tmp, N, &remainder);
-+
-+	return (u32)div_s64_rem(tmp, N, &remainder);
- }
- 
- static u32 freq_magnitude(s16 x[], u32 N, u32 freq)
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
