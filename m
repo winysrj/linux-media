@@ -1,395 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3270 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752305AbZDRL2B (ORCPT
+Received: from qw-out-2122.google.com ([74.125.92.25]:26964 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750811AbZDQEdx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Apr 2009 07:28:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Chaithrika U S <chaithrika@ti.com>
-Subject: Re: [PATCH v2 1/4] ARM: DaVinci: DM646x Video: Platform and board specific setup
-Date: Sat, 18 Apr 2009 13:27:55 +0200
-Cc: linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com,
-	Manjunath Hadli <mrh@ti.com>, Brijesh Jadav <brijesh.j@ti.com>
-References: <1239189507-19905-1-git-send-email-chaithrika@ti.com>
-In-Reply-To: <1239189507-19905-1-git-send-email-chaithrika@ti.com>
+	Fri, 17 Apr 2009 00:33:53 -0400
+Received: by qw-out-2122.google.com with SMTP id 8so929220qwh.37
+        for <linux-media@vger.kernel.org>; Thu, 16 Apr 2009 21:33:52 -0700 (PDT)
+From: Kyle Guinn <elyk03@gmail.com>
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+Subject: Re: RFC on proposed patches to mr97310a.c for gspca and v4l
+Date: Thu, 16 Apr 2009 23:33:49 -0500
+Cc: Thomas Kaiser <v4l@kaiser-linux.li>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	linux-media@vger.kernel.org
+References: <20090217200928.1ae74819@free.fr> <200904160014.32558.elyk03@gmail.com> <alpine.LNX.2.00.0904161247530.10195@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0904161247530.10195@banach.math.auburn.edu>
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200904181327.55323.hverkuil@xs4all.nl>
+Message-Id: <200904162333.49502.elyk03@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Chaithrika,
+On Thursday 16 April 2009 13:22:11 Theodore Kilgore wrote:
+> On Thu, 16 Apr 2009, Kyle Guinn wrote:
+> > On Wednesday 04 March 2009 02:41:05 Thomas Kaiser wrote:
+> >> Hello Theodore
+> >>
+> >> kilgota@banach.math.auburn.edu wrote:
+> >>> Also, after the byte indicator for the compression algorithm there are
+> >>> some more bytes, and these almost definitely contain information which
+> >>> could be valuable while doing image processing on the output. If they
+> >>> are already kept and passed out of the module over to libv4lconvert,
+> >>> then it would be very easy to do something with those bytes if it is
+> >>> ever figured out precisely what they mean. But if it is not done now it
+> >>> would have to be done then and would cause even more trouble.
+> >>
+> >> I sent it already in private mail to you. Here is the observation I made
+> >> for the PAC207 SOF some years ago:
+> >>
+> >>  From usb snoop.
+> >> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx 00 00
+> >> 1. xx: looks like random value
+> >> 2. xx: changed from 0x03 to 0x0b
+> >> 3. xx: changed from 0x06 to 0x49
+> >> 4. xx: changed from 0x07 to 0x55
+> >> 5. xx: static 0x96
+> >> 6. xx: static 0x80
+> >> 7. xx: static 0xa0
+> >>
+> >> And I did play in Linux and could identify some fields :-) .
+> >> In Linux the header looks like this:
+> >>
+> >> FF FF 00 FF 96 64 xx 00 xx xx xx xx xx xx F0 00
+> >> 1. xx: don't know but value is changing between 0x00 to 0x07
+> >> 2. xx: this is the actual pixel clock
+> >> 3. xx: this is changing according light conditions from 0x03 (dark) to
+> >> 0xfc (bright) (center)
+> >> 4. xx: this is changing according light conditions from 0x03 (dark) to
+> >> 0xfc (bright) (edge)
+> >> 5. xx: set value "Digital Gain of Red"
+> >> 6. xx: set value "Digital Gain of Green"
+> >> 7. xx: set value "Digital Gain of Blue"
+> >>
+> >> Thomas
+> >
+> > I've been looking through the frame headers sent by the MR97310A (the
+> > Aiptek PenCam VGA+, 08ca:0111).  Here are my observations.
+> >
+> > FF FF 00 FF 96 6x x0 xx xx xx xx xx
+> >
+> > In binary that looks something like this:
+> >
+> > 11111111 11111111 00000000 11111111
+> > 10010110 011001aa a1010000 bbbbbbbb
+> > bbbbbbbb cccccccc ccccdddd dddddddd
+> >
+> > All of the values look to be MSbit first.  A looks like a 3-bit frame
+> > sequence number that seems to start with 1 and increments for each frame.
+>
+> Hmmm. This I never noticed. What you are saying is that the two bytes 6x
+> and x0 are variable? You are sure about that? What I have previously
+> experienced is that the first is always 64 with these cameras, and the
+> second one indicates the absence of compression (in which case it is 0,
+> which of course only arises for still cameras), or if there is data
+> compression then it is not zero. I have never seen this byte to change
+> during a session with a camera. Here is a little table of what I have
+> previously witnessed, and perhaps you can suggest what to do in order to
+> see this is not happening:
+>
+> Camera		that byte	compression	solved, or not	streaming
+> Aiptek 		00		no		N/A		no
+> Aiptek		50		yes		yes		both
+> the Sakar cam	00		no		N/A		no
+> ditto		50		yes		yes		both
+> Argus QuikClix	20		yes		no	doesn't work
+> Argus DC1620	50		yes		yes	doesn't work
+> CIF cameras	00		no		N/A		no
+> ditto		50		yes		yes		no
+> ditto		d0		yes		no		yes
+>
+> Other strange facts are
+>
+> -- that the Sakar camera, the Argus QuikClix, and the
+> DC1620 all share the same USB ID of 0x93a:0x010f and yet only one of them
+> will stream with the existing driver. The other two go through the
+> motions, but the isoc packets do not actually get sent, so there is no
+> image coming out. I do not understand the reason for this; I have been
+> trying to figure it out and it is rather weird. I should add that, yes,
+> those two cameras were said to be capable of streaming when I bought them.
+> Could it be a problem of age? I don't expect that, but maybe.
+>
+> -- the CIF cameras all share the USB id of 0x93a:0x010e (I bought several
+> of them) and they all are using a different compression algorithm while
+> streaming from what they use if running as still cameras in compressed
+> mode. This leads to the question whether it is possible to set the
+> compression algorithm during the initialization sequence, so that the
+> camera also uses the "0x50" mode while streaming, because we already know
+> how to use that mode.
+>
+> But I have never seen the 0x64 0xX0 bytes used to count the frames. Could
+> you tell me how to repeat that? It certainly would knock down the validity
+> of the above table wouldn't it?
+>
 
-My apologies for the delay, but here are (finally!) my review comments:
+I've modified libv4l to print out the 12-byte header before it skips over it.  
+Then when I fire up mplayer it prints out each header as each frame is 
+received.  The framerate is only about 5 fps so there isn't a ton of data to 
+parse through.  When I point the camera into a light I get this (at 640x480):
 
-On Wednesday 08 April 2009 13:18:27 Chaithrika U S wrote:
-> Platform specific display device setup for DM646x EVM
-> 
-> Add platform device and resource structures. Also define a platform specific
-> clock setup function that can be accessed by the driver to configure the clock
-> and CPLD.
-> 
-> This patch is dependent on a patch submitted earlier, that patch adds
-> Pin Mux and clock definitions for Video on DM646x.
-> 
-> Signed-off-by: Manjunath Hadli <mrh@ti.com>
-> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-> Signed-off-by: Chaithrika U S <chaithrika@ti.com>
-> ---
-> Applies to DaVinci GIT tree
-> 
->  arch/arm/mach-davinci/board-dm646x-evm.c    |  138 +++++++++++++++++++++++++++
->  arch/arm/mach-davinci/dm646x.c              |   63 ++++++++++++
->  arch/arm/mach-davinci/include/mach/dm646x.h |   25 +++++
->  3 files changed, 226 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
-> index bcf11d5..9071a39 100644
-> --- a/arch/arm/mach-davinci/board-dm646x-evm.c
-> +++ b/arch/arm/mach-davinci/board-dm646x-evm.c
-> @@ -39,6 +39,7 @@
->  #include <mach/serial.h>
->  #include <mach/i2c.h>
->  #include <mach/mmc.h>
-> +#include <mach/mux.h>
->  
->  #include <linux/platform_device.h>
->  #include <linux/i2c.h>
-> @@ -49,6 +50,19 @@
->  #define DM646X_EVM_PHY_MASK		(0x2)
->  #define DM646X_EVM_MDIO_FREQUENCY	(2200000) /* PHY bus frequency */
->  
-> +#define VIDCLKCTL_OFFSET	(0x38)
-> +#define VSCLKDIS_OFFSET		(0x6c)
-> +
-> +#define VCH2CLK_MASK		(BIT_MASK(10) | BIT_MASK(9) | BIT_MASK(8))
-> +#define VCH2CLK_SYSCLK8		(BIT(9))
-> +#define VCH2CLK_AUXCLK		(BIT(9) | BIT(8))
-> +#define VCH3CLK_MASK		(BIT_MASK(14) | BIT_MASK(13) | BIT_MASK(12))
-> +#define VCH3CLK_SYSCLK8		(BIT(13))
-> +#define VCH3CLK_AUXCLK		(BIT(14) | BIT(13))
-> +
-> +#define VIDCH2CLK		(BIT(10))
-> +#define VIDCH3CLK		(BIT(11))
-> +
->  static struct emac_platform_data dm646x_evm_emac_pdata = {
->  	.phy_mask	= DM646X_EVM_PHY_MASK,
->  	.mdio_max_freq	= DM646X_EVM_MDIO_FREQUENCY,
-> @@ -103,11 +117,54 @@ int dm646xevm_eeprom_write(void *buf, off_t off, size_t count)
->  }
->  EXPORT_SYMBOL(dm646xevm_eeprom_write);
->  
-> +static struct i2c_client *cpld_client;
-> +
-> +static int cpld_video_probe(struct i2c_client *client,
-> +			const struct i2c_device_id *id)
-> +{
-> +	cpld_client = client;
-> +	return 0;
-> +}
-> +
-> +static int __devexit cpld_video_remove(struct i2c_client *client)
-> +{
-> +	cpld_client = NULL;
-> +	return 0;
-> +}
-> +
-> +static const struct i2c_device_id cpld_video_id[] = {
-> +	{ "cpld_video", 0 },
-> +	{ }
-> +};
-> +
-> +static struct i2c_driver cpld_video_driver = {
-> +	.driver = {
-> +		.name	= "cpld_video",
-> +	},
-> +	.probe		= cpld_video_probe,
-> +	.remove		= cpld_video_remove,
-> +	.id_table	= cpld_video_id,
-> +};
-> +
-> +static void evm_init_cpld(void)
-> +{
-> +	i2c_add_driver(&cpld_video_driver);
-> +}
-> +
->  static struct i2c_board_info __initdata i2c_info[] =  {
->  	{
->  		I2C_BOARD_INFO("24c256", 0x50),
->  		.platform_data  = &eeprom_info,
->  	},
-> +	{
-> +		I2C_BOARD_INFO("adv7343", 0x2A),
-> +	},
-> +	{
-> +		I2C_BOARD_INFO("ths7303", 0x2C),
-> +	},
+...
+ff ff 00 ff 96 64 d0 c1 5c c6 00 00 
+ff ff 00 ff 96 65 50 c1 5c c6 00 00 
+ff ff 00 ff 96 65 d0 c1 5c c6 00 00 
+ff ff 00 ff 96 66 50 c1 5c c6 00 00 
+ff ff 00 ff 96 66 d0 c1 5c c6 00 00 
+ff ff 00 ff 96 67 50 c1 5c c6 00 00 
+ff ff 00 ff 96 67 d0 c1 5c c6 00 00 
+ff ff 00 ff 96 64 50 c1 5c c6 00 00 
+ff ff 00 ff 96 64 d0 c1 5c c6 00 00 
+ff ff 00 ff 96 65 50 c1 5c c6 00 00
+...
 
-Is it necessary to add the v4l2 subdevs here? I think it is better to use
-dm646x_vpif_subdev instead and rely on v4l2_i2c_new_subdev to initialize
-the subdev. I strongly recommend using the v4l2_i2c_new* functions since
-these are guaranteed to load and lock modules correctly.
+Only those 3 bits change, and it looks like a counter to me.  Take a look at 
+the gspca-mars (MR97113A?) subdriver.  I think it tries to accommodate the 
+frame sequence number when looking for the SOF.
 
-> +	{
-> +		I2C_BOARD_INFO("cpld_video", 0x3B),
-> +	},
->  };
->  
->  static struct davinci_i2c_platform_data i2c_pdata = {
-> @@ -115,10 +172,90 @@ static struct davinci_i2c_platform_data i2c_pdata = {
->  	.bus_delay      = 0 /* usec */,
->  };
->  
-> +static int set_vpif_clock(int mux_mode, int hd)
-> +{
-> +	int val = 0;
-> +	int err = 0;
-> +	unsigned int value;
-> +	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
-> +
-> +	/* disable the clock */
-> +	value = __raw_readl(base + VSCLKDIS_OFFSET);
-> +	value |= (VIDCH3CLK | VIDCH2CLK);
-> +	__raw_writel(value, base + VSCLKDIS_OFFSET);
-> +
-> +	val = i2c_smbus_read_byte(cpld_client);
-> +	if (val < 0)
-> +		return val;
-> +
-> +	if (mux_mode == 1)
-> +		val &= ~0x40;
-> +	else
-> +		val |= 0x40;
-> +
-> +	err = i2c_smbus_write_byte(cpld_client, val);
-> +	if (err)
-> +		return err;
-> +
-> +	value = __raw_readl(base + VIDCLKCTL_OFFSET);
-> +	value &= ~(VCH2CLK_MASK);
-> +	value &= ~(VCH3CLK_MASK);
-> +
-> +	if (hd >= 1)
-> +		value |= (VCH2CLK_SYSCLK8 | VCH3CLK_SYSCLK8);
-> +	else
-> +		value |= (VCH2CLK_AUXCLK | VCH3CLK_AUXCLK);
-> +
-> +	__raw_writel(value, base + VIDCLKCTL_OFFSET);
-> +
-> +	/* enable the clock */
-> +	value = __raw_readl(base + VSCLKDIS_OFFSET);
-> +	value &= ~(VIDCH3CLK | VIDCH2CLK);
-> +	__raw_writel(value, base + VSCLKDIS_OFFSET);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct subdev_info dm646x_vpif_subdev[] = {
-> +	{
-> +		.addr	= 0x2A,
-> +		.name	= "adv7343",
-> +	},
-> +	{
-> +		.addr	= 0x2C,
-> +		.name	= "ths7303",
-> +	},
-> +};
-> +
-> +static struct vpif_output output[] = {
+Maybe all or part of the 7 bytes between A and B specify the compression?  
+That explains all but the last row of your table since (0xd0 & 0x7f) == 0x50.  
+Double-check that it's actually d0 if you can, and that it is a constant d0 
+unlike the toggling between 50 and d0 above.
 
-Should be const.
+For your cameras that aren't streaming anything, do they stream in Windows?  
+If so, have you tried snooping the USB traffic?  I'm curious if their drivers 
+use a slightly different initialization sequence, or if some of the 
+initialization data varies between runs.  I know some of the initialization 
+data varied between runs for the pencam, and I don't know what kind of effect 
+it has on the camera.
 
-> +	{
-> +		.id	= 0,
-> +		.name	= "Composite"
-> +	},
-> +	{
-> +		.id	= 1,
-> +		.name	= "Component"
-> +	},
-> +	{
-> +		.id	= 2,
-> +		.name	= "S-Video"
-> +	},
-> +};
-
-Is there any need to include the id field? I can't imagine a case where
-there are holes in the id sequence.
-
-> +
-> +static struct vpif_config dm646x_vpif_config = {
-> +	.set_clock	= set_vpif_clock,
-> +	.subdevinfo	= (struct subdev_info *)dm646x_vpif_subdev,
-
-Why is the cast needed here? .subdevinfo should be a const pointer as well.
-
-> +	.subdev_count	= ARRAY_SIZE(dm646x_vpif_subdev),
-> +	.output		= output,
-> +	.output_count	= ARRAY_SIZE(output),
-> +	.card_name	= "DM646x EVM",
-> +};
-> +
->  static void __init evm_init_i2c(void)
->  {
->  	davinci_init_i2c(&i2c_pdata);
->  	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
-> +	evm_init_cpld();
->  }
->  
->  static void __init davinci_map_io(void)
-> @@ -132,6 +269,7 @@ static __init void evm_init(void)
->  	evm_init_i2c();
->  	davinci_serial_init(&uart_config);
->  	davinci_init_emac(&dm646x_evm_emac_pdata);
-> +	dm646x_setup_vpif(&dm646x_vpif_config);
->  }
->  
->  static __init void davinci_dm646x_evm_irq_init(void)
-> diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
-> index b302f12..a94cb86 100644
-> --- a/arch/arm/mach-davinci/dm646x.c
-> +++ b/arch/arm/mach-davinci/dm646x.c
-> @@ -12,6 +12,7 @@
->  #include <linux/init.h>
->  #include <linux/clk.h>
->  #include <linux/platform_device.h>
-> +#include <linux/dma-mapping.h>
->  
->  #include <mach/dm646x.h>
->  #include <mach/clock.h>
-> @@ -24,6 +25,15 @@
->  #include "clock.h"
->  #include "mux.h"
->  
-> +#define DAVINCI_VPIF_BASE       (0x01C12000)
-> +#define VDD3P3V_PWDN_OFFSET	(0x48)
-> +#define VSCLKDIS_OFFSET		(0x6C)
-> +
-> +#define VDD3P3V_VID_MASK	(BIT_MASK(7) | BIT_MASK(6) | BIT_MASK(5) |\
-> +					BIT_MASK(4))
-> +#define VSCLKDIS_MASK		(BIT_MASK(11) | BIT_MASK(10) | BIT_MASK(9) |\
-> +					BIT_MASK(8))
-> +
->  /*
->   * Device specific clocks
->   */
-> @@ -421,8 +431,61 @@ static struct platform_device dm646x_edma_device = {
->  	.resource		= edma_resources,
->  };
->  
-> +static u64 vpif_dma_mask = DMA_32BIT_MASK;
-> +
-> +static struct resource vpif_resource[] = {
-> +	{
-> +		.start	= DAVINCI_VPIF_BASE,
-> +		.end	= DAVINCI_VPIF_BASE + 0x03fff,
-> +		.flags	= IORESOURCE_MEM,
-> +	},
-> +	{
-> +		.start = IRQ_DM646X_VP_VERTINT2,
-> +		.end   = IRQ_DM646X_VP_VERTINT2,
-> +		.flags = IORESOURCE_IRQ,
-> +	},
-> +	{
-> +		.start = IRQ_DM646X_VP_VERTINT3,
-> +		.end   = IRQ_DM646X_VP_VERTINT3,
-> +		.flags = IORESOURCE_IRQ,
-> +	},
-> +};
-> +
-> +static struct platform_device vpif_display_dev = {
-> +	.name		= "vpif_display",
-> +	.id		= -1,
-> +	.dev		= {
-> +			.dma_mask 		= &vpif_dma_mask,
-> +			.coherent_dma_mask	= DMA_32BIT_MASK,
-> +	},
-> +	.resource	= vpif_resource,
-> +	.num_resources	= ARRAY_SIZE(vpif_resource),
-> +};
-> +
->  /*----------------------------------------------------------------------*/
->  
-> +void dm646x_setup_vpif(struct vpif_config *config)
-> +{
-> +	unsigned int value;
-> +	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
-> +
-> +	value = __raw_readl(base + VSCLKDIS_OFFSET);
-> +	value &= ~VSCLKDIS_MASK;
-> +	__raw_writel(value, base + VSCLKDIS_OFFSET);
-> +
-> +	value = __raw_readl(base + VDD3P3V_PWDN_OFFSET);
-> +	value &= ~VDD3P3V_VID_MASK;
-> +	__raw_writel(value, base + VDD3P3V_PWDN_OFFSET);
-> +
-> +	davinci_cfg_reg(DM646X_STSOMUX_DISABLE);
-> +	davinci_cfg_reg(DM646X_STSIMUX_DISABLE);
-> +	davinci_cfg_reg(DM646X_PTSOMUX_DISABLE);
-> +	davinci_cfg_reg(DM646X_PTSIMUX_DISABLE);
-> +
-> +	vpif_display_dev.dev.platform_data = config;
-> +	platform_device_register(&vpif_display_dev);
-> +}
-> +
->  #if defined(CONFIG_TI_DAVINCI_EMAC) || defined(CONFIG_TI_DAVINCI_EMAC_MODULE)
->  
->  void dm646x_init_emac(struct emac_platform_data *pdata)
-> diff --git a/arch/arm/mach-davinci/include/mach/dm646x.h b/arch/arm/mach-davinci/include/mach/dm646x.h
-> index 02ce872..2f9a1d8 100644
-> --- a/arch/arm/mach-davinci/include/mach/dm646x.h
-> +++ b/arch/arm/mach-davinci/include/mach/dm646x.h
-> @@ -12,6 +12,7 @@
->  #define __ASM_ARCH_DM646X_H
->  
->  #include <linux/platform_device.h>
-> +#include <linux/i2c.h>
->  #include <mach/hardware.h>
->  #include <mach/emac.h>
->  
-> @@ -25,4 +26,28 @@
->  void __init dm646x_init(void);
->  void dm646x_init_emac(struct emac_platform_data *pdata);
->  
-> +void dm646x_video_init(void);
-> +
-> +struct vpif_output {
-> +	u16 id;
-> +	const char *name;
-> +};
-> +
-> +struct subdev_info {
-> +	u8 addr;
-> +	const char *name;
-> +};
-> +
-> +struct vpif_config {
-> +	int (*set_clock)(int, int);
-> +	struct subdev_info *subdevinfo;
-
-Should be a const pointer.
-
-> +	int subdev_count;
-> +	struct vpif_output *output;
-
-Ditto.
-
-> +	int output_count;
-> +	const char *card_name;
-> +};
-> +
-> +
-> +void dm646x_setup_vpif(struct vpif_config *config);
-> +
->  #endif /* __ASM_ARCH_DM646X_H */
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+-Kyle
