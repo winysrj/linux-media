@@ -1,36 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:41056 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755511AbZDUKa5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2009 06:30:57 -0400
-Date: Tue, 21 Apr 2009 12:31:02 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] v4l2-subdev: add a v4l2_i2c_new_dev_subdev() function
-In-Reply-To: <6049.62.70.2.252.1240309148.squirrel@webmail.xs4all.nl>
-Message-ID: <Pine.LNX.4.64.0904211229390.6551@axis700.grange>
-References: <6049.62.70.2.252.1240309148.squirrel@webmail.xs4all.nl>
+Received: from pne-smtpout1-sn1.fre.skanova.net ([81.228.11.98]:64216 "EHLO
+	pne-smtpout1-sn1.fre.skanova.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753167AbZDQTbu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Apr 2009 15:31:50 -0400
+Message-ID: <49E8D8FD.6090704@gmail.com>
+Date: Fri, 17 Apr 2009 21:31:09 +0200
+From: =?windows-1252?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+CC: Linux and Kernel Video <video4linux-list@redhat.com>,
+	SPCA50x Linux Device Driver Development
+	<spca50x-devs@lists.sourceforge.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: libv4l release: 0.5.97: the whitebalance release!
+References: <49E5D4DE.6090108@hhs.nl>
+In-Reply-To: <49E5D4DE.6090108@hhs.nl>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 21 Apr 2009, Hans Verkuil wrote:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> The board_info struct didn't appear until 2.6.22, so that's certainly a
-> cut-off point. Since the probe version of this call does not work on
-> kernels < 2.6.26 the autoprobing mechanism is still used for those older
-> kernels. I think it makes life much easier to require that everything that
-> uses board_info needs kernel 2.6.26 at the minimum. I don't think that is
-> an issue anyway for soc-camera. Unless there is a need to use soc-camera
-> from v4l-dvb with kernels <2.6.26?
 
-No, most definitely ultimately undoubtedly NOT.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Hans de Goede wrote:
+[snip]
+> 
+> libv4l-0.5.97
+> -------------
+> * Some applications / libs (*cough* gstreamer *cough*) will not work
+>   correctly with planar YUV formats when the width is not a multiple of 8,
+>   so crop widths which are not a multiple of 8 to the nearest multiple of 8
+>   when converting to planar YUV
+
+Could you please elaborate how this is supposed to work, because it
+doesn't with the gspca_stv06xx driver and a sensor supporting raw
+bayer and 356x292.
+
+Best regards,
+Erik
+
+> Get it here:
+> http://people.atrpms.net/~hdegoede/libv4l-0.5.97.tar.gz
+> 
+> Regards,
+> 
+> Hans
+> 
+> 
+> 
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkno2PsACgkQN7qBt+4UG0GdWQCgiHC3jAVJk8znEgAk0cgrt4Cp
+Tg0AmQEk4TMJG2l3It7vCa9NKHiZg9eM
+=NEdy
+-----END PGP SIGNATURE-----
