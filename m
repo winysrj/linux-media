@@ -1,69 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pne-smtpout2-sn2.hy.skanova.net ([81.228.8.164]:45211 "EHLO
-	pne-smtpout2-sn2.hy.skanova.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S937102AbZDCUyd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Apr 2009 16:54:33 -0400
-Message-ID: <49D67781.6030807@gmail.com>
-Date: Fri, 03 Apr 2009 22:54:25 +0200
-From: =?UTF-8?B?RXJpayBBbmRyw6lu?= <erik.andren@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20]:46010 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750752AbZDQHPL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Apr 2009 03:15:11 -0400
+Date: Fri, 17 Apr 2009 09:15:12 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	kernel@pengutronix.de,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>,
+	"jongse.won@samsung.com" <jongse.won@samsung.com>,
+	dongsoo45.kim@samsung.com, Hans Verkuil <hverkuil@xs4all.nl>,
+	"Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>
+Subject: Re: [RFC] Making Samsung S3C64XX camera interface driver in SoC
+ camera subsystem
+In-Reply-To: <5e9665e10904170008q51283185g17f203e2bc969f30@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0904170912550.5119@axis700.grange>
+References: <5e9665e10904151712o5fa3076dr85ad12fc7f04914d@mail.gmail.com>
+ <Pine.LNX.4.64.0904162147370.4947@axis700.grange>
+ <5e9665e10904162346g37a29778ub0fd4c9f5c11f1df@mail.gmail.com>
+ <Pine.LNX.4.64.0904170852450.5119@axis700.grange>
+ <5e9665e10904170008q51283185g17f203e2bc969f30@mail.gmail.com>
 MIME-Version: 1.0
-To: Anders Blomdell <anders.blomdell@control.lth.se>
-CC: Andy Shevchenko <andy.shevchenko@gmail.com>,
-	Thomas Kaiser <v4l@kaiser-linux.li>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	Thomas Champagne <lafeuil@gmail.com>,
-	Linux Media <linux-media@vger.kernel.org>,
-	Richard Case <rich@racitup.com>
-Subject: Re: topro 6800 driver
-References: <5ec8ebd50903271106n14f0e2b7m1495ef135be0cd90@mail.gmail.com>	 <49CD2868.9080502@kaiser-linux.li> <5ec8ebd50903311144h316c7e3bmd30ce2c3d5a268ee@mail.gmail.com> <49D4EAB2.4090206@control.lth.se> <49D66C83.6000700@control.lth.se>
-In-Reply-To: <49D66C83.6000700@control.lth.se>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+On Fri, 17 Apr 2009, Dongsoo, Nathaniel Kim wrote:
 
-
-
-Anders Blomdell wrote:
-> New version attached, handles both 640x480 and 320x240, corrected gamma table.
+> Hi Guennadi,
 > 
-> Seems to work OK with mplayer, vlc and https://launchpad.net/python-v4l2-capture
+> On Fri, Apr 17, 2009 at 4:00 PM, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
+> > On Fri, 17 Apr 2009, Dongsoo, Nathaniel Kim wrote:
+> >
+> >> 1. make preview device a video output
+> >> => it makes sense. but codec path also has dedicated DMA to frame buffer.
+> >> What should we do with that? I have no idea by now.
+> >
+> > Add a V4L2_CAP_VIDEO_OVERLAY capability and if the user requests
+> > V4L2_BUF_TYPE_VIDEO_OVERLAY - configure direct output to framebuffer?
+> >
 > 
->  vlc v4l2://dev/video0:width=320:height=240
->  vlc v4l2://dev/video0:width=640:height=480
-> 
-> Jean-Francois: feel free to add this to gspca if it lives up to your standards,
-> otherwise tell me what needs to be changed.
-> 
-> Best regards
-> 
-> /Anders
-> 
-> 
+> OK that's an idea. Then we can use preview as video output device and
+> codec device as a capture device with overlay capability.
 
-Hi Anders,
+Actually, if I interpret the "Camera interface overview" figure (20-1) 
+correctly, both capture and output channels have the overlay capability, 
+so, you can enable it for both of them and configure the respective one 
+accordingly.
 
-Before submitting a driver, please make sure it passes the
-checkpatch.pl script found in the linux/scripts/ folder.
-When I checked the tp6800.c file I got about ~4300 errors.
-This is due to that the file isn't using the indentation used by
-code in the linux tree.
-
-If you first run the Lindent script (found in the same folder) about
-23 errors pop up that need to be corrected. Beware though that
-Lindent sometimes screw up lines so manual inspection of the code is
-needed.
-
-Best regards, / hälsningar,
-Erik
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAknWd4EACgkQN7qBt+4UG0E8LgCfQYON+qQJS7gOjnmF8BqUuuW8
-M8YAoJJroBbk2CXBS+z6qCL6ZU41EOXy
-=RBZP
------END PGP SIGNATURE-----
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
