@@ -1,345 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ara.aytolacoruna.es ([91.117.124.165]:49825 "EHLO
-	mx.aytolacoruna.es" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751051AbZDQW7W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Apr 2009 18:59:22 -0400
-Received: from vip.manty.net (unknown [85.52.197.2])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mx.aytolacoruna.es (Postfix) with ESMTPSA id 224541BC826
-	for <linux-media@vger.kernel.org>; Sat, 18 Apr 2009 00:51:11 +0200 (CEST)
-Date: Sat, 18 Apr 2009 00:51:08 +0200
-From: Santiago Garcia Mantinan <manty@manty.net>
-To: linux-media@vger.kernel.org
-Subject: rtl2830 based freecom dvb-t card
-Message-ID: <20090417225108.GA18028@vip.manty.net>
+Received: from mail.gmx.net ([213.165.64.20]:43327 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754291AbZDQHvR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Apr 2009 03:51:17 -0400
+Date: Fri, 17 Apr 2009 09:51:21 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Magnus Damm <magnus.damm@gmail.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: Re: [PATCH 0/5] soc-camera: convert to platform device
+In-Reply-To: <aec7e5c30904170040p6ec1721aj6885ef16573cd484@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0904170950320.5119@axis700.grange>
+References: <Pine.LNX.4.64.0904151356480.4729@axis700.grange>
+ <aec7e5c30904170040p6ec1721aj6885ef16573cd484@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+On Fri, 17 Apr 2009, Magnus Damm wrote:
 
-I have a Freecom DVB-T USB Stick around, ht has a RTL2830, a MT2060F and a
-CY7C68013A-56LFXC, the card is exaxply like the Freecom DVB-T 14aa:0225 on
-http://www.bttv-gallery.de/ but changes vendor, mine shows 14ff:0225 also
-the same as Yakumo QuickStick Basic DVB-T on
-http://www.svethardware.cz/art_doc-68A7D8BB854EBE54C125723F007253B1.html
+> Hi Guennadi,
+> 
+> On Wed, Apr 15, 2009 at 9:17 PM, Guennadi Liakhovetski
+> <g.liakhovetski@gmx.de> wrote:
+> > This patch series is a preparation for the v4l2-subdev conversion. Please,
+> > review and test. My current patch-stack in the form of a
+> > (manually-created) quilt-series is at
+> > http://www.open-technology.de/download/20090415/ based on linux-next
+> > history branch, commit ID in 0000-base file. Don't be surprised, that
+> > patch-set also contains a few not directly related patches.
+> 
+> Testing on Migo-R board with 2.6.30-rc2-git-something and the
+> following cherry-picked patches:
+> 
+> 0007-driver-core-fix-driver_match_device.patch
+> 0033-soc-camera-host-driver-cleanup.patch
+> 0034-soc-camera-remove-an-extra-device-generation-from-s.patch
+> 0035-soc-camera-simplify-register-access-routines-in-mul.patch
+> and part of 0036 (avoiding rejects, ap325 seems broken btw)
 
-The only difference I appreciated between my card and the ones on those two
-webs is that by the PCB version number they show 0618 on bigger but thinner
-numbers while mine shows 0634.
+Have I broken it or is it unrelated?
 
-I tried to add my usb ids to the driver at
-http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2 but it looks like my first
-approach is wrong, as I get the driver to load when I insert the card but
-it does nothing.
+> It compiles just fine, boots up allright, but I can't open /dev/video0 anymore.
+> 
+> It's still supposed to work with all drivers compiled-in, right?
+> 
+> I'll investigate a bit more and update to latest linux-2.6 git.
 
-This is the diff I made when I tried to add this card id to the driver:
+Ok, if you don't find the reason soon enough, you can just leave it and 
+I'll look at it myself.
 
-diff -r -u rtl2831-r2-c7564e1397d3/linux/drivers/media/dvb/rtl2831/rtd2830u.c rtl2831-r2-c7564e1397d3.mio/linux/drivers/media/dvb/rtl2831/rtd2830u.c
---- rtl2831-r2-c7564e1397d3/linux/drivers/media/dvb/rtl2831/rtd2830u.c	2009-03-05 21:01:32.000000000 +0100
-+++ rtl2831-r2-c7564e1397d3.mio/linux/drivers/media/dvb/rtl2831/rtd2830u.c	2009-04-17 21:31:49.000000000 +0200
-@@ -382,6 +382,7 @@
- 	{USB_DEVICE(USB_VID_COMPRO, USB_PID_COMPRO_WARM)},
- 	{USB_DEVICE(USB_VID_VESTEL, USB_PID_VESTEL_WARM)},
- 	{USB_DEVICE(USB_VID_FREECOM, USB_PID_FREECOM_WARM)},
-+	{USB_DEVICE(USB_VID_FREECOM_2, USB_PID_FREECOM_WARM_2)},
- 	{0},
- };
- 
-@@ -449,6 +450,10 @@
- 		     .cold_ids = {NULL, NULL},
- 		     .warm_ids = {&rtd2831u_usb_table[10], NULL},
- 		     },
-+		    {.name = "Freecom USB 2.0 DVB-T Device",
-+		     .cold_ids = {NULL, NULL},
-+		     .warm_ids = {&rtd2831u_usb_table[11], NULL},
-+		     },
- 		    {NULL},
- 		    }
- };
-diff -r -u rtl2831-r2-c7564e1397d3/linux/drivers/media/dvb/rtl2831/rtd2831u.h rtl2831-r2-c7564e1397d3.mio/linux/drivers/media/dvb/rtl2831/rtd2831u.h
---- rtl2831-r2-c7564e1397d3/linux/drivers/media/dvb/rtl2831/rtd2831u.h	2009-03-05 21:01:32.000000000 +0100
-+++ rtl2831-r2-c7564e1397d3.mio/linux/drivers/media/dvb/rtl2831/rtd2831u.h	2009-04-17 18:11:02.000000000 +0200
-@@ -65,6 +65,9 @@
- #define	USB_VID_FREECOM			0x14AA
- #define	USB_PID_FREECOM_WARM	0x0160
- 
-+#define	USB_VID_FREECOM_2			0x14FF
-+#define	USB_PID_FREECOM_WARM_2	0x0225
-+
- #define RTD2831_URB_SIZE			4096
- #define RTD2831_URB_NUMBER		7
- 
-
-Can somebody please tell me what should I add to test if this card is
-supported with this driver?
-
-In case it means something here is the lsusb -v for the card:
-
-Bus 001 Device 002: ID 14ff:0225  
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass          255 Vendor Specific Class
-  bDeviceSubClass       255 Vendor Specific Subclass
-  bDeviceProtocol       255 Vendor Specific Protocol
-  bMaxPacketSize0        64
-  idVendor           0x14ff 
-  idProduct          0x0225 
-  bcdDevice            0.00
-  iManufacturer           0 
-  iProduct                0 
-  iSerial                 0 
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength          171
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0 
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              100mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           0
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface              0 
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       1
-      bNumEndpoints           6
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x02  EP 2 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x04  EP 4 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x86  EP 6 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x88  EP 8 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       2
-      bNumEndpoints           6
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0040  1x 64 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0040  1x 64 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x02  EP 2 OUT
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x04  EP 4 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x86  EP 6 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x88  EP 8 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       3
-      bNumEndpoints           6
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    255 Vendor Specific Subclass
-      bInterfaceProtocol    255 Vendor Specific Protocol
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x01  EP 1 OUT
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0040  1x 64 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0040  1x 64 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x02  EP 2 OUT
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x04  EP 4 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x86  EP 6 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x88  EP 8 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass          255 Vendor Specific Class
-  bDeviceSubClass       255 Vendor Specific Subclass
-  bDeviceProtocol       255 Vendor Specific Protocol
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
-
-Thanks in advance!
-
-Regards.
-
-PS: Please reply to me as I'm not on the list.
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
