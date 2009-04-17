@@ -1,91 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-12.arcor-online.net ([151.189.21.52]:50538 "EHLO
-	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752391AbZDFBxN (ORCPT
+Received: from zone0.gcu-squad.org ([212.85.147.21]:20241 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751228AbZDQUdi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Apr 2009 21:53:13 -0400
-Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
-	model
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Andy Walls <awalls@radix.net>
-Cc: Jean Delvare <khali@linux-fr.org>, Janne Grunau <j@jannau.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mike Isely <isely@pobox.com>, isely@isely.net,
-	LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jarod Wilson <jarod@redhat.com>
-In-Reply-To: <1238968804.4647.22.camel@morgan.walls.org>
-References: <20090404142427.6e81f316@hyperion.delvare>
-	 <Pine.LNX.4.64.0904041045380.32720@cnc.isely.net>
-	 <20090405010539.187e6268@hyperion.delvare>
-	 <200904050746.47451.hverkuil@xs4all.nl> <20090405143748.GC10556@aniel>
-	 <1238953174.3337.12.camel@morgan.walls.org> <20090405183154.GE10556@aniel>
-	 <1238957897.3337.50.camel@morgan.walls.org>
-	 <20090405222250.64ed67ae@hyperion.delvare>
-	 <1238966523.6627.63.camel@pc07.localdom.local>
-	 <1238968804.4647.22.camel@morgan.walls.org>
-Content-Type: text/plain
-Date: Mon, 06 Apr 2009 03:49:57 +0200
-Message-Id: <1238982597.3697.12.camel@pc07.localdom.local>
+	Fri, 17 Apr 2009 16:33:38 -0400
+Received: from jdelvare.pck.nerim.net ([62.212.121.182] helo=hyperion.delvare)
+	by services.gcu-squad.org (GCU Mailer Daemon) with esmtpsa id 1Luvpx-0000qB-Vf
+	(TLSv1:AES256-SHA:256)
+	(envelope-from <khali@linux-fr.org>)
+	for linux-media@vger.kernel.org; Fri, 17 Apr 2009 23:43:06 +0200
+Date: Fri, 17 Apr 2009 22:33:30 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: LMML <linux-media@vger.kernel.org>
+Subject: [PATCH 5/6] saa7134: Simplify handling of IR on MSI TV@nywhere Plus
+Message-ID: <20090417223330.441162e6@hyperion.delvare>
+In-Reply-To: <20090417222927.7a966350@hyperion.delvare>
+References: <20090417222927.7a966350@hyperion.delvare>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Now that we instantiate I2C IR devices explicitly, we can skip probing
+altogether on boards where the I2C IR device address is known. The MSI
+TV@nywhere Plus is one of these boards.
 
-Hi Andy,
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ linux/drivers/media/video/saa7134/saa7134-input.c |   28 +++++++++++----------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
-Am Sonntag, den 05.04.2009, 18:00 -0400 schrieb Andy Walls:
-> On Sun, 2009-04-05 at 23:22 +0200, hermann pitton wrote:
-> > Am Sonntag, den 05.04.2009, 22:22 +0200 schrieb Jean Delvare:
-> > > On Sun, 05 Apr 2009 14:58:17 -0400, Andy Walls wrote:
-> 
-> 
-> > What can not be translated to the input system I would like to know.
-> > Andy seems to have closer looked into that.
-> 
-> 1. IR blasting: sending IR codes to transmit out to a cable convertor
-> box, DTV to analog convertor box, or similar devices to change channels
-> before recording starts.  An input interface doesn't work well for
-> output.
-> 
-> 2. Sending raw IR samples to user space: user space applications can
-> then decode or match an unknown or non-standard IR remote protocol in
-> user space software.  Timing information to go along with the sample
-> data probably needs to be preserved.   I'm assuming the input interface
-> currently doesn't support that.
-> 
-> That's all the Gerd mentioned.
-> 
-> 
-> One more nice feature to have, that I'm not sure how easily the input
-> system could support:
-> 
-> 3. specifying remote control code to key/button translations with a
-> configuration file instead of recompiling a module.
-> 
-> In effect there are actually two devices the ir-kbd-i2c input driver is
-> supporting in various combinations: an IR receiver and an IR remote.
-> 
-> 
-> Regards,
-> Andy
-> 
+--- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-input.c	2009-04-17 14:53:35.000000000 +0200
++++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-input.c	2009-04-17 15:10:55.000000000 +0200
+@@ -692,9 +692,6 @@ void saa7134_probe_i2c_ir(struct saa7134
+ 		I2C_CLIENT_END
+ 	};
+ 
+-	const unsigned short addr_list_msi[] = {
+-		0x30, I2C_CLIENT_END
+-	};
+ 	struct i2c_msg msg_msi = {
+ 		.addr = 0x50,
+ 		.flags = I2C_M_RD,
+@@ -748,6 +745,15 @@ void saa7134_probe_i2c_ir(struct saa7134
+ 		init_data.name = "MSI TV@nywhere Plus";
+ 		init_data.get_key = get_key_msi_tvanywhere_plus;
+ 		init_data.ir_codes = ir_codes_msi_tvanywhere_plus;
++		info.addr = 0x30;
++		/* MSI TV@nywhere Plus controller doesn't seem to
++		   respond to probes unless we read something from
++		   an existing device. Weird...
++		   REVISIT: might no longer be needed */
++		rc = i2c_transfer(&dev->i2c_adap, &msg_msi, 1);
++		dprintk(KERN_DEBUG "probe 0x%02x @ %s: %s\n",
++			msg_msi.addr, dev->i2c_adap.name,
++			(1 == rc) ? "yes" : "no");
+ 		break;
+ 	case SAA7134_BOARD_HAUPPAUGE_HVR1110:
+ 		init_data.name = "HVR 1110";
+@@ -767,18 +773,14 @@ void saa7134_probe_i2c_ir(struct saa7134
+ 
+ 	if (init_data.name)
+ 		info.platform_data = &init_data;
+-	client = i2c_new_probed_device(&dev->i2c_adap, &info, addr_list);
+-	if (client)
++	/* No need to probe if address is known */
++	if (info.addr) {
++		i2c_new_device(&dev->i2c_adap, &info);
+ 		return;
++	}
+ 
+-	/* MSI TV@nywhere Plus controller doesn't seem to
+-	   respond to probes unless we read something from
+-	   an existing device. Weird... */
+-	rc = i2c_transfer(&dev->i2c_adap, &msg_msi, 1);
+-	dprintk(KERN_DEBUG "probe 0x%02x @ %s: %s\n",
+-		msg_msi.addr, dev->i2c_adap.name,
+-		(1 == rc) ? "yes" : "no");
+-	client = i2c_new_probed_device(&dev->i2c_adap, &info, addr_list_msi);
++	/* Address not known, fallback to probing */
++	client = i2c_new_probed_device(&dev->i2c_adap, &info, addr_list);
+ 	if (client)
+ 		return;
+ 
 
-you always end up with something transmitting series of 0s and 1s.
-
-It does not matter if the medium is infrared, infradead ;), wireless or
-whats or ever.
-
-If it spares a chip for the remote and you have to get it from IRQs
-triggered, you have to do that.
-
-It could also be some voltage change, a ultrasound beeper or what ever.
-
-The first place for such is the input layer and nothing out of the
-kernel.
-
-Cheers,
-Hermann
-
-
+-- 
+Jean Delvare
