@@ -1,105 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55490 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753854AbZDVI1y convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1330 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755270AbZDQSSt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Apr 2009 04:27:54 -0400
-From: "Shah, Hardik" <hardik.shah@ti.com>
-To: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
-Date: Wed, 22 Apr 2009 13:57:40 +0530
-Subject: RE: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03051F7FCB@dbde02.ent.ti.com>
-In-Reply-To: <1240388578.12545.14.camel@tubuntu>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+	Fri, 17 Apr 2009 14:18:49 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id n3HIIlZS008072
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 17 Apr 2009 20:18:48 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 17 Apr 2009 20:18:47 +0200 (CEST)
+Message-Id: <200904171818.n3HIIlZS008072@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
+Results of the daily build of v4l-dvb:
 
-> -----Original Message-----
-> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> Sent: Wednesday, April 22, 2009 1:53 PM
-> To: Shah, Hardik
-> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Jadav, Brijesh R;
-> Hiremath, Vaibhav
-> Subject: Re: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
-> 
-> Hi,
-> 
-> On Wed, 2009-04-22 at 08:25 +0200, ext Hardik Shah wrote:
-> > This is the version 5th of the Driver.
-> >
-> > Following are the features supported.
-> > 1. Provides V4L2 user interface for the video pipelines of DSS
-> > 2. Basic streaming working on LCD and TV.
-> > 3. Support for various pixel formats like YUV, UYVY, RGB32, RGB24, RGB565
-> > 4. Supports Alpha blending.
-> > 5. Supports Color keying both source and destination.
-> > 6. Supports rotation with RGB565 and RGB32 pixels formats.
-> > 7. Supports cropping.
-> > 8. Supports Background color setting.
-> > 9. Works on latest DSS2 library from Tomi
-> > http://www.bat.org/~tomba/git/linux-omap-dss.git/
-> > 10. 1/4x scaling added.  Detail testing left
-> >
-> > TODOS
-> > 1. Ioctls needs to be added for color space conversion matrix
-> > coefficient programming.
-> > 2. To be tested on DVI resolutions.
-> >
-> > Comments fixed from community.
-> > 1. V4L2 Driver for OMAP3/3 DSS.
-> > 2.  Conversion of the custom ioctls to standard V4L2 ioctls like alpha
-> blending,
-> > color keying, rotation and back ground color setting
-> > 3.  Re-organised the code as per community comments.
-> > 4.  Added proper copyright year.
-> > 5.  Added module name in printk
-> > 6.  Kconfig option copy/paste error
-> > 7.  Module param desc addded.
-> > 8.  Query control implemented using standard query_fill
-> > 9.  Re-arranged if-else constructs.
-> > 10. Changed to use mutex instead of semaphore.
-> > 11. Removed dual usage of rotation angles.
-> > 12. Implemented function to convert the V4L2 angle to DSS angle.
-> > 13. Y-position was set half by video driver for TV output
-> > Now its done by DSS so removed that.
-> > 14. Minor cleanup
-> > 15. Added support to pass the page offset to application.
-> > 14. Minor cleanup
-> > 15. Added support to pass the page offset to application.
-> > 16. Renamed V4L2_CID_ROTATION to V4L2_CID_ROTATE
-> > 17. Major comment from Hans fixed.
-> > 18. Copy right year changed.
-> > 19. Added module name for each error/warning print message.
-> >
-> > Changes from Previous Version.
-> > 1. Supported YUV rotation.
-> > 2. Supported Flipping.
-> > 3. Rebased line with Tomi's latest DSS2 master branch with commit  id
-> > f575a02edf2218a18d6f2ced308b4f3e26b44ce2.
-> > 4. Kconfig option removed to select between the TV and LCD.
-> > Now supported dynamically by DSS2 library.
-> > 5. Kconfig option for the NTSC_M and PAL_BDGHI mode but not
-> > supported by DSS2.  so it will not work now.
-> 
-> There is basic support for this. See the DSS doc:
-> 
-> /sys/devices/platform/omapdss/display? directory:
-> ...
-> timings         Display timings (pixclock,xres/hfp/hbp/hsw,yres/vfp/vbp/vsw)
->                 When writing, two special timings are accepted for tv-out:
->                 "pal" and "ntsc"
-[Shah, Hardik] I was not aware of it will remove the compile time option and for now let the sysfs entry change the standard.  In future I will try to do it with the S_STD and G_STD ioctls of the V4L2 framework.
-> 
->  Tomi
-> 
-> 
+date:        Fri Apr 17 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11516:6ce311bdeee0
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
+
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-rc1-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29.1-armv5-ixp: OK
+linux-2.6.30-rc1-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: OK
+linux-2.6.30-rc1-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-rc1-m32r: OK
+linux-2.6.22.19-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29.1-mips: OK
+linux-2.6.30-rc1-mips: WARNINGS
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29.1-powerpc64: OK
+linux-2.6.30-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-rc1-x86_64: WARNINGS
+fw/apps: OK
+sparse (linux-2.6.29.1): OK
+sparse (linux-2.6.30-rc1): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
