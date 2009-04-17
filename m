@@ -1,22 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from www.viadmin.org ([195.145.128.101])
+Received: from corsa.pop-pr.rnp.br ([200.238.128.2])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <henrik-dvb@prak.org>) id 1LslX5-0006NK-Oq
-	for linux-dvb@linuxtv.org; Sun, 12 Apr 2009 00:18:40 +0200
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by www.viadmin.org (Postfix) with ESMTP id C6B9113415
-	for <linux-dvb@linuxtv.org>; Sun, 12 Apr 2009 00:18:05 +0200 (CEST)
-Received: from www.viadmin.org ([127.0.0.1])
-	by localhost (www.viadmin.org [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id WX+FWvobzdyD for <linux-dvb@linuxtv.org>;
-	Sun, 12 Apr 2009 00:17:41 +0200 (CEST)
-Date: Sun, 12 Apr 2009 00:17:40 +0200
-From: "H. Langos" <henrik-dvb@prak.org>
+	(envelope-from <lyra@pop-pr.rnp.br>) id 1LutpR-0008Dv-5r
+	for linux-dvb@linuxtv.org; Fri, 17 Apr 2009 21:34:27 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by corsa.pop-pr.rnp.br (Postfix) with ESMTP id E4AAB42205
+	for <linux-dvb@linuxtv.org>; Fri, 17 Apr 2009 16:33:46 -0300 (BRT)
+Received: from corsa.pop-pr.rnp.br ([127.0.0.1])
+	by localhost (corsa.pop-pr.rnp.br [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 04387-04 for <linux-dvb@linuxtv.org>;
+	Fri, 17 Apr 2009 16:33:44 -0300 (BRT)
+Received: from viper.pop-pr.rnp.br (viper.pop-pr.rnp.br [200.238.128.25])
+	by corsa.pop-pr.rnp.br (Postfix) with ESMTP id 68CA242204
+	for <linux-dvb@linuxtv.org>; Fri, 17 Apr 2009 16:33:44 -0300 (BRT)
+From: Christian Lyra <lyra@pop-pr.rnp.br>
 To: linux-dvb@linuxtv.org
-Message-ID: <20090411221740.GB12581@www.viadmin.org>
+Date: Fri, 17 Apr 2009 16:33:54 -0300
 MIME-Version: 1.0
 Content-Disposition: inline
-Subject: [linux-dvb] DVB-T USB dib0700 device recomendations?
+Message-Id: <200904171633.54211.lyra@pop-pr.rnp.br>
+Subject: [linux-dvb] Current state of DVB-C support
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -25,41 +28,49 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I've been trying to minimize energy consumption and noise on my vdr system.
-One of the most important factors apart from a hardware pid filter seems to
-be the usb buffer size. I've collected some data about that on my wiki user 
-page: http://www.linuxtv.org/wiki/index.php/User:Hlangos
-
-Greping through the sources I've seen that the dib0700 driver uses a HUGE
-usb buffer of 39480 bytes. This looks very promising. But before running 
-out in the street and buying the first dib0700 device I'd like to know if 
-there are any devices that are 
-
-- especially good (sensitive reception, fast switch time, sensible tuner 
-  data (usable for comparing different antennas) and so on)
-
-or 
-
-- especially bad (invers of the above plus hardware bugs, annoyances and so
-  on..)
-
-any feedback is appreciated. 
-
-cheers
--henrik
-
-PS: A "full" remote (not one of those pesky credit card sized things that get 
-eaten by the hoover) would be a plus. 
-
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SGkgdGhlcmUsCgoJScK0ZCBsaWtlIHRvIHNoYXJlIHdpdGggeW91IG15IHJlY2VudCBleHBlcmll
+bmNlIHdpdGggRFZCLUMgY2FyZHMgYW5kIGEgCkJyYXppbGlhbiBQcm92aWRlci4KCQoJTXkgZmly
+c3QgYXR0ZW1wdCB0byB1c2UgYSBEVkItQyB3YXMgd2l0aCBhIEtOQzEgY2FyZC4gSSBqdXN0IGhh
+ZCB0byAKZG93bmxvYWQgdGhlIGxhdGVzdCBzb3VyY2UgZnJvbSBkdmIgcmVwb3NpdG9yeSwgY29t
+cGlsZSBhbmQgaW5zdGFsbC4gClRoZSBjYXJkIHdhcyBpZGVudGlmaWVkLCBJIGNvdWxkIHNjYW4g
+Y2hhbm5lbHMgYW5kIHdhdGNoIFRWLiBCVVQgc29tZSAKY2hhbm5lbHMgd29ya3MgdmVyeSBiYWRs
+eSwgYXMgdGhlIGNhcmQgY291bGRudCBsb2NrIHByb3Blcmx5IG9uIGEgZmV3IAp0cmFuc3BvbmRl
+cnMgKDMwOW1oeiBhbmQgMzIxbWh6KS4gUnVubmluZyBhIGN6YXAgb24gdGhvc2UgY2hhbm5lbHMg
+CnNob3dzIHRoYXQgdGhlIGNhcmQga2VlcCAibG9ja2luZyIgYW5kIGxvb3NpbmcgdGhlIGxvY2su
+CglJIHRob3VnaHQgdGhhdCB0aGUgcHJvYmxlbSBjb3VsZCBiZSBzb21ldGhpbmcgd2l0aCBteSBj
+YWJsaW5nLCBzbyBJIAp0cmllZCBteSBjYXJkIGF0IGEgZnJpZW5kwrRzIGhvdXNlIHdpdGggdGhl
+IHNhbWUgcmVzdWx0cy4gSSBhbHNvIHRyaWVkIGEgCmF0dGVudWF0b3IsIGJ1dCB3aXRob3V0IHN1
+Y2Nlc3MgdG9vLgoJICAKCU9uIG15IHNlY29uZCBhdHRlbXB0IEkgYm91Z2h0IGEgdHdpbmhhbiBD
+QUIgY2kgY2FyZC4gQ2FyZCBpZGVudGlmaWVkLCAKYnV0IHNjYW4gZGlkbnQgd29ya2VkLiBTb21l
+IGdvb2dsZWluZyBsYXRlciwgSSBnb3QgaXQgd29ya2luZyBieSAKY29tbWVudGluZyB0aGUgbGlu
+ZSAxMzYwIGluIGRzdC5jICghKHN0YXRlLT5kc3RfdHlwZSA9PSAKRFNUX1RZUEVfSVNfQ0FCTEUp
+ICYmKS4gVG8gbXkgc3VycHJpc2UgdGhpcyBjYXJkIGhhcyBOTyBwcm9ibGVtIGxvY2tpbmcgCm9u
+IDMwOW1oeiBhbmQgMzIxbWh6IGNoYW5uZWxzLiBJdCBzZWVtcyB0byB0YWtlIGEgbGl0dGxlIGxv
+bmdlciB0byAKbG9jay9jaGFuZ2luZyBjaGFubmVscyBjb21wYXJlZCB0byBteSB0d2luaGFuIERW
+Qi1TIGNhcmQgKEnCtG0gY29tcGFyaW5nIAphcHBsZXMgYW5kIG9yYW5nZXMsIHJpZ2h0PyksIGJ1
+dCBzbyBmYXIgaXTCtHMgd29ya2luZyBvay4KCglNeSB0aGlyZCBhdHRlbXB0IHdhcyB3aXRoIGEg
+dGVjaG5pc2F0IGNhYmxlc3RhciBIRDIgY2FyZC4gSSB1c2VkIHRoZSAKbWFudGlzIHJlcG9zaXRv
+cnkgdG8gZ2V0IHRoZSBjYXJkIHdvcmtpbmcgKGlzIHRoZSBtYW50aXMgZHJpdmVyIGFscmVhZHkg
+Cm1lcmdlZCB3aXRoIHY0bC1kdmI/KS4gQWdhaW4sIEkgY2FuIHNjYW4gY2hhbm5lbHMsIGJ1dCB0
+aGUgY2FyZCBjb3VsZCAKbm90ICBsb2NrIG9uIHRob3NlIFRyYW5zcG9uZGVycy4gSW4gZmFjdCBp
+dCBhbHNvIHRha2UgYSBsb3QgbG9uZ2VyIHRvIApsb2NrIG9uIGEgY2hhbm5lbCwgYnV0IGFmdGVy
+IGl0IGdvdCBhIGxvY2ssIGl0IHdvcmtzIHJpZ2h0LgoKCVNpbmNlIHR3aW5oYW4gd29ya3MgZmlu
+ZSwgSSBzdXBvc2UgdGhhdCB0aGVyZcK0cyBubyBwcm9ibGVtIHdpdGggbXkgCmNhYmxlL3NwbGl0
+dGVyLiBBbHNvLCBJIHN1cG9zZSB0aGF0IHRoZSBjaGFuY2Ugb2YgdHdvIGRpc2N0aW5jdCBicm9r
+ZW4gCnR1bmVycyBpcyBsb3cuIEEgcmVjZW50IHRocmVhZCBvbiBUVC0xNTAxIHNob3dzIHRoYXQs
+IGlmIEkgdW5kZXJzdG9vZCAKaXQgcmlnaHQsIHRoZXJlwrRzIGEga2luZCBvZiB0YWJsZSB3aGVy
+ZSBhIHBvd2VyIGxldmVsIGlzIHNldCB0byBlYWNoIApmcmVxdWVuY3kgcmFuZ2UuIElzIGl0IHBv
+c3NpYmxlIHRoYXQgbXkgdHdvIGNhcmRzIGRpZG50IHdvcmtlZCBvbiB0aG9zZSAKZXNwZWNpZiB0
+cmFuc3BvcmRlcnMgYmVjYXVzZSBvZiB0aGlzIGtpbmQgb2Ygc2V0dGluZz8gCgoJScK0bSBub3Qg
+YSBkZXYsIGJ1dCBJIHdvdWxkIGxpa2UgdG8gaGVscCB0byBkZWJ1ZyB0aGlzLiBIb3cgY2FuIEkg
+aGVscD8KCi0tIApDaHJpc3RpYW4gTHlyYQpQT1AtUFIgLSBSTlAKCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiB1c2VycyBtYWlsaW5nIGxp
+c3QKRm9yIFY0TC9EVkIgZGV2ZWxvcG1lbnQsIHBsZWFzZSB1c2UgaW5zdGVhZCBsaW51eC1tZWRp
+YUB2Z2VyLmtlcm5lbC5vcmcKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0
+di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
