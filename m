@@ -1,47 +1,303 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:46690 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752382AbZDRJZe (ORCPT
+Received: from mk-outboundfilter-6.mail.uk.tiscali.com ([212.74.114.14]:64699
+	"EHLO mk-outboundfilter-6.mail.uk.tiscali.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750944AbZDQWNx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Apr 2009 05:25:34 -0400
-Date: Sat, 18 Apr 2009 11:25:19 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Mike Isely <isely@pobox.com>
-Cc: isely@isely.net, LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 2/6] ir-kbd-i2c: Switch to the new-style device binding
-  model
-Message-ID: <20090418112519.774e0dae@hyperion.delvare>
-In-Reply-To: <Pine.LNX.4.64.0904171831300.19718@cnc.isely.net>
-References: <20090417222927.7a966350@hyperion.delvare>
-	<20090417223105.28b8957e@hyperion.delvare>
-	<Pine.LNX.4.64.0904171831300.19718@cnc.isely.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Fri, 17 Apr 2009 18:13:53 -0400
+From: Adam Baker <linux@baker-net.org.uk>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: libv4l release: 0.5.97: the whitebalance release!
+Date: Fri, 17 Apr 2009 23:13:47 +0100
+Cc: Hans de Goede <j.w.r.degoede@hhs.nl>,
+	Linux and Kernel Video <video4linux-list@redhat.com>,
+	SPCA50x Linux Device Driver Development
+	<spca50x-devs@lists.sourceforge.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <49E5D4DE.6090108@hhs.nl> <200904162146.59742.linux@baker-net.org.uk> <49E843CB.6050306@redhat.com>
+In-Reply-To: <49E843CB.6050306@redhat.com>
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_b8P6JUBmBxooesw"
+Message-Id: <200904172313.47532.linux@baker-net.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mike,
+--Boundary-00=_b8P6JUBmBxooesw
+Content-Type: text/plain;
+  charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Fri, 17 Apr 2009 18:35:55 -0500 (CDT), Mike Isely wrote:
-> I thought we were going to leave the pvrusb2 driver out of this since 
-> I've already got a change ready that also includes additional logic to 
-> take into account the properties of the hardware device (i.e. only 
-> activate ir-kbd-i2c when we know it has a chance of working).
+On Friday 17 Apr 2009, Hans de Goede wrote:
+> > I've tested it by plugging in the sq905 camera, verifying the
+> > whitebablance control is present and working, unplugging the sq905 and
+> > plugging in the pac207 and using up arrow to restart v4l2ucp and svv so I
+> > think I've eliminated most finger trouble possibilities. The pac207 is id
+> > 093a:2460 so not the problem id. I'll have to investigate more thoroughly
+> > later.
+>
+> Does the pac207 perhaps have a / in its "card" string (see v4l-info output)
+> ? if so try out this patch:
+> http://linuxtv.org/hg/~hgoede/libv4l/rev/1e08d865690a
+>
 
-Hmm, I thought that our latest discussions had (at least partly)
-obsoleted your patches. Remember that we want to always instantiate
-ir_video I2C devices even when ir-kbd-i2c can't driver them, otherwise
-lirc won't be able to bind to the devices in question as soon as the
-legacy binding model is gone. So the conditionals in your second patch
-(which is all that makes it differ from mine) are no longer desirable.
+No, no / in the device name.
 
-I'll work on lirc patches today or tomorrow, so that lirc doesn't break
-when my patches hit mainline.
+I've tried enabling the logging option in libv4l while running v4l2-ctl -l to 
+list the controls present on each camera but I can't see any significant 
+looking differences in the log other than the the fact the sq905 seems to get 
+many more unsuccessful VIDIOC_QUERYCTRL requests. Unless you have a better 
+idea my next step would be to extend the logging to include the parameters on 
+the VIDIOC_QUERYCTRL ioctls, however my gut feel is that it is related the 
+camera having controls that have CIDs both lower and higher than the ones 
+libv4l adds and libv4l doesn't do anything with the driver returned values if 
+V4L2_CTRL_FLAG_NEXT_CTRL is set.
 
-Your first patch is still interesting but it is independent from my own
-patches, so it can be merged before or after, it doesn't matter.
+Adam
 
--- 
-Jean Delvare
+
+--Boundary-00=_b8P6JUBmBxooesw
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="v4l2-ctl.sq905"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="v4l2-ctl.sq905"
+
+            normalize_low_bound (int)  : min=0 max=127 step=1 default=0 value=0
+                   whitebalance (bool) : default=1 value=1
+                      normalize (bool) : default=0 value=0
+           normalize_high_bound (int)  : min=128 max=255 step=1 default=255 value=255
+
+--Boundary-00=_b8P6JUBmBxooesw
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="v4l2-ctl.pac207"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="v4l2-ctl.pac207"
+
+                     brightness (int)  : min=0 max=255 step=1 default=4 value=4
+                       exposure (int)  : min=5 max=26 step=1 default=5 value=5
+                      auto_gain (bool) : default=1 value=1
+                           gain (int)  : min=0 max=31 step=1 default=9 value=9
+
+--Boundary-00=_b8P6JUBmBxooesw
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="libv4l2.log.sq905"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="libv4l2.log.sq905"
+
+libv4l2: open: 3
+libv4l2: open 3: setting pixelformat to RGB24
+VIDIOC_S_FMT app requesting: RGB3
+VIDIOC_S_FMT converting from: BA81
+request == VIDIOC_S_FMT
+  pixelformat: RGB3 320x240
+  field: 1 bytesperline: 960 imagesize230400
+  colorspace: 8, priv: 0
+result == 0
+libv4l2: open 3: done setting pixelformat
+request == VIDIOC_QUERYCAP
+result == 0
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == 0
+request == VIDIOC_QUERYCTRL
+result == 0
+request == VIDIOC_QUERYCTRL
+result == 0
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == 0
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == 0
+request == VIDIOC_G_CTRL
+result == 0
+request == VIDIOC_QUERYCTRL
+result == 0
+request == VIDIOC_G_CTRL
+result == 0
+request == VIDIOC_QUERYCTRL
+result == 0
+request == VIDIOC_G_CTRL
+result == 0
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == 0
+request == VIDIOC_G_CTRL
+result == 0
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+libv4l2: v4l2 unknown munmap 0xb806d000, 4096
+libv4l2: close: 3
+
+--Boundary-00=_b8P6JUBmBxooesw
+Content-Type: text/plain;
+  charset="UTF-8";
+  name="libv4l2.log.pac207"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="libv4l2.log.pac207"
+
+libv4l2: open: 3
+libv4l2: open 3: setting pixelformat to RGB24
+VIDIOC_S_FMT app requesting: RGB3
+VIDIOC_S_FMT converting from: P207
+request == VIDIOC_S_FMT
+  pixelformat: RGB3 352x288
+  field: 1 bytesperline: 1056 imagesize304128
+  colorspace: 8, priv: 0
+result == 0
+libv4l2: open 3: done setting pixelformat
+request == VIDIOC_QUERYCAP
+result == 0
+request == VIDIOC_QUERYCTRL
+result == 0
+request == VIDIOC_QUERYCTRL
+result == 0
+request == VIDIOC_QUERYCTRL
+result == 0
+request == VIDIOC_QUERYCTRL
+result == 0
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+request == VIDIOC_QUERYCTRL
+result == 0
+request == VIDIOC_G_CTRL
+result == 0
+request == VIDIOC_QUERYCTRL
+result == 0
+request == VIDIOC_G_CTRL
+result == 0
+request == VIDIOC_QUERYCTRL
+result == 0
+request == VIDIOC_G_CTRL
+result == 0
+request == VIDIOC_QUERYCTRL
+result == 0
+request == VIDIOC_G_CTRL
+result == 0
+request == VIDIOC_QUERYCTRL
+result == -1 (Invalid argument)
+libv4l2: v4l2 unknown munmap 0xb7ef2000, 4096
+libv4l2: close: 3
+
+--Boundary-00=_b8P6JUBmBxooesw--
