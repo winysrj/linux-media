@@ -1,21 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3KFCZpx012800
-	for <video4linux-list@redhat.com>; Mon, 20 Apr 2009 11:12:35 -0400
-Received: from web88206.mail.re2.yahoo.com (web88206.mail.re2.yahoo.com
-	[206.190.37.221])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n3KFCI6J018311
-	for <video4linux-list@redhat.com>; Mon, 20 Apr 2009 11:12:18 -0400
-Message-ID: <133336.82215.qm@web88206.mail.re2.yahoo.com>
-References: <49EC7CBF.2070109@xnet.com>
-Date: Mon, 20 Apr 2009 08:12:18 -0700 (PDT)
-From: Dwaine Garden VE3GIF <dwainegarden@rogers.com>
-To: stuart <stuart@xnet.com>, video4linux-list@redhat.com
-In-Reply-To: <49EC7CBF.2070109@xnet.com>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3HKQMvC024948
+	for <video4linux-list@redhat.com>; Fri, 17 Apr 2009 16:26:22 -0400
+Received: from web57905.mail.re3.yahoo.com (web57905.mail.re3.yahoo.com
+	[68.142.236.98])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n3HKQ2kt014434
+	for <video4linux-list@redhat.com>; Fri, 17 Apr 2009 16:26:03 -0400
+Message-ID: <43804.19322.qm@web57905.mail.re3.yahoo.com>
+References: <804291.57323.qm@web57901.mail.re3.yahoo.com>
+	<49E7E794.30604@rogers.com>
+Date: Fri, 17 Apr 2009 13:26:01 -0700 (PDT)
+From: Harol Hunter <hawk_eyes80@yahoo.com.mx>
+To: CityK <cityk@rogers.com>
+In-Reply-To: <49E7E794.30604@rogers.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-33054529-1240240338=:82215"
-Cc: 
-Subject: Re: Where is the v4l remote howto?  (kworld 110)
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: ATI TV Wonder PCI
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,203 +30,64 @@ Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
 
---0-33054529-1240240338=:82215
-Content-Type: text/plain; charset=us-ascii
+Harol Hunter wrote:
 
-Here is the original patch that I had.  It worked, just the repeat keys did not work.   It has not been compiled against a recent kernel though, so it might need to small patching to compile.
+>>> I have an ATI TV Wonder 550 PCI card and I can't make linux recognize it properly. I've been googling a
+>>> lot with no result. Here I let you my lscpi results:
+>>>
+>>> 01:0b.0 Multimedia controller [0480]: ATI Technologies Inc Theater 550 PRO PCI [ATI TV Wonder 550] [1002:4d52]
+>>>     Subsystem: ATI Technologies Inc Unknown device [1002:a346]
+>>>
+>>> ....
+>>>
+>>> I read that I have to load the right modules for it and this is what I've done 'till now 
+>>> $ sudo modprobe bttv card=63 tuner=44 radio=1
+>>> and with no parameters also. Bttv loads properly but still won't recognize the cards. Am I doing anything
+>>> wrong or it's just my card. I must say I can watch TV on
+>>> Windows with this very same card
+>> You will find that ATI / AMD named almost all their tuners "ATI
+>> Wonder" making it very difficult to distinguish which
+>> is which 
+>> ....
+>> evidence that your card might not work can be found
+>> here ... Ah, here's the coffin nail (search for your 550 card):
+>> http://www.linuxtv.org/wiki/index.php/ATI/AMD 
+>
+> about my card as I say it's an ATI TV
+> Wonder 550 PCI, reading CARDLIST.bttv in kernel Doc I found
+> out it's supported by bttv driver so I thought it might
+> be easy to configure, but the real problem is that even when
+> then kernel sees the card it wont recognize it, anyone who
+> has had this problem?
+>  
+
+
+Harol,
+
+you have misunderstood -- your card is NOT supported.  Your device does
+not use one of the PCI bridges supported by the bttv driver .  Your card
+uses the Theater 550 Pro as its PCI bridge (as well as for some other
+functions; A/V decoding, MPEG2 encoding) , and there is no driver for
+that IC; and, consequently, no support for your card.
+
+As an FYI, look again at the bttv card list and you will see that the
+subsystem ID for entry 63 is different from your own card (which you
+will see listed above in the output of lspci you generated;
+specifically:[1002:a346]).  Also take note of the pertinent information
+that Stuart previously provided and which I have included above in the
+quotation.
+
+
+That explains a lot, so my card it's not supported by bttv driver, I'm quite disappointed. I guess I'll have to install a Virtual Machine with XP just to watch TV on my Linux,  thanks for your help anyway people.
+
+Saludos
+Harol
 
 
 
-
-
-
-________________________________
-From: stuart <stuart@xnet.com>
-To: video4linux-list@redhat.com
-Sent: Monday, April 20, 2009 9:46:39 AM
-Subject: Where is the v4l remote howto?  (kworld 110)
-
-
-Hi...
-
-Remote control for tuner cards appears dicey and a bit confusing.  My impression is that it's no were near as rock solid as the efforts here (@ v4l) to support the tuner portion of the cards.  So I've always been willing to put in some work.  When I used an analog happauge tuner card I went to some length to get lirc working.  Now as I switch to digital, I find my self wanting to use an old but well supported kworld 110 ATSC tuner.  I assume this means I will be using v4l keyboard events instead of the lirc kernel modules.  However, I've not found a good source of information as to how to go about this.  It's more likely I haven't googled properly.  Can anyone point me in the right direction?
-
-...thanks
-
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
-
---0-33054529-1240240338=:82215
-Content-Type: application/octet-stream; name="kworld-atsc110-ir-remote.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="kworld-atsc110-ir-remote.patch"
-
-ZGlmZiAtVSAzIC1IIC1kIC1yIC1OIC0tIGEvbGludXgvZHJpdmVycy9tZWRp
-YS9jb21tb24vaXIta2V5bWFwcy5jIGIvbGludXgvZHJpdmVycy9tZWRpYS9j
-b21tb24vaXIta2V5bWFwcy5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEv
-Y29tbW9uL2lyLWtleW1hcHMuYwkyMDA3LTAxLTEzIDE2OjU5OjI4LjAwMDAw
-MDAwMCAtMDUwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL2NvbW1vbi9p
-ci1rZXltYXBzLmMJMjAwNy0wMS0xMyAxNzowNTowMy4wMDAwMDAwMDAgLTA1
-MDAKQEAgLTE4MjgsMyArMTgyOCw1NyBAQAogfTsKIAogRVhQT1JUX1NZTUJP
-TF9HUEwoaXJfY29kZXNfdHRfMTUwMCk7CisKK0lSX0tFWVRBQl9UWVBFIGly
-X2NvZGVzX2t3b3JsZF9hdHNjMTEwW0lSX0tFWVRBQl9TSVpFXSA9IHsKKyAg
-ICAgICAgWyAweDAgXSA9IEtFWV8xLAorICAgICAgICBbIDB4MSBdID0gS0VZ
-XzIsCisgICAgICAgIFsgMHgyIF0gPSBLRVlfMywKKyAgICAgICAgWyAweDMg
-XSA9IEtFWV80LAorICAgICAgICBbIDB4NCBdID0gS0VZXzUsCisgICAgICAg
-IFsgMHg1IF0gPSBLRVlfNiwKKyAgICAgICAgWyAweDYgXSA9IEtFWV83LAor
-ICAgICAgICBbIDB4NyBdID0gS0VZXzgsCisgICAgICAgIFsgMHg4IF0gPSBL
-RVlfOSwKKyAgICAgICAgWyAweGEgXSA9IEtFWV8wLAorICAgICAgICBbIDB4
-OSBdID0gS0VZX0VTQywgICAgICAgICAgICAgIC8qIFVQIEFSUk9XICovCisg
-ICAgICAgIFsgMHhjIF0gPSBLRVlfUE9XRVIsICAgICAgICAgICAgLyogUE9X
-RVIgKi8KKyAgICAgICAgWyAweDBhIF0gPSBLRVlfTVVURSwgICAgICAgICAg
-ICAvKiBNVVRFICovCisgICAgICAgIFsgMHgwYiBdID0gS0VZX1NFQVJDSCwJ
-CS8qIFNFQVJDSCAqLworICAgICAgICBbIDB4MGQgXSA9IEtFWV9FUEcsICAg
-ICAgICAgICAgIC8qIEdVSURFICovCisgICAgICAgIFsgMHgxYiBdID0gS0VZ
-X1JFQ09SRCwgICAgICAgICAgLyogUkVDT1JEICovCisgICAgICAgIFsgMHgx
-NiBdID0gS0VZX1BBVVNFLCAgICAgICAgICAgLyogUEFVU0UgKi8KKyAgICAg
-ICAgWyAweDFhIF0gPSBLRVlfU1RPUCwgICAgICAgICAgICAvKiBTVE9QICov
-CisgICAgICAgIFsgMHgxZCBdID0gS0VZX1ZPTFVNRURPV04sICAgICAgLyog
-Vk9MVU1FLSAqLworICAgICAgICBbIDB4MWMgXSA9IEtFWV9WT0xVTUVVUCwg
-ICAgICAgIC8qIFZPTFVNRSsgKi8KKyAgICAgICAgWyAweDFmIF0gPSBLRVlf
-Q0hBTk5FTERPV04sICAgICAvKiBDSEFOTkVML1BBR0UtICovCisgICAgICAg
-IFsgMHgxZSBdID0gS0VZX0NIQU5ORUxVUCwgICAgICAgLyogQ0hBTk5FTC9Q
-QUdFKyAqLworICAgICAgICBbIDB4MTAgXSA9IEtFWV9VUCwgICAgICAgICAg
-ICAgIC8qIEtFWV9TQ1JPTExVUCAqLworICAgICAgICBbIDB4MTIgXSA9IEtF
-WV9MRUZULCAgICAgICAgICAgIC8qIEtFWV9CQUNLICovCisgICAgICAgIFsg
-MHhlICBdID0gS0VZX0VOVEVSLCAgICAgICAgICAgLyogS0VZX0VOVEVSICov
-CisgICAgICAgIFsgMHgxMyBdID0gS0VZX1JJR0hULCAgICAgICAgICAgLyog
-S0VZX0ZPUldBUkQgKi8KKyAgICAgICAgWyAweDExIF0gPSBLRVlfRE9XTiwg
-ICAgICAgICAgICAvKiBLRVlfU0NST0xMRE9XTiAqLworICAgICAgICBbIDB4
-MTQgXSA9IEtFWV9NVVRFLCAgICAgICAgICAgIC8qIE1VVEUgKi8KKyAgICAg
-ICAgWyAweDE1IF0gPSBLRVlfQVVESU8sICAgICAgICAgICAvKiBTVEVSRU8g
-Ki8KKyAgICAgICAgWyAweDE2IF0gPSBLRVlfVklERU8sICAgICAgICAgICAv
-KiBTT1VSQ0UgKi8KKyAgICAgICAgWyAweDE3IF0gPSBLRVlfWk9PTSwgICAg
-ICAgICAgICAvKiBaT09NICovCisgICAgICAgIFsgMHgxOCBdID0gS0VZX1BS
-SU5ULCAgICAgICAgICAgLyogU0hVVERPV04gKi8KKyAgICAgICAgWyAwWDE5
-IF0gPSBLRVlfVCwgICAgICAgICAgICAgICAvKiBUSU1FU0hJRlQgKi8KKyAg
-ICAgICAgWyAweDQ0IF0gPSBLRVlfUExBWVBBVVNFLCAgICAgICAvKiBQQVVT
-RS9QTEFZICovCisgICAgICAgIFsgMHg0NSBdID0gS0VZX1NUT1AsICAgICAg
-ICAgICAgLyogU1RPUCAqLworICAgICAgICBbIDB4NDAgXSA9IEtFWV9SRVdJ
-TkQsICAgICAgICAgIC8qIFJFV0lORCAqLworICAgICAgICBbIDB4NDEgXSA9
-IEtFWV9GT1JXQVJELCAgICAgICAgIC8qIEZBU1RGT1JXQVJEICovCisgICAg
-ICAgIFsgMHg0MiBdID0gS0VZX1BSRVZJT1VTU09ORywgICAgLyogUFJFVklP
-VVMgKi8KKyAgICAgICAgWyAweDQzIF0gPSBLRVlfTkVYVFNPTkcsICAgICAg
-ICAvKiBORVhUICovCisKKyAgICAgICAgLy8gYnV0dG9ucyBhLWgKKyAgICAg
-ICAgWyAweDQ4IF0gPSBLRVlfQSwgCisgICAgICAgIFsgMHg0OSBdID0gS0VZ
-X0IsCisgICAgICAgIFsgMHg0YSBdID0gS0VZX0MsCisgICAgICAgIFsgMHg0
-YiBdID0gS0VZX0QsCisgICAgICAgIFsgMHg0YyBdID0gS0VZX0UsCisgICAg
-ICAgIFsgMHg0ZCBdID0gS0VZX0YsCisgICAgICAgIFsgMHg0ZSBdID0gS0VZ
-X0csCisgICAgICAgIFsgMHg0ZiBdID0gS0VZX0gKK307CisKK0VYUE9SVF9T
-WU1CT0xfR1BMKGlyX2NvZGVzX2t3b3JsZF9hdHNjMTEwKTsKZGlmZiAtVSAz
-IC1IIC1kIC1yIC1OIC0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9p
-ci1rYmQtaTJjLmMgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2lyLWti
-ZC1pMmMuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2lyLWti
-ZC1pMmMuYwkyMDA3LTAxLTEzIDE2OjU5OjI4LjAwMDAwMDAwMCAtMDUwMAor
-KysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2lyLWtiZC1pMmMuYwky
-MDA3LTAxLTEzIDE4OjI3OjU0LjAwMDAwMDAwMCAtMDUwMApAQCAtNjIsNiAr
-NjIsOCBAQAogCiAvKiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSAqLwog
-CitzdGF0aWMgaW50IGt3b3JsZGF0c2MxMTAgPSAwOyAvKiBCb3RoIEtOQzEg
-YW5kIHRoZSBLd29ybGQgQVRTQzExMCBjYXJkcyB1c2UgdGhlIHNhbWUgaTJj
-IGFkZHJlc3MgKi8KKwogc3RhdGljIGludCBnZXRfa2V5X2hhdXAoc3RydWN0
-IElSX2kyYyAqaXIsIHUzMiAqaXJfa2V5LCB1MzIgKmlyX3JhdykKIHsKIAl1
-bnNpZ25lZCBjaGFyIGJ1ZlszXTsKQEAgLTE0NCwxNCArMTQ2LDE3IEBACiAK
-IAkvKiBpdCBzZWVtcyB0aGF0IDB4RkUgaW5kaWNhdGVzIHRoYXQgYSBidXR0
-b24gaXMgc3RpbGwgaG9sZAogCSAgIGRvd24sIHdoaWxlIDB4ZmYgaW5kaWNh
-dGVzIHRoYXQgbm8gYnV0dG9uIGlzIGhvbGQKLQkgICBkb3duLiAweGZlIHNl
-cXVlbmNlcyBhcmUgc29tZXRpbWVzIGludGVycnVwdGVkIGJ5IDB4RkYgKi8K
-KwkgICBkb3duLiAweGZlIGFuZCAweDgwIHNlcXVlbmNlcyBhcmUgc29tZXRp
-bWVzIGludGVycnVwdGVkIGJ5IDB4RkYgKi8KIAogCWRwcmludGsoMiwia2V5
-ICUwMnhcbiIsIGIpOwogCiAJaWYgKGIgPT0gMHhmZikKIAkJcmV0dXJuIDA7
-CiAKLQlpZiAoYiA9PSAweGZlKQorICAgICAgICAvKiBLTkMxIGNhcmQgICAg
-ICAgICAgICA9IDB4ZmUgKi8KKyAgICAgICAgLyogS3dvcmxkIEFUU0MxMTAg
-Y2FyZCAgPSAweDgwICovCisKKwlpZiAoKGIgPT0gMHhmZSl8fChiICYgMHg4
-MCkpCiAJCS8qIGtlZXAgb2xkIGRhdGEgKi8KIAkJcmV0dXJuIDE7CiAKQEAg
-LTM2NCwxMCArMzY5LDE1IEBACiAJCX0KIAkJYnJlYWs7CiAJY2FzZSAweDMw
-OgotCQluYW1lICAgICAgICA9ICJLTkMgT25lIjsKIAkJaXItPmdldF9rZXkg
-PSBnZXRfa2V5X2tuYzE7CiAJCWlyX3R5cGUgICAgID0gSVJfVFlQRV9PVEhF
-UjsKLQkJaXJfY29kZXMgICAgPSBpcl9jb2Rlc19lbXB0eTsKKwkJaWYgKGt3
-b3JsZGF0c2MxMTAgPT0gMSkgeworCQkJbmFtZSAgICAgICAgPSAiS3dvcmxk
-IEFUU0MxMTAiOworCQkJaXJfY29kZXMgICAgPSBpcl9jb2Rlc19rd29ybGRf
-YXRzYzExMDsKKwkJfSBlbHNlIHsKKwkJCW5hbWUgICAgICAgID0gIktOQyBP
-bmUiOworCQkJaXJfY29kZXMgICAgPSBpcl9jb2Rlc19lbXB0eTsKKwkJfSAg
-CiAJCWJyZWFrOwogCWNhc2UgMHg3YToKIAljYXNlIDB4NDc6CkBAIC00Njks
-OCArNDc5LDggQEAKIAkgICBUaGF0J3Mgd2h5IHdlIHByb2JlIDB4MWEgKH4w
-eDM0KSBmaXJzdC4gQ0IKIAkqLwogCi0Jc3RhdGljIGNvbnN0IGludCBwcm9i
-ZV9idHR2W10gPSB7IDB4MWEsIDB4MTgsIDB4NGIsIDB4NjQsIDB4MzAsIC0x
-fTsKLQlzdGF0aWMgY29uc3QgaW50IHByb2JlX3NhYTcxMzRbXSA9IHsgMHg3
-YSwgMHg0NywgMHg3MSwgLTEgfTsKKwlzdGF0aWMgY29uc3QgaW50IHByb2Jl
-X2J0dHZbXSA9IHsgMHgxYSwgMHgxOCwgMHg0YiwgMHg2NCwgMHgzMCwgLTEg
-fTsKKwlzdGF0aWMgY29uc3QgaW50IHByb2JlX3NhYTcxMzRbXSA9IHsgMHg3
-YSwgMHgzMCwgMHg0NywgMHg3MSwgLTEgfTsKIAlzdGF0aWMgY29uc3QgaW50
-IHByb2JlX2VtMjhYWFtdID0geyAweDMwLCAweDQ3LCAtMSB9OwogCWNvbnN0
-IGludCAqcHJvYmUgPSBOVUxMOwogCXN0cnVjdCBpMmNfY2xpZW50IGM7CkBA
-IC00OTksNiArNTA5LDMwIEBACiAJZm9yIChpID0gMDsgLTEgIT0gcHJvYmVb
-aV07IGkrKykgewogCQljLmFkZHIgPSBwcm9iZVtpXTsKIAkJcmMgPSBpMmNf
-bWFzdGVyX3JlY3YoJmMsJmJ1ZiwwKTsKKworCQkvKiBTcGVjaWFsIGNhc2Ug
-Zm9yIEt3b3JsZCBBVFNDMTEwIHJlbW90ZSAqLworCQlpZiAoYy5hZGFwdGVy
-LT5pZCA9PSBJMkNfSFdfU0FBNzEzNCAmJiBwcm9iZVtpXSA9PSAweDMwKQor
-CQl7CisJCQlzdHJ1Y3QgaTJjX2NsaWVudCBjMjsKKwkJCQorCQkJbWVtc2V0
-ICgmYzIsIDAsIHNpemVvZihjMikpOworCQkJYzIuYWRhcHRlciA9IGMuYWRh
-cHRlcjsKKwkJCQkKKwkJCWZvciAoYzIuYWRkcj0xMjc7IGMyLmFkZHIgPiAw
-OyBjMi5hZGRyLS0pIHsKKwkJCQlpZiAoMCA9PSBpMmNfbWFzdGVyX3JlY3Yo
-JmMyLCZidWYsMCkpIHsKKwkJCQkJZHByaW50aygxLCJGb3VuZCBhbm90aGVy
-IGRldmljZSwgYXQgYWRkciAweCUwMnhcbiIsIGMyLmFkZHIpOworCQkJCQli
-cmVhazsKKwkJCQl9CisJCQl9CisKKwkJCS8qIE5vdyBkbyB0aGUgcHJvYmUu
-IFRoZSBjb250cm9sbGVyIGRvZXMgbm90IHJlc3BvbmQKKwkJCSAgIHRvIDAt
-Ynl0ZSByZWFkcywgc28gd2UgdXNlIGEgMS1ieXRlIHJlYWQgaW5zdGVhZC4g
-Ki8KKwkJCXJjID0gaTJjX21hc3Rlcl9yZWN2KCZjLCZidWYsMSk7CisJCQly
-Yy0tOworCQkJa3dvcmxkYXRzYzExMCA9IDE7CisJCX0gZWxzZSB7CisJCQly
-YyA9IGkyY19tYXN0ZXJfcmVjdigmYywmYnVmLDApOworCQl9CiAJCWRwcmlu
-dGsoMSwicHJvYmUgMHglMDJ4IEAgJXM6ICVzXG4iLAogCQkJcHJvYmVbaV0s
-IGFkYXAtPm5hbWUsCiAJCQkoMCA9PSByYykgPyAieWVzIiA6ICJubyIpOwpk
-aWZmIC1VIDMgLUggLWQgLXIgLU4gLS0gYS9saW51eC9kcml2ZXJzL21lZGlh
-L3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1jYXJkcy5jIGIvbGludXgvZHJpdmVy
-cy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtY2FyZHMuYwotLS0gYS9s
-aW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1jYXJk
-cy5jCTIwMDctMDEtMTMgMTY6NTk6MjguMDAwMDAwMDAwIC0wNTAwCisrKyBi
-L2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LWNh
-cmRzLmMJMjAwNy0wMS0xMyAxNzoxMToyMC4wMDAwMDAwMDAgLTA1MDAKQEAg
-LTQxNzUsNiArNDE3NSw5IEBACiAJY2FzZSBTQUE3MTM0X0JPQVJEX1BJTk5B
-Q0xFX1BDVFZfMTEwaToKIAljYXNlIFNBQTcxMzRfQk9BUkRfUElOTkFDTEVf
-UENUVl8zMTBpOgogCWNhc2UgU0FBNzEzNF9CT0FSRF9VUE1PU1RfUFVSUExF
-X1RWOgorCWNhc2UgU0FBNzEzNF9CT0FSRF9LV09STERfQVRTQzExMDoKKwkJ
-ZGV2LT5oYXNfcmVtb3RlID0gU0FBNzEzNF9SRU1PVEVfSTJDOworCQlicmVh
-azsKIAljYXNlIFNBQTcxMzRfQk9BUkRfSEFVUFBBVUdFX0hWUjExMTA6CiAJ
-CWRldi0+aGFzX3JlbW90ZSA9IFNBQTcxMzRfUkVNT1RFX0kyQzsKIAkJYnJl
-YWs7CmRpZmYgLVUgMyAtSCAtZCAtciAtTiAtLSBhL2xpbnV4L2RyaXZlcnMv
-bWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LWkyYy5jIGIvbGludXgvZHJp
-dmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtaTJjLmMKLS0tIGEv
-bGludXgvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtaTJj
-LmMJMjAwNy0wMS0xMyAxNjo1OToyOC4wMDAwMDAwMDAgLTA1MDAKKysrIGIv
-bGludXgvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtaTJj
-LmMJMjAwNy0wMS0xMyAxNzoxMjo0Mi4wMDAwMDAwMDAgLTA1MDAKQEAgLTM1
-MCw2ICszNTAsNyBAQAogCiAJc3dpdGNoIChjbGllbnQtPmFkZHIpIHsKIAkJ
-Y2FzZSAweDdhOgorCQljYXNlIDB4MzA6CiAJCWNhc2UgMHg0NzoKIAkJY2Fz
-ZSAweDcxOgogCQl7CmRpZmYgLVUgMyAtSCAtZCAtciAtTiAtLSBhL2xpbnV4
-L2luY2x1ZGUvbWVkaWEvaXItY29tbW9uLmggYi9saW51eC9pbmNsdWRlL21l
-ZGlhL2lyLWNvbW1vbi5oCi0tLSBhL2xpbnV4L2luY2x1ZGUvbWVkaWEvaXIt
-Y29tbW9uLmgJMjAwNy0wMS0xMyAxNjo1OToyOC4wMDAwMDAwMDAgLTA1MDAK
-KysrIGIvbGludXgvaW5jbHVkZS9tZWRpYS9pci1jb21tb24uaAkyMDA3LTAx
-LTEzIDE3OjAzOjQ2LjAwMDAwMDAwMCAtMDUwMApAQCAtMTQwLDYgKzE0MCw3
-IEBACiBleHRlcm4gSVJfS0VZVEFCX1RZUEUgaXJfY29kZXNfYXN1c19wYzM5
-W0lSX0tFWVRBQl9TSVpFXTsKIGV4dGVybiBJUl9LRVlUQUJfVFlQRSBpcl9j
-b2Rlc19lbmNvcmVfZW5sdHZbSVJfS0VZVEFCX1NJWkVdOwogZXh0ZXJuIElS
-X0tFWVRBQl9UWVBFIGlyX2NvZGVzX3R0XzE1MDBbSVJfS0VZVEFCX1NJWkVd
-OworZXh0ZXJuIElSX0tFWVRBQl9UWVBFIGlyX2NvZGVzX2t3b3JsZF9hdHNj
-MTEwW0lSX0tFWVRBQl9TSVpFXTsKIAogI2VuZGlmCiAK
-
---0-33054529-1240240338=:82215
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+      ¡Obtén la mejor experiencia en la web! Descarga gratis el nuevo Internet Explorer 8. http://downloads.yahoo.com/ieak8/?l=mx
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---0-33054529-1240240338=:82215--
