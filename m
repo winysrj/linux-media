@@ -1,48 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:54980 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750977AbZDGKu4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2009 06:50:56 -0400
-Date: Tue, 7 Apr 2009 07:50:29 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Mike Isely <isely@pobox.com>, isely@isely.net,
-	LMML <linux-media@vger.kernel.org>,
-	Andy Walls <awalls@radix.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Janne Grunau <j@jannau.net>,
-	Jarod Wilson <jarod@redhat.com>
-Subject: Re: [RFC] Anticipating lirc breakage
-Message-ID: <20090407075029.21d14f4a@pedra.chehab.org>
-In-Reply-To: <20090407120209.1d42bacd@hyperion.delvare>
-References: <20090406174448.118f574e@hyperion.delvare>
-	<Pine.LNX.4.64.0904070049470.2076@cnc.isely.net>
-	<20090407120209.1d42bacd@hyperion.delvare>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:46690 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752382AbZDRJZe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Apr 2009 05:25:34 -0400
+Date: Sat, 18 Apr 2009 11:25:19 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Mike Isely <isely@pobox.com>
+Cc: isely@isely.net, LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 2/6] ir-kbd-i2c: Switch to the new-style device binding
+  model
+Message-ID: <20090418112519.774e0dae@hyperion.delvare>
+In-Reply-To: <Pine.LNX.4.64.0904171831300.19718@cnc.isely.net>
+References: <20090417222927.7a966350@hyperion.delvare>
+	<20090417223105.28b8957e@hyperion.delvare>
+	<Pine.LNX.4.64.0904171831300.19718@cnc.isely.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 7 Apr 2009 12:02:09 +0200
-Jean Delvare <khali@linux-fr.org> wrote:
+Hi Mike,
 
-> Hi Mike,
-> 
-> Glad to see we all mostly agree on what to do now. I'll still answer
-> some of your questions below, to clarify things even more.
+On Fri, 17 Apr 2009 18:35:55 -0500 (CDT), Mike Isely wrote:
+> I thought we were going to leave the pvrusb2 driver out of this since 
+> I've already got a change ready that also includes additional logic to 
+> take into account the properties of the hardware device (i.e. only 
+> activate ir-kbd-i2c when we know it has a chance of working).
 
-I don't understand why you are preferring to do some workaround, spending
-energy to add hooks at the kernel drivers to support out-of-tree drivers,
-instead of working to provide the proper solution.
+Hmm, I thought that our latest discussions had (at least partly)
+obsoleted your patches. Remember that we want to always instantiate
+ir_video I2C devices even when ir-kbd-i2c can't driver them, otherwise
+lirc won't be able to bind to the devices in question as soon as the
+legacy binding model is gone. So the conditionals in your second patch
+(which is all that makes it differ from mine) are no longer desirable.
 
-I'm against adding any hook on kernel to support an out-of-tree driver.
+I'll work on lirc patches today or tomorrow, so that lirc doesn't break
+when my patches hit mainline.
 
->From what I understood, lirc developers are interested on merging lirc drivers.
-We all agree that ir-kbd-i2c doesn't address all i2c IR's, and that lirc
-drivers provide support for the remaining ones.
+Your first patch is still interesting but it is independent from my own
+patches, so it can be merged before or after, it doesn't matter.
 
-So, let's just forget the workarounds and go straight to the point: focus on
-merging lirc-i2c drivers.
-
-Cheers,
-Mauro
+-- 
+Jean Delvare
