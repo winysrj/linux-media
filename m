@@ -1,177 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:57086 "EHLO cnc.isely.net"
+Received: from mx2.redhat.com ([66.187.237.31]:35481 "EHLO mx2.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751132AbZDFCwf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Apr 2009 22:52:35 -0400
-Date: Sun, 5 Apr 2009 21:52:31 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-Reply-To: Mike Isely <isely@pobox.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Andy Walls <awalls@radix.net>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Jean Delvare <khali@linux-fr.org>, Janne Grunau <j@jannau.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	LMML <linux-media@vger.kernel.org>,
-	Jarod Wilson <jarod@redhat.com>,
-	Mike Isely at pobox <isely@pobox.com>
-Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
- model
-In-Reply-To: <20090405225102.531a2075@pedra.chehab.org>
-Message-ID: <Pine.LNX.4.64.0904052104010.2076@cnc.isely.net>
-References: <20090404142427.6e81f316@hyperion.delvare>
- <Pine.LNX.4.64.0904041045380.32720@cnc.isely.net> <20090405010539.187e6268@hyperion.delvare>
- <200904050746.47451.hverkuil@xs4all.nl> <20090405143748.GC10556@aniel>
- <1238953174.3337.12.camel@morgan.walls.org> <20090405183154.GE10556@aniel>
- <1238957897.3337.50.camel@morgan.walls.org> <20090405222250.64ed67ae@hyperion.delvare>
- <1238966523.6627.63.camel@pc07.localdom.local> <1238968804.4647.22.camel@morgan.walls.org>
- <20090405225102.531a2075@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+	id S1752883AbZDRLZp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Apr 2009 07:25:45 -0400
+Message-ID: <49E9B989.70602@redhat.com>
+Date: Sat, 18 Apr 2009 13:29:13 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: =?windows-1252?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+CC: Adam Baker <linux@baker-net.org.uk>,
+	Hans de Goede <j.w.r.degoede@hhs.nl>,
+	Linux and Kernel Video <video4linux-list@redhat.com>,
+	SPCA50x Linux Device Driver Development
+	<spca50x-devs@lists.sourceforge.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: libv4l release: 0.5.97: the whitebalance release!
+References: <49E5D4DE.6090108@hhs.nl> <200904152326.59464.linux@baker-net.org.uk> <49E66787.2080301@hhs.nl> <200904162146.59742.linux@baker-net.org.uk> <49E843CB.6050306@redhat.com> <49E8D808.9070804@gmail.com>
+In-Reply-To: <49E8D808.9070804@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 5 Apr 2009, Mauro Carvalho Chehab wrote:
-
-> On Sun, 05 Apr 2009 18:00:04 -0400
-> Andy Walls <awalls@radix.net> wrote:
-> 
-> > On Sun, 2009-04-05 at 23:22 +0200, hermann pitton wrote:
-> > > Am Sonntag, den 05.04.2009, 22:22 +0200 schrieb Jean Delvare:
-> > > > On Sun, 05 Apr 2009 14:58:17 -0400, Andy Walls wrote:
-> > 
-> > 
-> > > What can not be translated to the input system I would like to know.
-> > > Andy seems to have closer looked into that.
-> > 
-> > 1. IR blasting: sending IR codes to transmit out to a cable convertor
-> > box, DTV to analog convertor box, or similar devices to change channels
-> > before recording starts.  An input interface doesn't work well for
-> > output.
-> 
-> On my understanding, IR output is a separate issue. AFAIK, only a very few ivtv
-> devices support IR output. I'm not sure how this is currently implemented.
-
-For the pvrusb2 driver, MCE style 24xxx devices (2nd generation 24xxx) 
-and HVR-1950 devices have IR blasting capabilities.  At the moment, 
-people have gotten this to work on the 24xxx model with the appropriate 
-lirc driver.  In theory it should be doable for HVR-1950 as well (and 
-the pvrusb2 does what is needed to make it possible) but I don't think 
-anyone has succeeded there yet.
-
-Sure IR output as a concept and interface is a separate issue.  But it 
-can be implemented in the same chip (which is the case in the two 
-examples I list above).  So the issue is not separate; it must be dealt 
-with as a whole.  Two drivers implementing different features but trying 
-to share one chip is just not fun.
 
 
-> 
-> 
-> > 2. Sending raw IR samples to user space: user space applications can
-> > then decode or match an unknown or non-standard IR remote protocol in
-> > user space software.  Timing information to go along with the sample
-> > data probably needs to be preserved.   I'm assuming the input interface
-> > currently doesn't support that.
-> 
-> If the driver processes correctly the IR samples, I don't see why you would
-> need to pass the raw protocols to userspace. Maybe we need to add some ioctls
-> at the API to allow certain controls, like, for example, ask kernel to decode
-> IR using RC4 instead or RC5, on devices that supports more than one IR protocol.
+On 04/17/2009 09:27 PM, Erik Andrén wrote:
+>
+> Hans de Goede wrote:
+>>
+>> On 04/16/2009 10:46 PM, Adam Baker wrote:
+>>> On Thursday 16 Apr 2009, Hans de Goede wrote:
+>>>> On 04/16/2009 12:26 AM, Adam Baker wrote:
+>>>>> On Wednesday 15 Apr 2009, Hans de Goede wrote:
+>>>>>> Currently only whitebalancing is enabled and only on Pixarts (pac)
+>>>>>> webcams (which benefit tremendously from this). To test this with
+>>>>>> other
+>>>>>> webcams (after instaling this release) do:
+>>>>>>
+>>>>>> export LIBV4LCONTROL_CONTROLS=15
+>>>>>> LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so v4l2ucp&
+>>>>> Strangely while those instructions give me a whitebalance control
+>>>>> for the
+>>>>> sq905 based camera I can't get it to appear for a pac207 based camera
+>>>>> regardless of whether LIBV4LCONTROL_CONTROLS is set.
+>>>> Thats weird, there is a small bug in the handling of pac207
+>>>> cams with usb id 093a:2476 causing libv4l to not automatically
+>>>> enable whitebalancing (and the control) for cams with that id,
+>>>> but if you have LIBV4LCONTROL_CONTROLS set (exported!) both
+>>>> when loading v4l2ucp (you must preload v4l2convert.so!) and
+>>>> when loading your viewer, then it should work.
+>>>>
+>>> I've tested it by plugging in the sq905 camera, verifying the
+>>> whitebablance
+>>> control is present and working, unplugging the sq905 and plugging in the
+>>> pac207 and using up arrow to restart v4l2ucp and svv so I think I've
+>>> eliminated most finger trouble possibilities. The pac207 is id
+>>> 093a:2460 so
+>>> not the problem id. I'll have to investigate more thoroughly later.
+>>>
+>> Does the pac207 perhaps have a / in its "card" string (see v4l-info
+>> output) ?
+>> if so try out this patch:
+>> http://linuxtv.org/hg/~hgoede/libv4l/rev/1e08d865690a
+>>
+>
+> I have the same issue as Adam when trying to test this with my
+> gspca_stv06xx based Quickcam Web camera i. e no whitebalancing
+> controls show up. I'm attaching a dump which logs all available
+> pixformats and v4l2ctrls showing that libv4l is properly loaded.
+> (And yes, LIBV4LCONTROL_CONTROLS is exported and set to 15).
+>
+> Best regards,
+> Erik
+>
 
-Ugh.  Why should v4l-dvb get into this business when it's already solved 
-somewhere else?  In userspace even.
+Ah, you are using v4l2-ctl, not v4l2ucp, and that uses V4L2_CTRL_FLAG_NEXT_CTRL
+control enumeration. My code doesn't handle V4L2_CTRL_FLAG_NEXT_CTRL (which is
+a bug). I'm not sure when I'll have time to fix this. Patches welcome, or in
+the mean time use v4l2ucp to play with the controls.
 
-I see in so many other places people arguing for V4L functionality that 
-needs to be kicked out of the kernel and put into userspace.  For 
-example, there's all that silliness over pixel formats that I'm soon 
-going to have to deal with...
+Regards,
 
-Yet in this case with IR, there already exists a subsystem that does 
-*more* than ir-kbd-i2c.c, AND it does all the crazy configuration / 
-control in userspace - and yet you argue that ir-kbd-i2c.c should be 
-preferred?  Purely because lirc is not in-tree?  Well heck, lirc should 
-be in-tree.  Let's help them get there and forget ever having to deal 
-with IR again ourselves.  Let them do it.
-
-
-> 
-> > That's all the Gerd mentioned.
-> > 
-> > 
-> > One more nice feature to have, that I'm not sure how easily the input
-> > system could support:
-> > 
-> > 3. specifying remote control code to key/button translations with a
-> > configuration file instead of recompiling a module.
-> 
-> The input and the current drivers that use input already supports this feature.
-> You just need to load a new code table to replace the existing one.
-> 
-> See v4l2-apps/util/keytable.c to see how easy is to change a key code. It
-> contains a complete code to fully replace a key code table. Also, the Makefile
-> there will extract the current keytables for the in-kernel drivers.
-> 
-> Btw, with only 12 lines, you can create a keycode replace "hello world!":
-> 
-> #include <fcntl.h>		/* due to O_RDONLY */
-> #include <stdio.h>		/* open() */
-> #include <linux/input.h>	/* input ioctls and keycode macros */
-> #include <sys/ioctl.h>		/* ioctl() */
-> void main(void)
-> {
-> 	int codes[2];
-> 	int fd = open("/dev/video0", O_RDONLY);	/* Hmm.. in real apps, we should check for errors */
-> 	codes[0] = 10;				/* Scan code */
-> 	codes[1] = KEY_UP;			/* Key code */
-> 	ioctl(fd, EVIOCSKEYCODE, codes);	/* hello world! */
-> }
-
-I just looked at this.  I freely admit I haven't noticed this before, 
-but having looked at it now, and having examined ir-kbd-i2c.c, I still 
-don't see the whole picture here:
-
-1. The switch statement in ir-kbd-i2c.c:ir_attach() is apparently 
-implicitly trying to assume a particular type of remote based on the I2C 
-address of the IR receiver it's talking to.  Yuck.  That's really not 
-right at all.  The IR receiver used does not automatically mean which 
-remote is used.  What if the vendor switches remotes?  That's happened 
-with the PVR-USB2 hardware in the past (based on photos I've seen).  
-Who's to say the next remote to be supplied is compatible?
-
-2. Your example above is opening the video device endpoint and issuing 
-ioctl()s that are not part of V4L.  That is supposed to work?!?
-
-3. A given IR remote may be described by much more than what 'scan 
-codes' it produces.  I don't know a lot about IR, but looking at the 
-typical lirc definition for a remote, there's obvious timing and 
-protocol parameters as well.  Just being able to swap scan codes around 
-is not always going to be enough.
-
-4. I imagine that the input event framework in the kernel has a means 
-for programmatic mapping of scan codes to key codes, but looking at 
-ir-kbd-i2c.c, it appears to only be selecting from among a very small 
-set of kernel-compiled translation tables.  I must be missing something 
-here.
-
-In an earlier post (from Andy?) some history was dug up about 
-ir-kbd-i2c.c.  From what I understand, the only reason ir-kbd-i2c.c came 
-into existence was because lirc was late in supporting 2.6.x series 
-kernels and Gerd needed *something* to allow IR to work.  So he created 
-this module, knowing full well that it didn't cover all possible cases.  
-Rather it covered the common cases he cared about.  That was a while 
-ago.  And we need to do all the cases - or at least not mess up what 
-already exists elsewhere that does handle the "uncommon" cases.  The 
-lirc drivers do work in 2.6.  And apparently they were on the scene 
-before ir-kbd-i2c.c, just unfortunately not in-tree.  The lirc drivers 
-really need to get into the kernel.  From where I'm sitting the long 
-term goal should be to get lirc into the kernel.
-
-  -Mike
-
-
--- 
-
-Mike Isely
-isely @ pobox (dot) com
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+Hans
