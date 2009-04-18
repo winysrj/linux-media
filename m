@@ -1,152 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mrbusi1.netcologne.de ([195.14.230.6]:37356 "EHLO
-	mrbusi1.netcologne.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757682AbZDHPJI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2009 11:09:08 -0400
-Received: from merkur.jueling.ath.cx (xdsl-87-78-142-137.netcologne.de [87.78.142.137])
-	by mrbusi1.netcologne.de (Postfix) with ESMTPS id EC6FE1A0033
-	for <linux-media@vger.kernel.org>; Wed,  8 Apr 2009 17:03:18 +0200 (CEST)
-From: Marcel Jueling <Marcel.Jueling@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] Add Conceptronic USB2.0 DVB-T CTVDIGRCU V3.0
-Date: Wed, 8 Apr 2009 17:03:07 +0200
+Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:1056 "EHLO
+	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753408AbZDRPx7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Apr 2009 11:53:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+Subject: Re: [RFC] Stand-alone Resizer/Previewer Driver support under V4L2 framework
+Date: Sat, 18 Apr 2009 17:53:47 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
+	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"Jadav, Brijesh R" <brijesh.j@ti.com>,
+	"R, Sivaraj" <sivaraj@ti.com>, "Hadli, Manjunath" <mrh@ti.com>,
+	"Shah, Hardik" <hardik.shah@ti.com>,
+	"Kumar, Purushotam" <purushotam@ti.com>
+References: <19F8576C6E063C45BE387C64729E73940427E3F70B@dbde02.ent.ti.com> <200903301902.21783.hverkuil@xs4all.nl> <19F8576C6E063C45BE387C64729E73940427E3F8F1@dbde02.ent.ti.com>
+In-Reply-To: <19F8576C6E063C45BE387C64729E73940427E3F8F1@dbde02.ent.ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200904081703.07540.Marcel.Jueling@gmx.de>
+Message-Id: <200904181753.47515.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-# HG changeset patch
-# User Marcel Jueling <Marcel@Jueling.de>
-# Date 1239055416 -7200
-# Node ID 7975c4afd177f5171be54c35b51a7c674b25e666
-# Parent 8e6c672abd5690eb89263673a4d312fcc76d26ed
-New device: Conceptronic USB2.0 DVB-T CTVDIGRCU V3.0
+On Tuesday 31 March 2009 10:53:02 Hiremath, Vaibhav wrote:
+> Thanks,
+> Vaibhav Hiremath
+>
+> > > APPROACH 3 -
+> > > ----------
+> > >
+> > > .....
+> > >
+> > > (Any other approach which I could not think of would be
+> >
+> > appreciated)
+> >
+> > > I would prefer second approach, since this will provide standard
+> > > interface to applications independent on underneath hardware.
+> > >
+> > > There may be many number of such configuration parameters required
+> >
+> > for
+> >
+> > > different such devices, we need to work on this and come up with
+> >
+> > some
+> >
+> > > standard capability fields covering most of available devices.
+> > >
+> > > Does anybody have some other opinions on this?
+> > > Any suggestions will be helpful here,
+> >
+> > FYI: I have very little time to look at this for the next 2-3 weeks.
+> > As you
+> > know I'm working on the last pieces of the v4l2_subdev conversion
+> > for 2.6.30
+> > that should be finished this week. After that I'm attending the
+> > Embedded
+> > Linux Conference in San Francisco.
+> >
+> > But I always thought that something like this would be just a
+> > regular video
+> > device that can do both 'output' and 'capture'. For a resizer I
+> > would
+> > expect that you set the 'output' size (the size of your source
+> > image) and
+> > the 'capture' size (the size of the resized image), then just send
+> > the
+> > frames to the device (== resizer) and get them back on the capture
+> > side.
+>
+> [Hiremath, Vaibhav] Yes, it is possible to do that.
+>
+> Hans,
+>
+> I went through the link referred by Sergio and I think we should inherit
+> some implementation for CODECs here for such devices.
+>
+> V4L2_BUF_TYPE_CODECIN - To access the input format.
+> V4L2_BUF_TYPE_CODECOUT - To access the output format.
+>
+> It makes sense, since such memory-to-memory devices will mostly being
+> used from codecs context. And this would be more clear from user
+> application.
 
-From: Marcel Jueling <Marcel@Jueling.de>
+To be honest, I don't see the need for this. I think TYPE_VIDEO_CAPTURE and 
+TYPE_VIDEO_OUTPUT are perfectly fine.
 
-Signed-off-by: Marcel Jueling <Marcel@Jueling.de>
+> And as acknowledged by you, we can use VIDIOC_S_FMT for setting
+> parameters.
+>
+> One thing I am not able to convince myself is that, using "priv" field
+> for custom configuration.
 
---- a/linux/drivers/media/dvb/dvb-usb/af9015.c	Mon Apr 06 18:01:26 2009 -0300
-+++ b/linux/drivers/media/dvb/dvb-usb/af9015.c	Tue Apr 07 00:03:36 2009 +0200
-@@ -1254,16 +1254,17 @@
- 	{USB_DEVICE(USB_VID_TERRATEC,  USB_PID_TERRATEC_CINERGY_T_USB_XE_REV2)},
- 	{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_KWORLD_PC160_2T)},
- 	{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_VOLAR_X)},
--/* 10 */{USB_DEVICE(USB_VID_XTENSIONS, USB_PID_XTENSIONS_XD_380)},
-+/* 10 */{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_CONCEPTRONIC_CTVDIGRCU)},
-+	{USB_DEVICE(USB_VID_XTENSIONS, USB_PID_XTENSIONS_XD_380)},
- 	{USB_DEVICE(USB_VID_MSI_2,     USB_PID_MSI_DIGIVOX_DUO)},
- 	{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_VOLAR_X_2)},
- 	{USB_DEVICE(USB_VID_TELESTAR,  USB_PID_TELESTAR_STARSTICK_2)},
--	{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A309)},
--/* 15 */{USB_DEVICE(USB_VID_MSI_2,     USB_PID_MSI_DIGI_VOX_MINI_III)},
-+/* 15 */{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A309)},
-+	{USB_DEVICE(USB_VID_MSI_2,     USB_PID_MSI_DIGI_VOX_MINI_III)},
- 	{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_KWORLD_395U)},
- 	{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_KWORLD_395U_2)},
- 	{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_KWORLD_395U_3)},
--	{USB_DEVICE(USB_VID_AFATECH,   USB_PID_TREKSTOR_DVBT)},
-+/* 20 */{USB_DEVICE(USB_VID_AFATECH,   USB_PID_TREKSTOR_DVBT)},
- 	{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A850)},
- 	{0},
- };
-@@ -1324,7 +1325,7 @@
- 
- 		.i2c_algo = &af9015_i2c_algo,
- 
--		.num_device_descs = 9,
-+		.num_device_descs = 10,
- 		.devices = {
- 			{
- 				.name = "Afatech AF9015 DVB-T USB2.0 stick",
-@@ -1372,6 +1373,11 @@
- 			{
- 				.name = "AVerMedia AVerTV DVB-T Volar X",
- 				.cold_ids = {&af9015_usb_table[9], NULL},
-+				.warm_ids = {NULL},
-+			},
-+			{
-+				.name = "Conceptronic DVB-T CTVDIGRCU V3.0",
-+				.cold_ids = {&af9015_usb_table[10], NULL},
- 				.warm_ids = {NULL},
- 			},
- 		}
-@@ -1433,51 +1439,51 @@
- 		.devices = {
- 			{
- 				.name = "Xtensions XD-380",
--				.cold_ids = {&af9015_usb_table[10], NULL},
-+				.cold_ids = {&af9015_usb_table[11], NULL},
- 				.warm_ids = {NULL},
- 			},
- 			{
- 				.name = "MSI DIGIVOX Duo",
--				.cold_ids = {&af9015_usb_table[11], NULL},
-+				.cold_ids = {&af9015_usb_table[12], NULL},
- 				.warm_ids = {NULL},
- 			},
- 			{
- 				.name = "Fujitsu-Siemens Slim Mobile USB DVB-T",
--				.cold_ids = {&af9015_usb_table[12], NULL},
-+				.cold_ids = {&af9015_usb_table[13], NULL},
- 				.warm_ids = {NULL},
- 			},
- 			{
- 				.name = "Telestar Starstick 2",
--				.cold_ids = {&af9015_usb_table[13], NULL},
-+				.cold_ids = {&af9015_usb_table[14], NULL},
- 				.warm_ids = {NULL},
- 			},
- 			{
- 				.name = "AVerMedia A309",
--				.cold_ids = {&af9015_usb_table[14], NULL},
-+				.cold_ids = {&af9015_usb_table[15], NULL},
- 				.warm_ids = {NULL},
- 			},
- 			{
- 				.name = "MSI Digi VOX mini III",
--				.cold_ids = {&af9015_usb_table[15], NULL},
-+				.cold_ids = {&af9015_usb_table[16], NULL},
- 				.warm_ids = {NULL},
- 			},
- 			{
- 				.name = "KWorld USB DVB-T TV Stick II " \
- 					"(VS-DVB-T 395U)",
--				.cold_ids = {&af9015_usb_table[16],
--					     &af9015_usb_table[17],
--					     &af9015_usb_table[18], NULL},
-+				.cold_ids = {&af9015_usb_table[17],
-+					     &af9015_usb_table[18],
-+					     &af9015_usb_table[19], NULL},
- 				.warm_ids = {NULL},
- 			},
- 			{
- 				.name = "TrekStor DVB-T USB Stick",
--				.cold_ids = {&af9015_usb_table[19], NULL},
-+				.cold_ids = {&af9015_usb_table[20], NULL},
- 				.warm_ids = {NULL},
- 			},
- 			{
- 				.name = "AverMedia AVerTV Volar Black HD " \
- 					"(A850)",
--				.cold_ids = {&af9015_usb_table[20], NULL},
-+				.cold_ids = {&af9015_usb_table[21], NULL},
- 				.warm_ids = {NULL},
- 			},
- 		}
---- a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Mon Apr 06 18:01:26 
-2009 -0300
-+++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Tue Apr 07 00:03:36 2009 
-+0200
-@@ -80,6 +80,7 @@
- #define USB_PID_COMPRO_DVBU2000_UNK_WARM		0x010d
- #define USB_PID_COMPRO_VIDEOMATE_U500			0x1e78
- #define USB_PID_COMPRO_VIDEOMATE_U500_PC		0x1e80
-+#define USB_PID_CONCEPTRONIC_CTVDIGRCU			0xe397
- #define USB_PID_CONEXANT_D680_DMB			0x86d6
- #define USB_PID_DIBCOM_HOOK_DEFAULT			0x0064
- #define USB_PID_DIBCOM_HOOK_DEFAULT_REENUM		0x0065
+I agree. Especially since you cannot use it as a pointer to addition 
+information.
+
+> I would prefer and recommend capability based 
+> interface, where application will query the capability of the device for
+> luma enhancement, filter coefficients (number of coeff and depth),
+> interpolation type, etc...
+>
+> This way we can make sure that, any such future devices can be adapted by
+> this framework.
+
+The big question is how many of these capabilities are 'generic' and how 
+many are very much hardware specific. I am leaning towards using the 
+extended control API for this. It's a bit awkward to implement in drivers 
+at the moment, but that should improve in the future when a lot of the 
+control handling code will move into the new core framework.
+
+I really need to know more about the sort of features that omap/davinci 
+offer (and preferably also for similar devices by other manufacturers).
+
+>
+>
+> Hans,
+> Have you get a chance to look at Video-Buf layer issues I mentioned in
+> original draft?
+
+I've asked Magnus Damm to take a look at this. I know he did some work in 
+this area and he may have fixed some of these issues already. Very useful, 
+that Embedded Linux conference...
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
