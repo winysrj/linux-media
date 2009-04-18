@@ -1,72 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:54678 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751461AbZDYPdl (ORCPT
+Received: from zone0.gcu-squad.org ([212.85.147.21]:33453 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754055AbZDRNQm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Apr 2009 11:33:41 -0400
-Received: by fxm2 with SMTP id 2so1562976fxm.37
-        for <linux-media@vger.kernel.org>; Sat, 25 Apr 2009 08:33:40 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <d9def9db0904250828o6657ef78r91a847488de6c178@mail.gmail.com>
-References: <49F2DCBD.20105@freenet.de>
-	 <412bdbff0904250621m7f43735eu730fac87bd121b57@mail.gmail.com>
-	 <d9def9db0904250752yb16170w680e8cd78354cc76@mail.gmail.com>
-	 <49F3266A.4020805@linuxtv.org>
-	 <d9def9db0904250828o6657ef78r91a847488de6c178@mail.gmail.com>
-Date: Sat, 25 Apr 2009 23:33:39 +0800
-Message-ID: <d9def9db0904250833g15de1877r37b8c3090844e537@mail.gmail.com>
-Subject: Re: Installation of Cinergy HTC USB Driver in Ubuntu Jaunty
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Steven Toth <stoth@linuxtv.org>
-Cc: Peter Hoyland <Peter.Hoyland@t-online.de>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Sat, 18 Apr 2009 09:16:42 -0400
+Date: Sat, 18 Apr 2009 15:16:25 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Mike Isely <isely@pobox.com>
+Cc: isely@isely.net, LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 2/6] ir-kbd-i2c: Switch to the new-style device binding
+  model
+Message-ID: <20090418151625.254e466b@hyperion.delvare>
+In-Reply-To: <20090418112519.774e0dae@hyperion.delvare>
+References: <20090417222927.7a966350@hyperion.delvare>
+	<20090417223105.28b8957e@hyperion.delvare>
+	<Pine.LNX.4.64.0904171831300.19718@cnc.isely.net>
+	<20090418112519.774e0dae@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Apr 25, 2009 at 11:28 PM, Markus Rechberger
-<mrechberger@gmail.com> wrote:
-> On Sat, Apr 25, 2009 at 11:04 PM, Steven Toth <stoth@linuxtv.org> wrote:
->>> There's no need for Micronas nor Trident to provide such kerneldrivers
->>> as long as the userland driver is available. It's also much easier to
->>> install than the earlier versions.
->>
->> Markus, This is your typical self-serving nonsense and it only serves to
->> confuse the non-technical Linux community. Please don't try to spread your
->> non-GPL tree and userland rhetoric on the list as it's not welcome.
->>
->
-> it serves the question about linux support for those devices, if more
-> information is needed about it I can be contacted directly of course.
->
+Hi again Mike,
 
-http://lkml.indiana.edu/hypermail/linux/kernel/0802.0/0015.html
+On Sat, 18 Apr 2009 11:25:19 +0200, Jean Delvare wrote:
+> On Fri, 17 Apr 2009 18:35:55 -0500 (CDT), Mike Isely wrote:
+> > I thought we were going to leave the pvrusb2 driver out of this since 
+> > I've already got a change ready that also includes additional logic to 
+> > take into account the properties of the hardware device (i.e. only 
+> > activate ir-kbd-i2c when we know it has a chance of working).
+> 
+> Hmm, I thought that our latest discussions had (at least partly)
+> obsoleted your patches. Remember that we want to always instantiate
+> ir_video I2C devices even when ir-kbd-i2c can't driver them, otherwise
+> lirc won't be able to bind to the devices in question as soon as the
+> legacy binding model is gone. So the conditionals in your second patch
+> (which is all that makes it differ from mine) are no longer desirable.
+> 
+> I'll work on lirc patches today or tomorrow, so that lirc doesn't break
+> when my patches hit mainline.
 
-even Greg Kroah adviced to use for example USBFS for closed source
-drivers, and even pointed out to the usb mailinglist for that a while
-ago, so I'd say it has a valid reason to coexist now.
+Speaking of this: do you know all the I2C addresses that can host IR
+devices on pvrusb2 cards? I understand that the only address supported
+by ir-kbd-i2c is 0x18, but I also need to know the addresses supported
+by lirc_i2c and possibly lirc_zilog, if you happen to know this.
 
-best regards,
-Markus
->> This mailing list is dedicated the v4l-dvb GPL source code trees and
->> associated applications. As far as I'm concerned your opinion is not
->> welcome. Please keep all conversation related to promoting and developing
->> the main repositories please.
->>
->
-> maybe put up a policy, and also list devices which require a closed
-> source firmware which are basically alot linux supported devices
-> already. I'm mainly considered about having support for that, if you
-> don't like the way it is supported try to start to reverse engineer it
-> and don't bother about it.
->
->> Peter, Devin is correct. If a vendor will not provide a driver then vote
->> with your pocket and buy another product. If you do anything else you're not
->> helping the rest of the community.
->>
->
-> best regards,
-> Markus
->
+Thanks,
+-- 
+Jean Delvare
