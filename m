@@ -1,56 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:44535 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752435AbZDVRPl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Apr 2009 13:15:41 -0400
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Magnus Damm <magnus.damm@gmail.com>
-Subject: Re: [PATCH/RFC v1] soc-camera: (partially) convert to v4l2-(sub)dev API
-References: <Pine.LNX.4.64.0904211102400.6551@axis700.grange>
-	<Pine.LNX.4.64.0904211215290.6551@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Wed, 22 Apr 2009 19:15:28 +0200
-In-Reply-To: <Pine.LNX.4.64.0904211215290.6551@axis700.grange> (Guennadi Liakhovetski's message of "Tue\, 21 Apr 2009 12\:19\:43 +0200 \(CEST\)")
-Message-ID: <873ac0pq33.fsf@free.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1896 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752857AbZDRSSq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Apr 2009 14:18:46 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id n3IIIiwV008132
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 18 Apr 2009 20:18:44 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 18 Apr 2009 20:18:44 +0200 (CEST)
+Message-Id: <200904181818.n3IIIiwV008132@smtp-vbr13.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> ...as promised, my current stack is at 
-> http://download.open-technology.de/20090421/. To encourage you to test it 
-> now without waiting for my rebase - the functionality shall be exactly the 
-> same after the rebase, it really shouldn't change much, or so I hope at 
-> least...
+Results of the daily build of v4l-dvb:
 
-Heuh, well I won't be very merry on that one. It seems the first stack I saw a
-while ago is back. Maybe a forgotten patch or something ?
+date:        Sat Apr 18 19:00:04 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11517:cda79523a93c
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-[ 1865.359938] [<c0158be8>] (dev_driver_string+0x0/0x48) from [<bf01ccdc>] (pxa_camera_probe+0x2d0/0x41c [pxa_camera])
-[ 1865.367855] [<bf01ca0c>] (pxa_camera_probe+0x0/0x41c [pxa_camera]) from [<c015d3f0>] (platform_drv_probe+0x20/0x24)
-[ 1865.375776] [<c015d3d0>] (platform_drv_probe+0x0/0x24) from [<c015c44c>] (driver_probe_device+0x88/0x188)
-[ 1865.383638] [<c015c3c4>] (driver_probe_device+0x0/0x188) from [<c015c5dc>] (__driver_attach+0x90/0x94)
-[ 1865.391472]  r7:c015c54c r6:bf01f494 r5:c02f6bfc r4:c02f6bc8
-[ 1865.395448] [<c015c54c>] (__driver_attach+0x0/0x94) from [<c015b95c>] (bus_for_each_dev+0x5c/0x88)
-[ 1865.403200]  r6:bf01f494 r5:c04efe50 r4:00000000
-[ 1865.407058] [<c015b900>] (bus_for_each_dev+0x0/0x88) from [<c015c2c8>] (driver_attach+0x20/0x28)
-[ 1865.414696]  r7:c0589320 r6:bf01f494 r5:bf01f510 r4:00000000
-[ 1865.418554] [<c015c2a8>] (driver_attach+0x0/0x28) from [<c015bf74>] (bus_add_driver+0xac/0x220)
-[ 1865.426118] [<c015bec8>] (bus_add_driver+0x0/0x220) from [<c015c85c>] (driver_register+0x64/0x148)
-[ 1865.433671]  r8:bf01e064 r7:00000000 r6:bf01f494 r5:bf01f510 r4:0002400f
-[ 1865.437530] [<c015c7f8>] (driver_register+0x0/0x148) from [<c015d898>] (platform_driver_register+0x6c/0x88)
-[ 1865.445045]  r8:bf01e064 r7:00000000 r6:c04ee000 r5:bf01f510 r4:0002400f
-[ 1865.448875] [<c015d82c>] (platform_driver_register+0x0/0x88) from [<bf01e078>] (pxa_camera_init+0x14/0x1c [pxa_camera])
-[ 1865.456380] [<bf01e064>] (pxa_camera_init+0x0/0x1c [pxa_camera]) from [<c0022294>] (do_one_initcall+0x34/0x188)
-[ 1865.463876] [<c0022260>] (do_one_initcall+0x0/0x188) from [<c005d7f4>] (sys_init_module+0x90/0x1a0)
-[ 1865.471331] [<c005d764>] (sys_init_module+0x0/0x1a0) from [<c0022e40>] (ret_fast_syscall+0x0/0x2c)
-[ 1865.478727]  r7:00000080 r6:00000003 r5:0002400f r4:00000000
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-rc1-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29.1-armv5-ixp: OK
+linux-2.6.30-rc1-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: OK
+linux-2.6.30-rc1-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-rc1-m32r: OK
+linux-2.6.22.19-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29.1-mips: OK
+linux-2.6.30-rc1-mips: WARNINGS
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29.1-powerpc64: OK
+linux-2.6.30-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-rc1-x86_64: WARNINGS
+fw/apps: OK
+sparse (linux-2.6.29.1): OK
+sparse (linux-2.6.30-rc1): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Cheers.
+Detailed results are available here:
 
---
-Robert
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
