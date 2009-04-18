@@ -1,231 +1,993 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1459 "EHLO
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1399 "EHLO
 	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752595AbZDTVAO (ORCPT
+	with ESMTP id S1753250AbZDRLqL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 17:00:14 -0400
+	Sat, 18 Apr 2009 07:46:11 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: soc-camera to v4l2-subdev conversion
-Date: Mon, 20 Apr 2009 22:58:13 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <Pine.LNX.4.64.0904071122511.5155@axis700.grange> <200904202117.13348.hverkuil@xs4all.nl> <Pine.LNX.4.64.0904202142330.4403@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0904202142330.4403@axis700.grange>
+To: Chaithrika U S <chaithrika@ti.com>
+Subject: Re: [PATCH v2 2/4] ARM: DaVinci: DM646x Video: VPIF driver
+Date: Sat, 18 Apr 2009 13:46:05 +0200
+Cc: linux-media@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com,
+	Manjunath Hadli <mrh@ti.com>, Brijesh Jadav <brijesh.j@ti.com>
+References: <1239189525-19936-1-git-send-email-chaithrika@ti.com>
+In-Reply-To: <1239189525-19936-1-git-send-email-chaithrika@ti.com>
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200904202258.14084.hverkuil@xs4all.nl>
+Message-Id: <200904181346.05311.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 20 April 2009 22:19:23 Guennadi Liakhovetski wrote:
-> Hi Hans,
->
-> On Mon, 20 Apr 2009, Hans Verkuil wrote:
-> > On Thursday 16 April 2009 21:20:38 Guennadi Liakhovetski wrote:
-> > > Hi Hans,
-> > >
-> > > I have so far partially converted a couple of example setups, namely
-> > > the i.MX31-based pcm037/pcm970 and PXA270-based pcm027/pcm990 boards.
-> > >
-> > > Partially means, that I use v4l2_i2c_new_subdev() to register new
-> > > cameras and v4l2_device_register() to register hosts, I use some core
-> > > and video operations, but there are still quite a few extra bonds
-> > > that tie camera drivers and soc-camera core, that have to be broken.
-> > > The current diff is at
-> > > http://download.open-technology.de/testing/20090416-4.gitdiff,
-> > > although, you, probably, don't want to look at it:-)
-> > >
-> > > A couple of minor general remarks first:
-> > >
-> > > Shouldn't v4l2_device_call_until_err() return an error if the call is
-> > > unimplemented?
-> >
-> > It's my opinion that in general if no subdev needs to handle a
-> > particular call, then that's OK. I'm assuming that if it is wrong, then
-> > the device won't work anyway.
->
-> In fact, what I actually need is to call a specific method, if it is
-> implemented, from one specific subdevice, and get its error code - not
-> from all and not until the first error. I am currently abusing your
-> grp_id for this, but it might eventually be better to add such a wrapper.
+On Wednesday 08 April 2009 13:18:45 Chaithrika U S wrote:
+> Video Port Interface driver
+> 
+> Add VPIF driver for DM646x. This code be used by the display and
+> capture drivers.
+> 
+> Signed-off-by: Manjunath Hadli <mrh@ti.com>
+> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+> Signed-off-by: Chaithrika U S <chaithrika@ti.com>
+> ---
+> Applies to v4l-dvb repository
+> 
+>  drivers/media/video/davinci/vpif.c |  252 ++++++++++++++
+>  drivers/media/video/davinci/vpif.h |  640 ++++++++++++++++++++++++++++++++++++
+>  2 files changed, 892 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/davinci/vpif.c
+>  create mode 100644 drivers/media/video/davinci/vpif.h
+> 
+> diff --git a/drivers/media/video/davinci/vpif.c b/drivers/media/video/davinci/vpif.c
+> new file mode 100644
+> index 0000000..a3b5211
+> --- /dev/null
+> +++ b/drivers/media/video/davinci/vpif.c
+> @@ -0,0 +1,252 @@
+> +/*
+> + * vpif - DM646x Video Port Interface driver
+> + * VPIF is a receiver and transmitter for video data. It has two channels(0, 1)
+> + * that receiveing video byte stream and two channels(2, 3) for video output.
+> + * The hardware supports SDTV, HDTV formats, raw data capture.
+> + * Currently, the driver supports NTSC and PAL standards.
+> + *
+> + * Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License as
+> + * published by the Free Software Foundation version 2.
+> + *
+> + * This program is distributed .as is. WITHOUT ANY WARRANTY of any
+> + * kind, whether express or implied; without even the implied warranty
+> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/init.h>
+> +#include <linux/module.h>
+> +#include <linux/kernel.h>
+> +
+> +#include "vpif.h"
+> +
+> +MODULE_DESCRIPTION("TI DaVinci Video Port Interface driver");
+> +MODULE_LICENSE("GPL");
+> +
+> +#define VPIF_CH0_MAX_MODES	(22)
+> +#define VPIF_CH1_MAX_MODES	(02)
+> +#define VPIF_CH2_MAX_MODES	(15)
+> +#define VPIF_CH3_MAX_MODES	(02)
+> +
+> +/* This structure is used to keep track of VPIF size register's offsets */
+> +struct vpif_registers {
+> +	u32 h_cfg, v_cfg_00, v_cfg_01, v_cfg_02, v_cfg, ch_ctrl;
+> +	u32 line_offset, vanc0_strt, vanc0_size, vanc1_strt;
+> +	u32 vanc1_size, width_mask, len_mask;
+> +	u8 max_modes;
+> +};
+> +
+> +static struct vpif_registers vpifregs[VPIF_NUM_CHANNELS] = {
 
-That's actually what grp_id is intended for (or one of the intended uses at 
-least). The alternative method is to keep a pointer to the v4l2_subdev and 
-use that directly through v4l2_subdev_call(). The third method is to create 
-your own macro based on __v4l2_device_call_until_err. There is nothing 
-special about it.
+This can be const.
 
-> > > There's no counterpart to v4l2_i2c_new_subdev() in the API, so one is
-> > > supposed to call i2c_unregister_device() directly?
-> >
-> > You don't need to call that. It's done automatically when the i2c
-> > adapter is deleted. It might be that in the future this will have to be
-> > called, but if so then it will go through v4l2_device_unregister.
->
-> Adapter might never be deleted - remember, this is just a generic CPU i2c
-> controller.
+> +	/* Channel0 */
+> +	{
+> +		VPIF_CH0_H_CFG, VPIF_CH0_V_CFG_00, VPIF_CH0_V_CFG_01,
+> +		VPIF_CH0_V_CFG_02, VPIF_CH0_V_CFG_03, VPIF_CH0_CTRL,
+> +		VPIF_CH0_IMG_ADD_OFST, 0, 0, 0, 0, 0x1FFF, 0xFFF,
+> +		VPIF_CH0_MAX_MODES,
+> +	},
+> +	/* Channel1 */
+> +	{
+> +		VPIF_CH1_H_CFG, VPIF_CH1_V_CFG_00, VPIF_CH1_V_CFG_01,
+> +		VPIF_CH1_V_CFG_02, VPIF_CH1_V_CFG_03, VPIF_CH1_CTRL,
+> +		VPIF_CH1_IMG_ADD_OFST, 0, 0, 0, 0, 0x1FFF, 0xFFF,
+> +		VPIF_CH1_MAX_MODES,
+> +	},
+> +	/* Channel2 */
+> +	{
+> +		VPIF_CH2_H_CFG, VPIF_CH2_V_CFG_00, VPIF_CH2_V_CFG_01,
+> +		VPIF_CH2_V_CFG_02, VPIF_CH2_V_CFG_03, VPIF_CH2_CTRL,
+> +		VPIF_CH2_IMG_ADD_OFST, VPIF_CH2_VANC0_STRT, VPIF_CH2_VANC0_SIZE,
+> +		VPIF_CH2_VANC1_STRT, VPIF_CH2_VANC1_SIZE, 0x7FF, 0x7FF,
+> +		VPIF_CH2_MAX_MODES
+> +	},
+> +	/* Channel3 */
+> +	{
+> +		VPIF_CH3_H_CFG, VPIF_CH3_V_CFG_00, VPIF_CH3_V_CFG_01,
+> +		VPIF_CH3_V_CFG_02, VPIF_CH3_V_CFG_03, VPIF_CH3_CTRL,
+> +		VPIF_CH3_IMG_ADD_OFST, VPIF_CH3_VANC0_STRT, VPIF_CH3_VANC0_SIZE,
+> +		VPIF_CH3_VANC1_STRT, VPIF_CH3_VANC1_SIZE, 0x7FF, 0x7FF,
+> +		VPIF_CH3_MAX_MODES
+> +	},
+> +};
+> +
+> +/* vpif_set_mode_info:
+> + * This function is used to set horizontal and vertical config parameters
+> + * As per the standard in the channel, configure the values of L1, L3,
+> + * L5, L7  L9, L11 in VPIF Register , also write width and height
+> + */
+> +static void vpif_set_mode_info(struct vpif_channel_config_params *config,
 
-Ah yes. Good point. I have to think about this. It should probably be done 
-through v4l2_device_unregister().
+The config pointer should probably be const as well, my guess is that it can
+be const almost everywhere.
 
-> > > We'll have to extend v4l2_subdev_video_ops with [gs]_crop.
-> >
-> > No problem. Just add it.
-> >
-> > > Now I'm thinking about how best to break those remaining ties in
-> > > soc-camera. The remaining bindings that have to be torn are in
-> > > struct soc_camera_device. Mostly these are:
-> > >
-> > > 1. current geometry and geometry limits - as seen on the canera host
-> > > - camera client interface. I think, these are common to all video
-> > > devices, so, maybe we could put them meaningfully in a struct
-> > > video_data, accessible for both v4l2 subdevices and devices - one per
-> > > subdevice?
-> >
-> > See notes under 3.
-> >
-> > > 2. current exposure and gain. There are of course other video
-> > > parameters similar to these, like gamma, saturation, hue... Actually,
-> > > these are only needed in the sensor driver, the only reason why I
-> > > keep them globally available it to reply to V4L2_CID_GAIN and
-> > > V4L2_CID_EXPOSURE G_CTRL requests. So, if I pass these down to the
-> > > sensor drivers just like all other control requests, they can be
-> > > removed from soc_camera_device.
-> >
-> > Agreed.
-> >
-> > > 3. format negotiation. This is a pretty important part of the
-> > > soc-camera framework. Currently, sensor drivers provide a list of
-> > > supported pixel formats, based on it camera host drivers build
-> > > translation tables and calculate user pixel formats. I'd like to
-> > > preserve this functionality in some form. I think, we could make an
-> > > optional common data block, which, if available, can be used also for
-> > > the format negotiation and conversion. If it is not available, I
-> > > could just pass format requests one-to-one down to sensor drivers.
-> > >
-> > > Maybe a more universal approach would be to just keep "synthetic"
-> > > formats in each camera host driver. Then, on any format request first
-> > > just request it from the sensor trying to pass it one-to-one to the
-> > > user. If this doesn't work, look through the possible conversion
-> > > table, if the requested format is found among output formats, try to
-> > > request all input formats, that can be converted to it, one by one
-> > > from the sensor. Hm...
-> >
-> > Both 1 and 3 touch on the basic reason for creating the framework: one
-> > can build on it to move common driver code into framework. But the
-> > order in which I prefer to do this is to first move everything over to
-> > the framework first, before starting on refactoring drivers. The reason
-> > is that that way to have a really good overview of what everyone is
-> > doing.
-> >
-> > My question is: is it possible without too much effort to fix 1 and 3
-> > without modifying the framework?
->
-> You mean "to implement 1 and 3 without modifying the v4l2-(sub)dev
-> framework"? 
+> +				u8 channel_id, u8 config_channel_id)
+> +{
+> +	u32 value;
+> +
+> +	value = (config->eav2sav & vpifregs[config_channel_id].width_mask);
+> +	value <<= VPIF_CH_LEN_SHIFT;
+> +	value |= (config->sav2eav & vpifregs[config_channel_id].width_mask);
+> +	regw(value, vpifregs[channel_id].h_cfg);
+> +
+> +	value = (config->l1 & vpifregs[config_channel_id].len_mask);
+> +	value <<= VPIF_CH_LEN_SHIFT;
+> +	value |= (config->l3 & vpifregs[config_channel_id].len_mask);
+> +	regw(value, vpifregs[channel_id].v_cfg_00);
+> +
+> +	value = (config->l5 & vpifregs[config_channel_id].len_mask);
+> +	value <<= VPIF_CH_LEN_SHIFT;
+> +	value |= (config->l7 & vpifregs[config_channel_id].len_mask);
+> +	regw(value, vpifregs[channel_id].v_cfg_01);
+> +
+> +	value = (config->l9 & vpifregs[config_channel_id].len_mask);
+> +	value <<= VPIF_CH_LEN_SHIFT;
+> +	value |= (config->l11 & vpifregs[config_channel_id].len_mask);
+> +	regw(value, vpifregs[channel_id].v_cfg_02);
+> +
+> +	value = (config->vsize & vpifregs[config_channel_id].len_mask);
+> +	regw(value, vpifregs[channel_id].v_cfg);
+> +}
+> +
+> +/* config_vpif_params
+> + * Function to set the parameters of a channel
+> + * Mainly modifies the channel ciontrol register
+> + * It sets frame format, yc mux mode
+> + */
+> +static void config_vpif_params(struct vpif_params *vpifparams,
+> +				u8 channel_id, u8 found)
+> +{
+> +	struct vpif_channel_config_params *config = &vpifparams->std_info;
+> +	u32 value, ch_nip, reg;
+> +	u8 start, end;
+> +	int i;
+> +
+> +	start = channel_id;
+> +	end = channel_id + found;
+> +
+> +	for (i = start; i < end; i++) {
+> +		reg = vpifregs[i].ch_ctrl;
+> +		if (channel_id < 2)
+> +			ch_nip = VPIF_CAPTURE_CH_NIP;
+> +		else
+> +			ch_nip = VPIF_DISPLAY_CH_NIP;
+> +
+> +		if (config->frm_fmt)	/* Progressive Frame Format */
+> +			vpif_set_bit(reg, ch_nip);
+> +		else			/* Interlaced Frame Format */
+> +			vpif_clr_bit(reg, ch_nip);
 
-Correct.
+I suggest a small inline like this:
 
-> (1) wouldn't be too difficult, but (3) would require quite a 
-> bit of re-design and re-work of all three levels of soc-camera: core,
-> client and host drivers. Same holds for (4) below. (3) can be implemented
-> with some kind of enumeration similar to what v4l2 is currently doing in
-> the user API. We could do the following:
->
-> 1. clients keep their formats internally in some arbitrary indexed list
->
-> 2. on initialisation the core enumerates those formats using .enum_fmt
-> from struct v4l2_subdev_video_ops and queries the host if it can handle
-> each of those formats and which ones it can produce out of them for the
-> user
->
-> 3. the core then creates a list of user formats with fourcc codes and
-> indices of respective client formats
->
-> 4. when the user enumerates formats the core scans the list created in
-> (3) above and returns all user formats from it eliminating duplicates
->
-> 5. when the user selects a specific format the core passes the request
-> down to the host driver and that one can select which of possibly
-> multiple options to use to provide this format to the user
->
-> 6. the host driver then uses the fourcc from the selected entry to
-> configure the client using .s_fmt
->
-> This is in principle the same as what we are currently doing in
-> soc-camera only making format lists unaccessible for clients. Also, while
-> writing this email it occurred to me that we're currently eliminating
-> format duplicates too early, but that's a pretty unrelated change.
+static inline void vpif_wr_bit(u32 reg, u32 bit, u32 val)
+{
+	if (val)
+		vpif_set_bit(reg, bit);
+	else
+		vpif_clr_bit(reg, bit);
+}
 
-I'll have to think some more about this on Friday or Saturday.
+That will simplify this code.
 
-> > It will be suboptimal, I know, but it will
-> > also be faster. The alternative is to move support for this into the
-> > core framework, but that will mean a lot more work because then I want
-> > to do it right the first time, which means going through all the
-> > existing drivers, see how they do it, see how the framework can assist
-> > with that, and then come up with a good solution.
->
-> The above will require no modifications to the framework except for one
-> thing - can we have a bus-field (currently called "depth" in struct
-> soc_camera_data_format) in struct v4l2_fmtdesc?
+> +
+> +		if (config->ycmux_mode)	/* YC Mux mode */
+> +			vpif_set_bit(reg, VPIF_CH_YC_MUX_BIT);
+> +		else
+> +			vpif_clr_bit(reg, VPIF_CH_YC_MUX_BIT);
+> +
+> +		if (vpifparams->video_params.storage_mode)
+> +			vpif_set_bit(reg, VPIF_CH_INPUT_FIELD_FRAME_BIT);
+> +		else
+> +			vpif_clr_bit(reg, VPIF_CH_INPUT_FIELD_FRAME_BIT);
+> +
+> +		/* Set raster scanning SDR Format */
+> +		vpif_clr_bit(reg, VPIF_CH_SDR_FMT_BIT);
+> +		if (config->capture_format)
+> +			vpif_set_bit(reg, VPIF_CH_DATA_MODE_BIT);
+> +		else
+> +			vpif_clr_bit(reg, VPIF_CH_DATA_MODE_BIT);
+> +
+> +		if (channel_id > 1)	/* Set the Pixel enable bit */
+> +			vpif_set_bit(reg, VPIF_DISPLAY_PIX_EN_BIT);
+> +		else if (config->capture_format) {
+> +			/* Set the polarity of various pins */
+> +
+> +			if (vpifparams->params.raw_params.fid_pol)
+> +				vpif_set_bit(reg, VPIF_CH_FID_POLARITY_BIT);
+> +			else
+> +				vpif_clr_bit(reg, VPIF_CH_FID_POLARITY_BIT);
+> +
+> +			if (vpifparams->params.raw_params.vd_pol)
+> +				vpif_set_bit(reg, VPIF_CH_V_VALID_POLARITY_BIT);
+> +			else
+> +				vpif_clr_bit(reg, VPIF_CH_V_VALID_POLARITY_BIT);
+> +
+> +			if (vpifparams->params.raw_params.hd_pol)
+> +				vpif_set_bit(reg, VPIF_CH_H_VALID_POLARITY_BIT);
+> +			else
+> +				vpif_clr_bit(reg, VPIF_CH_H_VALID_POLARITY_BIT);
+> +
+> +			value = regr(reg);
+> +			/* Set data width */
+> +			value &= ((~(unsigned int)(0x3)) <<
+> +					VPIF_CH_DATA_WIDTH_BIT);
+> +			value |= ((vpifparams->params.raw_params.data_sz) <<
+> +						     VPIF_CH_DATA_WIDTH_BIT);
+> +			regw(value, reg);
+> +		}
+> +
+> +		/* Write the pitch in the driver */
+> +		regw((vpifparams->video_params.hpitch),
+> +						vpifregs[i].line_offset);
+> +	}
+> +}
+> +
+> +/* vpif_set_video_params
+> + * This function is used to set video parameters in VPIF register
+> + */
+> +int vpif_set_video_params(struct vpif_params *vpifparams, u8 channel_id)
+> +{
+> +	struct vpif_channel_config_params *config = &vpifparams->std_info;
+> +	int found = -1;
 
-That's a public API and can't be changed without very good reasons. In 
-principle the fourcc code implies the depth. So it's not needed in 
-v4l2_fmtdesc. I suspect that what you try to use it for is better done in a 
-different manner. Can you describe how it is used?
+This function can never return -1, right?
 
-> > > 4. bus parameter negotiation. Also an important thing. Should do the
-> > > same: if available - use it, if not - use platform-provided defaults.
-> >
-> > This is something for which I probably need to make changes. I think it
-> > is reasonable to add something like a s_bus_param call for this.
-> >
-> > An alternative is to use platform_data in board_info. This will mean an
-> > extra argument to the new_subdev functions. And since this is only
-> > available for 2.6.26 and up it is not as general.
->
-> No, platform data is not a good option. For example, some clients only
-> support some fixed bus flags - fixed signal polarities etc. For that you
-> don't need platform data. Unless the platform has put an inverter on
-> those lines... (which soc-camera can handle too:-)) Currently we have two
-> calls for this: .query_bus_param() and .set_bus_param(). Having queried
-> bus parameters supported by the client, the host builds an intersection
-> with own bus parameters, and if a working configuration exists (at least
-> one common polarity for all signals, one common bus width...) then it's
-> used to configure the client.
+> +
+> +	vpif_set_mode_info(config, channel_id, channel_id);
+> +	found = 1;
+> +	if (!config->ycmux_mode) {
+> +		vpif_set_mode_info(config, channel_id + 1, channel_id);
+> +		found = 2;
 
-Not sure why using platform_data would be a problem (I'm not saying we need 
-it, I just don't follow your reasoning). As I see it each v4l2 i2c driver 
-can have its own configuration parameters that are defined in a 
-media/driver.h header. If there is nothing special to be set, then no 
-platform_data is needed, otherwise you can fill in a struct and pass that 
-through platform_data. It's a bit of a misnomer: client_data would be a 
-better name as this has really nothing to do with a platform. Something 
-that confused me for the longest time...
+The return code needs to be documented.
 
-The advantage of using platform_data is that it can contain whatever a v4l2 
-i2c driver needs.
+> +	}
+> +
+> +	config_vpif_params(vpifparams, channel_id, found);
+> +
+> +	regw(0x80, VPIF_REQ_SIZE);
+> +	regw(0x01, VPIF_EMULATION_CTRL);
+> +
+> +	return found;
+> +}
+> +EXPORT_SYMBOL(vpif_set_video_params);
+> +
+> +int vpif_set_vbi_display_params(struct vpif_vbi_params *vbiparams,
+> +				u8 channel_id)
+> +{
+> +	u32 value;
+> +
+> +	value = 0x3F8 & (vbiparams->hstart0);
+> +	value |= 0x3FFFFFF & ((vbiparams->vstart0) << 16);
+> +	regw(value, vpifregs[channel_id].vanc0_strt);
+> +
+> +	value = 0x3F8 & (vbiparams->hstart1);
+> +	value |= 0x3FFFFFF & ((vbiparams->vstart1) << 16);
+> +	regw(value, vpifregs[channel_id].vanc1_strt);
+> +
+> +	value = 0x3F8 & (vbiparams->hsize0);
+> +	value |= 0x3FFFFFF & ((vbiparams->vsize0) << 16);
+> +	regw(value, vpifregs[channel_id].vanc0_size);
+> +
+> +	value = 0x3F8 & (vbiparams->hsize1);
+> +	value |= 0x3FFFFFF & ((vbiparams->vsize1) << 16);
+> +	regw(value, vpifregs[channel_id].vanc1_size);
+> +
+> +	return 0;
 
-Note that for now I have no problem with it if you add a s_bus_param 
-(s_bus_config?) ops. TI will need something like that as well in fact.
+This always return 0. Perhaps this should be a void function?
 
-> > > I think, I just finalise this partial conversion and we commit it,
-> > > because if I keep it locally for too long, I'll be getting multiple
-> > > merge conflicts, because this conversion also touches platform
-> > > code... Then, when the first step is in the tree we can work on
-> > > breaking the remaining bonds.
-> >
-> > Agreed. Do it step by step, that makes it much easier to work with.
->
-> Ok, I'll try to post a patch tomorrow...
+> +}
+> +EXPORT_SYMBOL(vpif_set_vbi_display_params);
+> +
+> +int vpif_channel_getfid(u8 channel_id)
+> +{
+> +	int val;
+> +	val = ((regr(vpifregs[channel_id].ch_ctrl) & VPIF_CH_FID_MASK)
+
+Just 'return' directly here. There is no need for the 'val' variable.
+
+> +					>> VPIF_CH_FID_SHIFT);
+> +
+> +	return val;
+> +}
+> +EXPORT_SYMBOL(vpif_channel_getfid);
+> +
+> +void vpif_base_addr_init(void __iomem *base)
+> +{
+> +	vpif_base = base;
+> +}
+> +EXPORT_SYMBOL(vpif_base_addr_init);
+> diff --git a/drivers/media/video/davinci/vpif.h b/drivers/media/video/davinci/vpif.h
+> new file mode 100644
+> index 0000000..8d0a180
+> --- /dev/null
+> +++ b/drivers/media/video/davinci/vpif.h
+> @@ -0,0 +1,640 @@
+> +/*
+> + * VPIF header file
+> + *
+> + * Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License as
+> + * published by the Free Software Foundation version 2.
+> + *
+> + * This program is distributed .as is. WITHOUT ANY WARRANTY of any
+> + * kind, whether express or implied; without even the implied warranty
+> + * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#ifndef VPIF_H
+> +#define VPIF_H
+> +
+> +#include <linux/io.h>
+> +#include <linux/videodev2.h>
+> +#include <mach/hardware.h>
+> +
+> +/* Maximum channel allowed */
+> +#define VPIF_NUM_CHANNELS		(4)
+> +#define VPIF_CAPTURE_NUM_CHANNELS	(2)
+> +#define VPIF_DISPLAY_NUM_CHANNELS	(2)
+> +
+> +/* Macros to read/write registers */
+> +static void __iomem *vpif_base;
+> +#define regr(reg)               readl((reg) + vpif_base)
+> +#define regw(value, reg)        writel(value, (reg + vpif_base))
+> +
+> +/* Register Addresss Offsets */
+> +#define VPIF_PID			(0x0000)
+> +#define VPIF_CH0_CTRL			(0x0004)
+> +#define VPIF_CH1_CTRL			(0x0008)
+> +#define VPIF_CH2_CTRL			(0x000C)
+> +#define VPIF_CH3_CTRL			(0x0010)
+> +
+> +#define VPIF_INTEN			(0x0020)
+> +#define VPIF_INTEN_SET			(0x0024)
+> +#define VPIF_INTEN_CLR			(0x0028)
+> +#define VPIF_STATUS			(0x002C)
+> +#define VPIF_STATUS_CLR			(0x0030)
+> +#define VPIF_EMULATION_CTRL		(0x0034)
+> +#define VPIF_REQ_SIZE			(0x0038)
+> +
+> +#define VPIF_CH0_TOP_STRT_ADD_LUMA	(0x0040)
+> +#define VPIF_CH0_BTM_STRT_ADD_LUMA	(0x0044)
+> +#define VPIF_CH0_TOP_STRT_ADD_CHROMA	(0x0048)
+> +#define VPIF_CH0_BTM_STRT_ADD_CHROMA	(0x004c)
+> +#define VPIF_CH0_TOP_STRT_ADD_HANC	(0x0050)
+> +#define VPIF_CH0_BTM_STRT_ADD_HANC	(0x0054)
+> +#define VPIF_CH0_TOP_STRT_ADD_VANC	(0x0058)
+> +#define VPIF_CH0_BTM_STRT_ADD_VANC	(0x005c)
+> +#define VPIF_CH0_SP_CFG			(0x0060)
+> +#define VPIF_CH0_IMG_ADD_OFST		(0x0064)
+> +#define VPIF_CH0_HANC_ADD_OFST		(0x0068)
+> +#define VPIF_CH0_H_CFG			(0x006c)
+> +#define VPIF_CH0_V_CFG_00		(0x0070)
+> +#define VPIF_CH0_V_CFG_01		(0x0074)
+> +#define VPIF_CH0_V_CFG_02		(0x0078)
+> +#define VPIF_CH0_V_CFG_03		(0x007c)
+> +
+> +#define VPIF_CH1_TOP_STRT_ADD_LUMA	(0x0080)
+> +#define VPIF_CH1_BTM_STRT_ADD_LUMA	(0x0084)
+> +#define VPIF_CH1_TOP_STRT_ADD_CHROMA	(0x0088)
+> +#define VPIF_CH1_BTM_STRT_ADD_CHROMA	(0x008c)
+> +#define VPIF_CH1_TOP_STRT_ADD_HANC	(0x0090)
+> +#define VPIF_CH1_BTM_STRT_ADD_HANC	(0x0094)
+> +#define VPIF_CH1_TOP_STRT_ADD_VANC	(0x0098)
+> +#define VPIF_CH1_BTM_STRT_ADD_VANC	(0x009c)
+> +#define VPIF_CH1_SP_CFG			(0x00a0)
+> +#define VPIF_CH1_IMG_ADD_OFST		(0x00a4)
+> +#define VPIF_CH1_HANC_ADD_OFST		(0x00a8)
+> +#define VPIF_CH1_H_CFG			(0x00ac)
+> +#define VPIF_CH1_V_CFG_00		(0x00b0)
+> +#define VPIF_CH1_V_CFG_01		(0x00b4)
+> +#define VPIF_CH1_V_CFG_02		(0x00b8)
+> +#define VPIF_CH1_V_CFG_03		(0x00bc)
+> +
+> +#define VPIF_CH2_TOP_STRT_ADD_LUMA	(0x00c0)
+> +#define VPIF_CH2_BTM_STRT_ADD_LUMA	(0x00c4)
+> +#define VPIF_CH2_TOP_STRT_ADD_CHROMA	(0x00c8)
+> +#define VPIF_CH2_BTM_STRT_ADD_CHROMA	(0x00cc)
+> +#define VPIF_CH2_TOP_STRT_ADD_HANC	(0x00d0)
+> +#define VPIF_CH2_BTM_STRT_ADD_HANC	(0x00d4)
+> +#define VPIF_CH2_TOP_STRT_ADD_VANC	(0x00d8)
+> +#define VPIF_CH2_BTM_STRT_ADD_VANC	(0x00dc)
+> +#define VPIF_CH2_SP_CFG			(0x00e0)
+> +#define VPIF_CH2_IMG_ADD_OFST		(0x00e4)
+> +#define VPIF_CH2_HANC_ADD_OFST		(0x00e8)
+> +#define VPIF_CH2_H_CFG			(0x00ec)
+> +#define VPIF_CH2_V_CFG_00		(0x00f0)
+> +#define VPIF_CH2_V_CFG_01		(0x00f4)
+> +#define VPIF_CH2_V_CFG_02		(0x00f8)
+> +#define VPIF_CH2_V_CFG_03		(0x00fc)
+> +#define VPIF_CH2_HANC0_STRT		(0x0100)
+> +#define VPIF_CH2_HANC0_SIZE		(0x0104)
+> +#define VPIF_CH2_HANC1_STRT		(0x0108)
+> +#define VPIF_CH2_HANC1_SIZE		(0x010c)
+> +#define VPIF_CH2_VANC0_STRT		(0x0110)
+> +#define VPIF_CH2_VANC0_SIZE		(0x0114)
+> +#define VPIF_CH2_VANC1_STRT		(0x0118)
+> +#define VPIF_CH2_VANC1_SIZE		(0x011c)
+> +
+> +#define VPIF_CH3_TOP_STRT_ADD_LUMA	(0x0140)
+> +#define VPIF_CH3_BTM_STRT_ADD_LUMA	(0x0144)
+> +#define VPIF_CH3_TOP_STRT_ADD_CHROMA	(0x0148)
+> +#define VPIF_CH3_BTM_STRT_ADD_CHROMA	(0x014c)
+> +#define VPIF_CH3_TOP_STRT_ADD_HANC	(0x0150)
+> +#define VPIF_CH3_BTM_STRT_ADD_HANC	(0x0154)
+> +#define VPIF_CH3_TOP_STRT_ADD_VANC	(0x0158)
+> +#define VPIF_CH3_BTM_STRT_ADD_VANC	(0x015c)
+> +#define VPIF_CH3_SP_CFG			(0x0160)
+> +#define VPIF_CH3_IMG_ADD_OFST		(0x0164)
+> +#define VPIF_CH3_HANC_ADD_OFST		(0x0168)
+> +#define VPIF_CH3_H_CFG			(0x016c)
+> +#define VPIF_CH3_V_CFG_00		(0x0170)
+> +#define VPIF_CH3_V_CFG_01		(0x0174)
+> +#define VPIF_CH3_V_CFG_02		(0x0178)
+> +#define VPIF_CH3_V_CFG_03		(0x017c)
+> +#define VPIF_CH3_HANC0_STRT		(0x0180)
+> +#define VPIF_CH3_HANC0_SIZE		(0x0184)
+> +#define VPIF_CH3_HANC1_STRT		(0x0188)
+> +#define VPIF_CH3_HANC1_SIZE		(0x018c)
+> +#define VPIF_CH3_VANC0_STRT		(0x0190)
+> +#define VPIF_CH3_VANC0_SIZE		(0x0194)
+> +#define VPIF_CH3_VANC1_STRT		(0x0198)
+> +#define VPIF_CH3_VANC1_SIZE		(0x019c)
+> +
+> +#define VPIF_IODFT_CTRL			(0x01c0)
+> +
+> +/* Functions for bit Manipulation */
+> +static inline void vpif_set_bit(u32 reg, u32 bit)
+> +{
+> +	regw((regr(reg)) | (0x01 << bit), reg);
+> +}
+> +
+> +static inline void vpif_clr_bit(u32 reg, u32 bit)
+> +{
+> +	regw(((regr(reg)) & ~(0x01 << bit)), reg);
+> +}
+> +
+> +/* Macro for Generating mask */
+> +#ifdef GENERATE_MASK
+> +#undef GENERATE_MASK
+> +#endif
+> +
+> +#define GENERATE_MASK(bits, pos) \
+> +		((((0xFFFFFFFF) << (32 - bits)) >> (32 - bits)) << pos)
+> +
+> +/* Bit positions in the channel control registers */
+> +#define VPIF_CH_DATA_MODE_BIT	(2)
+> +#define VPIF_CH_YC_MUX_BIT	(3)
+> +#define VPIF_CH_SDR_FMT_BIT	(4)
+> +#define VPIF_CH_HANC_EN_BIT	(8)
+> +#define VPIF_CH_VANC_EN_BIT	(9)
+> +
+> +#define VPIF_CAPTURE_CH_NIP	(10)
+> +#define VPIF_DISPLAY_CH_NIP	(11)
+> +
+> +#define VPIF_DISPLAY_PIX_EN_BIT	(10)
+> +
+> +#define VPIF_CH_INPUT_FIELD_FRAME_BIT	(12)
+> +
+> +#define VPIF_CH_FID_POLARITY_BIT	(15)
+> +#define VPIF_CH_V_VALID_POLARITY_BIT	(14)
+> +#define VPIF_CH_H_VALID_POLARITY_BIT	(13)
+> +#define VPIF_CH_DATA_WIDTH_BIT		(28)
+> +
+> +#define VPIF_CH_CLK_EDGE_CTRL_BIT	(31)
+> +
+> +/* Mask various length */
+> +#define VPIF_CH_EAVSAV_MASK	GENERATE_MASK(13, 0)
+> +#define VPIF_CH_LEN_MASK	GENERATE_MASK(12, 0)
+> +#define VPIF_CH_WIDTH_MASK	GENERATE_MASK(13, 0)
+> +#define VPIF_CH_LEN_SHIFT	(16)
+> +
+> +/* VPIF masks for registers */
+> +#define VPIF_REQ_SIZE_MASK	(0x1ff)
+> +
+> +/* bit posotion of interrupt vpif_ch_intr register */
+> +#define VPIF_INTEN_FRAME_CH0	(0x00000001)
+> +#define VPIF_INTEN_FRAME_CH1	(0x00000002)
+> +#define VPIF_INTEN_FRAME_CH2	(0x00000004)
+> +#define VPIF_INTEN_FRAME_CH3	(0x00000008)
+> +
+> +/* bit position of clock and channel enable in vpif_chn_ctrl register */
+> +
+> +#define VPIF_CH0_CLK_EN		(0x00000002)
+> +#define VPIF_CH0_EN		(0x00000001)
+> +#define VPIF_CH1_CLK_EN		(0x00000002)
+> +#define VPIF_CH1_EN		(0x00000001)
+> +#define VPIF_CH2_CLK_EN		(0x00000002)
+> +#define VPIF_CH2_EN		(0x00000001)
+> +#define VPIF_CH3_CLK_EN		(0x00000002)
+> +#define VPIF_CH3_EN		(0x00000001)
+> +#define VPIF_CH_CLK_EN		(0x00000002)
+> +#define VPIF_CH_EN	        (0x00000001)
+> +
+> +#define VPIF_INT_TOP	(0x00)
+> +#define VPIF_INT_BOTTOM	(0x01)
+> +#define VPIF_INT_BOTH	(0x02)
+> +
+> +#define VPIF_CH0_INT_CTRL_SHIFT	(6)
+> +#define VPIF_CH1_INT_CTRL_SHIFT	(6)
+> +#define VPIF_CH2_INT_CTRL_SHIFT	(6)
+> +#define VPIF_CH3_INT_CTRL_SHIFT	(6)
+> +#define VPIF_CH_INT_CTRL_SHIFT	(6)
+> +
+> +/* enabled interrupt on both the fields on vpid_ch0_ctrl register */
+> +#define channel0_intr_assert()	(regw((regr(VPIF_CH0_CTRL)|\
+> +				(VPIF_INT_BOTH << \
+> +				VPIF_CH0_INT_CTRL_SHIFT)), \
+> +				VPIF_CH0_CTRL))
+
+This can be written as:
+
+#define channel0_intr_assert()	(regw((regr(VPIF_CH0_CTRL) | \
+	(VPIF_INT_BOTH << VPIF_CH0_INT_CTRL_SHIFT)), VPIF_CH0_CTRL))
+
+It's shorter and easier to read this way.
+
+> +
+> +/* enabled interrupt on both the fields on vpid_ch1_ctrl register */
+> +#define channel1_intr_assert()	(regw((regr(VPIF_CH1_CTRL)|\
+> +				(VPIF_INT_BOTH << \
+> +				VPIF_CH1_INT_CTRL_SHIFT)), \
+> +				VPIF_CH1_CTRL))
+> +
+> +/* enabled interrupt on both the fields on vpid_ch0_ctrl register */
+> +#define channel2_intr_assert() 	(regw((regr(VPIF_CH2_CTRL)|\
+> +				(VPIF_INT_BOTH << \
+> +				VPIF_CH2_INT_CTRL_SHIFT)), \
+> +				VPIF_CH2_CTRL))
+> +
+> +/* enabled interrupt on both the fields on vpid_ch1_ctrl register */
+> +#define channel3_intr_assert() 	(regw((regr(VPIF_CH3_CTRL)|\
+> +				(VPIF_INT_BOTH << \
+> +				VPIF_CH3_INT_CTRL_SHIFT)), \
+> +				VPIF_CH3_CTRL))
+> +
+> +#define VPIF_CH_FID_MASK	(0x20)
+> +#define VPIF_CH_FID_SHIFT	(5)
+> +
+> +#define VPIF_NTSC_VBI_START_FIELD0	(1)
+> +#define VPIF_NTSC_VBI_START_FIELD1	(263)
+> +#define VPIF_PAL_VBI_START_FIELD0	(624)
+> +#define VPIF_PAL_VBI_START_FIELD1	(311)
+> +
+> +#define VPIF_NTSC_HBI_START_FIELD0	(1)
+> +#define VPIF_NTSC_HBI_START_FIELD1	(263)
+> +#define VPIF_PAL_HBI_START_FIELD0	(624)
+> +#define VPIF_PAL_HBI_START_FIELD1	(311)
+> +
+> +#define VPIF_NTSC_VBI_COUNT_FIELD0	(20)
+> +#define VPIF_NTSC_VBI_COUNT_FIELD1	(19)
+> +#define VPIF_PAL_VBI_COUNT_FIELD0	(24)
+> +#define VPIF_PAL_VBI_COUNT_FIELD1	(25)
+> +
+> +#define VPIF_NTSC_HBI_COUNT_FIELD0	(263)
+> +#define VPIF_NTSC_HBI_COUNT_FIELD1	(262)
+> +#define VPIF_PAL_HBI_COUNT_FIELD0	(312)
+> +#define VPIF_PAL_HBI_COUNT_FIELD1	(313)
+> +
+> +#define VPIF_NTSC_VBI_SAMPLES_PER_LINE	(720)
+> +#define VPIF_PAL_VBI_SAMPLES_PER_LINE	(720)
+> +#define VPIF_NTSC_HBI_SAMPLES_PER_LINE	(268)
+> +#define VPIF_PAL_HBI_SAMPLES_PER_LINE	(280)
+> +
+> +#define VPIF_CH_VANC_EN			(0x20)
+> +#define VPIF_DMA_REQ_SIZE		(0x080)
+> +#define VPIF_EMULATION_DISABLE		(0x01)
+> +
+> +extern u8 irq_vpif_capture_channel[VPIF_NUM_CHANNELS];
+> +
+> +/* inline function to enable/disable channel0 */
+> +static inline void enable_channel0(int enable)
+> +{
+> +	if (enable)
+> +		regw((regr(VPIF_CH0_CTRL) | (VPIF_CH0_EN)), VPIF_CH0_CTRL);
+> +	else
+> +		regw((regr(VPIF_CH0_CTRL) & (~VPIF_CH0_EN)), VPIF_CH0_CTRL);
+> +}
+> +
+> +/* inline function to enable/disable channel1 */
+> +static inline void enable_channel1(int enable)
+> +{
+> +	if (enable)
+> +		regw((regr(VPIF_CH1_CTRL) | (VPIF_CH1_EN)), VPIF_CH1_CTRL);
+> +	else
+> +		regw((regr(VPIF_CH1_CTRL) & (~VPIF_CH1_EN)), VPIF_CH1_CTRL);
+> +}
+> +
+> +/* inline function to enable interrupt for channel0 */
+> +static inline void channel0_intr_enable(int enable)
+> +{
+> +	if (enable) {
+> +		regw((regr(VPIF_INTEN) | 0x10), VPIF_INTEN);
+> +		regw((regr(VPIF_INTEN_SET) | 0x10), VPIF_INTEN_SET);
+> +
+> +		regw((regr(VPIF_INTEN) | VPIF_INTEN_FRAME_CH0), VPIF_INTEN);
+> +		regw((regr(VPIF_INTEN_SET) | VPIF_INTEN_FRAME_CH0),
+> +							VPIF_INTEN_SET);
+> +	} else {
+> +		regw((regr(VPIF_INTEN) & (~VPIF_INTEN_FRAME_CH0)), VPIF_INTEN);
+> +		regw((regr(VPIF_INTEN_SET) | VPIF_INTEN_FRAME_CH0),
+> +							VPIF_INTEN_SET);
+> +	}
+> +}
+> +
+> +/* inline function to enable interrupt for channel1 */
+> +static inline void channel1_intr_enable(int enable)
+> +{
+> +	if (enable) {
+> +		regw((regr(VPIF_INTEN) | 0x10), VPIF_INTEN);
+> +		regw((regr(VPIF_INTEN_SET) | 0x10), VPIF_INTEN_SET);
+> +
+> +		regw((regr(VPIF_INTEN) | VPIF_INTEN_FRAME_CH1), VPIF_INTEN);
+> +		regw((regr(VPIF_INTEN_SET) | VPIF_INTEN_FRAME_CH1),
+> +							VPIF_INTEN_SET);
+> +	} else {
+> +		regw((regr(VPIF_INTEN) & (~VPIF_INTEN_FRAME_CH1)), VPIF_INTEN);
+> +		regw((regr(VPIF_INTEN_SET) | VPIF_INTEN_FRAME_CH1),
+> +							VPIF_INTEN_SET);
+> +	}
+> +}
+> +
+> +/* inline function to set buffer addresses in case of Y/C non mux mode */
+> +static inline void ch0_set_videobuf_addr_yc_nmux(unsigned long top_strt_luma,
+> +						 unsigned long btm_strt_luma,
+> +						 unsigned long top_strt_chroma,
+> +						 unsigned long btm_strt_chroma)
+> +{
+> +	regw(top_strt_luma, VPIF_CH0_TOP_STRT_ADD_LUMA);
+> +	regw(btm_strt_luma, VPIF_CH0_BTM_STRT_ADD_LUMA);
+> +	regw(top_strt_chroma, VPIF_CH1_TOP_STRT_ADD_CHROMA);
+> +	regw(btm_strt_chroma, VPIF_CH1_BTM_STRT_ADD_CHROMA);
+> +}
+> +
+> +/* inline function to set buffer addresses in VPIF registers for video data */
+> +static inline void ch0_set_videobuf_addr(unsigned long top_strt_luma,
+> +					 unsigned long btm_strt_luma,
+> +					 unsigned long top_strt_chroma,
+> +					 unsigned long btm_strt_chroma)
+> +{
+> +	regw(top_strt_luma, VPIF_CH0_TOP_STRT_ADD_LUMA);
+> +	regw(btm_strt_luma, VPIF_CH0_BTM_STRT_ADD_LUMA);
+> +	regw(top_strt_chroma, VPIF_CH0_TOP_STRT_ADD_CHROMA);
+> +	regw(btm_strt_chroma, VPIF_CH0_BTM_STRT_ADD_CHROMA);
+> +}
+> +
+> +static inline void ch1_set_videobuf_addr(unsigned long top_strt_luma,
+> +					 unsigned long btm_strt_luma,
+> +					 unsigned long top_strt_chroma,
+> +					 unsigned long btm_strt_chroma)
+> +{
+> +
+> +	regw(top_strt_luma, VPIF_CH1_TOP_STRT_ADD_LUMA);
+> +	regw(btm_strt_luma, VPIF_CH1_BTM_STRT_ADD_LUMA);
+> +	regw(top_strt_chroma, VPIF_CH1_TOP_STRT_ADD_CHROMA);
+> +	regw(btm_strt_chroma, VPIF_CH1_BTM_STRT_ADD_CHROMA);
+> +}
+> +
+> +static inline void ch0_set_vbi_addr(unsigned long top_vbi,
+> +	unsigned long btm_vbi, unsigned long a, unsigned long b)
+> +{
+> +	regw(top_vbi, VPIF_CH0_TOP_STRT_ADD_VANC);
+> +	regw(btm_vbi, VPIF_CH0_BTM_STRT_ADD_VANC);
+> +}
+> +
+> +static inline void ch0_set_hbi_addr(unsigned long top_vbi,
+> +	unsigned long btm_vbi, unsigned long a, unsigned long b)
+> +{
+> +	regw(top_vbi, VPIF_CH0_TOP_STRT_ADD_HANC);
+> +	regw(btm_vbi, VPIF_CH0_BTM_STRT_ADD_HANC);
+> +}
+> +
+> +static inline void ch1_set_vbi_addr(unsigned long top_vbi,
+> +	unsigned long btm_vbi, unsigned long a, unsigned long b)
+> +{
+> +	regw(top_vbi, VPIF_CH1_TOP_STRT_ADD_VANC);
+> +	regw(btm_vbi, VPIF_CH1_BTM_STRT_ADD_VANC);
+> +}
+> +
+> +static inline void ch1_set_hbi_addr(unsigned long top_vbi,
+> +	unsigned long btm_vbi, unsigned long a, unsigned long b)
+> +{
+> +	regw(top_vbi, VPIF_CH1_TOP_STRT_ADD_HANC);
+> +	regw(btm_vbi, VPIF_CH1_BTM_STRT_ADD_HANC);
+> +}
+> +
+> +/* Inline function to enable raw vbi in the given channel */
+> +static inline void disable_raw_feature(u8 channel_id, u8 index)
+> +{
+> +	u32 ctrl_reg;
+> +	if (0 == channel_id)
+> +		ctrl_reg = VPIF_CH0_CTRL;
+> +	else
+> +		ctrl_reg = VPIF_CH1_CTRL;
+> +
+> +	if (1 == index)
+> +		vpif_clr_bit(ctrl_reg, VPIF_CH_VANC_EN_BIT);
+> +	else
+> +		vpif_clr_bit(ctrl_reg, VPIF_CH_HANC_EN_BIT);
+> +}
+> +
+> +static inline void enable_raw_feature(u8 channel_id, u8 index)
+> +{
+> +	u32 ctrl_reg;
+> +	if (0 == channel_id)
+> +		ctrl_reg = VPIF_CH0_CTRL;
+> +	else
+> +		ctrl_reg = VPIF_CH1_CTRL;
+> +
+> +	if (1 == index)
+> +		vpif_set_bit(ctrl_reg, VPIF_CH_VANC_EN_BIT);
+> +	else
+> +		vpif_set_bit(ctrl_reg, VPIF_CH_HANC_EN_BIT);
+> +}
+> +
+> +/* inline function to enable/disable channel2 */
+> +static inline void enable_channel2(int enable)
+> +{
+> +	if (enable) {
+> +		regw((regr(VPIF_CH2_CTRL) | (VPIF_CH2_CLK_EN)), VPIF_CH2_CTRL);
+> +		regw((regr(VPIF_CH2_CTRL) | (VPIF_CH2_EN)), VPIF_CH2_CTRL);
+> +	} else {
+> +		regw((regr(VPIF_CH2_CTRL) & (~VPIF_CH2_CLK_EN)), VPIF_CH2_CTRL);
+> +		regw((regr(VPIF_CH2_CTRL) & (~VPIF_CH2_EN)), VPIF_CH2_CTRL);
+> +	}
+> +}
+> +
+> +/* inline function to enable/disable channel3 */
+> +static inline void enable_channel3(int enable)
+> +{
+> +	if (enable) {
+> +		regw((regr(VPIF_CH3_CTRL) | (VPIF_CH3_CLK_EN)), VPIF_CH3_CTRL);
+> +		regw((regr(VPIF_CH3_CTRL) | (VPIF_CH3_EN)), VPIF_CH3_CTRL);
+> +	} else {
+> +		regw((regr(VPIF_CH3_CTRL) & (~VPIF_CH3_CLK_EN)), VPIF_CH3_CTRL);
+> +		regw((regr(VPIF_CH3_CTRL) & (~VPIF_CH3_EN)), VPIF_CH3_CTRL);
+> +	}
+> +}
+> +
+> +/* inline function to enable interrupt for channel2 */
+> +static inline void channel2_intr_enable(int enable)
+> +{
+> +	if (enable) {
+> +		regw((regr(VPIF_INTEN) | 0x10), VPIF_INTEN);
+> +		regw((regr(VPIF_INTEN_SET) | 0x10), VPIF_INTEN_SET);
+> +		regw((regr(VPIF_INTEN) | VPIF_INTEN_FRAME_CH2), VPIF_INTEN);
+> +		regw((regr(VPIF_INTEN_SET) | VPIF_INTEN_FRAME_CH2),
+> +							VPIF_INTEN_SET);
+> +	} else {
+> +		regw((regr(VPIF_INTEN) & (~VPIF_INTEN_FRAME_CH2)), VPIF_INTEN);
+> +		regw((regr(VPIF_INTEN_SET) | VPIF_INTEN_FRAME_CH2),
+> +							VPIF_INTEN_SET);
+> +	}
+> +}
+> +
+> +/* inline function to enable interrupt for channel3 */
+> +static inline void channel3_intr_enable(int enable)
+> +{
+> +	if (enable) {
+> +		regw((regr(VPIF_INTEN) | 0x10), VPIF_INTEN);
+> +		regw((regr(VPIF_INTEN_SET) | 0x10), VPIF_INTEN_SET);
+> +
+> +		regw((regr(VPIF_INTEN) | VPIF_INTEN_FRAME_CH3), VPIF_INTEN);
+> +		regw((regr(VPIF_INTEN_SET) | VPIF_INTEN_FRAME_CH3),
+> +							VPIF_INTEN_SET);
+> +	} else {
+> +		regw((regr(VPIF_INTEN) & (~VPIF_INTEN_FRAME_CH3)), VPIF_INTEN);
+> +		regw((regr(VPIF_INTEN_SET) | VPIF_INTEN_FRAME_CH3),
+> +							VPIF_INTEN_SET);
+> +	}
+> +}
+> +
+> +/* inline function to enable raw vbi data for channel2 */
+> +static inline void channel2_raw_enable(int enable, u8 index)
+> +{
+> +	u32 mask;
+> +
+> +	if (1 == index)
+> +		mask = VPIF_CH_VANC_EN_BIT;
+> +	else
+> +		mask = VPIF_CH_HANC_EN_BIT;
+> +
+> +	if (enable)
+> +		vpif_set_bit(VPIF_CH2_CTRL, mask);
+> +	else
+> +		vpif_clr_bit(VPIF_CH2_CTRL, mask);
+> +}
+> +
+> +/* inline function to enable raw vbi data for channel3*/
+> +static inline void channel3_raw_enable(int enable, u8 index)
+> +{
+> +	u32 mask;
+> +
+> +	if (1 == index)
+> +		mask = VPIF_CH_VANC_EN_BIT;
+> +	else
+> +		mask = VPIF_CH_HANC_EN_BIT;
+> +
+> +	if (enable)
+> +		vpif_set_bit(VPIF_CH3_CTRL, mask);
+> +	else
+> +		vpif_clr_bit(VPIF_CH3_CTRL, mask);
+> +}
+> +
+> +/* inline function to set buffer addresses in case of Y/C non mux mode */
+> +static inline void ch2_set_videobuf_addr_yc_nmux(unsigned long top_strt_luma,
+> +						 unsigned long btm_strt_luma,
+> +						 unsigned long top_strt_chroma,
+> +						 unsigned long btm_strt_chroma)
+> +{
+> +	regw(top_strt_luma, VPIF_CH2_TOP_STRT_ADD_LUMA);
+> +	regw(btm_strt_luma, VPIF_CH2_BTM_STRT_ADD_LUMA);
+> +	regw(top_strt_chroma, VPIF_CH3_TOP_STRT_ADD_CHROMA);
+> +	regw(btm_strt_chroma, VPIF_CH3_BTM_STRT_ADD_CHROMA);
+> +}
+> +
+> +/* inline function to set buffer addresses in VPIF registers for video data */
+> +static inline void ch2_set_videobuf_addr(unsigned long top_strt_luma,
+> +					 unsigned long btm_strt_luma,
+> +					 unsigned long top_strt_chroma,
+> +					 unsigned long btm_strt_chroma)
+> +{
+> +	regw(top_strt_luma, VPIF_CH2_TOP_STRT_ADD_LUMA);
+> +	regw(btm_strt_luma, VPIF_CH2_BTM_STRT_ADD_LUMA);
+> +	regw(top_strt_chroma, VPIF_CH2_TOP_STRT_ADD_CHROMA);
+> +	regw(btm_strt_chroma, VPIF_CH2_BTM_STRT_ADD_CHROMA);
+> +}
+> +
+> +static inline void ch3_set_videobuf_addr(unsigned long top_strt_luma,
+> +					 unsigned long btm_strt_luma,
+> +					 unsigned long top_strt_chroma,
+> +					 unsigned long btm_strt_chroma)
+> +{
+> +	regw(top_strt_luma, VPIF_CH3_TOP_STRT_ADD_LUMA);
+> +	regw(btm_strt_luma, VPIF_CH3_BTM_STRT_ADD_LUMA);
+> +	regw(top_strt_chroma, VPIF_CH3_TOP_STRT_ADD_CHROMA);
+> +	regw(btm_strt_chroma, VPIF_CH3_BTM_STRT_ADD_CHROMA);
+> +}
+> +
+> +/* inline function to set buffer addresses in VPIF registers for vbi data */
+> +static inline void ch2_set_vbi_addr(unsigned long top_strt_luma,
+> +					 unsigned long btm_strt_luma,
+> +					 unsigned long top_strt_chroma,
+> +					 unsigned long btm_strt_chroma)
+> +{
+> +	regw(top_strt_luma, VPIF_CH2_TOP_STRT_ADD_VANC);
+> +	regw(btm_strt_luma, VPIF_CH2_BTM_STRT_ADD_VANC);
+> +}
+> +
+> +static inline void ch3_set_vbi_addr(unsigned long top_strt_luma,
+> +					 unsigned long btm_strt_luma,
+> +					 unsigned long top_strt_chroma,
+> +					 unsigned long btm_strt_chroma)
+> +{
+> +	regw(top_strt_luma, VPIF_CH3_TOP_STRT_ADD_VANC);
+> +	regw(btm_strt_luma, VPIF_CH3_BTM_STRT_ADD_VANC);
+> +}
+> +
+> +#define VPIF_MAX_NAME	(30)
+> +
+> +/* This structure will store size parameters as per the mode selected by user */
+> +struct vpif_channel_config_params {
+> +	char name[VPIF_MAX_NAME];	/* Name of the mode */
+> +	u16 width;			/* Indicates width of the image */
+> +	u16 height;			/* Indicates height of the image */
+> +	u8 fps;
+> +	u8 frm_fmt;			/* Indicates whether this is interlaced
+> +					 * or progressive format */
+> +	u8 ycmux_mode;			/* Indicates whether this mode requires
+> +					 * single or two channels */
+> +	u16 eav2sav;			/* length of sav 2 eav */
+> +	u16 sav2eav;			/* length of sav 2 eav */
+> +	u16 l1, l3, l5, l7, l9, l11;	/* Other parameter configurations */
+> +	u16 vsize;			/* Vertical size of the image */
+> +	u8 capture_format;		/* Indicates whether capture format
+> +					 * is in BT or in CCD/CMOS */
+> +	u8  vbi_supported;		/* Indicates whether this mode
+> +					 * supports capturing vbi or not */
+> +	u8 hd_sd;
+> +	v4l2_std_id stdid;
+> +};
+> +
+> +struct vpif_interface;
+> +struct vpif_params;
+> +struct vpif_vbi_params;
+> +
+> +int vpif_set_video_params(struct vpif_params *vpifparams, u8 channel_id);
+> +int vpif_set_vbi_display_params(struct vpif_vbi_params *vbiparams,
+> +							u8 channel_id);
+> +int vpif_channel_getfid(u8 channel_id);
+> +void vpif_base_addr_init(void __iomem *base);
+> +
+> +/* Enumerated data types */
+> +enum vpif_capture_pinpol {
+> +	VPIF_CAPTURE_PINPOL_SAME	= 0,
+> +	VPIF_CAPTURE_PINPOL_INVERT	= 1
+> +};
+> +
+> +enum data_size {
+> +	_8BITS = 0,
+> +	_10BITS,
+> +	_12BITS,
+> +};
+> +
+> +struct vpif_capture_params_raw {
+> +	enum data_size data_sz;
+> +	enum vpif_capture_pinpol fid_pol;
+> +	enum vpif_capture_pinpol vd_pol;
+> +	enum vpif_capture_pinpol hd_pol;
+> +};
+> +
+> +/* Structure for vpif parameters for raw vbi data */
+> +struct vpif_vbi_params {
+> +	__u32 hstart0;  /* Horizontal start of raw vbi data for first field */
+> +	__u32 vstart0;  /* Vertical start of raw vbi data for first field */
+> +	__u32 hsize0;   /* Horizontal size of raw vbi data for first field */
+> +	__u32 vsize0;   /* Vertical size of raw vbi data for first field */
+> +	__u32 hstart1;  /* Horizontal start of raw vbi data for second field */
+> +	__u32 vstart1;  /* Vertical start of raw vbi data for second field */
+> +	__u32 hsize1;   /* Horizontal size of raw vbi data for second field */
+> +	__u32 vsize1;   /* Vertical size of raw vbi data for second field */
+> +};
+> +
+> +/* structure for vpif parameters */
+> +struct vpif_interface {
+> +	__u8 storage_mode;	/* Indicates field or frame mode */
+> +	unsigned long hpitch;
+> +	v4l2_std_id stdid;
+> +};
+> +
+> +struct vpif_params {
+> +	struct vpif_interface video_params;
+> +	struct vpif_channel_config_params std_info;
+> +	union param {
+> +		struct vpif_vbi_params	vbi_params;
+> +		struct vpif_capture_params_raw	raw_params;
+> +	} params;
+> +};
+> +
+> +#endif				/* End of #ifndef VPIF_H */
+> +
 
 Regards,
 
-	Hans
+        Hans
 
 -- 
 Hans Verkuil - video4linux developer - sponsored by TANDBERG
