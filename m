@@ -1,185 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail6.sea5.speakeasy.net ([69.17.117.8]:38605 "EHLO
-	mail6.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754063AbZD3QUB convert rfc822-to-8bit (ORCPT
+Received: from mail-in-10.arcor-online.net ([151.189.21.50]:58288 "EHLO
+	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750814AbZDSXpU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2009 12:20:01 -0400
-Date: Thu, 30 Apr 2009 09:20:00 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] v4l2: fill the reserved fields of VIDIOC_REQBUFS ioctl
-In-Reply-To: <Pine.LNX.4.58.0904300803410.7837@shell2.speakeasy.net>
-Message-ID: <Pine.LNX.4.58.0904300916250.7837@shell2.speakeasy.net>
-References: <49F8A325.7060303@freemail.hu> <Pine.LNX.4.58.0904300803410.7837@shell2.speakeasy.net>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=X-UNKNOWN
-Content-Transfer-Encoding: 8BIT
+	Sun, 19 Apr 2009 19:45:20 -0400
+Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS,
+	2.6.16-2.6.21: ERRORS
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Alexey Klimov <klimov.linux@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+In-Reply-To: <208cbae30904191542l4e3996cejf1df9cadfb187dfe@mail.gmail.com>
+References: <200904191818.n3JIISWN021959@smtp-vbr12.xs4all.nl>
+	 <208cbae30904191542l4e3996cejf1df9cadfb187dfe@mail.gmail.com>
+Content-Type: text/plain
+Date: Mon, 20 Apr 2009 01:44:26 +0200
+Message-Id: <1240184666.10011.10.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 30 Apr 2009, Trent Piepho wrote:
-> On Wed, 29 Apr 2009, [UTF-8] Németh Márton wrote:
-> > The parameter of VIDIOC_REQBUFS is a pointer to struct v4l2_requestbuffers.
-> > This structure has reserved fields which has to be filled with zeros
-> > according to the V4L2 API specification, revision 0.24 [1].
->
-> As I read the spec, the reserved fields can be used for input from user
-> space if the buffer is of type V4L2_BUF_TYPE_PRIVATE or higher.
+Hi,
 
-Here is a patch that fixes this problem, along with the S_FMT problem you
-patched earlier.  TRY_FMT had the same problem as S_FMT, so I fixed that
-one as well too.
+Am Montag, den 20.04.2009, 02:42 +0400 schrieb Alexey Klimov:
+> On Sun, Apr 19, 2009 at 10:18 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > This message is generated daily by a cron job that builds v4l-dvb for
+> > the kernels and architectures in the list below.
+> >
+> > Results of the daily build of v4l-dvb:
+> >
+> > date:        Sun Apr 19 19:00:03 CEST 2009
+> > path:        http://www.linuxtv.org/hg/v4l-dvb
+> > changeset:   11517:cda79523a93c
+> > gcc version: gcc (GCC) 4.3.1
+> > hardware:    x86_64
+> > host os:     2.6.26
+> >
+> > linux-2.6.22.19-armv5: OK
+> > linux-2.6.23.12-armv5: OK
+> > linux-2.6.24.7-armv5: OK
+> > linux-2.6.25.11-armv5: OK
+> > linux-2.6.26-armv5: OK
+> > linux-2.6.27-armv5: OK
+> > linux-2.6.28-armv5: OK
+> > linux-2.6.29.1-armv5: OK
+> > linux-2.6.30-rc1-armv5: OK
+> > linux-2.6.27-armv5-ixp: OK
+> > linux-2.6.28-armv5-ixp: OK
+> > linux-2.6.29.1-armv5-ixp: OK
+> > linux-2.6.30-rc1-armv5-ixp: WARNINGS
+> > linux-2.6.28-armv5-omap2: OK
+> > linux-2.6.29.1-armv5-omap2: OK
+> > linux-2.6.30-rc1-armv5-omap2: WARNINGS
+> > linux-2.6.22.19-i686: WARNINGS
+> > linux-2.6.23.12-i686: ERRORS
+> > linux-2.6.24.7-i686: OK
+> > linux-2.6.25.11-i686: OK
+> > linux-2.6.26-i686: OK
+> > linux-2.6.27-i686: OK
+> > linux-2.6.28-i686: OK
+> > linux-2.6.29.1-i686: OK
+> > linux-2.6.30-rc1-i686: WARNINGS
+> 
+> When trying to compile v4l-dvb tree under 2.6.30-rc2 (up-to-date) i
+> have such error with pvr2 module:
+> 
+>   CC [M]  /w/new/v4l-dvb/v4l/pvrusb2-hdw.o
+> /w/new/v4l-dvb/v4l/pvrusb2-hdw.c: In function 'pvr2_upload_firmware1':
+> /w/new/v4l-dvb/v4l/pvrusb2-hdw.c:1474: error: implicit declaration of
+> function 'usb_settoggle'
+> /w/new/v4l-dvb/v4l/pvrusb2-hdw.c: In function 'pvr2_hdw_load_modules':
+> /w/new/v4l-dvb/v4l/pvrusb2-hdw.c:2133: warning: format not a string
+> literal and no format arguments
+> make[3]: *** [/w/new/v4l-dvb/v4l/pvrusb2-hdw.o] Error 1
+> make[2]: *** [_module_/w/new/v4l-dvb/v4l] Error 2
+> 
+> It's probably due to this git commit:
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=3444b26afa145148951112534f298bdc554ec789
+> 
+> I don't have idea how to fix it fast and correctly.
+> 
 
-v4l2-ioctl: Clear buffer type specific trailing fields/padding
+without looking into further details, did build a 2.6.30-rc2-git4
+yesterday evening for an x86_64 and the whole media tree compiled
+without warnings and errors including that one.
 
-From: Trent Piepho <xyzzy@speakeasy.org>
+Was looking for if, the the breakage of some saa7134 cards on 2.6.29
+made it into that one too. As far as I can say without graphics card and
+wireless support there, but able to record, luckily not.
 
-Some ioctls have structs that are a different size depending on what type
-of buffer is being used.  If the buffer type leaves a field unused or has
-padding space at the end, this space should be zeroed out.
+Maybe give it a try and/or identify related further patches.
+Is git5 now.
 
-The problems with S_FMT and REQBUFS were original identified and patched by
-Márton Németh <nm127@freemail.hu>.
+Cheers,
+Hermann
 
-Priority: normal
 
-Signed-off-by: Trent Piepho <xyzzy@speakeasy.org>
 
-diff -r 7b786cb576e5 -r 82ef5d6e29e3 linux/drivers/media/video/v4l2-ioctl.c
---- a/linux/drivers/media/video/v4l2-ioctl.c	Thu Apr 30 09:14:13 2009 -0700
-+++ b/linux/drivers/media/video/v4l2-ioctl.c	Thu Apr 30 09:15:56 2009 -0700
-@@ -42,6 +42,12 @@
- 		    if (vfd->debug & V4L2_DEBUG_IOCTL_ARG)		\
- 			printk(KERN_DEBUG "%s: " fmt, vfd->name, ## arg);\
- 		} while (0)
-+
-+/* Zero out the end of the struct pointed to by p.  Everthing after, but
-+ * not including, the specified field is cleared. */
-+#define CLEAR_AFTER_FIELD(p, field) \
-+	memset((u8 *)(p) + offsetof(typeof(*(p)), field) + sizeof((p)->field), \
-+	0, sizeof(*(p)) - offsetof(typeof(*(p)), field) - sizeof((p)->field))
 
- struct std_descr {
- 	v4l2_std_id std;
-@@ -783,44 +789,53 @@ static long __video_do_ioctl(struct file
-
- 		switch (f->type) {
- 		case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-+			CLEAR_AFTER_FIELD(f, fmt.pix);
- 			v4l_print_pix_fmt(vfd, &f->fmt.pix);
- 			if (ops->vidioc_s_fmt_vid_cap)
- 				ret = ops->vidioc_s_fmt_vid_cap(file, fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_VIDEO_OVERLAY:
-+			CLEAR_AFTER_FIELD(f, fmt.win);
- 			if (ops->vidioc_s_fmt_vid_overlay)
- 				ret = ops->vidioc_s_fmt_vid_overlay(file,
- 								    fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-+			CLEAR_AFTER_FIELD(f, fmt.pix);
- 			v4l_print_pix_fmt(vfd, &f->fmt.pix);
- 			if (ops->vidioc_s_fmt_vid_out)
- 				ret = ops->vidioc_s_fmt_vid_out(file, fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
-+			CLEAR_AFTER_FIELD(f, fmt.win);
- 			if (ops->vidioc_s_fmt_vid_out_overlay)
- 				ret = ops->vidioc_s_fmt_vid_out_overlay(file,
- 					fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_VBI_CAPTURE:
-+			CLEAR_AFTER_FIELD(f, fmt.vbi);
- 			if (ops->vidioc_s_fmt_vbi_cap)
- 				ret = ops->vidioc_s_fmt_vbi_cap(file, fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_VBI_OUTPUT:
-+			CLEAR_AFTER_FIELD(f, fmt.vbi);
- 			if (ops->vidioc_s_fmt_vbi_out)
- 				ret = ops->vidioc_s_fmt_vbi_out(file, fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
-+			CLEAR_AFTER_FIELD(f, fmt.sliced);
- 			if (ops->vidioc_s_fmt_sliced_vbi_cap)
- 				ret = ops->vidioc_s_fmt_sliced_vbi_cap(file,
- 									fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
-+			CLEAR_AFTER_FIELD(f, fmt.sliced);
- 			if (ops->vidioc_s_fmt_sliced_vbi_out)
- 				ret = ops->vidioc_s_fmt_sliced_vbi_out(file,
- 									fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_PRIVATE:
-+			/* CLEAR_AFTER_FIELD(f, fmt.raw_data); <- does nothing */
- 			if (ops->vidioc_s_fmt_type_private)
- 				ret = ops->vidioc_s_fmt_type_private(file,
- 								fh, f);
-@@ -837,46 +852,55 @@ static long __video_do_ioctl(struct file
- 						v4l2_type_names));
- 		switch (f->type) {
- 		case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-+			CLEAR_AFTER_FIELD(f, fmt.pix);
- 			if (ops->vidioc_try_fmt_vid_cap)
- 				ret = ops->vidioc_try_fmt_vid_cap(file, fh, f);
- 			if (!ret)
- 				v4l_print_pix_fmt(vfd, &f->fmt.pix);
- 			break;
- 		case V4L2_BUF_TYPE_VIDEO_OVERLAY:
-+			CLEAR_AFTER_FIELD(f, fmt.win);
- 			if (ops->vidioc_try_fmt_vid_overlay)
- 				ret = ops->vidioc_try_fmt_vid_overlay(file,
- 					fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-+			CLEAR_AFTER_FIELD(f, fmt.pix);
- 			if (ops->vidioc_try_fmt_vid_out)
- 				ret = ops->vidioc_try_fmt_vid_out(file, fh, f);
- 			if (!ret)
- 				v4l_print_pix_fmt(vfd, &f->fmt.pix);
- 			break;
- 		case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
-+			CLEAR_AFTER_FIELD(f, fmt.win);
- 			if (ops->vidioc_try_fmt_vid_out_overlay)
- 				ret = ops->vidioc_try_fmt_vid_out_overlay(file,
- 				       fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_VBI_CAPTURE:
-+			CLEAR_AFTER_FIELD(f, fmt.vbi);
- 			if (ops->vidioc_try_fmt_vbi_cap)
- 				ret = ops->vidioc_try_fmt_vbi_cap(file, fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_VBI_OUTPUT:
-+			CLEAR_AFTER_FIELD(f, fmt.vbi);
- 			if (ops->vidioc_try_fmt_vbi_out)
- 				ret = ops->vidioc_try_fmt_vbi_out(file, fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
-+			CLEAR_AFTER_FIELD(f, fmt.sliced);
- 			if (ops->vidioc_try_fmt_sliced_vbi_cap)
- 				ret = ops->vidioc_try_fmt_sliced_vbi_cap(file,
- 								fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
-+			CLEAR_AFTER_FIELD(f, fmt.sliced);
- 			if (ops->vidioc_try_fmt_sliced_vbi_out)
- 				ret = ops->vidioc_try_fmt_sliced_vbi_out(file,
- 								fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_PRIVATE:
-+			/* CLEAR_AFTER_FIELD(f, fmt.raw_data); <- does nothing */
- 			if (ops->vidioc_try_fmt_type_private)
- 				ret = ops->vidioc_try_fmt_type_private(file,
- 								fh, f);
-@@ -898,6 +922,9 @@ static long __video_do_ioctl(struct file
- 		ret = check_fmt(ops, p->type);
- 		if (ret)
- 			break;
-+
-+		if (p->type < V4L2_BUF_TYPE_PRIVATE)
-+			CLEAR_AFTER_FIELD(p, memory);
-
- 		ret = ops->vidioc_reqbufs(file, fh, p);
- 		dbgarg(cmd, "count=%d, type=%s, memory=%s\n",
