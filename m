@@ -1,152 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:27639 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752036AbZDZIoG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Apr 2009 04:44:06 -0400
-Received: from jdelvare.pck.nerim.net ([62.212.121.182] helo=hyperion.delvare)
-	by services.gcu-squad.org (GCU Mailer Daemon) with esmtpsa id 1Ly13U-0005z4-V1
-	(TLSv1:AES256-SHA:256)
-	(envelope-from <khali@linux-fr.org>)
-	for linux-media@vger.kernel.org; Sun, 26 Apr 2009 11:53:49 +0200
-Date: Sun, 26 Apr 2009 10:43:59 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Subject: [PATCH] Link firmware to physical device
-Message-ID: <20090426104359.47a75070@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mx2.redhat.com ([66.187.237.31]:60373 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752435AbZDSHmI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Apr 2009 03:42:08 -0400
+Message-ID: <49EAD6A5.1010507@redhat.com>
+Date: Sun, 19 Apr 2009 09:45:41 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: =?windows-1252?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+CC: Adam Baker <linux@baker-net.org.uk>,
+	Hans de Goede <j.w.r.degoede@hhs.nl>,
+	Linux and Kernel Video <video4linux-list@redhat.com>,
+	SPCA50x Linux Device Driver Development
+	<spca50x-devs@lists.sourceforge.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: libv4l release: 0.5.97: the whitebalance release!
+References: <49E5D4DE.6090108@hhs.nl> <200904152326.59464.linux@baker-net.org.uk> <49E66787.2080301@hhs.nl> <200904162146.59742.linux@baker-net.org.uk> <49E843CB.6050306@redhat.com> <49E8D808.9070804@gmail.com> <49E9B989.70602@redhat.com> <49E9E652.5070706@gmail.com>
+In-Reply-To: <49E9E652.5070706@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the physical device rather than the i2c adapter as the reference
-device when loading firmwares. This will prevent the sysfs name
-collision with i2c-dev that has been reported many times.
-
-I may have missed other drivers which need the same fix.
-
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
-Note: this assumes that the i2c-adapter's parent has been set
-properly. This should be the case but it's hard to garantee that this
-is actually the case for all i2c-adapter drivers around. This thus
-needs testing.
-
- linux/drivers/media/common/tuners/tuner-xc2028.c |    2 +-
- linux/drivers/media/common/tuners/xc5000.c       |    2 +-
- linux/drivers/media/dvb/frontends/af9013.c       |    2 +-
- linux/drivers/media/dvb/frontends/cx24116.c      |    2 +-
- linux/drivers/media/dvb/frontends/drx397xD.c     |    4 ++--
- linux/drivers/media/dvb/frontends/nxt200x.c      |    6 ++++--
- linux/drivers/media/dvb/frontends/or51132.c      |    2 +-
- linux/drivers/media/dvb/frontends/tda10048.c     |    2 +-
- 8 files changed, 12 insertions(+), 10 deletions(-)
-
---- v4l-dvb.orig/linux/drivers/media/common/tuners/tuner-xc2028.c	2009-03-01 16:09:08.000000000 +0100
-+++ v4l-dvb/linux/drivers/media/common/tuners/tuner-xc2028.c	2009-04-26 09:46:12.000000000 +0200
-@@ -276,7 +276,7 @@ static int load_all_firmwares(struct dvb
- 		fname = firmware_name;
- 
- 	tuner_dbg("Reading firmware %s\n", fname);
--	rc = request_firmware(&fw, fname, &priv->i2c_props.adap->dev);
-+	rc = request_firmware(&fw, fname, priv->i2c_props.adap->dev.parent);
- 	if (rc < 0) {
- 		if (rc == -ENOENT)
- 			tuner_err("Error: firmware %s not found.\n",
---- v4l-dvb.orig/linux/drivers/media/common/tuners/xc5000.c	2009-03-27 15:01:39.000000000 +0100
-+++ v4l-dvb/linux/drivers/media/common/tuners/xc5000.c	2009-04-26 09:51:16.000000000 +0200
-@@ -594,7 +594,7 @@ static int xc5000_fwupload(struct dvb_fr
- 		XC5000_DEFAULT_FIRMWARE);
- 
- 	ret = request_firmware(&fw, XC5000_DEFAULT_FIRMWARE,
--		&priv->i2c_props.adap->dev);
-+		priv->i2c_props.adap->dev.parent);
- 	if (ret) {
- 		printk(KERN_ERR "xc5000: Upload failed. (file not found?)\n");
- 		ret = XC_RESULT_RESET_FAILURE;
---- v4l-dvb.orig/linux/drivers/media/dvb/frontends/af9013.c	2009-03-01 16:09:08.000000000 +0100
-+++ v4l-dvb/linux/drivers/media/dvb/frontends/af9013.c	2009-04-26 09:46:04.000000000 +0200
-@@ -1456,7 +1456,7 @@ static int af9013_download_firmware(stru
- 		af9013_ops.info.name);
- 
- 	/* request the firmware, this will block and timeout */
--	ret = request_firmware(&fw, fw_file,  &state->i2c->dev);
-+	ret = request_firmware(&fw, fw_file, state->i2c->dev.parent);
- 	if (ret) {
- 		err("did not find the firmware file. (%s) "
- 			"Please see linux/Documentation/dvb/ for more details" \
---- v4l-dvb.orig/linux/drivers/media/dvb/frontends/cx24116.c	2009-03-01 16:09:08.000000000 +0100
-+++ v4l-dvb/linux/drivers/media/dvb/frontends/cx24116.c	2009-04-26 09:52:02.000000000 +0200
-@@ -492,7 +492,7 @@ static int cx24116_firmware_ondemand(str
- 		printk(KERN_INFO "%s: Waiting for firmware upload (%s)...\n",
- 			__func__, CX24116_DEFAULT_FIRMWARE);
- 		ret = request_firmware(&fw, CX24116_DEFAULT_FIRMWARE,
--			&state->i2c->dev);
-+			state->i2c->dev.parent);
- 		printk(KERN_INFO "%s: Waiting for firmware upload(2)...\n",
- 			__func__);
- 		if (ret) {
---- v4l-dvb.orig/linux/drivers/media/dvb/frontends/drx397xD.c	2009-04-17 11:22:56.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/dvb/frontends/drx397xD.c	2009-04-26 09:48:03.000000000 +0200
-@@ -124,10 +124,10 @@ static int drx_load_fw(struct drx397xD_s
- 	}
- 	memset(&fw[ix].data[0], 0, sizeof(fw[0].data));
- 
--	if (request_firmware(&fw[ix].file, fw[ix].name, &s->i2c->dev) != 0) {
-+	rc = request_firmware(&fw[ix].file, fw[ix].name, s->i2c->dev.parent);
-+	if (rc != 0) {
- 		printk(KERN_ERR "%s: Firmware \"%s\" not available\n",
- 		       mod_name, fw[ix].name);
--		rc = -ENOENT;
- 		goto exit_err;
- 	}
- 
---- v4l-dvb.orig/linux/drivers/media/dvb/frontends/nxt200x.c	2009-03-01 16:09:08.000000000 +0100
-+++ v4l-dvb/linux/drivers/media/dvb/frontends/nxt200x.c	2009-04-26 09:48:30.000000000 +0200
-@@ -880,7 +880,8 @@ static int nxt2002_init(struct dvb_front
- 
- 	/* request the firmware, this will block until someone uploads it */
- 	printk("nxt2002: Waiting for firmware upload (%s)...\n", NXT2002_DEFAULT_FIRMWARE);
--	ret = request_firmware(&fw, NXT2002_DEFAULT_FIRMWARE, &state->i2c->dev);
-+	ret = request_firmware(&fw, NXT2002_DEFAULT_FIRMWARE,
-+			       state->i2c->dev.parent);
- 	printk("nxt2002: Waiting for firmware upload(2)...\n");
- 	if (ret) {
- 		printk("nxt2002: No firmware uploaded (timeout or file not found?)\n");
-@@ -944,7 +945,8 @@ static int nxt2004_init(struct dvb_front
- 
- 	/* request the firmware, this will block until someone uploads it */
- 	printk("nxt2004: Waiting for firmware upload (%s)...\n", NXT2004_DEFAULT_FIRMWARE);
--	ret = request_firmware(&fw, NXT2004_DEFAULT_FIRMWARE, &state->i2c->dev);
-+	ret = request_firmware(&fw, NXT2004_DEFAULT_FIRMWARE,
-+			       state->i2c->dev.parent);
- 	printk("nxt2004: Waiting for firmware upload(2)...\n");
- 	if (ret) {
- 		printk("nxt2004: No firmware uploaded (timeout or file not found?)\n");
---- v4l-dvb.orig/linux/drivers/media/dvb/frontends/or51132.c	2009-03-01 16:09:08.000000000 +0100
-+++ v4l-dvb/linux/drivers/media/dvb/frontends/or51132.c	2009-04-26 09:48:41.000000000 +0200
-@@ -340,7 +340,7 @@ static int or51132_set_parameters(struct
- 		}
- 		printk("or51132: Waiting for firmware upload(%s)...\n",
- 		       fwname);
--		ret = request_firmware(&fw, fwname, &state->i2c->dev);
-+		ret = request_firmware(&fw, fwname, state->i2c->dev.parent);
- 		if (ret) {
- 			printk(KERN_WARNING "or51132: No firmware up"
- 			       "loaded(timeout or file not found?)\n");
---- v4l-dvb.orig/linux/drivers/media/dvb/frontends/tda10048.c	2009-03-01 16:09:08.000000000 +0100
-+++ v4l-dvb/linux/drivers/media/dvb/frontends/tda10048.c	2009-04-26 09:51:31.000000000 +0200
-@@ -289,7 +289,7 @@ static int tda10048_firmware_upload(stru
- 		TDA10048_DEFAULT_FIRMWARE);
- 
- 	ret = request_firmware(&fw, TDA10048_DEFAULT_FIRMWARE,
--		&state->i2c->dev);
-+		state->i2c->dev.parent);
- 	if (ret) {
- 		printk(KERN_ERR "%s: Upload failed. (file not found?)\n",
- 			__func__);
 
 
--- 
-Jean Delvare
+On 04/18/2009 04:40 PM, Erik Andrén wrote:
+>
+> Hans de Goede wrote:
+>>
+>> On 04/17/2009 09:27 PM, Erik Andrén wrote:
+>>> Hans de Goede wrote:
+>>>> On 04/16/2009 10:46 PM, Adam Baker wrote:
+>>>>> On Thursday 16 Apr 2009, Hans de Goede wrote:
+>>>>>> On 04/16/2009 12:26 AM, Adam Baker wrote:
+>>>>>>> On Wednesday 15 Apr 2009, Hans de Goede wrote:
+>>>>>>>> Currently only whitebalancing is enabled and only on Pixarts (pac)
+>>>>>>>> webcams (which benefit tremendously from this). To test this with
+>>>>>>>> other
+>>>>>>>> webcams (after instaling this release) do:
+>>>>>>>>
+>>>>>>>> export LIBV4LCONTROL_CONTROLS=15
+>>>>>>>> LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so v4l2ucp&
+>>>>>>> Strangely while those instructions give me a whitebalance control
+>>>>>>> for the
+>>>>>>> sq905 based camera I can't get it to appear for a pac207 based camera
+>>>>>>> regardless of whether LIBV4LCONTROL_CONTROLS is set.
+>>>>>> Thats weird, there is a small bug in the handling of pac207
+>>>>>> cams with usb id 093a:2476 causing libv4l to not automatically
+>>>>>> enable whitebalancing (and the control) for cams with that id,
+>>>>>> but if you have LIBV4LCONTROL_CONTROLS set (exported!) both
+>>>>>> when loading v4l2ucp (you must preload v4l2convert.so!) and
+>>>>>> when loading your viewer, then it should work.
+>>>>>>
+>>>>> I've tested it by plugging in the sq905 camera, verifying the
+>>>>> whitebablance
+>>>>> control is present and working, unplugging the sq905 and plugging in
+>>>>> the
+>>>>> pac207 and using up arrow to restart v4l2ucp and svv so I think I've
+>>>>> eliminated most finger trouble possibilities. The pac207 is id
+>>>>> 093a:2460 so
+>>>>> not the problem id. I'll have to investigate more thoroughly later.
+>>>>>
+>>>> Does the pac207 perhaps have a / in its "card" string (see v4l-info
+>>>> output) ?
+>>>> if so try out this patch:
+>>>> http://linuxtv.org/hg/~hgoede/libv4l/rev/1e08d865690a
+>>>>
+>>> I have the same issue as Adam when trying to test this with my
+>>> gspca_stv06xx based Quickcam Web camera i. e no whitebalancing
+>>> controls show up. I'm attaching a dump which logs all available
+>>> pixformats and v4l2ctrls showing that libv4l is properly loaded.
+>>> (And yes, LIBV4LCONTROL_CONTROLS is exported and set to 15).
+>>>
+>>> Best regards,
+>>> Erik
+>>>
+>> Ah, you are using v4l2-ctl, not v4l2ucp, and that uses
+>> V4L2_CTRL_FLAG_NEXT_CTRL
+>> control enumeration. My code doesn't handle V4L2_CTRL_FLAG_NEXT_CTRL
+>> (which is
+>> a bug). I'm not sure when I'll have time to fix this. Patches welcome,
+>> or in
+>> the mean time use v4l2ucp to play with the controls.
+>>
+>
+> Actually, I've tried to use both without finding the controls.
+> I've only tried with v4l2ucp v. 1.2. Is 1.3 necessary?
+>
+
+Apparently there are different versions of v4l2ucp in different distro's
+and some do use the V4L2_CTRL_FLAG_NEXT_CTRL, just like v4l2-ctl. See
+Adam Baker's patch later in this thread. Which I will apply to my
+tree after I've reviewed it (when I find some time currently I've a lot of
+$work$ )
+
+Regards,
+
+Hans
