@@ -1,25 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from main.gmane.org ([80.91.229.2] helo=ciao.gmane.org)
+Received: from qw-out-2122.google.com ([74.125.92.25])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <gldd-linux-dvb@m.gmane.org>) id 1LtMJY-0007BD-38
-	for linux-dvb@linuxtv.org; Mon, 13 Apr 2009 15:35:08 +0200
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1LtMJS-0007DA-6o
-	for linux-dvb@linuxtv.org; Mon, 13 Apr 2009 13:35:02 +0000
-Received: from 41.226.83.137 ([41.226.83.137])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Mon, 13 Apr 2009 13:35:02 +0000
-Received: from nizar.saied by 41.226.83.137 with local (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <linux-dvb@linuxtv.org>; Mon, 13 Apr 2009 13:35:02 +0000
-To: linux-dvb@linuxtv.org
-From: nizar <nizar.saied@gmail.com>
-Date: Mon, 13 Apr 2009 17:31:29 +0200
-Message-ID: <grverg$k26$1@ger.gmane.org>
-Mime-Version: 1.0
-Subject: [linux-dvb] technisat skystar usb 2.0
-Reply-To: linux-media@vger.kernel.org, nizar.saied@gmail.com
+	(envelope-from <user.vdr@gmail.com>) id 1LvcT3-0005tG-6n
+	for linux-dvb@linuxtv.org; Sun, 19 Apr 2009 21:14:18 +0200
+Received: by qw-out-2122.google.com with SMTP id 8so535575qwh.17
+	for <linux-dvb@linuxtv.org>; Sun, 19 Apr 2009 12:14:12 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1240167036.3589.310.camel@macbook.infradead.org>
+References: <1214127575.4974.7.camel@jaswinder.satnam>
+	<a3ef07920904191055j4205ad8du3173a8a2328a214e@mail.gmail.com>
+	<1240167036.3589.310.camel@macbook.infradead.org>
+Date: Sun, 19 Apr 2009 12:14:12 -0700
+Message-ID: <a3ef07920904191214p7be3a0eem7f7abd91ffb374d2@mail.gmail.com>
+From: VDR User <user.vdr@gmail.com>
+To: David Woodhouse <dwmw2@infradead.org>
+Cc: Jaswinder Singh <jaswinder@infradead.org>,
+	linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [PATCH] firmware: convert av7110 driver to
+	request_firmware()
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -33,18 +32,31 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Please help needed.
-I have skystar usb 2.0 (13d0:2282) i have also the log of usbsnoop (300 
-Mo) .
-What are steps to :
+On Sun, Apr 19, 2009 at 11:50 AM, David Woodhouse <dwmw2@infradead.org> wrote:
+> Since the fix is so obvious, and you don't want to post using your real
+> name, I'm going to assume that you're just trolling and not actually
+> attempt to answer you directly.
 
-1- know if a firmware is needed.
-2- if yes how to extract it.
+Maybe the fix is obvious to you but it clearly isn't to a lot of other
+people.  As far as your assumption I'm here "trolling", you may want
+to rethink that.  How you could even interpret my post as trolling in
+the first place is laughable but I'm neither a stranger to this
+mailing list, nor am I new here.  A simple search would tell you that
+but making bad assumptions seems to be your preference.  You would
+also discover my name is Derek.  And now knowing it, do you feel
+better?  There are far more worthy things to concern yourself with but
+that's merely my opinion.
 
+I'll ignore the fact that your reply offered absolutely no value to
+the thread and issue at hand but for future reference, please leave
+such useless comments to direct email and off of the mailing list.
 
-thank you
-Nizar
+Furthermore, since you're unwilling to help with your "obvious fix",
+my recommendation to the many others having this problems is what was
+suggested to me...  Revert to an older v4l or use the tree located at:
+http://linuxtv.org/hg/~endriss/v4l-dvb/
 
+Thanks only to those with something useless or constructive to say.
 
 _______________________________________________
 linux-dvb users mailing list
