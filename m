@@ -1,49 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:60912 "EHLO smtp4-g21.free.fr"
+Received: from fep53.mail.dk ([80.160.77.118]:36673 "EHLO fep53.mail.dk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750930AbZDERlm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Apr 2009 13:41:42 -0400
-Date: Sun, 5 Apr 2009 19:36:25 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Anders Blomdell <anders.blomdell@control.lth.se>
-Cc: Erik =?ISO-8859-1?Q?Andr=E9n?= <erik.andren@gmail.com>,
-	Andy Shevchenko <andy.shevchenko@gmail.com>,
-	Thomas Kaiser <v4l@kaiser-linux.li>,
-	Thomas Champagne <lafeuil@gmail.com>,
-	Linux Media <linux-media@vger.kernel.org>,
-	Richard Case <rich@racitup.com>
-Subject: Re: topro 6800 driver
-Message-ID: <20090405193625.57c3b1fd@free.fr>
-In-Reply-To: <49D74485.8000004@control.lth.se>
-References: <5ec8ebd50903271106n14f0e2b7m1495ef135be0cd90@mail.gmail.com>
-	<49CD2868.9080502@kaiser-linux.li>
-	<5ec8ebd50903311144h316c7e3bmd30ce2c3d5a268ee@mail.gmail.com>
-	<49D4EAB2.4090206@control.lth.se>
-	<49D66C83.6000700@control.lth.se>
-	<49D67781.6030807@gmail.com>
-	<49D74485.8000004@control.lth.se>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+	id S1750954AbZDSWac (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Apr 2009 18:30:32 -0400
+Message-ID: <49EBA5C6.5060808@liberalismen.dk>
+Date: Mon, 20 Apr 2009 00:29:26 +0200
+From: Kjeld Flarup <kjeld.flarup@liberalismen.dk>
+MIME-Version: 1.0
+To: Michael Riepe <michael.riepe@googlemail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: dvbd
+References: <49EA7EFA.4030701@liberalismen.dk> <49EAF472.9010702@googlemail.com>
+In-Reply-To: <49EAF472.9010702@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 04 Apr 2009 13:29:09 +0200
-Anders Blomdell <anders.blomdell@control.lth.se> wrote:
-> >> Jean-Francois: feel free to add this to gspca if it lives up to
-> >> your standards, otherwise tell me what needs to be changed.
+Hi Michael
 
-Hi Anders,
+Thanks for your reply. Tweaking the scheduling is ususally easy to fix. 
+I might want to look at the buffering too. It ought to be a system thing.
+I never got VDR working properly, and currently I use mplayer/mencoder 
+to record.
 
-Your driver seems fine, but, to add it to gspca, I need a full patch,
-i.e the diff of the source, Kconfig, Makefile, webcam reference in
-gspca.txt (linux/Documentation/..) and your SOB (signature).
+But one thing which I would like to do is to use dvbd together with VLC, 
+because VLC can handle the DVB subtitles used in Denmark. But VLC does 
+not seem to like connecting to the dvbd socket. If anyone have success 
+with that, I sure would like to know.
 
-You should also ask Mauro to add you as a maintainer with a diff of the
-MAINTAINERS file from the last Linux kernel.
+Also at some time soon I would need to stream some DVB signals. But I do 
+not like the way this is done by most tools, they seems to be using up 
+CPU cycles even if nobody is listening.
 
-Cheers.
+  Regards Kjeld
+
+Michael Riepe wrote:
+> Hi!
+>
+> Kjeld Flarup wrote:
+>
+>   
+>> I've taken some interest in a small piece of software called dvbd.
+>> http://dvbd.sourceforge.net/
+>> I really like the concept of this software, because it could be used for
+>> sharing one DVB card among several different applications.
+>>     
+>
+> That's right.
+>
+>   
+>> BUT the software have not been developed since 2004.
+>>     
+>
+> And it needs a few tweaks when you're using a more recent C++ compiler
+> like gcc 4.3.x.
+>
+>   
+>> Is this because it is not so smart anyway, or are there some better
+>> programs out there?
+>>     
+>
+> There is VDR, of course. But I don't like the way it does things.
+> Therefore, I've been using dvbd for years to handle my small zoo of
+> DVB-T receivers (I've got four of them running at the moment). It easily
+> handles several recordings in parallel without using many resources - a
+> few megabytes of RAM and a few percent of CPU time on an old (2005)
+> Athlon64. I currently consider moving it to an Intel Atom based system.
+>
+> dvbd does sometimes have issues with disk writes, though. It doesn't do
+> much buffering, and if another process is blocking the disk it's writing
+> to for too long, you may encounter drop-outs. It's best to give it a
+> disk of its own. Similarly, if dvbd doesn't get scheduled for a while,
+> it will lose data from the receivers. On a single-core machine that also
+> does other things (like mine), I recommend to raise its priority with
+> nice --20, or maybe use a realtime priority level.
+>
+>   
+
 
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+-------------------- Med Liberalistiske Hilsner ----------------------
+  Civilingeniør, Kjeld Flarup - Mit sind er mere åbent end min tegnebog
+  Forssavej 49, 7600 Struer, Tlf: 40 29 41 49
+  Den ikke akademiske hjemmeside for liberalismen - www.liberalismen.dk
+
+
