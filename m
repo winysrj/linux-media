@@ -1,26 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3OMNDn9020441
-	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 18:23:13 -0400
-Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.30])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n3OMMf9H028042
-	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 18:22:41 -0400
-Received: by yx-out-2324.google.com with SMTP id 8so768716yxg.81
-	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 15:22:41 -0700 (PDT)
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3JBpMDk002811
+	for <video4linux-list@redhat.com>; Sun, 19 Apr 2009 07:51:22 -0400
+Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.188])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3JBp93N026345
+	for <video4linux-list@redhat.com>; Sun, 19 Apr 2009 07:51:09 -0400
+Received: by fk-out-0910.google.com with SMTP id e30so808813fke.3
+	for <video4linux-list@redhat.com>; Sun, 19 Apr 2009 04:51:09 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20090425081654.3e9932f1.erik@bcode.com>
-References: <20090424170352.313f1feb.erik@bcode.com>
-	<412bdbff0904240625y3902243em5a643380b036e08f@mail.gmail.com>
-	<20090425080356.69e0ed9d.erik@bcode.com>
-	<412bdbff0904241509r29b0859fl22abe2fe78e59daa@mail.gmail.com>
-	<20090425081654.3e9932f1.erik@bcode.com>
-Date: Fri, 24 Apr 2009 18:22:40 -0400
-Message-ID: <412bdbff0904241522s4466fe3dh3fadd3b21113e60@mail.gmail.com>
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <CF5BC408-3595-4B22-BF39-BF624B6D8F3E@gmail.com>
+References: <597D1543B3BA4400910B04E46280B6C3@wuschlbuschl>
+	<CF5BC408-3595-4B22-BF39-BF624B6D8F3E@gmail.com>
+Date: Sun, 19 Apr 2009 15:51:08 +0400
+Message-ID: <208cbae30904190451ve1735d2rac3cb9e656645499@mail.gmail.com>
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Dongsoo Kim <dongsoo.kim@gmail.com>
+Content-Type: text/plain; charset=EUC-KR
 Content-Transfer-Encoding: 8bit
-Subject: Re: Compling drivers from v4l-dvb hg tree
+Cc: video4linux-list@redhat.com, "B. Moser" <sy@itakka.at>
+Subject: Re: how to get timedelayed pictures of camera on /dev/video0
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,26 +30,44 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Apr 24, 2009 at 6:16 PM, Erik de Castro Lopo <erik@bcode.com> wrote:
-> Ok, 쟟ut the instructions on http://linuxtv.org/repo compiles the
-> driver for the current running kernel. How do I compile it for
-> another kernel, ie an x86 embedded device that I normally do not
-> compile on?
+Hello, all
 
-Yeah, that's a bit harder.  I did it a couple of months ago for ARM.
-I had to change the path to ensure the path to the cross-compiler's
-version of strip was ahead of the base operating system's version.
+2009/4/19 Dongsoo Kim <dongsoo.kim@gmail.com>:
+> Hello Bernhard,
+>
+> I suppose you to need a time machine feature like a brand new tele in these
+> days.
+> I think you should make a new application on your own, that does buffering
+> jobs, or you can do qbuf and dqbuf with a long term between them (but it
+> should look like a series of still shots)
+> I prefer the first one.
+> Cheers,
+>
+> Nate
 
-Check the linux-media archives for the subject "4vl + usb + arm" for
-the discussion in March.
+If you want to hack/write application you can use v4l2 loopback driver
++ userspace programs for that.
+I asked Vasily Levin (he is on c/c) and he said that it's possible. His answer:
+"I think my v4lsink(http://code.google.com/p/v4lsink/) program, given
+the right gstreamer pipeline can do this."
 
-Devin
-
+> 2008. 06. 24, 오후 5:45, B. Moser 작성:
+>
+>> I have a small problem - maybe someone out there can help me:
+>>
+>> I have a camera connected to my compuer ( /dev/video0 ).
+>> So far it is no problem to watch the pictures from the camera in realtime
+>> (for example with mplayer or similar programs).
+>>
+>> But I want to watch on screen what this camera showed 5 seconds ago.
+>> So the pictures/video from this camera should go into a buffer - which I
+>> would like to show on the monitor time-delayed a few seconds later.
+>>
+>> regards
+>> Bernhard
 
 -- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Best regards, Klimov Alexey
 
 --
 video4linux-list mailing list
