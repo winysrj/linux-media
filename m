@@ -1,190 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:7985 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751295AbZD3GRy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2009 02:17:54 -0400
+Received: from mx2.redhat.com ([66.187.237.31]:54996 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755785AbZDSTqN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Apr 2009 15:46:13 -0400
+Message-ID: <49EB8055.4040407@redhat.com>
+Date: Sun, 19 Apr 2009 21:49:41 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03051F7FCB@dbde02.ent.ti.com>
-References: <1240388578.12545.14.camel@tubuntu>
-	 <5A47E75E594F054BAF48C5E4FC4B92AB03051F7FCB@dbde02.ent.ti.com>
-Date: Thu, 30 Apr 2009 15:17:52 +0900
-Message-ID: <90b950fc0904292317m500820efv66755aed31b46853@mail.gmail.com>
-Subject: Re: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
-From: InKi Dae <daeinki@gmail.com>
-To: "Shah, Hardik" <hardik.shah@ti.com>
-Cc: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+CC: Adam Baker <linux@baker-net.org.uk>,
+	Hans de Goede <j.w.r.degoede@hhs.nl>,
+	Linux and Kernel Video <video4linux-list@redhat.com>,
+	SPCA50x Linux Device Driver Development
+	<spca50x-devs@lists.sourceforge.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: libv4l release: 0.5.97: the whitebalance release!
+References: <49E5D4DE.6090108@hhs.nl>	 <200904152326.59464.linux@baker-net.org.uk> <49E66787.2080301@hhs.nl>	 <200904162146.59742.linux@baker-net.org.uk>	 <49E843CB.6050306@redhat.com> <49E8D808.9070804@gmail.com>	 <49E9B989.70602@redhat.com> <49E9E652.5070706@gmail.com>	 <49EAD6A5.1010507@redhat.com> <62e5edd40904191220r87d5979peae56148793aa70@mail.gmail.com>
+In-Reply-To: <62e5edd40904191220r87d5979peae56148793aa70@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hello Shah, Hardik..
-
-your omap_vout.c has the problem that it disables video1 or fb1.
-so I have modified your code.
-
-I defined and set platform_data for DSS2 in machine code.(or board file)
-
-static struct omapfb_platform_data xxx_dss_platform_data = {
-    .mem_desc.region[0].format = OMAPFB_COLOR_ARGB32,
-    .mem_desc.region[0].format_used=1,
-
-    .mem_desc.region[1].format = OMAPFB_COLOR_RGB24U,
-    .mem_desc.region[1].format_used=1,
-
-    .mem_desc.region[2].format = OMAPFB_COLOR_ARGB32,
-    .mem_desc.region[2].format_used=1,
-};
-
-omapfb_set_platform_data(&xxx_dss_platform_data);
-
-after that, omap_vout has resource count got referring to framebuffer count,
-registers overlay as vout's one and would decide to use which overlay.
-
-at that time, your code would face with impact on some overlay(fb or video).
-
-this patch would solve that problem.
-when it sets overlay to vout, vout would get overlay array index to
-avoid overlapping with other overlay.
 
 
-sighed-off-by: InKi Dae. <inki.dae@samsung.com>
----
-diff --git a/drivers/media/video/omap/omap_vout.c
-b/drivers/media/video/omap/omap_vout.c
-index 9b4a0d7..051298a 100644
---- a/drivers/media/video/omap/omap_vout.c
-+++ b/drivers/media/video/omap/omap_vout.c
-@@ -2246,11 +2246,13 @@ free_buffers:
- /* Create video out devices */
- static int __init omap_vout_create_video_devices(struct platform_device *pdev)
- {
--	int r = 0, k;
-+	int r = 0, k, vout_count;
- 	struct omap_vout_device *vout;
- 	struct video_device *vfd = NULL;
- 	struct omap2video_device *vid_dev = platform_get_drvdata(pdev);
-
-+	vout_count = 3 - pdev->num_resources;
-+
- 	for (k = 0; k < pdev->num_resources; k++) {
-
- 		vout = kmalloc(sizeof(struct omap_vout_device), GFP_KERNEL);
-@@ -2266,9 +2268,9 @@ static int __init
-omap_vout_create_video_devices(struct platform_device *pdev)
- 		vout->vid = k;
- 		vid_dev->vouts[k] = vout;
- 		vout->vid_info.vid_dev = vid_dev;
--		vout->vid_info.overlays[0] = vid_dev->overlays[k + 1];
-+		vout->vid_info.overlays[0] = vid_dev->overlays[k + vout_count];
- 		vout->vid_info.num_overlays = 1;
--		vout->vid_info.id = k + 1;
-+		vout->vid_info.id = k + vout_count;
- 		vid_dev->num_videos++;
-
- 		/* Setup the default configuration for the video devices
-@@ -2289,7 +2291,7 @@ static int __init
-omap_vout_create_video_devices(struct platform_device *pdev)
- 		/* Register the Video device with V4L2
- 		 */
- 		vfd = vout->vfd;
--		if (video_register_device(vfd, VFL_TYPE_GRABBER, k + 1) < 0) {
-+		if (video_register_device(vfd, VFL_TYPE_GRABBER, k + vout_count) < 0) {
- 			printk(KERN_ERR VOUT_NAME ": could not register \
- 					Video for Linux device\n");
- 			vfd->minor = -1;
-
-
-2009/4/22 Shah, Hardik <hardik.shah@ti.com>:
->
->
->> -----Original Message-----
->> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
->> Sent: Wednesday, April 22, 2009 1:53 PM
->> To: Shah, Hardik
->> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Jadav, Brijesh R;
->> Hiremath, Vaibhav
->> Subject: Re: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
+On 04/19/2009 09:20 PM, Erik Andrén wrote:
+> 2009/4/19 Hans de Goede<hdegoede@redhat.com>:
 >>
->> Hi,
->>
->> On Wed, 2009-04-22 at 08:25 +0200, ext Hardik Shah wrote:
->> > This is the version 5th of the Driver.
->> >
->> > Following are the features supported.
->> > 1. Provides V4L2 user interface for the video pipelines of DSS
->> > 2. Basic streaming working on LCD and TV.
->> > 3. Support for various pixel formats like YUV, UYVY, RGB32, RGB24, RGB565
->> > 4. Supports Alpha blending.
->> > 5. Supports Color keying both source and destination.
->> > 6. Supports rotation with RGB565 and RGB32 pixels formats.
->> > 7. Supports cropping.
->> > 8. Supports Background color setting.
->> > 9. Works on latest DSS2 library from Tomi
->> > http://www.bat.org/~tomba/git/linux-omap-dss.git/
->> > 10. 1/4x scaling added.  Detail testing left
->> >
->> > TODOS
->> > 1. Ioctls needs to be added for color space conversion matrix
->> > coefficient programming.
->> > 2. To be tested on DVI resolutions.
->> >
->> > Comments fixed from community.
->> > 1. V4L2 Driver for OMAP3/3 DSS.
->> > 2.  Conversion of the custom ioctls to standard V4L2 ioctls like alpha
->> blending,
->> > color keying, rotation and back ground color setting
->> > 3.  Re-organised the code as per community comments.
->> > 4.  Added proper copyright year.
->> > 5.  Added module name in printk
->> > 6.  Kconfig option copy/paste error
->> > 7.  Module param desc addded.
->> > 8.  Query control implemented using standard query_fill
->> > 9.  Re-arranged if-else constructs.
->> > 10. Changed to use mutex instead of semaphore.
->> > 11. Removed dual usage of rotation angles.
->> > 12. Implemented function to convert the V4L2 angle to DSS angle.
->> > 13. Y-position was set half by video driver for TV output
->> > Now its done by DSS so removed that.
->> > 14. Minor cleanup
->> > 15. Added support to pass the page offset to application.
->> > 14. Minor cleanup
->> > 15. Added support to pass the page offset to application.
->> > 16. Renamed V4L2_CID_ROTATION to V4L2_CID_ROTATE
->> > 17. Major comment from Hans fixed.
->> > 18. Copy right year changed.
->> > 19. Added module name for each error/warning print message.
->> >
->> > Changes from Previous Version.
->> > 1. Supported YUV rotation.
->> > 2. Supported Flipping.
->> > 3. Rebased line with Tomi's latest DSS2 master branch with commit  id
->> > f575a02edf2218a18d6f2ced308b4f3e26b44ce2.
->> > 4. Kconfig option removed to select between the TV and LCD.
->> > Now supported dynamically by DSS2 library.
->> > 5. Kconfig option for the NTSC_M and PAL_BDGHI mode but not
->> > supported by DSS2.  so it will not work now.
->>
->> There is basic support for this. See the DSS doc:
->>
->> /sys/devices/platform/omapdss/display? directory:
->> ...
->> timings         Display timings (pixclock,xres/hfp/hbp/hsw,yres/vfp/vbp/vsw)
->>                 When writing, two special timings are accepted for tv-out:
->>                 "pal" and "ntsc"
-> [Shah, Hardik] I was not aware of it will remove the compile time option and for now let the sysfs entry change the standard.  In future I will try to do it with the S_STD and G_STD ioctls of the V4L2 framework.
->>
->>  Tomi
->>
+>> On 04/18/2009 04:40 PM, Erik Andrén wrote:
+>>> Hans de Goede wrote:
+>>>> On 04/17/2009 09:27 PM, Erik Andrén wrote:
+>>>>> Hans de Goede wrote:
+>>>>>> On 04/16/2009 10:46 PM, Adam Baker wrote:
+>>>>>>> On Thursday 16 Apr 2009, Hans de Goede wrote:
+>>>>>>>> On 04/16/2009 12:26 AM, Adam Baker wrote:
+>>>>>>>>> On Wednesday 15 Apr 2009, Hans de Goede wrote:
+>>>>>>>>>> Currently only whitebalancing is enabled and only on Pixarts (pac)
+>>>>>>>>>> webcams (which benefit tremendously from this). To test this with
+>>>>>>>>>> other
+>>>>>>>>>> webcams (after instaling this release) do:
+>>>>>>>>>>
+>>>>>>>>>> export LIBV4LCONTROL_CONTROLS=15
+>>>>>>>>>> LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so v4l2ucp&
+>>>>>>>>> Strangely while those instructions give me a whitebalance control
+>>>>>>>>> for the
+>>>>>>>>> sq905 based camera I can't get it to appear for a pac207 based
+>>>>>>>>> camera
+>>>>>>>>> regardless of whether LIBV4LCONTROL_CONTROLS is set.
+>>>>>>>> Thats weird, there is a small bug in the handling of pac207
+>>>>>>>> cams with usb id 093a:2476 causing libv4l to not automatically
+>>>>>>>> enable whitebalancing (and the control) for cams with that id,
+>>>>>>>> but if you have LIBV4LCONTROL_CONTROLS set (exported!) both
+>>>>>>>> when loading v4l2ucp (you must preload v4l2convert.so!) and
+>>>>>>>> when loading your viewer, then it should work.
+>>>>>>>>
+>>>>>>> I've tested it by plugging in the sq905 camera, verifying the
+>>>>>>> whitebablance
+>>>>>>> control is present and working, unplugging the sq905 and plugging in
+>>>>>>> the
+>>>>>>> pac207 and using up arrow to restart v4l2ucp and svv so I think I've
+>>>>>>> eliminated most finger trouble possibilities. The pac207 is id
+>>>>>>> 093a:2460 so
+>>>>>>> not the problem id. I'll have to investigate more thoroughly later.
+>>>>>>>
+>>>>>> Does the pac207 perhaps have a / in its "card" string (see v4l-info
+>>>>>> output) ?
+>>>>>> if so try out this patch:
+>>>>>> http://linuxtv.org/hg/~hgoede/libv4l/rev/1e08d865690a
+>>>>>>
+>>>>> I have the same issue as Adam when trying to test this with my
+>>>>> gspca_stv06xx based Quickcam Web camera i. e no whitebalancing
+>>>>> controls show up. I'm attaching a dump which logs all available
+>>>>> pixformats and v4l2ctrls showing that libv4l is properly loaded.
+>>>>> (And yes, LIBV4LCONTROL_CONTROLS is exported and set to 15).
+>>>>>
+>>>>> Best regards,
+>>>>> Erik
+>>>>>
+>>>> Ah, you are using v4l2-ctl, not v4l2ucp, and that uses
+>>>> V4L2_CTRL_FLAG_NEXT_CTRL
+>>>> control enumeration. My code doesn't handle V4L2_CTRL_FLAG_NEXT_CTRL
+>>>> (which is
+>>>> a bug). I'm not sure when I'll have time to fix this. Patches welcome,
+>>>> or in
+>>>> the mean time use v4l2ucp to play with the controls.
+>>>>
+>>> Actually, I've tried to use both without finding the controls.
+>>> I've only tried with v4l2ucp v. 1.2. Is 1.3 necessary?
+>>>
+>> Apparently there are different versions of v4l2ucp in different distro's
+>> and some do use the V4L2_CTRL_FLAG_NEXT_CTRL, just like v4l2-ctl. See
+>> Adam Baker's patch later in this thread. Which I will apply to my
+>> tree after I've reviewed it (when I find some time currently I've a lot of
+>> $work$ )
 >>
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Applying Adam Bakers patch makes the control appear _but_ I can't seem
+> to make out any difference when any of the whitebalancing and
+> normalize options, regardless of how i tweak the max / min values.
 >
+
+Did you also do the
+export LIBV4LCONTROL_CONTROLS=15
+
+In the terminal from where you are starting the viewing application ?
+
+Regards,
+
+Hans
