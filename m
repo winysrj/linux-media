@@ -1,67 +1,74 @@
-Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3OM9Z39015173
-	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 18:09:35 -0400
-Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.29])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n3OM9IAA022026
-	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 18:09:18 -0400
-Received: by yx-out-2324.google.com with SMTP id 8so765569yxg.81
-	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 15:09:18 -0700 (PDT)
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from an-out-0708.google.com ([209.85.132.251])
+	by mail.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <roman.pena.perez@gmail.com>) id 1LvemI-0004jp-WA
+	for linux-dvb@linuxtv.org; Sun, 19 Apr 2009 23:42:19 +0200
+Received: by an-out-0708.google.com with SMTP id d14so705575and.41
+	for <linux-dvb@linuxtv.org>; Sun, 19 Apr 2009 14:42:14 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20090425080356.69e0ed9d.erik@bcode.com>
-References: <20090424170352.313f1feb.erik@bcode.com>
-	<412bdbff0904240625y3902243em5a643380b036e08f@mail.gmail.com>
-	<20090425080356.69e0ed9d.erik@bcode.com>
-Date: Fri, 24 Apr 2009 18:09:17 -0400
-Message-ID: <412bdbff0904241509r29b0859fl22abe2fe78e59daa@mail.gmail.com>
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Subject: Re: Compling drivers from v4l-dvb hg tree
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-List-ID: <video4linux-list@redhat.com>
+In-Reply-To: <1240174908.3589.387.camel@macbook.infradead.org>
+References: <1214127575.4974.7.camel@jaswinder.satnam>
+	<a3ef07920904191055j4205ad8du3173a8a2328a214e@mail.gmail.com>
+	<1240167036.3589.310.camel@macbook.infradead.org>
+	<a3ef07920904191214p7be3a0eem7f7abd91ffb374d2@mail.gmail.com>
+	<1240170449.3589.334.camel@macbook.infradead.org>
+	<a3ef07920904191340x6a4e9c5o5c51fe0169cbddab@mail.gmail.com>
+	<1240174908.3589.387.camel@macbook.infradead.org>
+From: =?UTF-8?B?Um9tw6Fu?= <roman.pena.perez@gmail.com>
+Date: Sun, 19 Apr 2009 23:41:58 +0200
+Message-ID: <28a25ce0904191441h3adc43b3y8265a639e8c025cc@mail.gmail.com>
+To: David Woodhouse <dwmw2@infradead.org>, linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [PATCH] firmware: convert av7110 driver to
+	request_firmware()
+Reply-To: linux-media@vger.kernel.org
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-On Fri, Apr 24, 2009 at 6:03 PM, Erik de Castro Lopo <erik@bcode.com> wrote:
-> On Fri, 24 Apr 2009 09:25:00 -0400
-> Devin Heitmueller <devin.heitmueller@gmail.com> wrote:
->
->> On Fri, Apr 24, 2009 at 3:03 AM, Erik de Castro Lopo <erik@bcode.com> wrote:
->> > Hi all,
->> >
->> > What's the recommended way for compiling drivers from v4l-dvb hg tree?
->
->>
->> http://linuxtv.org/repo
->
-> Ok, but how do I patch the v4l-dvb sources into a linux kernel tree?
-
-You don't.
-
-The v4l-dvb sources are maintained out-of-tree, and override whatever
-is in the linux kernel tree.  Periodically, the v4l-dvb maintainer
-syncs with the kernel tree and the changes are pushed upstream into
-the mainline kernel.  This approach allows for the v4l-dvb project to
-be used with kernel releases other than the current bleeding edge
-kernel.
-
-Devin
-
-
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+MjAwOS80LzE5IERhdmlkIFdvb2Rob3VzZSA8ZHdtdzJAaW5mcmFkZWFkLm9yZz46Cj4gT24gU3Vu
+LCAyMDA5LTA0LTE5IGF0IDEzOjQwIC0wNzAwLCBWRFIgVXNlciB3cm90ZToKPj4KPj4gVG8gYmUg
+YWJzb2x1dGVseSBjbGVhcjsgdXNlcnMgY29tcGlsaW5nIGR2YiBkcml2ZXJzIG91dHNpZGUgb2Yg
+dGhlCj4+IGtlcm5lbCBzaG91bGQgY29weSB2NGwtZHZiL2xpbnV4L2Zpcm13YXJlL2F2NzExMC9i
+b290Y29kZS5iaW4uaWhleCB0bwo+PiAvbGliL2Zpcm13YXJlL2F2NzExMC9ib290Y29kZS5iaW4g
+Y29ycmVjdD8KPgo+IFJ1biAnb2JqY29weSAtSWloZXggLU9iaW5hcnkgYm9vdGNvZGUuYmluLmlo
+ZXggYm9vdGNvZGUuYmluJyBmaXJzdCwgdGhlbgo+IGNvcHkgdGhlIHJlc3VsdGluZyBib290Y29k
+ZS5iaW4gZmlsZSB0byAvbGliL2Zpcm13YXJlL2F2NzExMC8KPgoKVGhhdCBkb2Vzbid0IHNlZW0g
+dmVyeSAqb2J2aW91cyogdG8gbWUsIGFjdHVhbGx5LgpBZnRlciB0ZW4geWVhciBvZiB1c2luZyBn
+bnUvbGludXgsIEkgZG9uJ3QgY29uc2lkZXIgbXlzZWxmIGEgbmV3YmllLApidXQgSSBkaWRuJ3Qg
+a25vdyB3aGF0IHdhcyB0aGUgcHVycG9zZSBvZiB0aGF0IGNvbW1hbmQgKGlmIEkgZXZlciBrbmV3
+Cml0IGV4aXN0ZWQpLiBNYXliZSBpdCdzIGp1c3QgSSBuZXZlciBoYWQgdGhlIG5lZWQgZm9yIHN1
+Y2ggYSB0b29sLgoKPiBXZSBkaWRuJ3Qgd2FudCB0byBwdXQgcmF3IGJpbmFyeSBmaWxlcyBpbnRv
+IHRoZSBrZXJuZWwgc291cmNlIHRyZWUgc28gd2UKPiBjb252ZXJ0ZWQgdGhlbSB0byBhIHNpbXBs
+ZSBoZXggZm9ybSBpbnN0ZWFkLgo+CgpJTUhPIHRoYXQncyB0aGUgcmlnaHQgZGlyZWN0aW9uLgoK
+PiBBcyBJIHNhaWQsIHRoZSBtYWtlZmlsZXMgaW4gdGhlIGtlcm5lbCB0cmVlIGdldCB0aGlzIHJp
+Z2h0LCBhbmQgY29udmVydAo+IHRoZW0gdG8gYmluYXJ5IGZvciB5b3UgYW5kIGF1dG9tYXRpY2Fs
+bHkgaW5zdGFsbCB0aGVtLiBJdCBzaG91bGRuJ3QgYmUKPiBoYXJkIHRvIGZpeCB0aGUgdjRsIHRy
+ZWUgdG8gZG8gaXQgdG9vLCBidXQgYXMgSSBhbHNvIHNhaWQsIEknbSBub3QKPiBwYXJ0aWN1bGFy
+bHkgaW50ZXJlc3RlZCBpbiBkb2luZyB0aGF0IG15c2VsZi4KPgo+IC0tCj4gZHdtdzIKPgoKV2Vs
+bCwgVkRSICpqdXN0IHdhbnRlZCBpdCBmaXhlZCo6IHRoYXQncyB3aGF0IGhlIGFza2VkIGZvciBp
+biBpdHMKZmlyc3QgbWVzc2FnZSBvbiB0aGlzIHRocmVhZC4KCkF0IGxlYXN0LCBEYXZpZCwgeW91
+IGdhdmUgc29tZSB1c2VmdWwgaW5mb3JtYXRpb247IGJ1dCBJIGZvdW5kIHlvdXIKYXR0aXR1ZGUg
+LWFuZCBwbGVhc2Ugbm90ZSBJIGRvbid0IHdhbnQgdG8gb2ZmZW5kIHlvdSBwZXJzb25hbGx5LSBt
+b3JlCm9yIGxlc3MgYW5ub3lpbmcuIEkgZG9uJ3QgdW5kZXJzdGFuZCB3aHkgeW91IHNhaWQgc28g
+bGlnaHRseSBoZSB3YXMKdHJvbGxpbmcsIHNwZWNpYWxseSB3aGVuIGhlIGlzIGEgc29tZXdoYXQg
+YWN0aXZlIHBhcnRpY2lwYW50IG9uIHRoaXMKbGlzdCwgSSBrbm93IHlvdSBkaWRuJ3QgZWl0aGVy
+LCBidXQgaWYgSSBoYWQgdG8gc2F5IHNvbWVvbmUgd2FzCnRyb2xsaW5nIGluIGhlcmUsIHlvdSds
+bCBiZSBteSBmaXJzdCBjYW5kaWRhdGUuIERlcmVrIHNpbXBseSBwb2ludGVkCm91dCBhIHByb2Js
+ZW0gb24gdGhlIHY0bC1kdmIgdHJlZS4gSSB0aGluayB0aGUgbW9zdCBvZiB1cyBkb24ndCBoYXZl
+Cm11Y2ggdGltZSB0byBzcGVuZCBvbiB0aGlzIGtpbmQgb2Ygdm9sdW50ZWVyIHByb2plY3RzLCBz
+byB3ZSBzaG91bGQKYXZvaWQgd2FzdGluZyBpdCBvbiBzdGVyaWxlIGFyZ3VtZW50cy4KCk9uY2Ug
+YWdhaW4sIGV4Y3VzZSBtZSBpZiBJIGRpZCBvZmZlbmQgeW91LiBUaGF0IHdhcyBub3QgbXkgaW50
+ZW50aW9uLgoKUmVnYXJkcywKCi0tCiAgUm9tw6FuCgpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgdXNlcnMgbWFpbGluZyBsaXN0CkZvciBW
+NEwvRFZCIGRldmVsb3BtZW50LCBwbGVhc2UgdXNlIGluc3RlYWQgbGludXgtbWVkaWFAdmdlci5r
+ZXJuZWwub3JnCmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2Nn
+aS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
