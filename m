@@ -1,58 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.233]:19211 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750769AbZDABjB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Mar 2009 21:39:01 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so3321325rvb.1
-        for <linux-media@vger.kernel.org>; Tue, 31 Mar 2009 18:38:59 -0700 (PDT)
+Received: from smtp3-g21.free.fr ([212.27.42.3]:51220 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754283AbZDSUBd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Apr 2009 16:01:33 -0400
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Magnus Damm <magnus.damm@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Darius Augulis <augulis.darius@gmail.com>
+Subject: Re: [PATCH 5/5 v2] soc-camera: Convert to a platform driver
+References: <Pine.LNX.4.64.0904151356480.4729@axis700.grange>
+	<aec7e5c30904170040p6ec1721aj6885ef16573cd484@mail.gmail.com>
+	<Pine.LNX.4.64.0904172017550.5119@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Sun, 19 Apr 2009 22:01:20 +0200
+In-Reply-To: <Pine.LNX.4.64.0904172017550.5119@axis700.grange> (Guennadi Liakhovetski's message of "Fri\, 17 Apr 2009 20\:38\:58 +0200 \(CEST\)")
+Message-ID: <87prf876r3.fsf@free.fr>
 MIME-Version: 1.0
-In-Reply-To: <412bdbff0903310734r3002e083j9c7f83bfc9855c7d@mail.gmail.com>
-References: <15ed362e0903301947rf0de73eo8edbd8cbcd5b5abd@mail.gmail.com>
-	 <412bdbff0903301957i77c36f10hcb9e9cb919124057@mail.gmail.com>
-	 <15ed362e0903302039g6d9575cnca5d9b62b566db72@mail.gmail.com>
-	 <49D228EA.3090302@linuxtv.org>
-	 <412bdbff0903310734r3002e083j9c7f83bfc9855c7d@mail.gmail.com>
-Date: Wed, 1 Apr 2009 09:38:59 +0800
-Message-ID: <15ed362e0903311838w19c03f37ob9e893d35ea5cd92@mail.gmail.com>
-Subject: Re: XC5000 DVB-T/DMB-TH support
-From: David Wong <davidtlwong@gmail.com>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-Cc: Steven Toth <stoth@linuxtv.org>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Mar 31, 2009 at 10:34 PM, Devin Heitmueller
-<devin.heitmueller@gmail.com> wrote:
-> On Tue, Mar 31, 2009 at 10:30 AM, Steven Toth <stoth@linuxtv.org> wrote:
->> Hmm.
->>
->>>                priv->freq_hz = params->frequency - 1750000;
->>
->> Prior to reading this I would of sworn blind that we'd witnessed the XC5000
->> working on DVB-T devices, it's been a while and now I'm doubting that
->> belief.
->
-> Yeah, the code doesn't currently have DVB-T support.  If you specify
-> any modulation other than the VSB or QAM modulations, it returns
-> -EINVAL..
->
-> If I had a board and a generator, I could probably bring it up pretty quick.
->
-> Also, as I later told David in an off-list email, I believe I was
-> mistaken about the offset needing to be 1750000.  I think it should
-> actually be 2570000 for DVB-T.
->
-> Devin
->
-> --
-> Devin J. Heitmueller
-> http://www.devinheitmueller.com
-> AIM: devinheitmueller
->
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-Thanks Devin. The demod locks after using -2750000.
+> Convert soc-camera core to a platform driver. With this approach I2C
+> devices are no longer statically registered in platform code, instead they
+> are registered dynamically by the soc-camera core, when a match with a
+> host driver is found. With this patch all platforms and all soc-camera
+> device drivers are converted too. This is a preparatory step for the
+> v4l-subdev conversion.
+>
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
 
-David.
+Cheers.
+
+--
+Robert
