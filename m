@@ -1,46 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:43226 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750750AbZDMTjr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Apr 2009 15:39:47 -0400
-Date: Mon, 13 Apr 2009 21:39:42 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Agustin <gatoguan-os@yahoo.com>
-cc: linux-arm-kernel@lists.arm.linux.org.uk,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: Testing latest mx3_camera.c
-In-Reply-To: <486508.99603.qm@web32101.mail.mud.yahoo.com>
-Message-ID: <Pine.LNX.4.64.0904132136030.1587@axis700.grange>
-References: <486508.99603.qm@web32101.mail.mud.yahoo.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:39198 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754580AbZDSUVI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Apr 2009 16:21:08 -0400
+Received: by fxm2 with SMTP id 2so1655284fxm.37
+        for <linux-media@vger.kernel.org>; Sun, 19 Apr 2009 13:21:06 -0700 (PDT)
+Subject: [patch review] av7110_hw: fix compile warning
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Mon, 20 Apr 2009 00:21:03 +0400
+Message-Id: <1240172463.12537.7.camel@tux.localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 13 Apr 2009, Agustin wrote:
+One more warning fix.
 
-> Which patchset should one use today to have latest and most stable 
-> "mx3_camera" driver in 2.6.29?
-> 
-> Until now, I have been using mx3_camera (/soc_camera) to interface a 
-> custom 7.5MPix 12bpp camera on a PCM037 based system running linux 
-> 2.6.28-next plus your November 2009 soc_camera patchset. I have also 
-> added support for 16 bit data in IDMAC driver though I have tested just 
-> 12.
-> 
-> I currently use OSELAS i.MX31 BSP Release 10, that is 2.6.29 plus a 
-> patch stack prepared by Sascha Hauer / Pengutronix. On top of that I am 
-> applying the "v4l-20090408" series from 
-> http://gross-embedded.homelinux.org/~lyakh/v4l-20090408/, with little 
-> merging effort.
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+--
+diff -r cda79523a93c linux/drivers/media/dvb/ttpci/av7110_hw.c
+--- a/linux/drivers/media/dvb/ttpci/av7110_hw.c	Thu Apr 16 18:30:38 2009 +0200
++++ b/linux/drivers/media/dvb/ttpci/av7110_hw.c	Mon Apr 20 00:17:51 2009 +0400
+@@ -1089,7 +1089,7 @@
+ 		else {
+ 			int i, len = dc->x0-dc->color+1;
+ 			u8 __user *colors = (u8 __user *)dc->data;
+-			u8 r, g, b, blend;
++			u8 r, g = 0, b = 0, blend = 0;
+ 			ret = 0;
+ 			for (i = 0; i<len; i++) {
+ 				if (get_user(r, colors + i * 4) ||
 
-Please, use http://marc.info/?l=linux-arm-kernel&m=123866462620240&w=2 
-also notice, which patches it needs. As a basis you can take linux-next or 
-a suitable branch from git://git.pengutronix.de/git/imx/linux-2.6.git
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+
+-- 
+Best regards, Klimov Alexey
+
