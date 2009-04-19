@@ -1,18 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.25])
+Received: from qw-out-2122.google.com ([74.125.92.24])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <user.vdr@gmail.com>) id 1LvbFN-0006l4-Of
-	for linux-dvb@linuxtv.org; Sun, 19 Apr 2009 19:56:26 +0200
-Received: by qw-out-2122.google.com with SMTP id 8so523168qwh.17
-	for <linux-dvb@linuxtv.org>; Sun, 19 Apr 2009 10:56:00 -0700 (PDT)
+	(envelope-from <user.vdr@gmail.com>) id 1LvcUm-0006UG-3b
+	for linux-dvb@linuxtv.org; Sun, 19 Apr 2009 21:16:04 +0200
+Received: by qw-out-2122.google.com with SMTP id 8so535835qwh.17
+	for <linux-dvb@linuxtv.org>; Sun, 19 Apr 2009 12:15:59 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1214127575.4974.7.camel@jaswinder.satnam>
+In-Reply-To: <a3ef07920904191214p7be3a0eem7f7abd91ffb374d2@mail.gmail.com>
 References: <1214127575.4974.7.camel@jaswinder.satnam>
-Date: Sun, 19 Apr 2009 10:55:59 -0700
-Message-ID: <a3ef07920904191055j4205ad8du3173a8a2328a214e@mail.gmail.com>
+	<a3ef07920904191055j4205ad8du3173a8a2328a214e@mail.gmail.com>
+	<1240167036.3589.310.camel@macbook.infradead.org>
+	<a3ef07920904191214p7be3a0eem7f7abd91ffb374d2@mail.gmail.com>
+Date: Sun, 19 Apr 2009 12:15:59 -0700
+Message-ID: <a3ef07920904191215j6bed8397r46b09c3957a1bb2f@mail.gmail.com>
 From: VDR User <user.vdr@gmail.com>
-To: Jaswinder Singh <jaswinder@infradead.org>
-Cc: David Woodhouse <dwmw2@infradead.org>, linux-dvb <linux-dvb@linuxtv.org>
+To: David Woodhouse <dwmw2@infradead.org>
+Cc: Jaswinder Singh <jaswinder@infradead.org>,
+	linux-dvb <linux-dvb@linuxtv.org>
 Subject: Re: [linux-dvb] [PATCH] firmware: convert av7110 driver to
 	request_firmware()
 Reply-To: linux-media@vger.kernel.org
@@ -29,24 +33,10 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-What is the purpose of this patch?  How does the driver benefit?  I
-ran into a problem today where I was getting a 'dvb-ttpci: Failed to
-load firmware "av7110/bootcode.bin"' error.  This happened after I
-downloaded a fresh copy of v4l and compiled the drivers for my nexus.
-After looking into this problem I've found that a lot of users have
-experienced this error and from what I've read most have just reverted
-to an older v4l tree.
+On Sun, Apr 19, 2009 at 12:14 PM, VDR User <user.vdr@gmail.com> wrote:
+> Thanks only to those with something useless or constructive to say.
 
-Btw, the only "bootcode.bin" I see is at
-v4l-dvb/linux/firmware/av7110/bootcode.bin.ihex and as per a warning,
-I don't dare rename that file and try to copy av7110/bootcode.bin
-somewhere and cross my fingers.
-
-Maybe I'm ignorant of it's true purpose but the only thing this
-bootcode patch seems to do is cause problems and frustrate users.
-Please resolve this!
-
-Thanks.
+s/useless/usefull of course.
 
 _______________________________________________
 linux-dvb users mailing list
