@@ -1,22 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail21.extendcp.co.uk ([79.170.40.21])
-	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <mailing-lists@enginuities.com>) id 1Lp0i3-0006YG-Th
-	for linux-dvb@linuxtv.org; Wed, 01 Apr 2009 15:42:29 +0200
-Received: from 220-244-237-138-qld-pppoe.tpgi.com.au ([220.244.237.138]
-	helo=cobra.localnet) by mail21.extendcp.com with esmtpa (Exim 4.63)
-	id 1Lp0hz-0004Q9-NV
-	for linux-dvb@linuxtv.org; Wed, 01 Apr 2009 14:42:24 +0100
-From: Stuart <mailing-lists@enginuities.com>
-To: linux-dvb@linuxtv.org
-Date: Thu, 2 Apr 2009 00:43:47 +1100
-References: <200903140506.00723.mailing-lists@enginuities.com>
-	<49D23920.5010903@iki.fi> <49D24315.8020107@iki.fi>
-In-Reply-To: <49D24315.8020107@iki.fi>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <200904020043.48389.mailing-lists@enginuities.com>
-Subject: Re: [linux-dvb] Patch for DigitalNow TinyTwin remote.
+Received: from casper.infradead.org ([85.118.1.10])
+	by mail.linuxtv.org with esmtp (Exim 4.63) (envelope-from
+	<BATV+4e201fa2c735d38e8b61+2065+infradead.org+dwmw2@casper.srs.infradead.org>)
+	id 1LvczI-00013y-4x
+	for linux-dvb@linuxtv.org; Sun, 19 Apr 2009 21:47:36 +0200
+From: David Woodhouse <dwmw2@infradead.org>
+To: VDR User <user.vdr@gmail.com>
+In-Reply-To: <a3ef07920904191214p7be3a0eem7f7abd91ffb374d2@mail.gmail.com>
+References: <1214127575.4974.7.camel@jaswinder.satnam>
+	<a3ef07920904191055j4205ad8du3173a8a2328a214e@mail.gmail.com>
+	<1240167036.3589.310.camel@macbook.infradead.org>
+	<a3ef07920904191214p7be3a0eem7f7abd91ffb374d2@mail.gmail.com>
+Date: Sun, 19 Apr 2009 20:47:29 +0100
+Message-Id: <1240170449.3589.334.camel@macbook.infradead.org>
+Mime-Version: 1.0
+Cc: Jaswinder Singh <jaswinder@infradead.org>,
+	linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [PATCH] firmware: convert av7110 driver to
+ request_firmware()
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -31,111 +32,55 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> But the reason I pressure you is that merge window for 2.6.30 is open
-> only few days. After that we cannot put new code / functionality until
-> 2.6.31 opens and it is very many months from that day.
->
-> 1.) I suggest that you make very small patch adding basic support for
-> TinyTwin remote (mainly add device IDs to same places as TwinHan).
+On Sun, 2009-04-19 at 12:14 -0700, VDR User wrote:
+> Maybe the fix is obvious to you but it clearly isn't to a lot of other
+> people. 
 
-There are two patches in my last email which I believe achieve this. One simply 
-removes the if statement so that the AzureWave IR tables are assigned for the 
-TinyTwin. The other adds the TinyTwin to the HID ignore list so that there are 
-no repeat key presses. I've included them at the end of this email as well.
+OK then. For reference, for those of you who have slept through the last
+few years of Linux development...
 
-> 2.) Make other patch *later* that fix repeating issue. This one can be
-> added to the  2.6.30 later (there many release candidates in next
-> months) as bug fix.
+When the kernel complains that it cannot find a certain item of firmware
+that is required for a driver to work, you need to place that firmware
+into the /lib/firmware directory, so that it can be found on demand.
 
-I've been looking through usb sniffs when plugging the TinyTwin in and can't see 
-much that's different. There's a slight difference in the first 4 bytes of each 
-packet sent for the firmware, for example the first packet for each:
 
-Linux:   00 51 00 00
-Windows: 38 51 00 c0
+A recent development is that we're starting to collect those firmware
+images into a central repository, so that you don't have to go hunting
+all over the place for them. That repository is at
+  git://git.kernel.org/pub/scm/linux/kernel/git/dwmw2/linux-firmware.git
 
-The IR table download is also sent slightly differently, in Linux it's:
+We've also started to fix up some of the older drivers which used to
+have firmware built directly into the kernel instead of using the
+request_firmware() API to fetch it only when it's needed. Firmware for
+_those_ drivers, which includes av7110, is actually included directly in
+the kernel source tree for now, but cleanly separated from the drivers.
+It can be included in the kernel if you build the driver in and set the
+CONFIG_FIRMWARE_IN_KERNEL option, or otherwise it'll be automatically
+installed for you when you run 'make modules_install', if you build the
+driver as a module.
 
-21 .. 00 9a 56 00 00 01 00
+The major distributions are now shipping 'kernel-firmware' packages
+which contain the firmware extracted from these older kernel drivers,
+and are in the process of switching to the linux-firmware.git tree
+instead, to include more firmware images.
 
-from
+If you were using a normal kernel tree, this would all 'just work'. I
+believe the main problem, other than the fact that you don't _want_ to
+see the obvious answer, is that you're using a tree which has a lot of
+the normal kernel bits stripped out, so the automatic installation of
+the firmware doesn't work?
 
-struct req_t req = {WRITE_MEMORY, 0, 0, 0, 0, 1, NULL};
-req.addr = 0x9a56
+I _would_ look at fixing that, but life's too short to learn to use
+everyone's weird version control system du jour; if it isn't in git, I
+have better things to do. When I encounter a project which doesn't use
+git, I usually figure they just don't _want_ me to contribute, and find
+something more productive to do.
 
-While Windows is:
+As it is, you just need to copy one file. It's _really_ simple. Which is
+why I assumed (and still assume) that you're just trolling.
 
-21 .. 38 9a 56 4e 80 01 00
-
-which would be
-
-struct req_t req = {WRITE_MEMORY, AF9015_I2C_DEMOD, 0, 4e, 80, 1, NULL};
-req.addr = 0x9a56
-
-I'm not sure what req.mbox = 0x4e or req.addr_len = 0x80 mean.
-
-There are also a few addresses either different or missing (0xd508, 0xd73a, 
-0xaeff, ...) in various . I'm not sure if any of them could have anything to do 
-with how the IR behaves...
-
-I'll try and check these to see if they make any difference when I get a chance.
-
-Regards,
-
-Stuart
-
-af9015-b0ba0a6dfca1_tinytwin_remote.patch:
---- orig/drivers/media/dvb/dvb-usb/af9015.c	2009-03-31 07:57:51.000000000 +1100
-+++ new/drivers/media/dvb/dvb-usb/af9015.c	2009-03-31 11:44:16.000000000 +1100
-@@ -785,17 +785,14 @@ static int af9015_read_config(struct usb
- 				  ARRAY_SIZE(af9015_ir_table_leadtek);
- 				break;
- 			case USB_VID_VISIONPLUS:
--				if (udev->descriptor.idProduct ==
--				cpu_to_le16(USB_PID_AZUREWAVE_AD_TU700)) {
--					af9015_properties[i].rc_key_map =
--					  af9015_rc_keys_twinhan;
--					af9015_properties[i].rc_key_map_size =
--					  ARRAY_SIZE(af9015_rc_keys_twinhan);
--					af9015_config.ir_table =
--					  af9015_ir_table_twinhan;
--					af9015_config.ir_table_size =
--					  ARRAY_SIZE(af9015_ir_table_twinhan);
--				}
-+				af9015_properties[i].rc_key_map =
-+				  af9015_rc_keys_twinhan;
-+				af9015_properties[i].rc_key_map_size =
-+				  ARRAY_SIZE(af9015_rc_keys_twinhan);
-+				af9015_config.ir_table =
-+				  af9015_ir_table_twinhan;
-+				af9015_config.ir_table_size =
-+				  ARRAY_SIZE(af9015_ir_table_twinhan);
- 				break;
- 			case USB_VID_KWORLD_2:
- 				/* TODO: use correct rc keys */
-
-kernel-2.6.29_tinytwin_remote_patch.diff:
---- orig/drivers/hid/hid-core.c	2009-03-24 10:12:14.000000000 +1100
-+++ new/drivers/hid/hid-core.c	2009-03-31 15:08:13.000000000 +1100
-@@ -1629,6 +1629,7 @@ static const struct hid_device_id hid_ig
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_WISEGROUP, USB_DEVICE_ID_1_PHIDGETSERVO_20) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_WISEGROUP, USB_DEVICE_ID_8_8_4_IF_KIT) },
- 	{ HID_USB_DEVICE(USB_VENDOR_ID_YEALINK, USB_DEVICE_ID_YEALINK_P1K_P4K_B2K) },
-+	{ HID_USB_DEVICE(USB_VENDOR_ID_DIGITALNOW, USB_DEVICE_ID_DIGITALNOW_TINYTWIN) 
-},
- 	{ }
- };
- 
---- orig/drivers/hid/hid-ids.h	2009-03-24 10:12:14.000000000 +1100
-+++ new/drivers/hid/hid-ids.h	2009-03-31 15:09:05.000000000 +1100
-@@ -420,4 +420,7 @@
- #define USB_VENDOR_ID_KYE		0x0458
- #define USB_DEVICE_ID_KYE_GPEN_560	0x5003
- 
-+#define USB_VENDOR_ID_DIGITALNOW	0x13d3
-+#define USB_DEVICE_ID_DIGITALNOW_TINYTWIN	0x3226
-+
- #endif
+-- 
+dwmw2
 
 
 _______________________________________________
