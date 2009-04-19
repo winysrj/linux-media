@@ -1,25 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3P8j0TM015701
-	for <video4linux-list@redhat.com>; Sat, 25 Apr 2009 04:45:00 -0400
-Received: from mail.kapsi.fi (mail.kapsi.fi [217.30.184.167])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n3P8iipt006937
-	for <video4linux-list@redhat.com>; Sat, 25 Apr 2009 04:44:44 -0400
-Message-ID: <49F2CD76.2070501@iki.fi>
-Date: Sat, 25 Apr 2009 11:44:38 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Jelle de Jong <jelledejong@powercraft.nl>
-References: <49F189BC.5090606@powercraft.nl> <49F1ADF3.2030901@iki.fi>
-	<49F1AFC9.2040405@powercraft.nl> <49F1BA30.6060702@iki.fi>
-	<49F2C15A.3010106@powercraft.nl> <49F2C917.4060803@iki.fi>
-	<49F2CC6A.8050601@powercraft.nl>
-In-Reply-To: <49F2CC6A.8050601@powercraft.nl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [not working] Conceptronic USB 2.0 Digital TV Receiver -
- CTVDIGRCU - Device Information
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3J4PPZf030337
+	for <video4linux-list@redhat.com>; Sun, 19 Apr 2009 00:25:25 -0400
+Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3J4P6Mt015135
+	for <video4linux-list@redhat.com>; Sun, 19 Apr 2009 00:25:07 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1LvOaU-0004AG-8B
+	for video4linux-list@redhat.com; Sun, 19 Apr 2009 04:25:03 +0000
+Received: from h-66-167-14-8.dnvtco56.dynamic.covad.net ([66.167.14.8])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Sun, 19 Apr 2009 04:25:02 +0000
+Received: from hendersj by h-66-167-14-8.dnvtco56.dynamic.covad.net with local
+	(Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Sun, 19 Apr 2009 04:25:02 +0000
+To: video4linux-list@redhat.com
+From: Jim Henderson <hendersj@gmail.com>
+Date: Sun, 19 Apr 2009 04:20:54 +0000 (UTC)
+Message-ID: <gse8r6$fum$1@ger.gmane.org>
+References: <495DE5A6.8000404@wp.pl>
+	<412bdbff0901020642n7ef93c7ajff2ffe5e784a2940@mail.gmail.com>
+	<495E33BB.7070301@wp.pl>
+	<fbab3e0d0902261850y1e03fdfdma31b1ea468b656f3@mail.gmail.com>
+	<412bdbff0902261913k6b4edfedt47827b7642140dcf@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: Pinnacle HDTV Ultimate USB and SAA7136
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,31 +39,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 04/25/2009 11:40 AM, Jelle de Jong wrote:
-> Antti Palosaari wrote:
->> On 04/25/2009 10:52 AM, Jelle de Jong wrote:
->>> Would somebody be willing to get this device to work with the upstream
->>> v4l systems? I can sent the device to you. If not I can also return the
->>> device back to the store. Just sent me an email.
->> I can try. At least some basic driver stub which just works is possible
->> to do usually even without specs if tuner chip have one that does have
->> Linux driver. Most likely it does have tuner that is supported because
->> almost every DVB-T silicon tuner have some kind of driver currently.
->>
->> regards
->> Antti
->
-> Thank you! I will sent the device to you somewhere in the next two weeks,
-> I received your private email with your address data. I will sent a mail
-> when the package is posted.
+On Thu, 26 Feb 2009 22:13:43 -0500, Devin Heitmueller wrote:
 
-Why your mails (CC'd correctly) are not arrived to the list? Not 
-yesterday, not today.
+> 1.  The product appears to have been discontinued
 
-regards
-Antti
+Please don't let this be a hinderance - I just picked one of these up 
+cheap through buy.com - more than willing to test out anything that needs 
+to be tested out.  I've got 32-bit and AMD64 architectures available to 
+use it with.
+
+Understand there are issues with the NDA as well, and I hope that those 
+can be resolved.
+
+Thanks,
+
+Jim
+
 -- 
-http://palosaari.fi/
+ Jim Henderson
+ Please keep on-topic replies on the list so everyone benefits
 
 --
 video4linux-list mailing list
