@@ -1,83 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:36531 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750713AbZDMWbq (ORCPT
+Received: from mu-out-0910.google.com ([209.85.134.187]:60659 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750793AbZDSWmS convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Apr 2009 18:31:46 -0400
-Subject: Re: [linux-dvb] DVB-T USB dib0700 device recommendations?
-From: hermann pitton <hermann-pitton@arcor.de>
-To: "H. Langos" <henrik-dvb@prak.org>
-Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-In-Reply-To: <20090413113109.GD12581@www.viadmin.org>
-References: <20090411221740.GB12581@www.viadmin.org>
-	 <49E2A0E1.4020407@retrodesignfan.eu>
-	 <d9def9db0904122354g3e6a8603mcbf69cfb96799b8d@mail.gmail.com>
-	 <20090413113109.GD12581@www.viadmin.org>
-Content-Type: text/plain
-Date: Tue, 14 Apr 2009 00:25:30 +0200
-Message-Id: <1239661530.15301.72.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sun, 19 Apr 2009 18:42:18 -0400
+Received: by mu-out-0910.google.com with SMTP id g7so633486muf.1
+        for <linux-media@vger.kernel.org>; Sun, 19 Apr 2009 15:42:16 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <200904191818.n3JIISWN021959@smtp-vbr12.xs4all.nl>
+References: <200904191818.n3JIISWN021959@smtp-vbr12.xs4all.nl>
+Date: Mon, 20 Apr 2009 02:42:15 +0400
+Message-ID: <208cbae30904191542l4e3996cejf1df9cadfb187dfe@mail.gmail.com>
+Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS,
+	2.6.16-2.6.21: ERRORS
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sun, Apr 19, 2009 at 10:18 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> This message is generated daily by a cron job that builds v4l-dvb for
+> the kernels and architectures in the list below.
+>
+> Results of the daily build of v4l-dvb:
+>
+> date:        Sun Apr 19 19:00:03 CEST 2009
+> path:        http://www.linuxtv.org/hg/v4l-dvb
+> changeset:   11517:cda79523a93c
+> gcc version: gcc (GCC) 4.3.1
+> hardware:    x86_64
+> host os:     2.6.26
+>
+> linux-2.6.22.19-armv5: OK
+> linux-2.6.23.12-armv5: OK
+> linux-2.6.24.7-armv5: OK
+> linux-2.6.25.11-armv5: OK
+> linux-2.6.26-armv5: OK
+> linux-2.6.27-armv5: OK
+> linux-2.6.28-armv5: OK
+> linux-2.6.29.1-armv5: OK
+> linux-2.6.30-rc1-armv5: OK
+> linux-2.6.27-armv5-ixp: OK
+> linux-2.6.28-armv5-ixp: OK
+> linux-2.6.29.1-armv5-ixp: OK
+> linux-2.6.30-rc1-armv5-ixp: WARNINGS
+> linux-2.6.28-armv5-omap2: OK
+> linux-2.6.29.1-armv5-omap2: OK
+> linux-2.6.30-rc1-armv5-omap2: WARNINGS
+> linux-2.6.22.19-i686: WARNINGS
+> linux-2.6.23.12-i686: ERRORS
+> linux-2.6.24.7-i686: OK
+> linux-2.6.25.11-i686: OK
+> linux-2.6.26-i686: OK
+> linux-2.6.27-i686: OK
+> linux-2.6.28-i686: OK
+> linux-2.6.29.1-i686: OK
+> linux-2.6.30-rc1-i686: WARNINGS
 
-Hi Guys,
+When trying to compile v4l-dvb tree under 2.6.30-rc2 (up-to-date) i
+have such error with pvr2 module:
 
-[snip]
-> > > Maybe the VIA usb-hub controller on the board is the problem?!
-> 
-> Could be part of the problem. 
-> 
-> > > Would be interesting of someone has the same or other experiences with
-> > > this card or other PCI based cards. Hauppauge ignores all my questions,
-> > > so I can't recomment products of this manufacturer anyway.
-> 
-> Good to know. Thank you!
-> 
-> cheers
-> -henrik
-> 
-> --
+  CC [M]  /w/new/v4l-dvb/v4l/pvrusb2-hdw.o
+/w/new/v4l-dvb/v4l/pvrusb2-hdw.c: In function 'pvr2_upload_firmware1':
+/w/new/v4l-dvb/v4l/pvrusb2-hdw.c:1474: error: implicit declaration of
+function 'usb_settoggle'
+/w/new/v4l-dvb/v4l/pvrusb2-hdw.c: In function 'pvr2_hdw_load_modules':
+/w/new/v4l-dvb/v4l/pvrusb2-hdw.c:2133: warning: format not a string
+literal and no format arguments
+make[3]: *** [/w/new/v4l-dvb/v4l/pvrusb2-hdw.o] Error 1
+make[2]: *** [_module_/w/new/v4l-dvb/v4l] Error 2
 
-I try to avoid, when ever possible, to participate in such statements.
+It's probably due to this git commit:
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h=3444b26afa145148951112534f298bdc554ec789
 
-I don't even posses currently and never did previously any Hauppauge
-device.
+I don't have idea how to fix it fast and correctly.
 
-That you may end up in some m$ support only ring in somewhere on the
-planet is also very likely too, but we also had very different results
-in the past even for that.
-
-In fact, Hauppauge's GNU/Linux support, let's say during the last five
-years, is such outstanding well, that it is not even worth to try to
-start counting, who other OEM can even come close to it.
-
-On the higher level, chip manufacturers, we also had very good support
-from Philips/NXP.
-
-What you likely don't see is, that people who did this, did it still in
-their unpaid and limited free time, but m$ driver only colleagues at
-work might have helped as well sometimes.
-
-And there is still a huge market for v4l-dvb related devices going over
-the whole globe, it still increases like mad. It is a, count up
-yourself, N $ market each year.
-
-Since a lot of fish is springing out of the water, because of that, we
-have this NDA problem.
-
-So, if you would like to have an argument on this issue, you should be
-able to count who has contributed _despite_ of that and you don't know.
-
-Cheers,
-Hermann
-
-
-
-
-
-
-
-
-
+-- 
+Best regards, Klimov Alexey
