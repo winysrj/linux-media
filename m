@@ -1,125 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from symlink.to.noone.org ([85.10.207.172]:51454 "EHLO sym.noone.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752548AbZDZMst (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Apr 2009 08:48:49 -0400
-From: Tobias Klauser <tklauser@distanz.ch>
-To: erik.andren@gmail.com
-Cc: linux-media@vger.kernel.org, Tobias Klauser <tklauser@distanz.ch>
-Subject: [PATCH] gspca - m5602: Storage class should be before const qualifier
-Date: Sun, 26 Apr 2009 14:30:18 +0200
-Message-Id: <1240749018-9043-1-git-send-email-tklauser@distanz.ch>
+Received: from wf-out-1314.google.com ([209.85.200.172]:56019 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755126AbZDSGgV convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Apr 2009 02:36:21 -0400
+Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Nagalla, Hari" <hnagalla@ti.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"Jadav, Brijesh R" <brijesh.j@ti.com>,
+	"R, Sivaraj" <sivaraj@ti.com>, "Hadli, Manjunath" <mrh@ti.com>,
+	"Shah, Hardik" <hardik.shah@ti.com>,
+	"Kumar, Purushotam" <purushotam@ti.com>
+Message-Id: <793DE56C-45AE-48ED-B26D-A1A4BECC5F87@gmail.com>
+From: Dongsoo Kim <dongsoo.kim@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <200904181753.47515.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=EUC-KR; format=flowed; delsp=yes
+Content-Transfer-Encoding: 8BIT
+Mime-Version: 1.0 (Apple Message framework v930.3)
+Subject: Re: [RFC] Stand-alone Resizer/Previewer Driver support under V4L2 framework
+Date: Sun, 19 Apr 2009 15:36:15 +0900
+References: <19F8576C6E063C45BE387C64729E73940427E3F70B@dbde02.ent.ti.com> <200903301902.21783.hverkuil@xs4all.nl> <19F8576C6E063C45BE387C64729E73940427E3F8F1@dbde02.ent.ti.com> <200904181753.47515.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The C99 specification states in section 6.11.5:
+Hello Hans and Hiremath,
 
-The placement of a storage-class specifier other than at the
-beginning of the declaration specifiers in a declaration is an
-obsolescent feature.
+One of my recent job is making S3C64XX camera interface driver (even  
+though other jobs of mine are not finished yet...;-()
+And, what a incident! S3C64XX has also similar H/W block in camera  
+interface.
+Resizer in S3C camera interface can be used in system wide like the  
+one in Omap3.
 
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
----
- drivers/media/video/gspca/m5602/m5602_mt9m111.c |    2 +-
- drivers/media/video/gspca/m5602/m5602_mt9m111.h |    2 +-
- drivers/media/video/gspca/m5602/m5602_ov9650.c  |    2 +-
- drivers/media/video/gspca/m5602/m5602_ov9650.h  |    2 +-
- drivers/media/video/gspca/m5602/m5602_po1030.c  |    2 +-
- drivers/media/video/gspca/m5602/m5602_s5k4aa.c  |    2 +-
- drivers/media/video/gspca/m5602/m5602_s5k83a.c  |    2 +-
- 7 files changed, 7 insertions(+), 7 deletions(-)
+But in case of mine, I decided to make it as a TYPE_VIDEO_CAPTURE and  
+TYPE_VIDEO_OUTPUT.
+I thought that is was enough. Actually I took omap video out (vout?)  
+for reference :-)
+Cheers,
 
-diff --git a/drivers/media/video/gspca/m5602/m5602_mt9m111.c b/drivers/media/video/gspca/m5602/m5602_mt9m111.c
-index 7d3f9e3..0167987 100644
---- a/drivers/media/video/gspca/m5602/m5602_mt9m111.c
-+++ b/drivers/media/video/gspca/m5602/m5602_mt9m111.c
-@@ -31,7 +31,7 @@ static struct v4l2_pix_format mt9m111_modes[] = {
- 	}
- };
- 
--const static struct ctrl mt9m111_ctrls[] = {
-+static const struct ctrl mt9m111_ctrls[] = {
- 	{
- 		{
- 			.id		= V4L2_CID_VFLIP,
-diff --git a/drivers/media/video/gspca/m5602/m5602_mt9m111.h b/drivers/media/video/gspca/m5602/m5602_mt9m111.h
-index 00c6db0..6bedf9d 100644
---- a/drivers/media/video/gspca/m5602/m5602_mt9m111.h
-+++ b/drivers/media/video/gspca/m5602/m5602_mt9m111.h
-@@ -94,7 +94,7 @@ int mt9m111_set_hflip(struct gspca_dev *gspca_dev, __s32 val);
- int mt9m111_get_gain(struct gspca_dev *gspca_dev, __s32 *val);
- int mt9m111_set_gain(struct gspca_dev *gspca_dev, __s32 val);
- 
--const static struct m5602_sensor mt9m111 = {
-+static const struct m5602_sensor mt9m111 = {
- 	.name = "MT9M111",
- 
- 	.i2c_slave_id = 0xba,
-diff --git a/drivers/media/video/gspca/m5602/m5602_ov9650.c b/drivers/media/video/gspca/m5602/m5602_ov9650.c
-index fc4548f..6c3baca 100644
---- a/drivers/media/video/gspca/m5602/m5602_ov9650.c
-+++ b/drivers/media/video/gspca/m5602/m5602_ov9650.c
-@@ -68,7 +68,7 @@ static
- 	{}
- };
- 
--const static struct ctrl ov9650_ctrls[] = {
-+static const struct ctrl ov9650_ctrls[] = {
- #define EXPOSURE_IDX 0
- 	{
- 		{
-diff --git a/drivers/media/video/gspca/m5602/m5602_ov9650.h b/drivers/media/video/gspca/m5602/m5602_ov9650.h
-index fcc54e4..2ca0e88 100644
---- a/drivers/media/video/gspca/m5602/m5602_ov9650.h
-+++ b/drivers/media/video/gspca/m5602/m5602_ov9650.h
-@@ -159,7 +159,7 @@ int ov9650_set_auto_white_balance(struct gspca_dev *gspca_dev, __s32 val);
- int ov9650_get_auto_gain(struct gspca_dev *gspca_dev, __s32 *val);
- int ov9650_set_auto_gain(struct gspca_dev *gspca_dev, __s32 val);
- 
--const static struct m5602_sensor ov9650 = {
-+static const struct m5602_sensor ov9650 = {
- 	.name = "OV9650",
- 	.i2c_slave_id = 0x60,
- 	.i2c_regW = 1,
-diff --git a/drivers/media/video/gspca/m5602/m5602_po1030.c b/drivers/media/video/gspca/m5602/m5602_po1030.c
-index eaddf48..b06e229 100644
---- a/drivers/media/video/gspca/m5602/m5602_po1030.c
-+++ b/drivers/media/video/gspca/m5602/m5602_po1030.c
-@@ -31,7 +31,7 @@ static struct v4l2_pix_format po1030_modes[] = {
- 	}
- };
- 
--const static struct ctrl po1030_ctrls[] = {
-+static const struct ctrl po1030_ctrls[] = {
- 	{
- 		{
- 			.id 		= V4L2_CID_GAIN,
-diff --git a/drivers/media/video/gspca/m5602/m5602_s5k4aa.c b/drivers/media/video/gspca/m5602/m5602_s5k4aa.c
-index 4306d59..bab6cb4 100644
---- a/drivers/media/video/gspca/m5602/m5602_s5k4aa.c
-+++ b/drivers/media/video/gspca/m5602/m5602_s5k4aa.c
-@@ -64,7 +64,7 @@ static struct v4l2_pix_format s5k4aa_modes[] = {
- 	}
- };
- 
--const static struct ctrl s5k4aa_ctrls[] = {
-+static const struct ctrl s5k4aa_ctrls[] = {
- 	{
- 		{
- 			.id 		= V4L2_CID_VFLIP,
-diff --git a/drivers/media/video/gspca/m5602/m5602_s5k83a.c b/drivers/media/video/gspca/m5602/m5602_s5k83a.c
-index 42c86aa..689afbc 100644
---- a/drivers/media/video/gspca/m5602/m5602_s5k83a.c
-+++ b/drivers/media/video/gspca/m5602/m5602_s5k83a.c
-@@ -32,7 +32,7 @@ static struct v4l2_pix_format s5k83a_modes[] = {
- 	}
- };
- 
--const static struct ctrl s5k83a_ctrls[] = {
-+static const struct ctrl s5k83a_ctrls[] = {
- 	{
- 		{
- 			.id = V4L2_CID_BRIGHTNESS,
--- 
-1.6.2.4
+Nate
+
+
+2009. 04. 19, 오전 12:53, Hans Verkuil 작성:
+
+> On Tuesday 31 March 2009 10:53:02 Hiremath, Vaibhav wrote:
+>> Thanks,
+>> Vaibhav Hiremath
+>>
+>>>> APPROACH 3 -
+>>>> ----------
+>>>>
+>>>> .....
+>>>>
+>>>> (Any other approach which I could not think of would be
+>>>
+>>> appreciated)
+>>>
+>>>> I would prefer second approach, since this will provide standard
+>>>> interface to applications independent on underneath hardware.
+>>>>
+>>>> There may be many number of such configuration parameters required
+>>>
+>>> for
+>>>
+>>>> different such devices, we need to work on this and come up with
+>>>
+>>> some
+>>>
+>>>> standard capability fields covering most of available devices.
+>>>>
+>>>> Does anybody have some other opinions on this?
+>>>> Any suggestions will be helpful here,
+>>>
+>>> FYI: I have very little time to look at this for the next 2-3 weeks.
+>>> As you
+>>> know I'm working on the last pieces of the v4l2_subdev conversion
+>>> for 2.6.30
+>>> that should be finished this week. After that I'm attending the
+>>> Embedded
+>>> Linux Conference in San Francisco.
+>>>
+>>> But I always thought that something like this would be just a
+>>> regular video
+>>> device that can do both 'output' and 'capture'. For a resizer I
+>>> would
+>>> expect that you set the 'output' size (the size of your source
+>>> image) and
+>>> the 'capture' size (the size of the resized image), then just send
+>>> the
+>>> frames to the device (== resizer) and get them back on the capture
+>>> side.
+>>
+>> [Hiremath, Vaibhav] Yes, it is possible to do that.
+>>
+>> Hans,
+>>
+>> I went through the link referred by Sergio and I think we should  
+>> inherit
+>> some implementation for CODECs here for such devices.
+>>
+>> V4L2_BUF_TYPE_CODECIN - To access the input format.
+>> V4L2_BUF_TYPE_CODECOUT - To access the output format.
+>>
+>> It makes sense, since such memory-to-memory devices will mostly being
+>> used from codecs context. And this would be more clear from user
+>> application.
+>
+> To be honest, I don't see the need for this. I think  
+> TYPE_VIDEO_CAPTURE and
+> TYPE_VIDEO_OUTPUT are perfectly fine.
+>
+>> And as acknowledged by you, we can use VIDIOC_S_FMT for setting
+>> parameters.
+>>
+>> One thing I am not able to convince myself is that, using "priv"  
+>> field
+>> for custom configuration.
+>
+> I agree. Especially since you cannot use it as a pointer to addition
+> information.
+>
+>> I would prefer and recommend capability based
+>> interface, where application will query the capability of the  
+>> device for
+>> luma enhancement, filter coefficients (number of coeff and depth),
+>> interpolation type, etc...
+>>
+>> This way we can make sure that, any such future devices can be  
+>> adapted by
+>> this framework.
+>
+> The big question is how many of these capabilities are 'generic' and  
+> how
+> many are very much hardware specific. I am leaning towards using the
+> extended control API for this. It's a bit awkward to implement in  
+> drivers
+> at the moment, but that should improve in the future when a lot of the
+> control handling code will move into the new core framework.
+>
+> I really need to know more about the sort of features that omap/ 
+> davinci
+> offer (and preferably also for similar devices by other  
+> manufacturers).
+>
+>>
+>>
+>> Hans,
+>> Have you get a chance to look at Video-Buf layer issues I mentioned  
+>> in
+>> original draft?
+>
+> I've asked Magnus Damm to take a look at this. I know he did some  
+> work in
+> this area and he may have fixed some of these issues already. Very  
+> useful,
+> that Embedded Linux conference...
+>
+> Regards,
+>
+> 	Hans
+>
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+           dongsoo45.kim@samsung.com
+
+
 
