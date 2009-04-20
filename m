@@ -1,93 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:45990 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751285AbZDQUeP (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:35772 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751161AbZDTRCZ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Apr 2009 16:34:15 -0400
-Received: from jdelvare.pck.nerim.net ([62.212.121.182] helo=hyperion.delvare)
-	by services.gcu-squad.org (GCU Mailer Daemon) with esmtpsa id 1Luvqa-0000xm-6e
-	(TLSv1:AES256-SHA:256)
-	(envelope-from <khali@linux-fr.org>)
-	for linux-media@vger.kernel.org; Fri, 17 Apr 2009 23:43:44 +0200
-Date: Fri, 17 Apr 2009 22:34:09 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Subject: [PATCH 6/6] saa7134: Simplify handling of IR on AVerMedia Cardbus
- E506R
-Message-ID: <20090417223409.676fab23@hyperion.delvare>
-In-Reply-To: <20090417222927.7a966350@hyperion.delvare>
-References: <20090417222927.7a966350@hyperion.delvare>
+	Mon, 20 Apr 2009 13:02:25 -0400
+Date: Mon, 20 Apr 2009 14:01:45 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Uri Shkolnik <urishk@yahoo.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] [0904_1] Siano: core header - update license and
+ include files
+Message-ID: <20090420140145.2f92d380@pedra.chehab.org>
+In-Reply-To: <51433.28968.qm@web110811.mail.gq1.yahoo.com>
+References: <51433.28968.qm@web110811.mail.gq1.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that we instantiate I2C IR devices explicitly, we can skip probing
-altogether on boards where the I2C IR device address is known. The
-AVerMedia Cardbus E506R is one of these boards.
+On Mon, 20 Apr 2009 09:40:42 -0700 (PDT)
+Uri Shkolnik <urishk@yahoo.com> wrote:
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Tested-by: Oldrich Jedlicka <oldium.pro@seznam.cz>
----
- linux/drivers/media/video/saa7134/saa7134-input.c |   32 ++-------------------
- 1 file changed, 4 insertions(+), 28 deletions(-)
+> 
+> 
+> 
+> --- On Mon, 4/20/09, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+> 
+> > From: Mauro Carvalho Chehab <mchehab@infradead.org>
+> > Subject: Re: [PATCH] [0904_1] Siano: core header - update license and include files
+> > To: "Uri Shkolnik" <urishk@yahoo.com>
+> > Cc: linux-media@vger.kernel.org
+> > Date: Monday, April 20, 2009, 5:42 PM
+> > On Sun, 5 Apr 2009 01:09:16 -0700
+> > (PDT)
+> > Uri Shkolnik <urishk@yahoo.com>
+> > wrote:
+> > 
+> > > 
+> > > # HG changeset patch
+> > > # User Uri Shkolnik <uris@siano-ms.com>
+> > > # Date 1238689930 -10800
+> > > # Node ID c3f0f50d46058f07fb355d8e5531f35cfd0ca37e
+> > > # Parent 
+> > 7311d23c3355629b617013cd51223895a2423770
+> > > [PATCH] [0904_1] Siano: core header - update license
+> > and included files
+> > > 
+> > > From: Uri Shkolnik <uris@siano-ms.com>
+> > > 
+> > > This patch does not include any implementation
+> > changes.
+> > > It update the smscoreapi.h license to be identical to
+> > 
+> > > other Siano's headers and the #include files list.
+> > 
+> > s/update/updates/
+> > 
+> > >  #include <linux/version.h>
+> > >  #include <linux/device.h>
+> > > @@ -28,15 +28,23 @@
+> > >  #include <linux/mm.h>
+> > >  #include <linux/scatterlist.h>
+> > >  #include <linux/types.h>
+> > > +#include <linux/mutex.h>
+> > > +#include <linux/compat.h>
+> > > +#include <linux/wait.h>
+> > > +#include <linux/timer.h>
+> > > +
+> > >  #include <asm/page.h>
+> > > -#include <linux/mutex.h>
+> > > -#include "compat.h"
+> > 
+> > Hmm... Why do you need the above changes? Also, #include
+> > "compat.h" is
+> > required, in order to compile inside the out-of-tree kernel
+> > tree.
+> > 
+> > Also, the header changes should be on a different
+> > changeset, since they aren't
+> > related to what's described, e. g. this has nothing to do
+> > with licensing change.
+> > 
+> > 
+> > Cheers,
+> > Mauro
+> > 
+> 
+> 1) "compat.h" became <linux/compat.h> as result of old ML review
+> ---> +#include <linux/compat.h>
 
---- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-input.c	2009-04-17 15:10:55.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-input.c	2009-04-17 15:44:21.000000000 +0200
-@@ -699,20 +699,6 @@ void saa7134_probe_i2c_ir(struct saa7134
- 		.buf = NULL,
- 	};
- 
--	unsigned char subaddr, data;
--	struct i2c_msg msg_avermedia[] = { {
--		.addr = 0x40,
--		.flags = 0,
--		.len = 1,
--		.buf = &subaddr,
--	}, {
--		.addr = 0x40,
--		.flags = I2C_M_RD,
--		.len = 1,
--		.buf = &data,
--	} };
--
--	struct i2c_client *client;
- 	int rc;
- 
- 	if (disable_ir) {
-@@ -769,6 +755,9 @@ void saa7134_probe_i2c_ir(struct saa7134
- 		init_data.get_key = get_key_beholdm6xx;
- 		init_data.ir_codes = ir_codes_behold;
- 		break;
-+	case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
-+		info.addr = 0x40;
-+		break;
- 	}
- 
- 	if (init_data.name)
-@@ -780,20 +769,7 @@ void saa7134_probe_i2c_ir(struct saa7134
- 	}
- 
- 	/* Address not known, fallback to probing */
--	client = i2c_new_probed_device(&dev->i2c_adap, &info, addr_list);
--	if (client)
--		return;
--
--	/* Special case for AVerMedia Cardbus remote */
--	subaddr = 0x0d;
--	rc = i2c_transfer(&dev->i2c_adap, msg_avermedia, 2);
--	dprintk(KERN_DEBUG "probe 0x%02x/0x%02x @ %s: %s\n",
--		msg_avermedia[0].addr, subaddr, dev->i2c_adap.name,
--		(2 == rc) ? "yes" : "no");
--	if (2 == rc) {
--		info.addr = msg_avermedia[0].addr;
--		i2c_new_device(&dev->i2c_adap, &info);
--	}
-+	i2c_new_probed_device(&dev->i2c_adap, &info, addr_list);
- }
- 
- static int saa7134_rc5_irq(struct saa7134_dev *dev)
+I have no idea when do you need to include linux/compat.h. However, as
+compilation is currently fine, I see no reasons why to add it. I also don't
+have any idea why do you need to add other include files, since it is properly
+compiling without adding any other header.
 
--- 
-Jean Delvare
+In the case of "compat.h", this is local to the out-of-tree compilation, having
+some needed defines to compile against older kernel versions. This header it is
+automatically stripped from upstream changes. 
+
+> 2) There were a mail exchanged, back in mid-summer 2008, regarding the license. One template has been approved both by Siano and the reviewers back then, and the patch comes the align this particular file with that old decision.  
+
+This seems fine to my eyes.
+
+> Regarding the change-set - since there were no implementation changes (only license text modification and re-arranging the include files list (I hadn't counted "compat.h" --> <linux/compat.h> as an implementation change) I decided to put them in one patch. If higher resolution is needed, I'll do so,
+
+If all you're doing is rearranging, it would be fine to add it at the same
+changeset, but you should explicitly mention this at the description.
+
+Also, fyi, the proper include sequence is:
+
+1) Include all kernel headers that aren't at -hg (no particular order here - I
+generally use some alphabetic order, but this is just my personal preference);
+
+2) #include "compat.h"
+
+3) The other v4l/dvb core headers and local headers.
+
+ Cheers,
+Mauro
