@@ -1,64 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:41497 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750921AbZDBRuX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Apr 2009 13:50:23 -0400
-Received: by fxm2 with SMTP id 2so643343fxm.37
-        for <linux-media@vger.kernel.org>; Thu, 02 Apr 2009 10:50:19 -0700 (PDT)
-Message-ID: <49D4FAF0.9060305@gmail.com>
-Date: Thu, 02 Apr 2009 20:50:40 +0300
-From: Darius Augulis <augulis.darius@gmail.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	paulius.zaleckas@teltonika.lt,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: [RFC PATCH V2] Add camera (CSI) driver for MX1
-References: <20090330145310.20826.77060.stgit@localhost.localdomain> <Pine.LNX.4.64.0904010034300.12031@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0904010034300.12031@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from bombadil.infradead.org ([18.85.46.34]:59319 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754286AbZDTTyS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Apr 2009 15:54:18 -0400
+Date: Mon, 20 Apr 2009 16:54:13 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Dean A." <dean@sensoray.com>
+Cc: linux-media@vger.kernel.org, video4linux-list@redhat.com
+Subject: Re: patch: s2255drv high quality mode and video status querying
+Message-ID: <20090420165413.049552c5@pedra.chehab.org>
+In-Reply-To: <tkrat.2351cf1cef386315@sensoray.com>
+References: <tkrat.2351cf1cef386315@sensoray.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, 7 Apr 2009 10:56:36 -0700 (PDT)
+"Dean A." <dean@sensoray.com> wrote:
 
->> + * struct mx1_camera_pdata - i.MX1/i.MXL camera platform data
->> + * @init:	Init board resources
->> + * @exit:	Release board resources
->> + * @mclk_10khz:	master clock frequency in 10kHz units
->> + * @flags:	MX1 camera platform flags
->> + */
->> +struct mx1_camera_pdata {
->> +	int (*init)(struct device *);
->> +	int (*exit)(struct device *);
->>     
->
-> I thought the agreement was to avoid these .init() and .exit() hooks in 
-> new code...
->   
+> From: Dean Anderson <dean@sensoray.com>
+> 
+> This patch adds V4L2 video status capability and V4L2_MODE_HIGHQUALITY
+> operation.
 
-Should I config board statically during system start-up?
+Hi Dean,
+
+I have a few comments to add over Trent's one.
+
+> 
+> Signed-off-by: Dean Anderson <dean@sensoray.com>
+> 
+> --- v4l-dvb-1e670024659d/linux/drivers/media/video/s2255drv.c.orig	2009-04-07 10:38:42.000000000 -0700
+> +++ v4l-dvb-1e670024659d/linux/drivers/media/video/s2255drv.c	2009-04-07 10:42:51.000000000 -0700
+> @@ -57,7 +57,8 @@
+>  
+>  #define FIRMWARE_FILE_NAME "f2255usb.bin"
+>  
+> -
+> +#define S2255_REV_MAJOR 1
+> +#define S2255_REV_MINOR 20
+>  
+> +
+>  #define S2255_MAJOR_VERSION	1
+>  #define S2255_MINOR_VERSION	13
+
+Hmm... Why you need two different major/minor versions on your driver?
 
 
->> +static void mx1_videobuf_queue(struct videobuf_queue *vq,
->> +						struct videobuf_buffer *vb)
->> +{
->> +	struct soc_camera_device *icd = vq->priv_data;
->> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
->> +	struct mx1_camera_dev *pcdev = ici->priv;
->> +	struct mx1_buffer *buf = container_of(vb, struct mx1_buffer, vb);
->> +
->> +	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
->> +		vb, vb->baddr, vb->bsize);
->> +
->> +	list_add_tail(&vb->queue, &pcdev->capture);
->>     
->
-> No, you had a spinlock here and in DMA ISR in the previous version, and it 
-> was correct. Without that lock the above list_add races with 
-> list_del_init() in mx1_camera_wakeup().
->   
+> @@ -1207,8 +1236,8 @@ static int s2255_set_mode(struct s2255_d
+>  			  struct s2255_mode *mode)
+>  {
+>  	int res;
+> -	u32 *buffer;
+> -	unsigned long chn_rev;
+> +	__le32 *buffer;
+> +	u32 chn_rev;
 
-what can save and help for the spinlock on single-core system? mx3 there 
-does not have spinlock.
+Also, please don't mix more than one thing at the same patch. Clearly, you did
+some endiannes fix at the same patch. Please split it into different patches.
 
+> +static int s2255_cmd_status(struct s2255_dev *dev, unsigned long chn,
+> +			    u32 *pstatus)
+> +{
+> +	int res;
+> +	__le32 *buffer;
+> +	u32 chn_rev;
+> +
+> +	mutex_lock(&dev->lock);
+> +	chn_rev = G_chnmap[chn];
+> +	dprintk(4, "s2255_get_status: chan %d\n", chn_rev);
+> +	buffer = kzalloc(512, GFP_KERNEL);
+> +	if (buffer == NULL) {
+> +		dev_err(&dev->udev->dev, "out of mem\n");
+> +		mutex_unlock(&dev->lock);
+> +		return -ENOMEM;
+> +	}
+> +	/* form the get vid status command */
+> +	buffer[0] = IN_DATA_TOKEN;
+> +	buffer[1] = cpu_to_le32(chn_rev);
+> +	buffer[2] = CMD_STATUS;
+> +	*pstatus = 0;
+> +	dev->vidstatus_ready[chn] = 0;
+> +	res = s2255_write_config(dev->udev, (unsigned char *)buffer, 512);
+> +	kfree(buffer);
+> +	wait_event_timeout(dev->wait_vidstatus[chn],
+> +			   (dev->vidstatus_ready[chn] != 0),
+> +			   msecs_to_jiffies(S2255_VIDSTATUS_TIMEOUT));
+> +	if (dev->vidstatus_ready[chn] != 1) {
+> +		printk(KERN_DEBUG "s2255: no vidstatus response\n");
+> +		res = -EFAULT;
+> +	}
+> +	*pstatus = dev->vidstatus[chn];
+> +	dprintk(4, "s2255: vid status %d\n", *pstatus);
+> +	mutex_unlock(&dev->lock);
+> +	return res;
+> +}
+> +
+
+Also, please split "high quality mode" from "video status querying". You should
+provide one patch per different feature you're adding.
+
+
+Cheers,
+Mauro
