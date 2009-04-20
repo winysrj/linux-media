@@ -1,50 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:65324 "EHLO znsun1.ifh.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753618AbZDAH1B (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Apr 2009 03:27:01 -0400
-Date: Wed, 1 Apr 2009 09:26:19 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Dominik Sito <railis@juvepoland.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Does skystar dvb usb2 card work in linux ?
-In-Reply-To: <200903312004.45039.railis@juvepoland.com>
-Message-ID: <alpine.LRH.1.10.0904010922440.21921@pub4.ifh.de>
-References: <267bb6670903311039j7d37afcelf66d6a9cecd3637c@mail.gmail.com> <200903312004.45039.railis@juvepoland.com>
+Received: from web110802.mail.gq1.yahoo.com ([67.195.13.225]:44449 "HELO
+	web110802.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753951AbZDTSQd convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Apr 2009 14:16:33 -0400
+Message-ID: <863162.69571.qm@web110802.mail.gq1.yahoo.com>
+Date: Mon, 20 Apr 2009 11:16:32 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: Re: [PATCH] [0904_14] Siano: assemble all components to one kernel module
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: LinuxML <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dominik,
 
-On Tue, 31 Mar 2009, Dominik Sito wrote:
 
-> Tuesday 31 March 2009 19:39:28 a dehqan napisa?(a):
->> In The Name Of God
->>
->> I'll be thankfull if you guide ;
->> Does skystar dvb usb2 card work in linux ?Does it have linux driver ?
->> has anyone tested it ?
->>
->> regards dehqan
->
-> I think it's still undone. I have not clear information, but there would be
-> any information about that. I'm not sure, but flexcop-usb isn't
-> supported by USB 2.0. If i'm wrong please enlight me.
-> Regards
 
-As of today there is no support for the USB2 version of Technisat's 
-device. Technisat is not planning to add support, maybe they can't due to 
-NDA(s) with their USB-2-PCI-bridge provider.
+--- On Mon, 4/20/09, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
 
-I don't know for sure whether support can be added to the 
-flexcop-usb.c-driver or not, but I assume not, because it is using a 
-different USB-2-PCI-bridge and I have doubt that the USB high level 
-interface is similar to the one used in flexcop-usb.
+> From: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Subject: Re: [PATCH] [0904_14] Siano: assemble all components to one kernel module
+> To: "Uri Shkolnik" <urishk@yahoo.com>
+> Cc: "LinuxML" <linux-media@vger.kernel.org>
+> Date: Monday, April 20, 2009, 9:03 PM
+> On Sun, 5 Apr 2009 04:42:11 -0700
+> (PDT)
+> Uri Shkolnik <urishk@yahoo.com>
+> wrote:
+> 
+> > 
+> > # HG changeset patch
+> > # User Uri Shkolnik <uris@siano-ms.com>
+> > # Date 1238756860 -10800
+> > # Node ID 616e696ce6f0c0d76a1aaea8b36e0345112c5ab6
+> > # Parent 
+> f65a29f0f9a66f82a91525ae0085a15f00ac91c2
+> > [PATCH] [0904_14] Siano: assemble all components to
+> one kernel module
+> > 
+> > From: Uri Shkolnik <uris@siano-ms.com>
+> > 
+> > Previously, the support for Siano-based devices
+> > has been combined from several kernel modules. 
+> > This patch assembles all into single kernel module.
+> 
+> Why? It seems better to keep it more modular.
+> 
+> Cheers,
+> Mauro
+> 
 
-Patrick.
+The driver remains as modular as it was before (regarding sources files).
+Why to load smsusb.ko and than load smsdvb.ko and than load usbcore.ko? (and ir and endian... and...)
 
---
-   Mail: patrick.boettcher@desy.de
-   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
+The driver handles any device (or devices) with Siano silicon on it, simple as that.
+
+The new build method (Makefile and Kconfig) after the patches (yet to be fully submitted), build the driver to match the system it targets. (If USB exist than it builds the USB interface driver (otherwise it doesn't) and links it to the single module, same for SDIO, and any other interface driver, same for any clients and any other component).
+
+Regards,
+
+Uri
+
+
+      
