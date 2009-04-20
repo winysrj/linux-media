@@ -1,67 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.viadmin.org ([195.145.128.101]:60038 "EHLO www.viadmin.org"
+Received: from znsun1.ifh.de ([141.34.1.16]:37141 "EHLO znsun1.ifh.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751870AbZD0XWQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2009 19:22:16 -0400
-Date: Tue, 28 Apr 2009 01:21:51 +0200
-From: "H. Langos" <henrik-dvb@prak.org>
-To: Johannes Stezenbach <js@linuxtv.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: wiki on linixtv.org locked
-Message-ID: <20090427232151.GP2895@www.viadmin.org>
-References: <20090427164321.GN2895@www.viadmin.org> <20090427173741.GA20847@linuxtv.org> <20090427202925.GO2895@www.viadmin.org> <20090427221416.GA22707@linuxtv.org>
+	id S1755917AbZDTOVc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Apr 2009 10:21:32 -0400
+Date: Mon, 20 Apr 2009 16:21:17 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Antti Palosaari <crope@iki.fi>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Add Elgato EyeTV DTT deluxe to dibcom driver
+In-Reply-To: <49EB8431.70202@iki.fi>
+Message-ID: <alpine.LRH.1.10.0904201604430.11443@pub4.ifh.de>
+References: <E63C5667-D18B-4D13-9D88-15293E1B12B2@snafu.de> <49EB8431.70202@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090427221416.GA22707@linuxtv.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 28, 2009 at 12:14:16AM +0200, Johannes Stezenbach wrote:
-> On Mon, Apr 27, 2009 at 10:29:25PM +0200, H. Langos wrote:
-> > 
-> > the next step would be to update the mediwiki software to 1.11.1 if you have
-> > $wgEnableAPI = true, that is. (i know it is only a XSS that hits internet 
-> > explorer users ..  but hey, they are people, too ;-)
-> 
-> I will update to 1.14.0. This is the current version, and it is
-> also used by wiki.kernel.org (there is a secret plan to eventually
-> move the wiki there). And all the shiny new anti-spam extensions
-> don't seem to work with 1.11 anymore...
+On Sun, 19 Apr 2009, Antti Palosaari wrote:
 
-reCAPTCHA seems to work with anything newer than 1.7.
- 
-> > if i remember right, the linuxtv wiki only allows editing to registered 
-> > users. therefore you could simply temporarily disable new user registration
-> > and enable editing again for registered users.
-> 
-> I will do the update first.
-> 
-> > then i'd suggest installing the reCAPTCHA extention. not only will it
-> > prevent bots from registering, you also help to digitize old books.
-> > 
-> > http://recaptcha.net/plugins/mediawiki/
-> 
-> Looked at that and noticed they don't provide any statement
-> regarding confidentiality / data protection. Who knows if
-> they aren't creating a huge database of who did what in Wikis
-> and Blogs around the net...
+> Armin Schenker kirjoitti:
+>> -        .num_device_descs = 11,
+>> +        .num_device_descs = 12,
+>
+>> -    struct dvb_usb_device_description devices[11];
+>> +    struct dvb_usb_device_description devices[12];
+>
+> I don't comment about this patch but general.
+>
+> I didn't realized this value is allowed to increase when adding new devices. 
+> Due to that there is now three dvb_usb_device_properties in af9015 which 
+> makes driver a little bit complex.
+>
+> What we should do? Can I remove code from af9015 and increase 
+> dvb_usb_device_description count to about 30? What is biggest suitable value 
+> we want use, how much memory one entry will take.
 
-I'd rather take a look at the code to see what kind of data is sent
-off-site. My guess is that there isn't any identification data involved at
-all. but you are right. they could add that to their faq. 
-OTAH they are a university project and probably didn't approach the whole
-thing with sufficient paranoia to think about such a question ;-)
+One dvb_usb_device_description is (2*15+1) * pointer-size. For 
+PC-architecture it seems not big for me, but for other architectures it 
+can be a problem.
 
-> Besides that, this wouldn't have stopped the present attack
-> since the bot used does a manual login assisted by a human user.
-> To thwart that I'd have to enable the captcha for every page save...
+After 4 years in place I think we could evaluate whether another method 
+for the module_device_id-table in all those dvb-usb-modules cannot be made 
+differently, best case, without any fixed array-sizes.
 
-hmm, manualy asisted bots are nasty. but maybe there is a way to lower the
-limit of edits that can be done automatically. maybe a soft limit that would
-trigger captcha usage way before hitting the hard limit that stoped the bot
-this time....
+One very convenient option would be the driver_info-field in the 
+usb_device_id-table, but it will be hard to convert all drivers and to 
+keep some information we have today (like the device name) at the same 
+time .
 
-cheers
--henrik
+Beside the size-problem there is still the issue of having the fixed 
+indexes referenced by the dvb_usb_device_descriptor.
 
+No matter how I think about it, I still have such a link between the 
+mod_id_table and the dvb_usb_device_description.
+
+If someone comes up with a good idea how to replace the current way of 
+doing things, it'll be more than welcome. :)
+
+Patrick.
+
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
