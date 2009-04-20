@@ -1,137 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110814.mail.gq1.yahoo.com ([67.195.13.237]:41133 "HELO
-	web110814.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750966AbZDTQ41 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 12:56:27 -0400
-Message-ID: <272905.65085.qm@web110814.mail.gq1.yahoo.com>
-Date: Mon, 20 Apr 2009 09:56:26 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: Re: [PATCH] [0904_10] Siano: smsdvb - add events mechanism
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from bombadil.infradead.org ([18.85.46.34]:41285 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755663AbZDTPCv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Apr 2009 11:02:51 -0400
+Date: Mon, 20 Apr 2009 12:02:44 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Uri Shkolnik <urishk@yahoo.com>
 Cc: LinuxML <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Subject: Re: [PATCH] [0904_7] Siano: smsdvb - modify license header and
+ included file list.
+Message-ID: <20090420120244.0661741a@pedra.chehab.org>
+In-Reply-To: <399946.98112.qm@web110811.mail.gq1.yahoo.com>
+References: <399946.98112.qm@web110811.mail.gq1.yahoo.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sun, 5 Apr 2009 01:37:23 -0700 (PDT)
+Uri Shkolnik <urishk@yahoo.com> wrote:
 
-
-
---- On Mon, 4/20/09, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
-
-> From: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Subject: Re: [PATCH] [0904_10] Siano: smsdvb - add events mechanism
-> To: "Uri Shkolnik" <urishk@yahoo.com>
-> Cc: "LinuxML" <linux-media@vger.kernel.org>
-> Date: Monday, April 20, 2009, 7:21 PM
-> On Sun, 5 Apr 2009 03:18:01 -0700
-> (PDT)
-> Uri Shkolnik <urishk@yahoo.com>
-> wrote:
 > 
-> > 
-> > # HG changeset patch
-> > # User Uri Shkolnik <uris@siano-ms.com>
-> > # Date 1238742622 -10800
-> > # Node ID ec7ee486fb86d51bdb48e6a637a6ddd52e9e08c2
-> > # Parent 
-> 020ba7b31c963bd36d607848198e9e4258a6f80e
-> > [PATCH] [0904_10] Siano: smsdvb - add events
-> mechanism
-> > 
-> > From: Uri Shkolnik <uris@siano-ms.com>
-> > 
-> > Add events mechanism that will notify the "cards"
-> component
-> > (which represent the specific hardware target) for DVB
-> related
-> > events.
+> # HG changeset patch
+> # User Uri Shkolnik <uris@siano-ms.com>
+> # Date 1238695774 -10800
+> # Node ID 7b5d5a3a7b8e80359e770041ca4c8cf407d893d6
+> # Parent  4a0b207a424af7f05d8eb417a698a82a61dd086f
+> [PATCH] [0904_7] Siano: smsdvb - modify license header
+> and included file list.
+> 
+> From: Uri Shkolnik <uris@siano-ms.com>
+> 
+> smsdvb.c (client for DVB-API v3) - modify license header
+> and included file list. Removing white spaces.
+> There are no implementation changes.
+
+Please split it into different patches:
+	license changes;
+	whitespacing and CodingStyle cleanups;
+	compat patch;
+	init_completion patch.
+
 > 
 > 
-> This patch contains unrelated coding style fixes. Some of
-> them seem to be
-> related to previous changesets not applied.
+> Priority: normal
 > 
-> It is better to split coding style and real changes into
-> separate patches. 
+> Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
 > 
-> > +/* Events that may come from DVB v3 adapter */
-> > +static void sms_board_dvb3_event(struct
-> smscore_device_t *coredev,
-> > +        enum
-> SMS_DVB3_EVENTS event) {
-> > +    switch (event) {
-> > +    case DVB3_EVENT_INIT:
-> > +       
-> sms_debug("DVB3_EVENT_INIT");
-> > +        /*
-> sms_board_event(coredev, BOARD_EVENT_BIND); */
-> > +        break;
-> > +    case DVB3_EVENT_SLEEP:
-> > +       
-> sms_debug("DVB3_EVENT_SLEEP");
-> > +        /*
-> sms_board_event(coredev, BOARD_EVENT_POWER_SUSPEND); */
-> > +        break;
-> > +    case DVB3_EVENT_HOTPLUG:
-> > +       
-> sms_debug("DVB3_EVENT_HOTPLUG");
-> > +        /*
-> sms_board_event(coredev, BOARD_EVENT_POWER_INIT); */
-> > +        break;
-> > +    case DVB3_EVENT_FE_LOCK:
-> > +       
-> sms_debug("DVB3_EVENT_FE_LOCK");
-> > +        /*
-> sms_board_event(coredev, BOARD_EVENT_FE_LOCK); */
-> > +        break;
-> > +    case DVB3_EVENT_FE_UNLOCK:
-> > +       
-> sms_debug("DVB3_EVENT_FE_UNLOCK");
-> > +        /*
-> sms_board_event(coredev, BOARD_EVENT_FE_UNLOCK); */
-> > +        break;
-> > +    case DVB3_EVENT_UNC_OK:
-> > +       
-> sms_debug("DVB3_EVENT_UNC_OK");
-> > +        /*
-> sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_OK); */
-> > +        break;
-> > +    case DVB3_EVENT_UNC_ERR:
-> > +       
-> sms_debug("DVB3_EVENT_UNC_ERR");
-> > +        /*
-> sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_ERRORS); */
-> > +        break;
-> > +
-> > +    default:
-> > +       
-> sms_err("Unknown dvb3 api event");
-> > +        break;
-> > +    }
-> > +}
-> 
-> This seems to be the core of this changeset. However, it
-> just prints debug
-> messages, since the real call to the event notification
-> mechanism is commented.
-> 
-> 
-> Cheers,
-> Mauro
-> 
+> +
+> +#ifndef DVB_DEFINE_MOD_OPT_ADAPTER_NR
+> +#define DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr) \
+> +		static short adapter_nr[] = \
+> +		{[0 ... (8 - 1)] = -1 }; \
+> +		module_param_array(adapter_nr, short, NULL, 0444); \
+> +		MODULE_PARM_DESC(adapter_nr, "DVB adapter numbers")
+> +#define SMS_DVB_OLD_DVB_REGISTER_ADAPTER
+> +#endif
+>  
 
-The Siano driver  is composed from several components. The sms_board_event() is called from one component (dvb3 in this case) to the "cards" component.
-The series of patches I submitted, came to bring the 'dvb3' component as close as possible to the current file used by Siano. Since the "cards" has not been patched (yet), those functions have been add, but commented out.
+Why do you need to add such test? If this is due to compat issues, please add
+it into a separate patch, and patch also v4l/scripts/gentree.pl to discard
+those changes when submitting it upstream.
 
-I did the same with the endian and IR calls in other patches (add 'place holders' e.g. a comment, to be un-comment later when those component will be patches and avaliable).
+> +	/*
+> +	 if (client->fe_status & FE_HAS_LOCK)
+> +	 sms_board_dvb3_event(client->coredev, DVB3_EVENT_FE_LOCK);
+> +	 else
+> +	 sms_board_dvb3_event(client->coredev, DVB3_EVENT_FE_UNLOCK);
+> +	 if (client->sms_stat_dvb.ReceptionData.ErrorTSPackets == 0)
+> +	 sms_board_dvb3_event(client->coredev, DVB3_EVENT_UNC_OK);
+> +	 else
+> +	 sms_board_dvb3_event(client->coredev, DVB3_EVENT_UNC_ERR);
+> +	 */
 
-Regards,
+The indentation of the above code is completely wrong. Also, it is much better to comment experimental codes like the above with:
 
-Uri
+#if 0
+	/* Some reason why the code is commented */
 
+	(the code)
+#endif
 
+> -		.caps = FE_CAN_INVERSION_AUTO |
+> -			FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
+> -			FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
+> -			FE_CAN_QPSK | FE_CAN_QAM_16 | FE_CAN_QAM_64 |
+> -			FE_CAN_QAM_AUTO | FE_CAN_TRANSMISSION_MODE_AUTO |
+> -			FE_CAN_GUARD_INTERVAL_AUTO |
+> -			FE_CAN_RECOVER |
+> -			FE_CAN_HIERARCHY_AUTO,
+> +		 FE_CAN_FEC_1_2 | FE_CAN_FEC_2_3 | FE_CAN_FEC_3_4 |
+> +		 FE_CAN_FEC_5_6 | FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
+> +		 FE_CAN_QPSK | FE_CAN_QAM_16 | FE_CAN_QAM_64 |
+> +		 FE_CAN_QAM_AUTO | FE_CAN_TRANSMISSION_MODE_AUTO |
+> +		 FE_CAN_GUARD_INTERVAL_AUTO |
+> +		 FE_CAN_RECOVER | FE_CAN_HIERARCHY_AUTO,
 
-      
+I suspect that you run some tool like indent to "fix" indentation. It should be
+noticed that sometimes indent produces very bad results. 
+
+In the above, the previous way is correct.
+
+> @@ -541,7 +563,6 @@ static int smsdvb_hotplug(struct smscore
+>  	client->coredev = coredev;
+>  
+>  	init_completion(&client->tune_done);
+> -	init_completion(&client->stat_done);
+>  
+>  	kmutex_lock(&g_smsdvb_clientslock);
+
+The above is unrelated to the other changes. Please break it into a separate
+changeset, providing an explanation: why do we need to remove it.
+
+Cheers,
+Mauro
