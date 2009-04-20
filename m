@@ -1,24 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n33Fa62f031559
-	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 11:36:06 -0400
-Received: from node01.cambriumhosting.nl (node01.cambriumhosting.nl
-	[217.19.16.162])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n33FYaAT010273
-	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 11:34:37 -0400
-Message-ID: <49D62CBB.7070800@powercraft.nl>
-Date: Fri, 03 Apr 2009 17:35:23 +0200
-From: Jelle de Jong <jelledejong@powercraft.nl>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3KFCZpx012800
+	for <video4linux-list@redhat.com>; Mon, 20 Apr 2009 11:12:35 -0400
+Received: from web88206.mail.re2.yahoo.com (web88206.mail.re2.yahoo.com
+	[206.190.37.221])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n3KFCI6J018311
+	for <video4linux-list@redhat.com>; Mon, 20 Apr 2009 11:12:18 -0400
+Message-ID: <133336.82215.qm@web88206.mail.re2.yahoo.com>
+References: <49EC7CBF.2070109@xnet.com>
+Date: Mon, 20 Apr 2009 08:12:18 -0700 (PDT)
+From: Dwaine Garden VE3GIF <dwainegarden@rogers.com>
+To: stuart <stuart@xnet.com>, video4linux-list@redhat.com
+In-Reply-To: <49EC7CBF.2070109@xnet.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-References: <49D610CC.6070405@powercraft.nl>
-	<412bdbff0904030747s3d1e956al168cc75b0208a3f0@mail.gmail.com>
-In-Reply-To: <412bdbff0904030747s3d1e956al168cc75b0208a3f0@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: request list of usb dvb-t devices that work with vanilla 2.6.29
- kernel
+Content-Type: multipart/mixed; boundary="0-33054529-1240240338=:82215"
+Cc: 
+Subject: Re: Where is the v4l remote howto?  (kworld 110)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,126 +27,204 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Devin Heitmueller wrote:
-> On Fri, Apr 3, 2009 at 9:36 AM, Jelle de Jong <jelledejong@powercraft.nl> wrote:
->> Hello everybody,
->>
->> I have been trying for years now to get support for usb based devices
->> that makes it possible to watch FTA dvb-t channels in Europa.
->>
->> I have bought more then 6 devices already and none of them work with the
->> stock vanilla kernel (or with fedora, debian kernel packages)
->>
->> I had hopes for the em28xx drivers, and spent a lots of time in the last
->> years to Markus Rechberger. I made documentation did testing, compiled
->> packages, did a lot of mailing and irc chats, etcetera.
->>
->> I always hoped the code and work would be merged back with the official
->> upstream kernel code so all this work would not be needed anymore and the
->> devices will all just work with the new kernel releases.
->>
->> I spent time sending emails and talking to developers to see how we could
->> help Markus get his code back into the kernel.
->>
->> But the situation is just sick, and there are real attitude issues on
->> both sides.
->>
->> I have gave up my hopes on getting a good healthy development process for
->> the em28xx project. I am kind of said about this, because I don't give up
->> easy and currently slowly feels that the em28xx project maybe hurting the
->> free software community more then its doing good...
->>
->> I now need new devices that do not need the em28xx code, I gave up hopes
->> on getting analog and dvb-t to work with one usb hybrid devices, so I am
->> going for a dvb-t only device.
->>
->> Can somebody help me provide a list of devices that i can buy in stores
->> and that are supported in the 2.6.29 stock kernel or have high
->> possibilities to get full support in the future.
->>
->> I would also like to point out I need a feature that allows scanning the
->> signal strength of a dvd-t channel so I can create an fully automated FTA
->> signal scanning systems that removes weaker supplicated channels.
->>
->> Best regards, (but kind of disappointed)
->>
->> Jelle de Jong
-> 
-> Hello Jelle,
-> 
-> I see an email like this every few months, and it continues to sadden
-> me.  I'm not going to write yet another email casting blame on whose
-> fault it is.  But let's look at what today's problems are and what
-> would need to happen going forward.
-> 
-> First off, the problem is not really the em28xx driver itself anymore.
->  The in-kernel driver itself is relatively mature and capable of
-> handling new devices provided a new device profile is created in
-> em28xx-cards.c.  I've pushed something like 45 patches in in the last
-> year, and Mauro has pushed many more.  Empia has provided datasheets
-> for em2860/em2880 and em2874, and the driver is pretty feature
-> complete.  Support for a variety of new devices has been added in the
-> last year.
-> 
-> So what is the problem today?  Why do your devices not work?
-> 
-> I believe the answer is a combination of two problems:
-> 
-> 1.  A lack of driver support for Micronas demodulators - this is a
-> sticky issue.  The Micronas demodulator is overly complicated relative
-> to other demods, and there hasn't been an interest in investing the
-> time to reverse engineer it (not when there are so many alternatives
-> available that are much easier to program).  My efforts to get
-> Micronas to allow me to release the reference driver code failed out
-> of concern for "trade secrets and intellectual property concerns".
-> The only reason those devices work in the mcentral.de tree is because
-> he continues to redistribute their source code without a license.  If
-> we had a proper license, I would be more than willing to merge this
-> into the mainline.  With Empia using Micronas more and more in their
-> newer reference designs, we should expect to see more products that
-> fall into this category.
-> 
-> 2.  A lack of interest on the part of developers with access to DVB-T.
->  While support for ATSC based em28xx devices has grown considerably in
-> the last year, there doesn't seem to be any developers with DVB-T who
-> are interested in doing the work.  Many of the devices in question
-> could be made to work with relatively little effort, but a developer
-> needs to do the work to add the device profile (including the GPIOs)
-> and iron out any integration bugs.  There haven't been any developers
-> with both the hardware and access to DVB-T interested in stepping up
-> to the task.
-> 
-> With this being a volunteer organization, there isn't really any well
-> to compel developers to work on devices they don't have any interest
-> in.
-> 
-> In my case personally, I am highly familiar with the em28xx family of
-> devices, but I don't have access to any of the products in question or
-> a DVB-T signal to test with (which is why I focus on the em28xx based
-> ATSC and analog products).
-> 
-> Regards,
-> 
-> Devin
-> 
 
-Thanks for the quick response, I am aware of the situation and the
-specifics of the Micronas case. I talked with Marcus several times about
-ways to handle this to make the driver available for the gpl compliant
-upstream kernel.
+--0-33054529-1240240338=:82215
+Content-Type: text/plain; charset=us-ascii
 
-I can also confirm that the analog part of most of my em28xx devices do
-work, so currently I am recommending customers two buy two usb devices
-one for analog and one for dvb-t.
+Here is the original patch that I had.  It worked, just the repeat keys did not work.   It has not been compiled against a recent kernel though, so it might need to small patching to compile.
 
-If you want I can sent you an em28xx device with dvb-t and analog i got
-tree of those lying around here.
 
-Best regards,
 
-Jelle de Jong
+
+
+
+________________________________
+From: stuart <stuart@xnet.com>
+To: video4linux-list@redhat.com
+Sent: Monday, April 20, 2009 9:46:39 AM
+Subject: Where is the v4l remote howto?  (kworld 110)
+
+
+Hi...
+
+Remote control for tuner cards appears dicey and a bit confusing.  My impression is that it's no were near as rock solid as the efforts here (@ v4l) to support the tuner portion of the cards.  So I've always been willing to put in some work.  When I used an analog happauge tuner card I went to some length to get lirc working.  Now as I switch to digital, I find my self wanting to use an old but well supported kworld 110 ATSC tuner.  I assume this means I will be using v4l keyboard events instead of the lirc kernel modules.  However, I've not found a good source of information as to how to go about this.  It's more likely I haven't googled properly.  Can anyone point me in the right direction?
+
+...thanks
+
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+
+--0-33054529-1240240338=:82215
+Content-Type: application/octet-stream; name="kworld-atsc110-ir-remote.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="kworld-atsc110-ir-remote.patch"
+
+ZGlmZiAtVSAzIC1IIC1kIC1yIC1OIC0tIGEvbGludXgvZHJpdmVycy9tZWRp
+YS9jb21tb24vaXIta2V5bWFwcy5jIGIvbGludXgvZHJpdmVycy9tZWRpYS9j
+b21tb24vaXIta2V5bWFwcy5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEv
+Y29tbW9uL2lyLWtleW1hcHMuYwkyMDA3LTAxLTEzIDE2OjU5OjI4LjAwMDAw
+MDAwMCAtMDUwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL2NvbW1vbi9p
+ci1rZXltYXBzLmMJMjAwNy0wMS0xMyAxNzowNTowMy4wMDAwMDAwMDAgLTA1
+MDAKQEAgLTE4MjgsMyArMTgyOCw1NyBAQAogfTsKIAogRVhQT1JUX1NZTUJP
+TF9HUEwoaXJfY29kZXNfdHRfMTUwMCk7CisKK0lSX0tFWVRBQl9UWVBFIGly
+X2NvZGVzX2t3b3JsZF9hdHNjMTEwW0lSX0tFWVRBQl9TSVpFXSA9IHsKKyAg
+ICAgICAgWyAweDAgXSA9IEtFWV8xLAorICAgICAgICBbIDB4MSBdID0gS0VZ
+XzIsCisgICAgICAgIFsgMHgyIF0gPSBLRVlfMywKKyAgICAgICAgWyAweDMg
+XSA9IEtFWV80LAorICAgICAgICBbIDB4NCBdID0gS0VZXzUsCisgICAgICAg
+IFsgMHg1IF0gPSBLRVlfNiwKKyAgICAgICAgWyAweDYgXSA9IEtFWV83LAor
+ICAgICAgICBbIDB4NyBdID0gS0VZXzgsCisgICAgICAgIFsgMHg4IF0gPSBL
+RVlfOSwKKyAgICAgICAgWyAweGEgXSA9IEtFWV8wLAorICAgICAgICBbIDB4
+OSBdID0gS0VZX0VTQywgICAgICAgICAgICAgIC8qIFVQIEFSUk9XICovCisg
+ICAgICAgIFsgMHhjIF0gPSBLRVlfUE9XRVIsICAgICAgICAgICAgLyogUE9X
+RVIgKi8KKyAgICAgICAgWyAweDBhIF0gPSBLRVlfTVVURSwgICAgICAgICAg
+ICAvKiBNVVRFICovCisgICAgICAgIFsgMHgwYiBdID0gS0VZX1NFQVJDSCwJ
+CS8qIFNFQVJDSCAqLworICAgICAgICBbIDB4MGQgXSA9IEtFWV9FUEcsICAg
+ICAgICAgICAgIC8qIEdVSURFICovCisgICAgICAgIFsgMHgxYiBdID0gS0VZ
+X1JFQ09SRCwgICAgICAgICAgLyogUkVDT1JEICovCisgICAgICAgIFsgMHgx
+NiBdID0gS0VZX1BBVVNFLCAgICAgICAgICAgLyogUEFVU0UgKi8KKyAgICAg
+ICAgWyAweDFhIF0gPSBLRVlfU1RPUCwgICAgICAgICAgICAvKiBTVE9QICov
+CisgICAgICAgIFsgMHgxZCBdID0gS0VZX1ZPTFVNRURPV04sICAgICAgLyog
+Vk9MVU1FLSAqLworICAgICAgICBbIDB4MWMgXSA9IEtFWV9WT0xVTUVVUCwg
+ICAgICAgIC8qIFZPTFVNRSsgKi8KKyAgICAgICAgWyAweDFmIF0gPSBLRVlf
+Q0hBTk5FTERPV04sICAgICAvKiBDSEFOTkVML1BBR0UtICovCisgICAgICAg
+IFsgMHgxZSBdID0gS0VZX0NIQU5ORUxVUCwgICAgICAgLyogQ0hBTk5FTC9Q
+QUdFKyAqLworICAgICAgICBbIDB4MTAgXSA9IEtFWV9VUCwgICAgICAgICAg
+ICAgIC8qIEtFWV9TQ1JPTExVUCAqLworICAgICAgICBbIDB4MTIgXSA9IEtF
+WV9MRUZULCAgICAgICAgICAgIC8qIEtFWV9CQUNLICovCisgICAgICAgIFsg
+MHhlICBdID0gS0VZX0VOVEVSLCAgICAgICAgICAgLyogS0VZX0VOVEVSICov
+CisgICAgICAgIFsgMHgxMyBdID0gS0VZX1JJR0hULCAgICAgICAgICAgLyog
+S0VZX0ZPUldBUkQgKi8KKyAgICAgICAgWyAweDExIF0gPSBLRVlfRE9XTiwg
+ICAgICAgICAgICAvKiBLRVlfU0NST0xMRE9XTiAqLworICAgICAgICBbIDB4
+MTQgXSA9IEtFWV9NVVRFLCAgICAgICAgICAgIC8qIE1VVEUgKi8KKyAgICAg
+ICAgWyAweDE1IF0gPSBLRVlfQVVESU8sICAgICAgICAgICAvKiBTVEVSRU8g
+Ki8KKyAgICAgICAgWyAweDE2IF0gPSBLRVlfVklERU8sICAgICAgICAgICAv
+KiBTT1VSQ0UgKi8KKyAgICAgICAgWyAweDE3IF0gPSBLRVlfWk9PTSwgICAg
+ICAgICAgICAvKiBaT09NICovCisgICAgICAgIFsgMHgxOCBdID0gS0VZX1BS
+SU5ULCAgICAgICAgICAgLyogU0hVVERPV04gKi8KKyAgICAgICAgWyAwWDE5
+IF0gPSBLRVlfVCwgICAgICAgICAgICAgICAvKiBUSU1FU0hJRlQgKi8KKyAg
+ICAgICAgWyAweDQ0IF0gPSBLRVlfUExBWVBBVVNFLCAgICAgICAvKiBQQVVT
+RS9QTEFZICovCisgICAgICAgIFsgMHg0NSBdID0gS0VZX1NUT1AsICAgICAg
+ICAgICAgLyogU1RPUCAqLworICAgICAgICBbIDB4NDAgXSA9IEtFWV9SRVdJ
+TkQsICAgICAgICAgIC8qIFJFV0lORCAqLworICAgICAgICBbIDB4NDEgXSA9
+IEtFWV9GT1JXQVJELCAgICAgICAgIC8qIEZBU1RGT1JXQVJEICovCisgICAg
+ICAgIFsgMHg0MiBdID0gS0VZX1BSRVZJT1VTU09ORywgICAgLyogUFJFVklP
+VVMgKi8KKyAgICAgICAgWyAweDQzIF0gPSBLRVlfTkVYVFNPTkcsICAgICAg
+ICAvKiBORVhUICovCisKKyAgICAgICAgLy8gYnV0dG9ucyBhLWgKKyAgICAg
+ICAgWyAweDQ4IF0gPSBLRVlfQSwgCisgICAgICAgIFsgMHg0OSBdID0gS0VZ
+X0IsCisgICAgICAgIFsgMHg0YSBdID0gS0VZX0MsCisgICAgICAgIFsgMHg0
+YiBdID0gS0VZX0QsCisgICAgICAgIFsgMHg0YyBdID0gS0VZX0UsCisgICAg
+ICAgIFsgMHg0ZCBdID0gS0VZX0YsCisgICAgICAgIFsgMHg0ZSBdID0gS0VZ
+X0csCisgICAgICAgIFsgMHg0ZiBdID0gS0VZX0gKK307CisKK0VYUE9SVF9T
+WU1CT0xfR1BMKGlyX2NvZGVzX2t3b3JsZF9hdHNjMTEwKTsKZGlmZiAtVSAz
+IC1IIC1kIC1yIC1OIC0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9p
+ci1rYmQtaTJjLmMgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2lyLWti
+ZC1pMmMuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2lyLWti
+ZC1pMmMuYwkyMDA3LTAxLTEzIDE2OjU5OjI4LjAwMDAwMDAwMCAtMDUwMAor
+KysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2lyLWtiZC1pMmMuYwky
+MDA3LTAxLTEzIDE4OjI3OjU0LjAwMDAwMDAwMCAtMDUwMApAQCAtNjIsNiAr
+NjIsOCBAQAogCiAvKiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLSAqLwog
+CitzdGF0aWMgaW50IGt3b3JsZGF0c2MxMTAgPSAwOyAvKiBCb3RoIEtOQzEg
+YW5kIHRoZSBLd29ybGQgQVRTQzExMCBjYXJkcyB1c2UgdGhlIHNhbWUgaTJj
+IGFkZHJlc3MgKi8KKwogc3RhdGljIGludCBnZXRfa2V5X2hhdXAoc3RydWN0
+IElSX2kyYyAqaXIsIHUzMiAqaXJfa2V5LCB1MzIgKmlyX3JhdykKIHsKIAl1
+bnNpZ25lZCBjaGFyIGJ1ZlszXTsKQEAgLTE0NCwxNCArMTQ2LDE3IEBACiAK
+IAkvKiBpdCBzZWVtcyB0aGF0IDB4RkUgaW5kaWNhdGVzIHRoYXQgYSBidXR0
+b24gaXMgc3RpbGwgaG9sZAogCSAgIGRvd24sIHdoaWxlIDB4ZmYgaW5kaWNh
+dGVzIHRoYXQgbm8gYnV0dG9uIGlzIGhvbGQKLQkgICBkb3duLiAweGZlIHNl
+cXVlbmNlcyBhcmUgc29tZXRpbWVzIGludGVycnVwdGVkIGJ5IDB4RkYgKi8K
+KwkgICBkb3duLiAweGZlIGFuZCAweDgwIHNlcXVlbmNlcyBhcmUgc29tZXRp
+bWVzIGludGVycnVwdGVkIGJ5IDB4RkYgKi8KIAogCWRwcmludGsoMiwia2V5
+ICUwMnhcbiIsIGIpOwogCiAJaWYgKGIgPT0gMHhmZikKIAkJcmV0dXJuIDA7
+CiAKLQlpZiAoYiA9PSAweGZlKQorICAgICAgICAvKiBLTkMxIGNhcmQgICAg
+ICAgICAgICA9IDB4ZmUgKi8KKyAgICAgICAgLyogS3dvcmxkIEFUU0MxMTAg
+Y2FyZCAgPSAweDgwICovCisKKwlpZiAoKGIgPT0gMHhmZSl8fChiICYgMHg4
+MCkpCiAJCS8qIGtlZXAgb2xkIGRhdGEgKi8KIAkJcmV0dXJuIDE7CiAKQEAg
+LTM2NCwxMCArMzY5LDE1IEBACiAJCX0KIAkJYnJlYWs7CiAJY2FzZSAweDMw
+OgotCQluYW1lICAgICAgICA9ICJLTkMgT25lIjsKIAkJaXItPmdldF9rZXkg
+PSBnZXRfa2V5X2tuYzE7CiAJCWlyX3R5cGUgICAgID0gSVJfVFlQRV9PVEhF
+UjsKLQkJaXJfY29kZXMgICAgPSBpcl9jb2Rlc19lbXB0eTsKKwkJaWYgKGt3
+b3JsZGF0c2MxMTAgPT0gMSkgeworCQkJbmFtZSAgICAgICAgPSAiS3dvcmxk
+IEFUU0MxMTAiOworCQkJaXJfY29kZXMgICAgPSBpcl9jb2Rlc19rd29ybGRf
+YXRzYzExMDsKKwkJfSBlbHNlIHsKKwkJCW5hbWUgICAgICAgID0gIktOQyBP
+bmUiOworCQkJaXJfY29kZXMgICAgPSBpcl9jb2Rlc19lbXB0eTsKKwkJfSAg
+CiAJCWJyZWFrOwogCWNhc2UgMHg3YToKIAljYXNlIDB4NDc6CkBAIC00Njks
+OCArNDc5LDggQEAKIAkgICBUaGF0J3Mgd2h5IHdlIHByb2JlIDB4MWEgKH4w
+eDM0KSBmaXJzdC4gQ0IKIAkqLwogCi0Jc3RhdGljIGNvbnN0IGludCBwcm9i
+ZV9idHR2W10gPSB7IDB4MWEsIDB4MTgsIDB4NGIsIDB4NjQsIDB4MzAsIC0x
+fTsKLQlzdGF0aWMgY29uc3QgaW50IHByb2JlX3NhYTcxMzRbXSA9IHsgMHg3
+YSwgMHg0NywgMHg3MSwgLTEgfTsKKwlzdGF0aWMgY29uc3QgaW50IHByb2Jl
+X2J0dHZbXSA9IHsgMHgxYSwgMHgxOCwgMHg0YiwgMHg2NCwgMHgzMCwgLTEg
+fTsKKwlzdGF0aWMgY29uc3QgaW50IHByb2JlX3NhYTcxMzRbXSA9IHsgMHg3
+YSwgMHgzMCwgMHg0NywgMHg3MSwgLTEgfTsKIAlzdGF0aWMgY29uc3QgaW50
+IHByb2JlX2VtMjhYWFtdID0geyAweDMwLCAweDQ3LCAtMSB9OwogCWNvbnN0
+IGludCAqcHJvYmUgPSBOVUxMOwogCXN0cnVjdCBpMmNfY2xpZW50IGM7CkBA
+IC00OTksNiArNTA5LDMwIEBACiAJZm9yIChpID0gMDsgLTEgIT0gcHJvYmVb
+aV07IGkrKykgewogCQljLmFkZHIgPSBwcm9iZVtpXTsKIAkJcmMgPSBpMmNf
+bWFzdGVyX3JlY3YoJmMsJmJ1ZiwwKTsKKworCQkvKiBTcGVjaWFsIGNhc2Ug
+Zm9yIEt3b3JsZCBBVFNDMTEwIHJlbW90ZSAqLworCQlpZiAoYy5hZGFwdGVy
+LT5pZCA9PSBJMkNfSFdfU0FBNzEzNCAmJiBwcm9iZVtpXSA9PSAweDMwKQor
+CQl7CisJCQlzdHJ1Y3QgaTJjX2NsaWVudCBjMjsKKwkJCQorCQkJbWVtc2V0
+ICgmYzIsIDAsIHNpemVvZihjMikpOworCQkJYzIuYWRhcHRlciA9IGMuYWRh
+cHRlcjsKKwkJCQkKKwkJCWZvciAoYzIuYWRkcj0xMjc7IGMyLmFkZHIgPiAw
+OyBjMi5hZGRyLS0pIHsKKwkJCQlpZiAoMCA9PSBpMmNfbWFzdGVyX3JlY3Yo
+JmMyLCZidWYsMCkpIHsKKwkJCQkJZHByaW50aygxLCJGb3VuZCBhbm90aGVy
+IGRldmljZSwgYXQgYWRkciAweCUwMnhcbiIsIGMyLmFkZHIpOworCQkJCQli
+cmVhazsKKwkJCQl9CisJCQl9CisKKwkJCS8qIE5vdyBkbyB0aGUgcHJvYmUu
+IFRoZSBjb250cm9sbGVyIGRvZXMgbm90IHJlc3BvbmQKKwkJCSAgIHRvIDAt
+Ynl0ZSByZWFkcywgc28gd2UgdXNlIGEgMS1ieXRlIHJlYWQgaW5zdGVhZC4g
+Ki8KKwkJCXJjID0gaTJjX21hc3Rlcl9yZWN2KCZjLCZidWYsMSk7CisJCQly
+Yy0tOworCQkJa3dvcmxkYXRzYzExMCA9IDE7CisJCX0gZWxzZSB7CisJCQly
+YyA9IGkyY19tYXN0ZXJfcmVjdigmYywmYnVmLDApOworCQl9CiAJCWRwcmlu
+dGsoMSwicHJvYmUgMHglMDJ4IEAgJXM6ICVzXG4iLAogCQkJcHJvYmVbaV0s
+IGFkYXAtPm5hbWUsCiAJCQkoMCA9PSByYykgPyAieWVzIiA6ICJubyIpOwpk
+aWZmIC1VIDMgLUggLWQgLXIgLU4gLS0gYS9saW51eC9kcml2ZXJzL21lZGlh
+L3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1jYXJkcy5jIGIvbGludXgvZHJpdmVy
+cy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtY2FyZHMuYwotLS0gYS9s
+aW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1jYXJk
+cy5jCTIwMDctMDEtMTMgMTY6NTk6MjguMDAwMDAwMDAwIC0wNTAwCisrKyBi
+L2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LWNh
+cmRzLmMJMjAwNy0wMS0xMyAxNzoxMToyMC4wMDAwMDAwMDAgLTA1MDAKQEAg
+LTQxNzUsNiArNDE3NSw5IEBACiAJY2FzZSBTQUE3MTM0X0JPQVJEX1BJTk5B
+Q0xFX1BDVFZfMTEwaToKIAljYXNlIFNBQTcxMzRfQk9BUkRfUElOTkFDTEVf
+UENUVl8zMTBpOgogCWNhc2UgU0FBNzEzNF9CT0FSRF9VUE1PU1RfUFVSUExF
+X1RWOgorCWNhc2UgU0FBNzEzNF9CT0FSRF9LV09STERfQVRTQzExMDoKKwkJ
+ZGV2LT5oYXNfcmVtb3RlID0gU0FBNzEzNF9SRU1PVEVfSTJDOworCQlicmVh
+azsKIAljYXNlIFNBQTcxMzRfQk9BUkRfSEFVUFBBVUdFX0hWUjExMTA6CiAJ
+CWRldi0+aGFzX3JlbW90ZSA9IFNBQTcxMzRfUkVNT1RFX0kyQzsKIAkJYnJl
+YWs7CmRpZmYgLVUgMyAtSCAtZCAtciAtTiAtLSBhL2xpbnV4L2RyaXZlcnMv
+bWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LWkyYy5jIGIvbGludXgvZHJp
+dmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtaTJjLmMKLS0tIGEv
+bGludXgvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtaTJj
+LmMJMjAwNy0wMS0xMyAxNjo1OToyOC4wMDAwMDAwMDAgLTA1MDAKKysrIGIv
+bGludXgvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtaTJj
+LmMJMjAwNy0wMS0xMyAxNzoxMjo0Mi4wMDAwMDAwMDAgLTA1MDAKQEAgLTM1
+MCw2ICszNTAsNyBAQAogCiAJc3dpdGNoIChjbGllbnQtPmFkZHIpIHsKIAkJ
+Y2FzZSAweDdhOgorCQljYXNlIDB4MzA6CiAJCWNhc2UgMHg0NzoKIAkJY2Fz
+ZSAweDcxOgogCQl7CmRpZmYgLVUgMyAtSCAtZCAtciAtTiAtLSBhL2xpbnV4
+L2luY2x1ZGUvbWVkaWEvaXItY29tbW9uLmggYi9saW51eC9pbmNsdWRlL21l
+ZGlhL2lyLWNvbW1vbi5oCi0tLSBhL2xpbnV4L2luY2x1ZGUvbWVkaWEvaXIt
+Y29tbW9uLmgJMjAwNy0wMS0xMyAxNjo1OToyOC4wMDAwMDAwMDAgLTA1MDAK
+KysrIGIvbGludXgvaW5jbHVkZS9tZWRpYS9pci1jb21tb24uaAkyMDA3LTAx
+LTEzIDE3OjAzOjQ2LjAwMDAwMDAwMCAtMDUwMApAQCAtMTQwLDYgKzE0MCw3
+IEBACiBleHRlcm4gSVJfS0VZVEFCX1RZUEUgaXJfY29kZXNfYXN1c19wYzM5
+W0lSX0tFWVRBQl9TSVpFXTsKIGV4dGVybiBJUl9LRVlUQUJfVFlQRSBpcl9j
+b2Rlc19lbmNvcmVfZW5sdHZbSVJfS0VZVEFCX1NJWkVdOwogZXh0ZXJuIElS
+X0tFWVRBQl9UWVBFIGlyX2NvZGVzX3R0XzE1MDBbSVJfS0VZVEFCX1NJWkVd
+OworZXh0ZXJuIElSX0tFWVRBQl9UWVBFIGlyX2NvZGVzX2t3b3JsZF9hdHNj
+MTEwW0lSX0tFWVRBQl9TSVpFXTsKIAogI2VuZGlmCiAK
+
+--0-33054529-1240240338=:82215
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
+--0-33054529-1240240338=:82215--
