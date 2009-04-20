@@ -1,90 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-13.arcor-online.net ([151.189.21.53]:35747 "EHLO
-	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750748AbZDZECX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Apr 2009 00:02:23 -0400
-Subject: Re: Installation of Cinergy HTC USB Driver in Ubuntu Jaunty
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Markus Rechberger <mrechberger@gmail.com>, Greg KH <gregkh@suse.de>
-Cc: Steven Toth <stoth@linuxtv.org>,
-	Peter Hoyland <Peter.Hoyland@t-online.de>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>,
-	linux-media@vger.kernel.org
-In-Reply-To: <d9def9db0904250833g15de1877r37b8c3090844e537@mail.gmail.com>
-References: <49F2DCBD.20105@freenet.de>
-	 <412bdbff0904250621m7f43735eu730fac87bd121b57@mail.gmail.com>
-	 <d9def9db0904250752yb16170w680e8cd78354cc76@mail.gmail.com>
-	 <49F3266A.4020805@linuxtv.org>
-	 <d9def9db0904250828o6657ef78r91a847488de6c178@mail.gmail.com>
-	 <d9def9db0904250833g15de1877r37b8c3090844e537@mail.gmail.com>
-Content-Type: text/plain
-Date: Sun, 26 Apr 2009 05:57:17 +0200
-Message-Id: <1240718237.3959.10.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from web110803.mail.gq1.yahoo.com ([67.195.13.226]:28892 "HELO
+	web110803.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751923AbZDTRQK convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Apr 2009 13:16:10 -0400
+Message-ID: <973783.85846.qm@web110803.mail.gq1.yahoo.com>
+Date: Mon, 20 Apr 2009 10:16:08 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: Re: [PATCH] [0904_10] Siano: smsdvb - add events mechanism
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: LinuxML <linux-media@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-Am Samstag, den 25.04.2009, 23:33 +0800 schrieb Markus Rechberger:
-> On Sat, Apr 25, 2009 at 11:28 PM, Markus Rechberger
-> <mrechberger@gmail.com> wrote:
-> > On Sat, Apr 25, 2009 at 11:04 PM, Steven Toth <stoth@linuxtv.org> wrote:
-> >>> There's no need for Micronas nor Trident to provide such kerneldrivers
-> >>> as long as the userland driver is available. It's also much easier to
-> >>> install than the earlier versions.
-> >>
-> >> Markus, This is your typical self-serving nonsense and it only serves to
-> >> confuse the non-technical Linux community. Please don't try to spread your
-> >> non-GPL tree and userland rhetoric on the list as it's not welcome.
-> >>
-> >
-> > it serves the question about linux support for those devices, if more
-> > information is needed about it I can be contacted directly of course.
-> >
+
+
+--- On Mon, 4/20/09, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+
+> From: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Subject: Re: [PATCH] [0904_10] Siano: smsdvb - add events mechanism
+> To: "Uri Shkolnik" <urishk@yahoo.com>
+> Cc: "LinuxML" <linux-media@vger.kernel.org>
+> Date: Monday, April 20, 2009, 8:14 PM
+> On Mon, 20 Apr 2009 09:56:26 -0700
+> (PDT)
+> Uri Shkolnik <urishk@yahoo.com>
+> wrote:
 > 
-> http://lkml.indiana.edu/hypermail/linux/kernel/0802.0/0015.html
+> > 
+> > 
+> > 
+> > --- On Mon, 4/20/09, Mauro Carvalho Chehab <mchehab@infradead.org>
+> wrote:
+> > 
+> > > From: Mauro Carvalho Chehab <mchehab@infradead.org>
+> > > Subject: Re: [PATCH] [0904_10] Siano: smsdvb -
+> add events mechanism
+> > > To: "Uri Shkolnik" <urishk@yahoo.com>
+> > > Cc: "LinuxML" <linux-media@vger.kernel.org>
+> > > Date: Monday, April 20, 2009, 7:21 PM
+> > > On Sun, 5 Apr 2009 03:18:01 -0700
+> > > (PDT)
+> > > Uri Shkolnik <urishk@yahoo.com>
+> > > wrote:
+> > > 
+> > > > 
+> > > > # HG changeset patch
+> > > > # User Uri Shkolnik <uris@siano-ms.com>
+> > > > # Date 1238742622 -10800
+> > > > # Node ID
+> ec7ee486fb86d51bdb48e6a637a6ddd52e9e08c2
+> > > > # Parent 
+> > > 020ba7b31c963bd36d607848198e9e4258a6f80e
+> > > > [PATCH] [0904_10] Siano: smsdvb - add
+> events
+> > > mechanism
+> > > > 
+> > > > From: Uri Shkolnik <uris@siano-ms.com>
+> > > > 
+> > > > Add events mechanism that will notify the
+> "cards"
+> > > component
+> > > > (which represent the specific hardware
+> target) for DVB
+> > > related
+> > > > events.
+> > > 
+> > > 
+> > > This patch contains unrelated coding style fixes.
+> Some of
+> > > them seem to be
+> > > related to previous changesets not applied.
+> > > 
+> > > It is better to split coding style and real
+> changes into
+> > > separate patches. 
+> > > 
+> > > > +/* Events that may come from DVB v3 adapter
+> */
+> > > > +static void sms_board_dvb3_event(struct
+> > > smscore_device_t *coredev,
+> > > > +        enum
+> > > SMS_DVB3_EVENTS event) {
+> > > > +    switch (event) {
+> > > > +    case DVB3_EVENT_INIT:
+> > > > +       
+> > > sms_debug("DVB3_EVENT_INIT");
+> > > > +        /*
+> > > sms_board_event(coredev, BOARD_EVENT_BIND); */
+> > > > +        break;
+> > > > +    case DVB3_EVENT_SLEEP:
+> > > > +       
+> > > sms_debug("DVB3_EVENT_SLEEP");
+> > > > +        /*
+> > > sms_board_event(coredev,
+> BOARD_EVENT_POWER_SUSPEND); */
+> > > > +        break;
+> > > > +    case DVB3_EVENT_HOTPLUG:
+> > > > +       
+> > > sms_debug("DVB3_EVENT_HOTPLUG");
+> > > > +        /*
+> > > sms_board_event(coredev, BOARD_EVENT_POWER_INIT);
+> */
+> > > > +        break;
+> > > > +    case DVB3_EVENT_FE_LOCK:
+> > > > +       
+> > > sms_debug("DVB3_EVENT_FE_LOCK");
+> > > > +        /*
+> > > sms_board_event(coredev, BOARD_EVENT_FE_LOCK);
+> */
+> > > > +        break;
+> > > > +    case DVB3_EVENT_FE_UNLOCK:
+> > > > +       
+> > > sms_debug("DVB3_EVENT_FE_UNLOCK");
+> > > > +        /*
+> > > sms_board_event(coredev, BOARD_EVENT_FE_UNLOCK);
+> */
+> > > > +        break;
+> > > > +    case DVB3_EVENT_UNC_OK:
+> > > > +       
+> > > sms_debug("DVB3_EVENT_UNC_OK");
+> > > > +        /*
+> > > sms_board_event(coredev,
+> BOARD_EVENT_MULTIPLEX_OK); */
+> > > > +        break;
+> > > > +    case DVB3_EVENT_UNC_ERR:
+> > > > +       
+> > > sms_debug("DVB3_EVENT_UNC_ERR");
+> > > > +        /*
+> > > sms_board_event(coredev,
+> BOARD_EVENT_MULTIPLEX_ERRORS); */
+> > > > +        break;
+> > > > +
+> > > > +    default:
+> > > > +       
+> > > sms_err("Unknown dvb3 api event");
+> > > > +        break;
+> > > > +    }
+> > > > +}
+> > > 
+> > > This seems to be the core of this changeset.
+> However, it
+> > > just prints debug
+> > > messages, since the real call to the event
+> notification
+> > > mechanism is commented.
+> > > 
+> > > 
+> > > Cheers,
+> > > Mauro
+> > > 
+> > 
+> > The Siano driver  is composed from several
+> components. The sms_board_event() is called from one
+> component (dvb3 in this case) to the "cards" component.
+> > The series of patches I submitted, came to bring the
+> 'dvb3' component as close as possible to the current file
+> used by Siano. Since the "cards" has not been patched (yet),
+> those functions have been add, but commented out.
 > 
-> even Greg Kroah adviced to use for example USBFS for closed source
-> drivers, and even pointed out to the usb mailinglist for that a while
-> ago, so I'd say it has a valid reason to coexist now.
+> This makes the above patch meaningless. If you first need
+> to create this function, then add the function first, then
+> add its call at the proper places, otherwise, it is
+> impossible for someone that it is reviewing your patch
+> series what are you doing with it.
+> > 
+> > I did the same with the endian and IR calls in other
+> patches (add 'place holders' e.g. a comment, to be
+> un-comment later when those component will be patches and
+> avaliable).
 > 
-> best regards,
-> Markus
-> >> This mailing list is dedicated the v4l-dvb GPL source code trees and
-> >> associated applications. As far as I'm concerned your opinion is not
-> >> welcome. Please keep all conversation related to promoting and developing
-> >> the main repositories please.
-> >>
-> >
-> > maybe put up a policy, and also list devices which require a closed
-> > source firmware which are basically alot linux supported devices
-> > already. I'm mainly considered about having support for that, if you
-> > don't like the way it is supported try to start to reverse engineer it
-> > and don't bother about it.
-> >
-> >> Peter, Devin is correct. If a vendor will not provide a driver then vote
-> >> with your pocket and buy another product. If you do anything else you're not
-> >> helping the rest of the community.
-> >>
-> >
-> > best regards,
-> > Markus
+> The same applies to the parts: first add the function, then
+> add the function calls (or do both on the same patch), not
+> the reverse.
+> 
+> 
+> 
+> Cheers,
+> Mauro
+> 
 
-I would like to hear Ralph's comments on it.
-
-So far you have done a very good job to confuse all others.
-
-But that is the only thing, I can confirm for sure.
-
-That Greg is alright with you, I seriously doubt ...
-
-Cheers,
-Hermann
+got it. will do.
 
 
 
 
-
-
+      
