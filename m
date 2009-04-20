@@ -1,116 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4564 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754793AbZDSSSb (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:38056 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754793AbZDTL4e convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Apr 2009 14:18:31 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id n3JIISWN021959
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 19 Apr 2009 20:18:29 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 19 Apr 2009 20:18:28 +0200 (CEST)
-Message-Id: <200904191818.n3JIISWN021959@smtp-vbr12.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Mon, 20 Apr 2009 07:56:34 -0400
+Date: Mon, 20 Apr 2009 08:56:28 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Cc: roman.pena.perez@gmail.com, David Woodhouse <dwmw2@infradead.org>,
+	linux-dvb <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] [PATCH] firmware: convert av7110 driver to
+ request_firmware()
+Message-ID: <20090420085628.31512f60@pedra.chehab.org>
+In-Reply-To: <28a25ce0904191441h3adc43b3y8265a639e8c025cc@mail.gmail.com>
+References: <1214127575.4974.7.camel@jaswinder.satnam>
+	<a3ef07920904191055j4205ad8du3173a8a2328a214e@mail.gmail.com>
+	<1240167036.3589.310.camel@macbook.infradead.org>
+	<a3ef07920904191214p7be3a0eem7f7abd91ffb374d2@mail.gmail.com>
+	<1240170449.3589.334.camel@macbook.infradead.org>
+	<a3ef07920904191340x6a4e9c5o5c51fe0169cbddab@mail.gmail.com>
+	<1240174908.3589.387.camel@macbook.infradead.org>
+	<28a25ce0904191441h3adc43b3y8265a639e8c025cc@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sun, 19 Apr 2009 23:41:58 +0200
+Román <roman.pena.perez@gmail.com> wrote:
 
-Results of the daily build of v4l-dvb:
+> 2009/4/19 David Woodhouse <dwmw2@infradead.org>:
+> > On Sun, 2009-04-19 at 13:40 -0700, VDR User wrote:
+> >>
+> >> To be absolutely clear; users compiling dvb drivers outside of the
+> >> kernel should copy v4l-dvb/linux/firmware/av7110/bootcode.bin.ihex to
+> >> /lib/firmware/av7110/bootcode.bin correct?
+> >
+> > Run 'objcopy -Iihex -Obinary bootcode.bin.ihex bootcode.bin' first, then
+> > copy the resulting bootcode.bin file to /lib/firmware/av7110/
+> >
+> 
+> That doesn't seem very *obvious* to me, actually.
 
-date:        Sun Apr 19 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11517:cda79523a93c
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+If you see INSTALL file at v4l-dvb tree, you'll see:
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-rc1-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-rc1-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: OK
-linux-2.6.30-rc1-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-rc1-m32r: OK
-linux-2.6.22.19-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29.1-mips: OK
-linux-2.6.30-rc1-mips: WARNINGS
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29.1-powerpc64: OK
-linux-2.6.30-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-rc1-x86_64: WARNINGS
-fw/apps: OK
-sparse (linux-2.6.29.1): OK
-sparse (linux-2.6.30-rc1): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+...
+Firmware rules:
 
-Detailed results are available here:
+firmware        - Create the firmware files that are enclosed at the
+                  tree.
+                  Notice: Only a very few firmwares are currently here
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+firmware_install- Install firmware files under /lib/firmware
+...
 
-Full logs are available here:
+So, all you would need to do to install firmwares with -hg is to run:
+	make firmware_install
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+Anyway, since firmware install is very fast, and in order to avoid such issues,
+I've just committed a patch that will run firmware_install when you do a "make
+install".
 
-The V4L2 specification from this daily build is here:
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+Cheers,
+Mauro
