@@ -1,138 +1,214 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.168]:63630 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751644AbZDPMss (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:58838 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752219AbZDTSx5 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Apr 2009 08:48:48 -0400
-Received: by wf-out-1314.google.com with SMTP id 29so379080wff.4
-        for <linux-media@vger.kernel.org>; Thu, 16 Apr 2009 05:48:47 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.0904161328420.4947@axis700.grange>
-References: <Pine.LNX.4.64.0904151356480.4729@axis700.grange>
-	 <Pine.LNX.4.64.0904151403500.4729@axis700.grange>
-	 <5e9665e10904151919p50c695e2s35140402d2c7345c@mail.gmail.com>
-	 <Pine.LNX.4.64.0904161032050.4947@axis700.grange>
-	 <5e9665e10904160300k7e581910r73710d8ffe5230a8@mail.gmail.com>
-	 <Pine.LNX.4.64.0904161214200.4947@axis700.grange>
-	 <5e9665e10904160409n26ecec11n89569b33d4797c6c@mail.gmail.com>
-	 <Pine.LNX.4.64.0904161328420.4947@axis700.grange>
-Date: Thu, 16 Apr 2009 21:48:47 +0900
-Message-ID: <5e9665e10904160548y410dc680u175a50f96b5c4d7c@mail.gmail.com>
-Subject: Re: [PATCH 5/5] soc-camera: Convert to a platform driver
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>
+	Mon, 20 Apr 2009 14:53:57 -0400
+Date: Mon, 20 Apr 2009 15:53:52 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Uri Shkolnik <urishk@yahoo.com>
+Cc: LinuxML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] [0904_13] Siano: move DVB_API and remove redundant code
+Message-ID: <20090420155352.2b4f565e@pedra.chehab.org>
+In-Reply-To: <490244.50773.qm@web110815.mail.gq1.yahoo.com>
+References: <490244.50773.qm@web110815.mail.gq1.yahoo.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Guennadi,
+On Mon, 20 Apr 2009 11:24:11 -0700 (PDT)
+Uri Shkolnik <urishk@yahoo.com> wrote:
 
-On Thu, Apr 16, 2009 at 9:06 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> On Thu, 16 Apr 2009, Dongsoo, Nathaniel Kim wrote:
->
->> My concern is all about the logical thing. "Why can't we open device
->> node even if it is not opened from any other process."
->
-> The answer is of course "because the other node is currently active," but
-> I can understand the sort of "confusion" that the user might have: we have
-> two "independent" device nodes, but only one of them can be active at any
-> given time. So, in a way you're right, this might not be very intuitive.
->
->> I have been working on dual camera with Linux for few years, and
->> everybody who I'm working with wants not to fail opening camera device
->> node in the first place. Actually I'm mobile phone developer and I've
->> been seeing so many exceptional cases in field with dual camera
->> applications. With all my experiences, I got my conclusion which is
->> "Don't make user get confused with device opening failure". I want you
->> to know that no offence but just want to make it better.
->
-> Sure, I appreciate your opinion and respect your experience, but let's
-> have a look at the current concept:
->
-> 1. the platform has N cameras on camera interface X
-> 2. soc_camera.c finds the matching interface X and creates M (<= N) nodes
-> for all successfully probed devices.
-> 3. in the beginning, as long as no device is open, all cameras are powered
-> down / inactive.
-> 4. you then open() one of them, it gets powered on / activated, the others
-> become unaccessible as long as one is used.
-> 5. this way switching is easy - you're sure, that when no device is open,
-> all cameras are powered down, so, you can safely select any of them.
-> 6. module reference-counting is easy too - every open() of a device-node
-> increments the use-count
->
+> 
+> 
+> 
+> --- On Mon, 4/20/09, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+> 
+> > From: Mauro Carvalho Chehab <mchehab@infradead.org>
+> > Subject: Re: [PATCH] [0904_13] Siano: move DVB_API and remove redundant code
+> > To: "Uri Shkolnik" <urishk@yahoo.com>
+> > Cc: "LinuxML" <linux-media@vger.kernel.org>
+> > Date: Monday, April 20, 2009, 9:19 PM
+> > On Mon, 20 Apr 2009 11:07:57 -0700
+> > (PDT)
+> > Uri Shkolnik <urishk@yahoo.com>
+> > wrote:
+> > 
+> > > 
+> > > 
+> > > 
+> > > --- On Mon, 4/20/09, Mauro Carvalho Chehab <mchehab@infradead.org>
+> > wrote:
+> > > 
+> > > > From: Mauro Carvalho Chehab <mchehab@infradead.org>
+> > > > Subject: Re: [PATCH] [0904_13] Siano: move
+> > DVB_API and remove redundant code
+> > > > To: "Uri Shkolnik" <urishk@yahoo.com>
+> > > > Cc: "LinuxML" <linux-media@vger.kernel.org>
+> > > > Date: Monday, April 20, 2009, 9:02 PM
+> > > > On Sun, 5 Apr 2009 03:31:32 -0700
+> > > > (PDT)
+> > > > Uri Shkolnik <urishk@yahoo.com>
+> > > > wrote:
+> > > > 
+> > > > > 
+> > > > > # HG changeset patch
+> > > > > # User Uri Shkolnik <uris@siano-ms.com>
+> > > > > # Date 1238755204 -10800
+> > > > > # Node ID
+> > f65a29f0f9a66f82a91525ae0085a15f00ac91c2
+> > > > > # Parent 
+> > > > 897669fdeb3be75a2bde978557b5398a4a7d8914
+> > > > > [PATCH] [0904_13] Siano: move DVB_API and
+> > remove
+> > > > redundant code
+> > > > > 
+> > > > > From: Uri Shkolnik <uris@siano-ms.com>
+> > > > > 
+> > > > > The DVB-API related information has been
+> > moved from
+> > > > the core header
+> > > > > to the smsdvb, and the redundant code has
+> > been removed
+> > > > from the
+> > > > > core header.
+> > > > > 
+> > > > > This code has been moved since it is used
+> > only by
+> > > > > the smsdvb client component.
+> > > > 
+> > > > This patch depends on the previous patches that I
+> > asked
+> > > > some changes. Please
+> > > > re-submit it together with the other patches that
+> > weren't
+> > > > committed. It is
+> > > > probably not much valuable to commit the later
+> > patches, so
+> > > > I'll stop analysing
+> > > > the code here.
+> > > > 
+> > > > The patch itself looks sane to my eyes.
+> > > > > 
+> > > > > Priority: normal
+> > > > > 
+> > > > > Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+> > > > > 
+> > > > > diff -r 897669fdeb3b -r f65a29f0f9a6
+> > > > linux/drivers/media/dvb/siano/smscoreapi.h
+> > > > > ---
+> > > >
+> > a/linux/drivers/media/dvb/siano/smscoreapi.h   
+> > > > Fri Apr 03 13:31:13 2009 +0300
+> > > > > +++
+> > > >
+> > b/linux/drivers/media/dvb/siano/smscoreapi.h   
+> > > > Fri Apr 03 13:40:04 2009 +0300
+> > > > > @@ -36,15 +36,6 @@ along with this
+> > program.  If
+> > > > not, see <h
+> > > > >  #include <asm/page.h>
+> > > > >  
+> > > > >  /* #include "smsir.h" */
+> > > > > -
+> > > > > -#define SMS_DVB3_SUBSYS
+> > > > > -#ifdef SMS_DVB3_SUBSYS
+> > > > > -#include "dmxdev.h"
+> > > > > -#include "dvbdev.h"
+> > > > > -#include "dvb_demux.h"
+> > > > > -#include "dvb_frontend.h"
+> > > > > -
+> > > > > -#endif
+> > > > >  
+> > > > >  #define kmutex_init(_p_) mutex_init(_p_)
+> > > > >  #define kmutex_lock(_p_) mutex_lock(_p_)
+> > > > > diff -r 897669fdeb3b -r f65a29f0f9a6
+> > > > linux/drivers/media/dvb/siano/smsdvb.c
+> > > > > ---
+> > > > a/linux/drivers/media/dvb/siano/smsdvb.c   
+> > > > Fri Apr 03 13:31:13 2009 +0300
+> > > > > +++
+> > > > b/linux/drivers/media/dvb/siano/smsdvb.c   
+> > > > Fri Apr 03 13:40:04 2009 +0300
+> > > > > @@ -22,6 +22,11 @@ along with this
+> > program.  If
+> > > > not, see <h
+> > > > >  #include <linux/module.h>
+> > > > >  #include <linux/init.h>
+> > > > >  #include <asm/byteorder.h>
+> > > > > +
+> > > > > +#include "dmxdev.h"
+> > > > > +#include "dvbdev.h"
+> > > > > +#include "dvb_demux.h"
+> > > > > +#include "dvb_frontend.h"
+> > > > >  
+> > > > >  #include "smscoreapi.h"
+> > > > >  /*#include "smsendian.h"*/
+> > > > > @@ -52,7 +57,7 @@ struct smsdvb_client_t {
+> > > > >      fe_status_t fe_status;
+> > > > >      int fe_ber, fe_snr, fe_unc,
+> > > > fe_signal_strength;
+> > > > >  
+> > > > > -    struct completion tune_done,
+> > > > stat_done;
+> > > > > +    struct completion tune_done;
+> > > > >  
+> > > > >      /* todo: save freq/band
+> > > > instead whole struct */
+> > > > >      struct
+> > > > dvb_frontend_parameters fe_params;
+> > > > > 
+> > > > > 
+> > > > > 
+> > > > >       
+> > > > > --
+> > > > > To unsubscribe from this list: send the
+> > line
+> > > > "unsubscribe linux-media" in
+> > > > > the body of a message to majordomo@vger.kernel.org
+> > > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > > 
+> > > > 
+> > > > 
+> > > > 
+> > > > Cheers,
+> > > > Mauro
+> > > > 
+> > > 
+> > > OK
+> > > 
+> > > I'll submit patches to fix the various rejects on the
+> > coming Wednesday (I'm ooo tomorrow).
+> > > 
+> > > BTW - is it possible for me to clone the current tree
+> > you currently have? (after applying the approved patches),
+> > it will help me for future patches.
+> > 
+> > Sure. The better is to apply your patches over the fresh
+> > clone. You can use
+> > the ./hgimport script to help you to pick the patches from
+> > your old tree.
+> > 
+> > Cheers,
+> > Mauro
+> > 
+> 
+> Regarding the ./hgimport script - how do I tell that script to refer to your tree and not to any other hg tree? Isn't the default look-up is the dvb-api trunk?
 
-Honestly it is not that bad. but in situation of multiple processes
-trying to access camera devices like process A already opened video0
-and process B tries to open video1, process B should face an error
-returns even though process B checked for video1 is already opened or
-not and verified that it is not opened.
+It has no defaults. You can point it to a remote URL or to a local path.
+> 
+> 
+> Regards,
+> 
+> Uri
+> 
+> 
+>       
 
 
-> With your proposed approach:
->
-> 1. the platform has N cameras on camera interface X.
-> 2. as long as at least one camera probed successfully for interface X, you
-> create a videoX device and count inputs for it - successfully probed
-> cameras.
-> 3. you open videoX, one "default" camera gets activated immediately - not
-> all applications issue S_INPUT, so, there has to be a default.
-> 4. if an S_INPUT is issued, you have to verify, whether any camera is
-> currently active / capturing, if none - switch to the requested one, if
-> one is active - return -EBUSY.
-> 5. reference-counting and guaranteeing consistency is more difficult, as
-> well as handling camera driver loading / unloading.
-
-Oops I forgot to say that we need to enforce legacy v4l2 applications
-to use VIDIOC_S_INPUT  after opening device.
-And every S_INPUT issuing should come after G_INPUT like every "set"
-API in v4l2.
 
 
->
-> So, I would say, your approach adds complexity and asymmetry. Can it be
-> that one camera client has several inputs itself? E.g., a decoder? In any
-> case, I wouldn't do this now, if we do decide in favour of your approach,
-> then only after the v4l2-device transition, please.
->
-
-Of course. I didn't mean to disturb your transition job. Please do
-your priority job first.
-
-And about camera client with several inputs question, I will say that
-almost every 3G UMTS phone has dual camera on it. And we can consider
-every 3G UMTS smart phones have dual camera on it with soc camera
-solution.
-BTW, thank you for this conversation. It was a pleasure to discuss
-about this issue with you.
 Cheers,
-
-Nate
-
->> But the mt9v022 case, I should need some research.
->
-> Ok.
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
->
-
-
-
--- 
-========================================================
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
-========================================================
+Mauro
