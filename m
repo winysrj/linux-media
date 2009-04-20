@@ -1,92 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp0.lie-comtel.li ([217.173.238.80]:53608 "EHLO
-	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933999AbZD3RwD (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:36706 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753301AbZDTRui convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2009 13:52:03 -0400
-Message-ID: <49F9E540.5030909@kaiser-linux.li>
-Date: Thu, 30 Apr 2009 19:52:00 +0200
-From: Thomas Kaiser <v4l@kaiser-linux.li>
-MIME-Version: 1.0
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-CC: Wolfram Sang <w.sang@pengutronix.de>, linux-media@vger.kernel.org
-Subject: Re: Donating a mr97310 based elta-media 8212dc (0x093a:0x010e)
-References: <20090430022847.GA15183@pengutronix.de> <alpine.LNX.2.00.0904300953330.21567@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.0904300953330.21567@banach.math.auburn.edu>
-Content-Type: text/plain; charset=US-ASCII; format=flowed
-Content-Transfer-Encoding: 7bit
+	Mon, 20 Apr 2009 13:50:38 -0400
+Date: Mon, 20 Apr 2009 14:50:31 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+Cc: Alexey Klimov <klimov.linux@gmail.com>,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [patch review] uvc_driver: fix compile warning
+Message-ID: <20090420145031.2ffd860a@pedra.chehab.org>
+In-Reply-To: <200904201925.00656.laurent.pinchart@skynet.be>
+References: <1240171389.12537.3.camel@tux.localhost>
+	<200904201925.00656.laurent.pinchart@skynet.be>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/30/2009 05:24 PM, Theodore Kilgore wrote:
+On Mon, 20 Apr 2009 19:25:00 +0200
+Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
+
+> Hi Alexey,
 > 
-> On Thu, 30 Apr 2009, Wolfram Sang wrote:
+> On Sunday 19 April 2009 22:03:09 Alexey Klimov wrote:
+> > Hello, all
+> > I saw warnings in v4l-dvb daily build.
+> > May this patch be helpful?
 > 
->> Hi all,
->>
->> I recently found an elta media dc8212 camera (usb-id: 0x093a:0x010e) 
->> in a pile
->> of old hardware. When looking for linux-support (out of curiosity, I 
->> don't need
->> the cam), I saw that there is activity regarding these types of camera
->> (mr97310) right now. As I am currently busy in other departments of 
->> the kernel,
->> I was wondering if somebody here is interested in getting the camera 
->> to do
->> further research? If so, just drop me a mail and I will send it 
->> free-of-charge.
->>
->> Regards,
->>
->>   Wolfram
->>
->> PS: The camera still works. Just checked with another OS on a friend's 
->> machine.
->>
->> -- 
->> Pengutronix e.K.                           | Wolfram 
->> Sang                |
->> Industrial Linux Solutions                 | 
->> http://www.pengutronix.de/  |
->>
+> I can't reproduce the problem with gcc 4.3.2.
 > 
-> Hi,
-> 
-> If you want to do such a thing, I think it is very kind of you. As for 
-> myself, I suspect that I already have three or four similar cameras, and 
-> so I probably do not really need another one. Also, judging from your 
-> e-mail address you are in Germany and I am in the US, making it a less 
-> desirable prospect to ship such an object for such a distance.
-> 
-> Therefore, I would offer the suggestion that the camera should go to 
-> Kyle Guin, who wrote the kernel support, or, if he is also in the US (I 
-> do not know where he lives) then perhaps to Thomas Kaiser, who lives a 
-> bit closer to you. I think that all three of us are equally interested 
-> but as I said I do not believe that I need another one of these cameras. 
-> In case that I have missed someone else who might be interested, that is 
-> inadvertent on my part.
+> Hans, what's the policy for fixing gcc-related issues ? Should the code use 
+> uninitialized_var() to make every gcc version happy, or can ignore the 
+> warnings when a newer gcc version fixes the problem 
 
-Hello Wolfram, Theodore and Kyle
+Laurent,
 
-While Theodore is mentioning my name and I live close to Germany, I show 
-my interest for the cam. Anyway, if it is better to send to someone 
-else, that's no problem for me.
+The kernel way is to use unitialized_var() on such cases.
 
-Theodore and I exchanged some mails about the compression algorithm of 
-this cam already and it would be nice for me to do something with the 
-real hardware.
+Personally, I don't like very much this approach, since it will get rid forever
+of such error for that var. However, a future patch could make that var truly
+uninitialized. So, an extra care should be taken on every patch touching a var
+that uses uninitialized_var() macro.
 
-Anyway I showed my interest in the compression of the stream because the 
-vendor ID is the same like the Pixart cams (PAC207, PAC7311) for which I 
-wrote the initial drivers and found the decompression algorithm with the 
-help of others.
+>From my side, I accept patches with both ways to fix it.
 
-Maybe the idea from Theodore to send the cam to me is not such a bad 
-idea ;-)
-
-Should we discuss here for some days to find out who can make the most 
-progress with this cam?
-
-Wolfram, thanks for the offer to donate the cam!
-
-Thomas
+Cheers,
+Mauro
