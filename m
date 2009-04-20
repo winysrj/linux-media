@@ -1,82 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.173]:55126 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752486AbZDUBdn (ORCPT
+Received: from yw-out-2324.google.com ([74.125.46.28]:21669 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755461AbZDTPh4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 21:33:43 -0400
-Received: by wf-out-1314.google.com with SMTP id 29so2117535wff.4
-        for <linux-media@vger.kernel.org>; Mon, 20 Apr 2009 18:33:42 -0700 (PDT)
+	Mon, 20 Apr 2009 11:37:56 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so1335871ywb.1
+        for <linux-media@vger.kernel.org>; Mon, 20 Apr 2009 08:37:55 -0700 (PDT)
 MIME-Version: 1.0
-Date: Tue, 21 Apr 2009 10:33:42 +0900
-Message-ID: <5e9665e10904201833k42a733fdh40b11f499744c85f@mail.gmail.com>
-Subject: Applying SoC camera framework on multi-functional camera interface
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"jongse.won@samsung.com" <jongse.won@samsung.com>,
-	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>
+In-Reply-To: <20090405193625.57c3b1fd@free.fr>
+References: <5ec8ebd50903271106n14f0e2b7m1495ef135be0cd90@mail.gmail.com>
+	 <49CD2868.9080502@kaiser-linux.li>
+	 <5ec8ebd50903311144h316c7e3bmd30ce2c3d5a268ee@mail.gmail.com>
+	 <49D4EAB2.4090206@control.lth.se> <49D66C83.6000700@control.lth.se>
+	 <49D67781.6030807@gmail.com> <49D74485.8000004@control.lth.se>
+	 <20090405193625.57c3b1fd@free.fr>
+Date: Mon, 20 Apr 2009 17:37:55 +0200
+Message-ID: <1d4c7fd50904200837pe4c82bfx1f0638072efba919@mail.gmail.com>
+Subject: Re: topro 6800 driver
+From: Thomas Champagne <lafeuil@gmail.com>
+To: Jean-Francois Moine <moinejf@free.fr>,
+	Anders Blomdell <anders.blomdell@control.lth.se>
+Cc: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>,
+	Andy Shevchenko <andy.shevchenko@gmail.com>,
+	Thomas Kaiser <v4l@kaiser-linux.li>,
+	Linux Media <linux-media@vger.kernel.org>,
+	Richard Case <rich@racitup.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hello Anders
 
-One of my recent work is making S3C64XX camera interface driver with
-SoC camera framework. Thanks to Guennadi, SoC camera framework is so
-clear and easy to follow. Actually I didn't need to worry about my
-whole driver structure, the framework almost has everything that I
-need.
+I found a small time for testing your code. But your code doesn't work
+with my webcam. :-(
+I think it doesn't have the same sensor. Can you add in the sd_init
+method the check of the sensor id ? You can adjust this patch with
+your sensor id :
+diff -r 5a9a52f1277e linux/drivers/media/video/gspca/tp6800.c
+--- a/linux/drivers/media/video/gspca/tp6800.c	Sat Apr 18 18:21:49 2009 +0200
++++ b/linux/drivers/media/video/gspca/tp6800.c	Mon Apr 20 17:33:15 2009 +0200
+@@ -1601,8 +1601,21 @@
+ /* this function is called at probe and resume time */
+ static int sd_init(struct gspca_dev *gspca_dev)
+ {
++	int res = 0;
++	__u8 value;
++
+ 	/* check if the device responds */
++	REG_W(gspca_dev, TP6800_SIF_TYPE, 0x01);
++	REG_W(gspca_dev, TP6800_SIF_CONTROL, 0x01);
++	REG_W(gspca_dev, TP6800_GPIO_IO, 0x9f);
++	REG_R(gspca_dev, TP6800_GPIO_DATA, &value);
++	if ((value & 7) != 0x00) {
++		PDEBUG(D_ERR, "init reg: 0x%02x. Unrecognized sensor.", value);
++		return -1;
++	}
+ 	return 0;
++out:
++	return res;
+ }
 
-But here is a problem that I couldn't make up my mind while
-implementing some of the features of S3C64XX camera IP.
-As you know, S3C64XX camera IP has scaler and rotator capability on
-it's own which can be used standalone even memory to memory scaling
-and rotating jobs.
-If you want to know in detail please take a look at the user manual
-(just remind if you have already seen this)  :
-http://www.ebv.com/fileadmin/products/Products/Samsung/S3C6400/S3C6400X_UserManual_rev1-0_2008-02_661558um.pdf
+ /* -- start the camera -- */
 
-Telling you about the driver concept that I wanted to make is like following:
 
-(I want to select inputs like external camera and MSDMA using
-S_INPUT'/G_INPUT but we don't have them in SoC camera framework.
-So this should be the version of design with current SoC camera framework.)
 
-1. S3C64XX has preview and codec path
-2. Each preview and codec path can have external camera and MSDMA for input
-3. make external camera and MSDMA device nodes for each preview and codec.
-  => Let's assume that we have camera A and B, then it should go like this
-  /dev/video0 (camera A on preview device)
-  /dev/video1 (camera B on preview device)
-  /dev/video2 (MSDMA on preview device)
-  /dev/video3 (camera A on codec device)
-  /dev/video4 (camera B on codec device)
-  /dev/video5 (MSDMA on codec device)
+Please, tell me what is your sensor id.
 
-4. Those device nodes are "device" in SoC camera framework (and S3C
-camera interface should be "host" device)
- => External camera devices can be made in SoC camera device. Fair enough.
-
-  But MSMDA? what should I do If I want to make it as a "device"
-driver in SoC camera framework?
-  Any reference that I could have? because I can't find any "device"
-drivers besides camera sensor,isp drivers.
-  Please let me know if there is any.
-
-Cheers,
-
-Nate
-
--- 
-=
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
+Thomas
