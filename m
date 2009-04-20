@@ -1,160 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:43979 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753769AbZDTSTr convert rfc822-to-8bit (ORCPT
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197]:54693 "EHLO
+	mta2.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759330AbZDTW2M (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 14:19:47 -0400
-Date: Mon, 20 Apr 2009 15:19:41 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Uri Shkolnik <urishk@yahoo.com>
-Cc: LinuxML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] [0904_13] Siano: move DVB_API and remove redundant code
-Message-ID: <20090420151941.3d024abb@pedra.chehab.org>
-In-Reply-To: <66643.35699.qm@web110804.mail.gq1.yahoo.com>
-References: <66643.35699.qm@web110804.mail.gq1.yahoo.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Mon, 20 Apr 2009 18:28:12 -0400
+Received: from steven-toths-macbook-pro.local
+ (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta2.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KIF001VE7QY12X0@mta2.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Mon, 20 Apr 2009 18:28:11 -0400 (EDT)
+Date: Mon, 20 Apr 2009 18:28:10 -0400
+From: Steven Toth <stoth@linuxtv.org>
+Subject: Re: Hauppauge HVR-1500 (aka HP RM436AA#ABA)
+In-reply-to: <1240265172.5388.184.camel@mountainboyzlinux0>
+To: pghben@yahoo.com
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-id: <49ECF6FA.70805@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7BIT
+References: <23cedc300904170207w74f50fc1v3858b663de61094c@mail.gmail.com>
+ <BAY102-W34E8EA79DEE83E18177655CF7B0@phx.gbl> <49E9C4EA.30706@linuxtv.org>
+ <loom.20090420T150829-849@post.gmane.org> <49EC9A08.50603@linuxtv.org>
+ <1240245715.5388.126.camel@mountainboyzlinux0> <49ECA8DD.9090708@linuxtv.org>
+ <1240249684.5388.146.camel@mountainboyzlinux0> <49ECBCF0.3060806@linuxtv.org>
+ <1240255677.5388.153.camel@mountainboyzlinux0> <49ECD553.9090707@linuxtv.org>
+ <1240259904.5388.178.camel@mountainboyzlinux0> <49ECEEA3.6010203@linuxtv.org>
+ <1240265172.5388.184.camel@mountainboyzlinux0>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 20 Apr 2009 11:07:57 -0700 (PDT)
-Uri Shkolnik <urishk@yahoo.com> wrote:
+> If there is anything I can do that will help you find the bug, please 
+> let me know..
+> 
+> I want to thank you again for being so patient, helpful, and attentive. 
+> I really do appreciate it.
 
-> 
-> 
-> 
-> --- On Mon, 4/20/09, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
-> 
-> > From: Mauro Carvalho Chehab <mchehab@infradead.org>
-> > Subject: Re: [PATCH] [0904_13] Siano: move DVB_API and remove redundant code
-> > To: "Uri Shkolnik" <urishk@yahoo.com>
-> > Cc: "LinuxML" <linux-media@vger.kernel.org>
-> > Date: Monday, April 20, 2009, 9:02 PM
-> > On Sun, 5 Apr 2009 03:31:32 -0700
-> > (PDT)
-> > Uri Shkolnik <urishk@yahoo.com>
-> > wrote:
-> > 
-> > > 
-> > > # HG changeset patch
-> > > # User Uri Shkolnik <uris@siano-ms.com>
-> > > # Date 1238755204 -10800
-> > > # Node ID f65a29f0f9a66f82a91525ae0085a15f00ac91c2
-> > > # Parent 
-> > 897669fdeb3be75a2bde978557b5398a4a7d8914
-> > > [PATCH] [0904_13] Siano: move DVB_API and remove
-> > redundant code
-> > > 
-> > > From: Uri Shkolnik <uris@siano-ms.com>
-> > > 
-> > > The DVB-API related information has been moved from
-> > the core header
-> > > to the smsdvb, and the redundant code has been removed
-> > from the
-> > > core header.
-> > > 
-> > > This code has been moved since it is used only by
-> > > the smsdvb client component.
-> > 
-> > This patch depends on the previous patches that I asked
-> > some changes. Please
-> > re-submit it together with the other patches that weren't
-> > committed. It is
-> > probably not much valuable to commit the later patches, so
-> > I'll stop analysing
-> > the code here.
-> > 
-> > The patch itself looks sane to my eyes.
-> > > 
-> > > Priority: normal
-> > > 
-> > > Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-> > > 
-> > > diff -r 897669fdeb3b -r f65a29f0f9a6
-> > linux/drivers/media/dvb/siano/smscoreapi.h
-> > > ---
-> > a/linux/drivers/media/dvb/siano/smscoreapi.h   
-> > Fri Apr 03 13:31:13 2009 +0300
-> > > +++
-> > b/linux/drivers/media/dvb/siano/smscoreapi.h   
-> > Fri Apr 03 13:40:04 2009 +0300
-> > > @@ -36,15 +36,6 @@ along with this program.  If
-> > not, see <h
-> > >  #include <asm/page.h>
-> > >  
-> > >  /* #include "smsir.h" */
-> > > -
-> > > -#define SMS_DVB3_SUBSYS
-> > > -#ifdef SMS_DVB3_SUBSYS
-> > > -#include "dmxdev.h"
-> > > -#include "dvbdev.h"
-> > > -#include "dvb_demux.h"
-> > > -#include "dvb_frontend.h"
-> > > -
-> > > -#endif
-> > >  
-> > >  #define kmutex_init(_p_) mutex_init(_p_)
-> > >  #define kmutex_lock(_p_) mutex_lock(_p_)
-> > > diff -r 897669fdeb3b -r f65a29f0f9a6
-> > linux/drivers/media/dvb/siano/smsdvb.c
-> > > ---
-> > a/linux/drivers/media/dvb/siano/smsdvb.c   
-> > Fri Apr 03 13:31:13 2009 +0300
-> > > +++
-> > b/linux/drivers/media/dvb/siano/smsdvb.c   
-> > Fri Apr 03 13:40:04 2009 +0300
-> > > @@ -22,6 +22,11 @@ along with this program.  If
-> > not, see <h
-> > >  #include <linux/module.h>
-> > >  #include <linux/init.h>
-> > >  #include <asm/byteorder.h>
-> > > +
-> > > +#include "dmxdev.h"
-> > > +#include "dvbdev.h"
-> > > +#include "dvb_demux.h"
-> > > +#include "dvb_frontend.h"
-> > >  
-> > >  #include "smscoreapi.h"
-> > >  /*#include "smsendian.h"*/
-> > > @@ -52,7 +57,7 @@ struct smsdvb_client_t {
-> > >      fe_status_t fe_status;
-> > >      int fe_ber, fe_snr, fe_unc,
-> > fe_signal_strength;
-> > >  
-> > > -    struct completion tune_done,
-> > stat_done;
-> > > +    struct completion tune_done;
-> > >  
-> > >      /* todo: save freq/band
-> > instead whole struct */
-> > >      struct
-> > dvb_frontend_parameters fe_params;
-> > > 
-> > > 
-> > > 
-> > >       
-> > > --
-> > > To unsubscribe from this list: send the line
-> > "unsubscribe linux-media" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> > 
-> > 
-> > 
-> > Cheers,
-> > Mauro
-> > 
-> 
-> OK
-> 
-> I'll submit patches to fix the various rejects on the coming Wednesday (I'm ooo tomorrow).
-> 
-> BTW - is it possible for me to clone the current tree you currently have? (after applying the approved patches), it will help me for future patches.
+You're welcome.
 
-Sure. The better is to apply your patches over the fresh clone. You can use
-the ./hgimport script to help you to pick the patches from your old tree.
+I'll look into this tonight and see what I can find.
 
-Cheers,
-Mauro
+- Steve
