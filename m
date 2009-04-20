@@ -1,26 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3P8nKAF016921
-	for <video4linux-list@redhat.com>; Sat, 25 Apr 2009 04:49:20 -0400
-Received: from node01.cambriumhosting.nl (node01.cambriumhosting.nl
-	[217.19.16.162])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3P8mRZ0029218
-	for <video4linux-list@redhat.com>; Sat, 25 Apr 2009 04:48:27 -0400
-Message-ID: <49F2CE54.4050001@powercraft.nl>
-Date: Sat, 25 Apr 2009 10:48:20 +0200
-From: Jelle de Jong <jelledejong@powercraft.nl>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3KDkdxm005046
+	for <video4linux-list@redhat.com>; Mon, 20 Apr 2009 09:46:39 -0400
+Received: from nlpi053.prodigy.net (nlpi053.sbcis.sbc.com [207.115.36.82])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3KDkMZX014285
+	for <video4linux-list@redhat.com>; Mon, 20 Apr 2009 09:46:23 -0400
+Received: from [192.168.0.201] (adsl-99-144-165-243.dsl.emhril.sbcglobal.net
+	[99.144.165.243]) (authenticated bits=0)
+	by nlpi053.prodigy.net (8.13.8 smtpauth/dk/map_regex/8.13.8) with ESMTP
+	id n3KDkLuw023101
+	for <video4linux-list@redhat.com>; Mon, 20 Apr 2009 08:46:22 -0500
+Message-ID: <49EC7CBF.2070109@xnet.com>
+Date: Mon, 20 Apr 2009 08:46:39 -0500
+From: stuart <stuart@xnet.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-References: <49F189BC.5090606@powercraft.nl> <49F1ADF3.2030901@iki.fi>
-	<49F1AFC9.2040405@powercraft.nl> <49F1BA30.6060702@iki.fi>
-	<49F2C15A.3010106@powercraft.nl> <49F2C917.4060803@iki.fi>
-	<49F2CC6A.8050601@powercraft.nl> <49F2CD76.2070501@iki.fi>
-In-Reply-To: <49F2CD76.2070501@iki.fi>
-Content-Type: text/plain; charset=UTF-8
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [not working] Conceptronic USB 2.0 Digital TV Receiver -
- CTVDIGRCU - Device Information
+Subject: Where is the v4l remote howto?  (kworld 110)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,38 +29,22 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Antti Palosaari wrote:
-> On 04/25/2009 11:40 AM, Jelle de Jong wrote:
->> Antti Palosaari wrote:
->>> On 04/25/2009 10:52 AM, Jelle de Jong wrote:
->>>> Would somebody be willing to get this device to work with the upstream
->>>> v4l systems? I can sent the device to you. If not I can also return the
->>>> device back to the store. Just sent me an email.
->>> I can try. At least some basic driver stub which just works is possible
->>> to do usually even without specs if tuner chip have one that does have
->>> Linux driver. Most likely it does have tuner that is supported because
->>> almost every DVB-T silicon tuner have some kind of driver currently.
->>>
->>> regards
->>> Antti
->> Thank you! I will sent the device to you somewhere in the next two weeks,
->> I received your private email with your address data. I will sent a mail
->> when the package is posted.
-> 
-> Why your mails (CC'd correctly) are not arrived to the list? Not 
-> yesterday, not today.
-> 
-> regards
-> Antti
 
-I don't know, all mails I sent to the CC video4linux-list@redhat.com do
-arrive at the archives of the mailinglist. Maybe somebody enabled the
-mailman policy to not sent mails mails to both the list and the personal
-emails. Somebody knows what goes on?
+Hi...
 
-Cheers,
+Remote control for tuner cards appears dicey and a bit confusing.  My 
+impression is that it's no were near as rock solid as the efforts here 
+(@ v4l) to support the tuner portion of the cards.  So I've always been 
+willing to put in some work.  When I used an analog happauge tuner card 
+I went to some length to get lirc working.  Now as I switch to digital, 
+I find my self wanting to use an old but well supported kworld 110 ATSC 
+tuner.  I assume this means I will be using v4l keyboard events instead 
+of the lirc kernel modules.  However, I've not found a good source of 
+information as to how to go about this.  It's more likely I haven't 
+googled properly.  Can anyone point me in the right direction?
 
-Jelle
+...thanks
+
 
 --
 video4linux-list mailing list
