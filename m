@@ -1,141 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-11.arcor-online.net ([151.189.21.51]:55713 "EHLO
-	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750997AbZD0Eqw (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:43979 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753769AbZDTSTr convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2009 00:46:52 -0400
-Subject: Re: [PATCH] FM1216ME_MK3 some changes
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Dmitri Belimov <d.belimov@gmail.com>
-Cc: Andy Walls <awalls@radix.net>, video4linux-list@redhat.com,
-	linux-media@vger.kernel.org
-In-Reply-To: <20090426235839.4f2a9956@glory.loctelecom.ru>
-References: <20090422174848.1be88f61@glory.loctelecom.ru>
-	 <1240452534.3232.70.camel@palomino.walls.org>
-	 <20090423203618.4ac2bc6f@glory.loctelecom.ru>
-	 <1240537394.3231.37.camel@palomino.walls.org>
-	 <20090426235839.4f2a9956@glory.loctelecom.ru>
-Content-Type: text/plain
-Date: Mon, 27 Apr 2009 06:45:14 +0200
-Message-Id: <1240807514.18004.12.camel@pc07.localdom.local>
+	Mon, 20 Apr 2009 14:19:47 -0400
+Date: Mon, 20 Apr 2009 15:19:41 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Uri Shkolnik <urishk@yahoo.com>
+Cc: LinuxML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] [0904_13] Siano: move DVB_API and remove redundant code
+Message-ID: <20090420151941.3d024abb@pedra.chehab.org>
+In-Reply-To: <66643.35699.qm@web110804.mail.gq1.yahoo.com>
+References: <66643.35699.qm@web110804.mail.gq1.yahoo.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, 20 Apr 2009 11:07:57 -0700 (PDT)
+Uri Shkolnik <urishk@yahoo.com> wrote:
 
-Am Sonntag, den 26.04.2009, 23:58 +1000 schrieb Dmitri Belimov:
-> Hi Andy 
 > 
-> > Hi Dmitri,
+> 
+> 
+> --- On Mon, 4/20/09, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+> 
+> > From: Mauro Carvalho Chehab <mchehab@infradead.org>
+> > Subject: Re: [PATCH] [0904_13] Siano: move DVB_API and remove redundant code
+> > To: "Uri Shkolnik" <urishk@yahoo.com>
+> > Cc: "LinuxML" <linux-media@vger.kernel.org>
+> > Date: Monday, April 20, 2009, 9:02 PM
+> > On Sun, 5 Apr 2009 03:31:32 -0700
+> > (PDT)
+> > Uri Shkolnik <urishk@yahoo.com>
+> > wrote:
 > > 
-> > Thank you for you responses.
-> > 
-> > Just a few more comments...
-> > 
-> > On Thu, 2009-04-23 at 20:36 +1000, Dmitri Belimov wrote:
-> > > Hi Andy
 > > > 
-> > > > Dmitri,
-> > > > 
-> > > > 
-> > > > On Wed, 2009-04-22 at 17:48 +1000, Dmitri Belimov wrote:
-> > > > > Hi All
-> > > > > 
-> > > > > 1. Change middle band. In the end of the middle band the
-> > > > > sensitivity of receiver not good. If we switch to higher band,
-> > > > > sensitivity more better. Hardware trick.
-> > > > 
-> > 
-> > > Several years a go your customers write some messages about bad
-> > > quality of TV if frequency of TV is the end of band. It can be low
-> > > band or middle. Our hardware engeneer make some tests with hardware
-> > > TV generator and our TV tuners.
+> > > # HG changeset patch
+> > > # User Uri Shkolnik <uris@siano-ms.com>
+> > > # Date 1238755204 -10800
+> > > # Node ID f65a29f0f9a66f82a91525ae0085a15f00ac91c2
+> > > # Parent 
+> > 897669fdeb3be75a2bde978557b5398a4a7d8914
+> > > [PATCH] [0904_13] Siano: move DVB_API and remove
+> > redundant code
 > > > 
-> > > If we set default frequency range for low and middle band, quality
-> > > of TV signal on 159MHz and 442 MHz is bad. When we make our changes
-> > > with moving end of bands the quality of TV much better. And our
-> > > system programmer for OS Windows use changed bands for drivers.
-> > > Customers be happy.
-> > 
-> > OK.  A properly run experiment wins over theory every time. :)
-> 
-> ;-) 
->  
-> > > You can test it if in your placement available TV programm on
-> > > 159MHz or 442MHz. This trick can be usefull for other tuners.
-> > 
-> > If you look at tveeprom.c, a number of other tuners are using that
-> > tuner definition:
-> > 
-> > $ grep FM1216ME_MK3 tveeprom.c
-> > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FQ1216ME MK3"},
-> > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FM1216 ME
-> > MK3"}, { TUNER_PHILIPS_FM1216ME_MK3, 	"LG S001D MK3"},
-> > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"LG S701D MK3"},
-> > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FQ1216LME
-> > MK3"}, { TUNER_PHILIPS_FM1216ME_MK3, 	"TCL MFPE05 2"},
-> > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"TCL MPE05-2"},
-> > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FM1216ME MK5"},
-> > 
-> > If your change makes things bad for the other tuners, we'll probably
-> > have to create an alternate entry for the other tuners instead of
-> > using the FM1216ME_MK3 defintion.  I suspect most of them are clones
-> > of the FM1216ME MK3 however, so it probably won't matter.
-> 
-> We can make fake FM1216ME_MK3 compatible tuner for clones. And move clones to it.
-> After testing each clone with real compatibility with FM1216ME_MK3 we can move to real tuner.
-> 
-> > > > > 3. Set charge pump bit
-> > > > 
-> > > > This will improve the time to initially tune to a frequency, but
-> > > > will likely add some noise as the PLL continues to maintain lock
-> > > > on the signal.  If there is no way to turn off the CP after the
-> > > > lock bit is set in the tuner, it's probably better to leave it
-> > > > off for lower noise and just live with slower tuning.
+> > > From: Uri Shkolnik <uris@siano-ms.com>
 > > > 
-> > > We discuss with our windows system programmer about it. He sad that
-> > > in analog TV mode noise from PLL don't give any problem.
+> > > The DVB-API related information has been moved from
+> > the core header
+> > > to the smsdvb, and the redundant code has been removed
+> > from the
+> > > core header.
+> > > 
+> > > This code has been moved since it is used only by
+> > > the smsdvb client component.
+> > 
+> > This patch depends on the previous patches that I asked
+> > some changes. Please
+> > re-submit it together with the other patches that weren't
+> > committed. It is
+> > probably not much valuable to commit the later patches, so
+> > I'll stop analysing
+> > the code here.
+> > 
+> > The patch itself looks sane to my eyes.
+> > > 
+> > > Priority: normal
+> > > 
+> > > Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+> > > 
+> > > diff -r 897669fdeb3b -r f65a29f0f9a6
+> > linux/drivers/media/dvb/siano/smscoreapi.h
+> > > ---
+> > a/linux/drivers/media/dvb/siano/smscoreapi.h   
+> > Fri Apr 03 13:31:13 2009 +0300
+> > > +++
+> > b/linux/drivers/media/dvb/siano/smscoreapi.h   
+> > Fri Apr 03 13:40:04 2009 +0300
+> > > @@ -36,15 +36,6 @@ along with this program.  If
+> > not, see <h
+> > >  #include <asm/page.h>
+> > >  
+> > >  /* #include "smsir.h" */
+> > > -
+> > > -#define SMS_DVB3_SUBSYS
+> > > -#ifdef SMS_DVB3_SUBSYS
+> > > -#include "dmxdev.h"
+> > > -#include "dvbdev.h"
+> > > -#include "dvb_demux.h"
+> > > -#include "dvb_frontend.h"
+> > > -
+> > > -#endif
+> > >  
+> > >  #define kmutex_init(_p_) mutex_init(_p_)
+> > >  #define kmutex_lock(_p_) mutex_lock(_p_)
+> > > diff -r 897669fdeb3b -r f65a29f0f9a6
+> > linux/drivers/media/dvb/siano/smsdvb.c
+> > > ---
+> > a/linux/drivers/media/dvb/siano/smsdvb.c   
+> > Fri Apr 03 13:31:13 2009 +0300
+> > > +++
+> > b/linux/drivers/media/dvb/siano/smsdvb.c   
+> > Fri Apr 03 13:40:04 2009 +0300
+> > > @@ -22,6 +22,11 @@ along with this program.  If
+> > not, see <h
+> > >  #include <linux/module.h>
+> > >  #include <linux/init.h>
+> > >  #include <asm/byteorder.h>
+> > > +
+> > > +#include "dmxdev.h"
+> > > +#include "dvbdev.h"
+> > > +#include "dvb_demux.h"
+> > > +#include "dvb_frontend.h"
+> > >  
+> > >  #include "smscoreapi.h"
+> > >  /*#include "smsendian.h"*/
+> > > @@ -52,7 +57,7 @@ struct smsdvb_client_t {
+> > >      fe_status_t fe_status;
+> > >      int fe_ber, fe_snr, fe_unc,
+> > fe_signal_strength;
+> > >  
+> > > -    struct completion tune_done,
+> > stat_done;
+> > > +    struct completion tune_done;
+> > >  
+> > >      /* todo: save freq/band
+> > instead whole struct */
+> > >      struct
+> > dvb_frontend_parameters fe_params;
+> > > 
+> > > 
+> > > 
+> > >       
+> > > --
+> > > To unsubscribe from this list: send the line
+> > "unsubscribe linux-media" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> > 
+> > 
+> > 
+> > Cheers,
+> > Mauro
+> > 
+> 
+> OK
+> 
+> I'll submit patches to fix the various rejects on the coming Wednesday (I'm ooo tomorrow).
+> 
+> BTW - is it possible for me to clone the current tree you currently have? (after applying the approved patches), it will help me for future patches.
 
-Some confusion probably started here.
+Sure. The better is to apply your patches over the fresh clone. You can use
+the ./hgimport script to help you to pick the patches from your old tree.
 
-You were talking about one more different tuner ...
-
-> > I would be concerned about phase noise affecting the colors or any FM
-> > sound carriers.  If the noise isn't noticably affecting colors to the
-> > human eye (do color bars look OK?), or sound to the human ear, then
-> > OK.
-> 
-> Ok. I'll discuss about it with our system programmer.
->  
-> > >  But in digital TV mode
-> > > noise from PLL decreased BER.
-> > 
-> > I thought the FM1216ME MK3 was an analog only tuner.  I guess I don't
-> > know DVB-T or cable in Europe well enough.
-> 
-> Yes, you are right. This solutions used for hybrid tuners too.
-> 
-> > > > Leaving the CP bit set should be especially noticable ad FM noise
-> > > > when set to tune to FM radio stations.  From the FM1236ME_MK3
-> > > > datasheet: "It is recommended to set CP=0 in the FM mode at all
-> > > > times." But the VHF low band control byte is also used when
-> > > > setting FM radio (AFAICT with a quick look at the code.)
-> > > 
-> > > Yes. You are right. We can swith CP off in FM mode.
-> > 
-> > OK.  Thank you.
-> > 
-> > > 
-> > 
-> > 
-> > Regards,
-> > Andy
-> 
-> With my best regards, Dmitry.
-> --
 Cheers,
-Hermann
-
-
+Mauro
