@@ -1,208 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51194 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750714AbZD3GVr convert rfc822-to-8bit (ORCPT
+Received: from mail-bw0-f163.google.com ([209.85.218.163]:52359 "EHLO
+	mail-bw0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755051AbZDTUqY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2009 02:21:47 -0400
-From: "Shah, Hardik" <hardik.shah@ti.com>
-To: InKi Dae <daeinki@gmail.com>
-CC: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
-Date: Thu, 30 Apr 2009 11:51:29 +0530
-Subject: RE: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030548BA1B@dbde02.ent.ti.com>
-In-Reply-To: <90b950fc0904292317m500820efv66755aed31b46853@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+	Mon, 20 Apr 2009 16:46:24 -0400
+Received: by bwz7 with SMTP id 7so1432577bwz.37
+        for <linux-media@vger.kernel.org>; Mon, 20 Apr 2009 13:46:22 -0700 (PDT)
+Message-ID: <49ECDF10.7000701@gmail.com>
+Date: Mon, 20 Apr 2009 22:46:08 +0200
+From: David Lister <foceni@gmail.com>
 MIME-Version: 1.0
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: VDR User <user.vdr@gmail.com>, linux-media@vger.kernel.org,
+	linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] SkyStar HD2 issues, signal sensitivity, etc.
+References: <621110570904131518w220106d7u67934966dbb8c7dd@mail.gmail.com> <49E3D16E.3070307@gmail.com> <49E3D21D.7010406@gmail.com>
+In-Reply-To: <49E3D21D.7010406@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello all,
+
+I took my time with this reply to gather verified data and information.
+I wanted to be sure of my facts and have pristine HW for testing (you
+mentioned the possibility of broken/fake HW).
+
+1) My cards are 100% genuine - confirmed by Twinhan.
+2) I had one of the cards replaced for tests using new mantis-v4l S2API
+3) Testing was conducted using mantis-v4l exclusively, with a single
+card and with both cards connected (same results).
+
+Manu Abraham wrote:
+> Manu Abraham wrote:
+>> Dave Lister wrote:
+>>>> On Sat, Apr 11, 2009 at 5:47 AM, Dave Lister <foceni@gmail.com> wrote:
+>>>>> RESULTS (using "s2" dvb-apps):
+>>>>> - scanning DVB-S works
+>>>>> - scanning DVB-S2 doesn't work
+>>>>> - zapping DVB-S is fast
+>>>>>
+>>> For other SkyStar HD2 users, this is a summary as of 2009.04.14:
+>>>   - kernel 2.6.29 + mantis-v4l works (except DiSEqC as far as I can tell)
+>>
+>> Diseqc works fine over here, with the VP-1041 and other cards, using
+>> the mantis-v4l tree.
+
+You were right, DiSEqC is working. The reason was forgotten loop through
+my STB. Once removed from the cable, DiSEqC started working.
+
+>> The s2-liplianin tree doesn't use an updated tree for the mantis
+>> based devices unfortunately. It is stuck with older changesets of
+>> the mantis tree.
+
+Driver mantis-v4l suffers from the same issues as s2-liplianin (see the
+next paragraph).
+
+>>> Common issues:
+>>>   - zapping DVB-S2 channel causes tuner HW lockup (loss of signal until reboot)
+>>>   - zap DVB-S2 channel => AWFUL ultra-high pitched noise emitted from
+>>> the card (capacitors or coils?) - makes your head hurt in about 30mins
+>>>   - very poor TS (picture data) quality; signal = 95%, SNR = 70%,
+>>> STB/TV gives superb picture, but SkyStar/PC picture is corrupted every
+>>> few seconds, sound glitches, etc. (as if the signal was like 40% on
+>>> STB) - confirmed in VDR (Xine), MythTV, mplayer.
+
+- Unusable DVB-S2 is a fact. It locks up the card and prevents further
+usage. Some S2 transponders cannot be locked even after reboot, which
+means this card is basically just DVB-S. There are MANY better supported
+DVB-S and even DVB-S2 cards out there.
+
+- High-pitched noise is NOT present with the new card + mantis-v4l. That
+might have been HW or s2-liplianin issue.
+
+- Poor TS quality is a fact. This card doesn't even have freq. shielding
+on the board, which might be the reason on its own.
+
+>> * If you had those changes on your hardware and your card was
+>> susceptible to such issues, then that could be a possible reason.
+>> * There are quite some hardware pirates, as noted here ..
+
+Not possible, I have a new card (verified by Twinhan as genuine), which
+has been used with mantis-v4l only and has the same issues.
+
+>> In any of your cases, If you have hardware related issues please
+>> contact to your supplier to have it checked/replaced by them.
+
+My problems are not caused by defective or fake HW. This has been
+confirmed above all suspicions.
+
+>> NOTE: Always try to stick with a tree that's a mainline tree or the
+>> development tree, rather than tree's with unknown changes.
+
+When there are 3-4 different driver trees of various maturity, none of
+which is working properly, one has no other alternative than to try
+everything. Not to mention that mantis-v4l was first uploaded several
+day AFTER I began installations. Back then, s2-liplianin was the only
+S2API choice.
+
+My signal is now at 95-99% and SNR reported by the STB is 70%. With
+SkyStar I can see these numbers:
+
+# femon -a0
+FE: STB0899 Multistandard (DVBS)
+Problem retrieving frontend information: Operation not supported
+status  CVYL | signal 014c | snr 006b | ber 00000000 | unc 00000000 |
+FE_HAS_LOCK
+Problem retrieving frontend information: Operation not supported
+status  CVYL | signal 014c | snr 006b | ber 00000000 | unc 00000000 |
+FE_HAS_LOCK
+Problem retrieving frontend information: Operation not supported
+status  CVYL | signal 014c | snr 006a | ber 00000000 | unc 00000000 |
+FE_HAS_LOCK
+
+>From other people reports, I can only conclude that this is an
+exceptionally good signal and almost ideal conditions. Unfortunately,
+SkyStar is unable to provide acceptable picture. VDR reports "TS
+continuity errors" every few seconds and MPlayer is spouting warnings
+like these all the time:
+
+[mpeg2video @ 0x8963220]ac-tex damaged at 12 22 43  3%  1%  5.2% 0 0
 
 
-> -----Original Message-----
-> From: InKi Dae [mailto:daeinki@gmail.com]
-> Sent: Thursday, April 30, 2009 11:48 AM
-> To: Shah, Hardik
-> Cc: tomi.valkeinen@nokia.com; linux-media@vger.kernel.org; linux-
-> omap@vger.kernel.org; Jadav, Brijesh R; Hiremath, Vaibhav
-> Subject: Re: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
-> 
-> hello Shah, Hardik..
-> 
-> your omap_vout.c has the problem that it disables video1 or fb1.
-> so I have modified your code.
-> 
-> I defined and set platform_data for DSS2 in machine code.(or board file)
-> 
-> static struct omapfb_platform_data xxx_dss_platform_data = {
->     .mem_desc.region[0].format = OMAPFB_COLOR_ARGB32,
->     .mem_desc.region[0].format_used=1,
-> 
->     .mem_desc.region[1].format = OMAPFB_COLOR_RGB24U,
->     .mem_desc.region[1].format_used=1,
-> 
->     .mem_desc.region[2].format = OMAPFB_COLOR_ARGB32,
->     .mem_desc.region[2].format_used=1,
-> };
-> 
-> omapfb_set_platform_data(&xxx_dss_platform_data);
-> 
-> after that, omap_vout has resource count got referring to framebuffer count,
-> registers overlay as vout's one and would decide to use which overlay.
-> 
-> at that time, your code would face with impact on some overlay(fb or video).
-> 
-> this patch would solve that problem.
-> when it sets overlay to vout, vout would get overlay array index to
-> avoid overlapping with other overlay.
-> 
-> 
-> sighed-off-by: InKi Dae. <inki.dae@samsung.com>
-> ---
-> diff --git a/drivers/media/video/omap/omap_vout.c
-> b/drivers/media/video/omap/omap_vout.c
-> index 9b4a0d7..051298a 100644
-> --- a/drivers/media/video/omap/omap_vout.c
-> +++ b/drivers/media/video/omap/omap_vout.c
-> @@ -2246,11 +2246,13 @@ free_buffers:
->  /* Create video out devices */
->  static int __init omap_vout_create_video_devices(struct platform_device
-> *pdev)
->  {
-> -	int r = 0, k;
-> +	int r = 0, k, vout_count;
->  	struct omap_vout_device *vout;
->  	struct video_device *vfd = NULL;
->  	struct omap2video_device *vid_dev = platform_get_drvdata(pdev);
-> 
-> +	vout_count = 3 - pdev->num_resources;
-> +
->  	for (k = 0; k < pdev->num_resources; k++) {
-> 
->  		vout = kmalloc(sizeof(struct omap_vout_device), GFP_KERNEL);
-> @@ -2266,9 +2268,9 @@ static int __init
-> omap_vout_create_video_devices(struct platform_device *pdev)
->  		vout->vid = k;
->  		vid_dev->vouts[k] = vout;
->  		vout->vid_info.vid_dev = vid_dev;
-> -		vout->vid_info.overlays[0] = vid_dev->overlays[k + 1];
-> +		vout->vid_info.overlays[0] = vid_dev->overlays[k + vout_count];
->  		vout->vid_info.num_overlays = 1;
-> -		vout->vid_info.id = k + 1;
-> +		vout->vid_info.id = k + vout_count;
->  		vid_dev->num_videos++;
-> 
->  		/* Setup the default configuration for the video devices
-> @@ -2289,7 +2291,7 @@ static int __init
-> omap_vout_create_video_devices(struct platform_device *pdev)
->  		/* Register the Video device with V4L2
->  		 */
->  		vfd = vout->vfd;
-> -		if (video_register_device(vfd, VFL_TYPE_GRABBER, k + 1) < 0) {
-> +		if (video_register_device(vfd, VFL_TYPE_GRABBER, k + vout_count) <
-> 0) {
->  			printk(KERN_ERR VOUT_NAME ": could not register \
->  					Video for Linux device\n");
->  			vfd->minor = -1;
-> 
-> 
-> 2009/4/22 Shah, Hardik <hardik.shah@ti.com>:
-[Shah, Hardik] Yes this is correct,
-I will apply this patch.  I already found it and fixed it in different way but any way I will apply your patch.
-> >
-> >
-> >> -----Original Message-----
-> >> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
-> >> Sent: Wednesday, April 22, 2009 1:53 PM
-> >> To: Shah, Hardik
-> >> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Jadav, Brijesh
-> R;
-> >> Hiremath, Vaibhav
-> >> Subject: Re: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
-> >>
-> >> Hi,
-> >>
-> >> On Wed, 2009-04-22 at 08:25 +0200, ext Hardik Shah wrote:
-> >> > This is the version 5th of the Driver.
-> >> >
-> >> > Following are the features supported.
-> >> > 1. Provides V4L2 user interface for the video pipelines of DSS
-> >> > 2. Basic streaming working on LCD and TV.
-> >> > 3. Support for various pixel formats like YUV, UYVY, RGB32, RGB24, RGB565
-> >> > 4. Supports Alpha blending.
-> >> > 5. Supports Color keying both source and destination.
-> >> > 6. Supports rotation with RGB565 and RGB32 pixels formats.
-> >> > 7. Supports cropping.
-> >> > 8. Supports Background color setting.
-> >> > 9. Works on latest DSS2 library from Tomi
-> >> > http://www.bat.org/~tomba/git/linux-omap-dss.git/
-> >> > 10. 1/4x scaling added.  Detail testing left
-> >> >
-> >> > TODOS
-> >> > 1. Ioctls needs to be added for color space conversion matrix
-> >> > coefficient programming.
-> >> > 2. To be tested on DVI resolutions.
-> >> >
-> >> > Comments fixed from community.
-> >> > 1. V4L2 Driver for OMAP3/3 DSS.
-> >> > 2.  Conversion of the custom ioctls to standard V4L2 ioctls like alpha
-> >> blending,
-> >> > color keying, rotation and back ground color setting
-> >> > 3.  Re-organised the code as per community comments.
-> >> > 4.  Added proper copyright year.
-> >> > 5.  Added module name in printk
-> >> > 6.  Kconfig option copy/paste error
-> >> > 7.  Module param desc addded.
-> >> > 8.  Query control implemented using standard query_fill
-> >> > 9.  Re-arranged if-else constructs.
-> >> > 10. Changed to use mutex instead of semaphore.
-> >> > 11. Removed dual usage of rotation angles.
-> >> > 12. Implemented function to convert the V4L2 angle to DSS angle.
-> >> > 13. Y-position was set half by video driver for TV output
-> >> > Now its done by DSS so removed that.
-> >> > 14. Minor cleanup
-> >> > 15. Added support to pass the page offset to application.
-> >> > 14. Minor cleanup
-> >> > 15. Added support to pass the page offset to application.
-> >> > 16. Renamed V4L2_CID_ROTATION to V4L2_CID_ROTATE
-> >> > 17. Major comment from Hans fixed.
-> >> > 18. Copy right year changed.
-> >> > 19. Added module name for each error/warning print message.
-> >> >
-> >> > Changes from Previous Version.
-> >> > 1. Supported YUV rotation.
-> >> > 2. Supported Flipping.
-> >> > 3. Rebased line with Tomi's latest DSS2 master branch with commit  id
-> >> > f575a02edf2218a18d6f2ced308b4f3e26b44ce2.
-> >> > 4. Kconfig option removed to select between the TV and LCD.
-> >> > Now supported dynamically by DSS2 library.
-> >> > 5. Kconfig option for the NTSC_M and PAL_BDGHI mode but not
-> >> > supported by DSS2.  so it will not work now.
-> >>
-> >> There is basic support for this. See the DSS doc:
-> >>
-> >> /sys/devices/platform/omapdss/display? directory:
-> >> ...
-> >> timings         Display timings
-> (pixclock,xres/hfp/hbp/hsw,yres/vfp/vbp/vsw)
-> >>                 When writing, two special timings are accepted for tv-out:
-> >>                 "pal" and "ntsc"
-> > [Shah, Hardik] I was not aware of it will remove the compile time option and
-> for now let the sysfs entry change the standard.  In future I will try to do
-> it with the S_STD and G_STD ioctls of the V4L2 framework.
-> >>
-> >>  Tomi
-> >>
-> >>
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
 
+[mpeg2video @ 0x8963220]Warning MVs not available
+
+
+
+[mpeg2video @ 0x8963220]concealing 495 DC, 495 AC, 495 MV errors
+
+
+
+[mpeg2video @ 0x8963220]concealing 0 DC, 0 AC, 0 MV errors 16.3% 0 0
+
+
+
+[mpeg2video @ 0x8963220]Warning MVs not available7  3%  0% 18.0% 0 0
+
+
+
+[mpeg2video @ 0x8963220]concealing 0 DC, 0 AC, 0 MV errors
+
+
+
+[mpeg2video @ 0x8963220]concealing 0 DC, 0 AC, 0 MV errors 18.6% 0 0
+
+
+
+[mpeg2video @ 0x8963220]concealing 0 DC, 0 AC, 0 MV errors 18.9% 0 0
+
+
+
+[mpeg2video @ 0x8963220]concealing 0 DC, 0 AC, 0 MV errors 20.6% 0 0
+
+
+
+[mpeg2video @ 0x8963220]ac-tex damaged at 29 8/745  3%  0% 22.6% 0 0
+
+
+
+[mpeg2video @ 0x8963220]concealing 0 DC, 0 AC, 0 MV errors
+
+
+
+[mpeg2video @ 0x8963220]00 motion_type at 26 34/1097  3%  0% 32.9% 6 0
+
+
+
+[mpeg2video @ 0x8963220]concealing 0 DC, 0 AC, 0 MV errors
+
+
+
+[mpeg2video @ 0x8963220]skipped MB in I frame at 17 1 3%  0% 36.7% 22 0
+
+
+
+[mpeg2video @ 0x8963220]ac-tex damaged at 0 24
+
+The practical result of this is a picture corrupted like every 20sec and
+terrible mpeg-esque sound "blips" (e.g. short loud bursts of white
+noise). Another fine point with this card is MythTV. I've tried packaged
+version, compiled 0.21-fixes and even my personal fork of MythTV SVN
+version. Couldn't recommend. It kinda works, but "kinda" is not what I
+expect from my sealed HTPC!
+
+I've been working on a solution for almost 2 weeks now, to no avail -
+and I know what I'm doing; I'm a programmer who's been using Linux
+exclusively since '98. I've written tons of code, incl. open source and
+a mainstream Linux kernel driver. I mean, how is a /regular/ BFU
+supposed to cope with this disaster?
+
+In short, Linux support for this card sucks. It _almost_ works, but not
+really. SkyStar HD2 is not stable, not dependable, not any damn good. I
+don't know and I don't care whether it's the driver or HW. I don't have
+access to a Windows PC to test it. Luckily, I've managed to return the
+cards and GOOD RIDDANCE too!
+
+Regards,
+
+-- 
+Dave
