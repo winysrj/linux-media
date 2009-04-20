@@ -1,43 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.29]:16934 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751847AbZD3C6Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Apr 2009 22:58:24 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so920156ywb.1
-        for <linux-media@vger.kernel.org>; Wed, 29 Apr 2009 19:58:23 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20090429142952.65d1c923@hyperion.delvare>
-References: <20090417222927.7a966350@hyperion.delvare>
-	 <20090429142952.65d1c923@hyperion.delvare>
-Date: Wed, 29 Apr 2009 22:58:23 -0400
-Message-ID: <412bdbff0904291958k78e965ccs58e720c5a080a6c3@mail.gmail.com>
-Subject: Re: [PATCH 0/6] ir-kbd-i2c conversion to the new i2c binding model
-	(v2)
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from main.gmane.org ([80.91.229.2]:44766 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755398AbZDTPZJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Apr 2009 11:25:09 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1LvvMk-0001bI-DS
+	for linux-media@vger.kernel.org; Mon, 20 Apr 2009 15:25:02 +0000
+Received: from fiber-64.201.88.12.lhtot.com ([64.201.88.12])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 20 Apr 2009 15:25:02 +0000
+Received: from pghben by fiber-64.201.88.12.lhtot.com with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 20 Apr 2009 15:25:02 +0000
+To: linux-media@vger.kernel.org
+From: Ben Heggy <pghben@yahoo.com>
+Subject: Re: Hauppauge HVR-1500 (aka HP RM436AA#ABA)
+Date: Mon, 20 Apr 2009 15:17:50 +0000 (UTC)
+Message-ID: <loom.20090420T150829-849@post.gmane.org>
+References: <23cedc300904170207w74f50fc1v3858b663de61094c@mail.gmail.com> <BAY102-W34E8EA79DEE83E18177655CF7B0@phx.gbl> <49E9C4EA.30706@linuxtv.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 29, 2009 at 8:29 AM, Jean Delvare <khali@linux-fr.org> wrote:
-> On Fri, 17 Apr 2009 22:29:27 +0200, Jean Delvare wrote:
->> Here comes an update of my conversion of ir-kbd-i2c to the new i2c
->> binding model. I've split it into 6 pieces for easier review. (...)
->
-> Did anyone test these patches, please?
+I'm having the same issues (recognized - but won't turn on) with the same card
+and would be delighted to join the open discussion and to try to help to provide
+any information necessary to debug this issue. 
 
-Hello Jean,
+To this point, I have enabled debug options on what I think are the related
+modules and have seen nothing that appears to be an error, but am also noticing
+that there should be some messages about loading firmware for the various chips
+and they don't appear (I did put the firmware files in /lib/firmware but I
+cannot find references to their correct md5sums to verify they are correct)
 
-I'm still going to get these tested this week for em28xx.  I got
-sidetracked yesterday on a race condition I discovered in the dvb
-core.
+I'm a newbie to linux, but was once (20 years ago) a system manager on a
+vax/unix system, so I can find my way around a bit better than average.
 
-Devin
+Tell me what info you want to see or what actions to try and I will gladly act
+immediately.
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Ben (pghben@yahoo.com)
+
