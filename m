@@ -1,106 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2755 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758785AbZDGSTx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2009 14:19:53 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id n37IJpCt095907
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 7 Apr 2009 20:19:51 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 7 Apr 2009 20:19:51 +0200 (CEST)
-Message-Id: <200904071819.n37IJpCt095907@smtp-vbr13.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: WARNINGS
+Received: from znsun1.ifh.de ([141.34.1.16]:41912 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756201AbZDTO6s (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Apr 2009 10:58:48 -0400
+Date: Mon, 20 Apr 2009 16:58:36 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Armin Schenker <sar@snafu.de>
+cc: linux-media@vger.kernel.org
+Subject: Re: Add Elgato EyeTV DTT deluxe to dibcom driver
+In-Reply-To: <E63C5667-D18B-4D13-9D88-15293E1B12B2@snafu.de>
+Message-ID: <alpine.LRH.1.10.0904201658090.11443@pub4.ifh.de>
+References: <E63C5667-D18B-4D13-9D88-15293E1B12B2@snafu.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi Armin,
 
-Results of the daily build of v4l-dvb:
+On Sun, 19 Apr 2009, Armin Schenker wrote:
 
-date:        Tue Apr  7 19:00:05 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11440:1e670024659d
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+> This patch introduces support for DVB-T for the following dibcom based card:
+> Elgato EyeTV DTT deluxe (USB-ID: 0fd9:0020)
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-m32r: OK
-linux-2.6.22.19-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-mips: OK
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29-x86_64: WARNINGS
-fw/apps: WARNINGS
-sparse (linux-2.6.29): OK
-linux-2.6.16.61-i686: WARNINGS
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+Thanks for the patch - I just applied it.
 
-Detailed results are available here:
+Patrick.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
