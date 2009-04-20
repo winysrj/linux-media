@@ -1,56 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.30]:50856 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751636AbZDNQV0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Apr 2009 12:21:26 -0400
-Received: by yx-out-2324.google.com with SMTP id 31so2731567yxl.1
-        for <linux-media@vger.kernel.org>; Tue, 14 Apr 2009 09:21:24 -0700 (PDT)
+Received: from mx2.redhat.com ([66.187.237.31]:44544 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751531AbZDTHjm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Apr 2009 03:39:42 -0400
+Message-ID: <49EC2793.6020205@redhat.com>
+Date: Mon, 20 Apr 2009 09:43:15 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <49E4B5D9.20101@orthfamily.net>
-References: <49E40322.5040600@orthfamily.net>
-	 <412bdbff0904140552m52c0106q960f7c0ee40757c@mail.gmail.com>
-	 <49E492D0.3070101@orthfamily.net>
-	 <412bdbff0904140854x69a700a5pcbff84853ef9f8dd@mail.gmail.com>
-	 <49E4B5D9.20101@orthfamily.net>
-Date: Tue, 14 Apr 2009 12:21:24 -0400
-Message-ID: <412bdbff0904140921q412bbb04o7126011539680518@mail.gmail.com>
-Subject: Re: [linux-dvb] Pinnacle HD Stick (801e SE) and i2c issues
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: John Orth <john@orthfamily.net>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+CC: Adam Baker <linux@baker-net.org.uk>,
+	Hans de Goede <j.w.r.degoede@hhs.nl>,
+	Linux and Kernel Video <video4linux-list@redhat.com>,
+	SPCA50x Linux Device Driver Development
+	<spca50x-devs@lists.sourceforge.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: libv4l release: 0.5.97: the whitebalance release!
+References: <49E5D4DE.6090108@hhs.nl>	 <200904152326.59464.linux@baker-net.org.uk> <49E66787.2080301@hhs.nl>	 <200904162146.59742.linux@baker-net.org.uk>	 <49E843CB.6050306@redhat.com> <49E8D808.9070804@gmail.com>	 <49E9B989.70602@redhat.com> <49E9E652.5070706@gmail.com>	 <49EAD6A5.1010507@redhat.com> <62e5edd40904191220r87d5979peae56148793aa70@mail.gmail.com> <49EB8055.4040407@redhat.com> <49EBFD5D.7020803@gmail.com>
+In-Reply-To: <49EBFD5D.7020803@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 14, 2009 at 12:12 PM, John Orth <john@orthfamily.net> wrote:
-> That was my initial thought as well, but I don't have a great understanding
-> of what exactly the i2c bus does and how it works with the other hardware.
->  Is it possible that some other piece of hardware (non-USB, and non-USB host
-> chipset) is impacting this?  The only reason I ask is that I have a PCI
-> wireless card that is using the kernel rtl8185 driver (which thus far could
-> best be described as "functional") and network traffic often gets dropped
-> for several seconds.  Is it worth unloading the rtl8185 module and seeing if
-> that makes a difference?
 
-It's possible.  Since the issue is highly reproducible, I would
-suggest you pull the card and see if it makes any difference.  Same
-goes for any other suspect hardware.
 
-To be fair though (and I hope nobody from Realtek is listening), the
-rtl8185 isn't the most reliable card around.  I have a couple I bought
-a couple of years ago, and they only stopped panic'ing the kernel in
-recent versions (at least for Ubuntu).
+On 04/20/2009 06:43 AM, Erik Andrén wrote:
+>
+> Hans de Goede wrote:
+>>
+>> On 04/19/2009 09:20 PM, Erik Andrén wrote:
+>>> 2009/4/19 Hans de Goede<hdegoede@redhat.com>:
+>>>> On 04/18/2009 04:40 PM, Erik Andrén wrote:
+>>>>> Hans de Goede wrote:
+>>>>>> On 04/17/2009 09:27 PM, Erik Andrén wrote:
+>>>>>>> Hans de Goede wrote:
+>>>>>>>> On 04/16/2009 10:46 PM, Adam Baker wrote:
+>>>>>>>>> On Thursday 16 Apr 2009, Hans de Goede wrote:
+>>>>>>>>>> On 04/16/2009 12:26 AM, Adam Baker wrote:
+>>>>>>>>>>> On Wednesday 15 Apr 2009, Hans de Goede wrote:
+>>>>>>>>>>>> Currently only whitebalancing is enabled and only on Pixarts
+>>>>>>>>>>>> (pac)
+>>>>>>>>>>>> webcams (which benefit tremendously from this). To test this
+>>>>>>>>>>>> with
+>>>>>>>>>>>> other
+>>>>>>>>>>>> webcams (after instaling this release) do:
+>>>>>>>>>>>>
+>>>>>>>>>>>> export LIBV4LCONTROL_CONTROLS=15
+>>>>>>>>>>>> LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so v4l2ucp&
+>>>>>>>>>>> Strangely while those instructions give me a whitebalance control
+>>>>>>>>>>> for the
+>>>>>>>>>>> sq905 based camera I can't get it to appear for a pac207 based
+>>>>>>>>>>> camera
+>>>>>>>>>>> regardless of whether LIBV4LCONTROL_CONTROLS is set.
+>>>>>>>>>> Thats weird, there is a small bug in the handling of pac207
+>>>>>>>>>> cams with usb id 093a:2476 causing libv4l to not automatically
+>>>>>>>>>> enable whitebalancing (and the control) for cams with that id,
+>>>>>>>>>> but if you have LIBV4LCONTROL_CONTROLS set (exported!) both
+>>>>>>>>>> when loading v4l2ucp (you must preload v4l2convert.so!) and
+>>>>>>>>>> when loading your viewer, then it should work.
+>>>>>>>>>>
+>>>>>>>>> I've tested it by plugging in the sq905 camera, verifying the
+>>>>>>>>> whitebablance
+>>>>>>>>> control is present and working, unplugging the sq905 and
+>>>>>>>>> plugging in
+>>>>>>>>> the
+>>>>>>>>> pac207 and using up arrow to restart v4l2ucp and svv so I think
+>>>>>>>>> I've
+>>>>>>>>> eliminated most finger trouble possibilities. The pac207 is id
+>>>>>>>>> 093a:2460 so
+>>>>>>>>> not the problem id. I'll have to investigate more thoroughly later.
+>>>>>>>>>
+>>>>>>>> Does the pac207 perhaps have a / in its "card" string (see v4l-info
+>>>>>>>> output) ?
+>>>>>>>> if so try out this patch:
+>>>>>>>> http://linuxtv.org/hg/~hgoede/libv4l/rev/1e08d865690a
+>>>>>>>>
+>>>>>>> I have the same issue as Adam when trying to test this with my
+>>>>>>> gspca_stv06xx based Quickcam Web camera i. e no whitebalancing
+>>>>>>> controls show up. I'm attaching a dump which logs all available
+>>>>>>> pixformats and v4l2ctrls showing that libv4l is properly loaded.
+>>>>>>> (And yes, LIBV4LCONTROL_CONTROLS is exported and set to 15).
+>>>>>>>
+>>>>>>> Best regards,
+>>>>>>> Erik
+>>>>>>>
+>>>>>> Ah, you are using v4l2-ctl, not v4l2ucp, and that uses
+>>>>>> V4L2_CTRL_FLAG_NEXT_CTRL
+>>>>>> control enumeration. My code doesn't handle V4L2_CTRL_FLAG_NEXT_CTRL
+>>>>>> (which is
+>>>>>> a bug). I'm not sure when I'll have time to fix this. Patches welcome,
+>>>>>> or in
+>>>>>> the mean time use v4l2ucp to play with the controls.
+>>>>>>
+>>>>> Actually, I've tried to use both without finding the controls.
+>>>>> I've only tried with v4l2ucp v. 1.2. Is 1.3 necessary?
+>>>>>
+>>>> Apparently there are different versions of v4l2ucp in different distro's
+>>>> and some do use the V4L2_CTRL_FLAG_NEXT_CTRL, just like v4l2-ctl. See
+>>>> Adam Baker's patch later in this thread. Which I will apply to my
+>>>> tree after I've reviewed it (when I find some time currently I've a
+>>>> lot of
+>>>> $work$ )
+>>>>
+>>> Applying Adam Bakers patch makes the control appear _but_ I can't seem
+>>> to make out any difference when any of the whitebalancing and
+>>> normalize options, regardless of how i tweak the max / min values.
+>>>
+>> Did you also do the
+>> export LIBV4LCONTROL_CONTROLS=15
+>>
+>> In the terminal from where you are starting the viewing application ?
+>>
+>
+> Yes.
+>
 
-> Also, would more output from dmesg (or any other command) be helpful?
+Hmm,
 
-Yeah, if you could pastebin the full dmesg output, I can see if there
-is anything else that jumps out at me.
+Then the camera you are using probably already has some whitebalancing
+itself using the same algorithm. What happens if you enable normalize
+and then lower the high bound significantly? If that doesn't do anything
+either then somehow things are not working.
 
-Devin
+Regards,
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Hans
