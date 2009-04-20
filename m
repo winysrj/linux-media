@@ -1,146 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39372 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752043AbZDTKMQ (ORCPT
+Received: from mail-in-03.arcor-online.net ([151.189.21.43]:54291 "EHLO
+	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754220AbZDTBjl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 06:12:16 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Dongsoo Kim <dongsoo.kim@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"R, Sivaraj" <sivaraj@ti.com>, "Hadli, Manjunath" <mrh@ti.com>,
-	"Shah, Hardik" <hardik.shah@ti.com>,
-	"Kumar, Purushotam" <purushotam@ti.com>
-Date: Mon, 20 Apr 2009 15:41:59 +0530
-Subject: RE: [RFC] Stand-alone Resizer/Previewer Driver support under V4L2
- framework
-Message-ID: <19F8576C6E063C45BE387C64729E739404280C5B46@dbde02.ent.ti.com>
-References: <19F8576C6E063C45BE387C64729E73940427E3F70B@dbde02.ent.ti.com>
- <200903301902.21783.hverkuil@xs4all.nl>
- <19F8576C6E063C45BE387C64729E73940427E3F8F1@dbde02.ent.ti.com>
- <200904181753.47515.hverkuil@xs4all.nl>
- <793DE56C-45AE-48ED-B26D-A1A4BECC5F87@gmail.com>
-In-Reply-To: <793DE56C-45AE-48ED-B26D-A1A4BECC5F87@gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+	Sun, 19 Apr 2009 21:39:41 -0400
+Subject: Re: [linux-dvb] [PATCH] firmware: convert av7110 driver to
+	request_firmware()
+From: hermann pitton <hermann-pitton@arcor.de>
+To: linux-media@vger.kernel.org
+Cc: David Woodhouse <dwmw2@infradead.org>,
+	linux-dvb <linux-dvb@linuxtv.org>, VDR User <user.vdr@gmail.com>
+In-Reply-To: <28a25ce0904191441h3adc43b3y8265a639e8c025cc@mail.gmail.com>
+References: <1214127575.4974.7.camel@jaswinder.satnam>
+	 <a3ef07920904191055j4205ad8du3173a8a2328a214e@mail.gmail.com>
+	 <1240167036.3589.310.camel@macbook.infradead.org>
+	 <a3ef07920904191214p7be3a0eem7f7abd91ffb374d2@mail.gmail.com>
+	 <1240170449.3589.334.camel@macbook.infradead.org>
+	 <a3ef07920904191340x6a4e9c5o5c51fe0169cbddab@mail.gmail.com>
+	 <1240174908.3589.387.camel@macbook.infradead.org>
+	 <28a25ce0904191441h3adc43b3y8265a639e8c025cc@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Date: Mon, 20 Apr 2009 03:38:32 +0200
+Message-Id: <1240191512.4168.15.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQoNClRoYW5rcywNClZhaWJoYXYgSGlyZW1hdGgNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2Ut
-LS0tLQ0KPiBGcm9tOiBsaW51eC1tZWRpYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
-aW51eC1tZWRpYS0NCj4gb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgRG9uZ3Nv
-byBLaW0NCj4gU2VudDogU3VuZGF5LCBBcHJpbCAxOSwgMjAwOSAxMjowNiBQTQ0KPiBUbzogSGFu
-cyBWZXJrdWlsDQo+IENjOiBIaXJlbWF0aCwgVmFpYmhhdjsgbGludXgtbWVkaWFAdmdlci5rZXJu
-ZWwub3JnOyBBZ3VpcnJlDQo+IFJvZHJpZ3VleiwgU2VyZ2lvIEFsYmVydG87IFRvaXZvbmVuIFR1
-dWtrYS5PIChOb2tpYS1EL091bHUpOyBsaW51eC0NCj4gb21hcEB2Z2VyLmtlcm5lbC5vcmc7IE5h
-Z2FsbGEsIEhhcmk7IFNha2FyaSBBaWx1czsgSmFkYXYsIEJyaWplc2ggUjsNCj4gUiwgU2l2YXJh
-ajsgSGFkbGksIE1hbmp1bmF0aDsgU2hhaCwgSGFyZGlrOyBLdW1hciwgUHVydXNob3RhbQ0KPiBT
-dWJqZWN0OiBSZTogW1JGQ10gU3RhbmQtYWxvbmUgUmVzaXplci9QcmV2aWV3ZXIgRHJpdmVyIHN1
-cHBvcnQNCj4gdW5kZXIgVjRMMiBmcmFtZXdvcmsNCj4gDQo+IEhlbGxvIEhhbnMgYW5kIEhpcmVt
-YXRoLA0KPiANCj4gT25lIG9mIG15IHJlY2VudCBqb2IgaXMgbWFraW5nIFMzQzY0WFggY2FtZXJh
-IGludGVyZmFjZSBkcml2ZXIgKGV2ZW4NCj4gdGhvdWdoIG90aGVyIGpvYnMgb2YgbWluZSBhcmUg
-bm90IGZpbmlzaGVkIHlldC4uLjstKCkNCj4gQW5kLCB3aGF0IGEgaW5jaWRlbnQhIFMzQzY0WFgg
-aGFzIGFsc28gc2ltaWxhciBIL1cgYmxvY2sgaW4gY2FtZXJhDQo+IGludGVyZmFjZS4NCj4gUmVz
-aXplciBpbiBTM0MgY2FtZXJhIGludGVyZmFjZSBjYW4gYmUgdXNlZCBpbiBzeXN0ZW0gd2lkZSBs
-aWtlIHRoZQ0KPiBvbmUgaW4gT21hcDMuDQo+IA0KW0hpcmVtYXRoLCBWYWliaGF2XSBDYW4geW91
-IHNoYXJlIHRoZSBzcGVjIGZvciB0aGUgc2FtZTsgSSB3YW50ZWQgdG8gdmVyaWZ5IHRoZSBjb25m
-aWd1cmF0aW9uIHBhcnQgb2YgaXQ/IFdoYXQgYWxsIGNvbmZpZ3VyYXRpb24gaXMgZXhwb3J0ZWQg
-dG8gdGhlIHVzZXI/DQoNCj4gQnV0IGluIGNhc2Ugb2YgbWluZSwgSSBkZWNpZGVkIHRvIG1ha2Ug
-aXQgYXMgYSBUWVBFX1ZJREVPX0NBUFRVUkUNCj4gYW5kDQo+IFRZUEVfVklERU9fT1VUUFVULg0K
-PiBJIHRob3VnaHQgdGhhdCBpcyB3YXMgZW5vdWdoLiBBY3R1YWxseSBJIHRvb2sgb21hcCB2aWRl
-byBvdXQgKHZvdXQ/KQ0KPiBmb3IgcmVmZXJlbmNlIDotKQ0KDQpbSGlyZW1hdGgsIFZhaWJoYXZd
-IEkgaGF2ZSBhbHNvIGltcGxlbWVudGVkIHRoZSBkcml2ZXIgaXMgdGhlIHNhbWUgd2F5IGFuZCBh
-bHNvIHdvcmtpbmcgd2l0aCBIYW5zIHRvIGdldCBpdCByZXZpZXdlZC4gQnV0IHRoZXJlIGFyZSBz
-b21lIGNvbmZpZ3VyYXRpb24gbGlrZSBjb2VmZi4sIGx1bWEgZW5oYW5jZW1lbnQsIGV0Yy4uLiBu
-ZWVkIHRvIGV4cG9ydCB0byB0aGUgdXNlciwgd2hlcmUgd2UgbmVlZCB0byBhZGQgbWVjaGFuaXNt
-IGluIFY0TDIgZnJhbWV3b3JrLg0KDQpTaW5jZSB3ZSBoYXZlIG9uZSBtb3JlIGRldmljZSB3aGVy
-ZSB3ZSBhcmUgZGVtYW5kaW5nIGZvciBNLXRvLU0gb3BlcmF0aW9uLCBJIHRoaW5rIGl0IGlzIGlt
-cG9ydGFudCB0byBnbyB0aHJvdWdoIGl0LiBDYW4geW91IHNoYXJlIHNvbWUgZG9jdW1lbnRzIG9m
-IHlvdXIgSVAgZm9yIGJldHRlciB1bmRlcnN0YW5kaW5nLg0KDQoNCj4gQ2hlZXJzLA0KPiANCj4g
-TmF0ZQ0KPiANCj4gDQo+IDIwMDkuIDA0LiAxOSwg7Jik7KCEIDEyOjUzLCBIYW5zIFZlcmt1aWwg
-7J6R7ISxOg0KPiANCj4gPiBPbiBUdWVzZGF5IDMxIE1hcmNoIDIwMDkgMTA6NTM6MDIgSGlyZW1h
-dGgsIFZhaWJoYXYgd3JvdGU6DQo+ID4+IFRoYW5rcywNCj4gPj4gVmFpYmhhdiBIaXJlbWF0aA0K
-PiA+Pg0KPiA+Pj4+IEFQUFJPQUNIIDMgLQ0KPiA+Pj4+IC0tLS0tLS0tLS0NCj4gPj4+Pg0KPiA+
-Pj4+IC4uLi4uDQo+ID4+Pj4NCj4gPj4+PiAoQW55IG90aGVyIGFwcHJvYWNoIHdoaWNoIEkgY291
-bGQgbm90IHRoaW5rIG9mIHdvdWxkIGJlDQo+ID4+Pg0KPiA+Pj4gYXBwcmVjaWF0ZWQpDQo+ID4+
-Pg0KPiA+Pj4+IEkgd291bGQgcHJlZmVyIHNlY29uZCBhcHByb2FjaCwgc2luY2UgdGhpcyB3aWxs
-IHByb3ZpZGUNCj4gc3RhbmRhcmQNCj4gPj4+PiBpbnRlcmZhY2UgdG8gYXBwbGljYXRpb25zIGlu
-ZGVwZW5kZW50IG9uIHVuZGVybmVhdGggaGFyZHdhcmUuDQo+ID4+Pj4NCj4gPj4+PiBUaGVyZSBt
-YXkgYmUgbWFueSBudW1iZXIgb2Ygc3VjaCBjb25maWd1cmF0aW9uIHBhcmFtZXRlcnMNCj4gcmVx
-dWlyZWQNCj4gPj4+DQo+ID4+PiBmb3INCj4gPj4+DQo+ID4+Pj4gZGlmZmVyZW50IHN1Y2ggZGV2
-aWNlcywgd2UgbmVlZCB0byB3b3JrIG9uIHRoaXMgYW5kIGNvbWUgdXANCj4gd2l0aA0KPiA+Pj4N
-Cj4gPj4+IHNvbWUNCj4gPj4+DQo+ID4+Pj4gc3RhbmRhcmQgY2FwYWJpbGl0eSBmaWVsZHMgY292
-ZXJpbmcgbW9zdCBvZiBhdmFpbGFibGUgZGV2aWNlcy4NCj4gPj4+Pg0KPiA+Pj4+IERvZXMgYW55
-Ym9keSBoYXZlIHNvbWUgb3RoZXIgb3BpbmlvbnMgb24gdGhpcz8NCj4gPj4+PiBBbnkgc3VnZ2Vz
-dGlvbnMgd2lsbCBiZSBoZWxwZnVsIGhlcmUsDQo+ID4+Pg0KPiA+Pj4gRllJOiBJIGhhdmUgdmVy
-eSBsaXR0bGUgdGltZSB0byBsb29rIGF0IHRoaXMgZm9yIHRoZSBuZXh0IDItMw0KPiB3ZWVrcy4N
-Cj4gPj4+IEFzIHlvdQ0KPiA+Pj4ga25vdyBJJ20gd29ya2luZyBvbiB0aGUgbGFzdCBwaWVjZXMg
-b2YgdGhlIHY0bDJfc3ViZGV2DQo+IGNvbnZlcnNpb24NCj4gPj4+IGZvciAyLjYuMzANCj4gPj4+
-IHRoYXQgc2hvdWxkIGJlIGZpbmlzaGVkIHRoaXMgd2Vlay4gQWZ0ZXIgdGhhdCBJJ20gYXR0ZW5k
-aW5nIHRoZQ0KPiA+Pj4gRW1iZWRkZWQNCj4gPj4+IExpbnV4IENvbmZlcmVuY2UgaW4gU2FuIEZy
-YW5jaXNjby4NCj4gPj4+DQo+ID4+PiBCdXQgSSBhbHdheXMgdGhvdWdodCB0aGF0IHNvbWV0aGlu
-ZyBsaWtlIHRoaXMgd291bGQgYmUganVzdCBhDQo+ID4+PiByZWd1bGFyIHZpZGVvDQo+ID4+PiBk
-ZXZpY2UgdGhhdCBjYW4gZG8gYm90aCAnb3V0cHV0JyBhbmQgJ2NhcHR1cmUnLiBGb3IgYSByZXNp
-emVyIEkNCj4gPj4+IHdvdWxkDQo+ID4+PiBleHBlY3QgdGhhdCB5b3Ugc2V0IHRoZSAnb3V0cHV0
-JyBzaXplICh0aGUgc2l6ZSBvZiB5b3VyIHNvdXJjZQ0KPiA+Pj4gaW1hZ2UpIGFuZA0KPiA+Pj4g
-dGhlICdjYXB0dXJlJyBzaXplICh0aGUgc2l6ZSBvZiB0aGUgcmVzaXplZCBpbWFnZSksIHRoZW4g
-anVzdA0KPiBzZW5kDQo+ID4+PiB0aGUNCj4gPj4+IGZyYW1lcyB0byB0aGUgZGV2aWNlICg9PSBy
-ZXNpemVyKSBhbmQgZ2V0IHRoZW0gYmFjayBvbiB0aGUNCj4gY2FwdHVyZQ0KPiA+Pj4gc2lkZS4N
-Cj4gPj4NCj4gPj4gW0hpcmVtYXRoLCBWYWliaGF2XSBZZXMsIGl0IGlzIHBvc3NpYmxlIHRvIGRv
-IHRoYXQuDQo+ID4+DQo+ID4+IEhhbnMsDQo+ID4+DQo+ID4+IEkgd2VudCB0aHJvdWdoIHRoZSBs
-aW5rIHJlZmVycmVkIGJ5IFNlcmdpbyBhbmQgSSB0aGluayB3ZSBzaG91bGQNCj4gPj4gaW5oZXJp
-dA0KPiA+PiBzb21lIGltcGxlbWVudGF0aW9uIGZvciBDT0RFQ3MgaGVyZSBmb3Igc3VjaCBkZXZp
-Y2VzLg0KPiA+Pg0KPiA+PiBWNEwyX0JVRl9UWVBFX0NPREVDSU4gLSBUbyBhY2Nlc3MgdGhlIGlu
-cHV0IGZvcm1hdC4NCj4gPj4gVjRMMl9CVUZfVFlQRV9DT0RFQ09VVCAtIFRvIGFjY2VzcyB0aGUg
-b3V0cHV0IGZvcm1hdC4NCj4gPj4NCj4gPj4gSXQgbWFrZXMgc2Vuc2UsIHNpbmNlIHN1Y2ggbWVt
-b3J5LXRvLW1lbW9yeSBkZXZpY2VzIHdpbGwgbW9zdGx5DQo+IGJlaW5nDQo+ID4+IHVzZWQgZnJv
-bSBjb2RlY3MgY29udGV4dC4gQW5kIHRoaXMgd291bGQgYmUgbW9yZSBjbGVhciBmcm9tIHVzZXIN
-Cj4gPj4gYXBwbGljYXRpb24uDQo+ID4NCj4gPiBUbyBiZSBob25lc3QsIEkgZG9uJ3Qgc2VlIHRo
-ZSBuZWVkIGZvciB0aGlzLiBJIHRoaW5rDQo+ID4gVFlQRV9WSURFT19DQVBUVVJFIGFuZA0KPiA+
-IFRZUEVfVklERU9fT1VUUFVUIGFyZSBwZXJmZWN0bHkgZmluZS4NCj4gPg0KPiA+PiBBbmQgYXMg
-YWNrbm93bGVkZ2VkIGJ5IHlvdSwgd2UgY2FuIHVzZSBWSURJT0NfU19GTVQgZm9yIHNldHRpbmcN
-Cj4gPj4gcGFyYW1ldGVycy4NCj4gPj4NCj4gPj4gT25lIHRoaW5nIEkgYW0gbm90IGFibGUgdG8g
-Y29udmluY2UgbXlzZWxmIGlzIHRoYXQsIHVzaW5nICJwcml2Ig0KPiA+PiBmaWVsZA0KPiA+PiBm
-b3IgY3VzdG9tIGNvbmZpZ3VyYXRpb24uDQo+ID4NCj4gPiBJIGFncmVlLiBFc3BlY2lhbGx5IHNp
-bmNlIHlvdSBjYW5ub3QgdXNlIGl0IGFzIGEgcG9pbnRlciB0bw0KPiBhZGRpdGlvbg0KPiA+IGlu
-Zm9ybWF0aW9uLg0KPiA+DQo+ID4+IEkgd291bGQgcHJlZmVyIGFuZCByZWNvbW1lbmQgY2FwYWJp
-bGl0eSBiYXNlZA0KPiA+PiBpbnRlcmZhY2UsIHdoZXJlIGFwcGxpY2F0aW9uIHdpbGwgcXVlcnkg
-dGhlIGNhcGFiaWxpdHkgb2YgdGhlDQo+ID4+IGRldmljZSBmb3INCj4gPj4gbHVtYSBlbmhhbmNl
-bWVudCwgZmlsdGVyIGNvZWZmaWNpZW50cyAobnVtYmVyIG9mIGNvZWZmIGFuZA0KPiBkZXB0aCks
-DQo+ID4+IGludGVycG9sYXRpb24gdHlwZSwgZXRjLi4uDQo+ID4+DQo+ID4+IFRoaXMgd2F5IHdl
-IGNhbiBtYWtlIHN1cmUgdGhhdCwgYW55IHN1Y2ggZnV0dXJlIGRldmljZXMgY2FuIGJlDQo+ID4+
-IGFkYXB0ZWQgYnkNCj4gPj4gdGhpcyBmcmFtZXdvcmsuDQo+ID4NCj4gPiBUaGUgYmlnIHF1ZXN0
-aW9uIGlzIGhvdyBtYW55IG9mIHRoZXNlIGNhcGFiaWxpdGllcyBhcmUgJ2dlbmVyaWMnDQo+IGFu
-ZA0KPiA+IGhvdw0KPiA+IG1hbnkgYXJlIHZlcnkgbXVjaCBoYXJkd2FyZSBzcGVjaWZpYy4gSSBh
-bSBsZWFuaW5nIHRvd2FyZHMgdXNpbmcNCj4gdGhlDQo+ID4gZXh0ZW5kZWQgY29udHJvbCBBUEkg
-Zm9yIHRoaXMuIEl0J3MgYSBiaXQgYXdrd2FyZCB0byBpbXBsZW1lbnQgaW4NCj4gPiBkcml2ZXJz
-DQo+ID4gYXQgdGhlIG1vbWVudCwgYnV0IHRoYXQgc2hvdWxkIGltcHJvdmUgaW4gdGhlIGZ1dHVy
-ZSB3aGVuIGEgbG90IG9mDQo+IHRoZQ0KPiA+IGNvbnRyb2wgaGFuZGxpbmcgY29kZSB3aWxsIG1v
-dmUgaW50byB0aGUgbmV3IGNvcmUgZnJhbWV3b3JrLg0KPiA+DQo+ID4gSSByZWFsbHkgbmVlZCB0
-byBrbm93IG1vcmUgYWJvdXQgdGhlIHNvcnQgb2YgZmVhdHVyZXMgdGhhdCBvbWFwLw0KPiA+IGRh
-dmluY2kNCj4gPiBvZmZlciAoYW5kIHByZWZlcmFibHkgYWxzbyBmb3Igc2ltaWxhciBkZXZpY2Vz
-IGJ5IG90aGVyDQo+ID4gbWFudWZhY3R1cmVycykuDQo+ID4NCj4gPj4NCj4gPj4NCj4gPj4gSGFu
-cywNCj4gPj4gSGF2ZSB5b3UgZ2V0IGEgY2hhbmNlIHRvIGxvb2sgYXQgVmlkZW8tQnVmIGxheWVy
-IGlzc3VlcyBJDQo+IG1lbnRpb25lZA0KPiA+PiBpbg0KPiA+PiBvcmlnaW5hbCBkcmFmdD8NCj4g
-Pg0KPiA+IEkndmUgYXNrZWQgTWFnbnVzIERhbW0gdG8gdGFrZSBhIGxvb2sgYXQgdGhpcy4gSSBr
-bm93IGhlIGRpZCBzb21lDQo+ID4gd29yayBpbg0KPiA+IHRoaXMgYXJlYSBhbmQgaGUgbWF5IGhh
-dmUgZml4ZWQgc29tZSBvZiB0aGVzZSBpc3N1ZXMgYWxyZWFkeS4gVmVyeQ0KPiA+IHVzZWZ1bCwN
-Cj4gPiB0aGF0IEVtYmVkZGVkIExpbnV4IGNvbmZlcmVuY2UuLi4NCj4gPg0KPiA+IFJlZ2FyZHMs
-DQo+ID4NCj4gPiAJSGFucw0KPiA+DQo+ID4gLS0NCj4gPiBIYW5zIFZlcmt1aWwgLSB2aWRlbzRs
-aW51eCBkZXZlbG9wZXIgLSBzcG9uc29yZWQgYnkgVEFOREJFUkcNCj4gDQo+ID0NCj4gRG9uZ1Nv
-bywgTmF0aGFuaWVsIEtpbQ0KPiBFbmdpbmVlcg0KPiBNb2JpbGUgUy9XIFBsYXRmb3JtIExhYi4N
-Cj4gRGlnaXRhbCBNZWRpYSAmIENvbW11bmljYXRpb25zIFImRCBDZW50cmUNCj4gU2Ftc3VuZyBF
-bGVjdHJvbmljcyBDTy4sIExURC4NCj4gZS1tYWlsIDogZG9uZ3Nvby5raW1AZ21haWwuY29tDQo+
-ICAgICAgICAgICAgZG9uZ3NvbzQ1LmtpbUBzYW1zdW5nLmNvbQ0KPiANCj4gDQo+IA0KPiAtLQ0K
-PiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3Jp
-YmUgbGludXgtDQo+IG1lZGlhIiBpbg0KPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jk
-b21vQHZnZXIua2VybmVsLm9yZw0KPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdl
-ci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCg0K
+Hi,
+
+Am Sonntag, den 19.04.2009, 23:41 +0200 schrieb Román: 
+> 2009/4/19 David Woodhouse <dwmw2@infradead.org>:
+> > On Sun, 2009-04-19 at 13:40 -0700, VDR User wrote:
+> >>
+> >> To be absolutely clear; users compiling dvb drivers outside of the
+> >> kernel should copy v4l-dvb/linux/firmware/av7110/bootcode.bin.ihex to
+> >> /lib/firmware/av7110/bootcode.bin correct?
+> >
+> > Run 'objcopy -Iihex -Obinary bootcode.bin.ihex bootcode.bin' first, then
+> > copy the resulting bootcode.bin file to /lib/firmware/av7110/
+> >
+> 
+> That doesn't seem very *obvious* to me, actually.
+> After ten year of using gnu/linux, I don't consider myself a newbie,
+> but I didn't know what was the purpose of that command (if I ever knew
+> it existed). Maybe it's just I never had the need for such a tool.
+> 
+> > We didn't want to put raw binary files into the kernel source tree so we
+> > converted them to a simple hex form instead.
+> >
+> 
+> IMHO that's the right direction.
+> 
+> > As I said, the makefiles in the kernel tree get this right, and convert
+> > them to binary for you and automatically install them. It shouldn't be
+> > hard to fix the v4l tree to do it too, but as I also said, I'm not
+> > particularly interested in doing that myself.
+> >
+> > --
+> > dwmw2
+> >
+> 
+> Well, VDR *just wanted it fixed*: that's what he asked for in its
+> first message on this thread.
+> 
+> At least, David, you gave some useful information; but I found your
+> attitude -and please note I don't want to offend you personally- more
+> or less annoying. I don't understand why you said so lightly he was
+> trolling, specially when he is a somewhat active participant on this
+> list, I know you didn't either, but if I had to say someone was
+> trolling in here, you'll be my first candidate. Derek simply pointed
+> out a problem on the v4l-dvb tree. I think the most of us don't have
+> much time to spend on this kind of volunteer projects, so we should
+> avoid wasting it on sterile arguments.
+> 
+> Once again, excuse me if I did offend you. That was not my intention.
+> 
+> Regards,
+> 
+> --
+>   Román
+> 
+
+giving seemingly the troll then, but asking just some simple questions,
+likely already answered over all this years ...
+
+The firmware download for the tda10046 was broken for months, likely
+half a year.
+
+Technotrend changed the URL and LifeView disappeared somehow.
+
+Now we have a "fix", Douglas had the fun to promote it.
+
+The firmware versions still differ between revision 20 and 29.
+
+Some OEMs, as far as i can tell, controlled on that other OS, that
+firmware updates should only be made on such revisions of the chips
+really in need and later ones should not be touched.
+
+This could mean that the flashing itself inherits some known risks only.
+
+For what I have seen so far, it also could be the other way round
+sometimes, let the old chips with the old firmware and don't touch them.
+
+How do you know about this?
+
+Related, they get a substantial load on their servers to serve also
+cards not even produced by them. Who did ask them to still tolerate this
+and how sure you know they deliver the correct stuff, given that
+revision 20 and 29 are around for free choice ?
+
+Have there been any tries to ask Philips/NXP what to use on what and can
+we be confident that the latest version is always suitable for all stuff
+around? I just don't know and have some doubts.
+
+Cheers,
+Hermann
+
+
+
