@@ -1,65 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.233]:54880 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753287AbZD1IsZ (ORCPT
+Received: from wf-out-1314.google.com ([209.85.200.175]:63783 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750825AbZDUEIQ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2009 04:48:25 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so315072rvb.1
-        for <linux-media@vger.kernel.org>; Tue, 28 Apr 2009 01:48:24 -0700 (PDT)
-From: Magnus Damm <magnus.damm@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Magnus Damm <magnus.damm@gmail.com>, paulius.zaleckas@teltonika.lt,
-	g.liakhovetski@gmx.de, matthieu.castet@parrot.com,
-	lethal@linux-sh.org
-Date: Tue, 28 Apr 2009 17:45:39 +0900
-Message-Id: <20090428084539.16911.79893.sendpatchset@rx1.opensource.se>
-Subject: [PATCH] videobuf-dma-contig: remove sync operation
+	Tue, 21 Apr 2009 00:08:16 -0400
+Received: by wf-out-1314.google.com with SMTP id 29so2164311wff.4
+        for <linux-media@vger.kernel.org>; Mon, 20 Apr 2009 21:08:14 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <C01FCF206F5D8D4C89B210408D7DB39C29B6BA@mail2.oerlikon.ca>
+References: <C01FCF206F5D8D4C89B210408D7DB39C29B6BA@mail2.oerlikon.ca>
+Date: Tue, 21 Apr 2009 13:08:14 +0900
+Message-ID: <5e9665e10904202108s2aa88e41t77b5ff211aa51312@mail.gmail.com>
+Subject: Re: need help for omap3 isp-camera interface
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: "Weng, Wending" <WWeng@rheinmetall.ca>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Magnus Damm <damm@igel.co.jp>
+Hi,
 
-Remove the videobuf-dma-contig sync operation. Sync is only needed
-for noncoherent buffers, and since videobuf-dma-contig is built on
-coherent memory allocators the memory is by definition always in sync.
+First of all you have to specify which version of camera interface
+driver you are using.
+Because, there are two versions of omap3 camera interface.
+First one is from TI, and second one is from Sakari Ailus. (second one
+is the latest)
+Besides the version issue, there are some point that you can check.
 
-Reported-by: Matthieu CASTET <matthieu.castet@parrot.com>
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
----
+1. make sure that you are using parallel mode (if you are not using MIPI)
+2. check your dataline shift
+3. check your H/W connection and check parallel bridge setting
 
- Thanks to Mattieu, Paul and Paulius for all the help!
- Tested on SH7722 Migo-R with CEU and ov7725.
+And in case of you are using Sakari's new driver, you can check for
+the wait_hs_vs in isp_interface_config.
 
- drivers/media/video/videobuf-dma-contig.c |   14 --------------
- 1 file changed, 14 deletions(-)
+Cheers,
 
---- 0001/drivers/media/video/videobuf-dma-contig.c
-+++ work/drivers/media/video/videobuf-dma-contig.c	2009-04-28 13:09:37.000000000 +0900
-@@ -182,19 +182,6 @@ static int __videobuf_iolock(struct vide
- 	return 0;
- }
- 
--static int __videobuf_sync(struct videobuf_queue *q,
--			   struct videobuf_buffer *buf)
--{
--	struct videobuf_dma_contig_memory *mem = buf->priv;
--
--	BUG_ON(!mem);
--	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
--
--	dma_sync_single_for_cpu(q->dev, mem->dma_handle, mem->size,
--				DMA_FROM_DEVICE);
--	return 0;
--}
--
- static int __videobuf_mmap_free(struct videobuf_queue *q)
- {
- 	unsigned int i;
-@@ -356,7 +343,6 @@ static struct videobuf_qtype_ops qops = 
- 
- 	.alloc        = __videobuf_alloc,
- 	.iolock       = __videobuf_iolock,
--	.sync         = __videobuf_sync,
- 	.mmap_free    = __videobuf_mmap_free,
- 	.mmap_mapper  = __videobuf_mmap_mapper,
- 	.video_copy_to_user = __videobuf_copy_to_user,
+Nate
+
+
+
+On Tue, Apr 21, 2009 at 12:01 PM, Weng, Wending <WWeng@rheinmetall.ca> wrote:
+> Hi All,
+>
+>   I'm working on video image capture(omap3 isp) interface(PSP 1.0.2), and have met many difficulties. At the camera side, the 8 bits BT656 signal are connected to cam_d[0-7], which looks OK. The cam_fld, cam_hs and cam_vs are also connected, At the omap3 side, I use saMmapLoopback.c, it runs, however, it receives only HS_VS_IRQ, but no any image data. I checked FLDSTAT(CCDC_SYN_MODE), it's never changed.
+> Right now, I don't know what to check, if you can give some suggestions, your help will be greatly appreciated. Thanks in advance.
+>
+> Wending Weng
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+
+-- 
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
