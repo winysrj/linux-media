@@ -1,170 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:47744 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756369AbZDTUXO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 16:23:14 -0400
-Date: Mon, 20 Apr 2009 13:21:12 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: vaka@newmail.ru
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: Include in a kernel a patch for tuner support AverMedia Studio
- 505
-Message-Id: <20090420132112.d5f5b30e.akpm@linux-foundation.org>
-In-Reply-To: <op.usg239qgd7v8y6@vaka>
-References: <op.usg239qgd7v8y6@vaka>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from web110816.mail.gq1.yahoo.com ([67.195.13.239]:35327 "HELO
+	web110816.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752789AbZDUDJG convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Apr 2009 23:09:06 -0400
+Message-ID: <933650.33930.qm@web110816.mail.gq1.yahoo.com>
+Date: Mon, 20 Apr 2009 20:09:04 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: Re: [PATCH] [0904_14] Siano: assemble all components to one kernel module
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: LinuxML <linux-media@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 16 Apr 2009 13:25:11 +0400
-vaka@newmail.ru wrote:
-
-> I have written a patch for the tuner AverMedia Studio 505 that it was  
-> correctly defined.
-> I hope that you include this patch in a kernel
-> This patch for a kernel 2.6.29.1
-
-Thanks.
-
-Please cc the appropriate mailing list (linux-media@vger.kernel.org)
-and if possible maintainer(s) on kernel patches.
-
-I changed the card's number frmo 155 to 158 while integrating the patch
-onto the linux-next tree.
-
-Please send us a Signed-off-by: for this patch, as per
-Documetation/SubmittingPatches.
 
 
 
-From: Vasiliy Temnikov <vaka@newmail.ru>
+--- On Mon, 4/20/09, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
 
-Add tuner support AverMedia AverTV Studio 505.
+> From: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Subject: Re: [PATCH] [0904_14] Siano: assemble all components to one kernel module
+> To: "Uri Shkolnik" <urishk@yahoo.com>
+> Cc: "LinuxML" <linux-media@vger.kernel.org>
+> Date: Monday, April 20, 2009, 11:50 PM
+> On Mon, 20 Apr 2009 11:16:32 -0700
+> (PDT)
+> Uri Shkolnik <urishk@yahoo.com>
+> wrote:
+> 
+> > > From: Mauro Carvalho Chehab <mchehab@infradead.org>
+> > > Subject: Re: [PATCH] [0904_14] Siano: assemble
+> all components to one kernel module
+> > > To: "Uri Shkolnik" <urishk@yahoo.com>
+> > > Cc: "LinuxML" <linux-media@vger.kernel.org>
+> > > Date: Monday, April 20, 2009, 9:03 PM
+> > > On Sun, 5 Apr 2009 04:42:11 -0700
+> > > (PDT)
+> > > Uri Shkolnik <urishk@yahoo.com>
+> > > wrote:
+> > > 
+> > > > 
+> > > > # HG changeset patch
+> > > > # User Uri Shkolnik <uris@siano-ms.com>
+> > > > # Date 1238756860 -10800
+> > > > # Node ID
+> 616e696ce6f0c0d76a1aaea8b36e0345112c5ab6
+> > > > # Parent 
+> > > f65a29f0f9a66f82a91525ae0085a15f00ac91c2
+> > > > [PATCH] [0904_14] Siano: assemble all
+> components to
+> > > one kernel module
+> > > > 
+> > > > From: Uri Shkolnik <uris@siano-ms.com>
+> > > > 
+> > > > Previously, the support for Siano-based
+> devices
+> > > > has been combined from several kernel
+> modules. 
+> > > > This patch assembles all into single kernel
+> module.
+> > > 
+> > > Why? It seems better to keep it more modular.
+> > > 
+> > > Cheers,
+> > > Mauro
+> > > 
+> > 
+> > The driver remains as modular as it was before
+> (regarding sources files).
+> > Why to load smsusb.ko and than load smsdvb.ko and than
+> load usbcore.ko? (and ir and endian... and...)
+> > 
+> > The driver handles any device (or devices) with Siano
+> silicon on it, simple as that.
+> > 
+> > The new build method (Makefile and Kconfig) after the
+> patches (yet to be fully submitted), build the driver to
+> match the system it targets. (If USB exist than it builds
+> the USB interface driver (otherwise it doesn't) and links it
+> to the single module, same for SDIO, and any other interface
+> driver, same for any clients and any other component).
+> 
+> Before seeing the other patches, it is hard for me to
+> manifest, but, IMO, it is
+> better to have the BUS configurable, e. g. just because you
+> have USB interface,
+> it doesn't mean that you want siano for USB, instead of
+> using SDIO.
+> 
+> Cheers,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe
+> linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Hermann Pitton <hermann-pitton@arcor.de>
-Cc: Michael Krufky <mkrufky@linuxtv.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
 
- Documentation/video4linux/CARDLIST.saa7134  |    1 
- drivers/media/video/saa7134/saa7134-cards.c |   43 ++++++++++++++++++
- drivers/media/video/saa7134/saa7134-input.c |    1 
- drivers/media/video/saa7134/saa7134-video.c |    2 
- drivers/media/video/saa7134/saa7134.h       |    1 
- 5 files changed, 47 insertions(+), 1 deletion(-)
+"better to have the BUS configurable, e. g. just because you have USB interface, it doesn't mean that you want siano for USB, instead of using SDIO."
 
-diff -puN Documentation/video4linux/CARDLIST.saa7134~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505 Documentation/video4linux/CARDLIST.saa7134
---- a/Documentation/video4linux/CARDLIST.saa7134~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505
-+++ a/Documentation/video4linux/CARDLIST.saa7134
-@@ -156,3 +156,4 @@
- 155 -> Hauppauge WinTV-HVR1120 ATSC/QAM-Hybrid  [0070:6706,0070:6708]
- 156 -> Hauppauge WinTV-HVR1110r3                [0070:6707,0070:6709,0070:670a]
- 157 -> Avermedia AVerTV Studio 507UA            [1461:a11b]
-+158 -> AverMedia AverTV Studio 505              [1461:a115]
-diff -puN drivers/media/video/saa7134/saa7134-cards.c~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505 drivers/media/video/saa7134/saa7134-cards.c
---- a/drivers/media/video/saa7134/saa7134-cards.c~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505
-+++ a/drivers/media/video/saa7134/saa7134-cards.c
-@@ -1364,6 +1364,42 @@ struct saa7134_board saa7134_boards[] = 
- 			.amux = LINE1,
- 		},
- 	},
-+	[SAA7134_BOARD_AVERMEDIA_STUDIO_505] = {
-+		/* Vasiliy Temnikov <vaka@newmail.ru> */
-+		.name           = "AverMedia AverTV Studio 505",
-+		.audio_clock    = 0x00187de7,
-+		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
-+		.radio_type     = UNSET,
-+		.tuner_addr	= ADDR_UNSET,
-+		.radio_addr	= ADDR_UNSET,
-+		.tda9887_conf   = TDA9887_PRESENT,
-+		.inputs         = {{
-+			.name = name_tv,
-+			.vmux = 1,
-+			.amux = LINE2,
-+			.tv   = 1,
-+		},{
-+			.name = name_comp1,
-+			.vmux = 0,
-+			.amux = LINE2,
-+		},{
-+			.name = name_comp2,
-+			.vmux = 3,
-+			.amux = LINE2,
-+		},{
-+			.name = name_svideo,
-+			.vmux = 8,
-+			.amux = LINE2,
-+		}},
-+		.radio = {
-+			.name = name_radio,
-+			.amux = LINE2,
-+		},
-+		.mute = {
-+			.name = name_mute,
-+			.amux = LINE1,
-+		},
-+	},
- 	[SAA7134_BOARD_UPMOST_PURPLE_TV] = {
- 		.name           = "UPMOST PURPLE TV",
- 		.audio_clock    = 0x00187de7,
-@@ -5049,6 +5085,12 @@ struct pci_device_id saa7134_pci_tbl[] =
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
- 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
- 		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
-+		.subdevice    = 0xa115,
-+		.driver_data  = SAA7134_BOARD_AVERMEDIA_STUDIO_505,
-+	},{
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
-+		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
- 		.subdevice    = 0x2108,
- 		.driver_data  = SAA7134_BOARD_AVERMEDIA_305,
- 	},{
-@@ -6144,6 +6186,7 @@ int saa7134_board_init1(struct saa7134_d
- 	case SAA7134_BOARD_KWORLD_VSTREAM_XPERT:
- 	case SAA7134_BOARD_KWORLD_XPERT:
- 	case SAA7134_BOARD_AVERMEDIA_STUDIO_305:
-+	case SAA7134_BOARD_AVERMEDIA_STUDIO_505:
- 	case SAA7134_BOARD_AVERMEDIA_305:
- 	case SAA7134_BOARD_AVERMEDIA_STUDIO_307:
- 	case SAA7134_BOARD_AVERMEDIA_307:
-diff -puN drivers/media/video/saa7134/saa7134-input.c~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505 drivers/media/video/saa7134/saa7134-input.c
---- a/drivers/media/video/saa7134/saa7134-input.c~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505
-+++ a/drivers/media/video/saa7134/saa7134-input.c
-@@ -445,6 +445,7 @@ int saa7134_input_init1(struct saa7134_d
- 	case SAA7134_BOARD_AVERMEDIA_305:
- 	case SAA7134_BOARD_AVERMEDIA_307:
- 	case SAA7134_BOARD_AVERMEDIA_STUDIO_305:
-+	case SAA7134_BOARD_AVERMEDIA_STUDIO_505:
- 	case SAA7134_BOARD_AVERMEDIA_STUDIO_307:
- 	case SAA7134_BOARD_AVERMEDIA_STUDIO_507:
- 	case SAA7134_BOARD_AVERMEDIA_STUDIO_507UA:
-diff -puN drivers/media/video/saa7134/saa7134-video.c~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505 drivers/media/video/saa7134/saa7134-video.c
---- a/drivers/media/video/saa7134/saa7134-video.c~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505
-+++ a/drivers/media/video/saa7134/saa7134-video.c
-@@ -39,7 +39,7 @@ static unsigned int gbuffers      = 8;
- static unsigned int noninterlaced; /* 0 */
- static unsigned int gbufsize      = 720*576*4;
- static unsigned int gbufsize_max  = 720*576*4;
--static char secam[] = "--";
-+static char secam[] = "dk";
- module_param(video_debug, int, 0644);
- MODULE_PARM_DESC(video_debug,"enable debug messages [video]");
- module_param(gbuffers, int, 0444);
-diff -puN drivers/media/video/saa7134/saa7134.h~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505 drivers/media/video/saa7134/saa7134.h
---- a/drivers/media/video/saa7134/saa7134.h~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505
-+++ a/drivers/media/video/saa7134/saa7134.h
-@@ -159,6 +159,7 @@ struct saa7134_format {
- #define SAA7134_BOARD_AVERMEDIA_DVD_EZMAKER 33
- #define SAA7134_BOARD_NOVAC_PRIMETV7133 34
- #define SAA7134_BOARD_AVERMEDIA_STUDIO_305 35
-+#define SAA7134_BOARD_AVERMEDIA_STUDIO_505 158
- #define SAA7134_BOARD_UPMOST_PURPLE_TV 36
- #define SAA7134_BOARD_ITEMS_MTV005     37
- #define SAA7134_BOARD_CINERGY200       38
-_
+Since the module is using dynamic registration, I don't find it a problem.
+When the system has both USB and SDIO buses, both USB and SDIO interface driver will be compiled and linked to the module. When a Siano based device (or multiple Siano devices) will be connected, they will be register internally in the core and activated. Any combination is allow (multiple SDIO, multiple USB and any mix).
 
+
+Regards,
+
+Uri
+
+
+      
