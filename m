@@ -1,95 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110806.mail.gq1.yahoo.com ([67.195.13.229]:25592 "HELO
-	web110806.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754401AbZD0Kun (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2009 06:50:43 -0400
-Message-ID: <357070.92868.qm@web110806.mail.gq1.yahoo.com>
-Date: Mon, 27 Apr 2009 03:50:42 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [0904_1_1] Siano: core header - update license [Replace 0904_1]
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org
+Received: from mail.gmx.net ([213.165.64.20]:33517 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752849AbZDUMEL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Apr 2009 08:04:11 -0400
+Date: Tue, 21 Apr 2009 14:04:11 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	Ailus Sakari <sakari.ailus@nokia.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"jongse.won@samsung.com" <jongse.won@samsung.com>,
+	=?iso-8859-1?Q?=B1=E8=C7=FC=C1=D8?= <riverful.kim@samsung.com>
+Subject: Re: Applying SoC camera framework on multi-functional camera     
+ interface
+In-Reply-To: <39337.62.70.2.252.1240314423.squirrel@webmail.xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0904211359540.6551@axis700.grange>
+References: <39337.62.70.2.252.1240314423.squirrel@webmail.xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, 21 Apr 2009, Hans Verkuil wrote:
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1240828880 -10800
-# Node ID 24e0283cbbc9992ea6bc9775906821e323726f34
-# Parent  7311d23c3355629b617013cd51223895a2423770
-Modify the file license to match all other Siano's files
+> > Well, you might look at drivers/media/video/soc_camera_platform.c for an
+> > example of a simple "pseudo" camera driver. Of course, with your two
+> > additional devices you don't want to add extra platform devices and extra
+> > probing. In fact, you can do this with the "old" (currently in the
+> > mainline) soc-camera model, where client drivers actively report
+> > themselves to the soc-camera core using soc_camera_device_register() /
+> > soc_camera_device_unregister() and the core doesn't care about the nature
+> > of those drivers. This is not going to be the case with the new platform /
+> > v4l2-subdev infrastructure, which is pretty tightly bound to i2c... So,
+> > we'll have to extend it too.
+> 
+> Not true. v4l2-device and v4l2-subdev are bus-independent. Only the
+> v4l2-i2c-* helper functions in v4l2-common.c are i2c dependent. For
+> example, ivtv uses v4l2_subdev to control devices connected via gpio,
+> while cx18 uses it for a logical video decoder block on the main asic.
+> 
+> Other than initialization and possibly cleanup there should be NO
+> bus-dependencies.
 
-From: Uri Shkolnik <uris@siano-ms.com>
+Sorry, what I wrote above wasn't clear enough. By "platform / v4l2-subdev 
+infrastructure" I meant the current (as of my patch from a couple of hours 
+ago) soc-camera - platform stack linked to v4l2-subdev the way it is 
+implemented there. In that patch soc-camera uses the i2c interface of 
+v4l2-subdev directly and is thus rather i2c-centric. So, we will have to 
+extend soc-camera to also support the bus-neutral v4l2-subdev API.
 
-Modify the file license to match all other Siano's files
-
-Priority: normal
-
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-
-diff -r 7311d23c3355 -r 24e0283cbbc9 linux/drivers/media/dvb/siano/smscoreapi.h
---- a/linux/drivers/media/dvb/siano/smscoreapi.h	Sun Mar 15 12:05:57 2009 +0200
-+++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Mon Apr 27 13:41:20 2009 +0300
-@@ -1,26 +1,26 @@
--/*
-- *  Driver for the Siano SMS1xxx USB dongle
-- *
-- *  author: Anatoly Greenblat
-- *
-- *  Copyright (c), 2005-2008 Siano Mobile Silicon, Inc.
-- *
-- *  This program is free software; you can redistribute it and/or modify
-- *  it under the terms of the GNU General Public License version 2 as
-- *  published by the Free Software Foundation;
-- *
-- *  Software distributed under the License is distributed on an "AS IS"
-- *  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.
-- *
-- *  See the GNU General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-- */
-+/****************************************************************
- 
--#ifndef __smscoreapi_h__
--#define __smscoreapi_h__
-+Siano Mobile Silicon, Inc.
-+MDTV receiver kernel modules.
-+Copyright (C) 2006-2008, Uri Shkolnik, Anatoly Greenblat
-+
-+This program is free software: you can redistribute it and/or modify
-+it under the terms of the GNU General Public License as published by
-+the Free Software Foundation, either version 2 of the License, or
-+(at your option) any later version.
-+
-+ This program is distributed in the hope that it will be useful,
-+but WITHOUT ANY WARRANTY; without even the implied warranty of
-+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+GNU General Public License for more details.
-+
-+You should have received a copy of the GNU General Public License
-+along with this program.  If not, see <http://www.gnu.org/licenses/>.
-+
-+****************************************************************/
-+
-+#ifndef __SMS_CORE_API_H__
-+#define __SMS_CORE_API_H__
- 
- #include <linux/version.h>
- #include <linux/device.h>
-@@ -598,4 +598,4 @@ int smscore_led_state(struct smscore_dev
- 	dprintk(KERN_DEBUG, DBG_ADV, fmt, ##arg)
- 
- 
--#endif /* __smscoreapi_h__ */
-+#endif /* __SMS_CORE_API_H__ */
-
-
-
-      
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
