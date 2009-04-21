@@ -1,90 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f176.google.com ([209.85.219.176]:32852 "EHLO
-	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750804AbZD1XlB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2009 19:41:01 -0400
-Received: by ewy24 with SMTP id 24so930350ewy.37
-        for <linux-media@vger.kernel.org>; Tue, 28 Apr 2009 16:40:59 -0700 (PDT)
-Date: Tue, 28 Apr 2009 19:41:08 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: linux-media@vger.kernel.org, video4linux-list@redhat.com
-Subject: [PATCH 1/3 ] increase MPEG encoder timout
-Message-ID: <20090428194108.5bd76afd@glory.loctelecom.ru>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/TdzRCZz5bB2yP9jSNVsj/lb"
+Received: from mail.lncsa.com ([212.99.8.243]:40834 "EHLO sargon.lncsa.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751392AbZDUHzG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Apr 2009 03:55:06 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by sargon.lncsa.com (Postfix) with ESMTP id F2F243071F60
+	for <linux-media@vger.kernel.org>; Tue, 21 Apr 2009 09:48:04 +0200 (CEST)
+Received: from sargon.lncsa.com ([127.0.0.1])
+	by localhost (sargon.lncsa.com [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id YLyVTyx+TeRA for <linux-media@vger.kernel.org>;
+	Tue, 21 Apr 2009 09:48:04 +0200 (CEST)
+Received: from zenon.apartia.fr (zenon.apartia.fr [10.0.3.1])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(Client CN "zenon.apartia.fr", Issuer "ca.apartia.fr" (verified OK))
+	by sargon.lncsa.com (Postfix) with ESMTP id CF3A43071F5F
+	for <linux-media@vger.kernel.org>; Tue, 21 Apr 2009 09:48:04 +0200 (CEST)
+Received: from galba.apartia.fr (galba.apartia.fr [10.0.3.119])
+	by zenon.apartia.fr (Postfix) with ESMTP id 8050E5B940335
+	for <linux-media@vger.kernel.org>; Tue, 21 Apr 2009 09:48:01 +0200 (CEST)
+Date: Tue, 21 Apr 2009 09:48:01 +0200
+From: Louis-David Mitterrand <vindex+lists-linux-media@apartia.org>
+To: linux-media@vger.kernel.org
+Subject: Nova-TD usb dual tuner issue
+Message-ID: <20090421074801.GA18549@apartia.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/TdzRCZz5bB2yP9jSNVsj/lb
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Hi,
 
-Hi All.
+When I connect my Nova-TD dual tuner usb stick to my debian/sid box with
+2.6.29.1 kernel I can only use the second tuner (mplayer
+dvb://2@<tvchannel>). When trying to use the first one (dvb://1@...)
+tuning is extremely bad and an image barely appears with many errors.
 
-If video has a lot of changes in frame, MPEG encoder need more time for coding process.
-Add new bigger timeout for encoder.
+I tried switching the antennas to no avail, the problem persists.
 
-This is patch from our customer. I checked this.
+Is this a know problem, or do I just have a bad stick ?
 
-diff -r b40d628f830d linux/drivers/media/video/saa7134/saa7134-ts.c
---- a/linux/drivers/media/video/saa7134/saa7134-ts.c	Fri Apr 24 01:46:41 2009 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-ts.c	Tue Apr 28 05:26:09 2009 +1000
-@@ -65,7 +65,7 @@
- 	/* start DMA */
- 	saa7134_set_dmabits(dev);
- 
--	mod_timer(&dev->ts_q.timeout, jiffies+BUFFER_TIMEOUT);
-+	mod_timer(&dev->ts_q.timeout, jiffies+TS_BUFFER_TIMEOUT);
- 
- 	if (dev->ts_state == SAA7134_TS_BUFF_DONE) {
- 		/* Clear TS cache */
-diff -r b40d628f830d linux/drivers/media/video/saa7134/saa7134.h
---- a/linux/drivers/media/video/saa7134/saa7134.h	Fri Apr 24 01:46:41 2009 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134.h	Tue Apr 28 05:26:09 2009 +1000
-@@ -367,6 +367,7 @@
- #define INTERLACE_OFF          2
- 
- #define BUFFER_TIMEOUT     msecs_to_jiffies(500)  /* 0.5 seconds */
-+#define TS_BUFFER_TIMEOUT  msecs_to_jiffies(1000)  /* 1 second */
- 
- struct saa7134_dev;
- struct saa7134_dma;
+Thanks,
 
-Signed-off-by: Alexey Osipov <lion-simba@pridelands.ru>
+PS: here is the syslog output when connecting the stick:
 
+	usb 2-2: new high speed USB device using ehci_hcd and address 3
+	Apr 19 15:33:50 delos kernel: usb 2-2: configuration #1 chosen from 1 choice
+	Apr 19 15:33:50 delos kernel: dvb-usb: found a 'Hauppauge Nova-TD Stick (52009)' in cold state, will try to load a firmware
+	Apr 19 15:33:50 delos kernel: usb 2-2: firmware: requesting dvb-usb-dib0700-1.20.fw
+	Apr 19 15:33:50 delos kernel: dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
+	Apr 19 15:33:50 delos kernel: dib0700: firmware started successfully.
+	Apr 19 15:33:51 delos kernel: dvb-usb: found a 'Hauppauge Nova-TD Stick (52009)' in warm state.
+	Apr 19 15:33:51 delos kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+	Apr 19 15:33:51 delos kernel: DVB: registering new adapter (Hauppauge Nova-TD Stick (52009))
+	Apr 19 15:33:51 delos kernel: DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
+	Apr 19 15:33:51 delos kernel: DiB0070: successfully identified
+	Apr 19 15:33:51 delos kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+	Apr 19 15:33:51 delos kernel: DVB: registering new adapter (Hauppauge Nova-TD Stick (52009))
+	Apr 19 15:33:51 delos kernel: DVB: registering adapter 1 frontend 0 (DiBcom 7000PC)...
+	Apr 19 15:33:52 delos kernel: DiB0070: successfully identified
 
-With my best regards, Dmitry.
---MP_/TdzRCZz5bB2yP9jSNVsj/lb
-Content-Type: text/x-patch; name=empress_buffer_timout.patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=empress_buffer_timout.patch
-
-diff -r b40d628f830d linux/drivers/media/video/saa7134/saa7134-ts.c
---- a/linux/drivers/media/video/saa7134/saa7134-ts.c	Fri Apr 24 01:46:41 2009 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-ts.c	Tue Apr 28 05:26:09 2009 +1000
-@@ -65,7 +65,7 @@
- 	/* start DMA */
- 	saa7134_set_dmabits(dev);
- 
--	mod_timer(&dev->ts_q.timeout, jiffies+BUFFER_TIMEOUT);
-+	mod_timer(&dev->ts_q.timeout, jiffies+TS_BUFFER_TIMEOUT);
- 
- 	if (dev->ts_state == SAA7134_TS_BUFF_DONE) {
- 		/* Clear TS cache */
-diff -r b40d628f830d linux/drivers/media/video/saa7134/saa7134.h
---- a/linux/drivers/media/video/saa7134/saa7134.h	Fri Apr 24 01:46:41 2009 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134.h	Tue Apr 28 05:26:09 2009 +1000
-@@ -367,6 +367,7 @@
- #define INTERLACE_OFF          2
- 
- #define BUFFER_TIMEOUT     msecs_to_jiffies(500)  /* 0.5 seconds */
-+#define TS_BUFFER_TIMEOUT  msecs_to_jiffies(1000)  /* 1 second */
- 
- struct saa7134_dev;
- struct saa7134_dma;
-
-Signed-off-by: Alexey Osipov <lion-simba@pridelands.ru>
-
---MP_/TdzRCZz5bB2yP9jSNVsj/lb--
