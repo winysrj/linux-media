@@ -1,39 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56584 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751530AbZDGBNj (ORCPT
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:42223 "EHLO
+	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752878AbZDUOGU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Apr 2009 21:13:39 -0400
-Date: Mon, 6 Apr 2009 18:11:34 -0700 (PDT)
-From: Linus Torvalds <torvalds@linux-foundation.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: Andrew Morton <akpm@linux-foundation.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES for 2.6.30] V4L/DVB updates
-In-Reply-To: <20090406215632.3eb96373@pedra.chehab.org>
-Message-ID: <alpine.LFD.2.00.0904061808580.4010@localhost.localdomain>
-References: <20090406215632.3eb96373@pedra.chehab.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Tue, 21 Apr 2009 10:06:20 -0400
+Received: from steven-toths-macbook-pro.local
+ (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta5.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KIG00KPSF6AAX80@mta5.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Tue, 21 Apr 2009 10:06:11 -0400 (EDT)
+Date: Tue, 21 Apr 2009 10:06:09 -0400
+From: Steven Toth <stoth@linuxtv.org>
+Subject: Re: Hauppauge HVR-1500 (aka HP RM436AA#ABA)
+In-reply-to: <1240307588.4093.7.camel@linux-2esp.site>
+To: pghben@yahoo.com
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-id: <49EDD2D1.1030204@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <23cedc300904170207w74f50fc1v3858b663de61094c@mail.gmail.com>
+ <BAY102-W34E8EA79DEE83E18177655CF7B0@phx.gbl> <49E9C4EA.30706@linuxtv.org>
+ <loom.20090420T150829-849@post.gmane.org> <49EC9A08.50603@linuxtv.org>
+ <1240245715.5388.126.camel@mountainboyzlinux0> <49ECA8DD.9090708@linuxtv.org>
+ <1240249684.5388.146.camel@mountainboyzlinux0> <49ECBCF0.3060806@linuxtv.org>
+ <1240255677.5388.153.camel@mountainboyzlinux0> <49ECD553.9090707@linuxtv.org>
+ <1240259904.5388.178.camel@mountainboyzlinux0> <49ECEEA3.6010203@linuxtv.org>
+ <1240265172.5388.184.camel@mountainboyzlinux0> <49ECF6FA.70805@linuxtv.org>
+ <1240307588.4093.7.camel@linux-2esp.site>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Benster & Jeremy wrote:
+> The patch works perfectly. 
+> No indicator light, but 28 channels with stronger signal than mce!
+
+Good, thanks for the feedback.
+
+Ignore the light, it's a visual indicator only. At some point we'll get back to 
+fixing that.
+
+Regards,
+
+- Steve
 
 
-On Mon, 6 Apr 2009, Mauro Carvalho Chehab wrote:
-> 
-> Please pull from:
->         ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git for_linus
-
-Have you rebased your tree and pushed out multiple versions of it?
-
-I'm getting very confusing things from the mirrors, which are subtly 
-different from the copy on master.
-
-This all looks like it was rebased just hours ago, and to top it off, it 
-looks like you actually change stuff you had exported earlier.
-
-Don't do that. Really. It's very annoying. More than annoying, in fact. 
-This had better simply not happen again!
-
-		Linus
