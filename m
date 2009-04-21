@@ -1,37 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:52228 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752659AbZDXQjX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Apr 2009 12:39:23 -0400
-Date: Fri, 24 Apr 2009 18:39:35 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Paul Mundt <lethal@linux-sh.org>
-Subject: [PATCH 0/8] soc-camera: smoothly switch platforms to platform-driver
-Message-ID: <Pine.LNX.4.64.0904241818130.8309@axis700.grange>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46732 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754707AbZDUXdl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Apr 2009 19:33:41 -0400
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: linux-omap <linux-omap@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 21 Apr 2009 18:33:32 -0500
+Subject: [RFC] Updated 3430SDP and LDP camera drivers
+Message-ID: <A24693684029E5489D1D202277BE89442EEB5F08@dlee02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi all,
 
-Having done the two conversion steps and getting ready to push them, the 
-problem that I pushed back for later came forward: applying a patch that 
-affects multiple v4l drivers and 6 (!) (the 7th one is approaching) 
-platforms would be difficult... So, here comes a solution. With this patch 
-I add a new platform-driver style probing to soc-camera without removing 
-the old one. This way all current users still work and we can easily 
-convert platforms one by one to the new scheme. Please, have a look, I'll 
-reply to this message with one core and 7 platform patches, of which the 
-latter should only be applied after the first one.
+I have created a gitorious account for storing latest progress on 3430SDP and LDP camera sensor drivers. (MT9P012 and OV3640 for SDP, and OV3640 for LDP)
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+This patchset can be pulled with the following command:
+
+git pull git://git.gitorious.org/omap3-linux-camera-driver/mainline.git omap3camerabase 3430sdp_and_ldp_sensor_drivers
+
+It is based on 2.6.30-rc2
+
+Notes:
+
+- omap3camerabase branch contains a snapshot of almost all the commits shared through Sakari's gitorious repository (http://www.gitorious.org/projects/omap3camera). The only commits lacking are the ones that had been accepted already on mainline/linux-omap.
+
+- 3430sdp_and_ldp_sensor_drivers: Contains the patches I have been sharing during the past months but with some fixes done already based on the comments many of you have provided (Thanks a lot for that)
+
+Known TODOs:
+
+- v4l2_subdev conversion!
+- ISP xclk exported to Clock API
+- Memory 2 memory device conversion
+- Syncup with latest internal tree fixes
+- Use regulator framework
+- Fix OV3640 (at least on SDP doesn't work now somehow)
+
+As soon as I update them, will let you know. Any comment on those, is completely welcome.
+
+Regards,
+Sergio
