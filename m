@@ -1,341 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58062 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755610AbZDFLvl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 07:51:41 -0400
-From: "Shah, Hardik" <hardik.shah@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
-Date: Mon, 6 Apr 2009 17:21:05 +0530
-Subject: RE: [PATCH 3/3] V4L2 Driver for OMAP3/3 DSS.
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB102FD3@dbde02.ent.ti.com>
-In-Reply-To: <200903301506.36134.hverkuil@xs4all.nl>
-Content-Language: en-US
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4273 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754752AbZDULrF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Apr 2009 07:47:05 -0400
+Message-ID: <39337.62.70.2.252.1240314423.squirrel@webmail.xs4all.nl>
+Date: Tue, 21 Apr 2009 13:47:03 +0200 (CEST)
+Subject: Re: Applying SoC camera framework on multi-functional camera
+     interface
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+Cc: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Ailus Sakari" <sakari.ailus@nokia.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"jongse.won@samsung.com" <jongse.won@samsung.com>,
+	=?iso-8859-1?Q?=B1=E8=C7=FC=C1=D8?= <riverful.kim@samsung.com>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-Please find my comments inline. Most of the comments are taken care of.
+
+> On Tue, 21 Apr 2009, Dongsoo, Nathaniel Kim wrote:
+>
+>> Hello,
+>>
+>> One of my recent work is making S3C64XX camera interface driver with
+>> SoC camera framework. Thanks to Guennadi, SoC camera framework is so
+>> clear and easy to follow. Actually I didn't need to worry about my
+>> whole driver structure, the framework almost has everything that I
+>> need.
+>>
+>> But here is a problem that I couldn't make up my mind while
+>> implementing some of the features of S3C64XX camera IP.
+>> As you know, S3C64XX camera IP has scaler and rotator capability on
+>> it's own which can be used standalone even memory to memory scaling
+>> and rotating jobs.
+>> If you want to know in detail please take a look at the user manual
+>> (just remind if you have already seen this)  :
+>> http://www.ebv.com/fileadmin/products/Products/Samsung/S3C6400/S3C6400X_UserManual_rev1-0_2008-02_661558um.pdf
+>>
+>> Telling you about the driver concept that I wanted to make is like
+>> following:
+>>
+>> (I want to select inputs like external camera and MSDMA using
+>> S_INPUT'/G_INPUT but we don't have them in SoC camera framework.
+>> So this should be the version of design with current SoC camera
+>> framework.)
+>>
+>> 1. S3C64XX has preview and codec path
+>> 2. Each preview and codec path can have external camera and MSDMA for
+>> input
+>> 3. make external camera and MSDMA device nodes for each preview and
+>> codec.
+>>   => Let's assume that we have camera A and B, then it should go like
+>> this
+>>   /dev/video0 (camera A on preview device)
+>>   /dev/video1 (camera B on preview device)
+>>   /dev/video2 (MSDMA on preview device)
+>>   /dev/video3 (camera A on codec device)
+>>   /dev/video4 (camera B on codec device)
+>>   /dev/video5 (MSDMA on codec device)
+>
+> My proposal was a bit different. You don't need two different output
+> devices per camera - video3 and video4. I suggested to make preview a pure
+> output device, without the ability to select the input. So, if you
+> activate (open) video1, video3 will get data from the first camera. If you
+> activate video2, video3 will preview camera 2.
+>
+> Also, you can have a look at arch/sh/boards/mach-migor/setup.c for an
+> example of handling two cameras on one interface. The only difference to
+> what I have proposed is that they block on open(video1) if video0 is in
+> use and the other way round. Whereas I suggested to return -EBUSY. You can
+> choose.
+>
+>> 4. Those device nodes are "device" in SoC camera framework (and S3C
+>> camera interface should be "host" device)
+>>  => External camera devices can be made in SoC camera device. Fair
+>> enough.
+>>
+>>   But MSMDA? what should I do If I want to make it as a "device"
+>> driver in SoC camera framework?
+>>   Any reference that I could have? because I can't find any "device"
+>> drivers besides camera sensor,isp drivers.
+>>   Please let me know if there is any.
+>
+> Actually, last time we talked about it I didn't realise, that you can
+> configure the preview path to read data from memory while your codec path
+> processes data from the camera, is this really the case? I didn't study
+> the datasheet in enough detail.
+>
+> Well, you might look at drivers/media/video/soc_camera_platform.c for an
+> example of a simple "pseudo" camera driver. Of course, with your two
+> additional devices you don't want to add extra platform devices and extra
+> probing. In fact, you can do this with the "old" (currently in the
+> mainline) soc-camera model, where client drivers actively report
+> themselves to the soc-camera core using soc_camera_device_register() /
+> soc_camera_device_unregister() and the core doesn't care about the nature
+> of those drivers. This is not going to be the case with the new platform /
+> v4l2-subdev infrastructure, which is pretty tightly bound to i2c... So,
+> we'll have to extend it too.
+
+Not true. v4l2-device and v4l2-subdev are bus-independent. Only the
+v4l2-i2c-* helper functions in v4l2-common.c are i2c dependent. For
+example, ivtv uses v4l2_subdev to control devices connected via gpio,
+while cx18 uses it for a logical video decoder block on the main asic.
+
+Other than initialization and possibly cleanup there should be NO
+bus-dependencies.
 
 Regards,
-Hardik Shah
 
-> >  static struct twl4030_hsmmc_info mmc[] __initdata = {
-> > diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> > index 19cf3b8..91e4529 100644
-> > --- a/drivers/media/video/Kconfig
-> > +++ b/drivers/media/video/Kconfig
-> > @@ -711,6 +711,26 @@ config VIDEO_CAFE_CCIC
-> >  	  CMOS camera controller.  This is the controller found on first-
-> >  	  generation OLPC systems.
-> >
-> > +#config VIDEO_OMAP3
-> > +#        tristate "OMAP 3 Camera support"
-> > +#	select VIDEOBUF_GEN
-> > +#	select VIDEOBUF_DMA_SG
-> > +#	depends on VIDEO_V4L2 && ARCH_OMAP34XX
-> > +#	---help---
-> > +#	  Driver for an OMAP 3 camera controller.
-> 
-> Why add a commented config?
-[Shah, Hardik] To make explicit that camera and display will have same config.  But any way removed and put a comment in config option.
-> 
-> > +
-> > +config VID1_LCD_MANAGER
-> > +        bool "Use LCD Managaer"
-> > +        help
-> > +          Select this option if you want VID1 pipeline on LCD Overlay
-> manager
-> > +endchoice
-> > +
-> > +choice
-> > +	prompt "VID2 Overlay manager"
-> > +	depends on VIDEO_OMAP_VIDEOOUT
-> > +	default VID2_LCD_MANAGER
-> > +
-> > +config VID2_TV_MANAGER
-> > +	bool "Use TV Manager"
-> > +	help
-> > +	  Select this option if you want VID2 pipeline on TV Overlay manager
-> > +
-> > +config VID2_LCD_MANAGER
-> > +	bool "Use LCD Managaer"
-> > +	help
-> > +	  Select this option if you want VID2 pipeline on LCD Overlay manager
-> > +endchoice
-> > +
-> > +choice
-> > +        prompt "TV Mode"
-> > +        depends on VID2_TV_MANAGER || VID1_TV_MANAGER
-> > +        default NTSC_M
-> > +
-> > +config NTSC_M
-> > +        bool "Use NTSC_M mode"
-> > +        help
-> > +          Select this option if you want NTSC_M mode on TV
-> > +
-> > +config PAL_BDGHI
-> > +        bool "Use PAL_BDGHI mode"
-> > +        help
-> > +          Select this option if you want PAL_BDGHI mode on TV
-> 
-> Why are these config options? Isn't it possible to do this dynamically
-> through VIDIOC_S_STD?
-[Shah, Hardik] Currently is not tested/supported dynamically. I will add it at todos.
-> 
-> > +
-> > +static u32 video1_numbuffers = 3;
-> > +static u32 video2_numbuffers = 3;
-> > +static u32 video1_bufsize = OMAP_VOUT_MAX_BUF_SIZE;
-> > +static u32 video2_bufsize = OMAP_VOUT_MAX_BUF_SIZE;
-> > +module_param(video1_numbuffers, uint, S_IRUGO);
-> > +module_param(video2_numbuffers, uint, S_IRUGO);
-> > +module_param(video1_bufsize, uint, S_IRUGO);
-> > +module_param(video2_bufsize, uint, S_IRUGO);
-> 
-> I recommend adding MODULE_PARM_DESC() as well to provide a description of
-> these module options.
-> 
-[Shah, Hardik] Added MODULE_PARM_DESC
-> > +
-> > +static int omap_vout_create_video_devices(struct platform_device *pdev);
-> > +static int omapvid_apply_changes(struct omap_vout_device *vout, u32 addr,
-> > +		int init);
-> > +static int omapvid_setup_overlay(struct omap_vout_device *vout,
-> > +		struct omap_overlay *ovl, int posx, int posy,
-> > +		int outw, int outh, u32 addr, int tv_field1_offset, int init);
-> > +static enum omap_color_mode video_mode_to_dss_mode(struct omap_vout_device
-> > +		*vout);
-> > +static void omap_vout_isr(void *arg, unsigned int irqstatus);
-> > +static void omap_vout_cleanup_device(struct omap_vout_device *vout);
-> > +/* module parameters */
-> 
-> ^^^^^^ This comment should be moved up.
-[Shah, Hardik] Done
+         Hans
 
-> > +static int omap_vout_try_format(struct v4l2_pix_format *pix,
-> > +				struct v4l2_pix_format *def_pix)
-> > +{
-> > +	int ifmt, bpp = 0;
-> > +
-> > +	if (pix->width > VID_MAX_WIDTH)
-> > +		pix->width = VID_MAX_WIDTH;
-> > +	if (pix->height > VID_MAX_HEIGHT)
-> > +		pix->height = VID_MAX_HEIGHT;
-> > +
-> > +	if (pix->width <= VID_MIN_WIDTH)
-> > +		pix->width = def_pix->width;
-> > +	if (pix->height <= VID_MIN_HEIGHT)
-> > +		pix->height = def_pix->height;
-> 
-> Linux provides some nice clamp macros for this. See linux/kernel.h.
+> I would suggest you reserve slots for those two from-memory video devices
+> in your design, base your design on latest patches on this list (see the
+> patches I just submitted) and concentrate on camera-devices for now. Then
+> we shall see how to add non-i2c video data-sources to the framework.
 
-[Shah, Hardik] I tried using it but still if condition is required as I have four values to select from so I reverted back to same old method.
-> 
-> The else below should be indented one tab to the left.
-> > +		} else {
-> > +			dmabuf = videobuf_to_dma(q->bufs[vb->i]);
-> > +
-> > +			vout->queued_buf_addr[vb->i] = (u8 *) dmabuf->bus_addr;
-> > +		}
-> 
-> Note this it is better to handle the else part first and return.
-> Then the large if-part can be handled after that and can be indented
-> on tab to the left as well.
-> 
-> I.e.:
-> 
-> if (cond) {
-> 	// lots of code
-> } else {
-> 	// small amount of code
-> }
-> 
-> can be rewritten as:
-> 
-> if (!cond) {
-> 	// small amount of code
-> 	return 0;
-> }
-> // lots of code.
-> 
-> > +		return 0;
-[Shah, Hardik] Done, Implemented
-> > +}
-> > +	/* get the display device attached to the overlay */
-> > +	if (!ovl->manager || !ovl->manager->display)
-> > +		return -1;
-> > +	cur_display = ovl->manager->display;
-> > +
-> > +	if ((cur_display->type == OMAP_DISPLAY_TYPE_VENC) &&
-> > +	    ((win->w.width == crop->width)
-> > +	     && (win->w.height == crop->height)))
-> > +		vout->flicker_filter = 1;
-> > +	else
-> > +		vout->flicker_filter = 0;
-> > +
-> > +	if (1 == vout->mirror && vout->rotation >= 0) {
-> > +		rotation_deg = (vout->rotation == 1) ?
-> > +			270 : (vout->rotation == 3) ?
-> > +			90 : (vout->rotation ==  2) ?
-> > +			0 : 180;
-> 
-> Huh? Here you set rotation_deg to 0, 90, 180 or 270,
-[Shah, Hardik] Done
-> 
-> > +
-> > +	} else if (vout->rotation >= 0) {
-> > +		rotation_deg = vout->rotation;
-> 
-> but here it is 0, 1, 2, 3.
-> 
-> > +	} else {
-> > +		rotation_deg = -1;
-> 
-> And isn't -1 the same as 0?
-> 
-> Perhaps this should be an enum? It's definitely confusing here.
-[Shah, Hardik] Implemented to convert the V4L2 rotation type that is 0, 90, 270 etc to DSS rotation type that is 0, 1, 2 etc. 
--1 and 0 explained below at last.
-> 
-> > +
-> > +static int vidioc_querycap(struct file *file, void *fh,
-> > +		struct v4l2_capability *cap)
-> > +{
-> > +	struct omap_vout_device *vout = ((struct omap_vout_fh *) fh)->vout;
-> > +
-> > +	memset(cap, 0, sizeof(*cap));
-> > +	strncpy(cap->driver, VOUT_NAME,
-> > +		sizeof(cap->driver));
-> > +	strncpy(cap->card, vout->vfd->name, sizeof(cap->card));
-> > +	cap->bus_info[0] = '\0';
-> 
-> Use strlcpy, that will guarantee a 0 at the end.
-[Shah, Hardik] Done
-> 
-> > +	cap->capabilities = V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_OUTPUT;
-> > +	return 0;
-> > +}
-> > +static int vidioc_enum_fmt_vid_out(struct file *file, void *fh,
-> > +			struct v4l2_fmtdesc *fmt)
-> > +{
-> > +	int index = fmt->index;
-> > +	enum v4l2_buf_type type = fmt->type;
-> > +
-> > +	memset(fmt, 0, sizeof(*fmt));
-> 
-> I think most of these memsets are unnecessary since v4l2_ioctl2 does this
-> for you already.
-[Shah, Hardik] Removed unnecessary memsets.
-> 
-> > +		cropcap->bounds.width = pix->width & ~1;
-> > +		cropcap->bounds.height = pix->height & ~1;
-> > +
-> > +		omap_vout_default_crop(&vout->pix, &vout->fbuf,
-> > +				&cropcap->defrect);
-> > +		cropcap->pixelaspect.numerator = 1;
-> > +		cropcap->pixelaspect.denominator = 1;
-> > +		return 0;
-> > +	} else
-> > +		return -EINVAL;
-> 
-> See my if-else discussion above.
-[Shah, Hardik] Done
-> 
-> > +}
-> > +static int vidioc_g_crop(struct file *file, void *fh,
-> > +	struct v4l2_crop *crop)
-> > +{
-> > +	struct omap_vout_device *vout = ((struct omap_vout_fh *) fh)->vout;
-> > +
-> > +	if (crop->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
-> > +		crop->c = vout->crop;
-> > +		return 0;
-> > +	} else
-> > +		return -EINVAL;
-> 
-> Ditto.
-[Shah, Hardik] Done
-> 
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
-> > +static int vidioc_s_ctrl(struct file *file, void *fh, struct v4l2_control
-> *a)
-> > +{
-> > +	struct omap_vout_device *vout = ((struct omap_vout_fh *) fh)->vout;
-> > +
-> > +	switch (a->id) {
-> > +	case V4L2_CID_ROTATION:
-> > +	{
-> > +		int rotation = a->value;
-> > +
-> > +		if (vout->pix.pixelformat == V4L2_PIX_FMT_RGB24 &&
-> > +				rotation != -1)
-> > +			return -EINVAL;
-> > +		if (down_interruptible(&vout->lock))
-> > +			return -EINVAL;
-> 
-> This lock is only needed inside the if below.
-[Shah, Hardik] done 
-> 
-> > +	case V4L2_CID_BG_COLOR:
-> > +	{
-> > +		unsigned int  color = a->value;
-> > +		struct omapvideo_info *ovid;
-> > +		struct omap_overlay *ovl;
-> > +		ovid = &(vout->vid_info);
-> > +		ovl = ovid->overlays[0];
-> > +
-> > +		if (down_interruptible(&vout->lock))
-> > +			return -EINVAL;
-> 
-> General note: unless you have a counting semaphore then it is better to use
-> a mutex. It's simpler and more efficient.
-[Shah, Hardik] Replaced semaphore with mutex.
-> 
-> > +static int vidioc_reqbufs(struct file *file, void *fh,
-> > +			struct v4l2_requestbuffers *req)
-> > +{
-> > +	struct omap_vout_device *vout = ((struct omap_vout_fh *) fh)->vout;
-> > +	struct videobuf_queue *q = &(((struct omap_vout_fh *) fh)->vbq);
-> > +	unsigned int i, num_buffers = 0;
-> > +	int ret = 0;
-> > +	struct videobuf_dmabuf *dmabuf = NULL;
-> > +
-> > +	if (down_interruptible(&vout->lock))
-> > +		return -EINVAL;
-> 
-> Move this down two 'ifs' to where it is really needed.
-[Shah, Hardik] Done
-> 
-> camelCase! Please replace this with cur_frm and next_frm. Hmm, this gives me
-> a deja vu :-)
-[Shah, Hardik] Done
->  
-> A general remark: the rotate code needs to be improved a bit: the mix of
-> 0, 1, 2, 3 and -1 and 0, 90, 180, 270 is very confusing. Stick to one way
-> of doing this internally. The extra value of -1 also makes it hard to
-> understand: what's so special about that value? Often the rotate code is
-> also a substantial part of a function: see if you can split such functions
-> into two parts.
-[Shah, Hardik] 
-1.  V4L2 is using 90, 180, 270 as degree of rotation while DSS2 library understands 0, 1, 2 etc as degree of rotation.  So I implemented the function which will convert the v4l2 rotation to DSS rotation to avoid confusion.
-2.  In DSS rotation is accomplished by some memory algorithm but its quite costly so -1 is essentially same as 0 degree but with out the overhead. But if mirroring is on then we have to do the 0 degree rotation with overhead using some memory techniques.  So from user point of view he will only be setting 0 but internally driver will take it as -1 or 0 depending upon the mirroring selected.
-3. Splitted the rotation code wherever possible.
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
-Regards,
-Hardik Shah
