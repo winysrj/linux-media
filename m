@@ -1,59 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.168]:10620 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756840AbZDWKPQ (ORCPT
+Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:4860 "EHLO
+	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753680AbZDUL7v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Apr 2009 06:15:16 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so404085wfd.4
-        for <linux-media@vger.kernel.org>; Thu, 23 Apr 2009 03:15:14 -0700 (PDT)
-MIME-Version: 1.0
-Date: Thu, 23 Apr 2009 19:15:14 +0900
-Message-ID: <5e9665e10904230315o46ef5f95o8c393a9148976880@mail.gmail.com>
-Subject: About using VIDIOC_REQBUFS
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 21 Apr 2009 07:59:51 -0400
+Message-ID: <30757.62.70.2.252.1240315186.squirrel@webmail.xs4all.nl>
+Date: Tue, 21 Apr 2009 13:59:46 +0200 (CEST)
+Subject: RE: [Review PATCH 3/3] OMAP2/3 V4L2 Display Driver
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Shah, Hardik" <hardik.shah@ti.com>
 Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"jongse.won@samsung.com" <jongse.won@samsung.com>,
-	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Jadav, Brijesh R" <brijesh.j@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+Hi Hardik,
 
-Is it an ordinary way to use twice reqbuf without closing and
-re-opening between them?
+Just a few comments on your comments :-)
 
-I mean like this,
+> Hi Hans,
+> My Comments inlined,
+> Most of the comments are taken care off.
+> Thanks for review.
+>
+> Hardik,
+>
+>> -----Original Message-----
+>> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+>> Sent: Saturday, April 18, 2009 7:29 PM
+>> To: Shah, Hardik
+>> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Jadav,
+>> Brijesh R;
+>> Hiremath, Vaibhav
+>> Subject: Re: [Review PATCH 3/3] OMAP2/3 V4L2 Display Driver
 
-1. Open device
-2. VIDIOC_REQBUFS
-     <snip>
-3. VIDIOC_STREAMON
-     <snip>
-4. VIDIOC_STREAMOFF
-5. VIDIOC_REQBUFS
-     <snip>
-6. VIDIOC_STREAMON
+>> > +config VID2_LCD_MANAGER
+>> > +   bool "Use LCD Managaer"
+>> > +   help
+>> > +     Select this option if you want VID2 pipeline on LCD Overlay
+>> manager
+>> > +endchoice
+>> > +
+>> > +choice
+>> > +        prompt "TV Mode"
+>> > +        depends on VID2_TV_MANAGER || VID1_TV_MANAGER
+>> > +        default NTSC_M
+>> > +
+>> > +config NTSC_M
+>> > +        bool "Use NTSC_M mode"
+>> > +        help
+>> > +          Select this option if you want NTSC_M mode on TV
+>> > +
+>> > +config PAL_BDGHI
+>> > +        bool "Use PAL_BDGHI mode"
+>> > +        help
+>> > +          Select this option if you want PAL_BDGHI mode on TV
+>>
+>> Terminology: PAL and NTSC etc. refer to broadcast standards. That is no
+>> generally applicable to omap. When it comes to streaming digital video
+>> there is only the 50 and 60 Hz SDTV standards. For output over a
+>> Composite
+>> or S-Video connector you can also choose between PAL and SECAM. There
+>> are some differences between the two, although I'm not sure about the
+>> details. The common saa7128 i2c device definitely has support for both.
+>>
+>> In this particular case you probably mean 50 or 60 Hz SDTV rather than
+>> NTSC/PAL.
+>>
+> [Shah, Hardik] OMAP DSS is having the internal video encoder for
+> converting the digital to analog standards like NTSC and PAL with a
+> s-video and composite output.  Currently DSS does not support changing of
+> the TV standards dynamically so I have made it as a compile time option.
+> Once DSS will support that I will add the S_STD and G_STD for standards.
+> Internally it will call the DSS2 library APIs to change the standard.
 
-I suppose there should be a strict order for this. That order seems to
-be wrong but necessary when we do capturing a JPEG data which size
-(not resolution) is bigger than the preview data size. (Assuming that
-user is using mmap)
-Please let me know the right way for that kind of case. Just close and
-re-open with big enough size for JPEG? or mmap with big enough size in
-the first place?
-Cheers,
+I don't have a problem with these config options, it's more the names
+NTSC_M and PAL_BDGHI that are misleading IMHO, since it's really a matter
+of 50Hz vs 60Hz and not of NTSC vs PAL.
 
-Nate
+>> > +   if (1 == vout->mirror && vout->rotation >= 0) {
+>> > +           rotation_deg = (vout->rotation == 1) ?
+>> > +                   3 : (vout->rotation == 3) ?
+>> > +                   1 : (vout->rotation ==  2) ?
+>> > +                   0 : 2;
+>>
+>> Or: rotation = (4 - vout->rotation) % 4;
+> [Shah, Hardik] It will not work when rotation will be 0 and I want 2
+> because of mirroring. (4-0) % 2 is 0 I want 2 here.  So not changing it.
+
+You are right. Sorry about that.
+
+>> > +static int vidioc_s_ctrl(struct file *file, void *fh, struct
+>> v4l2_control
+>> *a)
+>> > +{
+>> > +   struct omap_vout_device *vout = ((struct omap_vout_fh *)
+>> fh)->vout;
+>> > +
+>> > +   switch (a->id) {
+>> > +   case V4L2_CID_ROTATE:
+>> > +   {
+>> > +           int rotation = a->value;
+>> > +
+>> > +           if (vout->pix.pixelformat == V4L2_PIX_FMT_RGB24 &&
+>> > +                           rotation != -1)
+>>
+>> Huh? Shouldn't this be rotation != 0?
+> [Shah, Hardik] Rotation 0 means the rotation using Virtual Frame Buffer
+> Rotation (VRFB) engine.  It does not support rotation with packed RGB24
+> format.  -1 means VRFB is not used.  So it should be -1;
+
+This really isn't right. a->value is the rotate control value. And that's
+defined as 0, 90, 180 or 270 according to queryctrl. Not -1. The value -1
+is a purely internal value which is also why I am opposed to its use. It
+is very confusing.
+
+Regards,
+
+        Hans
+
 -- 
-=
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
