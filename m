@@ -1,68 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:45101 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751176AbZDDM1A (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Apr 2009 08:27:00 -0400
-Date: Sat, 4 Apr 2009 14:26:51 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Andy Walls <awalls@radix.net>, Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Mike Isely <isely@pobox.com>
-Subject: [PATCH 1/6] cx18: Fix the handling of i2c bus registration error
-Message-ID: <20090404142651.44757ccb@hyperion.delvare>
-In-Reply-To: <20090404142427.6e81f316@hyperion.delvare>
-References: <20090404142427.6e81f316@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:60080 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754137AbZDUHhl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Apr 2009 03:37:41 -0400
+Date: Tue, 21 Apr 2009 09:37:45 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] soc-camera: link host drivers after clients
+Message-ID: <Pine.LNX.4.64.0904210927190.6551@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Return actual error values as returned by the i2c subsystem, rather
-  than 0 or 1.
-* If the registration of the second bus fails, unregister the first one
-  before exiting, otherwise we are leaking resources.
+With the transition of soc-camera to become a platform driver and to the 
+v4l2-subdev framework the initialisation order becomes important. In case 
+of a static build clients (i2c) drivers have to be available when host 
+drivers are probed. Moving host drivers down in the Makefile achieves the 
+desired order.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andy Walls <awalls@radix.net>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- linux/drivers/media/video/cx18/cx18-i2c.c |   16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
-
---- v4l-dvb.orig/linux/drivers/media/video/cx18/cx18-i2c.c	2009-03-01 16:09:09.000000000 +0100
-+++ v4l-dvb/linux/drivers/media/video/cx18/cx18-i2c.c	2009-04-03 18:45:18.000000000 +0200
-@@ -214,7 +214,7 @@ static struct i2c_algo_bit_data cx18_i2c
- /* init + register i2c algo-bit adapter */
- int init_cx18_i2c(struct cx18 *cx)
- {
--	int i;
-+	int i, err;
- 	CX18_DEBUG_I2C("i2c init\n");
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 7c0bd6e..400bbd5 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -134,10 +134,6 @@ obj-$(CONFIG_VIDEO_CX18) += cx18/
+ obj-$(CONFIG_VIDEO_VIVI) += vivi.o
+ obj-$(CONFIG_VIDEO_CX23885) += cx23885/
  
- 	for (i = 0; i < 2; i++) {
-@@ -273,8 +273,18 @@ int init_cx18_i2c(struct cx18 *cx)
- 	cx18_call_hw(cx, CX18_HW_GPIO_RESET_CTRL,
- 		     core, reset, (u32) CX18_GPIO_RESET_I2C);
+-obj-$(CONFIG_VIDEO_MX1)			+= mx1_camera.o
+-obj-$(CONFIG_VIDEO_MX3)			+= mx3_camera.o
+-obj-$(CONFIG_VIDEO_PXA27x)		+= pxa_camera.o
+-obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
+ obj-$(CONFIG_VIDEO_OMAP2)		+= omap2cam.o
+ obj-$(CONFIG_SOC_CAMERA)		+= soc_camera.o
+ obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= mt9m001.o
+@@ -147,6 +143,11 @@ obj-$(CONFIG_SOC_CAMERA_MT9V022)	+= mt9v022.o
+ obj-$(CONFIG_SOC_CAMERA_OV772X)		+= ov772x.o
+ obj-$(CONFIG_SOC_CAMERA_PLATFORM)	+= soc_camera_platform.o
+ obj-$(CONFIG_SOC_CAMERA_TW9910)		+= tw9910.o
++# soc-camera host drivers have to be linked after camera drivers
++obj-$(CONFIG_VIDEO_MX1)			+= mx1_camera.o
++obj-$(CONFIG_VIDEO_MX3)			+= mx3_camera.o
++obj-$(CONFIG_VIDEO_PXA27x)		+= pxa_camera.o
++obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
  
--	return i2c_bit_add_bus(&cx->i2c_adap[0]) ||
--		i2c_bit_add_bus(&cx->i2c_adap[1]);
-+	err = i2c_bit_add_bus(&cx->i2c_adap[0]);
-+	if (err)
-+		goto err;
-+	err = i2c_bit_add_bus(&cx->i2c_adap[1]);
-+	if (err)
-+		goto err_del_bus_0;
-+	return 0;
-+
-+ err_del_bus_0:
-+ 	i2c_del_adapter(&cx->i2c_adap[0]);
-+ err:
-+	return err;
- }
+ obj-$(CONFIG_VIDEO_AU0828) += au0828/
  
- void exit_cx18_i2c(struct cx18 *cx)
-
--- 
-Jean Delvare
