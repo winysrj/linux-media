@@ -1,78 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:54344 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755527AbZDXQkJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Apr 2009 12:40:09 -0400
-Date: Fri, 24 Apr 2009 18:40:22 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	eric miao <eric.y.miao@gmail.com>
-Subject: [PATCH 4/8] ARM: convert em-x270 to the new platform-device soc-camera
- interface
-In-Reply-To: <Pine.LNX.4.64.0904241818130.8309@axis700.grange>
-Message-ID: <Pine.LNX.4.64.0904241832500.8309@axis700.grange>
-References: <Pine.LNX.4.64.0904241818130.8309@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from bombadil.infradead.org ([18.85.46.34]:45093 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751941AbZDUSKw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Apr 2009 14:10:52 -0400
+Date: Tue, 21 Apr 2009 15:10:45 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: Uri Shkolnik <urishk@yahoo.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] [0904_14] Siano: assemble all components to one kernel
+ module
+Message-ID: <20090421151045.49724d59@pedra.chehab.org>
+In-Reply-To: <Pine.LNX.4.58.0904211046580.3753@shell2.speakeasy.net>
+References: <142898.44509.qm@web110807.mail.gq1.yahoo.com>
+	<Pine.LNX.4.58.0904211046580.3753@shell2.speakeasy.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, 21 Apr 2009 10:54:40 -0700 (PDT)
+Trent Piepho <xyzzy@speakeasy.org> wrote:
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+> On Tue, 21 Apr 2009, Uri Shkolnik wrote:
+> > --- On Tue, 4/21/09, Trent Piepho <xyzzy@speakeasy.org> wrote:
+> > > From: Trent Piepho <xyzzy@speakeasy.org>
+> > > Subject: Re: [PATCH] [0904_14] Siano: assemble all components to one kernel module
+> > > To: "Uri Shkolnik" <urishk@yahoo.com>
+> > > Cc: "Mauro Carvalho Chehab" <mchehab@infradead.org>, "LinuxML" <linux-media@vger.kernel.org>
+> > > Date: Tuesday, April 21, 2009, 6:17 AM
+> > > On Mon, 20 Apr 2009, Uri Shkolnik
+> > > wrote:
+> > > >
+> > > > "better to have the BUS configurable, e. g. just
+> > > because you have USB interface, it doesn't mean that you
+> > > want siano for USB, instead of using SDIO."
+> > > >
+> > > > Since the module is using dynamic registration, I
+> > > don't find it a problem.
+> > > > When the system has both USB and SDIO buses, both USB
+> > > and SDIO interface driver will be compiled and linked to the
+> > > module. When a Siano based device (or multiple Siano
+> > > devices) will be connected, they will be register internally
+> > > in the core and activated. Any combination is allow
+> > > (multiple SDIO, multiple USB and any mix).
+> > >
+> > > This is not the way linux drivers normally work. 
+> > > Usually there are
+> > > multiple modules so that only the ones that need to be
+> > > loaded are loaded.
+> > > It sounds like you are designing this to be custom compiled
+> > > for each
+> > > system, but that's not usually they way things work.
+> >
+> > I think I didn't express myself clearly.
+> >
+> > Lets say that someone build a kernel X.
+> > This kernel has (from all buses) only USB. The Siano module will build with USB interface driver at this system.
+> >
+> > If the system includes SDIO and OMAP SPI/SPP, the module build will discard the USB interface driver, but the SDIO and the OMAP SPI will be built.
 
-For review __ONLY__ for now - will re-submit after I have pushed 1/8
+The patch you've provided just merge everything. If you're proposing a newer
+model, you should send a patchset with the complete Kbuild refactor. For now,
+it is better to postpone this patch until we merge non-kbuild changes.
 
- arch/arm/mach-pxa/em-x270.c |   22 ++++++++++++++++------
- 1 files changed, 16 insertions(+), 6 deletions(-)
+> Can you name another driver that works this way?  It is considered better
+> to build a new module for a different interface.  That way one can decide
+> at run time if the interface is needed or not and only load the module if
+> needed.  If everything is built into one module then one must decide at
+> compile time what interfaces to support.  But it is often the case that
+> kernels are compiled on different systems than run them.
 
-diff --git a/arch/arm/mach-pxa/em-x270.c b/arch/arm/mach-pxa/em-x270.c
-index bc0f73f..d35bc25 100644
---- a/arch/arm/mach-pxa/em-x270.c
-+++ b/arch/arm/mach-pxa/em-x270.c
-@@ -917,14 +917,24 @@ static int em_x270_sensor_power(struct device *dev, int on)
- 	return 0;
- }
- 
--static struct soc_camera_link iclink = {
--	.bus_id	= 0,
--	.power = em_x270_sensor_power,
--};
--
- static struct i2c_board_info em_x270_i2c_cam_info[] = {
- 	{
- 		I2C_BOARD_INFO("mt9m111", 0x48),
-+	},
-+};
-+
-+static struct soc_camera_link iclink = {
-+	.bus_id		= 0,
-+	.power		= em_x270_sensor_power,
-+	.board_info	= &em_x270_i2c_cam_info[0],
-+	.i2c_adapter_id	= 0,
-+	.module_name	= "mt9m111",
-+};
-+
-+static struct platform_device em_x270_camera = {
-+	.name	= "soc-camera-pdrv",
-+	.id	= -1,
-+	.dev	= {
- 		.platform_data = &iclink,
- 	},
- };
-@@ -936,8 +946,8 @@ static struct i2c_pxa_platform_data em_x270_i2c_info = {
- static void  __init em_x270_init_camera(void)
- {
- 	pxa_set_i2c_info(&em_x270_i2c_info);
--	i2c_register_board_info(0, ARRAY_AND_SIZE(em_x270_i2c_cam_info));
- 	pxa_set_camera_info(&em_x270_camera_platform_data);
-+	platform_device_register(&em_x270_camera);
- }
- #else
- static inline void em_x270_init_camera(void) {}
--- 
-1.6.2.4
+This model also sounds different to me from what I've seen so far.
 
+Cheers,
+Mauro
