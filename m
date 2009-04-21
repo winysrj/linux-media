@@ -1,73 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fw.sj.tdf-pmm.net ([91.197.165.186]:45597 "EHLO
-	mx.fr.smartjog.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754353AbZDQK3w convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Apr 2009 06:29:52 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by mx.fr.smartjog.net (Postfix) with ESMTP id D559D7EE8
-	for <linux-media@vger.kernel.org>; Fri, 17 Apr 2009 12:02:06 +0200 (CEST)
-From: Nicolas Noirbent <nicolas.noirbent@smartjog.com>
-To: linux-media@vger.kernel.org
-Subject: DVB-S / S2 reception issues when upgrading to 2.6.28-6
-Date: Fri, 17 Apr 2009 12:02:22 +0200
+Received: from mail.gmx.net ([213.165.64.20]:37821 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750850AbZDUJOZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Apr 2009 05:14:25 -0400
+Date: Tue, 21 Apr 2009 11:14:30 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] v4l2-subdev: add a v4l2_i2c_new_dev_subdev() function
+In-Reply-To: <53656.62.70.2.252.1240304933.squirrel@webmail.xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0904211112390.6551@axis700.grange>
+References: <53656.62.70.2.252.1240304933.squirrel@webmail.xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200904171202.23300.nicolas.noirbent@smartjog.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Tue, 21 Apr 2009, Hans Verkuil wrote:
 
-Not sure if this is a bug or intended behaviour, but we're having some
-reception issues on some recent DVB-S/S2 cards (Hauppauge Nova S-Plus
-and HVR-4000 Lite) after upgrading from 2.6.19-7 to 2.6.28-6 (Vanilla
-kernel.org versions)
+> 
+> > Video (sub)devices, connecting to SoCs over generic i2c busses cannot
+> > provide a pointer to struct v4l2_device in i2c-adapter driver_data, and
+> > provide their own i2c_board_info data, including a platform_data field.
+> > Add a v4l2_i2c_new_dev_subdev() API function that does exactly the same as
+> > v4l2_i2c_new_subdev() but uses different parameters, and make
+> > v4l2_i2c_new_subdev() a wrapper around it.
+> 
+> Huh? Against what repository are you compiling? The v4l2_device pointer
+> has already been added!
 
-Steps to reproduce:
+Ok, have to rebase then. I guess, it still would be better to do the way I 
+propose in this patch - to add a new function, with i2c_board_info as a 
+parameter and convert v4l2_i2c_new_subdev() to a wrapper around it, than 
+to convert all existing users, agree? Do you also agree with the name?
 
-szap -c /etc/dvb/transponders <sat> -x
-dvbsnoop -adapter 0 -b <PID> | pv > /dev/null
+Thanks
+Guennadi
 
-=> nothing
+> 
+> Regards,
+> 
+>          Hans
+> 
+> >
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
+> > diff --git a/drivers/media/video/v4l2-common.c
+> > b/drivers/media/video/v4l2-common.c
+> > index 1da8cb8..c55fc99 100644
+> > --- a/drivers/media/video/v4l2-common.c
+> > +++ b/drivers/media/video/v4l2-common.c
+> > @@ -783,8 +783,6 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd,
+> > struct i2c_client *client,
+> >  }
+> >  EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
+> >
+> > -
+> > -
+> >  /* Load an i2c sub-device. It assumes that i2c_get_adapdata(adapter)
+> >     returns the v4l2_device and that i2c_get_clientdata(client)
+> >     returns the v4l2_subdev. */
+> > @@ -792,23 +790,34 @@ struct v4l2_subdev *v4l2_i2c_new_subdev(struct
+> > i2c_adapter *adapter,
+> >  		const char *module_name, const char *client_type, u8 addr)
+> >  {
+> >  	struct v4l2_device *dev = i2c_get_adapdata(adapter);
+> > -	struct v4l2_subdev *sd = NULL;
+> > -	struct i2c_client *client;
+> >  	struct i2c_board_info info;
+> >
+> > -	BUG_ON(!dev);
+> > -
+> > -	if (module_name)
+> > -		request_module(module_name);
+> > -
+> >  	/* Setup the i2c board info with the device type and
+> >  	   the device address. */
+> >  	memset(&info, 0, sizeof(info));
+> >  	strlcpy(info.type, client_type, sizeof(info.type));
+> >  	info.addr = addr;
+> >
+> > +	return v4l2_i2c_new_dev_subdev(adapter, module_name, &info, dev);
+> > +}
+> > +EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev);
+> > +
+> > +/* Load an i2c sub-device. It assumes that i2c_get_clientdata(client)
+> > +   returns the v4l2_subdev. */
+> > +struct v4l2_subdev *v4l2_i2c_new_dev_subdev(struct i2c_adapter *adapter,
+> > +		const char *module_name, const struct i2c_board_info *info,
+> > +		struct v4l2_device *dev)
+> > +{
+> > +	struct v4l2_subdev *sd = NULL;
+> > +	struct i2c_client *client;
+> > +
+> > +	BUG_ON(!dev);
+> > +
+> > +	if (module_name)
+> > +		request_module(module_name);
+> > +
+> >  	/* Create the i2c client */
+> > -	client = i2c_new_device(adapter, &info);
+> > +	client = i2c_new_device(adapter, info);
+> >  	/* Note: it is possible in the future that
+> >  	   c->driver is NULL if the driver is still being loaded.
+> >  	   We need better support from the kernel so that we
+> > @@ -835,7 +844,7 @@ error:
+> >  		i2c_unregister_device(client);
+> >  	return sd;
+> >  }
+> > -EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev);
+> > +EXPORT_SYMBOL_GPL(v4l2_i2c_new_dev_subdev);
+> >
+> >  /* Probe and load an i2c sub-device. It assumes that
+> > i2c_get_adapdata(adapter)
+> >     returns the v4l2_device and that i2c_get_clientdata(client)
+> > diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+> > index 3a69056..0722b00 100644
+> > --- a/include/media/v4l2-common.h
+> > +++ b/include/media/v4l2-common.h
+> > @@ -131,6 +131,7 @@ struct i2c_driver;
+> >  struct i2c_adapter;
+> >  struct i2c_client;
+> >  struct i2c_device_id;
+> > +struct i2c_board_info;
+> >  struct v4l2_device;
+> >  struct v4l2_subdev;
+> >  struct v4l2_subdev_ops;
+> > @@ -144,6 +145,10 @@ int v4l2_i2c_attach(struct i2c_adapter *adapter, int
+> > address, struct i2c_driver
+> >     The client_type argument is the name of the chip that's on the
+> > adapter. */
+> >  struct v4l2_subdev *v4l2_i2c_new_subdev(struct i2c_adapter *adapter,
+> >  		const char *module_name, const char *client_type, u8 addr);
+> > +/* Same as above but uses user-provided v4l2_device and i2c_board_info */
+> > +struct v4l2_subdev *v4l2_i2c_new_dev_subdev(struct i2c_adapter *adapter,
+> > +		const char *module_name, const struct i2c_board_info *info,
+> > +		struct v4l2_device *dev);
+> >  /* Probe and load an i2c module and return an initialized v4l2_subdev
+> > struct.
+> >     Only call request_module if module_name != NULL.
+> >     The client_type argument is the name of the chip that's on the
+> > adapter. */
+> >
+> 
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> 
 
-python -c "import time; f = file('/dev/dvb/adapter0/frontend0'); 
-time.sleep(1)"
-
-=> Transfer running again
-
-With Debian packages:
-dvb-apps 1.1.1+rev1207-4
-dvbsnoop 1.4.50-2
-
-Since we basically want constant reception on the DVB network
-interface, we deactivated the power-saving features of the DVB cards:
-
-# cat /etc/modprobe.d/dvb-driver
-options dvb_core dvb_shutdown_timeout=0 dvb_powerdown_on_sleep=0
-
->From what I can gather, only the most recent cards (the HVR4000 and
-the Nova S-Plus) display this kind of behaviour. It would seem the
-power-saving features available on these newer types of card with more
-recent drivers could be the cause of the problem: despite the module
-options, they'd still power off when the frontend is released (once
-again, this is pure speculation on my part).
-
->From time to time, we also lose satellite reception, and the following
-error appears in kern.log:
-cx8802_start_dma() Failed. Unsupported value in .mpeg (0x00000001)
-
-Running szap continuously solves the problem, but it seems like an
-ugly hack to get this working, especially knowing it worked correctly
-in 2.6.19-7.
-
-Cheers,
-
--- 
-Nicolas Noirbent - Core Software Developer
-SmartJog SAS - www.smartjog.com - A TDF Group Company
-Office: 27, blvd Hippolyte Marques 94200 Ivry-sur-Seine - France EU
-Phone: +33 (0)1 5868 6234
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
