@@ -1,103 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f180.google.com ([209.85.221.180]:37264 "EHLO
-	mail-qy0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752134AbZD0DCs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Apr 2009 23:02:48 -0400
-Received: by qyk10 with SMTP id 10so1126490qyk.33
-        for <linux-media@vger.kernel.org>; Sun, 26 Apr 2009 20:02:48 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20]:50696 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753852AbZDUI5M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Apr 2009 04:57:12 -0400
+Date: Tue, 21 Apr 2009 10:57:16 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] v4l2-subdev: add a v4l2_i2c_new_dev_subdev() function
+Message-ID: <Pine.LNX.4.64.0904211051280.6551@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.0904241832120.8309@axis700.grange>
-References: <Pine.LNX.4.64.0904241818130.8309@axis700.grange>
-	 <Pine.LNX.4.64.0904241832120.8309@axis700.grange>
-Date: Mon, 27 Apr 2009 10:57:26 +0800
-Message-ID: <f17812d70904261957m4ebb606axed8b0423ca81f2f6@mail.gmail.com>
-Subject: Re: [PATCH 3/8] ARM: convert pcm990 to the new platform-device
-	soc-camera interface
-From: Eric Miao <eric.y.miao@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Magnus Damm <magnus.damm@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SXQgbG9va3MgdG8gbWUgdGhlIGNoYW5nZSB0byB0aGUgcGxhdGZvcm0gY29kZSBpcyB0byBtb3Zl
-IHRoZSBJMkMgYm9hcmQKaW5mbyByZWdpc3RyYXRpb24gaW50byAnc3RydWN0IHNvY19jYW1lcmFf
-bGluaycuIEFyZSB0aGVyZSBhbnkgc3BlY2lmaWMKcmVhc29uIHRvIGRvIHNvPyBJJ20gYXNzdW1p
-bmcgdGhlIG9yaWdpbmFsIGNvZGUgd29ya3MgZXF1YWxseSB3ZWxsLAphbmQgbGlzdHMgYWxsIHRo
-ZSBpMmMgZGV2aWNlcyBpbiBhIGNlbnRyYWwgcGxhY2UgaXMgc3RyYWlnaHQgZm9yd2FyZC4KCk9u
-IFNhdCwgQXByIDI1LCAyMDA5IGF0IDEyOjQwIEFNLCBHdWVubmFkaSBMaWFraG92ZXRza2kKPGcu
-bGlha2hvdmV0c2tpQGdteC5kZT4gd3JvdGU6Cj4gU2lnbmVkLW9mZi1ieTogR3Vlbm5hZGkgTGlh
-a2hvdmV0c2tpIDxnLmxpYWtob3ZldHNraUBnbXguZGU+Cj4gLS0tCj4KPiBGb3IgcmV2aWV3IF9f
-T05MWV9fIGZvciBub3cgLSB3aWxsIHJlLXN1Ym1pdCBhZnRlciBJIGhhdmUgcHVzaGVkIDEvOAo+
-Cj4gwqBhcmNoL2FybS9tYWNoLXB4YS9wY205OTAtYmFzZWJvYXJkLmMgfCDCoCA1NCArKysrKysr
-KysrKysrKysrKysrKysrKysrKystLS0tLS0KPiDCoDEgZmlsZXMgY2hhbmdlZCwgNDQgaW5zZXJ0
-aW9ucygrKSwgMTAgZGVsZXRpb25zKC0pCj4KPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1w
-eGEvcGNtOTkwLWJhc2Vib2FyZC5jIGIvYXJjaC9hcm0vbWFjaC1weGEvcGNtOTkwLWJhc2Vib2Fy
-ZC5jCj4gaW5kZXggOWNlMWVmMi4uYTFhZTQzNiAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNo
-LXB4YS9wY205OTAtYmFzZWJvYXJkLmMKPiArKysgYi9hcmNoL2FybS9tYWNoLXB4YS9wY205OTAt
-YmFzZWJvYXJkLmMKPiBAQCAtNDI3LDI1ICs0MjcsNTYgQEAgc3RhdGljIHZvaWQgcGNtOTkwX2Nh
-bWVyYV9mcmVlX2J1cyhzdHJ1Y3Qgc29jX2NhbWVyYV9saW5rICpsaW5rKQo+IMKgIMKgIMKgIMKg
-Z3Bpb19idXNfc3dpdGNoID0gLUVJTlZBTDsKPiDCoH0KPgo+IC1zdGF0aWMgc3RydWN0IHNvY19j
-YW1lcmFfbGluayBpY2xpbmsgPSB7Cj4gLSDCoCDCoCDCoCAuYnVzX2lkID0gMCwgLyogTXVzdCBt
-YXRjaCB3aXRoIHRoZSBjYW1lcmEgSUQgYWJvdmUgKi8KPiAtIMKgIMKgIMKgIC5xdWVyeV9idXNf
-cGFyYW0gPSBwY205OTBfY2FtZXJhX3F1ZXJ5X2J1c19wYXJhbSwKPiAtIMKgIMKgIMKgIC5zZXRf
-YnVzX3BhcmFtID0gcGNtOTkwX2NhbWVyYV9zZXRfYnVzX3BhcmFtLAo+IC0gwqAgwqAgwqAgLmZy
-ZWVfYnVzID0gcGNtOTkwX2NhbWVyYV9mcmVlX2J1cywKPiAtfTsKPiAtCj4gwqAvKiBCb2FyZCBJ
-MkMgZGV2aWNlcy4gKi8KPiDCoHN0YXRpYyBzdHJ1Y3QgaTJjX2JvYXJkX2luZm8gX19pbml0ZGF0
-YSBwY205OTBfaTJjX2RldmljZXNbXSA9IHsKPiDCoCDCoCDCoCDCoHsKPiDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoC8qIE11c3QgaW5pdGlhbGl6ZSBiZWZvcmUgdGhlIGNhbWVyYShzKSAqLwo+IMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgSTJDX0JPQVJEX0lORk8oInBjYTk1MzYiLCAweDQxKSwKPiDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoC5wbGF0Zm9ybV9kYXRhID0gJnBjYTk1MzZfZGF0YSwKPiAt
-IMKgIMKgIMKgIH0sIHsKPiArIMKgIMKgIMKgIH0sCj4gK307Cj4gKwo+ICtzdGF0aWMgc3RydWN0
-IGkyY19ib2FyZF9pbmZvIF9faW5pdGRhdGEgcGNtOTkwX2NhbWVyYV9pMmNbXSA9IHsKPiArIMKg
-IMKgIMKgIHsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoEkyQ19CT0FSRF9JTkZPKCJtdDl2MDIy
-IiwgMHg0OCksCj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCAucGxhdGZvcm1fZGF0YSA9ICZpY2xp
-bmssIC8qIFdpdGggZXh0ZW5kZXIgKi8KPiDCoCDCoCDCoCDCoH0sIHsKPiDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoEkyQ19CT0FSRF9JTkZPKCJtdDltMDAxIiwgMHg1ZCksCj4gLSDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCAucGxhdGZvcm1fZGF0YSA9ICZpY2xpbmssIC8qIFdpdGggZXh0ZW5kZXIgKi8K
-PiArIMKgIMKgIMKgIH0sCj4gK307Cj4gKwo+ICtzdGF0aWMgc3RydWN0IHNvY19jYW1lcmFfbGlu
-ayBpY2xpbmtbXSA9IHsKPiArIMKgIMKgIMKgIHsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5i
-dXNfaWQgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgPSAwLCAvKiBNdXN0IG1hdGNoIHdpdGggdGhl
-IGNhbWVyYSBJRCAqLwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLmJvYXJkX2luZm8gwqAgwqAg
-wqAgwqAgwqAgwqAgPSAmcGNtOTkwX2NhbWVyYV9pMmNbMF0sCj4gKyDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCAuaTJjX2FkYXB0ZXJfaWQgwqAgwqAgwqAgwqAgPSAwLAo+ICsgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgLnF1ZXJ5X2J1c19wYXJhbSDCoCDCoCDCoCDCoD0gcGNtOTkwX2NhbWVyYV9xdWVyeV9i
-dXNfcGFyYW0sCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCAuc2V0X2J1c19wYXJhbSDCoCDCoCDC
-oCDCoCDCoD0gcGNtOTkwX2NhbWVyYV9zZXRfYnVzX3BhcmFtLAo+ICsgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgLmZyZWVfYnVzIMKgIMKgIMKgIMKgIMKgIMKgIMKgID0gcGNtOTkwX2NhbWVyYV9mcmVl
-X2J1cywKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5tb2R1bGVfbmFtZSDCoCDCoCDCoCDCoCDC
-oCDCoD0gIm10OXYwMjIiLAo+ICsgwqAgwqAgwqAgfSwgewo+ICsgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgLmJ1c19pZCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCA9IDAsIC8qIE11c3QgbWF0Y2ggd2l0
-aCB0aGUgY2FtZXJhIElEICovCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCAuYm9hcmRfaW5mbyDC
-oCDCoCDCoCDCoCDCoCDCoCA9ICZwY205OTBfY2FtZXJhX2kyY1sxXSwKPiArIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIC5pMmNfYWRhcHRlcl9pZCDCoCDCoCDCoCDCoCA9IDAsCj4gKyDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCAucXVlcnlfYnVzX3BhcmFtIMKgIMKgIMKgIMKgPSBwY205OTBfY2FtZXJhX3F1
-ZXJ5X2J1c19wYXJhbSwKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5zZXRfYnVzX3BhcmFtIMKg
-IMKgIMKgIMKgIMKgPSBwY205OTBfY2FtZXJhX3NldF9idXNfcGFyYW0sCj4gKyDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCAuZnJlZV9idXMgwqAgwqAgwqAgwqAgwqAgwqAgwqAgPSBwY205OTBfY2FtZXJh
-X2ZyZWVfYnVzLAo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLm1vZHVsZV9uYW1lIMKgIMKgIMKg
-IMKgIMKgIMKgPSAibXQ5bTAwMSIsCj4gKyDCoCDCoCDCoCB9LAo+ICt9Owo+ICsKPiArc3RhdGlj
-IHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgcGNtOTkwX2NhbWVyYVtdID0gewo+ICsgwqAgwqAgwqAg
-ewo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLm5hbWUgwqAgPSAic29jLWNhbWVyYS1wZHJ2IiwK
-PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5pZCDCoCDCoCA9IDAsCj4gKyDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCAuZGV2IMKgIMKgPSB7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCAucGxhdGZvcm1fZGF0YSA9ICZpY2xpbmtbMF0sCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCB9
-LAo+ICsgwqAgwqAgwqAgfSwgewo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLm5hbWUgwqAgPSAi
-c29jLWNhbWVyYS1wZHJ2IiwKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5pZCDCoCDCoCA9IDEs
-Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCAuZGV2IMKgIMKgPSB7Cj4gKyDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCAucGxhdGZvcm1fZGF0YSA9ICZpY2xpbmtbMV0sCj4gKyDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCB9LAo+IMKgIMKgIMKgIMKgfSwKPiDCoH07Cj4gwqAjZW5kaWYgLyog
-Q09ORklHX1ZJREVPX1BYQTI3eCB8fENPTkZJR19WSURFT19QWEEyN3hfTU9EVUxFICovCj4gQEAg
-LTUwMSw2ICs1MzIsOSBAQCB2b2lkIF9faW5pdCBwY205OTBfYmFzZWJvYXJkX2luaXQodm9pZCkK
-PiDCoCDCoCDCoCDCoHB4YV9zZXRfY2FtZXJhX2luZm8oJnBjbTk5MF9weGFjYW1lcmFfcGxhdGZv
-cm1fZGF0YSk7Cj4KPiDCoCDCoCDCoCDCoGkyY19yZWdpc3Rlcl9ib2FyZF9pbmZvKDAsIEFSUkFZ
-X0FORF9TSVpFKHBjbTk5MF9pMmNfZGV2aWNlcykpOwo+ICsKPiArIMKgIMKgIMKgIHBsYXRmb3Jt
-X2RldmljZV9yZWdpc3RlcigmcGNtOTkwX2NhbWVyYVswXSk7Cj4gKyDCoCDCoCDCoCBwbGF0Zm9y
-bV9kZXZpY2VfcmVnaXN0ZXIoJnBjbTk5MF9jYW1lcmFbMV0pOwo+IMKgI2VuZGlmCj4KPiDCoCDC
-oCDCoCDCoHByaW50ayhLRVJOX0lORk8gIlBDTS05OTAgRXZhbHVhdGlvbiBiYXNlYm9hcmQgaW5p
-dGlhbGl6ZWRcbiIpOwo+IC0tCj4gMS42LjIuNAo+Cj4KCgoKLS0gCkNoZWVycwotIGVyaWMK
+Video (sub)devices, connecting to SoCs over generic i2c busses cannot 
+provide a pointer to struct v4l2_device in i2c-adapter driver_data, and 
+provide their own i2c_board_info data, including a platform_data field. 
+Add a v4l2_i2c_new_dev_subdev() API function that does exactly the same as 
+v4l2_i2c_new_subdev() but uses different parameters, and make 
+v4l2_i2c_new_subdev() a wrapper around it.
+
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
+index 1da8cb8..c55fc99 100644
+--- a/drivers/media/video/v4l2-common.c
++++ b/drivers/media/video/v4l2-common.c
+@@ -783,8 +783,6 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+ }
+ EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
+ 
+-
+-
+ /* Load an i2c sub-device. It assumes that i2c_get_adapdata(adapter)
+    returns the v4l2_device and that i2c_get_clientdata(client)
+    returns the v4l2_subdev. */
+@@ -792,23 +790,34 @@ struct v4l2_subdev *v4l2_i2c_new_subdev(struct i2c_adapter *adapter,
+ 		const char *module_name, const char *client_type, u8 addr)
+ {
+ 	struct v4l2_device *dev = i2c_get_adapdata(adapter);
+-	struct v4l2_subdev *sd = NULL;
+-	struct i2c_client *client;
+ 	struct i2c_board_info info;
+ 
+-	BUG_ON(!dev);
+-
+-	if (module_name)
+-		request_module(module_name);
+-
+ 	/* Setup the i2c board info with the device type and
+ 	   the device address. */
+ 	memset(&info, 0, sizeof(info));
+ 	strlcpy(info.type, client_type, sizeof(info.type));
+ 	info.addr = addr;
+ 
++	return v4l2_i2c_new_dev_subdev(adapter, module_name, &info, dev);
++}
++EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev);
++
++/* Load an i2c sub-device. It assumes that i2c_get_clientdata(client)
++   returns the v4l2_subdev. */
++struct v4l2_subdev *v4l2_i2c_new_dev_subdev(struct i2c_adapter *adapter,
++		const char *module_name, const struct i2c_board_info *info,
++		struct v4l2_device *dev)
++{
++	struct v4l2_subdev *sd = NULL;
++	struct i2c_client *client;
++
++	BUG_ON(!dev);
++
++	if (module_name)
++		request_module(module_name);
++
+ 	/* Create the i2c client */
+-	client = i2c_new_device(adapter, &info);
++	client = i2c_new_device(adapter, info);
+ 	/* Note: it is possible in the future that
+ 	   c->driver is NULL if the driver is still being loaded.
+ 	   We need better support from the kernel so that we
+@@ -835,7 +844,7 @@ error:
+ 		i2c_unregister_device(client);
+ 	return sd;
+ }
+-EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev);
++EXPORT_SYMBOL_GPL(v4l2_i2c_new_dev_subdev);
+ 
+ /* Probe and load an i2c sub-device. It assumes that i2c_get_adapdata(adapter)
+    returns the v4l2_device and that i2c_get_clientdata(client)
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index 3a69056..0722b00 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -131,6 +131,7 @@ struct i2c_driver;
+ struct i2c_adapter;
+ struct i2c_client;
+ struct i2c_device_id;
++struct i2c_board_info;
+ struct v4l2_device;
+ struct v4l2_subdev;
+ struct v4l2_subdev_ops;
+@@ -144,6 +145,10 @@ int v4l2_i2c_attach(struct i2c_adapter *adapter, int address, struct i2c_driver
+    The client_type argument is the name of the chip that's on the adapter. */
+ struct v4l2_subdev *v4l2_i2c_new_subdev(struct i2c_adapter *adapter,
+ 		const char *module_name, const char *client_type, u8 addr);
++/* Same as above but uses user-provided v4l2_device and i2c_board_info */
++struct v4l2_subdev *v4l2_i2c_new_dev_subdev(struct i2c_adapter *adapter,
++		const char *module_name, const struct i2c_board_info *info,
++		struct v4l2_device *dev);
+ /* Probe and load an i2c module and return an initialized v4l2_subdev struct.
+    Only call request_module if module_name != NULL.
+    The client_type argument is the name of the chip that's on the adapter. */
