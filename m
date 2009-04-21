@@ -1,101 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01d.mail.t-online.hu ([84.2.42.6]:58385 "EHLO
-	mail01d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751516AbZDYILr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Apr 2009 04:11:47 -0400
-Message-ID: <49F2C59A.9010703@freemail.hu>
-Date: Sat, 25 Apr 2009 10:11:06 +0200
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from mail.gmx.net ([213.165.64.20]:60245 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752362AbZDUK2r (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Apr 2009 06:28:47 -0400
+Date: Tue, 21 Apr 2009 12:28:51 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"jongse.won@samsung.com" <jongse.won@samsung.com>,
+	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>
+Subject: Re: Applying SoC camera framework on multi-functional camera interface
+In-Reply-To: <5e9665e10904201833k42a733fdh40b11f499744c85f@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0904210839160.6551@axis700.grange>
+References: <5e9665e10904201833k42a733fdh40b11f499744c85f@mail.gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-CC: LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCH] v4l2: fill the unused fields with zeros in case of VIDIOC_S_FMT
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The VIDIOC_S_FMT is a write-read ioctl: it sets the format and returns
-the current format in case of success. The parameter of VIDIOC_S_FMT
-ioctl is a pointer to struct v4l2_format. [1] This structure contains some
-fields which are not used depending on the .type value. These unused
-fields are filled with zeros with this patch.
+On Tue, 21 Apr 2009, Dongsoo, Nathaniel Kim wrote:
 
-The patch was tested with v4l-test 0.12 [2] with vivi and with
-gspca_sunplus driver together with Trust 610 LCD POWERC@M ZOOM.
+> Hello,
+> 
+> One of my recent work is making S3C64XX camera interface driver with
+> SoC camera framework. Thanks to Guennadi, SoC camera framework is so
+> clear and easy to follow. Actually I didn't need to worry about my
+> whole driver structure, the framework almost has everything that I
+> need.
+> 
+> But here is a problem that I couldn't make up my mind while
+> implementing some of the features of S3C64XX camera IP.
+> As you know, S3C64XX camera IP has scaler and rotator capability on
+> it's own which can be used standalone even memory to memory scaling
+> and rotating jobs.
+> If you want to know in detail please take a look at the user manual
+> (just remind if you have already seen this)  :
+> http://www.ebv.com/fileadmin/products/Products/Samsung/S3C6400/S3C6400X_UserManual_rev1-0_2008-02_661558um.pdf
+> 
+> Telling you about the driver concept that I wanted to make is like following:
+> 
+> (I want to select inputs like external camera and MSDMA using
+> S_INPUT'/G_INPUT but we don't have them in SoC camera framework.
+> So this should be the version of design with current SoC camera framework.)
+> 
+> 1. S3C64XX has preview and codec path
+> 2. Each preview and codec path can have external camera and MSDMA for input
+> 3. make external camera and MSDMA device nodes for each preview and codec.
+>   => Let's assume that we have camera A and B, then it should go like this
+>   /dev/video0 (camera A on preview device)
+>   /dev/video1 (camera B on preview device)
+>   /dev/video2 (MSDMA on preview device)
+>   /dev/video3 (camera A on codec device)
+>   /dev/video4 (camera B on codec device)
+>   /dev/video5 (MSDMA on codec device)
 
-References:
-[1] V4L2 API specification, revision 0.24
-    http://v4l2spec.bytesex.org/spec/r10944.htm
+My proposal was a bit different. You don't need two different output 
+devices per camera - video3 and video4. I suggested to make preview a pure 
+output device, without the ability to select the input. So, if you 
+activate (open) video1, video3 will get data from the first camera. If you 
+activate video2, video3 will preview camera 2.
 
-[2] v4l-test: Test environment for Video For Linux Two API
-    http://v4l-test.sourceforge.net/
+Also, you can have a look at arch/sh/boards/mach-migor/setup.c for an 
+example of handling two cameras on one interface. The only difference to 
+what I have proposed is that they block on open(video1) if video0 is in 
+use and the other way round. Whereas I suggested to return -EBUSY. You can 
+choose.
 
-Signed-off-by: Márton Németh <nm127@freemail.hu>
+> 4. Those device nodes are "device" in SoC camera framework (and S3C
+> camera interface should be "host" device)
+>  => External camera devices can be made in SoC camera device. Fair enough.
+> 
+>   But MSMDA? what should I do If I want to make it as a "device"
+> driver in SoC camera framework?
+>   Any reference that I could have? because I can't find any "device"
+> drivers besides camera sensor,isp drivers.
+>   Please let me know if there is any.
+
+Actually, last time we talked about it I didn't realise, that you can 
+configure the preview path to read data from memory while your codec path 
+processes data from the camera, is this really the case? I didn't study 
+the datasheet in enough detail.
+
+Well, you might look at drivers/media/video/soc_camera_platform.c for an 
+example of a simple "pseudo" camera driver. Of course, with your two 
+additional devices you don't want to add extra platform devices and extra 
+probing. In fact, you can do this with the "old" (currently in the 
+mainline) soc-camera model, where client drivers actively report 
+themselves to the soc-camera core using soc_camera_device_register() / 
+soc_camera_device_unregister() and the core doesn't care about the nature 
+of those drivers. This is not going to be the case with the new platform / 
+v4l2-subdev infrastructure, which is pretty tightly bound to i2c... So, 
+we'll have to extend it too.
+
+I would suggest you reserve slots for those two from-memory video devices 
+in your design, base your design on latest patches on this list (see the 
+patches I just submitted) and concentrate on camera-devices for now. Then 
+we shall see how to add non-i2c video data-sources to the framework.
+
+Thanks
+Guennadi
 ---
---- linux-2.6.30-rc3/drivers/media/video/v4l2-ioctl.c.orig	2009-04-22 05:07:00.000000000 +0200
-+++ linux-2.6.30-rc3/drivers/media/video/v4l2-ioctl.c	2009-04-25 09:05:42.000000000 +0200
-@@ -777,44 +777,61 @@
- 	{
- 		struct v4l2_format *f = (struct v4l2_format *)arg;
-
-+#define CLEAR_UNUSED_FIELDS(data, last_member) \
-+	memset(((u8 *)f)+ \
-+		offsetof(struct v4l2_format, fmt)+ \
-+		sizeof(struct v4l2_ ## last_member), \
-+		0, \
-+		sizeof(*f)- \
-+		offsetof(struct v4l2_format, fmt)+ \
-+		sizeof(struct v4l2_ ## last_member))
-+
- 		/* FIXME: Should be one dump per type */
- 		dbgarg(cmd, "type=%s\n", prt_names(f->type, v4l2_type_names));
-
- 		switch (f->type) {
- 		case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-+			CLEAR_UNUSED_FIELDS(f, pix_format);
- 			v4l_print_pix_fmt(vfd, &f->fmt.pix);
- 			if (ops->vidioc_s_fmt_vid_cap)
- 				ret = ops->vidioc_s_fmt_vid_cap(file, fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_VIDEO_OVERLAY:
-+			CLEAR_UNUSED_FIELDS(f, window);
- 			if (ops->vidioc_s_fmt_vid_overlay)
- 				ret = ops->vidioc_s_fmt_vid_overlay(file,
- 								    fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-+			CLEAR_UNUSED_FIELDS(f, pix_format);
- 			v4l_print_pix_fmt(vfd, &f->fmt.pix);
- 			if (ops->vidioc_s_fmt_vid_out)
- 				ret = ops->vidioc_s_fmt_vid_out(file, fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
-+			CLEAR_UNUSED_FIELDS(f, window);
- 			if (ops->vidioc_s_fmt_vid_out_overlay)
- 				ret = ops->vidioc_s_fmt_vid_out_overlay(file,
- 					fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_VBI_CAPTURE:
-+			CLEAR_UNUSED_FIELDS(f, vbi_format);
- 			if (ops->vidioc_s_fmt_vbi_cap)
- 				ret = ops->vidioc_s_fmt_vbi_cap(file, fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_VBI_OUTPUT:
-+			CLEAR_UNUSED_FIELDS(f, vbi_format);
- 			if (ops->vidioc_s_fmt_vbi_out)
- 				ret = ops->vidioc_s_fmt_vbi_out(file, fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
-+			CLEAR_UNUSED_FIELDS(f, sliced_vbi_format);
- 			if (ops->vidioc_s_fmt_sliced_vbi_cap)
- 				ret = ops->vidioc_s_fmt_sliced_vbi_cap(file,
- 									fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
-+			CLEAR_UNUSED_FIELDS(f, sliced_vbi_format);
- 			if (ops->vidioc_s_fmt_sliced_vbi_out)
- 				ret = ops->vidioc_s_fmt_sliced_vbi_out(file,
- 									fh, f);
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
