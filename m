@@ -1,37 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3O9hmDF012741
-	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 05:43:48 -0400
-Received: from node02.cambriumhosting.nl (node02.cambriumhosting.nl
-	[217.19.16.163])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3O9hTDN025891
-	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 05:43:29 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by node02.cambriumhosting.nl (Postfix) with ESMTP id 73D32B0004F3
-	for <video4linux-list@redhat.com>;
-	Fri, 24 Apr 2009 11:43:28 +0200 (CEST)
-Received: from node02.cambriumhosting.nl ([127.0.0.1])
-	by localhost (node02.cambriumhosting.nl [127.0.0.1]) (amavisd-new,
-	port 10024)
-	with ESMTP id Om156gi+51Re for <video4linux-list@redhat.com>;
-	Fri, 24 Apr 2009 11:43:25 +0200 (CEST)
-Received: from ashley.powercraft.nl (84-245-3-195.dsl.cambrium.nl
-	[84.245.3.195])
-	by node02.cambriumhosting.nl (Postfix) with ESMTP id 7855DB000183
-	for <video4linux-list@redhat.com>;
-	Fri, 24 Apr 2009 11:43:25 +0200 (CEST)
-Received: from [192.168.1.239] (unknown [192.168.1.239])
-	by ashley.powercraft.nl (Postfix) with ESMTPSA id 5290323BC508
-	for <video4linux-list@redhat.com>;
-	Fri, 24 Apr 2009 11:43:25 +0200 (CEST)
-Message-ID: <49F189BC.5090606@powercraft.nl>
-Date: Fri, 24 Apr 2009 11:43:24 +0200
-From: Jelle de Jong <jelledejong@powercraft.nl>
-MIME-Version: 1.0
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3L7Parn017209
+	for <video4linux-list@redhat.com>; Tue, 21 Apr 2009 03:25:36 -0400
+Received: from fk-out-0910.google.com (fk-out-0910.google.com [209.85.128.186])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n3L7PLkp009152
+	for <video4linux-list@redhat.com>; Tue, 21 Apr 2009 03:25:21 -0400
+Received: by fk-out-0910.google.com with SMTP id e30so1225144fke.3
+	for <video4linux-list@redhat.com>; Tue, 21 Apr 2009 00:25:21 -0700 (PDT)
+Date: Tue, 21 Apr 2009 17:27:04 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
 To: video4linux-list@redhat.com
-Content-Type: multipart/mixed; boundary="------------090405010605000707020600"
-Subject: [not working] Conceptronic USB 2.0 Digital TV Receiver - CTVDIGRCU
- - Device Information
+Message-ID: <20090421172704.4abddb29@glory.loctelecom.ru>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/UPe0uj_6FZ37fDkG5XJxz2Y"
+Subject: [PATCH] Behold`s card patch
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -43,120 +25,1077 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-This is a multi-part message in MIME format.
---------------090405010605000707020600
-Content-Type: text/plain; charset=UTF-8
+--MP_/UPe0uj_6FZ37fDkG5XJxz2Y
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Hello everybody,
+Hi All
 
-Apparently I was feeling a bit masochistic today, because I bought a new
-usb dvb-t device with the hope it would work on my 2.6.26 kernel because
-the 2.6.29 is extreme instable and my Digittrade DVB-T USB Stick (Afatech
-DVB-T) (af9015.fw) does not work with mplayer which is a requirement for me.
+Split Beholdr`s cards to correct models.
 
-So I bought a Conceptronic USB 2.0 Digital TV Receiver - CTVDIGRCU, but
-it does not work. Would somebody willing to get this device working? I
-can sent the device to you if you like.
+diff -r 2a6d95947fa1 linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Sun Apr 19 20:21:03 2009 +0000
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue Apr 21 11:21:03 2009 +1000
+@@ -4078,9 +4078,43 @@
+ 	[SAA7134_BOARD_BEHOLD_505FM] = {
+ 		/*       Beholder Intl. Ltd. 2008      */
+ 		/*Dmitry Belimov <d.belimov@gmail.com> */
+-		.name           = "Beholder BeholdTV 505 FM/RDS",
+-		.audio_clock    = 0x00200000,
+-		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.name           = "Beholder BeholdTV 505 FM",
++		.audio_clock    = 0x00200000,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.gpiomask       = 0x00008000,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = LINE2,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.mute = {
++			.name = name_mute,
++			.amux = LINE1,
++		},
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_505RDS] = {
++		/*       Beholder Intl. Ltd. 2008      */
++		/*Dmitry Belimov <d.belimov@gmail.com> */
++		.name           = "Beholder BeholdTV 505 RDS",
++		.audio_clock    = 0x00200000,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+@@ -4112,7 +4146,7 @@
+ 	[SAA7134_BOARD_BEHOLD_507_9FM] = {
+ 		/*       Beholder Intl. Ltd. 2008      */
+ 		/*Dmitry Belimov <d.belimov@gmail.com> */
+-		.name           = "Beholder BeholdTV 507 FM/RDS / BeholdTV 509 FM",
++		.name           = "Beholder BeholdTV 507 FM / BeholdTV 509 FM",
+ 		.audio_clock    = 0x00187de7,
+ 		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
+ 		.radio_type     = UNSET,
+@@ -4139,6 +4173,66 @@
+ 			.amux = LINE2,
+ 		},
+ 	},
++	[SAA7134_BOARD_BEHOLD_507RDS_MK5] = {
++		/*       Beholder Intl. Ltd. 2008      */
++		/*Dmitry Belimov <d.belimov@gmail.com> */
++		.name           = "Beholder BeholdTV 507 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.gpiomask       = 0x00008000,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++			.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_507RDS_MK3] = {
++		/*       Beholder Intl. Ltd. 2008      */
++		/*Dmitry Belimov <d.belimov@gmail.com> */
++		.name           = "Beholder BeholdTV 507 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.gpiomask       = 0x00008000,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++			.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
+ 	[SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM] = {
+ 		/*       Beholder Intl. Ltd. 2008      */
+ 		/*Dmitry Belimov <d.belimov@gmail.com> */
+@@ -4173,11 +4267,207 @@
+ 			.gpio = 0x000A8000,
+ 		},
+ 	},
+-	[SAA7134_BOARD_BEHOLD_607_9FM] = {
+-		/* Andrey Melnikoff <temnota@kmv.ru> */
+-		.name           = "Beholder BeholdTV 607 / BeholdTV 609",
+-		.audio_clock    = 0x00187de7,
+-		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++	[SAA7134_BOARD_BEHOLD_607FM_MK3] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 607 FM",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_609FM_MK3] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 609 FM",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_607FM_MK5] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 607 FM",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_609FM_MK5] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 609 FM",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_607RDS_MK3] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 607 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_609RDS_MK3] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 609 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_607RDS_MK5] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 607 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_609RDS_MK5] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 609 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+@@ -4281,8 +4571,7 @@
+ 		/* Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com> */
+ 		.name           = "Beholder BeholdTV M6 Extra",
+ 		.audio_clock    = 0x00187de7,
+-		/* FIXME: Must be PHILIPS_FM1216ME_MK5*/
+-		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+@@ -5770,14 +6059,8 @@
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
+ 		.subvendor    = 0x0000,
+-		.subdevice    = 0x5051,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_505FM,
+-	},{
+-		.vendor       = PCI_VENDOR_ID_PHILIPS,
+-		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
+-		.subvendor    = 0x0000,
+ 		.subdevice    = 0x505B,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_505FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_505RDS,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
+@@ -5789,13 +6072,13 @@
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x0000,
+ 		.subdevice    = 0x5071,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_507_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_507RDS_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x0000,
+ 		.subdevice    = 0x507B,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_507_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_507RDS_MK5,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+@@ -5819,49 +6102,49 @@
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6070,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_607FM_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6071,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_607FM_MK5,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6072,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_607RDS_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6073,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_607RDS_MK5,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6090,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_609FM_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6091,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_609FM_MK5,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6092,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_609RDS_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6093,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_609RDS_MK5,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+@@ -6325,7 +6608,10 @@
+ 	case SAA7134_BOARD_BEHOLD_407FM:
+ 	case SAA7134_BOARD_BEHOLD_409:
+ 	case SAA7134_BOARD_BEHOLD_505FM:
++	case SAA7134_BOARD_BEHOLD_505RDS:
+ 	case SAA7134_BOARD_BEHOLD_507_9FM:
++	case SAA7134_BOARD_BEHOLD_507RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_507RDS_MK5:
+ 	case SAA7134_BOARD_GENIUS_TVGO_A11MCE:
+ 	case SAA7134_BOARD_REAL_ANGEL_220:
+ 	case SAA7134_BOARD_KWORLD_PLUS_TV_ANALOG:
+@@ -6450,7 +6736,14 @@
+ 	case SAA7134_BOARD_UPMOST_PURPLE_TV:
+ 	case SAA7134_BOARD_MSI_TVATANYWHERE_PLUS:
+ 	case SAA7134_BOARD_HAUPPAUGE_HVR1110:
+-	case SAA7134_BOARD_BEHOLD_607_9FM:
++	case SAA7134_BOARD_BEHOLD_607FM_MK3:
++	case SAA7134_BOARD_BEHOLD_607FM_MK5:
++	case SAA7134_BOARD_BEHOLD_609FM_MK3:
++	case SAA7134_BOARD_BEHOLD_609FM_MK5:
++	case SAA7134_BOARD_BEHOLD_607RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_607RDS_MK5:
++	case SAA7134_BOARD_BEHOLD_609RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_609RDS_MK5:
+ 	case SAA7134_BOARD_BEHOLD_M6:
+ 	case SAA7134_BOARD_BEHOLD_M63:
+ 	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
+diff -r 2a6d95947fa1 linux/drivers/media/video/saa7134/saa7134-input.c
+--- a/linux/drivers/media/video/saa7134/saa7134-input.c	Sun Apr 19 20:21:03 2009 +0000
++++ b/linux/drivers/media/video/saa7134/saa7134-input.c	Tue Apr 21 11:21:03 2009 +1000
+@@ -507,7 +507,10 @@
+ 	case SAA7134_BOARD_BEHOLD_407FM:
+ 	case SAA7134_BOARD_BEHOLD_409:
+ 	case SAA7134_BOARD_BEHOLD_505FM:
++	case SAA7134_BOARD_BEHOLD_505RDS:
+ 	case SAA7134_BOARD_BEHOLD_507_9FM:
++	case SAA7134_BOARD_BEHOLD_507RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_507RDS_MK5:
+ 		ir_codes     = ir_codes_manli;
+ 		mask_keycode = 0x003f00;
+ 		mask_keyup   = 0x004000;
+@@ -718,7 +721,14 @@
+ 		ir->get_key   = get_key_hvr1110;
+ 		ir->ir_codes  = ir_codes_hauppauge_new;
+ 		break;
+-	case SAA7134_BOARD_BEHOLD_607_9FM:
++	case SAA7134_BOARD_BEHOLD_607FM_MK3:
++	case SAA7134_BOARD_BEHOLD_607FM_MK5:
++	case SAA7134_BOARD_BEHOLD_609FM_MK3:
++	case SAA7134_BOARD_BEHOLD_609FM_MK5:
++	case SAA7134_BOARD_BEHOLD_607RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_607RDS_MK5:
++	case SAA7134_BOARD_BEHOLD_609RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_609RDS_MK5:
+ 	case SAA7134_BOARD_BEHOLD_M6:
+ 	case SAA7134_BOARD_BEHOLD_M63:
+ 	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
+diff -r 2a6d95947fa1 linux/drivers/media/video/saa7134/saa7134.h
+--- a/linux/drivers/media/video/saa7134/saa7134.h	Sun Apr 19 20:21:03 2009 +0000
++++ b/linux/drivers/media/video/saa7134/saa7134.h	Tue Apr 21 11:21:03 2009 +1000
+@@ -253,7 +253,7 @@
+ #define SAA7134_BOARD_BEHOLD_505FM	126
+ #define SAA7134_BOARD_BEHOLD_507_9FM	127
+ #define SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM 128
+-#define SAA7134_BOARD_BEHOLD_607_9FM	129
++#define SAA7134_BOARD_BEHOLD_607FM_MK3	129
+ #define SAA7134_BOARD_BEHOLD_M6		130
+ #define SAA7134_BOARD_TWINHAN_DTV_DVB_3056 131
+ #define SAA7134_BOARD_GENIUS_TVGO_A11MCE   132
+@@ -283,6 +283,16 @@
+ #define SAA7134_BOARD_HAUPPAUGE_HVR1110R3   156
+ #define SAA7134_BOARD_AVERMEDIA_STUDIO_507UA 157
+ #define SAA7134_BOARD_AVERMEDIA_CARDBUS_501 158
++#define SAA7134_BOARD_BEHOLD_505RDS         159
++#define SAA7134_BOARD_BEHOLD_507RDS_MK3     160
++#define SAA7134_BOARD_BEHOLD_507RDS_MK5     161
++#define SAA7134_BOARD_BEHOLD_607FM_MK5      162
++#define SAA7134_BOARD_BEHOLD_609FM_MK3      163
++#define SAA7134_BOARD_BEHOLD_609FM_MK5      164
++#define SAA7134_BOARD_BEHOLD_607RDS_MK3     165
++#define SAA7134_BOARD_BEHOLD_607RDS_MK5     166
++#define SAA7134_BOARD_BEHOLD_609RDS_MK3     167
++#define SAA7134_BOARD_BEHOLD_609RDS_MK5     168
+ 
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
 
-The device information is attached in this email.
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
 
-Best regards,
+With my best regards, Dmitry.
+--MP_/UPe0uj_6FZ37fDkG5XJxz2Y
+Content-Type: text/x-patch; name=behold_card_split.patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=behold_card_split.patch
 
-Jelle de Jong
+diff -r 2a6d95947fa1 linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Sun Apr 19 20:21:03 2009 +0000
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue Apr 21 11:21:03 2009 +1000
+@@ -4078,9 +4078,43 @@
+ 	[SAA7134_BOARD_BEHOLD_505FM] = {
+ 		/*       Beholder Intl. Ltd. 2008      */
+ 		/*Dmitry Belimov <d.belimov@gmail.com> */
+-		.name           = "Beholder BeholdTV 505 FM/RDS",
+-		.audio_clock    = 0x00200000,
+-		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.name           = "Beholder BeholdTV 505 FM",
++		.audio_clock    = 0x00200000,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.gpiomask       = 0x00008000,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = LINE2,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.mute = {
++			.name = name_mute,
++			.amux = LINE1,
++		},
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_505RDS] = {
++		/*       Beholder Intl. Ltd. 2008      */
++		/*Dmitry Belimov <d.belimov@gmail.com> */
++		.name           = "Beholder BeholdTV 505 RDS",
++		.audio_clock    = 0x00200000,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+@@ -4112,7 +4146,7 @@
+ 	[SAA7134_BOARD_BEHOLD_507_9FM] = {
+ 		/*       Beholder Intl. Ltd. 2008      */
+ 		/*Dmitry Belimov <d.belimov@gmail.com> */
+-		.name           = "Beholder BeholdTV 507 FM/RDS / BeholdTV 509 FM",
++		.name           = "Beholder BeholdTV 507 FM / BeholdTV 509 FM",
+ 		.audio_clock    = 0x00187de7,
+ 		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
+ 		.radio_type     = UNSET,
+@@ -4139,6 +4173,66 @@
+ 			.amux = LINE2,
+ 		},
+ 	},
++	[SAA7134_BOARD_BEHOLD_507RDS_MK5] = {
++		/*       Beholder Intl. Ltd. 2008      */
++		/*Dmitry Belimov <d.belimov@gmail.com> */
++		.name           = "Beholder BeholdTV 507 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.gpiomask       = 0x00008000,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++			.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_507RDS_MK3] = {
++		/*       Beholder Intl. Ltd. 2008      */
++		/*Dmitry Belimov <d.belimov@gmail.com> */
++		.name           = "Beholder BeholdTV 507 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.gpiomask       = 0x00008000,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++			.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
+ 	[SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM] = {
+ 		/*       Beholder Intl. Ltd. 2008      */
+ 		/*Dmitry Belimov <d.belimov@gmail.com> */
+@@ -4173,11 +4267,207 @@
+ 			.gpio = 0x000A8000,
+ 		},
+ 	},
+-	[SAA7134_BOARD_BEHOLD_607_9FM] = {
+-		/* Andrey Melnikoff <temnota@kmv.ru> */
+-		.name           = "Beholder BeholdTV 607 / BeholdTV 609",
+-		.audio_clock    = 0x00187de7,
+-		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++	[SAA7134_BOARD_BEHOLD_607FM_MK3] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 607 FM",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_609FM_MK3] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 609 FM",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_607FM_MK5] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 607 FM",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_609FM_MK5] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 609 FM",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_607RDS_MK3] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 607 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_609RDS_MK3] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 609 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_607RDS_MK5] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 607 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_609RDS_MK5] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 609 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+@@ -4281,8 +4571,7 @@
+ 		/* Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com> */
+ 		.name           = "Beholder BeholdTV M6 Extra",
+ 		.audio_clock    = 0x00187de7,
+-		/* FIXME: Must be PHILIPS_FM1216ME_MK5*/
+-		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+@@ -5770,14 +6059,8 @@
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
+ 		.subvendor    = 0x0000,
+-		.subdevice    = 0x5051,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_505FM,
+-	},{
+-		.vendor       = PCI_VENDOR_ID_PHILIPS,
+-		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
+-		.subvendor    = 0x0000,
+ 		.subdevice    = 0x505B,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_505FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_505RDS,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
+@@ -5789,13 +6072,13 @@
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x0000,
+ 		.subdevice    = 0x5071,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_507_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_507RDS_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x0000,
+ 		.subdevice    = 0x507B,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_507_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_507RDS_MK5,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+@@ -5819,49 +6102,49 @@
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6070,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_607FM_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6071,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_607FM_MK5,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6072,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_607RDS_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6073,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_607RDS_MK5,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6090,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_609FM_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6091,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_609FM_MK5,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6092,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_609RDS_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6093,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_609RDS_MK5,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+@@ -6325,7 +6608,10 @@
+ 	case SAA7134_BOARD_BEHOLD_407FM:
+ 	case SAA7134_BOARD_BEHOLD_409:
+ 	case SAA7134_BOARD_BEHOLD_505FM:
++	case SAA7134_BOARD_BEHOLD_505RDS:
+ 	case SAA7134_BOARD_BEHOLD_507_9FM:
++	case SAA7134_BOARD_BEHOLD_507RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_507RDS_MK5:
+ 	case SAA7134_BOARD_GENIUS_TVGO_A11MCE:
+ 	case SAA7134_BOARD_REAL_ANGEL_220:
+ 	case SAA7134_BOARD_KWORLD_PLUS_TV_ANALOG:
+@@ -6450,7 +6736,14 @@
+ 	case SAA7134_BOARD_UPMOST_PURPLE_TV:
+ 	case SAA7134_BOARD_MSI_TVATANYWHERE_PLUS:
+ 	case SAA7134_BOARD_HAUPPAUGE_HVR1110:
+-	case SAA7134_BOARD_BEHOLD_607_9FM:
++	case SAA7134_BOARD_BEHOLD_607FM_MK3:
++	case SAA7134_BOARD_BEHOLD_607FM_MK5:
++	case SAA7134_BOARD_BEHOLD_609FM_MK3:
++	case SAA7134_BOARD_BEHOLD_609FM_MK5:
++	case SAA7134_BOARD_BEHOLD_607RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_607RDS_MK5:
++	case SAA7134_BOARD_BEHOLD_609RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_609RDS_MK5:
+ 	case SAA7134_BOARD_BEHOLD_M6:
+ 	case SAA7134_BOARD_BEHOLD_M63:
+ 	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
+diff -r 2a6d95947fa1 linux/drivers/media/video/saa7134/saa7134-input.c
+--- a/linux/drivers/media/video/saa7134/saa7134-input.c	Sun Apr 19 20:21:03 2009 +0000
++++ b/linux/drivers/media/video/saa7134/saa7134-input.c	Tue Apr 21 11:21:03 2009 +1000
+@@ -507,7 +507,10 @@
+ 	case SAA7134_BOARD_BEHOLD_407FM:
+ 	case SAA7134_BOARD_BEHOLD_409:
+ 	case SAA7134_BOARD_BEHOLD_505FM:
++	case SAA7134_BOARD_BEHOLD_505RDS:
+ 	case SAA7134_BOARD_BEHOLD_507_9FM:
++	case SAA7134_BOARD_BEHOLD_507RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_507RDS_MK5:
+ 		ir_codes     = ir_codes_manli;
+ 		mask_keycode = 0x003f00;
+ 		mask_keyup   = 0x004000;
+@@ -718,7 +721,14 @@
+ 		ir->get_key   = get_key_hvr1110;
+ 		ir->ir_codes  = ir_codes_hauppauge_new;
+ 		break;
+-	case SAA7134_BOARD_BEHOLD_607_9FM:
++	case SAA7134_BOARD_BEHOLD_607FM_MK3:
++	case SAA7134_BOARD_BEHOLD_607FM_MK5:
++	case SAA7134_BOARD_BEHOLD_609FM_MK3:
++	case SAA7134_BOARD_BEHOLD_609FM_MK5:
++	case SAA7134_BOARD_BEHOLD_607RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_607RDS_MK5:
++	case SAA7134_BOARD_BEHOLD_609RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_609RDS_MK5:
+ 	case SAA7134_BOARD_BEHOLD_M6:
+ 	case SAA7134_BOARD_BEHOLD_M63:
+ 	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
+diff -r 2a6d95947fa1 linux/drivers/media/video/saa7134/saa7134.h
+--- a/linux/drivers/media/video/saa7134/saa7134.h	Sun Apr 19 20:21:03 2009 +0000
++++ b/linux/drivers/media/video/saa7134/saa7134.h	Tue Apr 21 11:21:03 2009 +1000
+@@ -253,7 +253,7 @@
+ #define SAA7134_BOARD_BEHOLD_505FM	126
+ #define SAA7134_BOARD_BEHOLD_507_9FM	127
+ #define SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM 128
+-#define SAA7134_BOARD_BEHOLD_607_9FM	129
++#define SAA7134_BOARD_BEHOLD_607FM_MK3	129
+ #define SAA7134_BOARD_BEHOLD_M6		130
+ #define SAA7134_BOARD_TWINHAN_DTV_DVB_3056 131
+ #define SAA7134_BOARD_GENIUS_TVGO_A11MCE   132
+@@ -283,6 +283,16 @@
+ #define SAA7134_BOARD_HAUPPAUGE_HVR1110R3   156
+ #define SAA7134_BOARD_AVERMEDIA_STUDIO_507UA 157
+ #define SAA7134_BOARD_AVERMEDIA_CARDBUS_501 158
++#define SAA7134_BOARD_BEHOLD_505RDS         159
++#define SAA7134_BOARD_BEHOLD_507RDS_MK3     160
++#define SAA7134_BOARD_BEHOLD_507RDS_MK5     161
++#define SAA7134_BOARD_BEHOLD_607FM_MK5      162
++#define SAA7134_BOARD_BEHOLD_609FM_MK3      163
++#define SAA7134_BOARD_BEHOLD_609FM_MK5      164
++#define SAA7134_BOARD_BEHOLD_607RDS_MK3     165
++#define SAA7134_BOARD_BEHOLD_607RDS_MK5     166
++#define SAA7134_BOARD_BEHOLD_609RDS_MK3     167
++#define SAA7134_BOARD_BEHOLD_609RDS_MK5     168
+ 
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
 
---------------090405010605000707020600
-Content-Type: text/plain;
-	name="Conceptronic USB 2.0 Digital TV Receiver - CTVDIGRCU - Device
-	Information- v0.1.1j.txt"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
-	filename*0="Conceptronic USB 2.0 Digital TV Receiver - CTVDIGRCU -
-	Devic"; filename*1="e Information - v0.1.1j.txt"
-
-IyB2ZW5kb3IgcHJvZHVjdCBwYWdlOgpodHRwOi8vd3d3LmNvbmNlcHRyb25pYy5uZXQvc2l0
-ZS9kZXNrdG9wZGVmYXVsdC5hc3B4P3RhYmluZGV4PTEmdGFiaWQ9MjQyJmNpZD00MCZnaWQ9
-NDA1MCZwaWQ9Q1RWRElHUkNVCgojIHZlbmRvciBkcml2ZXIgcGFnZQpodHRwOi8vd3d3LmNv
-bmNlcHRyb25pYy5uZXQvc2l0ZS9kZXNrdG9wZGVmYXVsdC5hc3B4P3RhYmluZGV4PTAmdGFi
-aWQ9NDIwJnBjPUNUVkRJR1JDVQoKIyBjb2RlcyBvbiBkZXZpY2U6CjA4MDgwMDI1NwpDVFZE
-SUdSQ1UKVkVSU0lPTiAyLjAKQzA4LTA4MCBVU0IgMi4wIERpZ2l0YWwgVFYgUmVjaWV2ZXIK
-CiMgdmVyc2lvbiAzIGRyaXZlciBjb250YWlucyB0aGUgYmVsb3csIGJ1dCB0aGUgZGV2aWNl
-IGlzIHZlcnNpb24gMi4wCiMgYW5kIHRoZSB2Mi4wIGRyaXZlciBvbiB0aGUgd2ViaXNlIGlz
-IGluIGEgLmV4ZSBpIGNhbnQgZXh0cmFjdC4KQWZhIFRlY2hub2xvZ2llcywgSW5jLgpBRjE1
-QkRBLkRldmljZURlc2MgICAgICA9ICJDb25jZXB0cm9uaWMgQ1RWRElHUkNVIFYzLjAiCkFG
-MTVCREEuRGV2aWNlRGVzYzEgICAgID0gIkRWQi1UIDM4NVUiCkFGMTVCREEuRnJpZW5kbHlO
-YW1lICAgID0gIkFGOTAxNSBCREEgRmlsdGVyIgoKIyBkdXRjaCBzaG9wIHRvIHdoZXJlIHRv
-IGJ1eSB0aGVtOgpodHRwOi8vd3d3LmluZm9ybWF0aXF1ZS5ubC80NDUxNDQvY29uY2VwdHJv
-bmljLXR2L2R2Yi10LWFkYXB0ZXItdXNiMi4wLmh0bWwKCiQgdW5hbWUgLWEKTGludXggZGVi
-aWFuLWVlZXBjIDIuNi4yOS0xLTY4NiAjMSBTTVAgRnJpIEFwciAxNyAxNDozNToxNiBVVEMg
-MjAwOSBpNjg2IEdOVS9MaW51eAoKJCBkcGtnIC1sIHwgZ3JlcCAyLjYuMjkKaWkgIGxpbnV4
-LWltYWdlLTIuNi4yOS0xLTY4NiAgICAyLjYuMjktMyAgICBMaW51eCAyLjYuMjkgaW1hZ2Ug
-b24gUFByby9DZWxlcm9uL1BJSS9QSUlJL1A0CmlpICBsaW51eC1saWJjLWRldiAgICAgICAg
-ICAgICAgMi42LjI5LTMgICAgTGludXggc3VwcG9ydCBoZWFkZXJzIGZvciB1c2Vyc3BhY2Ug
-ZGV2ZWxvcG1lbnQKCiRkbWVzZwpbICAgNDUuOTQ4MDUwXSB1c2IgMS0yOiBuZXcgaGlnaCBz
-cGVlZCBVU0IgZGV2aWNlIHVzaW5nIGVoY2lfaGNkIGFuZCBhZGRyZXNzIDUKWyAgIDQ2LjA4
-MTkyMF0gdXNiIDEtMjogTmV3IFVTQiBkZXZpY2UgZm91bmQsIGlkVmVuZG9yPTE0YWEsIGlk
-UHJvZHVjdD0wMTYwClsgICA0Ni4wODE5MjddIHVzYiAxLTI6IE5ldyBVU0IgZGV2aWNlIHN0
-cmluZ3M6IE1mcj0xLCBQcm9kdWN0PTIsIFNlcmlhbE51bWJlcj0zClsgICA0Ni4wODE5MzJd
-IHVzYiAxLTI6IFByb2R1Y3Q6IERUViBSZWNlaXZlcgpbICAgNDYuMDgxOTM1XSB1c2IgMS0y
-OiBNYW51ZmFjdHVyZXI6IERUViBSZWNlaXZlcgpbICAgNDYuMDgxOTM5XSB1c2IgMS0yOiBT
-ZXJpYWxOdW1iZXI6IDAwMDAwMDAwMDAwNjU2NTgKWyAgIDQ2LjA4MjEyOV0gdXNiIDEtMjog
-Y29uZmlndXJhdGlvbiAjMSBjaG9zZW4gZnJvbSAxIGNob2ljZQoKLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tCgokIHN1ZG8gbHN1c2IgLXZ2diAtZCAxNGFhOjAxNjAKQnVzIDAwMSBEZXZpY2UgMDA1
-OiBJRCAxNGFhOjAxNjAgQVZlck1lZGlhIChhZ2Fpbikgb3IgQyZFCkRldmljZSBEZXNjcmlw
-dG9yOgogIGJMZW5ndGggICAgICAgICAgICAgICAgMTgKICBiRGVzY3JpcHRvclR5cGUgICAg
-ICAgICAxCiAgYmNkVVNCICAgICAgICAgICAgICAgMi4wMAogIGJEZXZpY2VDbGFzcyAgICAg
-ICAgICAgIDAgKERlZmluZWQgYXQgSW50ZXJmYWNlIGxldmVsKQogIGJEZXZpY2VTdWJDbGFz
-cyAgICAgICAgIDAKICBiRGV2aWNlUHJvdG9jb2wgICAgICAgICAwCiAgYk1heFBhY2tldFNp
-emUwICAgICAgICA2NAogIGlkVmVuZG9yICAgICAgICAgICAweDE0YWEgQVZlck1lZGlhIChh
-Z2Fpbikgb3IgQyZFCiAgaWRQcm9kdWN0ICAgICAgICAgIDB4MDE2MAogIGJjZERldmljZSAg
-ICAgICAgICAgIDEuMDAKICBpTWFudWZhY3R1cmVyICAgICAgICAgICAxIERUViBSZWNlaXZl
-cgogIGlQcm9kdWN0ICAgICAgICAgICAgICAgIDIgRFRWIFJlY2VpdmVyCiAgaVNlcmlhbCAg
-ICAgICAgICAgICAgICAgMyAwMDAwMDAwMDAwMDY1NjU4CiAgYk51bUNvbmZpZ3VyYXRpb25z
-ICAgICAgMQogIENvbmZpZ3VyYXRpb24gRGVzY3JpcHRvcjoKICAgIGJMZW5ndGggICAgICAg
-ICAgICAgICAgIDkKICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDIKICAgIHdUb3RhbExl
-bmd0aCAgICAgICAgICAgNDEKICAgIGJOdW1JbnRlcmZhY2VzICAgICAgICAgIDEKICAgIGJD
-b25maWd1cmF0aW9uVmFsdWUgICAgIDEKICAgIGlDb25maWd1cmF0aW9uICAgICAgICAgIDQg
-VVNCMi4wLUJ1bGsmSXNvCiAgICBibUF0dHJpYnV0ZXMgICAgICAgICAweGEwCiAgICAgIChC
-dXMgUG93ZXJlZCkKICAgICAgUmVtb3RlIFdha2V1cAogICAgTWF4UG93ZXIgICAgICAgICAg
-ICAgIDUwMG1BCiAgICBJbnRlcmZhY2UgRGVzY3JpcHRvcjoKICAgICAgYkxlbmd0aCAgICAg
-ICAgICAgICAgICAgOQogICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA0CiAgICAgIGJJ
-bnRlcmZhY2VOdW1iZXIgICAgICAgIDAKICAgICAgYkFsdGVybmF0ZVNldHRpbmcgICAgICAg
-MAogICAgICBiTnVtRW5kcG9pbnRzICAgICAgICAgICAxCiAgICAgIGJJbnRlcmZhY2VDbGFz
-cyAgICAgICAyNTUgVmVuZG9yIFNwZWNpZmljIENsYXNzCiAgICAgIGJJbnRlcmZhY2VTdWJD
-bGFzcyAgICAyNTUgVmVuZG9yIFNwZWNpZmljIFN1YmNsYXNzCiAgICAgIGJJbnRlcmZhY2VQ
-cm90b2NvbCAgICAyNTUgVmVuZG9yIFNwZWNpZmljIFByb3RvY29sCiAgICAgIGlJbnRlcmZh
-Y2UgICAgICAgICAgICAgIDUgQnVsay1JbiwgSW50ZXJmYWNlCiAgICAgIEVuZHBvaW50IERl
-c2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJE
-ZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAw
-eDgxICBFUCAxIElOCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMgogICAgICAg
-ICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIEJ1bGsKICAgICAgICAgIFN5bmNoIFR5cGUg
-ICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAg
-RGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAyMDAgIDF4IDUxMiBieXRlcwog
-ICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDAKICAgIEludGVyZmFjZSBEZXNjcmlw
-dG9yOgogICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA5CiAgICAgIGJEZXNjcmlwdG9y
-VHlwZSAgICAgICAgIDQKICAgICAgYkludGVyZmFjZU51bWJlciAgICAgICAgMAogICAgICBi
-QWx0ZXJuYXRlU2V0dGluZyAgICAgICAxCiAgICAgIGJOdW1FbmRwb2ludHMgICAgICAgICAg
-IDEKICAgICAgYkludGVyZmFjZUNsYXNzICAgICAgIDI1NSBWZW5kb3IgU3BlY2lmaWMgQ2xh
-c3MKICAgICAgYkludGVyZmFjZVN1YkNsYXNzICAgIDI1NSBWZW5kb3IgU3BlY2lmaWMgU3Vi
-Y2xhc3MKICAgICAgYkludGVyZmFjZVByb3RvY29sICAgIDI1NSBWZW5kb3IgU3BlY2lmaWMg
-UHJvdG9jb2wKICAgICAgaUludGVyZmFjZSAgICAgICAgICAgICAgNiBJc28tSW4sIEludGVy
-ZmFjZQogICAgICBFbmRwb2ludCBEZXNjcmlwdG9yOgogICAgICAgIGJMZW5ndGggICAgICAg
-ICAgICAgICAgIDcKICAgICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1CiAgICAgICAg
-YkVuZHBvaW50QWRkcmVzcyAgICAgMHg4MSAgRVAgMSBJTgogICAgICAgIGJtQXR0cmlidXRl
-cyAgICAgICAgICAgIDEKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBJc29j
-aHJvbm91cwogICAgICAgICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUKICAgICAg
-ICAgIFVzYWdlIFR5cGUgICAgICAgICAgICAgICBEYXRhCiAgICAgICAgd01heFBhY2tldFNp
-emUgICAgIDB4MDNhYyAgMXggOTQwIGJ5dGVzCiAgICAgICAgYkludGVydmFsICAgICAgICAg
-ICAgICAgMQpEZXZpY2UgUXVhbGlmaWVyIChmb3Igb3RoZXIgZGV2aWNlIHNwZWVkKToKICBi
-TGVuZ3RoICAgICAgICAgICAgICAgIDEwCiAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNgog
-IGJjZFVTQiAgICAgICAgICAgICAgIDIuMDAKICBiRGV2aWNlQ2xhc3MgICAgICAgICAgICAw
-IChEZWZpbmVkIGF0IEludGVyZmFjZSBsZXZlbCkKICBiRGV2aWNlU3ViQ2xhc3MgICAgICAg
-ICAwCiAgYkRldmljZVByb3RvY29sICAgICAgICAgMAogIGJNYXhQYWNrZXRTaXplMCAgICAg
-ICAgNjQKICBiTnVtQ29uZmlndXJhdGlvbnMgICAgICAyCkRldmljZSBTdGF0dXM6ICAgICAw
-eDAwMDAKICAoQnVzIFBvd2VyZWQpCgo=
---------------090405010605000707020600
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+--MP_/UPe0uj_6FZ37fDkG5XJxz2Y
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -166,4 +1105,4 @@ Content-Disposition: inline
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---------------090405010605000707020600--
+--MP_/UPe0uj_6FZ37fDkG5XJxz2Y--
