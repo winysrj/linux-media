@@ -1,76 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:56401 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752038AbZDULbj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2009 07:31:39 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1LwECO-0001hX-4L
-	for linux-media@vger.kernel.org; Tue, 21 Apr 2009 11:31:36 +0000
-Received: from 41.226.123.118 ([41.226.123.118])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 21 Apr 2009 11:31:36 +0000
-Received: from nizar.saied by 41.226.123.118 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 21 Apr 2009 11:31:36 +0000
-To: linux-media@vger.kernel.org
-From: nizar <nizar.saied@gmail.com>
-Subject: Re: [linux-dvb] technisat skystar usb 2.0
-Date: Tue, 21 Apr 2009 12:32:56 +0200
-Message-ID: <gskaq4$s1$1@ger.gmane.org>
-References: <grverg$k26$1@ger.gmane.org> <200904151251.09812.railis@juvepoland.com>
-Reply-To: nizar.saied@gmail.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <200904151251.09812.railis@juvepoland.com>
+Received: from mail-qy0-f118.google.com ([209.85.221.118]:60998 "EHLO
+	mail-qy0-f118.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753995AbZDVT1I (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Apr 2009 15:27:08 -0400
+Received: by qyk16 with SMTP id 16so298754qyk.33
+        for <linux-media@vger.kernel.org>; Wed, 22 Apr 2009 12:27:07 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <3731df090904171335n16992a79ja9d624ac62e08216@mail.gmail.com>
+References: <3731df090904171335n16992a79ja9d624ac62e08216@mail.gmail.com>
+Date: Wed, 22 Apr 2009 12:27:07 -0700
+Message-ID: <3731df090904221227j2d884646u1382fa91ed776995@mail.gmail.com>
+Subject: Re: DViCO FusionHDTV7 Dual Express and other remotes?
+From: Dave Johansen <davejohansen@gmail.com>
+To: v4l-dvb Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dominik Sito wrote:
-> Monday 13 April 2009 17:31:29 nizar napisał(a):
->> Please help needed.
->> I have skystar usb 2.0 (13d0:2282) i have also the log of usbsnoop 
-> (300
->> Mo) .
->> What are steps to :
->>
->> 1- know if a firmware is needed.
->> 2- if yes how to extract it.
->>
->>
->> thank you
->> Nizar
->>
->>
->> _______________________________________________
->> linux-dvb users mailing list
->> For V4L/DVB development, please use instead linux-
-> media@vger.kernel.org
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> 
-> Just give `lspci -vvv` and `lsusb -vvv` result.
-> Regards.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+On Fri, Apr 17, 2009 at 1:35 PM, Dave Johansen <davejohansen@gmail.com> wrote:
+> I'm setting up a new MythTV system with a DViCO FusionHDTV7 Dual
+> Express and I was able to figure out how to get the remote working
+> thanks to this wiki page (
+> http://linuxtv.org/wiki/index.php/Remote_controllers-V4L ).
+>
+> I have found a few quotes by people who believe that only the remote
+> that came with the card will work, but I haven't found anything
+> definitive. So is it possible to use a different remote with the IR
+> Receiver on the card and LIRC?
 
-Hi Dominik
-I have send the lspci and lsusb.
-I think that b2c2-flexcop-usb.c dont handle usb2.0
-So if I suppose that the frontend is the same as those of skystar 2 pci
-the main tasks are :
--1- Find the firmware of the pci-to-usb controller (Net ship 2282)
--2- Change the b2c2-flexcop-usb.c to work with usb2.0 (bulk urb).
-
-result :
-
--1- ====> Try to extract the firmware from the usbsnoop.log
--2- ====> Not too hard.I trying to write b2c2-flexcop-usb2.c
-
-Thank you.
-Nizar Saied
-
+Just for anyone who stumbles along this later, I was not able to get
+other remotes to work with the receiver in the DViCO FusionHDTV7 Dual
+Express, but the remote that came with it works like a charm if you
+follow the instructions that I referenced above.
+Dave
