@@ -1,33 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2-g21.free.fr ([212.27.42.2]:41249 "EHLO smtp2-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756548AbZDOUgS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Apr 2009 16:36:18 -0400
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/5] soc-camera: host-driver cleanup
-References: <Pine.LNX.4.64.0904151356480.4729@axis700.grange>
-	<Pine.LNX.4.64.0904151400490.4729@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Wed, 15 Apr 2009 22:36:07 +0200
-Message-ID: <873ac9ods8.fsf@free.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from bombadil.infradead.org ([18.85.46.34]:53784 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751010AbZDVXUx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Apr 2009 19:20:53 -0400
+Date: Wed, 22 Apr 2009 20:20:50 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: <gregkh@suse.de>
+Cc: mfuzzey@gmail.com, gregkh@suse.de, greg@kroah.com,
+	linux-media@vger.kernel.org
+Subject: Re: patch
+ usb-pwc-do-not-pass-stack-allocated-buffers-to-usb-core.patch added to
+ gregkh-2.6 tree
+Message-ID: <20090422202050.6526c406@pedra.chehab.org>
+In-Reply-To: <12404340242540@kroah.org>
+References: <20090421194808.8272.8437.stgit@mfuzzey-laptop>
+	<12404340242540@kroah.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+On Wed, 22 Apr 2009 14:00:24 -0700
+<gregkh@suse.de> wrote:
 
-> Embed struct soc_camera_host in platform-specific per host instance objects
-> instead of allocating them statically in drivers, use platform_[gs]et_drvdata
-> consistently, use resource_size().
->
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> 
+> This is a note to let you know that I've just added the patch titled
+> 
+>     Subject: USB: pwc : do not pass stack allocated buffers to USB core.
+> 
+> to my gregkh-2.6 tree.  Its filename is
+> 
+>     usb-pwc-do-not-pass-stack-allocated-buffers-to-usb-core.patch
+> 
+> This tree can be found at 
+>     http://www.kernel.org/pub/linux/kernel/people/gregkh/gregkh-2.6/patches/
+> 
+> 
+> From mfuzzey@gmail.com  Wed Apr 22 13:31:46 2009
+> From: Martin Fuzzey <mfuzzey@gmail.com>
+> Date: Tue, 21 Apr 2009 21:48:09 +0200
+> Subject: USB: pwc : do not pass stack allocated buffers to USB core.
+> To: Greg KH <greg@kroah.com>, <linux-media@vger.kernel.org>
+> Message-ID: <20090421194808.8272.8437.stgit@mfuzzey-laptop>
+> 
+> 
+> This is causes problems on platforms that have alignment requirements
+> for DMA transfers.
+> 
+> Signed-off-by: Martin Fuzzey <mfuzzey@gmail.com>
+> Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
-I you want it for pxa_camera part :
-Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Cheers.
-
---
-Robert
+Cheers,
+Mauro
