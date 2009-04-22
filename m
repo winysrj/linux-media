@@ -1,95 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:24197 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752087AbZDMWmU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Apr 2009 18:42:20 -0400
-Received: by qw-out-2122.google.com with SMTP id 8so2633638qwh.37
-        for <linux-media@vger.kernel.org>; Mon, 13 Apr 2009 15:42:19 -0700 (PDT)
-From: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Reponse from Geniatech Re: X8000A and KWorld ATSC 120
-Date: Mon, 13 Apr 2009 17:42:17 -0500
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Received: from bay0-omc3-s41.bay0.hotmail.com ([65.54.246.241]:49649 "EHLO
+	bay0-omc3-s41.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751162AbZDVChW convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Apr 2009 22:37:22 -0400
+Message-ID: <BAY102-W3864E0FADC1B6127940C3CF740@phx.gbl>
+From: Thomas Nicolai <nickotym@hotmail.com>
+To: Steven Toth <stoth@linuxtv.org>, Ben <pghben@yahoo.com>
+CC: <linux-media@vger.kernel.org>
+Subject: RE: Hauppauge HVR-1500 (aka HP RM436AA#ABA)
+Date: Tue, 21 Apr 2009 21:37:22 -0500
+In-Reply-To: <49EDF076.8030509@linuxtv.org>
+References: <23cedc300904170207w74f50fc1v3858b663de61094c@mail.gmail.com>
+ <BAY102-W34E8EA79DEE83E18177655CF7B0@phx.gbl> <49E9C4EA.30706@linuxtv.org>
+  <loom.20090420T150829-849@post.gmane.org> <49EC9A08.50603@linuxtv.org>
+  <1240245715.5388.126.camel@mountainboyzlinux0>
+ <49ECA8DD.9090708@linuxtv.org>
+  <1240249684.5388.146.camel@mountainboyzlinux0>
+ <49ECBCF0.3060806@linuxtv.org>
+  <1240255677.5388.153.camel@mountainboyzlinux0>
+ <49ECD553.9090707@linuxtv.org>
+  <1240259904.5388.178.camel@mountainboyzlinux0>
+ <49ECEEA3.6010203@linuxtv.org>
+  <1240265172.5388.184.camel@mountainboyzlinux0>
+ <49ED269F.9030603@linuxtv.org>  <BAY102-W2235192D68B3F842A69215CF770@phx.gbl>
+  <49EDF076.8030509@linuxtv.org>
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200904131742.17404.vanessaezekowitz@gmail.com>
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all.  As a follow-up to the remote control support issue for the Kworld ATSC 120, Geniatech sent me a very encouraging reply today.  
 
-Anyone want to take Fang up on his offer?
-
-
-----------  Forwarded Message  ----------
-
-Subject: 答复: Technical request regarding the HDTV Thriller X8000A
-Date: Monday 13 April 2009
-From: "Fang" <Fjj@geniatech.com>
-To: "'Vanessa Ezekowitz'" <vanessaezekowitz@gmail.com>
-
-Dear Vanessa Ezekowitz:
+I got it compiled and can tune channels.   Now i just need to get the frontend working.   "Thanks for checking into this Steve.
 
 
-Thanks for your inquiry. 
+Tom
 
-My name is Fang, product manager of Geniatech. 
+PS  Let me know when the patch gets committed and I will update the page you requested.
 
-1st, we can provide you the remote decoder IC information, including I2C address, r/w API, it is simple, read I2C address every 150ms, and you can get the the key stroke decoding value. 
+----------------------------------------
+> Date: Tue, 21 Apr 2009 12:12:38 -0400
+> From: stoth@linuxtv.org
+> Subject: Re: Hauppauge HVR-1500 (aka HP RM436AA#ABA)
+> To: nickotym@hotmail.com
+> CC: linux-media@vger.kernel.org
+>
+> Thomas Nicolai wrote:
+>> Steve,
+>>
+>> still haven't figured out how not to top post with Hotmail, Sorry. :-) too much of a newb at this.
+>
+> Can't you scroll to the end of the email and insert your message?
+>
+>
+>>
+>> When I get your update below do I pull with the normal method or do I need to pull just from that link? What is the proper procedure for this?
+>
+> See below.
+>
+>>
+>> Tom
+>>
+>>> Date: Mon, 20 Apr 2009 21:51:27 -0400
+>>> From: stoth@linuxtv.org
+>>> Subject: Re: Hauppauge HVR-1500 (aka HP RM436AA#ABA)
+>>> To: pghben@yahoo.com
+>>> CC: linux-media@vger.kernel.org; mchehab@infradead.org
+>>>
+>>>> If there is anything I can do that will help you find the bug, please
+>>>> let me know..
+>>> The issue is fixed.
+>>>
+>>> http://linuxtv.org/hg/~stoth/cx23885-hvr1500/rev/7853c00870e1
+>>>
+>>> It's locking OK for me now. If you can clone, built and test - thus confirm the
+>>> fix - that would be great.
+>>>
+>>> Build instructions on the wiki:
+>>>
+>>> http://linuxtv.org/wiki/index.php/How_to_Obtain%2C_Build_and_Install_V4L-DVB_Device_Drivers
+>>>
+>>> Thanks,
+>>>
+>>> - Steve
+>
+> Hey Tom,
+>
+> I spoke with Ben off-list. He has kindly offered to walk you through the clone,
+> build and install mechanisms off-list, in other words a little one-to-one help.
+> Rather than repeat his email address here, exposing his address, please look
+> back through the mailing list and contact him directly.
+>
+> In the spirit of 'one good turn', if you can spend a few minutes to update the
+> hvr-1500 product page on the linuxtv.org wiki
+> (http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-1500) then you'd be
+> helping another user in the future :)
+>
+> - Steve
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html
 
-2nd, we have step products and both follow this protocol, so it is useful for all our products.
-
-3rd, we'd like to support you directly from the Geniatech, that card is designed by us. 
-
-Finnally,  I'd like to ask you if you can port more linux drivers if we send you samples and tech informations for our other 2 ATSC products: X8350 and X8550. 
-
-I will send you more detailed tech information to you about the remote IC whatever your answer is. 
-
-Best Regards
-Fang  
-
------邮件原件-----
-发件人: Vanessa Ezekowitz [mailto:vanessaezekowitz@gmail.com] 
-发送时间: 2009年4月10日 5:36
-收件人: support@geniatech.com
-主题: Technical request regarding the HDTV Thriller X8000A
-
-THIS IS NOT A USER SUPPORT OR DRIVER REQUEST - WE ALREADY HAVE DRIVERS.
-
-THIS IS A PROGRAMMER'S REQUEST FOR TECHNICAL INFORMATION.
-
-To whom it may concern,
-
-Some time back, I wrote you asking about technical information regarding the Thriller X8000A board.  I never received a reply, so I am writing again.
-
-I own a card that is a chip-for-chip, wire-for-wire clone of the Thriller X8000A, the Kworld HD PCI 120 (also called the "ATSC 120" for short) - it is programmatically indistinguishable from your card.  My apologies in advance if I have mistaken which company first made this particular card.
-
-Anyway...  The manufacturer of my card is refusing to answer my question, claiming that the data I request has been outright lost and can't even be communicated between departments within the company.
-
-So now, I turn to you, as the maker of a 100% compatible card.
-
-We of the Linux community have successfully written open-source drivers for most of the ATSC120/X8000A's  features, except for one:  we wish to add support for this card's remote control unit.
-
-The Linux Community, whom I am sure you are aware represents a very large, rapidly growing market, cannot in good conscience recommend any cards, Geniatech or otherwise, which lack complete programming information.
-
-QUESTION:
-
-On my particular card, this appears to be a 20 pin SMD IC near the IR sensor connector.  the manufacturer of my cloned card has deliberately removed all the markings from the chip, save for a single green dot of paint, and users who own your card have reported similar circumstances.
-
-Is this mystery chip the remote decoder/receiver chip as I suspect?
-
-What is the part number of this chip?
-
-What I2C address does it occupy?
-
-Where can I acquire a datasheet for it?
-
-I await your reply.
-
---
-"There are some things in life worth obsessing over.  Most things aren't, and when you learn that, life improves."
-http://starbase.globalpc.net/~vanessa/
-Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
+_________________________________________________________________
+Rediscover Hotmail�: Get quick friend updates right in your inbox. 
+http://windowslive.com/RediscoverHotmail?ocid=TXT_TAGLM_WL_HM_Rediscover_Updates2_042009
