@@ -1,84 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:61726 "EHLO mail1.radix.net"
+Received: from smtp5-g21.free.fr ([212.27.42.5]:44535 "EHLO smtp5-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751465AbZDDWlv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 4 Apr 2009 18:41:51 -0400
-Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
-	model
-From: Andy Walls <awalls@radix.net>
-To: Mike Isely <isely@pobox.com>
-Cc: Jean Delvare <khali@linux-fr.org>,
-	LMML <linux-media@vger.kernel.org>,
+	id S1752435AbZDVRPl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Apr 2009 13:15:41 -0400
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <1238883855.2995.30.camel@morgan.walls.org>
-References: <20090404142427.6e81f316@hyperion.delvare>
-	 <20090404142837.3e12824c@hyperion.delvare>
-	 <1238852529.2845.34.camel@morgan.walls.org>
-	 <Pine.LNX.4.64.0904041059080.32720@cnc.isely.net>
-	 <1238883855.2995.30.camel@morgan.walls.org>
-Content-Type: text/plain
-Date: Sat, 04 Apr 2009 18:39:11 -0400
-Message-Id: <1238884751.2995.38.camel@morgan.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Magnus Damm <magnus.damm@gmail.com>
+Subject: Re: [PATCH/RFC v1] soc-camera: (partially) convert to v4l2-(sub)dev API
+References: <Pine.LNX.4.64.0904211102400.6551@axis700.grange>
+	<Pine.LNX.4.64.0904211215290.6551@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Wed, 22 Apr 2009 19:15:28 +0200
+In-Reply-To: <Pine.LNX.4.64.0904211215290.6551@axis700.grange> (Guennadi Liakhovetski's message of "Tue\, 21 Apr 2009 12\:19\:43 +0200 \(CEST\)")
+Message-ID: <873ac0pq33.fsf@free.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-04-04 at 18:25 -0400, Andy Walls wrote:
-> On Sat, 2009-04-04 at 11:05 -0500, Mike Isely wrote:
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-> So my rough outline of an idea (which probably runs slightly afoul of
-> Hans' media_controller device, but we don't have it yet):
-> 
-> 1. Add a function to the v4l2 framework to iterate over all the
-> v4l2_device's that are registered (if there isn't one already).
-> 
-> 2. Add a method to the v4l2_device class to return the IR subdevice for
-> a given v4l2_device:
-> 
-> 	v4l2_subdev *v4l2_device_get_ir_subdev(v4l2_device *dev);
-> 
-> and if it returns NULL, that device has no IR chip.
-> 
-> 
-> 3. To the v4l2_subdev framework add:
-> 
-> 	struct v4l2_subdev_ir_ops {
-> 		(*enumerate) (v4l2_subdev *sd, /* bus_type, bus #, addr for Rx, addr for Tx */);
-> 		(*claim) (v4l2_subdev *sd, /* claiming driver name string, going-away callback function pointer */);
-> 		(*release) (v4l2_subdev *sd, /* handle */);
-> 		bool (*is_claimed) (v4l2_subdev *sd, /* output string of the "owner" */);
-> 		/* Or maybe just */
-> 		(*send) (v4l2_subdev *sd, /* data buffer */);
-> 		(*receive) (v4l2_subdev *sd, /* data buffer */);
-> 	}
-> 
-> and have the bridge driver support these.  (I also had some in mind for
-> the IR micro-controller debug/programming port, but the above will fit
-> the task at hand I think.)
-> 
-> 
-> OK so that's all a bit rough around the edges.  The idea is a uniform
-> call in for ir-kdb-i2c or lirc_foo or ir_foo to get at an IR chip behind
-> a bridge device, that the bridge device driver itself cares about very
-> little.  *Except* ir driver modules would be coordinated by the bridge
-> driver in what they can and cannot do to get at the IR device.  This
-> coordination prevents bad things on the bridge chip's I2C bus(es) or
-> from having modules racing to get the IR device.  That way whatever
-> module the user loads will get first shot at claiming the IR chip.  This
-> also provides a discovery mechanism four use by ir driver modules that
-> is informed by the bridge chip driver.  I think lirc_foo can also still
-> use it's current way of doing business too. 
-> 
-> It really just looks like a small subset of what Hans intended for the
-> media controller, so maybe this would be a good chance to get some
-> "lessons learned."
+> ...as promised, my current stack is at 
+> http://download.open-technology.de/20090421/. To encourage you to test it 
+> now without waiting for my rebase - the functionality shall be exactly the 
+> same after the rebase, it really shouldn't change much, or so I hope at 
+> least...
 
-Oops.  That leaves DTV only devices with IR out in the cold, unless they
-start to implement a v4l2_device and IR v4l2_subdev as well, or unless
-they were never used with ir-kbd-i2c in the first place.
+Heuh, well I won't be very merry on that one. It seems the first stack I saw a
+while ago is back. Maybe a forgotten patch or something ?
 
-Regards,
-Andy
+[ 1865.359938] [<c0158be8>] (dev_driver_string+0x0/0x48) from [<bf01ccdc>] (pxa_camera_probe+0x2d0/0x41c [pxa_camera])
+[ 1865.367855] [<bf01ca0c>] (pxa_camera_probe+0x0/0x41c [pxa_camera]) from [<c015d3f0>] (platform_drv_probe+0x20/0x24)
+[ 1865.375776] [<c015d3d0>] (platform_drv_probe+0x0/0x24) from [<c015c44c>] (driver_probe_device+0x88/0x188)
+[ 1865.383638] [<c015c3c4>] (driver_probe_device+0x0/0x188) from [<c015c5dc>] (__driver_attach+0x90/0x94)
+[ 1865.391472]  r7:c015c54c r6:bf01f494 r5:c02f6bfc r4:c02f6bc8
+[ 1865.395448] [<c015c54c>] (__driver_attach+0x0/0x94) from [<c015b95c>] (bus_for_each_dev+0x5c/0x88)
+[ 1865.403200]  r6:bf01f494 r5:c04efe50 r4:00000000
+[ 1865.407058] [<c015b900>] (bus_for_each_dev+0x0/0x88) from [<c015c2c8>] (driver_attach+0x20/0x28)
+[ 1865.414696]  r7:c0589320 r6:bf01f494 r5:bf01f510 r4:00000000
+[ 1865.418554] [<c015c2a8>] (driver_attach+0x0/0x28) from [<c015bf74>] (bus_add_driver+0xac/0x220)
+[ 1865.426118] [<c015bec8>] (bus_add_driver+0x0/0x220) from [<c015c85c>] (driver_register+0x64/0x148)
+[ 1865.433671]  r8:bf01e064 r7:00000000 r6:bf01f494 r5:bf01f510 r4:0002400f
+[ 1865.437530] [<c015c7f8>] (driver_register+0x0/0x148) from [<c015d898>] (platform_driver_register+0x6c/0x88)
+[ 1865.445045]  r8:bf01e064 r7:00000000 r6:c04ee000 r5:bf01f510 r4:0002400f
+[ 1865.448875] [<c015d82c>] (platform_driver_register+0x0/0x88) from [<bf01e078>] (pxa_camera_init+0x14/0x1c [pxa_camera])
+[ 1865.456380] [<bf01e064>] (pxa_camera_init+0x0/0x1c [pxa_camera]) from [<c0022294>] (do_one_initcall+0x34/0x188)
+[ 1865.463876] [<c0022260>] (do_one_initcall+0x0/0x188) from [<c005d7f4>] (sys_init_module+0x90/0x1a0)
+[ 1865.471331] [<c005d764>] (sys_init_module+0x0/0x1a0) from [<c0022e40>] (ret_fast_syscall+0x0/0x2c)
+[ 1865.478727]  r7:00000080 r6:00000003 r5:0002400f r4:00000000
 
+Cheers.
+
+--
+Robert
