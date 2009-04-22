@@ -1,112 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1632 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750970AbZDUM5r (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:38485 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754012AbZDVCZ3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2009 08:57:47 -0400
-Message-ID: <43394.62.70.2.252.1240318665.squirrel@webmail.xs4all.nl>
-Date: Tue, 21 Apr 2009 14:57:45 +0200 (CEST)
-Subject: Re: [PATCH] v4l2-subdev: add a v4l2_i2c_new_dev_subdev() function
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: gatoguan-os@yahoo.com
-Cc: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
-	linux-i2c@vger.kernel.org
-MIME-Version: 1.0
+	Tue, 21 Apr 2009 22:25:29 -0400
+Date: Tue, 21 Apr 2009 23:25:19 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: vaka@newmail.ru
+Cc: hermann pitton <hermann-pitton@arcor.de>,
+	akpm@linux-foundation.org, mm-commits@vger.kernel.org,
+	mkrufky@linuxtv.org, hartmut.hackmann@t-online.de,
+	linux-media@vger.kernel.org
+Subject: Re: +
+ drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505.patch
+ added to -mm tree
+Message-ID: <20090421232519.51365265@pedra.chehab.org>
+In-Reply-To: <1240356078.22263.33.camel@pc07.localdom.local>
+References: <200904202021.n3KKLGvd000469@imap1.linux-foundation.org>
+	<1240356078.22263.33.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, 22 Apr 2009 01:21:18 +0200
+hermann pitton <hermann-pitton@arcor.de> wrote:
 
->
-> On 21/4/09, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
->> On Tue, 21 Apr 2009, Agustin wrote:
->> >
->> > Hi,
->> >
->> > On 21/4/09, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
->> > > Video (sub)devices, connecting to SoCs over generic i2c busses
->> cannot
->> > > provide a pointer to struct v4l2_device in i2c-adapter driver_data,
->> and
->> > > provide their own i2c_board_info data, including a platform_data
->> field.
->> > > Add a v4l2_i2c_new_dev_subdev() API function that does exactly the
->> same
->> > > as v4l2_i2c_new_subdev() but uses different parameters, and make
->> > > v4l2_i2c_new_subdev() a wrapper around it.
->> >
->> > [snip]
->> >
->> > I am wondering about this ongoing effort and its pursued goal: is it
->> > to hierarchize the v4l architecture, adding new abstraction levels?
->> > If so, what for?
->
->> Driver-reuse. soc-camera framework will be able to use all available and
->> new v4l2-subdev drivers, and vice versa.
->
-> Well, "Driver reuse." sounds more as a mantra than a reason for me. Then I
-> can't find any "available" v4l2-subdev driver in 2.6.29.
+> Vasily, your change in saa7134-video.c has broken support for all other
+> SECAM standards and users can't change them from the applications
+> anymore.
+> 
+> After years of trouble, it has very good reasons that we have it as it
+> is and it was a lot of work to make it usable for all, since different
+> Secam auto detection through the tvaudio kernelthread turned out to be
+> impossible.
+> 
+> Here is Hartmut's original patch, on which you touch, after working for
+> a weekend with a signal generator to find a resolution suitable for all.
+> http://linuxtv.org/hg/v4l-dvb/rev/84a832a5ffc9
 
-Look in 2.6.30. Also look in Documentation/video4linux/v4l2-framework.txt
-which documents the new framework.
+The trouble pointed by Hermann is caused by this hunk:
 
-> I assume this subdev stuff plays a mayor role in current V4L2 architecture
-> refactorization. Then we probably should take this opportunity to relieve
-> V4L APIs from all its explicit I2C mangling, because...
+diff -puN drivers/media/video/saa7134/saa7134-video.c~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505 drivers/media/video/saa7134/saa7134-video.c
+--- a/drivers/media/video/saa7134/saa7134-video.c~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505
++++ a/drivers/media/video/saa7134/saa7134-video.c
+@@ -39,7 +39,7 @@ static unsigned int gbuffers      = 8;
+ static unsigned int noninterlaced; /* 0 */
+ static unsigned int gbufsize      = 720*576*4;
+ static unsigned int gbufsize_max  = 720*576*4;
+-static char secam[] = "--";
++static char secam[] = "dk";
+ module_param(video_debug, int, 0644);
+ MODULE_PARM_DESC(video_debug,"enable debug messages [video]");
+ module_param(gbuffers, int, 0444);
 
-That is the case if you use v4l2_subdev. That's completely bus independent.
+This disables SECAM autodetection, forcing the driver to use SECAM/DK. Just
+removing this will fix this issue.
 
->> > To me, as an eventual driver developer, this makes it harder to
->> > integrate my own drivers, as I use I2C and V4L in my system but I
->> > don't want them to be tightly coupled.
->
->> This conversion shouldn't make the coupling any tighter.
->
-> But still I think V4L system should not be aware of I2C at all.
->
-> To me, V4L is a kernel subsystem in charge of moving multimedia data
-> from/to userspace/hardware, and the APIs should reflect just that.
->
-> If one V4L driver uses I2C for device control, what does V4L have to say
-> about that, really? Or why V4L would never care about usb or SPI links?
->
-> I2C and V4L should stay cleanly and clearly apart.
+> Also please don't jump around with the card #define in saa7134.h.
+> We keep it there like they historically do appear.
 
-Again, that's what v4l2_subdev does. And in fact it is used like that
-already in the ivtv and cx18 drivers.
+--- a/drivers/media/video/saa7134/saa7134.h~drivers-media-video-saa7134-add-tuner-support-for-avermedia-studio-505
++++ a/drivers/media/video/saa7134/saa7134.h
+@@ -159,6 +159,7 @@ struct saa7134_format {
+ #define SAA7134_BOARD_AVERMEDIA_DVD_EZMAKER 33
+ #define SAA7134_BOARD_NOVAC_PRIMETV7133 34
+ #define SAA7134_BOARD_AVERMEDIA_STUDIO_305 35
++#define SAA7134_BOARD_AVERMEDIA_STUDIO_505 158
+ #define SAA7134_BOARD_UPMOST_PURPLE_TV 36
+ #define SAA7134_BOARD_ITEMS_MTV005     37
+ #define SAA7134_BOARD_CINERGY200       38
 
->> > Of course I can ignore this "subdev" stuff and just link against
->> > soc-camera which is what I need, and manage I2C without V4L knowing
->> > about it. Which is what I do.
->
->> You won't be able to. The only link to woc-camera will be the
->> v4l2-subdev link. Already now with this patch many essential
->> soc-camera API operations are gone.
->
-> I guess you mean that I will have to use v4l2-subdev interface to connect
-> to soc-camera, and not to surrender my I2C management to an I2C-extraneous
-> subsystem. Is that right?
->
-> (Sorry for arriving this late to the discussion just to critizise your
-> good efforts.)
+Agreed. The boards are ordered by number, not by name. Since the board number
+should be unique, ordering by something else will likely create duplicate
+numbers.
 
-All i2c v4l drivers should use v4l2_subdev so that they can be reused in
-other PCI/USB/platform/whatever drivers. Currently sensor drivers such as
-mt9m111 are tied to soc-camera and are impossible to reuse in e.g. a USB
-webcam driver. In 2.6.30 all i2c v4l drivers used by PCI and USB drivers
-are converted to v4l2_subdev. By 2.6.31 I hope that the soc-camera i2c
-drivers and the i2c drivers based on v4l2-int-device.h are also converted,
-thus making the i2c v4l drivers completely reusable.
-
-In addition, the flexibility of v4l2_subdev allows it to be used for other
-non-i2c devices as well.
-
-Regards,
-
-        Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
+Cheers,
+Mauro
