@@ -1,105 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:48135 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751810AbZDMUQt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Apr 2009 16:16:49 -0400
-Date: Mon, 13 Apr 2009 22:16:46 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] pxa_camera: Documentation of the FSM
-In-Reply-To: <1239641940-27918-1-git-send-email-robert.jarzmik@free.fr>
-Message-ID: <Pine.LNX.4.64.0904132208050.1587@axis700.grange>
-References: <1239641940-27918-1-git-send-email-robert.jarzmik@free.fr>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from e8.ny.us.ibm.com ([32.97.182.138]:43245 "EHLO e8.ny.us.ibm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750902AbZDVOKh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Apr 2009 10:10:37 -0400
+Subject: Re: [BUILD FAILURE 04/04] Next April 21 : x86_64 randconfig
+	[drivers/built-in.o]
+From: Subrata Modak <subrata@linux.vnet.ibm.com>
+Reply-To: subrata@linux.vnet.ibm.com
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>,
+	srinivasa.deevi@conexant.com, linux-media@vger.kernel.org,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next <linux-next@vger.kernel.org>,
+	sachinp <sachinp@linux.vnet.ibm.com>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	Alexander Beregalov <a.beregalov@gmail.com>
+In-Reply-To: <20090421140847.509f8c59@pedra.chehab.org>
+References: <1240332728.9110.40.camel@subratamodak.linux.ibm.com>
+	 <20090421140847.509f8c59@pedra.chehab.org>
+Content-Type: text/plain
+Date: Wed, 22 Apr 2009 19:40:18 +0530
+Message-Id: <1240409418.26824.0.camel@subratamodak.linux.ibm.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 13 Apr 2009, Robert Jarzmik wrote:
-
-> After DMA redesign, the pxa_camera dynamic behaviour should
-> be documented so that future contributors understand how it
-> works, and improve it.
+On Tue, 2009-04-21 at 14:08 -0300, Mauro Carvalho Chehab wrote:
+> On Tue, 21 Apr 2009 22:22:08 +0530
+> Subrata Modak <subrata@linux.vnet.ibm.com> wrote:
 > 
-> Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
-> ---
->  Documentation/video4linux/pxa_camera.txt |   49 ++++++++++++++++++++++++++++++
->  1 files changed, 49 insertions(+), 0 deletions(-)
+> > Observed the following build error. Reported this on 8th and 14th April
+> > Next build errors:
+> > 
+> > http://lkml.org/lkml/2009/4/14/473,
+> > 
+> > Patch was already provided by Randy on 7th April. This is still to hit
+> > the tree:
+> > http://lkml.org/lkml/2009/4/7/400,
+> > 
 > 
-> diff --git a/Documentation/video4linux/pxa_camera.txt b/Documentation/video4linux/pxa_camera.txt
-> index b1137f9..b595e94 100644
-> --- a/Documentation/video4linux/pxa_camera.txt
-> +++ b/Documentation/video4linux/pxa_camera.txt
-> @@ -26,6 +26,55 @@ Global video workflow
->  
->       Once the last buffer is filled in, the QCI interface stops.
->  
-> +  c) Capture global finite state machine schema
-> +
-> +      +----+                             +---+  +----+
-> +      | DQ |                             | Q |  | DQ |
-> +      |    v                             |   v  |    v
-> +    +-----------+                     +------------------------+
-> +    |   STOP    |                     | Wait for capture start |
-> +    +-----------+         Q           +------------------------+
-> ++-> | QCI: stop | ------------------> | QCI: run               | <------------+
-> +|   | DMA: stop |                     | DMA: stop              |              |
-> +|   +-----------+             +-----> +------------------------+              |
-> +|                            /                            |                   |
-> +|                           /             +---+  +----+   |                   |
-> +|capture list empty        /              | Q |  | DQ |   | QCI Irq EOF       |
-> +|                         /               |   v  |    v   v                   |
-> +|   +--------------------+             +----------------------+               |
-> +|   | DMA hotlink missed |             |    Capture running   |               |
-> +|   +--------------------+             +----------------------+               |
-> +|   | QCI: run           |     +-----> | QCI: run             | <-+           |
-> +|   | DMA: stop          |    /        | DMA: run             |   |           |
-> +|   +--------------------+   /         +----------------------+   | Other     |
-> +|     ^                     /DMA still            |               | channels  |
-> +|     | capture list       /  running             | DMA Irq End   | not       |
-> +|     | not empty         /                       |               | finished  |
-> +|     |                  /                        v               | yet       |
-> +|   +----------------------+           +----------------------+   |           |
-> +|   |  Videobuf released   |           |  Channel completed   |   |           |
-> +|   +----------------------+           +----------------------+   |           |
-> +|   | QCI: run             |           | QCI: run             | --+           |
-> +|   | DMA: run             |           | DMA: run             |               |
-> +|   +----------------------+           +----------------------+               |
-> +|              ^                      /           |                           |
-> +|              |          no overrun /            | overrun                   |
-> +|              |                    /             v                           |
-> +|   +--------------------+         /   +----------------------+               |
-> +|   |  Frame completed   |        /    |     Frame overran    |               |
-> +|   +--------------------+ <-----+     +----------------------+ restart frame |
-> ++-- | QCI: run           |             | QCI: stop            | --------------+
-> +    | DMA: run           |             | DMA: stop            |
-> +    +--------------------+             +----------------------+
-> +
-> +    Legend: - each box is a FSM state
-> +            - each arrow is the condition to transition to another state
-> +            - an arrow with a comment is a mandatory transition (no condition)
-> +            - arrow "Q" means : a buffer was enqueued
-> +            - arrow "DQ" means : a buffer was dequeued
-> +            - "QCI: stop" means the QCI interface is not enabled
-> +            - "DMA: stop" means all 3 DMA channels are stopped
-> +            - "DMA: run" means at least 1 DMA channel is still running
->  
->  DMA usage
->  ---------
+> Probably Stephen picked from my tree before I merge this patch on my linux-next tree:
+> 
+> http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-next.git;a=commit;h=c4f0ad35d1df1fed5fae477f806aa8daf5545520
+> 
+> This error should disappear on the today's build.
 
-Cool, nice:-) One question though: shouldn't the "capture list empty" 
-transition start from "Videobuf released" state? Or maybe you want to 
-reorginise the "Videobuf released" and "Frame completed" states a bit to 
-separate cases
+Great. Thanks.
 
-- capture list empty
-- capture list not empty
-  - DMA still running - hot-linking success
-  - DMA stopped - restart
+--Subrata
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+> 
+
