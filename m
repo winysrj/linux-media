@@ -1,41 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:21482 "EHLO mga11.intel.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:50079 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751243AbZD3ISk convert rfc822-to-8bit (ORCPT
+	id S1750751AbZDVGYE convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2009 04:18:40 -0400
-From: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
+	Wed, 22 Apr 2009 02:24:04 -0400
+From: "Shah, Hardik" <hardik.shah@ti.com>
 To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "Johnson, Charles F" <charles.f.johnson@intel.com>,
-	"Zhu, Daniel" <daniel.zhu@intel.com>
-Date: Thu, 30 Apr 2009 16:18:01 +0800
-Subject: [PATCH 0/5] V4L2 patches for Intel Moorestown Camera Imaging Drivers
-Message-ID: <0A882F4D99BBF6449D58E61AAFD7EDD613793923@pdsmsx502.ccr.corp.intel.com>
-References: <90b950fc0904292317m500820efv66755aed31b46853@mail.gmail.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB030548BA1B@dbde02.ent.ti.com>
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030548BA1B@dbde02.ent.ti.com>
+CC: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Date: Wed, 22 Apr 2009 11:53:54 +0530
+Subject: RE: [PATCH 0/3] V4L2 driver for OMAP2/3 with new CIDs.
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03051F7F1B@dbde02.ent.ti.com>
 Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi All,
 
-Here is the a set of V4L2 camera sensors and ISP drivers to support the Intel Moorestown camera imaging subsystem. The Camera Imaging interface in Moorestown is responsible for capturing both still and video frames. The CI handles demosaicing, color synthesis, filtering, image enhancement functions and JPEG encode. Intel Moorestown platform can support either a single camera or two cameras. A platform with two cameras will have on the same side as this display and the second on the opposite side the display. The camera on the display side will be used for video conferencing (with low resolution SoC cameras) and the other camera is used to still image capture or video recode (with high resolution RAW cameras).
+> -----Original Message-----
+> From: Shah, Hardik
+> Sent: Friday, March 20, 2009 10:49 AM
+> To: linux-media@vger.kernel.org
+> Cc: linux-omap@vger.kernel.org
+> Subject: [PATCH 0/3] V4L2 driver for OMAP2/3 with new CIDs.
+> 
+> Hi All,
+> I will be posting series of three patches for the V4L2 driver on the OMAP2/3
+> DSS.
+> 
+> Patch 1 -
+> This is the second revision of the patch.
+> Documentation added for the following new CIDs and bit fields added in V4L2
+> framework.
+> 
+> V4L2_CID_BG_COLOR: Added new CID for setting of the back ground color on the
+> output device.
+> V4L2_CID_ROTATION: Added new CID for setting up of the rotation on the device.
+> Both of the above ioctls are discussed in detail.
+> 
+> V4L2_FBUF_FLAG_SRC_CHROMAKEY: Added the flags bit field to the flags field of
+> the v4l2_framebuffer structure for supporting the source chroma keying.  It's
+> exactly opposite of the chroma keying supported with the flag
+> V4L2_FBUF_FLAG_CHROMAKEY.
+> 
+> V4L2_FBUF_CAP_SRC_CHROMAKEY:  Added the capability bit field for the
+> capability field of the v4l2_framebuffer structure.
+> 
+> Documentation change related to the new bit field for the source chroma keying
+> is new from the previous version.
 
-In this set of driver patches, I will submit the 5 patches to enable the ISP HW and 3 cameras module (two SoCs: 1.3MP - Omnivision 9665, 2MP - Omnivison 2650 and one RAW: 5MP - Omnivision 5630).
-1. Intel Moorestown ISP driver.
-2. Intel Moorestown camera sensor pseudo driver. This is to uniform the interfaces for ISP due to supporting dual cameras. 
-3. Intel Moorestown 2MP camera sensor driver.
-4. Intel Moorestown 5MP camera sensor driver.
-5. Intel Moorestown 1.3MP camera sensor driver.
 
-I will post the above 5 patches in near feature.
+[Shah, Hardik] No comment, on the earlier one.  So not sending it again.  Previous patch can be found at http://patchwork.kernel.org/patch/16519/
 
-Regards,
+> 
+> Patch 2 -
+> Added New Control IDs for OMAP class of Devices as discussed above.  This is
+> the third revision of the patch of adding the new control IDs and bit fields.
+> 
+> V4L2_FBUF_CAP_SRC_CHROMAKEY and V4L2_FBUF_FLAG_SRC_CHROMAKEY are newly added
+> compared to previous revision of patch.
+> 
+> New Ioctl for programming the color space conversion matrix is dropped from
+> this patch as the accompanying driver with this patch is not still having
+> implementation for the same.  Related documentation is also removed.
+> 
+> I will submit a separate patch for that with the necessary changes in driver
+> to support the programming of the color space conversion. Some changes are
+> required in DSS2 library also for doing the same.
 
-Xiaolin
-Xiaolin.zhang@intel.com
+[Shah, Hardik] No comments received on this either. Not sending the patches again.  Previous patch can be found at http://patchwork.kernel.org/patch/16520/
+
+> 
+> Patch 3 -
+> This is a review patch since the DSS2 library is still to be accepted in
+> community
+> This is the third revision of the patch.
+> This patch contains the V4L2 driver on the OMAP3 DSS2 using all of the above
+> newly implemented CIDS and bit fields.  Following are the changes in the
+> driver compared to the previous version.
+> 
+> 1.  Added the chroma keying support.
+> 2.  Added alpha blending support.
+> 3.  Minor community comment fixed.
+> 4.  Ported to work with Tomi's latest DSS2 library with minor modification in
+> DSS2 library.  Path to Tomi's DSS2 library is
+> http://www.bat.org/~tomba/git/linux-omap-dss.git/ commit id
+> bc6dc4c7fabb8ba3bfe637a6c5dc271595a1bef6
+
+[Shah, Hardik] I am re-submitting the 3rd patch of this series with the bunch of community comments fixed specially from Hans.  This patch includes some new features like flip and yuv rotation.  Also the patch is rebased on the latest Tomi git tree.  Patch is tested on OMAP3evm board.  Board specific porting needs to be done on other boards.
+
+Tomi git tree with commit id on which this patch is based.
+http://www.bat.org/~tomba/git/linux-omap-dss.git/
+0f88992b2681aed4f31dc7dd3926b357bbc95154. 
+DSS2: DSI: decrease sync timeout from 60s to 2s
+
+
+This is still a review patch since the DSS2 library is not submitted. 
+> All the comments and inputs are welcomed.
+> 
+> Thanks and Regards
+> Hardik Shah
+> 
+> 
 
