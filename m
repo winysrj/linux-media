@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3FH9L0x029053
-	for <video4linux-list@redhat.com>; Wed, 15 Apr 2009 13:09:21 -0400
-Received: from mail-ew0-f170.google.com (mail-ew0-f170.google.com
-	[209.85.219.170])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n3FH94To027266
-	for <video4linux-list@redhat.com>; Wed, 15 Apr 2009 13:09:04 -0400
-Received: by ewy18 with SMTP id 18so3074122ewy.3
-	for <video4linux-list@redhat.com>; Wed, 15 Apr 2009 10:09:03 -0700 (PDT)
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3MGwvnr022701
+	for <video4linux-list@redhat.com>; Wed, 22 Apr 2009 12:58:57 -0400
+Received: from mail-gx0-f158.google.com (mail-gx0-f158.google.com
+	[209.85.217.158])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3MGwc2c029448
+	for <video4linux-list@redhat.com>; Wed, 22 Apr 2009 12:58:38 -0400
+Received: by gxk2 with SMTP id 2so152581gxk.3
+	for <video4linux-list@redhat.com>; Wed, 22 Apr 2009 09:58:38 -0700 (PDT)
 MIME-Version: 1.0
-Date: Wed, 15 Apr 2009 19:09:03 +0200
-Message-ID: <b01190d0904151009q3788f96ek1aa86e160e60398a@mail.gmail.com>
-From: ben pezzei <ben.pezzei@gmail.com>
-To: video4linux-list@redhat.com
+In-Reply-To: <bfa9a8f30904062239l2d096accj47c1fb8d50eafcf7@mail.gmail.com>
+References: <bfa9a8f30904062239l2d096accj47c1fb8d50eafcf7@mail.gmail.com>
+Date: Wed, 22 Apr 2009 12:58:37 -0400
+Message-ID: <412bdbff0904220958r64185be1v6ac1fd31c3e5014@mail.gmail.com>
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Christopher Pascoe <linuxdvb@itee.uq.edu.au>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Subject: Progress on the Twinhan vp1034 CI?
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: No scan with DViCo FusionHDTV DVB-T Dual Express
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,41 +30,47 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello
+On Tue, Apr 7, 2009 at 1:39 AM, Christopher Pascoe
+<linuxdvb@itee.uq.edu.au> wrote:
+> (Hopefully this email will join the thread - I just joined the list briefly
+> so I could post.)
+>
+> I had a few minutes while stuck on a bus and had a look at the code in
+> v4l-dvb tip.  It appears that the driver there has at least two problems -
+> it resets the wrong (or no) tuner in the callback and it potentially locks
+> up the I2C bus through tinkering with the zl10353's gate_control logic.  The
+> first alone would cause an "incorrect readback of firmware version" message
+> after the first tune.  The second would explain the device subids
+> disappearing and your having to use card=11 for the board to be found.
+>
+> Try the patch at
+> http://www.itee.uq.edu.au/~chrisp/Linux-DVB/DVICO/dual-digital-express-dvb-t-fix-20090407-1.patch.
+>  It probably addresses these two issues (it's not even compile tested,
+> so
+> if it doesn't build I'm sure you get the idea) and see if it makes any
+> difference.
+>
+> Regards,
+> Chris
 
-I am wondering if there will be a release for a working CI Module for
-this dvb-s card any time soon?
+Hello Christopher,
 
-I tried the most different Sources from
-http://jusst.de/hg/mantis-v4l
-http://jusst.de/hg/mantis
-and
-http://mercurial.intuxication.org/hg/s2-liplianin
+I was in the process of getting a tree together so I could issue a
+PULL request for this patch.  However, it seems that the server
+referenced above hosting the patch is now showing network timeouts.
 
-but none was really working (tuning was fine though). At least the Sources
-from http://mercurial.intuxication.org/hg/s2-liplianin came up with a
-log-Message
-that a cam was detected.
+Could you please re-send the patch to the list directly?  I've got the
+Tested-By line from the user (John Knops) and am working on getting an
+SOB by stoth so I can issue the PULL request.
 
-Has anyone got a running/working CAM within this card?
+Thanks,
 
-lsipci -vnn
-03:09.0 Multimedia controller [0480]: Twinhan Technology Co. Ltd
-Mantis DTV PCI Bridge Controller [Ver 1.0] [1822:4e35] (rev 01)
-        Subsystem: Twinhan Technology Co. Ltd Device [1822:0014]
-        Flags: bus master, medium devsel, latency 64, IRQ 17
-        Memory at fdaff000 (32-bit, prefetchable) [size=4K]
-        Kernel driver in use: Mantis
+Devin
 
-Since I spend many hours to configure this (latest mythbuntu) I
-meanwhile am willing to swap to
-another card. Are there any recommandations for a dbv-s pci card with
-CI which is working
-out of the box?
-
-tnx alot
-
-greetings
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
