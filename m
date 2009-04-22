@@ -1,46 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailfilter11.ihug.co.nz ([203.109.136.11]:24971 "EHLO
-	mailfilter11.ihug.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756368AbZDEAyq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Apr 2009 20:54:46 -0400
-Message-ID: <49D7FF4F.3020707@kahusoft.com>
-Date: Sun, 05 Apr 2009 12:46:07 +1200
-From: Kevin Wells <kevin.wells@kahusoft.com>
-MIME-Version: 1.0
-To: Steven Toth <stoth@linuxtv.org>
-CC: linux-media@vger.kernel.org
-Subject: [PATCH 1/4] tm6000: Remove reference to em28xx from error message.
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from smtp.nokia.com ([192.100.122.233]:22454 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752406AbZDVIXS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Apr 2009 04:23:18 -0400
+Subject: Re: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
+From: Tomi Valkeinen <tomi.valkeinen@nokia.com>
+Reply-To: tomi.valkeinen@nokia.com
+To: ext Hardik Shah <hardik.shah@ti.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Brijesh Jadav <brijesh.j@ti.com>,
+	Vaibhav Hiremath <hvaibhav@ti.com>
+In-Reply-To: <1240381551-11012-1-git-send-email-hardik.shah@ti.com>
+References: <1240381551-11012-1-git-send-email-hardik.shah@ti.com>
+Content-Type: text/plain
+Date: Wed, 22 Apr 2009 11:22:58 +0300
+Message-Id: <1240388578.12545.14.camel@tubuntu>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-# HG changeset patch
-# User Kevin Wells <kevin.wells@kahusoft.com>
-# Date 1238839620 -46800
-# Node ID a293d5babca03bb5a7f21ecb659d55e447194e49
-# Parent  3d58b6531a818aafdacde895c34e4517a4dc4104
-Remove reference to em28xx from error message.
+Hi,
 
-From: Kevin Wells <kevin.wells@kahusoft.com>
+On Wed, 2009-04-22 at 08:25 +0200, ext Hardik Shah wrote:
+> This is the version 5th of the Driver.
+> 
+> Following are the features supported.
+> 1. Provides V4L2 user interface for the video pipelines of DSS
+> 2. Basic streaming working on LCD and TV.
+> 3. Support for various pixel formats like YUV, UYVY, RGB32, RGB24, RGB565
+> 4. Supports Alpha blending.
+> 5. Supports Color keying both source and destination.
+> 6. Supports rotation with RGB565 and RGB32 pixels formats.
+> 7. Supports cropping.
+> 8. Supports Background color setting.
+> 9. Works on latest DSS2 library from Tomi
+> http://www.bat.org/~tomba/git/linux-omap-dss.git/
+> 10. 1/4x scaling added.  Detail testing left
+> 
+> TODOS
+> 1. Ioctls needs to be added for color space conversion matrix
+> coefficient programming.
+> 2. To be tested on DVI resolutions.
+> 
+> Comments fixed from community.
+> 1. V4L2 Driver for OMAP3/3 DSS.
+> 2.  Conversion of the custom ioctls to standard V4L2 ioctls like alpha blending,
+> color keying, rotation and back ground color setting
+> 3.  Re-organised the code as per community comments.
+> 4.  Added proper copyright year.
+> 5.  Added module name in printk
+> 6.  Kconfig option copy/paste error
+> 7.  Module param desc addded.
+> 8.  Query control implemented using standard query_fill
+> 9.  Re-arranged if-else constructs.
+> 10. Changed to use mutex instead of semaphore.
+> 11. Removed dual usage of rotation angles.
+> 12. Implemented function to convert the V4L2 angle to DSS angle.
+> 13. Y-position was set half by video driver for TV output
+> Now its done by DSS so removed that.
+> 14. Minor cleanup
+> 15. Added support to pass the page offset to application.
+> 14. Minor cleanup
+> 15. Added support to pass the page offset to application.
+> 16. Renamed V4L2_CID_ROTATION to V4L2_CID_ROTATE
+> 17. Major comment from Hans fixed.
+> 18. Copy right year changed.
+> 19. Added module name for each error/warning print message.
+> 
+> Changes from Previous Version.
+> 1. Supported YUV rotation.
+> 2. Supported Flipping.
+> 3. Rebased line with Tomi's latest DSS2 master branch with commit  id
+> f575a02edf2218a18d6f2ced308b4f3e26b44ce2.
+> 4. Kconfig option removed to select between the TV and LCD.
+> Now supported dynamically by DSS2 library.
+> 5. Kconfig option for the NTSC_M and PAL_BDGHI mode but not
+> supported by DSS2.  so it will not work now.
 
-Priority: normal
+There is basic support for this. See the DSS doc:
 
-Signed-off-by: Kevin Wells <kevin.wells@kahusoft.com>
+/sys/devices/platform/omapdss/display? directory:
+...
+timings         Display timings (pixclock,xres/hfp/hbp/hsw,yres/vfp/vbp/vsw)
+                When writing, two special timings are accepted for tv-out:
+                "pal" and "ntsc"
 
-diff -r 3d58b6531a81 -r a293d5babca0 
-linux/drivers/media/video/tm6000/tm6000-cards.c
---- a/linux/drivers/media/video/tm6000/tm6000-cards.c    Fri Nov 28 
-08:39:00 2008 -0200
-+++ b/linux/drivers/media/video/tm6000/tm6000-cards.c    Sat Apr 04 
-23:07:00 2009 +1300
-@@ -378,7 +378,7 @@
-     /* Check to see next free device and mark as used */
-     nr=find_first_zero_bit(&tm6000_devused,TM6000_MAXBOARDS);
-     if (nr >= TM6000_MAXBOARDS) {
--        printk ("tm6000: Supports only %i em28xx 
-boards.\n",TM6000_MAXBOARDS);
-+        printk("tm6000: Only supports %i boards.\n", TM6000_MAXBOARDS);
-         usb_put_dev(usbdev);
-         return -ENOMEM;
-     }
+ Tomi
+
+
