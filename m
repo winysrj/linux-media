@@ -1,24 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3P95rpA023156
-	for <video4linux-list@redhat.com>; Sat, 25 Apr 2009 05:05:53 -0400
-Received: from mail.kapsi.fi (mail.kapsi.fi [217.30.184.167])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n3P95bkx015351
-	for <video4linux-list@redhat.com>; Sat, 25 Apr 2009 05:05:37 -0400
-Message-ID: <49F2D25B.80801@iki.fi>
-Date: Sat, 25 Apr 2009 12:05:31 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3MBVl3h022790
+	for <video4linux-list@redhat.com>; Wed, 22 Apr 2009 07:31:47 -0400
+Received: from qw-out-2122.google.com (qw-out-2122.google.com [74.125.92.26])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3MBVSP5023460
+	for <video4linux-list@redhat.com>; Wed, 22 Apr 2009 07:31:28 -0400
+Received: by qw-out-2122.google.com with SMTP id 5so1540799qwd.39
+	for <video4linux-list@redhat.com>; Wed, 22 Apr 2009 04:31:28 -0700 (PDT)
 MIME-Version: 1.0
-To: Jelle de Jong <jelledejong@powercraft.nl>
-References: <49D644CD.1040307@powercraft.nl>	<49D64E45.2070303@powercraft.nl>	<49DC5033.4000803@powercraft.nl>	<49F1B2A4.3060404@powercraft.nl>
-	<49F20259.1090302@iki.fi>	<49F2C312.4030808@powercraft.nl>
-	<49F2C710.2000906@iki.fi> <49F2CFD5.5070101@powercraft.nl>
-In-Reply-To: <49F2CFD5.5070101@powercraft.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+In-Reply-To: <49EEE84A.5090400@parrot.com>
+References: <49EEE84A.5090400@parrot.com>
+Date: Wed, 22 Apr 2009 20:31:28 +0900
+Message-ID: <aec7e5c30904220431l55a48efah8881b562928eae5a@mail.gmail.com>
+From: Magnus Damm <magnus.damm@gmail.com>
+To: Matthieu CASTET <matthieu.castet@parrot.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: one dvb-t devices not working with mplayer the other is, what
- is going wrong?
+Cc: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: videobuf-dma-contig sync question
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,42 +31,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 04/25/2009 11:54 AM, Jelle de Jong wrote:
-> Hmm, I used the latest Debian kernel available in unstable and
-> experimental, so I used the stock kernel. If this is to old I cant really
->   help this and have to wait until Debian releases a new kernel. There is
-> no residue in my current kernel of any em28xx code its a complete clean
-> stock Debian kernel.
+Hi Matthieu,
+
+[CC Paul, Paulius]
+
+On Wed, Apr 22, 2009 at 6:50 PM, Matthieu CASTET
+<matthieu.castet@parrot.com> wrote:
+> I don't understand why __videobuf_sync in videobuf-dma-contig isn't a nop.
 >
-> I don't know about the age of the firmware, but I believe its extracted
-> from the kernel code it tells me:
-> [ 4689.481452] dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
-> [ 4689.975618] af9013: firmware version:4.65.0
+> All the memory allocated by videobuf-dma-contig is coherent memory. And
+> Documentation/DMA-API.txt seems to imply that this memory is coherent
+> and doesn't need extra cache operation for synchronization.
 
-Firmware is not delivered with Kernel. You can download various firmware 
-version from, but newest is the best. If you need remote and you have 
-problems with remote you can test older ones.
-http://palosaari.fi/linux/v4l-dvb/firmware/af9015/
+Sounds correct. With that in mind the sync doesn't make much sense.
+Fixing the videobuf-dma-contig code seems like a good idea to me. Or
+is it architecture code that needs to be fixed? Any thoughts Paul?
 
-> Ignore the em28xx devices they have proprietary code, and is not
-> mainstream developed, no use wasting energy on that. Been there, done that.
+> Also calling dma_sync_single_for_cpu cause panic on arm for per-device
+> coherent memory, because the memory isn't in the main memory[1].
 >
-> What is your kernel and firmware version? Is there a way to easily add a
-> newer firmware file without recompilation?
+> Why __videobuf_sync need dma_sync_single_for_cpu ?
 
-Yes, it is only file usually in /lib/firmware/
+Initially in V1 of the patch the sync was just a nop, but in V2 the
+current behaviour was introduced. I think Paulius requested the sync
+implementation and I just blindly added it since it worked well for me
+on SuperH anyway:
 
-According to attached log it does not lock to the 722000000 MHz. Could 
-you try tzap -r "3FM(Digitenne)" and then mplayer /dev/dvb/adapter0/dvr0 
-from other window whil tzap is running. tzap should inform if it locks 
-and also some signal values.
-There could be many reasons why it does not lock, most typical a little 
-too weak signal. Is there any other stream in same frequency which works?
+http://osdir.com/ml/linux.ports.sh.devel/2008-07/msg00038.html
 
-regards
-Antti
--- 
-http://palosaari.fi/
+Paulius, do you really need the sync?
+
+Cheers,
+
+/ magnus
 
 --
 video4linux-list mailing list
