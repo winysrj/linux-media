@@ -1,112 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out112.alice.it ([85.37.17.112]:3362 "EHLO
-	smtp-out112.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751817AbZDNOFH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Apr 2009 10:05:07 -0400
-Date: Tue, 14 Apr 2009 16:04:50 +0200
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [REVIEW] v4l2 loopback
-Message-Id: <20090414160450.4ac1a498.ospite@studenti.unina.it>
-In-Reply-To: <36c518800904140553m41fcbd34rb265e0993dd76689@mail.gmail.com>
-References: <200903262049.10425.vasily@scopicsoftware.com>
-	<200904131317.01731.hverkuil@xs4all.nl>
-	<36c518800904131808m67482f2ex54307dfab91ccdf0@mail.gmail.com>
-	<20090414091233.3ea2f6e4@pedra.chehab.org>
-	<36c518800904140553m41fcbd34rb265e0993dd76689@mail.gmail.com>
+Received: from mail1.radix.net ([207.192.128.31]:49035 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752050AbZDWBIY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Apr 2009 21:08:24 -0400
+Subject: Re: [PATCH] FM1216ME_MK3 some changes
+From: Andy Walls <awalls@radix.net>
+To: Dmitri Belimov <d.belimov@gmail.com>
+Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
+In-Reply-To: <20090422174848.1be88f61@glory.loctelecom.ru>
+References: <20090422174848.1be88f61@glory.loctelecom.ru>
+Content-Type: text/plain
+Date: Wed, 22 Apr 2009 22:08:54 -0400
+Message-Id: <1240452534.3232.70.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Tue__14_Apr_2009_16_04_50_+0200_oKmCmq3oIqJPmD7b"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Signature=_Tue__14_Apr_2009_16_04_50_+0200_oKmCmq3oIqJPmD7b
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Dmitri,
 
-On Tue, 14 Apr 2009 15:53:00 +0300
-vasaka@gmail.com wrote:
 
-> On Tue, Apr 14, 2009 at 3:12 PM, Mauro Carvalho Chehab
-> <mchehab@infradead.org> wrote:
->
-> > The issue I see is that the V4L drivers are meant to support real devic=
-es. This
-> > driver that is a loopback for some userspace driver. I don't discuss it=
-s value
-> > for testing purposes or other random usage, but I can't see why this sh=
-ould be
-> > at upstream kernel.
-> >
-> > So, I'm considering to add it at v4l-dvb tree, but as an out-of-tree dr=
-iver
-> > only. For this to happen, probably, we'll need a few adjustments at v4l=
- build.
-> >
-> > Cheers,
-> > Mauro
-> >
->=20
-> Mauro,
->=20
-> ok, let it be out-of -tree driver, this is also good as I do not have
-> to adapt the driver to each new kernel, but I want to argue alittle
-> about Inclusion of the driver into upstream kernel.
->=20
->  Main reason for inclusion to the kernel is ease of use, as I
-> understand installing the out-of-tree driver for some kernel needs
-> downloading of the whole v4l-dvb tree(am I right?).
->=20
->  Loopback gives one opportunities to do many fun things with video
-> streams and when it needs just one step to begin using it chances that
-> someone will do something useful with the driver are higher.
->
+On Wed, 2009-04-22 at 17:48 +1000, Dmitri Belimov wrote:
+> Hi All
+> 
+> 1. Change middle band. In the end of the middle band the sensitivity of receiver not good.
+> If we switch to higher band, sensitivity more better. Hardware trick.
 
-I, as a target user of vloopback, agree that having it in mainline
-would be really handy. Think that with a stable vloopback solution,
-with device detection and parameter setting, we can really make PTP
-digicams as webcams[1] useful, right now this is tricky and very
-uncomfortable on kernel update.
+This concerns me slightly as it does not match the datasheet (hence the
+design objectives) of the FM1236ME_MK3.
 
->  Awareness that there is such thing as loopback is also. If the driver
-> is in upstream tree - more people will see it and more chances that
-> more people will participate in loopback getiing better.
->=20
->  vivi is an upstream driver :-)
->
+How are you measuring sensitivity?  Do you know if it really is the
+middle-band preselector filter (and PLL and Mixer) or is it a problem
+with the input signal?  How do you know it is not manufacturing
+variations in the preselector filters with the particular tuner assembly
+you are testing?
 
-Even vivi can be seen as a particular case of a vloopback device, can't
-it?
+Also, as an alternative to using a different frequency for the
+bandswitch, have you considered setting the Auxillary Byte in the tuner
+chip (Infineon TUA6030?) to use external AGC and experimented with
+changing the tuner AGC take-over point (TOP) in the TDA9887?
+
+By maximizing the gain in the tuner chip, but avoiding clipping, with
+the proper TOP setting, you minimize the contributions by the rest of
+the receive chain to the overall receiver Noise Figure:
+
+http://en.wikipedia.org/wiki/Friis_formulas_for_noise
+
+This may be a way to improve receiver sensitivity that does not conflict
+with the data sheet specification.
+
+
+
+
+> 2. Set correct highest freq of the higher band.
+
+:)
+
+This bothers me too; all the tuners in tuner-types.c have it set too
+high (999.0 MHz).  I think I rememeber at time when all the tuner_range
+definitions had a real value there.
+
+It would be nice to have a real value there for all the tuners.  The
+function tuner-simple.c:simple_config_lookup() would then prevent
+attempts to tune to an unsupported frequnecy.
+
+
+
+> 3. Set charge pump bit
+
+This will improve the time to initially tune to a frequency, but will
+likely add some noise as the PLL continues to maintain lock on the
+signal.  If there is no way to turn off the CP after the lock bit is set
+in the tuner, it's probably better to leave it off for lower noise and
+just live with slower tuning.
+
+Leaving the CP bit set should be especially noticable ad FM noise when
+set to tune to FM radio stations.  From the FM1236ME_MK3 datasheet:
+"It is recommended to set CP=0 in the FM mode at all times."
+But the VHF low band control byte is also used when setting FM radio
+(AFAICT with a quick look at the code.)
 
 Regards,
-   Antonio
+Andy
 
-[1]
-http://shell.studenti.unina.it/~ospite/section/it/dev/canoncam.html#English
+> diff -r 43dbc8ebb5a2 linux/drivers/media/common/tuners/tuner-types.c
+> --- a/linux/drivers/media/common/tuners/tuner-types.c	Tue Jan 27 23:47:50 2009 -0200
+> +++ b/linux/drivers/media/common/tuners/tuner-types.c	Tue Apr 21 09:44:38 2009 +1000
+> @@ -557,9 +557,9 @@
+>  /* ------------ TUNER_PHILIPS_FM1216ME_MK3 - Philips PAL ------------ */
+>  
+>  static struct tuner_range tuner_fm1216me_mk3_pal_ranges[] = {
+> -	{ 16 * 158.00 /*MHz*/, 0x8e, 0x01, },
+> -	{ 16 * 442.00 /*MHz*/, 0x8e, 0x02, },
+> -	{ 16 * 999.99        , 0x8e, 0x04, },
+> +	{ 16 * 158.00 /*MHz*/, 0xc6, 0x01, },
+> +	{ 16 * 441.00 /*MHz*/, 0xc6, 0x02, },
+> +	{ 16 * 864.00        , 0xc6, 0x04, },
+>  };
+>  
+> 
+> 
+> Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+> 
+> With my best regards, Dmitry.
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
 
---=20
-A: Because it messes up the order in which people normally read text.
-Q: Why is top-posting such a bad thing?
-A: Top-posting.
-Q: What is the most annoying thing in e-mail?
-
-  Web site: http://www.studenti.unina.it/~ospite
-Public key: http://www.studenti.unina.it/~ospite/aopubkey.asc
-
---Signature=_Tue__14_Apr_2009_16_04_50_+0200_oKmCmq3oIqJPmD7b
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAknkmAIACgkQ5xr2akVTsAGWZgCeJX8rLeGLhk/undtVYUo0z2n5
-HNIAniwTnqoz7jv8SOU/SO5ieVrDIQGJ
-=rrm2
------END PGP SIGNATURE-----
-
---Signature=_Tue__14_Apr_2009_16_04_50_+0200_oKmCmq3oIqJPmD7b--
