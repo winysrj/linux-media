@@ -1,160 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:51613 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750746AbZDNI5Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Apr 2009 04:57:24 -0400
-Date: Tue, 14 Apr 2009 10:57:32 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/5] pcm990 baseboard: add camera bus width switch setting
-In-Reply-To: <Pine.LNX.4.64.0904092339320.4841@axis700.grange>
-Message-ID: <Pine.LNX.4.64.0904141053230.1587@axis700.grange>
-References: <1236857239-2146-1-git-send-email-s.hauer@pengutronix.de>
- <1236857239-2146-2-git-send-email-s.hauer@pengutronix.de>
- <1236857239-2146-3-git-send-email-s.hauer@pengutronix.de>
- <Pine.LNX.4.64.0903121405150.4896@axis700.grange> <20090312141819.GN425@pengutronix.de>
- <Pine.LNX.4.64.0904092339320.4841@axis700.grange>
+Received: from wf-out-1314.google.com ([209.85.200.168]:10620 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756840AbZDWKPQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Apr 2009 06:15:16 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so404085wfd.4
+        for <linux-media@vger.kernel.org>; Thu, 23 Apr 2009 03:15:14 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Thu, 23 Apr 2009 19:15:14 +0900
+Message-ID: <5e9665e10904230315o46ef5f95o8c393a9148976880@mail.gmail.com>
+Subject: About using VIDIOC_REQBUFS
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"jongse.won@samsung.com" <jongse.won@samsung.com>,
+	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 9 Apr 2009, Guennadi Liakhovetski wrote:
+Hello Hans,
 
-> Hi Sascha,
-> 
-> something, that skipped both of us:
+Is it an ordinary way to use twice reqbuf without closing and
+re-opening between them?
 
-...and one more:
+I mean like this,
 
-> On Thu, 12 Mar 2009, Sascha Hauer wrote:
-> 
-> > Some Phytec cameras have a I2C GPIO expander which allows it to
-> > switch between different sensor bus widths. This was previously
-> > handled in the camera driver. Since handling of this switch
-> > varies on several boards the cameras are used on, the board
-> > support seems a better place to handle the switch
-> > 
-> > Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-> > ---
-> >  arch/arm/mach-pxa/pcm990-baseboard.c |   53 ++++++++++++++++++++++++++++------
-> >  1 files changed, 44 insertions(+), 9 deletions(-)
-> > 
-> > diff --git a/arch/arm/mach-pxa/pcm990-baseboard.c b/arch/arm/mach-pxa/pcm990-baseboard.c
-> > index 34841c7..fd8f786 100644
-> > --- a/arch/arm/mach-pxa/pcm990-baseboard.c
-> > +++ b/arch/arm/mach-pxa/pcm990-baseboard.c
-> > @@ -381,14 +381,49 @@ static struct pca953x_platform_data pca9536_data = {
-> >  	.gpio_base	= NR_BUILTIN_GPIO + 1,
-> >  };
-> >  
-> > -static struct soc_camera_link iclink[] = {
-> > -	{
-> > -		.bus_id	= 0, /* Must match with the camera ID above */
-> > -		.gpio	= NR_BUILTIN_GPIO + 1,
-> > -	}, {
-> > -		.bus_id	= 0, /* Must match with the camera ID above */
-> > -		.gpio	= -ENXIO,
-> > +static int gpio_bus_switch;
-> > +
-> > +static int pcm990_camera_set_bus_param(struct soc_camera_link *link,
-> > +		unsigned long flags)
-> > +{
-> > +	if (gpio_bus_switch <= 0) {
-> > +		if (flags == SOCAM_DATAWIDTH_10)
-> > +			return 0;
-> > +		else
-> > +			return -EINVAL;
-> > +	}
-> > +
-> > +	if (flags & SOCAM_DATAWIDTH_8)
-> > +		gpio_set_value(gpio_bus_switch, 1);
-> > +	else
-> > +		gpio_set_value(gpio_bus_switch, 0);
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static unsigned long pcm990_camera_query_bus_param(struct soc_camera_link *link)
-> > +{
-> > +	int ret;
-> > +
-> > +	if (!gpio_bus_switch) {
-> > +		ret = gpio_request(NR_BUILTIN_GPIO + 1, "camera");
-> 
-> There's no gpio_free() now... So, for example, you cannot unload the 
-> extender driver any more, unloading i2c adapter driver (i2c-pxa) produces 
-> ugly stuff like
-> 
-> pca953x 0-0041: gpiochip_remove() failed, -16
-> 
-> So, we either have to request and free the GPIO in each query / set, or we 
-> need an explicit .free_bus() call in soc_camera_link. None of the two 
-> really pleases me, but maybe the latter is slightly less ugly, what do you 
-> think?
-> 
-> Thanks
-> Guennadi
-> 
-> > +		if (!ret) {
-> > +			gpio_bus_switch = NR_BUILTIN_GPIO + 1;
-> > +			gpio_direction_output(gpio_bus_switch, 0);
-> > +		} else
-> > +			gpio_bus_switch = -EINVAL;
-> >  	}
+1. Open device
+2. VIDIOC_REQBUFS
+     <snip>
+3. VIDIOC_STREAMON
+     <snip>
+4. VIDIOC_STREAMOFF
+5. VIDIOC_REQBUFS
+     <snip>
+6. VIDIOC_STREAMON
 
-If you first do not load pca953x and try to start capture, thus calling 
-pcm990_camera_query_bus_param(), gpio_request() will fail and you get 
-gpio_bus_switch < 0. Then if you load pca953x it doesn't help any more - 
-by testing for "if (!gpio_bus_switch)" you do not retry after the first 
-error.
+I suppose there should be a strict order for this. That order seems to
+be wrong but necessary when we do capturing a JPEG data which size
+(not resolution) is bigger than the preview data size. (Assuming that
+user is using mmap)
+Please let me know the right way for that kind of case. Just close and
+re-open with big enough size for JPEG? or mmap with big enough size in
+the first place?
+Cheers,
 
-Thanks
-Guennadi
-
-> > +
-> > +	if (gpio_bus_switch > 0)
-> > +		return SOCAM_DATAWIDTH_8 | SOCAM_DATAWIDTH_10;
-> > +	else
-> > +		return SOCAM_DATAWIDTH_10;
-> > +}
-> > +
-> > +static struct soc_camera_link iclink = {
-> > +	.bus_id	= 0, /* Must match with the camera ID above */
-> > +	.query_bus_param = pcm990_camera_query_bus_param,
-> > +	.set_bus_param = pcm990_camera_set_bus_param,
-> >  };
-> >  
-> >  /* Board I2C devices. */
-> > @@ -399,10 +434,10 @@ static struct i2c_board_info __initdata pcm990_i2c_devices[] = {
-> >  		.platform_data = &pca9536_data,
-> >  	}, {
-> >  		I2C_BOARD_INFO("mt9v022", 0x48),
-> > -		.platform_data = &iclink[0], /* With extender */
-> > +		.platform_data = &iclink, /* With extender */
-> >  	}, {
-> >  		I2C_BOARD_INFO("mt9m001", 0x5d),
-> > -		.platform_data = &iclink[0], /* With extender */
-> > +		.platform_data = &iclink, /* With extender */
-> >  	},
-> >  };
-> >  #endif /* CONFIG_VIDEO_PXA27x ||CONFIG_VIDEO_PXA27x_MODULE */
-> > -- 
-> > 1.5.6.5
-> > 
-> > -- 
-> > Pengutronix e.K.                           |                             |
-> > Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-> > Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-> > Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
-> > 
-> 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
+Nate
+-- 
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
