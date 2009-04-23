@@ -1,53 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:45090 "EHLO smtp4-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933189AbZDAShj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Apr 2009 14:37:39 -0400
-To: Darius Augulis <augulis.darius@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: soc_camera_open() not called
-References: <49D37485.7030805@gmail.com> <49D3788D.2070406@gmail.com>
-	<87zlf0cl7o.fsf@free.fr> <49D3AE13.9070201@gmail.com>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Wed, 01 Apr 2009 20:37:27 +0200
-In-Reply-To: <49D3AE13.9070201@gmail.com> (Darius Augulis's message of "Wed\, 01 Apr 2009 21\:10\:27 +0300")
-Message-ID: <87r60cmd94.fsf@free.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3799 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753684AbZDWSKU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Apr 2009 14:10:20 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id n3NIAEIc034535
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 23 Apr 2009 20:10:18 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 23 Apr 2009 20:10:14 +0200 (CEST)
+Message-Id: <200904231810.n3NIAEIc034535@smtp-vbr15.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Darius Augulis <augulis.darius@gmail.com> writes:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
->>> Darius Augulis wrote:
->>>     
->>>> Hi,
->>>>
->>>> I'm trying to launch mx1_camera based on new v4l and soc-camera tree.
->>>> After loading mx1_camera module, I see that .add callback is not called.
->>>> In debug log I see that soc_camera_open() is not called too.
->>>> What should call this function? Is this my driver problem?
->>>> p.s. loading sensor driver does not change situation.
->>>>       
->>
->> Are you by any chance using last 2.6.29 kernel ?
->> If so, would [1] be the answer to your question ?
->>
->> [1] http://lkml.org/lkml/2009/3/24/625
+Results of the daily build of v4l-dvb:
 
-> thanks. it means we should expect soc-camera fix for this?
-> I'm using 2.6.29-git8, but seems it's not fixed yet.
-No, I don't think so.
+date:        Thu Apr 23 19:00:04 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11576:ebb7b82f2b48
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-The last time I checked there had to be an amendement to the patch which
-introduced the driver core regression, as it touches other areas as well
-(sound/soc and mtd from memory).
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-rc3-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29.1-armv5-ixp: OK
+linux-2.6.30-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-rc3-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: OK
+linux-2.6.30-rc3-i686: ERRORS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-rc3-m32r: OK
+linux-2.6.22.19-mips: OK
+linux-2.6.26-mips: OK
+linux-2.6.27-mips: OK
+linux-2.6.28-mips: OK
+linux-2.6.29.1-mips: OK
+linux-2.6.30-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: OK
+linux-2.6.28-powerpc64: OK
+linux-2.6.29.1-powerpc64: OK
+linux-2.6.30-rc3-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-rc3-x86_64: ERRORS
+fw/apps: OK
+sparse (linux-2.6.29.1): OK
+sparse (linux-2.6.30-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-I think Guennadi can confirm this, as he's the one who raised the issue in the
-first place.
+Detailed results are available here:
 
-Cheers.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
---
-Robert
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
