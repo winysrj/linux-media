@@ -1,21 +1,28 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3RGIZMU002962
-	for <video4linux-list@redhat.com>; Mon, 27 Apr 2009 12:18:35 -0400
-Received: from mail-fx0-f166.google.com (mail-fx0-f166.google.com
-	[209.85.220.166])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n3RGILRr026505
-	for <video4linux-list@redhat.com>; Mon, 27 Apr 2009 12:18:21 -0400
-Received: by fxm10 with SMTP id 10so8993fxm.3
-	for <video4linux-list@redhat.com>; Mon, 27 Apr 2009 09:18:20 -0700 (PDT)
-MIME-Version: 1.0
-Date: Mon, 27 Apr 2009 18:18:20 +0200
-Message-ID: <a50ea2b0904270918q571775f6wd7946a1848df6c6e@mail.gmail.com>
-From: Robin van Kleeff <robinvankleeff@gmail.com>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3NDRNrL028202
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 09:27:23 -0400
+Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3NDQx9M032549
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 09:26:59 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1Lwyx6-0003an-5g
+	for video4linux-list@redhat.com; Thu, 23 Apr 2009 13:26:56 +0000
+Received: from 139.85.239.116 ([139.85.239.116])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 13:26:56 +0000
+Received: from ndbecker2 by 139.85.239.116 with local (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 13:26:56 +0000
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Subject: 'dual-purpose' digital compact cameras?
+From: Neal Becker <ndbecker2@gmail.com>
+Date: Thu, 23 Apr 2009 09:26:45 -0400
+Message-ID: <gspqam$n8a$1@ger.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7Bit
+Subject: recommendation for hd atsc usb device?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,24 +34,9 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hey everybody,
+Can someone suggest a usb device with atsc input capable of hd capture 
+(supported by current linux kernels?)
 
-I have been searching for information on using compact photo cameras
-as video devices (and also for compatibility with gphoto through the
-gphoto websites/mailing list).
-
-I was wondering if any of you knows which cameras (brand, type) I
-should focus on?  Ideally I'd like to find an affordable compact
-digital camera that can be used to take decent quality pictures, and
-also function as for instance a web cam for applications such as
-Ekiga.
-
-By the way, I am much more an end-user then a developer, so forgive me
-if I ask dumb questions please...
-
-Thanks in advance!
-
-Robin
 
 --
 video4linux-list mailing list
