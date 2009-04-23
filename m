@@ -1,519 +1,1089 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.244]:1943 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751886AbZDONsP (ORCPT
+Received: from mail-ew0-f176.google.com ([209.85.219.176]:57943 "EHLO
+	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751340AbZDWFbD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Apr 2009 09:48:15 -0400
-Received: by an-out-0708.google.com with SMTP id d14so2898376and.1
-        for <linux-media@vger.kernel.org>; Wed, 15 Apr 2009 06:48:14 -0700 (PDT)
-Date: Wed, 15 Apr 2009 10:48:08 -0300
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] uvc: Add Microsoft VX 500 webcam
-Message-ID: <20090415104808.13062f47@gmail.com>
-In-Reply-To: <200904151146.52459.laurent.pinchart@skynet.be>
-References: <68cac7520904150003n150bff9bp616cc49e684d947d@mail.gmail.com>
-	<200904151146.52459.laurent.pinchart@skynet.be>
+	Thu, 23 Apr 2009 01:31:03 -0400
+Received: by ewy24 with SMTP id 24so328869ewy.37
+        for <linux-media@vger.kernel.org>; Wed, 22 Apr 2009 22:30:59 -0700 (PDT)
+Date: Thu, 23 Apr 2009 15:32:49 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Behold`s card patch
+Message-ID: <20090423153249.35d8b43f@glory.loctelecom.ru>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/zllw/hS6OrvmBf5+dO06eLh"
+Content-Type: multipart/mixed; boundary="MP_/IOGxre25DYrp4OMbr=c00Tm"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/zllw/hS6OrvmBf5+dO06eLh
+--MP_/IOGxre25DYrp4OMbr=c00Tm
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
 
-Hello Laurent,
+Hi All
 
-On Wed, 15 Apr 2009 11:46:52 +0200
-Laurent Pinchart <laurent.pinchart@skynet.be> wrote:
+Split Beholdr`s cards to correct models.
 
-> Hi Douglas,
-> 
-> On Wednesday 15 April 2009 09:03:45 Douglas Schilling Landgraf wrote:
-> > Hello Laurent,
-> >
-> >     Attached patch for the following:
-> >
-> >     Added Microsoft VX 500 webcam to uvc driver.
-> >
-> > Signed-off-by: Douglas Schilling Landgraf <dougsland@redhat.com>
-> 
-> Could you please send me the output of
-> 
-> lsusb -v -d 045e:074a
-> 
-> using usbutils 0.72 or newer (0.73+ preferred) ?
-> 
-
-usbutils-0.73-2
-
-> Have you tried the latest driver ? 
-
-Yes
-
-> The MINMAX quirk isn't required
-> anymore for most cameras (although the two supported Microsoft
-> webcams still need it, so I doubt it will work as-is).
-> 
-
-Indeed, attached new patch.
-
-Thanks,
-Douglas
-
-Bus 002 Device 015: ID 045e:074a Microsoft Corp. 
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass          239 Miscellaneous Device
-  bDeviceSubClass         2 ?
-  bDeviceProtocol         1 Interface Association
-  bMaxPacketSize0        64
-  idVendor           0x045e Microsoft Corp.
-  idProduct          0x074a 
-  bcdDevice            1.01
-  iManufacturer           2 Microsoft
-  iProduct                1 Microsoft LifeCam
-  iSerial                 0 
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength          569
-    bNumInterfaces          2
-    bConfigurationValue     1
-    iConfiguration          0 
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              150mA
-    Interface Association:
-      bLength                 8
-      bDescriptorType        11
-      bFirstInterface         0
-      bInterfaceCount         2
-      bFunctionClass         14 Video
-      bFunctionSubClass       3 Video Interface Collection
-      bFunctionProtocol       0 
-      iFunction               1 Microsoft LifeCam
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      1 Video Control
-      bInterfaceProtocol      0 
-      iInterface              1 Microsoft LifeCam
-      VideoControl Interface Descriptor:
-        bLength                13
-        bDescriptorType        36
-        bDescriptorSubtype      1 (HEADER)
-        bcdUVC               1.00
-        wTotalLength          103
-        dwClockFrequency       15.000000MHz
-        bInCollection           1
-        baInterfaceNr( 0)       1
-      VideoControl Interface Descriptor:
-        bLength                 9
-        bDescriptorType        36
-        bDescriptorSubtype      3 (OUTPUT_TERMINAL)
-        bTerminalID             2
-        wTerminalType      0x0101 USB Streaming
-        bAssocTerminal          0
-        bSourceID               5
-        iTerminal               0 
-      VideoControl Interface Descriptor:
-        bLength                26
-        bDescriptorType        36
-        bDescriptorSubtype      6 (EXTENSION_UNIT)
-        bUnitID                 4
-        guidExtensionCode         {7033f028-1163-2e4a-ba2c-6890eb334016}
-        bNumControl             8
-        bNrPins                 1
-        baSourceID( 0)          3
-        bControlSize            1
-        bmControls( 0)       0x0f
-        iExtension              0 
-      VideoControl Interface Descriptor:
-        bLength                26
-        bDescriptorType        36
-        bDescriptorSubtype      6 (EXTENSION_UNIT)
-        bUnitID                 5
-        guidExtensionCode         {3fae1228-d7bc-114e-a357-6f1edef7d61d}
-        bNumControl             8
-        bNrPins                 1
-        baSourceID( 0)          4
-        bControlSize            1
-        bmControls( 0)       0x00
-        iExtension              0 
-      VideoControl Interface Descriptor:
-        bLength                18
-        bDescriptorType        36
-        bDescriptorSubtype      2 (INPUT_TERMINAL)
-        bTerminalID             1
-        wTerminalType      0x0201 Camera Sensor
-        bAssocTerminal          0
-        iTerminal               0 
-        wObjectiveFocalLengthMin      0
-        wObjectiveFocalLengthMax      0
-        wOcularFocalLength            0
-        bControlSize                  3
-        bmControls           0x00000000
-      VideoControl Interface Descriptor:
-        bLength                11
-        bDescriptorType        36
-        bDescriptorSubtype      5 (PROCESSING_UNIT)
-      Warning: Descriptor too short
-        bUnitID                 3
-        bSourceID               1
-        wMaxMultiplier          0
-        bControlSize            2
-        bmControls     0x0000053f
-          Brightness
-          Contrast
-          Hue
-          Saturation
-          Sharpness
-          Gamma
-          Backlight Compensation
-          Power Line Frequency
-        iProcessing             0 
-        bmVideoStandards     0x 0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0010  1x 16 bytes
-        bInterval               6
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       0
-      bNumEndpoints           0
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      VideoStreaming Interface Descriptor:
-        bLength                            14
-        bDescriptorType                    36
-        bDescriptorSubtype                  1 (INPUT_HEADER)
-        bNumFormats                        1
-        wTotalLength                      323
-        bEndPointAddress                  129
-        bmInfo                              0
-        bTerminalLink                       2
-        bStillCaptureMethod                 2
-        bTriggerSupport                     1
-        bTriggerUsage                       0
-        bControlSize                        1
-        bmaControls( 0)                    27
-      VideoStreaming Interface Descriptor:
-        bLength                            27
-        bDescriptorType                    36
-        bDescriptorSubtype                  4 (FORMAT_UNCOMPRESSED)
-        bFormatIndex                        1
-        bNumFrameDescriptors                5
-        guidFormat
-{59555932-0000-1000-8000-00aa00389b71}
-bBitsPerPixel                      16
-bDefaultFrameIndex                  1
-bAspectRatioX                       0
-bAspectRatioY                       0 bmInterlaceFlags
-0x00 Interlaced stream or variable: No
-          Fields per frame: 1 fields
-          Field 1 first: No
-          Field pattern: Field 1 only
-          bCopyProtect                      0
-      VideoStreaming Interface Descriptor:
-        bLength                            50
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         1
-        bmCapabilities                   0x00
-          Still image unsupported
-        wWidth                            640
-        wHeight                           480
-        dwMinBitRate                   614400
-        dwMaxBitRate                 18432000
-        dwMaxVideoFrameBufferSize      614400
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  6
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            500000
-        dwFrameInterval( 2)            666666
-        dwFrameInterval( 3)           1000000
-        dwFrameInterval( 4)           2000000
-        dwFrameInterval( 5)          10000000
-      VideoStreaming Interface Descriptor:
-        bLength                            50
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         2
-        bmCapabilities                   0x00
-          Still image unsupported
-        wWidth                            352
-        wHeight                           288
-        dwMinBitRate                   202752
-        dwMaxBitRate                  6082560
-        dwMaxVideoFrameBufferSize      202752
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  6
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            500000
-        dwFrameInterval( 2)            666666
-        dwFrameInterval( 3)           1000000
-        dwFrameInterval( 4)           2000000
-        dwFrameInterval( 5)          10000000
-      VideoStreaming Interface Descriptor:
-        bLength                            50
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         3
-        bmCapabilities                   0x00
-          Still image unsupported
-        wWidth                            320
-        wHeight                           240
-        dwMinBitRate                   153600
-        dwMaxBitRate                  4608000
-        dwMaxVideoFrameBufferSize      153600
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  6
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            500000
-        dwFrameInterval( 2)            666666
-        dwFrameInterval( 3)           1000000
-        dwFrameInterval( 4)           2000000
-        dwFrameInterval( 5)          10000000
-      VideoStreaming Interface Descriptor:
-        bLength                            50
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         4
-        bmCapabilities                   0x00
-          Still image unsupported
-        wWidth                            176
-        wHeight                           144
-        dwMinBitRate                    50688
-        dwMaxBitRate                  1520640
-        dwMaxVideoFrameBufferSize       50688
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  6
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            500000
-        dwFrameInterval( 2)            666666
-        dwFrameInterval( 3)           1000000
-        dwFrameInterval( 4)           2000000
-        dwFrameInterval( 5)          10000000
-      VideoStreaming Interface Descriptor:
-        bLength                            50
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         5
-        bmCapabilities                   0x00
-          Still image unsupported
-        wWidth                            160
-        wHeight                           120
-        dwMinBitRate                    38400
-        dwMaxBitRate                  1152000
-        dwMaxVideoFrameBufferSize       38400
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  6
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            500000
-        dwFrameInterval( 2)            666666
-        dwFrameInterval( 3)           1000000
-        dwFrameInterval( 4)           2000000
-        dwFrameInterval( 5)          10000000
-      VideoStreaming Interface Descriptor:
-        bLength                            26
-        bDescriptorType                    36
-        bDescriptorSubtype                  3 (STILL_IMAGE_FRAME)
-        bEndpointAddress                    0
-        bNumImageSizePatterns               5
-        wWidth( 0)                        640
-        wHeight( 0)                       480
-        wWidth( 1)                        352
-        wHeight( 1)                       288
-        wWidth( 2)                        320
-        wHeight( 2)                       240
-        wWidth( 3)                        176
-        wHeight( 3)                       144
-        wWidth( 4)                        160
-        wHeight( 4)                       120
-        bNumCompressionPatterns             5
-      VideoStreaming Interface Descriptor:
-        bLength                             6
-        bDescriptorType                    36
-        bDescriptorSubtype                 13 (COLORFORMAT)
-        bColorPrimaries                     1 (BT.709,sRGB)
-        bTransferCharacteristics            1 (BT.709)
-        bMatrixCoefficients                 4 (SMPTE 170M (BT.601))
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       1
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x0080  1x 128 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       2
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x0100  1x 256 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       3
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x0320  1x 800 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       4
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x0b20  2x 800 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       5
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x1320  3x 800 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       6
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x1400  3x 1024 bytes
-        bInterval               1
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass          239 Miscellaneous Device
-  bDeviceSubClass         2 ?
-  bDeviceProtocol         1 Interface Association
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
---MP_/zllw/hS6OrvmBf5+dO06eLh
-Content-Type: text/x-patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=v2-uvc-microsoft-vx500.diff
-
-diff -r 0374bd81c2bb linux/drivers/media/video/uvc/uvc_driver.c
---- a/linux/drivers/media/video/uvc/uvc_driver.c	Tue Apr 14 15:03:39 2009 -0300
-+++ b/linux/drivers/media/video/uvc/uvc_driver.c	Wed Apr 15 10:40:14 2009 -0300
-@@ -1778,6 +1778,15 @@
- 	  .bInterfaceSubClass	= 1,
- 	  .bInterfaceProtocol	= 0,
- 	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
-+	/* Microsoft Lifecam VX-500 */
-+	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-+				| USB_DEVICE_ID_MATCH_INT_INFO,
-+	  .idVendor		= 0x045e,
-+	  .idProduct		= 0x074a,
-+	  .bInterfaceClass	= USB_CLASS_VIDEO,
-+	  .bInterfaceSubClass	= 1,
-+	  .bInterfaceProtocol	= 0,
+diff -r 2a6d95947fa1 linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Sun Apr 19 20:21:03 2009 +0000
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue Apr 21 11:21:03 2009 +1000
+@@ -4078,9 +4078,43 @@
+ 	[SAA7134_BOARD_BEHOLD_505FM] = {
+ 		/*       Beholder Intl. Ltd. 2008      */
+ 		/*Dmitry Belimov <d.belimov@gmail.com> */
+-		.name           = "Beholder BeholdTV 505 FM/RDS",
+-		.audio_clock    = 0x00200000,
+-		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.name           = "Beholder BeholdTV 505 FM",
++		.audio_clock    = 0x00200000,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.gpiomask       = 0x00008000,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = LINE2,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.mute = {
++			.name = name_mute,
++			.amux = LINE1,
++		},
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
 +	},
- 	/* Microsoft Lifecam VX-7000 */
- 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
- 				| USB_DEVICE_ID_MATCH_INT_INFO,
++	[SAA7134_BOARD_BEHOLD_505RDS] = {
++		/*       Beholder Intl. Ltd. 2008      */
++		/*Dmitry Belimov <d.belimov@gmail.com> */
++		.name           = "Beholder BeholdTV 505 RDS",
++		.audio_clock    = 0x00200000,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+@@ -4112,7 +4146,7 @@
+ 	[SAA7134_BOARD_BEHOLD_507_9FM] = {
+ 		/*       Beholder Intl. Ltd. 2008      */
+ 		/*Dmitry Belimov <d.belimov@gmail.com> */
+-		.name           = "Beholder BeholdTV 507 FM/RDS / BeholdTV 509 FM",
++		.name           = "Beholder BeholdTV 507 FM / BeholdTV 509 FM",
+ 		.audio_clock    = 0x00187de7,
+ 		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
+ 		.radio_type     = UNSET,
+@@ -4139,6 +4173,66 @@
+ 			.amux = LINE2,
+ 		},
+ 	},
++	[SAA7134_BOARD_BEHOLD_507RDS_MK5] = {
++		/*       Beholder Intl. Ltd. 2008      */
++		/*Dmitry Belimov <d.belimov@gmail.com> */
++		.name           = "Beholder BeholdTV 507 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.gpiomask       = 0x00008000,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++			.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_507RDS_MK3] = {
++		/*       Beholder Intl. Ltd. 2008      */
++		/*Dmitry Belimov <d.belimov@gmail.com> */
++		.name           = "Beholder BeholdTV 507 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.gpiomask       = 0x00008000,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++			.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
+ 	[SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM] = {
+ 		/*       Beholder Intl. Ltd. 2008      */
+ 		/*Dmitry Belimov <d.belimov@gmail.com> */
+@@ -4173,11 +4267,207 @@
+ 			.gpio = 0x000A8000,
+ 		},
+ 	},
+-	[SAA7134_BOARD_BEHOLD_607_9FM] = {
+-		/* Andrey Melnikoff <temnota@kmv.ru> */
+-		.name           = "Beholder BeholdTV 607 / BeholdTV 609",
+-		.audio_clock    = 0x00187de7,
+-		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++	[SAA7134_BOARD_BEHOLD_607FM_MK3] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 607 FM",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_609FM_MK3] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 609 FM",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_607FM_MK5] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 607 FM",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_609FM_MK5] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 609 FM",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_607RDS_MK3] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 607 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_609RDS_MK3] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 609 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_607RDS_MK5] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 607 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_609RDS_MK5] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 609 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+@@ -4281,8 +4571,7 @@
+ 		/* Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com> */
+ 		.name           = "Beholder BeholdTV M6 Extra",
+ 		.audio_clock    = 0x00187de7,
+-		/* FIXME: Must be PHILIPS_FM1216ME_MK5*/
+-		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+@@ -5770,14 +6059,8 @@
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
+ 		.subvendor    = 0x0000,
+-		.subdevice    = 0x5051,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_505FM,
+-	},{
+-		.vendor       = PCI_VENDOR_ID_PHILIPS,
+-		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
+-		.subvendor    = 0x0000,
+ 		.subdevice    = 0x505B,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_505FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_505RDS,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
+@@ -5789,13 +6072,13 @@
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x0000,
+ 		.subdevice    = 0x5071,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_507_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_507RDS_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x0000,
+ 		.subdevice    = 0x507B,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_507_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_507RDS_MK5,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+@@ -5819,49 +6102,49 @@
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6070,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_607FM_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6071,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_607FM_MK5,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6072,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_607RDS_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6073,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_607RDS_MK5,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6090,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_609FM_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6091,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_609FM_MK5,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6092,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_609RDS_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6093,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_609RDS_MK5,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+@@ -6325,7 +6608,10 @@
+ 	case SAA7134_BOARD_BEHOLD_407FM:
+ 	case SAA7134_BOARD_BEHOLD_409:
+ 	case SAA7134_BOARD_BEHOLD_505FM:
++	case SAA7134_BOARD_BEHOLD_505RDS:
+ 	case SAA7134_BOARD_BEHOLD_507_9FM:
++	case SAA7134_BOARD_BEHOLD_507RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_507RDS_MK5:
+ 	case SAA7134_BOARD_GENIUS_TVGO_A11MCE:
+ 	case SAA7134_BOARD_REAL_ANGEL_220:
+ 	case SAA7134_BOARD_KWORLD_PLUS_TV_ANALOG:
+@@ -6450,7 +6736,14 @@
+ 	case SAA7134_BOARD_UPMOST_PURPLE_TV:
+ 	case SAA7134_BOARD_MSI_TVATANYWHERE_PLUS:
+ 	case SAA7134_BOARD_HAUPPAUGE_HVR1110:
+-	case SAA7134_BOARD_BEHOLD_607_9FM:
++	case SAA7134_BOARD_BEHOLD_607FM_MK3:
++	case SAA7134_BOARD_BEHOLD_607FM_MK5:
++	case SAA7134_BOARD_BEHOLD_609FM_MK3:
++	case SAA7134_BOARD_BEHOLD_609FM_MK5:
++	case SAA7134_BOARD_BEHOLD_607RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_607RDS_MK5:
++	case SAA7134_BOARD_BEHOLD_609RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_609RDS_MK5:
+ 	case SAA7134_BOARD_BEHOLD_M6:
+ 	case SAA7134_BOARD_BEHOLD_M63:
+ 	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
+diff -r 2a6d95947fa1 linux/drivers/media/video/saa7134/saa7134-input.c
+--- a/linux/drivers/media/video/saa7134/saa7134-input.c	Sun Apr 19 20:21:03 2009 +0000
++++ b/linux/drivers/media/video/saa7134/saa7134-input.c	Tue Apr 21 11:21:03 2009 +1000
+@@ -507,7 +507,10 @@
+ 	case SAA7134_BOARD_BEHOLD_407FM:
+ 	case SAA7134_BOARD_BEHOLD_409:
+ 	case SAA7134_BOARD_BEHOLD_505FM:
++	case SAA7134_BOARD_BEHOLD_505RDS:
+ 	case SAA7134_BOARD_BEHOLD_507_9FM:
++	case SAA7134_BOARD_BEHOLD_507RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_507RDS_MK5:
+ 		ir_codes     = ir_codes_manli;
+ 		mask_keycode = 0x003f00;
+ 		mask_keyup   = 0x004000;
+@@ -718,7 +721,14 @@
+ 		ir->get_key   = get_key_hvr1110;
+ 		ir->ir_codes  = ir_codes_hauppauge_new;
+ 		break;
+-	case SAA7134_BOARD_BEHOLD_607_9FM:
++	case SAA7134_BOARD_BEHOLD_607FM_MK3:
++	case SAA7134_BOARD_BEHOLD_607FM_MK5:
++	case SAA7134_BOARD_BEHOLD_609FM_MK3:
++	case SAA7134_BOARD_BEHOLD_609FM_MK5:
++	case SAA7134_BOARD_BEHOLD_607RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_607RDS_MK5:
++	case SAA7134_BOARD_BEHOLD_609RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_609RDS_MK5:
+ 	case SAA7134_BOARD_BEHOLD_M6:
+ 	case SAA7134_BOARD_BEHOLD_M63:
+ 	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
+diff -r 2a6d95947fa1 linux/drivers/media/video/saa7134/saa7134.h
+--- a/linux/drivers/media/video/saa7134/saa7134.h	Sun Apr 19 20:21:03 2009 +0000
++++ b/linux/drivers/media/video/saa7134/saa7134.h	Tue Apr 21 11:21:03 2009 +1000
+@@ -253,7 +253,7 @@
+ #define SAA7134_BOARD_BEHOLD_505FM	126
+ #define SAA7134_BOARD_BEHOLD_507_9FM	127
+ #define SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM 128
+-#define SAA7134_BOARD_BEHOLD_607_9FM	129
++#define SAA7134_BOARD_BEHOLD_607FM_MK3	129
+ #define SAA7134_BOARD_BEHOLD_M6		130
+ #define SAA7134_BOARD_TWINHAN_DTV_DVB_3056 131
+ #define SAA7134_BOARD_GENIUS_TVGO_A11MCE   132
+@@ -283,6 +283,16 @@
+ #define SAA7134_BOARD_HAUPPAUGE_HVR1110R3   156
+ #define SAA7134_BOARD_AVERMEDIA_STUDIO_507UA 157
+ #define SAA7134_BOARD_AVERMEDIA_CARDBUS_501 158
++#define SAA7134_BOARD_BEHOLD_505RDS         159
++#define SAA7134_BOARD_BEHOLD_507RDS_MK3     160
++#define SAA7134_BOARD_BEHOLD_507RDS_MK5     161
++#define SAA7134_BOARD_BEHOLD_607FM_MK5      162
++#define SAA7134_BOARD_BEHOLD_609FM_MK3      163
++#define SAA7134_BOARD_BEHOLD_609FM_MK5      164
++#define SAA7134_BOARD_BEHOLD_607RDS_MK3     165
++#define SAA7134_BOARD_BEHOLD_607RDS_MK5     166
++#define SAA7134_BOARD_BEHOLD_609RDS_MK3     167
++#define SAA7134_BOARD_BEHOLD_609RDS_MK5     168
+ 
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
 
---MP_/zllw/hS6OrvmBf5+dO06eLh--
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+
+With my best regards, Dmitry.
+--MP_/IOGxre25DYrp4OMbr=c00Tm
+Content-Type: text/x-patch; name=behold_card_split.patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=behold_card_split.patch
+
+diff -r 2a6d95947fa1 linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Sun Apr 19 20:21:03 2009 +0000
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue Apr 21 11:21:03 2009 +1000
+@@ -4078,9 +4078,43 @@
+ 	[SAA7134_BOARD_BEHOLD_505FM] = {
+ 		/*       Beholder Intl. Ltd. 2008      */
+ 		/*Dmitry Belimov <d.belimov@gmail.com> */
+-		.name           = "Beholder BeholdTV 505 FM/RDS",
+-		.audio_clock    = 0x00200000,
+-		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.name           = "Beholder BeholdTV 505 FM",
++		.audio_clock    = 0x00200000,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.gpiomask       = 0x00008000,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = LINE2,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.mute = {
++			.name = name_mute,
++			.amux = LINE1,
++		},
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_505RDS] = {
++		/*       Beholder Intl. Ltd. 2008      */
++		/*Dmitry Belimov <d.belimov@gmail.com> */
++		.name           = "Beholder BeholdTV 505 RDS",
++		.audio_clock    = 0x00200000,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+@@ -4112,7 +4146,7 @@
+ 	[SAA7134_BOARD_BEHOLD_507_9FM] = {
+ 		/*       Beholder Intl. Ltd. 2008      */
+ 		/*Dmitry Belimov <d.belimov@gmail.com> */
+-		.name           = "Beholder BeholdTV 507 FM/RDS / BeholdTV 509 FM",
++		.name           = "Beholder BeholdTV 507 FM / BeholdTV 509 FM",
+ 		.audio_clock    = 0x00187de7,
+ 		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
+ 		.radio_type     = UNSET,
+@@ -4139,6 +4173,66 @@
+ 			.amux = LINE2,
+ 		},
+ 	},
++	[SAA7134_BOARD_BEHOLD_507RDS_MK5] = {
++		/*       Beholder Intl. Ltd. 2008      */
++		/*Dmitry Belimov <d.belimov@gmail.com> */
++		.name           = "Beholder BeholdTV 507 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.gpiomask       = 0x00008000,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++			.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_507RDS_MK3] = {
++		/*       Beholder Intl. Ltd. 2008      */
++		/*Dmitry Belimov <d.belimov@gmail.com> */
++		.name           = "Beholder BeholdTV 507 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.gpiomask       = 0x00008000,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++			.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
+ 	[SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM] = {
+ 		/*       Beholder Intl. Ltd. 2008      */
+ 		/*Dmitry Belimov <d.belimov@gmail.com> */
+@@ -4173,11 +4267,207 @@
+ 			.gpio = 0x000A8000,
+ 		},
+ 	},
+-	[SAA7134_BOARD_BEHOLD_607_9FM] = {
+-		/* Andrey Melnikoff <temnota@kmv.ru> */
+-		.name           = "Beholder BeholdTV 607 / BeholdTV 609",
+-		.audio_clock    = 0x00187de7,
+-		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++	[SAA7134_BOARD_BEHOLD_607FM_MK3] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 607 FM",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_609FM_MK3] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 609 FM",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_607FM_MK5] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 607 FM",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_609FM_MK5] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 609 FM",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_607RDS_MK3] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 607 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_609RDS_MK3] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 609 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_607RDS_MK5] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 607 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
++		.radio_type     = UNSET,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT,
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 3,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 1,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
++	[SAA7134_BOARD_BEHOLD_609RDS_MK5] = {
++		/* Andrey Melnikoff <temnota@kmv.ru> */
++		.name           = "Beholder BeholdTV 609 RDS",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+@@ -4281,8 +4571,7 @@
+ 		/* Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com> */
+ 		.name           = "Beholder BeholdTV M6 Extra",
+ 		.audio_clock    = 0x00187de7,
+-		/* FIXME: Must be PHILIPS_FM1216ME_MK5*/
+-		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
++		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
+ 		.radio_type     = UNSET,
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+@@ -5770,14 +6059,8 @@
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
+ 		.subvendor    = 0x0000,
+-		.subdevice    = 0x5051,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_505FM,
+-	},{
+-		.vendor       = PCI_VENDOR_ID_PHILIPS,
+-		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
+-		.subvendor    = 0x0000,
+ 		.subdevice    = 0x505B,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_505FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_505RDS,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
+@@ -5789,13 +6072,13 @@
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x0000,
+ 		.subdevice    = 0x5071,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_507_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_507RDS_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x0000,
+ 		.subdevice    = 0x507B,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_507_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_507RDS_MK5,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+@@ -5819,49 +6102,49 @@
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6070,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_607FM_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6071,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_607FM_MK5,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6072,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_607RDS_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6073,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_607RDS_MK5,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6090,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_609FM_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6091,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_609FM_MK5,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6092,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_609RDS_MK3,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x5ace,
+ 		.subdevice    = 0x6093,
+-		.driver_data  = SAA7134_BOARD_BEHOLD_607_9FM,
++		.driver_data  = SAA7134_BOARD_BEHOLD_609RDS_MK5,
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+@@ -6325,7 +6608,10 @@
+ 	case SAA7134_BOARD_BEHOLD_407FM:
+ 	case SAA7134_BOARD_BEHOLD_409:
+ 	case SAA7134_BOARD_BEHOLD_505FM:
++	case SAA7134_BOARD_BEHOLD_505RDS:
+ 	case SAA7134_BOARD_BEHOLD_507_9FM:
++	case SAA7134_BOARD_BEHOLD_507RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_507RDS_MK5:
+ 	case SAA7134_BOARD_GENIUS_TVGO_A11MCE:
+ 	case SAA7134_BOARD_REAL_ANGEL_220:
+ 	case SAA7134_BOARD_KWORLD_PLUS_TV_ANALOG:
+@@ -6450,7 +6736,14 @@
+ 	case SAA7134_BOARD_UPMOST_PURPLE_TV:
+ 	case SAA7134_BOARD_MSI_TVATANYWHERE_PLUS:
+ 	case SAA7134_BOARD_HAUPPAUGE_HVR1110:
+-	case SAA7134_BOARD_BEHOLD_607_9FM:
++	case SAA7134_BOARD_BEHOLD_607FM_MK3:
++	case SAA7134_BOARD_BEHOLD_607FM_MK5:
++	case SAA7134_BOARD_BEHOLD_609FM_MK3:
++	case SAA7134_BOARD_BEHOLD_609FM_MK5:
++	case SAA7134_BOARD_BEHOLD_607RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_607RDS_MK5:
++	case SAA7134_BOARD_BEHOLD_609RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_609RDS_MK5:
+ 	case SAA7134_BOARD_BEHOLD_M6:
+ 	case SAA7134_BOARD_BEHOLD_M63:
+ 	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
+diff -r 2a6d95947fa1 linux/drivers/media/video/saa7134/saa7134-input.c
+--- a/linux/drivers/media/video/saa7134/saa7134-input.c	Sun Apr 19 20:21:03 2009 +0000
++++ b/linux/drivers/media/video/saa7134/saa7134-input.c	Tue Apr 21 11:21:03 2009 +1000
+@@ -507,7 +507,10 @@
+ 	case SAA7134_BOARD_BEHOLD_407FM:
+ 	case SAA7134_BOARD_BEHOLD_409:
+ 	case SAA7134_BOARD_BEHOLD_505FM:
++	case SAA7134_BOARD_BEHOLD_505RDS:
+ 	case SAA7134_BOARD_BEHOLD_507_9FM:
++	case SAA7134_BOARD_BEHOLD_507RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_507RDS_MK5:
+ 		ir_codes     = ir_codes_manli;
+ 		mask_keycode = 0x003f00;
+ 		mask_keyup   = 0x004000;
+@@ -718,7 +721,14 @@
+ 		ir->get_key   = get_key_hvr1110;
+ 		ir->ir_codes  = ir_codes_hauppauge_new;
+ 		break;
+-	case SAA7134_BOARD_BEHOLD_607_9FM:
++	case SAA7134_BOARD_BEHOLD_607FM_MK3:
++	case SAA7134_BOARD_BEHOLD_607FM_MK5:
++	case SAA7134_BOARD_BEHOLD_609FM_MK3:
++	case SAA7134_BOARD_BEHOLD_609FM_MK5:
++	case SAA7134_BOARD_BEHOLD_607RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_607RDS_MK5:
++	case SAA7134_BOARD_BEHOLD_609RDS_MK3:
++	case SAA7134_BOARD_BEHOLD_609RDS_MK5:
+ 	case SAA7134_BOARD_BEHOLD_M6:
+ 	case SAA7134_BOARD_BEHOLD_M63:
+ 	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
+diff -r 2a6d95947fa1 linux/drivers/media/video/saa7134/saa7134.h
+--- a/linux/drivers/media/video/saa7134/saa7134.h	Sun Apr 19 20:21:03 2009 +0000
++++ b/linux/drivers/media/video/saa7134/saa7134.h	Tue Apr 21 11:21:03 2009 +1000
+@@ -253,7 +253,7 @@
+ #define SAA7134_BOARD_BEHOLD_505FM	126
+ #define SAA7134_BOARD_BEHOLD_507_9FM	127
+ #define SAA7134_BOARD_BEHOLD_COLUMBUS_TVFM 128
+-#define SAA7134_BOARD_BEHOLD_607_9FM	129
++#define SAA7134_BOARD_BEHOLD_607FM_MK3	129
+ #define SAA7134_BOARD_BEHOLD_M6		130
+ #define SAA7134_BOARD_TWINHAN_DTV_DVB_3056 131
+ #define SAA7134_BOARD_GENIUS_TVGO_A11MCE   132
+@@ -283,6 +283,16 @@
+ #define SAA7134_BOARD_HAUPPAUGE_HVR1110R3   156
+ #define SAA7134_BOARD_AVERMEDIA_STUDIO_507UA 157
+ #define SAA7134_BOARD_AVERMEDIA_CARDBUS_501 158
++#define SAA7134_BOARD_BEHOLD_505RDS         159
++#define SAA7134_BOARD_BEHOLD_507RDS_MK3     160
++#define SAA7134_BOARD_BEHOLD_507RDS_MK5     161
++#define SAA7134_BOARD_BEHOLD_607FM_MK5      162
++#define SAA7134_BOARD_BEHOLD_609FM_MK3      163
++#define SAA7134_BOARD_BEHOLD_609FM_MK5      164
++#define SAA7134_BOARD_BEHOLD_607RDS_MK3     165
++#define SAA7134_BOARD_BEHOLD_607RDS_MK5     166
++#define SAA7134_BOARD_BEHOLD_609RDS_MK3     167
++#define SAA7134_BOARD_BEHOLD_609RDS_MK5     168
+ 
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
+
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+--MP_/IOGxre25DYrp4OMbr=c00Tm--
