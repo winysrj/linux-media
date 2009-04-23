@@ -1,30 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail4.sea5.speakeasy.net ([69.17.117.6]:44833 "EHLO
-	mail4.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752442AbZDELuf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Apr 2009 07:50:35 -0400
-Date: Sun, 5 Apr 2009 04:50:32 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Uri Shkolnik <urishk@yahoo.com>
-cc: LinuxML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] [0904_16] Siano: smsdvb - additional case of endian
- handling.
-In-Reply-To: <220734.24824.qm@web110816.mail.gq1.yahoo.com>
-Message-ID: <Pine.LNX.4.58.0904050449380.5134@shell2.speakeasy.net>
-References: <220734.24824.qm@web110816.mail.gq1.yahoo.com>
+Received: from mail-bw0-f163.google.com ([209.85.218.163]:47962 "EHLO
+	mail-bw0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758766AbZDWTkX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Apr 2009 15:40:23 -0400
+Received: by bwz7 with SMTP id 7so733989bwz.37
+        for <linux-media@vger.kernel.org>; Thu, 23 Apr 2009 12:40:21 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Thu, 23 Apr 2009 23:40:21 +0400
+Message-ID: <1a297b360904231240r3952f6cdt1205aff6f623ae31@mail.gmail.com>
+Subject: TT S2 1600 status
+From: Manu Abraham <abraham.manu@gmail.com>
+To: linux-dvb <linux-dvb@linuxtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 5 Apr 2009, Uri Shkolnik wrote:
->  	PidMsg.xMsgHeader.msgLength = sizeof(PidMsg);
->  	PidMsg.msgData[0] = feed->pid;
->
-> -	/* smsendian_handle_tx_message((struct SmsMsgHdr_ST *)&PidMsg); */
-> +	smsendian_handle_tx_message((struct SmsMsgHdr_ST *)&PidMsg);
->  	return smsclient_sendrequest(client->smsclient, &PidMsg,
->  			sizeof(PidMsg));
+Hi all,
 
-I don't get it, you wrote the code commented out in one patch, and now
-you're going to sumbit patches to uncomment it one line at a time?
+Support for the TT S2-1600 has been updated. Please do test. The 903
+demodulator
+officially supports 45MSPS, with an unofficial max up to 63MSPS with
+8PSK DVB-S2.
+(standard DVB-S2 demodulators support upto 30MSPS)
+
+Support is found on the v4l-dvb hg tree on jusst.de
+
+Testers, Feedback welcome.
+
+Regards,
+Manu
