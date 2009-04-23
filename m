@@ -1,18 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3HEntcW006374
-	for <video4linux-list@redhat.com>; Fri, 17 Apr 2009 10:49:55 -0400
-Received: from QMTA10.westchester.pa.mail.comcast.net
-	(qmta10.westchester.pa.mail.comcast.net [76.96.62.17])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n3HElAVq023293
-	for <video4linux-list@redhat.com>; Fri, 17 Apr 2009 10:47:10 -0400
-Date: Fri, 17 Apr 2009 09:46:49 -0500 (CDT)
-From: rray_1@comcast.net
-To: video4linux-list@redhat.com
-Message-ID: <alpine.LRH.2.00.0904170940260.7851@rray2>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3N7f674030209
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 03:41:06 -0400
+Received: from smtp6-g21.free.fr (smtp6-g21.free.fr [212.27.42.6])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3N7enTp027964
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 03:40:51 -0400
+Message-ID: <17ad01c9c3e8$f38ea290$c80211ac@pcflorian3>
+From: "Florian PANTALEAO" <fpantaleao@mobisensesystems.com>
+To: <video4linux-list@redhat.com>, <judith.baumgarten@freenet.de>
+References: <E1LwbZl-00027n-E5@www3.emo.freenet-rz.de>
+Date: Thu, 23 Apr 2009 09:56:03 +0200
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
-Subject: Adding memory to systems screws up playback
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: 
+Subject: Re: setting values to CICR2 register in PXA320 Quick Capture
+	Interface
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,33 +28,49 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I increased my system memory from 2GB to 4GB and things are not well
-System board is Intel DG965OT
-Has 4 memory slots
-I've had the machine for a couple of years with 2 1GB dimms in slots 1 & 3
-I added 2 1GB dimms in slots 2 & 4
-As far as I can tell everything is working OK except for playback to LML33
-
-I removed the original dimms and put the new ones in slots 1 & 3, 2GB
-Lavplay works OK
-Put original dimms in slots 2 & 4 (4GB total) and lavplay fails
-
-I'm running CentOS 5.2 with kernel-2.6.18-92.1.22.el5.centos.plus.x86_64
-
-$ lavplay -p H foo.avi
-lavplay1.9.0
-lavtools version 1.9.0
-**ERROR: [lavplay] Error syncing on a buffer: Timer expired
 
 
-Dmesg shows
+> Hi,
+>
+> I want to set various parameters in the Quick Capture Interface for a
+PXA320 processor. I think, I found a way to do this, for resolution and
+pixel clock parameters, but there is no way to set the parameters of CICR2
+using the actual pxa_camera driver. It seems the driver  just implements the
+master mode, and I wondered why. Is it not usefull to run a pxa_camera in
+slave mode?
+>
+> Nevertheless. CICR2 contains also the BLW (Beginning-of-Line Pixel Clock
+Wait Count) parameter, which is used in master and slave mode. So I
+wondered, why there isn't a way to set it (Or have I just missed it?).
 
-LML33[0]: zoran_open(lavplay, pid=[14223]), users(-)=0
-LML33[0]: jpg_sync() - timeout: codec isr=0x07
-LML33[0]: zoran_close(lavplay, pid=[14223]), users(+)=1
+Quick Capture interface in PXA3xx has significantly evolved over PXA27x. I
+remember a discussion in this list a couple of months ago about it.
+Suggestion was to create a separate pxa3xx_camera driver because of these
+differences.
 
+Florian
 
-Richard
+> Here some extra information: I use V4L2 in combination with soc_camera
+interface and a PXA320 host. The soc_camera interface and pxa_camera driver
+are out of the 2.6.29 kernel.
+>
+> Thanks
+> Judith
+>
+>
+>
+>
+>
+>
+>
+> #adBox3 {display:none;}
+>
+>
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
 
 --
 video4linux-list mailing list
