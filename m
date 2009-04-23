@@ -1,23 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3OCQ733012692
-	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 08:26:07 -0400
-Received: from node04.cambriumhosting.nl (node04.cambriumhosting.nl
-	[217.19.16.165])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n3OCPnSl026229
-	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 08:25:49 -0400
-Message-ID: <49F1AFC9.2040405@powercraft.nl>
-Date: Fri, 24 Apr 2009 14:25:45 +0200
-From: Jelle de Jong <jelledejong@powercraft.nl>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3NJYXux022314
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 15:34:33 -0400
+Received: from mail-fx0-f166.google.com (mail-fx0-f166.google.com
+	[209.85.220.166])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3NJYIX4029404
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 15:34:18 -0400
+Received: by fxm10 with SMTP id 10so539322fxm.3
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 12:34:18 -0700 (PDT)
+From: Behzat Erte <b3hzat@gmail.com>
+To: video4linux-list@redhat.com
+Date: Thu, 23 Apr 2009 22:34:22 +0300
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-References: <49F189BC.5090606@powercraft.nl> <49F1ADF3.2030901@iki.fi>
-In-Reply-To: <49F1ADF3.2030901@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: [not working] Conceptronic USB 2.0 Digital TV Receiver -
- CTVDIGRCU - Device Information
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Disposition: inline
+Message-Id: <200904232234.22645.behzaterte@gmail.com>
+Content-Transfer-Encoding: 8bit
+Subject: About "unknown field specified in initializer" error
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,47 +29,36 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Antti Palosaari wrote:
-> On 04/24/2009 12:43 PM, Jelle de Jong wrote:
->> Hello everybody,
->>
->> Apparently I was feeling a bit masochistic today, because I bought a new
->> usb dvb-t device with the hope it would work on my 2.6.26 kernel because
->> the 2.6.29 is extreme instable and my Digittrade DVB-T USB Stick (Afatech
->> DVB-T) (af9015.fw) does not work with mplayer which is a requirement for me.
->>
->> So I bought a Conceptronic USB 2.0 Digital TV Receiver - CTVDIGRCU, but
->> it does not work. Would somebody willing to get this device working? I
->> can sent the device to you if you like.
->>
->> The device information is attached in this email.
-> 
-> It is supported.
-> http://linuxtv.org/hg/~anttip/af9015/rev/d4274bbb8605
-> 
-> Please install latest v4l-dvb -drivers.
-> 
-> regards
-> Antti
+Hello everyone,
 
-Hi Antti,
-
->> Add USB ID (1b80:e397) for Conceptronic USB2.0 DVB-T CTVDIGRCU V3.0.
-
-Thank you for your reply, the commit tells me an other product and vendor
-id, please see my attached device info in my first mail.
-
-I got an USB ID 14aa:0160 Conceptronic USB2.0 DVB-T CTVDIGRCU V2.0 but I
-have no idea what chipsets it contains. Could somebody extract the
-drivers to be sure? (see my first mail for driver web pages)
-http://www.conceptronic.net/site/desktopdefault.aspx?tabindex=0&tabid=420&pc=CTVDIGRCU
-
-Best regards,
-
-Jelle
+I've some trouble with usb webcam driver. I am newbie for drivers and it's 
+really strange. 
 
 
+static struct video_device usbcam_videodev_template = {
+        .name                   = "usbcam-unknown",
+        .type                   =  VFL_TYPE_GRABBER,
+        .type2                  =  VID_TYPE_CAPTURE,
+        .minor                  = -1,
+        .release                = usbcam_videodev_release,
+};
 
+::: error :::
+/home/home/Desktop/sq930-dev/usbcam_dev.c:133: error: unknown field ‘type’ 
+specified in initializer
+/home/home/Desktop/sq930-dev/usbcam_dev.c:134: error: unknown field ‘type2’ 
+specified in initializer
+
+By the way this driver is sq930(i used for creative laptop webcam) and it was 
+written for 2.6.17 -2.6.23 but I use 2.6.29.
+
+Than again, I try to change with normal varible that defines, like 
+VFL_TYPE_GRABBER is 0 and VID_TYPE_CAPTURE is 1. 
+
+Could you give me any advice about this situation?
+
+Thanks & Regards
+Behzat.
 
 --
 video4linux-list mailing list
