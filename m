@@ -1,20 +1,30 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3TB5cA1012997
-	for <video4linux-list@redhat.com>; Wed, 29 Apr 2009 07:05:38 -0400
-Received: from wf-out-1314.google.com (wf-out-1314.google.com [209.85.200.172])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n3TB5PaS017580
-	for <video4linux-list@redhat.com>; Wed, 29 Apr 2009 07:05:25 -0400
-Received: by wf-out-1314.google.com with SMTP id 28so762746wfa.6
-	for <video4linux-list@redhat.com>; Wed, 29 Apr 2009 04:05:25 -0700 (PDT)
-MIME-Version: 1.0
-Date: Wed, 29 Apr 2009 16:35:24 +0530
-Message-ID: <83b2c1480904290405v44263ad4sdcaa92b39ec4743c@mail.gmail.com>
-From: Sumanth V <sumanth.v@allaboutif.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3NEUHK0014653
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 10:30:17 -0400
+Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n3NEU1YQ030972
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 10:30:01 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1Lwzw3-0006gP-Oz
+	for video4linux-list@redhat.com; Thu, 23 Apr 2009 14:29:55 +0000
+Received: from 139.85.239.116 ([139.85.239.116])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 14:29:55 +0000
+Received: from ndbecker2 by 139.85.239.116 with local (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 14:29:55 +0000
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Subject: descrambling of non-FTA channels
+From: Neal Becker <ndbecker2@gmail.com>
+Date: Thu, 23 Apr 2009 10:29:44 -0400
+Message-ID: <gspu0p$b54$1@ger.gmane.org>
+References: <gspqam$n8a$1@ger.gmane.org>
+	<412bdbff0904230647x8eb2b34u5ddebba380e70ade@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7Bit
+Subject: Re: recommendation for hd atsc usb device?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,18 +36,29 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi All,
+Devin Heitmueller wrote:
 
-        I have set up the DVB-S2 card and i am able to watch all the FTA
-channels, but i am not able to watch the non FTA channels which i have paid
-and subscriped for. I am able to watch these on my TV. is it because
-/dev/dvb/adapter0/ca0 is not working? What should to be done to watch the
-non FTA channels? I have infinity phoenix card reader installed onmy system.
-I hev installed the nftytool-1.1. How do descarmble the channels using this
-device? i am very new to this? Could some one help me in setting up the card
-reader and dvb-s2 card.
+> On Thu, Apr 23, 2009 at 9:26 AM, Neal Becker <ndbecker2@gmail.com> wrote:
+>> Can someone suggest a usb device with atsc input capable of hd capture
+>> (supported by current linux kernels?)
+> 
+> See here for a current list:
+> 
+> http://linuxtv.org/wiki/index.php/ATSC_USB_Devices
+> 
+> If you have any questions about a specific device, feel free to email the
+> ML.
+> 
+> Cheers,
+> 
+> Devin
+> 
 
-Thanks
+Thank you!  I do have one question.  My ATSC reception is marginal.  Are 
+there any recommendations for devices that give better ATSC performance (I 
+think the main issue in my location is multipath)
+
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
