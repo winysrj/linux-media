@@ -1,112 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3488 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753389AbZDEFrS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Apr 2009 01:47:18 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding model
-Date: Sun, 5 Apr 2009 07:46:47 +0200
-Cc: Mike Isely <isely@pobox.com>, isely@isely.net,
-	LMML <linux-media@vger.kernel.org>,
-	Andy Walls <awalls@radix.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <20090404142427.6e81f316@hyperion.delvare> <Pine.LNX.4.64.0904041045380.32720@cnc.isely.net> <20090405010539.187e6268@hyperion.delvare>
-In-Reply-To: <20090405010539.187e6268@hyperion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Received: from mail-in-07.arcor-online.net ([151.189.21.47]:46695 "EHLO
+	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751720AbZDWBzE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Apr 2009 21:55:04 -0400
+Subject: Re: [PATCH] FM1216ME_MK3 some changes
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andy Walls <awalls@radix.net>
+Cc: Dmitri Belimov <d.belimov@gmail.com>, video4linux-list@redhat.com,
+	linux-media@vger.kernel.org
+In-Reply-To: <1240452534.3232.70.camel@palomino.walls.org>
+References: <20090422174848.1be88f61@glory.loctelecom.ru>
+	 <1240452534.3232.70.camel@palomino.walls.org>
+Content-Type: text/plain
+Date: Thu, 23 Apr 2009 03:52:49 +0200
+Message-Id: <1240451569.10367.18.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200904050746.47451.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 05 April 2009 01:05:39 Jean Delvare wrote:
-> Hi Mike,
->
-> On Sat, 4 Apr 2009 10:51:01 -0500 (CDT), Mike Isely wrote:
-> > Nacked-by: Mike Isely <isely@pobox.com>
-> >
-> > This will interfere with the alternative use of LIRC drivers (which
-> > work in more cases that ir-kbd).
->
-> Why then is ir-kbd in the kernel tree and not LIRC drivers?
->
-> > It will thus break some peoples' use of the driver.
->
-> Do you think it will, or did you test and it actually does? If it
-> indeed breaks, please explain why, so that a solution can be found.
->
-> > Also we have better information on what i2c addresses needed to
-> > be probed based on the model of the device
->
-> This is excellent news. As I said in the header comment of the patch,
-> avoiding probing when we know what the IR receiver is and at which
-> address it sits is the way to go. Please send me all the information
-> you have and I'll be happy to add a patch to the series, that skips
-> probing whenever possible. Or write that patch yourself if you prefer.
->
-> > - and some devices supported
-> > by this device are not from Hauppauge so you are making a too-strong
-> > assumption that IR should be probed this way in all cases.
->
-> I didn't make any assumption, sorry. I simply copied the code from
-> ir-kbd-i2c. If my code does the wrong thing for some devices, that was
-> already the case before. And this will certainly be easier to fix after
-> my changes than before.
->
-> On top of that, the "Hauppauge trick" is really only the order in which
-> the addresses are probed. Just because a specific order is better for
-> Hauppauge boards, doesn't mean it won't work for non-Hauppauge boards.
->
-> > Also, unless
-> > ir-kbd has suddenly improved, this will not work at all for HVR-1950
-> > class devices nor MCE type PVR-24xxx devices (different incompatible IR
-> > receiver).
->
-> I'm sorry but you can't blame me for ir-kbd-i2c not supporting some
-> devices. I updated the driver to make use of the new binding model, but
-> that's about all I did.
->
-> > This is why the pvrusb2 driver has never directly attempted to load
-> > ir-kbd.
->
-> The pvrusb2 driver however abuses the bttv driver's I2C adapter ID
-> (I2C_HW_B_BT848) and was thus affected when ir-kbd-i2c is loaded. This
-> is the only reason why my patch touches the pvrusb2 driver. If you tell
-> me you want the ir-kbd-i2c driver to leave pvrusb2 alone, I can drop
-> all the related changes from my patch, that's very easy.
 
-Let's keep it simple: add a 'load_ir_kbd_i2c' module option for those 
-drivers that did not autoload this module. The driver author can refine 
-things later (I'll definitely will do that for ivtv).
+Hi Andy and Dmitry,
 
-It will be interesting if someone can find out whether lirc will work at all 
-once autoprobing is removed from i2c. If it isn't, then perhaps that will 
-wake them up to the realization that they really need to move to the 
-kernel.
+Am Mittwoch, den 22.04.2009, 22:08 -0400 schrieb Andy Walls:
+> Dmitri,
+> 
+> 
+> On Wed, 2009-04-22 at 17:48 +1000, Dmitri Belimov wrote:
+> > Hi All
+> > 
+> > 1. Change middle band. In the end of the middle band the sensitivity of receiver not good.
+> > If we switch to higher band, sensitivity more better. Hardware trick.
 
-The new mechanism is the right way to do it: the adapter driver has all the 
-information if, where and what IR is used and so should be the one to tell 
-the kernel what to do. Attempting to autodetect and magically figure out 
-what IR might be there is awkward and probably impossible to get right 
-100%.
+first of all, Dmitry, you need to send all your patches, also the prior
+ones, to linux-media@vger.kernel.org. Only there "patchwork" will parse
+for them and you might eventually find them here.
+http://patchwork.kernel.org/project/linux-media/list
+http://patchwork.kernel.org/project/linux-media/list/?state=*
 
-Hell, it's wrong already: if you have another board that already loads 
-ir-kbd-i2c then if you load ivtv or pvrusb2 afterwards you get ir-kbd-i2c 
-whether you like it or not, because ir-kbd-i2c will connect to your i2c 
-adapter like a leech. So with the addition of a module option you at least 
-give back control of this to the user.
+You seem to have missed that completely and thanks to Andy to start to
+comment on this one, even only on video4linux previously.
 
-When this initial conversion is done I'm pretty sure we can improve 
-ir-kbd-i2c to make it easier to let the adapter driver tell it what to do. 
-So we don't need those horrible adapter ID tests and other magic that's 
-going on in that driver. But that's phase two.
+> This concerns me slightly as it does not match the datasheet (hence the
+> design objectives) of the FM1236ME_MK3.
+> 
+> How are you measuring sensitivity?  Do you know if it really is the
+> middle-band preselector filter (and PLL and Mixer) or is it a problem
+> with the input signal?  How do you know it is not manufacturing
+> variations in the preselector filters with the particular tuner assembly
+> you are testing?
 
-Regards,
+I did not look into the datasheet again, we did not have it at all for a
+very long time, but we had a similar case already and that time we made
+the decision like it can be found in this thread. No complaints ever
+until today.
 
-	Hans
+http://marc.info/?l=linux-video&m=112639247330257&w=2
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Did not look up all frequency tables again, but if it is the same again,
+I would say the risk of doing something wrong is close to zero.
+
+For the rest I never noticed any difference and we have it on lots of
+other tuners like that. And, that one still means a lot of _different_
+tuners and different manufacturers, filters definitely differ! ...
+
+> Also, as an alternative to using a different frequency for the
+> bandswitch, have you considered setting the Auxillary Byte in the tuner
+> chip (Infineon TUA6030?) to use external AGC and experimented with
+> changing the tuner AGC take-over point (TOP) in the TDA9887?
+> 
+> By maximizing the gain in the tuner chip, but avoiding clipping, with
+> the proper TOP setting, you minimize the contributions by the rest of
+> the receive chain to the overall receiver Noise Figure:
+> 
+> http://en.wikipedia.org/wiki/Friis_formulas_for_noise
+> 
+> This may be a way to improve receiver sensitivity that does not conflict
+> with the data sheet specification.
+> 
+> 
+> 
+> 
+> > 2. Set correct highest freq of the higher band.
+> 
+> :)
+> 
+> This bothers me too; all the tuners in tuner-types.c have it set too
+> high (999.0 MHz).  I think I rememeber at time when all the tuner_range
+> definitions had a real value there.
+> 
+> It would be nice to have a real value there for all the tuners.  The
+> function tuner-simple.c:simple_config_lookup() would then prevent
+> attempts to tune to an unsupported frequnecy.
+> 
+> 
+> 
+> > 3. Set charge pump bit
+> 
+> This will improve the time to initially tune to a frequency, but will
+> likely add some noise as the PLL continues to maintain lock on the
+> signal.  If there is no way to turn off the CP after the lock bit is set
+> in the tuner, it's probably better to leave it off for lower noise and
+> just live with slower tuning.
+> 
+> Leaving the CP bit set should be especially noticable ad FM noise when
+> set to tune to FM radio stations.  From the FM1236ME_MK3 datasheet:
+> "It is recommended to set CP=0 in the FM mode at all times."
+> But the VHF low band control byte is also used when setting FM radio
+> (AFAICT with a quick look at the code.)
+> 
+> Regards,
+> Andy
+> 
+> > diff -r 43dbc8ebb5a2 linux/drivers/media/common/tuners/tuner-types.c
+> > --- a/linux/drivers/media/common/tuners/tuner-types.c	Tue Jan 27 23:47:50 2009 -0200
+> > +++ b/linux/drivers/media/common/tuners/tuner-types.c	Tue Apr 21 09:44:38 2009 +1000
+> > @@ -557,9 +557,9 @@
+> >  /* ------------ TUNER_PHILIPS_FM1216ME_MK3 - Philips PAL ------------ */
+> >  
+> >  static struct tuner_range tuner_fm1216me_mk3_pal_ranges[] = {
+> > -	{ 16 * 158.00 /*MHz*/, 0x8e, 0x01, },
+> > -	{ 16 * 442.00 /*MHz*/, 0x8e, 0x02, },
+> > -	{ 16 * 999.99        , 0x8e, 0x04, },
+> > +	{ 16 * 158.00 /*MHz*/, 0xc6, 0x01, },
+> > +	{ 16 * 441.00 /*MHz*/, 0xc6, 0x02, },
+> > +	{ 16 * 864.00        , 0xc6, 0x04, },
+> >  };
+> >  
+> > 
+> > 
+> > Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+> > 
+> > With my best regards, Dmitry.
+
+Cheers,
+Hermann
+
+
