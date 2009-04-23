@@ -1,19 +1,33 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n33FZJGR031261
-	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 11:35:19 -0400
-Received: from smtp103.biz.mail.re2.yahoo.com (smtp103.biz.mail.re2.yahoo.com
-	[68.142.229.217])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n33FZ2n7031681
-	for <video4linux-list@redhat.com>; Fri, 3 Apr 2009 11:35:02 -0400
-Message-ID: <49D62C9F.3010500@migmasys.com>
-Date: Fri, 03 Apr 2009 11:34:55 -0400
-From: Ming Liu <mliu@migmasys.com>
-MIME-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3NIflgo015838
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 14:41:52 -0400
+Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n3NIJ0kB032683
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 14:19:23 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1Lx3Vi-0001Ar-4L
+	for video4linux-list@redhat.com; Thu, 23 Apr 2009 18:18:58 +0000
+Received: from 139.85.239.116 ([139.85.239.116])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 18:18:58 +0000
+Received: from ndbecker2 by 139.85.239.116 with local (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 18:18:58 +0000
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Subject: BTTV quality problem
+From: Neal Becker <ndbecker2@gmail.com>
+Date: Thu, 23 Apr 2009 14:18:44 -0400
+Message-ID: <gsqbe5$snn$1@ger.gmane.org>
+References: <gspqam$n8a$1@ger.gmane.org>
+	<412bdbff0904230647x8eb2b34u5ddebba380e70ade@mail.gmail.com>
+	<gspu0p$b54$1@ger.gmane.org>
+	<20090423114955.724f5b48.b3782802@columbus.rr.com>
+	<gsq7v2$gjd$1@ger.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7Bit
+Subject: Re: recommendation for hd atsc usb device?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,25 +39,40 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Neal Becker wrote:
 
-I am working on a BTTV card to capture images from a camera for a while 
-and the image quality is always a problem.
+> b3782802@columbus.rr.com wrote:
+> 
+>> Neal Becker wrote:
+>> 
+>>> My ATSC reception is marginal.
+>>> Are there any recommendations for devices that give better ATSC
+>>> performance (I think the main issue in my location is multipath)
+>> 
+>> Yes!
+>> 
+>> Get a highly directional antenna.
+>> A big honkin' UHF Yagi[1] should do the trick.
+>> Better yet, mount it high (like on a chimney).
+>> Better yet, use an antenna rotor[2].
+>> 
+> I've got a big outdoor antenna on a rotor.  My question is, are some
+> chipsets better/worse for fringe performance, and particularly with
+> respect to multipath?
+> 
+I'm considering WinTV-HVR-1950.  Any comments?
 
-The color looks very dark and I can hardly separate a tree with ground. 
-After some web search, I found the potential reason includes:
+Samsung claims:
+"The new S5H1411 boasts a higher reception success rate than other devices 
+in multi-path environments where signal interference is high, such as 
+densely populated urban areas; dynamic environments with serious signal 
+distortion among many moving vehicles; environments with major signal phase 
+errors because of cable retransmission and remote areas where reception is 
+generally poor."
 
-Undetected turner
-Too long cable
-Audio is on
-Wrong hue, contrast, and so on.
+Well, at least they have their heart in the right place :)  I have never 
+been able to find real lab test results for ATSC reception performance. 
 
-Any other potential reasons?
-
-Thank you in advance.
-
-Sincerely yours
-Ming
 
 --
 video4linux-list mailing list
