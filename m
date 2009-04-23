@@ -1,23 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3ODnFMR004782
-	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 09:49:15 -0400
-Received: from mail.kapsi.fi (mail.kapsi.fi [217.30.184.167])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3ODmu65021413
-	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 09:48:56 -0400
-Message-ID: <49F1BA30.6060702@iki.fi>
-Date: Fri, 24 Apr 2009 16:10:08 +0300
-From: Antti Palosaari <crope@iki.fi>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3NDljDl010866
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 09:47:45 -0400
+Received: from mail-qy0-f122.google.com (mail-qy0-f122.google.com
+	[209.85.221.122])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3NDlSnG012480
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 09:47:28 -0400
+Received: by qyk28 with SMTP id 28so1111769qyk.23
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 06:47:28 -0700 (PDT)
 MIME-Version: 1.0
-To: Jelle de Jong <jelledejong@powercraft.nl>
-References: <49F189BC.5090606@powercraft.nl> <49F1ADF3.2030901@iki.fi>
-	<49F1AFC9.2040405@powercraft.nl>
-In-Reply-To: <49F1AFC9.2040405@powercraft.nl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+In-Reply-To: <gspqam$n8a$1@ger.gmane.org>
+References: <gspqam$n8a$1@ger.gmane.org>
+Date: Thu, 23 Apr 2009 09:47:27 -0400
+Message-ID: <412bdbff0904230647x8eb2b34u5ddebba380e70ade@mail.gmail.com>
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Neal Becker <ndbecker2@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
-Subject: Re: [not working] Conceptronic USB 2.0 Digital TV Receiver -
- CTVDIGRCU - Device Information
+Subject: Re: recommendation for hd atsc usb device?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,29 +30,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 04/24/2009 03:25 PM, Jelle de Jong wrote:
-> I got an USB ID 14aa:0160 Conceptronic USB2.0 DVB-T CTVDIGRCU V2.0 but I
-> have no idea what chipsets it contains. Could somebody extract the
-> drivers to be sure? (see my first mail for driver web pages)
-> http://www.conceptronic.net/site/desktopdefault.aspx?tabindex=0&tabid=420&pc=CTVDIGRCU
+On Thu, Apr 23, 2009 at 9:26 AM, Neal Becker <ndbecker2@gmail.com> wrote:
+> Can someone suggest a usb device with atsc input capable of hd capture
+> (supported by current linux kernels?)
 
-There is no drivers for device USB-ID 14aa:0160.
+See here for a current list:
 
-; Copyright (C) Wideviewer Corporation, 2005 All Rights Reserved.
-;
-; USB DVB-T Adapter
-; WideViewer DVB-T WT-225U
+http://linuxtv.org/wiki/index.php/ATSC_USB_Devices
 
-; The Vendor ID =14AA, and the Product ID =0226
-%DevModel.DeviceDesc%=DevModel.Dev,USB\VID_14AA&PID_0226&MI_00
+If you have any questions about a specific device, feel free to email the ML.
 
-According to google search it could be Realtek.
-http://ubuntuforums.org/showthread.php?t=822291&page=2
+Cheers,
 
-regards
-Antti
+Devin
+
 -- 
-http://palosaari.fi/
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
 
 --
 video4linux-list mailing list
