@@ -1,111 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49650 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752195AbZDFLvD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 07:51:03 -0400
-From: "Shah, Hardik" <hardik.shah@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Date: Mon, 6 Apr 2009 17:20:25 +0530
-Subject: RE: [PATCH 0/3] V4L2 driver for OMAP2/3 with new CIDs.
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB02FB102FD2@dbde02.ent.ti.com>
-In-Reply-To: <200903200826.19558.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+Received: from mail-in-12.arcor-online.net ([151.189.21.52]:38807 "EHLO
+	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752088AbZDXBe4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Apr 2009 21:34:56 -0400
+Subject: Re: [PATCH] FM1216ME_MK3 some changes
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andy Walls <awalls@radix.net>
+Cc: Dmitri Belimov <d.belimov@gmail.com>, video4linux-list@redhat.com,
+	linux-media@vger.kernel.org
+In-Reply-To: <1240535204.3809.11.camel@pc07.localdom.local>
+References: <20090422174848.1be88f61@glory.loctelecom.ru>
+	 <1240452534.3232.70.camel@palomino.walls.org>
+	 <20090423203618.4ac2bc6f@glory.loctelecom.ru>
+	 <1240537394.3231.37.camel@palomino.walls.org>
+	 <1240535204.3809.11.camel@pc07.localdom.local>
+Content-Type: text/plain
+Date: Fri, 24 Apr 2009 03:34:38 +0200
+Message-Id: <1240536878.3809.24.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+If it should be unnoticed yet.
+
+> > 
+> > I thought the FM1216ME MK3 was an analog only tuner.  I guess I don't
+> > know DVB-T or cable in Europe well enough.
+> 
+> that is for sure, analog only. 
+> 
+> Dmitry is preparing something for the MK5 too and the FMD1216ME/I MK3
+> hybrid. Hmm, I wonder if Hans and Jarod do have something to improve for
+> the MK4 too and the others.
+> 
+> As said, I don't care for changes within the freq. gap and accept
+> everything working better there ;)
+
+For some sort of completeness, we have quite some cardbus devices too,
+originally hacked by Hans J. Koch, you might not recognize as MK3 stuff.
+
+They come as ancient ALPS stuff.
+
+Cheers,
+Hermann
 
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Friday, March 20, 2009 12:56 PM
-> To: Shah, Hardik
-> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org
-> Subject: Re: [PATCH 0/3] V4L2 driver for OMAP2/3 with new CIDs.
-> 
-> On Friday 20 March 2009 06:18:44 Shah, Hardik wrote:
-> > Hi All,
-> > I will be posting series of three patches for the V4L2 driver on the
-> > OMAP2/3 DSS.
-> 
-> Thanks! I'll review this within the week.
-[Shah, Hardik] I have fixed most of the comments and re-posting the patches.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > Patch 1 -
-> > This is the second revision of the patch.
-> > Documentation added for the following new CIDs and bit fields added in
-> > V4L2 framework.
-> >
-> > V4L2_CID_BG_COLOR: Added new CID for setting of the back ground color on
-> > the output device. V4L2_CID_ROTATION: Added new CID for setting up of the
-> > rotation on the device. Both of the above ioctls are discussed in detail.
-> >
-> > V4L2_FBUF_FLAG_SRC_CHROMAKEY: Added the flags bit field to the flags
-> > field of the v4l2_framebuffer structure for supporting the source chroma
-> > keying.  It's exactly opposite of the chroma keying supported with the
-> > flag V4L2_FBUF_FLAG_CHROMAKEY.
-> >
-> > V4L2_FBUF_CAP_SRC_CHROMAKEY:  Added the capability bit field for the
-> > capability field of the v4l2_framebuffer structure.
-> >
-> > Documentation change related to the new bit field for the source chroma
-> > keying is new from the previous version.
-> >
-> > Patch 2 -
-> > Added New Control IDs for OMAP class of Devices as discussed above.  This
-> > is the third revision of the patch of adding the new control IDs and bit
-> > fields.
-> >
-> > V4L2_FBUF_CAP_SRC_CHROMAKEY and V4L2_FBUF_FLAG_SRC_CHROMAKEY are newly
-> > added compared to previous revision of patch.
-> >
-> > New Ioctl for programming the color space conversion matrix is dropped
-> > from this patch as the accompanying driver with this patch is not still
-> > having implementation for the same.  Related documentation is also
-> > removed.
-> >
-> > I will submit a separate patch for that with the necessary changes in
-> > driver to support the programming of the color space conversion. Some
-> > changes are required in DSS2 library also for doing the same.
-> >
-> > Patch 3 -
-> > This is a review patch since the DSS2 library is still to be accepted in
-> > community This is the third revision of the patch.
-> > This patch contains the V4L2 driver on the OMAP3 DSS2 using all of the
-> > above newly implemented CIDS and bit fields.  Following are the changes
-> > in the driver compared to the previous version.
-> >
-> > 1.  Added the chroma keying support.
-> > 2.  Added alpha blending support.
-> > 3.  Minor community comment fixed.
-> > 4.  Ported to work with Tomi's latest DSS2 library with minor
-> > modification in DSS2 library.  Path to Tomi's DSS2 library is
-> > http://www.bat.org/~tomba/git/linux-omap-dss.git/ commit id
-> > bc6dc4c7fabb8ba3bfe637a6c5dc271595a1bef6
-> >
-> > All the comments and inputs are welcomed.
-> >
-> > Thanks and Regards
-> > Hardik Shah
-> >
-> >
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
 
