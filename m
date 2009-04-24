@@ -1,26 +1,34 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3HCe8us001924
-	for <video4linux-list@redhat.com>; Fri, 17 Apr 2009 08:40:08 -0400
-Received: from node04.cambriumhosting.nl (node04.cambriumhosting.nl
-	[217.19.16.165])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n3HCdG1I008535
-	for <video4linux-list@redhat.com>; Fri, 17 Apr 2009 08:39:16 -0400
-Message-ID: <49E8786F.2000906@powercraft.nl>
-Date: Fri, 17 Apr 2009 14:39:11 +0200
-From: Jelle de Jong <jelledejong@powercraft.nl>
-MIME-Version: 1.0
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-References: <49D610CC.6070405@powercraft.nl>	
-	<412bdbff0904030747s3d1e956al168cc75b0208a3f0@mail.gmail.com>	
-	<49D62CBB.7070800@powercraft.nl>
-	<412bdbff0904031009t56ed8f22pcba899169b3f4305@mail.gmail.com>
-In-Reply-To: <412bdbff0904031009t56ed8f22pcba899169b3f4305@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: request list of usb dvb-t devices that work with vanilla 2.6.29
- kernel
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3O180Ft026081
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 21:08:00 -0400
+Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3O17jqV006571
+	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 21:07:46 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1Lx9tD-0000sO-6z
+	for video4linux-list@redhat.com; Fri, 24 Apr 2009 01:07:39 +0000
+Received: from static-71-168-37-170.hag.east.verizon.net ([71.168.37.170])
+	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+	id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 01:07:39 +0000
+Received: from ndbecker2 by static-71-168-37-170.hag.east.verizon.net with
+	local (Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
+	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 01:07:39 +0000
+To: video4linux-list@redhat.com
+From: Neal Becker <ndbecker2@gmail.com>
+Date: Thu, 23 Apr 2009 21:07:27 -0400
+Message-ID: <gsr3cf$38p$1@ger.gmane.org>
+References: <gspqam$n8a$1@ger.gmane.org>
+	<412bdbff0904230647x8eb2b34u5ddebba380e70ade@mail.gmail.com>
+	<gspu0p$b54$1@ger.gmane.org>
+	<20090423114955.724f5b48.b3782802@columbus.rr.com>
+	<gsq7v2$gjd$1@ger.gmane.org> <gsqbe5$snn$1@ger.gmane.org>
+	<412bdbff0904231148s1817d0dcs311d09873bcc8c70@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7Bit
+Subject: Re: recommendation for hd atsc usb device?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,41 +41,33 @@ Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
 Devin Heitmueller wrote:
-> On Fri, Apr 3, 2009 at 11:35 AM, Jelle de Jong
-> <jelledejong@powercraft.nl> wrote:
->> Thanks for the quick response, I am aware of the situation and the
->> specifics of the Micronas case. I talked with Marcus several times about
->> ways to handle this to make the driver available for the gpl compliant
->> upstream kernel.
+
+> On Thu, Apr 23, 2009 at 2:18 PM, Neal Becker <ndbecker2@gmail.com> wrote:
+>> Samsung claims:
+>> "The new S5H1411 boasts a higher reception success rate than other
+>> devices in multi-path environments where signal interference is high,
+>> such as densely populated urban areas; dynamic environments with serious
+>> signal distortion among many moving vehicles; environments with major
+>> signal phase errors because of cable retransmission and remote areas
+>> where reception is generally poor."
 >>
->> I can also confirm that the analog part of most of my em28xx devices do
->> work, so currently I am recommending customers two buy two usb devices
->> one for analog and one for dvb-t.
->>
->> If you want I can sent you an em28xx device with dvb-t and analog i got
->> tree of those lying around here.
->>
->> Best regards,
->>
->> Jelle de Jong
+>> Well, at least they have their heart in the right place :)  I have never
+>> been able to find real lab test results for ATSC reception performance.
 > 
-> Hello Jelle,
+> Unfortunately, the marketing material fora ll the vendors is going to
+> say crap like that.  And nobody who has the equipment necessary to
+> objectively compare things like multipath performance across devices
+> are going to publish their findings due to competitive interests.
 > 
-> Once I receive the Terratec device you mentioned, I will see if I can
-> get it up and running in the mainline kernel (at which point I will
-> mail it back to you).
-> 
-> Cheers,
+> Also, you cannot just look at the demod, the tuner itself is a factor
+> as well (and in some cases the pairing of the demod/tuner).
 > 
 > Devin
 > 
+Hate to tie up your ML with my questions, but just one more.  Before I go 
+ahead and order WinTV-HVR-1950, anyone know of any issue with using this on 
+my fedora F10 system (kernel 2.6.27.21-170.2.56.fc10.x86_64)?
 
-The devices have been sent to you yesterday, so you can expect them to
-arrive soon (depending on US postage speeds).
-
-Best regards,
-
-Jelle
 
 --
 video4linux-list mailing list
