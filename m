@@ -1,64 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:49580 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757671AbZDCM3o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Apr 2009 08:29:44 -0400
-Date: Fri, 3 Apr 2009 14:29:39 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Darius Augulis <augulis.darius@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	paulius.zaleckas@teltonika.lt
-Subject: Re: [PATCH V4] Add camera (CSI) driver for MX1
-Message-ID: <20090403122939.GT23731@pengutronix.de>
-References: <20090403113054.11098.67516.stgit@localhost.localdomain> <Pine.LNX.4.64.0904031352350.4729@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0904031352350.4729@axis700.grange>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3103 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751693AbZDXSLR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Apr 2009 14:11:17 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id n3OIBFvw064642
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 24 Apr 2009 20:11:15 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 24 Apr 2009 20:11:15 +0200 (CEST)
+Message-Id: <200904241811.n3OIBFvw064642@smtp-vbr10.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 03, 2009 at 02:15:34PM +0200, Guennadi Liakhovetski wrote:
-> On Fri, 3 Apr 2009, Darius Augulis wrote:
-> 
-> > From: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-> > 
-> > Signed-off-by: Darius Augulis <augulis.darius@gmail.com>
-> > Signed-off-by: Paulius Zaleckas <paulius.zaleckas@teltonika.lt>
-> 
-> Ok, I'll just swap these two Sob's to reflect the processing chain, add a 
-> description like
-> 
-> Add support for CMOS Sensor Interface on i.MX1 and i.MXL SoCs.
-> 
-> and fix a couple of trivial conflicts, which probably appear, because you 
-> based your patches on an MXC tree, and not on current linux-next. 
-> Wondering, if it still will work then... At least it compiles. BTW, should 
-> it really also work with IMX? Then you might want to change this
-> 
-> 	depends on VIDEO_DEV && ARCH_MX1 && SOC_CAMERA
-> 
-> to
-> 
-> 	depends on VIDEO_DEV && (ARCH_MX1 || ARCH_IMX) && SOC_CAMERA
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-This shouldn't be necessary. ARCH_IMX does not have the platform part to
-make use of this driver and will never get it.
+Results of the daily build of v4l-dvb:
 
-> 
-> but you can do this later, maybe, when you actually get a chance to test 
-> it on IMX (if you haven't done so yet).
-> 
-> Sascha, we need your ack for the ARM part.
+date:        Fri Apr 24 19:00:05 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11603:b40d628f830d
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-I'm OK with this driver: I have never worked with FIQs though so I can't
-say much to it.
+linux-2.6.22.19-armv5: WARNINGS
+linux-2.6.23.12-armv5: WARNINGS
+linux-2.6.24.7-armv5: WARNINGS
+linux-2.6.25.11-armv5: WARNINGS
+linux-2.6.26-armv5: WARNINGS
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29.1-armv5: WARNINGS
+linux-2.6.30-rc3-armv5: WARNINGS
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-rc3-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-rc3-i686: ERRORS
+linux-2.6.23.12-m32r: WARNINGS
+linux-2.6.24.7-m32r: WARNINGS
+linux-2.6.25.11-m32r: WARNINGS
+linux-2.6.26-m32r: WARNINGS
+linux-2.6.27-m32r: WARNINGS
+linux-2.6.28-m32r: WARNINGS
+linux-2.6.29.1-m32r: WARNINGS
+linux-2.6.30-rc3-m32r: WARNINGS
+linux-2.6.22.19-mips: WARNINGS
+linux-2.6.26-mips: WARNINGS
+linux-2.6.27-mips: WARNINGS
+linux-2.6.28-mips: WARNINGS
+linux-2.6.29.1-mips: WARNINGS
+linux-2.6.30-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-rc3-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-rc3-x86_64: ERRORS
+fw/apps: OK
+sparse (linux-2.6.29.1): OK
+sparse (linux-2.6.30-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Sascha
+Detailed results are available here:
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
