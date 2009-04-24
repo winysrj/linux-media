@@ -1,129 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:39503 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751300AbZDNLyR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Apr 2009 07:54:17 -0400
-Date: Tue, 14 Apr 2009 08:54:02 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, g.liakhovetski@gmx.de,
-	Jean-Francois Moine <moinejf@free.fr>,
-	laurent.pinchart@skynet.be,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"jongse.won@samsung.com" <jongse.won@samsung.com>,
-	=?UTF-8?B?6rmA7ZiV7KSA?= <riverful.kim@samsung.com>
-Subject: Re: [RFC] White Balance control for digital camera
-Message-ID: <20090414085402.10293cfd@pedra.chehab.org>
-In-Reply-To: <5e9665e10904091450u3e70cda8w9e1d57e45365a32b@mail.gmail.com>
-References: <5e9665e10904091450u3e70cda8w9e1d57e45365a32b@mail.gmail.com>
+Received: from cnc.isely.net ([64.81.146.143]:43758 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751419AbZDXCoX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Apr 2009 22:44:23 -0400
+Date: Thu, 23 Apr 2009 21:44:17 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+Reply-To: Mike Isely <isely@pobox.com>
+To: Jean Delvare <khali@linux-fr.org>
+cc: LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	isely@isely.net
+Subject: Re: [PATCH 2/6] ir-kbd-i2c: Switch to the new-style device binding
+   model
+In-Reply-To: <20090423110038.59554982@hyperion.delvare>
+Message-ID: <Pine.LNX.4.64.0904230928410.3285@cnc.isely.net>
+References: <20090417222927.7a966350@hyperion.delvare>
+ <20090417223105.28b8957e@hyperion.delvare> <Pine.LNX.4.64.0904171831300.19718@cnc.isely.net>
+ <20090418112519.774e0dae@hyperion.delvare> <20090418151625.254e466b@hyperion.delvare>
+ <Pine.LNX.4.64.0904180842110.19718@cnc.isely.net> <20090423110038.59554982@hyperion.delvare>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 10 Apr 2009 06:50:32 +0900
-"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com> wrote:
 
-> Hello everyone,
-> 
-> I'm posting this RFC one more time because it seems to everyone has
-> been forgot this, and I'll be appreciated if any of you who is reading
-> this mailing list give me comment.
-> 
-> I'm adding some choices for you to make it easier. (even the option
-> for that this is a pointless discussion)
-> 
-> 
-> 
-> I've got a big question popping up handling white balance with
-> V4L2_CID_WHITE_BALANCE_TEMPERATURE CID.
-> 
-> Because in digital camera we generally control over user interface
-> with pre-defined white balance name. I mean, user controls white
-> balance with presets not with kelvin number.
-> I'm very certain that TEMPERATURE CID is needed in many of video
-> capture devices, but also 100% sure that white balance preset control
-> is also necessary for digital cameras.
-> How can we control white balance through preset name with existing V4L2 API?
-> 
-> For now, I define preset names in user space with supported color
-> temperature preset in driver like following.
-> 
-> #define MANUAL_WB_TUNGSTEN 3000
-> #define MANUAL_WB_FLUORESCENT 4000
-> #define MANUAL_WB_SUNNY 5500
-> #define MANUAL_WB_CLOUDY 6000
-> 
-> and make driver to handle those presets like this. (I split in several
-> ranges to make driver pretend to be generic)
-> 
-> case V4L2_CID_WHITE_BALANCE_TEMPERATURE:
->                if (vc->value < 3500) {
->                        /* tungsten */
->                        err = ce131f_cmds(c, ce131f_wb_tungsten);
->                } else if (vc->value < 4100) {
->                        /* fluorescent */
->                        err = ce131f_cmds(c, ce131f_wb_fluorescent);
->                } else if (vc->value < 6000) {
->                        /* sunny */
->                        err = ce131f_cmds(c, ce131f_wb_sunny);
->                } else if (vc->value < 6500) {
->                        /* cloudy */
->                        err = ce131f_cmds(c, ce131f_wb_cloudy);
->                } else {
->                        printk(KERN_INFO "%s: unsupported kelvin
-> range\n", __func__);
->                }
->                ......
-> 
-> I think this way seems to be ugly. Don't you think that another CID is
-> necessary to handle WB presets?
-> Because most of mobile camera modules can't make various color
-> temperatures in expecting kelvin number with user parameter.
-> 
-> So, here you are some options you can chose to give your opinion.(or
-> you can make your own opinion)
-> 
-> (A). Make a new CID to handle well known white balance presets
-> Like V4L2_CID_WHITE_BALANCE_PRESET for CID and enum values like
-> following for value
-> 
-> enum v4l2_whitebalance_presets {
->      V4L2_WHITEBALANCE_TUNGSTEN  = 0,
->      V4L2_WHITEBALANCE_FLUORESCENT,
->      V4L2_WHITEBALANCE_SUNNY,
->      V4L2_WHITEBALANCE_CLOUDY,
-> ....
-> 
-> (B). Define well known kelvin number in videodev2.h as preset name and
-> share with user space
-> Like following
-> 
-> #define V4L2_WHITEBALANCE_TUNGSTEN 3000
-> #define V4L2_WHITEBALANCE_FLUORESCENT 4000
-> #define V4L2_WHITEBALANCE_SUNNY 5500
-> #define V4L2_WHITEBALANCE_CLOUDY 6000
-> 
-> and use those defined values with V4L2_CID_WHITE_BALANCE_TEMPERATURE
-> 
-> urgh.....
-> 
-> (C). Leave it alone. It's a pointless discussion. we are good with
-> existing WB API.
-> (really?)
-> 
-> 
-> I'm very surprised about this kind of needs were not issued yet.
-> 
+Hi Jean,
 
-I vote for (B). This is better than creating another user control for something
-that were already defined. The drivers that don't support specifying the color
-temperature, in Kelvin should round to the closest supported value, and return
-the proper configured value when questioned.
+I had actually written out a longer, detailed, point-by-point reply 
+earlier today, but before I could finish it I got interrupted with a 
+crisis.  And then another.  And that's kind of how my day went.  Now I'm 
+finally back to this, but I have another e-mail debacle to immediately 
+deal with (thank you pobox.com, not!) so I'm tossing that unfinished 
+lengthy reply.  I think I can sum this whole thing up very simply.  
+Here's what I think should be happening:
+
+1a. Your existing IR changeset, minus the pvrusb2 changes, should be 
+merged.
+
+1b. In parallel with (1a) I modify my pvrusb2 changeset to use the right 
+module name and I adjust the driver option name to match.
+
+2. My pvrusb2 changeset, with changes from (1b) is merged.
+
+3. Andy's proposed change for ir_kbd_i2c to support additional IR 
+devices is investigated and probably merged.
+
+4. I test the changed ir_kbd_i2c against additional pvrusb2 devices 
+known not to work previously with ir_kbd_i2c.  If they work, then I will 
+create a pvrusb2 patch to load ir_video in those cases as well as the 
+cases already set up (which still won't cover all possible 
+pvrusb2-driven devices).
+
+I think this satisfies the remaining issues, except that from between 
+steps 1 and 2 ir_kbd_i2c won't work with the pvrusb2 driver.  But you 
+know, I'm OK with that.  I expect (2) to happen within a few days after 
+(1) so the impact should be minimal.  It certainly won't escape into the 
+kernel tree that way.  In addition, my impression from the community of 
+pvrusb2 users is that the preferred IR strategy is lirc anyway, and it's 
+a foregone conclusion that they are all going to be, uh, impacted once 
+your compatibility parts are gone from i2c.  From where I'm sitting the 
+"gap" from (1) to (2) is trivial compared to that impending mess - 
+realize I'm not complaining since after all (a) it really falls to the 
+lirc developers to fix that, (b) you do need to get your changes in, and 
+(c) there's little I can do for lirc there except to keep it working as 
+long as possible with the pvrusb2 driver.  I'm just pointing out that 
+I'm OK with the step 1 -> 2 gap for the pvrusb2 driver because it's 
+small and will be nothing compared to what's about to happen with lirc.
+
+If you still don't like any of that, well, then I give up.  In that 
+case, then merge your changes with the pvrusb2 changes included.  I 
+won't ack them, but I'll just deal with it later.  Because while your 
+changes might keep ir_kbd_i2c going, they will also immediately break 
+the more-useful and apparently more-used lirc (by always binding 
+ir_kbd_i2c even in cases in the pvrusb2 driver where it's known that it 
+can't even work but lirc would have) which as far as I'm concerned is 
+far worse than the step 1 - 2 gap above.  But it's just another gap and 
+I'll push another pvrusb2 changeset on top to clean it up.  So just do 
+whatever you think is best right now, if you disagree with the sequence 
+above.
+
+Now I will go off and deal with the steamer that pobox.com has just 
+handed me :-(
+
+  -Mike
 
 
-Cheers,
-Mauro
+-- 
+
+Mike Isely
+isely @ pobox (dot) com
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
