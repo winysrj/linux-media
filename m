@@ -1,75 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bay0-omc3-s39.bay0.hotmail.com ([65.54.246.239]:44880 "EHLO
-	bay0-omc3-s39.bay0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751124AbZDUO75 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2009 10:59:57 -0400
-Message-ID: <BAY102-W2235192D68B3F842A69215CF770@phx.gbl>
-From: Thomas Nicolai <nickotym@hotmail.com>
-To: Steven Toth <stoth@linuxtv.org>
-CC: <linux-media@vger.kernel.org>
-Subject: RE: Hauppauge HVR-1500 (aka HP RM436AA#ABA)
-Date: Tue, 21 Apr 2009 09:59:56 -0500
-In-Reply-To: <49ED269F.9030603@linuxtv.org>
-References: <23cedc300904170207w74f50fc1v3858b663de61094c@mail.gmail.com>
- <BAY102-W34E8EA79DEE83E18177655CF7B0@phx.gbl> <49E9C4EA.30706@linuxtv.org>
-  <loom.20090420T150829-849@post.gmane.org> <49EC9A08.50603@linuxtv.org>
-  <1240245715.5388.126.camel@mountainboyzlinux0>
- <49ECA8DD.9090708@linuxtv.org>
-  <1240249684.5388.146.camel@mountainboyzlinux0>
- <49ECBCF0.3060806@linuxtv.org>
-  <1240255677.5388.153.camel@mountainboyzlinux0>
- <49ECD553.9090707@linuxtv.org>
-  <1240259904.5388.178.camel@mountainboyzlinux0>
- <49ECEEA3.6010203@linuxtv.org>
-  <1240265172.5388.184.camel@mountainboyzlinux0>
- <49ED269F.9030603@linuxtv.org>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Received: from mail.gmx.net ([213.165.64.20]:54344 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755527AbZDXQkJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Apr 2009 12:40:09 -0400
+Date: Fri, 24 Apr 2009 18:40:22 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	eric miao <eric.y.miao@gmail.com>
+Subject: [PATCH 4/8] ARM: convert em-x270 to the new platform-device soc-camera
+ interface
+In-Reply-To: <Pine.LNX.4.64.0904241818130.8309@axis700.grange>
+Message-ID: <Pine.LNX.4.64.0904241832500.8309@axis700.grange>
+References: <Pine.LNX.4.64.0904241818130.8309@axis700.grange>
 MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-Steve,
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-still haven't figured out how not to top post with Hotmail, Sorry. :-)  too much of  a newb at this.
+For review __ONLY__ for now - will re-submit after I have pushed 1/8
 
-When I get your update below do I pull with the normal method or do I need to pull just from that link?  What is the proper procedure for this?
+ arch/arm/mach-pxa/em-x270.c |   22 ++++++++++++++++------
+ 1 files changed, 16 insertions(+), 6 deletions(-)
 
-Tom
+diff --git a/arch/arm/mach-pxa/em-x270.c b/arch/arm/mach-pxa/em-x270.c
+index bc0f73f..d35bc25 100644
+--- a/arch/arm/mach-pxa/em-x270.c
++++ b/arch/arm/mach-pxa/em-x270.c
+@@ -917,14 +917,24 @@ static int em_x270_sensor_power(struct device *dev, int on)
+ 	return 0;
+ }
+ 
+-static struct soc_camera_link iclink = {
+-	.bus_id	= 0,
+-	.power = em_x270_sensor_power,
+-};
+-
+ static struct i2c_board_info em_x270_i2c_cam_info[] = {
+ 	{
+ 		I2C_BOARD_INFO("mt9m111", 0x48),
++	},
++};
++
++static struct soc_camera_link iclink = {
++	.bus_id		= 0,
++	.power		= em_x270_sensor_power,
++	.board_info	= &em_x270_i2c_cam_info[0],
++	.i2c_adapter_id	= 0,
++	.module_name	= "mt9m111",
++};
++
++static struct platform_device em_x270_camera = {
++	.name	= "soc-camera-pdrv",
++	.id	= -1,
++	.dev	= {
+ 		.platform_data = &iclink,
+ 	},
+ };
+@@ -936,8 +946,8 @@ static struct i2c_pxa_platform_data em_x270_i2c_info = {
+ static void  __init em_x270_init_camera(void)
+ {
+ 	pxa_set_i2c_info(&em_x270_i2c_info);
+-	i2c_register_board_info(0, ARRAY_AND_SIZE(em_x270_i2c_cam_info));
+ 	pxa_set_camera_info(&em_x270_camera_platform_data);
++	platform_device_register(&em_x270_camera);
+ }
+ #else
+ static inline void em_x270_init_camera(void) {}
+-- 
+1.6.2.4
 
-> Date: Mon, 20 Apr 2009 21:51:27 -0400
-> From: stoth@linuxtv.org
-> Subject: Re: Hauppauge HVR-1500 (aka HP RM436AA#ABA)
-> To: pghben@yahoo.com
-> CC: linux-media@vger.kernel.org; mchehab@infradead.org
-> 
->> 
->> If there is anything I can do that will help you find the bug, please 
->> let me know..
-> 
-> The issue is fixed.
-> 
-> http://linuxtv.org/hg/~stoth/cx23885-hvr1500/rev/7853c00870e1
-> 
-> It's locking OK for me now. If you can clone, built and test - thus confirm the 
-> fix - that would be great.
-> 
-> Build instructions on the wiki:
-> 
-> http://linuxtv.org/wiki/index.php/How_to_Obtain%2C_Build_and_Install_V4L-DVB_Device_Drivers
-> 
-> Thanks,
-> 
-> - Steve
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-_________________________________________________________________
-Rediscover Hotmail®: Now available on your iPhone or BlackBerry
-http://windowslive.com/RediscoverHotmail?ocid=TXT_TAGLM_WL_HM_Rediscover_Mobile2_042009
