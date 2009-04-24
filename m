@@ -1,37 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:55555 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764181AbZDAOYU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Apr 2009 10:24:20 -0400
-Received: by fxm2 with SMTP id 2so57925fxm.37
-        for <linux-media@vger.kernel.org>; Wed, 01 Apr 2009 07:24:17 -0700 (PDT)
-Message-ID: <49D3788D.2070406@gmail.com>
-Date: Wed, 01 Apr 2009 17:22:05 +0300
-From: Darius Augulis <augulis.darius@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20]:52228 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752659AbZDXQjX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Apr 2009 12:39:23 -0400
+Date: Fri, 24 Apr 2009 18:39:35 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Paul Mundt <lethal@linux-sh.org>
+Subject: [PATCH 0/8] soc-camera: smoothly switch platforms to platform-driver
+Message-ID: <Pine.LNX.4.64.0904241818130.8309@axis700.grange>
 MIME-Version: 1.0
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: soc_camera_open() not called
-References: <49D37485.7030805@gmail.com>
-In-Reply-To: <49D37485.7030805@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-13; format=flowed
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Darius Augulis wrote:
-> Hi,
-> 
-> I'm trying to launch mx1_camera based on new v4l and soc-camera tree.
-> After loading mx1_camera module, I see that .add callback is not called.
-> In debug log I see that soc_camera_open() is not called too.
-> What should call this function? Is this my driver problem?
-> p.s. loading sensor driver does not change situation.
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Hi,
 
-actually I thought about soc_camera_probe(), not soc_camera_open().
-But the problem still the same. video_probe in my driver is not called.
+Having done the two conversion steps and getting ready to push them, the 
+problem that I pushed back for later came forward: applying a patch that 
+affects multiple v4l drivers and 6 (!) (the 7th one is approaching) 
+platforms would be difficult... So, here comes a solution. With this patch 
+I add a new platform-driver style probing to soc-camera without removing 
+the old one. This way all current users still work and we can easily 
+convert platforms one by one to the new scheme. Please, have a look, I'll 
+reply to this message with one core and 7 platform patches, of which the 
+latter should only be applied after the first one.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
