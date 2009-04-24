@@ -1,29 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3M8MB5L012720
-	for <video4linux-list@redhat.com>; Wed, 22 Apr 2009 04:22:11 -0400
-Received: from mout2.freenet.de (mout2.freenet.de [195.4.92.92])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n3M8JrjB018897
-	for <video4linux-list@redhat.com>; Wed, 22 Apr 2009 04:19:53 -0400
-Received: from [195.4.92.16] (helo=6.mx.freenet.de)
-	by mout2.freenet.de with esmtpa (ID exim) (port 25) (Exim 4.69 #88)
-	id 1LwXgO-0001a7-O8
-	for video4linux-list@redhat.com; Wed, 22 Apr 2009 10:19:52 +0200
-Received: from www1.emo.freenet-rz.de ([194.97.107.198]:29000)
-	by 6.mx.freenet.de with esmtpa (ID exim) (port 25) (Exim 4.69 #79)
-	id 1LwXgO-0005VY-Nb
-	for video4linux-list@redhat.com; Wed, 22 Apr 2009 10:19:52 +0200
-Received: from www-data by www1.emo.freenet-rz.de with local (Exim 4.67 1
-	(Panther_1)) id 1LwXgO-0005VK-6D
-	for <video4linux-list@redhat.com>; Wed, 22 Apr 2009 10:19:52 +0200
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3O74BVF027718
+	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 03:04:11 -0400
+Received: from mail.bcode.com (mail.bcode.com [150.101.204.108] (may be
+	forged))
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3O73s9c001519
+	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 03:03:55 -0400
+Date: Fri, 24 Apr 2009 17:03:52 +1000
+From: Erik de Castro Lopo <erik@bcode.com>
 To: video4linux-list@redhat.com
-From: judith.baumgarten@freenet.de
-Message-Id: <E1LwXgO-0005VK-6D@www1.emo.freenet-rz.de>
-Date: Wed, 22 Apr 2009 10:19:52 +0200
-Content-Transfer-Encoding: quoted-printable
-MIME-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Subject: setting values to CICR2 register in PXA320 Quick Capture Interface
+Message-Id: <20090424170352.313f1feb.erik@bcode.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Subject: Compling drivers from v4l-dvb hg tree
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -35,6 +25,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hi all,
+
+What's the recommended way for compiling drivers from v4l-dvb hg tree?
+
+Cheers,
+Erik
+-- 
+=======================
+erik de castro lopo
+senior design engineer
+
+bCODE
+level 2, 2a glen street
+milsons point
+sydney nsw 2061
+australia
+
+tel +61 (0)2 9954 4411
+fax +61 (0)2 9954 4422
+www.bcode.com
 
 --
 video4linux-list mailing list
