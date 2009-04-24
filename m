@@ -1,27 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3KIZ3O4002632
-	for <video4linux-list@redhat.com>; Mon, 20 Apr 2009 14:35:03 -0400
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.29])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n3KIYkid009220
-	for <video4linux-list@redhat.com>; Mon, 20 Apr 2009 14:34:47 -0400
-Received: by yw-out-2324.google.com with SMTP id 3so1244501ywj.81
-	for <video4linux-list@redhat.com>; Mon, 20 Apr 2009 11:34:46 -0700 (PDT)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3OMNDn9020441
+	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 18:23:13 -0400
+Received: from yx-out-2324.google.com (yx-out-2324.google.com [74.125.44.30])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n3OMMf9H028042
+	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 18:22:41 -0400
+Received: by yx-out-2324.google.com with SMTP id 8so768716yxg.81
+	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 15:22:41 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20090421041338.4a2a9222.anthony-v4l@hogan.id.au>
-References: <20090420230653.7089115b.anthony-v4l@hogan.id.au>
-	<412bdbff0904200632n5c395252s3f27335c575b188f@mail.gmail.com>
-	<20090421023426.b1a37cdf.anthony-v4l@hogan.id.au>
-	<412bdbff0904200941m254f57aep3850374f87ebc413@mail.gmail.com>
-	<20090421041338.4a2a9222.anthony-v4l@hogan.id.au>
-Date: Mon, 20 Apr 2009 14:34:46 -0400
-Message-ID: <412bdbff0904201134k255b30bob008a2b92d8235e5@mail.gmail.com>
+In-Reply-To: <20090425081654.3e9932f1.erik@bcode.com>
+References: <20090424170352.313f1feb.erik@bcode.com>
+	<412bdbff0904240625y3902243em5a643380b036e08f@mail.gmail.com>
+	<20090425080356.69e0ed9d.erik@bcode.com>
+	<412bdbff0904241509r29b0859fl22abe2fe78e59daa@mail.gmail.com>
+	<20090425081654.3e9932f1.erik@bcode.com>
+Date: Fri, 24 Apr 2009 18:22:40 -0400
+Message-ID: <412bdbff0904241522s4466fe3dh3fadd3b21113e60@mail.gmail.com>
 From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Anthony Hogan <anthony-v4l@hogan.id.au>
+To: video4linux-list@redhat.com
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: eMPIA device without unique USB ID or EEPROM..
+Content-Transfer-Encoding: 8bit
+Subject: Re: Compling drivers from v4l-dvb hg tree
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,53 +32,21 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Apr 20, 2009 at 2:13 PM, Anthony Hogan <anthony-v4l@hogan.id.au> wrote:
-> Before leaping into coding, I took a punt, installed tvtime as you
-> suggested (hadn't tried it before), tried it (failed), then rmmod'd
-> em28xx and then figured if the device detection is likely correct
-> (em2860/TVP5150) I'd try forcing a card with that config in
-> em28xx-cards.c via the card parm to em28xx module in a modprobe.. It
-> would appear that the card 11 (Terratec Hybrid XS) matches most closely.
->
-> Ie. em2860 + TVP5150
->
-> Also worked with card 38 (Yakumo MovieMixer) which apparently uses an
-> em2861 instead. Card 11 matches more closely, but tries to load DVB
-> module (em28xx-dvb) also. Card 38 doesn't try to load this extra DVB
-> module.
->
-> Vision occasionally glitches - this could be because my SVideo cable is
-> an old Apple ADB lead I dug out of my bits box and my test video source
-> is a DVD player or just that I'm running on an old P4) on composite1
-> and svideo with a blank blue screen on the television input.
->
-> Haven't gotten audio yet - may take some more fiddling :) (perhaps it's
-> my audio config) - an extra audio capture device has appeared in my
-> ALSA mixer tho.
+On Fri, Apr 24, 2009 at 6:16 PM, Erik de Castro Lopo <erik@bcode.com> wrote:
+> Ok,  but the instructions on http://linuxtv.org/repo compiles the
+> driver for the current running kernel. How do I compile it for
+> another kernel, ie an x86 embedded device that I normally do not
+> compile on?
 
-Bear in mind that tvtime won't play the audio, regardless of the
-device.  You can hear the audio by running arecord/aplay from a
-separate window:
+Yeah, that's a bit harder.  I did it a couple of months ago for ARM.
+I had to change the path to ensure the path to the cross-compiler's
+version of strip was ahead of the base operating system's version.
 
-arecord -D hw:1,0 -r 48000 -c 2 -f S16_LE | aplay -
-
-> This would seem to suggest that rather than remove the TV input they
-> just haven't connected a tuner to it and have left the composite and
-> svideo inputs in the same "place".
-
-Entirely possible.  You should make sure that both the composite and
-s-video input work (and to test you should disconnect the inputs in
-sequence to ensure that the inputs are mapped properly [e.g. you're
-not reading on the composite input when you've selected s-video])
-
-> I guess if I find a profile that works, the next step is to copy and
-> adapt that profile to not list television as an input, add the i2c hash
-> and then reload the new module without any parms..
-
-You can remove the "has_dvb" from the device profile and the
-em28xx-dvb stuff won't load.
+Check the linux-media archives for the subject "4vl + usb + arm" for
+the discussion in March.
 
 Devin
+
 
 -- 
 Devin J. Heitmueller
