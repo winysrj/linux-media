@@ -1,52 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196]:42209 "EHLO
-	mta1.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756145AbZDTPvz (ORCPT
+Received: from mail-bw0-f163.google.com ([209.85.218.163]:44975 "EHLO
+	mail-bw0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757437AbZDXNhA convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 11:51:55 -0400
-Received: from steven-toths-macbook-pro.local
- (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta1.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KIE000O5PE1VHD0@mta1.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Mon, 20 Apr 2009 11:51:38 -0400 (EDT)
-Date: Mon, 20 Apr 2009 11:51:36 -0400
-From: Steven Toth <stoth@linuxtv.org>
-Subject: Re: Hauppauge HVR-1500 (aka HP RM436AA#ABA)
-In-reply-to: <loom.20090420T150829-849@post.gmane.org>
+	Fri, 24 Apr 2009 09:37:00 -0400
+Received: by bwz7 with SMTP id 7so1097147bwz.37
+        for <linux-media@vger.kernel.org>; Fri, 24 Apr 2009 06:36:59 -0700 (PDT)
+MIME-Version: 1.0
+Date: Fri, 24 Apr 2009 16:36:59 +0300
+Message-ID: <c83f72c70904240636y320e1fc3u97cd592835410413@mail.gmail.com>
+Subject: About "unknown field specified in initializer" error
+From: Behzat Erte <b3hzat@gmail.com>
 To: linux-media@vger.kernel.org
-Message-id: <49EC9A08.50603@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <23cedc300904170207w74f50fc1v3858b663de61094c@mail.gmail.com>
- <BAY102-W34E8EA79DEE83E18177655CF7B0@phx.gbl> <49E9C4EA.30706@linuxtv.org>
- <loom.20090420T150829-849@post.gmane.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ben Heggy wrote:
-> I'm having the same issues (recognized - but won't turn on) with the same card
-> and would be delighted to join the open discussion and to try to help to provide
-> any information necessary to debug this issue. 
-> 
-> To this point, I have enabled debug options on what I think are the related
-> modules and have seen nothing that appears to be an error, but am also noticing
-> that there should be some messages about loading firmware for the various chips
-> and they don't appear (I did put the firmware files in /lib/firmware but I
-> cannot find references to their correct md5sums to verify they are correct)
-> 
-> I'm a newbie to linux, but was once (20 years ago) a system manager on a
-> vax/unix system, so I can find my way around a bit better than average.
-> 
-> Tell me what info you want to see or what actions to try and I will gladly act
-> immediately.
+Hello everyone,
 
-Connect the card.
+I've some trouble with usb webcam driver. I am newbie for drivers and it's
+really strange.
 
-Cold boot the system, boot linux, use the dmesg command.
 
-Do you see any evidence of the cx23885 driver recognizing your card?
+static struct video_device usbcam_videodev_template = {
+       .name                   = "usbcam-unknown",
+       .type                   =  VFL_TYPE_GRABBER,
+       .type2                  =  VID_TYPE_CAPTURE,
+       .minor                  = -1,
+       .release                = usbcam_videodev_release,
+};
 
-Use the lspci -vn command to display attached PCI(e) devices, is the card present?
+::: error :::
+/home/home/Desktop/sq930-dev/usbcam_dev.c:133: error: unknown field ‘type’
+specified in initializer
+/home/home/Desktop/sq930-dev/usbcam_dev.c:134: error: unknown field ‘type2’
+specified in initializer
 
-- Steve
+By the way this driver is sq930(i used for creative laptop webcam) and it was
+written for 2.6.17 -2.6.23 but I use 2.6.29.
+
+Than again, I try to change with normal varible that defines, like
+VFL_TYPE_GRABBER is 0 and VID_TYPE_CAPTURE is 1.
+
+Could you give me any advice about this situation?
+
+Thanks & Regards
+Behzat.
