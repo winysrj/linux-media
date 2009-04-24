@@ -1,25 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3HKURex027522
-	for <video4linux-list@redhat.com>; Fri, 17 Apr 2009 16:30:28 -0400
-Received: from yw-out-2324.google.com (yw-out-2324.google.com [74.125.46.31])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n3HKUCRN025639
-	for <video4linux-list@redhat.com>; Fri, 17 Apr 2009 16:30:12 -0400
-Received: by yw-out-2324.google.com with SMTP id 3so649156ywj.81
-	for <video4linux-list@redhat.com>; Fri, 17 Apr 2009 13:30:11 -0700 (PDT)
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3OIIRiF008790
+	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 14:18:27 -0400
+Received: from mail.kapsi.fi (mail.kapsi.fi [217.30.184.167])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3OII861006402
+	for <video4linux-list@redhat.com>; Fri, 24 Apr 2009 14:18:08 -0400
+Message-ID: <49F20259.1090302@iki.fi>
+Date: Fri, 24 Apr 2009 21:18:01 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <43804.19322.qm@web57905.mail.re3.yahoo.com>
-References: <804291.57323.qm@web57901.mail.re3.yahoo.com>
-	<49E7E794.30604@rogers.com>
-	<43804.19322.qm@web57905.mail.re3.yahoo.com>
-Date: Fri, 17 Apr 2009 16:30:11 -0400
-Message-ID: <412bdbff0904171330v4ad45b8ewdb31882c98e8f840@mail.gmail.com>
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Harol Hunter <hawk_eyes80@yahoo.com.mx>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com, CityK <cityk@rogers.com>
-Subject: Re: ATI TV Wonder PCI
+To: Jelle de Jong <jelledejong@powercraft.nl>
+References: <49D644CD.1040307@powercraft.nl>
+	<49D64E45.2070303@powercraft.nl>	<49DC5033.4000803@powercraft.nl>
+	<49F1B2A4.3060404@powercraft.nl>
+In-Reply-To: <49F1B2A4.3060404@powercraft.nl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: one dvb-t devices not working with mplayer the other is, what
+ is going wrong?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,26 +30,83 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Apr 17, 2009 at 4:26 PM, Harol Hunter <hawk_eyes80@yahoo.com.mx> wrote:
-> That explains a lot, so my card it's not supported by bttv driver, I'm quite disappointed. I guess I'll have to install a Virtual Machine with XP just to watch TV on my Linux,  thanks for your help anyway people.
+On 04/24/2009 03:37 PM, Jelle de Jong wrote:
+> Jelle de Jong wrote:
+>> Jelle de Jong wrote:
+>>> Jelle de Jong wrote:
+>>>> Hello everybody,
+>>>>
+>>>> As you may read in my previous thread, i am trying to switch from my
+>>>> em28xx devices to a device that works with gpl compliant upstream kernel
+>>>> source code.
+>>>>
+>>>> My em28xx devices all played back video and audio only dvb-t channels:
+>>>> Pinnacle PCTV Hybrid Pro Stick 330e
+>>>> Terratec Cinergy Hybrid T USB XS
+>>>> Hauppauge WinTV HVR 900
+>>>>
+>>>> I build script for this to automate the process, however i now swiched to
+>>>> my dvb-t only usb device:
+>>>> Afatech AF9015 DVB-T USB2.0 stick
+>>>>
+>>>> And it with totem-xine it plays the same as the em28xx devices, so the
+>>>> devices does kind of works (see the totem-xine bug, please commit to this
+>>>> bug if you have the same behavior)
+>>>>
+>>>> # device info
+>>>> http://debian.pastebin.com/d3e942c02
+>>>>
+>>>> # totem-xine bug
+>>>> http://bugzilla.gnome.org/show_bug.cgi?id=554319
+>>>>
+>>>> # mplayer issue
+>>>> http://debian.pastebin.com/d34d92e64
+>>>> ^ anybody have any idea what the heck goes on why doesn't mplayer work
+>>>> with this device, nothing changed in the commands i used.
+>>>>
+>>>> using:
+>>>> mplayer
+>>>> Version: 1:1.0.rc2svn20090330-0.0
+>>>> linux-image-2.6.29-1-686
+>>>> Version: 2.6.29-1
+>>>>
+>>>> Thanks in advance, for any help.
+>>>>
+>>>> Best regards,
+>>>>
+>>>> Jelle de Jong
+>>> some more info:
+>>>
+>>> device0 (not working, Afatech AF9013 DVB-T)
+>>> http://filebin.ca/ypxkw/mplayer0.log
+>>>
+>>> device1 (working, Micronas DRX3973D DVB-T, em28xx, markus not gpl code)
+>>> http://filebin.ca/zecdjm/mplayer1.log
+>>>
+>>> device2 (working, Zarlink MT352 DVB-T, em28xx, markus not gpl code)
+>>> http://filebin.ca/fzxtcx/mplayer2.log
+>>>
+>>> All devices work with totem-xine but only the em28xx devices works with
+>>> mplayer, whats going on?
+>>>
+>> Anybody?
+>>
+>> Best regards,
+>>
+>> Jelle
+>>
 >
-> Saludos
-> Harol
+> Would somebody be willing to test this with there device, see the first
+> mail for the commands I used, they are in the attached files.
+>
+> Being able to use mplayer to listen to dvb-t radio is mandatory for me.
 
-ATI has been less than cooperative in this area.  And now that the
-division that makes the Theatre chipsets has been sold to Broadcom,
-it's safe to support is not going to be coming for their cards anytime
-soon (based on the discussions I've had with them).
+I use tzap & mplayer always when testing driver. Never seen troubles you 
+have. And I have very many AF9015 devices. How did you launch mplayer?
 
-Dedicated capture cards have gotten dirt cheap, so if you want to
-watch TV under Linux your best bet is to get a supported device.
-
-Devin
-
+Antti
 -- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+http://palosaari.fi/
 
 --
 video4linux-list mailing list
