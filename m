@@ -1,26 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3NHDpMP021711
-	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 13:13:51 -0400
-Received: from mail-qy0-f122.google.com (mail-qy0-f122.google.com
-	[209.85.221.122])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3NHDZIo029623
-	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 13:13:35 -0400
-Received: by qyk28 with SMTP id 28so1342244qyk.23
-	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 10:13:35 -0700 (PDT)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3P8lhpZ016557
+	for <video4linux-list@redhat.com>; Sat, 25 Apr 2009 04:47:43 -0400
+Received: from mail.kapsi.fi (mail.kapsi.fi [217.30.184.167])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3P8lRhh028808
+	for <video4linux-list@redhat.com>; Sat, 25 Apr 2009 04:47:27 -0400
+Message-ID: <49F2CE19.5070109@iki.fi>
+Date: Sat, 25 Apr 2009 11:47:21 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <3c722d570904230950s223927bcl8801e5f199b4eff4@mail.gmail.com>
-References: <gspqam$n8a$1@ger.gmane.org>
-	<412bdbff0904230647x8eb2b34u5ddebba380e70ade@mail.gmail.com>
-	<3c722d570904230950s223927bcl8801e5f199b4eff4@mail.gmail.com>
-Date: Thu, 23 Apr 2009 13:13:33 -0400
-Message-ID: <412bdbff0904231013n58a64189oe1634128ac78ce09@mail.gmail.com>
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: chinmaya <chinmaya@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Jelle de Jong <jelledejong@powercraft.nl>
+References: <49F189BC.5090606@powercraft.nl>
+	<49F1ADF3.2030901@iki.fi>	<49F1AFC9.2040405@powercraft.nl>
+	<49F1BA30.6060702@iki.fi>	<49F2C15A.3010106@powercraft.nl>
+	<49F2C917.4060803@iki.fi>	<49F2CC6A.8050601@powercraft.nl>
+	<49F2CD76.2070501@iki.fi>
+In-Reply-To: <49F2CD76.2070501@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Neal Becker <ndbecker2@gmail.com>, video4linux-list@redhat.com
-Subject: Re: recommendation for hd atsc usb device?
+Cc: video4linux-list@redhat.com
+Subject: Re: [not working] Conceptronic USB 2.0 Digital TV Receiver -
+ CTVDIGRCU - Device Information
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,23 +32,16 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Apr 23, 2009 at 12:50 PM, chinmaya <chinmaya@gmail.com> wrote:
-> Just a word caution: I have not been able to get Hauppage 950q to work on
-> Ubuntu 8.10 + Mythbuntu with latest v4l-dvb code yet (both analog and
-> digital)
+On 04/25/2009 11:44 AM, Antti Palosaari wrote:
+> Why your mails (CC'd correctly) are not arrived to the list? Not
+> yesterday, not today.
 
-Well, if that is the case, then it's the first I've heard of it.
-Please provide more details regarding specifically what behavior you
-are experiencing.
+Oops, my fault. My list settings again. I don't write to this list 
+usually so I din't find that earlier. Sorry.
 
-Thanks,
-
-Devin
-
+Antti
 -- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+http://palosaari.fi/
 
 --
 video4linux-list mailing list
