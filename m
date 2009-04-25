@@ -1,91 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:44475 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764577AbZDHLbY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Apr 2009 07:31:24 -0400
-Date: Wed, 8 Apr 2009 08:31:02 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: CityK <cityk@rogers.com>
-Cc: Jean Delvare <khali@linux-fr.org>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
-  model
-Message-ID: <20090408083102.027ba170@pedra.chehab.org>
-In-Reply-To: <49DC13D3.4080201@rogers.com>
-References: <20090404142427.6e81f316@hyperion.delvare>
-	<Pine.LNX.4.64.0904041045380.32720@cnc.isely.net>
-	<20090405010539.187e6268@hyperion.delvare>
-	<200904050746.47451.hverkuil@xs4all.nl>
-	<20090405143748.GC10556@aniel>
-	<1238953174.3337.12.camel@morgan.walls.org>
-	<20090405183154.GE10556@aniel>
-	<1238957897.3337.50.camel@morgan.walls.org>
-	<20090405222250.64ed67ae@hyperion.delvare>
-	<1238966523.6627.63.camel@pc07.localdom.local>
-	<20090406104045.58da67c7@hyperion.delvare>
-	<1239052236.4925.20.camel@pc07.localdom.local>
-	<20090407112715.6caf2e89@hyperion.delvare>
-	<49DC13D3.4080201@rogers.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196]:61803 "EHLO
+	mta1.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751628AbZDYPLJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Apr 2009 11:11:09 -0400
+Received: from mbp.kernelscience.com
+ (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta1.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KIN00D7OWUIS520@mta1.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Sat, 25 Apr 2009 11:11:09 -0400 (EDT)
+Date: Sat, 25 Apr 2009 11:11:06 -0400
+From: Steven Toth <stoth@linuxtv.org>
+Subject: Request for hardware
+In-reply-to: <412bdbff0904250621m7f43735eu730fac87bd121b57@mail.gmail.com>
+To: linux-media@vger.kernel.org, linux-dvb <linux-dvb@linuxtv.org>
+Cc: Devin Heitmueller <devin.heitmueller@gmail.com>,
+	Peter Hoyland <Peter.Hoyland@t-online.de>
+Message-id: <49F3280A.7090700@linuxtv.org>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <49F2DCBD.20105@freenet.de>
+ <412bdbff0904250621m7f43735eu730fac87bd121b57@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 07 Apr 2009 23:02:43 -0400
-CityK <cityk@rogers.com> wrote:
+> This device is supported in Markus's closed source driver only.  It
+> will not be merged into the mainline kernel, and there are no plans at
+> this time for anyone else to reverse engineer the Micronas demod and
+> write an open source driver.
 
-> Regarding the KS003 (& KS007; the other "mystery" chip):
-> 
-> Upon further investigation of some info from a post from last year
-> (http://www.linuxtv.org/pipermail/linux-dvb/2008-January/022634.html),
-> it appears that these (assuming that they are the same IC across the
-> various MSI, Leadtek & KWorld cards; and I believe that to be true) are
-> the "AT8PS54/S56" chip from "Feeling Technology" ... the datasheet for
-> that part is available through a google search .... probing further (as
-> I had never heard of FT before and so I looked them up), it looks like
-> FT renamed and/or upgraded the chip to the "FM8PS54/S56" ... the near
-> identical datasheet for that second version is also available:
-> http://www.feeling-tech.com.tw/km-master/front/bin/ptdetail.phtml?Part=M1-05&Category=100018
+Message to all:
 
->From what I've investigated, several of those IR chips are micro-controllers like
-the one you pointed. I've seen a few boards whose IR chip is not masked. On
-those, I always went into some micro-controller datasheet.
+If some kind individual would mail me a Cinergy HTC USB stick, with the Micronas 
+Demod, then I'd be happy to spend my free time reverse engineering the demod and 
+creating a GPL driver.
 
-Those IR's with a micro-controller have some software inside it to decode one IR
-protocol and generate scan-code sequences that can be received via GPIO or via
-I2C, depending on the firmware content.
+I'm tired of the Micronas nonsense so let's get a barebones GPL driver in v4l-dvb.
 
-The datasheet of those chips are useless, since the behaviour of the
-device is programmed inside their ROM/EEPROM [1]. So, even being the same chip,
-you could have two "K007" devices with different firmwares, listening on
-different i2c addresses and eventually generating different scan-codes for the
-same IR.
+If someone will ship me the hardware I'll do the rest.
 
-On the other hand, for USB devices and for bttv, saa7134 and cx88, there are
-some easy ways to monitor what i2c messages or GPIO pins are involved with IR.
-In general, the IR received messages generated by the firmware are some header,
-a scan code, a repeat key bit and a trailer. So, it is not hard to generate a
-get-key routine to get the scan code and the repeat bit from the protocol.
+- Steve
 
-That's why the modern ir-kbd-i2c approach is to select the proper IR parameters
-after binding the module, at the bridge driver. The bridge driver is the one
-who knows what's the IR scan code of the original IR (to set it as the
-default), and the proper get-key function. With the new i2c behaviour, the
-bridge driver can also specify the proper i2c address for each device.
 
-Cheers,
-Mauro
-
-[1] It doesn't seem to be practical for me to get their internal software.In
-general, such micro-controllers block EEPROM/ROM read of the software inside.
-If this is the case of this chip, the only remaining option to get the internal
-software would be to cut the plastic and try to see the state of each eeprom
-bit with the help of a good microscope. 
-Anyway, assuming that there are some way to read the ROM content, in order to
-see the device behavior, one should remove the chip from the board, get the
-ROM/EEPROM content, write a disassembler for this processor, disassemble the
-code and analyse the results. This would be a real hard work, would take a lot
-of time, and I doubt that this would help to improve the driver, since we
-already know how to read scan codes from those devices.
