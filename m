@@ -1,39 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from studserv.stud.uni-hannover.de ([130.75.176.2]:41602 "EHLO
-	studserv.stud.uni-hannover.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757065AbZD3L4x (ORCPT
+Received: from 27.mail-out.ovh.net ([91.121.30.210]:38283 "HELO
+	27.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751695AbZDYR2n (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2009 07:56:53 -0400
-Message-ID: <20090430135641.91441beqhfo80o4k@www.stud.uni-hannover.de>
-Date: Thu, 30 Apr 2009 13:56:41 +0200
-From: Soeren.Moch@stud.uni-hannover.de
-To: linux-media@vger.kernel.org
-Subject: Re: Nova-T 500 does not survive reboot
+	Sat, 25 Apr 2009 13:28:43 -0400
+Received: from [192.168.10.23] (unknown [192.168.10.23])
+	by ventoso.org (Postfix) with ESMTP id EFAD8C32066
+	for <linux-media@vger.kernel.org>; Sat, 25 Apr 2009 19:21:17 +0200 (CEST)
+Message-ID: <49F3468C.4070101@ventoso.org>
+Date: Sat, 25 Apr 2009 19:21:16 +0200
+From: Luca Olivetti <luca@ventoso.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=ISO-8859-1;
- DelSp="Yes";
- format="flowed"
-Content-Disposition: inline
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [linux-dvb] RFC - Flexcop Streaming watchdog (VDSB)
+References: <alpine.LRH.1.10.0901161548460.28478@pub2.ifh.de> <alpine.DEB.2.00.0903312017420.10133@ybpnyubfg.ybpnyqbznva>
+In-Reply-To: <alpine.DEB.2.00.0903312017420.10133@ybpnyubfg.ybpnyqbznva>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Apr 29 22:42:41 favia kernel: [   72.272045] ehci_hcd 0000:07:01.2:  
-> force halt; handhake ffffc20000666814 00004000 00000000 -> -110
-> [...]
-> Do you know if the issue is the same with a Nova-TD stick? If it is,
-> then I could be able to use debugging as an excuse to buy one, and then
-> add 2 tuners to the system when all is done :o)
+En/na BOUWSMA Barry ha escrit:
 
-I had the same "ehci_hcd force halt" error when I was debugging the
-Nova-TD dual-stream-switchon-problem:
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg04643.html
+> The above observations are so far, just observations, and I
+> don't expect anyone to be able to `fix' anything
 
-Reducing the urb count to 1 (as included in the patch) solved the
-"ehci_hcd force halt" issue for me.
+They're nevertheless interesting, since I'm in a similar position: my 
+vdr machine is using (almost flawlessly) a Skystar 2 (though I don't 
+believe in this new fangled disecq thing and I use an old fashioned 
+actuator to move my dish) and it's running a 2.6.17 kernel.
+I'll probably have to update one day (especially if I want to keep up 
+with the "latest and greatest" vdr), but I'm not really in a hurry, even 
+less so seeing your problems.
 
-S:oren
-
-
-
+Bye
+-- 
+Luca
