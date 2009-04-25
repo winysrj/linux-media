@@ -1,76 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns1.jhcomp.cz ([88.146.207.5]:58959 "EHLO jhcinternet.jhcomp.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756255AbZDSMLo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Apr 2009 08:11:44 -0400
-Date: Sun, 19 Apr 2009 14:03:13 +0200
-From: Marcel Sebek <sebek64@post.cz>
-To: linux-media@vger.kernel.org, manu@linuxtv.org
-Subject: saa716x driver
-Message-ID: <20090419120313.GA4672@fourproc.fourproc>
+Received: from yx-out-2324.google.com ([74.125.44.30]:23082 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751850AbZDYNVQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Apr 2009 09:21:16 -0400
+Received: by yx-out-2324.google.com with SMTP id 3so933309yxj.1
+        for <linux-media@vger.kernel.org>; Sat, 25 Apr 2009 06:21:15 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <49F2DCBD.20105@freenet.de>
+References: <49F2DCBD.20105@freenet.de>
+Date: Sat, 25 Apr 2009 09:21:15 -0400
+Message-ID: <412bdbff0904250621m7f43735eu730fac87bd121b57@mail.gmail.com>
+Subject: Re: Installation of Cinergy HTC USB Driver in Ubuntu Jaunty
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Peter Hoyland <Peter.Hoyland@t-online.de>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi.
+On Sat, Apr 25, 2009 at 5:49 AM, Peter Hoyland
+<Peter.Hoyland@t-online.de> wrote:
+> Hallo
+>
+> I have a Terratec Cinergy HTC USB XS Stick and want to use this with
+> Me-TV in order to record and view TV via Cable (Germany).
+>
+> My research shows that a driver is in development under this link
+> http://mcentral.de/wiki/index.php5?title=Terratec_HTC_XS&oldid=2804.
+>
+> This link offers no instructions to installation, I was hoping that it
+> would be included In Ubuntu Jaunty, alas to no avail. I am hoping that
+> you can help me further or at least tell me in which Kernel release this
+> driver will be integrated.
+>
+> Thanks in advance
+> Peter Hoyland
 
-I have a card named "AverMedia TV Hybrid Speedy PCI-E" and I'm tryiing
-to make it working under linux. I've found the drivers at
+This device is supported in Markus's closed source driver only.  It
+will not be merged into the mainline kernel, and there are no plans at
+this time for anyone else to reverse engineer the Micronas demod and
+write an open source driver.
 
-http://jusst.de/hg/saa716x/
+My advice: return it and buy something supported.
 
-The drivers hangs on loading, this is the output:
+Micronas actively screwed the Linux community when they had me do all
+the integration work for their device and then refused to let me
+release it.  I wouldn't buy any of their products if you care about
+open source.
 
-saa716x_pci_init (0): found a Avermedia H788 PCIe card
-SAA716x Hybrid 0000:03:00.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
-SAA716x Hybrid 0000:03:00.0: setting latency timer to 64
-    SAA7160 Rev 3 [1461:1455], irq: 17,
-    mmio: 0xffffc20005700000
-    SAA7160 64Bit, MSI Disabled, MSI-X=32 msgs
-saa716x_i2c_hwinit (0): Adapter (c000) SAA716x I2C Core 0 RESET
-saa716x_i2c_hwinit (0): Adapter (b000) SAA716x I2C Core 1 RESET
-saa716x_i2c_send (0): TXFIFO not empty after Timeout, tried 10 loops,
-100 mS!
-saa716x_i2c_hwinit (0): Adapter (c000) SAA716x I2C Core 0 RESET
-
-this repeats many times, modprobe hangs for a few minutes
-
-saa716x_i2c_hwinit (0): Adapter (c000) SAA716x I2C Core 0 RESET
-saa716x_eeprom_header (0): ERROR: Header size mismatch! Read size=8 bytes, Expected=65535
-saa716x_eeprom_data (0): ERROR: Header Read failed <-1>
-saa716x_hybrid_pci_probe (0): SAA716x EEPROM dump failed
-DVB: registering new adapter (SAA716x dvb adapter)
-
-I've also tried various int_type values but with no success. After some
-experiments, I've found that reverting patches "Fix BUS ordering" and
-"Fix swapped I2C buses" fixed the hang during module loading, now it
-the output is:
-
-saa716x_pci_init (0): found a Avermedia H788 PCIe card
-SAA716x Hybrid 0000:03:00.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
-SAA716x Hybrid 0000:03:00.0: setting latency timer to 6
-    SAA7160 Rev 3 [1461:1455], irq: 17,
-    mmio: 0xffffc20005b00000
-    SAA7160 64Bit, MSI Disabled, MSI-X=32 msgs
-saa716x_i2c_hwinit (0): Adapter (49152) SAA716x I2C Core
-saa716x_i2c_hwinit (0): Adapter (45056) SAA716x I2C Core
-saa716x_get_offset (0): Offset @ 192
-saa716x_read_rombytes (0): Last Message length=16
-    SAA7160 ROM: ===== Device 0 =====
-    SAA7160 ROM: ===== Device 1 =====
-    SAA7160 ROM: ===== Device 2 =====
-    SAA7160 ROM: ===== Device 3 =====
-    SAA7160 ROM: ===== Device 4 =====
-DVB: registering new adapter (SAA716x dvb adapter)
-
-After that, there are created some device nodes in /dev/dvb/adapter0
-(demux0, dvr0, net0) but no frontend device node. It looks like the
-drivers are not yet fully working. Is there a chance that the card will
-be usable under linux?
+Devin
 
 -- 
-Marcel Šebek
-
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
