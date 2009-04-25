@@ -1,23 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3NJYXux022314
-	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 15:34:33 -0400
-Received: from mail-fx0-f166.google.com (mail-fx0-f166.google.com
-	[209.85.220.166])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3NJYIX4029404
-	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 15:34:18 -0400
-Received: by fxm10 with SMTP id 10so539322fxm.3
-	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 12:34:18 -0700 (PDT)
-From: Behzat Erte <b3hzat@gmail.com>
-To: video4linux-list@redhat.com
-Date: Thu, 23 Apr 2009 22:34:22 +0300
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3P8nKAF016921
+	for <video4linux-list@redhat.com>; Sat, 25 Apr 2009 04:49:20 -0400
+Received: from node01.cambriumhosting.nl (node01.cambriumhosting.nl
+	[217.19.16.162])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3P8mRZ0029218
+	for <video4linux-list@redhat.com>; Sat, 25 Apr 2009 04:48:27 -0400
+Message-ID: <49F2CE54.4050001@powercraft.nl>
+Date: Sat, 25 Apr 2009 10:48:20 +0200
+From: Jelle de Jong <jelledejong@powercraft.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Disposition: inline
-Message-Id: <200904232234.22645.behzaterte@gmail.com>
-Content-Transfer-Encoding: 8bit
-Subject: About "unknown field specified in initializer" error
+To: Antti Palosaari <crope@iki.fi>
+References: <49F189BC.5090606@powercraft.nl> <49F1ADF3.2030901@iki.fi>
+	<49F1AFC9.2040405@powercraft.nl> <49F1BA30.6060702@iki.fi>
+	<49F2C15A.3010106@powercraft.nl> <49F2C917.4060803@iki.fi>
+	<49F2CC6A.8050601@powercraft.nl> <49F2CD76.2070501@iki.fi>
+In-Reply-To: <49F2CD76.2070501@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: [not working] Conceptronic USB 2.0 Digital TV Receiver -
+ CTVDIGRCU - Device Information
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,36 +32,38 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello everyone,
+Antti Palosaari wrote:
+> On 04/25/2009 11:40 AM, Jelle de Jong wrote:
+>> Antti Palosaari wrote:
+>>> On 04/25/2009 10:52 AM, Jelle de Jong wrote:
+>>>> Would somebody be willing to get this device to work with the upstream
+>>>> v4l systems? I can sent the device to you. If not I can also return the
+>>>> device back to the store. Just sent me an email.
+>>> I can try. At least some basic driver stub which just works is possible
+>>> to do usually even without specs if tuner chip have one that does have
+>>> Linux driver. Most likely it does have tuner that is supported because
+>>> almost every DVB-T silicon tuner have some kind of driver currently.
+>>>
+>>> regards
+>>> Antti
+>> Thank you! I will sent the device to you somewhere in the next two weeks,
+>> I received your private email with your address data. I will sent a mail
+>> when the package is posted.
+> 
+> Why your mails (CC'd correctly) are not arrived to the list? Not 
+> yesterday, not today.
+> 
+> regards
+> Antti
 
-I've some trouble with usb webcam driver. I am newbie for drivers and it's 
-really strange. 
+I don't know, all mails I sent to the CC video4linux-list@redhat.com do
+arrive at the archives of the mailinglist. Maybe somebody enabled the
+mailman policy to not sent mails mails to both the list and the personal
+emails. Somebody knows what goes on?
 
+Cheers,
 
-static struct video_device usbcam_videodev_template = {
-        .name                   = "usbcam-unknown",
-        .type                   =  VFL_TYPE_GRABBER,
-        .type2                  =  VID_TYPE_CAPTURE,
-        .minor                  = -1,
-        .release                = usbcam_videodev_release,
-};
-
-::: error :::
-/home/home/Desktop/sq930-dev/usbcam_dev.c:133: error: unknown field ‘type’ 
-specified in initializer
-/home/home/Desktop/sq930-dev/usbcam_dev.c:134: error: unknown field ‘type2’ 
-specified in initializer
-
-By the way this driver is sq930(i used for creative laptop webcam) and it was 
-written for 2.6.17 -2.6.23 but I use 2.6.29.
-
-Than again, I try to change with normal varible that defines, like 
-VFL_TYPE_GRABBER is 0 and VID_TYPE_CAPTURE is 1. 
-
-Could you give me any advice about this situation?
-
-Thanks & Regards
-Behzat.
+Jelle
 
 --
 video4linux-list mailing list
