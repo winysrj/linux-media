@@ -1,30 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from echoes.closetothewind.net ([84.49.14.38]:60595 "EHLO
-	echoes.closetothewind.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755246AbZDCBPf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Apr 2009 21:15:35 -0400
-Received: from [192.168.1.22] (linuxtv.closetothewind.localnet [192.168.1.22])
-	by echoes.closetothewind.net (8.14.3/8.14.3/SuSE Linux 0.8) with ESMTP id n331FWso026876
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 3 Apr 2009 03:15:32 +0200
-Message-ID: <49D56335.2020506@closetothewind.net>
-Date: Fri, 03 Apr 2009 03:15:33 +0200
-From: Jonas Kvinge <linuxtv@closetothewind.net>
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:54678 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751461AbZDYPdl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Apr 2009 11:33:41 -0400
+Received: by fxm2 with SMTP id 2so1562976fxm.37
+        for <linux-media@vger.kernel.org>; Sat, 25 Apr 2009 08:33:40 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Hauppauge WinTV-HVR-4000 / Nova-HD-S2
+In-Reply-To: <d9def9db0904250828o6657ef78r91a847488de6c178@mail.gmail.com>
+References: <49F2DCBD.20105@freenet.de>
+	 <412bdbff0904250621m7f43735eu730fac87bd121b57@mail.gmail.com>
+	 <d9def9db0904250752yb16170w680e8cd78354cc76@mail.gmail.com>
+	 <49F3266A.4020805@linuxtv.org>
+	 <d9def9db0904250828o6657ef78r91a847488de6c178@mail.gmail.com>
+Date: Sat, 25 Apr 2009 23:33:39 +0800
+Message-ID: <d9def9db0904250833g15de1877r37b8c3090844e537@mail.gmail.com>
+Subject: Re: Installation of Cinergy HTC USB Driver in Ubuntu Jaunty
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Steven Toth <stoth@linuxtv.org>
+Cc: Peter Hoyland <Peter.Hoyland@t-online.de>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>,
+	linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Sat, Apr 25, 2009 at 11:28 PM, Markus Rechberger
+<mrechberger@gmail.com> wrote:
+> On Sat, Apr 25, 2009 at 11:04 PM, Steven Toth <stoth@linuxtv.org> wrote:
+>>> There's no need for Micronas nor Trident to provide such kerneldrivers
+>>> as long as the userland driver is available. It's also much easier to
+>>> install than the earlier versions.
+>>
+>> Markus, This is your typical self-serving nonsense and it only serves to
+>> confuse the non-technical Linux community. Please don't try to spread your
+>> non-GPL tree and userland rhetoric on the list as it's not welcome.
+>>
+>
+> it serves the question about linux support for those devices, if more
+> information is needed about it I can be contacted directly of course.
+>
 
-Whats the command to extract the firmware from the new driver release at
-http://www.wintvcd.co.uk/drivers/88x_2_123_27056_WHQL.zip
+http://lkml.indiana.edu/hypermail/linux/kernel/0802.0/0015.html
 
-The driver at http://www.wintvcd.co.uk/drivers/88x_2_122_26109_WHQL.zip
-is no longer available, so the link on
-http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000 is broken.
+even Greg Kroah adviced to use for example USBFS for closed source
+drivers, and even pointed out to the usb mailinglist for that a while
+ago, so I'd say it has a valid reason to coexist now.
 
-Jonas
+best regards,
+Markus
+>> This mailing list is dedicated the v4l-dvb GPL source code trees and
+>> associated applications. As far as I'm concerned your opinion is not
+>> welcome. Please keep all conversation related to promoting and developing
+>> the main repositories please.
+>>
+>
+> maybe put up a policy, and also list devices which require a closed
+> source firmware which are basically alot linux supported devices
+> already. I'm mainly considered about having support for that, if you
+> don't like the way it is supported try to start to reverse engineer it
+> and don't bother about it.
+>
+>> Peter, Devin is correct. If a vendor will not provide a driver then vote
+>> with your pocket and buy another product. If you do anything else you're not
+>> helping the rest of the community.
+>>
+>
+> best regards,
+> Markus
+>
