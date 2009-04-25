@@ -1,53 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.191]:51228 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754189AbZDGWuB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Apr 2009 18:50:01 -0400
-Received: by ti-out-0910.google.com with SMTP id i7so2566237tid.23
-        for <linux-media@vger.kernel.org>; Tue, 07 Apr 2009 15:50:00 -0700 (PDT)
-From: Huang Weiyi <weiyi.huang@gmail.com>
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, Huang Weiyi <weiyi.huang@gmail.com>
-Subject: [PATCH] V4L/DVB: cx231xx: remove unused #include <linux/version.h>'s
-Date: Wed,  8 Apr 2009 06:49:46 +0800
-Message-Id: <1239144586-1792-1-git-send-email-weiyi.huang@gmail.com>
+Received: from main.gmane.org ([80.91.229.2]:41323 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753374AbZDYKa3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Apr 2009 06:30:29 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1Lxf9Q-0002Xh-4t
+	for linux-media@vger.kernel.org; Sat, 25 Apr 2009 10:30:28 +0000
+Received: from 41.226.100.198 ([41.226.100.198])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 25 Apr 2009 10:30:28 +0000
+Received: from nizar.saied by 41.226.100.198 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 25 Apr 2009 10:30:28 +0000
+To: linux-media@vger.kernel.org
+From: nizar <nizar.saied@gmail.com>
+Subject: Re: Support for SkyStar USB 2 ?
+Date: Sat, 25 Apr 2009 11:33:03 +0200
+Message-ID: <gsuono$iec$1@ger.gmane.org>
+References: <25314470.1236090890821.JavaMail.ngmail@webmail15.arcor-online.net> <26537179.1236096877826.JavaMail.ngmail@webmail13.arcor-online.net>
+Reply-To: nizar.saied@gmail.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <26537179.1236096877826.JavaMail.ngmail@webmail13.arcor-online.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove unused #include <linux/version.h>'s in
-  drivers/media/video/cx231xx/cx231xx-avcore.c
-  drivers/media/video/cx231xx/cx231xx-vbi.c
+ronny.bantin@nexgo.de wrote:
+> Hi,
+> 
+> the current flexcop-usb driver supports only USB 1.1 devices. Is there any plan to support USB 
+> 2.0 devices ? The device id is "13d0:2282". For testing I have simply changed the "flexcop_usb_table" 
+> structur to this ids. But of course is does not work.
+> 
+> The hardware components are the same of the SkyStar2 PCI (CX24113 tuner...).
+> 
+> Best Regards Ronny.
+> 
+> 
+> Erwischt! Bei Arcor sehen Sie die besten Promi-Bilder riesengroß und in Top-Qualität. Hier finden Sie die schönsten Schnappschüsse auf dem roten Teppich, lernen die Frauen des Womanizers Boris Becker kennen und schauen den Royals ins Wohnzimmer. Viel Spaß auf Ihrer virtuellen Reise durch die Welt der Stars und Sternchen: http://vip.arcor.de.
+> --
+Hi all
+yes I can confirm that skystar usb2.0 has same components as skystar2 
+PCI. The only difference is the net2282 PCI-to-USB controller.
+Is it possible to find the find the vendor specific protocol from 
+usbsnoop log
 
-Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
----
- drivers/media/video/cx231xx/cx231xx-avcore.c |    1 -
- drivers/media/video/cx231xx/cx231xx-vbi.c    |    1 -
- 2 files changed, 0 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/video/cx231xx/cx231xx-avcore.c b/drivers/media/video/cx231xx/cx231xx-avcore.c
-index 1be3881..6a94640 100644
---- a/drivers/media/video/cx231xx/cx231xx-avcore.c
-+++ b/drivers/media/video/cx231xx/cx231xx-avcore.c
-@@ -29,7 +29,6 @@
- #include <linux/bitmap.h>
- #include <linux/usb.h>
- #include <linux/i2c.h>
--#include <linux/version.h>
- #include <linux/mm.h>
- #include <linux/mutex.h>
- 
-diff --git a/drivers/media/video/cx231xx/cx231xx-vbi.c b/drivers/media/video/cx231xx/cx231xx-vbi.c
-index 9418052..e97b802 100644
---- a/drivers/media/video/cx231xx/cx231xx-vbi.c
-+++ b/drivers/media/video/cx231xx/cx231xx-vbi.c
-@@ -26,7 +26,6 @@
- #include <linux/bitmap.h>
- #include <linux/usb.h>
- #include <linux/i2c.h>
--#include <linux/version.h>
- #include <linux/mm.h>
- #include <linux/mutex.h>
- 
--- 
-1.6.0.4
+Thank you
+Nizar saied
 
