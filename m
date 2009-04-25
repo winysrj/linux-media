@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3E5PvWf005328
-	for <video4linux-list@redhat.com>; Tue, 14 Apr 2009 01:25:57 -0400
-Received: from mail-bw0-f170.google.com (mail-bw0-f170.google.com
-	[209.85.218.170])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3E5PghK002833
-	for <video4linux-list@redhat.com>; Tue, 14 Apr 2009 01:25:43 -0400
-Received: by bwz18 with SMTP id 18so2332797bwz.3
-	for <video4linux-list@redhat.com>; Mon, 13 Apr 2009 22:25:42 -0700 (PDT)
-Date: Tue, 14 Apr 2009 15:27:11 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: video4linux-list@redhat.com
-Message-ID: <20090414152711.33934ad4@glory.loctelecom.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3P8QL5a010087
+	for <video4linux-list@redhat.com>; Sat, 25 Apr 2009 04:26:21 -0400
+Received: from mail.kapsi.fi (mail.kapsi.fi [217.30.184.167])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3P8Q5Gh018881
+	for <video4linux-list@redhat.com>; Sat, 25 Apr 2009 04:26:05 -0400
+Message-ID: <49F2C917.4060803@iki.fi>
+Date: Sat, 25 Apr 2009 11:25:59 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Jelle de Jong <jelledejong@powercraft.nl>
+References: <49F189BC.5090606@powercraft.nl> <49F1ADF3.2030901@iki.fi>
+	<49F1AFC9.2040405@powercraft.nl> <49F1BA30.6060702@iki.fi>
+	<49F2C15A.3010106@powercraft.nl>
+In-Reply-To: <49F2C15A.3010106@powercraft.nl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: Tuner Philips MK3 and aux byte.
+Cc: video4linux-list@redhat.com
+Subject: Re: [not working] Conceptronic USB 2.0 Digital TV Receiver -
+ CTVDIGRCU - Device Information
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,12 +30,20 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi All.
+On 04/25/2009 10:52 AM, Jelle de Jong wrote:
+> Would somebody be willing to get this device to work with the upstream
+> v4l systems? I can sent the device to you. If not I can also return the
+> device back to the store. Just sent me an email.
 
-I found that Philips tuner FMD1216-MK3 has auxilliary byte for sensitivity manipulation.
-It can be set from 102dB to 118dB. Can I use V4L2_CID_GAIN for set sensitivity level of tuner?
+I can try. At least some basic driver stub which just works is possible 
+to do usually even without specs if tuner chip have one that does have 
+Linux driver. Most likely it does have tuner that is supported because 
+almost every DVB-T silicon tuner have some kind of driver currently.
 
-With my best regards, Dmitry.
+regards
+Antti
+-- 
+http://palosaari.fi/
 
 --
 video4linux-list mailing list
