@@ -1,21 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3NDFgrh020942
-	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 09:15:42 -0400
-Received: from mout0.freenet.de (mout0.freenet.de [195.4.92.90])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3NDFLNs025361
-	for <video4linux-list@redhat.com>; Thu, 23 Apr 2009 09:15:24 -0400
-To: "Florian PANTALEAO"<fpantaleao@mobisensesystems.com>,
-	video4linux-list@redhat.com
-From: judith.baumgarten@freenet.de
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3P9iASe001462
+	for <video4linux-list@redhat.com>; Sat, 25 Apr 2009 05:44:10 -0400
+Received: from node01.cambriumhosting.nl (node01.cambriumhosting.nl
+	[217.19.16.162])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n3P9hrDB023067
+	for <video4linux-list@redhat.com>; Sat, 25 Apr 2009 05:43:53 -0400
+Message-ID: <49F2DB50.5090003@powercraft.nl>
+Date: Sat, 25 Apr 2009 11:43:44 +0200
+From: Jelle de Jong <jelledejong@powercraft.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Message-Id: <E1Lwyls-000600-JS@www17.emo.freenet-rz.de>
-Date: Thu, 23 Apr 2009 15:15:20 +0200
-Content-Transfer-Encoding: 8bit
-Cc: 
-Subject: Re: Re: setting values to CICR2 register in PXA320 Quick Capture
-	Interface
+To: Antti Palosaari <crope@iki.fi>
+References: <49D644CD.1040307@powercraft.nl>	<49D64E45.2070303@powercraft.nl>	<49DC5033.4000803@powercraft.nl>	<49F1B2A4.3060404@powercraft.nl>
+	<49F20259.1090302@iki.fi>	<49F2C312.4030808@powercraft.nl>
+	<49F2C710.2000906@iki.fi> <49F2CFD5.5070101@powercraft.nl>
+	<49F2D25B.80801@iki.fi>
+In-Reply-To: <49F2D25B.80801@iki.fi>
+Content-Type: multipart/mixed; boundary="------------030008040702020408030908"
+Cc: video4linux-list@redhat.com
+Subject: Re: one dvb-t devices not working with mplayer the other is, what
+ is going wrong?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,81 +31,218 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Florian,
+This is a multi-part message in MIME format.
+--------------030008040702020408030908
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-first: Thanks for your answer!
-
-Do you know, if actually somebody works at this point? I asked google, but it didn't find a newer driver for a PXA-Camera.
-I also had the chance to look at the Documentation of the PXA270, and it isn't as detailed as the one for PXA320, but the register also exists and has the same hardware address. So the "old" driver would work for me so far, if there would be a way to set the register.
-
-regards
-Judith
-
------ original Nachricht --------
-
-Betreff: Re: setting values to CICR2 register in PXA320 Quick Capture Interface
-Gesendet: Do 23 Apr 2009 09:40:51 CEST
-Von: "Florian PANTALEAO"<fpantaleao@mobisensesystems.com>
-
+Antti Palosaari wrote:
+> On 04/25/2009 11:54 AM, Jelle de Jong wrote:
+>> Hmm, I used the latest Debian kernel available in unstable and
+>> experimental, so I used the stock kernel. If this is to old I cant really
+>>   help this and have to wait until Debian releases a new kernel. There is
+>> no residue in my current kernel of any em28xx code its a complete clean
+>> stock Debian kernel.
+>>
+>> I don't know about the age of the firmware, but I believe its extracted
+>> from the kernel code it tells me:
+>> [ 4689.481452] dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
+>> [ 4689.975618] af9013: firmware version:4.65.0
 > 
+> Firmware is not delivered with Kernel. You can download various firmware 
+> version from, but newest is the best. If you need remote and you have 
+> problems with remote you can test older ones.
+> http://palosaari.fi/linux/v4l-dvb/firmware/af9015/
 > 
-> > Hi,
-> >
-> > I want to set various parameters in the Quick Capture Interface for a
-> PXA320 processor. I think, I found a way to do this, for resolution and
-> pixel clock parameters, but there is no way to set the parameters of CICR2
-> using the actual pxa_camera driver. It seems the driver  just implements
-> the
-> master mode, and I wondered why. Is it not usefull to run a pxa_camera in
-> slave mode?
-> >
-> > Nevertheless. CICR2 contains also the BLW (Beginning-of-Line Pixel Clock
-> Wait Count) parameter, which is used in master and slave mode. So I
-> wondered, why there isn't a way to set it (Or have I just missed it?).
+>> Ignore the em28xx devices they have proprietary code, and is not
+>> mainstream developed, no use wasting energy on that. Been there, done that.
+>>
+>> What is your kernel and firmware version? Is there a way to easily add a
+>> newer firmware file without recompilation?
 > 
-> Quick Capture interface in PXA3xx has significantly evolved over PXA27x. I
-> remember a discussion in this list a couple of months ago about it.
-> Suggestion was to create a separate pxa3xx_camera driver because of these
-> differences.
+> Yes, it is only file usually in /lib/firmware/
 > 
-> Florian
+> According to attached log it does not lock to the 722000000 MHz. Could 
+> you try tzap -r "3FM(Digitenne)" and then mplayer /dev/dvb/adapter0/dvr0 
+> from other window whil tzap is running. tzap should inform if it locks 
+> and also some signal values.
+> There could be many reasons why it does not lock, most typical a little 
+> too weak signal. Is there any other stream in same frequency which works?
 > 
-> > Here some extra information: I use V4L2 in combination with soc_camera
-> interface and a PXA320 host. The soc_camera interface and pxa_camera driver
-> are out of the 2.6.29 kernel.
-> >
-> > Thanks
-> > Judith
-> >
-> >
-> >
-> >
-> >
-> >
-> >
-> > #adBox3 {display:none;}
-> >
-> >
-> >
-> > --
-> > video4linux-list mailing list
-> > Unsubscribe
-> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> > https://www.redhat.com/mailman/listinfo/video4linux-list
-> 
-> 
+> regards
+> Antti
 
---- original Nachricht Ende ----
+I updated the firmware, did all my test again, still exactly the same
+issue! The stream plays with totem-xine but not with mplayer. tzap and
+mplayer do work. (this all works with em28xx devices)
 
+I attached my logs.
 
+Any ideas, does mplayer works directly with dvb on your side so without tzap:
+$ /usr/bin/mplayer -dvbin timeout=10 dvb://"3FM(Digitenne)"
 
+Cheers,
 
-Ist Ihr wunschname@freenet.de noch frei?
-Jetzt prüfen und kostenlose E-Mail-Adresse sichern!
-http://email.freenet.de/dienste/emailoffice/produktuebersicht/basic/mail/index.html?pid=6829
+Jelle
 
+--------------030008040702020408030908
+Content-Type: text/plain;
+ name="test1.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="test1.txt"
+
+JCB0emFwIC1yICIzRk0oRGlnaXRlbm5lKSIKdXNpbmcgJy9kZXYvZHZiL2FkYXB0ZXIwL2Zy
+b250ZW5kMCcgYW5kICcvZGV2L2R2Yi9hZGFwdGVyMC9kZW11eDAnCnJlYWRpbmcgY2hhbm5l
+bHMgZnJvbSBmaWxlICcvaG9tZS9qZWxsZS8udHphcC9jaGFubmVscy5jb25mJwp0dW5pbmcg
+dG8gNzIyMDAwMDAwIEh6CnZpZGVvIHBpZCAweDAwMDAsIGF1ZGlvIHBpZCAweDFiZTYKc3Rh
+dHVzIDAyIHwgc2lnbmFsIGEwODAgfCBzbnIgMDEwZSB8IGJlciAwMDAwMDAwMCB8IHVuYyAw
+MDAwMDAwMCB8CnN0YXR1cyAxZiB8IHNpZ25hbCBhMDgwIHwgc25yIDAxMGUgfCBiZXIgMDAw
+MDAwMDAgfCB1bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9DSwpzdGF0dXMgMWYgfCBzaWduYWwg
+ZmZmZiB8IHNuciAwMDc4IHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFT
+X0xPQ0sKc3RhdHVzIDFmIHwgc2lnbmFsIGZmZmYgfCBzbnIgMDA3OCB8IGJlciAwMDAwMDAw
+MCB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLCnN0YXR1cyAxZiB8IHNpZ25hbCBmZmZm
+IHwgc25yIDAxMGUgfCBiZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9D
+SwouLi4uCnN0YXR1cyAxZiB8IHNpZ25hbCBmZmZmIHwgc25yIDAxMGUgfCBiZXIgMDAwMDAw
+MDAgfCB1bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9DSwpzdGF0dXMgMWYgfCBzaWduYWwgZmZm
+ZiB8IHNuciAwMTBlIHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xP
+Q0sKc3RhdHVzIDFmIHwgc2lnbmFsIGZmZmYgfCBzbnIgMDEwZSB8IGJlciAwMDAwMDAwMCB8
+IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLCnN0YXR1cyAxZiB8IHNpZ25hbCBmZmZmIHwg
+c25yIDAxMGUgfCBiZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9DSwpz
+dGF0dXMgMWYgfCBzaWduYWwgZmZmZiB8IHNuciAwMTBlIHwgYmVyIDAwMDAwMDAwIHwgdW5j
+IDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sKc3RhdHVzIDFmIHwgc2lnbmFsIGZmZmYgfCBzbnIg
+MDEwZSB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLCnN0YXR1
+cyAxZiB8IHNpZ25hbCBmZmZmIHwgc25yIDAxMGUgfCBiZXIgMDAwMDAwMDAgfCB1bmMgMDAw
+MDAwMDAgfCBGRV9IQVNfTE9DSwpeQwoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCgokIG1wbGF5ZXIg
+L2Rldi9kdmIvYWRhcHRlcjAvZHZyMApNUGxheWVyIGRldi1TVk4tcjI5MTcwQ2FuJ3Qgb3Bl
+biBqb3lzdGljayBkZXZpY2UgL2Rldi9pbnB1dC9qczA6IE5vIHN1Y2ggZmlsZSBvciBkaXJl
+Y3RvcnkKQ2FuJ3QgaW5pdCBpbnB1dCBqb3lzdGljawptcGxheWVyOiBjb3VsZCBub3QgY29u
+bmVjdCB0byBzb2NrZXQKbXBsYXllcjogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQpGYWls
+ZWQgdG8gb3BlbiBMSVJDIHN1cHBvcnQuIFlvdSB3aWxsIG5vdCBiZSBhYmxlIHRvIHVzZSB5
+b3VyIHJlbW90ZSBjb250cm9sLgoKUGxheWluZyAvZGV2L2R2Yi9hZGFwdGVyMC9kdnIwLgpU
+UyBmaWxlIGZvcm1hdCBkZXRlY3RlZC4KTk8gVklERU8hIEFVRElPIE1QQShwaWQ9NzE0Mikg
+Tk8gU1VCUyAoeWV0KSEgIFBST0dSQU0gTi4gMAo9PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PQpPcGVu
+aW5nIGF1ZGlvIGRlY29kZXI6IFttcDNsaWJdIE1QRUcgbGF5ZXItMiwgbGF5ZXItMwpBVURJ
+TzogNDgwMDAgSHosIDIgY2gsIHMxNmxlLCAxNjAuMCBrYml0LzEwLjQyJSAocmF0aW86IDIw
+MDAwLT4xOTIwMDApClNlbGVjdGVkIGF1ZGlvIGNvZGVjOiBbbXAzXSBhZm06IG1wM2xpYiAo
+bXAzbGliIE1QRUcgbGF5ZXItMiwgbGF5ZXItMykKPT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KQU86
+IFthbHNhXSA0ODAwMEh6IDJjaCBzMTZsZSAoMiBieXRlcyBwZXIgc2FtcGxlKQpWaWRlbzog
+bm8gdmlkZW8KU3RhcnRpbmcgcGxheWJhY2suLi4KQTo4OTkxLjAgKCAyOjI5OjUxLjApIG9m
+IC0wLjAgKHVua25vd24pICA2LjclCkV4aXRpbmcuLi4gKFF1aXQpCgotLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0KCiQgL3Vzci9iaW4vbXBsYXllciAtZHZiaW4gdGltZW91dD0xMCBkdmI6Ly8iM0ZN
+KERpZ2l0ZW5uZSkiCk1QbGF5ZXIgZGV2LVNWTi1yMjkxNzBDYW4ndCBvcGVuIGpveXN0aWNr
+IGRldmljZSAvZGV2L2lucHV0L2pzMDogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQpDYW4n
+dCBpbml0IGlucHV0IGpveXN0aWNrCm1wbGF5ZXI6IGNvdWxkIG5vdCBjb25uZWN0IHRvIHNv
+Y2tldAptcGxheWVyOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5CkZhaWxlZCB0byBvcGVu
+IExJUkMgc3VwcG9ydC4gWW91IHdpbGwgbm90IGJlIGFibGUgdG8gdXNlIHlvdXIgcmVtb3Rl
+IGNvbnRyb2wuCgpQbGF5aW5nIGR2YjovLzNGTShEaWdpdGVubmUpLgpkdmJfdHVuZSBGcmVx
+OiA3MjIwMDAwMDAKTm90IGFibGUgdG8gbG9jayB0byB0aGUgc2lnbmFsIG9uIHRoZSBnaXZl
+biBmcmVxdWVuY3ksIHRpbWVvdXQ6IDEwCmR2Yl90dW5lLCBUVU5JTkcgRkFJTEVECkVSUk9S
+LCBDT1VMRE4nVCBTRVQgQ0hBTk5FTCAgNzogRmFpbGVkIHRvIG9wZW4gZHZiOi8vM0ZNKERp
+Z2l0ZW5uZSkuCgoKRXhpdGluZy4uLiAoRW5kIG9mIGZpbGUpCgotLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0KCndnZXQgaHR0cDovL3BhbG9zYWFyaS5maS9saW51eC92NGwtZHZiL2Zpcm13YXJlL2Fm
+OTAxNS80Ljk1LjAuMC9kdmItdXNiLWFmOTAxNS5mdwoKc3VkbyBybSAtLXZlcmJvc2UgL2xp
+Yi9maXJtd2FyZS9kdmItdXNiLWFmOTAxNS5mdwpyZW1vdmVkIGAvbGliL2Zpcm13YXJlL2R2
+Yi11c2ItYWY5MDE1LmZ3JwoKc3VkbyBjcCAtLXZlcmJvc2UgIH4vZHZiLXVzYi1hZjkwMTUu
+ZncgL2xpYi9maXJtd2FyZS8KYC9ob21lL2plbGxlL2R2Yi11c2ItYWY5MDE1LmZ3JyAtPiBg
+L2xpYi9maXJtd2FyZS9kdmItdXNiLWFmOTAxNS5mdycKCnN1ZG8gY2htb2QgNjQ0IC0tdmVy
+Ym9zZSAvbGliL2Zpcm13YXJlL2R2Yi11c2ItYWY5MDE1LmZ3Cm1vZGUgb2YgYC9saWIvZmly
+bXdhcmUvZHZiLXVzYi1hZjkwMTUuZncnIHJldGFpbmVkIGFzIDA2NDQgKHJ3LXItLXItLSkK
+Ci0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLQoKWyAxNjE5Ljc0NjA0M10gZHZiLXVzYjogQWZhdGVjaCBB
+RjkwMTUgRFZCLVQgVVNCMi4wIHN0aWNrIHN1Y2Nlc3NmdWxseSBkZWluaXRpYWxpemVkIGFu
+ZCBkaXNjb25uZWN0ZWQuClsgMTc0Ni41NjgwNTJdIHVzYiAxLTI6IG5ldyBoaWdoIHNwZWVk
+IFVTQiBkZXZpY2UgdXNpbmcgZWhjaV9oY2QgYW5kIGFkZHJlc3MgOApbIDE3NDYuNzAzOTgz
+XSB1c2IgMS0yOiBOZXcgVVNCIGRldmljZSBmb3VuZCwgaWRWZW5kb3I9MTVhNCwgaWRQcm9k
+dWN0PTkwMTYKWyAxNzQ2LjcwMzk5MV0gdXNiIDEtMjogTmV3IFVTQiBkZXZpY2Ugc3RyaW5n
+czogTWZyPTEsIFByb2R1Y3Q9MiwgU2VyaWFsTnVtYmVyPTAKWyAxNzQ2LjcwMzk5Nl0gdXNi
+IDEtMjogUHJvZHVjdDogRFZCLVQKWyAxNzQ2LjcwNDAwMF0gdXNiIDEtMjogTWFudWZhY3R1
+cmVyOiBBZmF0ZWNoClsgMTc0Ni43MDQyMjVdIHVzYiAxLTI6IGNvbmZpZ3VyYXRpb24gIzEg
+Y2hvc2VuIGZyb20gMSBjaG9pY2UKWyAxNzQ2LjcxODM0M10gZHZiLXVzYjogZm91bmQgYSAn
+QWZhdGVjaCBBRjkwMTUgRFZCLVQgVVNCMi4wIHN0aWNrJyBpbiBjb2xkIHN0YXRlLCB3aWxs
+IHRyeSB0byBsb2FkIGEgZmlybXdhcmUKWyAxNzQ2LjcxODM1Nl0gdXNiIDEtMjogZmlybXdh
+cmU6IHJlcXVlc3RpbmcgZHZiLXVzYi1hZjkwMTUuZncKWyAxNzQ2LjczNTc0NV0gZHZiLXVz
+YjogZG93bmxvYWRpbmcgZmlybXdhcmUgZnJvbSBmaWxlICdkdmItdXNiLWFmOTAxNS5mdycK
+WyAxNzQ2LjgwNDAyNF0gZHZiLXVzYjogZm91bmQgYSAnQWZhdGVjaCBBRjkwMTUgRFZCLVQg
+VVNCMi4wIHN0aWNrJyBpbiB3YXJtIHN0YXRlLgpbIDE3NDYuODA0MTE0XSBkdmItdXNiOiB3
+aWxsIHBhc3MgdGhlIGNvbXBsZXRlIE1QRUcyIHRyYW5zcG9ydCBzdHJlYW0gdG8gdGhlIHNv
+ZnR3YXJlIGRlbXV4ZXIuClsgMTc0Ni44MDQ1NzldIERWQjogcmVnaXN0ZXJpbmcgbmV3IGFk
+YXB0ZXIgKEFmYXRlY2ggQUY5MDE1IERWQi1UIFVTQjIuMCBzdGljaykKWyAxNzQ3LjIwOTk3
+Nl0gYWY5MDEzOiBmaXJtd2FyZSB2ZXJzaW9uOjQuOTUuMApbIDE3NDcuMjE0NDc3XSBEVkI6
+IHJlZ2lzdGVyaW5nIGFkYXB0ZXIgMCBmcm9udGVuZCAwIChBZmF0ZWNoIEFGOTAxMyBEVkIt
+VCkuLi4KWyAxNzQ3LjIxNzUxN10gTVQyMDYwOiBzdWNjZXNzZnVsbHkgaWRlbnRpZmllZCAo
+SUYxID0gMTIyMCkKWyAxNzQ3LjY5MTg1OV0gZHZiLXVzYjogQWZhdGVjaCBBRjkwMTUgRFZC
+LVQgVVNCMi4wIHN0aWNrIHN1Y2Nlc3NmdWxseSBpbml0aWFsaXplZCBhbmQgY29ubmVjdGVk
+LgpbIDE3NDcuNzA2MjE4XSBBZmF0ZWNoIERWQi1UOiBGaXhpbmcgZnVsbHNwZWVkIHRvIGhp
+Z2hzcGVlZCBpbnRlcnZhbDogMTYgLT4gOApbIDE3NDcuNzA2OTM0XSBpbnB1dDogQWZhdGVj
+aCBEVkItVCBhcyAvZGV2aWNlcy9wY2kwMDAwOjAwLzAwMDA6MDA6MWQuNy91c2IxLzEtMi8x
+LTI6MS4xL2lucHV0L2lucHV0MTQKWyAxNzQ3LjczNzM1MV0gZ2VuZXJpYy11c2IgMDAwMzox
+NUE0OjkwMTYuMDAwNjogaW5wdXQsaGlkcmF3MDogVVNCIEhJRCB2MS4wMSBLZXlib2FyZCBb
+QWZhdGVjaCBEVkItVF0gb24gdXNiLTAwMDA6MDA6MWQuNy0yL2lucHV0MQoKLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tCgokIC91c3IvYmluL21wbGF5ZXIgLWR2YmluIHRpbWVvdXQ9MTAgZHZiOi8v
+IjNGTShEaWdpdGVubmUpIgpNUGxheWVyIGRldi1TVk4tcjI5MTcwQ2FuJ3Qgb3BlbiBqb3lz
+dGljayBkZXZpY2UgL2Rldi9pbnB1dC9qczA6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkK
+Q2FuJ3QgaW5pdCBpbnB1dCBqb3lzdGljawptcGxheWVyOiBjb3VsZCBub3QgY29ubmVjdCB0
+byBzb2NrZXQKbXBsYXllcjogTm8gc3VjaCBmaWxlIG9yIGRpcmVjdG9yeQpGYWlsZWQgdG8g
+b3BlbiBMSVJDIHN1cHBvcnQuIFlvdSB3aWxsIG5vdCBiZSBhYmxlIHRvIHVzZSB5b3VyIHJl
+bW90ZSBjb250cm9sLgoKUGxheWluZyBkdmI6Ly8zRk0oRGlnaXRlbm5lKS4KZHZiX3R1bmUg
+RnJlcTogNzIyMDAwMDAwCk5vdCBhYmxlIHRvIGxvY2sgdG8gdGhlIHNpZ25hbCBvbiB0aGUg
+Z2l2ZW4gZnJlcXVlbmN5LCB0aW1lb3V0OiAxMApkdmJfdHVuZSwgVFVOSU5HIEZBSUxFRApF
+UlJPUiwgQ09VTEROJ1QgU0VUIENIQU5ORUwgIDc6IEZhaWxlZCB0byBvcGVuIGR2YjovLzNG
+TShEaWdpdGVubmUpLgoKCkV4aXRpbmcuLi4gKEVuZCBvZiBmaWxlKQoKLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tCgokIHR6YXAgLXIgIjNGTShEaWdpdGVubmUpIgp1c2luZyAnL2Rldi9kdmIvYWRh
+cHRlcjAvZnJvbnRlbmQwJyBhbmQgJy9kZXYvZHZiL2FkYXB0ZXIwL2RlbXV4MCcKcmVhZGlu
+ZyBjaGFubmVscyBmcm9tIGZpbGUgJy9ob21lL2plbGxlLy50emFwL2NoYW5uZWxzLmNvbmYn
+CnR1bmluZyB0byA3MjIwMDAwMDAgSHoKdmlkZW8gcGlkIDB4MDAwMCwgYXVkaW8gcGlkIDB4
+MWJlNgpzdGF0dXMgMDIgfCBzaWduYWwgOTA0MCB8IHNuciAwMDAwIHwgYmVyIDAwMDAwMDAw
+IHwgdW5jIDAwMDAwMDAwIHwKc3RhdHVzIDFmIHwgc2lnbmFsIDkwNDAgfCBzbnIgMDAwMCB8
+IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8IEZFX0hBU19MT0NLCnN0YXR1cyAxZiB8
+IHNpZ25hbCBmZmZmIHwgc25yIDAwNzggfCBiZXIgMDAwMDAwMDAgfCB1bmMgMDAwMDAwMDAg
+fCBGRV9IQVNfTE9DSwpzdGF0dXMgMWYgfCBzaWduYWwgZmZmZiB8IHNuciAwMDc4IHwgYmVy
+IDAwMDAwMDAwIHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFTX0xPQ0sKc3RhdHVzIDFmIHwgc2ln
+bmFsIGZmZmYgfCBzbnIgMDEwZSB8IGJlciAwMDAwMDAwMCB8IHVuYyAwMDAwMDAwMCB8IEZF
+X0hBU19MT0NLCnN0YXR1cyAxZiB8IHNpZ25hbCBmZmZmIHwgc25yIDAxMGUgfCBiZXIgMDAw
+MDAwMDAgfCB1bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9DSwpzdGF0dXMgMWYgfCBzaWduYWwg
+ZmZmZiB8IHNuciAwMTBlIHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFT
+X0xPQ0sKLi4uCnN0YXR1cyAxZiB8IHNpZ25hbCBmZmZmIHwgc25yIDAxMGUgfCBiZXIgMDAw
+MDAwMDAgfCB1bmMgMDAwMDAwMDAgfCBGRV9IQVNfTE9DSwpzdGF0dXMgMWYgfCBzaWduYWwg
+ZmZmZiB8IHNuciAwMTBlIHwgYmVyIDAwMDAwMDAwIHwgdW5jIDAwMDAwMDAwIHwgRkVfSEFT
+X0xPQ0sKXkMKCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoKJCBtcGxheWVyIC9kZXYvZHZiL2FkYXB0
+ZXIwL2R2cjAKTVBsYXllciBkZXYtU1ZOLXIyOTE3MENhbid0IG9wZW4gam95c3RpY2sgZGV2
+aWNlIC9kZXYvaW5wdXQvanMwOiBObyBzdWNoIGZpbGUgb3IgZGlyZWN0b3J5CkNhbid0IGlu
+aXQgaW5wdXQgam95c3RpY2sKbXBsYXllcjogY291bGQgbm90IGNvbm5lY3QgdG8gc29ja2V0
+Cm1wbGF5ZXI6IE5vIHN1Y2ggZmlsZSBvciBkaXJlY3RvcnkKRmFpbGVkIHRvIG9wZW4gTElS
+QyBzdXBwb3J0LiBZb3Ugd2lsbCBub3QgYmUgYWJsZSB0byB1c2UgeW91ciByZW1vdGUgY29u
+dHJvbC4KClBsYXlpbmcgL2Rldi9kdmIvYWRhcHRlcjAvZHZyMC4KVFMgZmlsZSBmb3JtYXQg
+ZGV0ZWN0ZWQuCk5PIFZJREVPISBBVURJTyBNUEEocGlkPTcxNDIpIE5PIFNVQlMgKHlldCkh
+ICBQUk9HUkFNIE4uIDAKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KT3BlbmluZyBhdWRpbyBkZWNv
+ZGVyOiBbbXAzbGliXSBNUEVHIGxheWVyLTIsIGxheWVyLTMKQVVESU86IDQ4MDAwIEh6LCAy
+IGNoLCBzMTZsZSwgMTYwLjAga2JpdC8xMC40MiUgKHJhdGlvOiAyMDAwMC0+MTkyMDAwKQpT
+ZWxlY3RlZCBhdWRpbyBjb2RlYzogW21wM10gYWZtOiBtcDNsaWIgKG1wM2xpYiBNUEVHIGxh
+eWVyLTIsIGxheWVyLTMpCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09CkFPOiBbYWxzYV0gNDgwMDBI
+eiAyY2ggczE2bGUgKDIgYnl0ZXMgcGVyIHNhbXBsZSkKVmlkZW86IG5vIHZpZGVvClN0YXJ0
+aW5nIHBsYXliYWNrLi4uCkE6OTM0NC40ICggMjozNTo0NC40KSBvZiAtMC4wICh1bmtub3du
+KSA0OC45JQoKTVBsYXllciBpbnRlcnJ1cHRlZCBieSBzaWduYWwgMiBpbiBtb2R1bGU6IGRl
+Y29kZV9hdWRpbwpBOjkzNDQuNSAoIDI6MzU6NDQuNSkgb2YgLTAuMCAodW5rbm93bikgNDku
+MiUKRXhpdGluZy4uLiAoUXVpdCkK
+--------------030008040702020408030908
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--------------030008040702020408030908--
