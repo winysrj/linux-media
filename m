@@ -1,116 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2893 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758080AbZDNSOp (ORCPT
+Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:60841 "EHLO
+	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751214AbZDYRfp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Apr 2009 14:14:45 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id n3EIEdaW088077
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 14 Apr 2009 20:14:43 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 14 Apr 2009 20:14:39 +0200 (CEST)
-Message-Id: <200904141814.n3EIEdaW088077@smtp-vbr1.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Sat, 25 Apr 2009 13:35:45 -0400
+Date: Sat, 25 Apr 2009 10:35:44 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Linux and Kernel Video <video4linux-list@redhat.com>
+cc: Erik de Castro Lopo <erik@bcode.com>, linux-media@vger.kernel.org
+Subject: Re: Compling drivers from v4l-dvb hg tree
+In-Reply-To: <20090425081654.3e9932f1.erik@bcode.com>
+Message-ID: <Pine.LNX.4.58.0904251030570.3753@shell2.speakeasy.net>
+References: <20090424170352.313f1feb.erik@bcode.com>
+ <412bdbff0904240625y3902243em5a643380b036e08f@mail.gmail.com>
+ <20090425080356.69e0ed9d.erik@bcode.com> <412bdbff0904241509r29b0859fl22abe2fe78e59daa@mail.gmail.com>
+ <20090425081654.3e9932f1.erik@bcode.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sat, 25 Apr 2009, Erik de Castro Lopo wrote:
+> On Fri, 24 Apr 2009 18:09:17 -0400
+> Devin Heitmueller <devin.heitmueller@gmail.com> wrote:
+>
+> > > Ok, but how do I patch the v4l-dvb sources into a linux kernel tree?
+> >
+> > You don't.
 
-Results of the daily build of v4l-dvb:
+You can, make kernel-links
 
-date:        Tue Apr 14 19:00:07 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11512:bedcd49d762d
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+> > The v4l-dvb sources are maintained out-of-tree, and override whatever
+> > is in the linux kernel tree.  Periodically, the v4l-dvb maintainer
+> > syncs with the kernel tree and the changes are pushed upstream into
+> > the mainline kernel.  This approach allows for the v4l-dvb project to
+> > be used with kernel releases other than the current bleeding edge
+> > kernel.
+>
+> Ok,  but the instructions on http://linuxtv.org/repo compiles the
+> driver for the current running kernel. How do I compile it for
+> another kernel, ie an x86 embedded device that I normally do not
+> compile on?
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-rc1-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-rc1-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: OK
-linux-2.6.30-rc1-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-rc1-m32r: OK
-linux-2.6.22.19-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29.1-mips: OK
-linux-2.6.30-rc1-mips: WARNINGS
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29.1-powerpc64: OK
-linux-2.6.30-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-rc1-x86_64: WARNINGS
-fw/apps: OK
-sparse (linux-2.6.29.1): OK
-sparse (linux-2.6.30-rc1): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+See "make help", it explains this.  Use "make release
+DIR=/other/kernel/src/dir" to compile for any kernel you want.  I haven't
+tried cross-compiling v4l-dvb so I'm not sure how that will work.  I'd just
+try the standard ARCH and CROSS_COMPILE settings like a kernel build uses
+and see what happens.
