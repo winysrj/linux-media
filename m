@@ -1,145 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:55238 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754323AbZDXQkx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Apr 2009 12:40:53 -0400
-Date: Fri, 24 Apr 2009 18:41:02 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Paul Mundt <lethal@linux-sh.org>
-Subject: [PATCH 8/8] SH: convert migor to the new platform-device soc-camera
- interface
-In-Reply-To: <Pine.LNX.4.64.0904241818130.8309@axis700.grange>
-Message-ID: <Pine.LNX.4.64.0904241837270.8309@axis700.grange>
-References: <Pine.LNX.4.64.0904241818130.8309@axis700.grange>
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:41375 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752795AbZDYP2r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Apr 2009 11:28:47 -0400
+Received: by fxm2 with SMTP id 2so1561585fxm.37
+        for <linux-media@vger.kernel.org>; Sat, 25 Apr 2009 08:28:45 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <49F3266A.4020805@linuxtv.org>
+References: <49F2DCBD.20105@freenet.de>
+	 <412bdbff0904250621m7f43735eu730fac87bd121b57@mail.gmail.com>
+	 <d9def9db0904250752yb16170w680e8cd78354cc76@mail.gmail.com>
+	 <49F3266A.4020805@linuxtv.org>
+Date: Sat, 25 Apr 2009 23:28:45 +0800
+Message-ID: <d9def9db0904250828o6657ef78r91a847488de6c178@mail.gmail.com>
+Subject: Re: Installation of Cinergy HTC USB Driver in Ubuntu Jaunty
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Steven Toth <stoth@linuxtv.org>
+Cc: Peter Hoyland <Peter.Hoyland@t-online.de>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+On Sat, Apr 25, 2009 at 11:04 PM, Steven Toth <stoth@linuxtv.org> wrote:
+>> There's no need for Micronas nor Trident to provide such kerneldrivers
+>> as long as the userland driver is available. It's also much easier to
+>> install than the earlier versions.
+>
+> Markus, This is your typical self-serving nonsense and it only serves to
+> confuse the non-technical Linux community. Please don't try to spread your
+> non-GPL tree and userland rhetoric on the list as it's not welcome.
+>
 
-For review __ONLY__ for now - will re-submit after I have pushed 1/8
+it serves the question about linux support for those devices, if more
+information is needed about it I can be contacted directly of course.
 
- arch/sh/boards/mach-migor/setup.c |   79 ++++++++++++++++++++++++-------------
- 1 files changed, 52 insertions(+), 27 deletions(-)
+> This mailing list is dedicated the v4l-dvb GPL source code trees and
+> associated applications. As far as I'm concerned your opinion is not
+> welcome. Please keep all conversation related to promoting and developing
+> the main repositories please.
+>
 
-diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
-index c4b97e1..785c3e1 100644
---- a/arch/sh/boards/mach-migor/setup.c
-+++ b/arch/sh/boards/mach-migor/setup.c
-@@ -381,21 +381,6 @@ static struct platform_device migor_ceu_device = {
- 	},
- };
- 
--static struct ov772x_camera_info ov7725_info = {
--	.buswidth  = SOCAM_DATAWIDTH_8,
--	.link = {
--		.power  = ov7725_power,
--	},
--};
--
--static struct tw9910_video_info tw9910_info = {
--	.buswidth = SOCAM_DATAWIDTH_8,
--	.mpout    = TW9910_MPO_FIELD,
--	.link = {
--		.power  = tw9910_power,
--	}
--};
--
- struct spi_gpio_platform_data sdcard_cn9_platform_data = {
- 	.sck = GPIO_PTD0,
- 	.mosi = GPIO_PTD1,
-@@ -410,16 +395,6 @@ static struct platform_device sdcard_cn9_device = {
- 	},
- };
- 
--static struct platform_device *migor_devices[] __initdata = {
--	&smc91x_eth_device,
--	&sh_keysc_device,
--	&migor_lcdc_device,
--	&migor_ceu_device,
--	&migor_nor_flash_device,
--	&migor_nand_flash_device,
--	&sdcard_cn9_device,
--};
--
- static struct i2c_board_info migor_i2c_devices[] = {
- 	{
- 		I2C_BOARD_INFO("rs5c372b", 0x32),
-@@ -428,16 +403,66 @@ static struct i2c_board_info migor_i2c_devices[] = {
- 		I2C_BOARD_INFO("migor_ts", 0x51),
- 		.irq = 38, /* IRQ6 */
- 	},
-+};
-+
-+static struct i2c_board_info migor_i2c_camera[] = {
- 	{
- 		I2C_BOARD_INFO("ov772x", 0x21),
--		.platform_data = &ov7725_info.link,
- 	},
- 	{
- 		I2C_BOARD_INFO("tw9910", 0x45),
--		.platform_data = &tw9910_info.link,
- 	},
- };
- 
-+static struct ov772x_camera_info ov7725_info = {
-+	.buswidth	= SOCAM_DATAWIDTH_8,
-+	.link = {
-+		.power		= ov7725_power,
-+		.board_info	= &migor_i2c_camera[0],
-+		.i2c_adapter_id	= 0,
-+		.module_name	= "ov772x",
-+	},
-+};
-+
-+static struct tw9910_video_info tw9910_info = {
-+	.buswidth	= SOCAM_DATAWIDTH_8,
-+	.mpout		= TW9910_MPO_FIELD,
-+	.link = {
-+		.power		= tw9910_power,
-+		.board_info	= &migor_i2c_camera[1],
-+		.i2c_adapter_id	= 0,
-+		.module_name	= "tw9910",
-+	}
-+};
-+
-+static struct platform_device migor_camera[] = {
-+	{
-+		.name	= "soc-camera-pdrv",
-+		.id	= 0,
-+		.dev	= {
-+			.platform_data = &ov7725_info.link,
-+		},
-+	}, {
-+		.name	= "soc-camera-pdrv",
-+		.id	= 1,
-+		.dev	= {
-+			.platform_data = &tw9910_info.link,
-+		},
-+	},
-+};
-+
-+static struct platform_device *migor_devices[] __initdata = {
-+	&smc91x_eth_device,
-+	&sh_keysc_device,
-+	&migor_lcdc_device,
-+	&migor_ceu_device,
-+	&migor_nor_flash_device,
-+	&migor_nand_flash_device,
-+	&sdcard_cn9_device,
-+	&migor_camera[0],
-+	&migor_camera[1],
-+};
-+
- static struct spi_board_info migor_spi_devices[] = {
- 	{
- 		.modalias = "mmc_spi",
--- 
-1.6.2.4
+maybe put up a policy, and also list devices which require a closed
+source firmware which are basically alot linux supported devices
+already. I'm mainly considered about having support for that, if you
+don't like the way it is supported try to start to reverse engineer it
+and don't bother about it.
 
+> Peter, Devin is correct. If a vendor will not provide a driver then vote
+> with your pocket and buy another product. If you do anything else you're not
+> helping the rest of the community.
+>
+
+best regards,
+Markus
