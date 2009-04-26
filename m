@@ -1,104 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:34340 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751951AbZD2QwB (ORCPT
+Received: from astoria.ccjclearline.com ([64.235.106.9]:34287 "EHLO
+	astoria.ccjclearline.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753116AbZDZPa6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Apr 2009 12:52:01 -0400
-Date: Wed, 29 Apr 2009 18:51:27 +0200
-From: Robert Schwebel <r.schwebel@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@pengutronix.de>
-Cc: autobuild-bsp@pengutronix.de, sha@pengutronix.de,
-	Juergen Beisert <jbe@pengutronix.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [FAILED] phyCORE-i.MX35 + Linus's git kernel (origin/master)
-Message-ID: <20090429165127.GZ5367@pengutronix.de>
-References: <E1Lyeeh-0001TA-QH@himalia.hi.pengutronix.de> <200904280918.16248.jbe@pengutronix.de> <20090429162952.GY5367@pengutronix.de> <Pine.LNX.4.64.0904291838070.4676@axis700.grange>
+	Sun, 26 Apr 2009 11:30:58 -0400
+Date: Sun, 26 Apr 2009 11:29:59 -0400 (EDT)
+From: "Robert P. J. Day" <rpjday@crashcourse.ca>
+To: linux-media@vger.kernel.org
+cc: erik.andren@gmail.com
+Subject: [PATCH] GSPCA M5602: Re C99, move storage class to beginning.
+Message-ID: <alpine.LFD.2.00.0904261128310.3333@localhost.localdomain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0904291838070.4676@axis700.grange>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
 
-[switching to list]
+Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
 
-On Wed, Apr 29, 2009 at 06:38:59PM +0200, Guennadi Liakhovetski wrote:
-> see attachment
+---
 
-What's the state of the patch below? The mainline Linus kernel doesn't
-compile any more for the whole mx3 family since days, so the patch
-should be applied with high priority in order to make it possible again
-to be able to test the latest-and-greatest.
+diff --git a/drivers/media/video/gspca/m5602/m5602_mt9m111.c b/drivers/media/video/gspca/m5602/m5602_mt9m111.c
+index 7d3f9e3..0167987 100644
+--- a/drivers/media/video/gspca/m5602/m5602_mt9m111.c
++++ b/drivers/media/video/gspca/m5602/m5602_mt9m111.c
+@@ -31,7 +31,7 @@ static struct v4l2_pix_format mt9m111_modes[] = {
+ 	}
+ };
 
-rsc
+-const static struct ctrl mt9m111_ctrls[] = {
++static const struct ctrl mt9m111_ctrls[] = {
+ 	{
+ 		{
+ 			.id		= V4L2_CID_VFLIP,
+diff --git a/drivers/media/video/gspca/m5602/m5602_mt9m111.h b/drivers/media/video/gspca/m5602/m5602_mt9m111.h
+index 00c6db0..6bedf9d 100644
+--- a/drivers/media/video/gspca/m5602/m5602_mt9m111.h
++++ b/drivers/media/video/gspca/m5602/m5602_mt9m111.h
+@@ -94,7 +94,7 @@ int mt9m111_set_hflip(struct gspca_dev *gspca_dev, __s32 val);
+ int mt9m111_get_gain(struct gspca_dev *gspca_dev, __s32 *val);
+ int mt9m111_set_gain(struct gspca_dev *gspca_dev, __s32 val);
 
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> From hg-commit@linuxtv.org Wed Apr 29 00:15:48 2009
-> Date: Wed, 29 Apr 2009 00:15:03 +0200
-> From: Patch from Sascha Hauer <hg-commit@linuxtv.org>
-> Reply-To: Sascha Hauer  via Mercurial <s.hauer@pengutronix.de>
-> To: linuxtv-commits@linuxtv.org
-> Cc:Sascha Hauer  <s.hauer@pengutronix.de>, Guennadi Liakhovetski  <g.liakhovetski@gmx.de>, Guennadi Liakhovetski <g.liakhovetski@gmx.de>, 
-> Subject: [hg:v4l-dvb] mx3_camera: Fix compilation with CONFIG_PM
-> 
-> The patch number 11612 was added via Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> to http://linuxtv.org/hg/v4l-dvb master development tree.
-> 
-> Kernel patches in this development tree may be modified to be backward
-> compatible with older kernels. Compatibility modifications will be
-> removed before inclusion into the mainstream Kernel
-> 
-> If anyone has any objections, please let us know by sending a message to:
-> 	Linux Media Mailing List <linux-media@vger.kernel.org>
-> 
-> ------
-> 
-> From: Sascha Hauer  <s.hauer@pengutronix.de>
-> mx3_camera: Fix compilation with CONFIG_PM
-> 
-> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> priority: high
-> ---
->  drivers/media/video/mx3_camera.c |    4 ----
->  1 files changed, 0 insertions(+), 4 deletions(-)
-> 
-> 
-> ---
-> 
->  linux/drivers/media/video/mx3_camera.c |    4 ----
->  1 file changed, 4 deletions(-)
-> 
-> diff -r 54265472e7cb -r 4a2b85d095d4 linux/drivers/media/video/mx3_camera.c
-> --- a/linux/drivers/media/video/mx3_camera.c	Fri Apr 24 17:57:42 2009 +0200
-> +++ b/linux/drivers/media/video/mx3_camera.c	Fri Apr 24 17:58:24 2009 +0200
-> @@ -1063,10 +1063,6 @@ static struct soc_camera_host_ops mx3_so
->  	.owner		= THIS_MODULE,
->  	.add		= mx3_camera_add_device,
->  	.remove		= mx3_camera_remove_device,
-> -#ifdef CONFIG_PM
-> -	.suspend	= mx3_camera_suspend,
-> -	.resume		= mx3_camera_resume,
-> -#endif
->  	.set_crop	= mx3_camera_set_crop,
->  	.set_fmt	= mx3_camera_set_fmt,
->  	.try_fmt	= mx3_camera_try_fmt,
-> 
-> 
-> ---
-> 
-> Patch is available at: http://linuxtv.org/hg/v4l-dvb/rev/4a2b85d095d493fa9f6a3160ff418475921e5576
+-const static struct m5602_sensor mt9m111 = {
++static const struct m5602_sensor mt9m111 = {
+ 	.name = "MT9M111",
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+ 	.i2c_slave_id = 0xba,
+diff --git a/drivers/media/video/gspca/m5602/m5602_ov9650.c b/drivers/media/video/gspca/m5602/m5602_ov9650.c
+index fc4548f..6c3baca 100644
+--- a/drivers/media/video/gspca/m5602/m5602_ov9650.c
++++ b/drivers/media/video/gspca/m5602/m5602_ov9650.c
+@@ -68,7 +68,7 @@ static
+ 	{}
+ };
+
+-const static struct ctrl ov9650_ctrls[] = {
++static const struct ctrl ov9650_ctrls[] = {
+ #define EXPOSURE_IDX 0
+ 	{
+ 		{
+diff --git a/drivers/media/video/gspca/m5602/m5602_ov9650.h b/drivers/media/video/gspca/m5602/m5602_ov9650.h
+index fcc54e4..2ca0e88 100644
+--- a/drivers/media/video/gspca/m5602/m5602_ov9650.h
++++ b/drivers/media/video/gspca/m5602/m5602_ov9650.h
+@@ -159,7 +159,7 @@ int ov9650_set_auto_white_balance(struct gspca_dev *gspca_dev, __s32 val);
+ int ov9650_get_auto_gain(struct gspca_dev *gspca_dev, __s32 *val);
+ int ov9650_set_auto_gain(struct gspca_dev *gspca_dev, __s32 val);
+
+-const static struct m5602_sensor ov9650 = {
++static const struct m5602_sensor ov9650 = {
+ 	.name = "OV9650",
+ 	.i2c_slave_id = 0x60,
+ 	.i2c_regW = 1,
+diff --git a/drivers/media/video/gspca/m5602/m5602_po1030.c b/drivers/media/video/gspca/m5602/m5602_po1030.c
+index eaddf48..b06e229 100644
+--- a/drivers/media/video/gspca/m5602/m5602_po1030.c
++++ b/drivers/media/video/gspca/m5602/m5602_po1030.c
+@@ -31,7 +31,7 @@ static struct v4l2_pix_format po1030_modes[] = {
+ 	}
+ };
+
+-const static struct ctrl po1030_ctrls[] = {
++static const struct ctrl po1030_ctrls[] = {
+ 	{
+ 		{
+ 			.id 		= V4L2_CID_GAIN,
+diff --git a/drivers/media/video/gspca/m5602/m5602_s5k4aa.c b/drivers/media/video/gspca/m5602/m5602_s5k4aa.c
+index 4306d59..bab6cb4 100644
+--- a/drivers/media/video/gspca/m5602/m5602_s5k4aa.c
++++ b/drivers/media/video/gspca/m5602/m5602_s5k4aa.c
+@@ -64,7 +64,7 @@ static struct v4l2_pix_format s5k4aa_modes[] = {
+ 	}
+ };
+
+-const static struct ctrl s5k4aa_ctrls[] = {
++static const struct ctrl s5k4aa_ctrls[] = {
+ 	{
+ 		{
+ 			.id 		= V4L2_CID_VFLIP,
+diff --git a/drivers/media/video/gspca/m5602/m5602_s5k83a.c b/drivers/media/video/gspca/m5602/m5602_s5k83a.c
+index 42c86aa..689afbc 100644
+--- a/drivers/media/video/gspca/m5602/m5602_s5k83a.c
++++ b/drivers/media/video/gspca/m5602/m5602_s5k83a.c
+@@ -32,7 +32,7 @@ static struct v4l2_pix_format s5k83a_modes[] = {
+ 	}
+ };
+
+-const static struct ctrl s5k83a_ctrls[] = {
++static const struct ctrl s5k83a_ctrls[] = {
+ 	{
+ 		{
+ 			.id = V4L2_CID_BRIGHTNESS,
+
+========================================================================
+Robert P. J. Day                               Waterloo, Ontario, CANADA
+
+        Linux Consulting, Training and Annoying Kernel Pedantry.
+
+Web page:                                          http://crashcourse.ca
+Linked In:                             http://www.linkedin.com/in/rpjday
+Twitter:                                       http://twitter.com/rpjday
+========================================================================
