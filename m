@@ -1,25 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198])
+Received: from thebe.shinternet.ch ([87.245.64.12] helo=mail.shinternet.ch)
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <stoth@linuxtv.org>) id 1Ls4Rg-0007Fh-IA
-	for linux-dvb@linuxtv.org; Fri, 10 Apr 2009 02:18:13 +0200
-Received: from steven-toths-macbook-pro.local
-	(ool-45721e5a.dyn.optonline.net [69.114.30.90]) by
-	mta3.srv.hcvlny.cv.net
-	(Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
-	with ESMTP id <0KHU00FCZZH2Y2W0@mta3.srv.hcvlny.cv.net> for
-	linux-dvb@linuxtv.org; Thu, 09 Apr 2009 20:17:27 -0400 (EDT)
-Date: Thu, 09 Apr 2009 20:17:26 -0400
-From: Steven Toth <stoth@linuxtv.org>
-In-reply-to: <8de7a23f0904091518t72643426ub77855d43bab9631@mail.gmail.com>
-To: linux-dvb <linux-dvb@linuxtv.org>
-Message-id: <49DE9016.3090306@linuxtv.org>
-MIME-version: 1.0
-References: <8de7a23f0904090007x3905ee7dp817efe67044b8223@mail.gmail.com>
-	<49DE0044.10700@linuxtv.org>
-	<8de7a23f0904091518t72643426ub77855d43bab9631@mail.gmail.com>
-Cc: Alastair Bain <bainorama@gmail.com>
-Subject: Re: [linux-dvb] HVR-1700 - can't open or scan
+	(envelope-from <wolfgang.friedl@shlink.ch>) id 1LyN1X-0001sW-Ni
+	for linux-dvb@linuxtv.org; Mon, 27 Apr 2009 11:21:16 +0200
+Received: from [192.168.0.35] (sasag.sh.pcp.ch [87.245.102.34])
+	(authenticated bits=0)by mail.shinternet.ch
+	(8.13.8/8.13.8/Submit_shinternet) with ESMTP id n3R9L9Nh077647
+	for <linux-dvb@linuxtv.org>; Mon, 27 Apr 2009 11:21:10 +0200 (CEST)
+	(envelope-from wolfgang.friedl@shlink.ch)
+Message-ID: <49F57989.2010302@shlink.ch>
+Date: Mon, 27 Apr 2009 11:23:21 +0200
+From: Wolfgang Friedl <wolfgang.friedl@shlink.ch>
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Infos regarding TERRATEC Cinergy HT PCMCIA
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -34,50 +28,28 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Alastair Bain wrote:
-> 
-> 
-> 2009/4/10 Steven Toth <stoth@linuxtv.org <mailto:stoth@linuxtv.org>>
-> 
->     Alastair Bain wrote:
-> 
->         I'm trying to get the Hauppauge HVR-1700 working on a Mythbuntu
->         9.04 b install. Looks like the modules are all loading, firmware
->         is being loaded, device appears in /dev etc, but I can't seem to
->         do anything with it. dvbscan fails around ln 315,
-> 
->         dvbfe_get_info(fe, DVBFE_INFO_LOCKSTATUS, &feinfo,
->                                        DVBFE_INFO_QUERYTYPE_IMMEDIATE, 0)
->         returns DVBFE_INFO_QUERYTYPE_LOCKCHANGE
-> 
->         Anyone have any clues as to what I can do to fix this? Kernel
->         trace is at http://pastebin.com/m7671e816.
-> 
-> 
->     trace looks fine.
-> 
->     Try tzap then report back.
-> 
->     - Steve
->     --
->     To unsubscribe from this list: send the line "unsubscribe
->     linux-media" in
->     the body of a message to majordomo@vger.kernel.org
->     <mailto:majordomo@vger.kernel.org>
->     More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-> I don't think I can use tzap until I have the results from dvbscan can I?
-> 
+Hello,
 
-Do not drop the CC for the mailing list, I was replying to the list - not 
-directly to you.
+has anyone tested this card (TERRATEC Cinergy HT PCMCIA) or found useful 
+links I could follow?
+<http://www.terratec.net/de/produkte/Cinergy_HT_PCMCIA_1599.html>
 
-Find a channels.conf for your local transmitter, I used to use Crystal Palace 
-for London. We have all of them already for the UK.
+<http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_HT_PCMCIA>
+<http://www.linuxtv.org/pipermail/linux-dvb/2006-October/013898.html>
 
-- Steve
+Googleing around did not bring me further (analogue part should be no 
+problem, with the dvb-t part I am not shure)
 
+kind regards,
+
+-- 
+
+     ###
+    #   #
+     # #
+   Wolfgang
+     # #
+    #   #Freitag
 
 _______________________________________________
 linux-dvb users mailing list
