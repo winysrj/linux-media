@@ -1,55 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:53385 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752254AbZDIBiH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Apr 2009 21:38:07 -0400
-Subject: Re: When is a wake_up() not a wake up?
-From: Andy Walls <awalls@radix.net>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: Linux Kernel <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-In-Reply-To: <Pine.LNX.4.58.0904040356210.5134@shell2.speakeasy.net>
-References: <1238798924.3130.72.camel@palomino.walls.org>
-	 <Pine.LNX.4.58.0904040356210.5134@shell2.speakeasy.net>
-Content-Type: text/plain
-Date: Wed, 08 Apr 2009 22:38:46 -0400
-Message-Id: <1239244727.19075.34.camel@palomino.walls.org>
+Received: from bombadil.infradead.org ([18.85.46.34]:50662 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752169AbZD0MZt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Apr 2009 08:25:49 -0400
+Date: Mon, 27 Apr 2009 09:25:20 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Uri Shkolnik <urishk@yahoo.com>
+Cc: LinuxML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] [0904_8] Siano: add messages handling for big-endian
+ target
+Message-ID: <20090427092520.4d073592@pedra.chehab.org>
+In-Reply-To: <642551.27218.qm@web110815.mail.gq1.yahoo.com>
+References: <642551.27218.qm@web110815.mail.gq1.yahoo.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-04-04 at 04:07 -0700, Trent Piepho wrote:
-> On Fri, 3 Apr 2009, Andy Walls wrote:
-> > 1. A work queue thread or read() call needs to send a command to the
-> > CX23418 using the cx18_api_call() function
-> > 2. It fills out a mailbox with a command for the CX23418
-> > 3. It prepares to wait, just in case a wait is needed
-> > 4. A SW1 interrupt is sent to the CX23418 telling it a mailbox is ready
-> > 5. The ack filed in the mailbox, a PCI MMIO location, is checked to see
-> > if the mailbox was ack'ed already
-> > 6. If not, schedule_timeout() for up to 10 msecs (a near eternity...)
-> > 7. Clean up the wait and move on
+On Mon, 27 Apr 2009 05:21:29 -0700 (PDT)
+Uri Shkolnik <urishk@yahoo.com> wrote:
+
 > 
-> 10ms isn't that long.  With a 100 HZ kernel it's only one jiffie.  The
-> shortest time msleep() can sleep on a 100 HZ kernel is 20 ms.
+> Mauro,
 > 
-> Is it possible that it's simply taking more than 10 ms for your process to
-> get run?
+> The patch is labeled as "rejected"
 
-After some testing with fine grained timestamps as you suggested, that
-indeed appears to be the case.
+Ok, I fixed its status at patchwork.
+> 
+> 
+> Regards,
+> 
+> Uri
+> 
+> --- On Mon, 4/20/09, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+> 
+> > From: Mauro Carvalho Chehab <mchehab@infradead.org>
+> > Subject: Re: [PATCH] [0904_8] Siano: add messages handling for big-endian target
+> > To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+> > Cc: "Uri Shkolnik" <urishk@yahoo.com>, "LinuxML" <linux-media@vger.kernel.org>
+> > Date: Monday, April 20, 2009, 7:17 PM
+> > On Mon, 20 Apr 2009 12:48:39 -0300
+> > Mauro Carvalho Chehab <mchehab@infradead.org>
+> > wrote:
+> > 
+> > > On Sun, 5 Apr 2009 01:59:50 -0700 (PDT)
+> > > Uri Shkolnik <urishk@yahoo.com>
+> > wrote:
+> > > 
+> > > > 
+> > > > Add code that modify the content of Siano's
+> > protocol
+> > > > messages when running with big-endian target.
+> > > 
+> > > Maybe due to one of the other patches that weren't
+> > applied, but this one didn't compile: 
+> > 
+> > Sorry, my fault. This is some trash from a previous patch
+> > that got rejected. Patch added, thanks.
+> > 
+> > Cheers,
+> > Mauro
+> > 
+> 
+> 
+>       
 
-For the high volume API command I care about, in 6097 out of 6100
-samples, the firmware acknowledgment interrupt comes back in and the
-process is awakened back to TASK_RUNNABLE in under 150 us.  0 out of
-6100 samples finished the wakeup to TASK_RUNNABLE faster than 55 us.
-However, I had 22 samples, where coming back from schedule_timeout()
-took 10 msec or greater, despite the wakeup happening in under 150 us.
 
-So the simple answer is to poll the ack field of the mailbox, with some
-50 us busy waits perhaps, for this one high volume API command.
 
-Regards,
-Andy
 
+Cheers,
+Mauro
