@@ -1,89 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:33731 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754565AbZDHXSi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Apr 2009 19:18:38 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1Lrh2R-00013m-A1
-	for linux-media@vger.kernel.org; Wed, 08 Apr 2009 23:18:35 +0000
-Received: from 63.84.broadband6.iol.cz ([88.101.84.63])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 08 Apr 2009 23:18:35 +0000
-Received: from sustmidown by 63.84.broadband6.iol.cz with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 08 Apr 2009 23:18:35 +0000
-To: linux-media@vger.kernel.org
-From: Miroslav =?utf-8?b?xaB1c3Rlaw==?= <sustmidown@centrum.cz>
-Subject: [PATCH] Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS
-Date: Wed, 8 Apr 2009 23:18:24 +0000 (UTC)
-Message-ID: <loom.20090408T230421-516@post.gmane.org>
-References: <61526.207.214.87.58.1239228654.squirrel@webmail.xs4all.nl> <loom.20090408T221914-837@post.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-qy0-f180.google.com ([209.85.221.180]:37264 "EHLO
+	mail-qy0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752134AbZD0DCs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Apr 2009 23:02:48 -0400
+Received: by qyk10 with SMTP id 10so1126490qyk.33
+        for <linux-media@vger.kernel.org>; Sun, 26 Apr 2009 20:02:48 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.0904241832120.8309@axis700.grange>
+References: <Pine.LNX.4.64.0904241818130.8309@axis700.grange>
+	 <Pine.LNX.4.64.0904241832120.8309@axis700.grange>
+Date: Mon, 27 Apr 2009 10:57:26 +0800
+Message-ID: <f17812d70904261957m4ebb606axed8b0423ca81f2f6@mail.gmail.com>
+Subject: Re: [PATCH 3/8] ARM: convert pcm990 to the new platform-device
+	soc-camera interface
+From: Eric Miao <eric.y.miao@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Magnus Damm <magnus.damm@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Miroslav Šustek <sustmidown <at> centrum.cz> writes:
-
-> Marton Balint sent patch with <linux/div64.h> include and changed 'div_s64_rem'
-> to 'div_s64'. But kernels older than 2.26.x have neither 'div_s64' nor
-> 'div_s64_rem'.
-> 
-> Better apply this patch instead that from Marton.
-
-Oh great, <linux/math64.h> (not div64.h like I have written before)
-isn't in pre 2.6.26, too (yes I meant 2.6.26.x previously, not 2.26.x). :/
-
-Including <asm/div64.h> works as well for me
-and should work on older kernels, too.
-Forget about the previous (..._math3) patch :)
-
-- Mirek
-
------ FILE: cx88-dsp_64bit_math4.patch -----
-
-cx88-dsp: again fixing 64bit math on 32bit kernels
-
-From: Miroslav Sustek <sustmidown@centrum.cz>
-Signed-off-by: Miroslav Sustek <sustmidown@centrum.cz>
-
-
-diff -r 77ebdc14cc24 linux/drivers/media/video/cx88/cx88-dsp.c
---- a/linux/drivers/media/video/cx88/cx88-dsp.c	Wed Apr 08 14:01:19 2009 -0300
-+++ b/linux/drivers/media/video/cx88/cx88-dsp.c	Thu Apr 09 01:14:48 2009 +0200
-@@ -22,6 +22,7 @@
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/jiffies.h>
-+#include <asm/div64.h>
- 
- #include "cx88.h"
- #include "cx88-reg.h"
-@@ -101,8 +102,8 @@
- 	s32 coeff = 2*int_cos(freq);
- 	u32 i;
- 
--	s64 tmp;
--	u32 remainder;
-+	u64 tmp;
-+	u32 divisor;
- 
- 	for (i = 0; i < N; i++) {
- 		s32 s = x[i] + ((s64)coeff*s_prev/32768) - s_prev2;
-@@ -115,7 +116,10 @@
- 
- 	/* XXX: N must be low enough so that N*N fits in s32.
- 	 * Else we need two divisions. */
--	return (u32) div_s64_rem(tmp, N*N, &remainder);
-+	divisor = N*N;
-+	do_div(tmp, divisor);
-+
-+	return (u32) tmp;
- }
- 
- static u32 freq_magnitude(s16 x[], u32 N, u32 freq)
-
-
-
+SXQgbG9va3MgdG8gbWUgdGhlIGNoYW5nZSB0byB0aGUgcGxhdGZvcm0gY29kZSBpcyB0byBtb3Zl
+IHRoZSBJMkMgYm9hcmQKaW5mbyByZWdpc3RyYXRpb24gaW50byAnc3RydWN0IHNvY19jYW1lcmFf
+bGluaycuIEFyZSB0aGVyZSBhbnkgc3BlY2lmaWMKcmVhc29uIHRvIGRvIHNvPyBJJ20gYXNzdW1p
+bmcgdGhlIG9yaWdpbmFsIGNvZGUgd29ya3MgZXF1YWxseSB3ZWxsLAphbmQgbGlzdHMgYWxsIHRo
+ZSBpMmMgZGV2aWNlcyBpbiBhIGNlbnRyYWwgcGxhY2UgaXMgc3RyYWlnaHQgZm9yd2FyZC4KCk9u
+IFNhdCwgQXByIDI1LCAyMDA5IGF0IDEyOjQwIEFNLCBHdWVubmFkaSBMaWFraG92ZXRza2kKPGcu
+bGlha2hvdmV0c2tpQGdteC5kZT4gd3JvdGU6Cj4gU2lnbmVkLW9mZi1ieTogR3Vlbm5hZGkgTGlh
+a2hvdmV0c2tpIDxnLmxpYWtob3ZldHNraUBnbXguZGU+Cj4gLS0tCj4KPiBGb3IgcmV2aWV3IF9f
+T05MWV9fIGZvciBub3cgLSB3aWxsIHJlLXN1Ym1pdCBhZnRlciBJIGhhdmUgcHVzaGVkIDEvOAo+
+Cj4gwqBhcmNoL2FybS9tYWNoLXB4YS9wY205OTAtYmFzZWJvYXJkLmMgfCDCoCA1NCArKysrKysr
+KysrKysrKysrKysrKysrKysrKystLS0tLS0KPiDCoDEgZmlsZXMgY2hhbmdlZCwgNDQgaW5zZXJ0
+aW9ucygrKSwgMTAgZGVsZXRpb25zKC0pCj4KPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbWFjaC1w
+eGEvcGNtOTkwLWJhc2Vib2FyZC5jIGIvYXJjaC9hcm0vbWFjaC1weGEvcGNtOTkwLWJhc2Vib2Fy
+ZC5jCj4gaW5kZXggOWNlMWVmMi4uYTFhZTQzNiAxMDA2NDQKPiAtLS0gYS9hcmNoL2FybS9tYWNo
+LXB4YS9wY205OTAtYmFzZWJvYXJkLmMKPiArKysgYi9hcmNoL2FybS9tYWNoLXB4YS9wY205OTAt
+YmFzZWJvYXJkLmMKPiBAQCAtNDI3LDI1ICs0MjcsNTYgQEAgc3RhdGljIHZvaWQgcGNtOTkwX2Nh
+bWVyYV9mcmVlX2J1cyhzdHJ1Y3Qgc29jX2NhbWVyYV9saW5rICpsaW5rKQo+IMKgIMKgIMKgIMKg
+Z3Bpb19idXNfc3dpdGNoID0gLUVJTlZBTDsKPiDCoH0KPgo+IC1zdGF0aWMgc3RydWN0IHNvY19j
+YW1lcmFfbGluayBpY2xpbmsgPSB7Cj4gLSDCoCDCoCDCoCAuYnVzX2lkID0gMCwgLyogTXVzdCBt
+YXRjaCB3aXRoIHRoZSBjYW1lcmEgSUQgYWJvdmUgKi8KPiAtIMKgIMKgIMKgIC5xdWVyeV9idXNf
+cGFyYW0gPSBwY205OTBfY2FtZXJhX3F1ZXJ5X2J1c19wYXJhbSwKPiAtIMKgIMKgIMKgIC5zZXRf
+YnVzX3BhcmFtID0gcGNtOTkwX2NhbWVyYV9zZXRfYnVzX3BhcmFtLAo+IC0gwqAgwqAgwqAgLmZy
+ZWVfYnVzID0gcGNtOTkwX2NhbWVyYV9mcmVlX2J1cywKPiAtfTsKPiAtCj4gwqAvKiBCb2FyZCBJ
+MkMgZGV2aWNlcy4gKi8KPiDCoHN0YXRpYyBzdHJ1Y3QgaTJjX2JvYXJkX2luZm8gX19pbml0ZGF0
+YSBwY205OTBfaTJjX2RldmljZXNbXSA9IHsKPiDCoCDCoCDCoCDCoHsKPiDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoC8qIE11c3QgaW5pdGlhbGl6ZSBiZWZvcmUgdGhlIGNhbWVyYShzKSAqLwo+IMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgSTJDX0JPQVJEX0lORk8oInBjYTk1MzYiLCAweDQxKSwKPiDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoC5wbGF0Zm9ybV9kYXRhID0gJnBjYTk1MzZfZGF0YSwKPiAt
+IMKgIMKgIMKgIH0sIHsKPiArIMKgIMKgIMKgIH0sCj4gK307Cj4gKwo+ICtzdGF0aWMgc3RydWN0
+IGkyY19ib2FyZF9pbmZvIF9faW5pdGRhdGEgcGNtOTkwX2NhbWVyYV9pMmNbXSA9IHsKPiArIMKg
+IMKgIMKgIHsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoEkyQ19CT0FSRF9JTkZPKCJtdDl2MDIy
+IiwgMHg0OCksCj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCAucGxhdGZvcm1fZGF0YSA9ICZpY2xp
+bmssIC8qIFdpdGggZXh0ZW5kZXIgKi8KPiDCoCDCoCDCoCDCoH0sIHsKPiDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoEkyQ19CT0FSRF9JTkZPKCJtdDltMDAxIiwgMHg1ZCksCj4gLSDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCAucGxhdGZvcm1fZGF0YSA9ICZpY2xpbmssIC8qIFdpdGggZXh0ZW5kZXIgKi8K
+PiArIMKgIMKgIMKgIH0sCj4gK307Cj4gKwo+ICtzdGF0aWMgc3RydWN0IHNvY19jYW1lcmFfbGlu
+ayBpY2xpbmtbXSA9IHsKPiArIMKgIMKgIMKgIHsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5i
+dXNfaWQgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgPSAwLCAvKiBNdXN0IG1hdGNoIHdpdGggdGhl
+IGNhbWVyYSBJRCAqLwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLmJvYXJkX2luZm8gwqAgwqAg
+wqAgwqAgwqAgwqAgPSAmcGNtOTkwX2NhbWVyYV9pMmNbMF0sCj4gKyDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCAuaTJjX2FkYXB0ZXJfaWQgwqAgwqAgwqAgwqAgPSAwLAo+ICsgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgLnF1ZXJ5X2J1c19wYXJhbSDCoCDCoCDCoCDCoD0gcGNtOTkwX2NhbWVyYV9xdWVyeV9i
+dXNfcGFyYW0sCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCAuc2V0X2J1c19wYXJhbSDCoCDCoCDC
+oCDCoCDCoD0gcGNtOTkwX2NhbWVyYV9zZXRfYnVzX3BhcmFtLAo+ICsgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgLmZyZWVfYnVzIMKgIMKgIMKgIMKgIMKgIMKgIMKgID0gcGNtOTkwX2NhbWVyYV9mcmVl
+X2J1cywKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5tb2R1bGVfbmFtZSDCoCDCoCDCoCDCoCDC
+oCDCoD0gIm10OXYwMjIiLAo+ICsgwqAgwqAgwqAgfSwgewo+ICsgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgLmJ1c19pZCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCA9IDAsIC8qIE11c3QgbWF0Y2ggd2l0
+aCB0aGUgY2FtZXJhIElEICovCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCAuYm9hcmRfaW5mbyDC
+oCDCoCDCoCDCoCDCoCDCoCA9ICZwY205OTBfY2FtZXJhX2kyY1sxXSwKPiArIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIC5pMmNfYWRhcHRlcl9pZCDCoCDCoCDCoCDCoCA9IDAsCj4gKyDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCAucXVlcnlfYnVzX3BhcmFtIMKgIMKgIMKgIMKgPSBwY205OTBfY2FtZXJhX3F1
+ZXJ5X2J1c19wYXJhbSwKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5zZXRfYnVzX3BhcmFtIMKg
+IMKgIMKgIMKgIMKgPSBwY205OTBfY2FtZXJhX3NldF9idXNfcGFyYW0sCj4gKyDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCAuZnJlZV9idXMgwqAgwqAgwqAgwqAgwqAgwqAgwqAgPSBwY205OTBfY2FtZXJh
+X2ZyZWVfYnVzLAo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLm1vZHVsZV9uYW1lIMKgIMKgIMKg
+IMKgIMKgIMKgPSAibXQ5bTAwMSIsCj4gKyDCoCDCoCDCoCB9LAo+ICt9Owo+ICsKPiArc3RhdGlj
+IHN0cnVjdCBwbGF0Zm9ybV9kZXZpY2UgcGNtOTkwX2NhbWVyYVtdID0gewo+ICsgwqAgwqAgwqAg
+ewo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLm5hbWUgwqAgPSAic29jLWNhbWVyYS1wZHJ2IiwK
+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5pZCDCoCDCoCA9IDAsCj4gKyDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCAuZGV2IMKgIMKgPSB7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCAucGxhdGZvcm1fZGF0YSA9ICZpY2xpbmtbMF0sCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCB9
+LAo+ICsgwqAgwqAgwqAgfSwgewo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLm5hbWUgwqAgPSAi
+c29jLWNhbWVyYS1wZHJ2IiwKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5pZCDCoCDCoCA9IDEs
+Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCAuZGV2IMKgIMKgPSB7Cj4gKyDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCAucGxhdGZvcm1fZGF0YSA9ICZpY2xpbmtbMV0sCj4gKyDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCB9LAo+IMKgIMKgIMKgIMKgfSwKPiDCoH07Cj4gwqAjZW5kaWYgLyog
+Q09ORklHX1ZJREVPX1BYQTI3eCB8fENPTkZJR19WSURFT19QWEEyN3hfTU9EVUxFICovCj4gQEAg
+LTUwMSw2ICs1MzIsOSBAQCB2b2lkIF9faW5pdCBwY205OTBfYmFzZWJvYXJkX2luaXQodm9pZCkK
+PiDCoCDCoCDCoCDCoHB4YV9zZXRfY2FtZXJhX2luZm8oJnBjbTk5MF9weGFjYW1lcmFfcGxhdGZv
+cm1fZGF0YSk7Cj4KPiDCoCDCoCDCoCDCoGkyY19yZWdpc3Rlcl9ib2FyZF9pbmZvKDAsIEFSUkFZ
+X0FORF9TSVpFKHBjbTk5MF9pMmNfZGV2aWNlcykpOwo+ICsKPiArIMKgIMKgIMKgIHBsYXRmb3Jt
+X2RldmljZV9yZWdpc3RlcigmcGNtOTkwX2NhbWVyYVswXSk7Cj4gKyDCoCDCoCDCoCBwbGF0Zm9y
+bV9kZXZpY2VfcmVnaXN0ZXIoJnBjbTk5MF9jYW1lcmFbMV0pOwo+IMKgI2VuZGlmCj4KPiDCoCDC
+oCDCoCDCoHByaW50ayhLRVJOX0lORk8gIlBDTS05OTAgRXZhbHVhdGlvbiBiYXNlYm9hcmQgaW5p
+dGlhbGl6ZWRcbiIpOwo+IC0tCj4gMS42LjIuNAo+Cj4KCgoKLS0gCkNoZWVycwotIGVyaWMK
