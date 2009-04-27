@@ -1,48 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:37217 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752060AbZDFLwx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 07:52:53 -0400
-Received: by fxm2 with SMTP id 2so1842205fxm.37
-        for <linux-media@vger.kernel.org>; Mon, 06 Apr 2009 04:52:50 -0700 (PDT)
-MIME-Version: 1.0
-Date: Mon, 6 Apr 2009 13:52:50 +0200
-Message-ID: <faf98b150904060452m35b4ef58m94cfb02ca8bd1334@mail.gmail.com>
-Subject: [PATCH] Enabling of the Winfast TV2000 XP Global TV capture card
-	remote control
-From: Pieter Van Schaik <vansterpc@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:40381 "EHLO
+	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754554AbZD0Pxm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Apr 2009 11:53:42 -0400
+Date: Mon, 27 Apr 2009 16:52:56 +0100
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: MJPEG-tools user list <mjpeg-users@lists.sourceforge.net>
+Cc: roel.kluin@gmail.com, linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [Mjpeg-users] [PATCH] zoran: invalid test on unsigned
+Message-ID: <20090427165256.57940d06@lxorguk.ukuu.org.uk>
+In-Reply-To: <49F48183.50302@gmail.com>
+References: <49F48183.50302@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Pieter C van Schaik <vansterpc@gmail.com>
+On Sun, 26 Apr 2009 17:45:07 +0200
+Roel Kluin <roel.kluin@gmail.com> wrote:
 
-The Winfast TV2000 XP Global video capture card IR remote keys were
-not initialized and handled in cx88-input.c; added two corresponding
-case statements, where this card's remote works exactly the same as
-the DTV1000's.
+> fmt->index is unsigned. test doesn't work
+> 
+> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+> ---
+> Is there another test required?
+> 
+> diff --git a/drivers/media/video/zoran/zoran_driver.c b/drivers/media/video/zoran/zoran_driver.c
+> index 092333b..0db5d0f 100644
+> --- a/drivers/media/video/zoran/zoran_driver.c
+> +++ b/drivers/media/video/zoran/zoran_driver.c
+> @@ -1871,7 +1871,7 @@ static int zoran_enum_fmt(struct zoran *zr, struct v4l2_fmtdesc *fmt, int flag)
+>  		if (num == fmt->index)
+>  			break;
+>  	}
+> -	if (fmt->index < 0 /* late, but not too late */  || i == NUM_FORMATS)
+> +	if (i == NUM_FORMATS)
+>  		return -EINVAL;
 
-Signed-off-by: Pieter C van Schaik <vansterpc@gmail.com>
----
---- linux-2.6.29/drivers/media/video/cx88/cx88-input.c.orig
-2009-04-01 12:38:34.000000000 +0200
-+++ linux-2.6.29/drivers/media/video/cx88/cx88-input.c  2009-04-01
-12:39:07.000000000 +0200
-@@ -92,6 +92,7 @@ static void cx88_ir_handle_key(struct cx
- 		gpio=(gpio & 0x7fd) + (auxgpio & 0xef);
- 		break;
- 	case CX88_BOARD_WINFAST_DTV1000:
-+ 	case CX88_BOARD_WINFAST_TV2000_XP_GLOBAL:
- 		gpio = (gpio & 0x6ff) | ((cx_read(MO_GP1_IO) << 8) & 0x900);
- 		auxgpio = gpio;
- 		break;
-@@ -239,6 +240,7 @@ int cx88_ir_init(struct cx88_core *core,
- 		break;
- 	case CX88_BOARD_WINFAST2000XP_EXPERT:
- 	case CX88_BOARD_WINFAST_DTV1000:
-+ 	case CX88_BOARD_WINFAST_TV2000_XP_GLOBAL:
- 		ir_codes = ir_codes_winfast;
- 		ir->gpio_addr = MO_GP0_IO;
- 		ir->mask_keycode = 0x8f8;
+If it's unsigned then don't we need i >= NUM_FORMATS ?
