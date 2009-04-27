@@ -1,32 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:37333 "EHLO
-	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750884AbZDUDRo (ORCPT
+Received: from wf-out-1314.google.com ([209.85.200.172]:11443 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760317AbZD0TJa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 23:17:44 -0400
-Date: Mon, 20 Apr 2009 20:17:43 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Uri Shkolnik <urishk@yahoo.com>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	LinuxML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] [0904_14] Siano: assemble all components to one kernel
- module
-In-Reply-To: <933650.33930.qm@web110816.mail.gq1.yahoo.com>
-Message-ID: <Pine.LNX.4.58.0904202014590.22095@shell2.speakeasy.net>
-References: <933650.33930.qm@web110816.mail.gq1.yahoo.com>
+	Mon, 27 Apr 2009 15:09:30 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so71032wfd.4
+        for <linux-media@vger.kernel.org>; Mon, 27 Apr 2009 12:09:29 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <cae4ceb0904271158l56cfc840t858ef5042b1e42f@mail.gmail.com>
+References: <cae4ceb0904271158l56cfc840t858ef5042b1e42f@mail.gmail.com>
+Date: Mon, 27 Apr 2009 12:09:29 -0700
+Message-ID: <cae4ceb0904271209k56c73f26m94adfa01d71daeaa@mail.gmail.com>
+Subject: HVR1200 stop after RF tracking filter calibration complete
+From: Tu-Tu Yu <tutuyu@usc.edu>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 20 Apr 2009, Uri Shkolnik wrote:
->
-> "better to have the BUS configurable, e. g. just because you have USB interface, it doesn't mean that you want siano for USB, instead of using SDIO."
->
-> Since the module is using dynamic registration, I don't find it a problem.
-> When the system has both USB and SDIO buses, both USB and SDIO interface driver will be compiled and linked to the module. When a Siano based device (or multiple Siano devices) will be connected, they will be register internally in the core and activated. Any combination is allow (multiple SDIO, multiple USB and any mix).
+Dear sirs:
+After I installed the HVR1200, it stop when we tune the frequency.
+Could anyone tell me what should i do for this situation? Thank you.
+The message in the log is below
 
-This is not the way linux drivers normally work.  Usually there are
-multiple modules so that only the ones that need to be loaded are loaded.
-It sounds like you are designing this to be custom compiled for each
-system, but that's not usually they way things work.
+kernel: cx23885_dev_checkrevision() Hardware revision unknown 0x0
+kernel: cx23885[0]/0: found at 0000:0b:00.0, rev: 4, irq: 16, latency:
+0, mmio: 0xfea00000
+kernel: tda10048_firmware_upload: waiting for firmware upload
+(dvb-fe-tda10048-1.0.fw)...
+kernel: firmware: requesting dvb-fe-tda10048-1.0.fw
+kernel: tda10048_firmware_upload: firmware read 24878 bytes.
+kernel: tda10048_firmware_upload: firmware uploading
+kernel: tda10048_firmware_upload: firmware uploaded
+kernel: tda18271: performing RF tracking filter calibration
+kernel: tda18271: RF tracking filter calibration complete
+
+Audrey
