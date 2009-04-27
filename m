@@ -1,106 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1407 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751694AbZDESTu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Apr 2009 14:19:50 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id n35IJlhb003236
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 5 Apr 2009 20:19:47 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 5 Apr 2009 20:19:47 +0200 (CEST)
-Message-Id: <200904051819.n35IJlhb003236@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: OK, 2.6.16-2.6.21: WARNINGS
+Received: from web110815.mail.gq1.yahoo.com ([67.195.13.238]:30071 "HELO
+	web110815.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753006AbZD0MMh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Apr 2009 08:12:37 -0400
+Message-ID: <306127.22466.qm@web110815.mail.gq1.yahoo.com>
+Date: Mon, 27 Apr 2009 05:12:37 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH] [0904_7_3] Siano: smsdvb - remove redundent complete
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: LinuxML <linux-media@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
 
-Results of the daily build of v4l-dvb:
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1240834193 -10800
+# Node ID 5601aa2e8c5e2af2b1f62e03fd4c4e04006c7b87
+# Parent  cbd828b0fe102fa023280cfeadbcb20b54a39a47
+Siano: smsdvb - remove redundant complete instruction
 
-date:        Sun Apr  5 19:00:09 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11392:151524ab300a
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+From: Uri Shkolnik <uris@siano-ms.com>
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29-m32r: OK
-linux-2.6.22.19-mips: OK
-linux-2.6.26-mips: OK
-linux-2.6.27-mips: OK
-linux-2.6.28-mips: OK
-linux-2.6.29-mips: OK
-linux-2.6.27-powerpc64: OK
-linux-2.6.28-powerpc64: OK
-linux-2.6.29-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29-x86_64: OK
-fw/apps: OK
-sparse (linux-2.6.29): OK
-linux-2.6.16.61-i686: WARNINGS
-linux-2.6.17.14-i686: OK
-linux-2.6.18.8-i686: OK
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: OK
-linux-2.6.18.8-x86_64: OK
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+Remove redundant complete instruction from smsdvb, in the
+past this was used by the statistics state machine, but
+no longer.
 
-Detailed results are available here:
+Priority: normal
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
 
-Full logs are available here:
+diff -r cbd828b0fe10 -r 5601aa2e8c5e linux/drivers/media/dvb/siano/smsdvb.c
+--- a/linux/drivers/media/dvb/siano/smsdvb.c	Mon Apr 27 15:03:26 2009 +0300
++++ b/linux/drivers/media/dvb/siano/smsdvb.c	Mon Apr 27 15:09:53 2009 +0300
+@@ -550,7 +550,6 @@ static int smsdvb_hotplug(struct smscore
+ 	client->coredev = coredev;
+ 
+ 	init_completion(&client->tune_done);
+-	init_completion(&client->stat_done);
+ 
+ 	kmutex_lock(&g_smsdvb_clientslock);
+ 
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-The V4L2 specification from this daily build is here:
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+      
