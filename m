@@ -1,24 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from qw-out-2122.google.com ([74.125.92.24])
+Received: from wf-out-1314.google.com ([209.85.200.168])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <user.vdr@gmail.com>) id 1LvcUm-0006UG-3b
-	for linux-dvb@linuxtv.org; Sun, 19 Apr 2009 21:16:04 +0200
-Received: by qw-out-2122.google.com with SMTP id 8so535835qwh.17
-	for <linux-dvb@linuxtv.org>; Sun, 19 Apr 2009 12:15:59 -0700 (PDT)
+	(envelope-from <tutuyu@usc.edu>) id 1LyW1y-0005Y9-5E
+	for linux-dvb@linuxtv.org; Mon, 27 Apr 2009 20:58:18 +0200
+Received: by wf-out-1314.google.com with SMTP id 28so62588wff.17
+	for <linux-dvb@linuxtv.org>; Mon, 27 Apr 2009 11:58:12 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <a3ef07920904191214p7be3a0eem7f7abd91ffb374d2@mail.gmail.com>
-References: <1214127575.4974.7.camel@jaswinder.satnam>
-	<a3ef07920904191055j4205ad8du3173a8a2328a214e@mail.gmail.com>
-	<1240167036.3589.310.camel@macbook.infradead.org>
-	<a3ef07920904191214p7be3a0eem7f7abd91ffb374d2@mail.gmail.com>
-Date: Sun, 19 Apr 2009 12:15:59 -0700
-Message-ID: <a3ef07920904191215j6bed8397r46b09c3957a1bb2f@mail.gmail.com>
-From: VDR User <user.vdr@gmail.com>
-To: David Woodhouse <dwmw2@infradead.org>
-Cc: Jaswinder Singh <jaswinder@infradead.org>,
-	linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] [PATCH] firmware: convert av7110 driver to
-	request_firmware()
+Date: Mon, 27 Apr 2009 11:58:11 -0700
+Message-ID: <cae4ceb0904271158l56cfc840t858ef5042b1e42f@mail.gmail.com>
+From: Tu-Tu Yu <tutuyu@usc.edu>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] HVR1200 stop after RF tracking filter calibration
+	complete
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -33,10 +26,24 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On Sun, Apr 19, 2009 at 12:14 PM, VDR User <user.vdr@gmail.com> wrote:
-> Thanks only to those with something useless or constructive to say.
+Dear sirs:
+After I installed the HVR1200, it stop when we tune the frequency.
+Could anyone tell me what should i do for this situation? Thank you.
+The message in the log is below
 
-s/useless/usefull of course.
+kernel: cx23885_dev_checkrevision() Hardware revision unknown 0x0
+kernel: cx23885[0]/0: found at 0000:0b:00.0, rev: 4, irq: 16, latency:
+0, mmio: 0xfea00000
+kernel: tda10048_firmware_upload: waiting for firmware upload
+(dvb-fe-tda10048-1.0.fw)...
+kernel: firmware: requesting dvb-fe-tda10048-1.0.fw
+kernel: tda10048_firmware_upload: firmware read 24878 bytes.
+kernel: tda10048_firmware_upload: firmware uploading
+kernel: tda10048_firmware_upload: firmware uploaded
+kernel: tda18271: performing RF tracking filter calibration
+kernel: tda18271: RF tracking filter calibration complete
+
+Audrey
 
 _______________________________________________
 linux-dvb users mailing list
