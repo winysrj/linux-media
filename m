@@ -1,51 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:38982 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751972AbZDNJ77 (ORCPT
+Received: from web110816.mail.gq1.yahoo.com ([67.195.13.239]:37645 "HELO
+	web110816.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754064AbZD0Kvn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Apr 2009 05:59:59 -0400
-Date: Tue, 14 Apr 2009 11:59:57 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/5] pcm990 baseboard: add camera bus width switch
-	setting
-Message-ID: <20090414095957.GI14383@pengutronix.de>
-References: <1236857239-2146-2-git-send-email-s.hauer@pengutronix.de> <1236857239-2146-3-git-send-email-s.hauer@pengutronix.de> <Pine.LNX.4.64.0903121405150.4896@axis700.grange> <20090312141819.GN425@pengutronix.de> <Pine.LNX.4.64.0904092339320.4841@axis700.grange> <Pine.LNX.4.64.0904141053230.1587@axis700.grange> <20090414091005.GA14383@pengutronix.de> <Pine.LNX.4.64.0904141115070.1587@axis700.grange> <20090414093820.GF14383@pengutronix.de> <Pine.LNX.4.64.0904141140460.1587@axis700.grange>
+	Mon, 27 Apr 2009 06:51:43 -0400
+Message-ID: <418456.4637.qm@web110816.mail.gq1.yahoo.com>
+Date: Mon, 27 Apr 2009 03:51:42 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH] [0904_1_2] Siano: core header - update include files
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0904141140460.1587@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 14, 2009 at 11:53:54AM +0200, Guennadi Liakhovetski wrote:
-> On Tue, 14 Apr 2009, Sascha Hauer wrote:
-> 
-> > On Tue, Apr 14, 2009 at 11:20:03AM +0200, Guennadi Liakhovetski wrote:
-> > > 
-> > > If you don't object, I'll just add a .free_bus method to soc_camera_link, 
-> > > and switch pcm990 to only use two values: a negative value for a 
-> > > non-allocated gpio - either before the first attempt or after an error, 
-> > > thus re-trying every time if gpio is negative, in case a driver has been 
-> > > loaded in the meantime.
-> > 
-> > For the sake of symmetry, shouldn't we have an init function aswell?
-> 
-> Well, for the sake of symmetry - yes, but I'm not sure we want to bloat 
-> this simple API further just to make it symmetric... You think it's worth 
-> it? Or do you have any "practical" reasons for that? Of course, we could 
-> also add a void *bus_resource to soc_camera_link and get rid of the static 
-> gpio_bus_switch and allocate it dynamically in .bus_init and free it in 
-> .bus_release, but...
 
-No, I have no practical use for it at the moment. My feeling says it's
-better to add it, but just follow your feelings instead of mine ;)
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1240829297 -10800
+# Node ID f8f75fb71210dfde89f994a97d8a4fa1e6b7b7bc
+# Parent  24e0283cbbc9992ea6bc9775906821e323726f34
+Re-order the include files list
 
-Sascha
+From: Uri Shkolnik <uris@siano-ms.com>
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Re-order the include files list, put the DVB-API v3 within its
+own section, within a define container.
+
+Priority: normal
+
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+
+diff -r 24e0283cbbc9 -r f8f75fb71210 linux/drivers/media/dvb/siano/smscoreapi.h
+--- a/linux/drivers/media/dvb/siano/smscoreapi.h	Mon Apr 27 13:41:20 2009 +0300
++++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Mon Apr 27 13:48:17 2009 +0300
+@@ -28,15 +28,20 @@ along with this program.  If not, see <h
+ #include <linux/mm.h>
+ #include <linux/scatterlist.h>
+ #include <linux/types.h>
++#include <linux/mutex.h>
++#include <linux/wait.h>
++#include <linux/timer.h>
++
+ #include <asm/page.h>
+-#include <linux/mutex.h>
+ #include "compat.h"
+ 
++#define SMS_DVB3_SUBSYS
++#ifdef SMS_DVB3_SUBSYS
+ #include "dmxdev.h"
+ #include "dvbdev.h"
+ #include "dvb_demux.h"
+ #include "dvb_frontend.h"
+-
++#endif
+ 
+ #define kmutex_init(_p_) mutex_init(_p_)
+ #define kmutex_lock(_p_) mutex_lock(_p_)
+
+
+
+      
