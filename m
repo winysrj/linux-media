@@ -1,28 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n36EGKWp027412
-	for <video4linux-list@redhat.com>; Mon, 6 Apr 2009 10:16:20 -0400
-Received: from mail-gx0-f171.google.com (mail-gx0-f171.google.com
-	[209.85.217.171])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n36EFaEh001054
-	for <video4linux-list@redhat.com>; Mon, 6 Apr 2009 10:16:00 -0400
-Received: by mail-gx0-f171.google.com with SMTP id 19so4604051gxk.3
-	for <video4linux-list@redhat.com>; Mon, 06 Apr 2009 07:16:00 -0700 (PDT)
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n3RGIZMU002962
+	for <video4linux-list@redhat.com>; Mon, 27 Apr 2009 12:18:35 -0400
+Received: from mail-fx0-f166.google.com (mail-fx0-f166.google.com
+	[209.85.220.166])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n3RGILRr026505
+	for <video4linux-list@redhat.com>; Mon, 27 Apr 2009 12:18:21 -0400
+Received: by fxm10 with SMTP id 10so8993fxm.3
+	for <video4linux-list@redhat.com>; Mon, 27 Apr 2009 09:18:20 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <49DA0B1E.3010704@linuxtv.org>
-References: <49D20B0B.1030701@australiaonline.net.au>
-	<49D227A3.5000601@linuxtv.org>
-	<49D2FE07.5060906@australiaonline.net.au>
-	<49D60DA2.5040904@australiaonline.net.au>
-	<49DA0B1E.3010704@linuxtv.org>
-Date: Mon, 6 Apr 2009 10:16:00 -0400
-Message-ID: <412bdbff0904060716y44bd932cm81ca214425bdf355@mail.gmail.com>
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Steven Toth <stoth@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Date: Mon, 27 Apr 2009 18:18:20 +0200
+Message-ID: <a50ea2b0904270918q571775f6wd7946a1848df6c6e@mail.gmail.com>
+From: Robin van Kleeff <robinvankleeff@gmail.com>
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: No scan with DViCo FusionHDTV DVB-T Dual Express
+Subject: 'dual-purpose' digital compact cameras?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,31 +27,24 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Apr 6, 2009 at 10:01 AM, Steven Toth <stoth@linuxtv.org> wrote:
-> Yes and no, they're largely the same. For some reason I thought we'd used
-> the 3028 firmware with the 3008 in the past, maybe this no longer holds. up.
->
-> I'm surprised you're seeing the "Incorrect readback of firmware version"
-> error.
->
-> Would any xc3028 guru's like to comment?
->
-> - Steve
+Hey everybody,
 
-I would have to look at the code, but my first guess would probably be
-a combination of the tuner still being held in reset along with not
-properly detecting a the failure to read the register on the i2c bus
-(failing silently).
+I have been searching for information on using compact photo cameras
+as video devices (and also for compatibility with gphoto through the
+gphoto websites/mailing list).
 
-Can we get a full pastebin of the dmesg output from bootup? (the dmesg
-sent was truncated by the user)
+I was wondering if any of you knows which cameras (brand, type) I
+should focus on?  Ideally I'd like to find an affordable compact
+digital camera that can be used to take decent quality pictures, and
+also function as for instance a web cam for applications such as
+Ekiga.
 
-Devin
+By the way, I am much more an end-user then a developer, so forgive me
+if I ask dumb questions please...
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Thanks in advance!
+
+Robin
 
 --
 video4linux-list mailing list
