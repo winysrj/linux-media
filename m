@@ -1,48 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:42223 "EHLO
-	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752878AbZDUOGU (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3656 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751296AbZD0SLd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Apr 2009 10:06:20 -0400
-Received: from steven-toths-macbook-pro.local
- (ool-45721e5a.dyn.optonline.net [69.114.30.90]) by mta5.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KIG00KPSF6AAX80@mta5.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Tue, 21 Apr 2009 10:06:11 -0400 (EDT)
-Date: Tue, 21 Apr 2009 10:06:09 -0400
-From: Steven Toth <stoth@linuxtv.org>
-Subject: Re: Hauppauge HVR-1500 (aka HP RM436AA#ABA)
-In-reply-to: <1240307588.4093.7.camel@linux-2esp.site>
-To: pghben@yahoo.com
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Message-id: <49EDD2D1.1030204@linuxtv.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <23cedc300904170207w74f50fc1v3858b663de61094c@mail.gmail.com>
- <BAY102-W34E8EA79DEE83E18177655CF7B0@phx.gbl> <49E9C4EA.30706@linuxtv.org>
- <loom.20090420T150829-849@post.gmane.org> <49EC9A08.50603@linuxtv.org>
- <1240245715.5388.126.camel@mountainboyzlinux0> <49ECA8DD.9090708@linuxtv.org>
- <1240249684.5388.146.camel@mountainboyzlinux0> <49ECBCF0.3060806@linuxtv.org>
- <1240255677.5388.153.camel@mountainboyzlinux0> <49ECD553.9090707@linuxtv.org>
- <1240259904.5388.178.camel@mountainboyzlinux0> <49ECEEA3.6010203@linuxtv.org>
- <1240265172.5388.184.camel@mountainboyzlinux0> <49ECF6FA.70805@linuxtv.org>
- <1240307588.4093.7.camel@linux-2esp.site>
+	Mon, 27 Apr 2009 14:11:33 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id n3RIBVl3036367
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 27 Apr 2009 20:11:31 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 27 Apr 2009 20:11:31 +0200 (CEST)
+Message-Id: <200904271811.n3RIBVl3036367@smtp-vbr1.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Benster & Jeremy wrote:
-> The patch works perfectly. 
-> No indicator light, but 28 channels with stronger signal than mce!
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Good, thanks for the feedback.
+Results of the daily build of v4l-dvb:
 
-Ignore the light, it's a visual indicator only. At some point we'll get back to 
-fixing that.
+date:        Mon Apr 27 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11603:b40d628f830d
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Regards,
+linux-2.6.22.19-armv5: WARNINGS
+linux-2.6.23.12-armv5: WARNINGS
+linux-2.6.24.7-armv5: WARNINGS
+linux-2.6.25.11-armv5: WARNINGS
+linux-2.6.26-armv5: WARNINGS
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29.1-armv5: WARNINGS
+linux-2.6.30-rc3-armv5: WARNINGS
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-rc3-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-rc3-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-rc3-i686: ERRORS
+linux-2.6.23.12-m32r: WARNINGS
+linux-2.6.24.7-m32r: WARNINGS
+linux-2.6.25.11-m32r: WARNINGS
+linux-2.6.26-m32r: WARNINGS
+linux-2.6.27-m32r: WARNINGS
+linux-2.6.28-m32r: WARNINGS
+linux-2.6.29.1-m32r: WARNINGS
+linux-2.6.30-rc3-m32r: WARNINGS
+linux-2.6.22.19-mips: WARNINGS
+linux-2.6.26-mips: WARNINGS
+linux-2.6.27-mips: WARNINGS
+linux-2.6.28-mips: WARNINGS
+linux-2.6.29.1-mips: WARNINGS
+linux-2.6.30-rc3-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-rc3-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-rc3-x86_64: ERRORS
+fw/apps: OK
+sparse (linux-2.6.29.1): OK
+sparse (linux-2.6.30-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-- Steve
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
