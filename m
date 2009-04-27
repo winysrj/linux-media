@@ -1,159 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110810.mail.gq1.yahoo.com ([67.195.13.233]:20622 "HELO
-	web110810.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750779AbZDFFf1 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Apr 2009 01:35:27 -0400
-Message-ID: <446692.77537.qm@web110810.mail.gq1.yahoo.com>
-Date: Sun, 5 Apr 2009 22:35:25 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding model
-To: Andy Walls <awalls@radix.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: hermann pitton <hermann-pitton@arcor.de>,
-	Jean Delvare <khali@linux-fr.org>, Janne Grunau <j@jannau.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mike Isely <isely@pobox.com>, isely@isely.net,
-	LMML <linux-media@vger.kernel.org>,
-	Jarod Wilson <jarod@redhat.com>
+Received: from pne-smtpout1-sn2.hy.skanova.net ([81.228.8.83]:51280 "EHLO
+	pne-smtpout1-sn2.hy.skanova.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756395AbZD0RiK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Apr 2009 13:38:10 -0400
+Message-ID: <49F5ED7E.60003@gmail.com>
+Date: Mon, 27 Apr 2009 19:38:06 +0200
+From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+To: "Robert P. J. Day" <rpjday@crashcourse.ca>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] GSPCA M5602: Re C99, move storage class to beginning.
+References: <alpine.LFD.2.00.0904261128310.3333@localhost.localdomain>
+In-Reply-To: <alpine.LFD.2.00.0904261128310.3333@localhost.localdomain>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-
---- On Mon, 4/6/09, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
-
-> From: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding model
-> To: "Andy Walls" <awalls@radix.net>
-> Cc: "hermann pitton" <hermann-pitton@arcor.de>, "Jean Delvare" <khali@linux-fr.org>, "Janne Grunau" <j@jannau.net>, "Hans Verkuil" <hverkuil@xs4all.nl>, "Mike Isely" <isely@pobox.com>, isely@isely.net, "LMML" <linux-media@vger.kernel.org>, "Jarod Wilson" <jarod@redhat.com>
-> Date: Monday, April 6, 2009, 4:51 AM
-> On Sun, 05 Apr 2009 18:00:04 -0400
-> Andy Walls <awalls@radix.net>
-> wrote:
-> 
-> > On Sun, 2009-04-05 at 23:22 +0200, hermann pitton
-> wrote:
-> > > Am Sonntag, den 05.04.2009, 22:22 +0200 schrieb
-> Jean Delvare:
-> > > > On Sun, 05 Apr 2009 14:58:17 -0400, Andy
-> Walls wrote:
-> > 
-> > 
-> > > What can not be translated to the input system I
-> would like to know.
-> > > Andy seems to have closer looked into that.
-> > 
-> > 1. IR blasting: sending IR codes to transmit out to a
-> cable convertor
-> > box, DTV to analog convertor box, or similar devices
-> to change channels
-> > before recording starts.  An input interface
-> doesn't work well for
-> > output.
-> 
-> On my understanding, IR output is a separate issue. AFAIK,
-> only a very few ivtv
-> devices support IR output. I'm not sure how this is
-> currently implemented.
-> 
-> 
-> > 2. Sending raw IR samples to user space: user space
-> applications can
-> > then decode or match an unknown or non-standard IR
-> remote protocol in
-> > user space software.  Timing information to go
-> along with the sample
-> > data probably needs to be
-> preserved.   I'm assuming the input
-> interface
-> > currently doesn't support that.
-> 
-> If the driver processes correctly the IR samples, I don't
-> see why you would
-> need to pass the raw protocols to userspace. Maybe we need
-> to add some ioctls
-> at the API to allow certain controls, like, for example,
-> ask kernel to decode
-> IR using RC4 instead or RC5, on devices that supports more
-> than one IR protocol.
-> 
-> > That's all the Gerd mentioned.
-> > 
-> > 
-> > One more nice feature to have, that I'm not sure how
-> easily the input
-> > system could support:
-> > 
-> > 3. specifying remote control code to key/button
-> translations with a
-> > configuration file instead of recompiling a module.
-> 
-> The input and the current drivers that use input already
-> supports this feature.
-> You just need to load a new code table to replace the
-> existing one.
-> 
-> See v4l2-apps/util/keytable.c to see how easy is to change
-> a key code. It
-> contains a complete code to fully replace a key code table.
-> Also, the Makefile
-> there will extract the current keytables for the in-kernel
-> drivers.
-> 
-> Btw, with only 12 lines, you can create a keycode replace
-> "hello world!":
-> 
-> #include <fcntl.h>   
->     /* due to O_RDONLY */
-> #include <stdio.h>   
->     /* open() */
-> #include <linux/input.h>    /* input
-> ioctls and keycode macros */
-> #include <sys/ioctl.h>   
->     /* ioctl() */
-> void main(void)
-> {
->     int codes[2];
->     int fd = open("/dev/video0",
-> O_RDONLY);    /* Hmm.. in real apps, we
-> should check for errors */
->     codes[0] = 10;   
->             /*
-> Scan code */
->     codes[1] = KEY_UP;   
->         /* Key code */
->     ioctl(fd, EVIOCSKEYCODE,
-> codes);    /* hello world! */
-> }
-> 
-> Cheers,
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe
-> linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
 Hi,
 
-ir-kbd-i2c is a confusing name and wrong architecture if all are truly combined together.
+Thank you for your time reporting this issue.
+A similar patch was just posted and merged.
 
-Why to combine interface driver (I2C) with logical implementation (RC5 samples to input device codes)?
+Best regards,
+Erik
 
-There are many IR hardware devices which are not I2C based. Lately I added a patch (http://patchwork.kernel.org/patch/16406/) which uses such IR device.
-
-There should be a complete separation between I2C interface driver with RC5 (and/or RCMM) data output, to the ir-kbd (RC5/kbd, RCMM/kbd) module, which should only convert RC5 sample to system events (either input device/keyboard, or IOCTL events sent through the DVB characters devices to user space).
-
-If the code will stay combined (ir-kbd-i2c) than for other than I2C interface drivers, we'll have to add a duplicated (redundant) logical layer to handle the RC5 to system events layer (which already exist at the ir-kbd-i2c).
-
-Uri
-
-
-      
+Robert P. J. Day wrote:
+> Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
+> 
+> ---
+> 
+> diff --git a/drivers/media/video/gspca/m5602/m5602_mt9m111.c b/drivers/media/video/gspca/m5602/m5602_mt9m111.c
+> index 7d3f9e3..0167987 100644
+> --- a/drivers/media/video/gspca/m5602/m5602_mt9m111.c
+> +++ b/drivers/media/video/gspca/m5602/m5602_mt9m111.c
+> @@ -31,7 +31,7 @@ static struct v4l2_pix_format mt9m111_modes[] = {
+>  	}
+>  };
+> 
+> -const static struct ctrl mt9m111_ctrls[] = {
+> +static const struct ctrl mt9m111_ctrls[] = {
+>  	{
+>  		{
+>  			.id		= V4L2_CID_VFLIP,
+> diff --git a/drivers/media/video/gspca/m5602/m5602_mt9m111.h b/drivers/media/video/gspca/m5602/m5602_mt9m111.h
+> index 00c6db0..6bedf9d 100644
+> --- a/drivers/media/video/gspca/m5602/m5602_mt9m111.h
+> +++ b/drivers/media/video/gspca/m5602/m5602_mt9m111.h
+> @@ -94,7 +94,7 @@ int mt9m111_set_hflip(struct gspca_dev *gspca_dev, __s32 val);
+>  int mt9m111_get_gain(struct gspca_dev *gspca_dev, __s32 *val);
+>  int mt9m111_set_gain(struct gspca_dev *gspca_dev, __s32 val);
+> 
+> -const static struct m5602_sensor mt9m111 = {
+> +static const struct m5602_sensor mt9m111 = {
+>  	.name = "MT9M111",
+> 
+>  	.i2c_slave_id = 0xba,
+> diff --git a/drivers/media/video/gspca/m5602/m5602_ov9650.c b/drivers/media/video/gspca/m5602/m5602_ov9650.c
+> index fc4548f..6c3baca 100644
+> --- a/drivers/media/video/gspca/m5602/m5602_ov9650.c
+> +++ b/drivers/media/video/gspca/m5602/m5602_ov9650.c
+> @@ -68,7 +68,7 @@ static
+>  	{}
+>  };
+> 
+> -const static struct ctrl ov9650_ctrls[] = {
+> +static const struct ctrl ov9650_ctrls[] = {
+>  #define EXPOSURE_IDX 0
+>  	{
+>  		{
+> diff --git a/drivers/media/video/gspca/m5602/m5602_ov9650.h b/drivers/media/video/gspca/m5602/m5602_ov9650.h
+> index fcc54e4..2ca0e88 100644
+> --- a/drivers/media/video/gspca/m5602/m5602_ov9650.h
+> +++ b/drivers/media/video/gspca/m5602/m5602_ov9650.h
+> @@ -159,7 +159,7 @@ int ov9650_set_auto_white_balance(struct gspca_dev *gspca_dev, __s32 val);
+>  int ov9650_get_auto_gain(struct gspca_dev *gspca_dev, __s32 *val);
+>  int ov9650_set_auto_gain(struct gspca_dev *gspca_dev, __s32 val);
+> 
+> -const static struct m5602_sensor ov9650 = {
+> +static const struct m5602_sensor ov9650 = {
+>  	.name = "OV9650",
+>  	.i2c_slave_id = 0x60,
+>  	.i2c_regW = 1,
+> diff --git a/drivers/media/video/gspca/m5602/m5602_po1030.c b/drivers/media/video/gspca/m5602/m5602_po1030.c
+> index eaddf48..b06e229 100644
+> --- a/drivers/media/video/gspca/m5602/m5602_po1030.c
+> +++ b/drivers/media/video/gspca/m5602/m5602_po1030.c
+> @@ -31,7 +31,7 @@ static struct v4l2_pix_format po1030_modes[] = {
+>  	}
+>  };
+> 
+> -const static struct ctrl po1030_ctrls[] = {
+> +static const struct ctrl po1030_ctrls[] = {
+>  	{
+>  		{
+>  			.id 		= V4L2_CID_GAIN,
+> diff --git a/drivers/media/video/gspca/m5602/m5602_s5k4aa.c b/drivers/media/video/gspca/m5602/m5602_s5k4aa.c
+> index 4306d59..bab6cb4 100644
+> --- a/drivers/media/video/gspca/m5602/m5602_s5k4aa.c
+> +++ b/drivers/media/video/gspca/m5602/m5602_s5k4aa.c
+> @@ -64,7 +64,7 @@ static struct v4l2_pix_format s5k4aa_modes[] = {
+>  	}
+>  };
+> 
+> -const static struct ctrl s5k4aa_ctrls[] = {
+> +static const struct ctrl s5k4aa_ctrls[] = {
+>  	{
+>  		{
+>  			.id 		= V4L2_CID_VFLIP,
+> diff --git a/drivers/media/video/gspca/m5602/m5602_s5k83a.c b/drivers/media/video/gspca/m5602/m5602_s5k83a.c
+> index 42c86aa..689afbc 100644
+> --- a/drivers/media/video/gspca/m5602/m5602_s5k83a.c
+> +++ b/drivers/media/video/gspca/m5602/m5602_s5k83a.c
+> @@ -32,7 +32,7 @@ static struct v4l2_pix_format s5k83a_modes[] = {
+>  	}
+>  };
+> 
+> -const static struct ctrl s5k83a_ctrls[] = {
+> +static const struct ctrl s5k83a_ctrls[] = {
+>  	{
+>  		{
+>  			.id = V4L2_CID_BRIGHTNESS,
+> 
+> ========================================================================
+> Robert P. J. Day                               Waterloo, Ontario, CANADA
+> 
+>         Linux Consulting, Training and Annoying Kernel Pedantry.
+> 
+> Web page:                                          http://crashcourse.ca
+> Linked In:                             http://www.linkedin.com/in/rpjday
+> Twitter:                                       http://twitter.com/rpjday
+> ========================================================================
+> 
