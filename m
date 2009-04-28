@@ -1,140 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cinke.fazekas.hu ([195.199.244.225]:48150 "EHLO
-	cinke.fazekas.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750857AbZDGA1c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 20:27:32 -0400
-Date: Tue, 7 Apr 2009 02:27:15 +0200 (CEST)
-From: Marton Balint <cus@fazekas.hu>
-To: Miroslav =?utf-8?b?xaB1c3Rlaw==?= <sustmidown@centrum.cz>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Re: cx88-dsp.c: missing =?utf-8?b?X19kaXZkaTM=?= on
- 32bit kernel
-In-Reply-To: <loom.20090406T230214-297@post.gmane.org>
-Message-ID: <Pine.LNX.4.64.0904070208030.24672@cinke.fazekas.hu>
-References: <200904062233.30966@centrum.cz> <200904062234.8192@centrum.cz>
- <200904062235.15206@centrum.cz> <200904062236.31983@centrum.cz>
- <200904062237.27161@centrum.cz> <200904062238.10335@centrum.cz>
- <200904062239.877@centrum.cz> <200904062240.9520@centrum.cz>
- <200904062240.1773@centrum.cz> <loom.20090406T230214-297@post.gmane.org>
-MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-943463948-1843581891-1239062926=:24672"
-Content-ID: <Pine.LNX.4.64.0904070222390.24672@cinke.fazekas.hu>
+Received: from bombadil.infradead.org ([18.85.46.34]:41095 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753855AbZD1SSx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Apr 2009 14:18:53 -0400
+Date: Tue, 28 Apr 2009 15:18:32 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Dmitri Belimov <d.belimov@gmail.com>
+Cc: Andy Walls <awalls@radix.net>, video4linux-list@redhat.com,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] FM1216ME_MK3 some changes
+Message-ID: <20090428151832.241fa9b4@pedra.chehab.org>
+In-Reply-To: <20090427192905.3ad2b88c@glory.loctelecom.ru>
+References: <20090422174848.1be88f61@glory.loctelecom.ru>
+	<1240452534.3232.70.camel@palomino.walls.org>
+	<20090423203618.4ac2bc6f@glory.loctelecom.ru>
+	<1240537394.3231.37.camel@palomino.walls.org>
+	<20090427192905.3ad2b88c@glory.loctelecom.ru>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Mon, 27 Apr 2009 19:29:05 +1000
+Dmitri Belimov <d.belimov@gmail.com> wrote:
 
----943463948-1843581891-1239062926=:24672
-Content-Type: TEXT/PLAIN; CHARSET=ISO8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Content-ID: <Pine.LNX.4.64.0904070222391.24672@cinke.fazekas.hu>
+> Hi All
+> 
+> Step by step.
+> 
+> This is patch for change only range of FM1216ME_MK3. Slow tunning is not a big problem.
 
-On Mon, 6 Apr 2009, Miroslav =A9ustek wrote:
+Dmitri,
 
-> Well this patch should solve it.
->=20
-> I don't know how many samples are processed so:
-> First patch is for situation when N*N fits in s32.
-> Second one uses two divisions, but doesn't have any abnormal restrictions=
- for N.
+I'll mark those patches as RFC at patchwork until the end of those discussions. After that,
+please send it again into a new thread.
 
-Both patches are fine, beacuse in the current implementation N is not=20
-bigger than 576. Thanks for fixing this problem.
+Cheers,
+Mauro.
 
-Regards,
-  Marton
+> 
+> diff -r b40d628f830d linux/drivers/media/common/tuners/tuner-types.c
+> --- a/linux/drivers/media/common/tuners/tuner-types.c	Fri Apr 24 01:46:41 2009 -0300
+> +++ b/linux/drivers/media/common/tuners/tuner-types.c	Tue Apr 28 03:35:42 2009 +1000
+> @@ -558,8 +558,8 @@
+>  
+>  static struct tuner_range tuner_fm1216me_mk3_pal_ranges[] = {
+>  	{ 16 * 158.00 /*MHz*/, 0x8e, 0x01, },
+> -	{ 16 * 442.00 /*MHz*/, 0x8e, 0x02, },
+> -	{ 16 * 999.99        , 0x8e, 0x04, },
+> +	{ 16 * 441.00 /*MHz*/, 0x8e, 0x02, },
+> +	{ 16 * 864.00        , 0x8e, 0x04, },
+>  };
+>  
+>  static struct tuner_params tuner_fm1216me_mk3_params[] = {
+> 
+> Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+> 
+> 
+> With my best regards, Dmitry.
+> 
+> > Hi Dmitri,
+> > 
+> > Thank you for you responses.
+> > 
+> > Just a few more comments...
+> > 
+> > On Thu, 2009-04-23 at 20:36 +1000, Dmitri Belimov wrote:
+> > > Hi Andy
+> > > 
+> > > > Dmitri,
+> > > > 
+> > > > 
+> > > > On Wed, 2009-04-22 at 17:48 +1000, Dmitri Belimov wrote:
+> > > > > Hi All
+> > > > > 
+> > > > > 1. Change middle band. In the end of the middle band the
+> > > > > sensitivity of receiver not good. If we switch to higher band,
+> > > > > sensitivity more better. Hardware trick.
+> > > > 
+> > 
+> > > Several years a go your customers write some messages about bad
+> > > quality of TV if frequency of TV is the end of band. It can be low
+> > > band or middle. Our hardware engeneer make some tests with hardware
+> > > TV generator and our TV tuners.
+> > > 
+> > > If we set default frequency range for low and middle band, quality
+> > > of TV signal on 159MHz and 442 MHz is bad. When we make our changes
+> > > with moving end of bands the quality of TV much better. And our
+> > > system programmer for OS Windows use changed bands for drivers.
+> > > Customers be happy.
+> > 
+> > OK.  A properly run experiment wins over theory every time. :)
+> > 
+> > 
+> > 
+> > > You can test it if in your placement available TV programm on
+> > > 159MHz or 442MHz. This trick can be usefull for other tuners.
+> > 
+> > If you look at tveeprom.c, a number of other tuners are using that
+> > tuner definition:
+> > 
+> > $ grep FM1216ME_MK3 tveeprom.c
+> > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FQ1216ME MK3"},
+> > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FM1216 ME
+> > MK3"}, { TUNER_PHILIPS_FM1216ME_MK3, 	"LG S001D MK3"},
+> > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"LG S701D MK3"},
+> > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FQ1216LME
+> > MK3"}, { TUNER_PHILIPS_FM1216ME_MK3, 	"TCL MFPE05 2"},
+> > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"TCL MPE05-2"},
+> > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FM1216ME MK5"},
+> > 
+> > If your change makes things bad for the other tuners, we'll probably
+> > have to create an alternate entry for the other tuners instead of
+> > using the FM1216ME_MK3 defintion.  I suspect most of them are clones
+> > of the FM1216ME MK3 however, so it probably won't matter.
+> > 
+> > > > > 3. Set charge pump bit
+> > > > 
+> > > > This will improve the time to initially tune to a frequency, but
+> > > > will likely add some noise as the PLL continues to maintain lock
+> > > > on the signal.  If there is no way to turn off the CP after the
+> > > > lock bit is set in the tuner, it's probably better to leave it
+> > > > off for lower noise and just live with slower tuning.
+> > > 
+> > > We discuss with our windows system programmer about it. He sad that
+> > > in analog TV mode noise from PLL don't give any problem.
+> > 
+> > I would be concerned about phase noise affecting the colors or any FM
+> > sound carriers.  If the noise isn't noticably affecting colors to the
+> > human eye (do color bars look OK?), or sound to the human ear, then
+> > OK.
+> > 
+> > 
+> > >  But in digital TV mode
+> > > noise from PLL decreased BER.
+> > 
+> > I thought the FM1216ME MK3 was an analog only tuner.  I guess I don't
+> > know DVB-T or cable in Europe well enough.
+> > 
+> > 
+> > > > Leaving the CP bit set should be especially noticable ad FM noise
+> > > > when set to tune to FM radio stations.  From the FM1236ME_MK3
+> > > > datasheet: "It is recommended to set CP=0 in the FM mode at all
+> > > > times." But the VHF low band control byte is also used when
+> > > > setting FM radio (AFAICT with a quick look at the code.)
+> > > 
+> > > Yes. You are right. We can swith CP off in FM mode.
+> > 
+> > OK.  Thank you.
+> > 
+> > > With my best regards, Dmitry.
+> > 
+> > 
+> > Regards,
+> > Andy
+> > 
+> > 
+> > 
 
 
->=20
-> Personally I think that two divisions won't hurt. :)
->=20
->=20
->=20
-> ----- FILE: cx88-dsp_64bit_math1.patch -----
->=20
-> cx88-dsp: fixing 64bit math on 32bit kernels
->=20
-> Note the limitation of N.
-> Personally I know nothing about possible size of samples array.
->=20
-> From: Miroslav Sustek <sustmidown@centrum.cz>
-> Signed-off-by: Miroslav Sustek <sustmidown@centrum.cz>
->=20
-> diff -r 8aa1d865373c linux/drivers/media/video/cx88/cx88-dsp.c
-> --- a/linux/drivers/media/video/cx88/cx88-dsp.c=09Wed Apr 01 20:25:00 200=
-9 +0000
-> +++ b/linux/drivers/media/video/cx88/cx88-dsp.c=09Tue Apr 07 00:08:48 200=
-9 +0200
-> @@ -100,13 +100,22 @@
->  =09s32 s_prev2 =3D 0;
->  =09s32 coeff =3D 2*int_cos(freq);
->  =09u32 i;
-> +
-> +=09s64 tmp;
-> +=09u32 remainder;
-> +
->  =09for (i =3D 0; i < N; i++) {
->  =09=09s32 s =3D x[i] + ((s64)coeff*s_prev/32768) - s_prev2;
->  =09=09s_prev2 =3D s_prev;
->  =09=09s_prev =3D s;
->  =09}
-> -=09return (u32)(((s64)s_prev2*s_prev2 + (s64)s_prev*s_prev -
-> -=09=09      (s64)coeff*s_prev2*s_prev/32768)/N/N);
-> +
-> +=09tmp =3D (s64)s_prev2*s_prev2 + (s64)s_prev*s_prev -
-> +=09=09      (s64)coeff*s_prev2*s_prev/32768;
-> +
-> +=09/* XXX: N must be low enough so that N*N fits in s32.
-> +=09 * Else we need two divisions. */
-> +=09return (u32) div_s64_rem(tmp, N*N, &remainder);
->  }
-> =20
->  static u32 freq_magnitude(s16 x[], u32 N, u32 freq)
->=20
->=20
->=20
-> ----- FILE: cx88-dsp_64bit_math2.patch -----
->=20
-> cx88-dsp: fixing 64bit math on 32bit kernels
->=20
-> From: Miroslav Sustek <sustmidown@centrum.cz>
-> Signed-off-by: Miroslav Sustek <sustmidown@centrum.cz>
->=20
-> diff -r 8aa1d865373c linux/drivers/media/video/cx88/cx88-dsp.c
-> --- a/linux/drivers/media/video/cx88/cx88-dsp.c=09Wed Apr 01 20:25:00 200=
-9 +0000
-> +++ b/linux/drivers/media/video/cx88/cx88-dsp.c=09Tue Apr 07 00:26:10 200=
-9 +0200
-> @@ -100,13 +100,22 @@
->  =09s32 s_prev2 =3D 0;
->  =09s32 coeff =3D 2*int_cos(freq);
->  =09u32 i;
-> +
-> +=09s64 tmp;
-> +=09u32 remainder;
-> +
->  =09for (i =3D 0; i < N; i++) {
->  =09=09s32 s =3D x[i] + ((s64)coeff*s_prev/32768) - s_prev2;
->  =09=09s_prev2 =3D s_prev;
->  =09=09s_prev =3D s;
->  =09}
-> -=09return (u32)(((s64)s_prev2*s_prev2 + (s64)s_prev*s_prev -
-> -=09=09      (s64)coeff*s_prev2*s_prev/32768)/N/N);
-> +
-> +=09tmp =3D (s64)s_prev2*s_prev2 + (s64)s_prev*s_prev -
-> +=09=09      (s64)coeff*s_prev2*s_prev/32768;
-> +
-> +=09tmp =3D div_s64_rem(tmp, N, &remainder);
-> +
-> +=09return (u32)div_s64_rem(tmp, N, &remainder);
->  }
-> =20
->  static u32 freq_magnitude(s16 x[], u32 N, u32 freq)
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
----943463948-1843581891-1239062926=:24672--
+
+
+Cheers,
+Mauro
