@@ -1,168 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:40460 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765037AbZDASyk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Apr 2009 14:54:40 -0400
-Received: by fxm2 with SMTP id 2so178361fxm.37
-        for <linux-media@vger.kernel.org>; Wed, 01 Apr 2009 11:54:37 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <200904011936.20542.tobias.lorenz@gmx.net>
-References: <1238544064.6154.38.camel@tux.localhost>
-	 <200904011936.20542.tobias.lorenz@gmx.net>
-Date: Wed, 1 Apr 2009 22:54:37 +0400
-Message-ID: <208cbae30904011154u6fc54d88qc530f3b2f6961f9b@mail.gmail.com>
-Subject: Re: [patch review] radio-si470x: fix possible bug with freeing memory
-	order
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Tobias Lorenz <tobias.lorenz@gmx.net>
-Cc: Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Linux Media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from rv-out-0506.google.com ([209.85.198.224]:55720 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752663AbZD1JEP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Apr 2009 05:04:15 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so320276rvb.1
+        for <linux-media@vger.kernel.org>; Tue, 28 Apr 2009 02:04:14 -0700 (PDT)
+From: Magnus Damm <magnus.damm@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, linux-mm@kvack.org,
+	Magnus Damm <magnus.damm@gmail.com>, lethal@linux-sh.org,
+	hannes@cmpxchg.org
+Date: Tue, 28 Apr 2009 18:01:29 +0900
+Message-Id: <20090428090129.17081.782.sendpatchset@rx1.opensource.se>
+Subject: [PATCH] videobuf-dma-contig: zero copy USERPTR support V2
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(add Mauro on c/c)
+From: Magnus Damm <damm@igel.co.jp>
 
-On Wed, Apr 1, 2009 at 9:36 PM, Tobias Lorenz <tobias.lorenz@gmx.net> wrote:
-> Hi,
+This is V2 of the V4L2 videobuf-dma-contig USERPTR zero copy patch.
 
-Hi :)
+Since videobuf-dma-contig is designed to handle physically contiguous
+memory, this patch modifies the videobuf-dma-contig code to only accept
+a pointer to physically contiguous memory. For now only VM_PFNMAP vmas
+are supported, so forget hotplug.
 
-> hey thanks. I appreciate and approve the patch.
->
-> Do I have to upload the patch and send Mauro a pull request or is this
-> already done?
->
-> Bye,
->
-> Toby
+On SuperH Mobile we use this approach for our sh_mobile_ceu_camera driver
+together with various multimedia accelerator blocks that are exported to
+user space using UIO. The UIO kernel code exports physically contiugous
+memory to user space and lets the user space application mmap() this memory
+and pass a pointer using the USERPTR interface for V4L2 zero copy operation.
 
-Well, as i understand that's to you or Mauro to decide.
+With this approach we support zero copy capture, hardware scaling and
+various forms of hardware encoding and decoding.
 
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+---
 
-> On Wednesday 01 April 2009 02:01:04 Alexey Klimov wrote:
->
->> Hello, all
->
->>
->
->> There is probably bug when cleanup occurs in si470x_usb_driver_probe.
->
->> We do kmalloc for radio->buffer and when it's fail we
->
->> kfree(radio->buffer). The same with si470x_get_all_registers() and
->
->> si470x_get_scratch_page_versions(). When this functions failed we go to
->
->> err_all and try to free radio->buffer before allocation memory for this.
->
->>
->
->> --
->
->> Patch fixes cleanup procedure in si470x_usb_driver_probe. Add new label
->
->> err_video and change order of freeing memory.
->
->>
->
->> Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
->
->> --
->
->> diff -r 5567e82c34a0 linux/drivers/media/radio/radio-si470x.c
->
->> --- a/linux/drivers/media/radio/radio-si470x.c Tue Mar 31 07:24:14 2009
->> -0300
->
->> +++ b/linux/drivers/media/radio/radio-si470x.c Wed Apr 01 03:48:31 2009
->> +0400
->
->> @@ -1687,7 +1687,7 @@
->
->> /* show some infos about the specific si470x device */
->
->> if (si470x_get_all_registers(radio) < 0) {
->
->> retval = -EIO;
->
->> - goto err_all;
->
->> + goto err_video;
->
->> }
->
->> printk(KERN_INFO DRIVER_NAME ": DeviceID=0x%4.4hx ChipID=0x%4.4hx\n",
->
->> radio->registers[DEVICEID], radio->registers[CHIPID]);
->
->> @@ -1695,7 +1695,7 @@
->
->> /* get software and hardware versions */
->
->> if (si470x_get_scratch_page_versions(radio) < 0) {
->
->> retval = -EIO;
->
->> - goto err_all;
->
->> + goto err_video;
->
->> }
->
->> printk(KERN_INFO DRIVER_NAME
->
->> ": software version %d, hardware version %d\n",
->
->> @@ -1728,7 +1728,7 @@
->
->> radio->buffer = kmalloc(radio->buf_size, GFP_KERNEL);
->
->> if (!radio->buffer) {
->
->> retval = -EIO;
->
->> - goto err_all;
->
->> + goto err_video;
->
->> }
->
->>
->
->> /* rds buffer configuration */
->
->> @@ -1750,8 +1750,9 @@
->
->>
->
->> return 0;
->
->> err_all:
->
->> + kfree(radio->buffer);
->
->> +err_video:
->
->> video_device_release(radio->videodev);
->
->> - kfree(radio->buffer);
->
->> err_radio:
->
->> kfree(radio);
->
->> err_initial:
->
->>
->
->>
->
->>
+ Many thanks to Hannes for the feedback!
+ Tested on SH7722 Migo-R with a hacked up capture.c
 
+ Changes since V1:
+ - minor cleanups and formatting changes
+ - use follow_phys() in videobuf-dma-contig instead of duplicating code
+ - since videobuf-dma-contig can be a module: EXPORT_SYMBOL(follow_phys)
+ - move CONFIG_HAVE_IOREMAP_PROT to always build follow_phys()
 
+ drivers/media/video/videobuf-dma-contig.c |   82 +++++++++++++++++++++++++++--
+ mm/memory.c                               |    3 -
+ 2 files changed, 79 insertions(+), 6 deletions(-)
 
--- 
-Best regards, Klimov Alexey
+--- 0005/drivers/media/video/videobuf-dma-contig.c
++++ work/drivers/media/video/videobuf-dma-contig.c	2009-04-28 14:59:23.000000000 +0900
+@@ -17,6 +17,7 @@
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/mm.h>
++#include <linux/pagemap.h>
+ #include <linux/dma-mapping.h>
+ #include <media/videobuf-dma-contig.h>
+ 
+@@ -25,6 +26,7 @@ struct videobuf_dma_contig_memory {
+ 	void *vaddr;
+ 	dma_addr_t dma_handle;
+ 	unsigned long size;
++	int is_userptr;
+ };
+ 
+ #define MAGIC_DC_MEM 0x0733ac61
+@@ -108,6 +110,70 @@ static struct vm_operations_struct video
+ 	.close    = videobuf_vm_close,
+ };
+ 
++static void videobuf_dma_contig_user_put(struct videobuf_dma_contig_memory *mem)
++{
++	mem->is_userptr = 0;
++	mem->dma_handle = 0;
++	mem->size = 0;
++}
++
++static int videobuf_dma_contig_user_get(struct videobuf_dma_contig_memory *mem,
++					struct videobuf_buffer *vb)
++{
++	struct mm_struct *mm = current->mm;
++	struct vm_area_struct *vma;
++	unsigned long prev_pfn, this_pfn;
++	unsigned long pages_done, user_address;
++	unsigned long prot;
++	resource_size_t phys;
++	int ret;
++
++	mem->size = PAGE_ALIGN(vb->size);
++	mem->is_userptr = 0;
++	ret = -EINVAL;
++
++	down_read(&mm->mmap_sem);
++
++	vma = find_vma(mm, vb->baddr);
++	if (!vma)
++		goto out_up;
++
++	if ((vb->baddr + mem->size) > vma->vm_end)
++		goto out_up;
++
++	pages_done = 0;
++	prev_pfn = 0; /* kill warning */
++	user_address = vb->baddr;
++
++	while (pages_done < (mem->size >> PAGE_SHIFT)) {
++		ret = follow_phys(vma, user_address, 0, &prot, &phys);
++		if (ret)
++			break;
++
++		this_pfn = phys >> PAGE_SHIFT;
++
++		if (pages_done == 0)
++			mem->dma_handle = phys;
++		else if (this_pfn != (prev_pfn + 1))
++			ret = -EFAULT;
++
++		if (ret)
++			break;
++
++		prev_pfn = this_pfn;
++		user_address += PAGE_SIZE;
++		pages_done++;
++	}
++
++	if (!ret)
++		mem->is_userptr = 1;
++
++ out_up:
++	up_read(&current->mm->mmap_sem);
++
++	return ret;
++}
++
+ static void *__videobuf_alloc(size_t size)
+ {
+ 	struct videobuf_dma_contig_memory *mem;
+@@ -154,12 +220,11 @@ static int __videobuf_iolock(struct vide
+ 	case V4L2_MEMORY_USERPTR:
+ 		dev_dbg(q->dev, "%s memory method USERPTR\n", __func__);
+ 
+-		/* The only USERPTR currently supported is the one needed for
+-		   read() method.
+-		 */
++		/* handle pointer from user space */
+ 		if (vb->baddr)
+-			return -EINVAL;
++			return videobuf_dma_contig_user_get(mem, vb);
+ 
++		/* allocate memory for the read() method */
+ 		mem->size = PAGE_ALIGN(vb->size);
+ 		mem->vaddr = dma_alloc_coherent(q->dev, mem->size,
+ 						&mem->dma_handle, GFP_KERNEL);
+@@ -386,7 +451,7 @@ void videobuf_dma_contig_free(struct vid
+ 	   So, it should free memory only if the memory were allocated for
+ 	   read() operation.
+ 	 */
+-	if ((buf->memory != V4L2_MEMORY_USERPTR) || buf->baddr)
++	if (buf->memory != V4L2_MEMORY_USERPTR)
+ 		return;
+ 
+ 	if (!mem)
+@@ -394,6 +459,13 @@ void videobuf_dma_contig_free(struct vid
+ 
+ 	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
+ 
++	/* handle user space pointer case */
++	if (buf->baddr) {
++		videobuf_dma_contig_user_put(mem);
++		return;
++	}
++
++	/* read() method */
+ 	dma_free_coherent(q->dev, mem->size, mem->vaddr, mem->dma_handle);
+ 	mem->vaddr = NULL;
+ }
+--- 0001/mm/memory.c
++++ work/mm/memory.c	2009-04-28 14:56:43.000000000 +0900
+@@ -3009,7 +3009,6 @@ int in_gate_area_no_task(unsigned long a
+ 
+ #endif	/* __HAVE_ARCH_GATE_AREA */
+ 
+-#ifdef CONFIG_HAVE_IOREMAP_PROT
+ int follow_phys(struct vm_area_struct *vma,
+ 		unsigned long address, unsigned int flags,
+ 		unsigned long *prot, resource_size_t *phys)
+@@ -3063,7 +3062,9 @@ unlock:
+ out:
+ 	return ret;
+ }
++EXPORT_SYMBOL(follow_phys);
+ 
++#ifdef CONFIG_HAVE_IOREMAP_PROT
+ int generic_access_phys(struct vm_area_struct *vma, unsigned long addr,
+ 			void *buf, int len, int write)
+ {
