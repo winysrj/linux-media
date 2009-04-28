@@ -1,96 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:48663 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753827AbZDRNxi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Apr 2009 09:53:38 -0400
-Date: Sat, 18 Apr 2009 08:53:35 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-Reply-To: Mike Isely <isely@pobox.com>
-To: Jean Delvare <khali@linux-fr.org>
-cc: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH 2/6] ir-kbd-i2c: Switch to the new-style device binding
-  model
-In-Reply-To: <20090418151625.254e466b@hyperion.delvare>
-Message-ID: <Pine.LNX.4.64.0904180842110.19718@cnc.isely.net>
-References: <20090417222927.7a966350@hyperion.delvare>
- <20090417223105.28b8957e@hyperion.delvare> <Pine.LNX.4.64.0904171831300.19718@cnc.isely.net>
- <20090418112519.774e0dae@hyperion.delvare> <20090418151625.254e466b@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mail-gx0-f214.google.com ([209.85.217.214]:50180 "EHLO
+	mail-gx0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754009AbZD1Qmw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Apr 2009 12:42:52 -0400
+Received: by gxk10 with SMTP id 10so1331033gxk.13
+        for <linux-media@vger.kernel.org>; Tue, 28 Apr 2009 09:42:52 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <412bdbff0904271903o6a66c48co87b8b1829be2f62f@mail.gmail.com>
+References: <412bdbff0904271903o6a66c48co87b8b1829be2f62f@mail.gmail.com>
+Date: Tue, 28 Apr 2009 12:42:51 -0400
+Message-ID: <b24e53350904280942s1cb0df20wc5b5e4ba671fc008@mail.gmail.com>
+Subject: Re: Panic in HVR-950q caused by changeset 11356
+From: Robert Krakora <rob.krakora@gmail.com>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+Cc: Janne Grunau <j@jannau.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Josh Watzman <jwatzman@andrew.cmu.edu>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 18 Apr 2009, Jean Delvare wrote:
+On Mon, Apr 27, 2009 at 10:03 PM, Devin Heitmueller
+<devin.heitmueller@gmail.com> wrote:
+> Hello Janne,
+>
+> Ok, so now I need to better understand the nature of changeset 11356.
+> It turns up I spent the entire afternoon debugging a kernel panic on
+> usb disconnect, which ended up being due to this patch:
+>
+> au0828: use usb_interface.dev for v4l2_device_register
+> http://linuxtv.org/hg/v4l-dvb/rev/33810c734a0d
+>
+> The change to pass the interface->dev to v4l2_device_register()
+> effectively overwrote the interface data, so while I thought
+> usb_set_intfdata() was storing the au0828_dev *, in fact it was
+> holding a v4l2_device *.  When au0828_usb_disconnect() eventually gets
+> called, the call to usb_get_intfdata() returned the v4l2_device, and
+> presto - instant panic.
+>
+> So, either I can roll back this change, or I can make the call to
+> usb_set_intfdata() *after* the call to v4l2_device_register().
+> However, I don't know what else that might screw up (I haven't traced
+> out everything in v4l2-device that might expect a v4l2_device * to be
+> stored there).
+>
+> Suggestions?
+>
+> Perhaps if you could provide some additional background as to what
+> prompted this change, it will help me better understand the correct
+> course of action at this point.
+>
+> Devin
+>
+> cc: Robert Krakora and Josh Watzman since they both independently
+> reported what I believe to be the exact same issue (the stack is
+> slightly different because in their case as it crashed in the
+> dvb_unregister portion of the usb_disconnect routine).
+>
+> --
+> Devin J. Heitmueller
+> http://www.devinheitmueller.com
+> AIM: devinheitmueller
+>
 
-> Hi again Mike,
-> 
-> On Sat, 18 Apr 2009 11:25:19 +0200, Jean Delvare wrote:
-> > On Fri, 17 Apr 2009 18:35:55 -0500 (CDT), Mike Isely wrote:
-> > > I thought we were going to leave the pvrusb2 driver out of this since 
-> > > I've already got a change ready that also includes additional logic to 
-> > > take into account the properties of the hardware device (i.e. only 
-> > > activate ir-kbd-i2c when we know it has a chance of working).
-> > 
-> > Hmm, I thought that our latest discussions had (at least partly)
-> > obsoleted your patches. Remember that we want to always instantiate
-> > ir_video I2C devices even when ir-kbd-i2c can't driver them, otherwise
-> > lirc won't be able to bind to the devices in question as soon as the
-> > legacy binding model is gone. So the conditionals in your second patch
-> > (which is all that makes it differ from mine) are no longer desirable.
+Devin:
 
-Jean:
+I vote to roll it back until the ramifications of the changeset are
+better understood.  ;-)
 
-The differences between my patch(es) and yours are:
-
-1. My patch only attempts to bind the driver if the hardware actually 
-supports it.
-
-2. My patch selects the right I2C address for the case(s) where it makes 
-sense to bind.
-
-3. My patch provides a module option to completely disable binding.
-
-You are probably thinking about (3) but you forgot that I had also taken 
-care of (1).  Difference (1) is why I don't want your patch.  If your 
-patch gets merged I will have to partially redo my patch to make (1) 
-work again.
-
-When I had issued my pull request to Mauro (which he didn't pull), there 
-were actually 2 patches.  The first one dealt with (1) and the second 
-dealt with (2) and (3), while taking advantage of (1).  Had Mauro pulled 
-those patches at that time then you could have made further changes on 
-top without losing (1).  But since he didn't, it's best just to leave 
-the pvrusb2 driver alone and I'll make the needed additional change(s) 
-there after your stuff is merged.
-
-
-> > 
-> > I'll work on lirc patches today or tomorrow, so that lirc doesn't break
-> > when my patches hit mainline.
-> 
-> Speaking of this: do you know all the I2C addresses that can host IR
-> devices on pvrusb2 cards? I understand that the only address supported
-> by ir-kbd-i2c is 0x18, but I also need to know the addresses supported
-> by lirc_i2c and possibly lirc_zilog, if you happen to know this.
-
-Right now I only care about 0x18 (for 29xxx and early 24xxx devices).  
-I noticed the thread where Andy got IR reception to work with ir-kbd-i2c 
-using 0x71 (lirc_zilog type) and I suspect that same set of ir-kbd-i2c 
-changes will probably work with the pvrusb2 driver for MCE 24xxx and 
-HVR-1900/HVR-1950 devices.  But I figured once Andy's stuff gets into 
-ir-kbd-i2c I'd simply test for this and if it worked I would make the 
-appropriate adjustments in the pvrusb2 driver to enable ir-kbd-i2c 
-binding in those cases as well (an easy change).  However even with that 
-change, there are other pvrusb2-driven devices that cannot support 
-ir-kbd-i2c.
-
-  -Mike
-
+Best Regards,
 
 -- 
-
-Mike Isely
-isely @ pobox (dot) com
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+Rob Krakora
+Senior Software Engineer
+MessageNet Systems
+101 East Carmel Dr. Suite 105
+Carmel, IN 46032
+(317)566-1677 Ext. 206
+(317)663-0808 Fax
