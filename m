@@ -1,217 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110803.mail.gq1.yahoo.com ([67.195.13.226]:28413 "HELO
-	web110803.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753682AbZD0ML2 (ORCPT
+Received: from 59-105-176-102.static.seed.net.tw ([59.105.176.102]:46001 "EHLO
+	cola.voip.idv.tw" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1751728AbZD1EV2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2009 08:11:28 -0400
-Message-ID: <892743.18087.qm@web110803.mail.gq1.yahoo.com>
-Date: Mon, 27 Apr 2009 05:11:27 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [0904_7_2] Siano: smsdvb - purge whitespaces
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: LinuxML <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	Tue, 28 Apr 2009 00:21:28 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by cola.voip.idv.tw (Postfix) with ESMTP id C114E280E6
+	for <linux-media@vger.kernel.org>; Tue, 28 Apr 2009 12:13:04 +0800 (CST)
+Received: from cola.voip.idv.tw ([127.0.0.1])
+	by localhost (cola.voip.idv.tw [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id KowC2bJaencA for <linux-media@vger.kernel.org>;
+	Tue, 28 Apr 2009 12:12:46 +0800 (CST)
+Received: from [192.168.200.163] (59-124-67-67.HINET-IP.hinet.net [59.124.67.67])
+	by cola.voip.idv.tw (Postfix) with ESMTPSA id 5AD0C2803A
+	for <linux-media@vger.kernel.org>; Tue, 28 Apr 2009 12:12:46 +0800 (CST)
+Subject: [PATCH] af9015: support for KWorld MC810
+From: Jesse Sung <jesse@cola.voip.idv.tw>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary="=-50D5HYjkNFZ17J3rpwHu"
+Date: Tue, 28 Apr 2009 12:11:22 +0800
+Message-Id: <1240891882.8474.86.camel@jazz.tp.novell.net.tw>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+--=-50D5HYjkNFZ17J3rpwHu
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+
+
+--=-50D5HYjkNFZ17J3rpwHu
+Content-Disposition: attachment; filename="af9015-support-for-kworld-mc810.patch"
+Content-Type: text/x-patch; name="af9015-support-for-kworld-mc810.patch"; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
 # HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1240833806 -10800
-# Node ID cbd828b0fe102fa023280cfeadbcb20b54a39a47
-# Parent  39bbe3b24abaaa3e049a855cb51be0b917b0c711
-Siano: smsdvb - whitespace cleanup
+# User Wen-chien Jesse Sung <jesse@cola.voip.idv.tw>
+# Date 1240830884 -28800
+# Node ID 320b752733803ce674ddcd97645f4873bcae5e27
+# Parent  2a6d95947fa1ab72a23c7aabe15dfef52e5b6d8c
+af9015: support for KWorld MC810
 
-From: Uri Shkolnik <uris@siano-ms.com>
+From: Wen-chien Jesse Sung <jesse@cola.voip.idv.tw>
 
-Whitespace cleanup, no implementation changes
+Add USB ID (1b80:c810) for Kworld MC810.
 
 Priority: normal
 
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+Signed-off-by: Wen-chien Jesse Sung <jesse@cola.voip.idv.tw>
 
-diff -r 39bbe3b24aba -r cbd828b0fe10 linux/drivers/media/dvb/siano/smsdvb.c
---- a/linux/drivers/media/dvb/siano/smsdvb.c	Mon Apr 27 14:43:28 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smsdvb.c	Mon Apr 27 15:03:26 2009 +0300
-@@ -33,15 +33,15 @@ struct smsdvb_client_t {
- 	struct smscore_device_t *coredev;
- 	struct smscore_client_t *smsclient;
+diff --git a/linux/drivers/media/dvb/dvb-usb/af9015.c b/linux/drivers/media/dvb/dvb-usb/af9015.c
+--- a/linux/drivers/media/dvb/dvb-usb/af9015.c
++++ b/linux/drivers/media/dvb/dvb-usb/af9015.c
+@@ -1267,6 +1267,7 @@ static struct usb_device_id af9015_usb_t
+ /* 20 */{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A850)},
+ 	{USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A805)},
+ 	{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_CONCEPTRONIC_CTVDIGRCU)},
++	{USB_DEVICE(USB_VID_KWORLD_2,  USB_PID_KWORLD_MC810)},
+ 	{0},
+ };
+ MODULE_DEVICE_TABLE(usb, af9015_usb_table);
+@@ -1537,7 +1538,7 @@ static struct dvb_usb_device_properties 
  
--	struct dvb_adapter      adapter;
--	struct dvb_demux        demux;
--	struct dmxdev           dmxdev;
--	struct dvb_frontend     frontend;
-+	struct dvb_adapter adapter;
-+	struct dvb_demux demux;
-+	struct dmxdev dmxdev;
-+	struct dvb_frontend frontend;
+ 		.i2c_algo = &af9015_i2c_algo,
  
--	fe_status_t             fe_status;
--	int                     fe_ber, fe_snr, fe_unc, fe_signal_strength;
-+	fe_status_t fe_status;
-+	int fe_ber, fe_snr, fe_unc, fe_signal_strength;
- 
--	struct completion       tune_done, stat_done;
-+	struct completion tune_done, stat_done;
- 
- 	/* todo: save freq/band instead whole struct */
- 	struct dvb_frontend_parameters fe_params;
-@@ -61,7 +61,7 @@ static int smsdvb_onresponse(void *conte
- 	struct smsdvb_client_t *client = (struct smsdvb_client_t *) context;
- 	struct SmsMsgHdr_ST *phdr = (struct SmsMsgHdr_ST *) (((u8 *) cb->p)
- 			+ cb->offset);
--	u32 *pMsgData = (u32 *)phdr+1;
-+	u32 *pMsgData = (u32 *) phdr + 1;
- 	/*u32 MsgDataLen = phdr->msgLength - sizeof(struct SmsMsgHdr_ST);*/
- 
- 	/*smsendian_handle_rx_message((struct SmsMsgData_ST *) phdr);*/
-@@ -177,8 +177,8 @@ static int smsdvb_onresponse(void *conte
- 
- 	if (client->fe_status & FE_HAS_LOCK)
- 		sms_board_led_feedback(client->coredev,
--				       (client->fe_unc == 0) ?
--				       SMS_LED_HI : SMS_LED_LO);
-+				(client->fe_unc == 0) ?
-+				SMS_LED_HI : SMS_LED_LO);
- 	else
- 		sms_board_led_feedback(client->coredev, SMS_LED_OFF);
- 
-@@ -203,7 +203,7 @@ static void smsdvb_onremove(void *contex
- {
- 	kmutex_lock(&g_smsdvb_clientslock);
- 
--	smsdvb_unregister_client((struct smsdvb_client_t *) context);
-+	smsdvb_unregister_client((struct smsdvb_client_t *)context);
- 
- 	kmutex_unlock(&g_smsdvb_clientslock);
- }
-@@ -214,13 +214,12 @@ static int smsdvb_start_feed(struct dvb_
- 		container_of(feed->demux, struct smsdvb_client_t, demux);
- 	struct SmsMsgData_ST PidMsg;
- 
--	sms_debug("add pid %d(%x)",
--		  feed->pid, feed->pid);
-+	sms_debug("add pid %d(%x)", feed->pid, feed->pid);
- 
- 	PidMsg.xMsgHeader.msgSrcId = DVBT_BDA_CONTROL_MSG_ID;
- 	PidMsg.xMsgHeader.msgDstId = HIF_TASK;
- 	PidMsg.xMsgHeader.msgFlags = 0;
--	PidMsg.xMsgHeader.msgType  = MSG_SMS_ADD_PID_FILTER_REQ;
-+	PidMsg.xMsgHeader.msgType = MSG_SMS_ADD_PID_FILTER_REQ;
- 	PidMsg.xMsgHeader.msgLength = sizeof(PidMsg);
- 	PidMsg.msgData[0] = feed->pid;
- 
-@@ -234,31 +233,31 @@ static int smsdvb_stop_feed(struct dvb_d
- 		container_of(feed->demux, struct smsdvb_client_t, demux);
- 	struct SmsMsgData_ST PidMsg;
- 
--	sms_debug("remove pid %d(%x)",
--		  feed->pid, feed->pid);
-+	sms_debug("remove pid %d(%x)", feed->pid, feed->pid);
- 
- 	PidMsg.xMsgHeader.msgSrcId = DVBT_BDA_CONTROL_MSG_ID;
- 	PidMsg.xMsgHeader.msgDstId = HIF_TASK;
- 	PidMsg.xMsgHeader.msgFlags = 0;
--	PidMsg.xMsgHeader.msgType  = MSG_SMS_REMOVE_PID_FILTER_REQ;
-+	PidMsg.xMsgHeader.msgType = MSG_SMS_REMOVE_PID_FILTER_REQ;
- 	PidMsg.xMsgHeader.msgLength = sizeof(PidMsg);
- 	PidMsg.msgData[0] = feed->pid;
- 
--	return smsclient_sendrequest(client->smsclient,
--				     &PidMsg, sizeof(PidMsg));
-+	return smsclient_sendrequest(client->smsclient, &PidMsg,
-+			sizeof(PidMsg));
- }
- 
- static int smsdvb_sendrequest_and_wait(struct smsdvb_client_t *client,
--					void *buffer, size_t size,
--					struct completion *completion)
-+				       void *buffer, size_t size,
-+				       struct completion *completion)
- {
--	int rc = smsclient_sendrequest(client->smsclient, buffer, size);
-+	int rc;
-+
-+	rc = smsclient_sendrequest(client->smsclient, buffer, size);
- 	if (rc < 0)
- 		return rc;
- 
--	return wait_for_completion_timeout(completion,
--					   msecs_to_jiffies(2000)) ?
--						0 : -ETIME;
-+	return wait_for_completion_timeout(completion, msecs_to_jiffies(2000))
-+			? 0 : -ETIME;
- }
- 
- static int smsdvb_read_status(struct dvb_frontend *fe, fe_status_t *stat)
-@@ -333,18 +332,18 @@ static int smsdvb_set_frontend(struct dv
- 			       struct dvb_frontend_parameters *fep)
- {
- 	struct smsdvb_client_t *client =
--		container_of(fe, struct smsdvb_client_t, frontend);
-+	container_of(fe, struct smsdvb_client_t, frontend);
- 
- 	struct {
--		struct SmsMsgHdr_ST	Msg;
--		u32		Data[3];
-+		struct SmsMsgHdr_ST Msg;
-+		u32 Data[3];
- 	} Msg;
- 	int ret;
- 
--	Msg.Msg.msgSrcId  = DVBT_BDA_CONTROL_MSG_ID;
--	Msg.Msg.msgDstId  = HIF_TASK;
--	Msg.Msg.msgFlags  = 0;
--	Msg.Msg.msgType   = MSG_SMS_RF_TUNE_REQ;
-+	Msg.Msg.msgSrcId = DVBT_BDA_CONTROL_MSG_ID;
-+	Msg.Msg.msgDstId = HIF_TASK;
-+	Msg.Msg.msgFlags = 0;
-+	Msg.Msg.msgType = MSG_SMS_RF_TUNE_REQ;
- 	Msg.Msg.msgLength = sizeof(Msg);
- 	Msg.Data[0] = fep->frequency;
- 	Msg.Data[2] = 12000000;
-@@ -353,14 +352,24 @@ static int smsdvb_set_frontend(struct dv
- 		  fep->frequency, fep->u.ofdm.bandwidth);
- 
- 	switch (fep->u.ofdm.bandwidth) {
--	case BANDWIDTH_8_MHZ: Msg.Data[1] = BW_8_MHZ; break;
--	case BANDWIDTH_7_MHZ: Msg.Data[1] = BW_7_MHZ; break;
--	case BANDWIDTH_6_MHZ: Msg.Data[1] = BW_6_MHZ; break;
-+	case BANDWIDTH_8_MHZ:
-+		Msg.Data[1] = BW_8_MHZ;
-+		break;
-+	case BANDWIDTH_7_MHZ:
-+		Msg.Data[1] = BW_7_MHZ;
-+		break;
-+	case BANDWIDTH_6_MHZ:
-+		Msg.Data[1] = BW_6_MHZ;
-+		break;
- #if 0
--	case BANDWIDTH_5_MHZ: Msg.Data[1] = BW_5_MHZ; break;
-+	case BANDWIDTH_5_MHZ:
-+		Msg.Data[1] = BW_5_MHZ;
-+		break;
- #endif
--	case BANDWIDTH_AUTO: return -EOPNOTSUPP;
--	default: return -EINVAL;
-+	case BANDWIDTH_AUTO:
-+		return -EOPNOTSUPP;
-+	default:
-+		return -EINVAL;
- 	}
- 
- 	/* Disable LNA, if any. An error is returned if no LNA is present */
-@@ -395,7 +404,7 @@ static int smsdvb_get_frontend(struct dv
- 
- 	/* todo: */
- 	memcpy(fep, &client->fe_params,
--	       sizeof(struct dvb_frontend_parameters));
-+			sizeof(struct dvb_frontend_parameters));
- 
- 	return 0;
- }
+-		.num_device_descs = 2, /* max 9 */
++		.num_device_descs = 3, /* max 9 */
+ 		.devices = {
+ 			{
+ 				.name = "AverMedia AVerTV Volar GPS 805 (A805)",
+@@ -1550,6 +1551,11 @@ static struct dvb_usb_device_properties 
+ 				.cold_ids = {&af9015_usb_table[22], NULL},
+ 				.warm_ids = {NULL},
+ 			},
++			{
++				.name = "KWorld Digial MC-810",
++				.cold_ids = {&af9015_usb_table[23], NULL},
++				.warm_ids = {NULL},
++			},
+ 		}
+ 	},
+ };
+diff --git a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+--- a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
++++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+@@ -105,6 +105,7 @@
+ #define USB_PID_KWORLD_395U				0xe396
+ #define USB_PID_KWORLD_395U_2				0xe39b
+ #define USB_PID_KWORLD_395U_3				0xe395
++#define USB_PID_KWORLD_MC810				0xc810
+ #define USB_PID_KWORLD_PC160_2T				0xc160
+ #define USB_PID_KWORLD_VSTREAM_COLD			0x17de
+ #define USB_PID_KWORLD_VSTREAM_WARM			0x17df
 
+--=-50D5HYjkNFZ17J3rpwHu--
 
-
-      
