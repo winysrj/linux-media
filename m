@@ -1,44 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:28302 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755237AbZDFLLp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 07:11:45 -0400
-Date: Mon, 6 Apr 2009 13:11:20 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Andy Walls <awalls@radix.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Mike Isely <isely@pobox.com>
-Subject: Re: Test results for ir-kbd-i2c.c changes (Re: [PATCH 0/6]
- ir-kbd-i2c  conversion to the new i2c binding model)
-Message-ID: <20090406131120.35f0c48d@hyperion.delvare>
-In-Reply-To: <1239018982.3157.3.camel@palomino.walls.org>
-References: <20090404142427.6e81f316@hyperion.delvare>
-	<20090405070116.17ecadef@pedra.chehab.org>
-	<20090405164024.1459e4fe@hyperion.delvare>
-	<1238977379.2796.19.camel@morgan.walls.org>
-	<20090406105436.05ecaf4d@hyperion.delvare>
-	<1239018982.3157.3.camel@palomino.walls.org>
+Received: from bombadil.infradead.org ([18.85.46.34]:37490 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751759AbZD1S7B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Apr 2009 14:59:01 -0400
+Date: Tue, 28 Apr 2009 15:58:53 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: Pieter Van Schaik <vansterpc@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] Enabling of the Winfast TV2000 XP Global TV capture
+ card  remote control
+Message-ID: <20090428155853.03a9c6e8@pedra.chehab.org>
+In-Reply-To: <1240712951.3714.13.camel@pc07.localdom.local>
+References: <faf98b150904232135l7593612dr68b7ed9cac9af385@mail.gmail.com>
+	<1240712951.3714.13.camel@pc07.localdom.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
+On Sun, 26 Apr 2009 04:29:11 +0200
+hermann pitton <hermann-pitton@arcor.de> wrote:
 
-On Mon, 06 Apr 2009 07:56:22 -0400, Andy Walls wrote:
-> On Mon, 2009-04-06 at 10:54 +0200, Jean Delvare wrote:
-> > Thanks a lot for the testing!
 > 
-> You're welcome.
+> Am Freitag, den 24.04.2009, 06:35 +0200 schrieb Pieter Van Schaik:
+> > This patch is for supporting the remote control of the Winfast TV2000
+> > XP Global TV capture card. A case statement was added in order to
+> > initialize the GPIO data structures as well as a case statement for
+> > handling the keys correctly when pressed.
+> > 
+> > Thanks to Hermann for all his help
+> > 
+> > Regards
+> > Pieter van Schaik
+
+
+Pieter,
+
+You forgot your SOB on your v2 patch. Could you please send a v3 with it enclosed?
+
+> Mauro,
 > 
-> Sorry for being such a pain to what I suspect you hoped was to be a
-> "simple" change.
+> please give some further comments, how to proceed within this
+> "patchwork" stuff.
+> 
+> For what I can see, you get some of out of sync patches so far?
+> 
+> Do you do the sync and can I ignore such remaining efforts, or do you
+> prefer people are waiting until this is somehow properly lined up again?
 
-You must be kidding. For one thing, I never expected it to be a simple
-change ;) For another, you're helping me a lot with your comments and
-testing. Thanks!
+Hermann,
 
--- 
-Jean Delvare
+Sorry, but I didn't understand what you're meaning. 
+
+I generally run some scripts that read the patchwork patches based on the
+internal patchwork numbering representation (in general, it is from the oldest
+to the newest one).
+
+However, sometimes I skip patches or I update they manually at web interface,
+due to a countless number of reasons (duplicated patches, obsoleted patches,
+patches that generate more discusions, etc...).
+
+So, don't expect that I'll apply the patches on any particular order. If you
+really need patches to be applied sequentially, please number they with [PATCH x/y].
+
+In this specific case, should I need to apply a patch before this one for it to work?
+
+> 
+> I have nothing important and nobody cared about the oops on the Compro
+> T750F stuff, on which I was not involved, but I would like to have a
+> warning in for the Asus 3in1 not to use a rotor with it.
+
+I dunno what patches are you referring. Could you please point their patchwork
+numbers?
+
+Cheers,
+Mauro
