@@ -1,359 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58160 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932789AbZDHLlr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Apr 2009 07:41:47 -0400
-Received: from dflp53.itg.ti.com ([128.247.5.6])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n38BffHY017362
-	for <linux-media@vger.kernel.org>; Wed, 8 Apr 2009 06:41:46 -0500
-From: Chaithrika U S <chaithrika@ti.com>
-To: linux-media@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Chaithrika U S <chaithrika@ti.com>,
-	Manjunath Hadli <mrh@ti.com>, Brijesh Jadav <brijesh.j@ti.com>
-Subject: [PATCH v2 1/4] ARM: DaVinci: DM646x Video: Platform and board specific setup
-Date: Wed,  8 Apr 2009 07:18:27 -0400
-Message-Id: <1239189507-19905-1-git-send-email-chaithrika@ti.com>
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:39736 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754816AbZD1Wlm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Apr 2009 18:41:42 -0400
+Subject: Re: [PATCH v2] Enabling of the Winfast TV2000 XP Global TV capture
+	card remote control
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Pieter Van Schaik <vansterpc@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Vasiliy Temnikov <vaka@newmail.ru>, linux-media@vger.kernel.org
+In-Reply-To: <faf98b150904281220v425bfffv1dd29ba7a56b1133@mail.gmail.com>
+References: <faf98b150904232135l7593612dr68b7ed9cac9af385@mail.gmail.com>
+	 <1240712951.3714.13.camel@pc07.localdom.local>
+	 <20090428155853.03a9c6e8@pedra.chehab.org>
+	 <faf98b150904281220v425bfffv1dd29ba7a56b1133@mail.gmail.com>
+Content-Type: text/plain
+Date: Wed, 29 Apr 2009 00:37:09 +0200
+Message-Id: <1240958229.3731.111.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Platform specific display device setup for DM646x EVM
+Hi!
 
-Add platform device and resource structures. Also define a platform specific
-clock setup function that can be accessed by the driver to configure the clock
-and CPLD.
+Am Dienstag, den 28.04.2009, 21:20 +0200 schrieb Pieter Van Schaik:
+> Mauro,
+> 
+> I apologize for my ignorance, I am not sure what an SOB is, could you
+> possibly elaborate?
+> 
+> Thank you
+> 
+> Regards
+> Pieter van Schaik
 
-This patch is dependent on a patch submitted earlier, that patch adds
-Pin Mux and clock definitions for Video on DM646x.
+Pieter,
 
-Signed-off-by: Manjunath Hadli <mrh@ti.com>
-Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-Signed-off-by: Chaithrika U S <chaithrika@ti.com>
----
-Applies to DaVinci GIT tree
+just like you had it on your prior patches from April 6, 8 and 20,
+which did not make it into "patchwork".
 
- arch/arm/mach-davinci/board-dm646x-evm.c    |  138 +++++++++++++++++++++++++++
- arch/arm/mach-davinci/dm646x.c              |   63 ++++++++++++
- arch/arm/mach-davinci/include/mach/dm646x.h |   25 +++++
- 3 files changed, 226 insertions(+), 0 deletions(-)
+Signed-off-by: your name and email
 
-diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-davinci/board-dm646x-evm.c
-index bcf11d5..9071a39 100644
---- a/arch/arm/mach-davinci/board-dm646x-evm.c
-+++ b/arch/arm/mach-davinci/board-dm646x-evm.c
-@@ -39,6 +39,7 @@
- #include <mach/serial.h>
- #include <mach/i2c.h>
- #include <mach/mmc.h>
-+#include <mach/mux.h>
- 
- #include <linux/platform_device.h>
- #include <linux/i2c.h>
-@@ -49,6 +50,19 @@
- #define DM646X_EVM_PHY_MASK		(0x2)
- #define DM646X_EVM_MDIO_FREQUENCY	(2200000) /* PHY bus frequency */
- 
-+#define VIDCLKCTL_OFFSET	(0x38)
-+#define VSCLKDIS_OFFSET		(0x6c)
-+
-+#define VCH2CLK_MASK		(BIT_MASK(10) | BIT_MASK(9) | BIT_MASK(8))
-+#define VCH2CLK_SYSCLK8		(BIT(9))
-+#define VCH2CLK_AUXCLK		(BIT(9) | BIT(8))
-+#define VCH3CLK_MASK		(BIT_MASK(14) | BIT_MASK(13) | BIT_MASK(12))
-+#define VCH3CLK_SYSCLK8		(BIT(13))
-+#define VCH3CLK_AUXCLK		(BIT(14) | BIT(13))
-+
-+#define VIDCH2CLK		(BIT(10))
-+#define VIDCH3CLK		(BIT(11))
-+
- static struct emac_platform_data dm646x_evm_emac_pdata = {
- 	.phy_mask	= DM646X_EVM_PHY_MASK,
- 	.mdio_max_freq	= DM646X_EVM_MDIO_FREQUENCY,
-@@ -103,11 +117,54 @@ int dm646xevm_eeprom_write(void *buf, off_t off, size_t count)
- }
- EXPORT_SYMBOL(dm646xevm_eeprom_write);
- 
-+static struct i2c_client *cpld_client;
-+
-+static int cpld_video_probe(struct i2c_client *client,
-+			const struct i2c_device_id *id)
-+{
-+	cpld_client = client;
-+	return 0;
-+}
-+
-+static int __devexit cpld_video_remove(struct i2c_client *client)
-+{
-+	cpld_client = NULL;
-+	return 0;
-+}
-+
-+static const struct i2c_device_id cpld_video_id[] = {
-+	{ "cpld_video", 0 },
-+	{ }
-+};
-+
-+static struct i2c_driver cpld_video_driver = {
-+	.driver = {
-+		.name	= "cpld_video",
-+	},
-+	.probe		= cpld_video_probe,
-+	.remove		= cpld_video_remove,
-+	.id_table	= cpld_video_id,
-+};
-+
-+static void evm_init_cpld(void)
-+{
-+	i2c_add_driver(&cpld_video_driver);
-+}
-+
- static struct i2c_board_info __initdata i2c_info[] =  {
- 	{
- 		I2C_BOARD_INFO("24c256", 0x50),
- 		.platform_data  = &eeprom_info,
- 	},
-+	{
-+		I2C_BOARD_INFO("adv7343", 0x2A),
-+	},
-+	{
-+		I2C_BOARD_INFO("ths7303", 0x2C),
-+	},
-+	{
-+		I2C_BOARD_INFO("cpld_video", 0x3B),
-+	},
- };
- 
- static struct davinci_i2c_platform_data i2c_pdata = {
-@@ -115,10 +172,90 @@ static struct davinci_i2c_platform_data i2c_pdata = {
- 	.bus_delay      = 0 /* usec */,
- };
- 
-+static int set_vpif_clock(int mux_mode, int hd)
-+{
-+	int val = 0;
-+	int err = 0;
-+	unsigned int value;
-+	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
-+
-+	/* disable the clock */
-+	value = __raw_readl(base + VSCLKDIS_OFFSET);
-+	value |= (VIDCH3CLK | VIDCH2CLK);
-+	__raw_writel(value, base + VSCLKDIS_OFFSET);
-+
-+	val = i2c_smbus_read_byte(cpld_client);
-+	if (val < 0)
-+		return val;
-+
-+	if (mux_mode == 1)
-+		val &= ~0x40;
-+	else
-+		val |= 0x40;
-+
-+	err = i2c_smbus_write_byte(cpld_client, val);
-+	if (err)
-+		return err;
-+
-+	value = __raw_readl(base + VIDCLKCTL_OFFSET);
-+	value &= ~(VCH2CLK_MASK);
-+	value &= ~(VCH3CLK_MASK);
-+
-+	if (hd >= 1)
-+		value |= (VCH2CLK_SYSCLK8 | VCH3CLK_SYSCLK8);
-+	else
-+		value |= (VCH2CLK_AUXCLK | VCH3CLK_AUXCLK);
-+
-+	__raw_writel(value, base + VIDCLKCTL_OFFSET);
-+
-+	/* enable the clock */
-+	value = __raw_readl(base + VSCLKDIS_OFFSET);
-+	value &= ~(VIDCH3CLK | VIDCH2CLK);
-+	__raw_writel(value, base + VSCLKDIS_OFFSET);
-+
-+	return 0;
-+}
-+
-+static const struct subdev_info dm646x_vpif_subdev[] = {
-+	{
-+		.addr	= 0x2A,
-+		.name	= "adv7343",
-+	},
-+	{
-+		.addr	= 0x2C,
-+		.name	= "ths7303",
-+	},
-+};
-+
-+static struct vpif_output output[] = {
-+	{
-+		.id	= 0,
-+		.name	= "Composite"
-+	},
-+	{
-+		.id	= 1,
-+		.name	= "Component"
-+	},
-+	{
-+		.id	= 2,
-+		.name	= "S-Video"
-+	},
-+};
-+
-+static struct vpif_config dm646x_vpif_config = {
-+	.set_clock	= set_vpif_clock,
-+	.subdevinfo	= (struct subdev_info *)dm646x_vpif_subdev,
-+	.subdev_count	= ARRAY_SIZE(dm646x_vpif_subdev),
-+	.output		= output,
-+	.output_count	= ARRAY_SIZE(output),
-+	.card_name	= "DM646x EVM",
-+};
-+
- static void __init evm_init_i2c(void)
- {
- 	davinci_init_i2c(&i2c_pdata);
- 	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
-+	evm_init_cpld();
- }
- 
- static void __init davinci_map_io(void)
-@@ -132,6 +269,7 @@ static __init void evm_init(void)
- 	evm_init_i2c();
- 	davinci_serial_init(&uart_config);
- 	davinci_init_emac(&dm646x_evm_emac_pdata);
-+	dm646x_setup_vpif(&dm646x_vpif_config);
- }
- 
- static __init void davinci_dm646x_evm_irq_init(void)
-diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-davinci/dm646x.c
-index b302f12..a94cb86 100644
---- a/arch/arm/mach-davinci/dm646x.c
-+++ b/arch/arm/mach-davinci/dm646x.c
-@@ -12,6 +12,7 @@
- #include <linux/init.h>
- #include <linux/clk.h>
- #include <linux/platform_device.h>
-+#include <linux/dma-mapping.h>
- 
- #include <mach/dm646x.h>
- #include <mach/clock.h>
-@@ -24,6 +25,15 @@
- #include "clock.h"
- #include "mux.h"
- 
-+#define DAVINCI_VPIF_BASE       (0x01C12000)
-+#define VDD3P3V_PWDN_OFFSET	(0x48)
-+#define VSCLKDIS_OFFSET		(0x6C)
-+
-+#define VDD3P3V_VID_MASK	(BIT_MASK(7) | BIT_MASK(6) | BIT_MASK(5) |\
-+					BIT_MASK(4))
-+#define VSCLKDIS_MASK		(BIT_MASK(11) | BIT_MASK(10) | BIT_MASK(9) |\
-+					BIT_MASK(8))
-+
- /*
-  * Device specific clocks
-  */
-@@ -421,8 +431,61 @@ static struct platform_device dm646x_edma_device = {
- 	.resource		= edma_resources,
- };
- 
-+static u64 vpif_dma_mask = DMA_32BIT_MASK;
-+
-+static struct resource vpif_resource[] = {
-+	{
-+		.start	= DAVINCI_VPIF_BASE,
-+		.end	= DAVINCI_VPIF_BASE + 0x03fff,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.start = IRQ_DM646X_VP_VERTINT2,
-+		.end   = IRQ_DM646X_VP_VERTINT2,
-+		.flags = IORESOURCE_IRQ,
-+	},
-+	{
-+		.start = IRQ_DM646X_VP_VERTINT3,
-+		.end   = IRQ_DM646X_VP_VERTINT3,
-+		.flags = IORESOURCE_IRQ,
-+	},
-+};
-+
-+static struct platform_device vpif_display_dev = {
-+	.name		= "vpif_display",
-+	.id		= -1,
-+	.dev		= {
-+			.dma_mask 		= &vpif_dma_mask,
-+			.coherent_dma_mask	= DMA_32BIT_MASK,
-+	},
-+	.resource	= vpif_resource,
-+	.num_resources	= ARRAY_SIZE(vpif_resource),
-+};
-+
- /*----------------------------------------------------------------------*/
- 
-+void dm646x_setup_vpif(struct vpif_config *config)
-+{
-+	unsigned int value;
-+	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
-+
-+	value = __raw_readl(base + VSCLKDIS_OFFSET);
-+	value &= ~VSCLKDIS_MASK;
-+	__raw_writel(value, base + VSCLKDIS_OFFSET);
-+
-+	value = __raw_readl(base + VDD3P3V_PWDN_OFFSET);
-+	value &= ~VDD3P3V_VID_MASK;
-+	__raw_writel(value, base + VDD3P3V_PWDN_OFFSET);
-+
-+	davinci_cfg_reg(DM646X_STSOMUX_DISABLE);
-+	davinci_cfg_reg(DM646X_STSIMUX_DISABLE);
-+	davinci_cfg_reg(DM646X_PTSOMUX_DISABLE);
-+	davinci_cfg_reg(DM646X_PTSIMUX_DISABLE);
-+
-+	vpif_display_dev.dev.platform_data = config;
-+	platform_device_register(&vpif_display_dev);
-+}
-+
- #if defined(CONFIG_TI_DAVINCI_EMAC) || defined(CONFIG_TI_DAVINCI_EMAC_MODULE)
- 
- void dm646x_init_emac(struct emac_platform_data *pdata)
-diff --git a/arch/arm/mach-davinci/include/mach/dm646x.h b/arch/arm/mach-davinci/include/mach/dm646x.h
-index 02ce872..2f9a1d8 100644
---- a/arch/arm/mach-davinci/include/mach/dm646x.h
-+++ b/arch/arm/mach-davinci/include/mach/dm646x.h
-@@ -12,6 +12,7 @@
- #define __ASM_ARCH_DM646X_H
- 
- #include <linux/platform_device.h>
-+#include <linux/i2c.h>
- #include <mach/hardware.h>
- #include <mach/emac.h>
- 
-@@ -25,4 +26,28 @@
- void __init dm646x_init(void);
- void dm646x_init_emac(struct emac_platform_data *pdata);
- 
-+void dm646x_video_init(void);
-+
-+struct vpif_output {
-+	u16 id;
-+	const char *name;
-+};
-+
-+struct subdev_info {
-+	u8 addr;
-+	const char *name;
-+};
-+
-+struct vpif_config {
-+	int (*set_clock)(int, int);
-+	struct subdev_info *subdevinfo;
-+	int subdev_count;
-+	struct vpif_output *output;
-+	int output_count;
-+	const char *card_name;
-+};
-+
-+
-+void dm646x_setup_vpif(struct vpif_config *config);
-+
- #endif /* __ASM_ARCH_DM646X_H */
--- 
-1.5.6
+Mauro, I advised Peter just to take my version with the indentation
+fixes and try again.
+
+> On Tue, Apr 28, 2009 at 8:58 PM, Mauro Carvalho Chehab
+> <mchehab@infradead.org> wrote:
+> > On Sun, 26 Apr 2009 04:29:11 +0200
+> > hermann pitton <hermann-pitton@arcor.de> wrote:
+> >
+> >>
+> >> Am Freitag, den 24.04.2009, 06:35 +0200 schrieb Pieter Van Schaik:
+> >> > This patch is for supporting the remote control of the Winfast TV2000
+> >> > XP Global TV capture card. A case statement was added in order to
+> >> > initialize the GPIO data structures as well as a case statement for
+> >> > handling the keys correctly when pressed.
+> >> >
+> >> > Thanks to Hermann for all his help
+> >> >
+> >> > Regards
+> >> > Pieter van Schaik
+> >
+> >
+> > Pieter,
+> >
+> > You forgot your SOB on your v2 patch. Could you please send a v3 with it enclosed?
+> >
+> >> Mauro,
+> >>
+> >> please give some further comments, how to proceed within this
+> >> "patchwork" stuff.
+> >>
+> >> For what I can see, you get some of out of sync patches so far?
+> >>
+> >> Do you do the sync and can I ignore such remaining efforts, or do you
+> >> prefer people are waiting until this is somehow properly lined up again?
+> >
+> > Hermann,
+> >
+> > Sorry, but I didn't understand what you're meaning.
+
+It looks like there are saa7134 patches at patchwork, which might not
+apply cleanly, since there are for example changes on saa7134-input and
+saa7134-cards.c.
+
+> > I generally run some scripts that read the patchwork patches based on the
+> > internal patchwork numbering representation (in general, it is from the oldest
+> > to the newest one).
+
+It is more about how patchwork works for you.
+
+The newer patches don't care about changes older ones did already on the
+same file and both are waiting there.
+
+If I create some more based on current mercurial v4l-dvb and they go to
+patchwork too, they won't apply cleanly or not at all, since they don't
+care for changes you might pull in from patchwork prior to them and so
+on.
+
+Usually I did wait until prior patches are in mercurial v4l-dvb.
+
+Now with patchwork, do I just create them based on current v4l-dvb and
+don't have to care if they might create merge conflicts and manual work?
+
+> > However, sometimes I skip patches or I update they manually at web interface,
+> > due to a countless number of reasons (duplicated patches, obsoleted patches,
+> > patches that generate more discusions, etc...).
+
+It was also not clear to me, what happens with patches becoming an RFC
+flag. Now it seems they should be send again with new version v2, v3
+etc.
+
+What do we do with that patch over Andrew and the new AverMedia Studio
+505 which is marked Under Review? 
+
+We can just drop the Secam change in saa7134-core.c. Vasiliy,in CC now,
+did send his SOB later, but it seems you need it in patckwork.
+Also that LINE2 for external audio in still makes me wonder. 
+
+> > So, don't expect that I'll apply the patches on any particular order. If you
+> > really need patches to be applied sequentially, please number they with [PATCH x/y].
+
+Yes, that is unchanged.
+
+> > In this specific case, should I need to apply a patch before this one for it to work?
+
+No, sorry for abusing it for patchwork questions.
+
+> >>
+> >> I have nothing important and nobody cared about the oops on the Compro
+> >> T750F stuff, on which I was not involved, but I would like to have a
+> >> warning in for the Asus 3in1 not to use a rotor with it.
+> >
+> > I dunno what patches are you referring. Could you please point their patchwork
+> > numbers?
+
+They don't exist yet, but if no other advise, I base them on current
+mercurial v4l-dvb.
+
+Cheers,
+Hermann
+
+----------------------
+Sorry for dual mails, lost-linux-media :(
+
+
+
 
