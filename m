@@ -1,38 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f163.google.com ([209.85.218.163]:54013 "EHLO
-	mail-bw0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759947AbZD2TWq (ORCPT
+Received: from mail00d.mail.t-online.hu ([84.2.42.5]:54208 "EHLO
+	mail00d.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751104AbZD2S6U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Apr 2009 15:22:46 -0400
-Received: by bwz7 with SMTP id 7so1376893bwz.37
-        for <linux-media@vger.kernel.org>; Wed, 29 Apr 2009 12:22:45 -0700 (PDT)
+	Wed, 29 Apr 2009 14:58:20 -0400
+Message-ID: <49F8A314.4000007@freemail.hu>
+Date: Wed, 29 Apr 2009 20:57:24 +0200
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-Date: Wed, 29 Apr 2009 21:22:44 +0200
-Message-ID: <a50ea2b0904291222p34e897e1qc2fb0f4ade337e6@mail.gmail.com>
-Subject: Digital compact cameras that can be used as video devices?
-From: Robin van Kleeff <robinvankleeff@gmail.com>
-To: linux-media@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+CC: LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCH] v4l2: modify return value of VIDIOC_REQBUFS ioctl
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey everybody,
+The V4L2 ioctls usually return 0 when the operation was successful
+and -1 in case of error. Currently VIDIOC_REQBUFS returns the
+number of buffers which is redundant because this information is
+available in count field of struct v4l2_requestbuffers. The
+V4L2 API specification, revision 0.24 [1] explicitly specifies for
+VIDIOC_REQBUFS that the return value shall be 0 on success.
 
-I have been searching for information on using compact photo cameras
-as video devices (and also for compatibility with gphoto through the
-gphoto websites/mailing list).
+The patch was tested with v4l-test 0.13 [2] with vivi driver.
 
-I was wondering if any of you knows which cameras (brand, type) I
-should focus on?  I'm interested in digital compact camera that can be
-used to take decent quality pictures, and also function as for
-instance a web cam for applications such as Ekiga.  I am unable to
-find any lists of cameras that are supported.
+References:
+[1] V4L2 API specification, revision 0.24
+    http://v4l2spec.bytesex.org/spec/r13696.htm
 
-By the way, I am much more an end-user then a developer, so forgive me
-if I ask dumb questions, or if I ask questions that are outside of the
-scope of this mailing list.
+[2] v4l-test: Test environment for Video For Linux Two API
+    http://v4l-test.sourceforge.net/
 
-Thanks in advance!
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+--- linux-2.6.30-rc3/drivers/media/video/videobuf-core.c.orig	2009-04-22 05:07:00.000000000 +0200
++++ linux-2.6.30-rc3/drivers/media/video/videobuf-core.c	2009-04-29 18:30:15.000000000 +0200
+@@ -439,6 +439,7 @@ int videobuf_reqbufs(struct videobuf_que
+ 	}
 
-Robin
+ 	req->count = retval;
++	retval = 0;
+
+  done:
+ 	mutex_unlock(&q->vb_lock);
