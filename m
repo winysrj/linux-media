@@ -1,54 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:1971 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750909AbZDFO5S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Apr 2009 10:57:18 -0400
-Message-ID: <60676.207.214.87.58.1239029832.squirrel@webmail.xs4all.nl>
-Date: Mon, 6 Apr 2009 16:57:12 +0200 (CEST)
-Subject: RE: [PATCH 3/3] V4L2 Driver for OMAP3/3 DSS.
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Shah, Hardik" <hardik.shah@ti.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+Received: from mail-bw0-f163.google.com ([209.85.218.163]:54013 "EHLO
+	mail-bw0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759947AbZD2TWq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Apr 2009 15:22:46 -0400
+Received: by bwz7 with SMTP id 7so1376893bwz.37
+        for <linux-media@vger.kernel.org>; Wed, 29 Apr 2009 12:22:45 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Date: Wed, 29 Apr 2009 21:22:44 +0200
+Message-ID: <a50ea2b0904291222p34e897e1qc2fb0f4ade337e6@mail.gmail.com>
+Subject: Digital compact cameras that can be used as video devices?
+From: Robin van Kleeff <robinvankleeff@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hey everybody,
 
-> Hi Hans,
-> Please find my comments inline. Most of the comments are taken care of.
+I have been searching for information on using compact photo cameras
+as video devices (and also for compatibility with gphoto through the
+gphoto websites/mailing list).
 
-> 2.  In DSS rotation is accomplished by some memory algorithm but its quite
-> costly so -1 is essentially same as 0 degree but with out the overhead.
-> But if mirroring is on then we have to do the 0 degree rotation with
-> overhead using some memory techniques.  So from user point of view he will
-> only be setting 0 but internally driver will take it as -1 or 0 depending
-> upon the mirroring selected.
+I was wondering if any of you knows which cameras (brand, type) I
+should focus on?  I'm interested in digital compact camera that can be
+used to take decent quality pictures, and also function as for
+instance a web cam for applications such as Ekiga.  I am unable to
+find any lists of cameras that are supported.
 
-Hi Hardik,
+By the way, I am much more an end-user then a developer, so forgive me
+if I ask dumb questions, or if I ask questions that are outside of the
+scope of this mailing list.
 
-I just looked over these comments and I'll do a full review in the weekend
-when I'm back from San Francisco. But just one quick remark regarding this
-magic -1 number: wouldn't it be better to write a small inline function
-like this:
+Thanks in advance!
 
-/* return true if we need to rotate or mirror, return false if we
-   don't have to do anything here. */
-static inline int needs_rotate(struct foo *foo)
-{
-    return foo->rotate != 0 || foo->mirror;
-}
-
-I think this is much more understandable. It's up to you, though.
-
-Regards,
-
-        Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
+Robin
