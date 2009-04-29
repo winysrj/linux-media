@@ -1,83 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:46455 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765188AbZDJR0w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Apr 2009 13:26:52 -0400
-Date: Fri, 10 Apr 2009 12:39:31 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, g.liakhovetski@gmx.de,
-	Mauro Carvalho Chehab <mchehab@infrade4ad.org>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	laurent.pinchart@skynet.be
-cc: "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"jongse.won@ssamsung.com"@banach.math.auburn.edu,
-	jongse.won@samsung.com, riverful.kim@samsung.com
-Subject: Re: [RFC] White Balance control for digital camera
-In-Reply-To: <5e9665e10904091450u3e70cda8w9e1d57e45365a32b@mail.gmail.com>
-Message-ID: <alpine.LNX.2.00.0904101217260.4270@banach.math.auburn.edu>
-References: <5e9665e10904091450u3e70cda8w9e1d57e45365a32b@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+Received: from mx2.redhat.com ([66.187.237.31]:36784 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754129AbZD2WUH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Apr 2009 18:20:07 -0400
+Date: Wed, 29 Apr 2009 19:17:10 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [GIT PATCHES for 2.6.30] V4L/DVB fixes
+Message-ID: <20090429191710.0855c64d@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Linus,
 
+Please pull from:
+        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git for_linus
 
-On Fri, 10 Apr 2009, Dongsoo, Nathaniel Kim wrote:
+For two Kbuild fixes:
+   - kBuild: move media after i2c to be sure that i2c will initialize 
+     before v4l, when both i2c and v4l are compiled with 'Y';
+   - cx231xx: Kconfig fixes;
 
-> Hello everyone,
->
-> I'm posting this RFC one more time because it seems to everyone has
-> been forgot this, and I'll be appreciated if any of you who is reading
-> this mailing list give me comment.
+And few driver fixes:
+   - au0828: fix kernel oops regression on USB disconnect;
+   - cx18: Send correct input routing value to external audio multiplexers;
+   - cx18: Fix the handling of i2c bus registration error;
+   - cx23885: Two fixes for DViCO FusionHDTV DVB-T Dual Express;
+   - saa5249.c: fix use-after-free and leak;
+   - saa5246a.c: fix use-after-free;
+   - s2255drv: fix race condition on set mode;
+   - mx3_camera: Fix compilation with CONFIG_PM.
 
-I don't know much about the topic, and I wish I did.
+Cheers,
+Mauro.
 
-> I've got a big question popping up handling white balance with
-> V4L2_CID_WHITE_BALANCE_TEMPERATURE CID.
->
-> Because in digital camera we generally control over user interface
-> with pre-defined white balance name. I mean, user controls white
-> balance with presets not with kelvin number.
-> I'm very certain that TEMPERATURE CID is needed in many of video
-> capture devices, but also 100% sure that white balance preset control
-> is also necessary for digital cameras.
-> How can we control white balance through preset name with existing V4L2 API?
+---
 
-Let's broaden the question to include digital still cameras, which present 
-similar problems. They present data related to this kind of thing, that is 
-obvious. But are there any standard meanings to what is there? Do you know 
-anything about that? Can you help?
+ drivers/Makefile                            |    4 +-
+ drivers/media/video/au0828/au0828-core.c    |    6 ++-
+ drivers/media/video/cx18/cx18-audio.c       |    2 +-
+ drivers/media/video/cx18/cx18-i2c.c         |   16 ++++++++--
+ drivers/media/video/cx231xx/Kconfig         |   44 +++++++++++++-------------
+ drivers/media/video/cx23885/cx23885-cards.c |    4 +-
+ drivers/media/video/cx23885/cx23885-dvb.c   |    1 +
+ drivers/media/video/mx3_camera.c            |    4 --
+ drivers/media/video/s2255drv.c              |    2 +-
+ drivers/media/video/saa5246a.c              |    3 +-
+ drivers/media/video/saa5249.c               |    4 +-
+ 11 files changed, 49 insertions(+), 41 deletions(-)
 
-Two examples:
+Andy Walls (1):
+      V4L/DVB (11494): cx18: Send correct input routing value to external audio multiplexers
 
-The SQ905 and SQ905C cameras in stillcam mode use an allocation table, 
-which presents on each line some data about the given image. In this line, 
-byte 0 is a one-byte code for pixel dimensions and compression setting. 
-Then some more bytes give the starting and ending locations of the photo 
-in the camera's memory (actually irrelevant and superfluous information, 
-because you can only ask for the photos in sequence, and with a command 
-which has nothing to do with its memory location at all). Then some more 
-bytes obviously have something to do with contrast, brightness, white 
-balance, color balance, and so on. But I have no more idea than the Man in 
-the Moon how those bytes are supposed to be interpreted. The SQ905 gives 
-no such equivalent information while in streaming mode, and so there is 
-nothing at all which could be done with the nonexistent information. But 
-the SQ905C does obviously give such information, in a few bytes in the 
-header of each frame.
+Christopher Pascoe (1):
+      V4L/DVB (11626): cx23885: Two fixes for DViCO FusionHDTV DVB-T Dual Express
 
-The MR97310A cameras give similar information in the header of the photo 
-itself (and in this case the camera does the same thing in webcam mode, 
-too). Again, I have no idea either what these mysterious bytes are 
-supposed to mean, and how to use them constructively.
+Dan Carpenter (2):
+      V4L/DVB (11515): drivers/media/video/saa5249.c: fix use-after-free and leak
+      V4L/DVB (11516): drivers/media/video/saa5246a.c: fix use-after-free
 
-I could mention several other examples, too, but these will do for a 
-start.
+Dean Anderson (1):
+      V4L/DVB (11570): patch: s2255drv: fix race condition on set mode
 
-Are there any agreed-upon standards about this kind of thing, in the 
-camera industry? Is there any source of information about it?
+Devin Heitmueller (1):
+      V4L/DVB (11652): au0828: fix kernel oops regression on USB disconnect.
 
-Theodore Kilgore
+Guennadi Liakhovetski (1):
+      V4L/DVB (11561a): move media after i2c
+
+Jean Delvare (1):
+      V4L/DVB (11568): cx18: Fix the handling of i2c bus registration error
+
+Mauro Carvalho Chehab (1):
+      V4L/DVB (11494a): cx231xx Kconfig fixes
+
+Sascha Hauer (1):
+      V4L/DVB (11612): mx3_camera: Fix compilation with CONFIG_PM
+
+---------------------------------------------------
+V4L/DVB development is hosted at http://linuxtv.org
