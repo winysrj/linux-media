@@ -1,85 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:64517 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935810AbZDIQca (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Apr 2009 12:32:30 -0400
-Received: by fxm2 with SMTP id 2so674703fxm.37
-        for <linux-media@vger.kernel.org>; Thu, 09 Apr 2009 09:32:28 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <49DE2226.7030406@linuxtv.org>
-References: <49DE0891.9010506@yahoo.gr>
-	 <412bdbff0904090839v43772f6dk7f2ac47ef417f45f@mail.gmail.com>
-	 <20090409124810.6c9f73bb@pedra.chehab.org>
-	 <d9def9db0904090852v63b71413r616369babeff1d95@mail.gmail.com>
-	 <49DE2226.7030406@linuxtv.org>
-Date: Thu, 9 Apr 2009 18:32:27 +0200
-Message-ID: <d9def9db0904090932o4438902bt83d303f0853e5e11@mail.gmail.com>
-Subject: Re: Multiple em28xx devices
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Steven Toth <stoth@linuxtv.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>,
-	rvf16 <rvf16@yahoo.gr>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-in-10.arcor-online.net ([151.189.21.50]:54826 "EHLO
+	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753887AbZD2VWO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Apr 2009 17:22:14 -0400
+Subject: Re: Digital compact cameras that can be used as video devices?
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Devin Heitmueller <devin.heitmueller@gmail.com>
+Cc: Robin van Kleeff <robinvankleeff@gmail.com>,
+	linux-media@vger.kernel.org
+In-Reply-To: <412bdbff0904291231p6eb9742dxb7e25c57ee83fa92@mail.gmail.com>
+References: <a50ea2b0904291222p34e897e1qc2fb0f4ade337e6@mail.gmail.com>
+	 <412bdbff0904291231p6eb9742dxb7e25c57ee83fa92@mail.gmail.com>
+Content-Type: text/plain
+Date: Wed, 29 Apr 2009 23:15:56 +0200
+Message-Id: <1241039756.3710.78.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 9, 2009 at 6:28 PM, Steven Toth <stoth@linuxtv.org> wrote:
-> Markus Rechberger wrote:
->>
->> On Thu, Apr 9, 2009 at 5:48 PM, Mauro Carvalho Chehab
->> <mchehab@infradead.org> wrote:
->>>
->>> On Thu, 9 Apr 2009 11:39:47 -0400
->>> Devin Heitmueller <devin.heitmueller@gmail.com> wrote:
->>>
->>>> 2009/4/9 rvf16 <rvf16@yahoo.gr>:
->>>>>
->>>>> So does the upstream driver support all the rest ?
->>>>> Analog TV
->>>>
->>>> Yes
->>>>
->>>>> FM radio
->>>>
->>>> No
->>>
->>> Yes, it does support FM radio, provided that you proper add radio
->>> specific
->>> configuration at em28xx-cards.c.
->>>
->>
->> I plan to add support for it to the existing kerneldriver anyway, but
->> by using userspace drivers.
->> Those drivers are just ontop of everything and no changes are required
->> for the existing drivers.
->>
->> I'll just intercept all the calls as I do right now already with the
->> latest device. I ported the entire configuration framework to userland
->> and it also works on Apple OSX without any change. I'm just using
->> usbfs for it, PCI config support is possible by using libpci or
->> opening the corresponding node in the proc filesystem too. This time
->> there's nothing you can do against it since it requires no change as
->> it is.
->
-> Userspace drivers won't be accepted but it's not worth re-opening that old
-> wound - especially since I haven't followed this specific thread.
->
+Hi,
 
-no problem, as I wrote it sits ontop of everything not needing any kernel hooks.
+Am Mittwoch, den 29.04.2009, 15:31 -0400 schrieb Devin Heitmueller:
+> On Wed, Apr 29, 2009 at 3:22 PM, Robin van Kleeff
+> <robinvankleeff@gmail.com> wrote:
+> > Hey everybody,
+> >
+> > I have been searching for information on using compact photo cameras
+> > as video devices (and also for compatibility with gphoto through the
+> > gphoto websites/mailing list).
+> >
+> > I was wondering if any of you knows which cameras (brand, type) I
+> > should focus on?  I'm interested in digital compact camera that can be
+> > used to take decent quality pictures, and also function as for
+> > instance a web cam for applications such as Ekiga.  I am unable to
+> > find any lists of cameras that are supported.
+> >
+> > By the way, I am much more an end-user then a developer, so forgive me
+> > if I ask dumb questions, or if I ask questions that are outside of the
+> > scope of this mailing list.
+> >
+> > Thanks in advance!
+> >
+> > Robin
+> 
+> Hello Robin,
+> 
+> Do you know of any such devices that claim to work like that even
+> under Windows?  Generally, all the digital cameras I see that can
+> capture video can't do it while the device is plugged in to the PC.
+> If you can provide some specific examples of models that do this under
+> Windows, we can possibly look at what would be required to make them
+> work under Linux.
+> 
+> Cheers,
+> 
+> Devin
+> 
 
-> I _am_ interested in the fact that you've ported GPL code (frameworks and/or
-> drivers) to Apple, creating derived works.
->
+never cared much about it, but I was the opposite opinion.
 
-hehe, I did not touch any GPL code.
+If it has Composite or S-Video and audio out it should simply work I
+thought when plugged into the inputs of any capture card, also when
+switched into video mode.
 
-> Obviously you'll need to make those changes to the community. Where can I
-> download these?
+I tested it once on a cheapo Jenoptik 6.0z3 MPEG4 and don't remember any
+problems using an saa7131e Asus P7131 Dual with tvtime on Composite.
 
-The framework will be opened when it's time to be opened, right now
-it's only available to interested developers.
+In that case it is not registered as storage device at all.
 
-Markus
+Cheers,
+Hermann
+
+
+
+
