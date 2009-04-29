@@ -1,76 +1,21 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:58411 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1759079AbZDQHAo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Apr 2009 03:00:44 -0400
-Date: Fri, 17 Apr 2009 09:00:44 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	kernel@pengutronix.de,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>,
-	"jongse.won@samsung.com" <jongse.won@samsung.com>,
-	dongsoo45.kim@samsung.com, Hans Verkuil <hverkuil@xs4all.nl>,
-	"Ailus Sakari (Nokia-D/Helsinki)" <Sakari.Ailus@nokia.com>
-Subject: Re: [RFC] Making Samsung S3C64XX camera interface driver in SoC
- camera subsystem
-In-Reply-To: <5e9665e10904162346g37a29778ub0fd4c9f5c11f1df@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0904170852450.5119@axis700.grange>
-References: <5e9665e10904151712o5fa3076dr85ad12fc7f04914d@mail.gmail.com>
- <Pine.LNX.4.64.0904162147370.4947@axis700.grange>
- <5e9665e10904162346g37a29778ub0fd4c9f5c11f1df@mail.gmail.com>
+Received: from simmts12.bellnexxia.net ([206.47.199.141]:44430 "EHLO
+	simmts12-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753205AbZD2XuC convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 Apr 2009 19:50:02 -0400
+From: <sgstool@bellnet.ca>
+Reply-To: agenttofficer@gmail.com
+To: <info@winner.org>
+Subject: **JACKPOT**JOY WINNER**
+Date: Wed, 29 Apr 2009 19:50:00 -0400
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
+Message-Id: <20090429235000.NKJL1599.simmts12-srv.bellnexxia.net@simip9-ac.srvr.bell.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 17 Apr 2009, Dongsoo, Nathaniel Kim wrote:
+You were selected for the sum of  £750,000 GBP. Verify this mail 
+immediately by sending in your information. This will include your name, address, age, phone number etc to  agenttofficer@gmail.com
 
-> Hi Guennadi,
-> 
-> 
-> On Fri, Apr 17, 2009 at 4:58 AM, Guennadi Liakhovetski
-> <g.liakhovetski@gmx.de> wrote:
-> >
-> > Ok, now I understand your comments to my soc-camera thread better. Now,
-> > what about making one (or more) video devices with V4L2_CAP_VIDEO_CAPTURE
-> > type and one with V4L2_CAP_VIDEO_OUTPUT? Then you can use your capture
-> > type devices to switch between cameras and to configure input, and your
-> > output device to configure preview? Then you can use soc-camera to control
-> > your capture devices (if you want to of course) and implement an output
-> > device directly. It should be a much simpler device, because it will not
-> > be communicating with the cameras and only modify various preview
-> > parameters.
-> >
-> 
-> It's a cool idea! Adding my understanding to your comment,
-> 
-> 1. make preview device a video output
-> => it makes sense. but codec path also has dedicated DMA to frame buffer.
-> What should we do with that? I have no idea by now.
-
-Add a V4L2_CAP_VIDEO_OVERLAY capability and if the user requests 
-V4L2_BUF_TYPE_VIDEO_OVERLAY - configure direct output to framebuffer?
-
-> 2. preview device can have two inputs
->    a) input from camera device : ok it's an ordinary way
->    b) input from MSDMA : we can give RGB data upto 720P to preview
-> device with rotating and resizing supported
-> 
-> Does it sound ok?
-
-Yes, looks good to me:-)
-
-> BTW, OMAP3 has similar feature with this. omap vout something?
-> And by now I'm gonna make my driver with soc camera subsystem without
-> VIDIOC_S_INPUT/G_INPUT, but I'm still desperate for that.
-
-Don't dispair - better send a patch when good times return (i.e., when we 
-are fully with v4l2-subdev):-)
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
