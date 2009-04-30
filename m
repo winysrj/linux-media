@@ -1,135 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pne-smtpout1-sn2.hy.skanova.net ([81.228.8.83]:51280 "EHLO
-	pne-smtpout1-sn2.hy.skanova.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756395AbZD0RiK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Apr 2009 13:38:10 -0400
-Message-ID: <49F5ED7E.60003@gmail.com>
-Date: Mon, 27 Apr 2009 19:38:06 +0200
-From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+Received: from kroah.org ([198.145.64.141]:55439 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751437AbZD3W3e (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Apr 2009 18:29:34 -0400
+Date: Thu, 30 Apr 2009 15:18:08 -0700
+From: Greg Kroah-Hartman <gregkh@suse.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org, Greg KH <greg@kroah.com>
+Subject: [PATCH] media: remove driver_data direct access of struct device
+Message-ID: <20090430221808.GA18526@kroah.com>
 MIME-Version: 1.0
-To: "Robert P. J. Day" <rpjday@crashcourse.ca>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] GSPCA M5602: Re C99, move storage class to beginning.
-References: <alpine.LFD.2.00.0904261128310.3333@localhost.localdomain>
-In-Reply-To: <alpine.LFD.2.00.0904261128310.3333@localhost.localdomain>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Greg Kroah-Hartman <gregkh@suse.de>
 
-Thank you for your time reporting this issue.
-A similar patch was just posted and merged.
+In the near future, the driver core is going to not allow direct access
+to the driver_data pointer in struct device.  Instead, the functions
+dev_get_drvdata() and dev_set_drvdata() should be used.  These functions
+have been around since the beginning, so are backwards compatible with
+all older kernel versions.
 
-Best regards,
-Erik
 
-Robert P. J. Day wrote:
-> Signed-off-by: Robert P. J. Day <rpjday@crashcourse.ca>
-> 
-> ---
-> 
-> diff --git a/drivers/media/video/gspca/m5602/m5602_mt9m111.c b/drivers/media/video/gspca/m5602/m5602_mt9m111.c
-> index 7d3f9e3..0167987 100644
-> --- a/drivers/media/video/gspca/m5602/m5602_mt9m111.c
-> +++ b/drivers/media/video/gspca/m5602/m5602_mt9m111.c
-> @@ -31,7 +31,7 @@ static struct v4l2_pix_format mt9m111_modes[] = {
->  	}
->  };
-> 
-> -const static struct ctrl mt9m111_ctrls[] = {
-> +static const struct ctrl mt9m111_ctrls[] = {
->  	{
->  		{
->  			.id		= V4L2_CID_VFLIP,
-> diff --git a/drivers/media/video/gspca/m5602/m5602_mt9m111.h b/drivers/media/video/gspca/m5602/m5602_mt9m111.h
-> index 00c6db0..6bedf9d 100644
-> --- a/drivers/media/video/gspca/m5602/m5602_mt9m111.h
-> +++ b/drivers/media/video/gspca/m5602/m5602_mt9m111.h
-> @@ -94,7 +94,7 @@ int mt9m111_set_hflip(struct gspca_dev *gspca_dev, __s32 val);
->  int mt9m111_get_gain(struct gspca_dev *gspca_dev, __s32 *val);
->  int mt9m111_set_gain(struct gspca_dev *gspca_dev, __s32 val);
-> 
-> -const static struct m5602_sensor mt9m111 = {
-> +static const struct m5602_sensor mt9m111 = {
->  	.name = "MT9M111",
-> 
->  	.i2c_slave_id = 0xba,
-> diff --git a/drivers/media/video/gspca/m5602/m5602_ov9650.c b/drivers/media/video/gspca/m5602/m5602_ov9650.c
-> index fc4548f..6c3baca 100644
-> --- a/drivers/media/video/gspca/m5602/m5602_ov9650.c
-> +++ b/drivers/media/video/gspca/m5602/m5602_ov9650.c
-> @@ -68,7 +68,7 @@ static
->  	{}
->  };
-> 
-> -const static struct ctrl ov9650_ctrls[] = {
-> +static const struct ctrl ov9650_ctrls[] = {
->  #define EXPOSURE_IDX 0
->  	{
->  		{
-> diff --git a/drivers/media/video/gspca/m5602/m5602_ov9650.h b/drivers/media/video/gspca/m5602/m5602_ov9650.h
-> index fcc54e4..2ca0e88 100644
-> --- a/drivers/media/video/gspca/m5602/m5602_ov9650.h
-> +++ b/drivers/media/video/gspca/m5602/m5602_ov9650.h
-> @@ -159,7 +159,7 @@ int ov9650_set_auto_white_balance(struct gspca_dev *gspca_dev, __s32 val);
->  int ov9650_get_auto_gain(struct gspca_dev *gspca_dev, __s32 *val);
->  int ov9650_set_auto_gain(struct gspca_dev *gspca_dev, __s32 val);
-> 
-> -const static struct m5602_sensor ov9650 = {
-> +static const struct m5602_sensor ov9650 = {
->  	.name = "OV9650",
->  	.i2c_slave_id = 0x60,
->  	.i2c_regW = 1,
-> diff --git a/drivers/media/video/gspca/m5602/m5602_po1030.c b/drivers/media/video/gspca/m5602/m5602_po1030.c
-> index eaddf48..b06e229 100644
-> --- a/drivers/media/video/gspca/m5602/m5602_po1030.c
-> +++ b/drivers/media/video/gspca/m5602/m5602_po1030.c
-> @@ -31,7 +31,7 @@ static struct v4l2_pix_format po1030_modes[] = {
->  	}
->  };
-> 
-> -const static struct ctrl po1030_ctrls[] = {
-> +static const struct ctrl po1030_ctrls[] = {
->  	{
->  		{
->  			.id 		= V4L2_CID_GAIN,
-> diff --git a/drivers/media/video/gspca/m5602/m5602_s5k4aa.c b/drivers/media/video/gspca/m5602/m5602_s5k4aa.c
-> index 4306d59..bab6cb4 100644
-> --- a/drivers/media/video/gspca/m5602/m5602_s5k4aa.c
-> +++ b/drivers/media/video/gspca/m5602/m5602_s5k4aa.c
-> @@ -64,7 +64,7 @@ static struct v4l2_pix_format s5k4aa_modes[] = {
->  	}
->  };
-> 
-> -const static struct ctrl s5k4aa_ctrls[] = {
-> +static const struct ctrl s5k4aa_ctrls[] = {
->  	{
->  		{
->  			.id 		= V4L2_CID_VFLIP,
-> diff --git a/drivers/media/video/gspca/m5602/m5602_s5k83a.c b/drivers/media/video/gspca/m5602/m5602_s5k83a.c
-> index 42c86aa..689afbc 100644
-> --- a/drivers/media/video/gspca/m5602/m5602_s5k83a.c
-> +++ b/drivers/media/video/gspca/m5602/m5602_s5k83a.c
-> @@ -32,7 +32,7 @@ static struct v4l2_pix_format s5k83a_modes[] = {
->  	}
->  };
-> 
-> -const static struct ctrl s5k83a_ctrls[] = {
-> +static const struct ctrl s5k83a_ctrls[] = {
->  	{
->  		{
->  			.id = V4L2_CID_BRIGHTNESS,
-> 
-> ========================================================================
-> Robert P. J. Day                               Waterloo, Ontario, CANADA
-> 
->         Linux Consulting, Training and Annoying Kernel Pedantry.
-> 
-> Web page:                                          http://crashcourse.ca
-> Linked In:                             http://www.linkedin.com/in/rpjday
-> Twitter:                                       http://twitter.com/rpjday
-> ========================================================================
-> 
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+---
+ drivers/media/dvb/firewire/firedtv-1394.c   |    4 ++--
+ drivers/media/dvb/firewire/firedtv-dvb.c    |    2 +-
+ drivers/media/video/pvrusb2/pvrusb2-sysfs.c |   22 +++++++++++-----------
+ 3 files changed, 14 insertions(+), 14 deletions(-)
+
+--- a/drivers/media/dvb/firewire/firedtv-1394.c
++++ b/drivers/media/dvb/firewire/firedtv-1394.c
+@@ -225,7 +225,7 @@ fail_free:
+ 
+ static int node_remove(struct device *dev)
+ {
+-	struct firedtv *fdtv = dev->driver_data;
++	struct firedtv *fdtv = dev_get_drvdata(dev);
+ 
+ 	fdtv_dvb_unregister(fdtv);
+ 
+@@ -242,7 +242,7 @@ static int node_remove(struct device *de
+ 
+ static int node_update(struct unit_directory *ud)
+ {
+-	struct firedtv *fdtv = ud->device.driver_data;
++	struct firedtv *fdtv = dev_get_drvdata(&ud->device);
+ 
+ 	if (fdtv->isochannel >= 0)
+ 		cmp_establish_pp_connection(fdtv, fdtv->subunit,
+--- a/drivers/media/dvb/firewire/firedtv-dvb.c
++++ b/drivers/media/dvb/firewire/firedtv-dvb.c
+@@ -268,7 +268,7 @@ struct firedtv *fdtv_alloc(struct device
+ 	if (!fdtv)
+ 		return NULL;
+ 
+-	dev->driver_data	= fdtv;
++	dev_set_drvdata(dev, fdtv);
+ 	fdtv->device		= dev;
+ 	fdtv->isochannel	= -1;
+ 	fdtv->voltage		= 0xff;
+--- a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
++++ b/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
+@@ -539,7 +539,7 @@ static void class_dev_destroy(struct pvr
+ 					 &sfp->attr_unit_number);
+ 	}
+ 	pvr2_sysfs_trace("Destroying class_dev id=%p",sfp->class_dev);
+-	sfp->class_dev->driver_data = NULL;
++	dev_set_drvdata(sfp->class_dev, NULL);
+ 	device_unregister(sfp->class_dev);
+ 	sfp->class_dev = NULL;
+ }
+@@ -549,7 +549,7 @@ static ssize_t v4l_minor_number_show(str
+ 				     struct device_attribute *attr, char *buf)
+ {
+ 	struct pvr2_sysfs *sfp;
+-	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
++	sfp = dev_get_drvdata(class_dev);
+ 	if (!sfp) return -EINVAL;
+ 	return scnprintf(buf,PAGE_SIZE,"%d\n",
+ 			 pvr2_hdw_v4l_get_minor_number(sfp->channel.hdw,
+@@ -561,7 +561,7 @@ static ssize_t bus_info_show(struct devi
+ 			     struct device_attribute *attr, char *buf)
+ {
+ 	struct pvr2_sysfs *sfp;
+-	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
++	sfp = dev_get_drvdata(class_dev);
+ 	if (!sfp) return -EINVAL;
+ 	return scnprintf(buf,PAGE_SIZE,"%s\n",
+ 			 pvr2_hdw_get_bus_info(sfp->channel.hdw));
+@@ -572,7 +572,7 @@ static ssize_t hdw_name_show(struct devi
+ 			     struct device_attribute *attr, char *buf)
+ {
+ 	struct pvr2_sysfs *sfp;
+-	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
++	sfp = dev_get_drvdata(class_dev);
+ 	if (!sfp) return -EINVAL;
+ 	return scnprintf(buf,PAGE_SIZE,"%s\n",
+ 			 pvr2_hdw_get_type(sfp->channel.hdw));
+@@ -583,7 +583,7 @@ static ssize_t hdw_desc_show(struct devi
+ 			     struct device_attribute *attr, char *buf)
+ {
+ 	struct pvr2_sysfs *sfp;
+-	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
++	sfp = dev_get_drvdata(class_dev);
+ 	if (!sfp) return -EINVAL;
+ 	return scnprintf(buf,PAGE_SIZE,"%s\n",
+ 			 pvr2_hdw_get_desc(sfp->channel.hdw));
+@@ -595,7 +595,7 @@ static ssize_t v4l_radio_minor_number_sh
+ 					   char *buf)
+ {
+ 	struct pvr2_sysfs *sfp;
+-	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
++	sfp = dev_get_drvdata(class_dev);
+ 	if (!sfp) return -EINVAL;
+ 	return scnprintf(buf,PAGE_SIZE,"%d\n",
+ 			 pvr2_hdw_v4l_get_minor_number(sfp->channel.hdw,
+@@ -607,7 +607,7 @@ static ssize_t unit_number_show(struct d
+ 				struct device_attribute *attr, char *buf)
+ {
+ 	struct pvr2_sysfs *sfp;
+-	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
++	sfp = dev_get_drvdata(class_dev);
+ 	if (!sfp) return -EINVAL;
+ 	return scnprintf(buf,PAGE_SIZE,"%d\n",
+ 			 pvr2_hdw_get_unit_number(sfp->channel.hdw));
+@@ -635,7 +635,7 @@ static void class_dev_create(struct pvr2
+ 	class_dev->parent = &usb_dev->dev;
+ 
+ 	sfp->class_dev = class_dev;
+-	class_dev->driver_data = sfp;
++	dev_set_drvdata(class_dev, sfp);
+ 	ret = device_register(class_dev);
+ 	if (ret) {
+ 		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
+@@ -792,7 +792,7 @@ static ssize_t debuginfo_show(struct dev
+ 			      struct device_attribute *attr, char *buf)
+ {
+ 	struct pvr2_sysfs *sfp;
+-	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
++	sfp = dev_get_drvdata(class_dev);
+ 	if (!sfp) return -EINVAL;
+ 	pvr2_hdw_trigger_module_log(sfp->channel.hdw);
+ 	return pvr2_debugifc_print_info(sfp->channel.hdw,buf,PAGE_SIZE);
+@@ -803,7 +803,7 @@ static ssize_t debugcmd_show(struct devi
+ 			     struct device_attribute *attr, char *buf)
+ {
+ 	struct pvr2_sysfs *sfp;
+-	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
++	sfp = dev_get_drvdata(class_dev);
+ 	if (!sfp) return -EINVAL;
+ 	return pvr2_debugifc_print_status(sfp->channel.hdw,buf,PAGE_SIZE);
+ }
+@@ -816,7 +816,7 @@ static ssize_t debugcmd_store(struct dev
+ 	struct pvr2_sysfs *sfp;
+ 	int ret;
+ 
+-	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
++	sfp = dev_get_drvdata(class_dev);
+ 	if (!sfp) return -EINVAL;
+ 
+ 	ret = pvr2_debugifc_docmd(sfp->channel.hdw,buf,count);
