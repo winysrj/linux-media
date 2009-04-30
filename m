@@ -1,72 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:44059 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752834AbZDBJ4X (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Apr 2009 05:56:23 -0400
-Received: from lyakh (helo=localhost)
-	by axis700.grange with local-esmtp (Exim 4.63)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1LpJeq-0001sL-IC
-	for linux-media@vger.kernel.org; Thu, 02 Apr 2009 11:56:24 +0200
-Date: Thu, 2 Apr 2009 11:56:24 +0200 (CEST)
-From: Guennadi Liakhovetski <lg@denx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] mt9t031: use platform power hook
-Message-ID: <Pine.LNX.4.64.0904021149580.5263@axis700.grange>
+Received: from tichy.grunau.be ([85.131.189.73]:57773 "EHLO tichy.grunau.be"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750985AbZD3JyP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Apr 2009 05:54:15 -0400
+Date: Thu, 30 Apr 2009 11:54:42 +0200
+From: Janne Grunau <j@jannau.net>
+To: Samuel Rodelius <samuel@rodelius.se>
+Cc: devin.heitmueller@gmail.com, linux-media@vger.kernel.org
+Subject: Re: Re: Haupauge Nova-T 500 2.6.28 regression dib0700
+Message-ID: <20090430095442.GD8112@aniel.lan>
+References: <e65ef5fb0904300019q6d13ff58wa8e2ad0cf2c27a98@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e65ef5fb0904300019q6d13ff58wa8e2ad0cf2c27a98@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use platform power hook to turn the camera on and off.
+On Thu, Apr 30, 2009 at 09:19:17AM +0200, Samuel Rodelius wrote:
+> 
+> I experience the same problem as Janne with the following reported in the
+> /var/log/syslog:
+> Apr 30 09:07:02 homer kernel: [   86.068011] ehci_hcd 0000:01:06.2: force
+> halt; handhake ffffc2000003c014 00004000 00000000 -> -110
+> 
+> I was wondering if you have found any workaround or if there is any bugfix
+> submitted in a later kernel-version (I'am running 2.6.28.11)?
+> 
+> The problem started when I updated the kernel-version from 2.6.27-11 (Ubuntu
+> Intrepid to Jaunty upgrade).
 
-Signed-off-by: Guennadi Liakhovetski <lg@denx.de>
----
-diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
-index 23f9ce9..2b0927b 100644
---- a/drivers/media/video/mt9t031.c
-+++ b/drivers/media/video/mt9t031.c
-@@ -141,8 +141,19 @@ static int get_shutter(struct soc_camera_device *icd, u32 *data)
- 
- static int mt9t031_init(struct soc_camera_device *icd)
- {
-+	struct mt9t031 *mt9t031 = container_of(icd, struct mt9t031, icd);
-+	struct soc_camera_link *icl = mt9t031->client->dev.platform_data;
- 	int ret;
- 
-+	if (icl->power) {
-+		ret = icl->power(&mt9t031->client->dev, 1);
-+		if (ret < 0) {
-+			dev_err(icd->vdev->parent,
-+				"Platform failed to power-on the camera.\n");
-+			return ret;
-+		}
-+	}
-+
- 	/* Disable chip output, synchronous option update */
- 	ret = reg_write(icd, MT9T031_RESET, 1);
- 	if (ret >= 0)
-@@ -150,13 +161,23 @@ static int mt9t031_init(struct soc_camera_device *icd)
- 	if (ret >= 0)
- 		ret = reg_clear(icd, MT9T031_OUTPUT_CONTROL, 2);
- 
-+	if (ret < 0 && icl->power)
-+		icl->power(&mt9t031->client->dev, 0);
-+
- 	return ret >= 0 ? 0 : -EIO;
- }
- 
- static int mt9t031_release(struct soc_camera_device *icd)
- {
-+	struct mt9t031 *mt9t031 = container_of(icd, struct mt9t031, icd);
-+	struct soc_camera_link *icl = mt9t031->client->dev.platform_data;
-+
- 	/* Disable the chip */
- 	reg_clear(icd, MT9T031_OUTPUT_CONTROL, 2);
-+
-+	if (icl->power)
-+		icl->power(&mt9t031->client->dev, 0);
-+
- 	return 0;
- }
- 
+I've not really investigated due to lack of time and another problem in
+2.6.29 (The computer doesn't reliable shut down). A possible workaround
+is to disable rc polling but since you seems to use the remote you
+probably don't like this (disable_rc_polling=1 module option for dvb-usb).
+
+> For me the device is working when I have just booted but after a minute of
+> inactivity it seems to receive the above error. The device is a PCI-TV-card
+> where the USB-device is internal on the PCI-card so it is a bit hard to
+> unplug the device, connecting and unconnecting the cable to the IR-eye or
+> the TV-aerial will not make any difference.
+> 
+> Let me know if I can help in any other ways to resolve this problem
+
+Janne
