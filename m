@@ -1,25 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.mcpsmd.org ([205.222.6.113]:54229 "EHLO HUBA.mcpsmd.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752043AbZDXBIi convert rfc822-to-8bit (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:54418 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751516AbZD3C2r (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Apr 2009 21:08:38 -0400
-Content-Class: urn:content-classes:message
+	Wed, 29 Apr 2009 22:28:47 -0400
+Received: from octopus.hi.pengutronix.de ([2001:6f8:1178:2:215:17ff:fe12:23b0])
+	by metis.ext.pengutronix.de with esmtp (Exim 4.63)
+	(envelope-from <wsa@pengutronix.de>)
+	id 1LzM11-0000F2-7s
+	for linux-media@vger.kernel.org; Thu, 30 Apr 2009 04:28:47 +0200
+Received: from wsa by octopus.hi.pengutronix.de with local (Exim 4.69)
+	(envelope-from <wsa@pengutronix.de>)
+	id 1LzM11-0003xo-4K
+	for linux-media@vger.kernel.org; Thu, 30 Apr 2009 04:28:47 +0200
+Date: Thu, 30 Apr 2009 04:28:47 +0200
+From: Wolfram Sang <w.sang@pengutronix.de>
+To: linux-media@vger.kernel.org
+Subject: Donating a mr97310 based elta-media 8212dc (0x093a:0x010e)
+Message-ID: <20090430022847.GA15183@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Subject: Your Mailbox Has Exceeded Its Storage Limit
-Date: Thu, 23 Apr 2009 21:02:53 -0400
-Message-ID: <4E50929AC0DA38429C7387F1B4774A1501CDEF6E@EVMAIL02.mcpsmd.org>
-From: "Davidson, Jeffrey H." <Jeffrey_H_Davidson@mcpsmd.org>
-To: unlisted-recipients:; (no To-header on input)
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mP3DRpeJDSE+ciuQ"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Your mailbox has exceeded the storage limit set by your administrator. You may not be able to send or receive new mail until your mailbox size is increased by your system administrator. You are required to contact your system administrator through e-mail with your Username:{ } and Password:{ } to increase your storage limit.
 
-System Administrator
-E-mail: webct002@live.com
+--mP3DRpeJDSE+ciuQ
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-You will continue to receive this warning message periodically if your inbox size continues to exceed its size limit.
-This email is intended only for the use of the individual or entity to which it is addressed and contains information that is privileged and confidential.
+Hi all,
+
+I recently found an elta media dc8212 camera (usb-id: 0x093a:0x010e) in a p=
+ile
+of old hardware. When looking for linux-support (out of curiosity, I don't =
+need
+the cam), I saw that there is activity regarding these types of camera
+(mr97310) right now. As I am currently busy in other departments of the ker=
+nel,
+I was wondering if somebody here is interested in getting the camera to do
+further research? If so, just drop me a mail and I will send it free-of-cha=
+rge.
+
+Regards,
+
+   Wolfram
+
+PS: The camera still works. Just checked with another OS on a friend's mach=
+ine.
+
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+
+--mP3DRpeJDSE+ciuQ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkn5DN8ACgkQD27XaX1/VRuYSQCeO164AIbIeWf2uNxa1lGPYTjQ
+XDQAnAmgFIWXGldvTob3gjS9orVyD/Xk
+=QMLR
+-----END PGP SIGNATURE-----
+
+--mP3DRpeJDSE+ciuQ--
