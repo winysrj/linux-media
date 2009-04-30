@@ -1,105 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1316 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752907AbZDMLGM (ORCPT
+Received: from aqpmg.aquintos.com ([212.86.205.140]:43886 "EHLO
+	aqpmg.aquintos.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754114AbZD3Ifw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Apr 2009 07:06:12 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Alexey Klimov <klimov.linux@gmail.com>
-Subject: Re: About the radio-si470x driver for I2C interface
-Date: Mon, 13 Apr 2009 13:06:04 +0200
-Cc: Tobias Lorenz <tobias.lorenz@gmx.net>,
-	Joonyoung Shim <jy0922.shim@samsung.com>,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com
-References: <4e1455be0903051913x37562436y85eef9cba8b10ab0@mail.gmail.com> <200904122256.12305.tobias.lorenz@gmx.net> <208cbae30904121814i66e2b8b2tc4b8de30321e9617@mail.gmail.com>
-In-Reply-To: <208cbae30904121814i66e2b8b2tc4b8de30321e9617@mail.gmail.com>
+	Thu, 30 Apr 2009 04:35:52 -0400
+Received: from aqpmg.aquintos.com (aqpmg [127.0.0.1])
+	by aqpmg.aquintos.com (Proxmox) with ESMTP id D09734B1BE
+	for <linux-media@vger.kernel.org>; Thu, 30 Apr 2009 10:21:40 +0200 (CEST)
+Received: from xserve1.aquintos.ka (unknown [192.168.1.150])
+	by aqpmg.aquintos.com (Proxmox) with ESMTP id AFC184B1B6
+	for <linux-media@vger.kernel.org>; Thu, 30 Apr 2009 10:21:40 +0200 (CEST)
+Received: from sonne.local (unknown [192.168.1.89])
+	by xserve1.aquintos.ka (Postfix) with ESMTP id 3E77A765B0A
+	for <linux-media@vger.kernel.org>; Thu, 30 Apr 2009 10:17:42 +0200 (CEST)
+Message-ID: <49F95EA6.10403@gmail.com>
+Date: Thu, 30 Apr 2009 10:17:42 +0200
+From: Amir Bukhari <amir.bukhari@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: linux-media@vger.kernel.org
+Subject: Re:TechnoTrend C-1501 - Locking issues on 388Mhz
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200904131306.04425.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 13 April 2009 03:14:13 Alexey Klimov wrote:
-> Hello, Tobias
->
-> On Mon, Apr 13, 2009 at 12:56 AM, Tobias Lorenz <tobias.lorenz@gmx.net> 
-wrote:
-> > Hi Joonyoung,
-> >
-> > Hi Alexey,
-> >
-> > I've split the driver into a couple of segments:
-> >
-> > - radio-si470x-common.c is for common functions
-> >
-> > - radio-si470x-usb.c are the usb support functions
-> >
-> > - radio-si470x-i2c.c is an untested prototyped file for your i2c
-> > support functions
-> >
-> > - radio-si470x.h is a header file with everything required by the
-> > c-files
-> >
-> > I hope this is a basis we can start on with i2c support. What do you
-> > think?
-> >
-> > The URL is:
-> >
-> > http://linuxtv.org/hg/~tlorenz/v4l-dvb
-> >
-> > Bye,
-> >
-> > Toby
->
-> Great! It's always interesting to see big changes.
-> I understand i2c interface not so good and have only general questions.
->
-> Many (most?) drivers in v4l tree were converted to use new v4l2-
-> framework. For example, dsbr100 was converted to v4l2_device
-> http://linuxtv.org/hg/v4l-dvb/rev/77f37ad5dd0c and em28xx was
-> converted to v4l2_subdev
-> http://linuxtv.org/hg/v4l-dvb/rev/00525b115901
-> As i remember, Hans Verkuil said that all v4l drivers should be
-> converted to new framework. Is it time to switch to this new interface
-> ? Probably, there are a lot of code examples in current tree that can
-> help..
+I have TT DVB-C 1501 and I test it with the patch and it work now for
+like a charm.
+I have problem by 386MHz frequency as it doesn't detect any channels on it.
+now it work very good and stable.
 
-Any new v4l2 i2c driver must use v4l2_subdev in order to be reusable by v4l2 
-drivers. All 'legacy' i2c drivers are now converted and only soc-camera and 
-v4l2-int-device.h based drivers remain unconverted, although I expect that 
-those will also be moved to v4l2_subdev in 2.6.31.
+-Amir
 
-What complicates matters here is that the si470x is a radio tuner, and as 
-such should be implemented as a tuner device (common/tuners) which have 
-their own framework. But if memory serves the si470x can also do RDS for 
-which there is no support in the tuner framework.
+PS:
+I have send this email before (yesterday) but I didn't receive see it in 
+the mailing list.
 
-I'm leaning towards implementing this i2c driver as a normal v4l2_subdev 
-driver, rather than making it part of the tuner driver/framework.
-
-Actually, I suspect that the tuner driver/framework can be substantially 
-simplified with this new framework: much of the complexity there is related 
-to the autoprobing crap, and that no longer applies. This is an interesting 
-future research topic :-)
-
-> And second question. About lock/unlock_kernel in open functions.
-> Please, take a look at
-> http://www.spinics.net/lists/linux-media/msg04057.html
-> Well, is it time to do something with this?
-
-Yes, please remove/replace these calls.
-
-Regards,
-
-	Hans
-
-> Well, my questions about improving functionality, not about mistakes or
-> bugs :)
-
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
