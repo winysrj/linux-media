@@ -1,85 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:43329 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753336AbZDDMao (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Apr 2009 08:30:44 -0400
-Date: Sat, 4 Apr 2009 14:30:36 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Andy Walls <awalls@radix.net>, Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Mike Isely <isely@pobox.com>
-Subject: [PATCH 5/6] saa7134: Simplify handling of IR on MSI TV@nywhere Plus
-Message-ID: <20090404143036.0df137fd@hyperion.delvare>
-In-Reply-To: <20090404142427.6e81f316@hyperion.delvare>
-References: <20090404142427.6e81f316@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail6.sea5.speakeasy.net ([69.17.117.8]:38605 "EHLO
+	mail6.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754063AbZD3QUB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Apr 2009 12:20:01 -0400
+Date: Thu, 30 Apr 2009 09:20:00 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] v4l2: fill the reserved fields of VIDIOC_REQBUFS ioctl
+In-Reply-To: <Pine.LNX.4.58.0904300803410.7837@shell2.speakeasy.net>
+Message-ID: <Pine.LNX.4.58.0904300916250.7837@shell2.speakeasy.net>
+References: <49F8A325.7060303@freemail.hu> <Pine.LNX.4.58.0904300803410.7837@shell2.speakeasy.net>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=X-UNKNOWN
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that we instantiate I2C IR devices explicitly, we can skip probing
-altogether on boards where the I2C IR device address is known. The MSI
-TV@nywhere Plus is one of these boards.
+On Thu, 30 Apr 2009, Trent Piepho wrote:
+> On Wed, 29 Apr 2009, [UTF-8] Németh Márton wrote:
+> > The parameter of VIDIOC_REQBUFS is a pointer to struct v4l2_requestbuffers.
+> > This structure has reserved fields which has to be filled with zeros
+> > according to the V4L2 API specification, revision 0.24 [1].
+>
+> As I read the spec, the reserved fields can be used for input from user
+> space if the buffer is of type V4L2_BUF_TYPE_PRIVATE or higher.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- linux/drivers/media/video/saa7134/saa7134-input.c |   27 +++++----------------
- 1 file changed, 7 insertions(+), 20 deletions(-)
+Here is a patch that fixes this problem, along with the S_FMT problem you
+patched earlier.  TRY_FMT had the same problem as S_FMT, so I fixed that
+one as well too.
 
---- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-input.c	2009-04-04 10:07:49.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-input.c	2009-04-04 10:22:14.000000000 +0200
-@@ -691,16 +691,6 @@ void saa7134_probe_i2c_ir(struct saa7134
- 		I2C_CLIENT_END
- 	};
- 
--	const unsigned short addr_list_msi[] = {
--		0x30, I2C_CLIENT_END
--	};
--	struct i2c_msg msg_msi = {
--		.addr = 0x50,
--		.flags = I2C_M_RD,
--		.len = 0,
--		.buf = NULL,
--	};
--
- 	unsigned char subaddr, data;
- 	struct i2c_msg msg_avermedia[] = { {
- 		.addr = 0x40,
-@@ -747,6 +737,7 @@ void saa7134_probe_i2c_ir(struct saa7134
- 		init_data.name = "MSI TV@nywhere Plus";
- 		init_data.get_key = get_key_msi_tvanywhere_plus;
- 		init_data.ir_codes = ir_codes_msi_tvanywhere_plus;
-+		info.addr = 0x30;
- 		break;
- 	case SAA7134_BOARD_HAUPPAUGE_HVR1110:
- 		init_data.name = "HVR 1110";
-@@ -766,18 +757,14 @@ void saa7134_probe_i2c_ir(struct saa7134
- 
- 	if (init_data.name)
- 		info.platform_data = &init_data;
--	client = i2c_new_probed_device(&dev->i2c_adap, &info, addr_list);
--	if (client)
-+	/* No need to probe if address is known */
-+	if (info.addr) {
-+		i2c_new_device(&dev->i2c_adap, &info);
- 		return;
-+	}
- 
--	/* MSI TV@nywhere Plus controller doesn't seem to
--	   respond to probes unless we read something from
--	   an existing device. Weird... */
--	rc = i2c_transfer(&dev->i2c_adap, &msg_msi, 1);
--	dprintk(KERN_DEBUG "probe 0x%02x @ %s: %s\n",
--		msg_msi.addr, dev->i2c_adap.name,
--		(1 == rc) ? "yes" : "no");
--	client = i2c_new_probed_device(&dev->i2c_adap, &info, addr_list_msi);
-+	/* Address not known, fallback to probing */
-+	client = i2c_new_probed_device(&dev->i2c_adap, &info, addr_list);
- 	if (client)
- 		return;
- 
+v4l2-ioctl: Clear buffer type specific trailing fields/padding
 
--- 
-Jean Delvare
+From: Trent Piepho <xyzzy@speakeasy.org>
+
+Some ioctls have structs that are a different size depending on what type
+of buffer is being used.  If the buffer type leaves a field unused or has
+padding space at the end, this space should be zeroed out.
+
+The problems with S_FMT and REQBUFS were original identified and patched by
+Márton Németh <nm127@freemail.hu>.
+
+Priority: normal
+
+Signed-off-by: Trent Piepho <xyzzy@speakeasy.org>
+
+diff -r 7b786cb576e5 -r 82ef5d6e29e3 linux/drivers/media/video/v4l2-ioctl.c
+--- a/linux/drivers/media/video/v4l2-ioctl.c	Thu Apr 30 09:14:13 2009 -0700
++++ b/linux/drivers/media/video/v4l2-ioctl.c	Thu Apr 30 09:15:56 2009 -0700
+@@ -42,6 +42,12 @@
+ 		    if (vfd->debug & V4L2_DEBUG_IOCTL_ARG)		\
+ 			printk(KERN_DEBUG "%s: " fmt, vfd->name, ## arg);\
+ 		} while (0)
++
++/* Zero out the end of the struct pointed to by p.  Everthing after, but
++ * not including, the specified field is cleared. */
++#define CLEAR_AFTER_FIELD(p, field) \
++	memset((u8 *)(p) + offsetof(typeof(*(p)), field) + sizeof((p)->field), \
++	0, sizeof(*(p)) - offsetof(typeof(*(p)), field) - sizeof((p)->field))
+
+ struct std_descr {
+ 	v4l2_std_id std;
+@@ -783,44 +789,53 @@ static long __video_do_ioctl(struct file
+
+ 		switch (f->type) {
+ 		case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++			CLEAR_AFTER_FIELD(f, fmt.pix);
+ 			v4l_print_pix_fmt(vfd, &f->fmt.pix);
+ 			if (ops->vidioc_s_fmt_vid_cap)
+ 				ret = ops->vidioc_s_fmt_vid_cap(file, fh, f);
+ 			break;
+ 		case V4L2_BUF_TYPE_VIDEO_OVERLAY:
++			CLEAR_AFTER_FIELD(f, fmt.win);
+ 			if (ops->vidioc_s_fmt_vid_overlay)
+ 				ret = ops->vidioc_s_fmt_vid_overlay(file,
+ 								    fh, f);
+ 			break;
+ 		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++			CLEAR_AFTER_FIELD(f, fmt.pix);
+ 			v4l_print_pix_fmt(vfd, &f->fmt.pix);
+ 			if (ops->vidioc_s_fmt_vid_out)
+ 				ret = ops->vidioc_s_fmt_vid_out(file, fh, f);
+ 			break;
+ 		case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
++			CLEAR_AFTER_FIELD(f, fmt.win);
+ 			if (ops->vidioc_s_fmt_vid_out_overlay)
+ 				ret = ops->vidioc_s_fmt_vid_out_overlay(file,
+ 					fh, f);
+ 			break;
+ 		case V4L2_BUF_TYPE_VBI_CAPTURE:
++			CLEAR_AFTER_FIELD(f, fmt.vbi);
+ 			if (ops->vidioc_s_fmt_vbi_cap)
+ 				ret = ops->vidioc_s_fmt_vbi_cap(file, fh, f);
+ 			break;
+ 		case V4L2_BUF_TYPE_VBI_OUTPUT:
++			CLEAR_AFTER_FIELD(f, fmt.vbi);
+ 			if (ops->vidioc_s_fmt_vbi_out)
+ 				ret = ops->vidioc_s_fmt_vbi_out(file, fh, f);
+ 			break;
+ 		case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
++			CLEAR_AFTER_FIELD(f, fmt.sliced);
+ 			if (ops->vidioc_s_fmt_sliced_vbi_cap)
+ 				ret = ops->vidioc_s_fmt_sliced_vbi_cap(file,
+ 									fh, f);
+ 			break;
+ 		case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
++			CLEAR_AFTER_FIELD(f, fmt.sliced);
+ 			if (ops->vidioc_s_fmt_sliced_vbi_out)
+ 				ret = ops->vidioc_s_fmt_sliced_vbi_out(file,
+ 									fh, f);
+ 			break;
+ 		case V4L2_BUF_TYPE_PRIVATE:
++			/* CLEAR_AFTER_FIELD(f, fmt.raw_data); <- does nothing */
+ 			if (ops->vidioc_s_fmt_type_private)
+ 				ret = ops->vidioc_s_fmt_type_private(file,
+ 								fh, f);
+@@ -837,46 +852,55 @@ static long __video_do_ioctl(struct file
+ 						v4l2_type_names));
+ 		switch (f->type) {
+ 		case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++			CLEAR_AFTER_FIELD(f, fmt.pix);
+ 			if (ops->vidioc_try_fmt_vid_cap)
+ 				ret = ops->vidioc_try_fmt_vid_cap(file, fh, f);
+ 			if (!ret)
+ 				v4l_print_pix_fmt(vfd, &f->fmt.pix);
+ 			break;
+ 		case V4L2_BUF_TYPE_VIDEO_OVERLAY:
++			CLEAR_AFTER_FIELD(f, fmt.win);
+ 			if (ops->vidioc_try_fmt_vid_overlay)
+ 				ret = ops->vidioc_try_fmt_vid_overlay(file,
+ 					fh, f);
+ 			break;
+ 		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++			CLEAR_AFTER_FIELD(f, fmt.pix);
+ 			if (ops->vidioc_try_fmt_vid_out)
+ 				ret = ops->vidioc_try_fmt_vid_out(file, fh, f);
+ 			if (!ret)
+ 				v4l_print_pix_fmt(vfd, &f->fmt.pix);
+ 			break;
+ 		case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
++			CLEAR_AFTER_FIELD(f, fmt.win);
+ 			if (ops->vidioc_try_fmt_vid_out_overlay)
+ 				ret = ops->vidioc_try_fmt_vid_out_overlay(file,
+ 				       fh, f);
+ 			break;
+ 		case V4L2_BUF_TYPE_VBI_CAPTURE:
++			CLEAR_AFTER_FIELD(f, fmt.vbi);
+ 			if (ops->vidioc_try_fmt_vbi_cap)
+ 				ret = ops->vidioc_try_fmt_vbi_cap(file, fh, f);
+ 			break;
+ 		case V4L2_BUF_TYPE_VBI_OUTPUT:
++			CLEAR_AFTER_FIELD(f, fmt.vbi);
+ 			if (ops->vidioc_try_fmt_vbi_out)
+ 				ret = ops->vidioc_try_fmt_vbi_out(file, fh, f);
+ 			break;
+ 		case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
++			CLEAR_AFTER_FIELD(f, fmt.sliced);
+ 			if (ops->vidioc_try_fmt_sliced_vbi_cap)
+ 				ret = ops->vidioc_try_fmt_sliced_vbi_cap(file,
+ 								fh, f);
+ 			break;
+ 		case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
++			CLEAR_AFTER_FIELD(f, fmt.sliced);
+ 			if (ops->vidioc_try_fmt_sliced_vbi_out)
+ 				ret = ops->vidioc_try_fmt_sliced_vbi_out(file,
+ 								fh, f);
+ 			break;
+ 		case V4L2_BUF_TYPE_PRIVATE:
++			/* CLEAR_AFTER_FIELD(f, fmt.raw_data); <- does nothing */
+ 			if (ops->vidioc_try_fmt_type_private)
+ 				ret = ops->vidioc_try_fmt_type_private(file,
+ 								fh, f);
+@@ -898,6 +922,9 @@ static long __video_do_ioctl(struct file
+ 		ret = check_fmt(ops, p->type);
+ 		if (ret)
+ 			break;
++
++		if (p->type < V4L2_BUF_TYPE_PRIVATE)
++			CLEAR_AFTER_FIELD(p, memory);
+
+ 		ret = ops->vidioc_reqbufs(file, fh, p);
+ 		dbgarg(cmd, "count=%d, type=%s, memory=%s\n",
