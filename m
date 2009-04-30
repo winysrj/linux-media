@@ -1,117 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:40201 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751690AbZDTKcF convert rfc822-to-8bit (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.25]:46992 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751379AbZD3Tns convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Apr 2009 06:32:05 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"DongSoo(Nathaniel) Kim" <dongsoo.kim@gmail.com>,
-	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Nagalla, Hari" <hnagalla@ti.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"R, Sivaraj" <sivaraj@ti.com>, "Hadli, Manjunath" <mrh@ti.com>,
-	"Shah, Hardik" <hardik.shah@ti.com>,
-	"Kumar, Purushotam" <purushotam@ti.com>
-Date: Mon, 20 Apr 2009 16:01:53 +0530
-Subject: RE: [RFC] Stand-alone Resizer/Previewer Driver support under V4L2
- framework
-Message-ID: <19F8576C6E063C45BE387C64729E739404280C5B5E@dbde02.ent.ti.com>
-References: <19F8576C6E063C45BE387C64729E73940427E3F70B@dbde02.ent.ti.com>
- <200903301902.21783.hverkuil@xs4all.nl>
- <19F8576C6E063C45BE387C64729E73940427E3F8F1@dbde02.ent.ti.com>
- <200904181753.47515.hverkuil@xs4all.nl>
-In-Reply-To: <200904181753.47515.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Thu, 30 Apr 2009 15:43:48 -0400
+Received: by ey-out-2122.google.com with SMTP id 9so517782eyd.37
+        for <linux-media@vger.kernel.org>; Thu, 30 Apr 2009 12:43:47 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <200904301616.23303.nsoranzo@tiscali.it>
+References: <200904301616.23303.nsoranzo@tiscali.it>
+Date: Thu, 30 Apr 2009 23:43:46 +0400
+Message-ID: <208cbae30904301243x273620d1y2d0e2d2e984b1b13@mail.gmail.com>
+Subject: Re: [PATCH] radio_si470x: Drop unused label
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Nicola Soranzo <nsoranzo@tiscali.it>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	tobias.lorenz@gmx.net, Linux Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+(added Tobias and Mauro on c/c)
 
+On Thu, Apr 30, 2009 at 6:16 PM, Nicola Soranzo <nsoranzo@tiscali.it> wrote:
+> Fix this warning:
+>
+> /home/nicola/v4l-dvb/v4l/radio-si470x.c: In function 'si470x_fops_release':
+> /home/nicola/v4l-dvb/v4l/radio-si470x.c:1218: warning: label 'unlock' defined but not used
+>
+> Priority: normal
+>
+> Signed-off-by: Nicola Soranzo <nsoranzo@tiscali.it>
+>
+> ---
+> diff -r 83712d149893 -r 97be9e920832 linux/drivers/media/radio/radio-si470x.c
+> --- a/linux/drivers/media/radio/radio-si470x.c  Wed Apr 29 18:01:48 2009 -0300
+> +++ b/linux/drivers/media/radio/radio-si470x.c  Thu Apr 30 16:10:24 2009 +0200
+> @@ -1214,8 +1214,6 @@
+>                retval = si470x_stop(radio);
+>                usb_autopm_put_interface(radio->intf);
+>        }
+> -
+> -unlock:
+>        mutex_unlock(&radio->disconnect_lock);
+>
+>  done:
 
-Thanks,
-Vaibhav Hiremath
+Looks good. Thank you.
+When i built latest up-to-date git kernel i noticed that this warning
+showed there also.
+Probably, it's better this patch reach 2.6.30 kernel. Now we are at rc4.
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Saturday, April 18, 2009 9:24 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-media@vger.kernel.org; Aguirre Rodriguez, Sergio Alberto;
-> DongSoo(Nathaniel) Kim; Toivonen Tuukka.O (Nokia-D/Oulu); linux-
-> omap@vger.kernel.org; Nagalla, Hari; Sakari Ailus; Jadav, Brijesh R;
-> R, Sivaraj; Hadli, Manjunath; Shah, Hardik; Kumar, Purushotam
-> Subject: Re: [RFC] Stand-alone Resizer/Previewer Driver support
-> under V4L2 framework
-> 
-> On Tuesday 31 March 2009 10:53:02 Hiremath, Vaibhav wrote:
-> > Thanks,
-> > Vaibhav Hiremath
-> >
-> > > > APPROACH 3 -
-> > > > ----------
-> > > >
-> > > > .....
-> > It makes sense, since such memory-to-memory devices will mostly
-> being
-> > used from codecs context. And this would be more clear from user
-> > application.
-> 
-> To be honest, I don't see the need for this. I think
-> TYPE_VIDEO_CAPTURE and
-> TYPE_VIDEO_OUTPUT are perfectly fine.
-> 
-[Hiremath, Vaibhav] Agreed, and you will also find implementation of driver aligned to this which I have shared with you.
-
-> > And as acknowledged by you, we can use VIDIOC_S_FMT for setting
-> > parameters.
-> >
-> > One thing I am not able to convince myself is that, using "priv"
-> field
-> > for custom configuration.
-> 
-> I agree. Especially since you cannot use it as a pointer to addition
-> information.
-> 
-> > I would prefer and recommend capability based
-> > interface, where application will query the capability of the
-> device for
-> > luma enhancement, filter coefficients (number of coeff and depth),
-> > interpolation type, etc...
-> >
-> > This way we can make sure that, any such future devices can be
-> adapted by
-> > this framework.
-> 
-> The big question is how many of these capabilities are 'generic' and
-> how
-> many are very much hardware specific. I am leaning towards using the
-> extended control API for this. It's a bit awkward to implement in
-> drivers
-> at the moment, but that should improve in the future when a lot of
-> the
-> control handling code will move into the new core framework.
-> 
-> I really need to know more about the sort of features that
-> omap/davinci
-> offer (and preferably also for similar devices by other
-> manufacturers).
-> 
-[Hiremath, Vaibhav] Hans, Can we have IRC session for this? We will discuss this in detail and try to get closure on it.
-
-Again I would request you to join me and mauro on IRC chat, I will be staying online tomorrow.
-
-> >
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
+-- 
+Best regards, Klimov Alexey
