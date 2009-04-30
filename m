@@ -1,103 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.seznam.cz ([77.75.72.43]:45030 "EHLO smtp.seznam.cz"
+Received: from www.youplala.net ([88.191.51.216]:47328 "EHLO mail.youplala.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S936746AbZDIUuF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Apr 2009 16:50:05 -0400
-From: Oldrich Jedlicka <oldium.pro@seznam.cz>
-To: Jean Delvare <khali@linux-fr.org>
-Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding model
-Date: Thu, 9 Apr 2009 21:15:30 +0200
-Cc: hermann pitton <hermann-pitton@arcor.de>,
-	Mark Schultz <n9xmj@yahoo.com>,
-	Brian Rogers <brian_rogers@comcast.net>,
-	Andy Walls <awalls@radix.net>, Janne Grunau <j@jannau.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mike Isely <isely@pobox.com>, isely@isely.net,
-	LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jarod Wilson <jarod@redhat.com>
-References: <20090404142427.6e81f316@hyperion.delvare> <20090406104045.58da67c7@hyperion.delvare> <1239052236.4925.20.camel@pc07.localdom.local>
-In-Reply-To: <1239052236.4925.20.camel@pc07.localdom.local>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+	id S1762459AbZD3PJD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Apr 2009 11:09:03 -0400
+Received: from [134.32.138.73] (unknown [134.32.138.73])
+	by mail.youplala.net (Postfix) with ESMTPSA id 56B12D880AC
+	for <linux-media@vger.kernel.org>; Thu, 30 Apr 2009 17:08:45 +0200 (CEST)
+Subject: Re: Nova-T 500 does not survive reboot
+From: Nicolas Will <nico@youplala.net>
+To: linux-media@vger.kernel.org
+In-Reply-To: <20090430135641.91441beqhfo80o4k@www.stud.uni-hannover.de>
+References: <20090430135641.91441beqhfo80o4k@www.stud.uni-hannover.de>
+Content-Type: text/plain
+Date: Thu, 30 Apr 2009 16:08:44 +0100
+Message-Id: <1241104124.5168.46.camel@acropora>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200904092115.30426.oldium.pro@seznam.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 06 of April 2009 at 23:10:36, hermann pitton wrote:
-> Hi Jean,
->
-> Am Montag, den 06.04.2009, 10:40 +0200 schrieb Jean Delvare:
-> > On Sun, 05 Apr 2009 23:22:03 +0200, drunk and tired hermann pitton wrote:
->
-> don't tell me the French vine is always better.
-> You likely know who introduced that currency once :)
->
-> > > Hmm, I'm still "happy" with the broken DVB-T for saa7134 on 2.6.29,
-> > > tasting some Chianti vine now and need to sleep soon, but I'm also not
-> > > that confident that your saa7134 MSI TV@nywhere Plus i2c remote does
-> > > work addressing it directly, since previous reports always said it
-> > > becomes only visible at all after other devices are probed previously.
-> > >
-> > > Unfortunately I can't test it, but will try to reach some with such
-> > > hardware and ask for testing, likely not on the list currently.
-> >
-> > Thanks for the heads up. I was curious about this as well. The original
-> > comment said that the MSI TV@nywhere Plus IR receiver would not respond
-> > to _probes_ before another device on the I2C bus was accessed. I didn't
-> > know for sure if this only applied to the probe sequence or to any
-> > attempt to access the IR receiver. As we no longer need to probe for
-> > the device, I thought it may be OK to remove the extra code. But
-> > probably the removal of the extra code should be delayed until we find
-> > one tester to confirm the exact behavior. Here, done.
-> >
-> > Anyone out there with a MSI TV@nywhere Plus that could help with
-> > testing?
+On Thu, 2009-04-30 at 13:56 +0200, Soeren.Moch@stud.uni-hannover.de
+wrote:
+> > Apr 29 22:42:41 favia kernel: [   72.272045] ehci_hcd
+> 0000:07:01.2:  
+> > force halt; handhake ffffc20000666814 00004000 00000000 -> -110
+> > [...]
+> > Do you know if the issue is the same with a Nova-TD stick? If it is,
+> > then I could be able to use debugging as an excuse to buy one, and
+> then
+> > add 2 tuners to the system when all is done :o)
+> 
+> I had the same "ehci_hcd force halt" error when I was debugging the
+> Nova-TD dual-stream-switchon-problem:
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg04643.html
+> 
+> Reducing the urb count to 1 (as included in the patch) solved the
+> "ehci_hcd force halt" issue for me.
 
-Hi Jean,
+I mention that the URB part is a quick hack.
 
-I've tried your patches with AverMedia Cardbus Hybrid (E506R) and they works 
-fine.
+You were asking for opinions on that, and apparently did not get any
+feedback.
 
-My current experience with AverMedia's IR chip (I don't know which one is on 
-the card) is that I2C probing didn't find anything, but it got the chip into 
-some strange state - next operation failed (so that the autodetection on 
-address 0x40 and "subaddress" 0x0b/0x0d failed).
+Time for another call?
 
-The chip at address 0x40 needs the write first (one byte: 0x0b or 0x0d) and 
-immediate read, otherwise it would not respond. The saa7134's I2C 0xfd quirk 
-(actually I would call it a hack :-)) caused failures in communication with 
-the IR chip.
-
-The way I'm doing the IR reading is the same as the Windows driver does - I 
-got the information through the Qemu with pci-proxy patch applied.
-
-Cheers,
-Oldrich.
-
->
-> Here is a link to one of the initial reports by Henry, others are close
-> to it.
->
-> http://marc.info/?l=linux-video&m=113324147429459&w=2
->
-> There are two different variants of that MSI card, but that undocumented
-> KS003 chip is the same on them.
->
-> We still have lots of for the remote unsupported cards with KS chips,
-> many from Kworld. Some of these chips are also seen on cx88xx cards
-> already and other drivers may follow.
->
-> Henry doesn't have this card anymore, but maybe Mark and Brian can test
-> and Oldrich might give feedback for the Avermedia.
->
-
-
-
-> Cheers,
-> Hermann
-
+Nico
 
