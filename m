@@ -1,72 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tichy.grunau.be ([85.131.189.73]:46586 "EHLO tichy.grunau.be"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751847AbZDEScV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Apr 2009 14:32:21 -0400
-Date: Sun, 5 Apr 2009 20:31:54 +0200
-From: Janne Grunau <j@jannau.net>
-To: Andy Walls <awalls@radix.net>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Jean Delvare <khali@linux-fr.org>,
-	Mike Isely <isely@pobox.com>, isely@isely.net,
-	LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jarod Wilson <jarod@redhat.com>
-Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
-	model
-Message-ID: <20090405183154.GE10556@aniel>
-References: <20090404142427.6e81f316@hyperion.delvare> <Pine.LNX.4.64.0904041045380.32720@cnc.isely.net> <20090405010539.187e6268@hyperion.delvare> <200904050746.47451.hverkuil@xs4all.nl> <20090405143748.GC10556@aniel> <1238953174.3337.12.camel@morgan.walls.org>
+Received: from wf-out-1314.google.com ([209.85.200.174]:48417 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751706AbZD3Jcv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Apr 2009 05:32:51 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so1293345wfd.4
+        for <linux-media@vger.kernel.org>; Thu, 30 Apr 2009 02:32:51 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1238953174.3337.12.camel@morgan.walls.org>
+In-Reply-To: <0A882F4D99BBF6449D58E61AAFD7EDD613793923@pdsmsx502.ccr.corp.intel.com>
+References: <90b950fc0904292317m500820efv66755aed31b46853@mail.gmail.com>
+	 <5A47E75E594F054BAF48C5E4FC4B92AB030548BA1B@dbde02.ent.ti.com>
+	 <0A882F4D99BBF6449D58E61AAFD7EDD613793923@pdsmsx502.ccr.corp.intel.com>
+Date: Thu, 30 Apr 2009 18:32:51 +0900
+Message-ID: <5e9665e10904300232teee3ddq95e3cb60d95445e4@mail.gmail.com>
+Subject: Re: [PATCH 0/5] V4L2 patches for Intel Moorestown Camera Imaging
+	Drivers
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Johnson, Charles F" <charles.f.johnson@intel.com>,
+	"Zhu, Daniel" <daniel.zhu@intel.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Apr 05, 2009 at 01:39:33PM -0400, Andy Walls wrote:
-> On Sun, 2009-04-05 at 16:37 +0200, Janne Grunau wrote:
-> > 
-> > I would guess that it won't work. There is an effort to merge lirc. It's
-> > currently stalled though.
-> 
-> Perhaps you and Jarrod and Christopher have already discussed this,
-> but...
-> 
-> Instead of trying to push all of the LIRC kernel components through in
-> one big patch set, perhaps it would be easier to just get the lirc_dev
-> and any other needed infrastructure components in first.
-> 
-> If one focuses on satisfying the LKML comments to lirc_dev and the
-> Makefile to get that kernel module in the kernel, then, at least for
-> video card hosted IR devices, there is an infrastructure to which to
-> hook new or rewritten i2c IR driver modules.
+Hello Xiaolin,
 
-I guess lkml would NAK patches adding infrastructure only bits but we
-will probably for the next patchset concentrate on a few lirc drivers.
-Christopher doesn't participate in the merge attempt.
+I think the first patch is missing. Following your description, it may
+be the "Intel Moorestown ISP driver.".
+Can you re-post it please?
+BTW, I didn't notice that Atom processor had a camera interface, and
+even it supports dual camera as well. Can I find some datasheet or
+user manual to take a look at how it works?
+Cheers,
 
-> >  A git tree is available at
-> > 
-> > git://git.wilsonet.com/linux-2.6-lirc.git
-> > 
-> > Jared Wilson and I were working on it (mainly last september). Since the
-> > IR on the HD PVR is also driven by the same zilog chip as on other
-> > hauppauge devices I'll take of lirc_zilog. Help converting the i2c
-> > drivers to the new i2c model is welcome. General cleanup of lirc to make
-> > it ready for mainline is of course wellcome too.
-> 
-> I can help with this.  I'm mainly concerned with lirc_dev, lirc_i2c (for
-> Rx only use of the zilog at 0x71), lirc_zilog, and lirc_mceusb2.  That's
-> because, of course, I have devices that use those modules. :)
+Nate
 
-I have devices for lirc_zilog (which should probably be merged with
-lirc_i2c) and lirc serial. Jarod has at least mce usb and imon devices.
-That are probably the devices we'll concentrate on the next submission.
+On Thu, Apr 30, 2009 at 5:18 PM, Zhang, Xiaolin <xiaolin.zhang@intel.com> wrote:
+> Hi All,
+>
+> Here is the a set of V4L2 camera sensors and ISP drivers to support the Intel Moorestown camera imaging subsystem. The Camera Imaging interface in Moorestown is responsible for capturing both still and video frames. The CI handles demosaicing, color synthesis, filtering, image enhancement functions and JPEG encode. Intel Moorestown platform can support either a single camera or two cameras. A platform with two cameras will have on the same side as this display and the second on the opposite side the display. The camera on the display side will be used for video conferencing (with low resolution SoC cameras) and the other camera is used to still image capture or video recode (with high resolution RAW cameras).
+>
+> In this set of driver patches, I will submit the 5 patches to enable the ISP HW and 3 cameras module (two SoCs: 1.3MP - Omnivision 9665, 2MP - Omnivison 2650 and one RAW: 5MP - Omnivision 5630).
+> 1. Intel Moorestown ISP driver.
+> 2. Intel Moorestown camera sensor pseudo driver. This is to uniform the interfaces for ISP due to supporting dual cameras.
+> 3. Intel Moorestown 2MP camera sensor driver.
+> 4. Intel Moorestown 5MP camera sensor driver.
+> 5. Intel Moorestown 1.3MP camera sensor driver.
+>
+> I will post the above 5 patches in near feature.
+>
+> Regards,
+>
+> Xiaolin
+> Xiaolin.zhang@intel.com
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-> lirc_dev and the API header would be my first priority, if you need
-> help.  Did anyone consolidate all the comments from the LKML on Jarrod's
-> patch submission?
 
-no and I lost track which comments were already handled.
 
-Janne
+-- 
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
