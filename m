@@ -1,133 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:60748 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752607AbZDDW0t (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 4 Apr 2009 18:26:49 -0400
-Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
-	model
-From: Andy Walls <awalls@radix.net>
-To: Mike Isely <isely@pobox.com>
-Cc: Jean Delvare <khali@linux-fr.org>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <Pine.LNX.4.64.0904041059080.32720@cnc.isely.net>
-References: <20090404142427.6e81f316@hyperion.delvare>
-	 <20090404142837.3e12824c@hyperion.delvare>
-	 <1238852529.2845.34.camel@morgan.walls.org>
-	 <Pine.LNX.4.64.0904041059080.32720@cnc.isely.net>
-Content-Type: text/plain
-Date: Sat, 04 Apr 2009 18:24:15 -0400
-Message-Id: <1238883855.2995.30.camel@morgan.walls.org>
-Mime-Version: 1.0
+Received: from smtp0.lie-comtel.li ([217.173.238.80]:53608 "EHLO
+	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933999AbZD3RwD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Apr 2009 13:52:03 -0400
+Message-ID: <49F9E540.5030909@kaiser-linux.li>
+Date: Thu, 30 Apr 2009 19:52:00 +0200
+From: Thomas Kaiser <v4l@kaiser-linux.li>
+MIME-Version: 1.0
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+CC: Wolfram Sang <w.sang@pengutronix.de>, linux-media@vger.kernel.org
+Subject: Re: Donating a mr97310 based elta-media 8212dc (0x093a:0x010e)
+References: <20090430022847.GA15183@pengutronix.de> <alpine.LNX.2.00.0904300953330.21567@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0904300953330.21567@banach.math.auburn.edu>
+Content-Type: text/plain; charset=US-ASCII; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-04-04 at 11:05 -0500, Mike Isely wrote:
-> On Sat, 4 Apr 2009, Andy Walls wrote:
+On 04/30/2009 05:24 PM, Theodore Kilgore wrote:
 > 
->    [...]
+> On Thu, 30 Apr 2009, Wolfram Sang wrote:
 > 
-> > 
-> > I have an I2C related question.  If the cx18 or ivtv driver autoloads
-> > "ir-kbd-i2c" and registers an I2C client on the bus, does that preclude
-> > lirc_i2c, lirc_pvr150 or lirc_zilog from using the device?  LIRC users
-> > may notice, if it does.
-> > 
-> > If that is the case, then we probably shouldn't autoload the ir-kbd
-> > module after the CX23418 i2c adapters are initialized.  
-> > 
-> > I'm not sure what's the best solution:
-> > 
-> > 1. A module option to the cx18 driver to tell it to call
-> > init_cx18_i2c_ir() from cx18_probe() or not? (Easiest solution)
-> > 
-> > 2. Some involved programmatic way for IR device modules to query bridge
-> > drivers about what IR devices they may have, and on which I2C bus, and
-> > at what addresses to probe, and whether a driver/module has already
-> > claimed that device? (Gold plated solution)
-
-I was thinking about this while mowing the lawn today....
-
-The objectives seem to be:
-
-1. Avoid auto probing
-2. Leverage the bridge driver's knowledge of what should be available
-3. Allow the user to dictate which kernel IR driver module be used with
-the subordinate device.
-
-
-So my rough outline of an idea (which probably runs slightly afoul of
-Hans' media_controller device, but we don't have it yet):
-
-1. Add a function to the v4l2 framework to iterate over all the
-v4l2_device's that are registered (if there isn't one already).
-
-2. Add a method to the v4l2_device class to return the IR subdevice for
-a given v4l2_device:
-
-	v4l2_subdev *v4l2_device_get_ir_subdev(v4l2_device *dev);
-
-and if it returns NULL, that device has no IR chip.
-
-
-3. To the v4l2_subdev framework add:
-
-	struct v4l2_subdev_ir_ops {
-		(*enumerate) (v4l2_subdev *sd, /* bus_type, bus #, addr for Rx, addr for Tx */);
-		(*claim) (v4l2_subdev *sd, /* claiming driver name string, going-away callback function pointer */);
-		(*release) (v4l2_subdev *sd, /* handle */);
-		bool (*is_claimed) (v4l2_subdev *sd, /* output string of the "owner" */);
-		/* Or maybe just */
-		(*send) (v4l2_subdev *sd, /* data buffer */);
-		(*receive) (v4l2_subdev *sd, /* data buffer */);
-	}
-
-and have the bridge driver support these.  (I also had some in mind for
-the IR micro-controller debug/programming port, but the above will fit
-the task at hand I think.)
-
-
-OK so that's all a bit rough around the edges.  The idea is a uniform
-call in for ir-kdb-i2c or lirc_foo or ir_foo to get at an IR chip behind
-a bridge device, that the bridge device driver itself cares about very
-little.  *Except* ir driver modules would be coordinated by the bridge
-driver in what they can and cannot do to get at the IR device.  This
-coordination prevents bad things on the bridge chip's I2C bus(es) or
-from having modules racing to get the IR device.  That way whatever
-module the user loads will get first shot at claiming the IR chip.  This
-also provides a discovery mechanism four use by ir driver modules that
-is informed by the bridge chip driver.  I think lirc_foo can also still
-use it's current way of doing business too. 
-
-It really just looks like a small subset of what Hans intended for the
-media controller, so maybe this would be a good chance to get some
-"lessons learned."
-
-Regards,
-Andy
-
-> > Regards,
-> > Andy
+>> Hi all,
+>>
+>> I recently found an elta media dc8212 camera (usb-id: 0x093a:0x010e) 
+>> in a pile
+>> of old hardware. When looking for linux-support (out of curiosity, I 
+>> don't need
+>> the cam), I saw that there is activity regarding these types of camera
+>> (mr97310) right now. As I am currently busy in other departments of 
+>> the kernel,
+>> I was wondering if somebody here is interested in getting the camera 
+>> to do
+>> further research? If so, just drop me a mail and I will send it 
+>> free-of-charge.
+>>
+>> Regards,
+>>
+>>   Wolfram
+>>
+>> PS: The camera still works. Just checked with another OS on a friend's 
+>> machine.
+>>
+>> -- 
+>> Pengutronix e.K.                           | Wolfram 
+>> Sang                |
+>> Industrial Linux Solutions                 | 
+>> http://www.pengutronix.de/  |
+>>
 > 
-> Ah, glad to see I'm not the only one concerned about this.
+> Hi,
 > 
-> I suppose I could instead add a module option to the pvrusb2 driver to 
-> control autoloading of ir-kbd (option 1).  It also should probably be a 
-> per-device attribute, since AFAIK, ir-kbd only even works when using 
-> older Hauppauge IR receivers (i.e. lirc_i2c - cases that would otherwise 
-> use lirc_pvr150 or lirc_zilog I believe do not work with ir-kbd).  Some 
-> devices handled by the pvrusb2 driver are not from Hauppauge.  Too bad 
-> if this is the case, it was easier to let the user decide just by 
-> choosing which actual module to load.
+> If you want to do such a thing, I think it is very kind of you. As for 
+> myself, I suspect that I already have three or four similar cameras, and 
+> so I probably do not really need another one. Also, judging from your 
+> e-mail address you are in Germany and I am in the US, making it a less 
+> desirable prospect to ship such an object for such a distance.
+> 
+> Therefore, I would offer the suggestion that the camera should go to 
+> Kyle Guin, who wrote the kernel support, or, if he is also in the US (I 
+> do not know where he lives) then perhaps to Thomas Kaiser, who lives a 
+> bit closer to you. I think that all three of us are equally interested 
+> but as I said I do not believe that I need another one of these cameras. 
+> In case that I have missed someone else who might be interested, that is 
+> inadvertent on my part.
 
-I think we can get there and still have the random probing reduced.
+Hello Wolfram, Theodore and Kyle
 
-Regards,
-Andy
+While Theodore is mentioning my name and I live close to Germany, I show 
+my interest for the cam. Anyway, if it is better to send to someone 
+else, that's no problem for me.
 
+Theodore and I exchanged some mails about the compression algorithm of 
+this cam already and it would be nice for me to do something with the 
+real hardware.
 
->   -Mike
+Anyway I showed my interest in the compression of the stream because the 
+vendor ID is the same like the Pixart cams (PAC207, PAC7311) for which I 
+wrote the initial drivers and found the decompression algorithm with the 
+help of others.
 
+Maybe the idea from Theodore to send the cam to me is not such a bad 
+idea ;-)
 
+Should we discuss here for some days to find out who can make the most 
+progress with this cam?
+
+Wolfram, thanks for the offer to donate the cam!
+
+Thomas
