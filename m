@@ -1,147 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110804.mail.gq1.yahoo.com ([67.195.13.227]:31278 "HELO
-	web110804.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752525AbZDEI0x convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Apr 2009 04:26:53 -0400
-Message-ID: <205937.93854.qm@web110804.mail.gq1.yahoo.com>
-Date: Sun, 5 Apr 2009 01:26:50 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [0904_5] Siano: core header - indentation
-To: LinuxML <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Received: from zone0.gcu-squad.org ([212.85.147.21]:4920 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932219AbZD3PgL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Apr 2009 11:36:11 -0400
+Date: Thu, 30 Apr 2009 17:35:54 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Mike Isely <isely@pobox.com>
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: [PATCH] pvrusb2: Don't use the internal i2c client list
+Message-ID: <20090430173554.4cb2f585@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The i2c core used to maintain a list of client for each adapter. This
+is a duplication of what the driver core already does, so this list
+will be removed as part of a future cleanup. Anyone using this list
+must stop doing so.
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1238692457 -10800
-# Node ID eb9fed366b2bb2b8a99760f52b9c0e40d72a71e0
-# Parent  83b19eba46dd4f8253d02c26db4f42728d60e28f
-[PATCH] [0904_5] Siano: core header - indentation
+For pvrusb2, I propose the following change, which should lead to an
+equally informative output. The only difference is that i2c clients
+which are not a v4l2 subdev won't show up, but I guess this case is
+not supposed to happen anyway.
 
-From: Uri Shkolnik <uris@siano-ms.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Mike Isely <isely@pobox.com>
+---
+Mike, can you please review and test this patch? Thanks.
 
-Some more indentation for the smscoreapi.h
-There are no implementation changes in this patch.
+ linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c |   56 +++++------------------
+ 1 file changed, 13 insertions(+), 43 deletions(-)
 
-Priority: normal
-
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-
-diff -r 83b19eba46dd -r eb9fed366b2b linux/drivers/media/dvb/siano/smscoreapi.h
---- a/linux/drivers/media/dvb/siano/smscoreapi.h	Thu Apr 02 20:07:49 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Thu Apr 02 20:14:17 2009 +0300
-@@ -55,14 +55,14 @@ along with this program.  If not, see <h
- #define min(a, b) (((a) < (b)) ? (a) : (b))
- #endif
+--- v4l-dvb.orig/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	2009-04-30 16:52:32.000000000 +0200
++++ v4l-dvb/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	2009-04-30 17:20:37.000000000 +0200
+@@ -4920,65 +4920,35 @@ static unsigned int pvr2_hdw_report_clie
+ 	unsigned int tcnt = 0;
+ 	unsigned int ccnt;
+ 	struct i2c_client *client;
+-	struct list_head *item;
+-	void *cd;
+ 	const char *p;
+ 	unsigned int id;
  
--#define SMS_PROTOCOL_MAX_RAOUNDTRIP_MS				(10000)
--#define SMS_ALLOC_ALIGNMENT					128
--#define SMS_DMA_ALIGNMENT					16
-+#define SMS_PROTOCOL_MAX_RAOUNDTRIP_MS			(10000)
-+#define SMS_ALLOC_ALIGNMENT				128
-+#define SMS_DMA_ALIGNMENT				16
- #define SMS_ALIGN_ADDRESS(addr) \
- 	((((uintptr_t)(addr)) + (SMS_DMA_ALIGNMENT-1)) & ~(SMS_DMA_ALIGNMENT-1))
- 
--#define SMS_DEVICE_FAMILY2					1
--#define SMS_ROM_NO_RESPONSE					2
-+#define SMS_DEVICE_FAMILY2				1
-+#define SMS_ROM_NO_RESPONSE				2
- #define SMS_DEVICE_NOT_READY				0x8000000
- 
- enum sms_device_type_st {
-@@ -93,13 +93,13 @@ struct smscore_buffer_t {
- struct smscore_buffer_t {
- 	/* public members, once passed to clients can be changed freely */
- 	struct list_head entry;
--	int				size;
--	int				offset;
-+	int size;
-+	int offset;
- 
- 	/* private members, read-only for clients */
--	void			*p;
--	dma_addr_t		phys;
--	unsigned long	offset_in_common;
-+	void *p;
-+	dma_addr_t phys;
-+	unsigned long offset_in_common;
- };
- 
- struct smsdevice_params_t {
-@@ -126,7 +126,6 @@ struct smsclient_params_t {
- 	int data_type;
- 	onresponse_t onresponse_handler;
- 	onremove_t onremove_handler;
+-	ccnt = scnprintf(buf, acnt, "Associated v4l2-subdev drivers:");
++	ccnt = scnprintf(buf, acnt, "Associated v4l2-subdev drivers and I2C clients:\n");
+ 	tcnt += ccnt;
+ 	v4l2_device_for_each_subdev(sd, &hdw->v4l2_dev) {
+ 		id = sd->grp_id;
+ 		p = NULL;
+ 		if (id < ARRAY_SIZE(module_names)) p = module_names[id];
+ 		if (p) {
+-			ccnt = scnprintf(buf + tcnt, acnt - tcnt, " %s", p);
++			ccnt = scnprintf(buf + tcnt, acnt - tcnt, "  %s:", p);
+ 			tcnt += ccnt;
+ 		} else {
+ 			ccnt = scnprintf(buf + tcnt, acnt - tcnt,
+-					 " (unknown id=%u)", id);
++					 "  (unknown id=%u):", id);
+ 			tcnt += ccnt;
+ 		}
+-	}
+-	ccnt = scnprintf(buf + tcnt, acnt - tcnt, "\n");
+-	tcnt += ccnt;
 -
- 	void *context;
- };
- 
-@@ -262,13 +261,14 @@ struct smscore_device_t {
- #define MSG_SMS_SIGNAL_DETECTED_IND			827
- #define MSG_SMS_NO_SIGNAL_IND				828
- 
+-	ccnt = scnprintf(buf + tcnt, acnt - tcnt, "I2C clients:\n");
+-	tcnt += ccnt;
 -
- #define SMS_INIT_MSG_EX(ptr, type, src, dst, len) do { \
- 	(ptr)->msgType = type; (ptr)->msgSrcId = src; (ptr)->msgDstId = dst; \
- 	(ptr)->msgLength = len; (ptr)->msgFlags = 0; \
- } while (0)
-+
- #define SMS_INIT_MSG(ptr, type, len) \
- 	SMS_INIT_MSG_EX(ptr, type, 0, HIF_TASK, len)
-+
- enum SMS_DVB3_EVENTS {
- 	DVB3_EVENT_INIT = 0,
- 	DVB3_EVENT_SLEEP,
-@@ -324,11 +324,12 @@ struct SmsVersionRes_ST {
- 	u8 Step; /* 0 - Step A */
- 	u8 MetalFix; /* 0 - Metal 0 */
+-	mutex_lock(&hdw->i2c_adap.clist_lock);
+-	list_for_each(item, &hdw->i2c_adap.clients) {
+-		client = list_entry(item, struct i2c_client, list);
+-		ccnt = scnprintf(buf + tcnt, acnt - tcnt,
+-				 "  %s: i2c=%02x", client->name, client->addr);
+-		tcnt += ccnt;
+-		cd = i2c_get_clientdata(client);
+-		v4l2_device_for_each_subdev(sd, &hdw->v4l2_dev) {
+-			if (cd == sd) {
+-				id = sd->grp_id;
+-				p = NULL;
+-				if (id < ARRAY_SIZE(module_names)) {
+-					p = module_names[id];
+-				}
+-				if (p) {
+-					ccnt = scnprintf(buf + tcnt,
+-							 acnt - tcnt,
+-							 " subdev=%s", p);
+-					tcnt += ccnt;
+-				} else {
+-					ccnt = scnprintf(buf + tcnt,
+-							 acnt - tcnt,
+-							 " subdev= id %u)",
+-							 id);
+-					tcnt += ccnt;
+-				}
+-				break;
+-			}
++		client = v4l2_get_subdevdata(sd);
++		if (client) {
++			ccnt = scnprintf(buf + tcnt, acnt - tcnt,
++					 " %s @ %02x\n", client->name,
++					 client->addr);
++			tcnt += ccnt;
++		} else {
++			ccnt = scnprintf(buf + tcnt, acnt - tcnt,
++					 " no i2c client\n");
++			tcnt += ccnt;
+ 		}
+-		ccnt = scnprintf(buf + tcnt, acnt - tcnt, "\n");
+-		tcnt += ccnt;
+ 	}
+-	mutex_unlock(&hdw->i2c_adap.clist_lock);
+ 	return tcnt;
+ }
  
--	u8 FirmwareId; /* 0xFF � ROM, otherwise the
--	 * value indicated by
--	 * SMSHOSTLIB_DEVICE_MODES_E */
--	u8 SupportedProtocols; /* Bitwise OR combination of
-+	/* FirmwareId 0xFF if ROM, otherwise the
-+	 * value indicated by SMSHOSTLIB_DEVICE_MODES_E */
-+	u8 FirmwareId;
-+	/* SupportedProtocols Bitwise OR combination of
- 	 * supported protocols */
-+	u8 SupportedProtocols;
- 
- 	u8 VersionMajor;
- 	u8 VersionMinor;
-@@ -362,10 +363,12 @@ struct SMSHOSTLIB_STATISTICS_ST {
- 	s32 SNR; /* dB */
- 	u32 BER; /* Post Viterbi BER [1E-5] */
- 	u32 FIB_CRC; /* CRC errors percentage, valid only for DAB */
--	u32 TS_PER; /* Transport stream PER, 0xFFFFFFFF indicate N/A,
-+	/* Transport stream PER, 0xFFFFFFFF indicate N/A,
- 	 * valid only for DVB-T/H */
--	u32 MFER; /* DVB-H frame error rate in percentage,
-+	u32 TS_PER;
-+	/* DVB-H frame error rate in percentage,
- 	 * 0xFFFFFFFF indicate N/A, valid only for DVB-H */
-+	u32 MFER;
- 	s32 RSSI; /* dBm */
- 	s32 InBandPwr; /* In band power in dBM */
- 	s32 CarrierOffset; /* Carrier Offset in bin/1024 */
-@@ -373,8 +376,9 @@ struct SMSHOSTLIB_STATISTICS_ST {
- 	/* Transmission parameters, valid only for DVB-T/H */
- 	u32 Frequency; /* Frequency in Hz */
- 	u32 Bandwidth; /* Bandwidth in MHz */
--	u32 TransmissionMode; /* Transmission Mode, for DAB modes 1-4,
-+	/* Transmission Mode, for DAB modes 1-4,
- 	 * for DVB-T/H FFT mode carriers in Kilos */
-+	u32 TransmissionMode;
- 	u32 ModemState; /* from SMS_DvbModemState_ET */
- 	u32 GuardInterval; /* Guard Interval, 1 divided by value */
- 	u32 CodeRate; /* Code Rate from SMS_DvbModemState_ET */
 
 
-
-      
+-- 
+Jean Delvare
