@@ -1,116 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50737 "EHLO arroyo.ext.ti.com"
+Received: from main.gmane.org ([80.91.229.2]:34824 "EHLO ciao.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753004AbZDFMkx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Apr 2009 08:40:53 -0400
-From: Hardik Shah <hardik.shah@ti.com>
+	id S1751405AbZD3KZD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Apr 2009 06:25:03 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1LzTRu-0003kQ-SC
+	for linux-media@vger.kernel.org; Thu, 30 Apr 2009 10:25:03 +0000
+Received: from 31.210.219.87.dynamic.jazztel.es ([87.219.210.31])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 30 Apr 2009 10:25:02 +0000
+Received: from eduardhc by 31.210.219.87.dynamic.jazztel.es with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 30 Apr 2009 10:25:02 +0000
 To: linux-media@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, Hardik Shah <hardik.shah@ti.com>,
-	Brijesh Jadav <brijesh.j@ti.com>,
-	Vaibhav Hiremath <hvaibhav@ti.com>
-Subject: [PATCH 2/3] New V4L2 CIDs for OMAP class of Devices.
-Date: Mon,  6 Apr 2009 18:10:44 +0530
-Message-Id: <1239021644-16337-1-git-send-email-hardik.shah@ti.com>
+From: Eduard Huguet <eduardhc@gmail.com>
+Subject: Re: Nova-T 500 does not survive reboot
+Date: Thu, 30 Apr 2009 10:16:27 +0000 (UTC)
+Message-ID: <loom.20090430T101124-541@post.gmane.org>
+References: <1241068523.4632.8.camel@youkaida>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Added V4L2_CID_BG_COLOR for background color setting.
-Added V4L2_CID_ROTATION for rotation setting.
-Above two ioclts are indepth discussed. Posting
-again with the driver usage.
+Nicolas Will <nico <at> youplala.net> writes:
 
-V4L2 supports chroma keying added new flags for the
-source chroma keying which is exactly opposite of the
-chorma keying supported by V4L2.
+> 
+> Hello all,
+> 
+> I am running an hg clone from a few days ago with firmware 1.20 on a
+> 64-bit Ubuntu Intrepid (2.6.27 kernel).
+> 
+> I have noticed that for some time now the card/driver/firmware
+> combination does not like warm reboots.
+> 
+> If I reboot the system and try to use any Nova-T 500 tuner, I
+> immediately get the mt2060 I2C errors.
+> 
+> If I completely shut down the system, remove the power, then reboot, all
+> is fine.
+> 
+> I have missed most of the linux-media traffic, I was still stuck on
+> linux-dvb. Have I missed some discussions about this?
+> 
+> Thanks!
+> 
+> Nico
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo <at> vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
-In current implementation framebuffer pixels with
-the chromakey color are replaced by video pixels.
 
-While for the source chroma keying video pixels with
-the chromakey color are replaced by the framebuffer
-pixels.
+Hi, Nicholas
 
-Both are exactly opposite and so are mutually exclusive
+I posted the very same thing 3 days ago:
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/4973
 
-Community Comments fixed in this post
-1. Replaced V4L2_CID_ROTATION by V4L2_CID_ROTATE.
-2. Initilize min and max values for V4L2_CID_BG_COLOR
-control id.
-3. Other minor comments fixed
 
-Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-Signed-off-by: Hardik Shah <hardik.shah@ti.com>
-Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
----
- linux/drivers/media/video/v4l2-common.c |    9 +++++++++
- linux/include/linux/videodev2.h         |    6 +++++-
- 2 files changed, 14 insertions(+), 1 deletions(-)
+This is something that has been occuring lately, since some months ago. I don't
+know when exactly was this bug introduced, but it has been in HG for a couple of
+months at least. I can remenber that other guy posted about this issue some time
+ago, but I can't find the link.
 
-diff --git a/linux/drivers/media/video/v4l2-common.c b/linux/drivers/media/video/v4l2-common.c
-index d75d89c..e44b432 100644
---- a/linux/drivers/media/video/v4l2-common.c
-+++ b/linux/drivers/media/video/v4l2-common.c
-@@ -422,6 +422,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_CHROMA_AGC:		return "Chroma AGC";
- 	case V4L2_CID_COLOR_KILLER:		return "Color Killer";
- 	case V4L2_CID_COLORFX:			return "Color Effects";
-+	case V4L2_CID_ROTATE:	                return "Rotate";
-+	case V4L2_CID_BG_COLOR:                 return "Background color";
 
- 	/* MPEG controls */
- 	case V4L2_CID_MPEG_CLASS: 		return "MPEG Encoder Controls";
-@@ -547,6 +549,13 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
- 		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 		min = max = step = def = 0;
- 		break;
-+	case V4L2_CID_BG_COLOR:
-+		 qctrl->type = V4L2_CTRL_TYPE_INTEGER;
-+		 step = 1;
-+		 min = 0;
-+		 /* Max is calculated as RGB888 that is 2^12*/
-+		 max = 0xFFFFFF;
-+		 break;
- 	default:
- 		qctrl->type = V4L2_CTRL_TYPE_INTEGER;
- 		break;
-diff --git a/linux/include/linux/videodev2.h b/linux/include/linux/videodev2.h
-index 82f9e72..f4cd39b 100644
---- a/linux/include/linux/videodev2.h
-+++ b/linux/include/linux/videodev2.h
-@@ -549,6 +549,7 @@ struct v4l2_framebuffer {
- #define V4L2_FBUF_CAP_LOCAL_ALPHA	0x0010
- #define V4L2_FBUF_CAP_GLOBAL_ALPHA	0x0020
- #define V4L2_FBUF_CAP_LOCAL_INV_ALPHA	0x0040
-+#define V4L2_FBUF_CAP_SRC_CHROMAKEY	0x0080
- /*  Flags for the 'flags' field. */
- #define V4L2_FBUF_FLAG_PRIMARY		0x0001
- #define V4L2_FBUF_FLAG_OVERLAY		0x0002
-@@ -556,6 +557,7 @@ struct v4l2_framebuffer {
- #define V4L2_FBUF_FLAG_LOCAL_ALPHA	0x0008
- #define V4L2_FBUF_FLAG_GLOBAL_ALPHA	0x0010
- #define V4L2_FBUF_FLAG_LOCAL_INV_ALPHA	0x0020
-+#define V4L2_FBUF_FLAG_SRC_CHROMAKEY	0x0040
+And for what I see, Janne Grunau is also having problems with the card. See what
+he have just posted...:
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/4973
 
- struct v4l2_clip {
- 	struct v4l2_rect        c;
-@@ -888,6 +890,8 @@ enum v4l2_power_line_frequency {
- #define V4L2_CID_CHROMA_AGC                     (V4L2_CID_BASE+29)
- #define V4L2_CID_COLOR_KILLER                   (V4L2_CID_BASE+30)
- #define V4L2_CID_COLORFX			(V4L2_CID_BASE+31)
-+#define V4L2_CID_ROTATE                     	(V4L2_CID_BASE+32)
-+#define V4L2_CID_BG_COLOR                       (V4L2_CID_BASE+33)
- enum v4l2_colorfx {
- 	V4L2_COLORFX_NONE	= 0,
- 	V4L2_COLORFX_BW		= 1,
-@@ -895,7 +899,7 @@ enum v4l2_colorfx {
- };
+Best regards, 
+  Eduard Huguet
 
- /* last CID + 1 */
--#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+32)
-+#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+34)
 
- /*  MPEG-class control IDs defined by V4L2 */
- #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
---
-1.6.0.3
 
