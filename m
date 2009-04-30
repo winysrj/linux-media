@@ -1,187 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.188]:37866 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757134AbZD1X7Q (ORCPT
+Received: from banach.math.auburn.edu ([131.204.45.3]:50642 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764989AbZD3Sxn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Apr 2009 19:59:16 -0400
-Received: by mu-out-0910.google.com with SMTP id i2so314904mue.1
-        for <linux-media@vger.kernel.org>; Tue, 28 Apr 2009 16:59:14 -0700 (PDT)
-Date: Tue, 28 Apr 2009 19:59:22 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Andy Walls <awalls@radix.net>, video4linux-list@redhat.com,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] FM1216ME_MK3 some changes
-Message-ID: <20090428195922.1a079e46@glory.loctelecom.ru>
-In-Reply-To: <20090428151832.241fa9b4@pedra.chehab.org>
-References: <20090422174848.1be88f61@glory.loctelecom.ru>
-	<1240452534.3232.70.camel@palomino.walls.org>
-	<20090423203618.4ac2bc6f@glory.loctelecom.ru>
-	<1240537394.3231.37.camel@palomino.walls.org>
-	<20090427192905.3ad2b88c@glory.loctelecom.ru>
-	<20090428151832.241fa9b4@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Thu, 30 Apr 2009 14:53:43 -0400
+Date: Thu, 30 Apr 2009 14:07:17 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Thomas Kaiser <v4l@kaiser-linux.li>
+cc: Wolfram Sang <w.sang@pengutronix.de>, linux-media@vger.kernel.org
+Subject: Re: Donating a mr97310 based elta-media 8212dc (0x093a:0x010e)
+In-Reply-To: <49F9E540.5030909@kaiser-linux.li>
+Message-ID: <alpine.LNX.2.00.0904301403480.22336@banach.math.auburn.edu>
+References: <20090430022847.GA15183@pengutronix.de> <alpine.LNX.2.00.0904300953330.21567@banach.math.auburn.edu> <49F9E540.5030909@kaiser-linux.li>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 28 Apr 2009 15:18:32 -0300
-Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
 
-> On Mon, 27 Apr 2009 19:29:05 +1000
-> Dmitri Belimov <d.belimov@gmail.com> wrote:
-> 
-> > Hi All
-> > 
-> > Step by step.
-> > 
-> > This is patch for change only range of FM1216ME_MK3. Slow tunning
-> > is not a big problem.
-> 
-> Dmitri,
-> 
-> I'll mark those patches as RFC at patchwork until the end of those
-> discussions. After that, please send it again into a new thread.
 
-You mark patch with TOP AGC not this.
+On Thu, 30 Apr 2009, Thomas Kaiser wrote:
 
-I think need discuss about FM1216ME_MK3 because I'll have a big patch for support
-control TOP AGC (sensitivity) of this tuner. It can be bad for compatible tuners.
+> On 04/30/2009 05:24 PM, Theodore Kilgore wrote:
+>> 
+>> On Thu, 30 Apr 2009, Wolfram Sang wrote:
+>> 
+>>> Hi all,
+>>> 
+>>> I recently found an elta media dc8212 camera (usb-id: 0x093a:0x010e) in a 
+>>> pile
+>>> of old hardware. When looking for linux-support (out of curiosity, I don't 
+>>> need
+>>> the cam), I saw that there is activity regarding these types of camera
+>>> (mr97310) right now. As I am currently busy in other departments of the 
+>>> kernel,
+>>> I was wondering if somebody here is interested in getting the camera to do
+>>> further research? If so, just drop me a mail and I will send it 
+>>> free-of-charge.
+>>> 
+>>> Regards,
+>>>
+>>>   Wolfram
+>>> 
+>>> PS: The camera still works. Just checked with another OS on a friend's 
+>>> machine.
+>>> 
+>>> -- 
+>>> Pengutronix e.K.                           | Wolfram Sang                |
+>>> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+>>> 
+>> 
+>> Hi,
+>> 
+>> If you want to do such a thing, I think it is very kind of you. As for 
+>> myself, I suspect that I already have three or four similar cameras, and so 
+>> I probably do not really need another one. Also, judging from your e-mail 
+>> address you are in Germany and I am in the US, making it a less desirable 
+>> prospect to ship such an object for such a distance.
+>> 
+>> Therefore, I would offer the suggestion that the camera should go to Kyle 
+>> Guin, who wrote the kernel support, or, if he is also in the US (I do not 
+>> know where he lives) then perhaps to Thomas Kaiser, who lives a bit closer 
+>> to you. I think that all three of us are equally interested but as I said I 
+>> do not believe that I need another one of these cameras. In case that I 
+>> have missed someone else who might be interested, that is inadvertent on my 
+>> part.
+>
+> Hello Wolfram, Theodore and Kyle
+>
+> While Theodore is mentioning my name and I live close to Germany, I show my 
+> interest for the cam. Anyway, if it is better to send to someone else, that's 
+> no problem for me.
+>
+> Theodore and I exchanged some mails about the compression algorithm of this 
+> cam already and it would be nice for me to do something with the real 
+> hardware.
+>
+> Anyway I showed my interest in the compression of the stream because the 
+> vendor ID is the same like the Pixart cams (PAC207, PAC7311) for which I 
+> wrote the initial drivers and found the decompression algorithm with the help 
+> of others.
+>
+> Maybe the idea from Theodore to send the cam to me is not such a bad idea ;-)
+>
+> Should we discuss here for some days to find out who can make the most 
+> progress with this cam?
+>
+> Wolfram, thanks for the offer to donate the cam!
+>
+> Thomas
+>
 
-With my best regards, Dmitry.
+Good luck. Maybe the two of you can actually arrange a hardware swap over 
+a beer.
 
-> 
-> Cheers,
-> Mauro.
-> 
-> > 
-> > diff -r b40d628f830d linux/drivers/media/common/tuners/tuner-types.c
-> > --- a/linux/drivers/media/common/tuners/tuner-types.c	Fri
-> > Apr 24 01:46:41 2009 -0300 +++
-> > b/linux/drivers/media/common/tuners/tuner-types.c	Tue Apr 28
-> > 03:35:42 2009 +1000 @@ -558,8 +558,8 @@ 
-> >  static struct tuner_range tuner_fm1216me_mk3_pal_ranges[] = {
-> >  	{ 16 * 158.00 /*MHz*/, 0x8e, 0x01, },
-> > -	{ 16 * 442.00 /*MHz*/, 0x8e, 0x02, },
-> > -	{ 16 * 999.99        , 0x8e, 0x04, },
-> > +	{ 16 * 441.00 /*MHz*/, 0x8e, 0x02, },
-> > +	{ 16 * 864.00        , 0x8e, 0x04, },
-> >  };
-> >  
-> >  static struct tuner_params tuner_fm1216me_mk3_params[] = {
-> > 
-> > Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov
-> > <d.belimov@gmail.com>
-> > 
-> > 
-> > With my best regards, Dmitry.
-> > 
-> > > Hi Dmitri,
-> > > 
-> > > Thank you for you responses.
-> > > 
-> > > Just a few more comments...
-> > > 
-> > > On Thu, 2009-04-23 at 20:36 +1000, Dmitri Belimov wrote:
-> > > > Hi Andy
-> > > > 
-> > > > > Dmitri,
-> > > > > 
-> > > > > 
-> > > > > On Wed, 2009-04-22 at 17:48 +1000, Dmitri Belimov wrote:
-> > > > > > Hi All
-> > > > > > 
-> > > > > > 1. Change middle band. In the end of the middle band the
-> > > > > > sensitivity of receiver not good. If we switch to higher
-> > > > > > band, sensitivity more better. Hardware trick.
-> > > > > 
-> > > 
-> > > > Several years a go your customers write some messages about bad
-> > > > quality of TV if frequency of TV is the end of band. It can be
-> > > > low band or middle. Our hardware engeneer make some tests with
-> > > > hardware TV generator and our TV tuners.
-> > > > 
-> > > > If we set default frequency range for low and middle band,
-> > > > quality of TV signal on 159MHz and 442 MHz is bad. When we make
-> > > > our changes with moving end of bands the quality of TV much
-> > > > better. And our system programmer for OS Windows use changed
-> > > > bands for drivers. Customers be happy.
-> > > 
-> > > OK.  A properly run experiment wins over theory every time. :)
-> > > 
-> > > 
-> > > 
-> > > > You can test it if in your placement available TV programm on
-> > > > 159MHz or 442MHz. This trick can be usefull for other tuners.
-> > > 
-> > > If you look at tveeprom.c, a number of other tuners are using that
-> > > tuner definition:
-> > > 
-> > > $ grep FM1216ME_MK3 tveeprom.c
-> > > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FQ1216ME
-> > > MK3"}, { TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FM1216 ME
-> > > MK3"}, { TUNER_PHILIPS_FM1216ME_MK3, 	"LG S001D MK3"},
-> > > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"LG S701D MK3"},
-> > > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FQ1216LME
-> > > MK3"}, { TUNER_PHILIPS_FM1216ME_MK3, 	"TCL MFPE05 2"},
-> > > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"TCL MPE05-2"},
-> > > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FM1216ME
-> > > MK5"},
-> > > 
-> > > If your change makes things bad for the other tuners, we'll
-> > > probably have to create an alternate entry for the other tuners
-> > > instead of using the FM1216ME_MK3 defintion.  I suspect most of
-> > > them are clones of the FM1216ME MK3 however, so it probably won't
-> > > matter.
-> > > 
-> > > > > > 3. Set charge pump bit
-> > > > > 
-> > > > > This will improve the time to initially tune to a frequency,
-> > > > > but will likely add some noise as the PLL continues to
-> > > > > maintain lock on the signal.  If there is no way to turn off
-> > > > > the CP after the lock bit is set in the tuner, it's probably
-> > > > > better to leave it off for lower noise and just live with
-> > > > > slower tuning.
-> > > > 
-> > > > We discuss with our windows system programmer about it. He sad
-> > > > that in analog TV mode noise from PLL don't give any problem.
-> > > 
-> > > I would be concerned about phase noise affecting the colors or
-> > > any FM sound carriers.  If the noise isn't noticably affecting
-> > > colors to the human eye (do color bars look OK?), or sound to the
-> > > human ear, then OK.
-> > > 
-> > > 
-> > > >  But in digital TV mode
-> > > > noise from PLL decreased BER.
-> > > 
-> > > I thought the FM1216ME MK3 was an analog only tuner.  I guess I
-> > > don't know DVB-T or cable in Europe well enough.
-> > > 
-> > > 
-> > > > > Leaving the CP bit set should be especially noticable ad FM
-> > > > > noise when set to tune to FM radio stations.  From the
-> > > > > FM1236ME_MK3 datasheet: "It is recommended to set CP=0 in the
-> > > > > FM mode at all times." But the VHF low band control byte is
-> > > > > also used when setting FM radio (AFAICT with a quick look at
-> > > > > the code.)
-> > > > 
-> > > > Yes. You are right. We can swith CP off in FM mode.
-> > > 
-> > > OK.  Thank you.
-> > > 
-> > > > With my best regards, Dmitry.
-> > > 
-> > > 
-> > > Regards,
-> > > Andy
-> > > 
-> > > 
-> > > 
-> 
-> 
-> 
-> 
-> Cheers,
-> Mauro
+Meanwhile I will continue to look at some debugging output over here and 
+to see if I can figure anything out. Thomas, I intend to be in contact. It 
+may all turn into sour milk, but I think that I have discovered a few 
+things recently.
+
+
+Theodore Kilgore
