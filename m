@@ -1,124 +1,230 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:54051 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753302AbZDDNnl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 4 Apr 2009 09:43:41 -0400
-Subject: Re: [PATCH 3/6] ir-kbd-i2c: Switch to the new-style device binding
-	model
-From: Andy Walls <awalls@radix.net>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Mike Isely <isely@pobox.com>
-In-Reply-To: <20090404142837.3e12824c@hyperion.delvare>
-References: <20090404142427.6e81f316@hyperion.delvare>
-	 <20090404142837.3e12824c@hyperion.delvare>
-Content-Type: text/plain
-Date: Sat, 04 Apr 2009 09:42:09 -0400
-Message-Id: <1238852529.2845.34.camel@morgan.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from devils.ext.ti.com ([198.47.26.153]:39297 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753114AbZD3Juz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Apr 2009 05:50:55 -0400
+From: "Shah, Hardik" <hardik.shah@ti.com>
+To: "Shah, Hardik" <hardik.shah@ti.com>, InKi Dae <daeinki@gmail.com>
+CC: "tomi.valkeinen@nokia.com" <tomi.valkeinen@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Jadav, Brijesh R" <brijesh.j@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+Date: Thu, 30 Apr 2009 15:20:36 +0530
+Subject: RE: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB030548BB5E@dbde02.ent.ti.com>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB030548BA1B@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-04-04 at 14:28 +0200, Jean Delvare wrote:
-> Let card drivers probe for IR receiver devices and instantiate them if
-> found. Ultimately it would be better if we could stop probing
-> completely, but I suspect this won't be possible for all card types.
+
+
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Shah, Hardik
+> Sent: Thursday, April 30, 2009 11:51 AM
+> To: InKi Dae
+> Cc: tomi.valkeinen@nokia.com; linux-media@vger.kernel.org; linux-
+> omap@vger.kernel.org; Jadav, Brijesh R; Hiremath, Vaibhav
+> Subject: RE: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
 > 
-> There's certainly room for cleanups. For example, some drivers are
-> sharing I2C adapter IDs, so they also had to share the list of I2C
-> addresses being probed for an IR receiver. Now that each driver
-> explicitly says which addresses should be probed, maybe some addresses
-> can be dropped from some drivers.
 > 
-> Also, the special cases in saa7134-i2c should probably be handled on a
-> per-board basis. This would be more efficient and less risky than always
-> probing extra addresses on all boards. I'll give it a try later.
 > 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Cc: Andy Walls <awalls@radix.net>
-> Cc: Mike Isely <isely@pobox.com>
-> ---
->  linux/drivers/media/video/cx18/cx18-i2c.c            |   30 ++
->  linux/drivers/media/video/ivtv/ivtv-i2c.c            |   31 ++
->  linux/include/media/ir-kbd-i2c.h                     |    2 
->  17 files changed, 284 insertions(+), 196 deletions(-)
+> > -----Original Message-----
+> > From: InKi Dae [mailto:daeinki@gmail.com]
+> > Sent: Thursday, April 30, 2009 11:48 AM
+> > To: Shah, Hardik
+> > Cc: tomi.valkeinen@nokia.com; linux-media@vger.kernel.org; linux-
+> > omap@vger.kernel.org; Jadav, Brijesh R; Hiremath, Vaibhav
+> > Subject: Re: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
+> >
+> > hello Shah, Hardik..
+> >
+> > your omap_vout.c has the problem that it disables video1 or fb1.
+> > so I have modified your code.
+> >
+> > I defined and set platform_data for DSS2 in machine code.(or board file)
+> >
+> > static struct omapfb_platform_data xxx_dss_platform_data = {
+> >     .mem_desc.region[0].format = OMAPFB_COLOR_ARGB32,
+> >     .mem_desc.region[0].format_used=1,
+> >
+> >     .mem_desc.region[1].format = OMAPFB_COLOR_RGB24U,
+> >     .mem_desc.region[1].format_used=1,
+> >
+> >     .mem_desc.region[2].format = OMAPFB_COLOR_ARGB32,
+> >     .mem_desc.region[2].format_used=1,
+> > };
+> >
+> > omapfb_set_platform_data(&xxx_dss_platform_data);
+> >
+> > after that, omap_vout has resource count got referring to framebuffer count,
+> > registers overlay as vout's one and would decide to use which overlay.
+> >
+> > at that time, your code would face with impact on some overlay(fb or video).
+> >
+> > this patch would solve that problem.
+> > when it sets overlay to vout, vout would get overlay array index to
+> > avoid overlapping with other overlay.
+> >
+> >
+> > sighed-off-by: InKi Dae. <inki.dae@samsung.com>
+> > ---
+> > diff --git a/drivers/media/video/omap/omap_vout.c
+> > b/drivers/media/video/omap/omap_vout.c
+> > index 9b4a0d7..051298a 100644
+> > --- a/drivers/media/video/omap/omap_vout.c
+> > +++ b/drivers/media/video/omap/omap_vout.c
+> > @@ -2246,11 +2246,13 @@ free_buffers:
+> >  /* Create video out devices */
+> >  static int __init omap_vout_create_video_devices(struct platform_device
+> > *pdev)
+> >  {
+> > -	int r = 0, k;
+> > +	int r = 0, k, vout_count;
+> >  	struct omap_vout_device *vout;
+> >  	struct video_device *vfd = NULL;
+> >  	struct omap2video_device *vid_dev = platform_get_drvdata(pdev);
+> >
+> > +	vout_count = 3 - pdev->num_resources;
+> > +
+> >  	for (k = 0; k < pdev->num_resources; k++) {
+> >
+> >  		vout = kmalloc(sizeof(struct omap_vout_device), GFP_KERNEL);
+> > @@ -2266,9 +2268,9 @@ static int __init
+> > omap_vout_create_video_devices(struct platform_device *pdev)
+> >  		vout->vid = k;
+> >  		vid_dev->vouts[k] = vout;
+> >  		vout->vid_info.vid_dev = vid_dev;
+> > -		vout->vid_info.overlays[0] = vid_dev->overlays[k + 1];
+> > +		vout->vid_info.overlays[0] = vid_dev->overlays[k + vout_count];
+> >  		vout->vid_info.num_overlays = 1;
+> > -		vout->vid_info.id = k + 1;
+> > +		vout->vid_info.id = k + vout_count;
+> >  		vid_dev->num_videos++;
+> >
+> >  		/* Setup the default configuration for the video devices
+> > @@ -2289,7 +2291,7 @@ static int __init
+> > omap_vout_create_video_devices(struct platform_device *pdev)
+> >  		/* Register the Video device with V4L2
+> >  		 */
+> >  		vfd = vout->vfd;
+> > -		if (video_register_device(vfd, VFL_TYPE_GRABBER, k + 1) < 0) {
+> > +		if (video_register_device(vfd, VFL_TYPE_GRABBER, k + vout_count) <
+> > 0) {
+> >  			printk(KERN_ERR VOUT_NAME ": could not register \
+> >  					Video for Linux device\n");
+> >  			vfd->minor = -1;
+> >
+> >
+> > 2009/4/22 Shah, Hardik <hardik.shah@ti.com>:
+> [Shah, Hardik] Yes this is correct,
+> I will apply this patch.  I already found it and fixed it in different way but
+> any way I will apply your patch.
+[Shah, Hardik] Further on this inki.  Solving this bug will give rise to couple of more bugs related to global_alpha and pixel formats. That also is fixed. You can refer http://arago-project.org/git/people/vaibhav/ti-psp-omap-video.git?p=people/vaibhav/ti-psp-omap-video.git;a=summary
+> > >
+> > >
+> > >> -----Original Message-----
+> > >> From: Tomi Valkeinen [mailto:tomi.valkeinen@nokia.com]
+> > >> Sent: Wednesday, April 22, 2009 1:53 PM
+> > >> To: Shah, Hardik
+> > >> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Jadav,
+> Brijesh
+> > R;
+> > >> Hiremath, Vaibhav
+> > >> Subject: Re: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
+> > >>
+> > >> Hi,
+> > >>
+> > >> On Wed, 2009-04-22 at 08:25 +0200, ext Hardik Shah wrote:
+> > >> > This is the version 5th of the Driver.
+> > >> >
+> > >> > Following are the features supported.
+> > >> > 1. Provides V4L2 user interface for the video pipelines of DSS
+> > >> > 2. Basic streaming working on LCD and TV.
+> > >> > 3. Support for various pixel formats like YUV, UYVY, RGB32, RGB24,
+> RGB565
+> > >> > 4. Supports Alpha blending.
+> > >> > 5. Supports Color keying both source and destination.
+> > >> > 6. Supports rotation with RGB565 and RGB32 pixels formats.
+> > >> > 7. Supports cropping.
+> > >> > 8. Supports Background color setting.
+> > >> > 9. Works on latest DSS2 library from Tomi
+> > >> > http://www.bat.org/~tomba/git/linux-omap-dss.git/
+> > >> > 10. 1/4x scaling added.  Detail testing left
+> > >> >
+> > >> > TODOS
+> > >> > 1. Ioctls needs to be added for color space conversion matrix
+> > >> > coefficient programming.
+> > >> > 2. To be tested on DVI resolutions.
+> > >> >
+> > >> > Comments fixed from community.
+> > >> > 1. V4L2 Driver for OMAP3/3 DSS.
+> > >> > 2.  Conversion of the custom ioctls to standard V4L2 ioctls like alpha
+> > >> blending,
+> > >> > color keying, rotation and back ground color setting
+> > >> > 3.  Re-organised the code as per community comments.
+> > >> > 4.  Added proper copyright year.
+> > >> > 5.  Added module name in printk
+> > >> > 6.  Kconfig option copy/paste error
+> > >> > 7.  Module param desc addded.
+> > >> > 8.  Query control implemented using standard query_fill
+> > >> > 9.  Re-arranged if-else constructs.
+> > >> > 10. Changed to use mutex instead of semaphore.
+> > >> > 11. Removed dual usage of rotation angles.
+> > >> > 12. Implemented function to convert the V4L2 angle to DSS angle.
+> > >> > 13. Y-position was set half by video driver for TV output
+> > >> > Now its done by DSS so removed that.
+> > >> > 14. Minor cleanup
+> > >> > 15. Added support to pass the page offset to application.
+> > >> > 14. Minor cleanup
+> > >> > 15. Added support to pass the page offset to application.
+> > >> > 16. Renamed V4L2_CID_ROTATION to V4L2_CID_ROTATE
+> > >> > 17. Major comment from Hans fixed.
+> > >> > 18. Copy right year changed.
+> > >> > 19. Added module name for each error/warning print message.
+> > >> >
+> > >> > Changes from Previous Version.
+> > >> > 1. Supported YUV rotation.
+> > >> > 2. Supported Flipping.
+> > >> > 3. Rebased line with Tomi's latest DSS2 master branch with commit  id
+> > >> > f575a02edf2218a18d6f2ced308b4f3e26b44ce2.
+> > >> > 4. Kconfig option removed to select between the TV and LCD.
+> > >> > Now supported dynamically by DSS2 library.
+> > >> > 5. Kconfig option for the NTSC_M and PAL_BDGHI mode but not
+> > >> > supported by DSS2.  so it will not work now.
+> > >>
+> > >> There is basic support for this. See the DSS doc:
+> > >>
+> > >> /sys/devices/platform/omapdss/display? directory:
+> > >> ...
+> > >> timings         Display timings
+> > (pixclock,xres/hfp/hbp/hsw,yres/vfp/vbp/vsw)
+> > >>                 When writing, two special timings are accepted for tv-
+> out:
+> > >>                 "pal" and "ntsc"
+> > > [Shah, Hardik] I was not aware of it will remove the compile time option
+> and
+> > for now let the sysfs entry change the standard.  In future I will try to do
+> > it with the S_STD and G_STD ioctls of the V4L2 framework.
+> > >>
+> > >>  Tomi
+> > >>
+> > >>
+> > >
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > >
 > 
-
-> --- v4l-dvb.orig/linux/drivers/media/video/cx18/cx18-i2c.c	2009-04-04 10:53:15.000000000 +0200
-> +++ v4l-dvb/linux/drivers/media/video/cx18/cx18-i2c.c	2009-04-04 10:58:36.000000000 +0200
-> @@ -211,7 +211,32 @@ static struct i2c_algo_bit_data cx18_i2c
->  	.timeout	= CX18_ALGO_BIT_TIMEOUT*HZ /* jiffies */
->  };
->  
-> -/* init + register i2c algo-bit adapter */
-> +static void init_cx18_i2c_ir(struct cx18 *cx)
-> +{
-> +	struct i2c_board_info info;
-> +	/* The external IR receiver is at i2c address 0x34 (0x35 for
-> +	   reads).  Future Hauppauge cards will have an internal
-> +	   receiver at 0x30 (0x31 for reads).  In theory, both can be
-> +	   fitted, and Hauppauge suggest an external overrides an
-> +	   internal.
-> +
-> +	   That's why we probe 0x1a (~0x34) first. CB
-> +	*/
-> +	const unsigned short addr_list[] = {
-> +		0x1a, 0x18, 0x64, 0x30,
-> +		I2C_CLIENT_END
-> +	};
-
-
-I think this is way out of date for cx18 based boards.  The only IR chip
-I know of so far is the Zilog Z8F0811 sitting at 7 bit addresses
-0x70-0x74.  I guess 0x71 is the proper address for Rx.  I'll let you
-know when I test.
-
-
-> +	memset(&info, 0, sizeof(struct i2c_board_info));
-> +	strlcpy(info.type, "ir-kbd", I2C_NAME_SIZE);
-> +
-> +	/* The IR receiver device can be on either I2C bus */
-> +	if (i2c_new_probed_device(&cx->i2c_adap[0], &info, addr_list))
-> +		return;
-> +	i2c_new_probed_device(&cx->i2c_adap[1], &info, addr_list);
-> +}
-> +
-> +/* init + register i2c adapters + instantiate IR receiver */
->  int init_cx18_i2c(struct cx18 *cx)
->  {
->  	int i, err;
-> @@ -279,6 +304,9 @@ int init_cx18_i2c(struct cx18 *cx)
->  	err = i2c_bit_add_bus(&cx->i2c_adap[1]);
->  	if (err)
->  		goto err_del_bus_0;
-> +
-> +	/* Instantiate the IR receiver device, if present */
-> +	init_cx18_i2c_ir(cx);
->  	return 0;
-
-I have an I2C related question.  If the cx18 or ivtv driver autoloads
-"ir-kbd-i2c" and registers an I2C client on the bus, does that preclude
-lirc_i2c, lirc_pvr150 or lirc_zilog from using the device?  LIRC users
-may notice, if it does.
-
-If that is the case, then we probably shouldn't autoload the ir-kbd
-module after the CX23418 i2c adapters are initialized.  
-
-I'm not sure what's the best solution:
-
-1. A module option to the cx18 driver to tell it to call
-init_cx18_i2c_ir() from cx18_probe() or not? (Easiest solution)
-
-2. Some involved programmatic way for IR device modules to query bridge
-drivers about what IR devices they may have, and on which I2C bus, and
-at what addresses to probe, and whether a driver/module has already
-claimed that device? (Gold plated solution)
-
-Regards,
-Andy
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
