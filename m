@@ -1,99 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:60373 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752435AbZDSHmI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Apr 2009 03:42:08 -0400
-Message-ID: <49EAD6A5.1010507@redhat.com>
-Date: Sun, 19 Apr 2009 09:45:41 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from banach.math.auburn.edu ([131.204.45.3]:38343 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752486AbZD3PKp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Apr 2009 11:10:45 -0400
+Date: Thu, 30 Apr 2009 10:24:17 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Wolfram Sang <w.sang@pengutronix.de>
+cc: linux-media@vger.kernel.org
+Subject: Re: Donating a mr97310 based elta-media 8212dc (0x093a:0x010e)
+In-Reply-To: <20090430022847.GA15183@pengutronix.de>
+Message-ID: <alpine.LNX.2.00.0904300953330.21567@banach.math.auburn.edu>
+References: <20090430022847.GA15183@pengutronix.de>
 MIME-Version: 1.0
-To: =?windows-1252?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
-CC: Adam Baker <linux@baker-net.org.uk>,
-	Hans de Goede <j.w.r.degoede@hhs.nl>,
-	Linux and Kernel Video <video4linux-list@redhat.com>,
-	SPCA50x Linux Device Driver Development
-	<spca50x-devs@lists.sourceforge.net>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: libv4l release: 0.5.97: the whitebalance release!
-References: <49E5D4DE.6090108@hhs.nl> <200904152326.59464.linux@baker-net.org.uk> <49E66787.2080301@hhs.nl> <200904162146.59742.linux@baker-net.org.uk> <49E843CB.6050306@redhat.com> <49E8D808.9070804@gmail.com> <49E9B989.70602@redhat.com> <49E9E652.5070706@gmail.com>
-In-Reply-To: <49E9E652.5070706@gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+On Thu, 30 Apr 2009, Wolfram Sang wrote:
 
-On 04/18/2009 04:40 PM, Erik Andrén wrote:
+> Hi all,
 >
-> Hans de Goede wrote:
->>
->> On 04/17/2009 09:27 PM, Erik Andrén wrote:
->>> Hans de Goede wrote:
->>>> On 04/16/2009 10:46 PM, Adam Baker wrote:
->>>>> On Thursday 16 Apr 2009, Hans de Goede wrote:
->>>>>> On 04/16/2009 12:26 AM, Adam Baker wrote:
->>>>>>> On Wednesday 15 Apr 2009, Hans de Goede wrote:
->>>>>>>> Currently only whitebalancing is enabled and only on Pixarts (pac)
->>>>>>>> webcams (which benefit tremendously from this). To test this with
->>>>>>>> other
->>>>>>>> webcams (after instaling this release) do:
->>>>>>>>
->>>>>>>> export LIBV4LCONTROL_CONTROLS=15
->>>>>>>> LD_PRELOAD=/usr/lib/libv4l/v4l2convert.so v4l2ucp&
->>>>>>> Strangely while those instructions give me a whitebalance control
->>>>>>> for the
->>>>>>> sq905 based camera I can't get it to appear for a pac207 based camera
->>>>>>> regardless of whether LIBV4LCONTROL_CONTROLS is set.
->>>>>> Thats weird, there is a small bug in the handling of pac207
->>>>>> cams with usb id 093a:2476 causing libv4l to not automatically
->>>>>> enable whitebalancing (and the control) for cams with that id,
->>>>>> but if you have LIBV4LCONTROL_CONTROLS set (exported!) both
->>>>>> when loading v4l2ucp (you must preload v4l2convert.so!) and
->>>>>> when loading your viewer, then it should work.
->>>>>>
->>>>> I've tested it by plugging in the sq905 camera, verifying the
->>>>> whitebablance
->>>>> control is present and working, unplugging the sq905 and plugging in
->>>>> the
->>>>> pac207 and using up arrow to restart v4l2ucp and svv so I think I've
->>>>> eliminated most finger trouble possibilities. The pac207 is id
->>>>> 093a:2460 so
->>>>> not the problem id. I'll have to investigate more thoroughly later.
->>>>>
->>>> Does the pac207 perhaps have a / in its "card" string (see v4l-info
->>>> output) ?
->>>> if so try out this patch:
->>>> http://linuxtv.org/hg/~hgoede/libv4l/rev/1e08d865690a
->>>>
->>> I have the same issue as Adam when trying to test this with my
->>> gspca_stv06xx based Quickcam Web camera i. e no whitebalancing
->>> controls show up. I'm attaching a dump which logs all available
->>> pixformats and v4l2ctrls showing that libv4l is properly loaded.
->>> (And yes, LIBV4LCONTROL_CONTROLS is exported and set to 15).
->>>
->>> Best regards,
->>> Erik
->>>
->> Ah, you are using v4l2-ctl, not v4l2ucp, and that uses
->> V4L2_CTRL_FLAG_NEXT_CTRL
->> control enumeration. My code doesn't handle V4L2_CTRL_FLAG_NEXT_CTRL
->> (which is
->> a bug). I'm not sure when I'll have time to fix this. Patches welcome,
->> or in
->> the mean time use v4l2ucp to play with the controls.
->>
+> I recently found an elta media dc8212 camera (usb-id: 0x093a:0x010e) in a pile
+> of old hardware. When looking for linux-support (out of curiosity, I don't need
+> the cam), I saw that there is activity regarding these types of camera
+> (mr97310) right now. As I am currently busy in other departments of the kernel,
+> I was wondering if somebody here is interested in getting the camera to do
+> further research? If so, just drop me a mail and I will send it free-of-charge.
 >
-> Actually, I've tried to use both without finding the controls.
-> I've only tried with v4l2ucp v. 1.2. Is 1.3 necessary?
+> Regards,
+>
+>   Wolfram
+>
+> PS: The camera still works. Just checked with another OS on a friend's machine.
+>
+> -- 
+> Pengutronix e.K.                           | Wolfram Sang                |
+> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
 >
 
-Apparently there are different versions of v4l2ucp in different distro's
-and some do use the V4L2_CTRL_FLAG_NEXT_CTRL, just like v4l2-ctl. See
-Adam Baker's patch later in this thread. Which I will apply to my
-tree after I've reviewed it (when I find some time currently I've a lot of
-$work$ )
+Hi,
 
-Regards,
+If you want to do such a thing, I think it is very kind of you. As for 
+myself, I suspect that I already have three or four similar cameras, and 
+so I probably do not really need another one. Also, judging from your 
+e-mail address you are in Germany and I am in the US, making it a less 
+desirable prospect to ship such an object for such a distance.
 
-Hans
+Therefore, I would offer the suggestion that the camera should go to Kyle 
+Guin, who wrote the kernel support, or, if he is also in the US (I do not 
+know where he lives) then perhaps to Thomas Kaiser, who lives a bit closer 
+to you. I think that all three of us are equally interested but as I said 
+I do not believe that I need another one of these cameras. In case that I 
+have missed someone else who might be interested, that is inadvertent on 
+my part.
+
+Judging from the Vendor:Product number which you report, it is one of the 
+small MR97310 cameras for which the OEM driver was called the "CIF" 
+driver. Indeed, these cameras are not supported right now, so the matter 
+is interesting.
+
+I do suspect at this point that the clue to getting these cameras to work 
+is probably to be found in the initialization sequence. I did manage 
+(finally!) to get one of my old test machines running Windows to accept a 
+driver installation and to give me a sniff or two. My preliminary analysis 
+from that experience is, first, the initialization sequence is a bit 
+different, and, second, the frame data seems to look different from what I 
+get with the current initialization sequence on Linux. I also tried to 
+convert a couple of frame data outputs from a sniff log back into binary 
+format, to see if I could get something out which looks like a picture. I 
+think I did. Not a very good picture, but it seems that I got something 
+more than mere noise. I also found out that some of my small cameras with 
+the same ID will stream, and some will not. Those which will not stream 
+have a rather strange failure mode: they go through all the motions, but 
+they produce nothing but a string of repetitions of the SOF marker -- and 
+this with the OEM driver software, too. But you say that yours actually 
+worked.
+
+Finally, I would ask one question:
+
+In the libgphoto2 driver for these cameras, I have a listing for
+
+{"Elta Medi@ digi-cam", GP_DRIVER_STATUS_EXPERIMENTAL, 0x093a, 0x010e},
+
+Do you think this is the same camera, or a different one? Yours has a 
+model number, and my listing does not. Elta could of course have produced 
+two "different" cameras with the same guts inside, and sold them under two 
+different model descriptions. I have seen lots of that kind of thing from 
+other camera vendors. So should there be a separate entry listing this one 
+by model number? The reason I do not know the answers to such questions 
+is that, obviously, I have never seen either one of these two cameras. The 
+first one was reported to me, just like the one which you are offering to 
+us.
+
+Also might you be interested to try it out as a still camera, with 
+libgphoto2, before surrendering it to someone else?
+
+Theodore Kilgore
