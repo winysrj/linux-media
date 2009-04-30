@@ -1,46 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from SMTP.ANDREW.CMU.EDU ([128.2.11.95]:49287 "EHLO
-	smtp.andrew.cmu.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752335AbZDNDf5 (ORCPT
+Received: from mail11a.verio-web.com ([204.202.242.23]:2860 "HELO
+	mail11a.verio-web.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751868AbZD3P3o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Apr 2009 23:35:57 -0400
-Message-ID: <49E404AC.4090303@andrew.cmu.edu>
-Date: Mon, 13 Apr 2009 23:36:12 -0400
-From: Josh Watzman <jwatzman@andrew.cmu.edu>
+	Thu, 30 Apr 2009 11:29:44 -0400
+Received: from mx39.stngva01.us.mxservers.net (204.202.242.107)
+	by mail11a.verio-web.com (RS ver 1.0.95vs) with SMTP id 2-0198075382
+	for <linux-media@vger.kernel.org>; Thu, 30 Apr 2009 11:29:42 -0400 (EDT)
+Date: Thu, 30 Apr 2009 08:29:38 -0700 (PDT)
+From: "Dean A." <dean@sensoray.com>
+Subject: patch: s2255drv: urb completion routine fixes
+To: linux-media@vger.kernel.org, video4linux-list@redhat.com,
+	mchehab@infradead.org
+Message-ID: <tkrat.5b56fa3a69c1e6ea@sensoray.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: BUG when unplugging EyeTV
-References: <49E3E534.1030402@andrew.cmu.edu> <412bdbff0904131935m4e152db0n18c0cea53ed42b39@mail.gmail.com>
-In-Reply-To: <412bdbff0904131935m4e152db0n18c0cea53ed42b39@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Hello Josh,
-> 
-> Thanks for the bug report.  Robert Krakora reported the same stack
-> trace to me off-list over the weekend.  I've been tied up with some
-> family business, but I intend to dig into it deeper this weekend.
+From: Dean Anderson <dean@sensoray.com>
 
-No problem, take your time. I was quite pleased when the DVB worked on
-the stock kernel and even more pleased when the analog worked with the
-current hg tree. Thank you all for your work on these drivers.
+Error count in read pipe completion corrected.
+URB not resubmitted if shutting down.
+URB not freed in completion routine if new urb_submit_fails.
+(URB is freed on shutdown).
 
-> I didn't know that Elgato had a 950q clone (I did work on the original
-> Elgato EyeTV device for Linux).  Could you please send me the output
-> of "lsusb -v" so I can confirm precisely which device it is a clone
-> of?
+Signed-off-by: Dean Anderson <dean@sensoray.com>
 
-I'm not 100% sure it's a clone of that card, but everything seems to
-match. The instructions for the 950q firmware on the wiki are what
-originally allowed me to get it working.
+--- v4l-dvb-83712d149893/linux/drivers/media/video/s2255drv.c.orig	2009-04-30 07:34:34.000000000 -0700
++++ v4l-dvb-83712d149893/linux/drivers/media/video/s2255drv.c	2009-04-30 07:27:10.000000000 -0700
+@@ -2240,8 +2240,10 @@ static void read_pipe_completion(struct 
+ 		return;
+ 	}
+ 	status = purb->status;
+-	if (status != 0) {
+-		dprintk(2, "read_pipe_completion: err\n");
++	/* if shutting down, do not resubmit, exit immediately */
++	if (status == -ESHUTDOWN) {
++		dprintk(2, "read_pipe_completion: err shutdown\n");
++		pipe_info->err_count++;
+ 		return;
+ 	}
+ 
+@@ -2250,9 +2252,13 @@ static void read_pipe_completion(struct 
+ 		return;
+ 	}
+ 
+-	s2255_read_video_callback(dev, pipe_info);
++	if (status == 0)
++		s2255_read_video_callback(dev, pipe_info);
++	else {
++		pipe_info->err_count++;
++		dprintk(1, "s2255drv: failed URB %d\n", status);
++	}
+ 
+-	pipe_info->err_count = 0;
+ 	pipe = usb_rcvbulkpipe(dev->udev, dev->read_endpoint);
+ 	/* reuse urb */
+ 	usb_fill_bulk_urb(pipe_info->stream_urb, dev->udev,
+@@ -2264,7 +2270,6 @@ static void read_pipe_completion(struct 
+ 	if (pipe_info->state != 0) {
+ 		if (usb_submit_urb(pipe_info->stream_urb, GFP_KERNEL)) {
+ 			dev_err(&dev->udev->dev, "error submitting urb\n");
+-			usb_free_urb(pipe_info->stream_urb);
+ 		}
+ 	} else {
+ 		dprintk(2, "read pipe complete state 0\n");
 
-The lsusb is quite long -- you can get it at
-http://www.contrib.andrew.cmu.edu/~jwatzman/eyetv/lsusb and I've also
-uploaded a screenshot of what the OS X software says the device is at
-http://www.contrib.andrew.cmu.edu/~jwatzman/eyetv/eyetv.png if that
-helps too.
-
-Josh Watzman
