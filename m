@@ -1,50 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from symlink.to.noone.org ([85.10.207.172]:54971 "EHLO sym.noone.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750710AbZDZNDm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Apr 2009 09:03:42 -0400
-From: Tobias Klauser <tklauser@distanz.ch>
-To: mchehab@infradead.org, linux-media@vger.kernel.org
-Cc: stefanr@s5r6.in-berlin.de, Tobias Klauser <tklauser@distanz.ch>
-Subject: [PATCH] firedtv: Storage class should be before const qualifier
-Date: Sun, 26 Apr 2009 15:03:29 +0200
-Message-Id: <1240751009-10023-1-git-send-email-tklauser@distanz.ch>
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60591 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754377AbZD3Vvs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Apr 2009 17:51:48 -0400
+Date: Thu, 30 Apr 2009 14:48:40 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Simon Arlott <simon@fire.lp0.eu>
+Cc: linux-kernel@vger.kernel.org, mchehab@infradead.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] dvb-core: Fix potential mutex_unlock without mutex_lock
+ in dvb_dvr_read
+Message-Id: <20090430144840.6605e564.akpm@linux-foundation.org>
+In-Reply-To: <49FA1B2E.8030402@simon.arlott.org.uk>
+References: <49F0A61D.1010002@simon.arlott.org.uk>
+	<20090430131818.d8aded42.akpm@linux-foundation.org>
+	<49FA1B2E.8030402@simon.arlott.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The C99 specification states in section 6.11.5:
+On Thu, 30 Apr 2009 22:42:06 +0100
+Simon Arlott <simon@fire.lp0.eu> wrote:
 
-The placement of a storage-class specifier other than at the beginning
-of the declaration specifiers in a declaration is an obsolescent
-feature.
+> >> diff --git a/drivers/media/dvb/dvb-core/dmxdev.c b/drivers/media/dvb/dvb-core/dmxdev.c
+> >> index c35fbb8..d6d098a 100644
+> >> --- a/drivers/media/dvb/dvb-core/dmxdev.c
+> >> +++ b/drivers/media/dvb/dvb-core/dmxdev.c
+> >> @@ -247,7 +247,7 @@ static ssize_t dvb_dvr_read(struct file *file, char __user *buf, size_t count,
+> >>  	int ret;
+> >>  
+> >>  	if (dmxdev->exit) {
+> >> -		mutex_unlock(&dmxdev->mutex);
+> >> +		//mutex_unlock(&dmxdev->mutex);
+> >>  		return -ENODEV;
+> >>  	}
+> > 
+> > Is there any value in retaining all the commented-out lock operations,
+> > or can we zap 'em?
+> 
+> I'm assuming they should really be there - it's just not practical
+> because the call to dvb_dmxdev_buffer_read is likely to block waiting
+> for data.
 
-Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
----
- drivers/media/dvb/firewire/firedtv-rc.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/dvb/firewire/firedtv-rc.c b/drivers/media/dvb/firewire/firedtv-rc.c
-index 46a6324..27bca2e 100644
---- a/drivers/media/dvb/firewire/firedtv-rc.c
-+++ b/drivers/media/dvb/firewire/firedtv-rc.c
-@@ -18,7 +18,7 @@
- #include "firedtv.h"
- 
- /* fixed table with older keycodes, geared towards MythTV */
--const static u16 oldtable[] = {
-+static const u16 oldtable[] = {
- 
- 	/* code from device: 0x4501...0x451f */
- 
-@@ -62,7 +62,7 @@ const static u16 oldtable[] = {
- };
- 
- /* user-modifiable table for a remote as sold in 2008 */
--const static u16 keytable[] = {
-+static const u16 keytable[] = {
- 
- 	/* code from device: 0x0300...0x031f */
- 
--- 
-1.6.2.4
+well..  such infomation is much better communicated via a nice comment,
+rather than mystery-dead-code?
 
