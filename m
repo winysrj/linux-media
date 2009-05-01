@@ -1,137 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4768 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753117AbZEVLz7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2009 07:55:59 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: eduardo.valentin@nokia.com
-Subject: Re: [PATCH 08/10 v2] v4l2-subdev: add a v4l2_i2c_subdev_board() function
-Date: Fri, 22 May 2009 13:55:52 +0200
-Cc: ext Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Darius Augulis <augulis.darius@gmail.com>,
-	Paul Mundt <lethal@linux-sh.org>
-References: <Pine.LNX.4.64.0905151817070.4658@axis700.grange> <Pine.LNX.4.64.0905211728420.6271@axis700.grange> <20090522085827.GA1964@esdhcp037198.research.nokia.com>
-In-Reply-To: <20090522085827.GA1964@esdhcp037198.research.nokia.com>
+Received: from einhorn.in-berlin.de ([192.109.42.8]:51140 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751849AbZEAHTR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 May 2009 03:19:17 -0400
+Message-ID: <49FAA269.6090107@s5r6.in-berlin.de>
+Date: Fri, 01 May 2009 09:19:05 +0200
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: linux1394-devel@lists.sourceforge.net, linux-media@vger.kernel.org
+Subject: firedtv driver development status
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200905221355.52713.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 22 May 2009 10:58:27 Eduardo Valentin wrote:
-> Hi Hans and Guennadi,
->
-> On Thu, May 21, 2009 at 05:33:48PM +0200, ext Guennadi Liakhovetski wrote:
-> > Hi Hans,
-> >
-> > On Thu, 21 May 2009, Hans Verkuil wrote:
-> > > On Friday 15 May 2009 19:20:10 Guennadi Liakhovetski wrote:
-> > > > Introduce a function similar to v4l2_i2c_new_subdev() but taking a
-> > > > pointer to a struct i2c_board_info as a parameter instead of a
-> > > > client type and an I2C address, and make v4l2_i2c_new_subdev() a
-> > > > wrapper around it.
-> > > >
-> > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > > ---
-> > > >
-> > > > Hans, renamed as you requested and updated to a (more) current
-> > > > state.
-> > >
-> > > NAK. Not because it is a bad idea, but because you need to patch
-> > > against the version in the v4l-dvb repo. The version in the kernel is
-> > > missing a lot of the compatibility code which we unfortunately need
-> > > to keep.
-> > >
-> > > Any function passing the board_info will be valid for kernels >=
-> > > 2.6.26 only.
-> >
-> > Here's a quote from your earlier email.
-> >
-> > On Tue, 21 Apr 2009, Hans Verkuil wrote:
-> > > The board_info struct didn't appear until 2.6.22, so that's certainly
-> > > a cut-off point. Since the probe version of this call does not work
-> > > on kernels < 2.6.26 the autoprobing mechanism is still used for those
-> > > older kernels. I think it makes life much easier to require that
-> > > everything that uses board_info needs kernel 2.6.26 at the minimum. I
-> > > don't think that is an issue anyway for soc-camera. Unless there is a
-> > > need to use soc-camera from v4l-dvb with kernels <2.6.26?
-> >
-> > So, will this my patch build and work with >= 2.6.22 or not? I really
-> > would not like to consciously make code uglier now because of
-> > compatibility with < 2.6.26 to make it better some time later again.
->
-> I've to agree with Guennadi, I believe newer code should not suffer
-> because of compatibility code, at least if it is possible. I also agree
-> with you that we must keep compatibility with older drivers.
+Hi lists,
 
-Let there be no doubt about it: it's very unfortunate that we have to do 
-this. I really hope that in, say, one year we can just drop support for 
-kernels pre-2.6.26. But my proposal from the beginning of the year to drop 
-support for kernels < 2.6.22 demonstrated that not everyone is happy about 
-that.
+I planned to adapt drivers/media/dvb/firewire/firedtv* to use the 
+drivers/firewire stack alternatively to drivers/ieee1394, and wanted to 
+be done with it sooner than later.  But business distracted too much, so 
+nothing happened.  This is how far I got, in case anybody is interested 
+in finishing it before I am able to get back to it (don't know exactly 
+when that will be):
 
-A quick note for Guennadi: the i2c_board_info and the new i2c API has been 
-available since 2.6.22, but for the subdev support in v4l2 I've decided not 
-to use the new i2c API for kernels < 2.6.26 due to a serious i2c core 
-kernel bug that wasn't fixed until 2.6.26 (probing for the existence of an 
-i2c device at certain addresses can cause an oops). Strictly speaking it 
-would be possible to support board_info from 2.6.22 onwards, but going that 
-way makes it very messy with lots of #ifdefs. I want to keep the simple 
-rule to only support the new i2c API for 2.6.26 onwards.
+http://user.in-berlin.de/~s5r6/linux1394/pending/firewire-share-device-id-table-type-with-ieee1394.patch
+http://user.in-berlin.de/~s5r6/linux1394/pending/firewire-also-use-vendor-id-in-root-directory-for-driver-matches.patch
+http://user.in-berlin.de/~s5r6/linux1394/work-in-progress/firedtv-port-to-new-firewire-core.patch
 
-> What I propose it to have the mechanism of .s_config available only for
-> LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 26). Newer version can take
-> advance of the new i2c api features.
->
-> This is slightly different from what Hans proposed. The difference here
-> is that we do not force newer drivers to use a callback only because
-> of backward compatibility.
->
-> Well, this is what I think of this problem, you may have a different
-> point of view. What do you think?
+Device--driver matching, device probe and removal, and AV/C traffic all 
+work.  To do:
+   - In firedtv:  Implement allocation/initialization + deallocation of
+     an iso reception context; implement iso reception callback.
 
-No, that's not going to work. None of the USB and PCI drivers use 
-i2c_board_info since they all can run on older kernels as well. So all 
-those drivers need an s_config ops that they can call. Now, embedded 
-drivers usually have no need to support older kernels, so these can use 
-i2c_board_info directly.
-
-If you know that an i2c driver is only ever called using this new 
-v4l2_i2c_new_subdev_board_info function (I prefer the shorter name 
-v4l2_i2c_subdev_board() BTW), then you can choose to not implement s_config 
-in that i2c driver.
-
-But i2c drivers that have to support older kernels as well should use 
-s_config.
-
-Note that s_config also needs an 'int irq' argument besides the 'void 
-*platform_data'. And that we should also add a 
-v4l2_i2c_probed_subdev_board() call.
-
-Regards,
-
-	Hans
-
->
-> > Thanks
-> > Guennadi
-> > ---
-> > Guennadi Liakhovetski, Ph.D.
-> > Freelance Open-Source Software Developer
-> > http://www.open-technology.de/
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media"
-> > in the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
+Also to do but independent of the port to firewire:
+   - In firewire-core:  Allow multiple users of the FCP register range
+     (kernelspace and userspace users) in order to access more than one
+     AV/C device.  (I can do this too when I get the time.)
+   - In firedtv:  Implement reception of HD channels.  (Somebody else
+     needs to do it since I'm not familiar with the DVB subsystem.)
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Stefan Richter
+-=====-=-=== -=-= -==-=
+http://arcgraph.de/sr/
