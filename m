@@ -1,44 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-03.arcor-online.net ([151.189.21.43]:60477 "EHLO
-	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751037AbZEABnp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2009 21:43:45 -0400
-Subject: Re: [PATCH v2] Enabling of the Winfast TV2000 XP Global TV capture
-	card  remote control
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:57207 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760022AbZEATdQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 May 2009 15:33:16 -0400
+Date: Fri, 1 May 2009 21:33:15 +0200
+From: Wolfram Sang <w.sang@pengutronix.de>
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
 Cc: linux-media@vger.kernel.org
-In-Reply-To: <1240712951.3714.13.camel@pc07.localdom.local>
-References: <faf98b150904232135l7593612dr68b7ed9cac9af385@mail.gmail.com>
-	 <1240712951.3714.13.camel@pc07.localdom.local>
-Content-Type: text/plain
-Date: Fri, 01 May 2009 03:43:15 +0200
-Message-Id: <1241142195.5108.40.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Subject: Re: Donating a mr97310 based elta-media 8212dc (0x093a:0x010e)
+Message-ID: <20090501193315.GA8289@pengutronix.de>
+References: <20090430022847.GA15183@pengutronix.de> <alpine.LNX.2.00.0904300953330.21567@banach.math.auburn.edu> <20090501084729.GB6941@pengutronix.de> <alpine.LNX.2.00.0905011224330.23299@banach.math.auburn.edu>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.2.00.0905011224330.23299@banach.math.auburn.edu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
 
-> I have nothing important and nobody cared about the oops on the Compro
-> T750F stuff, on which I was not involved, but I would like to have a
-> warning in for the Asus 3in1 not to use a rotor with it.
+--PNTmBPCT7hxwcZjr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I was somewhat alerted by GPL m$ "mediaportal" not to use a rotor on
-cards, except you know exactly they can stand it.
+Hello Theodore,
 
-The Asus 3in1, still OEM only, but consumer cards are ready, has only
-support for 500 mA current.
+> I have the impression you sent another mail, now, with the picture. I=20
 
-The LNB supply on it seems to have protection against over current usage
-and Asus also does not give any warnings for such cards in that
-direction.
+I didn't :) Just wanted to offer it, just in case...
 
-Most likely no trouble ever.
+> cameras. What I know about the camera is well summarized in the following=
+=20
+> entry from libgphoto2/camlibs/mars/ChangeLog:
 
-Cheers,
-Hermann
+Okay. Well, as said before I am pretty sure it is the same camera. I'll shi=
+p it
+tomorrow.
 
+> This is the total extent of my knowledge. It does seem, judging from the =
+=20
+> address of the person who sent me the information about it, and from =20
+> yours, that the Elta brand is probably local to Europe.
 
+I'd think so, too.
+
+> Finally, one of the main reasons why I pass this on is to point out that =
+=20
+> especially in the cheap camera market there is lots of stuff out there =
+=20
+> which just has a name painted on a case, [...]
+
+=2E..which is definately also the case here. Elta just imports stuff.
+
+> Therefore let us pray that this non-cooperation somehow will get changed.
+
++1!
+
+Regards,
+
+   Wolfram
+
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+
+--PNTmBPCT7hxwcZjr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkn7TnsACgkQD27XaX1/VRsK6wCfeP1mgkxufrxSy38stpJ1VX9x
+Z6QAn0MMPGBKQGT3JxYNrzvKUelnD/zH
+=65Vv
+-----END PGP SIGNATURE-----
+
+--PNTmBPCT7hxwcZjr--
