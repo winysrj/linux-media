@@ -1,44 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:4010 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751220AbZENT02 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 May 2009 15:26:28 -0400
-Date: Thu, 14 May 2009 21:26:14 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: =?UTF-8?B?T2xkxZlpY2ggSmVkbGnEjWth?= <oldium.pro@seznam.cz>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Andy Walls <awalls@radix.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Mike Isely <isely@pobox.com>
-Subject: Re: [PATCH 0/8] ir-kbd-i2c conversion to the new i2c binding model
- (v3)
-Message-ID: <20090514212614.09d51a93@hyperion.delvare>
-In-Reply-To: <200905142125.02332.oldium.pro@seznam.cz>
-References: <20090513214559.0f009231@hyperion.delvare>
-	<200905142125.02332.oldium.pro@seznam.cz>
+Received: from cmpxchg.org ([85.214.51.133]:33651 "EHLO cmpxchg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761086AbZEASPM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 May 2009 14:15:12 -0400
+Date: Fri, 1 May 2009 20:14:49 +0200
+From: Johannes Weiner <hannes@cmpxchg.org>
+To: Magnus Damm <magnus.damm@gmail.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	linux-mm@kvack.org, lethal@linux-sh.org
+Subject: Re: [PATCH] videobuf-dma-contig: zero copy USERPTR support V2
+Message-ID: <20090501181449.GA8912@cmpxchg.org>
+References: <20090428090129.17081.782.sendpatchset@rx1.opensource.se> <aec7e5c30904302026q42ecbd57m6e88c937bbd262bb@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <aec7e5c30904302026q42ecbd57m6e88c937bbd262bb@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 14 May 2009 21:25:02 +0200, OldÅ™ich JedliÄka wrote:
-> On Wednesday 13 of May 2009 at 21:45:59, Jean Delvare wrote:
-> > Hi all,
-> >
-> > Here comes an update of my conversion of ir-kbd-i2c to the new i2c
-> > binding model. I've split it into 8 pieces for easier review. Firstly
-> > there is 1 preliminary patch:
-> >
+On Fri, May 01, 2009 at 12:26:38PM +0900, Magnus Damm wrote:
+> On Tue, Apr 28, 2009 at 6:01 PM, Magnus Damm <magnus.damm@gmail.com> wrote:
+> > This is V2 of the V4L2 videobuf-dma-contig USERPTR zero copy patch.
 > 
-> Hi Jean,
+> I guess the V4L2 specific bits are pretty simple.
 > 
-> works for me, as usual :-) I've used the all-in-one patch and the up-to-date 
-> v4l-dvb tree (compiled yesterday for completeness).
+> As for the minor mm modifications below,
+> 
+> > --- 0001/mm/memory.c
+> > +++ work/mm/memory.c    2009-04-28 14:56:43.000000000 +0900
+> > @@ -3009,7 +3009,6 @@ int in_gate_area_no_task(unsigned long a
+> >
+> >  #endif /* __HAVE_ARCH_GATE_AREA */
+> >
+> > -#ifdef CONFIG_HAVE_IOREMAP_PROT
+> >  int follow_phys(struct vm_area_struct *vma,
+> >                unsigned long address, unsigned int flags,
+> >                unsigned long *prot, resource_size_t *phys)
+> 
+> Is it ok with the memory management guys to always build follow_phys()?
 
-Oldrich, thanks a lot for testing and reporting, this is very
-appreciated.
+AFAICS, pte_pgprot is only defined on three architectures that have
+the config symbol above set.  It shouldn't compile on the others.
 
--- 
-Jean Delvare
+I have a patch that factors out follow_pte and builds follow_pfn and
+follow_phys on top of that.  I can send it monday, no access to it
+from here right now.
+
+Then we can keep follow_phys private to this configuration.
+
+	Hannes
