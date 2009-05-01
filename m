@@ -1,80 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:19699 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754853AbZEKJhJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 May 2009 05:37:09 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCH v2 6/7] FMTx: si4713: Add Kconfig and Makefile entries
-Date: Mon, 11 May 2009 12:31:48 +0300
-Message-Id: <1242034309-13448-7-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1242034309-13448-6-git-send-email-eduardo.valentin@nokia.com>
-References: <1242034309-13448-1-git-send-email-eduardo.valentin@nokia.com>
- <1242034309-13448-2-git-send-email-eduardo.valentin@nokia.com>
- <1242034309-13448-3-git-send-email-eduardo.valentin@nokia.com>
- <1242034309-13448-4-git-send-email-eduardo.valentin@nokia.com>
- <1242034309-13448-5-git-send-email-eduardo.valentin@nokia.com>
- <1242034309-13448-6-git-send-email-eduardo.valentin@nokia.com>
+Received: from cnc.isely.net ([64.81.146.143]:42746 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933492AbZEAA1e (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 Apr 2009 20:27:34 -0400
+Date: Thu, 30 Apr 2009 19:27:32 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: Jean Delvare <khali@linux-fr.org>
+cc: LMML <linux-media@vger.kernel.org>, Mike Isely <isely@isely.net>
+Subject: Re: [PATCH] pvrusb2: Don't use the internal i2c client list
+In-Reply-To: <20090430173554.4cb2f585@hyperion.delvare>
+Message-ID: <Pine.LNX.4.64.0904301924520.15541@cnc.isely.net>
+References: <20090430173554.4cb2f585@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- drivers/media/radio/Kconfig  |   22 ++++++++++++++++++++++
- drivers/media/radio/Makefile |    3 +++
- 2 files changed, 25 insertions(+), 0 deletions(-)
+On Thu, 30 Apr 2009, Jean Delvare wrote:
 
-diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-index 3315cac..6c6a409 100644
---- a/drivers/media/radio/Kconfig
-+++ b/drivers/media/radio/Kconfig
-@@ -339,6 +339,28 @@ config RADIO_ZOLTRIX_PORT
- 	help
- 	  Enter the I/O port of your Zoltrix radio card.
- 
-+config I2C_SI4713
-+	tristate "I2C driver for Silicon Labs Si4713 device"
-+	depends on I2C && VIDEO_V4L2
-+	---help---
-+	  Say Y here if you want support to Si4713 I2C device.
-+	  This device driver supports only i2c bus.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called si4713.
-+
-+config RADIO_SI4713
-+	tristate "Silicon Labs Si4713 FM Radio Transmitter support"
-+	depends on I2C && VIDEO_V4L2
-+	---help---
-+	  Say Y here if you want support to Si4713 FM Radio Transmitter.
-+	  This device can transmit audio through FM. It can transmit
-+	  EDS and EBDS signals as well. This module is the v4l2 radio
-+	  interface for the i2c driver of this device.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called radio-si4713.
-+
- config USB_DSBR
- 	tristate "D-Link/GemTek USB FM radio support"
- 	depends on USB && VIDEO_V4L2
-diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
-index 0f2b35b..4c757ad 100644
---- a/drivers/media/radio/Makefile
-+++ b/drivers/media/radio/Makefile
-@@ -15,6 +15,9 @@ obj-$(CONFIG_RADIO_ZOLTRIX) += radio-zoltrix.o
- obj-$(CONFIG_RADIO_GEMTEK) += radio-gemtek.o
- obj-$(CONFIG_RADIO_GEMTEK_PCI) += radio-gemtek-pci.o
- obj-$(CONFIG_RADIO_TRUST) += radio-trust.o
-+obj-$(CONFIG_I2C_SI4713) += si4713-i2c.o
-+si4713-i2c-objs := si4713.o si4713-subdev.o
-+obj-$(CONFIG_RADIO_SI4713) += radio-si4713.o
- obj-$(CONFIG_RADIO_MAESTRO) += radio-maestro.o
- obj-$(CONFIG_USB_DSBR) += dsbr100.o
- obj-$(CONFIG_USB_SI470X) += radio-si470x.o
+> The i2c core used to maintain a list of client for each adapter. This
+> is a duplication of what the driver core already does, so this list
+> will be removed as part of a future cleanup. Anyone using this list
+> must stop doing so.
+> 
+> For pvrusb2, I propose the following change, which should lead to an
+> equally informative output. The only difference is that i2c clients
+> which are not a v4l2 subdev won't show up, but I guess this case is
+> not supposed to happen anyway.
+
+It will happen for anything i2c used by v4l which itself is not really a 
+part of v4l.  That would include, uh, lirc.
+
+I will review and test this first chance I get which should be tomorrow.
+
+  -Mike
+
+
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> Cc: Mike Isely <isely@pobox.com>
+> ---
+> Mike, can you please review and test this patch? Thanks.
+> 
+>  linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c |   56 +++++------------------
+>  1 file changed, 13 insertions(+), 43 deletions(-)
+> 
+> --- v4l-dvb.orig/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	2009-04-30 16:52:32.000000000 +0200
+> +++ v4l-dvb/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	2009-04-30 17:20:37.000000000 +0200
+> @@ -4920,65 +4920,35 @@ static unsigned int pvr2_hdw_report_clie
+>  	unsigned int tcnt = 0;
+>  	unsigned int ccnt;
+>  	struct i2c_client *client;
+> -	struct list_head *item;
+> -	void *cd;
+>  	const char *p;
+>  	unsigned int id;
+>  
+> -	ccnt = scnprintf(buf, acnt, "Associated v4l2-subdev drivers:");
+> +	ccnt = scnprintf(buf, acnt, "Associated v4l2-subdev drivers and I2C clients:\n");
+>  	tcnt += ccnt;
+>  	v4l2_device_for_each_subdev(sd, &hdw->v4l2_dev) {
+>  		id = sd->grp_id;
+>  		p = NULL;
+>  		if (id < ARRAY_SIZE(module_names)) p = module_names[id];
+>  		if (p) {
+> -			ccnt = scnprintf(buf + tcnt, acnt - tcnt, " %s", p);
+> +			ccnt = scnprintf(buf + tcnt, acnt - tcnt, "  %s:", p);
+>  			tcnt += ccnt;
+>  		} else {
+>  			ccnt = scnprintf(buf + tcnt, acnt - tcnt,
+> -					 " (unknown id=%u)", id);
+> +					 "  (unknown id=%u):", id);
+>  			tcnt += ccnt;
+>  		}
+> -	}
+> -	ccnt = scnprintf(buf + tcnt, acnt - tcnt, "\n");
+> -	tcnt += ccnt;
+> -
+> -	ccnt = scnprintf(buf + tcnt, acnt - tcnt, "I2C clients:\n");
+> -	tcnt += ccnt;
+> -
+> -	mutex_lock(&hdw->i2c_adap.clist_lock);
+> -	list_for_each(item, &hdw->i2c_adap.clients) {
+> -		client = list_entry(item, struct i2c_client, list);
+> -		ccnt = scnprintf(buf + tcnt, acnt - tcnt,
+> -				 "  %s: i2c=%02x", client->name, client->addr);
+> -		tcnt += ccnt;
+> -		cd = i2c_get_clientdata(client);
+> -		v4l2_device_for_each_subdev(sd, &hdw->v4l2_dev) {
+> -			if (cd == sd) {
+> -				id = sd->grp_id;
+> -				p = NULL;
+> -				if (id < ARRAY_SIZE(module_names)) {
+> -					p = module_names[id];
+> -				}
+> -				if (p) {
+> -					ccnt = scnprintf(buf + tcnt,
+> -							 acnt - tcnt,
+> -							 " subdev=%s", p);
+> -					tcnt += ccnt;
+> -				} else {
+> -					ccnt = scnprintf(buf + tcnt,
+> -							 acnt - tcnt,
+> -							 " subdev= id %u)",
+> -							 id);
+> -					tcnt += ccnt;
+> -				}
+> -				break;
+> -			}
+> +		client = v4l2_get_subdevdata(sd);
+> +		if (client) {
+> +			ccnt = scnprintf(buf + tcnt, acnt - tcnt,
+> +					 " %s @ %02x\n", client->name,
+> +					 client->addr);
+> +			tcnt += ccnt;
+> +		} else {
+> +			ccnt = scnprintf(buf + tcnt, acnt - tcnt,
+> +					 " no i2c client\n");
+> +			tcnt += ccnt;
+>  		}
+> -		ccnt = scnprintf(buf + tcnt, acnt - tcnt, "\n");
+> -		tcnt += ccnt;
+>  	}
+> -	mutex_unlock(&hdw->i2c_adap.clist_lock);
+>  	return tcnt;
+>  }
+>  
+> 
+> 
+> 
+
 -- 
-1.6.2.GIT
 
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
