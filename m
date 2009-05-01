@@ -1,224 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.230]:18814 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752569AbZELBHw convert rfc822-to-8bit (ORCPT
+Received: from mail-in-04.arcor-online.net ([151.189.21.44]:48953 "EHLO
+	mail-in-04.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1762708AbZEAA06 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 May 2009 21:07:52 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so2356021rvb.1
-        for <linux-media@vger.kernel.org>; Mon, 11 May 2009 18:07:53 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20090511203647.6c982275@pedra.chehab.org>
-References: <5e9665e10904230315o46ef5f95o8c393a9148976880@mail.gmail.com>
-	 <20090511203647.6c982275@pedra.chehab.org>
-Date: Tue, 12 May 2009 10:07:53 +0900
-Message-ID: <5e9665e10905111807n36215403yfa978db454cdc975@mail.gmail.com>
-Subject: Re: About using VIDIOC_REQBUFS
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"jongse.won@samsung.com" <jongse.won@samsung.com>,
-	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Thu, 30 Apr 2009 20:26:58 -0400
+Subject: Re: [linux-dvb] Can't scan transponders with Terratec Cinergy HT
+	PCI board
+From: hermann pitton <hermann-pitton@arcor.de>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+In-Reply-To: <e6575a30904300454w117e6293p4793ad6c2b5c706@mail.gmail.com>
+References: <e6575a30904300454w117e6293p4793ad6c2b5c706@mail.gmail.com>
+Content-Type: text/plain
+Date: Fri, 01 May 2009 02:26:32 +0200
+Message-Id: <1241137592.5108.12.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+Hi Charles,
 
-Thank you for your comment, first of all.
-In earlier mail, my question was actually about how to capture a
-different pixel format data from the one configured in the first
-S_FMT. Like opening device configured with YUV422 pixel format and try
-to capture a JPEG data which comes from the same device.
+Am Donnerstag, den 30.04.2009, 13:54 +0200 schrieb Charles:
+> Hello,
+> 
+> 
+> I installed my Terratec Cinergy HT PCI DVB-T board on Ubuntu 9.04
 
-After sending that mail, I tried several different ways to capture
-JPEG data. Actually, the way I asked in earlier mail didn't go well.
-Here is the reason that I couldn't make it.(I tried s_fmt before every
-reqbufs and querybuf and mmap after that)
+I guess HT PCI can mean a lot, like My Cinema, WinFast and the like ...
 
-- There was a driver modification necessary to use munmap : I'm using
-OMAP3 camera interface driver of Sakari. I had to make driver to
-re-issue videobuf_queue_core_init in S_FMT of omap3 camera interface
-through videobuf_queue_sg_init. It seems to be weird to re-init
-videobuf core in S_FMT. Isn't it? I don't know but I couldn't
-guarantee that it is a safe way.
+> using your tutorial
+> (http://www.linuxtv.org/wiki/index.php/How_to_Obtain%2C_Build_and_Install_V4L-DVB_Device_Drivers)
+> and when trying to scan transponders, no result was found:
+> 
+> $ ls -l /dev/dvb/adapter0
+> total 0
+> crw-rw----+ 1 root video 212, 1 2009-04-30 12:19 demux0
+> crw-rw----+ 1 root video 212, 2 2009-04-30 12:19 dvr0
+> crw-rw----+ 1 root video 212, 0 2009-04-30 12:19 frontend0
+> crw-rw----+ 1 root video 212, 3 2009-04-30 12:19 net0
+> 
+> $ scan /usr/share/dvb/dvb-t/fr-Nantes
+> scanning /usr/share/dvb/dvb-t/fr-Nantes
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> initial transponder 498000000 0 2 9 3 1 0 0
+> initial transponder 506000000 0 2 9 3 1 0 0
+> initial transponder 522000000 0 2 9 3 1 0 0
+> initial transponder 530000000 0 2 9 3 1 0 0
+> initial transponder 658000000 0 2 9 3 1 0 0
+> initial transponder 802000000 0 2 9 3 1 0 0
 
-So, I decided to handle one pixel format per one file descriptor.
-I mean, opening device and get a file descriptor for preview buffer
-and open one more time with the same device and get a file descriptor
-for JPEG capture buffer. It seems to be more decent to me. And even
-each different pixel formats could be handled in a different thread.
-Pretty handy.
-With this way, I just need to keep the streaming section mutually
-exclusive from each thread, which means when thread A starts streaming
-with streamon, thread B can't streamon with the same device. (device
-just returns EBUSY)
+Can't tell offhand if the zl10353 eventually has this problem too, which
+is well known on the tda10046.
 
-Besides that, I found that there is no way to know the maximum memory
-size to be mmaped.
-So I posted following RFC on linux-media list.
-Please find this and any comment will be appreciated.
-http://www.spinics.net/lists/linux-media/msg05013.html
+Please try to add plus 167 kHz to your initial scan file for Nantes,
+like you can see it here for one of the Lyon transmitters.
+
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval
+hierarchy
+# R1 : Canal 56
+T 754167000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+# R2 : Canal 36
+T 594167000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+# R3 : Canal 21
+T 474167000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+# R4 : Canal 54
+T 738167000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+# R5 : Canal 27
+T 522167000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+# R6 : Canal 24
+T 498167000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
+
+At least we can exclude this then.
 
 Cheers,
-Nate
+Hermann
 
-On Tue, May 12, 2009 at 8:36 AM, Mauro Carvalho Chehab
-<mchehab@infradead.org> wrote:
-> Em Thu, 23 Apr 2009 19:15:14 +0900
-> "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com> escreveu:
->
->> Hello Hans,
->>
->> Is it an ordinary way to use twice reqbuf without closing and
->> re-opening between them?
->>
->> I mean like this,
->>
->> 1. Open device
->> 2. VIDIOC_REQBUFS
->>      <snip>
->> 3. VIDIOC_STREAMON
->>      <snip>
->> 4. VIDIOC_STREAMOFF
->> 5. VIDIOC_REQBUFS
->>      <snip>
->> 6. VIDIOC_STREAMON
->>
->> I suppose there should be a strict order for this. That order seems to
->> be wrong but necessary when we do capturing a JPEG data which size
->> (not resolution) is bigger than the preview data size. (Assuming that
->> user is using mmap)
->> Please let me know the right way for that kind of case. Just close and
->> re-open with big enough size for JPEG? or mmap with big enough size in
->> the first place?
->
-> That's a very good question.
->
-> You shouldn't be needing to close/open the device for this to work, but between
-> (4) and (5), you'll need to call VIDIOC_S_FMT, to change the videobuf size,
-> and, to be safe, unmap the videobuf memory.
->
-> A code like the above may give different results depending on the way
-> videobuffer handling is implemented.
->
-> A good idea is to test it with vivi driver (that uses videobuf), with debugs
-> enabled, and compare with other drivers.
->
-> I did such test with vivi and it worked properly (although I didn't change the
-> data size).
->
-> If you want to test, I used the driver-test program, available at the
-> development tree, with the patch bellow. I didn't actually tested to resize the
-> stream, but from vivi logs, the mmapped buffers seem to be properly
-> allocated/deallocated.
->
->
->
-> Cheers,
-> Mauro
->
-> diff --git a/v4l2-apps/test/driver-test.c b/v4l2-apps/test/driver-test.c
-> --- a/v4l2-apps/test/driver-test.c
-> +++ b/v4l2-apps/test/driver-test.c
-> @@ -30,7 +30,7 @@ int main(void)
->  {
->        struct v4l2_driver drv;
->        struct drv_list *cur;
-> -       unsigned int count = 10, i;
-> +       unsigned int count = 10, i, j;
->        double freq;
->
->        if (v4l2_open ("/dev/video0", 1,&drv)<0) {
-> @@ -97,45 +97,47 @@ int main(void)
->        fflush (stdout);
->        sleep(1);
->
-> -       v4l2_mmap_bufs(&drv, 2);
-> +       for (j = 0; j < 5; j++) {
-> +               v4l2_mmap_bufs(&drv, 2);
->
-> -       v4l2_start_streaming(&drv);
-> +               v4l2_start_streaming(&drv);
->
-> -       printf("Waiting for frames...\n");
-> +               printf("Waiting for frames...\n");
->
-> -       for (i=0;i<count;i++) {
-> -               fd_set fds;
-> -               struct timeval tv;
-> -               int r;
-> +               for (i=0;i<count;i++) {
-> +                       fd_set fds;
-> +                       struct timeval tv;
-> +                       int r;
->
-> -               FD_ZERO (&fds);
-> -               FD_SET (drv.fd, &fds);
-> +                       FD_ZERO (&fds);
-> +                       FD_SET (drv.fd, &fds);
->
-> -               /* Timeout. */
-> -               tv.tv_sec = 2;
-> -               tv.tv_usec = 0;
-> +                       /* Timeout. */
-> +                       tv.tv_sec = 2;
-> +                       tv.tv_usec = 0;
->
-> -               r = select (drv.fd + 1, &fds, NULL, NULL, &tv);
-> -               if (-1 == r) {
-> -                       if (EINTR == errno)
-> -                               continue;
-> +                       r = select (drv.fd + 1, &fds, NULL, NULL, &tv);
-> +                       if (-1 == r) {
-> +                               if (EINTR == errno)
-> +                                       continue;
-> +
-> +                               perror ("select");
-> +                               return errno;
-> +                       }
->
-> -                       perror ("select");
-> -                       return errno;
-> +                       if (0 == r) {
-> +                               fprintf (stderr, "select timeout\n");
-> +                               return errno;
-> +                       }
-> +
-> +                       if (v4l2_rcvbuf(&drv, recebe_buffer))
-> +                               break;
->                }
->
-> -               if (0 == r) {
-> -                       fprintf (stderr, "select timeout\n");
-> -                       return errno;
-> -               }
-> -
-> -               if (v4l2_rcvbuf(&drv, recebe_buffer))
-> -                       break;
-> +               printf("stopping streaming\n");
-> +               v4l2_stop_streaming(&drv);
->        }
->
-> -       printf("stopping streaming\n");
-> -       v4l2_stop_streaming(&drv);
-> -
->        if (v4l2_close (&drv)<0) {
->                perror("close");
->                return -1;
->
->
+> >>> tune to: 498000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 498000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 530000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 530000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 658000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 658000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 802000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 802000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
+> WARNING: >>> tuning failed!!!
+> ERROR: initial tuning failed
+> dumping lists (0 services)
+> Done.
+> 
+> $ dvbscan /usr/share/dvb/dvb-t/fr-Nantes
+> Unable to query frontend status
+> 
+> $ w_scan -ft -X
+> w_scan version 20081106
+> Info: using DVB adapter auto detection.
+>    Found DVB-T frontend. Using adapter /dev/dvb/adapter0/frontend0
+> -_-_-_-_ Getting frontend capabilities-_-_-_-_
+> frontend Zarlink ZL10353 DVB-T supports
+> INVERSION_AUTO
+> QAM_AUTO
+> TRANSMISSION_MODE_AUTO
+> GUARD_INTERVAL_AUTO
+> HIERARCHY_AUTO
+> FEC_AUTO
+> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+> 177500:
+> 184500:
+> 191500:
+> 198500:
+> 205500:
+> 212500:
+> 219500:
+> 226500:
+> 474000:
+> 482000:
+> 490000:
+> 498000:
+> 506000:
+> 514000:
+> 522000:
+> 530000:
+> 538000:
+> 546000:
+> 554000:
+> 562000:
+> 570000:
+> 578000:
+> 586000:
+> 594000:
+> 602000:
+> 610000:
+> 618000:
+> 626000:
+> 634000:
+> 642000:
+> 650000:
+> 658000:
+> 666000:
+> 674000:
+> 682000:
+> 690000:
+> 698000:
+> 706000:
+> 714000:
+> 722000:
+> 730000:
+> 738000:
+> 746000:
+> 754000:
+> 762000:
+> 770000:
+> 778000:
+> 786000:
+> 794000:
+> 802000:
+> 810000:
+> 818000:
+> 826000:
+> 834000:
+> 842000:
+> 850000:
+> 858000:
+> ERROR: Sorry - i couldn't get any working frequency/transponder
+>  Nothing to scan!!
+> dumping lists (0 services)
+> Done.
+> $
+> 
+> 
+> 
+> Any idea?
+> Thanks in advance,
+> 
+> Charles.
+> 
 
 
-
--- 
-=
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
