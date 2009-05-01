@@ -1,58 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:46743 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754547AbZE1OUQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2009 10:20:16 -0400
-Date: Thu, 28 May 2009 09:34:25 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Hans de Goede <hdegoede@redhat.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: Licensing question regarding SN9C2028 decompression (fwd)
-In-Reply-To: <4A1E3850.5090500@redhat.com>
-Message-ID: <alpine.LNX.2.00.0905280928540.3619@banach.math.auburn.edu>
-References: <alpine.LNX.2.00.0905271640190.14249@banach.math.auburn.edu> <4A1E3850.5090500@redhat.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42643 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752657AbZEAIra (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 May 2009 04:47:30 -0400
+Date: Fri, 1 May 2009 10:47:29 +0200
+From: Wolfram Sang <w.sang@pengutronix.de>
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Donating a mr97310 based elta-media 8212dc (0x093a:0x010e)
+Message-ID: <20090501084729.GB6941@pengutronix.de>
+References: <20090430022847.GA15183@pengutronix.de> <alpine.LNX.2.00.0904300953330.21567@banach.math.auburn.edu>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="XOIedfhf+7KOe/yw"
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.2.00.0904300953330.21567@banach.math.auburn.edu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+--XOIedfhf+7KOe/yw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Thu, 28 May 2009, Hans de Goede wrote:
+Hi Theodore,
 
->
->
-> On 05/27/2009 11:43 PM, Theodore Kilgore wrote:
->> 
->> Hans,
->> 
->> Here is the answer which I got about the question of GPL->LGPL licensing
->> in regard to the sn9c2028 decompression code.
->> 
->
-> Hmm,
->
-> Given that you did have contact with the original author years ago and
-> he also did ok it back then, and that large parts of the code are written
-> by you, I'm ok with moving forward changing the license to LGPL and then
-> committing the patch.
->
-> Regards,
->
-> Hans
+> know where he lives) then perhaps to Thomas Kaiser, who lives a bit=20
+> closer to you. I think that all three of us are equally interested but as=
+=20
 
-If you think it is appropriate, I can include the mail as part of the 
-file. I notice that this is done in some other files, for example in 
-pac207.c. But as far as contact with the author is concerned, it is even 
-more accurate to say that the cooperation was a two-way street. I 
-understand that some of my LGPL code for other camera drivers has been put 
-to use, too, in the macam project. For example, they also have drivers for 
-the SQ cameras and the mr97310a cameras. Clearly, I do not have a problem 
-with that any more than Harald has with my using the sn9c2028 
-decompression algorithm. In fact, as he called the decompression algorithm 
-to my attention, I brought to his attention the work which I had done on 
-those other cameras. Sorry I did not keep all the e-mails, though.
+Well, looks like I will send it to Thomas then. I'm glad that it can still =
+be
+useful.
 
-Theodore Kilgore
+> Judging from the Vendor:Product number which you report, it is one of the=
+=20
+> small MR97310 cameras for which the OEM driver was called the "CIF" =20
+> driver. Indeed, these cameras are not supported right now, so the matter =
+=20
+> is interesting.
 
+I tried simply adding the usb-id to the list in mr97310a.c, but as that did=
+n't
+produce anything useful (green screen), I thought I'll leave it to the pros=
+ :)
+
+> the SOF marker -- and this with the OEM driver software, too. But you say=
+=20
+> that yours actually worked.
+
+Yup, just downloaded some driver from the net (can look up the URL if neede=
+d).
+
+> Finally, I would ask one question:
+>
+> In the libgphoto2 driver for these cameras, I have a listing for
+>
+> {"Elta Medi@ digi-cam", GP_DRIVER_STATUS_EXPERIMENTAL, 0x093a, 0x010e},
+>
+> Do you think this is the same camera, or a different one? Yours has a =20
+
+I am pretty sure this is the same camera. "elta medi@ digi-cam" is printed =
+on
+the front-side. The model number "8212DC" is just on a glued label on the
+down-side which may not be present on all charges or may have been removed =
+or
+got lost somehow. I could make pictures of the cam if this helps.
+
+> Also might you be interested to try it out as a still camera, with =20
+> libgphoto2, before surrendering it to someone else?
+
+I am not at home this weekend, so I don't have access to my Linux-machines.=
+ I
+have the camera with me as I tested it on a Windows machine here; I could
+send it like tomorrow. Thomas, is it okay for you, if I leave this to you?
+
+Regards,
+
+   Wolfram
+
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+
+--XOIedfhf+7KOe/yw
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkn6tyEACgkQD27XaX1/VRuXJwCcDw6A7bwVf4X4xwWH+5rTtmLH
+5wQAoKqwlqA1Kuag0lRnlidHxop6GGfE
+=7RIg
+-----END PGP SIGNATURE-----
+
+--XOIedfhf+7KOe/yw--
