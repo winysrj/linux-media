@@ -1,98 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f224.google.com ([209.85.219.224]:36652 "EHLO
-	mail-ew0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753664AbZESQfV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2009 12:35:21 -0400
-Received: by ewy24 with SMTP id 24so5003555ewy.37
-        for <linux-media@vger.kernel.org>; Tue, 19 May 2009 09:35:20 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20]:59188 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1762131AbZEAV0D (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 May 2009 17:26:03 -0400
+Date: Fri, 1 May 2009 23:26:02 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Johnson, Charles F" <charles.f.johnson@intel.com>,
+	"Zhu, Daniel" <daniel.zhu@intel.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 0/5] V4L2 patches for Intel Moorestown Camera Imaging
+ Drivers
+In-Reply-To: <0A882F4D99BBF6449D58E61AAFD7EDD613793923@pdsmsx502.ccr.corp.intel.com>
+Message-ID: <Pine.LNX.4.64.0905012324190.11081@axis700.grange>
+References: <90b950fc0904292317m500820efv66755aed31b46853@mail.gmail.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB030548BA1B@dbde02.ent.ti.com>
+ <0A882F4D99BBF6449D58E61AAFD7EDD613793923@pdsmsx502.ccr.corp.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <716575.53837.qm@web110806.mail.gq1.yahoo.com>
-References: <716575.53837.qm@web110806.mail.gq1.yahoo.com>
-Date: Tue, 19 May 2009 12:35:20 -0400
-Message-ID: <37219a840905190935s4f220cbcg7bfe216a5d42b379@mail.gmail.com>
-Subject: Re: [PATCH] [09051_55] Siano: smscards - merge the binding handling
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Uri Shkolnik <urishk@yahoo.com>
-Cc: LinuxML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 19, 2009 at 12:24 PM, Uri Shkolnik <urishk@yahoo.com> wrote:
->
-> # HG changeset patch
-> # User Uri Shkolnik <uris@siano-ms.com>
-> # Date 1242750556 -10800
-> # Node ID d92f2dfcb226c5f8b8c3216f7cf96126f7571702
-> # Parent  0296b0c436d6deba48c710cfb510988267cea057
-> [09051_55] Siano: smscards - merge the binding handling.
->
-> From: Uri Shkolnik <uris@siano-ms.com>
->
-> Merge the bind handling into the events switch.
->
-> Priority: normal
->
-> Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
->
-> diff -r 0296b0c436d6 -r d92f2dfcb226 linux/drivers/media/dvb/siano/sms-cards.c
-> --- a/linux/drivers/media/dvb/siano/sms-cards.c Tue May 19 19:19:27 2009 +0300
-> +++ b/linux/drivers/media/dvb/siano/sms-cards.c Tue May 19 19:29:16 2009 +0300
-> @@ -194,7 +194,13 @@ int sms_board_event(struct smscore_devic
->
->        case BOARD_EVENT_BIND:
->                switch (board_id) {
-> +               case SMS1XXX_BOARD_HAUPPAUGE_CATAMOUNT:
-> +               case SMS1XXX_BOARD_HAUPPAUGE_OKEMO_A:
-> +               case SMS1XXX_BOARD_HAUPPAUGE_OKEMO_B:
-> +                       request_module("smsdvb");
-> +                       break;
->                case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
-> +                       request_module("smsdvb");
->                        smscore_gpio_set_level(coredev,
->                                board->board_cfg.leds_power, 1);
->                        smscore_gpio_set_level(coredev,
-> @@ -366,20 +372,3 @@ int sms_board_lna_control(struct smscore
->        return -EINVAL;
->  }
->  EXPORT_SYMBOL_GPL(sms_board_lna_control);
-> -
-> -int sms_board_load_modules(int id)
-> -{
-> -       switch (id) {
-> -       case SMS1XXX_BOARD_HAUPPAUGE_CATAMOUNT:
-> -       case SMS1XXX_BOARD_HAUPPAUGE_OKEMO_A:
-> -       case SMS1XXX_BOARD_HAUPPAUGE_OKEMO_B:
-> -       case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
-> -               request_module("smsdvb");
-> -               break;
-> -       default:
-> -               /* do nothing */
-> -               break;
-> -       }
-> -       return 0;
-> -}
-> -EXPORT_SYMBOL_GPL(sms_board_load_modules);
->
->
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+On Thu, 30 Apr 2009, Zhang, Xiaolin wrote:
 
-NACK
+> Hi All,
+> 
+> Here is the a set of V4L2 camera sensors and ISP drivers to support the 
+> Intel Moorestown camera imaging subsystem. The Camera Imaging interface 
+> in Moorestown is responsible for capturing both still and video frames. 
+> The CI handles demosaicing, color synthesis, filtering, image 
+> enhancement functions and JPEG encode. Intel Moorestown platform can 
+> support either a single camera or two cameras. A platform with two 
+> cameras will have on the same side as this display and the second on the 
+> opposite side the display. The camera on the display side will be used 
+> for video conferencing (with low resolution SoC cameras) and the other 
+> camera is used to still image capture or video recode (with high 
+> resolution RAW cameras).
+> 
+> In this set of driver patches, I will submit the 5 patches to enable the 
+> ISP HW and 3 cameras module (two SoCs: 1.3MP - Omnivision 9665, 2MP - 
+> Omnivison 2650 and one RAW: 5MP - Omnivision 5630).
+> 1. Intel Moorestown ISP driver.
+> 2. Intel Moorestown camera sensor pseudo driver. This is to uniform the 
+> interfaces for ISP due to supporting dual cameras.
+> 3. Intel Moorestown 2MP camera sensor driver.
+> 4. Intel Moorestown 5MP camera sensor driver.
+> 5. Intel Moorestown 1.3MP camera sensor driver.
+> 
+> I will post the above 5 patches in near feature.
 
-Again, let Uri finish his other changesets first, and settle down to a
-stable state so that the Hauppauge devices can be tested before and
-after these Hauppauge-specific changesets.
+I think this is a perfect candidate for the use of the v4l2-(sub)dev API, 
+and should be converted to use it, am I right?
 
-This puts the stability of Hauppauge device support in this driver
-into jeopardy.
-
--Mike
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
