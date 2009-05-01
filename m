@@ -1,41 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f174.google.com ([209.85.218.174]:57747 "EHLO
-	mail-bw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751279AbZEVQuY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2009 12:50:24 -0400
-Received: by bwz22 with SMTP id 22so1744042bwz.37
-        for <linux-media@vger.kernel.org>; Fri, 22 May 2009 09:50:24 -0700 (PDT)
+Received: from banach.math.auburn.edu ([131.204.45.3]:45755 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762555AbZEAUTf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 May 2009 16:19:35 -0400
+Date: Fri, 1 May 2009 15:33:08 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: hermann pitton <hermann-pitton@arcor.de>
+cc: Wolfram Sang <w.sang@pengutronix.de>, linux-media@vger.kernel.org
+Subject: Re: Donating a mr97310 based elta-media 8212dc (0x093a:0x010e)
+In-Reply-To: <1241206252.3717.36.camel@pc07.localdom.local>
+Message-ID: <alpine.LNX.2.00.0905011527310.23481@banach.math.auburn.edu>
+References: <20090430022847.GA15183@pengutronix.de>  <alpine.LNX.2.00.0904300953330.21567@banach.math.auburn.edu>  <20090501084729.GB6941@pengutronix.de>  <alpine.LNX.2.00.0905011224330.23299@banach.math.auburn.edu>
+ <1241206252.3717.36.camel@pc07.localdom.local>
 MIME-Version: 1.0
-In-Reply-To: <4A164E9F.1070302@bsc-bvba.be>
-References: <965444.24352.qm@web26902.mail.ukl.yahoo.com>
-	 <20090515231650.56d6c4f4@bk.ru> <4A164E9F.1070302@bsc-bvba.be>
-Date: Fri, 22 May 2009 18:50:23 +0200
-Message-ID: <18d12a680905220950w5ac161f4gd2c716b84bc71cf5@mail.gmail.com>
-Subject: Re: [linux-dvb] Hauppauge WinTV-CI
-From: =?UTF-8?Q?BRUNETON_B=C3=A9ranger?= <bruneton@gmail.com>
-To: linux-media@vger.kernel.org, dvb3@bsc-bvba.be
-Cc: linux-dvb@linuxtv.org, tarik.chougua@yahoo.fr
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> I have been struggling for ages with this device, trying get the firmware to load.
+
+
+On Fri, 1 May 2009, hermann pitton wrote:
+
+> Hello,
+
+<snip>
+
+> for elta GmbH,
 >
-> The program I wrote to extract the firmware from the driver now outputs the Intel Hex format too, used by fxload.
-> No luck : the A3 part does not get loaded, not even using fxloads' A3-loader
+> they are originally located in Germany and have a quite good reputation
+> for fancy lifestyle products, many imported from Asia, these days mostly
+> China, but started with quality products from Japan.
 >
-> Details and downloads of code, logs etc at http://www.bsc-bvba.be/linux/dvb
+> One of the services they also offer is to create new brands of products
+> for customers, coordinated over elta Hong Kong, which includes proper
+> package design, two years warranty and a readable user manual ;)
 >
-> I could use some help, like :
->> > traces of the firmware being loaded on XP/Vista (I am using USBspy myself), preferably using a hardware protocol analyser
->> > recommendations for an affordable hardware USB2 protocol analyser (I'd try to compare the XP-log with the non-working Linux log)
->> > suggestions on how to proceed ...
+> I have an early appearance of the saa7134 chip as elta medi@ 8682 LV
+> LifeView FlyVideo 3000 with remote and maybe the first TCL tuner seen
+> here. Copyright and Trademark Notice in the user manual.
+> (C) 2001 by Animations Technologies Inc. for this one.
+>
+> Can be found searching for Elta at the www.bttv-gallery.de.
+>
+> You can find all contact information for elta here.
+>
+> http://www.elta.de
+>
 
+<snip>
 
-Do you know why it doesn't support S2 channels ?
-Hardware or software limitation ?
+>> Theodore Kilgore
+>
+> Cheers,
+> Hermann
 
+Hermann,
 
-Regards
+What exactly are you saying? Is it that here seems to be a manufacturer 
+(more accurately, a packager and importer) who might be willing actually 
+to talk to us? That would be good news.
+
+Also, unless I misunderstand, you seem to imply that some such kind of 
+cooperation already exists. Can you say more about this?
+
+Theodore Kilgore
