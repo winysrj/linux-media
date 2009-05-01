@@ -1,288 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110804.mail.gq1.yahoo.com ([67.195.13.227]:41501 "HELO
-	web110804.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751951AbZEQI5p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 May 2009 04:57:45 -0400
-Message-ID: <38175.94614.qm@web110804.mail.gq1.yahoo.com>
-Date: Sun, 17 May 2009 01:57:45 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [0905_23] Siano: gpio - use new implementation
-To: LinuxML <linux-media@vger.kernel.org>
+Received: from web25804.mail.ukl.yahoo.com ([217.12.10.189]:45644 "HELO
+	web25804.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1765531AbZEAWd2 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 May 2009 18:33:28 -0400
+Message-ID: <475610.5602.qm@web25804.mail.ukl.yahoo.com>
+Date: Fri, 1 May 2009 22:26:47 +0000 (GMT)
+From: m8hpw@yahoo.fr
+Reply-To: m8hpw@yahoo.fr
+Subject: dib3000 (dvb) driver bug with ubuntu 9.04 (2.6.28 kernel)?
+To: linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1242331325 -10800
-# Node ID 415ca02f74b960c02ddfa7ee719cf87726d97490
-# Parent  8b645aa2ab13f22b8d4dcd8e6353fce2c976cd34
-[0905_23] Siano: gpio - use new implementation
 
-From: Uri Shkolnik <uris@siano-ms.com>
+Hello,
 
-Start using the corrected gpio implementation
+Since a couple of years, I use a WinFast DTV Dongle (dib3000mc) on a ASUS (intel) laptop without any trouble. It works with ubuntu 8.04. The quality is perfect
 
-Priority: normal
+I use now the same dongle on a recent laptop PC based on a GA-MA78GM-US2H mother board and the quality of the image is very bad and the soft (me-tv) rebuffer very often. It is unlikely a probleme of signal strength, because on the same antenna plug, the dvb works very well with the laptop, and very bad with the desktop computer. See below some informations about the dvb with the two configrations : laptop and the desktop computer.
 
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+I noticed that there are some differences between the loaded modules. i2c_core and usbcore are abscent with ubuntu 9.04. Is it normal? Morever if you carefully look at the dvbtraffic, it is lower for the LAPTOP for a same program. This is very repetive behaviour. It is not normal.
 
-diff -r 8b645aa2ab13 -r 415ca02f74b9 linux/drivers/media/dvb/siano/sms-cards.c
---- a/linux/drivers/media/dvb/siano/sms-cards.c	Thu May 14 22:28:38 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/sms-cards.c	Thu May 14 23:02:05 2009 +0300
-@@ -17,6 +17,7 @@
-  *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-  */
- 
-+#include "smscoreapi.h"
- #include "sms-cards.h"
- #include "smsir.h"
- 
-@@ -155,6 +156,174 @@ struct sms_board *sms_get_board(int id)
- }
- EXPORT_SYMBOL_GPL(sms_get_board);
- 
-+static inline void sms_gpio_assign_11xx_default_led_config(
-+		struct smscore_gpio_config *pGpioConfig) {
-+	pGpioConfig->Direction = SMS_GPIO_DIRECTION_OUTPUT;
-+	pGpioConfig->InputCharacteristics =
-+		SMS_GPIO_INPUTCHARACTERISTICS_NORMAL;
-+	pGpioConfig->OutputDriving = SMS_GPIO_OUTPUTDRIVING_4mA;
-+	pGpioConfig->OutputSlewRate = SMS_GPIO_OUTPUTSLEWRATE_0_45_V_NS;
-+	pGpioConfig->PullUpDown = SMS_GPIO_PULLUPDOWN_NONE;
-+}
-+
-+int sms_board_event(struct smscore_device_t *coredev,
-+		enum SMS_BOARD_EVENTS gevent) {
-+	int board_id = smscore_get_board_id(coredev);
-+	struct sms_board *board = sms_get_board(board_id);
-+	struct smscore_gpio_config MyGpioConfig;
-+
-+	sms_gpio_assign_11xx_default_led_config(&MyGpioConfig);
-+
-+	switch (gevent) {
-+	case BOARD_EVENT_POWER_INIT: /* including hotplug */
-+		switch (board_id) {
-+		case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
-+			/* set I/O and turn off all LEDs */
-+			smscore_gpio_configure(coredev,
-+					board->board_cfg.leds_power,
-+					&MyGpioConfig);
-+			smscore_gpio_set_level(coredev,
-+					board->board_cfg.leds_power, 0);
-+			smscore_gpio_configure(coredev, board->board_cfg.led0,
-+					&MyGpioConfig);
-+			smscore_gpio_set_level(coredev,
-+					board->board_cfg.led0, 0);
-+			smscore_gpio_configure(coredev, board->board_cfg.led1,
-+					&MyGpioConfig);
-+			smscore_gpio_set_level(coredev,
-+					board->board_cfg.led1, 0);
-+			break;
-+		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
-+		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
-+			/* set I/O and turn off LNA */
-+			smscore_gpio_configure(coredev,
-+					board->board_cfg.foreign_lna0_ctrl,
-+					&MyGpioConfig);
-+			smscore_gpio_set_level(coredev,
-+					board->board_cfg.foreign_lna0_ctrl,
-+					0);
-+			break;
-+		}
-+		break; /* BOARD_EVENT_BIND */
-+
-+	case BOARD_EVENT_POWER_SUSPEND:
-+		switch (board_id) {
-+		case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
-+			smscore_gpio_set_level(coredev,
-+						board->board_cfg.leds_power, 0);
-+			smscore_gpio_set_level(coredev,
-+						board->board_cfg.led0, 0);
-+			smscore_gpio_set_level(coredev,
-+						board->board_cfg.led1, 0);
-+			break;
-+		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
-+		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
-+			smscore_gpio_set_level(coredev,
-+					board->board_cfg.foreign_lna0_ctrl,
-+					0);
-+			break;
-+		}
-+		break; /* BOARD_EVENT_POWER_SUSPEND */
-+
-+	case BOARD_EVENT_POWER_RESUME:
-+		switch (board_id) {
-+		case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
-+			smscore_gpio_set_level(coredev,
-+						board->board_cfg.leds_power, 1);
-+			smscore_gpio_set_level(coredev,
-+						board->board_cfg.led0, 1);
-+			smscore_gpio_set_level(coredev,
-+						board->board_cfg.led1, 0);
-+			break;
-+		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
-+		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
-+			smscore_gpio_set_level(coredev,
-+					board->board_cfg.foreign_lna0_ctrl,
-+					1);
-+			break;
-+		}
-+		break; /* BOARD_EVENT_POWER_RESUME */
-+
-+	case BOARD_EVENT_BIND:
-+		switch (board_id) {
-+		case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
-+			smscore_gpio_set_level(coredev,
-+				board->board_cfg.leds_power, 1);
-+			smscore_gpio_set_level(coredev,
-+				board->board_cfg.led0, 1);
-+			smscore_gpio_set_level(coredev,
-+				board->board_cfg.led1, 0);
-+			break;
-+		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
-+		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
-+			smscore_gpio_set_level(coredev,
-+					board->board_cfg.foreign_lna0_ctrl,
-+					1);
-+			break;
-+		}
-+		break; /* BOARD_EVENT_BIND */
-+
-+	case BOARD_EVENT_SCAN_PROG:
-+		break; /* BOARD_EVENT_SCAN_PROG */
-+	case BOARD_EVENT_SCAN_COMP:
-+		break; /* BOARD_EVENT_SCAN_COMP */
-+	case BOARD_EVENT_EMERGENCY_WARNING_SIGNAL:
-+		break; /* BOARD_EVENT_EMERGENCY_WARNING_SIGNAL */
-+	case BOARD_EVENT_FE_LOCK:
-+		switch (board_id) {
-+		case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
-+			smscore_gpio_set_level(coredev,
-+			board->board_cfg.led1, 1);
-+			break;
-+		}
-+		break; /* BOARD_EVENT_FE_LOCK */
-+	case BOARD_EVENT_FE_UNLOCK:
-+		switch (board_id) {
-+		case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
-+			smscore_gpio_set_level(coredev,
-+						board->board_cfg.led1, 0);
-+			break;
-+		}
-+		break; /* BOARD_EVENT_FE_UNLOCK */
-+	case BOARD_EVENT_DEMOD_LOCK:
-+		break; /* BOARD_EVENT_DEMOD_LOCK */
-+	case BOARD_EVENT_DEMOD_UNLOCK:
-+		break; /* BOARD_EVENT_DEMOD_UNLOCK */
-+	case BOARD_EVENT_RECEPTION_MAX_4:
-+		break; /* BOARD_EVENT_RECEPTION_MAX_4 */
-+	case BOARD_EVENT_RECEPTION_3:
-+		break; /* BOARD_EVENT_RECEPTION_3 */
-+	case BOARD_EVENT_RECEPTION_2:
-+		break; /* BOARD_EVENT_RECEPTION_2 */
-+	case BOARD_EVENT_RECEPTION_1:
-+		break; /* BOARD_EVENT_RECEPTION_1 */
-+	case BOARD_EVENT_RECEPTION_LOST_0:
-+		break; /* BOARD_EVENT_RECEPTION_LOST_0 */
-+	case BOARD_EVENT_MULTIPLEX_OK:
-+		switch (board_id) {
-+		case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
-+			smscore_gpio_set_level(coredev,
-+						board->board_cfg.led1, 1);
-+			break;
-+		}
-+		break; /* BOARD_EVENT_MULTIPLEX_OK */
-+	case BOARD_EVENT_MULTIPLEX_ERRORS:
-+		switch (board_id) {
-+		case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
-+			smscore_gpio_set_level(coredev,
-+						board->board_cfg.led1, 0);
-+			break;
-+		}
-+		break; /* BOARD_EVENT_MULTIPLEX_ERRORS */
-+
-+	default:
-+		sms_err("Unknown SMS board event");
-+		break;
-+	}
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(sms_board_event);
-+
- static int sms_set_gpio(struct smscore_device_t *coredev, int pin, int enable)
- {
- 	int lvl, ret;
-@@ -179,11 +348,11 @@ static int sms_set_gpio(struct smscore_d
- 		lvl = enable ? 1 : 0;
- 	}
- 
--	ret = smscore_configure_gpio(coredev, gpio, &gpioconfig);
-+	ret = smscore_gpio_configure(coredev, gpio, &gpioconfig);
- 	if (ret < 0)
- 		return ret;
- 
--	return smscore_set_gpio(coredev, gpio, lvl);
-+	return smscore_gpio_set_level(coredev, gpio, lvl);
- }
- 
- int sms_board_setup(struct smscore_device_t *coredev)
-diff -r 8b645aa2ab13 -r 415ca02f74b9 linux/drivers/media/dvb/siano/sms-cards.h
---- a/linux/drivers/media/dvb/siano/sms-cards.h	Thu May 14 22:28:38 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/sms-cards.h	Thu May 14 23:02:05 2009 +0300
-@@ -86,6 +86,30 @@ extern struct usb_device_id smsusb_id_ta
- extern struct usb_device_id smsusb_id_table[];
- extern struct smscore_device_t *coredev;
- 
-+enum SMS_BOARD_EVENTS {
-+	BOARD_EVENT_POWER_INIT,
-+	BOARD_EVENT_POWER_SUSPEND,
-+	BOARD_EVENT_POWER_RESUME,
-+	BOARD_EVENT_BIND,
-+	BOARD_EVENT_SCAN_PROG,
-+	BOARD_EVENT_SCAN_COMP,
-+	BOARD_EVENT_EMERGENCY_WARNING_SIGNAL,
-+	BOARD_EVENT_FE_LOCK,
-+	BOARD_EVENT_FE_UNLOCK,
-+	BOARD_EVENT_DEMOD_LOCK,
-+	BOARD_EVENT_DEMOD_UNLOCK,
-+	BOARD_EVENT_RECEPTION_MAX_4,
-+	BOARD_EVENT_RECEPTION_3,
-+	BOARD_EVENT_RECEPTION_2,
-+	BOARD_EVENT_RECEPTION_1,
-+	BOARD_EVENT_RECEPTION_LOST_0,
-+	BOARD_EVENT_MULTIPLEX_OK,
-+	BOARD_EVENT_MULTIPLEX_ERRORS
-+};
-+
-+int sms_board_event(struct smscore_device_t *coredev,
-+		enum SMS_BOARD_EVENTS gevent);
-+
- int sms_board_setup(struct smscore_device_t *coredev);
- 
- #define SMS_LED_OFF 0
-diff -r 8b645aa2ab13 -r 415ca02f74b9 linux/drivers/media/dvb/siano/smscoreapi.h
---- a/linux/drivers/media/dvb/siano/smscoreapi.h	Thu May 14 22:28:38 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Thu May 14 23:02:05 2009 +0300
-@@ -633,9 +633,12 @@ extern void smscore_putbuffer(struct sms
- extern void smscore_putbuffer(struct smscore_device_t *coredev,
- 			      struct smscore_buffer_t *cb);
- 
--int smscore_configure_gpio(struct smscore_device_t *coredev, u32 pin,
--			   struct smscore_gpio_config *pinconfig);
--int smscore_set_gpio(struct smscore_device_t *coredev, u32 pin, int level);
-+int smscore_gpio_configure(struct smscore_device_t *coredev, u8 PinNum,
-+		struct smscore_gpio_config *pGpioConfig);
-+int smscore_gpio_set_level(struct smscore_device_t *coredev, u8 PinNum,
-+		u8 NewLevel);
-+int smscore_gpio_get_level(struct smscore_device_t *coredev, u8 PinNum,
-+		u8 *level);
- 
- void smscore_set_board_id(struct smscore_device_t *core, int id);
- int smscore_get_board_id(struct smscore_device_t *core);
+Does anyone have an idea of whats wrong with the LAPTOP configuration.
+
+Thanks.
+
+Julien R.
+
+
+***********************************************
+LAPTOP (GOOD image quality)
+
+uname -a :
+Linux portable 2.6.24-23-generic #1 SMP Wed Apr 1 21:47:28 UTC 2009 i686 GNU/Linux
+
+lsusb:
+Bus 005 Device 011: ID 0413:6026 Leadtek Research, Inc. WinFast DTV Dongle (warm state)
+
+
+lsmod | grep dvb
+dvb_usb_dibusb_mc       6400  0
+dvb_usb_dibusb_common    10756  1 dvb_usb_dibusb_mc
+dib3000mc              13960  2 dvb_usb_dibusb_common
+dvb_usb                19852  2 dvb_usb_dibusb_mc,dvb_usb_dibusb_common
+dvb_core               81404  1 dvb_usb
+i2c_core               24832  4 mt2060,dib3000mc,dibx000_common,dvb_usb
+usbcore               146412  5 dvb_usb_dibusb_mc,dvb_usb,ehci_hcd,uhci_hcd
+
+tzap "ARTE"
+status 1f | signal c058 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+
+dvbtraffic
+0000     9 p/s     1 kb/s    14 kbit
+0010     5 p/s     0 kb/s     8 kbit
+0011     0 p/s     0 kb/s     1 kbit
+0012    12 p/s     2 kb/s    19 kbit
+0015     1 p/s     0 kb/s     2 kbit
+006e     9 p/s     1 kb/s    14 kbit
+0078  1697 p/s   311 kb/s  2553 kbit
+0082   132 p/s    24 kb/s   198 kbit
+008c    32 p/s     5 kb/s    49 kbit
+00d2     9 p/s     1 kb/s    14 kbit
+00dc  2189 p/s   401 kb/s  3292 kbit
+00e6   132 p/s    24 kb/s   198 kbit
+00f0     3 p/s     0 kb/s     5 kbit
+0136     9 p/s     1 kb/s    14 kbit
+0140  1527 p/s   280 kb/s  2296 kbit
+014a   131 p/s    24 kb/s   197 kbit
+0154     1 p/s     0 kb/s     2 kbit
+01fe     9 p/s     1 kb/s    14 kbit
+0208  2104 p/s   386 kb/s  3164 kbit
+0212   131 p/s    24 kb/s   197 kbit
+0213   132 p/s    24 kb/s   198 kbit
+021c     1 p/s     0 kb/s     2 kbit
+021d     2 p/s     0 kb/s     4 kbit
+021e     2 p/s     0 kb/s     4 kbit
+0262     9 p/s     1 kb/s    14 kbit
+026c  1688 p/s   309 kb/s  2539 kbit
+0276   132 p/s    24 kb/s   198 kbit
+0280     2 p/s     0 kb/s     4 kbit
+0294    13 p/s     2 kb/s    20 kbit
+02c6     9 p/s     1 kb/s    14 kbit
+02d0  5437 p/s   998 kb/s  8178 kbit
+02da   131 p/s    24 kb/s   197 kbit
+03f2     9 p/s     1 kb/s    14 kbit
+1fff   823 p/s   151 kb/s  1239 kbit
+2000 16557 p/s  3039 kb/s 24901 kbit
+
+************************************************
+DESKTOP (very bad image)
+
+system ubuntu jaunty
+Linux xxx 2.6.28-11-generic #42-Ubuntu SMP Fri Apr 17 01:57:59
+UTC 2009 i686 GNU/Linux
+AMD
+Mother board GA-MA78GM-US2H (USB controler : amd sb700)
+
+lsusb
+Bus 001 Device 006: ID 0413:6026 Leadtek Research, Inc. WinFast DTV Dongle (warm state)
+
+lsmod |grep dvb
+dvb_usb_dibusb_mc      13056  0
+dvb_usb_dibusb_common    16772  1 dvb_usb_dibusb_mc
+dib3000mc              20488  2 dvb_usb_dibusb_common
+dvb_usb                24332  2 dvb_usb_dibusb_mc,dvb_usb_dibusb_common
+dvb_core               92032  1 dvb_usb
+
+
+tzap "ARTE"
+tuning to 586167000 Hz
+video pid 0x0208, audio pid 0x0212
+status 1f | signal cbfc | snr 0000 | ber 001fffff | unc 00000013 | FE_HAS_LOCK
+...
+
+dvbtraffic
+0000     9 p/s     1 kb/s    14 kbit
+0012    10 p/s     1 kb/s    16 kbit
+0015     1 p/s     0 kb/s     2 kbit
+006e     9 p/s     1 kb/s    14 kbit
+0078  1757 p/s   322 kb/s  2643 kbit
+0082   127 p/s    23 kb/s   191 kbit
+008c     3 p/s     0 kb/s     5 kbit
+00d2     9 p/s     1 kb/s    14 kbit
+00dc  1380 p/s   253 kb/s  2076 kbit
+00e6   124 p/s    22 kb/s   187 kbit
+00f0    42 p/s     7 kb/s    63 kbit
+0136     9 p/s     1 kb/s    14 kbit
+0140  2912 p/s   534 kb/s  4380 kbit
+014a   124 p/s    22 kb/s   187 kbit
+0154    13 p/s     2 kb/s    20 kbit
+01fe     9 p/s     1 kb/s    14 kbit
+0208  2641 p/s   484 kb/s  3973 kbit
+0212   124 p/s    22 kb/s   187 kbit
+0213   127 p/s    23 kb/s   191 kbit
+021c     1 p/s     0 kb/s     2 kbit
+021d     1 p/s     0 kb/s     2 kbit
+021e     1 p/s     0 kb/s     2 kbit
+0262     9 p/s     1 kb/s    14 kbit
+026c  1509 p/s   277 kb/s  2270 kbit
+0276   125 p/s    22 kb/s   188 kbit
+0280     3 p/s     0 kb/s     5 kbit
+0294    12 p/s     2 kb/s    19 kbit
+02c6     9 p/s     1 kb/s    14 kbit
+02d0  3913 p/s   718 kb/s  5886 kbit
+02da   125 p/s    22 kb/s   188 kbit
+03f2     9 p/s     1 kb/s    14 kbit
+1fff   780 p/s   143 kb/s  1173 kbit
+2000 15952 p/s  2928 kb/s 23992 kbit
+-PID--FREQ-----BANDWIDTH-BANDWIDTH-
+
+
 
 
 
