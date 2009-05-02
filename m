@@ -1,117 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail6.sea5.speakeasy.net ([69.17.117.8]:48395 "EHLO
-	mail6.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754391AbZEaNeF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 May 2009 09:34:05 -0400
-Date: Sun, 31 May 2009 06:34:06 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Miroslav =?UTF-8?Q?=20=C5=A0ustek?= <sustmidown@centrum.cz>
-cc: linux-media@vger.kernel.org, mchehab@infradead.org
-Subject: Re: [PATCH] Leadtek WinFast DTV-1800H support
-In-Reply-To: <200905291639.30476@centrum.cz>
-Message-ID: <Pine.LNX.4.58.0905310536500.32713@shell2.speakeasy.net>
-References: <200905291638.9584@centrum.cz> <200905291639.30476@centrum.cz>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2357 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754112AbZEBPvH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 May 2009 11:51:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andy Walls <awalls@radix.net>
+Subject: Re: [ivtv-users] Delay loading v4l-cx25840.fw
+Date: Sat, 2 May 2009 17:49:29 +0200
+Cc: User discussion about IVTV <ivtv-users@ivtvdriver.org>,
+	linux-media@vger.kernel.org
+References: <1241054296.3374.44.camel@palomino.walls.org> <1241144496.22968.15.camel@palomino.walls.org>
+In-Reply-To: <1241144496.22968.15.camel@palomino.walls.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=X-UNKNOWN
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200905021749.29207.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 29 May 2009, Miroslav [UTF-8]  Šustek wrote:
-> Hello,
-> this patch adds support for Leadtek WinFast DTV-1800H hybrid card.
-> It enables analog/digital tv, radio and remote control trough GPIO.
+On Friday 01 May 2009 04:21:36 Andy Walls wrote:
+> On Wed, 2009-04-29 at 21:18 -0400, Andy Walls wrote:
+> > On Wed, 2009-04-29 at 13:33 +0200, Hans Verkuil wrote:
+> > > > On Wed, 2009-04-29 at 21:50 +1200, Michael Cree wrote:
+> > > >> On 29/04/2009, at 6:19 PM, Hans Verkuil wrote:
+> > > >> > What does surprise me here is that the fw is loaded right after
+> > > >> > the driver
+> > > >> > was loaded, which does suggest that some process is opening one
+> > > >> > of the device nodes since the fw load is only done on the first
+> > > >> > open.
+> > > >
+> > > > On my systems (Fedora 9 & 10) IIRC it happens early too.  I've
+> > > > always assumed it was either udev or hal or some some other
+> > > > automatic process that mucks with device nodes.
+> > >
+> > > It would be nice if you could track down who is messing around with
+> > > those device nodes.
+> >
+> > I'll work on it.  It looks like something that is aware of v4l device
+> > nodes (see below) - I'm wagering hald.
 >
-> Input GPIO values are extracted from INF file which is included in winxp driver.
-> Analog audio works both through cx88-alsa and through internal cable from tv-card to sound card.
+> I've found it.  It's hald-probe-video4linux:
 >
-> Tested by me and the people listed in patch (works well).
+> [11539.917539] cx18-0:  info: cx18_v4l2_open: called for stream encoder
+> MPEG by pid 22870 (hald-probe-vide) ppid 1981 (hald-runner)
+> [11540.333557] cx18-0:  info: cx18_v4l2_open: called for stream encoder
+> PCM audio by pid 22907 (hald-probe-vide) ppid 1981 (hald-runner)
+> [11540.337019] cx18-0:  info: cx18_v4l2_open: called for stream encoder
+> VBI by pid 22923 (hald-probe-vide) ppid 1981 (hald-runner) [11540.386051]
+> cx18-0:  info: cx18_v4l2_open: called for stream encoder YUV by pid 22929
+> (hald-probe-vide) ppid 1981 (hald-runner) [11540.401658] cx18-0:  info:
+> cx18_v4l2_open: called for stream encoder radio by pid 22930
+> (hald-probe-vide) ppid 1981 (hald-runner)
+>
+> # locate hald-probe-vide
+> /usr/libexec/hald-probe-video4linux
+>
+>
+> It's not restricted to boot.  It happens on modprobe, probably cued by
+> udev or some other hotplug mechanism.
+>
+> > >  If you modprobe ivtv with file and ioctl debugging on, does
+> > > that give an indication of what is done with the device nodes?
+> >
+> > For the cx18 driver on a Fedora 10 system something runs through
+> > the /dev/video* nodes and /dev/radio* doing VIDIOC_QUERYCAP.  I suspect
+> > the behavior will be the same for ivtv.  I'll test on my other system
+> > when I get a chance.
+> >
+> > > Depending on what process is doing what with the device nodes I may
+> > > be able to optimize the driver for that. It's really annoying to have
+> > > this fw loaded at boot time, esp. if you have one or more PVR-500
+> > > cards.
+>
+> Well thinking about this, this is a system level issue:
+>
+> 1. People want to avoid unnecessary waits at boot (or module insertion
+> time)
+>
+> 2. Hardware detection mechanisms want to query what new hardware is as
+> soon as it appears.
+>
+> 3. Hardware queries from userspace should (or need to) avoid IO bound
+> operations that consume CPU.
+>
+> 4. Kernel drivers should be able to satsify hardware queries without
+> starting up an IO bound operation that consumes CPU.
+>
+> Hans, it sounds like your media_controller device node idea is really
+> what we need to get implemented here for user space to do queires on
+> hardware.  This problem obviously affects more than the ivtv driver so
+> I'd recommend against an ivtv band-aid.
+>
+> We'd also want to coordinate with the hald folks and other user space
+> app/plumbing developers, as this likely affects a few v4l2 drivers.  It
+> sounds like an LPC agenda item to me...
+>
+> Regards,
+> Andy
 
-> +                *  2: mute (0=off,1=on)
-> +                * 12: tuner reset pin
-> +                * 13: audio source (0=tuner audio,1=line in)
-> +                * 14: FM (0=on,1=off ???)
-> +                */
-> +               .input          = {{
-> +                       .type   = CX88_VMUX_TELEVISION,
-> +                       .vmux   = 0,
-> +                       .gpio0  = 0x0400,       /* pin 2 = 0 */
-> +                       .gpio1  = 0x6040,       /* pin 13 = 0, pin 14 = 1 */
-> +                       .gpio2  = 0x0000,
-> +               }, {
-> +                       .type   = CX88_VMUX_COMPOSITE1,
-> +                       .vmux   = 1,
-> +                       .gpio0  = 0x0400,       /* pin 2 = 0 */
-> +                       .gpio1  = 0x6060,       /* pin 13 = 1, pin 14 = 1 */
-> +                       .gpio2  = 0x0000,
-> +               }, {
-> +                       .type   = CX88_VMUX_SVIDEO,
-> +                       .vmux   = 2,
-> +                       .gpio0  = 0x0400,       /* pin 2 = 0 */
-> +                       .gpio1  = 0x6060,       /* pin 13 = 1, pin 14 = 1 */
-> +                       .gpio2  = 0x0000,
-> +               } },
-> +               .radio = {
-> +                       .type   = CX88_RADIO,
-> +                       .gpio0  = 0x0400,       /* pin 2 = 0 */
-> +                       .gpio1  = 0x6000,       /* pin 13 = 0, pin 14 = 0 */
-> +                       .gpio2  = 0x0000,
-> +               },
-> +static int cx88_xc3028_winfast1800h_callback(struct cx88_core *core,
-> +                                            int command, int arg)
-> +{
-> +       switch (command) {
-> +       case XC2028_TUNER_RESET:
-> +               /* GPIO 12 (xc3028 tuner reset) */
-> +               cx_set(MO_GP1_IO, 0x1010);
-> +               mdelay(50);
-> +               cx_clear(MO_GP1_IO, 0x10);
-> +               mdelay(50);
-> +               cx_set(MO_GP1_IO, 0x10);
-> +               mdelay(50);
-> +               return 0;
-> +       }
-> +       return -EINVAL;
-> +}
+I agree. A media controller device is exactly what we need. It's ideal for 
+applications and daemons like hald.
 
-Instead of raising the reset line here, why not change the gpio settings in
-the card definition to have it high?  Change gpio1 for television to 0x7050
-and radio to 0x7010.
+Now all I need is the time to work on it and I don't see that happening 
+anytime soon. :-(
 
-Then the reset can be done with:
+Any volunteers? I have a general idea of how it should be implemented, but 
+it needs a fair amount of research as well.
 
-	case XC2028_TUNER_RESET:
-		/* GPIO 12 (xc3028 tuner reset) */
-		cx_write(MO_GP1_IO, 0x101000);
-		mdelay(50);
-		cx_write(MO_GP1_IO, 0x101010);
-		mdelay(50);
-		return 0;
+Regards,
 
-Though I have to wonder why each card needs its own xc2028 reset function.
-Shouldn't they all be the same other than what gpio they change?
+	Hans
 
-
-@@ -2882,6 +2946,16 @@
-                cx_set(MO_GP0_IO, 0x00000080); /* 702 out of reset */
-                udelay(1000);
-                break;
-+
-+       case CX88_BOARD_WINFAST_DTV1800H:
-+               /* GPIO 12 (xc3028 tuner reset) */
-+               cx_set(MO_GP1_IO, 0x1010);
-+               mdelay(50);
-+               cx_clear(MO_GP1_IO, 0x10);
-+               mdelay(50);
-+               cx_set(MO_GP1_IO, 0x10);
-+               mdelay(50);
-+               break;
-        }
- }
-
-Couldn't you replace this with:
-
-	case CX88_BOARD_WINFAST_DTV1800H:
-		cx88_xc3028_winfast1800h_callback(code, XC2028_TUNER_RESET, 0);
-		break;
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
