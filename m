@@ -1,127 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:46713 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761139AbZE2Vk3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 May 2009 17:40:29 -0400
-Subject: Re: [v4l-dvb-maintainer] tuner-xc2028.c for Taiwan DVB-T
- BANDWIDTH_6_MHZ
-From: Andy Walls <awalls@radix.net>
-To: Terry Wu <terrywu2009@gmail.com>
-Cc: v4l-dvb-maintainer@linuxtv.org, linux-media@vger.kernel.org
-In-Reply-To: <6ab2c27e0905270450s51e41413k95fadbc5820ad353@mail.gmail.com>
-References: <6ab2c27e0905270450s51e41413k95fadbc5820ad353@mail.gmail.com>
+Received: from mail-in-02.arcor-online.net ([151.189.21.42]:32835 "EHLO
+	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750837AbZEBCIR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 May 2009 22:08:17 -0400
+Subject: Re: [PATCH] FM1216ME_MK3 some changes
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andy Walls <awalls@radix.net>
+Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>,
+	Dmitri Belimov <d.belimov@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	video4linux-list@redhat.com, linux-media@vger.kernel.org
+In-Reply-To: <1241225528.5817.68.camel@palomino.walls.org>
+References: <20090422174848.1be88f61@glory.loctelecom.ru>
+	 <1240452534.3232.70.camel@palomino.walls.org>
+	 <20090423203618.4ac2bc6f@glory.loctelecom.ru>
+	 <1240537394.3231.37.camel@palomino.walls.org>
+	 <20090427192905.3ad2b88c@glory.loctelecom.ru>
+	 <20090428151832.241fa9b4@pedra.chehab.org>
+	 <20090428195922.1a079e46@glory.loctelecom.ru>
+	 <1240974643.4280.24.camel@pc07.localdom.local>
+	 <20090429201225.6ba681cf@glory.loctelecom.ru>
+	 <1241054047.3374.42.camel@palomino.walls.org>
+	 <1241155098.3713.26.camel@pc07.localdom.local>
+	 <1241222142.3709.14.camel@pc07.localdom.local>
+	 <1241225528.5817.68.camel@palomino.walls.org>
 Content-Type: text/plain
-Date: Fri, 29 May 2009 17:41:58 -0400
-Message-Id: <1243633318.3185.10.camel@palomino.walls.org>
+Date: Sat, 02 May 2009 04:05:43 +0200
+Message-Id: <1241229943.3715.23.camel@pc07.localdom.local>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Terry,
 
-The linux-media list is the appropriate place for posting patches (I've
-Cc:'ed the list).  v4l-dvb-maintainer is inactive as far as I know.
+Am Freitag, den 01.05.2009, 20:52 -0400 schrieb Andy Walls:
+> On Sat, 2009-05-02 at 01:55 +0200, hermann pitton wrote:
+> > Guys,
+> > 
+> > [snip]
+> > 
+> > > > 
+> > > > Do the circuit board traces in the FM1216ME_MK3 support the TDA9887
+> > > > controlling the gain of the first stage?  (I've never opened an
+> > > > equivalent NTSC tuner assembly to take a look.)
+> > > 
+> > > "equivalent" NTSC tuners _do not_ exist at all.
+> > > 
+> > > I don't forget all the time we spend to find out that some of them are
+> > > Intercarrier only!
+> > > 
+> > > Also, the tda988x stuff is underneath the tuner PCB.
+> > > 
+> > > I cut one off for those interested in line tracing ...
+> > 
+> > still on the to do list ;)
+> 
+> Thanks.  I hope it doesn't cost you too many wasted Euros...
 
-Guidelines for posting patches can be found here:
+Seven years later it is just trash and i hope to provide enough for
+everyone ;)
 
-http://www.linuxtv.org/wiki/index.php/Development:_How_to_submit_patches
-
-Regards,
-Andy
+Cheers,
+Hermann
 
 
-On Wed, 2009-05-27 at 19:50 +0800, Terry Wu wrote:
-> Hi,
 > 
-> Here is the modified
-> v4l-dvb/linux/drivers/media/common/tuners/tuner-xc2028.c
->  for Taiwan DVB-T (BANDWIDTH_6_MHZ) :
-> http://tw1965.myweb.hinet.net/
-> http://tw1965.myweb.hinet.net/Linux/v4l-dvb/tuners/tuner-xc2028.c
-> static int xc2028_set_params(struct dvb_frontend *fe,
->      struct dvb_frontend_parameters *p)
-> {
-> struct xc2028_data *priv = fe->tuner_priv;
-> unsigned int       type=0;
-> fe_bandwidth_t     bw = BANDWIDTH_8_MHZ;
-> u16                demod = 0;
+> > > Without port2=0 you don't get any SECAM-L into the sound trap.
+> > > 
+> > > It needs amplification from minus 40 dB AM for the first sound carrier,
+> > > and then of course you prefer the second with NICAM.
+> > > 
+> > > > If not, then, if I understand things correctly, you need to set the
+> > > > first stage and second stage TOP settings so that they refer to about
+> > > > the same signal level before the IF SAW filter.  
+> > > > 
+> > > > 
+> > > > I would think AGC TOP settings, for both stages of the tuner, are
+> > > > tuner-dependent and relatively constant once you figure out what they
+> > > > should be.
+> > > > 
+> > > > Do you have a different understanding or insight?
+> > > > 
+> > > > Regards,
+> > > > Andy
+> > 
+> > Hartmut once offered to make contacts with colleagues at Philips Hamburg
+> > for such tuners and related tda9887 stuff.
+> > 
+> > Unfortunately he is not active on the lists currently.
+> > 
+> > If I see, how easily someone can get a patch to Andrew and disables all
+> > other SECAM stuff, again from Russia, I'm not convinced on anything from
+> > there.
+> > 
+> > I seriously doubt that those tuners are meant for fumbling on TOP RF/IF
+> > settings from user space.
 > 
-> tuner_dbg("%s called\n", __func__);
-> 
-> switch(fe->ops.info.type) {
-> case FE_OFDM:
-> bw = p->u.ofdm.bandwidth;
-> 
-> if (bw == BANDWIDTH_6_MHZ) /* Terry Wu added for Taiwan DVB-T 6MHz bandwidth
-> */
->                 {
->     type |= (DTV6 | QAM | D2633);
->     priv->ctrl.type = XC2028_D2633;
->                 }
-> 
-> break;
-> case FE_QAM:
-> tuner_info("WARN: There are some reports that "
->    "QAM 6 MHz doesn't work.\n"
->    "If this works for you, please report by "
->    "e-mail to: v4l-dvb-maintainer@linuxtv.org\n");
-> bw = BANDWIDTH_6_MHZ;
-> type |= QAM;
-> break;
-> ...
-> static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
->     enum tuner_mode new_mode,
->     unsigned int type,
->     v4l2_std_id std,
->     u16 int_freq)
-> {
-> struct xc2028_data *priv = fe->tuner_priv;
-> int    rc = -EINVAL;
-> unsigned char    buf[4];
-> u32    div, offset = 0;
-> 
-> tuner_dbg("%s called\n", __func__);
-> 
-> mutex_lock(&priv->lock);
-> 
-> tuner_dbg("should set frequency %d kHz\n", freq / 1000);
-> 
-> if (check_firmware(fe, type, std, int_freq) < 0)
-> goto ret;
-> 
-> /* On some cases xc2028 can disable video output, if
-> * very weak signals are received. By sending a soft
-> * reset, this is re-enabled. So, it is better to always
-> * send a soft reset before changing channels, to be sure
-> * that xc2028 will be in a safe state.
-> * Maybe this might also be needed for DTV.
-> */
-> if (new_mode == T_ANALOG_TV) {
-> rc = send_seq(priv, {0x00, 0x00});
-> } else if (priv->cur_fw.type & ATSC) {
-> offset = 1750000;
-> } else if (priv->cur_fw.type & DTV6) { /* Terry Wu added for Taiwan DVB-T
-> 6MHz bandwidth */
-> offset = 1750000; /* Terry Wu added for Taiwan DVB-T 6MHz bandwidth */
-> } else {
-> offset = 2750000;
-> /*
-> * We must adjust the offset by 500kHz in two cases in order
-> * to correctly center the IF output:
-> * 1) When the ZARLINK456 or DIBCOM52 tables were explicitly
-> *    selected and a 7MHz channel is tuned;
-> * 2) When tuning a VHF channel with DTV78 firmware.
-> */
-> if (((priv->cur_fw.type & DTV7) &&
->      (priv->cur_fw.scode_table & (ZARLINK456 | DIBCOM52))) ||
->     ((priv->cur_fw.type & DTV78) && freq < 470000000))
-> offset -= 500000;
-> }
-> 
-> div = (freq - offset + DIV / 2) / DIV;
+> The proper TOP settings should be a function of the input signal TV
+> standard (positive modulation vs. negative modulation vs. FM radio) and
+> the components in the tuner assembly (the IF filter for sure).  Setting
+> TOP settings from user space only makes sense for laboratory
+> experimentation.
 > 
 > 
-> Terry
-
+> Linux is kind of funny in the way it breaks up the integrated assembly
+> of an analog tuner to be handled by separate drivers: preselector and
+> mixer/osc chip by tuner-simple; IF filter and IF demod by another module
+> like tda9887.  Really the two chips should be set with coordinated
+> settings, taking into account the TV standard the tuner is being set to
+> demodulate and the properties of the IF filter and external components
+> to the IF demodulator.
+> 
+> 
+> The linux analog tuner drivers mostly appear to make some safe, default
+> settings, and don't attempt to get the best performance.  I'm assuming
+> that is due to lack of data on the tuners and the tuners working well
+> enough.
+> 
+> I'm glad to see Dmitri working at trying to improve analog performance.
+> 
+> I wish I had the proper equpment to experiment wih NTSC tiners.  If I
+> had a lab with a decent signal generator, oscilliscope, etc. I'd
+> probably have lots of fun playing around with these tuners. :)
+> 
+> Regards,
+> Andy
+> 
+> 
+> > Cheers,
+> > Hermann
+> 
+> 
 
