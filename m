@@ -1,20 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n4VB29TT023226
-	for <video4linux-list@redhat.com>; Sun, 31 May 2009 07:02:09 -0400
-Received: from mail-fx0-f214.google.com (mail-fx0-f214.google.com
-	[209.85.220.214])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n4VB1tUt016748
-	for <video4linux-list@redhat.com>; Sun, 31 May 2009 07:01:56 -0400
-Received: by fxm10 with SMTP id 10so6930550fxm.3
-	for <video4linux-list@redhat.com>; Sun, 31 May 2009 04:01:55 -0700 (PDT)
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n426w0jl001763
+	for <video4linux-list@redhat.com>; Sat, 2 May 2009 02:58:00 -0400
+Received: from inblrg01.tcs.com (inblrg01.tcs.com [121.242.48.3])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n426vP1k013472
+	for <video4linux-list@redhat.com>; Sat, 2 May 2009 02:57:47 -0400
 MIME-Version: 1.0
-Date: Sun, 31 May 2009 14:01:55 +0300
-Message-ID: <422ed4520905310401k343dd78t30c98e257f4a6645@mail.gmail.com>
-From: Giannis Tsakiris <giannis.tsakiris@gmail.com>
 To: video4linux-list@redhat.com
-Content-Type: multipart/mixed; boundary=0016369fa2fddbfc5f046b333c49
-Subject: "PixelView PlayTV USB 2.0 Pro" to work on Linux.
+From: Mahalakshmi Gonuguntala <mahalakshmi.gonuguntala@tcs.com>
+Date: Sat, 2 May 2009 12:27:22 +0530
+Message-ID: <OFACFCCBF6.C089A5C3-ON652575AA.0026363F-652575AA.00263648@tcs.com>
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Subject: V4l2 display
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,90 +24,55 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
---0016369fa2fddbfc5f046b333c49
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 
-Hi there,
-I have the "PixelView PlayTV USB 2.0 Pro" model which as its name implies is
-a USB tv tuner, and I have been unsuccessful in getting it to work in Linux
-so far.
-This is what dmesg says:
-[12205.524013] usb 1-4: new high speed USB device using ehci_hcd and address
-5
-[12205.661846] usb 1-4: configuration #1 chosen from 1 choice
-In this message I have also attached a text file which contains the output
-for the lsusb -v command regarding the tuner device.
-I have spend quite a lot of time search the internet for a guide or
-something but I haven't found anything so far.
-Any help would be much appreciated.
-Thanks
-Giannis
+Hi all,
 
---0016369fa2fddbfc5f046b333c49
-Content-Type: text/plain; name="lsusb-output.txt"
-Content-Disposition: attachment; filename="lsusb-output.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fvdn2q7o0
+I am writing a code to display a video using V4l2 drivers (On OMAPEVM ).
 
-QnVzIDAwMSBEZXZpY2UgMDA1OiBJRCAwNWUzOmYxMDIgR2VuZXN5cyBMb2dpYywgSW5jLiBWWDcw
-MTIgVFYgQm94CkRldmljZSBEZXNjcmlwdG9yOgogIGJMZW5ndGggICAgICAgICAgICAgICAgMTgK
-ICBiRGVzY3JpcHRvclR5cGUgICAgICAgICAxCiAgYmNkVVNCICAgICAgICAgICAgICAgMi4wMAog
-IGJEZXZpY2VDbGFzcyAgICAgICAgICAyNTUgVmVuZG9yIFNwZWNpZmljIENsYXNzCiAgYkRldmlj
-ZVN1YkNsYXNzICAgICAgIDI1NSBWZW5kb3IgU3BlY2lmaWMgU3ViY2xhc3MKICBiRGV2aWNlUHJv
-dG9jb2wgICAgICAgMjU1IFZlbmRvciBTcGVjaWZpYyBQcm90b2NvbAogIGJNYXhQYWNrZXRTaXpl
-MCAgICAgICAgNjQKICBpZFZlbmRvciAgICAgICAgICAgMHgwNWUzIEdlbmVzeXMgTG9naWMsIElu
-Yy4KICBpZFByb2R1Y3QgICAgICAgICAgMHhmMTAyIFZYNzAxMiBUViBCb3gKICBiY2REZXZpY2Ug
-ICAgICAgICAgICAzLjAyCiAgaU1hbnVmYWN0dXJlciAgICAgICAgICAxMCBHZW5lc3lzCiAgaVBy
-b2R1Y3QgICAgICAgICAgICAgICAxMSBVU0I3MDEyIENhcHR1cmUKICBpU2VyaWFsICAgICAgICAg
-ICAgICAgIDEyIMoFAUlgX2kKICBiTnVtQ29uZmlndXJhdGlvbnMgICAgICAxCiAgQ29uZmlndXJh
-dGlvbiBEZXNjcmlwdG9yOgogICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgOQogICAgYkRlc2Ny
-aXB0b3JUeXBlICAgICAgICAgMgogICAgd1RvdGFsTGVuZ3RoICAgICAgICAgICAzOQogICAgYk51
-bUludGVyZmFjZXMgICAgICAgICAgMQogICAgYkNvbmZpZ3VyYXRpb25WYWx1ZSAgICAgMQogICAg
-aUNvbmZpZ3VyYXRpb24gICAgICAgICAgMCAKICAgIGJtQXR0cmlidXRlcyAgICAgICAgIDB4ODAK
-ICAgICAgKEJ1cyBQb3dlcmVkKQogICAgTWF4UG93ZXIgICAgICAgICAgICAgIDUwMG1BCiAgICBJ
-bnRlcmZhY2UgRGVzY3JpcHRvcjoKICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgOQogICAg
-ICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA0CiAgICAgIGJJbnRlcmZhY2VOdW1iZXIgICAgICAg
-IDAKICAgICAgYkFsdGVybmF0ZVNldHRpbmcgICAgICAgMAogICAgICBiTnVtRW5kcG9pbnRzICAg
-ICAgICAgICAzCiAgICAgIGJJbnRlcmZhY2VDbGFzcyAgICAgICAyNTUgVmVuZG9yIFNwZWNpZmlj
-IENsYXNzCiAgICAgIGJJbnRlcmZhY2VTdWJDbGFzcyAgICAyNTUgVmVuZG9yIFNwZWNpZmljIFN1
-YmNsYXNzCiAgICAgIGJJbnRlcmZhY2VQcm90b2NvbCAgICAyNTUgVmVuZG9yIFNwZWNpZmljIFBy
-b3RvY29sCiAgICAgIGlJbnRlcmZhY2UgICAgICAgICAgICAgIDAgCiAgICAgIEVuZHBvaW50IERl
-c2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNj
-cmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgxICBF
-UCAxIElOCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMgogICAgICAgICAgVHJhbnNm
-ZXIgVHlwZSAgICAgICAgICAgIEJ1bGsKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAg
-ICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdN
-YXhQYWNrZXRTaXplICAgICAweDAyMDAgIDF4IDUxMiBieXRlcwogICAgICAgIGJJbnRlcnZhbCAg
-ICAgICAgICAgICAgIDAKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3Ro
-ICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAg
-ICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4MDIgIEVQIDIgT1VUCiAgICAgICAgYm1BdHRyaWJ1
-dGVzICAgICAgICAgICAgMgogICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIEJ1bGsK
-ICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBU
-eXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAyMDAg
-IDF4IDUxMiBieXRlcwogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDAKICAgICAgRW5k
-cG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAg
-ICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAg
-IDB4ODMgIEVQIDMgSU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAzCiAgICAgICAg
-ICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgSW50ZXJydXB0CiAgICAgICAgICBTeW5jaCBUeXBl
-ICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERh
-dGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMDAxICAxeCAxIGJ5dGVzCiAgICAgICAg
-YkludGVydmFsICAgICAgICAgICAgICAgOApEZXZpY2UgUXVhbGlmaWVyIChmb3Igb3RoZXIgZGV2
-aWNlIHNwZWVkKToKICBiTGVuZ3RoICAgICAgICAgICAgICAgIDEwCiAgYkRlc2NyaXB0b3JUeXBl
-ICAgICAgICAgNgogIGJjZFVTQiAgICAgICAgICAgICAgIDIuMDAKICBiRGV2aWNlQ2xhc3MgICAg
-ICAgICAgMjU1IFZlbmRvciBTcGVjaWZpYyBDbGFzcwogIGJEZXZpY2VTdWJDbGFzcyAgICAgICAy
-NTUgVmVuZG9yIFNwZWNpZmljIFN1YmNsYXNzCiAgYkRldmljZVByb3RvY29sICAgICAgIDI1NSBW
-ZW5kb3IgU3BlY2lmaWMgUHJvdG9jb2wKICBiTWF4UGFja2V0U2l6ZTAgICAgICAgIDY0CiAgYk51
-bUNvbmZpZ3VyYXRpb25zICAgICAgMQpEZXZpY2UgU3RhdHVzOiAgICAgMHgwMDAwCiAgKEJ1cyBQ
-b3dlcmVkKQo=
---0016369fa2fddbfc5f046b333c49
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+When I run the code.. It is giving an error message that .. memory could
+not be allocated.
+This error I am getting when I am calling dispaly application from a QT
+application,(QT internally uses /dev/fb0 ).
+But when I run the display application directly (with out integrating with
+QT).. memory allocation is proper and display is also coming.
+
+
+reqbuf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT; //V4L2_BUF_TYPE_VIDEO_OVERLAY
+reqbuf.count = numbuffers;
+reqbuf.memory = V4L2_MEMORY_USERPTR; //V4L2_MEMORY_MMAP;
+
+printf("allocating buffers \n");
+ret = ioctl(display_fd, VIDIOC_REQBUFS, &reqbuf);
+
+I am getting the same error with V4L2_MEMORY_MMAP memory configuration
+also.
+
+Can somebody guide me .. what could be the reason for this?
+
+Thanks,
+Mahalakshmi.
+__________________________________________
+Experience certainty.   IT Services
+                  Business Solutions
+                  Outsourcing
+____________________________________________
+
+=====-----=====-----=====
+Notice: The information contained in this e-mail
+message and/or attachments to it may contain 
+confidential or privileged information. If you are 
+not the intended recipient, any dissemination, use, 
+review, distribution, printing or copying of the 
+information contained in this e-mail message 
+and/or attachments to it are strictly prohibited. If 
+you have received this communication in error, 
+please notify us by reply e-mail or telephone and 
+immediately and permanently delete the message 
+and any attachments. Thank you
+
+
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
---0016369fa2fddbfc5f046b333c49--
