@@ -1,64 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f176.google.com ([209.85.219.176]:40236 "EHLO
-	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755219AbZETTTr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2009 15:19:47 -0400
-Received: by ewy24 with SMTP id 24so752225ewy.37
-        for <linux-media@vger.kernel.org>; Wed, 20 May 2009 12:19:48 -0700 (PDT)
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4853 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751741AbZEBLCI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 May 2009 07:02:08 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Manu Abraham <abraham.manu@gmail.com>
+Subject: stv090x.c compile warning
+Date: Sat, 2 May 2009 13:02:03 +0200
+Cc: linux-media@vger.kernel.org
 MIME-Version: 1.0
-In-Reply-To: <4A1424F8.9010706@gmail.com>
-References: <4A128A19.40601@gmail.com>
-	 <37219a840905200608q42b4fc0fife8f9aad7056145b@mail.gmail.com>
-	 <4A1424F8.9010706@gmail.com>
-Date: Wed, 20 May 2009 15:19:45 -0400
-Message-ID: <37219a840905201219x576fe229g6d95f1cf7dc80a08@mail.gmail.com>
-Subject: Re: Hauppauge HVR 1110 and DVB
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Antonio Beamud Montero <antonio.beamud@gmail.com>
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200905021302.03415.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 20, 2009 at 11:42 AM, Antonio Beamud Montero
-<antonio.beamud@gmail.com> wrote:
-> Michael Krufky escribió:
->>
->> On Tue, May 19, 2009 at 6:29 AM, Antonio Beamud Montero
->>  Hello,
->>
->> I specifically left out the DVB support for this device.
->>
->> To be honest, I didn't know that this board was available for purchase
->> already.  Where did you get it?  (just curious)
->>
->
-> It seems that here in spain is available :)
->
->
->>
->> If something happens sooner than that, I'll append another email to this
->> thread.
->>
->
-> Ok, If you need a tester, I'm your man ;)
->
-> Thank you.
->
-> Greetings.
+Hi Manu,
 
-(i am sending this a second time -- first message got rejected by vger)
+Compiling stv090x.c against 2.6.30-rc4 gives me this compile warning:
 
-You're in luck -- I resolved the problem today...  If you'd like to
-test, please try out this repository:
+/home/hans/work/src/v4l/v4l-dvb/v4l/stv090x.c: In 
+function 'stv090x_chk_tmg':
+/home/hans/work/src/v4l/v4l-dvb/v4l/stv090x.c:2544: warning: 'tmg_cpt' may 
+be used uninitialized in this function
 
-http://kernellabs.com/hg/~mk/hvr1110
-
-Please let me know how this works for you.
+Looking at the code this variable is indeed uninitialized. I'm pretty sure 
+it should be initialized to 0, can you confirm this?
 
 Regards,
 
-Mike Krufky
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
