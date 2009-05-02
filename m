@@ -1,75 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from node02.cambriumhosting.nl ([217.19.16.163]:49084 "EHLO
-	node02.cambriumhosting.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752637AbZEaUA5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 May 2009 16:00:57 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by node02.cambriumhosting.nl (Postfix) with ESMTP id 1BF71B0001B4
-	for <linux-media@vger.kernel.org>; Sun, 31 May 2009 21:37:14 +0200 (CEST)
-Received: from node02.cambriumhosting.nl ([127.0.0.1])
-	by localhost (node02.cambriumhosting.nl [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id nqveFL+1VmPN for <linux-media@vger.kernel.org>;
-	Sun, 31 May 2009 21:37:12 +0200 (CEST)
-Received: from ashley.powercraft.nl (84-245-3-195.dsl.cambrium.nl [84.245.3.195])
-	by node02.cambriumhosting.nl (Postfix) with ESMTP id 5857AB0001A3
-	for <linux-media@vger.kernel.org>; Sun, 31 May 2009 21:37:12 +0200 (CEST)
-Received: from [192.168.1.239] (unknown [192.168.1.239])
-	by ashley.powercraft.nl (Postfix) with ESMTPSA id D1A8823BC4DE
-	for <linux-media@vger.kernel.org>; Sun, 31 May 2009 21:37:11 +0200 (CEST)
-Message-ID: <4A22DC66.8070304@powercraft.nl>
-Date: Sun, 31 May 2009 21:37:10 +0200
-From: Jelle de Jong <jelledejong@powercraft.nl>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4702 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754215AbZEBORe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 May 2009 10:17:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Julia Lawall <julia@diku.dk>
+Subject: Re: tvaudio.c: possible problem with V4L2_TUNER_MODE_MONO
+Date: Sat, 2 May 2009 16:17:16 +0200
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+References: <Pine.LNX.4.64.0905021518250.9563@pc-004.diku.dk>
+In-Reply-To: <Pine.LNX.4.64.0905021518250.9563@pc-004.diku.dk>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: w_scan 20090502, why is the new country code necessary, its breaking
- my systems
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200905021617.16995.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everybody,
+On Saturday 02 May 2009 15:19:03 Julia Lawall wrote:
+> The file drivers/media/video/tvaudio.c contains the following code:
+>
+> (starting at line 1257 in a recent linux-next)
+>
+> 		if (mode & V4L2_TUNER_MODE_MONO)
+> 			s1 |= TDA8425_S1_STEREO_MONO;
+> 		if (mode & V4L2_TUNER_MODE_STEREO)
+> 			s1 |= TDA8425_S1_STEREO_SPATIAL;
+>
+> (starting at line 1856 in a recent linux-next)
+>
+> 	if (mode & V4L2_TUNER_MODE_MONO)
+> 		vt->rxsubchans |= V4L2_TUNER_SUB_MONO;
+> 	if (mode & V4L2_TUNER_MODE_STEREO)
+> 		vt->rxsubchans |= V4L2_TUNER_SUB_STEREO;
+>
+> The only possible value of V4L2_TUNER_MODE_MONO, however, seems to be 0,
+> as defined in include/linux/videodev2.h, and thus the first test in each
+> case is never true.  Is this what is intended, or should the tests be
+> expressed in another way?
 
-My w_scan version 20081106 stopped working on my Debian system. I had
-the following errors:
-ERROR: Sorry - i couldn't get any working frequency/transponder
+Hi Julia,
 
-So I first checked if there was a wscan update.
+Nope, this isn't intended. A grep over the v4l sources shows that it is 
+handled incorrectly in several other drivers as well. I'll prepare patches 
+to fix all these drivers.
 
-I downloaded the new version:
-http://wirbel.htpc-forum.de/w_scan/w_scan-20090504.tar.bz2
+Thanks,
 
-Why is w_scan not available in the Debian repository?
+	Hans
 
-However my old command arguments did not work anymore:
-old: ~/.wscan/wscan -t 3 -E 0 -O 0 -X tzap > ~/.wscan/channels.conf
+>
+> julia
+>
+> This problem was found using the following semantic match:
+> (http://www.emn.fr/x-info/coccinelle/)
+>
+> @r expression@
+> identifier C;
+> expression E;
+> position p;
+> @@
+>
+> (
+>  E & C@p && ...
+>
+>  E & C@p || ...
+> )
+>
+> @s@
+> identifier r.C;
+> position p1;
+> @@
+>
+> #define C 0
+>
+> @t@
+> identifier r.C;
+> expression E != 0;
+> @@
+>
+> #define C E
+>
+> @script:python depends on s && !t@
+> p << r.p;
+> C << r.C;
+> @@
+>
+> cocci.print_main("and with 0", p)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-main:2715: FATAL: Missing argument "-c" (country setting)
-
-I had to make a new argument line:
-~/.wscan/wscan -t 3 -A 1 -E 0 -O 0 -c NL -X tzap > ~/.wscan/channels.conf
-
-This is very troubling for me because I must have a scan command that
-works in complete Europa and not in one country. This is because I have
-traveling systems that need to scan for channels on every stop.
-
-Why :-( please explain and  try to fix this regression that a country
-code is needed?
-
-I was hoping for auto signal strength detection and automatic filtering
-depending on the signal strength to remove duplicated channels from
-different broadcast towers.. what work is being done to realize this,
-and can I help by donating resources?
-
-Thanks in advance,
-
-Best regards,
-
-Jelle de Jong
 
 
-
-
-
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
