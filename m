@@ -1,42 +1,24 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:59095 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752380AbZEUKfW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2009 06:35:22 -0400
-Date: Thu, 21 May 2009 07:35:18 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Figo.zhang" <figo1802@gmail.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: how to mmap in  videobuf-dma-sg.c
-Message-ID: <20090521073518.1c0c0a5b@pedra.chehab.org>
-In-Reply-To: <1242881164.3824.2.camel@myhost>
-References: <1242881164.3824.2.camel@myhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from tomts45-srv.bellnexxia.net ([209.226.175.112]:58977 "EHLO
+	tomts45-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752608AbZEBMxB convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 2 May 2009 08:53:01 -0400
+From: Joan <salarmy.simcoe@bellnet.ca>
+Reply-To: jerry.smith333@btinternet.com
+To: <info@lotto.org>
+Subject: Reply to email: jerry.smith33@onlineprocessingdept.co.uk
+Date: Sat, 2 May 2009 8:52:59 -0400
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Message-Id: <20090502125259.GOAS1557.tomts45-srv.bellnexxia.net@toip52-bus.srvr.bell.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 21 May 2009 12:46:04 +0800
-"Figo.zhang" <figo1802@gmail.com> escreveu:
+You have just been awarded,the sum of £950.000.00 GBP in the Global Award 2009,send of details to
 
-> hi,all,
->  I am puzzle that how to mmap ( V4L2_MEMORY_MMAP) in videobuf-dma-sg.c?
-> 
-> In this file, it alloc the momery using vmalloc_32() , and put this
-> momery into sglist table,and then use dma_map_sg() to create sg dma at
-> __videobuf_iolock() function. but in __videobuf_mmap_mapper(), i canot
-> understand how it do the mmap? 
-> why it not use the remap_vmalloc_range() to do the mmap?
+Names:........
+Address:......
+Country:......
 
-The answer is simple: remap_vmalloc_range() is newer than videobuf code. This
-part of the code was written back to kernel 2.4, and nobody cared to update it
-to use those newer functions, and simplify its code.
-
-If you want, feel free to propose some cleanups on it
-
-
-
-Cheers,
-Mauro
