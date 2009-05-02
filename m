@@ -1,22 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n4B0XVPC014075
-	for <video4linux-list@redhat.com>; Sun, 10 May 2009 20:33:31 -0400
-Received: from smtp130.rog.mail.re2.yahoo.com (smtp130.rog.mail.re2.yahoo.com
-	[206.190.53.35])
-	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n4B0XHID021038
-	for <video4linux-list@redhat.com>; Sun, 10 May 2009 20:33:17 -0400
-Message-ID: <4A077247.8030305@rogers.com>
-Date: Sun, 10 May 2009 20:33:11 -0400
-From: CityK <cityk@rogers.com>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n42LL9jd023609
+	for <video4linux-list@redhat.com>; Sat, 2 May 2009 17:21:09 -0400
+Received: from mail-gx0-f158.google.com (mail-gx0-f158.google.com
+	[209.85.217.158])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n42LKuwF017850
+	for <video4linux-list@redhat.com>; Sat, 2 May 2009 17:20:56 -0400
+Received: by gxk2 with SMTP id 2so6292983gxk.3
+	for <video4linux-list@redhat.com>; Sat, 02 May 2009 14:20:56 -0700 (PDT)
 MIME-Version: 1.0
-To: William Case <billlinux@rogers.com>
-References: <1241982336.31677.0.camel@localhost.localdomain>
-In-Reply-To: <1241982336.31677.0.camel@localhost.localdomain>
+From: Pablitt <pablo.fabregat@gmail.com>
+Date: Sat, 2 May 2009 18:20:41 -0300
+Message-ID: <ff65116b0905021420v747dba03ib998177575ba10ef@mail.gmail.com>
+To: video4linux-list@redhat.com
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list <video4linux-list@redhat.com>
-Subject: Re: Hauppauge WinTV-hvr-1800 PCIe won't work with tvtime or mplayer.
+Subject: Phillips Semiconductors based card not working
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,37 +27,47 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-William Case wrote:
-> Hi;
->
-> I have been trying to get my tuner card working for over a week now.
->
-> I have tried all the advice I can find on various sites as well as the
-> Fedora users list.  But no joy.  It was suggested on that list that I
-> try here.
->
-> I have installed the 'cx88_alsa' and 'tuner modules' with modprobe in
-> rc.local and, 
->
-> alias snd-card-1 cx88-alsa
-> options cx88-alsa index=1,  in /etc/modprobe.d/tvtuner
->   
+Hi all
+i have this tv card
+(sudo lspci -vnn)
+00:0e.0 Multimedia controller [0480]: Philips Semiconductors
+SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
+    Subsystem: Philips Semiconductors Device [1131:0000]
+    Flags: bus master, medium devsel, latency 64, IRQ 19
+    Memory at fac00000 (32-bit, non-prefetchable) [size=2K]
+    Capabilities: [40] Power Management version 2
+    Kernel driver in use: saa7134
+    Kernel modules: saa7134
 
-Note: cx88 associated modules do NOT apply to this device (cx88 driver
-modules are for the PCI based cx2388x chipsets, where x=0/1,2,3).  This
-is a PCIe based device which is serviced, amongst others, by the cx23885
-driver module. 
+it stopped working after upgrade from hardy to intrepid, i think it has
+something to do with the new kernels...
+i used to use the options card and tuner but i cant remember which
+parameters and i'm tryng different parms with no luck
 
-Also, have a look in the wiki for the device article which appears to
-contain some info that would be useful for you.
+does anyone got this card working in ubuntu jaunty? if so, wich parameters?
 
-With a hardware encoding device, the /dev/video0 should be the MPEG2
-stream whereas /dev/video1 would be the raw stream compatible with apps
-like tvtime.  mplayer /dev/video0 should work. .... note that the node
-number (N) of the character device (/dev/videoN) will be different if
-you have multiple devices installed in the system, so you will have to
-adjust accordingly.
+thanks in advance
 
+
+More info:
+dmesg | grep saa
+[   17.097515] saa7130/34: v4l2 driver version 0.2.14 loaded
+[   17.097687] saa7134 0000:00:0e.0: PCI INT A -> GSI 19 (level, low) -> IRQ
+19
+[   17.097698] saa7133[0]: found at 0000:00:0e.0, rev: 209, irq: 19,
+latency: 64, mmio: 0xfac00000
+[   17.097705] saa7133[0]: subsystem: 1131:0000, board: UNKNOWN/GENERIC
+[card=0,autodetected]
+[   17.097802] saa7133[0]: board init: gpio is 40
+[   17.200225] saa7133[0]: Huh, no eeprom present (err=-5)?
+[   17.200681] saa7133[0]: registered device video0 [v4l2]
+[   17.200728] saa7133[0]: registered device vbi0
+[   17.213091] saa7134 ALSA driver for DMA sound loaded
+[   17.213127] saa7133[0]/alsa: saa7133[0] at 0xfac00000 irq 19 registered
+as card -2
+
+
+Kernel version 2.6.28-11-generic
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
