@@ -1,32 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from simmts6-srv.bellnexxia.net ([206.47.199.164]:36167 "EHLO
-	simmts6-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751165AbZEMHLn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2009 03:11:43 -0400
-Received: from simip9-ac.srvr.bell.ca ([206.47.199.87])
-          by simmts6-srv.bellnexxia.net
-          (InterMail vM.5.01.06.13 201-253-122-130-113-20050324) with ESMTP
-          id <20090513071143.IXAH1652.simmts6-srv.bellnexxia.net@simip9-ac.srvr.bell.ca>
-          for <linux-media@vger.kernel.org>;
-          Wed, 13 May 2009 03:11:43 -0400
-From: Coca Cola Notification Of Winning <giseles@ns.sympatico.ca>
-Reply-To: cokeprize1@btinternet.com
-To: <info@winner.org>
-Subject: Winner
-Date: Wed, 13 May 2009 3:11:43 -0400
+Received: from aegis.uii.net.id ([202.162.32.10]:64840 "EHLO
+	shakira.uii.net.id" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752610AbZEBCLH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 1 May 2009 22:11:07 -0400
+Received: from [202.162.33.90] (helo=[192.168.10.232])
+	by shakira.uii.net.id with esmtps (TLSv1:AES256-SHA:256)
+	(Exim 4.69 (FreeBSD))
+	(envelope-from <bino@indoakses-online.com>)
+	id 1M0403-0002IL-UQ
+	for linux-media@vger.kernel.org; Sat, 02 May 2009 08:26:43 +0700
+Message-ID: <49FBA154.7070903@indoakses-online.com>
+Date: Sat, 02 May 2009 08:26:44 +0700
+From: Bino Oetomo <bino@indoakses-online.com>
+Reply-To: bino@indoakses-online.com
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: ASK : Non radio capable TV receiver card
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <20090513071143.IXAH1652.simmts6-srv.bellnexxia.net@simip9-ac.srvr.bell.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Your email won 1,000,000.00GBP in our PROMO.Provide:Names,Age,
-Occupation,Tel,Country.
+Dear All..
 
-Regards
-Anthony Campbell
-Tel:+44-704-578-2447
-cokeprize1@btinternet.com
+I want to try to use TV card/USB for diferent purpose.
+The target device is UTV330+
+I think this device is "non radio" capable.
+But the Frequency range that it covered is what attract me.
 
+So ...
+If I tune this device to .. let's say some amateur radio VHF channel, 
+what will happen ?
+They are transmiting voice only in FM.
+Will I be able to hear their voice ?
+
+Sincerely
+-bino-
