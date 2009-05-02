@@ -1,81 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:57207 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760022AbZEATdQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 May 2009 15:33:16 -0400
-Date: Fri, 1 May 2009 21:33:15 +0200
-From: Wolfram Sang <w.sang@pengutronix.de>
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Donating a mr97310 based elta-media 8212dc (0x093a:0x010e)
-Message-ID: <20090501193315.GA8289@pengutronix.de>
-References: <20090430022847.GA15183@pengutronix.de> <alpine.LNX.2.00.0904300953330.21567@banach.math.auburn.edu> <20090501084729.GB6941@pengutronix.de> <alpine.LNX.2.00.0905011224330.23299@banach.math.auburn.edu>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="PNTmBPCT7hxwcZjr"
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.00.0905011224330.23299@banach.math.auburn.edu>
+Received: from cnc.isely.net ([64.81.146.143]:33235 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751971AbZEBDZd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 May 2009 23:25:33 -0400
+Date: Fri, 1 May 2009 22:25:28 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: Jean Delvare <khali@linux-fr.org>
+cc: LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] pvrusb2: Don't use the internal i2c client list
+In-Reply-To: <Pine.LNX.4.64.0904301924520.15541@cnc.isely.net>
+Message-ID: <Pine.LNX.4.64.0905012223040.15541@cnc.isely.net>
+References: <20090430173554.4cb2f585@hyperion.delvare>
+ <Pine.LNX.4.64.0904301924520.15541@cnc.isely.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, 30 Apr 2009, Mike Isely wrote:
 
---PNTmBPCT7hxwcZjr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> On Thu, 30 Apr 2009, Jean Delvare wrote:
+> 
+> > The i2c core used to maintain a list of client for each adapter. This
+> > is a duplication of what the driver core already does, so this list
+> > will be removed as part of a future cleanup. Anyone using this list
+> > must stop doing so.
+> > 
+> > For pvrusb2, I propose the following change, which should lead to an
+> > equally informative output. The only difference is that i2c clients
+> > which are not a v4l2 subdev won't show up, but I guess this case is
+> > not supposed to happen anyway.
+> 
+> It will happen for anything i2c used by v4l which itself is not really a 
+> part of v4l.  That would include, uh, lirc.
+> 
+> I will review and test this first chance I get which should be tomorrow.
+> 
 
-Hello Theodore,
+I've merged and tested this patch.  It behaves as expected.
 
-> I have the impression you sent another mail, now, with the picture. I=20
+I'm putting together a bunch of pvrusb2 changesets right now anyway.  
+I've pulled this one into the collection, with appropriate attributions 
+of course.
 
-I didn't :) Just wanted to offer it, just in case...
+  -Mike
 
-> cameras. What I know about the camera is well summarized in the following=
-=20
-> entry from libgphoto2/camlibs/mars/ChangeLog:
+> 
+> 
+> > 
+> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> > Cc: Mike Isely <isely@pobox.com>
+> > ---
+> > Mike, can you please review and test this patch? Thanks.
+> > 
+> >  linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c |   56 +++++------------------
+> >  1 file changed, 13 insertions(+), 43 deletions(-)
+> > 
+> > --- v4l-dvb.orig/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	2009-04-30 16:52:32.000000000 +0200
+> > +++ v4l-dvb/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	2009-04-30 17:20:37.000000000 +0200
+> > @@ -4920,65 +4920,35 @@ static unsigned int pvr2_hdw_report_clie
+> >  	unsigned int tcnt = 0;
+> >  	unsigned int ccnt;
+> >  	struct i2c_client *client;
+> > -	struct list_head *item;
+> > -	void *cd;
+> >  	const char *p;
+> >  	unsigned int id;
+> >  
+> > -	ccnt = scnprintf(buf, acnt, "Associated v4l2-subdev drivers:");
+> > +	ccnt = scnprintf(buf, acnt, "Associated v4l2-subdev drivers and I2C clients:\n");
+> >  	tcnt += ccnt;
+> >  	v4l2_device_for_each_subdev(sd, &hdw->v4l2_dev) {
+> >  		id = sd->grp_id;
+> >  		p = NULL;
+> >  		if (id < ARRAY_SIZE(module_names)) p = module_names[id];
+> >  		if (p) {
+> > -			ccnt = scnprintf(buf + tcnt, acnt - tcnt, " %s", p);
+> > +			ccnt = scnprintf(buf + tcnt, acnt - tcnt, "  %s:", p);
+> >  			tcnt += ccnt;
+> >  		} else {
+> >  			ccnt = scnprintf(buf + tcnt, acnt - tcnt,
+> > -					 " (unknown id=%u)", id);
+> > +					 "  (unknown id=%u):", id);
+> >  			tcnt += ccnt;
+> >  		}
+> > -	}
+> > -	ccnt = scnprintf(buf + tcnt, acnt - tcnt, "\n");
+> > -	tcnt += ccnt;
+> > -
+> > -	ccnt = scnprintf(buf + tcnt, acnt - tcnt, "I2C clients:\n");
+> > -	tcnt += ccnt;
+> > -
+> > -	mutex_lock(&hdw->i2c_adap.clist_lock);
+> > -	list_for_each(item, &hdw->i2c_adap.clients) {
+> > -		client = list_entry(item, struct i2c_client, list);
+> > -		ccnt = scnprintf(buf + tcnt, acnt - tcnt,
+> > -				 "  %s: i2c=%02x", client->name, client->addr);
+> > -		tcnt += ccnt;
+> > -		cd = i2c_get_clientdata(client);
+> > -		v4l2_device_for_each_subdev(sd, &hdw->v4l2_dev) {
+> > -			if (cd == sd) {
+> > -				id = sd->grp_id;
+> > -				p = NULL;
+> > -				if (id < ARRAY_SIZE(module_names)) {
+> > -					p = module_names[id];
+> > -				}
+> > -				if (p) {
+> > -					ccnt = scnprintf(buf + tcnt,
+> > -							 acnt - tcnt,
+> > -							 " subdev=%s", p);
+> > -					tcnt += ccnt;
+> > -				} else {
+> > -					ccnt = scnprintf(buf + tcnt,
+> > -							 acnt - tcnt,
+> > -							 " subdev= id %u)",
+> > -							 id);
+> > -					tcnt += ccnt;
+> > -				}
+> > -				break;
+> > -			}
+> > +		client = v4l2_get_subdevdata(sd);
+> > +		if (client) {
+> > +			ccnt = scnprintf(buf + tcnt, acnt - tcnt,
+> > +					 " %s @ %02x\n", client->name,
+> > +					 client->addr);
+> > +			tcnt += ccnt;
+> > +		} else {
+> > +			ccnt = scnprintf(buf + tcnt, acnt - tcnt,
+> > +					 " no i2c client\n");
+> > +			tcnt += ccnt;
+> >  		}
+> > -		ccnt = scnprintf(buf + tcnt, acnt - tcnt, "\n");
+> > -		tcnt += ccnt;
+> >  	}
+> > -	mutex_unlock(&hdw->i2c_adap.clist_lock);
+> >  	return tcnt;
+> >  }
+> >  
+> > 
+> > 
+> > 
+> 
+> 
 
-Okay. Well, as said before I am pretty sure it is the same camera. I'll shi=
-p it
-tomorrow.
+-- 
 
-> This is the total extent of my knowledge. It does seem, judging from the =
-=20
-> address of the person who sent me the information about it, and from =20
-> yours, that the Elta brand is probably local to Europe.
-
-I'd think so, too.
-
-> Finally, one of the main reasons why I pass this on is to point out that =
-=20
-> especially in the cheap camera market there is lots of stuff out there =
-=20
-> which just has a name painted on a case, [...]
-
-=2E..which is definately also the case here. Elta just imports stuff.
-
-> Therefore let us pray that this non-cooperation somehow will get changed.
-
-+1!
-
-Regards,
-
-   Wolfram
-
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-
---PNTmBPCT7hxwcZjr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkn7TnsACgkQD27XaX1/VRsK6wCfeP1mgkxufrxSy38stpJ1VX9x
-Z6QAn0MMPGBKQGT3JxYNrzvKUelnD/zH
-=65Vv
------END PGP SIGNATURE-----
-
---PNTmBPCT7hxwcZjr--
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
