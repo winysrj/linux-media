@@ -1,72 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from deliverator6.ecc.gatech.edu ([130.207.185.176]:52190 "EHLO
-	deliverator6.ecc.gatech.edu" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751405AbZEYAws (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 May 2009 20:52:48 -0400
-Message-ID: <4A19EBDE.4080602@gatech.edu>
-Date: Sun, 24 May 2009 20:52:46 -0400
-From: David Ward <david.ward@gatech.edu>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2208 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751728AbZEBQEf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 May 2009 12:04:35 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: saeed bishara <saeed.bishara@gmail.com>
+Subject: Re: cafe driver need to initialize the chip->ident
+Date: Sat, 2 May 2009 18:04:17 +0200
+Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
+References: <c70ff3ad0904300535i6c5855f2g3bd404398a41d17f@mail.gmail.com>
+In-Reply-To: <c70ff3ad0904300535i6c5855f2g3bd404398a41d17f@mail.gmail.com>
 MIME-Version: 1.0
-To: Matt Doran <matt.doran@papercut.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: videodev: Unknown symbol i2c_unregister_device (in kernels older
- than 2.6.26)
-References: <4A19D3D9.9010800@papercut.com>
-In-Reply-To: <4A19D3D9.9010800@papercut.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200905021804.17908.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/24/2009 07:10 PM, Matt Doran wrote:
-> Hi there,
->
-> I tried using the latest v4l code on an Mythtv box running 2.6.20, but
-> the v4l videodev module fails to load with the following warnings:
->
->    videodev: Unknown symbol i2c_unregister_device
->    v4l2_common: Unknown symbol v4l2_device_register_subdev
->
->
-> It seems the "i2c_unregister_device" function was added in 2.6.26.
-> References to this function in v4l2-common.c are enclosed in an ifdef
-> like:
->
->    #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
->
->
-> However in "v4l2_device_unregister()" in v4l2-device.c, there is a
-> reference to "i2c_unregister_device" without any ifdefs.   I am
-> running a pretty old kernel, but I'd guess anyone running 2.6.25 or
-> earlier will have this problem.   It seems this code was added by
-> Mauro 3 weeks ago in this rev:
->
->    http://linuxtv.org/hg/v4l-dvb/rev/87afa7a4ccdf
->
->
->
->
-> I also had some other compile problems, but don't have all the details
-> (sorry!).  I had to disable the following drivers to get it to compile:
->
->    * CONFIG_VIDEO_PVRUSB2
->    * CONFIG_VIDEO_THS7303
->    * CONFIG_VIDEO_ADV7343
->    * CONFIG_DVB_SIANO_SMS1XXX
->
->
-> Regards,
-> Matt
->
+On Thursday 30 April 2009 14:35:58 saeed bishara wrote:
+> Hi,
+>     The cafe_cam_init declares un-initialized v4l2_dbg_chip_ident
+> structure, then it uses the chip.ident to test if the sensor is known.
+>     but, this field is never initialized and it my get random value,
+> then later it used by the v4l2_chip_ident_i2c_client function.
+>     I think this is bug and it must be fixed by initializing the ident
+> field with zero.
+>    I'm using kernel 2.6.29.1
+> saeed
 
-Matt, I checked out v4l-dvb today and am using it under 2.6.24 and so 
-far so good.  When did the error appear -- when you were trying to load 
-the module?
+Thanks! This is indeed wrong and I'll fix it. I think it is sufficient to 
+apply this patch:
 
-I have been seeing the errors compiling adv7343.c and ths7303.c under 
-2.6.24 as well.  Andy Walls and Chaithrika Subrahmanya had written 
-patches for those two modules respectively, but there were some comments 
-during the review of the patches, so I think they are still being worked on.
+--- cafe_ccic.c.orig	2009-05-02 17:57:08.000000000 +0200
++++ cafe_ccic.c	2009-05-02 17:57:37.000000000 +0200
+@@ -868,6 +868,7 @@
+ 	ret = __cafe_cam_reset(cam);
+ 	if (ret)
+ 		goto out;
++	chip.ident = V4L2_IDENT_NONE;
+ 	chip.match.type = V4L2_CHIP_MATCH_I2C_ADDR;
+ 	chip.match.addr = cam->sensor->addr;
+ 	ret = __cafe_cam_cmd(cam, VIDIOC_DBG_G_CHIP_IDENT, &chip);
 
-David
+Can you confirm this? If it works, then I'll merge this patch and see if I 
+can get it into the 2.6.29 stable series.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
