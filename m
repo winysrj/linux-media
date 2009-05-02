@@ -1,86 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet11.oracle.com ([148.87.113.123]:20720 "EHLO
-	rgminet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758407AbZE0Swl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2009 14:52:41 -0400
-Message-ID: <4A1D8C95.60604@oracle.com>
-Date: Wed, 27 May 2009 11:55:17 -0700
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Received: from cnc.isely.net ([64.81.146.143]:38595 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752834AbZEBAD4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 May 2009 20:03:56 -0400
+Date: Fri, 1 May 2009 19:03:55 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: Alexey Klimov <klimov.linux@gmail.com>
+cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Mike Isely <isely@isely.net>
+Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS,  2.6.16-2.6.21:
+ ERRORS
+In-Reply-To: <208cbae30904301320u4e8e594aw6eb8ce2ed7c507cf@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0905011901500.15541@cnc.isely.net>
+References: <200904191818.n3JIISWN021959@smtp-vbr12.xs4all.nl>
+ <208cbae30904191542l4e3996cejf1df9cadfb187dfe@mail.gmail.com>
+ <Pine.LNX.4.64.0904191849280.19718@cnc.isely.net>
+ <208cbae30904301320u4e8e594aw6eb8ce2ed7c507cf@mail.gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Matt Doran <matt.doran@papercut.com>, linux-media@vger.kernel.org
-Subject: [PATCH v2] Re: videodev: Unknown symbol i2c_unregister_device (in
- kernels older than 2.6.26)
-References: <4A19D3D9.9010800@papercut.com> <20090527154107.6b79a160@pedra.chehab.org>
-In-Reply-To: <20090527154107.6b79a160@pedra.chehab.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811561-1650566038-1241222635=:15541"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> Em Mon, 25 May 2009 09:10:17 +1000
-> Matt Doran <matt.doran@papercut.com> escreveu:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+---1463811561-1650566038-1241222635=:15541
+Content-Type: TEXT/PLAIN; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
+
+On Fri, 1 May 2009, Alexey Klimov wrote:
+
+> Hello,
 > 
->> Hi there,
->>
->> I tried using the latest v4l code on an Mythtv box running 2.6.20, but 
->> the v4l videodev module fails to load with the following warnings:
->>
->>     videodev: Unknown symbol i2c_unregister_device
->>     v4l2_common: Unknown symbol v4l2_device_register_subdev
->>
->>
->> It seems the "i2c_unregister_device" function was added in 2.6.26.   
->> References to this function in v4l2-common.c are enclosed in an ifdef like:
->>
->>     #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
->>
->>
->> However in "v4l2_device_unregister()" in v4l2-device.c, there is a 
->> reference to "i2c_unregister_device" without any ifdefs.   I am running 
->> a pretty old kernel, but I'd guess anyone running 2.6.25 or earlier will 
->> have this problem.   It seems this code was added by Mauro 3 weeks ago 
->> in this rev:
->>
->>     http://linuxtv.org/hg/v4l-dvb/rev/87afa7a4ccdf
+> On Mon, Apr 20, 2009 at 3:59 AM, Mike Isely <isely@isely.net> wrote:
+
+   [...]
+
+> >
+> > So the kernel already has this; it just needs to be pulled back into
+> > v4l-dvb.  It's an obvious trivial thing for now and I've acked it there.
+> > Obviously we're getting had here because you're compiling against a
+> > kernel snapshot that's been changed but v4l-dvb doesn't have the
+> > corresponding change in its local copy of the pvrusb2 driver.  Part of
+> > the fun of synchronizing changes from different trees :-(
 > 
-> I've just applied a patch at the tree that should fix this issue. It adds
-> several tests and the code, but, hopefully, it should be possible even to use
-> the IR's with kernels starting from 2.6.16.
+> Well, good to know that this thing is already fixed.
+> I'm very sorry for the mess.
 
+No apology needed.  Really - this "mess" wasn't caused by you.  If 
+anything I should have just immediately pulled that patch into hg and 
+not waited for it to trickle back to Mauro.  That would have avoided the 
+error.  So, all I can say is that I'm sorry you had to hit this!
 
-Hi Mauro,
-If you are referring to my recent patch, it needs a modification to be like
-other places in drivers/media/video.  Patch below applies on top of the
-previous one.
-
----
-From: Randy Dunlap <randy.dunlap@oracle.com>
-
-Fix v4l2-device usage of i2c_unregister_device() and handle the case of
-CONFIG_I2C=m & CONFIG_MEDIA_VIDEO=y.
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
----
- drivers/media/video/v4l2-device.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- linux-next-20090527.orig/drivers/media/video/v4l2-device.c
-+++ linux-next-20090527/drivers/media/video/v4l2-device.c
-@@ -85,7 +85,7 @@ void v4l2_device_unregister(struct v4l2_
- 	/* Unregister subdevs */
- 	list_for_each_entry_safe(sd, next, &v4l2_dev->subdevs, list) {
- 		v4l2_device_unregister_subdev(sd);
--#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
-+#if defined(CONFIG_I2C) || (defined(CONFIG_I2C_MODULE) && defined(MODULE))
- 		if (sd->flags & V4L2_SUBDEV_FL_IS_I2C) {
- 			struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
+  -Mike
 
 
 -- 
-~Randy
-LPC 2009, Sept. 23-25, Portland, Oregon
-http://linuxplumbersconf.org/2009/
+
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+---1463811561-1650566038-1241222635=:15541--
