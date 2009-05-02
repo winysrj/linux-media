@@ -1,95 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1961 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754236AbZEBNeZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 May 2009 09:34:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Julia Lawall <julia@diku.dk>
-Subject: Re: ivtv-ioctl.c: possible problem with IVTV_F_I_DMA
-Date: Sat, 2 May 2009 15:32:43 +0200
-Cc: ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
-References: <Pine.LNX.4.64.0905021519040.9563@pc-004.diku.dk>
-In-Reply-To: <Pine.LNX.4.64.0905021519040.9563@pc-004.diku.dk>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200905021532.43694.hverkuil@xs4all.nl>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3846 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753813AbZEBSNq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 2 May 2009 14:13:46 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id n42IDjUW094593
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 2 May 2009 20:13:45 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 2 May 2009 20:13:45 +0200 (CEST)
+Message-Id: <200905021813.n42IDjUW094593@smtp-vbr1.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 02 May 2009 15:19:38 Julia Lawall wrote:
-> The file drivers/media/video/ivtv/ivtv-ioctl.c contains the following
-> code:
->
-> (starting at line 183 in a recent linux-next)
->
-> 		while (itv->i_flags & IVTV_F_I_DMA) {
-> 			got_sig = signal_pending(current);
-> 			if (got_sig)
-> 				break;
-> 			got_sig = 0;
-> 			schedule();
-> 		}
->
-> The only possible value of IVTV_F_I_DMA, however, seems to be 0, as
-> defined in drivers/media/video/ivtv/ivtv-driver.h, and thus the test is
-> never true. Is this what is intended, or should the test be expressed in
-> another way?
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Hi Julia,
+Results of the daily build of v4l-dvb:
 
-Urgh, that's most definitely not what was intended. Thanks for the report, 
-I'll fix this. In fact, I've found several other cases in the ivtv driver 
-where these flags were handled incorrectly. Either test_bit or
-(1 << IVTV_F_...) should have been used.
+date:        Sat May  2 19:00:04 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11658:83712d149893
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Thanks!
+linux-2.6.22.19-armv5: WARNINGS
+linux-2.6.23.12-armv5: WARNINGS
+linux-2.6.24.7-armv5: WARNINGS
+linux-2.6.25.11-armv5: WARNINGS
+linux-2.6.26-armv5: WARNINGS
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29.1-armv5: WARNINGS
+linux-2.6.30-rc4-armv5: WARNINGS
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-rc4-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-rc4-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-rc4-i686: WARNINGS
+linux-2.6.23.12-m32r: WARNINGS
+linux-2.6.24.7-m32r: WARNINGS
+linux-2.6.25.11-m32r: WARNINGS
+linux-2.6.26-m32r: WARNINGS
+linux-2.6.27-m32r: WARNINGS
+linux-2.6.28-m32r: WARNINGS
+linux-2.6.29.1-m32r: WARNINGS
+linux-2.6.30-rc4-m32r: WARNINGS
+linux-2.6.22.19-mips: ERRORS
+linux-2.6.26-mips: ERRORS
+linux-2.6.27-mips: ERRORS
+linux-2.6.28-mips: ERRORS
+linux-2.6.29.1-mips: ERRORS
+linux-2.6.30-rc4-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-rc4-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-rc4-x86_64: WARNINGS
+fw/apps: WARNINGS
+sparse (linux-2.6.29.1): OK
+sparse (linux-2.6.30-rc4): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-	Hans
+Detailed results are available here:
 
->
-> julia
->
-> This problem was found using the following semantic match:
-> (http://www.emn.fr/x-info/coccinelle/)
->
-> @r expression@
-> identifier C;
-> expression E;
-> position p;
-> @@
->
-> (
->  E & C@p && ...
->
->  E & C@p || ...
-> )
->
-> @s@
-> identifier r.C;
-> position p1;
-> @@
->
-> #define C 0
->
-> @t@
-> identifier r.C;
-> expression E != 0;
-> @@
->
-> #define C E
->
-> @script:python depends on s && !t@
-> p << r.p;
-> C << r.C;
-> @@
->
-> cocci.print_main("and with 0", p)
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
