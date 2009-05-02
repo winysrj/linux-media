@@ -1,58 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:46902 "EHLO cnc.isely.net"
+Received: from mail1.radix.net ([207.192.128.31]:39142 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754203AbZEQV46 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 May 2009 17:56:58 -0400
-Date: Sun, 17 May 2009 16:56:58 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Jean Delvare <khali@linux-fr.org>
-cc: LMML <linux-media@vger.kernel.org>,
+	id S1751745AbZEBAwM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 1 May 2009 20:52:12 -0400
+Subject: Re: [PATCH] FM1216ME_MK3 some changes
+From: Andy Walls <awalls@radix.net>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>,
+	Dmitri Belimov <d.belimov@gmail.com>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Andy Walls <awalls@radix.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Mike Isely <isely@isely.net>
-Subject: Re: [PATCH 8/8] pvrusb2: Instantiate ir_video I2C device by default
-In-Reply-To: <20090513215620.4b6b359a@hyperion.delvare>
-Message-ID: <Pine.LNX.4.64.0905171656420.17519@cnc.isely.net>
-References: <20090513214559.0f009231@hyperion.delvare>
- <20090513215620.4b6b359a@hyperion.delvare>
+	video4linux-list@redhat.com, linux-media@vger.kernel.org
+In-Reply-To: <1241222142.3709.14.camel@pc07.localdom.local>
+References: <20090422174848.1be88f61@glory.loctelecom.ru>
+	 <1240452534.3232.70.camel@palomino.walls.org>
+	 <20090423203618.4ac2bc6f@glory.loctelecom.ru>
+	 <1240537394.3231.37.camel@palomino.walls.org>
+	 <20090427192905.3ad2b88c@glory.loctelecom.ru>
+	 <20090428151832.241fa9b4@pedra.chehab.org>
+	 <20090428195922.1a079e46@glory.loctelecom.ru>
+	 <1240974643.4280.24.camel@pc07.localdom.local>
+	 <20090429201225.6ba681cf@glory.loctelecom.ru>
+	 <1241054047.3374.42.camel@palomino.walls.org>
+	 <1241155098.3713.26.camel@pc07.localdom.local>
+	 <1241222142.3709.14.camel@pc07.localdom.local>
+Content-Type: text/plain
+Date: Fri, 01 May 2009 20:52:08 -0400
+Message-Id: <1241225528.5817.68.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 13 May 2009, Jean Delvare wrote:
-
-> Now that the ir-kbd-i2c driver has been converted to a new-style i2c
-> driver, we can instantiate the ir_video I2C device by default. The
-> pvr2_disable_ir_video is kept to disable the IR receiver, either
-> because the user doesn't use it, or for debugging purpose.
+On Sat, 2009-05-02 at 01:55 +0200, hermann pitton wrote:
+> Guys,
 > 
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> Cc: Mike Isely <isely@pobox.com>
-
-Acked-by: Mike Isely <isely@pobox.com>
-
-> ---
->  linux/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
+> [snip]
 > 
-> --- v4l-dvb.orig/linux/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c	2009-05-13 18:05:54.000000000 +0200
-> +++ v4l-dvb/linux/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c	2009-05-13 18:06:32.000000000 +0200
-> @@ -43,7 +43,7 @@ static int ir_mode[PVR_NUM] = { [0 ... P
->  module_param_array(ir_mode, int, NULL, 0444);
->  MODULE_PARM_DESC(ir_mode,"specify: 0=disable IR reception, 1=normal IR");
->  
-> -static int pvr2_disable_ir_video = 1;
-> +static int pvr2_disable_ir_video;
->  module_param_named(disable_autoload_ir_video, pvr2_disable_ir_video,
->  		   int, S_IRUGO|S_IWUSR);
->  MODULE_PARM_DESC(disable_autoload_ir_video,
+> > > 
+> > > Do the circuit board traces in the FM1216ME_MK3 support the TDA9887
+> > > controlling the gain of the first stage?  (I've never opened an
+> > > equivalent NTSC tuner assembly to take a look.)
+> > 
+> > "equivalent" NTSC tuners _do not_ exist at all.
+> > 
+> > I don't forget all the time we spend to find out that some of them are
+> > Intercarrier only!
+> > 
+> > Also, the tda988x stuff is underneath the tuner PCB.
+> > 
+> > I cut one off for those interested in line tracing ...
 > 
+> still on the to do list ;)
+
+Thanks.  I hope it doesn't cost you too many wasted Euros...
+
+> > Without port2=0 you don't get any SECAM-L into the sound trap.
+> > 
+> > It needs amplification from minus 40 dB AM for the first sound carrier,
+> > and then of course you prefer the second with NICAM.
+> > 
+> > > If not, then, if I understand things correctly, you need to set the
+> > > first stage and second stage TOP settings so that they refer to about
+> > > the same signal level before the IF SAW filter.  
+> > > 
+> > > 
+> > > I would think AGC TOP settings, for both stages of the tuner, are
+> > > tuner-dependent and relatively constant once you figure out what they
+> > > should be.
+> > > 
+> > > Do you have a different understanding or insight?
+> > > 
+> > > Regards,
+> > > Andy
 > 
+> Hartmut once offered to make contacts with colleagues at Philips Hamburg
+> for such tuners and related tda9887 stuff.
+> 
+> Unfortunately he is not active on the lists currently.
+> 
+> If I see, how easily someone can get a patch to Andrew and disables all
+> other SECAM stuff, again from Russia, I'm not convinced on anything from
+> there.
+> 
+> I seriously doubt that those tuners are meant for fumbling on TOP RF/IF
+> settings from user space.
 
--- 
+The proper TOP settings should be a function of the input signal TV
+standard (positive modulation vs. negative modulation vs. FM radio) and
+the components in the tuner assembly (the IF filter for sure).  Setting
+TOP settings from user space only makes sense for laboratory
+experimentation.
 
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+
+Linux is kind of funny in the way it breaks up the integrated assembly
+of an analog tuner to be handled by separate drivers: preselector and
+mixer/osc chip by tuner-simple; IF filter and IF demod by another module
+like tda9887.  Really the two chips should be set with coordinated
+settings, taking into account the TV standard the tuner is being set to
+demodulate and the properties of the IF filter and external components
+to the IF demodulator.
+
+
+The linux analog tuner drivers mostly appear to make some safe, default
+settings, and don't attempt to get the best performance.  I'm assuming
+that is due to lack of data on the tuners and the tuners working well
+enough.
+
+I'm glad to see Dmitri working at trying to improve analog performance.
+
+I wish I had the proper equpment to experiment wih NTSC tiners.  If I
+had a lab with a decent signal generator, oscilliscope, etc. I'd
+probably have lots of fun playing around with these tuners. :)
+
+Regards,
+Andy
+
+
+> Cheers,
+> Hermann
+
+
