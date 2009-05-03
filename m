@@ -1,48 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110815.mail.gq1.yahoo.com ([67.195.13.238]:46583 "HELO
-	web110815.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752641AbZEQJCq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 May 2009 05:02:46 -0400
-Message-ID: <16292.18803.qm@web110815.mail.gq1.yahoo.com>
-Date: Sun, 17 May 2009 02:02:46 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [0905_29] Siano: smscore - bug fix at get_device_mode
-To: LinuxML <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4114 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753086AbZECHxT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 3 May 2009 03:53:19 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n437rHrb025867
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 3 May 2009 09:53:18 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 3 May 2009 09:53:17 +0200 (CEST)
+Message-Id: <200905030753.n437rHrb025867@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1242332841 -10800
-# Node ID 211989f20f803bc5a719c6fda4640888e379d6fc
-# Parent  7e56c108996ef016c4b2117090e2577aea9ed56c
-[0905_29] Siano: smscore - bug fix at get_device_mode
+Results of the daily build of v4l-dvb:
 
-From: Uri Shkolnik <uris@siano-ms.com>
+date:        Sun May  3 08:48:36 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11658:83712d149893
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Fix bug that cause error log to echo also if success
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-rc4-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-rc4-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-rc4-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-rc4-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-rc4-m32r: OK
+linux-2.6.22.19-mips: ERRORS
+linux-2.6.26-mips: ERRORS
+linux-2.6.27-mips: ERRORS
+linux-2.6.28-mips: ERRORS
+linux-2.6.29.1-mips: ERRORS
+linux-2.6.30-rc4-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-rc4-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-rc4-x86_64: WARNINGS
+sparse (linux-2.6.29.1): OK
+sparse (linux-2.6.30-rc4): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Priority: normal
+Detailed results are available here:
 
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-diff -r 7e56c108996e -r 211989f20f80 linux/drivers/media/dvb/siano/smscoreapi.c
---- a/linux/drivers/media/dvb/siano/smscoreapi.c	Thu May 14 23:24:44 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smscoreapi.c	Thu May 14 23:27:21 2009 +0300
-@@ -938,7 +938,7 @@ int smscore_set_device_mode(struct smsco
- 		coredev->device_flags &= ~SMS_DEVICE_NOT_READY;
- 	}
- 
--	if (rc != 0)
-+	if (rc < 0)
- 		sms_err("return error code %d.", rc);
- 	return rc;
- }
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
+The V4L2 specification from this daily build is here:
 
-      
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
