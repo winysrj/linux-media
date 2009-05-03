@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n4TFluE6031598
-	for <video4linux-list@redhat.com>; Fri, 29 May 2009 11:47:56 -0400
-Received: from mail-in-03.arcor-online.net (mail-in-03.arcor-online.net
-	[151.189.21.43])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n4TFlVu5016308
-	for <video4linux-list@redhat.com>; Fri, 29 May 2009 11:47:31 -0400
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n4309Gci029719
+	for <video4linux-list@redhat.com>; Sat, 2 May 2009 20:09:16 -0400
+Received: from mail-in-07.arcor-online.net (mail-in-07.arcor-online.net
+	[151.189.21.47])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n4308wi2020761
+	for <video4linux-list@redhat.com>; Sat, 2 May 2009 20:08:58 -0400
 From: hermann pitton <hermann-pitton@arcor.de>
-To: Sander Pientka <cumulus0007@gmail.com>
-In-Reply-To: <200905291648.46809.cumulus0007@gmail.com>
-References: <200905291648.46809.cumulus0007@gmail.com>
+To: Pablitt <pablo.fabregat@gmail.com>
+In-Reply-To: <ff65116b0905021420v747dba03ib998177575ba10ef@mail.gmail.com>
+References: <ff65116b0905021420v747dba03ib998177575ba10ef@mail.gmail.com>
 Content-Type: text/plain
-Date: Fri, 29 May 2009 17:42:26 +0200
-Message-Id: <1243611746.6147.12.camel@pc07.localdom.local>
+Date: Sun, 03 May 2009 02:04:31 +0200
+Message-Id: <1241309071.3860.66.camel@pc07.localdom.local>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Cc: video4linux-list@redhat.com
-Subject: Re: Zolid Hybrid TV Tuner not working
+Subject: Re: Phillips Semiconductors based card not working
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,74 +28,76 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hi Pablo,
 
-Am Freitag, den 29.05.2009, 16:48 +0200 schrieb Sander Pientka:
-> Hi,
-> I've bought a Zolid Hyrbid TV Tuner. This card supports both analog and 
-> digital (DVB-T) signals, so it's hybrid. The card has the following chips on 
-> it:
+Am Samstag, den 02.05.2009, 18:20 -0300 schrieb Pablitt:
+> Hi all
+> i have this tv card
+> (sudo lspci -vnn)
+> 00:0e.0 Multimedia controller [0480]: Philips Semiconductors
+> SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
+>     Subsystem: Philips Semiconductors Device [1131:0000]
+>     Flags: bus master, medium devsel, latency 64, IRQ 19
+>     Memory at fac00000 (32-bit, non-prefetchable) [size=2K]
+>     Capabilities: [40] Power Management version 2
+>     Kernel driver in use: saa7134
+>     Kernel modules: saa7134
 > 
->  - A NXP SAA7131E/03/G
->  - A NXP TDA 18271
->  - A NXP TDA 10048
+> it stopped working after upgrade from hardy to intrepid, i think it has
+> something to do with the new kernels...
+> i used to use the options card and tuner but i cant remember which
+> parameters and i'm tryng different parms with no luck
 > 
-> I don't know much about tv cards, but I suppose the SAA is the video processor 
-> and the TDA chips convert the TV signal to a usable signal.
-> The card gets detected by the saa7314 driver, but this driver identiefies the 
-> card as "UNKOWN/GENERIC". The card is not listed in the saa7134 card list. 
-> It's EEPROM is:
+> does anyone got this card working in ubuntu jaunty? if so, wich parameters?
 > 
-> [   17.232053] saa7133[0]: i2c eeprom 00: 31 11 04 20 54 20 1c 00 43 43 a9 1c 
--not valid for subvendor, is vendor Philips ^^^^^
-> 55 d2 b2 92
-> [   17.232080] saa7133[0]: i2c eeprom 10: 00 ff 86 0f ff 20 ff ff ff ff ff ff ff ff ff ff
-> [   17.232105] saa7133[0]: i2c eeprom 20: 01 40 01 02 03 01 01 03 08 ff 00 b2 ff 
-> ff ff ff
-> [   17.232129] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> [   17.232153] saa7133[0]: i2c eeprom 40: ff 35 00 c0 96 10 03 32 21 05 ff ff ff ff 
-> ff ff
-> [   17.232177] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> [   17.232201] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> [   17.232225] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> [   17.232249] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> [   17.232274] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> [   17.232298] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> [   17.232321] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> [   17.232345] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> [   17.232370] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> [   17.232393] saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> [   17.232417] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> thanks in advance
 > 
-> Programs like KDETV and TVTime only show a black screen with some background 
-> noise. Scanning doesn't result a thing.
 > 
-> I literally can't find the card anywhere: not on the V4L wiki, nor on 
-> Google.com/linux, etc. The card happens to be sold in my region only 
-> (Netherlands), so there is not much available about this card. Zolid sells 
-> another TV card, the Zolid Xpert TV7134, which is supported well by Linux.
+> More info:
+> dmesg | grep saa
+> [   17.097515] saa7130/34: v4l2 driver version 0.2.14 loaded
+> [   17.097687] saa7134 0000:00:0e.0: PCI INT A -> GSI 19 (level, low) -> IRQ
+> 19
+> [   17.097698] saa7133[0]: found at 0000:00:0e.0, rev: 209, irq: 19,
+> latency: 64, mmio: 0xfac00000
+> [   17.097705] saa7133[0]: subsystem: 1131:0000, board: UNKNOWN/GENERIC
+> [card=0,autodetected]
+> [   17.097802] saa7133[0]: board init: gpio is 40
+> [   17.200225] saa7133[0]: Huh, no eeprom present (err=-5)?
+> [   17.200681] saa7133[0]: registered device video0 [v4l2]
+> [   17.200728] saa7133[0]: registered device vbi0
+> [   17.213091] saa7134 ALSA driver for DMA sound loaded
+> [   17.213127] saa7133[0]/alsa: saa7133[0] at 0xfac00000 irq 19 registered
+> as card -2
 > 
+> 
+> Kernel version 2.6.28-11-generic
 
-hehe, a similar card was seen first time just a few days back and you
-file bugs against us ? ;)
+the driver has no way to identify your card, since it has no eeprom and
+hence no valid PCI subsytem.
 
-http://www.linuxtv.org/wiki/index.php/Development:_How_to_add_support_for_a_device
+That is why you get card=0 UNKNWON/GENERIC after you don't know your
+card and tuner number anymore.
 
-Closest currently is:
+We only know it has either a saa7133/35 or 31e chip.
 
-saa7133[0]: subsystem: 0070:6707, board: Hauppauge WinTV-HVR1110r3 
-DVB-T/Hybrid [card=156,autodetected]
-saa7133[0]: board init: gpio is 440100
+There is a slight chance to identify it over the
+"board init: gpio is 40" string, but I'm quite sure it is not unique
+here either.
 
-You can find firmware here:
+Look at the card and tuner and eventually remaining packaging material.
 
-http://www.steventoth.net/linux/hvr1200
-
-You need the recent v4l-dvb from linuxtv.org for testing.
-Don't cry, if nothing works at all or your card is burned ;)
+In such a case we unfortunately can't help much, unless you provide some
+more information about the hardware or remember yourself looking at the
+CARDLIST.saa7134 in video4linux Documentation.
 
 Cheers,
 Hermann
+
+
+
+
+
 
 
 
