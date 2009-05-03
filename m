@@ -1,133 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-10.arcor-online.net ([151.189.21.50]:39067 "EHLO
-	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760488AbZEATcg (ORCPT
+Received: from mail-in-14.arcor-online.net ([151.189.21.54]:57464 "EHLO
+	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751573AbZECWiP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 May 2009 15:32:36 -0400
-Subject: Re: Donating a mr97310 based elta-media 8212dc (0x093a:0x010e)
+	Sun, 3 May 2009 18:38:15 -0400
+Subject: Re: saa7134/2.6.26 regression, noisy output
 From: hermann pitton <hermann-pitton@arcor.de>
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-Cc: Wolfram Sang <w.sang@pengutronix.de>, linux-media@vger.kernel.org
-In-Reply-To: <alpine.LNX.2.00.0905011224330.23299@banach.math.auburn.edu>
-References: <20090430022847.GA15183@pengutronix.de>
-	 <alpine.LNX.2.00.0904300953330.21567@banach.math.auburn.edu>
-	 <20090501084729.GB6941@pengutronix.de>
-	 <alpine.LNX.2.00.0905011224330.23299@banach.math.auburn.edu>
+To: Anders Eriksson <aeriksson@fastmail.fm>
+Cc: linux-media@vger.kernel.org, video4linux-list@redhat.com,
+	kraxel@bytesex.org
+In-Reply-To: <20090503075609.0A73B2C4152@tippex.mynet.homeunix.org>
+References: <20090503075609.0A73B2C4152@tippex.mynet.homeunix.org>
 Content-Type: text/plain
-Date: Fri, 01 May 2009 21:30:52 +0200
-Message-Id: <1241206252.3717.36.camel@pc07.localdom.local>
+Date: Mon, 04 May 2009 00:32:05 +0200
+Message-Id: <1241389925.4912.32.camel@pc07.localdom.local>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Anders,
 
-Am Freitag, den 01.05.2009, 12:40 -0500 schrieb Theodore Kilgore:
+Am Sonntag, den 03.05.2009, 09:56 +0200 schrieb Anders Eriksson:
+> Hi all,
 > 
-> On Fri, 1 May 2009, Wolfram Sang wrote:
+> I've got a
+> saa7133[0]: subsystem: 11bd:002f, board: Pinnacle PCTV 310i [card=101,autodetected]
 > 
-> > Hi Theodore,
-> >
-> >> know where he lives) then perhaps to Thomas Kaiser, who lives a bit
-> >> closer to you. I think that all three of us are equally interested but as
-> >
-> > Well, looks like I will send it to Thomas then. I'm glad that it can still be
-> > useful.
+> In all kernels later than 2.6.25 there is a significant layer of noise added to
+> the video output. I've tried to bisect the problem, and it was introduced
+> somewhere between  1fe8736955515f5075bef05c366b2d145d29cd44 (good) and
+> 99e09eac25f752b25f65392da7bd747b77040fea (bad). Unfortunately, all commits
+> between those two either don't compile, or oops in the v4l subsystem.
 > 
-> I am glad that this is so easily resolved. As I said, I do not know where 
-> Kyle lives. If he is somewhere like UK then it would have been possible to 
-> get it to him easily, too. But if he is in the US, like me, then it seems 
-> that sending the camera for such a distance would simply be impractical.
+> I've tried the latest 30-rc and the problem is still there. Any idea how to 
+> proceed for here? I can provide screenshots on request.
 > 
-> >
-> >> Judging from the Vendor:Product number which you report, it is one of the
-> >> small MR97310 cameras for which the OEM driver was called the "CIF"
-> >> driver. Indeed, these cameras are not supported right now, so the matter
-> >> is interesting.
+> Here's the relevant chunk from demsg on 2.6.25:
+> Linux video capture interface: v2.00
+> saa7130/34: v4l2 driver version 0.2.14 loaded
+> saa7133[0]: found at 0000:03:06.0, rev: 209, irq: 21, latency: 64, mmio: 0xfdeff000
+> saa7133[0]: subsystem: 11bd:002f, board: Pinnacle PCTV 310i [card=101,autodetected]
+> saa7133[0]: board init: gpio is 600c000
+> saa7133[0]: i2c eeprom 00: bd 11 2f 00 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+> saa7133[0]: i2c eeprom 10: ff e0 60 06 ff 20 ff ff 00 30 8d 36 5b e2 ff ff
+> saa7133[0]: i2c eeprom 20: 01 2c 01 23 23 01 04 30 98 ff 00 e7 ff 21 00 c2
+> saa7133[0]: i2c eeprom 30: 96 10 03 32 15 20 ff 15 0e 6c a3 eb 04 50 de 7d
+> saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> tuner' 1-004b: chip found @ 0x96 (saa7133[0])
+> tda8290 1-004b: setting tuner address to 61
+> tda8290 1-004b: type set to tda8290+75a
+> saa7133[0]: registered device video0 [v4l2]
+> saa7133[0]: registered device vbi0
+> saa7133[0]: registered device radio0
+> saa7134 ALSA driver for DMA sound loaded
+> saa7133[0]/alsa: saa7133[0] at 0xfdeff000 irq 21 registered as card -1
+> DVB: registering new adapter (saa7133[0])
+> DVB: registering frontend 0 (Philips TDA10046H DVB-T)...
+> tda1004x: setting up plls for 48MHz sampling clock
+> tda1004x: found firmware revision 20 -- ok
 > 
-> I meant, not supported for streaming. The camera ought to be well 
-> supported as a still camera.
-> 
-> >
-> > I tried simply adding the usb-id to the list in mr97310a.c, but as that didn't
-> > produce anything useful (green screen), I thought I'll leave it to the pros :)
-> 
-> Heh. No, that is not enough. Been there. Done that.
-> 
-> 
-> <snip>
-> 
-> >> Finally, I would ask one question:
-> >>
-> >> In the libgphoto2 driver for these cameras, I have a listing for
-> >>
-> >> {"Elta Medi@ digi-cam", GP_DRIVER_STATUS_EXPERIMENTAL, 0x093a, 0x010e},
-> >>
-> >> Do you think this is the same camera, or a different one? Yours has a
-> >
-> > I am pretty sure this is the same camera. "elta medi@ digi-cam" is printed on
-> > the front-side. The model number "8212DC" is just on a glued label on the
-> > down-side which may not be present on all charges or may have been removed or
-> > got lost somehow. I could make pictures of the cam if this helps.
-> 
-> I have the impression you sent another mail, now, with the picture. I have 
-> not looked at the picture, actually. But the picture would probably not 
-> help me at all, because I myself have never seen one of these cameras. 
-> What I know about the camera is well summarized in the following entry 
-> from libgphoto2/camlibs/mars/ChangeLog:
-> 
-> 2004-10-26  Theodore Kilgore <kilgota@auburn.edu>
->          * library.c: ID for Haimei HE-501A, reported by
->                       Scott MacKenzie <irrational@poboxes.com>
->                       ID for Elta Medi@ digicam, reported by
->                       Nils Naumann, <nau@gmx.net>
->                       Support patch submitted by Scott, tested by Nils.
->          * mars.c:    Scott's patch applied.
->          * protocol.txt: byte codes for new 352x288 and 176x144 resolution
->                          settings recorded; section "UPDATES and REVISIONS" 
-> added.
-> 
-> This is the total extent of my knowledge. It does seem, judging from the 
-> address of the person who sent me the information about it, and from 
-> yours, that the Elta brand is probably local to Europe.
 
-for elta GmbH,
+can confirm that such a regression on this card was already reported.
 
-they are originally located in Germany and have a quite good reputation
-for fancy lifestyle products, many imported from Asia, these days mostly
-China, but started with quality products from Japan.
+Hartmut, who added also support for this board, mentioned that it might
+be caused be a failing configuration of the extra LowNoiseAmplifier it
+has.
 
-One of the services they also offer is to create new brands of products
-for customers, coordinated over elta Hong Kong, which includes proper
-package design, two years warranty and a readable user manual ;)
+We know three types of LNAs so far which have different requirements to
+be configured. Your card uses type one, for the others are no problems
+reported and I saw Mike added recently some new cards with type three.
 
-I have an early appearance of the saa7134 chip as elta medi@ 8682 LV
-LifeView FlyVideo 3000 with remote and maybe the first TCL tuner seen
-here. Copyright and Trademark Notice in the user manual.
-(C) 2001 by Animations Technologies Inc. for this one.
+However, there is just one more card sharing that type_one configuration
+with yours, the first version of the HVR-1110, and still no reports from
+that one in that direction.
 
-Can be found searching for Elta at the www.bttv-gallery.de.
+You should try to set the LNA config to type 0, no LNA, also on 2.6.25 I
+guess, to see if it might be related.
 
-You can find all contact information for elta here.
+In saa7134-cards.c for analog it is tuner_config.
 
-http://www.elta.de
+	[SAA7134_BOARD_PINNACLE_PCTV_310i] = {
+		.name           = "Pinnacle PCTV 310i",
+		.audio_clock    = 0x00187de7,
+		.tuner_type     = TUNER_PHILIPS_TDA8290,
+		.radio_type     = UNSET,
+		.tuner_addr     = ADDR_UNSET,
+		.radio_addr     = ADDR_UNSET,
+		.tuner_config   = 1,
+		.mpeg           = SAA7134_MPEG_DVB,
+		.gpiomask       = 0x000200000,
+		.inputs         = {{
 
-> Finally, one of the main reasons why I pass this on is to point out that 
-> especially in the cheap camera market there is lots of stuff out there 
-> which just has a name painted on a case, or the case looks kind of weird 
-> (shaped like a plastic dog, dragon, or squishy toy, attached to a pair of 
-> sunglasses as a "spy camera" or whatever) and the electronics inside is 
-> indistinguishable from 20 or 30 other devices, which do not come from the 
-> same "manufacturer" and may not even have a similar appearance, at all. Do 
-> I know all the Mars CIF cameras which have the USB ID of 0x093a:0x010e ?
->   Almost certainly, I do not. Unfortunately, without the cooperation of the 
-> manufacturers of these devices that is practically impossible. Therefore 
-> let us pray that this non-cooperation somehow will get changed.
-> 
-> Theodore Kilgore
+In current saa7134-dvb.c you change tda827x_cfg_1 to tda827x_cfg_0.
+
+	case SAA7134_BOARD_PINNACLE_PCTV_310i:
+		if (configure_tda827x_fe(dev, &pinnacle_pctv_310i_config,
+					 &tda827x_cfg_1) < 0)
+			goto dettach_frontend;
+		break;
+
+On older kernels it is also tuner_config there within
+pinnacle_pctv_310i_config.
+
+Unfortunately Gerd is not active anymore since several years on v4l-dvb
+and we should not molest him with later added stuff.
 
 Cheers,
 Hermann
+
+
+
+
+
 
 
