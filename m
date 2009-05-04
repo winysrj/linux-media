@@ -1,78 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4428 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757652AbZEVOao (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2009 10:30:44 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [RFC 09/10 v2] v4l2-subdev: re-add s_standby to v4l2_subdev_core_ops
-Date: Fri, 22 May 2009 16:30:37 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Darius Augulis <augulis.darius@gmail.com>,
-	Paul Mundt <lethal@linux-sh.org>
-References: <Pine.LNX.4.64.0905151817070.4658@axis700.grange> <200905211533.34827.hverkuil@xs4all.nl> <Pine.LNX.4.64.0905221611160.4418@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0905221611160.4418@axis700.grange>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1223 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753010AbZEDNDn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2009 09:03:43 -0400
+Message-ID: <53149.62.70.2.252.1241442222.squirrel@webmail.xs4all.nl>
+Date: Mon, 4 May 2009 15:03:42 +0200 (CEST)
+Subject: Re: [questions] dmesg: Non-NULL drvdata on register
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Alexey Klimov" <klimov.linux@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	"Douglas Schilling Landgraf" <dougsland@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200905221630.38339.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 22 May 2009 16:23:36 Guennadi Liakhovetski wrote:
-> On Thu, 21 May 2009, Hans Verkuil wrote:
-> > On Friday 15 May 2009 19:20:18 Guennadi Liakhovetski wrote:
-> > > NOT FOR SUBMISSION. Probably, another solution has to be found.
-> > > soc-camera drivers need an .init() (marked as "don't use") and a
-> > > .halt() methods.
-> > >
-> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > ---
-> > >
-> > > Hans, you moved s_standby to tuner_ops, and init is not recommended
-> > > for new drivers. Suggestions?
-> >
-> > Usual question: why do you need an init and halt? What do they do?
+
+> Hello,
 >
-> Hm, maybe you're right, I don't need them. init() was used in soc_camera
-> drivers on first open() to possibly reset the chip and put it in some
-> reasonably pre-defined low-power state. But we can do this at the end of
-> probe(), which even would be more correct, because even the first open
-> should not change chip's configuration. And halt() (was called release()
-> originally) is called on last close(). And it seems you shouldn't really
-> do this at all - the chip should preserve its configuration between
-> open/close cycles. Am I right?
+> Not so many time ago i noticed such line in dmesg:
+>
+> radio-mr800 2-1:1.0: Non-NULL drvdata on register
+>
+> Quick review showed that it appears in usb_amradio_probe fucntions. Then
+> i found such code in v4l2_device_register() function (v4l2-device.c
+> file):
+>
+> /* Set name to driver name + device name if it is empty. */
+>         if (!v4l2_dev->name[0])
+>                 snprintf(v4l2_dev->name, sizeof(v4l2_dev->name), "%s %
+> s",
+>                         dev->driver->name, dev_name(dev));
+>         if (dev_get_drvdata(dev))
+>                 v4l2_warn(v4l2_dev, "Non-NULL drvdata on register\n");
+>         dev_set_drvdata(dev, v4l2_dev);
+>         return 0;
+>
+> The questions is - should i deal with this warning in dmesg? Probably
+> the order of callbacks in radio-mr800 probe function is incorrect.
 
-That's correct.
+I (or you :-) should look into this: I think the usb subsystem is calling
+dev_set_drvdata as well, so we could have a clash here.
 
-It's interesting to see that init/halt/reset/powersaving type functions are 
-usually not needed. I know that there are still a few i2c drivers 
-implementing init and reset, and I also know that those can be removed 
-since they are not needed at all. I just need to find some time to do the 
-actual removal. So whenever I see these functions I always get 
-suspicious :-)
+> The second questions - should i make atomic_t users counter instead of
+> int users counter? Then i can use atomic_inc(), atomic_dec(),
+> atomic_set(). It helps me to remove lock/unlock_kernel() functions.
+
+'users' can go away completely: if you grep for it, then you'll see that
+it is only set, but never used.
+
+I think I've commented on the kernel lock before: I think it is bogus
+here. And that the amradio_set_mute handling is wrong as well: you open
+the radio device twice, then close one file descriptor, and suddenly the
+audio will be muted, even though there still is a file descriptor open.
 
 Regards,
 
-	Hans
+        Hans
 
-> Does anyone among cc'ed authors have any 
-> objections against this change? The actual disable should indeed migrate
-> to some PM functions, if implemented.
 >
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-
+> --
+> Best regards, Klimov Alexey
+>
+>
 
 
 -- 
 Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
