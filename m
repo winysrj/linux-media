@@ -1,78 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:50712 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752833AbZETHVI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2009 03:21:08 -0400
-Date: Wed, 20 May 2009 09:21:11 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: MT9T031 and other similar sub devices...
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE401353CD3D6@dlee06.ent.ti.com>
-Message-ID: <Pine.LNX.4.64.0905200909240.4423@axis700.grange>
-References: <A69FA2915331DC488A831521EAE36FE401353CD3D6@dlee06.ent.ti.com>
+Received: from mail-gx0-f166.google.com ([209.85.217.166]:53117 "EHLO
+	mail-gx0-f166.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751595AbZEDQhb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2009 12:37:31 -0400
+Received: by gxk10 with SMTP id 10so7987168gxk.13
+        for <linux-media@vger.kernel.org>; Mon, 04 May 2009 09:37:31 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <49FF1892.7040109@forseth.name>
+References: <49FF1892.7040109@forseth.name>
+Date: Mon, 4 May 2009 12:37:31 -0400
+Message-ID: <412bdbff0905040937k10869c91ydec578fdda6b178@mail.gmail.com>
+Subject: Re: [linux-dvb] Pinnacle pctv hybrid pro stick 340e support
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: "Lars D. Forseth" <lars@forseth.name>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Murali
+On Mon, May 4, 2009 at 12:32 PM, Lars D. Forseth <lars@forseth.name> wrote:
+> Hello,
+>
+> I have a Pinnacle PCTV Hybrid Stick Solo 340e SE which identifies as
+> "2304:023e" with lsusb.
+> After searching the web for almost two days now I did not find any working
+> solution in getting this DVB-T USB stick to work under Ubuntu 9.04 UNR. When
+> I found this thread (http://marc.info/?l=linux-dvb&w=2&r=1&s=340e&q=b) and
+> started reading it I hoped that I would find a hint or something, but it
+> seems that the last post was on 2008-08-22? Were there any improvements in
+> getting this card to work since then? I would really appreciate any help in
+> getting this card to work under Ubuntu UNR 9.04 on my Acer Aspire One...
+>
+>
+> Thanks in advance and best regards,
+> Lars.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-On Tue, 19 May 2009, Karicheri, Muralidharan wrote:
+Hello Lars,
 
-> Hi, Guennadi Liakhovetski,
-> 
-> Thanks for your effort to migrate the sensor drivers to sub device framework.
-> 
-> We have interest in mt9t031 and other sensor drivers from Micron since 
-> this peripheral is used in our DM355/DM6446 EVMs as well. I have 
-> submitted a set of patches for our vpfe_capture driver to the media 
-> mailing list for review. This driver runs on DM355/DM6446 EVMs and is 
-> developed to use the sub device model to integrate with capture 
-> peripheral like TVP5146, MT9T001, MT9T031 etc.
+The status on this is unchanged.  I've got the xc4000 driver specs,
+but I don't have the hardware so I cannot write the driver.
 
-You mean MT9M001, right?
+If somebody wants to ship me a 340e, I can probably get it to work (I
+did the other Pinnacle variants that use dib0700/xc5000).
 
-> If you have a version of 
-> mt9t031 driver migrated to sub device, I would like to integrate that 
-> with our vpfe_capture driver.
+Devin
 
-Nice, that's what the whole sudev conversion is (largely) about, AFAICS.
-
-> I want to check following with you so as to be on the same page.
-> 
-> 1) I see that the mt9t001.c still uses struct soc_camera_device and 
-> calls soc_camera_video_start() to start the master. This introduces a 
-> reverse dependency from the sub device to bridge driver (correct me if I 
-> my understanding is wrong). I guess you plan to remove this dependency 
-> in your future patch. With this in the driver, it can't work with our 
-> driver since we don't have soc_camera_device.
-
-Correct.
-
-> 2) vpfe_capture driver support raw bayer interface as well as raw yuv 
-> interface. Raw bayer interface can be 8-16 bits wide along with 
-> HD/VD/field lines. So in order for the bridge driver to configure the 
-> interface, it needs to know parameters like interface type (BT.656, 
-> BT.1120, Raw image data (8-16) etc), polarity of HD, VD, PCLK, field 
-> signals etc. Is there a infrastructure for handling this ? I mean, we 
-> should have a way of defining this per platform, which some how can be 
-> read by bridge driver to configure the interface to work with a specific 
-> sub device.
-
-Right, this is one of the pieces still missing in the v4l2-(sub)dev 
-framework, which we have in soc_camera, and which we'll have to think 
-about bringing over to v4l2-subdev. That's one of the reasons why the 
-conversion is not complete yet.
-
-The other (and main) reason is my time. I'm doing this at my free time, 
-and I don't know when next time I'll come round to progressing this work. 
-So, either you can provide patches to speed up the process, or you can 
-wait for me, or someone might want to pay for this work to be done:-)
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
