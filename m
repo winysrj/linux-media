@@ -1,115 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:4380 "EHLO
-	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753342AbZEQSBw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 May 2009 14:01:52 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr3.xs4all.nl (8.13.8/8.13.8) with ESMTP id n4HI1ptg075991
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 17 May 2009 20:01:52 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 17 May 2009 20:01:51 +0200 (CEST)
-Message-Id: <200905171801.n4HI1ptg075991@smtp-vbr3.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from cmpxchg.org ([85.214.51.133]:49969 "EHLO cmpxchg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754094AbZEDJ4Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 4 May 2009 05:56:16 -0400
+From: Johannes Weiner <hannes@cmpxchg.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Magnus Damm <magnus.damm@gmail.com>, linux-media@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Paul Mundt <lethal@linux-sh.org>, linux-mm@kvack.org,
+	linux-kernel@vger.kernel.org
+Subject: [patch 3/3] mm: introduce follow_pfn()
+Date: Mon,  4 May 2009 11:54:34 +0200
+Message-Id: <1241430874-12667-3-git-send-email-hannes@cmpxchg.org>
+In-Reply-To: <20090501181449.GA8912@cmpxchg.org>
+References: <20090501181449.GA8912@cmpxchg.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Analoguous to follow_phys(), add a helper that looks up the PFN
+instead.  It also only allows IO mappings or PFN mappings.
 
-Results of the daily build of v4l-dvb:
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+---
+ include/linux/mm.h |    2 ++
+ mm/memory.c        |   19 +++++++++++++++++++
+ 2 files changed, 21 insertions(+), 0 deletions(-)
 
-date:        Sun May 17 19:00:06 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11783:0018ed9bbca3
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
-
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-rc4-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-rc4-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-rc4-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-rc4-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-rc4-m32r: OK
-linux-2.6.22.19-mips: ERRORS
-linux-2.6.26-mips: ERRORS
-linux-2.6.27-mips: ERRORS
-linux-2.6.28-mips: ERRORS
-linux-2.6.29.1-mips: ERRORS
-linux-2.6.30-rc4-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-rc4-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-rc4-x86_64: WARNINGS
-sparse (linux-2.6.29.1): OK
-sparse (linux-2.6.30-rc4): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index bff1f0d..1cca8b6 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -794,6 +794,8 @@ int copy_page_range(struct mm_struct *dst, struct mm_struct *src,
+ 			struct vm_area_struct *vma);
+ void unmap_mapping_range(struct address_space *mapping,
+ 		loff_t const holebegin, loff_t const holelen, int even_cows);
++int follow_pfn(struct vm_area_struct *vma, unsigned long address,
++	unsigned long *pfn);
+ int follow_phys(struct vm_area_struct *vma, unsigned long address,
+ 		unsigned int flags, unsigned long *prot, resource_size_t *phys);
+ int generic_access_phys(struct vm_area_struct *vma, unsigned long addr,
+diff --git a/mm/memory.c b/mm/memory.c
+index aee167d..05fc8e5 100644
+--- a/mm/memory.c
++++ b/mm/memory.c
+@@ -3046,6 +3046,25 @@ out:
+ 	return -EINVAL;
+ }
+ 
++int follow_pfn(struct vm_area_struct *vma, unsigned long address,
++	unsigned long *pfn)
++{
++	int ret = -EINVAL;
++	spinlock_t *ptl;
++	pte_t *ptep;
++
++	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)))
++		return ret;
++
++	ret = follow_pte(vma->vm_mm, address, &ptep, &ptl);
++	if (ret)
++		return ret;
++	*pfn = pte_pfn(*ptep);
++	pte_unmap_unlock(ptep, ptl);
++	return 0;
++}
++EXPORT_SYMBOL(follow_pfn);
++
+ #ifdef CONFIG_HAVE_IOREMAP_PROT
+ int follow_phys(struct vm_area_struct *vma,
+ 		unsigned long address, unsigned int flags,
+-- 
+1.6.2.1.135.gde769
 
