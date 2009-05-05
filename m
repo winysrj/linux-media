@@ -1,64 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:44588 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756439AbZEVQoT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2009 12:44:19 -0400
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Darius Augulis <augulis.darius@gmail.com>,
-	Paul Mundt <lethal@linux-sh.org>
-Subject: Re: [RFC 09/10 v2] v4l2-subdev: re-add s_standby to v4l2_subdev_core_ops
-References: <Pine.LNX.4.64.0905151817070.4658@axis700.grange>
-	<Pine.LNX.4.64.0905151907460.4658@axis700.grange>
-	<200905211533.34827.hverkuil@xs4all.nl>
-	<Pine.LNX.4.64.0905221611160.4418@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Fri, 22 May 2009 18:44:06 +0200
-In-Reply-To: <Pine.LNX.4.64.0905221611160.4418@axis700.grange> (Guennadi Liakhovetski's message of "Fri\, 22 May 2009 16\:23\:36 +0200 \(CEST\)")
-Message-ID: <873aaxxf3d.fsf@free.fr>
+Received: from smtp.wow.synacor.com ([64.8.70.55]:47000 "EHLO
+	smtp.mail.wowway.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754656AbZEEA0e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2009 20:26:34 -0400
+Received: from aqui.slotcar.prv ([172.16.1.3])
+	by sordid.slotcar.chicago.il.us with esmtp (Exim 4.67)
+	(envelope-from <johnr@wowway.com>)
+	id 1M18NC-0007i8-SV
+	for linux-media@vger.kernel.org; Mon, 04 May 2009 19:19:02 -0500
+Message-ID: <49FF85F1.5080600@wowway.com>
+Date: Mon, 04 May 2009 19:18:57 -0500
+From: "John R." <johnr@wowway.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: linux-media@vger.kernel.org
+Subject: Hauppauge 950Q Analog (Composite Input) Problem
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+Hello,
 
->> Usual question: why do you need an init and halt? What do they do?
->
-> Hm, maybe you're right, I don't need them. init() was used in soc_camera 
-> drivers on first open() to possibly reset the chip and put it in some 
-> reasonably pre-defined low-power state. But we can do this at the end of 
-> probe(), which even would be more correct, because even the first open 
-> should not change chip's configuration. And halt() (was called release() 
-> originally) is called on last close(). And it seems you shouldn't really 
-> do this at all - the chip should preserve its configuration between 
-> open/close cycles. Am I right?
+Actually, I am trying to use the analog composite input (not cable 
+television) working.  Is this part of analog support?  Or is that for 
+analog cable only?
 
+When I hook a video source up to the composite RCA jack and "mplayer 
+/dev/video" it presents the following:
 
-> Does anyone among cc'ed authors have any objections against this change? The
-> actual disable should indeed migrate to some PM functions, if implemented.
-If I understand correctly, what was done before was that on last close, the
-sensor was disabled (through sensor->release() call). What will be done now is
-leave the sensor on.
+MPlayer dev-SVN-r26753-4.1.2 (C) 2000-2008 MPlayer Team
+CPU: Intel(R) Pentium(R) M processor 1.20GHz (Family: 6, Model: 13, 
+Stepping: 8)
+CPUflags:  MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1
+Compiled for x86 CPU with extensions: MMX MMX2 SSE SSE2
 
-On an embedded system, the power eaten by an active sensor is usually too much
-compared to the other components.
+Playing /dev/video.
 
-So, if there is a solution which enables, on last close, to power down the
-device (or put it in low power mode), in the new API, I'm OK, even if it's a new
-powersaving function. If there is no such function and there will be a gap
-(let's say kernel 2.6.31 to 2.6.35) where the sensor will be left activated all
-the time, then I'm against.
+It just sits there.  Typing "cat /dev/video" does not produce any output.
 
-Let me be even more precise about a usecase :
- - a user takes a picture with his smartphone
- - the same user then uses his phone to call his girlfriend
- - the girlfriend has a lot of things to say, it lasts for 1 hour
-In that case, the sensor _has_ to be switched off.
+Linux aqui 2.6.29.2.  I am running hvr950q-analog-1bbabf78f9ef 
+(downloaded a couple days ago).
 
-Cheers.
+ From log output everything seems good:
 
---
-Robert
+May  4 18:52:19 aqui usb 1-1: new high speed USB device using ehci_hcd 
+and address 5
+May  4 18:52:19 aqui usb 1-1: configuration #1 chosen from 1 choice
+May  4 18:52:20 aqui Linux video capture interface: v2.00
+May  4 18:52:20 aqui au0828 driver loaded
+May  4 18:52:20 aqui au0828: i2c bus registered
+May  4 18:52:20 aqui tveeprom 1-0050: Hauppauge model 72001, rev B3F0, 
+serial# 6134581
+May  4 18:52:20 aqui tveeprom 1-0050: MAC address is 00-0D-FE-5D-9B-35
+May  4 18:52:20 aqui tveeprom 1-0050: tuner model is Xceive XC5000 (idx 
+150, type 76)
+May  4 18:52:20 aqui tveeprom 1-0050: TV standards NTSC(M) ATSC/DVB 
+Digital (eeprom 0x88)
+May  4 18:52:20 aqui tveeprom 1-0050: audio processor is AU8522 (idx 44)
+May  4 18:52:20 aqui tveeprom 1-0050: decoder processor is AU8522 (idx 42)
+May  4 18:52:20 aqui tveeprom 1-0050: has no radio, has IR receiver, has 
+no IR transmitter
+May  4 18:52:20 aqui hauppauge_eeprom: hauppauge eeprom: model=72001
+May  4 18:52:20 aqui au8522 1-0047: creating new instance
+May  4 18:52:20 aqui au8522_decoder creating new instance...
+May  4 18:52:20 aqui tuner 1-0061: chip found @ 0xc2 (au0828)
+May  4 18:52:20 aqui xc5000 1-0061: creating new instance
+May  4 18:52:20 aqui xc5000: Successfully identified at address 0x61
+May  4 18:52:20 aqui xc5000: Firmware has not been loaded previously
+May  4 18:52:20 aqui xc5000: waiting for firmware upload 
+(dvb-fe-xc5000-1.1.fw)...
+May  4 18:52:20 aqui i2c-adapter i2c-1: firmware: requesting 
+dvb-fe-xc5000-1.1.fw
+May  4 18:52:20 aqui xc5000: firmware read 12332 bytes.
+May  4 18:52:20 aqui xc5000: firmware upload
+May  4 18:52:31 aqui au8522 1-0047: attaching existing instance
+May  4 18:52:31 aqui xc5000 1-0061: attaching existing instance
+May  4 18:52:31 aqui xc5000: Successfully identified at address 0x61
+May  4 18:52:31 aqui xc5000: Firmware has been loaded previously
+May  4 18:52:31 aqui DVB: registering new adapter (au0828)
+May  4 18:52:31 aqui DVB: registering adapter 0 frontend 0 (Auvitek 
+AU8522 QAM/8VSB Frontend)...
+May  4 18:52:31 aqui Registered device AU0828 [Hauppauge HVR950Q]
+May  4 18:52:31 aqui usbcore: registered new interface driver au0828
+
+Thanks,
+
+John
