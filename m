@@ -1,56 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [195.7.61.12] ([195.7.61.12]:44622 "EHLO killala.koala.ie"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1754852AbZETOFv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2009 10:05:51 -0400
-Message-ID: <4A140936.6020001@koala.ie>
-Date: Wed, 20 May 2009 14:44:22 +0100
-From: Simon Kenyon <simon@koala.ie>
-MIME-Version: 1.0
+Received: from main.gmane.org ([80.91.229.2]:50230 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752408AbZEERH4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 May 2009 13:07:56 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1M1O7X-0002o4-5f
+	for linux-media@vger.kernel.org; Tue, 05 May 2009 17:07:55 +0000
+Received: from alltalk.demon.co.uk ([80.177.3.49])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 05 May 2009 17:07:55 +0000
+Received: from drbob by alltalk.demon.co.uk with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 05 May 2009 17:07:55 +0000
 To: linux-media@vger.kernel.org
-CC: liplianin@me.by
-Subject: Re: [linux-dvb] SDMC DM1105N not being detected
-References: <e6ac15e50904022156u40221c3fib15d1b4cdf36461@mail.gmail.com>
-In-Reply-To: <e6ac15e50904022156u40221c3fib15d1b4cdf36461@mail.gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
+From: drbob <drbob@gmx.co.uk>
+Subject: Re: EC168 "dvb_usb: Unknown symbol release_firmware"
+Date: Tue, 5 May 2009 17:07:43 +0000 (UTC)
+Message-ID: <gtprov$bbk$2@ger.gmane.org>
+References: <gtnj58$p21$2@ger.gmane.org> <4A001955.5050201@iki.fi>
+	<gtpmo5$bbk$1@ger.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-mp3geek wrote:
-> Not even being detected in Linux 2.6.29.1, I have the modules "dm1105"
-> loaded, but since its not even being detected by linux..
->
-> lspci -vv shows this (I'm assuming this is the card..), dmesg shows
-> nothing dvb being loaded
->
-> 00:0b.0 Ethernet controller: Device 195d:1105 (rev 10)
->     Subsystem: Device 195d:1105
->     Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop-
-> ParErr- Stepping- SERR- FastB2B- DisINTx-
->     Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort-
-> <TAbort- <MAbort- >SERR- <PERR- INTx-
->     Latency: 30 (4000ns min, 8000ns max), Cache Line Size: 32 bytes
->     Interrupt: pin A routed to IRQ 5
->     Region 0: I/O ports at 9400 [size=256]
->
->
-> The chip says the following, SDMC DM1105N, EasyTV-DVBS V1.0B
-> (2008-04-26), 0735 E280034
->   
-because i saw that there was a driver written by igor, i took a chance 
-and bought a DM04 DVB-S card on ebay. it only cost €20 (including 
-shipping from HK to Ireland) so i reckoned "nothing ventured, nothing 
-gained"
-on a windows box it runs rather nicely. granted that the software 
-provided does not provide a BDA driver, so you are pretty much limited 
-to the stuff that comes with the card.
-but a big "me too" on linux (which is what i bought it for)
-i similarly get an "ethernet controller" and nothing in the kernel log 
-when i load the dm1105 module.
+On Tue, 05 May 2009 15:41:58 +0000, drbob wrote:
 
-what do i need to do to debug the situation and/or update the driver?
+> On Tue, 05 May 2009 13:47:49 +0300, Antti Palosaari wrote:
+> 
+> 
+>> I haven't opened my stick but looked your pictures. I have never seen
+>> so bad soldering quality :o
+> 
+> Yeah it's pretty bad. I was pretty surprised it works at all when I saw
+> it as in several places component terminals or chip pins appear to be
+> bridged.
+> 
+> 
+>> Driver development is a little bit freeze currently due to lack of
+>> EC168 specs. If you can provide specs please contact me!
+>> 
+>> 
+> No specs here, I'm just an end user, but a translated google search
+> (english->chinese) for "ec168 dvb" threw up this page:
+> 
+> <http://detail.cn.china.cn/provide/detail,1347758640.html>
+> <http://translate.google.com/translate?prev=hp&hl=en&js=n&u=http%3A%2F%
+2Fdetail.cn.china.cn%2Fprovide%2Fdetail%2C1347758640.html&sl=zh-CN&tl=en>
+> 
+> I think it's a company in China selling a reference design and tech
+> support to potential manufacturers, so they probably have the tech docs.
+> Good luck if you fancy trying to get a response from them.
 
-regards
---
-simon
+After a little further digging I think the company that orignally 
+designed the ec168 is probably defunct. I found a US address and contact 
+number for the company here:
+
+<http://www.soccentral.com/results.asp?EntryID=23118>
+
+However the phone line has been disconnected. As per the wiki, their web 
+page has also disappeared.
+
+
