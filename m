@@ -1,100 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:53726 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756136AbZEAR0y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 May 2009 13:26:54 -0400
-Date: Fri, 1 May 2009 12:40:27 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Wolfram Sang <w.sang@pengutronix.de>
-cc: linux-media@vger.kernel.org
-Subject: Re: Donating a mr97310 based elta-media 8212dc (0x093a:0x010e)
-In-Reply-To: <20090501084729.GB6941@pengutronix.de>
-Message-ID: <alpine.LNX.2.00.0905011224330.23299@banach.math.auburn.edu>
-References: <20090430022847.GA15183@pengutronix.de> <alpine.LNX.2.00.0904300953330.21567@banach.math.auburn.edu> <20090501084729.GB6941@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Received: from mail-in-16.arcor-online.net ([151.189.21.56]:58533 "EHLO
+	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752825AbZEEXe4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 May 2009 19:34:56 -0400
+Subject: Re: [linux-dvb] Can't scan transponders with Terratec Cinergy HT
+	PCI  board
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Charles <landemaine@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+In-Reply-To: <e6575a30905041313n7d8de379nea976f9bb9254245@mail.gmail.com>
+References: <e6575a30904300454w117e6293p4793ad6c2b5c706@mail.gmail.com>
+	 <1241137592.5108.12.camel@pc07.localdom.local>
+	 <e6575a30905011018q3b72307aqc73faf01bc380300@mail.gmail.com>
+	 <e6575a30905041313n7d8de379nea976f9bb9254245@mail.gmail.com>
+Content-Type: text/plain
+Date: Wed, 06 May 2009 01:32:31 +0200
+Message-Id: <1241566351.16938.21.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+Am Montag, den 04.05.2009, 22:13 +0200 schrieb Charles:
+> On Fri, May 1, 2009 at 2:26 AM, hermann pitton <hermann-pitton@arcor.de> wrote:
+> > Hi Charles,
+> >
+> > Am Donnerstag, den 30.04.2009, 13:54 +0200 schrieb Charles:
+> >> Hello,
+> >>
+> >>
+> >> I installed my Terratec Cinergy HT PCI DVB-T board on Ubuntu 9.04
+> >
+> > I guess HT PCI can mean a lot, like My Cinema, WinFast and the like ...
+> >
+> >> using your tutorial
+> >> (http://www.linuxtv.org/wiki/index.php/How_to_Obtain%2C_Build_and_Install_V4L-DVB_Device_Drivers)
+> >> and when trying to scan transponders, no result was found:
+> >>
+> >> $ ls -l /dev/dvb/adapter0
+> >> total 0
+> >> crw-rw----+ 1 root video 212, 1 2009-04-30 12:19 demux0
+> >> crw-rw----+ 1 root video 212, 2 2009-04-30 12:19 dvr0
+> >> crw-rw----+ 1 root video 212, 0 2009-04-30 12:19 frontend0
+> >> crw-rw----+ 1 root video 212, 3 2009-04-30 12:19 net0
+> >>
+> >> $ scan /usr/share/dvb/dvb-t/fr-Nantes
+> >> scanning /usr/share/dvb/dvb-t/fr-Nantes
+> >> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> >> initial transponder 498000000 0 2 9 3 1 0 0
+> >> initial transponder 506000000 0 2 9 3 1 0 0
+> >> initial transponder 522000000 0 2 9 3 1 0 0
+> >> initial transponder 530000000 0 2 9 3 1 0 0
+> >> initial transponder 658000000 0 2 9 3 1 0 0
+> >> initial transponder 802000000 0 2 9 3 1 0 0
+> >
+> > Can't tell offhand if the zl10353 eventually has this problem too, which
+> > is well known on the tda10046.
+> >
+> > Please try to add plus 167 kHz to your initial scan file for Nantes,
+> > like you can see it here for one of the Lyon transmitters.
+> >
+[snip]
 
-On Fri, 1 May 2009, Wolfram Sang wrote:
+> 
+> Hi Hermann,
+> 
+> Thank you. I added 167Khz to the scan file but it didn't solve my problem:
+> 
+> 
+> $ scan /usr/share/dvb/dvb-t/fr-Nantes
+> scanning /usr/share/dvb/dvb-t/fr-Nantes
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> initial transponder 498167000 0 2 9 3 1 0 0
+> initial transponder 506167000 0 2 9 3 1 0 0
+> initial transponder 522167000 0 2 9 3 1 0 0
+> initial transponder 530167000 0 2 9 3 1 0 0
+> initial transponder 658167000 0 2 9 3 1 0 0
+> initial transponder 802167000 0 2 9 3 1 0 0
+> >>> tune to: 498167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 498167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 506167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 506167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 522167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 522167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 658167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 658167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 802167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+> WARNING: >>> tuning failed!!!
+> >>> tune to: 802167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
+> WARNING: >>> tuning failed!!!
+> ERROR: initial tuning failed
+> dumping lists (0 services)
+> Done.
+> $
+> 
+> 
+> Any other idea?
 
-> Hi Theodore,
->
->> know where he lives) then perhaps to Thomas Kaiser, who lives a bit
->> closer to you. I think that all three of us are equally interested but as
->
-> Well, looks like I will send it to Thomas then. I'm glad that it can still be
-> useful.
+Not really.
 
-I am glad that this is so easily resolved. As I said, I do not know where 
-Kyle lives. If he is somewhere like UK then it would have been possible to 
-get it to him easily, too. But if he is in the US, like me, then it seems 
-that sending the camera for such a distance would simply be impractical.
+Which HT PCI it is, copy/paste relevant parts of "dmesg".
 
->
->> Judging from the Vendor:Product number which you report, it is one of the
->> small MR97310 cameras for which the OEM driver was called the "CIF"
->> driver. Indeed, these cameras are not supported right now, so the matter
->> is interesting.
+If it is not a known issue with a certain card/driver,
+I would assume the signal is too poor.
 
-I meant, not supported for streaming. The camera ought to be well 
-supported as a still camera.
-
->
-> I tried simply adding the usb-id to the list in mr97310a.c, but as that didn't
-> produce anything useful (green screen), I thought I'll leave it to the pros :)
-
-Heh. No, that is not enough. Been there. Done that.
+Cheers,
+Hermann
 
 
-<snip>
-
->> Finally, I would ask one question:
->>
->> In the libgphoto2 driver for these cameras, I have a listing for
->>
->> {"Elta Medi@ digi-cam", GP_DRIVER_STATUS_EXPERIMENTAL, 0x093a, 0x010e},
->>
->> Do you think this is the same camera, or a different one? Yours has a
->
-> I am pretty sure this is the same camera. "elta medi@ digi-cam" is printed on
-> the front-side. The model number "8212DC" is just on a glued label on the
-> down-side which may not be present on all charges or may have been removed or
-> got lost somehow. I could make pictures of the cam if this helps.
-
-I have the impression you sent another mail, now, with the picture. I have 
-not looked at the picture, actually. But the picture would probably not 
-help me at all, because I myself have never seen one of these cameras. 
-What I know about the camera is well summarized in the following entry 
-from libgphoto2/camlibs/mars/ChangeLog:
-
-2004-10-26  Theodore Kilgore <kilgota@auburn.edu>
-         * library.c: ID for Haimei HE-501A, reported by
-                      Scott MacKenzie <irrational@poboxes.com>
-                      ID for Elta Medi@ digicam, reported by
-                      Nils Naumann, <nau@gmx.net>
-                      Support patch submitted by Scott, tested by Nils.
-         * mars.c:    Scott's patch applied.
-         * protocol.txt: byte codes for new 352x288 and 176x144 resolution
-                         settings recorded; section "UPDATES and REVISIONS" 
-added.
-
-This is the total extent of my knowledge. It does seem, judging from the 
-address of the person who sent me the information about it, and from 
-yours, that the Elta brand is probably local to Europe.
-
-Finally, one of the main reasons why I pass this on is to point out that 
-especially in the cheap camera market there is lots of stuff out there 
-which just has a name painted on a case, or the case looks kind of weird 
-(shaped like a plastic dog, dragon, or squishy toy, attached to a pair of 
-sunglasses as a "spy camera" or whatever) and the electronics inside is 
-indistinguishable from 20 or 30 other devices, which do not come from the 
-same "manufacturer" and may not even have a similar appearance, at all. Do 
-I know all the Mars CIF cameras which have the USB ID of 0x093a:0x010e ?
-  Almost certainly, I do not. Unfortunately, without the cooperation of the 
-manufacturers of these devices that is practically impossible. Therefore 
-let us pray that this non-cooperation somehow will get changed.
-
-Theodore Kilgore
