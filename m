@@ -1,58 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet11.oracle.com ([141.146.126.233]:48959 "EHLO
-	acsinet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752733AbZEKQg7 (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:42242 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751438AbZEEVJs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 May 2009 12:36:59 -0400
-Message-ID: <4A085455.5040108@oracle.com>
-Date: Mon, 11 May 2009 09:37:41 -0700
-From: Randy Dunlap <randy.dunlap@oracle.com>
-MIME-Version: 1.0
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-CC: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH -next] v4l2: handle unregister for non-I2C builds
-References: <20090511161442.3e9d9cb9.sfr@canb.auug.org.au>
-In-Reply-To: <20090511161442.3e9d9cb9.sfr@canb.auug.org.au>
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 5 May 2009 17:09:48 -0400
+Date: Tue, 5 May 2009 14:05:17 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Johannes Weiner <hannes@cmpxchg.org>
+Cc: magnus.damm@gmail.com, linux-media@vger.kernel.org,
+	hverkuil@xs4all.nl, lethal@linux-sh.org, linux-mm@kvack.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [patch 1/3] mm: introduce follow_pte()
+Message-Id: <20090505140517.bef78dd3.akpm@linux-foundation.org>
+In-Reply-To: <20090505203807.GB2428@cmpxchg.org>
+References: <20090501181449.GA8912@cmpxchg.org>
+	<1241430874-12667-1-git-send-email-hannes@cmpxchg.org>
+	<20090505122442.6271c7da.akpm@linux-foundation.org>
+	<20090505203807.GB2428@cmpxchg.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+On Tue, 5 May 2009 22:38:07 +0200
+Johannes Weiner <hannes@cmpxchg.org> wrote:
 
-Build fails when CONFIG_I2C=n, so handle that case in the if block:
+> On Tue, May 05, 2009 at 12:24:42PM -0700, Andrew Morton wrote:
+> > On Mon,  4 May 2009 11:54:32 +0200
+> > Johannes Weiner <hannes@cmpxchg.org> wrote:
+> > 
+> > > A generic readonly page table lookup helper to map an address space
+> > > and an address from it to a pte.
+> > 
+> > umm, OK.
+> > 
+> > Is there actually some point to these three patches?  If so, what is it?
+> 
+> Magnus needs to check for physical contiguity of a VMAs backing pages
+> to support zero-copy exportation of video data to userspace.
+> 
+> This series implements follow_pfn() so he can walk the VMA backing
+> pages and ensure their PFNs are in linear order.
+> 
+> [ This patch can be collapsed with 2/3, I just thought it would be
+>   easier to read the diffs when having them separate. ]
+> 
+> 1/3 and 2/3: factor out the page table walk from follow_phys() into
+> follow_pte().
+> 
+> 3/3: implement follow_pfn() on top of follow_pte().
 
-drivers/built-in.o: In function `v4l2_device_unregister':
-(.text+0x157821): undefined reference to `i2c_unregister_device'
+So we could bundle these patches with Magnus's patchset, or we could
+consider these three patches as a cleanup or something.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
----
- drivers/media/video/v4l2-device.c |    2 ++
- 1 file changed, 2 insertions(+)
+Given that 3/3 introduces an unused function, I'm inclined to sit tight
+and await Magnus's work.
 
---- linux-next-20090511.orig/drivers/media/video/v4l2-device.c
-+++ linux-next-20090511/drivers/media/video/v4l2-device.c
-@@ -85,6 +85,7 @@ void v4l2_device_unregister(struct v4l2_
- 	/* Unregister subdevs */
- 	list_for_each_entry_safe(sd, next, &v4l2_dev->subdevs, list) {
- 		v4l2_device_unregister_subdev(sd);
-+#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
- 		if (sd->flags & V4L2_SUBDEV_FL_IS_I2C) {
- 			struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
-@@ -95,6 +96,7 @@ void v4l2_device_unregister(struct v4l2_
- 			if (client)
- 				i2c_unregister_device(client);
- 		}
-+#endif
- 	}
- }
- EXPORT_SYMBOL_GPL(v4l2_device_unregister);
-
-
--- 
-~Randy
-LPC 2009, Sept. 23-25, Portland, Oregon
-http://linuxplumbersconf.org/2009/
