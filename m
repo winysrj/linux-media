@@ -1,55 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.ddnet.es ([88.87.135.16]:60613 "EHLO smtp.ddnet.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753201AbZEHLYX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 May 2009 07:24:23 -0400
-Subject: DVB-T USB stick  azurewave AD-TU200
-From: Miguel <mcm@moviquity.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Fri, 08 May 2009 13:22:50 +0200
-Message-Id: <1241781770.7996.12.camel@McM>
-Mime-Version: 1.0
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:57611 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751329AbZEENm6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 May 2009 09:42:58 -0400
+Received: by fxm2 with SMTP id 2so4603985fxm.37
+        for <linux-media@vger.kernel.org>; Tue, 05 May 2009 06:42:57 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1241530356.5394.2.camel@acropora>
+References: <1241068523.4632.8.camel@youkaida>
+	 <loom.20090505T132219-451@post.gmane.org>
+	 <1241530356.5394.2.camel@acropora>
+Date: Tue, 5 May 2009 15:42:57 +0200
+Message-ID: <617be8890905050642v34c036dejdce1e3c3d51228af@mail.gmail.com>
+Subject: Re: Nova-T 500 does not survive reboot
+From: Eduard Huguet <eduardhc@gmail.com>
+To: Nicolas Will <nico@youplala.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+>> Hi,
+>>    Any news on this? I'd like to try the URB patch someone mentioned,
+>> but I
+>> can't find the link.
+>
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg04643.html
+>
+> I am running a current dvb tree with this patch.
+>
+> so far so good.
+>
+> I did not find the time to check if I regained proper reboots, though. I
+> know, sad excuse...
+>
+> nico
+>
+>
 
-I am searching information about how to get my dvb-t usb stick works
-with my machine.
-
-I currently using a ubuntu intrepid os. I have installed the rtl2831u
-drivers as it is recommended.
-
-TwinHan/AzureWave AD-TU200 (7047) DVB-T 
-Uses a Realtek RTL2831U decoder chip and MaxLinear MXL5003S tuner. USB
-ID is 13d3:3216. It seems to work with the realtek experimental driver
-(see freecom v4 above)
-
-The problems I have found:
-
-The found device  has not frontend:
-
-mcm@McM:/usr/share/doc/dvb-utils$ tree /dev/dvb/adapter0/
-/dev/dvb/adapter0/
-|-- demux0
-|-- dvr0
-`-- net0
-
-So when scanning it fails
-scanning /usr/share/doc/dvb-utils/examples/scan/dvb-s/Astra-19.2E
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-main:2247: FATAL: failed to open '/dev/dvb/adapter0/frontend0': 2 No
-such file or directory
-
-
-Other problem I found, which GUI is recommended to be used?
-
-thank you in advance,
-
-Miguel
-
-
-
-
+I'll give it a try. Thanks for the tip!
+Cheers,
+  Eduard
