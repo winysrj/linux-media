@@ -1,41 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f176.google.com ([209.85.219.176]:36863 "EHLO
-	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757132AbZE2OZw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 May 2009 10:25:52 -0400
-Received: by ewy24 with SMTP id 24so6303860ewy.37
-        for <linux-media@vger.kernel.org>; Fri, 29 May 2009 07:25:52 -0700 (PDT)
-Message-ID: <4A1FF06E.8060804@gmail.com>
-Date: Fri, 29 May 2009 15:25:50 +0100
-From: pbflyingdutchman@googlemail.com
-MIME-Version: 1.0
+Received: from main.gmane.org ([80.91.229.2]:56565 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751027AbZEENYl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 May 2009 09:24:41 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1M1KdN-0008Bu-PW
+	for linux-media@vger.kernel.org; Tue, 05 May 2009 13:24:33 +0000
+Received: from 141.Red-80-39-79.staticIP.rima-tde.net ([80.39.79.141])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 05 May 2009 13:24:33 +0000
+Received: from eduardhc by 141.Red-80-39-79.staticIP.rima-tde.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 05 May 2009 13:24:33 +0000
 To: linux-media@vger.kernel.org
-Subject: Why are there key mapping tables in the kernel for remote controls?
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+From: Eduard Huguet <eduardhc@gmail.com>
+Subject: Re: Nova-T 500 does not survive reboot
+Date: Tue, 5 May 2009 13:24:22 +0000 (UTC)
+Message-ID: <loom.20090505T132219-451@post.gmane.org>
+References: <1241068523.4632.8.camel@youkaida>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+Nicolas Will <nico <at> youplala.net> writes:
 
-Just been trying to get my remote to work for tevii S460 and found it 
-needed some patchwork in the cx88-input.c file
-and adding a key mapping table in one of the files.
-Now for vdr I use lircd to get the keys fed into vdr from 
-/dev/input/event<n>
+> 
+> Hello all,
+> 
+> I am running an hg clone from a few days ago with firmware 1.20 on a
+> 64-bit Ubuntu Intrepid (2.6.27 kernel).
+> 
+> I have noticed that for some time now the card/driver/firmware
+> combination does not like warm reboots.
+> 
+> If I reboot the system and try to use any Nova-T 500 tuner, I
+> immediately get the mt2060 I2C errors.
+> 
+> If I completely shut down the system, remove the power, then reboot, all
+> is fine.
+> 
+> I have missed most of the linux-media traffic, I was still stuck on
+> linux-dvb. Have I missed some discussions about this?
+> 
+> Thanks!
+> 
+> Nico
+> 
 
-So this feels like things are done twice, as lircd uses a mapping table 
-too.
+Hi, 
+   Any news on this? I'd like to try the URB patch someone mentioned, but I
+can't find the link.
 
-To me it makes sense to keep the mapping tables out of the kernel. You 
-already see a whole bunch of remotes in the kernel.
-You don't really want to make kernel updates for each new type of remote 
-vendors come out with. Lircd seems to be able to do this too and has a 
-quick recording tool to setup a new remote.
+Best regards, 
+  Eduard
 
-So what is the history behind having these key mapping tables in the 
-kernel?
 
-regards
-Peter
+
+
