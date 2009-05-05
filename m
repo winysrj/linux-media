@@ -1,55 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2208 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751728AbZEBQEf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 May 2009 12:04:35 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: saeed bishara <saeed.bishara@gmail.com>
-Subject: Re: cafe driver need to initialize the chip->ident
-Date: Sat, 2 May 2009 18:04:17 +0200
-Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
-References: <c70ff3ad0904300535i6c5855f2g3bd404398a41d17f@mail.gmail.com>
-In-Reply-To: <c70ff3ad0904300535i6c5855f2g3bd404398a41d17f@mail.gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:41289 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754610AbZEEKru (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 May 2009 06:47:50 -0400
+Message-ID: <4A001955.5050201@iki.fi>
+Date: Tue, 05 May 2009 13:47:49 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+To: drbob <drbob@gmx.co.uk>
+CC: linux-media@vger.kernel.org
+Subject: Re: EC168 "dvb_usb: Unknown symbol release_firmware"
+References: <gtnj58$p21$2@ger.gmane.org>
+In-Reply-To: <gtnj58$p21$2@ger.gmane.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200905021804.17908.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 30 April 2009 14:35:58 saeed bishara wrote:
-> Hi,
->     The cafe_cam_init declares un-initialized v4l2_dbg_chip_ident
-> structure, then it uses the chip.ident to test if the sensor is known.
->     but, this field is never initialized and it my get random value,
-> then later it used by the v4l2_chip_ident_i2c_client function.
->     I think this is bug and it must be fixed by initializing the ident
-> field with zero.
->    I'm using kernel 2.6.29.1
-> saeed
+On 05/04/2009 11:28 PM, drbob wrote:
+> The stick is a cheap generic USB stick purchased from eBay (USB id
+> 18b4:1001). Photos of it are here:
+>
+> <http://img89.imageshack.us/gal.php?g=img1283g.jpg>
+>
+> Strangely the markings on the large main chip appear to have been removed
+> by the stick manufacturer (though I think it must be an EC168) The
+> smaller tuner chip has also been scrubbed but the following markings can
+> still be identified:
 
-Thanks! This is indeed wrong and I'll fix it. I think it is sufficient to 
-apply this patch:
+I have just same stick, it is EC168 + MXL5003.
 
---- cafe_ccic.c.orig	2009-05-02 17:57:08.000000000 +0200
-+++ cafe_ccic.c	2009-05-02 17:57:37.000000000 +0200
-@@ -868,6 +868,7 @@
- 	ret = __cafe_cam_reset(cam);
- 	if (ret)
- 		goto out;
-+	chip.ident = V4L2_IDENT_NONE;
- 	chip.match.type = V4L2_CHIP_MATCH_I2C_ADDR;
- 	chip.match.addr = cam->sensor->addr;
- 	ret = __cafe_cam_cmd(cam, VIDIOC_DBG_G_CHIP_IDENT, &chip);
+I haven't opened my stick but looked your pictures. I have never seen so 
+bad soldering quality :o
 
-Can you confirm this? If it works, then I'll merge this patch and see if I 
-can get it into the 2.6.29 stable series.
+Driver development is a little bit freeze currently due to lack of EC168 
+specs. If you can provide specs please contact me!
 
-Regards,
-
-	Hans
-
+regards
+Antti
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+http://palosaari.fi/
