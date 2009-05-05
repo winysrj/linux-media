@@ -1,72 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from chilli.pcug.org.au ([203.10.76.44]:38765 "EHLO smtps.tip.net.au"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751250AbZEVH4A (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2009 03:56:00 -0400
-Date: Fri, 22 May 2009 17:55:54 +1000
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Paul Mundt <lethal@linux-sh.org>,
-	Randy Dunlap <randy.dunlap@oracle.com>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH -next] v4l2: handle unregister for non-I2C builds
-Message-Id: <20090522175554.19465733.sfr@canb.auug.org.au>
-In-Reply-To: <20090522054847.GB14059@linux-sh.org>
-References: <20090511161442.3e9d9cb9.sfr@canb.auug.org.au>
-	<4A085455.5040108@oracle.com>
-	<20090522054847.GB14059@linux-sh.org>
+Received: from smtp103.mail.ukl.yahoo.com ([77.238.184.35]:26151 "HELO
+	smtp103.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754434AbZEETkN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 May 2009 15:40:13 -0400
+Subject: saa7134-alsa and snd_card_new only error with alsa 1.0.19 / ubuntu
+ 9.04 jaunty - tracked down, further help appreciated
+From: Lars Oliver Hansen <lars.hansen@yahoo.co.uk>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain
+Date: Tue, 05 May 2009 21:33:35 +0200
+Message-Id: <1241552015.7752.29.camel@lars-laptop>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Fri__22_May_2009_17_55_54_+1000_AnrYUdOEBql.yOot"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Signature=_Fri__22_May_2009_17_55_54_+1000_AnrYUdOEBql.yOot
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hello,
 
-On Fri, 22 May 2009 14:48:47 +0900 Paul Mundt <lethal@linux-sh.org> wrote:
->
-> On Mon, May 11, 2009 at 09:37:41AM -0700, Randy Dunlap wrote:
-> > From: Randy Dunlap <randy.dunlap@oracle.com>
-> >=20
-> > Build fails when CONFIG_I2C=3Dn, so handle that case in the if block:
-> >=20
-> > drivers/built-in.o: In function `v4l2_device_unregister':
-> > (.text+0x157821): undefined reference to `i2c_unregister_device'
-> >=20
-> > Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
->=20
-> This patch still has not been applied as far as I can tell, and builds
-> are still broken as a result, almost 2 weeks after the fact.
+I'm getting exactly one error message in dmesg: saa7134_alsa: Unknown
+symbol snd_card_new  which means I don't have any sound with analog tv.
 
-In fact there has been no updates to the v4l-dvb tree at all since
-May 11.  Mauro?
+I've tracked down the call to snd_card_new to the only location in
+compat.h where it is called if #ifdef NEED_SND_CARD_CREATE is true. If
+#ifdef NEED_SND_CARD_CREATE is true, there is also done an inclusion of
+sound/core.h. Core.h is an alsa header which in the latest alsa 1.0.19
+includes a definition of snd_card_new. However this definition is
+missing in the sources that come with Ubuntu 9.04 Jaunty against which I
+compiled the v4l-dvb sources (The saa7134-alsa error occurs with both my
+compilation and did occur with the pre-compiled drivers which came with
+9.04 Jaunty!).
 
-I have reverted the patch that caused the build breakage ... (commit
-d5bc7940d39649210f1affac1fa32f253cc45a81 "V4L/DVB (11673): v4l2-device:
-unregister i2c_clients when unregistering the v4l2_device").
+Adding snd_card_new to the Ubuntu 9.04 sources was/is no good idea as it
+calls its own snd_card_create from init.c which conflicts with
+snd_card_create from compat.h which is the wrapper around snd_card_new
+there.
 
-[By the way, an alternative fix might be to just define
-V4L2_SUBDEV_FL_IS_I2C to be zero if CONFIG_I2C and CONFIG_I2C_MODULE are
-not defined (gcc should then just elide the offending code).]
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
+As the call to snd_card_create in compat.h passes the identical argument
+list as would be passed to init.c s snd_card_create later, I figured I
+can add the declaration of snd_card_create to the core.h of the Ubuntu
+9.04 sources which is/was missing too there as extern and disable the
+snd_card_create in compat.h (compat.h includes core.h thus core.h s
+extern snd_card_create should be called). As init.c does an
+export_symbol of snd_card_create I guessed this could work.
 
---Signature=_Fri__22_May_2009_17_55_54_+1000_AnrYUdOEBql.yOot
-Content-Type: application/pgp-signature
+So I would have instead of a wrapped call to a non-existant snd_card_new
+a direct call to an exported snd_card_create.
+Unfortunately I get this in dmesg now:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+saa7134_alsa: no symbol version for snd_card_create
+[ 4383.422044] saa7134_alsa: Unknown symbol snd_card_create
 
-iEYEARECAAYFAkoWWooACgkQjjKRsyhoI8w7rgCggEWLp6hoIXkOZBbP2DPimKLP
-R/AAoJRQSv0GPkbWolVv4Nn8lWIdO/VK
-=GvOx
------END PGP SIGNATURE-----
+What can I do now?
 
---Signature=_Fri__22_May_2009_17_55_54_+1000_AnrYUdOEBql.yOot--
+Any help?
+
+Thanks!
+
+
+Best Regards
+
+Lars
+
