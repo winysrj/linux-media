@@ -1,54 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f224.google.com ([209.85.219.224]:64795 "EHLO
-	mail-ew0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755192AbZEDQ37 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2009 12:29:59 -0400
-Received: by ewy24 with SMTP id 24so4091951ewy.37
-        for <linux-media@vger.kernel.org>; Mon, 04 May 2009 09:29:58 -0700 (PDT)
+Received: from mga01.intel.com ([192.55.52.88]:44171 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751570AbZEEDTY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2009 23:19:24 -0400
+From: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
+To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 5 May 2009 11:17:22 +0800
+Subject: RE: [PATCH 0/5] V4L2 patches for Intel Moorestown Camera Imaging
+ 	Drivers
+Message-ID: <0A882F4D99BBF6449D58E61AAFD7EDD613811291@pdsmsx502.ccr.corp.intel.com>
+References: <90b950fc0904292317m500820efv66755aed31b46853@mail.gmail.com>
+	 <5A47E75E594F054BAF48C5E4FC4B92AB030548BA1B@dbde02.ent.ti.com>
+	 <0A882F4D99BBF6449D58E61AAFD7EDD613793923@pdsmsx502.ccr.corp.intel.com>
+ <5e9665e10904300232teee3ddq95e3cb60d95445e4@mail.gmail.com>
+In-Reply-To: <5e9665e10904300232teee3ddq95e3cb60d95445e4@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Date: Mon, 4 May 2009 18:29:58 +0200
-Message-ID: <ecc945da0905040929g828133ha7b1542dad9a1ca8@mail.gmail.com>
-Subject: TT-3200: locks init. and timeout
-From: pierre gronlier <ticapix@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+The camera interface is located on the Langwell, not on the Atom processor. 
 
-I have a TT-3200 card and the b40d628f830d revision of v4l-dvb (april 24th)
-I have this two szap config files:
-$ cat channels_astra_fta.conf
-LCP:11479:v:0:22000:161:84:6402
+BRs
+Xiaolin
 
-$ cat channels_hotbird_fta.conf
-4FunTv:10719:v:1:27500:163:92:4404
+-----Original Message-----
+From: Dongsoo, Nathaniel Kim [mailto:dongsoo.kim@gmail.com] 
+Sent: Thursday, April 30, 2009 5:33 PM
+To: Zhang, Xiaolin
+Cc: linux-media@vger.kernel.org; Johnson, Charles F; Zhu, Daniel
+Subject: Re: [PATCH 0/5] V4L2 patches for Intel Moorestown Camera Imaging Drivers
 
-My problem is that to lock on hotbird I have to lock first on astra
-and them quickly launch szap on hotbird.
-If I'm waiting few seconds after the lock of astra then the lock on
-hotbird doesn't work.
+Hello Xiaolin,
 
-To lock on astra, I use this command
-$ szap -a 0 -f 0 -d 0 -c channels_astra_fta.conf -xr -n 1
-To lock on hotbird, I use this command
-$ szap -a 0 -f 0 -d 0 -c channels_hotbird_fta.conf -xr -n 1
+I think the first patch is missing. Following your description, it may
+be the "Intel Moorestown ISP driver.".
+Can you re-post it please?
+BTW, I didn't notice that Atom processor had a camera interface, and
+even it supports dual camera as well. Can I find some datasheet or
+user manual to take a look at how it works?
+Cheers,
+
+Nate
+
+On Thu, Apr 30, 2009 at 5:18 PM, Zhang, Xiaolin <xiaolin.zhang@intel.com> wrote:
+> Hi All,
+>
+> Here is the a set of V4L2 camera sensors and ISP drivers to support the Intel Moorestown camera imaging subsystem. The Camera Imaging interface in Moorestown is responsible for capturing both still and video frames. The CI handles demosaicing, color synthesis, filtering, image enhancement functions and JPEG encode. Intel Moorestown platform can support either a single camera or two cameras. A platform with two cameras will have on the same side as this display and the second on the opposite side the display. The camera on the display side will be used for video conferencing (with low resolution SoC cameras) and the other camera is used to still image capture or video recode (with high resolution RAW cameras).
+>
+> In this set of driver patches, I will submit the 5 patches to enable the ISP HW and 3 cameras module (two SoCs: 1.3MP - Omnivision 9665, 2MP - Omnivison 2650 and one RAW: 5MP - Omnivision 5630).
+> 1. Intel Moorestown ISP driver.
+> 2. Intel Moorestown camera sensor pseudo driver. This is to uniform the interfaces for ISP due to supporting dual cameras.
+> 3. Intel Moorestown 2MP camera sensor driver.
+> 4. Intel Moorestown 5MP camera sensor driver.
+> 5. Intel Moorestown 1.3MP camera sensor driver.
+>
+> I will post the above 5 patches in near feature.
+>
+> Regards,
+>
+> Xiaolin
+> Xiaolin.zhang@intel.com
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
 
-I enclose to the mail three logs:
-- when astra locks
-- when hotbird failed to lock
-- when hotbird locks
 
-The logs are big but the diffs are really small so I hope that someone
-who is familiar with the hardware could answer me.
-
-http://pierre.gronlier.fr/tmp/astra_ok_small.log
-http://pierre.gronlier.fr/tmp/hotbird_failed_small.log
-http://pierre.gronlier.fr/tmp/hotbird_ok_small.log
-
-
---
-Pierre
+-- 
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
