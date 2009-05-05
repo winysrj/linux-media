@@ -1,186 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f176.google.com ([209.85.219.176]:61476 "EHLO
-	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753036AbZEQNwR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 May 2009 09:52:17 -0400
-Received: by ewy24 with SMTP id 24so3499165ewy.37
-        for <linux-media@vger.kernel.org>; Sun, 17 May 2009 06:52:17 -0700 (PDT)
-Message-ID: <4A10168E.70205@gmail.com>
-Date: Sun, 17 May 2009 15:52:14 +0200
-From: "tomlohave@gmail.com" <tomlohave@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20]:54773 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752007AbZEEMNH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 5 May 2009 08:13:07 -0400
+Date: Tue, 5 May 2009 14:13:15 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Agustin <gatoguan-os@yahoo.com>
+cc: linux-arm-kernel@lists.arm.linux.org.uk,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: soc-camera: timing out during capture - Re: Testing latest
+ mx3_camera.c
+In-Reply-To: <504448.15739.qm@web32106.mail.mud.yahoo.com>
+Message-ID: <Pine.LNX.4.64.0905051412520.4568@axis700.grange>
+References: <486508.99603.qm@web32101.mail.mud.yahoo.com>
+ <Pine.LNX.4.64.0904132136030.1587@axis700.grange> <504448.15739.qm@web32106.mail.mud.yahoo.com>
 MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-CC: Anders Eriksson <aeriksson@fastmail.fm>,
-	Steven Toth <stoth@linuxtv.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	linux-media@vger.kernel.org, video4linux-list@redhat.com,
-	Hartmut Hackmann <hartmut.hackmann@t-online.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: Fixed (Was:Re: saa7134/2.6.26 regression, noisy output)
-References: <20090503075609.0A73B2C4152@tippex.mynet.homeunix.org>	 <1241389925.4912.32.camel@pc07.localdom.local>	 <20090504091049.D931B2C4147@tippex.mynet.homeunix.org>	 <1241438755.3759.100.camel@pc07.localdom.local>	 <20090504195201.6ECF52C415B@tippex.mynet.homeunix.org>	 <1241565988.16938.15.camel@pc07.localdom.local>	 <20090507130055.E49D32C4165@tippex.mynet.homeunix.org>	 <20090510141614.D4A9C2C416C@tippex.mynet.homeunix.org>	 <20090515091827.864A12C4167@tippex.mynet.homeunix.org> <1242438418.3813.15.camel@pc07.localdom.local>
-In-Reply-To: <1242438418.3813.15.camel@pc07.localdom.local>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hermann pitton a écrit :
-> Hi Anders,
->
-> Am Freitag, den 15.05.2009, 11:18 +0200 schrieb Anders Eriksson:
->   
->> Success!
->>
->> I've tracked down the offending change. switch_addr takes on the wrong value
->> and setting the LNA fails. Here's a i2c dump:
->>
->> saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->> saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->> saa7133[0]: i2c xfer: < 20 ERROR: NO_DEVICE
->> saa7133[0]: i2c xfer: < 84 ERROR: NO_DEVICE
->> saa7133[0]: i2c xfer: < 86 ERROR: NO_DEVICE
->> saa7133[0]: i2c xfer: < 94 ERROR: NO_DEVICE
->> saa7133[0]: i2c xfer: < 96 >
->> saa7133[0]: i2c xfer: < 96 00 >
->> saa7133[0]: i2c xfer: < 97 =01 =01 =00 =11 =01 =04 =01 =85 >
->> saa7133[0]: i2c xfer: < 96 1f >
->> saa7133[0]: i2c xfer: < 97 =89 >
->> tda8290_probe: tda8290 detected @ 1-004b
->> tuner' 1-004b: tda829x detected
->> tuner' 1-004b: Setting mode_mask to 0x0e
->> tuner' 1-004b: chip found @ 0x96 (saa7133[0])
->> tuner' 1-004b: tuner 0x4b: Tuner type absent
->> tuner' i2c attach [addr=0x4b,client=(tuner unset)]
->> tuner' 1-004b: Calling set_type_addr for type=54, addr=0xff, mode=0x04, config=0x01
->> tuner' 1-004b: set addr for type -1
->> tuner' 1-004b: defining GPIO callback
->> saa7133[0]: i2c xfer: < 96 1f >
->> saa7133[0]: i2c xfer: < 97 =89 >
->> tda8290_probe: tda8290 detected @ 1-004b
->> saa7133[0]: i2c xfer: < 96 2f >
->> saa7133[0]: i2c xfer: < 97 =00 >
->> saa7133[0]: i2c xfer: < 96 21 c0 >
->> saa7133[0]: i2c xfer: < c1 ERROR: NO_DEVICE
->> saa7133[0]: i2c xfer: < c3 =88 >
->> saa7133[0]: i2c xfer: < c5 ERROR: NO_DEVICE
->> saa7133[0]: i2c xfer: < c7 ERROR: NO_DEVICE
->> saa7133[0]: i2c xfer: < 96 21 00 >
->> tda829x 1-004b: setting tuner address to 61
->> saa7133[0]: i2c xfer: < 96 21 c0 >
->> saa7133[0]: i2c xfer: < c3 =08 >
->> tda827x: tda827x_attach:
->> tda827x: type set to Philips TDA827X
->> saa7133[0]: i2c xfer: < c3 =08 >
->> tda827x: tda827xa tuner found
->> tda827x: tda827x_init:
->> tda827x: tda827xa_sleep:
->> saa7133[0]: i2c xfer: < c2 30 90 >
->> saa7133[0]: i2c xfer: < 96 21 00 >
->> tda829x 1-004b: type set to tda8290+75a
->> saa7133[0]: i2c xfer: < 96 21 c0 >
->> saa7133[0]: i2c xfer: < c2 00 00 00 00 dc 05 8b 0c 04 20 ff 00 00 4b >
->> saa7133[0]: i2c xfer: < 96 21 00 >
->> saa7133[0]: i2c xfer: < 96 20 01 >
->> saa7133[0]: i2c xfer: < 96 30 6f >
->> tuner' 1-004b: type set to tda8290+75a
->> tuner' 1-004b: tv freq set to 400.00
->> tda829x 1-004b: setting tda829x to system xx
->> tda829x 1-004b: tda827xa config is 0x01
->> saa7133[0]: i2c xfer: < 96 01 00 >
->> saa7133[0]: i2c xfer: < 96 02 00 >
->> saa7133[0]: i2c xfer: < 96 00 00 >
->> saa7133[0]: i2c xfer: < 96 01 90 >
->> saa7133[0]: i2c xfer: < 96 28 14 >
->> saa7133[0]: i2c xfer: < 96 0f 88 >
->> saa7133[0]: i2c xfer: < 96 05 04 >
->> saa7133[0]: i2c xfer: < 96 0d 47 >
->> saa7133[0]: i2c xfer: < 96 21 c0 >
->> tda827x: setting tda827x to system xx
->> tda827x: setting LNA to high gain
->> saa7133[0]: i2c xfer: < 96 22 00 >
->>                         ^ This address is c2 in all kernels <= 5823b3a63c7661272ea7fef7635955e2a50d17eb
->>
->>
->> saa7133[0]: i2c xfer: < c2 00 32 f8 00 16 3b bb 1c 04 20 00 >
->> saa7133[0]: i2c xfer: < c2 90 ff e0 00 99 >
->> saa7133[0]: i2c xfer: < c2 a0 c0 >
->> saa7133[0]: i2c xfer: < c2 30 10 >
->> saa7133[0]: i2c xfer: < c3 =49 =a4 >
->> tda827x: AGC2 gain is: 10
->>                        ^ The gain reported on good kernels is 3 
->>
->> Looking at the source, the switch_addr to use in the later kernels is somehow 
->> autodetected. How that's done, I've yet to fully understand, but somehow it 
->> comes up with the wrong address.
->>
->> This patch (which obviously needs improvement) hardwires the address back to 
->> its original value, and works for 2.6.30-rc5.
->>
->> diff --git a/drivers/media/common/tuners/tda8290.c b/drivers/media/common/tuners/tda8290.c
->> index 064d14c..498cc7b 100644
->> --- a/drivers/media/common/tuners/tda8290.c
->> +++ b/drivers/media/common/tuners/tda8290.c
->> @@ -635,7 +635,11 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
->>  
->>                 dvb_attach(tda827x_attach, fe, priv->tda827x_addr,
->>                            priv->i2c_props.adap, &priv->cfg);
->> +               tuner_info("ANDERS: setting switch_addr. was 0x%02x, new 0x%02x\n",priv->cfg.switch_addr,priv->i2c_props.addr);
->>                 priv->cfg.switch_addr = priv->i2c_props.addr;
->> +               priv->cfg.switch_addr = 0xc2 / 2;
->> +               tuner_info("ANDERS: new 0x%02x\n",priv->cfg.switch_addr);
->> +
->>         }
->>         if (fe->ops.tuner_ops.init)
->>                 fe->ops.tuner_ops.init(fe);
->>
->>
->> Could you please help me out and shed some light on what the proper fix is for 
->> setting switch_addr? 
->>
->> Thanks,
->> /Anders
->>
->>     
->
-> thanks a lot for all your time and energy you did spend on this.
->
-> I suggest we start collecting photographs of different LNA circuits on
-> the wiki.
->
-> For now, Tom offered his support already off list, I think we should
-> start about the question, if that early Hauppauge HVR 1110 has such an
-> LNA type one at all, since this caused to not look at it further, as it
-> seemed to be without problems.
->
-> Tom, I know you carefully worked on it, but can you reassure that this
-> LNA config one is really needed on your device?
->
->   
-Hello list,
-you are talking about tuner_config = 1 for the hvr 1110, right ?
-Changing this option doesn't affect the qualitie of the signal on tv
-see http://forum.ubuntu-fr.org/viewtopic.php?pid=1472261
-it 's an "old" discussion in french.
-This option, as far as i remenber, was not provided by me ...
+On Tue, 5 May 2009, Agustin wrote:
 
-anyway with tuner debug=1 and .tuner_config=1 , i have no line with AGC 
-or LNA on dmesg
+> 
+> Hi Guennadi,
+> 
+> --- Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> > On Mon, 13 Apr 2009, Agustin wrote:
+> > 
+> > > Which patchset should one use today to have latest and most stable 
+> > > "mx3_camera" driver in 2.6.29?
+> > > 
+> > > [snip]
+> > 
+> > Please, use http://marc.info/?l=linux-arm-kernel&m=123866462620240&w=2 
+> > also notice, which patches it needs. As a basis you can take linux-next or 
+> > a suitable branch from git://git.pengutronix.de/git/imx/linux-2.6.git
+> 
+> I managed to merge your patch stack of 20090415 on top of Sascha's stack for 2.6.29.
+> I think that is just before the "v4l-subdev" work. Then I adapted my code to work pretty
+> much as your mt9p031 driver.
+> 
+> Now I get a timeout when trying to capture a single image, with the same hardware
+> configuration that is working fine with 2.6.28-next.
+> I can see my "Sixcam" camera dumping a few frames before the timeout.
 
-I have somme glitchs with hvr1110 on dvb (not analogic tv) and many for 
-one particular station call M6 (and i'm not the only one user, see 
-previous post on ubuntu-fr.org, with short or long distance from tv 
-relay) . Bug on 310i means potentially bug on hvr1110 as configuration 
-on hvr 1110 was made from 310i
+Have you applied this patch:
 
-and sorry for bad english
+Author: Ming Lei <tom.leiming@gmail.com>
+Date:   Fri Mar 27 21:50:00 2009 +0800
 
-Cheers,
+    driver core: fix driver_match_device
 
-thomas
-> Cheers,
-> Hermann
->
->
->   
+    This patch fixes a bug introduced in commit
+    49b420a13ff95b449947181190b08367348e3e1b.
 
+    If a instance of bus_type doesn't have  .match method,
+    all .probe of drivers in the bus should be called, or else
+    the .probe have not a chance to be called.
+
+    Signed-off-by: Ming Lei <tom.leiming@gmail.com>
+    Reported-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+    Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+?
+
+Thanks
+Guennadi
+
+> 
+> I am not sure where to look for the problem, so here is a debug dump in case you can
+> point me in the right direction...
+> 
+> 
+> root@SixCam:~ insmod sixcam.ko 
+> sixcam_mod_init(): ok
+> Sixcam TRIGGER on Sixcam board: ATA_CS0~MCU3_26
+> sixcam_i2c_probe(): ok
+> camera 0-0: mx3_camera: Set SENS_CONF to f00, rate 19523897
+> sixcam_init(): initialized camera.
+> camera 0-0: MX3 Camera driver attached to camera 0
+> sixcam_video_probe(): probed camera.
+> mx3-camera mx3-camera.0: soc_camera: Allocated video_device c6080a00
+> sixcam_release(): ok
+> camera 0-0: MX3 Camera driver detached from camera 0
+> 
+> root@SixCam:~ capture --bpp 8 --size 1536x1024
+> mx3-camera.0: mx3_camera: requested bus width 8 bit: 0
+> mx3-camera.0: mx3_camera: requested bus width 15 bit: 0
+> mx3-camera.0: mx3_camera: requested bus width 10 bit: 0
+> camera 0-0: soc_camera: Found 0 supported formats.
+> mx3-camera.0: mx3_camera: requested bus width 8 bit: 0
+> mx3-camera.0: mx3_camera: Providing format Monochrome 8 bit in pass-through mode
+> mx3-camera.0: mx3_camera: requested bus width 15 bit: 0
+> mx3-camera.0: mx3_camera: Providing format Monochrome 16 bit in pass-through mode
+> mx3-camera.0: mx3_camera: requested bus width 10 bit: 0
+> mx3-camera.0: mx3_camera: Providing format Sixcam 10-bit in pass-through mode
+> camera 0-0: mx3_camera: Set SENS_CONF to f00, rate 19523897
+> sixcam_init(): initialized camera.
+> camera 0-0: MX3 Camera driver attached to camera 0
+> camera 0-0: soc_camera: camera device open
+> sixcam_set_fmt(): 640x480+0+0
+> sixcam_try_fmt(): icd->width=640 icd->height=480 fmt.pix.width=1536 fmt.pix.height=1024.
+>     --> fmt.pix.width=1536 fmt.pix.height=1024.
+> ipu-core: ipu_idmac: timeout = 0 * 10ms
+> ipu-core: ipu_idmac: init channel = 7
+> ipu-core: ipu_idmac: IDMAC_CONF 0x70, IC_CONF 0x0, IDMAC_CHA_EN 0x0, IDMAC_CHA_PRI 0x80, IDMAC_CHA_BUSY 0x0
+> ipu-core: ipu_idmac: BUF0_RDY 0x0, BUF1_RDY 0x0, CUR_BUF 0x0, DB_MODE 0x0, TASKS_STAT 0x3
+> dma dma0chan7: ipu_idmac: Found channel 0x7, irq 176
+> sixcam_set_fmt(): 1536x1024+0+0
+> camera 0-0: soc_camera: set width: 1536 height: 1024
+> mx3-camera.0: mx3_camera: requested bus width 8 bit: 0
+> mx3-camera.0: mx3_camera: Flags cam: 0x2695 host: 0xf0fd common: 0x2095
+> sixcam_set_bus_param(): 0x2095
+> mx3-camera.0: mx3_camera: Set SENS_CONF to 708
+> VIDIOC_S_FMT: width 1536, heightcamera 0-0: soc_camera: soc_camera_reqbufs: 1
+>  1024, pixelformat = 'GREY'
+> mx3-camera.0: videobuf_dma_contig: __videobuf_mmap_free
+> camera 0-0: soc_camera: mmap called, vma=0xc4f886e0
+> mx3-camera.0: videobuf_dma_contig: __videobuf_mmap_mapper
+> mx3-camera.0: videobuf_dma_contig: dma_alloc_coherent data is at addr c9000000 (size 1572864)
+> mx3-camera.0: videobuf_dma_contig: mmap c4fafec0: q=c8b63004 40147000-402c7000 (180000) pgoff 00084000 buf 0
+> mx3-camera.0: videobuf_dma_contig: vm_open c4fafec0 [count=0,vma=40147000-402c7000]
+> camera 0-0: soc_camera: vma start=0x40147000, size=1572864, ret=0
+> mx3-camera.0: videobuf_dma_contig: __videobuf_iolock memory method MMAP
+> camera 0-0: soc_camera: soc_camera_streamon
+> sixcam_start_capture(): trigger on!
+> ipu-core: ipu_idmac: write param mem - addr = 0x00010070, data = 0x00000000
+> ipu-core: ipu_idmac: write param mem - addr = 0x00010071, data = 0x00004000
+> ipu-core: ipu_idmac: write param mem - addr = 0x00010072, data = 0x00000000
+> ipu-core: ipu_idmac: write param mem - addr = 0x00010073, data = 0xFF5FF000
+> ipu-core: ipu_idmac: write param mem - addr = 0x00010074, data = 0x00000003
+> ipu-core: ipu_idmac: write param mem - addr = 0x00010078, data = 0x84000000
+> ipu-core: ipu_idmac: write param mem - addr = 0x00010079, data = 0x00000000
+> ipu-core: ipu_idmac: write param mem - addr = 0x0001007A, data = 0x3E0E2FFB
+> ipu-core: ipu_idmac: write param mem - addr = 0x0001007B, data = 0x00000002
+> ipu-core: ipu_idmac: write param mem - addr = 0x0001007C, data = 0x00000000
+> dma dma0chan7: ipu_idmac: Submitting sg c4e0772c
+> dma dma0chan7: ipu_idmac: Updated sg c4e0772c on channel 0x7 buffer 0
+> ipu-core: ipu_idmac: IDMAC_CONF 0x70, IC_CONF 0x0, IDMAC_CHA_EN 0x0, IDMAC_CHA_PRI 0x80, IDMAC_CHA_BUSY 0x0
+> ipu-core: ipu_idmac: BUF0_RDY 0x80, BUF1_RDY 0x0, CUR_BUF 0x0, DB_MODE 0x0, TASKS_STAT 0x3
+> ipu-core: ipu_idmac: IDMAC_CONF 0x70, IC_CONF 0x40000001, IDMAC_CHA_EN 0x80, IDMAC_CHA_PRI 0x80, IDMAC_CHA_BUSY 0x0
+> ipu-core: ipu_idmac: BUF0_RDY 0x80, BUF1_RDY 0x0, CUR_BUF 0x0, DB_MODE 0x0, TASKS_STAT 0x3
+> camera 0-0: mx3_camera: Submitted cookie 2 DMA 0x84000000
+> dma dma0chan7: ipu_idmac: IDMAC irq 176, buf 0
+> dma dma0chan7: ipu_idmac: IRQ on active buffer on channel 7, active 0, ready 0, 0, current 0!
+> 
+> [ ten seconds pass, and a lot of frames come out of my camera ]
+> 
+> capture: Select timeout. Exiting...
+> mx3-camera.0: videobuf_dma_contig: vm_close c4fafec0 [count=1,vma=40147000-402c7000]
+> mx3-camera.0: videobuf_dma_contig: munmap c4fafec0 q=c8b63004
+> camera 0-0: mx3_camera: Release active DMA 0x84000000 (state 3), queue not empty
+> camera 0-0: mx3_camera: free_buffer (vb=0xc4e076c0) 0x40147000 1572864
+> mx3-camera.0: videobuf_dma_contig: buf[0] freeing c9000000
+> ipu-core: ipu_idmac: timeout = 0 * 10ms
+> sixcam_release(): ok
+> camera 0-0: MX3 Camera driver detached from camera 0
+> camera 0-0: soc_camera: camera device close
+> 
+> Any clue?
+> 
+> BTW, this dump shows a few apparently unneeded calls to camera set_fmt() and get_bus_params().
+> 
+> Many thanks,
+> --Agustín.
+> 
+> --
+> Agustin Ferrin Pozuelo
+> Embedded Systems Consultant
+> http://embedded.ferrin.org
+> Tel. +34 610502587
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
