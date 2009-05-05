@@ -1,432 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:39808 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761436AbZE0Jmm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2009 05:42:42 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv4 6 of 8] FMTx: si4713: Add files to add radio interface for si4713
-Date: Wed, 27 May 2009 12:35:53 +0300
-Message-Id: <1243416955-29748-7-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1243416955-29748-6-git-send-email-eduardo.valentin@nokia.com>
-References: <1243416955-29748-1-git-send-email-eduardo.valentin@nokia.com>
- <1243416955-29748-2-git-send-email-eduardo.valentin@nokia.com>
- <1243416955-29748-3-git-send-email-eduardo.valentin@nokia.com>
- <1243416955-29748-4-git-send-email-eduardo.valentin@nokia.com>
- <1243416955-29748-5-git-send-email-eduardo.valentin@nokia.com>
- <1243416955-29748-6-git-send-email-eduardo.valentin@nokia.com>
+Received: from mail.gmx.net ([213.165.64.20]:55921 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750935AbZEEOAR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 May 2009 10:00:17 -0400
+Date: Tue, 5 May 2009 16:00:27 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Agustin <gatoguan-os@yahoo.com>
+cc: linux-arm-kernel@lists.arm.linux.org.uk,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: soc-camera: timing out during capture - Re: Testing latest
+ mx3_camera.c
+In-Reply-To: <320049.73706.qm@web32101.mail.mud.yahoo.com>
+Message-ID: <Pine.LNX.4.64.0905051544110.4568@axis700.grange>
+References: <486508.99603.qm@web32101.mail.mud.yahoo.com>
+ <Pine.LNX.4.64.0904132136030.1587@axis700.grange> <504448.15739.qm@web32106.mail.mud.yahoo.com>
+ <Pine.LNX.4.64.0905051412520.4568@axis700.grange> <320049.73706.qm@web32101.mail.mud.yahoo.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-# HG changeset patch
-# User Eduardo Valentin <eduardo.valentin@nokia.com>
-# Date 1243414606 -10800
-# Branch export
-# Node ID 1abb96fdce05e1449faac2223e93056bacf389bd
-# Parent  94b5043b692a6218a667326536d3d76a0c591307
-This patch adds files which creates the radio interface
-for si4713 FM transmitter devices.
+On Tue, 5 May 2009, Agustin wrote:
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+> No, as there is no driver_match_device() in 2.6.29 nor in my patched 
+> version. How important is that?
+
+No, sorry, forget it, that's not your problem.
+
+> Meanwhile I noticed that IRQ 176 is being triggered, then discarded as 
+> "unhandled" by ipu_idmac, who gives the message "IRQ on active buffer on 
+> channel 7, active 0, ready 0, 0, current 0!" below...
+
+Yes, and this is not good. If you look in drivers/dma/ipu/ipu_idmac.c 
+idmac_interrupt() you'll see, that this message is printed when IDMAC 
+produces an interrupt for a DMA buffer, but at the same time it says, that 
+the buffer, that should have completed is still in use... I've seen a few 
+of such inconsistencies, and up to now always managed to get rid of them 
+in one or another way. But that should not be related to the conversion. 
+Maybe your formats on the sensor and on the SoC do not match, verify that.
+
+Thanks
+Guennadi
+
+> > > I am not sure where to look for the problem, so here is a debug dump in case 
+> > you can
+> > > point me in the right direction...
+> > > 
+> > > 
+> > > root@SixCam:~ insmod sixcam.ko 
+> > > sixcam_mod_init(): ok
+> > > Sixcam TRIGGER on Sixcam board: ATA_CS0~MCU3_26
+> > > sixcam_i2c_probe(): ok
+> > > camera 0-0: mx3_camera: Set SENS_CONF to f00, rate 19523897
+> > > sixcam_init(): initialized camera.
+> > > camera 0-0: MX3 Camera driver attached to camera 0
+> > > sixcam_video_probe(): probed camera.
+> > > mx3-camera mx3-camera.0: soc_camera: Allocated video_device c6080a00
+> > > sixcam_release(): ok
+> > > camera 0-0: MX3 Camera driver detached from camera 0
+> > > 
+> > > root@SixCam:~ capture --bpp 8 --size 1536x1024
+> > > mx3-camera.0: mx3_camera: requested bus width 8 bit: 0
+> > > mx3-camera.0: mx3_camera: requested bus width 15 bit: 0
+> > > mx3-camera.0: mx3_camera: requested bus width 10 bit: 0
+> > > camera 0-0: soc_camera: Found 0 supported formats.
+> > > mx3-camera.0: mx3_camera: requested bus width 8 bit: 0
+> > > mx3-camera.0: mx3_camera: Providing format Monochrome 8 bit in pass-through 
+> > mode
+> > > mx3-camera.0: mx3_camera: requested bus width 15 bit: 0
+> > > mx3-camera.0: mx3_camera: Providing format Monochrome 16 bit in pass-through 
+> > mode
+> > > mx3-camera.0: mx3_camera: requested bus width 10 bit: 0
+> > > mx3-camera.0: mx3_camera: Providing format Sixcam 10-bit in pass-through mode
+> > > camera 0-0: mx3_camera: Set SENS_CONF to f00, rate 19523897
+> > > sixcam_init(): initialized camera.
+> > > camera 0-0: MX3 Camera driver attached to camera 0
+> > > camera 0-0: soc_camera: camera device open
+> > > sixcam_set_fmt(): 640x480+0+0
+> > > sixcam_try_fmt(): icd->width=640 icd->height=480 fmt.pix.width=1536 
+> > fmt.pix.height=1024.
+> > >     --> fmt.pix.width=1536 fmt.pix.height=1024.
+> > > ipu-core: ipu_idmac: timeout = 0 * 10ms
+> > > ipu-core: ipu_idmac: init channel = 7
+> > > ipu-core: ipu_idmac: IDMAC_CONF 0x70, IC_CONF 0x0, IDMAC_CHA_EN 0x0, 
+> > IDMAC_CHA_PRI 0x80, IDMAC_CHA_BUSY 0x0
+> > > ipu-core: ipu_idmac: BUF0_RDY 0x0, BUF1_RDY 0x0, CUR_BUF 0x0, DB_MODE 0x0, 
+> > TASKS_STAT 0x3
+> > > dma dma0chan7: ipu_idmac: Found channel 0x7, irq 176
+> > > sixcam_set_fmt(): 1536x1024+0+0
+> > > camera 0-0: soc_camera: set width: 1536 height: 1024
+> > > mx3-camera.0: mx3_camera: requested bus width 8 bit: 0
+> > > mx3-camera.0: mx3_camera: Flags cam: 0x2695 host: 0xf0fd common: 0x2095
+> > > sixcam_set_bus_param(): 0x2095
+> > > mx3-camera.0: mx3_camera: Set SENS_CONF to 708
+> > > VIDIOC_S_FMT: width 1536, heightcamera 0-0: soc_camera: soc_camera_reqbufs: 1
+> > >  1024, pixelformat = 'GREY'
+> > > mx3-camera.0: videobuf_dma_contig: __videobuf_mmap_free
+> > > camera 0-0: soc_camera: mmap called, vma=0xc4f886e0
+> > > mx3-camera.0: videobuf_dma_contig: __videobuf_mmap_mapper
+> > > mx3-camera.0: videobuf_dma_contig: dma_alloc_coherent data is at addr c9000000 
+> > (size 1572864)
+> > > mx3-camera.0: videobuf_dma_contig: mmap c4fafec0: q=c8b63004 40147000-402c7000 
+> > (180000) pgoff 00084000 buf 0
+> > > mx3-camera.0: videobuf_dma_contig: vm_open c4fafec0 
+> > [count=0,vma=40147000-402c7000]
+> > > camera 0-0: soc_camera: vma start=0x40147000, size=1572864, ret=0
+> > > mx3-camera.0: videobuf_dma_contig: __videobuf_iolock memory method MMAP
+> > > camera 0-0: soc_camera: soc_camera_streamon
+> > > sixcam_start_capture(): trigger on!
+> > > ipu-core: ipu_idmac: write param mem - addr = 0x00010070, data = 0x00000000
+> > > ipu-core: ipu_idmac: write param mem - addr = 0x00010071, data = 0x00004000
+> > > ipu-core: ipu_idmac: write param mem - addr = 0x00010072, data = 0x00000000
+> > > ipu-core: ipu_idmac: write param mem - addr = 0x00010073, data = 0xFF5FF000
+> > > ipu-core: ipu_idmac: write param mem - addr = 0x00010074, data = 0x00000003
+> > > ipu-core: ipu_idmac: write param mem - addr = 0x00010078, data = 0x84000000
+> > > ipu-core: ipu_idmac: write param mem - addr = 0x00010079, data = 0x00000000
+> > > ipu-core: ipu_idmac: write param mem - addr = 0x0001007A, data = 0x3E0E2FFB
+> > > ipu-core: ipu_idmac: write param mem - addr = 0x0001007B, data = 0x00000002
+> > > ipu-core: ipu_idmac: write param mem - addr = 0x0001007C, data = 0x00000000
+> > > dma dma0chan7: ipu_idmac: Submitting sg c4e0772c
+> > > dma dma0chan7: ipu_idmac: Updated sg c4e0772c on channel 0x7 buffer 0
+> > > ipu-core: ipu_idmac: IDMAC_CONF 0x70, IC_CONF 0x0, IDMAC_CHA_EN 0x0, 
+> > IDMAC_CHA_PRI 0x80, IDMAC_CHA_BUSY 0x0
+> > > ipu-core: ipu_idmac: BUF0_RDY 0x80, BUF1_RDY 0x0, CUR_BUF 0x0, DB_MODE 0x0, 
+> > TASKS_STAT 0x3
+> > > ipu-core: ipu_idmac: IDMAC_CONF 0x70, IC_CONF 0x40000001, IDMAC_CHA_EN 0x80, 
+> > IDMAC_CHA_PRI 0x80, IDMAC_CHA_BUSY 0x0
+> > > ipu-core: ipu_idmac: BUF0_RDY 0x80, BUF1_RDY 0x0, CUR_BUF 0x0, DB_MODE 0x0, 
+> > TASKS_STAT 0x3
+> > > camera 0-0: mx3_camera: Submitted cookie 2 DMA 0x84000000
+> > > dma dma0chan7: ipu_idmac: IDMAC irq 176, buf 0
+> > > dma dma0chan7: ipu_idmac: IRQ on active buffer on channel 7, active 0, ready 
+> > 0, 0, current 0!
+> > > 
+> > > [ ten seconds pass, and a lot of frames come out of my camera ]
+> > > 
+> > > capture: Select timeout. Exiting...
+> > > mx3-camera.0: videobuf_dma_contig: vm_close c4fafec0 
+> > [count=1,vma=40147000-402c7000]
+> > > mx3-camera.0: videobuf_dma_contig: munmap c4fafec0 q=c8b63004
+> > > camera 0-0: mx3_camera: Release active DMA 0x84000000 (state 3), queue not 
+> > empty
+> > > camera 0-0: mx3_camera: free_buffer (vb=0xc4e076c0) 0x40147000 1572864
+> > > mx3-camera.0: videobuf_dma_contig: buf[0] freeing c9000000
+> > > ipu-core: ipu_idmac: timeout = 0 * 10ms
+> > > sixcam_release(): ok
+> > > camera 0-0: MX3 Camera driver detached from camera 0
+> > > camera 0-0: soc_camera: camera device close
+> > > 
+> > > Any clue?
+> > > 
+> > > BTW, this dump shows a few apparently unneeded calls to camera set_fmt() and 
+> > get_bus_params().
+
 ---
- drivers/media/linux/radio/radio-si4713.c |  333 ++++++++++++++++++++++++++++++++++++
- drivers/media/linux/radio/radio-si4713.h |   49 ++++++
- 2 files changed, 382 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/linux/radio/radio-si4713.c
- create mode 100644 drivers/media/linux/radio/radio-si4713.h
-
-diff -r 94b5043b692a -r 1abb96fdce05 linux/drivers/media/linux/radio/radio-si4713.c
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/linux/drivers/media/linux/radio/radio-si4713.c	Wed May 27 11:56:46 2009 +0300
-@@ -0,0 +1,333 @@
-+/*
-+ * drivers/media/linux/radio/radio-si4713.c
-+ *
-+ * Platform Driver for Silicon Labs Si4713 FM Radio Transmitter:
-+ *
-+ * Copyright (c) 2008 Instituto Nokia de Tecnologia - INdT
-+ * Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ */
-+
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/version.h>
-+#include <linux/platform_device.h>
-+#include <linux/i2c.h>
-+#include <linux/videodev2.h>
-+#include <media/linux/v4l2-device.h>
-+#include <media/linux/v4l2-common.h>
-+#include <media/linux/v4l2-ioctl.h>
-+
-+#include "radio-si4713.h"
-+#include "si4713.h"
-+
-+/* module parameters */
-+static int radio_nr = -1;	/* radio device minor (-1 ==> auto assign) */
-+
-+/* radio_si4713_fops - file operations interface */
-+static const struct v4l2_file_operations radio_si4713_fops = {
-+	.owner		= THIS_MODULE,
-+	.ioctl		= video_ioctl2,
-+};
-+
-+/* Video4Linux Interface */
-+static int radio_si4713_vidioc_g_audio(struct file *file, void *priv,
-+					struct v4l2_audio *audio)
-+{
-+	if (audio->index > 1)
-+		return -EINVAL;
-+
-+	strncpy(audio->name, "Radio", 32);
-+	audio->capability = V4L2_AUDCAP_STEREO;
-+
-+	return 0;
-+}
-+
-+static int radio_si4713_vidioc_s_audio(struct file *file, void *priv,
-+					struct v4l2_audio *audio)
-+{
-+	if (audio->index != 0)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+static int radio_si4713_vidioc_g_input(struct file *file, void *priv,
-+					unsigned int *i)
-+{
-+	*i = 0;
-+
-+	return 0;
-+}
-+
-+static int radio_si4713_vidioc_s_input(struct file *file, void *priv,
-+					unsigned int i)
-+{
-+	if (i != 0)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+/* radio_si4713_vidioc_querycap - query device capabilities */
-+static int radio_si4713_vidioc_querycap(struct file *file, void *priv,
-+					struct v4l2_capability *capability)
-+{
-+	struct radio_si4713_device *rsdev;
-+
-+	rsdev = video_get_drvdata(video_devdata(file));
-+
-+	strlcpy(capability->driver, "radio-si4713", sizeof(capability->driver));
-+	strlcpy(capability->card, "Silicon Labs Si4713 FM Radio Transmitter",
-+				sizeof(capability->card));
-+	capability->capabilities = V4L2_CAP_TUNER;
-+
-+	return 0;
-+}
-+
-+/* radio_si4713_vidioc_queryctrl - enumerate control items */
-+static int radio_si4713_vidioc_queryctrl(struct file *file, void *priv,
-+						struct v4l2_queryctrl *qc)
-+{
-+
-+	/* Must be sorted from low to high control ID! */
-+	static const u32 user_ctrls[] = {
-+		V4L2_CID_USER_CLASS,
-+		V4L2_CID_AUDIO_VOLUME,
-+		V4L2_CID_AUDIO_BALANCE,
-+		V4L2_CID_AUDIO_BASS,
-+		V4L2_CID_AUDIO_TREBLE,
-+		V4L2_CID_AUDIO_LOUDNESS,
-+		V4L2_CID_AUDIO_MUTE,
-+		0
-+	};
-+
-+	/* Must be sorted from low to high control ID! */
-+	static const u32 fmtx_ctrls[] = {
-+		V4L2_CID_FMTX_CLASS,
-+		V4L2_CID_RDS_ENABLED,
-+		V4L2_CID_RDS_PI,
-+		V4L2_CID_RDS_PTY,
-+		V4L2_CID_RDS_PS_NAME,
-+		V4L2_CID_RDS_RADIO_TEXT,
-+		V4L2_CID_AUDIO_LIMITER_ENABLED,
-+		V4L2_CID_AUDIO_LIMITER_RELEASE_TIME,
-+		V4L2_CID_AUDIO_LIMITER_DEVIATION,
-+		V4L2_CID_AUDIO_COMPRESSION_ENABLED,
-+		V4L2_CID_AUDIO_COMPRESSION_GAIN,
-+		V4L2_CID_AUDIO_COMPRESSION_THRESHOLD,
-+		V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME,
-+		V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME,
-+		V4L2_CID_PILOT_TONE_ENABLED,
-+		V4L2_CID_PILOT_TONE_DEVIATION,
-+		V4L2_CID_PILOT_TONE_FREQUENCY,
-+		V4L2_CID_PREEMPHASIS,
-+		V4L2_CID_TUNE_POWER_LEVEL,
-+		V4L2_CID_TUNE_ANTENNA_CAPACITOR,
-+		0
-+	};
-+	static const u32 *ctrl_classes[] = {
-+		user_ctrls,
-+		fmtx_ctrls,
-+		NULL
-+	};
-+	struct radio_si4713_device *rsdev;
-+
-+	rsdev = video_get_drvdata(video_devdata(file));
-+
-+	qc->id = v4l2_ctrl_next(ctrl_classes, qc->id);
-+	if (qc->id == 0)
-+		return -EINVAL;
-+
-+	if (qc->id == V4L2_CID_USER_CLASS || qc->id == V4L2_CID_FMTX_CLASS)
-+		return v4l2_ctrl_query_fill(qc, 0, 0, 0, 0);
-+
-+	return v4l2_device_call_until_err(&rsdev->v4l2_dev, 0, core,
-+						queryctrl, qc);
-+}
-+
-+
-+/*
-+ * radio_si4713_vidioc_template - Produce a v4l2 vidioc call back.
-+ * Can be used because we are just a wrapper for v4l2_sub_devs.
-+ */
-+#define radio_si4713_vidioc_template(type, callback, arg_type)		\
-+static int radio_si4713_vidioc_##callback(struct file *file, void *p,	\
-+						arg_type a)		\
-+{									\
-+	struct radio_si4713_device *rsdev;				\
-+									\
-+	rsdev = video_get_drvdata(video_devdata(file));			\
-+									\
-+	return v4l2_device_call_until_err(&rsdev->v4l2_dev, 0, type,	\
-+							callback, a);	\
-+}
-+
-+radio_si4713_vidioc_template(core, g_ext_ctrls, struct v4l2_ext_controls *)
-+radio_si4713_vidioc_template(core, s_ext_ctrls, struct v4l2_ext_controls *)
-+radio_si4713_vidioc_template(core, g_ctrl, struct v4l2_control *)
-+radio_si4713_vidioc_template(core, s_ctrl, struct v4l2_control *)
-+radio_si4713_vidioc_template(tuner, g_tuner, struct v4l2_tuner *)
-+radio_si4713_vidioc_template(tuner, s_tuner, struct v4l2_tuner *)
-+radio_si4713_vidioc_template(tuner, g_frequency, struct v4l2_frequency *)
-+radio_si4713_vidioc_template(tuner, s_frequency, struct v4l2_frequency *)
-+
-+static struct v4l2_ioctl_ops radio_si4713_ioctl_ops = {
-+	.vidioc_g_input		= radio_si4713_vidioc_g_input,
-+	.vidioc_s_input		= radio_si4713_vidioc_s_input,
-+	.vidioc_g_audio		= radio_si4713_vidioc_g_audio,
-+	.vidioc_s_audio		= radio_si4713_vidioc_s_audio,
-+	.vidioc_querycap	= radio_si4713_vidioc_querycap,
-+	.vidioc_queryctrl	= radio_si4713_vidioc_queryctrl,
-+	.vidioc_g_ext_ctrls	= radio_si4713_vidioc_g_ext_ctrls,
-+	.vidioc_s_ext_ctrls	= radio_si4713_vidioc_s_ext_ctrls,
-+	.vidioc_g_ctrl		= radio_si4713_vidioc_g_ctrl,
-+	.vidioc_s_ctrl		= radio_si4713_vidioc_s_ctrl,
-+	.vidioc_g_tuner		= radio_si4713_vidioc_g_tuner,
-+	.vidioc_s_tuner		= radio_si4713_vidioc_s_tuner,
-+	.vidioc_g_frequency	= radio_si4713_vidioc_g_frequency,
-+	.vidioc_s_frequency	= radio_si4713_vidioc_s_frequency,
-+};
-+
-+/* radio_si4713_vdev_template - video device interface */
-+static struct video_device radio_si4713_vdev_template = {
-+	.fops			= &radio_si4713_fops,
-+	.name			= "radio-si4713",
-+	.release		= video_device_release,
-+	.ioctl_ops		= &radio_si4713_ioctl_ops,
-+};
-+
-+/* Platform driver interface */
-+/* radio_si4713_pdriver_probe - probe for the device */
-+static int radio_si4713_pdriver_probe(struct platform_device *pdev)
-+{
-+	struct radio_si4713_platform_data *pdata = pdev->platform_data;
-+	struct radio_si4713_device *rsdev;
-+	struct i2c_adapter *adapter;
-+	struct v4l2_subdev *sd;
-+	int rval = 0;
-+
-+	if (!pdata) {
-+		dev_err(&pdev->dev, "Can not proceed without platform data.\n");
-+		rval = -EINVAL;
-+		goto exit;
-+	}
-+
-+	rsdev = kzalloc(sizeof *rsdev, GFP_KERNEL);
-+	if (!rsdev) {
-+		dev_err(&pdev->dev, "Failed to alloc video device.\n");
-+		rval = -ENOMEM;
-+		goto exit;
-+	}
-+
-+	rval = v4l2_device_register(&pdev->dev, &rsdev->v4l2_dev);
-+	if (rval) {
-+		dev_err(&pdev->dev, "Failed to register v4l2 device.\n");
-+		goto free_rsdev;
-+	}
-+
-+	adapter = i2c_get_adapter(pdata->i2c_bus);
-+	if (!adapter) {
-+		dev_err(&pdev->dev, "Can not get i2c adapter %d\n",
-+							pdata->i2c_bus);
-+		rval = -ENODEV;
-+		goto unregister_v4l2_dev;
-+	}
-+
-+	sd = v4l2_i2c_new_subdev_board(&rsdev->v4l2_dev, adapter, "si4713_i2c",
-+				"si4713", SI4713_I2C_ADDR_BUSEN_HIGH,
-+				pdata->irq, pdata->subdev_pdata);
-+	if (!sd) {
-+		dev_err(&pdev->dev, "Can not get v4l2 subdevice\n");
-+		rval = -ENODEV;
-+		goto unregister_v4l2_dev;
-+	}
-+
-+	rsdev->radio_dev = video_device_alloc();
-+	if (!rsdev->radio_dev) {
-+		dev_err(&pdev->dev, "Failed to alloc video device.\n");
-+		rval = -ENOMEM;
-+		goto unregister_v4l2_dev;
-+	}
-+
-+	memcpy(rsdev->radio_dev, &radio_si4713_vdev_template,
-+			sizeof(radio_si4713_vdev_template));
-+	video_set_drvdata(rsdev->radio_dev, rsdev);
-+	if (video_register_device(rsdev->radio_dev, VFL_TYPE_RADIO, radio_nr)) {
-+		dev_err(&pdev->dev, "Could not register video device.\n");
-+		rval = -EIO;
-+		goto free_vdev;
-+	}
-+	dev_info(&pdev->dev, "New device successfully probed\n");
-+
-+	goto exit;
-+
-+free_vdev:
-+	video_device_release(rsdev->radio_dev);
-+unregister_v4l2_dev:
-+	v4l2_device_unregister(&rsdev->v4l2_dev);
-+free_rsdev:
-+	kfree(rsdev);
-+exit:
-+	return rval;
-+}
-+
-+/* radio_si4713_pdriver_remove - remove the device */
-+static int __exit radio_si4713_pdriver_remove(struct platform_device *pdev)
-+{
-+	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
-+	struct radio_si4713_device *rsdev = container_of(v4l2_dev,
-+						struct radio_si4713_device,
-+						v4l2_dev);
-+
-+	video_unregister_device(rsdev->radio_dev);
-+	v4l2_device_unregister(&rsdev->v4l2_dev);
-+	kfree(rsdev);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver radio_si4713_pdriver = {
-+	.driver		= {
-+		.name	= "radio-si4713",
-+	},
-+	.probe		= radio_si4713_pdriver_probe,
-+	.remove         = __exit_p(radio_si4713_pdriver_remove),
-+};
-+
-+/* Module Interface */
-+static int __init radio_si4713_module_init(void)
-+{
-+	return platform_driver_register(&radio_si4713_pdriver);
-+}
-+
-+static void __exit radio_si4713_module_exit(void)
-+{
-+	platform_driver_unregister(&radio_si4713_pdriver);
-+}
-+
-+module_init(radio_si4713_module_init);
-+module_exit(radio_si4713_module_exit);
-+
-+module_param(radio_nr, int, 0);
-+MODULE_PARM_DESC(radio_nr,
-+		 "Minor number for radio device (-1 ==> auto assign)");
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Eduardo Valentin <eduardo.valentin@nokia.com>");
-+MODULE_DESCRIPTION("Platform driver for Si4713 FM Radio Transmitter");
-+MODULE_VERSION("0.0.1");
-diff -r 94b5043b692a -r 1abb96fdce05 linux/drivers/media/linux/radio/radio-si4713.h
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/linux/drivers/media/linux/radio/radio-si4713.h	Wed May 27 11:56:46 2009 +0300
-@@ -0,0 +1,49 @@
-+/*
-+ * drivers/media/linux/radio/radio-si4713.h
-+ *
-+ * Property and commands definitions for Si4713 radio transmitter chip.
-+ *
-+ * Copyright (c) 2008 Instituto Nokia de Tecnologia - INdT
-+ * Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
-+ *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2. This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ *
-+ */
-+
-+#ifndef RADIO_SI4713_H
-+#define RADIO_SI4713_H
-+
-+#include <linux/i2c.h>
-+#include <media/linux/v4l2-device.h>
-+
-+#define SI4713_NAME "radio-si4713"
-+
-+/* The SI4713 I2C sensor chip has a fixed slave address of 0xc6. */
-+#define SI4713_I2C_ADDR_BUSEN_HIGH	0x63
-+#define SI4713_I2C_ADDR_BUSEN_LOW	0x11
-+
-+/*
-+ * Platform dependent definition
-+ */
-+struct si4713_platform_data {
-+	/* Set power state, zero is off, non-zero is on. */
-+	int (*set_power)(int power);
-+};
-+
-+/*
-+ * Platform driver device state struct
-+ */
-+struct radio_si4713_device {
-+	struct v4l2_device		v4l2_dev;
-+	struct video_device		*radio_dev;
-+};
-+
-+struct radio_si4713_platform_data {
-+	int i2c_bus;
-+	int irq;
-+	void *subdev_pdata;
-+};
-+
-+#endif /* ifndef RADIO_SI4713_H*/
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
