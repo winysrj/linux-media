@@ -1,44 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kolorific.com ([61.63.28.39]:34976 "EHLO
-	mail.kolorific.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753504AbZEHCns (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2009 22:43:48 -0400
-Subject: [PATCH]saa7134-video.c: fix the block bug
-From: "figo.zhang" <figo.zhang@kolorific.com>
-To: kraxel@bytesex.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
-	figo1802@126.com
-Content-Type: text/plain
-Date: Fri, 08 May 2009 10:25:55 +0800
-Message-Id: <1241749555.3420.18.camel@myhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from co203.xi-lite.net ([149.6.83.203]:53233 "EHLO co203.xi-lite.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753915AbZEEICe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 5 May 2009 04:02:34 -0400
+Message-ID: <49FFEA86.5080508@parrot.com>
+Date: Tue, 5 May 2009 09:28:06 +0200
+From: Matthieu CASTET <matthieu.castet@parrot.com>
+MIME-Version: 1.0
+To: Paul Mundt <lethal@linux-sh.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	<linux-media@vger.kernel.org>, <paulius.zaleckas@teltonika.lt>,
+	<g.liakhovetski@gmx.de>, <matthieu.castet@parrot.com>
+Subject: Re: [PATCH] videobuf-dma-contig: remove sync operation
+References: <20090428084539.16911.79893.sendpatchset@rx1.opensource.se> <20090428085120.GC15695@linux-sh.org>
+In-Reply-To: <20090428085120.GC15695@linux-sh.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-when re-open or re-start (video_streamon), the q->curr would not be NULL in saa7134_buffer_queue(),
-and all the qbuf will add to q->queue list,no one to do activate to start DMA,and then no interrupt 
-would happened,so it will be block. 
+Paul Mundt a écrit :
+> On Tue, Apr 28, 2009 at 05:45:39PM +0900, Magnus Damm wrote:
+>> From: Magnus Damm <damm@igel.co.jp>
+>>
+>> Remove the videobuf-dma-contig sync operation. Sync is only needed
+>> for noncoherent buffers, and since videobuf-dma-contig is built on
+>> coherent memory allocators the memory is by definition always in sync.
+>>
+> Note that this also fixes a bogus oops, which is what caused this to be
+> brought up in the first place..
+> 
+>> Reported-by: Matthieu CASTET <matthieu.castet@parrot.com>
+>> Signed-off-by: Magnus Damm <damm@igel.co.jp>
+>> ---
+>>
+>>  Thanks to Mattieu, Paul and Paulius for all the help!
+>>  Tested on SH7722 Migo-R with CEU and ov7725.
+>>
+>>  drivers/media/video/videobuf-dma-contig.c |   14 --------------
+>>  1 file changed, 14 deletions(-)
+>>
+> Reviewed-by: Paul Mundt <lethal@linux-sh.org>
+Test-by : Matthieu CASTET <matthieu.castet@parrot.com>
 
-In VIDEOBUF_NEEDS_INIT state , inital the curr pointer to be NULL int  the buffer_prepare().
-
-Signed-off-by: Figo.zhang <figo.zhang@kolorific.com>
----
- drivers/media/video/saa7134/saa7134-video.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/saa7134/saa7134-video.c b/drivers/media/video/saa7134/saa7134-video.c
-index 493cad9..550d6ce 100644
---- a/drivers/media/video/saa7134/saa7134-video.c
-+++ b/drivers/media/video/saa7134/saa7134-video.c
-@@ -1057,6 +1057,7 @@ static int buffer_prepare(struct videobuf_queue *q,
- 		buf->vb.field  = field;
- 		buf->fmt       = fh->fmt;
- 		buf->pt        = &fh->pt_cap;
-+		dev->video_q.curr = NULL;
- 
- 		err = videobuf_iolock(q,&buf->vb,&dev->ovbuf);
- 		if (err)
-
-
+Well I backport it on a older kernel (2.6.27), but the result should be
+the same.
