@@ -1,114 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2729 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754790AbZEHSG4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2009 14:06:56 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id n48I6ta3049917
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 8 May 2009 20:06:55 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 8 May 2009 20:06:55 +0200 (CEST)
-Message-Id: <200905081806.n48I6ta3049917@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail-gx0-f166.google.com ([209.85.217.166]:47291 "EHLO
+	mail-gx0-f166.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753778AbZEFVwb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 May 2009 17:52:31 -0400
+Received: by gxk10 with SMTP id 10so678688gxk.13
+        for <linux-media@vger.kernel.org>; Wed, 06 May 2009 14:52:31 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <47468C2F-83E4-4359-A1F2-7F59AC6A0E53@gmail.com>
+References: <412bdbff0905052114r7f481759r373fd0b814f458e@mail.gmail.com>
+	 <247D2127-F564-4F55-A49D-3F0F8FA63112@gmail.com>
+	 <412bdbff0905061150g2e46f919i57823c8700252926@mail.gmail.com>
+	 <B9B32CC0-1CA5-4A89-A0FC-C1770014ED09@gmail.com>
+	 <412bdbff0905061410k30d7114dk97cec1cc19c47b2b@mail.gmail.com>
+	 <47468C2F-83E4-4359-A1F2-7F59AC6A0E53@gmail.com>
+Date: Wed, 6 May 2009 17:52:30 -0400
+Message-ID: <412bdbff0905061452sc79af9v2d45aa1e08a05ac8@mail.gmail.com>
+Subject: Re: XC5000 improvements: call for testers!
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Britney Fransen <britney.fransen@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Wed, May 6, 2009 at 5:45 PM, Britney Fransen
+<britney.fransen@gmail.com> wrote:
+>
+> On May 6, 2009, at 4:10 PM, Devin Heitmueller wrote:
+>>
+>> Could you try using azap to tune?
+>>
+>> It seems like you have a basic tuning problem, independent of the
+>> application.  So, let's forget about MythTV for now and focus on the
+>> low level tools like mplayer/azap until we are confident that works.
+>
+> Makes sense.  I will try azap next.
+>
+>> If you want to help debug this, try rolling back the individual
+>> patches until you either get to the starting point of the series or
+>> the code starts working.  Once we know which patch causes it to start
+>> failing, we can go from there.
+>
+> I will try to help but it will be tomorrow before I can really get into it.
+>
+>> Also, you did stop the mythtv-backend daemon when you ran this test,
+>> right?
+>
+> Yes I did stop myth...frontend and backend.
+>
+> Britney
 
-Results of the daily build of v4l-dvb:
+Thanks for your help.
 
-date:        Fri May  8 19:00:02 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11696:fe524e0a6412
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+I actually setup the tree wrong, so it will be a bit more cumbersome
+to step through the patches (there are multiple merges from the
+v4l-dvb tip).  I'm going to try to clean it up tonight, which will
+make it much more straightforward to step through the series of
+patches incrementally to debug issues.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-rc4-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-rc4-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-rc4-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-rc4-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-rc4-m32r: OK
-linux-2.6.22.19-mips: ERRORS
-linux-2.6.26-mips: ERRORS
-linux-2.6.27-mips: ERRORS
-linux-2.6.28-mips: ERRORS
-linux-2.6.29.1-mips: ERRORS
-linux-2.6.30-rc4-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-rc4-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-rc4-x86_64: WARNINGS
-sparse (linux-2.6.29.1): OK
-sparse (linux-2.6.30-rc4): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+Devin
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
