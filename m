@@ -1,56 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay01.pair.com ([209.68.5.15]:1383 "HELO relay01.pair.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752919AbZEXXKX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 May 2009 19:10:23 -0400
-Message-ID: <4A19D3D9.9010800@papercut.com>
-Date: Mon, 25 May 2009 09:10:17 +1000
-From: Matt Doran <matt.doran@papercut.com>
+Received: from mail-gx0-f166.google.com ([209.85.217.166]:43726 "EHLO
+	mail-gx0-f166.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760671AbZEFPQp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 May 2009 11:16:45 -0400
+Received: by gxk10 with SMTP id 10so255694gxk.13
+        for <linux-media@vger.kernel.org>; Wed, 06 May 2009 08:16:45 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: videodev: Unknown symbol i2c_unregister_device (in kernels older
- than 2.6.26)
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+In-Reply-To: <cb69f9670905060803ucce5b66v587f385069adad3f@mail.gmail.com>
+References: <412bdbff0905052114r7f481759r373fd0b814f458e@mail.gmail.com>
+	 <cb69f9670905052347k4117de32lc78290e7356dd14e@mail.gmail.com>
+	 <412bdbff0905060602v135fff12jf76d92510a455272@mail.gmail.com>
+	 <cb69f9670905060803ucce5b66v587f385069adad3f@mail.gmail.com>
+Date: Wed, 6 May 2009 11:16:44 -0400
+Message-ID: <412bdbff0905060816m6db4e196wf8c42afcc5079af9@mail.gmail.com>
+Subject: Re: XC5000 improvements: call for testers!
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: kenny wang <smartkenny@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi there,
+On Wed, May 6, 2009 at 11:03 AM, kenny wang <smartkenny@gmail.com> wrote:
+>
+> Yes, Devin, I am using a WinTV-HVR-950Q.
 
-I tried using the latest v4l code on an Mythtv box running 2.6.20, but 
-the v4l videodev module fails to load with the following warnings:
+That's what I thought - the delay in loading tvtime is actually
+because of some issues with the performance of the au0828's i2c bus.
+I've put a few nights of work into debugging it, and I have some ideas
+on how to make it perform better, however I wanted to take it out of
+the critical path for the xc5000 improvements.
 
-    videodev: Unknown symbol i2c_unregister_device
-    v4l2_common: Unknown symbol v4l2_device_register_subdev
+I realize it's annoying for tvtime users and will be working to
+improve the situation going forward.
 
+Devin
 
-It seems the "i2c_unregister_device" function was added in 2.6.26.   
-References to this function in v4l2-common.c are enclosed in an ifdef like:
-
-    #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
-
-
-However in "v4l2_device_unregister()" in v4l2-device.c, there is a 
-reference to "i2c_unregister_device" without any ifdefs.   I am running 
-a pretty old kernel, but I'd guess anyone running 2.6.25 or earlier will 
-have this problem.   It seems this code was added by Mauro 3 weeks ago 
-in this rev:
-
-    http://linuxtv.org/hg/v4l-dvb/rev/87afa7a4ccdf
-
-
-
-
-I also had some other compile problems, but don't have all the details 
-(sorry!).  I had to disable the following drivers to get it to compile:
-
-    * CONFIG_VIDEO_PVRUSB2
-    * CONFIG_VIDEO_THS7303
-    * CONFIG_VIDEO_ADV7343
-    * CONFIG_DVB_SIANO_SMS1XXX
-
-
-Regards,
-Matt
-
-
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
