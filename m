@@ -1,40 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:43123 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751912AbZEGGAd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 7 May 2009 02:00:33 -0400
-Date: Thu, 7 May 2009 08:39:41 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Jani Monoses <jani@ubuntu.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] sonixj new USB ID
-Message-ID: <20090507083941.17b6ce49@free.fr>
-In-Reply-To: <29e115530905060726i7b6b6831l867eb616255cc21e@mail.gmail.com>
-References: <29e115530905060224x5d010d02ke15658f259fd8066@mail.gmail.com>
-	<29e115530905060726i7b6b6831l867eb616255cc21e@mail.gmail.com>
-Mime-Version: 1.0
+Received: from yw-out-2324.google.com ([74.125.46.30]:23192 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753197AbZEFSun convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 May 2009 14:50:43 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so161850ywb.1
+        for <linux-media@vger.kernel.org>; Wed, 06 May 2009 11:50:43 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <247D2127-F564-4F55-A49D-3F0F8FA63112@gmail.com>
+References: <412bdbff0905052114r7f481759r373fd0b814f458e@mail.gmail.com>
+	 <247D2127-F564-4F55-A49D-3F0F8FA63112@gmail.com>
+Date: Wed, 6 May 2009 14:50:43 -0400
+Message-ID: <412bdbff0905061150g2e46f919i57823c8700252926@mail.gmail.com>
+Subject: Re: XC5000 improvements: call for testers!
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Britney Fransen <britney.fransen@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 6 May 2009 17:26:23 +0300
-Jani Monoses <jani@ubuntu.com> wrote:
+On Wed, May 6, 2009 at 2:42 PM, Britney Fransen
+<britney.fransen@gmail.com> wrote:
+> Devin,
+>
+> I have an HVR-950q.
+>
+> Analog support is working much better for me.  I love the faster tuning.
+>  Still no luck getting analog to work in MythTV.
+>
+> I am seeing some major regressions on the the digital side.  mplayer can't
+> tune any digital channels and seems to be failing because it can't access
+> the tuner.  In MythTV it does tune my QAM64 channel that previously would
+> only tune with Frank's QAM64 patch. The other QAM256 channels either won't
+> lock at all or if they do have bad pixelation and audio drops.  In
+> mythtv-setup I can't do a channel scan because it says it can't open the
+> card which seems similar to the problem mplayer had.  I had previously been
+> using 11658 with the QAM64 patch.
+>
+> The 950q is definitely cooler to the touch.  Not a big deal but I did notice
+> that the tune light that would light orange when tuned to a channel no
+> longer lights up.
+>
+> Let me know if there is anything you would like me to try.
+>
+> Thanks,
+> Britney
 
-> This adds the Hercules Deluxe Optical Glass USBID to gspca, it
-> appears to be the same or at least very similar
-> to the Hercules Silver Classic (which is 0x06f8, 0x3004)
-> With this patch I had the camera showing pictures.
-> Patch is against
-> http://linuxtv.org/hg/~jfrancois/gspca/<http://linuxtv.org/hg/%7Ejfrancois/gspca/>tree
-> as of today.
-> 
-> Signed-off-by: Jani Monoses <jani@ubuntu.com>
+Ok, there is alot of information here.  Let me try to break it down.
 
-Added.
+First off, the QAM64 patches that Frank provided have not been merged
+it.  It's on my todo list.
 
-Thanks.
+Has the MythTV situation gotten *worse* with this code compared to the
+current v4l-dvb tip?  It would not surprise me if there are some
+general MythTV issues with the 950q (I am in the process of building a
+MythTV box so I can test/debug).  However, I would be surprised if
+there were *new* issues.  I do know that mkrufky was mentioning there
+was some sort of way to tell MythTV about hybrid devices, so that the
+application doesn't try to use both the analog and digital at the same
+time - and if you didn't do that then this could explain your issue.
+
+Regarding the mplayer issue, please try this:
+
+<unplug the 950q>
+cd v4l-dvb
+make unload
+modprobe xc5000 no_poweroff=1
+<plug in the 950q>
+
+... and then see if mplayer still has issues.  This might be somehow
+related to the firmware having to be reloaded taking too long for
+mplayer (the firmware has to be reloaded when the chip is woken up
+after being powered down).
+
+Devin
 
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
