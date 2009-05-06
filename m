@@ -1,124 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:58034 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757073AbZELJxu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2009 05:53:50 -0400
-Date: Tue, 12 May 2009 06:53:41 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: eduardo.valentin@nokia.com
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
-Subject: Re: [PATCH v2 1/7] v4l2: video device: Add V4L2_CTRL_CLASS_FMTX
- controls
-Message-ID: <20090512065341.46c7c290@pedra.chehab.org>
-In-Reply-To: <20090512061043.GB4639@esdhcp037198.research.nokia.com>
-References: <1242034309-13448-1-git-send-email-eduardo.valentin@nokia.com>
-	<1242034309-13448-2-git-send-email-eduardo.valentin@nokia.com>
-	<20090511231703.17087c01@pedra.chehab.org>
-	<20090512061043.GB4639@esdhcp037198.research.nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from yx-out-2324.google.com ([74.125.44.28]:53529 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754471AbZEFVK3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 May 2009 17:10:29 -0400
+Received: by yx-out-2324.google.com with SMTP id 3so207131yxj.1
+        for <linux-media@vger.kernel.org>; Wed, 06 May 2009 14:10:29 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <B9B32CC0-1CA5-4A89-A0FC-C1770014ED09@gmail.com>
+References: <412bdbff0905052114r7f481759r373fd0b814f458e@mail.gmail.com>
+	 <247D2127-F564-4F55-A49D-3F0F8FA63112@gmail.com>
+	 <412bdbff0905061150g2e46f919i57823c8700252926@mail.gmail.com>
+	 <B9B32CC0-1CA5-4A89-A0FC-C1770014ED09@gmail.com>
+Date: Wed, 6 May 2009 17:10:29 -0400
+Message-ID: <412bdbff0905061410k30d7114dk97cec1cc19c47b2b@mail.gmail.com>
+Subject: Re: XC5000 improvements: call for testers!
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: Britney Fransen <britney.fransen@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 12 May 2009 09:10:43 +0300
-Eduardo Valentin <eduardo.valentin@nokia.com> escreveu:
+Hello Britney,
 
-> On Tue, May 12, 2009 at 04:17:03AM +0200, ext Mauro Carvalho Chehab wrote:
-> > Em Mon, 11 May 2009 12:31:43 +0300
-> > Eduardo Valentin <eduardo.valentin@nokia.com> escreveu:
-> > 
-> > > This patch adds a new class of extended controls. This class
-> > > is intended to support Radio Modulators properties such as:
-> > > rds, audio limiters, audio compression, pilot tone generation,
-> > > tuning power levels and region related properties.
-> > > 
-> > > Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> > > ---
-> > >  include/linux/videodev2.h |   45 +++++++++++++++++++++++++++++++++++++++++++++
-> > >  1 files changed, 45 insertions(+), 0 deletions(-)
-> > > 
-> > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > > index ebb2ea6..7559299 100644
-> > > --- a/include/linux/videodev2.h
-> > > +++ b/include/linux/videodev2.h
-> > > @@ -803,6 +803,7 @@ struct v4l2_ext_controls {
-> > >  #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
-> > >  #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
-> > >  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
-> > > +#define V4L2_CTRL_CLASS_FMTX 0x009b0000	/* FM Radio Modulator class controls */
-> > >  
-> > >  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
-> > >  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-> > > @@ -1141,6 +1142,50 @@ enum  v4l2_exposure_auto_type {
-> > >  
-> > >  #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
-> > >  
-> > > +/* FM Radio Modulator class control IDs */
-> > > +#define V4L2_CID_FMTX_CLASS_BASE		(V4L2_CTRL_CLASS_FMTX | 0x900)
-> > > +#define V4L2_CID_FMTX_CLASS			(V4L2_CTRL_CLASS_FMTX | 1)
-> > > +
-> > > +#define V4L2_CID_RDS_ENABLED			(V4L2_CID_FMTX_CLASS_BASE + 1)
-> > > +#define V4L2_CID_RDS_PI				(V4L2_CID_FMTX_CLASS_BASE + 2)
-> > > +#define V4L2_CID_RDS_PTY			(V4L2_CID_FMTX_CLASS_BASE + 3)
-> > > +#define V4L2_CID_RDS_PS_NAME			(V4L2_CID_FMTX_CLASS_BASE + 4)
-> > > +#define V4L2_CID_RDS_RADIO_TEXT			(V4L2_CID_FMTX_CLASS_BASE + 5)
-> > > +
-> > > +#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 6)
-> > > +#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 7)
-> > > +#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FMTX_CLASS_BASE + 8)
-> > > +
-> > > +#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FMTX_CLASS_BASE + 9)
-> > > +#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FMTX_CLASS_BASE + 10)
-> > > +#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FMTX_CLASS_BASE + 11)
-> > > +#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FMTX_CLASS_BASE + 12)
-> > > +#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 13)
-> > > +
-> > > +#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 14)
-> > > +#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FMTX_CLASS_BASE + 15)
-> > > +#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FMTX_CLASS_BASE + 16)
-> > > +
-> > > +#define V4L2_CID_REGION				(V4L2_CID_FMTX_CLASS_BASE + 17)
-> > > +enum v4l2_fmtx_region {
-> > > +	V4L2_FMTX_REGION_USA			= 0,
-> > > +	V4L2_FMTX_REGION_AUSTRALIA		= 1,
-> > > +	V4L2_FMTX_REGION_EUROPE			= 2,
-> > > +	V4L2_FMTX_REGION_JAPAN			= 3,
-> > > +	V4L2_FMTX_REGION_JAPAN_WIDE_BAND	= 4,
-> > > +};
-> > 
-> > Hmm... the region is not just a derived parameter, based on
-> > preemphasis/frequencies, and channel stepping? What this parameter controls?
-> 
-> Hi Mauro, I thought in the opposite way. The other parameters are derived
-> from the region parameter. So, you just set the region, then it will affect
-> the frequency range, channel stepping and preemphasis.
-> 
-> However, there was some resistance to have this inside kernel
-> (in previous discussion). One suggested to use database in user land
-> (or similar thing). In that case, driver(s) would
-> report its constraints based on device values, not in region settings.
-> But, this patch set is proposing to have it inside the kernel as you can see.
+On Wed, May 6, 2009 at 5:02 PM, Britney Fransen
+<britney.fransen@gmail.com> wrote:
+> On May 6, 2009, at 1:50 PM, Devin Heitmueller wrote:
+>
+>> First off, the QAM64 patches that Frank provided have not been merged
+>> it.  It's on my todo list.
+>
+> I see that now.  Weird that MythTV is tuning the QAM64 channel now.  Could
+> it be related to the DVB-T additions?  Could the DVB-T additions cause the
+> QAM256 corruption I am seeing?
 
-The point is that the region and the other parameters are interrelated. So,
-you're specifying the same thing twice. In order to follow the V4L2 spirit,
-where video standards aren't determined by a Country based table, but, instead,
-by their technical differences, IMO, we should remove this. Also, I don't doubt
-that some countries would come with new settings as they deploy some digital radio
-broadcast standard.
+I don't see how that could be the issue.  However, if you want to
+confirm, you can just roll back that patch and see if it makes a
+difference.
 
-> I'd like to hear more opinions though.
+>> Has the MythTV situation gotten *worse* with this code compared to the
+>> current v4l-dvb tip?  It would not surprise me if there are some
+>> general MythTV issues with the 950q (I am in the process of building a
+>> MythTV box so I can test/debug).  However, I would be surprised if
+>> there were *new* issues.
+>
+> Looking at the MythTV logs I would say the situation is better as there are
+> fewer errors.  It returns to the menu much quicker so it could just be that
+> it is failing before it hits a timeout.
 
-Yes, it would be nice to have more opinions about the API changes.
+Well, it may return faster if the firmware is already loaded, since
+the 3 second tuning request now only takes 300ms.
 
-Cheers,
-Mauro
+>> I do know that mkrufky was mentioning there
+>> was some sort of way to tell MythTV about hybrid devices, so that the
+>> application doesn't try to use both the analog and digital at the same
+>> time - and if you didn't do that then this could explain your issue.
+>
+>  I believe that mkrufky is referring to input groups.  I do have the analog
+> and digital set to the same group.
 
+Ok.  Well if you're getting mplayer problems too, then it's probably
+not the input groups.
 
+>> Regarding the mplayer issue, please try this:
+>>
+>> <unplug the 950q>
+>> cd v4l-dvb
+>> make unload
+>> modprobe xc5000 no_poweroff=1
+>> <plug in the 950q>
+>>
+>> ... and then see if mplayer still has issues.  This might be somehow
+>> related to the firmware having to be reloaded taking too long for
+>> mplayer (the firmware has to be reloaded when the chip is woken up
+>> after being powered down).
+>
+> Did that and it still failed with the following (same as before):
+> Playing dvb://2@FOX.
+> FE_GET_INFO error: 19, FD: 4
+>
+> DVB CONFIGURATION IS EMPTY, exit
+> Failed to open dvb://2@FOX.
+>
+> FOX is the first entry in my .mplayer/channels.conf file.
 
+Could you try using azap to tune?
 
-Cheers,
-Mauro
+It seems like you have a basic tuning problem, independent of the
+application.  So, let's forget about MythTV for now and focus on the
+low level tools like mplayer/azap until we are confident that works.
+
+If you want to help debug this, try rolling back the individual
+patches until you either get to the starting point of the series or
+the code starts working.  Once we know which patch causes it to start
+failing, we can go from there.
+
+Devin
+
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
