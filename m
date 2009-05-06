@@ -1,60 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f174.google.com ([209.85.218.174]:44325 "EHLO
-	mail-bw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751239AbZEWFvs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 May 2009 01:51:48 -0400
-Received: by bwz22 with SMTP id 22so2000509bwz.37
-        for <linux-media@vger.kernel.org>; Fri, 22 May 2009 22:51:48 -0700 (PDT)
-Message-ID: <4A178ED3.5050806@gmail.com>
-Date: Sat, 23 May 2009 07:51:15 +0200
-From: David Lister <foceni@gmail.com>
-MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Goga777 <goga777@bk.ru>, linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Most stable DVB-S2 PCI Card?
-References: <53876.82.95.219.165.1243013567.squirrel@webmail.xs4all.nl>	 <1a297b360905221048p5a7c548anbdef992b5a1a697d@mail.gmail.com>	 <20090522234201.4ee5cf47@bk.ru>	 <1a297b360905221325r46432d02g8a97b1361e7958ac@mail.gmail.com>	 <4A171985.3090205@gmail.com> <1a297b360905221438n7dfb55a9uec1f1ce119bd8d74@mail.gmail.com>
-In-Reply-To: <1a297b360905221438n7dfb55a9uec1f1ce119bd8d74@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4717 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751973AbZEFSHw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 6 May 2009 14:07:52 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id n46I7pFQ063323
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 6 May 2009 20:07:52 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 6 May 2009 20:07:51 +0200 (CEST)
+Message-Id: <200905061807.n46I7pFQ063323@smtp-vbr9.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Manu Abraham wrote:
-> On Sat, May 23, 2009 at 1:30 AM, David Lister <foceni@gmail.com> wrote:
->   
->> Actually, there are many DVB-S2 cards supporting 45 MS/s, even TeVii S460
->> can do 2-45 MS/s. I spoke with a fellow TeVii owner, who confirmed the card
->> is working with a 45 MS/s transponder on Express AM2 without *any* issues.
->> All this aside, there aren't any transponders with higher rates than this
->> and there won't be for many years. Who knows how stable would TT even be
->> with such rates? For now, it's irrelevant anyway. I have no problem
->> upgrading to a new card in 3-4 years, providing there will be a stable,
->> fully supported card for Linux with as many satisfied owners as e.g. Nova S2
->> HD has.
->>     
->
-> You are talking about a 45 MSPS DVB-S stream on a DVB-S2 demodulator,
-> while i was talking about a 45 MSPS DVB-S2 stream on a DVB-S2 demodulator.
->
-> Big difference !
->   
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-This point is moot in the first place, mate. Especially in USA (original
-poster), where it'll take twice the time to reach those rates on DVB-S2.
-All current 45 MS/s transponders are QPSK, at least as far as I can
-tell. Even if that "technology preview" 8PSK transponder of yours
-existed (somewhere above Asia), it's hardly a reason to buy
-Linux-unstable cards in EU or USA. Especially considering OP's quest for
-super-stable HW. HD is pretty much beginning and none of it goes over 30
-MS/p. Why hurry, I ask? In 2-3 years time, when your driver is finished
-and stable, we'll all happily switch to "generation 2" HW (your term),
-if need be. Don't get me wrong, I have nothing against TT, it's just
-more sensible to go with proven HW.
+Results of the daily build of v4l-dvb:
 
-On a different note, I'm quite grateful for your development efforts and
-wish you success & best of luck. If only there were more people
-dedicated as you are. Seriously. Keep it up!
+date:        Wed May  6 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11696:fe524e0a6412
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
--- 
-Dave
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-rc4-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-rc4-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-rc4-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-rc4-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-rc4-m32r: OK
+linux-2.6.22.19-mips: ERRORS
+linux-2.6.26-mips: ERRORS
+linux-2.6.27-mips: ERRORS
+linux-2.6.28-mips: ERRORS
+linux-2.6.29.1-mips: ERRORS
+linux-2.6.30-rc4-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-rc4-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-rc4-x86_64: WARNINGS
+sparse (linux-2.6.29.1): OK
+sparse (linux-2.6.30-rc4): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
