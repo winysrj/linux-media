@@ -1,255 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.159]:4669 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754987AbZEARSq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 May 2009 13:18:46 -0400
-Received: by fg-out-1718.google.com with SMTP id 16so775215fgg.17
-        for <linux-media@vger.kernel.org>; Fri, 01 May 2009 10:18:45 -0700 (PDT)
+Received: from mail-ew0-f176.google.com ([209.85.219.176]:34153 "EHLO
+	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753722AbZEGLyJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2009 07:54:09 -0400
+Received: by ewy24 with SMTP id 24so985208ewy.37
+        for <linux-media@vger.kernel.org>; Thu, 07 May 2009 04:54:08 -0700 (PDT)
+Date: Thu, 7 May 2009 13:53:59 +0200 (CEST)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Luca Olivetti <luca@ventoso.org>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [linux-dvb] RFC - Flexcop Streaming watchdog (VDSB)
+In-Reply-To: <49F3468C.4070101@ventoso.org>
+Message-ID: <alpine.DEB.2.00.0905071258330.14214@ybpnyubfg.ybpnyqbznva>
+References: <alpine.LRH.1.10.0901161548460.28478@pub2.ifh.de> <alpine.DEB.2.00.0903312017420.10133@ybpnyubfg.ybpnyqbznva> <49F3468C.4070101@ventoso.org>
 MIME-Version: 1.0
-In-Reply-To: <1241137592.5108.12.camel@pc07.localdom.local>
-References: <e6575a30904300454w117e6293p4793ad6c2b5c706@mail.gmail.com>
-	<1241137592.5108.12.camel@pc07.localdom.local>
-From: Charles <landemaine@gmail.com>
-Date: Fri, 1 May 2009 19:18:25 +0200
-Message-ID: <e6575a30905011018q3b72307aqc73faf01bc380300@mail.gmail.com>
-Subject: Re: [linux-dvb] Can't scan transponders with Terratec Cinergy HT PCI
-	board
-To: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 1, 2009 at 2:26 AM, hermann pitton <hermann-pitton@arcor.de> wrote:
-> Hi Charles,
->
-> Am Donnerstag, den 30.04.2009, 13:54 +0200 schrieb Charles:
->> Hello,
->>
->>
->> I installed my Terratec Cinergy HT PCI DVB-T board on Ubuntu 9.04
->
-> I guess HT PCI can mean a lot, like My Cinema, WinFast and the like ...
->
->> using your tutorial
->> (http://www.linuxtv.org/wiki/index.php/How_to_Obtain%2C_Build_and_Install_V4L-DVB_Device_Drivers)
->> and when trying to scan transponders, no result was found:
->>
->> $ ls -l /dev/dvb/adapter0
->> total 0
->> crw-rw----+ 1 root video 212, 1 2009-04-30 12:19 demux0
->> crw-rw----+ 1 root video 212, 2 2009-04-30 12:19 dvr0
->> crw-rw----+ 1 root video 212, 0 2009-04-30 12:19 frontend0
->> crw-rw----+ 1 root video 212, 3 2009-04-30 12:19 net0
->>
->> $ scan /usr/share/dvb/dvb-t/fr-Nantes
->> scanning /usr/share/dvb/dvb-t/fr-Nantes
->> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->> initial transponder 498000000 0 2 9 3 1 0 0
->> initial transponder 506000000 0 2 9 3 1 0 0
->> initial transponder 522000000 0 2 9 3 1 0 0
->> initial transponder 530000000 0 2 9 3 1 0 0
->> initial transponder 658000000 0 2 9 3 1 0 0
->> initial transponder 802000000 0 2 9 3 1 0 0
->
-> Can't tell offhand if the zl10353 eventually has this problem too, which
-> is well known on the tda10046.
->
-> Please try to add plus 167 kHz to your initial scan file for Nantes,
-> like you can see it here for one of the Lyon transmitters.
->
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval
-> hierarchy
-> # R1 : Canal 56
-> T 754167000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> # R2 : Canal 36
-> T 594167000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> # R3 : Canal 21
-> T 474167000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> # R4 : Canal 54
-> T 738167000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> # R5 : Canal 27
-> T 522167000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-> # R6 : Canal 24
-> T 498167000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
->
-> At least we can exclude this then.
->
-> Cheers,
-> Hermann
->
->> >>> tune to: 498000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> WARNING: >>> tuning failed!!!
->> >>> tune to: 498000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
->> WARNING: >>> tuning failed!!!
->> >>> tune to: 506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> WARNING: >>> tuning failed!!!
->> >>> tune to: 506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
->> WARNING: >>> tuning failed!!!
->> >>> tune to: 522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> WARNING: >>> tuning failed!!!
->> >>> tune to: 522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
->> WARNING: >>> tuning failed!!!
->> >>> tune to: 530000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> WARNING: >>> tuning failed!!!
->> >>> tune to: 530000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
->> WARNING: >>> tuning failed!!!
->> >>> tune to: 658000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> WARNING: >>> tuning failed!!!
->> >>> tune to: 658000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
->> WARNING: >>> tuning failed!!!
->> >>> tune to: 802000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->> WARNING: >>> tuning failed!!!
->> >>> tune to: 802000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
->> WARNING: >>> tuning failed!!!
->> ERROR: initial tuning failed
->> dumping lists (0 services)
->> Done.
->>
->> $ dvbscan /usr/share/dvb/dvb-t/fr-Nantes
->> Unable to query frontend status
->>
->> $ w_scan -ft -X
->> w_scan version 20081106
->> Info: using DVB adapter auto detection.
->>    Found DVB-T frontend. Using adapter /dev/dvb/adapter0/frontend0
->> -_-_-_-_ Getting frontend capabilities-_-_-_-_
->> frontend Zarlink ZL10353 DVB-T supports
->> INVERSION_AUTO
->> QAM_AUTO
->> TRANSMISSION_MODE_AUTO
->> GUARD_INTERVAL_AUTO
->> HIERARCHY_AUTO
->> FEC_AUTO
->> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
->> 177500:
->> 184500:
->> 191500:
->> 198500:
->> 205500:
->> 212500:
->> 219500:
->> 226500:
->> 474000:
->> 482000:
->> 490000:
->> 498000:
->> 506000:
->> 514000:
->> 522000:
->> 530000:
->> 538000:
->> 546000:
->> 554000:
->> 562000:
->> 570000:
->> 578000:
->> 586000:
->> 594000:
->> 602000:
->> 610000:
->> 618000:
->> 626000:
->> 634000:
->> 642000:
->> 650000:
->> 658000:
->> 666000:
->> 674000:
->> 682000:
->> 690000:
->> 698000:
->> 706000:
->> 714000:
->> 722000:
->> 730000:
->> 738000:
->> 746000:
->> 754000:
->> 762000:
->> 770000:
->> 778000:
->> 786000:
->> 794000:
->> 802000:
->> 810000:
->> 818000:
->> 826000:
->> 834000:
->> 842000:
->> 850000:
->> 858000:
->> ERROR: Sorry - i couldn't get any working frequency/transponder
->>  Nothing to scan!!
->> dumping lists (0 services)
->> Done.
->> $
->>
->>
->>
->> Any idea?
->> Thanks in advance,
->>
->> Charles.
->>
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+On Sat, 25 Apr 2009, Luca Olivetti wrote:
+
+> > The above observations are so far, just observations, and I
+> > don't expect anyone to be able to `fix' anything
+> 
+> They're nevertheless interesting, since I'm in a similar position: my vdr
+> machine is using (almost flawlessly) a Skystar 2 (though I don't believe in
+> this new fangled disecq thing and I use an old fashioned actuator to move my
+> dish) and it's running a 2.6.17 kernel.
+
+Rule number one -- never upgrade a working system ;-)
+Actually, it seems to be a tradeoff -- some things get fixed,
+or start working, work better, and a roughly equal number of
+things break.  Make sure you can trivially revert to your
+known working system, or else bite the bullet, spend time
+figuring out what's broken, patch, hack, patch again, before
+giving up and reverting your system...
+
+If you don't use DiSEqC to switch between different LNBs, you
+may well not have a problem.  My observations have been that
+I'd had little to no difficulty with services at position 1/4,
+which would be tuned by a device not supporting, or not set up
+to use DiSEqC switching.
+
+
+> I'll probably have to update one day (especially if I want to keep up with the
+> "latest and greatest" vdr), but I'm not really in a hurry, even less so seeing
+> your problems.
+
+Rather than immediately replace this card with a DVB-S2-able
+device that tunes better the frequency extremes, I decided to
+pull it out and experiment a bit more, in a different box.
+My observations:
+ ============
+
+
+Here's some more info, in case it would be of interest...
+
+I'd suffered interrupt and other problems with the test server
+I'm building, having tried the SkyStar2 2.6D card in it without
+major success -- apart from most transponders on position 1/4.
+
+Generally I'd have about a 1 in 10 to maybe 1 out of 5 chance
+of success when tuning the BBC radios on position 3/4 -- usually
+it would appear to lock to the ZDF transponder at position 3/4.
+
+Attempts to tune a particular transponder at 2/4 and at 4/4
+would fail around 100% of the time.
+
+Usually my first attempt after a reboot would tune successfully.
+
+While operating, the machine somehow got in a state where the
+USB ports were no longer working completely right.  Interestingly
+at this time, I'd be able to tune the SkyStar and get about a
+50% success rate or better when tuning 2/4 and 3/4.  Also, one
+higher-frequency transponder at 1/4 which would result in a TS
+with errors (and thus errors in the radio stream audio) then
+tuned cleanly.
+
+So I decided to strip as much out of the machine as possible
+and play a nice round of musical PCI-slots, in case there might
+be a magical slot where it would work, or where I would not
+be sharing the IRQ with anything.
+
+Unfortunately, none of the four freed slots worked with the
+SkyStar perfectly.  Three of them were shown by /proc/interrupts
+as sharing an IRQ; the one which did not, was shown to be sharing
+the IRQ, with `lspci'.
+
+Now, I did confirm one thing -- after each reboot, all my first
+tuning attempts, regardless of position 4/4, 3/4, 2/4, or 1/4,
+were always successful.  This using `dvbstream'.  Any following
+attempts to repeat that tuning, or tune elsewhere, failed or
+had a negligible success rate, except for position 1/4.  This
+appears to be the case both for cold boots from poweroff and
+for warm reboots.  It doesn't appear to affect the case of the
+weak radio stream, which may be near the card's weakened
+sensitivity limit (it's become this way over time, it seems),
+that could vary in strength during the day.
+
+An attempt to `scan' the transponders at 3/4 got far more of
+the 1/4 transponders, and failed more than not with active 3/4
+frequencies.  If there's any pattern, it could be that the
+successful transponders were largely vertical, with horizontal
+polarised transponders rarely tuning.  The same cable feeding
+a couple external USB boxen delivered clean signals on all
+tuning attempts.
+
+
+Probably I do need to bisect my way from 2.6.26-ish back to
+2.6.14-ish to determine where things went boom.
+
+
+However, I've observed that a second PCI DVB-T card (BT878-
+based) has not only failed to deliver a clean signal, but has
+also resulted in normally-clean signals from USB devices
+becoming similarly corrupted every minute or so, so that card
+will also suffer the musical-PCI-slot treatment to see if it's
+an IRQ problem.
+
+And if I motivate myself, I'll see about trying the SkyStar
+in the two used slots, or trying to give it a truly-free IRQ.
+By which time I'll probably have become insane trying to keep
+track of which cards get which IRQs in which slots.
+
+Man, sometimes I wish PC hardware weren't so illogical, or
+that the logic were to be clearer...
 
 
 
+Preliminary results of juggling BT878-DVB-T card -- if it is
+sharing its IRQ with either my EHCI card (NEC, IRQ10), or
+the sound card (CMIPCI, IRQ7) at boot, the machine will lock
+up solid.  Presumably an interrupt storm, or something, as I
+know little about such.  Otherwise it appears to work fine,
+though with a few cards still missing.  Experimentation continues.
+The corrupted streams I observed earlier haven't repeated.
 
+Unfortunately, after quite some time, one USB device goes
+wacky, some others continue to work, but no USB plug events
+are recognised, `lsusb' hangs, and looks like time to reboot.  
+Grrr.
 
-
-Hi Hermann,
-
-Thank you. I added 167Khz to the scan file but it didn't solve my problem:
-
-
-$ scan /usr/share/dvb/dvb-t/fr-Nantes
-scanning /usr/share/dvb/dvb-t/fr-Nantes
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 498167000 0 2 9 3 1 0 0
-initial transponder 506167000 0 2 9 3 1 0 0
-initial transponder 522167000 0 2 9 3 1 0 0
-initial transponder 530167000 0 2 9 3 1 0 0
-initial transponder 658167000 0 2 9 3 1 0 0
-initial transponder 802167000 0 2 9 3 1 0 0
->>> tune to: 498167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to: 498167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to: 506167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to: 506167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to: 522167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to: 522167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to: 530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to: 530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to: 658167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to: 658167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-WARNING: >>> tuning failed!!!
->>> tune to: 802167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to: 802167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-WARNING: >>> tuning failed!!!
-ERROR: initial tuning failed
-dumping lists (0 services)
-Done.
-$
-
-
-Any other idea?
-Thanks,
-
-Charles.
+barry bouwsma
