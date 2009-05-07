@@ -1,51 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:44868 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:41925 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753848AbZEVOXY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2009 10:23:24 -0400
-Date: Fri, 22 May 2009 16:23:36 +0200 (CEST)
+	id S1752918AbZEGPyA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 May 2009 11:54:00 -0400
+Date: Thu, 7 May 2009 17:54:13 +0200 (CEST)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Darius Augulis <augulis.darius@gmail.com>,
-	Paul Mundt <lethal@linux-sh.org>
-Subject: Re: [RFC 09/10 v2] v4l2-subdev: re-add s_standby to v4l2_subdev_core_ops
-In-Reply-To: <200905211533.34827.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.0905221611160.4418@axis700.grange>
-References: <Pine.LNX.4.64.0905151817070.4658@axis700.grange>
- <Pine.LNX.4.64.0905151907460.4658@axis700.grange> <200905211533.34827.hverkuil@xs4all.nl>
+To: Agustin Ferrin Pozuelo <agustin.ferrin@yahoo.com>
+cc: linux-arm-kernel@lists.arm.linux.org.uk,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: Solved? - Re: soc-camera: timing out during capture - Re: Testing
+ latest mx3_camera.c
+In-Reply-To: <155119.7889.qm@web32103.mail.mud.yahoo.com>
+Message-ID: <Pine.LNX.4.64.0905071750050.9460@axis700.grange>
+References: <155119.7889.qm@web32103.mail.mud.yahoo.com>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 21 May 2009, Hans Verkuil wrote:
+On Thu, 7 May 2009, Agustin Ferrin Pozuelo wrote:
 
-> On Friday 15 May 2009 19:20:18 Guennadi Liakhovetski wrote:
-> > NOT FOR SUBMISSION. Probably, another solution has to be found.
-> > soc-camera drivers need an .init() (marked as "don't use") and a .halt()
-> > methods.
-> >
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > ---
-> >
-> > Hans, you moved s_standby to tuner_ops, and init is not recommended for
-> > new drivers. Suggestions?
+> Holy cow...
+
+mu-u-u-u-u-u?:-)
+
+> After checking out every single bit in CSI and IDMAC to be correct 
+> according to reference and the same I had in the previous/working 
+> version...
 > 
-> Usual question: why do you need an init and halt? What do they do?
+> I thought about the fact that I was only queuing one buffer, and that 
+> this might be a corner case as sample code uses a lot of them. And that 
+> in the older code that funny things could happen in the handler if we 
+> ran out of buffers, though they didn't happen.
+> 
+> So I have queued an extra buffer and voila, got it working.
+> 
+> So thanks again!
+> 
+> However, this could be a bug in ipu_idmac (or some other point), as 
+> using a single buffer is very plausible, specially when grabbing huge 
+> stills.
 
-Hm, maybe you're right, I don't need them. init() was used in soc_camera 
-drivers on first open() to possibly reset the chip and put it in some 
-reasonably pre-defined low-power state. But we can do this at the end of 
-probe(), which even would be more correct, because even the first open 
-should not change chip's configuration. And halt() (was called release() 
-originally) is called on last close(). And it seems you shouldn't really 
-do this at all - the chip should preserve its configuration between 
-open/close cycles. Am I right? Does anyone among cc'ed authors have any 
-objections against this change? The actual disable should indeed migrate 
-to some PM functions, if implemented.
+Great, thanks for testing and debugging! Ok, so, I will have to test this 
+case some time...
 
 Thanks
 Guennadi
