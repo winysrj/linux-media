@@ -1,19 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mx34.mail.ru ([94.100.176.48])
+Received: from mail-ew0-f164.google.com ([209.85.219.164])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <goga777@bk.ru>) id 1M52qg-0000CR-Lu
-	for linux-dvb@linuxtv.org; Fri, 15 May 2009 21:13:39 +0200
-Received: from [92.101.141.47] (port=25625 helo=localhost.localdomain)
-	by mx34.mail.ru with asmtp id 1M52q6-0003bT-00
-	for linux-dvb@linuxtv.org; Fri, 15 May 2009 23:13:02 +0400
-Date: Fri, 15 May 2009 23:16:09 +0400
-From: Goga777 <goga777@bk.ru>
-To: linux-dvb@linuxtv.org
-Message-ID: <20090515231609.0ba14254@bk.ru>
-In-Reply-To: <8566f5bc0905140646x6aaeb3ecq14e3c2c72b176e7@mail.gmail.com>
-References: <8566f5bc0905140646x6aaeb3ecq14e3c2c72b176e7@mail.gmail.com>
-Mime-Version: 1.0
-Subject: Re: [linux-dvb] DVB-S2 frontend doesn't work!
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1M1rqd-0007v1-Do
+	for linux-dvb@linuxtv.org; Thu, 07 May 2009 02:52:28 +0200
+Received: by ewy8 with SMTP id 8so717532ewy.17
+	for <linux-dvb@linuxtv.org>; Wed, 06 May 2009 17:51:53 -0700 (PDT)
+Date: Thu, 7 May 2009 02:51:41 +0200 (CEST)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: armel frey <armel.frey@gmail.com>
+In-Reply-To: <8566f5bc0905060103g250086a2v12d038e9163cabb8@mail.gmail.com>
+Message-ID: <alpine.DEB.2.00.0905070221080.21713@ybpnyubfg.ybpnyqbznva>
+References: <8566f5bc0905060103g250086a2v12d038e9163cabb8@mail.gmail.com>
+MIME-Version: 1.0
+Cc: DVB mailin' list thingy <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] szap2 and Band L???
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -22,50 +22,42 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-> I have a problem with my HVR-4000 card.
-> 
-> I installed the firmware cx24116 find on
-> http://tevii.com/Tevii_linuxdriver_0815.rar
-> sudo cp tevii_linuxdriver_0815/fw/dvb-fe-cx24116.fw
-> /lib/firmware/dvb-fe-cx24116-1.23.86.1.fw
-> sudo ln -s /lib/firmware/dvb-fe-cx24116-1.23.86.1.fw
-> /lib/firmware/dvb-fe-cx24116.fw
-> 
-> I installed S2API find on http://linuxtv.org/hg/~stoth/s2/
-
-please use http://mercurial.intuxication.org/hg/s2-liplianin
-
-> and I installed szap-s2 find on http://mercurial.intuxication.org/hg/szap-s2
-> 
-> Every seems to be ok...
-> I can tune an DVB-S signal, but not DVB-S2...
-> I try to tune a DVB-S2 signal with a symbols rate of 75335000 (>45000000)
-> and I have this error message with dmesg :
-> 
-> [ 450.409150] DVB: frontend 0 symbol rate 75335000 out of range
-> (1000000..45000000)
-> 
-> So I try dvbsnoop to see the frontend information :
-> 
-> # dvbsnoop -s feinfo
-> dvbsnoop V1.4.50 -- http://dvbsnoop.sourceforge.net/
-
-dvbsnoop doesn't work with s2api 
-
-
-Goga
-
-
-
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+T24gV2VkLCA2IE1heSAyMDA5LCBhcm1lbCBmcmV5IHdyb3RlOgoKPiBJIGhhdmUgYSBIYXVwcGF1
+Z2UgSFZSLTQwMDAgYW5kIGkgd291bGQgbGlrZSB0byByZWNlaXZlIERWQi1TMiAhCj4gVGhlIGNh
+cmQgd29ya3Mgd2VsbCBpbiBEVkItUyBhbmQgc2VlbXMgdG8gd29yayB3aXRoIHN6YXAtczIsIGJ1
+dCBteSBwcm9ibGVtCj4gaXMgdGhhdCBpIGhhdmUgdG8gcmVjZWl2ZSBEVkItUzIgaW4gQmFuZCBM
+ICg5NTAuLi4yMTUwTUh6KSBhbmQgc3phcDIgZG9uJ3QKPiB0dW5lIHRoaXMgbG93IGZyw6lxdWVu
+Y3kuCgpXaGVuIEkgc2VlIHRoZSByYW5nZSBvZiA5NTAtMjE1ME1IeiwgSSB0aGluayBvZiB0aGUg
+aW50ZXJtZWRpYXRlCmZyZXF1ZW5jeSBkZWxpdmVyZWQgZnJvbSBtaXhpbmcgdGhlIGxvY2FsIG9z
+Y2lsbGF0b3Igd2l0aCB0aGUKcmVjZWl2ZWQgc2lnbmFsLCB3aGljaCBpcyBwYXNzZWQgZnJvbSB0
+aGUgTE5CIG91dHB1dCB0aHJvdWdoCnRoZSBhdHRhY2hlZCBjYWJsZS4KCkluIHJlYWxpdHksIHRo
+aXMgaXMgd2hhdCBpcyB0dW5lZCwgYWx0aG91Z2ggbW9zdCBjb21tb25seSBvbmUgCm1ha2VzIHVz
+ZSBvZiB0aGUgZnJlcXVlbmNpZXMgb2YgdGhlIEt1IGJhbmQsIHdoaWNoIHRoZSB0dW5pbmcgCnV0
+aWxpdHkgdGhlbiBjb252ZXJ0cyB0byB0aGUgSUYgZnJlcXVlbmN5Ogp0dW5pbmcgRFZCLVMgdG8g
+RnJlcTogMjA2MjAwMCwgUG9sOkggU3JhdGU9MjIwMDAwMDAsIDIya0h6IHRvbmU9b2ZmLCBMTkI6
+IDEKRXZlbnQ6ICBGcmVxdWVuY3k6IDEyNjYyMzUwCgpUaGUgc2FtZSBzaG91bGQgYmUgdHJ1ZSBm
+b3IgYW4gTE5CL2Rpc2ggdG8gcmVjZWl2ZSBDLUJhbmQKc2lnbmFscywgZm9yIGV4YW1wbGUsIHNv
+bWV0aGluZyBJJ3ZlIG5vdCBoYWQgYW55IHBlcnNvbmFsCmV4cGVyaWVuY2UsIHNvIEkgZG9uJ3Qg
+a25vdyBob3cgd2VsbCBpdCB3b3VsZCBiZSBzdXBwb3J0ZWQKYnkgdGhlIGRpZmZlcmVudCB1dGls
+aXRpZXMuCgpEbyB5b3UgaGF2ZSBhbiBleGFtcGxlIG9mIGEgcGFydGljdWxhciBEVkItUzIgc2Vy
+dmljZSB3aGljaAp5b3Ugd2FudCB0byByZWNlaXZlPwoKTXkgZ3Vlc3Mgd291bGQgYmUgdGhhdCBp
+ZiB5b3UgbmVlZCB0byB0dW5lIGEgcGFydGljdWxhcgpmcmVxdWVuY3kgaW4gdGhhdCByYW5nZSwg
+c2F5LCAyMDYyTUh6IGluIHRoZSBhYm92ZSBleGFtcGxlLAp5b3UgY2FuIGFjaGlldmUgdGhpcyBi
+eSBhZGRpbmcgOTc1MCBNSHogLS0gdGhlIExPIGZyZXF1ZW5jeQppbiB0aGUgbG93IHJhbmdlIG9m
+IFVuaXZlcnNhbCBLdSBiYW5kIExOQnMsIGFuZCB0aGVuCmF0dGVtcHRpbmcgdG8gdHVuZSB0aGF0
+IGZyZXF1ZW5jeSwgd2hldGhlciB0aGF0IGNvbWVzIGFzIHRoZQpJRiBmcm9tIGEgS3UsIG9yIEMg
+b3IgS2EgYmFuZCBMTkIgb2Ygd2hhdGV2ZXIgdHlwZSAtLSBVbml2ZXJzYWwKb3Igb3RoZXJ3aXNl
+LgoKVGhvdWdoIEkgc2hvdWxkIGhvcGUgdGhhdCBzb21lIHV0aWxpdHkgd2lsbCBkaXJlY3RseSBz
+dXBwb3J0CnNwZWNpZnlpbmcgYSBmcmVxdWVuY3kgd2l0aGluIHRoZSBhYm92ZSBiYW5kcyBkaXJl
+Y3RseSwgaWYKdGhhdCdzIHdoYXQgeW91J3JlIHRyeWluZyB0byBkbywgb3IgYSBub24tdW5pdmVy
+c2FsLUxOQiBMTwpmcmVxdWVuY3kuLi4KCgpiYXJyeSBib3V3c21hCgpfX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgdXNlcnMgbWFpbGluZyBs
+aXN0CkZvciBWNEwvRFZCIGRldmVsb3BtZW50LCBwbGVhc2UgdXNlIGluc3RlYWQgbGludXgtbWVk
+aWFAdmdlci5rZXJuZWwub3JnCmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4
+dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
