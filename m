@@ -1,208 +1,367 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f176.google.com ([209.85.219.176]:53981 "EHLO
-	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751830AbZEVR7i convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2009 13:59:38 -0400
-Received: by ewy24 with SMTP id 24so1992183ewy.37
-        for <linux-media@vger.kernel.org>; Fri, 22 May 2009 10:59:37 -0700 (PDT)
+Received: from hroch.hdata.cz ([81.19.13.14]:4902 "EHLO holub.hdata.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758930AbZEGIVe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 May 2009 04:21:34 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by holub.hdata.cz (Postfix) with ESMTP id 57E5046CC6
+	for <linux-media@vger.kernel.org>; Thu,  7 May 2009 08:01:25 +0000 (UTC)
+Received: from [192.168.234.4] (unknown [81.19.12.177])
+	by holub.hdata.cz (Postfix) with ESMTP id C9BD346C7F
+	for <linux-media@vger.kernel.org>; Thu,  7 May 2009 10:01:24 +0200 (CEST)
+Message-ID: <4A029572.2090904@post.cz>
+Date: Thu, 07 May 2009 10:01:54 +0200
+From: Michal Pastor <mike.fly@post.cz>
 MIME-Version: 1.0
-In-Reply-To: <200905221910.29894.oldium.pro@seznam.cz>
-References: <37219a840905201257l4673ac7fkc035f3d6656ed26f@mail.gmail.com>
-	 <303a8ee30905210551r10e976d8ve9ebf9fd1107086c@mail.gmail.com>
-	 <37219a840905210553p1461154m50aa8b31a9a32d59@mail.gmail.com>
-	 <200905221910.29894.oldium.pro@seznam.cz>
-Date: Fri, 22 May 2009 13:59:37 -0400
-Message-ID: <37219a840905221059h3e31984ah8fa9385b0696d995@mail.gmail.com>
-Subject: Re: [SAA713X TESTERS WANTED] Fix i2c quirk, may affect saa713x +
-	mt352 combo
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Oldrich Jedlicka <oldium.pro@seznam.cz>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org
+Subject: [PATCH] MSI TV@nywhere A/D (not 1.1!) IR remote control
+Content-Type: multipart/mixed;
+ boundary="------------040309070600000505000202"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 22, 2009 at 1:10 PM, Oldrich Jedlicka <oldium.pro@seznam.cz> wrote:
-> On Thursday 21 of May 2009 at 14:53:00, Michael Krufky wrote:
->> On Thu, May 21, 2009 at 8:51 AM, Michael Krufky <mkrufky@kernellabs.com>
-> wrote:
->> > On Thu, May 21, 2009 at 2:44 AM, Oldrich Jedlicka <oldium.pro@seznam.cz>
->> >
->> > wrote:
->> >> Hi Mike,
->> >>
->> >> On Wednesday 20 of May 2009 at 21:57:15, Michael Krufky wrote:
->> >> > I have discovered a bug in the saa7134 driver inside the function,
->> >> > "saa7134_i2c_xfer"
->> >> >
->> >> > In order to communicate with certain i2c clients on the saa713x i2c
->> >> > bus, a quirk was implemented to prevent failures during read
->> >> > transactions.
->> >> >
->> >> > The quirk forces an i2c write/read to a bogus address that is unlikely
->> >> > to be used by any i2c client.
->> >> >
->> >> > However, this quirk is not functioning properly.  The reason for the
->> >> > malfunction is that the i2c address chosen to use as the quirk address
->> >> > was 0xfd.
->> >> >
->> >> > The address 0xfd is indeed an i2c address unlikely to be used by any
->> >> > real i2c client, however, the address itself is invalid!  The address,
->> >> > 0xfd, has the read bit set -- this is problematic for the hardware,
->> >> > and causes the quirk workaround to fail.
->> >> >
->> >> > It's a wonder that nobody else has complained up to this point.
->> >>
->> >> I had a problem with 0xfd quirk already (the presence caused the device
->> >> not to
->> >> respond), this is why there is an exception
->> >>
->> >>        msgs[i].addr != 0x40
->> >>
->> >> I can check if it works with your version (0xfe), but the device behind
->> >> the
->> >> address 0x40 (remote control) is very stupid, so I don't think so.
->> >>
->> >> I think that better approach would be to use the quirk only for devices
->> >> (addresses) that really need it, not for all.
->> >>
->> >> Cheers,
->> >> Oldrich.
->> >>
->> >> > I am asking for testers, just to make sure that this doesn't cause any
->> >> > other strange errors to occur as a side effect.  I don't expect any
->> >> > new problems, but its always better to be safe than sorry :-)
->> >> >
->> >> > This change should not fix any of the other issues currently being
->> >> > discussed with the saa7134 driver -- all I am asking is for people to
->> >> > test and indicate that the change does not incur any NEW bugs or
->> >> > unwanted behavior.
->> >> >
->> >> > Please test the following repository, and send in your feedback as a
->> >> > reply to this thread.  Please remember to keep the mailing list in cc.
->> >> >
->> >> > http://kernellabs.com/hg/~mk/saa7134
->> >> >
->> >> > Thanks,
->> >> >
->> >> > Mike Krufky
->> >> > --
->> >> > To unsubscribe from this list: send the line "unsubscribe linux-media"
->> >> > in
->> >> > the body of a message to majordomo@vger.kernel.org
->> >> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> >
->> > Thanks for the feedback, guys.  Just to reiterate my original point:
->> >
->> > I am not questioning the i2c quirk itself -- this is already in the
->> > driver, and cards are working already as is.  I am just saying that there
->> > is a bug based on the address used.  Consider 7-bit i2c addresses --
->> > 0xfd is an 8-bit address, when converted to a 7-bit address and then back
->> > to an 8-bit address becomes 0xfc.  I don't know how to explain this
->> > properly, but it's invalid.  This is a bug in the saa7131 silicon that
->> > requires a write to a valid i2c address to occur before a read
->> > transaction, in order to prevent a situation where a read transaction
->> > results in no ack from the client.
->> >
->> > This is a known errata of the NXP silicon.
->> >
->> > The HVR1110r3 cannot perform successful i2c read transactions from the
->> > DVB-T demodulator without this i2c workaround in place, using a valid
->> > address.
->> >
->> > And yes, I am aware of David Wong's situation -- I have a changeset in
->> > one of my repositories that will allow us to disable this i2c quirk on a
->> > card by card basis, but so far I haven't heard of any card that needs
->> > this other than his board.
->> >
->> > http://linuxtv.org/hg/~mkrufky/dmbth/rev/781ffa6c43d3
->> >
->> > We can certainly merge that changeset if required.
->> >
->> > All I am asking is for you to test your boards against this tree and
->> > confirm that this changeset does not cause any *new* problems.
->> >
->> > Thanks go out to Hermann and Oldrich so far, as both of you seem to
->> > indicate that this tree did not cause any new problem on your hardware.
->> >
->> > Thanks again for the feedback.
->> >
->> > Regards,
->> >
->> > Mike
->>
->> (apologies for the double post -- first one got rejected by vger, again)
->>
->> Thanks for the feedback, guys.  Just to reiterate my original point:
->>
->> I am not questioning the i2c quirk itself -- this is already in the
->> driver, and cards are working already as is.  I am just saying that
->> there is a bug based on the address used.  Consider 7-bit i2c
->> addresses --   0xfd is an 8-bit address, when converted to a 7-bit
->> address and then back to an 8-bit address becomes 0xfc.  I don't know
->> how to explain this properly, but it's invalid.  This is a bug in the
->> saa7131 silicon that requires a write to a valid i2c address to occur
->> before a read transaction, in order to prevent a situation where a
->> read transaction results in no ack from the client.
->>
->> This is a known errata of the NXP silicon.
->>
->> The HVR1110r3 cannot perform successful i2c read transactions from the
->> DVB-T demodulator without this i2c workaround in place, using a valid
->> address.
->>
->> And yes, I am aware of David Wong's situation -- I have a changeset in
->> one of my repositories that will allow us to disable this i2c quirk on
->> a card by card basis, but so far I haven't heard of any card that
->> needs this other than his board.
->>
->>
->> http://linuxtv.org/hg/~mkrufky/dmbth/rev/781ffa6c43d3
->>
->> We can certainly merge that changeset if required.
->>
->> All I am asking is for you to test your boards against this tree and
->> confirm that this changeset does not cause any *new* problems.
->>
->> Thanks go out to Hermann and Oldrich so far, as both of you seem to
->> indicate that this tree did not cause any new problem on your
->> hardware.
->
-> Mike,
->
-> I've just said that my remote control doesn't like the quirk. Anyway, I've
-> experimented with the current master branch and my card definitely needs the
-> quirk (AverMedia Carbus Hybrid E506R, it has SAA7133 according to dmesg) and
-> it makes no difference if the byte value is 0xfd or 0xfe. My remote control
-> doesn't like any quirk, so the exception for 0x40 has to be there.
->
-> The site kernellabs.com doesn't work now, so I'm not able to verify if you
-> were using the i2c_recv_byte() in the quirk in your patch. I kept it there
-> during my experiments.
->
-> About the I2C address - address byte values from 0xf8 upwords (7-bit address
-> 1111 1XX plus the R/~W bit) are reserved for future use, so it cannot reach
-> any device.
->
-> Cheers,
-> Oldrich.
->
->> Thanks again for the feedback.
->>
->> Regards,
->>
->> Mike
+This is a multi-part message in MIME format.
+--------------040309070600000505000202
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 7bit
 
+Hi, I just made the IR remote control for MSI TV@nywhere A/D work and I 
+want to test it on some other cards, so I decided to send this patch to 
+this mailing list.
 
-Oldrich,
+This patch is originally created against kernel sources 2.6.29.1.
 
-The patch changes nothing, other than replacing 0xFD with 0xFE.  The
-exception for 0x40 remains untouched.
+I was unable to detect remote, because i2c port is not answering without 
+some inicialization, so I add parameter to module "ir-kbd-i2c". 
+Parameter is called "i2cport" and for my MSI TV@nywhere A/D must be set 
+to "0x0b". (modprobe ir-kbd-i2c i2cport=0x0b)
+I also added new card type 222 (just for testing) whitch is detected 
+automatically with PCI device 4e42:3306, because this card is supposet 
+to be clone of LifeWiev FlyDVB-T Hybrid, but when I tested some patches 
+for this card, sometimes it doesn't work, so I think, there can be some 
+differences.
 
-If kernellabs.com was down when you wrote that email, it's back up again now.
+So please if you have this card, can you test it and respond? (you can 
+try it with LifeView FlyDVB-T Hybrid too)
 
-Regards,
+Thank all developers of V4L for great work and sorry for my terrible 
+english :)
 
-Mike
+Mike Fly
+Czech republic
+
+--------------040309070600000505000202
+Content-Type: text/plain;
+ name="msitvanywheread.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="msitvanywheread.patch"
+
+diff -upr drivers/media/common/ir-keymaps.c drivers/media/common/ir-keymaps.c
+--- drivers/media/common/ir-keymaps.c	2009-04-02 22:55:27.000000000 +0200
++++ drivers/media/common/ir-keymaps.c	2009-05-06 07:58:10.000000000 +0200
+@@ -2604,3 +2604,41 @@ IR_KEYTAB_TYPE ir_codes_ati_tv_wonder_hd
+ };
+ 
+ EXPORT_SYMBOL_GPL(ir_codes_ati_tv_wonder_hd_600);
++
++IR_KEYTAB_TYPE ir_codes_msi_tvanywhere_ad[IR_KEYTAB_SIZE] = {
++       [ 0x00 ] = KEY_POWER,
++       [ 0x01 ] = KEY_F,
++       [ 0x03 ] = KEY_1,
++       [ 0x04 ] = KEY_2,
++       [ 0x05 ] = KEY_3,
++       [ 0x07 ] = KEY_4,
++       [ 0x08 ] = KEY_5,
++       [ 0x09 ] = KEY_6,
++       [ 0x0b ] = KEY_7,
++       [ 0x0c ] = KEY_8,
++       [ 0x0d ] = KEY_9,
++       [ 0x0f ] = KEY_0,
++       [ 0x06 ] = KEY_F1,
++       [ 0x10 ] = KEY_MUTE,
++       [ 0x02 ] = KEY_F2,
++       [ 0x1b ] = KEY_F3,
++       [ 0x12 ] = KEY_UP,
++       [ 0x13 ] = KEY_DOWN,
++       [ 0x17 ] = KEY_LEFT,
++       [ 0x14 ] = KEY_RIGHT,
++       [ 0x1d ] = KEY_ENTER,
++       [ 0x1a ] = KEY_F4,
++       [ 0x18 ] = KEY_F5,
++       [ 0x1e ] = KEY_RECORD,
++       [ 0x15 ] = KEY_F6,
++       [ 0x1c ] = KEY_F7,
++       [ 0x19 ] = KEY_REWIND,
++       [ 0x0a ] = KEY_PAUSE,
++       [ 0x1f ] = KEY_FORWARD,
++       [ 0x16 ] = KEY_BACK,
++       [ 0x11 ] = KEY_STOP,
++       [ 0x0e ] = KEY_END,
++};
++EXPORT_SYMBOL_GPL(ir_codes_msi_tvanywhere_ad);
++
+diff -upr drivers/media/video/saa7134/saa7134-cards.c drivers/media/video/saa7134/saa7134-cards.c
+--- drivers/media/video/saa7134/saa7134-cards.c	2009-04-02 22:55:27.000000000 +0200
++++ drivers/media/video/saa7134/saa7134-cards.c	2009-05-06 07:26:52.000000000 +0200
+@@ -4673,6 +4673,40 @@ struct saa7134_board saa7134_boards[] = 
+ 			.amux = TV,
+ 			.gpio = 0x01,
+ 		},
++	},	
++	[SAA7134_BOARD_MSI_TVANYWHERE_AD] = {
++		.name		= "LifeView FlyDVB-T Hybrid Cardbus/MSI TV @nywhere A/D NB",
++		.audio_clock    = 0x00200000,
++		.tuner_type     = TUNER_PHILIPS_TDA8290,
++		.radio_type     = UNSET,
++		.tuner_addr	= ADDR_UNSET,
++		.radio_addr	= ADDR_UNSET,
++		.mpeg           = SAA7134_MPEG_DVB,
++		.gpiomask       = 0x00600000, /* Bit 21 0=Radio, Bit 22 0=TV */
++		.inputs         = {{
++			.name = name_tv,
++			.vmux = 1,
++			.amux = TV,
++			.gpio = 0x200000,	/* GPIO21=High for TV input */
++			.tv   = 1,
++		},{
++			.name = name_svideo,	/* S-Video signal on S-Video input */
++			.vmux = 8,
++			.amux = LINE2,
++		},{
++			.name = name_comp1,	/* Composite signal on S-Video input */
++			.vmux = 0,
++			.amux = LINE2,
++		},{
++			.name = name_comp2,	/* Composite input */
++			.vmux = 3,
++			.amux = LINE2,
++		}},
++		.radio = {
++			.name = name_radio,
++			.amux = TV,
++			.gpio = 0x000000,	/* GPIO21=Low for FM radio antenna */
++		},
+ 	},
+ };
+ 
+@@ -5291,6 +5325,12 @@ struct pci_device_id saa7134_pci_tbl[] =
+ 	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
++		.subvendor    = 0x4e42,
++		.subdevice    = 0x3306,
++		.driver_data  = SAA7134_BOARD_MSI_TVANYWHERE_AD,
++	},{
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x5168,
+ 		.subdevice    = 0x3502,  /* whats the difference to 0x3306 ?*/
+ 		.driver_data  = SAA7134_BOARD_FLYDVBT_HYBRID_CARDBUS,
+@@ -6007,6 +6047,13 @@ int saa7134_board_init1(struct saa7134_d
+ 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2, 0x08000000, 0x08000000);
+ 		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x08000000, 0x00000000);
+ 		break;
++	case SAA7134_BOARD_MSI_TVANYWHERE_AD:
++		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2, 0x08000000, 0x08000000);
++		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x08000000, 0x00000000);
++		printk("Setting SAA7134 I2C remote");
++		dev->has_remote = SAA7134_REMOTE_I2C;
++
++		break;
+ 	case SAA7134_BOARD_AVERMEDIA_CARDBUS:
+ 	case SAA7134_BOARD_AVERMEDIA_M115:
+ 		/* power-down tuner chip */
+@@ -6342,6 +6389,15 @@ int saa7134_board_init2(struct saa7134_d
+ 		i2c_transfer(&dev->i2c_adap, &msg, 1);
+ 		break;
+ 	}
++	case SAA7134_BOARD_MSI_TVANYWHERE_AD:
++	{
++		/* initialize analog mode  */
++		u8 data[] = { 0x3c, 0x33, 0x6a};
++		struct i2c_msg msg = {.addr=0x08, .flags=0, .buf=data, .len = sizeof(data)};
++		i2c_transfer(&dev->i2c_adap, &msg, 1);
++		dev->has_remote = SAA7134_REMOTE_I2C;
++		break;
++	}
+ 	case SAA7134_BOARD_CINERGY_HT_PCMCIA:
+ 	case SAA7134_BOARD_CINERGY_HT_PCI:
+ 	{
+diff -upr drivers/media/video/saa7134/saa7134-dvb.c drivers/media/video/saa7134/saa7134-dvb.c
+--- drivers/media/video/saa7134/saa7134-dvb.c	2009-04-02 22:55:27.000000000 +0200
++++ drivers/media/video/saa7134/saa7134-dvb.c	2009-05-06 08:24:46.000000000 +0200
+@@ -1109,6 +1109,7 @@ static int dvb_init(struct saa7134_dev *
+ 		break;
+ 	case SAA7134_BOARD_ADS_DUO_CARDBUS_PTV331:
+ 	case SAA7134_BOARD_FLYDVBT_HYBRID_CARDBUS:
++	case SAA7134_BOARD_MSI_TVANYWHERE_AD:
+ 		fe0->dvb.frontend = dvb_attach(tda10046_attach,
+ 					       &ads_tech_duo_config,
+ 					       &dev->i2c_adap);
+diff -upr drivers/media/video/saa7134/saa7134-i2c.c drivers/media/video/saa7134/saa7134-i2c.c
+--- drivers/media/video/saa7134/saa7134-i2c.c	2009-04-02 22:55:27.000000000 +0200
++++ drivers/media/video/saa7134/saa7134-i2c.c	2009-05-06 07:28:44.000000000 +0200
+@@ -338,6 +338,7 @@ static int attach_inform(struct i2c_clie
+ 		case 0x71:
+ 		case 0x2d:
+ 		case 0x30:
++		case 0x0b:
+ 		{
+ 			struct IR_i2c *ir = i2c_get_clientdata(client);
+ 			d1printk("%s i2c IR detected (%s).\n",
+diff -upr drivers/media/video/saa7134/saa7134-input.c drivers/media/video/saa7134/saa7134-input.c
+--- drivers/media/video/saa7134/saa7134-input.c	2009-04-02 22:55:27.000000000 +0200
++++ drivers/media/video/saa7134/saa7134-input.c	2009-05-06 08:27:24.000000000 +0200
+@@ -174,6 +174,49 @@ static int get_key_msi_tvanywhere_plus(s
+ 	return 1;
+ }
+ 
++static int get_key_msi_tvanywhere_ad(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++{
++	int gpio;
++	unsigned long b;
++
++	/* We need this to access GPIO. Used by the saa_readl macro. */
++	struct saa7134_dev *dev = ir->c.adapter->algo_data;
++	if (dev == NULL) {
++		dprintk ("ir->c.adapter->algo_data is NULL!\n");
++        return -EIO;
++	}
++
++
++	/* rising SAA7134_GPIO_GPRESCAN reads the status */
++	saa_clearb(SAA7134_GPIO_GPMODE3,SAA7134_GPIO_GPRESCAN);
++	saa_setb(SAA7134_GPIO_GPMODE3,SAA7134_GPIO_GPRESCAN);
++
++	gpio = saa_readl(SAA7134_GPIO_GPSTATUS0 >> 2);
++
++	if (0x40000 &~ gpio)
++		return 0;    /* No button press */
++
++	/* No button press - only before first key pressed */
++	if (b == 0xFF)
++		return 0;
++
++	/* poll IR chip */
++	b = 0;
++	if (1 != i2c_master_send(&ir->c,(char *)&b,1)) {
++		i2cdprintk("send wake up byte to pic16C505 failed\n");
++		return -EIO;
++	}
++	if (1 != i2c_master_recv(&ir->c,(char *)&b,1)) {
++		i2cdprintk("read error\n");
++		return -EIO;
++	}
++	*ir_key = b;
++	*ir_raw = b;
++    
++	i2cdprintk("MSI TV @nywhere remote key: %02x\n", b);
++	return 1; 
++}
++
+ static int get_key_purpletv(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ {
+ 	unsigned char b;
+@@ -601,6 +644,11 @@ int saa7134_input_init1(struct saa7134_d
+ 		mask_keycode = 0x7f;
+ 		polling = 40; /* ms */
+ 		break;
++	case SAA7134_BOARD_MSI_TVANYWHERE_AD:
++                ir_codes     = ir_codes_msi_tvanywhere_ad;
++	  	mask_keycode = 0x0001F00;
++		mask_keydown = 0x0040000;
++		break;
+ 	}
+ 	if (NULL == ir_codes) {
+ 		printk("%s: Oops: IR config error [card=%d]\n",
+@@ -722,7 +770,12 @@ void saa7134_set_i2c_ir(struct saa7134_d
+ 		ir->get_key   = get_key_beholdm6xx;
+ 		ir->ir_codes  = ir_codes_behold;
+ 		break;
+-	default:
++	case SAA7134_BOARD_MSI_TVANYWHERE_AD:
++		snprintf(ir->c.name, sizeof(ir->c.name), "MSI TV anywhere a/d");
++		ir->get_key   = get_key_msi_tvanywhere_ad;
++		ir->ir_codes  = ir_codes_msi_tvanywhere_ad;
++		break;
++ 	default:
+ 		dprintk("Shouldn't get here: Unknown board %x for I2C IR?\n",dev->board);
+ 		break;
+ 	}
+diff -upr drivers/media/video/saa7134/saa7134.h drivers/media/video/saa7134/saa7134.h
+--- drivers/media/video/saa7134/saa7134.h	2009-04-02 22:55:27.000000000 +0200
++++ drivers/media/video/saa7134/saa7134.h	2009-05-06 07:19:58.000000000 +0200
+@@ -277,6 +277,7 @@ struct saa7134_format {
+ #define SAA7134_BOARD_ASUSTeK_TIGER         152
+ #define SAA7134_BOARD_KWORLD_PLUS_TV_ANALOG 153
+ #define SAA7134_BOARD_AVERMEDIA_GO_007_FM_PLUS 154
++#define SAA7134_BOARD_MSI_TVANYWHERE_AD 155
+ 
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
+diff -upr include/media/ir-common.h include/media/ir-common.h
+--- include/media/ir-common.h	2009-04-02 22:55:27.000000000 +0200
++++ include/media/ir-common.h	2009-05-06 07:59:56.000000000 +0200
+@@ -159,6 +159,7 @@ extern IR_KEYTAB_TYPE ir_codes_real_audi
+ extern IR_KEYTAB_TYPE ir_codes_msi_tvanywhere_plus[IR_KEYTAB_SIZE];
+ extern IR_KEYTAB_TYPE ir_codes_ati_tv_wonder_hd_600[IR_KEYTAB_SIZE];
+ extern IR_KEYTAB_TYPE ir_codes_kworld_plus_tv_analog[IR_KEYTAB_SIZE];
++extern IR_KEYTAB_TYPE ir_codes_msi_tvanywhere_ad[IR_KEYTAB_SIZE];
+ #endif
+ 
+ /*
+diff -upr drivers/media/video/ir-kbd-i2c.c drivers/media/video/ir-kbd-i2c.c
+--- /drivers/media/video/ir-kbd-i2c.c	2009-04-02 22:55:27.000000000 +0200
++++ /drivers/media/video/ir-kbd-i2c.c	2009-05-07 09:26:33.000000000 +0200
+@@ -58,6 +58,9 @@ static int hauppauge;
+ module_param(hauppauge, int, 0644);    /* Choose Hauppauge remote */
+ MODULE_PARM_DESC(hauppauge, "Specify Hauppauge remote: 0=black, 1=grey (defaults to 0)");
+ 
++static int i2cport;
++module_param(i2cport, int, 0644);    /* manual select i2c port */
++MODULE_PARM_DESC(i2cport, 	"Manual select i2c port - can't do probes :(");
+ 
+ #define DEVNAME "ir-kbd-i2c"
+ #define dprintk(level, fmt, arg...)	if (debug >= level) \
+@@ -303,7 +306,15 @@ static int ir_attach(struct i2c_adapter 
+ 	ir->c.addr    = addr;
+ 
+ 	i2c_set_clientdata(&ir->c, ir);
+-
++	
++	if (i2cport != 0){
++	        name        = "MSI TV anywhere A/D";
++	        ir_type     = IR_TYPE_OTHER;
++	        ir_codes    = ir_codes_msi_tvanywhere_ad;
++		
++	}
++	else
++	{
+ 	switch(addr) {
+ 	case 0x64:
+ 		name        = "Pixelview";
+@@ -366,6 +377,7 @@ static int ir_attach(struct i2c_adapter 
+ 		err = -ENODEV;
+ 		goto err_out_free;
+ 	}
++	}
+ 
+ 	/* Sets name */
+ 	snprintf(ir->c.name, sizeof(ir->c.name), "i2c IR (%s)", name);
+@@ -496,7 +508,12 @@ static int ir_probe(struct i2c_adapter *
+ 			return 0;
+ 		}
+ 	}
+-
++	/* FOR MSI TV anywhere A/D - setup manually i2c address*/
++	if (i2cport != 0) {
++		printk(DEVNAME ": Using MSI TV @nywhere A/D remote - i2c port: 0x%02x\n", i2cport);
++		ir_attach(adap, i2cport, 0, 0);
++	}
++				
+ 	/* Special case for MSI TV@nywhere Plus remote */
+ 	if (adap->id == I2C_HW_SAA7134) {
+ 		u8 temp;
+
+--------------040309070600000505000202--
