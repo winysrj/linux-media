@@ -1,96 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110808.mail.gq1.yahoo.com ([67.195.13.231]:23204 "HELO
-	web110808.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752392AbZESUKK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2009 16:10:10 -0400
-Message-ID: <492881.32224.qm@web110808.mail.gq1.yahoo.com>
-Date: Tue, 19 May 2009 13:10:11 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: Re: Recent Siano patches - testing required
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Steven Toth <stoth@kernellabs.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Received: from web32103.mail.mud.yahoo.com ([68.142.207.117]:35347 "HELO
+	web32103.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752962AbZEGPsj convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 7 May 2009 11:48:39 -0400
+Message-ID: <155119.7889.qm@web32103.mail.mud.yahoo.com>
+Date: Thu, 7 May 2009 08:41:57 -0700 (PDT)
+From: Agustin Ferrin Pozuelo <agustin.ferrin@yahoo.com>
+Subject: Solved? - Re: soc-camera: timing out during capture - Re: Testing latest mx3_camera.c
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+Holy cow...
 
 
---- On Tue, 5/19/09, Steven Toth <stoth@kernellabs.com> wrote:
-
-> From: Steven Toth <stoth@kernellabs.com>
-> Subject: Recent Siano patches - testing required
-> To: urishk@yahoo.com, "Mauro Carvalho Chehab" <mchehab@infradead.org>
-> Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-> Date: Tuesday, May 19, 2009, 10:15 PM
-> Mauro please review.
+On Tue, 5 May 2009, Agustin wrote:
+> On Tue, 5 May 2009, Guennadi Liakhovetski wrote:
+> > On Tue, 5 May 2009, Agustin wrote:
+> > 
+> > > No, as there is no driver_match_device() in 2.6.29 nor in my patched 
+> > > version. How important is that?
+> > 
+> > No, sorry, forget it, that's not your problem.
+> > 
+> > > Meanwhile I noticed that IRQ 176 is being triggered, then discarded as 
+> > > "unhandled" by ipu_idmac, who gives the message "IRQ on active buffer on 
+> > > channel 7, active 0, ready 0, 0, current 0!" below...
+> > 
+> > Yes, and this is not good. If you look in drivers/dma/ipu/ipu_idmac.c 
+> > idmac_interrupt() you'll see, that this message is printed when IDMAC 
+> > produces an interrupt for a DMA buffer, but at the same time it says, that 
+> > the buffer, that should have completed is still in use... I've seen a few 
+> > of such inconsistencies, and up to now always managed to get rid of them 
+> > in one or another way. But that should not be related to the conversion. 
+> > Maybe your formats on the sensor and on the SoC do not match, verify that.
 > 
-> Uri,
+> Thanks for the tip but I am still out of luck. I enabled DEBUG in ipu_idmac.c 
+> just to see that frame start and end are happening more or less when they 
+> should:
 > 
-> Firstly I'd like to thank you and Siano for patching and
-> helping to maintain the driver. :)
+>    [...]
+>    camera 0-0: mx3_camera: Submitted cookie 2 DMA 0x86400000
+>    Got SOF IRQ 177 on Channel 7
+>    Got EOF IRQ 178 on Channel 7
+>    dma dma0chan7: ipu_idmac: IDMAC irq 176, buf 0
+>    dma dma0chan7: ipu_idmac: IRQ on active buffer on channel 7, active 0, ready 
+> 0, 0, current 0!
+>    Select timeout.
+>    [...]
 > 
-> Second, this is a heck of a lot of change for the list to
-> review! It's impossible to digest the level of rework and
-> potential regressions.
+> I also configured everything to the simplest mode I can have: 8-bit bus, sample 
+> falling.
 > 
-> I'd suggest you either host your own mercurial server and
-> have testers pull your trees, helping to regression test
-> your changes or ... someone gives you access to create trees
-> at LinuxTV.org, then you can solicit testers feedback on the
-> mailing list.
-> 
-> Either way, it's unusual for this amount of change to be
-> merged without having some positive feedback from the Linux
-> community of testers. If you have confirmation that all of
-> the current devices are still working correct, without
-> regression, then please indicate this in your patches /
-> email.
-> 
-> If not, the patches should be hosted somewhere for test and
-> review.
-> 
-> -- Steven Toth - Kernel Labs
-> http://www.kernellabs.com
-> 
+> So I am now looking at IDMAC, trying to guess what could be wrong... [snip]
 
+After checking out every single bit in CSI and IDMAC to be correct according to reference and the same I had in the previous/working version...
 
-Steven,
+I thought about the fact that I was only queuing one buffer, and that this might be a corner case as sample code uses a lot of them. And that in the older code that funny things could happen in the handler if we ran out of buffers, though they didn't happen.
 
-Thanks for your comments.
+So I have queued an extra buffer and voila, got it working.
 
-Brief history about Siano's Linux kernel drivers...
+So thanks again!
 
-First set of Siano's based receivers drivers has been introduced at the first half of 2008.
+However, this could be a bug in ipu_idmac (or some other point), as using a single buffer is very plausible, specially when grabbing huge stills.
 
-Since mid-2008 till about little more than a month ago, from various reasons, (most of these reasons were unrelated to Siano's intentions), there were no submissions to the LinuxTV mercurial.
+--Agustín.
 
-However, lots of progress with Linux drivers has been achieved. Some of it within the Linux various communities (for example with the MMC maintainer, and members of this mailing list based on direct contacts) but primarily with Siano's commercial customers which based their products on Linux OS or it derivatives (such as Google's Android). 
+[snip!]
 
-Note that the recent month' patches came to bring the LinuxTV mercurial (and kernel's git as a result) up to the state of Siano's internal Subversion repository. Meaning, the patches are not new code / new bugs fixes etc. but rather up-stream from Siano's repository to LinuxTV's (same as it done from each sub-kernel system (including LinuxTV) to the kernel git).
-
-The Siano's drivers have been tested thoroughly, both in Siano's QA departments (where a full time QA engineer is tasked to test various Linux/SMS based setups) and in customers sites as well.
-
-Note that the current Siano's Linux drivers set is been used by many dozens of commercial products (including tear-1 companies' products), which of course have been tested thoroughly that offering, and it is a production level code (literally).
-
-The risks as I see them with all those patches, are that some work (minor) has been done in order to make these patches appropriate to be submitted (per all rules of patches submission to LinuxTV / Linux kernel). 
-
-Another problem is that I find it hard to believe that there will be many testers available from this mailing list. True that there are some dongle and mini-cards based on Siano's chip-set which these devices' manufacturers representatives are on this list, orsome people may own these, but the vast majority of Siano's based products are embedded based devices (including multiple tablet/UMPC PCs, cellular phones, PDAs, navigation devices, DVD/BR players, gaming devices and many others), so unless someone will hack those devices and will replace the installed drivers (kernel image actually, since most of these fixed-targets developers build the Siano's modules to be included within the kernel image) there is no much hope for comprehensive o"open testers" test.
-
-However any test that will be performed, will benefit all (including Siano.... :-)
-
-It's true that is the recent past, Siano equipped some volunteers from this community with devices (free of charge), but it had been done base on Siano's "selfish" objectives, which at the time suited various individuals.
-I find it hard to believe that Siano will equip anyone just for "random" testing, since we have enough brimful testing environments.
-
-
-Best Regards,
-
-Uri
-
- 
-
-
-      
