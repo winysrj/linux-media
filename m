@@ -1,16 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web25808.mail.ukl.yahoo.com ([217.12.10.193])
-	by mail.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <m8hpw@yahoo.fr>) id 1M00tO-0000f0-N4
-	for linux-dvb@linuxtv.org; Sat, 02 May 2009 00:07:40 +0200
-Message-ID: <809097.33619.qm@web25808.mail.ukl.yahoo.com>
-Date: Fri, 1 May 2009 22:07:03 +0000 (GMT)
-From: julien de ROSNY <m8hpw@yahoo.fr>
-To: linux-dvb@linuxtv.org
+Received: from mail-bw0-f168.google.com ([209.85.218.168])
+	by mail.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <armel.frey@gmail.com>) id 1M23VP-0000U0-5T
+	for linux-dvb@linuxtv.org; Thu, 07 May 2009 15:19:19 +0200
+Received: by bwz12 with SMTP id 12so820418bwz.17
+	for <linux-dvb@linuxtv.org>; Thu, 07 May 2009 06:18:45 -0700 (PDT)
 MIME-Version: 1.0
-Subject: [linux-dvb] dibcom3000 (dvb) driver bug with ubuntu 9.04 (2.6.28
-	kernel)?
-Reply-To: linux-media@vger.kernel.org, julien.derosny@espci.fr
+In-Reply-To: <alpine.DEB.2.00.0905070221080.21713@ybpnyubfg.ybpnyqbznva>
+References: <8566f5bc0905060103g250086a2v12d038e9163cabb8@mail.gmail.com>
+	<alpine.DEB.2.00.0905070221080.21713@ybpnyubfg.ybpnyqbznva>
+Date: Thu, 7 May 2009 15:18:45 +0200
+Message-ID: <8566f5bc0905070618u6db97047qfd245f83c07316aa@mail.gmail.com>
+From: armel frey <armel.frey@gmail.com>
+To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+Cc: DVB mailin' list thingy <linux-dvb@linuxtv.org>
+Subject: Re: [linux-dvb] szap2 and Band L???
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -18,156 +23,173 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============2003291234=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+--===============2003291234==
+Content-Type: multipart/alternative; boundary=001636c594e506d6c50469525ab9
 
+--001636c594e506d6c50469525ab9
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Hello,
+Thanks,
 
-Since a couple of years, I use a WinFast DTV Dongle (dib3000mc) on a ASUS (intel) laptop without any trouble. It works with ubuntu 8.04. The quality is perfect
+I have put the LO frequency in the low range of Universal Ku band LNBs to 0
+and when i try to tune my card in DVB-S2 I don't have the error message
+anymore...
 
-I use now the same dongle on a recent laptop PC based on a GA-MA78GM-US2H mother board and the quality of the image is very bad and the soft (me-tv) rebuffer very often. It is unlikely a probleme of signal strength, because on the same antenna plug, the dvb works very well with the laptop, and very bad with the desktop computer. See below some informations about the dvb with the two configrations : laptop and the desktop computer.
+Yet, I have an other problem...
+If I try to tune my card to catch my DVB-S2 signal with the parameter DVB-S=
+2
+d=E9modulation on szap-s2 (that seems normal...), szap-s2 don't see and don=
+'t
+lock anything.
+But, if I try to tune my card to catch the same DVB-S2 signal with the
+parameter DVB-S demodulation on szap-s2, it lock the signal well ... of
+course, it doesn't succeed to demodulated.
+That why I guess my problem is linked to the frontend, but I don't know how
+to check and correct...
+If someone have an idea?
 
-I noticed that there are some differences between the loaded modules. i2c_core and usbcore are abscent with ubuntu 9.04. Is it normal? Morever if you carefully look at the dvbtraffic, it is lower for the LAPTOP for a same program. This is very repetive behaviour. It is not normal.
+For more information, in one hand, I have an Dektec Dta-107S2 modulator
+card, and on the other hand I have an Hauppauge HVR-4000.
 
-Does anyone have an idea of whats wrong with the LAPTOP configuration. 
+The application szap-s2 I try to use is :
 
-Thanks.
-
-Julien R.
-
-
-***********************************************
-LAPTOP (GOOD image quality)
-
-uname -a :
-Linux portable 2.6.24-23-generic #1 SMP Wed Apr 1 21:47:28 UTC 2009 i686 GNU/Linux
-
-lsusb:
-Bus 005 Device 011: ID 0413:6026 Leadtek Research, Inc. WinFast DTV Dongle (warm state)
-
-
-lsmod | grep dvb
-dvb_usb_dibusb_mc       6400  0
-dvb_usb_dibusb_common    10756  1 dvb_usb_dibusb_mc
-dib3000mc              13960  2 dvb_usb_dibusb_common
-dvb_usb                19852  2 dvb_usb_dibusb_mc,dvb_usb_dibusb_common
-dvb_core               81404  1 dvb_usb
-i2c_core               24832  4 mt2060,dib3000mc,dibx000_common,dvb_usb
-usbcore               146412  5 dvb_usb_dibusb_mc,dvb_usb,ehci_hcd,uhci_hcd
-
-tzap "ARTE"
-status 1f | signal c058 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-
-dvbtraffic
-0000     9 p/s     1 kb/s    14 kbit
-0010     5 p/s     0 kb/s     8 kbit
-0011     0 p/s     0 kb/s     1 kbit
-0012    12 p/s     2 kb/s    19 kbit
-0015     1 p/s     0 kb/s     2 kbit
-006e     9 p/s     1 kb/s    14 kbit
-0078  1697 p/s   311 kb/s  2553 kbit
-0082   132 p/s    24 kb/s   198 kbit
-008c    32 p/s     5 kb/s    49 kbit
-00d2     9 p/s     1 kb/s    14 kbit
-00dc  2189 p/s   401 kb/s  3292 kbit
-00e6   132 p/s    24 kb/s   198 kbit
-00f0     3 p/s     0 kb/s     5 kbit
-0136     9 p/s     1 kb/s    14 kbit
-0140  1527 p/s   280 kb/s  2296 kbit
-014a   131 p/s    24 kb/s   197 kbit
-0154     1 p/s     0 kb/s     2 kbit
-01fe     9 p/s     1 kb/s    14 kbit
-0208  2104 p/s   386 kb/s  3164 kbit
-0212   131 p/s    24 kb/s   197 kbit
-0213   132 p/s    24 kb/s   198 kbit
-021c     1 p/s     0 kb/s     2 kbit
-021d     2 p/s     0 kb/s     4 kbit
-021e     2 p/s     0 kb/s     4 kbit
-0262     9 p/s     1 kb/s    14 kbit
-026c  1688 p/s   309 kb/s  2539 kbit
-0276   132 p/s    24 kb/s   198 kbit
-0280     2 p/s     0 kb/s     4 kbit
-0294    13 p/s     2 kb/s    20 kbit
-02c6     9 p/s     1 kb/s    14 kbit
-02d0  5437 p/s   998 kb/s  8178 kbit
-02da   131 p/s    24 kb/s   197 kbit
-03f2     9 p/s     1 kb/s    14 kbit
-1fff   823 p/s   151 kb/s  1239 kbit
-2000 16557 p/s  3039 kb/s 24901 kbit
-
-************************************************
-DESKTOP (very bad image)
-
-system ubuntu jaunty
-Linux xxx 2.6.28-11-generic #42-Ubuntu SMP Fri Apr 17 01:57:59 
-UTC 2009 i686 GNU/Linux
-AMD 
-Mother board GA-MA78GM-US2H (USB controler : amd sb700)
-
-lsusb 
-Bus 001 Device 006: ID 0413:6026 Leadtek Research, Inc. WinFast DTV Dongle (warm state)
-
-lsmod |grep dvb
-dvb_usb_dibusb_mc      13056  0 
-dvb_usb_dibusb_common    16772  1 dvb_usb_dibusb_mc
-dib3000mc              20488  2 dvb_usb_dibusb_common
-dvb_usb                24332  2 dvb_usb_dibusb_mc,dvb_usb_dibusb_common
-dvb_core               92032  1 dvb_usb
-
-
-tzap "ARTE"
-tuning to 586167000 Hz
-video pid 0x0208, audio pid 0x0212
-status 1f | signal cbfc | snr 0000 | ber 001fffff | unc 00000013 | FE_HAS_LOCK
-...
-
-dvbtraffic
-0000     9 p/s     1 kb/s    14 kbit
-0012    10 p/s     1 kb/s    16 kbit
-0015     1 p/s     0 kb/s     2 kbit
-006e     9 p/s     1 kb/s    14 kbit
-0078  1757 p/s   322 kb/s  2643 kbit
-0082   127 p/s    23 kb/s   191 kbit
-008c     3 p/s     0 kb/s     5 kbit
-00d2     9 p/s     1 kb/s    14 kbit
-00dc  1380 p/s   253 kb/s  2076 kbit
-00e6   124 p/s    22 kb/s   187 kbit
-00f0    42 p/s     7 kb/s    63 kbit
-0136     9 p/s     1 kb/s    14 kbit
-0140  2912 p/s   534 kb/s  4380 kbit
-014a   124 p/s    22 kb/s   187 kbit
-0154    13 p/s     2 kb/s    20 kbit
-01fe     9 p/s     1 kb/s    14 kbit
-0208  2641 p/s   484 kb/s  3973 kbit
-0212   124 p/s    22 kb/s   187 kbit
-0213   127 p/s    23 kb/s   191 kbit
-021c     1 p/s     0 kb/s     2 kbit
-021d     1 p/s     0 kb/s     2 kbit
-021e     1 p/s     0 kb/s     2 kbit
-0262     9 p/s     1 kb/s    14 kbit
-026c  1509 p/s   277 kb/s  2270 kbit
-0276   125 p/s    22 kb/s   188 kbit
-0280     3 p/s     0 kb/s     5 kbit
-0294    12 p/s     2 kb/s    19 kbit
-02c6     9 p/s     1 kb/s    14 kbit
-02d0  3913 p/s   718 kb/s  5886 kbit
-02da   125 p/s    22 kb/s   188 kbit
-03f2     9 p/s     1 kb/s    14 kbit
-1fff   780 p/s   143 kb/s  1173 kbit
-2000 15952 p/s  2928 kb/s 23992 kbit
--PID--FREQ-----BANDWIDTH-BANDWIDTH-
+http://mercurial.intuxication.org/hg/szap-s2
 
 
 
-      
+2009/5/7 BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+
+> On Wed, 6 May 2009, armel frey wrote:
+>
+> > I have a Hauppauge HVR-4000 and i would like to receive DVB-S2 !
+> > The card works well in DVB-S and seems to work with szap-s2, but my
+> problem
+> > is that i have to receive DVB-S2 in Band L (950...2150MHz) and szap2
+> don't
+> > tune this low fr=E9quency.
+>
+> When I see the range of 950-2150MHz, I think of the intermediate
+> frequency delivered from mixing the local oscillator with the
+> received signal, which is passed from the LNB output through
+> the attached cable.
+>
+> In reality, this is what is tuned, although most commonly one
+> makes use of the frequencies of the Ku band, which the tuning
+> utility then converts to the IF frequency:
+> tuning DVB-S to Freq: 2062000, Pol:H Srate=3D22000000, 22kHz tone=3Doff, =
+LNB: 1
+> Event:  Frequency: 12662350
+>
+> The same should be true for an LNB/dish to receive C-Band
+> signals, for example, something I've not had any personal
+> experience, so I don't know how well it would be supported
+> by the different utilities.
+>
+> Do you have an example of a particular DVB-S2 service which
+> you want to receive?
+>
+> My guess would be that if you need to tune a particular
+> frequency in that range, say, 2062MHz in the above example,
+> you can achieve this by adding 9750 MHz -- the LO frequency
+> in the low range of Universal Ku band LNBs, and then
+> attempting to tune that frequency, whether that comes as the
+> IF from a Ku, or C or Ka band LNB of whatever type -- Universal
+> or otherwise.
+>
+> Though I should hope that some utility will directly support
+> specifying a frequency within the above bands directly, if
+> that's what you're trying to do, or a non-universal-LNB LO
+> frequency...
+>
+>
+> barry bouwsma
+>
+
+--001636c594e506d6c50469525ab9
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<div>Thanks, </div>
+<div>=A0</div>
+<div>I have put the LO frequency in the low range of Universal Ku band LNBs=
+ to 0 and when i try to tune my card in DVB-S2 I don&#39;t have the error m=
+essage anymore... </div>
+<div>=A0</div>
+<div>Yet, I have an other problem...=A0</div>
+<div>If I try to tune=A0my card to catch my DVB-S2 signal=A0with the parame=
+ter DVB-S2 d=E9modulation on szap-s2 (that seems normal...), szap-s2=A0don&=
+#39;t see and don&#39;t lock anything. </div>
+<div>But, if I try to tune my card to catch the same DVB-S2 signal with the=
+ parameter DVB-S demodulation on szap-s2, it lock the signal well ... of co=
+urse, it doesn&#39;t succeed to demodulated. </div>
+<div>That why I guess my problem is linked to the frontend, but I don&#39;t=
+ know how to check and correct...</div>
+<div>If someone have an idea?</div>
+<div>=A0</div>
+<div>For more information, in one hand, I have an Dektec Dta-107S2 modulato=
+r card, and on the other hand=A0I have an Hauppauge HVR-4000.</div>
+<div>=A0</div>
+<div>The application szap-s2 I try to use is :</div>
+<div>=A0</div>
+<div><a href=3D"http://mercurial.intuxication.org/hg/szap-s2">http://mercur=
+ial.intuxication.org/hg/szap-s2</a></div>
+<div><br><br>=A0</div>
+<div class=3D"gmail_quote">2009/5/7 BOUWSMA Barry <span dir=3D"ltr">&lt;<a =
+href=3D"mailto:freebeer.bouwsma@gmail.com">freebeer.bouwsma@gmail.com</a>&g=
+t;</span><br>
+<blockquote class=3D"gmail_quote" style=3D"PADDING-LEFT: 1ex; MARGIN: 0px 0=
+px 0px 0.8ex; BORDER-LEFT: #ccc 1px solid">
+<div class=3D"im">On Wed, 6 May 2009, armel frey wrote:<br><br>&gt; I have =
+a Hauppauge HVR-4000 and i would like to receive DVB-S2 !<br>&gt; The card =
+works well in DVB-S and seems to work with szap-s2, but my problem<br>&gt; =
+is that i have to receive DVB-S2 in Band L (950...2150MHz) and szap2 don&#3=
+9;t<br>
+&gt; tune this low fr=E9quency.<br><br></div>When I see the range of 950-21=
+50MHz, I think of the intermediate<br>frequency delivered from mixing the l=
+ocal oscillator with the<br>received signal, which is passed from the LNB o=
+utput through<br>
+the attached cable.<br><br>In reality, this is what is tuned, although most=
+ commonly one<br>makes use of the frequencies of the Ku band, which the tun=
+ing<br>utility then converts to the IF frequency:<br>tuning DVB-S to Freq: =
+2062000, Pol:H Srate=3D22000000, 22kHz tone=3Doff, LNB: 1<br>
+Event: =A0Frequency: 12662350<br><br>The same should be true for an LNB/dis=
+h to receive C-Band<br>signals, for example, something I&#39;ve not had any=
+ personal<br>experience, so I don&#39;t know how well it would be supported=
+<br>
+by the different utilities.<br><br>Do you have an example of a particular D=
+VB-S2 service which<br>you want to receive?<br><br>My guess would be that i=
+f you need to tune a particular<br>frequency in that range, say, 2062MHz in=
+ the above example,<br>
+you can achieve this by adding 9750 MHz -- the LO frequency<br>in the low r=
+ange of Universal Ku band LNBs, and then<br>attempting to tune that frequen=
+cy, whether that comes as the<br>IF from a Ku, or C or Ka band LNB of whate=
+ver type -- Universal<br>
+or otherwise.<br><br>Though I should hope that some utility will directly s=
+upport<br>specifying a frequency within the above bands directly, if<br>tha=
+t&#39;s what you&#39;re trying to do, or a non-universal-LNB LO<br>frequenc=
+y...<br>
+<font color=3D"#888888"><br><br>barry bouwsma<br></font></blockquote></div>=
+<br>
+
+--001636c594e506d6c50469525ab9--
+
+
+--===============2003291234==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============2003291234==--
