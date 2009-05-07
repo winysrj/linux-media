@@ -1,52 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet11.oracle.com ([141.146.126.233]:26304 "EHLO
-	acsinet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752859AbZESA6Y (ORCPT
+Received: from ch-smtp01.sth.basefarm.net ([80.76.149.212]:45081 "EHLO
+	ch-smtp01.sth.basefarm.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754162AbZEGNBa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 May 2009 20:58:24 -0400
-Date: Mon, 18 May 2009 18:00:34 -0700
-From: Randy Dunlap <randy.dunlap@oracle.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org
-Subject: [PATCH] media: one kconfig controls them all
-Message-Id: <20090518180034.cc38cb53.randy.dunlap@oracle.com>
+	Thu, 7 May 2009 09:01:30 -0400
+To: hermann pitton <hermann-pitton@arcor.de>
+cc: Anders Eriksson <aeriksson@fastmail.fm>,
+	linux-media@vger.kernel.org, video4linux-list@redhat.com,
+	Hartmut Hackmann <hartmut.hackmann@t-online.de>
+Subject: Re: saa7134/2.6.26 regression, noisy output
+In-reply-to: <1241565988.16938.15.camel@pc07.localdom.local>
+References: <20090503075609.0A73B2C4152@tippex.mynet.homeunix.org> <1241389925.4912.32.camel@pc07.localdom.local> <20090504091049.D931B2C4147@tippex.mynet.homeunix.org> <1241438755.3759.100.camel@pc07.localdom.local> <20090504195201.6ECF52C415B@tippex.mynet.homeunix.org> <1241565988.16938.15.camel@pc07.localdom.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Date: Thu, 07 May 2009 15:00:55 +0200
+From: Anders Eriksson <aeriksson@fastmail.fm>
+Message-Id: <20090507130055.E49D32C4165@tippex.mynet.homeunix.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Add a kconfig symbol that allows someone to disable all
-multimedia config options at one time.
+hermann-pitton@arcor.de said:
+> hmm, the idea eventually was, to download these two snapshots, or make the
+> last few changes manually on the first and try on 2.6.25.
+>
+> Then we might know, if the problem is already visible within Hartmut's latest
+> fix attempts or even more and other stuff is involved. 
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
----
- drivers/media/Kconfig |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+I see. I'll dig myself into hand applying those patches. It seems quite some 
+stuff changed between 2.6.25 and what those patches assumes. Let's see what I
+dig up.
 
---- lnx-2630-rc3.orig/drivers/media/Kconfig
-+++ lnx-2630-rc3/drivers/media/Kconfig
-@@ -2,8 +2,14 @@
- # Multimedia device configuration
- #
- 
--menu "Multimedia devices"
-+menuconfig MEDIA_SUPPORT
-+	tristate "Multimedia support"
- 	depends on HAS_IOMEM
-+	help
-+	  If you want to use Video for Linux, DVB for Linux, or DAB adapters,
-+	  enable this option and other options below.
-+
-+if MEDIA_SUPPORT
- 
- comment "Multimedia core support"
- 
-@@ -136,4 +142,4 @@ config USB_DABUSB
- 	  module will be called dabusb.
- endif # DAB
- 
--endmenu
-+endif # MEDIA_SUPPORT
+BR,
+-Anders
+
+
