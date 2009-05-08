@@ -1,62 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:58827 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751729AbZEZXxa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2009 19:53:30 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: linux-media@vger.kernel.org
-Subject: Fwd: [Linux-uvc-devel] Compilation error
-Date: Wed, 27 May 2009 01:57:55 +0200
-Cc: phil.lemelin@gmail.com
+Received: from an-out-0708.google.com ([209.85.132.251]:47850 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751060AbZEHIvZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2009 04:51:25 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200905270157.55653.laurent.pinchart@skynet.be>
+In-Reply-To: <20090505212139.GA2559@cmpxchg.org>
+References: <20090501181449.GA8912@cmpxchg.org>
+	 <1241430874-12667-1-git-send-email-hannes@cmpxchg.org>
+	 <20090505122442.6271c7da.akpm@linux-foundation.org>
+	 <20090505203807.GB2428@cmpxchg.org>
+	 <20090505140517.bef78dd3.akpm@linux-foundation.org>
+	 <20090505212139.GA2559@cmpxchg.org>
+Date: Fri, 8 May 2009 17:51:24 +0900
+Message-ID: <aec7e5c30905080151q5a4f4ebq1e743b534a5fc84a@mail.gmail.com>
+Subject: Re: [patch 1/3] mm: introduce follow_pte()
+From: Magnus Damm <magnus.damm@gmail.com>
+To: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	lethal@linux-sh.org, linux-mm@kvack.org,
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everybody,
-
-----------  Forwarded Message  ----------
-
-Subject: [Linux-uvc-devel] Compilation error
-Date: Tuesday 26 May 2009
-From: Phil Lemelin
-To: linux-uvc-devel@lists.berlios.de
-
-Hi uvc-devel list,
-
-I'm trying to get my usb camera to work ( 174f:8a34 Syntek ) on a older
-system ( 2.6.18-6, debian etch ) and I am not able to compile the source
-code found on the HG repository. The error I get is the following :
-
+On Wed, May 6, 2009 at 6:21 AM, Johannes Weiner <hannes@cmpxchg.org> wrote:
+> On Tue, May 05, 2009 at 02:05:17PM -0700, Andrew Morton wrote:
+>> On Tue, 5 May 2009 22:38:07 +0200
+>> Johannes Weiner <hannes@cmpxchg.org> wrote:
+>> > On Tue, May 05, 2009 at 12:24:42PM -0700, Andrew Morton wrote:
+>> > > On Mon,  4 May 2009 11:54:32 +0200
+>> > > Johannes Weiner <hannes@cmpxchg.org> wrote:
+>> > >
+>> > > > A generic readonly page table lookup helper to map an address space
+>> > > > and an address from it to a pte.
+>> > >
+>> > > umm, OK.
+>> > >
+>> > > Is there actually some point to these three patches?  If so, what is it?
+>> >
+>> > Magnus needs to check for physical contiguity of a VMAs backing pages
+>> > to support zero-copy exportation of video data to userspace.
+>> >
+>> > This series implements follow_pfn() so he can walk the VMA backing
+>> > pages and ensure their PFNs are in linear order.
+>> >
+>> > [ This patch can be collapsed with 2/3, I just thought it would be
+>> >   easier to read the diffs when having them separate. ]
+>> >
+>> > 1/3 and 2/3: factor out the page table walk from follow_phys() into
+>> > follow_pte().
+>> >
+>> > 3/3: implement follow_pfn() on top of follow_pte().
+>>
+>> So we could bundle these patches with Magnus's patchset, or we could
+>> consider these three patches as a cleanup or something.
+>>
+>> Given that 3/3 introduces an unused function, I'm inclined to sit tight
+>> and await Magnus's work.
 >
-> *snip*
-> CC [M]  /home/phil/uvcvideo-b7cdedd8e305/v4l/av7110_hw.o
-> /home/phil/uvcvideo-b7cdedd8e305/v4l/av7110_hw.c:294: error: expected
-> declaration specifiers or '...' before string constant
-> /home/phil/uvcvideo-b7cdedd8e305/v4l/av7110_hw.c:294: warning: data
-> definition has no type or storage class
-> /home/phil/uvcvideo-b7cdedd8e305/v4l/av7110_hw.c:294: warning: type
-> defaults to 'int' in declaration of 'MODULE_FIRMWARE'
-> /home/phil/uvcvideo-b7cdedd8e305/v4l/av7110_hw.c:294: warning: function
-> declaration isn't a prototype
-> make[3]: *** [/home/phil/uvcvideo-b7cdedd8e305/v4l/av7110_hw.o] Error 1
-> make[2]: *** [_module_/home/phil/uvcvideo-b7cdedd8e305/v4l] Error 2
-> make[2]: Leaving directory `/usr/src/linux-headers-2.6.18-6-686'
-> make[1]: *** [default] Error 2
-> make[1]: Leaving directory `/home/phil/uvcvideo-b7cdedd8e305/v4l'
-> make: *** [all] Error 2
+> Yeah, I didn't see the video guys responding on Magnus' patch yet, so
+> let's wait for them.
 >
+> Magnus, the actual conversion of your code should be trivial, could
+> you respin it on top of these three patches using follow_pfn() then?
 
--------------------------------------------------------
+So I tested the patches in -mm (1/3, 2/3, 3/3) together with the zero
+copy patch and everything seems fine. Feel free to add acks from me,
+least for patch 1/3 and 3/3 - i know too little about the generic case
+to say anything about 2/3.
 
-Is an update to v4l/versions.txt needed ?
+Acked-by: Magnus Damm <damm@igel.co.jp>
 
-Regards,
+I'll send V3 of my zero copy patch in a little while. Thanks a lot for the help!
 
-Laurent Pinchart
+Cheers,
 
+/ magnus
