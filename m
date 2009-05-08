@@ -1,130 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.wp.pl ([212.77.101.5]:30646 "EHLO mx1.wp.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751676AbZEWMF5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 May 2009 08:05:57 -0400
-Received: from chello084010244108.chello.pl (HELO [84.10.244.108]) (andrzej.hajda@[84.10.244.108])
-          (envelope-sender <andrzej.hajda@wp.pl>)
-          by smtp.wp.pl (WP-SMTPD) with SMTP
-          for <linux-media@vger.kernel.org>; 23 May 2009 14:05:54 +0200
-Message-ID: <4A17E6A9.4070409@wp.pl>
-Date: Sat, 23 May 2009 14:06:01 +0200
-From: AH <andrzej.hajda@wp.pl>
-MIME-Version: 1.0
+Received: from wa-out-1112.google.com ([209.85.146.183]:25488 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751211AbZEHIz4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2009 04:55:56 -0400
+Received: by wa-out-1112.google.com with SMTP id j5so763564wah.21
+        for <linux-media@vger.kernel.org>; Fri, 08 May 2009 01:55:56 -0700 (PDT)
+From: Magnus Damm <magnus.damm@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH] High resolution timer for cx88 remotes
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: mchehab@infradead.org, hverkuil@xs4all.nl, linux-mm@kvack.org,
+	lethal@linux-sh.org, hannes@cmpxchg.org,
+	Magnus Damm <magnus.damm@gmail.com>, akpm@linux-foundation.org
+Date: Fri, 08 May 2009 17:53:10 +0900
+Message-Id: <20090508085310.31326.38083.sendpatchset@rx1.opensource.se>
+Subject: [PATCH] videobuf-dma-contig: zero copy USERPTR support V3
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+From: Magnus Damm <damm@igel.co.jp>
 
-Some remotes requires short polling interval which in modern kernels is 
-below resolution of standard scheduler (schedule_delayed_work), this 
-causes problem of missed keystrokes. One of the solutions is to raise 
-kernel timer frequency, my proposition is to use high resolution timers 
-which are present in kernel since 2.6.16 (at least API AFAIK).
-I have encountered this problem on my Winfast 2000XP Expert, but after 
-checking cx88-input.c it seems that following cards can be affected also:
-WINFAST2000XP_EXPERT
-WINFAST_DTV1000
-WINFAST_TV2000_XP_GLOBAL
-PROLINK_PLAYTVPVR
-PIXELVIEW_PLAYTV_ULTRA_PRO
-PROLINK_PV_8000GT
-PROLINK_PV_GLOBAL_XTREME
-KWORLD_LTV883
-MSI_TVANYWHERE_MASTER
+This is V3 of the V4L2 videobuf-dma-contig USERPTR zero copy patch.
 
-Patched driver seems to work on my system, with kernel 2.6.28.
-I have removed kernel checks for versions below 2.6.20 - they were 
-because of API changes in scheduler.
+Since videobuf-dma-contig is designed to handle physically contiguous
+memory, this patch modifies the videobuf-dma-contig code to only accept
+a user space pointer to physically contiguous memory. For now only
+VM_PFNMAP vmas are supported, so forget hotplug.
 
-I have not tested it on older kernels.
+On SuperH Mobile we use this with our sh_mobile_ceu_camera driver
+together with various multimedia accelerator blocks that are exported to
+user space using UIO. The UIO kernel code exports physically contiguous
+memory to user space and lets the user space application mmap() this memory
+and pass a pointer using the USERPTR interface for V4L2 zero copy operation.
 
-Regards
-AH
+With this approach we support zero copy capture, hardware scaling and
+various forms of hardware encoding and decoding.
 
-diff -r 315bc4b65b4f linux/drivers/media/video/cx88/cx88-input.c
---- a/linux/drivers/media/video/cx88/cx88-input.c       Sun May 17 
-12:28:55 2009 +0000
-+++ b/linux/drivers/media/video/cx88/cx88-input.c       Sat May 23 
-14:04:17 2009 +0200
-@@ -23,10 +23,10 @@
-  */
+Signed-off-by: Magnus Damm <damm@igel.co.jp>
+---
 
+ Needs the following patches (Thanks to Johannes Weiner and akpm):
+ - mm-introduce-follow_pte.patch
+ - mm-use-generic-follow_pte-in-follow_phys.patch
+ - mm-introduce-follow_pfn.patch
+ 
+ Tested on SH7722 Migo-R with a hacked up capture.c
+
+ Changes since V2:
+ - use follow_pfn(), drop mm/memory.c changes
+
+ Changes since V1:
+ - minor cleanups and formatting changes
+ - use follow_phys() in videobuf-dma-contig instead of duplicating code
+ - since videobuf-dma-contig can be a module: EXPORT_SYMBOL(follow_phys)
+ - move CONFIG_HAVE_IOREMAP_PROT to always build follow_phys()
+
+ drivers/media/video/videobuf-dma-contig.c |   78 +++++++++++++++++++++++++++--
+ 1 file changed, 73 insertions(+), 5 deletions(-)
+
+--- 0013/drivers/media/video/videobuf-dma-contig.c
++++ work/drivers/media/video/videobuf-dma-contig.c	2009-05-08 15:57:21.000000000 +0900
+@@ -17,6 +17,7 @@
  #include <linux/init.h>
--#include <linux/delay.h>
- #include <linux/input.h>
- #include <linux/pci.h>
  #include <linux/module.h>
-+#include <linux/hrtimer.h>
-
- #include "compat.h"
- #include "cx88.h"
-@@ -49,7 +49,7 @@
-
-        /* poll external decoder */
-        int polling;
--       struct delayed_work work;
-+       struct hrtimer timer;
-        u32 gpio_addr;
-        u32 last_gpio;
-        u32 mask_keycode;
-@@ -144,31 +144,25 @@
-        }
- }
-
--#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20)
--static void cx88_ir_work(void *data)
--#else
--static void cx88_ir_work(struct work_struct *work)
--#endif
-+enum hrtimer_restart cx88_ir_work(struct hrtimer *timer)
- {
--#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20)
--       struct cx88_IR *ir = data;
--#else
--       struct cx88_IR *ir = container_of(work, struct cx88_IR, work.work);
--#endif
-+       unsigned long missed;
-+       struct cx88_IR *ir = container_of(timer, struct cx88_IR, timer);
-
-        cx88_ir_handle_key(ir);
--       schedule_delayed_work(&ir->work, msecs_to_jiffies(ir->polling));
-+       missed = hrtimer_forward_now(&ir->timer, ktime_set(0, 
-ir->polling * 1000000));
-+       if (missed > 1)
-+               ir_dprintk("Missed ticks %ld\n", missed - 1);
+ #include <linux/mm.h>
++#include <linux/pagemap.h>
+ #include <linux/dma-mapping.h>
+ #include <media/videobuf-dma-contig.h>
+ 
+@@ -25,6 +26,7 @@ struct videobuf_dma_contig_memory {
+ 	void *vaddr;
+ 	dma_addr_t dma_handle;
+ 	unsigned long size;
++	int is_userptr;
+ };
+ 
+ #define MAGIC_DC_MEM 0x0733ac61
+@@ -108,6 +110,66 @@ static struct vm_operations_struct video
+ 	.close    = videobuf_vm_close,
+ };
+ 
++static void videobuf_dma_contig_user_put(struct videobuf_dma_contig_memory *mem)
++{
++	mem->is_userptr = 0;
++	mem->dma_handle = 0;
++	mem->size = 0;
++}
 +
-+       return HRTIMER_RESTART;
- }
-
- void cx88_ir_start(struct cx88_core *core, struct cx88_IR *ir)
++static int videobuf_dma_contig_user_get(struct videobuf_dma_contig_memory *mem,
++					struct videobuf_buffer *vb)
++{
++	struct mm_struct *mm = current->mm;
++	struct vm_area_struct *vma;
++	unsigned long prev_pfn, this_pfn;
++	unsigned long pages_done, user_address;
++	int ret;
++
++	mem->size = PAGE_ALIGN(vb->size);
++	mem->is_userptr = 0;
++	ret = -EINVAL;
++
++	down_read(&mm->mmap_sem);
++
++	vma = find_vma(mm, vb->baddr);
++	if (!vma)
++		goto out_up;
++
++	if ((vb->baddr + mem->size) > vma->vm_end)
++		goto out_up;
++
++	pages_done = 0;
++	prev_pfn = 0; /* kill warning */
++	user_address = vb->baddr;
++
++	while (pages_done < (mem->size >> PAGE_SHIFT)) {
++		ret = follow_pfn(vma, user_address, &this_pfn);
++		if (ret)
++			break;
++
++		if (pages_done == 0)
++			mem->dma_handle = this_pfn << PAGE_SHIFT;
++		else if (this_pfn != (prev_pfn + 1))
++			ret = -EFAULT;
++
++		if (ret)
++			break;
++
++		prev_pfn = this_pfn;
++		user_address += PAGE_SIZE;
++		pages_done++;
++	}
++
++	if (!ret)
++		mem->is_userptr = 1;
++
++ out_up:
++	up_read(&current->mm->mmap_sem);
++
++	return ret;
++}
++
+ static void *__videobuf_alloc(size_t size)
  {
-        if (ir->polling) {
--#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20)
--               INIT_DELAYED_WORK(&ir->work, cx88_ir_work, ir);
--#else
--               INIT_DELAYED_WORK(&ir->work, cx88_ir_work);
--#endif
--               schedule_delayed_work(&ir->work, 0);
-+               hrtimer_init(&ir->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-+               ir->timer.function = cx88_ir_work;
-+               hrtimer_start(&ir->timer, ktime_set(0, ir->polling * 
-1000000), HRTIMER_MODE_REL);
-        }
-        if (ir->sampling) {
-                core->pci_irqmask |= PCI_INT_IR_SMPINT;
-@@ -185,7 +179,7 @@
-        }
-
-        if (ir->polling)
--               cancel_delayed_work_sync(&ir->work);
-+               hrtimer_cancel(&ir->timer);
+ 	struct videobuf_dma_contig_memory *mem;
+@@ -154,12 +216,11 @@ static int __videobuf_iolock(struct vide
+ 	case V4L2_MEMORY_USERPTR:
+ 		dev_dbg(q->dev, "%s memory method USERPTR\n", __func__);
+ 
+-		/* The only USERPTR currently supported is the one needed for
+-		   read() method.
+-		 */
++		/* handle pointer from user space */
+ 		if (vb->baddr)
+-			return -EINVAL;
++			return videobuf_dma_contig_user_get(mem, vb);
+ 
++		/* allocate memory for the read() method */
+ 		mem->size = PAGE_ALIGN(vb->size);
+ 		mem->vaddr = dma_alloc_coherent(q->dev, mem->size,
+ 						&mem->dma_handle, GFP_KERNEL);
+@@ -386,7 +447,7 @@ void videobuf_dma_contig_free(struct vid
+ 	   So, it should free memory only if the memory were allocated for
+ 	   read() operation.
+ 	 */
+-	if ((buf->memory != V4L2_MEMORY_USERPTR) || buf->baddr)
++	if (buf->memory != V4L2_MEMORY_USERPTR)
+ 		return;
+ 
+ 	if (!mem)
+@@ -394,6 +455,13 @@ void videobuf_dma_contig_free(struct vid
+ 
+ 	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
+ 
++	/* handle user space pointer case */
++	if (buf->baddr) {
++		videobuf_dma_contig_user_put(mem);
++		return;
++	}
++
++	/* read() method */
+ 	dma_free_coherent(q->dev, mem->size, mem->vaddr, mem->dma_handle);
+ 	mem->vaddr = NULL;
  }
-
- /* 
----------------------------------------------------------------------- */
-
