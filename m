@@ -1,40 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:44501 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754254AbZERG2V (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 May 2009 02:28:21 -0400
-Date: Mon, 18 May 2009 08:28:25 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "figo.zhang" <figo.zhang@kolorific.com>
-cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	figo1802@126.com, kraxel@bytesex.org,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH]saa7134-video.c: poll method lose race condition
-In-Reply-To: <1242612794.3442.19.camel@myhost>
-Message-ID: <Pine.LNX.4.64.0905180826380.4120@axis700.grange>
-References: <1242612794.3442.19.camel@myhost>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from devils.ext.ti.com ([198.47.26.153]:53704 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752737AbZEHN4n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2009 09:56:43 -0400
+Received: from dflp53.itg.ti.com ([128.247.5.6])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n48Duc0b005867
+	for <linux-media@vger.kernel.org>; Fri, 8 May 2009 08:56:43 -0500
+From: Chaithrika U S <chaithrika@ti.com>
+To: linux-media@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	Manjunath Hadli <mrh@ti.com>, Brijesh Jadav <brijesh.j@ti.com>,
+	Chaithrika U S <chaithrika@ti.com>
+Subject: [PATCH v3 0/4] ARM: DaVinci: DM646x Video: DM646x display driver
+Date: Fri,  8 May 2009 09:25:26 -0400
+Message-Id: <1241789126-23317-1-git-send-email-chaithrika@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 18 May 2009, figo.zhang wrote:
+Display driver for TI DM646x EVM
 
-> saa7134-video.c: poll method lose race condition
-> 
-> 
-> Signed-off-by: Figo.zhang <figo.zhang@kolorific.com>
+Signed-off-by: Manjunath Hadli <mrh@ti.com>
+Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+Signed-off-by: Chaithrika U S <chaithrika@ti.com>
 
-Hi,
+These patches add the display driver support for TI DM646x EVM.
+This patch set has been tested for basic display functionality for
+Composite and Component outputs.
 
-I am not sure why you decide to cc me on your sa7a34 patches. Those are 
-not the kind of devices I'm working with, so, don't think I'll be able to 
-help with your patches.
+This patch set consists of the updates based on the review comments by
+Hans Verkuil.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Patch 1: Display device platform and board setup
+Patch 2: VPIF driver
+Patch 3: DM646x display driver
+Patch 4: Makefile and config files modifications for Display
+
+Some of the features like the HBI/VBI support are not yet implemented. 
+Also there are some known issues in the code implementation like 
+fine tuning to be done to TRY_FMT ioctl.The USERPTR usage has not been 
+tested extensively.
+
+-Chaithrika
+
+
