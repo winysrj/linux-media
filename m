@@ -1,115 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2936 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752506AbZEXSCk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 May 2009 14:02:40 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id n4OI2bmU021145
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 24 May 2009 20:02:41 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 24 May 2009 20:02:37 +0200 (CEST)
-Message-Id: <200905241802.n4OI2bmU021145@smtp-vbr6.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from psmtp31.wxs.nl ([195.121.247.33]:32843 "EHLO psmtp31.wxs.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752274AbZEHRgb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 8 May 2009 13:36:31 -0400
+Received: from localhost.sitecomwl312
+ (ip545779c6.direct-adsl.nl [84.87.121.198])
+ by psmtp31.wxs.nl (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14
+ 2006)) with ESMTP id <0KJC000GC68PKB@psmtp31.wxs.nl> for
+ linux-media@vger.kernel.org; Fri, 08 May 2009 19:36:30 +0200 (CEST)
+Date: Fri, 08 May 2009 19:36:24 +0200
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: Re: Compro VideoMate U90
+In-reply-to: <66cf70750903100132q5e28217icd43df860585863c@mail.gmail.com>
+To: scott <scottlegs@gmail.com>
+Cc: linux-media@vger.kernel.org
+Message-id: <4A046D98.1070206@hoogenraad.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <66cf70750903092243v7c1ba7c0of95d0bdc836116be@mail.gmail.com>
+ <66cf70750903100132q5e28217icd43df860585863c@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
 
-Results of the daily build of v4l-dvb:
+No problem. Please send me the ID, which can be found with the command:
+lsusb -v
 
-date:        Sun May 24 19:00:04 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11827:41d2c77ae71f
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+scott wrote:
+> After investigating the Windows driver CD, the chip appeared to be
+> described as a RTL2831U.
+> 
+> This led me to the rtl2831-r2 driver here:
+> http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2/
+> 
+> The product ID of my device doesn't seem to be defined in this driver,
+> though many similar device based on the same chipset are. Is it
+> possible to add the ID for this device? I would be happy to test!
+> 
+> Regards,
+> Scott.
+> 
+> On Tue, Mar 10, 2009 at 2:43 PM, scott <scottlegs@gmail.com> wrote:
+>> Hi,
+>> I recently bought a Compro VideoMate U90, described on the box as a
+>> "USB 2.0 DVB-T Stick with Remote".
+>>
+>> When plugging it in, /var/log/messages simply says:
+>>
+>> Mar 10 12:50:49 sonata kernel: [60359.936022] usb 4-5: new high speed
+>> USB device using ehci_hcd and address 3
+>> Mar 10 12:50:49 sonata kernel: [60360.070474] usb 4-5: configuration
+>> #1 chosen from 1 choice
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-rc7-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-rc7-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-rc7-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-rc7-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-rc7-m32r: OK
-linux-2.6.22.19-mips: ERRORS
-linux-2.6.26-mips: ERRORS
-linux-2.6.27-mips: ERRORS
-linux-2.6.28-mips: ERRORS
-linux-2.6.29.1-mips: ERRORS
-linux-2.6.30-rc7-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-rc7-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-rc7-x86_64: WARNINGS
-sparse (linux-2.6.29.1): OK
-sparse (linux-2.6.30-rc7): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+-- 
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
