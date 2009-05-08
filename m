@@ -1,61 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-01.arcor-online.net ([151.189.21.41]:42771 "EHLO
-	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753502AbZEYW0N (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46585 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753670AbZEHUL5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 May 2009 18:26:13 -0400
-Subject: Re: [ivtv-devel] tveeprom cannot autodetect tuner! (FQ1216LME MK5)
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Martin Dauskardt <martin.dauskardt@gmx.de>
-Cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
-	Mike Isely <isely@isely.net>
-In-Reply-To: <200905252204.24321.martin.dauskardt@gmx.de>
-References: <200905210909.43333.martin.dauskardt@gmx.de>
-	 <1243038686.3164.34.camel@palomino.walls.org>
-	 <200905252134.43249.martin.dauskardt@gmx.de>
-	 <200905252204.24321.martin.dauskardt@gmx.de>
-Content-Type: text/plain
-Date: Tue, 26 May 2009 00:14:45 +0200
-Message-Id: <1243289685.3744.101.camel@pc07.localdom.local>
+	Fri, 8 May 2009 16:11:57 -0400
+Date: Fri, 8 May 2009 13:06:58 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Magnus Damm <magnus.damm@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	hverkuil@xs4all.nl, linux-mm@kvack.org, lethal@linux-sh.org,
+	hannes@cmpxchg.org, magnus.damm@gmail.com
+Subject: Re: [PATCH] videobuf-dma-contig: zero copy USERPTR support V3
+Message-Id: <20090508130658.813e29c1.akpm@linux-foundation.org>
+In-Reply-To: <20090508085310.31326.38083.sendpatchset@rx1.opensource.se>
+References: <20090508085310.31326.38083.sendpatchset@rx1.opensource.se>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Fri, 08 May 2009 17:53:10 +0900
+Magnus Damm <magnus.damm@gmail.com> wrote:
 
-Am Montag, den 25.05.2009, 22:04 +0200 schrieb Martin Dauskardt:
-> Am Montag, 25. Mai 2009 21:34:43 schrieb Martin Dauskardt:
+> From: Magnus Damm <damm@igel.co.jp>
 > 
-> > #define TUNER_PHILIPS_FM1216MK5         79
-> > result: picture o.k. , but audio disappears every few seconds (for about 1-2 
-> > seconds, then comes back) 
+> This is V3 of the V4L2 videobuf-dma-contig USERPTR zero copy patch.
 > 
-> correction: This is not a problem of tuner type 79. It happens also with tuner 
-> type 38. Sometimes the audio is also muted after the start of the 
-> application. Only switching to another input and back brings the audio back.
+> Since videobuf-dma-contig is designed to handle physically contiguous
+> memory, this patch modifies the videobuf-dma-contig code to only accept
+> a user space pointer to physically contiguous memory. For now only
+> VM_PFNMAP vmas are supported, so forget hotplug.
 > 
-> I am beginning to wonder if this problem may be related to a similar problem 
-> with the PVRUSB2:
-> http://www.isely.net/pipermail/pvrusb2/2009-May/002331.html
+> On SuperH Mobile we use this with our sh_mobile_ceu_camera driver
+> together with various multimedia accelerator blocks that are exported to
+> user space using UIO. The UIO kernel code exports physically contiguous
+> memory to user space and lets the user space application mmap() this memory
+> and pass a pointer using the USERPTR interface for V4L2 zero copy operation.
 > 
-> If there is a problem with the new v4l2 sub-device mechanism, it seems to be 
-> more specific to some devices than to others. With my PVR350 I didn't notice 
-> such problems - although I remember that in **very** rare cases the audio 
-> fails after a channel switch.  
+> With this approach we support zero copy capture, hardware scaling and
+> various forms of hardware encoding and decoding.
 > 
-> Greets, 
-> Martin
+> Signed-off-by: Magnus Damm <damm@igel.co.jp>
+> ---
 > 
+>  Needs the following patches (Thanks to Johannes Weiner and akpm):
+>  - mm-introduce-follow_pte.patch
+>  - mm-use-generic-follow_pte-in-follow_phys.patch
+>  - mm-introduce-follow_pfn.patch
 
-Ah, good to know. You better stay around 2.6.28 for testing tuners then.
+I'l plan to merge this and the above three into 2.6.31-rc1 unless it
+all gets shot down.
 
-I have reported already difficult to debug bugs on 2.6.29 with _some_
-devices and others on the same driver still work. I have again verified
-that they for sure do work on 2.6.30-rc2-git4 yesterday.
+> +static int videobuf_dma_contig_user_get(struct videobuf_dma_contig_memory *mem,
+> +					struct videobuf_buffer *vb)
+> +{
+> +	struct mm_struct *mm = current->mm;
+> +	struct vm_area_struct *vma;
+> +	unsigned long prev_pfn, this_pfn;
+> +	unsigned long pages_done, user_address;
+> +	int ret;
+> +
+> +	mem->size = PAGE_ALIGN(vb->size);
+> +	mem->is_userptr = 0;
+> +	ret = -EINVAL;
+> +
+> +	down_read(&mm->mmap_sem);
+> +
+> +	vma = find_vma(mm, vb->baddr);
+> +	if (!vma)
+> +		goto out_up;
+> +
+> +	if ((vb->baddr + mem->size) > vma->vm_end)
+> +		goto out_up;
+> +
+> +	pages_done = 0;
+> +	prev_pfn = 0; /* kill warning */
+> +	user_address = vb->baddr;
+> +
+> +	while (pages_done < (mem->size >> PAGE_SHIFT)) {
+> +		ret = follow_pfn(vma, user_address, &this_pfn);
+> +		if (ret)
+> +			break;
+> +
+> +		if (pages_done == 0)
+> +			mem->dma_handle = this_pfn << PAGE_SHIFT;
+> +		else if (this_pfn != (prev_pfn + 1))
+> +			ret = -EFAULT;
+> +
+> +		if (ret)
+> +			break;
+> +
+> +		prev_pfn = this_pfn;
+> +		user_address += PAGE_SIZE;
+> +		pages_done++;
+> +	}
+> +
+> +	if (!ret)
+> +		mem->is_userptr = 1;
+> +
+> + out_up:
+> +	up_read(&current->mm->mmap_sem);
+> +
+> +	return ret;
+> +}
 
-Cheers,
-Hermann
+If this function really so obvious and trivial that it is best to merge
+it without any documentation at all?  Has it been made as easy for
+others to maintain as we can possibly make it?
 
-(ivtv list removed, re-add if appropriate)
-
+What does it do, how does it do it and why does it do it?
