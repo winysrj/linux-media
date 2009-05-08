@@ -1,42 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from deliverator11.gatech.edu ([130.207.165.83]:44972 "EHLO
-	deliverator11.gatech.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750860AbZEMFlU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2009 01:41:20 -0400
-Received: from deliverator3.ecc.gatech.edu (deliverator3.ecc.gatech.edu [130.207.185.173])
-	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
-	(Client did not present a certificate)
-	by deliverator11.gatech.edu (Postfix) with ESMTP id DEABB181009
-	for <linux-media@vger.kernel.org>; Wed, 13 May 2009 01:10:43 -0400 (EDT)
-Message-ID: <4A0A5613.3000204@gatech.edu>
-Date: Wed, 13 May 2009 01:09:39 -0400
-From: David Ward <david.ward@gatech.edu>
+Received: from yw-out-2324.google.com ([74.125.46.30]:31663 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751207AbZEHNyi convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2009 09:54:38 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so835345ywb.1
+        for <linux-media@vger.kernel.org>; Fri, 08 May 2009 06:54:39 -0700 (PDT)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org
-Subject: v4l-dvb rev 11757 broke building under Ubuntu Hardy
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4A02C426.2030703@wowway.com>
+References: <4A02C426.2030703@wowway.com>
+Date: Fri, 8 May 2009 09:54:39 -0400
+Message-ID: <412bdbff0905080654m425b36a6naa540e3fc24343d@mail.gmail.com>
+Subject: Re: XC5000 improvements: call for testers!
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: "John R." <johnr@wowway.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am using v4l-dvb in order to add the cx18 driver under Ubuntu Hardy 
-(8.04).
+On Thu, May 7, 2009 at 7:21 AM, John R. <johnr@wowway.com> wrote:
+> After some off-list pointers by Devin, I tracked this down to user error.  I
+> thought I was compiling tip for xc5000-improvements-beta but was not.  This
+> is now working and composite input video works well on my 950Q.  I notice no
+> difference from previous version (wouldn't really expect to based on
+> changes).
+>
+> Thanks,
+>
+> John
 
-The build is currently broken under Hardy, which uses kernel 2.6.24.  I 
-have traced the origin of the problem to revision 11757.  As seen in the 
-latest cron job output, the build produces the error when trying to 
-compile adv7343.c:
+Glad to hear it's working for you.  If you're using composite, then
+you will not see the benefits of the tuning performance, but you
+*will* see the power management benefits.  This means the tuner chip
+won't be enabled when you're not watching TV, which will result in not
+causing as much drain on your battery (if you have a laptop) and the
+device will be much cooler.
 
-/usr/local/src/v4l-dvb/v4l/adv7343.c:506: error: array type has 
-incomplete element type
-/usr/local/src/v4l-dvb/v4l/adv7343.c:518: warning: initialization from 
-incompatible pointer type
-/usr/local/src/v4l-dvb/v4l/adv7343.c:520: error: unknown field 
-'id_table' specified in initializer
+I am still looking for strategies in the code so that the tuner is not
+enabled when capturing on composite or s-video (which will reduce
+power consumption further), but the code changes are non-trivial.
 
+Devin
 
-Thanks for resolving this.
-
-David Ward
+-- 
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
