@@ -1,85 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-12.arcor-online.net ([151.189.21.52]:44986 "EHLO
-	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752534AbZERDVE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 May 2009 23:21:04 -0400
-Subject: Re: [PATCH]saa7134-video.c: poll method lose race condition
-From: hermann pitton <hermann-pitton@arcor.de>
-To: "figo.zhang" <figo.zhang@kolorific.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>, g.liakhovetski@gmx.de,
-	linux-media@vger.kernel.org, figo1802@126.com, kraxel@bytesex.org,
-	Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <1242612794.3442.19.camel@myhost>
-References: <1242612794.3442.19.camel@myhost>
+Received: from mail.kolorific.com ([61.63.28.39]:60397 "EHLO
+	mail.kolorific.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755072AbZEHCa7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2009 22:30:59 -0400
+Subject: [PATCH][RESEND]saa7134-video.c: fix the block bug
+From: "figo.zhang" <figo.zhang@kolorific.com>
+To: kraxel@bytesex.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	figo1802@126.com
 Content-Type: text/plain
-Date: Mon, 18 May 2009 05:07:55 +0200
-Message-Id: <1242616075.3747.20.camel@pc07.localdom.local>
+Date: Fri, 08 May 2009 10:31:02 +0800
+Message-Id: <1241749862.3420.21.camel@myhost>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+when re-open or re-start (video_streamon), the q->curr would not be NULL in saa7134_buffer_queue(),
+and all the qbuf will add to q->queue list,no one to do activate to start DMA,and then no interrupt 
+would happened,so it will be block. 
 
-Am Montag, den 18.05.2009, 10:13 +0800 schrieb figo.zhang:
-> saa7134-video.c: poll method lose race condition
-> 
-> 
-> Signed-off-by: Figo.zhang <figo.zhang@kolorific.com>
-> --- 
-> drivers/media/video/saa7134/saa7134-video.c |    9 ++++++---
->  1 files changed, 6 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/video/saa7134/saa7134-video.c b/drivers/media/video/saa7134/saa7134-video.c
-> index 493cad9..95733df 100644
-> --- a/drivers/media/video/saa7134/saa7134-video.c
-> +++ b/drivers/media/video/saa7134/saa7134-video.c
-> @@ -1423,11 +1423,13 @@ video_poll(struct file *file, struct poll_table_struct *wait)
->  {
->  	struct saa7134_fh *fh = file->private_data;
->  	struct videobuf_buffer *buf = NULL;
-> +	unsigned int rc = 0;
->  
->  	if (V4L2_BUF_TYPE_VBI_CAPTURE == fh->type)
->  		return videobuf_poll_stream(file, &fh->vbi, wait);
->  
->  	if (res_check(fh,RESOURCE_VIDEO)) {
-> +		mutex_lock(&fh->cap.vb_lock);
->  		if (!list_empty(&fh->cap.stream))
->  			buf = list_entry(fh->cap.stream.next, struct videobuf_buffer, stream);
->  	} else {
-> @@ -1446,13 +1448,14 @@ video_poll(struct file *file, struct poll_table_struct *wait)
->  	}
->  
->  	if (!buf)
-> -		return POLLERR;
-> +		rc = POLLERR;
->  
->  	poll_wait(file, &buf->done, wait);
->  	if (buf->state == VIDEOBUF_DONE ||
->  	    buf->state == VIDEOBUF_ERROR)
-> -		return POLLIN|POLLRDNORM;
-> -	return 0;
-> +		rc = POLLIN|POLLRDNORM;
-> +	mutex_unlock(&fh->cap.vb_lock);
-> +	return rc;
->  
->  err:
->  	mutex_unlock(&fh->cap.vb_lock);
-> 
-> 
+In VIDEOBUF_NEEDS_INIT state , inital the curr pointer to be NULL int  the buffer_prepare().
 
-Can you please give some description on what your patch might do
-something?
+Signed-off-by: Figo.zhang <figo.zhang@kolorific.com>
+---
+ drivers/media/video/saa7134/saa7134-video.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Or are you a robot?
-
-Then, please give us your serial number, production year, and when we
-can expect you are out of duty and replaced ;)
-
-Cheers,
-Hermann
-
-
+diff --git a/drivers/media/video/saa7134/saa7134-video.c b/drivers/media/video/saa7134/saa7134-video.c
+index 493cad9..550d6ce 100644
+--- a/drivers/media/video/saa7134/saa7134-video.c
++++ b/drivers/media/video/saa7134/saa7134-video.c
+@@ -1057,6 +1057,7 @@ static int buffer_prepare(struct videobuf_queue *q,
+ 		buf->vb.field  = field;
+ 		buf->fmt       = fh->fmt;
+ 		buf->pt        = &fh->pt_cap;
++		dev->video_q.curr = NULL;
+ 
+ 		err = videobuf_iolock(q,&buf->vb,&dev->ovbuf);
+ 		if (err)
 
 
