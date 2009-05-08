@@ -1,14 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bay0-omc2-s18.bay0.hotmail.com ([65.54.246.154])
+Received: from psmtp08.wxs.nl ([195.121.247.22])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <richy_lane@hotmail.com>) id 1M48f3-0002d4-8B
-	for linux-dvb@linuxtv.org; Wed, 13 May 2009 09:13:53 +0200
-Message-ID: <BAY106-W2068AC6BD55AAC82AA765CFF610@phx.gbl>
-From: Rick Lane <richy_lane@hotmail.com>
-To: <linux-dvb@linuxtv.org>
-Date: Wed, 13 May 2009 08:13:16 +0100
-MIME-Version: 1.0
-Subject: Re: [linux-dvb] GDI Black Gold [14c7:0108] cx88 card
+	(envelope-from <jan-conceptronic@hoogenraad.net>) id 1M2To0-000692-Tt
+	for linux-dvb@linuxtv.org; Fri, 08 May 2009 19:24:17 +0200
+Received: from localhost.sitecomwl312
+	(ip545779c6.direct-adsl.nl [84.87.121.198])
+	by psmtp08.wxs.nl (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov
+	14 2006)) with ESMTP id <0KJC00LWL5NDIJ@psmtp08.wxs.nl> for
+	linux-dvb@linuxtv.org; Fri, 08 May 2009 19:23:43 +0200 (MEST)
+Date: Fri, 08 May 2009 19:23:36 +0200
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+In-reply-to: <1241775561.7996.8.camel@McM>
+To: Miguel <mcm@moviquity.com>
+Message-id: <4A046A98.40806@hoogenraad.net>
+MIME-version: 1.0
+References: <1241775561.7996.8.camel@McM>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVB-T USB stick  azurewave AD-TU200
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -17,116 +25,82 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1543302089=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1543302089==
-Content-Type: multipart/alternative;
-	boundary="_2a69d6f6-4496-4d54-b14f-5dfc3fbd8824_"
+Miguel:
 
---_2a69d6f6-4496-4d54-b14f-5dfc3fbd8824_
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Can you provide the version of the software you use, and the way you 
+have installed rtl2831u software (e.g. a link to the instructions) ?
 
+The latest version should be located at:
+http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2
 
-IN REPLY TO:
+This driver INDEED has no separate front-end: the MXL500x code is 
+incorporated integrally in the code.
+I did not know anybody with a rtl2831/MXL500x combination yet,
+as all users I know had a  rtl2831/MT2060 combination.
 
-> Hello=2C
->=20
-> I'm interested in getting this card working under Linux as well=2C it's=20
-> labelled GDI2500PCTV on the back=2C and has a Conexant CX23881 visible on=
-=20
-> the front=2C with a Philips "TU1216/1 H P" RF box...  Looks like there ma=
-y=20
-> be some more ICs under the metal box=2C but I'd have to desolder it to=20
-> check what they were (which I can do if necessary).
->=20
-> There seems to be TU1216 support in both v4l/saa7134-dvb.c and=20
-> v4l/budget-av.c (code cut-n-paste by the look of it)=2C but I can't see a=
-=20
-> way to select this tuner with the cx88xx module (e.g. CARDLIST.tuner).
->=20
-> So... I'm game for trying to get this working=2C and have a bit of kernel=
-=20
-> programming experience=2C but is there anything else I'm likely to need t=
-o=20
-> know before I set out on this?
-> Cheers!
->=20
-> Tim.
-Hi Tim=2C
+It should work without frontend, as the code is included.
 
-I've got two of these cards=2C and they give a really good picture in windo=
-ws so I'd love to be able to use them on my Myth box rather than ebay them =
-and get alternatives. I don't have any kernel programming experience but I'=
-m ready to roll my sleeves up and see what happens if you want a guinea pig=
-. My programming experience in the linux world goes as far as tweaking php =
-files and things like that. Currently have the full set of latest v4l-dvb d=
-rivers on my backend and plenty of opportunity to fiddle with the config et=
-c.=20
-
-Let me know if you wanna bang heads on this...
-Rick
-
---_2a69d6f6-4496-4d54-b14f-5dfc3fbd8824_
-Content-Type: text/html; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<html>
-<head>
-<style>
-.hmmessage P
-{
-margin:0px=3B
-padding:0px
-}
-body.hmmessage
-{
-font-size: 10pt=3B
-font-family:Verdana
-}
-</style>
-</head>
-<body class=3D'hmmessage'>
-IN REPLY TO:<br><br><pre>&gt=3B Hello=2C<br>&gt=3B <br>&gt=3B I'm intereste=
-d in getting this card working under Linux as well=2C it's <br>&gt=3B label=
-led GDI2500PCTV on the back=2C and has a Conexant CX23881 visible on <br>&g=
-t=3B the front=2C with a Philips "TU1216/1 H P" RF box...  Looks like there=
- may <br>&gt=3B be some more ICs under the metal box=2C but I'd have to des=
-older it to <br>&gt=3B check what they were (which I can do if necessary).<=
-br>&gt=3B <br>&gt=3B There seems to be TU1216 support in both v4l/saa7134-d=
-vb.c and <br>&gt=3B v4l/budget-av.c (code cut-n-paste by the look of it)=2C=
- but I can't see a <br>&gt=3B way to select this tuner with the cx88xx modu=
-le (e.g. CARDLIST.tuner).<br>&gt=3B <br>&gt=3B So... I'm game for trying to=
- get this working=2C and have a bit of kernel <br>&gt=3B programming experi=
-ence=2C but is there anything else I'm likely to need to <br>&gt=3B know be=
-fore I set out on this?<br>&gt=3B Cheers!<br>&gt=3B <br>&gt=3B Tim.<br></pr=
-e>Hi Tim=2C<br><br>I've got two of these cards=2C and they give a really go=
-od picture in windows so I'd love to be able to use them on my Myth box rat=
-her than ebay them and get alternatives. I don't have any kernel programmin=
-g experience but I'm ready to roll my sleeves up and see what happens if yo=
-u want a guinea pig. My programming experience in the linux world goes as f=
-ar as tweaking php files and things like that. Currently have the full set =
-of latest v4l-dvb drivers on my backend and plenty of opportunity to fiddle=
- with the config etc. <br><br>Let me know if you wanna bang heads on this..=
-.<br>Rick<br></body>
-</html>=
-
---_2a69d6f6-4496-4d54-b14f-5dfc3fbd8824_--
+Miguel wrote:
+> Hi all,
+> 
+> I am searching information about how to get my dvb-t usb stick works 
+> with my machine.
+> 
+> I currently using a ubuntu intrepid os. I have installed the rtl2831u 
+> drivers as it is recommended.
+> 
+> *TwinHan/AzureWave AD-TU200 (7047) DVB-T 
+> <http://www.twinhan.com/product_AD-TU200.asp> *
+> Uses a Realtek RTL2831U decoder chip and MaxLinear 
+> <http://www.linuxtv.org/wiki/index.php?title=MaxLinear&action=edit> 
+> MXL5003S <http://www.linuxtv.org/wiki/index.php/MXL5003S> tuner. USB ID 
+> is 13d3:3216. It seems to work with the realtek experimental driver (see 
+> freecom v4 above)
+> 
+> The problems I have found:
+> 
+> The found device  has not frontend:
+> 
+> mcm@McM:/usr/share/doc/dvb-utils$ tree /dev/dvb/adapter0/
+> /dev/dvb/adapter0/
+> |-- demux0
+> |-- dvr0
+> `-- net0
+> 
+> So when scanning it fails
+> scanning /usr/share/doc/dvb-utils/examples/scan/dvb-s/Astra-19.2E
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> main:2247: FATAL: failed to open '/dev/dvb/adapter0/frontend0': 2 No 
+> such file or directory
+> 
+> Other problem I found, which GUI is recommended to be used?
+> 
+> thank you in advance,
+> 
+> Miguel
+> 
+> 
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
 
---===============1543302089==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- 
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1543302089==--
