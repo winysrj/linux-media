@@ -1,65 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:62591 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756177AbZELHFg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2009 03:05:36 -0400
-Subject: Re: [PATCH 0/2] V4L: Add BCM2048 radio driver
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-Reply-To: ext-eero.nurkkala@nokia.com
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <200905120851.48875.hverkuil@xs4all.nl>
-References: <1242024079959-git-send-email-ext-eero.nurkkala@nokia.com>
-	 <200905120851.48875.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Tue, 12 May 2009 10:03:42 +0300
-Message-Id: <1242111822.19944.75.camel@eenurkka-desktop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2847 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752083AbZEISH5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 9 May 2009 14:07:57 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id n49I7ubg005979
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 9 May 2009 20:07:56 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 9 May 2009 20:07:56 +0200 (CEST)
+Message-Id: <200905091807.n49I7ubg005979@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2009-05-12 at 08:51 +0200, ext Hans Verkuil wrote:
-> 
-> I recommend that you move the RDS decoder code into an rds library in the 
-> v4l2-apps directory of the v4l-dvb tree. As you say, the rds decoder 
-> implementation does not belong in the driver, but it would be very nice to 
-> have it as a library.
-> 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Quick question, is there a RDS decoder library already out there?
-Or would it be the case it needs to be done from the scratch?
+Results of the daily build of v4l-dvb:
 
+date:        Sat May  9 19:00:05 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11721:59f970bfcf5f
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-> Such region tables do not belong in a driver IMHO. These too should go to a 
-> userspace library (libv4l2util? It already contains frequency tables for 
-> TV).
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-rc4-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-rc4-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-rc4-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-rc4-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-rc4-m32r: OK
+linux-2.6.22.19-mips: ERRORS
+linux-2.6.26-mips: ERRORS
+linux-2.6.27-mips: ERRORS
+linux-2.6.28-mips: ERRORS
+linux-2.6.29.1-mips: ERRORS
+linux-2.6.30-rc4-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-rc4-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-rc4-x86_64: WARNINGS
+sparse (linux-2.6.29.1): OK
+sparse (linux-2.6.30-rc4): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-That's correct. Is there a link to this library?
+Detailed results are available here:
 
-> A more general comment: this driver should be split into two parts: the 
-> radio tuner core should really be implemented using the tuner API similar 
-> to the tea5767 radio tuner driver. That way this radio tuner driver can be 
-> reused when it is placed on e.g. a TV tuner card. However, the tuner API is 
-> missing functionality for e.g. RDS. Alternatively, the core driver can be 
-> rewritten as an v4l2_subdev driver, again allowing reuse in other drivers.
-> 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-Hmm. This chip is integrated on Bluetooth silicon, so could you please
-elaborate how it could be reused with a TV tuner? (Maybe I didn't just
-get the point, or if the manufacturer decides to integrate (in the
-future) the chip with TV tuner card, or someone wishes to use other
-manufacturers' TV tuner, but this radio chip at the same time?)
+Full logs are available here:
 
-> I would like to see some input from others on this. I think that it would 
-> help the integration of v4l and dvb enormously if dvb starts using the 
-> standard i2c kernel API: that API offers all the functionality that dvb 
-> needs now that it no longer uses autoprobing. Perhaps a topic for the 
-> Plumbers conference later this year?
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
+The V4L2 specification from this daily build is here:
 
-All comments welcome,
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
-- Eero
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
