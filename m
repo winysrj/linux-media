@@ -1,104 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f191.google.com ([209.85.216.191]:37331 "EHLO
-	mail-px0-f191.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752334AbZERIZt (ORCPT
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:48160 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752087AbZEJMwn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 May 2009 04:25:49 -0400
-Received: by pxi29 with SMTP id 29so1853874pxi.33
-        for <linux-media@vger.kernel.org>; Mon, 18 May 2009 01:25:49 -0700 (PDT)
-MIME-Version: 1.0
-Date: Mon, 18 May 2009 16:25:49 +0800
-Message-ID: <15ed362e0905180125v649545f0t204ca843e72d2758@mail.gmail.com>
-Subject: [PATCH] cx23885: support for card Mygica X8506 DMB-TH
-From: David Wong <davidtlwong@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: multipart/mixed; boundary=0016364585b6b0ab3f046a2b8a19
+	Sun, 10 May 2009 08:52:43 -0400
+Received: by fxm2 with SMTP id 2so2196317fxm.37
+        for <linux-media@vger.kernel.org>; Sun, 10 May 2009 05:52:42 -0700 (PDT)
+Date: Sun, 10 May 2009 08:52:58 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: Andy Walls <awalls@radix.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	video4linux-list@redhat.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH] FM1216ME_MK3 some changes
+Message-ID: <20090510085258.03068a1e@glory.loctelecom.ru>
+In-Reply-To: <1241916185.3694.8.camel@pc07.localdom.local>
+References: <20090422174848.1be88f61@glory.loctelecom.ru>
+	<1240452534.3232.70.camel@palomino.walls.org>
+	<20090423203618.4ac2bc6f@glory.loctelecom.ru>
+	<1240537394.3231.37.camel@palomino.walls.org>
+	<20090427192905.3ad2b88c@glory.loctelecom.ru>
+	<20090428151832.241fa9b4@pedra.chehab.org>
+	<20090428195922.1a079e46@glory.loctelecom.ru>
+	<1240974643.4280.24.camel@pc07.localdom.local>
+	<20090429201225.6ba681cf@glory.loctelecom.ru>
+	<1241050556.3710.109.camel@pc07.localdom.local>
+	<20090506044231.31f2d8aa@glory.loctelecom.ru>
+	<1241654513.5862.37.camel@pc07.localdom.local>
+	<1241665384.3147.53.camel@palomino.walls.org>
+	<1241741304.4864.29.camel@pc07.localdom.local>
+	<1241834493.3482.140.camel@palomino.walls.org>
+	<1241836025.3717.9.camel@pc07.localdom.local>
+	<1241916185.3694.8.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0016364585b6b0ab3f046a2b8a19
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Hi All.
 
-This patch add cx23885 support for card "Mygica X8506 DMB-TH".
-It should work on "Magic-Pro ProHDTV Extreme" as well, as they are
-same hardware with different branding.
+> [snip]
+> > > 
+> > > Channel designations I dug out of ivtv-tune:
+> > > 
+> > > S38 439.250 MHz (European cable)
+> > > H18 439.250 MHz (SECAM France)
+> > > 47  440.250 MHz (PAL China)
+> > > 059 440.250 MHz (PAL Argentina)
+> > > 
+> > > come close, but are unaffected by the change from 442 to 441 as
+> > > the bandswitch cutover point.  These channels fall right on top
+> > > of the cutover, but are not affected by the proposed change in
+> > > any meaningful way.  The VHF-High filter and VCO would still be
+> > > used.  Dmitri's proposed change is a "don't care" unless the
+> > > cutover point is changed to 440 MHz. 
+> > > 
+> > > 
+> > > Let's pretend that the proposed cutover point is 440 MHz.
+> 
+> NO! it is not
+> 
+> Dmitri,
+> 
+> can you cut one off and tell us what it is all about ?
+> 
+> Unless you do so, all other is pointless and I likely stop to
+> participate in such stuff.
 
-Cheers,
-David T.L. Wong
+Sorry my delay. I lost subject of discussion. What main question??
 
---0016364585b6b0ab3f046a2b8a19
-Content-Type: text/x-diff; charset=US-ASCII; name="mygica_x8506_dmbth.patch"
-Content-Disposition: attachment; filename="mygica_x8506_dmbth.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fuuwul940
+1. AGC TOP of RF part - I think need support for MK3
+2. Changing to 441MHz is not critical. We can write some information about this case to Wiki or docs.
 
-ZGlmZiAtciBjOWUyZmJhYmVkMTEgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1L2N4
-MjM4ODUtY2FyZHMuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4MjM4ODUvY3gy
-Mzg4NS1jYXJkcy5jCU1vbiBNYXkgMTggMTU6MTQ6MDMgMjAwOSArMDgwMAorKysgYi9saW51eC9k
-cml2ZXJzL21lZGlhL3ZpZGVvL2N4MjM4ODUvY3gyMzg4NS1jYXJkcy5jCU1vbiBNYXkgMTggMTU6
-NTM6MjUgMjAwOSArMDgwMApAQCAtMTk4LDYgKzE5OCwxMCBAQAogCQkubmFtZQkJPSAiSGF1cHBh
-dWdlIFdpblRWLUhWUjEyMTAiLAogCQkucG9ydGMJCT0gQ1gyMzg4NV9NUEVHX0RWQiwKIAl9LAor
-CVtDWDIzODg1X0JPQVJEX01ZR0lDQV9YODUwNl0gPSB7CisJCS5uYW1lCQk9ICJNeWdpY2EgWDg1
-MDYgRE1CLVRIIiwKKwkJLnBvcnRiCQk9IENYMjM4ODVfTVBFR19EVkIsCisJfSwKIH07CiBjb25z
-dCB1bnNpZ25lZCBpbnQgY3gyMzg4NV9iY291bnQgPSBBUlJBWV9TSVpFKGN4MjM4ODVfYm9hcmRz
-KTsKIApAQCAtMzE3LDYgKzMyMSwxMCBAQAogCQkuc3VidmVuZG9yID0gMHgwMDcwLAogCQkuc3Vi
-ZGV2aWNlID0gMHgyMjk1LAogCQkuY2FyZCAgICAgID0gQ1gyMzg4NV9CT0FSRF9IQVVQUEFVR0Vf
-SFZSMTIxMCwKKwl9LCB7CisJCS5zdWJ2ZW5kb3IgPSAweDE0ZjEsCisJCS5zdWJkZXZpY2UgPSAw
-eDg2NTEsCisJCS5jYXJkICAgICAgPSBDWDIzODg1X0JPQVJEX01ZR0lDQV9YODUwNiwKIAl9LAog
-fTsKIGNvbnN0IHVuc2lnbmVkIGludCBjeDIzODg1X2lkY291bnQgPSBBUlJBWV9TSVpFKGN4MjM4
-ODVfc3ViaWRzKTsKQEAgLTcwNyw2ICs3MTUsMTUgQEAKIAkJbWRlbGF5KDIwKTsKIAkJY3gyMzg4
-NV9ncGlvX3NldChkZXYsIEdQSU9fOSk7CiAJCWJyZWFrOworCWNhc2UgQ1gyMzg4NV9CT0FSRF9N
-WUdJQ0FfWDg1MDY6CisJCS8qIEdQSU8tMSByZXNldCBYQzUwMDAgKi8KKwkJLyogR1BJTy0yIHJl
-c2V0IExHUzhHTDUgKi8KKwkJY3hfc2V0KEdQMF9JTywgMHgwMDA2MDAwMCk7CisJCWN4X2NsZWFy
-KEdQMF9JTywgMHgwMDAwMDAwNik7CisJCW1kZWxheSgxMDApOworCQljeF9zZXQoR1AwX0lPLCAw
-eDAwMDYwMDA2KTsKKwkJbWRlbGF5KDEwMCk7CisJCWJyZWFrOwogCX0KIH0KIApAQCAtODEwLDYg
-KzgyNywxMSBAQAogCQl0czItPnRzX2Nsa19lbl92YWwgPSAweDE7IC8qIEVuYWJsZSBUU19DTEsg
-Ki8KIAkJdHMyLT5zcmNfc2VsX3ZhbCAgID0gQ1gyMzg4NV9TUkNfU0VMX1BBUkFMTEVMX01QRUdf
-VklERU87CiAJCWJyZWFrOworCWNhc2UgQ1gyMzg4NV9CT0FSRF9NWUdJQ0FfWDg1MDY6CisJCXRz
-MS0+Z2VuX2N0cmxfdmFsICA9IDB4NTsgLyogUGFyYWxsZWwgKi8KKwkJdHMxLT50c19jbGtfZW5f
-dmFsID0gMHgxOyAvKiBFbmFibGUgVFNfQ0xLICovCisJCXRzMS0+c3JjX3NlbF92YWwgICA9IENY
-MjM4ODVfU1JDX1NFTF9QQVJBTExFTF9NUEVHX1ZJREVPOworCQlicmVhazsKIAljYXNlIENYMjM4
-ODVfQk9BUkRfSEFVUFBBVUdFX0hWUjEyNTA6CiAJY2FzZSBDWDIzODg1X0JPQVJEX0hBVVBQQVVH
-RV9IVlIxNTAwOgogCWNhc2UgQ1gyMzg4NV9CT0FSRF9IQVVQUEFVR0VfSFZSMTUwMFE6CmRpZmYg
-LXIgYzllMmZiYWJlZDExIGxpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyMzg4NS9jeDIzODg1
-LWR2Yi5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyMzg4NS9jeDIzODg1LWR2
-Yi5jCU1vbiBNYXkgMTggMTU6MTQ6MDMgMjAwOSArMDgwMAorKysgYi9saW51eC9kcml2ZXJzL21l
-ZGlhL3ZpZGVvL2N4MjM4ODUvY3gyMzg4NS1kdmIuYwlNb24gTWF5IDE4IDE1OjUzOjI1IDIwMDkg
-KzA4MDAKQEAgLTUwLDYgKzUwLDcgQEAKICNpbmNsdWRlICJsbmJoMjQuaCIKICNpbmNsdWRlICJj
-eDI0MTE2LmgiCiAjaW5jbHVkZSAiY2ltYXgyLmgiCisjaW5jbHVkZSAibGdzOGd4eC5oIgogI2lu
-Y2x1ZGUgIm5ldHVwLWVlcHJvbS5oIgogI2luY2x1ZGUgIm5ldHVwLWluaXQuaCIKICNpbmNsdWRl
-ICJsZ2R0MzMwNS5oIgpAQCAtNDE3LDEwICs0MTgsMjkgQEAKIAkuZGVtb2RfYWRkcmVzcyA9IDB4
-MDUsCiB9OwogCitzdGF0aWMgc3RydWN0IGxnczhneHhfY29uZmlnIG15Z2ljYV94ODUwNl9sZ3M4
-Z2w1X2NvbmZpZyA9IHsKKwkucHJvZCA9IExHUzhHWFhfUFJPRF9MR1M4R0w1LAorCS5kZW1vZF9h
-ZGRyZXNzID0gMHgxOSwKKwkuc2VyaWFsX3RzID0gMCwKKwkudHNfY2xrX3BvbCA9IDEsCisJLnRz
-X2Nsa19nYXRlZCA9IDEsCisJLmlmX2Nsa19mcmVxID0gMzA0MDAsIC8qIDMwLjQgTUh6ICovCisJ
-LmlmX2ZyZXEgPSA1MzgwLCAvKiA1LjM4IE1IeiAqLworCS5pZl9uZWdfY2VudGVyID0gMSwKKwku
-ZXh0X2FkYyA9IDAsCisJLmFkY19zaWduZWQgPSAwLAorCS5pZl9uZWdfZWRnZSA9IDAsCit9Owor
-CitzdGF0aWMgc3RydWN0IHhjNTAwMF9jb25maWcgbXlnaWNhX3g4NTA2X3hjNTAwMF9jb25maWcg
-PSB7CisJLmkyY19hZGRyZXNzID0gMHg2MSwKKwkuaWZfa2h6ID0gNTM4MCwKK307CisKIHN0YXRp
-YyBpbnQgZHZiX3JlZ2lzdGVyKHN0cnVjdCBjeDIzODg1X3RzcG9ydCAqcG9ydCkKIHsKIAlzdHJ1
-Y3QgY3gyMzg4NV9kZXYgKmRldiA9IHBvcnQtPmRldjsKLQlzdHJ1Y3QgY3gyMzg4NV9pMmMgKmky
-Y19idXMgPSBOVUxMOworCXN0cnVjdCBjeDIzODg1X2kyYyAqaTJjX2J1cyA9IE5VTEwsICppMmNf
-YnVzMiA9IE5VTEw7CiAJc3RydWN0IHZpZGVvYnVmX2R2Yl9mcm9udGVuZCAqZmUwOwogCWludCBy
-ZXQ7CiAKQEAgLTc0Miw2ICs3NjIsMTkgQEAKIAkJCWJyZWFrOwogCQl9CiAJCWJyZWFrOworCWNh
-c2UgQ1gyMzg4NV9CT0FSRF9NWUdJQ0FfWDg1MDY6CisJCWkyY19idXMgPSAmZGV2LT5pMmNfYnVz
-WzBdOworCQlpMmNfYnVzMiA9ICZkZXYtPmkyY19idXNbMV07CisJCWZlMC0+ZHZiLmZyb250ZW5k
-ID0gZHZiX2F0dGFjaChsZ3M4Z3h4X2F0dGFjaCwKKwkJCSZteWdpY2FfeDg1MDZfbGdzOGdsNV9j
-b25maWcsCisJCQkmaTJjX2J1cy0+aTJjX2FkYXApOworCQlpZiAoZmUwLT5kdmIuZnJvbnRlbmQg
-IT0gTlVMTCkgeworCQkJZHZiX2F0dGFjaCh4YzUwMDBfYXR0YWNoLAorCQkJCWZlMC0+ZHZiLmZy
-b250ZW5kLAorCQkJCSZpMmNfYnVzMi0+aTJjX2FkYXAsCisJCQkJJm15Z2ljYV94ODUwNl94YzUw
-MDBfY29uZmlnKTsKKwkJfQorCQlicmVhazsKIAlkZWZhdWx0OgogCQlwcmludGsoS0VSTl9JTkZP
-ICIlczogVGhlIGZyb250ZW5kIG9mIHlvdXIgRFZCL0FUU0MgY2FyZCAiCiAJCQkiIGlzbid0IHN1
-cHBvcnRlZCB5ZXRcbiIsCmRpZmYgLXIgYzllMmZiYWJlZDExIGxpbnV4L2RyaXZlcnMvbWVkaWEv
-dmlkZW8vY3gyMzg4NS9jeDIzODg1LmgKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9j
-eDIzODg1L2N4MjM4ODUuaAlNb24gTWF5IDE4IDE1OjE0OjAzIDIwMDkgKzA4MDAKKysrIGIvbGlu
-dXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1L2N4MjM4ODUuaAlNb24gTWF5IDE4IDE1OjUz
-OjI1IDIwMDkgKzA4MDAKQEAgLTc2LDYgKzc2LDcgQEAKICNkZWZpbmUgQ1gyMzg4NV9CT0FSRF9I
-QVVQUEFVR0VfSFZSMTI3NSAgICAgICAgMTkKICNkZWZpbmUgQ1gyMzg4NV9CT0FSRF9IQVVQUEFV
-R0VfSFZSMTI1NSAgICAgICAgMjAKICNkZWZpbmUgQ1gyMzg4NV9CT0FSRF9IQVVQUEFVR0VfSFZS
-MTIxMCAgICAgICAgMjEKKyNkZWZpbmUgQ1gyMzg4NV9CT0FSRF9NWUdJQ0FfWDg1MDYgICAgICAg
-ICAgICAgMjIKIAogI2RlZmluZSBHUElPXzAgMHgwMDAwMDAwMQogI2RlZmluZSBHUElPXzEgMHgw
-MDAwMDAwMgo=
---0016364585b6b0ab3f046a2b8a19--
+With my best regards, Dmitry.
+
+> 
+> Cheers,
+> Hermann
+> 
+> 
+> 
+> 
+> 
