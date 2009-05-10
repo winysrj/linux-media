@@ -1,161 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web25804.mail.ukl.yahoo.com ([217.12.10.189]:45644 "HELO
-	web25804.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1765531AbZEAWd2 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 May 2009 18:33:28 -0400
-Message-ID: <475610.5602.qm@web25804.mail.ukl.yahoo.com>
-Date: Fri, 1 May 2009 22:26:47 +0000 (GMT)
-From: m8hpw@yahoo.fr
-Reply-To: m8hpw@yahoo.fr
-Subject: dib3000 (dvb) driver bug with ubuntu 9.04 (2.6.28 kernel)?
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1039 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752292AbZEJSIA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 May 2009 14:08:00 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id n4AI7qJY007165
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 10 May 2009 20:08:00 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 10 May 2009 20:07:52 +0200 (CEST)
+Message-Id: <200905101808.n4AI7qJY007165@smtp-vbr13.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
+Results of the daily build of v4l-dvb:
 
-Hello,
+date:        Sun May 10 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11722:ee3b79edde3f
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Since a couple of years, I use a WinFast DTV Dongle (dib3000mc) on a ASUS (intel) laptop without any trouble. It works with ubuntu 8.04. The quality is perfect
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-rc4-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-rc4-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-rc4-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-rc4-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-rc4-m32r: OK
+linux-2.6.22.19-mips: ERRORS
+linux-2.6.26-mips: ERRORS
+linux-2.6.27-mips: ERRORS
+linux-2.6.28-mips: ERRORS
+linux-2.6.29.1-mips: ERRORS
+linux-2.6.30-rc4-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-rc4-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-rc4-x86_64: WARNINGS
+sparse (linux-2.6.29.1): OK
+sparse (linux-2.6.30-rc4): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-I use now the same dongle on a recent laptop PC based on a GA-MA78GM-US2H mother board and the quality of the image is very bad and the soft (me-tv) rebuffer very often. It is unlikely a probleme of signal strength, because on the same antenna plug, the dvb works very well with the laptop, and very bad with the desktop computer. See below some informations about the dvb with the two configrations : laptop and the desktop computer.
+Detailed results are available here:
 
-I noticed that there are some differences between the loaded modules. i2c_core and usbcore are abscent with ubuntu 9.04. Is it normal? Morever if you carefully look at the dvbtraffic, it is lower for the LAPTOP for a same program. This is very repetive behaviour. It is not normal.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Does anyone have an idea of whats wrong with the LAPTOP configuration.
+Full logs are available here:
 
-Thanks.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-Julien R.
+The V4L2 specification from this daily build is here:
 
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
-***********************************************
-LAPTOP (GOOD image quality)
+The DVB API specification from this daily build is here:
 
-uname -a :
-Linux portable 2.6.24-23-generic #1 SMP Wed Apr 1 21:47:28 UTC 2009 i686 GNU/Linux
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
-lsusb:
-Bus 005 Device 011: ID 0413:6026 Leadtek Research, Inc. WinFast DTV Dongle (warm state)
-
-
-lsmod | grep dvb
-dvb_usb_dibusb_mc       6400  0
-dvb_usb_dibusb_common    10756  1 dvb_usb_dibusb_mc
-dib3000mc              13960  2 dvb_usb_dibusb_common
-dvb_usb                19852  2 dvb_usb_dibusb_mc,dvb_usb_dibusb_common
-dvb_core               81404  1 dvb_usb
-i2c_core               24832  4 mt2060,dib3000mc,dibx000_common,dvb_usb
-usbcore               146412  5 dvb_usb_dibusb_mc,dvb_usb,ehci_hcd,uhci_hcd
-
-tzap "ARTE"
-status 1f | signal c058 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-
-dvbtraffic
-0000     9 p/s     1 kb/s    14 kbit
-0010     5 p/s     0 kb/s     8 kbit
-0011     0 p/s     0 kb/s     1 kbit
-0012    12 p/s     2 kb/s    19 kbit
-0015     1 p/s     0 kb/s     2 kbit
-006e     9 p/s     1 kb/s    14 kbit
-0078  1697 p/s   311 kb/s  2553 kbit
-0082   132 p/s    24 kb/s   198 kbit
-008c    32 p/s     5 kb/s    49 kbit
-00d2     9 p/s     1 kb/s    14 kbit
-00dc  2189 p/s   401 kb/s  3292 kbit
-00e6   132 p/s    24 kb/s   198 kbit
-00f0     3 p/s     0 kb/s     5 kbit
-0136     9 p/s     1 kb/s    14 kbit
-0140  1527 p/s   280 kb/s  2296 kbit
-014a   131 p/s    24 kb/s   197 kbit
-0154     1 p/s     0 kb/s     2 kbit
-01fe     9 p/s     1 kb/s    14 kbit
-0208  2104 p/s   386 kb/s  3164 kbit
-0212   131 p/s    24 kb/s   197 kbit
-0213   132 p/s    24 kb/s   198 kbit
-021c     1 p/s     0 kb/s     2 kbit
-021d     2 p/s     0 kb/s     4 kbit
-021e     2 p/s     0 kb/s     4 kbit
-0262     9 p/s     1 kb/s    14 kbit
-026c  1688 p/s   309 kb/s  2539 kbit
-0276   132 p/s    24 kb/s   198 kbit
-0280     2 p/s     0 kb/s     4 kbit
-0294    13 p/s     2 kb/s    20 kbit
-02c6     9 p/s     1 kb/s    14 kbit
-02d0  5437 p/s   998 kb/s  8178 kbit
-02da   131 p/s    24 kb/s   197 kbit
-03f2     9 p/s     1 kb/s    14 kbit
-1fff   823 p/s   151 kb/s  1239 kbit
-2000 16557 p/s  3039 kb/s 24901 kbit
-
-************************************************
-DESKTOP (very bad image)
-
-system ubuntu jaunty
-Linux xxx 2.6.28-11-generic #42-Ubuntu SMP Fri Apr 17 01:57:59
-UTC 2009 i686 GNU/Linux
-AMD
-Mother board GA-MA78GM-US2H (USB controler : amd sb700)
-
-lsusb
-Bus 001 Device 006: ID 0413:6026 Leadtek Research, Inc. WinFast DTV Dongle (warm state)
-
-lsmod |grep dvb
-dvb_usb_dibusb_mc      13056  0
-dvb_usb_dibusb_common    16772  1 dvb_usb_dibusb_mc
-dib3000mc              20488  2 dvb_usb_dibusb_common
-dvb_usb                24332  2 dvb_usb_dibusb_mc,dvb_usb_dibusb_common
-dvb_core               92032  1 dvb_usb
-
-
-tzap "ARTE"
-tuning to 586167000 Hz
-video pid 0x0208, audio pid 0x0212
-status 1f | signal cbfc | snr 0000 | ber 001fffff | unc 00000013 | FE_HAS_LOCK
-...
-
-dvbtraffic
-0000     9 p/s     1 kb/s    14 kbit
-0012    10 p/s     1 kb/s    16 kbit
-0015     1 p/s     0 kb/s     2 kbit
-006e     9 p/s     1 kb/s    14 kbit
-0078  1757 p/s   322 kb/s  2643 kbit
-0082   127 p/s    23 kb/s   191 kbit
-008c     3 p/s     0 kb/s     5 kbit
-00d2     9 p/s     1 kb/s    14 kbit
-00dc  1380 p/s   253 kb/s  2076 kbit
-00e6   124 p/s    22 kb/s   187 kbit
-00f0    42 p/s     7 kb/s    63 kbit
-0136     9 p/s     1 kb/s    14 kbit
-0140  2912 p/s   534 kb/s  4380 kbit
-014a   124 p/s    22 kb/s   187 kbit
-0154    13 p/s     2 kb/s    20 kbit
-01fe     9 p/s     1 kb/s    14 kbit
-0208  2641 p/s   484 kb/s  3973 kbit
-0212   124 p/s    22 kb/s   187 kbit
-0213   127 p/s    23 kb/s   191 kbit
-021c     1 p/s     0 kb/s     2 kbit
-021d     1 p/s     0 kb/s     2 kbit
-021e     1 p/s     0 kb/s     2 kbit
-0262     9 p/s     1 kb/s    14 kbit
-026c  1509 p/s   277 kb/s  2270 kbit
-0276   125 p/s    22 kb/s   188 kbit
-0280     3 p/s     0 kb/s     5 kbit
-0294    12 p/s     2 kb/s    19 kbit
-02c6     9 p/s     1 kb/s    14 kbit
-02d0  3913 p/s   718 kb/s  5886 kbit
-02da   125 p/s    22 kb/s   188 kbit
-03f2     9 p/s     1 kb/s    14 kbit
-1fff   780 p/s   143 kb/s  1173 kbit
-2000 15952 p/s  2928 kb/s 23992 kbit
--PID--FREQ-----BANDWIDTH-BANDWIDTH-
-
-
-
-
-
-      
