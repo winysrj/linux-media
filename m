@@ -1,71 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail6.sea5.speakeasy.net ([69.17.117.8]:38452 "EHLO
-	mail6.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753255AbZENUhL (ORCPT
+Received: from mail1007.centrum.cz ([90.183.38.137]:59438 "EHLO
+	mail1007.centrum.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752174AbZEJVkD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 May 2009 16:37:11 -0400
-Date: Thu, 14 May 2009 13:37:10 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Sverker Abrahamsson <sverker@abrahamsson.com>
-cc: 'Jose Diaz' <xt4mhz@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: Sound capture with Osprey 230
-In-Reply-To: <!&!AAAAAAAAAAAYAAAAAAAAAN5fehIZv/BBsQLx9nhfoL3ihQAAEAAAAKI1En61O+tDoEZgbOaYLvMBAAAAAA==@abrahamsson.com>
-Message-ID: <Pine.LNX.4.58.0905141315060.7837@shell2.speakeasy.net>
-References: <!&!AAAAAAAAAAAYAAAAAAAAAN5fehIZv/BBsQLx9nhfoL3ihQAAEAAAAKI1En61O+tDoEZgbOaYLvMBAAAAAA==@abrahamsson.com>
+	Sun, 10 May 2009 17:40:03 -0400
+Received: by mail1007.centrum.cz id S738319932AbZEJVj7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 10 May 2009 23:39:59 +0200
+Date: Sun, 10 May 2009 23:39:59 +0200
+From: "Miroslav =?UTF-8?Q?=20=C5=A0ustek?=" <sustmidown@centrum.cz>
+To: <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Message-ID: <200905102339.14742@centrum.cz>
+References: <200905102337.22307@centrum.cz> <200905102338.14151@centrum.cz> <200905102339.24789@centrum.cz>
+In-Reply-To: <200905102339.24789@centrum.cz>
+Subject: [PATCH] Leadtek WinFast DTV-1800H support
+Content-Type: multipart/mixed; boundary="-------=_78A7734D.7D41AA3"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 11 May 2009, Sverker Abrahamsson wrote:
-> Hi all,
-> I've been using Osprey 230 cards for AV capture for several years, earlier
-> with a modified version of Viewcast's driver but it was never very stable.
-> When doing a new setup I therefore wanted to get the Alsa driver to work. I
-> found that there were two trees in the repository in regards to these cards,
-> http://linuxtv.org/hg/~mchehab/osprey and http://linuxtv.org/hg/~tap/osprey.
-> It seems that mchehab tree is the patches that Viewcast submitted which does
-> not address the necessary changes for ALSA driver while tap tree does but
-> for Osprey 440 and older kernels.
+This is a multi-part message in MIME format
 
-Mauro's tree with viewcast's patches is even older than mine, wrt kernel
-support.
+---------=_78A7734D.7D41AA3
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-> I've therefore ported the changes from tap to the main tree and added
-> support for detecting Osprey 210/220/230 plus a minor fix to support
-> specifying digital_rate as module parameter. It might also work for Osprey
-> 240 (which is PCI-e variant of 230) but I don't have any such card so I
-> haven't been able to test.
+Hello,
+this patch adds support for Leadtek WinFast DTV-1800H hybrid card.
+It enables analog/digital tv, radio and remote control trough GPIO.
 
-Instead of modifying my patch, it would be better if you could provide a
-patch on top of it that adds support for your new card.
+Input GPIO values are extracted from INF file which is included in winxp driver.
+Analog audio works both through cx88-alsa and through internal cable from tv-card to sound card.
 
-> The only question mark I have is that the current implementation use the
-> depreciated interfaces from bttv-if.c to find which bttv driver corresponds
-> to this audio driver and adds a function to get the bttv core. It is
-> suggested to use the routines in bttv-gpio.c instead but I don't find an
-> obvious replacement for bttv_get_pcidev nor how to get bttv_core.
+Tested by me and the people listed in patch (works well).
 
-The interface in bttv-if.c has been "deprecated" for years now, yet no one
-has come up with something to replace it with.  I think Gerd was getting a
-bit ahead of himself when he declared it obsolete.
+- Miroslav
 
-> I see two alternatives:
-> 1. Implement snd-87x module as a subdevice to bttv. Is this correct as the
-> video and audio devices are two separate pci devices?
 
-The audio and video devices aren't just separate pci devices, they are also
-two unrelated devices to the linux device model.  The driver model doesn't
-have any means to call one a subdevice of the other.
+---------=_78A7734D.7D41AA3
+Content-Type: application/octet-stream; name="leadtek_winfast_dtv1800h.patch"
+Content-Transfer-Encoding: base64
 
-Somehow, there needs to be a means for the audio driver to find the video
-driver so that it can get access to the gpio lines and the i2c bus.  But,
-this is only necessary for the osprey cards.  The audio driver for other
-cards doesn't need gpios or i2c.  So, it would be nice to allow just the
-audio driver with no video to be loaded.
+QWRkcyBzdXBwb3J0IGZvciBMZWFkdGVrIFdpbkZhc3QgRFRWLTE4MDBICgpGcm9tOiBNaXJv
+c2xhdiBTdXN0ZWsgPHN1c3RtaWRvd25AY2VudHJ1bS5jej4KCkVuYWJsZXMgYW5hbG9nL2Rp
+Z2l0YWwgdHYsIHJhZGlvIGFuZCByZW1vdGUgY29udHJvbCAoZ3BpbykuCgpTaWduZWQtb2Zm
+LWJ5OiBNaXJvc2xhdiBTdXN0ZWsgPHN1c3RtaWRvd25AY2VudHJ1bS5jej4KVGVzdGVkLWJ5
+OiBNYXJjaW4gV29qY2lrb3dza2kgPGVtdGVlcy5tdHNAZ21haWwuY29tPgpUZXN0ZWQtYnk6
+IEthcmVsIEp1aGFuYWsgPGthcmVsLmp1aGFuYWtAd2FybmV0LmN6PgpUZXN0ZWQtYnk6IEFu
+ZHJldyBHb2ZmIDxnb2ZmYTcyQGdtYWlsLmNvbT4KVGVzdGVkLWJ5OiBKYW4gTm92YWsgPG5v
+dmFrLWpAc2V6bmFtLmN6PgoKZGlmZiAtciBlZTNiNzllZGRlM2YgbGludXgvRG9jdW1lbnRh
+dGlvbi92aWRlbzRsaW51eC9DQVJETElTVC5jeDg4Ci0tLSBhL2xpbnV4L0RvY3VtZW50YXRp
+b24vdmlkZW80bGludXgvQ0FSRExJU1QuY3g4OAlTYXQgTWF5IDA5IDIxOjQ1OjM3IDIwMDkg
+KzAyMDAKKysrIGIvbGludXgvRG9jdW1lbnRhdGlvbi92aWRlbzRsaW51eC9DQVJETElTVC5j
+eDg4CVN1biBNYXkgMTAgMjI6NDU6NTEgMjAwOSArMDIwMApAQCAtNzksMyArNzksNCBAQAog
+IDc4IC0+IFByb2YgNjIwMCBEVkItUyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICBbYjAyMjozMDIyXQogIDc5IC0+IFRlcnJhdGVjIENpbmVyZ3kgSFQgUENJIE1LSUkg
+ICAgICAgICAgICAgICAgICAgICAgICBbMTUzYjoxMTc3XQogIDgwIC0+IEhhdXBwYXVnZSBX
+aW5UVi1JUiBPbmx5ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBbMDA3MDo5MjkwXQor
+IDgxIC0+IExlYWR0ZWsgV2luRmFzdCBEVFYxODAwIEh5YnJpZCAgICAgICAgICAgICAgICAg
+ICAgICBbMTA3ZDo2NjU0XQpkaWZmIC1yIGVlM2I3OWVkZGUzZiBsaW51eC9kcml2ZXJzL21l
+ZGlhL3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEv
+dmlkZW8vY3g4OC9jeDg4LWNhcmRzLmMJU2F0IE1heSAwOSAyMTo0NTozNyAyMDA5ICswMjAw
+CisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWNhcmRzLmMJU3Vu
+IE1heSAxMCAyMjo0NTo1MSAyMDA5ICswMjAwCkBAIC0yMDA5LDYgKzIwMDksNDcgQEAKIAkJ
+LnR1bmVyX2FkZHIJPSBBRERSX1VOU0VULAogCQkucmFkaW9fYWRkcgk9IEFERFJfVU5TRVQs
+CiAJfSwKKwlbQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBIXSA9IHsKKwkJLm5hbWUgICAg
+ICAgICAgID0gIkxlYWR0ZWsgV2luRmFzdCBEVFYxODAwIEh5YnJpZCIsCisJCS50dW5lcl90
+eXBlICAgICA9IFRVTkVSX1hDMjAyOCwKKwkJLnJhZGlvX3R5cGUgICAgID0gVFVORVJfWEMy
+MDI4LAorCQkudHVuZXJfYWRkciAgICAgPSAweDYxLAorCQkucmFkaW9fYWRkciAgICAgPSAw
+eDYxLAorCQkvKgorCQkgKiBHUElPIHNldHRpbmcKKwkJICoKKwkJICogIDI6IG11dGUgKDA9
+b2ZmLDE9b24pCisJCSAqIDEyOiB0dW5lciByZXNldCBwaW4KKwkJICogMTM6IGF1ZGlvIHNv
+dXJjZSAoMD10dW5lciBhdWRpbywxPWxpbmUgaW4pCisJCSAqIDE0OiBGTSAoMD1vbiwxPW9m
+ZiA/Pz8pCisJCSAqLworCQkuaW5wdXQgICAgICAgICAgPSB7eworCQkJLnR5cGUgICA9IENY
+ODhfVk1VWF9URUxFVklTSU9OLAorCQkJLnZtdXggICA9IDAsCisJCQkuZ3BpbzAgID0gMHgw
+NDAwLCAgICAgICAvKiBwaW4gMiA9IDAgKi8KKwkJCS5ncGlvMSAgPSAweDYwNDAsICAgICAg
+IC8qIHBpbiAxMyA9IDAsIHBpbiAxNCA9IDEgKi8KKwkJCS5ncGlvMiAgPSAweDAwMDAsCisJ
+CX0sIHsKKwkJCS50eXBlICAgPSBDWDg4X1ZNVVhfQ09NUE9TSVRFMSwKKwkJCS52bXV4ICAg
+PSAxLAorCQkJLmdwaW8wICA9IDB4MDQwMCwgICAgICAgLyogcGluIDIgPSAwICovCisJCQku
+Z3BpbzEgID0gMHg2MDYwLCAgICAgICAvKiBwaW4gMTMgPSAxLCBwaW4gMTQgPSAxICovCisJ
+CQkuZ3BpbzIgID0gMHgwMDAwLAorCQl9LCB7CisJCQkudHlwZSAgID0gQ1g4OF9WTVVYX1NW
+SURFTywKKwkJCS52bXV4ICAgPSAyLAorCQkJLmdwaW8wICA9IDB4MDQwMCwgICAgICAgLyog
+cGluIDIgPSAwICovCisJCQkuZ3BpbzEgID0gMHg2MDYwLCAgICAgICAvKiBwaW4gMTMgPSAx
+LCBwaW4gMTQgPSAxICovCisJCQkuZ3BpbzIgID0gMHgwMDAwLAorCQl9IH0sCisJCS5yYWRp
+byA9IHsKKwkJCS50eXBlICAgPSBDWDg4X1JBRElPLAorCQkJLmdwaW8wICA9IDB4MDQwMCwg
+ICAgICAgLyogcGluIDIgPSAwICovCisJCQkuZ3BpbzEgID0gMHg2MDAwLCAgICAgICAvKiBw
+aW4gMTMgPSAwLCBwaW4gMTQgPSAwICovCisJCQkuZ3BpbzIgID0gMHgwMDAwLAorCQl9LAor
+CQkubXBlZyAgICAgICAgICAgPSBDWDg4X01QRUdfRFZCLAorCX0sCiB9OwogCiAvKiAtLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0gKi8KQEAgLTI0MjYsNiArMjQ2NywxMCBAQAogCQkuc3VidmVuZG9yID0gMHgw
+MDcwLAogCQkuc3ViZGV2aWNlID0gMHg5MjkwLAogCQkuY2FyZCAgICAgID0gQ1g4OF9CT0FS
+RF9IQVVQUEFVR0VfSVJPTkxZLAorCX0sIHsKKwkJLnN1YnZlbmRvciA9IDB4MTA3ZCwKKwkJ
+LnN1YmRldmljZSA9IDB4NjY1NCwKKwkJLmNhcmQgICAgICA9IENYODhfQk9BUkRfV0lORkFT
+VF9EVFYxODAwSCwKIAl9LAogfTsKIApAQCAtMjYyNCw2ICsyNjY5LDIzIEBACiAJcmV0dXJu
+IC1FSU5WQUw7CiB9CiAKK3N0YXRpYyBpbnQgY3g4OF94YzMwMjhfd2luZmFzdDE4MDBoX2Nh
+bGxiYWNrKHN0cnVjdCBjeDg4X2NvcmUgKmNvcmUsCisJCQkJCSAgICAgaW50IGNvbW1hbmQs
+IGludCBhcmcpCit7CisJc3dpdGNoIChjb21tYW5kKSB7CisJY2FzZSBYQzIwMjhfVFVORVJf
+UkVTRVQ6CisJCS8qIEdQSU8gMTIgKHhjMzAyOCB0dW5lciByZXNldCkgKi8KKwkJY3hfc2V0
+KE1PX0dQMV9JTywgMHgxMDEwKTsKKwkJbWRlbGF5KDUwKTsKKwkJY3hfY2xlYXIoTU9fR1Ax
+X0lPLCAweDEwKTsKKwkJbWRlbGF5KDUwKTsKKwkJY3hfc2V0KE1PX0dQMV9JTywgMHgxMCk7
+CisJCW1kZWxheSg1MCk7CisJCXJldHVybiAwOworCX0KKwlyZXR1cm4gLUVJTlZBTDsKK30K
+KwogLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLSAqLwogLyogc29tZSBEaXZjbyBzcGVjaWZpYyBzdHVmZiAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAqLwogc3RhdGljIGlu
+dCBjeDg4X3B2XzgwMDBndF9jYWxsYmFjayhzdHJ1Y3QgY3g4OF9jb3JlICpjb3JlLApAQCAt
+MjY5Niw2ICsyNzU4LDggQEAKIAljYXNlIENYODhfQk9BUkRfRFZJQ09fRlVTSU9OSERUVl9E
+VkJfVF9QUk86CiAJY2FzZSBDWDg4X0JPQVJEX0RWSUNPX0ZVU0lPTkhEVFZfNV9QQ0lfTkFO
+TzoKIAkJcmV0dXJuIGN4ODhfZHZpY29feGMyMDI4X2NhbGxiYWNrKGNvcmUsIGNvbW1hbmQs
+IGFyZyk7CisJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEg6CisJCXJldHVybiBj
+eDg4X3hjMzAyOF93aW5mYXN0MTgwMGhfY2FsbGJhY2soY29yZSwgY29tbWFuZCwgYXJnKTsK
+IAl9CiAKIAlzd2l0Y2ggKGNvbW1hbmQpIHsKQEAgLTI4NzAsNiArMjkzNCwxNiBAQAogCQlj
+eF9zZXQoTU9fR1AwX0lPLCAweDAwMDAwMDgwKTsgLyogNzAyIG91dCBvZiByZXNldCAqLwog
+CQl1ZGVsYXkoMTAwMCk7CiAJCWJyZWFrOworCisJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1Rf
+RFRWMTgwMEg6CisJCS8qIEdQSU8gMTIgKHhjMzAyOCB0dW5lciByZXNldCkgKi8KKwkJY3hf
+c2V0KE1PX0dQMV9JTywgMHgxMDEwKTsKKwkJbWRlbGF5KDUwKTsKKwkJY3hfY2xlYXIoTU9f
+R1AxX0lPLCAweDEwKTsKKwkJbWRlbGF5KDUwKTsKKwkJY3hfc2V0KE1PX0dQMV9JTywgMHgx
+MCk7CisJCW1kZWxheSg1MCk7CisJCWJyZWFrOwogCX0KIH0KIApAQCAtMjg5MCw2ICsyOTY0
+LDcgQEAKIAkJCWNvcmUtPmkyY19hbGdvLnVkZWxheSA9IDE2OwogCQlicmVhazsKIAljYXNl
+IENYODhfQk9BUkRfRFZJQ09fRlVTSU9OSERUVl9EVkJfVF9QUk86CisJY2FzZSBDWDg4X0JP
+QVJEX1dJTkZBU1RfRFRWMTgwMEg6CiAJCWN0bC0+ZGVtb2QgPSBYQzMwMjhfRkVfWkFSTElO
+SzQ1NjsKIAkJYnJlYWs7CiAJY2FzZSBDWDg4X0JPQVJEX0tXT1JMRF9BVFNDXzEyMDoKZGlm
+ZiAtciBlZTNiNzllZGRlM2YgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgt
+ZHZiLmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtZHZiLmMJ
+U2F0IE1heSAwOSAyMTo0NTozNyAyMDA5ICswMjAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVk
+aWEvdmlkZW8vY3g4OC9jeDg4LWR2Yi5jCVN1biBNYXkgMTAgMjI6NDU6NTEgMjAwOSArMDIw
+MApAQCAtMTAyMSw2ICsxMDIxLDcgQEAKIAkJfQogCQlicmVhazsKIAkgY2FzZSBDWDg4X0JP
+QVJEX1BJTk5BQ0xFX0hZQlJJRF9QQ1RWOgorCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RU
+VjE4MDBIOgogCQlmZTAtPmR2Yi5mcm9udGVuZCA9IGR2Yl9hdHRhY2goemwxMDM1M19hdHRh
+Y2gsCiAJCQkJCSAgICAgICAmY3g4OF9waW5uYWNsZV9oeWJyaWRfcGN0diwKIAkJCQkJICAg
+ICAgICZjb3JlLT5pMmNfYWRhcCk7CmRpZmYgLXIgZWUzYjc5ZWRkZTNmIGxpbnV4L2RyaXZl
+cnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWlucHV0LmMKLS0tIGEvbGludXgvZHJpdmVycy9t
+ZWRpYS92aWRlby9jeDg4L2N4ODgtaW5wdXQuYwlTYXQgTWF5IDA5IDIxOjQ1OjM3IDIwMDkg
+KzAyMDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtaW5wdXQu
+YwlTdW4gTWF5IDEwIDIyOjQ1OjUxIDIwMDkgKzAyMDAKQEAgLTkyLDYgKzkyLDcgQEAKIAkJ
+Z3Bpbz0oZ3BpbyAmIDB4N2ZkKSArIChhdXhncGlvICYgMHhlZik7CiAJCWJyZWFrOwogCWNh
+c2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjEwMDA6CisJY2FzZSBDWDg4X0JPQVJEX1dJTkZB
+U1RfRFRWMTgwMEg6CiAJCWdwaW8gPSAoZ3BpbyAmIDB4NmZmKSB8ICgoY3hfcmVhZChNT19H
+UDFfSU8pIDw8IDgpICYgMHg5MDApOwogCQlhdXhncGlvID0gZ3BpbzsKIAkJYnJlYWs7CkBA
+IC0yMzYsNiArMjM3LDcgQEAKIAkJaXItPnNhbXBsaW5nID0gMTsKIAkJYnJlYWs7CiAJY2Fz
+ZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMjAwMEg6CisJY2FzZSBDWDg4X0JPQVJEX1dJTkZB
+U1RfRFRWMTgwMEg6CiAJCWlyX2NvZGVzID0gaXJfY29kZXNfd2luZmFzdDsKIAkJaXItPmdw
+aW9fYWRkciA9IE1PX0dQMF9JTzsKIAkJaXItPm1hc2tfa2V5Y29kZSA9IDB4OGY4OwpkaWZm
+IC1yIGVlM2I3OWVkZGUzZiBsaW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC5o
+Ci0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LmgJU2F0IE1heSAw
+OSAyMTo0NTozNyAyMDA5ICswMjAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8v
+Y3g4OC9jeDg4LmgJU3VuIE1heSAxMCAyMjo0NTo1MSAyMDA5ICswMjAwCkBAIC0yMzcsNiAr
+MjM3LDcgQEAKICNkZWZpbmUgQ1g4OF9CT0FSRF9QUk9GXzYyMDAgICAgICAgICAgICAgICA3
+OAogI2RlZmluZSBDWDg4X0JPQVJEX1RFUlJBVEVDX0NJTkVSR1lfSFRfUENJX01LSUkgNzkK
+ICNkZWZpbmUgQ1g4OF9CT0FSRF9IQVVQUEFVR0VfSVJPTkxZICAgICAgICA4MAorI2RlZmlu
+ZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEggICAgICAgIDgxCiAKIGVudW0gY3g4OF9p
+dHlwZSB7CiAJQ1g4OF9WTVVYX0NPTVBPU0lURTEgPSAxLAp=
 
-The problem with my implementation is that after the audio bttv driver gets
-a pointer to the video driver's core, the video driver could go away and
-leave the audio driver with a dangling pointer.  That's one of the reasons
-I haven't merged my osprey code.  The other is that I have cards with bttv
-audio to test with.
+---------=_78A7734D.7D41AA3--
