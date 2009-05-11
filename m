@@ -1,169 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:62858 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751920AbZEABTp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2009 21:19:45 -0400
-Subject: Re: [PATCH] Add QAM64 support for hvr-950q (au8522)
-From: Andy Walls <awalls@radix.net>
-To: Britney Fransen <britney.fransen@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <B2D200D8-22B0-418C-B577-C036C1469521@gmail.com>
-References: <B2D200D8-22B0-418C-B577-C036C1469521@gmail.com>
-Content-Type: text/plain
-Date: Thu, 30 Apr 2009 21:21:05 -0400
-Message-Id: <1241140865.3210.108.camel@palomino.walls.org>
+Received: from bombadil.infradead.org ([18.85.46.34]:33744 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758209AbZEKXgy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 May 2009 19:36:54 -0400
+Date: Mon, 11 May 2009 20:36:47 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	"jongse.won@samsung.com" <jongse.won@samsung.com>,
+	=?UTF-8?B?6rmA7ZiV7KSA?= <riverful.kim@samsung.com>
+Subject: Re: About using VIDIOC_REQBUFS
+Message-ID: <20090511203647.6c982275@pedra.chehab.org>
+In-Reply-To: <5e9665e10904230315o46ef5f95o8c393a9148976880@mail.gmail.com>
+References: <5e9665e10904230315o46ef5f95o8c393a9148976880@mail.gmail.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-04-30 at 20:07 -0500, Britney Fransen wrote:
-> I have updated the patch from http://www.linuxtv.org/pipermail/linux-dvb/2008-December/030786.html 
->   to add QAM64 support to the HVR-950Q.  It is working well for me.   
-> What needs to happen to get this included in v4l-dvb?
+Em Thu, 23 Apr 2009 19:15:14 +0900
+"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com> escreveu:
 
-Well, one specific problem is that the patch submission is missing a
-"Signed-off-by:".  Please see:
-
-http://www.linuxtv.org/wiki/index.php/Development:_How_to_submit_patches
-http://www.linuxtv.org/wiki/index.php/Development:_Submitting_Patches#Developer.27s_Certificate_of_Origin_1.1
-
-for what that means and for answers to your more general question.
-
-I'd also expect Devin would need to review and comment on it as he's
-done a lot of HVR-950q work lately (IIRC).
-
-Regards,
-Andy
-
-> Thanks,
-> Britney
+> Hello Hans,
 > 
-> --- linux/drivers/media/dvb/frontends/au8522_dig.c.orig	2009-04-30  
-> 14:27:14.417542844 -0500
-> +++ linux/drivers/media/dvb/frontends/au8522_dig.c	2009-04-30  
-> 16:57:37.439472504 -0500
-> @@ -367,11 +367,90 @@ static struct {
->   	{ 0x8231, 0x13 },
->   };
+> Is it an ordinary way to use twice reqbuf without closing and
+> re-opening between them?
 > 
-> -/* QAM Modulation table */
-> +/* QAM64 Modulation table */
->   static struct {
->   	u16 reg;
->   	u16 data;
-> -} QAM_mod_tab[] = {
-> +} QAM64_mod_tab[] = {
-> +        { 0x80a3, 0x09 },
-> +        { 0x80a4, 0x00 },
-> +        { 0x8081, 0xc4 },
-> +        { 0x80a5, 0x40 },
-> +        { 0x80aa, 0x77 },
-> +        { 0x80ad, 0x77 },
-> +        { 0x80a6, 0x67 },
-> +        { 0x8262, 0x20 },
-> +        { 0x821c, 0x30 },
-> +        { 0x80b8, 0x3e },
-> +        { 0x80b9, 0xf0 },
-> +        { 0x80ba, 0x01 },
-> +        { 0x80bb, 0x18 },
-> +        { 0x80bc, 0x50 },
-> +        { 0x80bd, 0x00 },
-> +        { 0x80be, 0xea },
-> +        { 0x80bf, 0xef },
-> +        { 0x80c0, 0xfc },
-> +        { 0x80c1, 0xbd },
-> +        { 0x80c2, 0x1f },
-> +        { 0x80c3, 0xfc },
-> +        { 0x80c4, 0xdd },
-> +        { 0x80c5, 0xaf },
-> +        { 0x80c6, 0x00 },
-> +        { 0x80c7, 0x38 },
-> +        { 0x80c8, 0x30 },
-> +        { 0x80c9, 0x05 },
-> +        { 0x80ca, 0x4a },
-> +        { 0x80cb, 0xd0 },
-> +        { 0x80cc, 0x01 },
-> +        { 0x80cd, 0xd9 },
-> +        { 0x80ce, 0x6f },
-> +        { 0x80cf, 0xf9 },
-> +        { 0x80d0, 0x70 },
-> +        { 0x80d1, 0xdf },
-> +        { 0x80d2, 0xf7 },
-> +        { 0x80d3, 0xc2 },
-> +        { 0x80d4, 0xdf },
-> +        { 0x80d5, 0x02 },
-> +        { 0x80d6, 0x9a },
-> +        { 0x80d7, 0xd0 },
-> +        { 0x8250, 0x0d },
-> +        { 0x8251, 0xcd },
-> +        { 0x8252, 0xe0 },
-> +        { 0x8253, 0x05 },
-> +        { 0x8254, 0xa7 },
-> +        { 0x8255, 0xff },
-> +        { 0x8256, 0xed },
-> +        { 0x8257, 0x5b },
-> +        { 0x8258, 0xae },
-> +        { 0x8259, 0xe6 },
-> +        { 0x825a, 0x3d },
-> +        { 0x825b, 0x0f },
-> +        { 0x825c, 0x0d },
-> +        { 0x825d, 0xea },
-> +        { 0x825e, 0xf2 },
-> +        { 0x825f, 0x51 },
-> +        { 0x8260, 0xf5 },
-> +        { 0x8261, 0x06 },
-> +        { 0x821a, 0x00 },
-> +        { 0x8546, 0x40 },
-> +        { 0x8210, 0xc7 },
-> +        { 0x8211, 0xaa },
-> +        { 0x8212, 0xab },
-> +        { 0x8213, 0x02 },
-> +        { 0x8502, 0x00 },
-> +        { 0x8121, 0x04 },
-> +        { 0x8122, 0x04 },
-> +        { 0x852e, 0x10 },
-> +        { 0x80a4, 0xca },
-> +        { 0x80a7, 0x40 },
-> +        { 0x8526, 0x01 },
-> +};
-> +
-> +/* QAM256 Modulation table */
-> +static struct {
-> +       u16 reg;
-> +       u16 data;
-> +} QAM256_mod_tab[] = {
->   	{ 0x80a3, 0x09 },
->   	{ 0x80a4, 0x00 },
->   	{ 0x8081, 0xc4 },
-> @@ -464,12 +543,19 @@ static int au8522_enable_modulation(stru
->   		au8522_set_if(fe, state->config->vsb_if);
->   		break;
->   	case QAM_64:
-> +                dprintk("%s() QAM 64\n", __func__);
-> +                for (i = 0; i < ARRAY_SIZE(QAM64_mod_tab); i++)
-> +                        au8522_writereg(state,
-> +                                QAM64_mod_tab[i].reg,
-> +                                QAM64_mod_tab[i].data);
-> +                au8522_set_if(fe, state->config->qam_if);
-> +                break;
->   	case QAM_256:
-> -		dprintk("%s() QAM 64/256\n", __func__);
-> -		for (i = 0; i < ARRAY_SIZE(QAM_mod_tab); i++)
-> +                dprintk("%s() QAM 256\n", __func__);
-> +                for (i = 0; i < ARRAY_SIZE(QAM256_mod_tab); i++)
->   			au8522_writereg(state,
-> -				QAM_mod_tab[i].reg,
-> -				QAM_mod_tab[i].data);
-> +				QAM256_mod_tab[i].reg,
-> +				QAM256_mod_tab[i].data);
->   		au8522_set_if(fe, state->config->qam_if);
->   		break;
->   	default:
+> I mean like this,
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 1. Open device
+> 2. VIDIOC_REQBUFS
+>      <snip>
+> 3. VIDIOC_STREAMON
+>      <snip>
+> 4. VIDIOC_STREAMOFF
+> 5. VIDIOC_REQBUFS
+>      <snip>
+> 6. VIDIOC_STREAMON
 > 
+> I suppose there should be a strict order for this. That order seems to
+> be wrong but necessary when we do capturing a JPEG data which size
+> (not resolution) is bigger than the preview data size. (Assuming that
+> user is using mmap)
+> Please let me know the right way for that kind of case. Just close and
+> re-open with big enough size for JPEG? or mmap with big enough size in
+> the first place?
+
+That's a very good question. 
+
+You shouldn't be needing to close/open the device for this to work, but between
+(4) and (5), you'll need to call VIDIOC_S_FMT, to change the videobuf size,
+and, to be safe, unmap the videobuf memory.
+
+A code like the above may give different results depending on the way
+videobuffer handling is implemented.
+
+A good idea is to test it with vivi driver (that uses videobuf), with debugs
+enabled, and compare with other drivers.
+
+I did such test with vivi and it worked properly (although I didn't change the
+data size).
+
+If you want to test, I used the driver-test program, available at the
+development tree, with the patch bellow. I didn't actually tested to resize the
+stream, but from vivi logs, the mmapped buffers seem to be properly
+allocated/deallocated.
+
+
+
+Cheers,
+Mauro
+
+diff --git a/v4l2-apps/test/driver-test.c b/v4l2-apps/test/driver-test.c
+--- a/v4l2-apps/test/driver-test.c
++++ b/v4l2-apps/test/driver-test.c
+@@ -30,7 +30,7 @@ int main(void)
+ {
+ 	struct v4l2_driver drv;
+ 	struct drv_list *cur;
+-	unsigned int count = 10, i;
++	unsigned int count = 10, i, j;
+ 	double freq;
+ 
+ 	if (v4l2_open ("/dev/video0", 1,&drv)<0) {
+@@ -97,45 +97,47 @@ int main(void)
+ 	fflush (stdout);
+ 	sleep(1);
+ 
+-	v4l2_mmap_bufs(&drv, 2);
++	for (j = 0; j < 5; j++) {
++		v4l2_mmap_bufs(&drv, 2);
+ 
+-	v4l2_start_streaming(&drv);
++		v4l2_start_streaming(&drv);
+ 
+-	printf("Waiting for frames...\n");
++		printf("Waiting for frames...\n");
+ 
+-	for (i=0;i<count;i++) {
+-		fd_set fds;
+-		struct timeval tv;
+-		int r;
++		for (i=0;i<count;i++) {
++			fd_set fds;
++			struct timeval tv;
++			int r;
+ 
+-		FD_ZERO (&fds);
+-		FD_SET (drv.fd, &fds);
++			FD_ZERO (&fds);
++			FD_SET (drv.fd, &fds);
+ 
+-		/* Timeout. */
+-		tv.tv_sec = 2;
+-		tv.tv_usec = 0;
++			/* Timeout. */
++			tv.tv_sec = 2;
++			tv.tv_usec = 0;
+ 
+-		r = select (drv.fd + 1, &fds, NULL, NULL, &tv);
+-		if (-1 == r) {
+-			if (EINTR == errno)
+-				continue;
++			r = select (drv.fd + 1, &fds, NULL, NULL, &tv);
++			if (-1 == r) {
++				if (EINTR == errno)
++					continue;
++	
++				perror ("select");
++				return errno;
++			}
+ 
+-			perror ("select");
+-			return errno;
++			if (0 == r) {
++				fprintf (stderr, "select timeout\n");
++				return errno;
++			}
++
++			if (v4l2_rcvbuf(&drv, recebe_buffer))
++				break;
+ 		}
+ 
+-		if (0 == r) {
+-			fprintf (stderr, "select timeout\n");
+-			return errno;
+-		}
+-
+-		if (v4l2_rcvbuf(&drv, recebe_buffer))
+-			break;
++		printf("stopping streaming\n");
++		v4l2_stop_streaming(&drv);
+ 	}
+ 
+-	printf("stopping streaming\n");
+-	v4l2_stop_streaming(&drv);
+-
+ 	if (v4l2_close (&drv)<0) {
+ 		perror("close");
+ 		return -1;
 
