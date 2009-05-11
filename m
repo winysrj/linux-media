@@ -1,123 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f224.google.com ([209.85.219.224]:44121 "EHLO
-	mail-ew0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753189AbZESQSm convert rfc822-to-8bit (ORCPT
+Received: from acsinet12.oracle.com ([141.146.126.234]:53226 "EHLO
+	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752917AbZEKQep (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2009 12:18:42 -0400
-Received: by ewy24 with SMTP id 24so4990532ewy.37
-        for <linux-media@vger.kernel.org>; Tue, 19 May 2009 09:18:43 -0700 (PDT)
+	Mon, 11 May 2009 12:34:45 -0400
+Message-ID: <4A0853FE.6060709@oracle.com>
+Date: Mon, 11 May 2009 09:36:14 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
 MIME-Version: 1.0
-In-Reply-To: <713142.1655.qm@web110815.mail.gq1.yahoo.com>
-References: <713142.1655.qm@web110815.mail.gq1.yahoo.com>
-Date: Tue, 19 May 2009 12:18:42 -0400
-Message-ID: <37219a840905190918p639972c5xc273761f16040c7e@mail.gmail.com>
-Subject: Re: [PATCH] [09051_47] Siano: smsdvb - add DVB v3 events
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Uri Shkolnik <urishk@yahoo.com>
-Cc: LinuxML <linux-media@vger.kernel.org>,
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+CC: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH -next] soc_camera: depends on I2C
+References: <20090511161442.3e9d9cb9.sfr@canb.auug.org.au>
+In-Reply-To: <20090511161442.3e9d9cb9.sfr@canb.auug.org.au>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 19, 2009 at 11:28 AM, Uri Shkolnik <urishk@yahoo.com> wrote:
->
-> # HG changeset patch
-> # User Uri Shkolnik <uris@siano-ms.com>
-> # Date 1242747164 -10800
-> # Node ID 971d4cc0d4009650bd4752c6a9fc09755ef77baf
-> # Parent  98895daafb42f8b0757fd608b29c53c80327520e
-> [09051_47] Siano: smsdvb - add DVB v3 events
->
-> From: Uri Shkolnik <uris@siano-ms.com>
->
-> Add various DVB-API v3 events, those events will trig
-> target (card) events.
->
-> Priority: normal
->
-> Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
->
-> diff -r 98895daafb42 -r 971d4cc0d400 linux/drivers/media/dvb/siano/smsdvb.c
-> --- a/linux/drivers/media/dvb/siano/smsdvb.c    Tue May 19 18:27:38 2009 +0300
-> +++ b/linux/drivers/media/dvb/siano/smsdvb.c    Tue May 19 18:32:44 2009 +0300
-> @@ -66,6 +66,54 @@ MODULE_PARM_DESC(debug, "set debug level
->  /* Events that may come from DVB v3 adapter */
->  static void sms_board_dvb3_event(struct smsdvb_client_t *client,
->                enum SMS_DVB3_EVENTS event) {
-> +
-> +       struct smscore_device_t *coredev = client->coredev;
-> +       switch (event) {
-> +       case DVB3_EVENT_INIT:
-> +               sms_debug("DVB3_EVENT_INIT");
-> +               sms_board_event(coredev, BOARD_EVENT_BIND);
-> +               break;
-> +       case DVB3_EVENT_SLEEP:
-> +               sms_debug("DVB3_EVENT_SLEEP");
-> +               sms_board_event(coredev, BOARD_EVENT_POWER_SUSPEND);
-> +               break;
-> +       case DVB3_EVENT_HOTPLUG:
-> +               sms_debug("DVB3_EVENT_HOTPLUG");
-> +               sms_board_event(coredev, BOARD_EVENT_POWER_INIT);
-> +               break;
-> +       case DVB3_EVENT_FE_LOCK:
-> +               if (client->event_fe_state != DVB3_EVENT_FE_LOCK) {
-> +                       client->event_fe_state = DVB3_EVENT_FE_LOCK;
-> +                       sms_debug("DVB3_EVENT_FE_LOCK");
-> +                       sms_board_event(coredev, BOARD_EVENT_FE_LOCK);
-> +               }
-> +               break;
-> +       case DVB3_EVENT_FE_UNLOCK:
-> +               if (client->event_fe_state != DVB3_EVENT_FE_UNLOCK) {
-> +                       client->event_fe_state = DVB3_EVENT_FE_UNLOCK;
-> +                       sms_debug("DVB3_EVENT_FE_UNLOCK");
-> +                       sms_board_event(coredev, BOARD_EVENT_FE_UNLOCK);
-> +               }
-> +               break;
-> +       case DVB3_EVENT_UNC_OK:
-> +               if (client->event_unc_state != DVB3_EVENT_UNC_OK) {
-> +                       client->event_unc_state = DVB3_EVENT_UNC_OK;
-> +                       sms_debug("DVB3_EVENT_UNC_OK");
-> +                       sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_OK);
-> +               }
-> +               break;
-> +       case DVB3_EVENT_UNC_ERR:
-> +               if (client->event_unc_state != DVB3_EVENT_UNC_ERR) {
-> +                       client->event_unc_state = DVB3_EVENT_UNC_ERR;
-> +                       sms_debug("DVB3_EVENT_UNC_ERR");
-> +                       sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_ERRORS);
-> +               }
-> +               break;
-> +
-> +       default:
-> +               sms_err("Unknown dvb3 api event");
-> +               break;
-> +       }
->  }
->
->  static int smsdvb_onresponse(void *context, struct smscore_buffer_t *cb)
->
->
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+From: Randy Dunlap <randy.dunlap@oracle.com>
+
+soc_camera uses i2c_*() functions and has build errors when CONFIG_I2C=n:
+
+ERROR: "i2c_new_device" [drivers/media/video/soc_camera.ko] undefined!
+ERROR: "i2c_get_adapter" [drivers/media/video/soc_camera.ko] undefined!
+ERROR: "i2c_put_adapter" [drivers/media/video/soc_camera.ko] undefined!
+ERROR: "i2c_unregister_device" [drivers/media/video/soc_camera.ko] undefined!
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+---
+ drivers/media/video/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- linux-next-20090511.orig/drivers/media/video/Kconfig
++++ linux-next-20090511/drivers/media/video/Kconfig
+@@ -694,7 +694,7 @@ config VIDEO_CAFE_CCIC
+ 
+ config SOC_CAMERA
+ 	tristate "SoC camera support"
+-	depends on VIDEO_V4L2 && HAS_DMA
++	depends on VIDEO_V4L2 && HAS_DMA && I2C
+ 	select VIDEOBUF_GEN
+ 	help
+ 	  SoC Camera is a common API to several cameras, not connecting
 
 
-
-Uri,
-
-I don't understand what prompts you to call these "DVB v3 events" ...
-what does this have to do with DVB API v3 at all?  Your idea seems to
-be in the right direction, but this "DVBV3" nomenclature is a total
-misnomer.
-
-I think something along the lines of SMSBOARD_EVENT_FOO is more appropriate.
-
-Regards,
-
-Mike
+-- 
+~Randy
+LPC 2009, Sept. 23-25, Portland, Oregon
+http://linuxplumbersconf.org/2009/
