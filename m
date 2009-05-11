@@ -1,44 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f222.google.com ([209.85.218.222]:40262 "EHLO
-	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751892AbZEaFk3 (ORCPT
+Received: from acsinet11.oracle.com ([141.146.126.233]:48959 "EHLO
+	acsinet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752733AbZEKQg7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 May 2009 01:40:29 -0400
-Received: by bwz22 with SMTP id 22so6869580bwz.37
-        for <linux-media@vger.kernel.org>; Sat, 30 May 2009 22:40:30 -0700 (PDT)
-Message-ID: <4A17F89A.1030702@gmail.com>
-Date: Sat, 23 May 2009 15:22:34 +0200
-From: David Lister <foceni@gmail.com>
+	Mon, 11 May 2009 12:36:59 -0400
+Message-ID: <4A085455.5040108@oracle.com>
+Date: Mon, 11 May 2009 09:37:41 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
 MIME-Version: 1.0
-To: Gernot Pansy <gernot@pansy.at>
-CC: linux-media@vger.kernel.org
-Subject: Re: Question about driver for Mantis
-References: <200905230810.39344.jarhuba2@poczta.onet.pl> <1a297b360905222341t4e66e2c6x95d339838db43139@mail.gmail.com> <200905231436.58072.gernot@pansy.at>
-In-Reply-To: <200905231436.58072.gernot@pansy.at>
-Content-Type: text/plain; charset=ISO-8859-2
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+CC: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH -next] v4l2: handle unregister for non-I2C builds
+References: <20090511161442.3e9d9cb9.sfr@canb.auug.org.au>
+In-Reply-To: <20090511161442.3e9d9cb9.sfr@canb.auug.org.au>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Gernot Pansy wrote:
-> will CI be supported and are you willing to finish development and merge it to 
-> mainline anytime?
->
-> i think i was one of the first SP400 owner but i had to sold my card for a Nova 
-> HD2 because the driver was not reliable (some i2c errors, slow tunning, 
-> sometimes tunning failed). And now i need a dvb-s2 card with ci working. so 
-> i'm searching again for a new card. their seems to be only the tt-3200 out, 
-> which seems to work - no newer card. 
->   
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-I believe a friend of mine chose KNC1+ clone, they are working in Linux
-and also have a working CI interface. That's how he uses it anyway. I'd
-recommend especially his Mystique SaTiX-S2. They have a high quality
-finish and the CI slot is nicely prepared for 3.5" drive integration:
+Build fails when CONFIG_I2C=n, so handle that case in the if block:
 
-http://www.cesarex.com/images/Mystique-CI-1.jpg
-http://www.sat-servis.cz/data/eshop/fotky/produkty/velke/619.jpg
+drivers/built-in.o: In function `v4l2_device_unregister':
+(.text+0x157821): undefined reference to `i2c_unregister_device'
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+---
+ drivers/media/video/v4l2-device.c |    2 ++
+ 1 file changed, 2 insertions(+)
+
+--- linux-next-20090511.orig/drivers/media/video/v4l2-device.c
++++ linux-next-20090511/drivers/media/video/v4l2-device.c
+@@ -85,6 +85,7 @@ void v4l2_device_unregister(struct v4l2_
+ 	/* Unregister subdevs */
+ 	list_for_each_entry_safe(sd, next, &v4l2_dev->subdevs, list) {
+ 		v4l2_device_unregister_subdev(sd);
++#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
+ 		if (sd->flags & V4L2_SUBDEV_FL_IS_I2C) {
+ 			struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 
+@@ -95,6 +96,7 @@ void v4l2_device_unregister(struct v4l2_
+ 			if (client)
+ 				i2c_unregister_device(client);
+ 		}
++#endif
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_unregister);
+
 
 -- 
-Dave
-
+~Randy
+LPC 2009, Sept. 23-25, Portland, Oregon
+http://linuxplumbersconf.org/2009/
