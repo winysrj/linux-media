@@ -1,120 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:45544 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751352AbZE1HHO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2009 03:07:14 -0400
-Message-ID: <4A1E3850.5090500@redhat.com>
-Date: Thu, 28 May 2009 09:08:00 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-CC: linux-media@vger.kernel.org
-Subject: Re: Licensing question regarding SN9C2028 decompression (fwd)
-References: <alpine.LNX.2.00.0905271640190.14249@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.0905271640190.14249@banach.math.auburn.edu>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([192.100.105.134]:19695 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754945AbZEKJhI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 May 2009 05:37:08 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCH v2 1/7] v4l2: video device: Add V4L2_CTRL_CLASS_FMTX controls
+Date: Mon, 11 May 2009 12:31:43 +0300
+Message-Id: <1242034309-13448-2-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1242034309-13448-1-git-send-email-eduardo.valentin@nokia.com>
+References: <1242034309-13448-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch adds a new class of extended controls. This class
+is intended to support Radio Modulators properties such as:
+rds, audio limiters, audio compression, pilot tone generation,
+tuning power levels and region related properties.
 
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ include/linux/videodev2.h |   45 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 45 insertions(+), 0 deletions(-)
 
-On 05/27/2009 11:43 PM, Theodore Kilgore wrote:
->
-> Hans,
->
-> Here is the answer which I got about the question of GPL->LGPL licensing
-> in regard to the sn9c2028 decompression code.
->
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index ebb2ea6..7559299 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -803,6 +803,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
+ #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+ #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
++#define V4L2_CTRL_CLASS_FMTX 0x009b0000	/* FM Radio Modulator class controls */
+ 
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -1141,6 +1142,50 @@ enum  v4l2_exposure_auto_type {
+ 
+ #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
+ 
++/* FM Radio Modulator class control IDs */
++#define V4L2_CID_FMTX_CLASS_BASE		(V4L2_CTRL_CLASS_FMTX | 0x900)
++#define V4L2_CID_FMTX_CLASS			(V4L2_CTRL_CLASS_FMTX | 1)
++
++#define V4L2_CID_RDS_ENABLED			(V4L2_CID_FMTX_CLASS_BASE + 1)
++#define V4L2_CID_RDS_PI				(V4L2_CID_FMTX_CLASS_BASE + 2)
++#define V4L2_CID_RDS_PTY			(V4L2_CID_FMTX_CLASS_BASE + 3)
++#define V4L2_CID_RDS_PS_NAME			(V4L2_CID_FMTX_CLASS_BASE + 4)
++#define V4L2_CID_RDS_RADIO_TEXT			(V4L2_CID_FMTX_CLASS_BASE + 5)
++
++#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 6)
++#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 7)
++#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FMTX_CLASS_BASE + 8)
++
++#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FMTX_CLASS_BASE + 9)
++#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FMTX_CLASS_BASE + 10)
++#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FMTX_CLASS_BASE + 11)
++#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FMTX_CLASS_BASE + 12)
++#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 13)
++
++#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 14)
++#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FMTX_CLASS_BASE + 15)
++#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FMTX_CLASS_BASE + 16)
++
++#define V4L2_CID_REGION				(V4L2_CID_FMTX_CLASS_BASE + 17)
++enum v4l2_fmtx_region {
++	V4L2_FMTX_REGION_USA			= 0,
++	V4L2_FMTX_REGION_AUSTRALIA		= 1,
++	V4L2_FMTX_REGION_EUROPE			= 2,
++	V4L2_FMTX_REGION_JAPAN			= 3,
++	V4L2_FMTX_REGION_JAPAN_WIDE_BAND	= 4,
++};
++#define V4L2_CID_REGION_BOTTOM_FREQUENCY	(V4L2_CID_FMTX_CLASS_BASE + 18)
++#define V4L2_CID_REGION_TOP_FREQUENCY		(V4L2_CID_FMTX_CLASS_BASE + 19)
++#define V4L2_CID_REGION_PREEMPHASIS		(V4L2_CID_FMTX_CLASS_BASE + 20)
++enum v4l2_fmtx_preemphasis {
++	V4L2_FMTX_PREEMPHASIS_75_uS		= 0,
++	V4L2_FMTX_PREEMPHASIS_50_uS		= 1,
++	V4L2_FMTX_PREEMPHASIS_DISABLED		= 2,
++};
++#define V4L2_CID_REGION_CHANNEL_SPACING		(V4L2_CID_FMTX_CLASS_BASE + 21)
++#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FMTX_CLASS_BASE + 22)
++#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FMTX_CLASS_BASE + 23)
++
+ /*
+  *	T U N I N G
+  */
+-- 
+1.6.2.GIT
 
-Hmm,
-
-Given that you did have contact with the original author years ago and
-he also did ok it back then, and that large parts of the code are written
-by you, I'm ok with moving forward changing the license to LGPL and then
-committing the patch.
-
-Regards,
-
-Hans
-
-
-
-
-
-
-
-> Theodore Kilgore
->
-> ---------- Forwarded message ----------
-> Date: Wed, 27 May 2009 13:19:46 -0400
-> From: Harald <hxr@users.sourceforge.net>
-> To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-> Subject: Re: Licensing question regarding SN9C2028 decompression
->
-> Hi Theodore,
->
-> I give you permission to use the SN9C2028 code with a LGPL license.
->
-> I am the current maintainer of the macam project. Most of the code that
-> has been
-> added in the last few years is mine. However, I did not originate the
-> SN9C2028
-> code. I have messed with it a lot, it may not bear much resemblance to
-> the original
-> code. I am sure that whatever code you based your version on has been
-> modified
-> as well. I doubt that you use Objective-C for example...
->
-> It is likely that technically all of macam should be under LGPL anyway,
-> as it works
-> as a plug-in component to QuickTime. So from an "intent" perspective,
-> that is how
-> the macam code is used anyway. You should be able to use it the same way.
->
-> I have never been able to contact the originator (mattik) of the
-> project! I became admin
-> through an intermediate admin (dirkx). We're all three admins, but
-> neither of the others
-> have contributed anything in the last 5 years.
->
-> I hope this helps,
-> Harald
->
->
-> On May 24, 2009, at 13:40, Theodore Kilgore wrote:
->
->>
->> Harald,
->>
->> Right now I am working on putting streaming support for the SN9C2028
->> cameras (supported by libgphoto2/camlibs/sonix as still cameras) into
->> the Linux kernel, as part of linux/drivers/media/video/gspca. In doing
->> so, there is a licensing conflict, as follows:
->>
->> The Linux kernel is of course GPL licensed, as we are aware. However,
->> the philosophy of what the kernel is supposed to do with things like
->> video devices is, it takes care of creating a device dev/video and it
->> takes care of basic infrastructural things such as how to talk to the
->> camera, to initialize it, to turn it off, to tell it to stream, and to
->> detect and save packets and to construct frames.
->>
->> The code for things like decompression has been deliberately moved
->> away from the kernel code, and the idea is to put all that stuff into
->> a library called libv4l, which then provides a unified interface for
->> userspace streaming apps.
->>
->> The problem is, the decompression code would need to go into part of
->> libv4l, namely libv4lconvert. And the license for libv4l and
->> everything in it is LGPL, not GPL.
->>
->> As the originator of the decompression function for the Sonix cameras,
->> are you willing to give permission for taking my version of the code
->> from GPL to LGPL? Or can you suggest some other appropriate course of
->> action?
->>
->> Theodore Kilgore
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
