@@ -1,68 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:53139 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932246AbZE0Siw (ORCPT
+Received: from mail-ew0-f224.google.com ([209.85.219.224]:34921 "EHLO
+	mail-ew0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755501AbZELAVI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2009 14:38:52 -0400
-Date: Wed, 27 May 2009 15:38:48 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-Cc: linux-media@vger.kernel.org, phil.lemelin@gmail.com
-Subject: Re: Fwd: [Linux-uvc-devel] Compilation error
-Message-ID: <20090527153848.1dfb85e7@pedra.chehab.org>
-In-Reply-To: <200905270157.55653.laurent.pinchart@skynet.be>
-References: <200905270157.55653.laurent.pinchart@skynet.be>
+	Mon, 11 May 2009 20:21:08 -0400
+Received: by ewy24 with SMTP id 24so3864511ewy.37
+        for <linux-media@vger.kernel.org>; Mon, 11 May 2009 17:21:07 -0700 (PDT)
+Date: Mon, 11 May 2009 20:21:23 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, video4linux-list@redhat.com
+Subject: Re: [PATCH 3/3 ] big rework of TS for saa7134
+Message-ID: <20090511202123.383c8300@glory.loctelecom.ru>
+In-Reply-To: <1242082536.11527.4.camel@pc07.localdom.local>
+References: <20090428195200.69d103e7@glory.loctelecom.ru>
+	<20090511193705.0e06fac8@pedra.chehab.org>
+	<1242082536.11527.4.camel@pc07.localdom.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 27 May 2009 01:57:55 +0200
-Laurent Pinchart <laurent.pinchart@skynet.be> escreveu:
+Hi
 
-> Hi everybody,
+> Hi,
 > 
-> ----------  Forwarded Message  ----------
-> 
-> Subject: [Linux-uvc-devel] Compilation error
-> Date: Tuesday 26 May 2009
-> From: Phil Lemelin
-> To: linux-uvc-devel@lists.berlios.de
-> 
-> Hi uvc-devel list,
-> 
-> I'm trying to get my usb camera to work ( 174f:8a34 Syntek ) on a older
-> system ( 2.6.18-6, debian etch ) and I am not able to compile the source
-> code found on the HG repository. The error I get is the following :
-> 
-> >
-> > *snip*
-> > CC [M]  /home/phil/uvcvideo-b7cdedd8e305/v4l/av7110_hw.o
-> > /home/phil/uvcvideo-b7cdedd8e305/v4l/av7110_hw.c:294: error: expected
-> > declaration specifiers or '...' before string constant
-> > /home/phil/uvcvideo-b7cdedd8e305/v4l/av7110_hw.c:294: warning: data
-> > definition has no type or storage class
-> > /home/phil/uvcvideo-b7cdedd8e305/v4l/av7110_hw.c:294: warning: type
-> > defaults to 'int' in declaration of 'MODULE_FIRMWARE'
-> > /home/phil/uvcvideo-b7cdedd8e305/v4l/av7110_hw.c:294: warning: function
-> > declaration isn't a prototype
-> > make[3]: *** [/home/phil/uvcvideo-b7cdedd8e305/v4l/av7110_hw.o] Error 1
-> > make[2]: *** [_module_/home/phil/uvcvideo-b7cdedd8e305/v4l] Error 2
-> > make[2]: Leaving directory `/usr/src/linux-headers-2.6.18-6-686'
-> > make[1]: *** [default] Error 2
-> > make[1]: Leaving directory `/home/phil/uvcvideo-b7cdedd8e305/v4l'
-> > make: *** [all] Error 2
-> >
-> 
-> -------------------------------------------------------
-> 
-> Is an update to v4l/versions.txt needed ?
+> Am Montag, den 11.05.2009, 19:37 -0300 schrieb Mauro Carvalho Chehab:
+> > Em Tue, 28 Apr 2009 19:52:00 +1000
+> > Dmitri Belimov <d.belimov@gmail.com> escreveu:
+> > 
+> > > Hi all.
+> > > 
+> > > 1. Add start/stop TS function.
+> > > 2. Move setup DMA of TS to DMA function.
+> > > 3. Write support cupture via MMAP
+> > > 4. Rework startup and finish process, remove simple FSM.
+> > > 
+> > > This is patch from our customer. I checked this.
+> > 
+> > Dmitri,
+> > 
+> > Could you please re-send this patch, this time with your SOB?
 
-I just applied a patch at tip that restores compilation with legacy kernels,
-tested here with a RHEL5 kernel (a patched version of 2.6.16)
+Ok
 
+> > Cheers,
+> > Mauro
+> 
+> Did you check it is still OK for DVB-T and DVB-S also?
 
+No. We tested only with analog TV, capturing from analog TV and composite input.
+It support serial and parallel TS from MPEG encoder to saa7134.
 
-Cheers,
-Mauro
+> I did not yet and it is just a note and I hope to retire once.
+
+Ok. It will be good.
+
+With my best regards, Dmitry.
+
+> Cheers,
+> Hermann
+> 
+> 
+> 
