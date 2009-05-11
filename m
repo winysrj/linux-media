@@ -1,76 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1211 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750880AbZEUNdj (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:19699 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754853AbZEKJhJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2009 09:33:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [RFC 09/10 v2] v4l2-subdev: re-add s_standby to v4l2_subdev_core_ops
-Date: Thu, 21 May 2009 15:33:34 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Darius Augulis <augulis.darius@gmail.com>,
-	Paul Mundt <lethal@linux-sh.org>
-References: <Pine.LNX.4.64.0905151817070.4658@axis700.grange> <Pine.LNX.4.64.0905151907460.4658@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0905151907460.4658@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200905211533.34827.hverkuil@xs4all.nl>
+	Mon, 11 May 2009 05:37:09 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCH v2 6/7] FMTx: si4713: Add Kconfig and Makefile entries
+Date: Mon, 11 May 2009 12:31:48 +0300
+Message-Id: <1242034309-13448-7-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1242034309-13448-6-git-send-email-eduardo.valentin@nokia.com>
+References: <1242034309-13448-1-git-send-email-eduardo.valentin@nokia.com>
+ <1242034309-13448-2-git-send-email-eduardo.valentin@nokia.com>
+ <1242034309-13448-3-git-send-email-eduardo.valentin@nokia.com>
+ <1242034309-13448-4-git-send-email-eduardo.valentin@nokia.com>
+ <1242034309-13448-5-git-send-email-eduardo.valentin@nokia.com>
+ <1242034309-13448-6-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 15 May 2009 19:20:18 Guennadi Liakhovetski wrote:
-> NOT FOR SUBMISSION. Probably, another solution has to be found.
-> soc-camera drivers need an .init() (marked as "don't use") and a .halt()
-> methods.
->
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->
-> Hans, you moved s_standby to tuner_ops, and init is not recommended for
-> new drivers. Suggestions?
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ drivers/media/radio/Kconfig  |   22 ++++++++++++++++++++++
+ drivers/media/radio/Makefile |    3 +++
+ 2 files changed, 25 insertions(+), 0 deletions(-)
 
-Usual question: why do you need an init and halt? What do they do? One valid 
-use case for init is to pass config data to the driver. I am considering to  
-make it possible to setup the board_info data instead for an i2c subdev, so 
-one can use the platform data to pass such info to the subdev driver. The 
-disadvantage is that it cannot be used for pre-2.6.26 kernels.
-
-An alternative might be a s_config ops that serves a similar purpose.
-
-I want to leave s_standby in the tuner_ops: it's currently only used 
-together with a tuner. It's also poorly designed.
-
-A new halt or standby core ops should be better designed and it should be 
-clear what the relationship is to the suspend and resume i2c driver ops 
-(see e.g. msp3400-driver.c).
-
-Regards,
-
-	Hans
-
->  include/media/v4l2-subdev.h |    1 +
->  1 files changed, 1 insertions(+), 0 deletions(-)
->
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 1785608..ba907be 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -97,6 +97,7 @@ struct v4l2_subdev_core_ops {
->  	int (*g_chip_ident)(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident
-> *chip); int (*log_status)(struct v4l2_subdev *sd);
->  	int (*init)(struct v4l2_subdev *sd, u32 val);
-> +	int (*s_standby)(struct v4l2_subdev *sd, u32 standby);
->  	int (*load_fw)(struct v4l2_subdev *sd);
->  	int (*reset)(struct v4l2_subdev *sd, u32 val);
->  	int (*s_gpio)(struct v4l2_subdev *sd, u32 val);
-
-
-
+diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+index 3315cac..6c6a409 100644
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -339,6 +339,28 @@ config RADIO_ZOLTRIX_PORT
+ 	help
+ 	  Enter the I/O port of your Zoltrix radio card.
+ 
++config I2C_SI4713
++	tristate "I2C driver for Silicon Labs Si4713 device"
++	depends on I2C && VIDEO_V4L2
++	---help---
++	  Say Y here if you want support to Si4713 I2C device.
++	  This device driver supports only i2c bus.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called si4713.
++
++config RADIO_SI4713
++	tristate "Silicon Labs Si4713 FM Radio Transmitter support"
++	depends on I2C && VIDEO_V4L2
++	---help---
++	  Say Y here if you want support to Si4713 FM Radio Transmitter.
++	  This device can transmit audio through FM. It can transmit
++	  EDS and EBDS signals as well. This module is the v4l2 radio
++	  interface for the i2c driver of this device.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called radio-si4713.
++
+ config USB_DSBR
+ 	tristate "D-Link/GemTek USB FM radio support"
+ 	depends on USB && VIDEO_V4L2
+diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
+index 0f2b35b..4c757ad 100644
+--- a/drivers/media/radio/Makefile
++++ b/drivers/media/radio/Makefile
+@@ -15,6 +15,9 @@ obj-$(CONFIG_RADIO_ZOLTRIX) += radio-zoltrix.o
+ obj-$(CONFIG_RADIO_GEMTEK) += radio-gemtek.o
+ obj-$(CONFIG_RADIO_GEMTEK_PCI) += radio-gemtek-pci.o
+ obj-$(CONFIG_RADIO_TRUST) += radio-trust.o
++obj-$(CONFIG_I2C_SI4713) += si4713-i2c.o
++si4713-i2c-objs := si4713.o si4713-subdev.o
++obj-$(CONFIG_RADIO_SI4713) += radio-si4713.o
+ obj-$(CONFIG_RADIO_MAESTRO) += radio-maestro.o
+ obj-$(CONFIG_USB_DSBR) += dsbr100.o
+ obj-$(CONFIG_USB_SI470X) += radio-si470x.o
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+1.6.2.GIT
+
