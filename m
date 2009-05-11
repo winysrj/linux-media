@@ -1,256 +1,237 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fmmailgate01.web.de ([217.72.192.221]:45556 "EHLO
-	fmmailgate01.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751171AbZEGRfi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2009 13:35:38 -0400
-Received: from smtp08.web.de (fmsmtp08.dlan.cinetic.de [172.20.5.216])
-	by fmmailgate01.web.de (Postfix) with ESMTP id 91CAA10189F56
-	for <linux-media@vger.kernel.org>; Thu,  7 May 2009 19:35:37 +0200 (CEST)
-Received: from [93.192.143.159] (helo=[192.168.0.103])
-	by smtp08.web.de with asmtp (TLSv1:AES256-SHA:256)
-	(WEB.DE 4.110 #277)
-	id 1M27VR-00060y-00
-	for linux-media@vger.kernel.org; Thu, 07 May 2009 19:35:37 +0200
-Message-ID: <4A031BE8.2080900@web.de>
-Date: Thu, 07 May 2009 19:35:36 +0200
-From: Reinhard Katzmann <suamor@web.de>
-MIME-Version: 1.0
-To: gspca list <linux-media@vger.kernel.org>
-Subject: [GSPCA] Driver Development for Speed Link VAD Laplace
-Content-Type: multipart/mixed;
- boundary="------------030406070005040504030904"
+Received: from bombadil.infradead.org ([18.85.46.34]:42325 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752315AbZEKK3J (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 May 2009 06:29:09 -0400
+Date: Mon, 11 May 2009 07:29:04 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Uri Shkolnik <urishk@yahoo.com>
+Cc: LinuxML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] [0904_7_2] Siano: smsdvb - purge whitespaces
+Message-ID: <20090511072904.7bfff5c3@pedra.chehab.org>
+In-Reply-To: <892743.18087.qm@web110803.mail.gq1.yahoo.com>
+References: <892743.18087.qm@web110803.mail.gq1.yahoo.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------030406070005040504030904
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Em Mon, 27 Apr 2009 05:11:27 -0700 (PDT)
+Uri Shkolnik <urishk@yahoo.com> escreveu:
 
-Hi,
+> 
+> # HG changeset patch
+> # User Uri Shkolnik <uris@siano-ms.com>
+> # Date 1240833806 -10800
+> # Node ID cbd828b0fe102fa023280cfeadbcb20b54a39a47
+> # Parent  39bbe3b24abaaa3e049a855cb51be0b917b0c711
+> Siano: smsdvb - whitespace cleanup
+> 
+> From: Uri Shkolnik <uris@siano-ms.com>
+> 
+> Whitespace cleanup, no implementation changes
 
-I hope I'm on the correct list for gspca driver development. By
-searching I came up to the old driver page and the gspca project
-page http://linuxtv.org/hg/~jfrancois/gspca/
+This patch didn't apply. Probably, it were applied out of order. The other
+Siano patches I had were already applied. Please check if I forgot something.
 
-I recently bought a nice new webcam without Linux support (that was not
-very important for me as I have a working webcam already but this one
-has several useful features especially at work where I often don't or
-can't use Linux unfortunately). The webcam is called VAD (Vicious and
-Divine) Laplace from the manufacturer Speed Link.
-
-So I thought helping to get a driver for this cam. What I can offer is
-USB sniffing on a certain OS (no MAC drivers available too so there is
-not much choice). I already know that the cam is not UVC compliant.
-
-I have searched for some more hardware information than from the vendor
-available but in vain (though the cam is about 1 year old already).
-I know that especially the video format the webcam delivers would be
-important to know for driver development.
-
-If there are any (freeware) tools available except those USB sniffers to
-find out any more hardware details please let me know, so I can help
-with the driver.
-
-The basic hardware SPECS are below and I attached USB HW information
-from /proc/bus/usb/devices (with lsusb). IDs are idVendor=1ae7, 
-idProduct=9003 (9004 is the other variant of the webcam in black).
-
-- 2 MP Photo, 1.3 MP Video resolution, USB 2.0 (1.1 supported)
-- 3x digital zoom, Flash, Night illumination (3 hardware buttons)
-- Noise-suppressing microphone, Mute button
-- Z-fold positioning, 0.6m cable CAM, 1.4m extra USB extension cable
-- max. resolution 1280x960/15fps, 640x480/30fps, photo 1600x1200
-
-Sorry, it's not really much I found out so far. But I hope that I can
-be of further help for driver work. I intend to do some further tests.
-
-I think it's most appropriate to post results on the linuxtv wiki, so
-I created a new page there:
-http://linuxtv.org/wiki/index.php/VAD_Laplace
-
-Regards,
-
-Reinhard Katzmann
--- 
-Software-Engineer, Developer of User Interfaces
-Project: Canorus - the next generation music score editor - 
-http://canorus.berlios.de
-GnuPG Public Key available on request
-
---------------030406070005040504030904
-Content-Type: text/plain;
- name="laplace-lsusb-v.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="laplace-lsusb-v.txt"
-
-[suamor@localhost]$ sudo lsusb -v
-
-Bus 006 Device 008: ID 1ae7:9003  
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
-  idVendor           0x1ae7 
-  idProduct          0x9003 
-  bcdDevice            2.03
-  iManufacturer           0 
-  iProduct                0 
-  iSerial                 0 
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength          126
-    bNumInterfaces          3
-    bConfigurationValue     1
-    iConfiguration          0 
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           0
-      bInterfaceClass         1 Audio
-      bInterfaceSubClass      1 Control Device
-      bInterfaceProtocol      0 
-      iInterface              0 
-      AudioControl Interface Descriptor:
-        bLength                 9
-        bDescriptorType        36
-        bDescriptorSubtype      1 (HEADER)
-        bcdADC               1.00
-        wTotalLength           40
-        bInCollection           1
-        baInterfaceNr( 0)       1
-      AudioControl Interface Descriptor:
-        bLength                12
-        bDescriptorType        36
-        bDescriptorSubtype      2 (INPUT_TERMINAL)
-        bTerminalID             1
-        wTerminalType      0x0201 Microphone
-        bAssocTerminal          0
-        bNrChannels             2
-        wChannelConfig     0x0000
-        iChannelNames           0 
-        iTerminal               0 
-      AudioControl Interface Descriptor:
-        bLength                10
-        bDescriptorType        36
-        bDescriptorSubtype      6 (FEATURE_UNIT)
-        bUnitID                 2
-        bSourceID               1
-        bControlSize            1
-        bmaControls( 0)      0x03
-          Mute
-          Volume
-        bmaControls( 1)      0x00
-        bmaControls( 2)      0x00
-        iFeature                0 
-      AudioControl Interface Descriptor:
-        bLength                 9
-        bDescriptorType        36
-        bDescriptorSubtype      3 (OUTPUT_TERMINAL)
-        bTerminalID             3
-        wTerminalType      0x0101 USB Streaming
-        bAssocTerminal          0
-        bSourceID               2
-        iTerminal               0 
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       0
-      bNumEndpoints           0
-      bInterfaceClass         1 Audio
-      bInterfaceSubClass      2 Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       1
-      bNumEndpoints           1
-      bInterfaceClass         1 Audio
-      bInterfaceSubClass      2 Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      AudioStreaming Interface Descriptor:
-        bLength                 7
-        bDescriptorType        36
-        bDescriptorSubtype      1 (AS_GENERAL)
-        bTerminalLink           3
-        bDelay                  1 frames
-        wFormatTag              1 PCM
-      AudioStreaming Interface Descriptor:
-        bLength                11
-        bDescriptorType        36
-        bDescriptorSubtype      2 (FORMAT_TYPE)
-        bFormatType             1 (FORMAT_TYPE_I)
-        bNrChannels             2
-        bSubframeSize           2
-        bBitResolution         16
-        bSamFreqType            1 Discrete
-        tSamFreq[ 0]         8000
-      Endpoint Descriptor:
-        bLength                 9
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x00c8  1x 200 bytes
-        bInterval               4
-        bRefresh                0
-        bSynchAddress           0
-        AudioControl Endpoint Descriptor:
-          bLength                 7
-          bDescriptorType        37
-          bDescriptorSubtype      1 (EP_GENERAL)
-          bmAttributes         0x00
-          bLockDelayUnits         0 Undefined
-          wLockDelay              0 Undefined
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        3
-      bAlternateSetting       0
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass    234 
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
+> 
+> Priority: normal
+> 
+> Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+> 
+> diff -r 39bbe3b24aba -r cbd828b0fe10 linux/drivers/media/dvb/siano/smsdvb.c
+> --- a/linux/drivers/media/dvb/siano/smsdvb.c	Mon Apr 27 14:43:28 2009 +0300
+> +++ b/linux/drivers/media/dvb/siano/smsdvb.c	Mon Apr 27 15:03:26 2009 +0300
+> @@ -33,15 +33,15 @@ struct smsdvb_client_t {
+>  	struct smscore_device_t *coredev;
+>  	struct smscore_client_t *smsclient;
+>  
+> -	struct dvb_adapter      adapter;
+> -	struct dvb_demux        demux;
+> -	struct dmxdev           dmxdev;
+> -	struct dvb_frontend     frontend;
+> +	struct dvb_adapter adapter;
+> +	struct dvb_demux demux;
+> +	struct dmxdev dmxdev;
+> +	struct dvb_frontend frontend;
+>  
+> -	fe_status_t             fe_status;
+> -	int                     fe_ber, fe_snr, fe_unc, fe_signal_strength;
+> +	fe_status_t fe_status;
+> +	int fe_ber, fe_snr, fe_unc, fe_signal_strength;
+>  
+> -	struct completion       tune_done, stat_done;
+> +	struct completion tune_done, stat_done;
+>  
+>  	/* todo: save freq/band instead whole struct */
+>  	struct dvb_frontend_parameters fe_params;
+> @@ -61,7 +61,7 @@ static int smsdvb_onresponse(void *conte
+>  	struct smsdvb_client_t *client = (struct smsdvb_client_t *) context;
+>  	struct SmsMsgHdr_ST *phdr = (struct SmsMsgHdr_ST *) (((u8 *) cb->p)
+>  			+ cb->offset);
+> -	u32 *pMsgData = (u32 *)phdr+1;
+> +	u32 *pMsgData = (u32 *) phdr + 1;
+>  	/*u32 MsgDataLen = phdr->msgLength - sizeof(struct SmsMsgHdr_ST);*/
+>  
+>  	/*smsendian_handle_rx_message((struct SmsMsgData_ST *) phdr);*/
+> @@ -177,8 +177,8 @@ static int smsdvb_onresponse(void *conte
+>  
+>  	if (client->fe_status & FE_HAS_LOCK)
+>  		sms_board_led_feedback(client->coredev,
+> -				       (client->fe_unc == 0) ?
+> -				       SMS_LED_HI : SMS_LED_LO);
+> +				(client->fe_unc == 0) ?
+> +				SMS_LED_HI : SMS_LED_LO);
+>  	else
+>  		sms_board_led_feedback(client->coredev, SMS_LED_OFF);
+>  
+> @@ -203,7 +203,7 @@ static void smsdvb_onremove(void *contex
+>  {
+>  	kmutex_lock(&g_smsdvb_clientslock);
+>  
+> -	smsdvb_unregister_client((struct smsdvb_client_t *) context);
+> +	smsdvb_unregister_client((struct smsdvb_client_t *)context);
+>  
+>  	kmutex_unlock(&g_smsdvb_clientslock);
+>  }
+> @@ -214,13 +214,12 @@ static int smsdvb_start_feed(struct dvb_
+>  		container_of(feed->demux, struct smsdvb_client_t, demux);
+>  	struct SmsMsgData_ST PidMsg;
+>  
+> -	sms_debug("add pid %d(%x)",
+> -		  feed->pid, feed->pid);
+> +	sms_debug("add pid %d(%x)", feed->pid, feed->pid);
+>  
+>  	PidMsg.xMsgHeader.msgSrcId = DVBT_BDA_CONTROL_MSG_ID;
+>  	PidMsg.xMsgHeader.msgDstId = HIF_TASK;
+>  	PidMsg.xMsgHeader.msgFlags = 0;
+> -	PidMsg.xMsgHeader.msgType  = MSG_SMS_ADD_PID_FILTER_REQ;
+> +	PidMsg.xMsgHeader.msgType = MSG_SMS_ADD_PID_FILTER_REQ;
+>  	PidMsg.xMsgHeader.msgLength = sizeof(PidMsg);
+>  	PidMsg.msgData[0] = feed->pid;
+>  
+> @@ -234,31 +233,31 @@ static int smsdvb_stop_feed(struct dvb_d
+>  		container_of(feed->demux, struct smsdvb_client_t, demux);
+>  	struct SmsMsgData_ST PidMsg;
+>  
+> -	sms_debug("remove pid %d(%x)",
+> -		  feed->pid, feed->pid);
+> +	sms_debug("remove pid %d(%x)", feed->pid, feed->pid);
+>  
+>  	PidMsg.xMsgHeader.msgSrcId = DVBT_BDA_CONTROL_MSG_ID;
+>  	PidMsg.xMsgHeader.msgDstId = HIF_TASK;
+>  	PidMsg.xMsgHeader.msgFlags = 0;
+> -	PidMsg.xMsgHeader.msgType  = MSG_SMS_REMOVE_PID_FILTER_REQ;
+> +	PidMsg.xMsgHeader.msgType = MSG_SMS_REMOVE_PID_FILTER_REQ;
+>  	PidMsg.xMsgHeader.msgLength = sizeof(PidMsg);
+>  	PidMsg.msgData[0] = feed->pid;
+>  
+> -	return smsclient_sendrequest(client->smsclient,
+> -				     &PidMsg, sizeof(PidMsg));
+> +	return smsclient_sendrequest(client->smsclient, &PidMsg,
+> +			sizeof(PidMsg));
+>  }
+>  
+>  static int smsdvb_sendrequest_and_wait(struct smsdvb_client_t *client,
+> -					void *buffer, size_t size,
+> -					struct completion *completion)
+> +				       void *buffer, size_t size,
+> +				       struct completion *completion)
+>  {
+> -	int rc = smsclient_sendrequest(client->smsclient, buffer, size);
+> +	int rc;
+> +
+> +	rc = smsclient_sendrequest(client->smsclient, buffer, size);
+>  	if (rc < 0)
+>  		return rc;
+>  
+> -	return wait_for_completion_timeout(completion,
+> -					   msecs_to_jiffies(2000)) ?
+> -						0 : -ETIME;
+> +	return wait_for_completion_timeout(completion, msecs_to_jiffies(2000))
+> +			? 0 : -ETIME;
+>  }
+>  
+>  static int smsdvb_read_status(struct dvb_frontend *fe, fe_status_t *stat)
+> @@ -333,18 +332,18 @@ static int smsdvb_set_frontend(struct dv
+>  			       struct dvb_frontend_parameters *fep)
+>  {
+>  	struct smsdvb_client_t *client =
+> -		container_of(fe, struct smsdvb_client_t, frontend);
+> +	container_of(fe, struct smsdvb_client_t, frontend);
+>  
+>  	struct {
+> -		struct SmsMsgHdr_ST	Msg;
+> -		u32		Data[3];
+> +		struct SmsMsgHdr_ST Msg;
+> +		u32 Data[3];
+>  	} Msg;
+>  	int ret;
+>  
+> -	Msg.Msg.msgSrcId  = DVBT_BDA_CONTROL_MSG_ID;
+> -	Msg.Msg.msgDstId  = HIF_TASK;
+> -	Msg.Msg.msgFlags  = 0;
+> -	Msg.Msg.msgType   = MSG_SMS_RF_TUNE_REQ;
+> +	Msg.Msg.msgSrcId = DVBT_BDA_CONTROL_MSG_ID;
+> +	Msg.Msg.msgDstId = HIF_TASK;
+> +	Msg.Msg.msgFlags = 0;
+> +	Msg.Msg.msgType = MSG_SMS_RF_TUNE_REQ;
+>  	Msg.Msg.msgLength = sizeof(Msg);
+>  	Msg.Data[0] = fep->frequency;
+>  	Msg.Data[2] = 12000000;
+> @@ -353,14 +352,24 @@ static int smsdvb_set_frontend(struct dv
+>  		  fep->frequency, fep->u.ofdm.bandwidth);
+>  
+>  	switch (fep->u.ofdm.bandwidth) {
+> -	case BANDWIDTH_8_MHZ: Msg.Data[1] = BW_8_MHZ; break;
+> -	case BANDWIDTH_7_MHZ: Msg.Data[1] = BW_7_MHZ; break;
+> -	case BANDWIDTH_6_MHZ: Msg.Data[1] = BW_6_MHZ; break;
+> +	case BANDWIDTH_8_MHZ:
+> +		Msg.Data[1] = BW_8_MHZ;
+> +		break;
+> +	case BANDWIDTH_7_MHZ:
+> +		Msg.Data[1] = BW_7_MHZ;
+> +		break;
+> +	case BANDWIDTH_6_MHZ:
+> +		Msg.Data[1] = BW_6_MHZ;
+> +		break;
+>  #if 0
+> -	case BANDWIDTH_5_MHZ: Msg.Data[1] = BW_5_MHZ; break;
+> +	case BANDWIDTH_5_MHZ:
+> +		Msg.Data[1] = BW_5_MHZ;
+> +		break;
+>  #endif
+> -	case BANDWIDTH_AUTO: return -EOPNOTSUPP;
+> -	default: return -EINVAL;
+> +	case BANDWIDTH_AUTO:
+> +		return -EOPNOTSUPP;
+> +	default:
+> +		return -EINVAL;
+>  	}
+>  
+>  	/* Disable LNA, if any. An error is returned if no LNA is present */
+> @@ -395,7 +404,7 @@ static int smsdvb_get_frontend(struct dv
+>  
+>  	/* todo: */
+>  	memcpy(fep, &client->fe_params,
+> -	       sizeof(struct dvb_frontend_parameters));
+> +			sizeof(struct dvb_frontend_parameters));
+>  
+>  	return 0;
+>  }
+> 
+> 
+> 
+>       
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
---------------030406070005040504030904--
+
+
+Cheers,
+Mauro
