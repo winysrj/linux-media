@@ -1,61 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:42647 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755362AbZETSih (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2009 14:38:37 -0400
-Message-ID: <4A144E41.6080806@redhat.com>
-Date: Wed, 20 May 2009 20:38:57 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from web32102.mail.mud.yahoo.com ([68.142.207.116]:27267 "HELO
+	web32102.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751018AbZEKQzM convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 May 2009 12:55:12 -0400
+Message-ID: <951499.48393.qm@web32102.mail.mud.yahoo.com>
+References: <155119.7889.qm@web32103.mail.mud.yahoo.com> <Pine.LNX.4.64.0905071750050.9460@axis700.grange>
+Date: Mon, 11 May 2009 09:55:10 -0700 (PDT)
+From: Agustin <gatoguan-os@yahoo.com>
+Subject: Grabbing single stills on MX31 - Re: Solved? - Re: soc-camera: timing out during capture - Re: Testing latest mx3_camera.c
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+In-Reply-To: <Pine.LNX.4.64.0905071750050.9460@axis700.grange>
 MIME-Version: 1.0
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-CC: Hans de Goede <j.w.r.degoede@hhs.nl>, linux-media@vger.kernel.org
-Subject: Re: What is libv4lconvert/sn9c202x.c for?
-References: <1242316804.1759.1@lhost.ldomain> <4A0C544F.1030801@hhs.nl> <alpine.LNX.2.00.0905141424460.11396@banach.math.auburn.edu> <alpine.LNX.2.00.0905191529260.19936@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.0905191529260.19936@banach.math.auburn.edu>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+On Thu, 7 May 2009, Guennadi Liakhovetski wrote:
 
-On 05/19/2009 10:35 PM, Theodore Kilgore wrote:
->
-> I can not seem to be able to find any such devices which use this. So
-> perhaps I am not looking in the right place and someone could point me
-> there.
->
-> In any event, it appears to me to have absolutely nothing at all to do
-> with the decompression algorithm required by the SN9C2028 cameras. Those
-> require a differential Huffman encoding scheme similar to what is in use
-> for the MR97310a cameras, but with a few crucial differencew which make
-> it pretty much impossible to write one routine for both. But the code in
-> the file libv4lconvert/sn9c202x.c appears to me to be no differential
-> Huffman scheme at all but something entirely different.
->
-> Hence my question.
+> 
+> On Thu, 7 May 2009, Agustin Ferrin Pozuelo wrote:
+> > ...
+> > I thought about the fact that I was only queuing one buffer, and that 
+> > this might be a corner case as sample code uses a lot of them. And that 
+> > in the older code that funny things could happen in the handler if we 
+> > ran out of buffers, though they didn't happen.
+> > 
+> > So I have queued an extra buffer and voila, got it working.
+> > 
+> > So thanks again!
+> > 
+> > However, this could be a bug in ipu_idmac (or some other point), as 
+> > using a single buffer is very plausible, specially when grabbing huge 
+> > stills.
+> 
+> Great, thanks for testing and debugging! Ok, so, I will have to test this 
+> case some time...
 
-This is for the (not yet in the mainline kernel) sn9c20x driver, just like
-there is a series of sn9c10x webcam bridges from sonix there also is a serie
-of 2n9c20x, these can do jpeg compression, but also their own custom
-(less CPU the decompress) YUV based compression, which is supported by libv4l,
-and that is what is in the sn9c20x.c file, also note the file is called
-sn9c20x.c not sn9c202x.c, iow this is completely unrelated to the sn9c2028
-cameras, as this is not for sn9c202x but for sn9c20x .
+Guennadi,
 
-Hope this helps to clarify things.
+This workaround (queuing 2 buffers when needing only one) is having the side effect of greatly increasing the time taken.
+
+I did several tests playing with camera vertical blanking and looking at capture times:
+
+    Vblank / real / user / sys time:
+             0 / real    0m 0.90s / user    0m 0.00s / sys     0m 0.34s
+  1 frame / real    0m 1.04s / user    0m 0.00s / sys     0m 0.34s
+2 frames / real    0m 1.18s / user    0m 0.00s / sys     0m 0.33s
+2.5 (max)/ real    0m 1.23s / user    0m 0.00s / sys     0m 0.35s
+
+I think the second frame is being captured altogether, and its dma transfer is not allowing any other process to run meanwhile. (VIDIOC_STREAMOFF is being called as soon as the first buffer is ready.)
+
+Do you think it will be too hard to fix?
 
 Regards,
-
-Hans
-
-
-p.s.
-
-The sn9c20x driver can be found here:
-https://groups.google.com/group/microdia
-
-Its developers are quite active I wish they would get it merged into the
-mainline (and preferably first converted to a gspca subdriver, I'm not saying
-gspca is perfect, but it does safe a lot of code duplication).
+--Agustín.
 
