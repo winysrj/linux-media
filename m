@@ -1,18 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n426w0jl001763
-	for <video4linux-list@redhat.com>; Sat, 2 May 2009 02:58:00 -0400
-Received: from inblrg01.tcs.com (inblrg01.tcs.com [121.242.48.3])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n426vP1k013472
-	for <video4linux-list@redhat.com>; Sat, 2 May 2009 02:57:47 -0400
-MIME-Version: 1.0
-To: video4linux-list@redhat.com
-From: Mahalakshmi Gonuguntala <mahalakshmi.gonuguntala@tcs.com>
-Date: Sat, 2 May 2009 12:27:22 +0530
-Message-ID: <OFACFCCBF6.C089A5C3-ON652575AA.0026363F-652575AA.00263648@tcs.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n4B3kXme015203
+	for <video4linux-list@redhat.com>; Sun, 10 May 2009 23:46:33 -0400
+Received: from smtp115.rog.mail.re2.yahoo.com (smtp115.rog.mail.re2.yahoo.com
+	[68.142.225.231])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n4B3kJh7016386
+	for <video4linux-list@redhat.com>; Sun, 10 May 2009 23:46:19 -0400
+From: William Case <billlinux@rogers.com>
+To: CityK <cityk@rogers.com>
+In-Reply-To: <4A077247.8030305@rogers.com>
+References: <1241982336.31677.0.camel@localhost.localdomain>
+	<4A077247.8030305@rogers.com>
+Content-Type: text/plain
+Date: Sun, 10 May 2009 23:45:32 -0400
+Message-Id: <1242013532.3277.28.camel@localhost.localdomain>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"
-Subject: V4l2 display
+Cc: video4linux-list <video4linux-list@redhat.com>
+Subject: Re: Hauppauge WinTV-hvr-1800 PCIe won't work with tvtime or mplayer.
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,53 +29,57 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hi CityK;
 
-Hi all,
+On Sun, 2009-05-10 at 20:33 -0400, CityK wrote:
+> William Case wrote:
 
-I am writing a code to display a video using V4l2 drivers (On OMAPEVM ).
+> Note: cx88 associated modules do NOT apply to this device (cx88 driver
+> modules are for the PCI based cx2388x chipsets, where x=0/1,2,3).  This
+> is a PCIe based device which is serviced, amongst others, by the cx23885
+> driver module. 
 
-When I run the code.. It is giving an error message that .. memory could
-not be allocated.
-This error I am getting when I am calling dispaly application from a QT
-application,(QT internally uses /dev/fb0 ).
-But when I run the display application directly (with out integrating with
-QT).. memory allocation is proper and display is also coming.
+I have removed all the extra modules I have been playing with and
+removed any modprobe instructions I had been trying.
 
+> 
+> Also, have a look in the wiki for the device article which appears to
+> contain some info that would be useful for you.
 
-reqbuf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT; //V4L2_BUF_TYPE_VIDEO_OVERLAY
-reqbuf.count = numbuffers;
-reqbuf.memory = V4L2_MEMORY_USERPTR; //V4L2_MEMORY_MMAP;
+I re-installed v4l-dvb-4c7466ea8d64.tar.bz2, as suggested on the wiki.
+The extracted files are in /lib/modules/["kernel
+version"]/kernel/drivers/media with today's installation date. (last
+modified)
 
-printf("allocating buffers \n");
-ret = ioctl(display_fd, VIDIOC_REQBUFS, &reqbuf);
+> With a hardware encoding device, the /dev/video0 should be the MPEG2
+> stream whereas /dev/video1 would be the raw stream compatible with apps
+> like tvtime.  mplayer /dev/video0 should work. .... note that the node
+> number (N) of the character device (/dev/videoN) will be different if
+> you have multiple devices installed in the system, so you will have to
+> adjust accordingly.
 
-I am getting the same error with V4L2_MEMORY_MMAP memory configuration
-also.
+I am trying to set up analog viewing through my cable provider.
+tvtime.xml is set to video0. It still gives me an excellent picture but
+no sound. video1 just gives me a black screen - no sound.
 
-Can somebody guide me .. what could be the reason for this?
+On mplayer device=/dev/video0 remains the same --terrible picture; no
+sound. mplayer device=/dev/video0 produces the error message 
+'vo: x11 uninit called but X11 not initialized..' and quits.
 
-Thanks,
-Mahalakshmi.
-__________________________________________
-Experience certainty.   IT Services
-                  Business Solutions
-                  Outsourcing
-____________________________________________
+The mplayer script I am using is a slightly modified copy of the command
+suggested on the wiki.
 
-=====-----=====-----=====
-Notice: The information contained in this e-mail
-message and/or attachments to it may contain 
-confidential or privileged information. If you are 
-not the intended recipient, any dissemination, use, 
-review, distribution, printing or copying of the 
-information contained in this e-mail message 
-and/or attachments to it are strictly prohibited. If 
-you have received this communication in error, 
-please notify us by reply e-mail or telephone and 
-immediately and permanently delete the message 
-and any attachments. Thank you
+Basically the info I submitted originally remains the same except the
+cx2388x modules are gone.
 
+Usually I like to work away at these kind problems until I conquer them
+myself.  But I have been on this one for over two weeks and I am driving
+myself to distraction.  I really do appreciate your time and advice.
 
+-- 
+Regards Bill
+Fedora 10, Gnome 2.24.3
+Evo.2.24.5, Emacs 22.3.1
 
 --
 video4linux-list mailing list
