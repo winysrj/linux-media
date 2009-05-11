@@ -1,69 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110814.mail.gq1.yahoo.com ([67.195.13.237]:23537 "HELO
-	web110814.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751956AbZENT2Q (ORCPT
+Received: from smtp-cloud1.xs4all.nl ([194.109.24.61]:52697 "EHLO
+	smtp-cloud1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751752AbZEKSHv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 May 2009 15:28:16 -0400
-Message-ID: <261583.74225.qm@web110814.mail.gq1.yahoo.com>
-Date: Thu, 14 May 2009 12:28:17 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [0905_12] Siano: move dvb-api headers' includes to dvb adapter
-To: LinuxML <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	Mon, 11 May 2009 14:07:51 -0400
+Date: Mon, 11 May 2009 20:07:50 +0200
+Message-ID: <47.05.23053.679680A4@smtp-cloud1.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1242323970 -10800
-# Node ID cc2c1513b97c4247614fadcab0a61f3979837d86
-# Parent  483a3656a227acbceb26da96b02bebd0058a3961
-[0905_12] Siano: move dvb-api headers' includes to dvb adapter
+Results of the daily build of v4l-dvb:
 
-From: Uri Shkolnik <uris@siano-ms.com>
+date:        Mon May 11 19:00:05 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11732:0ee56433741d
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Move the DVB-API v3 headers' include list from the core component
-to the smsdvb (DVB adapter) which is the only one that uses them.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-rc4-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-rc4-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-rc4-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-rc4-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-rc4-m32r: OK
+linux-2.6.22.19-mips: ERRORS
+linux-2.6.26-mips: ERRORS
+linux-2.6.27-mips: ERRORS
+linux-2.6.28-mips: ERRORS
+linux-2.6.29.1-mips: ERRORS
+linux-2.6.30-rc4-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-rc4-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-rc4-x86_64: WARNINGS
+sparse (linux-2.6.29.1): OK
+sparse (linux-2.6.30-rc4): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Priority: normal
+Detailed results are available here:
 
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-diff -r 483a3656a227 -r cc2c1513b97c linux/drivers/media/dvb/siano/smscoreapi.h
---- a/linux/drivers/media/dvb/siano/smscoreapi.h	Thu May 14 20:54:22 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Thu May 14 20:59:30 2009 +0300
-@@ -35,13 +35,6 @@ along with this program.  If not, see <h
- #include <asm/page.h>
- #include "compat.h"
- 
--#define SMS_DVB3_SUBSYS
--#ifdef SMS_DVB3_SUBSYS
--#include "dmxdev.h"
--#include "dvbdev.h"
--#include "dvb_demux.h"
--#include "dvb_frontend.h"
--#endif
- 
- #define kmutex_init(_p_) mutex_init(_p_)
- #define kmutex_lock(_p_) mutex_lock(_p_)
-diff -r 483a3656a227 -r cc2c1513b97c linux/drivers/media/dvb/siano/smsdvb.c
---- a/linux/drivers/media/dvb/siano/smsdvb.c	Thu May 14 20:54:22 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smsdvb.c	Thu May 14 20:59:30 2009 +0300
-@@ -21,6 +21,11 @@ along with this program.  If not, see <h
- 
- #include <linux/module.h>
- #include <linux/init.h>
-+
-+#include "dmxdev.h"
-+#include "dvbdev.h"
-+#include "dvb_demux.h"
-+#include "dvb_frontend.h"
- 
- #include "smscoreapi.h"
- #include "smsendian.h"
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
+The V4L2 specification from this daily build is here:
 
-      
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
