@@ -1,63 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:37199 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755298AbZEODht (ORCPT
+Received: from mail-bw0-f174.google.com ([209.85.218.174]:36792 "EHLO
+	mail-bw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754868AbZELBAu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 May 2009 23:37:49 -0400
-Received: from banach.math.auburn.edu (localhost [127.0.0.1])
-	by banach.math.auburn.edu (8.14.3/8.14.2) with ESMTP id n4F3pmv6011837
-	for <linux-media@vger.kernel.org>; Thu, 14 May 2009 22:51:48 -0500
-Received: from localhost (kilgota@localhost)
-	by banach.math.auburn.edu (8.14.3/8.14.2/Submit) with ESMTP id n4F3pllQ011834
-	for <linux-media@vger.kernel.org>; Thu, 14 May 2009 22:51:48 -0500
-Date: Thu, 14 May 2009 22:51:47 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: linux-media@vger.kernel.org
-Subject: How to interpret error codes for usb_control_msg()?
-Message-ID: <alpine.LNX.2.00.0905142231110.11788@banach.math.auburn.edu>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+	Mon, 11 May 2009 21:00:50 -0400
+Received: by bwz22 with SMTP id 22so2990990bwz.37
+        for <linux-media@vger.kernel.org>; Mon, 11 May 2009 18:00:50 -0700 (PDT)
+Date: Mon, 11 May 2009 21:01:07 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: hermann pitton <hermann-pitton@arcor.de>,
+	linux-media@vger.kernel.org, video4linux-list@redhat.com
+Subject: Re: [PATCH 3/3 ] big rework of TS for saa7134
+Message-ID: <20090511210107.1eafb364@glory.loctelecom.ru>
+In-Reply-To: <20090511215456.2fe38980@pedra.chehab.org>
+References: <20090428195200.69d103e7@glory.loctelecom.ru>
+	<20090511193705.0e06fac8@pedra.chehab.org>
+	<1242082536.11527.4.camel@pc07.localdom.local>
+	<20090511202123.383c8300@glory.loctelecom.ru>
+	<20090511215456.2fe38980@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi 
 
-Working on a driver for the Sonix SN9C2028 dual-mode cameras, I am 
-confronted with the situation that certain usb_control_msg() functions are 
-failing and returning -32. Does anyone know how to look up what -32 is 
-supposed to mean? It appears not to be in the standard errno.h file, so it 
-would apparently be somewhere else. And the on-line man page for 
-usb_control_msg does not seem totally helpful. It says
+> Em Mon, 11 May 2009 20:21:23 +1000
+> Dmitri Belimov <d.belimov@gmail.com> escreveu:
+> 
+> > > > Cheers,
+> > > > Mauro
+> > > 
+> > > Did you check it is still OK for DVB-T and DVB-S also?
+> > 
+> > No. We tested only with analog TV, capturing from analog TV and
+> > composite input. It support serial and parallel TS from MPEG
+> > encoder to saa7134.
+> 
+> Since the patch touched on saa7134-ts, it is important to check if it
+> will not cause regressions with DVB. Could you please test it?
 
-"If successful, it returns the number of bytes transferred; otherwise, it 
-returns a negative error number."
+Ok. I'll do it with our customers. In my place hasn't any DVB channels.
 
-but does not otherwise discuss the negative error numbers.
+With my best regards, Dmitry.
 
-However, I am getting things like
-
-f60a5680 1488371641 S Ci:5:022:0 s c1 00 0001 0000 0001 1 <
-f60a5680 1488373478 C Ci:5:022:0 -32 1 = 0c
-
-using from the camera, and I do not quite know why. Incidentally, quite 
-aside from the error message, the returned value is also a bit screwy. It 
-ought to be 00 and for no obvious reason it is not. However, even if the 
-returned value is correct, which also can sometimes happen, the error 
-is still there.
-
-Also the debug statement from dmesg consistently says (the corresponding 
-function is called read1)
-
-sn9c20: read1 error -32
-
-But, what is essentially the same command works just fine in libgphoto2, 
-giving debug output which looks like this
-
-f14ca880 2936498715 S Ci:5:023:0 s c1 00 0001 0000 0001 1 <
-f14ca880 2936499630 C Ci:5:023:0 0 1 = 00
-
-which shows no error and is doing what it should.
-
-So if someone knows where the declarations of these error codes are, it 
-might help me to track down what the problem is.
-
-Theodore Kilgore
+> Cheers,
+> Mauro
