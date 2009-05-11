@@ -1,36 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1008.centrum.cz ([90.183.38.138]:35067 "EHLO
-	mail1008.centrum.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756906AbZE2OdA (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:37908 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751062AbZEKNhE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 May 2009 10:33:00 -0400
-Received: by mail1008.centrum.cz id S939615179AbZE2Oc7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 May 2009 16:32:59 +0200
-Date: Fri, 29 May 2009 16:32:59 +0200
-From: "Miroslav =?UTF-8?Q?=20=C5=A0ustek?=" <sustmidown@centrum.cz>
-To: <linux-media@vger.kernel.org>
-Cc: <mchehab@infradead.org>
-MIME-Version: 1.0
-Message-ID: <200905291632.28450@centrum.cz>
-References: <200905291628.32305@centrum.cz> <200905291629.364@centrum.cz> <200905291630.21607@centrum.cz> <200905291631.1309@centrum.cz> <200905291632.13608@centrum.cz>
-In-Reply-To: <200905291632.13608@centrum.cz>
-Subject: [PATCH] Leadtek WinFast DTV-1800H support
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+	Mon, 11 May 2009 09:37:04 -0400
+Date: Mon, 11 May 2009 10:36:51 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Magnus Damm <magnus.damm@gmail.com>, linux-media@vger.kernel.org,
+	hverkuil@xs4all.nl, linux-mm@kvack.org, lethal@linux-sh.org,
+	hannes@cmpxchg.org
+Subject: Re: [PATCH] videobuf-dma-contig: zero copy USERPTR support V3
+Message-ID: <20090511103651.49d852f8@pedra.chehab.org>
+In-Reply-To: <20090508130658.813e29c1.akpm@linux-foundation.org>
+References: <20090508085310.31326.38083.sendpatchset@rx1.opensource.se>
+	<20090508130658.813e29c1.akpm@linux-foundation.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-this patch adds support for Leadtek WinFast DTV-1800H hybrid card.
-It enables analog/digital tv, radio and remote control trough GPIO.
+Em Fri, 8 May 2009 13:06:58 -0700
+Andrew Morton <akpm@linux-foundation.org> escreveu:
 
-Input GPIO values are extracted from INF file which is included in winxp driver.
-Analog audio works both through cx88-alsa and through internal cable from tv-card to sound card.
+> On Fri, 08 May 2009 17:53:10 +0900
+> Magnus Damm <magnus.damm@gmail.com> wrote:
+> 
+> > From: Magnus Damm <damm@igel.co.jp>
+> > 
+> > This is V3 of the V4L2 videobuf-dma-contig USERPTR zero copy patch.
+> > 
+> > Since videobuf-dma-contig is designed to handle physically contiguous
+> > memory, this patch modifies the videobuf-dma-contig code to only accept
+> > a user space pointer to physically contiguous memory. For now only
+> > VM_PFNMAP vmas are supported, so forget hotplug.
+> > 
+> > On SuperH Mobile we use this with our sh_mobile_ceu_camera driver
+> > together with various multimedia accelerator blocks that are exported to
+> > user space using UIO. The UIO kernel code exports physically contiguous
+> > memory to user space and lets the user space application mmap() this memory
+> > and pass a pointer using the USERPTR interface for V4L2 zero copy operation.
+> > 
+> > With this approach we support zero copy capture, hardware scaling and
+> > various forms of hardware encoding and decoding.
+> > 
+> > Signed-off-by: Magnus Damm <damm@igel.co.jp>
 
-Tested by me and the people listed in patch (works well).
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-- Miroslav Šustek
+> > ---
+> > 
+> >  Needs the following patches (Thanks to Johannes Weiner and akpm):
+> >  - mm-introduce-follow_pte.patch
+> >  - mm-use-generic-follow_pte-in-follow_phys.patch
+> >  - mm-introduce-follow_pfn.patch
+> 
+> I'l plan to merge this and the above three into 2.6.31-rc1 unless it
+> all gets shot down.
 
-(Sorry for double-post, but I was told to do it so. Nobody noticed the previous post(s).)
+Andrew,
+Due to the the dependencies with the above patches, it seems better if you
+could send this patch upstream together with the above patches.
 
+> 
+> > +static int videobuf_dma_contig_user_get(struct videobuf_dma_contig_memory *mem,
+> > +					struct videobuf_buffer *vb)
+
+> If this function really so obvious and trivial that it is best to merge
+> it without any documentation at all?  Has it been made as easy for
+> others to maintain as we can possibly make it?
+> 
+> What does it do, how does it do it and why does it do it?
+
+A good documentation is a really good idea here. There videobuf internals are
+very complex. A good documentation for it is very important to keep it updated.
+
+I would also suggest if you could also take a look at videobuf-vmalloc and implement a
+similar method to provide USERPTR. The vmalloc flavor can easily be tested with
+the virtual (vivi) video driver, so it helps people to better understand how
+videobuf works. It will also help the USB drivers that use videobuf to use USERPTR.
+
+
+
+Cheers,
+Mauro
