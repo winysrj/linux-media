@@ -1,132 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:32058 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754428AbZELGRg (ORCPT
+Received: from mail-ew0-f224.google.com ([209.85.219.224]:36826 "EHLO
+	mail-ew0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755521AbZEKJhX convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2009 02:17:36 -0400
-Date: Tue, 12 May 2009 09:12:23 +0300
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: ext Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
-Subject: Re: [PATCH v2 1/7] v4l2: video device: Add V4L2_CTRL_CLASS_FMTX
-	controls
-Message-ID: <20090512061223.GC4639@esdhcp037198.research.nokia.com>
-Reply-To: eduardo.valentin@nokia.com
-References: <1242034309-13448-1-git-send-email-eduardo.valentin@nokia.com> <1242034309-13448-2-git-send-email-eduardo.valentin@nokia.com> <20090511231231.35f5ec0c@pedra.chehab.org>
+	Mon, 11 May 2009 05:37:23 -0400
+Received: by ewy24 with SMTP id 24so3288513ewy.37
+        for <linux-media@vger.kernel.org>; Mon, 11 May 2009 02:37:22 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090511231231.35f5ec0c@pedra.chehab.org>
+In-Reply-To: <200905091141.57865.dkuhlen@gmx.net>
+References: <ecc945da0905040929g828133ha7b1542dad9a1ca8@mail.gmail.com>
+	 <200905091141.57865.dkuhlen@gmx.net>
+Date: Mon, 11 May 2009 11:37:22 +0200
+Message-ID: <ecc945da0905110237n38f6868eoe847d1fe1056f0c@mail.gmail.com>
+Subject: Re: TT-3200: locks init. and timeout
+From: pierre gronlier <ticapix@gmail.com>
+To: Dominik Kuhlen <dkuhlen@gmx.net>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+2009/5/9 Dominik Kuhlen <dkuhlen@gmx.net>:
+> Hi,
+> On Monday 04 May 2009, you wrote:
+>> Hello,
+>>
+>> I have a TT-3200 card and the b40d628f830d revision of v4l-dvb (april 24th)
+>> I have this two szap config files:
+>> $ cat channels_astra_fta.conf
+>> LCP:11479:v:0:22000:161:84:6402
+>>
+>> $ cat channels_hotbird_fta.conf
+>> 4FunTv:10719:v:1:27500:163:92:4404
+>>
+>> My problem is that to lock on hotbird I have to lock first on astra
+>> and them quickly launch szap on hotbird.
+>> If I'm waiting few seconds after the lock of astra then the lock on
+>> hotbird doesn't work.
+> Just out of curiosity: Could you please try to set the frequencies a few (about 4) MHz lower or higher?
+> (e.g. 11475 instead of 11479 for the Astra channel)
 
-On Tue, May 12, 2009 at 04:12:31AM +0200, ext Mauro Carvalho Chehab wrote:
-> Em Mon, 11 May 2009 12:31:43 +0300
-> Eduardo Valentin <eduardo.valentin@nokia.com> escreveu:
-> 
-> > This patch adds a new class of extended controls. This class
-> > is intended to support Radio Modulators properties such as:
-> > rds, audio limiters, audio compression, pilot tone generation,
-> > tuning power levels and region related properties.
-> > 
-> > Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> 
-> Eduardo,
-> 
-> Please provide us a patch also for V4L2 API for the new API controls you're
-> adding. I'll hold the analysis of the patch series until you provide us the
-> docs. So, there's no need to resubmit the entire patch series.
-> 
-> The V4L2 API is maintained together with the mercurial development tree, at:
-> 	http://linuxtv.org/hg/v4l-dvb/
 
-Right. That's something I was looking for. Thanks for the directions. I'll
-submit the docs then.
+I tried minus/plus 4-5Mhz with this config file:
+LCP:11479:v:0:22000:161:84:6402
+LCPm5:11474:v:0:22000:161:84:6402
+LCPm4:11475:v:0:22000:161:84:6402
+LCPp4:11483:v:0:22000:161:84:6402
+LCPp5:11484:v:0:22000:161:84:6402
 
-> 
-> under v4l2-spec/ directory.
-> 
-> Cheers,
-> Mauro.
-> 
-> > ---
-> >  include/linux/videodev2.h |   45 +++++++++++++++++++++++++++++++++++++++++++++
-> >  1 files changed, 45 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > index ebb2ea6..7559299 100644
-> > --- a/include/linux/videodev2.h
-> > +++ b/include/linux/videodev2.h
-> > @@ -803,6 +803,7 @@ struct v4l2_ext_controls {
-> >  #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
-> >  #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
-> >  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
-> > +#define V4L2_CTRL_CLASS_FMTX 0x009b0000	/* FM Radio Modulator class controls */
-> >  
-> >  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
-> >  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-> > @@ -1141,6 +1142,50 @@ enum  v4l2_exposure_auto_type {
-> >  
-> >  #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
-> >  
-> > +/* FM Radio Modulator class control IDs */
-> > +#define V4L2_CID_FMTX_CLASS_BASE		(V4L2_CTRL_CLASS_FMTX | 0x900)
-> > +#define V4L2_CID_FMTX_CLASS			(V4L2_CTRL_CLASS_FMTX | 1)
-> > +
-> > +#define V4L2_CID_RDS_ENABLED			(V4L2_CID_FMTX_CLASS_BASE + 1)
-> > +#define V4L2_CID_RDS_PI				(V4L2_CID_FMTX_CLASS_BASE + 2)
-> > +#define V4L2_CID_RDS_PTY			(V4L2_CID_FMTX_CLASS_BASE + 3)
-> > +#define V4L2_CID_RDS_PS_NAME			(V4L2_CID_FMTX_CLASS_BASE + 4)
-> > +#define V4L2_CID_RDS_RADIO_TEXT			(V4L2_CID_FMTX_CLASS_BASE + 5)
-> > +
-> > +#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 6)
-> > +#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 7)
-> > +#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FMTX_CLASS_BASE + 8)
-> > +
-> > +#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FMTX_CLASS_BASE + 9)
-> > +#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FMTX_CLASS_BASE + 10)
-> > +#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FMTX_CLASS_BASE + 11)
-> > +#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FMTX_CLASS_BASE + 12)
-> > +#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 13)
-> > +
-> > +#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 14)
-> > +#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FMTX_CLASS_BASE + 15)
-> > +#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FMTX_CLASS_BASE + 16)
-> > +
-> > +#define V4L2_CID_REGION				(V4L2_CID_FMTX_CLASS_BASE + 17)
-> > +enum v4l2_fmtx_region {
-> > +	V4L2_FMTX_REGION_USA			= 0,
-> > +	V4L2_FMTX_REGION_AUSTRALIA		= 1,
-> > +	V4L2_FMTX_REGION_EUROPE			= 2,
-> > +	V4L2_FMTX_REGION_JAPAN			= 3,
-> > +	V4L2_FMTX_REGION_JAPAN_WIDE_BAND	= 4,
-> > +};
-> > +#define V4L2_CID_REGION_BOTTOM_FREQUENCY	(V4L2_CID_FMTX_CLASS_BASE + 18)
-> > +#define V4L2_CID_REGION_TOP_FREQUENCY		(V4L2_CID_FMTX_CLASS_BASE + 19)
-> > +#define V4L2_CID_REGION_PREEMPHASIS		(V4L2_CID_FMTX_CLASS_BASE + 20)
-> > +enum v4l2_fmtx_preemphasis {
-> > +	V4L2_FMTX_PREEMPHASIS_75_uS		= 0,
-> > +	V4L2_FMTX_PREEMPHASIS_50_uS		= 1,
-> > +	V4L2_FMTX_PREEMPHASIS_DISABLED		= 2,
-> > +};
-> > +#define V4L2_CID_REGION_CHANNEL_SPACING		(V4L2_CID_FMTX_CLASS_BASE + 21)
-> > +#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FMTX_CLASS_BASE + 22)
-> > +#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FMTX_CLASS_BASE + 23)
-> > +
-> >  /*
-> >   *	T U N I N G
-> >   */
-> 
-> 
-> 
-> 
-> Cheers,
-> Mauro
+All the szap went fine. The lock is done one the correct channel (LCP)
+
+
+Here are the logs:
+http://pierre.gronlier.fr/tmp/astra_11474.log
+http://pierre.gronlier.fr/tmp/astra_11475.log
+http://pierre.gronlier.fr/tmp/astra_11479.log
+http://pierre.gronlier.fr/tmp/astra_11483.log
+http://pierre.gronlier.fr/tmp/astra_11484.log
+
 
 -- 
-Eduardo Valentin
+pierre
+
+>
+>> To lock on astra, I use this command
+>> $ szap -a 0 -f 0 -d 0 -c channels_astra_fta.conf -xr -n 1
+>> To lock on hotbird, I use this command
+>> $ szap -a 0 -f 0 -d 0 -c channels_hotbird_fta.conf -xr -n 1
+>>
+>>
+>> I enclose to the mail three logs:
+>> - when astra locks
+>> - when hotbird failed to lock
+>> - when hotbird locks
+>>
+>> The logs are big but the diffs are really small so I hope that someone
+>> who is familiar with the hardware could answer me.
+>>
+>> http://pierre.gronlier.fr/tmp/astra_ok_small.log
+>> http://pierre.gronlier.fr/tmp/hotbird_failed_small.log
+>> http://pierre.gronlier.fr/tmp/hotbird_ok_small.log
+>>
+>>
+>> --
+>> Pierre
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+>
+> Dominik
+>
+
+
+
+-- 
+Pierre Gronlier
