@@ -1,44 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110810.mail.gq1.yahoo.com ([67.195.13.233]:27306 "HELO
-	web110810.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753649AbZESQke (ORCPT
+Received: from smtp.nokia.com ([192.100.122.230]:43342 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754502AbZEKOA1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2009 12:40:34 -0400
-Message-ID: <897518.36694.qm@web110810.mail.gq1.yahoo.com>
-Date: Tue, 19 May 2009 09:40:35 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [09051_56] Siano: cards - merge load_module to event switch
-To: LinuxML <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	Mon, 11 May 2009 10:00:27 -0400
+From: David.Cohen.david.cohen@nokia.com
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	"Cohen David.A (Nokia-D/Helsinki)" <david.cohen@nokia.com>
+Subject: [PATCH] v4l2: change kmalloc to vmalloc for sglist allocation in videobuf_dma_map/unmap
+Date: Mon, 11 May 2009 17:00:20 +0300
+Message-Id: <1242050420-507-1-git-send-email-david.cohen@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Cohen David.A (Nokia-D/Helsinki) <david.cohen@nokia.com>
 
-# HG changeset patch
+Change kmalloc()/kfree() to vmalloc()/vfree() for sglist allocation
+during videobuf_dma_map() and videobuf_dma_unmap()
 
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1242751505 -10800
-# Node ID f78cbc153c82ebe58a1bbe82271b91f5a4a90642
-# Parent  d92f2dfcb226c5f8b8c3216f7cf96126f7571702
-[09051_56] Siano: cards - merge load_module to event switch
+High resolution sensors might require too many contiguous pages
+to be allocated for sglist by kmalloc() during videobuf_dma_map()
+(i.e. 256Kib for 8MP sensor).
+In such situations, kmalloc() could face some problem to find the
+required free memory. vmalloc() is a safer solution instead, as the
+allocated memory does not need to be contiguous.
 
-From: Uri Shkolnik <uris@siano-ms.com>
+Signed-off-by: David Cohen <david.cohen@nokia.com>
+---
+ drivers/media/video/videobuf-dma-sg.c |   17 +++++++++--------
+ 1 files changed, 9 insertions(+), 8 deletions(-)
 
-Merge the load_module into the board_event, remove redundant
-function.
-
-Priority: normal
-
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-
-diff -r d92f2dfcb226 -r f78cbc153c82 linux/drivers/media/dvb/siano/sms-cards.c
---- a/linux/drivers/media/dvb/siano/sms-cards.c	Tue May 19 19:29:16 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/sms-cards.c	Tue May 19 19:45:05 2009 +0300
-@@ -194,13 +194,7 @@ int sms_board_event(struct smscore_devic
+diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
+index da1790e..c9a5d7e 100644
+--- a/drivers/media/video/videobuf-dma-sg.c
++++ b/drivers/media/video/videobuf-dma-sg.c
+@@ -58,9 +58,10 @@ videobuf_vmalloc_to_sg(unsigned char *virt, int nr_pages)
+ 	struct page *pg;
+ 	int i;
  
- 	case BOARD_EVENT_BIND:
+-	sglist = kcalloc(nr_pages, sizeof(struct scatterlist), GFP_KERNEL);
++	sglist = vmalloc(nr_pages * sizeof(*sglist));
+ 	if (NULL == sglist)
+ 		return NULL;
++	memset(sglist, 0, nr_pages * sizeof(*sglist));
+ 	sg_init_table(sglist, nr_pages);
+ 	for (i = 0; i < nr_pages; i++, virt += PAGE_SIZE) {
+ 		pg = vmalloc_to_page(virt);
+@@ -72,7 +73,7 @@ videobuf_vmalloc_to_sg(unsigned char *virt, int nr_pages)
+ 	return sglist;
+ 
+  err:
+-	kfree(sglist);
++	vfree(sglist);
+ 	return NULL;
+ }
+ 
+@@ -84,7 +85,7 @@ videobuf_pages_to_sg(struct page **pages, int nr_pages, int offset)
+ 
+ 	if (NULL == pages[0])
+ 		return NULL;
+-	sglist = kmalloc(nr_pages * sizeof(*sglist), GFP_KERNEL);
++	sglist = vmalloc(nr_pages * sizeof(*sglist));
+ 	if (NULL == sglist)
+ 		return NULL;
+ 	sg_init_table(sglist, nr_pages);
+@@ -104,12 +105,12 @@ videobuf_pages_to_sg(struct page **pages, int nr_pages, int offset)
+ 
+  nopage:
+ 	dprintk(2,"sgl: oops - no page\n");
+-	kfree(sglist);
++	vfree(sglist);
+ 	return NULL;
+ 
+  highmem:
+ 	dprintk(2,"sgl: oops - highmem page\n");
+-	kfree(sglist);
++	vfree(sglist);
+ 	return NULL;
+ }
+ 
+@@ -230,7 +231,7 @@ int videobuf_dma_map(struct videobuf_queue* q, struct videobuf_dmabuf *dma)
+ 						(dma->vmalloc,dma->nr_pages);
+ 	}
+ 	if (dma->bus_addr) {
+-		dma->sglist = kmalloc(sizeof(struct scatterlist), GFP_KERNEL);
++		dma->sglist = vmalloc(sizeof(*dma->sglist));
+ 		if (NULL != dma->sglist) {
+ 			dma->sglen  = 1;
+ 			sg_dma_address(&dma->sglist[0]) = dma->bus_addr & PAGE_MASK;
+@@ -248,7 +249,7 @@ int videobuf_dma_map(struct videobuf_queue* q, struct videobuf_dmabuf *dma)
+ 		if (0 == dma->sglen) {
+ 			printk(KERN_WARNING
+ 			       "%s: videobuf_map_sg failed\n",__func__);
+-			kfree(dma->sglist);
++			vfree(dma->sglist);
+ 			dma->sglist = NULL;
+ 			dma->sglen = 0;
+ 			return -EIO;
+@@ -274,7 +275,7 @@ int videobuf_dma_unmap(struct videobuf_queue* q,struct videobuf_dmabuf *dma)
+ 
+ 	dma_unmap_sg(q->dev, dma->sglist, dma->nr_pages, dma->direction);
+ 
+-	kfree(dma->sglist);
++	vfree(dma->sglist);
+ 	dma->sglist = NULL;
+ 	dma->sglen = 0;
+ 	return 0;
+-- 
+1.6.1
 
-
-
-      
