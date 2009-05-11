@@ -1,17 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from wf-out-1314.google.com ([209.85.200.173])
+Received: from thebe.shinternet.ch ([87.245.64.12] helo=mail.shinternet.ch)
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <tutuyu@usc.edu>) id 1M91Wx-0007IG-LN
-	for linux-dvb@linuxtv.org; Tue, 26 May 2009 20:37:44 +0200
-Received: by wf-out-1314.google.com with SMTP id 28so1278157wff.17
-	for <linux-dvb@linuxtv.org>; Tue, 26 May 2009 11:37:36 -0700 (PDT)
+	(envelope-from <wolfgang.friedl@shlink.ch>) id 1M3RsW-0004pJ-4o
+	for linux-dvb@linuxtv.org; Mon, 11 May 2009 11:32:57 +0200
+Received: from [192.168.0.35] (sasag.sh.pcp.ch [87.245.102.34])
+	(authenticated bits=0)by mail.shinternet.ch
+	(8.13.8/8.13.8/Submit_shinternet) with ESMTP id n4B9WqEF099127
+	for <linux-dvb@linuxtv.org>; Mon, 11 May 2009 11:32:52 +0200 (CEST)
+	(envelope-from wolfgang.friedl@shlink.ch)
+Message-ID: <4A07F0EC.3080409@shlink.ch>
+Date: Mon, 11 May 2009 11:33:32 +0200
+From: Wolfgang Friedl <wolfgang.friedl@shlink.ch>
 MIME-Version: 1.0
-Date: Tue, 26 May 2009 11:37:36 -0700
-Message-ID: <cae4ceb0905261137g7f1e7aa5w1f0361bbe704e147@mail.gmail.com>
-From: Tu-Tu Yu <tutuyu@usc.edu>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] how to get the SNR DB value for DVICO DVB-T Dual
-	express card
+References: <49F57989.2010302@shlink.ch>
+	<4A06F4AF.7050900@free.fr>	<4A072DC7.9010002@shlink.ch>
+	<4A07E799.4070501@free.fr>
+In-Reply-To: <4A07E799.4070501@free.fr>
+Subject: Re: [linux-dvb] Infos regarding TERRATEC Cinergy HT PCMCIA
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -26,19 +32,60 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello:
-this is the output of the status... I would like to know how to
-calculate the the SNR DB value. Thank you so much!
-The frontend they used for DVB-T DUAL express is "Zarlink zl10353 DVB-T"
+Mathieu Taillefumier schrieb:
+> Hello,
+> 
+>> absolutely right, works fine, thank you.
+>> I am sorry I haven't found the time till now to give short message of
+>> the status till now (as I use to give when having asked on a list)
+>>    
+> it is alright
+>> DVB-T everything OK (Ubuntu 8.x and Debian testing), analogue works by
+>> using this PCI-DMA "trick" you mentionend (sox with alsa and a 22050
+>> audio-rate gave best results) One thing to mention: a few channels come
+>> only mute.
+>> <http://www.sasag.ch/angebot/kabelTV.php>  (BR and superRTL, are the ones
+>> as far as I remember).
+>> It could be, that using a oss=0 option with saa7134 allows, when
+>> switching to another, "working" channel, then "v4lctl volume mute off"
+>> and switching back, can get you around - I had to few time to test
+>> it/was not important enough; this problem seems to be a known issue, I
+>> had later found some hits on this.
+>>    
+> I am not sure to understand. Do you mean that you have two channels with 
+> the video but without the sound despite the fact that the sound is not 
+> mute or is it something else. Personally, I never had this problem but I 
+> am not using my tvcard very often so...
+> 
 
-status 1e | signal b788 | snr 0f1f1 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1e | signal b78c | snr 0f2f2 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1e | signal b77c | snr 0f2f2 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1e | signal b780 | snr 0f1f1 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1e | signal b774 | snr 0f1f1 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1e | signal b77c | snr 0f1f1 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+Hello Mathieu,
 
-Audrey
+it is: some channels only have the picture (good quality), but no sound.*
+
+Trying "v4lctl volume mute off" "v4lctl volume mute on" "v4lctl volume 
+mute off" (= toggling around) doesn't change, but
+
+change channel to working channel and "toggling" around with the v4lctl 
+volume mute off[/on] does sometimes help.
+I am sorry I have so much info for "reproduction".
+This phenomenon is true for kdetv as well as for tvtime.
+
+kind regards,
+
+
+-- 
+
+     ###
+    #   #
+     # #
+   Wolfgang
+     # #
+    #   #Freitag
+
+* (I guessed it was like:
+"In order to solve sound problems (some channels had no sound, or hashed 
+sound...)"
+<http://www.gentoo-wiki.info/SAA7134#Card_.26_tuner_type>
 
 _______________________________________________
 linux-dvb users mailing list
