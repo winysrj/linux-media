@@ -1,55 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:33676 "EHLO
-	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750940AbZEYTWF (ORCPT
+Received: from smtp.nokia.com ([192.100.122.230]:52744 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751406AbZEKGmu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 May 2009 15:22:05 -0400
-Date: Mon, 25 May 2009 12:22:06 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-cc: linux-media@vger.kernel.org, nm127@freemail.hu
-Subject: Re: [RFC,PATCH] VIDIOC_G_EXT_CTRLS does not handle NULL pointer
- correctly
-In-Reply-To: <200905251317.02633.laurent.pinchart@skynet.be>
-Message-ID: <Pine.LNX.4.58.0905251213500.32713@shell2.speakeasy.net>
-References: <200905251317.02633.laurent.pinchart@skynet.be>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Mon, 11 May 2009 02:42:50 -0400
+Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
+	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n4B6gdHX005187
+	for <linux-media@vger.kernel.org>; Mon, 11 May 2009 09:42:46 +0300
+From: ext-eero.nurkkala@nokia.com
+To: linux-media@vger.kernel.org
+Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Subject: [PATCH 0/2] V4L: Add BCM2048 radio driver
+Date: Mon, 11 May 2009 09:41:17 +0300
+Message-Id: <1242024079959-git-send-email-ext-eero.nurkkala@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 25 May 2009, Laurent Pinchart wrote:
-> diff -r e0d881b21bc9 linux/drivers/media/video/v4l2-ioctl.c
-> --- a/linux/drivers/media/video/v4l2-ioctl.c	Tue May 19 15:12:17 2009 +0200
-> +++ b/linux/drivers/media/video/v4l2-ioctl.c	Sun May 24 18:26:29 2009 +0200
-> @@ -402,6 +402,10 @@
->  		   a specific control that caused it. */
->  		p->error_idx = p->count;
->  		user_ptr = (void __user *)p->controls;
-> +		if (p->count > KMALLOC_MAX_SIZE / sizeof(p->controls[0])) {
-> +			err = -ENOMEM;
-> +			goto out_ext_ctrl;
-> +		}
->  		if (p->count) {
->  			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
->  			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
-> @@ -1859,6 +1863,10 @@
->  		   a specific control that caused it. */
->  		p->error_idx = p->count;
->  		user_ptr = (void __user *)p->controls;
-> +		if (p->count > KMALLOC_MAX_SIZE / sizeof(p->controls[0])) {
-> +			err = -ENOMEM;
-> +			goto out_ext_ctrl;
-> +		}
->  		if (p->count) {
->  			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
->  			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
->
-> Restricting v4l2_ext_controls::count to values smaller than KMALLOC_MAX_SIZE /
-> sizeof(struct v4l2_ext_control) should be enough, but we might want to
-> restrict the value even further. I'd like opinions on this.
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-One thing that could be done is to call access_ok() on the range before
-kmalloc'ing a buffer.  If p->count is too high, then it's possible that the
-copy_from_user will fail because the process does not have the address
-space to copy.
+This patchset adds the BCM2048 radio driver code.
+BCM2048 is radio is integrated in the BCM2048 chipset
+that contains the Bluetooth also.
+
+There's quite some sysfs entries introduced here;
+But only a very few of them is meant to be used besides
+debugging/experimental purposes:
+
+"rds" (rds switch, off/on)
+"fm_search_rssi_threshold" (threshold for V4L2_CAP_HW_FREQ_SEEK)
+"region" (current region information)
+"region_bottom_frequency"
+"region_top_frequency"
+
+Unlike V4L2 suggests, the code has also a reference
+implementation for a partial RDS decoder; I understand that
+this should be done in userspace. However, the decoded
+RDS data may be read off from the sysfs nodes also:
+
+"rds_pi" (RDS PI code)
+"rds_rt" (RDS Radio Text)
+"rds_ps" (RDS PS)
+
+It would be nice to know, how RDS enabling/disabling takes
+place in V4L2.
+
+Below is the list of all sysfs entries; However, like mentioned,
+only the above (8) sysfs nodes should be used along with the
+V4L2. The sysfs nodes below, with the exception of the 8 ones
+above, should only be used for debugging/experiments only.
+And they do a good job for such purposes ;)
+
+audio_route (DAC, I2S)
+dac_output (OFF, LEFT, RIGHT, LEFT/RIGHT)
+fm_af_frequency (Alternate Frequency)
+fm_best_tune_mode (Best tune mode; tuning method)
+fm_carrier_error (FM carrier error)
+fm_deemphasis (De-emphasis)
+fm_frequency (frequency)
+fm_hi_lo_injection (Injection control)
+fm_rds_flags (RDS IRQ flags)
+fm_rds_mask (RDS IRQ Mask)
+fm_rssi (Current channel RSSI level)
+fm_search_mode_direction (UP, DOWN)
+fm_search_rssi_threshold (HW seek threshold search level)
+fm_search_tune_mode (stop all, preset, hw seek, AF jump)
+mute (off, on)
+power_state (off, on)
+rds (off, on)
+rds_b_block_mask (RDS b block IRQ mask)
+rds_b_block_match (RDS b block IRQ match)
+rds_data (Raw RDS data for debugging)
+rds_pi (RDS PI code)
+rds_pi_mask (RDS PI mask)
+rds_pi_match (RDS PI match)
+rds_ps (RDS PS)
+rds_rt (RDS radiotext)
+rds_wline (RDS FIFO watermark level)
+region
+region_bottom_frequency
+region_top_frequency
+
+All comments are very welcome! Like mentioned, I'm aware of
+the somewhat ugly set of syfs nodes. For debugging/experiments,
+I would guess they're not that bad; but for real usage, they
+should be integrated into the V4L2?
+
+Eero Nurkkala (2):
+      V4L: Add BCM2048 radio driver
+      V4L: Add BCM2048 radio driver Makefile and Kconfig dependencies
+
+ drivers/media/radio/Kconfig         |   10 +
+ drivers/media/radio/Makefile        |    1 +
+ drivers/media/radio/radio-bcm2048.c | 2613 +++++++++++++++++++++++++++++++++++
+ include/media/radio-bcm2048.h       |   30 +
+ 4 files changed, 2654 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/radio/radio-bcm2048.c
+ create mode 100644 include/media/radio-bcm2048.h
+
+
