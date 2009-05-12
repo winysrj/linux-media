@@ -1,39 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50595 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753942AbZE0IFF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2009 04:05:05 -0400
-Message-ID: <4A1CF42F.2070908@iki.fi>
-Date: Wed, 27 May 2009 11:05:03 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp.nokia.com ([192.100.105.134]:32058 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754428AbZELGRg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 May 2009 02:17:36 -0400
+Date: Tue, 12 May 2009 09:12:23 +0300
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: ext Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
+Subject: Re: [PATCH v2 1/7] v4l2: video device: Add V4L2_CTRL_CLASS_FMTX
+	controls
+Message-ID: <20090512061223.GC4639@esdhcp037198.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+References: <1242034309-13448-1-git-send-email-eduardo.valentin@nokia.com> <1242034309-13448-2-git-send-email-eduardo.valentin@nokia.com> <20090511231231.35f5ec0c@pedra.chehab.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: linux-dvb <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] how to get the SNR DB value for DVICO DVB-T Dual
- express card
-References: <cae4ceb0905261137g7f1e7aa5w1f0361bbe704e147@mail.gmail.com>
-In-Reply-To: <cae4ceb0905261137g7f1e7aa5w1f0361bbe704e147@mail.gmail.com>
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20090511231231.35f5ec0c@pedra.chehab.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/26/2009 09:37 PM, Tu-Tu Yu wrote:
-> Hello:
-> this is the output of the status... I would like to know how to
-> calculate the the SNR DB value. Thank you so much!
-> The frontend they used for DVB-T DUAL express is "Zarlink zl10353 DVB-T"
->
-> status 1e | signal b788 | snr 0f1f1 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1e | signal b78c | snr 0f2f2 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1e | signal b77c | snr 0f2f2 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1e | signal b780 | snr 0f1f1 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1e | signal b774 | snr 0f1f1 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-> status 1e | signal b77c | snr 0f1f1 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+Hi Mauro,
 
-0xf1/8 = 30.125dB
+On Tue, May 12, 2009 at 04:12:31AM +0200, ext Mauro Carvalho Chehab wrote:
+> Em Mon, 11 May 2009 12:31:43 +0300
+> Eduardo Valentin <eduardo.valentin@nokia.com> escreveu:
+> 
+> > This patch adds a new class of extended controls. This class
+> > is intended to support Radio Modulators properties such as:
+> > rds, audio limiters, audio compression, pilot tone generation,
+> > tuning power levels and region related properties.
+> > 
+> > Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+> 
+> Eduardo,
+> 
+> Please provide us a patch also for V4L2 API for the new API controls you're
+> adding. I'll hold the analysis of the patch series until you provide us the
+> docs. So, there's no need to resubmit the entire patch series.
+> 
+> The V4L2 API is maintained together with the mercurial development tree, at:
+> 	http://linuxtv.org/hg/v4l-dvb/
 
-regards
-Antti
+Right. That's something I was looking for. Thanks for the directions. I'll
+submit the docs then.
+
+> 
+> under v4l2-spec/ directory.
+> 
+> Cheers,
+> Mauro.
+> 
+> > ---
+> >  include/linux/videodev2.h |   45 +++++++++++++++++++++++++++++++++++++++++++++
+> >  1 files changed, 45 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > index ebb2ea6..7559299 100644
+> > --- a/include/linux/videodev2.h
+> > +++ b/include/linux/videodev2.h
+> > @@ -803,6 +803,7 @@ struct v4l2_ext_controls {
+> >  #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
+> >  #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+> >  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
+> > +#define V4L2_CTRL_CLASS_FMTX 0x009b0000	/* FM Radio Modulator class controls */
+> >  
+> >  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+> >  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+> > @@ -1141,6 +1142,50 @@ enum  v4l2_exposure_auto_type {
+> >  
+> >  #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
+> >  
+> > +/* FM Radio Modulator class control IDs */
+> > +#define V4L2_CID_FMTX_CLASS_BASE		(V4L2_CTRL_CLASS_FMTX | 0x900)
+> > +#define V4L2_CID_FMTX_CLASS			(V4L2_CTRL_CLASS_FMTX | 1)
+> > +
+> > +#define V4L2_CID_RDS_ENABLED			(V4L2_CID_FMTX_CLASS_BASE + 1)
+> > +#define V4L2_CID_RDS_PI				(V4L2_CID_FMTX_CLASS_BASE + 2)
+> > +#define V4L2_CID_RDS_PTY			(V4L2_CID_FMTX_CLASS_BASE + 3)
+> > +#define V4L2_CID_RDS_PS_NAME			(V4L2_CID_FMTX_CLASS_BASE + 4)
+> > +#define V4L2_CID_RDS_RADIO_TEXT			(V4L2_CID_FMTX_CLASS_BASE + 5)
+> > +
+> > +#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 6)
+> > +#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 7)
+> > +#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FMTX_CLASS_BASE + 8)
+> > +
+> > +#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FMTX_CLASS_BASE + 9)
+> > +#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FMTX_CLASS_BASE + 10)
+> > +#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FMTX_CLASS_BASE + 11)
+> > +#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FMTX_CLASS_BASE + 12)
+> > +#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 13)
+> > +
+> > +#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 14)
+> > +#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FMTX_CLASS_BASE + 15)
+> > +#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FMTX_CLASS_BASE + 16)
+> > +
+> > +#define V4L2_CID_REGION				(V4L2_CID_FMTX_CLASS_BASE + 17)
+> > +enum v4l2_fmtx_region {
+> > +	V4L2_FMTX_REGION_USA			= 0,
+> > +	V4L2_FMTX_REGION_AUSTRALIA		= 1,
+> > +	V4L2_FMTX_REGION_EUROPE			= 2,
+> > +	V4L2_FMTX_REGION_JAPAN			= 3,
+> > +	V4L2_FMTX_REGION_JAPAN_WIDE_BAND	= 4,
+> > +};
+> > +#define V4L2_CID_REGION_BOTTOM_FREQUENCY	(V4L2_CID_FMTX_CLASS_BASE + 18)
+> > +#define V4L2_CID_REGION_TOP_FREQUENCY		(V4L2_CID_FMTX_CLASS_BASE + 19)
+> > +#define V4L2_CID_REGION_PREEMPHASIS		(V4L2_CID_FMTX_CLASS_BASE + 20)
+> > +enum v4l2_fmtx_preemphasis {
+> > +	V4L2_FMTX_PREEMPHASIS_75_uS		= 0,
+> > +	V4L2_FMTX_PREEMPHASIS_50_uS		= 1,
+> > +	V4L2_FMTX_PREEMPHASIS_DISABLED		= 2,
+> > +};
+> > +#define V4L2_CID_REGION_CHANNEL_SPACING		(V4L2_CID_FMTX_CLASS_BASE + 21)
+> > +#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FMTX_CLASS_BASE + 22)
+> > +#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FMTX_CLASS_BASE + 23)
+> > +
+> >  /*
+> >   *	T U N I N G
+> >   */
+> 
+> 
+> 
+> 
+> Cheers,
+> Mauro
+
 -- 
-http://palosaari.fi/
+Eduardo Valentin
