@@ -1,87 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:37908 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751062AbZEKNhE (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4627 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754522AbZELHD1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 May 2009 09:37:04 -0400
-Date: Mon, 11 May 2009 10:36:51 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Magnus Damm <magnus.damm@gmail.com>, linux-media@vger.kernel.org,
-	hverkuil@xs4all.nl, linux-mm@kvack.org, lethal@linux-sh.org,
-	hannes@cmpxchg.org
-Subject: Re: [PATCH] videobuf-dma-contig: zero copy USERPTR support V3
-Message-ID: <20090511103651.49d852f8@pedra.chehab.org>
-In-Reply-To: <20090508130658.813e29c1.akpm@linux-foundation.org>
-References: <20090508085310.31326.38083.sendpatchset@rx1.opensource.se>
-	<20090508130658.813e29c1.akpm@linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Tue, 12 May 2009 03:03:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH v2 0/7] [RFC] FM Transmitter (si4713) and another changes
+Date: Tue, 12 May 2009 09:03:18 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
+References: <1242034309-13448-1-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1242034309-13448-1-git-send-email-eduardo.valentin@nokia.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200905120903.18775.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 8 May 2009 13:06:58 -0700
-Andrew Morton <akpm@linux-foundation.org> escreveu:
+On Monday 11 May 2009 11:31:42 Eduardo Valentin wrote:
+> Hello all,
+>
+> It took a few but I'm resending the FM transmitter driver again.
+> Sorry for this delay, but I had another things to give attention.
+>
+> Anyway, after reading the API and re-writing the code I came up
+> with the following 7 patches. Three of them are in the v4l2 API.
+> The other 4 are for the si4713 device.
+>
+> It is because of the first 3 patches that I'm sending this as a RFC.
+>
+> The first and second patches, as suggested before, are creating another
+> v4l2 extended controls class, the V4L2_CTRL_CLASS_FMTX. At this
+> first interaction, I've put all si4713 device extra properties there.
+> But I think that some of the can be moved to private class
+> (V4L2_CID_PRIVATE_BASE). That's the case of the region related things.
+> Comments are wellcome.
+>
+> The third patch came *maybe* because I've misunderstood something. But
+> I realized that the v4l2-subdev helper functions for I2C devices assumes
+> that the bridge device will create an I2C adaptor. And in that case, only
+> I2C address and its type are suffient. But in this case, makes no sense
+> to me to create an adaptor for the si4713 platform device driver. This is
+> the case where the device (si4713) is connected to an existing adaptor.
+> That's why I've realized that currently there is no way to pass I2C board
+> info using the current v4l2 I2C helper functions. Other info like irq
+> line and platform data are not passed to subdevices. So, that's why I've
+> created that patch.
 
-> On Fri, 08 May 2009 17:53:10 +0900
-> Magnus Damm <magnus.damm@gmail.com> wrote:
-> 
-> > From: Magnus Damm <damm@igel.co.jp>
-> > 
-> > This is V3 of the V4L2 videobuf-dma-contig USERPTR zero copy patch.
-> > 
-> > Since videobuf-dma-contig is designed to handle physically contiguous
-> > memory, this patch modifies the videobuf-dma-contig code to only accept
-> > a user space pointer to physically contiguous memory. For now only
-> > VM_PFNMAP vmas are supported, so forget hotplug.
-> > 
-> > On SuperH Mobile we use this with our sh_mobile_ceu_camera driver
-> > together with various multimedia accelerator blocks that are exported to
-> > user space using UIO. The UIO kernel code exports physically contiguous
-> > memory to user space and lets the user space application mmap() this memory
-> > and pass a pointer using the USERPTR interface for V4L2 zero copy operation.
-> > 
-> > With this approach we support zero copy capture, hardware scaling and
-> > various forms of hardware encoding and decoding.
-> > 
-> > Signed-off-by: Magnus Damm <damm@igel.co.jp>
+I've made several changes to the v4l2-subdev helpers: you now pass the i2c 
+adapter directly. I've also fixed the unregister code to properly 
+unregister any i2c client so you can safely rmmod and modprobe the i2c 
+module.
 
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+What sort of platform data do you need to pass to the i2c driver? I have yet 
+to see a valid use case for this that can't be handled in a different way. 
+Remember that devices like this are not limited to fixed platforms, but can 
+also be used in USB or PCI devices.
 
-> > ---
-> > 
-> >  Needs the following patches (Thanks to Johannes Weiner and akpm):
-> >  - mm-introduce-follow_pte.patch
-> >  - mm-use-generic-follow_pte-in-follow_phys.patch
-> >  - mm-introduce-follow_pfn.patch
-> 
-> I'l plan to merge this and the above three into 2.6.31-rc1 unless it
-> all gets shot down.
+Regards,
 
-Andrew,
-Due to the the dependencies with the above patches, it seems better if you
-could send this patch upstream together with the above patches.
+	Hans
 
-> 
-> > +static int videobuf_dma_contig_user_get(struct videobuf_dma_contig_memory *mem,
-> > +					struct videobuf_buffer *vb)
+> The remaining patches are the si4713 device driver itself. As suggested,
+> I've splited the driver into i2c driver and v4l2 radio driver. The first
+> one is exporting it self as a v4l2 subdev as well. Now it is composed by
+> the si4713.c and si4713-subdev.c. But in the future versions I think I'll
+> merge both and remove the si4713.c (by reducing lots of things), because
+> it was mainly designed to be used by the sysfs interface. I've also
+> keeped the sysfs interface (besides the extended control interface). The
+> v4l2 radio driver became a platform driver which is mainly a wrapper to
+> the I2C subdevice. Again here I've found some problem with the device
+> remove. Because, as the I2C helper function assumes the bridge device
+> will create an adaptor, then when the bridge removes the adaptor, its
+> devices will be removed as well. So, when re-inserting the driver,
+> registration will be good. However, if we use an existing adaptor, then
+> we need to remove the i2c client manually. Otherwise it will fail when
+> re-inserting the device.
+>
+> As I said before, comments are wellcome. I'm mostly to be
+> misunderstanding something from the API.
+>
+> BR,
+>
+> Eduardo Valentin (7):
+>   v4l2: video device: Add V4L2_CTRL_CLASS_FMTX controls
+>   v4l2: video device: Add FMTX controls default configurations
+>   v4l2_subdev i2c: Add i2c board info to v4l2_i2c_new_subdev
+>   FMTx: si4713: Add files to handle si4713 i2c device
+>   FMTx: si4713: Add files to add radio interface for si4713
+>   FMTx: si4713: Add Kconfig and Makefile entries
+>   FMTx: si4713: Add document file
+>
+>  Documentation/video4linux/si4713.txt |  132 ++
+>  drivers/media/radio/Kconfig          |   22 +
+>  drivers/media/radio/Makefile         |    3 +
+>  drivers/media/radio/radio-si4713.c   |  345 ++++++
+>  drivers/media/radio/radio-si4713.h   |   48 +
+>  drivers/media/radio/si4713-subdev.c  | 1045 ++++++++++++++++
+>  drivers/media/radio/si4713.c         | 2250
+> ++++++++++++++++++++++++++++++++++ drivers/media/radio/si4713.h         |
+>  295 +++++
+>  drivers/media/video/v4l2-common.c    |   99 ++-
+>  include/linux/videodev2.h            |   45 +
+>  include/media/v4l2-common.h          |    6 +
+>  11 files changed, 4284 insertions(+), 6 deletions(-)
+>  create mode 100644 Documentation/video4linux/si4713.txt
+>  create mode 100644 drivers/media/radio/radio-si4713.c
+>  create mode 100644 drivers/media/radio/radio-si4713.h
+>  create mode 100644 drivers/media/radio/si4713-subdev.c
+>  create mode 100644 drivers/media/radio/si4713.c
+>  create mode 100644 drivers/media/radio/si4713.h
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> If this function really so obvious and trivial that it is best to merge
-> it without any documentation at all?  Has it been made as easy for
-> others to maintain as we can possibly make it?
-> 
-> What does it do, how does it do it and why does it do it?
-
-A good documentation is a really good idea here. There videobuf internals are
-very complex. A good documentation for it is very important to keep it updated.
-
-I would also suggest if you could also take a look at videobuf-vmalloc and implement a
-similar method to provide USERPTR. The vmalloc flavor can easily be tested with
-the virtual (vivi) video driver, so it helps people to better understand how
-videobuf works. It will also help the USB drivers that use videobuf to use USERPTR.
 
 
-
-Cheers,
-Mauro
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
