@@ -1,33 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [195.7.61.12] ([195.7.61.12]:54101 "EHLO killala.koala.ie"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1760110AbZE3QyM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 May 2009 12:54:12 -0400
-Message-ID: <4A2164B5.7090106@koala.ie>
-Date: Sat, 30 May 2009 17:54:13 +0100
-From: Simon Kenyon <simon@koala.ie>
+Received: from web110809.mail.gq1.yahoo.com ([67.195.13.232]:27954 "HELO
+	web110809.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752824AbZELNon (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 May 2009 09:44:43 -0400
+Message-ID: <417350.74702.qm@web110809.mail.gq1.yahoo.com>
+Date: Tue, 12 May 2009 06:44:44 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH]  [0905_02] Siano: smsusb - remove old kernels support
+To: LinuxML <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho <mchehab@infradead.org>
 MIME-Version: 1.0
-To: "Igor M. Liplianin" <liplianin@me.by>
-CC: linux-media@vger.kernel.org
-Subject: Re: [SOLVED] Re: [linux-dvb] SDMC DM1105N not being detected
-References: <e6ac15e50904022156u40221c3fib15d1b4cdf36461@mail.gmail.com> <4A1C4AF1.6020200@koala.ie> <4A1FA9EC.4050405@koala.ie> <200905301244.27490.liplianin@me.by>
-In-Reply-To: <200905301244.27490.liplianin@me.by>
-Content-Type: text/plain; charset=KOI8-R; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Igor M. Liplianin wrote:
-> Thank you for resolving this.
-> I will prepair patch for linuxtv to test.
-> Then after you test and confirm, I will commit
-thank you
-by the way, this card is really rather good. in particular it gets a 
-lock really quickly
-it is also a nice price. i have ordered two more and have asked the 
-manufacturer for a quote for some which i plan to sell on ebay. pity 
-they don't make a DVB-S2 device.
 
-regards
---
-simon
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1242136071 -10800
+# Node ID 126c0974c2db4e2777e5d9b068fa976fe3a59675
+# Parent  697459f4baf6e95a906b852250699a18d1016724
+[0905_02] Siano: smsusb - remove old kernels support
+
+From: Uri Shkolnik <uris@siano-ms.com>
+
+Remove backward support for kernel versions
+older than 2.6.19
+
+Priority: normal
+
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+
+diff -r 697459f4baf6 -r 126c0974c2db linux/drivers/media/dvb/siano/smsusb.c
+--- a/linux/drivers/media/dvb/siano/smsusb.c	Tue May 12 16:42:33 2009 +0300
++++ b/linux/drivers/media/dvb/siano/smsusb.c	Tue May 12 16:47:51 2009 +0300
+@@ -60,11 +60,7 @@ static int smsusb_submit_urb(struct smsu
+ static int smsusb_submit_urb(struct smsusb_device_t *dev,
+ 			     struct smsusb_urb_t *surb);
+ 
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 19)
+ static void smsusb_onresponse(struct urb *urb)
+-#else
+-static void smsusb_onresponse(struct urb *urb, struct pt_regs *regs)
+-#endif
+ {
+ 	struct smsusb_urb_t *surb = (struct smsusb_urb_t *) urb->context;
+ 	struct smsusb_device_t *dev = surb->dev;
+
+
+
+      
