@@ -1,69 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kolorific.com ([61.63.28.39]:34876 "EHLO
-	mail.kolorific.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751403AbZESCOu (ORCPT
+Received: from web110816.mail.gq1.yahoo.com ([67.195.13.239]:48234 "HELO
+	web110816.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751174AbZELK5x (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 May 2009 22:14:50 -0400
-Subject: [PATCH  v2]saa7134-video.c: poll method lose race condition for
- capture video
-From: "figo.zhang" <figo.zhang@kolorific.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, figo1802@126.com, kraxel@bytesex.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	=?UTF-8?Q?Old=C5=99ich_Jedli=C4=8Dka?= <oldium.pro@seznam.cz>
-Content-Type: text/plain
-Date: Tue, 19 May 2009 10:14:30 +0800
-Message-Id: <1242699272.3436.6.camel@myhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 12 May 2009 06:57:53 -0400
+Message-ID: <184506.51976.qm@web110816.mail.gq1.yahoo.com>
+Date: Tue, 12 May 2009 03:57:54 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH] [0905_01] Siano: smsusb - update license
+To: LinuxML <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho <mchehab@infradead.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-saa7134-video.c: poll method lose race condition for capture video.
 
-In v2, when buf == NULL, it will goto err, return  "PULLERR"
-immediately.
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1242126057 -10800
+# Node ID 766d02fa7c5c42cc6480eaefb14c7dd6f9c0d370
+# Parent  8d37e850566419e7905e66f875b9384d96bf340d
+[0905_01] Siano: smsusb - update license
 
-Signed-off-by: Figo.zhang <figo.zhang@kolorific.com>
----  
-drivers/media/video/saa7134/saa7134-video.c |    9 ++++++---
- 1 files changed, 6 insertions(+), 3 deletions(-)
+From: Uri Shkolnik <uris@siano-ms.com>
 
-diff --git a/drivers/media/video/saa7134/saa7134-video.c b/drivers/media/video/saa7134/saa7134-video.c
-index 493cad9..b1c2dbd 100644
---- a/drivers/media/video/saa7134/saa7134-video.c
-+++ b/drivers/media/video/saa7134/saa7134-video.c
-@@ -1423,11 +1423,13 @@ video_poll(struct file *file, struct poll_table_struct *wait)
- {
- 	struct saa7134_fh *fh = file->private_data;
- 	struct videobuf_buffer *buf = NULL;
-+	unsigned int rc = 0;
+This patch updates the license of the USB interface driver
+
+Priority: normal
+
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+
+diff -r 8d37e8505664 -r 766d02fa7c5c linux/drivers/media/dvb/siano/smsusb.c
+--- a/linux/drivers/media/dvb/siano/smsusb.c	Mon May 11 09:37:41 2009 -0700
++++ b/linux/drivers/media/dvb/siano/smsusb.c	Tue May 12 14:00:57 2009 +0300
+@@ -1,23 +1,23 @@
+-/*
+- *  Driver for the Siano SMS1xxx USB dongle
+- *
+- *  author: Anatoly Greenblat
+- *
+- *  Copyright (c), 2005-2008 Siano Mobile Silicon, Inc.
+- *
+- *  This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License version 2 as
+- *  published by the Free Software Foundation;
+- *
+- *  Software distributed under the License is distributed on an "AS IS"
+- *  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.
+- *
+- *  See the GNU General Public License for more details.
+- *
+- *  You should have received a copy of the GNU General Public License
+- *  along with this program; if not, write to the Free Software
+- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+- */
++/****************************************************************
++
++Siano Mobile Silicon, Inc.
++MDTV receiver kernel modules.
++Copyright (C) 2005-2009, Uri Shkolnik, Anatoly Greenblat
++
++This program is free software: you can redistribute it and/or modify
++it under the terms of the GNU General Public License as published by
++the Free Software Foundation, either version 2 of the License, or
++(at your option) any later version.
++
++ This program is distributed in the hope that it will be useful,
++but WITHOUT ANY WARRANTY; without even the implied warranty of
++MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++GNU General Public License for more details.
++
++You should have received a copy of the GNU General Public License
++along with this program.  If not, see <http://www.gnu.org/licenses/>.
++
++****************************************************************/
  
- 	if (V4L2_BUF_TYPE_VBI_CAPTURE == fh->type)
- 		return videobuf_poll_stream(file, &fh->vbi, wait);
- 
- 	if (res_check(fh,RESOURCE_VIDEO)) {
-+		mutex_lock(&fh->cap.vb_lock);
- 		if (!list_empty(&fh->cap.stream))
- 			buf = list_entry(fh->cap.stream.next, struct videobuf_buffer, stream);
- 	} else {
-@@ -1446,13 +1448,14 @@ video_poll(struct file *file, struct poll_table_struct *wait)
- 	}
- 
- 	if (!buf)
--		return POLLERR;
-+		goto err;
- 
- 	poll_wait(file, &buf->done, wait);
- 	if (buf->state == VIDEOBUF_DONE ||
- 	    buf->state == VIDEOBUF_ERROR)
--		return POLLIN|POLLRDNORM;
--	return 0;
-+		rc =  POLLIN|POLLRDNORM;
-+	mutex_unlock(&fh->cap.vb_lock);
-+	return rc;
- 
- err:
- 	mutex_unlock(&fh->cap.vb_lock);
+ #include <linux/kernel.h>
+ #include <linux/init.h>
 
 
+
+      
