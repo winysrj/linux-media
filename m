@@ -1,165 +1,285 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-06.arcor-online.net ([151.189.21.46]:56005 "EHLO
-	mail-in-06.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752776AbZENBPs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2009 21:15:48 -0400
-Subject: Re: [PATCH] FM1216ME_MK3 some changes
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Dmitri Belimov <d.belimov@gmail.com>
-Cc: Andy Walls <awalls@radix.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	video4linux-list@redhat.com, linux-media@vger.kernel.org
-In-Reply-To: <20090514101758.04665ab4@glory.loctelecom.ru>
-References: <20090422174848.1be88f61@glory.loctelecom.ru>
-	 <20090423203618.4ac2bc6f@glory.loctelecom.ru>
-	 <1240537394.3231.37.camel@palomino.walls.org>
-	 <20090427192905.3ad2b88c@glory.loctelecom.ru>
-	 <20090428151832.241fa9b4@pedra.chehab.org>
-	 <20090428195922.1a079e46@glory.loctelecom.ru>
-	 <1240974643.4280.24.camel@pc07.localdom.local>
-	 <20090429201225.6ba681cf@glory.loctelecom.ru>
-	 <1241050556.3710.109.camel@pc07.localdom.local>
-	 <20090506044231.31f2d8aa@glory.loctelecom.ru>
-	 <1241654513.5862.37.camel@pc07.localdom.local>
-	 <1241665384.3147.53.camel@palomino.walls.org>
-	 <1241741304.4864.29.camel@pc07.localdom.local>
-	 <1241834493.3482.140.camel@palomino.walls.org>
-	 <1241836025.3717.9.camel@pc07.localdom.local>
-	 <1241916185.3694.8.camel@pc07.localdom.local>
-	 <20090510085258.03068a1e@glory.loctelecom.ru>
-	 <1242012951.3753.21.camel@pc07.localdom.local>
-	 <20090513073757.6177c42e@glory.loctelecom.ru>
-	 <1242258283.4781.26.camel@pc07.localdom.local>
-	 <20090514101758.04665ab4@glory.loctelecom.ru>
-Content-Type: text/plain
-Date: Thu, 14 May 2009 03:10:26 +0200
-Message-Id: <1242263426.7971.7.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from web25802.mail.ukl.yahoo.com ([217.12.10.187]:43869 "HELO
+	web25802.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1756198AbZELLaI convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 May 2009 07:30:08 -0400
+Message-ID: <318196.27627.qm@web25802.mail.ukl.yahoo.com>
+Date: Tue, 12 May 2009 11:30:06 +0000 (GMT)
+From: julien de ROSNY <m8hpw@yahoo.fr>
+Reply-To: julien.derosny@espci.fr
+Subject: Re : [linux-dvb] dibcom3000 (dvb) driver bug with ubuntu 9.04 (2.6.28 kernel)?
+To: linux-media@vger.kernel.org, julien.derosny@espci.fr
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dmitry :)
 
-Am Donnerstag, den 14.05.2009, 10:17 +1000 schrieb Dmitri Belimov:
-> Hi
+After many trials, I observe that the image quality is recovered when no other USB2.0 devices are connected to the GA-MA78GM mother board (WIFI dongle or Hard Drive). This problems seems to be releated to this bug http://bugzilla.kernel.org/show_bug.cgi?id=11599 and/or that one https://bugs.launchpad.net/ubuntu/+source/linux/+bug/256492.
+
+But it seems that the ehcd-hci bug is solved (but not for me!)
+
+Any idea?
+Julien
+ 
+
+--- En date de : Sam 2.5.09, julien de ROSNY <m8hpw@yahoo.fr> a écrit :
+
+> De: julien de ROSNY <m8hpw@yahoo.fr>
+> Objet: [linux-dvb] dibcom3000 (dvb) driver bug with ubuntu 9.04 (2.6.28 kernel)?
+> À: linux-dvb@linuxtv.org
+> Date: Samedi 2 Mai 2009, 0h07
 > 
-> > Hi Dmitry,
-> > 
-> > Am Mittwoch, den 13.05.2009, 07:37 +1000 schrieb Dmitri Belimov:
-> > > Hi hermann
-> > > 
-> > > > Am Sonntag, den 10.05.2009, 08:52 +1000 schrieb Dmitri Belimov:
-> > > > > Hi All.
-> > > > > 
-> > > > > > [snip]
-> > > > > > > > 
-> > > > > > > > Channel designations I dug out of ivtv-tune:
-> > > > > > > > 
-> > > > > > > > S38 439.250 MHz (European cable)
-> > > > > > > > H18 439.250 MHz (SECAM France)
-> > > > > > > > 47  440.250 MHz (PAL China)
-> > > > > > > > 059 440.250 MHz (PAL Argentina)
-> > > > > > > > 
-> > > > > > > > come close, but are unaffected by the change from 442 to
-> > > > > > > > 441 as the bandswitch cutover point.  These channels fall
-> > > > > > > > right on top of the cutover, but are not affected by the
-> > > > > > > > proposed change in any meaningful way.  The VHF-High
-> > > > > > > > filter and VCO would still be used.  Dmitri's proposed
-> > > > > > > > change is a "don't care" unless the cutover point is
-> > > > > > > > changed to 440 MHz. 
-> > > > > > > > 
-> > > > > > > > 
-> > > > > > > > Let's pretend that the proposed cutover point is 440 MHz.
-> > > > > > 
-> > > > > > NO! it is not
-> > > > > > 
-> > > > > > Dmitri,
-> > > > > > 
-> > > > > > can you cut one off and tell us what it is all about ?
-> > > > > > 
-> > > > > > Unless you do so, all other is pointless and I likely stop to
-> > > > > > participate in such stuff.
-> > > > > 
-> > > > > Sorry my delay. I lost subject of discussion. What main
-> > > > > question??
-> > > > > 
-> > > > > 1. AGC TOP of RF part - I think need support for MK3
-> > > > > 2. Changing to 441MHz is not critical. We can write some
-> > > > > information about this case to Wiki or docs.
-> > > > 
-> > > > for 2.: Discussed to the end if you stay at 441MHz. If you still
-> > > > want to have it in, just send  a patch and no more info is
-> > > > needed. (Likely Andy is giving only examples for more difficult
-> > > > cases, sorry.)
-> > > > 
-> > > > for 1.: I would like to be absolutely sure, that we are talking
-> > > > about the same tuner. I want to have the exact filters on it at
-> > > > least.
-> > > > 
-> > > > 3.: That is what Andy noted. Following the Philips datasheet for
-> > > > TOP, it should be added for negative modulation, positive
-> > > > modulation and FM accordingly. (2 and 3 are out of discussion)
-> > > > 
-> > > > If you still have some sort of Secam fire and can improve it, we
-> > > > must know the tuner you are on "exactly". If it is the original
-> > > > Philips, without any such TOP suggestions over the full range in
-> > > > recent datasheets (???), I assume you might have them, I would
-> > > > say you can proceed, if you have shown that you are really still
-> > > > on the same tuner.
-> > > 
-> > > This is real Philips MK3 and MK5 tuner. We have all docs from
-> > > vendor.
-> > > 
-> > > This is some photos of the MK3 hybrid tuner. I make photos of the
-> > > analog MK3 little later.
-> > > 
-> > 
-> > thanks a lot.
-> > 
-> > I had only a first look on this one.
-> > 
-> > There are a lot of different revisions, yours is F4 on the tuner PCB.
-> > 
-> > Taifun PLL versions vary, different combinations of ceramic and SMD
-> > filters are used for the radio IF,
-> > 
-> > but even on a revision C1 with Taifun 6034T A1 and tuner revision SV21
-> > 0437 (CTX918_V2 md7134) all three SAW filters are the same already. 
-> > 
-> > A CTX925 with your Taifun 6034T B1 had also no better performance for
-> > what I can say. PCB still has C1, but SV21 0502 tuner revision.
-> > 
-> > Important to know was, that you are on original Philips tuners and SAW
-> > filters are the same. Guess this will hold for the analog FM1216ME/I
-> > MK3 too.
 > 
-> This is photos of analog MK3. Not so good, sorry.
+> Hello,
 > 
-> > Good decision, it are still the best tuners for analog and digital I
-> > have around, but can't talk for Secam D/K. I wonder about missing
-> > complaints during the last four years.
+> Since a couple of years, I use a WinFast DTV Dongle
+> (dib3000mc) on a ASUS (intel) laptop without any trouble. It
+> works with ubuntu 8.04. The quality is perfect
 > 
-> Our customers watch TV with params
-> saa7134 secam=d alsa=1
+> I use now the same dongle on a recent laptop PC based on a
+> GA-MA78GM-US2H mother board and the quality of the image is
+> very bad and the soft (me-tv) rebuffer very often. It is
+> unlikely a probleme of signal strength, because on the same
+> antenna plug, the dvb works very well with the laptop, and
+> very bad with the desktop computer. See below some
+> informations about the dvb with the two configrations :
+> laptop and the desktop computer.
+> 
+> I noticed that there are some differences between the
+> loaded modules. i2c_core and usbcore are abscent with ubuntu
+> 9.04. Is it normal? Morever if you carefully look at the
+> dvbtraffic, it is lower for the LAPTOP for a same program.
+> This is very repetive behaviour. It is not normal.
+> 
+> Does anyone have an idea of whats wrong with the LAPTOP
+> configuration. 
+> 
+> Thanks.
+> 
+> Julien R.
+> 
+> 
+> ***********************************************
+> LAPTOP (GOOD image quality)
+> 
+> uname -a :
+> Linux portable 2.6.24-23-generic #1 SMP Wed Apr 1 21:47:28
+> UTC 2009 i686 GNU/Linux
+> 
+> lsusb:
+> Bus 005 Device 011: ID 0413:6026 Leadtek Research, Inc.
+> WinFast DTV Dongle (warm state)
+> 
+> 
+> lsmod | grep dvb
+> dvb_usb_dibusb_mc       6400 
+> 0
+> dvb_usb_dibusb_common    10756  1
+> dvb_usb_dibusb_mc
+> dib3000mc             
+> 13960  2 dvb_usb_dibusb_common
+> dvb_usb             
+>   19852  2
+> dvb_usb_dibusb_mc,dvb_usb_dibusb_common
+> dvb_core           
+>    81404  1 dvb_usb
+> i2c_core           
+>    24832  4
+> mt2060,dib3000mc,dibx000_common,dvb_usb
+> usbcore           
+>    146412  5
+> dvb_usb_dibusb_mc,dvb_usb,ehci_hcd,uhci_hcd
+> 
+> tzap "ARTE"
+> status 1f | signal c058 | snr 0000 | ber 00000000 | unc
+> 00000000 | FE_HAS_LOCK
+> 
+> dvbtraffic
+> 0000     9 p/s 
+>    1 kb/s    14 kbit
+> 0010     5 p/s 
+>    0 kb/s     8 kbit
+> 0011     0 p/s 
+>    0 kb/s     1 kbit
+> 0012    12 p/s     2
+> kb/s    19 kbit
+> 0015     1 p/s 
+>    0 kb/s     2 kbit
+> 006e     9 p/s 
+>    1 kb/s    14 kbit
+> 0078  1697 p/s   311 kb/s  2553
+> kbit
+> 0082   132 p/s    24
+> kb/s   198 kbit
+> 008c    32 p/s     5
+> kb/s    49 kbit
+> 00d2     9 p/s 
+>    1 kb/s    14 kbit
+> 00dc  2189 p/s   401 kb/s  3292
+> kbit
+> 00e6   132 p/s    24
+> kb/s   198 kbit
+> 00f0     3 p/s 
+>    0 kb/s     5 kbit
+> 0136     9 p/s 
+>    1 kb/s    14 kbit
+> 0140  1527 p/s   280 kb/s  2296
+> kbit
+> 014a   131 p/s    24
+> kb/s   197 kbit
+> 0154     1 p/s 
+>    0 kb/s     2 kbit
+> 01fe     9 p/s 
+>    1 kb/s    14 kbit
+> 0208  2104 p/s   386 kb/s  3164
+> kbit
+> 0212   131 p/s    24
+> kb/s   197 kbit
+> 0213   132 p/s    24
+> kb/s   198 kbit
+> 021c     1 p/s 
+>    0 kb/s     2 kbit
+> 021d     2 p/s 
+>    0 kb/s     4 kbit
+> 021e     2 p/s 
+>    0 kb/s     4 kbit
+> 0262     9 p/s 
+>    1 kb/s    14 kbit
+> 026c  1688 p/s   309 kb/s  2539
+> kbit
+> 0276   132 p/s    24
+> kb/s   198 kbit
+> 0280     2 p/s 
+>    0 kb/s     4 kbit
+> 0294    13 p/s     2
+> kb/s    20 kbit
+> 02c6     9 p/s 
+>    1 kb/s    14 kbit
+> 02d0  5437 p/s   998 kb/s  8178
+> kbit
+> 02da   131 p/s    24
+> kb/s   197 kbit
+> 03f2     9 p/s 
+>    1 kb/s    14 kbit
+> 1fff   823 p/s   151
+> kb/s  1239 kbit
+> 2000 16557 p/s  3039 kb/s 24901 kbit
+> 
+> ************************************************
+> DESKTOP (very bad image)
+> 
+> system ubuntu jaunty
+> Linux xxx 2.6.28-11-generic #42-Ubuntu SMP Fri Apr 17
+> 01:57:59 
+> UTC 2009 i686 GNU/Linux
+> AMD 
+> Mother board GA-MA78GM-US2H (USB controler : amd sb700)
+> 
+> lsusb 
+> Bus 001 Device 006: ID 0413:6026 Leadtek Research, Inc.
+> WinFast DTV Dongle (warm state)
+> 
+> lsmod |grep dvb
+> dvb_usb_dibusb_mc      13056  0 
+> dvb_usb_dibusb_common    16772  1
+> dvb_usb_dibusb_mc
+> dib3000mc             
+> 20488  2 dvb_usb_dibusb_common
+> dvb_usb             
+>   24332  2
+> dvb_usb_dibusb_mc,dvb_usb_dibusb_common
+> dvb_core           
+>    92032  1 dvb_usb
+> 
+> 
+> tzap "ARTE"
+> tuning to 586167000 Hz
+> video pid 0x0208, audio pid 0x0212
+> status 1f | signal cbfc | snr 0000 | ber 001fffff | unc
+> 00000013 | FE_HAS_LOCK
+> ...
+> 
+> dvbtraffic
+> 0000     9 p/s 
+>    1 kb/s    14 kbit
+> 0012    10 p/s     1
+> kb/s    16 kbit
+> 0015     1 p/s 
+>    0 kb/s     2 kbit
+> 006e     9 p/s 
+>    1 kb/s    14 kbit
+> 0078  1757 p/s   322 kb/s  2643
+> kbit
+> 0082   127 p/s    23
+> kb/s   191 kbit
+> 008c     3 p/s 
+>    0 kb/s     5 kbit
+> 00d2     9 p/s 
+>    1 kb/s    14 kbit
+> 00dc  1380 p/s   253 kb/s  2076
+> kbit
+> 00e6   124 p/s    22
+> kb/s   187 kbit
+> 00f0    42 p/s     7
+> kb/s    63 kbit
+> 0136     9 p/s 
+>    1 kb/s    14 kbit
+> 0140  2912 p/s   534 kb/s  4380
+> kbit
+> 014a   124 p/s    22
+> kb/s   187 kbit
+> 0154    13 p/s     2
+> kb/s    20 kbit
+> 01fe     9 p/s 
+>    1 kb/s    14 kbit
+> 0208  2641 p/s   484 kb/s  3973
+> kbit
+> 0212   124 p/s    22
+> kb/s   187 kbit
+> 0213   127 p/s    23
+> kb/s   191 kbit
+> 021c     1 p/s 
+>    0 kb/s     2 kbit
+> 021d     1 p/s 
+>    0 kb/s     2 kbit
+> 021e     1 p/s 
+>    0 kb/s     2 kbit
+> 0262     9 p/s 
+>    1 kb/s    14 kbit
+> 026c  1509 p/s   277 kb/s  2270
+> kbit
+> 0276   125 p/s    22
+> kb/s   188 kbit
+> 0280     3 p/s 
+>    0 kb/s     5 kbit
+> 0294    12 p/s     2
+> kb/s    19 kbit
+> 02c6     9 p/s 
+>    1 kb/s    14 kbit
+> 02d0  3913 p/s   718 kb/s  5886
+> kbit
+> 02da   125 p/s    22
+> kb/s   188 kbit
+> 03f2     9 p/s 
+>    1 kb/s    14 kbit
+> 1fff   780 p/s   143
+> kb/s  1173 kbit
+> 2000 15952 p/s  2928 kb/s 23992 kbit
+> -PID--FREQ-----BANDWIDTH-BANDWIDTH-
+> 
+> 
+> 
+>       
+> 
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 > 
 
 
-That depends on how up to date the app is, once selected, even per
-channel, you don't have to do this ever again and don't need any insmod
-options at all currently.
-
-I recently tried to keep it for others the same :)
-
-Umm, for the analog only FM1216ME/ I H-3 (MK3) it seems you have some
-other stuff on it employed. On a first look ;)
-
-Cheers,
-Hermann
-
-
-
-
-
-
+      
