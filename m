@@ -1,237 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110807.mail.gq1.yahoo.com ([67.195.13.230]:44907 "HELO
-	web110807.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750987AbZESRJt convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2009 13:09:49 -0400
-Message-ID: <297960.99144.qm@web110807.mail.gq1.yahoo.com>
-Date: Tue, 19 May 2009 10:09:50 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: Re: [PATCH] [09051_57] Siano: smscards - remove redundant code
-To: Michael Krufky <mkrufky@linuxtv.org>
-Cc: LinuxML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2280 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752934AbZELHuZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 May 2009 03:50:25 -0400
+Message-ID: <53599.62.70.2.252.1242114622.squirrel@webmail.xs4all.nl>
+Date: Tue, 12 May 2009 09:50:22 +0200 (CEST)
+Subject: Re: [PATCH v2 0/7] [RFC] FM Transmitter (si4713) and another
+     changes
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: eduardo.valentin@nokia.com
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Nurkkala Eero.An" <ext-eero.nurkkala@nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+> On Tue, May 12, 2009 at 09:03:18AM +0200, ext Hans Verkuil wrote:
+>> On Monday 11 May 2009 11:31:42 Eduardo Valentin wrote:
+>> > Hello all,
+>> >
+>> > It took a few but I'm resending the FM transmitter driver again.
+>> > Sorry for this delay, but I had another things to give attention.
+>> >
+>> > Anyway, after reading the API and re-writing the code I came up
+>> > with the following 7 patches. Three of them are in the v4l2 API.
+>> > The other 4 are for the si4713 device.
+>> >
+>> > It is because of the first 3 patches that I'm sending this as a RFC.
+>> >
+>> > The first and second patches, as suggested before, are creating
+>> another
+>> > v4l2 extended controls class, the V4L2_CTRL_CLASS_FMTX. At this
+>> > first interaction, I've put all si4713 device extra properties there.
+>> > But I think that some of the can be moved to private class
+>> > (V4L2_CID_PRIVATE_BASE). That's the case of the region related things.
+>> > Comments are wellcome.
+>> >
+>> > The third patch came *maybe* because I've misunderstood something. But
+>> > I realized that the v4l2-subdev helper functions for I2C devices
+>> assumes
+>> > that the bridge device will create an I2C adaptor. And in that case,
+>> only
+>> > I2C address and its type are suffient. But in this case, makes no
+>> sense
+>> > to me to create an adaptor for the si4713 platform device driver. This
+>> is
+>> > the case where the device (si4713) is connected to an existing
+>> adaptor.
+>> > That's why I've realized that currently there is no way to pass I2C
+>> board
+>> > info using the current v4l2 I2C helper functions. Other info like irq
+>> > line and platform data are not passed to subdevices. So, that's why
+>> I've
+>> > created that patch.
+>>
+>> I've made several changes to the v4l2-subdev helpers: you now pass the
+>> i2c
+>> adapter directly. I've also fixed the unregister code to properly
+>> unregister any i2c client so you can safely rmmod and modprobe the i2c
+>> module.
+>
+> Right. I will check those.
+>
+>>
+>> What sort of platform data do you need to pass to the i2c driver? I have
+>> yet
+>> to see a valid use case for this that can't be handled in a different
+>> way.
+>> Remember that devices like this are not limited to fixed platforms, but
+>> can
+>> also be used in USB or PCI devices.
+>
+> Yes, sure. Well, a simple "set_power" procedure is an example of things
+> that
+> I see as platform specific. Which may be passed by platform data
+> structures.
+> In some platform a set power / reset line may be done by a simple gpio.
+> but
+> in others it may be a different procedure.
 
+The v4l2_device struct has a notify callback: you can use that one
+instead. That way the subdev driver doesn't have to have any knowledge
+about the platform it is used in.
 
---- On Tue, 5/19/09, Michael Krufky <mkrufky@linuxtv.org> wrote:
+Regards,
 
-> From: Michael Krufky <mkrufky@linuxtv.org>
-> Subject: Re: [PATCH] [09051_57] Siano: smscards - remove redundant code
-> To: "Uri Shkolnik" <urishk@yahoo.com>
-> Cc: "LinuxML" <linux-media@vger.kernel.org>, "Mauro Carvalho Chehab" <mchehab@infradead.org>
-> Date: Tuesday, May 19, 2009, 8:04 PM
-> On Tue, May 19, 2009 at 12:46 PM, Uri
-> Shkolnik <urishk@yahoo.com>
-> wrote:
-> >
-> > # HG changeset patch
-> > # User Uri Shkolnik <uris@siano-ms.com>
-> > # Date 1242751824 -10800
-> > # Node ID fd16bcd8b9f1fffe0b605ca5b3b2138fc920e927
-> > # Parent  f78cbc153c82ebe58a1bbe82271b91f5a4a90642
-> > [09051_57] Siano: smscards - remove redundant code
-> >
-> > From: Uri Shkolnik <uris@siano-ms.com>
-> >
-> > Remove code that has been duplicate with the new
-> boards events manager
-> >
-> > Priority: normal
-> >
-> > Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-> >
-> > diff -r f78cbc153c82 -r fd16bcd8b9f1
-> linux/drivers/media/dvb/siano/sms-cards.c
-> > --- a/linux/drivers/media/dvb/siano/sms-cards.c Tue
-> May 19 19:45:05 2009 +0300
-> > +++ b/linux/drivers/media/dvb/siano/sms-cards.c Tue
-> May 19 19:50:24 2009 +0300
-> > @@ -281,98 +281,3 @@ int sms_board_event(struct
-> smscore_devic
-> >        return 0;
-> >  }
-> >  EXPORT_SYMBOL_GPL(sms_board_event);
-> > -
-> > -static int sms_set_gpio(struct smscore_device_t
-> *coredev, int pin, int enable)
-> > -{
-> > -       int lvl, ret;
-> > -       u32 gpio;
-> > -       struct smscore_config_gpio gpioconfig = {
-> > -               .direction            =
-> SMS_GPIO_DIRECTION_OUTPUT,
-> > -               .pullupdown           =
-> SMS_GPIO_PULLUPDOWN_NONE,
-> > -               .inputcharacteristics =
-> SMS_GPIO_INPUTCHARACTERISTICS_NORMAL,
-> > -               .outputslewrate       =
-> SMS_GPIO_OUTPUTSLEWRATE_FAST,
-> > -               .outputdriving        =
-> SMS_GPIO_OUTPUTDRIVING_4mA,
-> > -       };
-> > -
-> > -       if (pin == 0)
-> > -               return -EINVAL;
-> > -
-> > -       if (pin < 0) {
-> > -               /* inverted gpio */
-> > -               gpio = pin * -1;
-> > -               lvl = enable ? 0 : 1;
-> > -       } else {
-> > -               gpio = pin;
-> > -               lvl = enable ? 1 : 0;
-> > -       }
-> > -
-> > -       ret = smscore_configure_gpio(coredev, gpio,
-> &gpioconfig);
-> > -       if (ret < 0)
-> > -               return ret;
-> > -
-> > -       return smscore_set_gpio(coredev, gpio,
-> lvl);
-> > -}
-> > -
-> > -int sms_board_power(struct smscore_device_t *coredev,
-> int onoff)
-> > -{
-> > -       int board_id =
-> smscore_get_board_id(coredev);
-> > -       struct sms_board *board =
-> sms_get_board(board_id);
-> > -
-> > -       switch (board_id) {
-> > -       case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
-> > -               /* power LED */
-> > -               sms_set_gpio(coredev,
-> > -                          
->  board->led_power, onoff ? 1 : 0);
-> > -               break;
-> > -       case
-> SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
-> > -       case
-> SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
-> > -               /* LNA */
-> > -               if (!onoff)
-> > -                      
-> sms_set_gpio(coredev, board->lna_ctrl, 0);
-> > -               break;
-> > -       }
-> > -       return 0;
-> > -}
-> > -EXPORT_SYMBOL_GPL(sms_board_power);
-> > -
-> > -int sms_board_led_feedback(struct smscore_device_t
-> *coredev, int led)
-> > -{
-> > -       int board_id =
-> smscore_get_board_id(coredev);
-> > -       struct sms_board *board =
-> sms_get_board(board_id);
-> > -
-> > -       /* dont touch GPIO if LEDs are already set
-> */
-> > -       if (smscore_led_state(coredev, -1) == led)
-> > -               return 0;
-> > -
-> > -       switch (board_id) {
-> > -       case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
-> > -               sms_set_gpio(coredev,
-> > -                          
->  board->led_lo, (led & SMS_LED_LO) ? 1 : 0);
-> > -               sms_set_gpio(coredev,
-> > -                          
->  board->led_hi, (led & SMS_LED_HI) ? 1 : 0);
-> > -
-> > -               smscore_led_state(coredev,
-> led);
-> > -               break;
-> > -       }
-> > -       return 0;
-> > -}
-> > -EXPORT_SYMBOL_GPL(sms_board_led_feedback);
-> > -
-> > -int sms_board_lna_control(struct smscore_device_t
-> *coredev, int onoff)
-> > -{
-> > -       int board_id =
-> smscore_get_board_id(coredev);
-> > -       struct sms_board *board =
-> sms_get_board(board_id);
-> > -
-> > -       sms_debug("%s: LNA %s", __func__, onoff ?
-> "enabled" : "disabled");
-> > -
-> > -       switch (board_id) {
-> > -       case
-> SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
-> > -       case
-> SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
-> > -               sms_set_gpio(coredev,
-> > -                          
->  board->rf_switch, onoff ? 1 : 0);
-> > -               return sms_set_gpio(coredev,
-> > -                                  
-> board->lna_ctrl, onoff ? 1 : 0);
-> > -       }
-> > -       return -EINVAL;
-> > -}
-> > -EXPORT_SYMBOL_GPL(sms_board_lna_control);
-> > diff -r f78cbc153c82 -r fd16bcd8b9f1
-> linux/drivers/media/dvb/siano/sms-cards.h
-> > --- a/linux/drivers/media/dvb/siano/sms-cards.h Tue
-> May 19 19:45:05 2009 +0300
-> > +++ b/linux/drivers/media/dvb/siano/sms-cards.h Tue
-> May 19 19:50:24 2009 +0300
-> > @@ -110,11 +110,4 @@ int sms_board_event(struct
-> smscore_devic
-> >  int sms_board_event(struct smscore_device_t
-> *coredev,
-> >                enum SMS_BOARD_EVENTS gevent);
-> >
-> > -#define SMS_LED_OFF 0
-> > -#define SMS_LED_LO  1
-> > -#define SMS_LED_HI  2
-> > -int sms_board_led_feedback(struct smscore_device_t
-> *coredev, int led);
-> > -int sms_board_power(struct smscore_device_t *coredev,
-> int onoff);
-> > -int sms_board_lna_control(struct smscore_device_t
-> *coredev, int onoff);
-> > -
-> >  #endif /* __SMS_CARDS_H__ */
-> >
-> >
-> >
-> >
-> > --
-> > To unsubscribe from this list: send the line
-> "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> 
-> NACK.
-> 
-> 
-> Again, this breaks the Hauppauge devices...  As I have
-> said, lets deal
-> with that separately after the core changesets are merged.
-> 
-> Regards,
-> 
-> Mike
-> 
+        Hans
 
-And again Mike, the core changesets ARE ALREADY merged.
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
-Uri
-
-
-      
