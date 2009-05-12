@@ -1,25 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n4B4Iosj025878
-	for <video4linux-list@redhat.com>; Mon, 11 May 2009 00:18:50 -0400
-Received: from smtp113.rog.mail.re2.yahoo.com (smtp113.rog.mail.re2.yahoo.com
-	[68.142.225.229])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n4B4IZsI030912
-	for <video4linux-list@redhat.com>; Mon, 11 May 2009 00:18:36 -0400
-From: William Case <billlinux@rogers.com>
-To: CityK <cityk@rogers.com>
-In-Reply-To: <1242013532.3277.28.camel@localhost.localdomain>
-References: <1241982336.31677.0.camel@localhost.localdomain>
-	<4A077247.8030305@rogers.com>
-	<1242013532.3277.28.camel@localhost.localdomain>
-Content-Type: text/plain
-Date: Mon, 11 May 2009 00:16:48 -0400
-Message-Id: <1242015408.3277.31.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: video4linux-list <video4linux-list@redhat.com>
-Subject: Re: TYPO [Hauppauge WinTV-hvr-1800 PCIe won't work with tvtime or
- mplayer.]
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n4CKWV8N030033
+	for <video4linux-list@redhat.com>; Tue, 12 May 2009 16:32:31 -0400
+Received: from fmailhost02.isp.att.net (fmailhost02.isp.att.net
+	[204.127.217.102])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n4CKWBGS026717
+	for <video4linux-list@redhat.com>; Tue, 12 May 2009 16:32:11 -0400
+Message-ID: <4A09DD3B.3060400@bellsouth.net>
+Date: Tue, 12 May 2009 20:34:03 +0000
+From: g <geleem@bellsouth.net>
+MIME-Version: 1.0
+To: video4linux-list <video4linux-list@redhat.com>
+References: <1242118558.6105.4.camel@xie>
+In-Reply-To: <1242118558.6105.4.camel@xie>
+Subject: Re: what is the meaning of the crop and overlay window?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,68 +21,94 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: multipart/mixed; boundary="===============1822750203=="
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sun, 2009-05-10 at 23:45 -0400, William Case wrote:
-> Hi CityK;
-> 
-> On Sun, 2009-05-10 at 20:33 -0400, CityK wrote:
-> > William Case wrote:
-> 
-> > Note: cx88 associated modules do NOT apply to this device (cx88 driver
-> > modules are for the PCI based cx2388x chipsets, where x=0/1,2,3).  This
-> > is a PCIe based device which is serviced, amongst others, by the cx23885
-> > driver module. 
-> 
-> I have removed all the extra modules I have been playing with and
-> removed any modprobe instructions I had been trying.
-> 
-> > 
-> > Also, have a look in the wiki for the device article which appears to
-> > contain some info that would be useful for you.
-> 
-> I re-installed v4l-dvb-4c7466ea8d64.tar.bz2, as suggested on the wiki.
-> The extracted files are in /lib/modules/["kernel
-> version"]/kernel/drivers/media with today's installation date. (last
-> modified)
-> 
-> > With a hardware encoding device, the /dev/video0 should be the MPEG2
-> > stream whereas /dev/video1 would be the raw stream compatible with apps
-> > like tvtime.  mplayer /dev/video0 should work. .... note that the node
-> > number (N) of the character device (/dev/videoN) will be different if
-> > you have multiple devices installed in the system, so you will have to
-> > adjust accordingly.
-> 
-> I am trying to set up analog viewing through my cable provider.
-> tvtime.xml is set to video0. It still gives me an excellent picture but
-> no sound. video1 just gives me a black screen - no sound.
-> 
-> On mplayer device=/dev/video0 remains the same --terrible picture; no
-> sound. mplayer device=/dev/video0 produces the error message 
-> 'vo: x11 uninit called but X11 not initialized..' and quits.
-> 
-			 \/
-mplayer device=/dev/video1 produces the error message  'vo: x11 uninit
-called but X11 not initialized..' and quits.
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--===============1822750203==
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="------------enig2C09CD20B1C00C96BCD37609"
 
-> The mplayer script I am using is a slightly modified copy of the command
-> suggested on the wiki.
-> 
-> Basically the info I submitted originally remains the same except the
-> cx2388x modules are gone.
-> 
-> Usually I like to work away at these kind problems until I conquer them
-> myself.  But I have been on this one for over two weeks and I am driving
-> myself to distraction.  I really do appreciate your time and advice.
-> 
--- 
-Regards Bill
-Fedora 10, Gnome 2.24.3
-Evo.2.24.5, Emacs 22.3.1
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig2C09CD20B1C00C96BCD37609
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+xie wrote:
+
+> when i read the v4l2 spec, i can't understand the concept of crop and
+> overlay window. who can tell me what is the difference of them? thanks =
+a
+> lot~~
+
+having been in 'still', 'movie' and 'video' photography for many years,
+such a question would be rather involved for me to answer.
+
+tho my reply may not coincide with what is referenced in v412 spec, maybe=
+
+this will help until someone else can give you a more precise answer.
+
+easiest thing to do was 'wikipedia.org'.
+
+http://en.wikipedia.org/wiki/Cropping_(image)
+http://en.wikipedia.org/wiki/Video_overlay
+
+simplified;
+crop: remove or reduce proportions of image.
+overlay: show multiple images superimposed over another.
+
+--=20
+
+peace out.
+
+tc,hago.
+
+g
+=2E
+
+****
+in a free world without fences, who needs gates.
+**
+help microsoft stamp out piracy - give linux to a friend today
+**
+to mess up a linux box, you need to work at it;
+to mess up an ms windows box, you just need to *look* at it.
+**
+learn linux:
+'Rute User's Tutorial and Exposition' http://rute.2038bug.com/index.html
+'The Linux Documentation Project' http://www.tldp.org/
+'LDP HOWTO-index' http://www.tldp.org/HOWTO/HOWTO-INDEX/index.html
+'HowtoForge' http://howtoforge.com/
+****
+
+
+--------------enig2C09CD20B1C00C96BCD37609
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (GNU/Linux)
+
+iD8DBQFKCd08PF4fTpAv9CMRAtvBAJ4qcvaoeASnLuToNAEcMx9jATDZIgCfbyTf
+pRDOC2WoNpN8Ex3uLAvMKtA=
+=wWbK
+-----END PGP SIGNATURE-----
+
+--------------enig2C09CD20B1C00C96BCD37609--
+
+
+--===============1822750203==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--===============1822750203==--
