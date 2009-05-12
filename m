@@ -1,47 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:45683 "EHLO znsun1.ifh.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752319AbZETIxJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2009 04:53:09 -0400
-Date: Wed, 20 May 2009 10:52:59 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Alan Nisota <alannisota@gmail.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Remove support for Genpix-CW3K (damages hardware)
-In-Reply-To: <49D2338C.7040703@gmail.com>
-Message-ID: <alpine.LRH.1.10.0905201051290.6762@pub3.ifh.de>
-References: <49D2338C.7040703@gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Received: from bombadil.infradead.org ([18.85.46.34]:39962 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754868AbZELAzD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 11 May 2009 20:55:03 -0400
+Date: Mon, 11 May 2009 21:54:56 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Dmitri Belimov <d.belimov@gmail.com>
+Cc: hermann pitton <hermann-pitton@arcor.de>,
+	linux-media@vger.kernel.org, video4linux-list@redhat.com
+Subject: Re: [PATCH 3/3 ] big rework of TS for saa7134
+Message-ID: <20090511215456.2fe38980@pedra.chehab.org>
+In-Reply-To: <20090511202123.383c8300@glory.loctelecom.ru>
+References: <20090428195200.69d103e7@glory.loctelecom.ru>
+	<20090511193705.0e06fac8@pedra.chehab.org>
+	<1242082536.11527.4.camel@pc07.localdom.local>
+	<20090511202123.383c8300@glory.loctelecom.ru>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alan,
+Em Mon, 11 May 2009 20:21:23 +1000
+Dmitri Belimov <d.belimov@gmail.com> escreveu:
 
-On Tue, 31 Mar 2009, Alan Nisota wrote:
+> > > Cheers,
+> > > Mauro
+> > 
+> > Did you check it is still OK for DVB-T and DVB-S also?
+> 
+> No. We tested only with analog TV, capturing from analog TV and composite input.
+> It support serial and parallel TS from MPEG encoder to saa7134.
 
-> I have been informed by the manufacturer that the patch currently in the v4l 
-> tree to support the Genpix-CW3K version of the hardware will actually damage 
-> the firmware on recent units.  As he seems to not want this hardware 
-> supported in Linux, and I do not know how to detect the difference between 
-> affected and not-affected units, I am requesting the immediate removal of 
-> support for this device.  This patch removes a portion of the changeset 
-> dce7e08ed2b1 applied 2007-08-18 relating to this specific device.
->
-> Signed off by: Alan Nisota <anisota@gmail.com>
+Since the patch touched on saa7134-ts, it is important to check if it will not
+cause regressions with DVB. Could you please test it?
+> 
 
 
-Finally I found the time to work on your patch. I adapted it to not remove 
-the code, but to put it under comments and #if 0's .
 
-Like that we protect "normal" users and advanced users need to do some 
-efforts before getting in danger.
 
-I hope it is OK with you.
-
-regards,
-Patrick.
-
---
-   Mail: patrick.boettcher@desy.de
-   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
+Cheers,
+Mauro
