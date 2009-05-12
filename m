@@ -1,76 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f168.google.com ([209.85.220.168]:62869 "EHLO
-	mail-fx0-f168.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752015AbZEWNEk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 May 2009 09:04:40 -0400
-Received: by fxm12 with SMTP id 12so368390fxm.37
-        for <linux-media@vger.kernel.org>; Sat, 23 May 2009 06:04:40 -0700 (PDT)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Simon Kenyon <simon@koala.ie>
-Subject: Re: [linux-dvb] SDMC DM1105N not being detected
-Date: Sat, 23 May 2009 16:04:29 +0300
-Cc: linux-media@vger.kernel.org
-References: <e6ac15e50904022156u40221c3fib15d1b4cdf36461@mail.gmail.com> <4A140936.6020001@koala.ie>
-In-Reply-To: <4A140936.6020001@koala.ie>
+Received: from mail.gmx.net ([213.165.64.20]:34132 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752168AbZELJQZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 May 2009 05:16:25 -0400
+Date: Tue, 12 May 2009 11:16:29 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Agustin <gatoguan-os@yahoo.com>
+cc: linux-arm-kernel@lists.arm.linux.org.uk,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH] dma: fix ipu_idmac.c to not discard the last queued buffer
+In-Reply-To: <951499.48393.qm@web32102.mail.mud.yahoo.com>
+Message-ID: <Pine.LNX.4.64.0905120908220.5087@axis700.grange>
+References: <155119.7889.qm@web32103.mail.mud.yahoo.com>
+ <Pine.LNX.4.64.0905071750050.9460@axis700.grange> <951499.48393.qm@web32102.mail.mud.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="koi8-r"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200905231604.29795.liplianin@tut.by>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 20 May 2009 16:44:22 Simon Kenyon wrote:
-> mp3geek wrote:
-> > Not even being detected in Linux 2.6.29.1, I have the modules "dm1105"
-> > loaded, but since its not even being detected by linux..
-> >
-> > lspci -vv shows this (I'm assuming this is the card..), dmesg shows
-> > nothing dvb being loaded
-> >
-> > 00:0b.0 Ethernet controller: Device 195d:1105 (rev 10)
-> >     Subsystem: Device 195d:1105
-> >     Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop-
-> > ParErr- Stepping- SERR- FastB2B- DisINTx-
-> >     Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort-
-> > <TAbort- <MAbort- >SERR- <PERR- INTx-
-> >     Latency: 30 (4000ns min, 8000ns max), Cache Line Size: 32 bytes
-> >     Interrupt: pin A routed to IRQ 5
-> >     Region 0: I/O ports at 9400 [size=256]
-> >
-> >
-> > The chip says the following, SDMC DM1105N, EasyTV-DVBS V1.0B
-> > (2008-04-26), 0735 E280034
->
-> because i saw that there was a driver written by igor, i took a chance
-> and bought a DM04 DVB-S card on ebay. it only cost €20 (including
-> shipping from HK to Ireland) so i reckoned "nothing ventured, nothing
-> gained"
-> on a windows box it runs rather nicely. granted that the software
-> provided does not provide a BDA driver, so you are pretty much limited
-> to the stuff that comes with the card.
-> but a big "me too" on linux (which is what i bought it for)
-> i similarly get an "ethernet controller" and nothing in the kernel log
-> when i load the dm1105 module.
->
-> what do i need to do to debug the situation and/or update the driver?
->
-> regards
-> --
-> simon
+This also fixes the case of a single queued buffer, for example, when taking a
+single frame snapshot with the mx3_camera driver.
 
-It seems, one can find GPIO values for LNB power control.
-Do not forget about Vendor/Device ID's. 
+Reported-by: Agustin <gatoguan-os@yahoo.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-I wrote code to support card with subsystem/device 195d/1105, but no one reported success, so I 
-decided not to include it in commit :(
+Subject: Re: Grabbing single stills on MX31 - Re: Solved? - Re: 
+soc-camera: timing out during capture - Re: Testing latest mx3_camera.c
 
-It was more then one year ago
+On Mon, 11 May 2009, Agustin wrote:
 
-http://liplianin.at.tut.by/dvblipl.tar.bz2
+> On Thu, 7 May 2009, Guennadi Liakhovetski wrote:
+> 
+> > On Thu, 7 May 2009, Agustin Ferrin Pozuelo wrote:
+> > > ...
+> > > I thought about the fact that I was only queuing one buffer, and that 
+> > > this might be a corner case as sample code uses a lot of them. And that 
+> > > in the older code that funny things could happen in the handler if we 
+> > > ran out of buffers, though they didn't happen.
+> > > 
+> > > So I have queued an extra buffer and voila, got it working.
+> > > 
+> > > So thanks again!
+> > > 
+> > > However, this could be a bug in ipu_idmac (or some other point), as 
+> > > using a single buffer is very plausible, specially when grabbing huge 
+> > > stills.
+> > 
+> > Great, thanks for testing and debugging! Ok, so, I will have to test this 
+> > case some time...
 
+Agustin, does this patch fix your problem? Dan, please, pull it as soon as 
+we get a tested-by from Agustin.
+
+> This workaround (queuing 2 buffers when needing only one) is having the 
+> side effect of greatly increasing the time taken.
+> 
+> I did several tests playing with camera vertical blanking and looking at 
+> capture times:
+> 
+>   Vblank / real             / user             / sys time:
+>        0 / real    0m 0.90s / user    0m 0.00s / sys     0m 0.34s
+>  1 frame / real    0m 1.04s / user    0m 0.00s / sys     0m 0.34s
+> 2 frames / real    0m 1.18s / user    0m 0.00s / sys     0m 0.33s
+> 2.5 (max)/ real    0m 1.23s / user    0m 0.00s / sys     0m 0.35s
+> 
+> I think the second frame is being captured altogether, and its dma 
+> transfer is not allowing any other process to run meanwhile. 
+> (VIDIOC_STREAMOFF is being called as soon as the first buffer is ready.)
+
+I don't quite understand this. What exactly are you doing above? You 
+submit 2 buffers and change vertical blanking? Where do you change the 
+blanking - in the driver? How exactly?
+
+> Do you think it will be too hard to fix?
+
+The blanking issue or the 1-buffer problem?
+
+Thanks
+Guennadi
+
+ drivers/dma/ipu/ipu_idmac.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/dma/ipu/ipu_idmac.c b/drivers/dma/ipu/ipu_idmac.c
+index 3a4deea..9a5bc1a 100644
+--- a/drivers/dma/ipu/ipu_idmac.c
++++ b/drivers/dma/ipu/ipu_idmac.c
+@@ -1272,7 +1272,8 @@ static irqreturn_t idmac_interrupt(int irq, void *dev_id)
+ 	/* Other interrupts do not interfere with this channel */
+ 	spin_lock(&ichan->lock);
+ 	if (unlikely(chan_id != IDMAC_SDC_0 && chan_id != IDMAC_SDC_1 &&
+-		     ((curbuf >> chan_id) & 1) == ichan->active_buffer)) {
++		     ((curbuf >> chan_id) & 1) == ichan->active_buffer &&
++		     !list_is_last(ichan->queue.next, &ichan->queue))) {
+ 		int i = 100;
+ 
+ 		/* This doesn't help. See comment in ipu_disable_channel() */
 -- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+1.6.2.4
+
