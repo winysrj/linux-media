@@ -1,119 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:19700 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755507AbZEKJhJ (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:48600 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757006AbZELCMj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 May 2009 05:37:09 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Mon, 11 May 2009 22:12:39 -0400
+Date: Mon, 11 May 2009 23:12:31 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
 	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
 	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCH v2 3/7] v4l2_subdev i2c: Add i2c board info to v4l2_i2c_new_subdev
-Date: Mon, 11 May 2009 12:31:45 +0300
-Message-Id: <1242034309-13448-4-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1242034309-13448-3-git-send-email-eduardo.valentin@nokia.com>
+Subject: Re: [PATCH v2 1/7] v4l2: video device: Add V4L2_CTRL_CLASS_FMTX
+ controls
+Message-ID: <20090511231231.35f5ec0c@pedra.chehab.org>
+In-Reply-To: <1242034309-13448-2-git-send-email-eduardo.valentin@nokia.com>
 References: <1242034309-13448-1-git-send-email-eduardo.valentin@nokia.com>
- <1242034309-13448-2-git-send-email-eduardo.valentin@nokia.com>
- <1242034309-13448-3-git-send-email-eduardo.valentin@nokia.com>
+	<1242034309-13448-2-git-send-email-eduardo.valentin@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Device drivers of v4l2_subdev devices may want to have
-i2c board info data. This patch adds an helper function
-to allow bridge drivers to pass board specific data to
-v4l2_subdev drivers.
+Em Mon, 11 May 2009 12:31:43 +0300
+Eduardo Valentin <eduardo.valentin@nokia.com> escreveu:
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- drivers/media/video/v4l2-common.c |   33 +++++++++++++++++++++++++++------
- include/media/v4l2-common.h       |    6 ++++++
- 2 files changed, 33 insertions(+), 6 deletions(-)
+> This patch adds a new class of extended controls. This class
+> is intended to support Radio Modulators properties such as:
+> rds, audio limiters, audio compression, pilot tone generation,
+> tuning power levels and region related properties.
+> 
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-index c17d93c..66ec545 100644
---- a/drivers/media/video/v4l2-common.c
-+++ b/drivers/media/video/v4l2-common.c
-@@ -827,9 +827,9 @@ EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
- 
- 
- /* Load an i2c sub-device. */
--struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
--		struct i2c_adapter *adapter,
--		const char *module_name, const char *client_type, u8 addr)
-+static struct v4l2_subdev *__v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
-+		struct i2c_adapter *adapter, const char *module_name,
-+		const char *client_type, u8 addr, struct i2c_board_info *i)
- {
- 	struct v4l2_subdev *sd = NULL;
- 	struct i2c_client *client;
-@@ -842,9 +842,13 @@ struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
- 
- 	/* Setup the i2c board info with the device type and
- 	   the device address. */
--	memset(&info, 0, sizeof(info));
--	strlcpy(info.type, client_type, sizeof(info.type));
--	info.addr = addr;
-+	if (!i) {
-+		memset(&info, 0, sizeof(info));
-+		strlcpy(info.type, client_type, sizeof(info.type));
-+		info.addr = addr;
-+	} else {
-+		memcpy(&info, i, sizeof(info));
-+	}
- 
- 	/* Create the i2c client */
- 	client = i2c_new_device(adapter, &info);
-@@ -874,8 +878,25 @@ error:
- 		i2c_unregister_device(client);
- 	return sd;
- }
-+
-+struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
-+		struct i2c_adapter *adapter,
-+		const char *module_name, const char *client_type, u8 addr)
-+{
-+	return __v4l2_i2c_new_subdev(v4l2_dev, adapter, module_name,
-+					client_type, addr, NULL);
-+}
- EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev);
- 
-+struct v4l2_subdev *v4l2_i2c_new_subdev_board_info(struct v4l2_device *v4l2_dev,
-+		struct i2c_adapter *adapter, const char *module_name,
-+		struct i2c_board_info *i)
-+{
-+	return __v4l2_i2c_new_subdev(v4l2_dev, adapter, module_name,
-+					NULL, 0, i);
-+}
-+EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev_board_info);
-+
- /* Probe and load an i2c sub-device. */
- struct v4l2_subdev *v4l2_i2c_new_probed_subdev(struct v4l2_device *v4l2_dev,
- 	struct i2c_adapter *adapter,
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index c48c24e..eb1a24b 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -130,6 +130,7 @@ int v4l2_chip_match_host(const struct v4l2_dbg_match *match);
- struct i2c_driver;
- struct i2c_adapter;
- struct i2c_client;
-+struct i2c_board_info;
- struct i2c_device_id;
- struct v4l2_device;
- struct v4l2_subdev;
-@@ -142,6 +143,11 @@ struct v4l2_subdev_ops;
- struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
- 		struct i2c_adapter *adapter,
- 		const char *module_name, const char *client_type, u8 addr);
-+/* Same as v4l2_i2c_new_subdev, but with oportunity to pass i2c_board_info
-+   to client device */
-+struct v4l2_subdev *v4l2_i2c_new_subdev_board_info(struct v4l2_device *v4l2_dev,
-+		struct i2c_adapter *adapter, const char *module_name,
-+		struct i2c_board_info *i);
- /* Probe and load an i2c module and return an initialized v4l2_subdev struct.
-    Only call request_module if module_name != NULL.
-    The client_type argument is the name of the chip that's on the adapter. */
--- 
-1.6.2.GIT
+Eduardo,
 
+Please provide us a patch also for V4L2 API for the new API controls you're
+adding. I'll hold the analysis of the patch series until you provide us the
+docs. So, there's no need to resubmit the entire patch series.
+
+The V4L2 API is maintained together with the mercurial development tree, at:
+	http://linuxtv.org/hg/v4l-dvb/
+
+under v4l2-spec/ directory.
+
+Cheers,
+Mauro.
+
+> ---
+>  include/linux/videodev2.h |   45 +++++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 45 insertions(+), 0 deletions(-)
+> 
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index ebb2ea6..7559299 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -803,6 +803,7 @@ struct v4l2_ext_controls {
+>  #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
+>  #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+>  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
+> +#define V4L2_CTRL_CLASS_FMTX 0x009b0000	/* FM Radio Modulator class controls */
+>  
+>  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+>  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+> @@ -1141,6 +1142,50 @@ enum  v4l2_exposure_auto_type {
+>  
+>  #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
+>  
+> +/* FM Radio Modulator class control IDs */
+> +#define V4L2_CID_FMTX_CLASS_BASE		(V4L2_CTRL_CLASS_FMTX | 0x900)
+> +#define V4L2_CID_FMTX_CLASS			(V4L2_CTRL_CLASS_FMTX | 1)
+> +
+> +#define V4L2_CID_RDS_ENABLED			(V4L2_CID_FMTX_CLASS_BASE + 1)
+> +#define V4L2_CID_RDS_PI				(V4L2_CID_FMTX_CLASS_BASE + 2)
+> +#define V4L2_CID_RDS_PTY			(V4L2_CID_FMTX_CLASS_BASE + 3)
+> +#define V4L2_CID_RDS_PS_NAME			(V4L2_CID_FMTX_CLASS_BASE + 4)
+> +#define V4L2_CID_RDS_RADIO_TEXT			(V4L2_CID_FMTX_CLASS_BASE + 5)
+> +
+> +#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 6)
+> +#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 7)
+> +#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FMTX_CLASS_BASE + 8)
+> +
+> +#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FMTX_CLASS_BASE + 9)
+> +#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FMTX_CLASS_BASE + 10)
+> +#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FMTX_CLASS_BASE + 11)
+> +#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FMTX_CLASS_BASE + 12)
+> +#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 13)
+> +
+> +#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 14)
+> +#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FMTX_CLASS_BASE + 15)
+> +#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FMTX_CLASS_BASE + 16)
+> +
+> +#define V4L2_CID_REGION				(V4L2_CID_FMTX_CLASS_BASE + 17)
+> +enum v4l2_fmtx_region {
+> +	V4L2_FMTX_REGION_USA			= 0,
+> +	V4L2_FMTX_REGION_AUSTRALIA		= 1,
+> +	V4L2_FMTX_REGION_EUROPE			= 2,
+> +	V4L2_FMTX_REGION_JAPAN			= 3,
+> +	V4L2_FMTX_REGION_JAPAN_WIDE_BAND	= 4,
+> +};
+> +#define V4L2_CID_REGION_BOTTOM_FREQUENCY	(V4L2_CID_FMTX_CLASS_BASE + 18)
+> +#define V4L2_CID_REGION_TOP_FREQUENCY		(V4L2_CID_FMTX_CLASS_BASE + 19)
+> +#define V4L2_CID_REGION_PREEMPHASIS		(V4L2_CID_FMTX_CLASS_BASE + 20)
+> +enum v4l2_fmtx_preemphasis {
+> +	V4L2_FMTX_PREEMPHASIS_75_uS		= 0,
+> +	V4L2_FMTX_PREEMPHASIS_50_uS		= 1,
+> +	V4L2_FMTX_PREEMPHASIS_DISABLED		= 2,
+> +};
+> +#define V4L2_CID_REGION_CHANNEL_SPACING		(V4L2_CID_FMTX_CLASS_BASE + 21)
+> +#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FMTX_CLASS_BASE + 22)
+> +#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FMTX_CLASS_BASE + 23)
+> +
+>  /*
+>   *	T U N I N G
+>   */
+
+
+
+
+Cheers,
+Mauro
