@@ -1,46 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:57066 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752666AbZEZTJr convert rfc822-to-8bit (ORCPT
+Received: from web110811.mail.gq1.yahoo.com ([67.195.13.234]:20248 "HELO
+	web110811.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751318AbZELOhI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2009 15:09:47 -0400
-Received: from smtp1-g21.free.fr (localhost [127.0.0.1])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id 91B6E9401EF
-	for <linux-media@vger.kernel.org>; Tue, 26 May 2009 21:09:42 +0200 (CEST)
-Received: from gandalf.hd.free.fr (wmh38-1-82-225-140-65.fbx.proxad.net [82.225.140.65])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id 9A75B940132
-	for <linux-media@vger.kernel.org>; Tue, 26 May 2009 21:09:40 +0200 (CEST)
-Received: from localhost
-	([127.0.0.1] helo=gandalf.localnet ident=domi)
-	by gandalf.hd.free.fr with esmtp (Exim 4.69)
-	(envelope-from <domi.dumont@free.fr>)
-	id 1M921r-0003Hj-GT
-	for linux-media@vger.kernel.org; Tue, 26 May 2009 21:09:39 +0200
-From: Dominique Dumont <domi.dumont@free.fr>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Tue, 26 May 2009 21:09:38 +0200
-References: <200905252211.50393.domi.dumont@free.fr>
-In-Reply-To: <200905252211.50393.domi.dumont@free.fr>
+	Tue, 12 May 2009 10:37:08 -0400
+Message-ID: <169456.23379.qm@web110811.mail.gq1.yahoo.com>
+Date: Tue, 12 May 2009 07:37:09 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH]  [0905_06] Siano: smsdvb - add big endian support
+To: LinuxML <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200905262109.39176.domi.dumont@free.fr>
-Subject: Re: dvb_usb_nova_t_usb2: firmware is loaded too late
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le Monday 25 May 2009 22:11:49 Dominique Dumont, vous avez écrit :
-> I have some trouble with the initialisation of dvb_usb_nova_t_usb2: the
-> firmware is loaded about 1 minute after the module is registered by
-> usbcore:
 
-Sorry, I forgot to mention my kernel version 2.6.29.3 (Debian/sid amd64 
-kernel)
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1242139255 -10800
+# Node ID 291604c1821496dd4acd1d5411f8ea3ae955fd2c
+# Parent  ae0f17b305e7762643a9bc7f43c302c11f7b55b5
+[0905_06] Siano: smsdvb - add big endian support
 
-I did not have any loading problem with 2.6.28, the issue appeared only with 
-2.6.29.
+From: Uri Shkolnik <uris@siano-ms.com>
 
-HTH
+Add support for Siano protocol messages
+with big endian systems.
 
+Priority: normal
+
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+
+diff -r ae0f17b305e7 -r 291604c18214 linux/drivers/media/dvb/siano/smsdvb.c
+--- a/linux/drivers/media/dvb/siano/smsdvb.c	Tue May 12 17:32:21 2009 +0300
++++ b/linux/drivers/media/dvb/siano/smsdvb.c	Tue May 12 17:40:55 2009 +0300
+@@ -23,6 +23,7 @@ along with this program.  If not, see <h
+ #include <linux/init.h>
+ 
+ #include "smscoreapi.h"
++#include "smsendian.h"
+ #include "sms-cards.h"
+ 
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+@@ -59,6 +60,8 @@ static int smsdvb_onresponse(void *conte
+ 	struct smsdvb_client_t *client = (struct smsdvb_client_t *) context;
+ 	struct SmsMsgHdr_ST *phdr =
+ 		(struct SmsMsgHdr_ST *)(((u8 *) cb->p) + cb->offset);
++
++	smsendian_handle_rx_message((struct SmsMsgData_ST *) phdr);
+ 
+ 	switch (phdr->msgType) {
+ 	case MSG_SMS_DVBT_BDA_DATA:
+@@ -149,6 +152,7 @@ static int smsdvb_start_feed(struct dvb_
+ 	PidMsg.xMsgHeader.msgLength = sizeof(PidMsg);
+ 	PidMsg.msgData[0] = feed->pid;
+ 
++	smsendian_handle_tx_message((struct SmsMsgHdr_ST *)&PidMsg);
+ 	return smsclient_sendrequest(client->smsclient,
+ 				     &PidMsg, sizeof(PidMsg));
+ }
+@@ -169,6 +173,7 @@ static int smsdvb_stop_feed(struct dvb_d
+ 	PidMsg.xMsgHeader.msgLength = sizeof(PidMsg);
+ 	PidMsg.msgData[0] = feed->pid;
+ 
++	smsendian_handle_tx_message((struct SmsMsgHdr_ST *)&PidMsg);
+ 	return smsclient_sendrequest(client->smsclient,
+ 				     &PidMsg, sizeof(PidMsg));
+ }
+@@ -177,7 +182,10 @@ static int smsdvb_sendrequest_and_wait(s
+ 					void *buffer, size_t size,
+ 					struct completion *completion)
+ {
+-	int rc = smsclient_sendrequest(client->smsclient, buffer, size);
++	int rc;
++
++	smsendian_handle_tx_message((struct SmsMsgHdr_ST *)buffer);
++	rc = smsclient_sendrequest(client->smsclient, buffer, size);
+ 	if (rc < 0)
+ 		return rc;
+ 
+
+
+
+      
