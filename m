@@ -1,44 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from brigitte.telenet-ops.be ([195.130.137.66]:52650 "EHLO
-	brigitte.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751448AbZEVHFX (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:57449 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757701AbZELCRK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2009 03:05:23 -0400
-Message-ID: <4A164D82.3050405@bsc-bvba.be>
-Date: Fri, 22 May 2009 09:00:18 +0200
-From: Luc Brosens <dvb2@bsc-bvba.be>
-Reply-To: dvb2@bsc-bvba.be
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: linux-dvb@linuxtv.org, tarik.chougua@yahoo.fr
-Subject: Re: [linux-dvb] Hauppauge WinTV-CI
-References: <965444.24352.qm@web26902.mail.ukl.yahoo.com> <20090515231650.56d6c4f4@bk.ru>
-In-Reply-To: <20090515231650.56d6c4f4@bk.ru>
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 11 May 2009 22:17:10 -0400
+Date: Mon, 11 May 2009 23:17:03 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH v2 1/7] v4l2: video device: Add V4L2_CTRL_CLASS_FMTX
+ controls
+Message-ID: <20090511231703.17087c01@pedra.chehab.org>
+In-Reply-To: <1242034309-13448-2-git-send-email-eduardo.valentin@nokia.com>
+References: <1242034309-13448-1-git-send-email-eduardo.valentin@nokia.com>
+	<1242034309-13448-2-git-send-email-eduardo.valentin@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Goga777 wrote:
->> Is Wintv-CI, the Common Interface from Hauppauge, working on linux now ?
+Em Mon, 11 May 2009 12:31:43 +0300
+Eduardo Valentin <eduardo.valentin@nokia.com> escreveu:
+
+> This patch adds a new class of extended controls. This class
+> is intended to support Radio Modulators properties such as:
+> rds, audio limiters, audio compression, pilot tone generation,
+> tuning power levels and region related properties.
 > 
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+> ---
+>  include/linux/videodev2.h |   45 +++++++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 45 insertions(+), 0 deletions(-)
 > 
-> not
-> 
-> Goga
-> 
-> _______________________________________________
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index ebb2ea6..7559299 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -803,6 +803,7 @@ struct v4l2_ext_controls {
+>  #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
+>  #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+>  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
+> +#define V4L2_CTRL_CLASS_FMTX 0x009b0000	/* FM Radio Modulator class controls */
+>  
+>  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+>  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+> @@ -1141,6 +1142,50 @@ enum  v4l2_exposure_auto_type {
+>  
+>  #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
+>  
+> +/* FM Radio Modulator class control IDs */
+> +#define V4L2_CID_FMTX_CLASS_BASE		(V4L2_CTRL_CLASS_FMTX | 0x900)
+> +#define V4L2_CID_FMTX_CLASS			(V4L2_CTRL_CLASS_FMTX | 1)
+> +
+> +#define V4L2_CID_RDS_ENABLED			(V4L2_CID_FMTX_CLASS_BASE + 1)
+> +#define V4L2_CID_RDS_PI				(V4L2_CID_FMTX_CLASS_BASE + 2)
+> +#define V4L2_CID_RDS_PTY			(V4L2_CID_FMTX_CLASS_BASE + 3)
+> +#define V4L2_CID_RDS_PS_NAME			(V4L2_CID_FMTX_CLASS_BASE + 4)
+> +#define V4L2_CID_RDS_RADIO_TEXT			(V4L2_CID_FMTX_CLASS_BASE + 5)
+> +
+> +#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 6)
+> +#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 7)
+> +#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FMTX_CLASS_BASE + 8)
+> +
+> +#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FMTX_CLASS_BASE + 9)
+> +#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FMTX_CLASS_BASE + 10)
+> +#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FMTX_CLASS_BASE + 11)
+> +#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FMTX_CLASS_BASE + 12)
+> +#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 13)
+> +
+> +#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 14)
+> +#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FMTX_CLASS_BASE + 15)
+> +#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FMTX_CLASS_BASE + 16)
+> +
+> +#define V4L2_CID_REGION				(V4L2_CID_FMTX_CLASS_BASE + 17)
+> +enum v4l2_fmtx_region {
+> +	V4L2_FMTX_REGION_USA			= 0,
+> +	V4L2_FMTX_REGION_AUSTRALIA		= 1,
+> +	V4L2_FMTX_REGION_EUROPE			= 2,
+> +	V4L2_FMTX_REGION_JAPAN			= 3,
+> +	V4L2_FMTX_REGION_JAPAN_WIDE_BAND	= 4,
+> +};
 
-I have been struggling for ages with this device, trying get the firmware to load.
+Hmm... the region is not just a derived parameter, based on
+preemphasis/frequencies, and channel stepping? What this parameter controls?
 
-The program I wrote to extract the firmware from the driver now outputs the Intel Hex format too, used by fxload.
-No luck : the A3 part does not get loaded, not even using fxloads' A3-loader
+> +#define V4L2_CID_REGION_BOTTOM_FREQUENCY	(V4L2_CID_FMTX_CLASS_BASE + 18)
+> +#define V4L2_CID_REGION_TOP_FREQUENCY		(V4L2_CID_FMTX_CLASS_BASE + 19)
+> +#define V4L2_CID_REGION_PREEMPHASIS		(V4L2_CID_FMTX_CLASS_BASE + 20)
+> +enum v4l2_fmtx_preemphasis {
+> +	V4L2_FMTX_PREEMPHASIS_75_uS		= 0,
+> +	V4L2_FMTX_PREEMPHASIS_50_uS		= 1,
+> +	V4L2_FMTX_PREEMPHASIS_DISABLED		= 2,
+> +};
+> +#define V4L2_CID_REGION_CHANNEL_SPACING		(V4L2_CID_FMTX_CLASS_BASE + 21)
+> +#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FMTX_CLASS_BASE + 22)
+> +#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FMTX_CLASS_BASE + 23)
+> +
+>  /*
+>   *	T U N I N G
+>   */
 
-Details and downloads of code, logs etc at http://www.bsc-bvba.be/linux/dvb
 
-I could use some help, like :
-> traces of the firmware being loaded on XP/Vista (I am using USBspy myself), preferably using a hardware protocol analyser
-> recommendations for an affordable hardware USB2 protocol analyser (I'd try to compare the XP-log with the non-working Linux log)
-> suggestions on how to proceed ...
 
-Luc
+
+Cheers,
+Mauro
