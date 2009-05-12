@@ -1,44 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f166.google.com ([209.85.217.166]:40728 "EHLO
-	mail-gx0-f166.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752382AbZELSbQ (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4580 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757834AbZELHKl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2009 14:31:16 -0400
-Received: by gxk10 with SMTP id 10so268313gxk.13
-        for <linux-media@vger.kernel.org>; Tue, 12 May 2009 11:31:14 -0700 (PDT)
+	Tue, 12 May 2009 03:10:41 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: ext-eero.nurkkala@nokia.com
+Subject: Re: [PATCH 0/2] V4L: Add BCM2048 radio driver
+Date: Tue, 12 May 2009 09:10:29 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <1242024079959-git-send-email-ext-eero.nurkkala@nokia.com> <200905120851.48875.hverkuil@xs4all.nl> <1242111822.19944.75.camel@eenurkka-desktop>
+In-Reply-To: <1242111822.19944.75.camel@eenurkka-desktop>
 MIME-Version: 1.0
-In-Reply-To: <155082.98228.qm@web32102.mail.mud.yahoo.com>
-References: <155119.7889.qm@web32103.mail.mud.yahoo.com>
-	 <Pine.LNX.4.64.0905071750050.9460@axis700.grange>
-	 <951499.48393.qm@web32102.mail.mud.yahoo.com>
-	 <Pine.LNX.4.64.0905120908220.5087@axis700.grange>
-	 <155082.98228.qm@web32102.mail.mud.yahoo.com>
-Date: Tue, 12 May 2009 11:31:14 -0700
-Message-ID: <e9c3a7c20905121131q3c007e9p56c7b754ecd1466f@mail.gmail.com>
-Subject: Re: [PATCH] dma: fix ipu_idmac.c to not discard the last queued
-	buffer
-From: Dan Williams <dan.j.williams@intel.com>
-To: Agustin <gatoguan-os@yahoo.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-arm-kernel@lists.arm.linux.org.uk,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200905120910.29214.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 12, 2009 at 5:14 AM, Agustin <gatoguan-os@yahoo.com> wrote:
+On Tuesday 12 May 2009 09:03:42 Eero Nurkkala wrote:
+> On Tue, 2009-05-12 at 08:51 +0200, ext Hans Verkuil wrote:
+> > I recommend that you move the RDS decoder code into an rds library in
+> > the v4l2-apps directory of the v4l-dvb tree. As you say, the rds
+> > decoder implementation does not belong in the driver, but it would be
+> > very nice to have it as a library.
 >
-> On Tue, 12 May 2009, Guennadi Liakhovetski wrote:
->
->>
->> This also fixes the case of a single queued buffer, for example, when taking a
->> single frame snapshot with the mx3_camera driver.
->>
->> Reported-by: Agustin
->> Signed-off-by: Guennadi Liakhovetski
->
-> Signed-off-by: Agustin Ferrin Pozuelo
+> Quick question, is there a RDS decoder library already out there?
+> Or would it be the case it needs to be done from the scratch?
 
-Applied.
+Yes, here: http://rdsd.berlios.de/
+
+However, it's badly written and overly complicated. We need something much 
+simpler, doing just the basic decoding.
+
+> > Such region tables do not belong in a driver IMHO. These too should go
+> > to a userspace library (libv4l2util? It already contains frequency
+> > tables for TV).
+>
+> That's correct. Is there a link to this library?
+
+It's in the v4l2-apps directory of the main v4l-dvb repository.
+
+> > A more general comment: this driver should be split into two parts: the
+> > radio tuner core should really be implemented using the tuner API
+> > similar to the tea5767 radio tuner driver. That way this radio tuner
+> > driver can be reused when it is placed on e.g. a TV tuner card.
+> > However, the tuner API is missing functionality for e.g. RDS.
+> > Alternatively, the core driver can be rewritten as an v4l2_subdev
+> > driver, again allowing reuse in other drivers.
+>
+> Hmm. This chip is integrated on Bluetooth silicon, so could you please
+> elaborate how it could be reused with a TV tuner? (Maybe I didn't just
+> get the point, or if the manufacturer decides to integrate (in the
+> future) the chip with TV tuner card, or someone wishes to use other
+> manufacturers' TV tuner, but this radio chip at the same time?)
+
+Hmm, I need to think about this. BTW, is there a datasheet of some kind 
+available for this chip?
+
+Regards,
+
+	Hans
+
+> > I would like to see some input from others on this. I think that it
+> > would help the integration of v4l and dvb enormously if dvb starts
+> > using the standard i2c kernel API: that API offers all the
+> > functionality that dvb needs now that it no longer uses autoprobing.
+> > Perhaps a topic for the Plumbers conference later this year?
+>
+> All comments welcome,
+>
+> - Eero
+
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
