@@ -1,72 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:35790 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753057AbZEORTH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 May 2009 13:19:07 -0400
-Date: Fri, 15 May 2009 19:19:20 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Darius Augulis <augulis.darius@gmail.com>,
-	Paul Mundt <lethal@linux-sh.org>
-Subject: [PATCH 03/10 v2] soc_camera_platform: pass device pointer from
- soc-camera core on .add_device()
-In-Reply-To: <Pine.LNX.4.64.0905151817070.4658@axis700.grange>
-Message-ID: <Pine.LNX.4.64.0905151826050.4658@axis700.grange>
-References: <Pine.LNX.4.64.0905151817070.4658@axis700.grange>
+Received: from smtp.nokia.com ([192.100.105.134]:45167 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754163AbZELIAd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 May 2009 04:00:33 -0400
+Date: Tue, 12 May 2009 10:55:19 +0300
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: ext Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
+Subject: Re: [PATCH v2 0/7] [RFC] FM Transmitter (si4713) and another
+	changes
+Message-ID: <20090512075519.GG4639@esdhcp037198.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+References: <53599.62.70.2.252.1242114622.squirrel@webmail.xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <53599.62.70.2.252.1242114622.squirrel@webmail.xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a struct device pointer to struct soc_camera_platform_info and let the user
-(ap325rxa) pass it down to soc_camera_platform.c in its .add_device() method.
+On Tue, May 12, 2009 at 09:50:22AM +0200, ext Hans Verkuil wrote:
+> 
+> > On Tue, May 12, 2009 at 09:03:18AM +0200, ext Hans Verkuil wrote:
+> >> On Monday 11 May 2009 11:31:42 Eduardo Valentin wrote:
+> >> > Hello all,
+> >> >
+> >> > It took a few but I'm resending the FM transmitter driver again.
+> >> > Sorry for this delay, but I had another things to give attention.
+> >> >
+> >> > Anyway, after reading the API and re-writing the code I came up
+> >> > with the following 7 patches. Three of them are in the v4l2 API.
+> >> > The other 4 are for the si4713 device.
+> >> >
+> >> > It is because of the first 3 patches that I'm sending this as a RFC.
+> >> >
+> >> > The first and second patches, as suggested before, are creating
+> >> another
+> >> > v4l2 extended controls class, the V4L2_CTRL_CLASS_FMTX. At this
+> >> > first interaction, I've put all si4713 device extra properties there.
+> >> > But I think that some of the can be moved to private class
+> >> > (V4L2_CID_PRIVATE_BASE). That's the case of the region related things.
+> >> > Comments are wellcome.
+> >> >
+> >> > The third patch came *maybe* because I've misunderstood something. But
+> >> > I realized that the v4l2-subdev helper functions for I2C devices
+> >> assumes
+> >> > that the bridge device will create an I2C adaptor. And in that case,
+> >> only
+> >> > I2C address and its type are suffient. But in this case, makes no
+> >> sense
+> >> > to me to create an adaptor for the si4713 platform device driver. This
+> >> is
+> >> > the case where the device (si4713) is connected to an existing
+> >> adaptor.
+> >> > That's why I've realized that currently there is no way to pass I2C
+> >> board
+> >> > info using the current v4l2 I2C helper functions. Other info like irq
+> >> > line and platform data are not passed to subdevices. So, that's why
+> >> I've
+> >> > created that patch.
+> >>
+> >> I've made several changes to the v4l2-subdev helpers: you now pass the
+> >> i2c
+> >> adapter directly. I've also fixed the unregister code to properly
+> >> unregister any i2c client so you can safely rmmod and modprobe the i2c
+> >> module.
+> >
+> > Right. I will check those.
+> >
+> >>
+> >> What sort of platform data do you need to pass to the i2c driver? I have
+> >> yet
+> >> to see a valid use case for this that can't be handled in a different
+> >> way.
+> >> Remember that devices like this are not limited to fixed platforms, but
+> >> can
+> >> also be used in USB or PCI devices.
+> >
+> > Yes, sure. Well, a simple "set_power" procedure is an example of things
+> > that
+> > I see as platform specific. Which may be passed by platform data
+> > structures.
+> > In some platform a set power / reset line may be done by a simple gpio.
+> > but
+> > in others it may be a different procedure.
+> 
+> The v4l2_device struct has a notify callback: you can use that one
+> instead. That way the subdev driver doesn't have to have any knowledge
+> about the platform it is used in.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+Right. I see. But in that case the brigde driver would be bound to
+a board specific? For instance of this very driver, I wrote a platform
+driver just to make its radio interface. But I don't think it is a good
+idea to bound the platform driver to a board specific creating a notification
+handler just to set the power of the i2c chip. I see this procedure as a board
+specific thing. As well as the IRQ line for instance. That configuration is
+also board specific. Which is usually passed using i2c board info. Correct me
+if I'm wrong.
 
-Paul, another mixed one, should be quite easy to review though:-)
+> 
+> Regards,
+> 
+>         Hans
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
- arch/sh/boards/board-ap325rxa.c     |    2 ++
- include/media/soc_camera_platform.h |    3 +++
- 2 files changed, 5 insertions(+), 0 deletions(-)
-
-diff --git a/arch/sh/boards/board-ap325rxa.c b/arch/sh/boards/board-ap325rxa.c
-index 0a5f97b..ac964e4 100644
---- a/arch/sh/boards/board-ap325rxa.c
-+++ b/arch/sh/boards/board-ap325rxa.c
-@@ -339,6 +339,8 @@ static int ap325rxa_camera_add(struct soc_camera_link *icl,
- 	if (icl != &camera_info.link || camera_probe() <= 0)
- 		return -ENODEV;
- 
-+	camera_info.dev = dev;
-+
- 	return platform_device_register(&camera_device);
- }
- 
-diff --git a/include/media/soc_camera_platform.h b/include/media/soc_camera_platform.h
-index af224de..3e8f020 100644
---- a/include/media/soc_camera_platform.h
-+++ b/include/media/soc_camera_platform.h
-@@ -14,6 +14,8 @@
- #include <linux/videodev2.h>
- #include <media/soc_camera.h>
- 
-+struct device;
-+
- struct soc_camera_platform_info {
- 	int iface;
- 	char *format_name;
-@@ -21,6 +23,7 @@ struct soc_camera_platform_info {
- 	struct v4l2_pix_format format;
- 	unsigned long bus_param;
- 	void (*power)(int);
-+	struct device *dev;
- 	int (*set_capture)(struct soc_camera_platform_info *info, int enable);
- 	struct soc_camera_link link;
- };
 -- 
-1.6.2.4
-
+Eduardo Valentin
