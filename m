@@ -1,73 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.174]:14995 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751258AbZEVIkk (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.230]:31710 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752086AbZELVSU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2009 04:40:40 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so570775wfd.4
-        for <linux-media@vger.kernel.org>; Fri, 22 May 2009 01:40:42 -0700 (PDT)
+	Tue, 12 May 2009 17:18:20 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so2154009rvb.5
+        for <linux-media@vger.kernel.org>; Tue, 12 May 2009 14:18:21 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <b90a809a0905220050k6f64321g7f72adee3f1e21c3@mail.gmail.com>
-References: <b90a809a0905220050k6f64321g7f72adee3f1e21c3@mail.gmail.com>
-Date: Fri, 22 May 2009 17:40:41 +0900
-Message-ID: <5e9665e10905220140r1341f2die6ccb9df6e848eed@mail.gmail.com>
-Subject: Re: How to acces TVP5150 .command function from userspace
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: =?ISO-2022-JP?B?GyRCN0pKOE5TGyhC?= <wenlinjing@gmail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-2022-JP
+In-Reply-To: <200905122058.n4CKwj2I004399@imap1.linux-foundation.org>
+References: <200905122058.n4CKwj2I004399@imap1.linux-foundation.org>
+Date: Tue, 12 May 2009 17:18:20 -0400
+Message-ID: <829197380905121418o5e86d474n3ef38e91850ff818@mail.gmail.com>
+Subject: Re: [patch 4/4] zoran: fix &&/|| error
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: akpm@linux-foundation.org
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
+	roel.kluin@gmail.com, hverkuil@xs4all.nl, mchehab@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello William,
+On Tue, May 12, 2009 at 4:39 PM,  <akpm@linux-foundation.org> wrote:
+> From: Roel Kluin <roel.kluin@gmail.com>
+>
+> Fix &&/|| typo. `default_norm' can be 0 (PAL), 1 (NTSC) or 2 (SECAM),
+> the condition tested was impossible.
+>
+> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
 
-First of all, the video4linux-list has been moved to linux-media list
-at vger.kernel.org. The exact list address is
-linux-media@vger.kernel.org and you can find other lists on
-http://vger.kernel.org. I removed the old list from CC and added the
-new list instead. I hope you don't mind.
+Hello,
 
-And about TVP5150 thing, I have been developing in similar way few
-years ago but in my case, I had a controller device which was
-video4linux device and took care of v4l2 ioctls in that controller and
-send command to i2c client. But in case of TVP5150, I can't figure it
-out which device could be that kind of controller device acting v4l2
-device. I'm sorry about that and hope someone else (I think Mauro can)
-can answer this.
+Was the patch actually tested against the hardware in question?  While
+I agree that it looks ok, it can result in the default logic being
+inverted in some cases, which could expose other bugs and result in a
+regression.
+
+I just want to be confident that this patch was tested by somebody
+with the hardware and it isn't going into the codebase because "it
+obviously cannot be right".
+
 Cheers,
 
-Nate
-
-On Fri, May 22, 2009 at 4:50 PM, 景文林 <wenlinjing@gmail.com> wrote:
-> Hi,
->
-> I am working with a video capture chip TVP5150. I want to adjust the
-> "Brightness" "Contrast" "Saturation" and "hue" in user space.
-> In TVP5150 drivers ,the V4l2 commands are in function tvp5150_command.And
-> this function is a member of struct i2c_device.
->
-> The linux is 2.6.19.2.
-> I write my code according kernel document  Documentation/i2c/dev-interface
-> But I can`t access tvp5150_command.
-> How can i acces i2c_device .command  function from user space?
->
->
-> william.jing
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
-
-
+Devin
 
 -- 
-=
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
