@@ -1,74 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:47960 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753057AbZEMTuQ (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:47698 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751888AbZELVfQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2009 15:50:16 -0400
-Date: Wed, 13 May 2009 21:50:11 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Andy Walls <awalls@radix.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Mike Isely <isely@pobox.com>
-Subject: [PATCH 4/8] ir-kbd-i2c: Don't assume all IR receivers are supported
-Message-ID: <20090513215011.4bb41d32@hyperion.delvare>
-In-Reply-To: <20090513214559.0f009231@hyperion.delvare>
-References: <20090513214559.0f009231@hyperion.delvare>
+	Tue, 12 May 2009 17:35:16 -0400
+Date: Tue, 12 May 2009 18:35:07 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: akpm@linux-foundation.org, linux-media@vger.kernel.org,
+	roel.kluin@gmail.com, hverkuil@xs4all.nl, mchehab@redhat.com
+Subject: Re: [patch 4/4] zoran: fix &&/|| error
+Message-ID: <20090512183507.5967f336@pedra.chehab.org>
+In-Reply-To: <829197380905121418o5e86d474n3ef38e91850ff818@mail.gmail.com>
+References: <200905122058.n4CKwj2I004399@imap1.linux-foundation.org>
+	<829197380905121418o5e86d474n3ef38e91850ff818@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The code in ir_probe makes the dangerous assumption that all IR
-receivers are supported by the driver. The new i2c model makes it
-possible for bridge drivers to instantiate IR devices before they are
-supported, therefore the ir-kbd-i2c drivers must be made more robust
-to not spam the logs or even crash on unsupported IR devices. Simply,
-the driver will not bind to the unsupported devices.
+Em Tue, 12 May 2009 17:18:20 -0400
+Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Andy Walls <awalls@radix.net>
----
- linux/drivers/media/video/ir-kbd-i2c.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+> On Tue, May 12, 2009 at 4:39 PM,  <akpm@linux-foundation.org> wrote:
+> > From: Roel Kluin <roel.kluin@gmail.com>
+> >
+> > Fix &&/|| typo. `default_norm' can be 0 (PAL), 1 (NTSC) or 2 (SECAM),
+> > the condition tested was impossible.
+> >
+> > Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+> > Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> > ---
+> 
+> Hello,
+> 
+> Was the patch actually tested against the hardware in question?  While
+> I agree that it looks ok, it can result in the default logic being
+> inverted in some cases, which could expose other bugs and result in a
+> regression.
+> 
+> I just want to be confident that this patch was tested by somebody
+> with the hardware and it isn't going into the codebase because "it
+> obviously cannot be right".
 
---- v4l-dvb.orig/linux/drivers/media/video/ir-kbd-i2c.c	2009-04-07 21:35:53.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/ir-kbd-i2c.c	2009-04-07 22:49:10.000000000 +0200
-@@ -307,7 +307,7 @@ static void ir_work(struct work_struct *
- static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- {
- 	IR_KEYTAB_TYPE *ir_codes = NULL;
--	const char *name;
-+	const char *name = NULL;
- 	int ir_type;
- 	struct IR_i2c *ir;
- 	struct input_dev *input_dev;
-@@ -389,8 +389,7 @@ static int ir_probe(struct i2c_client *c
- 		ir_codes    = ir_codes_avermedia_cardbus;
- 		break;
- 	default:
--		/* shouldn't happen */
--		printk(DEVNAME ": Huh? unknown i2c address (0x%02x)?\n", addr);
-+		dprintk(1, DEVNAME ": Unsupported i2c address 0x%02x\n", addr);
- 		err = -ENODEV;
- 		goto err_out_free;
- 	}
-@@ -405,6 +404,14 @@ static int ir_probe(struct i2c_client *c
- 		ir->get_key = init_data->get_key;
- 	}
- 
-+	/* Make sure we are all setup before going on */
-+	if (!name || !ir->get_key || !ir_codes) {
-+		dprintk(1, DEVNAME ": Unsupported device at address 0x%02x\n",
-+			addr);
-+		err = -ENODEV;
-+		goto err_out_free;
-+	}
-+
- 	/* Sets name */
- 	snprintf(ir->name, sizeof(ir->name), "i2c IR (%s)", name);
- 	ir->ir_codes = ir_codes;
+Hans and Jean worked on it. Both are at PAL area, so they won't notice such
+error without a standards generator, since the default is to assume that the
+signal is PAL.
 
--- 
-Jean Delvare
+With this patch, PAL should keep working, but I can't see how NTSC or SECAM
+would work without it.
+
+Anyway, this patch were already committed on our tree, and it is on my
+linux-next tree since yesterday night.
+
+Hans,
+
+Could you please confirm that the patch is ok with your standards generator?
+
+
+
+Cheers,
+Mauro
