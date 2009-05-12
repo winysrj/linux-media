@@ -1,90 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:18625 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753936AbZE2HiE (ORCPT
+Received: from web110801.mail.gq1.yahoo.com ([67.195.13.224]:38329 "HELO
+	web110801.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753004AbZELO2l (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 May 2009 03:38:04 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "\\\"ext Hans Verkuil\\\"" <hverkuil@xs4all.nl>,
-	"\\\"ext Mauro Carvalho Chehab\\\"" <mchehab@infradead.org>
-Cc: "\\\"Nurkkala Eero.An (EXT-Offcode/Oulu)\\\""
-	<ext-Eero.Nurkkala@nokia.com>,
-	"\\\"ext Douglas Schilling Landgraf\\\"" <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv5 2 of 8] v4l2: video device: Add V4L2_CTRL_CLASS_FMTX controls
-Date: Fri, 29 May 2009 10:33:22 +0300
-Message-Id: <1243582408-13084-3-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1243582408-13084-2-git-send-email-eduardo.valentin@nokia.com>
-References: <1243582408-13084-1-git-send-email-eduardo.valentin@nokia.com>
- <1243582408-13084-2-git-send-email-eduardo.valentin@nokia.com>
+	Tue, 12 May 2009 10:28:41 -0400
+Message-ID: <77989.12979.qm@web110801.mail.gq1.yahoo.com>
+Date: Tue, 12 May 2009 07:28:41 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH] [0905_05] Siano: smsusb - lost buffers bug fix
+To: LinuxML <linux-media@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+
 # HG changeset patch
-# User Eduardo Valentin <eduardo.valentin@nokia.com>
-# Date 1243414606 -10800
-# Branch export
-# Node ID ebb409d7a258df2bc7a6dcd72113584b4c0e7ce2
-# Parent  4fb354645426f8b187c2c90cd8528b2518461005
-This patch adds a new class of extended controls. This class
-is intended to support Radio Modulators properties such as:
-rds, audio limiters, audio compression, pilot tone generation,
-tuning power levels and region related properties.
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1242138741 -10800
+# Node ID ae0f17b305e7762643a9bc7f43c302c11f7b55b5
+# Parent  db8bfae234d4730f18823ca0686762a13e7997c9
+[0905_05] Siano: smsusb - lost buffers bug fix
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- include/linux/videodev2.h |   34 ++++++++++++++++++++++++++++++++++
- 1 files changed, 34 insertions(+), 0 deletions(-)
+From: Uri Shkolnik <uris@siano-ms.com>
 
-diff -r 4fb354645426 -r ebb409d7a258 linux/include/linux/videodev2.h
---- a/linux/include/linux/videodev2.h	Wed May 27 11:56:45 2009 +0300
-+++ b/linux/include/linux/videodev2.h	Wed May 27 11:56:46 2009 +0300
-@@ -803,6 +803,7 @@
- #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
- #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
- #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
-+#define V4L2_CTRL_CLASS_FMTX 0x009b0000	/* FM Radio Modulator class controls */
+This patch fixes a problem were protocol buffers
+have been lost during USB disconnect events.
+
+Priority: normal
+
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+
+diff -r db8bfae234d4 -r ae0f17b305e7 linux/drivers/media/dvb/siano/smsusb.c
+--- a/linux/drivers/media/dvb/siano/smsusb.c	Tue May 12 17:19:30 2009 +0300
++++ b/linux/drivers/media/dvb/siano/smsusb.c	Tue May 12 17:32:21 2009 +0300
+@@ -65,14 +65,14 @@ static void smsusb_onresponse(struct urb
+ 	struct smsusb_urb_t *surb = (struct smsusb_urb_t *) urb->context;
+ 	struct smsusb_device_t *dev = surb->dev;
  
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-@@ -1141,6 +1142,39 @@
+-	if (urb->status < 0) {
+-		sms_err("error, urb status %d, %d bytes",
++	if (urb->status == -ESHUTDOWN) {
++		sms_err("error, urb status %d (-ESHUTDOWN), %d bytes",
+ 			urb->status, urb->actual_length);
+ 		return;
+ 	}
  
- #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
+-	if (urb->actual_length > 0) {
+-		struct SmsMsgHdr_ST *phdr = (struct SmsMsgHdr_ST *) surb->cb->p;
++	if ((urb->actual_length > 0) && (urb->status == 0)) {
++		struct SmsMsgHdr_ST *phdr = (struct SmsMsgHdr_ST *)surb->cb->p;
  
-+/* FM Radio Modulator class control IDs */
-+#define V4L2_CID_FMTX_CLASS_BASE		(V4L2_CTRL_CLASS_FMTX | 0x900)
-+#define V4L2_CID_FMTX_CLASS			(V4L2_CTRL_CLASS_FMTX | 1)
+ 		smsendian_handle_message_header(phdr);
+ 		if (urb->actual_length >= phdr->msgLength) {
+@@ -111,7 +111,10 @@ static void smsusb_onresponse(struct urb
+ 				"msglen %d actual %d",
+ 				phdr->msgLength, urb->actual_length);
+ 		}
+-	}
++	} else
++		sms_err("error, urb status %d, %d bytes",
++			urb->status, urb->actual_length);
 +
-+#define V4L2_CID_RDS_ENABLED			(V4L2_CID_FMTX_CLASS_BASE + 1)
-+#define V4L2_CID_RDS_PI				(V4L2_CID_FMTX_CLASS_BASE + 2)
-+#define V4L2_CID_RDS_PTY			(V4L2_CID_FMTX_CLASS_BASE + 3)
-+#define V4L2_CID_RDS_PS_NAME			(V4L2_CID_FMTX_CLASS_BASE + 4)
-+#define V4L2_CID_RDS_RADIO_TEXT			(V4L2_CID_FMTX_CLASS_BASE + 5)
-+
-+#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 6)
-+#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 7)
-+#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FMTX_CLASS_BASE + 8)
-+
-+#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FMTX_CLASS_BASE + 9)
-+#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FMTX_CLASS_BASE + 10)
-+#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FMTX_CLASS_BASE + 11)
-+#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FMTX_CLASS_BASE + 12)
-+#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 13)
-+
-+#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 14)
-+#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FMTX_CLASS_BASE + 15)
-+#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FMTX_CLASS_BASE + 16)
-+
-+#define V4L2_CID_PREEMPHASIS			(V4L2_CID_FMTX_CLASS_BASE + 17)
-+enum v4l2_fmtx_preemphasis {
-+	V4L2_FMTX_PREEMPHASIS_DISABLED		= 0,
-+	V4L2_FMTX_PREEMPHASIS_50_uS		= 1,
-+	V4L2_FMTX_PREEMPHASIS_75_uS		= 2,
-+};
-+#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FMTX_CLASS_BASE + 18)
-+#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FMTX_CLASS_BASE + 19)
-+
- /*
-  *	T U N I N G
-  */
+ 
+ exit_and_resubmit:
+ 	smsusb_submit_urb(dev, surb);
+
+
+
+      
