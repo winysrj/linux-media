@@ -1,19 +1,36 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n4AJ6drp013557
-	for <video4linux-list@redhat.com>; Sun, 10 May 2009 15:06:39 -0400
-Received: from smtp102.rog.mail.re2.yahoo.com (smtp102.rog.mail.re2.yahoo.com
-	[206.190.36.80])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n4AJ6Ml1001111
-	for <video4linux-list@redhat.com>; Sun, 10 May 2009 15:06:23 -0400
-From: William Case <billlinux@rogers.com>
-To: video4linux-list <video4linux-list@redhat.com>
-Content-Type: text/plain
-Date: Sun, 10 May 2009 15:05:35 -0400
-Message-Id: <1241982336.31677.0.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Subject: Hauppauge WinTV-hvr-1800 PCIe won't work with tvtime or mplayer.
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n4CM4QJM018316
+	for <video4linux-list@redhat.com>; Tue, 12 May 2009 18:04:26 -0400
+Received: from belle.abrahamsson.com (belle.abrahamsson.com [194.187.61.10])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n4CM3bn3016545
+	for <video4linux-list@redhat.com>; Tue, 12 May 2009 18:03:58 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by belle.abrahamsson.com (Postfix) with ESMTP id 705B12682B1
+	for <video4linux-list@redhat.com>; Tue, 12 May 2009 22:03:19 +0000 (UTC)
+Received: from belle.abrahamsson.com ([127.0.0.1])
+	by localhost (belle.abrahamsson.com [127.0.0.1]) (amavisd-new,
+	port 10024)
+	with ESMTP id V5aUWTwE0N7u for <video4linux-list@redhat.com>;
+	Wed, 13 May 2009 00:03:15 +0200 (CEST)
+Received: from SverkerLaptop
+	(c-b610e455.016-213-73746f7.cust.bredbandsbolaget.se [85.228.16.182])
+	(using TLSv1 with cipher AES128-SHA (128/128 bits))
+	(No client certificate requested)
+	by belle.abrahamsson.com (Postfix) with ESMTP id E57882682AF
+	for <video4linux-list@redhat.com>;
+	Wed, 13 May 2009 00:03:14 +0200 (CEST)
+From: "Sverker Abrahamsson" <sverker@abrahamsson.com>
+To: <video4linux-list@redhat.com>
+References: <!&!AAAAAAAAAAAYAAAAAAAAAN5fehIZv/BBsQLx9nhfoL3ihQAAEAAAAKI1En61O+tDoEZgbOaYLvMBAAAAAA==@abrahamsson.com>
+In-Reply-To: <!&!AAAAAAAAAAAYAAAAAAAAAN5fehIZv/BBsQLx9nhfoL3ihQAAEAAAAKI1En61O+tDoEZgbOaYLvMBAAAAAA==@abrahamsson.com>
+Date: Wed, 13 May 2009 00:03:33 +0200
+Message-ID: <!&!AAAAAAAAAAAYAAAAAAAAAN5fehIZv/BBsQLx9nhfoL3ihQAAEAAAABY9lZUOUZhIqgUfi2znOOsBAAAAAA==@abrahamsson.com>
+MIME-Version: 1.0
+Content-Type: multipart/mixed;
+	boundary="----=_NextPart_000_04CE_01C9D35E.421615E0"
+Content-Language: sv
+Subject: RE: Sound capture with Osprey 230 (with patch)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,378 +42,428 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi;
+This is a multi-part message in MIME format.
 
-I have been trying to get my tuner card working for over a week now.
+------=_NextPart_000_04CE_01C9D35E.421615E0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-I have tried all the advice I can find on various sites as well as the
-Fedora users list.  But no joy.  It was suggested on that list that I
-try here.
+Sorry, there was a small mistake in the previous patch. The attached patch
+works
 
-I have installed the 'cx88_alsa' and 'tuner modules' with modprobe in
-rc.local and, 
+> -----Original Message-----
+> From: video4linux-list-bounces@redhat.com [mailto:video4linux-list-
+> bounces@redhat.com] On Behalf Of Sverker Abrahamsson
+> Sent: den 11 maj 2009 14:48
+> To: video4linux-list@redhat.com
+> Cc: 'Trent Piepho'
+> Subject: Sound capture with Osprey 230
+> 
+> Hi all,
+> I've been using Osprey 230 cards for AV capture for several years,
+> earlier with a modified version of Viewcast's driver but it was never
+> very stable.
+> When doing a new setup I therefore wanted to get the Alsa driver to
+> work. I found that there were two trees in the repository in regards to
+> these cards, http://linuxtv.org/hg/~mchehab/osprey and
+> http://linuxtv.org/hg/~tap/osprey.
+> It seems that mchehab tree is the patches that Viewcast submitted which
+> does not address the necessary changes for ALSA driver while tap tree
+> does but for Osprey 440 and older kernels.
+> 
+> I've therefore ported the changes from tap to the main tree and added
+> support for detecting Osprey 210/220/230 plus a minor fix to support
+> specifying digital_rate as module parameter. It might also work for
+> Osprey 240 (which is PCI-e variant of 230) but I don't have any such
+> card so I haven't been able to test.
+> 
+> The only question mark I have is that the current implementation use
+> the depreciated interfaces from bttv-if.c to find which bttv driver
+> corresponds to this audio driver and adds a function to get the bttv
+> core. It is suggested to use the routines in bttv-gpio.c instead but I
+> don't find an obvious replacement for bttv_get_pcidev nor how to get
+> bttv_core.
+> 
+> I see two alternatives:
+> 1. Implement snd-87x module as a subdevice to bttv. Is this correct as
+> the video and audio devices are two separate pci devices?
+> 2. Implement a hook in snd-87x module which register a subdevice with
+> bttv to get hold of bttv_core. Seams a bit upside down Any suggestions?
+> 
+> The patch in its current form is attached.
+> /Sverker
 
-alias snd-card-1 cx88-alsa
-options cx88-alsa index=1,  in /etc/modprobe.d/tvtuner
+------=_NextPart_000_04CE_01C9D35E.421615E0
+Content-Type: application/octet-stream;
+	name="osprey-snd.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="osprey-snd.patch"
 
-Here is what I am getting:
+diff --git a/linux/drivers/media/video/bt8xx/bttv-if.c =
+b/linux/drivers/media/video/bt8xx/bttv-if.c=0A=
+--- a/linux/drivers/media/video/bt8xx/bttv-if.c=0A=
++++ b/linux/drivers/media/video/bt8xx/bttv-if.c=0A=
+@@ -34,6 +34,7 @@=0A=
+ #include "bttvp.h"=0A=
+ =0A=
+ EXPORT_SYMBOL(bttv_get_pcidev);=0A=
++EXPORT_SYMBOL(bttv_get_core);=0A=
+ EXPORT_SYMBOL(bttv_gpio_enable);=0A=
+ EXPORT_SYMBOL(bttv_read_gpio);=0A=
+ EXPORT_SYMBOL(bttv_write_gpio);=0A=
+@@ -53,6 +54,12 @@=0A=
+ 	return bttvs[card]->c.pci;=0A=
+ }=0A=
+ =0A=
++struct bttv_core *bttv_get_core(unsigned int card)=0A=
++{=0A=
++	if (card >=3D bttv_num)=0A=
++		return NULL;=0A=
++	return &bttvs[card]->c;=0A=
++}=0A=
+ =0A=
+ int bttv_gpio_enable(unsigned int card, unsigned long mask, unsigned =
+long data)=0A=
+ {=0A=
+diff --git a/linux/drivers/media/video/bt8xx/bttv.h =
+b/linux/drivers/media/video/bt8xx/bttv.h=0A=
+--- a/linux/drivers/media/video/bt8xx/bttv.h=0A=
++++ b/linux/drivers/media/video/bt8xx/bttv.h=0A=
+@@ -301,6 +301,7 @@=0A=
+    interface below for new code */=0A=
+ =0A=
+ extern struct pci_dev* bttv_get_pcidev(unsigned int card);=0A=
++extern struct bttv_core *bttv_get_core(unsigned int card);=0A=
+ =0A=
+ /* sets GPOE register (BT848_GPIO_OUT_EN) to new value:=0A=
+    data | (current_GPOE_value & ~mask)=0A=
+diff --git a/linux/sound/pci/bt87x.c b/linux/sound/pci/bt87x.c=0A=
+--- a/linux/sound/pci/bt87x.c=0A=
++++ b/linux/sound/pci/bt87x.c=0A=
+@@ -36,6 +36,7 @@=0A=
+ #include <sound/pcm_params.h>=0A=
+ #include <sound/control.h>=0A=
+ #include <sound/initval.h>=0A=
++#include "bttv.h"=0A=
+ #include "compat.h"=0A=
+ #ifdef COMPAT_SND_CTL_BOOLEAN_MONO=0A=
+ static int snd_ctl_boolean_mono_info(struct snd_kcontrol *kcontrol,=0A=
+@@ -161,11 +162,22 @@=0A=
+ /* SYNC, one WRITE per line, one extra WRITE per page boundary, SYNC, =
+JUMP */=0A=
+ #define MAX_RISC_SIZE ((1 + 255 + (PAGE_ALIGN(255 * 4092) / PAGE_SIZE - =
+1) + 1 + 1) * 8)=0A=
+ =0A=
++/* X9221 I2C POT, used in Osprey cards for gain control */=0A=
++#define X9221_ADDR	0x28	/* I2C address */=0A=
++#define X9221_PORT0     0x00    /* First port */=0A=
++#define X9221_PORT1     0x04    /* Second port */=0A=
++#define X9221_READ_WRC  0x90    /* read wiper control register */=0A=
++#define X9221_WRITE_WRC 0xa0    /* write wiper control register */=0A=
++#define X9221_G_WCR_TO_REG 0x80 /* global wcr to register */=0A=
++#define X9221_G_REG_TO_WRC 0x10 /* global register to wrc */=0A=
++=0A=
++=0A=
+ /* Cards with configuration information */=0A=
+ enum snd_bt87x_boardid {=0A=
+ 	SND_BT87X_BOARD_UNKNOWN,=0A=
+ 	SND_BT87X_BOARD_GENERIC,	/* both an & dig interfaces, 32kHz */=0A=
+ 	SND_BT87X_BOARD_ANALOG,		/* board with no external A/D */=0A=
++	SND_BT87X_BOARD_OSPREY200,=0A=
+ 	SND_BT87X_BOARD_OSPREY2x0,=0A=
+ 	SND_BT87X_BOARD_OSPREY440,=0A=
+ 	SND_BT87X_BOARD_AVPHONE98,=0A=
+@@ -177,8 +189,11 @@=0A=
+ 	u32 digital_fmt;	/* Register settings for digital input */=0A=
+ 	unsigned no_analog:1;	/* No analog input */=0A=
+ 	unsigned no_digital:1;	/* No digital input */=0A=
++	unsigned x9221:1;	/* X9221 I2C POT for gain control */=0A=
+ };=0A=
+ =0A=
++#define DIG_RATE_GPIO -1=0A=
++=0A=
+ static __devinitdata struct snd_bt87x_board snd_bt87x_boards[] =3D {=0A=
+ 	[SND_BT87X_BOARD_UNKNOWN] =3D {=0A=
+ 		.dig_rate =3D 32000, /* just a guess */=0A=
+@@ -189,14 +204,21 @@=0A=
+ 	[SND_BT87X_BOARD_ANALOG] =3D {=0A=
+ 		.no_digital =3D 1,=0A=
+ 	},=0A=
+-	[SND_BT87X_BOARD_OSPREY2x0] =3D {=0A=
++	[SND_BT87X_BOARD_OSPREY200] =3D {=0A=
+ 		.dig_rate =3D 44100,=0A=
+ 		.digital_fmt =3D CTL_DA_LRI | (1 << CTL_DA_LRD_SHIFT),=0A=
+ 	},=0A=
+-	[SND_BT87X_BOARD_OSPREY440] =3D {=0A=
+-		.dig_rate =3D 32000,=0A=
++	[SND_BT87X_BOARD_OSPREY2x0] =3D {=0A=
++		.dig_rate =3D DIG_RATE_GPIO,	/* Controlled via GPIO */=0A=
+ 		.digital_fmt =3D CTL_DA_LRI | (1 << CTL_DA_LRD_SHIFT),=0A=
+ 		.no_analog =3D 1,=0A=
++		.x9221 =3D 1,=0A=
++	},=0A=
++	[SND_BT87X_BOARD_OSPREY440] =3D {=0A=
++		.dig_rate =3D DIG_RATE_GPIO,	/* Controlled via GPIO */=0A=
++		.digital_fmt =3D CTL_DA_LRI | (1 << CTL_DA_LRD_SHIFT),=0A=
++		.no_analog =3D 1,=0A=
++		.x9221 =3D 1,=0A=
+ 	},=0A=
+ 	[SND_BT87X_BOARD_AVPHONE98] =3D {=0A=
+ 		.dig_rate =3D 48000,=0A=
+@@ -207,6 +229,9 @@=0A=
+ 	struct snd_card *card;=0A=
+ 	struct pci_dev *pci;=0A=
+ 	struct snd_bt87x_board board;=0A=
++	struct bttv_core *core;=0A=
++	struct i2c_adapter *i2c;=0A=
++	int bttvnr;=0A=
+ =0A=
+ 	void __iomem *mmio;=0A=
+ 	int irq;=0A=
+@@ -225,6 +250,7 @@=0A=
+ 	int current_line;=0A=
+ =0A=
+ 	int pci_parity_errors;=0A=
++	unsigned char x9221vol[2];=0A=
+ };=0A=
+ =0A=
+ enum { DEVICE_DIGITAL, DEVICE_ANALOG };=0A=
+@@ -409,9 +435,17 @@=0A=
+ {=0A=
+ 	chip->reg_control |=3D CTL_DA_IOM_DA | CTL_A_PWRDN;=0A=
+ 	runtime->hw =3D snd_bt87x_digital_hw;=0A=
+-	runtime->hw.rates =3D snd_pcm_rate_to_rate_bit(chip->board.dig_rate);=0A=
+-	runtime->hw.rate_min =3D chip->board.dig_rate;=0A=
+-	runtime->hw.rate_max =3D chip->board.dig_rate;=0A=
++	if (chip->board.dig_rate =3D=3D DIG_RATE_GPIO) {=0A=
++		runtime->hw.rates =3D SNDRV_PCM_RATE_32000 |=0A=
++			SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000;=0A=
++		runtime->hw.rate_min =3D 32000;=0A=
++		runtime->hw.rate_max =3D 48000;=0A=
++	} else {=0A=
++		runtime->hw.rates =3D=0A=
++			snd_pcm_rate_to_rate_bit(chip->board.dig_rate);=0A=
++		runtime->hw.rate_min =3D chip->board.dig_rate;=0A=
++		runtime->hw.rate_max =3D chip->board.dig_rate;=0A=
++	}=0A=
+ 	return 0;=0A=
+ }=0A=
+ =0A=
+@@ -509,11 +543,33 @@=0A=
+ 	int decimation;=0A=
+ =0A=
+ 	spin_lock_irq(&chip->reg_lock);=0A=
+-	chip->reg_control &=3D ~(CTL_DA_SDR_MASK | CTL_DA_SBR);=0A=
+-	decimation =3D (ANALOG_CLOCK + runtime->rate / 4) / runtime->rate;=0A=
+-	chip->reg_control |=3D decimation << CTL_DA_SDR_SHIFT;=0A=
+-	if (runtime->format =3D=3D SNDRV_PCM_FORMAT_S8)=0A=
+-		chip->reg_control |=3D CTL_DA_SBR;=0A=
++	if (substream->pcm->device =3D=3D DEVICE_ANALOG) {=0A=
++		chip->reg_control &=3D ~(CTL_DA_SDR_MASK | CTL_DA_SBR);=0A=
++		decimation =3D (ANALOG_CLOCK + runtime->rate / 4) /=0A=
++			     runtime->rate;=0A=
++		chip->reg_control |=3D decimation << CTL_DA_SDR_SHIFT;=0A=
++		if (runtime->format =3D=3D SNDRV_PCM_FORMAT_S8)=0A=
++			chip->reg_control |=3D CTL_DA_SBR;=0A=
++	} else {=0A=
++		if (chip->board.dig_rate =3D=3D DIG_RATE_GPIO) {=0A=
++			int bits =3D 0;=0A=
++			switch (runtime->rate) {=0A=
++			case 32000: bits =3D 0; break;=0A=
++			case 44100: bits =3D 1; break;=0A=
++			case 48000: bits =3D 2; break;=0A=
++			}=0A=
++			bttv_write_gpio(chip->bttvnr, 0x3, bits);=0A=
++		} else {=0A=
++			// The digital rate has been set fixed by module parameter =
+digital_rate=0A=
++			int bits =3D 0;=0A=
++			switch (chip->board.dig_rate) {=0A=
++			case 32000: bits =3D 0; break;=0A=
++			case 44100: bits =3D 1; break;=0A=
++			case 48000: bits =3D 2; break;=0A=
++			}=0A=
++			bttv_write_gpio(chip->bttvnr, 0x3, bits);=0A=
++		}=0A=
++	}=0A=
+ 	snd_bt87x_writel(chip, REG_GPIO_DMA_CTL, chip->reg_control);=0A=
+ 	spin_unlock_irq(&chip->reg_lock);=0A=
+ 	return 0;=0A=
+@@ -720,6 +776,91 @@=0A=
+ 	return 0;=0A=
+ }=0A=
+ =0A=
++static int snd_bt87x_dig_volume_info(struct snd_kcontrol *kcontrol,=0A=
++				     struct snd_ctl_elem_info *info)=0A=
++{=0A=
++	info->type =3D SNDRV_CTL_ELEM_TYPE_INTEGER;=0A=
++	info->count =3D 2;=0A=
++	info->value.integer.min =3D 0;=0A=
++	info->value.integer.max =3D 63;=0A=
++	return 0;=0A=
++}=0A=
++=0A=
++static int snd_bt87x_dig_volume_get(struct snd_kcontrol *kcontrol,=0A=
++				    struct snd_ctl_elem_value *value)=0A=
++{=0A=
++	struct snd_bt87x *chip =3D snd_kcontrol_chip(kcontrol);=0A=
++	char cmdR[1] =3D { X9221_READ_WRC|X9221_PORT0 };=0A=
++	char cmdL[1] =3D { X9221_READ_WRC|X9221_PORT1 };=0A=
++	char out;=0A=
++	struct i2c_msg msg[2] =3D {=0A=
++		{ .addr =3D X9221_ADDR, .buf =3D cmdL, .len =3D 1, .flags =3D 0 },=0A=
++		{ .addr =3D X9221_ADDR, .buf =3D &out, .len =3D 1,=0A=
++		  .flags =3D I2C_M_RD|I2C_M_NOSTART },=0A=
++	};=0A=
++	int err;=0A=
++=0A=
++	err =3D i2c_transfer(chip->i2c, msg, 2);=0A=
++	if (err < 0)=0A=
++		return err;=0A=
++	chip->x9221vol[0] =3D value->value.integer.value[0] =3D out;=0A=
++=0A=
++	msg[0].buf =3D cmdR;=0A=
++	err =3D i2c_transfer(chip->i2c, msg, 2);=0A=
++	if (err < 0)=0A=
++		return err;=0A=
++	chip->x9221vol[1] =3D value->value.integer.value[1] =3D out;=0A=
++=0A=
++	return 0;=0A=
++}=0A=
++=0A=
++static int snd_bt87x_dig_volume_put(struct snd_kcontrol *kcontrol,=0A=
++				    struct snd_ctl_elem_value *value)=0A=
++{=0A=
++	struct snd_bt87x *chip =3D snd_kcontrol_chip(kcontrol);=0A=
++	char cmdL[] =3D=0A=
++		{ X9221_WRITE_WRC|X9221_PORT1, value->value.integer.value[0] };=0A=
++	char cmdR[] =3D=0A=
++		{ X9221_WRITE_WRC|X9221_PORT0, value->value.integer.value[1] };=0A=
++	struct i2c_msg msg[2] =3D {=0A=
++		{ .addr =3D X9221_ADDR, .buf =3D cmdR, .len =3D sizeof(cmdR) },=0A=
++		{ .addr =3D X9221_ADDR, .buf =3D cmdL, .len =3D sizeof(cmdR) },=0A=
++	};=0A=
++	int err;=0A=
++=0A=
++	err =3D i2c_transfer(chip->i2c, msg, 2);=0A=
++	if (err < 0)=0A=
++		return err;=0A=
++=0A=
++	if (value->value.integer.value[0] !=3D chip->x9221vol[0] ||=0A=
++	    value->value.integer.value[1] !=3D chip->x9221vol[1]) {=0A=
++		chip->x9221vol[0] =3D value->value.integer.value[0];=0A=
++		chip->x9221vol[1] =3D value->value.integer.value[1];=0A=
++		return 1;=0A=
++	}=0A=
++	return 0;=0A=
++}=0A=
++=0A=
++static struct snd_kcontrol_new snd_bt87x_dig_volume =3D {=0A=
++	.iface =3D SNDRV_CTL_ELEM_IFACE_MIXER,=0A=
++	.name =3D "Capture Volume",=0A=
++	.info =3D snd_bt87x_dig_volume_info,=0A=
++	.get =3D snd_bt87x_dig_volume_get,=0A=
++	.put =3D snd_bt87x_dig_volume_put,=0A=
++};=0A=
++=0A=
++static int attach_x9221(struct snd_bt87x *chip)=0A=
++{=0A=
++	chip->i2c =3D &chip->core->i2c_adap;=0A=
++=0A=
++	/* Use a unique name if analog is using "Capture Volume" */=0A=
++	if (!chip->board.no_analog)=0A=
++		snd_bt87x_dig_volume.name =3D "Digital Capture Volume";=0A=
++=0A=
++	return snd_ctl_add(chip->card,=0A=
++			   snd_ctl_new1(&snd_bt87x_dig_volume, chip));=0A=
++}=0A=
++=0A=
+ static int snd_bt87x_dev_free(struct snd_device *device)=0A=
+ {=0A=
+ 	struct snd_bt87x *chip =3D device->device_data;=0A=
+@@ -812,6 +953,23 @@=0A=
+ 	return err;=0A=
+ }=0A=
+ =0A=
++/*=0A=
++ * The the number of the v4l bttv driver's device that matches the audio=0A=
++ * device we are driving.=0A=
++ */=0A=
++static int get_bttvnr(struct snd_bt87x *chip)=0A=
++{=0A=
++	struct pci_dev *pci;=0A=
++	int i;=0A=
++=0A=
++	for (i =3D 0; (pci =3D bttv_get_pcidev(i)); i++) {=0A=
++		if (pci->bus->number =3D=3D chip->pci->bus->number &&=0A=
++		    PCI_SLOT(pci->devfn) =3D=3D PCI_SLOT(chip->pci->devfn))=0A=
++			return i;=0A=
++	}=0A=
++	return -ENODEV;=0A=
++}=0A=
++=0A=
+ #define BT_DEVICE(chip, subvend, subdev, id) \=0A=
+ 	{ .vendor =3D PCI_VENDOR_ID_BROOKTREE, \=0A=
+ 	  .device =3D chip, \=0A=
+@@ -824,8 +982,10 @@=0A=
+ 	BT_DEVICE(PCI_DEVICE_ID_BROOKTREE_878, 0x0070, 0x13eb, GENERIC),=0A=
+ 	/* Hauppauge WinTV series */=0A=
+ 	BT_DEVICE(PCI_DEVICE_ID_BROOKTREE_879, 0x0070, 0x13eb, GENERIC),=0A=
+-	/* Viewcast Osprey 200 */=0A=
+-	BT_DEVICE(PCI_DEVICE_ID_BROOKTREE_878, 0x0070, 0xff01, OSPREY2x0),=0A=
++	/* Viewcast Osprey 200/250 */=0A=
++	BT_DEVICE(PCI_DEVICE_ID_BROOKTREE_878, 0x0070, 0xff01, OSPREY200),=0A=
++	/* Viewcast Osprey 210/220/230/240(?) */=0A=
++	//BT_DEVICE(PCI_DEVICE_ID_BROOKTREE_878, 0x0070, 0xff01, OSPREY2x0),=0A=
+ 	/* Viewcast Osprey 440 (rate is configurable via gpio) */=0A=
+ 	BT_DEVICE(PCI_DEVICE_ID_BROOKTREE_878, 0x0070, 0xff07, OSPREY440),=0A=
+ 	/* ATI TV-Wonder */=0A=
+@@ -922,6 +1082,20 @@=0A=
+ 	if (err < 0)=0A=
+ 		goto _error;=0A=
+ =0A=
++	chip->bttvnr =3D get_bttvnr(chip);=0A=
++	if (chip->bttvnr < 0) {=0A=
++		snd_printk(KERN_ERR=0A=
++			"bt87x%d: Unable to locate matching"=0A=
++			" video device\n", dev);=0A=
++		goto _error;=0A=
++	}=0A=
++	chip->core =3D bttv_get_core(chip->bttvnr);=0A=
++	if(boardid =3D=3D SND_BT87X_BOARD_OSPREY200) {=0A=
++		if(chip->core->type =3D=3D BTTV_BOARD_OSPREY2x0) {=0A=
++			// This is acctually a 210/220/230 card. The pci id is the same so =
+bttv driver checks eeprom on card=0A=
++			boardid =3D SND_BT87X_BOARD_OSPREY2x0;=0A=
++		}=0A=
++	}=0A=
+ 	memcpy(&chip->board, &snd_bt87x_boards[boardid], sizeof(chip->board));=0A=
+ =0A=
+ 	if (!chip->board.no_digital) {=0A=
+@@ -933,6 +1107,12 @@=0A=
+ 		err =3D snd_bt87x_pcm(chip, DEVICE_DIGITAL, "Bt87x Digital");=0A=
+ 		if (err < 0)=0A=
+ 			goto _error;=0A=
++=0A=
++		if (chip->board.x9221) {=0A=
++			err =3D attach_x9221(chip);=0A=
++			if (err < 0)=0A=
++				goto _error;=0A=
++		}=0A=
+ 	}=0A=
+ 	if (!chip->board.no_analog) {=0A=
+ 		err =3D snd_bt87x_pcm(chip, DEVICE_ANALOG, "Bt87x Analog");=0A=
 
-~]$ cat /proc/asound/cards
-0 [Intel          ]: HDA-Intel - HDA Intel
-                      HDA Intel at 0xe5300000 irq 16
-
-==> no second sound device
-
-~]$ lsmod | grep cx88
-cx88_alsa              20488  0 
-cx88xx                 75048  1 cx88_alsa
-ir_common              45060  1 cx88xx
-i2c_algo_bit           13956  1 cx88xx
-snd_pcm                85640  3 cx88_alsa,snd_hda_intel,snd_pcm_oss
-videodev               40704  4 cx88xx,tuner,cx23885,compat_ioctl32
-videobuf_dma_sg        19972  3 cx88_alsa,cx88xx,cx23885
-btcx_risc              12296  3 cx88_alsa,cx88xx,cx23885
-tveeprom               21508  2 cx88xx,cx23885
-snd                    68984  17
-cx88_alsa,snd_hda_intel,snd_seq_dummy,snd_seq_oss,snd_seq,snd_seq_device,snd_pcm_oss,snd_mixer_oss,snd_pcm,snd_timer,snd_hwdep
-videobuf_core          24836  4
-cx88xx,cx23885,videobuf_dma_sg,videobuf_dvb
-i2c_core               29216  13
-cx88xx,i2c_algo_bit,tda18271,tda8290,tuner,mt2131,s5h1409,cx25840,i2c_i801,cx23885,v4l2_common,tveeprom,nvidia
-
-]$ tvtime -v
-Running tvtime 1.0.2.
-Reading configuration from /etc/tvtime/tvtime.xml
-Reading configuration from /home/bill/.tvtime/tvtime.xml
-cpuinfo: CPU Intel(R) Core(TM)2 Duo CPU     E7400  @ 2.80GHz, family 6,
-model 7, stepping 10.
-cpuinfo: CPU measured at 2800.022MHz.
-tvtime: Cannot set priority to -10: Permission denied.
-xcommon: Display :0.0, vendor The X.Org Foundation, vendor release
-10503000
-xfullscreen: Using XINERAMA for dual-head information.
-xfullscreen: Pixels are square.
-xfullscreen: Number of displays is 1.
-xfullscreen: Head 0 at 0,0 with size 1680x1050.
-xcommon: Have XTest, will use it to ping the screensaver.
-xcommon: Pixel aspect ratio 1:1.
-xcommon: Pixel aspect ratio 1:1.
-xcommon: Window manager is Metacity and is EWMH compliant.
-xcommon: You are using metacity.  Disabling aspect ratio hints
-xcommon: since most deployed versions of metacity are still broken.
-xcommon: Using EWMH state fullscreen property.
-xcommon: Using EWMH state above property.
-xcommon: Using EWMH state below property.
-xcommon: Pixel aspect ratio 1:1.
-xcommon: Displaying in a 1024x576 window inside 1024x576 space.
-xvoutput: Using XVIDEO adaptor 280: NV17 Video Texture.
-speedycode: Using MMXEXT optimized functions.
-station: Reading stationlist from /home/bill/.tvtime/stationlist.xml
-videoinput: Using video4linux2 driver 'cx23885', card 'Hauppauge
-WinTV-HVR1800' (bus PCIe:0000:02:00.0).
-videoinput: Version is 1, capabilities 5010011.
-videoinput: Maximum input width: 720 pixels.
-tvtime: Sampling input at 720 pixels per scanline.
-xcommon: Pixel aspect ratio 1:1.
-xcommon: Displaying in a 1024x576 window inside 1024x576 space.
-xcommon: Received a map, marking window as visible (57).
-tvtime: Cleaning up.
-Thank you for using tvtime.
-
-==> Video works but no sound!
-
-]$ mpl ==> runs the following script
-
-"#!/bin/bash
-# Run mplayer for TV
-# file name: mplayer4tv
-# ~/.bashrc alias: alias mpl = 'mplayer4tv' 
-
-mplayer -v \
--tv driver=v4l2:norm=ntsc-m:outfmt=uyvy:chanlist=us-cable\
-:immediatemode=0:amode=1:forceaudio:volume=100:adevice=hw.0\
-:alsa=1:audiorate=44100\
--vo xv\
--aspect 16:9\
--menu\
-tv://33"
-
-which returns
-]$ mpl
-MPlayer SVN-r28461-4.3.2 (C) 2000-2009 MPlayer Team
-CPU: Intel(R) Core(TM)2 Duo CPU     E7400  @ 2.80GHz (Family: 6, Model:
-23, Stepping: 10)
-get_path('codecs.conf') -> '/home/bill/.mplayer/codecs.conf'
-Reading /home/bill/.mplayer/codecs.conf: Can't open
-'/home/bill/.mplayer/codecs.conf': No such file or directory
-Reading /etc/mplayer/codecs.conf: Can't open '/etc/mplayer/codecs.conf':
-No such file or directory
-Using built-in default codecs.conf.
-Configuration: --prefix=/usr --bindir=/usr/bin
---datadir=/usr/share/mplayer --mandir=/usr/share/man
---confdir=/etc/mplayer --libdir=/usr/lib64 --codecsdir=/usr/lib64/codecs
---target=x86_64-linux --language=all --enable-joystick
---enable-largefiles --enable-lirc --enable-menu
---enable-runtime-cpudetection --enable-unrarexec
---disable-dvdread-internal --disable-libdvdcss-internal --disable-nemesi
---disable-smb --disable-faac-lavc --disable-mp3lame-lavc
---disable-x264-lavc --disable-libamr_nb --disable-libamr_wb
---disable-faad-internal --disable-mad --disable-tremor-internal
---disable-bitmap-font --disable-directfb
---with-fribidi-config=pkg-config fribidi --disable-svga
---disable-termcap --enable-xvmc --with-xvmclib=XvMCW --disable-arts
---disable-esd --disable-jack --disable-openal
-CommandLine: '-v' '-tv'
-'driver=v4l2:norm=ntsc-m:outfmt=uyvy:chanlist=us-cable:immediatemode=0:amode=1:forceaudio:volume=100:adevice=hw.0:alsa=1:audiorate=44100' '-vo' 'xv' '-aspect' '16:9' '-menu' 'tv://33'
-init_freetype
-Using MMX (with tiny bit MMX2) Optimized OnScreenDisplay
-get_path('fonts') -> '/home/bill/.mplayer/fonts'
-Using nanosleep() timing
-get_path('input.conf') -> '/home/bill/.mplayer/input.conf'
-Parsing input config file /home/bill/.mplayer/input.conf
-Input config file /home/bill/.mplayer/input.conf parsed: 89 binds
-Setting up LIRC support...
-mplayer: could not connect to socket
-mplayer: No such file or directory
-Failed to open LIRC support. You will not be able to use your remote
-control.
-get_path('menu.conf') -> '/home/bill/.mplayer/menu.conf'
-[libmenu] got keybinding element 275 UP=>[menu up].
-[libmenu] got keybinding element 274 DOWN=>[menu down].
-[libmenu] got keybinding element 273 LEFT=>[menu left].
-[libmenu] got keybinding element 272 RIGHT=>[menu right].
-[libmenu] got keybinding element 13 ENTER=>[menu ok].
-[libmenu] got keybinding element 263 ESC=>[menu cancel].
-[libmenu] got keybinding element 259 HOME=>[menu home].
-[libmenu] got keybinding element 260 END=>[menu end].
-[libmenu] got keybinding element 261 PGUP=>[menu pageup].
-[libmenu] got keybinding element 262 PGDWN=>[menu pagedown].
-[libmenu] got keybinding element 387 JOY_UP=>[menu up].
-[libmenu] got keybinding element 386 JOY_DOWN=>[menu down].
-[libmenu] got keybinding element 385 JOY_LEFT=>[menu left].
-[libmenu] got keybinding element 384 JOY_RIGHT=>[menu right].
-[libmenu] got keybinding element 404 JOY_BTN0=>[menu ok].
-[libmenu] got keybinding element 405 JOY_BTN1=>[menu cancel].
-[libmenu] got keybinding element 1288 AR_VUP=>[menu up].
-[libmenu] got keybinding element 1289 AR_VDOWN=>[menu down].
-[libmenu] got keybinding element 1284 AR_PREV=>[menu left].
-[libmenu] got keybinding element 1282 AR_NEXT=>[menu right].
-[libmenu] got keybinding element 1280 AR_PLAY=>[menu ok].
-[libmenu] got keybinding element 1286 AR_MENU=>[menu cancel].
-[libmenu] got keybinding element 1285 AR_PREV_HOLD=>[menu home].
-[libmenu] got keybinding element 1283 AR_NEXT_HOLD=>[menu end].
-[libmenu] got keybinding element 512 MOUSE_BTN0=>[menu click].
-[libmenu] got keybinding element 514 MOUSE_BTN2=>[menu cancel].
-[libmenu] got keybinding element 1284 AR_PREV=>[menu pageup].
-[libmenu] got keybinding element 1282 AR_NEXT=>[menu pagedown].
-[libmenu] got keybinding element 256 BS=>[menu left].
-[libmenu] got keybinding element 1284 AR_PREV=>[menu left].
-[libmenu] got keybinding element 1282 AR_NEXT=>[menu right].
-[libmenu] got keybinding element 1284 AR_PREV=>[menu left].
-[libmenu] got keybinding element 1282 AR_NEXT=>[menu right].
-[libmenu] got keybinding element 1285 AR_PREV_HOLD=>[menu left].
-[libmenu] got keybinding element 1283 AR_NEXT_HOLD=>[menu right].
-Menu initialized: /home/bill/.mplayer/menu.conf
-get_path('33.conf') -> '/home/bill/.mplayer/33.conf'
-
-Playing tv://33.
-get_path('sub/') -> '/home/bill/.mplayer/sub/'
-STREAM: [tv] tv://33
-STREAM: Description: TV Input
-STREAM: Author: Benjamin Zores, Albeu
-STREAM: Comment: 
-TV file format detected.
-Selected driver: v4l2
-name: Video 4 Linux 2 input
-author: Martin Olschewski <olschewski@zpr.uni-koeln.de>
-comment: first try, more to come ;-)
-Selected device: Hauppauge WinTV-HVR1800
-Tuner cap:
-Tuner rxs:
-Capabilites:  video capture  VBI capture device  tuner  read/write
-streaming
-supported norms: 0 = NTSC-M; 1 = NTSC-M-JP; 2 = NTSC-443; 3 = PAL-BG; 4
-= PAL-I; 5 = PAL-DK; 6 = PAL-M; 7 = PAL-N; 8 = PAL-Nc; 9 = PAL-60; 10 =
-SECAM-DK; 11 = SECAM-L;
-inputs: 0 = Television; 1 = Composite1; 2 = S-Video;
-Current input: 0
-Format GREY   ( 8 bits, 8 bpp, gray): Planar Y800
-Format RGB555 (16 bits, 15 bpp RGB, le): BGR 15-bit
-Format RGB555X (16 bits, 15 bpp RGB, be): Unknown 0x51424752
-Format RGB565 (16 bits, 16 bpp RGB, le): BGR 16-bit
-Format RGB565X (16 bits, 16 bpp RGB, be): Unknown 0x52424752
-Format BGR24  (24 bits, 24 bpp RGB, le): BGR 24-bit
-Format BGR32  (32 bits, 32 bpp RGB, le): BGRA
-Format RGB32  (32 bits, 32 bpp RGB, be): RGBA
-Format YUYV   (16 bits, 4:2:2, packed, YUYV): Packed YUY2
-Format UYVY   (16 bits, 4:2:2, packed, UYVY): Packed UYVY
-Current format: BGR24
-v4l2: setting audio mode
-v4l2: current audio mode is : STEREO
-v4l2: set Volume: 63 [0, 63]
-v4l2: set format: UYVY
-v4l2: set input: 0
-Selected norm : ntsc-m
-v4l2: set norm: NTSC-M
-Selected channel list: us-cable (including 133 channels)
-Requested channel: 33
-Selected channel: 33 (freq: 277.250)
-Current frequency: 4436 (277.250)
-Current frequency: 38654710100 (2415919360.000)
-==> Found video stream: 0
-v4l2: get format: UYVY
-v4l2: get fps: 29.970030
-v4l2: get width: 640
-v4l2: get height: 480
-Hardware PCM card 0 'HDA Intel' device 0 subdevice 0
-Its setup is:
-  stream       : CAPTURE
-  access       : RW_INTERLEAVED
-  format       : S16_LE
-  subformat    : STD
-  channels     : 2
-  rate         : 44100
-  exact rate   : 44100 (44100/1)
-  msbits       : 16
-  buffer_size  : 16384
-  period_size  : 4096
-  period_time  : 92879
-  tstamp_mode  : NONE
-  period_step  : 1
-  avail_min    : 4096
-  period_event : 0
-  start_threshold  : 0
-  stop_threshold   : 16384
-  silence_threshold: 0
-  silence_size : 0
-  boundary     : 4611686018427387904
-  appl_ptr     : 0
-  hw_ptr       : 0
-v4l2: set audio samplerate: 44100
-Hardware PCM card 0 'HDA Intel' device 0 subdevice 0
-Its setup is:
-  stream       : CAPTURE
-  access       : RW_INTERLEAVED
-  format       : S16_LE
-  subformat    : STD
-  channels     : 2
-  rate         : 44100
-  exact rate   : 44100 (44100/1)
-  msbits       : 16
-  buffer_size  : 16384
-  period_size  : 4096
-  period_time  : 92879
-  tstamp_mode  : NONE
-  period_step  : 1
-  avail_min    : 4096
-  period_event : 0
-  start_threshold  : 0
-  stop_threshold   : 16384
-  silence_threshold: 0
-  silence_size : 0
-  boundary     : 4611686018427387904
-  appl_ptr     : 0
-  hw_ptr       : 0
-v4l2: get audio format: 9
-==> Found audio stream: 0
-v4l2: get audio samplerate: 44100
-v4l2: get audio samplesize: 2
-v4l2: get audio channels: 2
-  TV audio: 2 channels, 16 bits, 44100 Hz
-Audio capture - buffer 614 blocks of 16384 bytes, skew average from 16
-meas.
-Using a ring buffer for maximum 1716 frames, 1005 MB total size.
-v4l2: set Brightness: 127 [0, 255]
-v4l2: set Hue: 127 [0, 255]
-v4l2: set Saturation: 127 [0, 255]
-v4l2: set Contrast: 63 [0, 255]
-[V] filefmt:9  fourcc:0x59565955  size:640x480  fps:29.970
-ftime:=0.0334
-get_path('sub/') -> '/home/bill/.mplayer/sub/'
-X11 opening display: :0.0
-vo: X11 color mask:  FFFFFF  (R:FF0000 G:FF00 B:FF)
-vo: X11 running at 1680x1050 with depth 24 and 32 bpp (":0.0" => local
-display)
-[x11] Detected wm supports NetWM.
-[x11] Detected wm supports FULLSCREEN state.
-[x11] Detected wm supports ABOVE state.
-[x11] Detected wm supports BELOW state.
-[x11] Current fstype setting honours FULLSCREEN ABOVE BELOW X atoms
-[VO_XV] Using Xv Adapter #0 (NV17 Video Texture)
-[xv common] Drawing no colorkey.
-[xv common] Maximum source image dimensions: 2046x2046
-==========================================================================
-Opening video decoder: [raw] RAW Uncompressed Video
-VDec: vo config request - 640 x 480 (preferred colorspace: Packed UYVY)
-Trying filter chain: menu vo
-VDec: using Packed UYVY as output csp (no 0)
-Movie-Aspect is 1.78:1 - prescaling to correct movie aspect.
-VO Config (640x480->854x480,flags=0,'MPlayer',0x59565955)
-Unicode font: 4959 glyphs.
-REQ: flags=0x437  req=0x0  
-VO: [xv] 640x480 => 854x480 Packed UYVY 
-VO: Description: X11/Xv
-VO: Author: Gerd Knorr <kraxel@goldbach.in-berlin.de> and others
-Xvideo image format: 0x32595559 (YUY2) packed
-Xvideo image format: 0x32315659 (YV12) planar
-Xvideo image format: 0x59565955 (UYVY) packed
-Xvideo image format: 0x30323449 (I420) planar
-using Xvideo port 280 for hw scaling
-[xv] dx: 0 dy: 0 dw: 854 dh: 534
-Selected video codec: [rawuyvy] vfm: raw (RAW UYVY)
-==========================================================================
-==========================================================================
-Opening audio decoder: [pcm] Uncompressed PCM audio decoder
-dec_audio: Allocating 2048 + 65536 = 67584 bytes for output buffer.
-AUDIO: 44100 Hz, 2 ch, s16le, 1411.2 kbit/100.00% (ratio:
-176400->176400)
-Selected audio codec: [pcm] afm: pcm (Uncompressed PCM)
-==========================================================================
-Building audio filter chain for 44100Hz/2ch/s16le -> 0Hz/0ch/??...
-[libaf] Adding filter dummy 
-[dummy] Was reinitialized: 44100Hz/2ch/s16le
-[dummy] Was reinitialized: 44100Hz/2ch/s16le
-Trying preferred audio driver 'pulse', options '[none]'
-AO: [pulse] 44100Hz 2ch s16le (2 bytes per sample)
-AO: Description: PulseAudio audio output
-AO: Author: Lennart Poettering
-Building audio filter chain for 44100Hz/2ch/s16le ->
-44100Hz/2ch/s16le...
-[dummy] Was reinitialized: 44100Hz/2ch/s16le
-[dummy] Was reinitialized: 44100Hz/2ch/s16le
-Starting playback...
-Increasing filtered audio buffer size from 0 to 46144
-v4l2: going to capture
-*** [menu] Exporting mp_image_t, 640x480x16bpp YUV packed, 614400 bytes
-*** [vo] Exporting mp_image_t, 640x480x16bpp YUV packed, 614400 bytes
-Unicode font: 4959 glyphs.
-Unicode font: 4959 glyphs.
-Uninit audio filters... 0.000 ct:  0.093 319/319  0%  2%  0.0% 0
-0              
-[libaf] Removing filter dummy 
-Uninit audio: pcm
-Uninit video: raw
-v4l2: 337 frames successfully processed, -336 frames dropped.
-v4l2: up to 28 video frames buffered.
-vo: uninit ...
-
-Exiting... (Quit)
-
-==> mplayer gives me a terrible picture and no sound.
-
-(terrible = inverted picture with green background; just black and
-magenta for colours; and vertical lines running through it.)
-
-I have tried the sound with PulseAudio installed and removed.  No
-difference.
-
-
--- 
-Regards Bill
-Fedora 10, Gnome 2.24.3
-Evo.2.24.5, Emacs 22.3.1
+------=_NextPart_000_04CE_01C9D35E.421615E0
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+------=_NextPart_000_04CE_01C9D35E.421615E0--
