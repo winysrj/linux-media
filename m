@@ -1,313 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f224.google.com ([209.85.219.224]:52482 "EHLO
-	mail-ew0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751723AbZESQXc convert rfc822-to-8bit (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60704 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751928AbZELVBP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2009 12:23:32 -0400
-Received: by ewy24 with SMTP id 24so4994359ewy.37
-        for <linux-media@vger.kernel.org>; Tue, 19 May 2009 09:23:31 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <886732.24607.qm@web110811.mail.gq1.yahoo.com>
-References: <886732.24607.qm@web110811.mail.gq1.yahoo.com>
-Date: Tue, 19 May 2009 12:23:31 -0400
-Message-ID: <37219a840905190923k60e9daecve4d9a1de176bdbd8@mail.gmail.com>
-Subject: Re: [PATCH] [09051_49] Siano: smscore - upgrade firmware loading
-	engine
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Uri Shkolnik <urishk@yahoo.com>
-Cc: LinuxML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Tue, 12 May 2009 17:01:15 -0400
+Message-Id: <200905122058.n4CKwiCm004396@imap1.linux-foundation.org>
+Subject: [patch 3/4] dvb-core: fix potential mutex_unlock without mutex_lock in dvb_dvr_read
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	simon@fire.lp0.eu
+From: akpm@linux-foundation.org
+Date: Tue, 12 May 2009 13:39:28 -0700
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 19, 2009 at 11:43 AM, Uri Shkolnik <urishk@yahoo.com> wrote:
->
-> # HG changeset patch
-> # User Uri Shkolnik <uris@siano-ms.com>
-> # Date 1242748115 -10800
-> # Node ID 4d75f9d1c4f96d65a8ad312c21e488a212ee58a3
-> # Parent  cfb4106f3ceaee9fe8f7e3acc9d4adec1baffe5e
-> [09051_49] Siano: smscore - upgrade firmware loading engine
->
-> From: Uri Shkolnik <uris@siano-ms.com>
->
-> Upgrade the firmware loading (download and switching) engine.
->
-> Priority: normal
->
-> Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
->
-> diff -r cfb4106f3cea -r 4d75f9d1c4f9 linux/drivers/media/dvb/siano/smscoreapi.c
-> --- a/linux/drivers/media/dvb/siano/smscoreapi.c        Tue May 19 18:38:07 2009 +0300
-> +++ b/linux/drivers/media/dvb/siano/smscoreapi.c        Tue May 19 18:48:35 2009 +0300
-> @@ -28,7 +28,7 @@
->  #include <linux/dma-mapping.h>
->  #include <linux/delay.h>
->  #include <linux/io.h>
-> -
-> +#include <linux/uaccess.h>
->  #include <linux/firmware.h>
->  #include <linux/wait.h>
->  #include <asm/byteorder.h>
-> @@ -36,7 +36,13 @@
->  #include "smscoreapi.h"
->  #include "sms-cards.h"
->  #include "smsir.h"
-> -#include "smsendian.h"
-> +#define MAX_GPIO_PIN_NUMBER    31
-> +
-> +#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 10)
-> +#define REQUEST_FIRMWARE_SUPPORTED
-> +#else
-> +#define DEFAULT_FW_FILE_PATH "/lib/firmware"
-> +#endif
->
->  static int sms_dbg;
->  module_param_named(debug, sms_dbg, int, 0644);
-> @@ -459,8 +465,6 @@ static int smscore_init_ir(struct smscor
->                                msg->msgData[0] = coredev->ir.controller;
->                                msg->msgData[1] = coredev->ir.timeout;
->
-> -                               smsendian_handle_tx_message(
-> -                                       (struct SmsMsgHdr_ST2 *)msg);
->                                rc = smscore_sendrequest_and_wait(coredev, msg,
->                                                msg->xMsgHeader. msgLength,
->                                                &coredev->ir_init_done);
-> @@ -486,12 +490,16 @@ static int smscore_init_ir(struct smscor
->  */
->  int smscore_start_device(struct smscore_device_t *coredev)
->  {
-> -       int rc = smscore_set_device_mode(
-> -                       coredev, smscore_registry_getmode(coredev->devpath));
-> +       int rc;
-> +
-> +#ifdef REQUEST_FIRMWARE_SUPPORTED
-> +       rc = smscore_set_device_mode(coredev, smscore_registry_getmode(
-> +                       coredev->devpath));
->        if (rc < 0) {
-> -               sms_info("set device mode faile , rc %d", rc);
-> +               sms_info("set device mode failed , rc %d", rc);
->                return rc;
->        }
-> +#endif
->
->        kmutex_lock(&g_smscore_deviceslock);
->
-> @@ -632,11 +640,14 @@ static int smscore_load_firmware_from_fi
->                                           loadfirmware_t loadfirmware_handler)
->  {
->        int rc = -ENOENT;
-> +       u8 *fw_buf;
-> +       u32 fw_buf_size;
-> +
-> +#ifdef REQUEST_FIRMWARE_SUPPORTED
->        const struct firmware *fw;
-> -       u8 *fw_buffer;
->
-> -       if (loadfirmware_handler == NULL && !(coredev->device_flags &
-> -                                             SMS_DEVICE_FAMILY2))
-> +       if (loadfirmware_handler == NULL && !(coredev->device_flags
-> +                       & SMS_DEVICE_FAMILY2))
->                return -EINVAL;
->
->        rc = request_firmware(&fw, filename, coredev->device);
-> @@ -645,26 +656,36 @@ static int smscore_load_firmware_from_fi
->                return rc;
->        }
->        sms_info("read FW %s, size=%zd", filename, fw->size);
-> -       fw_buffer = kmalloc(ALIGN(fw->size, SMS_ALLOC_ALIGNMENT),
-> -                           GFP_KERNEL | GFP_DMA);
-> -       if (fw_buffer) {
-> -               memcpy(fw_buffer, fw->data, fw->size);
-> +       fw_buf = kmalloc(ALIGN(fw->size, SMS_ALLOC_ALIGNMENT),
-> +                               GFP_KERNEL | GFP_DMA);
-> +       if (!fw_buf) {
-> +               sms_info("failed to allocate firmware buffer");
-> +               return -ENOMEM;
-> +       }
-> +       memcpy(fw_buf, fw->data, fw->size);
-> +       fw_buf_size = fw->size;
-> +#else
-> +       if (!coredev->fw_buf) {
-> +               sms_info("missing fw file buffer");
-> +               return -EINVAL;
-> +       }
-> +       fw_buf = coredev->fw_buf;
-> +       fw_buf_size = coredev->fw_buf_size;
-> +#endif
->
-> -               rc = (coredev->device_flags & SMS_DEVICE_FAMILY2) ?
-> -                     smscore_load_firmware_family2(coredev,
-> -                                                   fw_buffer,
-> -                                                   fw->size) :
-> -                     loadfirmware_handler(coredev->context,
-> -                                          fw_buffer, fw->size);
-> +       rc = (coredev->device_flags & SMS_DEVICE_FAMILY2) ?
-> +               smscore_load_firmware_family2(coredev, fw_buf, fw_buf_size)
-> +               : loadfirmware_handler(coredev->context, fw_buf,
-> +               fw_buf_size);
->
-> -               kfree(fw_buffer);
-> -       } else {
-> -               sms_info("failed to allocate firmware buffer");
-> -               rc = -ENOMEM;
-> -       }
-> +       kfree(fw_buf);
->
-> +#ifdef REQUEST_FIRMWARE_SUPPORTED
->        release_firmware(fw);
-> -
-> +#else
-> +       coredev->fw_buf = NULL;
-> +       coredev->fw_buf_size = 0;
-> +#endif
->        return rc;
->  }
->
-> @@ -911,6 +932,74 @@ int smscore_set_device_mode(struct smsco
->  }
->
->  /**
-> + * calls device handler to get fw file name
-> + *
-> + * @param coredev pointer to a coredev object returned by
-> + *                smscore_register_device
-> + * @param filename pointer to user buffer to fill the file name
-> + *
-> + * @return 0 on success, <0 on error.
-> + */
-> +int smscore_get_fw_filename(struct smscore_device_t *coredev, int mode,
-> +               char *filename) {
-> +       int rc = 0;
-> +       enum sms_device_type_st type;
-> +       char tmpname[200];
-> +
-> +       type = smscore_registry_gettype(coredev->devpath);
-> +
-> +#ifdef REQUEST_FIRMWARE_SUPPORTED
-> +       /* driver not need file system services */
-> +       tmpname[0] = '\0';
-> +#else
-> +       sprintf(tmpname, "%s/%s", DEFAULT_FW_FILE_PATH,
-> +                       smscore_fw_lkup[mode][type]);
-> +#endif
-> +       if (copy_to_user(filename, tmpname, strlen(tmpname) + 1)) {
-> +               sms_err("Failed copy file path to user buffer\n");
-> +               return -EFAULT;
-> +       }
-> +       return rc;
-> +}
-> +
-> +/**
-> + * calls device handler to keep fw buff for later use
-> + *
-> + * @param coredev pointer to a coredev object returned by
-> + *                smscore_register_device
-> + * @param ufwbuf  pointer to user fw buffer
-> + * @param size    size in bytes of buffer
-> + *
-> + * @return 0 on success, <0 on error.
-> + */
-> +int smscore_send_fw_file(struct smscore_device_t *coredev, u8 *ufwbuf,
-> +               int size) {
-> +       int rc = 0;
-> +
-> +       /* free old buffer */
-> +       if (coredev->fw_buf != NULL) {
-> +               kfree(coredev->fw_buf);
-> +               coredev->fw_buf = NULL;
-> +       }
-> +
-> +       coredev->fw_buf = kmalloc(ALIGN(size, SMS_ALLOC_ALIGNMENT), GFP_KERNEL
-> +                       | GFP_DMA);
-> +       if (!coredev->fw_buf) {
-> +               sms_err("Failed allocate FW buffer memory\n");
-> +               return -EFAULT;
-> +       }
-> +
-> +       if (copy_from_user(coredev->fw_buf, ufwbuf, size)) {
-> +               sms_err("Failed copy FW from user buffer\n");
-> +               kfree(coredev->fw_buf);
-> +               return -EFAULT;
-> +       }
-> +       coredev->fw_buf_size = size;
-> +
-> +       return rc;
-> +}
-> +
-> +/**
->  * calls device handler to get current mode of operation
->  *
->  * @param coredev pointer to a coredev object returned by
-> @@ -1280,7 +1369,7 @@ int smsclient_sendrequest(struct smscore
->  }
->  EXPORT_SYMBOL_GPL(smsclient_sendrequest);
->
-> -#if 0
-> +#ifdef SMS_HOSTLIB_SUBSYS
->  /**
->  * return the size of large (common) buffer
->  *
-> @@ -1329,7 +1418,7 @@ static int smscore_map_common_buffer(str
->
->        return 0;
->  }
-> -#endif
-> +#endif /* SMS_HOSTLIB_SUBSYS */
->
->  /* old GPIO managments implementation */
->  int smscore_configure_gpio(struct smscore_device_t *coredev, u32 pin,
-> @@ -1515,7 +1604,6 @@ int smscore_gpio_configure(struct smscor
->                pMsg->msgData[5] = 0;
->        }
->
-> -       smsendian_handle_tx_message((struct SmsMsgHdr_ST *)pMsg);
->        rc = smscore_sendrequest_and_wait(coredev, pMsg, totalLen,
->                        &coredev->gpio_configuration_done);
->
-> @@ -1565,7 +1653,6 @@ int smscore_gpio_set_level(struct smscor
->        pMsg->msgData[1] = NewLevel;
->
->        /* Send message to SMS */
-> -       smsendian_handle_tx_message((struct SmsMsgHdr_ST *)pMsg);
->        rc = smscore_sendrequest_and_wait(coredev, pMsg, totalLen,
->                        &coredev->gpio_set_level_done);
->
-> @@ -1614,7 +1701,6 @@ int smscore_gpio_get_level(struct smscor
->        pMsg->msgData[1] = 0;
->
->        /* Send message to SMS */
-> -       smsendian_handle_tx_message((struct SmsMsgHdr_ST *)pMsg);
->        rc = smscore_sendrequest_and_wait(coredev, pMsg, totalLen,
->                        &coredev->gpio_get_level_done);
->
->
->
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+From: Simon Arlott <simon@fire.lp0.eu>
 
+dvb_dvr_read may unlock the dmxdev mutex and return -ENODEV, except this
+function is a file op and will never be called with the mutex held.
 
+There's existing mutex_lock and mutex_unlock around the actual read but
+it's commented out.  These should probably be uncommented but the read
+blocks and this could block another non-blocking reader on the mutex
+instead.
 
-This patch should not be merged in its current form.
+This change comments out the extra mutex_unlock.
 
-Linux kernel driver development shall be against the current -rc
-kernel, and there is no need to reinvent the "REQUEST_FIRMWARE"
-mechanism.
+[akpm@linux-foundation.org: cleanups, simplification]
+Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Furthermore, the changeset introduces more bits of this
-"SMS_HOSTLIB_SUBSYS" -- this requires a binary library present on the
-host system.  This completely violates the "no multiple APIs in
-kernel" and "no proprietary APIs in kernel" guidelines.
+ drivers/media/dvb/dvb-core/dmxdev.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-Uri, what are your plans for this?
-
-Regards,
-
-Mike
+diff -puN drivers/media/dvb/dvb-core/dmxdev.c~dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read drivers/media/dvb/dvb-core/dmxdev.c
+--- a/drivers/media/dvb/dvb-core/dmxdev.c~dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read
++++ a/drivers/media/dvb/dvb-core/dmxdev.c
+@@ -244,19 +244,13 @@ static ssize_t dvb_dvr_read(struct file 
+ {
+ 	struct dvb_device *dvbdev = file->private_data;
+ 	struct dmxdev *dmxdev = dvbdev->priv;
+-	int ret;
+ 
+-	if (dmxdev->exit) {
+-		mutex_unlock(&dmxdev->mutex);
++	if (dmxdev->exit)
+ 		return -ENODEV;
+-	}
+ 
+-	//mutex_lock(&dmxdev->mutex);
+-	ret = dvb_dmxdev_buffer_read(&dmxdev->dvr_buffer,
+-				     file->f_flags & O_NONBLOCK,
+-				     buf, count, ppos);
+-	//mutex_unlock(&dmxdev->mutex);
+-	return ret;
++	return dvb_dmxdev_buffer_read(&dmxdev->dvr_buffer,
++				      file->f_flags & O_NONBLOCK,
++				      buf, count, ppos);
+ }
+ 
+ static int dvb_dvr_set_buffer_size(struct dmxdev *dmxdev,
+_
