@@ -1,94 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2.sea5.speakeasy.net ([69.17.117.4]:54324 "EHLO
-	mail2.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751449AbZEaV3v (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:31881 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753963AbZELGQH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 May 2009 17:29:51 -0400
-Date: Sun, 31 May 2009 14:29:52 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: "Figo.zhang" <figo1802@gmail.com>
-cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, kraxel@bytesex.org,
+	Tue, 12 May 2009 02:16:07 -0400
+Date: Tue, 12 May 2009 09:10:43 +0300
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: ext Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
-	=?UTF-8?Q?Old=C5=99ich_Jedli=C4=8Dka?= <oldium.pro@seznam.cz>
-Subject: Re: [PATCH] bttv-driver.c :poll method lose race condition for
- capture video
-In-Reply-To: <1243751538.3425.6.camel@myhost>
-Message-ID: <Pine.LNX.4.58.0905311417040.32713@shell2.speakeasy.net>
-References: <1243751538.3425.6.camel@myhost>
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
+Subject: Re: [PATCH v2 1/7] v4l2: video device: Add V4L2_CTRL_CLASS_FMTX
+	controls
+Message-ID: <20090512061043.GB4639@esdhcp037198.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+References: <1242034309-13448-1-git-send-email-eduardo.valentin@nokia.com> <1242034309-13448-2-git-send-email-eduardo.valentin@nokia.com> <20090511231703.17087c01@pedra.chehab.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20090511231703.17087c01@pedra.chehab.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 31 May 2009, Figo.zhang wrote:
+On Tue, May 12, 2009 at 04:17:03AM +0200, ext Mauro Carvalho Chehab wrote:
+> Em Mon, 11 May 2009 12:31:43 +0300
+> Eduardo Valentin <eduardo.valentin@nokia.com> escreveu:
+> 
+> > This patch adds a new class of extended controls. This class
+> > is intended to support Radio Modulators properties such as:
+> > rds, audio limiters, audio compression, pilot tone generation,
+> > tuning power levels and region related properties.
+> > 
+> > Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+> > ---
+> >  include/linux/videodev2.h |   45 +++++++++++++++++++++++++++++++++++++++++++++
+> >  1 files changed, 45 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > index ebb2ea6..7559299 100644
+> > --- a/include/linux/videodev2.h
+> > +++ b/include/linux/videodev2.h
+> > @@ -803,6 +803,7 @@ struct v4l2_ext_controls {
+> >  #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
+> >  #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+> >  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
+> > +#define V4L2_CTRL_CLASS_FMTX 0x009b0000	/* FM Radio Modulator class controls */
+> >  
+> >  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+> >  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+> > @@ -1141,6 +1142,50 @@ enum  v4l2_exposure_auto_type {
+> >  
+> >  #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
+> >  
+> > +/* FM Radio Modulator class control IDs */
+> > +#define V4L2_CID_FMTX_CLASS_BASE		(V4L2_CTRL_CLASS_FMTX | 0x900)
+> > +#define V4L2_CID_FMTX_CLASS			(V4L2_CTRL_CLASS_FMTX | 1)
+> > +
+> > +#define V4L2_CID_RDS_ENABLED			(V4L2_CID_FMTX_CLASS_BASE + 1)
+> > +#define V4L2_CID_RDS_PI				(V4L2_CID_FMTX_CLASS_BASE + 2)
+> > +#define V4L2_CID_RDS_PTY			(V4L2_CID_FMTX_CLASS_BASE + 3)
+> > +#define V4L2_CID_RDS_PS_NAME			(V4L2_CID_FMTX_CLASS_BASE + 4)
+> > +#define V4L2_CID_RDS_RADIO_TEXT			(V4L2_CID_FMTX_CLASS_BASE + 5)
+> > +
+> > +#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 6)
+> > +#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 7)
+> > +#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FMTX_CLASS_BASE + 8)
+> > +
+> > +#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FMTX_CLASS_BASE + 9)
+> > +#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FMTX_CLASS_BASE + 10)
+> > +#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FMTX_CLASS_BASE + 11)
+> > +#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FMTX_CLASS_BASE + 12)
+> > +#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 13)
+> > +
+> > +#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 14)
+> > +#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FMTX_CLASS_BASE + 15)
+> > +#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FMTX_CLASS_BASE + 16)
+> > +
+> > +#define V4L2_CID_REGION				(V4L2_CID_FMTX_CLASS_BASE + 17)
+> > +enum v4l2_fmtx_region {
+> > +	V4L2_FMTX_REGION_USA			= 0,
+> > +	V4L2_FMTX_REGION_AUSTRALIA		= 1,
+> > +	V4L2_FMTX_REGION_EUROPE			= 2,
+> > +	V4L2_FMTX_REGION_JAPAN			= 3,
+> > +	V4L2_FMTX_REGION_JAPAN_WIDE_BAND	= 4,
+> > +};
+> 
+> Hmm... the region is not just a derived parameter, based on
+> preemphasis/frequencies, and channel stepping? What this parameter controls?
 
-> bttv-driver.c,cx23885-video.c,cx88-video.c: poll method lose race condition for capture video.
+Hi Mauro, I thought in the opposite way. The other parameters are derived
+from the region parameter. So, you just set the region, then it will affect
+the frequency range, channel stepping and preemphasis.
 
-Please use patch titles that are not so long.  It would be nice if you
-could describe this race condition.
+However, there was some resistance to have this inside kernel
+(in previous discussion). One suggested to use database in user land
+(or similar thing). In that case, driver(s) would
+report its constraints based on device values, not in region settings.
+But, this patch set is proposing to have it inside the kernel as you can see.
 
->
-> Signed-off-by: Figo.zhang <figo1802@gmail.com>
-> ---
->  drivers/media/video/bt8xx/bttv-driver.c     |    7 +++++--
->  drivers/media/video/cx23885/cx23885-video.c |   15 +++++++++++----
->  drivers/media/video/cx88/cx88-video.c       |   13 ++++++++++---
->  3 files changed, 26 insertions(+), 9 deletions(-)
->
-> diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
-> index 23b7499..9cadfcc 100644
-> --- a/drivers/media/video/bt8xx/bttv-driver.c
-> +++ b/drivers/media/video/bt8xx/bttv-driver.c
-> @@ -3152,6 +3152,7 @@ static unsigned int bttv_poll(struct file *file, poll_table *wait)
->  	struct bttv_fh *fh = file->private_data;
->  	struct bttv_buffer *buf;
->  	enum v4l2_field field;
-> +	unsigned int rc = 0;
->
->  	if (V4L2_BUF_TYPE_VBI_CAPTURE == fh->type) {
->  		if (!check_alloc_btres(fh->btv,fh,RESOURCE_VBI))
-> @@ -3160,6 +3161,7 @@ static unsigned int bttv_poll(struct file *file, poll_table *wait)
->  	}
->
->  	if (check_btres(fh,RESOURCE_VIDEO_STREAM)) {
-> +		mutex_lock(&fh->cap.vb_lock);
->  		/* streaming capture */
->  		if (list_empty(&fh->cap.stream))
->  			return POLLERR;
+I'd like to hear more opinions though.
 
-Won't you return with the mutex held here?
+> 
+> > +#define V4L2_CID_REGION_BOTTOM_FREQUENCY	(V4L2_CID_FMTX_CLASS_BASE + 18)
+> > +#define V4L2_CID_REGION_TOP_FREQUENCY		(V4L2_CID_FMTX_CLASS_BASE + 19)
+> > +#define V4L2_CID_REGION_PREEMPHASIS		(V4L2_CID_FMTX_CLASS_BASE + 20)
+> > +enum v4l2_fmtx_preemphasis {
+> > +	V4L2_FMTX_PREEMPHASIS_75_uS		= 0,
+> > +	V4L2_FMTX_PREEMPHASIS_50_uS		= 1,
+> > +	V4L2_FMTX_PREEMPHASIS_DISABLED		= 2,
+> > +};
+> > +#define V4L2_CID_REGION_CHANNEL_SPACING		(V4L2_CID_FMTX_CLASS_BASE + 21)
+> > +#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FMTX_CLASS_BASE + 22)
+> > +#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FMTX_CLASS_BASE + 23)
+> > +
+> >  /*
+> >   *	T U N I N G
+> >   */
+> 
+> 
+> 
+> 
+> Cheers,
+> Mauro
 
-> @@ -3191,8 +3193,9 @@ static unsigned int bttv_poll(struct file *file, poll_table *wait)
->  	poll_wait(file, &buf->vb.done, wait);
->  	if (buf->vb.state == VIDEOBUF_DONE ||
->  	    buf->vb.state == VIDEOBUF_ERROR)
-> -		return POLLIN|POLLRDNORM;
-> -	return 0;
-> +		rc = POLLIN|POLLRDNORM;
-> +	mutex_unlock(&fh->cap.vb_lock);
-> +	return rc;
->  err:
->  	mutex_unlock(&fh->cap.vb_lock);
->  	return POLLERR;
-
-I think the logic for these changes will be cleaner to do something like this:
-
-{
-	unsigned int rc = POLLERR;
-
-	if (some error);
-		goto done;
-	if (other error)
-		goto done;
-
-	if (buf->vb.state == VIDEOBUF_DONE ||
-            buf->vb.state == VIDEOBUF_ERROR)
-		rc = POLLIN|POLLRDNORM;
-	else
-		rc = 0;
-
-done:
-	mutex_unlock(&fh->vidq.vb_lock);
-	return rc;
-}
+-- 
+Eduardo Valentin
