@@ -1,204 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:34945 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751166AbZEYMKK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 May 2009 08:10:10 -0400
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1M8Z0E-00032U-IG
-	for linux-media@vger.kernel.org; Mon, 25 May 2009 12:10:04 +0000
-Received: from host91-9-dynamic.18-87-r.retail.telecomitalia.it ([host91-9-dynamic.18-87-r.retail.telecomitalia.it])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 25 May 2009 12:10:02 +0000
-Received: from vcovito by host91-9-dynamic.18-87-r.retail.telecomitalia.it with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 25 May 2009 12:10:02 +0000
-To: linux-media@vger.kernel.org
-From: Vito <vcovito@libero.it>
-Subject: Re: TW6800 based video capture boards (updates)
-Date: Mon, 25 May 2009 11:55:17 +0000 (UTC)
-Message-ID: <loom.20090525T113704-857@post.gmane.org>
-References: <20080525020028.GA22425@ska.dandreoli.com> <20080526073959.5a624288@gaivota> <20090104151427.GA4683@tilt.dandreoli.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from web32102.mail.mud.yahoo.com ([68.142.207.116]:41291 "HELO
+	web32102.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753993AbZELMOS convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 12 May 2009 08:14:18 -0400
+Message-ID: <155082.98228.qm@web32102.mail.mud.yahoo.com>
+References: <155119.7889.qm@web32103.mail.mud.yahoo.com> <Pine.LNX.4.64.0905071750050.9460@axis700.grange> <951499.48393.qm@web32102.mail.mud.yahoo.com> <Pine.LNX.4.64.0905120908220.5087@axis700.grange>
+Date: Tue, 12 May 2009 05:14:18 -0700 (PDT)
+From: Agustin <gatoguan-os@yahoo.com>
+Subject: Re: [PATCH] dma: fix ipu_idmac.c to not discard the last queued buffer
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-arm-kernel@lists.arm.linux.org.uk,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Dan Williams <dan.j.williams@intel.com>
+In-Reply-To: <Pine.LNX.4.64.0905120908220.5087@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Domenico Andreoli <cavokz <at> gmail.com> writes:
+
+On Tue, 12 May 2009, Guennadi Liakhovetski wrote:
 
 > 
-> Hi,
+> This also fixes the case of a single queued buffer, for example, when taking a
+> single frame snapshot with the mx3_camera driver.
 > 
-> On Mon, May 26, 2008 at 07:39:59AM -0300, Mauro Carvalho Chehab wrote:
-> > On Sun, 25 May 2008 04:00:28 +0200, Domenico Andreoli <cavokz <at>
-gmail.com> wrote:
-> > >
-> > >   I have some shining boards based on Techwell TW6802 and a "working"
-> > > V4L2 driver provided by the producer. Ah.. I have also the specs of
-> > > those TW6802 chips. Everything has been purchased by my employer.
-> > > 
-> > > Now I am eager to publish everything but I can't right now. My employer
-> > > would not understand and I would be in a difficult position. He already
-> > > knows that those drivers are based on GPL software and then _are_ GPL
-> > > at all the effects but he still needs to completely understand how it
-> > > works. Those guys are always happy to use Linux for free but at the
-> > > time of giving anything back...
-> > > 
-> > > To make the long story short, I want to rewrite them. So, how do
-> > > you judge my (legal) position? Yes, you are not a lawyer but I would
-> > > appreciate any related advice anyway ;)
+> Reported-by: Agustin 
+> Signed-off-by: Guennadi Liakhovetski
+
+Signed-off-by: Agustin Ferrin Pozuelo
+
+> ---
+> 
+> Subject: Re: Grabbing single stills on MX31 - Re: Solved? - Re: 
+> soc-camera: timing out during capture - Re: Testing latest mx3_camera.c
+> 
+> On Mon, 11 May 2009, Agustin wrote:
+> 
+> > On Thu, 7 May 2009, Guennadi Liakhovetski wrote:
 > > 
-> > I think this will depend if you have a signed NDA or not, and what are their
-> > terms. Better to consult a lawyer ;)
+> > > On Thu, 7 May 2009, Agustin Ferrin Pozuelo wrote:
+> > > > ...
+> > > > I thought about the fact that I was only queuing one buffer, and that 
+> > > > this might be a corner case as sample code uses a lot of them. And that 
+> > > > in the older code that funny things could happen in the handler if we 
+> > > > ran out of buffers, though they didn't happen.
+> > > > 
+> > > > So I have queued an extra buffer and voila, got it working.
+> > > > 
+> > > > So thanks again!
+> > > > 
+> > > > However, this could be a bug in ipu_idmac (or some other point), as 
+> > > > using a single buffer is very plausible, specially when grabbing huge 
+> > > > stills.
+> > > 
+> > > Great, thanks for testing and debugging! Ok, so, I will have to test this 
+> > > case some time...
 > 
-> I finally got the clearance few weeks ago :)
+> Agustin, does this patch fix your problem? Dan, please, pull it as soon as 
+> we get a tested-by from Agustin.
+
+Yes it works. And it happens to save 33% of system CPU time in addition to freeing a lot of memory bandwith. Timings after this fix:
+
+  Vblank  /  real        /  user       / sys time:
+   [any]  /  real 0.50s  /  user 0.00s / sys 0.22s
+
+(Everything was for a 3888x1944x15bpp still)
+
 > 
-> > > Since I am a kernel newbie I am expecting to receive lots of "leave
-> > > V4L2 to expert coders..." but I will try anyway. You are warned :)
+> > This workaround (queuing 2 buffers when needing only one) is having the 
+> > side effect of greatly increasing the time taken.
 > > 
-> > Just do your work and submit us the code. We'll analyse it and point for
-> > issues, if needed ;) If you have any doubts about V4L2, I can help you.
+> > I did several tests playing with camera vertical blanking and looking at 
+> > capture times:
+> > 
+> >   Vblank / real             / user             / sys time:
+> >        0 / real    0m 0.90s / user    0m 0.00s / sys     0m 0.34s
+> >  1 frame / real    0m 1.04s / user    0m 0.00s / sys     0m 0.34s
+> > 2 frames / real    0m 1.18s / user    0m 0.00s / sys     0m 0.33s
+> > 2.5 (max)/ real    0m 1.23s / user    0m 0.00s / sys     0m 0.35s
+> > 
+> > I think the second frame is being captured altogether, and its dma 
+> > transfer is not allowing any other process to run meanwhile. 
+> > (VIDIOC_STREAMOFF is being called as soon as the first buffer is ready.)
 > 
-> The new driver, named tw68xx, is able to capture video only.  My wish
-> is to make it stable and production ready as soon as possible.
+> I don't quite understand this. What exactly are you doing above? You 
+> submit 2 buffers and change vertical blanking? Where do you change the 
+> blanking - in the driver? How exactly?
 > 
-> So at the beginning no audio, no TS, no VBI and no overlay are
-> supported. These functionalities would be added with time, boards
-> and users.
+> > Do you think it will be too hard to fix?
 > 
-> I am already collecting people willing to help writing and test stuff :)
+> The blanking issue or the 1-buffer problem?
+
+Eh-eh, it was the same!
+Thanks a lot!
+--Agustín.
+
 > 
-> > Please, always c/c v4l ML when submitting your driver[1]. You may also c/c
-> > other lists, like LKML. This will allow people to review it.
+> Thanks
+> Guennadi
 > 
-> I plan to publish it for a first revision by the end of January.
+> drivers/dma/ipu/ipu_idmac.c |    3 ++-
+> 1 files changed, 2 insertions(+), 1 deletions(-)
 > 
-> Currently it is an external module and I would maintain that way until
-> it is ready for the merge to the Linus' tree. This way I have not to
-> follow a specific tree. Would it be ok for reviewers?
+> diff --git a/drivers/dma/ipu/ipu_idmac.c b/drivers/dma/ipu/ipu_idmac.c
+> index 3a4deea..9a5bc1a 100644
+> --- a/drivers/dma/ipu/ipu_idmac.c
+> +++ b/drivers/dma/ipu/ipu_idmac.c
+> @@ -1272,7 +1272,8 @@ static irqreturn_t idmac_interrupt(int irq, void *dev_id)
+>     /* Other interrupts do not interfere with this channel */
+>     spin_lock(&ichan->lock);
+>     if (unlikely(chan_id != IDMAC_SDC_0 && chan_id != IDMAC_SDC_1 &&
+> -             ((curbuf >> chan_id) & 1) == ichan->active_buffer)) {
+> +             ((curbuf >> chan_id) & 1) == ichan->active_buffer &&
+> +             !list_is_last(ichan->queue.next, &ichan->queue))) {
+>         int i = 100;
 > 
-> cheers,
-> Domenico
-> 
-> -----[ Domenico Andreoli, aka cavok
->  --[ http://www.dandreoli.com/gpgkey.asc
->    ---[ 3A0F 2F80 F79C 678A 8936  4FEE 0677 9033 A20E BC50
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo <at> vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-
-
-Hi all.
-I've bought a Provideo 16 in capture PCI-Experess card for my own DVR solution.
-http://www.provideo.com.tw/DVRCARD_PV988.htm
-This card have 8 TW6805 chip installed.
-I've installed the card in a PC with Fedora Core 9 Linux OS
-With this kernel.
-
-[root@alinux]# uname -a
-Linux apelle 2.6.27.15-78.2.23.fc9.i686 #1 SMP Wed Feb 11 23:53:07 EST 2009 i686
-i686 i386 GNU/Linux
-The matter is that the kernel don't recognize my card, (see lspci later)
-
-I've compiled successfully the techwell tw6800.ko driver from
-http://gitorious.org/tw68 
-and inserted it:
-[root@alinux]# dmesg
-...
-tw6800: tw6800 v4l2 driver version 0.0.0 loaded
-
-But however the lspci don't recognize my card:
-
-[root@alinux]# lspci -v
-....
-04:00.0 Multimedia video controller: JumpTec h, GMBH Unknown device 6804 (rev 10)
-	Flags: bus master, 66MHz, medium devsel, latency 64, IRQ 5
-	Memory at deefc000 (32-bit, non-prefetchable) [size=1K]
-	Capabilities: [44] Power Management version 2
-
-04:00.1 Multimedia controller: JumpTec h, GMBH Unknown device 6805 (rev 10)
-	Flags: bus master, 66MHz, medium devsel, latency 64, IRQ 5
-	Memory at deefc400 (32-bit, non-prefetchable) [size=128]
-	Capabilities: [44] Power Management version 2
-
-04:01.0 Multimedia video controller: JumpTec h, GMBH Unknown device 6804 (rev 10)
-	Flags: bus master, 66MHz, medium devsel, latency 64, IRQ 11
-	Memory at deefc800 (32-bit, non-prefetchable) [size=1K]
-	Capabilities: [44] Power Management version 2
-
-04:01.1 Multimedia controller: JumpTec h, GMBH Unknown device 6805 (rev 10)
-	Flags: bus master, 66MHz, medium devsel, latency 64, IRQ 11
-	Memory at deefcc00 (32-bit, non-prefetchable) [size=128]
-	Capabilities: [44] Power Management version 2
-
-04:02.0 Multimedia video controller: JumpTec h, GMBH Unknown device 6804 (rev 10)
-	Flags: bus master, 66MHz, medium devsel, latency 64, IRQ 11
-	Memory at deefd000 (32-bit, non-prefetchable) [size=1K]
-	Capabilities: [44] Power Management version 2
-
-04:02.1 Multimedia controller: JumpTec h, GMBH Unknown device 6805 (rev 10)
-	Flags: bus master, 66MHz, medium devsel, latency 64, IRQ 11
-	Memory at deefd400 (32-bit, non-prefetchable) [size=128]
-	Capabilities: [44] Power Management version 2
-
-04:03.0 Multimedia video controller: JumpTec h, GMBH Unknown device 6804 (rev 10)
-	Flags: bus master, 66MHz, medium devsel, latency 64, IRQ 15
-	Memory at deefd800 (32-bit, non-prefetchable) [size=1K]
-	Capabilities: [44] Power Management version 2
-
-04:03.1 Multimedia controller: JumpTec h, GMBH Unknown device 6805 (rev 10)
-	Flags: bus master, 66MHz, medium devsel, latency 64, IRQ 15
-	Memory at deefdc00 (32-bit, non-prefetchable) [size=128]
-	Capabilities: [44] Power Management version 2
-
-04:04.0 Multimedia video controller: JumpTec h, GMBH Unknown device 6804 (rev 10)
-	Flags: bus master, 66MHz, medium devsel, latency 64, IRQ 5
-	Memory at deefe000 (32-bit, non-prefetchable) [size=1K]
-	Capabilities: [44] Power Management version 2
-
-04:04.1 Multimedia controller: JumpTec h, GMBH Unknown device 6805 (rev 10)
-	Flags: bus master, 66MHz, medium devsel, latency 64, IRQ 5
-	Memory at deefe400 (32-bit, non-prefetchable) [size=128]
-	Capabilities: [44] Power Management version 2
-
-04:05.0 Multimedia video controller: JumpTec h, GMBH Unknown device 6804 (rev 10)
-	Flags: bus master, 66MHz, medium devsel, latency 64, IRQ 11
-	Memory at deefe800 (32-bit, non-prefetchable) [size=1K]
-	Capabilities: [44] Power Management version 2
-
-04:05.1 Multimedia controller: JumpTec h, GMBH Unknown device 6805 (rev 10)
-	Flags: bus master, 66MHz, medium devsel, latency 64, IRQ 11
-	Memory at deefec00 (32-bit, non-prefetchable) [size=128]
-	Capabilities: [44] Power Management version 2
-
-04:06.0 Multimedia video controller: JumpTec h, GMBH Unknown device 6804 (rev 10)
-	Flags: bus master, 66MHz, medium devsel, latency 64, IRQ 11
-	Memory at deeff000 (32-bit, non-prefetchable) [size=1K]
-	Capabilities: [44] Power Management version 2
-
-04:06.1 Multimedia controller: JumpTec h, GMBH Unknown device 6805 (rev 10)
-	Flags: bus master, 66MHz, medium devsel, latency 64, IRQ 11
-	Memory at deeff400 (32-bit, non-prefetchable) [size=128]
-	Capabilities: [44] Power Management version 2
-
-04:07.0 Multimedia video controller: JumpTec h, GMBH Unknown device 6804 (rev 10)
-	Flags: bus master, 66MHz, medium devsel, latency 64, IRQ 15
-	Memory at deeff800 (32-bit, non-prefetchable) [size=1K]
-	Capabilities: [44] Power Management version 2
-
-04:07.1 Multimedia controller: JumpTec h, GMBH Unknown device 6805 (rev 10)
-	Flags: bus master, 66MHz, medium devsel, latency 64, IRQ 15
-	Memory at deeffc00 (32-bit, non-prefetchable) [size=128]
-	Capabilities: [44] Power Management version 2
-
-There is some possibility that this card can work in some manner?
-Can you help me?.
-Very very compliments for all your work.
-Bye.
-Vito.
-
+>         /* This doesn't help. See comment in ipu_disable_channel() */
+> -- 
+> 1.6.2.4
 
