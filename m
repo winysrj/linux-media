@@ -1,92 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f222.google.com ([209.85.218.222]:34354 "EHLO
-	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753761AbZE3Joc convert rfc822-to-8bit (ORCPT
+Received: from yx-out-2324.google.com ([74.125.44.28]:47703 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756572AbZEMPBM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 May 2009 05:44:32 -0400
-Received: by bwz22 with SMTP id 22so6567004bwz.37
-        for <linux-media@vger.kernel.org>; Sat, 30 May 2009 02:44:32 -0700 (PDT)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Simon Kenyon <simon@koala.ie>
-Subject: Re: [SOLVED] Re: [linux-dvb] SDMC DM1105N not being detected
-Date: Sat, 30 May 2009 12:44:27 +0300
-References: <e6ac15e50904022156u40221c3fib15d1b4cdf36461@mail.gmail.com> <4A1C4AF1.6020200@koala.ie> <4A1FA9EC.4050405@koala.ie>
-In-Reply-To: <4A1FA9EC.4050405@koala.ie>
-Cc: linux-media@vger.kernel.org
+	Wed, 13 May 2009 11:01:12 -0400
+Received: by yx-out-2324.google.com with SMTP id 3so373053yxj.1
+        for <linux-media@vger.kernel.org>; Wed, 13 May 2009 08:01:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-Content-Type: text/plain;
-  charset="koi8-r"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <200905301244.27490.liplianin@me.by>
+In-Reply-To: <cb69f9670905122313s340492d4qcbe8e91862a50b2c@mail.gmail.com>
+References: <412bdbff0905052114r7f481759r373fd0b814f458e@mail.gmail.com>
+	 <cb69f9670905052347k4117de32lc78290e7356dd14e@mail.gmail.com>
+	 <412bdbff0905060602v135fff12jf76d92510a455272@mail.gmail.com>
+	 <cb69f9670905060803ucce5b66v587f385069adad3f@mail.gmail.com>
+	 <cb69f9670905122313s340492d4qcbe8e91862a50b2c@mail.gmail.com>
+Date: Wed, 13 May 2009 11:01:13 -0400
+Message-ID: <412bdbff0905130801m137423d6l803a2f38b36eb06a@mail.gmail.com>
+Subject: Re: XC5000 improvements: call for testers!
+From: Devin Heitmueller <devin.heitmueller@gmail.com>
+To: kenny wang <smartkenny@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 29 мая 2009, "Igor M. Liplianin" <liplianin@me.by>, linux-media-owner@vger.kernel.org wrote:
-> Simon Kenyon wrote:
-> > Igor M. Liplianin wrote:
-> >> The card is working with external LNB power supply, for example,
-> >> through the loop out from another sat box. So, we need to know, which
-> >> way to control LNB power on the board. Usually it is through GPIO pins.
-> >> For example:
-> >> Pins 112 and 111 for GPIO0, GPIO1. Also GPIO15 is at 65 pin.
-> >> You can edit this lines in code:
-> >> -*-*-*-*-*-*-*-*-*-*-*-*-
-> >> /* GPIO's for LNB power control for Axess DM05 */
-> >> #define DM05_LNB_MASK                           0xfffffffc  // GPIO
-> >> control
-> >> #define DM05_LNB_13V                            0x3fffd // GPIO value
-> >> #define DM05_LNB_18V                            0x3fffc // GPIO value
-> >> -*-*-*-*-*-*-*-*-*-*-*-*-
-> >>
-> >> BTW:
-> >> Bit value 0 for GPIOCTL means output, 1 - input.
-> >> Bit value for GPIOVAL - read/write.
-> >> GPIO pins count is 18. Bits over 18 affect nothing.
-> >
-> > i will try to work out the correct values
-> > when i have done so (or given up trying) i will let you know
-> >
-> > thank you very much for your help
-> > --
-> > simon
+On Wed, May 13, 2009 at 2:13 AM, kenny wang <smartkenny@gmail.com> wrote:
 >
-> well i thought i had sent out the correct information yesterday - but it
-> seems that the email didn't leave my machine
-Hi Simon,
-You forget to add linux-media@vger.kernel.org to recepients list.
+> Hi, Devin
+>
+> I found another problem for my WinTV-HVR-950Q, but I am not sure if it's
+> caused by the device driver: my tvtime sometimes (not often) lost all
+> channels and shows a blue window. Switching channel doesn't take the channel
+> back. I have to close tvtime and open it again, then it works normally.
+> Don't know if it's tvtime's problem. Don't remember if the previous version
+> has the same problem (probably does). And I don't know how to debug it or
+> where to view any log of it.
+>
+> Thanks.
 
-> of well! the correct settings are:
->
-> /* GPIO's for LNB power control for DM05 */
-> #define DM05_LNB_MASK                           0x00000000
-> #define DM05_LNB_13V                            0x00020000
-> #define DM05_LNB_18V                            0x00030000
->
-> with these values the card can control the LNB
-> it locks very quickly and gives good picture results (with kaffeine and
-> mythtv)
-> i am very pleased with this card so far
->
-> i have not tried it behind a diseqc switch yet. i might have a go this
-> weekend
-> that would be the icing on the cake.
->
-> would it be possible to push this into linuxtv.org?
->
-> thanks for your help
-> --
-> simon
->
-> PS by the way, putting a value of 0x00020001 in DM05_LNB_18V crashes the
-> machine - so don't do that :-)
-So, without crashes it is not possible to write drivers :)
+Hello Kenny,
 
-> i found this out when trying to find the correct values
-Thank you for resolving this.
-I will prepair patch for linuxtv to test.
-Then after you test and confirm, I will commit.
+Does the blue screen occur when you switch channels?  Or does it occur
+when you are currently watching a channel?
+
+It's possible there is a problem where the tuning command gets screwed up.
+
+Can you give me an idea how often it occurs?  One time a minute?  One
+time an hour?  One time a day?
+
+And if you could please send me a dump of dmesg the next time it
+happens that would help too.
+
+I suspect this is not related to the xc5000 changes.  It's probably a
+glitch in the original 950q analog work that just hasn't been noticed
+yet.
+
+Devin
 
 -- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+Devin J. Heitmueller
+http://www.devinheitmueller.com
+AIM: devinheitmueller
