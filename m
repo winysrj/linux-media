@@ -1,114 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:48107 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751269AbZETHiq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2009 03:38:46 -0400
-Date: Wed, 20 May 2009 09:38:44 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Darius Augulis <augulis.darius@gmail.com>,
-	Paul Mundt <lethal@linux-sh.org>
-Subject: Re: [PATCH 02/10 v2] ARM: convert pcm037 to the new
-	platform-device soc-camera interface
-Message-ID: <20090520073844.GP9288@pengutronix.de>
-References: <Pine.LNX.4.64.0905151817070.4658@axis700.grange> <Pine.LNX.4.64.0905151824040.4658@axis700.grange>
+Received: from mout.perfora.net ([74.208.4.195]:63055 "EHLO mout.perfora.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760629AbZEMTGT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 May 2009 15:06:19 -0400
+Message-ID: <005f01c9d3fd$e2ee8980$0a00a8c0@vorg>
+From: "Timothy D. Lenz" <tlenz@vorgon.com>
+To: <linux-media@vger.kernel.org>
+References: <412bdbff0905052114r7f481759r373fd0b814f458e@mail.gmail.com> <247D2127-F564-4F55-A49D-3F0F8FA63112@gmail.com> <412bdbff0905061150g2e46f919i57823c8700252926@mail.gmail.com> <B9B32CC0-1CA5-4A89-A0FC-C1770014ED09@gmail.com> <412bdbff0905061410k30d7114dk97cec1cc19c47b2b@mail.gmail.com> <47468C2F-83E4-4359-A1F2-7F59AC6A0E53@gmail.com> <412bdbff0905062055k7cefb714wb496ef48464df99a@mail.gmail.com> <87F5FF15-F869-4FEC-946B-C4D6D0C9506E@gmail.com> <829197380905121356y1d76d73eu4738e3e926c11d27@mail.gmail.com>
+Subject: Re: XC5000 improvements: call for testers!
+Date: Wed, 13 May 2009 12:04:20 -0700
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0905151824040.4658@axis700.grange>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 15, 2009 at 07:19:10PM +0200, Guennadi Liakhovetski wrote:
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
-> 
-> This is actually a completion to the other single patches I've sent 
-> earlier for various boards. As I said, pcm037 doesn't have all its 
-> outstanding patches in next yet, so, you'll need to collect them from 
-> trees / lists, or get them when I upload them.
 
-As I haven't got camera support for pcm037 in my tree yet, you can
-combine this with the patch which adds camera support. How are we going
-to sync this with the according changes to soc-camera?
+----- Original Message ----- 
+From: "Devin Heitmueller" <dheitmueller@kernellabs.com>
+To: "Britney Fransen" <britney.fransen@gmail.com>
+Cc: "Devin Heitmueller" <devin.heitmueller@gmail.com>; "Linux Media Mailing List" <linux-media@vger.kernel.org>
+Sent: Tuesday, May 12, 2009 1:56 PM
+Subject: Re: XC5000 improvements: call for testers!
 
-Sascha
 
+> On Tue, May 12, 2009 at 4:50 PM, Britney Fransen
+> <britney.fransen@gmail.com> wrote:
+> > I finally had some time to do some more testing with the beta2 tree and I
+> > think most of the issues I had were user error. Not exactly sure what I did
+> > wrong before but I am not seeing the reception issues or any regressions on
+> > the digital side anymore. I think why I thought I was seeing QAM64 was
+> > because I was using the wrong tuner. With the beta2 tree my 950q is now
+> > adapter1, before it was always adapter2. That could be part of what I
+> > thought was the reception regression as well.
+> >
+> > Thanks,
+> > Britney
 > 
->  arch/arm/mach-mx3/pcm037.c |   26 ++++++++++++++++++--------
->  1 files changed, 18 insertions(+), 8 deletions(-)
+> Hello Britney,
 > 
-> diff --git a/arch/arm/mach-mx3/pcm037.c b/arch/arm/mach-mx3/pcm037.c
-> index bfa814d..af49f03 100644
-> --- a/arch/arm/mach-mx3/pcm037.c
-> +++ b/arch/arm/mach-mx3/pcm037.c
-> @@ -293,9 +293,18 @@ static int pcm037_camera_power(struct device *dev, int on)
->  	return 0;
->  }
->  
-> +static struct i2c_board_info pcm037_i2c_2_devices[] = {
-> +	{
-> +		I2C_BOARD_INFO("mt9t031", 0x5d),
-> +	},
-> +};
-> +
->  static struct soc_camera_link iclink = {
-> -	.bus_id	= 0,			/* Must match with the camera ID */
-> -	.power = pcm037_camera_power,
-> +	.bus_id		= 0,		/* Must match with the camera ID */
-> +	.power		= pcm037_camera_power,
-> +	.board_info	= &pcm037_i2c_2_devices[0],
-> +	.i2c_adapter_id	= 2,
-> +	.module_name	= "mt9t031",
->  };
->  
->  static struct i2c_board_info pcm037_i2c_devices[] = {
-> @@ -308,9 +317,10 @@ static struct i2c_board_info pcm037_i2c_devices[] = {
->  	}
->  };
->  
-> -static struct i2c_board_info pcm037_i2c_2_devices[] = {
-> -	{
-> -		I2C_BOARD_INFO("mt9t031", 0x5d),
-> +static struct platform_device pcm037_camera = {
-> +	.name	= "soc-camera-pdrv",
-> +	.id	= 0,
-> +	.dev	= {
->  		.platform_data = &iclink,
->  	},
->  };
-> @@ -390,6 +400,9 @@ static struct platform_device *devices[] __initdata = {
->  	&pcm037_flash,
->  	&pcm037_eth,
->  	&pcm037_sram_device,
-> +#if defined(CONFIG_I2C_IMX) || defined(CONFIG_I2C_IMX_MODULE)
-> +	&pcm037_camera,
-> +#endif
->  };
->  
->  static struct ipu_platform_data mx3_ipu_data = {
-> @@ -447,9 +460,6 @@ static void __init mxc_board_init(void)
->  	i2c_register_board_info(1, pcm037_i2c_devices,
->  			ARRAY_SIZE(pcm037_i2c_devices));
->  
-> -	i2c_register_board_info(2, pcm037_i2c_2_devices,
-> -			ARRAY_SIZE(pcm037_i2c_2_devices));
-> -
->  	mxc_register_device(&mxc_i2c_device1, &pcm037_i2c_1_data);
->  	mxc_register_device(&mxc_i2c_device2, &pcm037_i2c_2_data);
->  #endif
+> Thank you for taking the time to isolate/debug the situation.  The
+> changes should have no effect on the order of adapter1/adapter2.
+> Could have just been a coincidence or the order in which you plugged
+> in the devices compared to what they usually are at boot time.
+> 
+> Glad to see that there are no longer any issues.  Once I get one
+> outstanding Pinnacle 800i fix in, I will issue a PULL request and this
+> will go into the mainline.
+> 
+> Cheers,
+> 
+> Devin
+> 
 > -- 
-> 1.6.2.4
-> 
-> 
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+
+So when this goes main, next time we update from v4l we need the new firmware right?
