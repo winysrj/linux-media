@@ -1,115 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2921 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753174AbZEYR6Q (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.237]:29242 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758205AbZEMTYw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 May 2009 13:58:16 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id n4PHwGgc051067
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 25 May 2009 19:58:17 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 25 May 2009 19:58:16 +0200 (CEST)
-Message-Id: <200905251758.n4PHwGgc051067@smtp-vbr12.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Wed, 13 May 2009 15:24:52 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so523101rvb.1
+        for <linux-media@vger.kernel.org>; Wed, 13 May 2009 12:24:53 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <005f01c9d3fd$e2ee8980$0a00a8c0@vorg>
+References: <412bdbff0905052114r7f481759r373fd0b814f458e@mail.gmail.com>
+	 <247D2127-F564-4F55-A49D-3F0F8FA63112@gmail.com>
+	 <412bdbff0905061150g2e46f919i57823c8700252926@mail.gmail.com>
+	 <B9B32CC0-1CA5-4A89-A0FC-C1770014ED09@gmail.com>
+	 <412bdbff0905061410k30d7114dk97cec1cc19c47b2b@mail.gmail.com>
+	 <47468C2F-83E4-4359-A1F2-7F59AC6A0E53@gmail.com>
+	 <412bdbff0905062055k7cefb714wb496ef48464df99a@mail.gmail.com>
+	 <87F5FF15-F869-4FEC-946B-C4D6D0C9506E@gmail.com>
+	 <829197380905121356y1d76d73eu4738e3e926c11d27@mail.gmail.com>
+	 <005f01c9d3fd$e2ee8980$0a00a8c0@vorg>
+Date: Wed, 13 May 2009 15:24:53 -0400
+Message-ID: <829197380905131224j7a709160jaeca4f21566e5ae7@mail.gmail.com>
+Subject: Re: XC5000 improvements: call for testers!
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: "Timothy D. Lenz" <tlenz@vorgon.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Wed, May 13, 2009 at 3:04 PM, Timothy D. Lenz <tlenz@vorgon.com> wrote:
+> So when this goes main, next time we update from v4l we need the new firmware right?
 
-Results of the daily build of v4l-dvb:
+Yes.
 
-date:        Mon May 25 19:00:05 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11850:e602721afe61
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Now that we have the licensing straightened out, I'll also be working
+on getting it bundled into the distros so that users don't have to
+download the firmware themselves.  They will get a true "plug and
+play" experience.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-rc7-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-rc7-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-rc7-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-rc7-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-rc7-m32r: OK
-linux-2.6.22.19-mips: ERRORS
-linux-2.6.26-mips: ERRORS
-linux-2.6.27-mips: ERRORS
-linux-2.6.28-mips: ERRORS
-linux-2.6.29.1-mips: ERRORS
-linux-2.6.30-rc7-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-rc7-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-rc7-x86_64: WARNINGS
-sparse (linux-2.6.29.1): OK
-sparse (linux-2.6.30-rc7): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+Cheers,
 
-Detailed results are available here:
+Devin
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
