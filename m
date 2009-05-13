@@ -1,28 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp0.lie-comtel.li ([217.173.238.80]:58048 "EHLO
-	smtp0.lie-comtel.li" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755544AbZEALzU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 May 2009 07:55:20 -0400
-Message-ID: <49FAE326.7060902@kaiser-linux.li>
-Date: Fri, 01 May 2009 13:55:18 +0200
-From: Thomas Kaiser <v4l@kaiser-linux.li>
+Received: from mail-bw0-f222.google.com ([209.85.218.222]:64245 "EHLO
+	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751051AbZEMVxV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 May 2009 17:53:21 -0400
+Received: by bwz22 with SMTP id 22so924149bwz.37
+        for <linux-media@vger.kernel.org>; Wed, 13 May 2009 14:53:21 -0700 (PDT)
+Message-ID: <4A0B414D.5000106@googlemail.com>
+Date: Wed, 13 May 2009 23:53:17 +0200
+From: e9hack <e9hack@googlemail.com>
 MIME-Version: 1.0
-To: Wolfram Sang <w.sang@pengutronix.de>
-CC: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	linux-media@vger.kernel.org
-Subject: Re: Donating a mr97310 based elta-media 8212dc (0x093a:0x010e)
-References: <20090430022847.GA15183@pengutronix.de> <alpine.LNX.2.00.0904300953330.21567@banach.math.auburn.edu> <20090501084729.GB6941@pengutronix.de>
-In-Reply-To: <20090501084729.GB6941@pengutronix.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: linux-media@vger.kernel.org
+CC: Oliver Endriss <o.endriss@gmx.de>
+Subject: BUG in av7110_vbi_write()
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/01/2009 10:47 AM, Wolfram Sang wrote:
-> Thomas, is it okay for you, if I leave this to you?
+Hi,
 
-Yes, I sent you my post address in private mail.
-Lets see what I can find out with this cam ;-)
+it seems there is a bug in av7110_vbi_write() (av7110_v4l.c). If an user mode application
+tries to write more bytes than the size of the structure v4l2_slices_vbi_data,
+copy_from_user() will overwrite parts of the kernel stack.
 
-Thomas
-
+Regards,
+Hartmut
