@@ -1,48 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110812.mail.gq1.yahoo.com ([67.195.13.235]:26527 "HELO
-	web110812.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751512AbZENT1P (ORCPT
+Received: from zone0.gcu-squad.org ([212.85.147.21]:9198 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759948AbZEMTwu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 May 2009 15:27:15 -0400
-Message-ID: <759177.40329.qm@web110812.mail.gq1.yahoo.com>
-Date: Thu, 14 May 2009 12:27:16 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [0905_11] Siano: smsusb - add big endien support
-To: LinuxML <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	Wed, 13 May 2009 15:52:50 -0400
+Date: Wed, 13 May 2009 21:52:44 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Andy Walls <awalls@radix.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Mike Isely <isely@pobox.com>
+Subject: [PATCH 6/8] saa7134: Simplify handling of IR on AVerMedia Cardbus
+ E506R
+Message-ID: <20090513215244.0860aca1@hyperion.delvare>
+In-Reply-To: <20090513214559.0f009231@hyperion.delvare>
+References: <20090513214559.0f009231@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Now that we instantiate I2C IR devices explicitly, we can skip probing
+altogether on boards where the I2C IR device address is known. The
+AVerMedia Cardbus E506R is one of these boards.
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1242323662 -10800
-# Node ID 483a3656a227acbceb26da96b02bebd0058a3961
-# Parent  f93a86c6f9785cb60e015e811ddfca6850135887
-[0905_11] Siano: smsusb - add big endien support
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Tested-by: Oldrich Jedlicka <oldium.pro@seznam.cz>
+---
+ linux/drivers/media/video/saa7134/saa7134-input.c |   33 +++------------------
+ 1 file changed, 5 insertions(+), 28 deletions(-)
 
-From: Uri Shkolnik <uris@siano-ms.com>
-
-Add support for big endien target hosts, which
-use USB interface.
-
-Priority: normal
-
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-
-diff -r f93a86c6f978 -r 483a3656a227 linux/drivers/media/dvb/siano/smsusb.c
---- a/linux/drivers/media/dvb/siano/smsusb.c	Thu May 14 20:49:10 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smsusb.c	Thu May 14 20:54:22 2009 +0300
-@@ -78,6 +78,7 @@ static void smsusb_onresponse(struct urb
- 	if ((urb->actual_length > 0) && (urb->status == 0)) {
- 		struct SmsMsgHdr_ST *phdr = (struct SmsMsgHdr_ST *)surb->cb->p;
+--- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-input.c	2009-04-30 10:38:49.000000000 +0200
++++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-input.c	2009-04-30 10:39:10.000000000 +0200
+@@ -702,20 +702,6 @@ void saa7134_probe_i2c_ir(struct saa7134
+ 		.buf = NULL,
+ 	};
  
-+		smsendian_handle_message_header(phdr);
- 		if (urb->actual_length >= phdr->msgLength) {
- 			surb->cb->size = phdr->msgLength;
+-	unsigned char subaddr, data;
+-	struct i2c_msg msg_avermedia[] = { {
+-		.addr = 0x40,
+-		.flags = 0,
+-		.len = 1,
+-		.buf = &subaddr,
+-	}, {
+-		.addr = 0x40,
+-		.flags = I2C_M_RD,
+-		.len = 1,
+-		.buf = &data,
+-	} };
+-
+-	struct i2c_client *client;
+ 	int rc;
  
+ 	if (disable_ir) {
+@@ -779,6 +765,10 @@ void saa7134_probe_i2c_ir(struct saa7134
+ 		init_data.get_key = get_key_beholdm6xx;
+ 		init_data.ir_codes = ir_codes_behold;
+ 		break;
++	case SAA7134_BOARD_AVERMEDIA_CARDBUS_501:
++	case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
++		info.addr = 0x40;
++		break;
+ 	}
+ 
+ 	if (init_data.name)
+@@ -790,20 +780,7 @@ void saa7134_probe_i2c_ir(struct saa7134
+ 	}
+ 
+ 	/* Address not known, fallback to probing */
+-	client = i2c_new_probed_device(&dev->i2c_adap, &info, addr_list);
+-	if (client)
+-		return;
+-
+-	/* Special case for AVerMedia Cardbus remote */
+-	subaddr = 0x0d;
+-	rc = i2c_transfer(&dev->i2c_adap, msg_avermedia, 2);
+-	dprintk(KERN_DEBUG "probe 0x%02x/0x%02x @ %s: %s\n",
+-		msg_avermedia[0].addr, subaddr, dev->i2c_adap.name,
+-		(2 == rc) ? "yes" : "no");
+-	if (2 == rc) {
+-		info.addr = msg_avermedia[0].addr;
+-		i2c_new_device(&dev->i2c_adap, &info);
+-	}
++	i2c_new_probed_device(&dev->i2c_adap, &info, addr_list);
+ }
+ 
+ static int saa7134_rc5_irq(struct saa7134_dev *dev)
 
-
-
-      
+-- 
+Jean Delvare
