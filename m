@@ -1,43 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:41516 "EHLO
-	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752665AbZESDFj (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:41801 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751202AbZEMGYI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 May 2009 23:05:39 -0400
-Date: Tue, 19 May 2009 12:05:37 +0900
-From: Paul Mundt <lethal@linux-sh.org>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Darius Augulis <augulis.darius@gmail.com>
-Subject: Re: [PATCH 00/10 v2] soc-camera conversions
-Message-ID: <20090519030536.GA20195@linux-sh.org>
-References: <Pine.LNX.4.64.0905151817070.4658@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0905151817070.4658@axis700.grange>
+	Wed, 13 May 2009 02:24:08 -0400
+Date: Tue, 12 May 2009 23:22:12 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: linux-media@vger.kernel.org
+Cc: Marc Haber <mh+linux-kernel@zugschlus.de>
+Subject: Fw: tua6100_sleep: i2c error when trying to tune saa7146 based  DVB
+ card
+Message-Id: <20090512232212.6739ca15.akpm@linux-foundation.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 15, 2009 at 07:18:45PM +0200, Guennadi Liakhovetski wrote:
-> this is the next round of soc-camera conversions. Run-tested on i.MX31, 
-> PXA270, SH7722, compile-tested only for i.MX1. It should have been a 
-> "straight-forward" port of the previous version to a more current tree, 
-> but then I started converting soc_camera_platform, and things became a bit 
-> more complex... As a bonus, now soc-camera can handle not only i2c 
-> subdevices, and we can even drop the CONFIG_I2C dependency again. I'll 
-> also upload a comlpete stack somewhere a bit later, for example for those, 
-> wishing to test it on i.MX31, otherwise the series will not apply cleanly. 
-> 
-> I'd like to push the first 8 of them asap, 9 and 10 will still have to be 
-> reworked
-> 
-> Paul, I put you on "cc" on all patches, because, unfortunately, several of 
-> them affect arch/sh. But I'll mention it explicitly in each such patch.
-> 
-Looks ok to me, there shouldn't be any problems with taking these all
-through the v4l tree. Feel free to add my Acked-by if you like. I guess
-we will find out in -next if there are any conflicts or not :-)
+
+
+Begin forwarded message:
+
+Date: Tue, 12 May 2009 09:42:35 +0200
+From: Marc Haber <mh+linux-kernel@zugschlus.de>
+To: linux-kernel@vger.kernel.org
+Subject: tua6100_sleep: i2c error when trying to tune saa7146 based  DVB card
+
+
+Recently, my entertainment PC has begun to refuse tuning to my
+favorite stations, logging "tua6100_sleep: i2c error" when I try to do
+so. Kaffeine says "can't tune DVB".
+
+Other stations work just fine.
+
+The box has a saa7146 equipped budget DVB-S card which used to work
+fine previously. I have first seen this behavior in kernel 2.6.29, and
+still see it in 2.6.29.3.
+
+If you need any more data, please ask and I'll try to deliver it.
+
+Greetings
+Marc
+
+-- 
+-----------------------------------------------------------------------------
+Marc Haber         | "I don't trust Computers. They | Mailadresse im Header
+Mannheim, Germany  |  lose things."    Winona Ryder | Fon: *49 621 72739834
+Nordisch by Nature |  How to make an American Quilt | Fax: *49 3221 2323190
+--
+To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please read the FAQ at  http://www.tux.org/lkml/
