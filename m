@@ -1,237 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:42325 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752315AbZEKK3J (ORCPT
+Received: from zone0.gcu-squad.org ([212.85.147.21]:39231 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751051AbZEMTsN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 May 2009 06:29:09 -0400
-Date: Mon, 11 May 2009 07:29:04 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Uri Shkolnik <urishk@yahoo.com>
-Cc: LinuxML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] [0904_7_2] Siano: smsdvb - purge whitespaces
-Message-ID: <20090511072904.7bfff5c3@pedra.chehab.org>
-In-Reply-To: <892743.18087.qm@web110803.mail.gq1.yahoo.com>
-References: <892743.18087.qm@web110803.mail.gq1.yahoo.com>
+	Wed, 13 May 2009 15:48:13 -0400
+Date: Wed, 13 May 2009 21:48:07 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Andy Walls <awalls@radix.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Mike Isely <isely@pobox.com>
+Subject: [PATCH 1/8] ir-kbd-i2c: Don't use i2c_client.name for our own needs
+Message-ID: <20090513214807.5f5707af@hyperion.delvare>
+In-Reply-To: <20090513214559.0f009231@hyperion.delvare>
+References: <20090513214559.0f009231@hyperion.delvare>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 27 Apr 2009 05:11:27 -0700 (PDT)
-Uri Shkolnik <urishk@yahoo.com> escreveu:
+In the standard device driver binding model, the name field of
+struct i2c_client is used to match devices to their drivers, so we
+must stop using it for internal purposes. Define a separate field
+in struct IR_i2c as a replacement, and use it.
 
-> 
-> # HG changeset patch
-> # User Uri Shkolnik <uris@siano-ms.com>
-> # Date 1240833806 -10800
-> # Node ID cbd828b0fe102fa023280cfeadbcb20b54a39a47
-> # Parent  39bbe3b24abaaa3e049a855cb51be0b917b0c711
-> Siano: smsdvb - whitespace cleanup
-> 
-> From: Uri Shkolnik <uris@siano-ms.com>
-> 
-> Whitespace cleanup, no implementation changes
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ linux/drivers/media/video/cx231xx/cx231xx-input.c |    2 +-
+ linux/drivers/media/video/em28xx/em28xx-cards.c   |    6 +++---
+ linux/drivers/media/video/em28xx/em28xx-input.c   |    2 +-
+ linux/drivers/media/video/ir-kbd-i2c.c            |    5 +++--
+ linux/drivers/media/video/saa7134/saa7134-input.c |   12 ++++++------
+ linux/include/media/ir-kbd-i2c.h                  |    1 +
+ 6 files changed, 15 insertions(+), 13 deletions(-)
 
-This patch didn't apply. Probably, it were applied out of order. The other
-Siano patches I had were already applied. Please check if I forgot something.
+--- v4l-dvb.orig/linux/drivers/media/video/cx231xx/cx231xx-input.c	2009-04-24 11:45:21.000000000 +0200
++++ v4l-dvb/linux/drivers/media/video/cx231xx/cx231xx-input.c	2009-04-29 14:30:32.000000000 +0200
+@@ -37,7 +37,7 @@ MODULE_PARM_DESC(ir_debug, "enable debug
+ 
+ #define i2cdprintk(fmt, arg...) \
+ 	if (ir_debug) { \
+-		printk(KERN_DEBUG "%s/ir: " fmt, ir->c.name , ## arg); \
++		printk(KERN_DEBUG "%s/ir: " fmt, ir->name , ## arg); \
+ 	}
+ 
+ #define dprintk(fmt, arg...) \
+--- v4l-dvb.orig/linux/drivers/media/video/em28xx/em28xx-cards.c	2009-04-24 11:45:21.000000000 +0200
++++ v4l-dvb/linux/drivers/media/video/em28xx/em28xx-cards.c	2009-04-29 14:30:32.000000000 +0200
+@@ -1948,19 +1948,19 @@ void em28xx_set_ir(struct em28xx *dev, s
+ 	case (EM2820_BOARD_TERRATEC_CINERGY_250):
+ 		ir->ir_codes = ir_codes_em_terratec;
+ 		ir->get_key = em28xx_get_key_terratec;
+-		snprintf(ir->c.name, sizeof(ir->c.name),
++		snprintf(ir->name, sizeof(ir->name),
+ 			 "i2c IR (EM28XX Terratec)");
+ 		break;
+ 	case (EM2820_BOARD_PINNACLE_USB_2):
+ 		ir->ir_codes = ir_codes_pinnacle_grey;
+ 		ir->get_key = em28xx_get_key_pinnacle_usb_grey;
+-		snprintf(ir->c.name, sizeof(ir->c.name),
++		snprintf(ir->name, sizeof(ir->name),
+ 			 "i2c IR (EM28XX Pinnacle PCTV)");
+ 		break;
+ 	case (EM2820_BOARD_HAUPPAUGE_WINTV_USB_2):
+ 		ir->ir_codes = ir_codes_hauppauge_new;
+ 		ir->get_key = em28xx_get_key_em_haup;
+-		snprintf(ir->c.name, sizeof(ir->c.name),
++		snprintf(ir->name, sizeof(ir->name),
+ 			 "i2c IR (EM2840 Hauppauge)");
+ 		break;
+ 	case (EM2820_BOARD_MSI_VOX_USB_2):
+--- v4l-dvb.orig/linux/drivers/media/video/em28xx/em28xx-input.c	2009-04-24 11:45:21.000000000 +0200
++++ v4l-dvb/linux/drivers/media/video/em28xx/em28xx-input.c	2009-04-29 14:30:32.000000000 +0200
+@@ -41,7 +41,7 @@ MODULE_PARM_DESC(ir_debug, "enable debug
+ 
+ #define i2cdprintk(fmt, arg...) \
+ 	if (ir_debug) { \
+-		printk(KERN_DEBUG "%s/ir: " fmt, ir->c.name , ## arg); \
++		printk(KERN_DEBUG "%s/ir: " fmt, ir->name , ## arg); \
+ 	}
+ 
+ #define dprintk(fmt, arg...) \
+--- v4l-dvb.orig/linux/drivers/media/video/ir-kbd-i2c.c	2009-04-24 11:45:21.000000000 +0200
++++ v4l-dvb/linux/drivers/media/video/ir-kbd-i2c.c	2009-04-29 14:30:32.000000000 +0200
+@@ -346,6 +346,7 @@ static int ir_attach(struct i2c_adapter
+ 
+ 	ir->c.adapter = adap;
+ 	ir->c.addr    = addr;
++	snprintf(ir->c.name, sizeof(ir->c.name), "ir-kbd");
+ 
+ 	i2c_set_clientdata(&ir->c, ir);
+ 
+@@ -419,7 +420,7 @@ static int ir_attach(struct i2c_adapter
+ 	}
+ 
+ 	/* Sets name */
+-	snprintf(ir->c.name, sizeof(ir->c.name), "i2c IR (%s)", name);
++	snprintf(ir->name, sizeof(ir->name), "i2c IR (%s)", name);
+ 	ir->ir_codes = ir_codes;
+ 
+ 	/* register i2c device
+@@ -444,7 +445,7 @@ static int ir_attach(struct i2c_adapter
+ 	/* init + register input device */
+ 	ir_input_init(input_dev, &ir->ir, ir_type, ir->ir_codes);
+ 	input_dev->id.bustype = BUS_I2C;
+-	input_dev->name       = ir->c.name;
++	input_dev->name       = ir->name;
+ 	input_dev->phys       = ir->phys;
+ 
+ 	err = input_register_device(ir->input);
+--- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-input.c	2009-04-29 14:30:29.000000000 +0200
++++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-input.c	2009-04-29 14:30:32.000000000 +0200
+@@ -60,7 +60,7 @@ MODULE_PARM_DESC(disable_other_ir, "disa
+ #define dprintk(fmt, arg...)	if (ir_debug) \
+ 	printk(KERN_DEBUG "%s/ir: " fmt, dev->name , ## arg)
+ #define i2cdprintk(fmt, arg...)    if (ir_debug) \
+-	printk(KERN_DEBUG "%s/ir: " fmt, ir->c.name , ## arg)
++	printk(KERN_DEBUG "%s/ir: " fmt, ir->name , ## arg)
+ 
+ /* Helper functions for RC5 and NEC decoding at GPIO16 or GPIO18 */
+ static int saa7134_rc5_irq(struct saa7134_dev *dev);
+@@ -697,7 +697,7 @@ void saa7134_set_i2c_ir(struct saa7134_d
+ 	switch (dev->board) {
+ 	case SAA7134_BOARD_PINNACLE_PCTV_110i:
+ 	case SAA7134_BOARD_PINNACLE_PCTV_310i:
+-		snprintf(ir->c.name, sizeof(ir->c.name), "Pinnacle PCTV");
++		snprintf(ir->name, sizeof(ir->name), "Pinnacle PCTV");
+ 		if (pinnacle_remote == 0) {
+ 			ir->get_key   = get_key_pinnacle_color;
+ 			ir->ir_codes = ir_codes_pinnacle_color;
+@@ -707,17 +707,17 @@ void saa7134_set_i2c_ir(struct saa7134_d
+ 		}
+ 		break;
+ 	case SAA7134_BOARD_UPMOST_PURPLE_TV:
+-		snprintf(ir->c.name, sizeof(ir->c.name), "Purple TV");
++		snprintf(ir->name, sizeof(ir->name), "Purple TV");
+ 		ir->get_key   = get_key_purpletv;
+ 		ir->ir_codes  = ir_codes_purpletv;
+ 		break;
+ 	case SAA7134_BOARD_MSI_TVATANYWHERE_PLUS:
+-		snprintf(ir->c.name, sizeof(ir->c.name), "MSI TV@nywhere Plus");
++		snprintf(ir->name, sizeof(ir->name), "MSI TV@nywhere Plus");
+ 		ir->get_key  = get_key_msi_tvanywhere_plus;
+ 		ir->ir_codes = ir_codes_msi_tvanywhere_plus;
+ 		break;
+ 	case SAA7134_BOARD_HAUPPAUGE_HVR1110:
+-		snprintf(ir->c.name, sizeof(ir->c.name), "HVR 1110");
++		snprintf(ir->name, sizeof(ir->name), "HVR 1110");
+ 		ir->get_key   = get_key_hvr1110;
+ 		ir->ir_codes  = ir_codes_hauppauge_new;
+ 		break;
+@@ -733,7 +733,7 @@ void saa7134_set_i2c_ir(struct saa7134_d
+ 	case SAA7134_BOARD_BEHOLD_M63:
+ 	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
+ 	case SAA7134_BOARD_BEHOLD_H6:
+-		snprintf(ir->c.name, sizeof(ir->c.name), "BeholdTV");
++		snprintf(ir->name, sizeof(ir->name), "BeholdTV");
+ 		ir->get_key   = get_key_beholdm6xx;
+ 		ir->ir_codes  = ir_codes_behold;
+ 		break;
+--- v4l-dvb.orig/linux/include/media/ir-kbd-i2c.h	2009-04-24 11:45:21.000000000 +0200
++++ v4l-dvb/linux/include/media/ir-kbd-i2c.h	2009-04-29 14:30:32.000000000 +0200
+@@ -15,6 +15,7 @@ struct IR_i2c {
+ 	unsigned char          old;
+ 
+ 	struct delayed_work    work;
++	char                   name[32];
+ 	char                   phys[32];
+ 	int                    (*get_key)(struct IR_i2c*, u32*, u32*);
+ };
 
-> 
-> Priority: normal
-> 
-> Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-> 
-> diff -r 39bbe3b24aba -r cbd828b0fe10 linux/drivers/media/dvb/siano/smsdvb.c
-> --- a/linux/drivers/media/dvb/siano/smsdvb.c	Mon Apr 27 14:43:28 2009 +0300
-> +++ b/linux/drivers/media/dvb/siano/smsdvb.c	Mon Apr 27 15:03:26 2009 +0300
-> @@ -33,15 +33,15 @@ struct smsdvb_client_t {
->  	struct smscore_device_t *coredev;
->  	struct smscore_client_t *smsclient;
->  
-> -	struct dvb_adapter      adapter;
-> -	struct dvb_demux        demux;
-> -	struct dmxdev           dmxdev;
-> -	struct dvb_frontend     frontend;
-> +	struct dvb_adapter adapter;
-> +	struct dvb_demux demux;
-> +	struct dmxdev dmxdev;
-> +	struct dvb_frontend frontend;
->  
-> -	fe_status_t             fe_status;
-> -	int                     fe_ber, fe_snr, fe_unc, fe_signal_strength;
-> +	fe_status_t fe_status;
-> +	int fe_ber, fe_snr, fe_unc, fe_signal_strength;
->  
-> -	struct completion       tune_done, stat_done;
-> +	struct completion tune_done, stat_done;
->  
->  	/* todo: save freq/band instead whole struct */
->  	struct dvb_frontend_parameters fe_params;
-> @@ -61,7 +61,7 @@ static int smsdvb_onresponse(void *conte
->  	struct smsdvb_client_t *client = (struct smsdvb_client_t *) context;
->  	struct SmsMsgHdr_ST *phdr = (struct SmsMsgHdr_ST *) (((u8 *) cb->p)
->  			+ cb->offset);
-> -	u32 *pMsgData = (u32 *)phdr+1;
-> +	u32 *pMsgData = (u32 *) phdr + 1;
->  	/*u32 MsgDataLen = phdr->msgLength - sizeof(struct SmsMsgHdr_ST);*/
->  
->  	/*smsendian_handle_rx_message((struct SmsMsgData_ST *) phdr);*/
-> @@ -177,8 +177,8 @@ static int smsdvb_onresponse(void *conte
->  
->  	if (client->fe_status & FE_HAS_LOCK)
->  		sms_board_led_feedback(client->coredev,
-> -				       (client->fe_unc == 0) ?
-> -				       SMS_LED_HI : SMS_LED_LO);
-> +				(client->fe_unc == 0) ?
-> +				SMS_LED_HI : SMS_LED_LO);
->  	else
->  		sms_board_led_feedback(client->coredev, SMS_LED_OFF);
->  
-> @@ -203,7 +203,7 @@ static void smsdvb_onremove(void *contex
->  {
->  	kmutex_lock(&g_smsdvb_clientslock);
->  
-> -	smsdvb_unregister_client((struct smsdvb_client_t *) context);
-> +	smsdvb_unregister_client((struct smsdvb_client_t *)context);
->  
->  	kmutex_unlock(&g_smsdvb_clientslock);
->  }
-> @@ -214,13 +214,12 @@ static int smsdvb_start_feed(struct dvb_
->  		container_of(feed->demux, struct smsdvb_client_t, demux);
->  	struct SmsMsgData_ST PidMsg;
->  
-> -	sms_debug("add pid %d(%x)",
-> -		  feed->pid, feed->pid);
-> +	sms_debug("add pid %d(%x)", feed->pid, feed->pid);
->  
->  	PidMsg.xMsgHeader.msgSrcId = DVBT_BDA_CONTROL_MSG_ID;
->  	PidMsg.xMsgHeader.msgDstId = HIF_TASK;
->  	PidMsg.xMsgHeader.msgFlags = 0;
-> -	PidMsg.xMsgHeader.msgType  = MSG_SMS_ADD_PID_FILTER_REQ;
-> +	PidMsg.xMsgHeader.msgType = MSG_SMS_ADD_PID_FILTER_REQ;
->  	PidMsg.xMsgHeader.msgLength = sizeof(PidMsg);
->  	PidMsg.msgData[0] = feed->pid;
->  
-> @@ -234,31 +233,31 @@ static int smsdvb_stop_feed(struct dvb_d
->  		container_of(feed->demux, struct smsdvb_client_t, demux);
->  	struct SmsMsgData_ST PidMsg;
->  
-> -	sms_debug("remove pid %d(%x)",
-> -		  feed->pid, feed->pid);
-> +	sms_debug("remove pid %d(%x)", feed->pid, feed->pid);
->  
->  	PidMsg.xMsgHeader.msgSrcId = DVBT_BDA_CONTROL_MSG_ID;
->  	PidMsg.xMsgHeader.msgDstId = HIF_TASK;
->  	PidMsg.xMsgHeader.msgFlags = 0;
-> -	PidMsg.xMsgHeader.msgType  = MSG_SMS_REMOVE_PID_FILTER_REQ;
-> +	PidMsg.xMsgHeader.msgType = MSG_SMS_REMOVE_PID_FILTER_REQ;
->  	PidMsg.xMsgHeader.msgLength = sizeof(PidMsg);
->  	PidMsg.msgData[0] = feed->pid;
->  
-> -	return smsclient_sendrequest(client->smsclient,
-> -				     &PidMsg, sizeof(PidMsg));
-> +	return smsclient_sendrequest(client->smsclient, &PidMsg,
-> +			sizeof(PidMsg));
->  }
->  
->  static int smsdvb_sendrequest_and_wait(struct smsdvb_client_t *client,
-> -					void *buffer, size_t size,
-> -					struct completion *completion)
-> +				       void *buffer, size_t size,
-> +				       struct completion *completion)
->  {
-> -	int rc = smsclient_sendrequest(client->smsclient, buffer, size);
-> +	int rc;
-> +
-> +	rc = smsclient_sendrequest(client->smsclient, buffer, size);
->  	if (rc < 0)
->  		return rc;
->  
-> -	return wait_for_completion_timeout(completion,
-> -					   msecs_to_jiffies(2000)) ?
-> -						0 : -ETIME;
-> +	return wait_for_completion_timeout(completion, msecs_to_jiffies(2000))
-> +			? 0 : -ETIME;
->  }
->  
->  static int smsdvb_read_status(struct dvb_frontend *fe, fe_status_t *stat)
-> @@ -333,18 +332,18 @@ static int smsdvb_set_frontend(struct dv
->  			       struct dvb_frontend_parameters *fep)
->  {
->  	struct smsdvb_client_t *client =
-> -		container_of(fe, struct smsdvb_client_t, frontend);
-> +	container_of(fe, struct smsdvb_client_t, frontend);
->  
->  	struct {
-> -		struct SmsMsgHdr_ST	Msg;
-> -		u32		Data[3];
-> +		struct SmsMsgHdr_ST Msg;
-> +		u32 Data[3];
->  	} Msg;
->  	int ret;
->  
-> -	Msg.Msg.msgSrcId  = DVBT_BDA_CONTROL_MSG_ID;
-> -	Msg.Msg.msgDstId  = HIF_TASK;
-> -	Msg.Msg.msgFlags  = 0;
-> -	Msg.Msg.msgType   = MSG_SMS_RF_TUNE_REQ;
-> +	Msg.Msg.msgSrcId = DVBT_BDA_CONTROL_MSG_ID;
-> +	Msg.Msg.msgDstId = HIF_TASK;
-> +	Msg.Msg.msgFlags = 0;
-> +	Msg.Msg.msgType = MSG_SMS_RF_TUNE_REQ;
->  	Msg.Msg.msgLength = sizeof(Msg);
->  	Msg.Data[0] = fep->frequency;
->  	Msg.Data[2] = 12000000;
-> @@ -353,14 +352,24 @@ static int smsdvb_set_frontend(struct dv
->  		  fep->frequency, fep->u.ofdm.bandwidth);
->  
->  	switch (fep->u.ofdm.bandwidth) {
-> -	case BANDWIDTH_8_MHZ: Msg.Data[1] = BW_8_MHZ; break;
-> -	case BANDWIDTH_7_MHZ: Msg.Data[1] = BW_7_MHZ; break;
-> -	case BANDWIDTH_6_MHZ: Msg.Data[1] = BW_6_MHZ; break;
-> +	case BANDWIDTH_8_MHZ:
-> +		Msg.Data[1] = BW_8_MHZ;
-> +		break;
-> +	case BANDWIDTH_7_MHZ:
-> +		Msg.Data[1] = BW_7_MHZ;
-> +		break;
-> +	case BANDWIDTH_6_MHZ:
-> +		Msg.Data[1] = BW_6_MHZ;
-> +		break;
->  #if 0
-> -	case BANDWIDTH_5_MHZ: Msg.Data[1] = BW_5_MHZ; break;
-> +	case BANDWIDTH_5_MHZ:
-> +		Msg.Data[1] = BW_5_MHZ;
-> +		break;
->  #endif
-> -	case BANDWIDTH_AUTO: return -EOPNOTSUPP;
-> -	default: return -EINVAL;
-> +	case BANDWIDTH_AUTO:
-> +		return -EOPNOTSUPP;
-> +	default:
-> +		return -EINVAL;
->  	}
->  
->  	/* Disable LNA, if any. An error is returned if no LNA is present */
-> @@ -395,7 +404,7 @@ static int smsdvb_get_frontend(struct dv
->  
->  	/* todo: */
->  	memcpy(fep, &client->fe_params,
-> -	       sizeof(struct dvb_frontend_parameters));
-> +			sizeof(struct dvb_frontend_parameters));
->  
->  	return 0;
->  }
-> 
-> 
-> 
->       
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
-
-Cheers,
-Mauro
+-- 
+Jean Delvare
