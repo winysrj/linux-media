@@ -1,64 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f176.google.com ([209.85.219.176]:48536 "EHLO
-	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753451AbZEPXys (ORCPT
+Received: from zone0.gcu-squad.org ([212.85.147.21]:37786 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756404AbZEMTvx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 May 2009 19:54:48 -0400
-Received: by ewy24 with SMTP id 24so3294039ewy.37
-        for <linux-media@vger.kernel.org>; Sat, 16 May 2009 16:54:48 -0700 (PDT)
-Message-ID: <4A0F4F89.9010601@gmail.com>
-Date: Sun, 17 May 2009 02:43:05 +0300
-From: mahmut g <m.gundes@gmail.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: viewing captured data
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Wed, 13 May 2009 15:51:53 -0400
+Date: Wed, 13 May 2009 21:51:46 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Andy Walls <awalls@radix.net>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Mike Isely <isely@pobox.com>
+Subject: [PATCH 5/8] saa7134: Simplify handling of IR on MSI TV@nywhere Plus
+Message-ID: <20090513215146.4a7039bc@hyperion.delvare>
+In-Reply-To: <20090513214559.0f009231@hyperion.delvare>
+References: <20090513214559.0f009231@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Now that we instantiate I2C IR devices explicitly, we can skip probing
+altogether on boards where the I2C IR device address is known. The MSI
+TV@nywhere Plus is one of these boards.
 
-      Hello,
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+ linux/drivers/media/video/saa7134/saa7134-input.c |   28 +++++++++++----------
+ 1 file changed, 15 insertions(+), 13 deletions(-)
 
-      I am new at media. I want capturing from my webcam and streaming 
-to any ip by using RTP. Now, I can getting frames with mmap method in 
-V4L2_PIX_FMT_YUV420 pixel format. I write the mapped buffers to a file 
-but I cant open this file with any image editor, what can I do? I am 
-stuck and confused now. Secondly, what format will be fine for streaming.
+--- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-input.c	2009-04-29 15:42:53.000000000 +0200
++++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-input.c	2009-04-29 15:53:23.000000000 +0200
+@@ -695,9 +695,6 @@ void saa7134_probe_i2c_ir(struct saa7134
+ 		I2C_CLIENT_END
+ 	};
+ 
+-	const unsigned short addr_list_msi[] = {
+-		0x30, I2C_CLIENT_END
+-	};
+ 	struct i2c_msg msg_msi = {
+ 		.addr = 0x50,
+ 		.flags = I2C_M_RD,
+@@ -751,6 +748,15 @@ void saa7134_probe_i2c_ir(struct saa7134
+ 		init_data.name = "MSI TV@nywhere Plus";
+ 		init_data.get_key = get_key_msi_tvanywhere_plus;
+ 		init_data.ir_codes = ir_codes_msi_tvanywhere_plus;
++		info.addr = 0x30;
++		/* MSI TV@nywhere Plus controller doesn't seem to
++		   respond to probes unless we read something from
++		   an existing device. Weird...
++		   REVISIT: might no longer be needed */
++		rc = i2c_transfer(&dev->i2c_adap, &msg_msi, 1);
++		dprintk(KERN_DEBUG "probe 0x%02x @ %s: %s\n",
++			msg_msi.addr, dev->i2c_adap.name,
++			(1 == rc) ? "yes" : "no");
+ 		break;
+ 	case SAA7134_BOARD_HAUPPAUGE_HVR1110:
+ 		init_data.name = "HVR 1110";
+@@ -777,18 +783,14 @@ void saa7134_probe_i2c_ir(struct saa7134
+ 
+ 	if (init_data.name)
+ 		info.platform_data = &init_data;
+-	client = i2c_new_probed_device(&dev->i2c_adap, &info, addr_list);
+-	if (client)
++	/* No need to probe if address is known */
++	if (info.addr) {
++		i2c_new_device(&dev->i2c_adap, &info);
+ 		return;
++	}
+ 
+-	/* MSI TV@nywhere Plus controller doesn't seem to
+-	   respond to probes unless we read something from
+-	   an existing device. Weird... */
+-	rc = i2c_transfer(&dev->i2c_adap, &msg_msi, 1);
+-	dprintk(KERN_DEBUG "probe 0x%02x @ %s: %s\n",
+-		msg_msi.addr, dev->i2c_adap.name,
+-		(1 == rc) ? "yes" : "no");
+-	client = i2c_new_probed_device(&dev->i2c_adap, &info, addr_list_msi);
++	/* Address not known, fallback to probing */
++	client = i2c_new_probed_device(&dev->i2c_adap, &info, addr_list);
+ 	if (client)
+ 		return;
+ 
 
-Thank you all,
-Regards.
-Mahmut
-
-kays@debian:~/NetBeansProjects/mycapture.c$ sudo ./capture
-Opening device /dev/video0..
-Initializing device..
-Capability of V4L2_CAP_VIDEO_CAPTURE
-Capability of V4L2_CAP_STREAMING
-Capability of V4L2_CAP_READWRITE
-Capability check OK.
-VIDIOC_CROPCAP ioctl: Invalid argument
-Error ignored!
-image format type: 1
-image format pix width: 320
-image format pix height: 240
-image format pix bytesperline: 480
-image format pix sizeimage: 115200
-image format pixelformat: 842093913
-image format pix field: 1
-buffer count: 2
-Mapping 1 buffer at adress b7dac000
-Mapping 1 buffer at adress b7d3b000
-mmap is OK.
-:::::
-Created file: 5
-kays@debian:~/NetBeansProjects/mycapture.c$ sudo file image_*
-image_0: data
-image_1: data
-image_2: data
-image_3: data
-image_4: data
-image_5: data
-
-kays@debian:~/NetBeansProjects/mycapture.c$
-
+-- 
+Jean Delvare
