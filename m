@@ -1,39 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:39541 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758939AbZE0Jkf (ORCPT
+Received: from deliverator11.gatech.edu ([130.207.165.83]:44972 "EHLO
+	deliverator11.gatech.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750860AbZEMFlU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2009 05:40:35 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv4 0 of 8] FM Transmitter (si4713) and another changes
-Date: Wed, 27 May 2009 12:35:47 +0300
-Message-Id: <1243416955-29748-1-git-send-email-eduardo.valentin@nokia.com>
+	Wed, 13 May 2009 01:41:20 -0400
+Received: from deliverator3.ecc.gatech.edu (deliverator3.ecc.gatech.edu [130.207.185.173])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(Client did not present a certificate)
+	by deliverator11.gatech.edu (Postfix) with ESMTP id DEABB181009
+	for <linux-media@vger.kernel.org>; Wed, 13 May 2009 01:10:43 -0400 (EDT)
+Message-ID: <4A0A5613.3000204@gatech.edu>
+Date: Wed, 13 May 2009 01:09:39 -0400
+From: David Ward <david.ward@gatech.edu>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media@vger.kernel.org
+Subject: v4l-dvb rev 11757 broke building under Ubuntu Hardy
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello all,
+I am using v4l-dvb in order to add the cx18 driver under Ubuntu Hardy 
+(8.04).
 
-  I'm resending the FM transmitter driver and the proposed changes in
-v4l2 api files in order to cover the fmtx extended controls class.
+The build is currently broken under Hardy, which uses kernel 2.6.24.  I 
+have traced the origin of the problem to revision 11757.  As seen in the 
+latest cron job output, the build produces the error when trying to 
+compile adv7343.c:
 
-  It is basically the same series of version #3. However I rewrote it
-to add the following comments:
+/usr/local/src/v4l-dvb/v4l/adv7343.c:506: error: array type has 
+incomplete element type
+/usr/local/src/v4l-dvb/v4l/adv7343.c:518: warning: initialization from 
+incompatible pointer type
+/usr/local/src/v4l-dvb/v4l/adv7343.c:520: error: unknown field 
+'id_table' specified in initializer
 
-  * Check kernel version for i2c helper function. Now the board data
-is passed not using i2c_board_info. This way all supported kernel
-versions can use the api. Besides that, the .s_config callback was
-added in core ops.
 
-  * All patches are against v4l-dvb hg repository.
+Thanks for resolving this.
 
-  Again, comments are welcome.
-
-BR,
-
----
-Eduardo Valentin
+David Ward
