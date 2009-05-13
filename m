@@ -1,53 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:44030 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753090AbZEWLtS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 May 2009 07:49:18 -0400
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Darius Augulis <augulis.darius@gmail.com>,
-	Paul Mundt <lethal@linux-sh.org>
-Subject: Re: [RFC 09/10 v2] v4l2-subdev: re-add s_standby to v4l2_subdev_core_ops
-References: <Pine.LNX.4.64.0905151817070.4658@axis700.grange>
-	<Pine.LNX.4.64.0905151907460.4658@axis700.grange>
-	<200905211533.34827.hverkuil@xs4all.nl>
-	<Pine.LNX.4.64.0905221611160.4418@axis700.grange>
-	<873aaxxf3d.fsf@free.fr>
-	<Pine.LNX.4.64.0905221933180.4418@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Sat, 23 May 2009 13:49:08 +0200
-In-Reply-To: <Pine.LNX.4.64.0905221933180.4418@axis700.grange> (Guennadi Liakhovetski's message of "Fri\, 22 May 2009 19\:37\:58 +0200 \(CEST\)")
-Message-ID: <87hbzc6nuz.fsf@free.fr>
+Received: from wf-out-1314.google.com ([209.85.200.174]:43118 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752251AbZEMWhr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 13 May 2009 18:37:47 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so599649wfd.4
+        for <linux-media@vger.kernel.org>; Wed, 13 May 2009 15:37:48 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <200905131726.32406.vanessaezekowitz@gmail.com>
+References: <412bdbff0905052114r7f481759r373fd0b814f458e@mail.gmail.com>
+	 <005f01c9d3fd$e2ee8980$0a00a8c0@vorg>
+	 <829197380905131224j7a709160jaeca4f21566e5ae7@mail.gmail.com>
+	 <200905131726.32406.vanessaezekowitz@gmail.com>
+Date: Wed, 13 May 2009 18:37:48 -0400
+Message-ID: <829197380905131537k50cd5ce9yf6cc90c9fc4aff49@mail.gmail.com>
+Subject: Re: XC5000 improvements: call for testers!
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+On Wed, May 13, 2009 at 6:26 PM, Vanessa Ezekowitz
+> Devin, does this license/bundle arrangement also cover the firmware for
+> xc3028-based devices?
 
->> Let me be even more precise about a usecase :
->>  - a user takes a picture with his smartphone
->>  - the same user then uses his phone to call his girlfriend
->>  - the girlfriend has a lot of things to say, it lasts for 1 hour
->> In that case, the sensor _has_ to be switched off.
->
-> Nice example, thanks! Ok, of course, we must not leave the poor girl with 
-> her boyfriend's flat battery:-)
-Dear, of course not, imagine what she would do to him ! :)
+Unfortunately, it does not.  Once I get the xc5000 stuff in though, I
+am planning on approaching them about getting firmware licensing under
+the same terms for xc3028, xc3028L, and xc4000.
 
-> I think we can put the camera to a low-power state in streamoff. But - not 
-> power it off! This has to be done from system's PM functions.
-That means, from a sensor POV, through icd->stop_capture().
-For my single mt9m111, it's fine by me, as the mt9m111 does have a powersave
-mode. Yet I'm wondering if there are sensors without that capability, with only
-one control (ie. one GPIO line) to switch them on and off ...
+Devin
 
-> What was there on linux-pm about managing power of single devices?...
-Reference ?
 
-Cheers.
-
---
-Robert
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
