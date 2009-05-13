@@ -1,16 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f216.google.com ([209.85.218.216])
-	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <armel.frey@gmail.com>) id 1M1c6I-0006M7-E4
-	for linux-dvb@linuxtv.org; Wed, 06 May 2009 10:03:34 +0200
-Received: by bwz12 with SMTP id 12so5239134bwz.17
-	for <linux-dvb@linuxtv.org>; Wed, 06 May 2009 01:03:01 -0700 (PDT)
-MIME-Version: 1.0
-Date: Wed, 6 May 2009 10:03:00 +0200
-Message-ID: <8566f5bc0905060103g250086a2v12d038e9163cabb8@mail.gmail.com>
-From: armel frey <armel.frey@gmail.com>
+Received: from web26902.mail.ukl.yahoo.com ([217.146.176.91])
+	by mail.linuxtv.org with smtp (Exim 4.63)
+	(envelope-from <tarik.chougua@yahoo.fr>) id 1M4GLq-0006ND-EF
+	for linux-dvb@linuxtv.org; Wed, 13 May 2009 17:26:34 +0200
+Message-ID: <965444.24352.qm@web26902.mail.ukl.yahoo.com>
+Date: Wed, 13 May 2009 15:26:00 +0000 (GMT)
+From: Tarik Chougua <tarik.chougua@yahoo.fr>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] szap2 and Band L???
+MIME-Version: 1.0
+Subject: [linux-dvb] Hauppauge WinTV-CI
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,51 +17,36 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1552424558=="
+Content-Type: multipart/mixed; boundary="===============1321939834=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1552424558==
-Content-Type: multipart/alternative; boundary=001636c5ac7afec747046939d2f8
 
---001636c5ac7afec747046939d2f8
-Content-Type: text/plain; charset=ISO-8859-1
+--===============1321939834==
+Content-Type: multipart/alternative; boundary="0-1648844135-1242228360=:24352"
+
+
+--0-1648844135-1242228360=:24352
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-Hi,
-
-I have a Hauppauge HVR-4000 and i would like to receive DVB-S2 !
-The card works well in DVB-S and seems to work with szap-s2, but my problem
-is that i have to receive DVB-S2 in Band L (950...2150MHz) and szap2 don't
-tune this low fr=E9quency.
-
-I would like to know if there is a patch or something else which make it
-possible??
-
-Thanks,
-
---001636c5ac7afec747046939d2f8
-Content-Type: text/html; charset=ISO-8859-1
+Hi,=0AIs Wintv-CI, the Common Interface from Hauppauge, working on linux no=
+w ?=0AThank you.=0A=0A=0A      
+--0-1648844135-1242228360=:24352
+Content-Type: text/html; charset=utf-8
 Content-Transfer-Encoding: quoted-printable
 
-<div>Hi,</div>
-<div>=A0</div>
-<div>I have a Hauppauge HVR-4000 and i would like to receive DVB-S2 !</div>
-<div>The card works well in DVB-S and seems to work with szap-s2, but my pr=
-oblem is that i have to receive DVB-S2 in Band L (950...2150MHz) and szap2 =
-don&#39;t tune this low fr=E9quency.</div>
-<div>=A0</div>
-<div>I would like to know if there is a patch or something else which make =
-it possible??</div>
-<div>=A0</div>
-<div>Thanks,</div>
-
---001636c5ac7afec747046939d2f8--
+<html><head><style type=3D"text/css"><!-- DIV {margin:0px;} --></style></he=
+ad><body><div style=3D"font-family:garamond, new york, times, serif;font-si=
+ze:12pt;color:#000000;"><DIV>Hi,</DIV>=0A<DIV>Is Wintv-CI, the Common Inter=
+face from Hauppauge, working on linux now ?</DIV>=0A<DIV>Thank you.</DIV></=
+div><br>=0A=0A=0A=0A      </body></html>
+--0-1648844135-1242228360=:24352--
 
 
---===============1552424558==
+--===============1321939834==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -74,4 +57,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1552424558==--
+--===============1321939834==--
