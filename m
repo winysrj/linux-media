@@ -1,151 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:33235 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751971AbZEBDZd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 May 2009 23:25:33 -0400
-Date: Fri, 1 May 2009 22:25:28 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Jean Delvare <khali@linux-fr.org>
-cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] pvrusb2: Don't use the internal i2c client list
-In-Reply-To: <Pine.LNX.4.64.0904301924520.15541@cnc.isely.net>
-Message-ID: <Pine.LNX.4.64.0905012223040.15541@cnc.isely.net>
-References: <20090430173554.4cb2f585@hyperion.delvare>
- <Pine.LNX.4.64.0904301924520.15541@cnc.isely.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from yx-out-2324.google.com ([74.125.44.28]:63211 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761704AbZENHnO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 May 2009 03:43:14 -0400
+Received: by yx-out-2324.google.com with SMTP id 3so645001yxj.1
+        for <linux-media@vger.kernel.org>; Thu, 14 May 2009 00:43:14 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1240238024.5388.21.camel@mountainboyzlinux0>
+References: <1240238024.5388.21.camel@mountainboyzlinux0>
+From: Matthew Gardeski <garmat@gmail.com>
+Date: Thu, 14 May 2009 03:42:54 -0400
+Message-ID: <b886b790905140042j3fb27a3bhf8629a764f433b19@mail.gmail.com>
+Subject: Re: [linux-dvb] Is HP rebranded Hauppauge HVR-1500 ok on 64bit
+	versions of stable distributions?
+To: linux-media@vger.kernel.org, pghben@yahoo.com
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 30 Apr 2009, Mike Isely wrote:
+On Mon, Apr 20, 2009 at 10:33, Benster & Jeremy <pghben@yahoo.com> wrote:
+> I have the hp expresscard version of the hauppauge VHR-1500 tuner. I am
+> having problems getting it to operate under the latest 64bit versions of
+> ubuntu and  suse.
+>
+> Has anyone had one of these combinations working?
+>
+> I've looked back over the archive on this list and found several threads,
+> but being a recent convert to linux, I couldn't recognize if  I needed to
+> download and recompile modules more recent than those shipped with 2.6.27
+> kernels. Nor did I know how to tell if the people that had it working were
+> running 32 or 64 bit versions.
+>
+> I'm wondering if this may only be an issue with 64 bit, only because I've
+> had a few things that took some work to get going that were related to using
+> 64bit.
+>
+> Any suggestions as to what to look for or where to go for help?
+>
+> Looking at dmesg, the card is recognized, the firmware is in /lib/firmware,
+> but no messages indicating it is being shipped to the card.
+>
+> When I try to scan for channels with either metv or w_scan, it goes through
+> the motions, but finds no channels. The light on the card does not come on.
+>
+> Thanks in advance,
+> Ben (pghben@yahoo.com)
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
-> On Thu, 30 Apr 2009, Jean Delvare wrote:
-> 
-> > The i2c core used to maintain a list of client for each adapter. This
-> > is a duplication of what the driver core already does, so this list
-> > will be removed as part of a future cleanup. Anyone using this list
-> > must stop doing so.
-> > 
-> > For pvrusb2, I propose the following change, which should lead to an
-> > equally informative output. The only difference is that i2c clients
-> > which are not a v4l2 subdev won't show up, but I guess this case is
-> > not supposed to happen anyway.
-> 
-> It will happen for anything i2c used by v4l which itself is not really a 
-> part of v4l.  That would include, uh, lirc.
-> 
-> I will review and test this first chance I get which should be tomorrow.
-> 
+I have just finished setting up an HVR-1500q and mythtv on gentoo
+amd64.  I am happy to report that this setup works great with ATSC
+channels.  Although it is loading the firmware properly when mythtv
+tries to tune a channel, I don't see anything come up in dmesg either.
+ I get warnings in dmesg on boot, but that doesn't really mean it's
+failing.
 
-I've merged and tested this patch.  It behaves as expected.
+I have been able to tune into ATSC channels with the drivers from
+http://linuxtv.org/hg/v4l-dvb for the past few months with i386.
+Before that, I would get very similar messages in dmesg to what I do
+now, but mythtv could not scan or tune any channels.
 
-I'm putting together a bunch of pvrusb2 changesets right now anyway.  
-I've pulled this one into the collection, with appropriate attributions 
-of course.
+If you have any more questions about what I had to do to get this
+working, I'd be glad to answer them.
 
-  -Mike
+By the way, is there any support for the analog mode or s-video input?
 
-> 
-> 
-> > 
-> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> > Cc: Mike Isely <isely@pobox.com>
-> > ---
-> > Mike, can you please review and test this patch? Thanks.
-> > 
-> >  linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c |   56 +++++------------------
-> >  1 file changed, 13 insertions(+), 43 deletions(-)
-> > 
-> > --- v4l-dvb.orig/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	2009-04-30 16:52:32.000000000 +0200
-> > +++ v4l-dvb/linux/drivers/media/video/pvrusb2/pvrusb2-hdw.c	2009-04-30 17:20:37.000000000 +0200
-> > @@ -4920,65 +4920,35 @@ static unsigned int pvr2_hdw_report_clie
-> >  	unsigned int tcnt = 0;
-> >  	unsigned int ccnt;
-> >  	struct i2c_client *client;
-> > -	struct list_head *item;
-> > -	void *cd;
-> >  	const char *p;
-> >  	unsigned int id;
-> >  
-> > -	ccnt = scnprintf(buf, acnt, "Associated v4l2-subdev drivers:");
-> > +	ccnt = scnprintf(buf, acnt, "Associated v4l2-subdev drivers and I2C clients:\n");
-> >  	tcnt += ccnt;
-> >  	v4l2_device_for_each_subdev(sd, &hdw->v4l2_dev) {
-> >  		id = sd->grp_id;
-> >  		p = NULL;
-> >  		if (id < ARRAY_SIZE(module_names)) p = module_names[id];
-> >  		if (p) {
-> > -			ccnt = scnprintf(buf + tcnt, acnt - tcnt, " %s", p);
-> > +			ccnt = scnprintf(buf + tcnt, acnt - tcnt, "  %s:", p);
-> >  			tcnt += ccnt;
-> >  		} else {
-> >  			ccnt = scnprintf(buf + tcnt, acnt - tcnt,
-> > -					 " (unknown id=%u)", id);
-> > +					 "  (unknown id=%u):", id);
-> >  			tcnt += ccnt;
-> >  		}
-> > -	}
-> > -	ccnt = scnprintf(buf + tcnt, acnt - tcnt, "\n");
-> > -	tcnt += ccnt;
-> > -
-> > -	ccnt = scnprintf(buf + tcnt, acnt - tcnt, "I2C clients:\n");
-> > -	tcnt += ccnt;
-> > -
-> > -	mutex_lock(&hdw->i2c_adap.clist_lock);
-> > -	list_for_each(item, &hdw->i2c_adap.clients) {
-> > -		client = list_entry(item, struct i2c_client, list);
-> > -		ccnt = scnprintf(buf + tcnt, acnt - tcnt,
-> > -				 "  %s: i2c=%02x", client->name, client->addr);
-> > -		tcnt += ccnt;
-> > -		cd = i2c_get_clientdata(client);
-> > -		v4l2_device_for_each_subdev(sd, &hdw->v4l2_dev) {
-> > -			if (cd == sd) {
-> > -				id = sd->grp_id;
-> > -				p = NULL;
-> > -				if (id < ARRAY_SIZE(module_names)) {
-> > -					p = module_names[id];
-> > -				}
-> > -				if (p) {
-> > -					ccnt = scnprintf(buf + tcnt,
-> > -							 acnt - tcnt,
-> > -							 " subdev=%s", p);
-> > -					tcnt += ccnt;
-> > -				} else {
-> > -					ccnt = scnprintf(buf + tcnt,
-> > -							 acnt - tcnt,
-> > -							 " subdev= id %u)",
-> > -							 id);
-> > -					tcnt += ccnt;
-> > -				}
-> > -				break;
-> > -			}
-> > +		client = v4l2_get_subdevdata(sd);
-> > +		if (client) {
-> > +			ccnt = scnprintf(buf + tcnt, acnt - tcnt,
-> > +					 " %s @ %02x\n", client->name,
-> > +					 client->addr);
-> > +			tcnt += ccnt;
-> > +		} else {
-> > +			ccnt = scnprintf(buf + tcnt, acnt - tcnt,
-> > +					 " no i2c client\n");
-> > +			tcnt += ccnt;
-> >  		}
-> > -		ccnt = scnprintf(buf + tcnt, acnt - tcnt, "\n");
-> > -		tcnt += ccnt;
-> >  	}
-> > -	mutex_unlock(&hdw->i2c_adap.clist_lock);
-> >  	return tcnt;
-> >  }
-> >  
-> > 
-> > 
-> > 
-> 
-> 
+[    9.455353] cx23885 driver version 0.0.2 loaded
+[    9.455403] cx23885 0000:06:00.0: enabling device (0000 -> 0002)
+[    9.455411] cx23885 0000:06:00.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
+[    9.455535] CORE cx23885[0]: subsystem: 0070:7790, board: Hauppauge
+WinTV-HVR1500Q [card=5,autodetected]
+[    9.584355] tveeprom 1-0050: Encountered bad packet header [ff].
+Corrupt or not a Hauppauge eeprom.
+[    9.584361] cx23885[0]: warning: unknown hauppauge model #0
+[    9.584363] cx23885[0]: hauppauge eeprom: model=0
+[    9.584365] cx23885_dvb_register() allocating 1 frontend(s)
+[    9.584379] cx23885[0]: cx23885 based dvb card
+[    9.954789] xc5000 2-0061: creating new instance
+[    9.955463] xc5000: Successfully identified at address 0x61
+[    9.955464] xc5000: Firmware has not been loaded previously
+[    9.955467] DVB: registering new adapter (cx23885[0])
+[    9.955470] DVB: registering adapter 0 frontend 0 (Samsung S5H1409
+QAM/8VSB Frontend)...
+[    9.955722] cx23885_dev_checkrevision() Hardware revision = 0xb0
+[    9.955730] cx23885[0]/0: found at 0000:06:00.0, rev: 2, irq: 18,
+latency: 0, mmio: 0xf4000000
+[    9.955752] cx23885 0000:06:00.0: setting latency timer to 64
 
--- 
 
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+Matt
