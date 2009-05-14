@@ -1,68 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:52722 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751174AbZEKGmp (ORCPT
+Received: from web110807.mail.gq1.yahoo.com ([67.195.13.230]:37984 "HELO
+	web110807.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752047AbZENTkI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 May 2009 02:42:45 -0400
-Received: from vaebh105.NOE.Nokia.com (vaebh105.europe.nokia.com [10.160.244.31])
-	by mgw-mx03.nokia.com (Switch-3.2.6/Switch-3.2.6) with ESMTP id n4B6gdHP005187
-	for <linux-media@vger.kernel.org>; Mon, 11 May 2009 09:42:41 +0300
-From: ext-eero.nurkkala@nokia.com
-To: linux-media@vger.kernel.org
-Cc: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-Subject: [PATCH 2/2] V4L: Add BCM2048 radio driver Makefile and Kconfig dependencies
-Date: Mon, 11 May 2009 09:41:19 +0300
-Message-Id: <12420240833715-git-send-email-ext-eero.nurkkala@nokia.com>
-In-Reply-To: <12420240811376-git-send-email-ext-eero.nurkkala@nokia.com>
-References: <1242024079959-git-send-email-ext-eero.nurkkala@nokia.com>
- <12420240811376-git-send-email-ext-eero.nurkkala@nokia.com>
+	Thu, 14 May 2009 15:40:08 -0400
+Message-ID: <992118.47326.qm@web110807.mail.gq1.yahoo.com>
+Date: Thu, 14 May 2009 12:34:59 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH] [0905_21] Siano: smscards - assign gpio to HPG targets
+To: LinuxML <linux-media@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
 
-This adds the Makefile and Kconfig entries for
-the BCM2048 radio chip.
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1242328393 -10800
+# Node ID 71c60eec8001438fee7e9f2e220a101576d6a219
+# Parent  9341c85c499e5052022ffd4ad154e912bffabe59
+[0905_21] Siano: smscards - assign gpio to HPG targets
 
-Signed-off-by: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
----
- drivers/media/radio/Kconfig  |   10 ++++++++++
- drivers/media/radio/Makefile |    1 +
- 2 files changed, 11 insertions(+), 0 deletions(-)
+From: Uri Shkolnik <uris@siano-ms.com>
 
-diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-index 3315cac..c4d8a5d 100644
---- a/drivers/media/radio/Kconfig
-+++ b/drivers/media/radio/Kconfig
-@@ -387,6 +387,16 @@ config USB_MR800
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called radio-mr800.
- 
-+config I2C_BCM2048
-+	tristate "Broadcom BCM2048 FM Radio Receiver support"
-+	depends on I2C && VIDEO_V4L2
-+	---help---
-+	  Say Y here if you want support to BCM2048 FM Radio Receiver.
-+	  This device driver supports only i2c bus.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called radio-bcm2048.
-+
- config RADIO_TEA5764
- 	tristate "TEA5764 I2C FM radio support"
- 	depends on I2C && VIDEO_V4L2
-diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
-index 0f2b35b..c1575b9 100644
---- a/drivers/media/radio/Makefile
-+++ b/drivers/media/radio/Makefile
-@@ -19,6 +19,7 @@ obj-$(CONFIG_RADIO_MAESTRO) += radio-maestro.o
- obj-$(CONFIG_USB_DSBR) += dsbr100.o
- obj-$(CONFIG_USB_SI470X) += radio-si470x.o
- obj-$(CONFIG_USB_MR800) += radio-mr800.o
-+obj-$(CONFIG_I2C_BCM2048) += radio-bcm2048.o
- obj-$(CONFIG_RADIO_TEA5764) += radio-tea5764.o
- 
- EXTRA_CFLAGS += -Isound
--- 
-1.5.6.3
+Assign using the new gpio structures, i/o for exist HPG
+targets, without removing the old implementation.
 
+Priority: normal
+
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+
+diff -r 9341c85c499e -r 71c60eec8001 linux/drivers/media/dvb/siano/sms-cards.c
+--- a/linux/drivers/media/dvb/siano/sms-cards.c	Thu May 14 22:06:52 2009 +0300
++++ b/linux/drivers/media/dvb/siano/sms-cards.c	Thu May 14 22:13:13 2009 +0300
+@@ -113,6 +113,9 @@ static struct sms_board sms_boards[] = {
+ 		.name	= "Hauppauge WinTV MiniStick",
+ 		.type	= SMS_NOVA_B0,
+ 		.fw[DEVICE_MODE_DVBT_BDA] = "sms1xxx-hcw-55xxx-dvbt-02.fw",
++		.board_cfg.leds_power = 26,
++		.board_cfg.led0 = 27,
++		.board_cfg.led1 = 28,
+ 		.led_power = 26,
+ 		.led_lo    = 27,
+ 		.led_hi    = 28,
+@@ -122,7 +125,9 @@ static struct sms_board sms_boards[] = {
+ 		.type	= SMS_NOVA_B0,
+ 		.fw[DEVICE_MODE_DVBT_BDA] = "sms1xxx-hcw-55xxx-dvbt-02.fw",
+ 		.lna_ctrl  = 29,
++		.board_cfg.foreign_lna0_ctrl = 29,
+ 		.rf_switch = 17,
++		.board_cfg.rf_switch_uhf = 17,
+ 	},
+ 	[SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2] = {
+ 		.name	= "Hauppauge WinTV MiniCard",
+
+
+
+      
