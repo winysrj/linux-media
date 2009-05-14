@@ -1,36 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f135.google.com ([209.85.221.135]:38701 "EHLO
-	mail-qy0-f135.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755340AbZEUJf7 (ORCPT
+Received: from web110806.mail.gq1.yahoo.com ([67.195.13.229]:33649 "HELO
+	web110806.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752164AbZENTaP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2009 05:35:59 -0400
+	Thu, 14 May 2009 15:30:15 -0400
+Message-ID: <281154.25774.qm@web110806.mail.gq1.yahoo.com>
+Date: Thu, 14 May 2009 12:30:16 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH] [0905_15] Siano: smscards - add two more targets
+To: LinuxML <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.0905121649420.5087@axis700.grange>
-References: <Pine.LNX.4.64.0905121649420.5087@axis700.grange>
-Date: Thu, 21 May 2009 18:30:52 +0900
-Message-ID: <aec7e5c30905210230g6cdac25w68189b1d2c16086e@mail.gmail.com>
-Subject: Re: [PATCH 0/3] Convert SuperH camera-enabled platforms to soc-camera
-	as platform_device
-From: Magnus Damm <magnus.damm@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Paul Mundt <lethal@linux-sh.org>, linux-sh@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 13, 2009 at 12:13 AM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> Now that soc-camera compatibility patch is in the mainline, we can convert
-> all platforms to the new scheme. This patch series converts SuperH boards.
-> Unfortunately, the first patch has to also (slightly) modify two camera
-> drivers, but that looks like a minor inconvenience to me, at least when
-> compared to my original convert-all-at-once mega-patch.
 
-I've tried capturing with these patches applied to next-20090520.
-Works fine on Migo-R. The boot output looks ok on ap325 as well
-(ov772x detected), have not tried capturing with that board though.
-Thanks for your help!
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1242325845 -10800
+# Node ID 0f7ae5e8b09ff516f35f299e81aacbba237ba038
+# Parent  fe5ecbb828340406923d06b4ea93a210aafb5c7e
+[0905_15] Siano: smscards - add two more targets
 
-Acked-by: Magnus Damm <damm@igel.co.jp>
+From: Uri Shkolnik <uris@siano-ms.com>
+
+Add two more target to the cards, Nice and Venice
+
+Priority: normal
+
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+
+diff -r fe5ecbb82834 -r 0f7ae5e8b09f linux/drivers/media/dvb/siano/sms-cards.c
+--- a/linux/drivers/media/dvb/siano/sms-cards.c	Thu May 14 21:24:26 2009 +0300
++++ b/linux/drivers/media/dvb/siano/sms-cards.c	Thu May 14 21:30:45 2009 +0300
+@@ -60,8 +60,13 @@ struct usb_device_id smsusb_id_table[] =
+ 		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_WINDHAM },
+ 	{ USB_DEVICE(0x2040, 0x5590),
+ 		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_WINDHAM },
+-	{ }		/* Terminating entry */
+-};
++	{ USB_DEVICE(0x187f, 0x0202),
++		.driver_info = SMS1XXX_BOARD_SIANO_NICE },
++	{ USB_DEVICE(0x187f, 0x0301),
++		.driver_info = SMS1XXX_BOARD_SIANO_VENICE },
++	{ } /* Terminating entry */
++	};
++
+ MODULE_DEVICE_TABLE(usb, smsusb_id_table);
+ 
+ static int sms_dbg;
+diff -r fe5ecbb82834 -r 0f7ae5e8b09f linux/drivers/media/dvb/siano/sms-cards.h
+--- a/linux/drivers/media/dvb/siano/sms-cards.h	Thu May 14 21:24:26 2009 +0300
++++ b/linux/drivers/media/dvb/siano/sms-cards.h	Thu May 14 21:30:45 2009 +0300
+@@ -34,6 +34,8 @@
+ #define SMS1XXX_BOARD_HAUPPAUGE_WINDHAM 8
+ #define SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD 9
+ #define SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2 10
++#define SMS1XXX_BOARD_SIANO_NICE	11
++#define SMS1XXX_BOARD_SIANO_VENICE	12
+ 
+ struct sms_board {
+ 	enum sms_device_type_st type;
+
+
+
+      
