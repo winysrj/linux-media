@@ -1,280 +1,254 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:35838 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753261AbZEWV6G (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:42038 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756857AbZENLwn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 May 2009 17:58:06 -0400
-Date: Sat, 23 May 2009 17:12:01 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Hans de Goede <hdegoede@redhat.com>
-cc: Hans de Goede <j.w.r.degoede@hhs.nl>, linux-media@vger.kernel.org
-Subject: [PATCH] to libv4lconvert, to do decompression for sn9c2028 cameras
-In-Reply-To: <4A144E41.6080806@redhat.com>
-Message-ID: <alpine.LNX.2.00.0905231628240.24795@banach.math.auburn.edu>
-References: <1242316804.1759.1@lhost.ldomain> <4A0C544F.1030801@hhs.nl> <alpine.LNX.2.00.0905141424460.11396@banach.math.auburn.edu> <alpine.LNX.2.00.0905191529260.19936@banach.math.auburn.edu> <4A144E41.6080806@redhat.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+	Thu, 14 May 2009 07:52:43 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCH 1/1] Add documentation description for FM Transmitter Extended Control Class
+Date: Thu, 14 May 2009 14:47:02 +0300
+Message-Id: <1242301622-29672-9-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1242301622-29672-8-git-send-email-eduardo.valentin@nokia.com>
+References: <1242301622-29672-1-git-send-email-eduardo.valentin@nokia.com>
+ <1242301622-29672-2-git-send-email-eduardo.valentin@nokia.com>
+ <1242301622-29672-3-git-send-email-eduardo.valentin@nokia.com>
+ <1242301622-29672-4-git-send-email-eduardo.valentin@nokia.com>
+ <1242301622-29672-5-git-send-email-eduardo.valentin@nokia.com>
+ <1242301622-29672-6-git-send-email-eduardo.valentin@nokia.com>
+ <1242301622-29672-7-git-send-email-eduardo.valentin@nokia.com>
+ <1242301622-29672-8-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-The purpose of the following patch is to do the decompression for the 
-Sonix SN9C2028 cameras, which are already supported as still cameras in 
-libgphoto2/camlibs/sonix. The decompression code is essentially identical 
-to that which is used in the libgphoto2 driver, with minor changes to 
-adapt it for libv4lconvert.
+This single patch adds documentation description for FM Transmitter (FMTX)
+Extended Control Class and its Control IDs. The text was added under
+"Extended Controls" section.
 
-The history and antecedents of this algorithm are described in 
-libgphoto2/camlibs/sonix/README.sonix, which was Copyright (C) 2005 
-Theodore Kilgore <kilgota@auburn.edu>, as follows:
+Priority: normal
 
-"The decompression algorithm originates, I understand, in the work of 
-Bertrik Sikkens for the sn9c102 cameras. In the macam project for MacOS-X 
-camera support (webcam-osx project on Sourceforge), the decompression 
-algorithm for the sn9c2028 cameras was developed by Mattias Krauss and 
-adapted for use with the Vivitar Vivicam 3350B in particular by Harald 
-Ruda <hrx at users.sourceforge.net>. Harald brought to my attention the 
-work already done in the macam project, pointed out that it is GPL code, 
-and invited me to have a look. Thanks, Harald. The decompression algorithm 
-used here is similar to what is used in the macam driver, but is 
-considerably streamlined and improved."
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-Signed-off-by Theodore Kilgore <kilgota@auburn.edu>
-
------------------------------------------------------------------------
-diff -r 276a90c8ac40 v4l2-apps/libv4l/libv4lconvert/Makefile
---- a/v4l2-apps/libv4l/libv4lconvert/Makefile	Wed May 20 07:23:00 2009 +0200
-+++ b/v4l2-apps/libv4l/libv4lconvert/Makefile	Wed May 20 13:10:53 2009 -0500
-@@ -14,7 +14,7 @@
-
-  CONVERT_OBJS  = libv4lconvert.o tinyjpeg.o sn9c10x.o sn9c20x.o pac207.o \
-  		mr97310a.o flip.o crop.o jidctflt.o spca561-decompress.o \
--		rgbyuv.o spca501.o sq905c.o bayer.o hm12.o \
-+		rgbyuv.o sn9c2028-decomp.o spca501.o sq905c.o bayer.o hm12.o \
-  		control/libv4lcontrol.o processing/libv4lprocessing.o \
-  		processing/rgbprocessing.o processing/bayerprocessing.o
-  TARGETS       = $(CONVERT_LIB) libv4lconvert.pc
-diff -r 276a90c8ac40 v4l2-apps/libv4l/libv4lconvert/libv4lconvert-priv.h
---- a/v4l2-apps/libv4l/libv4lconvert/libv4lconvert-priv.h	Wed May 20 07:23:00 2009 +0200
-+++ b/v4l2-apps/libv4l/libv4lconvert/libv4lconvert-priv.h	Wed May 20 13:10:53 2009 -0500
-@@ -51,6 +51,10 @@
-  #define V4L2_PIX_FMT_MR97310A v4l2_fourcc('M','3','1','0')
-  #endif
-
-+#ifndef V4L2_PIX_FMT_SN9C2028
-+#define V4L2_PIX_FMT_SN9C2028 v4l2_fourcc('S', 'O', 'N', 'X')
-+#endif
+diff -r 8d37e8505664 -r 61ee075b46f8 v4l2-spec/controls.sgml
+--- a/v4l2-spec/controls.sgml	Mon May 11 09:37:41 2009 -0700
++++ b/v4l2-spec/controls.sgml	Wed May 13 13:10:24 2009 +0300
+@@ -458,6 +458,12 @@
+       <para>Unfortunately, the original control API lacked some
+ features needed for these new uses and so it was extended into the
+ (not terribly originally named) extended control API.</para>
 +
-  #ifndef V4L2_PIX_FMT_SQ905C
-  #define V4L2_PIX_FMT_SQ905C v4l2_fourcc('9', '0', '5', 'C')
-  #endif
-@@ -193,6 +197,9 @@
-  void v4lconvert_decode_mr97310a(const unsigned char *src, unsigned char *dst,
-    int width, int height);
-
-+void v4lconvert_decode_sn9c2028(const unsigned char *src, unsigned char *dst,
-+  int width, int height);
++      <para>Even though the MPEG encoding API was the first effort
++to use the Extended Control API, nowadays there are also other classes
++of Extended Controls, such as Camera Controls and FM Transmitter Controls.
++The Extended Controls API as well as all Extended Controls classes are
++described in the following text.</para>
+     </section>
+ 
+     <section>
+@@ -1816,6 +1822,200 @@
+       </tgroup>
+     </table>
+   </section>
 +
-  void v4lconvert_decode_sq905c(const unsigned char *src, unsigned char *dst,
-    int width, int height);
-
-diff -r 276a90c8ac40 v4l2-apps/libv4l/libv4lconvert/libv4lconvert.c
---- a/v4l2-apps/libv4l/libv4lconvert/libv4lconvert.c	Wed May 20 07:23:00 2009 +0200
-+++ b/v4l2-apps/libv4l/libv4lconvert/libv4lconvert.c	Wed May 20 13:10:53 2009 -0500
-@@ -60,6 +60,7 @@
-    { V4L2_PIX_FMT_JPEG,         V4LCONVERT_COMPRESSED },
-    { V4L2_PIX_FMT_SPCA561,      V4LCONVERT_COMPRESSED },
-    { V4L2_PIX_FMT_SN9C10X,      V4LCONVERT_COMPRESSED },
-+  { V4L2_PIX_FMT_SN9C2028,     V4LCONVERT_COMPRESSED },
-    { V4L2_PIX_FMT_PAC207,       V4LCONVERT_COMPRESSED },
-    { V4L2_PIX_FMT_MR97310A,     V4LCONVERT_COMPRESSED },
-    { V4L2_PIX_FMT_SQ905C,       V4LCONVERT_COMPRESSED },
-@@ -460,6 +461,7 @@
-      case V4L2_PIX_FMT_SN9C10X:
-      case V4L2_PIX_FMT_PAC207:
-      case V4L2_PIX_FMT_MR97310A:
-+    case V4L2_PIX_FMT_SN9C2028:
-      case V4L2_PIX_FMT_SQ905C:
-      case V4L2_PIX_FMT_SBGGR8:
-      case V4L2_PIX_FMT_SGBRG8:
-@@ -672,6 +674,7 @@
-      case V4L2_PIX_FMT_SN9C10X:
-      case V4L2_PIX_FMT_PAC207:
-      case V4L2_PIX_FMT_MR97310A:
-+    case V4L2_PIX_FMT_SN9C2028:
-      case V4L2_PIX_FMT_SQ905C:
-      {
-        unsigned char *tmpbuf;
-@@ -699,6 +702,10 @@
-  	  v4lconvert_decode_mr97310a(src, tmpbuf, width, height);
-  	  tmpfmt.fmt.pix.pixelformat = V4L2_PIX_FMT_SBGGR8;
-  	  break;
-+	case V4L2_PIX_FMT_SN9C2028:
-+	  v4lconvert_decode_sn9c2028(src, tmpbuf, width, height);
-+	  src_pix_fmt = V4L2_PIX_FMT_SBGGR8;
-+	  break;
-  	case V4L2_PIX_FMT_SQ905C:
-  	  v4lconvert_decode_sq905c(src, tmpbuf, width, height);
-  	  tmpfmt.fmt.pix.pixelformat = V4L2_PIX_FMT_SRGGB8;
-diff -r 276a90c8ac40 v4l2-apps/libv4l/libv4lconvert/sn9c2028-decomp.c
---- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-+++ b/v4l2-apps/libv4l/libv4lconvert/sn9c2028-decomp.c	Wed May 20 13:10:53 2009 -0500
-@@ -0,0 +1,158 @@
-+/*
-+ * sn9c2028-decomp.c
-+ *
-+ * Decompression function for the Sonix SN9C2028 dual-mode cameras.
-+ *
-+ * Code adapted from libgphoto2/camlibs/sonix, original version of which was
-+ * Copyright (c) 2005 Theodore Kilgore <kilgota@auburn.edu>
-+ *
-+ * History:
-+ *
-+ * This decoding algorithm originates from the work of Bertrik Sikken for the
-+ * SN9C102 cameras. This version is an adaptation of work done by Mattias
-+ * Krauss for the webcam-osx (macam) project. There, it was further adapted
-+ * for use with the Vivitar Vivicam 3350B (an SN9C2028 camera) by
-+ * Harald Ruda <hrx@users.sourceforge.net>. Harald brought to my attention the
-+ * work done in the macam project and suggested that I use it. The
-+ * macam project is also licensed under the GPL. One improvement of my own
-+ * was to notice that the even and odd columns of the image have been reversed
-+ * by the decompression algorithm, and this needs to be corrected during the
-+ * decompression.
-+ *
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public
-+ * License as published by the Free Software Foundation; either
-+ * version 2 of the License, or (at your option) any later version.
-+ *
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * Lesser General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public
-+ * License along with this program; if not, write to the
-+ * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-+ * Boston, MA 02111-1307, USA.
-+ */
++    <section id="fmtx-controls">
++      <title>FM Transmitter Control Reference</title>
 +
-+#include "libv4lconvert-priv.h"
++      <para>The FM Transmitter (FMTX) class includes controls for common features of
++FM transmissions capable devices. Currently this class include parameters for audio
++compression, pilot tone generation, audio deviation limiter, RDS transmission and
++tuning power features.</para>
 +
-+/* Four defines for bitstream operations, used in the decode function */
++      <table pgwide="1" frame="none" id="fmtx-control-id">
++      <title>FMTX Control IDs</title>
 +
-+#define PEEK_BITS(num,to) {\
-+	if (bitBufCount < num) {\
-+		do {\
-+			bitBuf = (bitBuf << 8)|(*(src++));\
-+			bitBufCount += 8; \
-+		} \
-+		while\
-+			(bitBufCount < 24);\
-+	} \
-+	to = bitBuf >> (bitBufCount-num);\
-+}
++      <tgroup cols="4">
++	<colspec colname="c1" colwidth="1*">
++	<colspec colname="c2" colwidth="6*">
++	<colspec colname="c3" colwidth="2*">
++	<colspec colname="c4" colwidth="6*">
++	<spanspec namest="c1" nameend="c2" spanname="id">
++	<spanspec namest="c2" nameend="c4" spanname="descr">
++	<thead>
++	  <row>
++	    <entry spanname="id" align="left">ID</entry>
++	    <entry align="left">Type</entry>
++	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row><entry></entry></row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FMTX_CLASS</constant>&nbsp;</entry>
++	    <entry>class</entry>
++	  </row><row><entry spanname="descr">The FMTX class
++descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
++description of this control class.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_ENABLED</constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row><entry spanname="descr">Enables or disables the RDS transmission feature.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_PI</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the RDS Programme Identification field
++for transmission.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_PTY</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">iSets the RDS Programme Type field for transmission.
++This coding of up to 31 pre-defined programme types.</entry>
++	  </row>
++<!--
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_PS_NAME</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_RADIO_TEXT</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">.</entry>
++	  </row>
++-->
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_ENABLED</constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row><entry spanname="descr">Enables or disables the audio deviation limiter feature.
++The limiter is useful when trying to maximize the audio volume, minimize receiver-generated
++distortion and prevent overmodulation.
++</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_RELEASE_TIME</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the audio deviation limiter feature release time.
++The unit, step and range are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_DEVIATION</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures audio frequency deviation level in Hz.
++The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_ENABLED</constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row><entry spanname="descr">Enables or disables the audio compression feature.
++This feature amplifies signals below the threshold by a fixed gain and compresses audio
++signals above the threshold by the ratio of Threshold/(Gain + Threshold).</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_GAIN</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the gain for audio compression feature. It is
++a dB value. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_THRESHOLD</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the threshold level for audio compression freature.
++It is a dB value. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the attack time for audio compression feature.
++It is a useconds value. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the release time for audio compression feature.
++It is a useconds value. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_ENABLED</constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row><entry spanname="descr">Enables or disables the pilot tone generation feature.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_DEVIATION</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures pilot tone frequency deviation level. Unit is
++in Hz. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_FREQUENCY</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures pilot tone frequency value. Unit is
++in Hz. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_PREEMPHASIS</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures the pre-emphasis value for broadcasting.
++A pre-emphasis filter is applied to the broadcast to accentuate the high audio frequencies.
++Depending on the region, a time constant of either 50 or 75 useconds is used. Possible values
++are:</entry>
++	</row><row>
++	<entrytbl spanname="descr" cols="2">
++		  <tbody valign="top">
++		    <row>
++		      <entry><constant>V4L2_FMTX_PREEMPHASIS_DISABLED</constant>&nbsp;</entry>
++		      <entry>No pre-emphasis is applied.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_FMTX_PREEMPHASIS_50_uS</constant>&nbsp;</entry>
++		      <entry>A pre-emphasis of 50 uS is used.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_FMTX_PREEMPHASIS_75_uS</constant>&nbsp;</entry>
++		      <entry>A pre-emphasis of 75 uS is used.</entry>
++		    </row>
++		  </tbody>
++		</entrytbl>
 +
-+/*
-+ * PEEK_BITS puts the next <num> bits into the low bits of <to>.
-+ * when the buffer is empty, it is completely refilled.
-+ * This strategy tries to reduce memory access. Note that the high bits
-+ * are NOT set to zero!
-+ */
-+
-+#define EAT_BITS(num) { bitBufCount -= num; bits_eaten += num; }
-+
-+/*
-+ * EAT_BITS consumes <num> bits (PEEK_BITS does not consume anything,
-+ * it just peeks)
-+ */
-+
-+#define PARSE_PIXEL(val) {\
-+	PEEK_BITS(10, bits);\
-+	if ((bits&0x200) == 0) {\
-+		EAT_BITS(1);\
-+	} \
-+	else if ((bits&0x380) == 0x280) {\
-+		EAT_BITS(3);\
-+		val += 3;\
-+		if (val > 255)\
-+			val = 255;\
-+	} \
-+	else if ((bits&0x380) == 0x300) {\
-+		EAT_BITS(3);\
-+		val -= 3;\
-+		if (val < 0)\
-+			val = 0;\
-+	} \
-+	else if ((bits&0x3c0) == 0x200) {\
-+		EAT_BITS(4);\
-+		val += 8;\
-+		if (val > 255)\
-+			val = 255;\
-+	} \
-+	else if ((bits&0x3c0) == 0x240) {\
-+		EAT_BITS(4);\
-+		val -= 8;\
-+		if (val < 0)\
-+			val = 0;\
-+	} \
-+	else if ((bits&0x3c0) == 0x3c0) {\
-+		EAT_BITS(4);\
-+		val -= 20;\
-+		if (val < 0)\
-+			val = 0;\
-+	} \
-+	else if ((bits&0x3e0) == 0x380) {\
-+		EAT_BITS(5);\
-+		val += 20;\
-+		if (val > 255)\
-+			val = 255;\
-+	} \
-+	else {\
-+		EAT_BITS(10);\
-+		val = 8*(bits&0x1f)+0;\
-+	} \
-+}
-+
-+
-+#define PUT_PIXEL_PAIR {\
-+    long pp;\
-+    pp = (c1val<<8)+c2val;\
-+    *((unsigned short *) (dst+dst_index)) = pp;\
-+    dst_index += 2;\
-+}
-+
-+/* Now the decode function itself */
-+
-+void v4lconvert_decode_sn9c2028(const unsigned char *src, unsigned char *dst,
-+  int width, int height)
-+{
-+	long dst_index = 0;
-+	int starting_row = 0;
-+	unsigned short bits;
-+	short c1val, c2val;
-+	int x, y;
-+	unsigned long bitBuf = 0;
-+	unsigned long bitBufCount = 0;
-+	unsigned long bits_eaten = 0;
-+
-+	src += 12;	/* Remove the header */
-+
-+	for (y = starting_row; y < height; y++) {
-+		PEEK_BITS(8, bits);
-+		EAT_BITS(8);
-+		c2val = (bits & 0xff);
-+		PEEK_BITS(8, bits);
-+		EAT_BITS(8);
-+		c1val = (bits & 0xff);
-+
-+		PUT_PIXEL_PAIR;
-+
-+		for (x = 2; x < width ; x += 2) {
-+			/* The compression reversed the even and odd columns.*/
-+			PARSE_PIXEL(c2val);
-+			PARSE_PIXEL(c1val);
-+			PUT_PIXEL_PAIR;
-+		}
-+	}
-+}
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_TUNE_POWER_LEVEL</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the output power level for signal transmission.
++Unit is in dBuV. Range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_TUNE_ANTENNA_CAPACITOR</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">This selects the value of antenna tuning capacitor
++manually or automatically if set to zero. Unit, range and step are driver-specific.</entry>
++	  </row>
++	  <row><entry></entry></row>
++	</tbody>
++      </tgroup>
++      </table>
++    </section>
+ </section>
+ 
+   <!--
