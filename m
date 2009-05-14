@@ -1,155 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f224.google.com ([209.85.219.224]:56495 "EHLO
-	mail-ew0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751480AbZEBDRo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 May 2009 23:17:44 -0400
-Received: by ewy24 with SMTP id 24so2719626ewy.37
-        for <linux-media@vger.kernel.org>; Fri, 01 May 2009 20:17:43 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <412bdbff0904302216q4ffbdf24yb5d73956addfb8f6@mail.gmail.com>
-References: <B2D200D8-22B0-418C-B577-C036C1469521@gmail.com>
-	 <1241140865.3210.108.camel@palomino.walls.org>
-	 <303162d70904301855xd138162s43c550637436919a@mail.gmail.com>
-	 <5B379A59-CAE7-4D20-8570-E3F2D6AB9623@gmail.com>
-	 <412bdbff0904302216q4ffbdf24yb5d73956addfb8f6@mail.gmail.com>
-Date: Fri, 1 May 2009 21:17:43 -0600
-Message-ID: <303162d70905012017x2f6a2ae7n4600ecb5bb26be89@mail.gmail.com>
-Subject: Re: [PATCH] Add QAM64 support for hvr-950q (au8522)
-From: Frank Dischner <phaedrus961@googlemail.com>
-To: Devin Heitmueller <devin.heitmueller@gmail.com>
-Cc: Britney Fransen <britney.fransen@gmail.com>,
-	Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([192.100.105.134]:42043 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757374AbZENLws (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 May 2009 07:52:48 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCH v3 7/7] FMTx: si4713: Add document file
+Date: Thu, 14 May 2009 14:47:01 +0300
+Message-Id: <1242301622-29672-8-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1242301622-29672-7-git-send-email-eduardo.valentin@nokia.com>
+References: <1242301622-29672-1-git-send-email-eduardo.valentin@nokia.com>
+ <1242301622-29672-2-git-send-email-eduardo.valentin@nokia.com>
+ <1242301622-29672-3-git-send-email-eduardo.valentin@nokia.com>
+ <1242301622-29672-4-git-send-email-eduardo.valentin@nokia.com>
+ <1242301622-29672-5-git-send-email-eduardo.valentin@nokia.com>
+ <1242301622-29672-6-git-send-email-eduardo.valentin@nokia.com>
+ <1242301622-29672-7-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Here's the updated patch with the requested changes.
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ Documentation/video4linux/si4713.txt |  133 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 133 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/video4linux/si4713.txt
 
-Frank
-
-Signed-off-by: Frank Dischner <phaedrus961@gmail.com>
-
-diff -urN v4l-dvb/linux/drivers/media/dvb/frontends/au8522_dig.c
-v4l-dvb.new/linux/drivers/media/dvb/frontends/au8522_dig.c
---- v4l-dvb/linux/drivers/media/dvb/frontends/au8522_dig.c	2009-05-01
-20:14:47.000000000 -0600
-+++ v4l-dvb.new/linux/drivers/media/dvb/frontends/au8522_dig.c	2009-05-01
-20:19:25.000000000 -0600
-@@ -367,11 +367,90 @@
- 	{ 0x8231, 0x13 },
- };
-
--/* QAM Modulation table */
-+/* QAM64 Modulation table */
- static struct {
- 	u16 reg;
- 	u16 data;
--} QAM_mod_tab[] = {
-+} QAM64_mod_tab[] = {
-+	{ 0x00a3, 0x09 },
-+	{ 0x00a4, 0x00 },
-+	{ 0x0081, 0xc4 },
-+	{ 0x00a5, 0x40 },
-+	{ 0x00aa, 0x77 },
-+	{ 0x00ad, 0x77 },
-+	{ 0x00a6, 0x67 },
-+	{ 0x0262, 0x20 },
-+	{ 0x021c, 0x30 },
-+	{ 0x00b8, 0x3e },
-+	{ 0x00b9, 0xf0 },
-+	{ 0x00ba, 0x01 },
-+	{ 0x00bb, 0x18 },
-+	{ 0x00bc, 0x50 },
-+	{ 0x00bd, 0x00 },
-+	{ 0x00be, 0xea },
-+	{ 0x00bf, 0xef },
-+	{ 0x00c0, 0xfc },
-+	{ 0x00c1, 0xbd },
-+	{ 0x00c2, 0x1f },
-+	{ 0x00c3, 0xfc },
-+	{ 0x00c4, 0xdd },
-+	{ 0x00c5, 0xaf },
-+	{ 0x00c6, 0x00 },
-+	{ 0x00c7, 0x38 },
-+	{ 0x00c8, 0x30 },
-+	{ 0x00c9, 0x05 },
-+	{ 0x00ca, 0x4a },
-+	{ 0x00cb, 0xd0 },
-+	{ 0x00cc, 0x01 },
-+	{ 0x00cd, 0xd9 },
-+	{ 0x00ce, 0x6f },
-+	{ 0x00cf, 0xf9 },
-+	{ 0x00d0, 0x70 },
-+	{ 0x00d1, 0xdf },
-+	{ 0x00d2, 0xf7 },
-+	{ 0x00d3, 0xc2 },
-+	{ 0x00d4, 0xdf },
-+	{ 0x00d5, 0x02 },
-+	{ 0x00d6, 0x9a },
-+	{ 0x00d7, 0xd0 },
-+	{ 0x0250, 0x0d },
-+	{ 0x0251, 0xcd },
-+	{ 0x0252, 0xe0 },
-+	{ 0x0253, 0x05 },
-+	{ 0x0254, 0xa7 },
-+	{ 0x0255, 0xff },
-+	{ 0x0256, 0xed },
-+	{ 0x0257, 0x5b },
-+	{ 0x0258, 0xae },
-+	{ 0x0259, 0xe6 },
-+	{ 0x025a, 0x3d },
-+	{ 0x025b, 0x0f },
-+	{ 0x025c, 0x0d },
-+	{ 0x025d, 0xea },
-+	{ 0x025e, 0xf2 },
-+	{ 0x025f, 0x51 },
-+	{ 0x0260, 0xf5 },
-+	{ 0x0261, 0x06 },
-+	{ 0x021a, 0x00 },
-+	{ 0x0546, 0x40 },
-+	{ 0x0210, 0xc7 },
-+	{ 0x0211, 0xaa },
-+	{ 0x0212, 0xab },
-+	{ 0x0213, 0x02 },
-+	{ 0x0502, 0x00 },
-+	{ 0x0121, 0x04 },
-+	{ 0x0122, 0x04 },
-+	{ 0x052e, 0x10 },
-+	{ 0x00a4, 0xca },
-+	{ 0x00a7, 0x40 },
-+	{ 0x0526, 0x01 },
-+};
+diff --git a/Documentation/video4linux/si4713.txt b/Documentation/video4linux/si4713.txt
+new file mode 100644
+index 0000000..fff2104
+--- /dev/null
++++ b/Documentation/video4linux/si4713.txt
+@@ -0,0 +1,133 @@
++Driver for I2C radios for the Silicon Labs Si4713 FM Radio Transmitters
 +
-+/* QAM256 Modulation table */
-+static struct {
-+	u16 reg;
-+	u16 data;
-+} QAM256_mod_tab[] = {
- 	{ 0x80a3, 0x09 },
- 	{ 0x80a4, 0x00 },
- 	{ 0x8081, 0xc4 },
-@@ -464,12 +543,19 @@
- 		au8522_set_if(fe, state->config->vsb_if);
- 		break;
- 	case QAM_64:
-+		dprintk("%s() QAM 64\n", __func__);
-+		for (i = 0; i < ARRAY_SIZE(QAM64_mod_tab); i++)
-+			au8522_writereg(state,
-+				QAM64_mod_tab[i].reg,
-+				QAM64_mod_tab[i].data);
-+		au8522_set_if(fe, state->config->qam_if);
-+		break;
- 	case QAM_256:
--		dprintk("%s() QAM 64/256\n", __func__);
--		for (i = 0; i < ARRAY_SIZE(QAM_mod_tab); i++)
-+		dprintk("%s() QAM 256\n", __func__);
-+		for (i = 0; i < ARRAY_SIZE(QAM256_mod_tab); i++)
- 			au8522_writereg(state,
--				QAM_mod_tab[i].reg,
--				QAM_mod_tab[i].data);
-+				QAM256_mod_tab[i].reg,
-+				QAM256_mod_tab[i].data);
- 		au8522_set_if(fe, state->config->qam_if);
- 		break;
- 	default:
++Copyright (c) 2009 Nokia Corporation
++Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
++
++
++Information about the Device
++============================
++This chip is a Silicon Labs product. It is a I2C device, currently on 0×63 address.
++Basically, it has transmission and signal noise level measurement features.
++
++The Si4713 integrates transmit functions for FM broadcast stereo transmission.
++The chip also allows integrated receive power scanning to identify low signal
++power FM channels.
++
++The chip is programmed using commands and responses. There are also several
++properties which can change the behavior of this chip.
++
++Users must comply with local regulations on radio frequency (RF) transmission.
++
++Device driver description
++=========================
++There are two modules to handle this device. One is a I2C device driver
++and the other is a platform driver.
++
++The I2C device driver exports a v4l2-subdev interface to the kernel. Also
++it exports several device properties through sysfs interface to the user land.
++All properties can also be accessed by v4l2 extended controls interface, by
++using the v4l2-subdev calls (g_ext_ctrls, s_ext_ctrls).
++
++The platform device driver exports a v4l2 radio device interface to user land.
++So, it uses the I2C device driver as a sub device in order to send the user
++commands to the actual device. Basically it is a wrapper to the I2C device driver.
++
++So, in summary, the device driver has two interfaces to the user space.
++
++Applications can use v4l2 radio API to specify frequency of operation, mute state,
++etc. But mostly of its properties will be present in the extended controls.
++However, the device properties can also be accessed through its sysfs directory.
++
++When the v4l2 mute property is set to 1 (true), the driver will turn the chip off.
++
++Properties description
++======================
++
++The properties can be accessed in sysfs device directory. Using v4l2 extended
++controls as well.
++
++# ls
++acomp_attack_time        modalias                 rds_radio_text
++acomp_enabled            name                     region
++acomp_gain               pilot_deviation          region_bottom_frequency
++acomp_release_time       pilot_enabled            region_channel_spacing
++acomp_threshold          pilot_frequency          region_preemphasis
++antenna_capacitor        power                    region_top_frequency
++bus                      power_level              stereo_enabled
++driver                   rds_enabled              subsystem
++limiter_deviation        rds_pi                   tune_measure
++limiter_enabled          rds_ps_name              uevent
++limiter_release_time     rds_pty
++
++Here is a summary of them:
++
++* Pilot is an audible tone sent by the device.
++
++pilot_frequency - Configures the frequency of the stereo pilot tone.
++pilot_deviation - Configures pilot tone frequency deviation level.
++pilot_enabled - Enables or disables the pilot tone feature.
++
++* The si4713 device is capable of applying audio compression to the transmitted signal.
++
++acomp_enabled - Enables or disables the audio dynamic range control feature.
++acomp_gain - Sets the gain for audio dynamic range control.
++acomp_threshold - Sets the threshold level for audio dynamic range control.
++acomp_attack_time - Sets the attack time for audio dynamic range control.
++acomp_release_time - Sets the release time for audio dynamic range control.
++
++* Limiter setups audio deviation limiter feature. Once a over deviation occurs,
++it is possible to adjust the front-end gain of the audio input and always
++prevent over deviation.
++
++limiter_enabled - Enables or disables the limiter feature.
++limiter_deviation - Configures audio frequency deviation level.
++limiter_release_time - Sets the limiter release time.
++
++* Tuning power
++
++power_level - Sets the output power level for signal transmission.
++antenna_capacitor - This selects the value of antenna tuning capacitor manually
++or automatically if set to zero.
++tune_measure - With this you can get the value of signal length of a specific frequency.
++
++* RDS related
++
++rds_enabled - Enables or disables the RDS feature.
++rds_ps_name - Sets the RDS ps name field for transmission.
++rds_radio_text - Sets the RDS radio text for transmission.
++rds_pi - Sets the RDS PI field for transmission.
++rds_pty - Sets the RDS PTY field for transmission.
++
++* Region related
++
++Setting region will affect other region properties.
++
++region_bottom_frequency
++region_channel_spacing
++region_preemphasis
++region_top_frequency
++region - Selects which country specific setting should be assumed.
++
++* stereo_enabled - Enables or disables stereo mode.
++
++Testing
++=======
++Testing is usually done with fmtools utility for managing FM tuner cards.
++The tool can be found under Debian/Testing packages.
++
++The basic command list is:
++
++$ fm on     # Sets mute = false
++$ fm off    # Sets mute = true
++$ fm <freq> # Tunes to the frequency <freq>
++
++Of course, you should have the audio working and play something through alsa
++API to get something different of mute transmitted.
++
++To play with the above described properties, you can just use 'echo' and
++'cat' commands. For example, changing the rds_ps_name property, you just do:
++
++echo "Dummy FM Station" > /sys/bus/i2c/devices/X-0063/rds_ps_name
++
++where "X" is the i2c bus id which the device is connected.
++
+-- 
+1.6.2.GIT
+
