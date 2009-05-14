@@ -1,82 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.30]:23192 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753197AbZEFSun convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 May 2009 14:50:43 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so161850ywb.1
-        for <linux-media@vger.kernel.org>; Wed, 06 May 2009 11:50:43 -0700 (PDT)
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:52444 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761639AbZENWxY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 May 2009 18:53:24 -0400
+Received: by fxm2 with SMTP id 2so1608665fxm.37
+        for <linux-media@vger.kernel.org>; Thu, 14 May 2009 15:53:23 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <247D2127-F564-4F55-A49D-3F0F8FA63112@gmail.com>
-References: <412bdbff0905052114r7f481759r373fd0b814f458e@mail.gmail.com>
-	 <247D2127-F564-4F55-A49D-3F0F8FA63112@gmail.com>
-Date: Wed, 6 May 2009 14:50:43 -0400
-Message-ID: <412bdbff0905061150g2e46f919i57823c8700252926@mail.gmail.com>
-Subject: Re: XC5000 improvements: call for testers!
-From: Devin Heitmueller <devin.heitmueller@gmail.com>
-To: Britney Fransen <britney.fransen@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <23be820f0905141410k3cc3840eyd17b95730ec91f5c@mail.gmail.com>
+References: <23be820f0905141410k3cc3840eyd17b95730ec91f5c@mail.gmail.com>
+Date: Fri, 15 May 2009 00:53:23 +0200
+Message-ID: <23be820f0905141553t1829e70buc491fa28493d7334@mail.gmail.com>
+Subject: Re: twinhan cards
+From: Gregor Fuis <gujs.lists@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 6, 2009 at 2:42 PM, Britney Fransen
-<britney.fransen@gmail.com> wrote:
-> Devin,
->
-> I have an HVR-950q.
->
-> Analog support is working much better for me.  I love the faster tuning.
->  Still no luck getting analog to work in MythTV.
->
-> I am seeing some major regressions on the the digital side.  mplayer can't
-> tune any digital channels and seems to be failing because it can't access
-> the tuner.  In MythTV it does tune my QAM64 channel that previously would
-> only tune with Frank's QAM64 patch. The other QAM256 channels either won't
-> lock at all or if they do have bad pixelation and audio drops.  In
-> mythtv-setup I can't do a channel scan because it says it can't open the
-> card which seems similar to the problem mplayer had.  I had previously been
-> using 11658 with the QAM64 patch.
->
-> The 950q is definitely cooler to the touch.  Not a big deal but I did notice
-> that the tune light that would light orange when tuned to a channel no
-> longer lights up.
->
-> Let me know if there is anything you would like me to try.
->
-> Thanks,
-> Britney
+I managed to find a way to go further. I just commented out a code in
+dvb_bt8xx.c which returns error and let it to run further.
 
-Ok, there is alot of information here.  Let me try to break it down.
+        if (!(card->bt = dvb_bt8xx_878_match(card->bttv_nr, bttv_pci_dev))) {
+                printk("dvb_bt8xx: unable to determine DMA core of card %d,\n",
+                       card->bttv_nr);
+                printk("dvb_bt8xx: if you have the ALSA bt87x audio driver "
+                       "installed, try removing it.\n");
 
-First off, the QAM64 patches that Frank provided have not been merged
-it.  It's on my todo list.
+/*              kfree(card);
+                return -EFAULT;*/
+        }
 
-Has the MythTV situation gotten *worse* with this code compared to the
-current v4l-dvb tip?  It would not surprise me if there are some
-general MythTV issues with the 950q (I am in the process of building a
-MythTV box so I can test/debug).  However, I would be surprised if
-there were *new* issues.  I do know that mkrufky was mentioning there
-was some sort of way to tell MythTV about hybrid devices, so that the
-application doesn't try to use both the analog and digital at the same
-time - and if you didn't do that then this could explain your issue.
 
-Regarding the mplayer issue, please try this:
+And this work OK, but now I have new problem. DST module is not
+recognising fronted all the time. Every boot some other card works:
 
-<unplug the 950q>
-cd v4l-dvb
-make unload
-modprobe xc5000 no_poweroff=1
-<plug in the 950q>
+[   17.290060] dst(0) dst_check_mb86a15: Cmd=[0x10], failed
+[   17.290139] dst(0) dst_get_device_id: Unsupported
+[   17.290195] DST type flags : 0x1 newtuner 0x1000 VLF 0x10 firmware
+version = 2
+[   17.335966] dst(0) dst_get_mac: MAC Address=[cd92b3ec]
+[   17.336022] dst(0) dst_get_tuner_info: DST TYpe = MULTI FE
+[   21.447662] dst_ca_attach: registering DST-CA device
+[   21.447954] DVB: registering adapter 0 frontend 0 (DST DVB-S)...
+[   21.448059] DVB: registering new adapter (bttv1)
+[   25.652375] dst(1) dst_get_device_id: Recognise [DSTMCI]
+[   25.711362] dst(1) dst_get_device_id: Unsupported
+[   29.750044] dst(1) dst_check_mb86a15: Cmd=[0x10], failed
+[   29.750100] dst(1) dst_get_device_id: Unsupported
+[   29.750156] DST type flags : 0x1 newtuner 0x1000 VLF 0x10 firmware
+version = 2
+[   29.795932] dst(1) dst_get_mac: MAC Address=[ceccebec]
+[   29.795988] dst(1) dst_get_tuner_info: DST TYpe = MULTI FE
+[   33.870309] dst_ca_attach: registering DST-CA device
+[   33.870615] DVB: registering adapter 1 frontend 0 (DST DVB-S)...
+[   33.870698] DVB: registering new adapter (bttv2)
+[   38.260053] dst(2) dst_probe: unknown device.
+[   38.260436] frontend_init: Could not find a Twinhan DST.
+[   38.260445] dvb-bt8xx: A frontend driver was not found for device
+[109e:0878] subsystem [1822:0001]
+[   38.260505] DVB: registering new adapter (bttv3)
+[   42.650053] dst(3) dst_probe: unknown device.
+[   42.650431] frontend_init: Could not find a Twinhan DST.
+[   42.650440] dvb-bt8xx: A frontend driver was not found for device
+[109e:0878] subsystem [1822:0001]
 
-... and then see if mplayer still has issues.  This might be somehow
-related to the firmware having to be reloaded taking too long for
-mplayer (the firmware has to be reloaded when the chip is woken up
-after being powered down).
 
-Devin
+If I would be a better coder I would figure this out. I know that I
+have to hardcode DSTMCI device detection in dst.c file, but don't know
+where to put it.
 
--- 
-Devin J. Heitmueller
-http://www.devinheitmueller.com
-AIM: devinheitmueller
+Regards,
+Gregor
