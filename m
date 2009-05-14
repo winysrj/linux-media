@@ -1,109 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:53694 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753332AbZENXxV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 May 2009 19:53:21 -0400
-Subject: Re: v4l-dvb rev 11757 broke building under Ubuntu Hardy
-From: Andy Walls <awalls@radix.net>
-To: david.ward@gatech.edu
-Cc: Chaithrika U S <chaithrika@ti.com>, linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Thu, 14 May 2009 19:53:50 -0400
-Message-Id: <1242345230.3169.49.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from web110814.mail.gq1.yahoo.com ([67.195.13.237]:23537 "HELO
+	web110814.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751956AbZENT2Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 May 2009 15:28:16 -0400
+Message-ID: <261583.74225.qm@web110814.mail.gq1.yahoo.com>
+Date: Thu, 14 May 2009 12:28:17 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH] [0905_12] Siano: move dvb-api headers' includes to dvb adapter
+To: LinuxML <linux-media@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-David Ward wrote:
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1242323970 -10800
+# Node ID cc2c1513b97c4247614fadcab0a61f3979837d86
+# Parent  483a3656a227acbceb26da96b02bebd0058a3961
+[0905_12] Siano: move dvb-api headers' includes to dvb adapter
 
-> I am using v4l-dvb in order to add the cx18 driver under Ubuntu Hardy
-> (8.04).
-> 
-> The build is currently broken under Hardy, which uses kernel 2.6.24. I
-> have traced the origin of the problem to revision 11757. As seen in
-> the latest cron job output, the build produces the error when trying
-> to compile adv7343.c:
-> 
-> /usr/local/src/v4l-dvb/v4l/adv7343.c:506: error: array type has incomplete element type
-> /usr/local/src/v4l-dvb/v4l/adv7343.c:518: warning: initialization from incompatible pointer type
-> /usr/local/src/v4l-dvb/v4l/adv7343.c:520: error: unknown field 'id_table' specified in initializer
-> 
-> Thanks for resolving this.
-> 
-> David Ward
+From: Uri Shkolnik <uris@siano-ms.com>
 
-David,
+Move the DVB-API v3 headers' include list from the core component
+to the smsdvb (DVB adapter) which is the only one that uses them.
 
-Please try the patch below.
+Priority: normal
 
-Chaithrika,
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
 
-Please review (and test if it is OK) the patch below.  It modifies
-adv7343.c to what the cs5345.c file does for backward compatability.
-
-It adds some checks against kernel version, which would not go into the
-actual kernel, and changes some code to use the v4l2 i2c module template
-from v4l2-i2c-drv.h, which *would* go into the actual kenrel.
-
-
-Regards,
-Andy
-
-
-Signed-off-by: Andy Walls <awalls@radix.net>
-
-diff -r 0018ed9bbca3 linux/drivers/media/video/adv7343.c
---- a/linux/drivers/media/video/adv7343.c	Tue May 12 16:13:13 2009 +0000
-+++ b/linux/drivers/media/video/adv7343.c	Thu May 14 19:51:10 2009 -0400
-@@ -29,6 +29,8 @@
- #include <media/adv7343.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-chip-ident.h>
-+#include <media/v4l2-i2c-drv.h>
-+#include "compat.h"
+diff -r 483a3656a227 -r cc2c1513b97c linux/drivers/media/dvb/siano/smscoreapi.h
+--- a/linux/drivers/media/dvb/siano/smscoreapi.h	Thu May 14 20:54:22 2009 +0300
++++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Thu May 14 20:59:30 2009 +0300
+@@ -35,13 +35,6 @@ along with this program.  If not, see <h
+ #include <asm/page.h>
+ #include "compat.h"
  
- #include "adv7343_regs.h"
+-#define SMS_DVB3_SUBSYS
+-#ifdef SMS_DVB3_SUBSYS
+-#include "dmxdev.h"
+-#include "dvbdev.h"
+-#include "dvb_demux.h"
+-#include "dvb_frontend.h"
+-#endif
  
-@@ -503,6 +505,7 @@
- 	return 0;
- }
+ #define kmutex_init(_p_) mutex_init(_p_)
+ #define kmutex_lock(_p_) mutex_lock(_p_)
+diff -r 483a3656a227 -r cc2c1513b97c linux/drivers/media/dvb/siano/smsdvb.c
+--- a/linux/drivers/media/dvb/siano/smsdvb.c	Thu May 14 20:54:22 2009 +0300
++++ b/linux/drivers/media/dvb/siano/smsdvb.c	Thu May 14 20:59:30 2009 +0300
+@@ -21,6 +21,11 @@ along with this program.  If not, see <h
  
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
- static const struct i2c_device_id adv7343_id[] = {
- 	{"adv7343", 0},
- 	{},
-@@ -510,25 +513,12 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
++
++#include "dmxdev.h"
++#include "dvbdev.h"
++#include "dvb_demux.h"
++#include "dvb_frontend.h"
  
- MODULE_DEVICE_TABLE(i2c, adv7343_id);
- 
--static struct i2c_driver adv7343_driver = {
--	.driver = {
--		.owner	= THIS_MODULE,
--		.name	= "adv7343",
--	},
-+#endif
-+static struct v4l2_i2c_driver_data v4l2_i2c_data = {
-+	.name		= "adv7343",
- 	.probe		= adv7343_probe,
- 	.remove		= adv7343_remove,
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
- 	.id_table	= adv7343_id,
-+#endif
- };
--
--static __init int init_adv7343(void)
--{
--	return i2c_add_driver(&adv7343_driver);
--}
--
--static __exit void exit_adv7343(void)
--{
--	i2c_del_driver(&adv7343_driver);
--}
--
--module_init(init_adv7343);
--module_exit(exit_adv7343);
+ #include "smscoreapi.h"
+ #include "smsendian.h"
 
 
+
+      
