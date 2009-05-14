@@ -1,100 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.oregonstate.edu ([128.193.15.36]:44776 "EHLO
-	smtp2.oregonstate.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752895AbZE0Aeb (ORCPT
+Received: from mail6.sea5.speakeasy.net ([69.17.117.8]:38452 "EHLO
+	mail6.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753255AbZENUhL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2009 20:34:31 -0400
-Message-ID: <4A1C89F5.1050403@onid.orst.edu>
-Date: Tue, 26 May 2009 17:31:49 -0700
-From: Michael Akey <akeym@onid.orst.edu>
+	Thu, 14 May 2009 16:37:11 -0400
+Date: Thu, 14 May 2009 13:37:10 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Sverker Abrahamsson <sverker@abrahamsson.com>
+cc: 'Jose Diaz' <xt4mhz@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: Sound capture with Osprey 230
+In-Reply-To: <!&!AAAAAAAAAAAYAAAAAAAAAN5fehIZv/BBsQLx9nhfoL3ihQAAEAAAAKI1En61O+tDoEZgbOaYLvMBAAAAAA==@abrahamsson.com>
+Message-ID: <Pine.LNX.4.58.0905141315060.7837@shell2.speakeasy.net>
+References: <!&!AAAAAAAAAAAYAAAAAAAAAN5fehIZv/BBsQLx9nhfoL3ihQAAEAAAAKI1En61O+tDoEZgbOaYLvMBAAAAAA==@abrahamsson.com>
 MIME-Version: 1.0
-To: jeisom@gmail.com
-CC: linux-media@vger.kernel.org
-Subject: [Fwd: Re: Nextwave NXT2004 Firmware (found)]
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Found what I THINK to be the proper offset, with the help of the 
-"proper" firmware:  0x6298, length: 9674bytes. (atidtuxx.sys) I have a 
-copy set up on my system and appears to be working properly.. If anybody 
-would like to test, I can send them the file off-list.  Again, this is 
-for the ATI HDTV Wonder card, not the AVerMedia A180 card.  Thanks for 
-you help Jon :)  I'll be doing more testing later tonight, and report 
-any results/errors.  It would certainly be cool to get some feedback on 
-my findings, and get the firmware script updated for others.
+On Mon, 11 May 2009, Sverker Abrahamsson wrote:
+> Hi all,
+> I've been using Osprey 230 cards for AV capture for several years, earlier
+> with a modified version of Viewcast's driver but it was never very stable.
+> When doing a new setup I therefore wanted to get the Alsa driver to work. I
+> found that there were two trees in the repository in regards to these cards,
+> http://linuxtv.org/hg/~mchehab/osprey and http://linuxtv.org/hg/~tap/osprey.
+> It seems that mchehab tree is the patches that Viewcast submitted which does
+> not address the necessary changes for ALSA driver while tap tree does but
+> for Osprey 440 and older kernels.
 
--------- Original Message --------
-Subject: 	Re: Nextwave NXT2004 Firmware (found)
-Date: 	Tue, 26 May 2009 18:13:59 -0500
-From: 	Jonathan Isom <jeisom@gmail.com>
-To: 	Michael Akey <akeym@onid.orst.edu>
-References: 	<4A1C711E.3070408@onid.orst.edu>
+Mauro's tree with viewcast's patches is even older than mine, wrt kernel
+support.
 
+> I've therefore ported the changes from tap to the main tree and added
+> support for detecting Osprey 210/220/230 plus a minor fix to support
+> specifying digital_rate as module parameter. It might also work for Osprey
+> 240 (which is PCI-e variant of 230) but I don't have any such card so I
+> haven't been able to test.
 
+Instead of modifying my patch, it would be better if you could provide a
+patch on top of it that adds support for your new card.
 
-On Tue, May 26, 2009 at 5:45 PM, Michael Akey <akeym@onid.orst.edu> wrote:
-> (posting to proper mailing list as per linux-dvb@linuxtv.org's
-> auto-response)
->
-> I recently acquired an ATI HDTV Wonder PCI card from a friend of mine
-> and decided to test it out on my satellite TV transcoding server to also
-> get OTA channels.  I am using a generic linux kernel version 2.6.29.2,
-> and it detects the card just fine, but needed a firmware file for the
-> front-end.
->
-> I checked the get_dvb_firmware script, but it failed because the driver
-> pack from AVerMedia is no longer available.  I then tried to get the
-> latest drivers from them by hand for the A180 card, which also has the
-> nxt2004 demod/frontend..  but the driver package refused to install on
-> my WinXP system.  After some quick googling and not finding the nxt2004
-> firmware downloadable online, I tried to find it in the AMD/ATI driver
-> package instead.  It was not readily apparent which file had the
-> firmware, and the only files in the package were windows
-> executable/system files.
->
-> So I figured it was embedded in one of these files..  I was able to find
-> the nxt2002 firmware file, and compare it to the contents of the file
-> "atidtuxx.sys."  In this file, I fiddled around with offsets and dumping
-> 8kb chunks out and feeding it to my linux machine's kernel, and
-> magically got my tuner card to APPEAR to work properly with it, but I do
-> not know the firmware's actual size, so there's a distinct possibility
-> that I'm sending it extra garbage it doesn't need.
->
->
-> Default extraction path from nullsoft installer:
-> C:\ATI\SUPPORT\6-1_hdtv_83-2036wdm\WDM_XP
->
-> Firmware appears to be in ATIDTUXX.SYS at offset 0x681E, taken as a
-> 8192byte chunk.
->
-> To help me with my findings, does anybody have a known working version
-> of dvb-fe-nxt2004.fw that I can use for comparison?  Thanks!
+> The only question mark I have is that the current implementation use the
+> depreciated interfaces from bttv-if.c to find which bttv driver corresponds
+> to this audio driver and adds a function to get the bttv core. It is
+> suggested to use the routines in bttv-gpio.c instead but I don't find an
+> obvious replacement for bttv_get_pcidev nor how to get bttv_core.
 
-Here you go,  Don't know if you are going about anyway wrong.
+The interface in bttv-if.c has been "deprecated" for years now, yet no one
+has come up with something to replace it with.  I think Gerd was getting a
+bit ahead of himself when he declared it obsolete.
 
-> And if I have found the correct firmware, the get_dvb_firmware script
-> can be updated to pull this from the ATI drivers now.. If I did this the
-> hard way, you may feel free to point this out as well :)
->
-> --Mike
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> I see two alternatives:
+> 1. Implement snd-87x module as a subdevice to bttv. Is this correct as the
+> video and audio devices are two separate pci devices?
 
+The audio and video devices aren't just separate pci devices, they are also
+two unrelated devices to the linux device model.  The driver model doesn't
+have any means to call one a subdevice of the other.
 
+Somehow, there needs to be a means for the audio driver to find the video
+driver so that it can get access to the gpio lines and the i2c bus.  But,
+this is only necessary for the osprey cards.  The audio driver for other
+cards doesn't need gpios or i2c.  So, it would be nice to allow just the
+audio driver with no video to be loaded.
 
--- 
-
-ASUS m3a78 mothorboard
-AMD Athlon64 X2 Dual Core Processor 6000+ 3.1Ghz
-4 Gigabytes of memory
-Gigabyte NVidia 9400gt  Graphics adapter
-Kworld ATSC 110 TV Capture Card
-Kworld ATSC 115 TV Capture Card
-
-
+The problem with my implementation is that after the audio bttv driver gets
+a pointer to the video driver's core, the video driver could go away and
+leave the audio driver with a dangling pointer.  That's one of the reasons
+I haven't merged my osprey code.  The other is that I have cards with bttv
+audio to test with.
