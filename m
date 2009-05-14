@@ -1,55 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110811.mail.gq1.yahoo.com ([67.195.13.234]:42342 "HELO
-	web110811.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752545AbZESQAn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2009 12:00:43 -0400
-Message-ID: <561517.25190.qm@web110811.mail.gq1.yahoo.com>
-Date: Tue, 19 May 2009 09:00:42 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [09051_53] Siano: smscore - remove redundant define
-To: LinuxML <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from mail1.radix.net ([207.192.128.31]:53694 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753332AbZENXxV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 14 May 2009 19:53:21 -0400
+Subject: Re: v4l-dvb rev 11757 broke building under Ubuntu Hardy
+From: Andy Walls <awalls@radix.net>
+To: david.ward@gatech.edu
+Cc: Chaithrika U S <chaithrika@ti.com>, linux-media@vger.kernel.org
+Content-Type: text/plain
+Date: Thu, 14 May 2009 19:53:50 -0400
+Message-Id: <1242345230.3169.49.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1242749102 -10800
-# Node ID dfcfb90798d3a27cb174019b17fffdee9ce7b2b9
-# Parent  b71383c9ab1cd51cc307b488ef4397f6eb345cef
-[09051_53] Siano: smscore - remove redundant define
+David Ward wrote:
 
-From: Uri Shkolnik <uris@siano-ms.com>
+> I am using v4l-dvb in order to add the cx18 driver under Ubuntu Hardy
+> (8.04).
+> 
+> The build is currently broken under Hardy, which uses kernel 2.6.24. I
+> have traced the origin of the problem to revision 11757. As seen in
+> the latest cron job output, the build produces the error when trying
+> to compile adv7343.c:
+> 
+> /usr/local/src/v4l-dvb/v4l/adv7343.c:506: error: array type has incomplete element type
+> /usr/local/src/v4l-dvb/v4l/adv7343.c:518: warning: initialization from incompatible pointer type
+> /usr/local/src/v4l-dvb/v4l/adv7343.c:520: error: unknown field 'id_table' specified in initializer
+> 
+> Thanks for resolving this.
+> 
+> David Ward
 
-Remove redundant define.
+David,
 
-Priority: normal
+Please try the patch below.
 
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+Chaithrika,
 
-diff -r b71383c9ab1c -r dfcfb90798d3 linux/drivers/media/dvb/siano/smscoreapi.h
---- a/linux/drivers/media/dvb/siano/smscoreapi.h	Tue May 19 19:00:49 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Tue May 19 19:05:02 2009 +0300
-@@ -645,7 +645,6 @@ extern void smscore_onresponse(struct sm
- extern void smscore_onresponse(struct smscore_device_t *coredev,
- 			       struct smscore_buffer_t *cb);
+Please review (and test if it is OK) the patch below.  It modifies
+adv7343.c to what the cs5345.c file does for backward compatability.
+
+It adds some checks against kernel version, which would not go into the
+actual kernel, and changes some code to use the v4l2 i2c module template
+from v4l2-i2c-drv.h, which *would* go into the actual kenrel.
+
+
+Regards,
+Andy
+
+
+Signed-off-by: Andy Walls <awalls@radix.net>
+
+diff -r 0018ed9bbca3 linux/drivers/media/video/adv7343.c
+--- a/linux/drivers/media/video/adv7343.c	Tue May 12 16:13:13 2009 +0000
++++ b/linux/drivers/media/video/adv7343.c	Thu May 14 19:51:10 2009 -0400
+@@ -29,6 +29,8 @@
+ #include <media/adv7343.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-chip-ident.h>
++#include <media/v4l2-i2c-drv.h>
++#include "compat.h"
  
--#if 1
- extern int smscore_get_common_buffer_size(struct smscore_device_t *coredev);
- extern int smscore_map_common_buffer(struct smscore_device_t *coredev,
- 				      struct vm_area_struct *vma);
-@@ -653,7 +652,6 @@ extern int smscore_get_fw_filename(struc
- 				   int mode, char *filename);
- extern int smscore_send_fw_file(struct smscore_device_t *coredev,
- 				u8 *ufwbuf, int size);
--#endif
+ #include "adv7343_regs.h"
  
- extern
- struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t *coredev);
+@@ -503,6 +505,7 @@
+ 	return 0;
+ }
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
+ static const struct i2c_device_id adv7343_id[] = {
+ 	{"adv7343", 0},
+ 	{},
+@@ -510,25 +513,12 @@
+ 
+ MODULE_DEVICE_TABLE(i2c, adv7343_id);
+ 
+-static struct i2c_driver adv7343_driver = {
+-	.driver = {
+-		.owner	= THIS_MODULE,
+-		.name	= "adv7343",
+-	},
++#endif
++static struct v4l2_i2c_driver_data v4l2_i2c_data = {
++	.name		= "adv7343",
+ 	.probe		= adv7343_probe,
+ 	.remove		= adv7343_remove,
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
+ 	.id_table	= adv7343_id,
++#endif
+ };
+-
+-static __init int init_adv7343(void)
+-{
+-	return i2c_add_driver(&adv7343_driver);
+-}
+-
+-static __exit void exit_adv7343(void)
+-{
+-	i2c_del_driver(&adv7343_driver);
+-}
+-
+-module_init(init_adv7343);
+-module_exit(exit_adv7343);
 
 
-
-      
