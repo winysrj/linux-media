@@ -1,199 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f109.google.com ([209.85.222.109]:40947 "EHLO
-	mail-pz0-f109.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753281AbZEZGb7 convert rfc822-to-8bit (ORCPT
+Received: from mail-in-06.arcor-online.net ([151.189.21.46]:56005 "EHLO
+	mail-in-06.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752776AbZENBPs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2009 02:31:59 -0400
-Received: by pzk7 with SMTP id 7so2833897pzk.33
-        for <linux-media@vger.kernel.org>; Mon, 25 May 2009 23:32:00 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <C4B8C637-2C21-4955-8C6A-0600C11D3B09@gmail.com>
-References: <5e9665e10905200448n1ffc9d8s20317bbbba745e6a@mail.gmail.com>
-	 <200905211407.05354.hverkuil@xs4all.nl>
-	 <5e9665e10905211905t43ae195cv7a0fe243077887c9@mail.gmail.com>
-	 <200905221440.13444.hverkuil@xs4all.nl>
-	 <C4B8C637-2C21-4955-8C6A-0600C11D3B09@gmail.com>
-Date: Tue, 26 May 2009 15:32:00 +0900
-Message-ID: <5e9665e10905252332g496c5873vc59a39f6607f80ee@mail.gmail.com>
-Subject: Re: About VIDIOC_G_OUTPUT/S_OUTPUT ?
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Shah, Hardik" <hardik.shah@ti.com>,
-	"dongsoo45.kim@samsung.com" <dongsoo45.kim@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>
-Content-Type: text/plain; charset=EUC-KR
-Content-Transfer-Encoding: 8BIT
+	Wed, 13 May 2009 21:15:48 -0400
+Subject: Re: [PATCH] FM1216ME_MK3 some changes
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Dmitri Belimov <d.belimov@gmail.com>
+Cc: Andy Walls <awalls@radix.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	video4linux-list@redhat.com, linux-media@vger.kernel.org
+In-Reply-To: <20090514101758.04665ab4@glory.loctelecom.ru>
+References: <20090422174848.1be88f61@glory.loctelecom.ru>
+	 <20090423203618.4ac2bc6f@glory.loctelecom.ru>
+	 <1240537394.3231.37.camel@palomino.walls.org>
+	 <20090427192905.3ad2b88c@glory.loctelecom.ru>
+	 <20090428151832.241fa9b4@pedra.chehab.org>
+	 <20090428195922.1a079e46@glory.loctelecom.ru>
+	 <1240974643.4280.24.camel@pc07.localdom.local>
+	 <20090429201225.6ba681cf@glory.loctelecom.ru>
+	 <1241050556.3710.109.camel@pc07.localdom.local>
+	 <20090506044231.31f2d8aa@glory.loctelecom.ru>
+	 <1241654513.5862.37.camel@pc07.localdom.local>
+	 <1241665384.3147.53.camel@palomino.walls.org>
+	 <1241741304.4864.29.camel@pc07.localdom.local>
+	 <1241834493.3482.140.camel@palomino.walls.org>
+	 <1241836025.3717.9.camel@pc07.localdom.local>
+	 <1241916185.3694.8.camel@pc07.localdom.local>
+	 <20090510085258.03068a1e@glory.loctelecom.ru>
+	 <1242012951.3753.21.camel@pc07.localdom.local>
+	 <20090513073757.6177c42e@glory.loctelecom.ru>
+	 <1242258283.4781.26.camel@pc07.localdom.local>
+	 <20090514101758.04665ab4@glory.loctelecom.ru>
+Content-Type: text/plain
+Date: Thu, 14 May 2009 03:10:26 +0200
+Message-Id: <1242263426.7971.7.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+Hi Dmitry :)
 
-I took a look into ivtv driver but the VIDEO_SELECT_SOURCE doesn't fit
-in the feature that I was explaining. ivtv_passthrough_mode seems to
-be all about selecting input source not output. Am I right? But in my
-case, I have (1)external camera, (2)memory for input source and
-(1)memory, (2)LCD FIFO(like overlay) for output. It means that use
-case can be established like this:
+Am Donnerstag, den 14.05.2009, 10:17 +1000 schrieb Dmitri Belimov:
+> Hi
+> 
+> > Hi Dmitry,
+> > 
+> > Am Mittwoch, den 13.05.2009, 07:37 +1000 schrieb Dmitri Belimov:
+> > > Hi hermann
+> > > 
+> > > > Am Sonntag, den 10.05.2009, 08:52 +1000 schrieb Dmitri Belimov:
+> > > > > Hi All.
+> > > > > 
+> > > > > > [snip]
+> > > > > > > > 
+> > > > > > > > Channel designations I dug out of ivtv-tune:
+> > > > > > > > 
+> > > > > > > > S38 439.250 MHz (European cable)
+> > > > > > > > H18 439.250 MHz (SECAM France)
+> > > > > > > > 47  440.250 MHz (PAL China)
+> > > > > > > > 059 440.250 MHz (PAL Argentina)
+> > > > > > > > 
+> > > > > > > > come close, but are unaffected by the change from 442 to
+> > > > > > > > 441 as the bandswitch cutover point.  These channels fall
+> > > > > > > > right on top of the cutover, but are not affected by the
+> > > > > > > > proposed change in any meaningful way.  The VHF-High
+> > > > > > > > filter and VCO would still be used.  Dmitri's proposed
+> > > > > > > > change is a "don't care" unless the cutover point is
+> > > > > > > > changed to 440 MHz. 
+> > > > > > > > 
+> > > > > > > > 
+> > > > > > > > Let's pretend that the proposed cutover point is 440 MHz.
+> > > > > > 
+> > > > > > NO! it is not
+> > > > > > 
+> > > > > > Dmitri,
+> > > > > > 
+> > > > > > can you cut one off and tell us what it is all about ?
+> > > > > > 
+> > > > > > Unless you do so, all other is pointless and I likely stop to
+> > > > > > participate in such stuff.
+> > > > > 
+> > > > > Sorry my delay. I lost subject of discussion. What main
+> > > > > question??
+> > > > > 
+> > > > > 1. AGC TOP of RF part - I think need support for MK3
+> > > > > 2. Changing to 441MHz is not critical. We can write some
+> > > > > information about this case to Wiki or docs.
+> > > > 
+> > > > for 2.: Discussed to the end if you stay at 441MHz. If you still
+> > > > want to have it in, just send  a patch and no more info is
+> > > > needed. (Likely Andy is giving only examples for more difficult
+> > > > cases, sorry.)
+> > > > 
+> > > > for 1.: I would like to be absolutely sure, that we are talking
+> > > > about the same tuner. I want to have the exact filters on it at
+> > > > least.
+> > > > 
+> > > > 3.: That is what Andy noted. Following the Philips datasheet for
+> > > > TOP, it should be added for negative modulation, positive
+> > > > modulation and FM accordingly. (2 and 3 are out of discussion)
+> > > > 
+> > > > If you still have some sort of Secam fire and can improve it, we
+> > > > must know the tuner you are on "exactly". If it is the original
+> > > > Philips, without any such TOP suggestions over the full range in
+> > > > recent datasheets (???), I assume you might have them, I would
+> > > > say you can proceed, if you have shown that you are really still
+> > > > on the same tuner.
+> > > 
+> > > This is real Philips MK3 and MK5 tuner. We have all docs from
+> > > vendor.
+> > > 
+> > > This is some photos of the MK3 hybrid tuner. I make photos of the
+> > > analog MK3 little later.
+> > > 
+> > 
+> > thanks a lot.
+> > 
+> > I had only a first look on this one.
+> > 
+> > There are a lot of different revisions, yours is F4 on the tuner PCB.
+> > 
+> > Taifun PLL versions vary, different combinations of ceramic and SMD
+> > filters are used for the radio IF,
+> > 
+> > but even on a revision C1 with Taifun 6034T A1 and tuner revision SV21
+> > 0437 (CTX918_V2 md7134) all three SAW filters are the same already. 
+> > 
+> > A CTX925 with your Taifun 6034T B1 had also no better performance for
+> > what I can say. PCB still has C1, but SV21 0502 tuner revision.
+> > 
+> > Important to know was, that you are on original Philips tuners and SAW
+> > filters are the same. Guess this will hold for the analog FM1216ME/I
+> > MK3 too.
+> 
+> This is photos of analog MK3. Not so good, sorry.
+> 
+> > Good decision, it are still the best tuners for analog and digital I
+> > have around, but can't talk for Secam D/K. I wonder about missing
+> > complaints during the last four years.
+> 
+> Our customers watch TV with params
+> saa7134 secam=d alsa=1
+> 
 
-(A) using external camera for input and memory for output => memcpy
-the memory to framebuffer to display preview
 
-(B) using external camera for input and memory for output => memcpy
-the memory and save as a file (recording or snapshot). maybe the same
-case as (A)
+That depends on how up to date the app is, once selected, even per
+channel, you don't have to do this ever again and don't need any insmod
+options at all currently.
 
-(C) using external camera for input and LCD FIFO for output => turn on
-the camera and will se preview with doing nothing further in userspace
-(like memcpy)
+I recently tried to keep it for others the same :)
 
-(D) using memory for input source and memory for output => actually in
-this case we can use "rotator" feature of camera interface. so let the
-multimedia file go through the camera interface and rotate
-orientation.
+Umm, for the analog only FM1216ME/ I H-3 (MK3) it seems you have some
+other stuff on it employed. On a first look ;)
 
-(E) using memory for input source and LCD FIFO for output => rotate
-multimedia file and display direct to LCD.
-
-So in this case, should I use VIDIOC_S_INPUT to select input and
-VIDIOC_S_OUTPUT to select output device? or I got in the wrong way in
-the first place....(if VIDEO_SELECT_SOURCE is the right one for me)
-
-If the concept above fits in VIDIOC_S_OUTPUT then I think we need more
-"type" define because I think any of type defined is not matching
-feature of "output to memory".
 Cheers,
-
-Nate
-
-
-2009/5/22 Dongsoo Kim <dongsoo.kim@gmail.com>:
-> Hi Hans,
->
->
-> 2009. 05. 22, 오후 9:40, Hans Verkuil 작성:
->
->> On Friday 22 May 2009 04:05:47 Dongsoo, Nathaniel Kim wrote:
->>>
->>> Hi Hans,
->>>
->>> On Thu, May 21, 2009 at 9:07 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>>
->>>> On Wednesday 20 May 2009 13:48:08 Dongsoo, Nathaniel Kim wrote:
->>>>>
->>>>> Hello everyone,
->>>>>
->>>>> Doing a new camera interface driver job of new AP from Samsung, a
->>>>> single little question doesn't stop making me confused.
->>>>> The camera IP in Samsung application processor supports for two of
->>>>> output paths, like "to memory" and "to LCD FIFO".
->>>>> It seems to be VIDIOC_G_OUTPUT/S_OUTPUT which I need to use (just
->>>>> guessing), but according to Hans's ivtv driver the "output" of
->>>>> G_OUTPUT/S_OUTPUT is supposed to mean an actually and physically
->>>>> separated real output path like Composite, S-Video and so on.
->>>>>
->>>>> Do you think that memory or LCD FIFO can be an "output" device in this
->>>>> case? Because in earlier version of my driver, I assumed that the "LCD
->>>>> FIFO" is a kind of "OVERLAY" device, so I didn't even need to use
->>>>> G_OUTPUT and S_OUTPUT to route output device. I'm just not sure about
->>>>> which idea makes sense. or maybe both of them could make sense
->>>>> indeed...
->>>>
->>>> When you select "to memory", then the video from the camera is DMAed to
->>>> the CPU, right? But selecting "to LCD" means that the video is routed
->>>> internally to the LCD without any DMA to the CPU taking place, right?
->>>
->>> Yes definitely right.
->>>
->>>> This is similar to the "passthrough" mode of the ivtv driver.
->>>>
->>>> This header: linux/dvb/video.h contains an ioctl called
->>>> VIDEO_SELECT_SOURCE, which can be used to select either memory or a
->>>> demuxer (or in this case, the camera) as the source of the output (the
->>>> LCD in this case). It is probably the appropriate ioctl to implement
->>>> for this.
->>>
->>> So, in user space we should call  VIDIO_SELECT_SOURCE ioctl?
->>
->> Yes.
->>
->>>> The video.h header is shared between v4l and dvb and contains several
->>>> ioctls meant to handle output. It is poorly documented and I think it
->>>> should be merged into the v4l2 API and properly documented/cleaned up.
->>>
->>> I agree with you. Anyway, camera interface is not a DVB device but
->>> supporting this source routing feature means that we also need this
->>> API in v4l2.
->>
->> It's valid to use VIDEO_SELECT_SOURCE in an v4l2 driver. It's currently
->> used
->> by ivtv. It's an historical accident that these ioctls ended up in the dvb
->> header.
->
-> Oh, I'll look into the driver. Cheers.
->
->>
->>
->>>> Note that overlays are meant for on-screen displays. Usually these are
->>>> associated with a framebuffer device. Your hardware may implement such
->>>> an OSD as well, but that is different from this passthrough feature.
->>>
->>> Sorry Hans, I'm not sure that I'm following this part. Can I put it in
->>> the way like this?
->>> The OSD feature in Samsung AP should be handled separated with the
->>> selecting source feature (camera-to-FB and camera-to-memory). So that
->>> I should implement both of them. (overlay feature and select source
->>> feature)
->>> Am I following? Please let me know if there is something wrong.
->>
->> Yes, that's correct.
->>
->>>
->>> BTW, my 5M camera driver which is including the new V4L2 API proposal
->>> I gave a talk in SF couldn't have approval from my bosses to be opened
->>> to the public. But I'll try to make another camera device driver which
->>> can cover must of the API I proposed.
->>
->> That's a shame. Erm, just to make it clear for your bosses: any v4l2
->> driver
->> that uses any of the videobuf_*, v4l2_i2c_*, v4l2_device_* or v4l2_int_*
->> functions must be a GPL driver, and thus has to be made available upon
->> request. All these functions are marked EXPORT_SYMBOL_GPL. I don't know if
->> they realize this fact.
->>
->
-> Oops I didn't make it clear that my driver was not used for a commercial
-> product. I made them for our platform development and test, and as a matter
-> of fact my drivers will be opened in the end but not just soon enough. I
-> think there is some issues in non-technical area which I'm not aware of.
-> I'll make another driver with other camera device because I can't wait any
-> longer. My boss approved that should be OK. And actually it is challenging
-> indeed.
-> Cheers,
->
-> Nate
->
->
->> Regards,
->>
->>        Hans
->>
->> --
->> Hans Verkuil - video4linux developer - sponsored by TANDBERG
->
->
->
->
+Hermann
 
 
 
--- 
-=
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
+
+
+
