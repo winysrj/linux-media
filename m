@@ -1,47 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f174.google.com ([209.85.218.174]:37047 "EHLO
-	mail-bw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752226AbZEWOxp (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:42014 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755234AbZENLwa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 May 2009 10:53:45 -0400
-Received: by bwz22 with SMTP id 22so2173646bwz.37
-        for <linux-media@vger.kernel.org>; Sat, 23 May 2009 07:53:46 -0700 (PDT)
-Message-ID: <4A180DD8.4030009@gmail.com>
-Date: Sat, 23 May 2009 16:53:12 +0200
-From: David Lister <foceni@gmail.com>
-MIME-Version: 1.0
-To: Gernot Pansy <gernot@pansy.at>
-CC: linux-media@vger.kernel.org, Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: Question about driver for Mantis
-References: <200905230810.39344.jarhuba2@poczta.onet.pl> <1a297b360905222341t4e66e2c6x95d339838db43139@mail.gmail.com> <200905231436.58072.gernot@pansy.at>
-In-Reply-To: <200905231436.58072.gernot@pansy.at>
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 7bit
+	Thu, 14 May 2009 07:52:30 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCH v3 2/7] v4l2: video device: Add FMTX controls default configurations
+Date: Thu, 14 May 2009 14:46:56 +0300
+Message-Id: <1242301622-29672-3-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1242301622-29672-2-git-send-email-eduardo.valentin@nokia.com>
+References: <1242301622-29672-1-git-send-email-eduardo.valentin@nokia.com>
+ <1242301622-29672-2-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Gernot Pansy wrote:
-> will CI be supported and are you willing to finish development and merge it to 
-> mainline anytime?
->
-> i think i was one of the first SP400 owner but i had to sold my card for a Nova 
-> HD2 because the driver was not reliable (some i2c errors, slow tunning, 
-> sometimes tunning failed). And now i need a dvb-s2 card with ci working. so 
-> i'm searching again for a new card. their seems to be only the tt-3200 out, 
-> which seems to work - no newer card. 
->   
-Not sure if you didn't get this email already, I had a slip-up while
-sending it. :) Anyway, there's also another supported card with a CI. A
-friend of mine has it, so I guess it works quite well with Linux. It's
-Mystique SaTiX-S2 (AFAIK, similar to KNC1+). Mystiques have rather
-quality finish and the CI module is ready for 3.5" drive installation.
-Some pictures from google:
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ drivers/media/video/v4l2-common.c |   46 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 46 insertions(+), 0 deletions(-)
 
-http://www.cesarex.com/images/Mystique-CI-1.jpg
-http://www.sat-servis.cz/data/eshop/fotky/produkty/velke/619.jpg
-
-Others might be able to tell you more details, I just know it works -
-friend has a Cryptoworks CAM in it. Take a look around, bye.
-
+diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
+index 7e6203d..389f7b2 100644
+--- a/drivers/media/video/v4l2-common.c
++++ b/drivers/media/video/v4l2-common.c
+@@ -340,6 +340,12 @@ const char **v4l2_ctrl_get_menu(u32 id)
+ 		"Sepia",
+ 		NULL
+ 	};
++	static const char *fmtx_preemphasis[] = {
++		"No preemphasis",
++		"50 useconds",
++		"75 useconds",
++		NULL,
++	};
+ 
+ 	switch (id) {
+ 		case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+@@ -378,6 +384,8 @@ const char **v4l2_ctrl_get_menu(u32 id)
+ 			return camera_exposure_auto;
+ 		case V4L2_CID_COLORFX:
+ 			return colorfx;
++		case V4L2_CID_PREEMPHASIS:
++			return fmtx_preemphasis;
+ 		default:
+ 			return NULL;
+ 	}
+@@ -476,6 +484,28 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
+ 	case V4L2_CID_PRIVACY:			return "Privacy";
+ 
++	/* FM Radio Modulator control */
++	case V4L2_CID_FMTX_CLASS:		return "FM Radio Modulator Controls";
++	case V4L2_CID_RDS_ENABLED:		return "RDS Feature Enabled";
++	case V4L2_CID_RDS_PI:			return "RDS Program ID";
++	case V4L2_CID_RDS_PTY:			return "RDS Program Type";
++	case V4L2_CID_RDS_PS_NAME:		return "RDS PS Name";
++	case V4L2_CID_RDS_RADIO_TEXT:		return "RDS Radio Text";
++	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
++	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
++	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
++	case V4L2_CID_AUDIO_COMPRESSION_ENABLED: return "Audio Compression Feature Enabled";
++	case V4L2_CID_AUDIO_COMPRESSION_GAIN:	return "Audio Compression Gain";
++	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD: return "Audio Compression Threshold";
++	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME: return "Audio Compression Attack Time";
++	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME: return "Audio Compression Release Time";
++	case V4L2_CID_PILOT_TONE_ENABLED:	return "Pilot Tone Feature Enabled";
++	case V4L2_CID_PILOT_TONE_DEVIATION:	return "Pilot Tone Deviation";
++	case V4L2_CID_PILOT_TONE_FREQUENCY:	return "Pilot Tone Frequency";
++	case V4L2_CID_PREEMPHASIS:		return "Pre-emphasis settings";
++	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
++	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
++
+ 	default:
+ 		return NULL;
+ 	}
+@@ -508,6 +538,10 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+ 	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
+ 	case V4L2_CID_FOCUS_AUTO:
+ 	case V4L2_CID_PRIVACY:
++	case V4L2_CID_RDS_ENABLED:
++	case V4L2_CID_AUDIO_LIMITER_ENABLED:
++	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
++	case V4L2_CID_PILOT_TONE_ENABLED:
+ 		qctrl->type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		min = 0;
+ 		max = step = 1;
+@@ -536,12 +570,14 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+ 	case V4L2_CID_MPEG_STREAM_VBI_FMT:
+ 	case V4L2_CID_EXPOSURE_AUTO:
+ 	case V4L2_CID_COLORFX:
++	case V4L2_CID_PREEMPHASIS:
+ 		qctrl->type = V4L2_CTRL_TYPE_MENU;
+ 		step = 1;
+ 		break;
+ 	case V4L2_CID_USER_CLASS:
+ 	case V4L2_CID_CAMERA_CLASS:
+ 	case V4L2_CID_MPEG_CLASS:
++	case V4L2_CID_FMTX_CLASS:
+ 		qctrl->type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 		min = max = step = def = 0;
+@@ -570,6 +606,16 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+ 	case V4L2_CID_BLUE_BALANCE:
+ 	case V4L2_CID_GAMMA:
+ 	case V4L2_CID_SHARPNESS:
++	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME:
++	case V4L2_CID_AUDIO_LIMITER_DEVIATION:
++	case V4L2_CID_AUDIO_COMPRESSION_GAIN:
++	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD:
++	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME:
++	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME:
++	case V4L2_CID_PILOT_TONE_DEVIATION:
++	case V4L2_CID_PILOT_TONE_FREQUENCY:
++	case V4L2_CID_TUNE_POWER_LEVEL:
++	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
+ 		qctrl->flags |= V4L2_CTRL_FLAG_SLIDER;
+ 		break;
+ 	case V4L2_CID_PAN_RELATIVE:
 -- 
-Dave
+1.6.2.GIT
+
