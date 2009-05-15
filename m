@@ -1,115 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1827 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750866AbZEaSNm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 May 2009 14:13:42 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id n4VIDcb3027435
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 31 May 2009 20:13:43 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 31 May 2009 20:13:38 +0200 (CEST)
-Message-Id: <200905311813.n4VIDcb3027435@smtp-vbr16.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail.gmx.net ([213.165.64.20]:54900 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753057AbZEORTA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 May 2009 13:19:00 -0400
+Date: Fri, 15 May 2009 19:19:10 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Darius Augulis <augulis.darius@gmail.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Paul Mundt <lethal@linux-sh.org>
+Subject: [PATCH 02/10 v2] ARM: convert pcm037 to the new platform-device
+ soc-camera interface
+In-Reply-To: <Pine.LNX.4.64.0905151817070.4658@axis700.grange>
+Message-ID: <Pine.LNX.4.64.0905151824040.4658@axis700.grange>
+References: <Pine.LNX.4.64.0905151817070.4658@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-Results of the daily build of v4l-dvb:
+This is actually a completion to the other single patches I've sent 
+earlier for various boards. As I said, pcm037 doesn't have all its 
+outstanding patches in next yet, so, you'll need to collect them from 
+trees / lists, or get them when I upload them.
 
-date:        Sun May 31 19:00:02 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11878:25bc0580359a
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+ arch/arm/mach-mx3/pcm037.c |   26 ++++++++++++++++++--------
+ 1 files changed, 18 insertions(+), 8 deletions(-)
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-rc7-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-rc7-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-rc7-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-rc7-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-rc7-m32r: OK
-linux-2.6.22.19-mips: ERRORS
-linux-2.6.26-mips: ERRORS
-linux-2.6.27-mips: ERRORS
-linux-2.6.28-mips: ERRORS
-linux-2.6.29.1-mips: ERRORS
-linux-2.6.30-rc7-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-rc7-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-rc7-x86_64: WARNINGS
-sparse (linux-2.6.29.1): OK
-sparse (linux-2.6.30-rc7): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+diff --git a/arch/arm/mach-mx3/pcm037.c b/arch/arm/mach-mx3/pcm037.c
+index bfa814d..af49f03 100644
+--- a/arch/arm/mach-mx3/pcm037.c
++++ b/arch/arm/mach-mx3/pcm037.c
+@@ -293,9 +293,18 @@ static int pcm037_camera_power(struct device *dev, int on)
+ 	return 0;
+ }
+ 
++static struct i2c_board_info pcm037_i2c_2_devices[] = {
++	{
++		I2C_BOARD_INFO("mt9t031", 0x5d),
++	},
++};
++
+ static struct soc_camera_link iclink = {
+-	.bus_id	= 0,			/* Must match with the camera ID */
+-	.power = pcm037_camera_power,
++	.bus_id		= 0,		/* Must match with the camera ID */
++	.power		= pcm037_camera_power,
++	.board_info	= &pcm037_i2c_2_devices[0],
++	.i2c_adapter_id	= 2,
++	.module_name	= "mt9t031",
+ };
+ 
+ static struct i2c_board_info pcm037_i2c_devices[] = {
+@@ -308,9 +317,10 @@ static struct i2c_board_info pcm037_i2c_devices[] = {
+ 	}
+ };
+ 
+-static struct i2c_board_info pcm037_i2c_2_devices[] = {
+-	{
+-		I2C_BOARD_INFO("mt9t031", 0x5d),
++static struct platform_device pcm037_camera = {
++	.name	= "soc-camera-pdrv",
++	.id	= 0,
++	.dev	= {
+ 		.platform_data = &iclink,
+ 	},
+ };
+@@ -390,6 +400,9 @@ static struct platform_device *devices[] __initdata = {
+ 	&pcm037_flash,
+ 	&pcm037_eth,
+ 	&pcm037_sram_device,
++#if defined(CONFIG_I2C_IMX) || defined(CONFIG_I2C_IMX_MODULE)
++	&pcm037_camera,
++#endif
+ };
+ 
+ static struct ipu_platform_data mx3_ipu_data = {
+@@ -447,9 +460,6 @@ static void __init mxc_board_init(void)
+ 	i2c_register_board_info(1, pcm037_i2c_devices,
+ 			ARRAY_SIZE(pcm037_i2c_devices));
+ 
+-	i2c_register_board_info(2, pcm037_i2c_2_devices,
+-			ARRAY_SIZE(pcm037_i2c_2_devices));
+-
+ 	mxc_register_device(&mxc_i2c_device1, &pcm037_i2c_1_data);
+ 	mxc_register_device(&mxc_i2c_device2, &pcm037_i2c_2_data);
+ #endif
+-- 
+1.6.2.4
 
