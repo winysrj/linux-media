@@ -1,55 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns01.unsolicited.net ([69.10.132.115]:34884 "EHLO
-	ns01.unsolicited.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754796AbZEZSpK (ORCPT
+Received: from banach.math.auburn.edu ([131.204.45.3]:47010 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754034AbZEOEvm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2009 14:45:10 -0400
-Message-ID: <4A1C37F8.2090703@unsolicited.net>
-Date: Tue, 26 May 2009 19:42:00 +0100
-From: David <david@unsolicited.net>
+	Fri, 15 May 2009 00:51:42 -0400
+Date: Fri, 15 May 2009 00:05:38 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: How to interpret error codes for usb_control_msg()?
+In-Reply-To: <4A0CE8DF.7090608@oracle.com>
+Message-ID: <alpine.LNX.2.00.0905142350290.11882@banach.math.auburn.edu>
+References: <alpine.LNX.2.00.0905142231110.11788@banach.math.auburn.edu> <4A0CE8DF.7090608@oracle.com>
 MIME-Version: 1.0
-To: Pete Zaitcev <zaitcev@redhat.com>
-CC: Alan Stern <stern@rowland.harvard.edu>,
-	USB list <linux-usb@vger.kernel.org>,
-	Pekka Enberg <penberg@cs.helsinki.fi>,
-	linux-media@vger.kernel.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	dbrownell@users.sourceforge.net, leonidv11@gmail.com,
-	Greg KH <gregkh@suse.de>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: USB/DVB - Old Technotrend TT-connect S-2400 regression tracked
- down
-References: <4A1967A2.4050906@unsolicited.net>	<Pine.LNX.4.44L0.0905242208260.15195-100000@netrider.rowland.org>	<20090524203902.594a0eec.zaitcev@redhat.com>	<4A1A5E24.20201@unsolicited.net>	<4A1A8E53.9060108@unsolicited.net> <20090525184843.33c93006.zaitcev@redhat.com>
-In-Reply-To: <20090525184843.33c93006.zaitcev@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Pete Zaitcev wrote:
-> On Mon, 25 May 2009 13:25:55 +0100, David <david@unsolicited.net> wrote:
->
->   
-> I suppose so. I misunderstood how this worked. I guessed that the
-> DMA API debugging was the culprit because its introduction coincided
-> with the recent onset of this oops.
->
-> Although usbmon does essentially illegal tricks to look at data
-> already mapped for DMA, the code used to work for a few releases.
-> Bisecting may help. I cannot be sure of it though, and it's
-> going to take a lot of reboots.
->
-> Unfortunately, although I have an Opteron, the issue does not
-> occur here, so I'm at a loss for the moment. But I'll have to
-> tackle it somehow. Not sure how though. Any suggestions are welcome.
->
-> -- Pete
->   
 
-I've been doing a bit of random rebooting (I don't really have time to
-do a full bisect), and can reproduce the usbmon panic on this machine
-back to 2.6.24.. so it certainly hasn't appeared that recently.
 
-Cheers
-David
+On Thu, 14 May 2009, Randy Dunlap wrote:
+
+> Theodore Kilgore wrote:
+>>
+>> Working on a driver for the Sonix SN9C2028 dual-mode cameras, I am
+>> confronted with the situation that certain usb_control_msg() functions
+>> are failing and returning -32. Does anyone know how to look up what -32
+>> is supposed to mean? It appears not to be in the standard errno.h file,
+>> so it would apparently be somewhere else. And the on-line man page for
+>> usb_control_msg does not seem totally helpful. It says
+>>
+>> "If successful, it returns the number of bytes transferred; otherwise,
+>> it returns a negative error number."
+>>
+>> but does not otherwise discuss the negative error numbers.
+>>
+>> However, I am getting things like
+>>
+>> f60a5680 1488371641 S Ci:5:022:0 s c1 00 0001 0000 0001 1 <
+>> f60a5680 1488373478 C Ci:5:022:0 -32 1 = 0c
+>>
+>> using from the camera, and I do not quite know why. Incidentally, quite
+>> aside from the error message, the returned value is also a bit screwy.
+>> It ought to be 00 and for no obvious reason it is not. However, even if
+>> the returned value is correct, which also can sometimes happen, the
+>> error is still there.
+>>
+>> Also the debug statement from dmesg consistently says (the corresponding
+>> function is called read1)
+>>
+>> sn9c20: read1 error -32
+>>
+>> But, what is essentially the same command works just fine in libgphoto2,
+>> giving debug output which looks like this
+>>
+>> f14ca880 2936498715 S Ci:5:023:0 s c1 00 0001 0000 0001 1 <
+>> f14ca880 2936499630 C Ci:5:023:0 0 1 = 00
+>>
+>> which shows no error and is doing what it should.
+>>
+>> So if someone knows where the declarations of these error codes are, it
+>> might help me to track down what the problem is.
+>
+> You'll need to look in 2 places.
+> Documentation/usb/error-codes.txt uses named error codes
+> and include/asm-generic/errno*.h converts names<->numbers.
+>
+> So 32 is EPIPE (from errno-base.h) and error-codes.txt tells
+> what EPIPE is used for in usb-land.
+
+Thanks. I looked it up now in error-codes.txt and I am still mystfied, 
+unfortunately. It says there
+
+-EPIPE (**)             Endpoint stalled.  For non-control endpoints,
+                         reset this status with usb_clear_halt().
+
+Well, it *is* a control pipe, so now what?
+
+The (**) refers to
+
+(**) This is also one of several codes that different kinds of host
+controller use to indicate a transfer has failed because of device
+disconnect.  In the interval before the hub driver starts disconnect
+processing, devices may receive such fault reports for every request.
+
+Well, the device did not otherwise appear to get disconnected. The command 
+sent is, basically, one of those "ping the camera" commands. As pointed 
+out, it works just fine if called (more indirectly, of course) from 
+libgphoto2, through libusb.
+
+
+Of course, I could get something syntactically wrong when constructing the 
+commands. However, comparing
+
+>> f60a5680 1488371641 S Ci:5:022:0 s c1 00 0001 0000 0001 1 <
+>> f60a5680 1488373478 C Ci:5:022:0 -32 1 = 0c
+(from the embryonic sn9c2028 module)
+
+with
+
+>> f14ca880 2936498715 S Ci:5:023:0 s c1 00 0001 0000 0001 1 <
+>> f14ca880 2936499630 C Ci:5:023:0 0 1 = 00
+(originating from libgphoto2/camlibs/sonix, with the same camera plugged 
+in)
+
+would surely indicate that the command was given the same way in both 
+cases.
+
+So, thanks, Randy,  for pointing my nose in the right direction to 
+decipher the -32 error.
+
+But now, I am more puzzled than ever because I still can not figure 
+out how *that* could happen.
+
+Anyone have any good and clever ideas?
+
+Theodore Kilgore
