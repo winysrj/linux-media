@@ -1,84 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110816.mail.gq1.yahoo.com ([67.195.13.239]:48234 "HELO
-	web110816.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751174AbZELK5x (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:46007 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751262AbZEOShm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2009 06:57:53 -0400
-Message-ID: <184506.51976.qm@web110816.mail.gq1.yahoo.com>
-Date: Tue, 12 May 2009 03:57:54 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [0905_01] Siano: smsusb - update license
-To: LinuxML <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho <mchehab@infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	Fri, 15 May 2009 14:37:42 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n4FIbdBW023813
+	for <linux-media@vger.kernel.org>; Fri, 15 May 2009 13:37:44 -0500
+From: m-karicheri2@ti.com
+To: linux-media@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH 5/9] ccdc types used across ccdc modules for vpfe capture driver
+Date: Fri, 15 May 2009 14:37:37 -0400
+Message-Id: <1242412657-11451-1-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1242126057 -10800
-# Node ID 766d02fa7c5c42cc6480eaefb14c7dd6f9c0d370
-# Parent  8d37e850566419e7905e66f875b9384d96bf340d
-[0905_01] Siano: smsusb - update license
+common types used across CCDC modules
 
-From: Uri Shkolnik <uris@siano-ms.com>
+This has the common types used by all ccdc hw modules
 
-This patch updates the license of the USB interface driver
+This has the comments incorporated from the previous review
 
-Priority: normal
+Reviewed By "Hans Verkuil".
+Reviewed By "Laurent Pinchart".
 
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+---
+Applies to v4l-dvb repository
 
-diff -r 8d37e8505664 -r 766d02fa7c5c linux/drivers/media/dvb/siano/smsusb.c
---- a/linux/drivers/media/dvb/siano/smsusb.c	Mon May 11 09:37:41 2009 -0700
-+++ b/linux/drivers/media/dvb/siano/smsusb.c	Tue May 12 14:00:57 2009 +0300
-@@ -1,23 +1,23 @@
--/*
-- *  Driver for the Siano SMS1xxx USB dongle
-- *
-- *  author: Anatoly Greenblat
-- *
-- *  Copyright (c), 2005-2008 Siano Mobile Silicon, Inc.
-- *
-- *  This program is free software; you can redistribute it and/or modify
-- *  it under the terms of the GNU General Public License version 2 as
-- *  published by the Free Software Foundation;
-- *
-- *  Software distributed under the License is distributed on an "AS IS"
-- *  basis, WITHOUT WARRANTY OF ANY KIND, either express or implied.
-- *
-- *  See the GNU General Public License for more details.
-- *
-- *  You should have received a copy of the GNU General Public License
-- *  along with this program; if not, write to the Free Software
-- *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-- */
-+/****************************************************************
+ include/media/davinci/ccdc_types.h |   43 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 43 insertions(+), 0 deletions(-)
+ create mode 100644 include/media/davinci/ccdc_types.h
+
+diff --git a/include/media/davinci/ccdc_types.h b/include/media/davinci/ccdc_types.h
+new file mode 100644
+index 0000000..5773874
+--- /dev/null
++++ b/include/media/davinci/ccdc_types.h
+@@ -0,0 +1,43 @@
++/*
++ * Copyright (C) 2008-2009 Texas Instruments Inc
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ *
++ **************************************************************************/
++#ifndef _CCDC_TYPES_H
++#define _CCDC_TYPES_H
++enum ccdc_pixfmt {
++	CCDC_PIXFMT_RAW,
++	CCDC_PIXFMT_YCBCR_16BIT,
++	CCDC_PIXFMT_YCBCR_8BIT
++};
 +
-+Siano Mobile Silicon, Inc.
-+MDTV receiver kernel modules.
-+Copyright (C) 2005-2009, Uri Shkolnik, Anatoly Greenblat
++enum ccdc_frmfmt {
++	CCDC_FRMFMT_PROGRESSIVE,
++	CCDC_FRMFMT_INTERLACED
++};
 +
-+This program is free software: you can redistribute it and/or modify
-+it under the terms of the GNU General Public License as published by
-+the Free Software Foundation, either version 2 of the License, or
-+(at your option) any later version.
++/* PIXEL ORDER IN MEMORY from LSB to MSB */
++/* only applicable for 8-bit input mode  */
++enum ccdc_pixorder {
++	CCDC_PIXORDER_YCBYCR,
++	CCDC_PIXORDER_CBYCRY,
++};
 +
-+ This program is distributed in the hope that it will be useful,
-+but WITHOUT ANY WARRANTY; without even the implied warranty of
-+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+GNU General Public License for more details.
-+
-+You should have received a copy of the GNU General Public License
-+along with this program.  If not, see <http://www.gnu.org/licenses/>.
-+
-+****************************************************************/
- 
- #include <linux/kernel.h>
- #include <linux/init.h>
++enum ccdc_buftype {
++	CCDC_BUFTYPE_FLD_INTERLEAVED,
++	CCDC_BUFTYPE_FLD_SEPARATED
++};
++#endif
+-- 
+1.6.0.4
 
-
-
-      
