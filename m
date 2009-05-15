@@ -1,106 +1,325 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:41541 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750985AbZEAVgs (ORCPT
+Received: from mail-bw0-f174.google.com ([209.85.218.174]:63174 "EHLO
+	mail-bw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752333AbZEOLPF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 May 2009 17:36:48 -0400
-Subject: Re: Donating a mr97310 based elta-media 8212dc (0x093a:0x010e)
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-Cc: Wolfram Sang <w.sang@pengutronix.de>, linux-media@vger.kernel.org
-In-Reply-To: <alpine.LNX.2.00.0905011527310.23481@banach.math.auburn.edu>
-References: <20090430022847.GA15183@pengutronix.de>
-	 <alpine.LNX.2.00.0904300953330.21567@banach.math.auburn.edu>
-	 <20090501084729.GB6941@pengutronix.de>
-	 <alpine.LNX.2.00.0905011224330.23299@banach.math.auburn.edu>
-	 <1241206252.3717.36.camel@pc07.localdom.local>
-	 <alpine.LNX.2.00.0905011527310.23481@banach.math.auburn.edu>
-Content-Type: text/plain
-Date: Fri, 01 May 2009 23:34:56 +0200
-Message-Id: <1241213696.3717.70.camel@pc07.localdom.local>
-Mime-Version: 1.0
+	Fri, 15 May 2009 07:15:05 -0400
+Received: by bwz22 with SMTP id 22so1832311bwz.37
+        for <linux-media@vger.kernel.org>; Fri, 15 May 2009 04:15:05 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <23be820f0905141553t1829e70buc491fa28493d7334@mail.gmail.com>
+References: <23be820f0905141410k3cc3840eyd17b95730ec91f5c@mail.gmail.com>
+	 <23be820f0905141553t1829e70buc491fa28493d7334@mail.gmail.com>
+Date: Fri, 15 May 2009 13:15:05 +0200
+Message-ID: <23be820f0905150415s3667ef70g99c1f9a4c83ad756@mail.gmail.com>
+Subject: Re: twinhan cards
+From: Gregor Fuis <gujs.lists@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+I have here more detailed output from dst module:
 
-Am Freitag, den 01.05.2009, 15:33 -0500 schrieb Theodore Kilgore:
-> 
-> On Fri, 1 May 2009, hermann pitton wrote:
-> 
-> > Hello,
-> 
-> <snip>
-> 
-> > for elta GmbH,
-> >
-> > they are originally located in Germany and have a quite good reputation
-> > for fancy lifestyle products, many imported from Asia, these days mostly
-> > China, but started with quality products from Japan.
-> >
-> > One of the services they also offer is to create new brands of products
-> > for customers, coordinated over elta Hong Kong, which includes proper
-> > package design, two years warranty and a readable user manual ;)
-> >
-> > I have an early appearance of the saa7134 chip as elta medi@ 8682 LV
-> > LifeView FlyVideo 3000 with remote and maybe the first TCL tuner seen
-> > here. Copyright and Trademark Notice in the user manual.
-> > (C) 2001 by Animations Technologies Inc. for this one.
-> >
-> > Can be found searching for Elta at the www.bttv-gallery.de.
-> >
-> > You can find all contact information for elta here.
-> >
-> > http://www.elta.de
-> >
-> 
-> <snip>
-> 
-> >> Theodore Kilgore
-> >
-> > Cheers,
-> > Hermann
-> 
-> Hermann,
-> 
-> What exactly are you saying? Is it that here seems to be a manufacturer 
-> (more accurately, a packager and importer) who might be willing actually 
-> to talk to us? That would be good news.
-> 
-> Also, unless I misunderstand, you seem to imply that some such kind of 
-> cooperation already exists. Can you say more about this?
-> 
-> Theodore Kilgore
+[    9.070205] dst(0) dst_comm_init: Initializing DST.
+[    9.070273] dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[    9.072332] dst(0) rdc_reset_state: Resetting state machine
+[    9.072385] dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[    9.090204] dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[    9.221629] dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[    9.222959] dst(0) read_dst: reply is 0xff
+[    9.242137] dst(0) dst_wait_dst_ready: dst wait ready after 1
+[    9.243786] dst(0) read_dst: reply is 0x0
+[    9.243873] dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[    9.244941] dst(0) dst_get_device_id: Recognise [DSTMCI]
+[    9.244996] dst(0) dst_comm_init: Initializing DST.
+[    9.245049] dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[    9.247111] dst(0) rdc_reset_state: Resetting state machine
+[    9.247165] dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[    9.260174] dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[    9.281994] dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[    9.283344] dst(0) read_dst: reply is 0xff
+[    9.300254] dst(0) dst_wait_dst_ready: dst wait ready after 1
+[    9.302051] dst(0) read_dst: reply is 0x0
+[    9.302136] debug_dst_buffer: [ 00 04 00 00 00 00 00 fc]
+[    9.302147] dst(0) dst_get_device_id: Unsupported
+[    9.302202] dst(0) dst_comm_init: Initializing DST.
+[    9.302257] dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[    9.304324] dst(0) rdc_reset_state: Resetting state machine
+[    9.304378] dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[    9.320185] dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[    9.341707] dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[    9.343064] dst(0) read_dst: reply is 0xff
+[   13.350788] dst(0) dst_wait_dst_ready: dst wait NOT ready after 200
+[   13.350869] dst(0) dst_check_mb86a15: Cmd=[0x10], failed
+[   13.350924] dst(0) dst_get_device_id: Unsupported
+[   13.350981] dst(0) dst_type_print: DST type: satellite
+[   13.351045] dst(0) dst_comm_init: Initializing DST.
+[   13.351101] dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   13.353169] dst(0) rdc_reset_state: Resetting state machine
+[   13.353225] dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[   13.372739] dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[   13.400080] dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   13.401456] dst(0) read_dst: reply is 0xff
+[   13.403521] dst(0) dst_wait_dst_ready: dst wait ready after 0
+[   13.412580] dst(0) read_dst: reply is 0x0
+[   13.412664] dst(0) dst_get_mac: MAC Address=[cd8d73ec]
+[   13.412719] dst(0) dst_get_tuner_info: DST TYpe = MULTI FE
+[   13.412775] dst(0) dst_comm_init: Initializing DST.
+[   13.412830] dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   13.414896] dst(0) rdc_reset_state: Resetting state machine
+[   13.414952] dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[   13.430089] dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[   13.453302] dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   13.454627] dst(0) read_dst: reply is 0xff
+[   13.456681] dst(0) dst_wait_dst_ready: dst wait ready after 0
+[   13.457939] dst(0) read_dst: reply is 0x0
+[   13.458005] dst(0) dst_comm_init: Initializing DST.
+[   13.458059] dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   13.460123] dst(0) rdc_reset_state: Resetting state machine
+[   13.460180] dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[   13.480089] dst(0) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[   13.509163] dst(0) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   13.510474] dst(0) read_dst: reply is 0xff
+[   17.520072] dst(0) dst_wait_dst_ready: dst wait NOT ready after 200
+[   17.520155] dst(0) dst_fw_ver: Unsupported Command
+[   17.520208] dst(0) dst_probe: FW: Unsupported command
+[   17.556338] dst_ca_attach: registering DST-CA device
+[   17.660165] dst(1) dst_comm_init: Initializing DST.
+[   17.660239] dst(1) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   17.662307] dst(1) rdc_reset_state: Resetting state machine
+[   17.662368] dst(1) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[   17.680055] dst(1) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[   17.811404] dst(1) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   17.812736] dst(1) read_dst: reply is 0xff
+[   17.830046] dst(1) dst_wait_dst_ready: dst wait ready after 1
+[   17.831425] dst(1) read_dst: reply is 0x0
+[   17.831488] dst(1) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   17.832551] dst(1) dst_get_device_id: Recognise [DSTMCI]
+[   17.832605] dst(1) dst_comm_init: Initializing DST.
+[   17.832658] dst(1) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   17.834719] dst(1) rdc_reset_state: Resetting state machine
+[   17.834772] dst(1) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[   17.850061] dst(1) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[   17.871382] dst(1) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   17.872696] dst(1) read_dst: reply is 0xff
+[   17.890045] dst(1) dst_wait_dst_ready: dst wait ready after 1
+[   17.891455] dst(1) read_dst: reply is 0x0
+[   17.891523] debug_dst_buffer: [ 00 04 00 00 00 00 00 fc]
+[   17.891533] dst(1) dst_get_device_id: Unsupported
+[   17.891586] dst(1) dst_comm_init: Initializing DST.
+[   17.891640] dst(1) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   17.893702] dst(1) rdc_reset_state: Resetting state machine
+[   17.893756] dst(1) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[   17.910051] dst(1) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[   17.931372] dst(1) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   17.932687] dst(1) read_dst: reply is 0xff
+[   21.930061] dst(1) dst_wait_dst_ready: dst wait NOT ready after 200
+[   21.930137] dst(1) dst_check_mb86a15: Cmd=[0x10], failed
+[   21.930191] dst(1) dst_get_device_id: Unsupported
+[   21.930248] dst(1) dst_type_print: DST type: satellite
+[   21.930312] dst(1) dst_comm_init: Initializing DST.
+[   21.930368] dst(1) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   21.932432] dst(1) rdc_reset_state: Resetting state machine
+[   21.932488] dst(1) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[   21.950052] dst(1) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[   21.971371] dst(1) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   21.972687] dst(1) read_dst: reply is 0xff
+[   21.974738] dst(1) dst_wait_dst_ready: dst wait ready after 0
+[   21.976119] dst(1) read_dst: reply is 0x0
+[   21.976182] dst(1) dst_get_mac: MAC Address=[cec8abec]
+[   21.976237] dst(1) dst_get_tuner_info: DST TYpe = MULTI FE
+[   21.976290] dst(1) dst_comm_init: Initializing DST.
+[   21.976343] dst(1) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   21.978404] dst(1) rdc_reset_state: Resetting state machine
+[   21.978458] dst(1) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[   21.990049] dst(1) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[   22.011383] dst(1) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   22.012696] dst(1) read_dst: reply is 0xff
+[   22.014747] dst(1) dst_wait_dst_ready: dst wait ready after 0
+[   22.016129] dst(1) read_dst: reply is 0x0
+[   22.016190] dst(1) dst_comm_init: Initializing DST.
+[   22.016243] dst(1) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   22.018304] dst(1) rdc_reset_state: Resetting state machine
+[   22.018358] dst(1) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[   22.030049] dst(1) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[   22.051362] dst(1) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   22.052676] dst(1) read_dst: reply is 0xff
+[   26.050034] dst(1) dst_wait_dst_ready: dst wait NOT ready after 200
+[   26.050099] dst(1) dst_fw_ver: Unsupported Command
+[   26.050153] dst(1) dst_probe: FW: Unsupported command
+[   26.050475] dst_ca_attach: registering DST-CA device
+[   26.160081] dst(2) dst_comm_init: Initializing DST.
+[   26.160154] dst(2) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   26.162222] dst(2) rdc_reset_state: Resetting state machine
+[   26.162277] dst(2) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[   26.180053] dst(2) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[   26.311431] dst(2) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   26.312751] dst(2) read_dst: reply is 0xff
+[   26.330054] dst(2) dst_wait_dst_ready: dst wait ready after 1
+[   26.331459] dst(2) read_dst: reply is 0x0
+[   26.332112] dst(2) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   26.333175] dst(2) dst_get_device_id: Recognise [DSTMCI]
+[   26.333228] dst(2) dst_comm_init: Initializing DST.
+[   26.333281] dst(2) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   26.335342] dst(2) rdc_reset_state: Resetting state machine
+[   26.335396] dst(2) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[   26.350050] dst(2) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[   26.371409] dst(2) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   26.372728] dst(2) read_dst: reply is 0xff
+[   26.390053] dst(2) dst_wait_dst_ready: dst wait ready after 1
+[   26.391458] dst(2) read_dst: reply is 0x0
+[   26.391519] debug_dst_buffer: [ 00 04 00 00 00 00 00 fc]
+[   26.391529] dst(2) dst_get_device_id: Unsupported
+[   26.391582] dst(2) dst_comm_init: Initializing DST.
+[   26.391636] dst(2) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   26.393698] dst(2) rdc_reset_state: Resetting state machine
+[   26.393752] dst(2) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[   26.410052] dst(2) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[   26.431408] dst(2) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   26.432725] dst(2) read_dst: reply is 0xff
+[   30.430054] dst(2) dst_wait_dst_ready: dst wait NOT ready after 200
+[   30.430113] dst(2) dst_check_mb86a15: Cmd=[0x10], failed
+[   30.430168] dst(2) dst_get_device_id: Unsupported
+[   30.430223] dst(2) dst_type_print: DST type: satellite
+[   30.430284] dst(2) dst_comm_init: Initializing DST.
+[   30.430337] dst(2) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   30.432398] dst(2) rdc_reset_state: Resetting state machine
+[   30.432452] dst(2) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[   30.450052] dst(2) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[   30.471390] dst(2) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   30.472707] dst(2) read_dst: reply is 0xff
+[   30.474758] dst(2) dst_wait_dst_ready: dst wait ready after 0
+[   30.476167] dst(2) read_dst: reply is 0x0
+[   30.476229] dst(2) dst_get_mac: MAC Address=[cec8bbec]
+[   30.476284] dst(2) dst_get_tuner_info: DST TYpe = MULTI FE
+[   30.476338] dst(2) dst_comm_init: Initializing DST.
+[   30.476391] dst(2) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   30.478452] dst(2) rdc_reset_state: Resetting state machine
+[   30.478506] dst(2) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[   30.490049] dst(2) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[   30.511409] dst(2) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   30.512725] dst(2) read_dst: reply is 0xff
+[   30.514776] dst(2) dst_wait_dst_ready: dst wait ready after 0
+[   30.516182] dst(2) read_dst: reply is 0x0
+[   30.516243] dst(2) dst_comm_init: Initializing DST.
+[   30.516297] dst(2) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   30.518358] dst(2) rdc_reset_state: Resetting state machine
+[   30.518412] dst(2) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[   30.530049] dst(2) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[   30.551386] dst(2) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   30.552702] dst(2) read_dst: reply is 0xff
+[   34.550033] dst(2) dst_wait_dst_ready: dst wait NOT ready after 200
+[   34.550093] dst(2) dst_fw_ver: Unsupported Command
+[   34.550147] dst(2) dst_probe: FW: Unsupported command
+[   34.550469] dst_ca_attach: registering DST-CA device
+[   34.660077] dst(3) dst_comm_init: Initializing DST.
+[   34.660151] dst(3) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   34.662219] dst(3) rdc_reset_state: Resetting state machine
+[   34.662273] dst(3) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[   34.680053] dst(3) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[   34.900248] dst(3) write_dst: _write_dst error (err == -5, len ==
+0x08, b0 == 0x00)
+[   34.900314] dst(3) dst_error_recovery: Trying to return from previous errors.
+[   34.900371] dst(3) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   34.920053] dst(3) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   34.940211] dst(3) write_dst: _write_dst error (err == -5, len ==
+0x08, b0 == 0x00)
+[   34.940276] dst(3) dst_error_recovery: Trying to return from previous errors.
+[   34.940332] dst(3) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   34.960059] dst(3) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   34.980051] dst(3) write_dst: RDC 8820 RESET
+[   34.980105] dst(3) dst_error_bailout: Trying to bailout from previous error.
+[   34.980162] dst(3) rdc_8820_reset: Resetting DST
+[   34.980215] dst(3) dst_gpio_outb: mask=[0004], enbb=[0004], outhigh=[0000]
+[   34.982270] dst(3) dst_gpio_outb: mask=[0004], enbb=[0004], outhigh=[0004]
+[   35.000104] dst(3) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   35.020054] dst(3) dst_probe: unknown device.
+[   35.020107] dst(3) dst_comm_init: Initializing DST.
+[   35.020162] dst(3) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   35.022223] dst(3) rdc_reset_state: Resetting state machine
+[   35.022277] dst(3) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[   35.040074] dst(3) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[   35.151413] dst(3) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   35.156734] dst(3) read_dst: reply is 0xff
+[   35.159784] dst(3) dst_wait_dst_ready: dst wait ready after 0
+[   35.161196] dst(3) read_dst: reply is 0x0
+[   35.161259] dst(3) dst_get_mac: MAC Address=[cdd94bec]
+[   35.161313] dst(3) dst_get_tuner_info: DST TYpe = MULTI FE
+[   35.161366] dst(3) dst_comm_init: Initializing DST.
+[   35.161420] dst(3) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   35.163480] dst(3) rdc_reset_state: Resetting state machine
+[   35.163534] dst(3) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[   35.180052] dst(3) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[   35.291416] dst(3) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   35.296735] dst(3) read_dst: reply is 0xff
+[   35.299784] dst(3) dst_wait_dst_ready: dst wait ready after 0
+[   35.301194] dst(3) read_dst: reply is 0x0
+[   35.301255] dst(3) dst_comm_init: Initializing DST.
+[   35.301309] dst(3) dst_gpio_outb: mask=[ffffffff], enbb=[0001],
+outhigh=[0000]
+[   35.303370] dst(3) rdc_reset_state: Resetting state machine
+[   35.303424] dst(3) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0000]
+[   35.320052] dst(3) dst_gpio_outb: mask=[0002], enbb=[0002], outhigh=[0002]
+[   35.431408] dst(3) dst_gpio_outb: mask=[ffffffff], enbb=[0000],
+outhigh=[0000]
+[   35.436726] dst(3) read_dst: reply is 0xff
+[   39.430054] dst(3) dst_wait_dst_ready: dst wait NOT ready after 200
+[   39.430111] dst(3) dst_fw_ver: Unsupported Command
+[   39.430166] dst(3) dst_probe: FW: Unsupported command
+[   39.430220] dst(3) dst_attach: unknown DST type. please report to
+the LinuxTV.org DVB mailinglist.
 
-Theodore,
 
-I just try to tell you that they are well known in Germany since decades
-and that all contact data are publicly available. 
-
-I did not try to contact them, since in the above case there was no
-need. The elta medi@ 8682 LV has the the same PCI subsystem like the
-original LifeView product and the TCL tuner was compatible with Philips
-and others subsumed under tuner=5.
-
-With the positive exception, that this tuner does not need to be tuned
-to some higher frequencies for charge pump, before using radio, like the
-compatible Philips types do need it, but on the other hand it had a new
-huge SAW filter and sensitivity was a little diminished compared to
-original Philips products. Else it had already known Philips chips and
-nothing else.
-
-To look at the Copyright in the user manual might give one some hint who
-is behind such a product, like for that elta LifeView 3000.
-That I'm telling. Animation Technologies in this case.
-
-I also think it should be at least always worth a try to contact them,
-in case you can't identify a product they do some marketing for.
-
-Cheers,
-Hermann
-
-
-
-
-
-
+Regards,
+Gregor
