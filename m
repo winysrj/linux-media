@@ -1,44 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.wow.synacor.com ([64.8.70.55]:56552 "EHLO
-	smtp.mail.wowway.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754007AbZEGAJ2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 May 2009 20:09:28 -0400
-Received: from aqui.slotcar.prv ([172.16.1.3])
-	by sordid.slotcar.chicago.il.us with esmtp (Exim 4.67)
-	(envelope-from <johnr@wowway.com>)
-	id 1M1rB2-0006Tv-5P
-	for linux-media@vger.kernel.org; Wed, 06 May 2009 19:09:28 -0500
-Message-ID: <4A0226B3.3010804@wowway.com>
-Date: Wed, 06 May 2009 19:09:23 -0500
-From: "John R." <johnr@wowway.com>
+Received: from banach.math.auburn.edu ([131.204.45.3]:32966 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751349AbZEOQt2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 May 2009 12:49:28 -0400
+Date: Fri, 15 May 2009 12:03:26 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: How to interpret error codes for usb_control_msg()?
+In-Reply-To: <4A0CFE15.4060608@oracle.com>
+Message-ID: <alpine.LNX.2.00.0905151200290.12291@banach.math.auburn.edu>
+References: <alpine.LNX.2.00.0905142231110.11788@banach.math.auburn.edu> <4A0CE8DF.7090608@oracle.com> <alpine.LNX.2.00.0905142350290.11882@banach.math.auburn.edu> <4A0CFE15.4060608@oracle.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: XC5000 improvements: call for testers!
-References: <412bdbff0905052114r7f481759r373fd0b814f458e@mail.gmail.com>
-In-Reply-To: <412bdbff0905052114r7f481759r373fd0b814f458e@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
 
-[snip]
 
-> Unfortunately, current users are going to have to upgrade to the new
-> firmware.  However, this is a one time cost and I will work with the
-> distros to get it bundled so that users won't have to do this in the
-> future:
-> 
-> http://www.devinheitmueller.com/xc5000/dvb-fe-xc5000-1.6.114.fw
-> http://www.devinheitmueller.com/xc5000/README.xc5000
+On Thu, 14 May 2009, Randy Dunlap wrote:
 
-I downloaded the tip archive for xc5000-improvements-beta, compiled and 
-installed it.  I copied the firmware above into /lib/firmware (where the 
-old one was).  However, when the driver loads it still loads the old 
-firmware.  If this is a non-linux-media question then feel free to 
-direct me where to look.  My searching hasn't yet yielded anything yet.
+> Theodore Kilgore wrote:
+>>
+>>
+>> On Thu, 14 May 2009, Randy Dunlap wrote:
 
-Thanks,
+<snip>
 
-John
+>>
+>> Anyone have any good and clever ideas?
+>
+>
+> I suggest that you ask on the USB mailing list (linux-usb@vger.kernel.org).
+>
+
+It occurs to me that the problem may not be in the command but instead in 
+something previous to it. Probably due to inexperience though, 
+unfortunately in my case, not due to youth.
+
+I will continue to try to chase it down. Thanks for the help.
+
+Theodore Kilgore
