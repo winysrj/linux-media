@@ -1,59 +1,287 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpfb1-g21.free.fr ([212.27.42.9]:48552 "EHLO
-	smtpfb1-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751236AbZEKMTv (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:46483 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753953AbZEOSi4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 May 2009 08:19:51 -0400
-Received: from wmproxy1-g27.free.fr (wmproxy1-g27.free.fr [212.27.42.91])
-	by smtpfb1-g21.free.fr (Postfix) with ESMTP id B22AC77CF2E
-	for <linux-media@vger.kernel.org>; Mon, 11 May 2009 14:19:48 +0200 (CEST)
-Received: from wmproxy1-g27.free.fr (localhost [127.0.0.1])
-	by wmproxy1-g27.free.fr (Postfix) with ESMTP id 58E96634D0
-	for <linux-media@vger.kernel.org>; Mon, 11 May 2009 14:18:49 +0200 (CEST)
-Received: from UNKNOWN (imp4-g19.priv.proxad.net [172.20.243.134])
-	by wmproxy1-g27.free.fr (Postfix) with ESMTP id 3ABE963548
-	for <linux-media@vger.kernel.org>; Mon, 11 May 2009 14:18:48 +0200 (CEST)
-Message-ID: <1242044328.4a0817a834575@imp.free.fr>
-Date: Mon, 11 May 2009 14:18:48 +0200
-From: linuxconsole@free.fr
+	Fri, 15 May 2009 14:38:56 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n4FIcqeo025197
+	for <linux-media@vger.kernel.org>; Fri, 15 May 2009 13:38:57 -0500
+From: m-karicheri2@ti.com
 To: linux-media@vger.kernel.org
-Subject: AverMedia AVerTV Volar Black HD (A850) support
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH 7/9] DM355 platform changes for vpfe capture driver
+Date: Fri, 15 May 2009 14:38:51 -0400
+Message-Id: <1242412731-11515-1-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi and thanks for your work.
+From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
 
-I have a AverMedia AVerTV Volar Black, I downloaded latest v4l-dvb (build with
-2.6.29.2 kernel), load driver, all is fine :
+DM355 platform and board setup
 
-***************************************************************************
- dvb-usb: found a 'AverMedia AVerTV Volar Black HD (A850)' in cold state, will
-try to load a firmware
- usb 1-4: firmware: requesting dvb-usb-af9015.fw
- dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
- dvb-usb: found a 'AverMedia AVerTV Volar Black HD (A850)' in warm state.
- dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
- DVB: registering new adapter (AverMedia AVerTV Volar Black HD (A850))
- af9013: firmware version:4.95.0
- DVB: registering adapter 0 frontend 0 (Afatech AF9013 DVB-T)...
- MXL5005S: Attached at address 0xc6
- dvb-usb: AverMedia AVerTV Volar Black HD (A850) successfully initialized and
-connected.
- usbcore: registered new interface driver dvb_usb_af9015
+This has platform and board setup changes to support vpfe capture
+driver for DM355 EVMs.
 
-***************************************************************************
-but after starting dvbscan (that starts but never stops), I see those error
-messages :
+This has comments incorporated from previous review.
 
-[60111.937222] af9015: command failed:1
-[60111.937226] mxl5005s I2C reset failed
+Reviewed By "Hans Verkuil".
+Reviewed By "Laurent Pinchart".
 
-(dvbscan reports tuning status is 0x02, then 0x02, 0x01 and 0x1f
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+---
+Applies to Davinci GIT Tree
 
-What can I do now ?
+ arch/arm/mach-davinci/board-dm355-evm.c    |   72 ++++++++++++++++++++++++++-
+ arch/arm/mach-davinci/dm355.c              |   65 +++++++++++++++++++++++++
+ arch/arm/mach-davinci/include/mach/dm355.h |    2 +
+ arch/arm/mach-davinci/include/mach/mux.h   |    9 ++++
+ 4 files changed, 145 insertions(+), 3 deletions(-)
 
-Yann.
+diff --git a/arch/arm/mach-davinci/board-dm355-evm.c b/arch/arm/mach-davinci/board-dm355-evm.c
+index f32e3d8..3a3f5e0 100644
+--- a/arch/arm/mach-davinci/board-dm355-evm.c
++++ b/arch/arm/mach-davinci/board-dm355-evm.c
+@@ -20,6 +20,8 @@
+ #include <linux/io.h>
+ #include <linux/gpio.h>
+ #include <linux/clk.h>
++#include <linux/videodev2.h>
++#include <media/tvp514x.h>
+ #include <linux/spi/spi.h>
+ #include <linux/spi/eeprom.h>
+ 
+@@ -134,12 +136,23 @@ static void dm355evm_mmcsd_gpios(unsigned gpio)
+ 	dm355evm_mmc_gpios = gpio;
+ }
+ 
++#define TVP5146_I2C_ADDR		0x5D
++static struct tvp514x_platform_data tvp5146_pdata = {
++	.clk_polarity = 0,
++	.hs_polarity = 1,
++	.vs_polarity = 1
++};
++
+ static struct i2c_board_info dm355evm_i2c_info[] = {
+-	{ I2C_BOARD_INFO("dm355evm_msp", 0x25),
++	{	I2C_BOARD_INFO("dm355evm_msp", 0x25),
+ 		.platform_data = dm355evm_mmcsd_gpios,
+-		/* plus irq */ },
++	},
++	{
++		I2C_BOARD_INFO("tvp5146", TVP5146_I2C_ADDR),
++		.platform_data = &tvp5146_pdata,
++	},
++	/* { plus irq  }, */
+ 	/* { I2C_BOARD_INFO("tlv320aic3x", 0x1b), }, */
+-	/* { I2C_BOARD_INFO("tvp5146", 0x5d), }, */
+ };
+ 
+ static void __init evm_init_i2c(void)
+@@ -178,6 +191,57 @@ static struct platform_device dm355evm_dm9000 = {
+ 	.num_resources	= ARRAY_SIZE(dm355evm_dm9000_rsrc),
+ };
+ 
++#define TVP514X_STD_ALL	(V4L2_STD_NTSC | V4L2_STD_PAL)
++/* Inputs available at the TVP5146 */
++static struct v4l2_input tvp5146_inputs[] = {
++	{
++		.index = 0,
++		.name = "COMPOSITE",
++		.type = V4L2_INPUT_TYPE_CAMERA,
++		.std = TVP514X_STD_ALL,
++	},
++	{
++		.index = 1,
++		.name = "SVIDEO",
++		.type = V4L2_INPUT_TYPE_CAMERA,
++		.std = TVP514X_STD_ALL,
++	},
++};
++
++/*
++ * this is the route info for connecting each input to decoder
++ * ouput that goes to vpfe. There is a one to one correspondence
++ * with tvp5146_inputs
++ */
++static struct v4l2_routing tvp5146_routes[] = {
++	{
++		.input = INPUT_CVBS_VI2B,
++		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
++	},
++	{
++		.input = INPUT_SVIDEO_VI2C_VI1C,
++		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
++	},
++};
++
++static struct vpfe_subdev_info vpfe_sub_devs[] = {
++	{
++		.name = "tvp5146",
++		.grp_id = 0,
++		.num_inputs = ARRAY_SIZE(tvp5146_inputs),
++		.inputs = (struct v4l2_input *)tvp5146_inputs,
++		.routes = (struct v4l2_routing *)tvp5146_routes,
++		.can_route = 1,
++	}
++};
++
++static struct vpfe_config vpfe_cfg = {
++	.num_subdevs = ARRAY_SIZE(vpfe_sub_devs),
++	.sub_devs = vpfe_sub_devs,
++	.card_name = "DM355 EVM",
++	.ccdc = "DM355 CCDC",
++};
++
+ static struct platform_device *davinci_evm_devices[] __initdata = {
+ 	&dm355evm_dm9000,
+ 	&davinci_nand_device,
+@@ -189,6 +253,8 @@ static struct davinci_uart_config uart_config __initdata = {
+ 
+ static void __init dm355_evm_map_io(void)
+ {
++	/* setup input configuration for VPFE input devices */
++	dm355_set_vpfe_config(&vpfe_cfg);
+ 	dm355_init();
+ }
+ 
+diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
+index bccc5a8..9d80496 100644
+--- a/arch/arm/mach-davinci/dm355.c
++++ b/arch/arm/mach-davinci/dm355.c
+@@ -481,6 +481,14 @@ INT_CFG(DM355,  INT_EDMA_TC1_ERR,     4,    1,    1,     false)
+ EVT_CFG(DM355,  EVT8_ASP1_TX,	      0,    1,    0,     false)
+ EVT_CFG(DM355,  EVT9_ASP1_RX,	      1,    1,    0,     false)
+ EVT_CFG(DM355,  EVT26_MMC0_RX,	      2,    1,    0,     false)
++
++MUX_CFG(DM355,	VIN_PCLK,	0,   14,    1,    1,	 false)
++MUX_CFG(DM355,	VIN_CAM_WEN,	0,   13,    1,    1,	 false)
++MUX_CFG(DM355,	VIN_CAM_VD,	0,   12,    1,    1,	 false)
++MUX_CFG(DM355,	VIN_CAM_HD,	0,   11,    1,    1,	 false)
++MUX_CFG(DM355,	VIN_YIN_EN,	0,   10,    1,    1,	 false)
++MUX_CFG(DM355,	VIN_CINL_EN,	0,   0,   0xff, 0x55,	 false)
++MUX_CFG(DM355,	VIN_CINH_EN,	0,   8,     3,    3,	 false)
+ #endif
+ };
+ 
+@@ -604,6 +612,47 @@ static struct platform_device dm355_edma_device = {
+ 	.resource		= edma_resources,
+ };
+ 
++static struct resource vpfe_resources[] = {
++	{
++		.start          = IRQ_VDINT0,
++		.end            = IRQ_VDINT0,
++		.flags          = IORESOURCE_IRQ,
++	},
++	{
++		.start          = IRQ_VDINT1,
++		.end            = IRQ_VDINT1,
++		.flags          = IORESOURCE_IRQ,
++	},
++	/* CCDC Base address */
++	{
++		.flags          = IORESOURCE_MEM,
++		.start          = 0x01c70600,
++		.end            = 0x01c70600 + 0x1ff,
++	},
++	/* VPSS Base address */
++	{
++		.start          = 0x01c70800,
++		.end            = 0x01c70800 + 0xff,
++		.flags          = IORESOURCE_MEM,
++	},
++};
++
++static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
++static struct platform_device vpfe_capture_dev = {
++	.name		= CAPTURE_DRV_NAME,
++	.id		= -1,
++	.num_resources	= ARRAY_SIZE(vpfe_resources),
++	.resource	= vpfe_resources,
++	.dev = {
++		.dma_mask		= &vpfe_capture_dma_mask,
++		.coherent_dma_mask	= DMA_BIT_MASK(32),
++	},
++};
++
++void dm355_set_vpfe_config(struct vpfe_config *cfg)
++{
++	vpfe_capture_dev.dev.platform_data = cfg;
++}
+ /*----------------------------------------------------------------------*/
+ 
+ static struct map_desc dm355_io_desc[] = {
+@@ -718,13 +767,29 @@ void __init dm355_init(void)
+ 	davinci_common_init(&davinci_soc_info_dm355);
+ }
+ 
++#define DM355_VPSSCLK_CLKCTRL_REG	0x1c70004
+ static int __init dm355_init_devices(void)
+ {
++	void __iomem *base = IO_ADDRESS(DM355_VPSSCLK_CLKCTRL_REG);
++
+ 	if (!cpu_is_davinci_dm355())
+ 		return 0;
+ 
+ 	davinci_cfg_reg(DM355_INT_EDMA_CC);
+ 	platform_device_register(&dm355_edma_device);
++	/* setup clock for vpss modules */
++	__raw_writel(0x79, base);
++	/* setup Mux configuration for vpfe input and register
++	 * vpfe capture platform device
++	 */
++	davinci_cfg_reg(DM355_VIN_PCLK);
++	davinci_cfg_reg(DM355_VIN_CAM_WEN);
++	davinci_cfg_reg(DM355_VIN_CAM_VD);
++	davinci_cfg_reg(DM355_VIN_CAM_HD);
++	davinci_cfg_reg(DM355_VIN_YIN_EN);
++	davinci_cfg_reg(DM355_VIN_CINL_EN);
++	davinci_cfg_reg(DM355_VIN_CINH_EN);
++	platform_device_register(&vpfe_capture_dev);
+ 	return 0;
+ }
+ postcore_initcall(dm355_init_devices);
+diff --git a/arch/arm/mach-davinci/include/mach/dm355.h b/arch/arm/mach-davinci/include/mach/dm355.h
+index 54903b7..e28713c 100644
+--- a/arch/arm/mach-davinci/include/mach/dm355.h
++++ b/arch/arm/mach-davinci/include/mach/dm355.h
+@@ -12,11 +12,13 @@
+ #define __ASM_ARCH_DM355_H
+ 
+ #include <mach/hardware.h>
++#include <media/davinci/vpfe_capture.h>
+ 
+ struct spi_board_info;
+ 
+ void __init dm355_init(void);
+ void dm355_init_spi0(unsigned chipselect_mask,
+ 		struct spi_board_info *info, unsigned len);
++void dm355_set_vpfe_config(struct vpfe_config *cfg);
+ 
+ #endif /* __ASM_ARCH_DM355_H */
+diff --git a/arch/arm/mach-davinci/include/mach/mux.h b/arch/arm/mach-davinci/include/mach/mux.h
+index 018701f..4516839 100644
+--- a/arch/arm/mach-davinci/include/mach/mux.h
++++ b/arch/arm/mach-davinci/include/mach/mux.h
+@@ -154,6 +154,15 @@ enum davinci_dm355_index {
+ 	DM355_EVT8_ASP1_TX,
+ 	DM355_EVT9_ASP1_RX,
+ 	DM355_EVT26_MMC0_RX,
++
++	/* Video In Pin Mux */
++	DM355_VIN_PCLK,
++	DM355_VIN_CAM_WEN,
++	DM355_VIN_CAM_VD,
++	DM355_VIN_CAM_HD,
++	DM355_VIN_YIN_EN,
++	DM355_VIN_CINL_EN,
++	DM355_VIN_CINH_EN,
+ };
+ 
+ #ifdef CONFIG_DAVINCI_MUX
+-- 
+1.6.0.4
 
