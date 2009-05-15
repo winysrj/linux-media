@@ -1,45 +1,26 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-ew0-f164.google.com ([209.85.219.164])
-	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <ben.pezzei@gmail.com>) id 1LuGS8-0001vJ-PK
-	for linux-dvb@linuxtv.org; Thu, 16 Apr 2009 03:31:45 +0200
-Received: by ewy8 with SMTP id 8so165240ewy.17
-	for <linux-dvb@linuxtv.org>; Wed, 15 Apr 2009 18:31:11 -0700 (PDT)
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from tomts35-srv.bellnexxia.net ([209.226.175.109]:48884 "EHLO
+	tomts35-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751152AbZEOLoS convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 May 2009 07:44:18 -0400
+From: Siemens Alert <dkantor@nbnet.nb.ca>
+Reply-To: siemens18@btinternet.com
+To: <info@org>
+Subject: Lucky........Winner
+Date: Fri, 15 May 2009 7:44:14 -0400
 MIME-Version: 1.0
-Date: Thu, 16 Apr 2009 03:31:11 +0200
-Message-ID: <b01190d0904151831g4f4dc73eq7b82add1baa92d06@mail.gmail.com>
-From: ben pezzei <ben.pezzei@gmail.com>
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Progress on the twinhan vp1034 CI?
-Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Message-Id: <20090515114418.FJXS13270.tomts35-srv.bellnexxia.net@toip37-bus.srvr.bell.ca>
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
-Hello
+£750,000,00 GBP has been Awarded to your E-MAIL ID,Get back to us with your info via
 
-I am just wondering if there is any progress of the CI Module of the
-vp1034 dvb-s cards?
+Names:........
+Address:......
+Country:......
+Sex/Tel.......
 
-I checked out the most recent sources from http://jusst.de/hg/mantis-v4l/
-but unfortunately the relevant mantis_ca-Stuff is commented out.
 
-Is there any chance that there will be an update soon or is there perhaps some
-help needed?
-
-greetings
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
