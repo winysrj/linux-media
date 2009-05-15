@@ -1,45 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:48874 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751373AbZEYUEU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 May 2009 16:04:20 -0400
-From: Martin Dauskardt <martin.dauskardt@gmx.de>
-To: Andy Walls <awalls@radix.net>
-Subject: Re: [ivtv-devel] tveeprom cannot autodetect tuner! (FQ1216LME MK5)
-Date: Mon, 25 May 2009 22:04:24 +0200
-Cc: Discussion list for development of the IVTV driver
-	<ivtv-devel@ivtvdriver.org>, linux-media@vger.kernel.org,
-	Mike Isely <isely@isely.net>
-References: <200905210909.43333.martin.dauskardt@gmx.de> <1243038686.3164.34.camel@palomino.walls.org> <200905252134.43249.martin.dauskardt@gmx.de>
-In-Reply-To: <200905252134.43249.martin.dauskardt@gmx.de>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200905252204.24321.martin.dauskardt@gmx.de>
+Received: from devils.ext.ti.com ([198.47.26.153]:45253 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751244AbZEOSf0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 May 2009 14:35:26 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n4FIZMQH021474
+	for <linux-media@vger.kernel.org>; Fri, 15 May 2009 13:35:27 -0500
+From: m-karicheri2@ti.com
+To: linux-media@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH 0/9] ARM: DaVinci: Video: DM355/DM6446 VPFE Capture driver
+Date: Fri, 15 May 2009 14:35:19 -0400
+Message-Id: <1242412519-11294-1-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Montag, 25. Mai 2009 21:34:43 schrieb Martin Dauskardt:
+From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
 
-> #define TUNER_PHILIPS_FM1216MK5         79
-> result: picture o.k. , but audio disappears every few seconds (for about 1-2 
-> seconds, then comes back) 
+VPFE Capture driver for DaVinci Media SOCs :- DM355 and DM6446
 
-correction: This is not a problem of tuner type 79. It happens also with tuner 
-type 38. Sometimes the audio is also muted after the start of the 
-application. Only switching to another input and back brings the audio back.
+These patches add support for VPFE (Video Processing Front End) based
+video capture on DM355 and DM6446 EVMs. For more details on the hardware
+configuration and capabilities, please refer the vpfe_capture.c header.
+This patch set consists of following:-
 
-I am beginning to wonder if this problem may be related to a similar problem 
-with the PVRUSB2:
-http://www.isely.net/pipermail/pvrusb2/2009-May/002331.html
+Patch 1: VPFE Capture bridge driver
+Patch 2: CCDC hw device header file
+Patch 3: DM355 CCDC hw module
+Patch 4: DM644x CCDC hw module
+Patch 5: common types used across CCDC modules
+Patch 6: Makefile and config files for the driver
+Patch 7: DM355 platform and board setup
+Patch 8: DM644x platform and board setup
+Patch 9: Remove outdated driver files from davinci git tree
 
-If there is a problem with the new v4l2 sub-device mechanism, it seems to be 
-more specific to some devices than to others. With my PVR350 I didn't notice 
-such problems - although I remember that in **very** rare cases the audio 
-fails after a channel switch.  
+The initial version of this driver was reviewed by reviewers mentioned
+below. Following are the Major comments incorporated into the driver
+based on this :-
 
-Greets, 
-Martin
+	1) Restructure the files into following:-
+		vpfe_capture.[ch] - bridge driver
+		ccdc_types.h - types used across ccdc modules
+		vpfe_types.h - types used across vpfe specific drivers
+		dm644x_ccdc.[ch] - ccdc module for DM644x
+		dm644x_ccdc_regs.h - register defines for DM644x
+		dm355_ccdc.[ch] - ccdc module for DM355
+		dm355_ccdc_regs.h - register defines for DM644x
+	2) Simplify data structures for vpfe capture driver (avoid
+	structure based on multiple channels)
+	3) Cleanup device registration and initialization
+	4) Video buffer handling issues
 
+In addition to this, the driver is ported to the new sub device model.
+Tested the driver using the tvp5146 decoder (version migrated to sub device
+model by Vaibhav Hiremath and is being reviewed currently on the list).
+So this patch depends on the above driver.
+
+NOTE:
+
+Dependent on the TVP514x decoder driver patch for migrating the
+driver to sub device model from Vaibhav Hiremath
+
+Following tests are performed.
+	1) Capture and display video (PAL & NTSC) from tvp5146 decoder.
+	   Displayed using fbdev device driver available on davinci git tree
+	2) Tested with driver built statically and dynamically
+
+Muralidhara Karicheri
+
+Reviewed By "Hans Verkuil".
+Reviewed By "Laurent Pinchart".
+
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
