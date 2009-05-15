@@ -1,98 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cmpxchg.org ([85.214.51.133]:52879 "EHLO cmpxchg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754789AbZEDNPy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 May 2009 09:15:54 -0400
-Date: Mon, 4 May 2009 15:13:59 +0200
-From: Johannes Weiner <hannes@cmpxchg.org>
-To: Christoph Hellwig <hch@infradead.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Paul Mundt <lethal@linux-sh.org>, linux-mm@kvack.org,
-	linux-kernel@vger.kernel.org
-Subject: [patch 3/3 v2] mm: introduce follow_pfn()
-Message-ID: <20090504131359.GA17887@cmpxchg.org>
-References: <20090501181449.GA8912@cmpxchg.org> <1241430874-12667-3-git-send-email-hannes@cmpxchg.org> <20090504110841.GA19646@infradead.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090504110841.GA19646@infradead.org>
+Received: from devils.ext.ti.com ([198.47.26.153]:45475 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752333AbZEOSgY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 May 2009 14:36:24 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n4FIaLWA022272
+	for <linux-media@vger.kernel.org>; Fri, 15 May 2009 13:36:26 -0500
+From: m-karicheri2@ti.com
+To: linux-media@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH 2/9] ccdc hw device header file for vpfe capture
+Date: Fri, 15 May 2009 14:36:19 -0400
+Message-Id: <1242412579-11355-1-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Analoguous to follow_phys(), add a helper that looks up the PFN at a
-user virtual address in an IO mapping or a raw PFN mapping.
+From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+CCDC hw device header file
+
+Adds ccdc hw device header for vpfe capture driver
+
+This has comments incorporated from previous review.
+
+Reviewed By "Hans Verkuil".
+Reviewed By "Laurent Pinchart".
+
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
 ---
- include/linux/mm.h |    2 ++
- mm/memory.c        |   29 +++++++++++++++++++++++++++++
- 2 files changed, 31 insertions(+), 0 deletions(-)
+Applies to v4l-dvb repository
 
-On Mon, May 04, 2009 at 07:08:41AM -0400, Christoph Hellwig wrote:
-> On Mon, May 04, 2009 at 11:54:34AM +0200, Johannes Weiner wrote:
-> > Analoguous to follow_phys(), add a helper that looks up the PFN
-> > instead.  It also only allows IO mappings or PFN mappings.
-> 
-> A kerneldoc describing what it does and the limitations would be
-> extremly helpful.
+ include/media/davinci/ccdc_hw_device.h |  109 ++++++++++++++++++++++++++++++++
+ 1 files changed, 109 insertions(+), 0 deletions(-)
+ create mode 100644 include/media/davinci/ccdc_hw_device.h
 
-Agreed.  How is this?
-
-diff --git a/include/linux/mm.h b/include/linux/mm.h
-index bff1f0d..1cca8b6 100644
---- a/include/linux/mm.h
-+++ b/include/linux/mm.h
-@@ -794,6 +794,8 @@ int copy_page_range(struct mm_struct *dst, struct mm_struct *src,
- 			struct vm_area_struct *vma);
- void unmap_mapping_range(struct address_space *mapping,
- 		loff_t const holebegin, loff_t const holelen, int even_cows);
-+int follow_pfn(struct vm_area_struct *vma, unsigned long address,
-+	unsigned long *pfn);
- int follow_phys(struct vm_area_struct *vma, unsigned long address,
- 		unsigned int flags, unsigned long *prot, resource_size_t *phys);
- int generic_access_phys(struct vm_area_struct *vma, unsigned long addr,
-diff --git a/mm/memory.c b/mm/memory.c
-index c047950..f86aee1 100644
---- a/mm/memory.c
-+++ b/mm/memory.c
-@@ -3046,6 +3046,35 @@ out:
- 	return -EINVAL;
- }
- 
-+/**
-+ * follow_pfn - look up PFN at a user virtual address
-+ * @vma: memory mapping
-+ * @address: user virtual address
-+ * @pfn: location to store found PFN
+diff --git a/include/media/davinci/ccdc_hw_device.h b/include/media/davinci/ccdc_hw_device.h
+new file mode 100644
+index 0000000..71904f3
+--- /dev/null
++++ b/include/media/davinci/ccdc_hw_device.h
+@@ -0,0 +1,109 @@
++/*
++ * Copyright (C) 2008-2009 Texas Instruments Inc
 + *
-+ * Only IO mappings and raw PFN mappings are allowed.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
 + *
-+ * Returns zero and the pfn at @pfn on success, -ve otherwise.
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ * ccdc device API
 + */
-+int follow_pfn(struct vm_area_struct *vma, unsigned long address,
-+	unsigned long *pfn)
-+{
-+	int ret = -EINVAL;
-+	spinlock_t *ptl;
-+	pte_t *ptep;
++#ifndef _CCDC_HW_DEVICE_H
++#define _CCDC_HW_DEVICE_H
 +
-+	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)))
-+		return ret;
++#ifdef __KERNEL__
++#include <linux/videodev2.h>
++#include <linux/device.h>
++#include <media/davinci/vpfe_types.h>
++#include <media/davinci/ccdc_types.h>
 +
-+	ret = follow_pte(vma->vm_mm, address, &ptep, &ptl);
-+	if (ret)
-+		return ret;
-+	*pfn = pte_pfn(*ptep);
-+	pte_unmap_unlock(ptep, ptl);
-+	return 0;
-+}
-+EXPORT_SYMBOL(follow_pfn);
++/*
++ * ccdc hw operations
++ */
++struct ccdc_hw_ops {
++	/* set ccdc base address */
++	void (*set_ccdc_base)(void *base, int size);
++	/* set vpss base address */
++	void (*set_vpss_base)(void *base, int size);
++	void (*enable) (int en);
++	/* Pointer to function to enable or disable ccdc */
++	void (*reset) (void);
++	/* reset sbl. only for 6446 */
++	void (*enable_out_to_sdram) (int en);
++	/* Pointer to function to set hw frame type */
++	int (*set_hw_if_params) (struct vpfe_hw_if_param *param);
++	/* get interface parameters */
++	int (*get_hw_if_params) (struct vpfe_hw_if_param *param);
++	/*
++	 * Pointer to function to set parameters. Used
++	 * for implementing VPFE_S_CCDC_PARAMS
++	 */
++	int (*setparams) (void *params);
++	/*
++	 * Pointer to function to get parameter. Used
++	 * for implementing VPFE_G_CCDC_PARAMS
++	 */
++	int (*getparams) (void *params);
++	/* Pointer to function to configure ccdc */
++	int (*configure) (void);
++	/* enumerate hw pix formats */
++	int (*enum_pix)(enum vpfe_hw_pix_format *hw_pix, int i);
++	/* Pointer to function to set buffer type */
++	int (*set_buftype) (enum ccdc_buftype buf_type);
++	/* Pointer to function to get buffer type */
++	enum ccdc_buftype (*get_buftype) (void);
++	/* Pointer to function to set frame format */
++	int (*set_frame_format) (enum ccdc_frmfmt frm_fmt);
++	/* Pointer to function to get frame format */
++	enum ccdc_frmfmt (*get_frame_format) (void);
++	/* Pointer to function to set buffer type */
++	enum vpfe_hw_pix_format (*get_pixelformat) (void);
++	/* Pointer to function to get pixel format. */
++	int (*set_pixelformat) (enum vpfe_hw_pix_format pixfmt);
++	/* Pointer to function to set image window */
++	int (*set_image_window) (struct v4l2_rect *win);
++	/* Pointer to function to set image window */
++	void (*get_image_window) (struct v4l2_rect *win);
++	/* Pointer to function to get line length */
++	unsigned int (*get_line_length) (void);
 +
- #ifdef CONFIG_HAVE_IOREMAP_PROT
- int follow_phys(struct vm_area_struct *vma,
- 		unsigned long address, unsigned int flags,
++	/* Query SoC control IDs */
++	int (*queryctrl)(struct v4l2_queryctrl *qctrl);
++	/* Set SoC control */
++	int (*setcontrol)(struct v4l2_control *ctrl);
++	/* Get SoC control */
++	int (*getcontrol)(struct v4l2_control *ctrl);
++	/* Pointer to function to set frame buffer address */
++	void (*setfbaddr) (unsigned long addr);
++	/* Pointer to function to get field id */
++	int (*getfid) (void);
++};
++
++struct ccdc_hw_device {
++	/* ccdc device name */
++	char name[30];
++	/* module owner */
++	struct module *owner;
++	/* Pointer to initialize function to initialize ccdc device */
++	int (*open) (struct device *dev);
++	/* Pointer to deinitialize function */
++	int (*close) (struct device *dev);
++	/* hw ops */
++	struct ccdc_hw_ops hw_ops;
++};
++
++/* Used by CCDC module to register & unregister with vpfe capture driver */
++int vpfe_register_ccdc_device(struct ccdc_hw_device *dev);
++void vpfe_unregister_ccdc_device(struct ccdc_hw_device *dev);
++
++#endif
++#endif
 -- 
-1.6.2.1.135.gde769
+1.6.0.4
 
