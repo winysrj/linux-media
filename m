@@ -1,82 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:51100 "EHLO mx2.redhat.com"
+Received: from main.gmane.org ([80.91.229.2]:51957 "EHLO ciao.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753236AbZEJDFM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 9 May 2009 23:05:12 -0400
-Date: Sun, 10 May 2009 00:03:51 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [GIT PATCHES for 2.6.30] V4L/DVB fixes
-Message-ID: <20090510000351.0a43fcab@pedra.chehab.org>
+	id S1754949AbZEONgf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 May 2009 09:36:35 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1M4xaU-0007cO-Qt
+	for linux-media@vger.kernel.org; Fri, 15 May 2009 13:36:35 +0000
+Received: from ANancy-155-1-46-215.w90-13.abo.wanadoo.fr ([90.13.197.215])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 15 May 2009 13:36:34 +0000
+Received: from Kowaio by ANancy-155-1-46-215.w90-13.abo.wanadoo.fr with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 15 May 2009 13:36:34 +0000
+To: linux-media@vger.kernel.org
+From: Guillaume <Kowaio@gmail.com>
+Subject: Re: V4L2 - Capturing uncompressed data
+Date: Fri, 15 May 2009 13:36:23 +0000 (UTC)
+Message-ID: <loom.20090515T132629-938@post.gmane.org>
+References: <loom.20090515T125828-924@post.gmane.org> <200905151520.26540.laurent.pinchart@skynet.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Linus,
+Laurent Pinchart <laurent.pinchart <at> skynet.be> writes:
 
-Please pull from:
-        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git for_linus
 
-For the following driver fixes:
+> It depends on the camera. If the camera can deliver uncompressed data, you 
+> should be able to get that out of the driver. Otherwise you're stuck.
+> 
+> [snip]
+> 
 
-   - zoran: fix bug when enumerating format -1;
-   - cx23885: Frontend wasn't locking on HVR-1500;
-   - ivtv: fix compiler warning;
-   - uvc: fix uvc resume failed and  fix a compile warning;
-   - ivtv: fix incorrect bit tests;
-   - ivtv/radio: fix V4L2_TUNER_MODE/V4L2_TUNER_SUB confusion;
-   - cafe_ccic: fix sensor detection;
+Ok, it's what I was afraid of. 
 
-And for two fixes at v4l-core:
-   - v4l2-ioctl: Check buffer types using g_fmt instead of try_fmt
-   - v4l2-ioctl: Clear buffer type specific trailing fields/padding
 
-Cheers,
-Mauro.
+> That probably means that the camera can't deliver uncompressed data, although 
+> you should ask the driver's author to make sure. If the camera indeed supports 
+> (M)JPEG only, you will probably have to get another camera.
+> 
 
----
+I'll tell that to my internship supervisor and I'll be back at you if I have
+more questions.
 
- drivers/media/radio/radio-sf16fmi.c       |    2 +-
- drivers/media/radio/radio-sf16fmr2.c      |    2 +-
- drivers/media/video/cafe_ccic.c           |    1 +
- drivers/media/video/cx23885/cx23885-dvb.c |    2 +-
- drivers/media/video/ivtv/ivtv-driver.c    |    9 ++++--
- drivers/media/video/ivtv/ivtv-gpio.c      |    4 +-
- drivers/media/video/ivtv/ivtv-ioctl.c     |    5 ++-
- drivers/media/video/ivtv/ivtv-irq.c       |    2 +-
- drivers/media/video/ivtv/ivtv-yuv.c       |    3 +-
- drivers/media/video/ivtv/ivtvfb.c         |    3 +-
- drivers/media/video/uvc/uvc_driver.c      |    9 ++++--
- drivers/media/video/uvc/uvc_video.c       |    2 +-
- drivers/media/video/v4l2-ioctl.c          |   45 +++++++++++++++++++++++------
- drivers/media/video/zoran/zoran_driver.c  |   28 ++++++++---------
- 14 files changed, 76 insertions(+), 41 deletions(-)
 
-Hans Verkuil (5):
-      V4L/DVB (11668): ivtv: fix compiler warning.
-      V4L/DVB (11669): uvc: fix compile warning
-      V4L/DVB (11674): ivtv: fix incorrect bit tests
-      V4L/DVB (11675): ivtv/radio: fix V4L2_TUNER_MODE/V4L2_TUNER_SUB confusion
-      V4L/DVB (11679): cafe_ccic: fix sensor detection
+> This is the right place for such questions, don't worry.
+> 
+> Best regards,
+> 
+> Laurent Pinchart
+> 
 
-Mauro Carvalho Chehab (1):
-      V4L/DVB (11680): cafe_ccic: use = instead of == for setting a value at a var
+Thank you for the cordial welcome, I didn't know how mailing lists worked.
 
-Ming Lei (1):
-      V4L/DVB (11575): uvcvideo: fix uvc resume failed
+Have a good day !
 
-Steven Toth (1):
-      V4L/DVB (11664): cx23885: Frontend wasn't locking on HVR-1500
+Guillaume.
 
-Trent Piepho (3):
-      V4L/DVB (11660): zoran: fix bug when enumerating format -1
-      V4L/DVB (11661): v4l2-ioctl: Check buffer types using g_fmt instead of try_fmt
-      V4L/DVB (11662): v4l2-ioctl: Clear buffer type specific trailing fields/padding
 
----------------------------------------------------
-V4L/DVB development is hosted at http://linuxtv.org
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo <at> vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+
+
+
 
