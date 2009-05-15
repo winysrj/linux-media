@@ -1,82 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.seznam.cz ([77.75.72.43]:43690 "EHLO smtp.seznam.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751361AbZERT67 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 May 2009 15:58:59 -0400
-From: =?utf-8?q?Old=C5=99ich_Jedli=C4=8Dka?= <oldium.pro@seznam.cz>
-To: "figo.zhang" <figo.zhang@kolorific.com>
-Subject: Re: [PATCH]saa7134-video.c: poll method lose race condition
-Date: Mon, 18 May 2009 21:58:51 +0200
-Cc: linux-media@vger.kernel.org, figo1802@126.com
-References: <1242612794.3442.19.camel@myhost>
-In-Reply-To: <1242612794.3442.19.camel@myhost>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200905182158.51843.oldium.pro@seznam.cz>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3516 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759709AbZEOSAM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 May 2009 14:00:12 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id n4FI0CRi022836
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 15 May 2009 20:00:12 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 15 May 2009 20:00:12 +0200 (CEST)
+Message-Id: <200905151800.n4FI0CRi022836@smtp-vbr14.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Figo Zhang,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-On Monday 18 of May 2009 at 04:13:13, figo.zhang wrote:
-> saa7134-video.c: poll method lose race condition
->
->
-> Signed-off-by: Figo.zhang <figo.zhang@kolorific.com>
-> ---
-> drivers/media/video/saa7134/saa7134-video.c |    9 ++++++---
->  1 files changed, 6 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/video/saa7134/saa7134-video.c
-> b/drivers/media/video/saa7134/saa7134-video.c index 493cad9..95733df 100644
-> --- a/drivers/media/video/saa7134/saa7134-video.c
-> +++ b/drivers/media/video/saa7134/saa7134-video.c
-> @@ -1423,11 +1423,13 @@ video_poll(struct file *file, struct
-> poll_table_struct *wait) {
->  	struct saa7134_fh *fh = file->private_data;
->  	struct videobuf_buffer *buf = NULL;
-> +	unsigned int rc = 0;
->
->  	if (V4L2_BUF_TYPE_VBI_CAPTURE == fh->type)
->  		return videobuf_poll_stream(file, &fh->vbi, wait);
->
->  	if (res_check(fh,RESOURCE_VIDEO)) {
-> +		mutex_lock(&fh->cap.vb_lock);
->  		if (!list_empty(&fh->cap.stream))
->  			buf = list_entry(fh->cap.stream.next, struct videobuf_buffer, stream);
->  	} else {
-> @@ -1446,13 +1448,14 @@ video_poll(struct file *file, struct
-> poll_table_struct *wait) }
->
->  	if (!buf)
-> -		return POLLERR;
-> +		rc = POLLERR;
+Results of the daily build of v4l-dvb:
 
-Just one note (I don't know the future and meaning of this patch). The line 
-above will change the meaning of the buf==NULL check. It will not return 
-immediately, but call poll_wait with buf->done instead - NULL pointer access.
+date:        Fri May 15 19:00:02 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11783:0018ed9bbca3
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Cheers,
-Oldrich.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-rc4-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-rc4-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-rc4-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-rc4-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-rc4-m32r: OK
+linux-2.6.22.19-mips: ERRORS
+linux-2.6.26-mips: ERRORS
+linux-2.6.27-mips: ERRORS
+linux-2.6.28-mips: ERRORS
+linux-2.6.29.1-mips: ERRORS
+linux-2.6.30-rc4-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-rc4-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-rc4-x86_64: WARNINGS
+sparse (linux-2.6.29.1): OK
+sparse (linux-2.6.30-rc4): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
->
->  	poll_wait(file, &buf->done, wait);
->  	if (buf->state == VIDEOBUF_DONE ||
->  	    buf->state == VIDEOBUF_ERROR)
-> -		return POLLIN|POLLRDNORM;
-> -	return 0;
-> +		rc = POLLIN|POLLRDNORM;
-> +	mutex_unlock(&fh->cap.vb_lock);
-> +	return rc;
->
->  err:
->  	mutex_unlock(&fh->cap.vb_lock);
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
