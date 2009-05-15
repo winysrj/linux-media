@@ -1,71 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:54150 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756277AbZE2LHZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 May 2009 07:07:25 -0400
-Subject: Re: [PATCH] cx18: Use do_div for 64-bit division to fix 32-bit
- kernels
-From: Andy Walls <awalls@radix.net>
-To: David Ward <david.ward@gatech.edu>
-Cc: Michael Krufky <mkrufky@kernellabs.com>,
-	linux-media@vger.kernel.org
-In-Reply-To: <4A1F2BFB.6010109@gatech.edu>
-References: <4A1F2BFB.6010109@gatech.edu>
-Content-Type: text/plain
-Date: Fri, 29 May 2009 07:09:04 -0400
-Message-Id: <1243595344.3139.5.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from fmmailgate03.web.de ([217.72.192.234]:41142 "EHLO
+	fmmailgate03.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751159AbZEONl2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 May 2009 09:41:28 -0400
+Received: from smtp07.web.de (fmsmtp07.dlan.cinetic.de [172.20.5.215])
+	by fmmailgate03.web.de (Postfix) with ESMTP id 0AEDEFC84911
+	for <linux-media@vger.kernel.org>; Fri, 15 May 2009 15:41:29 +0200 (CEST)
+Received: from [93.192.144.226] (helo=[192.168.0.103])
+	by smtp07.web.de with asmtp (TLSv1:AES256-SHA:256)
+	(WEB.DE 4.110 #277)
+	id 1M4xfE-0006mY-00
+	for linux-media@vger.kernel.org; Fri, 15 May 2009 15:41:28 +0200
+Message-ID: <4A0D7106.2030702@web.de>
+Date: Fri, 15 May 2009 15:41:26 +0200
+From: Reinhard Katzmann <suamor@web.de>
+MIME-Version: 1.0
+To: gspca list <linux-media@vger.kernel.org>
+Subject: Re: [GSPCA] Driver Development for Speed Link VAD Laplace
+References: <4A031BE8.2080900@web.de> <62e5edd40905071238l3bc3a154g8247e5e4399a068b@mail.gmail.com>
+In-Reply-To: <62e5edd40905071238l3bc3a154g8247e5e4399a068b@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-05-28 at 20:27 -0400, David Ward wrote:
-> Use the do_div macro for 64-bit division.  Otherwise, the module will 
-> reference __udivdi3 under 32-bit kernels, which is not allowed in kernel 
-> space.  Follows style used in cx88 module.
+Hi Erik,
 
-Ooopsie.  Thanks for catching this and providing a fix. :)
+Erik Andrén wrote:
+>> I have searched for some more hardware information than from the vendor
+>> available but in vain (though the cam is about 1 year old already).
+>> I know that especially the video format the webcam delivers would be
+>> important to know for driver development.
+>>
+>> If there are any (freeware) tools available except those USB sniffers to
+>> find out any more hardware details please let me know, so I can help
+>> with the driver.
+>>
+>
+> Hi,
+> If possible, you can open the case and inspect what chips that are inside.
+> That should give you a head start.
+>
 
-(FYI, You would have caught my attention earlier if you had put "cx18:"
-in the subject line of the initital report.)
+Thanks for the hint. It was a bit difficult but with the help of my
+friends we managed to open the CAM without any visible harm and got
+the following chip information:
 
-I'll test it tonight on my 64 bit machine, commit it, and ask Mauro to
-pull it.  I assume you've tested it on your 32 bit machine.
+Main chip (Large)
+
+EMPIA EM2765
+6Z523-500
+0711-118G
+
+Little chips
+IDT
+STAC9753AX
+MPG
+E10745Z
+UT10953
+
+I also updated the wiki and included some pics.
+http://linuxtv.org/wiki/index.php/VAD_Laplace
 
 Regards,
-Andy
 
-> Signed-off-by: David Ward <david.ward@gatech.edu>
-> 
-> diff -r 65ec132f20df -r 91b89f13adb7 
-> linux/drivers/media/video/cx18/cx18-av-core.c
-> --- a/linux/drivers/media/video/cx18/cx18-av-core.c    Wed May 27 
-> 15:53:00 2009 -0300
-> +++ b/linux/drivers/media/video/cx18/cx18-av-core.c    Thu May 28 
-> 19:16:10 2009 -0400
-> @@ -447,6 +447,7 @@ void cx18_av_std_setup(struct cx18 *cx)
-> 
->       if (pll_post) {
->           int fsc, pll;
-> +        u64 tmp64;
-> 
->           pll = (28636360L * ((((u64)pll_int) << 25) + pll_frac)) >> 25;
->           pll /= pll_post;
-> @@ -459,7 +460,9 @@ void cx18_av_std_setup(struct cx18 *cx)
->                       "= %d.%03d\n", src_decimation / 256,
->                       ((src_decimation % 256) * 1000) / 256);
-> 
-> -        fsc = ((((u64)sc) * 28636360)/src_decimation) >> 13L;
-> +        tmp64 = ((u64)sc) * 28636360;
-> +        do_div(tmp64, src_decimation);
-> +        fsc = ((u32)(tmp64 >> 13L));
->           CX18_DEBUG_INFO_DEV(sd,
->                       "Chroma sub-carrier initial freq = %d.%06d "
->                       "MHz\n", fsc / 1000000, fsc % 1000000);
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Reinhard
+-- 
+Software-Engineer, Developer of User Interfaces
+Project: Canorus - the next generation music score editor - 
+http://canorus.berlios.de
+GnuPG Public Key available on request
+
 
