@@ -1,34 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:60453 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758943AbZEKVlx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 May 2009 17:41:53 -0400
-Date: Mon, 11 May 2009 14:07:18 -0700
-From: Greg KH <greg@kroah.com>
-To: Mike Isely <isely@isely.net>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: remove driver_data direct access of struct
-	device
-Message-ID: <20090511210718.GF31999@kroah.com>
-References: <20090430221808.GA18526@kroah.com> <Pine.LNX.4.64.0905012217170.15541@cnc.isely.net>
+Received: from mail.gmx.net ([213.165.64.20]:56294 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753198AbZEOTG0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 May 2009 15:06:26 -0400
+Date: Fri, 15 May 2009 21:06:40 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+cc: Guillaume <Kowaio@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: V4L2 - Capturing uncompressed data
+In-Reply-To: <200905151520.26540.laurent.pinchart@skynet.be>
+Message-ID: <Pine.LNX.4.64.0905152101380.4658@axis700.grange>
+References: <loom.20090515T125828-924@post.gmane.org>
+ <200905151520.26540.laurent.pinchart@skynet.be>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0905012217170.15541@cnc.isely.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 01, 2009 at 10:18:38PM -0500, Mike Isely wrote:
-> 
-> Acked-By: Mike Isely <isely@pobox.com>
-> 
-> Note #1: I am just acking the pvrusb2 part of this.
-> 
-> Note #2: I am immediately pulling the pvrusb2 part of these changes into 
-> that driver.
+On Fri, 15 May 2009, Laurent Pinchart wrote:
 
-Thanks for doing this, I appreciate it.
+> Hi Guillaume,
+> 
+> On Friday 15 May 2009 15:03:11 Guillaume wrote:
 
-greg k-h
+[snip]
+
+> > My problem is, after the VIDIOC_S_FMT, the pixelformat field is set back to
+> > JPEG FORMAT (and the colorspace too) and so, I don't get raw data, but
+> > compressed jpeg data.
+> >
+> > I know that the VIDIOC_S_FMT try to change these fields but if the driver
+> > don't authorise them, it will put the originals back.
+> >
+> > But, I really need to get the uncompressed data of the captured picture,
+> > so is there by any chance, another solution to 'force' and capture the
+> > images in an Uncompressed format ? Or is it really set by the driver and so,
+> > no chance to have the raw ?
+> 
+> It depends on the camera.
+
+...and the driver. I don't know much about various _web_cameras and their 
+drivers, but I could well imagine, that you're asking for an unsupported 
+YUV variation, whereas some other format would be supported. Why don't you 
+use VIDIOC_ENUM_FMT to list all supported formats? Or even look in the 
+driver source - it's open:-)
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
