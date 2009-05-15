@@ -1,58 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:48140 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752631AbZEaVac (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 May 2009 17:30:32 -0400
-Date: Sun, 31 May 2009 18:30:28 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Uri Shkolnik <urishk@yahoo.com>
-Cc: LinuxML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] [09051_50] Siano: smscore - Add big endian support
-Message-ID: <20090531183028.2cc922a0@pedra.chehab.org>
-In-Reply-To: <495724.2537.qm@web110816.mail.gq1.yahoo.com>
-References: <495724.2537.qm@web110816.mail.gq1.yahoo.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:35790 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753057AbZEORTH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 15 May 2009 13:19:07 -0400
+Date: Fri, 15 May 2009 19:19:20 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Darius Augulis <augulis.darius@gmail.com>,
+	Paul Mundt <lethal@linux-sh.org>
+Subject: [PATCH 03/10 v2] soc_camera_platform: pass device pointer from
+ soc-camera core on .add_device()
+In-Reply-To: <Pine.LNX.4.64.0905151817070.4658@axis700.grange>
+Message-ID: <Pine.LNX.4.64.0905151826050.4658@axis700.grange>
+References: <Pine.LNX.4.64.0905151817070.4658@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 19 May 2009 08:48:47 -0700 (PDT)
-Uri Shkolnik <urishk@yahoo.com> escreveu:
+Add a struct device pointer to struct soc_camera_platform_info and let the user
+(ap325rxa) pass it down to soc_camera_platform.c in its .add_device() method.
 
-> 
-> # HG changeset patch
-> # User Uri Shkolnik <uris@siano-ms.com>
-> # Date 1242748399 -10800
-> # Node ID a93ebe0069b3d7d8d791ccb620a7797508cf724c
-> # Parent  4d75f9d1c4f96d65a8ad312c21e488a212ee58a3
-> [09051_50] Siano: smscore - Add big endian support
-> 
-> From: Uri Shkolnik <uris@siano-ms.com>
-> 
-> Add support for big endian target, to the smscore module.
-> 
-> Priority: normal
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-This patch didn't apply:
+Paul, another mixed one, should be quite easy to review though:-)
 
-$ patch -p1 -i /home/v4l/in_patches/lmml_24749_09051_50_siano_smscore_add_big_endian_support.patch
-patching file linux/drivers/media/dvb/siano/smscoreapi.c
-Hunk #1 FAILED at 34.
-Hunk #2 FAILED at 467.
-Hunk #3 succeeded at 541 (offset -8 lines).
-Hunk #5 succeeded at 593 (offset -8 lines).
-Hunk #7 succeeded at 753 (offset -21 lines).
-Hunk #9 succeeded at 1022 (offset -89 lines).
-Hunk #10 FAILED at 1526.
-Hunk #11 FAILED at 1576.
-Hunk #12 FAILED at 1625.
-5 out of 12 hunks FAILED -- saving rejects to file linux/drivers/media/dvb/siano/smscoreapi.c.rej
+ arch/sh/boards/board-ap325rxa.c     |    2 ++
+ include/media/soc_camera_platform.h |    3 +++
+ 2 files changed, 5 insertions(+), 0 deletions(-)
 
-Maybe this patch depends on one of the patches where changes are requested
+diff --git a/arch/sh/boards/board-ap325rxa.c b/arch/sh/boards/board-ap325rxa.c
+index 0a5f97b..ac964e4 100644
+--- a/arch/sh/boards/board-ap325rxa.c
++++ b/arch/sh/boards/board-ap325rxa.c
+@@ -339,6 +339,8 @@ static int ap325rxa_camera_add(struct soc_camera_link *icl,
+ 	if (icl != &camera_info.link || camera_probe() <= 0)
+ 		return -ENODEV;
+ 
++	camera_info.dev = dev;
++
+ 	return platform_device_register(&camera_device);
+ }
+ 
+diff --git a/include/media/soc_camera_platform.h b/include/media/soc_camera_platform.h
+index af224de..3e8f020 100644
+--- a/include/media/soc_camera_platform.h
++++ b/include/media/soc_camera_platform.h
+@@ -14,6 +14,8 @@
+ #include <linux/videodev2.h>
+ #include <media/soc_camera.h>
+ 
++struct device;
++
+ struct soc_camera_platform_info {
+ 	int iface;
+ 	char *format_name;
+@@ -21,6 +23,7 @@ struct soc_camera_platform_info {
+ 	struct v4l2_pix_format format;
+ 	unsigned long bus_param;
+ 	void (*power)(int);
++	struct device *dev;
+ 	int (*set_capture)(struct soc_camera_platform_info *info, int enable);
+ 	struct soc_camera_link link;
+ };
+-- 
+1.6.2.4
 
-
-
-Cheers,
-Mauro
