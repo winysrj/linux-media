@@ -1,40 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f224.google.com ([209.85.219.224]:47400 "EHLO
-	mail-ew0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756075AbZEBVcI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 May 2009 17:32:08 -0400
-Received: by ewy24 with SMTP id 24so3016749ewy.37
-        for <linux-media@vger.kernel.org>; Sat, 02 May 2009 14:32:08 -0700 (PDT)
-Message-ID: <49FCBBD8.4030804@gmail.com>
-Date: Sat, 02 May 2009 23:32:08 +0200
-From: Roel Kluin <roel.kluin@gmail.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:35997 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752464AbZEPQvz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 16 May 2009 12:51:55 -0400
+Date: Sat, 16 May 2009 17:46:20 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Agustin <gatoguan-os@yahoo.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-arm-kernel@lists.arm.linux.org.uk,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: [PATCH] dma: fix ipu_idmac.c to not discard the last queued
+	buffer
+Message-ID: <20090516164620.GG20810@n2100.arm.linux.org.uk>
+References: <155119.7889.qm@web32103.mail.mud.yahoo.com> <Pine.LNX.4.64.0905071750050.9460@axis700.grange> <951499.48393.qm@web32102.mail.mud.yahoo.com> <Pine.LNX.4.64.0905120908220.5087@axis700.grange> <155082.98228.qm@web32102.mail.mud.yahoo.com> <e9c3a7c20905121131q3c007e9p56c7b754ecd1466f@mail.gmail.com>
 MIME-Version: 1.0
-To: hverkuil@xs4all.nl
-CC: linux-media@vger.kernel.org, mjpeg-users@lists.sourceforge.net,
-	Andrew Morton <akpm@linux-foundation.org>,
-	klimov.linux@gmail.com
-Subject: [PATCH] zoran: Fix &&/|| typo
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e9c3a7c20905121131q3c007e9p56c7b754ecd1466f@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix &&/|| typo. `default_norm' can be 0 (PAL), 1 (NTSC) or 2 (SECAM),
-the condition tested was impossible.
+On Tue, May 12, 2009 at 11:31:14AM -0700, Dan Williams wrote:
+> On Tue, May 12, 2009 at 5:14 AM, Agustin <gatoguan-os@yahoo.com> wrote:
+> >
+> > On Tue, 12 May 2009, Guennadi Liakhovetski wrote:
+> >
+> >>
+> >> This also fixes the case of a single queued buffer, for example, when taking a
+> >> single frame snapshot with the mx3_camera driver.
+> >>
+> >> Reported-by: Agustin
+> >> Signed-off-by: Guennadi Liakhovetski
+> >
+> > Signed-off-by: Agustin Ferrin Pozuelo
+> 
+> Applied.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
----
-diff --git a/drivers/media/video/zoran/zoran_card.c b/drivers/media/video/zoran/zoran_card.c
-index ea6c577..ea9de8b 100644
---- a/drivers/media/video/zoran/zoran_card.c
-+++ b/drivers/media/video/zoran/zoran_card.c
-@@ -1022,7 +1022,7 @@ zr36057_init (struct zoran *zr)
- 	zr->vbuf_bytesperline = 0;
- 
- 	/* Avoid nonsense settings from user for default input/norm */
--	if (default_norm < 0 && default_norm > 2)
-+	if (default_norm < 0 || default_norm > 2)
- 		default_norm = 0;
- 	if (default_norm == 0) {
- 		zr->norm = V4L2_STD_PAL;
-
+Hopefully with real tags (iow, with email addresses) rather than what's
+shown above (which is unacceptable.)
