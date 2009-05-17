@@ -1,95 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga10.intel.com ([192.55.52.92]:35670 "EHLO
-	fmsmga102.fm.intel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755548AbZEZSkI (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2805 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752864AbZEQIhH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2009 14:40:08 -0400
-Date: Tue, 26 May 2009 20:42:17 +0200
-From: Samuel Ortiz <sameo@linux.intel.com>
-To: Michael Krufky <mkrufky@kernellabs.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>,
-	Greg Kroah-Hartmann <greg@kroah.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kay Sievers <kay.sievers@vrfy.org>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 4/6] dvb/dvb-usb: prepare for FIRMWARE_NAME_MAX removal
-Message-ID: <20090526184216.GA10560@sortiz.org>
-References: <20090526174012.423883376@linux.intel.com> <20090526174213.806710164@linux.intel.com> <37219a840905261132q6b0a7289x3408fb904ddf90df@mail.gmail.com>
+	Sun, 17 May 2009 04:37:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andy Walls <awalls@radix.net>
+Subject: Re: cx18: Testers needed: VBI for non-NTSC-M input signals
+Date: Sun, 17 May 2009 10:35:10 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	ivtv-devel@ivtvdriver.org, ivtv-users@ivtvdriver.org
+References: <1242525964.16178.15.camel@morgan.walls.org>
+In-Reply-To: <1242525964.16178.15.camel@morgan.walls.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <37219a840905261132q6b0a7289x3408fb904ddf90df@mail.gmail.com>
+Message-Id: <200905171035.10520.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 26, 2009 at 02:32:45PM -0400, Michael Krufky wrote:
-> On Tue, May 26, 2009 at 1:40 PM, Samuel Ortiz <sameo@linux.intel.com> wrote:
-> > From: Samuel Ortiz <sameo@linux.intel.com>
-> > To: Mauro Carvalho Chehab <mchehab@infradead.org>
-> >
-> > We're going to remove the FIRMWARE_NAME_MAX definition in order to avoid any
-> > firmware name length restriction.
-> > This patch changes the dvb_usb_device_properties firmware field accordingly.
-> >
-> > Signed-off-by: Samuel Ortiz <sameo@linux.intel.com>
-> >
-> > ---
-> >  drivers/media/dvb/dvb-usb/dvb-usb.h |    2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > Index: iwm-2.6/drivers/media/dvb/dvb-usb/dvb-usb.h
-> > ===================================================================
-> > --- iwm-2.6.orig/drivers/media/dvb/dvb-usb/dvb-usb.h    2009-05-26 17:24:36.000000000 +0200
-> > +++ iwm-2.6/drivers/media/dvb/dvb-usb/dvb-usb.h 2009-05-26 17:25:19.000000000 +0200
-> > @@ -196,7 +196,7 @@ struct dvb_usb_device_properties {
-> >  #define CYPRESS_FX2     3
-> >        int        usb_ctrl;
-> >        int        (*download_firmware) (struct usb_device *, const struct firmware *);
-> > -       const char firmware[FIRMWARE_NAME_MAX];
-> > +       const char *firmware;
-> >        int        no_reconnect;
-> >
-> >        int size_of_priv;
-> >
-> > --
-> > Intel Open Source Technology Centre
-> > http://oss.intel.com/
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > Please read the FAQ at  http://www.tux.org/lkml/
-> >
-> 
-> Samuel,
-> 
-> Your patch makes the following change:
-> 
-> -       const char firmware[FIRMWARE_NAME_MAX];
-> +       const char *firmware;
-> 
-> Before your change, struct dvb_usb_device_properties actually contains
-> memory allocated for the firmware filename.  After your change, this
-> is nothing but a pointer.
-> 
-> This will cause an OOPS.
-No, not if it's correctly initialized, as it seems to be for all the
-dvb_usb_device_properties users right now.
-Typically, you'd initialize your dvb_usb_device_properties like this:
+On Sunday 17 May 2009 04:06:04 Andy Walls wrote:
+> Hi,
+>
+> Thanks to a loaner PVR-350 from Hans, I've been able to implement VBI
+> support in the cx18 driver for non-NTSC video standards.
+>
+> If you've got a 625 line PAL, SECAM, etc, video source and can test VBI
+> functions on a CX23418 based card, I'd like to hear how it works.  The
+> patches for testing are here:
+>
+> http://linuxtv.org/hg/~awalls/cx18-av-core
+> http://linuxtv.org/hg/~awalls/cx18-av-core/archive/tip.tar.bz2
+>
+> I've only been able to test with PAL with VPS in field 1 line 16 and WSS
+> in field 1 line 23.  I wasn't able to figure out how to get Teletext B
+> out of the PVR-350, so I'd certainly like to hear if Teletext is
+> working.
 
-static struct dvb_usb_device_properties a800_properties = {
-        .caps = DVB_USB_IS_AN_I2C_ADAPTER,
+You can't get teletext out of the PVR-350. Only WSS and VPS. It's a hardware 
+limitation.
 
-        .usb_ctrl = CYPRESS_FX2,
-        .firmware = "dvb-usb-avertv-a800-02.fw",
-[...]
+I don't have access to my HVR1600 this week, I'll see if I can test it next 
+Sunday.
 
-And that's fine.
+Regards,
 
-Cheers,
-Samuel.
+	Hans
+
+> Note: to implement Raw VBI for 625 line/50 Hz systems to extract line 23
+> (WSS), I had to blank one extra line in each field.  This means that
+> 625/50 systems will be missing 1 line from the top of each field (e.g.
+> line 24 won't show).  I thought that was better than having the fields
+> move up or down around if the user turned VBI on or off.
+>
+> Regards,
+> Andy
+
+
 
 -- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
