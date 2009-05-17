@@ -1,65 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:61097 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753111AbZEFOEe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 May 2009 10:04:34 -0400
-Received: by fxm2 with SMTP id 2so126819fxm.37
-        for <linux-media@vger.kernel.org>; Wed, 06 May 2009 07:04:33 -0700 (PDT)
+Received: from mail-gx0-f166.google.com ([209.85.217.166]:60540 "EHLO
+	mail-gx0-f166.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752983AbZEQWa7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 May 2009 18:30:59 -0400
+Received: by gxk10 with SMTP id 10so5650585gxk.13
+        for <linux-media@vger.kernel.org>; Sun, 17 May 2009 15:31:00 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <29b1d6890905060700j2774ec6dqae9beab4694215b4@mail.gmail.com>
-References: <29b1d6890905060652g59eb0d5bvaa3cf3ba5dc7aa42@mail.gmail.com>
-	 <29b1d6890905060700j2774ec6dqae9beab4694215b4@mail.gmail.com>
-Date: Wed, 6 May 2009 16:04:33 +0200
-Message-ID: <29b1d6890905060704s7b758ec2i7acae9a04f8a12fc@mail.gmail.com>
-Subject: DVB-T scan files for es-Santiago and es-Muros-Noia
-From: =?ISO-8859-1?Q?Juan_Modesto_del_R=EDo_Sieira?=
-	<modestodelrio@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=001636c5b0eef50a3c04693edf9d
+In-Reply-To: <1242576510.1986.0@lhost.ldomain>
+References: <alpine.LNX.2.00.0905141424460.11396@banach.math.auburn.edu>
+	 <1242576510.1986.0@lhost.ldomain>
+Date: Sun, 17 May 2009 18:31:00 -0400
+Message-ID: <c2fe070d0905171531l9b2378do62fd2b7310f29e7d@mail.gmail.com>
+Subject: Re: working on webcam driver
+From: leandro Costantino <lcostantino@gmail.com>
+To: video4linux-list@redhat.com
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---001636c5b0eef50a3c04693edf9d
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Mark,
+just searching "0c45:612a gspca" could save you lot of time.
+I suppose you were looking at the old gspca homepage, because it
+listed on Jean F. Moine site
+http://moinejf.free.fr/webcam.html ( it dont know even it that page if
+still updated )
 
-Hi!
-Here are DVB-T scan files for Santiago de Compostela and Muros and
-Noia areas, in Galicia, Spain. Analog shutdown in these areas will be
-on next June 30th.
-Regards
---
-Modesto del R=EDo
-Sent from Santiago De Compostela, GA, Spain
+About the "gstreamer", what kind of troubles are you having?. It's the
+webcam streaming?
+Did you follow the steps using libv4lconvert?.
 
---001636c5b0eef50a3c04693edf9d
-Content-Type: application/octet-stream; name=es-Muros-Noia
-Content-Disposition: attachment; filename=es-Muros-Noia
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fue36l660
+I wrote that patch a year ago, so , if there's any problem let me know.
+If you need help, about the lib4vlconvert thing, look at deaglecito.blogspot.com
 
-VCA1MjIwMDAwMDAgOE1IeiAyLzMgMS8yIFFBTTY0IDhrIDEvNCBOT05FICAgICAjIENhbmFsIDI3
-OiBMb2NhbCBSaWJlaXJhClQgNzk0MDAwMDAwIDhNSHogMi8zIDEvMiBRQU02NCA4ayAxLzQgTk9O
-RSAgICAgIyBDYW5hbCA2MTogUkFSIEEgQ29ydW5oYQpUIDgxMDAwMDAwMCA4TUh6IDIvMyAxLzIg
-UUFNNjQgOGsgMS80IE5PTkUgICAgICMgQ2FuYWwgNjM6IFJHRSBHYWxpY2lhClQgODM0MDAwMDAw
-IDhNSHogMi8zIDEvMiBRQU02NCA4ayAxLzQgTk9ORSAgICAgIyBDYW5hbCA2NjogU0ZOIDEKVCA4
-NDIwMDAwMDAgOE1IeiAyLzMgMS8yIFFBTTY0IDhrIDEvNCBOT05FICAgICAjIENhbmFsIDY3OiBT
-Rk4gMgpUIDg1MDAwMDAwMCA4TUh6IDIvMyAxLzIgUUFNNjQgOGsgMS80IE5PTkUgICAgICMgQ2Fu
-YWwgNjg6IFNGTiAzClQgODU4MDAwMDAwIDhNSHogMi8zIDEvMiBRQU02NCA4ayAxLzQgTk9ORSAg
-ICAgIyBDYW5hbCA2OTogU0ZOIDQK
---001636c5b0eef50a3c04693edf9d
-Content-Type: application/octet-stream; name=es-Santiago
-Content-Disposition: attachment; filename=es-Santiago
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fue372g21
+Best Regards
+Costantino Leandro
 
-VCA0OTAwMDAwMDAgOE1IeiAyLzMgMS8yIFFBTTY0IDhrIDEvNCBOT05FICAgICAjIENhbmFsIDIz
-OiBMb2NhbCBTYW50aWFnbwpUIDYyNjAwMDAwMCA4TUh6IDIvMyAxLzIgUUFNNjQgOGsgMS80IE5P
-TkUgICAgICMgQ2FuYWwgNDA6IFJBUiBTYW50aWFnbwpUIDgxMDAwMDAwMCA4TUh6IDIvMyAxLzIg
-UUFNNjQgOGsgMS80IE5PTkUgICAgICMgQ2FuYWwgNjM6IFJHRSBHYWxpY2lhClQgODM0MDAwMDAw
-IDhNSHogMi8zIDEvMiBRQU02NCA4ayAxLzQgTk9ORSAgICAgIyBDYW5hbCA2NjogU0ZOIDEKVCA4
-NDIwMDAwMDAgOE1IeiAyLzMgMS8yIFFBTTY0IDhrIDEvNCBOT05FICAgICAjIENhbmFsIDY3OiBT
-Rk4gMgpUIDg1MDAwMDAwMCA4TUh6IDIvMyAxLzIgUUFNNjQgOGsgMS80IE5PTkUgICAgICMgQ2Fu
-YWwgNjg6IFNGTiAzClQgODU4MDAwMDAwIDhNSHogMi8zIDEvMiBRQU02NCA4ayAxLzQgTk9ORSAg
-ICAgIyBDYW5hbCA2OTogU0ZOIDQK
---001636c5b0eef50a3c04693edf9d--
+On Sun, May 17, 2009 at 12:08 PM, MK <halfcountplus@intergate.com> wrote:
+> Thanks much for the feedback!  Here's what happened:
+>
+> Because the vendor id (0c45) is listed by the gspca website but not
+> the product (612a), I decided to try inserting the id into one of the
+> drivers/media/video/gspca.  When I actually grepped (had not grepped
+> the tree itself yet), low and behold 612a is in sonixj.  The module
+> compiles and responds to the camera, although the results in gstreamer,
+> et. al, are disappointing -- the camera is not really usable, I suspect
+> from the output it is the kernel driver, but I am not sure.  Since I
+> didn't write this stuff, I think working alone it will be more trouble
+> than it is worth to track the problem down, esp. if this is mostly a
+> problem with an (obscure) inexpensive item that few linux users
+> actually possess.
+>
+> So, I am going to cut my "loses" early on this project and cop out.
+> I've learned a bunch about the kernel and in the process written some
+> nifty little char drivers that are probably more useful to me than a
+> webcam anyway. I think my time would be better spent on other things,
+> eg, I might become useful in someone else's (more significant) linux
+> kernel/driver project.  I will have a look around.
+>
+> But thanks again!  You were much nicer than mr Greg Kroah-Hartman ;) :0
+>
+> Sincerely, Mark Eriksen (getting his feet wet)
+>
+>
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
