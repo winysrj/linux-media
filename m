@@ -1,102 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f176.google.com ([209.85.219.176]:60933 "EHLO
-	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755694AbZEZSvs convert rfc822-to-8bit (ORCPT
+Received: from web110811.mail.gq1.yahoo.com ([67.195.13.234]:33071 "HELO
+	web110811.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751580AbZEQI4b (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2009 14:51:48 -0400
+	Sun, 17 May 2009 04:56:31 -0400
+Message-ID: <7723.19682.qm@web110811.mail.gq1.yahoo.com>
+Date: Sun, 17 May 2009 01:56:31 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH] [0905_14_1] Siano: smsusb - update supported USB IDs table
+To: LinuxML <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <20090526184216.GA10560@sortiz.org>
-References: <20090526174012.423883376@linux.intel.com>
-	 <20090526174213.806710164@linux.intel.com>
-	 <37219a840905261132q6b0a7289x3408fb904ddf90df@mail.gmail.com>
-	 <20090526184216.GA10560@sortiz.org>
-Date: Tue, 26 May 2009 14:44:45 -0400
-Message-ID: <37219a840905261144r1c74a42dq7b24bdce1b8059b@mail.gmail.com>
-Subject: Re: [PATCH 4/6] dvb/dvb-usb: prepare for FIRMWARE_NAME_MAX removal
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Samuel Ortiz <sameo@linux.intel.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>,
-	Greg Kroah-Hartmann <greg@kroah.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kay Sievers <kay.sievers@vrfy.org>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 26, 2009 at 2:42 PM, Samuel Ortiz <sameo@linux.intel.com> wrote:
-> On Tue, May 26, 2009 at 02:32:45PM -0400, Michael Krufky wrote:
->> On Tue, May 26, 2009 at 1:40 PM, Samuel Ortiz <sameo@linux.intel.com> wrote:
->> > From: Samuel Ortiz <sameo@linux.intel.com>
->> > To: Mauro Carvalho Chehab <mchehab@infradead.org>
->> >
->> > We're going to remove the FIRMWARE_NAME_MAX definition in order to avoid any
->> > firmware name length restriction.
->> > This patch changes the dvb_usb_device_properties firmware field accordingly.
->> >
->> > Signed-off-by: Samuel Ortiz <sameo@linux.intel.com>
->> >
->> > ---
->> >  drivers/media/dvb/dvb-usb/dvb-usb.h |    2 +-
->> >  1 file changed, 1 insertion(+), 1 deletion(-)
->> >
->> > Index: iwm-2.6/drivers/media/dvb/dvb-usb/dvb-usb.h
->> > ===================================================================
->> > --- iwm-2.6.orig/drivers/media/dvb/dvb-usb/dvb-usb.h    2009-05-26 17:24:36.000000000 +0200
->> > +++ iwm-2.6/drivers/media/dvb/dvb-usb/dvb-usb.h 2009-05-26 17:25:19.000000000 +0200
->> > @@ -196,7 +196,7 @@ struct dvb_usb_device_properties {
->> >  #define CYPRESS_FX2     3
->> >        int        usb_ctrl;
->> >        int        (*download_firmware) (struct usb_device *, const struct firmware *);
->> > -       const char firmware[FIRMWARE_NAME_MAX];
->> > +       const char *firmware;
->> >        int        no_reconnect;
->> >
->> >        int size_of_priv;
->> >
->> > --
->> > Intel Open Source Technology Centre
->> > http://oss.intel.com/
->> > --
->> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->> > the body of a message to majordomo@vger.kernel.org
->> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> > Please read the FAQ at  http://www.tux.org/lkml/
->> >
->>
->> Samuel,
->>
->> Your patch makes the following change:
->>
->> -       const char firmware[FIRMWARE_NAME_MAX];
->> +       const char *firmware;
->>
->> Before your change, struct dvb_usb_device_properties actually contains
->> memory allocated for the firmware filename.  After your change, this
->> is nothing but a pointer.
->>
->> This will cause an OOPS.
-> No, not if it's correctly initialized, as it seems to be for all the
-> dvb_usb_device_properties users right now.
-> Typically, you'd initialize your dvb_usb_device_properties like this:
->
-> static struct dvb_usb_device_properties a800_properties = {
->        .caps = DVB_USB_IS_AN_I2C_ADAPTER,
->
->        .usb_ctrl = CYPRESS_FX2,
->        .firmware = "dvb-usb-avertv-a800-02.fw",
-> [...]
->
-> And that's fine.
 
-You're right -- there is nothing wrong with the change -- my bad.
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1242550293 -10800
+# Node ID 59a05f4cb2769279a460f171250d3a7d3a85b81f
+# Parent  12d6b7eaffa903f00c445d7102ded42610361ae6
+[0905_14_1] Siano: smsusb - update supported USB IDs table
 
-I traced though the code after posting that last mail.  It looked
-risky when I just looked at the patch, but in the end this is actually
-cleaner and much better.
+From: Uri Shkolnik <uris@siano-ms.com>
 
-Sorry for the noise.
+Update the list of supported USB devices, with IDs of
+new devices, and remove the obsolete defines
 
-Acked /
-Reviewed-by: Michael Krufky <mkrufky@kernellabs.com>
+Priority: normal
+
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+
+diff -r 12d6b7eaffa9 -r 59a05f4cb276 linux/drivers/media/dvb/siano/smsusb.c
+--- a/linux/drivers/media/dvb/siano/smsusb.c	Sun May 17 11:49:44 2009 +0300
++++ b/linux/drivers/media/dvb/siano/smsusb.c	Sun May 17 11:51:33 2009 +0300
+@@ -489,7 +489,6 @@ static int smsusb_resume(struct usb_inte
+ }
+ 
+ struct usb_device_id smsusb_id_table[] = {
+-#ifdef CONFIG_DVB_SIANO_SMS1XXX_SMS_IDS
+ 	{ USB_DEVICE(0x187f, 0x0010),
+ 		.driver_info = SMS1XXX_BOARD_SIANO_STELLAR },
+ 	{ USB_DEVICE(0x187f, 0x0100),
+@@ -500,7 +499,6 @@ struct usb_device_id smsusb_id_table[] =
+ 		.driver_info = SMS1XXX_BOARD_SIANO_NOVA_B },
+ 	{ USB_DEVICE(0x187f, 0x0300),
+ 		.driver_info = SMS1XXX_BOARD_SIANO_VEGA },
+-#endif
+ 	{ USB_DEVICE(0x2040, 0x1700),
+ 		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_CATAMOUNT },
+ 	{ USB_DEVICE(0x2040, 0x1800),
+@@ -531,8 +529,13 @@ struct usb_device_id smsusb_id_table[] =
+ 		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_WINDHAM },
+ 	{ USB_DEVICE(0x2040, 0x5590),
+ 		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_WINDHAM },
+-	{ }		/* Terminating entry */
+-};
++	{ USB_DEVICE(0x187f, 0x0202),
++		.driver_info = SMS1XXX_BOARD_SIANO_NICE },
++	{ USB_DEVICE(0x187f, 0x0301),
++		.driver_info = SMS1XXX_BOARD_SIANO_VENICE },
++	{ } /* Terminating entry */
++	};
++
+ MODULE_DEVICE_TABLE(usb, smsusb_id_table);
+ 
+ static struct usb_driver smsusb_driver = {
+
+
+
+      
