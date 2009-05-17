@@ -1,47 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hamlet.nurpoint.com ([212.239.26.6]:47167 "EHLO
-	hamlet.nurpoint.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751141AbZEHImr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2009 04:42:47 -0400
-Received: from dab.z1.infracom.it ([82.193.15.171] helo=[192.168.1.140])
-	by hamlet.nurpoint.com with esmtpa (Exim 4.69)
-	(envelope-from <s.danzi@hawai.it>)
-	id 1M2Ks1-0006EY-Au
-	for linux-media@vger.kernel.org; Fri, 08 May 2009 09:51:49 +0200
-Message-ID: <4A03E492.1090504@hawai.it>
-Date: Fri, 08 May 2009 09:51:46 +0200
-From: Stefano Danzi <s.danzi@hawai.it>
+Received: from web110816.mail.gq1.yahoo.com ([67.195.13.239]:26155 "HELO
+	web110816.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753869AbZEQJBy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 17 May 2009 05:01:54 -0400
+Message-ID: <15232.6488.qm@web110816.mail.gq1.yahoo.com>
+Date: Sun, 17 May 2009 02:01:55 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH] [0905_27] Siano: smscore - fix isdb-t firmware name
+To: LinuxML <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Making a DVB-S Transmitter
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!!
 
-I and some others Ham radio operators are working on a pc-based
-dvb-s transmitter.
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1242332684 -10800
+# Node ID 7e56c108996ef016c4b2117090e2577aea9ed56c
+# Parent  5ad3d2c3d7792ddf125386c43535e68b575305c3
+[0905_27] Siano: smscore - fix isdb-t firmware name
 
-Reference website are: http://www.m0dts.co.uk/datv.htm
+From: Uri Shkolnik <uris@siano-ms.com>
 
-Interfare between pc and transmitter is based on FTDI FT245 (usb fifo).
+Fix mistake with isdb-t firmware name
 
-Goal will be create a device like /dev/dvbs-tx, write into a mpeg-ts 
-stream so
-kernel module convert it to a dvb-s signal and send it to the usb fifo.
+Priority: normal
 
-Now could be a good thing to have a kernel module for get raw data from 
-/dev/dvbs-tx
-and put it on the ftdi chip (we have an external encoder called dvbsenco 
-but target project
-is rewrite a clone as kernel module to improve performances)
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
 
-I know basic C but not enought to write a kernel module.
-Someone can help us?
+diff -r 5ad3d2c3d779 -r 7e56c108996e linux/drivers/media/dvb/siano/smscoreapi.c
+--- a/linux/drivers/media/dvb/siano/smscoreapi.c	Thu May 14 23:21:04 2009 +0300
++++ b/linux/drivers/media/dvb/siano/smscoreapi.c	Thu May 14 23:24:44 2009 +0300
+@@ -813,7 +813,7 @@ static char *smscore_fw_lkup[][SMS_NUM_O
+ 	/*BDA*/
+ 	{"none", "dvb_nova_12mhz.inp", "dvb_nova_12mhz_b0.inp", "none"},
+ 	/*ISDBT*/
+-	{"none", "isdbt_nova_12mhz.inp", "dvb_nova_12mhz.inp", "none"},
++	{"none", "isdbt_nova_12mhz.inp", "isdbt_nova_12mhz_b0.inp", "none"},
+ 	/*ISDBTBDA*/
+ 	{"none", "isdbt_nova_12mhz.inp", "isdbt_nova_12mhz_b0.inp", "none"},
+ 	/*CMMB*/
 
-PS Sorry for my horrible english
 
 
-
+      
