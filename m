@@ -1,54 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:28664 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752788AbZE1Uo3 (ORCPT
+Received: from web110808.mail.gq1.yahoo.com ([67.195.13.231]:44384 "HELO
+	web110808.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751865AbZEQMRv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2009 16:44:29 -0400
-Received: by fg-out-1718.google.com with SMTP id 16so2096501fgg.17
-        for <linux-media@vger.kernel.org>; Thu, 28 May 2009 13:44:30 -0700 (PDT)
-Subject: [patch 0/4] Patches for dsbr100 radio
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Linux Media <linux-media@vger.kernel.org>
-Cc: Douglas Schilling Landgraf <dougsland@gmail.com>
-Content-Type: text/plain
-Date: Fri, 29 May 2009 00:44:22 +0400
-Message-Id: <1243543463.6713.40.camel@tux.localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sun, 17 May 2009 08:17:51 -0400
+Message-ID: <166097.37467.qm@web110808.mail.gq1.yahoo.com>
+Date: Sun, 17 May 2009 05:17:51 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH] [0905_30] Siano: smsusb - fix typo in module description
+To: LinuxML <linux-media@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There was discussion on maillist about lock/unlock_kernel, about
-open/close functions and about radio->users counter. So, there are
-patches arised from that discussion.
 
-There is suspend/resume procedure fix in patch 4/4.
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1242562875 -10800
+# Node ID 7d204069642b6608bb3b0d6a96d1de5848df2a16
+# Parent  1c7b6db1a3399ffbb7f9b6758cae6572c24b51ef
+[0905_30] Siano: smsusb - fix typo in module description
 
-Here is description of patches:
+From: Uri Shkolnik <uris@siano-ms.com>
 
-[1/4] dsbr100: remove radio->users counter
-Patch removes radio->users counter because it is not in use.
+Fix small typo in the module description
 
-[2/4] dsbr100: remove usb_dsbr100_open/close calls
-Patch removes usb_dsbr100_open and usb_dsbr100_close calls.
-1. No need to start, set frequency, adjust parameters in open call.
-2. This patch tackles issue with lock/unlock_kernel() in open call.
-3. With this patch feature "Mute on exit?" in gnomeradio works.
+Priority: normal
 
-[3/4] dsbr100: no need to pass curfreq value to dsbr100_setfreq()
-Small cleanup of dsbr100_setfreq(). No need to pass radio->curfreq value
-to this function.
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
 
-[4/4] dsbr100: change radio->muted to radio->status, update
-suspend/resume
-Patch renames radio->muted to radio->status, add defines for that
-variable, and fixes suspend/resume procedure. Radio->status set to
-STOPPED in usb_dsbr100_probe because of removing open call.
-Also, patch increases driver version.
+diff -r 1c7b6db1a339 -r 7d204069642b linux/drivers/media/dvb/siano/smsusb.c
+--- a/linux/drivers/media/dvb/siano/smsusb.c	Sun May 17 11:57:48 2009 +0300
++++ b/linux/drivers/media/dvb/siano/smsusb.c	Sun May 17 15:21:15 2009 +0300
+@@ -569,6 +569,6 @@ module_init(smsusb_module_init);
+ module_init(smsusb_module_init);
+ module_exit(smsusb_module_exit);
+ 
+-MODULE_DESCRIPTION("Driver for the Siano SMS1XXX USB dongle");
++MODULE_DESCRIPTION("Driver for the Siano SMS1xxx USB dongle");
+ MODULE_AUTHOR("Siano Mobile Silicon, INC. (uris@siano-ms.com)");
+ MODULE_LICENSE("GPL");
 
-Tested on i686 and x86_64 machines with gnomeradio, mplayer and kradio
-under 2.6.30-rc7 kernel.
 
--- 
-Best regards, Klimov Alexey
 
+      
