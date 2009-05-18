@@ -1,69 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.29]:10532 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752168AbZEZQrN (ORCPT
+Received: from mail.kolorific.com ([61.63.28.39]:43449 "EHLO
+	mail.kolorific.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751272AbZERCNh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2009 12:47:13 -0400
-Received: by yx-out-2324.google.com with SMTP id 3so2280731yxj.1
-        for <linux-media@vger.kernel.org>; Tue, 26 May 2009 09:47:14 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4A1BE8BC.3010901@gmail.com>
-References: <4A1BE8BC.3010901@gmail.com>
-Date: Tue, 26 May 2009 20:47:14 +0400
-Message-ID: <208cbae30905260947o6462dedsf010bc6b6acfa0bc@mail.gmail.com>
-Subject: Re: v4l-dvb and old kernels
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Antonio Beamud Montero <antonio.beamud@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 17 May 2009 22:13:37 -0400
+Subject: [PATCH]saa7134-video.c: poll method lose race condition
+From: "figo.zhang" <figo.zhang@kolorific.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	figo1802@126.com, kraxel@bytesex.org,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Mon, 18 May 2009 10:13:13 +0800
+Message-Id: <1242612794.3442.19.camel@myhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello, Antonio
+saa7134-video.c: poll method lose race condition
 
-On Tue, May 26, 2009 at 5:03 PM, Antonio Beamud Montero
-<antonio.beamud@gmail.com> wrote:
-> It would compile today's snapshot of v4l-dvb with an old kernel version (for
-> example 2.6.16)? (or is better to upgrade the kernel?)
 
-Not long time ago v4l-dvb community had discussions about dropping
-support for kernels older than 2.6.22. And community decided to
-support kernels 2.6.22 - 2.6.30+. One of the reason that it's big work
-to support code to make it compiles and works in old kernels. Well,
-developers want to spend more time working on new code.
+Signed-off-by: Figo.zhang <figo.zhang@kolorific.com>
+--- 
+drivers/media/video/saa7134/saa7134-video.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
-So, the best way to you is to upgrade your kernel.
+diff --git a/drivers/media/video/saa7134/saa7134-video.c b/drivers/media/video/saa7134/saa7134-video.c
+index 493cad9..95733df 100644
+--- a/drivers/media/video/saa7134/saa7134-video.c
++++ b/drivers/media/video/saa7134/saa7134-video.c
+@@ -1423,11 +1423,13 @@ video_poll(struct file *file, struct poll_table_struct *wait)
+ {
+ 	struct saa7134_fh *fh = file->private_data;
+ 	struct videobuf_buffer *buf = NULL;
++	unsigned int rc = 0;
+ 
+ 	if (V4L2_BUF_TYPE_VBI_CAPTURE == fh->type)
+ 		return videobuf_poll_stream(file, &fh->vbi, wait);
+ 
+ 	if (res_check(fh,RESOURCE_VIDEO)) {
++		mutex_lock(&fh->cap.vb_lock);
+ 		if (!list_empty(&fh->cap.stream))
+ 			buf = list_entry(fh->cap.stream.next, struct videobuf_buffer, stream);
+ 	} else {
+@@ -1446,13 +1448,14 @@ video_poll(struct file *file, struct poll_table_struct *wait)
+ 	}
+ 
+ 	if (!buf)
+-		return POLLERR;
++		rc = POLLERR;
+ 
+ 	poll_wait(file, &buf->done, wait);
+ 	if (buf->state == VIDEOBUF_DONE ||
+ 	    buf->state == VIDEOBUF_ERROR)
+-		return POLLIN|POLLRDNORM;
+-	return 0;
++		rc = POLLIN|POLLRDNORM;
++	mutex_unlock(&fh->cap.vb_lock);
++	return rc;
+ 
+ err:
+ 	mutex_unlock(&fh->cap.vb_lock);
 
-Second way to correct mistakes. Probably developers can help you here.
 
-One more way, probably you can take old snapshot of v4l-dvb repository
-that compiles and work on 2.6.16 if you need. Someone can point to
-link to it (i don' know).
-
-> Trying to compile today's mercurial snapshot in a SuSE 10.1 (2.6.16-21),
-> give the next errors:
->
-> /root/v4l-dvb/v4l/bttv-i2c.c: In function 'init_bttv_i2c':
-> /root/v4l-dvb/v4l/bttv-i2c.c:411: error: storage size of 'info' isn't known
-> /root/v4l-dvb/v4l/bttv-i2c.c:425: error: invalid application of 'sizeof' to
-> incomplete type 'struct i2c_board_info'
-> /root/v4l-dvb/v4l/bttv-i2c.c:425: error: invalid application of 'sizeof' to
-> incomplete type 'struct i2c_board_info'
-> /root/v4l-dvb/v4l/bttv-i2c.c:425: error: invalid application of 'sizeof' to
-> incomplete type 'struct i2c_board_info'
-> /root/v4l-dvb/v4l/bttv-i2c.c:425: error: invalid application of 'sizeof' to
-> incomplete type 'struct i2c_board_info'
-> /root/v4l-dvb/v4l/bttv-i2c.c:425: error: invalid application of 'sizeof' to
-> incomplete type 'struct i2c_board_info'
-> /root/v4l-dvb/v4l/bttv-i2c.c:425: error: invalid application of 'sizeof' to
-> incomplete type 'struct i2c_board_info'
-> /root/v4l-dvb/v4l/bttv-i2c.c:427: error: implicit declaration of function
-> 'i2c_new_probed_device'
-> /root/v4l-dvb/v4l/bttv-i2c.c:411: warning: unused variable 'info'
-> make[5]: *** [/root/v4l-dvb/v4l/bttv-i2c.o] Error 1
-
-Well, this mistakes appear in v4l-dvb daily build too.
-
--- 
-Best regards, Klimov Alexey
