@@ -1,41 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f174.google.com ([209.85.218.174]:61794 "EHLO
-	mail-bw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753546AbZEXQ7z (ORCPT
+Received: from mail.kolorific.com ([61.63.28.39]:48069 "EHLO
+	mail.kolorific.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751294AbZEREHL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 May 2009 12:59:55 -0400
-Received: by bwz22 with SMTP id 22so2620196bwz.37
-        for <linux-media@vger.kernel.org>; Sun, 24 May 2009 09:59:55 -0700 (PDT)
-Message-ID: <4A197CE8.9040404@gmail.com>
-Date: Sun, 24 May 2009 18:59:20 +0200
-From: David Lister <foceni@gmail.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Digital Everywhere FloppyDTV / FireDTV (incl. CI)
-Content-Type: text/plain; charset=UTF-8
+	Mon, 18 May 2009 00:07:11 -0400
+Subject: Re: [PATCH]saa7134-video.c: poll method lose race condition
+From: "figo.zhang" <figo.zhang@kolorific.com>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>, g.liakhovetski@gmx.de,
+	linux-media@vger.kernel.org, figo1802@126.com, kraxel@bytesex.org,
+	Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <1242618541.3747.26.camel@pc07.localdom.local>
+References: <1242612794.3442.19.camel@myhost>
+	 <1242616075.3747.20.camel@pc07.localdom.local>
+	 <1242618805.3442.45.camel@myhost>
+	 <1242618541.3747.26.camel@pc07.localdom.local>
+Content-Type: text/plain
+Date: Mon, 18 May 2009 12:07:00 +0800
+Message-Id: <1242619620.3442.47.camel@myhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Mon, 2009-05-18 at 05:49 +0200, hermann pitton wrote:
+> Am Montag, den 18.05.2009, 11:53 +0800 schrieb figo.zhang:
+> > On Mon, 2009-05-18 at 05:07 +0200, hermann pitton wrote:
+> > > Am Montag, den 18.05.2009, 10:13 +0800 schrieb figo.zhang:
+> > > > saa7134-video.c: poll method lose race condition
+> > > > 
+> > > > 
+> > > > Signed-off-by: Figo.zhang <figo.zhang@kolorific.com>
+> > > > --- 
+> > > > drivers/media/video/saa7134/saa7134-video.c |    9 ++++++---
+> > > >  1 files changed, 6 insertions(+), 3 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/media/video/saa7134/saa7134-video.c b/drivers/media/video/saa7134/saa7134-video.c
+> > > > index 493cad9..95733df 100644
+> > > > --- a/drivers/media/video/saa7134/saa7134-video.c
+> > > > +++ b/drivers/media/video/saa7134/saa7134-video.c
+> > > > @@ -1423,11 +1423,13 @@ video_poll(struct file *file, struct poll_table_struct *wait)
+> > > >  {
+> > > >  	struct saa7134_fh *fh = file->private_data;
+> > > >  	struct videobuf_buffer *buf = NULL;
+> > > > +	unsigned int rc = 0;
+> > > >  
+> > > >  	if (V4L2_BUF_TYPE_VBI_CAPTURE == fh->type)
+> > > >  		return videobuf_poll_stream(file, &fh->vbi, wait);
+> > > >  
+> > > >  	if (res_check(fh,RESOURCE_VIDEO)) {
+> > > > +		mutex_lock(&fh->cap.vb_lock);
+> > > >  		if (!list_empty(&fh->cap.stream))
+> > > >  			buf = list_entry(fh->cap.stream.next, struct videobuf_buffer, stream);
+> > > >  	} else {
+> > > > @@ -1446,13 +1448,14 @@ video_poll(struct file *file, struct poll_table_struct *wait)
+> > > >  	}
+> > > >  
+> > > >  	if (!buf)
+> > > > -		return POLLERR;
+> > > > +		rc = POLLERR;
+> > > >  
+> > > >  	poll_wait(file, &buf->done, wait);
+> > > >  	if (buf->state == VIDEOBUF_DONE ||
+> > > >  	    buf->state == VIDEOBUF_ERROR)
+> > > > -		return POLLIN|POLLRDNORM;
+> > > > -	return 0;
+> > > > +		rc = POLLIN|POLLRDNORM;
+> > > > +	mutex_unlock(&fh->cap.vb_lock);
+> > > > +	return rc;
+> > > >  
+> > > >  err:
+> > > >  	mutex_unlock(&fh->cap.vb_lock);
+> > > > 
+> > > > 
+> > > 
+> > > Can you please give some description on what your patch might do
+> > > something?
+> > > 
+> > > Or are you a robot?
+> > > 
+> > > Then, please give us your serial number, production year, and when we
+> > > can expect you are out of duty and replaced ;)
+> > > 
+> > > Cheers,
+> > > Hermann
+> > > 
+> > > 
+> > > 
+> > 
+> > hi, I just using the saa7134 chip to do a video capture card. The
+> > saa7134 driver in linux kernel, i found that the poll method have lose 
+> > race condition for "RESOURCE_VIDEO". It have better to add a mutex lock.
+> > 
+> 
+> OK then, but better stay away from the core files.
+> 
+> On what kernel this is?
+> 
+> Give us some copy/paste "dmesg" output for your card with "i2c_scan=1".
+> Don't lose tuner stuff on this.
+> 
+> Thanks,
+> Hermann
+> 
+> 
+> 
+hi, hermann pitton ,i am using the git-kernel, the card have some
+hardware problems now.
 
-just found out that these cards have finally some preliminary Linux
-support. They seem quite versatile and even customizable -- a true gift
-for dedicated hobbyists. :) PCI/PCIe/AGP or floppy drive mounting and
-firewire /connection/ chaining look especially interesting. Even
-FloppyDTV is apparently half internal, half external - sort of. Anybody
-with hands-on access? Any updates? Share your experience! :o)
-
-E-shop:
-http://www.dvbshop.net/index.php/cat/c441_Digital-Everywhere.html
-
-Linux driver:
-http://www.firedtv.bbackx.com/
-
-Manufacturer's links & Linux Forum:
-http://www.digital-everywhere.com/en/alcms/index.php?sid=1207139884
-http://forum.digital-everywhere.com/viewforum.php?f=34
-
-
--- 
-Dave
