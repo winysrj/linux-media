@@ -1,29 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.239]:52185 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752731AbZEUL4o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2009 07:56:44 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so344069rvb.1
-        for <linux-media@vger.kernel.org>; Thu, 21 May 2009 04:56:46 -0700 (PDT)
-Message-ID: <4A154179.6010005@olenepal.org>
-Date: Thu, 21 May 2009 17:41:41 +0545
-From: Roshan karki <roshan@olenepal.org>
-MIME-Version: 1.0
+Received: from main.gmane.org ([80.91.229.2]:53302 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754970AbZERHdH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 18 May 2009 03:33:07 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1M5xLO-0007hT-Vv
+	for linux-media@vger.kernel.org; Mon, 18 May 2009 07:33:07 +0000
+Received: from ANancy-155-1-46-215.w90-13.abo.wanadoo.fr ([90.13.197.215])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 18 May 2009 07:33:06 +0000
+Received: from Kowaio by ANancy-155-1-46-215.w90-13.abo.wanadoo.fr with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 18 May 2009 07:33:06 +0000
 To: linux-media@vger.kernel.org
-Subject: analog support for YUAN High-Tech STK7700PH
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+From: Guillaume <Kowaio@gmail.com>
+Subject: Re: V4L2 - Capturing uncompressed data
+Date: Mon, 18 May 2009 07:32:53 +0000 (UTC)
+Message-ID: <loom.20090518T072801-624@post.gmane.org>
+References: <loom.20090515T125828-924@post.gmane.org> <200905151520.26540.laurent.pinchart@skynet.be> <Pine.LNX.4.64.0905152101380.4658@axis700.grange> <loom.20090518T065037-781@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Guillaume <Kowaio <at> gmail.com> writes:
 
-I have YUAN High-Tech STK7700PH with usb id Bus 002 Device 002: ID 
-1164:1f08 YUAN High-Tech Development Co., Ltd
 
-The DVB support for this device is out of the box in Ubuntu but I need 
-analog support as there is no DVB in my country Nepal. Radio also 
-doesn't work.
+I just tried the ENUM_FMT, and there is only 1 format, 
+the JPEG one.
 
-Is there any chance for the analog support?
+But I don't understand one thing. The webcam displays 
+compressed Jpeg data. OK.
+But before that compression, the data aren't in 
+uncompressed data ? 
+It's the driver or something which is doing that 
+compression directly during the capture, but there 
+really are no chance to get that uncompressed 
+data before compression in JPEG ?
+
