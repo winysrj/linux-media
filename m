@@ -1,43 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-12.arcor-online.net ([151.189.21.52]:58897 "EHLO
-	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751432AbZEREVw (ORCPT
+Received: from mail-px0-f191.google.com ([209.85.216.191]:37331 "EHLO
+	mail-px0-f191.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752334AbZERIZt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 May 2009 00:21:52 -0400
-Subject: Re: [PATCH]saa7134-video.c: poll method lose race condition
-From: hermann pitton <hermann-pitton@arcor.de>
-To: "figo.zhang" <figo.zhang@kolorific.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>, g.liakhovetski@gmx.de,
-	linux-media@vger.kernel.org, figo1802@126.com, kraxel@bytesex.org,
-	Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <1242619620.3442.47.camel@myhost>
-References: <1242612794.3442.19.camel@myhost>
-	 <1242616075.3747.20.camel@pc07.localdom.local>
-	 <1242618805.3442.45.camel@myhost>
-	 <1242618541.3747.26.camel@pc07.localdom.local>
-	 <1242619620.3442.47.camel@myhost>
-Content-Type: text/plain
-Date: Mon, 18 May 2009 06:08:45 +0200
-Message-Id: <1242619725.3747.35.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 18 May 2009 04:25:49 -0400
+Received: by pxi29 with SMTP id 29so1853874pxi.33
+        for <linux-media@vger.kernel.org>; Mon, 18 May 2009 01:25:49 -0700 (PDT)
+MIME-Version: 1.0
+Date: Mon, 18 May 2009 16:25:49 +0800
+Message-ID: <15ed362e0905180125v649545f0t204ca843e72d2758@mail.gmail.com>
+Subject: [PATCH] cx23885: support for card Mygica X8506 DMB-TH
+From: David Wong <davidtlwong@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: multipart/mixed; boundary=0016364585b6b0ab3f046a2b8a19
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[big snip]
-> > 
-> > 
-> > 
-> hi, hermann pitton ,i am using the git-kernel, the card have some
-> hardware problems now.
+--0016364585b6b0ab3f046a2b8a19
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-If it is a new card, 2.6.27 is for sure the last stable.
-
-We might get it all down, but 2.6.30 looked promising again.
-
-Seems there is some hungry black hole in between ;)
+This patch add cx23885 support for card "Mygica X8506 DMB-TH".
+It should work on "Magic-Pro ProHDTV Extreme" as well, as they are
+same hardware with different branding.
 
 Cheers,
-Hermann
+David T.L. Wong
 
+--0016364585b6b0ab3f046a2b8a19
+Content-Type: text/x-diff; charset=US-ASCII; name="mygica_x8506_dmbth.patch"
+Content-Disposition: attachment; filename="mygica_x8506_dmbth.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fuuwul940
 
+ZGlmZiAtciBjOWUyZmJhYmVkMTEgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1L2N4
+MjM4ODUtY2FyZHMuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4MjM4ODUvY3gy
+Mzg4NS1jYXJkcy5jCU1vbiBNYXkgMTggMTU6MTQ6MDMgMjAwOSArMDgwMAorKysgYi9saW51eC9k
+cml2ZXJzL21lZGlhL3ZpZGVvL2N4MjM4ODUvY3gyMzg4NS1jYXJkcy5jCU1vbiBNYXkgMTggMTU6
+NTM6MjUgMjAwOSArMDgwMApAQCAtMTk4LDYgKzE5OCwxMCBAQAogCQkubmFtZQkJPSAiSGF1cHBh
+dWdlIFdpblRWLUhWUjEyMTAiLAogCQkucG9ydGMJCT0gQ1gyMzg4NV9NUEVHX0RWQiwKIAl9LAor
+CVtDWDIzODg1X0JPQVJEX01ZR0lDQV9YODUwNl0gPSB7CisJCS5uYW1lCQk9ICJNeWdpY2EgWDg1
+MDYgRE1CLVRIIiwKKwkJLnBvcnRiCQk9IENYMjM4ODVfTVBFR19EVkIsCisJfSwKIH07CiBjb25z
+dCB1bnNpZ25lZCBpbnQgY3gyMzg4NV9iY291bnQgPSBBUlJBWV9TSVpFKGN4MjM4ODVfYm9hcmRz
+KTsKIApAQCAtMzE3LDYgKzMyMSwxMCBAQAogCQkuc3VidmVuZG9yID0gMHgwMDcwLAogCQkuc3Vi
+ZGV2aWNlID0gMHgyMjk1LAogCQkuY2FyZCAgICAgID0gQ1gyMzg4NV9CT0FSRF9IQVVQUEFVR0Vf
+SFZSMTIxMCwKKwl9LCB7CisJCS5zdWJ2ZW5kb3IgPSAweDE0ZjEsCisJCS5zdWJkZXZpY2UgPSAw
+eDg2NTEsCisJCS5jYXJkICAgICAgPSBDWDIzODg1X0JPQVJEX01ZR0lDQV9YODUwNiwKIAl9LAog
+fTsKIGNvbnN0IHVuc2lnbmVkIGludCBjeDIzODg1X2lkY291bnQgPSBBUlJBWV9TSVpFKGN4MjM4
+ODVfc3ViaWRzKTsKQEAgLTcwNyw2ICs3MTUsMTUgQEAKIAkJbWRlbGF5KDIwKTsKIAkJY3gyMzg4
+NV9ncGlvX3NldChkZXYsIEdQSU9fOSk7CiAJCWJyZWFrOworCWNhc2UgQ1gyMzg4NV9CT0FSRF9N
+WUdJQ0FfWDg1MDY6CisJCS8qIEdQSU8tMSByZXNldCBYQzUwMDAgKi8KKwkJLyogR1BJTy0yIHJl
+c2V0IExHUzhHTDUgKi8KKwkJY3hfc2V0KEdQMF9JTywgMHgwMDA2MDAwMCk7CisJCWN4X2NsZWFy
+KEdQMF9JTywgMHgwMDAwMDAwNik7CisJCW1kZWxheSgxMDApOworCQljeF9zZXQoR1AwX0lPLCAw
+eDAwMDYwMDA2KTsKKwkJbWRlbGF5KDEwMCk7CisJCWJyZWFrOwogCX0KIH0KIApAQCAtODEwLDYg
+KzgyNywxMSBAQAogCQl0czItPnRzX2Nsa19lbl92YWwgPSAweDE7IC8qIEVuYWJsZSBUU19DTEsg
+Ki8KIAkJdHMyLT5zcmNfc2VsX3ZhbCAgID0gQ1gyMzg4NV9TUkNfU0VMX1BBUkFMTEVMX01QRUdf
+VklERU87CiAJCWJyZWFrOworCWNhc2UgQ1gyMzg4NV9CT0FSRF9NWUdJQ0FfWDg1MDY6CisJCXRz
+MS0+Z2VuX2N0cmxfdmFsICA9IDB4NTsgLyogUGFyYWxsZWwgKi8KKwkJdHMxLT50c19jbGtfZW5f
+dmFsID0gMHgxOyAvKiBFbmFibGUgVFNfQ0xLICovCisJCXRzMS0+c3JjX3NlbF92YWwgICA9IENY
+MjM4ODVfU1JDX1NFTF9QQVJBTExFTF9NUEVHX1ZJREVPOworCQlicmVhazsKIAljYXNlIENYMjM4
+ODVfQk9BUkRfSEFVUFBBVUdFX0hWUjEyNTA6CiAJY2FzZSBDWDIzODg1X0JPQVJEX0hBVVBQQVVH
+RV9IVlIxNTAwOgogCWNhc2UgQ1gyMzg4NV9CT0FSRF9IQVVQUEFVR0VfSFZSMTUwMFE6CmRpZmYg
+LXIgYzllMmZiYWJlZDExIGxpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyMzg4NS9jeDIzODg1
+LWR2Yi5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyMzg4NS9jeDIzODg1LWR2
+Yi5jCU1vbiBNYXkgMTggMTU6MTQ6MDMgMjAwOSArMDgwMAorKysgYi9saW51eC9kcml2ZXJzL21l
+ZGlhL3ZpZGVvL2N4MjM4ODUvY3gyMzg4NS1kdmIuYwlNb24gTWF5IDE4IDE1OjUzOjI1IDIwMDkg
+KzA4MDAKQEAgLTUwLDYgKzUwLDcgQEAKICNpbmNsdWRlICJsbmJoMjQuaCIKICNpbmNsdWRlICJj
+eDI0MTE2LmgiCiAjaW5jbHVkZSAiY2ltYXgyLmgiCisjaW5jbHVkZSAibGdzOGd4eC5oIgogI2lu
+Y2x1ZGUgIm5ldHVwLWVlcHJvbS5oIgogI2luY2x1ZGUgIm5ldHVwLWluaXQuaCIKICNpbmNsdWRl
+ICJsZ2R0MzMwNS5oIgpAQCAtNDE3LDEwICs0MTgsMjkgQEAKIAkuZGVtb2RfYWRkcmVzcyA9IDB4
+MDUsCiB9OwogCitzdGF0aWMgc3RydWN0IGxnczhneHhfY29uZmlnIG15Z2ljYV94ODUwNl9sZ3M4
+Z2w1X2NvbmZpZyA9IHsKKwkucHJvZCA9IExHUzhHWFhfUFJPRF9MR1M4R0w1LAorCS5kZW1vZF9h
+ZGRyZXNzID0gMHgxOSwKKwkuc2VyaWFsX3RzID0gMCwKKwkudHNfY2xrX3BvbCA9IDEsCisJLnRz
+X2Nsa19nYXRlZCA9IDEsCisJLmlmX2Nsa19mcmVxID0gMzA0MDAsIC8qIDMwLjQgTUh6ICovCisJ
+LmlmX2ZyZXEgPSA1MzgwLCAvKiA1LjM4IE1IeiAqLworCS5pZl9uZWdfY2VudGVyID0gMSwKKwku
+ZXh0X2FkYyA9IDAsCisJLmFkY19zaWduZWQgPSAwLAorCS5pZl9uZWdfZWRnZSA9IDAsCit9Owor
+CitzdGF0aWMgc3RydWN0IHhjNTAwMF9jb25maWcgbXlnaWNhX3g4NTA2X3hjNTAwMF9jb25maWcg
+PSB7CisJLmkyY19hZGRyZXNzID0gMHg2MSwKKwkuaWZfa2h6ID0gNTM4MCwKK307CisKIHN0YXRp
+YyBpbnQgZHZiX3JlZ2lzdGVyKHN0cnVjdCBjeDIzODg1X3RzcG9ydCAqcG9ydCkKIHsKIAlzdHJ1
+Y3QgY3gyMzg4NV9kZXYgKmRldiA9IHBvcnQtPmRldjsKLQlzdHJ1Y3QgY3gyMzg4NV9pMmMgKmky
+Y19idXMgPSBOVUxMOworCXN0cnVjdCBjeDIzODg1X2kyYyAqaTJjX2J1cyA9IE5VTEwsICppMmNf
+YnVzMiA9IE5VTEw7CiAJc3RydWN0IHZpZGVvYnVmX2R2Yl9mcm9udGVuZCAqZmUwOwogCWludCBy
+ZXQ7CiAKQEAgLTc0Miw2ICs3NjIsMTkgQEAKIAkJCWJyZWFrOwogCQl9CiAJCWJyZWFrOworCWNh
+c2UgQ1gyMzg4NV9CT0FSRF9NWUdJQ0FfWDg1MDY6CisJCWkyY19idXMgPSAmZGV2LT5pMmNfYnVz
+WzBdOworCQlpMmNfYnVzMiA9ICZkZXYtPmkyY19idXNbMV07CisJCWZlMC0+ZHZiLmZyb250ZW5k
+ID0gZHZiX2F0dGFjaChsZ3M4Z3h4X2F0dGFjaCwKKwkJCSZteWdpY2FfeDg1MDZfbGdzOGdsNV9j
+b25maWcsCisJCQkmaTJjX2J1cy0+aTJjX2FkYXApOworCQlpZiAoZmUwLT5kdmIuZnJvbnRlbmQg
+IT0gTlVMTCkgeworCQkJZHZiX2F0dGFjaCh4YzUwMDBfYXR0YWNoLAorCQkJCWZlMC0+ZHZiLmZy
+b250ZW5kLAorCQkJCSZpMmNfYnVzMi0+aTJjX2FkYXAsCisJCQkJJm15Z2ljYV94ODUwNl94YzUw
+MDBfY29uZmlnKTsKKwkJfQorCQlicmVhazsKIAlkZWZhdWx0OgogCQlwcmludGsoS0VSTl9JTkZP
+ICIlczogVGhlIGZyb250ZW5kIG9mIHlvdXIgRFZCL0FUU0MgY2FyZCAiCiAJCQkiIGlzbid0IHN1
+cHBvcnRlZCB5ZXRcbiIsCmRpZmYgLXIgYzllMmZiYWJlZDExIGxpbnV4L2RyaXZlcnMvbWVkaWEv
+dmlkZW8vY3gyMzg4NS9jeDIzODg1LmgKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9j
+eDIzODg1L2N4MjM4ODUuaAlNb24gTWF5IDE4IDE1OjE0OjAzIDIwMDkgKzA4MDAKKysrIGIvbGlu
+dXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1L2N4MjM4ODUuaAlNb24gTWF5IDE4IDE1OjUz
+OjI1IDIwMDkgKzA4MDAKQEAgLTc2LDYgKzc2LDcgQEAKICNkZWZpbmUgQ1gyMzg4NV9CT0FSRF9I
+QVVQUEFVR0VfSFZSMTI3NSAgICAgICAgMTkKICNkZWZpbmUgQ1gyMzg4NV9CT0FSRF9IQVVQUEFV
+R0VfSFZSMTI1NSAgICAgICAgMjAKICNkZWZpbmUgQ1gyMzg4NV9CT0FSRF9IQVVQUEFVR0VfSFZS
+MTIxMCAgICAgICAgMjEKKyNkZWZpbmUgQ1gyMzg4NV9CT0FSRF9NWUdJQ0FfWDg1MDYgICAgICAg
+ICAgICAgMjIKIAogI2RlZmluZSBHUElPXzAgMHgwMDAwMDAwMQogI2RlZmluZSBHUElPXzEgMHgw
+MDAwMDAwMgo=
+--0016364585b6b0ab3f046a2b8a19--
