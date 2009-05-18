@@ -1,197 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f224.google.com ([209.85.219.224]:57550 "EHLO
-	mail-ew0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752850AbZESRC0 convert rfc822-to-8bit (ORCPT
+Received: from mail.kolorific.com ([61.63.28.39]:48292 "EHLO
+	mail.kolorific.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754407AbZERCcI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2009 13:02:26 -0400
-Received: by ewy24 with SMTP id 24so5024455ewy.37
-        for <linux-media@vger.kernel.org>; Tue, 19 May 2009 10:02:25 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <675838.26148.qm@web110801.mail.gq1.yahoo.com>
-References: <675838.26148.qm@web110801.mail.gq1.yahoo.com>
-Date: Tue, 19 May 2009 13:02:25 -0400
-Message-ID: <37219a840905191002s148578eco4e1ce47a3d3865f4@mail.gmail.com>
-Subject: Re: [PATCH] [09051_54] Siano: remove obsolete sms_board_setup
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Uri Shkolnik <urishk@yahoo.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Sun, 17 May 2009 22:32:08 -0400
+Subject: [PATCH]media/video: minor have assigned value twice
+From: "figo.zhang" <figo.zhang@kolorific.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	figo1802@126.com, kraxel@bytesex.org,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Mon, 18 May 2009 10:31:55 +0800
+Message-Id: <1242613915.3442.29.camel@myhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 19, 2009 at 12:57 PM, Uri Shkolnik <urishk@yahoo.com> wrote:
->
->
->
-> --- On Tue, 5/19/09, Michael Krufky <mkrufky@linuxtv.org> wrote:
->
->> From: Michael Krufky <mkrufky@linuxtv.org>
->> Subject: Re: [PATCH] [09051_54] Siano: remove obsolete sms_board_setup
->> To: "Uri Shkolnik" <urishk@yahoo.com>
->> Cc: "LinuxML" <linux-media@vger.kernel.org>, "Mauro Carvalho Chehab" <mchehab@infradead.org>
->> Date: Tuesday, May 19, 2009, 7:31 PM
->> On Tue, May 19, 2009 at 12:15 PM, Uri
->> Shkolnik <urishk@yahoo.com>
->> wrote:
->> >
->> > # HG changeset patch
->> > # User Uri Shkolnik <uris@siano-ms.com>
->> > # Date 1242749967 -10800
->> > # Node ID 0296b0c436d6deba48c710cfb510988267cea057
->> > # Parent  dfcfb90798d3a27cb174019b17fffdee9ce7b2b9
->> > [09051_54] Siano: remove obsolete sms_board_setup
->> >
->> > From: Uri Shkolnik <uris@siano-ms.com>
->> >
->> > Remove the target specific sms_board_setup from
->> smsdvb. This
->> > is handled now via smsdvb and sms-cards events.
->> >
->> > Priority: normal
->> >
->> > Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
->> >
->> > diff -r dfcfb90798d3 -r 0296b0c436d6
->> linux/drivers/media/dvb/siano/sms-cards.c
->> > --- a/linux/drivers/media/dvb/siano/sms-cards.c Tue
->> May 19 19:05:02 2009 +0300
->> > +++ b/linux/drivers/media/dvb/siano/sms-cards.c Tue
->> May 19 19:19:27 2009 +0300
->> > @@ -303,28 +303,6 @@ static int sms_set_gpio(struct
->> smscore_d
->> >        return smscore_set_gpio(coredev, gpio,
->> lvl);
->> >  }
->> >
->> > -int sms_board_setup(struct smscore_device_t
->> *coredev)
->> > -{
->> > -       int board_id =
->> smscore_get_board_id(coredev);
->> > -       struct sms_board *board =
->> sms_get_board(board_id);
->> > -
->> > -       switch (board_id) {
->> > -       case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
->> > -               /* turn off all LEDs */
->> > -               sms_set_gpio(coredev,
->> board->led_power, 0);
->> > -               sms_set_gpio(coredev,
->> board->led_hi, 0);
->> > -               sms_set_gpio(coredev,
->> board->led_lo, 0);
->> > -               break;
->> > -       case
->> SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
->> > -       case
->> SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
->> > -               /* turn off LNA */
->> > -               sms_set_gpio(coredev,
->> board->lna_ctrl, 0);
->> > -               break;
->> > -       }
->> > -       return 0;
->> > -}
->> > -EXPORT_SYMBOL_GPL(sms_board_setup);
->> > -
->> >  int sms_board_power(struct smscore_device_t
->> *coredev, int onoff)
->> >  {
->> >        int board_id =
->> smscore_get_board_id(coredev);
->> > diff -r dfcfb90798d3 -r 0296b0c436d6
->> linux/drivers/media/dvb/siano/sms-cards.h
->> > --- a/linux/drivers/media/dvb/siano/sms-cards.h Tue
->> May 19 19:05:02 2009 +0300
->> > +++ b/linux/drivers/media/dvb/siano/sms-cards.h Tue
->> May 19 19:19:27 2009 +0300
->> > @@ -109,8 +109,6 @@ int sms_board_event(struct
->> smscore_devic
->> >  int sms_board_event(struct smscore_device_t
->> *coredev,
->> >                enum SMS_BOARD_EVENTS gevent);
->> >
->> > -int sms_board_setup(struct smscore_device_t
->> *coredev);
->> > -
->> >  #define SMS_LED_OFF 0
->> >  #define SMS_LED_LO  1
->> >  #define SMS_LED_HI  2
->> > diff -r dfcfb90798d3 -r 0296b0c436d6
->> linux/drivers/media/dvb/siano/smsdvb.c
->> > --- a/linux/drivers/media/dvb/siano/smsdvb.c    Tue
->> May 19 19:05:02 2009 +0300
->> > +++ b/linux/drivers/media/dvb/siano/smsdvb.c    Tue
->> May 19 19:19:27 2009 +0300
->> > @@ -600,7 +600,6 @@ static int smsdvb_hotplug(struct
->> smscore
->> >        sms_board_dvb3_event(client,
->> DVB3_EVENT_HOTPLUG);
->> >
->> >        sms_info("success");
->> > -       sms_board_setup(coredev);
->> >
->> >        return 0;
->> >
->> >
->> >
->> >
->> >
->> > --
->> > To unsubscribe from this list: send the line
->> "unsubscribe linux-media" in
->> > the body of a message to majordomo@vger.kernel.org
->> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> >
->>
->>
->>
->> NACK.
->>
->>
->> This changes the behavior of the Hauppauge devices.
->> Let Uri get all
->> his other stuff in place first, and THEN we can look at
->> this
->> separately.
->>
->> In addition, this changeset was merged WITHOUT my ack:
->>
->> http://linuxtv.org/hg/v4l-dvb/rev/37969546eee8 - Siano:
->> smscards -
->> assign gpio to HPG targets
->>
->> That changeset 37969546eee8 alone does not cause any change
->> in
->> behavior, but with Uri's patches from today it will change
->> the
->> Hauppauge device behavior.
->>
->> That patch should be reverted and dealt with separately,
->> after Uri is
->> finished with his other changes.
->>
->> -Mike
->>
->
-> Mike,
->
-> Please note that the Hauppauge device behavior has been merged to the board_event()  **prior** to this patch.
->
-> I did my best to follow the logic, I might be wrong (please check).
->
-> This patch is remove *duplicate* led setting, etc...
+The variable minor have assigned value twice, the first time is in the initial "video_device"data struct in
+those drivers,pls see saa7134-video.c,line 2503.
 
-Uri,
+Signed-off-by: Figo.zhang <figo.zhang@kolorific.com>
+ ---
+ drivers/media/video/bt8xx/bttv-driver.c    |    1 -
+ drivers/media/video/cx23885/cx23885-417.c  |    1 -
+ drivers/media/video/cx88/cx88-core.c       |    1 -
+ drivers/media/video/saa7134/saa7134-core.c |    1 -
+ 4 files changed, 0 insertions(+), 4 deletions(-)
 
-I nack'd that patch as well.  Please don't change the Hauppauge device
-behavior -- those changesets break the device functionality.
+diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
+index 23b7499..539ae45 100644
+--- a/drivers/media/video/bt8xx/bttv-driver.c
++++ b/drivers/media/video/bt8xx/bttv-driver.c
+@@ -4166,7 +4166,6 @@ static struct video_device *vdev_init(struct bttv *btv,
+ 	if (NULL == vfd)
+ 		return NULL;
+ 	*vfd = *template;
+-	vfd->minor   = -1;
+ 	vfd->v4l2_dev = &btv->c.v4l2_dev;
+ 	vfd->release = video_device_release;
+ 	vfd->debug   = bttv_debug;
+diff --git a/drivers/media/video/cx23885/cx23885-417.c b/drivers/media/video/cx23885/cx23885-417.c
+index 6f5df90..2943bfd 100644
+--- a/drivers/media/video/cx23885/cx23885-417.c
++++ b/drivers/media/video/cx23885/cx23885-417.c
+@@ -1742,7 +1742,6 @@ static struct video_device *cx23885_video_dev_alloc(
+ 	if (NULL == vfd)
+ 		return NULL;
+ 	*vfd = *template;
+-	vfd->minor   = -1;
+ 	snprintf(vfd->name, sizeof(vfd->name), "%s %s (%s)", dev->name,
+ 		type, cx23885_boards[tsport->dev->board].name);
+ 	vfd->parent  = &pci->dev;
+diff --git a/drivers/media/video/cx88/cx88-core.c b/drivers/media/video/cx88/cx88-core.c
+index 0e149b2..b4049de 100644
+--- a/drivers/media/video/cx88/cx88-core.c
++++ b/drivers/media/video/cx88/cx88-core.c
+@@ -1010,7 +1010,6 @@ struct video_device *cx88_vdev_init(struct cx88_core *core,
+ 	if (NULL == vfd)
+ 		return NULL;
+ 	*vfd = *template;
+-	vfd->minor   = -1;
+ 	vfd->v4l2_dev = &core->v4l2_dev;
+ 	vfd->parent = &pci->dev;
+ 	vfd->release = video_device_release;
+diff --git a/drivers/media/video/saa7134/saa7134-core.c b/drivers/media/video/saa7134/saa7134-core.c
+index 2def6fe..37b1452 100644
+--- a/drivers/media/video/saa7134/saa7134-core.c
++++ b/drivers/media/video/saa7134/saa7134-core.c
+@@ -775,7 +775,6 @@ static struct video_device *vdev_init(struct saa7134_dev *dev,
+ 	if (NULL == vfd)
+ 		return NULL;
+ 	*vfd = *template;
+-	vfd->minor   = -1;
+ 	vfd->v4l2_dev  = &dev->v4l2_dev;
+ 	vfd->release = video_device_release;
+ 	vfd->debug   = video_debug;
 
-Please get all of your core changes in first, then we can look at
-device-specifics separately.
 
-Regards,
-
-Mike
