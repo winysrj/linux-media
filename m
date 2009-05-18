@@ -1,254 +1,324 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:42038 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756857AbZENLwn (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:46146 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751405AbZERHPz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 May 2009 07:52:43 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCH 1/1] Add documentation description for FM Transmitter Extended Control Class
-Date: Thu, 14 May 2009 14:47:02 +0300
-Message-Id: <1242301622-29672-9-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1242301622-29672-8-git-send-email-eduardo.valentin@nokia.com>
-References: <1242301622-29672-1-git-send-email-eduardo.valentin@nokia.com>
- <1242301622-29672-2-git-send-email-eduardo.valentin@nokia.com>
- <1242301622-29672-3-git-send-email-eduardo.valentin@nokia.com>
- <1242301622-29672-4-git-send-email-eduardo.valentin@nokia.com>
- <1242301622-29672-5-git-send-email-eduardo.valentin@nokia.com>
- <1242301622-29672-6-git-send-email-eduardo.valentin@nokia.com>
- <1242301622-29672-7-git-send-email-eduardo.valentin@nokia.com>
- <1242301622-29672-8-git-send-email-eduardo.valentin@nokia.com>
+	Mon, 18 May 2009 03:15:55 -0400
+Date: Mon, 18 May 2009 04:15:51 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Uri Shkolnik <urishk@yahoo.com>
+Cc: LinuxML <linux-media@vger.kernel.org>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Subject: Re: [PATCH] [0905_23] Siano: gpio - use new implementation
+Message-ID: <20090518041551.451e70c8@pedra.chehab.org>
+In-Reply-To: <38175.94614.qm@web110804.mail.gq1.yahoo.com>
+References: <38175.94614.qm@web110804.mail.gq1.yahoo.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
+Em Sun, 17 May 2009 01:57:45 -0700 (PDT)
+Uri Shkolnik <urishk@yahoo.com> escreveu:
 
-This single patch adds documentation description for FM Transmitter (FMTX)
-Extended Control Class and its Control IDs. The text was added under
-"Extended Controls" section.
+> 
+> # HG changeset patch
+> # User Uri Shkolnik <uris@siano-ms.com>
+> # Date 1242331325 -10800
+> # Node ID 415ca02f74b960c02ddfa7ee719cf87726d97490
+> # Parent  8b645aa2ab13f22b8d4dcd8e6353fce2c976cd34
+> [0905_23] Siano: gpio - use new implementation
+> 
+> From: Uri Shkolnik <uris@siano-ms.com>
+> 
+> Start using the corrected gpio implementation
 
-Priority: normal
+Hmm...
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+WARNING: "smscore_configure_gpio" [/home/v4l/master/v4l/sms1xxx.ko] undefined!
+WARNING: "smscore_set_gpio" [/home/v4l/master/v4l/sms1xxx.ko] undefined!
 
-diff -r 8d37e8505664 -r 61ee075b46f8 v4l2-spec/controls.sgml
---- a/v4l2-spec/controls.sgml	Mon May 11 09:37:41 2009 -0700
-+++ b/v4l2-spec/controls.sgml	Wed May 13 13:10:24 2009 +0300
-@@ -458,6 +458,12 @@
-       <para>Unfortunately, the original control API lacked some
- features needed for these new uses and so it was extended into the
- (not terribly originally named) extended control API.</para>
-+
-+      <para>Even though the MPEG encoding API was the first effort
-+to use the Extended Control API, nowadays there are also other classes
-+of Extended Controls, such as Camera Controls and FM Transmitter Controls.
-+The Extended Controls API as well as all Extended Controls classes are
-+described in the following text.</para>
-     </section>
- 
-     <section>
-@@ -1816,6 +1822,200 @@
-       </tgroup>
-     </table>
-   </section>
-+
-+    <section id="fmtx-controls">
-+      <title>FM Transmitter Control Reference</title>
-+
-+      <para>The FM Transmitter (FMTX) class includes controls for common features of
-+FM transmissions capable devices. Currently this class include parameters for audio
-+compression, pilot tone generation, audio deviation limiter, RDS transmission and
-+tuning power features.</para>
-+
-+      <table pgwide="1" frame="none" id="fmtx-control-id">
-+      <title>FMTX Control IDs</title>
-+
-+      <tgroup cols="4">
-+	<colspec colname="c1" colwidth="1*">
-+	<colspec colname="c2" colwidth="6*">
-+	<colspec colname="c3" colwidth="2*">
-+	<colspec colname="c4" colwidth="6*">
-+	<spanspec namest="c1" nameend="c2" spanname="id">
-+	<spanspec namest="c2" nameend="c4" spanname="descr">
-+	<thead>
-+	  <row>
-+	    <entry spanname="id" align="left">ID</entry>
-+	    <entry align="left">Type</entry>
-+	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-+	  </row>
-+	</thead>
-+	<tbody valign="top">
-+	  <row><entry></entry></row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_FMTX_CLASS</constant>&nbsp;</entry>
-+	    <entry>class</entry>
-+	  </row><row><entry spanname="descr">The FMTX class
-+descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
-+description of this control class.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RDS_ENABLED</constant>&nbsp;</entry>
-+	    <entry>boolean</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Enables or disables the RDS transmission feature.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RDS_PI</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the RDS Programme Identification field
-+for transmission.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RDS_PTY</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">iSets the RDS Programme Type field for transmission.
-+This coding of up to 31 pre-defined programme types.</entry>
-+	  </row>
-+<!--
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RDS_PS_NAME</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RDS_RADIO_TEXT</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">.</entry>
-+	  </row>
-+-->
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_ENABLED</constant>&nbsp;</entry>
-+	    <entry>boolean</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Enables or disables the audio deviation limiter feature.
-+The limiter is useful when trying to maximize the audio volume, minimize receiver-generated
-+distortion and prevent overmodulation.
-+</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_RELEASE_TIME</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the audio deviation limiter feature release time.
-+The unit, step and range are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_DEVIATION</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Configures audio frequency deviation level in Hz.
-+The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_ENABLED</constant>&nbsp;</entry>
-+	    <entry>boolean</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Enables or disables the audio compression feature.
-+This feature amplifies signals below the threshold by a fixed gain and compresses audio
-+signals above the threshold by the ratio of Threshold/(Gain + Threshold).</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_GAIN</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the gain for audio compression feature. It is
-+a dB value. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_THRESHOLD</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the threshold level for audio compression freature.
-+It is a dB value. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the attack time for audio compression feature.
-+It is a useconds value. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the release time for audio compression feature.
-+It is a useconds value. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_ENABLED</constant>&nbsp;</entry>
-+	    <entry>boolean</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Enables or disables the pilot tone generation feature.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_DEVIATION</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Configures pilot tone frequency deviation level. Unit is
-+in Hz. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_FREQUENCY</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Configures pilot tone frequency value. Unit is
-+in Hz. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_PREEMPHASIS</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Configures the pre-emphasis value for broadcasting.
-+A pre-emphasis filter is applied to the broadcast to accentuate the high audio frequencies.
-+Depending on the region, a time constant of either 50 or 75 useconds is used. Possible values
-+are:</entry>
-+	</row><row>
-+	<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_FMTX_PREEMPHASIS_DISABLED</constant>&nbsp;</entry>
-+		      <entry>No pre-emphasis is applied.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_FMTX_PREEMPHASIS_50_uS</constant>&nbsp;</entry>
-+		      <entry>A pre-emphasis of 50 uS is used.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_FMTX_PREEMPHASIS_75_uS</constant>&nbsp;</entry>
-+		      <entry>A pre-emphasis of 75 uS is used.</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_TUNE_POWER_LEVEL</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the output power level for signal transmission.
-+Unit is in dBuV. Range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_TUNE_ANTENNA_CAPACITOR</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">This selects the value of antenna tuning capacitor
-+manually or automatically if set to zero. Unit, range and step are driver-specific.</entry>
-+	  </row>
-+	  <row><entry></entry></row>
-+	</tbody>
-+      </tgroup>
-+      </table>
-+    </section>
- </section>
- 
-   <!--
+Those functions weren't defined on any module. It seems that you forgot to
+submit a previous patch.
+
+Also, since Hauppauge complained about the gpio changes, I'd like to have
+Michael's ack, especially if the patch affects the behavior of the existing
+Hauppauge supported boards.
+
+Cheers,
+Mauro.
+
+
+> 
+> Priority: normal
+> 
+> Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+> 
+> diff -r 8b645aa2ab13 -r 415ca02f74b9 linux/drivers/media/dvb/siano/sms-cards.c
+> --- a/linux/drivers/media/dvb/siano/sms-cards.c	Thu May 14 22:28:38 2009 +0300
+> +++ b/linux/drivers/media/dvb/siano/sms-cards.c	Thu May 14 23:02:05 2009 +0300
+> @@ -17,6 +17,7 @@
+>   *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+>   */
+>  
+> +#include "smscoreapi.h"
+>  #include "sms-cards.h"
+>  #include "smsir.h"
+>  
+> @@ -155,6 +156,174 @@ struct sms_board *sms_get_board(int id)
+>  }
+>  EXPORT_SYMBOL_GPL(sms_get_board);
+>  
+> +static inline void sms_gpio_assign_11xx_default_led_config(
+> +		struct smscore_gpio_config *pGpioConfig) {
+> +	pGpioConfig->Direction = SMS_GPIO_DIRECTION_OUTPUT;
+> +	pGpioConfig->InputCharacteristics =
+> +		SMS_GPIO_INPUTCHARACTERISTICS_NORMAL;
+> +	pGpioConfig->OutputDriving = SMS_GPIO_OUTPUTDRIVING_4mA;
+> +	pGpioConfig->OutputSlewRate = SMS_GPIO_OUTPUTSLEWRATE_0_45_V_NS;
+> +	pGpioConfig->PullUpDown = SMS_GPIO_PULLUPDOWN_NONE;
+> +}
+> +
+> +int sms_board_event(struct smscore_device_t *coredev,
+> +		enum SMS_BOARD_EVENTS gevent) {
+> +	int board_id = smscore_get_board_id(coredev);
+> +	struct sms_board *board = sms_get_board(board_id);
+> +	struct smscore_gpio_config MyGpioConfig;
+> +
+> +	sms_gpio_assign_11xx_default_led_config(&MyGpioConfig);
+> +
+> +	switch (gevent) {
+> +	case BOARD_EVENT_POWER_INIT: /* including hotplug */
+> +		switch (board_id) {
+> +		case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
+> +			/* set I/O and turn off all LEDs */
+> +			smscore_gpio_configure(coredev,
+> +					board->board_cfg.leds_power,
+> +					&MyGpioConfig);
+> +			smscore_gpio_set_level(coredev,
+> +					board->board_cfg.leds_power, 0);
+> +			smscore_gpio_configure(coredev, board->board_cfg.led0,
+> +					&MyGpioConfig);
+> +			smscore_gpio_set_level(coredev,
+> +					board->board_cfg.led0, 0);
+> +			smscore_gpio_configure(coredev, board->board_cfg.led1,
+> +					&MyGpioConfig);
+> +			smscore_gpio_set_level(coredev,
+> +					board->board_cfg.led1, 0);
+> +			break;
+> +		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
+> +		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
+> +			/* set I/O and turn off LNA */
+> +			smscore_gpio_configure(coredev,
+> +					board->board_cfg.foreign_lna0_ctrl,
+> +					&MyGpioConfig);
+> +			smscore_gpio_set_level(coredev,
+> +					board->board_cfg.foreign_lna0_ctrl,
+> +					0);
+> +			break;
+> +		}
+> +		break; /* BOARD_EVENT_BIND */
+> +
+> +	case BOARD_EVENT_POWER_SUSPEND:
+> +		switch (board_id) {
+> +		case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
+> +			smscore_gpio_set_level(coredev,
+> +						board->board_cfg.leds_power, 0);
+> +			smscore_gpio_set_level(coredev,
+> +						board->board_cfg.led0, 0);
+> +			smscore_gpio_set_level(coredev,
+> +						board->board_cfg.led1, 0);
+> +			break;
+> +		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
+> +		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
+> +			smscore_gpio_set_level(coredev,
+> +					board->board_cfg.foreign_lna0_ctrl,
+> +					0);
+> +			break;
+> +		}
+> +		break; /* BOARD_EVENT_POWER_SUSPEND */
+> +
+> +	case BOARD_EVENT_POWER_RESUME:
+> +		switch (board_id) {
+> +		case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
+> +			smscore_gpio_set_level(coredev,
+> +						board->board_cfg.leds_power, 1);
+> +			smscore_gpio_set_level(coredev,
+> +						board->board_cfg.led0, 1);
+> +			smscore_gpio_set_level(coredev,
+> +						board->board_cfg.led1, 0);
+> +			break;
+> +		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
+> +		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
+> +			smscore_gpio_set_level(coredev,
+> +					board->board_cfg.foreign_lna0_ctrl,
+> +					1);
+> +			break;
+> +		}
+> +		break; /* BOARD_EVENT_POWER_RESUME */
+> +
+> +	case BOARD_EVENT_BIND:
+> +		switch (board_id) {
+> +		case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
+> +			smscore_gpio_set_level(coredev,
+> +				board->board_cfg.leds_power, 1);
+> +			smscore_gpio_set_level(coredev,
+> +				board->board_cfg.led0, 1);
+> +			smscore_gpio_set_level(coredev,
+> +				board->board_cfg.led1, 0);
+> +			break;
+> +		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
+> +		case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
+> +			smscore_gpio_set_level(coredev,
+> +					board->board_cfg.foreign_lna0_ctrl,
+> +					1);
+> +			break;
+> +		}
+> +		break; /* BOARD_EVENT_BIND */
+> +
+> +	case BOARD_EVENT_SCAN_PROG:
+> +		break; /* BOARD_EVENT_SCAN_PROG */
+> +	case BOARD_EVENT_SCAN_COMP:
+> +		break; /* BOARD_EVENT_SCAN_COMP */
+> +	case BOARD_EVENT_EMERGENCY_WARNING_SIGNAL:
+> +		break; /* BOARD_EVENT_EMERGENCY_WARNING_SIGNAL */
+> +	case BOARD_EVENT_FE_LOCK:
+> +		switch (board_id) {
+> +		case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
+> +			smscore_gpio_set_level(coredev,
+> +			board->board_cfg.led1, 1);
+> +			break;
+> +		}
+> +		break; /* BOARD_EVENT_FE_LOCK */
+> +	case BOARD_EVENT_FE_UNLOCK:
+> +		switch (board_id) {
+> +		case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
+> +			smscore_gpio_set_level(coredev,
+> +						board->board_cfg.led1, 0);
+> +			break;
+> +		}
+> +		break; /* BOARD_EVENT_FE_UNLOCK */
+> +	case BOARD_EVENT_DEMOD_LOCK:
+> +		break; /* BOARD_EVENT_DEMOD_LOCK */
+> +	case BOARD_EVENT_DEMOD_UNLOCK:
+> +		break; /* BOARD_EVENT_DEMOD_UNLOCK */
+> +	case BOARD_EVENT_RECEPTION_MAX_4:
+> +		break; /* BOARD_EVENT_RECEPTION_MAX_4 */
+> +	case BOARD_EVENT_RECEPTION_3:
+> +		break; /* BOARD_EVENT_RECEPTION_3 */
+> +	case BOARD_EVENT_RECEPTION_2:
+> +		break; /* BOARD_EVENT_RECEPTION_2 */
+> +	case BOARD_EVENT_RECEPTION_1:
+> +		break; /* BOARD_EVENT_RECEPTION_1 */
+> +	case BOARD_EVENT_RECEPTION_LOST_0:
+> +		break; /* BOARD_EVENT_RECEPTION_LOST_0 */
+> +	case BOARD_EVENT_MULTIPLEX_OK:
+> +		switch (board_id) {
+> +		case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
+> +			smscore_gpio_set_level(coredev,
+> +						board->board_cfg.led1, 1);
+> +			break;
+> +		}
+> +		break; /* BOARD_EVENT_MULTIPLEX_OK */
+> +	case BOARD_EVENT_MULTIPLEX_ERRORS:
+> +		switch (board_id) {
+> +		case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
+> +			smscore_gpio_set_level(coredev,
+> +						board->board_cfg.led1, 0);
+> +			break;
+> +		}
+> +		break; /* BOARD_EVENT_MULTIPLEX_ERRORS */
+> +
+> +	default:
+> +		sms_err("Unknown SMS board event");
+> +		break;
+> +	}
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(sms_board_event);
+> +
+>  static int sms_set_gpio(struct smscore_device_t *coredev, int pin, int enable)
+>  {
+>  	int lvl, ret;
+> @@ -179,11 +348,11 @@ static int sms_set_gpio(struct smscore_d
+>  		lvl = enable ? 1 : 0;
+>  	}
+>  
+> -	ret = smscore_configure_gpio(coredev, gpio, &gpioconfig);
+> +	ret = smscore_gpio_configure(coredev, gpio, &gpioconfig);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> -	return smscore_set_gpio(coredev, gpio, lvl);
+> +	return smscore_gpio_set_level(coredev, gpio, lvl);
+>  }
+>  
+>  int sms_board_setup(struct smscore_device_t *coredev)
+> diff -r 8b645aa2ab13 -r 415ca02f74b9 linux/drivers/media/dvb/siano/sms-cards.h
+> --- a/linux/drivers/media/dvb/siano/sms-cards.h	Thu May 14 22:28:38 2009 +0300
+> +++ b/linux/drivers/media/dvb/siano/sms-cards.h	Thu May 14 23:02:05 2009 +0300
+> @@ -86,6 +86,30 @@ extern struct usb_device_id smsusb_id_ta
+>  extern struct usb_device_id smsusb_id_table[];
+>  extern struct smscore_device_t *coredev;
+>  
+> +enum SMS_BOARD_EVENTS {
+> +	BOARD_EVENT_POWER_INIT,
+> +	BOARD_EVENT_POWER_SUSPEND,
+> +	BOARD_EVENT_POWER_RESUME,
+> +	BOARD_EVENT_BIND,
+> +	BOARD_EVENT_SCAN_PROG,
+> +	BOARD_EVENT_SCAN_COMP,
+> +	BOARD_EVENT_EMERGENCY_WARNING_SIGNAL,
+> +	BOARD_EVENT_FE_LOCK,
+> +	BOARD_EVENT_FE_UNLOCK,
+> +	BOARD_EVENT_DEMOD_LOCK,
+> +	BOARD_EVENT_DEMOD_UNLOCK,
+> +	BOARD_EVENT_RECEPTION_MAX_4,
+> +	BOARD_EVENT_RECEPTION_3,
+> +	BOARD_EVENT_RECEPTION_2,
+> +	BOARD_EVENT_RECEPTION_1,
+> +	BOARD_EVENT_RECEPTION_LOST_0,
+> +	BOARD_EVENT_MULTIPLEX_OK,
+> +	BOARD_EVENT_MULTIPLEX_ERRORS
+> +};
+> +
+> +int sms_board_event(struct smscore_device_t *coredev,
+> +		enum SMS_BOARD_EVENTS gevent);
+> +
+>  int sms_board_setup(struct smscore_device_t *coredev);
+>  
+>  #define SMS_LED_OFF 0
+> diff -r 8b645aa2ab13 -r 415ca02f74b9 linux/drivers/media/dvb/siano/smscoreapi.h
+> --- a/linux/drivers/media/dvb/siano/smscoreapi.h	Thu May 14 22:28:38 2009 +0300
+> +++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Thu May 14 23:02:05 2009 +0300
+> @@ -633,9 +633,12 @@ extern void smscore_putbuffer(struct sms
+>  extern void smscore_putbuffer(struct smscore_device_t *coredev,
+>  			      struct smscore_buffer_t *cb);
+>  
+> -int smscore_configure_gpio(struct smscore_device_t *coredev, u32 pin,
+> -			   struct smscore_gpio_config *pinconfig);
+> -int smscore_set_gpio(struct smscore_device_t *coredev, u32 pin, int level);
+> +int smscore_gpio_configure(struct smscore_device_t *coredev, u8 PinNum,
+> +		struct smscore_gpio_config *pGpioConfig);
+> +int smscore_gpio_set_level(struct smscore_device_t *coredev, u8 PinNum,
+> +		u8 NewLevel);
+> +int smscore_gpio_get_level(struct smscore_device_t *coredev, u8 PinNum,
+> +		u8 *level);
+>  
+>  void smscore_set_board_id(struct smscore_device_t *core, int id);
+>  int smscore_get_board_id(struct smscore_device_t *core);
+> 
+> 
+> 
+>       
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+
+Cheers,
+Mauro
