@@ -1,158 +1,859 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1288 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753484AbZELG1E (ORCPT
+Received: from mail-bw0-f174.google.com ([209.85.218.174]:64387 "EHLO
+	mail-bw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751689AbZERAiu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2009 02:27:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: eduardo.valentin@nokia.com
-Subject: Re: [PATCH v2 1/7] v4l2: video device: Add V4L2_CTRL_CLASS_FMTX controls
-Date: Tue, 12 May 2009 08:26:40 +0200
-Cc: ext Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
-References: <1242034309-13448-1-git-send-email-eduardo.valentin@nokia.com> <20090511231703.17087c01@pedra.chehab.org> <20090512061043.GB4639@esdhcp037198.research.nokia.com>
-In-Reply-To: <20090512061043.GB4639@esdhcp037198.research.nokia.com>
+	Sun, 17 May 2009 20:38:50 -0400
+Received: by bwz22 with SMTP id 22so2937430bwz.37
+        for <linux-media@vger.kernel.org>; Sun, 17 May 2009 17:38:49 -0700 (PDT)
+From: Vasily Levin <vasaka@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: [REVIEW v4] v4l2 loopback
+Date: Mon, 18 May 2009 03:38:35 +0300
+Cc: mchehab@infradead.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	ospite@studenti.unina.it
+References: <200903262049.10425.vasily@scopicsoftware.com>
+In-Reply-To: <200903262049.10425.vasily@scopicsoftware.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200905120826.40836.hverkuil@xs4all.nl>
+Message-Id: <200905180338.35977.vasaka@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 12 May 2009 08:10:43 Eduardo Valentin wrote:
-> On Tue, May 12, 2009 at 04:17:03AM +0200, ext Mauro Carvalho Chehab wrote:
-> > Em Mon, 11 May 2009 12:31:43 +0300
-> >
-> > Eduardo Valentin <eduardo.valentin@nokia.com> escreveu:
-> > > This patch adds a new class of extended controls. This class
-> > > is intended to support Radio Modulators properties such as:
-> > > rds, audio limiters, audio compression, pilot tone generation,
-> > > tuning power levels and region related properties.
-> > >
-> > > Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> > > ---
-> > >  include/linux/videodev2.h |   45
-> > > +++++++++++++++++++++++++++++++++++++++++++++ 1 files changed, 45
-> > > insertions(+), 0 deletions(-)
-> > >
-> > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > > index ebb2ea6..7559299 100644
-> > > --- a/include/linux/videodev2.h
-> > > +++ b/include/linux/videodev2.h
-> > > @@ -803,6 +803,7 @@ struct v4l2_ext_controls {
-> > >  #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls
-> > > */ #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression
-> > > controls */ #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class
-> > > controls */ +#define V4L2_CTRL_CLASS_FMTX 0x009b0000	/* FM Radio
-> > > Modulator class controls */
-> > >
-> > >  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
-> > >  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-> > > @@ -1141,6 +1142,50 @@ enum  v4l2_exposure_auto_type {
-> > >
-> > >  #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
-> > >
-> > > +/* FM Radio Modulator class control IDs */
-> > > +#define V4L2_CID_FMTX_CLASS_BASE		(V4L2_CTRL_CLASS_FMTX | 0x900)
-> > > +#define V4L2_CID_FMTX_CLASS			(V4L2_CTRL_CLASS_FMTX | 1)
-> > > +
-> > > +#define V4L2_CID_RDS_ENABLED			(V4L2_CID_FMTX_CLASS_BASE + 1)
-> > > +#define V4L2_CID_RDS_PI				(V4L2_CID_FMTX_CLASS_BASE + 2)
-> > > +#define V4L2_CID_RDS_PTY			(V4L2_CID_FMTX_CLASS_BASE + 3)
-> > > +#define V4L2_CID_RDS_PS_NAME			(V4L2_CID_FMTX_CLASS_BASE + 4)
-> > > +#define V4L2_CID_RDS_RADIO_TEXT			(V4L2_CID_FMTX_CLASS_BASE + 5)
-> > > +
-> > > +#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FMTX_CLASS_BASE +
-> > > 6) +#define
-> > > V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 7)
-> > > +#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FMTX_CLASS_BASE +
-> > > 8) +
-> > > +#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FMTX_CLASS_BASE
-> > > + 9) +#define
-> > > V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FMTX_CLASS_BASE + 10)
-> > > +#define
-> > > V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FMTX_CLASS_BASE + 11)
-> > > +#define
-> > > V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FMTX_CLASS_BASE +
-> > > 12) +#define
-> > > V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE +
-> > > 13) +
-> > > +#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 14)
-> > > +#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FMTX_CLASS_BASE +
-> > > 15) +#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FMTX_CLASS_BASE
-> > > + 16) +
-> > > +#define V4L2_CID_REGION				(V4L2_CID_FMTX_CLASS_BASE + 17)
-> > > +enum v4l2_fmtx_region {
-> > > +	V4L2_FMTX_REGION_USA			= 0,
-> > > +	V4L2_FMTX_REGION_AUSTRALIA		= 1,
-> > > +	V4L2_FMTX_REGION_EUROPE			= 2,
-> > > +	V4L2_FMTX_REGION_JAPAN			= 3,
-> > > +	V4L2_FMTX_REGION_JAPAN_WIDE_BAND	= 4,
-> > > +};
-> >
-> > Hmm... the region is not just a derived parameter, based on
-> > preemphasis/frequencies, and channel stepping? What this parameter
-> > controls?
->
-> Hi Mauro, I thought in the opposite way. The other parameters are derived
-> from the region parameter. So, you just set the region, then it will
-> affect the frequency range, channel stepping and preemphasis.
->
-> However, there was some resistance to have this inside kernel
-> (in previous discussion). One suggested to use database in user land
-> (or similar thing). In that case, driver(s) would
-> report its constraints based on device values, not in region settings.
-> But, this patch set is proposing to have it inside the kernel as you can
-> see.
->
-> I'd like to hear more opinions though.
+In this patch revision fixed complains from checkpatch.pl
+spell check of comments done
+---
+This patch introduces v4l2 loopback module
 
-I'm opposed to having this in the kernel. This is something that can go into 
-e.g. libv4l2util (in the v4l2-apps directory). If only because this is very 
-much application dependent. Your code assumes a few regions, but I think it 
-is much more common that applications will allow customers to select a 
-country, so that means you need a mapping from country to region. And some 
-countries may use a different range than you think (I doubt you know the 
-frequency ranges for all the countries in the world!) and having a table 
-for all countries in the kernel is simply not the right approach.
+From: Vasily Levin <vasaka@gmail.com>
 
-Also, such a table definitely does not belong with any particular driver, 
-but should be common code.
+This is v4l2 loopback driver which can be used to make available any userspace
+video as v4l2 device. Initially it was written to make videoeffects available
+to Skype, but in fact it have many more uses.
 
-The only reason why such a table might end up in the kernel is if there are 
-legal requirements forcing strict control on what is allowed for an FM 
-transmitter in each country, and in that case a similar mechanism as is 
-used for wifi should be used. I know we discussed this earlier, but I've 
-forgotten the exact name of that API.
+Priority: normal
 
-Regards,
+Signed-off-by: Vasily Levin <vasaka@gmail.com>
 
-	Hans
-
->
-> > > +#define V4L2_CID_REGION_BOTTOM_FREQUENCY	(V4L2_CID_FMTX_CLASS_BASE +
-> > > 18) +#define V4L2_CID_REGION_TOP_FREQUENCY		(V4L2_CID_FMTX_CLASS_BASE
-> > > + 19) +#define V4L2_CID_REGION_PREEMPHASIS		(V4L2_CID_FMTX_CLASS_BASE
-> > > + 20) +enum v4l2_fmtx_preemphasis {
-> > > +	V4L2_FMTX_PREEMPHASIS_75_uS		= 0,
-> > > +	V4L2_FMTX_PREEMPHASIS_50_uS		= 1,
-> > > +	V4L2_FMTX_PREEMPHASIS_DISABLED		= 2,
-> > > +};
-> > > +#define V4L2_CID_REGION_CHANNEL_SPACING		(V4L2_CID_FMTX_CLASS_BASE +
-> > > 21) +#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FMTX_CLASS_BASE +
-> > > 22) +#define
-> > > V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FMTX_CLASS_BASE + 23) +
-> > >  /*
-> > >   *	T U N I N G
-> > >   */
-> >
-> > Cheers,
-> > Mauro
-
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+diff -uprN v4l-dvb.orig/linux/drivers/media/video/Kconfig v4l-
+dvb.my/linux/drivers/media/video/Kconfig
+--- v4l-dvb.orig/linux/drivers/media/video/Kconfig	2009-05-17 22:39:41.000000000 
++0300
++++ v4l-dvb.my/linux/drivers/media/video/Kconfig	2009-05-17 22:41:22.000000000 
++0300
+@@ -497,6 +497,17 @@ config VIDEO_VIVI
+ 	  Say Y here if you want to test video apps or debug V4L devices.
+ 	  In doubt, say N.
+ 
++config VIDEO_V4L2_LOOPBACK
++	tristate "v4l2 loopback driver"
++	depends on VIDEO_V4L2 && VIDEO_DEV
++	help
++	  Say Y if you want to use v4l2 loopback driver.
++	  Looback driver allows its user to present any userspace
++	  video as a v4l2 device that can be handy for testing purpose,
++	  or for fixing bugs like upside down image, or for adding
++	  nice effects to video chats
++	  This driver can be compiled as a module, called v4l2loopback.
++
+ source "drivers/media/video/bt8xx/Kconfig"
+ 
+ config VIDEO_PMS
+diff -uprN v4l-dvb.orig/linux/drivers/media/video/Makefile v4l-
+dvb.my/linux/drivers/media/video/Makefile
+--- v4l-dvb.orig/linux/drivers/media/video/Makefile	2009-05-17 22:39:41.000000000 
++0300
++++ v4l-dvb.my/linux/drivers/media/video/Makefile	2009-05-17 22:41:22.000000000 
++0300
+@@ -134,6 +134,7 @@ obj-$(CONFIG_VIDEO_IVTV) += ivtv/
+ obj-$(CONFIG_VIDEO_CX18) += cx18/
+ 
+ obj-$(CONFIG_VIDEO_VIVI) += vivi.o
++obj-$(CONFIG_VIDEO_V4L2_LOOPBACK) += v4l2loopback.o
+ obj-$(CONFIG_VIDEO_CX23885) += cx23885/
+ 
+ obj-$(CONFIG_VIDEO_OMAP2)		+= omap2cam.o
+diff -uprN v4l-dvb.orig/linux/drivers/media/video/v4l2loopback.c v4l-
+dvb.my/linux/drivers/media/video/v4l2loopback.c
+--- v4l-dvb.orig/linux/drivers/media/video/v4l2loopback.c	1970-01-01 
+03:00:00.000000000 +0300
++++ v4l-dvb.my/linux/drivers/media/video/v4l2loopback.c	2009-05-17 
+23:41:07.000000000 +0300
+@@ -0,0 +1,774 @@
++/*
++ * v4l2loopback.c  --  video 4 linux loopback driver
++ *
++ * Copyright (C) 2005-2009
++ * Vasily Levin (vasaka@gmail.com)
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ */
++#include <linux/version.h>
++#include <linux/vmalloc.h>
++#include <linux/mm.h>
++#include <linux/time.h>
++#include <linux/module.h>
++#include <linux/videodev2.h>
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-common.h>
++
++#define YAVLD_STREAMING
++
++MODULE_DESCRIPTION("V4L2 loopback video device");
++MODULE_VERSION("0.1.1");
++MODULE_AUTHOR("Vasily Levin");
++MODULE_LICENSE("GPL");
++
++/* module structures */
++/* TODO(vasaka) use typenames which are common to kernel, but first find out if
++ * it is needed */
++/* struct keeping state and settings of loopback device */
++struct v4l2_loopback_device {
++	struct video_device *vdev;
++	/* pixel and stream format */
++	struct v4l2_pix_format pix_format;
++	struct v4l2_captureparm capture_param;
++	/* buffers stuff */
++	u8 *image;         /* pointer to actual buffers data */
++	int buffers_number;  /* should not be big, 4 is a good choice */
++	struct v4l2_buffer *buffers;	/* inner driver buffers */
++	int write_position; /* number of last written frame + 1 */
++	long buffer_size;
++	/* sync stuff */
++	atomic_t open_count;
++	int ready_for_capture;/* set to true when at least one writer opened
++			      * device and negotiated format */
++	wait_queue_head_t read_event;
++};
++
++/* types of opener shows what opener wants to do with loopback */
++enum opener_type {
++	UNNEGOTIATED = 0,
++	READER = 1,
++	WRITER = 2,
++};
++
++/* struct keeping state and type of opener */
++struct v4l2_loopback_opener {
++	enum opener_type type;
++	int buffers_number;
++	int position; /* number of last processed frame + 1 or
++		       * write_position - 1 if reader went out of sync */
++	struct v4l2_buffer *buffers;
++};
++
++/* module parameters */
++static int debug = 1;
++module_param(debug, int, 0);
++MODULE_PARM_DESC(debug, "if debug output is enabled, values are 0, 2 or 3");
++
++static int max_buffers_number = 4;
++module_param(max_buffers_number, int, 0);
++MODULE_PARM_DESC(max_buffers_number, "how many buffers should be allocated");
++
++static int max_openers = 10;
++module_param(max_openers, int, 0);
++MODULE_PARM_DESC(max_openers, "how many users can open loopback device");
++
++/* module constants */
++#define MAX_MMAP_BUFFERS 100  /* max buffers that can be mapped, actually they
++				* are all mapped to max_buffers_number buffers*/
++
++#define dprintk(fmt, args...)\
++	if (debug > 1) {\
++		printk(KERN_INFO "v4l2-loopback: " fmt, ##args);\
++	}
++
++
++#define dprintkrw(fmt, args...)\
++	if (debug > 2) {\
++		printk(KERN_INFO "v4l2-loopback: " fmt, ##args);\
++	}
++
++/* global module data */
++struct v4l2_loopback_device *dev;
++/* forward declarations */
++static void init_buffers(int buffer_size);
++static int allocate_buffers(void);
++static const struct v4l2_file_operations v4l2_loopback_fops;
++static const struct v4l2_ioctl_ops v4l2_loopback_ioctl_ops;
++/* Queue helpers */
++/* next functions sets buffer flags and adjusts counters accordingly */
++static inline void set_done(struct v4l2_buffer *buffer)
++{
++	buffer->flags &= ~V4L2_BUF_FLAG_QUEUED;
++	buffer->flags |= V4L2_BUF_FLAG_DONE;
++}
++
++static inline void set_queued(struct v4l2_buffer *buffer)
++{
++	buffer->flags &= ~V4L2_BUF_FLAG_DONE;
++	buffer->flags |= V4L2_BUF_FLAG_QUEUED;
++}
++
++static inline void unset_flags(struct v4l2_buffer *buffer)
++{
++	buffer->flags &= ~V4L2_BUF_FLAG_QUEUED;
++	buffer->flags &= ~V4L2_BUF_FLAG_DONE;
++}
++/* V4L2 ioctl caps and params calls */
++/* returns device capabilities, called on VIDIOC_QUERYCAP ioctl*/
++static int vidioc_querycap(struct file *file,
++			   void *priv, struct v4l2_capability *cap)
++{
++	strlcpy(cap->driver, "v4l2 loopback", sizeof(cap->driver));
++	strlcpy(cap->card, "Dummy video device", sizeof(cap->card));
++	cap->version = 1;
++	cap->capabilities =
++	    V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_VIDEO_OUTPUT |
++	    V4L2_CAP_READWRITE
++#ifdef YAVLD_STREAMING
++	    | V4L2_CAP_STREAMING
++#endif
++	    ;
++	return 0;
++}
++
++/* returns device formats, called on VIDIOC_ENUM_FMT ioctl*/
++static int vidioc_enum_fmt_cap(struct file *file, void *fh,
++			       struct v4l2_fmtdesc *f)
++{
++	if (dev->ready_for_capture == 0)
++		return -EINVAL;
++	if (f->index)
++		return -EINVAL;
++	strlcpy(f->description, "current format", sizeof(f->description));
++	f->pixelformat = dev->pix_format.pixelformat;
++	return 0;
++};
++
++/* returns current video format format fmt, called on VIDIOC_G_FMT ioctl */
++static int vidioc_g_fmt_cap(struct file *file,
++			    void *priv, struct v4l2_format *fmt)
++{
++	if (dev->ready_for_capture == 0)
++		return -EINVAL;
++	fmt->fmt.pix = dev->pix_format;
++	return 0;
++}
++
++/* checks if it is OK to change to format fmt, called on VIDIOC_TRY_FMT ioctl
++ * with v4l2_buf_type set to V4L2_BUF_TYPE_VIDEO_CAPTURE
++ * actual check is done by inner_try_fmt_cap
++ * just checking that pixelformat is OK and set other parameters, app should
++ * obey this decision */
++static int vidioc_try_fmt_cap(struct file *file,
++			      void *priv, struct v4l2_format *fmt)
++{
++	struct v4l2_loopback_opener *opener = file->private_data;
++
++	opener->type = READER;
++	if (dev->ready_for_capture == 0)
++		return -EINVAL;
++	if (fmt->fmt.pix.pixelformat != dev->pix_format.pixelformat)
++		return -EINVAL;
++	fmt->fmt.pix = dev->pix_format;
++	return 0;
++}
++
++/* checks if it is OK to change to format fmt, called on VIDIOC_TRY_FMT ioctl
++ * with v4l2_buf_type set to V4L2_BUF_TYPE_VIDEO_OUTPUT
++ * if format is negotiated do not change it */
++static int vidioc_try_fmt_video_output(struct file *file,
++				       void *priv, struct v4l2_format *fmt)
++{
++	struct v4l2_loopback_opener *opener = file->private_data;
++
++	opener->type = WRITER;
++	/* TODO(vasaka) loopback does not care about formats writer want to set,
++	 * maybe it is a good idea to restrict format somehow */
++	if (dev->ready_for_capture) {
++		fmt->fmt.pix = dev->pix_format;
++	} else {
++		if (fmt->fmt.pix.sizeimage == 0)
++			return -1;
++		dev->pix_format = fmt->fmt.pix;
++	}
++	return 0;
++};
++
++/* sets new output format, if possible, called on VIDIOC_S_FMT ioctl
++ * with v4l2_buf_type set to V4L2_BUF_TYPE_VIDEO_CAPTURE
++ * actually format is set  by input and we even do not check it, just return
++ * current one, but it is possible to set subregions of input TODO(vasaka) */
++static int vidioc_s_fmt_cap(struct file *file,
++			    void *priv, struct v4l2_format *fmt)
++{
++	return vidioc_try_fmt_cap(file, priv, fmt);
++}
++
++/* sets new output format, if possible, called on VIDIOC_S_FMT ioctl
++ * with v4l2_buf_type set to V4L2_BUF_TYPE_VIDEO_OUTPUT
++ * allocate data here because we do not know if it will be streaming or
++ * read/write IO */
++static int vidioc_s_fmt_video_output(struct file *file,
++				     void *priv, struct v4l2_format *fmt)
++{
++	int ret = vidioc_try_fmt_video_output(file, priv, fmt);
++
++	if (ret < 0)
++		return ret;
++	if (dev->ready_for_capture == 0) {
++		dev->buffer_size = PAGE_ALIGN(dev->pix_format.sizeimage);
++		fmt->fmt.pix.sizeimage = dev->buffer_size;
++	}
++	return ret;
++}
++
++/* get some data flaw parameters, only capability, fps and readbuffers has
++ * effect on this driver, called on VIDIOC_G_PARM */
++static int vidioc_g_parm(struct file *file, void *priv,
++			 struct v4l2_streamparm *parm)
++{
++	/* do not care about type of opener, hope this enums would always be
++	 * compatible */
++	parm->parm.capture = dev->capture_param;
++	return 0;
++}
++
++/* get some data flaw parameters, only capability, fps and readbuffers has
++ * effect on this driver, called on VIDIOC_S_PARM */
++static int vidioc_s_parm(struct file *file, void *priv,
++			 struct v4l2_streamparm *parm)
++{
++	dprintk("vidioc_s_parm called frate=%d/%d\n",
++	       parm->parm.capture.timeperframe.numerator,
++	       parm->parm.capture.timeperframe.denominator);
++	switch (parm->type) {
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++		parm->parm.capture = dev->capture_param;
++		return 0;
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		/* TODO(vasaka) do nothing now, but should set fps if
++		 * needed */
++		parm->parm.capture = dev->capture_param;
++		return 0;
++	default:
++		return -1;
++	}
++}
++
++/* sets a tv standard, actually we do not need to handle this any special way
++ * added to support effecttv, can not be inline as I need pointer to it */
++static int vidioc_s_std(struct file *file, void *private_data,
++			v4l2_std_id *norm)
++{
++	return 0;
++}
++
++/* returns set of device inputs, in our case there is only one, but later I may
++ * add more, called on VIDIOC_ENUMINPUT */
++static int vidioc_enum_input(struct file *file, void *fh,
++			     struct v4l2_input *inp)
++{
++	if (dev->ready_for_capture == 0)
++		return -EINVAL;
++	if (inp->index == 0) {
++		strlcpy(inp->name, "loopback", sizeof(inp->name));
++		inp->type = V4L2_INPUT_TYPE_CAMERA;
++		inp->audioset = 0;
++		inp->tuner = 0;
++		inp->std = V4L2_STD_ALL;
++		inp->status = 0;
++		return 0;
++	}
++	return -EINVAL;
++}
++
++/* which input is currently active, called on VIDIOC_G_INPUT */
++int vidioc_g_input(struct file *file, void *fh, unsigned int *i)
++{
++	*i = 0;
++	return 0;
++}
++
++/* set input, can make sense if we have more than one video src,
++ * called on VIDIOC_S_INPUT */
++int vidioc_s_input(struct file *file, void *fh, unsigned int i)
++{
++	if (i == 0)
++		return 0;
++	return -EINVAL;
++}
++
++/* V4L2 ioctl buffer related calls */
++/* negotiate buffer type, called on VIDIOC_REQBUFS
++ * only mmap streaming supported */
++static int vidioc_reqbufs(struct file *file, void *fh,
++			  struct v4l2_requestbuffers *b)
++{
++	switch (b->memory) {
++	case V4L2_MEMORY_MMAP:
++		/* do nothing here, buffers are always allocated*/
++		if (b->count == 0)
++			return 0;
++		b->count = dev->buffers_number;
++		return 0;
++	default:
++		return -EINVAL;
++	}
++}
++
++/* returns buffer asked for, called on VIDIOC_QUERYBUF
++   give app as many buffers as it wants, if it less than MAX,
++   but map them in our inner buffers */
++static int vidioc_querybuf(struct file *file, void *fh,
++			   struct v4l2_buffer *b)
++{
++	enum v4l2_buf_type type = b->type;
++	int index = b->index;
++
++	if ((b->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) &&
++	    (b->type != V4L2_BUF_TYPE_VIDEO_OUTPUT)) {
++		return -EINVAL;
++	}
++	if (b->index > MAX_MMAP_BUFFERS)
++		return -EINVAL;
++	*b = dev->buffers[b->index % dev->buffers_number];
++	b->type = type;
++	b->index = index;
++	return 0;
++}
++
++/* put buffer to queue, called on VIDIOC_QBUF */
++static int vidioc_qbuf(struct file *file, void *private_data,
++		       struct v4l2_buffer *buf)
++{
++	int index = buf->index % dev->buffers_number;
++
++	if (buf->index > MAX_MMAP_BUFFERS)
++		return -EINVAL;
++	switch (buf->type) {
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++		set_queued(&dev->buffers[index]);
++		return 0;
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		do_gettimeofday(&dev->buffers[index].timestamp);
++		set_done(&dev->buffers[index]);
++		wake_up_all(&dev->read_event);
++		return 0;
++	default:
++		return -EINVAL;
++	}
++}
++
++/* put buffer to dequeue, called on VIDIOC_DQBUF */
++static int vidioc_dqbuf(struct file *file, void *private_data,
++			struct v4l2_buffer *buf)
++{
++	int index;
++	struct v4l2_loopback_opener *opener = file->private_data;
++
++	switch (buf->type) {
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++		if ((dev->write_position <= opener->position) &&
++			(file->f_flags&O_NONBLOCK))
++			return -EAGAIN;
++		wait_event_interruptible(dev->read_event, (dev->write_position >
++					 opener->position));
++		if (dev->write_position > opener->position+2)
++			opener->position = dev->write_position - 1;
++		index = opener->position % dev->buffers_number;
++		if (!(dev->buffers[index].flags&V4L2_BUF_FLAG_MAPPED)) {
++			printk(KERN_INFO "v4l2-loopback: "
++			       "trying to return not mapped buf\n");
++			return -EINVAL;
++		}
++		++opener->position;
++		unset_flags(&dev->buffers[index]);
++		*buf = dev->buffers[index];
++		return 0;
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		index = dev->write_position % dev->buffers_number;
++		unset_flags(&dev->buffers[index]);
++		*buf = dev->buffers[index];
++		++dev->write_position;
++		return 0;
++	default:
++		return -EINVAL;
++	}
++}
++
++static int vidioc_streamon(struct file *file, void *private_data,
++			   enum v4l2_buf_type type)
++{
++	int ret;
++	switch (type) {
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		if (dev->ready_for_capture == 0) {
++			ret = allocate_buffers();
++			if (ret < 0)
++				return ret;
++			init_buffers(dev->buffer_size);
++			dev->ready_for_capture = 1;
++		}
++		return 0;
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++		if (dev->ready_for_capture == 0)
++			return -EIO;
++		return 0;
++	default:
++		return -EINVAL;
++	}
++}
++
++static int vidioc_streamoff(struct file *file, void *private_data,
++			    enum v4l2_buf_type type)
++{
++	return 0;
++}
++
++#ifdef CONFIG_VIDEO_V4L1_COMPAT
++int vidiocgmbuf(struct file *file, void *fh, struct video_mbuf *p)
++{
++	p->frames = dev->buffers_number;
++	p->offsets[0] = 0;
++	p->offsets[1] = 0;
++	p->size = dev->buffer_size;
++	return 0;
++}
++#endif
++/* file operations */
++static void vm_open(struct vm_area_struct *vma)
++{
++	/* TODO(vasaka) do open counter here */
++}
++
++static void vm_close(struct vm_area_struct *vma)
++{
++	/* TODO(vasaka) do open counter here */
++}
++
++static struct vm_operations_struct vm_ops = {
++	.open = vm_open,
++	.close = vm_close,
++};
++
++static int v4l2_loopback_mmap(struct file *file,
++			      struct vm_area_struct *vma)
++{
++
++	struct page *page = NULL;
++	unsigned long addr;
++	unsigned long start = (unsigned long) vma->vm_start;
++	unsigned long size = (unsigned long) (vma->vm_end - vma->vm_start);
++
++	dprintk("entering v4l_mmap(), offset: %lu\n", vma->vm_pgoff);
++	if (size > dev->buffer_size) {
++		printk(KERN_INFO "v4l2-loopback: "
++		       "userspace tries to mmap to much, fail\n");
++		return -EINVAL;
++	}
++	if ((vma->vm_pgoff << PAGE_SHIFT) >
++	    dev->buffer_size * (dev->buffers_number - 1)) {
++		printk(KERN_INFO "v4l2-loopback: "
++		       "userspace tries to mmap to far, fail\n");
++		return -EINVAL;
++	}
++	addr = (unsigned long) dev->image + (vma->vm_pgoff << PAGE_SHIFT);
++
++	while (size > 0) {
++		page = (void *) vmalloc_to_page((void *) addr);
++
++		if (vm_insert_page(vma, start, page) < 0)
++			return -EAGAIN;
++
++		start += PAGE_SIZE;
++		addr += PAGE_SIZE;
++		size -= PAGE_SIZE;
++	}
++
++	vma->vm_ops = &vm_ops;
++	vma->vm_private_data = 0;
++	dev->buffers[(vma->vm_pgoff<<PAGE_SHIFT)/dev->buffer_size].flags |=
++		V4L2_BUF_FLAG_MAPPED;
++
++	vm_open(vma);
++
++	dprintk("leaving v4l_mmap()\n");
++
++	return 0;
++}
++
++static unsigned int v4l2_loopback_poll(struct file *file,
++				       struct poll_table_struct *pts)
++{
++	struct v4l2_loopback_opener *opener = file->private_data;
++	int ret_mask = 0;
++
++	switch (opener->type) {
++	case WRITER:
++		ret_mask = POLLOUT | POLLWRNORM;
++		break;
++	case READER:
++		poll_wait(file, &dev->read_event, pts);
++		if (dev->write_position > opener->position)
++			ret_mask =  POLLIN | POLLRDNORM;
++		break;
++	default:
++		ret_mask = -POLLERR;
++	}
++	return ret_mask;
++}
++
++/* do not want to limit device opens, it can be as many readers as user want,
++ * writers are limited by means of setting writer field */
++static int v4l_loopback_open(struct file *file)
++{
++	struct v4l2_loopback_opener *opener;
++
++	dprintk("entering v4l_open()\n");
++	if (dev->open_count.counter == max_openers)
++		return -EBUSY;
++	/* kfree on close */
++	opener = kzalloc(sizeof(*opener), GFP_KERNEL);
++	if (opener == NULL)
++		return -ENOMEM;
++	file->private_data = opener;
++	atomic_inc(&dev->open_count);
++	return 0;
++}
++
++static int v4l_loopback_close(struct file *file)
++{
++	struct v4l2_loopback_opener *opener = file->private_data;
++
++	dprintk("entering v4l_close()\n");
++	atomic_dec(&dev->open_count);
++	/* TODO(vasaka) does the closed file means that mapped buffers are
++	 * no more valid and one can free data? */
++	if (dev->open_count.counter == 0) {
++		vfree(dev->image);
++		dev->image = NULL;
++		dev->ready_for_capture = 0;
++		dev->buffer_size = 0;
++	}
++	kfree(opener);
++	return 0;
++}
++
++static ssize_t v4l_loopback_read(struct file *file, char __user *buf,
++				 size_t count, loff_t *ppos)
++{
++	int read_index;
++	struct v4l2_loopback_opener *opener = file->private_data;
++
++	if ((dev->write_position <= opener->position) &&
++		(file->f_flags&O_NONBLOCK)) {
++		return -EAGAIN;
++	}
++	wait_event_interruptible(dev->read_event,
++				 (dev->write_position > opener->position));
++	if (count > dev->buffer_size)
++		count = dev->buffer_size;
++	if (dev->write_position > opener->position+2)
++		opener->position = dev->write_position - 1;
++	read_index = opener->position % dev->buffers_number;
++	if (copy_to_user((void *) buf, (void *) (dev->image +
++			 dev->buffers[read_index].m.offset), count)) {
++		printk(KERN_ERR "v4l2-loopback: "
++			"failed copy_from_user() in write buf\n");
++		return -EFAULT;
++	}
++	++opener->position;
++	dprintkrw("leave v4l2_loopback_read()\n");
++	return count;
++}
++
++static ssize_t v4l_loopback_write(struct file *file,
++				  const char __user *buf, size_t count,
++				  loff_t *ppos)
++{
++	int write_index = dev->write_position % dev->buffers_number;
++	int ret;
++
++	if (dev->ready_for_capture == 0) {
++		ret = allocate_buffers();
++		if (ret < 0)
++			return ret;
++		init_buffers(dev->buffer_size);
++		dev->ready_for_capture = 1;
++	}
++	dprintkrw("v4l2_loopback_write() trying to write %d bytes\n", count);
++	if (count > dev->buffer_size)
++		count = dev->buffer_size;
++	if (copy_from_user(
++		   (void *) (dev->image + dev->buffers[write_index].m.offset),
++		   (void *) buf, count)) {
++		printk(KERN_ERR "v4l2-loopback: "
++		   "failed copy_from_user() in write buf, could not write %d\n",
++		   count);
++		return -EFAULT;
++	}
++	do_gettimeofday(&dev->buffers[write_index].timestamp);
++	dev->buffers[write_index].sequence = dev->write_position++;
++	wake_up_all(&dev->read_event);
++	dprintkrw("leave v4l2_loopback_write()\n");
++	return count;
++}
++
++/* init functions */
++/* allocates buffers, if buffer_size is set */
++static int allocate_buffers(void)
++{
++	/* vfree on close file operation in case no open handles left */
++	if (dev->buffer_size == 0)
++		return -EINVAL;
++	dev->image = vmalloc(dev->buffer_size * dev->buffers_number);
++	if (dev->image == NULL)
++		return -ENOMEM;
++	dprintk("vmallocated %ld bytes\n",
++		dev->buffer_size * dev->buffers_number);
++	return 0;
++}
++/* init inner buffers, they are capture mode and flags are set as
++ * for capture mod buffers */
++static void init_buffers(int buffer_size)
++{
++	int i;
++	for (i = 0; i < dev->buffers_number; ++i) {
++		dev->buffers[i].bytesused         = buffer_size;
++		dev->buffers[i].length            = buffer_size;
++		dev->buffers[i].field             = V4L2_FIELD_NONE;
++		dev->buffers[i].flags             = 0;
++		dev->buffers[i].index             = i;
++		dev->buffers[i].input             = 0;
++		dev->buffers[i].m.offset          = i * buffer_size;
++		dev->buffers[i].memory            = V4L2_MEMORY_MMAP;
++		dev->buffers[i].sequence          = 0;
++		dev->buffers[i].timestamp.tv_sec  = 0;
++		dev->buffers[i].timestamp.tv_usec = 0;
++		dev->buffers[i].type              = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	}
++	dev->write_position = 0;
++}
++
++/* fills and register video device */
++static void init_vdev(struct video_device *vdev)
++{
++	strlcpy(vdev->name, "Loopback video device", sizeof(vdev->name));
++	vdev->tvnorms      = V4L2_STD_ALL;
++	vdev->current_norm = V4L2_STD_ALL,
++	vdev->vfl_type     = VFL_TYPE_GRABBER;
++	vdev->fops         = &v4l2_loopback_fops;
++	vdev->ioctl_ops    = &v4l2_loopback_ioctl_ops;
++	vdev->release      = &video_device_release;
++	vdev->minor        = -1;
++	if (debug > 1)
++		vdev->debug = V4L2_DEBUG_IOCTL | V4L2_DEBUG_IOCTL_ARG;
++}
++
++/* init default capture parameters, only fps may be changed in future */
++static void init_capture_param(struct v4l2_captureparm *capture_param)
++{
++	capture_param->capability               = 0;
++	capture_param->capturemode              = 0;
++	capture_param->extendedmode             = 0;
++	capture_param->readbuffers              = max_buffers_number;
++	capture_param->timeperframe.numerator   = 1;
++	capture_param->timeperframe.denominator = 30;
++}
++
++/* init loopback main structure */
++static int v4l2_loopback_init(struct v4l2_loopback_device *dev)
++{
++	dev->vdev = video_device_alloc();
++	if (dev->vdev == NULL)
++		return -ENOMEM;
++	init_vdev(dev->vdev);
++	init_capture_param(&dev->capture_param);
++	dev->buffers_number = max_buffers_number;
++	atomic_set(&dev->open_count, 0);
++	dev->ready_for_capture = 0;
++	dev->buffer_size = 0;
++	dev->image = NULL;
++	/* kfree on module release */
++	dev->buffers =
++	    kzalloc(sizeof(*dev->buffers) * dev->buffers_number,
++		    GFP_KERNEL);
++	if (dev->buffers == NULL)
++		return -ENOMEM;
++	init_waitqueue_head(&dev->read_event);
++	return 0;
++};
++
++/* LINUX KERNEL */
++static const struct v4l2_file_operations v4l2_loopback_fops = {
++      .owner   = THIS_MODULE,
++      .open    = v4l_loopback_open,
++      .release = v4l_loopback_close,
++      .read    = v4l_loopback_read,
++      .write   = v4l_loopback_write,
++      .poll    = v4l2_loopback_poll,
++      .mmap    = v4l2_loopback_mmap,
++      .ioctl   = video_ioctl2,
++};
++
++static const struct v4l2_ioctl_ops v4l2_loopback_ioctl_ops = {
++	.vidioc_querycap         = &vidioc_querycap,
++	.vidioc_enum_fmt_vid_cap = &vidioc_enum_fmt_cap,
++	.vidioc_enum_input       = &vidioc_enum_input,
++	.vidioc_g_input          = &vidioc_g_input,
++	.vidioc_s_input          = &vidioc_s_input,
++	.vidioc_g_fmt_vid_cap    = &vidioc_g_fmt_cap,
++	.vidioc_s_fmt_vid_cap    = &vidioc_s_fmt_cap,
++	.vidioc_s_fmt_vid_out    = &vidioc_s_fmt_video_output,
++	.vidioc_try_fmt_vid_cap  = &vidioc_try_fmt_cap,
++	.vidioc_try_fmt_vid_out  = &vidioc_try_fmt_video_output,
++	.vidioc_s_std            = &vidioc_s_std,
++	.vidioc_g_parm           = &vidioc_g_parm,
++	.vidioc_s_parm           = &vidioc_s_parm,
++	.vidioc_reqbufs          = &vidioc_reqbufs,
++	.vidioc_querybuf         = &vidioc_querybuf,
++	.vidioc_qbuf             = &vidioc_qbuf,
++	.vidioc_dqbuf            = &vidioc_dqbuf,
++	.vidioc_streamon         = &vidioc_streamon,
++	.vidioc_streamoff        = &vidioc_streamoff,
++#ifdef CONFIG_VIDEO_V4L1_COMPAT
++	.vidiocgmbuf             = &vidiocgmbuf,
++#endif
++};
++
++int __init init_module()
++{
++	int ret;
++
++	dprintk("entering init_module()\n");
++	/* kfree on module release */
++	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
++	if (dev == NULL)
++		return -ENOMEM;
++	ret = v4l2_loopback_init(dev);
++	if (ret < 0)
++		return ret;
++	/* register the device -> it creates /dev/video* */
++	if (video_register_device(dev->vdev, VFL_TYPE_GRABBER, -1) < 0) {
++		video_device_release(dev->vdev);
++		printk(KERN_ERR "failed video_register_device()\n");
++		return -EFAULT;
++	}
++	printk(KERN_INFO "v4l2-loopback module installed\n");
++	return 0;
++}
++
++void __exit cleanup_module()
++{
++	dprintk("entering cleanup_module()\n");
++	/* unregister the device -> it deletes /dev/video* */
++	video_unregister_device(dev->vdev);
++	kfree(dev->buffers);
++	kfree(dev);
++	printk(KERN_INFO "v4l2-loopback module removed\n");
++}
