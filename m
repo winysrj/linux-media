@@ -1,52 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2191 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757814AbZE0GA6 convert rfc822-to-8bit (ORCPT
+Received: from mail-in-02.arcor-online.net ([151.189.21.42]:50821 "EHLO
+	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752508AbZESDBM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2009 02:00:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Martin Dauskardt <martin.dauskardt@gmx.de>
-Subject: Re: [ivtv-devel] tveeprom cannot autodetect tuner! (FQ1216LME MK5)
-Date: Wed, 27 May 2009 07:59:05 +0200
-Cc: hermann pitton <hermann-pitton@arcor.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Andy Walls <awalls@radix.net>,
-	Discussion list for development of the IVTV driver
-	<ivtv-devel@ivtvdriver.org>, linux-media@vger.kernel.org
-References: <200905210909.43333.martin.dauskardt@gmx.de> <1243298465.3703.8.camel@pc07.localdom.local> <200905262221.31409.martin.dauskardt@gmx.de>
-In-Reply-To: <200905262221.31409.martin.dauskardt@gmx.de>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200905270759.05283.hverkuil@xs4all.nl>
+	Mon, 18 May 2009 23:01:12 -0400
+Subject: Re: Fixed (Was:Re: saa7134/2.6.26 regression, noisy output)
+From: hermann pitton <hermann-pitton@arcor.de>
+To: "tomlohave@gmail.com" <tomlohave@gmail.com>
+Cc: Benoit Istin <beistin@gmail.com>,
+	Anders Eriksson <aeriksson@fastmail.fm>,
+	Steven Toth <stoth@linuxtv.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	linux-media@vger.kernel.org, video4linux-list@redhat.com,
+	Hartmut Hackmann <hartmut.hackmann@t-online.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <1242687889.5941.12.camel@pc07.localdom.local>
+References: <20090503075609.0A73B2C4152@tippex.mynet.homeunix.org>
+	 <1241389925.4912.32.camel@pc07.localdom.local>
+	 <20090504091049.D931B2C4147@tippex.mynet.homeunix.org>
+	 <1241438755.3759.100.camel@pc07.localdom.local>
+	 <20090504195201.6ECF52C415B@tippex.mynet.homeunix.org>
+	 <1241565988.16938.15.camel@pc07.localdom.local>
+	 <20090507130055.E49D32C4165@tippex.mynet.homeunix.org>
+	 <20090510141614.D4A9C2C416C@tippex.mynet.homeunix.org>
+	 <20090515091827.864A12C4167@tippex.mynet.homeunix.org>
+	 <1242438418.3813.15.camel@pc07.localdom.local>  <4A10168E.70205@gmail.com>
+	 <1242600174.3750.29.camel@pc07.localdom.local> <4A10FB2A.8040601@gmail.com>
+	 <1242687889.5941.12.camel@pc07.localdom.local>
+Content-Type: text/plain
+Date: Tue, 19 May 2009 04:45:51 +0200
+Message-Id: <1242701151.3736.9.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 26 May 2009 22:21:31 Martin Dauskardt wrote:
-> I should add that the picture quality is with all tested tuner types
-> worse than with my PVR250/350. I don't know if a PVR150 is in generally
-> worse than a PVR250. I can't call it really noisy, but in german I would
-> say the picture is a little bit "grobkörnig". It really needs a temporal
-> filter setting of value 8 or more, while my other PVR cards have a nice
-> quality even with value 0.
 
-It's always been my impression that the saa7115/msp3400 combo is superior to 
-the cx2584x. I can't prove it, but the PVR150 picture quality is never as 
-sharp as what I get with my PVR350.
+Am Dienstag, den 19.05.2009, 01:04 +0200 schrieb hermann pitton:
+> Hi,
+> 
+> [snip]
+> > >
+> > > From: Benoit Istin <beistin@gmail.com>
+> > >
+> > > There are several months my hvr1110 stop working.
+> > > This is very simple to fix, for my card revision at least, by setting a
+> > > missing field to the hauppauge_hvr_1110_config.
+> > >   
+> > Hello
+> > 
+> > I see,
+> > what i don't remember is, when searching for good parameters for this 
+> > card (1110), AGC and Co was not necessary...
+> > 
+> > correct me if i'm wrong :
+> > 
+> > patch from Anders impacts cards with .tuner_config=1
+> > what i can do :
+> > 
+> > step 1 :
+> > see if we really need .tuner_config = 1  on  hvr_1110_config otherwise 
+> > change to .tuner_config = 0
+> > 
+> > step 2 :
+> > if needed, apply the patch from Anders and look if it's  better or not 
+> > both on analogic and dvb
+> > 
+> > step 3 : report this results
+> > 
+> > 
+> > others ideas ?
+> 
+> Seems I can't find any details about Benoit's eventually different card
+> version in the mail archives. 
+> 
+> If it turns out we have revisions with LNA and without, we might try to
+> provide a separate entry for the LNA version. Usually on Hauppauge cards
+> we find means doing so.
+> 
+> > PS : i need times because my multimedia box is on production and i 
+> > prefer test this on another pc, you know : why change when all is good ?
+> 
+> Thanks for your time and no need for hurry.
+> 
+> If you keep your old media modules folder, you just can put it back in
+> place later again and "depmod -a" and you are done. Do "make rmmod" and
+> delete the new media modules folder previously and you should be 100%
+> back.
+> (
 
-Regards,
+Guys,
 
-	Hans
+please.
 
-> I will test whatever you guys want me to test :-)  But I am not a
-> programmer, so I need detailled instructions what to patch.
->
-> My next step will be testing an older v4l2 with an 2.6.27 kernel to see
-> if the audio problem still exists.
+It looks like this still can go on for some while.
+
+I don't have the time and have zero income from all of this.
+
+Does the new entity, kernellabs.com, Devin, Mike and Steven for now, do
+confirm that this bug is assigned to them? (PCTV and Hauppauge)
+
+Or do you prefer to have it further drifting over the lists and call
+Hartmut and me for it?
+
+Cheers,
+Hermann
 
 
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+
+
+
