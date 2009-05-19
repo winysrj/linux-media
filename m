@@ -1,134 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:41921 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752168AbZEZU5B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2009 16:57:01 -0400
-Date: Tue, 26 May 2009 16:57:02 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: David <david@unsolicited.net>
-cc: Pekka Enberg <penberg@cs.helsinki.fi>,
-	<linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	<dbrownell@users.sourceforge.net>, <leonidv11@gmail.com>,
-	Greg KH <gregkh@suse.de>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: USB/DVB - Old Technotrend TT-connect S-2400 regression tracked
-  down
-In-Reply-To: <4A1AE705.2050809@unsolicited.net>
-Message-ID: <Pine.LNX.4.44L0.0905261646420.11998-100000@iolanthe.rowland.org>
+Received: from web110808.mail.gq1.yahoo.com ([67.195.13.231]:41519 "HELO
+	web110808.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753393AbZESSUn convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 May 2009 14:20:43 -0400
+Message-ID: <696036.74058.qm@web110808.mail.gq1.yahoo.com>
+Date: Tue, 19 May 2009 11:20:44 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: Re: [PATCH] [09051_47] Siano: smsdvb - add DVB v3 events
+To: Michael Krufky <mkrufky@linuxtv.org>
+Cc: LinuxML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 25 May 2009, David wrote:
-
-> > No luck I'm afraid (although there now appear to be 2 timeouts, not
-> > one). I'm going to follow up on the laptop and get a USB log.
-> >   
-> USB log post-patch attached. Thanks for all the effort so far!
-
-I think the idea of the patch was good, but the endpoint direction
-information got lost (because the information was taken from the dummy
-qTD which is always marked as OUT -- I don't see how this could ever
-have worked properly).  So let's redo it, using the new and proper
-interface for resetting endpoints.
-
-To tell the truth, I'm not entirely certain this will work either.  The 
-hardware may cache the endpoint state, so it may be necessary to unlink 
-the endpoint completely.  Still, try this version and see what happens.
-
-Alan Stern
 
 
 
-Index: usb-2.6/drivers/usb/host/ehci-q.c
-===================================================================
---- usb-2.6.orig/drivers/usb/host/ehci-q.c
-+++ usb-2.6/drivers/usb/host/ehci-q.c
-@@ -84,6 +84,30 @@ qtd_fill(struct ehci_hcd *ehci, struct e
- 
- /*-------------------------------------------------------------------------*/
- 
-+static void ehci_endpoint_reset(struct usb_hcd *hcd,
-+		struct usb_host_endpoint *ep)
-+{
-+	struct ehci_hcd		*ehci = hcd_to_ehci(hcd);
-+	struct ehci_qh		*qh;
-+
-+	spin_lock_irq(&ehci->lock);
-+	qh = ep->hcpriv;
-+
-+	/* For Bulk and Interrupt endpoints we maintain the toggle state
-+	 * in the hardware; the toggle bits in udev aren't used at all.
-+	 * When an endpoint is reset by usb_clear_halt() we must reset
-+	 * the toggle bit in the QH.
-+	 */
-+	if (qh && (usb_endpoint_xfer_bulk(&ep->desc) ||
-+			usb_endpoint_xfer_int(&ep->desc))) {
-+		if (qh->qh_state == QH_STATE_IDLE || list_empty(&qh->qtd_list))
-+			qh->hw_token &= ~cpu_to_hc32(ehci, QTD_TOGGLE);
-+		else
-+			WARN_ONCE(1, "clear_halt for an active endpoint\n");
-+	}
-+	spin_unlock_irq(&ehci->lock);
-+}
-+
- static inline void
- qh_update (struct ehci_hcd *ehci, struct ehci_qh *qh, struct ehci_qtd *qtd)
- {
-@@ -93,22 +117,6 @@ qh_update (struct ehci_hcd *ehci, struct
- 	qh->hw_qtd_next = QTD_NEXT(ehci, qtd->qtd_dma);
- 	qh->hw_alt_next = EHCI_LIST_END(ehci);
- 
--	/* Except for control endpoints, we make hardware maintain data
--	 * toggle (like OHCI) ... here (re)initialize the toggle in the QH,
--	 * and set the pseudo-toggle in udev. Only usb_clear_halt() will
--	 * ever clear it.
--	 */
--	if (!(qh->hw_info1 & cpu_to_hc32(ehci, 1 << 14))) {
--		unsigned	is_out, epnum;
--
--		is_out = !(qtd->hw_token & cpu_to_hc32(ehci, 1 << 8));
--		epnum = (hc32_to_cpup(ehci, &qh->hw_info1) >> 8) & 0x0f;
--		if (unlikely (!usb_gettoggle (qh->dev, epnum, is_out))) {
--			qh->hw_token &= ~cpu_to_hc32(ehci, QTD_TOGGLE);
--			usb_settoggle (qh->dev, epnum, is_out, 1);
--		}
--	}
--
- 	/* HC must see latest qtd and qh data before we clear ACTIVE+HALT */
- 	wmb ();
- 	qh->hw_token &= cpu_to_hc32(ehci, QTD_TOGGLE | QTD_STS_PING);
-@@ -893,7 +901,6 @@ done:
- 	qh->qh_state = QH_STATE_IDLE;
- 	qh->hw_info1 = cpu_to_hc32(ehci, info1);
- 	qh->hw_info2 = cpu_to_hc32(ehci, info2);
--	usb_settoggle (urb->dev, usb_pipeendpoint (urb->pipe), !is_input, 1);
- 	qh_refresh (ehci, qh);
- 	return qh;
- }
-@@ -928,7 +935,7 @@ static void qh_link_async (struct ehci_h
- 		}
- 	}
- 
--	/* clear halt and/or toggle; and maybe recover from silicon quirk */
-+	/* clear halt and maybe recover from silicon quirk */
- 	if (qh->qh_state == QH_STATE_IDLE)
- 		qh_refresh (ehci, qh);
- 
-Index: usb-2.6/drivers/usb/host/ehci-pci.c
-===================================================================
---- usb-2.6.orig/drivers/usb/host/ehci-pci.c
-+++ usb-2.6/drivers/usb/host/ehci-pci.c
-@@ -388,6 +388,7 @@ static const struct hc_driver ehci_pci_h
- 	.urb_enqueue =		ehci_urb_enqueue,
- 	.urb_dequeue =		ehci_urb_dequeue,
- 	.endpoint_disable =	ehci_endpoint_disable,
-+	.endpoint_reset =	ehci_endpoint_reset,
- 
- 	/*
- 	 * scheduling support
+--- On Tue, 5/19/09, Michael Krufky <mkrufky@linuxtv.org> wrote:
 
+> From: Michael Krufky <mkrufky@linuxtv.org>
+> Subject: Re: [PATCH] [09051_47] Siano: smsdvb - add DVB v3 events
+> To: "Uri Shkolnik" <urishk@yahoo.com>
+> Cc: "LinuxML" <linux-media@vger.kernel.org>, "Mauro Carvalho Chehab" <mchehab@infradead.org>
+> Date: Tuesday, May 19, 2009, 9:16 PM
+> On Tue, May 19, 2009 at 1:05 PM, Uri
+> Shkolnik <urishk@yahoo.com>
+> wrote:
+> >
+> >
+> >
+> > --- On Tue, 5/19/09, Michael Krufky <mkrufky@linuxtv.org>
+> wrote:
+> >
+> >> From: Michael Krufky <mkrufky@linuxtv.org>
+> >> Subject: Re: [PATCH] [09051_47] Siano: smsdvb -
+> add DVB v3 events
+> >> To: "Uri Shkolnik" <urishk@yahoo.com>
+> >> Cc: "LinuxML" <linux-media@vger.kernel.org>,
+> "Mauro Carvalho Chehab" <mchehab@infradead.org>
+> >> Date: Tuesday, May 19, 2009, 7:18 PM
+> >> On Tue, May 19, 2009 at 11:28 AM, Uri
+> >> Shkolnik <urishk@yahoo.com>
+> >> wrote:
+> >> >
+> >> > # HG changeset patch
+> >> > # User Uri Shkolnik <uris@siano-ms.com>
+> >> > # Date 1242747164 -10800
+> >> > # Node ID
+> 971d4cc0d4009650bd4752c6a9fc09755ef77baf
+> >> > # Parent
+>  98895daafb42f8b0757fd608b29c53c80327520e
+> >> > [09051_47] Siano: smsdvb - add DVB v3 events
+> >> >
+> >> > From: Uri Shkolnik <uris@siano-ms.com>
+> >> >
+> >> > Add various DVB-API v3 events, those events
+> will trig
+> >> > target (card) events.
+> >> >
+> >> > Priority: normal
+> >> >
+> >> > Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+> >> >
+> >> > diff -r 98895daafb42 -r 971d4cc0d400
+> >> linux/drivers/media/dvb/siano/smsdvb.c
+> >> > --- a/linux/drivers/media/dvb/siano/smsdvb.c
+>    Tue
+> >> May 19 18:27:38 2009 +0300
+> >> > +++ b/linux/drivers/media/dvb/siano/smsdvb.c
+>    Tue
+> >> May 19 18:32:44 2009 +0300
+> >> > @@ -66,6 +66,54 @@ MODULE_PARM_DESC(debug,
+> "set debug
+> >> level
+> >> >  /* Events that may come from DVB v3 adapter
+> */
+> >> >  static void sms_board_dvb3_event(struct
+> >> smsdvb_client_t *client,
+> >> >                enum SMS_DVB3_EVENTS
+> event) {
+> >> > +
+> >> > +       struct smscore_device_t *coredev
+> =
+> >> client->coredev;
+> >> > +       switch (event) {
+> >> > +       case DVB3_EVENT_INIT:
+> >> > +              
+> sms_debug("DVB3_EVENT_INIT");
+> >> > +              
+> sms_board_event(coredev,
+> >> BOARD_EVENT_BIND);
+> >> > +               break;
+> >> > +       case DVB3_EVENT_SLEEP:
+> >> > +              
+> sms_debug("DVB3_EVENT_SLEEP");
+> >> > +              
+> sms_board_event(coredev,
+> >> BOARD_EVENT_POWER_SUSPEND);
+> >> > +               break;
+> >> > +       case DVB3_EVENT_HOTPLUG:
+> >> > +
+> >> sms_debug("DVB3_EVENT_HOTPLUG");
+> >> > +              
+> sms_board_event(coredev,
+> >> BOARD_EVENT_POWER_INIT);
+> >> > +               break;
+> >> > +       case DVB3_EVENT_FE_LOCK:
+> >> > +               if
+> (client->event_fe_state
+> >> != DVB3_EVENT_FE_LOCK) {
+> >> > +
+> >> client->event_fe_state = DVB3_EVENT_FE_LOCK;
+> >> > +
+> >> sms_debug("DVB3_EVENT_FE_LOCK");
+> >> > +
+> >> sms_board_event(coredev, BOARD_EVENT_FE_LOCK);
+> >> > +               }
+> >> > +               break;
+> >> > +       case DVB3_EVENT_FE_UNLOCK:
+> >> > +               if
+> (client->event_fe_state
+> >> != DVB3_EVENT_FE_UNLOCK) {
+> >> > +
+> >> client->event_fe_state = DVB3_EVENT_FE_UNLOCK;
+> >> > +
+> >> sms_debug("DVB3_EVENT_FE_UNLOCK");
+> >> > +
+> >> sms_board_event(coredev, BOARD_EVENT_FE_UNLOCK);
+> >> > +               }
+> >> > +               break;
+> >> > +       case DVB3_EVENT_UNC_OK:
+> >> > +               if
+> (client->event_unc_state
+> >> != DVB3_EVENT_UNC_OK) {
+> >> > +
+> >> client->event_unc_state = DVB3_EVENT_UNC_OK;
+> >> > +
+> >> sms_debug("DVB3_EVENT_UNC_OK");
+> >> > +
+> >> sms_board_event(coredev,
+> BOARD_EVENT_MULTIPLEX_OK);
+> >> > +               }
+> >> > +               break;
+> >> > +       case DVB3_EVENT_UNC_ERR:
+> >> > +               if
+> (client->event_unc_state
+> >> != DVB3_EVENT_UNC_ERR) {
+> >> > +
+> >> client->event_unc_state = DVB3_EVENT_UNC_ERR;
+> >> > +
+> >> sms_debug("DVB3_EVENT_UNC_ERR");
+> >> > +
+> >> sms_board_event(coredev,
+> BOARD_EVENT_MULTIPLEX_ERRORS);
+> >> > +               }
+> >> > +               break;
+> >> > +
+> >> > +       default:
+> >> > +               sms_err("Unknown dvb3
+> api
+> >> event");
+> >> > +               break;
+> >> > +       }
+> >> >  }
+> >> >
+> >> >  static int smsdvb_onresponse(void *context,
+> struct
+> >> smscore_buffer_t *cb)
+> >> >
+> >> >
+> >> >
+> >> >
+> >> > --
+> >> > To unsubscribe from this list: send the line
+> >> "unsubscribe linux-media" in
+> >> > the body of a message to majordomo@vger.kernel.org
+> >> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >> >
+> >>
+> >>
+> >>
+> >> Uri,
+> >>
+> >> I don't understand what prompts you to call these
+> "DVB v3
+> >> events" ...
+> >> what does this have to do with DVB API v3 at all?
+> >> Your idea seems to
+> >> be in the right direction, but this "DVBV3"
+> nomenclature is
+> >> a total
+> >> misnomer.
+> >>
+> >> I think something along the lines of
+> SMSBOARD_EVENT_FOO is
+> >> more appropriate.
+> >>
+> >> Regards,
+> >>
+> >> Mike
+> >>
+> >
+> > Mike,
+> >
+> > Within the DVB version 3 adapter, there is events
+> manager, and the name we put on it is  "dvb3_event", I
+> think its OK....
+> >
+> > Uri
+> >
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line
+> "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> 
+> I disagree.  Your naming implies that these structures
+> are on the
+> subsystem level, and they have nothing to do with DVB3
+> anyway -- these
+> are board related events.  "dvb3_event" is a total
+> misnomer.
+> 
+> -Mike
+> 
+
+If its really really important, I can change it to SMS_DVB3_EVENT...
+
+
+
+Uri
+
+
+      
