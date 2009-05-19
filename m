@@ -1,53 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:44405 "EHLO znsun1.ifh.de"
+Received: from bear.ext.ti.com ([192.94.94.41]:41849 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755886AbZETImh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2009 04:42:37 -0400
-Date: Wed, 20 May 2009 10:42:19 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: matthieu castet <castet.matthieu@free.fr>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] DIBUSB_MC : fix i2c to not corrupt eeprom in case of
- strange read pattern
-In-Reply-To: <4A0EBACD.6070601@free.fr>
-Message-ID: <alpine.LRH.1.10.0905201040420.6762@pub3.ifh.de>
-References: <484A72D3.7070500@free.fr> <4974E4BE.2060107@free.fr> <20090129074735.76e07d47@caramujo.chehab.org> <alpine.LRH.1.10.0901291117110.15700@pub6.ifh.de> <49820C26.5090309@free.fr> <498215A8.3020203@free.fr> <4A0EBACD.6070601@free.fr>
+	id S1750802AbZESF2z convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 May 2009 01:28:55 -0400
+From: "Shah, Hardik" <hardik.shah@ti.com>
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Jadav, Brijesh R" <brijesh.j@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+Date: Tue, 19 May 2009 10:58:37 +0530
+Subject: RE: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03056A15B4@dbde02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE89443E17ECF5@dlee02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Matthieu,
+Hi Nate,
 
-On Sat, 16 May 2009, matthieu castet wrote:
 
-> Hi,
->
->
-> dibusb_i2c_xfer seems to do things very dangerous :
-> it assumes that it get only write/read request or write request.
->
-> That means that read can be understood as write. For example a program
-> doing
-> file = open("/dev/i2c-x", O_RDWR);
-> ioctl(file, I2C_SLAVE, 0x50)
-> read(file, data, 10)
-> will corrupt the eeprom as it will be understood as a write.
->
-> I attach a possible (untested) patch.
->
->
-> Matthieu
->
-> Signed-off-by: Matthieu CASTET <castet.matthieu@free.fr>
+> -----Original Message-----
+> From: Aguirre Rodriguez, Sergio Alberto
+> Sent: Tuesday, May 19, 2009 10:52 AM
+> To: Dongsoo, Nathaniel Kim; Shah, Hardik
+> Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Jadav, Brijesh R;
+> Hiremath, Vaibhav
+> Subject: RE: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
+> 
+> Hi Nate,
+> 
+> I have 1 input regarding your question:
+> 
+> >From: linux-media-owner@vger.kernel.org [linux-media-owner@vger.kernel.org]
+> On Behalf Of Dongsoo, Nathaniel Kim [dongsoo.kim@gmail.com]
+> >Sent: Tuesday, May 19, 2009 7:53 AM
+> >To: Shah, Hardik
+> >Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Jadav, Brijesh
+> R; Hiremath, Vaibhav
+> >Subject: Re: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
+> >
+> >Hello Hardik,
+> >
+> >Reviewing your driver, I found something made me curious.
+> >
+> >
+> >On Wed, Apr 22, 2009 at 3:25 PM, Hardik Shah <hardik.shah@ti.com> wrote:
+> 
+> <snip>
+> 
+> >> +/* Buffer setup function is called by videobuf layer when REQBUF ioctl is
+> >> + * called. This is used to setup buffers and return size and count of
+> >> + * buffers allocated. After the call to this buffer, videobuf layer will
+> >> + * setup buffer queue depending on the size and count of buffers
+> >> + */
+> >> +static int omap_vout_buffer_setup(struct videobuf_queue *q, unsigned int
+> *count,
+> >> +                         unsigned int *size)
+> >> +{
+> >> +       struct omap_vout_device *vout = q->priv_data;
+> >> +       int startindex = 0, i, j;
+> >> +       u32 phy_addr = 0, virt_addr = 0;
+> >> +
+> >> +       if (!vout)
+> >> +               return -EINVAL;
+> >> +
+> >> +       if (V4L2_BUF_TYPE_VIDEO_OUTPUT != q->type)
+> >> +               return -EINVAL;
+> >> +
+> >> +       startindex = (vout->vid == OMAP_VIDEO1) ?
+> >> +               video1_numbuffers : video2_numbuffers;
+> >> +       if (V4L2_MEMORY_MMAP == vout->memory && *count < startindex)
+> >> +               *count = startindex;
+> >> +
+> >> +       if ((rotation_enabled(vout->rotation)) && *count > 4)
+> >> +               *count = 4;
+> >> +
+> >
+> >
+> >
+> >This seems to be weird to me. If user requests multiple buffers more
+> >than 4, user cannot recognize that the number of buffers requested is
+> >forced to change into 4. I'm not sure whether this could be serious or
+> >not, but it is obvious that user can have doubt about why if user have
+> >no information about the OMAP H/W.
+> >Is it really necessary to be configured to 4?
+[Shah, Hardik] Rotation requires the VRFB contexts and limited number of contexts are available. So maximum number of buffers is fixed to 4 when rotation is enabled.
 
-thanks a lot for your patch. I applied it, but could not test. But even 
-it is breaks things, it's better to prevent those "false-reads" than not 
-having this protection. Any breakage we will fix later.
-
-Patrick.
-
---
-   Mail: patrick.boettcher@desy.de
-   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
+Thanks,
+Hardik 
+> >
+> >
+> >Cheers,
+> >
+> >Nate
+> >
+> 
+> We did a very similar thing on omap3 camera driver, not exactly by the number
+> of buffers requested, but more about checking if the bytesize of the total
+> requested buffers was superior to the MMU fixed sized page table size
+> capabilities to map that size, then we were limiting the number of buffers
+> accordingly (for keeping the page table size fixed).
+> 
+> According to the v4l2 spec, changing the count value should be valid, and it
+> is the userspace app responsability to check the value again, to confirm how
+> many of the requested buffers are actually available.
+> 
+> Regards,
+> Sergio
