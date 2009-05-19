@@ -1,157 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.182]:46693 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752084AbZEVNCU convert rfc822-to-8bit (ORCPT
+Received: from web110816.mail.gq1.yahoo.com ([67.195.13.239]:43282 "HELO
+	web110816.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752063AbZESPsq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2009 09:02:20 -0400
-Received: by wa-out-1112.google.com with SMTP id j5so389768wah.21
-        for <linux-media@vger.kernel.org>; Fri, 22 May 2009 06:02:22 -0700 (PDT)
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Shah, Hardik" <hardik.shah@ti.com>,
-	"dongsoo45.kim@samsung.com" <dongsoo45.kim@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>
-Message-Id: <C4B8C637-2C21-4955-8C6A-0600C11D3B09@gmail.com>
-From: Dongsoo Kim <dongsoo.kim@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <200905221440.13444.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=EUC-KR; format=flowed; delsp=yes
-Content-Transfer-Encoding: 8BIT
-Mime-Version: 1.0 (Apple Message framework v935.3)
-Subject: Re: About VIDIOC_G_OUTPUT/S_OUTPUT ?
-Date: Fri, 22 May 2009 21:57:08 +0900
-References: <5e9665e10905200448n1ffc9d8s20317bbbba745e6a@mail.gmail.com> <200905211407.05354.hverkuil@xs4all.nl> <5e9665e10905211905t43ae195cv7a0fe243077887c9@mail.gmail.com> <200905221440.13444.hverkuil@xs4all.nl>
+	Tue, 19 May 2009 11:48:46 -0400
+Message-ID: <495724.2537.qm@web110816.mail.gq1.yahoo.com>
+Date: Tue, 19 May 2009 08:48:47 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH] [09051_50] Siano: smscore - Add big endian support
+To: LinuxML <linux-media@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1242748399 -10800
+# Node ID a93ebe0069b3d7d8d791ccb620a7797508cf724c
+# Parent  4d75f9d1c4f96d65a8ad312c21e488a212ee58a3
+[09051_50] Siano: smscore - Add big endian support
 
-2009. 05. 22, 오후 9:40, Hans Verkuil 작성:
+From: Uri Shkolnik <uris@siano-ms.com>
 
-> On Friday 22 May 2009 04:05:47 Dongsoo, Nathaniel Kim wrote:
->> Hi Hans,
->>
->> On Thu, May 21, 2009 at 9:07 PM, Hans Verkuil <hverkuil@xs4all.nl>  
->> wrote:
->>> On Wednesday 20 May 2009 13:48:08 Dongsoo, Nathaniel Kim wrote:
->>>> Hello everyone,
->>>>
->>>> Doing a new camera interface driver job of new AP from Samsung, a
->>>> single little question doesn't stop making me confused.
->>>> The camera IP in Samsung application processor supports for two of
->>>> output paths, like "to memory" and "to LCD FIFO".
->>>> It seems to be VIDIOC_G_OUTPUT/S_OUTPUT which I need to use (just
->>>> guessing), but according to Hans's ivtv driver the "output" of
->>>> G_OUTPUT/S_OUTPUT is supposed to mean an actually and physically
->>>> separated real output path like Composite, S-Video and so on.
->>>>
->>>> Do you think that memory or LCD FIFO can be an "output" device in  
->>>> this
->>>> case? Because in earlier version of my driver, I assumed that the  
->>>> "LCD
->>>> FIFO" is a kind of "OVERLAY" device, so I didn't even need to use
->>>> G_OUTPUT and S_OUTPUT to route output device. I'm just not sure  
->>>> about
->>>> which idea makes sense. or maybe both of them could make sense
->>>> indeed...
->>>
->>> When you select "to memory", then the video from the camera is  
->>> DMAed to
->>> the CPU, right? But selecting "to LCD" means that the video is  
->>> routed
->>> internally to the LCD without any DMA to the CPU taking place,  
->>> right?
->>
->> Yes definitely right.
->>
->>> This is similar to the "passthrough" mode of the ivtv driver.
->>>
->>> This header: linux/dvb/video.h contains an ioctl called
->>> VIDEO_SELECT_SOURCE, which can be used to select either memory or a
->>> demuxer (or in this case, the camera) as the source of the output  
->>> (the
->>> LCD in this case). It is probably the appropriate ioctl to implement
->>> for this.
->>
->> So, in user space we should call  VIDIO_SELECT_SOURCE ioctl?
->
-> Yes.
->
->>> The video.h header is shared between v4l and dvb and contains  
->>> several
->>> ioctls meant to handle output. It is poorly documented and I think  
->>> it
->>> should be merged into the v4l2 API and properly documented/cleaned  
->>> up.
->>
->> I agree with you. Anyway, camera interface is not a DVB device but
->> supporting this source routing feature means that we also need this
->> API in v4l2.
->
-> It's valid to use VIDEO_SELECT_SOURCE in an v4l2 driver. It's  
-> currently used
-> by ivtv. It's an historical accident that these ioctls ended up in  
-> the dvb
-> header.
+Add support for big endian target, to the smscore module.
 
-Oh, I'll look into the driver. Cheers.
+Priority: normal
 
->
->
->>> Note that overlays are meant for on-screen displays. Usually these  
->>> are
->>> associated with a framebuffer device. Your hardware may implement  
->>> such
->>> an OSD as well, but that is different from this passthrough feature.
->>
->> Sorry Hans, I'm not sure that I'm following this part. Can I put it  
->> in
->> the way like this?
->> The OSD feature in Samsung AP should be handled separated with the
->> selecting source feature (camera-to-FB and camera-to-memory). So that
->> I should implement both of them. (overlay feature and select source
->> feature)
->> Am I following? Please let me know if there is something wrong.
->
-> Yes, that's correct.
->
->>
->> BTW, my 5M camera driver which is including the new V4L2 API proposal
->> I gave a talk in SF couldn't have approval from my bosses to be  
->> opened
->> to the public. But I'll try to make another camera device driver  
->> which
->> can cover must of the API I proposed.
->
-> That's a shame. Erm, just to make it clear for your bosses: any v4l2  
-> driver
-> that uses any of the videobuf_*, v4l2_i2c_*, v4l2_device_* or  
-> v4l2_int_*
-> functions must be a GPL driver, and thus has to be made available upon
-> request. All these functions are marked EXPORT_SYMBOL_GPL. I don't  
-> know if
-> they realize this fact.
->
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
 
-Oops I didn't make it clear that my driver was not used for a  
-commercial product. I made them for our platform development and test,  
-and as a matter of fact my drivers will be opened in the end but not  
-just soon enough. I think there is some issues in non-technical area  
-which I'm not aware of. I'll make another driver with other camera  
-device because I can't wait any longer. My boss approved that should  
-be OK. And actually it is challenging indeed.
-Cheers,
-
-Nate
-
-
-> Regards,
->
-> 	Hans
->
-> -- 
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+diff -r 4d75f9d1c4f9 -r a93ebe0069b3 linux/drivers/media/dvb/siano/smscoreapi.c
+--- a/linux/drivers/media/dvb/siano/smscoreapi.c	Tue May 19 18:48:35 2009 +0300
++++ b/linux/drivers/media/dvb/siano/smscoreapi.c	Tue May 19 18:53:19 2009 +0300
+@@ -34,8 +34,10 @@
+ #include <asm/byteorder.h>
+ 
+ #include "smscoreapi.h"
++#include "smsendian.h"
+ #include "sms-cards.h"
+ #include "smsir.h"
++
+ #define MAX_GPIO_PIN_NUMBER	31
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 10)
+@@ -465,6 +467,8 @@ static int smscore_init_ir(struct smscor
+ 				msg->msgData[0] = coredev->ir.controller;
+ 				msg->msgData[1] = coredev->ir.timeout;
+ 
++				smsendian_handle_tx_message(
++					(struct SmsMsgHdr_ST2 *)msg);
+ 				rc = smscore_sendrequest_and_wait(coredev, msg,
+ 						msg->xMsgHeader. msgLength,
+ 						&coredev->ir_init_done);
+@@ -545,6 +549,7 @@ static int smscore_load_firmware_family2
+ 		sms_debug("sending reload command.");
+ 		SMS_INIT_MSG(msg, MSG_SW_RELOAD_START_REQ,
+ 			     sizeof(struct SmsMsgHdr_ST));
++		smsendian_handle_tx_message((struct SmsMsgHdr_ST *)msg);
+ 		rc = smscore_sendrequest_and_wait(coredev, msg,
+ 						  msg->msgLength,
+ 						  &coredev->reload_start_done);
+@@ -563,6 +568,7 @@ static int smscore_load_firmware_family2
+ 		DataMsg->MemAddr = mem_address;
+ 		memcpy(DataMsg->Payload, payload, payload_size);
+ 
++		smsendian_handle_tx_message((struct SmsMsgHdr_ST *)msg);
+ 		if ((coredev->device_flags & SMS_ROM_NO_RESPONSE) &&
+ 		    (coredev->mode == DEVICE_MODE_NONE))
+ 			rc = coredev->sendrequest_handler(
+@@ -595,6 +601,7 @@ static int smscore_load_firmware_family2
+ 			TriggerMsg->msgData[3] = 0; /* Parameter */
+ 			TriggerMsg->msgData[4] = 4; /* Task ID */
+ 
++			smsendian_handle_tx_message((struct SmsMsgHdr_ST *)msg);
+ 			if (coredev->device_flags & SMS_ROM_NO_RESPONSE) {
+ 				rc = coredev->sendrequest_handler(
+ 					coredev->context, TriggerMsg,
+@@ -608,7 +615,7 @@ static int smscore_load_firmware_family2
+ 		} else {
+ 			SMS_INIT_MSG(msg, MSG_SW_RELOAD_EXEC_REQ,
+ 				     sizeof(struct SmsMsgHdr_ST));
+-
++			smsendian_handle_tx_message((struct SmsMsgHdr_ST *)msg);
+ 			rc = coredev->sendrequest_handler(coredev->context,
+ 							  msg, msg->msgLength);
+ 		}
+@@ -767,6 +774,7 @@ static int smscore_detect_mode(struct sm
+ 	SMS_INIT_MSG(msg, MSG_SMS_GET_VERSION_EX_REQ,
+ 		     sizeof(struct SmsMsgHdr_ST));
+ 
++	smsendian_handle_tx_message((struct SmsMsgHdr_ST *)msg);
+ 	rc = smscore_sendrequest_and_wait(coredev, msg, msg->msgLength,
+ 					  &coredev->version_ex_done);
+ 	if (rc == -ETIME) {
+@@ -895,6 +903,7 @@ int smscore_set_device_mode(struct smsco
+ 				     sizeof(struct SmsMsgData_ST));
+ 			msg->msgData[0] = mode;
+ 
++			smsendian_handle_tx_message((struct SmsMsgHdr_ST *)msg);
+ 			rc = smscore_sendrequest_and_wait(
+ 				coredev, msg, msg->xMsgHeader.msgLength,
+ 				&coredev->init_device_done);
+@@ -1102,6 +1111,8 @@ void smscore_onresponse(struct smscore_d
+ 		rc = client->onresponse_handler(client->context, cb);
+ 
+ 	if (rc < 0) {
++		smsendian_handle_rx_message((struct SmsMsgData_ST *)phdr);
++
+ 		switch (phdr->msgType) {
+ 		case MSG_SMS_GET_VERSION_EX_RES:
+ 		{
+@@ -1604,6 +1615,7 @@ int smscore_gpio_configure(struct smscor
+ 		pMsg->msgData[5] = 0;
+ 	}
+ 
++	smsendian_handle_tx_message((struct SmsMsgHdr_ST *)pMsg);
+ 	rc = smscore_sendrequest_and_wait(coredev, pMsg, totalLen,
+ 			&coredev->gpio_configuration_done);
+ 
+@@ -1653,6 +1665,7 @@ int smscore_gpio_set_level(struct smscor
+ 	pMsg->msgData[1] = NewLevel;
+ 
+ 	/* Send message to SMS */
++	smsendian_handle_tx_message((struct SmsMsgHdr_ST *)pMsg);
+ 	rc = smscore_sendrequest_and_wait(coredev, pMsg, totalLen,
+ 			&coredev->gpio_set_level_done);
+ 
+@@ -1701,6 +1714,7 @@ int smscore_gpio_get_level(struct smscor
+ 	pMsg->msgData[1] = 0;
+ 
+ 	/* Send message to SMS */
++	smsendian_handle_tx_message((struct SmsMsgHdr_ST *)pMsg);
+ 	rc = smscore_sendrequest_and_wait(coredev, pMsg, totalLen,
+ 			&coredev->gpio_get_level_done);
+ 
 
 
 
+      
