@@ -1,60 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110807.mail.gq1.yahoo.com ([67.195.13.230]:37984 "HELO
-	web110807.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752047AbZENTkI (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:52298 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754031AbZESFWU convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 May 2009 15:40:08 -0400
-Message-ID: <992118.47326.qm@web110807.mail.gq1.yahoo.com>
-Date: Thu, 14 May 2009 12:34:59 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [0905_21] Siano: smscards - assign gpio to HPG targets
-To: LinuxML <linux-media@vger.kernel.org>
+	Tue, 19 May 2009 01:22:20 -0400
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
+	"Shah, Hardik" <hardik.shah@ti.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"Jadav, Brijesh R" <brijesh.j@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+Date: Tue, 19 May 2009 00:22:14 -0500
+Subject: RE: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
+Message-ID: <A24693684029E5489D1D202277BE89443E17ECF5@dlee02.ent.ti.com>
+References: <1240381551-11012-1-git-send-email-hardik.shah@ti.com>,<5e9665e10905182153j105604fdydf4c3a10b5b416a9@mail.gmail.com>
+In-Reply-To: <5e9665e10905182153j105604fdydf4c3a10b5b416a9@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Nate,
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1242328393 -10800
-# Node ID 71c60eec8001438fee7e9f2e220a101576d6a219
-# Parent  9341c85c499e5052022ffd4ad154e912bffabe59
-[0905_21] Siano: smscards - assign gpio to HPG targets
+I have 1 input regarding your question:
 
-From: Uri Shkolnik <uris@siano-ms.com>
+>From: linux-media-owner@vger.kernel.org [linux-media-owner@vger.kernel.org] On Behalf Of Dongsoo, Nathaniel Kim [dongsoo.kim@gmail.com]
+>Sent: Tuesday, May 19, 2009 7:53 AM
+>To: Shah, Hardik
+>Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Jadav, Brijesh R; Hiremath, Vaibhav
+>Subject: Re: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
+>
+>Hello Hardik,
+>
+>Reviewing your driver, I found something made me curious.
+>
+>
+>On Wed, Apr 22, 2009 at 3:25 PM, Hardik Shah <hardik.shah@ti.com> wrote:
 
-Assign using the new gpio structures, i/o for exist HPG
-targets, without removing the old implementation.
+<snip>
 
-Priority: normal
+>> +/* Buffer setup function is called by videobuf layer when REQBUF ioctl is
+>> + * called. This is used to setup buffers and return size and count of
+>> + * buffers allocated. After the call to this buffer, videobuf layer will
+>> + * setup buffer queue depending on the size and count of buffers
+>> + */
+>> +static int omap_vout_buffer_setup(struct videobuf_queue *q, unsigned int *count,
+>> +                         unsigned int *size)
+>> +{
+>> +       struct omap_vout_device *vout = q->priv_data;
+>> +       int startindex = 0, i, j;
+>> +       u32 phy_addr = 0, virt_addr = 0;
+>> +
+>> +       if (!vout)
+>> +               return -EINVAL;
+>> +
+>> +       if (V4L2_BUF_TYPE_VIDEO_OUTPUT != q->type)
+>> +               return -EINVAL;
+>> +
+>> +       startindex = (vout->vid == OMAP_VIDEO1) ?
+>> +               video1_numbuffers : video2_numbuffers;
+>> +       if (V4L2_MEMORY_MMAP == vout->memory && *count < startindex)
+>> +               *count = startindex;
+>> +
+>> +       if ((rotation_enabled(vout->rotation)) && *count > 4)
+>> +               *count = 4;
+>> +
+>
+>
+>
+>This seems to be weird to me. If user requests multiple buffers more
+>than 4, user cannot recognize that the number of buffers requested is
+>forced to change into 4. I'm not sure whether this could be serious or
+>not, but it is obvious that user can have doubt about why if user have
+>no information about the OMAP H/W.
+>Is it really necessary to be configured to 4?
+>
+>
+>Cheers,
+>
+>Nate
+>
 
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+We did a very similar thing on omap3 camera driver, not exactly by the number of buffers requested, but more about checking if the bytesize of the total requested buffers was superior to the MMU fixed sized page table size capabilities to map that size, then we were limiting the number of buffers accordingly (for keeping the page table size fixed).
 
-diff -r 9341c85c499e -r 71c60eec8001 linux/drivers/media/dvb/siano/sms-cards.c
---- a/linux/drivers/media/dvb/siano/sms-cards.c	Thu May 14 22:06:52 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/sms-cards.c	Thu May 14 22:13:13 2009 +0300
-@@ -113,6 +113,9 @@ static struct sms_board sms_boards[] = {
- 		.name	= "Hauppauge WinTV MiniStick",
- 		.type	= SMS_NOVA_B0,
- 		.fw[DEVICE_MODE_DVBT_BDA] = "sms1xxx-hcw-55xxx-dvbt-02.fw",
-+		.board_cfg.leds_power = 26,
-+		.board_cfg.led0 = 27,
-+		.board_cfg.led1 = 28,
- 		.led_power = 26,
- 		.led_lo    = 27,
- 		.led_hi    = 28,
-@@ -122,7 +125,9 @@ static struct sms_board sms_boards[] = {
- 		.type	= SMS_NOVA_B0,
- 		.fw[DEVICE_MODE_DVBT_BDA] = "sms1xxx-hcw-55xxx-dvbt-02.fw",
- 		.lna_ctrl  = 29,
-+		.board_cfg.foreign_lna0_ctrl = 29,
- 		.rf_switch = 17,
-+		.board_cfg.rf_switch_uhf = 17,
- 	},
- 	[SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2] = {
- 		.name	= "Hauppauge WinTV MiniCard",
+According to the v4l2 spec, changing the count value should be valid, and it is the userspace app responsability to check the value again, to confirm how many of the requested buffers are actually available.
 
-
-
-      
+Regards,
+Sergio
