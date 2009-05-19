@@ -1,37 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:36328 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750971AbZESQ4X convert rfc822-to-8bit (ORCPT
+Received: from srv2.rent-a-guru.de ([212.86.204.162]:54911 "EHLO
+	mx02.rent-a-guru.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751190AbZESR5K (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2009 12:56:23 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 19 May 2009 11:55:52 -0500
-Subject: MT9T031 and other similar sub devices...
-Message-ID: <A69FA2915331DC488A831521EAE36FE401353CD3D6@dlee06.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Tue, 19 May 2009 13:57:10 -0400
+Received: from mx01 (dslb-088-067-117-079.pools.arcor-ip.net [88.67.117.79])
+	(authenticated bits=128)
+	by mx02.rent-a-guru.de (8.13.6/8.13.6) with ESMTP id n4JHmMAR210994095
+	for <linux-media@vger.kernel.org>; Tue, 19 May 2009 19:48:30 +0200 (CEST)
+Date: Tue, 19 May 2009 19:48:22 +0200
+From: Michael Stapelberg <michael+lm@stapelberg.de>
+To: linux-media@vger.kernel.org
+Subject: Problems with tuning (only after a while) and Nexus-S
+Message-ID: <20090519174822.GA1165@mx01>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Guennadi Liakhovetski,
+Hi,
 
-Thanks for your effort to migrate the sensor drivers to sub device framework.
+since some days I have problems with my Nexus-S v2.3 and tuning. dmesg says
+this about the adapter:
 
-We have interest in mt9t031 and other sensor drivers from Micron since this peripheral is used in our DM355/DM6446 EVMs as well. I have submitted a set of patches for our vpfe_capture driver to the media mailing list for review. This driver runs on DM355/DM6446 EVMs and is developed to use the sub device model to integrate with capture peripheral like TVP5146, MT9T001, MT9T031 etc. If you have a version of mt9t031 driver migrated to sub device, I would like to integrate that with our vpfe_capture driver.
+DVB: registering new adapter (Technotrend/Hauppauge WinTV Nexus-S rev2.3)
+adapter has MAC addr = 00:d0:5c:04:f4:2f
+dvb-ttpci: info @ card 0: firm f0240009, rtsl b0250018, vid 0f12623
+dvb-ttpci: firmware @ card 0 supports CI link layer interface
+dvb-ttpci: Crystal audio DAC @ card 0 detected
+saa7146_vv: saa7146 (0): registered device video0 [v4l2]
+saa7146_vv: saa7146 (0): registered device vbi0 [v4l2]
+DVB: registering adapter 0 frontend 0 (ST STV0299 DVB-S)...
+input: DVB on-card IR receiver as /class/input/input12
+dvb-ttpci: found av7110-0.
 
-I want to check following with you so as to be on the same page.
+Kernel version is 2.6.29, though this happened in my old machine with 2.6.22
+aswell. Firmware is dvb-ttpci-01.fw-2622
 
-1) I see that the mt9t001.c still uses struct soc_camera_device and calls soc_camera_video_start() to start the master. This introduces a reverse dependency from the sub device to bridge driver (correct me if I my understanding is wrong). I guess you plan to remove this dependency in your future patch. With this in the driver, it can't work with our driver since we don't have soc_camera_device. 
+After some hours of tuning (delay 5 seconds to stress-test the machine), it
+will not get further than FE_HAS_SIGNAL and FE_HAS_CARRIER. Only on the
+ProSiebenSat.1-transponder i still get a lock, which i find quite odd.
 
-2) vpfe_capture driver support raw bayer interface as well as raw yuv interface. Raw bayer interface can be 8-16 bits wide along with HD/VD/field lines. So in order for the bridge driver to configure the interface, it needs to know parameters like interface type (BT.656, BT.1120, Raw image data (8-16) etc), polarity of HD, VD, PCLK, field signals etc. Is there a infrastructure for handling this ? I mean, we should have a way of defining this per platform, which some how can be read by bridge driver to configure the interface to work with a specific sub device.
+Could it be the cable being badly shielded? Or may it be the LNB failing?
+We had some issues with an analog receiver (on the same LNB) displaying
+interferences.
 
-Regards,
+I already tried disconnecting the analog receiver to make sure it doesn’t
+interfere with the DVB card, but that wasn’t the problem.
 
-Murali Karicheri
-   
+Any other ideas what I could try?
 
+Enabling the debug options of the driver led to the following output:
+DVB: initialising adapter 0 frontend 0 (ST STV0299 DVB-S)...
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_get_event
+dvb_frontend_ioctl
+dvb_frontend_add_event
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_swzigzag_autotune: drift:0 inversion:0 auto_step:0 auto_sub_step:0 started_auto_step:0
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_add_event
+dvb_frontend_swzigzag_autotune: drift:0 inversion:1 auto_step:0 auto_sub_step:1 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:1718 inversion:1 auto_step:1 auto_sub_step:0 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:1718 inversion:0 auto_step:1 auto_sub_step:1 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:-1718 inversion:0 auto_step:1 auto_sub_step:2 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:-1718 inversion:1 auto_step:1 auto_sub_step:3 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:3436 inversion:1 auto_step:2 auto_sub_step:0 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:3436 inversion:0 auto_step:2 auto_sub_step:1 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:-3436 inversion:0 auto_step:2 auto_sub_step:2 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:-3436 inversion:1 auto_step:2 auto_sub_step:3 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:5154 inversion:1 auto_step:3 auto_sub_step:0 started_auto_step:0
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_swzigzag_autotune: drift:5154 inversion:0 auto_step:3 auto_sub_step:1 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:-5154 inversion:0 auto_step:3 auto_sub_step:2 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:-5154 inversion:1 auto_step:3 auto_sub_step:3 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:6872 inversion:1 auto_step:4 auto_sub_step:0 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:6872 inversion:0 auto_step:4 auto_sub_step:1 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:-6872 inversion:0 auto_step:4 auto_sub_step:2 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:-6872 inversion:1 auto_step:4 auto_sub_step:3 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:8590 inversion:1 auto_step:5 auto_sub_step:0 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:8590 inversion:0 auto_step:5 auto_sub_step:1 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:-8590 inversion:0 auto_step:5 auto_sub_step:2 started_auto_step:0
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_swzigzag_autotune: drift:-8590 inversion:1 auto_step:5 auto_sub_step:3 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:10308 inversion:1 auto_step:6 auto_sub_step:0 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:10308 inversion:0 auto_step:6 auto_sub_step:1 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:-10308 inversion:0 auto_step:6 auto_sub_step:2 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:-10308 inversion:1 auto_step:6 auto_sub_step:3 started_auto_step:0
+dvb_frontend_add_event
+dvb_frontend_swzigzag_autotune: drift:12026 inversion:1 auto_step:7 auto_sub_step:0 started_auto_step:0
+dvb_frontend_add_event
+dvb_frontend_swzigzag_autotune: drift:12026 inversion:0 auto_step:7 auto_sub_step:1 started_auto_step:0
+dvb_frontend_add_event
+dvb_frontend_swzigzag_autotune: drift:-12026 inversion:0 auto_step:7 auto_sub_step:2 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:-12026 inversion:1 auto_step:7 auto_sub_step:3 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:13744 inversion:1 auto_step:8 auto_sub_step:0 started_auto_step:0
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_swzigzag_autotune: drift:13744 inversion:0 auto_step:8 auto_sub_step:1 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:-13744 inversion:0 auto_step:8 auto_sub_step:2 started_auto_step:0
+dvb_frontend_swzigzag_autotune: drift:-13744 inversion:1 auto_step:8 auto_sub_step:3 started_auto_step:0
+dvb_frontend_swzigzag_update_delay
+dvb_frontend_swzigzag_autotune: drift:0 inversion:1 auto_step:0 auto_sub_step:0 started_auto_step:0
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_add_event
+dvb_frontend_swzigzag_update_delay
+vb_frontend_swzigzag_autotune: drift:0 inversion:0 auto_step:0 auto_sub_step:1 started_auto_step:0
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_add_event
+dvb_frontend_swzigzag_update_delay
+dvb_frontend_swzigzag_autotune: drift:1718 inversion:0 auto_step:1 auto_sub_step:0 started_auto_step:0
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_swzigzag_update_delay
+dvb_frontend_swzigzag_autotune: drift:1718 inversion:1 auto_step:1 auto_sub_step:1 started_auto_step:0
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_ioctl
+dvb_frontend_swzigzag_update_delay
+dvb_frontend_swzigzag_autotune: drift:-1718 inversion:1 auto_step:1 auto_sub_step:2 started_auto_step:0
+dvb_frontend_release
 
+Best regards,
+Michael
