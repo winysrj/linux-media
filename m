@@ -1,166 +1,250 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-04.arcor-online.net ([151.189.21.44]:41476 "EHLO
-	mail-in-04.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753563AbZEPB4s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 May 2009 21:56:48 -0400
-Subject: Re: Fixed (Was:Re: saa7134/2.6.26 regression, noisy output)
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Anders Eriksson <aeriksson@fastmail.fm>,
-	Steven Toth <stoth@linuxtv.org>,
-	Michael Krufky <mkrufky@linuxtv.org>, tomlohave@gmail.com
-Cc: linux-media@vger.kernel.org, video4linux-list@redhat.com,
-	Hartmut Hackmann <hartmut.hackmann@t-online.de>,
+Received: from web110810.mail.gq1.yahoo.com ([67.195.13.233]:44470 "HELO
+	web110810.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750987AbZESRJE convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 May 2009 13:09:04 -0400
+Message-ID: <853068.61996.qm@web110810.mail.gq1.yahoo.com>
+Date: Tue, 19 May 2009 10:09:05 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: Re: [PATCH] [09051_54] Siano: remove obsolete sms_board_setup
+To: Michael Krufky <mkrufky@linuxtv.org>
+Cc: linux-media <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <20090515091827.864A12C4167@tippex.mynet.homeunix.org>
-References: <20090503075609.0A73B2C4152@tippex.mynet.homeunix.org>
-	 <1241389925.4912.32.camel@pc07.localdom.local>
-	 <20090504091049.D931B2C4147@tippex.mynet.homeunix.org>
-	 <1241438755.3759.100.camel@pc07.localdom.local>
-	 <20090504195201.6ECF52C415B@tippex.mynet.homeunix.org>
-	 <1241565988.16938.15.camel@pc07.localdom.local>
-	 <20090507130055.E49D32C4165@tippex.mynet.homeunix.org>
-	 <20090510141614.D4A9C2C416C@tippex.mynet.homeunix.org>
-	 <20090515091827.864A12C4167@tippex.mynet.homeunix.org>
-Content-Type: text/plain
-Date: Sat, 16 May 2009 03:46:57 +0200
-Message-Id: <1242438418.3813.15.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Anders,
-
-Am Freitag, den 15.05.2009, 11:18 +0200 schrieb Anders Eriksson:
-> 
-> 
-> Success!
-> 
-> I've tracked down the offending change. switch_addr takes on the wrong value
-> and setting the LNA fails. Here's a i2c dump:
-> 
-> saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c xfer: < 20 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 84 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 86 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 94 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 96 >
-> saa7133[0]: i2c xfer: < 96 00 >
-> saa7133[0]: i2c xfer: < 97 =01 =01 =00 =11 =01 =04 =01 =85 >
-> saa7133[0]: i2c xfer: < 96 1f >
-> saa7133[0]: i2c xfer: < 97 =89 >
-> tda8290_probe: tda8290 detected @ 1-004b
-> tuner' 1-004b: tda829x detected
-> tuner' 1-004b: Setting mode_mask to 0x0e
-> tuner' 1-004b: chip found @ 0x96 (saa7133[0])
-> tuner' 1-004b: tuner 0x4b: Tuner type absent
-> tuner' i2c attach [addr=0x4b,client=(tuner unset)]
-> tuner' 1-004b: Calling set_type_addr for type=54, addr=0xff, mode=0x04, config=0x01
-> tuner' 1-004b: set addr for type -1
-> tuner' 1-004b: defining GPIO callback
-> saa7133[0]: i2c xfer: < 96 1f >
-> saa7133[0]: i2c xfer: < 97 =89 >
-> tda8290_probe: tda8290 detected @ 1-004b
-> saa7133[0]: i2c xfer: < 96 2f >
-> saa7133[0]: i2c xfer: < 97 =00 >
-> saa7133[0]: i2c xfer: < 96 21 c0 >
-> saa7133[0]: i2c xfer: < c1 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < c3 =88 >
-> saa7133[0]: i2c xfer: < c5 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < c7 ERROR: NO_DEVICE
-> saa7133[0]: i2c xfer: < 96 21 00 >
-> tda829x 1-004b: setting tuner address to 61
-> saa7133[0]: i2c xfer: < 96 21 c0 >
-> saa7133[0]: i2c xfer: < c3 =08 >
-> tda827x: tda827x_attach:
-> tda827x: type set to Philips TDA827X
-> saa7133[0]: i2c xfer: < c3 =08 >
-> tda827x: tda827xa tuner found
-> tda827x: tda827x_init:
-> tda827x: tda827xa_sleep:
-> saa7133[0]: i2c xfer: < c2 30 90 >
-> saa7133[0]: i2c xfer: < 96 21 00 >
-> tda829x 1-004b: type set to tda8290+75a
-> saa7133[0]: i2c xfer: < 96 21 c0 >
-> saa7133[0]: i2c xfer: < c2 00 00 00 00 dc 05 8b 0c 04 20 ff 00 00 4b >
-> saa7133[0]: i2c xfer: < 96 21 00 >
-> saa7133[0]: i2c xfer: < 96 20 01 >
-> saa7133[0]: i2c xfer: < 96 30 6f >
-> tuner' 1-004b: type set to tda8290+75a
-> tuner' 1-004b: tv freq set to 400.00
-> tda829x 1-004b: setting tda829x to system xx
-> tda829x 1-004b: tda827xa config is 0x01
-> saa7133[0]: i2c xfer: < 96 01 00 >
-> saa7133[0]: i2c xfer: < 96 02 00 >
-> saa7133[0]: i2c xfer: < 96 00 00 >
-> saa7133[0]: i2c xfer: < 96 01 90 >
-> saa7133[0]: i2c xfer: < 96 28 14 >
-> saa7133[0]: i2c xfer: < 96 0f 88 >
-> saa7133[0]: i2c xfer: < 96 05 04 >
-> saa7133[0]: i2c xfer: < 96 0d 47 >
-> saa7133[0]: i2c xfer: < 96 21 c0 >
-> tda827x: setting tda827x to system xx
-> tda827x: setting LNA to high gain
-> saa7133[0]: i2c xfer: < 96 22 00 >
->                         ^ This address is c2 in all kernels <= 5823b3a63c7661272ea7fef7635955e2a50d17eb
-> 
-> 
-> saa7133[0]: i2c xfer: < c2 00 32 f8 00 16 3b bb 1c 04 20 00 >
-> saa7133[0]: i2c xfer: < c2 90 ff e0 00 99 >
-> saa7133[0]: i2c xfer: < c2 a0 c0 >
-> saa7133[0]: i2c xfer: < c2 30 10 >
-> saa7133[0]: i2c xfer: < c3 =49 =a4 >
-> tda827x: AGC2 gain is: 10
->                        ^ The gain reported on good kernels is 3 
-> 
-> Looking at the source, the switch_addr to use in the later kernels is somehow 
-> autodetected. How that's done, I've yet to fully understand, but somehow it 
-> comes up with the wrong address.
-> 
-> This patch (which obviously needs improvement) hardwires the address back to 
-> its original value, and works for 2.6.30-rc5.
-> 
-> diff --git a/drivers/media/common/tuners/tda8290.c b/drivers/media/common/tuners/tda8290.c
-> index 064d14c..498cc7b 100644
-> --- a/drivers/media/common/tuners/tda8290.c
-> +++ b/drivers/media/common/tuners/tda8290.c
-> @@ -635,7 +635,11 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
->  
->                 dvb_attach(tda827x_attach, fe, priv->tda827x_addr,
->                            priv->i2c_props.adap, &priv->cfg);
-> +               tuner_info("ANDERS: setting switch_addr. was 0x%02x, new 0x%02x\n",priv->cfg.switch_addr,priv->i2c_props.addr);
->                 priv->cfg.switch_addr = priv->i2c_props.addr;
-> +               priv->cfg.switch_addr = 0xc2 / 2;
-> +               tuner_info("ANDERS: new 0x%02x\n",priv->cfg.switch_addr);
-> +
->         }
->         if (fe->ops.tuner_ops.init)
->                 fe->ops.tuner_ops.init(fe);
-> 
-> 
-> Could you please help me out and shed some light on what the proper fix is for 
-> setting switch_addr? 
-> 
-> Thanks,
-> /Anders
-> 
-
-thanks a lot for all your time and energy you did spend on this.
-
-I suggest we start collecting photographs of different LNA circuits on
-the wiki.
-
-For now, Tom offered his support already off list, I think we should
-start about the question, if that early Hauppauge HVR 1110 has such an
-LNA type one at all, since this caused to not look at it further, as it
-seemed to be without problems.
-
-Tom, I know you carefully worked on it, but can you reassure that this
-LNA config one is really needed on your device?
-
-Cheers,
-Hermann
 
 
+
+--- On Tue, 5/19/09, Michael Krufky <mkrufky@linuxtv.org> wrote:
+
+> From: Michael Krufky <mkrufky@linuxtv.org>
+> Subject: Re: [PATCH] [09051_54] Siano: remove obsolete sms_board_setup
+> To: "Uri Shkolnik" <urishk@yahoo.com>
+> Cc: "linux-media" <linux-media@vger.kernel.org>, "Mauro Carvalho Chehab" <mchehab@infradead.org>
+> Date: Tuesday, May 19, 2009, 8:02 PM
+> On Tue, May 19, 2009 at 12:57 PM, Uri
+> Shkolnik <urishk@yahoo.com>
+> wrote:
+> >
+> >
+> >
+> > --- On Tue, 5/19/09, Michael Krufky <mkrufky@linuxtv.org>
+> wrote:
+> >
+> >> From: Michael Krufky <mkrufky@linuxtv.org>
+> >> Subject: Re: [PATCH] [09051_54] Siano: remove
+> obsolete sms_board_setup
+> >> To: "Uri Shkolnik" <urishk@yahoo.com>
+> >> Cc: "LinuxML" <linux-media@vger.kernel.org>,
+> "Mauro Carvalho Chehab" <mchehab@infradead.org>
+> >> Date: Tuesday, May 19, 2009, 7:31 PM
+> >> On Tue, May 19, 2009 at 12:15 PM, Uri
+> >> Shkolnik <urishk@yahoo.com>
+> >> wrote:
+> >> >
+> >> > # HG changeset patch
+> >> > # User Uri Shkolnik <uris@siano-ms.com>
+> >> > # Date 1242749967 -10800
+> >> > # Node ID
+> 0296b0c436d6deba48c710cfb510988267cea057
+> >> > # Parent
+>  dfcfb90798d3a27cb174019b17fffdee9ce7b2b9
+> >> > [09051_54] Siano: remove obsolete
+> sms_board_setup
+> >> >
+> >> > From: Uri Shkolnik <uris@siano-ms.com>
+> >> >
+> >> > Remove the target specific sms_board_setup
+> from
+> >> smsdvb. This
+> >> > is handled now via smsdvb and sms-cards
+> events.
+> >> >
+> >> > Priority: normal
+> >> >
+> >> > Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+> >> >
+> >> > diff -r dfcfb90798d3 -r 0296b0c436d6
+> >> linux/drivers/media/dvb/siano/sms-cards.c
+> >> > ---
+> a/linux/drivers/media/dvb/siano/sms-cards.c Tue
+> >> May 19 19:05:02 2009 +0300
+> >> > +++
+> b/linux/drivers/media/dvb/siano/sms-cards.c Tue
+> >> May 19 19:19:27 2009 +0300
+> >> > @@ -303,28 +303,6 @@ static int
+> sms_set_gpio(struct
+> >> smscore_d
+> >> >        return smscore_set_gpio(coredev,
+> gpio,
+> >> lvl);
+> >> >  }
+> >> >
+> >> > -int sms_board_setup(struct smscore_device_t
+> >> *coredev)
+> >> > -{
+> >> > -       int board_id =
+> >> smscore_get_board_id(coredev);
+> >> > -       struct sms_board *board =
+> >> sms_get_board(board_id);
+> >> > -
+> >> > -       switch (board_id) {
+> >> > -       case
+> SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
+> >> > -               /* turn off all LEDs
+> */
+> >> > -               sms_set_gpio(coredev,
+> >> board->led_power, 0);
+> >> > -               sms_set_gpio(coredev,
+> >> board->led_hi, 0);
+> >> > -               sms_set_gpio(coredev,
+> >> board->led_lo, 0);
+> >> > -               break;
+> >> > -       case
+> >> SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
+> >> > -       case
+> >> SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
+> >> > -               /* turn off LNA */
+> >> > -               sms_set_gpio(coredev,
+> >> board->lna_ctrl, 0);
+> >> > -               break;
+> >> > -       }
+> >> > -       return 0;
+> >> > -}
+> >> > -EXPORT_SYMBOL_GPL(sms_board_setup);
+> >> > -
+> >> >  int sms_board_power(struct
+> smscore_device_t
+> >> *coredev, int onoff)
+> >> >  {
+> >> >        int board_id =
+> >> smscore_get_board_id(coredev);
+> >> > diff -r dfcfb90798d3 -r 0296b0c436d6
+> >> linux/drivers/media/dvb/siano/sms-cards.h
+> >> > ---
+> a/linux/drivers/media/dvb/siano/sms-cards.h Tue
+> >> May 19 19:05:02 2009 +0300
+> >> > +++
+> b/linux/drivers/media/dvb/siano/sms-cards.h Tue
+> >> May 19 19:19:27 2009 +0300
+> >> > @@ -109,8 +109,6 @@ int
+> sms_board_event(struct
+> >> smscore_devic
+> >> >  int sms_board_event(struct
+> smscore_device_t
+> >> *coredev,
+> >> >                enum SMS_BOARD_EVENTS
+> gevent);
+> >> >
+> >> > -int sms_board_setup(struct smscore_device_t
+> >> *coredev);
+> >> > -
+> >> >  #define SMS_LED_OFF 0
+> >> >  #define SMS_LED_LO  1
+> >> >  #define SMS_LED_HI  2
+> >> > diff -r dfcfb90798d3 -r 0296b0c436d6
+> >> linux/drivers/media/dvb/siano/smsdvb.c
+> >> > --- a/linux/drivers/media/dvb/siano/smsdvb.c
+>    Tue
+> >> May 19 19:05:02 2009 +0300
+> >> > +++ b/linux/drivers/media/dvb/siano/smsdvb.c
+>    Tue
+> >> May 19 19:19:27 2009 +0300
+> >> > @@ -600,7 +600,6 @@ static int
+> smsdvb_hotplug(struct
+> >> smscore
+> >> >        sms_board_dvb3_event(client,
+> >> DVB3_EVENT_HOTPLUG);
+> >> >
+> >> >        sms_info("success");
+> >> > -       sms_board_setup(coredev);
+> >> >
+> >> >        return 0;
+> >> >
+> >> >
+> >> >
+> >> >
+> >> >
+> >> > --
+> >> > To unsubscribe from this list: send the line
+> >> "unsubscribe linux-media" in
+> >> > the body of a message to majordomo@vger.kernel.org
+> >> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >> >
+> >>
+> >>
+> >>
+> >> NACK.
+> >>
+> >>
+> >> This changes the behavior of the Hauppauge
+> devices.
+> >> Let Uri get all
+> >> his other stuff in place first, and THEN we can
+> look at
+> >> this
+> >> separately.
+> >>
+> >> In addition, this changeset was merged WITHOUT my
+> ack:
+> >>
+> >> http://linuxtv.org/hg/v4l-dvb/rev/37969546eee8 -
+> Siano:
+> >> smscards -
+> >> assign gpio to HPG targets
+> >>
+> >> That changeset 37969546eee8 alone does not cause
+> any change
+> >> in
+> >> behavior, but with Uri's patches from today it
+> will change
+> >> the
+> >> Hauppauge device behavior.
+> >>
+> >> That patch should be reverted and dealt with
+> separately,
+> >> after Uri is
+> >> finished with his other changes.
+> >>
+> >> -Mike
+> >>
+> >
+> > Mike,
+> >
+> > Please note that the Hauppauge device behavior has
+> been merged to the board_event()  **prior** to this patch.
+> >
+> > I did my best to follow the logic, I might be wrong
+> (please check).
+> >
+> > This patch is remove *duplicate* led setting, etc...
+> 
+> Uri,
+> 
+> I nack'd that patch as well.  Please don't change the
+> Hauppauge device
+> behavior -- those changesets break the device
+> functionality.
+> 
+> Please get all of your core changes in first, then we can
+> look at
+> device-specifics separately.
+> 
+> Regards,
+> 
+> Mike
+> 
+
+Mike all "core" changes are in place. After patch #58, the to-be v4l mercurial tree and the Siano subversion tree are identical regarding the code which we would like to commit.
+
+Regards,
+
+Uri
+
+
+      
