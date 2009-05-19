@@ -1,91 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:56403 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751236AbZE2GIu (ORCPT
+Received: from mail-ew0-f224.google.com ([209.85.219.224]:52843 "EHLO
+	mail-ew0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752744AbZESSQU convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 May 2009 02:08:50 -0400
-Date: Fri, 29 May 2009 09:03:59 +0300
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: ext Douglas Schilling Landgraf <dougsland@gmail.com>
-Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCHv4 0 of 8] FM Transmitter (si4713) and another changes
-Message-ID: <20090529060359.GC12102@esdhcp037198.research.nokia.com>
-Reply-To: eduardo.valentin@nokia.com
-References: <1243416955-29748-1-git-send-email-eduardo.valentin@nokia.com> <20090529023620.7497f10d@gmail.com>
+	Tue, 19 May 2009 14:16:20 -0400
+Received: by ewy24 with SMTP id 24so5079622ewy.37
+        for <linux-media@vger.kernel.org>; Tue, 19 May 2009 11:16:20 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090529023620.7497f10d@gmail.com>
+In-Reply-To: <392953.59542.qm@web110810.mail.gq1.yahoo.com>
+References: <392953.59542.qm@web110810.mail.gq1.yahoo.com>
+Date: Tue, 19 May 2009 14:16:20 -0400
+Message-ID: <37219a840905191116j5502f092p8ff25fdf40b26dcb@mail.gmail.com>
+Subject: Re: [PATCH] [09051_47] Siano: smsdvb - add DVB v3 events
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Uri Shkolnik <urishk@yahoo.com>
+Cc: LinuxML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Douglas,
+On Tue, May 19, 2009 at 1:05 PM, Uri Shkolnik <urishk@yahoo.com> wrote:
+>
+>
+>
+> --- On Tue, 5/19/09, Michael Krufky <mkrufky@linuxtv.org> wrote:
+>
+>> From: Michael Krufky <mkrufky@linuxtv.org>
+>> Subject: Re: [PATCH] [09051_47] Siano: smsdvb - add DVB v3 events
+>> To: "Uri Shkolnik" <urishk@yahoo.com>
+>> Cc: "LinuxML" <linux-media@vger.kernel.org>, "Mauro Carvalho Chehab" <mchehab@infradead.org>
+>> Date: Tuesday, May 19, 2009, 7:18 PM
+>> On Tue, May 19, 2009 at 11:28 AM, Uri
+>> Shkolnik <urishk@yahoo.com>
+>> wrote:
+>> >
+>> > # HG changeset patch
+>> > # User Uri Shkolnik <uris@siano-ms.com>
+>> > # Date 1242747164 -10800
+>> > # Node ID 971d4cc0d4009650bd4752c6a9fc09755ef77baf
+>> > # Parent  98895daafb42f8b0757fd608b29c53c80327520e
+>> > [09051_47] Siano: smsdvb - add DVB v3 events
+>> >
+>> > From: Uri Shkolnik <uris@siano-ms.com>
+>> >
+>> > Add various DVB-API v3 events, those events will trig
+>> > target (card) events.
+>> >
+>> > Priority: normal
+>> >
+>> > Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+>> >
+>> > diff -r 98895daafb42 -r 971d4cc0d400
+>> linux/drivers/media/dvb/siano/smsdvb.c
+>> > --- a/linux/drivers/media/dvb/siano/smsdvb.c    Tue
+>> May 19 18:27:38 2009 +0300
+>> > +++ b/linux/drivers/media/dvb/siano/smsdvb.c    Tue
+>> May 19 18:32:44 2009 +0300
+>> > @@ -66,6 +66,54 @@ MODULE_PARM_DESC(debug, "set debug
+>> level
+>> >  /* Events that may come from DVB v3 adapter */
+>> >  static void sms_board_dvb3_event(struct
+>> smsdvb_client_t *client,
+>> >                enum SMS_DVB3_EVENTS event) {
+>> > +
+>> > +       struct smscore_device_t *coredev =
+>> client->coredev;
+>> > +       switch (event) {
+>> > +       case DVB3_EVENT_INIT:
+>> > +               sms_debug("DVB3_EVENT_INIT");
+>> > +               sms_board_event(coredev,
+>> BOARD_EVENT_BIND);
+>> > +               break;
+>> > +       case DVB3_EVENT_SLEEP:
+>> > +               sms_debug("DVB3_EVENT_SLEEP");
+>> > +               sms_board_event(coredev,
+>> BOARD_EVENT_POWER_SUSPEND);
+>> > +               break;
+>> > +       case DVB3_EVENT_HOTPLUG:
+>> > +
+>> sms_debug("DVB3_EVENT_HOTPLUG");
+>> > +               sms_board_event(coredev,
+>> BOARD_EVENT_POWER_INIT);
+>> > +               break;
+>> > +       case DVB3_EVENT_FE_LOCK:
+>> > +               if (client->event_fe_state
+>> != DVB3_EVENT_FE_LOCK) {
+>> > +
+>> client->event_fe_state = DVB3_EVENT_FE_LOCK;
+>> > +
+>> sms_debug("DVB3_EVENT_FE_LOCK");
+>> > +
+>> sms_board_event(coredev, BOARD_EVENT_FE_LOCK);
+>> > +               }
+>> > +               break;
+>> > +       case DVB3_EVENT_FE_UNLOCK:
+>> > +               if (client->event_fe_state
+>> != DVB3_EVENT_FE_UNLOCK) {
+>> > +
+>> client->event_fe_state = DVB3_EVENT_FE_UNLOCK;
+>> > +
+>> sms_debug("DVB3_EVENT_FE_UNLOCK");
+>> > +
+>> sms_board_event(coredev, BOARD_EVENT_FE_UNLOCK);
+>> > +               }
+>> > +               break;
+>> > +       case DVB3_EVENT_UNC_OK:
+>> > +               if (client->event_unc_state
+>> != DVB3_EVENT_UNC_OK) {
+>> > +
+>> client->event_unc_state = DVB3_EVENT_UNC_OK;
+>> > +
+>> sms_debug("DVB3_EVENT_UNC_OK");
+>> > +
+>> sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_OK);
+>> > +               }
+>> > +               break;
+>> > +       case DVB3_EVENT_UNC_ERR:
+>> > +               if (client->event_unc_state
+>> != DVB3_EVENT_UNC_ERR) {
+>> > +
+>> client->event_unc_state = DVB3_EVENT_UNC_ERR;
+>> > +
+>> sms_debug("DVB3_EVENT_UNC_ERR");
+>> > +
+>> sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_ERRORS);
+>> > +               }
+>> > +               break;
+>> > +
+>> > +       default:
+>> > +               sms_err("Unknown dvb3 api
+>> event");
+>> > +               break;
+>> > +       }
+>> >  }
+>> >
+>> >  static int smsdvb_onresponse(void *context, struct
+>> smscore_buffer_t *cb)
+>> >
+>> >
+>> >
+>> >
+>> > --
+>> > To unsubscribe from this list: send the line
+>> "unsubscribe linux-media" in
+>> > the body of a message to majordomo@vger.kernel.org
+>> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> >
+>>
+>>
+>>
+>> Uri,
+>>
+>> I don't understand what prompts you to call these "DVB v3
+>> events" ...
+>> what does this have to do with DVB API v3 at all?
+>> Your idea seems to
+>> be in the right direction, but this "DVBV3" nomenclature is
+>> a total
+>> misnomer.
+>>
+>> I think something along the lines of SMSBOARD_EVENT_FOO is
+>> more appropriate.
+>>
+>> Regards,
+>>
+>> Mike
+>>
+>
+> Mike,
+>
+> Within the DVB version 3 adapter, there is events manager, and the name we put on it is  "dvb3_event", I think its OK....
+>
+> Uri
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-On Fri, May 29, 2009 at 07:36:20AM +0200, ext Douglas Schilling Landgraf wrote:
-> Hello Eduardo,
-> 
-> On Wed, 27 May 2009 12:35:47 +0300
-> Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
-> 
-> > Hello all,
-> > 
-> >   I'm resending the FM transmitter driver and the proposed changes in
-> > v4l2 api files in order to cover the fmtx extended controls class.
-> > 
-> >   It is basically the same series of version #3. However I rewrote it
-> > to add the following comments:
-> > 
-> >   * Check kernel version for i2c helper function. Now the board data
-> > is passed not using i2c_board_info. This way all supported kernel
-> > versions can use the api. Besides that, the .s_config callback was
-> > added in core ops.
-> > 
-> >   * All patches are against v4l-dvb hg repository.
-> > 
-> >   Again, comments are welcome.
-> 
-> 
-> I have a comment, please check some headers to avoid errors. 
-> 
-> Instead of:
-> 
-> patch 05:
-> 
-> #include <media/linux/v4l2-device.h>
-> #include <media/linux/v4l2-ioctl.h>
-> #include <media/linux/v4l2-i2c-drv.h>
-> #include <media/linux/v4l2-subdev.h>
-> 
-> patch 06:
-> 
-> #include <media/linux/v4l2-device.h>
-> #include <media/linux/v4l2-common.h>
-> #include <media/linux/v4l2-ioctl.h>
-> 
-> Please use:
-> 
-> #include <media/v4l2-device.h>
-> #include <media/v4l2-ioctl.h>
-> #include <media/v4l2-i2c-drv.h>
-> #include <media/v4l2-subdev.h>
-> 
-> and
-> 
-> #include <media/v4l2-device.h>
-> #include <media/v4l2-common.h>
-> #include <media/v4l2-ioctl.h>
+I disagree.  Your naming implies that these structures are on the
+subsystem level, and they have nothing to do with DVB3 anyway -- these
+are board related events.  "dvb3_event" is a total misnomer.
 
-Right, I'll re send it.
-
-Thanks for reviewing.
-
-> 
-> Cheers,
-> Douglas
-
--- 
-Eduardo Valentin
+-Mike
