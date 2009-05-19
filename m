@@ -1,84 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from deliverator4.ecc.gatech.edu ([130.207.185.174]:36170 "EHLO
-	deliverator4.ecc.gatech.edu" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751884AbZEMNug (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:17166 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751385AbZESIKi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2009 09:50:36 -0400
-Received: from deliverator4.ecc.gatech.edu (localhost [127.0.0.1])
-	by localhost (Postfix) with SMTP id 6A9A15E4255
-	for <linux-media@vger.kernel.org>; Wed, 13 May 2009 09:50:37 -0400 (EDT)
-Received: from mail1.gatech.edu (bigip.ecc.gatech.edu [130.207.185.140])
-	by deliverator4.ecc.gatech.edu (Postfix) with ESMTP id 6F0C25E416A
-	for <linux-media@vger.kernel.org>; Wed, 13 May 2009 09:50:36 -0400 (EDT)
-Received: from [192.168.2.131] (bigip.ecc.gatech.edu [130.207.185.140])
-	(Authenticated sender: gtg131s)
-	by mail1.gatech.edu (Postfix) with ESMTP id 4D220C2F2D
-	for <linux-media@vger.kernel.org>; Wed, 13 May 2009 09:50:36 -0400 (EDT)
-Message-ID: <4A0AD02B.6000208@gatech.edu>
-Date: Wed, 13 May 2009 09:50:35 -0400
-From: David Ward <david.ward@gatech.edu>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: OpenSuse 11.1 + v4l
-References: <20090513072719.48980@gmx.net>
-In-Reply-To: <20090513072719.48980@gmx.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+	Tue, 19 May 2009 04:10:38 -0400
+Subject: Re: [PATCH 0/2] V4L: Add BCM2048 radio driver
+From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+Reply-To: ext-eero.nurkkala@nokia.com
+To: ext Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <200905120910.29214.hverkuil@xs4all.nl>
+References: <1242024079959-git-send-email-ext-eero.nurkkala@nokia.com>
+	 <200905120851.48875.hverkuil@xs4all.nl>
+	 <1242111822.19944.75.camel@eenurkka-desktop>
+	 <200905120910.29214.hverkuil@xs4all.nl>
+Content-Type: text/plain
+Date: Tue, 19 May 2009 11:09:09 +0300
+Message-Id: <1242720549.19944.140.camel@eenurkka-desktop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/13/2009 03:27 AM, Peter Forstmeier wrote:
-> Hi,
-> i tried to build v4l and did tho following:
->
-> peter@linux-d9lb:~>  hg clone http://linuxtv.org/hg/v4l-dvb
-> destination directory: v4l-dvb
-> requesting all changes
-> adding changesets
-> adding manifests
-> adding file changes
-> added 11759 changesets with 29793 changes to 2019 files
-> updating working directory
-> 1448 files updated, 0 files merged, 0 files removed, 0 files unresolved
-> peter@linux-d9lb:~>  hg clone http://linuxtv.org/hg/dvb-apps
-> destination directory: dvb-apps
-> requesting all changes
-> adding changesets
-> adding manifests
-> adding file changes
-> added 1275 changesets with 5390 changes to 1814 files
-> updating working directory
-> 1315 files updated, 0 files merged, 0 files removed, 0 files unresolved peter@linux-d9lb:~>  cd v4l-dvb peter@linux-d9lb:~/v4l-dvb>  hg pull -u http://linuxtv.org/hg/v4l-dvb
-> pulling from http://linuxtv.org/hg/v4l-dvb
-> searching for changes
-> no changes found
->
-> Doing 'make'
->
->      make make -C /home/peter/v4l-dvb/v4l
-> make[1]: Entering directory `/home/peter/v4l-dvb/v4l'
-> No version yet, using 2.6.27.7-9-pae
-> make[1]: Leaving directory `/home/peter/v4l-dvb/v4l'
-> make[1]: Entering directory `/home/peter/v4l-dvb/v4l'
-> scripts/make_makefile.pl
-> Updating/Creating .config
-> Preparing to compile for kernel version 2.6.27 File not found: /lib/modules/2.6.27.7-9-pae/build/.config at ./scripts/make_kconfig.pl line 32,<IN>  line 4.
-> make[1]: Leaving directory `/home/peter/v4l-dvb/v4l'
-> make[1]: Entering directory `/home/peter/v4l-dvb/v4l'
-> Updating/Creating .config
-> Preparing to compile for kernel version 2.6.27 File not found: /lib/modules/2.6.27.7-9-pae/build/.config at ./scripts/make_kconfig.pl line 32,<IN>  line 4.
-> make[1]: *** Keine Regel vorhanden, um das Target ».myconfig«,
->    benötigt von »config-compat.h«, zu erstellen.  Schluss.
-> make[1]: Leaving directory `/home/peter/v4l-dvb/v4l'
-> make: *** [all] Fehler 2
-> peter@linux-d9lb:~/v4l-dvb>
->
-> Any idea's about that.
->
-> Thanks
-> Peter
->    
-I believe you do not have the kernel header files installed.  Under 
-OpenSUSE it looks like there isn't a separate package for the kernel 
-headers, so you just need to install the full kernel sources instead 
-(the kernel-source RPM).
+On Tue, 2009-05-12 at 09:10 +0200, ext Hans Verkuil wrote:
+> On Tuesday 12 May 2009 09:03:42 Eero Nurkkala wrote:
+> > On Tue, 2009-05-12 at 08:51 +0200, ext Hans Verkuil wrote:
+> > > I recommend that you move the RDS decoder code into an rds library in
+> > > the v4l2-apps directory of the v4l-dvb tree. As you say, the rds
+> > > decoder implementation does not belong in the driver, but it would be
+> > > very nice to have it as a library.
+> >
+> > Quick question, is there a RDS decoder library already out there?
+> > Or would it be the case it needs to be done from the scratch?
+> 
+> Yes, here: http://rdsd.berlios.de/
+> 
+> However, it's badly written and overly complicated. We need something much 
+> simpler, doing just the basic decoding.
+> 
+
+Ok. I checked these libraries. Quickly looking they appear somewhat
+complicated as you mentioned. That's written in c++ like convention...
+
+If I'd have time, I'd redo all of that =)
+
+> > > Such region tables do not belong in a driver IMHO. These too should go
+> > > to a userspace library (libv4l2util? It already contains frequency
+> > > tables for TV).
+> >
+> > That's correct. Is there a link to this library?
+> 
+> It's in the v4l2-apps directory of the main v4l-dvb repository.
+> 
+> > > A more general comment: this driver should be split into two parts: the
+> > > radio tuner core should really be implemented using the tuner API
+> > > similar to the tea5767 radio tuner driver. That way this radio tuner
+> > > driver can be reused when it is placed on e.g. a TV tuner card.
+> > > However, the tuner API is missing functionality for e.g. RDS.
+> > > Alternatively, the core driver can be rewritten as an v4l2_subdev
+> > > driver, again allowing reuse in other drivers.
+> >
+> > Hmm. This chip is integrated on Bluetooth silicon, so could you please
+> > elaborate how it could be reused with a TV tuner? (Maybe I didn't just
+> > get the point, or if the manufacturer decides to integrate (in the
+> > future) the chip with TV tuner card, or someone wishes to use other
+> > manufacturers' TV tuner, but this radio chip at the same time?)
+> 
+> Hmm, I need to think about this. BTW, is there a datasheet of some kind 
+> available for this chip?
+> 
+
+I could try arrange you one if you really wish and need to have one?
+
+> Regards,
+> 
+> 	Hans
+> 
+
+
