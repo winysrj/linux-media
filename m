@@ -1,64 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:38595 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752834AbZEBAD4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 May 2009 20:03:56 -0400
-Date: Fri, 1 May 2009 19:03:55 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Alexey Klimov <klimov.linux@gmail.com>
-cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Mike Isely <isely@isely.net>
-Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS,  2.6.16-2.6.21:
- ERRORS
-In-Reply-To: <208cbae30904301320u4e8e594aw6eb8ce2ed7c507cf@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0905011901500.15541@cnc.isely.net>
-References: <200904191818.n3JIISWN021959@smtp-vbr12.xs4all.nl>
- <208cbae30904191542l4e3996cejf1df9cadfb187dfe@mail.gmail.com>
- <Pine.LNX.4.64.0904191849280.19718@cnc.isely.net>
- <208cbae30904301320u4e8e594aw6eb8ce2ed7c507cf@mail.gmail.com>
+Received: from web110811.mail.gq1.yahoo.com ([67.195.13.234]:40559 "HELO
+	web110811.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753129AbZESSSc convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 May 2009 14:18:32 -0400
+Message-ID: <349664.18832.qm@web110811.mail.gq1.yahoo.com>
+Date: Tue, 19 May 2009 11:18:32 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: Re: [PATCH] [09051_40] Siano - kconfig update
+To: Michael Krufky <mkrufky@linuxtv.org>
+Cc: LinuxML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811561-1650566038-1241222635=:15541"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
----1463811561-1650566038-1241222635=:15541
-Content-Type: TEXT/PLAIN; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
 
-On Fri, 1 May 2009, Alexey Klimov wrote:
 
-> Hello,
-> 
-> On Mon, Apr 20, 2009 at 3:59 AM, Mike Isely <isely@isely.net> wrote:
+--- On Tue, 5/19/09, Michael Krufky <mkrufky@linuxtv.org> wrote:
 
-   [...]
-
+> From: Michael Krufky <mkrufky@linuxtv.org>
+> Subject: Re: [PATCH] [09051_40] Siano - kconfig update
+> To: "Uri Shkolnik" <urishk@yahoo.com>
+> Cc: "LinuxML" <linux-media@vger.kernel.org>, "Mauro Carvalho Chehab" <mchehab@infradead.org>
+> Date: Tuesday, May 19, 2009, 6:47 PM
+> On Tue, May 19, 2009 at 7:58 AM, Uri
+> Shkolnik <urishk@yahoo.com>
+> wrote:
 > >
-> > So the kernel already has this; it just needs to be pulled back into
-> > v4l-dvb.  It's an obvious trivial thing for now and I've acked it there.
-> > Obviously we're getting had here because you're compiling against a
-> > kernel snapshot that's been changed but v4l-dvb doesn't have the
-> > corresponding change in its local copy of the pvrusb2 driver.  Part of
-> > the fun of synchronizing changes from different trees :-(
+> > # HG changeset patch
+> > # User Uri Shkolnik <uris@siano-ms.com>
+> > # Date 1242734522 -10800
+> > # Node ID c74502f4c8e97bd9cec9656793bbabc11fb72ab4
+> > # Parent  315bc4b65b4f527c4f9bc4fe3290e10f07975437
+> > [09051_40] Siano - kconfig update
+> >
+> > From: Uri Shkolnik <uris@siano-ms.com>
+> >
+> > This patches comes to solve the comments on Siano's
+> patch
+> > 0905_10. It updates the kconfig to support
+> multi-modules build.
+> > Note that the dependency on dvb_core is for the
+> (sms)dvb module
+> > alone, since the drivers set may work with another
+> adapter.
+> >
+> > Priority: normal
+> >
+> > Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+> >
+> > diff -r 315bc4b65b4f -r c74502f4c8e9
+> linux/drivers/media/dvb/siano/Kconfig
+> > --- a/linux/drivers/media/dvb/siano/Kconfig     Sun
+> May 17 12:28:55 2009 +0000
+> > +++ b/linux/drivers/media/dvb/siano/Kconfig     Tue
+> May 19 15:02:02 2009 +0300
+> > @@ -2,25 +2,40 @@
+> >  # Siano Mobile Silicon Digital TV device
+> configuration
+> >  #
+> >
+> > -config DVB_SIANO_SMS1XXX
+> > -       tristate "Siano SMS1XXX USB dongle
+> support"
+> > -       depends on DVB_CORE && USB
+> > +config SMS_SIANO_MDTV
+> > +       tristate "Siano SMS1xxx based MDTV
+> receiver"
+> > +       default m
+> >        ---help---
+> > -         Choose Y here if you have a USB dongle
+> with a SMS1XXX chipset.
+> > +       Choose Y or M here if you have MDTV
+> receiver with a Siano chipset.
+> >
+> > -         To compile this driver as a module,
+> choose M here: the
+> > -         module will be called sms1xxx.
+> > +       To compile this driver as a module, choose
+> M here
+> > +       (The modules will be called smsmdtv).
+> >
+> > -config DVB_SIANO_SMS1XXX_SMS_IDS
+> > -       bool "Enable support for Siano Mobile
+> Silicon default USB IDs"
+> > -       depends on DVB_SIANO_SMS1XXX
+> > -       default y
+> > +       Note: All dependents, if selected, will be
+> part of this module.
+> > +
+> > +       Further documentation on this driver can be
+> found on the WWW
+> > +       at http://www.siano-ms.com/
+> > +
+> > +if SMS_SIANO_MDTV
+> > +menu "Siano module components"
+> > +
+> > +# Kernel sub systems support
+> > +config SMS_DVB3_SUBSYS
+> > +       tristate "DVB v.3 Subsystem support"
+> > +       depends on DVB_CORE
+> > +       default m if DVB_CORE
+> >        ---help---
+> > -         Choose Y here if you have a USB dongle
+> with a SMS1XXX chipset
+> > -         that uses Siano Mobile Silicon's default
+> usb vid:pid.
+> > +       Choose if you would like to have DVB v.3
+> kernel sub-system support.
+> >
+> > -         Choose N here if you would prefer to use
+> Siano's external driver.
+> > +# Hardware interfaces support
+> >
+> > -         Further documentation on this driver can
+> be found on the WWW at
+> > -         <http://www.siano-ms.com/>.
+> > +config SMS_USB_DRV
+> > +       tristate "USB interface support"
+> > +       depends on USB
+> > +       default m if USB
+> > +       ---help---
+> > +       Choose if you would like to have Siano's
+> support for USB interface
+> >
+> > +
+> > +endmenu
+> > +endif # SMS_SIANO_MDTV
+> >
+> >
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line
+> "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
 > 
-> Well, good to know that this thing is already fixed.
-> I'm very sorry for the mess.
+> 
+> 
+> I have two concerns with this patch...
+> 
+> 
+> Issue #1, I dont see why it's important to rename the
+> Kconfig symbol
+> from DVB_SIANO_SMS1XXX to SMS_SIANO_MDTV -- This will just
+> cause
+> breakage of "make oldconfig" in the kernel with no real
+> benefit.
+> 
+> Issue #2, a much bigger issue.....  This patch implies
+> that the Siano
+> driver can be built *with* DVB "v3" support, or without
+> it.  Why would
+> a linux user ever want to built this driver without support
+> for the
+> DVB API ?  (that's a loaded question) ...  Does
+> Siano intend to push
+> their proprietary API into the kernel?
+> 
+> -Mike
+> 
 
-No apology needed.  Really - this "mess" wasn't caused by you.  If 
-anything I should have just immediately pulled that patch into hg and 
-not waited for it to trickle back to Mauro.  That would have avoided the 
-error.  So, all I can say is that I'm sorry you had to hit this!
+Regarding #1 - sms1xxx implies that is support only Siano devices from 1xxx families, but actually it support all Siano's chip-sets and various MCPs (Which have different numeration than 1xxx, I can't give details here, sorry). So 1xxx is a misleading name.
+MDTV - much better (you can read it as Mobile Digital TV, or something else)
 
-  -Mike
+Regarding #2 - DVB-API version 3 (dvb-core module) is one of the sub-systems which are supported. The drivers set is also supports DVB-API version 5 (pre-alpha at this stage) and Siano's proprietary sub-system. So, actually you don't have to have dvb-core in order to use Siano's USB interface driver... 
+Please note that there are DAB radio builds, using Siano chip-sets and drivers... which means you don't need the dvb-core as well, you just need the dab and the Siano's core and interface drivers...
+
+Long time ago I asked you, why you chose to put the Siano sub-tree under media/dvb, since that chip-set can be used (and it is) and be regarded as... radio receiver. I don't mind that the Siano's sub-tree will reside under media/dvb, but it doesn't indicates either that it's bind solely to dvb-core....
+
+Uri
+
+Regards,
+
+Mike
 
 
--- 
-
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
----1463811561-1650566038-1241222635=:15541--
+      
