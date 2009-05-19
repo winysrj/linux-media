@@ -1,674 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f222.google.com ([209.85.218.222]:36662 "EHLO
-	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751302AbZE1E6G (ORCPT
+Received: from web110815.mail.gq1.yahoo.com ([67.195.13.238]:47068 "HELO
+	web110815.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752497AbZESP2B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2009 00:58:06 -0400
-Received: by bwz22 with SMTP id 22so5170794bwz.37
-        for <linux-media@vger.kernel.org>; Wed, 27 May 2009 21:58:05 -0700 (PDT)
-Date: Thu, 28 May 2009 14:58:57 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: linux-media@vger.kernel.org, video4linux-list@redhat.com
-Subject: [RESEND PATCH 3/3 v2] big rework of TS for saa7134
-Message-ID: <20090528145857.0c34edeb@glory.loctelecom.ru>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/0ZDW7hHUqMIBAfbvR7zHRx1"
+	Tue, 19 May 2009 11:28:01 -0400
+Message-ID: <713142.1655.qm@web110815.mail.gq1.yahoo.com>
+Date: Tue, 19 May 2009 08:28:02 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH] [09051_47] Siano: smsdvb - add DVB v3 events
+To: LinuxML <linux-media@vger.kernel.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/0ZDW7hHUqMIBAfbvR7zHRx1
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-Hi all.
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1242747164 -10800
+# Node ID 971d4cc0d4009650bd4752c6a9fc09755ef77baf
+# Parent  98895daafb42f8b0757fd608b29c53c80327520e
+[09051_47] Siano: smsdvb - add DVB v3 events
 
-1. Add start/stop TS function.
-2. Move setup DMA of TS to DMA function.
-3. Write support cupture via MMAP
-4. Rework startup and finish process, remove simple FSM.
+From: Uri Shkolnik <uris@siano-ms.com>
 
-diff -r 8d37e8505664 linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Mon May 11 09:37:41 2009 -0700
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue May 12 21:48:12 2009 +0200
-@@ -4495,6 +4495,7 @@
- 		/* Igor Kuznetsov <igk@igk.ru> */
- 		/* Andrey Melnikoff <temnota@kmv.ru> */
- 		/* Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com> */
-+		/* Alexey Osipov <lion-simba@pridelands.ru> */
- 		.name           = "Beholder BeholdTV M6",
- 		.audio_clock    = 0x00187de7,
- 		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
-@@ -4569,6 +4570,7 @@
- 		/* Igor Kuznetsov <igk@igk.ru> */
- 		/* Andrey Melnikoff <temnota@kmv.ru> */
- 		/* Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com> */
-+		/* Alexey Osipov <lion-simba@pridelands.ru> */
- 		.name           = "Beholder BeholdTV M6 Extra",
- 		.audio_clock    = 0x00187de7,
- 		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
-diff -r 8d37e8505664 linux/drivers/media/video/saa7134/saa7134-core.c
---- a/linux/drivers/media/video/saa7134/saa7134-core.c	Mon May 11 09:37:41 2009 -0700
-+++ b/linux/drivers/media/video/saa7134/saa7134-core.c	Tue May 12 21:48:12 2009 +0200
-@@ -380,6 +380,10 @@
- 		dprintk("buffer_next %p\n",NULL);
- 		saa7134_set_dmabits(dev);
- 		del_timer(&q->timeout);
+Add various DVB-API v3 events, those events will trig
+target (card) events.
+
+Priority: normal
+
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+
+diff -r 98895daafb42 -r 971d4cc0d400 linux/drivers/media/dvb/siano/smsdvb.c
+--- a/linux/drivers/media/dvb/siano/smsdvb.c	Tue May 19 18:27:38 2009 +0300
++++ b/linux/drivers/media/dvb/siano/smsdvb.c	Tue May 19 18:32:44 2009 +0300
+@@ -66,6 +66,54 @@ MODULE_PARM_DESC(debug, "set debug level
+ /* Events that may come from DVB v3 adapter */
+ static void sms_board_dvb3_event(struct smsdvb_client_t *client,
+ 		enum SMS_DVB3_EVENTS event) {
 +
-+		if (card_has_mpeg(dev))
-+			if (dev->ts_started)
-+				saa7134_ts_stop(dev);
- 	}
- }
- 
-@@ -465,6 +469,19 @@
- 		ctrl |= SAA7134_MAIN_CTRL_TE5;
- 		irq  |= SAA7134_IRQ1_INTE_RA2_1 |
- 			SAA7134_IRQ1_INTE_RA2_0;
-+
-+		/* dma: setup channel 5 (= TS) */
-+
-+		saa_writeb(SAA7134_TS_DMA0, (dev->ts.nr_packets - 1) & 0xff);
-+		saa_writeb(SAA7134_TS_DMA1,
-+			((dev->ts.nr_packets - 1) >> 8) & 0xff);
-+		/* TSNOPIT=0, TSCOLAP=0 */
-+		saa_writeb(SAA7134_TS_DMA2,
-+			(((dev->ts.nr_packets - 1) >> 16) & 0x3f) | 0x00);
-+		saa_writel(SAA7134_RS_PITCH(5), TS_PACKET_SIZE);
-+		saa_writel(SAA7134_RS_CONTROL(5), SAA7134_RS_CONTROL_BURST_16 |
-+						  SAA7134_RS_CONTROL_ME |
-+						  (dev->ts.pt_ts.dma >> 12));
- 	}
- 
- 	/* set task conditions + field handling */
-diff -r 8d37e8505664 linux/drivers/media/video/saa7134/saa7134-empress.c
---- a/linux/drivers/media/video/saa7134/saa7134-empress.c	Mon May 11 09:37:41 2009 -0700
-+++ b/linux/drivers/media/video/saa7134/saa7134-empress.c	Tue May 12 21:48:12 2009 +0200
-@@ -255,6 +255,16 @@
- 	return 0;
- }
- 
-+static int empress_try_fmt_vid_cap(struct file *file, void *priv,
-+				struct v4l2_format *f)
-+{
-+	struct saa7134_dev *dev = file->private_data;
-+
-+	f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
-+	f->fmt.pix.sizeimage    = TS_PACKET_SIZE * dev->ts.nr_packets;
-+
-+	return 0;
-+}
- 
- static int empress_reqbufs(struct file *file, void *priv,
- 					struct v4l2_requestbuffers *p)
-@@ -450,6 +460,7 @@
- static const struct v4l2_ioctl_ops ts_ioctl_ops = {
- 	.vidioc_querycap		= empress_querycap,
- 	.vidioc_enum_fmt_vid_cap	= empress_enum_fmt_vid_cap,
-+	.vidioc_try_fmt_vid_cap		= empress_try_fmt_vid_cap,
- 	.vidioc_s_fmt_vid_cap		= empress_s_fmt_vid_cap,
- 	.vidioc_g_fmt_vid_cap		= empress_g_fmt_vid_cap,
- 	.vidioc_reqbufs			= empress_reqbufs,
-diff -r 8d37e8505664 linux/drivers/media/video/saa7134/saa7134-ts.c
---- a/linux/drivers/media/video/saa7134/saa7134-ts.c	Mon May 11 09:37:41 2009 -0700
-+++ b/linux/drivers/media/video/saa7134/saa7134-ts.c	Tue May 12 21:48:12 2009 +0200
-@@ -67,33 +67,8 @@
- 
- 	mod_timer(&dev->ts_q.timeout, jiffies+TS_BUFFER_TIMEOUT);
- 
--	if (dev->ts_state == SAA7134_TS_BUFF_DONE) {
--		/* Clear TS cache */
--		dev->buff_cnt = 0;
--		saa_writeb(SAA7134_TS_SERIAL1, 0x00);
--		saa_writeb(SAA7134_TS_SERIAL1, 0x03);
--		saa_writeb(SAA7134_TS_SERIAL1, 0x00);
--		saa_writeb(SAA7134_TS_SERIAL1, 0x01);
--
--		/* TS clock non-inverted */
--		saa_writeb(SAA7134_TS_SERIAL1, 0x00);
--
--		/* Start TS stream */
--		switch (saa7134_boards[dev->board].ts_type) {
--		case SAA7134_MPEG_TS_PARALLEL:
--			saa_writeb(SAA7134_TS_SERIAL0, 0x40);
--			saa_writeb(SAA7134_TS_PARALLEL, 0xec);
--			break;
--		case SAA7134_MPEG_TS_SERIAL:
--			saa_writeb(SAA7134_TS_SERIAL0, 0xd8);
--			saa_writeb(SAA7134_TS_PARALLEL, 0x6c);
--			saa_writeb(SAA7134_TS_PARALLEL_SERIAL, 0xbc);
--			saa_writeb(SAA7134_TS_SERIAL1, 0x02);
--			break;
--		}
--
--		dev->ts_state = SAA7134_TS_STARTED;
--	}
-+	if (!dev->ts_started)
-+		saa7134_ts_start(dev);
- 
- 	return 0;
- }
-@@ -104,7 +79,6 @@
- 	struct saa7134_dev *dev = q->priv_data;
- 	struct saa7134_buf *buf = container_of(vb,struct saa7134_buf,vb);
- 	unsigned int lines, llength, size;
--	u32 control;
- 	int err;
- 
- 	dprintk("buffer_prepare [%p,%s]\n",buf,v4l2_field_names[field]);
-@@ -121,8 +95,11 @@
- 	}
- 
- 	if (VIDEOBUF_NEEDS_INIT == buf->vb.state) {
-+
- 		struct videobuf_dmabuf *dma=videobuf_to_dma(&buf->vb);
- 
-+		dprintk("buffer_prepare: needs_init\n");
-+
- 		buf->vb.width  = llength;
- 		buf->vb.height = lines;
- 		buf->vb.size   = size;
-@@ -139,23 +116,6 @@
- 			goto oops;
- 	}
- 
--	dev->buff_cnt++;
--
--	if (dev->buff_cnt == dev->ts.nr_bufs) {
--		dev->ts_state = SAA7134_TS_BUFF_DONE;
--		/* dma: setup channel 5 (= TS) */
--		control = SAA7134_RS_CONTROL_BURST_16 |
--			SAA7134_RS_CONTROL_ME |
--			(buf->pt->dma >> 12);
--
--		saa_writeb(SAA7134_TS_DMA0, (lines - 1) & 0xff);
--		saa_writeb(SAA7134_TS_DMA1, ((lines - 1) >> 8) & 0xff);
--		/* TSNOPIT=0, TSCOLAP=0 */
--		saa_writeb(SAA7134_TS_DMA2, (((lines - 1) >> 16) & 0x3f) | 0x00);
--		saa_writel(SAA7134_RS_PITCH(5), TS_PACKET_SIZE);
--		saa_writel(SAA7134_RS_CONTROL(5), control);
--	}
--
- 	buf->vb.state = VIDEOBUF_PREPARED;
- 	buf->activate = buffer_activate;
- 	buf->vb.field = field;
-@@ -175,8 +135,7 @@
- 	if (0 == *count)
- 		*count = dev->ts.nr_bufs;
- 	*count = saa7134_buffer_count(*size,*count);
--	dev->buff_cnt = 0;
--	dev->ts_state = SAA7134_TS_STOPPED;
-+
- 	return 0;
- }
- 
-@@ -193,11 +152,9 @@
- 	struct saa7134_buf *buf = container_of(vb,struct saa7134_buf,vb);
- 	struct saa7134_dev *dev = q->priv_data;
- 
--	if (dev->ts_state == SAA7134_TS_STARTED) {
--		/* Stop TS transport */
--		saa_writeb(SAA7134_TS_PARALLEL, 0x6c);
--		dev->ts_state = SAA7134_TS_STOPPED;
--	}
-+	if (dev->ts_started)
-+		saa7134_ts_stop(dev);
-+
- 	saa7134_dma_free(q,buf);
- }
- 
-@@ -214,7 +171,7 @@
- 
- static unsigned int tsbufs = 8;
- module_param(tsbufs, int, 0444);
--MODULE_PARM_DESC(tsbufs,"number of ts buffers, range 2-32");
-+MODULE_PARM_DESC(tsbufs, "number of ts buffers for read/write IO, range 2-32");
- 
- static unsigned int ts_nr_packets = 64;
- module_param(ts_nr_packets, int, 0444);
-@@ -256,6 +213,7 @@
- 	dev->ts_q.timeout.data     = (unsigned long)(&dev->ts_q);
- 	dev->ts_q.dev              = dev;
- 	dev->ts_q.need_two         = 1;
-+	dev->ts_started            = 0;
- 	saa7134_pgtable_alloc(dev->pci,&dev->ts.pt_ts);
- 
- 	/* init TS hw */
-@@ -264,13 +222,67 @@
- 	return 0;
- }
- 
-+/* Function for stop TS */
-+int saa7134_ts_stop(struct saa7134_dev *dev)
-+{
-+	dprintk("TS stop\n");
-+
-+	BUG_ON(!dev->ts_started);
-+
-+	/* Stop TS stream */
-+	switch (saa7134_boards[dev->board].ts_type) {
-+	case SAA7134_MPEG_TS_PARALLEL:
-+		saa_writeb(SAA7134_TS_PARALLEL, 0x6c);
-+		dev->ts_started = 0;
++	struct smscore_device_t *coredev = client->coredev;
++	switch (event) {
++	case DVB3_EVENT_INIT:
++		sms_debug("DVB3_EVENT_INIT");
++		sms_board_event(coredev, BOARD_EVENT_BIND);
 +		break;
-+	case SAA7134_MPEG_TS_SERIAL:
-+		saa_writeb(SAA7134_TS_SERIAL0, 0x40);
-+		dev->ts_started = 0;
++	case DVB3_EVENT_SLEEP:
++		sms_debug("DVB3_EVENT_SLEEP");
++		sms_board_event(coredev, BOARD_EVENT_POWER_SUSPEND);
++		break;
++	case DVB3_EVENT_HOTPLUG:
++		sms_debug("DVB3_EVENT_HOTPLUG");
++		sms_board_event(coredev, BOARD_EVENT_POWER_INIT);
++		break;
++	case DVB3_EVENT_FE_LOCK:
++		if (client->event_fe_state != DVB3_EVENT_FE_LOCK) {
++			client->event_fe_state = DVB3_EVENT_FE_LOCK;
++			sms_debug("DVB3_EVENT_FE_LOCK");
++			sms_board_event(coredev, BOARD_EVENT_FE_LOCK);
++		}
++		break;
++	case DVB3_EVENT_FE_UNLOCK:
++		if (client->event_fe_state != DVB3_EVENT_FE_UNLOCK) {
++			client->event_fe_state = DVB3_EVENT_FE_UNLOCK;
++			sms_debug("DVB3_EVENT_FE_UNLOCK");
++			sms_board_event(coredev, BOARD_EVENT_FE_UNLOCK);
++		}
++		break;
++	case DVB3_EVENT_UNC_OK:
++		if (client->event_unc_state != DVB3_EVENT_UNC_OK) {
++			client->event_unc_state = DVB3_EVENT_UNC_OK;
++			sms_debug("DVB3_EVENT_UNC_OK");
++			sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_OK);
++		}
++		break;
++	case DVB3_EVENT_UNC_ERR:
++		if (client->event_unc_state != DVB3_EVENT_UNC_ERR) {
++			client->event_unc_state = DVB3_EVENT_UNC_ERR;
++			sms_debug("DVB3_EVENT_UNC_ERR");
++			sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_ERRORS);
++		}
++		break;
++
++	default:
++		sms_err("Unknown dvb3 api event");
 +		break;
 +	}
-+	return 0;
-+}
-+
-+/* Function for start TS */
-+int saa7134_ts_start(struct saa7134_dev *dev)
-+{
-+	dprintk("TS start\n");
-+
-+	BUG_ON(dev->ts_started);
-+
-+	saa_writeb(SAA7134_TS_SERIAL1, 0x00);
-+	saa_writeb(SAA7134_TS_SERIAL1, 0x03);
-+	saa_writeb(SAA7134_TS_SERIAL1, 0x00);
-+	saa_writeb(SAA7134_TS_SERIAL1, 0x01);
-+
-+	/* TS clock non-inverted */
-+	saa_writeb(SAA7134_TS_SERIAL1, 0x00);
-+
-+	/* Start TS stream */
-+	switch (saa7134_boards[dev->board].ts_type) {
-+	case SAA7134_MPEG_TS_PARALLEL:
-+		saa_writeb(SAA7134_TS_SERIAL0, 0x40);
-+		saa_writeb(SAA7134_TS_PARALLEL, 0xec);
-+		break;
-+	case SAA7134_MPEG_TS_SERIAL:
-+		saa_writeb(SAA7134_TS_SERIAL0, 0xd8);
-+		saa_writeb(SAA7134_TS_PARALLEL, 0x6c);
-+		saa_writeb(SAA7134_TS_PARALLEL_SERIAL, 0xbc);
-+		saa_writeb(SAA7134_TS_SERIAL1, 0x02);
-+		break;
-+	}
-+
-+	dev->ts_started = 1;
-+
-+	return 0;
-+}
-+
- int saa7134_ts_fini(struct saa7134_dev *dev)
- {
- 	saa7134_pgtable_free(dev->pci,&dev->ts.pt_ts);
- 	return 0;
  }
  
--
- void saa7134_irq_ts_done(struct saa7134_dev *dev, unsigned long status)
- {
- 	enum v4l2_field field;
-diff -r 8d37e8505664 linux/drivers/media/video/saa7134/saa7134.h
---- a/linux/drivers/media/video/saa7134/saa7134.h	Mon May 11 09:37:41 2009 -0700
-+++ b/linux/drivers/media/video/saa7134/saa7134.h	Tue May 12 21:48:12 2009 +0200
-@@ -498,12 +498,6 @@
- 	void                       (*signal_change)(struct saa7134_dev *dev);
- };
- 
--enum saa7134_ts_status {
--	SAA7134_TS_STOPPED,
--	SAA7134_TS_BUFF_DONE,
--	SAA7134_TS_STARTED,
--};
--
- /* global device status */
- struct saa7134_dev {
- 	struct list_head           devlist;
-@@ -598,8 +592,7 @@
- 	/* SAA7134_MPEG_* */
- 	struct saa7134_ts          ts;
- 	struct saa7134_dmaqueue    ts_q;
--	enum saa7134_ts_status 	   ts_state;
--	unsigned int 		   buff_cnt;
-+	int                        ts_started;
- 	struct saa7134_mpeg_ops    *mops;
- 
- 	/* SAA7134_MPEG_EMPRESS only */
-@@ -757,6 +750,9 @@
- 
- int saa7134_ts_init_hw(struct saa7134_dev *dev);
- 
-+int saa7134_ts_start(struct saa7134_dev *dev);
-+int saa7134_ts_stop(struct saa7134_dev *dev);
-+
- /* ----------------------------------------------------------- */
- /* saa7134-vbi.c                                               */
- 
-
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-Signed-off-by: Alexey Osipov <lion-simba@pridelands.ru>
-Tested-by: Hermann Pitton <hermann-pitton@arcor.de>
-Tested-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+ static int smsdvb_onresponse(void *context, struct smscore_buffer_t *cb)
 
 
-With my best regards, Dmitry.
---MP_/0ZDW7hHUqMIBAfbvR7zHRx1
-Content-Type: text/x-patch;
- name=saa7134_ts_rework_applies_and_checkpatch_fixes.patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename=saa7134_ts_rework_applies_and_checkpatch_fixes.patch
 
-diff -r 8d37e8505664 linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Mon May 11 09:37:41 2009 -0700
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue May 12 21:48:12 2009 +0200
-@@ -4495,6 +4495,7 @@
- 		/* Igor Kuznetsov <igk@igk.ru> */
- 		/* Andrey Melnikoff <temnota@kmv.ru> */
- 		/* Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com> */
-+		/* Alexey Osipov <lion-simba@pridelands.ru> */
- 		.name           = "Beholder BeholdTV M6",
- 		.audio_clock    = 0x00187de7,
- 		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3,
-@@ -4569,6 +4570,7 @@
- 		/* Igor Kuznetsov <igk@igk.ru> */
- 		/* Andrey Melnikoff <temnota@kmv.ru> */
- 		/* Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com> */
-+		/* Alexey Osipov <lion-simba@pridelands.ru> */
- 		.name           = "Beholder BeholdTV M6 Extra",
- 		.audio_clock    = 0x00187de7,
- 		.tuner_type     = TUNER_PHILIPS_FM1216ME_MK3, /* FIXME to MK5 */
-diff -r 8d37e8505664 linux/drivers/media/video/saa7134/saa7134-core.c
---- a/linux/drivers/media/video/saa7134/saa7134-core.c	Mon May 11 09:37:41 2009 -0700
-+++ b/linux/drivers/media/video/saa7134/saa7134-core.c	Tue May 12 21:48:12 2009 +0200
-@@ -380,6 +380,10 @@
- 		dprintk("buffer_next %p\n",NULL);
- 		saa7134_set_dmabits(dev);
- 		del_timer(&q->timeout);
-+
-+		if (card_has_mpeg(dev))
-+			if (dev->ts_started)
-+				saa7134_ts_stop(dev);
- 	}
- }
- 
-@@ -465,6 +469,19 @@
- 		ctrl |= SAA7134_MAIN_CTRL_TE5;
- 		irq  |= SAA7134_IRQ1_INTE_RA2_1 |
- 			SAA7134_IRQ1_INTE_RA2_0;
-+
-+		/* dma: setup channel 5 (= TS) */
-+
-+		saa_writeb(SAA7134_TS_DMA0, (dev->ts.nr_packets - 1) & 0xff);
-+		saa_writeb(SAA7134_TS_DMA1,
-+			((dev->ts.nr_packets - 1) >> 8) & 0xff);
-+		/* TSNOPIT=0, TSCOLAP=0 */
-+		saa_writeb(SAA7134_TS_DMA2,
-+			(((dev->ts.nr_packets - 1) >> 16) & 0x3f) | 0x00);
-+		saa_writel(SAA7134_RS_PITCH(5), TS_PACKET_SIZE);
-+		saa_writel(SAA7134_RS_CONTROL(5), SAA7134_RS_CONTROL_BURST_16 |
-+						  SAA7134_RS_CONTROL_ME |
-+						  (dev->ts.pt_ts.dma >> 12));
- 	}
- 
- 	/* set task conditions + field handling */
-diff -r 8d37e8505664 linux/drivers/media/video/saa7134/saa7134-empress.c
---- a/linux/drivers/media/video/saa7134/saa7134-empress.c	Mon May 11 09:37:41 2009 -0700
-+++ b/linux/drivers/media/video/saa7134/saa7134-empress.c	Tue May 12 21:48:12 2009 +0200
-@@ -255,6 +255,16 @@
- 	return 0;
- }
- 
-+static int empress_try_fmt_vid_cap(struct file *file, void *priv,
-+				struct v4l2_format *f)
-+{
-+	struct saa7134_dev *dev = file->private_data;
-+
-+	f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
-+	f->fmt.pix.sizeimage    = TS_PACKET_SIZE * dev->ts.nr_packets;
-+
-+	return 0;
-+}
- 
- static int empress_reqbufs(struct file *file, void *priv,
- 					struct v4l2_requestbuffers *p)
-@@ -450,6 +460,7 @@
- static const struct v4l2_ioctl_ops ts_ioctl_ops = {
- 	.vidioc_querycap		= empress_querycap,
- 	.vidioc_enum_fmt_vid_cap	= empress_enum_fmt_vid_cap,
-+	.vidioc_try_fmt_vid_cap		= empress_try_fmt_vid_cap,
- 	.vidioc_s_fmt_vid_cap		= empress_s_fmt_vid_cap,
- 	.vidioc_g_fmt_vid_cap		= empress_g_fmt_vid_cap,
- 	.vidioc_reqbufs			= empress_reqbufs,
-diff -r 8d37e8505664 linux/drivers/media/video/saa7134/saa7134-ts.c
---- a/linux/drivers/media/video/saa7134/saa7134-ts.c	Mon May 11 09:37:41 2009 -0700
-+++ b/linux/drivers/media/video/saa7134/saa7134-ts.c	Tue May 12 21:48:12 2009 +0200
-@@ -67,33 +67,8 @@
- 
- 	mod_timer(&dev->ts_q.timeout, jiffies+TS_BUFFER_TIMEOUT);
- 
--	if (dev->ts_state == SAA7134_TS_BUFF_DONE) {
--		/* Clear TS cache */
--		dev->buff_cnt = 0;
--		saa_writeb(SAA7134_TS_SERIAL1, 0x00);
--		saa_writeb(SAA7134_TS_SERIAL1, 0x03);
--		saa_writeb(SAA7134_TS_SERIAL1, 0x00);
--		saa_writeb(SAA7134_TS_SERIAL1, 0x01);
--
--		/* TS clock non-inverted */
--		saa_writeb(SAA7134_TS_SERIAL1, 0x00);
--
--		/* Start TS stream */
--		switch (saa7134_boards[dev->board].ts_type) {
--		case SAA7134_MPEG_TS_PARALLEL:
--			saa_writeb(SAA7134_TS_SERIAL0, 0x40);
--			saa_writeb(SAA7134_TS_PARALLEL, 0xec);
--			break;
--		case SAA7134_MPEG_TS_SERIAL:
--			saa_writeb(SAA7134_TS_SERIAL0, 0xd8);
--			saa_writeb(SAA7134_TS_PARALLEL, 0x6c);
--			saa_writeb(SAA7134_TS_PARALLEL_SERIAL, 0xbc);
--			saa_writeb(SAA7134_TS_SERIAL1, 0x02);
--			break;
--		}
--
--		dev->ts_state = SAA7134_TS_STARTED;
--	}
-+	if (!dev->ts_started)
-+		saa7134_ts_start(dev);
- 
- 	return 0;
- }
-@@ -104,7 +79,6 @@
- 	struct saa7134_dev *dev = q->priv_data;
- 	struct saa7134_buf *buf = container_of(vb,struct saa7134_buf,vb);
- 	unsigned int lines, llength, size;
--	u32 control;
- 	int err;
- 
- 	dprintk("buffer_prepare [%p,%s]\n",buf,v4l2_field_names[field]);
-@@ -121,8 +95,11 @@
- 	}
- 
- 	if (VIDEOBUF_NEEDS_INIT == buf->vb.state) {
-+
- 		struct videobuf_dmabuf *dma=videobuf_to_dma(&buf->vb);
- 
-+		dprintk("buffer_prepare: needs_init\n");
-+
- 		buf->vb.width  = llength;
- 		buf->vb.height = lines;
- 		buf->vb.size   = size;
-@@ -139,23 +116,6 @@
- 			goto oops;
- 	}
- 
--	dev->buff_cnt++;
--
--	if (dev->buff_cnt == dev->ts.nr_bufs) {
--		dev->ts_state = SAA7134_TS_BUFF_DONE;
--		/* dma: setup channel 5 (= TS) */
--		control = SAA7134_RS_CONTROL_BURST_16 |
--			SAA7134_RS_CONTROL_ME |
--			(buf->pt->dma >> 12);
--
--		saa_writeb(SAA7134_TS_DMA0, (lines - 1) & 0xff);
--		saa_writeb(SAA7134_TS_DMA1, ((lines - 1) >> 8) & 0xff);
--		/* TSNOPIT=0, TSCOLAP=0 */
--		saa_writeb(SAA7134_TS_DMA2, (((lines - 1) >> 16) & 0x3f) | 0x00);
--		saa_writel(SAA7134_RS_PITCH(5), TS_PACKET_SIZE);
--		saa_writel(SAA7134_RS_CONTROL(5), control);
--	}
--
- 	buf->vb.state = VIDEOBUF_PREPARED;
- 	buf->activate = buffer_activate;
- 	buf->vb.field = field;
-@@ -175,8 +135,7 @@
- 	if (0 == *count)
- 		*count = dev->ts.nr_bufs;
- 	*count = saa7134_buffer_count(*size,*count);
--	dev->buff_cnt = 0;
--	dev->ts_state = SAA7134_TS_STOPPED;
-+
- 	return 0;
- }
- 
-@@ -193,11 +152,9 @@
- 	struct saa7134_buf *buf = container_of(vb,struct saa7134_buf,vb);
- 	struct saa7134_dev *dev = q->priv_data;
- 
--	if (dev->ts_state == SAA7134_TS_STARTED) {
--		/* Stop TS transport */
--		saa_writeb(SAA7134_TS_PARALLEL, 0x6c);
--		dev->ts_state = SAA7134_TS_STOPPED;
--	}
-+	if (dev->ts_started)
-+		saa7134_ts_stop(dev);
-+
- 	saa7134_dma_free(q,buf);
- }
- 
-@@ -214,7 +171,7 @@
- 
- static unsigned int tsbufs = 8;
- module_param(tsbufs, int, 0444);
--MODULE_PARM_DESC(tsbufs,"number of ts buffers, range 2-32");
-+MODULE_PARM_DESC(tsbufs, "number of ts buffers for read/write IO, range 2-32");
- 
- static unsigned int ts_nr_packets = 64;
- module_param(ts_nr_packets, int, 0444);
-@@ -256,6 +213,7 @@
- 	dev->ts_q.timeout.data     = (unsigned long)(&dev->ts_q);
- 	dev->ts_q.dev              = dev;
- 	dev->ts_q.need_two         = 1;
-+	dev->ts_started            = 0;
- 	saa7134_pgtable_alloc(dev->pci,&dev->ts.pt_ts);
- 
- 	/* init TS hw */
-@@ -264,13 +222,67 @@
- 	return 0;
- }
- 
-+/* Function for stop TS */
-+int saa7134_ts_stop(struct saa7134_dev *dev)
-+{
-+	dprintk("TS stop\n");
-+
-+	BUG_ON(!dev->ts_started);
-+
-+	/* Stop TS stream */
-+	switch (saa7134_boards[dev->board].ts_type) {
-+	case SAA7134_MPEG_TS_PARALLEL:
-+		saa_writeb(SAA7134_TS_PARALLEL, 0x6c);
-+		dev->ts_started = 0;
-+		break;
-+	case SAA7134_MPEG_TS_SERIAL:
-+		saa_writeb(SAA7134_TS_SERIAL0, 0x40);
-+		dev->ts_started = 0;
-+		break;
-+	}
-+	return 0;
-+}
-+
-+/* Function for start TS */
-+int saa7134_ts_start(struct saa7134_dev *dev)
-+{
-+	dprintk("TS start\n");
-+
-+	BUG_ON(dev->ts_started);
-+
-+	saa_writeb(SAA7134_TS_SERIAL1, 0x00);
-+	saa_writeb(SAA7134_TS_SERIAL1, 0x03);
-+	saa_writeb(SAA7134_TS_SERIAL1, 0x00);
-+	saa_writeb(SAA7134_TS_SERIAL1, 0x01);
-+
-+	/* TS clock non-inverted */
-+	saa_writeb(SAA7134_TS_SERIAL1, 0x00);
-+
-+	/* Start TS stream */
-+	switch (saa7134_boards[dev->board].ts_type) {
-+	case SAA7134_MPEG_TS_PARALLEL:
-+		saa_writeb(SAA7134_TS_SERIAL0, 0x40);
-+		saa_writeb(SAA7134_TS_PARALLEL, 0xec);
-+		break;
-+	case SAA7134_MPEG_TS_SERIAL:
-+		saa_writeb(SAA7134_TS_SERIAL0, 0xd8);
-+		saa_writeb(SAA7134_TS_PARALLEL, 0x6c);
-+		saa_writeb(SAA7134_TS_PARALLEL_SERIAL, 0xbc);
-+		saa_writeb(SAA7134_TS_SERIAL1, 0x02);
-+		break;
-+	}
-+
-+	dev->ts_started = 1;
-+
-+	return 0;
-+}
-+
- int saa7134_ts_fini(struct saa7134_dev *dev)
- {
- 	saa7134_pgtable_free(dev->pci,&dev->ts.pt_ts);
- 	return 0;
- }
- 
--
- void saa7134_irq_ts_done(struct saa7134_dev *dev, unsigned long status)
- {
- 	enum v4l2_field field;
-diff -r 8d37e8505664 linux/drivers/media/video/saa7134/saa7134.h
---- a/linux/drivers/media/video/saa7134/saa7134.h	Mon May 11 09:37:41 2009 -0700
-+++ b/linux/drivers/media/video/saa7134/saa7134.h	Tue May 12 21:48:12 2009 +0200
-@@ -498,12 +498,6 @@
- 	void                       (*signal_change)(struct saa7134_dev *dev);
- };
- 
--enum saa7134_ts_status {
--	SAA7134_TS_STOPPED,
--	SAA7134_TS_BUFF_DONE,
--	SAA7134_TS_STARTED,
--};
--
- /* global device status */
- struct saa7134_dev {
- 	struct list_head           devlist;
-@@ -598,8 +592,7 @@
- 	/* SAA7134_MPEG_* */
- 	struct saa7134_ts          ts;
- 	struct saa7134_dmaqueue    ts_q;
--	enum saa7134_ts_status 	   ts_state;
--	unsigned int 		   buff_cnt;
-+	int                        ts_started;
- 	struct saa7134_mpeg_ops    *mops;
- 
- 	/* SAA7134_MPEG_EMPRESS only */
-@@ -757,6 +750,9 @@
- 
- int saa7134_ts_init_hw(struct saa7134_dev *dev);
- 
-+int saa7134_ts_start(struct saa7134_dev *dev);
-+int saa7134_ts_stop(struct saa7134_dev *dev);
-+
- /* ----------------------------------------------------------- */
- /* saa7134-vbi.c                                               */
- 
-
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-Signed-off-by: Alexey Osipov <lion-simba@pridelands.ru>
-Tested-by: Hermann Pitton <hermann-pitton@arcor.de>
-Tested-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-
---MP_/0ZDW7hHUqMIBAfbvR7zHRx1--
+      
