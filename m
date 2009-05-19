@@ -1,180 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:54773 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752007AbZEEMNH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 May 2009 08:13:07 -0400
-Date: Tue, 5 May 2009 14:13:15 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Agustin <gatoguan-os@yahoo.com>
-cc: linux-arm-kernel@lists.arm.linux.org.uk,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: soc-camera: timing out during capture - Re: Testing latest
- mx3_camera.c
-In-Reply-To: <504448.15739.qm@web32106.mail.mud.yahoo.com>
-Message-ID: <Pine.LNX.4.64.0905051412520.4568@axis700.grange>
-References: <486508.99603.qm@web32101.mail.mud.yahoo.com>
- <Pine.LNX.4.64.0904132136030.1587@axis700.grange> <504448.15739.qm@web32106.mail.mud.yahoo.com>
+Received: from mail-ew0-f224.google.com ([209.85.219.224]:57550 "EHLO
+	mail-ew0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752850AbZESRC0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 May 2009 13:02:26 -0400
+Received: by ewy24 with SMTP id 24so5024455ewy.37
+        for <linux-media@vger.kernel.org>; Tue, 19 May 2009 10:02:25 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=iso-8859-1
+In-Reply-To: <675838.26148.qm@web110801.mail.gq1.yahoo.com>
+References: <675838.26148.qm@web110801.mail.gq1.yahoo.com>
+Date: Tue, 19 May 2009 13:02:25 -0400
+Message-ID: <37219a840905191002s148578eco4e1ce47a3d3865f4@mail.gmail.com>
+Subject: Re: [PATCH] [09051_54] Siano: remove obsolete sms_board_setup
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Uri Shkolnik <urishk@yahoo.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 5 May 2009, Agustin wrote:
+On Tue, May 19, 2009 at 12:57 PM, Uri Shkolnik <urishk@yahoo.com> wrote:
+>
+>
+>
+> --- On Tue, 5/19/09, Michael Krufky <mkrufky@linuxtv.org> wrote:
+>
+>> From: Michael Krufky <mkrufky@linuxtv.org>
+>> Subject: Re: [PATCH] [09051_54] Siano: remove obsolete sms_board_setup
+>> To: "Uri Shkolnik" <urishk@yahoo.com>
+>> Cc: "LinuxML" <linux-media@vger.kernel.org>, "Mauro Carvalho Chehab" <mchehab@infradead.org>
+>> Date: Tuesday, May 19, 2009, 7:31 PM
+>> On Tue, May 19, 2009 at 12:15 PM, Uri
+>> Shkolnik <urishk@yahoo.com>
+>> wrote:
+>> >
+>> > # HG changeset patch
+>> > # User Uri Shkolnik <uris@siano-ms.com>
+>> > # Date 1242749967 -10800
+>> > # Node ID 0296b0c436d6deba48c710cfb510988267cea057
+>> > # Parent  dfcfb90798d3a27cb174019b17fffdee9ce7b2b9
+>> > [09051_54] Siano: remove obsolete sms_board_setup
+>> >
+>> > From: Uri Shkolnik <uris@siano-ms.com>
+>> >
+>> > Remove the target specific sms_board_setup from
+>> smsdvb. This
+>> > is handled now via smsdvb and sms-cards events.
+>> >
+>> > Priority: normal
+>> >
+>> > Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+>> >
+>> > diff -r dfcfb90798d3 -r 0296b0c436d6
+>> linux/drivers/media/dvb/siano/sms-cards.c
+>> > --- a/linux/drivers/media/dvb/siano/sms-cards.c Tue
+>> May 19 19:05:02 2009 +0300
+>> > +++ b/linux/drivers/media/dvb/siano/sms-cards.c Tue
+>> May 19 19:19:27 2009 +0300
+>> > @@ -303,28 +303,6 @@ static int sms_set_gpio(struct
+>> smscore_d
+>> >        return smscore_set_gpio(coredev, gpio,
+>> lvl);
+>> >  }
+>> >
+>> > -int sms_board_setup(struct smscore_device_t
+>> *coredev)
+>> > -{
+>> > -       int board_id =
+>> smscore_get_board_id(coredev);
+>> > -       struct sms_board *board =
+>> sms_get_board(board_id);
+>> > -
+>> > -       switch (board_id) {
+>> > -       case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
+>> > -               /* turn off all LEDs */
+>> > -               sms_set_gpio(coredev,
+>> board->led_power, 0);
+>> > -               sms_set_gpio(coredev,
+>> board->led_hi, 0);
+>> > -               sms_set_gpio(coredev,
+>> board->led_lo, 0);
+>> > -               break;
+>> > -       case
+>> SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
+>> > -       case
+>> SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
+>> > -               /* turn off LNA */
+>> > -               sms_set_gpio(coredev,
+>> board->lna_ctrl, 0);
+>> > -               break;
+>> > -       }
+>> > -       return 0;
+>> > -}
+>> > -EXPORT_SYMBOL_GPL(sms_board_setup);
+>> > -
+>> >  int sms_board_power(struct smscore_device_t
+>> *coredev, int onoff)
+>> >  {
+>> >        int board_id =
+>> smscore_get_board_id(coredev);
+>> > diff -r dfcfb90798d3 -r 0296b0c436d6
+>> linux/drivers/media/dvb/siano/sms-cards.h
+>> > --- a/linux/drivers/media/dvb/siano/sms-cards.h Tue
+>> May 19 19:05:02 2009 +0300
+>> > +++ b/linux/drivers/media/dvb/siano/sms-cards.h Tue
+>> May 19 19:19:27 2009 +0300
+>> > @@ -109,8 +109,6 @@ int sms_board_event(struct
+>> smscore_devic
+>> >  int sms_board_event(struct smscore_device_t
+>> *coredev,
+>> >                enum SMS_BOARD_EVENTS gevent);
+>> >
+>> > -int sms_board_setup(struct smscore_device_t
+>> *coredev);
+>> > -
+>> >  #define SMS_LED_OFF 0
+>> >  #define SMS_LED_LO  1
+>> >  #define SMS_LED_HI  2
+>> > diff -r dfcfb90798d3 -r 0296b0c436d6
+>> linux/drivers/media/dvb/siano/smsdvb.c
+>> > --- a/linux/drivers/media/dvb/siano/smsdvb.c    Tue
+>> May 19 19:05:02 2009 +0300
+>> > +++ b/linux/drivers/media/dvb/siano/smsdvb.c    Tue
+>> May 19 19:19:27 2009 +0300
+>> > @@ -600,7 +600,6 @@ static int smsdvb_hotplug(struct
+>> smscore
+>> >        sms_board_dvb3_event(client,
+>> DVB3_EVENT_HOTPLUG);
+>> >
+>> >        sms_info("success");
+>> > -       sms_board_setup(coredev);
+>> >
+>> >        return 0;
+>> >
+>> >
+>> >
+>> >
+>> >
+>> > --
+>> > To unsubscribe from this list: send the line
+>> "unsubscribe linux-media" in
+>> > the body of a message to majordomo@vger.kernel.org
+>> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> >
+>>
+>>
+>>
+>> NACK.
+>>
+>>
+>> This changes the behavior of the Hauppauge devices.
+>> Let Uri get all
+>> his other stuff in place first, and THEN we can look at
+>> this
+>> separately.
+>>
+>> In addition, this changeset was merged WITHOUT my ack:
+>>
+>> http://linuxtv.org/hg/v4l-dvb/rev/37969546eee8 - Siano:
+>> smscards -
+>> assign gpio to HPG targets
+>>
+>> That changeset 37969546eee8 alone does not cause any change
+>> in
+>> behavior, but with Uri's patches from today it will change
+>> the
+>> Hauppauge device behavior.
+>>
+>> That patch should be reverted and dealt with separately,
+>> after Uri is
+>> finished with his other changes.
+>>
+>> -Mike
+>>
+>
+> Mike,
+>
+> Please note that the Hauppauge device behavior has been merged to the board_event()  **prior** to this patch.
+>
+> I did my best to follow the logic, I might be wrong (please check).
+>
+> This patch is remove *duplicate* led setting, etc...
 
-> 
-> Hi Guennadi,
-> 
-> --- Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> > On Mon, 13 Apr 2009, Agustin wrote:
-> > 
-> > > Which patchset should one use today to have latest and most stable 
-> > > "mx3_camera" driver in 2.6.29?
-> > > 
-> > > [snip]
-> > 
-> > Please, use http://marc.info/?l=linux-arm-kernel&m=123866462620240&w=2 
-> > also notice, which patches it needs. As a basis you can take linux-next or 
-> > a suitable branch from git://git.pengutronix.de/git/imx/linux-2.6.git
-> 
-> I managed to merge your patch stack of 20090415 on top of Sascha's stack for 2.6.29.
-> I think that is just before the "v4l-subdev" work. Then I adapted my code to work pretty
-> much as your mt9p031 driver.
-> 
-> Now I get a timeout when trying to capture a single image, with the same hardware
-> configuration that is working fine with 2.6.28-next.
-> I can see my "Sixcam" camera dumping a few frames before the timeout.
+Uri,
 
-Have you applied this patch:
+I nack'd that patch as well.  Please don't change the Hauppauge device
+behavior -- those changesets break the device functionality.
 
-Author: Ming Lei <tom.leiming@gmail.com>
-Date:   Fri Mar 27 21:50:00 2009 +0800
+Please get all of your core changes in first, then we can look at
+device-specifics separately.
 
-    driver core: fix driver_match_device
+Regards,
 
-    This patch fixes a bug introduced in commit
-    49b420a13ff95b449947181190b08367348e3e1b.
-
-    If a instance of bus_type doesn't have  .match method,
-    all .probe of drivers in the bus should be called, or else
-    the .probe have not a chance to be called.
-
-    Signed-off-by: Ming Lei <tom.leiming@gmail.com>
-    Reported-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-    Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
-?
-
-Thanks
-Guennadi
-
-> 
-> I am not sure where to look for the problem, so here is a debug dump in case you can
-> point me in the right direction...
-> 
-> 
-> root@SixCam:~ insmod sixcam.ko 
-> sixcam_mod_init(): ok
-> Sixcam TRIGGER on Sixcam board: ATA_CS0~MCU3_26
-> sixcam_i2c_probe(): ok
-> camera 0-0: mx3_camera: Set SENS_CONF to f00, rate 19523897
-> sixcam_init(): initialized camera.
-> camera 0-0: MX3 Camera driver attached to camera 0
-> sixcam_video_probe(): probed camera.
-> mx3-camera mx3-camera.0: soc_camera: Allocated video_device c6080a00
-> sixcam_release(): ok
-> camera 0-0: MX3 Camera driver detached from camera 0
-> 
-> root@SixCam:~ capture --bpp 8 --size 1536x1024
-> mx3-camera.0: mx3_camera: requested bus width 8 bit: 0
-> mx3-camera.0: mx3_camera: requested bus width 15 bit: 0
-> mx3-camera.0: mx3_camera: requested bus width 10 bit: 0
-> camera 0-0: soc_camera: Found 0 supported formats.
-> mx3-camera.0: mx3_camera: requested bus width 8 bit: 0
-> mx3-camera.0: mx3_camera: Providing format Monochrome 8 bit in pass-through mode
-> mx3-camera.0: mx3_camera: requested bus width 15 bit: 0
-> mx3-camera.0: mx3_camera: Providing format Monochrome 16 bit in pass-through mode
-> mx3-camera.0: mx3_camera: requested bus width 10 bit: 0
-> mx3-camera.0: mx3_camera: Providing format Sixcam 10-bit in pass-through mode
-> camera 0-0: mx3_camera: Set SENS_CONF to f00, rate 19523897
-> sixcam_init(): initialized camera.
-> camera 0-0: MX3 Camera driver attached to camera 0
-> camera 0-0: soc_camera: camera device open
-> sixcam_set_fmt(): 640x480+0+0
-> sixcam_try_fmt(): icd->width=640 icd->height=480 fmt.pix.width=1536 fmt.pix.height=1024.
->     --> fmt.pix.width=1536 fmt.pix.height=1024.
-> ipu-core: ipu_idmac: timeout = 0 * 10ms
-> ipu-core: ipu_idmac: init channel = 7
-> ipu-core: ipu_idmac: IDMAC_CONF 0x70, IC_CONF 0x0, IDMAC_CHA_EN 0x0, IDMAC_CHA_PRI 0x80, IDMAC_CHA_BUSY 0x0
-> ipu-core: ipu_idmac: BUF0_RDY 0x0, BUF1_RDY 0x0, CUR_BUF 0x0, DB_MODE 0x0, TASKS_STAT 0x3
-> dma dma0chan7: ipu_idmac: Found channel 0x7, irq 176
-> sixcam_set_fmt(): 1536x1024+0+0
-> camera 0-0: soc_camera: set width: 1536 height: 1024
-> mx3-camera.0: mx3_camera: requested bus width 8 bit: 0
-> mx3-camera.0: mx3_camera: Flags cam: 0x2695 host: 0xf0fd common: 0x2095
-> sixcam_set_bus_param(): 0x2095
-> mx3-camera.0: mx3_camera: Set SENS_CONF to 708
-> VIDIOC_S_FMT: width 1536, heightcamera 0-0: soc_camera: soc_camera_reqbufs: 1
->  1024, pixelformat = 'GREY'
-> mx3-camera.0: videobuf_dma_contig: __videobuf_mmap_free
-> camera 0-0: soc_camera: mmap called, vma=0xc4f886e0
-> mx3-camera.0: videobuf_dma_contig: __videobuf_mmap_mapper
-> mx3-camera.0: videobuf_dma_contig: dma_alloc_coherent data is at addr c9000000 (size 1572864)
-> mx3-camera.0: videobuf_dma_contig: mmap c4fafec0: q=c8b63004 40147000-402c7000 (180000) pgoff 00084000 buf 0
-> mx3-camera.0: videobuf_dma_contig: vm_open c4fafec0 [count=0,vma=40147000-402c7000]
-> camera 0-0: soc_camera: vma start=0x40147000, size=1572864, ret=0
-> mx3-camera.0: videobuf_dma_contig: __videobuf_iolock memory method MMAP
-> camera 0-0: soc_camera: soc_camera_streamon
-> sixcam_start_capture(): trigger on!
-> ipu-core: ipu_idmac: write param mem - addr = 0x00010070, data = 0x00000000
-> ipu-core: ipu_idmac: write param mem - addr = 0x00010071, data = 0x00004000
-> ipu-core: ipu_idmac: write param mem - addr = 0x00010072, data = 0x00000000
-> ipu-core: ipu_idmac: write param mem - addr = 0x00010073, data = 0xFF5FF000
-> ipu-core: ipu_idmac: write param mem - addr = 0x00010074, data = 0x00000003
-> ipu-core: ipu_idmac: write param mem - addr = 0x00010078, data = 0x84000000
-> ipu-core: ipu_idmac: write param mem - addr = 0x00010079, data = 0x00000000
-> ipu-core: ipu_idmac: write param mem - addr = 0x0001007A, data = 0x3E0E2FFB
-> ipu-core: ipu_idmac: write param mem - addr = 0x0001007B, data = 0x00000002
-> ipu-core: ipu_idmac: write param mem - addr = 0x0001007C, data = 0x00000000
-> dma dma0chan7: ipu_idmac: Submitting sg c4e0772c
-> dma dma0chan7: ipu_idmac: Updated sg c4e0772c on channel 0x7 buffer 0
-> ipu-core: ipu_idmac: IDMAC_CONF 0x70, IC_CONF 0x0, IDMAC_CHA_EN 0x0, IDMAC_CHA_PRI 0x80, IDMAC_CHA_BUSY 0x0
-> ipu-core: ipu_idmac: BUF0_RDY 0x80, BUF1_RDY 0x0, CUR_BUF 0x0, DB_MODE 0x0, TASKS_STAT 0x3
-> ipu-core: ipu_idmac: IDMAC_CONF 0x70, IC_CONF 0x40000001, IDMAC_CHA_EN 0x80, IDMAC_CHA_PRI 0x80, IDMAC_CHA_BUSY 0x0
-> ipu-core: ipu_idmac: BUF0_RDY 0x80, BUF1_RDY 0x0, CUR_BUF 0x0, DB_MODE 0x0, TASKS_STAT 0x3
-> camera 0-0: mx3_camera: Submitted cookie 2 DMA 0x84000000
-> dma dma0chan7: ipu_idmac: IDMAC irq 176, buf 0
-> dma dma0chan7: ipu_idmac: IRQ on active buffer on channel 7, active 0, ready 0, 0, current 0!
-> 
-> [ ten seconds pass, and a lot of frames come out of my camera ]
-> 
-> capture: Select timeout. Exiting...
-> mx3-camera.0: videobuf_dma_contig: vm_close c4fafec0 [count=1,vma=40147000-402c7000]
-> mx3-camera.0: videobuf_dma_contig: munmap c4fafec0 q=c8b63004
-> camera 0-0: mx3_camera: Release active DMA 0x84000000 (state 3), queue not empty
-> camera 0-0: mx3_camera: free_buffer (vb=0xc4e076c0) 0x40147000 1572864
-> mx3-camera.0: videobuf_dma_contig: buf[0] freeing c9000000
-> ipu-core: ipu_idmac: timeout = 0 * 10ms
-> sixcam_release(): ok
-> camera 0-0: MX3 Camera driver detached from camera 0
-> camera 0-0: soc_camera: camera device close
-> 
-> Any clue?
-> 
-> BTW, this dump shows a few apparently unneeded calls to camera set_fmt() and get_bus_params().
-> 
-> Many thanks,
-> --Agustín.
-> 
-> --
-> Agustin Ferrin Pozuelo
-> Embedded Systems Consultant
-> http://embedded.ferrin.org
-> Tel. +34 610502587
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Mike
