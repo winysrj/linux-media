@@ -1,13 +1,13 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110801.mail.gq1.yahoo.com ([67.195.13.224]:38329 "HELO
-	web110801.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753004AbZELO2l (ORCPT
+Received: from web110806.mail.gq1.yahoo.com ([67.195.13.229]:21595 "HELO
+	web110806.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755369AbZESQY1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2009 10:28:41 -0400
-Message-ID: <77989.12979.qm@web110801.mail.gq1.yahoo.com>
-Date: Tue, 12 May 2009 07:28:41 -0700 (PDT)
+	Tue, 19 May 2009 12:24:27 -0400
+Message-ID: <716575.53837.qm@web110806.mail.gq1.yahoo.com>
+Date: Tue, 19 May 2009 09:24:23 -0700 (PDT)
 From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [0905_05] Siano: smsusb - lost buffers bug fix
+Subject: [PATCH] [09051_55] Siano: smscards - merge the binding handling
 To: LinuxML <linux-media@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -17,54 +17,57 @@ List-ID: <linux-media.vger.kernel.org>
 
 # HG changeset patch
 # User Uri Shkolnik <uris@siano-ms.com>
-# Date 1242138741 -10800
-# Node ID ae0f17b305e7762643a9bc7f43c302c11f7b55b5
-# Parent  db8bfae234d4730f18823ca0686762a13e7997c9
-[0905_05] Siano: smsusb - lost buffers bug fix
+# Date 1242750556 -10800
+# Node ID d92f2dfcb226c5f8b8c3216f7cf96126f7571702
+# Parent  0296b0c436d6deba48c710cfb510988267cea057
+[09051_55] Siano: smscards - merge the binding handling.
 
 From: Uri Shkolnik <uris@siano-ms.com>
 
-This patch fixes a problem were protocol buffers
-have been lost during USB disconnect events.
+Merge the bind handling into the events switch.
 
 Priority: normal
 
 Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
 
-diff -r db8bfae234d4 -r ae0f17b305e7 linux/drivers/media/dvb/siano/smsusb.c
---- a/linux/drivers/media/dvb/siano/smsusb.c	Tue May 12 17:19:30 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smsusb.c	Tue May 12 17:32:21 2009 +0300
-@@ -65,14 +65,14 @@ static void smsusb_onresponse(struct urb
- 	struct smsusb_urb_t *surb = (struct smsusb_urb_t *) urb->context;
- 	struct smsusb_device_t *dev = surb->dev;
+diff -r 0296b0c436d6 -r d92f2dfcb226 linux/drivers/media/dvb/siano/sms-cards.c
+--- a/linux/drivers/media/dvb/siano/sms-cards.c	Tue May 19 19:19:27 2009 +0300
++++ b/linux/drivers/media/dvb/siano/sms-cards.c	Tue May 19 19:29:16 2009 +0300
+@@ -194,7 +194,13 @@ int sms_board_event(struct smscore_devic
  
--	if (urb->status < 0) {
--		sms_err("error, urb status %d, %d bytes",
-+	if (urb->status == -ESHUTDOWN) {
-+		sms_err("error, urb status %d (-ESHUTDOWN), %d bytes",
- 			urb->status, urb->actual_length);
- 		return;
- 	}
- 
--	if (urb->actual_length > 0) {
--		struct SmsMsgHdr_ST *phdr = (struct SmsMsgHdr_ST *) surb->cb->p;
-+	if ((urb->actual_length > 0) && (urb->status == 0)) {
-+		struct SmsMsgHdr_ST *phdr = (struct SmsMsgHdr_ST *)surb->cb->p;
- 
- 		smsendian_handle_message_header(phdr);
- 		if (urb->actual_length >= phdr->msgLength) {
-@@ -111,7 +111,10 @@ static void smsusb_onresponse(struct urb
- 				"msglen %d actual %d",
- 				phdr->msgLength, urb->actual_length);
- 		}
+ 	case BOARD_EVENT_BIND:
+ 		switch (board_id) {
++		case SMS1XXX_BOARD_HAUPPAUGE_CATAMOUNT:
++		case SMS1XXX_BOARD_HAUPPAUGE_OKEMO_A:
++		case SMS1XXX_BOARD_HAUPPAUGE_OKEMO_B:
++			request_module("smsdvb");
++			break;
+ 		case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
++			request_module("smsdvb");
+ 			smscore_gpio_set_level(coredev,
+ 				board->board_cfg.leds_power, 1);
+ 			smscore_gpio_set_level(coredev,
+@@ -366,20 +372,3 @@ int sms_board_lna_control(struct smscore
+ 	return -EINVAL;
+ }
+ EXPORT_SYMBOL_GPL(sms_board_lna_control);
+-
+-int sms_board_load_modules(int id)
+-{
+-	switch (id) {
+-	case SMS1XXX_BOARD_HAUPPAUGE_CATAMOUNT:
+-	case SMS1XXX_BOARD_HAUPPAUGE_OKEMO_A:
+-	case SMS1XXX_BOARD_HAUPPAUGE_OKEMO_B:
+-	case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
+-		request_module("smsdvb");
+-		break;
+-	default:
+-		/* do nothing */
+-		break;
 -	}
-+	} else
-+		sms_err("error, urb status %d, %d bytes",
-+			urb->status, urb->actual_length);
-+
- 
- exit_and_resubmit:
- 	smsusb_submit_urb(dev, surb);
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(sms_board_load_modules);
 
 
 
