@@ -1,57 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f177.google.com ([209.85.222.177]:36949 "EHLO
-	mail-pz0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751619AbZEYDFm convert rfc822-to-8bit (ORCPT
+Received: from mail-ew0-f224.google.com ([209.85.219.224]:44121 "EHLO
+	mail-ew0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753189AbZESQSm convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 May 2009 23:05:42 -0400
-Received: by pzk7 with SMTP id 7so2289084pzk.33
-        for <linux-media@vger.kernel.org>; Sun, 24 May 2009 20:05:43 -0700 (PDT)
+	Tue, 19 May 2009 12:18:42 -0400
+Received: by ewy24 with SMTP id 24so4990532ewy.37
+        for <linux-media@vger.kernel.org>; Tue, 19 May 2009 09:18:43 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <4A186764.4080007@klepeis.net>
-References: <4A186764.4080007@klepeis.net>
-Date: Sun, 24 May 2009 23:05:43 -0400
-Message-ID: <829197380905242005p2cd41103rc1e0ecfb6c0e156f@mail.gmail.com>
-Subject: Re: Temporary success with Pinnacle PCTV 801e (xc5000 chip)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: list1@klepeis.net
-Cc: linux-media@vger.kernel.org
+In-Reply-To: <713142.1655.qm@web110815.mail.gq1.yahoo.com>
+References: <713142.1655.qm@web110815.mail.gq1.yahoo.com>
+Date: Tue, 19 May 2009 12:18:42 -0400
+Message-ID: <37219a840905190918p639972c5xc273761f16040c7e@mail.gmail.com>
+Subject: Re: [PATCH] [09051_47] Siano: smsdvb - add DVB v3 events
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Uri Shkolnik <urishk@yahoo.com>
+Cc: LinuxML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, May 23, 2009 at 5:15 PM, N Klepeis <list1@klepeis.net> wrote:
-> Hi,
+On Tue, May 19, 2009 at 11:28 AM, Uri Shkolnik <urishk@yahoo.com> wrote:
 >
-> I installed the latest v4l-dvb from CVS with the latest firmware
-> (dvb-fe-xc5000-1.6.114.fw) for the 801e (XC5000 chip).   I can  scan for
-> channels no problem.   But after a first use with either mplayer or mythtv,
-> it then immediately stops working and won't start again until I unplug and
-> then reinsert the device from the USB port.       On the first time use
-> everything seems fine and I can watch TV through mplayer for as long as I
-> want.    On the 2nd use (restart mplayer), there's an error (FE_GET_INFO
-> error: 19, FD: 3).    On the 2nd use with mythtv, mythtv cannot connect to
-> the card at all in mythtvsetup, but on the first time use I can assign
-> channel.conf.      I know there have been recent updates to the xc5000
-> driver.    I only started trying this chip this week so I never confirmed
-> that any prior driver version worked.
+> # HG changeset patch
+> # User Uri Shkolnik <uris@siano-ms.com>
+> # Date 1242747164 -10800
+> # Node ID 971d4cc0d4009650bd4752c6a9fc09755ef77baf
+> # Parent  98895daafb42f8b0757fd608b29c53c80327520e
+> [09051_47] Siano: smsdvb - add DVB v3 events
 >
-> Any thoughts on how to proceed?     Below are the full console outputs when
-> using with mplayer and when running dmesg.   (This is fedora 10).
+> From: Uri Shkolnik <uris@siano-ms.com>
 >
-> --Neil
+> Add various DVB-API v3 events, those events will trig
+> target (card) events.
+>
+> Priority: normal
+>
+> Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+>
+> diff -r 98895daafb42 -r 971d4cc0d400 linux/drivers/media/dvb/siano/smsdvb.c
+> --- a/linux/drivers/media/dvb/siano/smsdvb.c    Tue May 19 18:27:38 2009 +0300
+> +++ b/linux/drivers/media/dvb/siano/smsdvb.c    Tue May 19 18:32:44 2009 +0300
+> @@ -66,6 +66,54 @@ MODULE_PARM_DESC(debug, "set debug level
+>  /* Events that may come from DVB v3 adapter */
+>  static void sms_board_dvb3_event(struct smsdvb_client_t *client,
+>                enum SMS_DVB3_EVENTS event) {
+> +
+> +       struct smscore_device_t *coredev = client->coredev;
+> +       switch (event) {
+> +       case DVB3_EVENT_INIT:
+> +               sms_debug("DVB3_EVENT_INIT");
+> +               sms_board_event(coredev, BOARD_EVENT_BIND);
+> +               break;
+> +       case DVB3_EVENT_SLEEP:
+> +               sms_debug("DVB3_EVENT_SLEEP");
+> +               sms_board_event(coredev, BOARD_EVENT_POWER_SUSPEND);
+> +               break;
+> +       case DVB3_EVENT_HOTPLUG:
+> +               sms_debug("DVB3_EVENT_HOTPLUG");
+> +               sms_board_event(coredev, BOARD_EVENT_POWER_INIT);
+> +               break;
+> +       case DVB3_EVENT_FE_LOCK:
+> +               if (client->event_fe_state != DVB3_EVENT_FE_LOCK) {
+> +                       client->event_fe_state = DVB3_EVENT_FE_LOCK;
+> +                       sms_debug("DVB3_EVENT_FE_LOCK");
+> +                       sms_board_event(coredev, BOARD_EVENT_FE_LOCK);
+> +               }
+> +               break;
+> +       case DVB3_EVENT_FE_UNLOCK:
+> +               if (client->event_fe_state != DVB3_EVENT_FE_UNLOCK) {
+> +                       client->event_fe_state = DVB3_EVENT_FE_UNLOCK;
+> +                       sms_debug("DVB3_EVENT_FE_UNLOCK");
+> +                       sms_board_event(coredev, BOARD_EVENT_FE_UNLOCK);
+> +               }
+> +               break;
+> +       case DVB3_EVENT_UNC_OK:
+> +               if (client->event_unc_state != DVB3_EVENT_UNC_OK) {
+> +                       client->event_unc_state = DVB3_EVENT_UNC_OK;
+> +                       sms_debug("DVB3_EVENT_UNC_OK");
+> +                       sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_OK);
+> +               }
+> +               break;
+> +       case DVB3_EVENT_UNC_ERR:
+> +               if (client->event_unc_state != DVB3_EVENT_UNC_ERR) {
+> +                       client->event_unc_state = DVB3_EVENT_UNC_ERR;
+> +                       sms_debug("DVB3_EVENT_UNC_ERR");
+> +                       sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_ERRORS);
+> +               }
+> +               break;
+> +
+> +       default:
+> +               sms_err("Unknown dvb3 api event");
+> +               break;
+> +       }
+>  }
+>
+>  static int smsdvb_onresponse(void *context, struct smscore_buffer_t *cb)
+>
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
 
-Neil,
 
-Already tracked down and a PULL has been requested for the patch:
 
-http://kernellabs.com/hg/~dheitmueller/dvb-frontend-exit-fix
+Uri,
 
-Cheers,
+I don't understand what prompts you to call these "DVB v3 events" ...
+what does this have to do with DVB API v3 at all?  Your idea seems to
+be in the right direction, but this "DVBV3" nomenclature is a total
+misnomer.
 
-Devin
+I think something along the lines of SMSBOARD_EVENT_FOO is more appropriate.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Mike
