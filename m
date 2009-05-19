@@ -1,185 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110811.mail.gq1.yahoo.com ([67.195.13.234]:40559 "HELO
+Received: from web110811.mail.gq1.yahoo.com ([67.195.13.234]:23304 "HELO
 	web110811.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753129AbZESSSc convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2009 14:18:32 -0400
-Message-ID: <349664.18832.qm@web110811.mail.gq1.yahoo.com>
-Date: Tue, 19 May 2009 11:18:32 -0700 (PDT)
+	by vger.kernel.org with SMTP id S1752748AbZESPeI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 May 2009 11:34:08 -0400
+Message-ID: <763416.19374.qm@web110811.mail.gq1.yahoo.com>
+Date: Tue, 19 May 2009 08:34:09 -0700 (PDT)
 From: Uri Shkolnik <urishk@yahoo.com>
-Subject: Re: [PATCH] [09051_40] Siano - kconfig update
-To: Michael Krufky <mkrufky@linuxtv.org>
-Cc: LinuxML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] [09051_48] Siano: smscore - remove redundant code
+To: LinuxML <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1242747487 -10800
+# Node ID cfb4106f3ceaee9fe8f7e3acc9d4adec1baffe5e
+# Parent  971d4cc0d4009650bd4752c6a9fc09755ef77baf
+[09051_48] Siano: smscore - remove redundant code
 
+From: Uri Shkolnik <uris@siano-ms.com>
 
---- On Tue, 5/19/09, Michael Krufky <mkrufky@linuxtv.org> wrote:
+remove redundant code, which in the past handled the
+various components (now independent modules) registrations.
 
-> From: Michael Krufky <mkrufky@linuxtv.org>
-> Subject: Re: [PATCH] [09051_40] Siano - kconfig update
-> To: "Uri Shkolnik" <urishk@yahoo.com>
-> Cc: "LinuxML" <linux-media@vger.kernel.org>, "Mauro Carvalho Chehab" <mchehab@infradead.org>
-> Date: Tuesday, May 19, 2009, 6:47 PM
-> On Tue, May 19, 2009 at 7:58 AM, Uri
-> Shkolnik <urishk@yahoo.com>
-> wrote:
-> >
-> > # HG changeset patch
-> > # User Uri Shkolnik <uris@siano-ms.com>
-> > # Date 1242734522 -10800
-> > # Node ID c74502f4c8e97bd9cec9656793bbabc11fb72ab4
-> > # Parent  315bc4b65b4f527c4f9bc4fe3290e10f07975437
-> > [09051_40] Siano - kconfig update
-> >
-> > From: Uri Shkolnik <uris@siano-ms.com>
-> >
-> > This patches comes to solve the comments on Siano's
-> patch
-> > 0905_10. It updates the kconfig to support
-> multi-modules build.
-> > Note that the dependency on dvb_core is for the
-> (sms)dvb module
-> > alone, since the drivers set may work with another
-> adapter.
-> >
-> > Priority: normal
-> >
-> > Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-> >
-> > diff -r 315bc4b65b4f -r c74502f4c8e9
-> linux/drivers/media/dvb/siano/Kconfig
-> > --- a/linux/drivers/media/dvb/siano/Kconfig     Sun
-> May 17 12:28:55 2009 +0000
-> > +++ b/linux/drivers/media/dvb/siano/Kconfig     Tue
-> May 19 15:02:02 2009 +0300
-> > @@ -2,25 +2,40 @@
-> >  # Siano Mobile Silicon Digital TV device
-> configuration
-> >  #
-> >
-> > -config DVB_SIANO_SMS1XXX
-> > -       tristate "Siano SMS1XXX USB dongle
-> support"
-> > -       depends on DVB_CORE && USB
-> > +config SMS_SIANO_MDTV
-> > +       tristate "Siano SMS1xxx based MDTV
-> receiver"
-> > +       default m
-> >        ---help---
-> > -         Choose Y here if you have a USB dongle
-> with a SMS1XXX chipset.
-> > +       Choose Y or M here if you have MDTV
-> receiver with a Siano chipset.
-> >
-> > -         To compile this driver as a module,
-> choose M here: the
-> > -         module will be called sms1xxx.
-> > +       To compile this driver as a module, choose
-> M here
-> > +       (The modules will be called smsmdtv).
-> >
-> > -config DVB_SIANO_SMS1XXX_SMS_IDS
-> > -       bool "Enable support for Siano Mobile
-> Silicon default USB IDs"
-> > -       depends on DVB_SIANO_SMS1XXX
-> > -       default y
-> > +       Note: All dependents, if selected, will be
-> part of this module.
-> > +
-> > +       Further documentation on this driver can be
-> found on the WWW
-> > +       at http://www.siano-ms.com/
-> > +
-> > +if SMS_SIANO_MDTV
-> > +menu "Siano module components"
-> > +
-> > +# Kernel sub systems support
-> > +config SMS_DVB3_SUBSYS
-> > +       tristate "DVB v.3 Subsystem support"
-> > +       depends on DVB_CORE
-> > +       default m if DVB_CORE
-> >        ---help---
-> > -         Choose Y here if you have a USB dongle
-> with a SMS1XXX chipset
-> > -         that uses Siano Mobile Silicon's default
-> usb vid:pid.
-> > +       Choose if you would like to have DVB v.3
-> kernel sub-system support.
-> >
-> > -         Choose N here if you would prefer to use
-> Siano's external driver.
-> > +# Hardware interfaces support
-> >
-> > -         Further documentation on this driver can
-> be found on the WWW at
-> > -         <http://www.siano-ms.com/>.
-> > +config SMS_USB_DRV
-> > +       tristate "USB interface support"
-> > +       depends on USB
-> > +       default m if USB
-> > +       ---help---
-> > +       Choose if you would like to have Siano's
-> support for USB interface
-> >
-> > +
-> > +endmenu
-> > +endif # SMS_SIANO_MDTV
-> >
-> >
-> >
-> >
-> > --
-> > To unsubscribe from this list: send the line
-> "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> 
-> 
-> 
-> I have two concerns with this patch...
-> 
-> 
-> Issue #1, I dont see why it's important to rename the
-> Kconfig symbol
-> from DVB_SIANO_SMS1XXX to SMS_SIANO_MDTV -- This will just
-> cause
-> breakage of "make oldconfig" in the kernel with no real
-> benefit.
-> 
-> Issue #2, a much bigger issue.....  This patch implies
-> that the Siano
-> driver can be built *with* DVB "v3" support, or without
-> it.  Why would
-> a linux user ever want to built this driver without support
-> for the
-> DVB API ?  (that's a loaded question) ...  Does
-> Siano intend to push
-> their proprietary API into the kernel?
-> 
-> -Mike
-> 
+Priority: normal
 
-Regarding #1 - sms1xxx implies that is support only Siano devices from 1xxx families, but actually it support all Siano's chip-sets and various MCPs (Which have different numeration than 1xxx, I can't give details here, sorry). So 1xxx is a misleading name.
-MDTV - much better (you can read it as Mobile Digital TV, or something else)
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
 
-Regarding #2 - DVB-API version 3 (dvb-core module) is one of the sub-systems which are supported. The drivers set is also supports DVB-API version 5 (pre-alpha at this stage) and Siano's proprietary sub-system. So, actually you don't have to have dvb-core in order to use Siano's USB interface driver... 
-Please note that there are DAB radio builds, using Siano chip-sets and drivers... which means you don't need the dvb-core as well, you just need the dab and the Siano's core and interface drivers...
+diff -r 971d4cc0d400 -r cfb4106f3cea linux/drivers/media/dvb/siano/smscoreapi.c
+--- a/linux/drivers/media/dvb/siano/smscoreapi.c	Tue May 19 18:32:44 2009 +0300
++++ b/linux/drivers/media/dvb/siano/smscoreapi.c	Tue May 19 18:38:07 2009 +0300
+@@ -1645,99 +1645,11 @@ static int __init smscore_module_init(vo
+ 	INIT_LIST_HEAD(&g_smscore_registry);
+ 	kmutex_init(&g_smscore_registrylock);
+ 
+-#if 0 /* def SMS_CHAR_CLIENT */
+-	/* Char interface Register */
+-	rc = smschar_register();
+-	if (rc) {
+-		sms_err("Error registering char device client.\n");
+-		goto smschar_error;
+-	}
+-#endif
+-
+-#if 0 /* def SMS_DVB_CLIENT */
+-	/* DVB Register */
+-	rc = smsdvb_register();
+-	if (rc) {
+-		sms_err("Error registering DVB client.\n");
+-		goto smsdvb_error;
+-	}
+-#endif
+-
+-#if 0 /* def SMS_NET_CLIENT */
+-	/* DVB Register */
+-	rc = smsnet_register();
+-	if (rc) {
+-		sms_err("Error registering Network client.\n");
+-		goto smsnet_error;
+-	}
+-#endif
+-
+-#if 0 /* def SMS_USB_BUS_DRV */
+-	/* USB Register */
+-	rc = smsusb_register();
+-	if (rc) {
+-		sms_err("Error registering USB bus driver.\n");
+-		goto sms_bus_drv_error;
+-	}
+-#endif
+-
+-#if 0 /* def SMS_SPI_BUS_DRV */
+-	/* USB Register */
+-	rc = smsspi_register();
+-	if (rc) {
+-		sms_err("Error registering spi bus driver.\n");
+-		goto sms_bus_drv_error;
+-	}
+-#endif
+-
+-	return rc;
+-#if 0
+-sms_bus_drv_error:
+-#endif /* 0 */
+-#if 0 /* def SMS_NET_CLIENT */
+-	smsnet_unregister();
+-smsnet_error:
+-#endif
+-#if 0 /* def SMS_DVB_CLIENT */
+-	smsdvb_unregister();
+-smsdvb_error:
+-#endif
+-#if 0 /* def SMS_CHAR_CLIENT */
+-	smschar_unregister();
+-smschar_error:
+-#endif
+-	sms_debug("rc %d", rc);
+-
+ 	return rc;
+ }
+ 
+ static void __exit smscore_module_exit(void)
+ {
+-#if 0 /* def SMS_CHAR_CLIENT */
+-	/* Char interface UnRegister */
+-	smschar_unregister();
+-#endif
+-
+-#if 0 /* def SMS_DVB_CLIENT */
+-	/* DVB UnRegister */
+-	smsdvb_unregister();
+-#endif
+-
+-#if 0 /* def SMS_NET_CLIENT */
+-	/* NET UnRegister */
+-	smsnet_unregister();
+-#endif
+-
+-#if 0 /* def SMS_USB_BUS_DRV */
+-	/* Unregister USB */
+-	smsusb_unregister();
+-#endif
+-
+-#if 0 /* def SMS_SPI_BUS_DRV */
+-	/* Unregister SPI */
+-	smsspi_unregister();
+-#endif
+-
+ 	kmutex_lock(&g_smscore_deviceslock);
+ 	while (!list_empty(&g_smscore_notifyees)) {
+ 		struct smscore_device_notifyee_t *notifyee =
 
-Long time ago I asked you, why you chose to put the Siano sub-tree under media/dvb, since that chip-set can be used (and it is) and be regarded as... radio receiver. I don't mind that the Siano's sub-tree will reside under media/dvb, but it doesn't indicates either that it's bind solely to dvb-core....
-
-Uri
-
-Regards,
-
-Mike
 
 
       
