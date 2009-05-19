@@ -1,51 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from juliette.telenet-ops.be ([195.130.137.74]:35769 "EHLO
-	juliette.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751319AbZEVHFC (ORCPT
+Received: from web110810.mail.gq1.yahoo.com ([67.195.13.233]:24153 "HELO
+	web110810.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752465AbZESNep (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2009 03:05:02 -0400
-Message-ID: <4A164E9F.1070302@bsc-bvba.be>
-Date: Fri, 22 May 2009 09:05:03 +0200
-From: Luc Brosens <dvb3@bsc-bvba.be>
-Reply-To: dvb3@bsc-bvba.be
+	Tue, 19 May 2009 09:34:45 -0400
+Message-ID: <556889.38477.qm@web110810.mail.gq1.yahoo.com>
+Date: Tue, 19 May 2009 06:34:46 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: Re: [PATCH] [0905_14] Siano: USB - move the device id table to the cards module
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: LinuxML <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: linux-dvb@linuxtv.org, tarik.chougua@yahoo.fr
-Subject: Re: [linux-dvb] Hauppauge WinTV-CI
-References: <965444.24352.qm@web26902.mail.ukl.yahoo.com> <20090515231650.56d6c4f4@bk.ru>
-In-Reply-To: <20090515231650.56d6c4f4@bk.ru>
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Goga777 wrote:
->> Is Wintv-CI, the Common Interface from Hauppauge, working on linux now ?
+
+
+
+--- On Mon, 5/18/09, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+
+> From: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Subject: Re: [PATCH] [0905_14] Siano: USB - move the device id table to the cards module
+> To: "Uri Shkolnik" <urishk@yahoo.com>
+> Cc: "LinuxML" <linux-media@vger.kernel.org>
+> Date: Monday, May 18, 2009, 9:41 AM
+> Em Thu, 14 May 2009 12:29:35 -0700
+> (PDT)
+> Uri Shkolnik <urishk@yahoo.com>
+> escreveu:
 > 
+> The idea of moving it to sms-cards.c is interesting,
+> however, I don't think
+> this will work fine, since having the usb probing code at
+> one module and the
+> table on another will break for udev.
 > 
-> not
+> Also, by applying this patch, module loader would be
+> broken:
 > 
-> Goga
+> WARNING: "smsusb_id_table" [/home/v4l/master/v4l/smsusb.ko]
+> undefined!
 > 
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> I can see a few alternatives:
+> 
+> 1) keep as-is;
+> 2) move usb init code to sms-cards;
+> 3) break sms-cards into smaller files, like sms-cards-usb
+> (for usb devices);
+> 4) having the table declared as static into some header
+> file.
 > 
 
 
-I have been struggling for ages with this device, trying get the firmware to load.
+Mauro,
 
-The program I wrote to extract the firmware from the driver now outputs the Intel Hex format too, used by fxload.
-No luck : the A3 part does not get loaded, not even using fxloads' A3-loader
+That patch has been suppressed by me @ the patchwork shortly after I submit it.
 
-Details and downloads of code, logs etc at http://www.bsc-bvba.be/linux/dvb
+The ID tables (for USB and for SDIO) devices will remain in their corresponding interfaces drivers.
 
-I could use some help, like :
-> > traces of the firmware being loaded on XP/Vista (I am using USBspy myself), preferably using a hardware protocol analyser
-> > recommendations for an affordable hardware USB2 protocol analyser (I'd try to compare the XP-log with the non-working Linux log)
-> > suggestions on how to proceed ...
+The cards/targets will keep to be managed by board ID (sms-cards.h), no need to further break the sms-cards to mini-modules, there is nothing to gain with that architecture. 
 
-Luc
 
+10x,
+
+Uri
+
+
+      
