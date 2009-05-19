@@ -1,118 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.172]:8652 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751042AbZEVCFq convert rfc822-to-8bit (ORCPT
+Received: from banach.math.auburn.edu ([131.204.45.3]:41653 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751633AbZESSFF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2009 22:05:46 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so503890wfd.4
-        for <linux-media@vger.kernel.org>; Thu, 21 May 2009 19:05:47 -0700 (PDT)
+	Tue, 19 May 2009 14:05:05 -0400
+Date: Tue, 19 May 2009 13:18:53 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Hans de Goede <hdegoede@redhat.com>
+cc: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org
+Subject: Re: Preliminary results with an SN9C2028 camera
+In-Reply-To: <4A12663B.5000001@redhat.com>
+Message-ID: <alpine.LNX.2.00.0905191253150.19683@banach.math.auburn.edu>
+References: <20090217200928.1ae74819@free.fr> <alpine.LNX.2.00.0903032247530.21793@banach.math.auburn.edu> <49AE3EA1.3090504@kaiser-linux.li> <200904160014.32558.elyk03@gmail.com> <alpine.LNX.2.00.0905151715210.12530@banach.math.auburn.edu>
+ <4A12663B.5000001@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <200905211407.05354.hverkuil@xs4all.nl>
-References: <5e9665e10905200448n1ffc9d8s20317bbbba745e6a@mail.gmail.com>
-	 <200905211407.05354.hverkuil@xs4all.nl>
-Date: Fri, 22 May 2009 11:05:47 +0900
-Message-ID: <5e9665e10905211905t43ae195cv7a0fe243077887c9@mail.gmail.com>
-Subject: Re: About VIDIOC_G_OUTPUT/S_OUTPUT ?
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Shah, Hardik" <hardik.shah@ti.com>,
-	"dongsoo45.kim@samsung.com" <dongsoo45.kim@samsung.com>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
 
-On Thu, May 21, 2009 at 9:07 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Wednesday 20 May 2009 13:48:08 Dongsoo, Nathaniel Kim wrote:
->> Hello everyone,
->>
->> Doing a new camera interface driver job of new AP from Samsung, a
->> single little question doesn't stop making me confused.
->> The camera IP in Samsung application processor supports for two of
->> output paths, like "to memory" and "to LCD FIFO".
->> It seems to be VIDIOC_G_OUTPUT/S_OUTPUT which I need to use (just
->> guessing), but according to Hans's ivtv driver the "output" of
->> G_OUTPUT/S_OUTPUT is supposed to mean an actually and physically
->> separated real output path like Composite, S-Video and so on.
->>
->> Do you think that memory or LCD FIFO can be an "output" device in this
->> case? Because in earlier version of my driver, I assumed that the "LCD
->> FIFO" is a kind of "OVERLAY" device, so I didn't even need to use
->> G_OUTPUT and S_OUTPUT to route output device. I'm just not sure about
->> which idea makes sense. or maybe both of them could make sense
->> indeed...
+On Tue, 19 May 2009, Hans de Goede wrote:
+
 >
-> When you select "to memory", then the video from the camera is DMAed to the
-> CPU, right? But selecting "to LCD" means that the video is routed
-> internally to the LCD without any DMA to the CPU taking place, right?
 >
-
-Yes definitely right.
-
-
-> This is similar to the "passthrough" mode of the ivtv driver.
+> On 05/16/2009 12:31 AM, Theodore Kilgore wrote:
+>> 
+>> I decided recently to work on support for the SN9C2028 dual-mode
+>> cameras, which are supported as still cameras in
+>> libgphoto2/camlibs/sonix. Today, I succeeded in getting three frames out
+>> of one of them, using svv -gr, and I was able to convert two of the
+>> three frames to nice images using the same decompression algorithm which
+>> is used for the cameras in stillcam mode.
+>> 
+>> There is a lot of work to do yet: support for all appropriate resolution
+>> settings (which are what? I do not yet know), support for all known
+>> cameras for which I can chase down an owner, and incorporation of the
+>> decompression code in libv4l.
+>> 
+>> However, I thought you might like to know that some success has been
+>> achieved.
+>> 
 >
-> This header: linux/dvb/video.h contains an ioctl called VIDEO_SELECT_SOURCE,
-> which can be used to select either memory or a demuxer (or in this case,
-> the camera) as the source of the output (the LCD in this case). It is
-> probably the appropriate ioctl to implement for this.
+> Cool!
 >
-
-So, in user space we should call  VIDIO_SELECT_SOURCE ioctl?
-
-
-> The video.h header is shared between v4l and dvb and contains several ioctls
-> meant to handle output. It is poorly documented and I think it should be
-> merged into the v4l2 API and properly documented/cleaned up.
->
-
-I agree with you. Anyway, camera interface is not a DVB device but
-supporting this source routing feature means that we also need this
-API in v4l2.
-
-> Note that overlays are meant for on-screen displays. Usually these are
-> associated with a framebuffer device. Your hardware may implement such an
-> OSD as well, but that is different from this passthrough feature.
->
-
-Sorry Hans, I'm not sure that I'm following this part. Can I put it in
-the way like this?
-The OSD feature in Samsung AP should be handled separated with the
-selecting source feature (camera-to-FB and camera-to-memory). So that
-I should implement both of them. (overlay feature and select source
-feature)
-Am I following? Please let me know if there is something wrong.
-
-BTW, my 5M camera driver which is including the new V4L2 API proposal
-I gave a talk in SF couldn't have approval from my bosses to be opened
-to the public. But I'll try to make another camera device driver which
-can cover must of the API I proposed.
-Cheers,
-
-Nate
-
-> Regards,
->
->        Hans
->
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
->
+> I recently got a vivitar mini digital camera, usb id 093a 010e,
+> CD302N according to gphoto, which also is a dual mode camera. It would
+> be nice to get the webcam mode on this one supported too. Do you know
+> if there has already been some base work done on that ?
 
 
+Hans,
 
--- 
-=
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
+Yes, I have been working on that, with some success. Here is an account:
+
+These cameras are MR97310a cameras, specifically the "CIF" variety. They 
+will stream at max resolution 352x288, and then at 320x240, 176x144, and 
+160x120. I thought at first they are using a different compression 
+algorithm from those which are supported currently in gspca/mr97310.c but 
+I was mistaken about that. In fact, the compression algorithm is the same 
+(so that no code changes in libv4lconvert are required in order to support 
+them) but the initialization sequence is quite a bit different.
+
+
+I succeeded in getting what seemed like a sufficient number of log files 
+to be able to put together init sequences which work. I have a preliminary 
+version of the code, which works for me with several of the 0x010e cameras 
+that I own. Right now, Thomas Kaiser got one of these cameras recently 
+(there was some discussion about this a couple of weeks ago, here on the 
+list). Someone wrote in to the list and offered one of the cameras for 
+testing. I responded and said it should be sent to one of the three people 
+who are interested: Kyle Guinn, who wrote the mr97310a.c code, Thomas 
+Kaiser, who had some interest in the decompression algorithms, or myself. 
+The camera ended up going to Thomas.
+
+About the same time, I sent my code to Thomas. Basically, what I have done 
+is to write a replacement for mr97310a.c which supports these cameras in 
+addition to the current ones. I hope that we have a report of his testing 
+soon. Since you now have one of these cameras, would you like for me to 
+send a copy to you, too?
+
+I should mention there are several reasons why I did not feel ready to 
+post a formal code patch:
+
+1. The initialization sequences (register writes) seem to be variable from 
+one session to another, and they can be influenced on the Windows 
+streaming program that I am using, by such things as changing brightness, 
+color balance, gamma setting, and so forth, from controls in the Windows 
+program. In other words, it is feasible for various controls to talk to 
+these cameras (presumably all mr97310a cameras). I was hoping that Thomas 
+may know more about such things. Perhaps you do, too?
+
+2. I have one of these "CIF" cameras which will neither stream on Linux 
+nor on Windows. It goes throught all of the motions, and a "stream" 
+starts. But inspection of the contents of the "stream" shows it consists 
+of nothing but sucessive repetitions of the image header. I have tried to 
+chase down comments about this camera (Vivitar Mini Digital Camera) 
+through Google. It seems that many have had this problem; perhaps some of 
+these particular cameras contained buggy hardware.
+
+3. I have another camera (one of the 0x010f "VGA" cameras) which is 
+supposed to stream but refuses to supply data across the isoc endpoint. 
+Probably this is also a hardware problem. It does not work in Windows, 
+either, even though it is supposed to. Perhaps it has merely suffered from 
+old age or ill treatment years ago by its owner (me).
+
+
+So, as I said, I am perfectly willing to send along my code privately, and 
+you can have some fun, too, and perhaps you can help me figure out some of 
+the remaining issues. This offer, incidentally, is also valid for anyone 
+else on this list who has one of these cameras. Just ask.
+
+
+Theodore Kilgore
