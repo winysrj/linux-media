@@ -1,104 +1,237 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:34132 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752168AbZELJQZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2009 05:16:25 -0400
-Date: Tue, 12 May 2009 11:16:29 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Agustin <gatoguan-os@yahoo.com>
-cc: linux-arm-kernel@lists.arm.linux.org.uk,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH] dma: fix ipu_idmac.c to not discard the last queued buffer
-In-Reply-To: <951499.48393.qm@web32102.mail.mud.yahoo.com>
-Message-ID: <Pine.LNX.4.64.0905120908220.5087@axis700.grange>
-References: <155119.7889.qm@web32103.mail.mud.yahoo.com>
- <Pine.LNX.4.64.0905071750050.9460@axis700.grange> <951499.48393.qm@web32102.mail.mud.yahoo.com>
+Received: from web110807.mail.gq1.yahoo.com ([67.195.13.230]:44907 "HELO
+	web110807.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750987AbZESRJt convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 19 May 2009 13:09:49 -0400
+Message-ID: <297960.99144.qm@web110807.mail.gq1.yahoo.com>
+Date: Tue, 19 May 2009 10:09:50 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: Re: [PATCH] [09051_57] Siano: smscards - remove redundant code
+To: Michael Krufky <mkrufky@linuxtv.org>
+Cc: LinuxML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This also fixes the case of a single queued buffer, for example, when taking a
-single frame snapshot with the mx3_camera driver.
 
-Reported-by: Agustin <gatoguan-os@yahoo.com>
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
 
-Subject: Re: Grabbing single stills on MX31 - Re: Solved? - Re: 
-soc-camera: timing out during capture - Re: Testing latest mx3_camera.c
 
-On Mon, 11 May 2009, Agustin wrote:
+--- On Tue, 5/19/09, Michael Krufky <mkrufky@linuxtv.org> wrote:
 
-> On Thu, 7 May 2009, Guennadi Liakhovetski wrote:
+> From: Michael Krufky <mkrufky@linuxtv.org>
+> Subject: Re: [PATCH] [09051_57] Siano: smscards - remove redundant code
+> To: "Uri Shkolnik" <urishk@yahoo.com>
+> Cc: "LinuxML" <linux-media@vger.kernel.org>, "Mauro Carvalho Chehab" <mchehab@infradead.org>
+> Date: Tuesday, May 19, 2009, 8:04 PM
+> On Tue, May 19, 2009 at 12:46 PM, Uri
+> Shkolnik <urishk@yahoo.com>
+> wrote:
+> >
+> > # HG changeset patch
+> > # User Uri Shkolnik <uris@siano-ms.com>
+> > # Date 1242751824 -10800
+> > # Node ID fd16bcd8b9f1fffe0b605ca5b3b2138fc920e927
+> > # Parent  f78cbc153c82ebe58a1bbe82271b91f5a4a90642
+> > [09051_57] Siano: smscards - remove redundant code
+> >
+> > From: Uri Shkolnik <uris@siano-ms.com>
+> >
+> > Remove code that has been duplicate with the new
+> boards events manager
+> >
+> > Priority: normal
+> >
+> > Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+> >
+> > diff -r f78cbc153c82 -r fd16bcd8b9f1
+> linux/drivers/media/dvb/siano/sms-cards.c
+> > --- a/linux/drivers/media/dvb/siano/sms-cards.c Tue
+> May 19 19:45:05 2009 +0300
+> > +++ b/linux/drivers/media/dvb/siano/sms-cards.c Tue
+> May 19 19:50:24 2009 +0300
+> > @@ -281,98 +281,3 @@ int sms_board_event(struct
+> smscore_devic
+> >        return 0;
+> >  }
+> >  EXPORT_SYMBOL_GPL(sms_board_event);
+> > -
+> > -static int sms_set_gpio(struct smscore_device_t
+> *coredev, int pin, int enable)
+> > -{
+> > -       int lvl, ret;
+> > -       u32 gpio;
+> > -       struct smscore_config_gpio gpioconfig = {
+> > -               .direction            =
+> SMS_GPIO_DIRECTION_OUTPUT,
+> > -               .pullupdown           =
+> SMS_GPIO_PULLUPDOWN_NONE,
+> > -               .inputcharacteristics =
+> SMS_GPIO_INPUTCHARACTERISTICS_NORMAL,
+> > -               .outputslewrate       =
+> SMS_GPIO_OUTPUTSLEWRATE_FAST,
+> > -               .outputdriving        =
+> SMS_GPIO_OUTPUTDRIVING_4mA,
+> > -       };
+> > -
+> > -       if (pin == 0)
+> > -               return -EINVAL;
+> > -
+> > -       if (pin < 0) {
+> > -               /* inverted gpio */
+> > -               gpio = pin * -1;
+> > -               lvl = enable ? 0 : 1;
+> > -       } else {
+> > -               gpio = pin;
+> > -               lvl = enable ? 1 : 0;
+> > -       }
+> > -
+> > -       ret = smscore_configure_gpio(coredev, gpio,
+> &gpioconfig);
+> > -       if (ret < 0)
+> > -               return ret;
+> > -
+> > -       return smscore_set_gpio(coredev, gpio,
+> lvl);
+> > -}
+> > -
+> > -int sms_board_power(struct smscore_device_t *coredev,
+> int onoff)
+> > -{
+> > -       int board_id =
+> smscore_get_board_id(coredev);
+> > -       struct sms_board *board =
+> sms_get_board(board_id);
+> > -
+> > -       switch (board_id) {
+> > -       case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
+> > -               /* power LED */
+> > -               sms_set_gpio(coredev,
+> > -                          
+>  board->led_power, onoff ? 1 : 0);
+> > -               break;
+> > -       case
+> SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
+> > -       case
+> SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
+> > -               /* LNA */
+> > -               if (!onoff)
+> > -                      
+> sms_set_gpio(coredev, board->lna_ctrl, 0);
+> > -               break;
+> > -       }
+> > -       return 0;
+> > -}
+> > -EXPORT_SYMBOL_GPL(sms_board_power);
+> > -
+> > -int sms_board_led_feedback(struct smscore_device_t
+> *coredev, int led)
+> > -{
+> > -       int board_id =
+> smscore_get_board_id(coredev);
+> > -       struct sms_board *board =
+> sms_get_board(board_id);
+> > -
+> > -       /* dont touch GPIO if LEDs are already set
+> */
+> > -       if (smscore_led_state(coredev, -1) == led)
+> > -               return 0;
+> > -
+> > -       switch (board_id) {
+> > -       case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
+> > -               sms_set_gpio(coredev,
+> > -                          
+>  board->led_lo, (led & SMS_LED_LO) ? 1 : 0);
+> > -               sms_set_gpio(coredev,
+> > -                          
+>  board->led_hi, (led & SMS_LED_HI) ? 1 : 0);
+> > -
+> > -               smscore_led_state(coredev,
+> led);
+> > -               break;
+> > -       }
+> > -       return 0;
+> > -}
+> > -EXPORT_SYMBOL_GPL(sms_board_led_feedback);
+> > -
+> > -int sms_board_lna_control(struct smscore_device_t
+> *coredev, int onoff)
+> > -{
+> > -       int board_id =
+> smscore_get_board_id(coredev);
+> > -       struct sms_board *board =
+> sms_get_board(board_id);
+> > -
+> > -       sms_debug("%s: LNA %s", __func__, onoff ?
+> "enabled" : "disabled");
+> > -
+> > -       switch (board_id) {
+> > -       case
+> SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
+> > -       case
+> SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
+> > -               sms_set_gpio(coredev,
+> > -                          
+>  board->rf_switch, onoff ? 1 : 0);
+> > -               return sms_set_gpio(coredev,
+> > -                                  
+> board->lna_ctrl, onoff ? 1 : 0);
+> > -       }
+> > -       return -EINVAL;
+> > -}
+> > -EXPORT_SYMBOL_GPL(sms_board_lna_control);
+> > diff -r f78cbc153c82 -r fd16bcd8b9f1
+> linux/drivers/media/dvb/siano/sms-cards.h
+> > --- a/linux/drivers/media/dvb/siano/sms-cards.h Tue
+> May 19 19:45:05 2009 +0300
+> > +++ b/linux/drivers/media/dvb/siano/sms-cards.h Tue
+> May 19 19:50:24 2009 +0300
+> > @@ -110,11 +110,4 @@ int sms_board_event(struct
+> smscore_devic
+> >  int sms_board_event(struct smscore_device_t
+> *coredev,
+> >                enum SMS_BOARD_EVENTS gevent);
+> >
+> > -#define SMS_LED_OFF 0
+> > -#define SMS_LED_LO  1
+> > -#define SMS_LED_HI  2
+> > -int sms_board_led_feedback(struct smscore_device_t
+> *coredev, int led);
+> > -int sms_board_power(struct smscore_device_t *coredev,
+> int onoff);
+> > -int sms_board_lna_control(struct smscore_device_t
+> *coredev, int onoff);
+> > -
+> >  #endif /* __SMS_CARDS_H__ */
+> >
+> >
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line
+> "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
 > 
-> > On Thu, 7 May 2009, Agustin Ferrin Pozuelo wrote:
-> > > ...
-> > > I thought about the fact that I was only queuing one buffer, and that 
-> > > this might be a corner case as sample code uses a lot of them. And that 
-> > > in the older code that funny things could happen in the handler if we 
-> > > ran out of buffers, though they didn't happen.
-> > > 
-> > > So I have queued an extra buffer and voila, got it working.
-> > > 
-> > > So thanks again!
-> > > 
-> > > However, this could be a bug in ipu_idmac (or some other point), as 
-> > > using a single buffer is very plausible, specially when grabbing huge 
-> > > stills.
-> > 
-> > Great, thanks for testing and debugging! Ok, so, I will have to test this 
-> > case some time...
-
-Agustin, does this patch fix your problem? Dan, please, pull it as soon as 
-we get a tested-by from Agustin.
-
-> This workaround (queuing 2 buffers when needing only one) is having the 
-> side effect of greatly increasing the time taken.
+> NACK.
 > 
-> I did several tests playing with camera vertical blanking and looking at 
-> capture times:
 > 
->   Vblank / real             / user             / sys time:
->        0 / real    0m 0.90s / user    0m 0.00s / sys     0m 0.34s
->  1 frame / real    0m 1.04s / user    0m 0.00s / sys     0m 0.34s
-> 2 frames / real    0m 1.18s / user    0m 0.00s / sys     0m 0.33s
-> 2.5 (max)/ real    0m 1.23s / user    0m 0.00s / sys     0m 0.35s
+> Again, this breaks the Hauppauge devices...  As I have
+> said, lets deal
+> with that separately after the core changesets are merged.
 > 
-> I think the second frame is being captured altogether, and its dma 
-> transfer is not allowing any other process to run meanwhile. 
-> (VIDIOC_STREAMOFF is being called as soon as the first buffer is ready.)
+> Regards,
+> 
+> Mike
+> 
 
-I don't quite understand this. What exactly are you doing above? You 
-submit 2 buffers and change vertical blanking? Where do you change the 
-blanking - in the driver? How exactly?
+And again Mike, the core changesets ARE ALREADY merged.
 
-> Do you think it will be too hard to fix?
+Uri
 
-The blanking issue or the 1-buffer problem?
 
-Thanks
-Guennadi
-
- drivers/dma/ipu/ipu_idmac.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/dma/ipu/ipu_idmac.c b/drivers/dma/ipu/ipu_idmac.c
-index 3a4deea..9a5bc1a 100644
---- a/drivers/dma/ipu/ipu_idmac.c
-+++ b/drivers/dma/ipu/ipu_idmac.c
-@@ -1272,7 +1272,8 @@ static irqreturn_t idmac_interrupt(int irq, void *dev_id)
- 	/* Other interrupts do not interfere with this channel */
- 	spin_lock(&ichan->lock);
- 	if (unlikely(chan_id != IDMAC_SDC_0 && chan_id != IDMAC_SDC_1 &&
--		     ((curbuf >> chan_id) & 1) == ichan->active_buffer)) {
-+		     ((curbuf >> chan_id) & 1) == ichan->active_buffer &&
-+		     !list_is_last(ichan->queue.next, &ichan->queue))) {
- 		int i = 100;
- 
- 		/* This doesn't help. See comment in ipu_disable_channel() */
--- 
-1.6.2.4
-
+      
