@@ -1,57 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:59842 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750969AbZEWH1E convert rfc822-to-8bit (ORCPT
+Received: from web110810.mail.gq1.yahoo.com ([67.195.13.233]:26558 "HELO
+	web110810.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753216AbZESPKf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 May 2009 03:27:04 -0400
-From: Martin Dauskardt <martin.dauskardt@gmx.de>
-To: Andy Walls <awalls@radix.net>
-Subject: Re: [ivtv-devel] tveeprom cannot autodetect tuner! (FQ1216LME MK5)
-Date: Sat, 23 May 2009 09:27:08 +0200
-Cc: Discussion list for development of the IVTV driver
-	<ivtv-devel@ivtvdriver.org>, linux-media@vger.kernel.org
-References: <200905210909.43333.martin.dauskardt@gmx.de> <1242901704.3166.8.camel@palomino.walls.org> <1243038686.3164.34.camel@palomino.walls.org>
-In-Reply-To: <1243038686.3164.34.camel@palomino.walls.org>
+	Tue, 19 May 2009 11:10:35 -0400
+Message-ID: <969753.76402.qm@web110810.mail.gq1.yahoo.com>
+Date: Tue, 19 May 2009 08:10:36 -0700 (PDT)
+From: Uri Shkolnik <urishk@yahoo.com>
+Subject: [PATCH] [09051_44] Siano: smscore - fix some new GPIO definitions names
+To: LinuxML <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200905230927.08564.martin.dauskardt@gmx.de>
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
 
-> Martin,
-> 
-> I don't see tuner type 81 in the list in tuners.h.  I do see:
-> 
-> 
-> #define TUNER_PHILIPS_FQ1216ME          24      /* you must actively select 
-B/G/D/K, I, L, L` */
-> #define TUNER_PHILIPS_FQ1216AME_MK4     56      /* Hauppauge PVR-150 PAL */
-> 
-> #define TUNER_PHILIPS_FM1216ME_MK3      38
-> 
-> #define TUNER_PHILIPS_FMD1216ME_MK3     63
-> #define TUNER_PHILIPS_FMD1216MEX_MK3    78
-> #define TUNER_PHILIPS_FM1216MK5         79
+# HG changeset patch
+# User Uri Shkolnik <uris@siano-ms.com>
+# Date 1242746121 -10800
+# Node ID 2b865fa7f195524bc9e8557dac472140755058dd
+# Parent  749c11a362a9fad1992809007247d5c76c35bfc9
+[09051_44] Siano: smscore - fix some new GPIO definitions names
 
-ah, sorry. I looked into hauppauge_tuner[] from tveeprom.c and also misread 
-the internal number 80 as 81:
+From: Uri Shkolnik <uris@siano-ms.com>
 
-	/* 80-89 */
-	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FQ1216LME MK3"},
+Fix some definitions' names, in order to emphasize the names
+differences between the old and new GPIO implementations.
 
-> 
-> Could the user try one of those, starting with the FQ1216 tuner numbers
-> (24 and 56), to see if one of them works?  For the FQ1261LME MK3,
-> tveeprom has the FM1216ME_MK3 tuner number (38).
+Priority: normal
 
-I hope to get in contact with him this weekend. There is another problems with 
-the application which must be solved before, but I am sure we will found out 
-the right tuner type at the end.
+Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
 
-Greets,
-Martin
+diff -r 749c11a362a9 -r 2b865fa7f195 linux/drivers/media/dvb/siano/smscoreapi.h
+--- a/linux/drivers/media/dvb/siano/smscoreapi.h	Tue May 19 17:49:30 2009 +0300
++++ b/linux/drivers/media/dvb/siano/smscoreapi.h	Tue May 19 18:15:21 2009 +0300
+@@ -581,10 +581,10 @@ struct smscore_gpio_config {
+ #define SMS_GPIO_DIRECTION_OUTPUT 1
+ 	u8 Direction;
+ 
+-#define SMS_GPIO_PULLUPDOWN_NONE     0
+-#define SMS_GPIO_PULLUPDOWN_PULLDOWN 1
+-#define SMS_GPIO_PULLUPDOWN_PULLUP   2
+-#define SMS_GPIO_PULLUPDOWN_KEEPER   3
++#define SMS_GPIO_PULL_UP_DOWN_NONE     0
++#define SMS_GPIO_PULL_UP_DOWN_PULLDOWN 1
++#define SMS_GPIO_PULL_UP_DOWN_PULLUP   2
++#define SMS_GPIO_PULL_UP_DOWN_KEEPER   3
+ 	u8 PullUpDown;
+ 
+ #define SMS_GPIO_INPUT_CHARACTERISTICS_NORMAL  0
+@@ -608,13 +608,12 @@ struct smscore_gpio_config {
+ 
+ #define SMS_GPIO_OUTPUT_DRIVING_1_5mA		0 /* 11xx */
+ #define SMS_GPIO_OUTPUT_DRIVING_2_8mA		1 /* 11xx */
+-#define SMS_GPIO_OUTPUT_DRIVING_4mA			2 /* 11xx */
+-#define SMS_GPIO_OUTPUT_DRIVING_7mA			3 /* 11xx */
+-#define SMS_GPIO_OUTPUT_DRIVING_10mA			4 /* 11xx */
+-#define SMS_GPIO_OUTPUT_DRIVING_11mA			5 /* 11xx */
+-#define SMS_GPIO_OUTPUT_DRIVING_14mA			6 /* 11xx */
+-#undef SMS_GPIO_OUTPUT_DRIVING_16mA
+-#define SMS_GPIO_OUTPUT_DRIVING_16mA			7 /* 11xx */
++#define SMS_GPIO_OUTPUT_DRIVING_4mA		2 /* 11xx */
++#define SMS_GPIO_OUTPUT_DRIVING_7mA		3 /* 11xx */
++#define SMS_GPIO_OUTPUT_DRIVING_10mA		4 /* 11xx */
++#define SMS_GPIO_OUTPUT_DRIVING_11mA		5 /* 11xx */
++#define SMS_GPIO_OUTPUT_DRIVING_14mA		6 /* 11xx */
++#define SMS_GPIO_OUTPUT_DRIVING_16mA		7 /* 11xx */
+ 	u8 OutputDriving;
+ };
+ 
+
+
+
+      
