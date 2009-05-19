@@ -1,297 +1,313 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-10.arcor-online.net ([151.189.21.50]:45667 "EHLO
-	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756340AbZEVUzQ (ORCPT
+Received: from mail-ew0-f224.google.com ([209.85.219.224]:52482 "EHLO
+	mail-ew0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751723AbZESQXc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2009 16:55:16 -0400
-Subject: Re: [SAA713X TESTERS WANTED] Fix i2c quirk, may affect saa713x +
-	mt352 combo
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Michael Krufky <mkrufky@kernellabs.com>
-Cc: Oldrich Jedlicka <oldium.pro@seznam.cz>,
-	linux-media <linux-media@vger.kernel.org>
-In-Reply-To: <37219a840905212034g7fc9ef78qdbe6232e0ce1848b@mail.gmail.com>
-References: <37219a840905201257l4673ac7fkc035f3d6656ed26f@mail.gmail.com>
-	 <200905210844.31053.oldium.pro@seznam.cz>
-	 <303a8ee30905210551r10e976d8ve9ebf9fd1107086c@mail.gmail.com>
-	 <37219a840905210553p1461154m50aa8b31a9a32d59@mail.gmail.com>
-	 <1242945058.4474.47.camel@pc07.localdom.local>
-	 <37219a840905212034g7fc9ef78qdbe6232e0ce1848b@mail.gmail.com>
-Content-Type: text/plain
-Date: Fri, 22 May 2009 22:49:53 +0200
-Message-Id: <1243025393.3732.108.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 19 May 2009 12:23:32 -0400
+Received: by ewy24 with SMTP id 24so4994359ewy.37
+        for <linux-media@vger.kernel.org>; Tue, 19 May 2009 09:23:31 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <886732.24607.qm@web110811.mail.gq1.yahoo.com>
+References: <886732.24607.qm@web110811.mail.gq1.yahoo.com>
+Date: Tue, 19 May 2009 12:23:31 -0400
+Message-ID: <37219a840905190923k60e9daecve4d9a1de176bdbd8@mail.gmail.com>
+Subject: Re: [PATCH] [09051_49] Siano: smscore - upgrade firmware loading
+	engine
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Uri Shkolnik <urishk@yahoo.com>
+Cc: LinuxML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, May 19, 2009 at 11:43 AM, Uri Shkolnik <urishk@yahoo.com> wrote:
+>
+> # HG changeset patch
+> # User Uri Shkolnik <uris@siano-ms.com>
+> # Date 1242748115 -10800
+> # Node ID 4d75f9d1c4f96d65a8ad312c21e488a212ee58a3
+> # Parent  cfb4106f3ceaee9fe8f7e3acc9d4adec1baffe5e
+> [09051_49] Siano: smscore - upgrade firmware loading engine
+>
+> From: Uri Shkolnik <uris@siano-ms.com>
+>
+> Upgrade the firmware loading (download and switching) engine.
+>
+> Priority: normal
+>
+> Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+>
+> diff -r cfb4106f3cea -r 4d75f9d1c4f9 linux/drivers/media/dvb/siano/smscoreapi.c
+> --- a/linux/drivers/media/dvb/siano/smscoreapi.c        Tue May 19 18:38:07 2009 +0300
+> +++ b/linux/drivers/media/dvb/siano/smscoreapi.c        Tue May 19 18:48:35 2009 +0300
+> @@ -28,7 +28,7 @@
+>  #include <linux/dma-mapping.h>
+>  #include <linux/delay.h>
+>  #include <linux/io.h>
+> -
+> +#include <linux/uaccess.h>
+>  #include <linux/firmware.h>
+>  #include <linux/wait.h>
+>  #include <asm/byteorder.h>
+> @@ -36,7 +36,13 @@
+>  #include "smscoreapi.h"
+>  #include "sms-cards.h"
+>  #include "smsir.h"
+> -#include "smsendian.h"
+> +#define MAX_GPIO_PIN_NUMBER    31
+> +
+> +#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 10)
+> +#define REQUEST_FIRMWARE_SUPPORTED
+> +#else
+> +#define DEFAULT_FW_FILE_PATH "/lib/firmware"
+> +#endif
+>
+>  static int sms_dbg;
+>  module_param_named(debug, sms_dbg, int, 0644);
+> @@ -459,8 +465,6 @@ static int smscore_init_ir(struct smscor
+>                                msg->msgData[0] = coredev->ir.controller;
+>                                msg->msgData[1] = coredev->ir.timeout;
+>
+> -                               smsendian_handle_tx_message(
+> -                                       (struct SmsMsgHdr_ST2 *)msg);
+>                                rc = smscore_sendrequest_and_wait(coredev, msg,
+>                                                msg->xMsgHeader. msgLength,
+>                                                &coredev->ir_init_done);
+> @@ -486,12 +490,16 @@ static int smscore_init_ir(struct smscor
+>  */
+>  int smscore_start_device(struct smscore_device_t *coredev)
+>  {
+> -       int rc = smscore_set_device_mode(
+> -                       coredev, smscore_registry_getmode(coredev->devpath));
+> +       int rc;
+> +
+> +#ifdef REQUEST_FIRMWARE_SUPPORTED
+> +       rc = smscore_set_device_mode(coredev, smscore_registry_getmode(
+> +                       coredev->devpath));
+>        if (rc < 0) {
+> -               sms_info("set device mode faile , rc %d", rc);
+> +               sms_info("set device mode failed , rc %d", rc);
+>                return rc;
+>        }
+> +#endif
+>
+>        kmutex_lock(&g_smscore_deviceslock);
+>
+> @@ -632,11 +640,14 @@ static int smscore_load_firmware_from_fi
+>                                           loadfirmware_t loadfirmware_handler)
+>  {
+>        int rc = -ENOENT;
+> +       u8 *fw_buf;
+> +       u32 fw_buf_size;
+> +
+> +#ifdef REQUEST_FIRMWARE_SUPPORTED
+>        const struct firmware *fw;
+> -       u8 *fw_buffer;
+>
+> -       if (loadfirmware_handler == NULL && !(coredev->device_flags &
+> -                                             SMS_DEVICE_FAMILY2))
+> +       if (loadfirmware_handler == NULL && !(coredev->device_flags
+> +                       & SMS_DEVICE_FAMILY2))
+>                return -EINVAL;
+>
+>        rc = request_firmware(&fw, filename, coredev->device);
+> @@ -645,26 +656,36 @@ static int smscore_load_firmware_from_fi
+>                return rc;
+>        }
+>        sms_info("read FW %s, size=%zd", filename, fw->size);
+> -       fw_buffer = kmalloc(ALIGN(fw->size, SMS_ALLOC_ALIGNMENT),
+> -                           GFP_KERNEL | GFP_DMA);
+> -       if (fw_buffer) {
+> -               memcpy(fw_buffer, fw->data, fw->size);
+> +       fw_buf = kmalloc(ALIGN(fw->size, SMS_ALLOC_ALIGNMENT),
+> +                               GFP_KERNEL | GFP_DMA);
+> +       if (!fw_buf) {
+> +               sms_info("failed to allocate firmware buffer");
+> +               return -ENOMEM;
+> +       }
+> +       memcpy(fw_buf, fw->data, fw->size);
+> +       fw_buf_size = fw->size;
+> +#else
+> +       if (!coredev->fw_buf) {
+> +               sms_info("missing fw file buffer");
+> +               return -EINVAL;
+> +       }
+> +       fw_buf = coredev->fw_buf;
+> +       fw_buf_size = coredev->fw_buf_size;
+> +#endif
+>
+> -               rc = (coredev->device_flags & SMS_DEVICE_FAMILY2) ?
+> -                     smscore_load_firmware_family2(coredev,
+> -                                                   fw_buffer,
+> -                                                   fw->size) :
+> -                     loadfirmware_handler(coredev->context,
+> -                                          fw_buffer, fw->size);
+> +       rc = (coredev->device_flags & SMS_DEVICE_FAMILY2) ?
+> +               smscore_load_firmware_family2(coredev, fw_buf, fw_buf_size)
+> +               : loadfirmware_handler(coredev->context, fw_buf,
+> +               fw_buf_size);
+>
+> -               kfree(fw_buffer);
+> -       } else {
+> -               sms_info("failed to allocate firmware buffer");
+> -               rc = -ENOMEM;
+> -       }
+> +       kfree(fw_buf);
+>
+> +#ifdef REQUEST_FIRMWARE_SUPPORTED
+>        release_firmware(fw);
+> -
+> +#else
+> +       coredev->fw_buf = NULL;
+> +       coredev->fw_buf_size = 0;
+> +#endif
+>        return rc;
+>  }
+>
+> @@ -911,6 +932,74 @@ int smscore_set_device_mode(struct smsco
+>  }
+>
+>  /**
+> + * calls device handler to get fw file name
+> + *
+> + * @param coredev pointer to a coredev object returned by
+> + *                smscore_register_device
+> + * @param filename pointer to user buffer to fill the file name
+> + *
+> + * @return 0 on success, <0 on error.
+> + */
+> +int smscore_get_fw_filename(struct smscore_device_t *coredev, int mode,
+> +               char *filename) {
+> +       int rc = 0;
+> +       enum sms_device_type_st type;
+> +       char tmpname[200];
+> +
+> +       type = smscore_registry_gettype(coredev->devpath);
+> +
+> +#ifdef REQUEST_FIRMWARE_SUPPORTED
+> +       /* driver not need file system services */
+> +       tmpname[0] = '\0';
+> +#else
+> +       sprintf(tmpname, "%s/%s", DEFAULT_FW_FILE_PATH,
+> +                       smscore_fw_lkup[mode][type]);
+> +#endif
+> +       if (copy_to_user(filename, tmpname, strlen(tmpname) + 1)) {
+> +               sms_err("Failed copy file path to user buffer\n");
+> +               return -EFAULT;
+> +       }
+> +       return rc;
+> +}
+> +
+> +/**
+> + * calls device handler to keep fw buff for later use
+> + *
+> + * @param coredev pointer to a coredev object returned by
+> + *                smscore_register_device
+> + * @param ufwbuf  pointer to user fw buffer
+> + * @param size    size in bytes of buffer
+> + *
+> + * @return 0 on success, <0 on error.
+> + */
+> +int smscore_send_fw_file(struct smscore_device_t *coredev, u8 *ufwbuf,
+> +               int size) {
+> +       int rc = 0;
+> +
+> +       /* free old buffer */
+> +       if (coredev->fw_buf != NULL) {
+> +               kfree(coredev->fw_buf);
+> +               coredev->fw_buf = NULL;
+> +       }
+> +
+> +       coredev->fw_buf = kmalloc(ALIGN(size, SMS_ALLOC_ALIGNMENT), GFP_KERNEL
+> +                       | GFP_DMA);
+> +       if (!coredev->fw_buf) {
+> +               sms_err("Failed allocate FW buffer memory\n");
+> +               return -EFAULT;
+> +       }
+> +
+> +       if (copy_from_user(coredev->fw_buf, ufwbuf, size)) {
+> +               sms_err("Failed copy FW from user buffer\n");
+> +               kfree(coredev->fw_buf);
+> +               return -EFAULT;
+> +       }
+> +       coredev->fw_buf_size = size;
+> +
+> +       return rc;
+> +}
+> +
+> +/**
+>  * calls device handler to get current mode of operation
+>  *
+>  * @param coredev pointer to a coredev object returned by
+> @@ -1280,7 +1369,7 @@ int smsclient_sendrequest(struct smscore
+>  }
+>  EXPORT_SYMBOL_GPL(smsclient_sendrequest);
+>
+> -#if 0
+> +#ifdef SMS_HOSTLIB_SUBSYS
+>  /**
+>  * return the size of large (common) buffer
+>  *
+> @@ -1329,7 +1418,7 @@ static int smscore_map_common_buffer(str
+>
+>        return 0;
+>  }
+> -#endif
+> +#endif /* SMS_HOSTLIB_SUBSYS */
+>
+>  /* old GPIO managments implementation */
+>  int smscore_configure_gpio(struct smscore_device_t *coredev, u32 pin,
+> @@ -1515,7 +1604,6 @@ int smscore_gpio_configure(struct smscor
+>                pMsg->msgData[5] = 0;
+>        }
+>
+> -       smsendian_handle_tx_message((struct SmsMsgHdr_ST *)pMsg);
+>        rc = smscore_sendrequest_and_wait(coredev, pMsg, totalLen,
+>                        &coredev->gpio_configuration_done);
+>
+> @@ -1565,7 +1653,6 @@ int smscore_gpio_set_level(struct smscor
+>        pMsg->msgData[1] = NewLevel;
+>
+>        /* Send message to SMS */
+> -       smsendian_handle_tx_message((struct SmsMsgHdr_ST *)pMsg);
+>        rc = smscore_sendrequest_and_wait(coredev, pMsg, totalLen,
+>                        &coredev->gpio_set_level_done);
+>
+> @@ -1614,7 +1701,6 @@ int smscore_gpio_get_level(struct smscor
+>        pMsg->msgData[1] = 0;
+>
+>        /* Send message to SMS */
+> -       smsendian_handle_tx_message((struct SmsMsgHdr_ST *)pMsg);
+>        rc = smscore_sendrequest_and_wait(coredev, pMsg, totalLen,
+>                        &coredev->gpio_get_level_done);
+>
+>
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Am Donnerstag, den 21.05.2009, 23:34 -0400 schrieb Michael Krufky:
-> On Thu, May 21, 2009 at 6:30 PM, hermann pitton <hermann-pitton@arcor.de> wrote:
-> > Hi,
-> >
-> > Am Donnerstag, den 21.05.2009, 08:53 -0400 schrieb Michael Krufky:
-> >> On Thu, May 21, 2009 at 8:51 AM, Michael Krufky <mkrufky@kernellabs.com> wrote:
-> >> > On Thu, May 21, 2009 at 2:44 AM, Oldrich Jedlicka <oldium.pro@seznam.cz>
-> >> > wrote:
-> >> >>
-> >> >> Hi Mike,
-> >> >>
-> >> >> On Wednesday 20 of May 2009 at 21:57:15, Michael Krufky wrote:
-> >> >> > I have discovered a bug in the saa7134 driver inside the function,
-> >> >> > "saa7134_i2c_xfer"
-> >> >> >
-> >> >> > In order to communicate with certain i2c clients on the saa713x i2c
-> >> >> > bus, a quirk was implemented to prevent failures during read
-> >> >> > transactions.
-> >> >> >
-> >> >> > The quirk forces an i2c write/read to a bogus address that is unlikely
-> >> >> > to be used by any i2c client.
-> >> >> >
-> >> >> > However, this quirk is not functioning properly.  The reason for the
-> >> >> > malfunction is that the i2c address chosen to use as the quirk address
-> >> >> > was 0xfd.
-> >> >> >
-> >> >> > The address 0xfd is indeed an i2c address unlikely to be used by any
-> >> >> > real i2c client, however, the address itself is invalid!  The address,
-> >> >> > 0xfd, has the read bit set -- this is problematic for the hardware,
-> >> >> > and causes the quirk workaround to fail.
-> >> >> >
-> >> >> > It's a wonder that nobody else has complained up to this point.
-> >> >>
-> >> >> I had a problem with 0xfd quirk already (the presence caused the device
-> >> >> not to
-> >> >> respond), this is why there is an exception
-> >> >>
-> >> >>        msgs[i].addr != 0x40
-> >> >>
-> >> >> I can check if it works with your version (0xfe), but the device behind
-> >> >> the
-> >> >> address 0x40 (remote control) is very stupid, so I don't think so.
-> >> >>
-> >> >> I think that better approach would be to use the quirk only for devices
-> >> >> (addresses) that really need it, not for all.
-> >> >>
-> >> >> Cheers,
-> >> >> Oldrich.
-> >> >>
-> >> >> > I am asking for testers, just to make sure that this doesn't cause any
-> >> >> > other strange errors to occur as a side effect.  I don't expect any
-> >> >> > new problems, but its always better to be safe than sorry :-)
-> >> >> >
-> >> >> > This change should not fix any of the other issues currently being
-> >> >> > discussed with the saa7134 driver -- all I am asking is for people to
-> >> >> > test and indicate that the change does not incur any NEW bugs or
-> >> >> > unwanted behavior.
-> >> >> >
-> >> >> > Please test the following repository, and send in your feedback as a
-> >> >> > reply to this thread.  Please remember to keep the mailing list in cc.
-> >> >> >
-> >> >> > http://kernellabs.com/hg/~mk/saa7134
-> >> >> >
-> >> >> > Thanks,
-> >> >> >
-> >> >> > Mike Krufky
-> >> >> > --
-> >> >> > To unsubscribe from this list: send the line "unsubscribe linux-media"
-> >> >> > in
-> >> >> > the body of a message to majordomo@vger.kernel.org
-> >> >> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >> >>
-> >> >>
-> >> >
-> >> >
-> >> >
-> >> > Thanks for the feedback, guys.  Just to reiterate my original point:
-> >> >
-> >> > I am not questioning the i2c quirk itself -- this is already in the driver,
-> >> > and cards are working already as is.  I am just saying that there is a bug
-> >> > based on the address used.  Consider 7-bit i2c addresses --   0xfd is an
-> >> > 8-bit address, when converted to a 7-bit address and then back to an 8-bit
-> >> > address becomes 0xfc.  I don't know how to explain this properly, but it's
-> >> > invalid.  This is a bug in the saa7131 silicon that requires a write to a
-> >> > valid i2c address to occur before a read transaction, in order to prevent a
-> >> > situation where a read transaction results in no ack from the client.
-> >> >
-> >> > This is a known errata of the NXP silicon.
-> >> >
-> >> > The HVR1110r3 cannot perform successful i2c read transactions from the DVB-T
-> >> > demodulator without this i2c workaround in place, using a valid address.
-> >> >
-> >> > And yes, I am aware of David Wong's situation -- I have a changeset in one
-> >> > of my repositories that will allow us to disable this i2c quirk on a card by
-> >> > card basis, but so far I haven't heard of any card that needs this other
-> >> > than his board.
-> >> >
-> >> > http://linuxtv.org/hg/~mkrufky/dmbth/rev/781ffa6c43d3
-> >> >
-> >> > We can certainly merge that changeset if required.
-> >> >
-> >> > All I am asking is for you to test your boards against this tree and confirm
-> >> > that this changeset does not cause any *new* problems.
-> >> >
-> >> > Thanks go out to Hermann and Oldrich so far, as both of you seem to indicate
-> >> > that this tree did not cause any new problem on your hardware.
-> >> >
-> >> > Thanks again for the feedback.
-> >> >
-> >> > Regards,
-> >> >
-> >> > Mike
-> >> >
-> >>
-> >> (apologies for the double post -- first one got rejected by vger, again)
-> >>
-> >> Thanks for the feedback, guys.  Just to reiterate my original point:
-> >>
-> >> I am not questioning the i2c quirk itself -- this is already in the
-> >> driver, and cards are working already as is.  I am just saying that
-> >> there is a bug based on the address used.  Consider 7-bit i2c
-> >> addresses --   0xfd is an 8-bit address, when converted to a 7-bit
-> >> address and then back to an 8-bit address becomes 0xfc.  I don't know
-> >> how to explain this properly, but it's invalid.  This is a bug in the
-> >> saa7131 silicon that requires a write to a valid i2c address to occur
-> >> before a read transaction, in order to prevent a situation where a
-> >> read transaction results in no ack from the client.
-> >>
-> >> This is a known errata of the NXP silicon.
-> >>
-> >> The HVR1110r3 cannot perform successful i2c read transactions from the
-> >> DVB-T demodulator without this i2c workaround in place, using a valid
-> >> address.
-> >>
-> >> And yes, I am aware of David Wong's situation -- I have a changeset in
-> >> one of my repositories that will allow us to disable this i2c quirk on
-> >> a card by card basis, but so far I haven't heard of any card that
-> >> needs this other than his board.
-> >>
-> >>
-> >> http://linuxtv.org/hg/~mkrufky/dmbth/rev/781ffa6c43d3
-> >>
-> >> We can certainly merge that changeset if required.
-> >>
-> >> All I am asking is for you to test your boards against this tree and
-> >> confirm that this changeset does not cause any *new* problems.
-> >>
-> >> Thanks go out to Hermann and Oldrich so far, as both of you seem to
-> >> indicate that this tree did not cause any new problem on your
-> >> hardware.
-> >>
-> >> Thanks again for the feedback.
-> >>
-> >> Regards,
-> >>
-> >> Mike
-> >
-> > previously I reported only that i did test on my stuff with disabled
-> > quirk, like it was before the 300i appeared and also my recent cards did
-> > still work.
-> >
-> > Now, bad weather came up ;)
-> > and I tested also your repo with the 0xfe change on three different
-> > machines.
-> >
-> > With cards like two Medion Quad, CTX948 triple and CTX953. These fail on
-> > 2.6.29 for DVB-T without visible i2c errors and there was a report for a
-> > Tiger Hybrid LNA config 2 too. All fine like on anything else except
-> > 2.6.29.
-> >
-> > Also the Asus Tiger 3in1 LNA config 2, no problems and it had no
-> > problems on 2.6.29 with it. LNA is set to high gain with 0x22, 0x01 to
-> > 0x96 and for sure works.
-> >
-> > Also tested Asus P7131 Dual, Asus Tiger Rev:1.0.0 and some of the md7134
-> > hybrid devices with FMD1216ME MK3 like CTX917 and CTX946.
-> >
-> > As far I know they all follow Philips/NXP reference designs and use
-> > Philips drivers under windows.
-> >
-> > For the 300i reports exist, that it works better when it is hot
-> > enough :) You likely need feedback from such problematic cards.
-> >
-> > But we of course honor the pioneers in hardware and software.
-> >
-> > Strange, that you see now an even improved quirk is needed for
-> > Philips/NXP chips under each other. If NXP confirms the problem, nothing
-> > to discuss, else also not I think.
-> >
-> > Cheers,
-> > Hermann
-> >
-> > (please try LNA config 1 if you get some time)
-> 
-> 
-> Hermann,
-> 
-> So, in summary, you tested the 0xfe patch and it did not introduce any
-> *new* errors.  Correct?  Please confirm, just to avoid any possible
-> confusion.
-
-Yes, Mike. All the above cards are tested for DVB-T on your saa7134 0xfe
-tree on three different PCs and work flawlessly. All with 2.6.29.1
-still.
-
-Only on DVB-T new flaws are reported and only on 2.6.29 for some cards,
-not all. (two md8800, CTX948 using the md8800 entry and CTX953 are here
-on three different machines and a ASUSTeK P7131 Hybrid is reported on
-linux-media) Problem was never seen with any mercurial v4l-dvb version.
-
-These cards do work on 2.6.30-rc2 and I might retest on a current rc on
-a Fedora 10 machine with support for a ATI graphics card. On the other I
-could only record, since only vesa support for the Nvidia 9500GT. (tzap
--r and cat dvr0 Medion Quad) That 2.6.30-rc2-git4 record was 100% OK and
-is still on my disk. On 2.6.29.1 all DVB-T has lots of artifacts on all
-transponders with the mentioned cards.
-
-The flaw on the Pinnacle 310i with LNA config 1 is already old and also
-on the kernel bugzilla. All HVR-1110 with LNA must have it too?
-http://bugzilla.kernel.org/show_bug.cgi?id=11513
-
-The problem is clearly identified by Anders through bisecting.
-On 2.6.26 and later with Hartmut's latest LNA fix patch
-http://kerneltrap.org/mailarchive/git-commits-head/2008/4/24/1587344
-LNA config buffer 0x20 0x00 for high LNA gain go to 0x96 tda8290 and on
-2.6.25 to 0xc2 the tuner. 
-
-I do confirm this, since I tested it on a faked HVR1110. If the HVR-1110
-LNA works with recent, we must send to the tuner for the 310i.
-
-But the patch from Benoit over you adding LNA config = 1 support, hg
-export 6746, is from Dec 07 2007. Hartmut's fix attempt using .addr =
-priv->cfg->switch_addr is 5 months later. So I guess those HVR-1110 are
-broken as well. Since you had no symptoms on yours like the moving black
-bar on analog Hartmut mentioned, I do have it without LNA set on the
-Tiger 3in1, likely you can't test, if your hardware is unchanged. This
-after reading back now on linux-dvb.
-
-Both have the tuner at 0x61 and we could change saa7134-dvb.c
-switch_addr in static struct tda827x_config tda827x_cfg_1 to that ?
-
-Sorry for going OT a bit, but I thought it might interest you.
-
-I tested also analog TV from tuners and DVB-S on some cards with your
-tree, but there are no known problems at all or at least nothing new and
-all i2c is fine. 
-
-> 
-> I already tested on a Pinnacle 300i myself, and the 0xfe did not
-> create any new problems.  ( as a side note, I see unrelated problems
-> on the 300i that I intend to look at in the future.  This has nothing
-> to do with the i2c quirk )
-
-Ah, very good.
-
-If you want.
-
-Tested-by: Hermann Pitton <hermann-pitton@arcor.de> 
-
-> Thanks for the testing.
-> 
-> Regards,
-> 
-> Mike
-
-Cheers,
-Hermann
 
 
+This patch should not be merged in its current form.
+
+Linux kernel driver development shall be against the current -rc
+kernel, and there is no need to reinvent the "REQUEST_FIRMWARE"
+mechanism.
+
+Furthermore, the changeset introduces more bits of this
+"SMS_HOSTLIB_SUBSYS" -- this requires a binary library present on the
+host system.  This completely violates the "no multiple APIs in
+kernel" and "no proprietary APIs in kernel" guidelines.
+
+Uri, what are your plans for this?
+
+Regards,
+
+Mike
