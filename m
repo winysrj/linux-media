@@ -1,175 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:39231 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751051AbZEMTsN (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.26]:40126 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751790AbZESPrl convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2009 15:48:13 -0400
-Date: Wed, 13 May 2009 21:48:07 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Andy Walls <awalls@radix.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Mike Isely <isely@pobox.com>
-Subject: [PATCH 1/8] ir-kbd-i2c: Don't use i2c_client.name for our own needs
-Message-ID: <20090513214807.5f5707af@hyperion.delvare>
-In-Reply-To: <20090513214559.0f009231@hyperion.delvare>
-References: <20090513214559.0f009231@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Tue, 19 May 2009 11:47:41 -0400
+Received: by ey-out-2122.google.com with SMTP id 9so1235298eyd.37
+        for <linux-media@vger.kernel.org>; Tue, 19 May 2009 08:47:41 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <951463.86902.qm@web110810.mail.gq1.yahoo.com>
+References: <951463.86902.qm@web110810.mail.gq1.yahoo.com>
+Date: Tue, 19 May 2009 11:47:38 -0400
+Message-ID: <37219a840905190847u95f43dfw2f25a35f4f83b942@mail.gmail.com>
+Subject: Re: [PATCH] [09051_40] Siano - kconfig update
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: Uri Shkolnik <urishk@yahoo.com>
+Cc: LinuxML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In the standard device driver binding model, the name field of
-struct i2c_client is used to match devices to their drivers, so we
-must stop using it for internal purposes. Define a separate field
-in struct IR_i2c as a replacement, and use it.
+On Tue, May 19, 2009 at 7:58 AM, Uri Shkolnik <urishk@yahoo.com> wrote:
+>
+> # HG changeset patch
+> # User Uri Shkolnik <uris@siano-ms.com>
+> # Date 1242734522 -10800
+> # Node ID c74502f4c8e97bd9cec9656793bbabc11fb72ab4
+> # Parent  315bc4b65b4f527c4f9bc4fe3290e10f07975437
+> [09051_40] Siano - kconfig update
+>
+> From: Uri Shkolnik <uris@siano-ms.com>
+>
+> This patches comes to solve the comments on Siano's patch
+> 0905_10. It updates the kconfig to support multi-modules build.
+> Note that the dependency on dvb_core is for the (sms)dvb module
+> alone, since the drivers set may work with another adapter.
+>
+> Priority: normal
+>
+> Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+>
+> diff -r 315bc4b65b4f -r c74502f4c8e9 linux/drivers/media/dvb/siano/Kconfig
+> --- a/linux/drivers/media/dvb/siano/Kconfig     Sun May 17 12:28:55 2009 +0000
+> +++ b/linux/drivers/media/dvb/siano/Kconfig     Tue May 19 15:02:02 2009 +0300
+> @@ -2,25 +2,40 @@
+>  # Siano Mobile Silicon Digital TV device configuration
+>  #
+>
+> -config DVB_SIANO_SMS1XXX
+> -       tristate "Siano SMS1XXX USB dongle support"
+> -       depends on DVB_CORE && USB
+> +config SMS_SIANO_MDTV
+> +       tristate "Siano SMS1xxx based MDTV receiver"
+> +       default m
+>        ---help---
+> -         Choose Y here if you have a USB dongle with a SMS1XXX chipset.
+> +       Choose Y or M here if you have MDTV receiver with a Siano chipset.
+>
+> -         To compile this driver as a module, choose M here: the
+> -         module will be called sms1xxx.
+> +       To compile this driver as a module, choose M here
+> +       (The modules will be called smsmdtv).
+>
+> -config DVB_SIANO_SMS1XXX_SMS_IDS
+> -       bool "Enable support for Siano Mobile Silicon default USB IDs"
+> -       depends on DVB_SIANO_SMS1XXX
+> -       default y
+> +       Note: All dependents, if selected, will be part of this module.
+> +
+> +       Further documentation on this driver can be found on the WWW
+> +       at http://www.siano-ms.com/
+> +
+> +if SMS_SIANO_MDTV
+> +menu "Siano module components"
+> +
+> +# Kernel sub systems support
+> +config SMS_DVB3_SUBSYS
+> +       tristate "DVB v.3 Subsystem support"
+> +       depends on DVB_CORE
+> +       default m if DVB_CORE
+>        ---help---
+> -         Choose Y here if you have a USB dongle with a SMS1XXX chipset
+> -         that uses Siano Mobile Silicon's default usb vid:pid.
+> +       Choose if you would like to have DVB v.3 kernel sub-system support.
+>
+> -         Choose N here if you would prefer to use Siano's external driver.
+> +# Hardware interfaces support
+>
+> -         Further documentation on this driver can be found on the WWW at
+> -         <http://www.siano-ms.com/>.
+> +config SMS_USB_DRV
+> +       tristate "USB interface support"
+> +       depends on USB
+> +       default m if USB
+> +       ---help---
+> +       Choose if you would like to have Siano's support for USB interface
+>
+> +
+> +endmenu
+> +endif # SMS_SIANO_MDTV
+>
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- linux/drivers/media/video/cx231xx/cx231xx-input.c |    2 +-
- linux/drivers/media/video/em28xx/em28xx-cards.c   |    6 +++---
- linux/drivers/media/video/em28xx/em28xx-input.c   |    2 +-
- linux/drivers/media/video/ir-kbd-i2c.c            |    5 +++--
- linux/drivers/media/video/saa7134/saa7134-input.c |   12 ++++++------
- linux/include/media/ir-kbd-i2c.h                  |    1 +
- 6 files changed, 15 insertions(+), 13 deletions(-)
 
---- v4l-dvb.orig/linux/drivers/media/video/cx231xx/cx231xx-input.c	2009-04-24 11:45:21.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/cx231xx/cx231xx-input.c	2009-04-29 14:30:32.000000000 +0200
-@@ -37,7 +37,7 @@ MODULE_PARM_DESC(ir_debug, "enable debug
- 
- #define i2cdprintk(fmt, arg...) \
- 	if (ir_debug) { \
--		printk(KERN_DEBUG "%s/ir: " fmt, ir->c.name , ## arg); \
-+		printk(KERN_DEBUG "%s/ir: " fmt, ir->name , ## arg); \
- 	}
- 
- #define dprintk(fmt, arg...) \
---- v4l-dvb.orig/linux/drivers/media/video/em28xx/em28xx-cards.c	2009-04-24 11:45:21.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/em28xx/em28xx-cards.c	2009-04-29 14:30:32.000000000 +0200
-@@ -1948,19 +1948,19 @@ void em28xx_set_ir(struct em28xx *dev, s
- 	case (EM2820_BOARD_TERRATEC_CINERGY_250):
- 		ir->ir_codes = ir_codes_em_terratec;
- 		ir->get_key = em28xx_get_key_terratec;
--		snprintf(ir->c.name, sizeof(ir->c.name),
-+		snprintf(ir->name, sizeof(ir->name),
- 			 "i2c IR (EM28XX Terratec)");
- 		break;
- 	case (EM2820_BOARD_PINNACLE_USB_2):
- 		ir->ir_codes = ir_codes_pinnacle_grey;
- 		ir->get_key = em28xx_get_key_pinnacle_usb_grey;
--		snprintf(ir->c.name, sizeof(ir->c.name),
-+		snprintf(ir->name, sizeof(ir->name),
- 			 "i2c IR (EM28XX Pinnacle PCTV)");
- 		break;
- 	case (EM2820_BOARD_HAUPPAUGE_WINTV_USB_2):
- 		ir->ir_codes = ir_codes_hauppauge_new;
- 		ir->get_key = em28xx_get_key_em_haup;
--		snprintf(ir->c.name, sizeof(ir->c.name),
-+		snprintf(ir->name, sizeof(ir->name),
- 			 "i2c IR (EM2840 Hauppauge)");
- 		break;
- 	case (EM2820_BOARD_MSI_VOX_USB_2):
---- v4l-dvb.orig/linux/drivers/media/video/em28xx/em28xx-input.c	2009-04-24 11:45:21.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/em28xx/em28xx-input.c	2009-04-29 14:30:32.000000000 +0200
-@@ -41,7 +41,7 @@ MODULE_PARM_DESC(ir_debug, "enable debug
- 
- #define i2cdprintk(fmt, arg...) \
- 	if (ir_debug) { \
--		printk(KERN_DEBUG "%s/ir: " fmt, ir->c.name , ## arg); \
-+		printk(KERN_DEBUG "%s/ir: " fmt, ir->name , ## arg); \
- 	}
- 
- #define dprintk(fmt, arg...) \
---- v4l-dvb.orig/linux/drivers/media/video/ir-kbd-i2c.c	2009-04-24 11:45:21.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/ir-kbd-i2c.c	2009-04-29 14:30:32.000000000 +0200
-@@ -346,6 +346,7 @@ static int ir_attach(struct i2c_adapter
- 
- 	ir->c.adapter = adap;
- 	ir->c.addr    = addr;
-+	snprintf(ir->c.name, sizeof(ir->c.name), "ir-kbd");
- 
- 	i2c_set_clientdata(&ir->c, ir);
- 
-@@ -419,7 +420,7 @@ static int ir_attach(struct i2c_adapter
- 	}
- 
- 	/* Sets name */
--	snprintf(ir->c.name, sizeof(ir->c.name), "i2c IR (%s)", name);
-+	snprintf(ir->name, sizeof(ir->name), "i2c IR (%s)", name);
- 	ir->ir_codes = ir_codes;
- 
- 	/* register i2c device
-@@ -444,7 +445,7 @@ static int ir_attach(struct i2c_adapter
- 	/* init + register input device */
- 	ir_input_init(input_dev, &ir->ir, ir_type, ir->ir_codes);
- 	input_dev->id.bustype = BUS_I2C;
--	input_dev->name       = ir->c.name;
-+	input_dev->name       = ir->name;
- 	input_dev->phys       = ir->phys;
- 
- 	err = input_register_device(ir->input);
---- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-input.c	2009-04-29 14:30:29.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-input.c	2009-04-29 14:30:32.000000000 +0200
-@@ -60,7 +60,7 @@ MODULE_PARM_DESC(disable_other_ir, "disa
- #define dprintk(fmt, arg...)	if (ir_debug) \
- 	printk(KERN_DEBUG "%s/ir: " fmt, dev->name , ## arg)
- #define i2cdprintk(fmt, arg...)    if (ir_debug) \
--	printk(KERN_DEBUG "%s/ir: " fmt, ir->c.name , ## arg)
-+	printk(KERN_DEBUG "%s/ir: " fmt, ir->name , ## arg)
- 
- /* Helper functions for RC5 and NEC decoding at GPIO16 or GPIO18 */
- static int saa7134_rc5_irq(struct saa7134_dev *dev);
-@@ -697,7 +697,7 @@ void saa7134_set_i2c_ir(struct saa7134_d
- 	switch (dev->board) {
- 	case SAA7134_BOARD_PINNACLE_PCTV_110i:
- 	case SAA7134_BOARD_PINNACLE_PCTV_310i:
--		snprintf(ir->c.name, sizeof(ir->c.name), "Pinnacle PCTV");
-+		snprintf(ir->name, sizeof(ir->name), "Pinnacle PCTV");
- 		if (pinnacle_remote == 0) {
- 			ir->get_key   = get_key_pinnacle_color;
- 			ir->ir_codes = ir_codes_pinnacle_color;
-@@ -707,17 +707,17 @@ void saa7134_set_i2c_ir(struct saa7134_d
- 		}
- 		break;
- 	case SAA7134_BOARD_UPMOST_PURPLE_TV:
--		snprintf(ir->c.name, sizeof(ir->c.name), "Purple TV");
-+		snprintf(ir->name, sizeof(ir->name), "Purple TV");
- 		ir->get_key   = get_key_purpletv;
- 		ir->ir_codes  = ir_codes_purpletv;
- 		break;
- 	case SAA7134_BOARD_MSI_TVATANYWHERE_PLUS:
--		snprintf(ir->c.name, sizeof(ir->c.name), "MSI TV@nywhere Plus");
-+		snprintf(ir->name, sizeof(ir->name), "MSI TV@nywhere Plus");
- 		ir->get_key  = get_key_msi_tvanywhere_plus;
- 		ir->ir_codes = ir_codes_msi_tvanywhere_plus;
- 		break;
- 	case SAA7134_BOARD_HAUPPAUGE_HVR1110:
--		snprintf(ir->c.name, sizeof(ir->c.name), "HVR 1110");
-+		snprintf(ir->name, sizeof(ir->name), "HVR 1110");
- 		ir->get_key   = get_key_hvr1110;
- 		ir->ir_codes  = ir_codes_hauppauge_new;
- 		break;
-@@ -733,7 +733,7 @@ void saa7134_set_i2c_ir(struct saa7134_d
- 	case SAA7134_BOARD_BEHOLD_M63:
- 	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
- 	case SAA7134_BOARD_BEHOLD_H6:
--		snprintf(ir->c.name, sizeof(ir->c.name), "BeholdTV");
-+		snprintf(ir->name, sizeof(ir->name), "BeholdTV");
- 		ir->get_key   = get_key_beholdm6xx;
- 		ir->ir_codes  = ir_codes_behold;
- 		break;
---- v4l-dvb.orig/linux/include/media/ir-kbd-i2c.h	2009-04-24 11:45:21.000000000 +0200
-+++ v4l-dvb/linux/include/media/ir-kbd-i2c.h	2009-04-29 14:30:32.000000000 +0200
-@@ -15,6 +15,7 @@ struct IR_i2c {
- 	unsigned char          old;
- 
- 	struct delayed_work    work;
-+	char                   name[32];
- 	char                   phys[32];
- 	int                    (*get_key)(struct IR_i2c*, u32*, u32*);
- };
 
--- 
-Jean Delvare
+I have two concerns with this patch...
+
+
+Issue #1, I dont see why it's important to rename the Kconfig symbol
+from DVB_SIANO_SMS1XXX to SMS_SIANO_MDTV -- This will just cause
+breakage of "make oldconfig" in the kernel with no real benefit.
+
+Issue #2, a much bigger issue.....  This patch implies that the Siano
+driver can be built *with* DVB "v3" support, or without it.  Why would
+a linux user ever want to built this driver without support for the
+DVB API ?  (that's a loaded question) ...  Does Siano intend to push
+their proprietary API into the kernel?
+
+-Mike
