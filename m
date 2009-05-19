@@ -1,64 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ch-smtp02.sth.basefarm.net ([80.76.149.213]:40732 "EHLO
-	ch-smtp02.sth.basefarm.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752682AbZEQPHD (ORCPT
+Received: from acsinet11.oracle.com ([141.146.126.233]:26304 "EHLO
+	acsinet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752859AbZESA6Y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 May 2009 11:07:03 -0400
-To: "tomlohave@gmail.com" <tomlohave@gmail.com>
-cc: hermann pitton <hermann-pitton@arcor.de>,
-	Anders Eriksson <aeriksson@fastmail.fm>,
-	Steven Toth <stoth@linuxtv.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	linux-media@vger.kernel.org, video4linux-list@redhat.com,
-	Hartmut Hackmann <hartmut.hackmann@t-online.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: Fixed (Was:Re: saa7134/2.6.26 regression, noisy output)
-In-reply-to: <4A10168E.70205@gmail.com>
-References: <20090503075609.0A73B2C4152@tippex.mynet.homeunix.org> <1241389925.4912.32.camel@pc07.localdom.local> <20090504091049.D931B2C4147@tippex.mynet.homeunix.org> <1241438755.3759.100.camel@pc07.localdom.local> <20090504195201.6ECF52C415B@tippex.mynet.homeunix.org> <1241565988.16938.15.camel@pc07.localdom.local> <20090507130055.E49D32C4165@tippex.mynet.homeunix.org> <20090510141614.D4A9C2C416C@tippex.mynet.homeunix.org> <20090515091827.864A12C4167@tippex.mynet.homeunix.org> <1242438418.3813.15.camel@pc07.localdom.local> <4A10168E.70205@gmail.com>
+	Mon, 18 May 2009 20:58:24 -0400
+Date: Mon, 18 May 2009 18:00:34 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org
+Subject: [PATCH] media: one kconfig controls them all
+Message-Id: <20090518180034.cc38cb53.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Date: Sun, 17 May 2009 17:06:27 +0200
-From: Anders Eriksson <aeriksson@fastmail.fm>
-Message-Id: <20090517150627.55ED12C4167@tippex.mynet.homeunix.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-tomlohave@gmail.com said:
-> Hello list, 
-> you are talking about tuner_config = 1 for the hvr 1110, right ?
-No. We're talking about the switch_addr variable. This variable is not 
-changeable with module parameters.
+Add a kconfig symbol that allows someone to disable all
+multimedia config options at one time.
 
-> Changing this option doesn't affect the qualitie of the signal on tv see
-> http://forum.ubuntu-fr.org/viewtopic.php?pid=1472261 it 's an "old"
-> discussion in french. This option, as far as i remenber, was not provided by
-> me ...
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+---
+ drivers/media/Kconfig |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-> anyway with tuner debug=1 and .tuner_config=1 , i have no line with AGC  or
-> LNA on dmesg
-
-You only get this output if you enable debugging. Here's what i have (gentoo):
-anders@tv /etc/modprobe.d $ grep '' saa7134 saa7134_alsa tda827x tda8290 tuner
-saa7134:options saa7134 disable_ir=1 alsa=1 core_debug=1 i2c_debug=1
-saa7134:#options saa7134 alsa=1
-saa7134_alsa:options saa7134_alsa debug=1
-tda827x:options tda827x debug=1
-tda8290:options tda8290 debug=1
-tuner:options tuner debug=1
-
-If you adjust your module options similarly, you'll get more info in dmesg.
-
-If you're ok with patching kernel source, could you try the patch I sent?
-
-> I have somme glitchs with hvr1110 on dvb (not analogic tv) and many for  one
-> particular station call M6 (and i'm not the only one user, see  previous post
-> on ubuntu-fr.org, with short or long distance from tv  relay) . Bug on 310i
-> means potentially bug on hvr1110 as configuration  on hvr 1110 was made from
-> 310i 
-
-I've never tried my 310i on digital (dvb-t), so I'm afraid I cannot help you 
-there. I use it on analogue cable tv.
-
--Anders
-
+--- lnx-2630-rc3.orig/drivers/media/Kconfig
++++ lnx-2630-rc3/drivers/media/Kconfig
+@@ -2,8 +2,14 @@
+ # Multimedia device configuration
+ #
+ 
+-menu "Multimedia devices"
++menuconfig MEDIA_SUPPORT
++	tristate "Multimedia support"
+ 	depends on HAS_IOMEM
++	help
++	  If you want to use Video for Linux, DVB for Linux, or DAB adapters,
++	  enable this option and other options below.
++
++if MEDIA_SUPPORT
+ 
+ comment "Multimedia core support"
+ 
+@@ -136,4 +142,4 @@ config USB_DABUSB
+ 	  module will be called dabusb.
+ endif # DAB
+ 
+-endmenu
++endif # MEDIA_SUPPORT
