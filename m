@@ -1,53 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp103.mail.ukl.yahoo.com ([77.238.184.35]:26532 "HELO
-	smtp103.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753629AbZEFUiu (ORCPT
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198]:33881 "EHLO
+	mta3.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751022AbZESVap (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 May 2009 16:38:50 -0400
-Subject: Re: saa7134-alsa and snd_card_new only error with alsa 1.0.19 /
- ubuntu 9.04 jaunty - tracked down, further help appreciated
-From: Lars Oliver Hansen <lars.hansen@yahoo.co.uk>
-To: linux-media@vger.kernel.org
-In-Reply-To: <1241552015.7752.29.camel@lars-laptop>
-References: <1241552015.7752.29.camel@lars-laptop>
-Content-Type: text/plain
-Date: Wed, 06 May 2009 22:38:52 +0200
-Message-Id: <1241642332.4042.15.camel@lars-laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 19 May 2009 17:30:45 -0400
+Received: from steven-toths-macbook-pro.local
+ (ool-18bfe1a4.dyn.optonline.net [24.191.225.164]) by mta3.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KJW005R7UF64750@mta3.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Tue, 19 May 2009 17:30:42 -0400 (EDT)
+Date: Tue, 19 May 2009 17:30:42 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: Recent Siano patches - testing required
+In-reply-to: <492881.32224.qm@web110808.mail.gq1.yahoo.com>
+To: Uri Shkolnik <urishk@yahoo.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Message-id: <4A132502.6070103@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <492881.32224.qm@web110808.mail.gq1.yahoo.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi again,
+> However any test that will be performed, will benefit all (including Siano.... :-)
+> 
 
-Am Dienstag, den 05.05.2009, 21:33 +0200 schrieb Lars Oliver Hansen:
-> So I would have instead of a wrapped call to a non-existant snd_card_new
-> a direct call to an exported snd_card_create.
+Agreed. Yes, I happen to know Hauppauge very well.
 
-me adding snd_card_create to the Ubuntu sources (headers to be precise)
-obviously means it wasn't present before and Ubuntus kernel was compiled
-with that code missing, thus "no symbol_version" error message then!
+I'm very happy to see that the driver is being improved but I'll be even happier 
+to see actual testers report success before any of this stuff is merged. My 
+concern is the vast amount of change coming through this list and expected to be 
+merged blindly into the kernel.
 
-I now opted for disabling the call to snd_card_new and letting v4l s
-snd_card_create return -NOEMEM or so.
+If we have no testers then, at least for Hauppauge products, we'll find some. 
+Let me know if I can help with this.
 
-Now I get "saa7134 ALSA driver for DMA sound loaded" message in dmesg
-but I have no sound in tvtime and neither aplay -L nor aplay -l list a
-tv-card related sound device and I don't find any audio0 or sound0
-device in /dev/.
+Until then nothing should be blindly merged that could regress existing product 
+support.
 
-Is NEED_SND_CARD_CREATE needed for my tv card? It was defined and the
-~_new couldn't be found on loading the module, but would it have been
-used? If not (or if), is there a way to get (still) sound in tvtime (or
-mplayer)? My card is AVerMedia Cardbus TV/Radio (E506R) correctly
-autodetected (if I can trust packaging and labelling of my card ;-)) :-)
-(it's a hybrid dvb-t / analog device. Yes, dvb-t works, but the channel
-I'm interested in occasionally has signal troubles (I'm at a triangle
-vertex of the covered area)).
+Mauro?
 
-Thank you very much!
-
-B&KR
-
-Lars
-
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
