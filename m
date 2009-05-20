@@ -1,54 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2825 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762541AbZE1VVY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2009 17:21:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Subject: Re: About s_stream in v4l2-subdev
-Date: Thu, 28 May 2009 23:21:17 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"dongsoo45.kim@samsung.com" <dongsoo45.kim@samsung.com>,
-	=?utf-8?q?=EB=AF=BC=EB=B3=91=ED=98=B8?= <bhmin@samsung.com>,
-	=?utf-8?q?=EA=B9=80=ED=98=95=EC=A4=80_=EA=B9=80?=
-	<riverful.kim@samsung.com>
-References: <5e9665e10905280420x73ebc7ean5c029b131e6b7e8c@mail.gmail.com>
-In-Reply-To: <5e9665e10905280420x73ebc7ean5c029b131e6b7e8c@mail.gmail.com>
+Received: from znsun1.ifh.de ([141.34.1.16]:33317 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751895AbZETPLN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 May 2009 11:11:13 -0400
+Date: Wed, 20 May 2009 17:11:03 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Thierry Lelegard <thierry.lelegard@tv-numeric.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: RE : RE : Hauppauge Nova-TD-500 vs. T-500
+In-Reply-To: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAALN4GP6siTEuuMjrEDdv4uQEAAAAA@tv-numeric.com>
+Message-ID: <alpine.LRH.1.10.0905201658030.15868@pub4.ifh.de>
+References: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAALN4GP6siTEuuMjrEDdv4uQEAAAAA@tv-numeric.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200905282321.17931.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 28 May 2009 13:20:15 Dongsoo, Nathaniel Kim wrote:
-> Hello everyone,
+On Wed, 20 May 2009, Thierry Lelegard wrote:
+>> When you tune both frontends at the same time, please try to not tune the
+>> same frequency.
 >
-> I'm doing my driver job with kernel 2.6.30-rc6, trying to figure out
-> how to convert my old drivers to v4l2-subdev framework. Looking into
-> the v4l2-subdev.h file an interesting API popped up and can't find any
-> precise comment about that. It is "s_stream" in v4l2_subdev_video_ops.
-> I think I found this api in the very nick of time, if the purpose of
-> that api  is exactly what I need. Actually, I was trying to make my
-> sub device to get streamon and streamoff command from the device side,
-> and I wish the "s_stream" is that for. Because in case of camera
-> module with embedded JPEG encoder, it is necessary to make the camera
-> module be aware of the exact moment of streamon to pass the encoded
-> data to camera interface. (many of camera ISPs can't stream out
-> continuous frame of JPEG data, so we have only one chance  of shot).
-> Is the s_stream for streamon purpose in subdev? (I hope so...finger
-> crossed) Cheers,
+> I don't. In my tests, I use only one frontend.
+>
+> In production, it could be possible that two frontends on the same TD-500
+> tune the same frequency for some period of time. What is the problem with that ?
 
-Yes it is. It is for subdevs that need to implement VIDIOC_STREAMON and 
-VIDIOC_STREAMOFF.
+If two oscillators are oscillating at the same frequency, they are 
+interfering each other. Results for devices like yours are a variation of 
+the SNR of 10dB (rare, but I have seen it in our labs).
 
-Regards,
+Solution is simple: frontends are always tuned with a small frequency 
+offset (like 100kHz) . Usually (for DiBcom demods at least) it is no 
+problem to recover such an offset.
 
-	Hans
+Patrick.
 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
