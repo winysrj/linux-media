@@ -1,109 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-10.arcor-online.net ([151.189.21.50]:52756 "EHLO
-	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755327AbZE0C2U (ORCPT
+Received: from mail-px0-f123.google.com ([209.85.216.123]:44109 "EHLO
+	mail-px0-f123.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754883AbZETCFT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2009 22:28:20 -0400
-Subject: Re: [ivtv-devel] tveeprom cannot autodetect tuner! (FQ1216LME MK5)
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Andy Walls <awalls@radix.net>
-Cc: Martin Dauskardt <martin.dauskardt@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Discussion list for development of the IVTV driver
-	<ivtv-devel@ivtvdriver.org>, linux-media@vger.kernel.org
-In-Reply-To: <1243389830.4046.52.camel@palomino.walls.org>
-References: <200905210909.43333.martin.dauskardt@gmx.de>
-	 <1243287953.3744.93.camel@pc07.localdom.local>
-	 <1243298465.3703.8.camel@pc07.localdom.local>
-	 <200905262221.31409.martin.dauskardt@gmx.de>
-	 <1243383329.6682.27.camel@pc07.localdom.local>
-	 <1243389830.4046.52.camel@palomino.walls.org>
-Content-Type: text/plain; charset=UTF-8
-Date: Wed, 27 May 2009 04:27:10 +0200
-Message-Id: <1243391230.9920.15.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Tue, 19 May 2009 22:05:19 -0400
+Received: by pxi29 with SMTP id 29so123283pxi.33
+        for <linux-media@vger.kernel.org>; Tue, 19 May 2009 19:05:19 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20090519223510.6667dca9@pedra.chehab.org>
+References: <492881.32224.qm@web110808.mail.gq1.yahoo.com>
+	 <4A132502.6070103@kernellabs.com>
+	 <20090519223510.6667dca9@pedra.chehab.org>
+Date: Tue, 19 May 2009 22:05:19 -0400
+Message-ID: <829197380905191905s4e65915kc0c37429b2cd0ebe@mail.gmail.com>
+Subject: Re: Recent Siano patches - testing required
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Steven Toth <stoth@kernellabs.com>,
+	Uri Shkolnik <urishk@yahoo.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Tue, May 19, 2009 at 9:35 PM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> Steven,
+>
+> Your concerns about testing make sense, but this were already tried in the
+> past, when Uri started sending their patches at the ML. So, instead of
+> repeating the same novel, let's merge the patches at the development tree and
+> ask people to test.
+>
+> Yet, I'm keeping the Siano patches at the 'pending' -git tree, where I hold
+> very experimental work. I intend to hold it there until we have more tests and
+> have all the pending patches merged.
+>
+> About creating an -hg tree for Siano (and for other developers), I had to nack
+> it in the past, since the LinuxTV server were overloaded. Now that the machine
+> got replaced, I think we may actually create a tree for them.
+>
+> Uri, please discuss about this in priv with me, in order to exchange the needed
+> information for the login account.
+>
+>
+>
+> Cheers,
+> Mauro
 
-Am Dienstag, den 26.05.2009, 22:03 -0400 schrieb Andy Walls:
-> On Wed, 2009-05-27 at 02:15 +0200, hermann pitton wrote:
-> > Hi,
-> > 
-> > Am Dienstag, den 26.05.2009, 22:21 +0200 schrieb Martin Dauskardt:
-> > > I should add that the picture quality is with all tested tuner types worse 
-> > > than with my PVR250/350. I don't know if a PVR150 is in generally worse than 
-> > > a PVR250. I can't call it really noisy, but in german I would say the picture 
-> > > is a little bit "grobkörnig". It really needs a temporal filter setting of 
-> > > value 8 or more, while my other PVR cards have a nice quality even with value 
-> > > 0. 
-> > > 
-> > > I will test whatever you guys want me to test :-)  But I am not a programmer, 
-> > > so I need detailled instructions what to patch.
-> > > 
-> > > My next step will be testing an older v4l2 with an 2.6.27 kernel to see if the 
-> > > audio problem still exists.
-> > 
-> > Martin, that seems the right way to start and there is no need to hurry.
-> > 
-> > If nobody has a datasheet, and I can imagine that such an early RF loop
-> > through tuner has some specials, you are still in a difficult testing
-> > field, even if only on PAL BG for now. Is RF out is active would be
-> > still interesting to know.
-> 
-> Hermann,
-> 
-> There is an FQ1216LME MK3 data sheet here:
-> 
-> http://dl.ivtvdriver.org/datasheets/tuners/FQ1216LME%20Mk3.pdf
+Mauro,
 
-Something for the weekend I guess.
+If I recall, a ton of patches were sent to the mailing list, but there
+was never a test tree on linuxtv.org.  Were you expecting interested
+parties to hand-apply all those patches?
 
-> Is it safe to assume that the MK5 is not very different from the MK3?
+It's not clear to me why you are putting this code that is untested by
+the community into the v4l-dvb tree.  In all other cases where linuxtv
+developers want to submit large sets of changes, you expect them to
+create a private tree so testers can be solicited *before* it goes
+into v4l-dvb.  Why would this case be any different?
 
-That is what we always did and did not fail so far.
+You have no personal knowledge as to whether the code actually works,
+and there are parties who have expressed a very clear concern about
+some of the patches causing regressions in existing hardware.  Doesn't
+the safer approach seem to be to setup a ~mchehab/siano-patches tree
+so that people can do some testing, and *then* merge to the mainline?
+If everything works, then great - it's one command to merge the fold
+the tree back into the mainline...
 
-That Chinese SAW filters cause my concern and Dmitry might have them
-even on a MK5. Needs Philips/NXP confirmation I think.
+Devin
 
-> I can build an entry for the FQ1216LME based on this datasheet (maybe on
-> Friday night) and hope it works well enough for the MK5.
-> 
-> Regards,
-> Andy
-
-Best to proceed for now and then testing on PAL_BG as a start.
-
-Cheers,
-Hermann
-
-> 
-> > If on the same RF signal quality, means no more passive RF splitter in
-> > between, I don't know what we can expect, but for example the FM1216ME
-> > and the FMD1216ME hybrid MK3s do perform excellent and don't have this
-> > "grobkörnige" (grainy?) picture, which you often see on cheaper tuners.
-> > 
-> > As far as I know, not any such complaints about the MK4s so far too.
-> > 
-> > Dmitry has some MK3 variant, where the first time on a Philips tuner
-> > Chinese SAW filters are employed instead of the original EPCOS filters.
-> > 
-> > The question, if that could cause performance/sensitivity losses, is not
-> > yet answered. Also if this is related to the SECAM DK tweaks he needs.
-> > 
-> > I would start testing for different sound quality between tuner 56 and
-> > 38. Beginning silence on old B/W mono broadcasts could make a difference
-> > I somehow have in mind.
-> > 
-> > If 56 still has no sound at all, that should indicate a major technical
-> > change compared to prior tuners.
-> > 
-> > Cheers,
-> > Hermann
-> >  
-> > 
-> 
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
