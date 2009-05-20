@@ -1,93 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:19690 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754570AbZEKJhH (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:39595 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755310AbZETBwO convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 May 2009 05:37:07 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCH v2 0/7] [RFC] FM Transmitter (si4713) and another changes
-Date: Mon, 11 May 2009 12:31:42 +0300
-Message-Id: <1242034309-13448-1-git-send-email-eduardo.valentin@nokia.com>
+	Tue, 19 May 2009 21:52:14 -0400
+Date: Tue, 19 May 2009 22:52:09 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Uri Shkolnik <urishk@yahoo.com>
+Cc: Michael Krufky <mkrufky@linuxtv.org>,
+	LinuxML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] [09051_40] Siano - kconfig update
+Message-ID: <20090519225209.3e8485a8@pedra.chehab.org>
+In-Reply-To: <349664.18832.qm@web110811.mail.gq1.yahoo.com>
+References: <349664.18832.qm@web110811.mail.gq1.yahoo.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello all,
+Em Tue, 19 May 2009 11:18:32 -0700 (PDT)
+Uri Shkolnik <urishk@yahoo.com> escreveu:
 
-It took a few but I'm resending the FM transmitter driver again.
-Sorry for this delay, but I had another things to give attention.
+> 
+> 
+> 
+> --- On Tue, 5/19/09, Michael Krufky <mkrufky@linuxtv.org> wrote:
+> 
+> > From: Michael Krufky <mkrufky@linuxtv.org>
+> > Subject: Re: [PATCH] [09051_40] Siano - kconfig update
+> > To: "Uri Shkolnik" <urishk@yahoo.com>
+> > Cc: "LinuxML" <linux-media@vger.kernel.org>, "Mauro Carvalho Chehab" <mchehab@infradead.org>
+> > Date: Tuesday, May 19, 2009, 6:47 PM
+> > On Tue, May 19, 2009 at 7:58 AM, Uri
+> > Shkolnik <urishk@yahoo.com>
+> > wrote:
+> > >
+> > > # HG changeset patch
+> > > # User Uri Shkolnik <uris@siano-ms.com>
+> > > # Date 1242734522 -10800
+> > > # Node ID c74502f4c8e97bd9cec9656793bbabc11fb72ab4
+> > > # Parent  315bc4b65b4f527c4f9bc4fe3290e10f07975437
+> > > [09051_40] Siano - kconfig update
+> > >
+> > > From: Uri Shkolnik <uris@siano-ms.com>
+> > >
+> > > This patches comes to solve the comments on Siano's
+> > patch
+> > > 0905_10. It updates the kconfig to support
+> > multi-modules build.
+> > > Note that the dependency on dvb_core is for the
+> > (sms)dvb module
+> > > alone, since the drivers set may work with another
+> > adapter.
+> > >
+> > > Priority: normal
+> > >
+> > > Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+> > >
+> > > diff -r 315bc4b65b4f -r c74502f4c8e9
+> > linux/drivers/media/dvb/siano/Kconfig
+> > > --- a/linux/drivers/media/dvb/siano/Kconfig     Sun
+> > May 17 12:28:55 2009 +0000
+> > > +++ b/linux/drivers/media/dvb/siano/Kconfig     Tue
+> > May 19 15:02:02 2009 +0300
+> > > @@ -2,25 +2,40 @@
+> > >  # Siano Mobile Silicon Digital TV device
+> > configuration
+> > >  #
+> > >
+> > > -config DVB_SIANO_SMS1XXX
+> > > -       tristate "Siano SMS1XXX USB dongle
+> > support"
+> > > -       depends on DVB_CORE && USB
+> > > +config SMS_SIANO_MDTV
+> > > +       tristate "Siano SMS1xxx based MDTV
+> > receiver"
+> > > +       default m
+> > >        ---help---
+> > > -         Choose Y here if you have a USB dongle
+> > with a SMS1XXX chipset.
+> > > +       Choose Y or M here if you have MDTV
+> > receiver with a Siano chipset.
+> > >
+> > > -         To compile this driver as a module,
+> > choose M here: the
+> > > -         module will be called sms1xxx.
+> > > +       To compile this driver as a module, choose
+> > M here
+> > > +       (The modules will be called smsmdtv).
+> > >
+> > > -config DVB_SIANO_SMS1XXX_SMS_IDS
+> > > -       bool "Enable support for Siano Mobile
+> > Silicon default USB IDs"
+> > > -       depends on DVB_SIANO_SMS1XXX
+> > > -       default y
+> > > +       Note: All dependents, if selected, will be
+> > part of this module.
+> > > +
+> > > +       Further documentation on this driver can be
+> > found on the WWW
+> > > +       at http://www.siano-ms.com/
+> > > +
+> > > +if SMS_SIANO_MDTV
+> > > +menu "Siano module components"
+> > > +
+> > > +# Kernel sub systems support
+> > > +config SMS_DVB3_SUBSYS
+> > > +       tristate "DVB v.3 Subsystem support"
+> > > +       depends on DVB_CORE
+> > > +       default m if DVB_CORE
+> > >        ---help---
+> > > -         Choose Y here if you have a USB dongle
+> > with a SMS1XXX chipset
+> > > -         that uses Siano Mobile Silicon's default
+> > usb vid:pid.
+> > > +       Choose if you would like to have DVB v.3
+> > kernel sub-system support.
+> > >
+> > > -         Choose N here if you would prefer to use
+> > Siano's external driver.
+> > > +# Hardware interfaces support
+> > >
+> > > -         Further documentation on this driver can
+> > be found on the WWW at
+> > > -         <http://www.siano-ms.com/>.
+> > > +config SMS_USB_DRV
+> > > +       tristate "USB interface support"
+> > > +       depends on USB
+> > > +       default m if USB
+> > > +       ---help---
+> > > +       Choose if you would like to have Siano's
+> > support for USB interface
+> > >
+> > > +
+> > > +endmenu
+> > > +endif # SMS_SIANO_MDTV
+> > >
+> > >
+> > >
+> > >
+> > > --
+> > > To unsubscribe from this list: send the line
+> > "unsubscribe linux-media" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > >
+> > 
+> > 
+> > 
+> > I have two concerns with this patch...
+> > 
+> > 
+> > Issue #1, I dont see why it's important to rename the
+> > Kconfig symbol
+> > from DVB_SIANO_SMS1XXX to SMS_SIANO_MDTV -- This will just
+> > cause
+> > breakage of "make oldconfig" in the kernel with no real
+> > benefit.
+> > 
+> > Issue #2, a much bigger issue.....  This patch implies
+> > that the Siano
+> > driver can be built *with* DVB "v3" support, or without
+> > it.  Why would
+> > a linux user ever want to built this driver without support
+> > for the
+> > DVB API ?  (that's a loaded question) ...  Does
+> > Siano intend to push
+> > their proprietary API into the kernel?
+> > 
+> > -Mike
+> > 
+> 
+> Regarding #1 - sms1xxx implies that is support only Siano devices from 1xxx families, but actually it support all Siano's chip-sets and various MCPs (Which have different numeration than 1xxx, I can't give details here, sorry). So 1xxx is a misleading name.
+> MDTV - much better (you can read it as Mobile Digital TV, or something else)
 
-Anyway, after reading the API and re-writing the code I came up
-with the following 7 patches. Three of them are in the v4l2 API.
-The other 4 are for the si4713 device.
+Changing Kconfig names should be avoided, but your explanation makes sense to
+me, provided that you will preserve the newer name.
 
-It is because of the first 3 patches that I'm sending this as a RFC.
+> Regarding #2 - DVB-API version 3 (dvb-core module) is one of the sub-systems which are supported. The drivers set is also supports DVB-API version 5 (pre-alpha at this stage) and Siano's proprietary sub-system. So, actually you don't have to have dvb-core in order to use Siano's USB interface driver... 
 
-The first and second patches, as suggested before, are creating another
-v4l2 extended controls class, the V4L2_CTRL_CLASS_FMTX. At this
-first interaction, I've put all si4713 device extra properties there.
-But I think that some of the can be moved to private class (V4L2_CID_PRIVATE_BASE).
-That's the case of the region related things. Comments are wellcome.
+It makes no sense to add a Kconfig item for it in Kernel, since Siano's proprietary sub-system is not part of upstream Linux Kernel.
 
-The third patch came *maybe* because I've misunderstood something. But
-I realized that the v4l2-subdev helper functions for I2C devices assumes
-that the bridge device will create an I2C adaptor. And in that case, only
-I2C address and its type are suffient. But in this case, makes no sense
-to me to create an adaptor for the si4713 platform device driver. This is
-the case where the device (si4713) is connected to an existing adaptor.
-That's why I've realized that currently there is no way to pass I2C board info
-using the current v4l2 I2C helper functions. Other info like irq line and
-platform data are not passed to subdevices. So, that's why I've created
-that patch.
+> Please note that there are DAB radio builds, using Siano chip-sets and drivers... which means you don't need the dvb-core as well, you just need the dab and the Siano's core and interface drivers...
 
-The remaining patches are the si4713 device driver itself. As suggested,
-I've splited the driver into i2c driver and v4l2 radio driver. The first
-one is exporting it self as a v4l2 subdev as well. Now it is composed by
-the si4713.c and si4713-subdev.c. But in the future versions I think I'll
-merge both and remove the si4713.c (by reducing lots of things), because
-it was mainly designed to be used by the sysfs interface. I've also keeped
-the sysfs interface (besides the extended control interface). The v4l2 radio
-driver became a platform driver which is mainly a wrapper to the I2C subdevice.
-Again here I've found some problem with the device remove. Because, as the
-I2C helper function assumes the bridge device will create an adaptor, then
-when the bridge removes the adaptor, its devices will be removed as well.
-So, when re-inserting the driver, registration will be good. However, if
-we use an existing adaptor, then we need to remove the i2c client manually.
-Otherwise it will fail when re-inserting the device.
+Hmm... it would be interesting if you could later provide a DAB patch for the driver.
 
-As I said before, comments are wellcome. I'm mostly to be misunderstanding something
-from the API.
+> Long time ago I asked you, why you chose to put the Siano sub-tree under media/dvb, since that chip-set can be used (and it is) and be regarded as... radio receiver. I don't mind that the Siano's sub-tree will reside under media/dvb, but it doesn't indicates either that it's bind solely to dvb-core....
 
-BR,
+This is an already existing trouble we have: splitting drivers into media/dvb,
+media/video and media/radio is not correct. There are several drivers that have
+DVB, video and radio support. 
 
-Eduardo Valentin (7):
-  v4l2: video device: Add V4L2_CTRL_CLASS_FMTX controls
-  v4l2: video device: Add FMTX controls default configurations
-  v4l2_subdev i2c: Add i2c board info to v4l2_i2c_new_subdev
-  FMTx: si4713: Add files to handle si4713 i2c device
-  FMTx: si4713: Add files to add radio interface for si4713
-  FMTx: si4713: Add Kconfig and Makefile entries
-  FMTx: si4713: Add document file
+The alternative to fix would be a major rearrangement on all drivers. This were
+already discussed at the ML, but every time we run away. I suspect that sooner
+or later, we'll need to rearrange they. The better proposal we had were to be
+as much linear as possible (so, having all drivers under /media for example
+would make more sense).
 
- Documentation/video4linux/si4713.txt |  132 ++
- drivers/media/radio/Kconfig          |   22 +
- drivers/media/radio/Makefile         |    3 +
- drivers/media/radio/radio-si4713.c   |  345 ++++++
- drivers/media/radio/radio-si4713.h   |   48 +
- drivers/media/radio/si4713-subdev.c  | 1045 ++++++++++++++++
- drivers/media/radio/si4713.c         | 2250 ++++++++++++++++++++++++++++++++++
- drivers/media/radio/si4713.h         |  295 +++++
- drivers/media/video/v4l2-common.c    |   99 ++-
- include/linux/videodev2.h            |   45 +
- include/media/v4l2-common.h          |    6 +
- 11 files changed, 4284 insertions(+), 6 deletions(-)
- create mode 100644 Documentation/video4linux/si4713.txt
- create mode 100644 drivers/media/radio/radio-si4713.c
- create mode 100644 drivers/media/radio/radio-si4713.h
- create mode 100644 drivers/media/radio/si4713-subdev.c
- create mode 100644 drivers/media/radio/si4713.c
- create mode 100644 drivers/media/radio/si4713.h
 
+
+Cheers,
+Mauro
