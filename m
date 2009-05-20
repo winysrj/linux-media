@@ -1,64 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns01.unsolicited.net ([69.10.132.115]:55969 "EHLO
-	ns01.unsolicited.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751843AbZEXIjI (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:38516 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757944AbZETLYB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 May 2009 04:39:08 -0400
-Message-ID: <4A1906DE.8000701@unsolicited.net>
-Date: Sun, 24 May 2009 09:35:42 +0100
-From: David <david@unsolicited.net>
+	Wed, 20 May 2009 07:24:01 -0400
+Date: Wed, 20 May 2009 13:23:58 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Darius Augulis <augulis.darius@gmail.com>,
+	Paul Mundt <lethal@linux-sh.org>
+Subject: Re: [PATCH 02/10 v2] ARM: convert pcm037 to the new
+	platform-device soc-camera interface
+Message-ID: <20090520112358.GQ9288@pengutronix.de>
+References: <Pine.LNX.4.64.0905151817070.4658@axis700.grange> <Pine.LNX.4.64.0905151824040.4658@axis700.grange> <20090520073844.GP9288@pengutronix.de> <Pine.LNX.4.64.0905201059000.4423@axis700.grange>
 MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-CC: Alan Stern <stern@rowland.harvard.edu>,
-	Pekka Enberg <penberg@cs.helsinki.fi>,
-	linux-media@vger.kernel.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	dbrownell@users.sourceforge.net, leonidv11@gmail.com,
-	Greg KH <gregkh@suse.de>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: USB/DVB - Old Technotrend TT-connect S-2400 regression tracked
- down
-References: <Pine.LNX.4.44L0.0905231657210.22430-100000@netrider.rowland.org>	 <4A189187.4020407@unsolicited.net> <1243126473.3705.6.camel@pc07.localdom.local>
-In-Reply-To: <1243126473.3705.6.camel@pc07.localdom.local>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0905201059000.4423@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hermann pitton wrote:
-> Hi,
->
-> Am Sonntag, den 24.05.2009, 01:15 +0100 schrieb David:
->   
->> Alan Stern wrote:
->>     
->>> It's not obvious what could be causing this, so let's start out easy.  
->>> Try collecting two usbmon traces (instructions are in
->>> Documentation/usb/usbmon.txt), showing what happens with and without
->>> the reversion.  Maybe some difference will stick ou
->>>   
->>>       
->> Traces attached. Took a while as my quad core hangs solid when 0u is
->> piped to a file (I had to compile on a laptop and take the logs there).
->>
->> Cheers
->> David
->>
->>
->>     
->
-> just a note, since you said it is some ATI chipset.
->
-> Is it the SB700?
->
-> We have lots of reports about disconnects, but then also claimed to be
-> fixed in between, and i don't know the current status ...
->   
-The latest trace is from an Intel dual core (SL9400) laptop, so the
-problem exists across Nvidia, ATI and Intel USB Hardware.
+On Wed, May 20, 2009 at 11:01:46AM +0200, Guennadi Liakhovetski wrote:
+> On Wed, 20 May 2009, Sascha Hauer wrote:
+> 
+> > On Fri, May 15, 2009 at 07:19:10PM +0200, Guennadi Liakhovetski wrote:
+> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > ---
+> > > 
+> > > This is actually a completion to the other single patches I've sent 
+> > > earlier for various boards. As I said, pcm037 doesn't have all its 
+> > > outstanding patches in next yet, so, you'll need to collect them from 
+> > > trees / lists, or get them when I upload them.
+> > 
+> > As I haven't got camera support for pcm037 in my tree yet, you can
+> > combine this with the patch which adds camera support.
+> 
+> Hm, so, I will have to redo that:-(
+> 
+> > How are we going to sync this with the according changes to soc-camera?
+> 
+> As I already replied to Russell, there's just one requirement for _this_ 
+> patch - it has to go in after this one:
+> 
+> http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-next.git;a=commit;h=2bda41a0e9d42cf977a99e8df4fd6e331bb4f50d
 
-The ATI system with the quad core (AMD 790FX, Phenom)  hangs solid when
-trying to use usbmon though (if that's what you are getting at)?
+Ok, then Russell can pull my tree containing the camera patch for pcm037
+and he will take care of the correct order, right?
 
-David
+Sascha
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
