@@ -1,114 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4114 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753086AbZECHxT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 May 2009 03:53:19 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n437rHrb025867
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 3 May 2009 09:53:18 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 3 May 2009 09:53:17 +0200 (CEST)
-Message-Id: <200905030753.n437rHrb025867@smtp-vbr4.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mx2.redhat.com ([66.187.237.31]:42647 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755362AbZETSih (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 May 2009 14:38:37 -0400
+Message-ID: <4A144E41.6080806@redhat.com>
+Date: Wed, 20 May 2009 20:38:57 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+CC: Hans de Goede <j.w.r.degoede@hhs.nl>, linux-media@vger.kernel.org
+Subject: Re: What is libv4lconvert/sn9c202x.c for?
+References: <1242316804.1759.1@lhost.ldomain> <4A0C544F.1030801@hhs.nl> <alpine.LNX.2.00.0905141424460.11396@banach.math.auburn.edu> <alpine.LNX.2.00.0905191529260.19936@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0905191529260.19936@banach.math.auburn.edu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
 
-Results of the daily build of v4l-dvb:
 
-date:        Sun May  3 08:48:36 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11658:83712d149893
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+On 05/19/2009 10:35 PM, Theodore Kilgore wrote:
+>
+> I can not seem to be able to find any such devices which use this. So
+> perhaps I am not looking in the right place and someone could point me
+> there.
+>
+> In any event, it appears to me to have absolutely nothing at all to do
+> with the decompression algorithm required by the SN9C2028 cameras. Those
+> require a differential Huffman encoding scheme similar to what is in use
+> for the MR97310a cameras, but with a few crucial differencew which make
+> it pretty much impossible to write one routine for both. But the code in
+> the file libv4lconvert/sn9c202x.c appears to me to be no differential
+> Huffman scheme at all but something entirely different.
+>
+> Hence my question.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-rc4-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-rc4-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-rc4-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-rc4-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-rc4-m32r: OK
-linux-2.6.22.19-mips: ERRORS
-linux-2.6.26-mips: ERRORS
-linux-2.6.27-mips: ERRORS
-linux-2.6.28-mips: ERRORS
-linux-2.6.29.1-mips: ERRORS
-linux-2.6.30-rc4-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-rc4-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-rc4-x86_64: WARNINGS
-sparse (linux-2.6.29.1): OK
-sparse (linux-2.6.30-rc4): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+This is for the (not yet in the mainline kernel) sn9c20x driver, just like
+there is a series of sn9c10x webcam bridges from sonix there also is a serie
+of 2n9c20x, these can do jpeg compression, but also their own custom
+(less CPU the decompress) YUV based compression, which is supported by libv4l,
+and that is what is in the sn9c20x.c file, also note the file is called
+sn9c20x.c not sn9c202x.c, iow this is completely unrelated to the sn9c2028
+cameras, as this is not for sn9c202x but for sn9c20x .
 
-Detailed results are available here:
+Hope this helps to clarify things.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+Regards,
 
-Full logs are available here:
+Hans
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-The V4L2 specification from this daily build is here:
+p.s.
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+The sn9c20x driver can be found here:
+https://groups.google.com/group/microdia
 
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+Its developers are quite active I wish they would get it merged into the
+mainline (and preferably first converted to a gspca subdriver, I'm not saying
+gspca is perfect, but it does safe a lot of code duplication).
 
