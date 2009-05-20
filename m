@@ -1,119 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-11.arcor-online.net ([151.189.21.51]:37389 "EHLO
-	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754183AbZETAFU (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:57531 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751138AbZETClL convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2009 20:05:20 -0400
-Subject: Re: Hauppauge HVR 1110 and DVB
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Antonio Beamud Montero <antonio.beamud@gmail.com>
-Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
-	linux-media@vger.kernel.org
-In-Reply-To: <4A128A19.40601@gmail.com>
-References: <4A128A19.40601@gmail.com>
-Content-Type: text/plain
-Date: Wed, 20 May 2009 01:48:49 +0200
-Message-Id: <1242776929.7553.9.camel@pc07.localdom.local>
+	Tue, 19 May 2009 22:41:11 -0400
+Date: Tue, 19 May 2009 23:41:06 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Uri Shkolnik <urishk@yahoo.com>
+Cc: Michael Krufky <mkrufky@linuxtv.org>,
+	LinuxML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] [09051_49] Siano: smscore - upgrade firmware loading
+ engine
+Message-ID: <20090519234106.41a6d362@pedra.chehab.org>
+In-Reply-To: <15860.11754.qm@web110806.mail.gq1.yahoo.com>
+References: <15860.11754.qm@web110806.mail.gq1.yahoo.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Antonio,
+Em Tue, 19 May 2009 11:01:22 -0700 (PDT)
+Uri Shkolnik <urishk@yahoo.com> escreveu:
 
-Am Dienstag, den 19.05.2009, 12:29 +0200 schrieb Antonio Beamud Montero:
-> I have a new hauppauge hvr 1110. Trying to load the lastest modules, all 
-> seems to load fine, but no dvb-t frontend is created. As I can see this 
-> card isn't exactly the same hvr 1110 (hvr 1110r3) supported by v4l-dvb.
-> The system reports the next info:
+> 
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > >
+> > 
+> > 
+> > 
+> > This patch should not be merged in its current form.
+> > 
+> > Linux kernel driver development shall be against the
+> > current -rc
+> > kernel, and there is no need to reinvent the
+> > "REQUEST_FIRMWARE"
+> > mechanism.
+> > 
+> > Furthermore, the changeset introduces more bits of this
+> > "SMS_HOSTLIB_SUBSYS" -- this requires a binary library
+> > present on the
+> > host system.  This completely violates the "no
+> > multiple APIs in
+> > kernel" and "no proprietary APIs in kernel" guidelines.
+> > 
+> > Uri, what are your plans for this?
+> > 
+> > Regards,
+> > 
+> > Mike
+> > 
+> 
+> Mike,
+> 
+> Per discussion with other members of the community, backport are welcome at LinuxTV mercurial (true they are not pass through when up-streaming to the kernel git, but that is per current kernel version anyway ...). 
 
-we moved to linux-media@vger.kernel.org
+It is ok to add backport support, but the above seems a little dirty: or you
+check for a kernel version or for a #define'd symbol. You can add some #defines
+and let v4l/scripts/make_config.pl to evaluate it depending on some kernel .h
+file.
 
-Michael Krufky has added support for these new tuners and cards and
-Steven Toth for the tda10048.
+> Regarding the REQUEST_FIRMWARE - with most older kernels, and with some new (I even have such 2.6.27 case), that is the only option available, Please check Motorola (opensource.motorola.com) and Google Android for external examples. Second issue is that when you are using interface like SPI, the hotplug mechanism is degenerated or simply voided. So we can either decide we support only x86 based machines, but if I'm not wrong, I can see lots of TI OMAP (and other ARM) activity lately, so, we may decide to support REQUEST_FIRMWARE...  
 
-But it is correct, DVB is not yet enabled on them.
+I'm not sure how this is is done on external trees, but we shouldn't do it in
+kernel. With embedded devices in mind, kernel already supports a way where the firmware
+binary is linked inside the driver and the request_firmware() call is converted
+on just a register load. So (except due to backport issues), this is not needed.
 
-Maybe Michael can give you some hints on what he is still working to do
-so and if he might call for testers once.
+> 
+> Regarding SMS_HOSTLIB_SUBSYS, since it's not defined its... undefined...
+> The patch replace '#if 0' with '#ifdef SMS_HOSTLIB_SUBSYS' (which is... undefined), so actually no "harm" done, but it make the life of Siano's engineers, and various other who use patches and merges, easier when looking at the code (IMHO strings are better than magic numbers). I simply don't see what's wrong with that.
+
+While keeping backports are ok, I agree with Michael about this: any support
+for an external API should be removed.
+
+If the issue here is to allow your engineers to sync your internal code with
+Linux driver, I suggest you to have those if's on your internal tree, and use a
+script like v4l/scripts/gentree.pl [1] to remove those symbols before submitting us
+any patch.
+
+Btw, why do you need a proprietary API? If it is due to the lack of some DVB
+features, let's add it into DVBv5.
+
+[1] gentree.pl is the script I use here to sync our out-of-tree v4l-dvb
+mercurial tree with -git. It basically evaluates kernel versions
+and removes or inserts code based on some compatibility defines we have. For example:
+
+my %defs = (
+        'I2C_CLASS_TV_ANALOG' => 1,
+        'NEED_SOUND_DRIVER_H' => 0,
+);
+
+Will make it to include any code with:
+
+#ifdef I2C_CLASS_TV_ANALOG
+	<some code to be included>
+#endif
+
+and remove any code inside:
+
+#ifdef NEED_SOUND_DRIVER_H
+	<some code to be excluded>
+#endif
+
+You can even have nested if's inside the code.
+
+
 
 Cheers,
-Hermann
-
-
-> # lspci -v
-> 
-> 0b:03.0 Multimedia controller: Philips Semiconductors SAA7133/SAA7135 
-> Video Broadcast Decoder (rev d1)
-> Subsystem: Hauppauge computer works Inc. Unknown device 6707
-> Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr+ 
-> Stepping- SERR+ FastB2B-
-> Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- 
-> <TAbort- <MAbort- >SERR- <PERR-
-> Latency: 32 (21000ns min, 8000ns max)
-> Interrupt: pin A routed to IRQ 114
-> Region 0: Memory at fc4ff800 (32-bit, non-prefetchable) [size=2K]
-> Capabilities: [40] Power Management version 2
-> Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
-> Status: D0 PME-Enable- DSel=0 DScale=1 PME-
-> 
-> # dmesg
-> 
-> ACPI: PCI Interrupt 0000:0f:03.0[A] -> GSI 160 (level, low) -> IRQ 65
-> saa7133[0]: found at 0000:0f:03.0, rev: 209, irq: 65, latency: 32, mmio: 
-> 0xfc4ff800
-> saa7133[0]: subsystem: 0070:6707, board: Hauppauge WinTV-HVR1110r3 
-> [card=156,autodetected]
-> saa7133[0]: board init: gpio is 40000
-> saa7133[0]: i2c eeprom 00: 70 00 07 67 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-> saa7133[0]: i2c eeprom 10: ff ff ff 0e ff 20 ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom 20: 01 40 01 32 32 01 01 33 88 ff 00 b0 ff ff ff ff
-> saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7133[0]: i2c eeprom 40: ff 35 00 c0 96 10 06 32 97 04 00 20 00 ff ff ff
-> saa7133[0]: i2c eeprom 50: ff 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> saa7133[0]: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> saa7133[0]: i2c eeprom 70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> saa7133[0]: i2c eeprom 80: 84 09 00 04 20 77 00 40 08 79 5e f0 73 05 29 00
-> saa7133[0]: i2c eeprom 90: 84 08 00 06 89 06 01 00 95 19 8d 72 07 70 73 09
-> saa7133[0]: i2c eeprom a0: 23 5f 73 0a f4 9b 72 0b 2f 72 0e 01 72 0f 01 72
-> saa7133[0]: i2c eeprom b0: 10 01 72 11 ff 73 13 a2 69 79 1a 00 00 00 00 00
-> saa7133[0]: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> saa7133[0]: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> saa7133[0]: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> saa7133[0]: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> tveeprom 0-0050: Hauppauge model 67209, rev C1F5, serial# 6191368
-> tveeprom 0-0050: MAC address is 00-0D-FE-5E-79-08
-> tveeprom 0-0050: tuner model is NXP 18271C2 (idx 155, type 54)
-> tveeprom 0-0050: TV standards PAL(B/G) PAL(I) SECAM(L/L') PAL(D/D1/K) 
-> ATSC/DVB Digital (eeprom 0xf4)
-> tveeprom 0-0050: audio processor is SAA7131 (idx 41)
-> tveeprom 0-0050: decoder processor is SAA7131 (idx 35)
-> tveeprom 0-0050: has radio, has IR receiver, has no IR transmitter
-> saa7133[0]: hauppauge eeprom: model=67209
-> tuner 0-004b: chip found @ 0x96 (saa7133[0])
-> tda829x 0-004b: setting tuner address to 60
-> tda18271 0-0060: creating new instance
-> TDA18271HD/C2 detected @ 0-0060
-> tda18271: performing RF tracking filter calibration
-> tda18271: RF tracking filter calibration complete
-> tda829x 0-004b: type set to tda8290+18271
-> saa7133[0]: registered device video0 [v4l2]
-> saa7133[0]: registered device vbi0
-> saa7133[0]: registered device radio0
-> saa7134 ALSA driver for DMA sound loaded
-> saa7133[0]/alsa: saa7133[0] at 0xfc4ff800 irq 65 registered as card -1
-> 
-> Trying to load manually the saa7134-dvb module reports nothing.
-> 
-> The module seems to recognize the 67209LF rev C1F5 ok.
-> 
-> Hauppauge hvr 1110 Hardware Info:
-> 
-> Decoder: saa7131E/03/G
-> Module: TDA10048HN 
-> (http://www.ecnasiamag.com/article-10192-philipstda10048hnenablesdigitaltvviewingthroughentertainmentdevices-Asia.html)
-> 
-> Greetings
-> 
-
-
+Mauro
