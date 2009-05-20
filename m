@@ -1,138 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:62042 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751209AbZEICBs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 May 2009 22:01:48 -0400
-Subject: Re: [PATCH] FM1216ME_MK3 some changes
-From: Andy Walls <awalls@radix.net>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: Dmitri Belimov <d.belimov@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	video4linux-list@redhat.com, linux-media@vger.kernel.org
-In-Reply-To: <1241741304.4864.29.camel@pc07.localdom.local>
-References: <20090422174848.1be88f61@glory.loctelecom.ru>
-	 <1240452534.3232.70.camel@palomino.walls.org>
-	 <20090423203618.4ac2bc6f@glory.loctelecom.ru>
-	 <1240537394.3231.37.camel@palomino.walls.org>
-	 <20090427192905.3ad2b88c@glory.loctelecom.ru>
-	 <20090428151832.241fa9b4@pedra.chehab.org>
-	 <20090428195922.1a079e46@glory.loctelecom.ru>
-	 <1240974643.4280.24.camel@pc07.localdom.local>
-	 <20090429201225.6ba681cf@glory.loctelecom.ru>
-	 <1241050556.3710.109.camel@pc07.localdom.local>
-	 <20090506044231.31f2d8aa@glory.loctelecom.ru>
-	 <1241654513.5862.37.camel@pc07.localdom.local>
-	 <1241665384.3147.53.camel@palomino.walls.org>
-	 <1241741304.4864.29.camel@pc07.localdom.local>
-Content-Type: text/plain
-Date: Fri, 08 May 2009 22:01:33 -0400
-Message-Id: <1241834493.3482.140.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from [194.250.18.140] ([194.250.18.140]:33580 "EHLO tv-numeric.com"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752412AbZETOxU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 May 2009 10:53:20 -0400
+From: "Thierry Lelegard" <thierry.lelegard@tv-numeric.com>
+To: "'Patrick Boettcher'" <patrick.boettcher@desy.de>
+Cc: <linux-media@vger.kernel.org>
+Subject: RE : RE : Hauppauge Nova-TD-500 vs. T-500
+Date: Wed, 20 May 2009 16:53:04 +0200
+Message-ID: <!~!UENERkVCMDkAAQACAAAAAAAAAAAAAAAAABgAAAAAAAAAJf2pBr8u1U+Z+cArRcz8PAKHAAAQAAAALN4GP6siTEuuMjrEDdv4uQEAAAAA@tv-numeric.com>
+MIME-Version: 1.0
+In-Reply-To: <alpine.LRH.1.10.0905201609240.15868@pub4.ifh.de>
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2009-05-08 at 02:08 +0200, hermann pitton wrote:
-> Am Mittwoch, den 06.05.2009, 23:03 -0400 schrieb Andy Walls:
-
-> > > For the change of UHF start I don't see any problem.
-> > 
-> > If you're talking about the frequency for the bandswitch, I don't see a
-> > problem either in general.  It may cause a problem for clones of the
-> > FM1216ME MK3 that don't have the same filter performance near the
-> > cutover, but use the same tuner defintion as the FM1216ME MK3 in
-> > tuner-types.c.
-> > 
-> > It may be best to point any clones to a new entry that looks like the
-> > current FM1216ME MK3 entry unmodified.
+> De : Patrick Boettcher [mailto:patrick.boettcher@desy.de] 
+> Envoyé : mercredi 20 mai 2009 16:17
+> À : Thierry Lelegard
+> Cc : linux-media@vger.kernel.org
+> Objet : Re: RE : Hauppauge Nova-TD-500 vs. T-500
 > 
-> Andy, thanks a lot for participating in such stuff and I think your
-> diagnosis is right.
 > 
-> Just a small question in between, already late here and not trying to
-> cover the whole scope.
+> On Wed, 20 May 2009, Thierry Lelegard wrote:
+> > 2) Since the TD-500 contains two aerial inputs instead of one for
+> > the T-500, I plugged in two antenna cables. Then, after some tests,
+> > I realized that this was a source of trouble:
+> > - Two antenna cables => lots of errors (mostly garbage sometimes,
+> >  depending on the frequency).
+> > - Top input only => still many errors but much better on 
+> both tuners.
+> > - Bottom input only => got nothing on both tuners.
 > 
-> What ever should be the effect of Dmitri's trick one, changing beginning
-> of UHF a little. We did that for midband and there was real broadcast
-> and it improved one single channel there indeed.
+> Normally there is a RF switch + loop through to be controlled when 
+> switching between diversity (not supported in Linux) and dual-input - so 
+> that you can connect only one antenna but still doing the dual reception.
+
+OK, that's my fault. At first, I thought that two tuners + two inputs
+meant one input per tuner. When I realized it was wrong, I used only
+one input on each TD-500.
+
+
+> If this switch is not handled correctly, I could imagine that the second 
+> input connected is "receiving" spurious signals and disturbing the first 
+> input, but there can be a lot of other reason as well.
 > 
-> But here, it is plain theory. I honor the lab results they have, no
-> problem anyway, but to change something for not at all existing
-> broadcast does exactly nothing, except for awaiting it in the future.
+> If I understand the code correctly, this switch (if it is really there :) 
+> ) is not handled correctly. I don't know the TD 500 card, so maybe the 
+> Hauppauge guys can help on that. (Basically the question is, which GPIO is 
+> to be toggled)
+
+The weird point is that one input works (with some errors though) and the
+second input does not work at all (no input TS packets at all).
+
+
+> > 3) There are still many uncorrectable errors (TS packets with "transport
+> > error indicator" set) in the input. The amount of uncorrectable errors is
+> > approximately 0.1% (depending on the frequency), while I do not have any
+> > with the T-500 using the same antenna.
 > 
-> No problem with that change, but do I miss something?
+> When you tune both frontends at the same time, please try to not tune the 
+> same frequency.
 
-Now that you ask, maybe.
+I don't. In my tests, I use only one frontend.
 
-It first depends on whether there is a station at 441 MHz that normally
-would have used the VHF-High filter and VCO, but now uses the UHF filter
-and VCO.
+In production, it could be possible that two frontends on the same TD-500
+tune the same frequency for some period of time. What is the problem with that ?
 
-Channel designations I dug out of ivtv-tune:
-
-S38 439.250 MHz (European cable)
-H18 439.250 MHz (SECAM France)
-47  440.250 MHz (PAL China)
-059 440.250 MHz (PAL Argentina)
-
-come close, but are unaffected by the change from 442 to 441 as the
-bandswitch cutover point.  These channels fall right on top of the
-cutover, but are not affected by the proposed change in any meaningful
-way.  The VHF-High filter and VCO would still be used.  Dmitri's
-proposed change is a "don't care" unless the cutover point is changed to
-440 MHz. 
+I have two TD-500 on the same PCI bus. The four tuners are used independently.
 
 
-Let's pretend that the proposed cutover point is 440 MHz.  The high
-frequencies in the channel (~ 447 MHz) may have perhaps been in the
-roll-off of the VHF-High preselector filter.  At the edges of filters,
-amplitude ripple and especially group delay variation - two aspects of
-filters that cause distortion - would have been at their worst,
-affecting the high frequencies of the channel (sound and color
-sub-carriers).  (I assume PAL is VSB with the carrier towards the low
-end, similar to NTSC.)  Now instead, the low frequencies of the channel
-(~ 440 MHz) may be in the roll-off of the UHF preselector filter.  Thus
-the vestigal sideband and carrier could be affected most by ripple and
-group delay variation of the UHF filter.
-
-Either way, a channel at 440 MHz could face distortion by this tuner.
-It really depends on the preselector filter design.
-
-
-I also checked the MID and HIGH band oscillator spec's in the TUA6030
-datasheet.  Both of them can cover 440 MHz, but it looks like the MID
-band VCO may be preferred since it doesn't drift as badly as the HIGH
-band VCO.  Since I don't know the component values used in the loop
-filters for the VCO's, I can't do any real analysis to see which VCO
-would be better at handling 440 MHz.  I suspect the difference may not
-be significant anyway.
-
-
-> Also, after hundreds of "new" tuners did appear, in the beginning not
-> even known from where, I suggested to not allow a new tuner entry for
-> all of them, only duplicate code, until they really need it and show off
-> their difference.
-> 
-> I would like to keep it especially for this one the same. ;)
-
-OK.
-
-> Such subsumed under it have done nothing for Linux so far and have to
-> face their faith :) And show off, if _not_ compatible.
-> 
-> And not the other way round.
-
-Wait until people complain? :)
-
+Thanks for your time.
 Regards,
-Andy
-
-> Dmitri, if we are talking about the same tuner and filters, we should
-> try to get Secam D/K improvements into the original tuner entry.
-> 
-> That NTSC hack stuff might go elsewhere I guess.
-> 
-> Cheers,
-> Hermann
-
+-Thierry
 
