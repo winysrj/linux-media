@@ -1,92 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:9198 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759948AbZEMTwu (ORCPT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36227 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753035AbZETRNc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2009 15:52:50 -0400
-Date: Wed, 13 May 2009 21:52:44 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Andy Walls <awalls@radix.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Mike Isely <isely@pobox.com>
-Subject: [PATCH 6/8] saa7134: Simplify handling of IR on AVerMedia Cardbus
- E506R
-Message-ID: <20090513215244.0860aca1@hyperion.delvare>
-In-Reply-To: <20090513214559.0f009231@hyperion.delvare>
-References: <20090513214559.0f009231@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Wed, 20 May 2009 13:13:32 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 20 May 2009 12:13:10 -0500
+Subject: RE: MT9T031 and other similar sub devices...
+Message-ID: <A69FA2915331DC488A831521EAE36FE401353CD999@dlee06.ent.ti.com>
+References: <A69FA2915331DC488A831521EAE36FE401353CD3D6@dlee06.ent.ti.com>
+ <Pine.LNX.4.64.0905200909240.4423@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0905200909240.4423@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that we instantiate I2C IR devices explicitly, we can skip probing
-altogether on boards where the I2C IR device address is known. The
-AVerMedia Cardbus E506R is one of these boards.
+Hi Guennadi,
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Tested-by: Oldrich Jedlicka <oldium.pro@seznam.cz>
----
- linux/drivers/media/video/saa7134/saa7134-input.c |   33 +++------------------
- 1 file changed, 5 insertions(+), 28 deletions(-)
+Thanks for your prompt reply. Where do I pick your latest mt9t031.c that has partial implementation of sub device model ? I can work on that and try to integrate the same. I will remove item 1) that I mentioned and also add support for interface parameter query for bridge driver usage. I am happy to work with you on this driver.
 
---- v4l-dvb.orig/linux/drivers/media/video/saa7134/saa7134-input.c	2009-04-30 10:38:49.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/saa7134/saa7134-input.c	2009-04-30 10:39:10.000000000 +0200
-@@ -702,20 +702,6 @@ void saa7134_probe_i2c_ir(struct saa7134
- 		.buf = NULL,
- 	};
- 
--	unsigned char subaddr, data;
--	struct i2c_msg msg_avermedia[] = { {
--		.addr = 0x40,
--		.flags = 0,
--		.len = 1,
--		.buf = &subaddr,
--	}, {
--		.addr = 0x40,
--		.flags = I2C_M_RD,
--		.len = 1,
--		.buf = &data,
--	} };
--
--	struct i2c_client *client;
- 	int rc;
- 
- 	if (disable_ir) {
-@@ -779,6 +765,10 @@ void saa7134_probe_i2c_ir(struct saa7134
- 		init_data.get_key = get_key_beholdm6xx;
- 		init_data.ir_codes = ir_codes_behold;
- 		break;
-+	case SAA7134_BOARD_AVERMEDIA_CARDBUS_501:
-+	case SAA7134_BOARD_AVERMEDIA_CARDBUS_506:
-+		info.addr = 0x40;
-+		break;
- 	}
- 
- 	if (init_data.name)
-@@ -790,20 +780,7 @@ void saa7134_probe_i2c_ir(struct saa7134
- 	}
- 
- 	/* Address not known, fallback to probing */
--	client = i2c_new_probed_device(&dev->i2c_adap, &info, addr_list);
--	if (client)
--		return;
--
--	/* Special case for AVerMedia Cardbus remote */
--	subaddr = 0x0d;
--	rc = i2c_transfer(&dev->i2c_adap, msg_avermedia, 2);
--	dprintk(KERN_DEBUG "probe 0x%02x/0x%02x @ %s: %s\n",
--		msg_avermedia[0].addr, subaddr, dev->i2c_adap.name,
--		(2 == rc) ? "yes" : "no");
--	if (2 == rc) {
--		info.addr = msg_avermedia[0].addr;
--		i2c_new_device(&dev->i2c_adap, &info);
--	}
-+	i2c_new_probed_device(&dev->i2c_adap, &info, addr_list);
- }
- 
- static int saa7134_rc5_irq(struct saa7134_dev *dev)
+Regards,
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+email: m-karicheri2@ti.com
 
--- 
-Jean Delvare
+>-----Original Message-----
+>From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+>Sent: Wednesday, May 20, 2009 3:21 AM
+>To: Karicheri, Muralidharan
+>Cc: linux-media@vger.kernel.org
+>Subject: Re: MT9T031 and other similar sub devices...
+>
+>Hi Murali
+>
+>On Tue, 19 May 2009, Karicheri, Muralidharan wrote:
+>
+>> Hi, Guennadi Liakhovetski,
+>>
+>> Thanks for your effort to migrate the sensor drivers to sub device
+>framework.
+>>
+>> We have interest in mt9t031 and other sensor drivers from Micron since
+>> this peripheral is used in our DM355/DM6446 EVMs as well. I have
+>> submitted a set of patches for our vpfe_capture driver to the media
+>> mailing list for review. This driver runs on DM355/DM6446 EVMs and is
+>> developed to use the sub device model to integrate with capture
+>> peripheral like TVP5146, MT9T001, MT9T031 etc.
+>
+>You mean MT9M001, right?
+>
+No. MT9T031
+>> If you have a version of
+>> mt9t031 driver migrated to sub device, I would like to integrate that
+>> with our vpfe_capture driver.
+>
+>Nice, that's what the whole sudev conversion is (largely) about, AFAICS.
+>
+>> I want to check following with you so as to be on the same page.
+>>
+>> 1) I see that the mt9t001.c still uses struct soc_camera_device and
+>> calls soc_camera_video_start() to start the master. This introduces a
+>> reverse dependency from the sub device to bridge driver (correct me if I
+>> my understanding is wrong). I guess you plan to remove this dependency
+>> in your future patch. With this in the driver, it can't work with our
+>> driver since we don't have soc_camera_device.
+>
+>Correct.
+>
+>> 2) vpfe_capture driver support raw bayer interface as well as raw yuv
+>> interface. Raw bayer interface can be 8-16 bits wide along with
+>> HD/VD/field lines. So in order for the bridge driver to configure the
+>> interface, it needs to know parameters like interface type (BT.656,
+>> BT.1120, Raw image data (8-16) etc), polarity of HD, VD, PCLK, field
+>> signals etc. Is there a infrastructure for handling this ? I mean, we
+>> should have a way of defining this per platform, which some how can be
+>> read by bridge driver to configure the interface to work with a specific
+>> sub device.
+>
+>Right, this is one of the pieces still missing in the v4l2-(sub)dev
+>framework, which we have in soc_camera, and which we'll have to think
+>about bringing over to v4l2-subdev. That's one of the reasons why the
+>conversion is not complete yet.
+>
+>The other (and main) reason is my time. I'm doing this at my free time,
+>and I don't know when next time I'll come round to progressing this work.
+>So, either you can provide patches to speed up the process, or you can
+>wait for me, or someone might want to pay for this work to be done:-)
+>
+>Thanks
+>Guennadi
+>---
+>Guennadi Liakhovetski, Ph.D.
+>Freelance Open-Source Software Developer
+>http://www.open-technology.de/
+
