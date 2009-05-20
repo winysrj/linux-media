@@ -1,19 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-ew0-f164.google.com ([209.85.219.164])
+Received: from mail-fx0-f165.google.com ([209.85.220.165])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1M1rqd-0007v1-Do
-	for linux-dvb@linuxtv.org; Thu, 07 May 2009 02:52:28 +0200
-Received: by ewy8 with SMTP id 8so717532ewy.17
-	for <linux-dvb@linuxtv.org>; Wed, 06 May 2009 17:51:53 -0700 (PDT)
-Date: Thu, 7 May 2009 02:51:41 +0200 (CEST)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: armel frey <armel.frey@gmail.com>
-In-Reply-To: <8566f5bc0905060103g250086a2v12d038e9163cabb8@mail.gmail.com>
-Message-ID: <alpine.DEB.2.00.0905070221080.21713@ybpnyubfg.ybpnyqbznva>
-References: <8566f5bc0905060103g250086a2v12d038e9163cabb8@mail.gmail.com>
+	(envelope-from <armel.frey@gmail.com>) id 1M6kQj-00044X-4K
+	for linux-dvb@linuxtv.org; Wed, 20 May 2009 13:57:53 +0200
+Received: by fxm9 with SMTP id 9so374824fxm.17
+	for <linux-dvb@linuxtv.org>; Wed, 20 May 2009 04:57:20 -0700 (PDT)
 MIME-Version: 1.0
-Cc: DVB mailin' list thingy <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] szap2 and Band L???
+In-Reply-To: <8566f5bc0905200456l2a88831w626d770852312bc6@mail.gmail.com>
+References: <8566f5bc0905140646x6aaeb3ecq14e3c2c72b176e7@mail.gmail.com>
+	<20090515231609.0ba14254@bk.ru>
+	<8566f5bc0905200456l2a88831w626d770852312bc6@mail.gmail.com>
+Date: Wed, 20 May 2009 13:57:17 +0200
+Message-ID: <8566f5bc0905200457y31c5835bn64495654674c03e2@mail.gmail.com>
+From: armel frey <armel.frey@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DVB-S2 frontend doesn't work!
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -22,42 +24,143 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============0480568211=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-T24gV2VkLCA2IE1heSAyMDA5LCBhcm1lbCBmcmV5IHdyb3RlOgoKPiBJIGhhdmUgYSBIYXVwcGF1
-Z2UgSFZSLTQwMDAgYW5kIGkgd291bGQgbGlrZSB0byByZWNlaXZlIERWQi1TMiAhCj4gVGhlIGNh
-cmQgd29ya3Mgd2VsbCBpbiBEVkItUyBhbmQgc2VlbXMgdG8gd29yayB3aXRoIHN6YXAtczIsIGJ1
-dCBteSBwcm9ibGVtCj4gaXMgdGhhdCBpIGhhdmUgdG8gcmVjZWl2ZSBEVkItUzIgaW4gQmFuZCBM
-ICg5NTAuLi4yMTUwTUh6KSBhbmQgc3phcDIgZG9uJ3QKPiB0dW5lIHRoaXMgbG93IGZyw6lxdWVu
-Y3kuCgpXaGVuIEkgc2VlIHRoZSByYW5nZSBvZiA5NTAtMjE1ME1IeiwgSSB0aGluayBvZiB0aGUg
-aW50ZXJtZWRpYXRlCmZyZXF1ZW5jeSBkZWxpdmVyZWQgZnJvbSBtaXhpbmcgdGhlIGxvY2FsIG9z
-Y2lsbGF0b3Igd2l0aCB0aGUKcmVjZWl2ZWQgc2lnbmFsLCB3aGljaCBpcyBwYXNzZWQgZnJvbSB0
-aGUgTE5CIG91dHB1dCB0aHJvdWdoCnRoZSBhdHRhY2hlZCBjYWJsZS4KCkluIHJlYWxpdHksIHRo
-aXMgaXMgd2hhdCBpcyB0dW5lZCwgYWx0aG91Z2ggbW9zdCBjb21tb25seSBvbmUgCm1ha2VzIHVz
-ZSBvZiB0aGUgZnJlcXVlbmNpZXMgb2YgdGhlIEt1IGJhbmQsIHdoaWNoIHRoZSB0dW5pbmcgCnV0
-aWxpdHkgdGhlbiBjb252ZXJ0cyB0byB0aGUgSUYgZnJlcXVlbmN5Ogp0dW5pbmcgRFZCLVMgdG8g
-RnJlcTogMjA2MjAwMCwgUG9sOkggU3JhdGU9MjIwMDAwMDAsIDIya0h6IHRvbmU9b2ZmLCBMTkI6
-IDEKRXZlbnQ6ICBGcmVxdWVuY3k6IDEyNjYyMzUwCgpUaGUgc2FtZSBzaG91bGQgYmUgdHJ1ZSBm
-b3IgYW4gTE5CL2Rpc2ggdG8gcmVjZWl2ZSBDLUJhbmQKc2lnbmFscywgZm9yIGV4YW1wbGUsIHNv
-bWV0aGluZyBJJ3ZlIG5vdCBoYWQgYW55IHBlcnNvbmFsCmV4cGVyaWVuY2UsIHNvIEkgZG9uJ3Qg
-a25vdyBob3cgd2VsbCBpdCB3b3VsZCBiZSBzdXBwb3J0ZWQKYnkgdGhlIGRpZmZlcmVudCB1dGls
-aXRpZXMuCgpEbyB5b3UgaGF2ZSBhbiBleGFtcGxlIG9mIGEgcGFydGljdWxhciBEVkItUzIgc2Vy
-dmljZSB3aGljaAp5b3Ugd2FudCB0byByZWNlaXZlPwoKTXkgZ3Vlc3Mgd291bGQgYmUgdGhhdCBp
-ZiB5b3UgbmVlZCB0byB0dW5lIGEgcGFydGljdWxhcgpmcmVxdWVuY3kgaW4gdGhhdCByYW5nZSwg
-c2F5LCAyMDYyTUh6IGluIHRoZSBhYm92ZSBleGFtcGxlLAp5b3UgY2FuIGFjaGlldmUgdGhpcyBi
-eSBhZGRpbmcgOTc1MCBNSHogLS0gdGhlIExPIGZyZXF1ZW5jeQppbiB0aGUgbG93IHJhbmdlIG9m
-IFVuaXZlcnNhbCBLdSBiYW5kIExOQnMsIGFuZCB0aGVuCmF0dGVtcHRpbmcgdG8gdHVuZSB0aGF0
-IGZyZXF1ZW5jeSwgd2hldGhlciB0aGF0IGNvbWVzIGFzIHRoZQpJRiBmcm9tIGEgS3UsIG9yIEMg
-b3IgS2EgYmFuZCBMTkIgb2Ygd2hhdGV2ZXIgdHlwZSAtLSBVbml2ZXJzYWwKb3Igb3RoZXJ3aXNl
-LgoKVGhvdWdoIEkgc2hvdWxkIGhvcGUgdGhhdCBzb21lIHV0aWxpdHkgd2lsbCBkaXJlY3RseSBz
-dXBwb3J0CnNwZWNpZnlpbmcgYSBmcmVxdWVuY3kgd2l0aGluIHRoZSBhYm92ZSBiYW5kcyBkaXJl
-Y3RseSwgaWYKdGhhdCdzIHdoYXQgeW91J3JlIHRyeWluZyB0byBkbywgb3IgYSBub24tdW5pdmVy
-c2FsLUxOQiBMTwpmcmVxdWVuY3kuLi4KCgpiYXJyeSBib3V3c21hCgpfX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgdXNlcnMgbWFpbGluZyBs
-aXN0CkZvciBWNEwvRFZCIGRldmVsb3BtZW50LCBwbGVhc2UgdXNlIGluc3RlYWQgbGludXgtbWVk
-aWFAdmdlci5rZXJuZWwub3JnCmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4
-dHYub3JnL2NnaS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
+--===============0480568211==
+Content-Type: multipart/alternative; boundary=001636c5bb71a42092046a56ba86
+
+--001636c5bb71a42092046a56ba86
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+>
+> Ok, I now use http://mercurial.intuxication.org/hg/s2-liplianin
+> I installed it on /usr/local/src/ with make & make install
+>
+> but szap-s2 lock dvb-s signal but not dvb-s2...
+> someone have an idea???
+> 2009/5/15 Goga777 <goga777@bk.ru>
+>
+>  > I have a problem with my HVR-4000 card.
+>> >
+>> > I installed the firmware cx24116 find on
+>> > http://tevii.com/Tevii_linuxdriver_0815.rar
+>> > sudo cp tevii_linuxdriver_0815/fw/dvb-fe-cx24116.fw
+>> > /lib/firmware/dvb-fe-cx24116-1.23.86.1.fw
+>> > sudo ln -s /lib/firmware/dvb-fe-cx24116-1.23.86.1.fw
+>> > /lib/firmware/dvb-fe-cx24116.fw
+>> >
+>> > I installed S2API find on http://linuxtv.org/hg/~stoth/s2/
+>>
+>> please use http://mercurial.intuxication.org/hg/s2-liplianin
+>>
+>> > and I installed szap-s2 find on
+>> http://mercurial.intuxication.org/hg/szap-s2
+>> >
+>> > Every seems to be ok...
+>> > I can tune an DVB-S signal, but not DVB-S2...
+>> > I try to tune a DVB-S2 signal with a symbols rate of 75335000
+>> (>45000000)
+>> > and I have this error message with dmesg :
+>> >
+>> > [ 450.409150] DVB: frontend 0 symbol rate 75335000 out of range
+>> > (1000000..45000000)
+>> >
+>> > So I try dvbsnoop to see the frontend information :
+>> >
+>> > # dvbsnoop -s feinfo
+>> > dvbsnoop V1.4.50 -- http://dvbsnoop.sourceforge.net/
+>>
+>> dvbsnoop doesn't work with s2api
+>>
+>>
+>> Goga
+>>
+>>
+>>
+>>
+>> _______________________________________________
+>> linux-dvb users mailing list
+>> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>
+>
+>
+
+--001636c5bb71a42092046a56ba86
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<div class=3D"gmail_quote">
+<blockquote class=3D"gmail_quote" style=3D"PADDING-LEFT: 1ex; MARGIN: 0px 0=
+px 0px 0.8ex; BORDER-LEFT: #ccc 1px solid">
+<div>Ok, I now=A0use <a href=3D"http://mercurial.intuxication.org/hg/s2-lip=
+lianin" target=3D"_blank">http://mercurial.intuxication.org/hg/s2-liplianin=
+</a><br>I installed it on /usr/local/src/ with make &amp; make install</div=
+>
+
+<div>=A0</div>
+<div>but szap-s2 lock dvb-s signal but not dvb-s2...</div>
+<div>someone have an idea???<br></div>
+<div class=3D"gmail_quote">2009/5/15 Goga777 <span dir=3D"ltr">&lt;<a href=
+=3D"mailto:goga777@bk.ru" target=3D"_blank">goga777@bk.ru</a>&gt;</span>=20
+<div>
+<div></div>
+<div class=3D"h5"><br>
+<blockquote class=3D"gmail_quote" style=3D"PADDING-LEFT: 1ex; MARGIN: 0px 0=
+px 0px 0.8ex; BORDER-LEFT: #ccc 1px solid">
+<div>&gt; I have a problem with my HVR-4000 card.<br>&gt;<br>&gt; I install=
+ed the firmware cx24116 find on<br>&gt; <a href=3D"http://tevii.com/Tevii_l=
+inuxdriver_0815.rar" target=3D"_blank">http://tevii.com/Tevii_linuxdriver_0=
+815.rar</a><br>
+&gt; sudo cp tevii_linuxdriver_0815/fw/dvb-fe-cx24116.fw<br>&gt; /lib/firmw=
+are/dvb-fe-cx24116-1.23.86.1.fw<br>&gt; sudo ln -s /lib/firmware/dvb-fe-cx2=
+4116-1.23.86.1.fw<br>&gt; /lib/firmware/dvb-fe-cx24116.fw<br>&gt;<br>&gt; I=
+ installed S2API find on <a href=3D"http://linuxtv.org/hg/~stoth/s2/" targe=
+t=3D"_blank">http://linuxtv.org/hg/~stoth/s2/</a><br>
+<br></div>please use <a href=3D"http://mercurial.intuxication.org/hg/s2-lip=
+lianin" target=3D"_blank">http://mercurial.intuxication.org/hg/s2-liplianin=
+</a><br>
+<div><br>&gt; and I installed szap-s2 find on <a href=3D"http://mercurial.i=
+ntuxication.org/hg/szap-s2" target=3D"_blank">http://mercurial.intuxication=
+.org/hg/szap-s2</a><br>&gt;<br>&gt; Every seems to be ok...<br>&gt; I can t=
+une an DVB-S signal, but not DVB-S2...<br>
+&gt; I try to tune a DVB-S2 signal with a symbols rate of 75335000 (&gt;450=
+00000)<br>&gt; and I have this error message with dmesg :<br>&gt;<br>&gt; [=
+ 450.409150] DVB: frontend 0 symbol rate 75335000 out of range<br>&gt; (100=
+0000..45000000)<br>
+&gt;<br>&gt; So I try dvbsnoop to see the frontend information :<br>&gt;<br=
+>&gt; # dvbsnoop -s feinfo<br>&gt; dvbsnoop V1.4.50 -- <a href=3D"http://dv=
+bsnoop.sourceforge.net/" target=3D"_blank">http://dvbsnoop.sourceforge.net/=
+</a><br>
+<br></div>dvbsnoop doesn&#39;t work with s2api<br><br><br>Goga<br><br><br><=
+br><br>_______________________________________________<br>linux-dvb users m=
+ailing list<br>For V4L/DVB development, please use instead <a href=3D"mailt=
+o:linux-media@vger.kernel.org" target=3D"_blank">linux-media@vger.kernel.or=
+g</a><br>
+<a href=3D"mailto:linux-dvb@linuxtv.org" target=3D"_blank">linux-dvb@linuxt=
+v.org</a><br><a href=3D"http://www.linuxtv.org/cgi-bin/mailman/listinfo/lin=
+ux-dvb" target=3D"_blank">http://www.linuxtv.org/cgi-bin/mailman/listinfo/l=
+inux-dvb</a><br>
+</blockquote></div></div></div><br></blockquote></div><br>
+
+--001636c5bb71a42092046a56ba86--
+
+
+--===============0480568211==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0480568211==--
