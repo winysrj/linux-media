@@ -1,57 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caiajhbdcbef.dreamhost.com ([208.97.132.145]:34839 "EHLO
-	homiemail-a4.g.dreamhost.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752681AbZEYSMe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 25 May 2009 14:12:34 -0400
-Message-ID: <4A1ADFE2.6060500@klepeis.net>
-Date: Mon, 25 May 2009 11:13:54 -0700
-From: N Klepeis <list1@klepeis.net>
-Reply-To: list1@klepeis.net
+Received: from znsun1.ifh.de ([141.34.1.16]:61054 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753884AbZETObR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 May 2009 10:31:17 -0400
+Date: Wed, 20 May 2009 16:31:04 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Stefano Danzi <s.danzi@hawai.it>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Making a DVB-S Transmitter
+In-Reply-To: <4A03E492.1090504@hawai.it>
+Message-ID: <alpine.LRH.1.10.0905201618150.15868@pub4.ifh.de>
+References: <4A03E492.1090504@hawai.it>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Temporary success with Pinnacle PCTV 801e (xc5000 chip)
-References: <4A186764.4080007@klepeis.net> <829197380905242005p2cd41103rc1e0ecfb6c0e156f@mail.gmail.com>
-In-Reply-To: <829197380905242005p2cd41103rc1e0ecfb6c0e156f@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin,   Yup, works nice now.   Good work!  --Neil
+Hi Stefano,
 
-Devin Heitmueller wrote:
-> On Sat, May 23, 2009 at 5:15 PM, N Klepeis <list1@klepeis.net> wrote:
->> Hi,
->>
->> I installed the latest v4l-dvb from CVS with the latest firmware
->> (dvb-fe-xc5000-1.6.114.fw) for the 801e (XC5000 chip).   I can  scan for
->> channels no problem.   But after a first use with either mplayer or mythtv,
->> it then immediately stops working and won't start again until I unplug and
->> then reinsert the device from the USB port.       On the first time use
->> everything seems fine and I can watch TV through mplayer for as long as I
->> want.    On the 2nd use (restart mplayer), there's an error (FE_GET_INFO
->> error: 19, FD: 3).    On the 2nd use with mythtv, mythtv cannot connect to
->> the card at all in mythtvsetup, but on the first time use I can assign
->> channel.conf.      I know there have been recent updates to the xc5000
->> driver.    I only started trying this chip this week so I never confirmed
->> that any prior driver version worked.
->>
->> Any thoughts on how to proceed?     Below are the full console outputs when
->> using with mplayer and when running dmesg.   (This is fedora 10).
->>
->> --Neil
->>
-> 
-> Neil,
-> 
-> Already tracked down and a PULL has been requested for the patch:
-> 
-> http://kernellabs.com/hg/~dheitmueller/dvb-frontend-exit-fix
-> 
-> Cheers,
-> 
-> Devin
-> 
+On Fri, 8 May 2009, Stefano Danzi wrote:
 
+> Hi!!
+>
+> I and some others Ham radio operators are working on a pc-based
+> dvb-s transmitter.
+>
+> Reference website are: http://www.m0dts.co.uk/datv.htm
+
+I read very quickly the website, interesting project :)
+
+> Interfare between pc and transmitter is based on FTDI FT245 (usb fifo).
+>
+> Goal will be create a device like /dev/dvbs-tx, write into a mpeg-ts stream 
+> so
+> kernel module convert it to a dvb-s signal and send it to the usb fifo.
+
+When you say, the kernel module converts it to a dvb-s signal? Do you mean 
+you want to do a MPEG2-TS to DVB-S I/Q generator? Please 
+describe closer what is the input format expected by the FTDI FT245.
+
+In general I would suggest that all the busy/important parts are done in 
+userspace. Kernel modules should generally do nothing more that to copy 
+data AS IS from host memory to device memory.
+
+Saying that any conversion, modulation or whatever should be done in 
+user-space.
+
+If you're lucky you don't even need a kernel module to write to your USB 
+device. There is a slight chance that using libusb to write the data to 
+your hardware is sufficient. I think I read somewhere that there is a 
+faster way to write data to a USB device with recent kernels than libusb 
+from userspace, but maybe it was a dream. Check linux/Documentation to see 
+whether you can find something.
+
+Good luck ;)
+Patrick.
+
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
