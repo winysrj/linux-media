@@ -1,51 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from brigitte.telenet-ops.be ([195.130.137.66]:34650 "EHLO
-	brigitte.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750772AbZEXJCd (ORCPT
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199]:37356 "EHLO
+	mta4.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751385AbZETCo5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 May 2009 05:02:33 -0400
-Message-ID: <4A190BFA.6050007@bsc-bvba.be>
-Date: Sun, 24 May 2009 10:57:30 +0200
-From: Luc Brosens <dvb3@bsc-bvba.be>
-Reply-To: dvb3@bsc-bvba.be
-MIME-Version: 1.0
-To: =?UTF-8?B?QlJVTkVUT04gQsOpcmFuZ2Vy?= <bruneton@gmail.com>
-CC: linux-media@vger.kernel.org, linux-dvb@linuxtv.org,
-	tarik.chougua@yahoo.fr
-Subject: Re: [linux-dvb] Hauppauge WinTV-CI
-References: <965444.24352.qm@web26902.mail.ukl.yahoo.com>	 <20090515231650.56d6c4f4@bk.ru> <4A164E9F.1070302@bsc-bvba.be> <18d12a680905220950w5ac161f4gd2c716b84bc71cf5@mail.gmail.com>
-In-Reply-To: <18d12a680905220950w5ac161f4gd2c716b84bc71cf5@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Tue, 19 May 2009 22:44:57 -0400
+Received: from mbpwifi.kernelscience.com
+ (ool-18bfe1a4.dyn.optonline.net [24.191.225.164]) by mta4.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KJX000LG8YY9621@mta4.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Tue, 19 May 2009 22:44:58 -0400 (EDT)
+Date: Tue, 19 May 2009 22:44:58 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: Recent Siano patches - testing required
+In-reply-to: <20090519223510.6667dca9@pedra.chehab.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Uri Shkolnik <urishk@yahoo.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Message-id: <4A136EAA.7090605@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <492881.32224.qm@web110808.mail.gq1.yahoo.com>
+ <4A132502.6070103@kernellabs.com> <20090519223510.6667dca9@pedra.chehab.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-BRUNETON Béranger wrote:
->> I have been struggling for ages with this device, trying get the firmware to load.
->>
->> The program I wrote to extract the firmware from the driver now outputs the Intel Hex format too, used by fxload.
->> No luck : the A3 part does not get loaded, not even using fxloads' A3-loader
->>
->> Details and downloads of code, logs etc at http://www.bsc-bvba.be/linux/dvb
->>
->> I could use some help, like :
->>>> traces of the firmware being loaded on XP/Vista (I am using USBspy myself), preferably using a hardware protocol analyser
->>>> recommendations for an affordable hardware USB2 protocol analyser (I'd try to compare the XP-log with the non-working Linux log)
->>>> suggestions on how to proceed ...
-> 
-> 
-> Do you know why it doesn't support S2 channels ?
-> Hardware or software limitation ?
-> 
-> 
-> Regards
-> 
+> Uri, please discuss about this in priv with me, in order to exchange the needed
+> information for the login account.
 
-I don't have much in the way of DVB-expertise, but here goes :
-1) WinTV-CI doesn't participate in getting the signal, so changes in tuners/modulation standards/... etc shouldn't bother it
-2) It is a USB2-device so should have the raw bandwidth to handle a HDTV stream
-3) It uses the smartcard you'd use normally, so the actual decryption is done with the same hardware
+Thank you Mauro.
 
-so I'd venture it's a software limitation.
-
-Luc
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
