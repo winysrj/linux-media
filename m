@@ -1,74 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-01.arcor-online.net ([151.189.21.41]:53335 "EHLO
-	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756695AbZE0AQ1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2009 20:16:27 -0400
-Subject: Re: [ivtv-devel] tveeprom cannot autodetect tuner! (FQ1216LME MK5)
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Martin Dauskardt <martin.dauskardt@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Andy Walls <awalls@radix.net>,
-	Discussion list for development of the IVTV driver
-	<ivtv-devel@ivtvdriver.org>, linux-media@vger.kernel.org
-In-Reply-To: <200905262221.31409.martin.dauskardt@gmx.de>
-References: <200905210909.43333.martin.dauskardt@gmx.de>
-	 <1243287953.3744.93.camel@pc07.localdom.local>
-	 <1243298465.3703.8.camel@pc07.localdom.local>
-	 <200905262221.31409.martin.dauskardt@gmx.de>
-Content-Type: text/plain; charset=UTF-8
-Date: Wed, 27 May 2009 02:15:29 +0200
-Message-Id: <1243383329.6682.27.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from znsun1.ifh.de ([141.34.1.16]:45683 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752319AbZETIxJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 20 May 2009 04:53:09 -0400
+Date: Wed, 20 May 2009 10:52:59 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Alan Nisota <alannisota@gmail.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Remove support for Genpix-CW3K (damages hardware)
+In-Reply-To: <49D2338C.7040703@gmail.com>
+Message-ID: <alpine.LRH.1.10.0905201051290.6762@pub3.ifh.de>
+References: <49D2338C.7040703@gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Alan,
 
-Am Dienstag, den 26.05.2009, 22:21 +0200 schrieb Martin Dauskardt:
-> I should add that the picture quality is with all tested tuner types worse 
-> than with my PVR250/350. I don't know if a PVR150 is in generally worse than 
-> a PVR250. I can't call it really noisy, but in german I would say the picture 
-> is a little bit "grobkörnig". It really needs a temporal filter setting of 
-> value 8 or more, while my other PVR cards have a nice quality even with value 
-> 0. 
-> 
-> I will test whatever you guys want me to test :-)  But I am not a programmer, 
-> so I need detailled instructions what to patch.
-> 
-> My next step will be testing an older v4l2 with an 2.6.27 kernel to see if the 
-> audio problem still exists.
+On Tue, 31 Mar 2009, Alan Nisota wrote:
 
-Martin, that seems the right way to start and there is no need to hurry.
+> I have been informed by the manufacturer that the patch currently in the v4l 
+> tree to support the Genpix-CW3K version of the hardware will actually damage 
+> the firmware on recent units.  As he seems to not want this hardware 
+> supported in Linux, and I do not know how to detect the difference between 
+> affected and not-affected units, I am requesting the immediate removal of 
+> support for this device.  This patch removes a portion of the changeset 
+> dce7e08ed2b1 applied 2007-08-18 relating to this specific device.
+>
+> Signed off by: Alan Nisota <anisota@gmail.com>
 
-If nobody has a datasheet, and I can imagine that such an early RF loop
-through tuner has some specials, you are still in a difficult testing
-field, even if only on PAL BG for now. Is RF out is active would be
-still interesting to know.
 
-If on the same RF signal quality, means no more passive RF splitter in
-between, I don't know what we can expect, but for example the FM1216ME
-and the FMD1216ME hybrid MK3s do perform excellent and don't have this
-"grobkörnige" (grainy?) picture, which you often see on cheaper tuners.
+Finally I found the time to work on your patch. I adapted it to not remove 
+the code, but to put it under comments and #if 0's .
 
-As far as I know, not any such complaints about the MK4s so far too.
+Like that we protect "normal" users and advanced users need to do some 
+efforts before getting in danger.
 
-Dmitry has some MK3 variant, where the first time on a Philips tuner
-Chinese SAW filters are employed instead of the original EPCOS filters.
+I hope it is OK with you.
 
-The question, if that could cause performance/sensitivity losses, is not
-yet answered. Also if this is related to the SECAM DK tweaks he needs.
+regards,
+Patrick.
 
-I would start testing for different sound quality between tuner 56 and
-38. Beginning silence on old B/W mono broadcasts could make a difference
-I somehow have in mind.
-
-If 56 still has no sound at all, that should indicate a major technical
-change compared to prior tuners.
-
-Cheers,
-Hermann
- 
-
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
