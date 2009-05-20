@@ -1,125 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.seznam.cz ([77.75.72.43]:34106 "EHLO smtp.seznam.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753101AbZEWRLd convert rfc822-to-8bit (ORCPT
+Received: from smtp.nokia.com ([192.100.122.233]:46950 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752729AbZETGlM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 May 2009 13:11:33 -0400
-From: Oldrich Jedlicka <oldium.pro@seznam.cz>
+	Wed, 20 May 2009 02:41:12 -0400
+Date: Wed, 20 May 2009 09:40:07 +0300
+From: David Cohen <david.cohen@nokia.com>
 To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH][RESEND] Use correct sampling rate for TV/FM radio
-Date: Sat, 23 May 2009 19:09:12 +0200
-Cc: LMML <linux-media@vger.kernel.org>
-References: <200904142048.14713.oldium.pro@seznam.cz> <200905191954.19097.oldium.pro@seznam.cz>
-In-Reply-To: <200905191954.19097.oldium.pro@seznam.cz>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] v4l2: change kmalloc to vmalloc for sglist allocation
+	in videobuf_dma_map/unmap
+Message-ID: <20090520064007.GA32549@esdhcp036161.research.nokia.com>
+References: <1242284688-8179-1-git-send-email-david.cohen@nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Message-Id: <200905231909.12817.oldium.pro@seznam.cz>
+In-Reply-To: <1242284688-8179-1-git-send-email-david.cohen@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 19 of May 2009 at 19:54:18, Oldrich Jedlicka wrote:
-> On Tuesday 14 of April 2009 at 20:48:14, Oldrich Jedlicka wrote:
-> > Here is the fix for using the 32kHz sampling rate for TV and FM radio
-> > (ALSA). The TV uses 32kHz anyway (mode 0; 32kHz demdec on), radio works
-> > only with 32kHz (mode 1; 32kHz baseband). The ALSA wrongly reported 32kHz
-> > and 48kHz for everything (TV, radio, LINE1/2).
-> >
-> > Now it should be possible to just use the card without the need to change
-> > the capture rate from 48kHz to 32kHz. Enjoy :-)
->
+On Thu, May 14, 2009 at 09:04:48AM +0200, Cohen David.A (Nokia-D/Helsinki) wrote:
+> From: Cohen David.A (Nokia-D/Helsinki) <david.cohen@nokia.com>
+> 
+> Change kmalloc()/kfree() to vmalloc()/vfree() for sglist allocation
+> during videobuf_dma_map() and videobuf_dma_unmap()
+> 
+> High resolution sensors might require too many contiguous pages
+> to be allocated for sglist by kmalloc() during videobuf_dma_map()
+> (i.e. 256Kib for 8MP sensor).
+> In such situations, kmalloc() could face some problem to find the
+> required free memory. vmalloc() is a safer solution instead, as the
+> allocated memory does not need to be contiguous.
+> 
+> Signed-off-by: David Cohen <david.cohen@nokia.com>
+> ---
+>  drivers/media/video/videobuf-dma-sg.c |   17 +++++++++--------
+>  1 files changed, 9 insertions(+), 8 deletions(-)
 
 Hi Mauro,
 
-I put you on CC in my previous mail, but maybe it would be better to send it 
-directly. So do you have any opinions about the approach described 
-above/below?
+Any comments?
 
-Thanks!
+Br,
 
-Cheers,
-Oldrich.
+David Cohen
 
-> Hi Mauro,
->
-> are there some comments for/against this patch? It is rather long time when
-> I sent it, so I would like to know some opinions.
->
-> The reason behind this patch is that the code uses 32kHz for TV and for
-> radio (the radio cannot use other frequency as far as I know). ALSA then
-> reports both 32kHz and 48kHz for TV/radio, but 48kHz cannot be used.
->
-> Thanks!
->
-> Cheers,
-> Oldrich.
->
-> > Now without word-wrapping.
-> >
-> > Signed-off-by: Oldřich Jedlička <oldium.pro@seznam.cz>
-> > ---
-> > diff -r dba0b6fae413 linux/drivers/media/video/saa7134/saa7134-alsa.c
-> > --- a/linux/drivers/media/video/saa7134/saa7134-alsa.c	Thu Apr 09
-> > 08:21:42 2009 -0300 +++
-> > b/linux/drivers/media/video/saa7134/saa7134-alsa.c	Mon Apr 13 23:07:22
-> > 2009 +0200 @@ -465,6 +465,29 @@
-> >  	.periods_max =		1024,
-> >  };
-> >
-> > +static struct snd_pcm_hardware snd_card_saa7134_capture_32kHz_only =
-> > +{
-> > +	.info =                 (SNDRV_PCM_INFO_MMAP |
-> > SNDRV_PCM_INFO_INTERLEAVED
-> >
-> > | +				 SNDRV_PCM_INFO_BLOCK_TRANSFER |
-> >
-> > +				 SNDRV_PCM_INFO_MMAP_VALID),
-> > +	.formats =		SNDRV_PCM_FMTBIT_S16_LE | \
-> > +				SNDRV_PCM_FMTBIT_S16_BE | \
-> > +				SNDRV_PCM_FMTBIT_S8 | \
-> > +				SNDRV_PCM_FMTBIT_U8 | \
-> > +				SNDRV_PCM_FMTBIT_U16_LE | \
-> > +				SNDRV_PCM_FMTBIT_U16_BE,
-> > +	.rates =		SNDRV_PCM_RATE_32000,
-> > +	.rate_min =		32000,
-> > +	.rate_max =		32000,
-> > +	.channels_min =		1,
-> > +	.channels_max =		2,
-> > +	.buffer_bytes_max =	(256*1024),
-> > +	.period_bytes_min =	64,
-> > +	.period_bytes_max =	(256*1024),
-> > +	.periods_min =		4,
-> > +	.periods_max =		1024,
-> > +};
-> > +
-> >  static void snd_card_saa7134_runtime_free(struct snd_pcm_runtime
-> > *runtime) {
-> >  	snd_card_saa7134_pcm_t *pcm = runtime->private_data;
-> > @@ -651,7 +674,13 @@
-> >  	pcm->substream = substream;
-> >  	runtime->private_data = pcm;
-> >  	runtime->private_free = snd_card_saa7134_runtime_free;
-> > -	runtime->hw = snd_card_saa7134_capture;
-> > +
-> > +	if (amux == TV || &card(dev).radio == dev->input) {
-> > +		/* TV uses 32kHz sampling, AM/FM radio is locked to 32kHz */
-> > +		runtime->hw = snd_card_saa7134_capture_32kHz_only;
-> > +	} else {
-> > +		runtime->hw = snd_card_saa7134_capture;
-> > +	}
-> >
-> >  	if (dev->ctl_mute != 0) {
-> >  		saa7134->mute_was_on = 1;
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+> 
+> diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
+> index da1790e..c9a5d7e 100644
+> --- a/drivers/media/video/videobuf-dma-sg.c
+> +++ b/drivers/media/video/videobuf-dma-sg.c
+> @@ -58,9 +58,10 @@ videobuf_vmalloc_to_sg(unsigned char *virt, int nr_pages)
+>  	struct page *pg;
+>  	int i;
+>  
+> -	sglist = kcalloc(nr_pages, sizeof(struct scatterlist), GFP_KERNEL);
+> +	sglist = vmalloc(nr_pages * sizeof(*sglist));
+>  	if (NULL == sglist)
+>  		return NULL;
+> +	memset(sglist, 0, nr_pages * sizeof(*sglist));
+>  	sg_init_table(sglist, nr_pages);
+>  	for (i = 0; i < nr_pages; i++, virt += PAGE_SIZE) {
+>  		pg = vmalloc_to_page(virt);
+> @@ -72,7 +73,7 @@ videobuf_vmalloc_to_sg(unsigned char *virt, int nr_pages)
+>  	return sglist;
+>  
+>   err:
+> -	kfree(sglist);
+> +	vfree(sglist);
+>  	return NULL;
+>  }
+>  
+> @@ -84,7 +85,7 @@ videobuf_pages_to_sg(struct page **pages, int nr_pages, int offset)
+>  
+>  	if (NULL == pages[0])
+>  		return NULL;
+> -	sglist = kmalloc(nr_pages * sizeof(*sglist), GFP_KERNEL);
+> +	sglist = vmalloc(nr_pages * sizeof(*sglist));
+>  	if (NULL == sglist)
+>  		return NULL;
+>  	sg_init_table(sglist, nr_pages);
+> @@ -104,12 +105,12 @@ videobuf_pages_to_sg(struct page **pages, int nr_pages, int offset)
+>  
+>   nopage:
+>  	dprintk(2,"sgl: oops - no page\n");
+> -	kfree(sglist);
+> +	vfree(sglist);
+>  	return NULL;
+>  
+>   highmem:
+>  	dprintk(2,"sgl: oops - highmem page\n");
+> -	kfree(sglist);
+> +	vfree(sglist);
+>  	return NULL;
+>  }
+>  
+> @@ -230,7 +231,7 @@ int videobuf_dma_map(struct videobuf_queue* q, struct videobuf_dmabuf *dma)
+>  						(dma->vmalloc,dma->nr_pages);
+>  	}
+>  	if (dma->bus_addr) {
+> -		dma->sglist = kmalloc(sizeof(struct scatterlist), GFP_KERNEL);
+> +		dma->sglist = vmalloc(sizeof(*dma->sglist));
+>  		if (NULL != dma->sglist) {
+>  			dma->sglen  = 1;
+>  			sg_dma_address(&dma->sglist[0]) = dma->bus_addr & PAGE_MASK;
+> @@ -248,7 +249,7 @@ int videobuf_dma_map(struct videobuf_queue* q, struct videobuf_dmabuf *dma)
+>  		if (0 == dma->sglen) {
+>  			printk(KERN_WARNING
+>  			       "%s: videobuf_map_sg failed\n",__func__);
+> -			kfree(dma->sglist);
+> +			vfree(dma->sglist);
+>  			dma->sglist = NULL;
+>  			dma->sglen = 0;
+>  			return -EIO;
+> @@ -274,7 +275,7 @@ int videobuf_dma_unmap(struct videobuf_queue* q,struct videobuf_dmabuf *dma)
+>  
+>  	dma_unmap_sg(q->dev, dma->sglist, dma->nr_pages, dma->direction);
+>  
+> -	kfree(dma->sglist);
+> +	vfree(dma->sglist);
+>  	dma->sglist = NULL;
+>  	dma->sglen = 0;
+>  	return 0;
+> -- 
+> 1.6.1
