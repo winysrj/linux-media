@@ -1,48 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110816.mail.gq1.yahoo.com ([67.195.13.239]:26155 "HELO
-	web110816.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753869AbZEQJBy (ORCPT
+Received: from mail-ew0-f176.google.com ([209.85.219.176]:45192 "EHLO
+	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752034AbZETT5P (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 May 2009 05:01:54 -0400
-Message-ID: <15232.6488.qm@web110816.mail.gq1.yahoo.com>
-Date: Sun, 17 May 2009 02:01:55 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [0905_27] Siano: smscore - fix isdb-t firmware name
-To: LinuxML <linux-media@vger.kernel.org>
+	Wed, 20 May 2009 15:57:15 -0400
+Received: by ewy24 with SMTP id 24so777496ewy.37
+        for <linux-media@vger.kernel.org>; Wed, 20 May 2009 12:57:16 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Date: Wed, 20 May 2009 15:57:15 -0400
+Message-ID: <37219a840905201257l4673ac7fkc035f3d6656ed26f@mail.gmail.com>
+Subject: [SAA713X TESTERS WANTED] Fix i2c quirk, may affect saa713x + mt352
+	combo
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+I have discovered a bug in the saa7134 driver inside the function,
+"saa7134_i2c_xfer"
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1242332684 -10800
-# Node ID 7e56c108996ef016c4b2117090e2577aea9ed56c
-# Parent  5ad3d2c3d7792ddf125386c43535e68b575305c3
-[0905_27] Siano: smscore - fix isdb-t firmware name
+In order to communicate with certain i2c clients on the saa713x i2c
+bus, a quirk was implemented to prevent failures during read
+transactions.
 
-From: Uri Shkolnik <uris@siano-ms.com>
+The quirk forces an i2c write/read to a bogus address that is unlikely
+to be used by any i2c client.
 
-Fix mistake with isdb-t firmware name
+However, this quirk is not functioning properly.  The reason for the
+malfunction is that the i2c address chosen to use as the quirk address
+was 0xfd.
 
-Priority: normal
+The address 0xfd is indeed an i2c address unlikely to be used by any
+real i2c client, however, the address itself is invalid!  The address,
+0xfd, has the read bit set -- this is problematic for the hardware,
+and causes the quirk workaround to fail.
 
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+It's a wonder that nobody else has complained up to this point.
 
-diff -r 5ad3d2c3d779 -r 7e56c108996e linux/drivers/media/dvb/siano/smscoreapi.c
---- a/linux/drivers/media/dvb/siano/smscoreapi.c	Thu May 14 23:21:04 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smscoreapi.c	Thu May 14 23:24:44 2009 +0300
-@@ -813,7 +813,7 @@ static char *smscore_fw_lkup[][SMS_NUM_O
- 	/*BDA*/
- 	{"none", "dvb_nova_12mhz.inp", "dvb_nova_12mhz_b0.inp", "none"},
- 	/*ISDBT*/
--	{"none", "isdbt_nova_12mhz.inp", "dvb_nova_12mhz.inp", "none"},
-+	{"none", "isdbt_nova_12mhz.inp", "isdbt_nova_12mhz_b0.inp", "none"},
- 	/*ISDBTBDA*/
- 	{"none", "isdbt_nova_12mhz.inp", "isdbt_nova_12mhz_b0.inp", "none"},
- 	/*CMMB*/
+I am asking for testers, just to make sure that this doesn't cause any
+other strange errors to occur as a side effect.  I don't expect any
+new problems, but its always better to be safe than sorry :-)
 
+This change should not fix any of the other issues currently being
+discussed with the saa7134 driver -- all I am asking is for people to
+test and indicate that the change does not incur any NEW bugs or
+unwanted behavior.
 
+Please test the following repository, and send in your feedback as a
+reply to this thread.  Please remember to keep the mailing list in cc.
 
-      
+http://kernellabs.com/hg/~mk/saa7134
+
+Thanks,
+
+Mike Krufky
