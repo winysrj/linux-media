@@ -1,102 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:37239 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752078AbZEBHMS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 May 2009 03:12:18 -0400
-Date: Sat, 2 May 2009 09:12:11 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Mike Isely <isely@isely.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/6] ir-kbd-i2c: Switch to the new-style device binding
-    model
-Message-ID: <20090502091211.2a26f09b@hyperion.delvare>
-In-Reply-To: <Pine.LNX.4.64.0905012010220.15541@cnc.isely.net>
-References: <20090417222927.7a966350@hyperion.delvare>
-	<20090417223105.28b8957e@hyperion.delvare>
-	<Pine.LNX.4.64.0904171831300.19718@cnc.isely.net>
-	<20090418112519.774e0dae@hyperion.delvare>
-	<20090418151625.254e466b@hyperion.delvare>
-	<Pine.LNX.4.64.0904180842110.19718@cnc.isely.net>
-	<20090423110038.59554982@hyperion.delvare>
-	<Pine.LNX.4.64.0904230928410.3285@cnc.isely.net>
-	<Pine.LNX.4.64.0905012010220.15541@cnc.isely.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3929 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752113AbZEUSDP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 May 2009 14:03:15 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id n4LI3FiY014605
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 21 May 2009 20:03:16 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 21 May 2009 20:03:15 +0200 (CEST)
+Message-Id: <200905211803.n4LI3FiY014605@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mike,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Sorry for not answering your previous post...
+Results of the daily build of v4l-dvb:
 
-On Fri, 1 May 2009 20:30:48 -0500 (CDT), Mike Isely wrote:
-> Jean:
-> 
-> I have another idea that I think you'll like.  I'm putting the finishing 
-> touches on the patch right now.
-> 
-> What I have implements correct ir_video loading for the pvrusb2 driver.  
-> It also includes a lookup table (though with only 1 entry right now) to 
-> determine the proper I2C address and I use i2c_new_device() now instead 
-> of i2c_new_probed_device().  I've also renamed things to be "ir_video" 
-> everywhere instead of ir_kbd_i2c as was discussed.
+date:        Thu May 21 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11824:315bc4b65b4f
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-This sounds really good. The more we know about cards, the less we have
-to probe, the better.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-rc4-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-rc4-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-rc4-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-rc4-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-rc4-m32r: OK
+linux-2.6.22.19-mips: ERRORS
+linux-2.6.26-mips: ERRORS
+linux-2.6.27-mips: ERRORS
+linux-2.6.28-mips: ERRORS
+linux-2.6.29.1-mips: ERRORS
+linux-2.6.30-rc4-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-rc4-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-rc4-x86_64: WARNINGS
+sparse (linux-2.6.29.1): OK
+sparse (linux-2.6.30-rc4): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-> In particular the disable option is there like before, but now it's 
-> called disable_autoload_ir_video.
+Detailed results are available here:
 
-Call me a nitpicker, but once again, there's nothing autoloading here
-so this name is a little confusing.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-> So far this is exactly what I was saying before.  But I'm also making 
-> one more change: the disable_autoload_ir_video option default value will 
-> - for now - be 1, i.e. everything above I just described starts off 
-> disabled.  This means that the entire patch can be pulled _right_ _now_ 
-> without breaking anything at all, because the outward behavior is still 
-> unchanged.
+Full logs are available here:
 
-Yes, this is correct, and will obviously make merging easier. Thanks
-for coming up with this.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-> Then, when you're ready to bring your stuff in, all you need to do is 
-> include a 1-line change to pvrusb2-i2c-core.c to switch the default 
-> value of disable_autoload_ir_video back to 0, which now enables all the 
-> corresponding pvrusb2 changes that you need to avoid any breakage inside 
-> my driver.  Just to be absolutely crystal clear, here's the change you 
-> will be able to do once these changes are in:
-> 
-> diff -r 8d2e1361520c linux/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c
-> --- a/linux/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c	Fri May 01 20:23:39 2009 -0500
-> +++ b/linux/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c	Fri May 01 20:24:23 2009 -0500
-> @@ -43,7 +43,7 @@
->  module_param_array(ir_mode, int, NULL, 0444);
->  MODULE_PARM_DESC(ir_mode,"specify: 0=disable IR reception, 1=normal IR");
->  
-> +static int pvr2_disable_ir_video;
-> -static int pvr2_disable_ir_video = 1;
->  module_param_named(disable_autoload_ir_video, pvr2_disable_ir_video,
->  		   int, S_IRUGO|S_IWUSR);
->  MODULE_PARM_DESC(disable_autoload_ir_video,
-> 
-> So with all this, what I am setting up right now will cause no harm to 
-> the existing situation, requires no actual messing with module options, 
-> and once you're reading, just include the 1-line change above and you're 
-> set.  There's no "race here", no gap in IR handling.
+The V4L2 specification from this daily build is here:
 
-This is all fine with me. Well, at this point, pretty much everything
-which pushes the ir-kbd-i2c conversion forward is fine with me, as it
-seems to be kind of stuck. The theory was that we would use the 2.6.31
-development cycle to merge lirc and then convert ir-kbd-i2c, however I
-don't see much happening in this direction, while we're probably 5
-weeks away from the next merge window or so.
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
-Mauro, please pull Mike's pvrusb2-dev work as soon as he asks you to do
-so. Then I'll rebase my own patch set and send it again.
+The DVB API specification from this daily build is here:
 
-Thanks,
--- 
-Jean Delvare
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
