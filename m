@@ -1,85 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110811.mail.gq1.yahoo.com ([67.195.13.234]:20248 "HELO
-	web110811.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751318AbZELOhI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2009 10:37:08 -0400
-Message-ID: <169456.23379.qm@web110811.mail.gq1.yahoo.com>
-Date: Tue, 12 May 2009 07:37:09 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH]  [0905_06] Siano: smsdvb - add big endian support
-To: LinuxML <linux-media@vger.kernel.org>
+Received: from mail.gmx.net ([213.165.64.20]:43456 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753196AbZEUPdi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 May 2009 11:33:38 -0400
+Date: Thu, 21 May 2009 17:33:48 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Darius Augulis <augulis.darius@gmail.com>,
+	Paul Mundt <lethal@linux-sh.org>
+Subject: Re: [PATCH 08/10 v2] v4l2-subdev: add a v4l2_i2c_subdev_board()
+ function
+In-Reply-To: <200905211553.13802.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0905211728420.6271@axis700.grange>
+References: <Pine.LNX.4.64.0905151817070.4658@axis700.grange>
+ <Pine.LNX.4.64.0905151905440.4658@axis700.grange> <200905211553.13802.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1242139255 -10800
-# Node ID 291604c1821496dd4acd1d5411f8ea3ae955fd2c
-# Parent  ae0f17b305e7762643a9bc7f43c302c11f7b55b5
-[0905_06] Siano: smsdvb - add big endian support
+On Thu, 21 May 2009, Hans Verkuil wrote:
 
-From: Uri Shkolnik <uris@siano-ms.com>
+> On Friday 15 May 2009 19:20:10 Guennadi Liakhovetski wrote:
+> > Introduce a function similar to v4l2_i2c_new_subdev() but taking a
+> > pointer to a struct i2c_board_info as a parameter instead of a client
+> > type and an I2C address, and make v4l2_i2c_new_subdev() a wrapper around
+> > it.
+> >
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
+> >
+> > Hans, renamed as you requested and updated to a (more) current state.
+> 
+> NAK. Not because it is a bad idea, but because you need to patch against the 
+> version in the v4l-dvb repo. The version in the kernel is missing a lot of 
+> the compatibility code which we unfortunately need to keep.
+> 
+> Any function passing the board_info will be valid for kernels >= 2.6.26 
+> only.
 
-Add support for Siano protocol messages
-with big endian systems.
+Here's a quote from your earlier email.
 
-Priority: normal
+On Tue, 21 Apr 2009, Hans Verkuil wrote:
 
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+> The board_info struct didn't appear until 2.6.22, so that's certainly a
+> cut-off point. Since the probe version of this call does not work on
+> kernels < 2.6.26 the autoprobing mechanism is still used for those older
+> kernels. I think it makes life much easier to require that everything that
+> uses board_info needs kernel 2.6.26 at the minimum. I don't think that is
+> an issue anyway for soc-camera. Unless there is a need to use soc-camera
+> from v4l-dvb with kernels <2.6.26?
 
-diff -r ae0f17b305e7 -r 291604c18214 linux/drivers/media/dvb/siano/smsdvb.c
---- a/linux/drivers/media/dvb/siano/smsdvb.c	Tue May 12 17:32:21 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smsdvb.c	Tue May 12 17:40:55 2009 +0300
-@@ -23,6 +23,7 @@ along with this program.  If not, see <h
- #include <linux/init.h>
- 
- #include "smscoreapi.h"
-+#include "smsendian.h"
- #include "sms-cards.h"
- 
- DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
-@@ -59,6 +60,8 @@ static int smsdvb_onresponse(void *conte
- 	struct smsdvb_client_t *client = (struct smsdvb_client_t *) context;
- 	struct SmsMsgHdr_ST *phdr =
- 		(struct SmsMsgHdr_ST *)(((u8 *) cb->p) + cb->offset);
-+
-+	smsendian_handle_rx_message((struct SmsMsgData_ST *) phdr);
- 
- 	switch (phdr->msgType) {
- 	case MSG_SMS_DVBT_BDA_DATA:
-@@ -149,6 +152,7 @@ static int smsdvb_start_feed(struct dvb_
- 	PidMsg.xMsgHeader.msgLength = sizeof(PidMsg);
- 	PidMsg.msgData[0] = feed->pid;
- 
-+	smsendian_handle_tx_message((struct SmsMsgHdr_ST *)&PidMsg);
- 	return smsclient_sendrequest(client->smsclient,
- 				     &PidMsg, sizeof(PidMsg));
- }
-@@ -169,6 +173,7 @@ static int smsdvb_stop_feed(struct dvb_d
- 	PidMsg.xMsgHeader.msgLength = sizeof(PidMsg);
- 	PidMsg.msgData[0] = feed->pid;
- 
-+	smsendian_handle_tx_message((struct SmsMsgHdr_ST *)&PidMsg);
- 	return smsclient_sendrequest(client->smsclient,
- 				     &PidMsg, sizeof(PidMsg));
- }
-@@ -177,7 +182,10 @@ static int smsdvb_sendrequest_and_wait(s
- 					void *buffer, size_t size,
- 					struct completion *completion)
- {
--	int rc = smsclient_sendrequest(client->smsclient, buffer, size);
-+	int rc;
-+
-+	smsendian_handle_tx_message((struct SmsMsgHdr_ST *)buffer);
-+	rc = smsclient_sendrequest(client->smsclient, buffer, size);
- 	if (rc < 0)
- 		return rc;
- 
+So, will this my patch build and work with >= 2.6.22 or not? I really 
+would not like to consciously make code uglier now because of 
+compatibility with < 2.6.26 to make it better some time later again.
 
-
-
-      
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
