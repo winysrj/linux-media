@@ -1,50 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:56382 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755313AbZEORbj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 May 2009 13:31:39 -0400
-Date: Fri, 15 May 2009 19:31:51 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Darius Augulis <augulis.darius@gmail.com>,
-	Paul Mundt <lethal@linux-sh.org>
-Subject: Re: [PATCH 00/10 v2] soc-camera conversions
-In-Reply-To: <Pine.LNX.4.64.0905151817070.4658@axis700.grange>
-Message-ID: <Pine.LNX.4.64.0905151929120.4658@axis700.grange>
-References: <Pine.LNX.4.64.0905151817070.4658@axis700.grange>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4079 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754276AbZEUOOh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 May 2009 10:14:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "chaithrika" <chaithrika@ti.com>
+Subject: Re: [PATCH v3 0/4] ARM: DaVinci: DM646x Video: DM646x display driver
+Date: Thu, 21 May 2009 16:14:34 +0200
+Cc: linux-media@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com,
+	"'Manjunath Hadli'" <mrh@ti.com>,
+	"'Brijesh Jadav'" <brijesh.j@ti.com>
+References: <1241789126-23317-1-git-send-email-chaithrika@ti.com> <03fc01c9d9db$2f9f8b20$8edea160$@com>
+In-Reply-To: <03fc01c9d9db$2f9f8b20$8edea160$@com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200905211614.34701.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 15 May 2009, Guennadi Liakhovetski wrote:
+On Thursday 21 May 2009 08:12:57 chaithrika wrote:
+> Hi All,
+>
+> Do you have any review comments on this patch set?
 
-> Hi all,
-> 
-> this is the next round of soc-camera conversions. Run-tested on i.MX31, 
-> PXA270, SH7722, compile-tested only for i.MX1. It should have been a 
-> "straight-forward" port of the previous version to a more current tree, 
-> but then I started converting soc_camera_platform, and things became a bit 
-> more complex... As a bonus, now soc-camera can handle not only i2c 
-> subdevices, and we can even drop the CONFIG_I2C dependency again. I'll 
-> also upload a comlpete stack somewhere a bit later, for example for those, 
-> wishing to test it on i.MX31, otherwise the series will not apply cleanly. 
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-All available at
+I'm happy with these patches!
 
-http://download.open-technology.de/soc-camera/20090515/
+There is one thing that can be improved, though. It is really an enhancement 
+and does not prevent this from being merged.
 
-As you can see from 0000-base it is still based on next of 20090507, i.e., 
-9 days ago:-( If you take a newer tree, some of those patches will already 
-be there, so, I think, the easiest would be to base your tests on the same 
-base.
+Currently the isr routine refuses to switch to the next frame if the dma 
+queue is empty. However, I see no reason for this: it should always go to 
+that frame regardless and keep that until new frames are queued. I've made 
+this change in the (very old) driver I use at work, but this should become 
+standard behavior.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Regards,
+
+	Hans
+
+>
+> Regards,
+> Chaithrika
+>
+> > -----Original Message-----
+> > From: Chaithrika U S [mailto:chaithrika@ti.com]
+> > Sent: Friday, May 08, 2009 6:55 PM
+> > To: linux-media@vger.kernel.org
+> > Cc: davinci-linux-open-source@linux.davincidsp.com; Manjunath Hadli;
+> > Brijesh Jadav; Chaithrika U S
+> > Subject: [PATCH v3 0/4] ARM: DaVinci: DM646x Video: DM646x display
+> > driver
+> >
+> > Display driver for TI DM646x EVM
+> >
+> > Signed-off-by: Manjunath Hadli <mrh@ti.com>
+> > Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+> > Signed-off-by: Chaithrika U S <chaithrika@ti.com>
+> >
+> > These patches add the display driver support for TI DM646x EVM.
+> > This patch set has been tested for basic display functionality for
+> > Composite and Component outputs.
+> >
+> > This patch set consists of the updates based on the review comments by
+> > Hans Verkuil.
+> >
+> > Patch 1: Display device platform and board setup
+> > Patch 2: VPIF driver
+> > Patch 3: DM646x display driver
+> > Patch 4: Makefile and config files modifications for Display
+> >
+> > Some of the features like the HBI/VBI support are not yet implemented.
+> > Also there are some known issues in the code implementation like
+> > fine tuning to be done to TRY_FMT ioctl.The USERPTR usage has not been
+> > tested extensively.
+> >
+> > -Chaithrika
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
