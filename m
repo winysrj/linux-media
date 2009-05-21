@@ -1,92 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52298 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754031AbZESFWU convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3319 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752792AbZEUMHM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2009 01:22:20 -0400
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	"Shah, Hardik" <hardik.shah@ti.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
-Date: Tue, 19 May 2009 00:22:14 -0500
-Subject: RE: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
-Message-ID: <A24693684029E5489D1D202277BE89443E17ECF5@dlee02.ent.ti.com>
-References: <1240381551-11012-1-git-send-email-hardik.shah@ti.com>,<5e9665e10905182153j105604fdydf4c3a10b5b416a9@mail.gmail.com>
-In-Reply-To: <5e9665e10905182153j105604fdydf4c3a10b5b416a9@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Thu, 21 May 2009 08:07:12 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Subject: Re: About VIDIOC_G_OUTPUT/S_OUTPUT ?
+Date: Thu, 21 May 2009 14:07:05 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Shah, Hardik" <hardik.shah@ti.com>,
+	"dongsoo45.kim@samsung.com" <dongsoo45.kim@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	=?utf-8?q?=EA=B9=80=ED=98=95=EC=A4=80?= <riverful.kim@samsung.com>
+References: <5e9665e10905200448n1ffc9d8s20317bbbba745e6a@mail.gmail.com>
+In-Reply-To: <5e9665e10905200448n1ffc9d8s20317bbbba745e6a@mail.gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200905211407.05354.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nate,
+On Wednesday 20 May 2009 13:48:08 Dongsoo, Nathaniel Kim wrote:
+> Hello everyone,
+>
+> Doing a new camera interface driver job of new AP from Samsung, a
+> single little question doesn't stop making me confused.
+> The camera IP in Samsung application processor supports for two of
+> output paths, like "to memory" and "to LCD FIFO".
+> It seems to be VIDIOC_G_OUTPUT/S_OUTPUT which I need to use (just
+> guessing), but according to Hans's ivtv driver the "output" of
+> G_OUTPUT/S_OUTPUT is supposed to mean an actually and physically
+> separated real output path like Composite, S-Video and so on.
+>
+> Do you think that memory or LCD FIFO can be an "output" device in this
+> case? Because in earlier version of my driver, I assumed that the "LCD
+> FIFO" is a kind of "OVERLAY" device, so I didn't even need to use
+> G_OUTPUT and S_OUTPUT to route output device. I'm just not sure about
+> which idea makes sense. or maybe both of them could make sense
+> indeed...
 
-I have 1 input regarding your question:
+When you select "to memory", then the video from the camera is DMAed to the 
+CPU, right? But selecting "to LCD" means that the video is routed 
+internally to the LCD without any DMA to the CPU taking place, right?
 
->From: linux-media-owner@vger.kernel.org [linux-media-owner@vger.kernel.org] On Behalf Of Dongsoo, Nathaniel Kim [dongsoo.kim@gmail.com]
->Sent: Tuesday, May 19, 2009 7:53 AM
->To: Shah, Hardik
->Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Jadav, Brijesh R; Hiremath, Vaibhav
->Subject: Re: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
->
->Hello Hardik,
->
->Reviewing your driver, I found something made me curious.
->
->
->On Wed, Apr 22, 2009 at 3:25 PM, Hardik Shah <hardik.shah@ti.com> wrote:
+This is similar to the "passthrough" mode of the ivtv driver.
 
-<snip>
+This header: linux/dvb/video.h contains an ioctl called VIDEO_SELECT_SOURCE, 
+which can be used to select either memory or a demuxer (or in this case, 
+the camera) as the source of the output (the LCD in this case). It is 
+probably the appropriate ioctl to implement for this.
 
->> +/* Buffer setup function is called by videobuf layer when REQBUF ioctl is
->> + * called. This is used to setup buffers and return size and count of
->> + * buffers allocated. After the call to this buffer, videobuf layer will
->> + * setup buffer queue depending on the size and count of buffers
->> + */
->> +static int omap_vout_buffer_setup(struct videobuf_queue *q, unsigned int *count,
->> +                         unsigned int *size)
->> +{
->> +       struct omap_vout_device *vout = q->priv_data;
->> +       int startindex = 0, i, j;
->> +       u32 phy_addr = 0, virt_addr = 0;
->> +
->> +       if (!vout)
->> +               return -EINVAL;
->> +
->> +       if (V4L2_BUF_TYPE_VIDEO_OUTPUT != q->type)
->> +               return -EINVAL;
->> +
->> +       startindex = (vout->vid == OMAP_VIDEO1) ?
->> +               video1_numbuffers : video2_numbuffers;
->> +       if (V4L2_MEMORY_MMAP == vout->memory && *count < startindex)
->> +               *count = startindex;
->> +
->> +       if ((rotation_enabled(vout->rotation)) && *count > 4)
->> +               *count = 4;
->> +
->
->
->
->This seems to be weird to me. If user requests multiple buffers more
->than 4, user cannot recognize that the number of buffers requested is
->forced to change into 4. I'm not sure whether this could be serious or
->not, but it is obvious that user can have doubt about why if user have
->no information about the OMAP H/W.
->Is it really necessary to be configured to 4?
->
->
->Cheers,
->
->Nate
->
+The video.h header is shared between v4l and dvb and contains several ioctls 
+meant to handle output. It is poorly documented and I think it should be 
+merged into the v4l2 API and properly documented/cleaned up.
 
-We did a very similar thing on omap3 camera driver, not exactly by the number of buffers requested, but more about checking if the bytesize of the total requested buffers was superior to the MMU fixed sized page table size capabilities to map that size, then we were limiting the number of buffers accordingly (for keeping the page table size fixed).
-
-According to the v4l2 spec, changing the count value should be valid, and it is the userspace app responsability to check the value again, to confirm how many of the requested buffers are actually available.
+Note that overlays are meant for on-screen displays. Usually these are 
+associated with a framebuffer device. Your hardware may implement such an 
+OSD as well, but that is different from this passthrough feature.
 
 Regards,
-Sergio
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
