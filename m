@@ -1,17 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-ew0-f225.google.com ([209.85.219.225])
+Received: from rv-out-0506.google.com ([209.85.198.232])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <laserer@gmail.com>) id 1MAL5J-0006LZ-Ol
-	for linux-dvb@linuxtv.org; Sat, 30 May 2009 11:42:38 +0200
-Received: by ewy25 with SMTP id 25so3975865ewy.17
-	for <linux-dvb@linuxtv.org>; Sat, 30 May 2009 02:42:04 -0700 (PDT)
-Message-ID: <4A20FF6A.2000505@gmail.com>
-Date: Sat, 30 May 2009 11:42:02 +0200
-From: Thomas Leitner <laserer@gmail.com>
+	(envelope-from <roshan@olenepal.org>) id 1M76ql-0008Rp-RS
+	for linux-dvb@linuxtv.org; Thu, 21 May 2009 13:54:16 +0200
+Received: by rv-out-0506.google.com with SMTP id g37so351583rvb.41
+	for <linux-dvb@linuxtv.org>; Thu, 21 May 2009 04:54:10 -0700 (PDT)
+Message-ID: <4A1540D9.1000207@olenepal.org>
+Date: Thu, 21 May 2009 17:39:01 +0545
+From: Roshan karki <roshan@olenepal.org>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] s2-liplianin - Source won't compile under Ubuntu 9.04
- 64bit (Kernel 2.6.28-11)
+Subject: [linux-dvb] analog support for YUAN High-Tech STK7700PH
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -26,48 +25,16 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Dear linuxtv Community, following problem:
+Hello,
 
-I'm owner of a Technotrend TT-connect S2 3650CI DVB-S2 USB Receiver for 
-about 6 months. On my old system (Ubuntu 8.04.2 32bit), the tutorial on 
-the linuxtv-wiki 
-(http://www.linuxtv.org/wiki/index.php/TechnoTrend_TT-connect_S2-3650_CI) 
-worked perfectly for me. But on my new System (Ubuntu 9.04 64bit, Kernel 
-2.6.28, complete fresh install, NO Upgrade!), I am unable to compile the 
-source in the tutorial (S2API - Part). One Problem seems to be the so 
-called dvbdev.c Source - file, which seems to distinguish by Precompiler 
-between Kernel < 2.6.26 and Kernel >= 2.6.26. At this point, compilation 
-aborts:
+I have YUAN High-Tech STK7700PH with usb id Bus 002 Device 002: ID 
+1164:1f08 YUAN High-Tech Development Co., Ltd
 
-CC [M] /home/user/technotrend/s2-liplianin/v4l/dvbdev.o
-/home/user/technotrend/s2-liplianin/v4l/dvbdev.c: In function 
-'dvb_register_device':
-/home/user/technotrend/s2-liplianin/v4l/dvbdev.c:246: error: implicit 
-declaration of function 'device_create_drvdata'
-/home/user/technotrend/s2-liplianin/v4l/dvbdev.c:248: warning: 
-assignment makes pointer from integer without a cast
-make[3]: *** [/home/user/technotrend/s2-liplianin/v4l/dvbdev.o] Error 1
-make[2]: *** [_module_/home/user/technotrend/s2-liplianin/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-headers-2.6.28-11-generic'
-make[1]: *** [default] Fehler 2
-make[1]: Verlasse Verzeichnis '/home/user/technotrend/s2-liplianin/v4l'
-make: *** [all] Fehler 2
+The DVB support for this device is out of the box in Ubuntu but I need 
+analog support as there is no DVB in my country Nepal. Radio also 
+doesn't work.
 
-If I remove this if-statement to compile only the source for the older 
-kernel-versions, then compilation succeeds. But when I try to insert the 
-kernel modules, it says:
-
-insmod: error inserting 'dvb-usb-pctv452e.ko': -1 Unknown symbol in module
-
-Maybe that this is just the result of my editing of the dvbdev.c - 
-source - file, or this is an additional bug in the pctv452e source file.
-
-
-Any suggestions how to solve this problem?
-
-
-Kind regards
-
+Is there any chance for the analog support?
 
 
 _______________________________________________
