@@ -1,80 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4580 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757834AbZELHKl (ORCPT
+Received: from mail-ew0-f176.google.com ([209.85.219.176]:43518 "EHLO
+	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752392AbZEUPYO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2009 03:10:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: ext-eero.nurkkala@nokia.com
-Subject: Re: [PATCH 0/2] V4L: Add BCM2048 radio driver
-Date: Tue, 12 May 2009 09:10:29 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <1242024079959-git-send-email-ext-eero.nurkkala@nokia.com> <200905120851.48875.hverkuil@xs4all.nl> <1242111822.19944.75.camel@eenurkka-desktop>
-In-Reply-To: <1242111822.19944.75.camel@eenurkka-desktop>
+	Thu, 21 May 2009 11:24:14 -0400
+Received: by ewy24 with SMTP id 24so1269414ewy.37
+        for <linux-media@vger.kernel.org>; Thu, 21 May 2009 08:24:14 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+In-Reply-To: <4A156184.1070501@gmail.com>
+References: <4A128A19.40601@gmail.com>
+	 <37219a840905200608q42b4fc0fife8f9aad7056145b@mail.gmail.com>
+	 <4A1424F8.9010706@gmail.com>
+	 <37219a840905201219x576fe229g6d95f1cf7dc80a08@mail.gmail.com>
+	 <4A156184.1070501@gmail.com>
+Date: Thu, 21 May 2009 11:24:13 -0400
+Message-ID: <37219a840905210824r7b76d865n57325389d6c74b89@mail.gmail.com>
+Subject: Re: Hauppauge HVR 1110 and DVB
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Antonio Beamud Montero <antonio.beamud@gmail.com>
+Cc: Linux and Kernel Video <video4linux-list@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200905120910.29214.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 12 May 2009 09:03:42 Eero Nurkkala wrote:
-> On Tue, 2009-05-12 at 08:51 +0200, ext Hans Verkuil wrote:
-> > I recommend that you move the RDS decoder code into an rds library in
-> > the v4l2-apps directory of the v4l-dvb tree. As you say, the rds
-> > decoder implementation does not belong in the driver, but it would be
-> > very nice to have it as a library.
+On Thu, May 21, 2009 at 10:13 AM, Antonio Beamud Montero
+<antonio.beamud@gmail.com> wrote:
+> Thanks for the patch. Seems to load fine, the problem arises when try load
+> the firmware.
+[snip]
+> DVB: registering new adapter (saa7133[0])
+> DVB: registering adapter 0 frontend 0 (NXP TDA10048HN DVB-T)...
+> tda10048_firmware_upload: waiting for firmware upload
+> (dvb-fe-tda10048-1.0.fw)...
+> tda10048_firmware_upload: firmware read 24878 bytes.
+> tda10048_firmware_upload: firmware uploading
+> tda10048_firmware_upload: firmware upload failed
+> saa7134 ALSA driver for DMA sound loaded
+> saa7133[0]/alsa: saa7133[0] at 0xfc4ff800 irq 65 registered as card -1
 >
-> Quick question, is there a RDS decoder library already out there?
-> Or would it be the case it needs to be done from the scratch?
-
-Yes, here: http://rdsd.berlios.de/
-
-However, it's badly written and overly complicated. We need something much 
-simpler, doing just the basic decoding.
-
-> > Such region tables do not belong in a driver IMHO. These too should go
-> > to a userspace library (libv4l2util? It already contains frequency
-> > tables for TV).
+> ---
 >
-> That's correct. Is there a link to this library?
+> I've tried to extract the firmware from the windows drivers, but all my
+> experiments failed.
+> How I can get the correct firmware?
 
-It's in the v4l2-apps directory of the main v4l-dvb repository.
+You can get the firmware from here:
 
-> > A more general comment: this driver should be split into two parts: the
-> > radio tuner core should really be implemented using the tuner API
-> > similar to the tea5767 radio tuner driver. That way this radio tuner
-> > driver can be reused when it is placed on e.g. a TV tuner card.
-> > However, the tuner API is missing functionality for e.g. RDS.
-> > Alternatively, the core driver can be rewritten as an v4l2_subdev
-> > driver, again allowing reuse in other drivers.
->
-> Hmm. This chip is integrated on Bluetooth silicon, so could you please
-> elaborate how it could be reused with a TV tuner? (Maybe I didn't just
-> get the point, or if the manufacturer decides to integrate (in the
-> future) the chip with TV tuner card, or someone wishes to use other
-> manufacturers' TV tuner, but this radio chip at the same time?)
-
-Hmm, I need to think about this. BTW, is there a datasheet of some kind 
-available for this chip?
+http://www.steventoth.net/linux/hvr1200
 
 Regards,
 
-	Hans
-
-> > I would like to see some input from others on this. I think that it
-> > would help the integration of v4l and dvb enormously if dvb starts
-> > using the standard i2c kernel API: that API offers all the
-> > functionality that dvb needs now that it no longer uses autoprobing.
-> > Perhaps a topic for the Plumbers conference later this year?
->
-> All comments welcome,
->
-> - Eero
-
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Mike
