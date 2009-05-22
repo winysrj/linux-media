@@ -1,182 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.183]:25488 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751211AbZEHIz4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2009 04:55:56 -0400
-Received: by wa-out-1112.google.com with SMTP id j5so763564wah.21
-        for <linux-media@vger.kernel.org>; Fri, 08 May 2009 01:55:56 -0700 (PDT)
-From: Magnus Damm <magnus.damm@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, hverkuil@xs4all.nl, linux-mm@kvack.org,
-	lethal@linux-sh.org, hannes@cmpxchg.org,
-	Magnus Damm <magnus.damm@gmail.com>, akpm@linux-foundation.org
-Date: Fri, 08 May 2009 17:53:10 +0900
-Message-Id: <20090508085310.31326.38083.sendpatchset@rx1.opensource.se>
-Subject: [PATCH] videobuf-dma-contig: zero copy USERPTR support V3
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:34754 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753067AbZEVAyQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 21 May 2009 20:54:16 -0400
+Subject: Re: [PATCH] FM1216ME_MK3 some changes
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Dmitri Belimov <d.belimov@gmail.com>
+Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <1242263426.7971.7.camel@pc07.localdom.local>
+References: <20090422174848.1be88f61@glory.loctelecom.ru>
+	 <20090423203618.4ac2bc6f@glory.loctelecom.ru>
+	 <1240537394.3231.37.camel@palomino.walls.org>
+	 <20090427192905.3ad2b88c@glory.loctelecom.ru>
+	 <20090428151832.241fa9b4@pedra.chehab.org>
+	 <20090428195922.1a079e46@glory.loctelecom.ru>
+	 <1240974643.4280.24.camel@pc07.localdom.local>
+	 <20090429201225.6ba681cf@glory.loctelecom.ru>
+	 <1241050556.3710.109.camel@pc07.localdom.local>
+	 <20090506044231.31f2d8aa@glory.loctelecom.ru>
+	 <1241654513.5862.37.camel@pc07.localdom.local>
+	 <1241665384.3147.53.camel@palomino.walls.org>
+	 <1241741304.4864.29.camel@pc07.localdom.local>
+	 <1241834493.3482.140.camel@palomino.walls.org>
+	 <1241836025.3717.9.camel@pc07.localdom.local>
+	 <1241916185.3694.8.camel@pc07.localdom.local>
+	 <20090510085258.03068a1e@glory.loctelecom.ru>
+	 <1242012951.3753.21.camel@pc07.localdom.local>
+	 <20090513073757.6177c42e@glory.loctelecom.ru>
+	 <1242258283.4781.26.camel@pc07.localdom.local>
+	 <20090514101758.04665ab4@glory.loctelecom.ru>
+	 <1242263426.7971.7.camel@pc07.localdom.local>
+Content-Type: text/plain
+Date: Fri, 22 May 2009 02:51:02 +0200
+Message-Id: <1242953462.3720.8.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Magnus Damm <damm@igel.co.jp>
 
-This is V3 of the V4L2 videobuf-dma-contig USERPTR zero copy patch.
+Am Donnerstag, den 14.05.2009, 03:10 +0200 schrieb hermann pitton:
+> Hi Dmitry :)
 
-Since videobuf-dma-contig is designed to handle physically contiguous
-memory, this patch modifies the videobuf-dma-contig code to only accept
-a user space pointer to physically contiguous memory. For now only
-VM_PFNMAP vmas are supported, so forget hotplug.
+[snip]
+> 
+> That depends on how up to date the app is, once selected, even per
+> channel, you don't have to do this ever again and don't need any insmod
+> options at all currently.
+> 
+> I recently tried to keep it for others the same :)
+> 
+> Umm, for the analog only FM1216ME/ I H-3 (MK3) it seems you have some
+> other stuff on it employed. On a first look ;)
 
-On SuperH Mobile we use this with our sh_mobile_ceu_camera driver
-together with various multimedia accelerator blocks that are exported to
-user space using UIO. The UIO kernel code exports physically contiguous
-memory to user space and lets the user space application mmap() this memory
-and pass a pointer using the USERPTR interface for V4L2 zero copy operation.
+Dmitry,
 
-With this approach we support zero copy capture, hardware scaling and
-various forms of hardware encoding and decoding.
+any news on that?
 
-Signed-off-by: Magnus Damm <damm@igel.co.jp>
----
+I don't want to hinder you to do improvements, but what about this SAW
+filters?
 
- Needs the following patches (Thanks to Johannes Weiner and akpm):
- - mm-introduce-follow_pte.patch
- - mm-use-generic-follow_pte-in-follow_phys.patch
- - mm-introduce-follow_pfn.patch
- 
- Tested on SH7722 Migo-R with a hacked up capture.c
+Are they really approved to have a Philips label on the tuner?
 
- Changes since V2:
- - use follow_pfn(), drop mm/memory.c changes
+The hand/foot ;) painted claimed performance statistics don't look like
+that.
 
- Changes since V1:
- - minor cleanups and formatting changes
- - use follow_phys() in videobuf-dma-contig instead of duplicating code
- - since videobuf-dma-contig can be a module: EXPORT_SYMBOL(follow_phys)
- - move CONFIG_HAVE_IOREMAP_PROT to always build follow_phys()
+Am I wrong?
 
- drivers/media/video/videobuf-dma-contig.c |   78 +++++++++++++++++++++++++++--
- 1 file changed, 73 insertions(+), 5 deletions(-)
+Cheers,
+Hermann
 
---- 0013/drivers/media/video/videobuf-dma-contig.c
-+++ work/drivers/media/video/videobuf-dma-contig.c	2009-05-08 15:57:21.000000000 +0900
-@@ -17,6 +17,7 @@
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/mm.h>
-+#include <linux/pagemap.h>
- #include <linux/dma-mapping.h>
- #include <media/videobuf-dma-contig.h>
- 
-@@ -25,6 +26,7 @@ struct videobuf_dma_contig_memory {
- 	void *vaddr;
- 	dma_addr_t dma_handle;
- 	unsigned long size;
-+	int is_userptr;
- };
- 
- #define MAGIC_DC_MEM 0x0733ac61
-@@ -108,6 +110,66 @@ static struct vm_operations_struct video
- 	.close    = videobuf_vm_close,
- };
- 
-+static void videobuf_dma_contig_user_put(struct videobuf_dma_contig_memory *mem)
-+{
-+	mem->is_userptr = 0;
-+	mem->dma_handle = 0;
-+	mem->size = 0;
-+}
-+
-+static int videobuf_dma_contig_user_get(struct videobuf_dma_contig_memory *mem,
-+					struct videobuf_buffer *vb)
-+{
-+	struct mm_struct *mm = current->mm;
-+	struct vm_area_struct *vma;
-+	unsigned long prev_pfn, this_pfn;
-+	unsigned long pages_done, user_address;
-+	int ret;
-+
-+	mem->size = PAGE_ALIGN(vb->size);
-+	mem->is_userptr = 0;
-+	ret = -EINVAL;
-+
-+	down_read(&mm->mmap_sem);
-+
-+	vma = find_vma(mm, vb->baddr);
-+	if (!vma)
-+		goto out_up;
-+
-+	if ((vb->baddr + mem->size) > vma->vm_end)
-+		goto out_up;
-+
-+	pages_done = 0;
-+	prev_pfn = 0; /* kill warning */
-+	user_address = vb->baddr;
-+
-+	while (pages_done < (mem->size >> PAGE_SHIFT)) {
-+		ret = follow_pfn(vma, user_address, &this_pfn);
-+		if (ret)
-+			break;
-+
-+		if (pages_done == 0)
-+			mem->dma_handle = this_pfn << PAGE_SHIFT;
-+		else if (this_pfn != (prev_pfn + 1))
-+			ret = -EFAULT;
-+
-+		if (ret)
-+			break;
-+
-+		prev_pfn = this_pfn;
-+		user_address += PAGE_SIZE;
-+		pages_done++;
-+	}
-+
-+	if (!ret)
-+		mem->is_userptr = 1;
-+
-+ out_up:
-+	up_read(&current->mm->mmap_sem);
-+
-+	return ret;
-+}
-+
- static void *__videobuf_alloc(size_t size)
- {
- 	struct videobuf_dma_contig_memory *mem;
-@@ -154,12 +216,11 @@ static int __videobuf_iolock(struct vide
- 	case V4L2_MEMORY_USERPTR:
- 		dev_dbg(q->dev, "%s memory method USERPTR\n", __func__);
- 
--		/* The only USERPTR currently supported is the one needed for
--		   read() method.
--		 */
-+		/* handle pointer from user space */
- 		if (vb->baddr)
--			return -EINVAL;
-+			return videobuf_dma_contig_user_get(mem, vb);
- 
-+		/* allocate memory for the read() method */
- 		mem->size = PAGE_ALIGN(vb->size);
- 		mem->vaddr = dma_alloc_coherent(q->dev, mem->size,
- 						&mem->dma_handle, GFP_KERNEL);
-@@ -386,7 +447,7 @@ void videobuf_dma_contig_free(struct vid
- 	   So, it should free memory only if the memory were allocated for
- 	   read() operation.
- 	 */
--	if ((buf->memory != V4L2_MEMORY_USERPTR) || buf->baddr)
-+	if (buf->memory != V4L2_MEMORY_USERPTR)
- 		return;
- 
- 	if (!mem)
-@@ -394,6 +455,13 @@ void videobuf_dma_contig_free(struct vid
- 
- 	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
- 
-+	/* handle user space pointer case */
-+	if (buf->baddr) {
-+		videobuf_dma_contig_user_put(mem);
-+		return;
-+	}
-+
-+	/* read() method */
- 	dma_free_coherent(q->dev, mem->size, mem->vaddr, mem->dma_handle);
- 	mem->vaddr = NULL;
- }
+
