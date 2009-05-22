@@ -1,26 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from simmts12-qfe0.srvr.bell.ca ([206.47.199.141]:39735 "EHLO
-	simmts12-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752460AbZENOcJ convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 May 2009 10:32:09 -0400
-Received: from simip9-ac.srvr.bell.ca ([206.47.199.87])
-          by simmts12-srv.bellnexxia.net
-          (InterMail vM.5.01.06.13 201-253-122-130-113-20050324) with ESMTP
-          id <20090514143209.LIRQ1599.simmts12-srv.bellnexxia.net@simip9-ac.srvr.bell.ca>
-          for <linux-media@vger.kernel.org>;
-          Thu, 14 May 2009 10:32:09 -0400
-From: The Camelot Group <chesleykinsmen@bellnet.ca>
-Reply-To: cg_paycenter2009@8u8.hk
-To: <info@winner.com>
-Subject: =?iso-8859-1?B?KiqjMSwyMzAsMzEw?= GBP JACKPOT WIN**
-Date: Thu, 14 May 2009 10:32:09 -0400
+Received: from mail-pz0-f177.google.com ([209.85.222.177]:64298 "EHLO
+	mail-pz0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757034AbZEVP2z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 May 2009 11:28:55 -0400
+Received: by pzk7 with SMTP id 7so1364540pzk.33
+        for <linux-media@vger.kernel.org>; Fri, 22 May 2009 08:28:55 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
-Message-Id: <20090514143209.LIRQ1599.simmts12-srv.bellnexxia.net@simip9-ac.srvr.bell.ca>
+In-Reply-To: <1243003530.24983.8.camel@pc67246619>
+References: <1243003530.24983.8.camel@pc67246619>
+Date: Fri, 22 May 2009 11:28:52 -0400
+Message-ID: <829197380905220828i2b8cf7e4h6f067b996fd72fab@mail.gmail.com>
+Subject: Re: Review of the Linux driver for the TerraTec Cinergy HTC USB XS HD
+	stick
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Ad Denissen <ad.denissen@hccnet.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-You were selected for the sum of  £1,230,310 GBP. Verify this mail immediately by sending in your information. This will include your name, address, age, phone number etc to : cg_paycenter2009@8u8.hk
+On Fri, May 22, 2009 at 10:45 AM, Ad Denissen <ad.denissen@hccnet.nl> wrote:
+> Hi Markus,
+>
+> I have a TerraTec Cinergy HTC USB XS HD stick and more than 10 years of
+> experience with Linux (drivers).
+>
+> This USB stick works fine under Windows, but I need it under Linux
+> for my MythTV experiments in DVB-C mode.
+>
+> Can I help you in the cleanup of the Linux driver for this device?
+>
+> Kind regards,
+>
+> Ad Denissen
 
+Hello Ad,
+
+The TerraTec Cinergy HTC USB XS HD makes use of the Micronas drx-k
+demodulator.  There is currently no driver at all for this device in
+the mainline Linux kernel.  As a result, getting the device to work in
+the mainline kernel is much more than "cleanup".
+
+Markus's support for the drx-k uses his closed source product, and
+therefore is not eligible for inclusion in the Linux kernel.  You may
+wish to contact him though if you are interested in a commercial
+closed source solution.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
