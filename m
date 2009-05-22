@@ -1,61 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.wow.synacor.com ([64.8.70.55]:35451 "EHLO
-	smtp.mail.wowway.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754394AbZEGLVR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2009 07:21:17 -0400
-Received: from aqui.slotcar.prv ([172.16.1.3])
-	by sordid.slotcar.chicago.il.us with esmtp (Exim 4.67)
-	(envelope-from <johnr@wowway.com>)
-	id 1M21f9-00006f-Vd
-	for linux-media@vger.kernel.org; Thu, 07 May 2009 06:21:16 -0500
-Message-ID: <4A02C426.2030703@wowway.com>
-Date: Thu, 07 May 2009 06:21:10 -0500
-From: "John R." <johnr@wowway.com>
+Received: from mail-bw0-f174.google.com ([209.85.218.174]:52378 "EHLO
+	mail-bw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756377AbZEVRfO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 May 2009 13:35:14 -0400
+Received: by bwz22 with SMTP id 22so1766922bwz.37
+        for <linux-media@vger.kernel.org>; Fri, 22 May 2009 10:35:14 -0700 (PDT)
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: XC5000 improvements: call for testers!
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+In-Reply-To: <72748420-1243012937-cardhu_decombobulator_blackberry.rim.net-428520223-@bxe1214.bisx.prod.on.blackberry>
+References: <72748420-1243012937-cardhu_decombobulator_blackberry.rim.net-428520223-@bxe1214.bisx.prod.on.blackberry>
+Date: Fri, 22 May 2009 21:35:14 +0400
+Message-ID: <1a297b360905221035ra3ddfe3vb3be4d2029865a39@mail.gmail.com>
+Subject: Re: [linux-dvb] Most stable DVB-S2 PCI Card?
+From: Manu Abraham <abraham.manu@gmail.com>
+To: linux-media@vger.kernel.org, bobi@brin.com
+Cc: linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, May 22, 2009 at 9:23 PM, Bob Ingraham <bobi@brin.com> wrote:
+> Hello,
+>
+> What is the most stable DVB-S2 PCI card?
+>
+> I've read through the wiki DVB-2 PCI section, but am not confident after reading this what the answer is.
+>
+> Running Fedora Core 10 at the moment, but am willing to upgrade to 11 or perform custom patches to get something going.
+>
+> No need for CI or DiSEQ support, just highly stable/reliable DVB-2 tuning/reception under Linux.
+>
+> Any recommendations would be most appreciated!
+>
 
--------- Original Message --------
-Subject: Re: XC5000 improvements: call for testers!
-Date: Wed, 06 May 2009 19:09:23 -0500
-From: John R. <johnr@wowway.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <412bdbff0905052114r7f481759r373fd0b814f458e@mail.gmail.com>
 
-John R. wrote:
-> Devin Heitmueller wrote:
-> 
-> [snip]
-> 
->> Unfortunately, current users are going to have to upgrade to the new
->> firmware.  However, this is a one time cost and I will work with the
->> distros to get it bundled so that users won't have to do this in the
->> future:
->>
->> http://www.devinheitmueller.com/xc5000/dvb-fe-xc5000-1.6.114.fw
->> http://www.devinheitmueller.com/xc5000/README.xc5000
-> 
-> I downloaded the tip archive for xc5000-improvements-beta, compiled and 
-> installed it.  I copied the firmware above into /lib/firmware (where the 
-> old one was).  However, when the driver loads it still loads the old 
-> firmware.  If this is a non-linux-media question then feel free to 
-> direct me where to look.  My searching hasn't yet yielded anything yet.
-> 
-> Thanks,
-> 
-> John
+If you don't need the CI part, The TT S2-1600 is a 2nd generation DVB-S2 PCI
+card with great performance (supports Symbol rates upto 60MSPS), with support
+out of the box from the v4l-dvb tree.
 
-After some off-list pointers by Devin, I tracked this down to user 
-error.  I thought I was compiling tip for xc5000-improvements-beta but 
-was not.  This is now working and composite input video works well on my 
-950Q.  I notice no difference from previous version (wouldn't really 
-expect to based on changes).
-
-Thanks,
-
-John
+Regards,
+Manu
