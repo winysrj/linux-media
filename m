@@ -1,85 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f177.google.com ([209.85.222.177]:36815 "EHLO
-	mail-pz0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758574AbZE0LGP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2009 07:06:15 -0400
-Received: by pzk7 with SMTP id 7so3573364pzk.33
-        for <linux-media@vger.kernel.org>; Wed, 27 May 2009 04:06:17 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20]:50122 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1756743AbZEVRhm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 May 2009 13:37:42 -0400
+Date: Fri, 22 May 2009 19:37:58 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Darius Augulis <augulis.darius@gmail.com>,
+	Paul Mundt <lethal@linux-sh.org>
+Subject: Re: [RFC 09/10 v2] v4l2-subdev: re-add s_standby to v4l2_subdev_core_ops
+In-Reply-To: <873aaxxf3d.fsf@free.fr>
+Message-ID: <Pine.LNX.4.64.0905221933180.4418@axis700.grange>
+References: <Pine.LNX.4.64.0905151817070.4658@axis700.grange>
+ <Pine.LNX.4.64.0905151907460.4658@axis700.grange> <200905211533.34827.hverkuil@xs4all.nl>
+ <Pine.LNX.4.64.0905221611160.4418@axis700.grange> <873aaxxf3d.fsf@free.fr>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.0905271207060.5154@axis700.grange>
-References: <Pine.LNX.4.64.0905271207060.5154@axis700.grange>
-Date: Wed, 27 May 2009 20:06:17 +0900
-Message-ID: <5e9665e10905270406v5357d9d1xfacb67be9c9ec2d6@mail.gmail.com>
-Subject: Re: Image filter controls
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+On Fri, 22 May 2009, Robert Jarzmik wrote:
 
-In my opinion (in totally user aspect) those CIDs you mentioned do not
-fit in the purpose. Only low-pass filtering control could be
-considered as a colorfx, even though low-pass filtering is not a color
-effect it could be possible to sense the meaning of effect on it. How
-about making a new CID for band-stop filtering control and
-V4L2_COLORFX_BORDER_DENOISING for low-pass filter?
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+> 
+> >> Usual question: why do you need an init and halt? What do they do?
+> >
+> > Hm, maybe you're right, I don't need them. init() was used in soc_camera 
+> > drivers on first open() to possibly reset the chip and put it in some 
+> > reasonably pre-defined low-power state. But we can do this at the end of 
+> > probe(), which even would be more correct, because even the first open 
+> > should not change chip's configuration. And halt() (was called release() 
+> > originally) is called on last close(). And it seems you shouldn't really 
+> > do this at all - the chip should preserve its configuration between 
+> > open/close cycles. Am I right?
+> 
+> 
+> > Does anyone among cc'ed authors have any objections against this change? The
+> > actual disable should indeed migrate to some PM functions, if implemented.
+> If I understand correctly, what was done before was that on last close, the
+> sensor was disabled (through sensor->release() call). What will be done now is
+> leave the sensor on.
+> 
+> On an embedded system, the power eaten by an active sensor is usually too much
+> compared to the other components.
+> 
+> So, if there is a solution which enables, on last close, to power down the
+> device (or put it in low power mode), in the new API, I'm OK, even if it's a new
+> powersaving function. If there is no such function and there will be a gap
+> (let's say kernel 2.6.31 to 2.6.35) where the sensor will be left activated all
+> the time, then I'm against.
+> 
+> Let me be even more precise about a usecase :
+>  - a user takes a picture with his smartphone
+>  - the same user then uses his phone to call his girlfriend
+>  - the girlfriend has a lot of things to say, it lasts for 1 hour
+> In that case, the sensor _has_ to be switched off.
 
-BTW, would you give more information about "fluorescent light
-band-stop filter" in detail? Because if you mean flicker control
-caused by power line frequency, 50Hz...60Hz thing, I think we already
-have one for that. As far as I know, V4L2_CID_POWER_LINE_FREQUENCY is
-for that flickering control.
-Cheers,
+Nice example, thanks! Ok, of course, we must not leave the poor girl with 
+her boyfriend's flat battery:-)
 
-Nate
+I think we can put the camera to a low-power state in streamoff. But - not 
+power it off! This has to be done from system's PM functions. What was 
+there on linux-pm about managing power of single devices?...
 
-
-On Wed, May 27, 2009 at 7:16 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> Hi,
->
-> I have to implement 2 filter controls: a boolean colour filter control to
-> switch a fluorescent light band-stop filter on and off, and an also
-> boolean control to switch a low-pass (border denoising, I think) filter. I
-> found the following two filters in the existing API:
->
->        case V4L2_CID_COLOR_KILLER:             return "Color Killer";
->        case V4L2_CID_COLORFX:                  return "Color Effects";
->
-> can I use one of them for the fluorescent light filter? Which one would be
-> more appropriate - COLOR_KILLER means switch to BW or only kill some
-> specific colour component? As for the low-pass filter, can I use
->
->        case V4L2_CID_SHARPNESS:                return "Sharpness";
->
-> for it? Would it then be sharpness-off == filter-on? Or shall I add new
-> controls or use driver-private ones?
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
-
--- 
-=
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
