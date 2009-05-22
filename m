@@ -1,50 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.190]:30105 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754874AbZEDL6u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2009 07:58:50 -0400
-Received: by fk-out-0910.google.com with SMTP id 18so1847683fkq.5
-        for <linux-media@vger.kernel.org>; Mon, 04 May 2009 04:58:48 -0700 (PDT)
-Subject: [questions] dmesg: Non-NULL drvdata on register
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-Content-Type: text/plain
-Date: Mon, 04 May 2009 15:58:42 +0400
-Message-Id: <1241438322.2921.13.camel@tux.localhost>
-Mime-Version: 1.0
+Received: from mail-bw0-f174.google.com ([209.85.218.174]:62925 "EHLO
+	mail-bw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755342AbZEVRsB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 May 2009 13:48:01 -0400
+Received: by bwz22 with SMTP id 22so1773287bwz.37
+        for <linux-media@vger.kernel.org>; Fri, 22 May 2009 10:48:01 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <53876.82.95.219.165.1243013567.squirrel@webmail.xs4all.nl>
+References: <53876.82.95.219.165.1243013567.squirrel@webmail.xs4all.nl>
+Date: Fri, 22 May 2009 21:48:01 +0400
+Message-ID: <1a297b360905221048p5a7c548anbdef992b5a1a697d@mail.gmail.com>
+Subject: Re: [linux-dvb] Most stable DVB-S2 PCI Card?
+From: Manu Abraham <abraham.manu@gmail.com>
+To: n.wagenaar@xs4all.nl
+Cc: linux-media@vger.kernel.org, bobi@brin.com
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello, 
+On Fri, May 22, 2009 at 9:32 PM, Niels Wagenaar <n.wagenaar@xs4all.nl> wrote:
+> Op Vr, 22 mei, 2009 19:23, schreef Bob Ingraham:
+>> Hello,
+>>
+>> What is the most stable DVB-S2 PCI card?
+>>
+>> -- SNIP --
+>
+> In short, the Hauppauge NOVA-HD-S2 is the one to buy. Yes, it's somewhat
+> more expensive but it's the best DVB-S2 based PCI card concerning
+> stability and usability with for example VDR.
 
-Not so many time ago i noticed such line in dmesg:
 
-radio-mr800 2-1:1.0: Non-NULL drvdata on register
-
-Quick review showed that it appears in usb_amradio_probe fucntions. Then
-i found such code in v4l2_device_register() function (v4l2-device.c
-file):
-
-/* Set name to driver name + device name if it is empty. */
-        if (!v4l2_dev->name[0])
-                snprintf(v4l2_dev->name, sizeof(v4l2_dev->name), "%s %
-s",
-                        dev->driver->name, dev_name(dev));
-        if (dev_get_drvdata(dev))
-                v4l2_warn(v4l2_dev, "Non-NULL drvdata on register\n");
-        dev_set_drvdata(dev, v4l2_dev);
-        return 0;
-
-The questions is - should i deal with this warning in dmesg? Probably
-the order of callbacks in radio-mr800 probe function is incorrect.
-
-The second questions - should i make atomic_t users counter instead of
-int users counter? Then i can use atomic_inc(), atomic_dec(),
-atomic_set(). It helps me to remove lock/unlock_kernel() functions. 
-
--- 
-Best regards, Klimov Alexey
-
+Unfortunately, the Nova HD-S2 won't support any DVB-S2 stream with
+symbol rates > 30 MSPS, also it supports only DVB-S2 NBC mode
+of operation, being based on an older generation demodulator.
