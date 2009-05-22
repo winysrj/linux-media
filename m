@@ -1,174 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110810.mail.gq1.yahoo.com ([67.195.13.233]:41631 "HELO
-	web110810.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751506AbZESRF1 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2009 13:05:27 -0400
-Message-ID: <392953.59542.qm@web110810.mail.gq1.yahoo.com>
-Date: Tue, 19 May 2009 10:05:28 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: Re: [PATCH] [09051_47] Siano: smsdvb - add DVB v3 events
-To: Michael Krufky <mkrufky@linuxtv.org>
-Cc: LinuxML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from rcsinet12.oracle.com ([148.87.113.124]:37428 "EHLO
+	rgminet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757316AbZEVPyw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 May 2009 11:54:52 -0400
+Message-ID: <4A16CB54.9000705@oracle.com>
+Date: Fri, 22 May 2009 08:57:08 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Paul Mundt <lethal@linux-sh.org>, linux-next@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>, linux-media@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH -next] v4l2: handle unregister for non-I2C builds
+References: <20090511161442.3e9d9cb9.sfr@canb.auug.org.au>	<4A085455.5040108@oracle.com>	<20090522054847.GB14059@linux-sh.org> <20090522175554.19465733.sfr@canb.auug.org.au>
+In-Reply-To: <20090522175554.19465733.sfr@canb.auug.org.au>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-
---- On Tue, 5/19/09, Michael Krufky <mkrufky@linuxtv.org> wrote:
-
-> From: Michael Krufky <mkrufky@linuxtv.org>
-> Subject: Re: [PATCH] [09051_47] Siano: smsdvb - add DVB v3 events
-> To: "Uri Shkolnik" <urishk@yahoo.com>
-> Cc: "LinuxML" <linux-media@vger.kernel.org>, "Mauro Carvalho Chehab" <mchehab@infradead.org>
-> Date: Tuesday, May 19, 2009, 7:18 PM
-> On Tue, May 19, 2009 at 11:28 AM, Uri
-> Shkolnik <urishk@yahoo.com>
-> wrote:
-> >
-> > # HG changeset patch
-> > # User Uri Shkolnik <uris@siano-ms.com>
-> > # Date 1242747164 -10800
-> > # Node ID 971d4cc0d4009650bd4752c6a9fc09755ef77baf
-> > # Parent  98895daafb42f8b0757fd608b29c53c80327520e
-> > [09051_47] Siano: smsdvb - add DVB v3 events
-> >
-> > From: Uri Shkolnik <uris@siano-ms.com>
-> >
-> > Add various DVB-API v3 events, those events will trig
-> > target (card) events.
-> >
-> > Priority: normal
-> >
-> > Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-> >
-> > diff -r 98895daafb42 -r 971d4cc0d400
-> linux/drivers/media/dvb/siano/smsdvb.c
-> > --- a/linux/drivers/media/dvb/siano/smsdvb.c    Tue
-> May 19 18:27:38 2009 +0300
-> > +++ b/linux/drivers/media/dvb/siano/smsdvb.c    Tue
-> May 19 18:32:44 2009 +0300
-> > @@ -66,6 +66,54 @@ MODULE_PARM_DESC(debug, "set debug
-> level
-> >  /* Events that may come from DVB v3 adapter */
-> >  static void sms_board_dvb3_event(struct
-> smsdvb_client_t *client,
-> >                enum SMS_DVB3_EVENTS event) {
-> > +
-> > +       struct smscore_device_t *coredev =
-> client->coredev;
-> > +       switch (event) {
-> > +       case DVB3_EVENT_INIT:
-> > +               sms_debug("DVB3_EVENT_INIT");
-> > +               sms_board_event(coredev,
-> BOARD_EVENT_BIND);
-> > +               break;
-> > +       case DVB3_EVENT_SLEEP:
-> > +               sms_debug("DVB3_EVENT_SLEEP");
-> > +               sms_board_event(coredev,
-> BOARD_EVENT_POWER_SUSPEND);
-> > +               break;
-> > +       case DVB3_EVENT_HOTPLUG:
-> > +              
-> sms_debug("DVB3_EVENT_HOTPLUG");
-> > +               sms_board_event(coredev,
-> BOARD_EVENT_POWER_INIT);
-> > +               break;
-> > +       case DVB3_EVENT_FE_LOCK:
-> > +               if (client->event_fe_state
-> != DVB3_EVENT_FE_LOCK) {
-> > +                      
-> client->event_fe_state = DVB3_EVENT_FE_LOCK;
-> > +                      
-> sms_debug("DVB3_EVENT_FE_LOCK");
-> > +                      
-> sms_board_event(coredev, BOARD_EVENT_FE_LOCK);
-> > +               }
-> > +               break;
-> > +       case DVB3_EVENT_FE_UNLOCK:
-> > +               if (client->event_fe_state
-> != DVB3_EVENT_FE_UNLOCK) {
-> > +                      
-> client->event_fe_state = DVB3_EVENT_FE_UNLOCK;
-> > +                      
-> sms_debug("DVB3_EVENT_FE_UNLOCK");
-> > +                      
-> sms_board_event(coredev, BOARD_EVENT_FE_UNLOCK);
-> > +               }
-> > +               break;
-> > +       case DVB3_EVENT_UNC_OK:
-> > +               if (client->event_unc_state
-> != DVB3_EVENT_UNC_OK) {
-> > +                      
-> client->event_unc_state = DVB3_EVENT_UNC_OK;
-> > +                      
-> sms_debug("DVB3_EVENT_UNC_OK");
-> > +                      
-> sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_OK);
-> > +               }
-> > +               break;
-> > +       case DVB3_EVENT_UNC_ERR:
-> > +               if (client->event_unc_state
-> != DVB3_EVENT_UNC_ERR) {
-> > +                      
-> client->event_unc_state = DVB3_EVENT_UNC_ERR;
-> > +                      
-> sms_debug("DVB3_EVENT_UNC_ERR");
-> > +                      
-> sms_board_event(coredev, BOARD_EVENT_MULTIPLEX_ERRORS);
-> > +               }
-> > +               break;
-> > +
-> > +       default:
-> > +               sms_err("Unknown dvb3 api
-> event");
-> > +               break;
-> > +       }
-> >  }
-> >
-> >  static int smsdvb_onresponse(void *context, struct
-> smscore_buffer_t *cb)
-> >
-> >
-> >
-> >
-> > --
-> > To unsubscribe from this list: send the line
-> "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
+Stephen Rothwell wrote:
+> On Fri, 22 May 2009 14:48:47 +0900 Paul Mundt <lethal@linux-sh.org> wrote:
+>> On Mon, May 11, 2009 at 09:37:41AM -0700, Randy Dunlap wrote:
+>>> From: Randy Dunlap <randy.dunlap@oracle.com>
+>>>
+>>> Build fails when CONFIG_I2C=n, so handle that case in the if block:
+>>>
+>>> drivers/built-in.o: In function `v4l2_device_unregister':
+>>> (.text+0x157821): undefined reference to `i2c_unregister_device'
+>>>
+>>> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+>> This patch still has not been applied as far as I can tell, and builds
+>> are still broken as a result, almost 2 weeks after the fact.
 > 
-> 
-> 
-> Uri,
-> 
-> I don't understand what prompts you to call these "DVB v3
-> events" ...
-> what does this have to do with DVB API v3 at all? 
-> Your idea seems to
-> be in the right direction, but this "DVBV3" nomenclature is
-> a total
-> misnomer.
-> 
-> I think something along the lines of SMSBOARD_EVENT_FOO is
-> more appropriate.
-> 
-> Regards,
-> 
-> Mike
-> 
+> In fact there has been no updates to the v4l-dvb tree at all since
+> May 11.  Mauro?
 
-Mike,
+I got an 'hg' autocommit message for the patch on May-11, but that's
+all I've seen/heard about it.
 
-Within the DVB version 3 adapter, there is events manager, and the name we put on it is  "dvb3_event", I think its OK....
-
-Uri
+I'm really concerned about how slowly patches are merged for
+linux-next trees... and not just for drivers/media/
 
 
-      
+> I have reverted the patch that caused the build breakage ... (commit
+> d5bc7940d39649210f1affac1fa32f253cc45a81 "V4L/DVB (11673): v4l2-device:
+> unregister i2c_clients when unregistering the v4l2_device").
+> 
+> [By the way, an alternative fix might be to just define
+> V4L2_SUBDEV_FL_IS_I2C to be zero if CONFIG_I2C and CONFIG_I2C_MODULE are
+> not defined (gcc should then just elide the offending code).]
+
+
+-- 
+~Randy
+LPC 2009, Sept. 23-25, Portland, Oregon
+http://linuxplumbersconf.org/2009/
