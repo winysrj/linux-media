@@ -1,919 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:60202 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754099AbZEHN5b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 May 2009 09:57:31 -0400
-Received: from dflp53.itg.ti.com ([128.247.5.6])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n48DvRPe002417
-	for <linux-media@vger.kernel.org>; Fri, 8 May 2009 08:57:32 -0500
-From: Chaithrika U S <chaithrika@ti.com>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2826 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751608AbZEVSCa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 May 2009 14:02:30 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id n4MI2Rm0022992
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 22 May 2009 20:02:31 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 22 May 2009 20:02:27 +0200 (CEST)
+Message-Id: <200905221802.n4MI2Rm0022992@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Chaithrika U S <chaithrika@ti.com>,
-	Manjunath Hadli <mrh@ti.com>, Brijesh Jadav <brijesh.j@ti.com>
-Subject: [PATCH v3 2/4] ARM: DaVinci: DM646x Video: VPIF driver
-Date: Fri,  8 May 2009 09:26:13 -0400
-Message-Id: <1241789173-23381-1-git-send-email-chaithrika@ti.com>
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Video Port Interface driver
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Add VPIF driver for DM646x. This code be used by the display and
-capture drivers.
+Results of the daily build of v4l-dvb:
 
-This version has some incorporated the review comments.
+date:        Fri May 22 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11824:315bc4b65b4f
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Signed-off-by: Manjunath Hadli <mrh@ti.com>
-Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-Signed-off-by: Chaithrika U S <chaithrika@ti.com>
----
-Applies v4l-dvb repository
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-rc4-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-rc4-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-rc4-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-rc4-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-rc4-m32r: OK
+linux-2.6.22.19-mips: ERRORS
+linux-2.6.26-mips: ERRORS
+linux-2.6.27-mips: ERRORS
+linux-2.6.28-mips: ERRORS
+linux-2.6.29.1-mips: ERRORS
+linux-2.6.30-rc4-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-rc4-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-rc4-x86_64: WARNINGS
+sparse (linux-2.6.29.1): OK
+sparse (linux-2.6.30-rc4): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
- drivers/media/video/davinci/vpif.c |  234 +++++++++++++
- drivers/media/video/davinci/vpif.h |  632 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 866 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/davinci/vpif.c
- create mode 100644 drivers/media/video/davinci/vpif.h
+Detailed results are available here:
 
-diff --git a/drivers/media/video/davinci/vpif.c b/drivers/media/video/davinci/vpif.c
-new file mode 100644
-index 0000000..1153af1
---- /dev/null
-+++ b/drivers/media/video/davinci/vpif.c
-@@ -0,0 +1,234 @@
-+/*
-+ * vpif - DM646x Video Port Interface driver
-+ * VPIF is a receiver and transmitter for video data. It has two channels(0, 1)
-+ * that receiveing video byte stream and two channels(2, 3) for video output.
-+ * The hardware supports SDTV, HDTV formats, raw data capture.
-+ * Currently, the driver supports NTSC and PAL standards.
-+ *
-+ * Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed .as is. WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+
-+#include "vpif.h"
-+
-+MODULE_DESCRIPTION("TI DaVinci Video Port Interface driver");
-+MODULE_LICENSE("GPL");
-+
-+#define VPIF_CH0_MAX_MODES	(22)
-+#define VPIF_CH1_MAX_MODES	(02)
-+#define VPIF_CH2_MAX_MODES	(15)
-+#define VPIF_CH3_MAX_MODES	(02)
-+
-+static void inline vpif_wr_bit(u32 reg, u32 bit, u32 val)
-+{
-+	if (val)
-+		vpif_set_bit(reg, bit);
-+	else
-+		vpif_clr_bit(reg, bit);
-+}
-+
-+/* This structure is used to keep track of VPIF size register's offsets */
-+struct vpif_registers {
-+	u32 h_cfg, v_cfg_00, v_cfg_01, v_cfg_02, v_cfg, ch_ctrl;
-+	u32 line_offset, vanc0_strt, vanc0_size, vanc1_strt;
-+	u32 vanc1_size, width_mask, len_mask;
-+	u8 max_modes;
-+};
-+
-+static const struct vpif_registers vpifregs[VPIF_NUM_CHANNELS] = {
-+	/* Channel0 */
-+	{
-+		VPIF_CH0_H_CFG, VPIF_CH0_V_CFG_00, VPIF_CH0_V_CFG_01,
-+		VPIF_CH0_V_CFG_02, VPIF_CH0_V_CFG_03, VPIF_CH0_CTRL,
-+		VPIF_CH0_IMG_ADD_OFST, 0, 0, 0, 0, 0x1FFF, 0xFFF,
-+		VPIF_CH0_MAX_MODES,
-+	},
-+	/* Channel1 */
-+	{
-+		VPIF_CH1_H_CFG, VPIF_CH1_V_CFG_00, VPIF_CH1_V_CFG_01,
-+		VPIF_CH1_V_CFG_02, VPIF_CH1_V_CFG_03, VPIF_CH1_CTRL,
-+		VPIF_CH1_IMG_ADD_OFST, 0, 0, 0, 0, 0x1FFF, 0xFFF,
-+		VPIF_CH1_MAX_MODES,
-+	},
-+	/* Channel2 */
-+	{
-+		VPIF_CH2_H_CFG, VPIF_CH2_V_CFG_00, VPIF_CH2_V_CFG_01,
-+		VPIF_CH2_V_CFG_02, VPIF_CH2_V_CFG_03, VPIF_CH2_CTRL,
-+		VPIF_CH2_IMG_ADD_OFST, VPIF_CH2_VANC0_STRT, VPIF_CH2_VANC0_SIZE,
-+		VPIF_CH2_VANC1_STRT, VPIF_CH2_VANC1_SIZE, 0x7FF, 0x7FF,
-+		VPIF_CH2_MAX_MODES
-+	},
-+	/* Channel3 */
-+	{
-+		VPIF_CH3_H_CFG, VPIF_CH3_V_CFG_00, VPIF_CH3_V_CFG_01,
-+		VPIF_CH3_V_CFG_02, VPIF_CH3_V_CFG_03, VPIF_CH3_CTRL,
-+		VPIF_CH3_IMG_ADD_OFST, VPIF_CH3_VANC0_STRT, VPIF_CH3_VANC0_SIZE,
-+		VPIF_CH3_VANC1_STRT, VPIF_CH3_VANC1_SIZE, 0x7FF, 0x7FF,
-+		VPIF_CH3_MAX_MODES
-+	},
-+};
-+
-+/* vpif_set_mode_info:
-+ * This function is used to set horizontal and vertical config parameters
-+ * As per the standard in the channel, configure the values of L1, L3,
-+ * L5, L7  L9, L11 in VPIF Register , also write width and height
-+ */
-+static void vpif_set_mode_info(const struct vpif_channel_config_params *config,
-+				u8 channel_id, u8 config_channel_id)
-+{
-+	u32 value;
-+
-+	value = (config->eav2sav & vpifregs[config_channel_id].width_mask);
-+	value <<= VPIF_CH_LEN_SHIFT;
-+	value |= (config->sav2eav & vpifregs[config_channel_id].width_mask);
-+	regw(value, vpifregs[channel_id].h_cfg);
-+
-+	value = (config->l1 & vpifregs[config_channel_id].len_mask);
-+	value <<= VPIF_CH_LEN_SHIFT;
-+	value |= (config->l3 & vpifregs[config_channel_id].len_mask);
-+	regw(value, vpifregs[channel_id].v_cfg_00);
-+
-+	value = (config->l5 & vpifregs[config_channel_id].len_mask);
-+	value <<= VPIF_CH_LEN_SHIFT;
-+	value |= (config->l7 & vpifregs[config_channel_id].len_mask);
-+	regw(value, vpifregs[channel_id].v_cfg_01);
-+
-+	value = (config->l9 & vpifregs[config_channel_id].len_mask);
-+	value <<= VPIF_CH_LEN_SHIFT;
-+	value |= (config->l11 & vpifregs[config_channel_id].len_mask);
-+	regw(value, vpifregs[channel_id].v_cfg_02);
-+
-+	value = (config->vsize & vpifregs[config_channel_id].len_mask);
-+	regw(value, vpifregs[channel_id].v_cfg);
-+}
-+
-+/* config_vpif_params
-+ * Function to set the parameters of a channel
-+ * Mainly modifies the channel ciontrol register
-+ * It sets frame format, yc mux mode
-+ */
-+static void config_vpif_params(struct vpif_params *vpifparams,
-+				u8 channel_id, u8 found)
-+{
-+	const struct vpif_channel_config_params *config = &vpifparams->std_info;
-+	u32 value, ch_nip, reg;
-+	u8 start, end;
-+	int i;
-+
-+	start = channel_id;
-+	end = channel_id + found;
-+
-+	for (i = start; i < end; i++) {
-+		reg = vpifregs[i].ch_ctrl;
-+		if (channel_id < 2)
-+			ch_nip = VPIF_CAPTURE_CH_NIP;
-+		else
-+			ch_nip = VPIF_DISPLAY_CH_NIP;
-+
-+		vpif_wr_bit(reg, ch_nip, config->frm_fmt);
-+		vpif_wr_bit(reg, VPIF_CH_YC_MUX_BIT, config->ycmux_mode);
-+		vpif_wr_bit(reg, VPIF_CH_INPUT_FIELD_FRAME_BIT,
-+					vpifparams->video_params.storage_mode);
-+
-+		/* Set raster scanning SDR Format */
-+		vpif_clr_bit(reg, VPIF_CH_SDR_FMT_BIT);
-+		vpif_wr_bit(reg, VPIF_CH_DATA_MODE_BIT, config->capture_format);
-+
-+		if (channel_id > 1)	/* Set the Pixel enable bit */
-+			vpif_set_bit(reg, VPIF_DISPLAY_PIX_EN_BIT);
-+		else if (config->capture_format) {
-+			/* Set the polarity of various pins */
-+			vpif_wr_bit(reg, VPIF_CH_FID_POLARITY_BIT,
-+					vpifparams->params.raw_params.fid_pol);
-+			vpif_wr_bit(reg, VPIF_CH_V_VALID_POLARITY_BIT,
-+					vpifparams->params.raw_params.vd_pol);
-+			vpif_wr_bit(reg, VPIF_CH_H_VALID_POLARITY_BIT,
-+					vpifparams->params.raw_params.hd_pol);
-+
-+			value = regr(reg);
-+			/* Set data width */
-+			value &= ((~(unsigned int)(0x3)) <<
-+					VPIF_CH_DATA_WIDTH_BIT);
-+			value |= ((vpifparams->params.raw_params.data_sz) <<
-+						     VPIF_CH_DATA_WIDTH_BIT);
-+			regw(value, reg);
-+		}
-+
-+		/* Write the pitch in the driver */
-+		regw((vpifparams->video_params.hpitch),
-+						vpifregs[i].line_offset);
-+	}
-+}
-+
-+/* vpif_set_video_params
-+ * This function is used to set video parameters in VPIF register
-+ */
-+int vpif_set_video_params(struct vpif_params *vpifparams, u8 channel_id)
-+{
-+	const struct vpif_channel_config_params *config = &vpifparams->std_info;
-+	int found = 1;
-+
-+	vpif_set_mode_info(config, channel_id, channel_id);
-+	if (!config->ycmux_mode) {
-+		/* YC are on separate channels (HDTV formats) */
-+		vpif_set_mode_info(config, channel_id + 1, channel_id);
-+		found = 2;
-+	}
-+
-+	config_vpif_params(vpifparams, channel_id, found);
-+
-+	regw(0x80, VPIF_REQ_SIZE);
-+	regw(0x01, VPIF_EMULATION_CTRL);
-+
-+	return found;
-+}
-+EXPORT_SYMBOL(vpif_set_video_params);
-+
-+void vpif_set_vbi_display_params(struct vpif_vbi_params *vbiparams,
-+				u8 channel_id)
-+{
-+	u32 value;
-+
-+	value = 0x3F8 & (vbiparams->hstart0);
-+	value |= 0x3FFFFFF & ((vbiparams->vstart0) << 16);
-+	regw(value, vpifregs[channel_id].vanc0_strt);
-+
-+	value = 0x3F8 & (vbiparams->hstart1);
-+	value |= 0x3FFFFFF & ((vbiparams->vstart1) << 16);
-+	regw(value, vpifregs[channel_id].vanc1_strt);
-+
-+	value = 0x3F8 & (vbiparams->hsize0);
-+	value |= 0x3FFFFFF & ((vbiparams->vsize0) << 16);
-+	regw(value, vpifregs[channel_id].vanc0_size);
-+
-+	value = 0x3F8 & (vbiparams->hsize1);
-+	value |= 0x3FFFFFF & ((vbiparams->vsize1) << 16);
-+	regw(value, vpifregs[channel_id].vanc1_size);
-+
-+}
-+EXPORT_SYMBOL(vpif_set_vbi_display_params);
-+
-+int vpif_channel_getfid(u8 channel_id)
-+{
-+	return (regr(vpifregs[channel_id].ch_ctrl) & VPIF_CH_FID_MASK)
-+					>> VPIF_CH_FID_SHIFT;
-+}
-+EXPORT_SYMBOL(vpif_channel_getfid);
-+
-+void vpif_base_addr_init(void __iomem *base)
-+{
-+	vpif_base = base;
-+}
-+EXPORT_SYMBOL(vpif_base_addr_init);
-diff --git a/drivers/media/video/davinci/vpif.h b/drivers/media/video/davinci/vpif.h
-new file mode 100644
-index 0000000..944f1e1
---- /dev/null
-+++ b/drivers/media/video/davinci/vpif.h
-@@ -0,0 +1,632 @@
-+/*
-+ * VPIF header file
-+ *
-+ * Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation version 2.
-+ *
-+ * This program is distributed .as is. WITHOUT ANY WARRANTY of any
-+ * kind, whether express or implied; without even the implied warranty
-+ * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef VPIF_H
-+#define VPIF_H
-+
-+#include <linux/io.h>
-+#include <linux/videodev2.h>
-+#include <mach/hardware.h>
-+
-+/* Maximum channel allowed */
-+#define VPIF_NUM_CHANNELS		(4)
-+#define VPIF_CAPTURE_NUM_CHANNELS	(2)
-+#define VPIF_DISPLAY_NUM_CHANNELS	(2)
-+
-+/* Macros to read/write registers */
-+static void __iomem *vpif_base;
-+#define regr(reg)               readl((reg) + vpif_base)
-+#define regw(value, reg)        writel(value, (reg + vpif_base))
-+
-+/* Register Addresss Offsets */
-+#define VPIF_PID			(0x0000)
-+#define VPIF_CH0_CTRL			(0x0004)
-+#define VPIF_CH1_CTRL			(0x0008)
-+#define VPIF_CH2_CTRL			(0x000C)
-+#define VPIF_CH3_CTRL			(0x0010)
-+
-+#define VPIF_INTEN			(0x0020)
-+#define VPIF_INTEN_SET			(0x0024)
-+#define VPIF_INTEN_CLR			(0x0028)
-+#define VPIF_STATUS			(0x002C)
-+#define VPIF_STATUS_CLR			(0x0030)
-+#define VPIF_EMULATION_CTRL		(0x0034)
-+#define VPIF_REQ_SIZE			(0x0038)
-+
-+#define VPIF_CH0_TOP_STRT_ADD_LUMA	(0x0040)
-+#define VPIF_CH0_BTM_STRT_ADD_LUMA	(0x0044)
-+#define VPIF_CH0_TOP_STRT_ADD_CHROMA	(0x0048)
-+#define VPIF_CH0_BTM_STRT_ADD_CHROMA	(0x004c)
-+#define VPIF_CH0_TOP_STRT_ADD_HANC	(0x0050)
-+#define VPIF_CH0_BTM_STRT_ADD_HANC	(0x0054)
-+#define VPIF_CH0_TOP_STRT_ADD_VANC	(0x0058)
-+#define VPIF_CH0_BTM_STRT_ADD_VANC	(0x005c)
-+#define VPIF_CH0_SP_CFG			(0x0060)
-+#define VPIF_CH0_IMG_ADD_OFST		(0x0064)
-+#define VPIF_CH0_HANC_ADD_OFST		(0x0068)
-+#define VPIF_CH0_H_CFG			(0x006c)
-+#define VPIF_CH0_V_CFG_00		(0x0070)
-+#define VPIF_CH0_V_CFG_01		(0x0074)
-+#define VPIF_CH0_V_CFG_02		(0x0078)
-+#define VPIF_CH0_V_CFG_03		(0x007c)
-+
-+#define VPIF_CH1_TOP_STRT_ADD_LUMA	(0x0080)
-+#define VPIF_CH1_BTM_STRT_ADD_LUMA	(0x0084)
-+#define VPIF_CH1_TOP_STRT_ADD_CHROMA	(0x0088)
-+#define VPIF_CH1_BTM_STRT_ADD_CHROMA	(0x008c)
-+#define VPIF_CH1_TOP_STRT_ADD_HANC	(0x0090)
-+#define VPIF_CH1_BTM_STRT_ADD_HANC	(0x0094)
-+#define VPIF_CH1_TOP_STRT_ADD_VANC	(0x0098)
-+#define VPIF_CH1_BTM_STRT_ADD_VANC	(0x009c)
-+#define VPIF_CH1_SP_CFG			(0x00a0)
-+#define VPIF_CH1_IMG_ADD_OFST		(0x00a4)
-+#define VPIF_CH1_HANC_ADD_OFST		(0x00a8)
-+#define VPIF_CH1_H_CFG			(0x00ac)
-+#define VPIF_CH1_V_CFG_00		(0x00b0)
-+#define VPIF_CH1_V_CFG_01		(0x00b4)
-+#define VPIF_CH1_V_CFG_02		(0x00b8)
-+#define VPIF_CH1_V_CFG_03		(0x00bc)
-+
-+#define VPIF_CH2_TOP_STRT_ADD_LUMA	(0x00c0)
-+#define VPIF_CH2_BTM_STRT_ADD_LUMA	(0x00c4)
-+#define VPIF_CH2_TOP_STRT_ADD_CHROMA	(0x00c8)
-+#define VPIF_CH2_BTM_STRT_ADD_CHROMA	(0x00cc)
-+#define VPIF_CH2_TOP_STRT_ADD_HANC	(0x00d0)
-+#define VPIF_CH2_BTM_STRT_ADD_HANC	(0x00d4)
-+#define VPIF_CH2_TOP_STRT_ADD_VANC	(0x00d8)
-+#define VPIF_CH2_BTM_STRT_ADD_VANC	(0x00dc)
-+#define VPIF_CH2_SP_CFG			(0x00e0)
-+#define VPIF_CH2_IMG_ADD_OFST		(0x00e4)
-+#define VPIF_CH2_HANC_ADD_OFST		(0x00e8)
-+#define VPIF_CH2_H_CFG			(0x00ec)
-+#define VPIF_CH2_V_CFG_00		(0x00f0)
-+#define VPIF_CH2_V_CFG_01		(0x00f4)
-+#define VPIF_CH2_V_CFG_02		(0x00f8)
-+#define VPIF_CH2_V_CFG_03		(0x00fc)
-+#define VPIF_CH2_HANC0_STRT		(0x0100)
-+#define VPIF_CH2_HANC0_SIZE		(0x0104)
-+#define VPIF_CH2_HANC1_STRT		(0x0108)
-+#define VPIF_CH2_HANC1_SIZE		(0x010c)
-+#define VPIF_CH2_VANC0_STRT		(0x0110)
-+#define VPIF_CH2_VANC0_SIZE		(0x0114)
-+#define VPIF_CH2_VANC1_STRT		(0x0118)
-+#define VPIF_CH2_VANC1_SIZE		(0x011c)
-+
-+#define VPIF_CH3_TOP_STRT_ADD_LUMA	(0x0140)
-+#define VPIF_CH3_BTM_STRT_ADD_LUMA	(0x0144)
-+#define VPIF_CH3_TOP_STRT_ADD_CHROMA	(0x0148)
-+#define VPIF_CH3_BTM_STRT_ADD_CHROMA	(0x014c)
-+#define VPIF_CH3_TOP_STRT_ADD_HANC	(0x0150)
-+#define VPIF_CH3_BTM_STRT_ADD_HANC	(0x0154)
-+#define VPIF_CH3_TOP_STRT_ADD_VANC	(0x0158)
-+#define VPIF_CH3_BTM_STRT_ADD_VANC	(0x015c)
-+#define VPIF_CH3_SP_CFG			(0x0160)
-+#define VPIF_CH3_IMG_ADD_OFST		(0x0164)
-+#define VPIF_CH3_HANC_ADD_OFST		(0x0168)
-+#define VPIF_CH3_H_CFG			(0x016c)
-+#define VPIF_CH3_V_CFG_00		(0x0170)
-+#define VPIF_CH3_V_CFG_01		(0x0174)
-+#define VPIF_CH3_V_CFG_02		(0x0178)
-+#define VPIF_CH3_V_CFG_03		(0x017c)
-+#define VPIF_CH3_HANC0_STRT		(0x0180)
-+#define VPIF_CH3_HANC0_SIZE		(0x0184)
-+#define VPIF_CH3_HANC1_STRT		(0x0188)
-+#define VPIF_CH3_HANC1_SIZE		(0x018c)
-+#define VPIF_CH3_VANC0_STRT		(0x0190)
-+#define VPIF_CH3_VANC0_SIZE		(0x0194)
-+#define VPIF_CH3_VANC1_STRT		(0x0198)
-+#define VPIF_CH3_VANC1_SIZE		(0x019c)
-+
-+#define VPIF_IODFT_CTRL			(0x01c0)
-+
-+/* Functions for bit Manipulation */
-+static inline void vpif_set_bit(u32 reg, u32 bit)
-+{
-+	regw((regr(reg)) | (0x01 << bit), reg);
-+}
-+
-+static inline void vpif_clr_bit(u32 reg, u32 bit)
-+{
-+	regw(((regr(reg)) & ~(0x01 << bit)), reg);
-+}
-+
-+/* Macro for Generating mask */
-+#ifdef GENERATE_MASK
-+#undef GENERATE_MASK
-+#endif
-+
-+#define GENERATE_MASK(bits, pos) \
-+		((((0xFFFFFFFF) << (32 - bits)) >> (32 - bits)) << pos)
-+
-+/* Bit positions in the channel control registers */
-+#define VPIF_CH_DATA_MODE_BIT	(2)
-+#define VPIF_CH_YC_MUX_BIT	(3)
-+#define VPIF_CH_SDR_FMT_BIT	(4)
-+#define VPIF_CH_HANC_EN_BIT	(8)
-+#define VPIF_CH_VANC_EN_BIT	(9)
-+
-+#define VPIF_CAPTURE_CH_NIP	(10)
-+#define VPIF_DISPLAY_CH_NIP	(11)
-+
-+#define VPIF_DISPLAY_PIX_EN_BIT	(10)
-+
-+#define VPIF_CH_INPUT_FIELD_FRAME_BIT	(12)
-+
-+#define VPIF_CH_FID_POLARITY_BIT	(15)
-+#define VPIF_CH_V_VALID_POLARITY_BIT	(14)
-+#define VPIF_CH_H_VALID_POLARITY_BIT	(13)
-+#define VPIF_CH_DATA_WIDTH_BIT		(28)
-+
-+#define VPIF_CH_CLK_EDGE_CTRL_BIT	(31)
-+
-+/* Mask various length */
-+#define VPIF_CH_EAVSAV_MASK	GENERATE_MASK(13, 0)
-+#define VPIF_CH_LEN_MASK	GENERATE_MASK(12, 0)
-+#define VPIF_CH_WIDTH_MASK	GENERATE_MASK(13, 0)
-+#define VPIF_CH_LEN_SHIFT	(16)
-+
-+/* VPIF masks for registers */
-+#define VPIF_REQ_SIZE_MASK	(0x1ff)
-+
-+/* bit posotion of interrupt vpif_ch_intr register */
-+#define VPIF_INTEN_FRAME_CH0	(0x00000001)
-+#define VPIF_INTEN_FRAME_CH1	(0x00000002)
-+#define VPIF_INTEN_FRAME_CH2	(0x00000004)
-+#define VPIF_INTEN_FRAME_CH3	(0x00000008)
-+
-+/* bit position of clock and channel enable in vpif_chn_ctrl register */
-+
-+#define VPIF_CH0_CLK_EN		(0x00000002)
-+#define VPIF_CH0_EN		(0x00000001)
-+#define VPIF_CH1_CLK_EN		(0x00000002)
-+#define VPIF_CH1_EN		(0x00000001)
-+#define VPIF_CH2_CLK_EN		(0x00000002)
-+#define VPIF_CH2_EN		(0x00000001)
-+#define VPIF_CH3_CLK_EN		(0x00000002)
-+#define VPIF_CH3_EN		(0x00000001)
-+#define VPIF_CH_CLK_EN		(0x00000002)
-+#define VPIF_CH_EN	        (0x00000001)
-+
-+#define VPIF_INT_TOP	(0x00)
-+#define VPIF_INT_BOTTOM	(0x01)
-+#define VPIF_INT_BOTH	(0x02)
-+
-+#define VPIF_CH0_INT_CTRL_SHIFT	(6)
-+#define VPIF_CH1_INT_CTRL_SHIFT	(6)
-+#define VPIF_CH2_INT_CTRL_SHIFT	(6)
-+#define VPIF_CH3_INT_CTRL_SHIFT	(6)
-+#define VPIF_CH_INT_CTRL_SHIFT	(6)
-+
-+/* enabled interrupt on both the fields on vpid_ch0_ctrl register */
-+#define channel0_intr_assert()	(regw((regr(VPIF_CH0_CTRL)|\
-+	(VPIF_INT_BOTH << VPIF_CH0_INT_CTRL_SHIFT)), VPIF_CH0_CTRL))
-+
-+/* enabled interrupt on both the fields on vpid_ch1_ctrl register */
-+#define channel1_intr_assert()	(regw((regr(VPIF_CH1_CTRL)|\
-+	(VPIF_INT_BOTH << VPIF_CH1_INT_CTRL_SHIFT)), VPIF_CH1_CTRL))
-+
-+/* enabled interrupt on both the fields on vpid_ch0_ctrl register */
-+#define channel2_intr_assert() 	(regw((regr(VPIF_CH2_CTRL)|\
-+	(VPIF_INT_BOTH << VPIF_CH2_INT_CTRL_SHIFT)), VPIF_CH2_CTRL))
-+
-+/* enabled interrupt on both the fields on vpid_ch1_ctrl register */
-+#define channel3_intr_assert() 	(regw((regr(VPIF_CH3_CTRL)|\
-+	(VPIF_INT_BOTH << VPIF_CH3_INT_CTRL_SHIFT)), VPIF_CH3_CTRL))
-+
-+#define VPIF_CH_FID_MASK	(0x20)
-+#define VPIF_CH_FID_SHIFT	(5)
-+
-+#define VPIF_NTSC_VBI_START_FIELD0	(1)
-+#define VPIF_NTSC_VBI_START_FIELD1	(263)
-+#define VPIF_PAL_VBI_START_FIELD0	(624)
-+#define VPIF_PAL_VBI_START_FIELD1	(311)
-+
-+#define VPIF_NTSC_HBI_START_FIELD0	(1)
-+#define VPIF_NTSC_HBI_START_FIELD1	(263)
-+#define VPIF_PAL_HBI_START_FIELD0	(624)
-+#define VPIF_PAL_HBI_START_FIELD1	(311)
-+
-+#define VPIF_NTSC_VBI_COUNT_FIELD0	(20)
-+#define VPIF_NTSC_VBI_COUNT_FIELD1	(19)
-+#define VPIF_PAL_VBI_COUNT_FIELD0	(24)
-+#define VPIF_PAL_VBI_COUNT_FIELD1	(25)
-+
-+#define VPIF_NTSC_HBI_COUNT_FIELD0	(263)
-+#define VPIF_NTSC_HBI_COUNT_FIELD1	(262)
-+#define VPIF_PAL_HBI_COUNT_FIELD0	(312)
-+#define VPIF_PAL_HBI_COUNT_FIELD1	(313)
-+
-+#define VPIF_NTSC_VBI_SAMPLES_PER_LINE	(720)
-+#define VPIF_PAL_VBI_SAMPLES_PER_LINE	(720)
-+#define VPIF_NTSC_HBI_SAMPLES_PER_LINE	(268)
-+#define VPIF_PAL_HBI_SAMPLES_PER_LINE	(280)
-+
-+#define VPIF_CH_VANC_EN			(0x20)
-+#define VPIF_DMA_REQ_SIZE		(0x080)
-+#define VPIF_EMULATION_DISABLE		(0x01)
-+
-+extern u8 irq_vpif_capture_channel[VPIF_NUM_CHANNELS];
-+
-+/* inline function to enable/disable channel0 */
-+static inline void enable_channel0(int enable)
-+{
-+	if (enable)
-+		regw((regr(VPIF_CH0_CTRL) | (VPIF_CH0_EN)), VPIF_CH0_CTRL);
-+	else
-+		regw((regr(VPIF_CH0_CTRL) & (~VPIF_CH0_EN)), VPIF_CH0_CTRL);
-+}
-+
-+/* inline function to enable/disable channel1 */
-+static inline void enable_channel1(int enable)
-+{
-+	if (enable)
-+		regw((regr(VPIF_CH1_CTRL) | (VPIF_CH1_EN)), VPIF_CH1_CTRL);
-+	else
-+		regw((regr(VPIF_CH1_CTRL) & (~VPIF_CH1_EN)), VPIF_CH1_CTRL);
-+}
-+
-+/* inline function to enable interrupt for channel0 */
-+static inline void channel0_intr_enable(int enable)
-+{
-+	if (enable) {
-+		regw((regr(VPIF_INTEN) | 0x10), VPIF_INTEN);
-+		regw((regr(VPIF_INTEN_SET) | 0x10), VPIF_INTEN_SET);
-+
-+		regw((regr(VPIF_INTEN) | VPIF_INTEN_FRAME_CH0), VPIF_INTEN);
-+		regw((regr(VPIF_INTEN_SET) | VPIF_INTEN_FRAME_CH0),
-+							VPIF_INTEN_SET);
-+	} else {
-+		regw((regr(VPIF_INTEN) & (~VPIF_INTEN_FRAME_CH0)), VPIF_INTEN);
-+		regw((regr(VPIF_INTEN_SET) | VPIF_INTEN_FRAME_CH0),
-+							VPIF_INTEN_SET);
-+	}
-+}
-+
-+/* inline function to enable interrupt for channel1 */
-+static inline void channel1_intr_enable(int enable)
-+{
-+	if (enable) {
-+		regw((regr(VPIF_INTEN) | 0x10), VPIF_INTEN);
-+		regw((regr(VPIF_INTEN_SET) | 0x10), VPIF_INTEN_SET);
-+
-+		regw((regr(VPIF_INTEN) | VPIF_INTEN_FRAME_CH1), VPIF_INTEN);
-+		regw((regr(VPIF_INTEN_SET) | VPIF_INTEN_FRAME_CH1),
-+							VPIF_INTEN_SET);
-+	} else {
-+		regw((regr(VPIF_INTEN) & (~VPIF_INTEN_FRAME_CH1)), VPIF_INTEN);
-+		regw((regr(VPIF_INTEN_SET) | VPIF_INTEN_FRAME_CH1),
-+							VPIF_INTEN_SET);
-+	}
-+}
-+
-+/* inline function to set buffer addresses in case of Y/C non mux mode */
-+static inline void ch0_set_videobuf_addr_yc_nmux(unsigned long top_strt_luma,
-+						 unsigned long btm_strt_luma,
-+						 unsigned long top_strt_chroma,
-+						 unsigned long btm_strt_chroma)
-+{
-+	regw(top_strt_luma, VPIF_CH0_TOP_STRT_ADD_LUMA);
-+	regw(btm_strt_luma, VPIF_CH0_BTM_STRT_ADD_LUMA);
-+	regw(top_strt_chroma, VPIF_CH1_TOP_STRT_ADD_CHROMA);
-+	regw(btm_strt_chroma, VPIF_CH1_BTM_STRT_ADD_CHROMA);
-+}
-+
-+/* inline function to set buffer addresses in VPIF registers for video data */
-+static inline void ch0_set_videobuf_addr(unsigned long top_strt_luma,
-+					 unsigned long btm_strt_luma,
-+					 unsigned long top_strt_chroma,
-+					 unsigned long btm_strt_chroma)
-+{
-+	regw(top_strt_luma, VPIF_CH0_TOP_STRT_ADD_LUMA);
-+	regw(btm_strt_luma, VPIF_CH0_BTM_STRT_ADD_LUMA);
-+	regw(top_strt_chroma, VPIF_CH0_TOP_STRT_ADD_CHROMA);
-+	regw(btm_strt_chroma, VPIF_CH0_BTM_STRT_ADD_CHROMA);
-+}
-+
-+static inline void ch1_set_videobuf_addr(unsigned long top_strt_luma,
-+					 unsigned long btm_strt_luma,
-+					 unsigned long top_strt_chroma,
-+					 unsigned long btm_strt_chroma)
-+{
-+
-+	regw(top_strt_luma, VPIF_CH1_TOP_STRT_ADD_LUMA);
-+	regw(btm_strt_luma, VPIF_CH1_BTM_STRT_ADD_LUMA);
-+	regw(top_strt_chroma, VPIF_CH1_TOP_STRT_ADD_CHROMA);
-+	regw(btm_strt_chroma, VPIF_CH1_BTM_STRT_ADD_CHROMA);
-+}
-+
-+static inline void ch0_set_vbi_addr(unsigned long top_vbi,
-+	unsigned long btm_vbi, unsigned long a, unsigned long b)
-+{
-+	regw(top_vbi, VPIF_CH0_TOP_STRT_ADD_VANC);
-+	regw(btm_vbi, VPIF_CH0_BTM_STRT_ADD_VANC);
-+}
-+
-+static inline void ch0_set_hbi_addr(unsigned long top_vbi,
-+	unsigned long btm_vbi, unsigned long a, unsigned long b)
-+{
-+	regw(top_vbi, VPIF_CH0_TOP_STRT_ADD_HANC);
-+	regw(btm_vbi, VPIF_CH0_BTM_STRT_ADD_HANC);
-+}
-+
-+static inline void ch1_set_vbi_addr(unsigned long top_vbi,
-+	unsigned long btm_vbi, unsigned long a, unsigned long b)
-+{
-+	regw(top_vbi, VPIF_CH1_TOP_STRT_ADD_VANC);
-+	regw(btm_vbi, VPIF_CH1_BTM_STRT_ADD_VANC);
-+}
-+
-+static inline void ch1_set_hbi_addr(unsigned long top_vbi,
-+	unsigned long btm_vbi, unsigned long a, unsigned long b)
-+{
-+	regw(top_vbi, VPIF_CH1_TOP_STRT_ADD_HANC);
-+	regw(btm_vbi, VPIF_CH1_BTM_STRT_ADD_HANC);
-+}
-+
-+/* Inline function to enable raw vbi in the given channel */
-+static inline void disable_raw_feature(u8 channel_id, u8 index)
-+{
-+	u32 ctrl_reg;
-+	if (0 == channel_id)
-+		ctrl_reg = VPIF_CH0_CTRL;
-+	else
-+		ctrl_reg = VPIF_CH1_CTRL;
-+
-+	if (1 == index)
-+		vpif_clr_bit(ctrl_reg, VPIF_CH_VANC_EN_BIT);
-+	else
-+		vpif_clr_bit(ctrl_reg, VPIF_CH_HANC_EN_BIT);
-+}
-+
-+static inline void enable_raw_feature(u8 channel_id, u8 index)
-+{
-+	u32 ctrl_reg;
-+	if (0 == channel_id)
-+		ctrl_reg = VPIF_CH0_CTRL;
-+	else
-+		ctrl_reg = VPIF_CH1_CTRL;
-+
-+	if (1 == index)
-+		vpif_set_bit(ctrl_reg, VPIF_CH_VANC_EN_BIT);
-+	else
-+		vpif_set_bit(ctrl_reg, VPIF_CH_HANC_EN_BIT);
-+}
-+
-+/* inline function to enable/disable channel2 */
-+static inline void enable_channel2(int enable)
-+{
-+	if (enable) {
-+		regw((regr(VPIF_CH2_CTRL) | (VPIF_CH2_CLK_EN)), VPIF_CH2_CTRL);
-+		regw((regr(VPIF_CH2_CTRL) | (VPIF_CH2_EN)), VPIF_CH2_CTRL);
-+	} else {
-+		regw((regr(VPIF_CH2_CTRL) & (~VPIF_CH2_CLK_EN)), VPIF_CH2_CTRL);
-+		regw((regr(VPIF_CH2_CTRL) & (~VPIF_CH2_EN)), VPIF_CH2_CTRL);
-+	}
-+}
-+
-+/* inline function to enable/disable channel3 */
-+static inline void enable_channel3(int enable)
-+{
-+	if (enable) {
-+		regw((regr(VPIF_CH3_CTRL) | (VPIF_CH3_CLK_EN)), VPIF_CH3_CTRL);
-+		regw((regr(VPIF_CH3_CTRL) | (VPIF_CH3_EN)), VPIF_CH3_CTRL);
-+	} else {
-+		regw((regr(VPIF_CH3_CTRL) & (~VPIF_CH3_CLK_EN)), VPIF_CH3_CTRL);
-+		regw((regr(VPIF_CH3_CTRL) & (~VPIF_CH3_EN)), VPIF_CH3_CTRL);
-+	}
-+}
-+
-+/* inline function to enable interrupt for channel2 */
-+static inline void channel2_intr_enable(int enable)
-+{
-+	if (enable) {
-+		regw((regr(VPIF_INTEN) | 0x10), VPIF_INTEN);
-+		regw((regr(VPIF_INTEN_SET) | 0x10), VPIF_INTEN_SET);
-+		regw((regr(VPIF_INTEN) | VPIF_INTEN_FRAME_CH2), VPIF_INTEN);
-+		regw((regr(VPIF_INTEN_SET) | VPIF_INTEN_FRAME_CH2),
-+							VPIF_INTEN_SET);
-+	} else {
-+		regw((regr(VPIF_INTEN) & (~VPIF_INTEN_FRAME_CH2)), VPIF_INTEN);
-+		regw((regr(VPIF_INTEN_SET) | VPIF_INTEN_FRAME_CH2),
-+							VPIF_INTEN_SET);
-+	}
-+}
-+
-+/* inline function to enable interrupt for channel3 */
-+static inline void channel3_intr_enable(int enable)
-+{
-+	if (enable) {
-+		regw((regr(VPIF_INTEN) | 0x10), VPIF_INTEN);
-+		regw((regr(VPIF_INTEN_SET) | 0x10), VPIF_INTEN_SET);
-+
-+		regw((regr(VPIF_INTEN) | VPIF_INTEN_FRAME_CH3), VPIF_INTEN);
-+		regw((regr(VPIF_INTEN_SET) | VPIF_INTEN_FRAME_CH3),
-+							VPIF_INTEN_SET);
-+	} else {
-+		regw((regr(VPIF_INTEN) & (~VPIF_INTEN_FRAME_CH3)), VPIF_INTEN);
-+		regw((regr(VPIF_INTEN_SET) | VPIF_INTEN_FRAME_CH3),
-+							VPIF_INTEN_SET);
-+	}
-+}
-+
-+/* inline function to enable raw vbi data for channel2 */
-+static inline void channel2_raw_enable(int enable, u8 index)
-+{
-+	u32 mask;
-+
-+	if (1 == index)
-+		mask = VPIF_CH_VANC_EN_BIT;
-+	else
-+		mask = VPIF_CH_HANC_EN_BIT;
-+
-+	if (enable)
-+		vpif_set_bit(VPIF_CH2_CTRL, mask);
-+	else
-+		vpif_clr_bit(VPIF_CH2_CTRL, mask);
-+}
-+
-+/* inline function to enable raw vbi data for channel3*/
-+static inline void channel3_raw_enable(int enable, u8 index)
-+{
-+	u32 mask;
-+
-+	if (1 == index)
-+		mask = VPIF_CH_VANC_EN_BIT;
-+	else
-+		mask = VPIF_CH_HANC_EN_BIT;
-+
-+	if (enable)
-+		vpif_set_bit(VPIF_CH3_CTRL, mask);
-+	else
-+		vpif_clr_bit(VPIF_CH3_CTRL, mask);
-+}
-+
-+/* inline function to set buffer addresses in case of Y/C non mux mode */
-+static inline void ch2_set_videobuf_addr_yc_nmux(unsigned long top_strt_luma,
-+						 unsigned long btm_strt_luma,
-+						 unsigned long top_strt_chroma,
-+						 unsigned long btm_strt_chroma)
-+{
-+	regw(top_strt_luma, VPIF_CH2_TOP_STRT_ADD_LUMA);
-+	regw(btm_strt_luma, VPIF_CH2_BTM_STRT_ADD_LUMA);
-+	regw(top_strt_chroma, VPIF_CH3_TOP_STRT_ADD_CHROMA);
-+	regw(btm_strt_chroma, VPIF_CH3_BTM_STRT_ADD_CHROMA);
-+}
-+
-+/* inline function to set buffer addresses in VPIF registers for video data */
-+static inline void ch2_set_videobuf_addr(unsigned long top_strt_luma,
-+					 unsigned long btm_strt_luma,
-+					 unsigned long top_strt_chroma,
-+					 unsigned long btm_strt_chroma)
-+{
-+	regw(top_strt_luma, VPIF_CH2_TOP_STRT_ADD_LUMA);
-+	regw(btm_strt_luma, VPIF_CH2_BTM_STRT_ADD_LUMA);
-+	regw(top_strt_chroma, VPIF_CH2_TOP_STRT_ADD_CHROMA);
-+	regw(btm_strt_chroma, VPIF_CH2_BTM_STRT_ADD_CHROMA);
-+}
-+
-+static inline void ch3_set_videobuf_addr(unsigned long top_strt_luma,
-+					 unsigned long btm_strt_luma,
-+					 unsigned long top_strt_chroma,
-+					 unsigned long btm_strt_chroma)
-+{
-+	regw(top_strt_luma, VPIF_CH3_TOP_STRT_ADD_LUMA);
-+	regw(btm_strt_luma, VPIF_CH3_BTM_STRT_ADD_LUMA);
-+	regw(top_strt_chroma, VPIF_CH3_TOP_STRT_ADD_CHROMA);
-+	regw(btm_strt_chroma, VPIF_CH3_BTM_STRT_ADD_CHROMA);
-+}
-+
-+/* inline function to set buffer addresses in VPIF registers for vbi data */
-+static inline void ch2_set_vbi_addr(unsigned long top_strt_luma,
-+					 unsigned long btm_strt_luma,
-+					 unsigned long top_strt_chroma,
-+					 unsigned long btm_strt_chroma)
-+{
-+	regw(top_strt_luma, VPIF_CH2_TOP_STRT_ADD_VANC);
-+	regw(btm_strt_luma, VPIF_CH2_BTM_STRT_ADD_VANC);
-+}
-+
-+static inline void ch3_set_vbi_addr(unsigned long top_strt_luma,
-+					 unsigned long btm_strt_luma,
-+					 unsigned long top_strt_chroma,
-+					 unsigned long btm_strt_chroma)
-+{
-+	regw(top_strt_luma, VPIF_CH3_TOP_STRT_ADD_VANC);
-+	regw(btm_strt_luma, VPIF_CH3_BTM_STRT_ADD_VANC);
-+}
-+
-+#define VPIF_MAX_NAME	(30)
-+
-+/* This structure will store size parameters as per the mode selected by user */
-+struct vpif_channel_config_params {
-+	char name[VPIF_MAX_NAME];	/* Name of the mode */
-+	u16 width;			/* Indicates width of the image */
-+	u16 height;			/* Indicates height of the image */
-+	u8 fps;
-+	u8 frm_fmt;			/* Indicates whether this is interlaced
-+					 * or progressive format */
-+	u8 ycmux_mode;			/* Indicates whether this mode requires
-+					 * single or two channels */
-+	u16 eav2sav;			/* length of sav 2 eav */
-+	u16 sav2eav;			/* length of sav 2 eav */
-+	u16 l1, l3, l5, l7, l9, l11;	/* Other parameter configurations */
-+	u16 vsize;			/* Vertical size of the image */
-+	u8 capture_format;		/* Indicates whether capture format
-+					 * is in BT or in CCD/CMOS */
-+	u8  vbi_supported;		/* Indicates whether this mode
-+					 * supports capturing vbi or not */
-+	u8 hd_sd;
-+	v4l2_std_id stdid;
-+};
-+
-+struct vpif_interface;
-+struct vpif_params;
-+struct vpif_vbi_params;
-+
-+int vpif_set_video_params(struct vpif_params *vpifparams, u8 channel_id);
-+void vpif_set_vbi_display_params(struct vpif_vbi_params *vbiparams,
-+							u8 channel_id);
-+int vpif_channel_getfid(u8 channel_id);
-+void vpif_base_addr_init(void __iomem *base);
-+
-+/* Enumerated data types */
-+enum vpif_capture_pinpol {
-+	VPIF_CAPTURE_PINPOL_SAME	= 0,
-+	VPIF_CAPTURE_PINPOL_INVERT	= 1
-+};
-+
-+enum data_size {
-+	_8BITS = 0,
-+	_10BITS,
-+	_12BITS,
-+};
-+
-+struct vpif_capture_params_raw {
-+	enum data_size data_sz;
-+	enum vpif_capture_pinpol fid_pol;
-+	enum vpif_capture_pinpol vd_pol;
-+	enum vpif_capture_pinpol hd_pol;
-+};
-+
-+/* Structure for vpif parameters for raw vbi data */
-+struct vpif_vbi_params {
-+	__u32 hstart0;  /* Horizontal start of raw vbi data for first field */
-+	__u32 vstart0;  /* Vertical start of raw vbi data for first field */
-+	__u32 hsize0;   /* Horizontal size of raw vbi data for first field */
-+	__u32 vsize0;   /* Vertical size of raw vbi data for first field */
-+	__u32 hstart1;  /* Horizontal start of raw vbi data for second field */
-+	__u32 vstart1;  /* Vertical start of raw vbi data for second field */
-+	__u32 hsize1;   /* Horizontal size of raw vbi data for second field */
-+	__u32 vsize1;   /* Vertical size of raw vbi data for second field */
-+};
-+
-+/* structure for vpif parameters */
-+struct vpif_interface {
-+	__u8 storage_mode;	/* Indicates field or frame mode */
-+	unsigned long hpitch;
-+	v4l2_std_id stdid;
-+};
-+
-+struct vpif_params {
-+	struct vpif_interface video_params;
-+	struct vpif_channel_config_params std_info;
-+	union param {
-+		struct vpif_vbi_params	vbi_params;
-+		struct vpif_capture_params_raw	raw_params;
-+	} params;
-+};
-+
-+#endif				/* End of #ifndef VPIF_H */
-+
--- 
-1.5.6
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
