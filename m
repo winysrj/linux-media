@@ -1,323 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sclnz.com ([203.167.202.17]:35287 "EHLO smtp.sclnz.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753437AbZEGAEZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 6 May 2009 20:04:25 -0400
-Received: from gecko (localhost.localdomain [127.0.0.1])
-	by smtp.sclnz.com (8.13.8/8.13.8/Debian-3) with ESMTP id n470ZAqI015356
-	for <linux-media@vger.kernel.org>; Thu, 7 May 2009 12:35:10 +1200
-Message-ID: <4A02230C.5020800@sclnz.com>
-Date: Thu, 07 May 2009 11:53:48 +1200
-From: Spammers please <biteme@sclnz.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: CX24123 no FE_HAS_LOCK/tuning failed.
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from wa-out-1112.google.com ([209.85.146.182]:46693 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752084AbZEVNCU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 May 2009 09:02:20 -0400
+Received: by wa-out-1112.google.com with SMTP id j5so389768wah.21
+        for <linux-media@vger.kernel.org>; Fri, 22 May 2009 06:02:22 -0700 (PDT)
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Shah, Hardik" <hardik.shah@ti.com>,
+	"dongsoo45.kim@samsung.com" <dongsoo45.kim@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>
+Message-Id: <C4B8C637-2C21-4955-8C6A-0600C11D3B09@gmail.com>
+From: Dongsoo Kim <dongsoo.kim@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <200905221440.13444.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=EUC-KR; format=flowed; delsp=yes
+Content-Transfer-Encoding: 8BIT
+Mime-Version: 1.0 (Apple Message framework v935.3)
+Subject: Re: About VIDIOC_G_OUTPUT/S_OUTPUT ?
+Date: Fri, 22 May 2009 21:57:08 +0900
+References: <5e9665e10905200448n1ffc9d8s20317bbbba745e6a@mail.gmail.com> <200905211407.05354.hverkuil@xs4all.nl> <5e9665e10905211905t43ae195cv7a0fe243077887c9@mail.gmail.com> <200905221440.13444.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
-
-I've been struggling setting up my new HTPC.
-
-I've got 2 cards, Hauppauge WinTV Nova-S-Plus in a machine with lots of 
-grunt and memory,
-a brand new LNB (old one was broken), freshly aligned dish (properly 
-with a meter and all)
-to the Optus D1 satellite.
-
-I initially installed mythbuntu, and have upgraded it, it's now running 
-kernel 2.6.27-11-generic.
-
-I've downloaded/installed the latest v4l-dvb drivers, all to no avail.  
-I can't get a frontend signal lock.
-
-I've switched on some debugging and tried a few tweaks...
-
-root@mythbox:/usr/src# tail /etc/modprobe.d/options
-<snip>
-options cx24123 debug=1
-options cx88_dvb debug=1
-options dvb_core debug=1 dvb_override_tune_delay=100 cam_debug=1
+Hi Hans,
 
 
-root@mythbox:~# tail -f /var/log/kern.log&
-[1] 17472
-root@mythbox:~# May  5 10:31:41 mythbox kernel: [  747.117627] CX24123: 
-cx24123_set_fec: set FEC to 3/4
-May  5 10:31:41 mythbox kernel: [  747.121714] CX24123: 
-cx24123_set_symbolrate: srate=22500000, ratio=0x0038f7b8, 
-sample_rate=50555000 sample_gain=1
-May  5 10:31:41 mythbox kernel: [  747.121719] CX24123: 
-cx24123_pll_tune: frequency=1883000
-May  5 10:31:41 mythbox kernel: [  747.121720] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x00100e3f
-May  5 10:31:41 mythbox kernel: [  747.127951] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x000a0180
-May  5 10:31:41 mythbox kernel: [  747.134200] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x00000220
-May  5 10:31:41 mythbox kernel: [  747.140447] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x001f4746
-May  5 10:31:41 mythbox kernel: [  747.148332] CX24123: 
-cx24123_pll_tune: pll tune VCA=1052223, band=544, pll=2049862
-May  5 10:31:43 mythbox kernel: [  749.127989] cx88[0]/2-dvb: 
-cx8802_dvb_advise_release
-May  7 07:17:50 mythbox kernel: [161916.004021] Clocksource tsc unstable 
-(delta = 62500833 ns)
-!dvb
-dvbtune -f 1183000 -s 22500 -p h -m
-Using DVB card "Conexant CX24123/CX24109"
-tuning DVB-S to L-Band:0, Pol:H Srate=22500000, 22kHz=off
-ERROR setting tone
-: Invalid argument
-polling....
-Getting frontend event
-Overflow error, trying again (status = -1, errno = 75)FE_STATUS:
-polling....
-Getting frontend event
-FE_STATUS:
-polling....
-Getting frontend event
-FE_STATUS: FE_HAS_SIGNAL
-polling....
-May  7 10:28:34 mythbox kernel: [173359.884352] function : dvb_dvr_open
-May  7 10:28:34 mythbox kernel: [173359.885557] cx88[0]/2-dvb: 
-cx8802_dvb_advise_acquire
-May  7 10:28:34 mythbox kernel: [173359.885678] CX24123: cx24123_initfe: 
-init frontend
-May  7 10:28:34 mythbox kernel: [173359.907651] CX24123: CASE reached 
-default with tone=-1
-May  7 10:28:34 mythbox kernel: [173360.007741] CX24123: 
-cx24123_set_frontend:
-May  7 10:28:34 mythbox kernel: [173360.009162] CX24123: 
-cx24123_set_inversion: inversion auto
-May  7 10:28:34 mythbox kernel: [173360.011521] CX24123: 
-cx24123_set_fec: set FEC to auto
-May  7 10:28:34 mythbox kernel: [173360.015182] CX24123: 
-cx24123_set_symbolrate: srate=22500000, ratio=0x0038f7b8, 
-sample_rate=50555000 sample_gain=1
-May  7 10:28:34 mythbox kernel: [173360.015186] CX24123: 
-cx24123_pll_tune: frequency=1183000
-May  7 10:28:34 mythbox kernel: [173360.015188] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x00100e3f
-May  7 10:28:34 mythbox kernel: [173360.021715] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x000a0180
-May  7 10:28:34 mythbox kernel: [173360.028040] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x00000201
-May  7 10:28:34 mythbox kernel: [173360.034409] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x001f4492
-May  7 10:28:34 mythbox kernel: [173360.042370] CX24123: 
-cx24123_pll_tune: pll tune VCA=1052223, band=513, pll=2049170
-polling....
-polling....
-polling....
-polling....
-polling....
-polling....
-polling....
-polling....
-and so on..
+2009. 05. 22, 오후 9:40, Hans Verkuil 작성:
 
-*I've created a tuning file for the OptusD1 satellite thus*
+> On Friday 22 May 2009 04:05:47 Dongsoo, Nathaniel Kim wrote:
+>> Hi Hans,
+>>
+>> On Thu, May 21, 2009 at 9:07 PM, Hans Verkuil <hverkuil@xs4all.nl>  
+>> wrote:
+>>> On Wednesday 20 May 2009 13:48:08 Dongsoo, Nathaniel Kim wrote:
+>>>> Hello everyone,
+>>>>
+>>>> Doing a new camera interface driver job of new AP from Samsung, a
+>>>> single little question doesn't stop making me confused.
+>>>> The camera IP in Samsung application processor supports for two of
+>>>> output paths, like "to memory" and "to LCD FIFO".
+>>>> It seems to be VIDIOC_G_OUTPUT/S_OUTPUT which I need to use (just
+>>>> guessing), but according to Hans's ivtv driver the "output" of
+>>>> G_OUTPUT/S_OUTPUT is supposed to mean an actually and physically
+>>>> separated real output path like Composite, S-Video and so on.
+>>>>
+>>>> Do you think that memory or LCD FIFO can be an "output" device in  
+>>>> this
+>>>> case? Because in earlier version of my driver, I assumed that the  
+>>>> "LCD
+>>>> FIFO" is a kind of "OVERLAY" device, so I didn't even need to use
+>>>> G_OUTPUT and S_OUTPUT to route output device. I'm just not sure  
+>>>> about
+>>>> which idea makes sense. or maybe both of them could make sense
+>>>> indeed...
+>>>
+>>> When you select "to memory", then the video from the camera is  
+>>> DMAed to
+>>> the CPU, right? But selecting "to LCD" means that the video is  
+>>> routed
+>>> internally to the LCD without any DMA to the CPU taking place,  
+>>> right?
+>>
+>> Yes definitely right.
+>>
+>>> This is similar to the "passthrough" mode of the ivtv driver.
+>>>
+>>> This header: linux/dvb/video.h contains an ioctl called
+>>> VIDEO_SELECT_SOURCE, which can be used to select either memory or a
+>>> demuxer (or in this case, the camera) as the source of the output  
+>>> (the
+>>> LCD in this case). It is probably the appropriate ioctl to implement
+>>> for this.
+>>
+>> So, in user space we should call  VIDIO_SELECT_SOURCE ioctl?
+>
+> Yes.
+>
+>>> The video.h header is shared between v4l and dvb and contains  
+>>> several
+>>> ioctls meant to handle output. It is poorly documented and I think  
+>>> it
+>>> should be merged into the v4l2 API and properly documented/cleaned  
+>>> up.
+>>
+>> I agree with you. Anyway, camera interface is not a DVB device but
+>> supporting this source routing feature means that we also need this
+>> API in v4l2.
+>
+> It's valid to use VIDEO_SELECT_SOURCE in an v4l2 driver. It's  
+> currently used
+> by ivtv. It's an historical accident that these ioctls ended up in  
+> the dvb
+> header.
 
-root@mythbox:/usr/src# cat ~tv/OptusD1
-# Optus D1 satellite freeview
-# freq pol sr fec
-S 12456000 H 22500000 3/4
-S 12483000 H 22500000 3/4
+Oh, I'll look into the driver. Cheers.
 
-root@mythbox:/usr/src# scan -vvv ~tv/OptusD1
-scanning /home/tv/OptusD1
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 12456000 H 22500000 3
-initial transponder 12483000 H 22500000 3
- >>> tune to: 12456:h:0:22500
-DiSEqC: switch pos 0, 18V, hiband (index 3)
-diseqc_send_msg:59: DiSEqC: e0 10 38 f3 00 00
- >>> tuning status == 0x01
-May  7 11:47:42 mythbox kernel: [178107.632517] cx88[0]/2-dvb: 
-cx8802_dvb_advise_acquire
-May  7 11:47:42 mythbox kernel: [178107.632605] CX24123: cx24123_initfe: 
-init frontend
-May  7 11:47:42 mythbox kernel: [178107.654542] CX24123: 
-cx24123_set_tone: setting tone off
-May  7 11:47:42 mythbox kernel: [178107.670453] CX24123: 
-cx24123_send_diseqc_msg:
-May  7 11:47:42 mythbox kernel: [178107.819702] CX24123: 
-cx24123_diseqc_send_burst:
-May  7 11:47:42 mythbox kernel: [178107.938184] CX24123: 
-cx24123_set_tone: setting tone on
-May  7 11:47:42 mythbox kernel: [178107.988741] CX24123: 
-cx24123_set_frontend:
-May  7 11:47:42 mythbox kernel: [178107.990101] CX24123: 
-cx24123_set_inversion: inversion auto
-May  7 11:47:42 mythbox kernel: [178107.992419] CX24123: 
-cx24123_set_fec: set FEC to 3/4
-May  7 11:47:42 mythbox kernel: [178107.996507] CX24123: 
-cx24123_set_symbolrate: srate=22500000, ratio=0x0038f7b8, 
-sample_rate=50555000 sample_gain=1
-May  7 11:47:42 mythbox kernel: [178107.996512] CX24123: 
-cx24123_pll_tune: frequency=1856000
-May  7 11:47:42 mythbox kernel: [178107.996514] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x00100e3f
-May  7 11:47:42 mythbox kernel: [178108.002777] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x000a0180
-May  7 11:47:42 mythbox kernel: [178108.009058] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x00000220
-May  7 11:47:42 mythbox kernel: [178108.015323] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x001f472b
-May  7 11:47:42 mythbox kernel: [178108.023215] CX24123: 
-cx24123_pll_tune: pll tune VCA=1052223, band=544, pll=2049835
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
-WARNING: >>> tuning failed!!!
- >>> tune to: 12456:h:0:22500 (tuning failed)
-DiSEqC: switch pos 0, 18V, hiband (index 3)
-diseqc_send_msg:59: DiSEqC: e0 10 38 f3 00 00
-May  7 11:47:44 mythbox kernel: [178110.004396] CX24123: 
-cx24123_set_tone: setting tone off
-May  7 11:47:44 mythbox kernel: [178110.020424] CX24123: 
-cx24123_send_diseqc_msg:
-May  7 11:47:44 mythbox kernel: [178110.167715] CX24123: 
-cx24123_diseqc_send_burst:
-May  7 11:47:45 mythbox kernel: [178110.287152] CX24123: 
-cx24123_set_tone: setting tone on
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
-May  7 11:47:45 mythbox kernel: [178110.337675] CX24123: 
-cx24123_set_frontend:
-May  7 11:47:45 mythbox kernel: [178110.338996] CX24123: 
-cx24123_set_inversion: inversion auto
-May  7 11:47:45 mythbox kernel: [178110.341326] CX24123: 
-cx24123_set_fec: set FEC to 3/4
-May  7 11:47:45 mythbox kernel: [178110.345423] CX24123: 
-cx24123_set_symbolrate: srate=22500000, ratio=0x0038f7b8, 
-sample_rate=50555000 sample_gain=1
-May  7 11:47:45 mythbox kernel: [178110.345429] CX24123: 
-cx24123_pll_tune: frequency=1856000
-May  7 11:47:45 mythbox kernel: [178110.345431] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x00100e3f
-May  7 11:47:45 mythbox kernel: [178110.351659] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x000a0180
-May  7 11:47:45 mythbox kernel: [178110.357933] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x00000220
-May  7 11:47:45 mythbox kernel: [178110.364180] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x001f472b
-May  7 11:47:45 mythbox kernel: [178110.372068] CX24123: 
-cx24123_pll_tune: pll tune VCA=1052223, band=544, pll=2049835
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
-WARNING: >>> tuning failed!!!
- >>> tune to: 12483:h:0:22500
-DiSEqC: switch pos 0, 18V, hiband (index 3)
-diseqc_send_msg:59: DiSEqC: e0 10 38 f3 00 00
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
-May  7 11:47:47 mythbox kernel: [178112.352572] CX24123: 
-cx24123_set_tone: setting tone off
-May  7 11:47:47 mythbox kernel: [178112.368449] CX24123: 
-cx24123_send_diseqc_msg:
-May  7 11:47:47 mythbox kernel: [178112.515727] CX24123: 
-cx24123_diseqc_send_burst:
-May  7 11:47:47 mythbox kernel: [178112.634193] CX24123: 
-cx24123_set_tone: setting tone on
-May  7 11:47:47 mythbox kernel: [178112.684796] CX24123: 
-cx24123_set_frontend:
-May  7 11:47:47 mythbox kernel: [178112.686127] CX24123: 
-cx24123_set_inversion: inversion auto
-May  7 11:47:47 mythbox kernel: [178112.688434] CX24123: 
-cx24123_set_fec: set FEC to 3/4
-May  7 11:47:47 mythbox kernel: [178112.692538] CX24123: 
-cx24123_set_symbolrate: srate=22500000, ratio=0x0038f7b8, 
-sample_rate=50555000 sample_gain=1
-May  7 11:47:47 mythbox kernel: [178112.692543] CX24123: 
-cx24123_pll_tune: frequency=1883000
-May  7 11:47:47 mythbox kernel: [178112.692545] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x00100e3f
-May  7 11:47:47 mythbox kernel: [178112.698796] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x000a0180
-May  7 11:47:47 mythbox kernel: [178112.705044] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x00000220
-May  7 11:47:47 mythbox kernel: [178112.711296] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x001f4746
-May  7 11:47:47 mythbox kernel: [178112.719186] CX24123: 
-cx24123_pll_tune: pll tune VCA=1052223, band=544, pll=2049862
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
-WARNING: >>> tuning failed!!!
- >>> tune to: 12483:h:0:22500 (tuning failed)
-DiSEqC: switch pos 0, 18V, hiband (index 3)
-diseqc_send_msg:59: DiSEqC: e0 10 38 f3 00 00
- >>> tuning status == 0x01
-May  7 11:47:49 mythbox kernel: [178114.699667] CX24123: 
-cx24123_set_tone: setting tone off
-May  7 11:47:49 mythbox kernel: [178114.715549] CX24123: 
-cx24123_send_diseqc_msg:
-May  7 11:47:49 mythbox kernel: [178114.863702] CX24123: 
-cx24123_diseqc_send_burst:
-May  7 11:47:49 mythbox kernel: [178114.982202] CX24123: 
-cx24123_set_tone: setting tone on
-May  7 11:47:49 mythbox kernel: [178115.032731] CX24123: 
-cx24123_set_frontend:
-May  7 11:47:49 mythbox kernel: [178115.034064] CX24123: 
-cx24123_set_inversion: inversion auto
-May  7 11:47:49 mythbox kernel: [178115.036363] CX24123: 
-cx24123_set_fec: set FEC to 3/4
-May  7 11:47:49 mythbox kernel: [178115.040453] CX24123: 
-cx24123_set_symbolrate: srate=22500000, ratio=0x0038f7b8, 
-sample_rate=50555000 sample_gain=1
-May  7 11:47:49 mythbox kernel: [178115.040457] CX24123: 
-cx24123_pll_tune: frequency=1883000
-May  7 11:47:49 mythbox kernel: [178115.040459] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x00100e3f
-May  7 11:47:49 mythbox kernel: [178115.046728] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x000a0180
-May  7 11:47:49 mythbox kernel: [178115.052972] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x00000220
-May  7 11:47:49 mythbox kernel: [178115.059235] CX24123: 
-cx24123_pll_writereg: pll writereg called, data=0x001f4746
-May  7 11:47:49 mythbox kernel: [178115.067143] CX24123: 
-cx24123_pll_tune: pll tune VCA=1052223, band=544, pll=2049862
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
- >>> tuning status == 0x01
-WARNING: >>> tuning failed!!!
-ERROR: initial tuning failed
-dumping lists (0 services)
-Done.
-root@mythbox:/usr/src# May  7 11:47:51 mythbox kernel: [178117.046327] 
-cx88[0]/2-dvb: cx8802_dvb_advise_release
+>
+>
+>>> Note that overlays are meant for on-screen displays. Usually these  
+>>> are
+>>> associated with a framebuffer device. Your hardware may implement  
+>>> such
+>>> an OSD as well, but that is different from this passthrough feature.
+>>
+>> Sorry Hans, I'm not sure that I'm following this part. Can I put it  
+>> in
+>> the way like this?
+>> The OSD feature in Samsung AP should be handled separated with the
+>> selecting source feature (camera-to-FB and camera-to-memory). So that
+>> I should implement both of them. (overlay feature and select source
+>> feature)
+>> Am I following? Please let me know if there is something wrong.
+>
+> Yes, that's correct.
+>
+>>
+>> BTW, my 5M camera driver which is including the new V4L2 API proposal
+>> I gave a talk in SF couldn't have approval from my bosses to be  
+>> opened
+>> to the public. But I'll try to make another camera device driver  
+>> which
+>> can cover must of the API I proposed.
+>
+> That's a shame. Erm, just to make it clear for your bosses: any v4l2  
+> driver
+> that uses any of the videobuf_*, v4l2_i2c_*, v4l2_device_* or  
+> v4l2_int_*
+> functions must be a GPL driver, and thus has to be made available upon
+> request. All these functions are marked EXPORT_SYMBOL_GPL. I don't  
+> know if
+> they realize this fact.
+>
 
-*After much googling i suspect i have the same issue as this guy*
+Oops I didn't make it clear that my driver was not used for a  
+commercial product. I made them for our platform development and test,  
+and as a matter of fact my drivers will be opened in the end but not  
+just soon enough. I think there is some issues in non-technical area  
+which I'm not aware of. I'll make another driver with other camera  
+device because I can't wait any longer. My boss approved that should  
+be OK. And actually it is challenging indeed.
+Cheers,
 
-http://www.spinics.net/linux/lists/linux-dvb/msg29015.html
+Nate
 
-I've very much appreciate any pointers. </grovel>
 
-Cheers, Rex
+> Regards,
+>
+> 	Hans
+>
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
+
+
