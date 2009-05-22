@@ -1,123 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.velocitynet.com.au ([203.17.154.25]:42867 "EHLO
-	m0.velocity.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753244AbZEaILN (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:62590 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751368AbZEVJDW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 May 2009 04:11:13 -0400
-Received: from webmail.velocity.net.au (unknown [203.17.154.9])
-	by m0.velocity.net.au (Postfix) with ESMTP id 8642060370
-	for <linux-media@vger.kernel.org>; Sun, 31 May 2009 18:11:13 +1000 (EST)
-Message-ID: <49254.202.168.20.241.1243757473.squirrel@webmail.velocity.net.au>
-Date: Sun, 31 May 2009 18:11:13 +1000 (EST)
-Subject: RE: Leadtek Winfast DTV-1000S
-From: paul10@planar.id.au
-To: linux-media@vger.kernel.org
+	Fri, 22 May 2009 05:03:22 -0400
+Date: Fri, 22 May 2009 11:58:27 +0300
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: ext Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Darius Augulis <augulis.darius@gmail.com>,
+	Paul Mundt <lethal@linux-sh.org>
+Subject: Re: [PATCH 08/10 v2] v4l2-subdev: add a v4l2_i2c_subdev_board()
+	function
+Message-ID: <20090522085827.GA1964@esdhcp037198.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+References: <Pine.LNX.4.64.0905151817070.4658@axis700.grange> <Pine.LNX.4.64.0905151905440.4658@axis700.grange> <200905211553.13802.hverkuil@xs4all.nl> <Pine.LNX.4.64.0905211728420.6271@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0905211728420.6271@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-OK, I've gone the next step and downloaded the hvr1200 firmware for the  
-using this link: steventoth.net/linux/hvr1200
+Hi Hans and Guennadi,
 
-I'm still not getting tuning, it isn't clear whether this is due to the
-firmware or the other errors in the log.  Again, my logs have messages
-from all three cards, including the 7134-based Avermedia.  I'm extracting
-the messages that look like they relate to the DTV1000S, I'm happy to post
-either the full log or to unplug the other two cards.  If I need to do the
-latter, that means I need to wait for a time where the box isn't supposed
-to be recording something - as it is also my production box, and WAF is
-currently quite high :-)
+On Thu, May 21, 2009 at 05:33:48PM +0200, ext Guennadi Liakhovetski wrote:
+> Hi Hans,
+> 
+> On Thu, 21 May 2009, Hans Verkuil wrote:
+> 
+> > On Friday 15 May 2009 19:20:10 Guennadi Liakhovetski wrote:
+> > > Introduce a function similar to v4l2_i2c_new_subdev() but taking a
+> > > pointer to a struct i2c_board_info as a parameter instead of a client
+> > > type and an I2C address, and make v4l2_i2c_new_subdev() a wrapper around
+> > > it.
+> > >
+> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > ---
+> > >
+> > > Hans, renamed as you requested and updated to a (more) current state.
+> > 
+> > NAK. Not because it is a bad idea, but because you need to patch against the 
+> > version in the v4l-dvb repo. The version in the kernel is missing a lot of 
+> > the compatibility code which we unfortunately need to keep.
+> > 
+> > Any function passing the board_info will be valid for kernels >= 2.6.26 
+> > only.
+> 
+> Here's a quote from your earlier email.
+> 
+> On Tue, 21 Apr 2009, Hans Verkuil wrote:
+> 
+> > The board_info struct didn't appear until 2.6.22, so that's certainly a
+> > cut-off point. Since the probe version of this call does not work on
+> > kernels < 2.6.26 the autoprobing mechanism is still used for those older
+> > kernels. I think it makes life much easier to require that everything that
+> > uses board_info needs kernel 2.6.26 at the minimum. I don't think that is
+> > an issue anyway for soc-camera. Unless there is a need to use soc-camera
+> > from v4l-dvb with kernels <2.6.26?
+> 
+> So, will this my patch build and work with >= 2.6.22 or not? I really 
+> would not like to consciously make code uglier now because of 
+> compatibility with < 2.6.26 to make it better some time later again.
 
-The dmesg logs are:
-[   10.232789] saa7130/34: v4l2 driver version 0.2.15 loaded
-[   10.241194] saa7134 0000:05:00.0: PCI INT A -> GSI 20 (level, low) ->
-IRQ 20
-[   10.249731] saa7130[0]: found at 0000:05:00.0, rev: 1, irq: 20,
-latency: 32, mmio: 0xfc001000
-[   10.258483] saa7130[0]: subsystem: 107d:6655, board: Hauppauge
-WinTV-HVR1110r3 DVB-T/Hybrid [card=156,insmod option]
-[   10.267477] saa7130[0]: board init: gpio is 122009
-[   10.293131] cx88/0: cx2388x v4l2 driver version 0.0.7 loaded
-[   10.302052] IRQ 20/saa7130[0]: IRQF_DISABLED is not guaranteed on
-shared IRQs
-[   10.312626] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.7 loaded
-[   10.353716] cx2388x alsa driver version 0.0.7 loaded
-[   10.400854] HDA Intel 0000:00:1b.0: PCI INT A -> GSI 22 (level, low) ->
-IRQ 22
-[   10.410254] HDA Intel 0000:00:1b.0: setting latency timer to 64
-[   10.464031] saa7130[0]: i2c eeprom 00: 7d 10 55 66 54 20 1c 00 43 43 a9
-1c 55 d2 b2 92
-[   10.473672] saa7130[0]: i2c eeprom 10: 00 ff 82 0e ff 20 ff ff ff ff ff
-ff ff ff ff ff
-[   10.483379] saa7130[0]: i2c eeprom 20: 01 40 01 01 01 ff 01 03 08 ff 00
-8a ff ff ff ff
-[   10.492999] saa7130[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.502537] saa7130[0]: i2c eeprom 40: ff 35 00 c0 00 10 03 02 ff 04 ff
-ff ff ff ff ff
-[   10.512026] saa7130[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.521514] saa7130[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.530935] saa7130[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.540418] saa7130[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.549677] saa7130[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.558693] saa7130[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.567617] saa7130[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.567739] saa7130[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.567746] saa7130[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.567753] saa7130[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.567758] saa7130[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.567765] tveeprom 1-0050: Encountered bad packet header [ff].
-Corrupt or not a Hauppauge eeprom.
-[   10.567767] saa7130[0]: warning: unknown hauppauge model #0
-[   10.567768] saa7130[0]: hauppauge eeprom: model=0
-[   10.712041] Chip ID is not zero. It is not a TEA5767
-[   10.720138] tuner 1-0060: chip found @ 0xc0 (saa7130[0])
-[   10.768020] tda8290: no gate control were provided!
-[   10.775900] tuner 1-0060: Tuner has no way to set tv freq
-[   10.783718] tuner 1-0060: Tuner has no way to set tv freq
-[   10.791567] saa7130[0]: registered device video0 [v4l2]
-[   10.799359] saa7130[0]: registered device vbi0
-[   10.807034] saa7130[0]: registered device radio0
+I've to agree with Guennadi, I believe newer code should not suffer because
+of compatibility code, at least if it is possible. I also agree with you that
+we must keep compatibility with older drivers.
 
-<some stuff from another card (I think)>
+What I propose it to have the mechanism of .s_config available only for
+LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 26). Newer version can take advance
+of the new i2c api features.
 
-[   12.273033] DVB: registering new adapter (saa7130[0])
-[   12.281372] DVB: registering adapter 1 frontend 0 (NXP TDA10048HN
-DVB-T)...
-[   12.617026] tda10048_firmware_upload: waiting for firmware upload
-(dvb-fe-tda10048-1.0.fw)...
-[   12.617029] saa7134 0000:05:00.0: firmware: requesting
-dvb-fe-tda10048-1.0.fw
-[   12.694154] EXT3 FS on md21, internal journal
-[   12.709531] tda10048_firmware_upload: firmware read 24878 bytes.
-[   12.718281] tda10048_firmware_upload: firmware uploading
+This is slightly different from what Hans proposed. The difference here
+is that we do not force newer drivers to use a callback only because
+of backward compatibility.
 
-<some more stuff that doesn't look related>
+Well, this is what I think of this problem, you may have a different point
+of view. What do you think?
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-[   16.820022] tda10048_firmware_upload: firmware uploaded
-[   16.944017] dvb_init() allocating 1 frontend
-[   17.005238] tuner-simple 3-0061: unable to probe Philips TD1316 Hybrid
-Tuner, proceeding anyway.<6>tuner-simple 3-0061: creating new instance
-[   17.013309] tuner-simple 3-0061: type set to 67 (Philips TD1316 Hybrid
-Tuner)
-[   17.021250] DVB: registering new adapter (saa7134[1])
-[   17.029133] DVB: registering adapter 2 frontend 0 (Zarlink MT352 DVB-T)...
-
-<I think those last two lines relate to the Avermedia, but not sure>
-
-
-http://drivers.softpedia.com/get/TV-Tuner-Co/LEADTEK/Leadtek-WinFast-DTV1000S-XP-Driver-20070907-WHQL.shtml
-
+-- 
+Eduardo Valentin
