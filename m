@@ -1,96 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2280 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752934AbZELHuZ (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4768 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753117AbZEVLz7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2009 03:50:25 -0400
-Message-ID: <53599.62.70.2.252.1242114622.squirrel@webmail.xs4all.nl>
-Date: Tue, 12 May 2009 09:50:22 +0200 (CEST)
-Subject: Re: [PATCH v2 0/7] [RFC] FM Transmitter (si4713) and another
-     changes
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Fri, 22 May 2009 07:55:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: eduardo.valentin@nokia.com
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Nurkkala Eero.An" <ext-eero.nurkkala@nokia.com>
+Subject: Re: [PATCH 08/10 v2] v4l2-subdev: add a v4l2_i2c_subdev_board() function
+Date: Fri, 22 May 2009 13:55:52 +0200
+Cc: ext Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Darius Augulis <augulis.darius@gmail.com>,
+	Paul Mundt <lethal@linux-sh.org>
+References: <Pine.LNX.4.64.0905151817070.4658@axis700.grange> <Pine.LNX.4.64.0905211728420.6271@axis700.grange> <20090522085827.GA1964@esdhcp037198.research.nokia.com>
+In-Reply-To: <20090522085827.GA1964@esdhcp037198.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200905221355.52713.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Friday 22 May 2009 10:58:27 Eduardo Valentin wrote:
+> Hi Hans and Guennadi,
+>
+> On Thu, May 21, 2009 at 05:33:48PM +0200, ext Guennadi Liakhovetski wrote:
+> > Hi Hans,
+> >
+> > On Thu, 21 May 2009, Hans Verkuil wrote:
+> > > On Friday 15 May 2009 19:20:10 Guennadi Liakhovetski wrote:
+> > > > Introduce a function similar to v4l2_i2c_new_subdev() but taking a
+> > > > pointer to a struct i2c_board_info as a parameter instead of a
+> > > > client type and an I2C address, and make v4l2_i2c_new_subdev() a
+> > > > wrapper around it.
+> > > >
+> > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > > ---
+> > > >
+> > > > Hans, renamed as you requested and updated to a (more) current
+> > > > state.
+> > >
+> > > NAK. Not because it is a bad idea, but because you need to patch
+> > > against the version in the v4l-dvb repo. The version in the kernel is
+> > > missing a lot of the compatibility code which we unfortunately need
+> > > to keep.
+> > >
+> > > Any function passing the board_info will be valid for kernels >=
+> > > 2.6.26 only.
+> >
+> > Here's a quote from your earlier email.
+> >
+> > On Tue, 21 Apr 2009, Hans Verkuil wrote:
+> > > The board_info struct didn't appear until 2.6.22, so that's certainly
+> > > a cut-off point. Since the probe version of this call does not work
+> > > on kernels < 2.6.26 the autoprobing mechanism is still used for those
+> > > older kernels. I think it makes life much easier to require that
+> > > everything that uses board_info needs kernel 2.6.26 at the minimum. I
+> > > don't think that is an issue anyway for soc-camera. Unless there is a
+> > > need to use soc-camera from v4l-dvb with kernels <2.6.26?
+> >
+> > So, will this my patch build and work with >= 2.6.22 or not? I really
+> > would not like to consciously make code uglier now because of
+> > compatibility with < 2.6.26 to make it better some time later again.
+>
+> I've to agree with Guennadi, I believe newer code should not suffer
+> because of compatibility code, at least if it is possible. I also agree
+> with you that we must keep compatibility with older drivers.
 
-> On Tue, May 12, 2009 at 09:03:18AM +0200, ext Hans Verkuil wrote:
->> On Monday 11 May 2009 11:31:42 Eduardo Valentin wrote:
->> > Hello all,
->> >
->> > It took a few but I'm resending the FM transmitter driver again.
->> > Sorry for this delay, but I had another things to give attention.
->> >
->> > Anyway, after reading the API and re-writing the code I came up
->> > with the following 7 patches. Three of them are in the v4l2 API.
->> > The other 4 are for the si4713 device.
->> >
->> > It is because of the first 3 patches that I'm sending this as a RFC.
->> >
->> > The first and second patches, as suggested before, are creating
->> another
->> > v4l2 extended controls class, the V4L2_CTRL_CLASS_FMTX. At this
->> > first interaction, I've put all si4713 device extra properties there.
->> > But I think that some of the can be moved to private class
->> > (V4L2_CID_PRIVATE_BASE). That's the case of the region related things.
->> > Comments are wellcome.
->> >
->> > The third patch came *maybe* because I've misunderstood something. But
->> > I realized that the v4l2-subdev helper functions for I2C devices
->> assumes
->> > that the bridge device will create an I2C adaptor. And in that case,
->> only
->> > I2C address and its type are suffient. But in this case, makes no
->> sense
->> > to me to create an adaptor for the si4713 platform device driver. This
->> is
->> > the case where the device (si4713) is connected to an existing
->> adaptor.
->> > That's why I've realized that currently there is no way to pass I2C
->> board
->> > info using the current v4l2 I2C helper functions. Other info like irq
->> > line and platform data are not passed to subdevices. So, that's why
->> I've
->> > created that patch.
->>
->> I've made several changes to the v4l2-subdev helpers: you now pass the
->> i2c
->> adapter directly. I've also fixed the unregister code to properly
->> unregister any i2c client so you can safely rmmod and modprobe the i2c
->> module.
->
-> Right. I will check those.
->
->>
->> What sort of platform data do you need to pass to the i2c driver? I have
->> yet
->> to see a valid use case for this that can't be handled in a different
->> way.
->> Remember that devices like this are not limited to fixed platforms, but
->> can
->> also be used in USB or PCI devices.
->
-> Yes, sure. Well, a simple "set_power" procedure is an example of things
-> that
-> I see as platform specific. Which may be passed by platform data
-> structures.
-> In some platform a set power / reset line may be done by a simple gpio.
-> but
-> in others it may be a different procedure.
+Let there be no doubt about it: it's very unfortunate that we have to do 
+this. I really hope that in, say, one year we can just drop support for 
+kernels pre-2.6.26. But my proposal from the beginning of the year to drop 
+support for kernels < 2.6.22 demonstrated that not everyone is happy about 
+that.
 
-The v4l2_device struct has a notify callback: you can use that one
-instead. That way the subdev driver doesn't have to have any knowledge
-about the platform it is used in.
+A quick note for Guennadi: the i2c_board_info and the new i2c API has been 
+available since 2.6.22, but for the subdev support in v4l2 I've decided not 
+to use the new i2c API for kernels < 2.6.26 due to a serious i2c core 
+kernel bug that wasn't fixed until 2.6.26 (probing for the existence of an 
+i2c device at certain addresses can cause an oops). Strictly speaking it 
+would be possible to support board_info from 2.6.22 onwards, but going that 
+way makes it very messy with lots of #ifdefs. I want to keep the simple 
+rule to only support the new i2c API for 2.6.26 onwards.
+
+> What I propose it to have the mechanism of .s_config available only for
+> LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 26). Newer version can take
+> advance of the new i2c api features.
+>
+> This is slightly different from what Hans proposed. The difference here
+> is that we do not force newer drivers to use a callback only because
+> of backward compatibility.
+>
+> Well, this is what I think of this problem, you may have a different
+> point of view. What do you think?
+
+No, that's not going to work. None of the USB and PCI drivers use 
+i2c_board_info since they all can run on older kernels as well. So all 
+those drivers need an s_config ops that they can call. Now, embedded 
+drivers usually have no need to support older kernels, so these can use 
+i2c_board_info directly.
+
+If you know that an i2c driver is only ever called using this new 
+v4l2_i2c_new_subdev_board_info function (I prefer the shorter name 
+v4l2_i2c_subdev_board() BTW), then you can choose to not implement s_config 
+in that i2c driver.
+
+But i2c drivers that have to support older kernels as well should use 
+s_config.
+
+Note that s_config also needs an 'int irq' argument besides the 'void 
+*platform_data'. And that we should also add a 
+v4l2_i2c_probed_subdev_board() call.
 
 Regards,
 
-        Hans
+	Hans
+
+>
+> > Thanks
+> > Guennadi
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > http://www.open-technology.de/
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media"
+> > in the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
 
 -- 
 Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
