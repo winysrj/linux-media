@@ -1,42 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.sissa.it ([147.122.11.135]:53637 "EHLO smtp.sissa.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751000AbZEVQZX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2009 12:25:23 -0400
-From: Nicola Soranzo <nsoranzo@tiscali.it>
-To: Linux Media <linux-media@vger.kernel.org>
-Subject: [PATCH] tuner-core: remove unused variable
-Date: Fri, 22 May 2009 18:25:34 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from yx-out-2324.google.com ([74.125.44.29]:45689 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752133AbZEVQgR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 22 May 2009 12:36:17 -0400
+Received: by yx-out-2324.google.com with SMTP id 3so1084687yxj.1
+        for <linux-media@vger.kernel.org>; Fri, 22 May 2009 09:36:18 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200905221825.34542.nsoranzo@tiscali.it>
+In-Reply-To: <829197380905220828i2b8cf7e4h6f067b996fd72fab@mail.gmail.com>
+References: <1243003530.24983.8.camel@pc67246619>
+	 <829197380905220828i2b8cf7e4h6f067b996fd72fab@mail.gmail.com>
+Date: Fri, 22 May 2009 18:36:17 +0200
+Message-ID: <d9def9db0905220936r6b37c7ferd7cefec0afc18ff0@mail.gmail.com>
+Subject: Re: Review of the Linux driver for the TerraTec Cinergy HTC USB XS HD
+	stick
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Ad Denissen <ad.denissen@hccnet.nl>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Trivial fix for this warning, introduced by changeset 7f2eea75118b:
+On Fri, May 22, 2009 at 5:28 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Fri, May 22, 2009 at 10:45 AM, Ad Denissen <ad.denissen@hccnet.nl> wrote:
+>> Hi Markus,
+>>
+>> I have a TerraTec Cinergy HTC USB XS HD stick and more than 10 years of
+>> experience with Linux (drivers).
+>>
+>> This USB stick works fine under Windows, but I need it under Linux
+>> for my MythTV experiments in DVB-C mode.
+>>
+>> Can I help you in the cleanup of the Linux driver for this device?
+>>
+>> Kind regards,
+>>
+>> Ad Denissen
+>
+> Hello Ad,
+>
+> The TerraTec Cinergy HTC USB XS HD makes use of the Micronas drx-k
+> demodulator.  There is currently no driver at all for this device in
+> the mainline Linux kernel.  As a result, getting the device to work in
+> the mainline kernel is much more than "cleanup".
+>
+> Markus's support for the drx-k uses his closed source product, and
+> therefore is not eligible for inclusion in the Linux kernel.  You may
+> wish to contact him though if you are interested in a commercial
+> closed source solution.
+>
 
-/home/nicola/v4l-dvb-archive/v4l/tuner-core.c: In function 'set_type':
-/home/nicola/v4l-dvb-archive/v4l/tuner-core.c:429: warning: unused variable 'xc_tuner_ops'
+You still mistake that the important drivers are not implemented in
+Kernelspace, because
+of that there will never be a _requirement_ to merge the chipdrivers
+in order to get it work.
+For example DVB-C/T, all control commands are sent to the frontend
+device node all those
+commands are intercepted at userlevel while still being compatible
+with legacy applications like
+kaffeine or dvbscan.
 
-Priority: normal
-
-Signed-off-by: Nicola Soranzo <nsoranzo@tiscali.it>
-
----
-diff -r 315bc4b65b4f -r 040b6da1f887 linux/drivers/media/video/tuner-core.c
---- a/linux/drivers/media/video/tuner-core.c	Sun May 17 12:28:55 2009 +0000
-+++ b/linux/drivers/media/video/tuner-core.c	Fri May 22 18:11:17 2009 +0200
-@@ -426,8 +426,6 @@
- 		break;
- 	case TUNER_XC5000:
- 	{
--		struct dvb_tuner_ops *xc_tuner_ops;
--
- 		xc5000_cfg.i2c_address	  = t->i2c->addr;
- 		/* if_khz will be set when the digital dvb_attach() occurs */
- 		xc5000_cfg.if_khz	  = 0;
-
+regards,
+Markus
