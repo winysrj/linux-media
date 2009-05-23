@@ -1,88 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:38890 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759256AbZE0Jkv (ORCPT
+Received: from mail1.sea5.speakeasy.net ([69.17.117.3]:52076 "EHLO
+	mail1.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752096AbZEWSZZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2009 05:40:51 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	Sat, 23 May 2009 14:25:25 -0400
+Date: Sat, 23 May 2009 11:25:27 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
 	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv4 2 of 8] v4l2: video device: Add V4L2_CTRL_CLASS_FMTX controls
-Date: Wed, 27 May 2009 12:35:49 +0300
-Message-Id: <1243416955-29748-3-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1243416955-29748-2-git-send-email-eduardo.valentin@nokia.com>
-References: <1243416955-29748-1-git-send-email-eduardo.valentin@nokia.com>
- <1243416955-29748-2-git-send-email-eduardo.valentin@nokia.com>
+	"xlzhang76@gmail.com" <xlzhang76@gmail.com>
+Subject: Re: [PATCH 1/5 - part 2] V4L2 patches for Intel Moorestown Camera
+ Imaging Drivers
+In-Reply-To: <20090523060342.46eb89aa@pedra.chehab.org>
+Message-ID: <Pine.LNX.4.58.0905231059460.32713@shell2.speakeasy.net>
+References: <0A882F4D99BBF6449D58E61AAFD7EDD613810F55@pdsmsx502.ccr.corp.intel.com>
+ <20090523060342.46eb89aa@pedra.chehab.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-# HG changeset patch
-# User Eduardo Valentin <eduardo.valentin@nokia.com>
-# Date 1243414606 -10800
-# Branch export
-# Node ID ebb409d7a258df2bc7a6dcd72113584b4c0e7ce2
-# Parent  4fb354645426f8b187c2c90cd8528b2518461005
-This patch adds a new class of extended controls. This class
-is intended to support Radio Modulators properties such as:
-rds, audio limiters, audio compression, pilot tone generation,
-tuning power levels and region related properties.
+On Sat, 23 May 2009, Mauro Carvalho Chehab wrote:
+> > + + if (intel->open) { + ++intel->open; + DBG_DD(("device has opened
+> > already - %d\n", intel->open)); + return 0; + } + + file->private_data
+> > = dev; + /* increment our usage count for the driver */ +
+> > ++intel->open; + DBG_DD(("intel_open is %d\n", intel->open)); +
+>
+> Open is not the proper place to clean the configuration, since a V4L2
+> device should support more than one open.  You can use a different
+> userspace app to control your device, while other application is
+> streaming it.
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- include/linux/videodev2.h |   34 ++++++++++++++++++++++++++++++++++
- 1 files changed, 34 insertions(+), 0 deletions(-)
+It looks like only the first open will set the configuration, subsequent
+ones don't do anything.  So maybe this driver is ok for multiple opens?
+Doesn't the kernel make open and close atomic, so some kind of barrier or
+atomic variable isn't necessary?
 
-diff -r 4fb354645426 -r ebb409d7a258 linux/include/linux/videodev2.h
---- a/linux/include/linux/videodev2.h	Wed May 27 11:56:45 2009 +0300
-+++ b/linux/include/linux/videodev2.h	Wed May 27 11:56:46 2009 +0300
-@@ -803,6 +803,7 @@
- #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
- #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
- #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
-+#define V4L2_CTRL_CLASS_FMTX 0x009b0000	/* FM Radio Modulator class controls */
- 
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-@@ -1141,6 +1142,39 @@
- 
- #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
- 
-+/* FM Radio Modulator class control IDs */
-+#define V4L2_CID_FMTX_CLASS_BASE		(V4L2_CTRL_CLASS_FMTX | 0x900)
-+#define V4L2_CID_FMTX_CLASS			(V4L2_CTRL_CLASS_FMTX | 1)
-+
-+#define V4L2_CID_RDS_ENABLED			(V4L2_CID_FMTX_CLASS_BASE + 1)
-+#define V4L2_CID_RDS_PI				(V4L2_CID_FMTX_CLASS_BASE + 2)
-+#define V4L2_CID_RDS_PTY			(V4L2_CID_FMTX_CLASS_BASE + 3)
-+#define V4L2_CID_RDS_PS_NAME			(V4L2_CID_FMTX_CLASS_BASE + 4)
-+#define V4L2_CID_RDS_RADIO_TEXT			(V4L2_CID_FMTX_CLASS_BASE + 5)
-+
-+#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 6)
-+#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 7)
-+#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FMTX_CLASS_BASE + 8)
-+
-+#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FMTX_CLASS_BASE + 9)
-+#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FMTX_CLASS_BASE + 10)
-+#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FMTX_CLASS_BASE + 11)
-+#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FMTX_CLASS_BASE + 12)
-+#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 13)
-+
-+#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 14)
-+#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FMTX_CLASS_BASE + 15)
-+#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FMTX_CLASS_BASE + 16)
-+
-+#define V4L2_CID_PREEMPHASIS			(V4L2_CID_FMTX_CLASS_BASE + 17)
-+enum v4l2_fmtx_preemphasis {
-+	V4L2_FMTX_PREEMPHASIS_DISABLED		= 0,
-+	V4L2_FMTX_PREEMPHASIS_50_uS		= 1,
-+	V4L2_FMTX_PREEMPHASIS_75_uS		= 2,
-+};
-+#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FMTX_CLASS_BASE + 18)
-+#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FMTX_CLASS_BASE + 19)
-+
- /*
-  *	T U N I N G
-  */
+> > +static int intel_g_fmt_cap(struct file *file, void *priv,
+> > +                               struct v4l2_format *f)
+> > +{
+> > +       struct video_device *dev = video_devdata(file);
+> > +       struct intel_isp_device *intel = video_get_drvdata(dev);
+> > +       int ret;
+> > +
+> > +       DBG_DD(("intel_g_fmt_cap\n"));
+> > +       if (f->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+
+Once switched to video-ioctl2, it don't be necessary to check the type of
+buffer.  vidioc_g_fmt_cap will only be called with video capture buffers.
+It's the same with all the other vidioc_*_cap methods.
+
+> > +static int intel_s_input(struct file *file, void *priv, unsigned int i)
+> > +{
+> > +       return 0;
+> > +}
+
+Wouldn't it be better to return an error if the input is something other
+than zero?
+
+> > +       snrcfg = intel->sys_conf.isi_config;
+> > +       index = f->index;
+> > +
+> > +       if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> > +               ret = -EINVAL;
+> > +       else {
+> > +               if (snrcfg->type == SENSOR_TYPE_SOC)
+> > +                       if (index >= 8)
+> > +                               return -EINVAL;
+> > +               if (index >= sizeof(fmts) / sizeof(*fmts))
+> > +                       return -EINVAL;
+> > +               memset(f, 0, sizeof(*f));
+> > +               f->index = index;
+
+Saving index, clearing f, and restoring index isn't necessary.
+video-ioctl2 will take care of clearing everything that needs to be
+cleared.
+
+> > +               f->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+
+Not necessary either, you already know type is set correctly.
+
+> > +       if (buf->memory != V4L2_MEMORY_MMAP ||
+> > +           buf->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
+> > +           buf->index >= intel->num_frames || buf->index < 0)
+> > +               return  -EINVAL;
+
+You don't need to check buf->type, it will be a type your driver supports.
+buf->index is unsigned, obviously it can't be less than zero.  The same
+applies to all the other buffer functions.  Looks like you copied from old
+code.  Some drivers had these unnecessary checks but they should have all
+been cleaned up by now.
+
+> > +       pci_read_config_word(dev, PCI_VENDOR_ID, &intel->vendorID);
+> > +       pci_read_config_word(dev, PCI_DEVICE_ID, &intel->deviceID);
+
+Do you ever use these after saving them?
