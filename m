@@ -1,140 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110811.mail.gq1.yahoo.com ([67.195.13.234]:23304 "HELO
-	web110811.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752748AbZESPeI (ORCPT
+Received: from mail-bw0-f174.google.com ([209.85.218.174]:52406 "EHLO
+	mail-bw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752399AbZEWUNM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2009 11:34:08 -0400
-Message-ID: <763416.19374.qm@web110811.mail.gq1.yahoo.com>
-Date: Tue, 19 May 2009 08:34:09 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [09051_48] Siano: smscore - remove redundant code
-To: LinuxML <linux-media@vger.kernel.org>
+	Sat, 23 May 2009 16:13:12 -0400
+Received: by bwz22 with SMTP id 22so2283425bwz.37
+        for <linux-media@vger.kernel.org>; Sat, 23 May 2009 13:13:12 -0700 (PDT)
+Message-ID: <4A1858B6.3090202@gmail.com>
+Date: Sat, 23 May 2009 22:12:38 +0200
+From: David Lister <foceni@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Gernot Pansy <gernot@pansy.at>, linux-media@vger.kernel.org
+Subject: Re: Question about driver for Mantis
+References: <200905230810.39344.jarhuba2@poczta.onet.pl>	 <1a297b360905222341t4e66e2c6x95d339838db43139@mail.gmail.com>	 <200905231436.58072.gernot@pansy.at> <4A180DD8.4030009@gmail.com>	 <1a297b360905230941m69085ab5jf3b75f3c42ded48b@mail.gmail.com>	 <4A18358F.6040404@gmail.com> <1a297b360905231137i157e5dbt2c023e656c690e99@mail.gmail.com>
+In-Reply-To: <1a297b360905231137i157e5dbt2c023e656c690e99@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Manu Abraham wrote:
+> On Sat, May 23, 2009 at 9:42 PM, David Lister <foceni@gmail.com> wrote:
+>   
+>> Manu Abraham wrote:
+>>     
+>>> 2009/5/23 David Lister <foceni@gmail.com>:
+>>>
+>>>       
+>>>> Not sure if you didn't get this email already, I had a slip-up while
+>>>> sending it. :) Anyway, there's also another supported card with a CI. A
+>>>> friend of mine has it, so I guess it works quite well with Linux. It's
+>>>> Mystique SaTiX-S2 (AFAIK, similar to KNC1+). Mystiques have rather
+>>>> quality finish and the CI module is ready for 3.5" drive installation.
+>>>> Some pictures from google:
+>>>>
+>>>> http://www.cesarex.com/images/Mystique-CI-1.jpg
+>>>> http://www.sat-servis.cz/data/eshop/fotky/produkty/velke/619.jpg
+>>>>
+>>>> Others might be able to tell you more details, I just know it works -
+>>>> friend has a Cryptoworks CAM in it. Take a look around, bye.
+>>>>
+>>>>         
+>>> The Mystique is just a rebranded KNC1+ which just uses the same
+>>> STB0899 module, FYI. :-)
+>>>
+>>>       
+>> Not exactly. People usually say it is a rebrand/clone of KNC1+, but it's
+>> not. :) There are couple of differences -- Mystique is a lighter version
+>> missing these features:
+>> 1) Signal passthrough via loop-out connector
+>> 2) Video input port for analogue capture
+>>
+>> I'm glad you reminded me of this misconception, the differences might be
+>> important for somebody. I was considering Mystique for myself, but chose
+>> CX24116 over STB0899, because this time, I wanted official support. I
+>> don't need analogue capture and CI anyway (I use softcam and for analog,
+>> much better Hauppauge PVR-500). I suggest Mystique instead of KNC1+ for
+>> purely practical reasons - it's more available, cheaper and nicer. :)
+>>     
+> No misconceptions:
+>   
+Oh, but there are. We were both talking about the sat version of KNC1+,
+not KNC1! You said and I quote: "The Mystique is just a rebranded
+KNC1+", which is not true. That's why I originally said that it's
+*similar* to Mystique, which *is* true. It might be the same as plain
+KNC1 or dozens of other rebranded versions, but that wasn't the point.
+The misconception is that "Mystique is KNC1+ clone" -- it is not.
+Perhaps I could have mentioned basic TV Station DVB-S too, but I didn't
+expect I'll have to defend every word I say. Now that I think about it,
+I'm glad I didn't - your inability to comprehend the simplest of
+meanings shines like the sun.
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1242747487 -10800
-# Node ID cfb4106f3ceaee9fe8f7e3acc9d4adec1baffe5e
-# Parent  971d4cc0d4009650bd4752c6a9fc09755ef77baf
-[09051_48] Siano: smscore - remove redundant code
+Your follow-up comment was completely useless, arbitrary trolling. If
+you could face the life like a man instead of a cry baby, you wouldn't
+have the need to patronise me (unsuccessfully:)) in an unrelated thread
+just because of our earlier argument. You should be ashamed of yourself.
+You're a DVB driver developer and you have a hard time arguing with
+somebody who has seen DVB-S for the first time in his life a month ago!
 
-From: Uri Shkolnik <uris@siano-ms.com>
+>
+> So support for it just appeared like magic ?
+>   
+Were you arguing with one of your other personalities in your head that
+I missed something? I'm afraid you are a bit confused today, or you
+misinterpret the meaning of my words on purpose, or are just pissed off
+at me. :) Whatever. Because it might be your weak English, I'm not going
+to call you an idiot like you called me a few times today, even though
+this time it *would* be appropriate. It's the same thing as in the other
+thread all over again. It's impossible to have a normal intelligent
+conversation with you. I'm not going to support your trolling any more.
 
-remove redundant code, which in the past handled the
-various components (now independent modules) registrations.
+As usual, I wish you good luck in your efforts. Looks like you need it.
 
-Priority: normal
-
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-
-diff -r 971d4cc0d400 -r cfb4106f3cea linux/drivers/media/dvb/siano/smscoreapi.c
---- a/linux/drivers/media/dvb/siano/smscoreapi.c	Tue May 19 18:32:44 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smscoreapi.c	Tue May 19 18:38:07 2009 +0300
-@@ -1645,99 +1645,11 @@ static int __init smscore_module_init(vo
- 	INIT_LIST_HEAD(&g_smscore_registry);
- 	kmutex_init(&g_smscore_registrylock);
- 
--#if 0 /* def SMS_CHAR_CLIENT */
--	/* Char interface Register */
--	rc = smschar_register();
--	if (rc) {
--		sms_err("Error registering char device client.\n");
--		goto smschar_error;
--	}
--#endif
--
--#if 0 /* def SMS_DVB_CLIENT */
--	/* DVB Register */
--	rc = smsdvb_register();
--	if (rc) {
--		sms_err("Error registering DVB client.\n");
--		goto smsdvb_error;
--	}
--#endif
--
--#if 0 /* def SMS_NET_CLIENT */
--	/* DVB Register */
--	rc = smsnet_register();
--	if (rc) {
--		sms_err("Error registering Network client.\n");
--		goto smsnet_error;
--	}
--#endif
--
--#if 0 /* def SMS_USB_BUS_DRV */
--	/* USB Register */
--	rc = smsusb_register();
--	if (rc) {
--		sms_err("Error registering USB bus driver.\n");
--		goto sms_bus_drv_error;
--	}
--#endif
--
--#if 0 /* def SMS_SPI_BUS_DRV */
--	/* USB Register */
--	rc = smsspi_register();
--	if (rc) {
--		sms_err("Error registering spi bus driver.\n");
--		goto sms_bus_drv_error;
--	}
--#endif
--
--	return rc;
--#if 0
--sms_bus_drv_error:
--#endif /* 0 */
--#if 0 /* def SMS_NET_CLIENT */
--	smsnet_unregister();
--smsnet_error:
--#endif
--#if 0 /* def SMS_DVB_CLIENT */
--	smsdvb_unregister();
--smsdvb_error:
--#endif
--#if 0 /* def SMS_CHAR_CLIENT */
--	smschar_unregister();
--smschar_error:
--#endif
--	sms_debug("rc %d", rc);
--
- 	return rc;
- }
- 
- static void __exit smscore_module_exit(void)
- {
--#if 0 /* def SMS_CHAR_CLIENT */
--	/* Char interface UnRegister */
--	smschar_unregister();
--#endif
--
--#if 0 /* def SMS_DVB_CLIENT */
--	/* DVB UnRegister */
--	smsdvb_unregister();
--#endif
--
--#if 0 /* def SMS_NET_CLIENT */
--	/* NET UnRegister */
--	smsnet_unregister();
--#endif
--
--#if 0 /* def SMS_USB_BUS_DRV */
--	/* Unregister USB */
--	smsusb_unregister();
--#endif
--
--#if 0 /* def SMS_SPI_BUS_DRV */
--	/* Unregister SPI */
--	smsspi_unregister();
--#endif
--
- 	kmutex_lock(&g_smscore_deviceslock);
- 	while (!list_empty(&g_smscore_notifyees)) {
- 		struct smscore_device_notifyee_t *notifyee =
-
-
-
-      
+-- 
+Dave
