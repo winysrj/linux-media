@@ -1,113 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f168.google.com ([209.85.220.168]:34263 "EHLO
-	mail-fx0-f168.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753502AbZEZOrg convert rfc822-to-8bit (ORCPT
+Received: from ns01.unsolicited.net ([69.10.132.115]:60879 "EHLO
+	ns01.unsolicited.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756326AbZEWTZW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2009 10:47:36 -0400
-Received: by fxm12 with SMTP id 12so2099428fxm.37
-        for <linux-media@vger.kernel.org>; Tue, 26 May 2009 07:47:37 -0700 (PDT)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Simon Kenyon <simon@koala.ie>
-Subject: Re: [linux-dvb] SDMC DM1105N not being detected
-Date: Tue, 26 May 2009 17:47:31 +0300
-Cc: linux-media@vger.kernel.org
-References: <e6ac15e50904022156u40221c3fib15d1b4cdf36461@mail.gmail.com> <200905231604.29795.liplianin@tut.by> <4A1AF68F.1070108@koala.ie>
-In-Reply-To: <4A1AF68F.1070108@koala.ie>
+	Sat, 23 May 2009 15:25:22 -0400
+Message-ID: <4A184CDF.1020901@unsolicited.net>
+Date: Sat, 23 May 2009 20:22:07 +0100
+From: David <david@unsolicited.net>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="koi8-r"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200905261747.31361.liplianin@tut.by>
+To: Alan Stern <stern@rowland.harvard.edu>
+CC: Pekka Enberg <penberg@cs.helsinki.fi>, linux-media@vger.kernel.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	dbrownell@users.sourceforge.net, leonidv11@gmail.com,
+	Greg KH <gregkh@suse.de>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: USB/DVB - Old Technotrend TT-connect S-2400 regression tracked
+  down
+References: <Pine.LNX.4.44L0.0905231109140.18397-100000@netrider.rowland.org> <4A183E5E.1070502@unsolicited.net>
+In-Reply-To: <4A183E5E.1070502@unsolicited.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 25 May 2009 22:50:39 Simon Kenyon wrote:
-> Igor M. Liplianin wrote:
-> > On 20 May 2009 16:44:22 Simon Kenyon wrote:
-> >> mp3geek wrote:
-> >>> Not even being detected in Linux 2.6.29.1, I have the modules "dm1105"
-> >>> loaded, but since its not even being detected by linux..
-> >>>
-> >>> lspci -vv shows this (I'm assuming this is the card..), dmesg shows
-> >>> nothing dvb being loaded
-> >>>
-> >>> 00:0b.0 Ethernet controller: Device 195d:1105 (rev 10)
-> >>>     Subsystem: Device 195d:1105
-> >>>     Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop-
-> >>> ParErr- Stepping- SERR- FastB2B- DisINTx-
-> >>>     Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort-
-> >>> <TAbort- <MAbort- >SERR- <PERR- INTx-
-> >>>     Latency: 30 (4000ns min, 8000ns max), Cache Line Size: 32 bytes
-> >>>     Interrupt: pin A routed to IRQ 5
-> >>>     Region 0: I/O ports at 9400 [size=256]
-> >>>
-> >>>
-> >>> The chip says the following, SDMC DM1105N, EasyTV-DVBS V1.0B
-> >>> (2008-04-26), 0735 E280034
-> >>
-> >> because i saw that there was a driver written by igor, i took a chance
-> >> and bought a DM04 DVB-S card on ebay. it only cost €20 (including
-> >> shipping from HK to Ireland) so i reckoned "nothing ventured, nothing
-> >> gained"
-> >> on a windows box it runs rather nicely. granted that the software
-> >> provided does not provide a BDA driver, so you are pretty much limited
-> >> to the stuff that comes with the card.
-> >> but a big "me too" on linux (which is what i bought it for)
-> >> i similarly get an "ethernet controller" and nothing in the kernel log
-> >> when i load the dm1105 module.
-> >>
-> >> what do i need to do to debug the situation and/or update the driver?
-> >>
-> >> regards
-> >> --
-> >> simon
-> >
-> > It seems, one can find GPIO values for LNB power control.
-> > Do not forget about Vendor/Device ID's.
-> >
-> > I wrote code to support card with subsystem/device 195d/1105, but no one
-> > reported success, so I decided not to include it in commit :(
-> >
-> > It was more then one year ago
-> >
-> > http://liplianin.at.tut.by/dvblipl.tar.bz2
->
-> igor,
->
-> i downloaded it and built it (after making a few small changes to make
-> it compile with tip)
-> it finds the hardware, but does not seem able to get a data stream
-> kaffeine seems to show that there is signal - and it does seem to vary
-> in a way that is consistent with a working card
->
-> what do i need to do to help get this to work. i would like to as (under
-> windows) it seems to work well and it is very, very cheap (13 euro on ebay)
->
-> it is on a machine which i can dual boot into windows (if that is any use)
->
-> regards
-> --
-> simon
-The card is working with external LNB power supply, for example, through the loop out from another 
-sat box. So, we need to know, which way to control LNB power on the board. Usually it is through 
-GPIO pins.
-For example:
-Pins 112 and 111 for GPIO0, GPIO1. Also GPIO15 is at 65 pin.
-You can edit this lines in code:
--*-*-*-*-*-*-*-*-*-*-*-*-
-/* GPIO's for LNB power control for Axess DM05 */
-#define DM05_LNB_MASKššššššššššššššššššššššššššš0xfffffffc š// GPIO control
-#define DM05_LNB_13Všššššššššššššššššššššššššššš0x3fffd // GPIO value
-#define DM05_LNB_18Všššššššššššššššššššššššššššš0x3fffc // GPIO value
--*-*-*-*-*-*-*-*-*-*-*-*-
+Again, hopefully with word wrap sorted out...
 
-BTW:
-Bit value 0 for GPIOCTL means output, 1 - input.
-Bit value for GPIOVAL - read/write.
-GPIO pins count is 18. Bits over 18 affect nothing.
+Media PC (32-bit - Nvidia chipset. kernel 2.6.27)
+
+19:13:18 s kernel: usb 1-3: new high speed USB device using ehci_hcd and address 6
+19:13:18 s kernel: usb 1-3: configuration #1 chosen from 1 choice
+19:13:18 s kernel: dvb-usb: found a 'Technotrend TT-connect S-2400' in cold state, will try to load a firmware
+19:13:18 s kernel: firmware: requesting dvb-usb-tt-s2400-01.fw
+19:13:18 s kernel: dvb-usb: downloading firmware from file 'dvb-usb-tt-s2400-01.fw'
+19:13:18 s kernel: usb 1-3: USB disconnect, address 6
+19:13:18 s kernel: dvb-usb: generic DVB-USB module successfully deinitialized and disconnected.
+19:13:20 s kernel: usb 1-3: new high speed USB device using ehci_hcd and address 7
+19:13:20 s kernel: usb 1-3: configuration #1 chosen from 1 choice
+19:13:20 s kernel: dvb-usb: found a 'Technotrend TT-connect S-2400' in warm state.
+19:13:20 s kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+19:13:20 s kernel: DVB: registering new adapter (Technotrend TT-connect S-2400)
+19:13:20 s kernel: DVB: registering frontend 0 (Philips TDA10086 DVB-S)...
+19:13:23 s kernel: dvb-usb: recv bulk message failed: -110
+19:13:23 s kernel: ttusb2: there might have been an error during control message transfer. (rlen = 0, was 0)
+19:13:23 s kernel: dvb-usb: Technotrend TT-connect S-2400 successfully initialized and connected.
+
+The device times out. Reverting b963801164618e25fbdc0cd452ce49c3628b46c8
+causes it to work again
+
+19:09:53 s kernel: usb 1-3: new high speed USB device using ehci_hcd and address 5
+19:09:53 s kernel: usb 1-3: configuration #1 chosen from 1 choice
+19:09:58 s kernel: dvb-usb: found a 'Technotrend TT-connect S-2400' in cold state, will try to load a firmware
+19:09:58 s kernel: firmware: requesting dvb-usb-tt-s2400-01.fw
+19:09:59 s kernel: dvb-usb: downloading firmware from file 'dvb-usb-tt-s2400-01.fw'
+19:09:59 s kernel: usb 1-3: USB disconnect, address 5
+19:09:59 s kernel: dvb-usb: generic DVB-USB module successfully deinitialized and disconnected.
+19:09:59 s kernel: usbcore: registered new interface driver dvb_usb_ttusb2
+19:10:00 s kernel: usb 1-3: new high speed USB device using ehci_hcd and address 6
+19:10:00 s kernel: usb 1-3: configuration #1 chosen from 1 choice
+19:10:01 s kernel: dvb-usb: found a 'Technotrend TT-connect S-2400' in warm state.
+19:10:01 s kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+19:10:01 s kernel: DVB: registering new adapter (Technotrend TT-connect S-2400)
+19:10:01 s kernel: DVB: registering frontend 3 (Philips TDA10086 DVB-S)...
+19:10:01 s kernel: dvb-usb: Technotrend TT-connect S-2400 successfully initialized and connected.
+
+My PC (64 bit - ATI chipset, using 2.6.30-rc5)
+
+[12044.364021] usb 4-10: new high speed USB device using ehci_hcd and address 5
+[12044.497561] usb 4-10: configuration #1 chosen from 1 choice
+[12044.881621] dvb-usb: found a 'Technotrend TT-connect S-2400' in cold state, will try to load a firmware
+[12044.881626] usb 4-10: firmware: requesting dvb-usb-tt-s2400-01.fw
+[12044.918854] dvb-usb: downloading firmware from file 'dvb-usb-tt-s2400-01.fw'
+[12044.980719] usbcore: registered new interface driver dvb_usb_ttusb2
+[12044.981478] usb 4-10: USB disconnect, address 5
+[12044.985169] dvb-usb: generic DVB-USB module successfully deinitialized and disconnected.
+[12046.744023] usb 4-10: new high speed USB device using ehci_hcd and address 6
+[12046.876980] usb 4-10: configuration #1 chosen from 1 choice
+[12046.877673] dvb-usb: found a 'Technotrend TT-connect S-2400' in warm state.
+[12046.878601] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+[12046.878959] DVB: registering new adapter (Technotrend TT-connect S-2400)
+[12046.886861] DVB: registering adapter 0 frontend 0 (Philips TDA10086 DVB-S)...
+[12046.891434] LNBx2x attached on addr=8<3>dvb-usb: recv bulk message failed: -110
+[12048.888080] ttusb2: there might have been an error during control message transfer. (rlen = 0, was 0)
+[12048.888320] dvb-usb: Technotrend TT-connect S-2400 successfully initialized and connected.
+
+Reverting b963801164618e25fbdc0cd452ce49c3628b46c8 (manually, as there
+are conflicting changes) causes it to work again. The wierd random
+frontend number looks strange though.
+
+[ 2406.492027] usb 2-10: new high speed USB device using ehci_hcd and address 7
+[ 2406.625622] usb 2-10: configuration #1 chosen from 1 choice
+[ 2406.626328] dvb-usb: found a 'Technotrend TT-connect S-2400' in cold state, will try to load a firmware
+[ 2406.626335] usb 2-10: firmware: requesting dvb-usb-tt-s2400-01.fw
+[ 2406.628650] dvb-usb: downloading firmware from file 'dvb-usb-tt-s2400-01.fw'
+[ 2406.690868] usb 2-10: USB disconnect, address 7
+[ 2406.693282] dvb-usb: generic DVB-USB module successfully deinitialized and disconnected.
+[ 2408.453024] usb 2-10: new high speed USB device using ehci_hcd and address 8
+[ 2408.585983] usb 2-10: configuration #1 chosen from 1 choice
+[ 2408.586652] dvb-usb: found a 'Technotrend TT-connect S-2400' in warm state.
+[ 2408.587727] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+[ 2408.588080] DVB: registering new adapter (Technotrend TT-connect S-2400)
+[ 2408.591575] DVB: registering adapter 0 frontend 42056112 (Philips TDA10086 DVB-S)...
+[ 2408.595941] LNBx2x attached on addr=8<6>dvb-usb: Technotrend TT-connect S-2400 successfully initialized and connected.
 
 
--- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+
