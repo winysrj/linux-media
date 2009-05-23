@@ -1,44 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:51140 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751849AbZEAHTR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 May 2009 03:19:17 -0400
-Message-ID: <49FAA269.6090107@s5r6.in-berlin.de>
-Date: Fri, 01 May 2009 09:19:05 +0200
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Received: from smtp.seznam.cz ([77.75.72.43]:34106 "EHLO smtp.seznam.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753101AbZEWRLd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 May 2009 13:11:33 -0400
+From: Oldrich Jedlicka <oldium.pro@seznam.cz>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH][RESEND] Use correct sampling rate for TV/FM radio
+Date: Sat, 23 May 2009 19:09:12 +0200
+Cc: LMML <linux-media@vger.kernel.org>
+References: <200904142048.14713.oldium.pro@seznam.cz> <200905191954.19097.oldium.pro@seznam.cz>
+In-Reply-To: <200905191954.19097.oldium.pro@seznam.cz>
 MIME-Version: 1.0
-To: linux1394-devel@lists.sourceforge.net, linux-media@vger.kernel.org
-Subject: firedtv driver development status
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200905231909.12817.oldium.pro@seznam.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi lists,
+On Tuesday 19 of May 2009 at 19:54:18, Oldrich Jedlicka wrote:
+> On Tuesday 14 of April 2009 at 20:48:14, Oldrich Jedlicka wrote:
+> > Here is the fix for using the 32kHz sampling rate for TV and FM radio
+> > (ALSA). The TV uses 32kHz anyway (mode 0; 32kHz demdec on), radio works
+> > only with 32kHz (mode 1; 32kHz baseband). The ALSA wrongly reported 32kHz
+> > and 48kHz for everything (TV, radio, LINE1/2).
+> >
+> > Now it should be possible to just use the card without the need to change
+> > the capture rate from 48kHz to 32kHz. Enjoy :-)
+>
 
-I planned to adapt drivers/media/dvb/firewire/firedtv* to use the 
-drivers/firewire stack alternatively to drivers/ieee1394, and wanted to 
-be done with it sooner than later.  But business distracted too much, so 
-nothing happened.  This is how far I got, in case anybody is interested 
-in finishing it before I am able to get back to it (don't know exactly 
-when that will be):
+Hi Mauro,
 
-http://user.in-berlin.de/~s5r6/linux1394/pending/firewire-share-device-id-table-type-with-ieee1394.patch
-http://user.in-berlin.de/~s5r6/linux1394/pending/firewire-also-use-vendor-id-in-root-directory-for-driver-matches.patch
-http://user.in-berlin.de/~s5r6/linux1394/work-in-progress/firedtv-port-to-new-firewire-core.patch
+I put you on CC in my previous mail, but maybe it would be better to send it 
+directly. So do you have any opinions about the approach described 
+above/below?
 
-Device--driver matching, device probe and removal, and AV/C traffic all 
-work.  To do:
-   - In firedtv:  Implement allocation/initialization + deallocation of
-     an iso reception context; implement iso reception callback.
+Thanks!
 
-Also to do but independent of the port to firewire:
-   - In firewire-core:  Allow multiple users of the FCP register range
-     (kernelspace and userspace users) in order to access more than one
-     AV/C device.  (I can do this too when I get the time.)
-   - In firedtv:  Implement reception of HD channels.  (Somebody else
-     needs to do it since I'm not familiar with the DVB subsystem.)
--- 
-Stefan Richter
--=====-=-=== -=-= -==-=
-http://arcgraph.de/sr/
+Cheers,
+Oldrich.
+
+> Hi Mauro,
+>
+> are there some comments for/against this patch? It is rather long time when
+> I sent it, so I would like to know some opinions.
+>
+> The reason behind this patch is that the code uses 32kHz for TV and for
+> radio (the radio cannot use other frequency as far as I know). ALSA then
+> reports both 32kHz and 48kHz for TV/radio, but 48kHz cannot be used.
+>
+> Thanks!
+>
+> Cheers,
+> Oldrich.
+>
+> > Now without word-wrapping.
+> >
+> > Signed-off-by: Oldřich Jedlička <oldium.pro@seznam.cz>
+> > ---
+> > diff -r dba0b6fae413 linux/drivers/media/video/saa7134/saa7134-alsa.c
+> > --- a/linux/drivers/media/video/saa7134/saa7134-alsa.c	Thu Apr 09
+> > 08:21:42 2009 -0300 +++
+> > b/linux/drivers/media/video/saa7134/saa7134-alsa.c	Mon Apr 13 23:07:22
+> > 2009 +0200 @@ -465,6 +465,29 @@
+> >  	.periods_max =		1024,
+> >  };
+> >
+> > +static struct snd_pcm_hardware snd_card_saa7134_capture_32kHz_only =
+> > +{
+> > +	.info =                 (SNDRV_PCM_INFO_MMAP |
+> > SNDRV_PCM_INFO_INTERLEAVED
+> >
+> > | +				 SNDRV_PCM_INFO_BLOCK_TRANSFER |
+> >
+> > +				 SNDRV_PCM_INFO_MMAP_VALID),
+> > +	.formats =		SNDRV_PCM_FMTBIT_S16_LE | \
+> > +				SNDRV_PCM_FMTBIT_S16_BE | \
+> > +				SNDRV_PCM_FMTBIT_S8 | \
+> > +				SNDRV_PCM_FMTBIT_U8 | \
+> > +				SNDRV_PCM_FMTBIT_U16_LE | \
+> > +				SNDRV_PCM_FMTBIT_U16_BE,
+> > +	.rates =		SNDRV_PCM_RATE_32000,
+> > +	.rate_min =		32000,
+> > +	.rate_max =		32000,
+> > +	.channels_min =		1,
+> > +	.channels_max =		2,
+> > +	.buffer_bytes_max =	(256*1024),
+> > +	.period_bytes_min =	64,
+> > +	.period_bytes_max =	(256*1024),
+> > +	.periods_min =		4,
+> > +	.periods_max =		1024,
+> > +};
+> > +
+> >  static void snd_card_saa7134_runtime_free(struct snd_pcm_runtime
+> > *runtime) {
+> >  	snd_card_saa7134_pcm_t *pcm = runtime->private_data;
+> > @@ -651,7 +674,13 @@
+> >  	pcm->substream = substream;
+> >  	runtime->private_data = pcm;
+> >  	runtime->private_free = snd_card_saa7134_runtime_free;
+> > -	runtime->hw = snd_card_saa7134_capture;
+> > +
+> > +	if (amux == TV || &card(dev).radio == dev->input) {
+> > +		/* TV uses 32kHz sampling, AM/FM radio is locked to 32kHz */
+> > +		runtime->hw = snd_card_saa7134_capture_32kHz_only;
+> > +	} else {
+> > +		runtime->hw = snd_card_saa7134_capture;
+> > +	}
+> >
+> >  	if (dev->ctl_mute != 0) {
+> >  		saa7134->mute_was_on = 1;
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
