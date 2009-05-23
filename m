@@ -1,50 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sh.osrg.net ([192.16.179.4]:56492 "EHLO sh.osrg.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760100AbZE1BLB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2009 21:11:01 -0400
-Date: Thu, 28 May 2009 10:10:43 +0900
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	akpm@linux-foundation.org
-Subject: [PATCH] vino: replace dma_sync_single with dma_sync_single_for_cpu
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Message-Id: <20090528100938I.fujita.tomonori@lab.ntt.co.jp>
+Received: from mail.gmx.net ([213.165.64.20]:57326 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751729AbZEWQCC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 May 2009 12:02:02 -0400
+Message-ID: <4A181DF6.30309@gmx.de>
+Date: Sat, 23 May 2009 18:01:58 +0200
+From: Andreas Regel <andreas.regel@gmx.de>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Most stable DVB-S2 PCI Card?
+References: <53876.82.95.219.165.1243013567.squirrel@webmail.xs4all.nl>	 <1a297b360905221048p5a7c548anbdef992b5a1a697d@mail.gmail.com>	 <20090522234201.4ee5cf47@bk.ru>	 <1a297b360905221325r46432d02g8a97b1361e7958ac@mail.gmail.com>	 <4A171985.3090205@gmail.com>	 <1a297b360905221438n7dfb55a9uec1f1ce119bd8d74@mail.gmail.com>	 <4A178ED3.5050806@gmail.com> <1a297b360905222337r1b65bbe7n65578d1991348b9@mail.gmail.com> <4A17C9F7.8050800@gmail.com>
+In-Reply-To: <4A17C9F7.8050800@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This replaces dma_sync_single() with dma_sync_single_for_cpu() because
-dma_sync_single() is an obsolete API; include/linux/dma-mapping.h says:
+David Lister schrieb:
+> I didn't want to write a long mail, but here goes:
+> 
+> The TechnoTrend company, as of Februay 2009, doesn't exists any more.
+> *It is bankrupt*. First, its owner Novabase sold as many of its shares
+> as it could in 2007, in hope that the proceeds would allow TechnoTrend
+> to get back on track. No such luck. A few months back this year, the
+> company was finally dumped and sold as a whole to some German telco
+> company in the Kathrein Group for liquidation, because of the tremendous
+> drop in it's market value and forthcoming bankruptcy. This might also be
+> of some interest to prospective buyers of it's former products. :) I
+> don't want to search for all the press releases, but you can verify this
+> claim here:
+> http://www.euronext.com/fic/000/044/480/444806.pdf
 
-/* Backwards compat, remove in 2.7.x */
-#define dma_sync_single		dma_sync_single_for_cpu
-#define dma_sync_sg		dma_sync_sg_for_cpu
+As written there the Görler Telekom bought the business and stock of TT, 
+that includes the brand name, all products and most of the developers. 
+They formed a new Company called TechnoTrend Görler GmbH, that will 
+continue development, production and sales.
 
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
----
- drivers/media/video/vino.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+See here: http://www.kathrein.de//en/press/cont/texte2009/pi0910.htm
 
-diff --git a/drivers/media/video/vino.c b/drivers/media/video/vino.c
-index 43e0998..97b082f 100644
---- a/drivers/media/video/vino.c
-+++ b/drivers/media/video/vino.c
-@@ -868,9 +868,9 @@ static void vino_sync_buffer(struct vino_framebuffer *fb)
- 	dprintk("vino_sync_buffer():\n");
- 
- 	for (i = 0; i < fb->desc_table.page_count; i++)
--		dma_sync_single(NULL,
--				fb->desc_table.dma_cpu[VINO_PAGE_RATIO * i],
--				PAGE_SIZE, DMA_FROM_DEVICE);
-+		dma_sync_single_for_cpu(NULL,
-+					fb->desc_table.dma_cpu[VINO_PAGE_RATIO * i],
-+					PAGE_SIZE, DMA_FROM_DEVICE);
- }
- 
- /* Framebuffer fifo functions (need to be locked externally) */
--- 
-1.6.0.6
+Even if not explicitely mentioned there, PC products are included in 
+that deal.
 
+New web site is still under construction: http://www.ttgoerler.de/
+
+Regards
+Andreas
