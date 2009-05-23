@@ -1,23 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n4BElavf018454
-	for <video4linux-list@redhat.com>; Mon, 11 May 2009 10:47:37 -0400
-Received: from smtp9.trip.net (smtp9.trip.net [216.139.64.9])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n4BElKHf008997
-	for <video4linux-list@redhat.com>; Mon, 11 May 2009 10:47:20 -0400
-Received: from lhost.ldomain (pool-72-89-142-51.nycmny.fios.verizon.net
-	[72.89.142.51]) (authenticated bits=0)
-	by smtp9.trip.net (8.14.1/8.14.1) with ESMTP id n4BElJtg017001
-	for <video4linux-list@redhat.com>; Mon, 11 May 2009 09:47:19 -0500 (CDT)
-Date: Mon, 11 May 2009 10:45:46 -0400
-From: MK <halfcountplus@intergate.com>
-To: video4linux-list@redhat.com
-Message-Id: <1242053146.1729.1@lhost.ldomain>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n4NFQlt5018845
+	for <video4linux-list@redhat.com>; Sat, 23 May 2009 11:26:47 -0400
+Received: from mail-fx0-f214.google.com (mail-fx0-f214.google.com
+	[209.85.220.214])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n4NFQYSN026636
+	for <video4linux-list@redhat.com>; Sat, 23 May 2009 11:26:34 -0400
+Received: by fxm10 with SMTP id 10so2246528fxm.3
+	for <video4linux-list@redhat.com>; Sat, 23 May 2009 08:26:33 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-Subject: working on webcam driver
+In-Reply-To: <829197380905220640k5b19e190y6382f969fc823e37@mail.gmail.com>
+References: <b90a809a0905220050k6f64321g7f72adee3f1e21c3@mail.gmail.com>
+	<829197380905220640k5b19e190y6382f969fc823e37@mail.gmail.com>
+Date: Sat, 23 May 2009 17:26:33 +0200
+Message-ID: <d9def9db0905230826t6338ff00ye7db7c2eb2a62695@mail.gmail.com>
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: How to acces TVP5150 .command function from userspace
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,28 +31,39 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+2009/5/22 Devin Heitmueller <dheitmueller@kernellabs.com>:
+> On Fri, May 22, 2009 at 3:50 AM, 景文林 <wenlinjing@gmail.com> wrote:
+>> Hi,
+>>
+>> I am working with a video capture chip TVP5150. I want to adjust the
+>> "Brightness" "Contrast" "Saturation" and "hue" in user space.
+>> In TVP5150 drivers ,the V4l2 commands are in function tvp5150_command.And
+>> this function is a member of struct i2c_device.
+>>
+>> The linux is 2.6.19.2.
+>> I write my code according kernel document  Documentation/i2c/dev-interface
+>> But I can`t access tvp5150_command.
+>> How can i acces i2c_device .command  function from user space?
+>
+> I thought those controls were already implemented in the tvp5150
+> driver, although I could be mistaken (I would have to look at the
+> code).  If not, it would probably be much easier to just add the
+> commands to the driver than to attempt to program the chip from
+> userland (the datasheet for the tvp5150 is freely available).
+>
 
-Hi.  I'm a fledgling C programmer who just started work on a usb webcam 
-driver in order to learn about kernel programming.  So far, all I have 
-done is gotten the device to register, and iterated through the 
-available interfaces (there are nine with three endpoints each, an iso, 
-an interrupt, and a bulk in).  
+those are definitely implemented, I remember there was a problem with
+a too dark videopicture years ago and it was a bug in the tvp5150...
 
-Anyway, before I proceed, I thought I should clarify for myself "the 
-big picture" of what I am doing.  I do not have a webcam that works 
-under linux, so the whole apparatus is fuzzy; I am under the impression 
-that the kernel modules work with the (seperate) video4linux subsystem? 
-I have the USB Video Class Specifications and am busy reading that to 
-find out how the camera itself operates, but vis. the linux end of 
-things, can you point me to any technical documentation that might 
-clarify what the driver will be expected to do?  At this point, I am 
-assuming I will have to deliver a device node, but I don't know what 
-calls will be made to it etc.
+Also by looking at it:
+V4L2_CID_BRIGHTNESS
+V4L2_CID_CONTRAST
+V4L2_CID_SATURATION
+V4L2_CID_HUE
 
-Help and advice is much appreciated.  Of course, best of all would be a 
-few general pointers from someone who has actually done this before...
+are supported.
 
-Sincerely, Mark Eriksen
+Markus
 
 --
 video4linux-list mailing list
