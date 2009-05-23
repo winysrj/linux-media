@@ -1,139 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:38861 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758942AbZE0Jkm (ORCPT
+Received: from mail-fx0-f168.google.com ([209.85.220.168]:62869 "EHLO
+	mail-fx0-f168.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752015AbZEWNEk convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2009 05:40:42 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv4 1 of 8] v4l2_subdev i2c: Add v4l2_i2c_new_subdev_board i2c helper function
-Date: Wed, 27 May 2009 12:35:48 +0300
-Message-Id: <1243416955-29748-2-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1243416955-29748-1-git-send-email-eduardo.valentin@nokia.com>
-References: <1243416955-29748-1-git-send-email-eduardo.valentin@nokia.com>
+	Sat, 23 May 2009 09:04:40 -0400
+Received: by fxm12 with SMTP id 12so368390fxm.37
+        for <linux-media@vger.kernel.org>; Sat, 23 May 2009 06:04:40 -0700 (PDT)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Simon Kenyon <simon@koala.ie>
+Subject: Re: [linux-dvb] SDMC DM1105N not being detected
+Date: Sat, 23 May 2009 16:04:29 +0300
+Cc: linux-media@vger.kernel.org
+References: <e6ac15e50904022156u40221c3fib15d1b4cdf36461@mail.gmail.com> <4A140936.6020001@koala.ie>
+In-Reply-To: <4A140936.6020001@koala.ie>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200905231604.29795.liplianin@tut.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-# HG changeset patch
-# User Eduardo Valentin <eduardo.valentin@nokia.com>
-# Date 1243414605 -10800
-# Branch export
-# Node ID 4fb354645426f8b187c2c90cd8528b2518461005
-# Parent  142fd6020df3b4d543068155e49a2618140efa49
-Device drivers of v4l2_subdev devices may want to have
-board specific data. This patch adds an helper function
-to allow bridge drivers to pass board specific data to
-v4l2_subdev drivers.
+On 20 May 2009 16:44:22 Simon Kenyon wrote:
+> mp3geek wrote:
+> > Not even being detected in Linux 2.6.29.1, I have the modules "dm1105"
+> > loaded, but since its not even being detected by linux..
+> >
+> > lspci -vv shows this (I'm assuming this is the card..), dmesg shows
+> > nothing dvb being loaded
+> >
+> > 00:0b.0 Ethernet controller: Device 195d:1105 (rev 10)
+> >     Subsystem: Device 195d:1105
+> >     Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV+ VGASnoop-
+> > ParErr- Stepping- SERR- FastB2B- DisINTx-
+> >     Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort-
+> > <TAbort- <MAbort- >SERR- <PERR- INTx-
+> >     Latency: 30 (4000ns min, 8000ns max), Cache Line Size: 32 bytes
+> >     Interrupt: pin A routed to IRQ 5
+> >     Region 0: I/O ports at 9400 [size=256]
+> >
+> >
+> > The chip says the following, SDMC DM1105N, EasyTV-DVBS V1.0B
+> > (2008-04-26), 0735 E280034
+>
+> because i saw that there was a driver written by igor, i took a chance
+> and bought a DM04 DVB-S card on ebay. it only cost €20 (including
+> shipping from HK to Ireland) so i reckoned "nothing ventured, nothing
+> gained"
+> on a windows box it runs rather nicely. granted that the software
+> provided does not provide a BDA driver, so you are pretty much limited
+> to the stuff that comes with the card.
+> but a big "me too" on linux (which is what i bought it for)
+> i similarly get an "ethernet controller" and nothing in the kernel log
+> when i load the dm1105 module.
+>
+> what do i need to do to debug the situation and/or update the driver?
+>
+> regards
+> --
+> simon
 
-For those drivers which need to support kernel versions
-bellow 2.6.26, a .s_config callback was added. The
-idea of this callback is to pass board configuration
-as well. In that case, subdev driver should set .s_config
-properly, because v4l2_i2c_new_subdev_board will call
-the .s_config directly. Of course, if we are >= 2.6.26,
-the same data will be passed through i2c board info as well.
+It seems, one can find GPIO values for LNB power control.
+Do not forget about Vendor/Device ID's. 
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- drivers/media/linux/video/v4l2-common.c |   37 +++++++++++++++++++++++++++++++++++--
- include/media/linux/v4l2-common.h       |    8 ++++++++
- include/media/linux/v4l2-subdev.h       |    1 +
- 3 files changed, 44 insertions(+), 2 deletions(-)
+I wrote code to support card with subsystem/device 195d/1105, but no one reported success, so I 
+decided not to include it in commit :(
 
-diff -r 142fd6020df3 -r 4fb354645426 linux/drivers/media/video/v4l2-common.c
---- a/linux/drivers/media/video/v4l2-common.c	Mon May 18 02:31:55 2009 +0000
-+++ b/linux/drivers/media/video/v4l2-common.c	Wed May 27 11:56:45 2009 +0300
-@@ -819,9 +819,10 @@
- 
- 
- /* Load an i2c sub-device. */
--struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
-+static struct v4l2_subdev *__v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
- 		struct i2c_adapter *adapter,
--		const char *module_name, const char *client_type, u8 addr)
-+		const char *module_name, const char *client_type, u8 addr,
-+		int irq, void *platform_data)
- {
- 	struct v4l2_subdev *sd = NULL;
- 	struct i2c_client *client;
-@@ -840,6 +841,8 @@
- 	memset(&info, 0, sizeof(info));
- 	strlcpy(info.type, client_type, sizeof(info.type));
- 	info.addr = addr;
-+	info.irq = irq;
-+	info.platform_data = platform_data;
- 
- 	/* Create the i2c client */
- 	client = i2c_new_device(adapter, &info);
-@@ -877,8 +880,38 @@
- #endif
- 	return sd;
- }
-+
-+struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
-+		struct i2c_adapter *adapter,
-+		const char *module_name, const char *client_type, u8 addr)
-+{
-+	return __v4l2_i2c_new_subdev(v4l2_dev, adapter, module_name,
-+		client_type, addr, 0, NULL);
-+}
- EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev);
- 
-+struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
-+		struct i2c_adapter *adapter,
-+		const char *module_name, const char *client_type, u8 addr,
-+		int irq, void *platform_data)
-+{
-+	struct v4l2_subdev *sd;
-+	int err = 0;
-+
-+	sd = __v4l2_i2c_new_subdev(v4l2_dev, adapter, module_name, client_type,
-+					addr, irq, platform_data);
-+
-+	/*
-+	 * We return errors from v4l2_subdev_call only if we have the callback
-+	 * as the .s_config is not mandatory
-+	 */
-+	if (sd && sd->ops && sd->ops->core && sd->ops->core->s_config)
-+		err = sd->ops->core->s_config(sd, irq, platform_data);
-+
-+	return err < 0 ? NULL : sd;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev_board);
-+
- /* Probe and load an i2c sub-device. */
- struct v4l2_subdev *v4l2_i2c_new_probed_subdev(struct v4l2_device *v4l2_dev,
- 	struct i2c_adapter *adapter,
-diff -r 142fd6020df3 -r 4fb354645426 linux/include/media/v4l2-common.h
---- a/linux/include/media/v4l2-common.h	Mon May 18 02:31:55 2009 +0000
-+++ b/linux/include/media/v4l2-common.h	Wed May 27 11:56:45 2009 +0300
-@@ -147,6 +147,14 @@
- struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
- 		struct i2c_adapter *adapter,
- 		const char *module_name, const char *client_type, u8 addr);
-+/*
-+ * Same as v4l2_i2c_new_subdev, but with the opportunity to configure
-+ * subdevice with board specific data (irq and platform_data).
-+ */
-+struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
-+		struct i2c_adapter *adapter,
-+		const char *module_name, const char *client_type, u8 addr,
-+		int irq, void *platform_data);
- /* Probe and load an i2c module and return an initialized v4l2_subdev struct.
-    Only call request_module if module_name != NULL.
-    The client_type argument is the name of the chip that's on the adapter. */
-diff -r 142fd6020df3 -r 4fb354645426 linux/include/media/v4l2-subdev.h
---- a/linux/include/media/v4l2-subdev.h	Mon May 18 02:31:55 2009 +0000
-+++ b/linux/include/media/v4l2-subdev.h	Wed May 27 11:56:45 2009 +0300
-@@ -96,6 +96,7 @@
- struct v4l2_subdev_core_ops {
- 	int (*g_chip_ident)(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip);
- 	int (*log_status)(struct v4l2_subdev *sd);
-+	int (*s_config)(struct v4l2_subdev *sd, int irq, void *platform_data);
- 	int (*init)(struct v4l2_subdev *sd, u32 val);
- 	int (*load_fw)(struct v4l2_subdev *sd);
- 	int (*reset)(struct v4l2_subdev *sd, u32 val);
+It was more then one year ago
+
+http://liplianin.at.tut.by/dvblipl.tar.bz2
+
+-- 
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
