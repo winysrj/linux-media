@@ -1,54 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.youplala.net ([88.191.51.216]:48581 "EHLO mail.youplala.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752033AbZEXMne (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 May 2009 08:43:34 -0400
-Subject: Re: Nova-T 500 does not survive reboot
-From: Nicolas Will <nico@youplala.net>
-To: Soeren Moch <Soeren.Moch@stud.uni-hannover.de>
+Received: from smtp2m5.poczta.onet.pl ([213.180.138.33]:47779 "EHLO
+	smtp2m5.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752029AbZEWSFp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 May 2009 14:05:45 -0400
+Received: from 77-254-201-72.adsl.inetia.pl ([77.254.201.72]:50727 "EHLO
+	jarek-desktop.localnet" rhost-flags-OK-OK-OK-FAIL) by ps2.mod5.onet
+	with ESMTPSA id S50350559AbZEWSAEwWaGg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 May 2009 20:00:04 +0200
+From: =?iso-8859-2?q?Jaros=B3aw_Huba?= <jarhuba@poczta.onet.pl>
+Reply-To: jarhuba@poczta.onet.pl
+To: Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: Question about driver for Mantis
+Date: Sat, 23 May 2009 20:00:04 +0200
 Cc: linux-media@vger.kernel.org
-In-Reply-To: <4A16A8FF.2050308@stud.uni-hannover.de>
-References: <4A16A8FF.2050308@stud.uni-hannover.de>
-Content-Type: text/plain
-Date: Sun, 24 May 2009 13:43:18 +0100
-Message-Id: <1243168998.934.2.camel@youkaida>
-Mime-Version: 1.0
+References: <200905230810.39344.jarhuba2@poczta.onet.pl> <1a297b360905230457u7aee8795k4e5b59bd5a49f90b@mail.gmail.com> <200905231957.45456.jarhuba2@poczta.onet.pl>
+In-Reply-To: <200905231957.45456.jarhuba2@poczta.onet.pl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
+Message-Id: <200905232000.04374.jarhuba@poczta.onet.pl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2009-05-22 at 15:30 +0200, Soeren Moch wrote:
-> >>> Hi,
->  >>>    Any news on this? I'd like to try the URB patch someone mentioned,
->  >>> but I
->  >>> can't find the link.
->  >>
->  >> http://www.mail-archive.com/linux-media@vger.kernel.org/msg04643.html
->  >>
->  >> I am running a current dvb tree with this patch.
->  >>
->  >> so far so good.
->  >>
->  >> I did not find the time to check if I regained proper reboots, though. I
->  >> know, sad excuse...
->  >>
->  >> nico
->  >>
->  >>
->  >
->  > I'll give it a try. Thanks for the tip!
->  > Cheers,
->  >   Eduard
-> 
-> Hi nico, Eduard,
-> 
-> can you confirm that the patch solves your Nova-T 500 boot problem?
-> In this case I would resend the buffer count part as separate patch to
-> Patrick.
-
-It doesn;t appear to fix it.
-
-I'll retry this evening, after the F1 Grand Prix.
-
-Nico
-
+I will also look for vanilla kernel.
