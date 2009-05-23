@@ -1,246 +1,398 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1009.centrum.cz ([90.183.38.139]:35095 "EHLO
-	mail1009.centrum.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751211AbZEaRjV (ORCPT
+Received: from forwards4.yandex.ru ([77.88.32.20]:46365 "EHLO
+	forwards4.yandex.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752983AbZEWPBe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 May 2009 13:39:21 -0400
-Received: by mail1009.centrum.cz id S738354220AbZEaRjP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 May 2009 19:39:15 +0200
-Date: Sun, 31 May 2009 19:39:15 +0200
-From: "Miroslav =?UTF-8?Q?=20=C5=A0ustek?=" <sustmidown@centrum.cz>
-To: <xyzzy@speakeasy.org>
-Cc: <linux-media@vger.kernel.org>, <mchehab@infradead.org>
+	Sat, 23 May 2009 11:01:34 -0400
+Received: from webmail105.yandex.ru (webmail105.yandex.ru [95.108.131.131])
+	by forwards4.yandex.ru (Yandex) with ESMTP id 22DEB4C53FD
+	for <linux-media@vger.kernel.org>; Sat, 23 May 2009 18:48:24 +0400 (MSD)
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by webmail105.yandex.ru (Yandex) with ESMTP id 148DDC283C3
+	for <linux-media@vger.kernel.org>; Sat, 23 May 2009 18:48:24 +0400 (MSD)
+From: Vladimir Geroy <geroin22@yandex.ru>
+To: linux-media@vger.kernel.org
+Subject: Can't scan or add channels with new version of driver
 MIME-Version: 1.0
-Message-ID: <200905311939.21114@centrum.cz>
-References: <200905291638.9584@centrum.cz> <200905291639.30476@centrum.cz> <Pine.LNX.4.58.0905310536500.32713@shell2.speakeasy.net>
-In-Reply-To: <Pine.LNX.4.58.0905310536500.32713@shell2.speakeasy.net>
-Subject: Re: [PATCH] Leadtek WinFast DTV-1800H support
-Content-Type: multipart/mixed; boundary="-------=_54A55242.50D378D"
+Message-Id: <34981243090103@webmail105.yandex.ru>
+Date: Sat, 23 May 2009 18:48:23 +0400
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format
+Using driver v4l-dvb changeset befor 11017  http://linuxtv.org/hg/v4l-dvb/rev/c2e9ae022ea7 my configuration work fine, but when I try to update for new version changeset 11018 or newly, I can't scan or add channels in all TV views or players.
 
----------=_54A55242.50D378D
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+My configuration:
 
-Trent Piepho <xyzzy <at> speakeasy.org> writes:
-
-> Instead of raising the reset line here, why not change the gpio settings in
-> the card definition to have it high? Change gpio1 for television to 0x7050
-> and radio to 0x7010.
-Personally, I don't know when these .gpioX members are used (before
-firmware loads or after...).
-But I assume that adding the high on reset pin shouldn't break anything,
-so we can do this.
-
-And shouldn't we put tuner reset pin to 0 when in composite and s-video mode?
-These inputs don't use tuner or do they?
-If I look in dmesg I can see that firmware is loaded into tuner even
-when these modes are used (I'm using MPlayer to select the input).
-And due to callbacks issued duting firmware loading, tuner is turned on
-(reset pin = 1) no matter if it was turned off by .gpioX setting.
-
-And shouldn't we use the mask bits [24:16] of MO_GPX_IO
-in .gpioX members too? I know only few GPIO pins and the other I don't
-know either what direction they should be. That means GPIO pins which
-I don't know are set as Hi-Z = inputs... Now, when I think of that,
-if it works it's safer when the other pins are in Hi-Z mode. Never mind.
-
->
-> Then the reset can be done with:
->
-> case XC2028_TUNER_RESET:
-> /* GPIO 12 (xc3028 tuner reset) */
-> cx_write(MO_GP1_IO, 0x101000);
-> mdelay(50);
-> cx_write(MO_GP1_IO, 0x101010);
-> mdelay(50);
-> return 0;
->
-Earlier I was told to use 'cx_set' and 'cx_clear' because using 'cx_write'
-is risky.
-see here: http://www.spinics.net/lists/linux-dvb/msg29777.html
-And when you are using 'cx_set' and 'cx_clear' you need 3 calls.
-The first to set the direction bit, the second to set 0 on reset pin
-and the third to set 1 on reset pin.
-If you ask me which I think is nicer I'll tell you: that one with 'cx_write'.
-If you ask me which one I want to use, I'll tell: I don't care. :)
-
-> Though I have to wonder why each card needs its own xc2028 reset function.
-> Shouldn't they all be the same other than what gpio they change?
-My English goes lame here. Do you mean that reset function shouldn't use
-GPIO at all?
-
->
-> @@ -2882,6 +2946,16 @@
-> cx_set(MO_GP0_IO, 0x00000080); /* 702 out of reset */
-> udelay(1000);
-> break;
-> +
-> + case CX88_BOARD_WINFAST_DTV1800H:
-> + /* GPIO 12 (xc3028 tuner reset) */
-> + cx_set(MO_GP1_IO, 0x1010);
-> + mdelay(50);
-> + cx_clear(MO_GP1_IO, 0x10);
-> + mdelay(50);
-> + cx_set(MO_GP1_IO, 0x10);
-> + mdelay(50);
-> + break;
-> }
-> }
->
-> Couldn't you replace this with:
->
-> case CX88_BOARD_WINFAST_DTV1800H:
-> cx88_xc3028_winfast1800h_callback(code, XC2028_TUNER_RESET, 0);
-> break;
-Yes, this will do the same job.
-I think that 'cx88_card_setup_pre_i2c' is to be called before any I2C
-communication. The 'cx88_xc3028_winfast1800h_callback' (cx88_tuner_callback)
-is meant to be used when tuner code (during firmware loading) needs it.
-This is probably why others did it this way (these are separated issues
-even if they do the same thing) and I only obey existing form.
-
-I only want to finally add the support for this card.
-You know many people (not developers) don't care "if this function is used
-or that function is used twice, instead". They just want to install they distro
-and watch the tv.
-I classify myself as an programmer rather than ordinary user, so I care how
-the code looks like. I'm open to the discussion about these things, but
-this can take long time and I just want the card to be supported asap.
-There are more cards which has code like this so if linuxtv developers realize
-eg. to not use callbacks or use only cx_set and cx_clear (instead of cx_write)
-they'll do it all at once (not every card separately).
-
-I attached modified patch:
-- .gpioX members of inputs which use tuner have reset pin 1 (tuner enabled)
-- .gpioX members of inputs which don't use tuner have reset pin 0 (tuner disabled)
-- resets (in callback and the one in pre_i2c) use only two 'cx_write' calls
-
-I'm keeping the "tested-by" lines even if this modified version of patch wasn't
-tested by those people (the previous version was). I trust this changes can't
-break the functionality.
-If you think it's too audacious then drop them.
-
-It's on linuxtv developers which of these two patches will be chosen.
-
-- Miroslav Šustek
+Ubuntu 9.04 x86_64
+Linux 2.6.28-11-generic
+Compro VideoMate E650F
 
 
----------=_54A55242.50D378D
-Content-Type: application/octet-stream; name="leadtek_winfast_dtv1800h_v2.patch"
-Content-Transfer-Encoding: base64
+Work fine with the v4l-dvb changeset 11017  http://linuxtv.org/hg/v4l-dvb/rev/c2e9ae022ea7
 
-QWRkcyBzdXBwb3J0IGZvciBMZWFkdGVrIFdpbkZhc3QgRFRWLTE4MDBICgpGcm9tOiBNaXJv
-c2xhdiBTdXN0ZWsgPHN1c3RtaWRvd25AY2VudHJ1bS5jej4KCkVuYWJsZXMgYW5hbG9nL2Rp
-Z2l0YWwgdHYsIHJhZGlvIGFuZCByZW1vdGUgY29udHJvbCAoZ3BpbykuCgpTaWduZWQtb2Zm
-LWJ5OiBNaXJvc2xhdiBTdXN0ZWsgPHN1c3RtaWRvd25AY2VudHJ1bS5jej4KVGVzdGVkLWJ5
-OiBNYXJjaW4gV29qY2lrb3dza2kgPGVtdGVlcy5tdHNAZ21haWwuY29tPgpUZXN0ZWQtYnk6
-IEthcmVsIEp1aGFuYWsgPGthcmVsLmp1aGFuYWtAd2FybmV0LmN6PgpUZXN0ZWQtYnk6IEFu
-ZHJldyBHb2ZmIDxnb2ZmYTcyQGdtYWlsLmNvbT4KVGVzdGVkLWJ5OiBKYW4gTm92YWsgPG5v
-dmFrLWpAc2V6bmFtLmN6PgoKZGlmZiAtciAyNWJjMDU4MDM1OWEgbGludXgvRG9jdW1lbnRh
-dGlvbi92aWRlbzRsaW51eC9DQVJETElTVC5jeDg4Ci0tLSBhL2xpbnV4L0RvY3VtZW50YXRp
-b24vdmlkZW80bGludXgvQ0FSRExJU1QuY3g4OAlGcmkgTWF5IDI5IDE3OjAzOjMxIDIwMDkg
-LTAzMDAKKysrIGIvbGludXgvRG9jdW1lbnRhdGlvbi92aWRlbzRsaW51eC9DQVJETElTVC5j
-eDg4CVN1biBNYXkgMzEgMTg6NDQ6MDUgMjAwOSArMDIwMApAQCAtNzksMyArNzksNCBAQAog
-IDc4IC0+IFByb2YgNjIwMCBEVkItUyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBbYjAyMjozMDIyXQogIDc5IC0+IFRlcnJhdGVjIENpbmVyZ3kgSFQgUENJIE1LSUkg
-ICAgICAgICAgICAgICAgICAgICAgICBbMTUzYjoxMTc3XQogIDgwIC0+IEhhdXBwYXVnZSBX
-aW5UVi1JUiBPbmx5ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBbMDA3MDo5MjkwXQor
-IDgxIC0+IExlYWR0ZWsgV2luRmFzdCBEVFYxODAwIEh5YnJpZCAgICAgICAgICAgICAgICAg
-ICAgICBbMTA3ZDo2NjU0XQpkaWZmIC1yIDI1YmMwNTgwMzU5YSBsaW51eC9kcml2ZXJzL21l
-ZGlhL3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEv
-dmlkZW8vY3g4OC9jeDg4LWNhcmRzLmMJRnJpIE1heSAyOSAxNzowMzozMSAyMDA5IC0wMzAw
-CisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWNhcmRzLmMJU3Vu
-IE1heSAzMSAxODo0NDowNSAyMDA5ICswMjAwCkBAIC0yMDA5LDYgKzIwMDksNDcgQEAKIAkJ
-LnR1bmVyX2FkZHIJPSBBRERSX1VOU0VULAogCQkucmFkaW9fYWRkcgk9IEFERFJfVU5TRVQs
-CiAJfSwKKwlbQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBIXSA9IHsKKwkJLm5hbWUgICAg
-ICAgICAgID0gIkxlYWR0ZWsgV2luRmFzdCBEVFYxODAwIEh5YnJpZCIsCisJCS50dW5lcl90
-eXBlICAgICA9IFRVTkVSX1hDMjAyOCwKKwkJLnJhZGlvX3R5cGUgICAgID0gVFVORVJfWEMy
-MDI4LAorCQkudHVuZXJfYWRkciAgICAgPSAweDYxLAorCQkucmFkaW9fYWRkciAgICAgPSAw
-eDYxLAorCQkvKgorCQkgKiBHUElPIHNldHRpbmcKKwkJICoKKwkJICogIDI6IG11dGUgKDA9
-b2ZmLDE9b24pCisJCSAqIDEyOiB0dW5lciByZXNldCBwaW4KKwkJICogMTM6IGF1ZGlvIHNv
-dXJjZSAoMD10dW5lciBhdWRpbywxPWxpbmUgaW4pCisJCSAqIDE0OiBGTSAoMD1vbiwxPW9m
-ZiA/Pz8pCisJCSAqLworCQkuaW5wdXQgICAgICAgICAgPSB7eworCQkJLnR5cGUgICA9IENY
-ODhfVk1VWF9URUxFVklTSU9OLAorCQkJLnZtdXggICA9IDAsCisJCQkuZ3BpbzAgID0gMHgw
-NDAwLCAgICAgICAvKiBwaW4gMiA9IDAgKi8KKwkJCS5ncGlvMSAgPSAweDcwNTAsICAgICAg
-IC8qIHAxMiA9IDEsIHAxMyA9IDAsIHAxNCA9IDEgKi8KKwkJCS5ncGlvMiAgPSAweDAwMDAs
-CisJCX0sIHsKKwkJCS50eXBlICAgPSBDWDg4X1ZNVVhfQ09NUE9TSVRFMSwKKwkJCS52bXV4
-ICAgPSAxLAorCQkJLmdwaW8wICA9IDB4MDQwMCwgICAgICAgLyogcGluIDIgPSAwICovCisJ
-CQkuZ3BpbzEgID0gMHg3MDYwLCAgICAgICAvKiBwMTIgPSAwLCBwMTMgPSAxLCBwMTQgPSAx
-ICovCisJCQkuZ3BpbzIgID0gMHgwMDAwLAorCQl9LCB7CisJCQkudHlwZSAgID0gQ1g4OF9W
-TVVYX1NWSURFTywKKwkJCS52bXV4ICAgPSAyLAorCQkJLmdwaW8wICA9IDB4MDQwMCwgICAg
-ICAgLyogcGluIDIgPSAwICovCisJCQkuZ3BpbzEgID0gMHg3MDYwLCAgICAgICAvKiBwMTIg
-PSAwLCBwMTMgPSAxLCBwMTQgPSAxICovCisJCQkuZ3BpbzIgID0gMHgwMDAwLAorCQl9IH0s
-CisJCS5yYWRpbyA9IHsKKwkJCS50eXBlICAgPSBDWDg4X1JBRElPLAorCQkJLmdwaW8wICA9
-IDB4MDQwMCwgICAgICAgLyogcGluIDIgPSAwICovCisJCQkuZ3BpbzEgID0gMHg3MDEwLCAg
-ICAgICAvKiBwMTIgPSAxLCBwMTMgPSAwLCBwMTQgPSAwICovCisJCQkuZ3BpbzIgID0gMHgw
-MDAwLAorCQl9LAorCQkubXBlZyAgICAgICAgICAgPSBDWDg4X01QRUdfRFZCLAorCX0sCiB9
-OwogCiAvKiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0gKi8KQEAgLTI0MjYsNiArMjQ2NywxMCBAQAogCQkuc3Vi
-dmVuZG9yID0gMHgwMDcwLAogCQkuc3ViZGV2aWNlID0gMHg5MjkwLAogCQkuY2FyZCAgICAg
-ID0gQ1g4OF9CT0FSRF9IQVVQUEFVR0VfSVJPTkxZLAorCX0sIHsKKwkJLnN1YnZlbmRvciA9
-IDB4MTA3ZCwKKwkJLnN1YmRldmljZSA9IDB4NjY1NCwKKwkJLmNhcmQgICAgICA9IENYODhf
-Qk9BUkRfV0lORkFTVF9EVFYxODAwSCwKIAl9LAogfTsKIApAQCAtMjYyNCw2ICsyNjY5LDIx
-IEBACiAJcmV0dXJuIC1FSU5WQUw7CiB9CiAKK3N0YXRpYyBpbnQgY3g4OF94YzMwMjhfd2lu
-ZmFzdDE4MDBoX2NhbGxiYWNrKHN0cnVjdCBjeDg4X2NvcmUgKmNvcmUsCisJCQkJCSAgICAg
-aW50IGNvbW1hbmQsIGludCBhcmcpCit7CisJc3dpdGNoIChjb21tYW5kKSB7CisJY2FzZSBY
-QzIwMjhfVFVORVJfUkVTRVQ6CisJCS8qIEdQSU8gMTIgKHhjMzAyOCB0dW5lciByZXNldCkg
-Ki8KKwkJY3hfd3JpdGUoTU9fR1AxX0lPLCAweDEwMTAwMCk7CisJCW1kZWxheSg1MCk7CisJ
-CWN4X3dyaXRlKE1PX0dQMV9JTywgMHgxMDEwMTApOworCQltZGVsYXkoNTApOworCQlyZXR1
-cm4gMDsKKwl9CisJcmV0dXJuIC1FSU5WQUw7Cit9CisKIC8qIC0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0gKi8K
-IC8qIHNvbWUgRGl2Y28gc3BlY2lmaWMgc3R1ZmYgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgKi8KIHN0YXRpYyBpbnQgY3g4OF9wdl84MDAwZ3RfY2FsbGJh
-Y2soc3RydWN0IGN4ODhfY29yZSAqY29yZSwKQEAgLTI2OTYsNiArMjc1Niw4IEBACiAJY2Fz
-ZSBDWDg4X0JPQVJEX0RWSUNPX0ZVU0lPTkhEVFZfRFZCX1RfUFJPOgogCWNhc2UgQ1g4OF9C
-T0FSRF9EVklDT19GVVNJT05IRFRWXzVfUENJX05BTk86CiAJCXJldHVybiBjeDg4X2R2aWNv
-X3hjMjAyOF9jYWxsYmFjayhjb3JlLCBjb21tYW5kLCBhcmcpOworCWNhc2UgQ1g4OF9CT0FS
-RF9XSU5GQVNUX0RUVjE4MDBIOgorCQlyZXR1cm4gY3g4OF94YzMwMjhfd2luZmFzdDE4MDBo
-X2NhbGxiYWNrKGNvcmUsIGNvbW1hbmQsIGFyZyk7CiAJfQogCiAJc3dpdGNoIChjb21tYW5k
-KSB7CkBAIC0yODgyLDYgKzI5NDQsMTQgQEAKIAkJY3hfc2V0KE1PX0dQMF9JTywgMHgwMDAw
-MDA4MCk7IC8qIDcwMiBvdXQgb2YgcmVzZXQgKi8KIAkJdWRlbGF5KDEwMDApOwogCQlicmVh
-azsKKworCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBIOgorCQkvKiBHUElPIDEy
-ICh4YzMwMjggdHVuZXIgcmVzZXQpICovCisJCWN4X3dyaXRlKE1PX0dQMV9JTywgMHgxMDEw
-MDApOworCQltZGVsYXkoNTApOworCQljeF93cml0ZShNT19HUDFfSU8sIDB4MTAxMDEwKTsK
-KwkJbWRlbGF5KDUwKTsKKwkJYnJlYWs7CiAJfQogfQogCkBAIC0yOTAyLDYgKzI5NzIsNyBA
-QAogCQkJY29yZS0+aTJjX2FsZ28udWRlbGF5ID0gMTY7CiAJCWJyZWFrOwogCWNhc2UgQ1g4
-OF9CT0FSRF9EVklDT19GVVNJT05IRFRWX0RWQl9UX1BSTzoKKwljYXNlIENYODhfQk9BUkRf
-V0lORkFTVF9EVFYxODAwSDoKIAkJY3RsLT5kZW1vZCA9IFhDMzAyOF9GRV9aQVJMSU5LNDU2
-OwogCQlicmVhazsKIAljYXNlIENYODhfQk9BUkRfS1dPUkxEX0FUU0NfMTIwOgpkaWZmIC1y
-IDI1YmMwNTgwMzU5YSBsaW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1kdmIu
-YwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1kdmIuYwlGcmkg
-TWF5IDI5IDE3OjAzOjMxIDIwMDkgLTAzMDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS92
-aWRlby9jeDg4L2N4ODgtZHZiLmMJU3VuIE1heSAzMSAxODo0NDowNSAyMDA5ICswMjAwCkBA
-IC0xMDIxLDYgKzEwMjEsNyBAQAogCQl9CiAJCWJyZWFrOwogCSBjYXNlIENYODhfQk9BUkRf
-UElOTkFDTEVfSFlCUklEX1BDVFY6CisJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTgw
-MEg6CiAJCWZlMC0+ZHZiLmZyb250ZW5kID0gZHZiX2F0dGFjaCh6bDEwMzUzX2F0dGFjaCwK
-IAkJCQkJICAgICAgICZjeDg4X3Bpbm5hY2xlX2h5YnJpZF9wY3R2LAogCQkJCQkgICAgICAg
-JmNvcmUtPmkyY19hZGFwKTsKZGlmZiAtciAyNWJjMDU4MDM1OWEgbGludXgvZHJpdmVycy9t
-ZWRpYS92aWRlby9jeDg4L2N4ODgtaW5wdXQuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlh
-L3ZpZGVvL2N4ODgvY3g4OC1pbnB1dC5jCUZyaSBNYXkgMjkgMTc6MDM6MzEgMjAwOSAtMDMw
-MAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1pbnB1dC5jCVN1
-biBNYXkgMzEgMTg6NDQ6MDUgMjAwOSArMDIwMApAQCAtOTIsNiArOTIsNyBAQAogCQlncGlv
-PShncGlvICYgMHg3ZmQpICsgKGF1eGdwaW8gJiAweGVmKTsKIAkJYnJlYWs7CiAJY2FzZSBD
-WDg4X0JPQVJEX1dJTkZBU1RfRFRWMTAwMDoKKwljYXNlIENYODhfQk9BUkRfV0lORkFTVF9E
-VFYxODAwSDoKIAljYXNlIENYODhfQk9BUkRfV0lORkFTVF9UVjIwMDBfWFBfR0xPQkFMOgog
-CQlncGlvID0gKGdwaW8gJiAweDZmZikgfCAoKGN4X3JlYWQoTU9fR1AxX0lPKSA8PCA4KSAm
-IDB4OTAwKTsKIAkJYXV4Z3BpbyA9IGdwaW87CkBAIC0yMzcsNiArMjM4LDcgQEAKIAkJaXIt
-PnNhbXBsaW5nID0gMTsKIAkJYnJlYWs7CiAJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRW
-MjAwMEg6CisJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEg6CiAJCWlyX2NvZGVz
-ID0gaXJfY29kZXNfd2luZmFzdDsKIAkJaXItPmdwaW9fYWRkciA9IE1PX0dQMF9JTzsKIAkJ
-aXItPm1hc2tfa2V5Y29kZSA9IDB4OGY4OwpkaWZmIC1yIDI1YmMwNTgwMzU5YSBsaW51eC9k
-cml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC5oCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVk
-aWEvdmlkZW8vY3g4OC9jeDg4LmgJRnJpIE1heSAyOSAxNzowMzozMSAyMDA5IC0wMzAwCisr
-KyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LmgJU3VuIE1heSAzMSAx
-ODo0NDowNSAyMDA5ICswMjAwCkBAIC0yMzcsNiArMjM3LDcgQEAKICNkZWZpbmUgQ1g4OF9C
-T0FSRF9QUk9GXzYyMDAgICAgICAgICAgICAgICA3OAogI2RlZmluZSBDWDg4X0JPQVJEX1RF
-UlJBVEVDX0NJTkVSR1lfSFRfUENJX01LSUkgNzkKICNkZWZpbmUgQ1g4OF9CT0FSRF9IQVVQ
-UEFVR0VfSVJPTkxZICAgICAgICA4MAorI2RlZmluZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRW
-MTgwMEggICAgICAgIDgxCiAKIGVudW0gY3g4OF9pdHlwZSB7CiAJQ1g4OF9WTVVYX0NPTVBP
-U0lURTEgPSAxLAp=
+dmesg
 
----------=_54A55242.50D378D--
+[   13.400319] Linux video capture interface: v2.00
+[   13.584724] cx23885 driver version 0.0.1 loaded
+[   13.585254] ACPI: PCI Interrupt Link [APC8] enabled at IRQ 16
+[   13.585266] cx23885 0000:04:00.0: PCI INT A -> Link[APC8] -> GSI 16 (level, low) -> IRQ 16
+[   13.585421] CORE cx23885[0]: subsystem: 1858:e800, board: Compro VideoMate E650F [card=13,insmod option]
+[   13.661794] HDA Intel 0000:00:09.0: power state changed by ACPI to D0
+[   13.662212] ACPI: PCI Interrupt Link [AAZA] enabled at IRQ 22
+[   13.662217] HDA Intel 0000:00:09.0: PCI INT A -> Link[AAZA] -> GSI 22 (level, low) -> IRQ 22
+[   13.662264] HDA Intel 0000:00:09.0: setting latency timer to 64
+[   13.769137] cx25840' 2-0044: cx25  0-21 found @ 0x88 (cx23885[0])
+[   13.769936] cx23885_dvb_register() allocating 1 frontend(s)
+[   13.769943] cx23885[0]: cx23885 based dvb card
+[   13.836235] xc2028 1-0061: creating new instance
+[   13.836241] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+[   13.836249] DVB: registering new adapter (cx23885[0])
+[   13.836255] DVB: registering adapter 0 frontend 0 (Zarlink ZL10353 DVB-T)...
+[   13.837169] cx23885_dev_checkrevision() Hardware revision = 0xb0
+[   13.837180] cx23885[0]/0: found at 0000:04:00.0, rev: 2, irq: 16, latency: 0, mmio: 0xef600000
+[   13.837188] cx23885 0000:04:00.0: setting latency timer to 64
+
+w_scan version 20081106
+Info: using DVB adapter auto detection.
+   Found DVB-T frontend. Using adapter /dev/dvb/adapter0/frontend0
+-_-_-_-_ Getting frontend capabilities-_-_-_-_ 
+frontend Zarlink ZL10353 DVB-T supports
+INVERSION_AUTO
+QAM_AUTO
+TRANSMISSION_MODE_AUTO
+GUARD_INTERVAL_AUTO
+HIERARCHY_AUTO
+FEC_AUTO
+-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_ 
+177500: 
+184500: 
+191500: 
+198500: 
+205500: 
+212500: 
+219500: 
+226500: 
+474000: 
+482000: 
+490000: 
+498000: 
+506000: 
+514000: 
+522000: 
+530000: 
+538000: 
+546000: 
+554000: 
+562000: 
+570000: 
+578000: 
+586000: 
+594000: 
+602000: 
+610000: 
+618000: 
+626000: 
+634000: signal ok (I999B8C999D999M999T999G999Y999)
+642000: 
+650000: signal ok (I999B8C999D999M999T999G999Y999)
+658000: 
+666000: 
+674000: 
+682000: 
+690000: 
+698000: 
+706000: 
+714000: signal ok (I999B8C999D999M999T999G999Y999)
+722000: 
+730000: 
+738000: 
+746000: 
+754000: 
+762000: 
+770000: 
+778000: 
+786000: 
+794000: 
+802000: 
+810000: 
+818000: signal ok (I999B8C999D999M999T999G999Y999)
+826000: 
+834000: 
+842000: 
+850000: 
+858000: 
+tune to: :634000:I999B8C999D999M999T999G999Y999:T:27500:
+Network Name 'CONCERN RRT'
+     UT-1(ERA PRODUCTION)
+     K1(ERA PRODUCTION)
+     RADA(ERA PRODUCTION)
+     TV KYIV(ERA PRODUCTION)
+tune to: :650000:I999B8C999D999M999T999G999Y999:T:27500:
+Network Name 'EXPRESS-INFORM'
+copying transponder info (650000)
+     5 KANAL(KRRT)
+     MEGASPORT(KRRT)
+     TONIS(KRRT)
+     OTV(KRRT)
+     ICTV(KRRT)
+tune to: :714000:I999B8C999D999M999T999G999Y999:T:27500:
+Network Name 'UDTVN'
+     MEGASPORT (TEST)(UDTVN)
+     KULTURA (TEST)(UDTVN)
+     INTER (TEST)(UDTVN)
+     FOOTBALL (TEST)(UDTVN)
+     M2 (TEST)(UDTVN)
+     KDRTRK (TEST)(UDTVN)
+     MUSICBOX (TEST)(UDTVN)
+     TBi (TEST)(UDTVN)
+     NTN(UDTVN)
+     GUMOR TV (TEST)(UDTVN)
+tune to: :818000:I999B8C999D999M999T999G999Y999:T:27500:
+     GAMMA(GAMMA CONSULTING)
+     M2(GAMMA CONSULTING)
+     M1(GAMMA CONSULTING)
+     RUMUSIC(GAMMA CONSULTING)
+     NEWS_ONE(GAMMA CONSULTING)
+Network Name 'Gamma consulting'
+dumping lists (24 services)
+UT-1:634000:I999B8C999D999M999T999G999Y999:T:27500:4111:4112=UKR:0:0:1:0:0:0
+K1:634000:I999B8C999D999M999T999G999Y999:T:27500:4121:4122:0:0:2:0:0:0
+RADA:634000:I999B8C999D999M999T999G999Y999:T:27500:4131:4132=ukr:0:0:3:0:0:0
+TV KYIV:634000:I999B8C999D999M999T999G999Y999:T:27500:4141:4142:0:0:4:0:0:0
+5 KANAL:650000:I999B8C23D23M64T8G32Y0:T:27500:4311:4312=ukr:0:0:1:8259:43:0
+MEGASPORT:650000:I999B8C23D23M64T8G32Y0:T:27500:4321:4322:0:0:2:8259:43:0
+TONIS:650000:I999B8C23D23M64T8G32Y0:T:27500:4331+4339:4332:0:0:3:8259:43:0
+OTV:650000:I999B8C23D23M64T8G32Y0:T:27500:4341:4342:0:0:4:8259:43:0
+ICTV:650000:I999B8C23D23M64T8G32Y0:T:27500:4351:4352:0:0:5:8259:43:0
+MEGASPORT (TEST):714000:I999B8C999D999M999T999G999Y999:T:27500:1011:1012=ukr:0:0:1:0:0:0
+KULTURA (TEST):714000:I999B8C999D999M999T999G999Y999:T:27500:1021:1022=ukr:0:0:2:0:0:0
+INTER (TEST):714000:I999B8C999D999M999T999G999Y999:T:27500:1031:1032=ukr:0:0:3:0:0:0
+FOOTBALL (TEST):714000:I999B8C999D999M999T999G999Y999:T:27500:1041:1042=ukr:0:0:4:0:0:0
+M2 (TEST):714000:I999B8C999D999M999T999G999Y999:T:27500:1051:1052=ukr:0:0:5:0:0:0
+KDRTRK (TEST):714000:I999B8C999D999M999T999G999Y999:T:27500:1061:1062=ukr:0:0:6:0:0:0
+MUSICBOX (TEST):714000:I999B8C999D999M999T999G999Y999:T:27500:1071:1072=ukr:0:0:7:0:0:0
+TBi (TEST):714000:I999B8C999D999M999T999G999Y999:T:27500:1081:1082=ukr:0:0:8:0:0:0
+NTN:714000:I999B8C999D999M999T999G999Y999:T:27500:1091:1092=ukr:0:0:9:0:0:0
+GUMOR TV (TEST):714000:I999B8C999D999M999T999G999Y999:T:27500:1101:1102=ukr:0:0:10:0:0:0
+GAMMA:818000:I999B8C999D999M999T999G999Y999:T:27500:100:101=rus:0:0:1:0:0:0
+M2:818000:I999B8C999D999M999T999G999Y999:T:27500:110:111=rus:0:0:2:0:0:0
+M1:818000:I999B8C999D999M999T999G999Y999:T:27500:130:131=rus:0:0:3:0:0:0
+RUMUSIC:818000:I999B8C999D999M999T999G999Y999:T:27500:120:121=rus:0:0:4:0:0:0
+NEWS_ONE:818000:I999B8C999D999M999T999G999Y999:T:27500:140:141=ukr:0:0:5:0:0:0
+Done.
+
+Not working with v4l-dvb changeset 11018  http://linuxtv.org/hg/v4l-dvb/rev/526aa050c3d8
+
+dmesg
+
+[   13.583498] cx23885 driver version 0.0.1 loaded
+[   13.584290] ACPI: PCI Interrupt Link [APC8] enabled at IRQ 16
+[   13.584309] cx23885 0000:04:00.0: PCI INT A -> Link[APC8] -> GSI 16 (level, low) -> IRQ 16
+[   13.584502] CORE cx23885[0]: subsystem: 1858:e800, board: Compro VideoMate E650F [card=13,insmod option]
+[   13.710505] HDA Intel 0000:00:09.0: power state changed by ACPI to D0
+[   13.710925] ACPI: PCI Interrupt Link [AAZA] enabled at IRQ 22
+[   13.710930] HDA Intel 0000:00:09.0: PCI INT A -> Link[AAZA] -> GSI 22 (level, low) -> IRQ 22
+[   13.710979] HDA Intel 0000:00:09.0: setting latency timer to 64
+[   13.761782] cx25840' 2-0044: cx25  0-21 found @ 0x88 (cx23885[0])
+[   13.762480] cx23885_dvb_register() allocating 1 frontend(s)
+[   13.762486] cx23885[0]: cx23885 based dvb card
+[   13.822046] xc2028 1-0061: creating new instance
+[   13.822050] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+[   13.822056] DVB: registering new adapter (cx23885[0])
+[   13.822060] DVB: registering adapter 0 frontend 0 (Zarlink ZL10353 DVB-T)...
+[   13.822573] cx23885_dev_checkrevision() Hardware revision = 0xb0
+[   13.822581] cx23885[0]/0: found at 0000:04:00.0, rev: 2, irq: 16, latency: 0, mmio: 0xef600000
+[   13.822588] cx23885 0000:04:00.0: setting latency timer to 64
+
+w_scan version 20081106
+Info: using DVB adapter auto detection.
+   Found DVB-T frontend. Using adapter /dev/dvb/adapter0/frontend0
+-_-_-_-_ Getting frontend capabilities-_-_-_-_ 
+frontend Zarlink ZL10353 DVB-T supports
+INVERSION_AUTO
+QAM_AUTO
+TRANSMISSION_MODE_AUTO
+GUARD_INTERVAL_AUTO
+HIERARCHY_AUTO
+FEC_AUTO
+-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_ 
+177500: 
+184500: 
+191500: 
+198500: 
+205500: 
+212500: 
+219500: 
+226500: 
+474000: 
+482000: 
+490000: 
+498000: 
+506000: 
+514000: 
+522000: 
+530000: 
+538000: 
+546000: 
+554000: 
+562000: 
+570000: 
+578000: 
+586000: 
+594000: 
+602000: 
+610000: 
+618000: 
+626000: 
+634000: 
+642000: 
+650000: 
+658000: 
+666000: 
+674000: 
+682000: 
+690000: 
+698000: 
+706000: 
+714000: 
+722000: 
+730000: 
+738000: 
+746000: 
+754000: 
+762000: 
+770000: 
+778000: 
+786000: 
+794000: 
+802000: 
+810000: 
+818000: 
+826000: 
+834000: 
+842000: 
+850000: 
+858000: 
+ERROR: Sorry - i couldn't get any working frequency/transponder
+ Nothing to scan!!
+dumping lists (0 services)
+Done.
+
+
+Not working can't add new channels with the last v4l-dvb changeset 11824  http://linuxtv.org/hg/v4l-dvb/rev/315bc4b65b4f
+
+dmesg
+
+[   13.636367] cx23885 driver version 0.0.2 loaded
+[   13.637099] ACPI: PCI Interrupt Link [APC8] enabled at IRQ 16
+[   13.637117] cx23885 0000:04:00.0: PCI INT A -> Link[APC8] -> GSI 16 (level, low) -> IRQ 16
+[   13.637316] CORE cx23885[0]: subsystem: 1858:e800, board: Compro VideoMate E650F [card=13,insmod option]
+[   13.762876] HDA Intel 0000:00:09.0: power state changed by ACPI to D0
+[   13.763296] ACPI: PCI Interrupt Link [AAZA] enabled at IRQ 22
+[   13.763301] HDA Intel 0000:00:09.0: PCI INT A -> Link[AAZA] -> GSI 22 (level, low) -> IRQ 22
+[   13.763351] HDA Intel 0000:00:09.0: setting latency timer to 64
+[   13.816992] cx25840 2-0044: cx25  0-21 found @ 0x88 (cx23885[0])
+[   13.821025] cx25840 2-0044: firmware: requesting v4l-cx23885-avcore-01.fw
+[   14.328671] input: HDA Digital PCBeep as /devices/pci0000:00/0000:00:09.0/input/input5
+[   14.468886] cx25840 2-0044: loaded v4l-cx23885-avcore-01.fw firmware (16382 bytes)
+[   14.474795] cx23885_dvb_register() allocating 1 frontend(s)
+[   14.474799] cx23885[0]: cx23885 based dvb card
+[   14.551275] xc2028 1-0061: creating new instance
+[   14.551278] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+[   14.551285] DVB: registering new adapter (cx23885[0])
+[   14.551288] DVB: registering adapter 0 frontend 0 (Zarlink ZL10353 DVB-T)...
+[   14.551859] cx23885_dev_checkrevision() Hardware revision = 0xb0
+[   14.551867] cx23885[0]/0: found at 0000:04:00.0, rev: 2, irq: 16, latency: 0, mmio: 0xef600000
+[   14.551874] cx23885 0000:04:00.0: setting latency timer to 64
+
+w_scan version 20081106
+Info: using DVB adapter auto detection.
+   Found DVB-T frontend. Using adapter /dev/dvb/adapter0/frontend0
+-_-_-_-_ Getting frontend capabilities-_-_-_-_ 
+frontend Zarlink ZL10353 DVB-T supports
+INVERSION_AUTO
+QAM_AUTO
+TRANSMISSION_MODE_AUTO
+GUARD_INTERVAL_AUTO
+HIERARCHY_AUTO
+FEC_AUTO
+-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_ 
+177500: 
+184500: 
+191500: 
+198500: 
+205500: 
+212500: 
+219500: 
+226500: 
+474000: 
+482000: 
+490000: 
+498000: 
+506000: 
+514000: 
+522000: 
+530000: 
+538000: 
+546000: 
+554000: 
+562000: 
+570000: 
+578000: 
+586000: 
+594000: 
+602000: 
+610000: 
+618000: 
+626000: 
+634000: signal ok (I999B8C999D999M999T999G999Y999)
+642000: 
+650000: signal ok (I999B8C999D999M999T999G999Y999)
+658000: 
+666000: 
+674000: 
+682000: 
+690000: 
+698000: 
+706000: 
+714000: signal ok (I999B8C999D999M999T999G999Y999)
+722000: 
+730000: 
+738000: 
+746000: 
+754000: 
+762000: 
+770000: 
+778000: 
+786000: 
+794000: 
+802000: 
+810000: 
+818000: signal ok (I999B8C999D999M999T999G999Y999)
+826000: 
+834000: 
+842000: 
+850000: 
+858000: 
+tune to: :634000:I999B8C999D999M999T999G999Y999:T:27500:
+Info: filter timeout pid 0x0011
+Info: filter timeout pid 0x0000
+Info: filter timeout pid 0x0010
+tune to: :650000:I999B8C999D999M999T999G999Y999:T:27500:
+Info: filter timeout pid 0x0011
+Info: filter timeout pid 0x0000
+Info: filter timeout pid 0x0010
+tune to: :714000:I999B8C999D999M999T999G999Y999:T:27500:
+Info: filter timeout pid 0x0011
+Info: filter timeout pid 0x0000
+Info: filter timeout pid 0x0010
+tune to: :818000:I999B8C999D999M999T999G999Y999:T:27500:
+Info: filter timeout pid 0x0011
+Info: filter timeout pid 0x0000
+Info: filter timeout pid 0x0010
+dumping lists (0 services)
+Done.
+
+P.S. Sorry for my english
