@@ -1,124 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-16.arcor-online.net ([151.189.21.56]:58533 "EHLO
-	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752825AbZEEXe4 (ORCPT
+Received: from mail-bw0-f174.google.com ([209.85.218.174]:49674 "EHLO
+	mail-bw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753890AbZEWUaw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 May 2009 19:34:56 -0400
-Subject: Re: [linux-dvb] Can't scan transponders with Terratec Cinergy HT
-	PCI  board
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Charles <landemaine@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-In-Reply-To: <e6575a30905041313n7d8de379nea976f9bb9254245@mail.gmail.com>
-References: <e6575a30904300454w117e6293p4793ad6c2b5c706@mail.gmail.com>
-	 <1241137592.5108.12.camel@pc07.localdom.local>
-	 <e6575a30905011018q3b72307aqc73faf01bc380300@mail.gmail.com>
-	 <e6575a30905041313n7d8de379nea976f9bb9254245@mail.gmail.com>
-Content-Type: text/plain
-Date: Wed, 06 May 2009 01:32:31 +0200
-Message-Id: <1241566351.16938.21.camel@pc07.localdom.local>
-Mime-Version: 1.0
+	Sat, 23 May 2009 16:30:52 -0400
+Received: by bwz22 with SMTP id 22so2288790bwz.37
+        for <linux-media@vger.kernel.org>; Sat, 23 May 2009 13:30:52 -0700 (PDT)
+Message-ID: <4A185CDB.1090001@gmail.com>
+Date: Sat, 23 May 2009 22:30:19 +0200
+From: David Lister <foceni@gmail.com>
+MIME-Version: 1.0
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Andreas Regel <andreas.regel@gmx.de>, linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Most stable DVB-S2 PCI Card?
+References: <53876.82.95.219.165.1243013567.squirrel@webmail.xs4all.nl>	 <20090522234201.4ee5cf47@bk.ru>	 <1a297b360905221325r46432d02g8a97b1361e7958ac@mail.gmail.com>	 <4A171985.3090205@gmail.com>	 <1a297b360905221438n7dfb55a9uec1f1ce119bd8d74@mail.gmail.com>	 <4A178ED3.5050806@gmail.com>	 <1a297b360905222337r1b65bbe7n65578d1991348b9@mail.gmail.com>	 <4A17C9F7.8050800@gmail.com> <4A181DF6.30309@gmx.de>	 <4A183D79.4050708@gmail.com> <1a297b360905231145p1a8dca53jfd3069c7c90971b6@mail.gmail.com>
+In-Reply-To: <1a297b360905231145p1a8dca53jfd3069c7c90971b6@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Manu Abraham wrote:
+> On Sat, May 23, 2009 at 10:16 PM, David Lister <foceni@gmail.com> wrote:
+>   
+>> *OT* I just remembered in connection with Linux DVB-S2 cards: in case
+>> some of you also heard about that new dual DVB-S2-CI tuner for PC's with
+>> full Linux support, you can forget about it. Or at least I can. When I
+>> pre-ordered directly from the Russian manufacturer (NetUP), they said
+>> the price for one would be $1000. What a rip-off...
+>>     
+>
+> Indeed it is.
+>
+> Maybe you will get a DVB card with dual DVB-S2 and CI with hardware
+> H.264 decoder and HDMI out for a better deal. You might need to wait for
+> the hardware to be available though.
+>   
 
-Am Montag, den 04.05.2009, 22:13 +0200 schrieb Charles:
-> On Fri, May 1, 2009 at 2:26 AM, hermann pitton <hermann-pitton@arcor.de> wrote:
-> > Hi Charles,
-> >
-> > Am Donnerstag, den 30.04.2009, 13:54 +0200 schrieb Charles:
-> >> Hello,
-> >>
-> >>
-> >> I installed my Terratec Cinergy HT PCI DVB-T board on Ubuntu 9.04
-> >
-> > I guess HT PCI can mean a lot, like My Cinema, WinFast and the like ...
-> >
-> >> using your tutorial
-> >> (http://www.linuxtv.org/wiki/index.php/How_to_Obtain%2C_Build_and_Install_V4L-DVB_Device_Drivers)
-> >> and when trying to scan transponders, no result was found:
-> >>
-> >> $ ls -l /dev/dvb/adapter0
-> >> total 0
-> >> crw-rw----+ 1 root video 212, 1 2009-04-30 12:19 demux0
-> >> crw-rw----+ 1 root video 212, 2 2009-04-30 12:19 dvr0
-> >> crw-rw----+ 1 root video 212, 0 2009-04-30 12:19 frontend0
-> >> crw-rw----+ 1 root video 212, 3 2009-04-30 12:19 net0
-> >>
-> >> $ scan /usr/share/dvb/dvb-t/fr-Nantes
-> >> scanning /usr/share/dvb/dvb-t/fr-Nantes
-> >> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> >> initial transponder 498000000 0 2 9 3 1 0 0
-> >> initial transponder 506000000 0 2 9 3 1 0 0
-> >> initial transponder 522000000 0 2 9 3 1 0 0
-> >> initial transponder 530000000 0 2 9 3 1 0 0
-> >> initial transponder 658000000 0 2 9 3 1 0 0
-> >> initial transponder 802000000 0 2 9 3 1 0 0
-> >
-> > Can't tell offhand if the zl10353 eventually has this problem too, which
-> > is well known on the tda10046.
-> >
-> > Please try to add plus 167 kHz to your initial scan file for Nantes,
-> > like you can see it here for one of the Lyon transmitters.
-> >
-[snip]
+You appear to have different information. Their site and mail
+announcements don't mention any H.264 decoder, nor HDMI out. Even the
+photo says otherwise. This is the one I mean:
+http://www.netup.tv/en-EN/dual_dvb-s2-ci_card.php
 
-> 
-> Hi Hermann,
-> 
-> Thank you. I added 167Khz to the scan file but it didn't solve my problem:
-> 
-> 
-> $ scan /usr/share/dvb/dvb-t/fr-Nantes
-> scanning /usr/share/dvb/dvb-t/fr-Nantes
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> initial transponder 498167000 0 2 9 3 1 0 0
-> initial transponder 506167000 0 2 9 3 1 0 0
-> initial transponder 522167000 0 2 9 3 1 0 0
-> initial transponder 530167000 0 2 9 3 1 0 0
-> initial transponder 658167000 0 2 9 3 1 0 0
-> initial transponder 802167000 0 2 9 3 1 0 0
-> >>> tune to: 498167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 498167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 506167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 506167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 522167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 522167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 530167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 658167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 658167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 802167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 802167000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-> WARNING: >>> tuning failed!!!
-> ERROR: initial tuning failed
-> dumping lists (0 services)
-> Done.
-> $
-> 
-> 
-> Any other idea?
+If what you say was true, (I wish it would), if it weren't a "budget"
+card, I wouldn't call it a rip-off -- it would be a pretty neat piece of
+HW. Still a bit pricey, but within limits. Unfortunately, from what I've
+gathered from the site, announcements and mails with the manufacturer,
+it is just a dual budget card. If so, it is a rip-off. :)
 
-Not really.
-
-Which HT PCI it is, copy/paste relevant parts of "dmesg".
-
-If it is not a known issue with a certain card/driver,
-I would assume the signal is too poor.
-
-Cheers,
-Hermann
-
+-- 
+Dave
 
