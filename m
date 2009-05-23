@@ -1,39 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:23978 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751803AbZELEvV (ORCPT
+Received: from smtp3m5.poczta.onet.pl ([213.180.138.34]:47460 "EHLO
+	smtp3m5.poczta.onet.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752166AbZEWLB6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2009 00:51:21 -0400
-Subject: Re: [PATCH v2 1/7] v4l2: video device: Add V4L2_CTRL_CLASS_FMTX
- controls
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-Reply-To: ext-eero.nurkkala@nokia.com
-To: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <1242034309-13448-2-git-send-email-eduardo.valentin@nokia.com>
-References: <1242034309-13448-1-git-send-email-eduardo.valentin@nokia.com>
-	 <1242034309-13448-2-git-send-email-eduardo.valentin@nokia.com>
-Content-Type: text/plain
-Date: Tue, 12 May 2009 07:49:25 +0300
-Message-Id: <1242103765.19944.41.camel@eenurkka-desktop>
-Mime-Version: 1.0
+	Sat, 23 May 2009 07:01:58 -0400
+Received: from 77-254-192-12.adsl.inetia.pl ([77.254.192.12]:52424 "EHLO
+	jarek-desktop.localnet" rhost-flags-OK-OK-OK-FAIL) by ps3.mod5.onet
+	with ESMTPSA id S50347758AbZEWLB6RORCo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 23 May 2009 13:01:58 +0200
+From: =?iso-8859-2?q?Jaros=B3aw_Huba?= <jarhuba2@poczta.onet.pl>
+Reply-To: jarhuba2@poczta.onet.pl
+To: Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: Question about driver for Mantis
+Date: Sat, 23 May 2009 13:01:53 +0200
+Cc: linux-media@vger.kernel.org
+References: <200905230810.39344.jarhuba2@poczta.onet.pl> <1a297b360905222341t4e66e2c6x95d339838db43139@mail.gmail.com>
+In-Reply-To: <1a297b360905222341t4e66e2c6x95d339838db43139@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
 Content-Transfer-Encoding: 7bit
+Message-Id: <200905231301.53827.jarhuba2@poczta.onet.pl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-05-11 at 11:31 +0200, Valentin Eduardo (Nokia-D/Helsinki) wrote:
-> +enum v4l2_fmtx_preemphasis {
-> +	V4L2_FMTX_PREEMPHASIS_75_uS		= 0,
-> +	V4L2_FMTX_PREEMPHASIS_50_uS		= 1,
-> +	V4L2_FMTX_PREEMPHASIS_DISABLED		= 2,
-> +};
+> The latest development snapshot for the mantis based devices can be found
+> here: http://jusst.de/hg/mantis-v4l
+>
+> Currently CI is unsupported, though very preliminary code support for
+> it exists in it.
+> S2 works, pretty much. Or do you have other results ?
+>
+> Regards,
+> Manu
 
-Hello there,
+I will test it soon. Do I need to compile my own pathed kernel? Or Is there 
+some info on wiki about how to do that in easier way?
+I'm using Kubuntu Karmic with kernel 2.6.30.
 
-Would it make more sense to make:
-"V4L2_FMTX_PREEMPHASIS_DISABLED" as "zero" (false). In my opinion,
-that would be more clear.
-
-- Eero
-
+Jarek
