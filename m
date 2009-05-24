@@ -1,74 +1,311 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f168.google.com ([209.85.220.168]:62958 "EHLO
-	mail-fx0-f168.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752162AbZEWNja (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 May 2009 09:39:30 -0400
-Received: by fxm12 with SMTP id 12so380128fxm.37
-        for <linux-media@vger.kernel.org>; Sat, 23 May 2009 06:39:30 -0700 (PDT)
+Received: from smtp2.versatel.nl ([62.58.50.89]:40278 "EHLO smtp2.versatel.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752035AbZEXJtG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 May 2009 05:49:06 -0400
+Message-ID: <4A191837.4070002@hhs.nl>
+Date: Sun, 24 May 2009 11:49:43 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-In-Reply-To: <4A17F4E9.7090503@gmail.com>
-References: <53876.82.95.219.165.1243013567.squirrel@webmail.xs4all.nl>
-	 <20090522234201.4ee5cf47@bk.ru>
-	 <1a297b360905221325r46432d02g8a97b1361e7958ac@mail.gmail.com>
-	 <4A171985.3090205@gmail.com>
-	 <1a297b360905221438n7dfb55a9uec1f1ce119bd8d74@mail.gmail.com>
-	 <4A178ED3.5050806@gmail.com>
-	 <1a297b360905222337r1b65bbe7n65578d1991348b9@mail.gmail.com>
-	 <4A17C9F7.8050800@gmail.com>
-	 <1a297b360905230339g38b420cax4dde38aeb123f2e3@mail.gmail.com>
-	 <4A17F4E9.7090503@gmail.com>
-Date: Sat, 23 May 2009 17:39:30 +0400
-Message-ID: <1a297b360905230639l7a627ad1u9f794dbaf8f71927@mail.gmail.com>
-Subject: Re: [linux-dvb] Most stable DVB-S2 PCI Card?
-From: Manu Abraham <abraham.manu@gmail.com>
-To: David Lister <foceni@gmail.com>
-Cc: Goga777 <goga777@bk.ru>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+CC: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] to libv4lconvert, to do decompression for sn9c2028 cameras
+References: <1242316804.1759.1@lhost.ldomain> <4A0C544F.1030801@hhs.nl> <alpine.LNX.2.00.0905141424460.11396@banach.math.auburn.edu> <alpine.LNX.2.00.0905191529260.19936@banach.math.auburn.edu> <4A144E41.6080806@redhat.com> <alpine.LNX.2.00.0905231628240.24795@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0905231628240.24795@banach.math.auburn.edu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> As soon as the new S2API mantis tree was mentioned on the list, I used it.
-> But most importantly, your only explanation that it still doesn't work,
-> because I burned my demodulator using the current s2-liplianin tree is
-> *absolutely* ridiculous. You might work it out with Liplianin himself,
+Hi,
+
+Thanks for the patch, but I see one big issue with this patch,
+the decompression algorithm is GPL, where as libv4l is LGPL.
+
+Any chance you could get this relicensed to LGPL ?
+
+Regards,
+
+Hans
 
 
-No, you happened to be a complete idiot inspite of doing sane things,
-being repeatedly warned with posts on the Mailing List. If you can't read,
-you suffer from it. s2-liplianin was created with some cause for promoting
-the hardware what you were trying to promote. So definitely it is that way.
-I can't help that you ran arbitrary code on your computer  and got screwed.
+On 05/24/2009 12:12 AM, Theodore Kilgore wrote:
+>
+> The purpose of the following patch is to do the decompression for the
+> Sonix SN9C2028 cameras, which are already supported as still cameras in
+> libgphoto2/camlibs/sonix. The decompression code is essentially
+> identical to that which is used in the libgphoto2 driver, with minor
+> changes to adapt it for libv4lconvert.
+>
+> The history and antecedents of this algorithm are described in
+> libgphoto2/camlibs/sonix/README.sonix, which was Copyright (C) 2005
+> Theodore Kilgore <kilgota@auburn.edu>, as follows:
+>
+> "The decompression algorithm originates, I understand, in the work of
+> Bertrik Sikkens for the sn9c102 cameras. In the macam project for
+> MacOS-X camera support (webcam-osx project on Sourceforge), the
+> decompression algorithm for the sn9c2028 cameras was developed by
+> Mattias Krauss and adapted for use with the Vivitar Vivicam 3350B in
+> particular by Harald Ruda <hrx at users.sourceforge.net>. Harald brought
+> to my attention the work already done in the macam project, pointed out
+> that it is GPL code, and invited me to have a look. Thanks, Harald. The
+> decompression algorithm used here is similar to what is used in the
+> macam driver, but is considerably streamlined and improved."
+>
+> Signed-off-by Theodore Kilgore <kilgota@auburn.edu>
+>
+> -----------------------------------------------------------------------
+> diff -r 276a90c8ac40 v4l2-apps/libv4l/libv4lconvert/Makefile
+> --- a/v4l2-apps/libv4l/libv4lconvert/Makefile Wed May 20 07:23:00 2009
+> +0200
+> +++ b/v4l2-apps/libv4l/libv4lconvert/Makefile Wed May 20 13:10:53 2009
+> -0500
+> @@ -14,7 +14,7 @@
+>
+> CONVERT_OBJS = libv4lconvert.o tinyjpeg.o sn9c10x.o sn9c20x.o pac207.o \
+> mr97310a.o flip.o crop.o jidctflt.o spca561-decompress.o \
+> - rgbyuv.o spca501.o sq905c.o bayer.o hm12.o \
+> + rgbyuv.o sn9c2028-decomp.o spca501.o sq905c.o bayer.o hm12.o \
+> control/libv4lcontrol.o processing/libv4lprocessing.o \
+> processing/rgbprocessing.o processing/bayerprocessing.o
+> TARGETS = $(CONVERT_LIB) libv4lconvert.pc
+> diff -r 276a90c8ac40 v4l2-apps/libv4l/libv4lconvert/libv4lconvert-priv.h
+> --- a/v4l2-apps/libv4l/libv4lconvert/libv4lconvert-priv.h Wed May 20
+> 07:23:00 2009 +0200
+> +++ b/v4l2-apps/libv4l/libv4lconvert/libv4lconvert-priv.h Wed May 20
+> 13:10:53 2009 -0500
+> @@ -51,6 +51,10 @@
+> #define V4L2_PIX_FMT_MR97310A v4l2_fourcc('M','3','1','0')
+> #endif
+>
+> +#ifndef V4L2_PIX_FMT_SN9C2028
+> +#define V4L2_PIX_FMT_SN9C2028 v4l2_fourcc('S', 'O', 'N', 'X')
+> +#endif
+> +
+> #ifndef V4L2_PIX_FMT_SQ905C
+> #define V4L2_PIX_FMT_SQ905C v4l2_fourcc('9', '0', '5', 'C')
+> #endif
+> @@ -193,6 +197,9 @@
+> void v4lconvert_decode_mr97310a(const unsigned char *src, unsigned char
+> *dst,
+> int width, int height);
+>
+> +void v4lconvert_decode_sn9c2028(const unsigned char *src, unsigned char
+> *dst,
+> + int width, int height);
+> +
+> void v4lconvert_decode_sq905c(const unsigned char *src, unsigned char *dst,
+> int width, int height);
+>
+> diff -r 276a90c8ac40 v4l2-apps/libv4l/libv4lconvert/libv4lconvert.c
+> --- a/v4l2-apps/libv4l/libv4lconvert/libv4lconvert.c Wed May 20 07:23:00
+> 2009 +0200
+> +++ b/v4l2-apps/libv4l/libv4lconvert/libv4lconvert.c Wed May 20 13:10:53
+> 2009 -0500
+> @@ -60,6 +60,7 @@
+> { V4L2_PIX_FMT_JPEG, V4LCONVERT_COMPRESSED },
+> { V4L2_PIX_FMT_SPCA561, V4LCONVERT_COMPRESSED },
+> { V4L2_PIX_FMT_SN9C10X, V4LCONVERT_COMPRESSED },
+> + { V4L2_PIX_FMT_SN9C2028, V4LCONVERT_COMPRESSED },
+> { V4L2_PIX_FMT_PAC207, V4LCONVERT_COMPRESSED },
+> { V4L2_PIX_FMT_MR97310A, V4LCONVERT_COMPRESSED },
+> { V4L2_PIX_FMT_SQ905C, V4LCONVERT_COMPRESSED },
+> @@ -460,6 +461,7 @@
+> case V4L2_PIX_FMT_SN9C10X:
+> case V4L2_PIX_FMT_PAC207:
+> case V4L2_PIX_FMT_MR97310A:
+> + case V4L2_PIX_FMT_SN9C2028:
+> case V4L2_PIX_FMT_SQ905C:
+> case V4L2_PIX_FMT_SBGGR8:
+> case V4L2_PIX_FMT_SGBRG8:
+> @@ -672,6 +674,7 @@
+> case V4L2_PIX_FMT_SN9C10X:
+> case V4L2_PIX_FMT_PAC207:
+> case V4L2_PIX_FMT_MR97310A:
+> + case V4L2_PIX_FMT_SN9C2028:
+> case V4L2_PIX_FMT_SQ905C:
+> {
+> unsigned char *tmpbuf;
+> @@ -699,6 +702,10 @@
+> v4lconvert_decode_mr97310a(src, tmpbuf, width, height);
+> tmpfmt.fmt.pix.pixelformat = V4L2_PIX_FMT_SBGGR8;
+> break;
+> + case V4L2_PIX_FMT_SN9C2028:
+> + v4lconvert_decode_sn9c2028(src, tmpbuf, width, height);
+> + src_pix_fmt = V4L2_PIX_FMT_SBGGR8;
+> + break;
+> case V4L2_PIX_FMT_SQ905C:
+> v4lconvert_decode_sq905c(src, tmpbuf, width, height);
+> tmpfmt.fmt.pix.pixelformat = V4L2_PIX_FMT_SRGGB8;
+> diff -r 276a90c8ac40 v4l2-apps/libv4l/libv4lconvert/sn9c2028-decomp.c
+> --- /dev/null Thu Jan 01 00:00:00 1970 +0000
+> +++ b/v4l2-apps/libv4l/libv4lconvert/sn9c2028-decomp.c Wed May 20
+> 13:10:53 2009 -0500
+> @@ -0,0 +1,158 @@
+> +/*
+> + * sn9c2028-decomp.c
+> + *
+> + * Decompression function for the Sonix SN9C2028 dual-mode cameras.
+> + *
+> + * Code adapted from libgphoto2/camlibs/sonix, original version of
+> which was
+> + * Copyright (c) 2005 Theodore Kilgore <kilgota@auburn.edu>
+> + *
+> + * History:
+> + *
+> + * This decoding algorithm originates from the work of Bertrik Sikken
+> for the
+> + * SN9C102 cameras. This version is an adaptation of work done by Mattias
+> + * Krauss for the webcam-osx (macam) project. There, it was further
+> adapted
+> + * for use with the Vivitar Vivicam 3350B (an SN9C2028 camera) by
+> + * Harald Ruda <hrx@users.sourceforge.net>. Harald brought to my
+> attention the
+> + * work done in the macam project and suggested that I use it. The
+> + * macam project is also licensed under the GPL. One improvement of my own
+> + * was to notice that the even and odd columns of the image have been
+> reversed
+> + * by the decompression algorithm, and this needs to be corrected
+> during the
+> + * decompression.
+> + *
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public
+> + * License as published by the Free Software Foundation; either
+> + * version 2 of the License, or (at your option) any later version.
+> + *
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+> + * Lesser General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public
+> + * License along with this program; if not, write to the
+> + * Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+> + * Boston, MA 02111-1307, USA.
+> + */
+> +
+> +#include "libv4lconvert-priv.h"
+> +
+> +/* Four defines for bitstream operations, used in the decode function */
+> +
+> +#define PEEK_BITS(num,to) {\
+> + if (bitBufCount < num) {\
+> + do {\
+> + bitBuf = (bitBuf << 8)|(*(src++));\
+> + bitBufCount += 8; \
+> + } \
+> + while\
+> + (bitBufCount < 24);\
+> + } \
+> + to = bitBuf >> (bitBufCount-num);\
+> +}
+> +
+> +/*
+> + * PEEK_BITS puts the next <num> bits into the low bits of <to>.
+> + * when the buffer is empty, it is completely refilled.
+> + * This strategy tries to reduce memory access. Note that the high bits
+> + * are NOT set to zero!
+> + */
+> +
+> +#define EAT_BITS(num) { bitBufCount -= num; bits_eaten += num; }
+> +
+> +/*
+> + * EAT_BITS consumes <num> bits (PEEK_BITS does not consume anything,
+> + * it just peeks)
+> + */
+> +
+> +#define PARSE_PIXEL(val) {\
+> + PEEK_BITS(10, bits);\
+> + if ((bits&0x200) == 0) {\
+> + EAT_BITS(1);\
+> + } \
+> + else if ((bits&0x380) == 0x280) {\
+> + EAT_BITS(3);\
+> + val += 3;\
+> + if (val > 255)\
+> + val = 255;\
+> + } \
+> + else if ((bits&0x380) == 0x300) {\
+> + EAT_BITS(3);\
+> + val -= 3;\
+> + if (val < 0)\
+> + val = 0;\
+> + } \
+> + else if ((bits&0x3c0) == 0x200) {\
+> + EAT_BITS(4);\
+> + val += 8;\
+> + if (val > 255)\
+> + val = 255;\
+> + } \
+> + else if ((bits&0x3c0) == 0x240) {\
+> + EAT_BITS(4);\
+> + val -= 8;\
+> + if (val < 0)\
+> + val = 0;\
+> + } \
+> + else if ((bits&0x3c0) == 0x3c0) {\
+> + EAT_BITS(4);\
+> + val -= 20;\
+> + if (val < 0)\
+> + val = 0;\
+> + } \
+> + else if ((bits&0x3e0) == 0x380) {\
+> + EAT_BITS(5);\
+> + val += 20;\
+> + if (val > 255)\
+> + val = 255;\
+> + } \
+> + else {\
+> + EAT_BITS(10);\
+> + val = 8*(bits&0x1f)+0;\
+> + } \
+> +}
+> +
+> +
+> +#define PUT_PIXEL_PAIR {\
+> + long pp;\
+> + pp = (c1val<<8)+c2val;\
+> + *((unsigned short *) (dst+dst_index)) = pp;\
+> + dst_index += 2;\
+> +}
+> +
+> +/* Now the decode function itself */
+> +
+> +void v4lconvert_decode_sn9c2028(const unsigned char *src, unsigned char
+> *dst,
+> + int width, int height)
+> +{
+> + long dst_index = 0;
+> + int starting_row = 0;
+> + unsigned short bits;
+> + short c1val, c2val;
+> + int x, y;
+> + unsigned long bitBuf = 0;
+> + unsigned long bitBufCount = 0;
+> + unsigned long bits_eaten = 0;
+> +
+> + src += 12; /* Remove the header */
+> +
+> + for (y = starting_row; y < height; y++) {
+> + PEEK_BITS(8, bits);
+> + EAT_BITS(8);
+> + c2val = (bits & 0xff);
+> + PEEK_BITS(8, bits);
+> + EAT_BITS(8);
+> + c1val = (bits & 0xff);
+> +
+> + PUT_PIXEL_PAIR;
+> +
+> + for (x = 2; x < width ; x += 2) {
+> + /* The compression reversed the even and odd columns.*/
+> + PARSE_PIXEL(c2val);
+> + PARSE_PIXEL(c1val);
+> + PUT_PIXEL_PAIR;
+> + }
+> + }
+> +}
+>
 
-
-> I did not expect everything rosy, I have my share of Linux HW experiences.
-> I've also written a complete Linux driver for a device I had, which wasn't
-> supported - that driver is now part of the kernel. So believe me, not only I
-> know how open source development works, I even know how kernel driver
-> development works.
-
-
-half baked one's are the usual problematic one's. There used to be one crying
-loud over documentation patches.
-
-
-
-> This is true, but do you know how the chips are integrated in TT-1600. Final
-> consumer product using certain chipsets usually does miss some features or
-> parameter ranges of the integrated chips (especially SoC chips). Have you
-> ever seen a PC motherboard? Well, now that you know how I meant what I said,
-> it is perhaps time to acknowledge that the *card* manufacturer usually knows
-> what their product is capable of. You know, they being the people who
-> actually design all the circuitry on the PCB...
-
-
-First of all i had completely no clue on it. That's why i was able to
-write a driver for it.
-(with sarcasm)
-Mate you have no clue. The S2-1600 is based on a reference design and hence.
-You have a lot to understand. I don't give it a damn which way to take
-it to heart.
-
-
-Manu
