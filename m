@@ -1,201 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:36726 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754472AbZERGlo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 May 2009 02:41:44 -0400
-Date: Mon, 18 May 2009 03:41:39 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Uri Shkolnik <urishk@yahoo.com>
-Cc: LinuxML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] [0905_14] Siano: USB - move the device id table to the
- cards module
-Message-ID: <20090518034139.2c28fbab@pedra.chehab.org>
-In-Reply-To: <521027.71159.qm@web110809.mail.gq1.yahoo.com>
-References: <521027.71159.qm@web110809.mail.gq1.yahoo.com>
+Received: from mail1.radix.net ([207.192.128.31]:58738 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752168AbZEXOrx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 May 2009 10:47:53 -0400
+Received: from [192.168.1.2] (01-143.155.popsite.net [66.217.131.143])
+	(authenticated bits=0)
+	by mail1.radix.net (8.13.4/8.13.4) with ESMTP id n4OElqsj023230
+	for <linux-media@vger.kernel.org>; Sun, 24 May 2009 10:47:53 -0400 (EDT)
+Subject: Re: CPen driver development / image format
+From: Andy Walls <awalls@radix.net>
+To: linux-media@vger.kernel.org
+In-Reply-To: <4A193230.3040205@gmx.de>
+References: <4A193230.3040205@gmx.de>
+Content-Type: text/plain
+Date: Sun, 24 May 2009 10:48:39 -0400
+Message-Id: <1243176519.3175.74.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 14 May 2009 12:29:35 -0700 (PDT)
-Uri Shkolnik <urishk@yahoo.com> escreveu:
-
+On Sun, 2009-05-24 at 13:40 +0200, Stefan Below wrote:
+> Hello,
 > 
-> # HG changeset patch
-> # User Uri Shkolnik <uris@siano-ms.com>
-> # Date 1242325466 -10800
-> # Node ID fe5ecbb828340406923d06b4ea93a210aafb5c7e
-> # Parent  5a6de44c39c9198bc1af79f5901dc769690885de
-> [0905_14] Siano: USB - move the device id table to the cards module
+> i have a nice penscanner (CPEN-20, like Iris pen) and i am trying to 
+> write a driver for it.
+> Everything runs fine, except that i have no clue what kind of image 
+> format i receive.
 > 
-> From: Uri Shkolnik <uris@siano-ms.com>
+> The penscanner has a little camera (i think its only gray or bw camera).
 > 
-> The card modules is the component which handles various targets,
-> so the IDs table should reside within it.
-
-The idea of moving it to sms-cards.c is interesting, however, I don't think
-this will work fine, since having the usb probing code at one module and the
-table on another will break for udev.
-
-Also, by applying this patch, module loader would be broken:
-
-WARNING: "smsusb_id_table" [/home/v4l/master/v4l/smsusb.ko] undefined!
-
-I can see a few alternatives:
-
-1) keep as-is;
-2) move usb init code to sms-cards;
-3) break sms-cards into smaller files, like sms-cards-usb (for usb devices);
-4) having the table declared as static into some header file.
-
-Due to that, I'll have to skip a few patches that are ok (the ones that are
-just adding newer devices at the table).
-
-Cheers,
-Mauro.
-
+> additional technical informations from the CPEN website:
+>    Image Resolution: Grayscale 330 DPI
+>    Scan Area Size: 10 x 6 mm
 > 
-> Priority: normal
-> 
-> Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-> 
-> diff -r 5a6de44c39c9 -r fe5ecbb82834 linux/drivers/media/dvb/siano/sms-cards.c
-> --- a/linux/drivers/media/dvb/siano/sms-cards.c	Thu May 14 21:14:46 2009 +0300
-> +++ b/linux/drivers/media/dvb/siano/sms-cards.c	Thu May 14 21:24:26 2009 +0300
-> @@ -18,6 +18,51 @@
->   */
->  
->  #include "sms-cards.h"
-> +
-> +struct usb_device_id smsusb_id_table[] = {
-> +	{ USB_DEVICE(0x187f, 0x0010),
-> +		.driver_info = SMS1XXX_BOARD_SIANO_STELLAR },
-> +	{ USB_DEVICE(0x187f, 0x0100),
-> +		.driver_info = SMS1XXX_BOARD_SIANO_STELLAR },
-> +	{ USB_DEVICE(0x187f, 0x0200),
-> +		.driver_info = SMS1XXX_BOARD_SIANO_NOVA_A },
-> +	{ USB_DEVICE(0x187f, 0x0201),
-> +		.driver_info = SMS1XXX_BOARD_SIANO_NOVA_B },
-> +	{ USB_DEVICE(0x187f, 0x0300),
-> +		.driver_info = SMS1XXX_BOARD_SIANO_VEGA },
-> +	{ USB_DEVICE(0x2040, 0x1700),
-> +		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_CATAMOUNT },
-> +	{ USB_DEVICE(0x2040, 0x1800),
-> +		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_OKEMO_A },
-> +	{ USB_DEVICE(0x2040, 0x1801),
-> +		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_OKEMO_B },
-> +	{ USB_DEVICE(0x2040, 0x2000),
-> +		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD },
-> +	{ USB_DEVICE(0x2040, 0x2009),
-> +		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2 },
-> +	{ USB_DEVICE(0x2040, 0x200a),
-> +		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD },
-> +	{ USB_DEVICE(0x2040, 0x2010),
-> +		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD },
-> +	{ USB_DEVICE(0x2040, 0x2011),
-> +		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD },
-> +	{ USB_DEVICE(0x2040, 0x2019),
-> +		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD },
-> +	{ USB_DEVICE(0x2040, 0x5500),
-> +		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_WINDHAM },
-> +	{ USB_DEVICE(0x2040, 0x5510),
-> +		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_WINDHAM },
-> +	{ USB_DEVICE(0x2040, 0x5520),
-> +		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_WINDHAM },
-> +	{ USB_DEVICE(0x2040, 0x5530),
-> +		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_WINDHAM },
-> +	{ USB_DEVICE(0x2040, 0x5580),
-> +		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_WINDHAM },
-> +	{ USB_DEVICE(0x2040, 0x5590),
-> +		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_WINDHAM },
-> +	{ }		/* Terminating entry */
-> +};
-> +MODULE_DEVICE_TABLE(usb, smsusb_id_table);
->  
->  static int sms_dbg;
->  module_param_named(cards_dbg, sms_dbg, int, 0644);
-> diff -r 5a6de44c39c9 -r fe5ecbb82834 linux/drivers/media/dvb/siano/sms-cards.h
-> --- a/linux/drivers/media/dvb/siano/sms-cards.h	Thu May 14 21:14:46 2009 +0300
-> +++ b/linux/drivers/media/dvb/siano/sms-cards.h	Thu May 14 21:24:26 2009 +0300
-> @@ -45,6 +45,8 @@ struct sms_board {
->  
->  struct sms_board *sms_get_board(int id);
->  
-> +extern struct usb_device_id smsusb_id_table[];
-> +
->  int sms_board_setup(struct smscore_device_t *coredev);
->  
->  #define SMS_LED_OFF 0
-> diff -r 5a6de44c39c9 -r fe5ecbb82834 linux/drivers/media/dvb/siano/smsusb.c
-> --- a/linux/drivers/media/dvb/siano/smsusb.c	Thu May 14 21:14:46 2009 +0300
-> +++ b/linux/drivers/media/dvb/siano/smsusb.c	Thu May 14 21:24:26 2009 +0300
-> @@ -488,53 +488,6 @@ static int smsusb_resume(struct usb_inte
->  	return 0;
->  }
->  
-> -struct usb_device_id smsusb_id_table[] = {
-> -#ifdef CONFIG_DVB_SIANO_SMS1XXX_SMS_IDS
-> -	{ USB_DEVICE(0x187f, 0x0010),
-> -		.driver_info = SMS1XXX_BOARD_SIANO_STELLAR },
-> -	{ USB_DEVICE(0x187f, 0x0100),
-> -		.driver_info = SMS1XXX_BOARD_SIANO_STELLAR },
-> -	{ USB_DEVICE(0x187f, 0x0200),
-> -		.driver_info = SMS1XXX_BOARD_SIANO_NOVA_A },
-> -	{ USB_DEVICE(0x187f, 0x0201),
-> -		.driver_info = SMS1XXX_BOARD_SIANO_NOVA_B },
-> -	{ USB_DEVICE(0x187f, 0x0300),
-> -		.driver_info = SMS1XXX_BOARD_SIANO_VEGA },
-> -#endif
-> -	{ USB_DEVICE(0x2040, 0x1700),
-> -		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_CATAMOUNT },
-> -	{ USB_DEVICE(0x2040, 0x1800),
-> -		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_OKEMO_A },
-> -	{ USB_DEVICE(0x2040, 0x1801),
-> -		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_OKEMO_B },
-> -	{ USB_DEVICE(0x2040, 0x2000),
-> -		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD },
-> -	{ USB_DEVICE(0x2040, 0x2009),
-> -		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2 },
-> -	{ USB_DEVICE(0x2040, 0x200a),
-> -		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD },
-> -	{ USB_DEVICE(0x2040, 0x2010),
-> -		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD },
-> -	{ USB_DEVICE(0x2040, 0x2011),
-> -		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD },
-> -	{ USB_DEVICE(0x2040, 0x2019),
-> -		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD },
-> -	{ USB_DEVICE(0x2040, 0x5500),
-> -		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_WINDHAM },
-> -	{ USB_DEVICE(0x2040, 0x5510),
-> -		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_WINDHAM },
-> -	{ USB_DEVICE(0x2040, 0x5520),
-> -		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_WINDHAM },
-> -	{ USB_DEVICE(0x2040, 0x5530),
-> -		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_WINDHAM },
-> -	{ USB_DEVICE(0x2040, 0x5580),
-> -		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_WINDHAM },
-> -	{ USB_DEVICE(0x2040, 0x5590),
-> -		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_WINDHAM },
-> -	{ }		/* Terminating entry */
-> -};
-> -MODULE_DEVICE_TABLE(usb, smsusb_id_table);
-> -
->  static struct usb_driver smsusb_driver = {
->  	.name			= "smsusb",
->  	.probe			= smsusb_probe,
-> 
-> 
-> 
->       
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Some thoughts:
+
+> Here is the first part from the transfered image (cutout from usb-sniff 
+> output):
+> [547050 ms]  <<<  URB 499 coming back  <<< -- 
+> URB_FUNCTION_BULK_OR_INTERRUPT_TRANSFER:
+> PipeHandle           = 88a69984 [endpoint 0x00000082]
+> TransferFlags        = 00000003 (USBD_TRANSFER_DIRECTION_IN, 
+> USBD_SHORT_TRANSFER_OK)
+> TransferBufferLength = 000001ee
+> TransferBuffer       = 88be9be0
+> TransferBufferMDL    = 889b77a8
+>  00000000: 02 01 08 01 00 20 23 78 b5 20 00 00 00 00 80 00
+>  00000010: 50 00 03 00 d8 01 
+                         ^^^^^
+Payload length is here ----+
+It always seems to be divisible by 4.
+
+This payload looks to be some sort of tagged format, but it's not TIFF.
+
+Portions of th payload seems to have a periodicity that is divisible by
+3 and 5.  That was obvious as some runs of data with length 5 (8f ff ff
+ff f0) show a barber-pole pattern when printed 16 bytes per line.
+
+The payload *always* starts with 0x80 and then it never appears again in
+the payload.  So there is likely some encoding for data that would look
+like a tag in the payload.
 
 
+>                              80 71 f1 ff df ff 88 11 51 f1
+>  00000020: ff df ff 88 71 f2 ff cf ff f8 ff ff 0f ff f8 ff
+>  00000030: ff 0f ff f8 ff ff 0f ff f8 ff ff 0f ff f8 ff ff
+>  00000040: 0f ff f8 12 18 25 ff bf ff f8 12 ff ff fc 8f 2f
+>  00000050: f1 ff cf ff 18 f1 ff ff fd 8f 18 ff ff 6f ff f8
+>  00000060: ff ff 0f ff f8 ff ff 0f ff f8 ff ff 0f ff 28 c2
+>  00000070: 44 54 53 f1 ff f3 8f 1f 81 71 62 f2 ff f2 8f 1f
+>  00000080: f1 1a ff 2f ff 88 f1 15 ff ff f0 8f ff ff ff f0
+>  00000090: 8f ff ff ff f0 8f 1f f2 ff cf ff f8 ff 11 ff fd
+>  000000a0: 8f 1f 31 a1 82 51 f1 cf ff f8 1a ff ff f4 8f ff
+>  000000b0: 1d ff 1f ff f8 ff ff 0f ff f8 ff ff 0f ff f8 ff
+>  000000c0: ff 0f ff f8 ff ff 0f ff f8 ff ff 0f ff f8 ff ff
+>  000000d0: 0f ff f8 ff ff 0f ff f8 ff ff 0f ff a8 f1 ff ff
+>  000000e0: f4 8f ff ff ff f0 8f ff ff ff f0 8f ff ff ff f0
+>  000000f0: 8f ff ff ff f0 8f ff ff ff f0 8f ff ff ff f0 8f
+>  00000100: ff ff ff f0 8f ff ff ff f0 8f ff ff ff f0 8f ff
+>  00000110: ff ff f0 8f ff ff ff f0 8f ff ff ff f0 8f ff ff
+>  00000120: ff f0 8f ff ff ff f0 9f ff ff ef ff fa ff ff fd
+>  00000130: 8f 13 14 ff ff 6f ff f8 ff ff 0f ff f9 ff ff fe
+>  00000140: 8f ff ff ff f0 8f 12 ff ff cf ff 88 f1 ff ff f6
+>  00000150: 8f 13 14 ff ff 6f ff 28 f2 ff ff fb 8f 22 ff ff
+>  00000160: bf ff f9 ff ff fe bf 11 23 ff ff 5f ff 3d 21 f1
+>  00000170: ff ff f3 cf 12 51 14 ff ff fc 8f 42 32 16 ff ff
+>  00000180: fc ff 44 f3 ff cf ff 2d 26 f3 ff cf ff 0f 41 33
+>  00000190: 11 0f f1 ff f9 cf 64 12 22 13 ff ff f5 cf 12 41
+>  000001a0: 14 12 16 ff ff f3 df 11 41 23 ff ff fd df 33 ff
+>  000001b0: ff 4f ff 3d 22 31 f1 ff df ff 3d 92 f2 ff 9f ff
+>  000001c0: 3d 35 21 81 f1 ff 1f ff 2e 12 41 22 41 f2 ff 3f
+>  000001d0: ff 1d 11 44 27 f3 ff 2f ff 1d 11 32 21 65 32 f1
+>  000001e0: ff fc ff 27 13 31 31 61 f1 ff f9 8f f1 ff
+> UrbLink              = 00000000
+> [547050 ms] UsbSnoop - DispatchAny(b5572610) : 
+> IRP_MJ_INTERNAL_DEVICE_CONTROL
+> 
+> The first 0x16 bytes should be a header.
+> 
+> I attached the image output from windows and the whole usb sniff logfile.
+
+Why does the PBM image have this text in it:
+
+	# CREATOR: GIMP PNM Filter Version 1.1
+
+if it came from Windows?  Also why does the filename have "crop" in it?
+Did you do some manipulation of the output file from the Windows
+application?
+
+I ask because it may be the case that the C-Pen puts out a format very
+close to the default format the Windows app software would like to save
+things in.  Comparing that default save format to the data in the URBs
+may provide some insight.
 
 
-Cheers,
-Mauro
+Also a solid field isn't very helpful for making deductions about the
+image data format.  Try a series of images: vertical line, horizontal
+line, diagonal line, ellipse, rectangle, triangle, and square grid.
+Then comparison of those source images vs the data bytes might give you
+more insight into the format.
+
+
+Godd Luck,
+Andy
+
+> I hope someone can help me to :-)
+> 
+> Stefan
+
