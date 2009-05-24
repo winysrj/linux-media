@@ -1,75 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-01.arcor-online.net ([151.189.21.41]:34754 "EHLO
-	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753067AbZEVAyQ (ORCPT
+Received: from banach.math.auburn.edu ([131.204.45.3]:44605 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754396AbZEXRJJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 21 May 2009 20:54:16 -0400
-Subject: Re: [PATCH] FM1216ME_MK3 some changes
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Dmitri Belimov <d.belimov@gmail.com>
-Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-In-Reply-To: <1242263426.7971.7.camel@pc07.localdom.local>
-References: <20090422174848.1be88f61@glory.loctelecom.ru>
-	 <20090423203618.4ac2bc6f@glory.loctelecom.ru>
-	 <1240537394.3231.37.camel@palomino.walls.org>
-	 <20090427192905.3ad2b88c@glory.loctelecom.ru>
-	 <20090428151832.241fa9b4@pedra.chehab.org>
-	 <20090428195922.1a079e46@glory.loctelecom.ru>
-	 <1240974643.4280.24.camel@pc07.localdom.local>
-	 <20090429201225.6ba681cf@glory.loctelecom.ru>
-	 <1241050556.3710.109.camel@pc07.localdom.local>
-	 <20090506044231.31f2d8aa@glory.loctelecom.ru>
-	 <1241654513.5862.37.camel@pc07.localdom.local>
-	 <1241665384.3147.53.camel@palomino.walls.org>
-	 <1241741304.4864.29.camel@pc07.localdom.local>
-	 <1241834493.3482.140.camel@palomino.walls.org>
-	 <1241836025.3717.9.camel@pc07.localdom.local>
-	 <1241916185.3694.8.camel@pc07.localdom.local>
-	 <20090510085258.03068a1e@glory.loctelecom.ru>
-	 <1242012951.3753.21.camel@pc07.localdom.local>
-	 <20090513073757.6177c42e@glory.loctelecom.ru>
-	 <1242258283.4781.26.camel@pc07.localdom.local>
-	 <20090514101758.04665ab4@glory.loctelecom.ru>
-	 <1242263426.7971.7.camel@pc07.localdom.local>
-Content-Type: text/plain
-Date: Fri, 22 May 2009 02:51:02 +0200
-Message-Id: <1242953462.3720.8.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sun, 24 May 2009 13:09:09 -0400
+Date: Sun, 24 May 2009 12:22:57 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Hans de Goede <j.w.r.degoede@hhs.nl>
+cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] to libv4lconvert, to do decompression for sn9c2028
+ cameras
+In-Reply-To: <4A191837.4070002@hhs.nl>
+Message-ID: <alpine.LNX.2.00.0905241208010.25546@banach.math.auburn.edu>
+References: <1242316804.1759.1@lhost.ldomain> <4A0C544F.1030801@hhs.nl> <alpine.LNX.2.00.0905141424460.11396@banach.math.auburn.edu> <alpine.LNX.2.00.0905191529260.19936@banach.math.auburn.edu> <4A144E41.6080806@redhat.com> <alpine.LNX.2.00.0905231628240.24795@banach.math.auburn.edu>
+ <4A191837.4070002@hhs.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-Am Donnerstag, den 14.05.2009, 03:10 +0200 schrieb hermann pitton:
-> Hi Dmitry :)
 
-[snip]
-> 
-> That depends on how up to date the app is, once selected, even per
-> channel, you don't have to do this ever again and don't need any insmod
-> options at all currently.
-> 
-> I recently tried to keep it for others the same :)
-> 
-> Umm, for the analog only FM1216ME/ I H-3 (MK3) it seems you have some
-> other stuff on it employed. On a first look ;)
+On Sun, 24 May 2009, Hans de Goede wrote:
 
-Dmitry,
+> Hi,
+>
+> Thanks for the patch, but I see one big issue with this patch,
+> the decompression algorithm is GPL, where as libv4l is LGPL.
+>
+> Any chance you could get this relicensed to LGPL ?
 
-any news on that?
+Hmmm. Come to think of it, that _is_ a problem, isn't it? I will see what 
+I can do about it, but it might take a while.
 
-I don't want to hinder you to do improvements, but what about this SAW
-filters?
-
-Are they really approved to have a Philips label on the tuner?
-
-The hand/foot ;) painted claimed performance statistics don't look like
-that.
-
-Am I wrong?
-
-Cheers,
-Hermann
-
-
+Theodore Kilgore
