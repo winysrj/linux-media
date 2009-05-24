@@ -1,84 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:44171 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751570AbZEEDTY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2009 23:19:24 -0400
-From: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 5 May 2009 11:17:22 +0800
-Subject: RE: [PATCH 0/5] V4L2 patches for Intel Moorestown Camera Imaging
- 	Drivers
-Message-ID: <0A882F4D99BBF6449D58E61AAFD7EDD613811291@pdsmsx502.ccr.corp.intel.com>
-References: <90b950fc0904292317m500820efv66755aed31b46853@mail.gmail.com>
-	 <5A47E75E594F054BAF48C5E4FC4B92AB030548BA1B@dbde02.ent.ti.com>
-	 <0A882F4D99BBF6449D58E61AAFD7EDD613793923@pdsmsx502.ccr.corp.intel.com>
- <5e9665e10904300232teee3ddq95e3cb60d95445e4@mail.gmail.com>
-In-Reply-To: <5e9665e10904300232teee3ddq95e3cb60d95445e4@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2936 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752506AbZEXSCk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 May 2009 14:02:40 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id n4OI2bmU021145
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 24 May 2009 20:02:41 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 24 May 2009 20:02:37 +0200 (CEST)
+Message-Id: <200905241802.n4OI2bmU021145@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The camera interface is located on the Langwell, not on the Atom processor. 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-BRs
-Xiaolin
+Results of the daily build of v4l-dvb:
 
------Original Message-----
-From: Dongsoo, Nathaniel Kim [mailto:dongsoo.kim@gmail.com] 
-Sent: Thursday, April 30, 2009 5:33 PM
-To: Zhang, Xiaolin
-Cc: linux-media@vger.kernel.org; Johnson, Charles F; Zhu, Daniel
-Subject: Re: [PATCH 0/5] V4L2 patches for Intel Moorestown Camera Imaging Drivers
+date:        Sun May 24 19:00:04 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11827:41d2c77ae71f
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Hello Xiaolin,
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-rc7-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-rc7-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-rc7-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-rc7-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-rc7-m32r: OK
+linux-2.6.22.19-mips: ERRORS
+linux-2.6.26-mips: ERRORS
+linux-2.6.27-mips: ERRORS
+linux-2.6.28-mips: ERRORS
+linux-2.6.29.1-mips: ERRORS
+linux-2.6.30-rc7-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-rc7-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-rc7-x86_64: WARNINGS
+sparse (linux-2.6.29.1): OK
+sparse (linux-2.6.30-rc7): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-I think the first patch is missing. Following your description, it may
-be the "Intel Moorestown ISP driver.".
-Can you re-post it please?
-BTW, I didn't notice that Atom processor had a camera interface, and
-even it supports dual camera as well. Can I find some datasheet or
-user manual to take a look at how it works?
-Cheers,
+Detailed results are available here:
 
-Nate
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-On Thu, Apr 30, 2009 at 5:18 PM, Zhang, Xiaolin <xiaolin.zhang@intel.com> wrote:
-> Hi All,
->
-> Here is the a set of V4L2 camera sensors and ISP drivers to support the Intel Moorestown camera imaging subsystem. The Camera Imaging interface in Moorestown is responsible for capturing both still and video frames. The CI handles demosaicing, color synthesis, filtering, image enhancement functions and JPEG encode. Intel Moorestown platform can support either a single camera or two cameras. A platform with two cameras will have on the same side as this display and the second on the opposite side the display. The camera on the display side will be used for video conferencing (with low resolution SoC cameras) and the other camera is used to still image capture or video recode (with high resolution RAW cameras).
->
-> In this set of driver patches, I will submit the 5 patches to enable the ISP HW and 3 cameras module (two SoCs: 1.3MP - Omnivision 9665, 2MP - Omnivison 2650 and one RAW: 5MP - Omnivision 5630).
-> 1. Intel Moorestown ISP driver.
-> 2. Intel Moorestown camera sensor pseudo driver. This is to uniform the interfaces for ISP due to supporting dual cameras.
-> 3. Intel Moorestown 2MP camera sensor driver.
-> 4. Intel Moorestown 5MP camera sensor driver.
-> 5. Intel Moorestown 1.3MP camera sensor driver.
->
-> I will post the above 5 patches in near feature.
->
-> Regards,
->
-> Xiaolin
-> Xiaolin.zhang@intel.com
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
+The V4L2 specification from this daily build is here:
 
--- 
-=
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
