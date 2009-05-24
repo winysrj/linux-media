@@ -1,55 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110815.mail.gq1.yahoo.com ([67.195.13.238]:44415 "HELO
-	web110815.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751696AbZESPYD (ORCPT
+Received: from wf-out-1314.google.com ([209.85.200.175]:57201 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751021AbZEXGpB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2009 11:24:03 -0400
-Message-ID: <573374.98762.qm@web110815.mail.gq1.yahoo.com>
-Date: Tue, 19 May 2009 08:24:03 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [09051_46] Siano: smsusb - remove redundant ifdef
-To: LinuxML <linux-media@vger.kernel.org>
+	Sun, 24 May 2009 02:45:01 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so895553wfd.4
+        for <linux-media@vger.kernel.org>; Sat, 23 May 2009 23:45:03 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <4A185CDB.1090001@gmail.com>
+References: <53876.82.95.219.165.1243013567.squirrel@webmail.xs4all.nl>
+	 <4A171985.3090205@gmail.com>
+	 <1a297b360905221438n7dfb55a9uec1f1ce119bd8d74@mail.gmail.com>
+	 <4A178ED3.5050806@gmail.com>
+	 <1a297b360905222337r1b65bbe7n65578d1991348b9@mail.gmail.com>
+	 <4A17C9F7.8050800@gmail.com> <4A181DF6.30309@gmx.de>
+	 <4A183D79.4050708@gmail.com>
+	 <1a297b360905231145p1a8dca53jfd3069c7c90971b6@mail.gmail.com>
+	 <4A185CDB.1090001@gmail.com>
+Date: Sat, 23 May 2009 23:45:03 -0700
+Message-ID: <a3ef07920905232345v613e31f5xac981f8403fd5e3d@mail.gmail.com>
+Subject: Re: [linux-dvb] Most stable DVB-S2 PCI Card?
+From: VDR User <user.vdr@gmail.com>
+To: David Lister <foceni@gmail.com>
+Cc: Manu Abraham <abraham.manu@gmail.com>,
+	Andreas Regel <andreas.regel@gmx.de>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1242746858 -10800
-# Node ID 98895daafb42f8b0757fd608b29c53c80327520e
-# Parent  37df2d513a68b920ba4ceed0220cf6915d2d574e
-[09051_46] Siano: smsusb - remove redundant ifdef
-
-From: Uri Shkolnik <uris@siano-ms.com>
-
-Remove a redundant ifdef
-
-Priority: normal
-
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-
-diff -r 37df2d513a68 -r 98895daafb42 linux/drivers/media/dvb/siano/smsusb.c
---- a/linux/drivers/media/dvb/siano/smsusb.c	Tue May 19 18:23:41 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smsusb.c	Tue May 19 18:27:38 2009 +0300
-@@ -489,7 +489,6 @@ static int smsusb_resume(struct usb_inte
- }
- 
- struct usb_device_id smsusb_id_table[] = {
--#ifdef CONFIG_DVB_SIANO_SMS1XXX_SMS_IDS
- 	{ USB_DEVICE(0x187f, 0x0010),
- 		.driver_info = SMS1XXX_BOARD_SIANO_STELLAR },
- 	{ USB_DEVICE(0x187f, 0x0100),
-@@ -500,7 +499,6 @@ struct usb_device_id smsusb_id_table[] =
- 		.driver_info = SMS1XXX_BOARD_SIANO_NOVA_B },
- 	{ USB_DEVICE(0x187f, 0x0300),
- 		.driver_info = SMS1XXX_BOARD_SIANO_VEGA },
--#endif
- 	{ USB_DEVICE(0x2040, 0x1700),
- 		.driver_info = SMS1XXX_BOARD_HAUPPAUGE_CATAMOUNT },
- 	{ USB_DEVICE(0x2040, 0x1800),
-
-
-
-      
+Whoever decided on a $1000 price point for a dual tuner dvb-s2 card
+needs to be slapped, then fired.  That's completely absurd.  Period.
