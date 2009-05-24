@@ -1,70 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110810.mail.gq1.yahoo.com ([67.195.13.233]:24153 "HELO
-	web110810.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752465AbZESNep (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2009 09:34:45 -0400
-Message-ID: <556889.38477.qm@web110810.mail.gq1.yahoo.com>
-Date: Tue, 19 May 2009 06:34:46 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: Re: [PATCH] [0905_14] Siano: USB - move the device id table to the cards module
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: LinuxML <linux-media@vger.kernel.org>
+Received: from mx2.redhat.com ([66.187.237.31]:60838 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752185AbZEXRbm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 May 2009 13:31:42 -0400
+Message-ID: <4A19849F.3040000@redhat.com>
+Date: Sun, 24 May 2009 19:32:15 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+CC: Hans de Goede <j.w.r.degoede@hhs.nl>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] to libv4lconvert, to do decompression for sn9c2028 cameras
+References: <1242316804.1759.1@lhost.ldomain> <4A0C544F.1030801@hhs.nl> <alpine.LNX.2.00.0905141424460.11396@banach.math.auburn.edu> <alpine.LNX.2.00.0905191529260.19936@banach.math.auburn.edu> <4A144E41.6080806@redhat.com> <alpine.LNX.2.00.0905231628240.24795@banach.math.auburn.edu> <4A191837.4070002@hhs.nl> <alpine.LNX.2.00.0905241208010.25546@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0905241208010.25546@banach.math.auburn.edu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
 
+On 05/24/2009 07:22 PM, Theodore Kilgore wrote:
+>
+>
+> On Sun, 24 May 2009, Hans de Goede wrote:
+>
+>> Hi,
+>>
+>> Thanks for the patch, but I see one big issue with this patch,
+>> the decompression algorithm is GPL, where as libv4l is LGPL.
+>>
+>> Any chance you could get this relicensed to LGPL ?
+>
+> Hmmm. Come to think of it, that _is_ a problem, isn't it? I will see
+> what I can do about it, but it might take a while.
+>
 
---- On Mon, 5/18/09, Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+Yes I'm afraid it is :(
 
-> From: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Subject: Re: [PATCH] [0905_14] Siano: USB - move the device id table to the cards module
-> To: "Uri Shkolnik" <urishk@yahoo.com>
-> Cc: "LinuxML" <linux-media@vger.kernel.org>
-> Date: Monday, May 18, 2009, 9:41 AM
-> Em Thu, 14 May 2009 12:29:35 -0700
-> (PDT)
-> Uri Shkolnik <urishk@yahoo.com>
-> escreveu:
-> 
-> The idea of moving it to sms-cards.c is interesting,
-> however, I don't think
-> this will work fine, since having the usb probing code at
-> one module and the
-> table on another will break for udev.
-> 
-> Also, by applying this patch, module loader would be
-> broken:
-> 
-> WARNING: "smsusb_id_table" [/home/v4l/master/v4l/smsusb.ko]
-> undefined!
-> 
-> I can see a few alternatives:
-> 
-> 1) keep as-is;
-> 2) move usb init code to sms-cards;
-> 3) break sms-cards into smaller files, like sms-cards-usb
-> (for usb devices);
-> 4) having the table declared as static into some header
-> file.
-> 
+Regards,
 
-
-Mauro,
-
-That patch has been suppressed by me @ the patchwork shortly after I submit it.
-
-The ID tables (for USB and for SDIO) devices will remain in their corresponding interfaces drivers.
-
-The cards/targets will keep to be managed by board ID (sms-cards.h), no need to further break the sms-cards to mini-modules, there is nothing to gain with that architecture. 
-
-
-10x,
-
-Uri
-
-
-      
+Hans
