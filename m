@@ -1,114 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f123.google.com ([209.85.216.123]:37306 "EHLO
-	mail-px0-f123.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750793AbZESF03 convert rfc822-to-8bit (ORCPT
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:44986 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752988AbZEXCCt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2009 01:26:29 -0400
-MIME-Version: 1.0
-In-Reply-To: <A24693684029E5489D1D202277BE89443E17ECF5@dlee02.ent.ti.com>
-References: <1240381551-11012-1-git-send-email-hardik.shah@ti.com>
-	 <5e9665e10905182153j105604fdydf4c3a10b5b416a9@mail.gmail.com>
-	 <A24693684029E5489D1D202277BE89443E17ECF5@dlee02.ent.ti.com>
-Date: Tue, 19 May 2009 14:26:28 +0900
-Message-ID: <5e9665e10905182226o21432ab3i6108f6bc654a6902@mail.gmail.com>
-Subject: Re: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: "Shah, Hardik" <hardik.shah@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Sat, 23 May 2009 22:02:49 -0400
+Subject: Re: Question about driver for Mantis
+From: hermann pitton <hermann-pitton@arcor.de>
+To: David Lister <foceni@gmail.com>
+Cc: Manu Abraham <abraham.manu@gmail.com>,
+	Gernot Pansy <gernot@pansy.at>, linux-media@vger.kernel.org
+In-Reply-To: <4A1858B6.3090202@gmail.com>
+References: <200905230810.39344.jarhuba2@poczta.onet.pl>
+	 <1a297b360905222341t4e66e2c6x95d339838db43139@mail.gmail.com>
+	 <200905231436.58072.gernot@pansy.at> <4A180DD8.4030009@gmail.com>
+	 <1a297b360905230941m69085ab5jf3b75f3c42ded48b@mail.gmail.com>
+	 <4A18358F.6040404@gmail.com>
+	 <1a297b360905231137i157e5dbt2c023e656c690e99@mail.gmail.com>
+	 <4A1858B6.3090202@gmail.com>
+Content-Type: text/plain
+Date: Sun, 24 May 2009 03:54:31 +0200
+Message-Id: <1243130071.3727.23.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergio,
 
-Thank you for your explanation . I learned much from that.
+Am Samstag, den 23.05.2009, 22:12 +0200 schrieb David Lister:
+> Manu Abraham wrote:
+> > On Sat, May 23, 2009 at 9:42 PM, David Lister <foceni@gmail.com> wrote:
+> >   
+> >> Manu Abraham wrote:
+> >>     
+> >>> 2009/5/23 David Lister <foceni@gmail.com>:
+> >>>
+> >>>       
+> >>>> Not sure if you didn't get this email already, I had a slip-up while
+> >>>> sending it. :) Anyway, there's also another supported card with a CI. A
+> >>>> friend of mine has it, so I guess it works quite well with Linux. It's
+> >>>> Mystique SaTiX-S2 (AFAIK, similar to KNC1+). Mystiques have rather
+> >>>> quality finish and the CI module is ready for 3.5" drive installation.
+> >>>> Some pictures from google:
+> >>>>
+> >>>> http://www.cesarex.com/images/Mystique-CI-1.jpg
+> >>>> http://www.sat-servis.cz/data/eshop/fotky/produkty/velke/619.jpg
+> >>>>
+> >>>> Others might be able to tell you more details, I just know it works -
+> >>>> friend has a Cryptoworks CAM in it. Take a look around, bye.
+> >>>>
+> >>>>         
+> >>> The Mystique is just a rebranded KNC1+ which just uses the same
+> >>> STB0899 module, FYI. :-)
+> >>>
+> >>>       
+> >> Not exactly. People usually say it is a rebrand/clone of KNC1+, but it's
+> >> not. :) There are couple of differences -- Mystique is a lighter version
+> >> missing these features:
+> >> 1) Signal passthrough via loop-out connector
+> >> 2) Video input port for analogue capture
+> >>
+> >> I'm glad you reminded me of this misconception, the differences might be
+> >> important for somebody. I was considering Mystique for myself, but chose
+> >> CX24116 over STB0899, because this time, I wanted official support. I
+> >> don't need analogue capture and CI anyway (I use softcam and for analog,
+> >> much better Hauppauge PVR-500). I suggest Mystique instead of KNC1+ for
+> >> purely practical reasons - it's more available, cheaper and nicer. :)
+> >>     
+> > No misconceptions:
+> >   
+> Oh, but there are. We were both talking about the sat version of KNC1+,
+> not KNC1! You said and I quote: "The Mystique is just a rebranded
+> KNC1+", which is not true. That's why I originally said that it's
+> *similar* to Mystique, which *is* true. It might be the same as plain
+> KNC1 or dozens of other rebranded versions, but that wasn't the point.
+> The misconception is that "Mystique is KNC1+ clone" -- it is not.
+> Perhaps I could have mentioned basic TV Station DVB-S too, but I didn't
+> expect I'll have to defend every word I say. Now that I think about it,
+> I'm glad I didn't - your inability to comprehend the simplest of
+> meanings shines like the sun.
+> 
+> Your follow-up comment was completely useless, arbitrary trolling. If
+> you could face the life like a man instead of a cry baby, you wouldn't
+> have the need to patronise me (unsuccessfully:)) in an unrelated thread
+> just because of our earlier argument. You should be ashamed of yourself.
+> You're a DVB driver developer and you have a hard time arguing with
+> somebody who has seen DVB-S for the first time in his life a month ago!
+> 
+> >
+> > So support for it just appeared like magic ?
+> >   
+> Were you arguing with one of your other personalities in your head that
+> I missed something? I'm afraid you are a bit confused today, or you
+> misinterpret the meaning of my words on purpose, or are just pissed off
+> at me. :) Whatever. Because it might be your weak English, I'm not going
+> to call you an idiot like you called me a few times today, even though
+> this time it *would* be appropriate. It's the same thing as in the other
+> thread all over again. It's impossible to have a normal intelligent
+> conversation with you. I'm not going to support your trolling any more.
+> 
+> As usual, I wish you good luck in your efforts. Looks like you need it.
+
+David,
+
+as said previously, you can't mark whole companies as bad and especially
+about TechnoTrend you should know much more.
+
+This starts with reading the DVB headers to get at least an idea of it.
+
+In short, Manu is right and you are wrong.
+
+Or take over better maintenance of v4l-dvb 24/7 :)
+
 Cheers,
-
-Nate
-
-On Tue, May 19, 2009 at 2:22 PM, Aguirre Rodriguez, Sergio Alberto
-<saaguirre@ti.com> wrote:
-> Hi Nate,
->
-> I have 1 input regarding your question:
->
->>From: linux-media-owner@vger.kernel.org [linux-media-owner@vger.kernel.org] On Behalf Of Dongsoo, Nathaniel Kim [dongsoo.kim@gmail.com]
->>Sent: Tuesday, May 19, 2009 7:53 AM
->>To: Shah, Hardik
->>Cc: linux-media@vger.kernel.org; linux-omap@vger.kernel.org; Jadav, Brijesh R; Hiremath, Vaibhav
->>Subject: Re: [PATCH 3/3] OMAP2/3 V4L2 Display Driver
->>
->>Hello Hardik,
->>
->>Reviewing your driver, I found something made me curious.
->>
->>
->>On Wed, Apr 22, 2009 at 3:25 PM, Hardik Shah <hardik.shah@ti.com> wrote:
->
-> <snip>
->
->>> +/* Buffer setup function is called by videobuf layer when REQBUF ioctl is
->>> + * called. This is used to setup buffers and return size and count of
->>> + * buffers allocated. After the call to this buffer, videobuf layer will
->>> + * setup buffer queue depending on the size and count of buffers
->>> + */
->>> +static int omap_vout_buffer_setup(struct videobuf_queue *q, unsigned int *count,
->>> +                         unsigned int *size)
->>> +{
->>> +       struct omap_vout_device *vout = q->priv_data;
->>> +       int startindex = 0, i, j;
->>> +       u32 phy_addr = 0, virt_addr = 0;
->>> +
->>> +       if (!vout)
->>> +               return -EINVAL;
->>> +
->>> +       if (V4L2_BUF_TYPE_VIDEO_OUTPUT != q->type)
->>> +               return -EINVAL;
->>> +
->>> +       startindex = (vout->vid == OMAP_VIDEO1) ?
->>> +               video1_numbuffers : video2_numbuffers;
->>> +       if (V4L2_MEMORY_MMAP == vout->memory && *count < startindex)
->>> +               *count = startindex;
->>> +
->>> +       if ((rotation_enabled(vout->rotation)) && *count > 4)
->>> +               *count = 4;
->>> +
->>
->>
->>
->>This seems to be weird to me. If user requests multiple buffers more
->>than 4, user cannot recognize that the number of buffers requested is
->>forced to change into 4. I'm not sure whether this could be serious or
->>not, but it is obvious that user can have doubt about why if user have
->>no information about the OMAP H/W.
->>Is it really necessary to be configured to 4?
->>
->>
->>Cheers,
->>
->>Nate
->>
->
-> We did a very similar thing on omap3 camera driver, not exactly by the number of buffers requested, but more about checking if the bytesize of the total requested buffers was superior to the MMU fixed sized page table size capabilities to map that size, then we were limiting the number of buffers accordingly (for keeping the page table size fixed).
->
-> According to the v4l2 spec, changing the count value should be valid, and it is the userspace app responsability to check the value again, to confirm how many of the requested buffers are actually available.
->
-> Regards,
-> Sergio
+Hermann
+ 
 
 
 
--- 
-=
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
+
+
+
+
