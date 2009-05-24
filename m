@@ -1,69 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44660 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751797AbZEAJAO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 1 May 2009 05:00:14 -0400
-Date: Fri, 1 May 2009 11:00:13 +0200
-From: Wolfram Sang <w.sang@pengutronix.de>
-To: Thomas Kaiser <v4l@kaiser-linux.li>
-Cc: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
-	linux-media@vger.kernel.org
-Subject: Re: Donating a mr97310 based elta-media 8212dc (0x093a:0x010e)
-Message-ID: <20090501090013.GC6941@pengutronix.de>
-References: <20090430022847.GA15183@pengutronix.de> <alpine.LNX.2.00.0904300953330.21567@banach.math.auburn.edu> <49F9E540.5030909@kaiser-linux.li>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="vOmOzSkFvhd7u8Ms"
-Content-Disposition: inline
-In-Reply-To: <49F9E540.5030909@kaiser-linux.li>
+Received: from www.youplala.net ([88.191.51.216]:48581 "EHLO mail.youplala.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752033AbZEXMne (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 May 2009 08:43:34 -0400
+Subject: Re: Nova-T 500 does not survive reboot
+From: Nicolas Will <nico@youplala.net>
+To: Soeren Moch <Soeren.Moch@stud.uni-hannover.de>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <4A16A8FF.2050308@stud.uni-hannover.de>
+References: <4A16A8FF.2050308@stud.uni-hannover.de>
+Content-Type: text/plain
+Date: Sun, 24 May 2009 13:43:18 +0100
+Message-Id: <1243168998.934.2.camel@youkaida>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, 2009-05-22 at 15:30 +0200, Soeren Moch wrote:
+> >>> Hi,
+>  >>>    Any news on this? I'd like to try the URB patch someone mentioned,
+>  >>> but I
+>  >>> can't find the link.
+>  >>
+>  >> http://www.mail-archive.com/linux-media@vger.kernel.org/msg04643.html
+>  >>
+>  >> I am running a current dvb tree with this patch.
+>  >>
+>  >> so far so good.
+>  >>
+>  >> I did not find the time to check if I regained proper reboots, though. I
+>  >> know, sad excuse...
+>  >>
+>  >> nico
+>  >>
+>  >>
+>  >
+>  > I'll give it a try. Thanks for the tip!
+>  > Cheers,
+>  >   Eduard
+> 
+> Hi nico, Eduard,
+> 
+> can you confirm that the patch solves your Nova-T 500 boot problem?
+> In this case I would resend the buffer count part as separate patch to
+> Patrick.
 
---vOmOzSkFvhd7u8Ms
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+It doesn;t appear to fix it.
 
-> Maybe the idea from Theodore to send the cam to me is not such a bad =20
-> idea ;-)
+I'll retry this evening, after the F1 Grand Prix.
 
-I agree :)
+Nico
 
-> Should we discuss here for some days to find out who can make the most =
-=20
-> progress with this cam?
-
-I'd like to have the case closed for me rather sooner than later. If you ma=
-il
-me your address, I'll try to send the package tomorrow. Just in case Kyle h=
-as a
-terribly big need for the cam, you can surely negotiate something. Maybe
-passing dumps from time to time will help already...
-
-> Wolfram, thanks for the offer to donate the cam!
-
-You are very welcome.
-
-Regards,
-
-   Wolfram
-
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-
---vOmOzSkFvhd7u8Ms
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkn6uh0ACgkQD27XaX1/VRtPqwCgooJOOA4Lp5cEjyEAlBFbM6nu
-dGYAn3QwHmnA1NtZSTHtSLFOdROvvLNM
-=tXQX
------END PGP SIGNATURE-----
-
---vOmOzSkFvhd7u8Ms--
