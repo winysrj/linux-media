@@ -1,52 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f168.google.com ([209.85.220.168]:40108 "EHLO
-	mail-fx0-f168.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755455AbZEWQmA (ORCPT
+Received: from ns01.unsolicited.net ([69.10.132.115]:36053 "EHLO
+	ns01.unsolicited.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751747AbZEYRfJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 May 2009 12:42:00 -0400
-Received: by fxm12 with SMTP id 12so444626fxm.37
-        for <linux-media@vger.kernel.org>; Sat, 23 May 2009 09:42:00 -0700 (PDT)
+	Mon, 25 May 2009 13:35:09 -0400
+Message-ID: <4A1AD62C.8070907@unsolicited.net>
+Date: Mon, 25 May 2009 18:32:28 +0100
+From: David <david@unsolicited.net>
 MIME-Version: 1.0
-In-Reply-To: <4A180DD8.4030009@gmail.com>
-References: <200905230810.39344.jarhuba2@poczta.onet.pl>
-	 <1a297b360905222341t4e66e2c6x95d339838db43139@mail.gmail.com>
-	 <200905231436.58072.gernot@pansy.at> <4A180DD8.4030009@gmail.com>
-Date: Sat, 23 May 2009 20:41:59 +0400
-Message-ID: <1a297b360905230941m69085ab5jf3b75f3c42ded48b@mail.gmail.com>
-Subject: Re: Question about driver for Mantis
-From: Manu Abraham <abraham.manu@gmail.com>
-To: David Lister <foceni@gmail.com>
-Cc: Gernot Pansy <gernot@pansy.at>, linux-media@vger.kernel.org
+To: Alan Stern <stern@rowland.harvard.edu>
+CC: Pekka Enberg <penberg@cs.helsinki.fi>, linux-media@vger.kernel.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	dbrownell@users.sourceforge.net, leonidv11@gmail.com,
+	Greg KH <gregkh@suse.de>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: USB/DVB - Old Technotrend TT-connect S-2400 regression tracked
+  down
+References: <Pine.LNX.4.44L0.0905251121370.23874-100000@netrider.rowland.org>
+In-Reply-To: <Pine.LNX.4.44L0.0905251121370.23874-100000@netrider.rowland.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/5/23 David Lister <foceni@gmail.com>:
-> Gernot Pansy wrote:
->> will CI be supported and are you willing to finish development and merge it to
->> mainline anytime?
->>
->> i think i was one of the first SP400 owner but i had to sold my card for a Nova
->> HD2 because the driver was not reliable (some i2c errors, slow tunning,
->> sometimes tunning failed). And now i need a dvb-s2 card with ci working. so
->> i'm searching again for a new card. their seems to be only the tt-3200 out,
->> which seems to work - no newer card.
->>
-> Not sure if you didn't get this email already, I had a slip-up while
-> sending it. :) Anyway, there's also another supported card with a CI. A
-> friend of mine has it, so I guess it works quite well with Linux. It's
-> Mystique SaTiX-S2 (AFAIK, similar to KNC1+). Mystiques have rather
-> quality finish and the CI module is ready for 3.5" drive installation.
-> Some pictures from google:
+Alan Stern wrote:
+> Okay, here's a patch for you to try.  It refreshes the toggle setting 
+> in a linked but otherwise idle QH when a new URB is queued.
 >
-> http://www.cesarex.com/images/Mystique-CI-1.jpg
-> http://www.sat-servis.cz/data/eshop/fotky/produkty/velke/619.jpg
+> Alan Stern
 >
-> Others might be able to tell you more details, I just know it works -
-> friend has a Cryptoworks CAM in it. Take a look around, bye.
+>
+> Index: usb-2.6/drivers/usb/host/ehci-q.c
+> ===================================================================
+> --- usb-2.6.orig/drivers/usb/host/ehci-q.c
+> +++ usb-2.6/drivers/usb/host/ehci-q.c
+> @@ -88,7 +88,7 @@ static inline void
+>  qh_update (struct ehci_hcd *ehci, struct ehci_qh *qh, struct ehci_qtd *qtd)
+>  {
+>  	/* writes to an active overlay are unsafe */
+> -	BUG_ON(qh->qh_state != QH_STATE_IDLE);
+> +	BUG_ON(qh->qh_state != QH_STATE_IDLE && !list_empty(&qh->qtd_list));
+>  
+>  	qh->hw_qtd_next = QTD_NEXT(ehci, qtd->qtd_dma);
+>  	qh->hw_alt_next = EHCI_LIST_END(ehci);
+> @@ -971,7 +971,13 @@ static struct ehci_qh *qh_append_tds (
+>  		/* can't sleep here, we have ehci->lock... */
+>  		qh = qh_make (ehci, urb, GFP_ATOMIC);
+>  		*ptr = qh;
+> +	} else if (list_empty(&qh->qtd_list)) {
+> +		/* There might have been a Clear-Halt while the QH
+> +		 * was linked but empty.
+> +		 */
+> +		qh_refresh(ehci, qh);
+>  	}
+> +
+>  	if (likely (qh != NULL)) {
+>  		struct ehci_qtd	*qtd;
+>  
+>
+>   
+No luck I'm afraid (although there now appear to be 2 timeouts, not
+one). I'm going to follow up on the laptop and get a USB log.
 
-The Mystique is just a rebranded KNC1+ which just uses the same
-STB0899 module, FYI. :-)
+[  118.017016] usb 1-10: new high speed USB device using ehci_hcd and
+address 5
+[  118.148589] usb 1-10: configuration #1 chosen from 1 choice
+[  118.452964] dvb-usb: found a 'Technotrend TT-connect S-2400' in cold
+state, will try to load a firmware
+[  118.452972] usb 1-10: firmware: requesting dvb-usb-tt-s2400-01.fw
+[  118.488474] dvb-usb: downloading firmware from file
+'dvb-usb-tt-s2400-01.fw'
+[  118.550946] usbcore: registered new interface driver dvb_usb_ttusb2
+[  118.552553] usb 1-10: USB disconnect, address 5
+[  118.561083] dvb-usb: generic DVB-USB module successfully
+deinitialized and disconnected.
+[  120.313020] usb 1-10: new high speed USB device using ehci_hcd and
+address 6
+[  120.444942] usb 1-10: configuration #1 chosen from 1 choice
+[  120.445886] dvb-usb: found a 'Technotrend TT-connect S-2400' in warm
+state.
+[  120.446672] dvb-usb: will pass the complete MPEG2 transport stream to
+the software demuxer.
+[  120.447014] DVB: registering new adapter (Technotrend TT-connect S-2400)
+[  120.455026] DVB: registering adapter 0 frontend 129197120 (Philips
+TDA10086 DVB-S)...
+[  120.458383] LNBx2x attached on addr=8<3>dvb-usb: recv bulk message
+failed: -110
+[  122.457126] ttusb2: there might have been an error during control
+message transfer. (rlen = 0, was 0)
+[  124.456109] dvb-usb: recv bulk message failed: -110
+[  124.456117] ttusb2: there might have been an error during control
+message transfer. (rlen = 0, was 0)
+[  124.456122] dvb-usb: Technotrend TT-connect S-2400 successfully
+initialized and connected.
 
-Manu
+
+David
+
