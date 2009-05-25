@@ -1,59 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f222.google.com ([209.85.218.222]:57229 "EHLO
-	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751229AbZE0AU7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2009 20:20:59 -0400
-Received: by bwz22 with SMTP id 22so4217517bwz.37
-        for <linux-media@vger.kernel.org>; Tue, 26 May 2009 17:20:59 -0700 (PDT)
-Message-ID: <4A1C8765.3090205@gmail.com>
-Date: Tue, 26 May 2009 20:20:53 -0400
-From: Chris Capon <ttabyss@gmail.com>
-MIME-Version: 1.0
-CC: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] EPG (Electronic Program Guide) Tools
-References: <4A1C2C0F.9090808@gmail.com> <829197380905261105k6f1a8f9dl1bcd067863e85e67@mail.gmail.com> 	<1767e6740905261218i307d3bdeh30eec0539e98f896@mail.gmail.com> 	<829197380905261231x7d08d03ey2cc4c1739f90d5be@mail.gmail.com> <1767e6740905261239s7fd05b58md38857a1a91eecab@mail.gmail.com>
-In-Reply-To: <1767e6740905261239s7fd05b58md38857a1a91eecab@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mx2.redhat.com ([66.187.237.31]:49989 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750849AbZEYCmI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 May 2009 22:42:08 -0400
+Date: Sun, 24 May 2009 20:39:02 -0600
+From: Pete Zaitcev <zaitcev@redhat.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: USB list <linux-usb@vger.kernel.org>,
+	David <david@unsolicited.net>,
+	Pekka Enberg <penberg@cs.helsinki.fi>,
+	<linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	<dbrownell@users.sourceforge.net>, <leonidv11@gmail.com>,
+	Greg KH <gregkh@suse.de>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: USB/DVB - Old Technotrend TT-connect S-2400 regression tracked
+ down
+Message-Id: <20090524203902.594a0eec.zaitcev@redhat.com>
+In-Reply-To: <Pine.LNX.4.44L0.0905242208260.15195-100000@netrider.rowland.org>
+References: <4A1967A2.4050906@unsolicited.net>
+	<Pine.LNX.4.44L0.0905242208260.15195-100000@netrider.rowland.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jonathan Isom wrote:
-> On Tue, May 26, 2009 at 2:31 PM, Devin Heitmueller
-> <dheitmueller@kernellabs.com> wrote:
->   
->> On Tue, May 26, 2009 at 3:18 PM, Jonathan Isom <jeisom@gmail.com> wrote:
->>     
->>> Dvbstreamer supports atsc epg. That is what i use
->>>       
->> Well, learn something new every day.  I didn't realize dvbstreamer had
->> ATSC support.
->>     
->
-> Yep.  Don't confuse with dvbstream.  Separate apps.  with dvbstreamer
-> you have to cycle
-> the channels with a script to fill the data for each channel.
->
-> Later
->
-> Jonathan
->
->   
->> Devin
->>
->> --
->> Devin J. Heitmueller - Kernel Labs
->> http://www.kernellabs.com
->>
->>     
->
->   
-dvbstreamer works.  The FAQ contains a sample shell script for cycling 
-through the services.
+On Sun, 24 May 2009 22:10:50 -0400 (EDT), Alan Stern <stern@rowland.harvard.edu> wrote:
 
-Thanks for all your help, guys.
+> Pete, you should look at this.  It appears to be a problem with the DMA
+> mapping in usbmon.  Probably the same sort of thing you were working on
+> about a week ago (trying to access device memory).
 
-Chris.
+Indeed it looks the same. Is this an AMD CPU?
 
+I wonder if CONFIG_HAVE_DMA_API_DEBUG does it (enabled with a select
+in arch/x86/Kconfig). Strange that it started happening now.
+
+-- Pete
