@@ -1,428 +1,298 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:47206 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750938AbZEFImR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 May 2009 04:42:17 -0400
-Received: by fxm2 with SMTP id 2so5239166fxm.37
-        for <linux-media@vger.kernel.org>; Wed, 06 May 2009 01:42:16 -0700 (PDT)
-Date: Wed, 6 May 2009 04:42:31 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Andy Walls <awalls@radix.net>, video4linux-list@redhat.com,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] FM1216ME_MK3 some changes
-Message-ID: <20090506044231.31f2d8aa@glory.loctelecom.ru>
-In-Reply-To: <1241050556.3710.109.camel@pc07.localdom.local>
-References: <20090422174848.1be88f61@glory.loctelecom.ru>
-	<1240452534.3232.70.camel@palomino.walls.org>
-	<20090423203618.4ac2bc6f@glory.loctelecom.ru>
-	<1240537394.3231.37.camel@palomino.walls.org>
-	<20090427192905.3ad2b88c@glory.loctelecom.ru>
-	<20090428151832.241fa9b4@pedra.chehab.org>
-	<20090428195922.1a079e46@glory.loctelecom.ru>
-	<1240974643.4280.24.camel@pc07.localdom.local>
-	<20090429201225.6ba681cf@glory.loctelecom.ru>
-	<1241050556.3710.109.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pz0-f177.google.com ([209.85.222.177]:47089 "EHLO
+	mail-pz0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751619AbZEYCG6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 May 2009 22:06:58 -0400
+Received: by pzk7 with SMTP id 7so2269121pzk.33
+        for <linux-media@vger.kernel.org>; Sun, 24 May 2009 19:06:59 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1243215101.6402.12.camel@xie>
+References: <20090523160013.909D88E03A1@hormel.redhat.com>
+	 <1243215101.6402.12.camel@xie>
+Date: Mon, 25 May 2009 11:06:59 +0900
+Message-ID: <5e9665e10905241906y1e1f159akfb43f556a36cc27a@mail.gmail.com>
+Subject: Re: about taking picture
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: xie <yili.xie@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	=?EUC-KR?B?sejH/MHYILHo?= <riverful.kim@samsung.com>,
+	"dongsoo45.kim@samsung.com" <dongsoo45.kim@samsung.com>
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hermann
+Hello Xie,
 
-> Hi Dmitry,
-> 
-> Am Mittwoch, den 29.04.2009, 20:12 +1000 schrieb Dmitri Belimov:
-> > Hi,
-> >  
-> > > Am Dienstag, den 28.04.2009, 19:59 +1000 schrieb Dmitri Belimov:
-> > > > On Tue, 28 Apr 2009 15:18:32 -0300
-> > > > Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
-> > > > 
-> > > > > On Mon, 27 Apr 2009 19:29:05 +1000
-> > > > > Dmitri Belimov <d.belimov@gmail.com> wrote:
-> > > > > 
-> > > > > > Hi All
-> > > > > > 
-> > > > > > Step by step.
-> > > > > > 
-> > > > > > This is patch for change only range of FM1216ME_MK3. Slow
-> > > > > > tunning is not a big problem.
-> > > > > 
-> > > > > Dmitri,
-> > > > > 
-> > > > > I'll mark those patches as RFC at patchwork until the end of
-> > > > > those discussions. After that, please send it again into a
-> > > > > new thread.
-> > > > 
-> > > > You mark patch with TOP AGC not this.
-> > > > 
-> > > > I think need discuss about FM1216ME_MK3 because I'll have a big
-> > > > patch for support control TOP AGC (sensitivity) of this tuner.
-> > > > It can be bad for compatible tuners.
-> > > 
-> > > hmm, in Europe, that TOP AGC did not ever made much difference
-> > > and it is an insmod option since ever.
-> > > 
-> > > I can't tell for Sibiria and initially that tuner had no SECAM-DK
-> > > support officially at all. There are no good/much_better tuners
-> > > for FTA at all and never have been ;)
-> > > 
-> > > Some examples, user success reports, to make it more easily to
-> > > understand? I think it can only change some _very little_ under
-> > > already worst conditions.
-> > 
-> > This is my idea for RFC about TOP AGC:
-> 
-> what about to create a new FM1216ME MK3 tuner type for testing?
+As far as I know, this list on redhat.com has been moved to
+linux-media@vger.kernel.org.
+I removed and CCed the new list instead of video4linux-list and I hope
+you to don't mind.
 
-Yes. Can you do it?
+What you asked was about taking picture with camera device, and I
+should say that there could be few different ways depending on H/W
+features or S/W concepts.
 
-I start add MK5 tuner.
+Actually I've been facing similar issue and tried to figure out the
+better way in taking camera snapshots. You can find my RFC at
+following archive :
+http://www.spinics.net/lists/linux-media/msg05013.html
 
-> It is for sure maybe the best tuner around and likely is also the best
-> for tweaks in countries with huge lands to cover, not restricted to
-> Russia, Australia or Canada.
+I have no idea about what kind of camera module you are using, I mean
+how big resolution, how many colorspaces it supports kind of things.
 
-All our tuners tested with all standarts SECAM, PAL, NTSC because
-big country, some people want receive TV from Korea and Japan.
-For tests, our hardware engineer has hardware TV generator.
+To go easier  we can sort it out with H/W features like whether the
+camera module supports JPEG capture or not. (in that case, you can
+take a look at my earlier RFC that I mentioned above about capturing
+JPEG). So, if your H/W is supporting JPEG capture, you have to stop
+previewing and change your camera module into JPEG capture mode, and
+sync data with your camera interface and copy to user space.
 
-With my best regards, Dmitry.
+But, if your camera module is not supporting that cool JPEG capturing
+feature, you have to think about and establish your baseline about the
+resolutions. Let me take an example of taking picture without a JPEG
+capturing features.
 
-> I would like to have also Hans' opinion on it, since he did some final
-> steps to get them right.
-> 
-> Cheers,
-> Hermann
-> 
-> > 1. Add gain variable to tuner structure.
-> > 2. Add V4L2_CID_GAIN control to saa7134 and disable this control.
-> > 3. Add workaround to simple_post_tune function for write
-> > sensitivity level to the tuner. 4. Enable V4L2_CID_GAIN control
-> > when module load if card is right.
-> > 
-> > My expirience not so good, step 4 segfault the kernel. How to we
-> > can make it?
-> > 
-> > Our windows end-user programm control the sensitivity of each TV
-> > channel and change when channel changed.
-> > 
-> > What you think about it??
-> > 
-> > If TV card is not touch V4L2_CTRL_FLAG_DISABLED in this control.
-> > The programm can't change AGC TOP. And write default value to AGC
-> > TOP like now.
-> > 
-> > diff -r 43dbc8ebb5a2
-> > linux/drivers/media/common/tuners/tuner-simple.c ---
-> > a/linux/drivers/media/common/tuners/tuner-simple.c	Tue Jan
-> > 27 23:47:50 2009 -0200 +++
-> > b/linux/drivers/media/common/tuners/tuner-simple.c	Tue Apr
-> > 21 09:44:38 2009 +1000 @@ -116,6 +116,7 @@ u32 frequency;
-> >  	u32 bandwidth;
-> > +	signed int gain;
-> >  };
-> >  
-> >  /*
-> > ----------------------------------------------------------------------
-> > */ @@ -495,15 +507,57 @@ "(should be 4)\n", rc);
-> >  		break;
-> >  	}
-> > +	case TUNER_PHILIPS_FM1216ME_MK3:
-> > +	{
-> > +		buffer[2] = 0xDE; /* T2 = 0, T1 = 1 and T0 = 1 */
-> > +		switch (priv->gain) {
-> > +		case 0:
-> > +			/* TOP = External AGC, ATC = OFF */
-> > +			buffer[3] = 0x60;
-> > +			break;
-> > +		case 1:
-> > +			/* TOP = 118 dB, ATC = OFF */
-> > +			buffer[3] = 0x00;
-> > +			break;
-> > +		case 2:
-> > +			/* TOP = 115 dB, ATC = OFF */
-> > +			buffer[3] = 0x10;
-> > +			break;
-> > +		case 3:
-> > +			/* TOP = 112 dB, ATC = OFF */
-> > +			buffer[3] = 0x20;
-> > +			break;
-> > +		case 4:
-> > +			/* TOP = 109 dB, ATC = OFF */
-> > +			buffer[3] = 0x30;
-> > +			break;
-> > +		case 5:
-> > +			/* TOP = 106 dB, ATC = OFF */
-> > +			buffer[3] = 0x40;
-> > +			break;
-> > +		case 6:
-> > +			/* TOP = 103 dB, ATC = OFF */
-> > +			buffer[3] = 0x50;
-> > +			break;
-> > +		default:
-> > +			/* TOP = 112 dB, ATC = OFF */
-> > +			buffer[3] = 0x20;
-> > +			break;
-> > +		}
-> > +
-> > +		tuner_dbg("tv 0x%02x 0x%02x 0x%02x 0x%02x\n",
-> > +			  buffer[0], buffer[1], buffer[2],
-> > buffer[3]); +
-> > +		rc = tuner_i2c_xfer_send(&priv->i2c_props, buffer,
-> > 4);
-> > +		if (4 != rc)
-> > +			tuner_warn("i2c i/o error: rc == %d "
-> > +				   "(should be 4)\n", rc);
-> > +
-> > +		break;
-> >  	}
-> > -
-> > +	}
-> >  	return 0;
-> >  }
-> >  
-> > diff -r 43dbc8ebb5a2
-> > linux/drivers/media/video/saa7134/saa7134-cards.c ---
-> > a/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue Jan
-> > 27 23:47:50 2009 -0200 +++
-> > b/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue Apr
-> > 21 09:44:38 2009 +1000 @@ -6506,6 +6806,20 @@ saa_call_all(dev,
-> > tuner, s_config, &tea5767_cfg); break; }
-> > +	case SAA7134_BOARD_BEHOLD_M6_EXTRA:
-> > +	{
-> > +		struct v4l2_queryctrl *ctl;
-> > +		struct saa7134_fh *fh;
-> > +		struct file *fl;
-> > +
-> > +		ctl->id = V4L2_CID_GAIN;
-> > +		if (saa7134_queryctrl(fl, fh, ctl) == 0)
-> > {                /* BUG here */
-> > +			/* enable this control */
-> > +			ctl->flags &= ~(V4L2_CTRL_FLAG_DISABLED);
-> > +		}
-> > +	}
-> >  	} /* switch() */
-> >  
-> >  	saa7134_tuner_setup(dev);
-> > diff -r 43dbc8ebb5a2
-> > linux/drivers/media/video/saa7134/saa7134-video.c ---
-> > a/linux/drivers/media/video/saa7134/saa7134-video.c	Tue Jan
-> > 27 23:47:50 2009 -0200 +++
-> > b/linux/drivers/media/video/saa7134/saa7134-video.c	Tue Apr
-> > 21 09:44:38 2009 +1000 @@ -417,6 +417,15 @@ .step          =
-> > 1, .default_value = 0, .type          = V4L2_CTRL_TYPE_INTEGER,
-> > +	}, {
-> > +		.id 		= V4L2_CID_GAIN,
-> > +		.name 		= "Gain",
-> > +		.minimum 	= 0,
-> > +		.maximum 	= 6,
-> > +		.step 		= 1,
-> > +		.default_value 	= 3,
-> > +		.type 		= V4L2_CTRL_TYPE_INTEGER,
-> > +		.flags 		= V4L2_CTRL_FLAG_DISABLED,
-> >  	},{
-> >  		.id            = V4L2_CID_HFLIP,
-> >  		.name          = "Mirror",
-> > @@ -1129,6 +1138,9 @@
-> >  	case V4L2_CID_HUE:
-> >  		c->value = dev->ctl_hue;
-> >  		break;
-> > +	case V4L2_CID_GAIN:
-> > +		c->value = dev->ctl_gain;
-> > +		break;
-> >  	case V4L2_CID_CONTRAST:
-> >  		c->value = dev->ctl_contrast;
-> >  		break;
-> > @@ -1214,6 +1226,10 @@
-> >  	case V4L2_CID_HUE:
-> >  		dev->ctl_hue = c->value;
-> >  		saa_writeb(SAA7134_DEC_CHROMA_HUE, dev->ctl_hue);
-> > +		break;
-> > +	case V4L2_CID_GAIN:
-> > +		dev->ctl_gain = c->value;
-> > +
-> >  		break;
-> >  	case V4L2_CID_CONTRAST:
-> >  		dev->ctl_contrast = c->value;
-> > @@ -2502,6 +2518,7 @@
-> >  	dev->ctl_bright     =
-> > ctrl_by_id(V4L2_CID_BRIGHTNESS)->default_value; dev->ctl_contrast
-> > = ctrl_by_id(V4L2_CID_CONTRAST)->default_value; dev->ctl_hue
-> > = ctrl_by_id(V4L2_CID_HUE)->default_value;
-> > +	dev->ctl_gain       =
-> > ctrl_by_id(V4L2_CID_GAIN)->default_value; dev->ctl_saturation =
-> > ctrl_by_id(V4L2_CID_SATURATION)->default_value; dev->ctl_volume
-> > = ctrl_by_id(V4L2_CID_AUDIO_VOLUME)->default_value;
-> > dev->ctl_mute       = 1; //
-> > ctrl_by_id(V4L2_CID_AUDIO_MUTE)->default_value; diff -r
-> > 43dbc8ebb5a2 linux/drivers/media/video/saa7134/saa7134.h ---
-> > a/linux/drivers/media/video/saa7134/saa7134.h	Tue Jan 27
-> > 23:47:50 2009 -0200 +++
-> > b/linux/drivers/media/video/saa7134/saa7134.h	Tue Apr 21
-> > 09:44:38 2009 +1000 @@ -548,6 +558,7 @@ int
-> > ctl_bright; int                        ctl_contrast;
-> > int                        ctl_hue;
-> > +	int                        ctl_gain;             /* gain */
-> >  	int                        ctl_saturation;
-> >  	int                        ctl_freq;
-> >  	int                        ctl_mute;             /* audio
-> > */
-> > 
-> > 
-> > With my best regards, Dmitry.
-> > 
-> > > Cheers,
-> > > Hermann
-> > > 
-> > > > With my best regards, Dmitry.
-> > > > 
-> > > > > 
-> > > > > Cheers,
-> > > > > Mauro.
-> > > > > 
-> > > > > > 
-> > > > > > diff -r b40d628f830d
-> > > > > > linux/drivers/media/common/tuners/tuner-types.c ---
-> > > > > > a/linux/drivers/media/common/tuners/tuner-types.c	Fri
-> > > > > > Apr 24 01:46:41 2009 -0300 +++
-> > > > > > b/linux/drivers/media/common/tuners/tuner-types.c	Tue
-> > > > > > Apr 28 03:35:42 2009 +1000 @@ -558,8 +558,8 @@ static struct
-> > > > > > tuner_range tuner_fm1216me_mk3_pal_ranges[] = { { 16 *
-> > > > > > 158.00 /*MHz*/, 0x8e, 0x01, },
-> > > > > > -	{ 16 * 442.00 /*MHz*/, 0x8e, 0x02, },
-> > > > > > -	{ 16 * 999.99        , 0x8e, 0x04, },
-> > > > > > +	{ 16 * 441.00 /*MHz*/, 0x8e, 0x02, },
-> > > > > > +	{ 16 * 864.00        , 0x8e, 0x04, },
-> > > > > >  };
-> > > > > >  
-> > > > > >  static struct tuner_params tuner_fm1216me_mk3_params[] = {
-> > > > > > 
-> > > > > > Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov
-> > > > > > <d.belimov@gmail.com>
-> > > > > > 
-> > > > > > 
-> > > > > > With my best regards, Dmitry.
-> > > > > > 
-> > > > > > > Hi Dmitri,
-> > > > > > > 
-> > > > > > > Thank you for you responses.
-> > > > > > > 
-> > > > > > > Just a few more comments...
-> > > > > > > 
-> > > > > > > On Thu, 2009-04-23 at 20:36 +1000, Dmitri Belimov wrote:
-> > > > > > > > Hi Andy
-> > > > > > > > 
-> > > > > > > > > Dmitri,
-> > > > > > > > > 
-> > > > > > > > > 
-> > > > > > > > > On Wed, 2009-04-22 at 17:48 +1000, Dmitri Belimov
-> > > > > > > > > wrote:
-> > > > > > > > > > Hi All
-> > > > > > > > > > 
-> > > > > > > > > > 1. Change middle band. In the end of the middle
-> > > > > > > > > > band the sensitivity of receiver not good. If we
-> > > > > > > > > > switch to higher band, sensitivity more better.
-> > > > > > > > > > Hardware trick.
-> > > > > > > > > 
-> > > > > > > 
-> > > > > > > > Several years a go your customers write some messages
-> > > > > > > > about bad quality of TV if frequency of TV is the end
-> > > > > > > > of band. It can be low band or middle. Our hardware
-> > > > > > > > engeneer make some tests with hardware TV generator and
-> > > > > > > > our TV tuners.
-> > > > > > > > 
-> > > > > > > > If we set default frequency range for low and middle
-> > > > > > > > band, quality of TV signal on 159MHz and 442 MHz is
-> > > > > > > > bad. When we make our changes with moving end of bands
-> > > > > > > > the quality of TV much better. And our system
-> > > > > > > > programmer for OS Windows use changed bands for
-> > > > > > > > drivers. Customers be happy.
-> > > > > > > 
-> > > > > > > OK.  A properly run experiment wins over theory every
-> > > > > > > time. :)
-> > > > > > > 
-> > > > > > > 
-> > > > > > > 
-> > > > > > > > You can test it if in your placement available TV
-> > > > > > > > programm on 159MHz or 442MHz. This trick can be usefull
-> > > > > > > > for other tuners.
-> > > > > > > 
-> > > > > > > If you look at tveeprom.c, a number of other tuners are
-> > > > > > > using that tuner definition:
-> > > > > > > 
-> > > > > > > $ grep FM1216ME_MK3 tveeprom.c
-> > > > > > > 	{ TUNER_PHILIPS_FM1216ME_MK3, 	"Philips
-> > > > > > > FQ1216ME MK3"}, { TUNER_PHILIPS_FM1216ME_MK3,
-> > > > > > > 	"Philips FM1216 ME MK3"},
-> > > > > > > { TUNER_PHILIPS_FM1216ME_MK3, 	"LG S001D MK3"},
-> > > > > > > { TUNER_PHILIPS_FM1216ME_MK3, 	"LG S701D MK3"},
-> > > > > > > { TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FQ1216LME
-> > > > > > > MK3"}, { TUNER_PHILIPS_FM1216ME_MK3, 	"TCL MFPE05
-> > > > > > > 2"}, { TUNER_PHILIPS_FM1216ME_MK3, 	"TCL MPE05-2"},
-> > > > > > > { TUNER_PHILIPS_FM1216ME_MK3, 	"Philips FM1216ME
-> > > > > > > MK5"},
-> > > > > > > 
-> > > > > > > If your change makes things bad for the other tuners,
-> > > > > > > we'll probably have to create an alternate entry for the
-> > > > > > > other tuners instead of using the FM1216ME_MK3
-> > > > > > > defintion.  I suspect most of them are clones of the
-> > > > > > > FM1216ME MK3 however, so it probably won't matter.
-> > > > > > > 
-> > > > > > > > > > 3. Set charge pump bit
-> > > > > > > > > 
-> > > > > > > > > This will improve the time to initially tune to a
-> > > > > > > > > frequency, but will likely add some noise as the PLL
-> > > > > > > > > continues to maintain lock on the signal.  If there
-> > > > > > > > > is no way to turn off the CP after the lock bit is
-> > > > > > > > > set in the tuner, it's probably better to leave it
-> > > > > > > > > off for lower noise and just live with slower tuning.
-> > > > > > > > 
-> > > > > > > > We discuss with our windows system programmer about it.
-> > > > > > > > He sad that in analog TV mode noise from PLL don't give
-> > > > > > > > any problem.
-> > > > > > > 
-> > > > > > > I would be concerned about phase noise affecting the
-> > > > > > > colors or any FM sound carriers.  If the noise isn't
-> > > > > > > noticably affecting colors to the human eye (do color
-> > > > > > > bars look OK?), or sound to the human ear, then OK.
-> > > > > > > 
-> > > > > > > 
-> > > > > > > >  But in digital TV mode
-> > > > > > > > noise from PLL decreased BER.
-> > > > > > > 
-> > > > > > > I thought the FM1216ME MK3 was an analog only tuner.  I
-> > > > > > > guess I don't know DVB-T or cable in Europe well enough.
-> > > > > > > 
-> > > > > > > 
-> > > > > > > > > Leaving the CP bit set should be especially noticable
-> > > > > > > > > ad FM noise when set to tune to FM radio stations.
-> > > > > > > > > From the FM1236ME_MK3 datasheet: "It is recommended
-> > > > > > > > > to set CP=0 in the FM mode at all times." But the VHF
-> > > > > > > > > low band control byte is also used when setting FM
-> > > > > > > > > radio (AFAICT with a quick look at the code.)
-> > > > > > > > 
-> > > > > > > > Yes. You are right. We can swith CP off in FM mode.
-> > > > > > > 
-> > > > > > > OK.  Thank you.
-> > > > > > > 
-> > > > > > > > With my best regards, Dmitry.
-> > > > > > > 
-> > > > > > > 
-> > > > > > > Regards,
-> > > > > > > Andy
-> > > > > > > 
-> > > > > > > 
-> > > > > > > 
-> > > > > 
-> > > > > 
-> > > > > 
-> > > > > 
-> > > > > Cheers,
-> > > > > Mauro
-> > > 
-> > > 
-> 
+CASE 1: Preview resolution and expecting captured image's resolution
+doesn't differ
+It means that you are running preview image with 640*480 (or
+whatever..I'm just assuming) and take snapshot also with 640*480.
+In this case you don't even need to stop previewing. just take the
+image frame you want and encode with you S/W encoder or just leave it
+with RAW format and save as a file.
+
+CASE 2: Preview resolution and expecting captured image resolution are
+different.
+This is totally more complicated than CASE 1. Apparently, you should
+stop previewing before taking snapshot. Because your camera interface
+H/W should be reset to sync the upcoming image frame with other
+resolution. Of course you can do that without reset in some H/W but
+the  received image in the switching resolution moment can be ugly
+with noise or distorted image.
+So, If you are taking picture bigger than preview Image, you should
+better stop previewing with VIDIOC_STREAMOFF and try VIDIOC_S_FMT with
+new resolution and start capturing with VIDIOC_STREAMON.
+I'm not sure about this kind of order is recommended in V4L2
+specification, but it comes from my experience.
+
+I hope it is the answer you expected.
+Cheers,
+
+Nate
+
+
+
+On Mon, May 25, 2009 at 10:31 AM, xie <yili.xie@gmail.com> wrote:
+> Dear all ~
+>     I have to implement the hal in Android with v4l2. Now i use one
+> thread to preview , i just use V4L2 capture interface to implement the
+> preview. Now i have one confusion :
+>     I think i can implement the taking picture just copy the preview
+> frame , and  am i right ? I want to use another thread to take picture ,
+> when I am taking picture ,whether I have to stop the previewing ?
+>     Thanks a lot ~!~
+>
+>
+> 在 2009-05-23六的 12:00 -0400，video4linux-list-request@redhat.com写道：
+>> Send video4linux-list mailing list submissions to
+>>       video4linux-list@redhat.com
+>>
+>> To subscribe or unsubscribe via the World Wide Web, visit
+>>       https://www.redhat.com/mailman/listinfo/video4linux-list
+>> or, via email, send a message with subject or body 'help' to
+>>       video4linux-list-request@redhat.com
+>>
+>> You can reach the person managing the list at
+>>       video4linux-list-owner@redhat.com
+>>
+>> When replying, please edit your Subject line so it is more specific
+>> than "Re: Contents of video4linux-list digest..."
+>> Today's Topics:
+>>
+>>    1. Re: Query (Adrian Pardini)
+>>    2. Re: How to acces TVP5150 .command function from userspace
+>>       (Dongsoo, Nathaniel Kim)
+>>    3. Re: How to acces TVP5150 .command function from userspace
+>>       (Markus Rechberger)
+>>    4. Re: [not working] Conceptronic USB 2.0 Digital TV Receiver -
+>>       CTVDIGRCU - Device Information (Jelle de Jong)
+>> 电子邮件 附件
+>> > -------- 转发的信件 --------
+>> > 发件人: Adrian Pardini <pardo.bsso@gmail.com>
+>> > 收件人: Vandana Vuthoo <vandana.vuthoo@gmail.com>
+>> > 抄送: video4linux-list@redhat.com
+>> > 主题: Re: Query
+>> > 日期: Fri, 22 May 2009 16:49:28 -0300
+>> >
+>> > Hi Vandana,
+>> >
+>> > this list is deprecated, please resend your message to
+>> > linux-media@vger.kernel.org.
+>> > For more information visit: http://vger.kernel.org/vger-lists.html#linux-media.
+>> >
+>> > cheers.
+>> >
+>> > On 22/05/2009, Vandana Vuthoo <vandana.vuthoo@gmail.com> wrote:
+>> > > Hi,
+>> > > I am a beginner to V4l2 domain, actually I want to know whether we can give
+>> > > MPEG4 stream as an input to V4L2 driver and show it on the LCD Screen, the
+>> > > platform being used is the Beagleboard.
+>> > > Regards,
+>> > > Vandana
+>> >
+>> >
+>> >
+>> 电子邮件 附件
+>> > -------- 转发的信件 --------
+>> > 发件人: Dongsoo, Nathaniel Kim <dongsoo.kim@gmail.com>
+>> > 收件人: Devin Heitmueller <dheitmueller@kernellabs.com>
+>> > 抄送: video4linux-list@redhat.com
+>> > 主题: Re: How to acces TVP5150 .command function from userspace
+>> > 日期: Sat, 23 May 2009 15:30:46 +0900
+>> >
+>> > Actually those controls should be supported by VIDIOC_S_CTRL but not
+>> > sure on 2.6.19.
+>> > I took a snapshot of 2.6.19 kernel from git but couldn't find any of
+>> > v4l2_ioctl_ops in tvp5150. Possibly not have been using v4l2_ioctl_ops
+>> > in that time I guess (not sure)
+>> > Anyway, controls that william is trying to use should be controled via
+>> > VIDIOC_S_CTRL with CID and as far as I checked in 2.6.19, it already
+>> > had those CIDs. So, it could be worth to give a shot with
+>> > VIDIOC_S_CTRL.
+>> > Cheers,
+>> >
+>> > Nate
+>> >
+>> > 2009/5/22 Devin Heitmueller <dheitmueller@kernellabs.com>:
+>> > > On Fri, May 22, 2009 at 3:50 AM,  $B7JJ8NS (B <wenlinjing@gmail.com> wrote:
+>> > >> Hi,
+>> > >>
+>> > >> I am working with a video capture chip TVP5150. I want to adjust the
+>> > >> "Brightness" "Contrast" "Saturation" and "hue" in user space.
+>> > >> In TVP5150 drivers ,the V4l2 commands are in function tvp5150_command.And
+>> > >> this function is a member of struct i2c_device.
+>> > >>
+>> > >> The linux is 2.6.19.2.
+>> > >> I write my code according kernel document  Documentation/i2c/dev-interface
+>> > >> But I can`t access tvp5150_command.
+>> > >> How can i acces i2c_device .command  function from user space?
+>> > >
+>> > > I thought those controls were already implemented in the tvp5150
+>> > > driver, although I could be mistaken (I would have to look at the
+>> > > code).  If not, it would probably be much easier to just add the
+>> > > commands to the driver than to attempt to program the chip from
+>> > > userland (the datasheet for the tvp5150 is freely available).
+>> > >
+>> > > Devin
+>> > >
+>> > > --
+>> > > Devin J. Heitmueller - Kernel Labs
+>> > > http://www.kernellabs.com
+>> > >
+>> > > --
+>> > > video4linux-list mailing list
+>> > > Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>> > > https://www.redhat.com/mailman/listinfo/video4linux-list
+>> > >
+>> >
+>> >
+>> >
+>> 电子邮件 附件
+>> > -------- 转发的信件 --------
+>> > 发件人: Markus Rechberger <mrechberger@gmail.com>
+>> > 收件人: Devin Heitmueller <dheitmueller@kernellabs.com>
+>> > 抄送: video4linux-list@redhat.com
+>> > 主题: Re: How to acces TVP5150 .command function from userspace
+>> > 日期: Sat, 23 May 2009 17:26:33 +0200
+>> >
+>> > 2009/5/22 Devin Heitmueller <dheitmueller@kernellabs.com>:
+>> > > On Fri, May 22, 2009 at 3:50 AM,  $B7JJ8NS (B <wenlinjing@gmail.com> wrote:
+>> > >> Hi,
+>> > >>
+>> > >> I am working with a video capture chip TVP5150. I want to adjust the
+>> > >> "Brightness" "Contrast" "Saturation" and "hue" in user space.
+>> > >> In TVP5150 drivers ,the V4l2 commands are in function tvp5150_command.And
+>> > >> this function is a member of struct i2c_device.
+>> > >>
+>> > >> The linux is 2.6.19.2.
+>> > >> I write my code according kernel document  Documentation/i2c/dev-interface
+>> > >> But I can`t access tvp5150_command.
+>> > >> How can i acces i2c_device .command  function from user space?
+>> > >
+>> > > I thought those controls were already implemented in the tvp5150
+>> > > driver, although I could be mistaken (I would have to look at the
+>> > > code).  If not, it would probably be much easier to just add the
+>> > > commands to the driver than to attempt to program the chip from
+>> > > userland (the datasheet for the tvp5150 is freely available).
+>> > >
+>> >
+>> > those are definitely implemented, I remember there was a problem with
+>> > a too dark videopicture years ago and it was a bug in the tvp5150...
+>> >
+>> > Also by looking at it:
+>> > V4L2_CID_BRIGHTNESS
+>> > V4L2_CID_CONTRAST
+>> > V4L2_CID_SATURATION
+>> > V4L2_CID_HUE
+>> >
+>> > are supported.
+>> >
+>> > Markus
+>> >
+>> >
+>> 电子邮件 附件
+>> > -------- 转发的信件 --------
+>> > 发件人: Jelle de Jong <jelledejong@powercraft.nl>
+>> > 收件人: Antti Palosaari <crope@iki.fi>
+>> > 抄送: video4linux-list@redhat.com
+>> > 主题: Re: [not working] Conceptronic USB 2.0 Digital TV Receiver -
+>> > CTVDIGRCU - Device Information
+>> > 日期: Sat, 23 May 2009 17:36:02 +0200
+>> >
+>> > Antti Palosaari wrote:
+>> > > On 04/25/2009 10:52 AM, Jelle de Jong wrote:
+>> > >> Would somebody be willing to get this device to work with the upstream
+>> > >> v4l systems? I can sent the device to you. If not I can also return the
+>> > >> device back to the store. Just sent me an email.
+>> > >
+>> > > I can try. At least some basic driver stub which just works is possible
+>> > > to do usually even without specs if tuner chip have one that does have
+>> > > Linux driver. Most likely it does have tuner that is supported because
+>> > > almost every DVB-T silicon tuner have some kind of driver currently.
+>> > >
+>> > > regards
+>> > > Antti
+>> >
+>> > Hi Antti,
+>> >
+>> > Sorry for the delay, the package has been lying here for a few weeks. I
+>> > have sent the device today so I hope it will arrive soon.
+>> >
+>> > Best regards,
+>> >
+>> > Jelle
+>> >
+>> >
+>> --
+>> video4linux-list mailing list
+>> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
+
+
+
+-- 
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
