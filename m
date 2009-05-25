@@ -1,54 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:37351 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751580AbZERJ71 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 May 2009 05:59:27 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1M5zd1-0005WO-Hf
-	for linux-media@vger.kernel.org; Mon, 18 May 2009 09:59:27 +0000
-Received: from ANancy-155-1-81-229.w92-141.abo.wanadoo.fr ([92.141.236.229])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 18 May 2009 09:59:27 +0000
-Received: from Kowaio by ANancy-155-1-81-229.w92-141.abo.wanadoo.fr with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 18 May 2009 09:59:27 +0000
-To: linux-media@vger.kernel.org
-From: Guillaume <Kowaio@gmail.com>
-Subject: Re: V4L2 - Capturing uncompressed data
-Date: Mon, 18 May 2009 09:59:13 +0000 (UTC)
-Message-ID: <loom.20090518T094558-189@post.gmane.org>
-References: <loom.20090515T125828-924@post.gmane.org> <loom.20090518T065037-781@post.gmane.org> <loom.20090518T072801-624@post.gmane.org> <200905181053.14043.laurent.pinchart@skynet.be>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from deliverator6.ecc.gatech.edu ([130.207.185.176]:52190 "EHLO
+	deliverator6.ecc.gatech.edu" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751405AbZEYAws (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 May 2009 20:52:48 -0400
+Message-ID: <4A19EBDE.4080602@gatech.edu>
+Date: Sun, 24 May 2009 20:52:46 -0400
+From: David Ward <david.ward@gatech.edu>
+MIME-Version: 1.0
+To: Matt Doran <matt.doran@papercut.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: videodev: Unknown symbol i2c_unregister_device (in kernels older
+ than 2.6.26)
+References: <4A19D3D9.9010800@papercut.com>
+In-Reply-To: <4A19D3D9.9010800@papercut.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart <laurent.pinchart <at> skynet.be> writes:
+On 05/24/2009 07:10 PM, Matt Doran wrote:
+> Hi there,
+>
+> I tried using the latest v4l code on an Mythtv box running 2.6.20, but
+> the v4l videodev module fails to load with the following warnings:
+>
+>    videodev: Unknown symbol i2c_unregister_device
+>    v4l2_common: Unknown symbol v4l2_device_register_subdev
+>
+>
+> It seems the "i2c_unregister_device" function was added in 2.6.26.
+> References to this function in v4l2-common.c are enclosed in an ifdef
+> like:
+>
+>    #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
+>
+>
+> However in "v4l2_device_unregister()" in v4l2-device.c, there is a
+> reference to "i2c_unregister_device" without any ifdefs.   I am
+> running a pretty old kernel, but I'd guess anyone running 2.6.25 or
+> earlier will have this problem.   It seems this code was added by
+> Mauro 3 weeks ago in this rev:
+>
+>    http://linuxtv.org/hg/v4l-dvb/rev/87afa7a4ccdf
+>
+>
+>
+>
+> I also had some other compile problems, but don't have all the details
+> (sorry!).  I had to disable the following drivers to get it to compile:
+>
+>    * CONFIG_VIDEO_PVRUSB2
+>    * CONFIG_VIDEO_THS7303
+>    * CONFIG_VIDEO_ADV7343
+>    * CONFIG_DVB_SIANO_SMS1XXX
+>
+>
+> Regards,
+> Matt
+>
 
+Matt, I checked out v4l-dvb today and am using it under 2.6.24 and so 
+far so good.  When did the error appear -- when you were trying to load 
+the module?
 
-> The video stream is compressed directly by the webcam and sent to the host in 
-> compressed form.
-> 
-> Best regards,
-> 
-> Laurent Pinchart
+I have been seeing the errors compiling adv7343.c and ths7303.c under 
+2.6.24 as well.  Andy Walls and Chaithrika Subrahmanya had written 
+patches for those two modules respectively, but there were some comments 
+during the review of the patches, so I think they are still being worked on.
 
-I spoke with my supervisor. He'll try to get a camera 
-which allow uncompressed format.
-In the meantime, and in order to do stop-motion 
-in the application, I need to get the best quality possible 
-of the webcam in one 'shot' (not video, just picture).
-Is there any way to get the value of compression of the jpeg
-by the V4L2 in order to do a software extrapolation after.
-
-For instance, with some webcams (1.3 millions pixels), 
-you can capture a 640*480 resolution in video mode
-but some allow pictures in 800*600 by extrapolation.
-
-So in order to do that extrapolation, I need the value
-of compression of the JPEG use by V4L2. Is it always the same,
-or it depends on the camera ? And can v4l2 get and modify this value ?
-
-
+David
