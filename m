@@ -1,81 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.174]:34592 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751248AbZESD1X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 May 2009 23:27:23 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so2019977wfd.4
-        for <linux-media@vger.kernel.org>; Mon, 18 May 2009 20:27:25 -0700 (PDT)
+Received: from relay03.pair.com ([209.68.5.17]:1394 "HELO relay03.pair.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751266AbZEYBEZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 24 May 2009 21:04:25 -0400
+Message-ID: <4A19EE93.3020200@papercut.com>
+Date: Mon, 25 May 2009 11:04:19 +1000
+From: Matt Doran <matt.doran@papercut.com>
 MIME-Version: 1.0
-In-Reply-To: <1242701151.3736.9.camel@pc07.localdom.local>
-References: <20090503075609.0A73B2C4152@tippex.mynet.homeunix.org>
-	 <20090507130055.E49D32C4165@tippex.mynet.homeunix.org>
-	 <20090510141614.D4A9C2C416C@tippex.mynet.homeunix.org>
-	 <20090515091827.864A12C4167@tippex.mynet.homeunix.org>
-	 <1242438418.3813.15.camel@pc07.localdom.local>
-	 <4A10168E.70205@gmail.com>
-	 <1242600174.3750.29.camel@pc07.localdom.local>
-	 <4A10FB2A.8040601@gmail.com>
-	 <1242687889.5941.12.camel@pc07.localdom.local>
-	 <1242701151.3736.9.camel@pc07.localdom.local>
-Date: Mon, 18 May 2009 23:27:24 -0400
-Message-ID: <829197380905182027o6f5ad2cby242a14daf85df818@mail.gmail.com>
-Subject: Re: Fixed (Was:Re: saa7134/2.6.26 regression, noisy output)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: "tomlohave@gmail.com" <tomlohave@gmail.com>,
-	Benoit Istin <beistin@gmail.com>,
-	Anders Eriksson <aeriksson@fastmail.fm>,
-	Steven Toth <stoth@linuxtv.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	linux-media@vger.kernel.org, video4linux-list@redhat.com,
-	Hartmut Hackmann <hartmut.hackmann@t-online.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: David Ward <david.ward@gatech.edu>
+CC: linux-media@vger.kernel.org
+Subject: Re: videodev: Unknown symbol i2c_unregister_device (in kernels older
+ than 2.6.26)
+References: <4A19D3D9.9010800@papercut.com> <4A19EBDE.4080602@gatech.edu>
+In-Reply-To: <4A19EBDE.4080602@gatech.edu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 18, 2009 at 10:45 PM, hermann pitton
-<hermann-pitton@arcor.de> wrote:
-> Guys,
+David Ward wrote:
+> On 05/24/2009 07:10 PM, Matt Doran wrote:
+>> Hi there,
+>>
+>> I tried using the latest v4l code on an Mythtv box running 2.6.20, but
+>> the v4l videodev module fails to load with the following warnings:
+>>
+>>    videodev: Unknown symbol i2c_unregister_device
+>>    v4l2_common: Unknown symbol v4l2_device_register_subdev
+>>
 >
-> please.
+> Matt, I checked out v4l-dvb today and am using it under 2.6.24 and so 
+> far so good.  When did the error appear -- when you were trying to 
+> load the module?
+The error appeared when trying to load the module at boot time for my 
+saa7134 based tuner card.   This card would no longer work after 
+installing the latest v4l code, however another tuner card continued to 
+work.    Maybe because this the saa7134 card is an I2C based card and 
+the other is USB based?? (but this is all a bit over my head).
+
+I basically just commented out the "i2c_unregister_device" function in 
+v4l2-device.c, recompiled and everything started working. :)    I don't 
+know the implication of removing this, so I didn't submit a patch ... I 
+thought I'd leave that to the experts.
 >
-> It looks like this still can go on for some while.
->
-> I don't have the time and have zero income from all of this.
->
-> Does the new entity, kernellabs.com, Devin, Mike and Steven for now, do
-> confirm that this bug is assigned to them? (PCTV and Hauppauge)
->
-> Or do you prefer to have it further drifting over the lists and call
-> Hartmut and me for it?
->
-> Cheers,
-> Hermann
+> I have been seeing the errors compiling adv7343.c and ths7303.c under 
+> 2.6.24 as well.  Andy Walls and Chaithrika Subrahmanya had written 
+> patches for those two modules respectively, but there were some 
+> comments during the review of the patches, so I think they are still 
+> being worked on.
+Great, thanks for letting me know.   It's not a showstopper, but it's a 
+pain repeatedly going through the reconfigure/compile/error loop each 
+time you encounter a new compiler error. :)    I'm just not game to 
+upgrade the kernel on my mythtv box ... it took a long time to get 
+stable, and I don't want to go there again. :P    I'm recompiling v4l 
+because I added a new tuner card.
 
-Hello Hermann,
-
-I believe it makes sense for me to clarify this point:  Kernel Labs is
-not affiliated with Hauppauge or PCTV in any way.  We have not
-received any money from either company for Linux support for their
-products.
-
-One of Kernel Lab's long-term goals is indeed to find a way to provide
-some form of commercial support for devices such as this.
-
-It is probably fair to say that the three of us tend to focus on
-products by those vendors because of easy access to sample hardware,
-not because of any commercial arrangement.
-
-That said, Kernel Labs is about as responsible for fixing the problem
-as you are.  ;-)
-
-Cheers,
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Matt
