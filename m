@@ -1,114 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4659 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751072AbZEGSIA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2009 14:08:00 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id n47I7xoA037571
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 7 May 2009 20:07:59 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 7 May 2009 20:07:59 +0200 (CEST)
-Message-Id: <200905071807.n47I7xoA037571@smtp-vbr5.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:33676 "EHLO
+	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750940AbZEYTWF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 May 2009 15:22:05 -0400
+Date: Mon, 25 May 2009 12:22:06 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+cc: linux-media@vger.kernel.org, nm127@freemail.hu
+Subject: Re: [RFC,PATCH] VIDIOC_G_EXT_CTRLS does not handle NULL pointer
+ correctly
+In-Reply-To: <200905251317.02633.laurent.pinchart@skynet.be>
+Message-ID: <Pine.LNX.4.58.0905251213500.32713@shell2.speakeasy.net>
+References: <200905251317.02633.laurent.pinchart@skynet.be>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Mon, 25 May 2009, Laurent Pinchart wrote:
+> diff -r e0d881b21bc9 linux/drivers/media/video/v4l2-ioctl.c
+> --- a/linux/drivers/media/video/v4l2-ioctl.c	Tue May 19 15:12:17 2009 +0200
+> +++ b/linux/drivers/media/video/v4l2-ioctl.c	Sun May 24 18:26:29 2009 +0200
+> @@ -402,6 +402,10 @@
+>  		   a specific control that caused it. */
+>  		p->error_idx = p->count;
+>  		user_ptr = (void __user *)p->controls;
+> +		if (p->count > KMALLOC_MAX_SIZE / sizeof(p->controls[0])) {
+> +			err = -ENOMEM;
+> +			goto out_ext_ctrl;
+> +		}
+>  		if (p->count) {
+>  			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
+>  			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
+> @@ -1859,6 +1863,10 @@
+>  		   a specific control that caused it. */
+>  		p->error_idx = p->count;
+>  		user_ptr = (void __user *)p->controls;
+> +		if (p->count > KMALLOC_MAX_SIZE / sizeof(p->controls[0])) {
+> +			err = -ENOMEM;
+> +			goto out_ext_ctrl;
+> +		}
+>  		if (p->count) {
+>  			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
+>  			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
+>
+> Restricting v4l2_ext_controls::count to values smaller than KMALLOC_MAX_SIZE /
+> sizeof(struct v4l2_ext_control) should be enough, but we might want to
+> restrict the value even further. I'd like opinions on this.
 
-Results of the daily build of v4l-dvb:
-
-date:        Thu May  7 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11696:fe524e0a6412
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
-
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-rc4-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-rc4-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-rc4-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-rc4-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-rc4-m32r: OK
-linux-2.6.22.19-mips: ERRORS
-linux-2.6.26-mips: ERRORS
-linux-2.6.27-mips: ERRORS
-linux-2.6.28-mips: ERRORS
-linux-2.6.29.1-mips: ERRORS
-linux-2.6.30-rc4-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-rc4-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-rc4-x86_64: WARNINGS
-sparse (linux-2.6.29.1): OK
-sparse (linux-2.6.30-rc4): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+One thing that could be done is to call access_ok() on the range before
+kmalloc'ing a buffer.  If p->count is too high, then it's possible that the
+copy_from_user will fail because the process does not have the address
+space to copy.
