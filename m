@@ -1,130 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:38898 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759482AbZE0Jkx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2009 05:40:53 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv4 3 of 8] v4l2: video device: Add FMTX controls default configurations
-Date: Wed, 27 May 2009 12:35:50 +0300
-Message-Id: <1243416955-29748-4-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1243416955-29748-3-git-send-email-eduardo.valentin@nokia.com>
-References: <1243416955-29748-1-git-send-email-eduardo.valentin@nokia.com>
- <1243416955-29748-2-git-send-email-eduardo.valentin@nokia.com>
- <1243416955-29748-3-git-send-email-eduardo.valentin@nokia.com>
+Received: from mail.gmx.net ([213.165.64.20]:48874 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751373AbZEYUEU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 May 2009 16:04:20 -0400
+From: Martin Dauskardt <martin.dauskardt@gmx.de>
+To: Andy Walls <awalls@radix.net>
+Subject: Re: [ivtv-devel] tveeprom cannot autodetect tuner! (FQ1216LME MK5)
+Date: Mon, 25 May 2009 22:04:24 +0200
+Cc: Discussion list for development of the IVTV driver
+	<ivtv-devel@ivtvdriver.org>, linux-media@vger.kernel.org,
+	Mike Isely <isely@isely.net>
+References: <200905210909.43333.martin.dauskardt@gmx.de> <1243038686.3164.34.camel@palomino.walls.org> <200905252134.43249.martin.dauskardt@gmx.de>
+In-Reply-To: <200905252134.43249.martin.dauskardt@gmx.de>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200905252204.24321.martin.dauskardt@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-# HG changeset patch
-# User Eduardo Valentin <eduardo.valentin@nokia.com>
-# Date 1243414606 -10800
-# Branch export
-# Node ID 85b64a6cc67c0c0d6a795388f8ca02dad2ff9da7
-# Parent  ebb409d7a258df2bc7a6dcd72113584b4c0e7ce2
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- drivers/media/linux/video/v4l2-common.c |   46 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 46 insertions(+), 0 deletions(-)
+Am Montag, 25. Mai 2009 21:34:43 schrieb Martin Dauskardt:
 
-diff -r ebb409d7a258 -r 85b64a6cc67c linux/drivers/media/video/v4l2-common.c
---- a/linux/drivers/media/video/v4l2-common.c	Wed May 27 11:56:46 2009 +0300
-+++ b/linux/drivers/media/video/v4l2-common.c	Wed May 27 11:56:46 2009 +0300
-@@ -341,6 +341,12 @@
- 		"Sepia",
- 		NULL
- 	};
-+	static const char *fmtx_preemphasis[] = {
-+		"No preemphasis",
-+		"50 useconds",
-+		"75 useconds",
-+		NULL,
-+	};
- 
- 	switch (id) {
- 		case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-@@ -379,6 +385,8 @@
- 			return camera_exposure_auto;
- 		case V4L2_CID_COLORFX:
- 			return colorfx;
-+		case V4L2_CID_PREEMPHASIS:
-+			return fmtx_preemphasis;
- 		default:
- 			return NULL;
- 	}
-@@ -477,6 +485,28 @@
- 	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
- 	case V4L2_CID_PRIVACY:			return "Privacy";
- 
-+	/* FM Radio Modulator control */
-+	case V4L2_CID_FMTX_CLASS:		return "FM Radio Modulator Controls";
-+	case V4L2_CID_RDS_ENABLED:		return "RDS Feature Enabled";
-+	case V4L2_CID_RDS_PI:			return "RDS Program ID";
-+	case V4L2_CID_RDS_PTY:			return "RDS Program Type";
-+	case V4L2_CID_RDS_PS_NAME:		return "RDS PS Name";
-+	case V4L2_CID_RDS_RADIO_TEXT:		return "RDS Radio Text";
-+	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
-+	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
-+	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
-+	case V4L2_CID_AUDIO_COMPRESSION_ENABLED: return "Audio Compression Feature Enabled";
-+	case V4L2_CID_AUDIO_COMPRESSION_GAIN:	return "Audio Compression Gain";
-+	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD: return "Audio Compression Threshold";
-+	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME: return "Audio Compression Attack Time";
-+	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME: return "Audio Compression Release Time";
-+	case V4L2_CID_PILOT_TONE_ENABLED:	return "Pilot Tone Feature Enabled";
-+	case V4L2_CID_PILOT_TONE_DEVIATION:	return "Pilot Tone Deviation";
-+	case V4L2_CID_PILOT_TONE_FREQUENCY:	return "Pilot Tone Frequency";
-+	case V4L2_CID_PREEMPHASIS:		return "Pre-emphasis settings";
-+	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
-+	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
-+
- 	default:
- 		return NULL;
- 	}
-@@ -509,6 +539,10 @@
- 	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
- 	case V4L2_CID_FOCUS_AUTO:
- 	case V4L2_CID_PRIVACY:
-+	case V4L2_CID_RDS_ENABLED:
-+	case V4L2_CID_AUDIO_LIMITER_ENABLED:
-+	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
-+	case V4L2_CID_PILOT_TONE_ENABLED:
- 		qctrl->type = V4L2_CTRL_TYPE_BOOLEAN;
- 		min = 0;
- 		max = step = 1;
-@@ -537,12 +571,14 @@
- 	case V4L2_CID_MPEG_STREAM_VBI_FMT:
- 	case V4L2_CID_EXPOSURE_AUTO:
- 	case V4L2_CID_COLORFX:
-+	case V4L2_CID_PREEMPHASIS:
- 		qctrl->type = V4L2_CTRL_TYPE_MENU;
- 		step = 1;
- 		break;
- 	case V4L2_CID_USER_CLASS:
- 	case V4L2_CID_CAMERA_CLASS:
- 	case V4L2_CID_MPEG_CLASS:
-+	case V4L2_CID_FMTX_CLASS:
- 		qctrl->type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 		min = max = step = def = 0;
-@@ -571,6 +607,16 @@
- 	case V4L2_CID_BLUE_BALANCE:
- 	case V4L2_CID_GAMMA:
- 	case V4L2_CID_SHARPNESS:
-+	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME:
-+	case V4L2_CID_AUDIO_LIMITER_DEVIATION:
-+	case V4L2_CID_AUDIO_COMPRESSION_GAIN:
-+	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD:
-+	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME:
-+	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME:
-+	case V4L2_CID_PILOT_TONE_DEVIATION:
-+	case V4L2_CID_PILOT_TONE_FREQUENCY:
-+	case V4L2_CID_TUNE_POWER_LEVEL:
-+	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
- 		qctrl->flags |= V4L2_CTRL_FLAG_SLIDER;
- 		break;
- 	case V4L2_CID_PAN_RELATIVE:
+> #define TUNER_PHILIPS_FM1216MK5         79
+> result: picture o.k. , but audio disappears every few seconds (for about 1-2 
+> seconds, then comes back) 
+
+correction: This is not a problem of tuner type 79. It happens also with tuner 
+type 38. Sometimes the audio is also muted after the start of the 
+application. Only switching to another input and back brings the audio back.
+
+I am beginning to wonder if this problem may be related to a similar problem 
+with the PVRUSB2:
+http://www.isely.net/pipermail/pvrusb2/2009-May/002331.html
+
+If there is a problem with the new v4l2 sub-device mechanism, it seems to be 
+more specific to some devices than to others. With my PVR350 I didn't notice 
+such problems - although I remember that in **very** rare cases the audio 
+fails after a channel switch.  
+
+Greets, 
+Martin
+
