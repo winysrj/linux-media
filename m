@@ -1,157 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f174.google.com ([209.85.218.174]:33097 "EHLO
-	mail-bw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755905AbZELBPt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 May 2009 21:15:49 -0400
-Received: by bwz22 with SMTP id 22so2994552bwz.37
-        for <linux-media@vger.kernel.org>; Mon, 11 May 2009 18:15:49 -0700 (PDT)
-Date: Mon, 11 May 2009 21:16:06 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: linux-media@vger.kernel.org, video4linux-list@redhat.com
-Subject: [PATCH] Start support Philips MK5 tuner
-Message-ID: <20090511211606.315ae629@glory.loctelecom.ru>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/meO3VsjpZAVKP8Fod374hSx"
+Received: from mail.gmx.net ([213.165.64.20]:39725 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751519AbZEYTeh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 May 2009 15:34:37 -0400
+From: Martin Dauskardt <martin.dauskardt@gmx.de>
+To: Andy Walls <awalls@radix.net>
+Subject: Re: [ivtv-devel] tveeprom cannot autodetect tuner! (FQ1216LME MK5)
+Date: Mon, 25 May 2009 21:34:43 +0200
+Cc: Discussion list for development of the IVTV driver
+	<ivtv-devel@ivtvdriver.org>, linux-media@vger.kernel.org
+References: <200905210909.43333.martin.dauskardt@gmx.de> <1242901704.3166.8.camel@palomino.walls.org> <1243038686.3164.34.camel@palomino.walls.org>
+In-Reply-To: <1243038686.3164.34.camel@palomino.walls.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200905252134.43249.martin.dauskardt@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/meO3VsjpZAVKP8Fod374hSx
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+> #define TUNER_PHILIPS_FQ1216ME          24      /* you must actively select 
+B/G/D/K, I, L, L` */
+> #define TUNER_PHILIPS_FQ1216AME_MK4     56      /* Hauppauge PVR-150 PAL */
+> 
+> #define TUNER_PHILIPS_FM1216ME_MK3      38
+> 
+> #define TUNER_PHILIPS_FMD1216ME_MK3     63
+> #define TUNER_PHILIPS_FMD1216MEX_MK3    78
+> #define TUNER_PHILIPS_FM1216MK5         79
+> 
+> Could the user try one of those, starting with the FQ1216 tuner numbers
+> (24 and 56), to see if one of them works?  For the FQ1261LME MK3,
+> tveeprom has the FM1216ME_MK3 tuner number (38).
+> 
 
-Hi All
+I have this card now at home for testing. First results:
 
-I start support Philips MK5 tuner
+#define TUNER_PHILIPS_FQ1216ME		24	/* you must actively select B/G/D/K, I, L, 
+Result: only static
 
-diff -r 19b8f124911c linux/drivers/media/common/tuners/tuner-types.c
---- a/linux/drivers/media/common/tuners/tuner-types.c	Thu May 07 12:30:01 2009 +0000
-+++ b/linux/drivers/media/common/tuners/tuner-types.c	Tue May 12 06:14:24 2009 +1000
-@@ -567,6 +567,31 @@
- 		.type   = TUNER_PARAM_TYPE_PAL,
- 		.ranges = tuner_fm1216me_mk3_pal_ranges,
- 		.count  = ARRAY_SIZE(tuner_fm1216me_mk3_pal_ranges),
-+		.cb_first_if_lower_freq = 1,
-+		.has_tda9887 = 1,
-+		.port1_active = 1,
-+		.port2_active = 1,
-+		.port2_invert_for_secam_lc = 1,
-+		.port1_fm_high_sensitivity = 1,
-+		.default_top_mid = -2,
-+		.default_top_secam_mid = -2,
-+		.default_top_secam_high = -2,
-+	},
-+};
-+
-+/* ------------ TUNER_PHILIPS_FM1216MK5 - Philips PAL ------------ */
-+
-+static struct tuner_range tuner_fm1216mk5_pal_ranges[] = {
-+	{ 16 * 158.00 /*MHz*/, 0xce, 0x01, },
-+	{ 16 * 441.00 /*MHz*/, 0xce, 0x02, },
-+	{ 16 * 864.00        , 0xce, 0x04, },
-+};
-+
-+static struct tuner_params tuner_fm1216mk5_params[] = {
-+	{
-+		.type   = TUNER_PARAM_TYPE_PAL,
-+		.ranges = tuner_fm1216mk5_pal_ranges,
-+		.count  = ARRAY_SIZE(tuner_fm1216mk5_pal_ranges),
- 		.cb_first_if_lower_freq = 1,
- 		.has_tda9887 = 1,
- 		.port1_active = 1,
-@@ -1695,6 +1720,11 @@
- 		.initdata = tua603x_agc112,
- 		.sleepdata = (u8[]){ 4, 0x9c, 0x60, 0x85, 0x54 },
- 	},
-+		[TUNER_PHILIPS_FM1216MK5] = { /* Philips PAL */
-+		.name   = "Philips PAL/SECAM multi (FM1216 MK5)",
-+		.params = tuner_fm1216mk5_params,
-+		.count  = ARRAY_SIZE(tuner_fm1216mk5_params),
-+	},
- };
- EXPORT_SYMBOL(tuners);
- 
-diff -r 19b8f124911c linux/include/media/tuner.h
---- a/linux/include/media/tuner.h	Thu May 07 12:30:01 2009 +0000
-+++ b/linux/include/media/tuner.h	Tue May 12 06:14:24 2009 +1000
-@@ -124,6 +124,7 @@
- #define TUNER_XC5000			76	/* Xceive Silicon Tuner */
- #define TUNER_TCL_MF02GIP_5N		77	/* TCL MF02GIP_5N */
- #define TUNER_PHILIPS_FMD1216MEX_MK3	78
-+#define TUNER_PHILIPS_FM1216MK5		79
- 
- /* tv card specific */
- #define TDA9887_PRESENT 		(1<<0)
+#define TUNER_PHILIPS_FM1216ME_MK3	38
+result: picture + sound o.k.
 
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+#define TUNER_PHILIPS_FQ1216AME_MK4	56	/* Hauppauge PVR-150 PAL */
+result: picture o.k., but no sound
 
+#define TUNER_PHILIPS_FMD1216ME_MK3	63
+result: picture + sound o.k.
 
-With my best regards, Dmitry.
---MP_/meO3VsjpZAVKP8Fod374hSx
-Content-Type: text/x-patch; name=behold_mk5.patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=behold_mk5.patch
+#define TUNER_PHILIPS_FMD1216MEX_MK3	78
+result: picture + sound o.k.
 
-diff -r 19b8f124911c linux/drivers/media/common/tuners/tuner-types.c
---- a/linux/drivers/media/common/tuners/tuner-types.c	Thu May 07 12:30:01 2009 +0000
-+++ b/linux/drivers/media/common/tuners/tuner-types.c	Tue May 12 06:14:24 2009 +1000
-@@ -567,6 +567,31 @@
- 		.type   = TUNER_PARAM_TYPE_PAL,
- 		.ranges = tuner_fm1216me_mk3_pal_ranges,
- 		.count  = ARRAY_SIZE(tuner_fm1216me_mk3_pal_ranges),
-+		.cb_first_if_lower_freq = 1,
-+		.has_tda9887 = 1,
-+		.port1_active = 1,
-+		.port2_active = 1,
-+		.port2_invert_for_secam_lc = 1,
-+		.port1_fm_high_sensitivity = 1,
-+		.default_top_mid = -2,
-+		.default_top_secam_mid = -2,
-+		.default_top_secam_high = -2,
-+	},
-+};
-+
-+/* ------------ TUNER_PHILIPS_FM1216MK5 - Philips PAL ------------ */
-+
-+static struct tuner_range tuner_fm1216mk5_pal_ranges[] = {
-+	{ 16 * 158.00 /*MHz*/, 0xce, 0x01, },
-+	{ 16 * 441.00 /*MHz*/, 0xce, 0x02, },
-+	{ 16 * 864.00        , 0xce, 0x04, },
-+};
-+
-+static struct tuner_params tuner_fm1216mk5_params[] = {
-+	{
-+		.type   = TUNER_PARAM_TYPE_PAL,
-+		.ranges = tuner_fm1216mk5_pal_ranges,
-+		.count  = ARRAY_SIZE(tuner_fm1216mk5_pal_ranges),
- 		.cb_first_if_lower_freq = 1,
- 		.has_tda9887 = 1,
- 		.port1_active = 1,
-@@ -1695,6 +1720,11 @@
- 		.initdata = tua603x_agc112,
- 		.sleepdata = (u8[]){ 4, 0x9c, 0x60, 0x85, 0x54 },
- 	},
-+		[TUNER_PHILIPS_FM1216MK5] = { /* Philips PAL */
-+		.name   = "Philips PAL/SECAM multi (FM1216 MK5)",
-+		.params = tuner_fm1216mk5_params,
-+		.count  = ARRAY_SIZE(tuner_fm1216mk5_params),
-+	},
- };
- EXPORT_SYMBOL(tuners);
- 
-diff -r 19b8f124911c linux/include/media/tuner.h
---- a/linux/include/media/tuner.h	Thu May 07 12:30:01 2009 +0000
-+++ b/linux/include/media/tuner.h	Tue May 12 06:14:24 2009 +1000
-@@ -124,6 +124,7 @@
- #define TUNER_XC5000			76	/* Xceive Silicon Tuner */
- #define TUNER_TCL_MF02GIP_5N		77	/* TCL MF02GIP_5N */
- #define TUNER_PHILIPS_FMD1216MEX_MK3	78
-+#define TUNER_PHILIPS_FM1216MK5		79
- 
- /* tv card specific */
- #define TDA9887_PRESENT 		(1<<0)
+#define TUNER_PHILIPS_FM1216MK5         79
+result: picture o.k. , but audio disappears every few seconds (for about 1-2 
+seconds, then comes back) 
 
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+tuner type 63 and 79 are Hybrid tuners. This is fore sure an analogue-only 
+tuner. The sticker says "Multi-PAL", and according to VIDIOC_ENUMSTD  it 
+supports PAL, PAL-BG and PAL-H. 
 
---MP_/meO3VsjpZAVKP8Fod374hSx--
+So I think 38 is right. Any suggestions for further tests?
