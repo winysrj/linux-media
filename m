@@ -1,68 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110811.mail.gq1.yahoo.com ([67.195.13.234]:38467 "HELO
-	web110811.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1758245AbZELLYJ (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:55750 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751221AbZEYLMo convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2009 07:24:09 -0400
-Message-ID: <19338.23494.qm@web110811.mail.gq1.yahoo.com>
-Date: Tue, 12 May 2009 04:24:07 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [0905_02] Siano: smsusb - handle byte ordering and big endianity
-To: LinuxML <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho <mchehab@infradead.org>
+	Mon, 25 May 2009 07:12:44 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: linux-media@vger.kernel.org
+Subject: [RFC,PATCH] VIDIOC_G_EXT_CTRLS does not handle NULL pointer correctly
+Date: Mon, 25 May 2009 13:17:02 +0200
+Cc: nm127@freemail.hu
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200905251317.02633.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi everybody,
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1242127626 -10800
-# Node ID 26c02c133d7e1f9932c1968f669ab0bfaf2761fa
-# Parent  766d02fa7c5c42cc6480eaefb14c7dd6f9c0d370
-[0905_02] Siano: smsusb - handle byte ordering and big endianity
+Márton Németh found an integer overflow bug in the extended control ioctl 
+handling code. This affects both video_usercopy and video_ioctl2. See 
+http://bugzilla.kernel.org/show_bug.cgi?id=13357 for a detailed description of 
+the problem.
 
-From: Uri Shkolnik <uris@siano-ms.com>
+v4l2_ext_controls::count is not checked explicitly by 
+video_usercopy/video_ioctl2. Instead the code tries to allocate 
+v4l2_ext_controls::count * sizeof(struct v4l2_ext_control) to copy 
+v4l2_ext_controls::controls from userspace to kernelspace, and return an error 
+if the memory can't be allocated or if the user pointer is invalid.
 
-This patch adds support for byte ordering and big endianity
-handling for the USB interface driver
+The v4l2_ext_controls::count * sizeof(struct v4l2_ext_control) value is stored 
+in a 32 bits integer, resulting in an overflow if v4l2_ext_controls::count is 
+too high. If the result is smaller than the maximum kmalloc'able size, the 
+ioctl call will make it to the device driver, which will likely crash.
 
-Priority: normal
+The following patch (copied from bugzilla) fixes the problem.
 
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
+diff -r e0d881b21bc9 linux/drivers/media/video/v4l2-ioctl.c
+--- a/linux/drivers/media/video/v4l2-ioctl.c	Tue May 19 15:12:17 2009 +0200
++++ b/linux/drivers/media/video/v4l2-ioctl.c	Sun May 24 18:26:29 2009 +0200
+@@ -402,6 +402,10 @@
+ 		   a specific control that caused it. */
+ 		p->error_idx = p->count;
+ 		user_ptr = (void __user *)p->controls;
++		if (p->count > KMALLOC_MAX_SIZE / sizeof(p->controls[0])) {
++			err = -ENOMEM;
++			goto out_ext_ctrl;
++		}
+ 		if (p->count) {
+ 			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
+ 			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
+@@ -1859,6 +1863,10 @@
+ 		   a specific control that caused it. */
+ 		p->error_idx = p->count;
+ 		user_ptr = (void __user *)p->controls;
++		if (p->count > KMALLOC_MAX_SIZE / sizeof(p->controls[0])) {
++			err = -ENOMEM;
++			goto out_ext_ctrl;
++		}
+ 		if (p->count) {
+ 			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
+ 			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
 
-diff -r 766d02fa7c5c -r 26c02c133d7e linux/drivers/media/dvb/siano/smsusb.c
---- a/linux/drivers/media/dvb/siano/smsusb.c	Tue May 12 14:00:57 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smsusb.c	Tue May 12 14:27:06 2009 +0300
-@@ -26,6 +26,7 @@ along with this program.  If not, see <h
- 
- #include "smscoreapi.h"
- #include "sms-cards.h"
-+#include "smsendian.h"
- 
- static int sms_dbg;
- module_param_named(debug, sms_dbg, int, 0644);
-@@ -180,6 +181,7 @@ static int smsusb_sendrequest(void *cont
- 	struct smsusb_device_t *dev = (struct smsusb_device_t *) context;
- 	int dummy;
- 
-+	smsendian_handle_message_header((struct SmsMsgHdr_ST *)buffer);
- 	return usb_bulk_msg(dev->udev, usb_sndbulkpipe(dev->udev, 2),
- 			    buffer, size, &dummy, 1000);
- }
-@@ -337,8 +339,8 @@ static int smsusb_init_device(struct usb
- 	case SMS_VEGA:
- 		dev->buffer_size = USB2_BUFFER_SIZE;
- 		dev->response_alignment =
--			dev->udev->ep_in[1]->desc.wMaxPacketSize -
--			sizeof(struct SmsMsgHdr_ST);
-+		    le16_to_cpu(dev->udev->ep_in[1]->desc.wMaxPacketSize) -
-+		    sizeof(struct SmsMsgHdr_ST);
- 
- 		params.flags |= SMS_DEVICE_FAMILY2;
- 		break;
+Restricting v4l2_ext_controls::count to values smaller than KMALLOC_MAX_SIZE /
+sizeof(struct v4l2_ext_control) should be enough, but we might want to 
+restrict the value even further. I'd like opinions on this.
 
+Best regards,
 
+Laurent Pinchart
 
-      
