@@ -1,97 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f174.google.com ([209.85.218.174]:52406 "EHLO
+Received: from mail-bw0-f174.google.com ([209.85.218.174]:34370 "EHLO
 	mail-bw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752399AbZEWUNM (ORCPT
+	with ESMTP id S1755262AbZEYFde (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 May 2009 16:13:12 -0400
-Received: by bwz22 with SMTP id 22so2283425bwz.37
-        for <linux-media@vger.kernel.org>; Sat, 23 May 2009 13:13:12 -0700 (PDT)
-Message-ID: <4A1858B6.3090202@gmail.com>
-Date: Sat, 23 May 2009 22:12:38 +0200
+	Mon, 25 May 2009 01:33:34 -0400
+Received: by bwz22 with SMTP id 22so2844169bwz.37
+        for <linux-media@vger.kernel.org>; Sun, 24 May 2009 22:33:34 -0700 (PDT)
+Message-ID: <4A1A2D88.7070601@gmail.com>
+Date: Mon, 25 May 2009 07:32:56 +0200
 From: David Lister <foceni@gmail.com>
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Gernot Pansy <gernot@pansy.at>, linux-media@vger.kernel.org
-Subject: Re: Question about driver for Mantis
-References: <200905230810.39344.jarhuba2@poczta.onet.pl>	 <1a297b360905222341t4e66e2c6x95d339838db43139@mail.gmail.com>	 <200905231436.58072.gernot@pansy.at> <4A180DD8.4030009@gmail.com>	 <1a297b360905230941m69085ab5jf3b75f3c42ded48b@mail.gmail.com>	 <4A18358F.6040404@gmail.com> <1a297b360905231137i157e5dbt2c023e656c690e99@mail.gmail.com>
-In-Reply-To: <1a297b360905231137i157e5dbt2c023e656c690e99@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: Manu <eallaud@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Re : [linux-dvb] Most stable DVB-S2 PCI Card?
+References: <1243218968.13752.0@manu-laptop>
+In-Reply-To: <1243218968.13752.0@manu-laptop>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Manu Abraham wrote:
-> On Sat, May 23, 2009 at 9:42 PM, David Lister <foceni@gmail.com> wrote:
+Manu wrote:
+> Le 23/05/2009 01:51:15, David Lister a écrit :
 >   
 >> Manu Abraham wrote:
 >>     
->>> 2009/5/23 David Lister <foceni@gmail.com>:
->>>
+>>> On Sat, May 23, 2009 at 1:30 AM, David Lister <foceni@gmail.com>
 >>>       
->>>> Not sure if you didn't get this email already, I had a slip-up while
->>>> sending it. :) Anyway, there's also another supported card with a CI. A
->>>> friend of mine has it, so I guess it works quite well with Linux. It's
->>>> Mystique SaTiX-S2 (AFAIK, similar to KNC1+). Mystiques have rather
->>>> quality finish and the CI module is ready for 3.5" drive installation.
->>>> Some pictures from google:
->>>>
->>>> http://www.cesarex.com/images/Mystique-CI-1.jpg
->>>> http://www.sat-servis.cz/data/eshop/fotky/produkty/velke/619.jpg
->>>>
->>>> Others might be able to tell you more details, I just know it works -
->>>> friend has a Cryptoworks CAM in it. Take a look around, bye.
->>>>
->>>>         
->>> The Mystique is just a rebranded KNC1+ which just uses the same
->>> STB0899 module, FYI. :-)
->>>
->>>       
->> Not exactly. People usually say it is a rebrand/clone of KNC1+, but it's
->> not. :) There are couple of differences -- Mystique is a lighter version
->> missing these features:
->> 1) Signal passthrough via loop-out connector
->> 2) Video input port for analogue capture
->>
->> I'm glad you reminded me of this misconception, the differences might be
->> important for somebody. I was considering Mystique for myself, but chose
->> CX24116 over STB0899, because this time, I wanted official support. I
->> don't need analogue capture and CI anyway (I use softcam and for analog,
->> much better Hauppauge PVR-500). I suggest Mystique instead of KNC1+ for
->> purely practical reasons - it's more available, cheaper and nicer. :)
+>> wrote:
 >>     
-> No misconceptions:
->   
-Oh, but there are. We were both talking about the sat version of KNC1+,
-not KNC1! You said and I quote: "The Mystique is just a rebranded
-KNC1+", which is not true. That's why I originally said that it's
-*similar* to Mystique, which *is* true. It might be the same as plain
-KNC1 or dozens of other rebranded versions, but that wasn't the point.
-The misconception is that "Mystique is KNC1+ clone" -- it is not.
-Perhaps I could have mentioned basic TV Station DVB-S too, but I didn't
-expect I'll have to defend every word I say. Now that I think about it,
-I'm glad I didn't - your inability to comprehend the simplest of
-meanings shines like the sun.
-
-Your follow-up comment was completely useless, arbitrary trolling. If
-you could face the life like a man instead of a cry baby, you wouldn't
-have the need to patronise me (unsuccessfully:)) in an unrelated thread
-just because of our earlier argument. You should be ashamed of yourself.
-You're a DVB driver developer and you have a hard time arguing with
-somebody who has seen DVB-S for the first time in his life a month ago!
-
+>>>   
+>>>       
+>>>> Actually, there are many DVB-S2 cards supporting 45 MS/s, even
+>>>>         
+>> TeVii S460
+>>     
+>>>> can do 2-45 MS/s. I spoke with a fellow TeVii owner, who confirmed
+>>>>         
+>> the card
+>>     
+>>>> is working with a 45 MS/s transponder on Express AM2 without *any*
+>>>>         
+>> issues.
+>>     
+>>>> All this aside, there aren't any transponders with higher rates
+>>>>         
+>> than this
+>>     
+>>>> and there won't be for many years. Who knows how stable would TT
+>>>>         
+>> even be
+>>     
+>>>> with such rates? For now, it's irrelevant anyway. I have no 
+>>>>         
+>> problem
+>>     
+>>>> upgrading to a new card in 3-4 years, providing there will be a
+>>>>         
+>> stable,
+>>     
+>>>> fully supported card for Linux with as many satisfied owners as
+>>>>         
+>> e.g. Nova S2
+>>     
+>>>> HD has.
+>>>>     
+>>>>         
+>>> You are talking about a 45 MSPS DVB-S stream on a DVB-S2
+>>>       
+>> demodulator,
+>>     
+>>> while i was talking about a 45 MSPS DVB-S2 stream on a DVB-S2
+>>>       
+>> demodulator.
+>>     
+>>> Big difference !
+>>>   
+>>>       
+>> This point is moot in the first place, mate. Especially in USA
+>> (original
+>> poster), where it'll take twice the time to reach those rates on
+>> DVB-S2.
+>> All current 45 MS/s transponders are QPSK, at least as far as I can
+>> tell. Even if that "technology preview" 8PSK transponder of yours
+>> existed (somewhere above Asia), it's hardly a reason to buy
+>> Linux-unstable cards in EU or USA. Especially considering OP's quest
+>>     
 >
-> So support for it just appeared like magic ?
+> Just a quick note: Manu is right at least here in the French Caribbean 
+> Islands where, under the pretext of streaming more HD channels, 
+> CanalSat Caraibes (which is strongly affiliated with Canal+ France) is 
+> broadcasting DVB-S2 QPSK 45 MSPS. People are really upset about it 
+> because it basically boils down to lock everybody into renting their 
+> decoder.
+> So yes, some people (read me ;-) desperately needs DVB-S2 HW supporting 
+> high SPS rates (plus I need CI also). For now I dont see this rare 
+> bird! If someone knows one with good linux driver...
 >   
-Were you arguing with one of your other personalities in your head that
-I missed something? I'm afraid you are a bit confused today, or you
-misinterpret the meaning of my words on purpose, or are just pissed off
-at me. :) Whatever. Because it might be your weak English, I'm not going
-to call you an idiot like you called me a few times today, even though
-this time it *would* be appropriate. It's the same thing as in the other
-thread all over again. It's impossible to have a normal intelligent
-conversation with you. I'm not going to support your trolling any more.
+Yes, that would be the Intelsat 903 we talked about. Btw, you sure it's
+QPSK? If so, it's not S2, but S. :) Never mind that anyway, dear, our
+discussion wasn't about existence or non-existence of high rate 8PSK
+signals. In the beginning of the thread we established that there are
+places on Earth with these signals (your bird seems the only one, but
+there may be more!). The question was their relevance for typical US /
+EU citizens *now*. There's no doubt in my mind that higher rates will
+become used eventually, perhaps sooner that we think even if it may seem
+unlikely - a year, two? Even during this "short time", I'll be using
+standard HW which has been good enough for everybody for years and when
+the time comes, there will be new HW to choose from - perhaps even
+better than TT-1600. :) This is my point, the rest are just reactions to
+Manu.
 
-As usual, I wish you good luck in your efforts. Looks like you need it.
+
+Btw, *Manu*, I just read your on-line resume. You're in Bangalore,
+right? Funny thing, I'm in India too - for half a year already, but I'll
+be leaving soon. It's business crap as usual, but India for the first
+time. I kinda like it here. Destinations without proper engineers call
+upon us, the European *Jedi* of the HA/HP computing, to build & install
+IBM supercomputers for them and design new infrastructures. :o) If you
+want to come and smash my face with a hammer, feel free to visit me in
+Koregaon Park. :o)
+
 
 -- 
 Dave
