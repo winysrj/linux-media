@@ -1,81 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kolorific.com ([61.63.28.39]:48292 "EHLO
-	mail.kolorific.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754407AbZERCcI (ORCPT
+Received: from mail-ew0-f176.google.com ([209.85.219.176]:54076 "EHLO
+	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751405AbZEYBWA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 May 2009 22:32:08 -0400
-Subject: [PATCH]media/video: minor have assigned value twice
-From: "figo.zhang" <figo.zhang@kolorific.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
-	figo1802@126.com, kraxel@bytesex.org,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Mon, 18 May 2009 10:31:55 +0800
-Message-Id: <1242613915.3442.29.camel@myhost>
+	Sun, 24 May 2009 21:22:00 -0400
+Received: by ewy24 with SMTP id 24so2826062ewy.37
+        for <linux-media@vger.kernel.org>; Sun, 24 May 2009 18:22:00 -0700 (PDT)
+Date: Mon, 25 May 2009 11:22:41 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: linux-media@vger.kernel.org, video4linux-list@redhat.com
+Subject: [PATCH] Change order for FM tune.
+Message-ID: <20090525112241.41a8f67b@glory.loctelecom.ru>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="MP_/FB3ntZ/KCUQzTybw0=RI9ip"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The variable minor have assigned value twice, the first time is in the initial "video_device"data struct in
-those drivers,pls see saa7134-video.c,line 2503.
+--MP_/FB3ntZ/KCUQzTybw0=RI9ip
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Signed-off-by: Figo.zhang <figo.zhang@kolorific.com>
- ---
- drivers/media/video/bt8xx/bttv-driver.c    |    1 -
- drivers/media/video/cx23885/cx23885-417.c  |    1 -
- drivers/media/video/cx88/cx88-core.c       |    1 -
- drivers/media/video/saa7134/saa7134-core.c |    1 -
- 4 files changed, 0 insertions(+), 4 deletions(-)
+Hi All.
 
-diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
-index 23b7499..539ae45 100644
---- a/drivers/media/video/bt8xx/bttv-driver.c
-+++ b/drivers/media/video/bt8xx/bttv-driver.c
-@@ -4166,7 +4166,6 @@ static struct video_device *vdev_init(struct bttv *btv,
- 	if (NULL == vfd)
- 		return NULL;
- 	*vfd = *template;
--	vfd->minor   = -1;
- 	vfd->v4l2_dev = &btv->c.v4l2_dev;
- 	vfd->release = video_device_release;
- 	vfd->debug   = bttv_debug;
-diff --git a/drivers/media/video/cx23885/cx23885-417.c b/drivers/media/video/cx23885/cx23885-417.c
-index 6f5df90..2943bfd 100644
---- a/drivers/media/video/cx23885/cx23885-417.c
-+++ b/drivers/media/video/cx23885/cx23885-417.c
-@@ -1742,7 +1742,6 @@ static struct video_device *cx23885_video_dev_alloc(
- 	if (NULL == vfd)
- 		return NULL;
- 	*vfd = *template;
--	vfd->minor   = -1;
- 	snprintf(vfd->name, sizeof(vfd->name), "%s %s (%s)", dev->name,
- 		type, cx23885_boards[tsport->dev->board].name);
- 	vfd->parent  = &pci->dev;
-diff --git a/drivers/media/video/cx88/cx88-core.c b/drivers/media/video/cx88/cx88-core.c
-index 0e149b2..b4049de 100644
---- a/drivers/media/video/cx88/cx88-core.c
-+++ b/drivers/media/video/cx88/cx88-core.c
-@@ -1010,7 +1010,6 @@ struct video_device *cx88_vdev_init(struct cx88_core *core,
- 	if (NULL == vfd)
- 		return NULL;
- 	*vfd = *template;
--	vfd->minor   = -1;
- 	vfd->v4l2_dev = &core->v4l2_dev;
- 	vfd->parent = &pci->dev;
- 	vfd->release = video_device_release;
-diff --git a/drivers/media/video/saa7134/saa7134-core.c b/drivers/media/video/saa7134/saa7134-core.c
-index 2def6fe..37b1452 100644
---- a/drivers/media/video/saa7134/saa7134-core.c
-+++ b/drivers/media/video/saa7134/saa7134-core.c
-@@ -775,7 +775,6 @@ static struct video_device *vdev_init(struct saa7134_dev *dev,
- 	if (NULL == vfd)
- 		return NULL;
- 	*vfd = *template;
--	vfd->minor   = -1;
- 	vfd->v4l2_dev  = &dev->v4l2_dev;
- 	vfd->release = video_device_release;
- 	vfd->debug   = video_debug;
+Change order data of buffer in FM simple_tune function. It is usefull for:
 
+1. Set data of tuner with CP bit UP. 0xCE for MK5 or 0xC6 for MK3
+2. When call simple_fm_tune, read this byte from config and overwrite 
+this byte in function simple_radio_bandswitch for set CP bit to OFF.
 
+Of course it can be usefull for other tuner for overwrite default settings of FM.
+
+diff -r 315bc4b65b4f linux/drivers/media/common/tuners/tuner-simple.c
+--- a/linux/drivers/media/common/tuners/tuner-simple.c	Sun May 17 12:28:55 2009 +0000
++++ b/linux/drivers/media/common/tuners/tuner-simple.c	Mon May 25 05:45:39 2009 +1000
+@@ -698,11 +698,11 @@
+ 		return 0;
+ 	}
+ 
++	buffer[2] = (t_params->ranges[0].config & ~TUNER_RATIO_MASK) |
++		    TUNER_RATIO_SELECT_50; /* 50 kHz step */
++
+ 	/* Bandswitch byte */
+ 	simple_radio_bandswitch(fe, &buffer[0]);
+-
+-	buffer[2] = (t_params->ranges[0].config & ~TUNER_RATIO_MASK) |
+-		    TUNER_RATIO_SELECT_50; /* 50 kHz step */
+ 
+ 	/* Convert from 1/16 kHz V4L steps to 1/20 MHz (=50 kHz) PLL steps
+ 	   freq * (1 Mhz / 16000 V4L steps) * (20 PLL steps / 1 MHz) =
+
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+
+With my best regards, Dmitry.
+--MP_/FB3ntZ/KCUQzTybw0=RI9ip
+Content-Type: text/x-patch; name=fm_tune_order.patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=fm_tune_order.patch
+
+diff -r 315bc4b65b4f linux/drivers/media/common/tuners/tuner-simple.c
+--- a/linux/drivers/media/common/tuners/tuner-simple.c	Sun May 17 12:28:55 2009 +0000
++++ b/linux/drivers/media/common/tuners/tuner-simple.c	Mon May 25 05:45:39 2009 +1000
+@@ -698,11 +698,11 @@
+ 		return 0;
+ 	}
+ 
++	buffer[2] = (t_params->ranges[0].config & ~TUNER_RATIO_MASK) |
++		    TUNER_RATIO_SELECT_50; /* 50 kHz step */
++
+ 	/* Bandswitch byte */
+ 	simple_radio_bandswitch(fe, &buffer[0]);
+-
+-	buffer[2] = (t_params->ranges[0].config & ~TUNER_RATIO_MASK) |
+-		    TUNER_RATIO_SELECT_50; /* 50 kHz step */
+ 
+ 	/* Convert from 1/16 kHz V4L steps to 1/20 MHz (=50 kHz) PLL steps
+ 	   freq * (1 Mhz / 16000 V4L steps) * (20 PLL steps / 1 MHz) =
+
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+--MP_/FB3ntZ/KCUQzTybw0=RI9ip--
