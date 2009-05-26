@@ -1,48 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.168]:11009 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753411AbZELVME convert rfc822-to-8bit (ORCPT
+Received: from mail-in-13.arcor-online.net ([151.189.21.53]:45273 "EHLO
+	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754356AbZEZAxC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2009 17:12:04 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so178914wfd.4
-        for <linux-media@vger.kernel.org>; Tue, 12 May 2009 14:12:05 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1BBC94C9-869D-4335-8AB5-6A66CEC6CB1A@gmail.com>
-References: <412bdbff0905052114r7f481759r373fd0b814f458e@mail.gmail.com>
-	 <247D2127-F564-4F55-A49D-3F0F8FA63112@gmail.com>
-	 <412bdbff0905061150g2e46f919i57823c8700252926@mail.gmail.com>
-	 <B9B32CC0-1CA5-4A89-A0FC-C1770014ED09@gmail.com>
-	 <412bdbff0905061410k30d7114dk97cec1cc19c47b2b@mail.gmail.com>
-	 <47468C2F-83E4-4359-A1F2-7F59AC6A0E53@gmail.com>
-	 <412bdbff0905062055k7cefb714wb496ef48464df99a@mail.gmail.com>
-	 <87F5FF15-F869-4FEC-946B-C4D6D0C9506E@gmail.com>
-	 <829197380905121356y1d76d73eu4738e3e926c11d27@mail.gmail.com>
-	 <1BBC94C9-869D-4335-8AB5-6A66CEC6CB1A@gmail.com>
-Date: Tue, 12 May 2009 17:12:05 -0400
-Message-ID: <829197380905121412sa81703ekf843b799732481bf@mail.gmail.com>
-Subject: Re: XC5000 improvements: call for testers!
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Britney Fransen <britney.fransen@gmail.com>
-Cc: Devin Heitmueller <devin.heitmueller@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Mon, 25 May 2009 20:53:02 -0400
+Subject: Re: [ivtv-devel] tveeprom cannot autodetect tuner! (FQ1216LME MK5)
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Martin Dauskardt <martin.dauskardt@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Andy Walls <awalls@radix.net>,
+	Discussion list for development of the IVTV driver
+	<ivtv-devel@ivtvdriver.org>, linux-media@vger.kernel.org
+In-Reply-To: <1243287953.3744.93.camel@pc07.localdom.local>
+References: <200905210909.43333.martin.dauskardt@gmx.de>
+	 <1242901704.3166.8.camel@palomino.walls.org>
+	 <1243038686.3164.34.camel@palomino.walls.org>
+	 <200905252134.43249.martin.dauskardt@gmx.de>
+	 <1243287953.3744.93.camel@pc07.localdom.local>
+Content-Type: text/plain
+Date: Tue, 26 May 2009 02:41:05 +0200
+Message-Id: <1243298465.3703.8.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 12, 2009 at 4:59 PM, Britney Fransen
-<britney.fransen@gmail.com> wrote:
-> Great!  Any chance the QAM64 patch will make it in too?
->
-> Britney
+Hi,
 
-The QAM64 support is not related to the xc5000 work, so I won't be
-putting it into the same patch series.  However, it is toward the top
-of my queue to get that submitted separately once I've had a chance to
-review the au8522 registers being programmed.
+Am Montag, den 25.05.2009, 23:45 +0200 schrieb hermann pitton:
+> Hi,
+> 
+> Am Montag, den 25.05.2009, 21:34 +0200 schrieb Martin Dauskardt:
+> > > #define TUNER_PHILIPS_FQ1216ME          24      /* you must actively select 
+> > B/G/D/K, I, L, L` */
+> > > #define TUNER_PHILIPS_FQ1216AME_MK4     56      /* Hauppauge PVR-150 PAL */
+> > > 
+> > > #define TUNER_PHILIPS_FM1216ME_MK3      38
+> > > 
+> > > #define TUNER_PHILIPS_FMD1216ME_MK3     63
+> > > #define TUNER_PHILIPS_FMD1216MEX_MK3    78
+> > > #define TUNER_PHILIPS_FM1216MK5         79
+> > > 
+> > > Could the user try one of those, starting with the FQ1216 tuner numbers
+> > > (24 and 56), to see if one of them works?  For the FQ1261LME MK3,
+> > > tveeprom has the FM1216ME_MK3 tuner number (38).
+> > > 
+> > 
+> > I have this card now at home for testing. First results:
+> > 
+> > #define TUNER_PHILIPS_FQ1216ME		24	/* you must actively select B/G/D/K, I, L, 
+> > Result: only static
+> > 
+> > #define TUNER_PHILIPS_FM1216ME_MK3	38
+> > result: picture + sound o.k.
+> > 
+> > #define TUNER_PHILIPS_FQ1216AME_MK4	56	/* Hauppauge PVR-150 PAL */
+> > result: picture o.k., but no sound
+> > 
+> > #define TUNER_PHILIPS_FMD1216ME_MK3	63
+> > result: picture + sound o.k.
+> > 
+> > #define TUNER_PHILIPS_FMD1216MEX_MK3	78
+> > result: picture + sound o.k.
+> > 
+> > #define TUNER_PHILIPS_FM1216MK5         79
+> > result: picture o.k. , but audio disappears every few seconds (for about 1-2 
+> > seconds, then comes back) 
+> > 
+> > tuner type 63 and 79 are Hybrid tuners. This is fore sure an analogue-only 
+> > tuner. The sticker says "Multi-PAL", and according to VIDIOC_ENUMSTD  it 
+> > supports PAL, PAL-BG and PAL-H. 
+> > 
+> > So I think 38 is right. Any suggestions for further tests?
+> 
+> in my opinion the entry of tuner type 24 is buggy.
+> I posted once about it, but it is long ago.
+> 
+> /* ------------ TUNER_PHILIPS_FQ1216ME - Philips PAL ------------ */
+> 
+> static struct tuner_params tuner_philips_fq1216me_params[] = {
+> 	{
+> 		.type   = TUNER_PARAM_TYPE_PAL,
+> 		.ranges = tuner_lg_pal_ranges,
+> 		.count  = ARRAY_SIZE(tuner_lg_pal_ranges),
+> 		.has_tda9887 = 1,
+> 		.port1_active = 1,
+> 		.port2_active = 1,
+> 		.port2_invert_for_secam_lc = 1,
+> 	},
+> };
+> 
+> At least tuner_lg_pal_ranges must be wrong for an MK3 and UHF should
+> fail, if you can test on that. Switch must be 0x04 and not 0x08.
+> 
+> The hybrid tuners are also not compatible to an FM1216ME/I MK3.
+> They miss some frequencies when used for such an one and some low VHF
+> channels are snowy. The tda9887 is also not visible on them without
+> special initialization in tuner-core.c for them. Likely not the case on
+> yours.
+> 
+> FQ types from Philips are without radio support. FM types have radio.
+> Also the FMD1216MEX_MK3 has a different radio IF, BTW.
+> 
+> Previously I did recommend tuner 56 for them, but now with the more
+> detailed tda988/5/6/7 settings it misses .port2_active = 1.
+> Hans likely knows that it is right and else we would have reports from
+> people using it I guess. Hm.
+> 
+> You could test with tda9887 port2=0, if you get sound on that one too.
+> 
+> If the entry is correct and can't be changed, we likely need a new tuner
+> entry or the TUNER_PHILIPS_FQ1216ME must use mk3 ranges on UHF. But on
+> that one I have some doubts at all. How could it happen, given how old
+> it is and previously without tda9887 at all, that the wrong UHF switch
+> is undiscovered until today?
+> 
+> Hm, the new MK5 has trouble with sound, FM anyway, but
+> TUNER_PHILIPS_FM1216MK5 is a complete clone of the FM1216ME MK3,
+> except for the discussed 1MHz change for UHF beginning and 0xce versus
+> 0x8e. IIRC, 0xce should be even the better choice on tuners without
+> radio, but I need to look it up again or Andy is more aware about the
+> recent discussions. (faster tuning bit)
+> 
+> Maybe Dmitry has a datasheet for that one too.
 
-Devin
+for that MK5, I suggest to remove it completely to stay at some old
+rules we did not ship with that bad so far.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+We can change the UHF switch on the tuner 38 for that 1 MHz, it will not
+cause any trouble, but that new entry only causes confusion and 0xce
+should even be wrong for an FM tuner.
+
+Dmitry, defend your stuff, if needed.
+
+> One question, which might be interesting is the RF loop through.
+> Is it enabled by default or even switchable?
+> 
+> The latter would be reason enough to create a new tuner type I think.
+> 
+> Just some quick ideas. (ivtv will bounce me, not subscribed)
+
+Cheers,
+Hermann
+
+
+
+
