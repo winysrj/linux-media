@@ -1,50 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f222.google.com ([209.85.218.222]:44590 "EHLO
-	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760159AbZE3RPF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 30 May 2009 13:15:05 -0400
-Received: by bwz22 with SMTP id 22so6700199bwz.37
-        for <linux-media@vger.kernel.org>; Sat, 30 May 2009 10:15:06 -0700 (PDT)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Simon Kenyon <simon@koala.ie>
-Subject: Re: [SOLVED] Re: [linux-dvb] SDMC DM1105N not being detected
-Date: Sat, 30 May 2009 20:15:00 +0300
-Cc: linux-media@vger.kernel.org
-References: <e6ac15e50904022156u40221c3fib15d1b4cdf36461@mail.gmail.com> <200905301244.27490.liplianin@me.by> <4A2164B5.7090106@koala.ie>
-In-Reply-To: <4A2164B5.7090106@koala.ie>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="koi8-r"
+Received: from mx2.redhat.com ([66.187.237.31]:32842 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752339AbZEZAvx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 25 May 2009 20:51:53 -0400
+Date: Mon, 25 May 2009 18:48:43 -0600
+From: Pete Zaitcev <zaitcev@redhat.com>
+To: David <david@unsolicited.net>
+Cc: Alan Stern <stern@rowland.harvard.edu>,
+	USB list <linux-usb@vger.kernel.org>,
+	Pekka Enberg <penberg@cs.helsinki.fi>,
+	linux-media@vger.kernel.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	dbrownell@users.sourceforge.net, leonidv11@gmail.com,
+	Greg KH <gregkh@suse.de>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>, zaitcev@redhat.com
+Subject: Re: USB/DVB - Old Technotrend TT-connect S-2400 regression tracked
+ down
+Message-Id: <20090525184843.33c93006.zaitcev@redhat.com>
+In-Reply-To: <4A1A8E53.9060108@unsolicited.net>
+References: <4A1967A2.4050906@unsolicited.net>
+	<Pine.LNX.4.44L0.0905242208260.15195-100000@netrider.rowland.org>
+	<20090524203902.594a0eec.zaitcev@redhat.com>
+	<4A1A5E24.20201@unsolicited.net>
+	<4A1A8E53.9060108@unsolicited.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200905302015.00751.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 30 May 2009 19:54:13 Simon Kenyon wrote:
-> Igor M. Liplianin wrote:
-> > Thank you for resolving this.
-> > I will prepair patch for linuxtv to test.
-> > Then after you test and confirm, I will commit
->
-> thank you
-> by the way, this card is really rather good. in particular it gets a
-> lock really quickly
-> it is also a nice price. i have ordered two more and have asked the
-> manufacturer for a quote for some which i plan to sell on ebay. pity
-> they don't make a DVB-S2 device.
-Who knows ...
-I have information about cards with very same PCI ID, but different frontends.
-For example tda10086 based ones named DM714S.
+On Mon, 25 May 2009 13:25:55 +0100, David <david@unsolicited.net> wrote:
 
->
-> regards
-> --
-> simon
+> >> I wonder if CONFIG_HAVE_DMA_API_DEBUG does it (enabled with a select
+> >> in arch/x86/Kconfig). Strange that it started happening now.
+> >>     
+> > That is enabled. I'll switch it off and give it another go.
+> >   
+> While CONFIG_HAVE_DMA_API_DEBUG was set, DMA_API_DEBUG was not, so I
+> guess there's nothing I can do to test?
 
+I suppose so. I misunderstood how this worked. I guessed that the
+DMA API debugging was the culprit because its introduction coincided
+with the recent onset of this oops.
 
-Best Regards
--- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+Although usbmon does essentially illegal tricks to look at data
+already mapped for DMA, the code used to work for a few releases.
+Bisecting may help. I cannot be sure of it though, and it's
+going to take a lot of reboots.
+
+Unfortunately, although I have an Opteron, the issue does not
+occur here, so I'm at a loss for the moment. But I'll have to
+tackle it somehow. Not sure how though. Any suggestions are welcome.
+
+-- Pete
