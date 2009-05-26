@@ -1,59 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-14.arcor-online.net ([151.189.21.54]:51094 "EHLO
-	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755575AbZE1Tpn (ORCPT
+Received: from iolanthe.rowland.org ([192.131.102.54]:56579 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752402AbZEZOIT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2009 15:45:43 -0400
-Subject: Re: [PATCH] Leadtek WinFast DTV-1800H support
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Miroslav =?UTF-8?Q?=C5=A0ustek?= <sustmidown@centrum.cz>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <loom.20090528T183711-833@post.gmane.org>
-References: <200905102337.22307@centrum.cz> <200905102338.14151@centrum.cz>
-	 <200905102339.24789@centrum.cz> <200905102339.14742@centrum.cz>
-	 <loom.20090528T183711-833@post.gmane.org>
-Content-Type: text/plain; charset=UTF-8
-Date: Thu, 28 May 2009 21:42:18 +0200
-Message-Id: <1243539738.3769.21.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Tue, 26 May 2009 10:08:19 -0400
+Date: Tue, 26 May 2009 10:08:20 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Pete Zaitcev <zaitcev@redhat.com>
+cc: David <david@unsolicited.net>,
+	USB list <linux-usb@vger.kernel.org>,
+	Pekka Enberg <penberg@cs.helsinki.fi>,
+	<linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	<dbrownell@users.sourceforge.net>, <leonidv11@gmail.com>,
+	Greg KH <gregkh@suse.de>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: USB/DVB - Old Technotrend TT-connect S-2400 regression tracked
+ down
+In-Reply-To: <20090525184843.33c93006.zaitcev@redhat.com>
+Message-ID: <Pine.LNX.4.44L0.0905261006500.3584-100000@iolanthe.rowland.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Miroslav,
+On Mon, 25 May 2009, Pete Zaitcev wrote:
 
-Am Donnerstag, den 28.05.2009, 18:44 +0000 schrieb Miroslav Šustek:
-> Any problem with this patch?
-> I'm trying to get WinFast DTV-1800H support into repository for seven months.
-> (see:
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/1125/match=1800h
-> )
+> On Mon, 25 May 2009 13:25:55 +0100, David <david@unsolicited.net> wrote:
 > 
+> > >> I wonder if CONFIG_HAVE_DMA_API_DEBUG does it (enabled with a select
+> > >> in arch/x86/Kconfig). Strange that it started happening now.
+> > >>     
+> > > That is enabled. I'll switch it off and give it another go.
+> > >   
+> > While CONFIG_HAVE_DMA_API_DEBUG was set, DMA_API_DEBUG was not, so I
+> > guess there's nothing I can do to test?
+> 
+> I suppose so. I misunderstood how this worked. I guessed that the
+> DMA API debugging was the culprit because its introduction coincided
+> with the recent onset of this oops.
+> 
+> Although usbmon does essentially illegal tricks to look at data
+> already mapped for DMA, the code used to work for a few releases.
+> Bisecting may help. I cannot be sure of it though, and it's
+> going to take a lot of reboots.
+> 
+> Unfortunately, although I have an Opteron, the issue does not
+> occur here, so I'm at a loss for the moment. But I'll have to
+> tackle it somehow. Not sure how though. Any suggestions are welcome.
 
-just saw this patch on another machine and it reminded me also on your
-patch to select different frontends on multiple multi frontends card at
-insmod, which can be quite useful and was tested by me.
+Try asking the people responsible for maintaining DMA support for help.  
 
-They must pass the checks "patchwork" does, this includes to run "make
-checkpatch" on them previously and then you will see them very soon in
+And David is very good about testing new patches.
 
-http://patchwork.kernel.org/project/linux-media/list
-
-They seem not to be there, also not with filters "any" set, and you
-should have seen an automated commit message, if they should have made
-it into v4l-dvb.
-
-Please resend and check short time later, if they are at patchwork
-linux-media.
-
-Some sort of reject message would of course be fine on such and make
-life easier, but does not happen yet.
-
-Cheers,
-Hermann
-
-
-
-
-
+Alan Stern
 
