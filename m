@@ -1,33 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from email.brin.com ([208.89.164.15]:40902 "EHLO email.brin.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751070AbZEAFWM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 May 2009 01:22:12 -0400
-Received: from email.brin.com (email.brin.com [172.19.1.12])
-	by email.brin.com (Postfix) with ESMTP id 670CE798001
-	for <linux-media@vger.kernel.org>; Thu, 30 Apr 2009 23:08:20 -0600 (MDT)
-Date: Thu, 30 Apr 2009 23:08:20 -0600 (MDT)
-From: Bob Ingraham <bobi@brin.com>
-To: linux-media@vger.kernel.org
-Message-ID: <206145978.15701241154500283.JavaMail.root@email>
-In-Reply-To: <gsuono$iec$1@ger.gmane.org>
-Subject: Support for Skystar S2 and Twinhan AD-SP200/VP-1027
+Received: from mail-ew0-f176.google.com ([209.85.219.176]:37594 "EHLO
+	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755471AbZEZSiL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2009 14:38:11 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20090526174213.806710164@linux.intel.com>
+References: <20090526174012.423883376@linux.intel.com>
+	 <20090526174213.806710164@linux.intel.com>
+Date: Tue, 26 May 2009 14:32:45 -0400
+Message-ID: <37219a840905261132q6b0a7289x3408fb904ddf90df@mail.gmail.com>
+Subject: Re: [PATCH 4/6] dvb/dvb-usb: prepare for FIRMWARE_NAME_MAX removal
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>,
+	Greg Kroah-Hartmann <greg@kroah.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kay Sievers <kay.sievers@vrfy.org>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+On Tue, May 26, 2009 at 1:40 PM, Samuel Ortiz <sameo@linux.intel.com> wrote:
+> From: Samuel Ortiz <sameo@linux.intel.com>
+> To: Mauro Carvalho Chehab <mchehab@infradead.org>
+>
+> We're going to remove the FIRMWARE_NAME_MAX definition in order to avoid any
+> firmware name length restriction.
+> This patch changes the dvb_usb_device_properties firmware field accordingly.
+>
+> Signed-off-by: Samuel Ortiz <sameo@linux.intel.com>
+>
+> ---
+>  drivers/media/dvb/dvb-usb/dvb-usb.h |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> Index: iwm-2.6/drivers/media/dvb/dvb-usb/dvb-usb.h
+> ===================================================================
+> --- iwm-2.6.orig/drivers/media/dvb/dvb-usb/dvb-usb.h    2009-05-26 17:24:36.000000000 +0200
+> +++ iwm-2.6/drivers/media/dvb/dvb-usb/dvb-usb.h 2009-05-26 17:25:19.000000000 +0200
+> @@ -196,7 +196,7 @@ struct dvb_usb_device_properties {
+>  #define CYPRESS_FX2     3
+>        int        usb_ctrl;
+>        int        (*download_firmware) (struct usb_device *, const struct firmware *);
+> -       const char firmware[FIRMWARE_NAME_MAX];
+> +       const char *firmware;
+>        int        no_reconnect;
+>
+>        int size_of_priv;
+>
+> --
+> Intel Open Source Technology Centre
+> http://oss.intel.com/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+>
 
-Running Fedora Core 10 (2.6.27) and have looked through the wiki for support for:
+Samuel,
 
-- Skystar S2 (DVB-S2) PCI
-- Twinhan AD-SP200/VP-1027 (DVB-S) PCI
+Your patch makes the following change:
 
-I'm guessing the wiki is out of date with regards to current status.
+-       const char firmware[FIRMWARE_NAME_MAX];
++       const char *firmware;
 
-Are there patches or a snapshot I can pull that has stable support for either of these cards?
+Before your change, struct dvb_usb_device_properties actually contains
+memory allocated for the firmware filename.  After your change, this
+is nothing but a pointer.
 
-Thanks,
-Bob Ingraham
+This will cause an OOPS.
+
+Regards,
+
+Mike Krufky
