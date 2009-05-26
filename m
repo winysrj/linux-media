@@ -1,113 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:44093 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752687AbZENTnc (ORCPT
+Received: from iolanthe.rowland.org ([192.131.102.54]:41921 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752168AbZEZU5B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 14 May 2009 15:43:32 -0400
-Date: Thu, 14 May 2009 14:57:07 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Hans de Goede <j.w.r.degoede@hhs.nl>
-cc: MK <halfcountplus@intergate.com>,
-	=?ISO-8859-15?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>,
-	video4linux-list@redhat.com, linux-media@vger.kernel.org
-Subject: Re: working on webcam driver
-In-Reply-To: <4A0C544F.1030801@hhs.nl>
-Message-ID: <alpine.LNX.2.00.0905141424460.11396@banach.math.auburn.edu>
-References: <1242316804.1759.1@lhost.ldomain> <4A0C544F.1030801@hhs.nl>
+	Tue, 26 May 2009 16:57:01 -0400
+Date: Tue, 26 May 2009 16:57:02 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: David <david@unsolicited.net>
+cc: Pekka Enberg <penberg@cs.helsinki.fi>,
+	<linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	<dbrownell@users.sourceforge.net>, <leonidv11@gmail.com>,
+	Greg KH <gregkh@suse.de>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: USB/DVB - Old Technotrend TT-connect S-2400 regression tracked
+  down
+In-Reply-To: <4A1AE705.2050809@unsolicited.net>
+Message-ID: <Pine.LNX.4.44L0.0905261646420.11998-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-863829203-437820711-1242329111=:11396"
-Content-ID: <alpine.LNX.2.00.0905141425290.11396@banach.math.auburn.edu>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On Mon, 25 May 2009, David wrote:
 
----863829203-437820711-1242329111=:11396
-Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 8BIT
-Content-ID: <alpine.LNX.2.00.0905141425291.11396@banach.math.auburn.edu>
+> > No luck I'm afraid (although there now appear to be 2 timeouts, not
+> > one). I'm going to follow up on the laptop and get a USB log.
+> >   
+> USB log post-patch attached. Thanks for all the effort so far!
 
+I think the idea of the patch was good, but the endpoint direction
+information got lost (because the information was taken from the dummy
+qTD which is always marked as OUT -- I don't see how this could ever
+have worked properly).  So let's redo it, using the new and proper
+interface for resetting endpoints.
 
+To tell the truth, I'm not entirely certain this will work either.  The 
+hardware may cache the endpoint state, so it may be necessary to unlink 
+the endpoint completely.  Still, try this version and see what happens.
 
-On Thu, 14 May 2009, Hans de Goede wrote:
-
-> On 05/14/2009 06:00 PM, MK wrote:
->> Since I'm cross-posting this (as advised) I should introduce myself by
->> saying I am a neophyte C programmer getting into kernel programming by
->> trying to write a driver for an unsupported webcam.  So far I've gotten
->> the device to register and have enumerated the various interfaces.
->> 
->> On 05/11/2009 02:50:00 PM, Erik Andrén wrote:
->>> First of all, this list is deprecated. Send mails to
->>> linux-media@vger.kernel.org if you want to reach the kernel community.
->>> 
->>> Secondly, have you researched that there is no existing driver for
->>> your camera? A good way to start would perhaps to search for the usb
->>> id and linux in google to see if it generates some hits.
->> 
->> I've done this last bit already, and I just checked out gspca.  There
->> is a loit of listing for the vendor id, but not the product id, so I
->> imagine there is no point in trying any of the drivers (unless I hack
->> the source to accept the id string).
->> 
->> However, a rather unhelpful person at the linux driver backport group
->> informs me "not all USB video drivers are under
->> drivers/media/video/usbvideo/  In fact, the majority of them are not."
->> but then tells me I should take off and go find them myself "with a web
->> browser" (very nice).
->> 
->> Does anyone know where these drivers are located?
->
-> Most non yvc (see below) usb webcams are driven through the gspca usb
-> webcam driver framework. This is a v4l driver which consists of gspca-core
-> + various subdrivers for a lot of bridges, see drivers/media/video/gspca
->
->
->  The same person also
->> claims that the kernel now has support "for all devices that
->> follow the USB video class specification, and [sic] that the additional
->> 23 device specific drivers in the tree* are just for non-conforming
->> devices".
->
-> This is correct recently the USB consortium (or whatever they are called)
-> have created a new spec called UVC, this is one standard protocol for all
-> webcams to follow. All *newer* webcams use this, but a lot of cams still
-> in the stores predate UVC (which stands for USB Video Class).
->
-> The first thing to find out to get your webcam supported is what kind of
-> bridge chip it is using, try looking at the windows driver .inf file,
-> typical bridges are the sonix series (often refenced to as sn9c10x or
-> sn9c20x), spca5xx series, zc3xx, vc032x, etc. If you see a reference
-> to anything like this in the windows driver .inf file (or inside dll's)
-> that would be good to know. Also it would be very helpful to have the usb
-> id of your camera.
->
-> Regards,
->
-> Hans
-
-All of the above is excellent advice, especially in view of the fact that 
-you say, "There is a lot of listing for the vendor id, but not the product 
-id, so I imagine there is no point in trying any of the drivers (unless I 
-hack the source to accept the id string)," apparently with reference to 
-the cameras supported by gspca.
-
->From there, things could go in several directions. First, it might 
-possibly be the case that it suffices only to add the camera's Vendor and 
-Product ID to an existing driver. Or, it might be a completely different 
-one. Or, it might be that everything can be solved but for the fact that 
-the camera is using an undocumented and unsolved compression algorithm, 
-which is the ultimate obstacle to overcome and also the most difficult. 
-Perhaps in addition to the list from Hans, above, an output of lsusb or 
-the content of the /proc/bus/usb/devices file (available if your kernel 
-supports usbfs, otherwise not) would help.
-
-Finally, since you say that the Vendor ID appears, it could possibly be 
-the case that someone is already working on support for your particular 
-camera. The matter would be more clear if the Vendor and Product ID 
-numbers are known.
+Alan Stern
 
 
-Theodore Kilgore
----863829203-437820711-1242329111=:11396--
+
+Index: usb-2.6/drivers/usb/host/ehci-q.c
+===================================================================
+--- usb-2.6.orig/drivers/usb/host/ehci-q.c
++++ usb-2.6/drivers/usb/host/ehci-q.c
+@@ -84,6 +84,30 @@ qtd_fill(struct ehci_hcd *ehci, struct e
+ 
+ /*-------------------------------------------------------------------------*/
+ 
++static void ehci_endpoint_reset(struct usb_hcd *hcd,
++		struct usb_host_endpoint *ep)
++{
++	struct ehci_hcd		*ehci = hcd_to_ehci(hcd);
++	struct ehci_qh		*qh;
++
++	spin_lock_irq(&ehci->lock);
++	qh = ep->hcpriv;
++
++	/* For Bulk and Interrupt endpoints we maintain the toggle state
++	 * in the hardware; the toggle bits in udev aren't used at all.
++	 * When an endpoint is reset by usb_clear_halt() we must reset
++	 * the toggle bit in the QH.
++	 */
++	if (qh && (usb_endpoint_xfer_bulk(&ep->desc) ||
++			usb_endpoint_xfer_int(&ep->desc))) {
++		if (qh->qh_state == QH_STATE_IDLE || list_empty(&qh->qtd_list))
++			qh->hw_token &= ~cpu_to_hc32(ehci, QTD_TOGGLE);
++		else
++			WARN_ONCE(1, "clear_halt for an active endpoint\n");
++	}
++	spin_unlock_irq(&ehci->lock);
++}
++
+ static inline void
+ qh_update (struct ehci_hcd *ehci, struct ehci_qh *qh, struct ehci_qtd *qtd)
+ {
+@@ -93,22 +117,6 @@ qh_update (struct ehci_hcd *ehci, struct
+ 	qh->hw_qtd_next = QTD_NEXT(ehci, qtd->qtd_dma);
+ 	qh->hw_alt_next = EHCI_LIST_END(ehci);
+ 
+-	/* Except for control endpoints, we make hardware maintain data
+-	 * toggle (like OHCI) ... here (re)initialize the toggle in the QH,
+-	 * and set the pseudo-toggle in udev. Only usb_clear_halt() will
+-	 * ever clear it.
+-	 */
+-	if (!(qh->hw_info1 & cpu_to_hc32(ehci, 1 << 14))) {
+-		unsigned	is_out, epnum;
+-
+-		is_out = !(qtd->hw_token & cpu_to_hc32(ehci, 1 << 8));
+-		epnum = (hc32_to_cpup(ehci, &qh->hw_info1) >> 8) & 0x0f;
+-		if (unlikely (!usb_gettoggle (qh->dev, epnum, is_out))) {
+-			qh->hw_token &= ~cpu_to_hc32(ehci, QTD_TOGGLE);
+-			usb_settoggle (qh->dev, epnum, is_out, 1);
+-		}
+-	}
+-
+ 	/* HC must see latest qtd and qh data before we clear ACTIVE+HALT */
+ 	wmb ();
+ 	qh->hw_token &= cpu_to_hc32(ehci, QTD_TOGGLE | QTD_STS_PING);
+@@ -893,7 +901,6 @@ done:
+ 	qh->qh_state = QH_STATE_IDLE;
+ 	qh->hw_info1 = cpu_to_hc32(ehci, info1);
+ 	qh->hw_info2 = cpu_to_hc32(ehci, info2);
+-	usb_settoggle (urb->dev, usb_pipeendpoint (urb->pipe), !is_input, 1);
+ 	qh_refresh (ehci, qh);
+ 	return qh;
+ }
+@@ -928,7 +935,7 @@ static void qh_link_async (struct ehci_h
+ 		}
+ 	}
+ 
+-	/* clear halt and/or toggle; and maybe recover from silicon quirk */
++	/* clear halt and maybe recover from silicon quirk */
+ 	if (qh->qh_state == QH_STATE_IDLE)
+ 		qh_refresh (ehci, qh);
+ 
+Index: usb-2.6/drivers/usb/host/ehci-pci.c
+===================================================================
+--- usb-2.6.orig/drivers/usb/host/ehci-pci.c
++++ usb-2.6/drivers/usb/host/ehci-pci.c
+@@ -388,6 +388,7 @@ static const struct hc_driver ehci_pci_h
+ 	.urb_enqueue =		ehci_urb_enqueue,
+ 	.urb_dequeue =		ehci_urb_dequeue,
+ 	.endpoint_disable =	ehci_endpoint_disable,
++	.endpoint_reset =	ehci_endpoint_reset,
+ 
+ 	/*
+ 	 * scheduling support
+
