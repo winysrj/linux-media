@@ -1,70 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:58312 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759913AbZEXWMw (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.152]:61253 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755952AbZEZTSP convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 24 May 2009 18:12:52 -0400
-Date: Sun, 24 May 2009 17:26:45 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Hans de Goede <hdegoede@redhat.com>
-cc: Hans de Goede <j.w.r.degoede@hhs.nl>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] to libv4lconvert, to do decompression for sn9c2028
- cameras
-In-Reply-To: <4A19849F.3040000@redhat.com>
-Message-ID: <alpine.LNX.2.00.0905241718400.25840@banach.math.auburn.edu>
-References: <1242316804.1759.1@lhost.ldomain> <4A0C544F.1030801@hhs.nl> <alpine.LNX.2.00.0905141424460.11396@banach.math.auburn.edu> <alpine.LNX.2.00.0905191529260.19936@banach.math.auburn.edu> <4A144E41.6080806@redhat.com> <alpine.LNX.2.00.0905231628240.24795@banach.math.auburn.edu>
- <4A191837.4070002@hhs.nl> <alpine.LNX.2.00.0905241208010.25546@banach.math.auburn.edu> <4A19849F.3040000@redhat.com>
+	Tue, 26 May 2009 15:18:15 -0400
+Received: by fg-out-1718.google.com with SMTP id 16so1495507fgg.17
+        for <linux-media@vger.kernel.org>; Tue, 26 May 2009 12:18:16 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+In-Reply-To: <829197380905261105k6f1a8f9dl1bcd067863e85e67@mail.gmail.com>
+References: <4A1C2C0F.9090808@gmail.com>
+	 <829197380905261105k6f1a8f9dl1bcd067863e85e67@mail.gmail.com>
+Date: Tue, 26 May 2009 14:18:16 -0500
+Message-ID: <1767e6740905261218i307d3bdeh30eec0539e98f896@mail.gmail.com>
+Subject: Re: [linux-dvb] EPG (Electronic Program Guide) Tools
+From: Jonathan Isom <jeisom@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On Sun, 24 May 2009, Hans de Goede wrote:
-
+On Tuesday, May 26, 2009, Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
+> On Tue, May 26, 2009 at 1:51 PM, Chris Capon <ttabyss@gmail.com> wrote:
+>> Hi:
+>> I've installed an HVR-1600 card in a Debian system to receive ATSC
+>> digital broadcasts here in Canada.  Everything works great.
+>>
+>> scan /usr/share/dvb/atsc/us-ATSC-center-frequencies-8VSB > channels.conf
+>>
+>>        finds a complete list of broadcasters.
+>>
+>> azap -c channels.conf -r "channel-name"
+>>
+>>        tunes in the stations and displays signal strength info.
+>>
+>> cp /dev/dvb/adapter0/dvr0 xx.mpg
+>>
+>>        captures the output stream which can be played by mplayer.
+>>
+>>
+>>
+>> What I'm missing is information about the Electronic Program Guide
+>> (EPG).  There doesn't seem to be much info on linuxtv.org on how to read it.
+>>
+>> Where does the EPG come from?
+>>
+>> Is it incorporated into the output stream through PID's some how or is
+>> it read from one of the other devices under adapter0?
+>>
+>> Are there simple command line tools to read it or do you have to write a
+>> custom program to interpret it somehow?
+>>
+>> Could someone please point me in the right direction to get started?  If
+>> no tools exist, perhaps links to either api or lib docs/samples?
+>>
+>>
+>> Much appreciated.
+>> Chris.
 >
+> Hello Chris,
 >
-> On 05/24/2009 07:22 PM, Theodore Kilgore wrote:
->> 
->> 
->> On Sun, 24 May 2009, Hans de Goede wrote:
->> 
->>> Hi,
->>> 
->>> Thanks for the patch, but I see one big issue with this patch,
->>> the decompression algorithm is GPL, where as libv4l is LGPL.
->>> 
->>> Any chance you could get this relicensed to LGPL ?
->> 
->> Hmmm. Come to think of it, that _is_ a problem, isn't it? I will see
->> what I can do about it, but it might take a while.
->> 
+> The ATSC EPG is sent via the ATSC PSIP protocol.  I do not know of any
+> tools currently available to extract the information.  MeTV has a
+> working implementation (with some bugs I have seen), and I was looking
+> at getting it to work in Kaffeine at some point.
 >
-> Yes I'm afraid it is :(
+Dvbstreamer supports atsc epg. That is what i use
+> The spec is freely available here:
 >
-> Regards,
+> http://www.atsc.org/standards/a_65cr1_with_amend_1.pdf
 >
-> Hans
+> If you have any questions, feel free to drop me a line.
+>
+> Cheers,
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 >
 
-I seem to recall that I asked Harald Ruda about this once before, and he 
-gave permission. The question arose because libgphoto2 is also LGPL, and I 
-was thinking it might be nice if the decomp code for those cameras would 
-be LGPL, too. Clearly, I never got around to making the change even though 
-I asked him about it and he said yes, go right ahead.
+-- 
 
-But naturally that is the mail from him that I can not find. I have lots 
-of other mails, including the original one in which he said that he had 
-read a post of mine to gphoto-devel about the decompression issue for 
-these cameras.
-
-Well, I have sent him another mail, hoping that he is still active on the 
-macam project, and I also will try to search through backup files and such 
-to look for the mail. You can imagine, that was back in 2005 and several 
-machine failures and hard drive failures in particular have taken place 
-since then. I do try to back up stuff that I think is important, by 
-having a copy of it on several machines. Let us hope that either I find 
-something, or he answers the mail.
-
-Theodore Kilgore
+ASUS m3a78 mothorboard
+AMD Athlon64 X2 Dual Core Processor 6000+ 3.1Ghz
+4 Gigabytes of memory
+Gigabyte NVidia 9400gt  Graphics adapter
+Kworld ATSC 110 TV Capture Card
+Kworld ATSC 115 TV Capture Card
