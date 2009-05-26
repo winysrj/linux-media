@@ -1,25 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:54834 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751367AbZECKli (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 3 May 2009 06:41:38 -0400
-Received: by fxm2 with SMTP id 2so3098713fxm.37
-        for <linux-media@vger.kernel.org>; Sun, 03 May 2009 03:41:37 -0700 (PDT)
-Message-ID: <49FD74E0.6020809@gmail.com>
-Date: Sun, 03 May 2009 12:41:36 +0200
-From: Amir Bukhari <amir.bukhari@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20]:40746 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752507AbZEZMIn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2009 08:08:43 -0400
+Date: Tue, 26 May 2009 14:08:53 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans de Goede <hdegoede@redhat.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	moinejf@free.fr
+Subject: Re: gspca: Logitech QuickCam Messenger worked last with external
+ gspcav1-20071224
+In-Reply-To: <4A1BD76E.4020603@redhat.com>
+Message-ID: <Pine.LNX.4.64.0905261404290.4810@axis700.grange>
+References: <Pine.LNX.4.64.0905261335050.4810@axis700.grange>
+ <4A1BD76E.4020603@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21:
- ERRORS (ignore: just a test)
-References: <200905030753.n437rHrb025867@smtp-vbr4.xs4all.nl>
-In-Reply-To: <200905030753.n437rHrb025867@smtp-vbr4.xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-just a test email to see if I receive it from the mailing list.
+On Tue, 26 May 2009, Hans de Goede wrote:
 
-I notice that my email I send to "linux-media@vger.kernel.org" I don't 
-received it but I receive others
+> First of all, which app are you using to test the cam ? And are you using that
+> app in combination with libv4l ?
+
+xawtv, no, it doesn't use libv4l, but it works with the old 
+gspcav1-20071224. Ok, maybe it used a different v4l version, but I have 
+v4l1_compat loaded.
+
+> Also why do you say the original driver used to identify it as a tas5130cxx,
+> the dmesg lines you pasted from gspcav1 also say it is a HV7131R
+
+In the old sources you see
+
+	switch (vendor) {
+	...
+	case 0x046d:		/* Logitech Labtec */
+	...
+		switch (product) {
+		...
+		case 0x08da:
+			spca50x->desc = QCmessenger;
+			spca50x->bridge = BRIDGE_ZC3XX;
+			spca50x->sensor = SENSOR_TAS5130CXX;
+			break;
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
