@@ -1,20 +1,25 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f168.google.com ([209.85.218.168])
+Received: from smtp2.oregonstate.edu ([128.193.15.36])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <armel.frey@gmail.com>) id 1M23VP-0000U0-5T
-	for linux-dvb@linuxtv.org; Thu, 07 May 2009 15:19:19 +0200
-Received: by bwz12 with SMTP id 12so820418bwz.17
-	for <linux-dvb@linuxtv.org>; Thu, 07 May 2009 06:18:45 -0700 (PDT)
+	(envelope-from <akeym@onid.orst.edu>) id 1M95Q5-0002LZ-ND
+	for linux-dvb@linuxtv.org; Wed, 27 May 2009 00:46:54 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by smtp2.oregonstate.edu (Postfix) with ESMTP id D19763C54A
+	for <linux-dvb@linuxtv.org>; Tue, 26 May 2009 15:46:15 -0700 (PDT)
+Received: from smtp2.oregonstate.edu ([127.0.0.1])
+	by localhost (smtp.oregonstate.edu [127.0.0.1]) (amavisd-new,
+	port 10024) with ESMTP id oMPU4O0VZ4tJ for <linux-dvb@linuxtv.org>;
+	Tue, 26 May 2009 15:46:15 -0700 (PDT)
+Received: from spike.nws.oregonstate.edu (spike.nws.oregonstate.edu
+	[10.192.126.45])
+	by smtp2.oregonstate.edu (Postfix) with ESMTP id AD55F3C30A
+	for <linux-dvb@linuxtv.org>; Tue, 26 May 2009 15:46:15 -0700 (PDT)
+Message-ID: <4A1C7093.30408@onid.orst.edu>
+Date: Tue, 26 May 2009 15:43:31 -0700
+From: Michael Akey <akeym@onid.orst.edu>
 MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.00.0905070221080.21713@ybpnyubfg.ybpnyqbznva>
-References: <8566f5bc0905060103g250086a2v12d038e9163cabb8@mail.gmail.com>
-	<alpine.DEB.2.00.0905070221080.21713@ybpnyubfg.ybpnyqbznva>
-Date: Thu, 7 May 2009 15:18:45 +0200
-Message-ID: <8566f5bc0905070618u6db97047qfd245f83c07316aa@mail.gmail.com>
-From: armel frey <armel.frey@gmail.com>
-To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-Cc: DVB mailin' list thingy <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] szap2 and Band L???
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Nextwave NXT2004 Firmware (found)
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,173 +28,54 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2003291234=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============2003291234==
-Content-Type: multipart/alternative; boundary=001636c594e506d6c50469525ab9
+I recently acquired an ATI HDTV Wonder PCI card from a friend of mine 
+and decided to test it out on my satellite TV transcoding server to also 
+get OTA channels.  I am using a generic linux kernel version 2.6.29.2, 
+and it detects the card just fine, but needed a firmware file for the 
+front-end.
 
---001636c594e506d6c50469525ab9
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+I checked the get_dvb_firmware script, but it failed because the driver 
+pack from AVerMedia is no longer available.  I then tried to get the 
+latest drivers from them by hand for the A180 card, which also has the 
+nxt2004 demod/frontend..  but the driver package refused to install on 
+my WinXP system.  After some quick googling and not finding the nxt2004 
+firmware downloadable online, I tried to find it in the AMD/ATI driver 
+package instead.  It was not readily apparent which file had the 
+firmware, and the only files in the package were windows 
+executable/system files. 
 
-Thanks,
-
-I have put the LO frequency in the low range of Universal Ku band LNBs to 0
-and when i try to tune my card in DVB-S2 I don't have the error message
-anymore...
-
-Yet, I have an other problem...
-If I try to tune my card to catch my DVB-S2 signal with the parameter DVB-S=
-2
-d=E9modulation on szap-s2 (that seems normal...), szap-s2 don't see and don=
-'t
-lock anything.
-But, if I try to tune my card to catch the same DVB-S2 signal with the
-parameter DVB-S demodulation on szap-s2, it lock the signal well ... of
-course, it doesn't succeed to demodulated.
-That why I guess my problem is linked to the frontend, but I don't know how
-to check and correct...
-If someone have an idea?
-
-For more information, in one hand, I have an Dektec Dta-107S2 modulator
-card, and on the other hand I have an Hauppauge HVR-4000.
-
-The application szap-s2 I try to use is :
-
-http://mercurial.intuxication.org/hg/szap-s2
+So I figured it was embedded in one of these files..  I was able to find 
+the nxt2002 firmware file, and compare it to the contents of the file 
+"atidtuxx.sys."  In this file, I fiddled around with offsets and dumping 
+8kb chunks out and feeding it to my linux machine's kernel, and 
+magically got my tuner card to APPEAR to work properly with it, but I do 
+not know the firmware's actual size, so there's a distinct possibility 
+that I'm sending it extra garbage it doesn't need. 
 
 
+Default extraction path from nullsoft installer: 
+C:\ATI\SUPPORT\6-1_hdtv_83-2036wdm\WDM_XP
 
-2009/5/7 BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+Firmware appears to be in ATIDTUXX.SYS at offset 0x681E, taken as a 
+8192byte chunk.
 
-> On Wed, 6 May 2009, armel frey wrote:
->
-> > I have a Hauppauge HVR-4000 and i would like to receive DVB-S2 !
-> > The card works well in DVB-S and seems to work with szap-s2, but my
-> problem
-> > is that i have to receive DVB-S2 in Band L (950...2150MHz) and szap2
-> don't
-> > tune this low fr=E9quency.
->
-> When I see the range of 950-2150MHz, I think of the intermediate
-> frequency delivered from mixing the local oscillator with the
-> received signal, which is passed from the LNB output through
-> the attached cable.
->
-> In reality, this is what is tuned, although most commonly one
-> makes use of the frequencies of the Ku band, which the tuning
-> utility then converts to the IF frequency:
-> tuning DVB-S to Freq: 2062000, Pol:H Srate=3D22000000, 22kHz tone=3Doff, =
-LNB: 1
-> Event:  Frequency: 12662350
->
-> The same should be true for an LNB/dish to receive C-Band
-> signals, for example, something I've not had any personal
-> experience, so I don't know how well it would be supported
-> by the different utilities.
->
-> Do you have an example of a particular DVB-S2 service which
-> you want to receive?
->
-> My guess would be that if you need to tune a particular
-> frequency in that range, say, 2062MHz in the above example,
-> you can achieve this by adding 9750 MHz -- the LO frequency
-> in the low range of Universal Ku band LNBs, and then
-> attempting to tune that frequency, whether that comes as the
-> IF from a Ku, or C or Ka band LNB of whatever type -- Universal
-> or otherwise.
->
-> Though I should hope that some utility will directly support
-> specifying a frequency within the above bands directly, if
-> that's what you're trying to do, or a non-universal-LNB LO
-> frequency...
->
->
-> barry bouwsma
->
+To help me with my findings, does anybody have a known working version 
+of dvb-fe-nxt2004.fw that I can use for comparison?  Thanks! 
 
---001636c594e506d6c50469525ab9
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+And if I have found the correct firmware, the get_dvb_firmware script 
+can be updated to pull this from the ATI drivers now.. If I did this the 
+hard way, you may feel free to point this out as well :)
 
-<div>Thanks, </div>
-<div>=A0</div>
-<div>I have put the LO frequency in the low range of Universal Ku band LNBs=
- to 0 and when i try to tune my card in DVB-S2 I don&#39;t have the error m=
-essage anymore... </div>
-<div>=A0</div>
-<div>Yet, I have an other problem...=A0</div>
-<div>If I try to tune=A0my card to catch my DVB-S2 signal=A0with the parame=
-ter DVB-S2 d=E9modulation on szap-s2 (that seems normal...), szap-s2=A0don&=
-#39;t see and don&#39;t lock anything. </div>
-<div>But, if I try to tune my card to catch the same DVB-S2 signal with the=
- parameter DVB-S demodulation on szap-s2, it lock the signal well ... of co=
-urse, it doesn&#39;t succeed to demodulated. </div>
-<div>That why I guess my problem is linked to the frontend, but I don&#39;t=
- know how to check and correct...</div>
-<div>If someone have an idea?</div>
-<div>=A0</div>
-<div>For more information, in one hand, I have an Dektec Dta-107S2 modulato=
-r card, and on the other hand=A0I have an Hauppauge HVR-4000.</div>
-<div>=A0</div>
-<div>The application szap-s2 I try to use is :</div>
-<div>=A0</div>
-<div><a href=3D"http://mercurial.intuxication.org/hg/szap-s2">http://mercur=
-ial.intuxication.org/hg/szap-s2</a></div>
-<div><br><br>=A0</div>
-<div class=3D"gmail_quote">2009/5/7 BOUWSMA Barry <span dir=3D"ltr">&lt;<a =
-href=3D"mailto:freebeer.bouwsma@gmail.com">freebeer.bouwsma@gmail.com</a>&g=
-t;</span><br>
-<blockquote class=3D"gmail_quote" style=3D"PADDING-LEFT: 1ex; MARGIN: 0px 0=
-px 0px 0.8ex; BORDER-LEFT: #ccc 1px solid">
-<div class=3D"im">On Wed, 6 May 2009, armel frey wrote:<br><br>&gt; I have =
-a Hauppauge HVR-4000 and i would like to receive DVB-S2 !<br>&gt; The card =
-works well in DVB-S and seems to work with szap-s2, but my problem<br>&gt; =
-is that i have to receive DVB-S2 in Band L (950...2150MHz) and szap2 don&#3=
-9;t<br>
-&gt; tune this low fr=E9quency.<br><br></div>When I see the range of 950-21=
-50MHz, I think of the intermediate<br>frequency delivered from mixing the l=
-ocal oscillator with the<br>received signal, which is passed from the LNB o=
-utput through<br>
-the attached cable.<br><br>In reality, this is what is tuned, although most=
- commonly one<br>makes use of the frequencies of the Ku band, which the tun=
-ing<br>utility then converts to the IF frequency:<br>tuning DVB-S to Freq: =
-2062000, Pol:H Srate=3D22000000, 22kHz tone=3Doff, LNB: 1<br>
-Event: =A0Frequency: 12662350<br><br>The same should be true for an LNB/dis=
-h to receive C-Band<br>signals, for example, something I&#39;ve not had any=
- personal<br>experience, so I don&#39;t know how well it would be supported=
-<br>
-by the different utilities.<br><br>Do you have an example of a particular D=
-VB-S2 service which<br>you want to receive?<br><br>My guess would be that i=
-f you need to tune a particular<br>frequency in that range, say, 2062MHz in=
- the above example,<br>
-you can achieve this by adding 9750 MHz -- the LO frequency<br>in the low r=
-ange of Universal Ku band LNBs, and then<br>attempting to tune that frequen=
-cy, whether that comes as the<br>IF from a Ku, or C or Ka band LNB of whate=
-ver type -- Universal<br>
-or otherwise.<br><br>Though I should hope that some utility will directly s=
-upport<br>specifying a frequency within the above bands directly, if<br>tha=
-t&#39;s what you&#39;re trying to do, or a non-universal-LNB LO<br>frequenc=
-y...<br>
-<font color=3D"#888888"><br><br>barry bouwsma<br></font></blockquote></div>=
-<br>
-
---001636c594e506d6c50469525ab9--
-
-
---===============2003291234==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+--Mike
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============2003291234==--
