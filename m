@@ -1,100 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:51181 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754944AbZEHN6B (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 8 May 2009 09:58:01 -0400
-Received: from dflp53.itg.ti.com ([128.247.5.6])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n48Dvv0q028196
-	for <linux-media@vger.kernel.org>; Fri, 8 May 2009 08:58:02 -0500
-From: Chaithrika U S <chaithrika@ti.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3752 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755037AbZEZR6a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2009 13:58:30 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id n4QHwUqt063235
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 26 May 2009 19:58:30 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 26 May 2009 19:58:30 +0200 (CEST)
+Message-Id: <200905261758.n4QHwUqt063235@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Chaithrika U S <chaithrika@ti.com>,
-	Manjunath Hadli <mrh@ti.com>, Brijesh Jadav <brijesh.j@ti.com>
-Subject: [PATCH v3 4/4] ARM: DaVinci: DM646x Video:  Makefile and config files modifications for Display
-Date: Fri,  8 May 2009 09:26:44 -0400
-Message-Id: <1241789204-23433-1-git-send-email-chaithrika@ti.com>
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Makefile and Kconfig changes
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Modifies and adds the video Makefiles and Kconfig files to support DM646x Video
-display device
+Results of the daily build of v4l-dvb:
 
-Signed-off-by: Manjunath Hadli <mrh@ti.com>
-Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-Signed-off-by: Chaithrika U S <chaithrika@ti.com>
----
-Applies v4l-dvb repository
+date:        Tue May 26 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11853:142fd6020df3
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
- drivers/media/video/Kconfig          |   22 ++++++++++++++++++++++
- drivers/media/video/Makefile         |    2 ++
- drivers/media/video/davinci/Makefile |    9 +++++++++
- 3 files changed, 33 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/davinci/Makefile
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-rc7-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-rc7-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-rc7-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-rc7-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-rc7-m32r: OK
+linux-2.6.22.19-mips: ERRORS
+linux-2.6.26-mips: ERRORS
+linux-2.6.27-mips: ERRORS
+linux-2.6.28-mips: ERRORS
+linux-2.6.29.1-mips: ERRORS
+linux-2.6.30-rc7-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-rc7-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-rc7-x86_64: WARNINGS
+sparse (linux-2.6.29.1): OK
+sparse (linux-2.6.30-rc7): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 9d48da2..6f0c6d2 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -467,6 +467,28 @@ config VIDEO_UPD64083
- 
- endmenu # encoder / decoder chips
- 
-+config DISPLAY_DAVINCI_DM646X_EVM
-+        tristate "DM646x EVM Video Display"
-+        depends on VIDEO_DEV && MACH_DAVINCI_DM6467_EVM
-+        select VIDEOBUF_DMA_CONTIG
-+        select VIDEO_DAVINCI_VPIF
-+        select VIDEO_ADV7343
-+        select VIDEO_THS7303
-+        help
-+          Support for DaVinci based display device.
-+
-+          To compile this driver as a module, choose M here: the
-+          module will be called davincihd_display.
-+
-+config VIDEO_DAVINCI_VPIF
-+        tristate "DaVinci VPIF Driver"
-+        depends on DISPLAY_DAVINCI_DM646X_EVM
-+        help
-+          Support for DaVinci VPIF Driver.
-+
-+          To compile this driver as a module, choose M here: the
-+          module will be called vpif.
-+
- config VIDEO_VIVI
- 	tristate "Virtual Video Driver"
- 	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index 7aefac6..d9ceb2c 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -153,6 +153,8 @@ obj-$(CONFIG_VIDEO_AU0828) += au0828/
- 
- obj-$(CONFIG_USB_VIDEO_CLASS)	+= uvc/
- 
-+obj-$(CONFIG_ARCH_DAVINCI)	+= davinci/
-+
- EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core
- EXTRA_CFLAGS += -Idrivers/media/dvb/frontends
- EXTRA_CFLAGS += -Idrivers/media/common/tuners
-diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
-new file mode 100644
-index 0000000..7fe9bce
---- /dev/null
-+++ b/drivers/media/video/davinci/Makefile
-@@ -0,0 +1,9 @@
-+#
-+# Makefile for the davinci video device drivers.
-+#
-+
-+# VPIF
-+obj-$(CONFIG_VIDEO_DAVINCI_VPIF) += vpif.o
-+
-+#DM646x EVM Display driver
-+obj-$(CONFIG_DISPLAY_DAVINCI_DM646X_EVM) += vpif_display.o
--- 
-1.5.6
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
