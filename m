@@ -1,45 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:53704 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752737AbZEHN4n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 8 May 2009 09:56:43 -0400
-Received: from dflp53.itg.ti.com ([128.247.5.6])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n48Duc0b005867
-	for <linux-media@vger.kernel.org>; Fri, 8 May 2009 08:56:43 -0500
-From: Chaithrika U S <chaithrika@ti.com>
-To: linux-media@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Manjunath Hadli <mrh@ti.com>, Brijesh Jadav <brijesh.j@ti.com>,
-	Chaithrika U S <chaithrika@ti.com>
-Subject: [PATCH v3 0/4] ARM: DaVinci: DM646x Video: DM646x display driver
-Date: Fri,  8 May 2009 09:25:26 -0400
-Message-Id: <1241789126-23317-1-git-send-email-chaithrika@ti.com>
+Received: from ns01.unsolicited.net ([69.10.132.115]:34884 "EHLO
+	ns01.unsolicited.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754796AbZEZSpK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2009 14:45:10 -0400
+Message-ID: <4A1C37F8.2090703@unsolicited.net>
+Date: Tue, 26 May 2009 19:42:00 +0100
+From: David <david@unsolicited.net>
+MIME-Version: 1.0
+To: Pete Zaitcev <zaitcev@redhat.com>
+CC: Alan Stern <stern@rowland.harvard.edu>,
+	USB list <linux-usb@vger.kernel.org>,
+	Pekka Enberg <penberg@cs.helsinki.fi>,
+	linux-media@vger.kernel.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	dbrownell@users.sourceforge.net, leonidv11@gmail.com,
+	Greg KH <gregkh@suse.de>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: USB/DVB - Old Technotrend TT-connect S-2400 regression tracked
+ down
+References: <4A1967A2.4050906@unsolicited.net>	<Pine.LNX.4.44L0.0905242208260.15195-100000@netrider.rowland.org>	<20090524203902.594a0eec.zaitcev@redhat.com>	<4A1A5E24.20201@unsolicited.net>	<4A1A8E53.9060108@unsolicited.net> <20090525184843.33c93006.zaitcev@redhat.com>
+In-Reply-To: <20090525184843.33c93006.zaitcev@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Display driver for TI DM646x EVM
+Pete Zaitcev wrote:
+> On Mon, 25 May 2009 13:25:55 +0100, David <david@unsolicited.net> wrote:
+>
+>   
+> I suppose so. I misunderstood how this worked. I guessed that the
+> DMA API debugging was the culprit because its introduction coincided
+> with the recent onset of this oops.
+>
+> Although usbmon does essentially illegal tricks to look at data
+> already mapped for DMA, the code used to work for a few releases.
+> Bisecting may help. I cannot be sure of it though, and it's
+> going to take a lot of reboots.
+>
+> Unfortunately, although I have an Opteron, the issue does not
+> occur here, so I'm at a loss for the moment. But I'll have to
+> tackle it somehow. Not sure how though. Any suggestions are welcome.
+>
+> -- Pete
+>   
 
-Signed-off-by: Manjunath Hadli <mrh@ti.com>
-Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
-Signed-off-by: Chaithrika U S <chaithrika@ti.com>
+I've been doing a bit of random rebooting (I don't really have time to
+do a full bisect), and can reproduce the usbmon panic on this machine
+back to 2.6.24.. so it certainly hasn't appeared that recently.
 
-These patches add the display driver support for TI DM646x EVM.
-This patch set has been tested for basic display functionality for
-Composite and Component outputs.
-
-This patch set consists of the updates based on the review comments by
-Hans Verkuil.
-
-Patch 1: Display device platform and board setup
-Patch 2: VPIF driver
-Patch 3: DM646x display driver
-Patch 4: Makefile and config files modifications for Display
-
-Some of the features like the HBI/VBI support are not yet implemented. 
-Also there are some known issues in the code implementation like 
-fine tuning to be done to TRY_FMT ioctl.The USERPTR usage has not been 
-tested extensively.
-
--Chaithrika
-
-
+Cheers
+David
