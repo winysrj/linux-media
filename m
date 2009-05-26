@@ -1,283 +1,237 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-12.arcor-online.net ([151.189.21.52]:55257 "EHLO
-	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753007AbZE2Xn7 (ORCPT
+Received: from mail-pz0-f109.google.com ([209.85.222.109]:34370 "EHLO
+	mail-pz0-f109.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752332AbZEZG7B convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 May 2009 19:43:59 -0400
-Subject: Re: Zolid Hybrid TV Tuner not working
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Sander Pientka <cumulus0007@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <200905291945.30291.cumulus0007@gmail.com>
-References: <200905291648.46809.cumulus0007@gmail.com>
-	 <200905291834.52700.cumulus0007@gmail.com>
-	 <1243617390.6147.22.camel@pc07.localdom.local>
-	 <200905291945.30291.cumulus0007@gmail.com>
-Content-Type: text/plain
-Date: Sat, 30 May 2009 01:37:52 +0200
-Message-Id: <1243640272.6147.53.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 26 May 2009 02:59:01 -0400
+Received: by pzk7 with SMTP id 7so2845321pzk.33
+        for <linux-media@vger.kernel.org>; Mon, 25 May 2009 23:59:03 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <200905260843.15978.hverkuil@xs4all.nl>
+References: <5e9665e10905200448n1ffc9d8s20317bbbba745e6a@mail.gmail.com>
+	 <C4B8C637-2C21-4955-8C6A-0600C11D3B09@gmail.com>
+	 <5e9665e10905252332g496c5873vc59a39f6607f80ee@mail.gmail.com>
+	 <200905260843.15978.hverkuil@xs4all.nl>
+Date: Tue, 26 May 2009 15:59:03 +0900
+Message-ID: <5e9665e10905252359k3b1a16d2v8baede02de8e4e99@mail.gmail.com>
+Subject: Re: About VIDIOC_G_OUTPUT/S_OUTPUT ?
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Shah, Hardik" <hardik.shah@ti.com>,
+	"dongsoo45.kim@samsung.com" <dongsoo45.kim@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>,
+	=?EUC-KR?B?uc66tMij?= <bhmin@samsung.com>
+Content-Type: text/plain; charset=EUC-KR
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Thank you Hans,
 
-Am Freitag, den 29.05.2009, 19:45 +0200 schrieb Sander Pientka:
-> Op vrijdag 29 mei 2009 19:16:30 schreef u:
-> > Am Freitag, den 29.05.2009, 18:34 +0200 schrieb Sander Pientka:
-> > > Op vrijdag 29 mei 2009 17:42:26 schreef u:
-> > > > Hi,
-> > > >
-> > > > Am Freitag, den 29.05.2009, 16:48 +0200 schrieb Sander Pientka:
-> > > > > Hi,
-> > > > > I've bought a Zolid Hyrbid TV Tuner. This card supports both
-> > >
-> > > analog and
-> > >
-> > > > > digital (DVB-T) signals, so it's hybrid. The card has the
-> > >
-> > > following chips
-> > >
-> > > > > on it:
-> > > > >
-> > > > > - A NXP SAA7131E/03/G
-> > > > > - A NXP TDA 18271
-> > > > > - A NXP TDA 10048
-> > > > >
-> > > > > I don't know much about tv cards, but I suppose the SAA is the
-> > >
-> > > video
-> > >
-> > > > > processor and the TDA chips convert the TV signal to a usable
-> > >
-> > > signal.
-> > >
-> > > > > The card gets detected by the saa7314 driver, but this driver
-> > >
-> > > identiefies
-> > >
-> > > > > the card as "UNKOWN/GENERIC". The card is not listed in the
-> > >
-> > > saa7134 card
-> > >
-> > > > > list. It's EEPROM is:
-> > > > >
-> > > > > [ 17.232053] saa7133[0]: i2c eeprom 00: 31 11 04 20 54 20 1c
-> 00 43
-> > >
-> > > 43
-> > >
-> > > > > a9 1c
-> > > >
-> > > > -not valid for subvendor, is vendor Philips ^^^^^
-> > > >
-> > > > > 55 d2 b2 92
-> > > > > [ 17.232080] saa7133[0]: i2c eeprom 10: 00 ff 86 0f ff 20 ff
-> ff ff
-> > >
-> > > ff
-> > >
-> > > > > ff ff ff ff ff ff [ 17.232105] saa7133[0]: i2c eeprom 20: 01
-> 40 01
-> > >
-> > > 02
-> > >
-> > > > > 03 01 01 03 08 ff 00 b2 ff ff ff ff
-> > > > > [ 17.232129] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff
-> ff ff
-> > >
-> > > ff
-> > >
-> > > > > ff ff ff ff ff ff [ 17.232153] saa7133[0]: i2c eeprom 40: ff
-> 35 00
-> > >
-> > > c0
-> > >
-> > > > > 96 10 03 32 21 05 ff ff ff ff ff ff
-> > > > > [ 17.232177] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff
-> ff ff
-> > >
-> > > ff
-> > >
-> > > > > ff ff ff ff ff ff [ 17.232201] saa7133[0]: i2c eeprom 60: ff
-> ff ff
-> > >
-> > > ff
-> > >
-> > > > > ff ff ff ff ff ff ff ff ff ff ff ff [ 17.232225] saa7133[0]:
-> i2c
-> > >
-> > > eeprom
-> > >
-> > > > > 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> [ 17.232249]
-> > > > > saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff
-> ff
-> > >
-> > > ff ff
-> > >
-> > > > > ff [ 17.232274] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff
-> ff ff
-> > >
-> > > ff
-> > >
-> > > > > ff ff ff ff ff ff ff [ 17.232298] saa7133[0]: i2c eeprom a0:
-> ff ff
-> > >
-> > > ff
-> > >
-> > > > > ff ff ff ff ff ff ff ff ff ff ff ff ff [ 17.232321]
-> saa7133[0]:
-> > >
-> > > i2c
-> > >
-> > > > > eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > >
-> > > [ 17.232345]
-> > >
-> > > > > saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff
-> ff
-> > >
-> > > ff ff
-> > >
-> > > > > ff [ 17.232370] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff
-> ff ff
-> > >
-> > > ff
-> > >
-> > > > > ff ff ff ff ff ff ff [ 17.232393] saa7133[0]: i2c eeprom e0:
-> ff ff
-> > >
-> > > ff
-> > >
-> > > > > ff ff ff ff ff ff ff ff ff ff ff ff ff [ 17.232417]
-> saa7133[0]:
-> > >
-> > > i2c
-> > >
-> > > > > eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> > > > >
-> > > > > Programs like KDETV and TVTime only show a black screen with
-> some
-> > > > > background noise. Scanning doesn't result a thing.
-> > > > >
-> > > > > I literally can't find the card anywhere: not on the V4L wiki,
-> nor
-> > >
-> > > on
-> > >
-> > > > > Google.com/linux, etc. The card happens to be sold in my
-> region
-> > >
-> > > only
-> > >
-> > > > > (Netherlands), so there is not much available about this card.
-> > >
-> > > Zolid
-> > >
-> > > > > sells another TV card, the Zolid Xpert TV7134, which is
-> supported
-> > >
-> > > well by
-> > >
-> > > > > Linux.
-> > > >
-> > > > hehe, a similar card was seen first time just a few days back
-> and
-> > >
-> > > you
-> > >
-> > > > file bugs against us ? ;)
-> > >
-> > >
-> http://www.linuxtv.org/wiki/index.php/Development:_How_to_add_support_for
-> > >_a
-> > >
-> > > >_device
-> > > >
-> > > > Closest currently is:
-> > > >
-> > > > saa7133[0]: subsystem: 0070:6707, board: Hauppauge
-> WinTV-HVR1110r3
-> > > > DVB-T/Hybrid [card=156,autodetected]
-> > > > saa7133[0]: board init: gpio is 440100
-> > > >
-> > > > You can find firmware here:
-> > > >
-> > > > http://www.steventoth.net/linux/hvr1200
-> > > >
-> > > > You need the recent v4l-dvb from linuxtv.org for testing.
-> > > > Don't cry, if nothing works at all or your card is burned ;)
-> > > >
-> > > > Cheers,
-> > > > Hermann
-> > >
-> > > Hi Hermann,
-> > > thanks for your reply! I've compiled the latest v4l-dvb and
-> installed
-> > > the firmware as you said. Still, the card gets detected as
-> > > UNKOWN/GENERIC. Should I try the card parameters of the Hauppauge
-> > > WinTV-HVR1110r3 and see if it works?
-> >
-> > Yes, you can give "modprobe -v saa7134 card=156" i2c_scan=1 a try.
-> > The card was just added by Michael Krufky.
-> >
-> > modprobe -vr saa7134-dvb saa7134-alsa or
-> > "make rmmod" on top of v4l-dvb previously.
-> >
-> > Take care, on saa7134-alsa mixers might have use count.
-> > You might have to close them previously or set
-> > "options saa7134 alsa=0" for next boot.
-> >
-> > BTW, we moved to linux-media@vger.kernel.org.
-> > You can find links to archives at linuxtv.org and what was going on
-> so
-> > far with the HVR1110r3. Antonio Beamud had such a card last days.
-> >
-> > You will get some errors printed for unknown Hauppauge eeprom and I
-> know
-> > nothing about, if the gpio configuration has any chance to be the
-> same,
-> > but tuner and DVB-T demodulator seem to be at the same address.
-> >
-> > Cheers,
-> > Hermann
-> Hi,
-> eveything seems to work much better now. My tuner and demodulator get
-> detected now and the firmware is loaded. Kaffeine detects my card and
-> lets me scan for channels, but it gives me the following message: 
-> /dev/dvb/adapter0/ca0: no such device
-> 
-> 
-> 
-> and a looot of this:
-> 
-> 
-> 
-> Not able to lock to the signal on the given frequency
-> Frontend closed
-> dvbsi: Cant tune DVB
-> 
-> 
-> 
-> so Kaffeine won't find any channel.
-> 
-> 
-> 
-> Btw, I will register for that mailing list :)
+Thanks to you I got the point of selecting input and output is that
+only physical connection can make it. It is really helping.
 
-Sander,
-
-you can post, even if not subscribed.
-
-Here it goes out to it, that you might have some follow up.
-
-Doesn't look such bad anymore, except all DVB-T is scrambled?
-
-Don't think so.
-
+BTW, more I work on v4l2 more I need for decent documentation. I
+should rather make some porting guide and technical documents for
+other developers. Actually V4L2 specification should be serving more
+detailed information indeed. When I see some sort of [?] things in the
+API specification document, thousands of question marks starts
+floating in my brain ;-O
 Cheers,
-Hermann
+
+Nate
+
+2009/5/26 Hans Verkuil <hverkuil@xs4all.nl>:
+> On Tuesday 26 May 2009 08:32:00 Dongsoo, Nathaniel Kim wrote:
+>> Hello Hans,
+>>
+>> I took a look into ivtv driver but the VIDEO_SELECT_SOURCE doesn't fit
+>> in the feature that I was explaining. ivtv_passthrough_mode seems to
+>> be all about selecting input source not output. Am I right? But in my
+>> case, I have (1)external camera, (2)memory for input source and
+>> (1)memory, (2)LCD FIFO(like overlay) for output. It means that use
+>> case can be established like this:
+>>
+>> (A) using external camera for input and memory for output => memcpy
+>> the memory to framebuffer to display preview
+>>
+>> (B) using external camera for input and memory for output => memcpy
+>> the memory and save as a file (recording or snapshot). maybe the same
+>> case as (A)
+>
+> This is the same as A.
+>
+>>
+>> (C) using external camera for input and LCD FIFO for output => turn on
+>> the camera and will se preview with doing nothing further in userspace
+>> (like memcpy)
+>
+> For this you need VIDEO_SELECT_SOURCE.
+>
+>>
+>> (D) using memory for input source and memory for output => actually in
+>> this case we can use "rotator" feature of camera interface. so let the
+>> multimedia file go through the camera interface and rotate
+>> orientation.
+>>
+>> (E) using memory for input source and LCD FIFO for output => rotate
+>> multimedia file and display direct to LCD.
+>
+> Do D and E both go through the "rotator" feature of the camera interface?
+> Anyway D sounds more like the proposed omap scaler device: basically a
+> codec device.
+>
+> Anyway, based on this description S_INPUT has only one input: the camera.
+> And S_OUTPUT has only the LCD as it's output. Those are the only physical
+> connections.
+>
+> VIDEO_SELECT_SOURCE allows you to shortcut the two. It does not have
+> anything to do with selecting the input or output. It just tells the driver
+> to not use memory as its source/destination (which is the default behavior
+> at all times), but connect the input and output together internally.
+>
+> Hope this helps.
+>
+> Regards,
+>
+>        Hans
+>
+>>
+>> So in this case, should I use VIDIOC_S_INPUT to select input and
+>> VIDIOC_S_OUTPUT to select output device? or I got in the wrong way in
+>> the first place....(if VIDEO_SELECT_SOURCE is the right one for me)
+>>
+>> If the concept above fits in VIDIOC_S_OUTPUT then I think we need more
+>> "type" define because I think any of type defined is not matching
+>> feature of "output to memory".
+>> Cheers,
+>>
+>> Nate
+>>
+>> 2009/5/22 Dongsoo Kim <dongsoo.kim@gmail.com>:
+>> > Hi Hans,
+>> >
+>> > 2009. 05. 22, 오후 9:40, Hans Verkuil 작성:
+>> >> On Friday 22 May 2009 04:05:47 Dongsoo, Nathaniel Kim wrote:
+>> >>> Hi Hans,
+>> >>>
+>> >>> On Thu, May 21, 2009 at 9:07 PM, Hans Verkuil <hverkuil@xs4all.nl>
+> wrote:
+>> >>>> On Wednesday 20 May 2009 13:48:08 Dongsoo, Nathaniel Kim wrote:
+>> >>>>> Hello everyone,
+>> >>>>>
+>> >>>>> Doing a new camera interface driver job of new AP from Samsung, a
+>> >>>>> single little question doesn't stop making me confused.
+>> >>>>> The camera IP in Samsung application processor supports for two of
+>> >>>>> output paths, like "to memory" and "to LCD FIFO".
+>> >>>>> It seems to be VIDIOC_G_OUTPUT/S_OUTPUT which I need to use (just
+>> >>>>> guessing), but according to Hans's ivtv driver the "output" of
+>> >>>>> G_OUTPUT/S_OUTPUT is supposed to mean an actually and physically
+>> >>>>> separated real output path like Composite, S-Video and so on.
+>> >>>>>
+>> >>>>> Do you think that memory or LCD FIFO can be an "output" device in
+>> >>>>> this case? Because in earlier version of my driver, I assumed that
+>> >>>>> the "LCD FIFO" is a kind of "OVERLAY" device, so I didn't even need
+>> >>>>> to use G_OUTPUT and S_OUTPUT to route output device. I'm just not
+>> >>>>> sure about which idea makes sense. or maybe both of them could make
+>> >>>>> sense indeed...
+>> >>>>
+>> >>>> When you select "to memory", then the video from the camera is DMAed
+>> >>>> to the CPU, right? But selecting "to LCD" means that the video is
+>> >>>> routed internally to the LCD without any DMA to the CPU taking
+>> >>>> place, right?
+>> >>>
+>> >>> Yes definitely right.
+>> >>>
+>> >>>> This is similar to the "passthrough" mode of the ivtv driver.
+>> >>>>
+>> >>>> This header: linux/dvb/video.h contains an ioctl called
+>> >>>> VIDEO_SELECT_SOURCE, which can be used to select either memory or a
+>> >>>> demuxer (or in this case, the camera) as the source of the output
+>> >>>> (the LCD in this case). It is probably the appropriate ioctl to
+>> >>>> implement for this.
+>> >>>
+>> >>> So, in user space we should call  VIDIO_SELECT_SOURCE ioctl?
+>> >>
+>> >> Yes.
+>> >>
+>> >>>> The video.h header is shared between v4l and dvb and contains
+>> >>>> several ioctls meant to handle output. It is poorly documented and I
+>> >>>> think it should be merged into the v4l2 API and properly
+>> >>>> documented/cleaned up.
+>> >>>
+>> >>> I agree with you. Anyway, camera interface is not a DVB device but
+>> >>> supporting this source routing feature means that we also need this
+>> >>> API in v4l2.
+>> >>
+>> >> It's valid to use VIDEO_SELECT_SOURCE in an v4l2 driver. It's
+>> >> currently used
+>> >> by ivtv. It's an historical accident that these ioctls ended up in the
+>> >> dvb header.
+>> >
+>> > Oh, I'll look into the driver. Cheers.
+>> >
+>> >>>> Note that overlays are meant for on-screen displays. Usually these
+>> >>>> are associated with a framebuffer device. Your hardware may
+>> >>>> implement such an OSD as well, but that is different from this
+>> >>>> passthrough feature.
+>> >>>
+>> >>> Sorry Hans, I'm not sure that I'm following this part. Can I put it
+>> >>> in the way like this?
+>> >>> The OSD feature in Samsung AP should be handled separated with the
+>> >>> selecting source feature (camera-to-FB and camera-to-memory). So that
+>> >>> I should implement both of them. (overlay feature and select source
+>> >>> feature)
+>> >>> Am I following? Please let me know if there is something wrong.
+>> >>
+>> >> Yes, that's correct.
+>> >>
+>> >>> BTW, my 5M camera driver which is including the new V4L2 API proposal
+>> >>> I gave a talk in SF couldn't have approval from my bosses to be
+>> >>> opened to the public. But I'll try to make another camera device
+>> >>> driver which can cover must of the API I proposed.
+>> >>
+>> >> That's a shame. Erm, just to make it clear for your bosses: any v4l2
+>> >> driver
+>> >> that uses any of the videobuf_*, v4l2_i2c_*, v4l2_device_* or
+>> >> v4l2_int_* functions must be a GPL driver, and thus has to be made
+>> >> available upon request. All these functions are marked
+>> >> EXPORT_SYMBOL_GPL. I don't know if they realize this fact.
+>> >
+>> > Oops I didn't make it clear that my driver was not used for a
+>> > commercial product. I made them for our platform development and test,
+>> > and as a matter of fact my drivers will be opened in the end but not
+>> > just soon enough. I think there is some issues in non-technical area
+>> > which I'm not aware of. I'll make another driver with other camera
+>> > device because I can't wait any longer. My boss approved that should be
+>> > OK. And actually it is challenging indeed.
+>> > Cheers,
+>> >
+>> > Nate
+>> >
+>> >> Regards,
+>> >>
+>> >>        Hans
+>> >>
+>> >> --
+>> >> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+>
+>
+>
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+>
 
 
 
+-- 
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
