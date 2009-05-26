@@ -1,92 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web110801.mail.gq1.yahoo.com ([67.195.13.224]:25214 "HELO
-	web110801.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754167AbZESQPD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2009 12:15:03 -0400
-Message-ID: <489128.99706.qm@web110801.mail.gq1.yahoo.com>
-Date: Tue, 19 May 2009 09:15:02 -0700 (PDT)
-From: Uri Shkolnik <urishk@yahoo.com>
-Subject: [PATCH] [09051_54] Siano: remove obsolete sms_board_setup
-To: LinuxML <linux-media@vger.kernel.org>
+Received: from smtp6.versatel.nl ([62.58.50.97]:59689 "EHLO smtp6.versatel.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753015AbZEZLpK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2009 07:45:10 -0400
+Message-ID: <4A1BD670.2080406@hhs.nl>
+Date: Tue, 26 May 2009 13:45:52 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: libv4l release: 0.5.98: the gamma correction release!
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi All,
 
-# HG changeset patch
-# User Uri Shkolnik <uris@siano-ms.com>
-# Date 1242749967 -10800
-# Node ID 0296b0c436d6deba48c710cfb510988267cea057
-# Parent  dfcfb90798d3a27cb174019b17fffdee9ce7b2b9
-[09051_54] Siano: remove obsolete sms_board_setup
+This is probably the last test release for the 0.6.x series,
+the video processing code has been rewritten and works very
+nicely now. Please give this release a thorough testing!
 
-From: Uri Shkolnik <uris@siano-ms.com>
+The software whitebalancing and gamma correction can make a
+very positive difference on the image quality given of by
+cheaper cams.
 
-Remove the target specific sms_board_setup from smsdvb. This
-is handled now via smsdvb and sms-cards events.
+libv4l now automatically enables fake controls to enable
+software white-balancing and gamma for most webcams (all
+those will will need conversion anyways).
 
-Priority: normal
+So when you startup v4l2ucp you should see a checkbox
+for whitebalance and a slider for gamma (the default setting
+of 1000 == 1.0 is no gamma correction).
 
-Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
-
-diff -r dfcfb90798d3 -r 0296b0c436d6 linux/drivers/media/dvb/siano/sms-cards.c
---- a/linux/drivers/media/dvb/siano/sms-cards.c	Tue May 19 19:05:02 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/sms-cards.c	Tue May 19 19:19:27 2009 +0300
-@@ -303,28 +303,6 @@ static int sms_set_gpio(struct smscore_d
- 	return smscore_set_gpio(coredev, gpio, lvl);
- }
- 
--int sms_board_setup(struct smscore_device_t *coredev)
--{
--	int board_id = smscore_get_board_id(coredev);
--	struct sms_board *board = sms_get_board(board_id);
--
--	switch (board_id) {
--	case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
--		/* turn off all LEDs */
--		sms_set_gpio(coredev, board->led_power, 0);
--		sms_set_gpio(coredev, board->led_hi, 0);
--		sms_set_gpio(coredev, board->led_lo, 0);
--		break;
--	case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
--	case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
--		/* turn off LNA */
--		sms_set_gpio(coredev, board->lna_ctrl, 0);
--		break;
--	}
--	return 0;
--}
--EXPORT_SYMBOL_GPL(sms_board_setup);
--
- int sms_board_power(struct smscore_device_t *coredev, int onoff)
- {
- 	int board_id = smscore_get_board_id(coredev);
-diff -r dfcfb90798d3 -r 0296b0c436d6 linux/drivers/media/dvb/siano/sms-cards.h
---- a/linux/drivers/media/dvb/siano/sms-cards.h	Tue May 19 19:05:02 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/sms-cards.h	Tue May 19 19:19:27 2009 +0300
-@@ -109,8 +109,6 @@ int sms_board_event(struct smscore_devic
- int sms_board_event(struct smscore_device_t *coredev,
- 		enum SMS_BOARD_EVENTS gevent);
- 
--int sms_board_setup(struct smscore_device_t *coredev);
--
- #define SMS_LED_OFF 0
- #define SMS_LED_LO  1
- #define SMS_LED_HI  2
-diff -r dfcfb90798d3 -r 0296b0c436d6 linux/drivers/media/dvb/siano/smsdvb.c
---- a/linux/drivers/media/dvb/siano/smsdvb.c	Tue May 19 19:05:02 2009 +0300
-+++ b/linux/drivers/media/dvb/siano/smsdvb.c	Tue May 19 19:19:27 2009 +0300
-@@ -600,7 +600,6 @@ static int smsdvb_hotplug(struct smscore
- 	sms_board_dvb3_event(client, DVB3_EVENT_HOTPLUG);
- 
- 	sms_info("success");
--	sms_board_setup(coredev);
- 
- 	return 0;
- 
+Now start your favorite webcam viewing app and play around with the
+2 controls. If whitebalancing makes a *strongly noticable* positive
+difference for your webcam please mail me info about your cam (the usb id),
+then I can add it to the list of cams which will have the whitebalancing
+algorithm enabled by default. The same goes for cams which benefit from
+a significant gamma correction. For example this release sets the
+gamma to 1500 (1.5) for pac207 cams by default, resulting in a much
+improved image.
 
 
+libv4l-0.5.98
+-------------
+* Add software gamma correction
+* Add software auto gain / exposure
+* Add support for separate vflipping and hflipping
+* Add fake controls controlling the software h- and v-flipping
+* Add ability to determine upside down cams based on DMI info
+* Add the capability to provide 320x240 to apps if the cam can only
+   do 320x232 (some zc3xx cams) by adding black borders
+* Rewrite video processing code to make it easier to add more video filters
+   (and with little extra processing cost). As part of this the normalize
+   filter has been removed as it wasn't functioning satisfactory anyways
+* Support V4L2_CTRL_FLAG_NEXT_CTRL for fake controls by Adam Baker
+* Some makefile improvements by Gregor Jasny
+* Various small bugfixes and tweaks
+* The V4L2_ENABLE_ENUM_FMT_EMULATION v4l2_fd_open flag is obsolete, libv4l2
+   now *always* reports emulated formats through the ENUM_FMT ioctl
 
-      
+
+Get it here:
+http://people.atrpms.net/~hdegoede/libv4l-0.5.98.tar.gz
+
+Regards,
+
+Hans
+
