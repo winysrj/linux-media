@@ -1,48 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.191]:31389 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753318AbZEBVgY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 May 2009 17:36:24 -0400
-Received: by fk-out-0910.google.com with SMTP id 18so1448602fkq.5
-        for <linux-media@vger.kernel.org>; Sat, 02 May 2009 14:36:22 -0700 (PDT)
+Received: from [195.7.61.12] ([195.7.61.12]:56093 "EHLO killala.koala.ie"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1756993AbZEZUDE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2009 16:03:04 -0400
+Message-ID: <4A1C4AF1.6020200@koala.ie>
+Date: Tue, 26 May 2009 21:02:57 +0100
+From: Simon Kenyon <simon@koala.ie>
 MIME-Version: 1.0
-In-Reply-To: <200905021302.03415.hverkuil@xs4all.nl>
-References: <200905021302.03415.hverkuil@xs4all.nl>
-Date: Sun, 3 May 2009 01:36:22 +0400
-Message-ID: <1a297b360905021436j21ec4cdyb9ee8f3aff3a38ce@mail.gmail.com>
-Subject: Re: stv090x.c compile warning
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: "Igor M. Liplianin" <liplianin@me.by>
+CC: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] SDMC DM1105N not being detected
+References: <e6ac15e50904022156u40221c3fib15d1b4cdf36461@mail.gmail.com> <200905231604.29795.liplianin@tut.by> <4A1AF68F.1070108@koala.ie> <200905261747.31361.liplianin@tut.by>
+In-Reply-To: <200905261747.31361.liplianin@tut.by>
+Content-Type: text/plain; charset=KOI8-R; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Sat, May 2, 2009 at 3:02 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Manu,
+Igor M. Liplianin wrote:
+> The card is working with external LNB power supply, for example, through the loop out from another 
+> sat box. So, we need to know, which way to control LNB power on the board. Usually it is through 
+> GPIO pins.
+> For example:
+> Pins 112 and 111 for GPIO0, GPIO1. Also GPIO15 is at 65 pin.
+> You can edit this lines in code:
+> -*-*-*-*-*-*-*-*-*-*-*-*-
+> /* GPIO's for LNB power control for Axess DM05 */
+> #define DM05_LNB_MASK                           0xfffffffc  // GPIO control
+> #define DM05_LNB_13V                            0x3fffd // GPIO value
+> #define DM05_LNB_18V                            0x3fffc // GPIO value
+> -*-*-*-*-*-*-*-*-*-*-*-*-
 >
-> Compiling stv090x.c against 2.6.30-rc4 gives me this compile warning:
->
-> /home/hans/work/src/v4l/v4l-dvb/v4l/stv090x.c: In
-> function 'stv090x_chk_tmg':
-> /home/hans/work/src/v4l/v4l-dvb/v4l/stv090x.c:2544: warning: 'tmg_cpt' may
-> be used uninitialized in this function
->
-> Looking at the code this variable is indeed uninitialized. I'm pretty sure
-> it should be initialized to 0, can you confirm this?
->
+> BTW:
+> Bit value 0 for GPIOCTL means output, 1 - input.
+> Bit value for GPIOVAL - read/write.
+> GPIO pins count is 18. Bits over 18 affect nothing.
+>   
+i will try to work out the correct values
+when i have done so (or given up trying) i will let you know
 
-
-Thanks for looking at it. I do have fixed it along with some other changes
-that i had.
-
-The fix is there at http://jusst.de/hg/v4l-dvb
-
-Hope i have not broken something else in that large change to support
-the newer silicon cut.
-
-Regards,
-Manu
+thank you very much for your help
+--
+simon
