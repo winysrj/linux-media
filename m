@@ -1,46 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail45.e.nsc.no ([193.213.115.45]:41389 "EHLO mail45.e.nsc.no"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755202AbZEKIyX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 May 2009 04:54:23 -0400
-Message-ID: <4A07E799.4070501@free.fr>
-Date: Mon, 11 May 2009 10:53:45 +0200
-From: Mathieu Taillefumier <mathieu.taillefumier@free.fr>
-MIME-Version: 1.0
+Received: from sbevan.dsl.xmission.com ([166.70.26.173]:33328 "EHLO
+	nebo.bevan.us" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754721AbZEZT6y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2009 15:58:54 -0400
+Received: from [192.168.0.4] (scottfam.dsl.xmission.com [166.70.240.45])
+	by nebo.bevan.us (Postfix) with ESMTP id C9BA6486E23
+	for <linux-media@vger.kernel.org>; Tue, 26 May 2009 13:51:14 -0600 (MDT)
+Subject: RFC - Locking resources between V4L and DVB interfaces
+From: Rusty Scott <rustys@ieee.org>
 To: linux-media@vger.kernel.org
-CC: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Infos regarding TERRATEC Cinergy HT PCMCIA
-References: <49F57989.2010302@shlink.ch> <4A06F4AF.7050900@free.fr> <4A072DC7.9010002@shlink.ch>
-In-Reply-To: <4A072DC7.9010002@shlink.ch>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
+Date: Tue, 26 May 2009 13:51:15 -0600
+Message-Id: <1243367475.15846.19.camel@godzilla>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hello all,
+I talked to Mauro offline about this issue and he indicated that it was
+an area that could use some attention.  So I have decided to take this
+issue on and am looking for comments about how this should work.
 
-> absolutely right, works fine, thank you.
-> I am sorry I haven't found the time till now to give short message of
-> the status till now (as I use to give when having asked on a list)
->    
-it is alright
-> DVB-T everything OK (Ubuntu 8.x and Debian testing), analogue works by
-> using this PCI-DMA "trick" you mentionend (sox with alsa and a 22050
-> audio-rate gave best results) One thing to mention: a few channels come
-> only mute.
-> <http://www.sasag.ch/angebot/kabelTV.php>  (BR and superRTL, are the ones
-> as far as I remember).
-> It could be, that using a oss=0 option with saa7134 allows, when
-> switching to another, "working" channel, then "v4lctl volume mute off"
-> and switching back, can get you around - I had to few time to test
-> it/was not important enough; this problem seems to be a known issue, I
-> had later found some hits on this.
->    
-I am not sure to understand. Do you mean that you have two channels with 
-the video but without the sound despite the fact that the sound is not 
-mute or is it something else. Personally, I never had this problem but I 
-am not using my tvcard very often so...
+Issue: The DVB and V4L interfaces are considered different devices from
+a system standpoint.  However they often share a hardware resource, such
+as a tuner, on many cards.  There is currently no locking on the shared
+resource, so one interface could interfere with the resources already in
+use by the other.
 
-Best
+My experience in the code tree and API are not very in depth.  I've only
+helped maintain some card specific code to this point.  I'm looking for
+comments and information on various ways to accomplish this and possible
+gotchas to watch out for.  Any pointers, suggestions or other help on
+this would be appreciated.
 
-Mathieu
+Thanks,
+
+Rusty
+
+
