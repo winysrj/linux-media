@@ -1,78 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.189]:7497 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754019AbZETKE2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 20 May 2009 06:04:28 -0400
-Received: by mu-out-0910.google.com with SMTP id i2so138839mue.1
-        for <linux-media@vger.kernel.org>; Wed, 20 May 2009 03:04:28 -0700 (PDT)
-From: Luca Ingianni <luca.ingianni@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: Addition to DVB reception testing instrumentarium
-Date: Wed, 20 May 2009 12:02:56 +0200
+Received: from mail.gmx.net ([213.165.64.20]:55346 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752609AbZEZLoh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2009 07:44:37 -0400
+Date: Tue, 26 May 2009 13:44:46 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: moinejf@free.fr
+Subject: gspca: Logitech QuickCam Messenger worked last with external
+ gspcav1-20071224
+Message-ID: <Pine.LNX.4.64.0905261335050.4810@axis700.grange>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200905201202.57218.luca.ingianni@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi all
 
-I've made a quick addition to the tzapfilter.py script that is proposed on
-http://www.linuxtv.org/wiki/index.php/Testing_reception_quality
+I think it would be agood time now to get my Logitech QuickCam Messenger 
+camera working with the current gspca driver. It used to work with 
+gspcav1-20071224, here's dmesg output:
 
-I was fed up with having to dash back and forth between the signal strength 
-display on the monitor and the antenna while trying to adjust its position for 
-decent reception.
+/tmp/gspcav1-20071224/gspca_core.c: USB GSPCA camera found.(ZC3XX)
+/tmp/gspcav1-20071224/gspca_core.c: [spca5xx_probe:4275] Camera type JPEG
+/tmp/gspcav1-20071224/Vimicro/zc3xx.h: [zc3xx_config:669] Find Sensor HV7131R(c)
 
-So I added quick&dirty sound support.
-Now I get beeps whose frequency varies with UNC, which I find very useful 
-(though perhaps maddening after a while :) )
-Since this is my first try at python ever (and it does still have a bug - I 
-have to kill it with several Ctrl-Cs before I get returned to the shell), I 
-present it to your collective wisdom first. If you decide it is good enough and 
-useful, consider adding it to the wiki.
+with more USB related messages following. Now dmesg with some debug turned 
+on looks like
 
-If you decide to comment, please CC me as I'm not on the list.
+gspca: probing 046d:08da
+zc3xx: probe 2wr ov vga 0x0000
+zc3xx: probe sensor -> 11
+zc3xx: Find Sensor HV7131R(c)
+gspca: probe ok
+usbcore: registered new interface driver zc3xx
+zc3xx: registered
 
-Have fun
-Luca
+and the camera is not working, the light on its case doesn't go on. If I 
+try "force_sensor=15" to match sensor tas5130cxx, as was detected by the 
+old driver, dmesg reports
 
---8<--------8<--------8<--------8<--------8<--------8<--
+gspca: probing 046d:08da
+zc3xx: probe 2wr ov vga 0x0000
+zc3xx: probe sensor -> 11
+zc3xx: sensor forced to 15
+gspca: probe ok
+usbcore: registered new interface driver zc3xx
+zc3xx: registered
 
-#!/usr/bin/env python
+and otherwise nothing changes. I could spend some time trying to find the 
+problem, but I would prefer if someone could suggest some debugging, I am 
+not familiar with gspca internals. Ideas anyone?
 
-import sys
-import math
-import os
-
-f = sys.stdin
-while True:
-       l = f.readline().strip()
-       fields = l.split(" | ") 
-       if len(fields) < 2:
-               print l
-       else:
-               # Sig Strength
-               sigStr = fields[1].split(" ")[1]
-               sig = int(sigStr, 16) / float(int('ffff', 16))
-               fields[1] = "signal %.1f%%" % (sig * 100.0)
-
-               # BER 
-               berStr = fields[3].split(" ")[1]
-               ber = int(berStr, 16)
-               fields[3] = "ber %08d" % (ber)
-               print " | ".join(fields)
-
-               # UNC 
-               uncStr = fields[4].split(" ")[1]
-               unc = int(uncStr, 16)
-               uncTone = math.log((unc+1.0)/10)
-               cmdString = "play -q -n -c1 synth sin %" + `uncTone` + " fade q 
-0.01 0.3 0.01 &"
-               os.system(cmdString)
-               print " | ".join(fields)
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
