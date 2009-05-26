@@ -1,114 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3868 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751024AbZEESHu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 5 May 2009 14:07:50 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id n45I7k34031983
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 5 May 2009 20:07:50 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 5 May 2009 20:07:46 +0200 (CEST)
-Message-Id: <200905051807.n45I7k34031983@smtp-vbr5.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail-pz0-f109.google.com ([209.85.222.109]:40947 "EHLO
+	mail-pz0-f109.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753281AbZEZGb7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2009 02:31:59 -0400
+Received: by pzk7 with SMTP id 7so2833897pzk.33
+        for <linux-media@vger.kernel.org>; Mon, 25 May 2009 23:32:00 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <C4B8C637-2C21-4955-8C6A-0600C11D3B09@gmail.com>
+References: <5e9665e10905200448n1ffc9d8s20317bbbba745e6a@mail.gmail.com>
+	 <200905211407.05354.hverkuil@xs4all.nl>
+	 <5e9665e10905211905t43ae195cv7a0fe243077887c9@mail.gmail.com>
+	 <200905221440.13444.hverkuil@xs4all.nl>
+	 <C4B8C637-2C21-4955-8C6A-0600C11D3B09@gmail.com>
+Date: Tue, 26 May 2009 15:32:00 +0900
+Message-ID: <5e9665e10905252332g496c5873vc59a39f6607f80ee@mail.gmail.com>
+Subject: Re: About VIDIOC_G_OUTPUT/S_OUTPUT ?
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Shah, Hardik" <hardik.shah@ti.com>,
+	"dongsoo45.kim@samsung.com" <dongsoo45.kim@samsung.com>,
+	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
+	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>
+Content-Type: text/plain; charset=EUC-KR
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hello Hans,
 
-Results of the daily build of v4l-dvb:
+I took a look into ivtv driver but the VIDEO_SELECT_SOURCE doesn't fit
+in the feature that I was explaining. ivtv_passthrough_mode seems to
+be all about selecting input source not output. Am I right? But in my
+case, I have (1)external camera, (2)memory for input source and
+(1)memory, (2)LCD FIFO(like overlay) for output. It means that use
+case can be established like this:
 
-date:        Tue May  5 19:00:05 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11696:fe524e0a6412
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+(A) using external camera for input and memory for output => memcpy
+the memory to framebuffer to display preview
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-rc4-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-rc4-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-rc4-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-rc4-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-rc4-m32r: OK
-linux-2.6.22.19-mips: ERRORS
-linux-2.6.26-mips: ERRORS
-linux-2.6.27-mips: ERRORS
-linux-2.6.28-mips: ERRORS
-linux-2.6.29.1-mips: ERRORS
-linux-2.6.30-rc4-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-rc4-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-rc4-x86_64: WARNINGS
-sparse (linux-2.6.29.1): OK
-sparse (linux-2.6.30-rc4): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+(B) using external camera for input and memory for output => memcpy
+the memory and save as a file (recording or snapshot). maybe the same
+case as (A)
 
-Detailed results are available here:
+(C) using external camera for input and LCD FIFO for output => turn on
+the camera and will se preview with doing nothing further in userspace
+(like memcpy)
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+(D) using memory for input source and memory for output => actually in
+this case we can use "rotator" feature of camera interface. so let the
+multimedia file go through the camera interface and rotate
+orientation.
 
-Full logs are available here:
+(E) using memory for input source and LCD FIFO for output => rotate
+multimedia file and display direct to LCD.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+So in this case, should I use VIDIOC_S_INPUT to select input and
+VIDIOC_S_OUTPUT to select output device? or I got in the wrong way in
+the first place....(if VIDEO_SELECT_SOURCE is the right one for me)
 
-The V4L2 specification from this daily build is here:
+If the concept above fits in VIDIOC_S_OUTPUT then I think we need more
+"type" define because I think any of type defined is not matching
+feature of "output to memory".
+Cheers,
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+Nate
 
-The DVB API specification from this daily build is here:
 
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+2009/5/22 Dongsoo Kim <dongsoo.kim@gmail.com>:
+> Hi Hans,
+>
+>
+> 2009. 05. 22, 오후 9:40, Hans Verkuil 작성:
+>
+>> On Friday 22 May 2009 04:05:47 Dongsoo, Nathaniel Kim wrote:
+>>>
+>>> Hi Hans,
+>>>
+>>> On Thu, May 21, 2009 at 9:07 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>>
+>>>> On Wednesday 20 May 2009 13:48:08 Dongsoo, Nathaniel Kim wrote:
+>>>>>
+>>>>> Hello everyone,
+>>>>>
+>>>>> Doing a new camera interface driver job of new AP from Samsung, a
+>>>>> single little question doesn't stop making me confused.
+>>>>> The camera IP in Samsung application processor supports for two of
+>>>>> output paths, like "to memory" and "to LCD FIFO".
+>>>>> It seems to be VIDIOC_G_OUTPUT/S_OUTPUT which I need to use (just
+>>>>> guessing), but according to Hans's ivtv driver the "output" of
+>>>>> G_OUTPUT/S_OUTPUT is supposed to mean an actually and physically
+>>>>> separated real output path like Composite, S-Video and so on.
+>>>>>
+>>>>> Do you think that memory or LCD FIFO can be an "output" device in this
+>>>>> case? Because in earlier version of my driver, I assumed that the "LCD
+>>>>> FIFO" is a kind of "OVERLAY" device, so I didn't even need to use
+>>>>> G_OUTPUT and S_OUTPUT to route output device. I'm just not sure about
+>>>>> which idea makes sense. or maybe both of them could make sense
+>>>>> indeed...
+>>>>
+>>>> When you select "to memory", then the video from the camera is DMAed to
+>>>> the CPU, right? But selecting "to LCD" means that the video is routed
+>>>> internally to the LCD without any DMA to the CPU taking place, right?
+>>>
+>>> Yes definitely right.
+>>>
+>>>> This is similar to the "passthrough" mode of the ivtv driver.
+>>>>
+>>>> This header: linux/dvb/video.h contains an ioctl called
+>>>> VIDEO_SELECT_SOURCE, which can be used to select either memory or a
+>>>> demuxer (or in this case, the camera) as the source of the output (the
+>>>> LCD in this case). It is probably the appropriate ioctl to implement
+>>>> for this.
+>>>
+>>> So, in user space we should call  VIDIO_SELECT_SOURCE ioctl?
+>>
+>> Yes.
+>>
+>>>> The video.h header is shared between v4l and dvb and contains several
+>>>> ioctls meant to handle output. It is poorly documented and I think it
+>>>> should be merged into the v4l2 API and properly documented/cleaned up.
+>>>
+>>> I agree with you. Anyway, camera interface is not a DVB device but
+>>> supporting this source routing feature means that we also need this
+>>> API in v4l2.
+>>
+>> It's valid to use VIDEO_SELECT_SOURCE in an v4l2 driver. It's currently
+>> used
+>> by ivtv. It's an historical accident that these ioctls ended up in the dvb
+>> header.
+>
+> Oh, I'll look into the driver. Cheers.
+>
+>>
+>>
+>>>> Note that overlays are meant for on-screen displays. Usually these are
+>>>> associated with a framebuffer device. Your hardware may implement such
+>>>> an OSD as well, but that is different from this passthrough feature.
+>>>
+>>> Sorry Hans, I'm not sure that I'm following this part. Can I put it in
+>>> the way like this?
+>>> The OSD feature in Samsung AP should be handled separated with the
+>>> selecting source feature (camera-to-FB and camera-to-memory). So that
+>>> I should implement both of them. (overlay feature and select source
+>>> feature)
+>>> Am I following? Please let me know if there is something wrong.
+>>
+>> Yes, that's correct.
+>>
+>>>
+>>> BTW, my 5M camera driver which is including the new V4L2 API proposal
+>>> I gave a talk in SF couldn't have approval from my bosses to be opened
+>>> to the public. But I'll try to make another camera device driver which
+>>> can cover must of the API I proposed.
+>>
+>> That's a shame. Erm, just to make it clear for your bosses: any v4l2
+>> driver
+>> that uses any of the videobuf_*, v4l2_i2c_*, v4l2_device_* or v4l2_int_*
+>> functions must be a GPL driver, and thus has to be made available upon
+>> request. All these functions are marked EXPORT_SYMBOL_GPL. I don't know if
+>> they realize this fact.
+>>
+>
+> Oops I didn't make it clear that my driver was not used for a commercial
+> product. I made them for our platform development and test, and as a matter
+> of fact my drivers will be opened in the end but not just soon enough. I
+> think there is some issues in non-technical area which I'm not aware of.
+> I'll make another driver with other camera device because I can't wait any
+> longer. My boss approved that should be OK. And actually it is challenging
+> indeed.
+> Cheers,
+>
+> Nate
+>
+>
+>> Regards,
+>>
+>>        Hans
+>>
+>> --
+>> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+>
+>
+>
+>
 
+
+
+-- 
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
