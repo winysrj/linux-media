@@ -1,55 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:59408 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933678AbZE0SlJ (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.226]:52411 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755404AbZEZSp3 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2009 14:41:09 -0400
-Date: Wed, 27 May 2009 15:41:07 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Matt Doran <matt.doran@papercut.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: videodev: Unknown symbol i2c_unregister_device (in kernels
- older than 2.6.26)
-Message-ID: <20090527154107.6b79a160@pedra.chehab.org>
-In-Reply-To: <4A19D3D9.9010800@papercut.com>
-References: <4A19D3D9.9010800@papercut.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Tue, 26 May 2009 14:45:29 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so1292520rvb.1
+        for <linux-media@vger.kernel.org>; Tue, 26 May 2009 11:45:31 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <de1a653d0905261135u50ef4587ia6631798bd6134d5@mail.gmail.com>
+References: <B2D200D8-22B0-418C-B577-C036C1469521@gmail.com>
+	 <1241140865.3210.108.camel@palomino.walls.org>
+	 <303162d70904301855xd138162s43c550637436919a@mail.gmail.com>
+	 <5B379A59-CAE7-4D20-8570-E3F2D6AB9623@gmail.com>
+	 <412bdbff0904302216q4ffbdf24yb5d73956addfb8f6@mail.gmail.com>
+	 <303162d70905012017x2f6a2ae7n4600ecb5bb26be89@mail.gmail.com>
+	 <412bdbff0905221951l2a1dd0d5k28fe0bf8622d6461@mail.gmail.com>
+	 <303162d70905251503oa18abeen7a65231125ee1ca8@mail.gmail.com>
+	 <412bdbff0905251727v6d5dc6c7y72d497b302d3c032@mail.gmail.com>
+	 <de1a653d0905261135u50ef4587ia6631798bd6134d5@mail.gmail.com>
+Date: Tue, 26 May 2009 14:45:31 -0400
+Message-ID: <829197380905261145u4a55a82bt309225ef0cb784f1@mail.gmail.com>
+Subject: Re: [PATCH] Add QAM64 support for hvr-950q (au8522)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Tim Mester <ttmesterr@gmail.com>
+Cc: Devin Heitmueller <devin.heitmueller@gmail.com>,
+	Frank Dischner <phaedrus961@googlemail.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 25 May 2009 09:10:17 +1000
-Matt Doran <matt.doran@papercut.com> escreveu:
+On Tue, May 26, 2009 at 2:35 PM, Tim Mester <ttmesterr@gmail.com> wrote:
+> From my experience it seems that 2 in 0x2005 resets the 8522 demod.
+> All demod register setting appear to be lost after accessing any
+> registers in the 0x2xxx range (you really, just that bit needs to be
+> set on a i2c bus access).  I am a little surprised that 0x2000 is not
+> written to the bus to for each modulation mode.
 
-> Hi there,
-> 
-> I tried using the latest v4l code on an Mythtv box running 2.6.20, but 
-> the v4l videodev module fails to load with the following warnings:
-> 
->     videodev: Unknown symbol i2c_unregister_device
->     v4l2_common: Unknown symbol v4l2_device_register_subdev
-> 
-> 
-> It seems the "i2c_unregister_device" function was added in 2.6.26.   
-> References to this function in v4l2-common.c are enclosed in an ifdef like:
-> 
->     #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
-> 
-> 
-> However in "v4l2_device_unregister()" in v4l2-device.c, there is a 
-> reference to "i2c_unregister_device" without any ifdefs.   I am running 
-> a pretty old kernel, but I'd guess anyone running 2.6.25 or earlier will 
-> have this problem.   It seems this code was added by Mauro 3 weeks ago 
-> in this rev:
-> 
->     http://linuxtv.org/hg/v4l-dvb/rev/87afa7a4ccdf
+Hmmm...  I would have to look closer before I could comment
+intelligently.  Resetting all the registers could be a bad idea if
+there are registers being programmed that are not in the modulation
+block (initialization parameters such as the IF setting).
 
-I've just applied a patch at the tree that should fix this issue. It adds
-several tests and the code, but, hopefully, it should be possible even to use
-the IR's with kernels starting from 2.6.16.
+Devin
 
-
-
-Cheers,
-Mauro
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
