@@ -1,70 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:47989 "EHLO mgw2.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752989AbZEBNTn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 2 May 2009 09:19:43 -0400
-Date: Sat, 2 May 2009 15:19:38 +0200 (CEST)
-From: Julia Lawall <julia@diku.dk>
-To: hverkuil@xs4all.nl, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: ivtv-ioctl.c: possible problem with IVTV_F_I_DMA
-Message-ID: <Pine.LNX.4.64.0905021519040.9563@pc-004.diku.dk>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from bombadil.infradead.org ([18.85.46.34]:51909 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753466AbZEZRbh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2009 13:31:37 -0400
+Date: Tue, 26 May 2009 14:31:10 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Paul Mundt <lethal@linux-sh.org>,
+	Randy Dunlap <randy.dunlap@oracle.com>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH -next] v4l2: handle unregister for non-I2C builds
+Message-ID: <20090526143110.6c7b2e5a@pedra.chehab.org>
+In-Reply-To: <20090522175554.19465733.sfr@canb.auug.org.au>
+References: <20090511161442.3e9d9cb9.sfr@canb.auug.org.au>
+	<4A085455.5040108@oracle.com>
+	<20090522054847.GB14059@linux-sh.org>
+	<20090522175554.19465733.sfr@canb.auug.org.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The file drivers/media/video/ivtv/ivtv-ioctl.c contains the following code:
+Em Fri, 22 May 2009 17:55:54 +1000
+Stephen Rothwell <sfr@canb.auug.org.au> escreveu:
 
-(starting at line 183 in a recent linux-next)
+> On Fri, 22 May 2009 14:48:47 +0900 Paul Mundt <lethal@linux-sh.org> wrote:
+> >
+> > On Mon, May 11, 2009 at 09:37:41AM -0700, Randy Dunlap wrote:
+> > > From: Randy Dunlap <randy.dunlap@oracle.com>
+> > > 
+> > > Build fails when CONFIG_I2C=n, so handle that case in the if block:
+> > > 
+> > > drivers/built-in.o: In function `v4l2_device_unregister':
+> > > (.text+0x157821): undefined reference to `i2c_unregister_device'
+> > > 
+> > > Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+> > 
+> > This patch still has not been applied as far as I can tell, and builds
+> > are still broken as a result, almost 2 weeks after the fact.
+> 
+> In fact there has been no updates to the v4l-dvb tree at all since
+> May 11.  Mauro?
 
-		while (itv->i_flags & IVTV_F_I_DMA) {
-			got_sig = signal_pending(current);
-			if (got_sig)
-				break;
-			got_sig = 0;
-			schedule();
-		}
+Sorry, this email were got by a wrong filtering rule here. Only today I
+noticed it.
 
-The only possible value of IVTV_F_I_DMA, however, seems to be 0, as defined
-in drivers/media/video/ivtv/ivtv-driver.h, and thus the test is never true.
-Is this what is intended, or should the test be expressed in another way?
+Anyway, the tree were updated yesterday, with Randy's patch. Sorry for the mess.
+> 
+> I have reverted the patch that caused the build breakage ... (commit
+> d5bc7940d39649210f1affac1fa32f253cc45a81 "V4L/DVB (11673): v4l2-device:
+> unregister i2c_clients when unregistering the v4l2_device").
+> 
+> [By the way, an alternative fix might be to just define
+> V4L2_SUBDEV_FL_IS_I2C to be zero if CONFIG_I2C and CONFIG_I2C_MODULE are
+> not defined (gcc should then just elide the offending code).]
 
-julia
 
-This problem was found using the following semantic match:
-(http://www.emn.fr/x-info/coccinelle/)
 
-@r expression@
-identifier C;
-expression E;
-position p;
-@@
 
-(
- E & C@p && ...
-|
- E & C@p || ...
-)
-
-@s@
-identifier r.C;
-position p1;
-@@
-
-#define C 0
-
-@t@
-identifier r.C;
-expression E != 0;
-@@
-
-#define C E
-
-@script:python depends on s && !t@
-p << r.p;
-C << r.C;
-@@
-
-cocci.print_main("and with 0", p)
+Cheers,
+Mauro
