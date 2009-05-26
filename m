@@ -1,114 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4717 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751973AbZEFSHw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 6 May 2009 14:07:52 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id n46I7pFQ063323
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 6 May 2009 20:07:52 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 6 May 2009 20:07:51 +0200 (CEST)
-Message-Id: <200905061807.n46I7pFQ063323@smtp-vbr9.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mx2.redhat.com ([66.187.237.31]:44502 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755559AbZEZTHT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2009 15:07:19 -0400
+Date: Tue, 26 May 2009 13:01:43 -0600
+From: Pete Zaitcev <zaitcev@redhat.com>
+To: David <david@unsolicited.net>
+Cc: Alan Stern <stern@rowland.harvard.edu>,
+	USB list <linux-usb@vger.kernel.org>,
+	Pekka Enberg <penberg@cs.helsinki.fi>,
+	linux-media@vger.kernel.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	dbrownell@users.sourceforge.net, leonidv11@gmail.com,
+	Greg KH <gregkh@suse.de>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>, zaitcev@redhat.com
+Subject: Re: USB/DVB - Old Technotrend TT-connect S-2400 regression tracked
+ down
+Message-Id: <20090526130143.85475405.zaitcev@redhat.com>
+In-Reply-To: <4A1C37F8.2090703@unsolicited.net>
+References: <4A1967A2.4050906@unsolicited.net>
+	<Pine.LNX.4.44L0.0905242208260.15195-100000@netrider.rowland.org>
+	<20090524203902.594a0eec.zaitcev@redhat.com>
+	<4A1A5E24.20201@unsolicited.net>
+	<4A1A8E53.9060108@unsolicited.net>
+	<20090525184843.33c93006.zaitcev@redhat.com>
+	<4A1C37F8.2090703@unsolicited.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Tue, 26 May 2009 19:42:00 +0100, David <david@unsolicited.net> wrote:
 
-Results of the daily build of v4l-dvb:
+> I've been doing a bit of random rebooting (I don't really have time to
+> do a full bisect), and can reproduce the usbmon panic on this machine
+> back to 2.6.24.. so it certainly hasn't appeared that recently.
 
-date:        Wed May  6 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11696:fe524e0a6412
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Actually that's good to know, thanks a lot.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-rc4-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-rc4-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-rc4-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-rc4-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-rc4-m32r: OK
-linux-2.6.22.19-mips: ERRORS
-linux-2.6.26-mips: ERRORS
-linux-2.6.27-mips: ERRORS
-linux-2.6.28-mips: ERRORS
-linux-2.6.29.1-mips: ERRORS
-linux-2.6.30-rc4-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-rc4-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-rc4-x86_64: WARNINGS
-sparse (linux-2.6.29.1): OK
-sparse (linux-2.6.30-rc4): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+I can always just stub out any attempt to peek into the IOMMU
+on Opterons. This would bring us back into the days of 'D' returned
+from everything, although maybe not so bad as we've cut out some
+unnecessary usb_buffer use. At least, no more crashing.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+-- Pete
