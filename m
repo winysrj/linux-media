@@ -1,166 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:33744 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758209AbZEKXgy (ORCPT
+Received: from smtp2.oregonstate.edu ([128.193.15.36]:44776 "EHLO
+	smtp2.oregonstate.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752895AbZE0Aeb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 May 2009 19:36:54 -0400
-Date: Mon, 11 May 2009 20:36:47 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"jongse.won@samsung.com" <jongse.won@samsung.com>,
-	=?UTF-8?B?6rmA7ZiV7KSA?= <riverful.kim@samsung.com>
-Subject: Re: About using VIDIOC_REQBUFS
-Message-ID: <20090511203647.6c982275@pedra.chehab.org>
-In-Reply-To: <5e9665e10904230315o46ef5f95o8c393a9148976880@mail.gmail.com>
-References: <5e9665e10904230315o46ef5f95o8c393a9148976880@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Tue, 26 May 2009 20:34:31 -0400
+Message-ID: <4A1C89F5.1050403@onid.orst.edu>
+Date: Tue, 26 May 2009 17:31:49 -0700
+From: Michael Akey <akeym@onid.orst.edu>
+MIME-Version: 1.0
+To: jeisom@gmail.com
+CC: linux-media@vger.kernel.org
+Subject: [Fwd: Re: Nextwave NXT2004 Firmware (found)]
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 23 Apr 2009 19:15:14 +0900
-"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com> escreveu:
+Found what I THINK to be the proper offset, with the help of the 
+"proper" firmware:  0x6298, length: 9674bytes. (atidtuxx.sys) I have a 
+copy set up on my system and appears to be working properly.. If anybody 
+would like to test, I can send them the file off-list.  Again, this is 
+for the ATI HDTV Wonder card, not the AVerMedia A180 card.  Thanks for 
+you help Jon :)  I'll be doing more testing later tonight, and report 
+any results/errors.  It would certainly be cool to get some feedback on 
+my findings, and get the firmware script updated for others.
 
-> Hello Hans,
-> 
-> Is it an ordinary way to use twice reqbuf without closing and
-> re-opening between them?
-> 
-> I mean like this,
-> 
-> 1. Open device
-> 2. VIDIOC_REQBUFS
->      <snip>
-> 3. VIDIOC_STREAMON
->      <snip>
-> 4. VIDIOC_STREAMOFF
-> 5. VIDIOC_REQBUFS
->      <snip>
-> 6. VIDIOC_STREAMON
-> 
-> I suppose there should be a strict order for this. That order seems to
-> be wrong but necessary when we do capturing a JPEG data which size
-> (not resolution) is bigger than the preview data size. (Assuming that
-> user is using mmap)
-> Please let me know the right way for that kind of case. Just close and
-> re-open with big enough size for JPEG? or mmap with big enough size in
-> the first place?
-
-That's a very good question. 
-
-You shouldn't be needing to close/open the device for this to work, but between
-(4) and (5), you'll need to call VIDIOC_S_FMT, to change the videobuf size,
-and, to be safe, unmap the videobuf memory.
-
-A code like the above may give different results depending on the way
-videobuffer handling is implemented.
-
-A good idea is to test it with vivi driver (that uses videobuf), with debugs
-enabled, and compare with other drivers.
-
-I did such test with vivi and it worked properly (although I didn't change the
-data size).
-
-If you want to test, I used the driver-test program, available at the
-development tree, with the patch bellow. I didn't actually tested to resize the
-stream, but from vivi logs, the mmapped buffers seem to be properly
-allocated/deallocated.
+-------- Original Message --------
+Subject: 	Re: Nextwave NXT2004 Firmware (found)
+Date: 	Tue, 26 May 2009 18:13:59 -0500
+From: 	Jonathan Isom <jeisom@gmail.com>
+To: 	Michael Akey <akeym@onid.orst.edu>
+References: 	<4A1C711E.3070408@onid.orst.edu>
 
 
 
-Cheers,
-Mauro
+On Tue, May 26, 2009 at 5:45 PM, Michael Akey <akeym@onid.orst.edu> wrote:
+> (posting to proper mailing list as per linux-dvb@linuxtv.org's
+> auto-response)
+>
+> I recently acquired an ATI HDTV Wonder PCI card from a friend of mine
+> and decided to test it out on my satellite TV transcoding server to also
+> get OTA channels.  I am using a generic linux kernel version 2.6.29.2,
+> and it detects the card just fine, but needed a firmware file for the
+> front-end.
+>
+> I checked the get_dvb_firmware script, but it failed because the driver
+> pack from AVerMedia is no longer available.  I then tried to get the
+> latest drivers from them by hand for the A180 card, which also has the
+> nxt2004 demod/frontend..  but the driver package refused to install on
+> my WinXP system.  After some quick googling and not finding the nxt2004
+> firmware downloadable online, I tried to find it in the AMD/ATI driver
+> package instead.  It was not readily apparent which file had the
+> firmware, and the only files in the package were windows
+> executable/system files.
+>
+> So I figured it was embedded in one of these files..  I was able to find
+> the nxt2002 firmware file, and compare it to the contents of the file
+> "atidtuxx.sys."  In this file, I fiddled around with offsets and dumping
+> 8kb chunks out and feeding it to my linux machine's kernel, and
+> magically got my tuner card to APPEAR to work properly with it, but I do
+> not know the firmware's actual size, so there's a distinct possibility
+> that I'm sending it extra garbage it doesn't need.
+>
+>
+> Default extraction path from nullsoft installer:
+> C:\ATI\SUPPORT\6-1_hdtv_83-2036wdm\WDM_XP
+>
+> Firmware appears to be in ATIDTUXX.SYS at offset 0x681E, taken as a
+> 8192byte chunk.
+>
+> To help me with my findings, does anybody have a known working version
+> of dvb-fe-nxt2004.fw that I can use for comparison?  Thanks!
 
-diff --git a/v4l2-apps/test/driver-test.c b/v4l2-apps/test/driver-test.c
---- a/v4l2-apps/test/driver-test.c
-+++ b/v4l2-apps/test/driver-test.c
-@@ -30,7 +30,7 @@ int main(void)
- {
- 	struct v4l2_driver drv;
- 	struct drv_list *cur;
--	unsigned int count = 10, i;
-+	unsigned int count = 10, i, j;
- 	double freq;
- 
- 	if (v4l2_open ("/dev/video0", 1,&drv)<0) {
-@@ -97,45 +97,47 @@ int main(void)
- 	fflush (stdout);
- 	sleep(1);
- 
--	v4l2_mmap_bufs(&drv, 2);
-+	for (j = 0; j < 5; j++) {
-+		v4l2_mmap_bufs(&drv, 2);
- 
--	v4l2_start_streaming(&drv);
-+		v4l2_start_streaming(&drv);
- 
--	printf("Waiting for frames...\n");
-+		printf("Waiting for frames...\n");
- 
--	for (i=0;i<count;i++) {
--		fd_set fds;
--		struct timeval tv;
--		int r;
-+		for (i=0;i<count;i++) {
-+			fd_set fds;
-+			struct timeval tv;
-+			int r;
- 
--		FD_ZERO (&fds);
--		FD_SET (drv.fd, &fds);
-+			FD_ZERO (&fds);
-+			FD_SET (drv.fd, &fds);
- 
--		/* Timeout. */
--		tv.tv_sec = 2;
--		tv.tv_usec = 0;
-+			/* Timeout. */
-+			tv.tv_sec = 2;
-+			tv.tv_usec = 0;
- 
--		r = select (drv.fd + 1, &fds, NULL, NULL, &tv);
--		if (-1 == r) {
--			if (EINTR == errno)
--				continue;
-+			r = select (drv.fd + 1, &fds, NULL, NULL, &tv);
-+			if (-1 == r) {
-+				if (EINTR == errno)
-+					continue;
-+	
-+				perror ("select");
-+				return errno;
-+			}
- 
--			perror ("select");
--			return errno;
-+			if (0 == r) {
-+				fprintf (stderr, "select timeout\n");
-+				return errno;
-+			}
-+
-+			if (v4l2_rcvbuf(&drv, recebe_buffer))
-+				break;
- 		}
- 
--		if (0 == r) {
--			fprintf (stderr, "select timeout\n");
--			return errno;
--		}
--
--		if (v4l2_rcvbuf(&drv, recebe_buffer))
--			break;
-+		printf("stopping streaming\n");
-+		v4l2_stop_streaming(&drv);
- 	}
- 
--	printf("stopping streaming\n");
--	v4l2_stop_streaming(&drv);
--
- 	if (v4l2_close (&drv)<0) {
- 		perror("close");
- 		return -1;
+Here you go,  Don't know if you are going about anyway wrong.
+
+> And if I have found the correct firmware, the get_dvb_firmware script
+> can be updated to pull this from the ATI drivers now.. If I did this the
+> hard way, you may feel free to point this out as well :)
+>
+> --Mike
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+
+-- 
+
+ASUS m3a78 mothorboard
+AMD Athlon64 X2 Dual Core Processor 6000+ 3.1Ghz
+4 Gigabytes of memory
+Gigabyte NVidia 9400gt  Graphics adapter
+Kworld ATSC 110 TV Capture Card
+Kworld ATSC 115 TV Capture Card
+
 
