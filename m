@@ -1,167 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:34984 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753697AbZE0Bmz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2009 21:42:55 -0400
-Subject: Re: [ivtv-devel] tveeprom cannot autodetect tuner! (FQ1216LME MK5)
-From: Andy Walls <awalls@radix.net>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: Martin Dauskardt <martin.dauskardt@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Discussion list for development of the IVTV driver
-	<ivtv-devel@ivtvdriver.org>, linux-media@vger.kernel.org
-In-Reply-To: <1243287953.3744.93.camel@pc07.localdom.local>
-References: <200905210909.43333.martin.dauskardt@gmx.de>
-	 <1242901704.3166.8.camel@palomino.walls.org>
-	 <1243038686.3164.34.camel@palomino.walls.org>
-	 <200905252134.43249.martin.dauskardt@gmx.de>
-	 <1243287953.3744.93.camel@pc07.localdom.local>
-Content-Type: text/plain
-Date: Tue, 26 May 2009 21:38:29 -0400
-Message-Id: <1243388309.4046.43.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([192.100.105.134]:38898 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759482AbZE0Jkx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 May 2009 05:40:53 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv4 3 of 8] v4l2: video device: Add FMTX controls default configurations
+Date: Wed, 27 May 2009 12:35:50 +0300
+Message-Id: <1243416955-29748-4-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1243416955-29748-3-git-send-email-eduardo.valentin@nokia.com>
+References: <1243416955-29748-1-git-send-email-eduardo.valentin@nokia.com>
+ <1243416955-29748-2-git-send-email-eduardo.valentin@nokia.com>
+ <1243416955-29748-3-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Martin,
+# HG changeset patch
+# User Eduardo Valentin <eduardo.valentin@nokia.com>
+# Date 1243414606 -10800
+# Branch export
+# Node ID 85b64a6cc67c0c0d6a795388f8ca02dad2ff9da7
+# Parent  ebb409d7a258df2bc7a6dcd72113584b4c0e7ce2
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ drivers/media/linux/video/v4l2-common.c |   46 +++++++++++++++++++++++++++++++++++++
+ 1 files changed, 46 insertions(+), 0 deletions(-)
 
-For some reason, I'm not getting any of your replies to the lists.  (I'm
-getting Hermann's posts though)
-
-
-On Mon, 2009-05-25 at 23:45 +0200, hermann pitton wrote:
-> Hi,
-> 
-> Am Montag, den 25.05.2009, 21:34 +0200 schrieb Martin Dauskardt:
-> > > #define TUNER_PHILIPS_FQ1216ME          24      /* you must actively select 
-> > B/G/D/K, I, L, L` */
-> > > #define TUNER_PHILIPS_FQ1216AME_MK4     56      /* Hauppauge PVR-150 PAL */
-> > > 
-> > > #define TUNER_PHILIPS_FM1216ME_MK3      38
-> > > 
-> > > #define TUNER_PHILIPS_FMD1216ME_MK3     63
-> > > #define TUNER_PHILIPS_FMD1216MEX_MK3    78
-> > > #define TUNER_PHILIPS_FM1216MK5         79
-> > > 
-> > > Could the user try one of those, starting with the FQ1216 tuner numbers
-> > > (24 and 56), to see if one of them works?  For the FQ1261LME MK3,
-> > > tveeprom has the FM1216ME_MK3 tuner number (38).
-> > > 
-> > 
-> > I have this card now at home for testing. First results:
-> > 
-> > #define TUNER_PHILIPS_FQ1216ME		24	/* you must actively select B/G/D/K, I, L, 
-> > Result: only static
-> > 
-> > #define TUNER_PHILIPS_FM1216ME_MK3	38
-> > result: picture + sound o.k.
-> > 
-> > #define TUNER_PHILIPS_FQ1216AME_MK4	56	/* Hauppauge PVR-150 PAL */
-> > result: picture o.k., but no sound
-> > 
-> > #define TUNER_PHILIPS_FMD1216ME_MK3	63
-> > result: picture + sound o.k.
-> > 
-> > #define TUNER_PHILIPS_FMD1216MEX_MK3	78
-> > result: picture + sound o.k.
-> > 
-> > #define TUNER_PHILIPS_FM1216MK5         79
-> > result: picture o.k. , but audio disappears every few seconds (for about 1-2 
-> > seconds, then comes back) 
-> > 
-> > tuner type 63 and 79 are Hybrid tuners. This is fore sure an analogue-only 
-> > tuner. The sticker says "Multi-PAL", and according to VIDIOC_ENUMSTD  it 
-> > supports PAL, PAL-BG and PAL-H. 
-
-Yes, the hybrid tuners defintions obviously aren't right.  Sorry I
-missed that with my initial suggestions.  I'm not sure that I would
-believe what VIDIOC_ENUMSTD reports without a proper tuner definition (I
-haven't looked up the details on what the ioctl actually does though).
-
-
-> > So I think 38 is right. Any suggestions for further tests?
-
-When you don't specifiy a tuner number at all, does the driver loading
-detect a tda988x chip?
-
-With tuner type 24, does setting the video standard explicitly with
-
-	v4l2-ctl -s pal-B
-
-or something similar help?
-
-
-Anyway, it looks like Hermann has already got a better idea of what the
-tuner definition might be.  (I haven't been keeping up with the
-conversation.  If you and Hermann can figure out something faster,
-off-list using German, I won't be offended by being left out of the
-conversation.)
-
-Regards,
-Andy
-
-
-> in my opinion the entry of tuner type 24 is buggy.
-> I posted once about it, but it is long ago.
-> 
-> /* ------------ TUNER_PHILIPS_FQ1216ME - Philips PAL ------------ */
-> 
-> static struct tuner_params tuner_philips_fq1216me_params[] = {
-> 	{
-> 		.type   = TUNER_PARAM_TYPE_PAL,
-> 		.ranges = tuner_lg_pal_ranges,
-> 		.count  = ARRAY_SIZE(tuner_lg_pal_ranges),
-> 		.has_tda9887 = 1,
-> 		.port1_active = 1,
-> 		.port2_active = 1,
-> 		.port2_invert_for_secam_lc = 1,
-> 	},
-> };
-> 
-> At least tuner_lg_pal_ranges must be wrong for an MK3 and UHF should
-> fail, if you can test on that. Switch must be 0x04 and not 0x08.
-> 
-> The hybrid tuners are also not compatible to an FM1216ME/I MK3.
-> They miss some frequencies when used for such an one and some low VHF
-> channels are snowy. The tda9887 is also not visible on them without
-> special initialization in tuner-core.c for them. Likely not the case on
-> yours.
-> 
-> FQ types from Philips are without radio support. FM types have radio.
-> Also the FMD1216MEX_MK3 has a different radio IF, BTW.
-> 
-> Previously I did recommend tuner 56 for them, but now with the more
-> detailed tda988/5/6/7 settings it misses .port2_active = 1.
-> Hans likely knows that it is right and else we would have reports from
-> people using it I guess. Hm.
-> 
-> You could test with tda9887 port2=0, if you get sound on that one too.
-> 
-> If the entry is correct and can't be changed, we likely need a new tuner
-> entry or the TUNER_PHILIPS_FQ1216ME must use mk3 ranges on UHF. But on
-> that one I have some doubts at all. How could it happen, given how old
-> it is and previously without tda9887 at all, that the wrong UHF switch
-> is undiscovered until today?
-> 
-> Hm, the new MK5 has trouble with sound, FM anyway, but
-> TUNER_PHILIPS_FM1216MK5 is a complete clone of the FM1216ME MK3,
-> except for the discussed 1MHz change for UHF beginning and 0xce versus
-> 0x8e. IIRC, 0xce should be even the better choice on tuners without
-> radio, but I need to look it up again or Andy is more aware about the
-> recent discussions. (faster tuning bit)
-> 
-> Maybe Dmitry has a datasheet for that one too.
-> 
-> One question, which might be interesting is the RF loop through.
-> Is it enabled by default or even switchable?
-> 
-> The latter would be reason enough to create a new tuner type I think.
-> 
-> Just some quick ideas. (ivtv will bounce me, not subscribed)
-> 
-> Cheers,
-> Hermann
-
-
+diff -r ebb409d7a258 -r 85b64a6cc67c linux/drivers/media/video/v4l2-common.c
+--- a/linux/drivers/media/video/v4l2-common.c	Wed May 27 11:56:46 2009 +0300
++++ b/linux/drivers/media/video/v4l2-common.c	Wed May 27 11:56:46 2009 +0300
+@@ -341,6 +341,12 @@
+ 		"Sepia",
+ 		NULL
+ 	};
++	static const char *fmtx_preemphasis[] = {
++		"No preemphasis",
++		"50 useconds",
++		"75 useconds",
++		NULL,
++	};
+ 
+ 	switch (id) {
+ 		case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+@@ -379,6 +385,8 @@
+ 			return camera_exposure_auto;
+ 		case V4L2_CID_COLORFX:
+ 			return colorfx;
++		case V4L2_CID_PREEMPHASIS:
++			return fmtx_preemphasis;
+ 		default:
+ 			return NULL;
+ 	}
+@@ -477,6 +485,28 @@
+ 	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
+ 	case V4L2_CID_PRIVACY:			return "Privacy";
+ 
++	/* FM Radio Modulator control */
++	case V4L2_CID_FMTX_CLASS:		return "FM Radio Modulator Controls";
++	case V4L2_CID_RDS_ENABLED:		return "RDS Feature Enabled";
++	case V4L2_CID_RDS_PI:			return "RDS Program ID";
++	case V4L2_CID_RDS_PTY:			return "RDS Program Type";
++	case V4L2_CID_RDS_PS_NAME:		return "RDS PS Name";
++	case V4L2_CID_RDS_RADIO_TEXT:		return "RDS Radio Text";
++	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
++	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
++	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
++	case V4L2_CID_AUDIO_COMPRESSION_ENABLED: return "Audio Compression Feature Enabled";
++	case V4L2_CID_AUDIO_COMPRESSION_GAIN:	return "Audio Compression Gain";
++	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD: return "Audio Compression Threshold";
++	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME: return "Audio Compression Attack Time";
++	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME: return "Audio Compression Release Time";
++	case V4L2_CID_PILOT_TONE_ENABLED:	return "Pilot Tone Feature Enabled";
++	case V4L2_CID_PILOT_TONE_DEVIATION:	return "Pilot Tone Deviation";
++	case V4L2_CID_PILOT_TONE_FREQUENCY:	return "Pilot Tone Frequency";
++	case V4L2_CID_PREEMPHASIS:		return "Pre-emphasis settings";
++	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
++	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
++
+ 	default:
+ 		return NULL;
+ 	}
+@@ -509,6 +539,10 @@
+ 	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
+ 	case V4L2_CID_FOCUS_AUTO:
+ 	case V4L2_CID_PRIVACY:
++	case V4L2_CID_RDS_ENABLED:
++	case V4L2_CID_AUDIO_LIMITER_ENABLED:
++	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
++	case V4L2_CID_PILOT_TONE_ENABLED:
+ 		qctrl->type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		min = 0;
+ 		max = step = 1;
+@@ -537,12 +571,14 @@
+ 	case V4L2_CID_MPEG_STREAM_VBI_FMT:
+ 	case V4L2_CID_EXPOSURE_AUTO:
+ 	case V4L2_CID_COLORFX:
++	case V4L2_CID_PREEMPHASIS:
+ 		qctrl->type = V4L2_CTRL_TYPE_MENU;
+ 		step = 1;
+ 		break;
+ 	case V4L2_CID_USER_CLASS:
+ 	case V4L2_CID_CAMERA_CLASS:
+ 	case V4L2_CID_MPEG_CLASS:
++	case V4L2_CID_FMTX_CLASS:
+ 		qctrl->type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 		min = max = step = def = 0;
+@@ -571,6 +607,16 @@
+ 	case V4L2_CID_BLUE_BALANCE:
+ 	case V4L2_CID_GAMMA:
+ 	case V4L2_CID_SHARPNESS:
++	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME:
++	case V4L2_CID_AUDIO_LIMITER_DEVIATION:
++	case V4L2_CID_AUDIO_COMPRESSION_GAIN:
++	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD:
++	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME:
++	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME:
++	case V4L2_CID_PILOT_TONE_DEVIATION:
++	case V4L2_CID_PILOT_TONE_FREQUENCY:
++	case V4L2_CID_TUNE_POWER_LEVEL:
++	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
+ 		qctrl->flags |= V4L2_CTRL_FLAG_SLIDER;
+ 		break;
+ 	case V4L2_CID_PAN_RELATIVE:
