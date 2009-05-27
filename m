@@ -1,93 +1,249 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.235]:56773 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752912AbZEGPYN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2009 11:24:13 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so650440rvb.1
-        for <linux-media@vger.kernel.org>; Thu, 07 May 2009 08:24:14 -0700 (PDT)
-Date: Fri, 08 May 2009 00:24:11 +0900
-Message-Id: <87bpq52axw.fsf@wei.zng.jp>
-From: hiranotaka@zng.info
-To: linux-media@vger.kernel.org
-Subject: [PATCH] Add the DTV_ISDB_TS_ID property for ISDB-S
+Received: from mail-px0-f123.google.com ([209.85.216.123]:41458 "EHLO
+	mail-px0-f123.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755555AbZE0DZu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 26 May 2009 23:25:50 -0400
+Received: by pxi29 with SMTP id 29so137668pxi.33
+        for <linux-media@vger.kernel.org>; Tue, 26 May 2009 20:25:52 -0700 (PDT)
+Subject: [PATCH]V4L:some v4l drivers have error for  video_register_device
+From: "Figo.zhang" <figo1802@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	kraxel@bytesex.org, kraxel <kraxel@bytesex.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, alan@lxorguk.ukuu.org.uk,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	akpm@linux-foundation.org
+Content-Type: text/plain
+Date: Wed, 27 May 2009 11:25:39 +0800
+Message-Id: <1243394739.3384.16.camel@myhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-# HG changeset patch
-# User HIRANO Takahito <hiranotaka@zng.info>
-# Date 1235532786 -32400
-# Node ID 5e6932c1b659d6bfea781a81d06098e85c6ff203
-# Parent  fe524e0a64126791bdf3dd94a50bdcdb0592ef7f
-Add the DTV_ISDB_TS_ID property for ISDB-S
+For video_register_device(), it return zero means register success.It would be return zero
+or a negative number (on failure),it would not return a positive number.so it have better to
+use this to check err:
+	int err = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
+	if (err != 0) {
+		/*err code*/
+	}
 
-In ISDB-S, time-devision duplex is used to multiplexing several waves
-in the same frequency. Each wave is identified by its own transport
-stream ID, or TS ID. We need to provide some way to specify this ID
-from user applications to handle ISDB-S frontends.
+ 
+Signed-off-by: Figo.zhang <figo1802@gmail.com>
+--- 
+ Documentation/video4linux/v4l2-framework.txt |    2 +-
+ drivers/media/radio/radio-maestro.c          |    2 +-
+ drivers/media/radio/radio-si470x.c           |    2 +-
+ drivers/media/video/cafe_ccic.c              |    2 +-
+ drivers/media/video/cx231xx/cx231xx-video.c  |    2 +-
+ drivers/media/video/em28xx/em28xx-video.c    |    2 +-
+ drivers/media/video/et61x251/et61x251_core.c |    2 +-
+ drivers/media/video/hdpvr/hdpvr-video.c      |    2 +-
+ drivers/media/video/ivtv/ivtv-streams.c      |    2 +-
+ drivers/media/video/sn9c102/sn9c102_core.c   |    2 +-
+ drivers/media/video/stk-webcam.c             |    2 +-
+ drivers/media/video/w9968cf.c                |    2 +-
+ drivers/media/video/zc0301/zc0301_core.c     |    2 +-
+ drivers/media/video/zr364xx.c                |    2 +-
+ sound/i2c/other/tea575x-tuner.c              |    2 +-
+ 15 files changed, 15 insertions(+), 15 deletions(-)
 
-This code has been tested with Earthsoft PT1 driver, which is under
-development at:
-http://bitbucket.org/hiranotaka/dvb-pt1/
-
-Signed-off-by: HIRANO Takahito <hiranotaka@zng.info>
-
-diff -r fe524e0a6412 -r 5e6932c1b659 linux/drivers/media/dvb/dvb-core/dvb_frontend.c
---- a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c	Tue May 05 08:50:54 2009 -0300
-+++ b/linux/drivers/media/dvb/dvb-core/dvb_frontend.c	Wed Feb 25 12:33:06 2009 +0900
-@@ -946,6 +946,11 @@
- 		.cmd	= DTV_TRANSMISSION_MODE,
- 		.set	= 1,
- 	},
-+	[DTV_ISDB_TS_ID] = {
-+		.name	= "DTV_ISDB_TS_ID",
-+		.cmd	= DTV_ISDB_TS_ID,
-+		.set	= 1,
-+	},
- 	/* Get */
- 	[DTV_DISEQC_SLAVE_REPLY] = {
- 		.name	= "DTV_DISEQC_SLAVE_REPLY",
-@@ -1354,6 +1359,9 @@
- 	case DTV_HIERARCHY:
- 		tvp->u.data = fe->dtv_property_cache.hierarchy;
- 		break;
-+	case DTV_ISDB_TS_ID:
-+		tvp->u.data = fe->dtv_property_cache.isdb_ts_id;
-+		break;
- 	default:
- 		r = -1;
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 854808b..250232a 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -447,7 +447,7 @@ Next you register the video device: this will create the character device
+ for you.
+ 
+ 	err = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
+-	if (err) {
++	if (err != 0) {
+ 		video_device_release(vdev); /* or kfree(my_vdev); */
+ 		return err;
  	}
-@@ -1460,6 +1468,9 @@
- 	case DTV_HIERARCHY:
- 		fe->dtv_property_cache.hierarchy = tvp->u.data;
- 		break;
-+	case DTV_ISDB_TS_ID:
-+		fe->dtv_property_cache.isdb_ts_id = tvp->u.data;
-+		break;
- 	default:
- 		r = -1;
+diff --git a/drivers/media/radio/radio-maestro.c b/drivers/media/radio/radio-maestro.c
+index 64d737c..b5e93c2 100644
+--- a/drivers/media/radio/radio-maestro.c
++++ b/drivers/media/radio/radio-maestro.c
+@@ -379,7 +379,7 @@ static int __devinit maestro_probe(struct pci_dev *pdev,
+ 	video_set_drvdata(&dev->vdev, dev);
+ 
+ 	retval = video_register_device(&dev->vdev, VFL_TYPE_RADIO, radio_nr);
+-	if (retval) {
++	if (retval != 0) {
+ 		v4l2_err(v4l2_dev, "can't register video device!\n");
+ 		goto errfr1;
  	}
-diff -r fe524e0a6412 -r 5e6932c1b659 linux/drivers/media/dvb/dvb-core/dvb_frontend.h
---- a/linux/drivers/media/dvb/dvb-core/dvb_frontend.h	Tue May 05 08:50:54 2009 -0300
-+++ b/linux/drivers/media/dvb/dvb-core/dvb_frontend.h	Wed Feb 25 12:33:06 2009 +0900
-@@ -355,6 +355,7 @@
- 	fe_modulation_t		isdb_layerc_modulation;
- 	u32			isdb_layerc_segment_width;
- #endif
-+	u32			isdb_ts_id;
- };
+diff --git a/drivers/media/radio/radio-si470x.c b/drivers/media/radio/radio-si470x.c
+index bd945d0..edb520a 100644
+--- a/drivers/media/radio/radio-si470x.c
++++ b/drivers/media/radio/radio-si470x.c
+@@ -1740,7 +1740,7 @@ static int si470x_usb_driver_probe(struct usb_interface *intf,
  
- struct dvb_frontend {
-diff -r fe524e0a6412 -r 5e6932c1b659 linux/include/linux/dvb/frontend.h
---- a/linux/include/linux/dvb/frontend.h	Tue May 05 08:50:54 2009 -0300
-+++ b/linux/include/linux/dvb/frontend.h	Wed Feb 25 12:33:06 2009 +0900
-@@ -307,7 +307,9 @@
- #define DTV_TRANSMISSION_MODE			39
- #define DTV_HIERARCHY				40
+ 	/* register video device */
+ 	retval = video_register_device(radio->videodev, VFL_TYPE_RADIO, radio_nr);
+-	if (retval) {
++	if (retval != 0) {
+ 		printk(KERN_WARNING DRIVER_NAME
+ 				": Could not register video device\n");
+ 		goto err_all;
+diff --git a/drivers/media/video/cafe_ccic.c b/drivers/media/video/cafe_ccic.c
+index c4d181d..fd93698 100644
+--- a/drivers/media/video/cafe_ccic.c
++++ b/drivers/media/video/cafe_ccic.c
+@@ -1974,7 +1974,7 @@ static int cafe_pci_probe(struct pci_dev *pdev,
+ /*	cam->vdev.debug = V4L2_DEBUG_IOCTL_ARG;*/
+ 	cam->vdev.v4l2_dev = &cam->v4l2_dev;
+ 	ret = video_register_device(&cam->vdev, VFL_TYPE_GRABBER, -1);
+-	if (ret)
++	if (ret != 0)
+ 		goto out_smbus;
+ 	video_set_drvdata(&cam->vdev, cam);
  
--#define DTV_MAX_COMMAND				DTV_HIERARCHY
-+#define DTV_ISDB_TS_ID				41
-+
-+#define DTV_MAX_COMMAND				DTV_ISDB_TS_ID
+diff --git a/drivers/media/video/cx231xx/cx231xx-video.c b/drivers/media/video/cx231xx/cx231xx-video.c
+index a23ae73..14e5008 100644
+--- a/drivers/media/video/cx231xx/cx231xx-video.c
++++ b/drivers/media/video/cx231xx/cx231xx-video.c
+@@ -2382,7 +2382,7 @@ int cx231xx_register_analog_devices(struct cx231xx *dev)
+ 	/* register v4l2 video video_device */
+ 	ret = video_register_device(dev->vdev, VFL_TYPE_GRABBER,
+ 				    video_nr[dev->devno]);
+-	if (ret) {
++	if (ret != 0) {
+ 		cx231xx_errdev("unable to register video device (error=%i).\n",
+ 			       ret);
+ 		return ret;
+diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
+index 882796e..dcc3aca 100644
+--- a/drivers/media/video/em28xx/em28xx-video.c
++++ b/drivers/media/video/em28xx/em28xx-video.c
+@@ -2013,7 +2013,7 @@ int em28xx_register_analog_devices(struct em28xx *dev)
+ 	/* register v4l2 video video_device */
+ 	ret = video_register_device(dev->vdev, VFL_TYPE_GRABBER,
+ 				       video_nr[dev->devno]);
+-	if (ret) {
++	if (ret != 0) {
+ 		em28xx_errdev("unable to register video device (error=%i).\n",
+ 			      ret);
+ 		return ret;
+diff --git a/drivers/media/video/et61x251/et61x251_core.c b/drivers/media/video/et61x251/et61x251_core.c
+index d1c1e45..8a767e1 100644
+--- a/drivers/media/video/et61x251/et61x251_core.c
++++ b/drivers/media/video/et61x251/et61x251_core.c
+@@ -2591,7 +2591,7 @@ et61x251_usb_probe(struct usb_interface* intf, const struct usb_device_id* id)
  
- typedef enum fe_pilot {
- 	PILOT_ON,
+ 	err = video_register_device(cam->v4ldev, VFL_TYPE_GRABBER,
+ 				    video_nr[dev_nr]);
+-	if (err) {
++	if (err != 0) {
+ 		DBG(1, "V4L2 device registration failed");
+ 		if (err == -ENFILE && video_nr[dev_nr] == -1)
+ 			DBG(1, "Free /dev/videoX node not found");
+diff --git a/drivers/media/video/hdpvr/hdpvr-video.c b/drivers/media/video/hdpvr/hdpvr-video.c
+index 3e6ffee..14c8488 100644
+--- a/drivers/media/video/hdpvr/hdpvr-video.c
++++ b/drivers/media/video/hdpvr/hdpvr-video.c
+@@ -1237,7 +1237,7 @@ int hdpvr_register_videodev(struct hdpvr_device *dev, struct device *parent,
+ 	dev->video_dev->parent = parent;
+ 	video_set_drvdata(dev->video_dev, dev);
+ 
+-	if (video_register_device(dev->video_dev, VFL_TYPE_GRABBER, devnum)) {
++	if (video_register_device(dev->video_dev, VFL_TYPE_GRABBER, devnum) != 0) {
+ 		v4l2_err(&dev->v4l2_dev, "video_device registration failed\n");
+ 		goto error;
+ 	}
+diff --git a/drivers/media/video/ivtv/ivtv-streams.c b/drivers/media/video/ivtv/ivtv-streams.c
+index 15da017..1aca6b3 100644
+--- a/drivers/media/video/ivtv/ivtv-streams.c
++++ b/drivers/media/video/ivtv/ivtv-streams.c
+@@ -261,7 +261,7 @@ static int ivtv_reg_dev(struct ivtv *itv, int type)
+ 	video_set_drvdata(s->vdev, s);
+ 
+ 	/* Register device. First try the desired minor, then any free one. */
+-	if (video_register_device(s->vdev, vfl_type, num)) {
++	if (video_register_device(s->vdev, vfl_type, num) != 0) {
+ 		IVTV_ERR("Couldn't register v4l2 device for %s kernel number %d\n",
+ 				s->name, num);
+ 		video_device_release(s->vdev);
+diff --git a/drivers/media/video/sn9c102/sn9c102_core.c b/drivers/media/video/sn9c102/sn9c102_core.c
+index 23edfdc..55242c4 100644
+--- a/drivers/media/video/sn9c102/sn9c102_core.c
++++ b/drivers/media/video/sn9c102/sn9c102_core.c
+@@ -3334,7 +3334,7 @@ sn9c102_usb_probe(struct usb_interface* intf, const struct usb_device_id* id)
+ 
+ 	err = video_register_device(cam->v4ldev, VFL_TYPE_GRABBER,
+ 				    video_nr[dev_nr]);
+-	if (err) {
++	if (err != 0) {
+ 		DBG(1, "V4L2 device registration failed");
+ 		if (err == -ENFILE && video_nr[dev_nr] == -1)
+ 			DBG(1, "Free /dev/videoX node not found");
+diff --git a/drivers/media/video/stk-webcam.c b/drivers/media/video/stk-webcam.c
+index 1a6d39c..1a7aca0 100644
+--- a/drivers/media/video/stk-webcam.c
++++ b/drivers/media/video/stk-webcam.c
+@@ -1323,7 +1323,7 @@ static int stk_register_video_device(struct stk_camera *dev)
+ 	dev->vdev.debug = debug;
+ 	dev->vdev.parent = &dev->interface->dev;
+ 	err = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
+-	if (err)
++	if (err != 0)
+ 		STK_ERROR("v4l registration failed\n");
+ 	else
+ 		STK_INFO("Syntek USB2.0 Camera is now controlling video device"
+diff --git a/drivers/media/video/w9968cf.c b/drivers/media/video/w9968cf.c
+index f59b2bd..5f56e90 100644
+--- a/drivers/media/video/w9968cf.c
++++ b/drivers/media/video/w9968cf.c
+@@ -3500,7 +3500,7 @@ w9968cf_usb_probe(struct usb_interface* intf, const struct usb_device_id* id)
+ 
+ 	err = video_register_device(cam->v4ldev, VFL_TYPE_GRABBER,
+ 				    video_nr[dev_nr]);
+-	if (err) {
++	if (err != 0) {
+ 		DBG(1, "V4L device registration failed")
+ 		if (err == -ENFILE && video_nr[dev_nr] == -1)
+ 			DBG(2, "Couldn't find a free /dev/videoX node")
+diff --git a/drivers/media/video/zc0301/zc0301_core.c b/drivers/media/video/zc0301/zc0301_core.c
+index 9697104..05296fc 100644
+--- a/drivers/media/video/zc0301/zc0301_core.c
++++ b/drivers/media/video/zc0301/zc0301_core.c
+@@ -1991,7 +1991,7 @@ zc0301_usb_probe(struct usb_interface* intf, const struct usb_device_id* id)
+ 
+ 	err = video_register_device(cam->v4ldev, VFL_TYPE_GRABBER,
+ 				    video_nr[dev_nr]);
+-	if (err) {
++	if (err != 0) {
+ 		DBG(1, "V4L2 device registration failed");
+ 		if (err == -ENFILE && video_nr[dev_nr] == -1)
+ 			DBG(1, "Free /dev/videoX node not found");
+diff --git a/drivers/media/video/zr364xx.c b/drivers/media/video/zr364xx.c
+index ac169c9..83d0aea 100644
+--- a/drivers/media/video/zr364xx.c
++++ b/drivers/media/video/zr364xx.c
+@@ -857,7 +857,7 @@ static int zr364xx_probe(struct usb_interface *intf,
+ 	mutex_init(&cam->lock);
+ 
+ 	err = video_register_device(cam->vdev, VFL_TYPE_GRABBER, -1);
+-	if (err) {
++	if (err != 0) {
+ 		dev_err(&udev->dev, "video_register_device failed\n");
+ 		video_device_release(cam->vdev);
+ 		kfree(cam->buffer);
+diff --git a/sound/i2c/other/tea575x-tuner.c b/sound/i2c/other/tea575x-tuner.c
+index d31c373..27bc7be 100644
+--- a/sound/i2c/other/tea575x-tuner.c
++++ b/sound/i2c/other/tea575x-tuner.c
+@@ -324,7 +324,7 @@ void snd_tea575x_init(struct snd_tea575x *tea)
+ 
+ 	retval = video_register_device(tea575x_radio_inst,
+ 				       VFL_TYPE_RADIO, radio_nr);
+-	if (retval) {
++	if (retval != 0) {
+ 		printk(KERN_ERR "tea575x-tuner: can't register video device!\n");
+ 		kfree(tea575x_radio_inst);
+ 		return;
+
+
