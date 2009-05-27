@@ -1,135 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ch-smtp01.sth.basefarm.net ([80.76.149.212]:47114 "EHLO
-	ch-smtp01.sth.basefarm.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757027AbZEOJSj (ORCPT
+Received: from rcsinet11.oracle.com ([148.87.113.123]:20720 "EHLO
+	rgminet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758407AbZE0Swl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 May 2009 05:18:39 -0400
-to: hermann pitton <hermann-pitton@arcor.de>,
-	linux-media@vger.kernel.org, video4linux-list@redhat.com,
-	Hartmut Hackmann <hartmut.hackmann@t-online.de>
-Subject: Fixed (Was:Re: saa7134/2.6.26 regression, noisy output)
-In-reply-to: <20090510141614.D4A9C2C416C@tippex.mynet.homeunix.org>
-References: <20090503075609.0A73B2C4152@tippex.mynet.homeunix.org> <1241389925.4912.32.camel@pc07.localdom.local> <20090504091049.D931B2C4147@tippex.mynet.homeunix.org> <1241438755.3759.100.camel@pc07.localdom.local> <20090504195201.6ECF52C415B@tippex.mynet.homeunix.org> <1241565988.16938.15.camel@pc07.localdom.local> <20090507130055.E49D32C4165@tippex.mynet.homeunix.org> <20090510141614.D4A9C2C416C@tippex.mynet.homeunix.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Date: Fri, 15 May 2009 11:18:27 +0200
-From: Anders Eriksson <aeriksson@fastmail.fm>
-Message-Id: <20090515091827.864A12C4167@tippex.mynet.homeunix.org>
+	Wed, 27 May 2009 14:52:41 -0400
+Message-ID: <4A1D8C95.60604@oracle.com>
+Date: Wed, 27 May 2009 11:55:17 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Matt Doran <matt.doran@papercut.com>, linux-media@vger.kernel.org
+Subject: [PATCH v2] Re: videodev: Unknown symbol i2c_unregister_device (in
+ kernels older than 2.6.26)
+References: <4A19D3D9.9010800@papercut.com> <20090527154107.6b79a160@pedra.chehab.org>
+In-Reply-To: <20090527154107.6b79a160@pedra.chehab.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Mauro Carvalho Chehab wrote:
+> Em Mon, 25 May 2009 09:10:17 +1000
+> Matt Doran <matt.doran@papercut.com> escreveu:
+> 
+>> Hi there,
+>>
+>> I tried using the latest v4l code on an Mythtv box running 2.6.20, but 
+>> the v4l videodev module fails to load with the following warnings:
+>>
+>>     videodev: Unknown symbol i2c_unregister_device
+>>     v4l2_common: Unknown symbol v4l2_device_register_subdev
+>>
+>>
+>> It seems the "i2c_unregister_device" function was added in 2.6.26.   
+>> References to this function in v4l2-common.c are enclosed in an ifdef like:
+>>
+>>     #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
+>>
+>>
+>> However in "v4l2_device_unregister()" in v4l2-device.c, there is a 
+>> reference to "i2c_unregister_device" without any ifdefs.   I am running 
+>> a pretty old kernel, but I'd guess anyone running 2.6.25 or earlier will 
+>> have this problem.   It seems this code was added by Mauro 3 weeks ago 
+>> in this rev:
+>>
+>>     http://linuxtv.org/hg/v4l-dvb/rev/87afa7a4ccdf
+> 
+> I've just applied a patch at the tree that should fix this issue. It adds
+> several tests and the code, but, hopefully, it should be possible even to use
+> the IR's with kernels starting from 2.6.16.
 
 
+Hi Mauro,
+If you are referring to my recent patch, it needs a modification to be like
+other places in drivers/media/video.  Patch below applies on top of the
+previous one.
 
-Success!
+---
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-I've tracked down the offending change. switch_addr takes on the wrong value
-and setting the LNA fails. Here's a i2c dump:
+Fix v4l2-device usage of i2c_unregister_device() and handle the case of
+CONFIG_I2C=m & CONFIG_MEDIA_VIDEO=y.
 
-saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c xfer: < 20 ERROR: NO_DEVICE
-saa7133[0]: i2c xfer: < 84 ERROR: NO_DEVICE
-saa7133[0]: i2c xfer: < 86 ERROR: NO_DEVICE
-saa7133[0]: i2c xfer: < 94 ERROR: NO_DEVICE
-saa7133[0]: i2c xfer: < 96 >
-saa7133[0]: i2c xfer: < 96 00 >
-saa7133[0]: i2c xfer: < 97 =01 =01 =00 =11 =01 =04 =01 =85 >
-saa7133[0]: i2c xfer: < 96 1f >
-saa7133[0]: i2c xfer: < 97 =89 >
-tda8290_probe: tda8290 detected @ 1-004b
-tuner' 1-004b: tda829x detected
-tuner' 1-004b: Setting mode_mask to 0x0e
-tuner' 1-004b: chip found @ 0x96 (saa7133[0])
-tuner' 1-004b: tuner 0x4b: Tuner type absent
-tuner' i2c attach [addr=0x4b,client=(tuner unset)]
-tuner' 1-004b: Calling set_type_addr for type=54, addr=0xff, mode=0x04, config=0x01
-tuner' 1-004b: set addr for type -1
-tuner' 1-004b: defining GPIO callback
-saa7133[0]: i2c xfer: < 96 1f >
-saa7133[0]: i2c xfer: < 97 =89 >
-tda8290_probe: tda8290 detected @ 1-004b
-saa7133[0]: i2c xfer: < 96 2f >
-saa7133[0]: i2c xfer: < 97 =00 >
-saa7133[0]: i2c xfer: < 96 21 c0 >
-saa7133[0]: i2c xfer: < c1 ERROR: NO_DEVICE
-saa7133[0]: i2c xfer: < c3 =88 >
-saa7133[0]: i2c xfer: < c5 ERROR: NO_DEVICE
-saa7133[0]: i2c xfer: < c7 ERROR: NO_DEVICE
-saa7133[0]: i2c xfer: < 96 21 00 >
-tda829x 1-004b: setting tuner address to 61
-saa7133[0]: i2c xfer: < 96 21 c0 >
-saa7133[0]: i2c xfer: < c3 =08 >
-tda827x: tda827x_attach:
-tda827x: type set to Philips TDA827X
-saa7133[0]: i2c xfer: < c3 =08 >
-tda827x: tda827xa tuner found
-tda827x: tda827x_init:
-tda827x: tda827xa_sleep:
-saa7133[0]: i2c xfer: < c2 30 90 >
-saa7133[0]: i2c xfer: < 96 21 00 >
-tda829x 1-004b: type set to tda8290+75a
-saa7133[0]: i2c xfer: < 96 21 c0 >
-saa7133[0]: i2c xfer: < c2 00 00 00 00 dc 05 8b 0c 04 20 ff 00 00 4b >
-saa7133[0]: i2c xfer: < 96 21 00 >
-saa7133[0]: i2c xfer: < 96 20 01 >
-saa7133[0]: i2c xfer: < 96 30 6f >
-tuner' 1-004b: type set to tda8290+75a
-tuner' 1-004b: tv freq set to 400.00
-tda829x 1-004b: setting tda829x to system xx
-tda829x 1-004b: tda827xa config is 0x01
-saa7133[0]: i2c xfer: < 96 01 00 >
-saa7133[0]: i2c xfer: < 96 02 00 >
-saa7133[0]: i2c xfer: < 96 00 00 >
-saa7133[0]: i2c xfer: < 96 01 90 >
-saa7133[0]: i2c xfer: < 96 28 14 >
-saa7133[0]: i2c xfer: < 96 0f 88 >
-saa7133[0]: i2c xfer: < 96 05 04 >
-saa7133[0]: i2c xfer: < 96 0d 47 >
-saa7133[0]: i2c xfer: < 96 21 c0 >
-tda827x: setting tda827x to system xx
-tda827x: setting LNA to high gain
-saa7133[0]: i2c xfer: < 96 22 00 >
-                        ^ This address is c2 in all kernels <= 5823b3a63c7661272ea7fef7635955e2a50d17eb
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+---
+ drivers/media/video/v4l2-device.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-
-saa7133[0]: i2c xfer: < c2 00 32 f8 00 16 3b bb 1c 04 20 00 >
-saa7133[0]: i2c xfer: < c2 90 ff e0 00 99 >
-saa7133[0]: i2c xfer: < c2 a0 c0 >
-saa7133[0]: i2c xfer: < c2 30 10 >
-saa7133[0]: i2c xfer: < c3 =49 =a4 >
-tda827x: AGC2 gain is: 10
-                       ^ The gain reported on good kernels is 3 
-
-Looking at the source, the switch_addr to use in the later kernels is somehow 
-autodetected. How that's done, I've yet to fully understand, but somehow it 
-comes up with the wrong address.
-
-This patch (which obviously needs improvement) hardwires the address back to 
-its original value, and works for 2.6.30-rc5.
-
-diff --git a/drivers/media/common/tuners/tda8290.c b/drivers/media/common/tuners/tda8290.c
-index 064d14c..498cc7b 100644
---- a/drivers/media/common/tuners/tda8290.c
-+++ b/drivers/media/common/tuners/tda8290.c
-@@ -635,7 +635,11 @@ static int tda829x_find_tuner(struct dvb_frontend *fe)
+--- linux-next-20090527.orig/drivers/media/video/v4l2-device.c
++++ linux-next-20090527/drivers/media/video/v4l2-device.c
+@@ -85,7 +85,7 @@ void v4l2_device_unregister(struct v4l2_
+ 	/* Unregister subdevs */
+ 	list_for_each_entry_safe(sd, next, &v4l2_dev->subdevs, list) {
+ 		v4l2_device_unregister_subdev(sd);
+-#if defined(CONFIG_I2C) || defined(CONFIG_I2C_MODULE)
++#if defined(CONFIG_I2C) || (defined(CONFIG_I2C_MODULE) && defined(MODULE))
+ 		if (sd->flags & V4L2_SUBDEV_FL_IS_I2C) {
+ 			struct i2c_client *client = v4l2_get_subdevdata(sd);
  
-                dvb_attach(tda827x_attach, fe, priv->tda827x_addr,
-                           priv->i2c_props.adap, &priv->cfg);
-+               tuner_info("ANDERS: setting switch_addr. was 0x%02x, new 0x%02x\n",priv->cfg.switch_addr,priv->i2c_props.addr);
-                priv->cfg.switch_addr = priv->i2c_props.addr;
-+               priv->cfg.switch_addr = 0xc2 / 2;
-+               tuner_info("ANDERS: new 0x%02x\n",priv->cfg.switch_addr);
-+
-        }
-        if (fe->ops.tuner_ops.init)
-                fe->ops.tuner_ops.init(fe);
 
 
-Could you please help me out and shed some light on what the proper fix is for 
-setting switch_addr? 
-
-Thanks,
-/Anders
-
-
+-- 
+~Randy
+LPC 2009, Sept. 23-25, Portland, Oregon
+http://linuxplumbersconf.org/2009/
