@@ -1,94 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:45756 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751362AbZELFRX (ORCPT
+Received: from ppp250-191.static.internode.on.net ([203.122.250.191]:56856
+	"EHLO wiggum.skunkworks.net.au" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755689AbZE0Dym (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2009 01:17:23 -0400
-Subject: Re: [PATCH v2 4/7] FMTx: si4713: Add files to handle si4713 i2c
- device
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-Reply-To: ext-eero.nurkkala@nokia.com
-To: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <1242034309-13448-5-git-send-email-eduardo.valentin@nokia.com>
-References: <1242034309-13448-1-git-send-email-eduardo.valentin@nokia.com>
-	 <1242034309-13448-2-git-send-email-eduardo.valentin@nokia.com>
-	 <1242034309-13448-3-git-send-email-eduardo.valentin@nokia.com>
-	 <1242034309-13448-4-git-send-email-eduardo.valentin@nokia.com>
-	 <1242034309-13448-5-git-send-email-eduardo.valentin@nokia.com>
-Content-Type: text/plain
-Date: Tue, 12 May 2009 08:15:50 +0300
-Message-Id: <1242105350.19944.56.camel@eenurkka-desktop>
-Mime-Version: 1.0
+	Tue, 26 May 2009 23:54:42 -0400
+Message-ID: <4A1CB353.7020906@symons.net.au>
+Date: Wed, 27 May 2009 12:58:19 +0930
+From: Ant <ant@symons.net.au>
+MIME-Version: 1.0
+To: Andy Walls <awalls@radix.net>
+CC: hermann pitton <hermann-pitton@arcor.de>,
+	Martin Dauskardt <martin.dauskardt@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Discussion list for development of the IVTV driver
+	<ivtv-devel@ivtvdriver.org>, linux-media@vger.kernel.org
+Subject: Re: [ivtv-devel] tveeprom cannot autodetect tuner! (FQ1216LME MK5)
+References: <200905210909.43333.martin.dauskardt@gmx.de>	 <1243287953.3744.93.camel@pc07.localdom.local>	 <1243298465.3703.8.camel@pc07.localdom.local>	 <200905262221.31409.martin.dauskardt@gmx.de>	 <1243383329.6682.27.camel@pc07.localdom.local> <1243389830.4046.52.camel@palomino.walls.org>
+In-Reply-To: <1243389830.4046.52.camel@palomino.walls.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-05-11 at 11:31 +0200, Valentin Eduardo (Nokia-D/Helsinki)
-wrote:
-> +/*
-> + * Values for region specific configurations
-> + * (spacing, bottom and top frequencies, preemphasis)
-> + */
-> +static struct region_info region_configs[] = {
-> +       /* USA */
-> +       {
-> +               .channel_spacing        = 20,
-> +               .bottom_frequency       = 8750,
-> +               .top_frequency          = 10800,
-> +               .preemphasis            = 0,
-> +               .region                 = 0,
-> +       },
-> +       /* Australia */
-> +       {
-> +               .channel_spacing        = 20,
-> +               .bottom_frequency       = 8750,
-> +               .top_frequency          = 10800,
-> +               .preemphasis            = 1,
-> +               .region                 = 1,
-> +       },
-> +       /* Europe */
-> +       {
-> +               .channel_spacing        = 10,
-> +               .bottom_frequency       = 8750,
-> +               .top_frequency          = 10800,
-> +               .preemphasis            = 1,
-> +               .region                 = 2,
-> +       },
-> +       /* Japan */
-> +       {
-> +               .channel_spacing        = 10,
-> +               .bottom_frequency       = 7600,
-> +               .top_frequency          = 9000,
-> +               .preemphasis            = 1,
-> +               .region                 = 3,
-> +       },
-> +       /* Japan wide band */
-> +       {
-> +               .channel_spacing        = 10,
-> +               .bottom_frequency       = 7600,
-> +               .top_frequency          = 10800,
-> +               .preemphasis            = 1,
-> +               .region                 = 4,
-> +       },
-> +};
-> +
+Andy Walls wrote:
+> Hermann,
+>
+> There is an FQ1216LME MK3 data sheet here:
+>
+> http://dl.ivtvdriver.org/datasheets/tuners/FQ1216LME%20Mk3.pdf
+>
+> Is it safe to assume that the MK5 is not very different from the MK3?
+>   
+I am no expert on the subject, but I found this reference to the MK3 vs MK5:
 
-Hi,
+http://www.nxp.com/acrobat_download/other/products/rf/fq_mk5.pdf
 
-I took a quick peek;
+Where it says
 
-For USA, the correct range appears as:
-USA: 87.9 - 107.9
+"The FQ1200 MK5 family is identical in footprint to the
+FQ1200 MK3 series, ensuring a quick drop-in replacement."
 
-Some more to add:
+If the MK5 family is designed as a drop in replacement for the MK3 
+family, I would think there is a good chance it functions exactly the same.
 
-China: 92 - 108 Mhz
-Korea: 88 - 108 Mhz
-(Europe?Middle east? Israel: 87.5 - 108)
+Anthony
 
-But please do double check these before changing ;)
-
-- Eero
 
