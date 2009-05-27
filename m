@@ -1,47 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx.stud.uni-hannover.de ([130.75.176.3]:47640 "EHLO
-	studserv5d.stud.uni-hannover.de" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753431AbZEVNbJ (ORCPT
+Received: from mail-in-10.arcor-online.net ([151.189.21.50]:52756 "EHLO
+	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755327AbZE0C2U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2009 09:31:09 -0400
-Message-ID: <4A16A8FF.2050308@stud.uni-hannover.de>
-Date: Fri, 22 May 2009 15:30:39 +0200
-From: Soeren Moch <Soeren.Moch@stud.uni-hannover.de>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Nova-T 500 does not survive reboot
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 26 May 2009 22:28:20 -0400
+Subject: Re: [ivtv-devel] tveeprom cannot autodetect tuner! (FQ1216LME MK5)
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andy Walls <awalls@radix.net>
+Cc: Martin Dauskardt <martin.dauskardt@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Discussion list for development of the IVTV driver
+	<ivtv-devel@ivtvdriver.org>, linux-media@vger.kernel.org
+In-Reply-To: <1243389830.4046.52.camel@palomino.walls.org>
+References: <200905210909.43333.martin.dauskardt@gmx.de>
+	 <1243287953.3744.93.camel@pc07.localdom.local>
+	 <1243298465.3703.8.camel@pc07.localdom.local>
+	 <200905262221.31409.martin.dauskardt@gmx.de>
+	 <1243383329.6682.27.camel@pc07.localdom.local>
+	 <1243389830.4046.52.camel@palomino.walls.org>
+Content-Type: text/plain; charset=UTF-8
+Date: Wed, 27 May 2009 04:27:10 +0200
+Message-Id: <1243391230.9920.15.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- >>> Hi,
- >>>    Any news on this? I'd like to try the URB patch someone mentioned,
- >>> but I
- >>> can't find the link.
- >>
- >> http://www.mail-archive.com/linux-media@vger.kernel.org/msg04643.html
- >>
- >> I am running a current dvb tree with this patch.
- >>
- >> so far so good.
- >>
- >> I did not find the time to check if I regained proper reboots, though. I
- >> know, sad excuse...
- >>
- >> nico
- >>
- >>
- >
- > I'll give it a try. Thanks for the tip!
- > Cheers,
- >   Eduard
+Hi,
 
-Hi nico, Eduard,
+Am Dienstag, den 26.05.2009, 22:03 -0400 schrieb Andy Walls:
+> On Wed, 2009-05-27 at 02:15 +0200, hermann pitton wrote:
+> > Hi,
+> > 
+> > Am Dienstag, den 26.05.2009, 22:21 +0200 schrieb Martin Dauskardt:
+> > > I should add that the picture quality is with all tested tuner types worse 
+> > > than with my PVR250/350. I don't know if a PVR150 is in generally worse than 
+> > > a PVR250. I can't call it really noisy, but in german I would say the picture 
+> > > is a little bit "grobkörnig". It really needs a temporal filter setting of 
+> > > value 8 or more, while my other PVR cards have a nice quality even with value 
+> > > 0. 
+> > > 
+> > > I will test whatever you guys want me to test :-)  But I am not a programmer, 
+> > > so I need detailled instructions what to patch.
+> > > 
+> > > My next step will be testing an older v4l2 with an 2.6.27 kernel to see if the 
+> > > audio problem still exists.
+> > 
+> > Martin, that seems the right way to start and there is no need to hurry.
+> > 
+> > If nobody has a datasheet, and I can imagine that such an early RF loop
+> > through tuner has some specials, you are still in a difficult testing
+> > field, even if only on PAL BG for now. Is RF out is active would be
+> > still interesting to know.
+> 
+> Hermann,
+> 
+> There is an FQ1216LME MK3 data sheet here:
+> 
+> http://dl.ivtvdriver.org/datasheets/tuners/FQ1216LME%20Mk3.pdf
 
-can you confirm that the patch solves your Nova-T 500 boot problem?
-In this case I would resend the buffer count part as separate patch to
-Patrick.
+Something for the weekend I guess.
 
-S:oren
+> Is it safe to assume that the MK5 is not very different from the MK3?
+
+That is what we always did and did not fail so far.
+
+That Chinese SAW filters cause my concern and Dmitry might have them
+even on a MK5. Needs Philips/NXP confirmation I think.
+
+> I can build an entry for the FQ1216LME based on this datasheet (maybe on
+> Friday night) and hope it works well enough for the MK5.
+> 
+> Regards,
+> Andy
+
+Best to proceed for now and then testing on PAL_BG as a start.
+
+Cheers,
+Hermann
+
+> 
+> > If on the same RF signal quality, means no more passive RF splitter in
+> > between, I don't know what we can expect, but for example the FM1216ME
+> > and the FMD1216ME hybrid MK3s do perform excellent and don't have this
+> > "grobkörnige" (grainy?) picture, which you often see on cheaper tuners.
+> > 
+> > As far as I know, not any such complaints about the MK4s so far too.
+> > 
+> > Dmitry has some MK3 variant, where the first time on a Philips tuner
+> > Chinese SAW filters are employed instead of the original EPCOS filters.
+> > 
+> > The question, if that could cause performance/sensitivity losses, is not
+> > yet answered. Also if this is related to the SECAM DK tweaks he needs.
+> > 
+> > I would start testing for different sound quality between tuner 56 and
+> > 38. Beginning silence on old B/W mono broadcasts could make a difference
+> > I somehow have in mind.
+> > 
+> > If 56 still has no sound at all, that should indicate a major technical
+> > change compared to prior tuners.
+> > 
+> > Cheers,
+> > Hermann
+> >  
+> > 
+> 
 
