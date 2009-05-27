@@ -1,97 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.152]:61253 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755952AbZEZTSP convert rfc822-to-8bit (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:38893 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759363AbZE0Jkw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2009 15:18:15 -0400
-Received: by fg-out-1718.google.com with SMTP id 16so1495507fgg.17
-        for <linux-media@vger.kernel.org>; Tue, 26 May 2009 12:18:16 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <829197380905261105k6f1a8f9dl1bcd067863e85e67@mail.gmail.com>
-References: <4A1C2C0F.9090808@gmail.com>
-	 <829197380905261105k6f1a8f9dl1bcd067863e85e67@mail.gmail.com>
-Date: Tue, 26 May 2009 14:18:16 -0500
-Message-ID: <1767e6740905261218i307d3bdeh30eec0539e98f896@mail.gmail.com>
-Subject: Re: [linux-dvb] EPG (Electronic Program Guide) Tools
-From: Jonathan Isom <jeisom@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 27 May 2009 05:40:52 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv4 4 of 8] Add documentation description for FM Transmitter Extended Control Class
+Date: Wed, 27 May 2009 12:35:51 +0300
+Message-Id: <1243416955-29748-5-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1243416955-29748-4-git-send-email-eduardo.valentin@nokia.com>
+References: <1243416955-29748-1-git-send-email-eduardo.valentin@nokia.com>
+ <1243416955-29748-2-git-send-email-eduardo.valentin@nokia.com>
+ <1243416955-29748-3-git-send-email-eduardo.valentin@nokia.com>
+ <1243416955-29748-4-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday, May 26, 2009, Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
-> On Tue, May 26, 2009 at 1:51 PM, Chris Capon <ttabyss@gmail.com> wrote:
->> Hi:
->> I've installed an HVR-1600 card in a Debian system to receive ATSC
->> digital broadcasts here in Canada.  Everything works great.
->>
->> scan /usr/share/dvb/atsc/us-ATSC-center-frequencies-8VSB > channels.conf
->>
->>        finds a complete list of broadcasters.
->>
->> azap -c channels.conf -r "channel-name"
->>
->>        tunes in the stations and displays signal strength info.
->>
->> cp /dev/dvb/adapter0/dvr0 xx.mpg
->>
->>        captures the output stream which can be played by mplayer.
->>
->>
->>
->> What I'm missing is information about the Electronic Program Guide
->> (EPG).  There doesn't seem to be much info on linuxtv.org on how to read it.
->>
->> Where does the EPG come from?
->>
->> Is it incorporated into the output stream through PID's some how or is
->> it read from one of the other devices under adapter0?
->>
->> Are there simple command line tools to read it or do you have to write a
->> custom program to interpret it somehow?
->>
->> Could someone please point me in the right direction to get started?  If
->> no tools exist, perhaps links to either api or lib docs/samples?
->>
->>
->> Much appreciated.
->> Chris.
->
-> Hello Chris,
->
-> The ATSC EPG is sent via the ATSC PSIP protocol.  I do not know of any
-> tools currently available to extract the information.  MeTV has a
-> working implementation (with some bugs I have seen), and I was looking
-> at getting it to work in Kaffeine at some point.
->
-Dvbstreamer supports atsc epg. That is what i use
-> The spec is freely available here:
->
-> http://www.atsc.org/standards/a_65cr1_with_amend_1.pdf
->
-> If you have any questions, feel free to drop me a line.
->
-> Cheers,
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+# HG changeset patch
+# User Eduardo Valentin <eduardo.valentin@nokia.com>
+# Date 1242209424 -10800
+# Branch export
+# Node ID 2dd45d3736ae1952dfa98e65b072eb08157fb19d
+# Parent  fadf1cddf504609cdb4889f4aa3305ca8d15323a
 
--- 
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-ASUS m3a78 mothorboard
-AMD Athlon64 X2 Dual Core Processor 6000+ 3.1Ghz
-4 Gigabytes of memory
-Gigabyte NVidia 9400gt  Graphics adapter
-Kworld ATSC 110 TV Capture Card
-Kworld ATSC 115 TV Capture Card
+This single patch adds documentation description for FM Transmitter (FMTX)
+Extended Control Class and its Control IDs. The text was added under
+"Extended Controls" section.
+
+Priority: normal
+
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+
+diff -r fadf1cddf504 -r 2dd45d3736ae v4l2-spec/controls.sgml
+--- a/v4l2-spec/controls.sgml	Wed May 27 11:56:47 2009 +0300
++++ b/v4l2-spec/controls.sgml	Wed May 13 13:10:24 2009 +0300
+@@ -458,6 +458,12 @@
+       <para>Unfortunately, the original control API lacked some
+ features needed for these new uses and so it was extended into the
+ (not terribly originally named) extended control API.</para>
++
++      <para>Even though the MPEG encoding API was the first effort
++to use the Extended Control API, nowadays there are also other classes
++of Extended Controls, such as Camera Controls and FM Transmitter Controls.
++The Extended Controls API as well as all Extended Controls classes are
++described in the following text.</para>
+     </section>
+ 
+     <section>
+@@ -1816,6 +1822,200 @@
+       </tgroup>
+     </table>
+   </section>
++
++    <section id="fmtx-controls">
++      <title>FM Transmitter Control Reference</title>
++
++      <para>The FM Transmitter (FMTX) class includes controls for common features of
++FM transmissions capable devices. Currently this class include parameters for audio
++compression, pilot tone generation, audio deviation limiter, RDS transmission and
++tuning power features.</para>
++
++      <table pgwide="1" frame="none" id="fmtx-control-id">
++      <title>FMTX Control IDs</title>
++
++      <tgroup cols="4">
++	<colspec colname="c1" colwidth="1*">
++	<colspec colname="c2" colwidth="6*">
++	<colspec colname="c3" colwidth="2*">
++	<colspec colname="c4" colwidth="6*">
++	<spanspec namest="c1" nameend="c2" spanname="id">
++	<spanspec namest="c2" nameend="c4" spanname="descr">
++	<thead>
++	  <row>
++	    <entry spanname="id" align="left">ID</entry>
++	    <entry align="left">Type</entry>
++	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row><entry></entry></row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FMTX_CLASS</constant>&nbsp;</entry>
++	    <entry>class</entry>
++	  </row><row><entry spanname="descr">The FMTX class
++descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
++description of this control class.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_ENABLED</constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row><entry spanname="descr">Enables or disables the RDS transmission feature.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_PI</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the RDS Programme Identification field
++for transmission.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_PTY</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">iSets the RDS Programme Type field for transmission.
++This coding of up to 31 pre-defined programme types.</entry>
++	  </row>
++<!--
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_PS_NAME</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_RADIO_TEXT</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">.</entry>
++	  </row>
++-->
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_ENABLED</constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row><entry spanname="descr">Enables or disables the audio deviation limiter feature.
++The limiter is useful when trying to maximize the audio volume, minimize receiver-generated
++distortion and prevent overmodulation.
++</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_RELEASE_TIME</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the audio deviation limiter feature release time.
++The unit, step and range are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_DEVIATION</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures audio frequency deviation level in Hz.
++The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_ENABLED</constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row><entry spanname="descr">Enables or disables the audio compression feature.
++This feature amplifies signals below the threshold by a fixed gain and compresses audio
++signals above the threshold by the ratio of Threshold/(Gain + Threshold).</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_GAIN</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the gain for audio compression feature. It is
++a dB value. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_THRESHOLD</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the threshold level for audio compression freature.
++It is a dB value. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the attack time for audio compression feature.
++It is a useconds value. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the release time for audio compression feature.
++It is a useconds value. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_ENABLED</constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row><entry spanname="descr">Enables or disables the pilot tone generation feature.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_DEVIATION</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures pilot tone frequency deviation level. Unit is
++in Hz. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_FREQUENCY</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures pilot tone frequency value. Unit is
++in Hz. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_PREEMPHASIS</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures the pre-emphasis value for broadcasting.
++A pre-emphasis filter is applied to the broadcast to accentuate the high audio frequencies.
++Depending on the region, a time constant of either 50 or 75 useconds is used. Possible values
++are:</entry>
++	</row><row>
++	<entrytbl spanname="descr" cols="2">
++		  <tbody valign="top">
++		    <row>
++		      <entry><constant>V4L2_FMTX_PREEMPHASIS_DISABLED</constant>&nbsp;</entry>
++		      <entry>No pre-emphasis is applied.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_FMTX_PREEMPHASIS_50_uS</constant>&nbsp;</entry>
++		      <entry>A pre-emphasis of 50 uS is used.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_FMTX_PREEMPHASIS_75_uS</constant>&nbsp;</entry>
++		      <entry>A pre-emphasis of 75 uS is used.</entry>
++		    </row>
++		  </tbody>
++		</entrytbl>
++
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_TUNE_POWER_LEVEL</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the output power level for signal transmission.
++Unit is in dBuV. Range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_TUNE_ANTENNA_CAPACITOR</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">This selects the value of antenna tuning capacitor
++manually or automatically if set to zero. Unit, range and step are driver-specific.</entry>
++	  </row>
++	  <row><entry></entry></row>
++	</tbody>
++      </tgroup>
++      </table>
++    </section>
+ </section>
+ 
+   <!--
