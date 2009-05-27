@@ -1,59 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f174.google.com ([209.85.218.174]:34248 "EHLO
-	mail-bw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753013AbZEVSRd (ORCPT
+Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:59152 "EHLO
+	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762766AbZE0H26 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 22 May 2009 14:17:33 -0400
-Received: by bwz22 with SMTP id 22so1787803bwz.37
-        for <linux-media@vger.kernel.org>; Fri, 22 May 2009 11:17:33 -0700 (PDT)
+	Wed, 27 May 2009 03:28:58 -0400
+Date: Wed, 27 May 2009 16:28:44 +0900
+From: Paul Mundt <lethal@linux-sh.org>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: linux-next@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-i2c@vger.kernel.org
+Subject: Re: [PATCH] i2c: Simplified CONFIG_I2C=n interface.
+Message-ID: <20090527072843.GB11221@linux-sh.org>
+References: <20090527070850.GA11221@linux-sh.org> <20090527091831.26b60d6d@hyperion.delvare>
 MIME-Version: 1.0
-In-Reply-To: <54918.82.95.219.165.1243015328.squirrel@webmail.xs4all.nl>
-References: <54918.82.95.219.165.1243015328.squirrel@webmail.xs4all.nl>
-Date: Fri, 22 May 2009 22:12:07 +0400
-Message-ID: <1a297b360905221112h107f80ceu585bfb7495ffb0e7@mail.gmail.com>
-Subject: Re: [linux-dvb] Most stable DVB-S2 PCI Card?
-From: Manu Abraham <abraham.manu@gmail.com>
-To: n.wagenaar@xs4all.nl
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20090527091831.26b60d6d@hyperion.delvare>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 22, 2009 at 10:02 PM, Niels Wagenaar <n.wagenaar@xs4all.nl> wrote:
-> Op Vr, 22 mei, 2009 19:48, schreef Manu Abraham:
->> On Fri, May 22, 2009 at 9:32 PM, Niels Wagenaar <n.wagenaar@xs4all.nl>
->> wrote:
->>> Op Vr, 22 mei, 2009 19:23, schreef Bob Ingraham:
->>>> Hello,
->>>>
->>>> What is the most stable DVB-S2 PCI card?
->>>>
->>>> -- SNIP --
->>>
->>> In short, the Hauppauge NOVA-HD-S2 is the one to buy. Yes, it's somewhat
->>> more expensive but it's the best DVB-S2 based PCI card concerning
->>> stability and usability with for example VDR.
->>
->>
->> Unfortunately, the Nova HD-S2 won't support any DVB-S2 stream with
->> symbol rates > 30 MSPS, also it supports only DVB-S2 NBC mode
->> of operation, being based on an older generation demodulator.
->>
->
-> Well, I was talking about my experience. And currently I haven't found any
-> channels which have problems which I can receive (Hotbird 13.0, Astra
-> 19.2, Astra 23.5 and Astra 28.2).
->
-> But perhaps other sats may have problems with the items your described.
+On Wed, May 27, 2009 at 09:18:31AM +0200, Jean Delvare wrote:
+> On Wed, 27 May 2009 16:08:50 +0900, Paul Mundt wrote:
+> > Another day, another module-related failure due to the i2c interface
+> > being used in code that optionally uses it:
+> > 
+> > ERROR: "i2c_new_device" [drivers/media/video/soc_camera.ko] undefined!
+> > ERROR: "i2c_get_adapter" [drivers/media/video/soc_camera.ko] undefined!
+> > ERROR: "i2c_put_adapter" [drivers/media/video/soc_camera.ko] undefined!
+> > ERROR: "i2c_unregister_device" [drivers/media/video/soc_camera.ko] undefined!
+> > make[2]: *** [__modpost] Error 1
+> > make[1]: *** [modules] Error 2
+> > make: *** [sub-make] Error 2
+> > 
+> > In the interest of not continually inserting i2c ifdefs in to every
+> > driver that supports an optional i2c interface, this provides a stubbed
+> > set of interfaces for the CONFIG_I2C=n case.
+> > 
+> > I've covered the obvious ones that cause the majority of the build
+> > failures, anything more involved really ought to have its dependencies
+> > fixed instead.
+> 
+> Violent nack. Drivers which optionally use I2C are a minority.
 
-
-Some people have been asking on those items earlier on the lists. I don't
-remember the exact transponders nor the sats, but you can easily find those
-mails on the list itself. The DVB-S2 specification is very much a big
-specification
-indeed. There aren't many demodulators that do comply. And those 2nd
-generation demodulators are on PCIe cards alone, rather than PCI cards.
-
-The TT S2-1600 is the only  "PCI" card that i am aware of currently, which
-complies to all of those later additions.
+If they were a minority we wouldn't be hitting them on a weekly basis,
+and other busses already do similar things for similar reasons. You may
+not like it, but it's much less distasteful than littering random i2c
+ifdefs around every driver that chooses to have an optional i2c
+interface. If every multi-bus driver was forced to go through these sorts
+of hoops, the drivers would be even less readable than they already are
+today.
