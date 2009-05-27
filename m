@@ -1,156 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1004.centrum.cz ([90.183.38.134]:57282 "EHLO
-	mail1004.centrum.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758614AbZE2OgW (ORCPT
+Received: from iolanthe.rowland.org ([192.131.102.54]:38475 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1756240AbZE0UU5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 May 2009 10:36:22 -0400
-Received: by mail1004.centrum.cz id S805582394AbZE2OgN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 May 2009 16:36:13 +0200
-Date: Fri, 29 May 2009 16:36:13 +0200
-From: "Miroslav =?UTF-8?Q?=20=C5=A0ustek?=" <sustmidown@centrum.cz>
-To: <linux-media@vger.kernel.org>
+	Wed, 27 May 2009 16:20:57 -0400
+Date: Wed, 27 May 2009 16:20:57 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: David <david@unsolicited.net>
+cc: Pekka Enberg <penberg@cs.helsinki.fi>,
+	<linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	<dbrownell@users.sourceforge.net>, <leonidv11@gmail.com>,
+	Greg KH <gregkh@suse.de>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>
+Subject: Re: USB/DVB - Old Technotrend TT-connect S-2400 regression tracked
+  down
+In-Reply-To: <4A1D89B3.2020400@unsolicited.net>
+Message-ID: <Pine.LNX.4.44L0.0905271619090.2653-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-Message-ID: <200905291636.330@centrum.cz>
-References: <200905291634.22350@centrum.cz> <200905291635.22786@centrum.cz>
-In-Reply-To: <200905291635.22786@centrum.cz>
-Subject: mchehab@infradead.org
-Content-Type: multipart/mixed; boundary="-------=_3BC2479D.46B47C6"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format
+On Wed, 27 May 2009, David wrote:
 
----------=_3BC2479D.46B47C6
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+> Sorry for the delay, your patch reached me just after I turned in last
+> night.
+> 
+> It looks good to me. dmesg is how I'd expect, and I've attached the usb
+> trace which looks pretty similar to when the original patch was reverted.
+> 
+> I'll test some more with some other peripherals & check that they work ok.
+> 
+> Thanks a lot!
 
-Hello,
-this patch adds support for Leadtek WinFast DTV-1800H hybrid card.
-It enables analog/digital tv, radio and remote control trough GPIO.
+I'm not done yet.  That patch seemed a bit unsafe, so I revised it.  
+This version is a lot more careful about modifying data structures 
+while they are still in use by the hardware.
 
-Input GPIO values are extracted from INF file which is included in winxp driver.
-Analog audio works both through cx88-alsa and through internal cable from tv-card to sound card.
+If it works okay for you, I'll submit it.
 
-Tested by me and the people listed in patch (works well).
-
-- Miroslav Šustek
-
-(Sorry for TRIPLE!-post, but I am asshole and haven't appended the patch file last time. )
+Alan Stern
 
 
----------=_3BC2479D.46B47C6
-Content-Type: application/octet-stream; name="leadtek_winfast_dtv1800h.patch"
-Content-Transfer-Encoding: base64
+Index: usb-2.6/drivers/usb/host/ehci-q.c
+===================================================================
+--- usb-2.6.orig/drivers/usb/host/ehci-q.c
++++ usb-2.6/drivers/usb/host/ehci-q.c
+@@ -93,22 +93,6 @@ qh_update (struct ehci_hcd *ehci, struct
+ 	qh->hw_qtd_next = QTD_NEXT(ehci, qtd->qtd_dma);
+ 	qh->hw_alt_next = EHCI_LIST_END(ehci);
+ 
+-	/* Except for control endpoints, we make hardware maintain data
+-	 * toggle (like OHCI) ... here (re)initialize the toggle in the QH,
+-	 * and set the pseudo-toggle in udev. Only usb_clear_halt() will
+-	 * ever clear it.
+-	 */
+-	if (!(qh->hw_info1 & cpu_to_hc32(ehci, 1 << 14))) {
+-		unsigned	is_out, epnum;
+-
+-		is_out = !(qtd->hw_token & cpu_to_hc32(ehci, 1 << 8));
+-		epnum = (hc32_to_cpup(ehci, &qh->hw_info1) >> 8) & 0x0f;
+-		if (unlikely (!usb_gettoggle (qh->dev, epnum, is_out))) {
+-			qh->hw_token &= ~cpu_to_hc32(ehci, QTD_TOGGLE);
+-			usb_settoggle (qh->dev, epnum, is_out, 1);
+-		}
+-	}
+-
+ 	/* HC must see latest qtd and qh data before we clear ACTIVE+HALT */
+ 	wmb ();
+ 	qh->hw_token &= cpu_to_hc32(ehci, QTD_TOGGLE | QTD_STS_PING);
+@@ -893,7 +877,6 @@ done:
+ 	qh->qh_state = QH_STATE_IDLE;
+ 	qh->hw_info1 = cpu_to_hc32(ehci, info1);
+ 	qh->hw_info2 = cpu_to_hc32(ehci, info2);
+-	usb_settoggle (urb->dev, usb_pipeendpoint (urb->pipe), !is_input, 1);
+ 	qh_refresh (ehci, qh);
+ 	return qh;
+ }
+@@ -928,7 +911,7 @@ static void qh_link_async (struct ehci_h
+ 		}
+ 	}
+ 
+-	/* clear halt and/or toggle; and maybe recover from silicon quirk */
++	/* clear halt and maybe recover from silicon quirk */
+ 	if (qh->qh_state == QH_STATE_IDLE)
+ 		qh_refresh (ehci, qh);
+ 
+Index: usb-2.6/drivers/usb/host/ehci-pci.c
+===================================================================
+--- usb-2.6.orig/drivers/usb/host/ehci-pci.c
++++ usb-2.6/drivers/usb/host/ehci-pci.c
+@@ -388,6 +388,7 @@ static const struct hc_driver ehci_pci_h
+ 	.urb_enqueue =		ehci_urb_enqueue,
+ 	.urb_dequeue =		ehci_urb_dequeue,
+ 	.endpoint_disable =	ehci_endpoint_disable,
++	.endpoint_reset =	ehci_endpoint_reset,
+ 
+ 	/*
+ 	 * scheduling support
+Index: usb-2.6/drivers/usb/host/ehci-hcd.c
+===================================================================
+--- usb-2.6.orig/drivers/usb/host/ehci-hcd.c
++++ usb-2.6/drivers/usb/host/ehci-hcd.c
+@@ -1026,6 +1026,51 @@ done:
+ 	return;
+ }
+ 
++static void
++ehci_endpoint_reset(struct usb_hcd *hcd, struct usb_host_endpoint *ep)
++{
++	struct ehci_hcd		*ehci = hcd_to_ehci(hcd);
++	struct ehci_qh		*qh;
++	int			eptype = usb_endpoint_type(&ep->desc);
++
++	if (eptype != USB_ENDPOINT_XFER_BULK && eptype != USB_ENDPOINT_XFER_INT)
++		return;
++
++ rescan:
++	spin_lock_irq(&ehci->lock);
++	qh = ep->hcpriv;
++
++	/* For Bulk and Interrupt endpoints we maintain the toggle state
++	 * in the hardware; the toggle bits in udev aren't used at all.
++	 * When an endpoint is reset by usb_clear_halt() we must reset
++	 * the toggle bit in the QH.
++	 */
++	if (qh) {
++		if (!list_empty(&qh->qtd_list)) {
++			WARN_ONCE(1, "clear_halt for a busy endpoint\n");
++		} else if (qh->qh_state == QH_STATE_IDLE) {
++			qh->hw_token &= ~cpu_to_hc32(ehci, QTD_TOGGLE);
++		} else {
++			/* It's not safe to write into the overlay area
++			 * while the QH is active.  Unlink it first and
++			 * wait for the unlink to complete.
++			 */
++			if (qh->qh_state == QH_STATE_LINKED) {
++				if (eptype == USB_ENDPOINT_XFER_BULK) {
++					unlink_async(ehci, qh);
++				} else {
++					intr_deschedule(ehci, qh);
++					(void) qh_schedule(ehci, qh);
++				}
++			}
++			spin_unlock_irq(&ehci->lock);
++			schedule_timeout_uninterruptible(1);
++			goto rescan;
++		}
++	}
++	spin_unlock_irq(&ehci->lock);
++}
++
+ static int ehci_get_frame (struct usb_hcd *hcd)
+ {
+ 	struct ehci_hcd		*ehci = hcd_to_ehci (hcd);
 
-QWRkcyBzdXBwb3J0IGZvciBMZWFkdGVrIFdpbkZhc3QgRFRWLTE4MDBICgpGcm9tOiBNaXJv
-c2xhdiBTdXN0ZWsgPHN1c3RtaWRvd25AY2VudHJ1bS5jej4KCkVuYWJsZXMgYW5hbG9nL2Rp
-Z2l0YWwgdHYsIHJhZGlvIGFuZCByZW1vdGUgY29udHJvbCAoZ3BpbykuCgpTaWduZWQtb2Zm
-LWJ5OiBNaXJvc2xhdiBTdXN0ZWsgPHN1c3RtaWRvd25AY2VudHJ1bS5jej4KVGVzdGVkLWJ5
-OiBNYXJjaW4gV29qY2lrb3dza2kgPGVtdGVlcy5tdHNAZ21haWwuY29tPgpUZXN0ZWQtYnk6
-IEthcmVsIEp1aGFuYWsgPGthcmVsLmp1aGFuYWtAd2FybmV0LmN6PgpUZXN0ZWQtYnk6IEFu
-ZHJldyBHb2ZmIDxnb2ZmYTcyQGdtYWlsLmNvbT4KVGVzdGVkLWJ5OiBKYW4gTm92YWsgPG5v
-dmFrLWpAc2V6bmFtLmN6PgoKZGlmZiAtciA2NWVjMTMyZjIwZGYgbGludXgvRG9jdW1lbnRh
-dGlvbi92aWRlbzRsaW51eC9DQVJETElTVC5jeDg4Ci0tLSBhL2xpbnV4L0RvY3VtZW50YXRp
-b24vdmlkZW80bGludXgvQ0FSRExJU1QuY3g4OAlXZWQgTWF5IDI3IDE1OjUzOjAwIDIwMDkg
-LTAzMDAKKysrIGIvbGludXgvRG9jdW1lbnRhdGlvbi92aWRlbzRsaW51eC9DQVJETElTVC5j
-eDg4CUZyaSBNYXkgMjkgMTY6MTE6MTQgMjAwOSArMDIwMApAQCAtNzksMyArNzksNCBAQAog
-IDc4IC0+IFByb2YgNjIwMCBEVkItUyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICBbYjAyMjozMDIyXQogIDc5IC0+IFRlcnJhdGVjIENpbmVyZ3kgSFQgUENJIE1LSUkg
-ICAgICAgICAgICAgICAgICAgICAgICBbMTUzYjoxMTc3XQogIDgwIC0+IEhhdXBwYXVnZSBX
-aW5UVi1JUiBPbmx5ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBbMDA3MDo5MjkwXQor
-IDgxIC0+IExlYWR0ZWsgV2luRmFzdCBEVFYxODAwIEh5YnJpZCAgICAgICAgICAgICAgICAg
-ICAgICBbMTA3ZDo2NjU0XQpkaWZmIC1yIDY1ZWMxMzJmMjBkZiBsaW51eC9kcml2ZXJzL21l
-ZGlhL3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEv
-dmlkZW8vY3g4OC9jeDg4LWNhcmRzLmMJV2VkIE1heSAyNyAxNTo1MzowMCAyMDA5IC0wMzAw
-CisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWNhcmRzLmMJRnJp
-IE1heSAyOSAxNjoxMToxNCAyMDA5ICswMjAwCkBAIC0yMDA5LDYgKzIwMDksNDcgQEAKIAkJ
-LnR1bmVyX2FkZHIJPSBBRERSX1VOU0VULAogCQkucmFkaW9fYWRkcgk9IEFERFJfVU5TRVQs
-CiAJfSwKKwlbQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBIXSA9IHsKKwkJLm5hbWUgICAg
-ICAgICAgID0gIkxlYWR0ZWsgV2luRmFzdCBEVFYxODAwIEh5YnJpZCIsCisJCS50dW5lcl90
-eXBlICAgICA9IFRVTkVSX1hDMjAyOCwKKwkJLnJhZGlvX3R5cGUgICAgID0gVFVORVJfWEMy
-MDI4LAorCQkudHVuZXJfYWRkciAgICAgPSAweDYxLAorCQkucmFkaW9fYWRkciAgICAgPSAw
-eDYxLAorCQkvKgorCQkgKiBHUElPIHNldHRpbmcKKwkJICoKKwkJICogIDI6IG11dGUgKDA9
-b2ZmLDE9b24pCisJCSAqIDEyOiB0dW5lciByZXNldCBwaW4KKwkJICogMTM6IGF1ZGlvIHNv
-dXJjZSAoMD10dW5lciBhdWRpbywxPWxpbmUgaW4pCisJCSAqIDE0OiBGTSAoMD1vbiwxPW9m
-ZiA/Pz8pCisJCSAqLworCQkuaW5wdXQgICAgICAgICAgPSB7eworCQkJLnR5cGUgICA9IENY
-ODhfVk1VWF9URUxFVklTSU9OLAorCQkJLnZtdXggICA9IDAsCisJCQkuZ3BpbzAgID0gMHgw
-NDAwLCAgICAgICAvKiBwaW4gMiA9IDAgKi8KKwkJCS5ncGlvMSAgPSAweDYwNDAsICAgICAg
-IC8qIHBpbiAxMyA9IDAsIHBpbiAxNCA9IDEgKi8KKwkJCS5ncGlvMiAgPSAweDAwMDAsCisJ
-CX0sIHsKKwkJCS50eXBlICAgPSBDWDg4X1ZNVVhfQ09NUE9TSVRFMSwKKwkJCS52bXV4ICAg
-PSAxLAorCQkJLmdwaW8wICA9IDB4MDQwMCwgICAgICAgLyogcGluIDIgPSAwICovCisJCQku
-Z3BpbzEgID0gMHg2MDYwLCAgICAgICAvKiBwaW4gMTMgPSAxLCBwaW4gMTQgPSAxICovCisJ
-CQkuZ3BpbzIgID0gMHgwMDAwLAorCQl9LCB7CisJCQkudHlwZSAgID0gQ1g4OF9WTVVYX1NW
-SURFTywKKwkJCS52bXV4ICAgPSAyLAorCQkJLmdwaW8wICA9IDB4MDQwMCwgICAgICAgLyog
-cGluIDIgPSAwICovCisJCQkuZ3BpbzEgID0gMHg2MDYwLCAgICAgICAvKiBwaW4gMTMgPSAx
-LCBwaW4gMTQgPSAxICovCisJCQkuZ3BpbzIgID0gMHgwMDAwLAorCQl9IH0sCisJCS5yYWRp
-byA9IHsKKwkJCS50eXBlICAgPSBDWDg4X1JBRElPLAorCQkJLmdwaW8wICA9IDB4MDQwMCwg
-ICAgICAgLyogcGluIDIgPSAwICovCisJCQkuZ3BpbzEgID0gMHg2MDAwLCAgICAgICAvKiBw
-aW4gMTMgPSAwLCBwaW4gMTQgPSAwICovCisJCQkuZ3BpbzIgID0gMHgwMDAwLAorCQl9LAor
-CQkubXBlZyAgICAgICAgICAgPSBDWDg4X01QRUdfRFZCLAorCX0sCiB9OwogCiAvKiAtLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0gKi8KQEAgLTI0MjYsNiArMjQ2NywxMCBAQAogCQkuc3VidmVuZG9yID0gMHgw
-MDcwLAogCQkuc3ViZGV2aWNlID0gMHg5MjkwLAogCQkuY2FyZCAgICAgID0gQ1g4OF9CT0FS
-RF9IQVVQUEFVR0VfSVJPTkxZLAorCX0sIHsKKwkJLnN1YnZlbmRvciA9IDB4MTA3ZCwKKwkJ
-LnN1YmRldmljZSA9IDB4NjY1NCwKKwkJLmNhcmQgICAgICA9IENYODhfQk9BUkRfV0lORkFT
-VF9EVFYxODAwSCwKIAl9LAogfTsKIApAQCAtMjYyNCw2ICsyNjY5LDIzIEBACiAJcmV0dXJu
-IC1FSU5WQUw7CiB9CiAKK3N0YXRpYyBpbnQgY3g4OF94YzMwMjhfd2luZmFzdDE4MDBoX2Nh
-bGxiYWNrKHN0cnVjdCBjeDg4X2NvcmUgKmNvcmUsCisJCQkJCSAgICAgaW50IGNvbW1hbmQs
-IGludCBhcmcpCit7CisJc3dpdGNoIChjb21tYW5kKSB7CisJY2FzZSBYQzIwMjhfVFVORVJf
-UkVTRVQ6CisJCS8qIEdQSU8gMTIgKHhjMzAyOCB0dW5lciByZXNldCkgKi8KKwkJY3hfc2V0
-KE1PX0dQMV9JTywgMHgxMDEwKTsKKwkJbWRlbGF5KDUwKTsKKwkJY3hfY2xlYXIoTU9fR1Ax
-X0lPLCAweDEwKTsKKwkJbWRlbGF5KDUwKTsKKwkJY3hfc2V0KE1PX0dQMV9JTywgMHgxMCk7
-CisJCW1kZWxheSg1MCk7CisJCXJldHVybiAwOworCX0KKwlyZXR1cm4gLUVJTlZBTDsKK30K
-KwogLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLSAqLwogLyogc29tZSBEaXZjbyBzcGVjaWZpYyBzdHVmZiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAqLwogc3RhdGljIGlu
-dCBjeDg4X3B2XzgwMDBndF9jYWxsYmFjayhzdHJ1Y3QgY3g4OF9jb3JlICpjb3JlLApAQCAt
-MjY5Niw2ICsyNzU4LDggQEAKIAljYXNlIENYODhfQk9BUkRfRFZJQ09fRlVTSU9OSERUVl9E
-VkJfVF9QUk86CiAJY2FzZSBDWDg4X0JPQVJEX0RWSUNPX0ZVU0lPTkhEVFZfNV9QQ0lfTkFO
-TzoKIAkJcmV0dXJuIGN4ODhfZHZpY29feGMyMDI4X2NhbGxiYWNrKGNvcmUsIGNvbW1hbmQs
-IGFyZyk7CisJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEg6CisJCXJldHVybiBj
-eDg4X3hjMzAyOF93aW5mYXN0MTgwMGhfY2FsbGJhY2soY29yZSwgY29tbWFuZCwgYXJnKTsK
-IAl9CiAKIAlzd2l0Y2ggKGNvbW1hbmQpIHsKQEAgLTI4ODIsNiArMjk0NiwxNiBAQAogCQlj
-eF9zZXQoTU9fR1AwX0lPLCAweDAwMDAwMDgwKTsgLyogNzAyIG91dCBvZiByZXNldCAqLwog
-CQl1ZGVsYXkoMTAwMCk7CiAJCWJyZWFrOworCisJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1Rf
-RFRWMTgwMEg6CisJCS8qIEdQSU8gMTIgKHhjMzAyOCB0dW5lciByZXNldCkgKi8KKwkJY3hf
-c2V0KE1PX0dQMV9JTywgMHgxMDEwKTsKKwkJbWRlbGF5KDUwKTsKKwkJY3hfY2xlYXIoTU9f
-R1AxX0lPLCAweDEwKTsKKwkJbWRlbGF5KDUwKTsKKwkJY3hfc2V0KE1PX0dQMV9JTywgMHgx
-MCk7CisJCW1kZWxheSg1MCk7CisJCWJyZWFrOwogCX0KIH0KIApAQCAtMjkwMiw2ICsyOTc2
-LDcgQEAKIAkJCWNvcmUtPmkyY19hbGdvLnVkZWxheSA9IDE2OwogCQlicmVhazsKIAljYXNl
-IENYODhfQk9BUkRfRFZJQ09fRlVTSU9OSERUVl9EVkJfVF9QUk86CisJY2FzZSBDWDg4X0JP
-QVJEX1dJTkZBU1RfRFRWMTgwMEg6CiAJCWN0bC0+ZGVtb2QgPSBYQzMwMjhfRkVfWkFSTElO
-SzQ1NjsKIAkJYnJlYWs7CiAJY2FzZSBDWDg4X0JPQVJEX0tXT1JMRF9BVFNDXzEyMDoKZGlm
-ZiAtciA2NWVjMTMyZjIwZGYgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgt
-ZHZiLmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtZHZiLmMJ
-V2VkIE1heSAyNyAxNTo1MzowMCAyMDA5IC0wMzAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVk
-aWEvdmlkZW8vY3g4OC9jeDg4LWR2Yi5jCUZyaSBNYXkgMjkgMTY6MTE6MTQgMjAwOSArMDIw
-MApAQCAtMTAyMSw2ICsxMDIxLDcgQEAKIAkJfQogCQlicmVhazsKIAkgY2FzZSBDWDg4X0JP
-QVJEX1BJTk5BQ0xFX0hZQlJJRF9QQ1RWOgorCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RU
-VjE4MDBIOgogCQlmZTAtPmR2Yi5mcm9udGVuZCA9IGR2Yl9hdHRhY2goemwxMDM1M19hdHRh
-Y2gsCiAJCQkJCSAgICAgICAmY3g4OF9waW5uYWNsZV9oeWJyaWRfcGN0diwKIAkJCQkJICAg
-ICAgICZjb3JlLT5pMmNfYWRhcCk7CmRpZmYgLXIgNjVlYzEzMmYyMGRmIGxpbnV4L2RyaXZl
-cnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWlucHV0LmMKLS0tIGEvbGludXgvZHJpdmVycy9t
-ZWRpYS92aWRlby9jeDg4L2N4ODgtaW5wdXQuYwlXZWQgTWF5IDI3IDE1OjUzOjAwIDIwMDkg
-LTAzMDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtaW5wdXQu
-YwlGcmkgTWF5IDI5IDE2OjExOjE0IDIwMDkgKzAyMDAKQEAgLTkyLDYgKzkyLDcgQEAKIAkJ
-Z3Bpbz0oZ3BpbyAmIDB4N2ZkKSArIChhdXhncGlvICYgMHhlZik7CiAJCWJyZWFrOwogCWNh
-c2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjEwMDA6CisJY2FzZSBDWDg4X0JPQVJEX1dJTkZB
-U1RfRFRWMTgwMEg6CiAJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfVFYyMDAwX1hQX0dMT0JB
-TDoKIAkJZ3BpbyA9IChncGlvICYgMHg2ZmYpIHwgKChjeF9yZWFkKE1PX0dQMV9JTykgPDwg
-OCkgJiAweDkwMCk7CiAJCWF1eGdwaW8gPSBncGlvOwpAQCAtMjM3LDYgKzIzOCw3IEBACiAJ
-CWlyLT5zYW1wbGluZyA9IDE7CiAJCWJyZWFrOwogCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNU
-X0RUVjIwMDBIOgorCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBIOgogCQlpcl9j
-b2RlcyA9IGlyX2NvZGVzX3dpbmZhc3Q7CiAJCWlyLT5ncGlvX2FkZHIgPSBNT19HUDBfSU87
-CiAJCWlyLT5tYXNrX2tleWNvZGUgPSAweDhmODsKZGlmZiAtciA2NWVjMTMyZjIwZGYgbGlu
-dXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODguaAotLS0gYS9saW51eC9kcml2ZXJz
-L21lZGlhL3ZpZGVvL2N4ODgvY3g4OC5oCVdlZCBNYXkgMjcgMTU6NTM6MDAgMjAwOSAtMDMw
-MAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC5oCUZyaSBNYXkg
-MjkgMTY6MTE6MTQgMjAwOSArMDIwMApAQCAtMjM3LDYgKzIzNyw3IEBACiAjZGVmaW5lIENY
-ODhfQk9BUkRfUFJPRl82MjAwICAgICAgICAgICAgICAgNzgKICNkZWZpbmUgQ1g4OF9CT0FS
-RF9URVJSQVRFQ19DSU5FUkdZX0hUX1BDSV9NS0lJIDc5CiAjZGVmaW5lIENYODhfQk9BUkRf
-SEFVUFBBVUdFX0lST05MWSAgICAgICAgODAKKyNkZWZpbmUgQ1g4OF9CT0FSRF9XSU5GQVNU
-X0RUVjE4MDBIICAgICAgICA4MQogCiBlbnVtIGN4ODhfaXR5cGUgewogCUNYODhfVk1VWF9D
-T01QT1NJVEUxID0gMSwK
-
----------=_3BC2479D.46B47C6--
