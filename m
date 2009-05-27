@@ -1,126 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4627 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754522AbZELHD1 (ORCPT
+Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:1714 "EHLO
+	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757771AbZE0R6f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2009 03:03:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCH v2 0/7] [RFC] FM Transmitter (si4713) and another changes
-Date: Tue, 12 May 2009 09:03:18 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
-References: <1242034309-13448-1-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1242034309-13448-1-git-send-email-eduardo.valentin@nokia.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200905120903.18775.hverkuil@xs4all.nl>
+	Wed, 27 May 2009 13:58:35 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr3.xs4all.nl (8.13.8/8.13.8) with ESMTP id n4RHwV1M041168
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 27 May 2009 19:58:35 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 27 May 2009 19:58:31 +0200 (CEST)
+Message-Id: <200905271758.n4RHwV1M041168@smtp-vbr3.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 11 May 2009 11:31:42 Eduardo Valentin wrote:
-> Hello all,
->
-> It took a few but I'm resending the FM transmitter driver again.
-> Sorry for this delay, but I had another things to give attention.
->
-> Anyway, after reading the API and re-writing the code I came up
-> with the following 7 patches. Three of them are in the v4l2 API.
-> The other 4 are for the si4713 device.
->
-> It is because of the first 3 patches that I'm sending this as a RFC.
->
-> The first and second patches, as suggested before, are creating another
-> v4l2 extended controls class, the V4L2_CTRL_CLASS_FMTX. At this
-> first interaction, I've put all si4713 device extra properties there.
-> But I think that some of the can be moved to private class
-> (V4L2_CID_PRIVATE_BASE). That's the case of the region related things.
-> Comments are wellcome.
->
-> The third patch came *maybe* because I've misunderstood something. But
-> I realized that the v4l2-subdev helper functions for I2C devices assumes
-> that the bridge device will create an I2C adaptor. And in that case, only
-> I2C address and its type are suffient. But in this case, makes no sense
-> to me to create an adaptor for the si4713 platform device driver. This is
-> the case where the device (si4713) is connected to an existing adaptor.
-> That's why I've realized that currently there is no way to pass I2C board
-> info using the current v4l2 I2C helper functions. Other info like irq
-> line and platform data are not passed to subdevices. So, that's why I've
-> created that patch.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I've made several changes to the v4l2-subdev helpers: you now pass the i2c 
-adapter directly. I've also fixed the unregister code to properly 
-unregister any i2c client so you can safely rmmod and modprobe the i2c 
-module.
+Results of the daily build of v4l-dvb:
 
-What sort of platform data do you need to pass to the i2c driver? I have yet 
-to see a valid use case for this that can't be handled in a different way. 
-Remember that devices like this are not limited to fixed platforms, but can 
-also be used in USB or PCI devices.
+date:        Wed May 27 19:00:06 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11873:22fcdb8c1c36
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Regards,
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-rc7-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-rc7-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-rc7-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-rc7-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-rc7-m32r: OK
+linux-2.6.22.19-mips: ERRORS
+linux-2.6.26-mips: ERRORS
+linux-2.6.27-mips: ERRORS
+linux-2.6.28-mips: ERRORS
+linux-2.6.29.1-mips: ERRORS
+linux-2.6.30-rc7-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-rc7-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-rc7-x86_64: WARNINGS
+sparse (linux-2.6.29.1): OK
+sparse (linux-2.6.30-rc7): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-	Hans
+Detailed results are available here:
 
-> The remaining patches are the si4713 device driver itself. As suggested,
-> I've splited the driver into i2c driver and v4l2 radio driver. The first
-> one is exporting it self as a v4l2 subdev as well. Now it is composed by
-> the si4713.c and si4713-subdev.c. But in the future versions I think I'll
-> merge both and remove the si4713.c (by reducing lots of things), because
-> it was mainly designed to be used by the sysfs interface. I've also
-> keeped the sysfs interface (besides the extended control interface). The
-> v4l2 radio driver became a platform driver which is mainly a wrapper to
-> the I2C subdevice. Again here I've found some problem with the device
-> remove. Because, as the I2C helper function assumes the bridge device
-> will create an adaptor, then when the bridge removes the adaptor, its
-> devices will be removed as well. So, when re-inserting the driver,
-> registration will be good. However, if we use an existing adaptor, then
-> we need to remove the i2c client manually. Otherwise it will fail when
-> re-inserting the device.
->
-> As I said before, comments are wellcome. I'm mostly to be
-> misunderstanding something from the API.
->
-> BR,
->
-> Eduardo Valentin (7):
->   v4l2: video device: Add V4L2_CTRL_CLASS_FMTX controls
->   v4l2: video device: Add FMTX controls default configurations
->   v4l2_subdev i2c: Add i2c board info to v4l2_i2c_new_subdev
->   FMTx: si4713: Add files to handle si4713 i2c device
->   FMTx: si4713: Add files to add radio interface for si4713
->   FMTx: si4713: Add Kconfig and Makefile entries
->   FMTx: si4713: Add document file
->
->  Documentation/video4linux/si4713.txt |  132 ++
->  drivers/media/radio/Kconfig          |   22 +
->  drivers/media/radio/Makefile         |    3 +
->  drivers/media/radio/radio-si4713.c   |  345 ++++++
->  drivers/media/radio/radio-si4713.h   |   48 +
->  drivers/media/radio/si4713-subdev.c  | 1045 ++++++++++++++++
->  drivers/media/radio/si4713.c         | 2250
-> ++++++++++++++++++++++++++++++++++ drivers/media/radio/si4713.h         |
->  295 +++++
->  drivers/media/video/v4l2-common.c    |   99 ++-
->  include/linux/videodev2.h            |   45 +
->  include/media/v4l2-common.h          |    6 +
->  11 files changed, 4284 insertions(+), 6 deletions(-)
->  create mode 100644 Documentation/video4linux/si4713.txt
->  create mode 100644 drivers/media/radio/radio-si4713.c
->  create mode 100644 drivers/media/radio/radio-si4713.h
->  create mode 100644 drivers/media/radio/si4713-subdev.c
->  create mode 100644 drivers/media/radio/si4713.c
->  create mode 100644 drivers/media/radio/si4713.h
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
