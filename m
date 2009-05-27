@@ -1,37 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.176]:36570 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751071AbZEMW0e (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:38890 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759256AbZE0Jkv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2009 18:26:34 -0400
-Received: by wa-out-1112.google.com with SMTP id j5so369073wah.21
-        for <linux-media@vger.kernel.org>; Wed, 13 May 2009 15:26:35 -0700 (PDT)
-From: Vanessa Ezekowitz <vanessaezekowitz@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: Re: XC5000 improvements: call for testers!
-Date: Wed, 13 May 2009 17:26:32 -0500
-References: <412bdbff0905052114r7f481759r373fd0b814f458e@mail.gmail.com> <005f01c9d3fd$e2ee8980$0a00a8c0@vorg> <829197380905131224j7a709160jaeca4f21566e5ae7@mail.gmail.com>
-In-Reply-To: <829197380905131224j7a709160jaeca4f21566e5ae7@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200905131726.32406.vanessaezekowitz@gmail.com>
+	Wed, 27 May 2009 05:40:51 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv4 2 of 8] v4l2: video device: Add V4L2_CTRL_CLASS_FMTX controls
+Date: Wed, 27 May 2009 12:35:49 +0300
+Message-Id: <1243416955-29748-3-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1243416955-29748-2-git-send-email-eduardo.valentin@nokia.com>
+References: <1243416955-29748-1-git-send-email-eduardo.valentin@nokia.com>
+ <1243416955-29748-2-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed 13 May 2009 2:24:53 pm Devin wrote:
-> On Wed, May 13, 2009 at 3:04 PM, Timothy D. Lenz <tlenz@vorgon.com> wrote:
-> > So when this goes main, next time we update from v4l we need the new
-> > firmware right?
->
-> Yes.
->
-> Now that we have the licensing straightened out, I'll also be working
-> on getting it bundled into the distros so that users don't have to
-> download the firmware themselves.  They will get a true "plug and
-> play" experience.
+# HG changeset patch
+# User Eduardo Valentin <eduardo.valentin@nokia.com>
+# Date 1243414606 -10800
+# Branch export
+# Node ID ebb409d7a258df2bc7a6dcd72113584b4c0e7ce2
+# Parent  4fb354645426f8b187c2c90cd8528b2518461005
+This patch adds a new class of extended controls. This class
+is intended to support Radio Modulators properties such as:
+rds, audio limiters, audio compression, pilot tone generation,
+tuning power levels and region related properties.
 
-Devin, does this license/bundle arrangement also cover the firmware for 
-xc3028-based devices?
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ include/linux/videodev2.h |   34 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 34 insertions(+), 0 deletions(-)
+
+diff -r 4fb354645426 -r ebb409d7a258 linux/include/linux/videodev2.h
+--- a/linux/include/linux/videodev2.h	Wed May 27 11:56:45 2009 +0300
++++ b/linux/include/linux/videodev2.h	Wed May 27 11:56:46 2009 +0300
+@@ -803,6 +803,7 @@
+ #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
+ #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+ #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
++#define V4L2_CTRL_CLASS_FMTX 0x009b0000	/* FM Radio Modulator class controls */
+ 
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -1141,6 +1142,39 @@
+ 
+ #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
+ 
++/* FM Radio Modulator class control IDs */
++#define V4L2_CID_FMTX_CLASS_BASE		(V4L2_CTRL_CLASS_FMTX | 0x900)
++#define V4L2_CID_FMTX_CLASS			(V4L2_CTRL_CLASS_FMTX | 1)
++
++#define V4L2_CID_RDS_ENABLED			(V4L2_CID_FMTX_CLASS_BASE + 1)
++#define V4L2_CID_RDS_PI				(V4L2_CID_FMTX_CLASS_BASE + 2)
++#define V4L2_CID_RDS_PTY			(V4L2_CID_FMTX_CLASS_BASE + 3)
++#define V4L2_CID_RDS_PS_NAME			(V4L2_CID_FMTX_CLASS_BASE + 4)
++#define V4L2_CID_RDS_RADIO_TEXT			(V4L2_CID_FMTX_CLASS_BASE + 5)
++
++#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 6)
++#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 7)
++#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FMTX_CLASS_BASE + 8)
++
++#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FMTX_CLASS_BASE + 9)
++#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FMTX_CLASS_BASE + 10)
++#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FMTX_CLASS_BASE + 11)
++#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FMTX_CLASS_BASE + 12)
++#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FMTX_CLASS_BASE + 13)
++
++#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FMTX_CLASS_BASE + 14)
++#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FMTX_CLASS_BASE + 15)
++#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FMTX_CLASS_BASE + 16)
++
++#define V4L2_CID_PREEMPHASIS			(V4L2_CID_FMTX_CLASS_BASE + 17)
++enum v4l2_fmtx_preemphasis {
++	V4L2_FMTX_PREEMPHASIS_DISABLED		= 0,
++	V4L2_FMTX_PREEMPHASIS_50_uS		= 1,
++	V4L2_FMTX_PREEMPHASIS_75_uS		= 2,
++};
++#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FMTX_CLASS_BASE + 18)
++#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FMTX_CLASS_BASE + 19)
++
+ /*
+  *	T U N I N G
+  */
