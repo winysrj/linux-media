@@ -1,195 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:39768 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751783AbZEBDSk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 May 2009 23:18:40 -0400
-Date: Fri, 1 May 2009 22:18:38 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Greg Kroah-Hartman <gregkh@suse.de>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, Greg KH <greg@kroah.com>
-Subject: Re: [PATCH] media: remove driver_data direct access of struct device
-In-Reply-To: <20090430221808.GA18526@kroah.com>
-Message-ID: <Pine.LNX.4.64.0905012217170.15541@cnc.isely.net>
-References: <20090430221808.GA18526@kroah.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mail-pz0-f177.google.com ([209.85.222.177]:36815 "EHLO
+	mail-pz0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758574AbZE0LGP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 May 2009 07:06:15 -0400
+Received: by pzk7 with SMTP id 7so3573364pzk.33
+        for <linux-media@vger.kernel.org>; Wed, 27 May 2009 04:06:17 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.0905271207060.5154@axis700.grange>
+References: <Pine.LNX.4.64.0905271207060.5154@axis700.grange>
+Date: Wed, 27 May 2009 20:06:17 +0900
+Message-ID: <5e9665e10905270406v5357d9d1xfacb67be9c9ec2d6@mail.gmail.com>
+Subject: Re: Image filter controls
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Guennadi,
 
-Acked-By: Mike Isely <isely@pobox.com>
+In my opinion (in totally user aspect) those CIDs you mentioned do not
+fit in the purpose. Only low-pass filtering control could be
+considered as a colorfx, even though low-pass filtering is not a color
+effect it could be possible to sense the meaning of effect on it. How
+about making a new CID for band-stop filtering control and
+V4L2_COLORFX_BORDER_DENOISING for low-pass filter?
 
-Note #1: I am just acking the pvrusb2 part of this.
+BTW, would you give more information about "fluorescent light
+band-stop filter" in detail? Because if you mean flicker control
+caused by power line frequency, 50Hz...60Hz thing, I think we already
+have one for that. As far as I know, V4L2_CID_POWER_LINE_FREQUENCY is
+for that flickering control.
+Cheers,
 
-Note #2: I am immediately pulling the pvrusb2 part of these changes into 
-that driver.
-
-  -Mike
+Nate
 
 
-On Thu, 30 Apr 2009, Greg Kroah-Hartman wrote:
-
-> From: Greg Kroah-Hartman <gregkh@suse.de>
-> 
-> In the near future, the driver core is going to not allow direct access
-> to the driver_data pointer in struct device.  Instead, the functions
-> dev_get_drvdata() and dev_set_drvdata() should be used.  These functions
-> have been around since the beginning, so are backwards compatible with
-> all older kernel versions.
-> 
-> 
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-> 
+On Wed, May 27, 2009 at 7:16 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> Hi,
+>
+> I have to implement 2 filter controls: a boolean colour filter control to
+> switch a fluorescent light band-stop filter on and off, and an also
+> boolean control to switch a low-pass (border denoising, I think) filter. I
+> found the following two filters in the existing API:
+>
+>        case V4L2_CID_COLOR_KILLER:             return "Color Killer";
+>        case V4L2_CID_COLORFX:                  return "Color Effects";
+>
+> can I use one of them for the fluorescent light filter? Which one would be
+> more appropriate - COLOR_KILLER means switch to BW or only kill some
+> specific colour component? As for the low-pass filter, can I use
+>
+>        case V4L2_CID_SHARPNESS:                return "Sharpness";
+>
+> for it? Would it then be sharpness-off == filter-on? Or shall I add new
+> controls or use driver-private ones?
+>
+> Thanks
+> Guennadi
 > ---
->  drivers/media/dvb/firewire/firedtv-1394.c   |    4 ++--
->  drivers/media/dvb/firewire/firedtv-dvb.c    |    2 +-
->  drivers/media/video/pvrusb2/pvrusb2-sysfs.c |   22 +++++++++++-----------
->  3 files changed, 14 insertions(+), 14 deletions(-)
-> 
-> --- a/drivers/media/dvb/firewire/firedtv-1394.c
-> +++ b/drivers/media/dvb/firewire/firedtv-1394.c
-> @@ -225,7 +225,7 @@ fail_free:
->  
->  static int node_remove(struct device *dev)
->  {
-> -	struct firedtv *fdtv = dev->driver_data;
-> +	struct firedtv *fdtv = dev_get_drvdata(dev);
->  
->  	fdtv_dvb_unregister(fdtv);
->  
-> @@ -242,7 +242,7 @@ static int node_remove(struct device *de
->  
->  static int node_update(struct unit_directory *ud)
->  {
-> -	struct firedtv *fdtv = ud->device.driver_data;
-> +	struct firedtv *fdtv = dev_get_drvdata(&ud->device);
->  
->  	if (fdtv->isochannel >= 0)
->  		cmp_establish_pp_connection(fdtv, fdtv->subunit,
-> --- a/drivers/media/dvb/firewire/firedtv-dvb.c
-> +++ b/drivers/media/dvb/firewire/firedtv-dvb.c
-> @@ -268,7 +268,7 @@ struct firedtv *fdtv_alloc(struct device
->  	if (!fdtv)
->  		return NULL;
->  
-> -	dev->driver_data	= fdtv;
-> +	dev_set_drvdata(dev, fdtv);
->  	fdtv->device		= dev;
->  	fdtv->isochannel	= -1;
->  	fdtv->voltage		= 0xff;
-> --- a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
-> +++ b/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
-> @@ -539,7 +539,7 @@ static void class_dev_destroy(struct pvr
->  					 &sfp->attr_unit_number);
->  	}
->  	pvr2_sysfs_trace("Destroying class_dev id=%p",sfp->class_dev);
-> -	sfp->class_dev->driver_data = NULL;
-> +	dev_set_drvdata(sfp->class_dev, NULL);
->  	device_unregister(sfp->class_dev);
->  	sfp->class_dev = NULL;
->  }
-> @@ -549,7 +549,7 @@ static ssize_t v4l_minor_number_show(str
->  				     struct device_attribute *attr, char *buf)
->  {
->  	struct pvr2_sysfs *sfp;
-> -	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
-> +	sfp = dev_get_drvdata(class_dev);
->  	if (!sfp) return -EINVAL;
->  	return scnprintf(buf,PAGE_SIZE,"%d\n",
->  			 pvr2_hdw_v4l_get_minor_number(sfp->channel.hdw,
-> @@ -561,7 +561,7 @@ static ssize_t bus_info_show(struct devi
->  			     struct device_attribute *attr, char *buf)
->  {
->  	struct pvr2_sysfs *sfp;
-> -	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
-> +	sfp = dev_get_drvdata(class_dev);
->  	if (!sfp) return -EINVAL;
->  	return scnprintf(buf,PAGE_SIZE,"%s\n",
->  			 pvr2_hdw_get_bus_info(sfp->channel.hdw));
-> @@ -572,7 +572,7 @@ static ssize_t hdw_name_show(struct devi
->  			     struct device_attribute *attr, char *buf)
->  {
->  	struct pvr2_sysfs *sfp;
-> -	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
-> +	sfp = dev_get_drvdata(class_dev);
->  	if (!sfp) return -EINVAL;
->  	return scnprintf(buf,PAGE_SIZE,"%s\n",
->  			 pvr2_hdw_get_type(sfp->channel.hdw));
-> @@ -583,7 +583,7 @@ static ssize_t hdw_desc_show(struct devi
->  			     struct device_attribute *attr, char *buf)
->  {
->  	struct pvr2_sysfs *sfp;
-> -	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
-> +	sfp = dev_get_drvdata(class_dev);
->  	if (!sfp) return -EINVAL;
->  	return scnprintf(buf,PAGE_SIZE,"%s\n",
->  			 pvr2_hdw_get_desc(sfp->channel.hdw));
-> @@ -595,7 +595,7 @@ static ssize_t v4l_radio_minor_number_sh
->  					   char *buf)
->  {
->  	struct pvr2_sysfs *sfp;
-> -	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
-> +	sfp = dev_get_drvdata(class_dev);
->  	if (!sfp) return -EINVAL;
->  	return scnprintf(buf,PAGE_SIZE,"%d\n",
->  			 pvr2_hdw_v4l_get_minor_number(sfp->channel.hdw,
-> @@ -607,7 +607,7 @@ static ssize_t unit_number_show(struct d
->  				struct device_attribute *attr, char *buf)
->  {
->  	struct pvr2_sysfs *sfp;
-> -	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
-> +	sfp = dev_get_drvdata(class_dev);
->  	if (!sfp) return -EINVAL;
->  	return scnprintf(buf,PAGE_SIZE,"%d\n",
->  			 pvr2_hdw_get_unit_number(sfp->channel.hdw));
-> @@ -635,7 +635,7 @@ static void class_dev_create(struct pvr2
->  	class_dev->parent = &usb_dev->dev;
->  
->  	sfp->class_dev = class_dev;
-> -	class_dev->driver_data = sfp;
-> +	dev_set_drvdata(class_dev, sfp);
->  	ret = device_register(class_dev);
->  	if (ret) {
->  		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
-> @@ -792,7 +792,7 @@ static ssize_t debuginfo_show(struct dev
->  			      struct device_attribute *attr, char *buf)
->  {
->  	struct pvr2_sysfs *sfp;
-> -	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
-> +	sfp = dev_get_drvdata(class_dev);
->  	if (!sfp) return -EINVAL;
->  	pvr2_hdw_trigger_module_log(sfp->channel.hdw);
->  	return pvr2_debugifc_print_info(sfp->channel.hdw,buf,PAGE_SIZE);
-> @@ -803,7 +803,7 @@ static ssize_t debugcmd_show(struct devi
->  			     struct device_attribute *attr, char *buf)
->  {
->  	struct pvr2_sysfs *sfp;
-> -	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
-> +	sfp = dev_get_drvdata(class_dev);
->  	if (!sfp) return -EINVAL;
->  	return pvr2_debugifc_print_status(sfp->channel.hdw,buf,PAGE_SIZE);
->  }
-> @@ -816,7 +816,7 @@ static ssize_t debugcmd_store(struct dev
->  	struct pvr2_sysfs *sfp;
->  	int ret;
->  
-> -	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
-> +	sfp = dev_get_drvdata(class_dev);
->  	if (!sfp) return -EINVAL;
->  
->  	ret = pvr2_debugifc_docmd(sfp->channel.hdw,buf,count);
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
 
 -- 
-
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
