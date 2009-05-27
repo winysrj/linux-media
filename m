@@ -1,61 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:59188 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1762131AbZEAV0D (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 1 May 2009 17:26:03 -0400
-Date: Fri, 1 May 2009 23:26:02 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
-cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Johnson, Charles F" <charles.f.johnson@intel.com>,
-	"Zhu, Daniel" <daniel.zhu@intel.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 0/5] V4L2 patches for Intel Moorestown Camera Imaging
- Drivers
-In-Reply-To: <0A882F4D99BBF6449D58E61AAFD7EDD613793923@pdsmsx502.ccr.corp.intel.com>
-Message-ID: <Pine.LNX.4.64.0905012324190.11081@axis700.grange>
-References: <90b950fc0904292317m500820efv66755aed31b46853@mail.gmail.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB030548BA1B@dbde02.ent.ti.com>
- <0A882F4D99BBF6449D58E61AAFD7EDD613793923@pdsmsx502.ccr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from bombadil.infradead.org ([18.85.46.34]:53139 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932246AbZE0Siw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 May 2009 14:38:52 -0400
+Date: Wed, 27 May 2009 15:38:48 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+Cc: linux-media@vger.kernel.org, phil.lemelin@gmail.com
+Subject: Re: Fwd: [Linux-uvc-devel] Compilation error
+Message-ID: <20090527153848.1dfb85e7@pedra.chehab.org>
+In-Reply-To: <200905270157.55653.laurent.pinchart@skynet.be>
+References: <200905270157.55653.laurent.pinchart@skynet.be>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 30 Apr 2009, Zhang, Xiaolin wrote:
+Em Wed, 27 May 2009 01:57:55 +0200
+Laurent Pinchart <laurent.pinchart@skynet.be> escreveu:
 
-> Hi All,
+> Hi everybody,
 > 
-> Here is the a set of V4L2 camera sensors and ISP drivers to support the 
-> Intel Moorestown camera imaging subsystem. The Camera Imaging interface 
-> in Moorestown is responsible for capturing both still and video frames. 
-> The CI handles demosaicing, color synthesis, filtering, image 
-> enhancement functions and JPEG encode. Intel Moorestown platform can 
-> support either a single camera or two cameras. A platform with two 
-> cameras will have on the same side as this display and the second on the 
-> opposite side the display. The camera on the display side will be used 
-> for video conferencing (with low resolution SoC cameras) and the other 
-> camera is used to still image capture or video recode (with high 
-> resolution RAW cameras).
+> ----------  Forwarded Message  ----------
 > 
-> In this set of driver patches, I will submit the 5 patches to enable the 
-> ISP HW and 3 cameras module (two SoCs: 1.3MP - Omnivision 9665, 2MP - 
-> Omnivison 2650 and one RAW: 5MP - Omnivision 5630).
-> 1. Intel Moorestown ISP driver.
-> 2. Intel Moorestown camera sensor pseudo driver. This is to uniform the 
-> interfaces for ISP due to supporting dual cameras.
-> 3. Intel Moorestown 2MP camera sensor driver.
-> 4. Intel Moorestown 5MP camera sensor driver.
-> 5. Intel Moorestown 1.3MP camera sensor driver.
+> Subject: [Linux-uvc-devel] Compilation error
+> Date: Tuesday 26 May 2009
+> From: Phil Lemelin
+> To: linux-uvc-devel@lists.berlios.de
 > 
-> I will post the above 5 patches in near feature.
+> Hi uvc-devel list,
+> 
+> I'm trying to get my usb camera to work ( 174f:8a34 Syntek ) on a older
+> system ( 2.6.18-6, debian etch ) and I am not able to compile the source
+> code found on the HG repository. The error I get is the following :
+> 
+> >
+> > *snip*
+> > CC [M]  /home/phil/uvcvideo-b7cdedd8e305/v4l/av7110_hw.o
+> > /home/phil/uvcvideo-b7cdedd8e305/v4l/av7110_hw.c:294: error: expected
+> > declaration specifiers or '...' before string constant
+> > /home/phil/uvcvideo-b7cdedd8e305/v4l/av7110_hw.c:294: warning: data
+> > definition has no type or storage class
+> > /home/phil/uvcvideo-b7cdedd8e305/v4l/av7110_hw.c:294: warning: type
+> > defaults to 'int' in declaration of 'MODULE_FIRMWARE'
+> > /home/phil/uvcvideo-b7cdedd8e305/v4l/av7110_hw.c:294: warning: function
+> > declaration isn't a prototype
+> > make[3]: *** [/home/phil/uvcvideo-b7cdedd8e305/v4l/av7110_hw.o] Error 1
+> > make[2]: *** [_module_/home/phil/uvcvideo-b7cdedd8e305/v4l] Error 2
+> > make[2]: Leaving directory `/usr/src/linux-headers-2.6.18-6-686'
+> > make[1]: *** [default] Error 2
+> > make[1]: Leaving directory `/home/phil/uvcvideo-b7cdedd8e305/v4l'
+> > make: *** [all] Error 2
+> >
+> 
+> -------------------------------------------------------
+> 
+> Is an update to v4l/versions.txt needed ?
 
-I think this is a perfect candidate for the use of the v4l2-(sub)dev API, 
-and should be converted to use it, am I right?
+I just applied a patch at tip that restores compilation with legacy kernels,
+tested here with a RHEL5 kernel (a patched version of 2.6.16)
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+
+
+Cheers,
+Mauro
