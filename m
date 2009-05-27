@@ -1,41 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sbevan.dsl.xmission.com ([166.70.26.173]:33328 "EHLO
-	nebo.bevan.us" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754721AbZEZT6y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2009 15:58:54 -0400
-Received: from [192.168.0.4] (scottfam.dsl.xmission.com [166.70.240.45])
-	by nebo.bevan.us (Postfix) with ESMTP id C9BA6486E23
-	for <linux-media@vger.kernel.org>; Tue, 26 May 2009 13:51:14 -0600 (MDT)
-Subject: RFC - Locking resources between V4L and DVB interfaces
-From: Rusty Scott <rustys@ieee.org>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Tue, 26 May 2009 13:51:15 -0600
-Message-Id: <1243367475.15846.19.camel@godzilla>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([192.100.105.134]:38861 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758942AbZE0Jkm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 May 2009 05:40:42 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv4 1 of 8] v4l2_subdev i2c: Add v4l2_i2c_new_subdev_board i2c helper function
+Date: Wed, 27 May 2009 12:35:48 +0300
+Message-Id: <1243416955-29748-2-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1243416955-29748-1-git-send-email-eduardo.valentin@nokia.com>
+References: <1243416955-29748-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello all,
-I talked to Mauro offline about this issue and he indicated that it was
-an area that could use some attention.  So I have decided to take this
-issue on and am looking for comments about how this should work.
+# HG changeset patch
+# User Eduardo Valentin <eduardo.valentin@nokia.com>
+# Date 1243414605 -10800
+# Branch export
+# Node ID 4fb354645426f8b187c2c90cd8528b2518461005
+# Parent  142fd6020df3b4d543068155e49a2618140efa49
+Device drivers of v4l2_subdev devices may want to have
+board specific data. This patch adds an helper function
+to allow bridge drivers to pass board specific data to
+v4l2_subdev drivers.
 
-Issue: The DVB and V4L interfaces are considered different devices from
-a system standpoint.  However they often share a hardware resource, such
-as a tuner, on many cards.  There is currently no locking on the shared
-resource, so one interface could interfere with the resources already in
-use by the other.
+For those drivers which need to support kernel versions
+bellow 2.6.26, a .s_config callback was added. The
+idea of this callback is to pass board configuration
+as well. In that case, subdev driver should set .s_config
+properly, because v4l2_i2c_new_subdev_board will call
+the .s_config directly. Of course, if we are >= 2.6.26,
+the same data will be passed through i2c board info as well.
 
-My experience in the code tree and API are not very in depth.  I've only
-helped maintain some card specific code to this point.  I'm looking for
-comments and information on various ways to accomplish this and possible
-gotchas to watch out for.  Any pointers, suggestions or other help on
-this would be appreciated.
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ drivers/media/linux/video/v4l2-common.c |   37 +++++++++++++++++++++++++++++++++++--
+ include/media/linux/v4l2-common.h       |    8 ++++++++
+ include/media/linux/v4l2-subdev.h       |    1 +
+ 3 files changed, 44 insertions(+), 2 deletions(-)
 
-Thanks,
-
-Rusty
-
-
+diff -r 142fd6020df3 -r 4fb354645426 linux/drivers/media/video/v4l2-common.c
+--- a/linux/drivers/media/video/v4l2-common.c	Mon May 18 02:31:55 2009 +0000
++++ b/linux/drivers/media/video/v4l2-common.c	Wed May 27 11:56:45 2009 +0300
+@@ -819,9 +819,10 @@
+ 
+ 
+ /* Load an i2c sub-device. */
+-struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
++static struct v4l2_subdev *__v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
+ 		struct i2c_adapter *adapter,
+-		const char *module_name, const char *client_type, u8 addr)
++		const char *module_name, const char *client_type, u8 addr,
++		int irq, void *platform_data)
+ {
+ 	struct v4l2_subdev *sd = NULL;
+ 	struct i2c_client *client;
+@@ -840,6 +841,8 @@
+ 	memset(&info, 0, sizeof(info));
+ 	strlcpy(info.type, client_type, sizeof(info.type));
+ 	info.addr = addr;
++	info.irq = irq;
++	info.platform_data = platform_data;
+ 
+ 	/* Create the i2c client */
+ 	client = i2c_new_device(adapter, &info);
+@@ -877,8 +880,38 @@
+ #endif
+ 	return sd;
+ }
++
++struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
++		struct i2c_adapter *adapter,
++		const char *module_name, const char *client_type, u8 addr)
++{
++	return __v4l2_i2c_new_subdev(v4l2_dev, adapter, module_name,
++		client_type, addr, 0, NULL);
++}
+ EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev);
+ 
++struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
++		struct i2c_adapter *adapter,
++		const char *module_name, const char *client_type, u8 addr,
++		int irq, void *platform_data)
++{
++	struct v4l2_subdev *sd;
++	int err = 0;
++
++	sd = __v4l2_i2c_new_subdev(v4l2_dev, adapter, module_name, client_type,
++					addr, irq, platform_data);
++
++	/*
++	 * We return errors from v4l2_subdev_call only if we have the callback
++	 * as the .s_config is not mandatory
++	 */
++	if (sd && sd->ops && sd->ops->core && sd->ops->core->s_config)
++		err = sd->ops->core->s_config(sd, irq, platform_data);
++
++	return err < 0 ? NULL : sd;
++}
++EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev_board);
++
+ /* Probe and load an i2c sub-device. */
+ struct v4l2_subdev *v4l2_i2c_new_probed_subdev(struct v4l2_device *v4l2_dev,
+ 	struct i2c_adapter *adapter,
+diff -r 142fd6020df3 -r 4fb354645426 linux/include/media/v4l2-common.h
+--- a/linux/include/media/v4l2-common.h	Mon May 18 02:31:55 2009 +0000
++++ b/linux/include/media/v4l2-common.h	Wed May 27 11:56:45 2009 +0300
+@@ -147,6 +147,14 @@
+ struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
+ 		struct i2c_adapter *adapter,
+ 		const char *module_name, const char *client_type, u8 addr);
++/*
++ * Same as v4l2_i2c_new_subdev, but with the opportunity to configure
++ * subdevice with board specific data (irq and platform_data).
++ */
++struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
++		struct i2c_adapter *adapter,
++		const char *module_name, const char *client_type, u8 addr,
++		int irq, void *platform_data);
+ /* Probe and load an i2c module and return an initialized v4l2_subdev struct.
+    Only call request_module if module_name != NULL.
+    The client_type argument is the name of the chip that's on the adapter. */
+diff -r 142fd6020df3 -r 4fb354645426 linux/include/media/v4l2-subdev.h
+--- a/linux/include/media/v4l2-subdev.h	Mon May 18 02:31:55 2009 +0000
++++ b/linux/include/media/v4l2-subdev.h	Wed May 27 11:56:45 2009 +0300
+@@ -96,6 +96,7 @@
+ struct v4l2_subdev_core_ops {
+ 	int (*g_chip_ident)(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip);
+ 	int (*log_status)(struct v4l2_subdev *sd);
++	int (*s_config)(struct v4l2_subdev *sd, int irq, void *platform_data);
+ 	int (*init)(struct v4l2_subdev *sd, u32 val);
+ 	int (*load_fw)(struct v4l2_subdev *sd);
+ 	int (*reset)(struct v4l2_subdev *sd, u32 val);
