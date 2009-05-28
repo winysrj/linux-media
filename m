@@ -1,107 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-09.arcor-online.net ([151.189.21.49]:58578 "EHLO
-	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1749667AbZERECG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 18 May 2009 00:02:06 -0400
-Subject: Re: [PATCH]saa7134-video.c: poll method lose race condition
-From: hermann pitton <hermann-pitton@arcor.de>
-To: "figo.zhang" <figo.zhang@kolorific.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>, g.liakhovetski@gmx.de,
-	linux-media@vger.kernel.org, figo1802@126.com, kraxel@bytesex.org,
-	Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <1242618805.3442.45.camel@myhost>
-References: <1242612794.3442.19.camel@myhost>
-	 <1242616075.3747.20.camel@pc07.localdom.local>
-	 <1242618805.3442.45.camel@myhost>
-Content-Type: text/plain
-Date: Mon, 18 May 2009 05:49:01 +0200
-Message-Id: <1242618541.3747.26.camel@pc07.localdom.local>
+Received: from sh.osrg.net ([192.16.179.4]:56492 "EHLO sh.osrg.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760100AbZE1BLB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 27 May 2009 21:11:01 -0400
+Date: Thu, 28 May 2009 10:10:43 +0900
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	akpm@linux-foundation.org
+Subject: [PATCH] vino: replace dma_sync_single with dma_sync_single_for_cpu
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Message-Id: <20090528100938I.fujita.tomonori@lab.ntt.co.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This replaces dma_sync_single() with dma_sync_single_for_cpu() because
+dma_sync_single() is an obsolete API; include/linux/dma-mapping.h says:
 
-Am Montag, den 18.05.2009, 11:53 +0800 schrieb figo.zhang:
-> On Mon, 2009-05-18 at 05:07 +0200, hermann pitton wrote:
-> > Am Montag, den 18.05.2009, 10:13 +0800 schrieb figo.zhang:
-> > > saa7134-video.c: poll method lose race condition
-> > > 
-> > > 
-> > > Signed-off-by: Figo.zhang <figo.zhang@kolorific.com>
-> > > --- 
-> > > drivers/media/video/saa7134/saa7134-video.c |    9 ++++++---
-> > >  1 files changed, 6 insertions(+), 3 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/video/saa7134/saa7134-video.c b/drivers/media/video/saa7134/saa7134-video.c
-> > > index 493cad9..95733df 100644
-> > > --- a/drivers/media/video/saa7134/saa7134-video.c
-> > > +++ b/drivers/media/video/saa7134/saa7134-video.c
-> > > @@ -1423,11 +1423,13 @@ video_poll(struct file *file, struct poll_table_struct *wait)
-> > >  {
-> > >  	struct saa7134_fh *fh = file->private_data;
-> > >  	struct videobuf_buffer *buf = NULL;
-> > > +	unsigned int rc = 0;
-> > >  
-> > >  	if (V4L2_BUF_TYPE_VBI_CAPTURE == fh->type)
-> > >  		return videobuf_poll_stream(file, &fh->vbi, wait);
-> > >  
-> > >  	if (res_check(fh,RESOURCE_VIDEO)) {
-> > > +		mutex_lock(&fh->cap.vb_lock);
-> > >  		if (!list_empty(&fh->cap.stream))
-> > >  			buf = list_entry(fh->cap.stream.next, struct videobuf_buffer, stream);
-> > >  	} else {
-> > > @@ -1446,13 +1448,14 @@ video_poll(struct file *file, struct poll_table_struct *wait)
-> > >  	}
-> > >  
-> > >  	if (!buf)
-> > > -		return POLLERR;
-> > > +		rc = POLLERR;
-> > >  
-> > >  	poll_wait(file, &buf->done, wait);
-> > >  	if (buf->state == VIDEOBUF_DONE ||
-> > >  	    buf->state == VIDEOBUF_ERROR)
-> > > -		return POLLIN|POLLRDNORM;
-> > > -	return 0;
-> > > +		rc = POLLIN|POLLRDNORM;
-> > > +	mutex_unlock(&fh->cap.vb_lock);
-> > > +	return rc;
-> > >  
-> > >  err:
-> > >  	mutex_unlock(&fh->cap.vb_lock);
-> > > 
-> > > 
-> > 
-> > Can you please give some description on what your patch might do
-> > something?
-> > 
-> > Or are you a robot?
-> > 
-> > Then, please give us your serial number, production year, and when we
-> > can expect you are out of duty and replaced ;)
-> > 
-> > Cheers,
-> > Hermann
-> > 
-> > 
-> > 
-> 
-> hi, I just using the saa7134 chip to do a video capture card. The
-> saa7134 driver in linux kernel, i found that the poll method have lose 
-> race condition for "RESOURCE_VIDEO". It have better to add a mutex lock.
-> 
+/* Backwards compat, remove in 2.7.x */
+#define dma_sync_single		dma_sync_single_for_cpu
+#define dma_sync_sg		dma_sync_sg_for_cpu
 
-OK then, but better stay away from the core files.
+Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+---
+ drivers/media/video/vino.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-On what kernel this is?
-
-Give us some copy/paste "dmesg" output for your card with "i2c_scan=1".
-Don't lose tuner stuff on this.
-
-Thanks,
-Hermann
-
-
-
+diff --git a/drivers/media/video/vino.c b/drivers/media/video/vino.c
+index 43e0998..97b082f 100644
+--- a/drivers/media/video/vino.c
++++ b/drivers/media/video/vino.c
+@@ -868,9 +868,9 @@ static void vino_sync_buffer(struct vino_framebuffer *fb)
+ 	dprintk("vino_sync_buffer():\n");
+ 
+ 	for (i = 0; i < fb->desc_table.page_count; i++)
+-		dma_sync_single(NULL,
+-				fb->desc_table.dma_cpu[VINO_PAGE_RATIO * i],
+-				PAGE_SIZE, DMA_FROM_DEVICE);
++		dma_sync_single_for_cpu(NULL,
++					fb->desc_table.dma_cpu[VINO_PAGE_RATIO * i],
++					PAGE_SIZE, DMA_FROM_DEVICE);
+ }
+ 
+ /* Framebuffer fifo functions (need to be locked externally) */
+-- 
+1.6.0.6
 
