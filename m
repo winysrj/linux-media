@@ -1,65 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:49101 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754010AbZEORTa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 May 2009 13:19:30 -0400
-Date: Fri, 15 May 2009 19:19:43 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Darius Augulis <augulis.darius@gmail.com>,
-	Paul Mundt <lethal@linux-sh.org>
-Subject: [PATCH 05/10 v2] sh: soc-camera updates
-In-Reply-To: <Pine.LNX.4.64.0905151817070.4658@axis700.grange>
-Message-ID: <Pine.LNX.4.64.0905151827210.4658@axis700.grange>
-References: <Pine.LNX.4.64.0905151817070.4658@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from fg-out-1718.google.com ([72.14.220.157]:28664 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752788AbZE1Uo3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 May 2009 16:44:29 -0400
+Received: by fg-out-1718.google.com with SMTP id 16so2096501fgg.17
+        for <linux-media@vger.kernel.org>; Thu, 28 May 2009 13:44:30 -0700 (PDT)
+Subject: [patch 0/4] Patches for dsbr100 radio
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Linux Media <linux-media@vger.kernel.org>
+Cc: Douglas Schilling Landgraf <dougsland@gmail.com>
+Content-Type: text/plain
+Date: Fri, 29 May 2009 00:44:22 +0400
+Message-Id: <1243543463.6713.40.camel@tux.localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update ap325rxa to specify .bus_id in struct soc_camera_link explicitly, remove
-unused .iface from struct soc_camera_platform_info.
+There was discussion on maillist about lock/unlock_kernel, about
+open/close functions and about radio->users counter. So, there are
+patches arised from that discussion.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+There is suspend/resume procedure fix in patch 4/4.
 
-Paul, you certainly could take this one, as well as a couple others, but 
-maybe easier to push them all together.
+Here is description of patches:
 
- arch/sh/boards/board-ap325rxa.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+[1/4] dsbr100: remove radio->users counter
+Patch removes radio->users counter because it is not in use.
 
-diff --git a/arch/sh/boards/board-ap325rxa.c b/arch/sh/boards/board-ap325rxa.c
-index ac964e4..f644ad7 100644
---- a/arch/sh/boards/board-ap325rxa.c
-+++ b/arch/sh/boards/board-ap325rxa.c
-@@ -308,7 +308,6 @@ static int ap325rxa_camera_add(struct soc_camera_link *icl, struct device *dev);
- static void ap325rxa_camera_del(struct soc_camera_link *icl);
- 
- static struct soc_camera_platform_info camera_info = {
--	.iface = 0,
- 	.format_name = "UYVY",
- 	.format_depth = 16,
- 	.format = {
-@@ -321,6 +320,7 @@ static struct soc_camera_platform_info camera_info = {
- 	SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_MASTER | SOCAM_DATAWIDTH_8,
- 	.set_capture = camera_set_capture,
- 	.link = {
-+		.bus_id		= 0,
- 		.add_device	= ap325rxa_camera_add,
- 		.del_device	= ap325rxa_camera_del,
- 	},
-@@ -421,6 +421,7 @@ static struct ov772x_camera_info ov7725_info = {
- 	.flags		= OV772X_FLAG_VFLIP | OV772X_FLAG_HFLIP,
- 	.edgectrl	= OV772X_AUTO_EDGECTRL(0xf, 0),
- 	.link = {
-+		.bus_id		= 0,
- 		.power		= ov7725_power,
- 		.board_info	= &ap325rxa_i2c_camera[0],
- 		.i2c_adapter_id	= 0,
+[2/4] dsbr100: remove usb_dsbr100_open/close calls
+Patch removes usb_dsbr100_open and usb_dsbr100_close calls.
+1. No need to start, set frequency, adjust parameters in open call.
+2. This patch tackles issue with lock/unlock_kernel() in open call.
+3. With this patch feature "Mute on exit?" in gnomeradio works.
+
+[3/4] dsbr100: no need to pass curfreq value to dsbr100_setfreq()
+Small cleanup of dsbr100_setfreq(). No need to pass radio->curfreq value
+to this function.
+
+[4/4] dsbr100: change radio->muted to radio->status, update
+suspend/resume
+Patch renames radio->muted to radio->status, add defines for that
+variable, and fixes suspend/resume procedure. Radio->status set to
+STOPPED in usb_dsbr100_probe because of removing open call.
+Also, patch increases driver version.
+
+Tested on i686 and x86_64 machines with gnomeradio, mplayer and kradio
+under 2.6.30-rc7 kernel.
+
 -- 
-1.6.2.4
+Best regards, Klimov Alexey
 
