@@ -1,86 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f174.google.com ([209.85.218.174]:40800 "EHLO
-	mail-bw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751509AbZEWKEM (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.239]:55870 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751367AbZE1XbI convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 May 2009 06:04:12 -0400
-Received: by bwz22 with SMTP id 22so2075525bwz.37
-        for <linux-media@vger.kernel.org>; Sat, 23 May 2009 03:04:11 -0700 (PDT)
-Message-ID: <4A17C9F7.8050800@gmail.com>
-Date: Sat, 23 May 2009 12:03:35 +0200
-From: David Lister <foceni@gmail.com>
+	Thu, 28 May 2009 19:31:08 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so14341rvb.5
+        for <linux-media@vger.kernel.org>; Thu, 28 May 2009 16:31:10 -0700 (PDT)
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Goga777 <goga777@bk.ru>, linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Most stable DVB-S2 PCI Card?
-References: <53876.82.95.219.165.1243013567.squirrel@webmail.xs4all.nl>	 <1a297b360905221048p5a7c548anbdef992b5a1a697d@mail.gmail.com>	 <20090522234201.4ee5cf47@bk.ru>	 <1a297b360905221325r46432d02g8a97b1361e7958ac@mail.gmail.com>	 <4A171985.3090205@gmail.com>	 <1a297b360905221438n7dfb55a9uec1f1ce119bd8d74@mail.gmail.com>	 <4A178ED3.5050806@gmail.com> <1a297b360905222337r1b65bbe7n65578d1991348b9@mail.gmail.com>
-In-Reply-To: <1a297b360905222337r1b65bbe7n65578d1991348b9@mail.gmail.com>
+In-Reply-To: <200905282321.17931.hverkuil@xs4all.nl>
+References: <5e9665e10905280420x73ebc7ean5c029b131e6b7e8c@mail.gmail.com>
+	 <200905282321.17931.hverkuil@xs4all.nl>
+Date: Fri, 29 May 2009 08:31:10 +0900
+Message-ID: <5e9665e10905281631t5bd844btbba5f744f3fb8c30@mail.gmail.com>
+Subject: Re: About s_stream in v4l2-subdev
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"dongsoo45.kim@samsung.com" <dongsoo45.kim@samsung.com>,
+	=?EUC-KR?B?uc66tMij?= <bhmin@samsung.com>,
+	=?EUC-KR?B?sejH/MHYILHo?= <riverful.kim@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Manu Abraham wrote:
-> On Sat, May 23, 2009 at 9:51 AM, David Lister <foceni@gmail.com> wrote:
->   
->> This point is moot in the first place, mate. Especially in USA (original
->> poster), where it'll take twice the time to reach those rates on DVB-S2.
->> All current 45 MS/s transponders are QPSK, at least as far as I can
->> tell. Even if that "technology preview" 8PSK transponder of yours
->> existed (somewhere above Asia), it's hardly a reason to buy
->> Linux-unstable cards in EU or USA.
->>     
-> Have you tried the card, to state that it is unstable ? I would like
-> to know the basis
-> for your comments to state that it is unstable.
->   
+Thank you Hans,
+Regards,
 
-I was not talking specifically about TT-1600, but with your drivers
-being relatively young, not in wide use, and you being the only
-developer (right?), it's common sense to assume that they are not as
-stable as e.g. cx88. Also considering the fact that none of these
-drivers even report signal stats properly. Then, of course, there's my
-recent experience with your SkyStar HD2 driver. :) You have to
-understand that me, in this case just a common user, do not wish to
-invest into a product with an unfinished driver. If it was for me, I
-wouldn't really care, but with the whole family using the HTPC...
+Nate
 
-I didn't want to write a long mail, but here goes:
-
-The TechnoTrend company, as of Februay 2009, doesn't exists any more.
-*It is bankrupt*. First, its owner Novabase sold as many of its shares
-as it could in 2007, in hope that the proceeds would allow TechnoTrend
-to get back on track. No such luck. A few months back this year, the
-company was finally dumped and sold as a whole to some German telco
-company in the Kathrein Group for liquidation, because of the tremendous
-drop in it's market value and forthcoming bankruptcy. This might also be
-of some interest to prospective buyers of it's former products. :) I
-don't want to search for all the press releases, but you can verify this
-claim here:
-http://www.euronext.com/fic/000/044/480/444806.pdf
-
-Nevertheless, I tried to get the data-sheet for this dead product from
-their closed down & discontinued sites. Google cache is a great thing, I
-managed to find TechnoTrend's S2-1600 data-sheet PDF:
-http://www.pt.technotrend.com/Dokumente/87/Manuals_PC/specs_eng/TechSpec_S2-1600_engl.pdf
-
-As much as I'd like to believe your "S2-1600 supports 63 MS/s", I cannot
-ignore the fact that the manufacturer disagrees with you:
-DVB-S: 2 - 45 MS/s
-DVB-S2: 10 - 30 MS/s
-
-Pretty standard specs, if you ask me. Obviously, you must have proven
-the *manufacturer* wrong by verifying your claim in practice. I just
-wonder how you did it, when no existing DVB-S2 transponder uses rates
-over 30 MS/s. Wasn't it perhaps just some "dry" testing without any
-signal, like gradually raising the HW parameters and sniffing for smoke? :)
-
-That's all I had to say. I know that the TT bankruptcy thing is
-irrelevant in a technical discussion, but it is important nonetheless. I
-wouldn't recommend TT products, nor SkyStar HD2, which is kinda infamous
-on some EU sat forums (not only in connection with Linux).
+On Fri, May 29, 2009 at 6:21 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Thursday 28 May 2009 13:20:15 Dongsoo, Nathaniel Kim wrote:
+>> Hello everyone,
+>>
+>> I'm doing my driver job with kernel 2.6.30-rc6, trying to figure out
+>> how to convert my old drivers to v4l2-subdev framework. Looking into
+>> the v4l2-subdev.h file an interesting API popped up and can't find any
+>> precise comment about that. It is "s_stream" in v4l2_subdev_video_ops.
+>> I think I found this api in the very nick of time, if the purpose of
+>> that api  is exactly what I need. Actually, I was trying to make my
+>> sub device to get streamon and streamoff command from the device side,
+>> and I wish the "s_stream" is that for. Because in case of camera
+>> module with embedded JPEG encoder, it is necessary to make the camera
+>> module be aware of the exact moment of streamon to pass the encoded
+>> data to camera interface. (many of camera ISPs can't stream out
+>> continuous frame of JPEG data, so we have only one chance  of shot).
+>> Is the s_stream for streamon purpose in subdev? (I hope so...finger
+>> crossed) Cheers,
+>
+> Yes it is. It is for subdevs that need to implement VIDIOC_STREAMON and
+> VIDIOC_STREAMOFF.
+>
+> Regards,
+>
+>        Hans
+>
+>
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+>
 
 
-See you around,
+
 -- 
-Dave
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
