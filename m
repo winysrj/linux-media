@@ -1,115 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3846 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753813AbZEBSNq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 2 May 2009 14:13:46 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id n42IDjUW094593
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 2 May 2009 20:13:45 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 2 May 2009 20:13:45 +0200 (CEST)
-Message-Id: <200905021813.n42IDjUW094593@smtp-vbr1.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from deliverator5.ecc.gatech.edu ([130.207.185.175]:47337 "EHLO
+	deliverator5.ecc.gatech.edu" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751033AbZE1Vnf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 May 2009 17:43:35 -0400
+Message-ID: <4A1F0584.6040001@gatech.edu>
+Date: Thu, 28 May 2009 17:43:32 -0400
+From: David Ward <david.ward@gatech.edu>
+MIME-Version: 1.0
+To: Michael Krufky <mkrufky@kernellabs.com>
+CC: linux-media@vger.kernel.org, Andy Walls <awalls@radix.net>
+Subject: Re: "Unknown symbol __udivdi3" with rev >= 11873
+References: <4A1E0DA7.6040702@gatech.edu> <37219a840905281212i6707a718t3b1e3c9b03d4ac3b@mail.gmail.com>
+In-Reply-To: <37219a840905281212i6707a718t3b1e3c9b03d4ac3b@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On 05/28/2009 03:12 PM, Michael Krufky wrote:
+> On Thu, May 28, 2009 at 12:05 AM, David Ward<david.ward@gatech.edu>  wrote:
+>    
+>> Revision 11873 (committed earlier today) has broken the cx18 driver for me,
+>> with the line "cx18: Unknown symbol __udivdi3" appearing in dmesg when the
+>> module tries to load.  I'm using Ubuntu 8.04.2 which uses kernel 2.6.24 and
+>> gcc 4.2.4.
+>>
+>> I also wanted to express my appreciation to Mauro for fixing the build for
+>> older kernels today, as it is very desirable for me to use a
+>> distribution/kernel which has long-term support and updates, but I simply
+>> need to add a DVB driver that wasn't part of the older kernel.
+>>
+>> Thanks so much.
+>>
+>> David Ward
+>>      
+> Let it be known that this issue only affects 32bit kernels.  I believe
+> the offending line of code is here:
+>
+> fsc = ((((u64)sc) * 28636360)/src_decimation)>>  13L;
+>
+> (cc added to Andy Walls)
+>
+> -Mike Krufky
+>    
+Some Google searching seems to suggest that the correct thing to do here 
+is to use the 'do_div' macro for the division, which is declared in 
+<asm/div64.h>:
 
-Results of the daily build of v4l-dvb:
+http://www.captain.at/howto-udivdi3-umoddi3.php
 
-date:        Sat May  2 19:00:04 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11658:83712d149893
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
-
-linux-2.6.22.19-armv5: WARNINGS
-linux-2.6.23.12-armv5: WARNINGS
-linux-2.6.24.7-armv5: WARNINGS
-linux-2.6.25.11-armv5: WARNINGS
-linux-2.6.26-armv5: WARNINGS
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29.1-armv5: WARNINGS
-linux-2.6.30-rc4-armv5: WARNINGS
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-rc4-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-rc4-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-rc4-i686: WARNINGS
-linux-2.6.23.12-m32r: WARNINGS
-linux-2.6.24.7-m32r: WARNINGS
-linux-2.6.25.11-m32r: WARNINGS
-linux-2.6.26-m32r: WARNINGS
-linux-2.6.27-m32r: WARNINGS
-linux-2.6.28-m32r: WARNINGS
-linux-2.6.29.1-m32r: WARNINGS
-linux-2.6.30-rc4-m32r: WARNINGS
-linux-2.6.22.19-mips: ERRORS
-linux-2.6.26-mips: ERRORS
-linux-2.6.27-mips: ERRORS
-linux-2.6.28-mips: ERRORS
-linux-2.6.29.1-mips: ERRORS
-linux-2.6.30-rc4-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-rc4-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-rc4-x86_64: WARNINGS
-fw/apps: WARNINGS
-sparse (linux-2.6.29.1): OK
-sparse (linux-2.6.30-rc4): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+David
