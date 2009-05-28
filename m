@@ -1,71 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1223 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753010AbZEDNDn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 4 May 2009 09:03:43 -0400
-Message-ID: <53149.62.70.2.252.1241442222.squirrel@webmail.xs4all.nl>
-Date: Mon, 4 May 2009 15:03:42 +0200 (CEST)
-Subject: Re: [questions] dmesg: Non-NULL drvdata on register
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Alexey Klimov" <klimov.linux@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	"Douglas Schilling Landgraf" <dougsland@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from main.gmane.org ([80.91.229.2]:44873 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757311AbZE1So5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 May 2009 14:44:57 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1M9kb4-0003fW-QM
+	for linux-media@vger.kernel.org; Thu, 28 May 2009 18:44:58 +0000
+Received: from 63.84.broadband6.iol.cz ([88.101.84.63])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 28 May 2009 18:44:58 +0000
+Received: from sustmidown by 63.84.broadband6.iol.cz with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 28 May 2009 18:44:58 +0000
+To: linux-media@vger.kernel.org
+From: Miroslav =?utf-8?b?xaB1c3Rlaw==?= <sustmidown@centrum.cz>
+Subject: Re: [PATCH] Leadtek WinFast DTV-1800H support
+Date: Thu, 28 May 2009 18:44:43 +0000 (UTC)
+Message-ID: <loom.20090528T183711-833@post.gmane.org>
+References: <200905102337.22307@centrum.cz> <200905102338.14151@centrum.cz> <200905102339.24789@centrum.cz> <200905102339.14742@centrum.cz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Any problem with this patch?
+I'm trying to get WinFast DTV-1800H support into repository for seven months.
+(see:
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/1125/match=1800h
+)
 
-> Hello,
->
-> Not so many time ago i noticed such line in dmesg:
->
-> radio-mr800 2-1:1.0: Non-NULL drvdata on register
->
-> Quick review showed that it appears in usb_amradio_probe fucntions. Then
-> i found such code in v4l2_device_register() function (v4l2-device.c
-> file):
->
-> /* Set name to driver name + device name if it is empty. */
->         if (!v4l2_dev->name[0])
->                 snprintf(v4l2_dev->name, sizeof(v4l2_dev->name), "%s %
-> s",
->                         dev->driver->name, dev_name(dev));
->         if (dev_get_drvdata(dev))
->                 v4l2_warn(v4l2_dev, "Non-NULL drvdata on register\n");
->         dev_set_drvdata(dev, v4l2_dev);
->         return 0;
->
-> The questions is - should i deal with this warning in dmesg? Probably
-> the order of callbacks in radio-mr800 probe function is incorrect.
-
-I (or you :-) should look into this: I think the usb subsystem is calling
-dev_set_drvdata as well, so we could have a clash here.
-
-> The second questions - should i make atomic_t users counter instead of
-> int users counter? Then i can use atomic_inc(), atomic_dec(),
-> atomic_set(). It helps me to remove lock/unlock_kernel() functions.
-
-'users' can go away completely: if you grep for it, then you'll see that
-it is only set, but never used.
-
-I think I've commented on the kernel lock before: I think it is bogus
-here. And that the amradio_set_mute handling is wrong as well: you open
-the radio device twice, then close one file descriptor, and suddenly the
-audio will be muted, even though there still is a file descriptor open.
-
-Regards,
-
-        Hans
-
->
-> --
-> Best regards, Klimov Alexey
->
->
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
