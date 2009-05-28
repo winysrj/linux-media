@@ -1,51 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.168]:32778 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751497AbZE1LUN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 28 May 2009 07:20:13 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so1804850wfd.4
-        for <linux-media@vger.kernel.org>; Thu, 28 May 2009 04:20:15 -0700 (PDT)
+Received: from mx2.redhat.com ([66.187.237.31]:45544 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751352AbZE1HHO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 May 2009 03:07:14 -0400
+Message-ID: <4A1E3850.5090500@redhat.com>
+Date: Thu, 28 May 2009 09:08:00 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Date: Thu, 28 May 2009 20:20:15 +0900
-Message-ID: <5e9665e10905280420x73ebc7ean5c029b131e6b7e8c@mail.gmail.com>
-Subject: About s_stream in v4l2-subdev
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"dongsoo45.kim@samsung.com" <dongsoo45.kim@samsung.com>,
-	=?EUC-KR?B?uc66tMij?= <bhmin@samsung.com>,
-	=?EUC-KR?B?sejH/MHYILHo?= <riverful.kim@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+CC: linux-media@vger.kernel.org
+Subject: Re: Licensing question regarding SN9C2028 decompression (fwd)
+References: <alpine.LNX.2.00.0905271640190.14249@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0905271640190.14249@banach.math.auburn.edu>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everyone,
 
-I'm doing my driver job with kernel 2.6.30-rc6, trying to figure out
-how to convert my old drivers to v4l2-subdev framework. Looking into
-the v4l2-subdev.h file an interesting API popped up and can't find any
-precise comment about that. It is "s_stream" in v4l2_subdev_video_ops.
-I think I found this api in the very nick of time, if the purpose of
-that api  is exactly what I need. Actually, I was trying to make my
-sub device to get streamon and streamoff command from the device side,
-and I wish the "s_stream" is that for. Because in case of camera
-module with embedded JPEG encoder, it is necessary to make the camera
-module be aware of the exact moment of streamon to pass the encoded
-data to camera interface. (many of camera ISPs can't stream out
-continuous frame of JPEG data, so we have only one chance  of shot).
-Is the s_stream for streamon purpose in subdev? (I hope so...finger crossed)
-Cheers,
 
-Nate
+On 05/27/2009 11:43 PM, Theodore Kilgore wrote:
+>
+> Hans,
+>
+> Here is the answer which I got about the question of GPL->LGPL licensing
+> in regard to the sn9c2028 decompression code.
+>
 
--- 
-=
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
+Hmm,
+
+Given that you did have contact with the original author years ago and
+he also did ok it back then, and that large parts of the code are written
+by you, I'm ok with moving forward changing the license to LGPL and then
+committing the patch.
+
+Regards,
+
+Hans
+
+
+
+
+
+
+
+> Theodore Kilgore
+>
+> ---------- Forwarded message ----------
+> Date: Wed, 27 May 2009 13:19:46 -0400
+> From: Harald <hxr@users.sourceforge.net>
+> To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+> Subject: Re: Licensing question regarding SN9C2028 decompression
+>
+> Hi Theodore,
+>
+> I give you permission to use the SN9C2028 code with a LGPL license.
+>
+> I am the current maintainer of the macam project. Most of the code that
+> has been
+> added in the last few years is mine. However, I did not originate the
+> SN9C2028
+> code. I have messed with it a lot, it may not bear much resemblance to
+> the original
+> code. I am sure that whatever code you based your version on has been
+> modified
+> as well. I doubt that you use Objective-C for example...
+>
+> It is likely that technically all of macam should be under LGPL anyway,
+> as it works
+> as a plug-in component to QuickTime. So from an "intent" perspective,
+> that is how
+> the macam code is used anyway. You should be able to use it the same way.
+>
+> I have never been able to contact the originator (mattik) of the
+> project! I became admin
+> through an intermediate admin (dirkx). We're all three admins, but
+> neither of the others
+> have contributed anything in the last 5 years.
+>
+> I hope this helps,
+> Harald
+>
+>
+> On May 24, 2009, at 13:40, Theodore Kilgore wrote:
+>
+>>
+>> Harald,
+>>
+>> Right now I am working on putting streaming support for the SN9C2028
+>> cameras (supported by libgphoto2/camlibs/sonix as still cameras) into
+>> the Linux kernel, as part of linux/drivers/media/video/gspca. In doing
+>> so, there is a licensing conflict, as follows:
+>>
+>> The Linux kernel is of course GPL licensed, as we are aware. However,
+>> the philosophy of what the kernel is supposed to do with things like
+>> video devices is, it takes care of creating a device dev/video and it
+>> takes care of basic infrastructural things such as how to talk to the
+>> camera, to initialize it, to turn it off, to tell it to stream, and to
+>> detect and save packets and to construct frames.
+>>
+>> The code for things like decompression has been deliberately moved
+>> away from the kernel code, and the idea is to put all that stuff into
+>> a library called libv4l, which then provides a unified interface for
+>> userspace streaming apps.
+>>
+>> The problem is, the decompression code would need to go into part of
+>> libv4l, namely libv4lconvert. And the license for libv4l and
+>> everything in it is LGPL, not GPL.
+>>
+>> As the originator of the decompression function for the Sonix cameras,
+>> are you willing to give permission for taking my version of the code
+>> from GPL to LGPL? Or can you suggest some other appropriate course of
+>> action?
+>>
+>> Theodore Kilgore
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html
