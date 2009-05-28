@@ -1,53 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet12.oracle.com ([141.146.126.234]:53226 "EHLO
-	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752917AbZEKQep (ORCPT
+Received: from wf-out-1314.google.com ([209.85.200.168]:32778 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751497AbZE1LUN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 11 May 2009 12:34:45 -0400
-Message-ID: <4A0853FE.6060709@oracle.com>
-Date: Mon, 11 May 2009 09:36:14 -0700
-From: Randy Dunlap <randy.dunlap@oracle.com>
+	Thu, 28 May 2009 07:20:13 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so1804850wfd.4
+        for <linux-media@vger.kernel.org>; Thu, 28 May 2009 04:20:15 -0700 (PDT)
 MIME-Version: 1.0
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-CC: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH -next] soc_camera: depends on I2C
-References: <20090511161442.3e9d9cb9.sfr@canb.auug.org.au>
-In-Reply-To: <20090511161442.3e9d9cb9.sfr@canb.auug.org.au>
+Date: Thu, 28 May 2009 20:20:15 +0900
+Message-ID: <5e9665e10905280420x73ebc7ean5c029b131e6b7e8c@mail.gmail.com>
+Subject: About s_stream in v4l2-subdev
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	"dongsoo45.kim@samsung.com" <dongsoo45.kim@samsung.com>,
+	=?EUC-KR?B?uc66tMij?= <bhmin@samsung.com>,
+	=?EUC-KR?B?sejH/MHYILHo?= <riverful.kim@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Hello everyone,
 
-soc_camera uses i2c_*() functions and has build errors when CONFIG_I2C=n:
+I'm doing my driver job with kernel 2.6.30-rc6, trying to figure out
+how to convert my old drivers to v4l2-subdev framework. Looking into
+the v4l2-subdev.h file an interesting API popped up and can't find any
+precise comment about that. It is "s_stream" in v4l2_subdev_video_ops.
+I think I found this api in the very nick of time, if the purpose of
+that api  is exactly what I need. Actually, I was trying to make my
+sub device to get streamon and streamoff command from the device side,
+and I wish the "s_stream" is that for. Because in case of camera
+module with embedded JPEG encoder, it is necessary to make the camera
+module be aware of the exact moment of streamon to pass the encoded
+data to camera interface. (many of camera ISPs can't stream out
+continuous frame of JPEG data, so we have only one chance  of shot).
+Is the s_stream for streamon purpose in subdev? (I hope so...finger crossed)
+Cheers,
 
-ERROR: "i2c_new_device" [drivers/media/video/soc_camera.ko] undefined!
-ERROR: "i2c_get_adapter" [drivers/media/video/soc_camera.ko] undefined!
-ERROR: "i2c_put_adapter" [drivers/media/video/soc_camera.ko] undefined!
-ERROR: "i2c_unregister_device" [drivers/media/video/soc_camera.ko] undefined!
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
----
- drivers/media/video/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- linux-next-20090511.orig/drivers/media/video/Kconfig
-+++ linux-next-20090511/drivers/media/video/Kconfig
-@@ -694,7 +694,7 @@ config VIDEO_CAFE_CCIC
- 
- config SOC_CAMERA
- 	tristate "SoC camera support"
--	depends on VIDEO_V4L2 && HAS_DMA
-+	depends on VIDEO_V4L2 && HAS_DMA && I2C
- 	select VIDEOBUF_GEN
- 	help
- 	  SoC Camera is a common API to several cameras, not connecting
-
+Nate
 
 -- 
-~Randy
-LPC 2009, Sept. 23-25, Portland, Oregon
-http://linuxplumbersconf.org/2009/
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
