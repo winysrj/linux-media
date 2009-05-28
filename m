@@ -1,44 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kolorific.com ([61.63.28.39]:40752 "EHLO
-	mail.kolorific.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758857AbZEHCs3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 7 May 2009 22:48:29 -0400
-Subject: [PATCH][RESEND]saa7134-video.c: fix the block bug
-From: "figo.zhang" <figo.zhang@kolorific.com>
-To: kraxel@bytesex.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
-	figo1802@126.com
+Received: from fg-out-1718.google.com ([72.14.220.157]:56843 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754857AbZE1Uop (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 28 May 2009 16:44:45 -0400
+Received: by fg-out-1718.google.com with SMTP id d23so1612889fga.17
+        for <linux-media@vger.kernel.org>; Thu, 28 May 2009 13:44:47 -0700 (PDT)
+Subject: [patch review 3/4] dsbr100: no need to pass curfreq value to
+ dsbr100_setfreq()
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Linux Media <linux-media@vger.kernel.org>
+Cc: Douglas Schilling Landgraf <dougsland@gmail.com>
 Content-Type: text/plain
-Date: Fri, 08 May 2009 10:48:24 +0800
-Message-Id: <1241750904.3420.26.camel@myhost>
+Date: Fri, 29 May 2009 00:44:45 +0400
+Message-Id: <1243543485.6713.43.camel@tux.localhost>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-when re-open or re-start (video_streamon), the q->curr would not be NULL in saa7134_buffer_queue(),
-and all the qbuf will add to q->queue list,no one to do activate to start DMA,and then no interrupt 
-would happened,so it will be block. 
+Small cleanup of dsbr100_setfreq(). No need to pass radio->curfreq value
+to this function.
 
-In VIDEOBUF_NEEDS_INIT state , initial the curr pointer to be NULL in  the buffer_prepare() function.
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
 
-Signed-off-by: Figo.zhang <figo.zhang@kolorific.com>
----
- drivers/media/video/saa7134/saa7134-video.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/saa7134/saa7134-video.c b/drivers/media/video/saa7134/saa7134-video.c
-index 493cad9..550d6ce 100644
---- a/drivers/media/video/saa7134/saa7134-video.c
-+++ b/drivers/media/video/saa7134/saa7134-video.c
-@@ -1057,6 +1057,7 @@ static int buffer_prepare(struct videobuf_queue *q,
- 		buf->vb.field  = field;
- 		buf->fmt       = fh->fmt;
- 		buf->pt        = &fh->pt_cap;
-+		dev->video_q.curr = NULL;
+--
+diff -r d7322837a62c linux/drivers/media/radio/dsbr100.c
+--- a/linux/drivers/media/radio/dsbr100.c	Tue May 19 15:18:56 2009 +0400
++++ b/linux/drivers/media/radio/dsbr100.c	Tue May 19 15:59:39 2009 +0400
+@@ -258,12 +258,12 @@
+ }
  
- 		err = videobuf_iolock(q,&buf->vb,&dev->ovbuf);
- 		if (err)
+ /* set a frequency, freq is defined by v4l's TUNER_LOW, i.e. 1/16th kHz */
+-static int dsbr100_setfreq(struct dsbr100_device *radio, int freq)
++static int dsbr100_setfreq(struct dsbr100_device *radio)
+ {
+ 	int retval;
+ 	int request;
++	int freq = (radio->curfreq / 16 * 80) / 1000 + 856;
+ 
+-	freq = (freq / 16 * 80) / 1000 + 856;
+ 	mutex_lock(&radio->lock);
+ 
+ 	retval = usb_control_msg(radio->usbdev,
+@@ -431,7 +431,7 @@
+ 	radio->curfreq = f->frequency;
+ 	mutex_unlock(&radio->lock);
+ 
+-	retval = dsbr100_setfreq(radio, radio->curfreq);
++	retval = dsbr100_setfreq(radio);
+ 	if (retval < 0)
+ 		dev_warn(&radio->usbdev->dev, "Set frequency failed\n");
+ 	return 0;
 
+
+
+-- 
+Best regards, Klimov Alexey
 
