@@ -1,287 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46483 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753953AbZEOSi4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 15 May 2009 14:38:56 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n4FIcqeo025197
-	for <linux-media@vger.kernel.org>; Fri, 15 May 2009 13:38:57 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH 7/9] DM355 platform changes for vpfe capture driver
-Date: Fri, 15 May 2009 14:38:51 -0400
-Message-Id: <1242412731-11515-1-git-send-email-m-karicheri2@ti.com>
+Received: from smtp16.protectedservice.net ([217.154.106.151]:50044 "EHLO
+	smtp16.protectedservice.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753749AbZE2H5w convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 May 2009 03:57:52 -0400
+Cc: linux-media@vger.kernel.org
+Message-Id: <981EF3D9-3DB5-4F2B-B7A5-F23533A5BEFE@lauresconseil.fr>
+From: =?ISO-8859-1?Q?Guillaume_Laur=E8s?= <glaures@lauresconseil.fr>
+To: Steven Toth <stoth@kernellabs.com>
+In-Reply-To: <4A11D48A.1030209@kernellabs.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed; delsp=yes
+Content-Transfer-Encoding: 8BIT
+Mime-Version: 1.0 (Apple Message framework v935.3)
+Subject: Re: no tuning with an hvr-1700
+Date: Fri, 29 May 2009 09:57:50 +0200
+References: <C9D3D945-05BF-48DA-9CEF-CF7D4DFE8053@lauresconseil.fr> <4A11D48A.1030209@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-DM355 platform and board setup
 
-This has platform and board setup changes to support vpfe capture
-driver for DM355 EVMs.
+Le 18 mai 09 à 23:35, Steven Toth a écrit :
 
-This has comments incorporated from previous review.
+> Clone this tree and try again:
+>
+> http://kernellabs.com/hg/~stoth/tda10048-merge
+>
+> Better, or not?
 
-Reviewed By "Hans Verkuil".
-Reviewed By "Laurent Pinchart".
+Hi,
 
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
-Applies to Davinci GIT Tree
+I finally got it working with an offset (+166KHz), with stock 2.6.28  
+kernel (didn't worked with this tree).
 
- arch/arm/mach-davinci/board-dm355-evm.c    |   72 ++++++++++++++++++++++++++-
- arch/arm/mach-davinci/dm355.c              |   65 +++++++++++++++++++++++++
- arch/arm/mach-davinci/include/mach/dm355.h |    2 +
- arch/arm/mach-davinci/include/mach/mux.h   |    9 ++++
- 4 files changed, 145 insertions(+), 3 deletions(-)
+Thanks,
 
-diff --git a/arch/arm/mach-davinci/board-dm355-evm.c b/arch/arm/mach-davinci/board-dm355-evm.c
-index f32e3d8..3a3f5e0 100644
---- a/arch/arm/mach-davinci/board-dm355-evm.c
-+++ b/arch/arm/mach-davinci/board-dm355-evm.c
-@@ -20,6 +20,8 @@
- #include <linux/io.h>
- #include <linux/gpio.h>
- #include <linux/clk.h>
-+#include <linux/videodev2.h>
-+#include <media/tvp514x.h>
- #include <linux/spi/spi.h>
- #include <linux/spi/eeprom.h>
- 
-@@ -134,12 +136,23 @@ static void dm355evm_mmcsd_gpios(unsigned gpio)
- 	dm355evm_mmc_gpios = gpio;
- }
- 
-+#define TVP5146_I2C_ADDR		0x5D
-+static struct tvp514x_platform_data tvp5146_pdata = {
-+	.clk_polarity = 0,
-+	.hs_polarity = 1,
-+	.vs_polarity = 1
-+};
-+
- static struct i2c_board_info dm355evm_i2c_info[] = {
--	{ I2C_BOARD_INFO("dm355evm_msp", 0x25),
-+	{	I2C_BOARD_INFO("dm355evm_msp", 0x25),
- 		.platform_data = dm355evm_mmcsd_gpios,
--		/* plus irq */ },
-+	},
-+	{
-+		I2C_BOARD_INFO("tvp5146", TVP5146_I2C_ADDR),
-+		.platform_data = &tvp5146_pdata,
-+	},
-+	/* { plus irq  }, */
- 	/* { I2C_BOARD_INFO("tlv320aic3x", 0x1b), }, */
--	/* { I2C_BOARD_INFO("tvp5146", 0x5d), }, */
- };
- 
- static void __init evm_init_i2c(void)
-@@ -178,6 +191,57 @@ static struct platform_device dm355evm_dm9000 = {
- 	.num_resources	= ARRAY_SIZE(dm355evm_dm9000_rsrc),
- };
- 
-+#define TVP514X_STD_ALL	(V4L2_STD_NTSC | V4L2_STD_PAL)
-+/* Inputs available at the TVP5146 */
-+static struct v4l2_input tvp5146_inputs[] = {
-+	{
-+		.index = 0,
-+		.name = "COMPOSITE",
-+		.type = V4L2_INPUT_TYPE_CAMERA,
-+		.std = TVP514X_STD_ALL,
-+	},
-+	{
-+		.index = 1,
-+		.name = "SVIDEO",
-+		.type = V4L2_INPUT_TYPE_CAMERA,
-+		.std = TVP514X_STD_ALL,
-+	},
-+};
-+
-+/*
-+ * this is the route info for connecting each input to decoder
-+ * ouput that goes to vpfe. There is a one to one correspondence
-+ * with tvp5146_inputs
-+ */
-+static struct v4l2_routing tvp5146_routes[] = {
-+	{
-+		.input = INPUT_CVBS_VI2B,
-+		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
-+	},
-+	{
-+		.input = INPUT_SVIDEO_VI2C_VI1C,
-+		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
-+	},
-+};
-+
-+static struct vpfe_subdev_info vpfe_sub_devs[] = {
-+	{
-+		.name = "tvp5146",
-+		.grp_id = 0,
-+		.num_inputs = ARRAY_SIZE(tvp5146_inputs),
-+		.inputs = (struct v4l2_input *)tvp5146_inputs,
-+		.routes = (struct v4l2_routing *)tvp5146_routes,
-+		.can_route = 1,
-+	}
-+};
-+
-+static struct vpfe_config vpfe_cfg = {
-+	.num_subdevs = ARRAY_SIZE(vpfe_sub_devs),
-+	.sub_devs = vpfe_sub_devs,
-+	.card_name = "DM355 EVM",
-+	.ccdc = "DM355 CCDC",
-+};
-+
- static struct platform_device *davinci_evm_devices[] __initdata = {
- 	&dm355evm_dm9000,
- 	&davinci_nand_device,
-@@ -189,6 +253,8 @@ static struct davinci_uart_config uart_config __initdata = {
- 
- static void __init dm355_evm_map_io(void)
- {
-+	/* setup input configuration for VPFE input devices */
-+	dm355_set_vpfe_config(&vpfe_cfg);
- 	dm355_init();
- }
- 
-diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
-index bccc5a8..9d80496 100644
---- a/arch/arm/mach-davinci/dm355.c
-+++ b/arch/arm/mach-davinci/dm355.c
-@@ -481,6 +481,14 @@ INT_CFG(DM355,  INT_EDMA_TC1_ERR,     4,    1,    1,     false)
- EVT_CFG(DM355,  EVT8_ASP1_TX,	      0,    1,    0,     false)
- EVT_CFG(DM355,  EVT9_ASP1_RX,	      1,    1,    0,     false)
- EVT_CFG(DM355,  EVT26_MMC0_RX,	      2,    1,    0,     false)
-+
-+MUX_CFG(DM355,	VIN_PCLK,	0,   14,    1,    1,	 false)
-+MUX_CFG(DM355,	VIN_CAM_WEN,	0,   13,    1,    1,	 false)
-+MUX_CFG(DM355,	VIN_CAM_VD,	0,   12,    1,    1,	 false)
-+MUX_CFG(DM355,	VIN_CAM_HD,	0,   11,    1,    1,	 false)
-+MUX_CFG(DM355,	VIN_YIN_EN,	0,   10,    1,    1,	 false)
-+MUX_CFG(DM355,	VIN_CINL_EN,	0,   0,   0xff, 0x55,	 false)
-+MUX_CFG(DM355,	VIN_CINH_EN,	0,   8,     3,    3,	 false)
- #endif
- };
- 
-@@ -604,6 +612,47 @@ static struct platform_device dm355_edma_device = {
- 	.resource		= edma_resources,
- };
- 
-+static struct resource vpfe_resources[] = {
-+	{
-+		.start          = IRQ_VDINT0,
-+		.end            = IRQ_VDINT0,
-+		.flags          = IORESOURCE_IRQ,
-+	},
-+	{
-+		.start          = IRQ_VDINT1,
-+		.end            = IRQ_VDINT1,
-+		.flags          = IORESOURCE_IRQ,
-+	},
-+	/* CCDC Base address */
-+	{
-+		.flags          = IORESOURCE_MEM,
-+		.start          = 0x01c70600,
-+		.end            = 0x01c70600 + 0x1ff,
-+	},
-+	/* VPSS Base address */
-+	{
-+		.start          = 0x01c70800,
-+		.end            = 0x01c70800 + 0xff,
-+		.flags          = IORESOURCE_MEM,
-+	},
-+};
-+
-+static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
-+static struct platform_device vpfe_capture_dev = {
-+	.name		= CAPTURE_DRV_NAME,
-+	.id		= -1,
-+	.num_resources	= ARRAY_SIZE(vpfe_resources),
-+	.resource	= vpfe_resources,
-+	.dev = {
-+		.dma_mask		= &vpfe_capture_dma_mask,
-+		.coherent_dma_mask	= DMA_BIT_MASK(32),
-+	},
-+};
-+
-+void dm355_set_vpfe_config(struct vpfe_config *cfg)
-+{
-+	vpfe_capture_dev.dev.platform_data = cfg;
-+}
- /*----------------------------------------------------------------------*/
- 
- static struct map_desc dm355_io_desc[] = {
-@@ -718,13 +767,29 @@ void __init dm355_init(void)
- 	davinci_common_init(&davinci_soc_info_dm355);
- }
- 
-+#define DM355_VPSSCLK_CLKCTRL_REG	0x1c70004
- static int __init dm355_init_devices(void)
- {
-+	void __iomem *base = IO_ADDRESS(DM355_VPSSCLK_CLKCTRL_REG);
-+
- 	if (!cpu_is_davinci_dm355())
- 		return 0;
- 
- 	davinci_cfg_reg(DM355_INT_EDMA_CC);
- 	platform_device_register(&dm355_edma_device);
-+	/* setup clock for vpss modules */
-+	__raw_writel(0x79, base);
-+	/* setup Mux configuration for vpfe input and register
-+	 * vpfe capture platform device
-+	 */
-+	davinci_cfg_reg(DM355_VIN_PCLK);
-+	davinci_cfg_reg(DM355_VIN_CAM_WEN);
-+	davinci_cfg_reg(DM355_VIN_CAM_VD);
-+	davinci_cfg_reg(DM355_VIN_CAM_HD);
-+	davinci_cfg_reg(DM355_VIN_YIN_EN);
-+	davinci_cfg_reg(DM355_VIN_CINL_EN);
-+	davinci_cfg_reg(DM355_VIN_CINH_EN);
-+	platform_device_register(&vpfe_capture_dev);
- 	return 0;
- }
- postcore_initcall(dm355_init_devices);
-diff --git a/arch/arm/mach-davinci/include/mach/dm355.h b/arch/arm/mach-davinci/include/mach/dm355.h
-index 54903b7..e28713c 100644
---- a/arch/arm/mach-davinci/include/mach/dm355.h
-+++ b/arch/arm/mach-davinci/include/mach/dm355.h
-@@ -12,11 +12,13 @@
- #define __ASM_ARCH_DM355_H
- 
- #include <mach/hardware.h>
-+#include <media/davinci/vpfe_capture.h>
- 
- struct spi_board_info;
- 
- void __init dm355_init(void);
- void dm355_init_spi0(unsigned chipselect_mask,
- 		struct spi_board_info *info, unsigned len);
-+void dm355_set_vpfe_config(struct vpfe_config *cfg);
- 
- #endif /* __ASM_ARCH_DM355_H */
-diff --git a/arch/arm/mach-davinci/include/mach/mux.h b/arch/arm/mach-davinci/include/mach/mux.h
-index 018701f..4516839 100644
---- a/arch/arm/mach-davinci/include/mach/mux.h
-+++ b/arch/arm/mach-davinci/include/mach/mux.h
-@@ -154,6 +154,15 @@ enum davinci_dm355_index {
- 	DM355_EVT8_ASP1_TX,
- 	DM355_EVT9_ASP1_RX,
- 	DM355_EVT26_MMC0_RX,
-+
-+	/* Video In Pin Mux */
-+	DM355_VIN_PCLK,
-+	DM355_VIN_CAM_WEN,
-+	DM355_VIN_CAM_VD,
-+	DM355_VIN_CAM_HD,
-+	DM355_VIN_YIN_EN,
-+	DM355_VIN_CINL_EN,
-+	DM355_VIN_CINH_EN,
- };
- 
- #ifdef CONFIG_DAVINCI_MUX
--- 
-1.6.0.4
+GoM
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.8 (Darwin)
 
+iEYEARECAAYFAkoflX4ACgkQxnIJde5abSmkTwCdHqY0+CeZemwYPZHZsNeqIj+Q
+RuYAn2pISoVdoThWD5PIt8KcrnO/JsBY
+=pTpM
+-----END PGP SIGNATURE-----
