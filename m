@@ -1,194 +1,283 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hapkido.dreamhost.com ([66.33.216.122]:54839 "EHLO
-	hapkido.dreamhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753523AbZEWVPF (ORCPT
+Received: from mail-in-12.arcor-online.net ([151.189.21.52]:55257 "EHLO
+	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753007AbZE2Xn7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 23 May 2009 17:15:05 -0400
-Received: from homiemail-a4.g.dreamhost.com (caiajhbdcahe.dreamhost.com [208.97.132.74])
-	by hapkido.dreamhost.com (Postfix) with ESMTP id EC58D17DFB5
-	for <linux-media@vger.kernel.org>; Sat, 23 May 2009 14:15:06 -0700 (PDT)
-Message-ID: <4A186764.4080007@klepeis.net>
-Date: Sat, 23 May 2009 14:15:16 -0700
-From: N Klepeis <list1@klepeis.net>
-Reply-To: list1@klepeis.net
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Cc: dheitmueller@kernellabs.com
-Subject: Temporary success with Pinnacle PCTV 801e (xc5000 chip)
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Fri, 29 May 2009 19:43:59 -0400
+Subject: Re: Zolid Hybrid TV Tuner not working
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Sander Pientka <cumulus0007@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <200905291945.30291.cumulus0007@gmail.com>
+References: <200905291648.46809.cumulus0007@gmail.com>
+	 <200905291834.52700.cumulus0007@gmail.com>
+	 <1243617390.6147.22.camel@pc07.localdom.local>
+	 <200905291945.30291.cumulus0007@gmail.com>
+Content-Type: text/plain
+Date: Sat, 30 May 2009 01:37:52 +0200
+Message-Id: <1243640272.6147.53.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-I installed the latest v4l-dvb from CVS with the latest firmware 
-(dvb-fe-xc5000-1.6.114.fw) for the 801e (XC5000 chip).   I can  scan for 
-channels no problem.   But after a first use with either mplayer or 
-mythtv, it then immediately stops working and won't start again until I 
-unplug and then reinsert the device from the USB port.       On the 
-first time use everything seems fine and I can watch TV through mplayer 
-for as long as I want.    On the 2nd use (restart mplayer), there's an 
-error (FE_GET_INFO error: 19, FD: 3).    On the 2nd use with mythtv, 
-mythtv cannot connect to the card at all in mythtvsetup, but on the 
-first time use I can assign channel.conf.      I know there have been 
-recent updates to the xc5000 driver.    I only started trying this chip 
-this week so I never confirmed that any prior driver version worked.
+Am Freitag, den 29.05.2009, 19:45 +0200 schrieb Sander Pientka:
+> Op vrijdag 29 mei 2009 19:16:30 schreef u:
+> > Am Freitag, den 29.05.2009, 18:34 +0200 schrieb Sander Pientka:
+> > > Op vrijdag 29 mei 2009 17:42:26 schreef u:
+> > > > Hi,
+> > > >
+> > > > Am Freitag, den 29.05.2009, 16:48 +0200 schrieb Sander Pientka:
+> > > > > Hi,
+> > > > > I've bought a Zolid Hyrbid TV Tuner. This card supports both
+> > >
+> > > analog and
+> > >
+> > > > > digital (DVB-T) signals, so it's hybrid. The card has the
+> > >
+> > > following chips
+> > >
+> > > > > on it:
+> > > > >
+> > > > > - A NXP SAA7131E/03/G
+> > > > > - A NXP TDA 18271
+> > > > > - A NXP TDA 10048
+> > > > >
+> > > > > I don't know much about tv cards, but I suppose the SAA is the
+> > >
+> > > video
+> > >
+> > > > > processor and the TDA chips convert the TV signal to a usable
+> > >
+> > > signal.
+> > >
+> > > > > The card gets detected by the saa7314 driver, but this driver
+> > >
+> > > identiefies
+> > >
+> > > > > the card as "UNKOWN/GENERIC". The card is not listed in the
+> > >
+> > > saa7134 card
+> > >
+> > > > > list. It's EEPROM is:
+> > > > >
+> > > > > [ 17.232053] saa7133[0]: i2c eeprom 00: 31 11 04 20 54 20 1c
+> 00 43
+> > >
+> > > 43
+> > >
+> > > > > a9 1c
+> > > >
+> > > > -not valid for subvendor, is vendor Philips ^^^^^
+> > > >
+> > > > > 55 d2 b2 92
+> > > > > [ 17.232080] saa7133[0]: i2c eeprom 10: 00 ff 86 0f ff 20 ff
+> ff ff
+> > >
+> > > ff
+> > >
+> > > > > ff ff ff ff ff ff [ 17.232105] saa7133[0]: i2c eeprom 20: 01
+> 40 01
+> > >
+> > > 02
+> > >
+> > > > > 03 01 01 03 08 ff 00 b2 ff ff ff ff
+> > > > > [ 17.232129] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff
+> ff ff
+> > >
+> > > ff
+> > >
+> > > > > ff ff ff ff ff ff [ 17.232153] saa7133[0]: i2c eeprom 40: ff
+> 35 00
+> > >
+> > > c0
+> > >
+> > > > > 96 10 03 32 21 05 ff ff ff ff ff ff
+> > > > > [ 17.232177] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff
+> ff ff
+> > >
+> > > ff
+> > >
+> > > > > ff ff ff ff ff ff [ 17.232201] saa7133[0]: i2c eeprom 60: ff
+> ff ff
+> > >
+> > > ff
+> > >
+> > > > > ff ff ff ff ff ff ff ff ff ff ff ff [ 17.232225] saa7133[0]:
+> i2c
+> > >
+> > > eeprom
+> > >
+> > > > > 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> [ 17.232249]
+> > > > > saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff
+> ff
+> > >
+> > > ff ff
+> > >
+> > > > > ff [ 17.232274] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff
+> ff ff
+> > >
+> > > ff
+> > >
+> > > > > ff ff ff ff ff ff ff [ 17.232298] saa7133[0]: i2c eeprom a0:
+> ff ff
+> > >
+> > > ff
+> > >
+> > > > > ff ff ff ff ff ff ff ff ff ff ff ff ff [ 17.232321]
+> saa7133[0]:
+> > >
+> > > i2c
+> > >
+> > > > > eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > >
+> > > [ 17.232345]
+> > >
+> > > > > saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff
+> ff
+> > >
+> > > ff ff
+> > >
+> > > > > ff [ 17.232370] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff
+> ff ff
+> > >
+> > > ff
+> > >
+> > > > > ff ff ff ff ff ff ff [ 17.232393] saa7133[0]: i2c eeprom e0:
+> ff ff
+> > >
+> > > ff
+> > >
+> > > > > ff ff ff ff ff ff ff ff ff ff ff ff ff [ 17.232417]
+> saa7133[0]:
+> > >
+> > > i2c
+> > >
+> > > > > eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > > >
+> > > > > Programs like KDETV and TVTime only show a black screen with
+> some
+> > > > > background noise. Scanning doesn't result a thing.
+> > > > >
+> > > > > I literally can't find the card anywhere: not on the V4L wiki,
+> nor
+> > >
+> > > on
+> > >
+> > > > > Google.com/linux, etc. The card happens to be sold in my
+> region
+> > >
+> > > only
+> > >
+> > > > > (Netherlands), so there is not much available about this card.
+> > >
+> > > Zolid
+> > >
+> > > > > sells another TV card, the Zolid Xpert TV7134, which is
+> supported
+> > >
+> > > well by
+> > >
+> > > > > Linux.
+> > > >
+> > > > hehe, a similar card was seen first time just a few days back
+> and
+> > >
+> > > you
+> > >
+> > > > file bugs against us ? ;)
+> > >
+> > >
+> http://www.linuxtv.org/wiki/index.php/Development:_How_to_add_support_for
+> > >_a
+> > >
+> > > >_device
+> > > >
+> > > > Closest currently is:
+> > > >
+> > > > saa7133[0]: subsystem: 0070:6707, board: Hauppauge
+> WinTV-HVR1110r3
+> > > > DVB-T/Hybrid [card=156,autodetected]
+> > > > saa7133[0]: board init: gpio is 440100
+> > > >
+> > > > You can find firmware here:
+> > > >
+> > > > http://www.steventoth.net/linux/hvr1200
+> > > >
+> > > > You need the recent v4l-dvb from linuxtv.org for testing.
+> > > > Don't cry, if nothing works at all or your card is burned ;)
+> > > >
+> > > > Cheers,
+> > > > Hermann
+> > >
+> > > Hi Hermann,
+> > > thanks for your reply! I've compiled the latest v4l-dvb and
+> installed
+> > > the firmware as you said. Still, the card gets detected as
+> > > UNKOWN/GENERIC. Should I try the card parameters of the Hauppauge
+> > > WinTV-HVR1110r3 and see if it works?
+> >
+> > Yes, you can give "modprobe -v saa7134 card=156" i2c_scan=1 a try.
+> > The card was just added by Michael Krufky.
+> >
+> > modprobe -vr saa7134-dvb saa7134-alsa or
+> > "make rmmod" on top of v4l-dvb previously.
+> >
+> > Take care, on saa7134-alsa mixers might have use count.
+> > You might have to close them previously or set
+> > "options saa7134 alsa=0" for next boot.
+> >
+> > BTW, we moved to linux-media@vger.kernel.org.
+> > You can find links to archives at linuxtv.org and what was going on
+> so
+> > far with the HVR1110r3. Antonio Beamud had such a card last days.
+> >
+> > You will get some errors printed for unknown Hauppauge eeprom and I
+> know
+> > nothing about, if the gpio configuration has any chance to be the
+> same,
+> > but tuner and DVB-T demodulator seem to be at the same address.
+> >
+> > Cheers,
+> > Hermann
+> Hi,
+> eveything seems to work much better now. My tuner and demodulator get
+> detected now and the firmware is loaded. Kaffeine detects my card and
+> lets me scan for channels, but it gives me the following message: 
+> /dev/dvb/adapter0/ca0: no such device
+> 
+> 
+> 
+> and a looot of this:
+> 
+> 
+> 
+> Not able to lock to the signal on the given frequency
+> Frontend closed
+> dvbsi: Cant tune DVB
+> 
+> 
+> 
+> so Kaffeine won't find any channel.
+> 
+> 
+> 
+> Btw, I will register for that mailing list :)
 
-Any thoughts on how to proceed?     Below are the full console outputs 
-when using with mplayer and when running dmesg.   (This is fedora 10).
+Sander,
 
---Neil
+you can post, even if not subscribed.
 
+Here it goes out to it, that you might have some follow up.
 
-FIRE UP mplayer AND IT PLAYS TV FOR AS LONG AS I WANT:
+Doesn't look such bad anymore, except all DVB-T is scrambled?
 
-[mythuser@mythbox ~]$ mplayer dvb://KTEH
-MPlayer SVN-r28461-4.3.2 (C) 2000-2009 MPlayer Team
-CPU: Intel(R) Core(TM)2 Duo CPU     E8400  @ 3.00GHz (Family: 6, Model: 
-23, Stepping: 10)
-mplayer: could not connect to socket
-mplayer: No such file or directory
-Failed to open LIRC support. You will not be able to use your remote 
-control.
+Don't think so.
 
-Playing dvb://KTEH.
-dvb_tune Freq: 539028615
-TS file format detected.
-VIDEO MPEG2(pid=65) AUDIO A52(pid=67) NO SUBS (yet)!  PROGRAM N. 0
-VIDEO:  MPEG2  704x480  (aspect 2)  29.970 fps  2892.4 kbps (361.6 kbyte/s)
-==========================================================================
-Opening video decoder: [mpegpes] MPEG 1/2 Video passthrough
-VDec: vo config request - 704 x 480 (preferred colorspace: Mpeg PES)
-Could not find matching colorspace - retrying with -vf scale...
-Opening video filter: [scale]
-The selected video_out device is incompatible with this codec.
-Try appending the scale filter to your filter list,
-e.g. -vf spp,scale instead of -vf spp.
-VDecoder init failed :(
-Opening video decoder: [ffmpeg] FFmpeg's libavcodec codec family
-Selected video codec: [ffmpeg2] vfm: ffmpeg (FFmpeg MPEG-2)
-==========================================================================
-==========================================================================
-Opening audio decoder: [liba52] AC3 decoding with liba52
-Using SSE optimized IMDCT transform
-Using MMX optimized resampler
-AUDIO: 48000 Hz, 2 ch, s16le, 192.0 kbit/12.50% (ratio: 24000->192000)
-Selected audio codec: [a52] afm: liba52 (AC3-liba52)
-==========================================================================
-AO: [pulse] 48000Hz 2ch s16le (2 bytes per sample)
-Starting playback...
-VDec: vo config request - 704 x 480 (preferred colorspace: Planar YV12)
-VDec: using Planar YV12 as output csp (no 0)
-Movie-Aspect is 1.33:1 - prescaling to correct movie aspect.
-VO: [xv] 704x480 => 704x528 Planar YV12
-A:45262.2 V:45262.2 A-V: -0.006 ct: -0.704 2050/2047  4%  0%  0.4% 0 0 
-
-demux_mpg: 24000/1001fps progressive NTSC content detected, switching 
-framerate.
-A:45276.4 V:45276.3 A-V:  0.043 ct: -0.659 2391/2388  4%  0%  0.4% 0 0 
-
-demux_mpg: 30000/1001fps NTSC content detected, switching framerate.
-Warning! FPS changed 23.976 -> 29.970  (-5.994005) [4]    0%  0.4% 0 0 
-
-a52: CRC check failed!    0.002 ct: -0.603 2561/2558  4%  0%  0.3% 0 0 
-
-a52: error at resampling
-[mpeg2video @ 0x873c440]00 motion_type at 14 29/2581  4%  0%  0.5% 0 0 
-
-[mpeg2video @ 0x873c440]mb incr damaged
-[mpeg2video @ 0x873c440]ac-tex damaged at 4 14
-[mpeg2video @ 0x873c440]slice mismatch
-[mpeg2video @ 0x873c440]00 motion_type at 0 16
-[mpeg2video @ 0x873c440]slice mismatch
-[mpeg2video @ 0x873c440]00 motion_type at 14 18
-[mpeg2video @ 0x873c440]00 motion_type at 0 19
-[mpeg2video @ 0x873c440]00 motion_type at 0 20
-[mpeg2video @ 0x873c440]00 motion_type at 0 21
-[mpeg2video @ 0x873c440]00 motion_type at 0 22
-[mpeg2video @ 0x873c440]00 motion_type at 0 23
-[mpeg2video @ 0x873c440]00 motion_type at 0 24
-[mpeg2video @ 0x873c440]00 motion_type at 0 25
-[mpeg2video @ 0x873c440]00 motion_type at 0 26
-[mpeg2video @ 0x873c440]00 motion_type at 6 28
-[mpeg2video @ 0x873c440]00 motion_type at 0 29
-[mpeg2video @ 0x873c440]Warning MVs not available
-[mpeg2video @ 0x873c440]concealing 792 DC, 792 AC, 792 MV errors
-A:46603.5 V:46603.5 A-V: -0.001 ct: -0.594 42141/42138  4%  0%  4.6% 0 0 
-
-Exiting... (Quit)
-
-
-AFTER QUITTING, TRY AGAIN AND IT FAILS:
-
-[mythuser@mythbox ~]$ mplayer dvb://KTEH
-MPlayer SVN-r28461-4.3.2 (C) 2000-2009 MPlayer Team
-CPU: Intel(R) Core(TM)2 Duo CPU     E8400  @ 3.00GHz (Family: 6, Model: 
-23, Stepping: 10)
-mplayer: could not connect to socket
-mplayer: No such file or directory
-Failed to open LIRC support. You will not be able to use your remote 
-control.
-
-Playing dvb://KTEH.
-FE_GET_INFO error: 19, FD: 3
-
-DVB CONFIGURATION IS EMPTY, exit
-Failed to open dvb://KTEH.
-
-
-Exiting... (End of file)
-
-
-WON'T START WORKING AGAIN WITH mplayer UNTIL I REMOVE AND RE-INSERT THE 
-801e FROM THE USB PLUG.
-
-I CAN ALWAYS SCAN FOR CHANNELS WITH scandvb WHETHER OR NOT I CAN PLAY 
-ANYTHING WITH mplayer:
-
-scandvb /usr/share/dvb-apps/atsc/us-ATSC-center-frequencies-8VSB
-
-
-
-dmesg OUTPUT WHEN 801e PLUGGED IN:
-
-usb 2-2: new high speed USB device using ehci_hcd and address 6
-usb 2-2: configuration #1 chosen from 1 choice
-dvb-usb: found a 'Pinnacle PCTV HD Pro USB Stick' in cold state, will 
-try to load a firmware
-firmware: requesting dvb-usb-dib0700-1.20.fw
-dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
-dib0700: firmware started successfully.
-dvb-usb: found a 'Pinnacle PCTV HD Pro USB Stick' in warm state.
-dvb-usb: will pass the complete MPEG2 transport stream to the software 
-demuxer.
-DVB: registering new adapter (Pinnacle PCTV HD Pro USB Stick)
-DVB: registering adapter 0 frontend 0 (Samsung S5H1411 QAM/8VSB Frontend)...
-xc5000 1-0064: creating new instance
-xc5000: Successfully identified at address 0x64
-xc5000: Firmware has not been loaded previously
-input: IR-receiver inside an USB DVB receiver as 
-/devices/pci0000:00/0000:00:1d.
-7/usb2/2-2/input/input8
-dvb-usb: schedule remote query interval to 50 msecs.
-dvb-usb: Pinnacle PCTV HD Pro USB Stick successfully initialized and 
-connected.
-usb 2-2: New USB device found, idVendor=2304, idProduct=023a
-usb 2-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-usb 2-2: Product: PCTV 801e
-usb 2-2: Manufacturer: YUANRD
-usb 2-2: SerialNumber: 03017A14DA
-
-
-dmesg OUTPUT WHEN 801e UNPLUGGED:
-
-usb 2-2: USB disconnect, address 5
-xc5000 1-0064: destroying instance
-dvb-usb: Pinnacle PCTV HD Pro USB Stick successfully deinitialized and 
-disconnec
-ted.
-
-
+Cheers,
+Hermann
 
 
 
