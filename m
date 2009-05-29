@@ -1,109 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:46672 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751928AbZELFYJ (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:20504 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752187AbZE2GRj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2009 01:24:09 -0400
-Subject: Re: [PATCH v2 4/7] FMTx: si4713: Add files to handle si4713 i2c
- device
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-Reply-To: ext-eero.nurkkala@nokia.com
+	Fri, 29 May 2009 02:17:39 -0400
+Date: Fri, 29 May 2009 09:13:06 +0300
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
 To: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+Cc: ext Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
 	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <1242105350.19944.56.camel@eenurkka-desktop>
-References: <1242034309-13448-1-git-send-email-eduardo.valentin@nokia.com>
-	 <1242034309-13448-2-git-send-email-eduardo.valentin@nokia.com>
-	 <1242034309-13448-3-git-send-email-eduardo.valentin@nokia.com>
-	 <1242034309-13448-4-git-send-email-eduardo.valentin@nokia.com>
-	 <1242034309-13448-5-git-send-email-eduardo.valentin@nokia.com>
-	 <1242105350.19944.56.camel@eenurkka-desktop>
-Content-Type: text/plain
-Date: Tue, 12 May 2009 08:22:15 +0300
-Message-Id: <1242105735.19944.62.camel@eenurkka-desktop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Subject: Re: [PATCHv4 0 of 8] FM Transmitter (si4713) and another changes
+Message-ID: <20090529061306.GD12102@esdhcp037198.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+References: <1243416955-29748-1-git-send-email-eduardo.valentin@nokia.com> <20090529023620.7497f10d@gmail.com> <20090529060359.GC12102@esdhcp037198.research.nokia.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20090529060359.GC12102@esdhcp037198.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2009-05-12 at 08:15 +0300, Eero Nurkkala wrote:
-> On Mon, 2009-05-11 at 11:31 +0200, Valentin Eduardo (Nokia-D/Helsinki)
-> wrote:
-> > +/*
-> > + * Values for region specific configurations
-> > + * (spacing, bottom and top frequencies, preemphasis)
-> > + */
-> > +static struct region_info region_configs[] = {
-> > +       /* USA */
-> > +       {
-> > +               .channel_spacing        = 20,
-> > +               .bottom_frequency       = 8750,
-> > +               .top_frequency          = 10800,
-> > +               .preemphasis            = 0,
-> > +               .region                 = 0,
-> > +       },
-> > +       /* Australia */
-> > +       {
-> > +               .channel_spacing        = 20,
-> > +               .bottom_frequency       = 8750,
-> > +               .top_frequency          = 10800,
-> > +               .preemphasis            = 1,
-> > +               .region                 = 1,
-> > +       },
-> > +       /* Europe */
-> > +       {
-> > +               .channel_spacing        = 10,
-> > +               .bottom_frequency       = 8750,
-> > +               .top_frequency          = 10800,
-> > +               .preemphasis            = 1,
-> > +               .region                 = 2,
-> > +       },
-> > +       /* Japan */
-> > +       {
-> > +               .channel_spacing        = 10,
-> > +               .bottom_frequency       = 7600,
-> > +               .top_frequency          = 9000,
-> > +               .preemphasis            = 1,
-> > +               .region                 = 3,
-> > +       },
-> > +       /* Japan wide band */
-> > +       {
-> > +               .channel_spacing        = 10,
-> > +               .bottom_frequency       = 7600,
-> > +               .top_frequency          = 10800,
-> > +               .preemphasis            = 1,
-> > +               .region                 = 4,
-> > +       },
-> > +};
-> > +
+On Fri, May 29, 2009 at 08:03:59AM +0200, Valentin Eduardo (Nokia-D/Helsinki) wrote:
+> Hi Douglas,
 > 
-> Hi,
+> On Fri, May 29, 2009 at 07:36:20AM +0200, ext Douglas Schilling Landgraf wrote:
+> > Hello Eduardo,
+> > 
+> > On Wed, 27 May 2009 12:35:47 +0300
+> > Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
+> > 
+> > > Hello all,
+> > > 
+> > >   I'm resending the FM transmitter driver and the proposed changes in
+> > > v4l2 api files in order to cover the fmtx extended controls class.
+> > > 
+> > >   It is basically the same series of version #3. However I rewrote it
+> > > to add the following comments:
+> > > 
+> > >   * Check kernel version for i2c helper function. Now the board data
+> > > is passed not using i2c_board_info. This way all supported kernel
+> > > versions can use the api. Besides that, the .s_config callback was
+> > > added in core ops.
+> > > 
+> > >   * All patches are against v4l-dvb hg repository.
+> > > 
+> > >   Again, comments are welcome.
+> > 
+> > 
+> > I have a comment, please check some headers to avoid errors. 
+> > 
+> > Instead of:
+> > 
+> > patch 05:
+> > 
+> > #include <media/linux/v4l2-device.h>
+> > #include <media/linux/v4l2-ioctl.h>
+> > #include <media/linux/v4l2-i2c-drv.h>
+> > #include <media/linux/v4l2-subdev.h>
+> > 
+> > patch 06:
+> > 
+> > #include <media/linux/v4l2-device.h>
+> > #include <media/linux/v4l2-common.h>
+> > #include <media/linux/v4l2-ioctl.h>
+> > 
+> > Please use:
+> > 
+> > #include <media/v4l2-device.h>
+> > #include <media/v4l2-ioctl.h>
+> > #include <media/v4l2-i2c-drv.h>
+> > #include <media/v4l2-subdev.h>
+> > 
+> > and
+> > 
+> > #include <media/v4l2-device.h>
+> > #include <media/v4l2-common.h>
+> > #include <media/v4l2-ioctl.h>
 > 
-> I took a quick peek;
+> Right, I'll re send it.
 > 
-> For USA, the correct range appears as:
-> USA: 87.9 - 107.9
-> 
-> Some more to add:
-> 
-> China: 92 - 108 Mhz
-> Korea: 88 - 108 Mhz
-> (Europe?Middle east? Israel: 87.5 - 108)
-> 
-> But please do double check these before changing ;)
-> 
-> - Eero
+> Thanks for reviewing.
 
-..And South America goes as USA (should we denote is as North America
-instead?).
+Actually this series is messed up. Sorry for that.
+Resending.
 
-See, North America also has, in addition to USA,:
-Canada, Bahamas, Barbaros, Saint Kitts and Nevis, Trinidad and Tobago,
-Antigua and Barbuda, Costa Rica, Mexico, Grenada, Belize, Panama,
-Dominical Republic, Saint Vincent and the Grenadines, Dominica, Saint
-Lucia, El Salvador, Jamaica, Guatemala, Cuba, Hondura, Nicaragua and
-Haiti)
+> 
+> > 
+> > Cheers,
+> > Douglas
+> 
+> -- 
+> Eduardo Valentin
 
-
-- Eero
-
+-- 
+Eduardo Valentin
