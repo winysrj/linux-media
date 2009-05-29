@@ -1,64 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2805 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752864AbZEQIhH (ORCPT
+Received: from qw-out-2122.google.com ([74.125.92.27]:62500 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751570AbZE2FgZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 17 May 2009 04:37:07 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@radix.net>
-Subject: Re: cx18: Testers needed: VBI for non-NTSC-M input signals
-Date: Sun, 17 May 2009 10:35:10 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	ivtv-devel@ivtvdriver.org, ivtv-users@ivtvdriver.org
-References: <1242525964.16178.15.camel@morgan.walls.org>
-In-Reply-To: <1242525964.16178.15.camel@morgan.walls.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+	Fri, 29 May 2009 01:36:25 -0400
+Received: by qw-out-2122.google.com with SMTP id 5so3815163qwd.37
+        for <linux-media@vger.kernel.org>; Thu, 28 May 2009 22:36:27 -0700 (PDT)
+Date: Fri, 29 May 2009 02:36:20 -0300
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCHv4 0 of 8] FM Transmitter (si4713) and another changes
+Message-ID: <20090529023620.7497f10d@gmail.com>
+In-Reply-To: <1243416955-29748-1-git-send-email-eduardo.valentin@nokia.com>
+References: <1243416955-29748-1-git-send-email-eduardo.valentin@nokia.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200905171035.10520.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 17 May 2009 04:06:04 Andy Walls wrote:
-> Hi,
->
-> Thanks to a loaner PVR-350 from Hans, I've been able to implement VBI
-> support in the cx18 driver for non-NTSC video standards.
->
-> If you've got a 625 line PAL, SECAM, etc, video source and can test VBI
-> functions on a CX23418 based card, I'd like to hear how it works.  The
-> patches for testing are here:
->
-> http://linuxtv.org/hg/~awalls/cx18-av-core
-> http://linuxtv.org/hg/~awalls/cx18-av-core/archive/tip.tar.bz2
->
-> I've only been able to test with PAL with VPS in field 1 line 16 and WSS
-> in field 1 line 23.  I wasn't able to figure out how to get Teletext B
-> out of the PVR-350, so I'd certainly like to hear if Teletext is
-> working.
+Hello Eduardo,
 
-You can't get teletext out of the PVR-350. Only WSS and VPS. It's a hardware 
-limitation.
+On Wed, 27 May 2009 12:35:47 +0300
+Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
 
-I don't have access to my HVR1600 this week, I'll see if I can test it next 
-Sunday.
-
-Regards,
-
-	Hans
-
-> Note: to implement Raw VBI for 625 line/50 Hz systems to extract line 23
-> (WSS), I had to blank one extra line in each field.  This means that
-> 625/50 systems will be missing 1 line from the top of each field (e.g.
-> line 24 won't show).  I thought that was better than having the fields
-> move up or down around if the user turned VBI on or off.
->
-> Regards,
-> Andy
+> Hello all,
+> 
+>   I'm resending the FM transmitter driver and the proposed changes in
+> v4l2 api files in order to cover the fmtx extended controls class.
+> 
+>   It is basically the same series of version #3. However I rewrote it
+> to add the following comments:
+> 
+>   * Check kernel version for i2c helper function. Now the board data
+> is passed not using i2c_board_info. This way all supported kernel
+> versions can use the api. Besides that, the .s_config callback was
+> added in core ops.
+> 
+>   * All patches are against v4l-dvb hg repository.
+> 
+>   Again, comments are welcome.
 
 
+I have a comment, please check some headers to avoid errors. 
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Instead of:
+
+patch 05:
+
+#include <media/linux/v4l2-device.h>
+#include <media/linux/v4l2-ioctl.h>
+#include <media/linux/v4l2-i2c-drv.h>
+#include <media/linux/v4l2-subdev.h>
+
+patch 06:
+
+#include <media/linux/v4l2-device.h>
+#include <media/linux/v4l2-common.h>
+#include <media/linux/v4l2-ioctl.h>
+
+Please use:
+
+#include <media/v4l2-device.h>
+#include <media/v4l2-ioctl.h>
+#include <media/v4l2-i2c-drv.h>
+#include <media/v4l2-subdev.h>
+
+and
+
+#include <media/v4l2-device.h>
+#include <media/v4l2-common.h>
+#include <media/v4l2-ioctl.h>
+
+Cheers,
+Douglas
