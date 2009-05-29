@@ -1,302 +1,259 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns01.unsolicited.net ([69.10.132.115]:41778 "EHLO
-	ns01.unsolicited.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754142AbZE0Spj (ORCPT
+Received: from smtp.nokia.com ([192.100.122.230]:18674 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754273AbZE2HiP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 27 May 2009 14:45:39 -0400
-Message-ID: <4A1D89B3.2020400@unsolicited.net>
-Date: Wed, 27 May 2009 19:42:59 +0100
-From: David <david@unsolicited.net>
-MIME-Version: 1.0
-To: Alan Stern <stern@rowland.harvard.edu>
-CC: Pekka Enberg <penberg@cs.helsinki.fi>, linux-media@vger.kernel.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	dbrownell@users.sourceforge.net, leonidv11@gmail.com,
-	Greg KH <gregkh@suse.de>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	"Rafael J. Wysocki" <rjw@sisk.pl>
-Subject: Re: USB/DVB - Old Technotrend TT-connect S-2400 regression tracked
-  down
-References: <Pine.LNX.4.44L0.0905261646420.11998-100000@iolanthe.rowland.org>
-In-Reply-To: <Pine.LNX.4.44L0.0905261646420.11998-100000@iolanthe.rowland.org>
-Content-Type: multipart/mixed;
- boundary="------------090101070701010600010301"
+	Fri, 29 May 2009 03:38:15 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "\\\"ext Hans Verkuil\\\"" <hverkuil@xs4all.nl>,
+	"\\\"ext Mauro Carvalho Chehab\\\"" <mchehab@infradead.org>
+Cc: "\\\"Nurkkala Eero.An (EXT-Offcode/Oulu)\\\""
+	<ext-Eero.Nurkkala@nokia.com>,
+	"\\\"ext Douglas Schilling Landgraf\\\"" <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv5 4 of 8] Add documentation description for FM Transmitter Extended Control Class
+Date: Fri, 29 May 2009 10:33:24 +0300
+Message-Id: <1243582408-13084-5-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1243582408-13084-4-git-send-email-eduardo.valentin@nokia.com>
+References: <1243582408-13084-1-git-send-email-eduardo.valentin@nokia.com>
+ <1243582408-13084-2-git-send-email-eduardo.valentin@nokia.com>
+ <1243582408-13084-3-git-send-email-eduardo.valentin@nokia.com>
+ <1243582408-13084-4-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------090101070701010600010301
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+# HG changeset patch
+# User Eduardo Valentin <eduardo.valentin@nokia.com>
+# Date 1242209424 -10800
+# Branch export
+# Node ID 2dd45d3736ae1952dfa98e65b072eb08157fb19d
+# Parent  fadf1cddf504609cdb4889f4aa3305ca8d15323a
 
-Alan Stern wrote:
-> On Mon, 25 May 2009, David wrote:
->
->   
-> I think the idea of the patch was good, but the endpoint direction
-> information got lost (because the information was taken from the dummy
-> qTD which is always marked as OUT -- I don't see how this could ever
-> have worked properly).  So let's redo it, using the new and proper
-> interface for resetting endpoints.
->
-> To tell the truth, I'm not entirely certain this will work either.  The 
-> hardware may cache the endpoint state, so it may be necessary to unlink 
-> the endpoint completely.  Still, try this version and see what happens.
->
-> Alan Stern
->
->
->   
-Sorry for the delay, your patch reached me just after I turned in last
-night.
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-It looks good to me. dmesg is how I'd expect, and I've attached the usb
-trace which looks pretty similar to when the original patch was reverted.
+This single patch adds documentation description for FM Transmitter (FMTX)
+Extended Control Class and its Control IDs. The text was added under
+"Extended Controls" section.
 
-I'll test some more with some other peripherals & check that they work ok.
+Priority: normal
 
-Thanks a lot!
-David
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 
---------------090101070701010600010301
-Content-Type: application/x-bzip;
- name="patch2.log.bz2"
-Content-Transfer-Encoding: base64
-Content-Disposition: inline;
- filename="patch2.log.bz2"
-
-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
-H9CkKirCmgFAP/xdyRThQkBG3B8M
---------------090101070701010600010301--
+diff -r fadf1cddf504 -r 2dd45d3736ae v4l2-spec/controls.sgml
+--- a/v4l2-spec/controls.sgml	Wed May 27 11:56:47 2009 +0300
++++ b/v4l2-spec/controls.sgml	Wed May 13 13:10:24 2009 +0300
+@@ -458,6 +458,12 @@
+       <para>Unfortunately, the original control API lacked some
+ features needed for these new uses and so it was extended into the
+ (not terribly originally named) extended control API.</para>
++
++      <para>Even though the MPEG encoding API was the first effort
++to use the Extended Control API, nowadays there are also other classes
++of Extended Controls, such as Camera Controls and FM Transmitter Controls.
++The Extended Controls API as well as all Extended Controls classes are
++described in the following text.</para>
+     </section>
+ 
+     <section>
+@@ -1816,6 +1822,200 @@
+       </tgroup>
+     </table>
+   </section>
++
++    <section id="fmtx-controls">
++      <title>FM Transmitter Control Reference</title>
++
++      <para>The FM Transmitter (FMTX) class includes controls for common features of
++FM transmissions capable devices. Currently this class include parameters for audio
++compression, pilot tone generation, audio deviation limiter, RDS transmission and
++tuning power features.</para>
++
++      <table pgwide="1" frame="none" id="fmtx-control-id">
++      <title>FMTX Control IDs</title>
++
++      <tgroup cols="4">
++	<colspec colname="c1" colwidth="1*">
++	<colspec colname="c2" colwidth="6*">
++	<colspec colname="c3" colwidth="2*">
++	<colspec colname="c4" colwidth="6*">
++	<spanspec namest="c1" nameend="c2" spanname="id">
++	<spanspec namest="c2" nameend="c4" spanname="descr">
++	<thead>
++	  <row>
++	    <entry spanname="id" align="left">ID</entry>
++	    <entry align="left">Type</entry>
++	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row><entry></entry></row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FMTX_CLASS</constant>&nbsp;</entry>
++	    <entry>class</entry>
++	  </row><row><entry spanname="descr">The FMTX class
++descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
++description of this control class.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_ENABLED</constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row><entry spanname="descr">Enables or disables the RDS transmission feature.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_PI</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the RDS Programme Identification field
++for transmission.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_PTY</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">iSets the RDS Programme Type field for transmission.
++This coding of up to 31 pre-defined programme types.</entry>
++	  </row>
++<!--
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_PS_NAME</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_RADIO_TEXT</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">.</entry>
++	  </row>
++-->
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_ENABLED</constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row><entry spanname="descr">Enables or disables the audio deviation limiter feature.
++The limiter is useful when trying to maximize the audio volume, minimize receiver-generated
++distortion and prevent overmodulation.
++</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_RELEASE_TIME</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the audio deviation limiter feature release time.
++The unit, step and range are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_DEVIATION</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures audio frequency deviation level in Hz.
++The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_ENABLED</constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row><entry spanname="descr">Enables or disables the audio compression feature.
++This feature amplifies signals below the threshold by a fixed gain and compresses audio
++signals above the threshold by the ratio of Threshold/(Gain + Threshold).</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_GAIN</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the gain for audio compression feature. It is
++a dB value. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_THRESHOLD</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the threshold level for audio compression freature.
++It is a dB value. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the attack time for audio compression feature.
++It is a useconds value. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the release time for audio compression feature.
++It is a useconds value. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_ENABLED</constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row><entry spanname="descr">Enables or disables the pilot tone generation feature.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_DEVIATION</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures pilot tone frequency deviation level. Unit is
++in Hz. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_FREQUENCY</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures pilot tone frequency value. Unit is
++in Hz. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_PREEMPHASIS</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures the pre-emphasis value for broadcasting.
++A pre-emphasis filter is applied to the broadcast to accentuate the high audio frequencies.
++Depending on the region, a time constant of either 50 or 75 useconds is used. Possible values
++are:</entry>
++	</row><row>
++	<entrytbl spanname="descr" cols="2">
++		  <tbody valign="top">
++		    <row>
++		      <entry><constant>V4L2_FMTX_PREEMPHASIS_DISABLED</constant>&nbsp;</entry>
++		      <entry>No pre-emphasis is applied.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_FMTX_PREEMPHASIS_50_uS</constant>&nbsp;</entry>
++		      <entry>A pre-emphasis of 50 uS is used.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_FMTX_PREEMPHASIS_75_uS</constant>&nbsp;</entry>
++		      <entry>A pre-emphasis of 75 uS is used.</entry>
++		    </row>
++		  </tbody>
++		</entrytbl>
++
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_TUNE_POWER_LEVEL</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the output power level for signal transmission.
++Unit is in dBuV. Range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_TUNE_ANTENNA_CAPACITOR</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">This selects the value of antenna tuning capacitor
++manually or automatically if set to zero. Unit, range and step are driver-specific.</entry>
++	  </row>
++	  <row><entry></entry></row>
++	</tbody>
++      </tgroup>
++      </table>
++    </section>
+ </section>
+ 
+   <!--
