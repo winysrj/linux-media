@@ -1,194 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-04.arcor-online.net ([151.189.21.44]:48953 "EHLO
-	mail-in-04.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1762708AbZEAA06 (ORCPT
+Received: from mail1004.centrum.cz ([90.183.38.134]:57282 "EHLO
+	mail1004.centrum.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758614AbZE2OgW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Apr 2009 20:26:58 -0400
-Subject: Re: [linux-dvb] Can't scan transponders with Terratec Cinergy HT
-	PCI board
-From: hermann pitton <hermann-pitton@arcor.de>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-In-Reply-To: <e6575a30904300454w117e6293p4793ad6c2b5c706@mail.gmail.com>
-References: <e6575a30904300454w117e6293p4793ad6c2b5c706@mail.gmail.com>
-Content-Type: text/plain
-Date: Fri, 01 May 2009 02:26:32 +0200
-Message-Id: <1241137592.5108.12.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 29 May 2009 10:36:22 -0400
+Received: by mail1004.centrum.cz id S805582394AbZE2OgN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 May 2009 16:36:13 +0200
+Date: Fri, 29 May 2009 16:36:13 +0200
+From: "Miroslav =?UTF-8?Q?=20=C5=A0ustek?=" <sustmidown@centrum.cz>
+To: <linux-media@vger.kernel.org>
+MIME-Version: 1.0
+Message-ID: <200905291636.330@centrum.cz>
+References: <200905291634.22350@centrum.cz> <200905291635.22786@centrum.cz>
+In-Reply-To: <200905291635.22786@centrum.cz>
+Subject: mchehab@infradead.org
+Content-Type: multipart/mixed; boundary="-------=_3BC2479D.46B47C6"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Charles,
+This is a multi-part message in MIME format
 
-Am Donnerstag, den 30.04.2009, 13:54 +0200 schrieb Charles:
-> Hello,
-> 
-> 
-> I installed my Terratec Cinergy HT PCI DVB-T board on Ubuntu 9.04
+---------=_3BC2479D.46B47C6
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-I guess HT PCI can mean a lot, like My Cinema, WinFast and the like ...
+Hello,
+this patch adds support for Leadtek WinFast DTV-1800H hybrid card.
+It enables analog/digital tv, radio and remote control trough GPIO.
 
-> using your tutorial
-> (http://www.linuxtv.org/wiki/index.php/How_to_Obtain%2C_Build_and_Install_V4L-DVB_Device_Drivers)
-> and when trying to scan transponders, no result was found:
-> 
-> $ ls -l /dev/dvb/adapter0
-> total 0
-> crw-rw----+ 1 root video 212, 1 2009-04-30 12:19 demux0
-> crw-rw----+ 1 root video 212, 2 2009-04-30 12:19 dvr0
-> crw-rw----+ 1 root video 212, 0 2009-04-30 12:19 frontend0
-> crw-rw----+ 1 root video 212, 3 2009-04-30 12:19 net0
-> 
-> $ scan /usr/share/dvb/dvb-t/fr-Nantes
-> scanning /usr/share/dvb/dvb-t/fr-Nantes
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> initial transponder 498000000 0 2 9 3 1 0 0
-> initial transponder 506000000 0 2 9 3 1 0 0
-> initial transponder 522000000 0 2 9 3 1 0 0
-> initial transponder 530000000 0 2 9 3 1 0 0
-> initial transponder 658000000 0 2 9 3 1 0 0
-> initial transponder 802000000 0 2 9 3 1 0 0
+Input GPIO values are extracted from INF file which is included in winxp driver.
+Analog audio works both through cx88-alsa and through internal cable from tv-card to sound card.
 
-Can't tell offhand if the zl10353 eventually has this problem too, which
-is well known on the tda10046.
+Tested by me and the people listed in patch (works well).
 
-Please try to add plus 167 kHz to your initial scan file for Nantes,
-like you can see it here for one of the Lyon transmitters.
+- Miroslav Šustek
 
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval
-hierarchy
-# R1 : Canal 56
-T 754167000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-# R2 : Canal 36
-T 594167000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-# R3 : Canal 21
-T 474167000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-# R4 : Canal 54
-T 738167000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-# R5 : Canal 27
-T 522167000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-# R6 : Canal 24
-T 498167000 8MHz 2/3 NONE QAM64 8k 1/32 NONE
-
-At least we can exclude this then.
-
-Cheers,
-Hermann
-
-> >>> tune to: 498000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 498000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 530000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 530000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 658000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 658000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 802000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
-> WARNING: >>> tuning failed!!!
-> >>> tune to: 802000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
-> WARNING: >>> tuning failed!!!
-> ERROR: initial tuning failed
-> dumping lists (0 services)
-> Done.
-> 
-> $ dvbscan /usr/share/dvb/dvb-t/fr-Nantes
-> Unable to query frontend status
-> 
-> $ w_scan -ft -X
-> w_scan version 20081106
-> Info: using DVB adapter auto detection.
->    Found DVB-T frontend. Using adapter /dev/dvb/adapter0/frontend0
-> -_-_-_-_ Getting frontend capabilities-_-_-_-_
-> frontend Zarlink ZL10353 DVB-T supports
-> INVERSION_AUTO
-> QAM_AUTO
-> TRANSMISSION_MODE_AUTO
-> GUARD_INTERVAL_AUTO
-> HIERARCHY_AUTO
-> FEC_AUTO
-> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
-> 177500:
-> 184500:
-> 191500:
-> 198500:
-> 205500:
-> 212500:
-> 219500:
-> 226500:
-> 474000:
-> 482000:
-> 490000:
-> 498000:
-> 506000:
-> 514000:
-> 522000:
-> 530000:
-> 538000:
-> 546000:
-> 554000:
-> 562000:
-> 570000:
-> 578000:
-> 586000:
-> 594000:
-> 602000:
-> 610000:
-> 618000:
-> 626000:
-> 634000:
-> 642000:
-> 650000:
-> 658000:
-> 666000:
-> 674000:
-> 682000:
-> 690000:
-> 698000:
-> 706000:
-> 714000:
-> 722000:
-> 730000:
-> 738000:
-> 746000:
-> 754000:
-> 762000:
-> 770000:
-> 778000:
-> 786000:
-> 794000:
-> 802000:
-> 810000:
-> 818000:
-> 826000:
-> 834000:
-> 842000:
-> 850000:
-> 858000:
-> ERROR: Sorry - i couldn't get any working frequency/transponder
->  Nothing to scan!!
-> dumping lists (0 services)
-> Done.
-> $
-> 
-> 
-> 
-> Any idea?
-> Thanks in advance,
-> 
-> Charles.
-> 
+(Sorry for TRIPLE!-post, but I am asshole and haven't appended the patch file last time. )
 
 
+---------=_3BC2479D.46B47C6
+Content-Type: application/octet-stream; name="leadtek_winfast_dtv1800h.patch"
+Content-Transfer-Encoding: base64
+
+QWRkcyBzdXBwb3J0IGZvciBMZWFkdGVrIFdpbkZhc3QgRFRWLTE4MDBICgpGcm9tOiBNaXJv
+c2xhdiBTdXN0ZWsgPHN1c3RtaWRvd25AY2VudHJ1bS5jej4KCkVuYWJsZXMgYW5hbG9nL2Rp
+Z2l0YWwgdHYsIHJhZGlvIGFuZCByZW1vdGUgY29udHJvbCAoZ3BpbykuCgpTaWduZWQtb2Zm
+LWJ5OiBNaXJvc2xhdiBTdXN0ZWsgPHN1c3RtaWRvd25AY2VudHJ1bS5jej4KVGVzdGVkLWJ5
+OiBNYXJjaW4gV29qY2lrb3dza2kgPGVtdGVlcy5tdHNAZ21haWwuY29tPgpUZXN0ZWQtYnk6
+IEthcmVsIEp1aGFuYWsgPGthcmVsLmp1aGFuYWtAd2FybmV0LmN6PgpUZXN0ZWQtYnk6IEFu
+ZHJldyBHb2ZmIDxnb2ZmYTcyQGdtYWlsLmNvbT4KVGVzdGVkLWJ5OiBKYW4gTm92YWsgPG5v
+dmFrLWpAc2V6bmFtLmN6PgoKZGlmZiAtciA2NWVjMTMyZjIwZGYgbGludXgvRG9jdW1lbnRh
+dGlvbi92aWRlbzRsaW51eC9DQVJETElTVC5jeDg4Ci0tLSBhL2xpbnV4L0RvY3VtZW50YXRp
+b24vdmlkZW80bGludXgvQ0FSRExJU1QuY3g4OAlXZWQgTWF5IDI3IDE1OjUzOjAwIDIwMDkg
+LTAzMDAKKysrIGIvbGludXgvRG9jdW1lbnRhdGlvbi92aWRlbzRsaW51eC9DQVJETElTVC5j
+eDg4CUZyaSBNYXkgMjkgMTY6MTE6MTQgMjAwOSArMDIwMApAQCAtNzksMyArNzksNCBAQAog
+IDc4IC0+IFByb2YgNjIwMCBEVkItUyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICBbYjAyMjozMDIyXQogIDc5IC0+IFRlcnJhdGVjIENpbmVyZ3kgSFQgUENJIE1LSUkg
+ICAgICAgICAgICAgICAgICAgICAgICBbMTUzYjoxMTc3XQogIDgwIC0+IEhhdXBwYXVnZSBX
+aW5UVi1JUiBPbmx5ICAgICAgICAgICAgICAgICAgICAgICAgICAgICBbMDA3MDo5MjkwXQor
+IDgxIC0+IExlYWR0ZWsgV2luRmFzdCBEVFYxODAwIEh5YnJpZCAgICAgICAgICAgICAgICAg
+ICAgICBbMTA3ZDo2NjU0XQpkaWZmIC1yIDY1ZWMxMzJmMjBkZiBsaW51eC9kcml2ZXJzL21l
+ZGlhL3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5jCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEv
+dmlkZW8vY3g4OC9jeDg4LWNhcmRzLmMJV2VkIE1heSAyNyAxNTo1MzowMCAyMDA5IC0wMzAw
+CisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWNhcmRzLmMJRnJp
+IE1heSAyOSAxNjoxMToxNCAyMDA5ICswMjAwCkBAIC0yMDA5LDYgKzIwMDksNDcgQEAKIAkJ
+LnR1bmVyX2FkZHIJPSBBRERSX1VOU0VULAogCQkucmFkaW9fYWRkcgk9IEFERFJfVU5TRVQs
+CiAJfSwKKwlbQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBIXSA9IHsKKwkJLm5hbWUgICAg
+ICAgICAgID0gIkxlYWR0ZWsgV2luRmFzdCBEVFYxODAwIEh5YnJpZCIsCisJCS50dW5lcl90
+eXBlICAgICA9IFRVTkVSX1hDMjAyOCwKKwkJLnJhZGlvX3R5cGUgICAgID0gVFVORVJfWEMy
+MDI4LAorCQkudHVuZXJfYWRkciAgICAgPSAweDYxLAorCQkucmFkaW9fYWRkciAgICAgPSAw
+eDYxLAorCQkvKgorCQkgKiBHUElPIHNldHRpbmcKKwkJICoKKwkJICogIDI6IG11dGUgKDA9
+b2ZmLDE9b24pCisJCSAqIDEyOiB0dW5lciByZXNldCBwaW4KKwkJICogMTM6IGF1ZGlvIHNv
+dXJjZSAoMD10dW5lciBhdWRpbywxPWxpbmUgaW4pCisJCSAqIDE0OiBGTSAoMD1vbiwxPW9m
+ZiA/Pz8pCisJCSAqLworCQkuaW5wdXQgICAgICAgICAgPSB7eworCQkJLnR5cGUgICA9IENY
+ODhfVk1VWF9URUxFVklTSU9OLAorCQkJLnZtdXggICA9IDAsCisJCQkuZ3BpbzAgID0gMHgw
+NDAwLCAgICAgICAvKiBwaW4gMiA9IDAgKi8KKwkJCS5ncGlvMSAgPSAweDYwNDAsICAgICAg
+IC8qIHBpbiAxMyA9IDAsIHBpbiAxNCA9IDEgKi8KKwkJCS5ncGlvMiAgPSAweDAwMDAsCisJ
+CX0sIHsKKwkJCS50eXBlICAgPSBDWDg4X1ZNVVhfQ09NUE9TSVRFMSwKKwkJCS52bXV4ICAg
+PSAxLAorCQkJLmdwaW8wICA9IDB4MDQwMCwgICAgICAgLyogcGluIDIgPSAwICovCisJCQku
+Z3BpbzEgID0gMHg2MDYwLCAgICAgICAvKiBwaW4gMTMgPSAxLCBwaW4gMTQgPSAxICovCisJ
+CQkuZ3BpbzIgID0gMHgwMDAwLAorCQl9LCB7CisJCQkudHlwZSAgID0gQ1g4OF9WTVVYX1NW
+SURFTywKKwkJCS52bXV4ICAgPSAyLAorCQkJLmdwaW8wICA9IDB4MDQwMCwgICAgICAgLyog
+cGluIDIgPSAwICovCisJCQkuZ3BpbzEgID0gMHg2MDYwLCAgICAgICAvKiBwaW4gMTMgPSAx
+LCBwaW4gMTQgPSAxICovCisJCQkuZ3BpbzIgID0gMHgwMDAwLAorCQl9IH0sCisJCS5yYWRp
+byA9IHsKKwkJCS50eXBlICAgPSBDWDg4X1JBRElPLAorCQkJLmdwaW8wICA9IDB4MDQwMCwg
+ICAgICAgLyogcGluIDIgPSAwICovCisJCQkuZ3BpbzEgID0gMHg2MDAwLCAgICAgICAvKiBw
+aW4gMTMgPSAwLCBwaW4gMTQgPSAwICovCisJCQkuZ3BpbzIgID0gMHgwMDAwLAorCQl9LAor
+CQkubXBlZyAgICAgICAgICAgPSBDWDg4X01QRUdfRFZCLAorCX0sCiB9OwogCiAvKiAtLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0gKi8KQEAgLTI0MjYsNiArMjQ2NywxMCBAQAogCQkuc3VidmVuZG9yID0gMHgw
+MDcwLAogCQkuc3ViZGV2aWNlID0gMHg5MjkwLAogCQkuY2FyZCAgICAgID0gQ1g4OF9CT0FS
+RF9IQVVQUEFVR0VfSVJPTkxZLAorCX0sIHsKKwkJLnN1YnZlbmRvciA9IDB4MTA3ZCwKKwkJ
+LnN1YmRldmljZSA9IDB4NjY1NCwKKwkJLmNhcmQgICAgICA9IENYODhfQk9BUkRfV0lORkFT
+VF9EVFYxODAwSCwKIAl9LAogfTsKIApAQCAtMjYyNCw2ICsyNjY5LDIzIEBACiAJcmV0dXJu
+IC1FSU5WQUw7CiB9CiAKK3N0YXRpYyBpbnQgY3g4OF94YzMwMjhfd2luZmFzdDE4MDBoX2Nh
+bGxiYWNrKHN0cnVjdCBjeDg4X2NvcmUgKmNvcmUsCisJCQkJCSAgICAgaW50IGNvbW1hbmQs
+IGludCBhcmcpCit7CisJc3dpdGNoIChjb21tYW5kKSB7CisJY2FzZSBYQzIwMjhfVFVORVJf
+UkVTRVQ6CisJCS8qIEdQSU8gMTIgKHhjMzAyOCB0dW5lciByZXNldCkgKi8KKwkJY3hfc2V0
+KE1PX0dQMV9JTywgMHgxMDEwKTsKKwkJbWRlbGF5KDUwKTsKKwkJY3hfY2xlYXIoTU9fR1Ax
+X0lPLCAweDEwKTsKKwkJbWRlbGF5KDUwKTsKKwkJY3hfc2V0KE1PX0dQMV9JTywgMHgxMCk7
+CisJCW1kZWxheSg1MCk7CisJCXJldHVybiAwOworCX0KKwlyZXR1cm4gLUVJTlZBTDsKK30K
+KwogLyogLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLSAqLwogLyogc29tZSBEaXZjbyBzcGVjaWZpYyBzdHVmZiAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAqLwogc3RhdGljIGlu
+dCBjeDg4X3B2XzgwMDBndF9jYWxsYmFjayhzdHJ1Y3QgY3g4OF9jb3JlICpjb3JlLApAQCAt
+MjY5Niw2ICsyNzU4LDggQEAKIAljYXNlIENYODhfQk9BUkRfRFZJQ09fRlVTSU9OSERUVl9E
+VkJfVF9QUk86CiAJY2FzZSBDWDg4X0JPQVJEX0RWSUNPX0ZVU0lPTkhEVFZfNV9QQ0lfTkFO
+TzoKIAkJcmV0dXJuIGN4ODhfZHZpY29feGMyMDI4X2NhbGxiYWNrKGNvcmUsIGNvbW1hbmQs
+IGFyZyk7CisJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEg6CisJCXJldHVybiBj
+eDg4X3hjMzAyOF93aW5mYXN0MTgwMGhfY2FsbGJhY2soY29yZSwgY29tbWFuZCwgYXJnKTsK
+IAl9CiAKIAlzd2l0Y2ggKGNvbW1hbmQpIHsKQEAgLTI4ODIsNiArMjk0NiwxNiBAQAogCQlj
+eF9zZXQoTU9fR1AwX0lPLCAweDAwMDAwMDgwKTsgLyogNzAyIG91dCBvZiByZXNldCAqLwog
+CQl1ZGVsYXkoMTAwMCk7CiAJCWJyZWFrOworCisJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1Rf
+RFRWMTgwMEg6CisJCS8qIEdQSU8gMTIgKHhjMzAyOCB0dW5lciByZXNldCkgKi8KKwkJY3hf
+c2V0KE1PX0dQMV9JTywgMHgxMDEwKTsKKwkJbWRlbGF5KDUwKTsKKwkJY3hfY2xlYXIoTU9f
+R1AxX0lPLCAweDEwKTsKKwkJbWRlbGF5KDUwKTsKKwkJY3hfc2V0KE1PX0dQMV9JTywgMHgx
+MCk7CisJCW1kZWxheSg1MCk7CisJCWJyZWFrOwogCX0KIH0KIApAQCAtMjkwMiw2ICsyOTc2
+LDcgQEAKIAkJCWNvcmUtPmkyY19hbGdvLnVkZWxheSA9IDE2OwogCQlicmVhazsKIAljYXNl
+IENYODhfQk9BUkRfRFZJQ09fRlVTSU9OSERUVl9EVkJfVF9QUk86CisJY2FzZSBDWDg4X0JP
+QVJEX1dJTkZBU1RfRFRWMTgwMEg6CiAJCWN0bC0+ZGVtb2QgPSBYQzMwMjhfRkVfWkFSTElO
+SzQ1NjsKIAkJYnJlYWs7CiAJY2FzZSBDWDg4X0JPQVJEX0tXT1JMRF9BVFNDXzEyMDoKZGlm
+ZiAtciA2NWVjMTMyZjIwZGYgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgt
+ZHZiLmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtZHZiLmMJ
+V2VkIE1heSAyNyAxNTo1MzowMCAyMDA5IC0wMzAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVk
+aWEvdmlkZW8vY3g4OC9jeDg4LWR2Yi5jCUZyaSBNYXkgMjkgMTY6MTE6MTQgMjAwOSArMDIw
+MApAQCAtMTAyMSw2ICsxMDIxLDcgQEAKIAkJfQogCQlicmVhazsKIAkgY2FzZSBDWDg4X0JP
+QVJEX1BJTk5BQ0xFX0hZQlJJRF9QQ1RWOgorCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RU
+VjE4MDBIOgogCQlmZTAtPmR2Yi5mcm9udGVuZCA9IGR2Yl9hdHRhY2goemwxMDM1M19hdHRh
+Y2gsCiAJCQkJCSAgICAgICAmY3g4OF9waW5uYWNsZV9oeWJyaWRfcGN0diwKIAkJCQkJICAg
+ICAgICZjb3JlLT5pMmNfYWRhcCk7CmRpZmYgLXIgNjVlYzEzMmYyMGRmIGxpbnV4L2RyaXZl
+cnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWlucHV0LmMKLS0tIGEvbGludXgvZHJpdmVycy9t
+ZWRpYS92aWRlby9jeDg4L2N4ODgtaW5wdXQuYwlXZWQgTWF5IDI3IDE1OjUzOjAwIDIwMDkg
+LTAzMDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtaW5wdXQu
+YwlGcmkgTWF5IDI5IDE2OjExOjE0IDIwMDkgKzAyMDAKQEAgLTkyLDYgKzkyLDcgQEAKIAkJ
+Z3Bpbz0oZ3BpbyAmIDB4N2ZkKSArIChhdXhncGlvICYgMHhlZik7CiAJCWJyZWFrOwogCWNh
+c2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjEwMDA6CisJY2FzZSBDWDg4X0JPQVJEX1dJTkZB
+U1RfRFRWMTgwMEg6CiAJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfVFYyMDAwX1hQX0dMT0JB
+TDoKIAkJZ3BpbyA9IChncGlvICYgMHg2ZmYpIHwgKChjeF9yZWFkKE1PX0dQMV9JTykgPDwg
+OCkgJiAweDkwMCk7CiAJCWF1eGdwaW8gPSBncGlvOwpAQCAtMjM3LDYgKzIzOCw3IEBACiAJ
+CWlyLT5zYW1wbGluZyA9IDE7CiAJCWJyZWFrOwogCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNU
+X0RUVjIwMDBIOgorCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBIOgogCQlpcl9j
+b2RlcyA9IGlyX2NvZGVzX3dpbmZhc3Q7CiAJCWlyLT5ncGlvX2FkZHIgPSBNT19HUDBfSU87
+CiAJCWlyLT5tYXNrX2tleWNvZGUgPSAweDhmODsKZGlmZiAtciA2NWVjMTMyZjIwZGYgbGlu
+dXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODguaAotLS0gYS9saW51eC9kcml2ZXJz
+L21lZGlhL3ZpZGVvL2N4ODgvY3g4OC5oCVdlZCBNYXkgMjcgMTU6NTM6MDAgMjAwOSAtMDMw
+MAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC5oCUZyaSBNYXkg
+MjkgMTY6MTE6MTQgMjAwOSArMDIwMApAQCAtMjM3LDYgKzIzNyw3IEBACiAjZGVmaW5lIENY
+ODhfQk9BUkRfUFJPRl82MjAwICAgICAgICAgICAgICAgNzgKICNkZWZpbmUgQ1g4OF9CT0FS
+RF9URVJSQVRFQ19DSU5FUkdZX0hUX1BDSV9NS0lJIDc5CiAjZGVmaW5lIENYODhfQk9BUkRf
+SEFVUFBBVUdFX0lST05MWSAgICAgICAgODAKKyNkZWZpbmUgQ1g4OF9CT0FSRF9XSU5GQVNU
+X0RUVjE4MDBIICAgICAgICA4MQogCiBlbnVtIGN4ODhfaXR5cGUgewogCUNYODhfVk1VWF9D
+T01QT1NJVEUxID0gMSwK
+
+---------=_3BC2479D.46B47C6--
