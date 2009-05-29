@@ -1,149 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1495 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756760AbZELGvx (ORCPT
+Received: from deliverator2.ecc.gatech.edu ([130.207.185.172]:35841 "EHLO
+	deliverator2.ecc.gatech.edu" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755151AbZE2PtN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 12 May 2009 02:51:53 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: ext-eero.nurkkala@nokia.com
-Subject: Re: [PATCH 0/2] V4L: Add BCM2048 radio driver
-Date: Tue, 12 May 2009 08:51:48 +0200
-Cc: linux-media@vger.kernel.org
-References: <1242024079959-git-send-email-ext-eero.nurkkala@nokia.com>
-In-Reply-To: <1242024079959-git-send-email-ext-eero.nurkkala@nokia.com>
+	Fri, 29 May 2009 11:49:13 -0400
+Message-ID: <4A2003F4.5070005@gatech.edu>
+Date: Fri, 29 May 2009 11:49:08 -0400
+From: David Ward <david.ward@gatech.edu>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+To: Andy Walls <awalls@radix.net>
+CC: Michael Krufky <mkrufky@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] cx18: Use do_div for 64-bit division to fix 32-bit kernels
+References: <4A1F2BFB.6010109@gatech.edu> <1243595344.3139.5.camel@palomino.walls.org>
+In-Reply-To: <1243595344.3139.5.camel@palomino.walls.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200905120851.48875.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 11 May 2009 08:41:17 ext-eero.nurkkala@nokia.com wrote:
-> From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
+On 05/29/2009 07:09 AM, Andy Walls wrote:
+> On Thu, 2009-05-28 at 20:27 -0400, David Ward wrote:
+>    
+>> Use the do_div macro for 64-bit division.  Otherwise, the module will
+>> reference __udivdi3 under 32-bit kernels, which is not allowed in kernel
+>> space.  Follows style used in cx88 module.
+>>      
+> Ooopsie.  Thanks for catching this and providing a fix. :)
 >
-> This patchset adds the BCM2048 radio driver code.
-> BCM2048 is radio is integrated in the BCM2048 chipset
-> that contains the Bluetooth also.
+> (FYI, You would have caught my attention earlier if you had put "cx18:"
+> in the subject line of the initital report.)
 >
-> There's quite some sysfs entries introduced here;
-> But only a very few of them is meant to be used besides
-> debugging/experimental purposes:
+> I'll test it tonight on my 64 bit machine, commit it, and ask Mauro to
+> pull it.  I assume you've tested it on your 32 bit machine.
 >
-> "rds" (rds switch, off/on)
-> "fm_search_rssi_threshold" (threshold for V4L2_CAP_HW_FREQ_SEEK)
-> "region" (current region information)
-> "region_bottom_frequency"
-> "region_top_frequency"
+> Regards,
+> Andy
 >
-> Unlike V4L2 suggests, the code has also a reference
-> implementation for a partial RDS decoder; I understand that
-> this should be done in userspace. However, the decoded
-> RDS data may be read off from the sysfs nodes also:
->
-> "rds_pi" (RDS PI code)
-> "rds_rt" (RDS Radio Text)
-> "rds_ps" (RDS PS)
->
-> It would be nice to know, how RDS enabling/disabling takes
-> place in V4L2.
+>    
+Thanks Andy.  Yes it's running on my 32-bit system.  Until Michael 
+pointed out the offending line of code, I didn't realize that the 
+problem I was seeing was specific to the cx18 module -- I figured that 
+the problem could just as easily have been in an include somewhere and 
+affected multiple modules, perhaps only under older kernels -- so that's 
+why my original subject line was generic.  But I'll keep that in mind in 
+the future.
 
-I've made an RFC which describes the finishing touches for the RDS API:
-
-http://www.mail-archive.com/linux-media%40vger.kernel.org/msg02498.html
-
-I should have some time next week to finally implement this in the v4l-dvb 
-tree.
-
-I recommend that you move the RDS decoder code into an rds library in the 
-v4l2-apps directory of the v4l-dvb tree. As you say, the rds decoder 
-implementation does not belong in the driver, but it would be very nice to 
-have it as a library.
-
-> Below is the list of all sysfs entries; However, like mentioned,
-> only the above (8) sysfs nodes should be used along with the
-> V4L2. The sysfs nodes below, with the exception of the 8 ones
-> above, should only be used for debugging/experiments only.
-> And they do a good job for such purposes ;)
->
-> audio_route (DAC, I2S)
-> dac_output (OFF, LEFT, RIGHT, LEFT/RIGHT)
-> fm_af_frequency (Alternate Frequency)
-> fm_best_tune_mode (Best tune mode; tuning method)
-> fm_carrier_error (FM carrier error)
-> fm_deemphasis (De-emphasis)
-> fm_frequency (frequency)
-> fm_hi_lo_injection (Injection control)
-> fm_rds_flags (RDS IRQ flags)
-> fm_rds_mask (RDS IRQ Mask)
-> fm_rssi (Current channel RSSI level)
-> fm_search_mode_direction (UP, DOWN)
-> fm_search_rssi_threshold (HW seek threshold search level)
-> fm_search_tune_mode (stop all, preset, hw seek, AF jump)
-> mute (off, on)
-> power_state (off, on)
-> rds (off, on)
-> rds_b_block_mask (RDS b block IRQ mask)
-> rds_b_block_match (RDS b block IRQ match)
-> rds_data (Raw RDS data for debugging)
-> rds_pi (RDS PI code)
-> rds_pi_mask (RDS PI mask)
-> rds_pi_match (RDS PI match)
-> rds_ps (RDS PS)
-> rds_rt (RDS radiotext)
-> rds_wline (RDS FIFO watermark level)
-> region
-> region_bottom_frequency
-> region_top_frequency
-
-Such region tables do not belong in a driver IMHO. These too should go to a 
-userspace library (libv4l2util? It already contains frequency tables for 
-TV).
-
-A more general comment: this driver should be split into two parts: the 
-radio tuner core should really be implemented using the tuner API similar 
-to the tea5767 radio tuner driver. That way this radio tuner driver can be 
-reused when it is placed on e.g. a TV tuner card. However, the tuner API is 
-missing functionality for e.g. RDS. Alternatively, the core driver can be 
-rewritten as an v4l2_subdev driver, again allowing reuse in other drivers.
-
-I would like to see some input from others on this. I think that it would 
-help the integration of v4l and dvb enormously if dvb starts using the 
-standard i2c kernel API: that API offers all the functionality that dvb 
-needs now that it no longer uses autoprobing. Perhaps a topic for the 
-Plumbers conference later this year?
-
-Regards,
-
-	Hans
-
->
-> All comments are very welcome! Like mentioned, I'm aware of
-> the somewhat ugly set of syfs nodes. For debugging/experiments,
-> I would guess they're not that bad; but for real usage, they
-> should be integrated into the V4L2?
->
-> Eero Nurkkala (2):
->       V4L: Add BCM2048 radio driver
->       V4L: Add BCM2048 radio driver Makefile and Kconfig dependencies
->
->  drivers/media/radio/Kconfig         |   10 +
->  drivers/media/radio/Makefile        |    1 +
->  drivers/media/radio/radio-bcm2048.c | 2613
-> +++++++++++++++++++++++++++++++++++ include/media/radio-bcm2048.h       |
->   30 +
->  4 files changed, 2654 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/radio/radio-bcm2048.c
->  create mode 100644 include/media/radio-bcm2048.h
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+David
+>> Signed-off-by: David Ward<david.ward@gatech.edu>
+>>
+>> diff -r 65ec132f20df -r 91b89f13adb7
+>> linux/drivers/media/video/cx18/cx18-av-core.c
+>> --- a/linux/drivers/media/video/cx18/cx18-av-core.c    Wed May 27
+>> 15:53:00 2009 -0300
+>> +++ b/linux/drivers/media/video/cx18/cx18-av-core.c    Thu May 28
+>> 19:16:10 2009 -0400
+>> @@ -447,6 +447,7 @@ void cx18_av_std_setup(struct cx18 *cx)
+>>
+>>        if (pll_post) {
+>>            int fsc, pll;
+>> +        u64 tmp64;
+>>
+>>            pll = (28636360L * ((((u64)pll_int)<<  25) + pll_frac))>>  25;
+>>            pll /= pll_post;
+>> @@ -459,7 +460,9 @@ void cx18_av_std_setup(struct cx18 *cx)
+>>                        "= %d.%03d\n", src_decimation / 256,
+>>                        ((src_decimation % 256) * 1000) / 256);
+>>
+>> -        fsc = ((((u64)sc) * 28636360)/src_decimation)>>  13L;
+>> +        tmp64 = ((u64)sc) * 28636360;
+>> +        do_div(tmp64, src_decimation);
+>> +        fsc = ((u32)(tmp64>>  13L));
+>>            CX18_DEBUG_INFO_DEV(sd,
+>>                        "Chroma sub-carrier initial freq = %d.%06d "
+>>                        "MHz\n", fsc / 1000000, fsc % 1000000)
+>>      
