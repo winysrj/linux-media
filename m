@@ -1,413 +1,434 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f224.google.com ([209.85.219.224]:39521 "EHLO
-	mail-ew0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753137AbZESQNO convert rfc822-to-8bit (ORCPT
+Received: from smtp.nokia.com ([192.100.122.230]:18698 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754297AbZE2HiX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 19 May 2009 12:13:14 -0400
-Received: by ewy24 with SMTP id 24so4986262ewy.37
-        for <linux-media@vger.kernel.org>; Tue, 19 May 2009 09:13:14 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <855967.12185.qm@web110807.mail.gq1.yahoo.com>
-References: <855967.12185.qm@web110807.mail.gq1.yahoo.com>
-Date: Tue, 19 May 2009 12:13:13 -0400
-Message-ID: <37219a840905190913h7d200a71yf07dbdacb072138b@mail.gmail.com>
-Subject: Re: [PATCH] [09051_43] Siano: Add new GPIO management interface
-From: Michael Krufky <mkrufky@gmail.com>
-To: Uri Shkolnik <urishk@yahoo.com>
-Cc: LinuxML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Fri, 29 May 2009 03:38:23 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "\\\"ext Hans Verkuil\\\"" <hverkuil@xs4all.nl>,
+	"\\\"ext Mauro Carvalho Chehab\\\"" <mchehab@infradead.org>
+Cc: "\\\"Nurkkala Eero.An (EXT-Offcode/Oulu)\\\""
+	<ext-Eero.Nurkkala@nokia.com>,
+	"\\\"ext Douglas Schilling Landgraf\\\"" <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv5 6 of 8] FMTx: si4713: Add files to add radio interface for si4713
+Date: Fri, 29 May 2009 10:33:26 +0300
+Message-Id: <1243582408-13084-7-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1243582408-13084-6-git-send-email-eduardo.valentin@nokia.com>
+References: <1243582408-13084-1-git-send-email-eduardo.valentin@nokia.com>
+ <1243582408-13084-2-git-send-email-eduardo.valentin@nokia.com>
+ <1243582408-13084-3-git-send-email-eduardo.valentin@nokia.com>
+ <1243582408-13084-4-git-send-email-eduardo.valentin@nokia.com>
+ <1243582408-13084-5-git-send-email-eduardo.valentin@nokia.com>
+ <1243582408-13084-6-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 19, 2009 at 10:49 AM, Uri Shkolnik <urishk@yahoo.com> wrote:
->
-> # HG changeset patch
-> # User Uri Shkolnik <uris@siano-ms.com>
-> # Date 1242744570 -10800
-> # Node ID 749c11a362a9fad1992809007247d5c76c35bfc9
-> # Parent  08e292f80f37496d8d4b43a542f518196eaa4dc0
-> [09051_43] Siano: Add new GPIO management interface
->
-> From: Uri Shkolnik <uris@siano-ms.com>
->
-> Add new GPIO management interface to replace old (buggy) one.
-> Keeping old interface intact for now.
->
-> Priority: normal
->
-> Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
->
-> diff -r 08e292f80f37 -r 749c11a362a9 linux/drivers/media/dvb/siano/sms-cards.c
-> --- a/linux/drivers/media/dvb/siano/sms-cards.c Tue May 19 16:30:40 2009 +0300
-> +++ b/linux/drivers/media/dvb/siano/sms-cards.c Tue May 19 17:49:30 2009 +0300
-> @@ -109,7 +109,7 @@ static int sms_set_gpio(struct smscore_d
->  {
->        int lvl, ret;
->        u32 gpio;
-> -       struct smscore_gpio_config gpioconfig = {
-> +       struct smscore_config_gpio gpioconfig = {
->                .direction            = SMS_GPIO_DIRECTION_OUTPUT,
->                .pullupdown           = SMS_GPIO_PULLUPDOWN_NONE,
->                .inputcharacteristics = SMS_GPIO_INPUTCHARACTERISTICS_NORMAL,
-> diff -r 08e292f80f37 -r 749c11a362a9 linux/drivers/media/dvb/siano/smscoreapi.c
-> --- a/linux/drivers/media/dvb/siano/smscoreapi.c        Tue May 19 16:30:40 2009 +0300
-> +++ b/linux/drivers/media/dvb/siano/smscoreapi.c        Tue May 19 17:49:30 2009 +0300
-> @@ -1331,8 +1331,9 @@ static int smscore_map_common_buffer(str
->  }
->  #endif
->
-> +/* old GPIO managments implementation */
->  int smscore_configure_gpio(struct smscore_device_t *coredev, u32 pin,
-> -                          struct smscore_gpio_config *pinconfig)
-> +                          struct smscore_config_gpio *pinconfig)
->  {
->        struct {
->                struct SmsMsgHdr_ST hdr;
-> @@ -1399,6 +1400,238 @@ int smscore_set_gpio(struct smscore_devi
->
->        return coredev->sendrequest_handler(coredev->context,
->                                            &msg, sizeof(msg));
-> +}
-> +
-> +/* new GPIO managment implementation */
-> +static int GetGpioPinParams(u32 PinNum, u32 *pTranslatedPinNum,
-> +               u32 *pGroupNum, u32 *pGroupCfg) {
-> +
-> +       *pGroupCfg = 1;
-> +
-> +       if (PinNum >= 0 && PinNum <= 1) {
-> +               *pTranslatedPinNum = 0;
-> +               *pGroupNum = 9;
-> +               *pGroupCfg = 2;
-> +       } else if (PinNum >= 2 && PinNum <= 6) {
-> +               *pTranslatedPinNum = 2;
-> +               *pGroupNum = 0;
-> +               *pGroupCfg = 2;
-> +       } else if (PinNum >= 7 && PinNum <= 11) {
-> +               *pTranslatedPinNum = 7;
-> +               *pGroupNum = 1;
-> +       } else if (PinNum >= 12 && PinNum <= 15) {
-> +               *pTranslatedPinNum = 12;
-> +               *pGroupNum = 2;
-> +               *pGroupCfg = 3;
-> +       } else if (PinNum == 16) {
-> +               *pTranslatedPinNum = 16;
-> +               *pGroupNum = 23;
-> +       } else if (PinNum >= 17 && PinNum <= 24) {
-> +               *pTranslatedPinNum = 17;
-> +               *pGroupNum = 3;
-> +       } else if (PinNum == 25) {
-> +               *pTranslatedPinNum = 25;
-> +               *pGroupNum = 6;
-> +       } else if (PinNum >= 26 && PinNum <= 28) {
-> +               *pTranslatedPinNum = 26;
-> +               *pGroupNum = 4;
-> +       } else if (PinNum == 29) {
-> +               *pTranslatedPinNum = 29;
-> +               *pGroupNum = 5;
-> +               *pGroupCfg = 2;
-> +       } else if (PinNum == 30) {
-> +               *pTranslatedPinNum = 30;
-> +               *pGroupNum = 8;
-> +       } else if (PinNum == 31) {
-> +               *pTranslatedPinNum = 31;
-> +               *pGroupNum = 17;
-> +       } else
-> +               return -1;
-> +
-> +       *pGroupCfg <<= 24;
-> +
-> +       return 0;
-> +}
-> +
-> +int smscore_gpio_configure(struct smscore_device_t *coredev, u8 PinNum,
-> +               struct smscore_gpio_config *pGpioConfig) {
-> +
-> +       u32 totalLen;
-> +       u32 TranslatedPinNum;
-> +       u32 GroupNum;
-> +       u32 ElectricChar;
-> +       u32 groupCfg;
-> +       void *buffer;
-> +       int rc;
-> +
-> +       struct SetGpioMsg {
-> +               struct SmsMsgHdr_ST xMsgHeader;
-> +               u32 msgData[6];
-> +       } *pMsg;
-> +
-> +
-> +       if (PinNum > MAX_GPIO_PIN_NUMBER)
-> +               return -EINVAL;
-> +
-> +       if (pGpioConfig == NULL)
-> +               return -EINVAL;
-> +
-> +       totalLen = sizeof(struct SmsMsgHdr_ST) + (sizeof(u32) * 6);
-> +
-> +       buffer = kmalloc(totalLen + SMS_DMA_ALIGNMENT,
-> +                       GFP_KERNEL | GFP_DMA);
-> +       if (!buffer)
-> +               return -ENOMEM;
-> +
-> +       pMsg = (struct SetGpioMsg *) SMS_ALIGN_ADDRESS(buffer);
-> +
-> +       pMsg->xMsgHeader.msgSrcId = DVBT_BDA_CONTROL_MSG_ID;
-> +       pMsg->xMsgHeader.msgDstId = HIF_TASK;
-> +       pMsg->xMsgHeader.msgFlags = 0;
-> +       pMsg->xMsgHeader.msgLength = (u16) totalLen;
-> +       pMsg->msgData[0] = PinNum;
-> +
-> +       if (!(coredev->device_flags & SMS_DEVICE_FAMILY2)) {
-> +               pMsg->xMsgHeader.msgType = MSG_SMS_GPIO_CONFIG_REQ;
-> +               if (GetGpioPinParams(PinNum, &TranslatedPinNum, &GroupNum,
-> +                               &groupCfg) != 0)
-> +                       return -EINVAL;
-> +
-> +               pMsg->msgData[1] = TranslatedPinNum;
-> +               pMsg->msgData[2] = GroupNum;
-> +               ElectricChar = (pGpioConfig->PullUpDown)
-> +                               | (pGpioConfig->InputCharacteristics << 2)
-> +                               | (pGpioConfig->OutputSlewRate << 3)
-> +                               | (pGpioConfig->OutputDriving << 4);
-> +               pMsg->msgData[3] = ElectricChar;
-> +               pMsg->msgData[4] = pGpioConfig->Direction;
-> +               pMsg->msgData[5] = groupCfg;
-> +       } else {
-> +               pMsg->xMsgHeader.msgType = MSG_SMS_GPIO_CONFIG_EX_REQ;
-> +               pMsg->msgData[1] = pGpioConfig->PullUpDown;
-> +               pMsg->msgData[2] = pGpioConfig->OutputSlewRate;
-> +               pMsg->msgData[3] = pGpioConfig->OutputDriving;
-> +               pMsg->msgData[4] = pGpioConfig->Direction;
-> +               pMsg->msgData[5] = 0;
-> +       }
-> +
-> +       smsendian_handle_tx_message((struct SmsMsgHdr_ST *)pMsg);
-> +       rc = smscore_sendrequest_and_wait(coredev, pMsg, totalLen,
-> +                       &coredev->gpio_configuration_done);
-> +
-> +       if (rc != 0) {
-> +               if (rc == -ETIME)
-> +                       sms_err("smscore_gpio_configure timeout");
-> +               else
-> +                       sms_err("smscore_gpio_configure error");
-> +       }
-> +       kfree(buffer);
-> +
-> +       return rc;
-> +}
-> +
-> +int smscore_gpio_set_level(struct smscore_device_t *coredev, u8 PinNum,
-> +               u8 NewLevel) {
-> +
-> +       u32 totalLen;
-> +       int rc;
-> +       void *buffer;
-> +
-> +       struct SetGpioMsg {
-> +               struct SmsMsgHdr_ST xMsgHeader;
-> +               u32 msgData[3]; /* keep it 3 ! */
-> +       } *pMsg;
-> +
-> +       if ((NewLevel > 1) || (PinNum > MAX_GPIO_PIN_NUMBER) ||
-> +                       (PinNum > MAX_GPIO_PIN_NUMBER))
-> +               return -EINVAL;
-> +
-> +       totalLen = sizeof(struct SmsMsgHdr_ST) +
-> +                       (3 * sizeof(u32)); /* keep it 3 ! */
-> +
-> +       buffer = kmalloc(totalLen + SMS_DMA_ALIGNMENT,
-> +                       GFP_KERNEL | GFP_DMA);
-> +       if (!buffer)
-> +               return -ENOMEM;
-> +
-> +       pMsg = (struct SetGpioMsg *) SMS_ALIGN_ADDRESS(buffer);
-> +
-> +       pMsg->xMsgHeader.msgSrcId = DVBT_BDA_CONTROL_MSG_ID;
-> +       pMsg->xMsgHeader.msgDstId = HIF_TASK;
-> +       pMsg->xMsgHeader.msgFlags = 0;
-> +       pMsg->xMsgHeader.msgType = MSG_SMS_GPIO_SET_LEVEL_REQ;
-> +       pMsg->xMsgHeader.msgLength = (u16) totalLen;
-> +       pMsg->msgData[0] = PinNum;
-> +       pMsg->msgData[1] = NewLevel;
-> +
-> +       /* Send message to SMS */
-> +       smsendian_handle_tx_message((struct SmsMsgHdr_ST *)pMsg);
-> +       rc = smscore_sendrequest_and_wait(coredev, pMsg, totalLen,
-> +                       &coredev->gpio_set_level_done);
-> +
-> +       if (rc != 0) {
-> +               if (rc == -ETIME)
-> +                       sms_err("smscore_gpio_set_level timeout");
-> +               else
-> +                       sms_err("smscore_gpio_set_level error");
-> +       }
-> +       kfree(buffer);
-> +
-> +       return rc;
-> +}
-> +
-> +int smscore_gpio_get_level(struct smscore_device_t *coredev, u8 PinNum,
-> +               u8 *level) {
-> +
-> +       u32 totalLen;
-> +       int rc;
-> +       void *buffer;
-> +
-> +       struct SetGpioMsg {
-> +               struct SmsMsgHdr_ST xMsgHeader;
-> +               u32 msgData[2];
-> +       } *pMsg;
-> +
-> +
-> +       if (PinNum > MAX_GPIO_PIN_NUMBER)
-> +               return -EINVAL;
-> +
-> +       totalLen = sizeof(struct SmsMsgHdr_ST) + (2 * sizeof(u32));
-> +
-> +       buffer = kmalloc(totalLen + SMS_DMA_ALIGNMENT,
-> +                       GFP_KERNEL | GFP_DMA);
-> +       if (!buffer)
-> +               return -ENOMEM;
-> +
-> +       pMsg = (struct SetGpioMsg *) SMS_ALIGN_ADDRESS(buffer);
-> +
-> +       pMsg->xMsgHeader.msgSrcId = DVBT_BDA_CONTROL_MSG_ID;
-> +       pMsg->xMsgHeader.msgDstId = HIF_TASK;
-> +       pMsg->xMsgHeader.msgFlags = 0;
-> +       pMsg->xMsgHeader.msgType = MSG_SMS_GPIO_GET_LEVEL_REQ;
-> +       pMsg->xMsgHeader.msgLength = (u16) totalLen;
-> +       pMsg->msgData[0] = PinNum;
-> +       pMsg->msgData[1] = 0;
-> +
-> +       /* Send message to SMS */
-> +       smsendian_handle_tx_message((struct SmsMsgHdr_ST *)pMsg);
-> +       rc = smscore_sendrequest_and_wait(coredev, pMsg, totalLen,
-> +                       &coredev->gpio_get_level_done);
-> +
-> +       if (rc != 0) {
-> +               if (rc == -ETIME)
-> +                       sms_err("smscore_gpio_get_level timeout");
-> +               else
-> +                       sms_err("smscore_gpio_get_level error");
-> +       }
-> +       kfree(buffer);
-> +
-> +       /* Its a race between other gpio_get_level() and the copy of the single
-> +        * global 'coredev->gpio_get_res' to  the function's variable 'level'
-> +        */
-> +       *level = coredev->gpio_get_res;
-> +
-> +       return rc;
->  }
->
->  static int __init smscore_module_init(void)
-> diff -r 08e292f80f37 -r 749c11a362a9 linux/drivers/media/dvb/siano/smscoreapi.h
-> --- a/linux/drivers/media/dvb/siano/smscoreapi.h        Tue May 19 16:30:40 2009 +0300
-> +++ b/linux/drivers/media/dvb/siano/smscoreapi.h        Tue May 19 17:49:30 2009 +0300
-> @@ -550,7 +550,7 @@ struct SMSHOSTLIB_I2C_RES_ST {
->  };
->
->
-> -struct smscore_gpio_config {
-> +struct smscore_config_gpio {
->  #define SMS_GPIO_DIRECTION_INPUT  0
->  #define SMS_GPIO_DIRECTION_OUTPUT 1
->        u8 direction;
-> @@ -574,6 +574,48 @@ struct smscore_gpio_config {
->  #define SMS_GPIO_OUTPUTDRIVING_12mA 2
->  #define SMS_GPIO_OUTPUTDRIVING_16mA 3
->        u8 outputdriving;
-> +};
-> +
-> +struct smscore_gpio_config {
-> +#define SMS_GPIO_DIRECTION_INPUT  0
-> +#define SMS_GPIO_DIRECTION_OUTPUT 1
-> +       u8 Direction;
-> +
-> +#define SMS_GPIO_PULLUPDOWN_NONE     0
-> +#define SMS_GPIO_PULLUPDOWN_PULLDOWN 1
-> +#define SMS_GPIO_PULLUPDOWN_PULLUP   2
-> +#define SMS_GPIO_PULLUPDOWN_KEEPER   3
-> +       u8 PullUpDown;
-> +
-> +#define SMS_GPIO_INPUT_CHARACTERISTICS_NORMAL  0
-> +#define SMS_GPIO_INPUT_CHARACTERISTICS_SCHMITT 1
-> +       u8 InputCharacteristics;
-> +
-> +#define SMS_GPIO_OUTPUT_SLEW_RATE_SLOW         1 /* 10xx */
-> +#define SMS_GPIO_OUTPUT_SLEW_RATE_FAST         0 /* 10xx */
-> +
-> +
-> +#define SMS_GPIO_OUTPUT_SLEW_RATE_0_45_V_NS    0 /* 11xx */
-> +#define SMS_GPIO_OUTPUT_SLEW_RATE_0_9_V_NS     1 /* 11xx */
-> +#define SMS_GPIO_OUTPUT_SLEW_RATE_1_7_V_NS     2 /* 11xx */
-> +#define SMS_GPIO_OUTPUT_SLEW_RATE_3_3_V_NS     3 /* 11xx */
-> +       u8 OutputSlewRate;
-> +
-> +#define SMS_GPIO_OUTPUT_DRIVING_S_4mA          0 /* 10xx */
-> +#define SMS_GPIO_OUTPUT_DRIVING_S_8mA          1 /* 10xx */
-> +#define SMS_GPIO_OUTPUT_DRIVING_S_12mA         2 /* 10xx */
-> +#define SMS_GPIO_OUTPUT_DRIVING_S_16mA         3 /* 10xx */
-> +
-> +#define SMS_GPIO_OUTPUT_DRIVING_1_5mA          0 /* 11xx */
-> +#define SMS_GPIO_OUTPUT_DRIVING_2_8mA          1 /* 11xx */
-> +#define SMS_GPIO_OUTPUT_DRIVING_4mA                    2 /* 11xx */
-> +#define SMS_GPIO_OUTPUT_DRIVING_7mA                    3 /* 11xx */
-> +#define SMS_GPIO_OUTPUT_DRIVING_10mA                   4 /* 11xx */
-> +#define SMS_GPIO_OUTPUT_DRIVING_11mA                   5 /* 11xx */
-> +#define SMS_GPIO_OUTPUT_DRIVING_14mA                   6 /* 11xx */
-> +#undef SMS_GPIO_OUTPUT_DRIVING_16mA
-> +#define SMS_GPIO_OUTPUT_DRIVING_16mA                   7 /* 11xx */
-> +       u8 OutputDriving;
->  };
->
->  extern void smscore_registry_setmode(char *devpath, int mode);
-> @@ -619,9 +661,18 @@ extern void smscore_putbuffer(struct sms
->  extern void smscore_putbuffer(struct smscore_device_t *coredev,
->                              struct smscore_buffer_t *cb);
->
-> +/* old GPIO managment */
->  int smscore_configure_gpio(struct smscore_device_t *coredev, u32 pin,
-> -                          struct smscore_gpio_config *pinconfig);
-> +                          struct smscore_config_gpio *pinconfig);
->  int smscore_set_gpio(struct smscore_device_t *coredev, u32 pin, int level);
-> +
-> +/* new GPIO managment */
-> +extern int smscore_gpio_configure(struct smscore_device_t *coredev, u8 PinNum,
-> +               struct smscore_gpio_config *pGpioConfig);
-> +extern int smscore_gpio_set_level(struct smscore_device_t *coredev, u8 PinNum,
-> +               u8 NewLevel);
-> +extern int smscore_gpio_get_level(struct smscore_device_t *coredev, u8 PinNum,
-> +               u8 *level);
->
->  void smscore_set_board_id(struct smscore_device_t *core, int id);
->  int smscore_get_board_id(struct smscore_device_t *core);
->
->
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+# HG changeset patch
+# User Eduardo Valentin <eduardo.valentin@nokia.com>
+# Date 1243414606 -10800
+# Branch export
+# Node ID 1abb96fdce05e1449faac2223e93056bacf389bd
+# Parent  94b5043b692a6218a667326536d3d76a0c591307
+This patch adds files which creates the radio interface
+for si4713 FM transmitter devices.
 
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ drivers/media/radio/radio-si4713.c |  333 ++++++++++++++++++++++++++++++++++++
+ drivers/media/radio/radio-si4713.h |   49 ++++++
+ 2 files changed, 382 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/radio/radio-si4713.c
+ create mode 100644 drivers/media/radio/radio-si4713.h
 
-
-
-Mauro,
-
-I am OK with this changeset, since the old GPIO functions were left
-intact.  I haven't actually TESTED this patch, but I will do so after
-it's merged.
-
-After Uri is done with his changes, I will cleanup the Hauppauge code
-for GPIO handling, to remove the duplicated functionality.
-
-It would have been cleaner to simply add the "wait" flag to the new
-gpio function, but I cant tell Uri what to do -- this is OK for now.
-
-Acked-by: Michael Krufky <mkrufky@linuxtv.org>
+diff -r 94b5043b692a -r 1abb96fdce05 linux/drivers/media/radio/radio-si4713.c
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/linux/drivers/media/radio/radio-si4713.c	Wed May 27 11:56:46 2009 +0300
+@@ -0,0 +1,333 @@
++/*
++ * drivers/media/radio/radio-si4713.c
++ *
++ * Platform Driver for Silicon Labs Si4713 FM Radio Transmitter:
++ *
++ * Copyright (c) 2008 Instituto Nokia de Tecnologia - INdT
++ * Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/version.h>
++#include <linux/platform_device.h>
++#include <linux/i2c.h>
++#include <linux/videodev2.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-common.h>
++#include <media/v4l2-ioctl.h>
++
++#include "radio-si4713.h"
++#include "si4713.h"
++
++/* module parameters */
++static int radio_nr = -1;	/* radio device minor (-1 ==> auto assign) */
++
++/* radio_si4713_fops - file operations interface */
++static const struct v4l2_file_operations radio_si4713_fops = {
++	.owner		= THIS_MODULE,
++	.ioctl		= video_ioctl2,
++};
++
++/* Video4Linux Interface */
++static int radio_si4713_vidioc_g_audio(struct file *file, void *priv,
++					struct v4l2_audio *audio)
++{
++	if (audio->index > 1)
++		return -EINVAL;
++
++	strncpy(audio->name, "Radio", 32);
++	audio->capability = V4L2_AUDCAP_STEREO;
++
++	return 0;
++}
++
++static int radio_si4713_vidioc_s_audio(struct file *file, void *priv,
++					struct v4l2_audio *audio)
++{
++	if (audio->index != 0)
++		return -EINVAL;
++
++	return 0;
++}
++
++static int radio_si4713_vidioc_g_input(struct file *file, void *priv,
++					unsigned int *i)
++{
++	*i = 0;
++
++	return 0;
++}
++
++static int radio_si4713_vidioc_s_input(struct file *file, void *priv,
++					unsigned int i)
++{
++	if (i != 0)
++		return -EINVAL;
++
++	return 0;
++}
++
++/* radio_si4713_vidioc_querycap - query device capabilities */
++static int radio_si4713_vidioc_querycap(struct file *file, void *priv,
++					struct v4l2_capability *capability)
++{
++	struct radio_si4713_device *rsdev;
++
++	rsdev = video_get_drvdata(video_devdata(file));
++
++	strlcpy(capability->driver, "radio-si4713", sizeof(capability->driver));
++	strlcpy(capability->card, "Silicon Labs Si4713 FM Radio Transmitter",
++				sizeof(capability->card));
++	capability->capabilities = V4L2_CAP_TUNER;
++
++	return 0;
++}
++
++/* radio_si4713_vidioc_queryctrl - enumerate control items */
++static int radio_si4713_vidioc_queryctrl(struct file *file, void *priv,
++						struct v4l2_queryctrl *qc)
++{
++
++	/* Must be sorted from low to high control ID! */
++	static const u32 user_ctrls[] = {
++		V4L2_CID_USER_CLASS,
++		V4L2_CID_AUDIO_VOLUME,
++		V4L2_CID_AUDIO_BALANCE,
++		V4L2_CID_AUDIO_BASS,
++		V4L2_CID_AUDIO_TREBLE,
++		V4L2_CID_AUDIO_LOUDNESS,
++		V4L2_CID_AUDIO_MUTE,
++		0
++	};
++
++	/* Must be sorted from low to high control ID! */
++	static const u32 fmtx_ctrls[] = {
++		V4L2_CID_FMTX_CLASS,
++		V4L2_CID_RDS_ENABLED,
++		V4L2_CID_RDS_PI,
++		V4L2_CID_RDS_PTY,
++		V4L2_CID_RDS_PS_NAME,
++		V4L2_CID_RDS_RADIO_TEXT,
++		V4L2_CID_AUDIO_LIMITER_ENABLED,
++		V4L2_CID_AUDIO_LIMITER_RELEASE_TIME,
++		V4L2_CID_AUDIO_LIMITER_DEVIATION,
++		V4L2_CID_AUDIO_COMPRESSION_ENABLED,
++		V4L2_CID_AUDIO_COMPRESSION_GAIN,
++		V4L2_CID_AUDIO_COMPRESSION_THRESHOLD,
++		V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME,
++		V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME,
++		V4L2_CID_PILOT_TONE_ENABLED,
++		V4L2_CID_PILOT_TONE_DEVIATION,
++		V4L2_CID_PILOT_TONE_FREQUENCY,
++		V4L2_CID_PREEMPHASIS,
++		V4L2_CID_TUNE_POWER_LEVEL,
++		V4L2_CID_TUNE_ANTENNA_CAPACITOR,
++		0
++	};
++	static const u32 *ctrl_classes[] = {
++		user_ctrls,
++		fmtx_ctrls,
++		NULL
++	};
++	struct radio_si4713_device *rsdev;
++
++	rsdev = video_get_drvdata(video_devdata(file));
++
++	qc->id = v4l2_ctrl_next(ctrl_classes, qc->id);
++	if (qc->id == 0)
++		return -EINVAL;
++
++	if (qc->id == V4L2_CID_USER_CLASS || qc->id == V4L2_CID_FMTX_CLASS)
++		return v4l2_ctrl_query_fill(qc, 0, 0, 0, 0);
++
++	return v4l2_device_call_until_err(&rsdev->v4l2_dev, 0, core,
++						queryctrl, qc);
++}
++
++
++/*
++ * radio_si4713_vidioc_template - Produce a v4l2 vidioc call back.
++ * Can be used because we are just a wrapper for v4l2_sub_devs.
++ */
++#define radio_si4713_vidioc_template(type, callback, arg_type)		\
++static int radio_si4713_vidioc_##callback(struct file *file, void *p,	\
++						arg_type a)		\
++{									\
++	struct radio_si4713_device *rsdev;				\
++									\
++	rsdev = video_get_drvdata(video_devdata(file));			\
++									\
++	return v4l2_device_call_until_err(&rsdev->v4l2_dev, 0, type,	\
++							callback, a);	\
++}
++
++radio_si4713_vidioc_template(core, g_ext_ctrls, struct v4l2_ext_controls *)
++radio_si4713_vidioc_template(core, s_ext_ctrls, struct v4l2_ext_controls *)
++radio_si4713_vidioc_template(core, g_ctrl, struct v4l2_control *)
++radio_si4713_vidioc_template(core, s_ctrl, struct v4l2_control *)
++radio_si4713_vidioc_template(tuner, g_tuner, struct v4l2_tuner *)
++radio_si4713_vidioc_template(tuner, s_tuner, struct v4l2_tuner *)
++radio_si4713_vidioc_template(tuner, g_frequency, struct v4l2_frequency *)
++radio_si4713_vidioc_template(tuner, s_frequency, struct v4l2_frequency *)
++
++static struct v4l2_ioctl_ops radio_si4713_ioctl_ops = {
++	.vidioc_g_input		= radio_si4713_vidioc_g_input,
++	.vidioc_s_input		= radio_si4713_vidioc_s_input,
++	.vidioc_g_audio		= radio_si4713_vidioc_g_audio,
++	.vidioc_s_audio		= radio_si4713_vidioc_s_audio,
++	.vidioc_querycap	= radio_si4713_vidioc_querycap,
++	.vidioc_queryctrl	= radio_si4713_vidioc_queryctrl,
++	.vidioc_g_ext_ctrls	= radio_si4713_vidioc_g_ext_ctrls,
++	.vidioc_s_ext_ctrls	= radio_si4713_vidioc_s_ext_ctrls,
++	.vidioc_g_ctrl		= radio_si4713_vidioc_g_ctrl,
++	.vidioc_s_ctrl		= radio_si4713_vidioc_s_ctrl,
++	.vidioc_g_tuner		= radio_si4713_vidioc_g_tuner,
++	.vidioc_s_tuner		= radio_si4713_vidioc_s_tuner,
++	.vidioc_g_frequency	= radio_si4713_vidioc_g_frequency,
++	.vidioc_s_frequency	= radio_si4713_vidioc_s_frequency,
++};
++
++/* radio_si4713_vdev_template - video device interface */
++static struct video_device radio_si4713_vdev_template = {
++	.fops			= &radio_si4713_fops,
++	.name			= "radio-si4713",
++	.release		= video_device_release,
++	.ioctl_ops		= &radio_si4713_ioctl_ops,
++};
++
++/* Platform driver interface */
++/* radio_si4713_pdriver_probe - probe for the device */
++static int radio_si4713_pdriver_probe(struct platform_device *pdev)
++{
++	struct radio_si4713_platform_data *pdata = pdev->platform_data;
++	struct radio_si4713_device *rsdev;
++	struct i2c_adapter *adapter;
++	struct v4l2_subdev *sd;
++	int rval = 0;
++
++	if (!pdata) {
++		dev_err(&pdev->dev, "Can not proceed without platform data.\n");
++		rval = -EINVAL;
++		goto exit;
++	}
++
++	rsdev = kzalloc(sizeof *rsdev, GFP_KERNEL);
++	if (!rsdev) {
++		dev_err(&pdev->dev, "Failed to alloc video device.\n");
++		rval = -ENOMEM;
++		goto exit;
++	}
++
++	rval = v4l2_device_register(&pdev->dev, &rsdev->v4l2_dev);
++	if (rval) {
++		dev_err(&pdev->dev, "Failed to register v4l2 device.\n");
++		goto free_rsdev;
++	}
++
++	adapter = i2c_get_adapter(pdata->i2c_bus);
++	if (!adapter) {
++		dev_err(&pdev->dev, "Can not get i2c adapter %d\n",
++							pdata->i2c_bus);
++		rval = -ENODEV;
++		goto unregister_v4l2_dev;
++	}
++
++	sd = v4l2_i2c_new_subdev_board(&rsdev->v4l2_dev, adapter, "si4713_i2c",
++				"si4713", SI4713_I2C_ADDR_BUSEN_HIGH,
++				pdata->irq, pdata->subdev_pdata);
++	if (!sd) {
++		dev_err(&pdev->dev, "Can not get v4l2 subdevice\n");
++		rval = -ENODEV;
++		goto unregister_v4l2_dev;
++	}
++
++	rsdev->radio_dev = video_device_alloc();
++	if (!rsdev->radio_dev) {
++		dev_err(&pdev->dev, "Failed to alloc video device.\n");
++		rval = -ENOMEM;
++		goto unregister_v4l2_dev;
++	}
++
++	memcpy(rsdev->radio_dev, &radio_si4713_vdev_template,
++			sizeof(radio_si4713_vdev_template));
++	video_set_drvdata(rsdev->radio_dev, rsdev);
++	if (video_register_device(rsdev->radio_dev, VFL_TYPE_RADIO, radio_nr)) {
++		dev_err(&pdev->dev, "Could not register video device.\n");
++		rval = -EIO;
++		goto free_vdev;
++	}
++	dev_info(&pdev->dev, "New device successfully probed\n");
++
++	goto exit;
++
++free_vdev:
++	video_device_release(rsdev->radio_dev);
++unregister_v4l2_dev:
++	v4l2_device_unregister(&rsdev->v4l2_dev);
++free_rsdev:
++	kfree(rsdev);
++exit:
++	return rval;
++}
++
++/* radio_si4713_pdriver_remove - remove the device */
++static int __exit radio_si4713_pdriver_remove(struct platform_device *pdev)
++{
++	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
++	struct radio_si4713_device *rsdev = container_of(v4l2_dev,
++						struct radio_si4713_device,
++						v4l2_dev);
++
++	video_unregister_device(rsdev->radio_dev);
++	v4l2_device_unregister(&rsdev->v4l2_dev);
++	kfree(rsdev);
++
++	return 0;
++}
++
++static struct platform_driver radio_si4713_pdriver = {
++	.driver		= {
++		.name	= "radio-si4713",
++	},
++	.probe		= radio_si4713_pdriver_probe,
++	.remove         = __exit_p(radio_si4713_pdriver_remove),
++};
++
++/* Module Interface */
++static int __init radio_si4713_module_init(void)
++{
++	return platform_driver_register(&radio_si4713_pdriver);
++}
++
++static void __exit radio_si4713_module_exit(void)
++{
++	platform_driver_unregister(&radio_si4713_pdriver);
++}
++
++module_init(radio_si4713_module_init);
++module_exit(radio_si4713_module_exit);
++
++module_param(radio_nr, int, 0);
++MODULE_PARM_DESC(radio_nr,
++		 "Minor number for radio device (-1 ==> auto assign)");
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Eduardo Valentin <eduardo.valentin@nokia.com>");
++MODULE_DESCRIPTION("Platform driver for Si4713 FM Radio Transmitter");
++MODULE_VERSION("0.0.1");
+diff -r 94b5043b692a -r 1abb96fdce05 linux/drivers/media/radio/radio-si4713.h
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/linux/drivers/media/radio/radio-si4713.h	Wed May 27 11:56:46 2009 +0300
+@@ -0,0 +1,49 @@
++/*
++ * drivers/media/radio/radio-si4713.h
++ *
++ * Property and commands definitions for Si4713 radio transmitter chip.
++ *
++ * Copyright (c) 2008 Instituto Nokia de Tecnologia - INdT
++ * Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
++ *
++ * This file is licensed under the terms of the GNU General Public License
++ * version 2. This program is licensed "as is" without any warranty of any
++ * kind, whether express or implied.
++ *
++ */
++
++#ifndef RADIO_SI4713_H
++#define RADIO_SI4713_H
++
++#include <linux/i2c.h>
++#include <media/v4l2-device.h>
++
++#define SI4713_NAME "radio-si4713"
++
++/* The SI4713 I2C sensor chip has a fixed slave address of 0xc6. */
++#define SI4713_I2C_ADDR_BUSEN_HIGH	0x63
++#define SI4713_I2C_ADDR_BUSEN_LOW	0x11
++
++/*
++ * Platform dependent definition
++ */
++struct si4713_platform_data {
++	/* Set power state, zero is off, non-zero is on. */
++	int (*set_power)(int power);
++};
++
++/*
++ * Platform driver device state struct
++ */
++struct radio_si4713_device {
++	struct v4l2_device		v4l2_dev;
++	struct video_device		*radio_dev;
++};
++
++struct radio_si4713_platform_data {
++	int i2c_bus;
++	int irq;
++	void *subdev_pdata;
++};
++
++#endif /* ifndef RADIO_SI4713_H*/
