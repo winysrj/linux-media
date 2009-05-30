@@ -1,45 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cmpxchg.org ([85.214.51.133]:38182 "EHLO cmpxchg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752794AbZEEUkG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 May 2009 16:40:06 -0400
-Date: Tue, 5 May 2009 22:38:07 +0200
-From: Johannes Weiner <hannes@cmpxchg.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: magnus.damm@gmail.com, linux-media@vger.kernel.org,
-	hverkuil@xs4all.nl, lethal@linux-sh.org, linux-mm@kvack.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [patch 1/3] mm: introduce follow_pte()
-Message-ID: <20090505203807.GB2428@cmpxchg.org>
-References: <20090501181449.GA8912@cmpxchg.org> <1241430874-12667-1-git-send-email-hannes@cmpxchg.org> <20090505122442.6271c7da.akpm@linux-foundation.org>
+Received: from mail-in-07.arcor-online.net ([151.189.21.47]:54861 "EHLO
+	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753086AbZE3A7M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 29 May 2009 20:59:12 -0400
+Subject: Re: Zolid Hybrid TV Tuner not working
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Sander Pientka <cumulus0007@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <1243640272.6147.53.camel@pc07.localdom.local>
+References: <200905291648.46809.cumulus0007@gmail.com>
+	 <200905291834.52700.cumulus0007@gmail.com>
+	 <1243617390.6147.22.camel@pc07.localdom.local>
+	 <200905291945.30291.cumulus0007@gmail.com>
+	 <1243640272.6147.53.camel@pc07.localdom.local>
+Content-Type: text/plain
+Date: Sat, 30 May 2009 02:52:51 +0200
+Message-Id: <1243644771.3736.4.camel@pc07.localdom.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090505122442.6271c7da.akpm@linux-foundation.org>
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 05, 2009 at 12:24:42PM -0700, Andrew Morton wrote:
-> On Mon,  4 May 2009 11:54:32 +0200
-> Johannes Weiner <hannes@cmpxchg.org> wrote:
+
 > 
-> > A generic readonly page table lookup helper to map an address space
-> > and an address from it to a pte.
+> Here it goes out to it, that you might have some follow up.
 > 
-> umm, OK.
+> Doesn't look such bad anymore, except all DVB-T is scrambled?
 > 
-> Is there actually some point to these three patches?  If so, what is it?
+> Don't think so.
 
-Magnus needs to check for physical contiguity of a VMAs backing pages
-to support zero-copy exportation of video data to userspace.
+Correction, in this case you would still see "HAS_LOCK".
 
-This series implements follow_pfn() so he can walk the VMA backing
-pages and ensure their PFNs are in linear order.
+It seems to be something more interesting, though :)
 
-[ This patch can be collapsed with 2/3, I just thought it would be
-  easier to read the diffs when having them separate. ]
+Cheers,
+Hermann
 
-1/3 and 2/3: factor out the page table walk from follow_phys() into
-follow_pte().
 
-3/3: implement follow_pfn() on top of follow_pte().
