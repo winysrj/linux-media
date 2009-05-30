@@ -1,51 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:3218 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752232AbZEMTzT (ORCPT
+Received: from mail-bw0-f222.google.com ([209.85.218.222]:34354 "EHLO
+	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753761AbZE3Joc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 13 May 2009 15:55:19 -0400
-Date: Wed, 13 May 2009 21:55:13 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Andy Walls <awalls@radix.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Mike Isely <isely@pobox.com>
-Subject: [PATCH 7/8] ivtv: Probe more I2C addresses for IR devices
-Message-ID: <20090513215513.50b69baa@hyperion.delvare>
-In-Reply-To: <20090513214559.0f009231@hyperion.delvare>
-References: <20090513214559.0f009231@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Sat, 30 May 2009 05:44:32 -0400
+Received: by bwz22 with SMTP id 22so6567004bwz.37
+        for <linux-media@vger.kernel.org>; Sat, 30 May 2009 02:44:32 -0700 (PDT)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Simon Kenyon <simon@koala.ie>
+Subject: Re: [SOLVED] Re: [linux-dvb] SDMC DM1105N not being detected
+Date: Sat, 30 May 2009 12:44:27 +0300
+References: <e6ac15e50904022156u40221c3fib15d1b4cdf36461@mail.gmail.com> <4A1C4AF1.6020200@koala.ie> <4A1FA9EC.4050405@koala.ie>
+In-Reply-To: <4A1FA9EC.4050405@koala.ie>
+Cc: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Disposition: inline
+Content-Type: text/plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <200905301244.27490.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Probe I2C addresses 0x71 and 0x6b for IR receiver devices (for the
-PVR150 and Adaptec cards, respectively.)
+On 29 мая 2009, "Igor M. Liplianin" <liplianin@me.by>, linux-media-owner@vger.kernel.org wrote:
+> Simon Kenyon wrote:
+> > Igor M. Liplianin wrote:
+> >> The card is working with external LNB power supply, for example,
+> >> through the loop out from another sat box. So, we need to know, which
+> >> way to control LNB power on the board. Usually it is through GPIO pins.
+> >> For example:
+> >> Pins 112 and 111 for GPIO0, GPIO1. Also GPIO15 is at 65 pin.
+> >> You can edit this lines in code:
+> >> -*-*-*-*-*-*-*-*-*-*-*-*-
+> >> /* GPIO's for LNB power control for Axess DM05 */
+> >> #define DM05_LNB_MASK                           0xfffffffc  // GPIO
+> >> control
+> >> #define DM05_LNB_13V                            0x3fffd // GPIO value
+> >> #define DM05_LNB_18V                            0x3fffc // GPIO value
+> >> -*-*-*-*-*-*-*-*-*-*-*-*-
+> >>
+> >> BTW:
+> >> Bit value 0 for GPIOCTL means output, 1 - input.
+> >> Bit value for GPIOVAL - read/write.
+> >> GPIO pins count is 18. Bits over 18 affect nothing.
+> >
+> > i will try to work out the correct values
+> > when i have done so (or given up trying) i will let you know
+> >
+> > thank you very much for your help
+> > --
+> > simon
+>
+> well i thought i had sent out the correct information yesterday - but it
+> seems that the email didn't leave my machine
+Hi Simon,
+You forget to add linux-media@vger.kernel.org to recepients list.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
----
- linux/drivers/media/video/ivtv/ivtv-i2c.c            |    7 ++++++-
- linux/drivers/media/video/pvrusb2/pvrusb2-i2c-core.c |    2 +-
- 2 files changed, 7 insertions(+), 2 deletions(-)
+> of well! the correct settings are:
+>
+> /* GPIO's for LNB power control for DM05 */
+> #define DM05_LNB_MASK                           0x00000000
+> #define DM05_LNB_13V                            0x00020000
+> #define DM05_LNB_18V                            0x00030000
+>
+> with these values the card can control the LNB
+> it locks very quickly and gives good picture results (with kaffeine and
+> mythtv)
+> i am very pleased with this card so far
+>
+> i have not tried it behind a diseqc switch yet. i might have a go this
+> weekend
+> that would be the icing on the cake.
+>
+> would it be possible to push this into linuxtv.org?
+>
+> thanks for your help
+> --
+> simon
+>
+> PS by the way, putting a value of 0x00020001 in DM05_LNB_18V crashes the
+> machine - so don't do that :-)
+So, without crashes it is not possible to write drivers :)
 
---- v4l-dvb.orig/linux/drivers/media/video/ivtv/ivtv-i2c.c	2009-05-13 16:36:49.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/ivtv/ivtv-i2c.c	2009-05-13 17:50:55.000000000 +0200
-@@ -652,7 +652,12 @@ int init_ivtv_i2c(struct ivtv *itv)
- 		   That's why we probe 0x1a (~0x34) first. CB
- 		*/
- 		const unsigned short addr_list[] = {
--			0x1a, 0x18, 0x64, 0x30,
-+			0x1a,	/* Hauppauge IR external */
-+			0x18,	/* Hauppauge IR internal */
-+			0x71,	/* Hauppauge IR (PVR150) */
-+			0x64,	/* Pixelview IR */
-+			0x30,	/* KNC ONE IR */
-+			0x6b,	/* Adaptec IR */
- 			I2C_CLIENT_END
- 		};
- 
+> i found this out when trying to find the correct values
+Thank you for resolving this.
+I will prepair patch for linuxtv to test.
+Then after you test and confirm, I will commit.
 
 -- 
-Jean Delvare
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
