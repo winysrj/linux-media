@@ -1,60 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:55868 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753023AbZEEB4L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 4 May 2009 21:56:11 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1M19tC-0004JN-4m
-	for linux-media@vger.kernel.org; Tue, 05 May 2009 01:56:10 +0000
-Received: from alltalk.demon.co.uk ([80.177.3.49])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 05 May 2009 01:56:10 +0000
-Received: from drbob by alltalk.demon.co.uk with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 05 May 2009 01:56:10 +0000
-To: linux-media@vger.kernel.org
-From: drbob <drbob@gmx.co.uk>
-Subject: Re: EC168 "dvb_usb: Unknown symbol release_firmware"
-Date: Tue, 5 May 2009 01:55:59 +0000 (UTC)
-Message-ID: <gto6be$f0e$1@ger.gmane.org>
-References: <gtnj58$p21$2@ger.gmane.org> <49FF7BAD.7010108@rogers.com>
+Received: from bombadil.infradead.org ([18.85.46.34]:38936 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752477AbZEaTdi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 May 2009 15:33:38 -0400
+Date: Sun, 31 May 2009 16:33:35 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Andy Walls <awalls@radix.net>
+Cc: linux-media@vger.kernel.org, Terry Wu <terrywu2009@gmail.com>
+Subject: Re: [PATCH] xc2028: Add support for Taiwan 6 MHz DVB-T
+Message-ID: <20090531163335.4c13546e@pedra.chehab.org>
+In-Reply-To: <1243791558.3147.38.camel@palomino.walls.org>
+References: <1243773703.3133.24.camel@palomino.walls.org>
+	<20090531102220.2ebf15ca@pedra.chehab.org>
+	<1243791558.3147.38.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 04 May 2009 19:35:09 -0400, CityK wrote:
+Em Sun, 31 May 2009 13:39:18 -0400
+Andy Walls <awalls@radix.net> escreveu:
 
-> drbob,
+> > Hmm... why are you asking for the QAM firmware here? Shouldn't it be at FE_QAM?
 > 
-> Off_Topic: that name takes me back: http://muppet.wikia.com/wiki/Dr._Bob
-
-And I thought I'd picked that name at random. The muppets must have had a 
-deeper effect on my subconscious than I realised...
-
+> I think I can provide a little insight:
 > 
-> On_Topic:  You have built the drivers but you haven't installed them
-> into the system as intended, consequently you will run into the set of
-> observations that you have.  Have a read through:
-> http://www.linuxtv.org/wiki/index.php/How_to_Obtain%
-2C_Build_and_Install_V4L-DVB_Device_Drivers
+> They way I understood things is that DVB-T demodulators (like the
+> ZarLink used for the DTV1800 - zl10353 driver) are always of type
+> FE_OFDM.  The OFDM subcarriers for DVB-T can be modulated with QPSK or
+> QAM (I think there is a hierarchical modulation scheme - I have to do
+> more reading).
+> 
+> In the Linux dvb frontend drivers, the FE_QAM type is used for only for
+> cable TV (DVB-C) frontends.
+> 
+> 
+> My questions:
+> Is OFDM used for other Digital TV aside from DVB-T?
+> 
+> Does the XC20208 have firmware explcitily for OFDM irrespective of the
+> subcarrier modulation?
+> 
+> 
+> Here is a list of DVB deployment reports:
+> 
+> http://www.dvb.org/dvb-deployment-data.xls
+> 
+> Columns Q, R and U show these countries as DVB-T in a 6 MHz bandwidth
+> 
+> Taiwan: ~8000 subcarriers, 16 QAM
+> Uruguay: ~2000 subcarriers, 16 QAM and 64 QAM
+> 
+> 
+> So both of the currently deployed DVB-T systems using 6 MHz use QAM
+> subcarriers.
+> 
+> The only deployments using QPSK are using it in an 8 MHz bandwidth for
+> mobile services.
+> 
+> All the DVB demods in the v4l-dvb source tree that are FE_OFDM are
+> marked FE_CAN_QAM_{16,64,AUTO}, except in
+> 
+> 	v4l-dvb/linux/drivers/media/dvb/frontends/cx22700.c
+> 
+> the CX22700 is not marked FE_CAN_QAM_AUTO.
 
-Thanks for the link. It put me on the right track. I needed to load the 
-"firmware-class" kernel module before dvb-usb - modprobe resolves module 
-dependencies automatically, insmod does not. dvb-usb also relies on 
-i2c_core but that was already loaded on my system.
+After reviewing your table, I agree that we should load the QAM firmware every time that
+6 MHz of Bandwidth is selected. Terry's report also helps to solve the mystery with
+the QAM firmwares that exist only for 6 MHz: they are there for OFTM with QAM modulation, and
+not for Cable QAM. Other independent tests confirmed that QAM for cable doesn't work.
 
-So to manually load the ec168 modules I need to execute:
+However, the selection of D2633 and D2620 will depend on what demod you'll
+have, since, AFAIK, this is related to the output power level. So, this should
+be selected at the boards level.
 
-sudo modprobe firmware-class
+Also, there's no need to set DTV6, since this is already done inside
+xc2028_set_params, on the next switch().
 
-Bdefore the the insmod commands.
+So, the proper patch to tuner-xc3028 seems to be the enclosed one.
 
-For testing purposes I wanted to explicity load the new modules with 
-insmod rather than install them and overwrite all the modules included 
-with the kernel, which I know have been passed as stable. That seemed 
-more sensible than the course of action suggested by the wiki article.
+If both of you and Terry agree, I'll apply this one at the tree.
+
+Cheers,
+Mauro.
 
 
+diff --git a/linux/drivers/media/common/tuners/tuner-xc2028.c b/linux/drivers/media/common/tuners/tuner-xc2028.c
+--- a/linux/drivers/media/common/tuners/tuner-xc2028.c
++++ b/linux/drivers/media/common/tuners/tuner-xc2028.c
+@@ -1026,21 +1026,20 @@ static int xc2028_set_params(struct dvb_
+ 	switch(fe->ops.info.type) {
+ 	case FE_OFDM:
+ 		bw = p->u.ofdm.bandwidth;
+-		break;
+-	case FE_QAM:
+-		tuner_info("WARN: There are some reports that "
+-			   "QAM 6 MHz doesn't work.\n"
+-			   "If this works for you, please report by "
+-			   "e-mail to: v4l-dvb-maintainer@linuxtv.org\n");
+-		bw = BANDWIDTH_6_MHZ;
+-		type |= QAM;
++		/*
++		 * The only countries with 6MHz seem to be Taiwan/Uruguay.
++		 * Both seem to require QAM firmware for OFDM decoding
++		 * Tested in Taiwan by Terry Wu <terrywu2009@gmail.com>
++		 */
++		if (bw == BANDWIDTH_6_MHZ)
++			type |= QAM;
+ 		break;
+ 	case FE_ATSC:
+ 		bw = BANDWIDTH_6_MHZ;
+ 		/* The only ATSC firmware (at least on v2.7) is D2633 */
+ 		type |= ATSC | D2633;
+ 		break;
+-	/* DVB-S is not supported */
++	/* DVB-S and pure QAM (FE_QAM) are not supported */
+ 	default:
+ 		return -EINVAL;
+ 	}
+
+
+
+
+Cheers,
+Mauro
