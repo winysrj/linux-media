@@ -1,96 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:34523 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753804AbZEaNWX (ORCPT
+Received: from mail.velocitynet.com.au ([203.17.154.25]:32768 "EHLO
+	m0.velocity.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751036AbZEaHqU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 31 May 2009 09:22:23 -0400
-Date: Sun, 31 May 2009 10:22:20 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Andy Walls <awalls@radix.net>
-Cc: linux-media@vger.kernel.org, Terry Wu <terrywu2009@gmail.com>
-Subject: Re: [PATCH] xc2028: Add support for Taiwan 6 MHz DVB-T
-Message-ID: <20090531102220.2ebf15ca@pedra.chehab.org>
-In-Reply-To: <1243773703.3133.24.camel@palomino.walls.org>
-References: <1243773703.3133.24.camel@palomino.walls.org>
-Mime-Version: 1.0
+	Sun, 31 May 2009 03:46:20 -0400
+Received: from webmail.velocity.net.au (unknown [203.17.154.9])
+	by m0.velocity.net.au (Postfix) with ESMTP id 6153560370
+	for <linux-media@vger.kernel.org>; Sun, 31 May 2009 17:46:20 +1000 (EST)
+Message-ID: <65460.202.168.20.241.1243755980.squirrel@webmail.velocity.net.au>
+Date: Sun, 31 May 2009 17:46:20 +1000 (EST)
+Subject: RE: Leadtek Winfast DTV-1000S
+From: paul10@planar.id.au
+To: linux-media@vger.kernel.org
+MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 31 May 2009 08:41:43 -0400
-Andy Walls <awalls@radix.net> escreveu:
+I've been working through this thread.
 
-> This is a patch with changes provided by Terry Wu to support 6 MHz DVB-T
-> as is deployed in Taiwan.
-> 
-> 
-> I took quick look at the changes and they look OK to me, but I'm no
-> expert on the XC2028/XC3028 deivces.
-> 
-> My one observation is that the change assumes all COFDM frontends can
-> support QAM (FE_CAN_QAM..).  This is apparently the case looking through
-> all the Linux supported FE_OFDM frontends, and it seems like a
-> reasonable assumption to me.
-> 
-> 
-> Terry,
-> 
-> Please check the diff below, to make sure I captured all your changes.
-> 
-> For inclusion into the kernel, you will need to provide a
-> "Signed-off-by:" in a rely to this patch list posting.  Please see:
-> 
-> http://www.linuxtv.org/wiki/index.php/Development:_Submitting_Patches#Developer.27s_Certificate_of_Origin_1.1
-> 
-> 
-> Regards,
-> Andy
-> 
-> 
-> diff -r 8291f6042c9a linux/drivers/media/common/tuners/tuner-xc2028.c
-> --- a/linux/drivers/media/common/tuners/tuner-xc2028.c	Fri May 29 21:19:25 2009 -0400
-> +++ b/linux/drivers/media/common/tuners/tuner-xc2028.c	Sun May 31 08:29:32 2009 -0400
-> @@ -925,6 +925,9 @@
->  		rc = send_seq(priv, {0x00, 0x00});
->  	} else if (priv->cur_fw.type & ATSC) {
->  		offset = 1750000;
-> +	} else if (priv->cur_fw.type & DTV6) {
-> +		/* For Taiwan DVB-T 6 MHz bandwidth - Terry Wu */
-> +		offset = 1750000;
+I am running 2.6.30-rc6. I've checked out the patch from
+ttp://kernellabs.com/hg/~mk/hvr1110, and installed it.  I modified one
+file - cx88-cards.c, which doesn't seem to work with my DTV2000H, but
+otherwise just using the code per the patch.
 
-This is wrong, since it will break xc3028 for all other DVB-T standards.
-The offset depends on the demod type. He probably choose the wrong IF for the demod.
+I've added "options saa7134 card=156" into a file in /etc/modprobe.d/
 
-Terry, please provide your boards entry for us to help you to properly set it.
+So far, so good.  I have made more progress than Brad appears to have, it
+is recognising the card, but appears to not be tuning it.  I suspect the
+problem is the lack of firmware: dvb-fe-tda10048-1.0.fw
 
->  	} else {
->  		offset = 2750000;
->  		/*
-> @@ -1026,6 +1029,11 @@
->  	switch(fe->ops.info.type) {
->  	case FE_OFDM:
->  		bw = p->u.ofdm.bandwidth;
-> +		/* For Taiwan DVB-T 6 MHz bandwidth - Terry Wu */
-> +		if (bw == BANDWIDTH_6_MHZ) {
-> +			type |= (DTV6|QAM|D2633);
-> +			priv->ctrl.type = XC2028_D2633;
-> +		}
+I have three tuner cards in my machine - a DTV2000H and an Avermedia 777,
+so my full dmesg log is a bit untidy.  This is exacerbated by the fact
+that the Avermedia also uses the saa7134 chipset.  I believe the lines
+that relate to the DTV1000S, and that are relevant are these:
 
-Hmm... why are you asking for the QAM firmware here? Shouldn't it be at FE_QAM?
-This will also break for other countries with 6 MHz bw. Also, priv->ctrl should
-be set inside your board definitions.
+<the usual eeprom lines, ending with>
+saa7130[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+tveeprom 2-0050: Encountered bad packet header [ff]. Corrupt or not a
+Hauppauge eeprom.
+saa7130[0]: warning: unknown hauppauge model #0
+saa7130[0]: hauppauge eeprom: model=0
+Chip ID is not zero. It is not a TEA5767
+tuner 2-0060: chip found @ 0xc0 (saa7130[0]
+tda8290: no gate control were provided!
+tuner 2-0060: Tuner has no way to set tv freq
+tuner 2-0060: Tuner has no way to set tv freq
+tda10048_firmware_upload: waiting for firmware upload
+(dvb-fe-tda10048-1.0.fw)...
+saa7134 0000:05:00.0: firmware: requesting dvb-fe-tda10048-1.0.fw
+tda10048_firmware_upload: Upload failed. (file not found?)
+tuner-simple 3-0061: unable to probe Philips TD1316 Hybrid Tuner,
+proceeding anyway.<6>tuner-simple 3-0061: creating new instance
+tuner-simple 3-0061: type set to 67 (Philips TD1316 Hybrid Tuner)
 
-Could you please provide us more info about the DVB-T standard in Taiwan?
+I can see the appropriate firmware for the Hauppage, but I'm guessing that
+I need special firmware for the WinFast implementation.  So I think I need
+to do something to get the right firmware.  Is it a reasonable presumption
+that the firmware is the problem here - or is it actually the earlier
+messages that are the underlying problem?  Or perhaps both?
 
->  		break;
->  	case FE_QAM:
->  		tuner_info("WARN: There are some reports that "
-> 
-> 
+I have /dev/adapter1/ created, but it won't tune.  When trying to tune,
+dmesg is getting errors along the lines of missing firmware, then seg
+fault.  That was leading me to think that firmware is the issue.
+
+Is it useful to try the hauppage firmware, or is that unlikely to work?
+
+Thanks,
+
+Paul
 
 
 
-
-Cheers,
-Mauro
