@@ -1,64 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:45221 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753820AbZEPSWF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 16 May 2009 14:22:05 -0400
-Date: Sat, 16 May 2009 20:22:18 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-cc: Dan Williams <dan.j.williams@intel.com>,
-	Agustin <gatoguan-os@yahoo.com>,
-	linux-arm-kernel@lists.arm.linux.org.uk,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: [PATCH] dma: fix ipu_idmac.c to not discard the last queued
- buffer
-In-Reply-To: <20090516164620.GG20810@n2100.arm.linux.org.uk>
-Message-ID: <Pine.LNX.4.64.0905162018590.12170@axis700.grange>
-References: <155119.7889.qm@web32103.mail.mud.yahoo.com>
- <Pine.LNX.4.64.0905071750050.9460@axis700.grange> <951499.48393.qm@web32102.mail.mud.yahoo.com>
- <Pine.LNX.4.64.0905120908220.5087@axis700.grange> <155082.98228.qm@web32102.mail.mud.yahoo.com>
- <e9c3a7c20905121131q3c007e9p56c7b754ecd1466f@mail.gmail.com>
- <20090516164620.GG20810@n2100.arm.linux.org.uk>
+Received: from node02.cambriumhosting.nl ([217.19.16.163]:49084 "EHLO
+	node02.cambriumhosting.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752637AbZEaUA5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 May 2009 16:00:57 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by node02.cambriumhosting.nl (Postfix) with ESMTP id 1BF71B0001B4
+	for <linux-media@vger.kernel.org>; Sun, 31 May 2009 21:37:14 +0200 (CEST)
+Received: from node02.cambriumhosting.nl ([127.0.0.1])
+	by localhost (node02.cambriumhosting.nl [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id nqveFL+1VmPN for <linux-media@vger.kernel.org>;
+	Sun, 31 May 2009 21:37:12 +0200 (CEST)
+Received: from ashley.powercraft.nl (84-245-3-195.dsl.cambrium.nl [84.245.3.195])
+	by node02.cambriumhosting.nl (Postfix) with ESMTP id 5857AB0001A3
+	for <linux-media@vger.kernel.org>; Sun, 31 May 2009 21:37:12 +0200 (CEST)
+Received: from [192.168.1.239] (unknown [192.168.1.239])
+	by ashley.powercraft.nl (Postfix) with ESMTPSA id D1A8823BC4DE
+	for <linux-media@vger.kernel.org>; Sun, 31 May 2009 21:37:11 +0200 (CEST)
+Message-ID: <4A22DC66.8070304@powercraft.nl>
+Date: Sun, 31 May 2009 21:37:10 +0200
+From: Jelle de Jong <jelledejong@powercraft.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: w_scan 20090502, why is the new country code necessary, its breaking
+ my systems
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 16 May 2009, Russell King - ARM Linux wrote:
+Hello everybody,
 
-> On Tue, May 12, 2009 at 11:31:14AM -0700, Dan Williams wrote:
-> > On Tue, May 12, 2009 at 5:14 AM, Agustin <gatoguan-os@yahoo.com> wrote:
-> > >
-> > > On Tue, 12 May 2009, Guennadi Liakhovetski wrote:
-> > >
-> > >>
-> > >> This also fixes the case of a single queued buffer, for example, when taking a
-> > >> single frame snapshot with the mx3_camera driver.
-> > >>
-> > >> Reported-by: Agustin
-> > >> Signed-off-by: Guennadi Liakhovetski
-> > >
-> > > Signed-off-by: Agustin Ferrin Pozuelo
-> > 
-> > Applied.
-> 
-> Hopefully with real tags (iow, with email addresses) rather than what's
-> shown above (which is unacceptable.)
+My w_scan version 20081106 stopped working on my Debian system. I had
+the following errors:
+ERROR: Sorry - i couldn't get any working frequency/transponder
 
-Sure, Dan has done it perfectly:
+So I first checked if there was a wscan update.
 
-http://git.kernel.org/?p=linux/kernel/git/djbw/async_tx.git;a=commitdiff;h=ad567ffb32f067b30606071eb568cf637fe42185
+I downloaded the new version:
+http://wirbel.htpc-forum.de/w_scan/w_scan-20090504.tar.bz2
 
-as it also was in the patch submission
+Why is w_scan not available in the Debian repository?
 
-http://marc.info/?l=linux-arm-kernel&m=124212146702853&w=2
+However my old command arguments did not work anymore:
+old: ~/.wscan/wscan -t 3 -E 0 -O 0 -X tzap > ~/.wscan/channels.conf
 
-and _not_ as it was in the mail that you quote.
+main:2715: FATAL: Missing argument "-c" (country setting)
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+I had to make a new argument line:
+~/.wscan/wscan -t 3 -A 1 -E 0 -O 0 -c NL -X tzap > ~/.wscan/channels.conf
+
+This is very troubling for me because I must have a scan command that
+works in complete Europa and not in one country. This is because I have
+traveling systems that need to scan for channels on every stop.
+
+Why :-( please explain and  try to fix this regression that a country
+code is needed?
+
+I was hoping for auto signal strength detection and automatic filtering
+depending on the signal strength to remove duplicated channels from
+different broadcast towers.. what work is being done to realize this,
+and can I help by donating resources?
+
+Thanks in advance,
+
+Best regards,
+
+Jelle de Jong
+
+
+
+
+
+
