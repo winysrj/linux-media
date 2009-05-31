@@ -1,44 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:18607 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752919AbZE2HiA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 29 May 2009 03:38:00 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "\\\"ext Hans Verkuil\\\"" <hverkuil@xs4all.nl>,
-	"\\\"ext Mauro Carvalho Chehab\\\"" <mchehab@infradead.org>
-Cc: "\\\"Nurkkala Eero.An (EXT-Offcode/Oulu)\\\""
-	<ext-Eero.Nurkkala@nokia.com>,
-	"\\\"ext Douglas Schilling Landgraf\\\"" <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv5 0 of 8] FM Transmitter (si4713) and another changes
-Date: Fri, 29 May 2009 10:33:20 +0300
-Message-Id: <1243582408-13084-1-git-send-email-eduardo.valentin@nokia.com>
+Received: from bar.sig21.net ([80.81.252.164]:39255 "EHLO bar.sig21.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751412AbZEaX1m (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 May 2009 19:27:42 -0400
+Received: from p54bdf236.dip.t-dialin.net ([84.189.242.54] helo=abc.local)
+	by bar.sig21.net with esmtpsa (TLS-1.0:RSA_ARCFOUR_SHA1:16)
+	(Exim 4.63)
+	(envelope-from <js@sig21.net>)
+	id 1MAuRK-00016S-Rm
+	for linux-media@vger.kernel.org; Mon, 01 Jun 2009 01:27:43 +0200
+Received: from js by abc.local with local (Exim 4.69)
+	(envelope-from <js@sig21.net>)
+	id 1MAuSC-0005S4-Im
+	for linux-media@vger.kernel.org; Mon, 01 Jun 2009 01:28:36 +0200
+Date: Mon, 1 Jun 2009 01:28:36 +0200
+From: Johannes Stezenbach <js@linuxtv.org>
+To: linux-media@vger.kernel.org
+Subject: Wiki software update
+Message-ID: <20090531232836.GB20941@linuxtv.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello all,
+Hi,
 
-  I'm resending the FM transmitter driver and the proposed changes in
-v4l2 api files in order to cover the fmtx extended controls class.
+I just updated the V4L-DVB Wiki and the old V4L Wiki
+to MediaWiki-1.14.0. Please let me know in case
+something broke.
 
-  Difference from version #4 is that now I'm sending the correct patches.
-The last patch series was messed up with wrong paths names.
-
-  It is basically the same series of version #3. However I rewrote it
-to add the following comments:
-
-  * Check kernel version for i2c helper function. Now the board data
-is passed not using i2c_board_info. This way all supported kernel
-versions can use the api. Besides that, the .s_config callback was
-added in core ops.
-
-  * All patches are against v4l-dvb hg repository.
-
-  Again, comments are welcome.
-
-BR,
-
----
-Eduardo Valentin
+Johannes
