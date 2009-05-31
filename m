@@ -1,20 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n4C8umIX007103
-	for <video4linux-list@redhat.com>; Tue, 12 May 2009 04:56:48 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.232])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n4C8uTKT008419
-	for <video4linux-list@redhat.com>; Tue, 12 May 2009 04:56:30 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so2692367rvb.51
-	for <video4linux-list@redhat.com>; Tue, 12 May 2009 01:56:29 -0700 (PDT)
-From: xie <yili.xie@gmail.com>
-To: video4linux-list <video4linux-list@redhat.com>
-Content-Type: text/plain
-Date: Tue, 12 May 2009 16:55:58 +0800
-Message-Id: <1242118558.6105.4.camel@xie>
-Mime-Version: 1.0
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n4VJkQ79009008
+	for <video4linux-list@redhat.com>; Sun, 31 May 2009 15:46:26 -0400
+Received: from moutng.kundenserver.de (moutng.kundenserver.de
+	[212.227.126.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n4VJkB91013516
+	for <video4linux-list@redhat.com>; Sun, 31 May 2009 15:46:12 -0400
+Message-ID: <4A22DEDD.1020502@online.de>
+Date: Sun, 31 May 2009 21:47:41 +0200
+From: =?ISO-8859-15?Q?Bernd_Ble=DFmann?= <bibi@online.de>
+MIME-Version: 1.0
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: what is the meaning of the crop and overlay window?
+Subject: WinTV HVR-1700 analog s-video input
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,11 +25,16 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-hi~
+Hi all,
 
-when i read the v4l2 spec, i can't understand the concept of crop and
-overlay window. who can tell me what is the difference of them? thanks a
-lot~~
+I have bought a Hauppauge WinTV HVR-1700, because I saw it in a recent
+CARDLIST.cx23885 (debian etch backports 2.6.26-bpo.2-amd64).
+Is it possible to use the s-video input with this card and v4l2?
+If not, does anybody can recommend a PCI-Express-Grabber card with
+analog composite or s-video input?
+
+Thanks and Greetings
+   Bernd
 
 --
 video4linux-list mailing list
