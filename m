@@ -1,25 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from smtp2.oregonstate.edu ([128.193.15.36])
+Received: from mail-in-16.arcor-online.net ([151.189.21.56])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <akeym@onid.orst.edu>) id 1M95Q5-0002LZ-ND
-	for linux-dvb@linuxtv.org; Wed, 27 May 2009 00:46:54 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by smtp2.oregonstate.edu (Postfix) with ESMTP id D19763C54A
-	for <linux-dvb@linuxtv.org>; Tue, 26 May 2009 15:46:15 -0700 (PDT)
-Received: from smtp2.oregonstate.edu ([127.0.0.1])
-	by localhost (smtp.oregonstate.edu [127.0.0.1]) (amavisd-new,
-	port 10024) with ESMTP id oMPU4O0VZ4tJ for <linux-dvb@linuxtv.org>;
-	Tue, 26 May 2009 15:46:15 -0700 (PDT)
-Received: from spike.nws.oregonstate.edu (spike.nws.oregonstate.edu
-	[10.192.126.45])
-	by smtp2.oregonstate.edu (Postfix) with ESMTP id AD55F3C30A
-	for <linux-dvb@linuxtv.org>; Tue, 26 May 2009 15:46:15 -0700 (PDT)
-Message-ID: <4A1C7093.30408@onid.orst.edu>
-Date: Tue, 26 May 2009 15:43:31 -0700
-From: Michael Akey <akeym@onid.orst.edu>
+	(envelope-from <pascal_stroeing@arcor.de>) id 1MAhRG-0006y6-7A
+	for linux-dvb@linuxtv.org; Sun, 31 May 2009 11:34:47 +0200
+Received: from mail-in-12-z2.arcor-online.net (mail-in-12-z2.arcor-online.net
+	[151.189.8.29]) by mx.arcor.de (Postfix) with ESMTP id DD3C7256F79
+	for <linux-dvb@linuxtv.org>; Sun, 31 May 2009 11:34:12 +0200 (CEST)
+Received: from mail-in-04.arcor-online.net (mail-in-04.arcor-online.net
+	[151.189.21.44])
+	by mail-in-12-z2.arcor-online.net (Postfix) with ESMTP id 900B9279459
+	for <linux-dvb@linuxtv.org>; Sun, 31 May 2009 11:34:12 +0200 (CEST)
+Received: from [192.168.2.101] (dslb-084-057-037-093.pools.arcor-ip.net
+	[84.57.37.93]) (Authenticated sender: pascal_stroeing@arcor.de)
+	by mail-in-04.arcor-online.net (Postfix) with ESMTPA id 3338133A9E0
+	for <linux-dvb@linuxtv.org>; Sun, 31 May 2009 11:34:12 +0200 (CEST)
+Message-ID: <4A224F10.6020908@arcor.de>
+Date: Sun, 31 May 2009 11:34:08 +0200
+From: =?ISO-8859-15?Q?Pascal_Str=F6ing?= <pascal_stroeing@arcor.de>
 MIME-Version: 1.0
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Nextwave NXT2004 Firmware (found)
+Subject: [linux-dvb] udev creates '/dev/video0' and '/dev/v4l/' instead of
+ '/dev/dvb/' when I plug in my DVB-T USB stick
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -34,45 +35,33 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-I recently acquired an ATI HDTV Wonder PCI card from a friend of mine 
-and decided to test it out on my satellite TV transcoding server to also 
-get OTA channels.  I am using a generic linux kernel version 2.6.29.2, 
-and it detects the card just fine, but needed a firmware file for the 
-front-end.
-
-I checked the get_dvb_firmware script, but it failed because the driver 
-pack from AVerMedia is no longer available.  I then tried to get the 
-latest drivers from them by hand for the A180 card, which also has the 
-nxt2004 demod/frontend..  but the driver package refused to install on 
-my WinXP system.  After some quick googling and not finding the nxt2004 
-firmware downloadable online, I tried to find it in the AMD/ATI driver 
-package instead.  It was not readily apparent which file had the 
-firmware, and the only files in the package were windows 
-executable/system files. 
-
-So I figured it was embedded in one of these files..  I was able to find 
-the nxt2002 firmware file, and compare it to the contents of the file 
-"atidtuxx.sys."  In this file, I fiddled around with offsets and dumping 
-8kb chunks out and feeding it to my linux machine's kernel, and 
-magically got my tuner card to APPEAR to work properly with it, but I do 
-not know the firmware's actual size, so there's a distinct possibility 
-that I'm sending it extra garbage it doesn't need. 
+Dear TV-under-Linux-watchers,
 
 
-Default extraction path from nullsoft installer: 
-C:\ATI\SUPPORT\6-1_hdtv_83-2036wdm\WDM_XP
+I want to present my problem without detours:
 
-Firmware appears to be in ATIDTUXX.SYS at offset 0x681E, taken as a 
-8192byte chunk.
+I own a pinnacle USB DVB-T stick '70e'. It runs very well under Ubuntu 
+8.04. I used this driver-list: 
+'|http://mcentral.de/hg/~mrec/v4l-dvb-kernel' and ||'modprobe em28xx'. 
+No need of firmware.
+|
+Now I try to install the driver on a fresh Debian 5.0 system. The driver 
+file I have made good exerience with does not work (errors while doing 
+'make'). So I tried out 'http://linuxtv.org/hg/v4l-dvb' 
+<http://linuxtv.org/hg/v4l-dvb>. No problems during installation. Typing 
+|'modprobe em28xx'|, no error message. When I now plug in the device, 
+there is no '/dev/dvb/' directory like usual but I can find new files in 
+'/dev/v4l/' and a '/dev/video0' file. This seems to me v4l handles the 
+stick like a webcam or something but not an USB DVB-T stick!? That is 
+why the usual dvb-apps testing tools or kaffein do not work.
+'|lsmod|' and '|dmesg|' shows me a lot of |'modprobe em28xx'-percepiency|!?
 
-To help me with my findings, does anybody have a known working version 
-of dvb-fe-nxt2004.fw that I can use for comparison?  Thanks! 
 
-And if I have found the correct firmware, the get_dvb_firmware script 
-can be updated to pull this from the ATI drivers now.. If I did this the 
-hard way, you may feel free to point this out as well :)
+Can anyone tell me how I can use my TV stick?
 
---Mike
+Best regards,
+Pascal
+||
 
 _______________________________________________
 linux-dvb users mailing list
