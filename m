@@ -1,241 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-10.arcor-online.net ([151.189.21.50]:42407 "EHLO
-	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755992AbZFXU5k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jun 2009 16:57:40 -0400
-Subject: Re: [linux-dvb] Gigabyte GT-P8000 dvb-t / analog / fm radio - pci
-From: hermann pitton <hermann-pitton@arcor.de>
-To: linux-media@vger.kernel.org, jhmoodie@telkomsa.net
-Cc: linux-dvb@linuxtv.org
-In-Reply-To: <2169.41.247.34.89.1245861097.squirrel@webmail.telkomsa.net>
-References: <1243024963.14790.1316818399@webmail.messagingengine.com>
-	 <b5c455cf0906230836q196f6fb3p81014ae2f1322515@mail.gmail.com>
-	 <1245791516.4032.52.camel@pc07.localdom.local>
-	 <2169.41.247.34.89.1245861097.squirrel@webmail.telkomsa.net>
-Content-Type: text/plain
-Date: Wed, 24 Jun 2009 22:58:28 +0200
-Message-Id: <1245877108.13926.14.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from ey-out-2122.google.com ([74.125.78.27]:47327 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751425AbZFAPcB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2009 11:32:01 -0400
+Received: by ey-out-2122.google.com with SMTP id 22so487378eye.37
+        for <linux-media@vger.kernel.org>; Mon, 01 Jun 2009 08:32:02 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <829197380906010819s8cfdfedn9d47dbfef0ca1d04@mail.gmail.com>
+References: <d9def9db0905230704n4f8b725aj3dc3021187d5ae12@mail.gmail.com>
+	 <d9def9db0905230749r3e39de5m3f4e1c28c1d596bd@mail.gmail.com>
+	 <d9def9db0905230805h5258a9b6h7920a5bd4ce62e7c@mail.gmail.com>
+	 <829197380906010819s8cfdfedn9d47dbfef0ca1d04@mail.gmail.com>
+Date: Mon, 1 Jun 2009 17:32:02 +0200
+Message-ID: <d9def9db0906010832w42ab11a9jc7dc79c3e1488981@mail.gmail.com>
+Subject: Re: [PATCH] em28xx device mode detection based on endpoints
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, Jun 1, 2009 at 5:19 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Sat, May 23, 2009 at 11:05 AM, Markus Rechberger
+> <mrechberger@gmail.com> wrote:
+>> Hi,
+>>
+>> On Sat, May 23, 2009 at 4:49 PM, Markus Rechberger
+>> <mrechberger@gmail.com> wrote:
+>>> On Sat, May 23, 2009 at 4:04 PM, Markus Rechberger
+>>> <mrechberger@gmail.com> wrote:
+>>>> Hi,
+>>>>
+>>>> for em28xx devices the device node detection can be based on the
+>>>> encoded endpoint address, for example EP 0x81 (USB IN, Interrupt),
+>>>> 0x82 (analog video EP), 0x83 (analog audio ep), 0x84 (mpeg-ts input
+>>>> EP).
+>>>> It is not necessary that digital TV devices have a frontend, the
+>>>> em28xx chip only specifies an MPEG-TS input EP.
+>>>>
+>>>> Following patch adds a check based on the Endpoints, although it might
+>>>> be extended that all devices match the possible devicenodes based on
+>>>> the endpoints, currently the driver registers an analog TV node by
+>>>> default for all unknown devices which is not necessarily correct, this
+>>>> patch disables the ATV node if no analog TV endpoint is available.
+>>>>
+>>>
+>>
+>> attached patch fixes the deregistration, as well loads the em28xx-dvb
+>> module automatically as soon as an MPEG-TS endpoint was found.
+>>
+>> Signed-off-by: Markus Rechberger <mrechberger@gmail.com>
+>>
+>> best regards,
+>> Markus
+>>
+>
+> Hello Markus,
+>
+> I spent some time reviewing this patch, and the patch's content does
+> not seem to match your description of its functionality.  Further,
+> this patch appears to be a combination of a number of several
+> different changes, rather than being broken into separate patches.
+>
 
-Am Mittwoch, den 24.06.2009, 18:31 +0200 schrieb John Moodie:
-> > Hi,
-> >
-> > Am Mittwoch, den 24.06.2009, 01:36 +1000 schrieb c kuruwita:
-> >> Hi
-> >>
-> >> You could try using the "card=" option when loading the kernel module
-> >> and use the cardnumber of a similar supported saa7134 dvb card.
-> >> you can find a complete list of supported card saa713 dvb cards in
-> >> "Documentation/video4linux/CARDLIST.saa7134".
-> >>
-> >
-> > that might become a very frustrating experience and it is also not
-> > without some danger. At least you might get the card in a not further
-> > responding state and you might need a cold boot in between.
-> >
-> > Minimum further to know is the type of the digital demodulator these
-> > days!
-> >
-> > If it is for example a tda10048, there are currently only two cards to
-> > test on for DVB-T, but likely with slightly different hardware
-> > configuration.
-> >
-> > You also need to know if it needs firmware and which one.
-> >
-> > The saa7134 insmod option "i2c_scan=1" should be used to see if at least
-> > all chips are visible. You might need special gpio switching else to get
-> > them out of some power saving state.
-> >
-> > You also don't know if you need gate control enabled of the tda8290
-> > analog IF demod built into the saa7131e to initialize and further
-> > program the tuner.
-> >
-> > Tuner, digital demod and analog demod can be on four different i2c
-> > addresses each. For dvb-t you need to know and set each of those
-> > addresses correctly. It makes no sense to try on cards having this not
-> > all the same.
-> >
-> > The eeprom, if it is correct on this, says tuner at 0x60, analog demod
-> > at 0x4b and digital demod at 0x08 in seven bit notation. The tuner at
-> > 0x60 is rather rare, if you look into saa7134-dvb.c. Makes no sense to
-> > test on other cards.
-> >
-> > Then we always want to have the antenna inputs reported. What shares
-> > with what an input and what is on a separate one?
-> > Only this way you can _eventually_ find a card with the same switching
-> > there and also correct FM switch.
-> >
-> > Next, most recent cards do have an additional RF LNA and there are
-> > different types. All must be correctly set up for analog and digital
-> > mode or you will have some unpleasant experiences. Seems there is no way
-> > for us currently to know, if there is one at all or which type of
-> > configuration it does need.
-> >
-> > You must also know or find out, if the card uses serial or parallel TS
-> > interface.
-> >
-> > Even if you succeed with all the above, and that is possible by working
-> > through step by step, especially with a tda10048 you might need a card
-> > specific configuration not yet covered by other cards.
-> >
-> > Blindly testing on cards without knowing on what you are testing
-> > exactly, unlikely has good results on recent hybrid cards.
-> >
-> > First of all you must know the type of digital demod on that card too.
-> > The fuzzy picture I found seems to say it has only 48 pins ...
-> >
-> > Always recommend to read further on the wiki about how to provide a good
-> > report for new hardware.
-> >
-> > Cheers,
-> > Hermann
-> >
-> 
-> Hi,
-> 
-> I did do some blind testing with the card= option, but the only one that
-> looked promising was card=112 [ASUSTeK P7131 Hybrid]. But dmesg reported
-> 'tda10046: chip is not answering. Giving up'
+what doesn't match the description?
 
-that is what i meant. If you look closer you will find a tda10048 on
-your board and we have just these two cards for now.
+> First off, I totally agree that the analog subsystem should not be
+> loaded on devices such as em287[0-4].  I was going to do this work
+> (using the chip id to determine analog support) but just had not had a
+> chance to doing the necessary testing to ensure it did not break
+> anything.
+>
+> The patch appears to be primarily for devices that are not supported
+> in the kernel.  In fact, the logic as written *only* gets used for
+> unknown devices.  Further, the code that doesn't create the frontend
+> device has no application in the kernel.
 
-The HVR 1110r3 (card=156) in TS serial mode and LNA, specific gpios are
-in use, and the Leadtek DTV 1000S Mike has a testing repo for now in TS
-parallel, but without analog tuner support. At least no analog demod in
-the eeprom.
+this is wrong, there are devices without a tuner frontend, mpeg
+encoders (as written earlier already)
+The em28xx chip only defines an mpeg-ts input, whenever a customer
+wants to add a frontend or
+mpeg encoder is up to him.
 
-Have a look at the related threads.
-Hauppauge HVR 1110 and DVB
-Leadtek Winfast DTV-1000S
+> All devices currently in the
+> kernel make use of the dvb frontend interface, so there is no
+> practical application to loading the driver and setting up the isoc
+> handlers but blocking access to the dvb frontend device.
+>
+> Aside from the code that selectively disables analog support, the
+> patch only seems to advance compatibility with your userland em28xx
+> framework while providing no benefit to the in-kernel driver.
+>
 
-Both have links to firmware either from Steven or Terry.
+There's also a tuner customization option in the kernel module (eg set tuner ID
+manually). This more or less can be seen as a cleanup, further patches would
+come up. The next step would be to add customization support for various chips
+this would allow me to just drop in a demod for certain customers who are aware
+that they are not allowed to forward their modules. The application is mainly
+for business customers who don't ship to endusers and make up a direct deal
+with eg. Micronas. There is no reason to punish one company because the other
+one denies it.
 
-Maybe you can get it to load, but the other questions are still
-unanswered then.
+> Regarding the possibility of custom firmware, we currently do not have
+> any devices in the in-kernel driver that make use of custom firmware.
+> If you could tell me how to check for custom firmware versus the
+> default vendor firmware, I could potentially do a patch that uses the
+> vendor registers unless custom firmware is installed, at which point
+> we could have custom logic (such as using the endpoint definition).
+> However, given there are no such devices in-kernel, this is not a high
+> priority as far as I am concerned.
+>
 
-Cheers,
-Hermann
+endpoint size as mentioned already, old firmware shows up the endpoint size of 0
+newer one shows up a certain size.
 
+> For what it's worth, I did add an additional patch to allow the user
+> to disable the 480Mbps check via a modprobe option (to avoid a
+> regression for any of your existing customers)
 
-> I have created a page for the card which can be found here:
-> http://linuxtv.org/wiki/index.php/Gigabyte_GT-P8000
-> 
-> Regards,
-> John
-> 
-> >>
-> >> On Sat, May 23, 2009 at 6:42 AM, <jhmoodie@telkomsa.net> wrote:
-> >> > Does anyone have any information on the support status of this card?
-> >> Or
-> >> > perhaps any hints I might try to get it working?
-> >> >
-> >> > I have built and installed the latest V4L-DVB kernel driver modules,
-> >> but
-> >> > no luck.
-> >> >
-> >> > I noticed windows installs Philips 3xhybrid drivers if this helps...
-> >> >
-> >> > Product website:
-> >> > http://www.gigabyte.com.tw/Products/TVCard/Products_Spec.aspx?ClassValue=TV+Card&ProductID=2757&ProductName=GT-P8000
-> >> >
-> >> > Tuner NXP 18271
-> >> > Decoder NXP 7131E
-> >> >
-> >> > lspci -vnn:
-> >> > 00:09.0 Multimedia controller [0480]: Philips Semiconductors
-> >> > SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
-> >> >        Subsystem: Giga-byte Technology Device [1458:9004]
-> >> >        Flags: bus master, medium devsel, latency 32, IRQ 11
-> >> >        Memory at e6000000 (32-bit, non-prefetchable) [size=2K]
-> >> >        Capabilities: [40] Power Management version 2
-> >> >        Kernel driver in use: saa7134
-> >> >        Kernel modules: saa7134
-> >> >
-> >> > dmesg output:
-> >> > [ 3089.801191] saa7130/34: v4l2 driver version 0.2.15 loaded
-> >> > [ 3089.801419] saa7133[0]: found at 0000:00:09.0, rev: 209, irq: 11,
-> >> > latency: 32, mmio: 0xe6000000
-> >> > [ 3089.801443] saa7133[0]: subsystem: 1458:9004, board:
-> >> UNKNOWN/GENERIC
-> >> > [card=0,autodetected]
-> >> > [ 3089.801656] saa7133[0]: board init: gpio is 40000
-> >> > [ 3089.952088] saa7133[0]: i2c eeprom 00: 58 14 04 90 54 20 1c 00 43
-> >> 43
-> >> > a9
-> >> > 1c 55 d2 b2 92
-> >> > [ 3089.952125] saa7133[0]: i2c eeprom 10: ff ff ff ff ff 20 ff ff ff
-> >> ff
-> >> > ff
-> >> > ff ff ff ff ff
-> >> > [ 3089.952153] saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 01 03 08
-> >> ff
-> >> > 00
-> >> > b3 ff ff ff ff
-> >> > [ 3089.952180] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff
-> >> ff
-> >> > ff
-> >> > ff ff ff ff ff
-> >> > [ 3089.952206] saa7133[0]: i2c eeprom 40: 50 35 00 c0 96 10 05 32 d5
-> >> 15
-> >> > 0e
-> >> > 00 ff ff ff ff
-> >> > [ 3089.952233] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff
-> >> ff
-> >> > ff
-> >> > ff ff ff ff ff
-> >> > [ 3089.952260] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff
-> >> ff
-> >> > ff
-> >> > ff ff ff ff ff
-> >> > [ 3089.952287] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff
-> >> ff
-> >> > ff
-> >> > ff ff ff ff ff
-> >> > [ 3089.952314] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff
-> >> ff
-> >> > ff
-> >> > ff ff ff ff ff
-> >> > [ 3089.952340] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff
-> >> ff
-> >> > ff
-> >> > ff ff ff ff ff
-> >> > [ 3089.952367] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff
-> >> ff
-> >> > ff
-> >> > ff ff ff ff ff
-> >> > [ 3089.952394] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff
-> >> ff
-> >> > ff
-> >> > ff ff ff ff ff
-> >> > [ 3089.952421] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff
-> >> ff
-> >> > ff
-> >> > ff ff ff ff ff
-> >> > [ 3089.952447] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff
-> >> ff
-> >> > ff
-> >> > ff ff ff ff ff
-> >> > [ 3089.952474] saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff
-> >> ff
-> >> > ff
-> >> > ff ff ff ff ff
-> >> > [ 3089.952501] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
-> >> ff
-> >> > ff
-> >> > ff ff ff ff ff
-> >> > [ 3089.953430] saa7133[0]: registered device video0 [v4l2]
-> >> > [ 3089.953507] saa7133[0]: registered device vbi0
-> >> > [ 3090.023006] saa7134 ALSA driver for DMA sound loaded
-> >> > [ 3090.023158] saa7133[0]/alsa: saa7133[0] at 0xe6000000 irq 11
-> >> > registered
-> >> > as card -2
-> >> >
+All my customers are using the other kernel driver since the existing
+one is too limited right now
 
-
+best regards,
+Markus
