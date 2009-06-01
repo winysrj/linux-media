@@ -1,90 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:58501 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752099AbZFVQ2O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2009 12:28:14 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv9 0/9] FM Transmitter (si4713) and another changes
-Date: Mon, 22 Jun 2009 19:21:27 +0300
-Message-Id: <1245687696-6730-1-git-send-email-eduardo.valentin@nokia.com>
+Received: from mail-px0-f123.google.com ([209.85.216.123]:41155 "EHLO
+	mail-px0-f123.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750949AbZFAEyS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2009 00:54:18 -0400
+Received: by pxi29 with SMTP id 29so2534569pxi.33
+        for <linux-media@vger.kernel.org>; Sun, 31 May 2009 21:54:19 -0700 (PDT)
+MIME-Version: 1.0
+Date: Mon, 1 Jun 2009 13:54:19 +0900
+Message-ID: <5e9665e10905312154g1f33ea9bl66d905bc8e3e06a8@mail.gmail.com>
+Subject: Anyone working on MIPI CSI-2 device?
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: saaquirre@ti.com, dcurran@ti.com,
+	Dongsoo Kim <dongsoo45.kim@samsung.com>,
+	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>,
+	=?EUC-KR?B?uc66tMij?= <bhmin@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello all,
+Hello,
 
-  First of all, I'd like to thank you for the good review. The driver
-is getting better and better. With this new API change, si4713 is looking
-like a fm transmitter driver.
+Is anybody working on MIPI CSI-2 device? which is the standard of
+Camera Serial Interface.
+I started working on a camera module and camera interface supporting
+this feature and getting started with studying the specification of
+CSI-2 and in the meantime I've got some decisions to be made.
 
-  So, I'm resending the FM transmitter driver and the proposed changes in
-v4l2 api files in order to cover the fmtx extended controls class.
-
-  Differences from version #8 are:
-- Use of new modulator Capabilities
-- Use of new RDS modulator Capabilities and usage of txsubchannel
-- Proper definition of struct si4713_rssi. It was renamed also to si4713_rnl
-  (which stands to received noise level)
-- Updates for documentation
-
-  Now this series is based on *three* of Hans' trees:
-http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-subdev2.
-http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-str.
-http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-rds-enc.
-
-  The first tree has refactoring of v4l2 i2c helper functions. The second
-one has string support for extended controls, which is used in this driver.
-And the last one is the proposed changes for RDS capable modulators/receivers.
-As the ~hverkuil/v4l-dvb-rds-enc has already reference for EN50067, I didn't
-touch the v4l2-spec/biblio.sgml.
-
-  Here is simplified list of things included in this series:
-- support for g/s_modulator into subdev api
-- addition of fm tx extended controls and their proper documentation
-- addition of fm tx extended controls in v4l2-ctl util
-- addition of si4713: platform and i2c drivers and its documentation
-
-BR,
+First one is how to handle virtual channels in V4L2 aspect.
+As far as I understand,  the virtual channel is to share bandwidth of
+a serial channel with multiple data types (up-to 4) which could be
+considered as multiple camera devices. And we need to configure the
+"virtual ID" for each device using the serial interface which
+representing their virtual channel identifier used to isolate the data
+from other devices. So it means that if the image fetching and
+processing H/W can process multiple camera devices at a time it could
+be possible to consider that we have multiple input devices. But one
+thing obviously different from the dual camera model is that these
+identifiers are necessary only for sharing the bandwidth for
+simultaneous accessing situation. I'm not sure whether the switching
+input should be necessary or not, but we obviously have multiple
+inputs.
+Actually I have no idea about the usecase of this and asking you some
+advise about how to build up the driver in V4L2 aspect if any of you
+have experience on it.
 
 
-Eduardo Valentin (9):
-  v4l2-subdev.h: Add g_modulator callbacks to subdev api
-  v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX controls
-  v4l2: video device: Add FM_TX controls default configurations
-  v4l2-ctl: Add support for FM TX controls
-  v4l2-spec: Add documentation description for FM TX extended control
-    class
-  FMTx: si4713: Add files to add radio interface for si4713
-  FMTx: si4713: Add files to handle si4713 i2c device
-  FMTx: si4713: Add Kconfig and Makefile entries
-  FMTx: si4713: Add document file
+Second one is about the necessity for user space to be aware of the
+interface is parallel or serial.
+The answer of this question should depend on the answer of the first
+question because of the switching input thing. To make it easier to
+understand, let me put an example in this way.
+I have a couple of cameras devices attached with parallel interface
+and I can use only one at a time, and I have couple of cameras
+attached with CSI-2 interface but I can use both of them at the same
+time. So, with this assumption I should have four v4l2 device nodes
+but only two of them (CSI-2) can be accessed simultaneously and the
+others should be handled with VIDIOC_S_INPUT which means "can't be
+used simultaneously".
+Confusing isn't it? There is no way to let user know about which one
+is switchable and which one can be used at the same time.
 
- linux/Documentation/video4linux/si4713.txt |  175 +++
- linux/drivers/media/radio/Kconfig          |   22 +
- linux/drivers/media/radio/Makefile         |    2 +
- linux/drivers/media/radio/radio-si4713.c   |  366 +++++
- linux/drivers/media/radio/si4713-i2c.c     | 2011 ++++++++++++++++++++++++++++
- linux/drivers/media/radio/si4713-i2c.h     |  226 ++++
- linux/drivers/media/video/v4l2-common.c    |   48 +
- linux/include/linux/videodev2.h            |   33 +
- linux/include/media/radio-si4713.h         |   30 +
- linux/include/media/si4713.h               |   49 +
- linux/include/media/v4l2-subdev.h          |    2 +
- v4l2-apps/util/v4l2-ctl.cpp                |   36 +
- v4l2-spec/Makefile                         |    1 +
- v4l2-spec/controls.sgml                    |  200 +++
- 14 files changed, 3201 insertions(+), 0 deletions(-)
- create mode 100644 linux/Documentation/video4linux/si4713.txt
- create mode 100644 linux/drivers/media/radio/radio-si4713.c
- create mode 100644 linux/drivers/media/radio/si4713-i2c.c
- create mode 100644 linux/drivers/media/radio/si4713-i2c.h
- create mode 100644 linux/include/media/radio-si4713.h
- create mode 100644 linux/include/media/si4713.h
+I think OMAP3 from TI is supporting for MIPI CSI-2 interface, and
+heard that driver is working properly by now. I wish I could have some
+advise if I could. I think there are plenty of S/W API stuffs to be
+generalized in common in camera area.
+Cheers,
 
+Nate
+
+-- 
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
