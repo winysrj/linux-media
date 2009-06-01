@@ -1,130 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59894 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751847AbZFISui (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Jun 2009 14:50:38 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n59IoaXK015625
-	for <linux-media@vger.kernel.org>; Tue, 9 Jun 2009 13:50:41 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH 6/10 - v2] Makefile and config files for vpfe capture driver
-Date: Tue,  9 Jun 2009 14:50:34 -0400
-Message-Id: <1244573434-20593-1-git-send-email-m-karicheri2@ti.com>
+Received: from mail-pz0-f109.google.com ([209.85.222.109]:44799 "EHLO
+	mail-pz0-f109.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752216AbZFAPTV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2009 11:19:21 -0400
+Received: by pzk7 with SMTP id 7so6061021pzk.33
+        for <linux-media@vger.kernel.org>; Mon, 01 Jun 2009 08:19:22 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <d9def9db0905230805h5258a9b6h7920a5bd4ce62e7c@mail.gmail.com>
+References: <d9def9db0905230704n4f8b725aj3dc3021187d5ae12@mail.gmail.com>
+	 <d9def9db0905230749r3e39de5m3f4e1c28c1d596bd@mail.gmail.com>
+	 <d9def9db0905230805h5258a9b6h7920a5bd4ce62e7c@mail.gmail.com>
+Date: Mon, 1 Jun 2009 11:19:22 -0400
+Message-ID: <829197380906010819s8cfdfedn9d47dbfef0ca1d04@mail.gmail.com>
+Subject: Re: [PATCH] em28xx device mode detection based on endpoints
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Markus Rechberger <mrechberger@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
+On Sat, May 23, 2009 at 11:05 AM, Markus Rechberger
+<mrechberger@gmail.com> wrote:
+> Hi,
+>
+> On Sat, May 23, 2009 at 4:49 PM, Markus Rechberger
+> <mrechberger@gmail.com> wrote:
+>> On Sat, May 23, 2009 at 4:04 PM, Markus Rechberger
+>> <mrechberger@gmail.com> wrote:
+>>> Hi,
+>>>
+>>> for em28xx devices the device node detection can be based on the
+>>> encoded endpoint address, for example EP 0x81 (USB IN, Interrupt),
+>>> 0x82 (analog video EP), 0x83 (analog audio ep), 0x84 (mpeg-ts input
+>>> EP).
+>>> It is not necessary that digital TV devices have a frontend, the
+>>> em28xx chip only specifies an MPEG-TS input EP.
+>>>
+>>> Following patch adds a check based on the Endpoints, although it might
+>>> be extended that all devices match the possible devicenodes based on
+>>> the endpoints, currently the driver registers an analog TV node by
+>>> default for all unknown devices which is not necessarily correct, this
+>>> patch disables the ATV node if no analog TV endpoint is available.
+>>>
+>>
+>
+> attached patch fixes the deregistration, as well loads the em28xx-dvb
+> module automatically as soon as an MPEG-TS endpoint was found.
+>
+> Signed-off-by: Markus Rechberger <mrechberger@gmail.com>
+>
+> best regards,
+> Markus
+>
 
-Makefile and config files for the driver
+Hello Markus,
 
-This adds Makefile and Kconfig changes to build vpfe capture driver.
+I spent some time reviewing this patch, and the patch's content does
+not seem to match your description of its functionality.  Further,
+this patch appears to be a combination of a number of several
+different changes, rather than being broken into separate patches.
 
-Added configuration variable for vpss driver based on last review
+First off, I totally agree that the analog subsystem should not be
+loaded on devices such as em287[0-4].  I was going to do this work
+(using the chip id to determine analog support) but just had not had a
+chance to doing the necessary testing to ensure it did not break
+anything.
 
-Reviewed By "Hans Verkuil".
-Reviewed By "Laurent Pinchart".
+The patch appears to be primarily for devices that are not supported
+in the kernel.  In fact, the logic as written *only* gets used for
+unknown devices.  Further, the code that doesn't create the frontend
+device has no application in the kernel.  All devices currently in the
+kernel make use of the dvb frontend interface, so there is no
+practical application to loading the driver and setting up the isoc
+handlers but blocking access to the dvb frontend device.
 
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
-Applies to v4l-dvb repository
+Aside from the code that selectively disables analog support, the
+patch only seems to advance compatibility with your userland em28xx
+framework while providing no benefit to the in-kernel driver.
 
- drivers/media/video/Kconfig          |   49 ++++++++++++++++++++++++++++++++++
- drivers/media/video/Makefile         |    1 +
- drivers/media/video/davinci/Makefile |    9 ++++++
- 3 files changed, 59 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/davinci/Makefile
+Regarding the possibility of custom firmware, we currently do not have
+any devices in the in-kernel driver that make use of custom firmware.
+If you could tell me how to check for custom firmware versus the
+default vendor firmware, I could potentially do a patch that uses the
+vendor registers unless custom firmware is installed, at which point
+we could have custom logic (such as using the endpoint definition).
+However, given there are no such devices in-kernel, this is not a high
+priority as far as I am concerned.
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 9d48da2..ee6806c 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -479,6 +479,55 @@ config VIDEO_VIVI
- 	  Say Y here if you want to test video apps or debug V4L devices.
- 	  In doubt, say N.
- 
-+config VIDEO_VPSS_SYSTEM
-+	tristate "VPSS System module driver"
-+	depends on ARCH_DAVINCI
-+	help
-+	  Support for vpss system module for video driver
-+	default y
-+
-+config VIDEO_VPFE_CAPTURE
-+	tristate "VPFE Video Capture Driver"
-+	depends on VIDEO_V4L2 && ARCH_DAVINCI
-+	select VIDEOBUF_DMA_CONTIG
-+	help
-+	  Support for DMXXXX VPFE based frame grabber. This is the
-+	  common V4L2 module for following DMXXX SoCs from Texas
-+	  Instruments:- DM6446 & DM355.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called vpfe-capture.
-+
-+config VIDEO_DM6446_CCDC
-+	tristate "DM6446 CCDC HW module"
-+	depends on ARCH_DAVINCI_DM644x && VIDEO_VPFE_CAPTURE
-+	select VIDEO_VPSS_SYSTEM
-+	default y
-+	help
-+	   Enables DaVinci CCD hw module. DaVinci CCDC hw interfaces
-+	   with decoder modules such as TVP5146 over BT656 or
-+	   sensor module such as MT9T001 over a raw interface. This
-+	   module configures the interface and CCDC/ISIF to do
-+	   video frame capture from slave decoders.
-+
-+	   To compile this driver as a module, choose M here: the
-+	   module will be called vpfe.
-+
-+config VIDEO_DM355_CCDC
-+	tristate "DM355 CCDC HW module"
-+	depends on ARCH_DAVINCI_DM355 && VIDEO_VPFE_CAPTURE
-+	select VIDEO_VPSS_SYSTEM
-+	default y
-+	help
-+	   Enables DM355 CCD hw module. DM355 CCDC hw interfaces
-+	   with decoder modules such as TVP5146 over BT656 or
-+	   sensor module such as MT9T001 over a raw interface. This
-+	   module configures the interface and CCDC/ISIF to do
-+	   video frame capture from a slave decoders
-+
-+	   To compile this driver as a module, choose M here: the
-+	   module will be called vpfe.
-+
- source "drivers/media/video/bt8xx/Kconfig"
- 
- config VIDEO_PMS
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index 3f1a035..bc8ac8e 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -147,6 +147,7 @@ obj-$(CONFIG_SOC_CAMERA_MT9V022)	+= mt9v022.o
- obj-$(CONFIG_SOC_CAMERA_OV772X)		+= ov772x.o
- obj-$(CONFIG_SOC_CAMERA_PLATFORM)	+= soc_camera_platform.o
- obj-$(CONFIG_SOC_CAMERA_TW9910)		+= tw9910.o
-+obj-$(CONFIG_ARCH_DAVINCI)        += davinci/
- 
- obj-$(CONFIG_VIDEO_AU0828) += au0828/
- 
-diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
-new file mode 100644
-index 0000000..b84a405
---- /dev/null
-+++ b/drivers/media/video/davinci/Makefile
-@@ -0,0 +1,9 @@
-+#
-+# Makefile for the davinci video device drivers.
-+#
-+
-+# Capture: DM6446 and DM355
-+obj-$(CONFIG_VIDEO_VPSS_SYSTEM) += vpss.o
-+obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
-+obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
-+obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
+For what it's worth, I did add an additional patch to allow the user
+to disable the 480Mbps check via a modprobe option (to avoid a
+regression for any of your existing customers), and I will be checking
+in the code to properly compute the isoc size for em2874/em2884 based
+on the vendor registers (even though there are currently no supported
+devices in the kernel that require it currently).  However, I do not
+believe the patch you have proposed is appropriate for inclusion in
+the mainline kernel.
+
+Regards,
+
+Devin
+
 -- 
-1.6.0.4
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
