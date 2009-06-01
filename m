@@ -1,86 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f187.google.com ([209.85.216.187]:45865 "EHLO
-	mail-px0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753525AbZFHCMn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jun 2009 22:12:43 -0400
-Received: by pxi17 with SMTP id 17so112988pxi.33
-        for <linux-media@vger.kernel.org>; Sun, 07 Jun 2009 19:12:45 -0700 (PDT)
-Subject: About the VIDIOC_DQBUF
-From: xie <yili.xie@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: "Dongsoo, Nathaniel Kim(V4L2)" <dongsoo.kim@gmail.com>
-Content-Type: text/plain
-Date: Mon, 08 Jun 2009 10:05:59 +0800
-Message-Id: <1244426759.6740.31.camel@xie>
+Received: from qw-out-2122.google.com ([74.125.92.26]:4282 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752367AbZFAQEk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2009 12:04:40 -0400
+Received: by qw-out-2122.google.com with SMTP id 5so5113060qwd.37
+        for <linux-media@vger.kernel.org>; Mon, 01 Jun 2009 09:04:41 -0700 (PDT)
+Date: Mon, 1 Jun 2009 13:04:33 -0300
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Markus Rechberger <mrechberger@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] em28xx device mode detection based on endpoints
+Message-ID: <20090601130433.66c34e32@gmail.com>
+In-Reply-To: <829197380906010819s8cfdfedn9d47dbfef0ca1d04@mail.gmail.com>
+References: <d9def9db0905230704n4f8b725aj3dc3021187d5ae12@mail.gmail.com>
+	<d9def9db0905230749r3e39de5m3f4e1c28c1d596bd@mail.gmail.com>
+	<d9def9db0905230805h5258a9b6h7920a5bd4ce62e7c@mail.gmail.com>
+	<829197380906010819s8cfdfedn9d47dbfef0ca1d04@mail.gmail.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear all ~~
+Hello Devin,
 
-I have met a issue when I used the mmap method for previewing . I just
-used the standard code as spec to get the image data :
-status_t CameraHardwareProwave::V4l2Camera::v4l2CaptureMainloop()
-{
-	LOG_FUNCTION_NAME
-	int rt  ;
-	unsigned int i ;
-	fd_set fds ;
-	struct timeval tv ;
-	struct v4l2_buffer buf ;
+On Mon, 1 Jun 2009 11:19:22 -0400
+Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
 
-	for(;;){
-		FD_ZERO(&fds) ;
-		FD_SET(v4l2Fd, &fds) ;
-		//now the time is long ,just for debug
-		tv.tv_sec = 2 ;
-		tv.tv_usec = 0 ;
+> On Sat, May 23, 2009 at 11:05 AM, Markus Rechberger
+> <mrechberger@gmail.com> wrote:
+> > Hi,
+> >
+> > On Sat, May 23, 2009 at 4:49 PM, Markus Rechberger
+> > <mrechberger@gmail.com> wrote:
+> >> On Sat, May 23, 2009 at 4:04 PM, Markus Rechberger
+> >> <mrechberger@gmail.com> wrote:
+> >>> Hi,
+> >>>
+> >>> for em28xx devices the device node detection can be based on the
+> >>> encoded endpoint address, for example EP 0x81 (USB IN, Interrupt),
+> >>> 0x82 (analog video EP), 0x83 (analog audio ep), 0x84 (mpeg-ts
+> >>> input EP).
+> >>> It is not necessary that digital TV devices have a frontend, the
+> >>> em28xx chip only specifies an MPEG-TS input EP.
+> >>>
+> >>> Following patch adds a check based on the Endpoints, although it
+> >>> might be extended that all devices match the possible devicenodes
+> >>> based on the endpoints, currently the driver registers an analog
+> >>> TV node by default for all unknown devices which is not
+> >>> necessarily correct, this patch disables the ATV node if no
+> >>> analog TV endpoint is available.
+> >>>
+> >>
+> >
+> > attached patch fixes the deregistration, as well loads the
+> > em28xx-dvb module automatically as soon as an MPEG-TS endpoint was
+> > found.
+> >
+> > Signed-off-by: Markus Rechberger <mrechberger@gmail.com>
+> >
+> > best regards,
+> > Markus
+> >
+> 
+> Hello Markus,
+> 
+> I spent some time reviewing this patch, and the patch's content does
+> not seem to match your description of its functionality.  Further,
+> this patch appears to be a combination of a number of several
+> different changes, rather than being broken into separate patches.
+> 
+> First off, I totally agree that the analog subsystem should not be
+> loaded on devices such as em287[0-4].  I was going to do this work
+> (using the chip id to determine analog support) but just had not had a
+> chance to doing the necessary testing to ensure it did not break
+> anything.
+> 
+> The patch appears to be primarily for devices that are not supported
+> in the kernel.  In fact, the logic as written *only* gets used for
+> unknown devices.  Further, the code that doesn't create the frontend
+> device has no application in the kernel.  All devices currently in the
+> kernel make use of the dvb frontend interface, so there is no
+> practical application to loading the driver and setting up the isoc
+> handlers but blocking access to the dvb frontend device.
+> 
+> Aside from the code that selectively disables analog support, the
+> patch only seems to advance compatibility with your userland em28xx
+> framework while providing no benefit to the in-kernel driver.
+>
+> Regarding the possibility of custom firmware, we currently do not have
+> any devices in the in-kernel driver that make use of custom firmware.
+> If you could tell me how to check for custom firmware versus the
+> default vendor firmware, I could potentially do a patch that uses the
+> vendor registers unless custom firmware is installed, at which point
+> we could have custom logic (such as using the endpoint definition).
+> However, given there are no such devices in-kernel, this is not a high
+> priority as far as I am concerned.
+> 
+> For what it's worth, I did add an additional patch to allow the user
+> to disable the 480Mbps check via a modprobe option (to avoid a
+> regression for any of your existing customers), and I will be checking
+> in the code to properly compute the isoc size for em2874/em2884 based
+> on the vendor registers (even though there are currently no supported
+> devices in the kernel that require it currently).  However, I do not
+> believe the patch you have proposed is appropriate for inclusion in
+> the mainline kernel.
 
-		rt = select(v4l2Fd + 1, &fds, NULL, NULL, &tv) ;
-		LOGD("The value of select return : %d\n", rt) ;
-		
-		/********** for debug
-		if(V4L2_NOERROR != v4l2ReadFrame()){
-			LOGE("READ ERROR") ;
-		}
-                ***********/
-		
-		if(-1 == rt){
-			LOGE("there is something wrong in select function(select)") ;
-			//no defined error manage
-			return V4L2_IOCTL_ERROR ;
-		}
-		if(0 == rt){
-			LOGE("wait for data timeout in select") ;
-			return V4L2_TIMEOUT ;
-		}
+Agree with you Devin. 
 
-		memset(&buf, 0, sizeof(buf)) ;
-		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE ;
-		buf.memory = V4L2_MEMORY_MMAP ;
-		if(-1 == ioctl(v4l2Fd, VIDIOC_DQBUF, &buf)){
-		    LOGE("there is something wrong in dequeue buffer(VIDIOC_DQBUF)") ;
-			return V4L2_IOCTL_ERROR ;
-		}
-		
-		assert(i < n_buf) ;
-		LOGE("buf.index  0buf.length = %d %d \n", buf.index , buf.length) ;
-        memcpy((mCameraProwave->getPreviewHeap())->base(),
-v4l2Buffer[buf.index].start, buf.length) ;
-		if(-1 == ioctl(v4l2Fd, VIDIOC_QBUF, &buf)){
-		    LOGE("there is something wrong in enqueue buffer(VIDIOC_QBUF)") ;
-			return V4L2_IOCTL_ERROR ;
-		}
-		//break ;   //i don't know whether the break is needed ;
-		 
-	}
-	return V4L2_NOERROR ;
-}
+Also, the patch does a lot of changes instead of break it in several
+patches.
 
-when executed the VIDIOC_DQBUF IOCTL,the return value was right, but the
-value of buf.length would always  be zero. Then I used the read()
-function to read raw data in the file handle for debug, and I can get
-the raw data. Anybody have met this issue before ? Who can give me some
-advices or tell me what is wrong , thanks a lot ~
-
+Cheers,
+Douglas
