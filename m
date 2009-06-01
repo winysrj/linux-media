@@ -1,26 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n5L8HYXc012727
-	for <video4linux-list@redhat.com>; Sun, 21 Jun 2009 04:17:34 -0400
-Received: from mail-fx0-f214.google.com (mail-fx0-f214.google.com
-	[209.85.220.214])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n5L8HDOI031327
-	for <video4linux-list@redhat.com>; Sun, 21 Jun 2009 04:17:14 -0400
-Received: by fxm10 with SMTP id 10so2394362fxm.3
-	for <video4linux-list@redhat.com>; Sun, 21 Jun 2009 01:17:13 -0700 (PDT)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n51I6xFZ000713
+	for <video4linux-list@redhat.com>; Mon, 1 Jun 2009 14:06:59 -0400
+Received: from mail-bw0-f218.google.com (mail-bw0-f218.google.com
+	[209.85.218.218])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n51I5Hi9013239
+	for <video4linux-list@redhat.com>; Mon, 1 Jun 2009 14:05:18 -0400
+Received: by bwz18 with SMTP id 18so7535491bwz.3
+	for <video4linux-list@redhat.com>; Mon, 01 Jun 2009 11:05:17 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <829197380906202303n19397cbenb7176a9b7c2de3f8@mail.gmail.com>
-References: <COL103-W5519F2238C4DF5D14AA5488380@phx.gbl>
-	<6ab2c27e0906202158u3f447019pbd47805bbac5c07b@mail.gmail.com>
-	<829197380906202303n19397cbenb7176a9b7c2de3f8@mail.gmail.com>
-Date: Sun, 21 Jun 2009 16:17:13 +0800
-Message-ID: <6ab2c27e0906210117h58985e3es4e01e3dccc4aa70a@mail.gmail.com>
-From: Terry Wu <terrywu2009@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date: Mon, 1 Jun 2009 20:05:17 +0200
+Message-ID: <745af8a00906011105x7a69b478obbab7c738aaa9e06@mail.gmail.com>
+From: S P <xmisterhu@gmail.com>
+To: video4linux-list@redhat.com
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Can't use my Pinnacle PCTV HD Pro stick - what am I doing wrong?
+Content-Transfer-Encoding: 7bit
+Subject: saa7134 surveillance
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -32,274 +27,186 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Devin,
+Hi!
+I have a surveillance card with saa7134 chips. It should be able to
+see 8 cameras at a time, but there is only 4 video devices in /dev of
+this card.
+These devices are working fine, each device's channel 0(there isn't
+any other channel of these devices) is an input for a camera.
+So, how could I manage it to be 8 devices?
 
-    You are right.
-    I was wrong.
+dmesg:
 
-Best Regards,
-Terry
+[  974.780280] saa7130/34: v4l2 driver version 0.2.14 loaded
+[  974.780324] saa7134[0]: found at 0000:02:08.0, rev: 1, irq: 17,
+latency: 16, mmio: 0xfdeff000
+[  974.780329] saa7134[0]: subsystem: 17de:0001, board:
+UNKNOWN/GENERIC [card=0,autodetected]
+[  974.780373] saa7134[0]: board init: gpio is e210000
+[  974.925203] ir-kbd-i2c: i2c IR (KNC One) detected at
+i2c-2/2-0030/ir0 [saa7134[0]]
+[  974.981054] saa7134[0]: i2c eeprom 00: de 17 01 00 10 a0 ff ff ff
+ff ff ff ff ff ff ff
+[  974.981060] saa7134[0]: i2c eeprom 10: 24 ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  974.981065] saa7134[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  974.981069] saa7134[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  974.981074] saa7134[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  974.981078] saa7134[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  974.981083] saa7134[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  974.981087] saa7134[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  974.981091] saa7134[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  974.981096] saa7134[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  974.981100] saa7134[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  974.981105] saa7134[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  974.981109] saa7134[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  974.981114] saa7134[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  974.981118] saa7134[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  974.981123] saa7134[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  974.981420] saa7134[0]: registered device video1 [v4l2]
+[  974.982805] saa7134[0]: registered device vbi0
+[  974.982834] saa7134[1]: found at 0000:02:09.0, rev: 1, irq: 18,
+latency: 16, mmio: 0xfdefe000
+[  974.982839] saa7134[1]: subsystem: 17de:0002, board:
+UNKNOWN/GENERIC [card=0,autodetected]
+[  974.982863] saa7134[1]: board init: gpio is c010000
+[  975.140024] saa7134[1]: i2c eeprom 00: de 17 02 00 10 a0 ff ff ff
+ff ff ff ff ff ff ff
+[  975.140030] saa7134[1]: i2c eeprom 10: 24 ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.140035] saa7134[1]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.140039] saa7134[1]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.140044] saa7134[1]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.140048] saa7134[1]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.140053] saa7134[1]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.140057] saa7134[1]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.140061] saa7134[1]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.140066] saa7134[1]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.140070] saa7134[1]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.140075] saa7134[1]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.140080] saa7134[1]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.140084] saa7134[1]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.140089] saa7134[1]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.140093] saa7134[1]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.140342] saa7134[1]: registered device video2 [v4l2]
+[  975.143230] saa7134[1]: registered device vbi1
+[  975.143260] saa7134[2]: found at 0000:02:0a.0, rev: 1, irq: 19,
+latency: 16, mmio: 0xfdefd000
+[  975.143266] saa7134[2]: subsystem: 17de:0003, board:
+UNKNOWN/GENERIC [card=0,autodetected]
+[  975.143292] saa7134[2]: board init: gpio is 10000
+[  975.300023] saa7134[2]: i2c eeprom 00: de 17 03 00 10 a0 ff ff ff
+ff ff ff ff ff ff ff
+[  975.300029] saa7134[2]: i2c eeprom 10: 24 ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.300034] saa7134[2]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.300039] saa7134[2]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.300043] saa7134[2]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.300047] saa7134[2]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.300052] saa7134[2]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.300056] saa7134[2]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.300061] saa7134[2]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.300065] saa7134[2]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.300070] saa7134[2]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.300074] saa7134[2]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.300079] saa7134[2]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.300083] saa7134[2]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.300088] saa7134[2]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.300092] saa7134[2]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.300363] saa7134[2]: registered device video3 [v4l2]
+[  975.303173] saa7134[2]: registered device vbi2
+[  975.303204] saa7134[3]: found at 0000:02:0b.0, rev: 1, irq: 16,
+latency: 16, mmio: 0xfdefc000
+[  975.303209] saa7134[3]: subsystem: 17de:0004, board:
+UNKNOWN/GENERIC [card=0,autodetected]
+[  975.303238] saa7134[3]: board init: gpio is 10000
+[  975.460023] saa7134[3]: i2c eeprom 00: de 17 04 00 10 a0 ff ff ff
+ff ff ff ff ff ff ff
+[  975.460028] saa7134[3]: i2c eeprom 10: 24 ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.460033] saa7134[3]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.460038] saa7134[3]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.460042] saa7134[3]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.460047] saa7134[3]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.460051] saa7134[3]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.460056] saa7134[3]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.460060] saa7134[3]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.460065] saa7134[3]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.460069] saa7134[3]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.460074] saa7134[3]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.460078] saa7134[3]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.460083] saa7134[3]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.460087] saa7134[3]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.460092] saa7134[3]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[  975.460363] saa7134[3]: registered device video4 [v4l2]
+[  975.462513] saa7134[3]: registered device vbi3
+[  975.534948] saa7134 ALSA driver for DMA sound loaded
+[  975.534972] saa7134[0]/alsa: saa7134[0] at 0xfdeff000 irq 17
+registered as card -2
+[  975.535185] saa7134[1]/alsa: saa7134[1] at 0xfdefe000 irq 18
+registered as card -1
+[  975.535364] saa7134[2]/alsa: saa7134[2] at 0xfdefd000 irq 19
+registered as card -1
+[  975.535544] saa7134[3]/alsa: saa7134[3] at 0xfdefc000 irq 16
+registered as card -1
 
-2009/6/21 Devin Heitmueller <dheitmueller@kernellabs.com>:
-> On Sun, Jun 21, 2009 at 12:58 AM, Terry Wu<terrywu2009@gmail.com> wrote:
->> Hi,
->>
->> The attach_xc3028() of em28xx-dvb.c does not give the firmware filename:
->> static int attach_xc3028(u8 addr, struct em28xx *dev)
->> {
->>        struct dvb_frontend *fe;
->>        struct xc2028_config cfg;
->>
->>        memset(&cfg, 0, sizeof(cfg));
->>        cfg.i2c_adap  = &dev->i2c_adap;
->>        cfg.i2c_addr  = addr;
->>
->>        if (!dev->dvb->frontend) {
->>                printk(KERN_ERR "%s/2: dvb frontend not attached. "
->>                                "Can't attach xc3028\n",
->>                       dev->name);
->>                return -EINVAL;
->>        }
->>
->>        fe = dvb_attach(xc2028_attach, dev->dvb->frontend, &cfg);
->>        if (!fe) {
->>                printk(KERN_ERR "%s/2: xc3028 attach failed\n",
->>                       dev->name);
->>                dvb_frontend_detach(dev->dvb->frontend);
->>                dev->dvb->frontend = NULL;
->>                return -EINVAL;
->>        }
->>
->>        printk(KERN_INFO "%s/2: xc3028 attached\n", dev->name);
->>
->>        return 0;
->> }
->>
->> And in the check_firmware() of tuner-xc2028.c, the
->> load_all_firmwares() will not be called because the xc2028/3028
->> firmware name not set:
->>                if (!priv->ctrl.fname) {
->>                        tuner_info("xc2028/3028 firmware name not set!\n");
->>                        return -EINVAL;
->>                }
->>                rc = load_all_firmwares(fe);
->>
->> Best Regards,
->> Terry
->>
->> 2009/6/21 George Adams <g_adams27@hotmail.com>:
->>>
->>> Hello. áI'm having problems getting my (USB) PCTV HD Pro Stick (800e,
->>> the "old" style) to work under V4L. áCould anyone spot the problem in
->>> what I'm doing?
->>>
->>> I'm running Ubuntu 8.04.2 LTS (the 2.6.24-24-server kernel), and am
->>> following this procedure (based on
->>> http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers).
->>> I intend to use this to tune to USA NTSC channel 3 (to capture a
->>> close-captioned feed inside our building)
->>>
->>> 1) Extract and copy the firmware file I need
->>> á (xc3028-v27.fw) to /lib/firmware
->>>
->>> 2) cd /usr/local/src
->>>
->>> 3) hg clone http://linuxtv.org/hg/v4l-dvb
->>>
->>> 4) cd v4l-dvb
->>>
->>> 5) make rminstall; make distclean; make; make install
->>>
->>> These seems to do what it's supposed to - installs the drivers into
->>> /lib/modules/2.6.24-24-server . áMy PCTV HD Pro Stick uses the em28xx
->>> drivers.
->>>
->>>> find /lib/modules/ -type f -name "em28*" -mtime -1
->>> á á/lib/modules/2.6.24-24-server/kernel/drivers/media/video/em28xx/em28xx.ko
->>> á á/lib/modules/2.6.24-24-server/kernel/drivers/media/video/em28xx/em28xx-dvb.ko
->>>
->>> 6) Reboot with the USB capture device plugged in
->>>
->>> 7) Examine "dmesg" for details related to the capture device
->>>
->>> - em28xx: New device Pinnacle Systems PCTV 800e @ 480 Mbps (2304:0227, interface 0, class 0)
->>> - em28xx #0: Identified as Pinnacle PCTV HD Pro Stick (card=17)
->>> - em28xx #0: chip ID is em2882/em2883
->>> - - -> GSI 22 (level, low) -> IRQ 22
->>> - PCI: Setting latency timer of device 0000:00:1b.0 to 64
->>> - em28xx #0: i2c eeprom 00: 1a eb 67 95 04 23 27 02 d0 12 5c 03 8e 16 a4 1c
->>> - em28xx #0: i2c eeprom 10: 6a 24 27 57 46 07 01 00 00 00 00 00 00 00 00 00
->>> - em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 02 00 b8 00 00 00 5b 1c 00 00
->>> - em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 00 00 00 00 00 00
->>> - em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->>> - em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->>> - em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 24 03 50 00 69 00
->>> - em28xx #0: i2c eeprom 70: 6e 00 6e 00 61 00 63 00 6c 00 65 00 20 00 53 00
->>> - em28xx #0: i2c eeprom 80: 79 00 73 00 74 00 65 00 6d 00 73 00 00 00 16 03
->>> - em28xx #0: i2c eeprom 90: 50 00 43 00 54 00 56 00 20 00 38 00 30 00 30 00
->>> - em28xx #0: i2c eeprom a0: 65 00 00 00 1c 03 30 00 36 00 31 00 30 00 30 00
->>> - em28xx #0: i2c eeprom b0: 31 00 30 00 33 00 39 00 34 00 34 00 32 00 00 00
->>> - em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->>> - em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->>> - em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->>> - em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
->>> - em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x2de5abbf
->>> - em28xx #0: EEPROM info:
->>> - em28xx #0: á á á AC97 audio (5 sample rates)
->>> - em28xx #0: á á á 500mA max power
->>> - em28xx #0: á á á Table at 0x27, strings=0x168e, 0x1ca4, 0x246a
->>> - hda_codec: Unknown model for ALC882, trying auto-probe from BIOS...
->>> - input: em28xx IR (em28xx #0) as /devices/pci0000:00/0000:00:1a.7/usb4/4-3/input/input6
->>> - - -> GSI 20 (level, low) -> IRQ 23
->>> - Vortex: init.... em28xx #0: Config register raw data: 0xd0
->>> - em28xx #0: AC97 vendor ID = 0xffffffff
->>> - em28xx #0: AC97 features = 0x6a90
->>> - em28xx #0: Empia 202 AC97 audio processor detected
->>> - em28xx #0: v4l2 driver version 0.1.2
->>> - em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
->>> - usbcore: registered new interface driver em28xx
->>> - em28xx driver loaded
->>> - xc2028 0-0061: creating new instance
->>> - xc2028 0-0061: type set to XCeive xc2028/xc3028 tuner
->>> - em28xx #0/2: xc3028 attached
->>> - DVB: registering new adapter (em28xx #0)
->>> - DVB: registering adapter 0 frontend 0 (LG Electronics LGDT3303 VSB/QAM Frontend)...
->>> - Successfully loaded em28xx-dvb
->>> - Em28xx: Initialized (Em28xx dvb Extension) extension
->>> - done.
->>>
->>> Everything looks good - the drivers are getting called and the card is
->>> recognized. áHowever, all my attempts to get something "out of it"
->>> aren't working. áI tried firing up "tvtime", but it just launches a
->>> blank, black screen and hanges. áThe menu won't come up, the channel
->>> won't change, right-clicking isn't responsive, it won't close, and I
->>> have to kill it.
->>>
->>> I also tried mencoder, but I get this:
->>>
->>>> mencoder -nosound -tv driver=v4l2:width=640:height=480 tv://3 -o /tmp/tv.avi -ovc raw -endpos 5
->>>
->>> MEncoder 2:1.0~rc2-0ubuntu13.1+medibuntu1 (C) 2000-2007 MPlayer Team
->>> CPU: Intel(R) Core(TM)2 Quad CPU á áQ9550 á@ 2.83GHz
->>> á(Family: 6, Model: 23, Stepping: 10)
->>> CPUflags: Type: 6 MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1
->>> Compiled with runtime CPU detection.
->>> success: format: 9 ádata: 0x0 - 0x0
->>> TV file format detected.
->>> Selected driver: v4l2
->>> áname: Video 4 Linux 2 input
->>> áauthor: Martin Olschewski
->>> ácomment: first try, more to come ;-)
->>> Selected device: Pinnacle PCTV HD Pro Stick
->>> áTuner cap:
->>> áTuner rxs:
->>> áCapabilites: ávideo capture átuner áaudio áread/write ástreaming
->>> ásupported norms: 0 = NTSC; 1 = NTSC-M; 2 = NTSC-M-JP; 3 = NTSC-M-KR; 4
->>> á = NTSC-443; 5 = PAL; 6 = PAL-BG; 7 = PAL-H; 8 = PAL-I; 9 = PAL-DK;
->>> á 10 = PAL-M; 11 = PAL-N; 12 = PAL-Nc; 13 = PAL-60; 14 = SECAM; 15 =
->>> á SECAM-B; 16 = SECAM-G; 17 = SECAM-H; 18 = SECAM-DK; 19 = SECAM-L; 20
->>> á = SECAM-Lc;
->>> áinputs: 0 = Television; 1 = Composite1; 2 = S-Video;
->>> áCurrent input: 0
->>> áCurrent format: YUYV
->>> v4l2: ioctl set format failed: Invalid argument
->>> v4l2: ioctl set format failed: Invalid argument
->>> v4l2: ioctl set format failed: Invalid argument
->>> v4l2: ioctl query control failed: Invalid argument
->>> v4l2: ioctl query control failed: Invalid argument
->>> v4l2: ioctl query control failed: Invalid argument
->>> v4l2: ioctl query control failed: Invalid argument
->>> [V] filefmt:9 áfourcc:0x32595559 ásize:640x480 áfps:25.00 áftime:=0.0400
->>> Opening video filter: [expand osd=1]
->>> Expand: -1 x -1, -1 ; -1, osd: 1, aspect: 0.000000, round: 1
->>> ==========================================================================
->>> Opening video decoder: [raw] RAW Uncompressed Video
->>> VDec: vo config request - 640 x 480 (preferred colorspace: Packed YUY2)
->>> VDec: using Packed YUY2 as output csp (no 0)
->>> Movie-Aspect is undefined - no prescaling applied.
->>> Selected video codec: [rawyuy2] vfm: raw (RAW YUY2)
->>> ==========================================================================
->>> Forcing audio preload to 0, max pts correction to 0.
->>> v4l2: select timeout
->>>
->>> Skipping frame!
->>> Pos: á 0.0s á á á1f ( 0%) á0.96fps Trem: á 0min á 0mb áA-V:0.000 [0:0]
->>> Skipping frame!
->>> v4l2: select timeout( 0%) á1.28fps Trem: á 0min á 0mb áA-V:0.000 [0:0]
->>>
->>> Skipping frame!
->>> Pos: á 0.0s á á á3f ( 0%) á1.44fps Trem: á 0min á 0mb áA-V:0.000 [0:0]
->>> Skipping frame!
->>> v4l2: select timeout( 0%) á1.54fps Trem: á 0min á 0mb áA-V:0.000 [0:0]
->>>
->>> Skipping frame!
->>> Pos: á 0.0s á á á5f ( 0%) á1.60fps Trem: á 0min á 0mb áA-V:0.000 [0:0]
->>> Skipping frame!
->>> v4l2: select timeout( 0%) á1.65fps Trem: á 0min á 0mb áA-V:0.000 [0:0]
->>>
->>> Skipping frame!
->>> Pos: á 0.0s á á á7f ( 0%) á1.68fps Trem: á 0min á 0mb áA-V:0.000 [0:0]
->>> Skipping frame!
->>> Pos: á 0.0s á á á8f ( 0%) á1.71fps Trem: á 0min á 0mb áA-V:0.000 [0:0]
->>>
->>>
->>> The resulting file (/tmp/tv.avi) is only 4K and not a valid AVI file.
->>>
->>>
->>>
->>> One thing I noticed that differs from what I was expecting is that
->>> nowhere in the "dmesg" output does it say anything about the firmware
->>> file. áI was expecting to see this in "dmesg":
->>>
->>> - firmware: requesting xc3028-v27.fw
->>> - xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw,
->>> - á type: xc2028 firmware, ver 2.7
->>>
->>> but nothing approximating those lines appears at all. áI tried deleting
->>> /lib/firmware/xc3028-v27.fw entirely to see if it would complain, but
->>> it loaded up exactly the same way after I rebooted... áand still didn't
->>> work.
->>>
->>> So my questions are:
->>>
->>> 1) Why is the firmware file not being read? áHas something happened to
->>> the em28xx drivers recently that causes this file not to be needed
->>> anymore? áOr is something else going wrong?
->>>
->>> 2) Is that the reason for the problem, or have you spotted something
->>> else I've done wrong?
->>>
->>> Thanks greatly to anyone who can help!
->>>
->>> _________________________________________________________________
->>> Insert movie times and more without leaving Hotmail«.
->>> http://windowslive.com/Tutorial/Hotmail/QuickAdd?ocid=TXT_TAGLM_WL_HM_Tutorial_QuickAdd_062009
->>>
->>> --
->>> video4linux-list mailing list
->>> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->>> https://www.redhat.com/mailman/listinfo/video4linux-list
->>>
->>
->> --
->> video4linux-list mailing list
->> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
->> https://www.redhat.com/mailman/listinfo/video4linux-list
->>
->
-> Terry,
->
-> On hybrid analog/digital em28xx boards, the firmware is set in the
-> analog phase and then whatever value specified is reused in the
-> digital phase.  For the Pinnacle 800e, the xc3028 firmware is
-> specified in em28xx-cards.c:1898.
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
->
+Regards, Peter Sarkozi
 
 --
 video4linux-list mailing list
