@@ -1,94 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37058 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754794AbZFKRA6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2009 13:00:58 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5BH0tEh003056
-	for <linux-media@vger.kernel.org>; Thu, 11 Jun 2009 12:01:00 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH 5/10 - v2] ccdc types used across ccdc modules for vpfe capture driver
-Date: Thu, 11 Jun 2009 13:00:44 -0400
-Message-Id: <1244739649-27466-6-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1244739649-27466-5-git-send-email-m-karicheri2@ti.com>
-References: <1244739649-27466-1-git-send-email-m-karicheri2@ti.com>
- <1244739649-27466-2-git-send-email-m-karicheri2@ti.com>
- <1244739649-27466-3-git-send-email-m-karicheri2@ti.com>
- <1244739649-27466-4-git-send-email-m-karicheri2@ti.com>
- <1244739649-27466-5-git-send-email-m-karicheri2@ti.com>
+Received: from bombadil.infradead.org ([18.85.46.34]:41162 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755917AbZFAS66 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2009 14:58:58 -0400
+Date: Mon, 1 Jun 2009 15:58:54 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Paulraj, Sandeep" <s-paulraj@ti.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"Grosen, Mark" <mgrosen@ti.com>
+Subject: Re: New Driver for DaVinci DM355/DM365/DM6446
+Message-ID: <20090601155854.38350ab5@pedra.chehab.org>
+In-Reply-To: <C9D59C82B94F474B872F2092A87F2614817980B0@dlee07.ent.ti.com>
+References: <C9D59C82B94F474B872F2092A87F261481797D4B@dlee07.ent.ti.com>
+	<20090601133436.06a4a4a0@pedra.chehab.org>
+	<C9D59C82B94F474B872F2092A87F261481797F62@dlee07.ent.ti.com>
+	<20090601145714.36158fe8@pedra.chehab.org>
+	<C9D59C82B94F474B872F2092A87F2614817980B0@dlee07.ent.ti.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
+Em Mon, 1 Jun 2009 13:39:17 -0500
+"Paulraj, Sandeep" <s-paulraj@ti.com> escreveu:
 
-common types used across CCDC modules
+> > > [Sandeep] WE don't propose any API changes. This module for which we  
+> > want to submit patches is a TI proprietary IP. We currently implement this
+> > as a character device and have a few IOCTL's.  
+> > > We do not follow the V4L2 framework and do not use any V4L2 IOCTLs.
+> > >
+> > > Can we continue to use it as a character driver?  
+> > 
+> > In this case, I don't see why you want it to be upstream.  
+> [Sandeep] TI customers and TI itself want to see this driver part of open source trees. Considering this we would like to submit our patches to the linux-media mailing list.
+> IS this OK?
 
-No change from last version
+If you're just providing a character API with some protocol protected by IP,
+you're not providing the source code of the driver, but something else. 
 
-Reviewed By "Hans Verkuil".
-Reviewed By "Laurent Pinchart".
+It is not ok to provide such driver. 
 
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
-Applies to v4l-dvb repository
+Also, even if you disclosure your protocol, it makes no sense to create another
+API for userspace communication, for features that already exists or can easily
+expand to accommodate your needs. 
 
- include/media/davinci/ccdc_types.h |   43 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 43 insertions(+), 0 deletions(-)
- create mode 100644 include/media/davinci/ccdc_types.h
+So, you should really use the V4L2 API for the driver, expanding it where
+required, if you want it to be considered for upstream addition.
 
-diff --git a/include/media/davinci/ccdc_types.h b/include/media/davinci/ccdc_types.h
-new file mode 100644
-index 0000000..5773874
---- /dev/null
-+++ b/include/media/davinci/ccdc_types.h
-@@ -0,0 +1,43 @@
-+/*
-+ * Copyright (C) 2008-2009 Texas Instruments Inc
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-+ *
-+ **************************************************************************/
-+#ifndef _CCDC_TYPES_H
-+#define _CCDC_TYPES_H
-+enum ccdc_pixfmt {
-+	CCDC_PIXFMT_RAW,
-+	CCDC_PIXFMT_YCBCR_16BIT,
-+	CCDC_PIXFMT_YCBCR_8BIT
-+};
-+
-+enum ccdc_frmfmt {
-+	CCDC_FRMFMT_PROGRESSIVE,
-+	CCDC_FRMFMT_INTERLACED
-+};
-+
-+/* PIXEL ORDER IN MEMORY from LSB to MSB */
-+/* only applicable for 8-bit input mode  */
-+enum ccdc_pixorder {
-+	CCDC_PIXORDER_YCBYCR,
-+	CCDC_PIXORDER_CBYCRY,
-+};
-+
-+enum ccdc_buftype {
-+	CCDC_BUFTYPE_FLD_INTERLEAVED,
-+	CCDC_BUFTYPE_FLD_SEPARATED
-+};
-+#endif
--- 
-1.6.0.4
 
+
+Cheers,
+Mauro
