@@ -1,62 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:46136 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765573AbZFQN3Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 09:29:16 -0400
-Date: Wed, 17 Jun 2009 10:29:10 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Cc: "Andy Walls" <awalls@radix.net>,
-	"Hans de Goede" <hdegoede@redhat.com>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: Re: Convert cpia driver to v4l2,      drop parallel port version
- support?
-Message-ID: <20090617102910.2d51e95e@pedra.chehab.org>
-In-Reply-To: <16165.62.70.2.252.1245238018.squirrel@webmail.xs4all.nl>
-References: <16165.62.70.2.252.1245238018.squirrel@webmail.xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from bear.ext.ti.com ([192.94.94.41]:45883 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751897AbZFASil convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2009 14:38:41 -0400
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: "Paulraj, Sandeep" <s-paulraj@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"Grosen, Mark" <mgrosen@ti.com>
+Date: Mon, 1 Jun 2009 13:38:37 -0500
+Subject: RE: New Driver for DaVinci DM355/DM365/DM6446
+Message-ID: <A24693684029E5489D1D202277BE8944405CFFE6@dlee02.ent.ti.com>
+References: <C9D59C82B94F474B872F2092A87F261481797D4B@dlee07.ent.ti.com>
+In-Reply-To: <C9D59C82B94F474B872F2092A87F261481797D4B@dlee07.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 17 Jun 2009 13:26:58 +0200 (CEST)
-"Hans Verkuil" <hverkuil@xs4all.nl> escreveu:
-
+> From: linux-media-owner@vger.kernel.org [linux-media-owner@vger.kernel.org] On Behalf Of Paulraj, Sandeep
+> Sent: Monday, June 01, 2009 5:56 PM
+> To: linux-media@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org; Grosen, Mark
+> Subject: New Driver for DaVinci DM355/DM365/DM6446
 > 
-> > On Wed, 2009-06-17 at 09:43 +0200, Hans Verkuil wrote:
-> >
-> >> > I personally think that loosing support for the parallel port
-> >> > version is ok given that the parallel port itslef is rapidly
-> >> > disappearing, what do you think ?
-> >>
-> >> I agree wholeheartedly. If we remove pp support, then we can also remove
-> >> the bw-qcam and c-qcam drivers since they too use the parallel port.
-> >
-> > Maybe I just like keeping old hardware up and running, but...
-> >
-> > I think it may be better to remove camera drivers when a majority of the
-> > actual camera hardware is likely to reach EOL, as existing parallel
-> > ports will likely outlive the cameras.
+> Hello,
+> 
+> WE have a module(H3A) on Davinci DM6446,DM355 and DM365.
+> 
+> Customers require a way to collect the data required to perform the Auto Exposure (AE), Auto Focus(AF), and Auto White balance (AWB) in hardware as opposed to software. > This is primarily for performance reasons as there is not enough software processing MIPS (to do 3A statistics) available in
+> an imaging/video system.
+> 
+> Including this block in hardware reduces the load on the processor and bandwidth to the memory as the data is collected on the fly from the imager.
+> 
+> This modules collects statistics and we currently implement it as a character driver.
 
-Parallel port will still be there for some time. However, Parallel port webcams
-are less common.
+This also exists in OMAP3 chips, and is part of the ISP module.
 
-> For sure. But these are really old webcams with correspondingly very poor
-> resolutions. I haven't been able to track one down on ebay and as far as I
-> know nobody has one of these beasts to test with. I can't see anyone using
-> parallel port webcams. I actually wonder whether these drivers still work.
-> And converting to v4l2 without having the hardware is very hard indeed.
+I maintain, along with Sakari Ailus, a V4L2 camera driver, which is currently just shared through a gitorious repository:
 
-Maybe Alan Cox might still have some of those cams. Some of those old cameras
-were used on specialized hardware, like microscopes. Maybe it still could make
-sense to support them, but somebody with the hardware should convert to V4L2
-and test with the real hardware. Otherwise, I agree that the better is just to
-remove the parallel port camera drivers from newer kernels.
+http://gitorious.org/omap3camera
 
+The way we offer an interface for the user to be able to request this statistics is with the usage of private IOCTLs declared inside the same V4L2 capturing device driver.
 
+So, that way we have a V4L2 driver which has a private call, instead of having it separately from the capture driver.
 
-Cheers,
-Mauro
+Regards,
+Sergio
+> 
+> Which mailing list would be the most appropriate mailing list to submit patches for review?
+> 
+> Thanks,
+> Sandeep
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
