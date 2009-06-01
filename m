@@ -1,577 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from col0-omc4-s15.col0.hotmail.com ([65.55.34.217]:17288 "EHLO
-	col0-omc4-s15.col0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760155AbZFYFRX convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2009 01:17:23 -0400
-Message-ID: <COL103-W1055421B0E48007A57D79988340@phx.gbl>
-From: George Adams <g_adams27@hotmail.com>
-To: <dheitmueller@kernellabs.com>
-CC: <linux-media@vger.kernel.org>, <video4linux-list@redhat.com>
-Subject: RE: [PARTIALLY SOLVED] Can't use my Pinnacle PCTV HD Pro stick -
- what am I doing wrong?
-Date: Thu, 25 Jun 2009 01:17:25 -0400
-In-Reply-To: <829197380906221453pa0738b4j6fb7c4b045f6aa1@mail.gmail.com>
-References: <COL103-W53605D85359D631FC60D0F88380@phx.gbl>
-	 <COL103-W40B198179C2E84587DC71F88380@phx.gbl>
- 	 <829197380906211429k7176a93fm49d49851e6d2df1e@mail.gmail.com>
- 	 <COL103-W308B321250A646D788B25188390@phx.gbl>
- <829197380906221453pa0738b4j6fb7c4b045f6aa1@mail.gmail.com>
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45478 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754324AbZFATNR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2009 15:13:17 -0400
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"Paulraj, Sandeep" <s-paulraj@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"Grosen, Mark" <mgrosen@ti.com>
+Date: Mon, 1 Jun 2009 14:13:13 -0500
+Subject: RE: New Driver for DaVinci DM355/DM365/DM6446
+Message-ID: <A24693684029E5489D1D202277BE8944405CFFE7@dlee02.ent.ti.com>
+References: <C9D59C82B94F474B872F2092A87F261481797D4B@dlee07.ent.ti.com>
+ <A24693684029E5489D1D202277BE8944405CFFE6@dlee02.ent.ti.com>,<A69FA2915331DC488A831521EAE36FE401354ED000@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE401354ED000@dlee06.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+> From: Karicheri, Muralidharan
+> Sent: Monday, June 01, 2009 9:58 PM
+> To: Aguirre Rodriguez, Sergio Alberto; Paulraj, Sandeep; linux-media@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org; Grosen, Mark
+> Subject: RE: New Driver for DaVinci DM355/DM365/DM6446
+> 
+> Sergio,
+> 
+> Is it part of the patches Vaibhav & others from TI are submitting to open source ?
 
-Hello!  In a last ditch effort, I decided to try downloading a v4l driver snapshot from February back when I had my Pinnacle HD Pro Stick device working.  To my amazement, the old drivers worked!
+Yes, currently I have been sharing this codebase with Vaibhav, which he is taking for the 3530 EVM, which uses the camera ISP to receive images from a video decoder using a parallel BT656 output.
 
-By process of elimination (trying newer and newer drivers until my Pinnacle device was once again not recognized), it appears that changeset 11331 (http://linuxtv.org/hg/v4l-dvb/rev/00525b115901), from Mar. 31 2009, is the first one that causes my device to not be recognized.  This is the changeset that updated the em28xx driver from 0.1.1 to 0.1.2.  Here, again, is the dmesg output from a newer driver that does NOT work (this one from a driver set one day later, on Apr. 1, 2009):
 
-[   50.028008] Vortex: init.... Linux video capture interface: v2.00
-[   50.300176] em28xx: New device Pinnacle Systems PCTV 800e @ 480 Mbps (2304:0227, interface 0, class 0)
-[   50.312863] em28xx #0: Identified as Pinnacle PCTV HD Pro Stick (card=17)
-[   50.325625] em28xx #0: chip ID is em2882/em2883
-[   50.539728] em28xx #0: i2c eeprom 00: 1a eb 67 95 04 23 27 02 d0 12 5c 03 8e 16 a4 1c
-[   50.552582] em28xx #0: i2c eeprom 10: 6a 24 27 57 46 07 01 00 00 00 00 00 00 00 00 00
-[   50.565276] em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 02 00 b8 00 00 00 5b 1c 00 00
-[   50.577939] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 00 00 00 00 00 00
-[   50.590583] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[   50.603076] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[   50.615380] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 24 03 50 00 69 00
-[   50.627589] em28xx #0: i2c eeprom 70: 6e 00 6e 00 61 00 63 00 6c 00 65 00 20 00 53 00
-[   50.639651] em28xx #0: i2c eeprom 80: 79 00 73 00 74 00 65 00 6d 00 73 00 00 00 16 03
-[   50.651573] em28xx #0: i2c eeprom 90: 50 00 43 00 54 00 56 00 20 00 38 00 30 00 30 00
-[   50.663407] em28xx #0: i2c eeprom a0: 65 00 00 00 1c 03 30 00 36 00 31 00 30 00 30 00
-[   50.675144] em28xx #0: i2c eeprom b0: 31 00 30 00 33 00 39 00 34 00 34 00 32 00 00 00
-[   50.686680] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[   50.698183] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[   50.698187] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[   50.698193] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[   50.698197] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x2de5abbf
-[   50.698198] em28xx #0: EEPROM info:
-[   50.698199] em28xx #0:       AC97 audio (5 sample rates)
-[   50.698200] em28xx #0:       500mA max power
-[   50.698201] em28xx #0:       Table at 0x27, strings=0x168e, 0x1ca4, 0x246a
-[   50.805990] input: em28xx IR (em28xx #0) as /devices/pci0000:00/0000:00:1a.7/usb7/7-3/input/input6
-[   50.901902] em28xx #0: Config register raw data: 0xd0
-[   50.913510] em28xx #0: AC97 vendor ID = 0xffffffff
-[   50.924746] em28xx #0: AC97 features = 0x6a90
-[   50.935543] em28xx #0: Empia 202 AC97 audio processor detected
-[   51.034109] em28xx #0: v4l2 driver version 0.1.2
-[   51.128411] em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
-[   51.139183] usbcore: registered new interface driver em28xx
-[   51.149961] em28xx driver loaded
-[   51.496978] xc2028 0-0061: creating new instance
-[   51.521582] xc2028 0-0061: type set to XCeive xc2028/xc3028 tuner
-[   51.532725] em28xx #0/2: xc3028 attached
-[   51.546910] DVB: registering new adapter (em28xx #0)
-[   51.570086] DVB: registering adapter 0 frontend 0 (LG Electronics LGDT3303 VSB/QAM Frontend)...
-[   51.581731] Successfully loaded em28xx-dvb
-[   51.593250] Em28xx: Initialized (Em28xx dvb Extension) extension
+> I know that there is an
+> ongoing effort at TI India to submit the resizer driver to open source for OMAP3?
 
-and here is a successful dmesg using the changeset 11330 drivers from early morning Mar. 31, 2009, right before the em28xx version bump from 0.1.1 to 0.1.2
+I guess this is still on hold, as the current internal approach is not acceptable in the V4L2 standards.
 
-[   48.484051] Linux video capture interface: v2.00
-[   48.597772] em28xx: New device Pinnacle Systems PCTV 800e @ 480 Mbps (2304:0227, interface 0, class 0)
-[   48.610698] em28xx #0: Identified as Pinnacle PCTV HD Pro Stick (card=17)
-[   48.623638] ACPI: PCI Interrupt 0000:06:01.0[A] -> em28xx #0: chip ID is em2882/em2883
-[   48.877223] em28xx #0: i2c eeprom 00: 1a eb 67 95 04 23 27 02 d0 12 5c 03 8e 16 a4 1c
-[   48.889807] em28xx #0: i2c eeprom 10: 6a 24 27 57 46 07 01 00 00 00 00 00 00 00 00 00
-[   48.902235] em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 02 00 b8 00 00 00 5b 1c 00 00
-[   48.914771] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 00 00 00 00 00 00
-[   48.927131] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[   48.939329] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[   48.951368] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 24 03 50 00 69 00
-[   48.963320] em28xx #0: i2c eeprom 70: 6e 00 6e 00 61 00 63 00 6c 00 65 00 20 00 53 00
-[   48.975173] em28xx #0: i2c eeprom 80: 79 00 73 00 74 00 65 00 6d 00 73 00 00 00 16 03
-[   48.986933] em28xx #0: i2c eeprom 90: 50 00 43 00 54 00 56 00 20 00 38 00 30 00 30 00
-[   48.998563] em28xx #0: i2c eeprom a0: 65 00 00 00 1c 03 30 00 36 00 31 00 30 00 30 00
-[   49.010036] em28xx #0: i2c eeprom b0: 31 00 30 00 33 00 39 00 34 00 34 00 32 00 00 00
-[   49.021412] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[   49.032663] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[   49.043684] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[   49.054604] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-[   49.065433] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x2de5abbf
-[   49.076067] em28xx #0: EEPROM info:
-[   49.086543] em28xx #0:       AC97 audio (5 sample rates)
-[   49.097031] em28xx #0:       500mA max power
-[   49.107535] em28xx #0:       Table at 0x27, strings=0x168e, 0x1ca4, 0x246a
-[   49.133912] tvp5150' 0-005c: chip found @ 0xb8 (em28xx #0)
-[   49.187077] Vortex: init.... tuner' 0-0061: chip found @ 0xc2 (em28xx #0)
-[   49.339702] xc2028 0-0061: creating new instance
-[   49.350347] xc2028 0-0061: type set to XCeive xc2028/xc3028 tuner
-[   49.535114] xc2028 0-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
-[   49.607496] xc2028 0-0061: Loading firmware for type=BASE MTS (5), id 0000000000000000.
-[   50.562362] xc2028 0-0061: Loading firmware for type=MTS (4), id 000000000000b700.
-[   50.588826] xc2028 0-0061: Loading SCODE for type=MTS LCD NOGD MONO IF SCODE HAS_IF_4500 (6002b004), id 000000000000b700.
-[   50.822296] input: em28xx IR (em28xx #0) as /devices/pci0000:00/0000:00:1a.7/usb7/7-3/input/input6
-[   50.912302] em28xx #0: Config register raw data: 0xd0
-[   50.925029] em28xx #0: AC97 vendor ID = 0xffffffff
-[   50.937390] em28xx #0: AC97 features = 0x6a90
-[   50.949396] em28xx #0: Empia 202 AC97 audio processor detected
-[   51.112296] tvp5150' 0-005c: tvp5150am1 detected.
-[   51.222535] em28xx #0: v4l2 driver version 0.1.1
-[   51.338304] em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
-[   51.350590] usbcore: registered new interface driver em28xx
-[   51.362736] em28xx driver loaded
-[   51.575368] xc2028 0-0061: attaching existing instance
-[   51.587569] xc2028 0-0061: type set to XCeive xc2028/xc3028 tuner
-[   51.599746] em28xx #0/2: xc3028 attached
-[   51.611796] DVB: registering new adapter (em28xx #0)
-[   51.623825] DVB: registering adapter 0 frontend 0 (LG Electronics LGDT3303 VSB/QAM Frontend)...
-[   51.636297] Successfully loaded em28xx-dvb
-[   51.648448] Em28xx: Initialized (Em28xx dvb Extension) extension
-[   77.339398] tvp5150' 0-005c: tvp5150am1 detected.
+> As per the email
+> exchanges I had with Vaibhav (TI India) on this, it is part of the ISP module.
 
-Notice that the tvp5150 device is being recognized and the firmware from /lib/firmware/xc3028-v27.fw is being loaded.
+That's correct.
 
-If need be, I guess I can continue to use this changeset, the last known revision of the em28xx drivers that work with my card.  But I thought I'd mention my discovery, in case someone more clever than I can discover what happened that caused the problem.  (Devin, I know you mentioned that you have the same Pinnacle device that I have, and yet yours still works even under the most recent drivers.  Could we have slightly different devices, with mine containing some "feature" that has caused it to stop functioning with the latest em28xx drivers?)
+> We plan to submit the
+> patches to open source for H3A and was trying to see which is the right way to do it.
 
-Again, thanks to everyone who helped.  If this should go in a bug report, I will happy to do so if someone indicates that.
+The ISP driver core that we are sharing, it already has the H3A driver on it, which is accessed through Private IOCTLs declared inside the driver.
 
-(This is the "lsusb" info for my device, in case it needs to be more clearly identified):
+> We will
+> investigate the tree you mentioned below and let you know if we have additional questions.
 
-> lsusb -v -s 7:2
+Vaibhav should be already familiar with this codebase, so maybe it could be easier for you to talk with him about this.
 
-Bus 007 Device 002: ID 2304:0227 Pinnacle Systems, Inc. [hex] 
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
-  idVendor           0x2304 Pinnacle Systems, Inc. [hex]
-  idProduct          0x0227 
-  bcdDevice            1.10
-  iManufacturer           3 Pinnacle Systems
-  iProduct                1 PCTV 800e
-  iSerial                 2 061001039442
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength          305
-    bNumInterfaces          1
-    bConfigurationValue     1
-    iConfiguration          0 
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol    255 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               4
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       1
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol    255 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x00c4  1x 196 bytes
-        bInterval               4
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0234  1x 564 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       2
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol    255 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0ad4  2x 724 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x00c4  1x 196 bytes
-        bInterval               4
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0234  1x 564 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       3
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol    255 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0c00  2x 1024 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x00c4  1x 196 bytes
-        bInterval               4
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0234  1x 564 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       4
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol    255 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x1300  3x 768 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x00c4  1x 196 bytes
-        bInterval               4
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0234  1x 564 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       5
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol    255 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x135c  3x 860 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x00c4  1x 196 bytes
-        bInterval               4
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0234  1x 564 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       6
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol    255 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x13c4  3x 964 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x00c4  1x 196 bytes
-        bInterval               4
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0234  1x 564 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       7
-      bNumEndpoints           4
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol    255 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0001  1x 1 bytes
-        bInterval              11
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x1400  3x 1024 bytes
-        bInterval               1
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x00c4  1x 196 bytes
-        bInterval               4
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0234  1x 564 bytes
-        bInterval               1
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
+> The plan is to align with OMAP3 for the implementation.
 
-_________________________________________________________________
-Insert movie times and more without leaving Hotmail®.
-http://windowslive.com/Tutorial/Hotmail/QuickAdd?ocid=TXT_TAGLM_WL_HM_Tutorial_QuickAdd_062009
+Although the current code maintenance is on hold because i've been busy with some other custormer requirements, i havent been able to continue working on the pending TODOs so far. But as this strategy on a better collaboration with the community is attempted, i'm trying ot find my way to get back wit hthe maintenance of this driver to meet at least the required changes for acceptance of the driver.
+
+It'll be definitively good to align on this, so we can avoid rewriting the same thing over again.
+
+Regards,
+Sergio
+> 
+> regards,
+> 
+> Murali Karicheri
+> email: m-karicheri2@ti.com
+> 
+>-----Original Message-----
+>From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio Alberto
+>Sent: Monday, June 01, 2009 2:39 PM
+>To: Paulraj, Sandeep; linux-media@vger.kernel.org
+>Cc: linux-kernel@vger.kernel.org; Grosen, Mark
+>Subject: RE: New Driver for DaVinci DM355/DM365/DM6446
+>
+>> From: linux-media-owner@vger.kernel.org [linux-media-
+>owner@vger.kernel.org] On Behalf Of Paulraj, Sandeep
+>> Sent: Monday, June 01, 2009 5:56 PM
+>> To: linux-media@vger.kernel.org
+>> Cc: linux-kernel@vger.kernel.org; Grosen, Mark
+>> Subject: New Driver for DaVinci DM355/DM365/DM6446
+>>
+>> Hello,
+>>
+>> WE have a module(H3A) on Davinci DM6446,DM355 and DM365.
+>>
+>> Customers require a way to collect the data required to perform the Auto
+>Exposure (AE), Auto Focus(AF), and Auto White balance (AWB) in hardware as
+>opposed to software. > This is primarily for performance reasons as there
+>is not enough software processing MIPS (to do 3A statistics) available in
+>> an imaging/video system.
+>>
+>> Including this block in hardware reduces the load on the processor and
+>bandwidth to the memory as the data is collected on the fly from the imager.
+>>
+>> This modules collects statistics and we currently implement it as a
+>character driver.
+>
+>This also exists in OMAP3 chips, and is part of the ISP module.
+>
+>I maintain, along with Sakari Ailus, a V4L2 camera driver, which is
+>currently just shared through a gitorious repository:
+>
+>http://gitorious.org/omap3camera
+>
+>The way we offer an interface for the user to be able to request this
+>statistics is with the usage of private IOCTLs declared inside the same
+>V4L2 capturing device driver.
+>
+>So, that way we have a V4L2 driver which has a private call, instead of
+>having it separately from the capture driver.
+>
+>Regards,
+>Sergio
+>>
+>> Which mailing list would be the most appropriate mailing list to submit
+>patches for review?
+>>
+>> Thanks,
+>> Sandeep
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
