@@ -1,63 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cmpxchg.org ([85.214.51.133]:56493 "EHLO cmpxchg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752600AbZEEVXi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 5 May 2009 17:23:38 -0400
-Date: Tue, 5 May 2009 23:21:39 +0200
-From: Johannes Weiner <hannes@cmpxchg.org>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: magnus.damm@gmail.com, linux-media@vger.kernel.org,
-	hverkuil@xs4all.nl, lethal@linux-sh.org, linux-mm@kvack.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [patch 1/3] mm: introduce follow_pte()
-Message-ID: <20090505212139.GA2559@cmpxchg.org>
-References: <20090501181449.GA8912@cmpxchg.org> <1241430874-12667-1-git-send-email-hannes@cmpxchg.org> <20090505122442.6271c7da.akpm@linux-foundation.org> <20090505203807.GB2428@cmpxchg.org> <20090505140517.bef78dd3.akpm@linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090505140517.bef78dd3.akpm@linux-foundation.org>
+Received: from moutng.kundenserver.de ([212.227.17.9]:51886 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752705AbZFAAuV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 31 May 2009 20:50:21 -0400
+Message-ID: <4A232498.2080202@retrodesignfan.eu>
+Date: Mon, 01 Jun 2009 02:45:12 +0200
+From: Marco Borm <linux-dvb@retrodesignfan.eu>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Terratec DT USB XS Diversity/DiB0070+vdr: "URB status: Value too
+ large for defined data type"+USB reset
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 05, 2009 at 02:05:17PM -0700, Andrew Morton wrote:
-> On Tue, 5 May 2009 22:38:07 +0200
-> Johannes Weiner <hannes@cmpxchg.org> wrote:
-> 
-> > On Tue, May 05, 2009 at 12:24:42PM -0700, Andrew Morton wrote:
-> > > On Mon,  4 May 2009 11:54:32 +0200
-> > > Johannes Weiner <hannes@cmpxchg.org> wrote:
-> > > 
-> > > > A generic readonly page table lookup helper to map an address space
-> > > > and an address from it to a pte.
-> > > 
-> > > umm, OK.
-> > > 
-> > > Is there actually some point to these three patches?  If so, what is it?
-> > 
-> > Magnus needs to check for physical contiguity of a VMAs backing pages
-> > to support zero-copy exportation of video data to userspace.
-> > 
-> > This series implements follow_pfn() so he can walk the VMA backing
-> > pages and ensure their PFNs are in linear order.
-> > 
-> > [ This patch can be collapsed with 2/3, I just thought it would be
-> >   easier to read the diffs when having them separate. ]
-> > 
-> > 1/3 and 2/3: factor out the page table walk from follow_phys() into
-> > follow_pte().
-> > 
-> > 3/3: implement follow_pfn() on top of follow_pte().
-> 
-> So we could bundle these patches with Magnus's patchset, or we could
-> consider these three patches as a cleanup or something.
->
-> Given that 3/3 introduces an unused function, I'm inclined to sit tight
-> and await Magnus's work.
+Hi folks,
 
-Yeah, I didn't see the video guys responding on Magnus' patch yet, so
-let's wait for them.
+yesterday I bought  a Terratec Cinergy DT USB XS Diversity and the 
+device works just plug&play and without problems under Windows AND linux 
+mplayer+ tzap but resets the whole USB bus very shortly after I starting 
+vdr. I don't think this has something to do with vdr itself, so I 
+posting here.
 
-Magnus, the actual conversion of your code should be trivial, could
-you respin it on top of these three patches using follow_pfn() then?
+My configuration is Debian on testing, kernel is 
+2.6.29-4.slh.1-sidux-686, DVB drivers aren't self compiled, vdr is 
+"(1.6.0-2/1.6.0)", device info: ID 0ccd:0081 TerraTec Electronic GmbH.
+log entries:
+Jun  1 01:14:47 vdr kernel: dib0700: loaded with support for 8 different 
+device-types
+Jun  1 01:14:47 vdr kernel: dvb-usb: found a 'Terratec Cinergy DT USB XS 
+Diversity' in warm state.
+Jun  1 01:14:47 vdr kernel: dvb-usb: will pass the complete MPEG2 
+transport stream to the software demuxer.
+Jun  1 01:14:47 vdr kernel: DVB: registering new adapter (Terratec 
+Cinergy DT USB XS Diversity)
+Jun  1 01:14:47 vdr kernel: DVB: registering adapter 1 frontend 0 
+(DiBcom 7000PC)...
+Jun  1 01:14:47 vdr kernel: DiB0070: successfully identified
+Jun  1 01:14:47 vdr kernel: dvb-usb: will pass the complete MPEG2 
+transport stream to the software demuxer.
+Jun  1 01:14:47 vdr kernel: DVB: registering new adapter (Terratec 
+Cinergy DT USB XS Diversity)
+Jun  1 01:14:47 vdr kernel: DVB: registering adapter 2 frontend 0 
+(DiBcom 7000PC)...
+Jun  1 01:14:47 vdr kernel: DiB0070: successfully identified
+Jun  1 01:14:47 vdr kernel: dvb-usb: Terratec Cinergy DT USB XS 
+Diversity successfully initialized and connected.
+Jun  1 01:14:47 vdr kernel: usbcore: registered new interface driver 
+dvb_usb_dib0700
+vdr start -> Jun  1 01:16:24 vdr logger: runvdr get_modulenames: 
+dvb_usb#012videobuf_dvb#012cx88_dvb dvb_core
+USB reset -> Jun  1 01:18:00 vdr kernel: usb 1-2: USB disconnect, [... 
+all devices reconnecting to the bus ....]
+Jun  1 01:18:28 vdr kernel: DiB0070 I2C write failed
+Jun  1 01:18:28 vdr kernel: DiB0070 I2C read failed
+Jun  1 01:18:28 vdr kernel: DiB0070 I2C write failed
+Jun  1 01:18:28 vdr kernel: DiB0070 I2C write failed
+Jun  1 01:18:28 vdr kernel: DiB0070 I2C write failed
+[...]
 
-	Thanks, Hannes
+This logs aren't very helpful, but I find something interesting with 
+Wireshark and usbmon:
+device -> host
+URB type: URB_COMPLETE ('C')
+URB transfer type: URB_BULK (3)
+Endpoint: 0x83
+Device: 13
+Data: present (0)
+URB status: Value too large for defined data type (-EOVERFLOW) (-75)
+URB length [bytes]: 39424
+Data length [bytes]: 39424
+
+after this URB I get a "URB transfer type: URB_INTERRUPT (1)" and all 
+goes to hell.
+
+Its also  interesting that the URB+data length in the failure package is 
+39424 but "URB length [bytes]: 39480" in every package before that.
+
+As I know this device works without problems under linux for other 
+people, so I'm wondering why. I searched but found nothing about such a 
+problem.
+
+The wireshark capturefile is downloadable here: 
+http://rapidshare.com/files/239429647/terratec-xs-usb-overflow.html
+
+
+Thanks for hints,
+Marco Borm
