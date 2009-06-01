@@ -1,61 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44734 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751337AbZFVOMc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2009 10:12:32 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Alexey Klimov <klimov.linux@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-Date: Mon, 22 Jun 2009 09:12:28 -0500
-Subject: RE: [PATCH 1/11 - v3] vpfe capture bridge driver for DM355 and
- DM6446
-Message-ID: <A69FA2915331DC488A831521EAE36FE40139EDB044@dlee06.ent.ti.com>
-References: <1245269484-8325-1-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-2-git-send-email-m-karicheri2@ti.com>
- <208cbae30906171429q3d5aeb3fy26788be1f415c289@mail.gmail.com>
- <200906191440.59510.hverkuil@xs4all.nl>
-In-Reply-To: <200906191440.59510.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from hora-obscura.de ([213.133.111.163]:35253 "EHLO hora-obscura.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752488AbZFAIHw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Jun 2009 04:07:52 -0400
+Message-ID: <4A238C48.7090405@hora-obscura.de>
+Date: Mon, 01 Jun 2009 11:07:36 +0300
+From: Stefan Kost <ensonic@hora-obscura.de>
 MIME-Version: 1.0
+To: Trent Piepho <xyzzy@speakeasy.org>
+CC: linux-media@vger.kernel.org
+Subject: Re: webcam drivers and V4L2_MEMORY_USERPTR support
+References: <4A238292.6000205@hora-obscura.de> <Pine.LNX.4.58.0906010056140.32713@shell2.speakeasy.net>
+In-Reply-To: <Pine.LNX.4.58.0906010056140.32713@shell2.speakeasy.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
-
-Thanks for taking care of this.
-
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-email: m-karicheri2@ti.com
->-----Original Message-----
->From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
->Sent: Friday, June 19, 2009 8:41 AM
->To: Alexey Klimov
->Cc: Karicheri, Muralidharan; linux-media@vger.kernel.org; davinci-linux-
->open-source@linux.davincidsp.com
->Subject: Re: [PATCH 1/11 - v3] vpfe capture bridge driver for DM355 and
->DM6446
->
->On Wednesday 17 June 2009 23:29:31 Alexey Klimov wrote:
->> Hello,
+Trent Piepho schrieb:
+> On Mon, 1 Jun 2009, Stefan Kost wrote:
+>   
+>> I have implemented support for V4L2_MEMORY_USERPTR buffers in gstreamers
+>> v4l2src [1]. This allows to request shared memory buffers from xvideo,
+>> capture into those and therefore save a memcpy. This works great with
+>> the v4l2 driver on our embedded device.
 >>
->> very small comments, see below please
+>> When I was testing this on my desktop, I noticed that almost no driver
+>> seems to support it.
+>> I tested zc0301 and uvcvideo, but also grepped the kernel driver
+>> sources. It seems that gspca might support it, but I ave not confirmed
+>> it. Is there a technical reason for it, or is it simply not implemented?
+>>     
 >
->Thanks, I've added the missing newlines and the wrong return code in a
->separate patch in my pull request.
->
->Regards,
->
->	Hans
->
->--
->Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+> userptr support is relatively new and so it has less support, especially
+> with driver that pre-date it.  Maybe USB cams use a compressed format and
+> so userptr with xvideo would not work anyway since xv won't support the
+> camera's native format.  It certainly could be done for bt8xx, cx88,
+> saa7134, etc.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   
+Yes, I am aware of the format issue. On the gstreamer side formats are
+negotiated. Plugins export e.g. wat colorpsaces they support and the
+zerocopy path can only be taken if e.g. both support UVYV. Luckily this
+is quite common.
 
+But thanks for the info. I have nver touched kernel code sofar, but if I
+find some free time, I can try to add support for it in one driver.
+
+Stefan
