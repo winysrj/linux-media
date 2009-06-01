@@ -1,45 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f222.google.com ([209.85.218.222]:64621 "EHLO
-	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752051AbZEZND5 (ORCPT
+Received: from bld-mail16.adl2.internode.on.net ([150.101.137.101]:56560 "EHLO
+	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753549AbZFAC3i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 26 May 2009 09:03:57 -0400
-Received: by bwz22 with SMTP id 22so3778111bwz.37
-        for <linux-media@vger.kernel.org>; Tue, 26 May 2009 06:03:58 -0700 (PDT)
-Message-ID: <4A1BE8BC.3010901@gmail.com>
-Date: Tue, 26 May 2009 15:03:56 +0200
-From: Antonio Beamud Montero <antonio.beamud@gmail.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: v4l-dvb and old kernels
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Sun, 31 May 2009 22:29:38 -0400
+Cc: linux-media@vger.kernel.org
+Message-Id: <9A5E1107-D3FC-4BA0-958F-C3DBC6D5D36E@internode.on.net>
+From: Robin Perkins <robin.perkins@internode.on.net>
+To: Johannes Stezenbach <js@linuxtv.org>
+In-Reply-To: <20090531232836.GB20941@linuxtv.org>
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
 Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0 (Apple Message framework v935.3)
+Subject: Re: Wiki software update
+Date: Mon, 1 Jun 2009 12:14:08 +1000
+References: <20090531232836.GB20941@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It would compile today's snapshot of v4l-dvb with an old kernel version 
-(for example 2.6.16)? (or is better to upgrade the kernel?)
 
-Trying to compile today's mercurial snapshot in a SuSE 10.1 (2.6.16-21), 
-give the next errors:
+On 01/06/2009, at 9:28 AM, Johannes Stezenbach wrote:
 
-/root/v4l-dvb/v4l/bttv-i2c.c: In function 'init_bttv_i2c':
-/root/v4l-dvb/v4l/bttv-i2c.c:411: error: storage size of 'info' isn't known
-/root/v4l-dvb/v4l/bttv-i2c.c:425: error: invalid application of 'sizeof' 
-to incomplete type 'struct i2c_board_info'
-/root/v4l-dvb/v4l/bttv-i2c.c:425: error: invalid application of 'sizeof' 
-to incomplete type 'struct i2c_board_info'
-/root/v4l-dvb/v4l/bttv-i2c.c:425: error: invalid application of 'sizeof' 
-to incomplete type 'struct i2c_board_info'
-/root/v4l-dvb/v4l/bttv-i2c.c:425: error: invalid application of 'sizeof' 
-to incomplete type 'struct i2c_board_info'
-/root/v4l-dvb/v4l/bttv-i2c.c:425: error: invalid application of 'sizeof' 
-to incomplete type 'struct i2c_board_info'
-/root/v4l-dvb/v4l/bttv-i2c.c:425: error: invalid application of 'sizeof' 
-to incomplete type 'struct i2c_board_info'
-/root/v4l-dvb/v4l/bttv-i2c.c:427: error: implicit declaration of 
-function 'i2c_new_probed_device'
-/root/v4l-dvb/v4l/bttv-i2c.c:411: warning: unused variable 'info'
-make[5]: *** [/root/v4l-dvb/v4l/bttv-i2c.o] Error 1
+> Hi,
+>
+> I just updated the V4L-DVB Wiki and the old V4L Wiki
+> to MediaWiki-1.14.0. Please let me know in case
+> something broke.
+>
+> Johannes
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux- 
+> media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Greetings.
+
+Is there any possibility of renaming the v4l-dvb wiki to perhaps the  
+Linux-media Wiki just to get some persistence in names ? (I have had  
+people on irc ask if v4l-dvb can only do dvb.) Perhaps reflect that  
+Linux-media does more than just DVB on the LinuxTV main page as well?
+
+Cheers,
+Rob
