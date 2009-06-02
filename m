@@ -1,48 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.acsalaska.net ([209.112.173.230]:28331 "EHLO
-	hermes.acsalaska.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751552AbZFMDIb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jun 2009 23:08:31 -0400
-Received: from [192.168.1.3] (66-230-87-63-rb1.fai.dsl.dynamic.acsalaska.net [66.230.87.63])
-	by hermes.acsalaska.net (8.14.1/8.14.1) with ESMTP id n5D38XXe059511
-	for <linux-media@vger.kernel.org>; Fri, 12 Jun 2009 19:08:33 -0800 (AKDT)
-	(envelope-from rogerx@sdf.lonestar.org)
-Subject: Re: s5h1411_readreg: readreg error (ret == -5)
-From: Roger <rogerx@sdf.lonestar.org>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <1244851654.3777.3.camel@pc07.localdom.local>
-References: <1244446830.3797.6.camel@localhost2.local>
-	 <Pine.LNX.4.64.0906102257130.7298@cnc.isely.net>
-	 <4A311A64.4080008@kernellabs.com>
-	 <Pine.LNX.4.64.0906111343220.17086@cnc.isely.net>
-	 <1244759335.9812.2.camel@localhost2.local>
-	 <Pine.LNX.4.64.0906121531100.6470@cnc.isely.net>
-	 <1244841123.3264.55.camel@palomino.walls.org>
-	 <Pine.LNX.4.64.0906121627000.6470@cnc.isely.net>
-	 <1244846370.3803.44.camel@pc07.localdom.local>
-	 <1244851654.3777.3.camel@pc07.localdom.local>
-Content-Type: text/plain
-Date: Fri, 12 Jun 2009 19:08:32 -0800
-Message-Id: <1244862512.10484.4.camel@localhost2.local>
-Mime-Version: 1.0
+Received: from mail-bw0-f222.google.com ([209.85.218.222]:54770 "EHLO
+	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759552AbZFBGsi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2009 02:48:38 -0400
+Received: by mail-bw0-f222.google.com with SMTP id 22so7920008bwz.37
+        for <linux-media@vger.kernel.org>; Mon, 01 Jun 2009 23:48:40 -0700 (PDT)
+MIME-Version: 1.0
+Date: Tue, 2 Jun 2009 09:48:40 +0300
+Message-ID: <eaf6cbc30906012348h73a96d51mc1b5f4eb538dc93@mail.gmail.com>
+Subject: SmarDTV/Nagra CAM does not initialise
+From: Tomer Barletz <barletz@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-06-13 at 02:07 +0200, hermann pitton wrote:
-> [snip]
-> > 
-> > The most undiscovered configurations seem to be such ones about antenna
-> > inputs and their switching. Again according to Hartmut, and he did not
-> > know exactly what is going on here, some for us and him at this point
-> > unknown checksums are used to derive even that information :(
+Hi,
+When inserting SmarDTV/Nagra CAM, I get the following error:
+cimax_poll_slot_status: change CAM state CIMAX0 Slot0 module_present = 1
+state = 0
+cimax_slot_reset: CIMAX0 slot0 READY!
+dvb_ca adapter 0: Invalid PC card inserted  :(
 
->From my brief research on the Internet, I didn't see any chip specs
-published for the s5h1411. :-/
+It seems that this CAM does not support the usual init tuples (0x1D, 0x1C...).
+I've changed the code so that all the tuples are printed to the
+screen, ignoring the default tuples. This is how it looks (tuple data
+excluded):
 
--- 
-Roger
-http://rogerx.freeshell.org
+TUPLE type:0x8a length:174
+TUPLE type:0x47 length:45
+TUPLE type:0x25 length:133
+TUPLE type:0x9f length:38
+TUPLE type:0xc9 length:102
+TUPLE type:0x6a length:24
+TUPLE type:0xdc length:138
+TUPLE type:0x38 length:251
+TUPLE type:0xc length:100
+TUPLE type:0x0 length:138
+TUPLE type:0x27 length:52
+TUPLE type:0x70 length:24
+TUPLE type:0x1f length:156
+TUPLE type:0x1 length:236
+TUPLE type:0x54 length:0
+TUPLE type:0xc1 length:14
+TUPLE type:0x14 length:0
+END OF CHAIN TUPLE type:0xff
 
+Is that means that dvb-core does not support Nagra CAMs?
+
+Any help or others experience is greatly appreciated,
+Tomer
