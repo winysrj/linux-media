@@ -1,69 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:42080 "EHLO
-	t61.ukuu.org.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752763AbZFIMAb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 08:00:31 -0400
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Subject: [PATCH 1/2] se401: Fix unsafe use of sprintf with identical
-	source/destination
-To: linux-media@vger.kernel.org, mchehab@infradead.org
-Date: Tue, 09 Jun 2009 13:56:35 +0100
-Message-ID: <20090609125546.10098.31807.stgit@t61.ukuu.org.uk>
-In-Reply-To: <20090609125408.10098.45945.stgit@t61.ukuu.org.uk>
-References: <20090609125408.10098.45945.stgit@t61.ukuu.org.uk>
+Received: from perceval.irobotique.be ([92.243.18.41]:44125 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750717AbZFBKj7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2009 06:39:59 -0400
+Received: from ravenclaw.localnet (249.248-240-81.adsl-static.isp.belgacom.be [81.240.248.249])
+	by perceval.irobotique.be (Postfix) with ESMTPSA id DF87B35B26
+	for <linux-media@vger.kernel.org>; Tue,  2 Jun 2009 10:39:59 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: linux-media@vger.kernel.org
+Subject: VIDIOC_[GS]_JPEGCOMP clarifications
+Date: Tue, 2 Jun 2009 12:44:43 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906021244.44288.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Alan Cox <alan@linux.intel.com>
+Hi everybody,
 
-Closes-bug: http://bugzilla.kernel.org/show_bug.cgi?id=13435
+the VIDIOC_[GS]_JPEGCOMP documentation in the V4L2 specification is far from 
+being clear and complete (which is probably why it's marked as [to do]). I'm 
+implementing support for this ioctl in the uvcvideo driver and I'd like to 
+request your opinion about the expected ioctl behavior.
 
-Signed-off-by: Alan Cox <alan@linux.intel.com>
----
+- VIDIOC_[GS]_JPEGCOMP only make sense for (M)JPEG compressed formats. Should 
+the ioctls return an error (-EINVAL ?) when the currently selected format 
+isn't (M)JPEG ?
 
- drivers/media/video/se401.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+- VIDIOC_S_JPEGCOMP is a write-only ioctl. As such it can't return the quality 
+value really applied to the device when the requested quality can't be 
+achieved (either because the value is out of bounds or the quality values 
+supported by the device have a higher granularity). Should the ioctl still 
+succeed in that case, and apply a closest match quality to the device ?
 
+- Similarly, should VIDIOC_S_JPEGCOMP fail if the requested JPEG markers 
+combination is not supported by the device, or should it silently fix the 
+value ?
 
-diff --git a/drivers/media/video/se401.c b/drivers/media/video/se401.c
-index 5990ab3..08129a8 100644
---- a/drivers/media/video/se401.c
-+++ b/drivers/media/video/se401.c
-@@ -1244,17 +1244,18 @@ static int se401_init(struct usb_se401 *se401, int button)
- 	int i=0, rc;
- 	unsigned char cp[0x40];
- 	char temp[200];
-+	int slen;
- 
- 	/* led on */
- 	se401_sndctrl(1, se401, SE401_REQ_LED_CONTROL, 1, NULL, 0);
- 
- 	/* get camera descriptor */
- 	rc=se401_sndctrl(0, se401, SE401_REQ_GET_CAMERA_DESCRIPTOR, 0, cp, sizeof(cp));
--	if (cp[1]!=0x41) {
-+	if (cp[1] != 0x41) {
- 		err("Wrong descriptor type");
- 		return 1;
- 	}
--	sprintf (temp, "ExtraFeatures: %d", cp[3]);
-+	slen = snprintf(temp, 200, "ExtraFeatures: %d", cp[3]);
- 
- 	se401->sizes=cp[4]+cp[5]*256;
- 	se401->width=kmalloc(se401->sizes*sizeof(int), GFP_KERNEL);
-@@ -1269,9 +1270,10 @@ static int se401_init(struct usb_se401 *se401, int button)
- 		    se401->width[i]=cp[6+i*4+0]+cp[6+i*4+1]*256;
- 		    se401->height[i]=cp[6+i*4+2]+cp[6+i*4+3]*256;
- 	}
--	sprintf (temp, "%s Sizes:", temp);
-+	slen += snprintf (temp + slen, 200 - slen, " Sizes:");
- 	for (i=0; i<se401->sizes; i++) {
--		sprintf(temp, "%s %dx%d", temp, se401->width[i], se401->height[i]);
-+		slen += snprintf(temp + slen, 200 - slen,
-+			" %dx%d", se401->width[i], se401->height[i]);
- 	}
- 	dev_info(&se401->dev->dev, "%s\n", temp);
- 	se401->maxframesize=se401->width[se401->sizes-1]*se401->height[se401->sizes-1]*3;
+- While JPEG-specific fields (such as markers) don't make sense for frame-
+based compressed formats other than (M)JPEG, the quality field does. Would it 
+be abusing the ioctl to use the quality field to get/set the compression 
+quality for compression formats similar to JPEG ? If it would, what's the 
+preferred way to set compression quality in V4L2 ?
+
+Best regards,
+
+Laurent Pinchart
 
