@@ -1,24 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n51MsAoE020205
-	for <video4linux-list@redhat.com>; Mon, 1 Jun 2009 18:54:10 -0400
-Received: from mail-fx0-f214.google.com (mail-fx0-f214.google.com
-	[209.85.220.214])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n51MruQG030934
-	for <video4linux-list@redhat.com>; Mon, 1 Jun 2009 18:53:56 -0400
-Received: by fxm10 with SMTP id 10so7748997fxm.3
-	for <video4linux-list@redhat.com>; Mon, 01 Jun 2009 15:53:56 -0700 (PDT)
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n52M4InL008159
+	for <video4linux-list@redhat.com>; Tue, 2 Jun 2009 18:04:18 -0400
+Received: from relay-pt2.poste.it (relay-pt2.poste.it [62.241.5.253])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n52M420X022857
+	for <video4linux-list@redhat.com>; Tue, 2 Jun 2009 18:04:02 -0400
+Received: from geppetto.reilabs.com (78.15.188.69) by relay-pt2.poste.it
+	(7.3.122) (authenticated as stefano.sabatini-lala@poste.it)
+	id 4A245DBE00008626 for video4linux-list@redhat.com;
+	Wed, 3 Jun 2009 00:04:01 +0200
+Received: from stefano by geppetto.reilabs.com with local (Exim 4.67)
+	(envelope-from <stefano.sabatini-lala@poste.it>) id 1MBc41-0006Mk-Qe
+	for video4linux-list@redhat.com; Wed, 03 Jun 2009 00:02:33 +0200
+Date: Wed, 3 Jun 2009 00:02:33 +0200
+From: Stefano Sabatini <stefano.sabatini-lala@poste.it>
+To: video4linux-list Mailing List <video4linux-list@redhat.com>
+Message-ID: <20090602220233.GA23136@geppetto>
 MIME-Version: 1.0
-In-Reply-To: <4A2433E2.4050807@alstadheim.priv.no>
-References: <745af8a00906011105x7a69b478obbab7c738aaa9e06@mail.gmail.com>
-	<4A2433E2.4050807@alstadheim.priv.no>
-Date: Tue, 2 Jun 2009 00:53:55 +0200
-Message-ID: <745af8a00906011553v69455099j9da74a82754b592c@mail.gmail.com>
-From: S P <xmisterhu@gmail.com>
-Cc: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Subject: Re: saa7134 surveillance
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Subject: video loopback device
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,46 +31,43 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I have 2.6.28 version kernel(The default with ubuntu jaunty). But I
-had checked the documentation of 2.6.29 and saw that the v4l framework
-redesinged a bit...so I have to compile the 2.6.29 kernel to see all
-the cameras? Nice...but I will try.
-Anyway: Thanks for the reply!
+Hi all,
 
-Regards, Peter Sarkozi
+I'm looking for an application/driver which let to create a 
+virtual device where to send the video output of an application or of
+another video device.
 
+Typical application would be for example to capture from a webcam,
+apply some filter to it, and finally pulish it to another application
+reading from a video device.
 
-2009/6/1 Håkon Alstadheim <hakon@alstadheim.priv.no>:
-> S P wrote:
->>
->> Hi!
->> I have a surveillance card with saa7134 chips. It should be able to
->> see 8 cameras at a time, but there is only 4 video devices in /dev of
->> this card.
->> These devices are working fine, each device's channel 0(there isn't
->> any other channel of these devices) is an input for a camera.
->> So, how could I manage it to be 8 devices?
->>
->>
->
-> Kernel-version ? Newer kernels allow you to set v4l subsystem to "allocate
-> minor device numbers dynamically". This is supposed to allow more than 4
-> devices on a single card, according to the help-text of the 2.6.29 kernel I
-> just compiled.
->
-> Caveat: All this is from memory, ~24hours old.
->
-> --
-> Håkon Alstadheim
-> 47 35 39 38
->
->
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
+I see there are at least three distinct projects which provides a
+video for loopback device:
+
+* video4linux loopback device/vloopback:
+  http://www.lavrsen.dk/twiki/bin/view/Motion/VideoFourLinuxLoopbackDevice
+
+  Seems to be unmaintained, also if I'm not wrong it only supports
+  video4linux and not video4linux 2 API.
+
+* video4linux2 virtual device
+  http://sourceforge.net/projects/v4l2vd/
+
+  This should be the successor of vloopback, unfortunately it seem not
+  to work with linux 2.6.26:
+  https://sourceforge.net/forum/forum.php?thread_id=2897804&forum_id=579262
+
+  and also seems a little unmaintained.
+
+* http://code.google.com/p/v4l2loopback/
+
+  I don't know if there are applications using it, just read about it
+  in this ML.
+
+I wonder if someone can express an opinion on these projects, for
+example to tell their current status / usability.
+
+TIA, regards.
 
 --
 video4linux-list mailing list
