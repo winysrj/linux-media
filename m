@@ -1,67 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-03.arcor-online.net ([151.189.21.43]:55243 "EHLO
-	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751569AbZFQXva (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 19:51:30 -0400
-Subject: Re: [Patch] New utility program atsc_epg added to dvb-apps utility
-	suite.
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Yufei Yuan <yfyuan@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <ccdf9f470906171618r26518ce7pa97d747e301009ca@mail.gmail.com>
-References: <ccdf9f470906171618r26518ce7pa97d747e301009ca@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Date: Thu, 18 Jun 2009 01:51:25 +0200
-Message-Id: <1245282685.8827.29.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from smtp5-g21.free.fr ([212.27.42.5]:50911 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757374AbZFBSHs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2009 14:07:48 -0400
+From: Dominique Dumont <domi.dumont@free.fr>
+To: Tomer Barletz <barletz@gmail.com>
+Date: Tue, 2 Jun 2009 20:07:37 +0200
+Cc: linux-media@vger.kernel.org
+References: <eaf6cbc30905252243m2d6e1537vd255e49f289c0f33@mail.gmail.com> <200905262106.03697.domi.dumont@free.fr> <eaf6cbc30906012256j5ab600e6wffa5f315c076213a@mail.gmail.com>
+In-Reply-To: <eaf6cbc30906012256j5ab600e6wffa5f315c076213a@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200906022007.38514.domi.dumont@free.fr>
+Subject: Re: Problem with SCM/Viaccess CAM
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Le Tuesday 02 June 2009 07:56:11 Tomer Barletz, vous avez �crit :
 
-Am Mittwoch, den 17.06.2009, 18:18 -0500 schrieb Yufei Yuan:
-> Hi,
-> 
-> I am not sure if this is the correct mailing list to send this patch.
-> >From the LinuxTV website, it seems that currently dvb-apps project
-> has
-> no owner.
-> 
-> A new utility atsc_epg is added into the dvb-apps utility suite. It
-> parses PSIP information carried in OTA ATSC channels, and constructs a
-> basic EPG in a terminal window. Changes were also made to files to
-> please GCC4.4.
-> 
-> The patch is against latest revision 1278 from the dvb-apps
-> repository.
-> 
-> Regards,
-> Yufei Yuan
-> 
-> -- 
-> 好学近乎智，力行近乎仁，知耻近乎勇。
-> Eagerness in learning is close to intelligence.
-> Commitment in doing is close to nobleness.
-> Realization of shamefulness is close to courageousness.
+> Did your patch involved any other changes besides this one? 
 
-Getting engaged into footers ...
+No
 
-The above blindly assumes that there is a balance within that reduction
-to three cases ... (we know two are enough)
+> How can I obtain your patch? Did you changed dvb_ca_en50221.c only, or were
+> there any other files changed?
 
-You miss at least several hundred years of history on the other side of
-the planet.
+My patch was just a one line modif to change a #define
 
-I totally disagree with that kind of stuff.
+You can probably find the patch on dvb mailing archives. 
 
-Most explicitly with the third variant.
-
-That way you can still press any slave into any army ...
-
-
-
-
-
-
+HTH
 
