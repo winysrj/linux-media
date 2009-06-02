@@ -1,81 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:60776 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752857AbZFJXMn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2009 19:12:43 -0400
-Date: Thu, 11 Jun 2009 01:12:48 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	davinci-linux-open-source@linux.davincidsp.com
-Subject: Re: [PATCH] adding support for setting bus parameters in sub device
-In-Reply-To: <200906102351.34219.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.0906110056460.4817@axis700.grange>
-References: <1244580891-24153-1-git-send-email-m-karicheri2@ti.com>
- <200906102251.57644.hverkuil@xs4all.nl> <Pine.LNX.4.64.0906102311410.4817@axis700.grange>
- <200906102351.34219.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from zone0.gcu-squad.org ([212.85.147.21]:2454 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760212AbZFBHMp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2009 03:12:45 -0400
+Date: Tue, 2 Jun 2009 09:12:29 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Paul Mundt <lethal@linux-sh.org>, linux-next@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-i2c@vger.kernel.org
+Subject: Re: [PATCH] i2c: Simplified CONFIG_I2C=n interface.
+Message-ID: <20090602091229.0810f54b@hyperion.delvare>
+In-Reply-To: <20090527120140.GC1970@sirena.org.uk>
+References: <20090527070850.GA11221@linux-sh.org>
+	<20090527091831.26b60d6d@hyperion.delvare>
+	<20090527120140.GC1970@sirena.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 10 Jun 2009, Hans Verkuil wrote:
+Hi Mark,
 
-> On Wednesday 10 June 2009 23:30:55 Guennadi Liakhovetski wrote:
-> > On Wed, 10 Jun 2009, Hans Verkuil wrote:
-> > > My view of this would be that the board specification specifies the
-> > > sensor (and possibly other chips) that are on the board. And to me it
-> > > makes sense that that also supplies the bus settings. I agree that it
-> > > is not complex code, but I think it is also unnecessary code. Why
-> > > negotiate if you can just set it?
-> >
-> > Why force all platforms to set it if the driver is perfectly capable do
-> > this itself? As I said - this is not a platform-specific feature, it's
-> > chip-specific. What good would it make to have all platforms using
-> > mt9t031 to specify, that yes, the chip can use both falling and rising
-> > pclk edge, but only active high vsync and hsync?
+On Wed, 27 May 2009 13:01:40 +0100, Mark Brown wrote:
+> On Wed, May 27, 2009 at 09:18:31AM +0200, Jean Delvare wrote:
 > 
-> ???
+> > Violent nack. Drivers which optionally use I2C are a minority.
 > 
-> You will just tell the chip what to use. So you set 'use falling edge' and 
-> either set 'active high vsync/hsync' or just leave that out since you know 
-> the mt9t031 has that fixed. You don't specify in the platform data what the 
-> chip can support, that's not relevant. You know what the host expects and 
-> you pass that information on to the chip.
+> It's extremely common for devices like the CODECs and PMICs used in
+> embedded systems to have both I2C and SPI interfaces, selectable via a
+> pin strap at power on.  It's less common to have the SPI option for
+> things like hardware monitoring chips found in PCs but for anything that
+> might be I/O bound the high speed interface is a very common option.
+
+Can you please point me at a couple of affected drivers?
+
+> > Designing them in such a way that a single #ifdef CONFIG_I2C will make
+> > them work can't be that hard, really. Not to mention that having a
+> > dozen stubs in i2c.h in the CONFIG_I2C=n case won't save you much work
+> > at the driver level anyway, because you certainly need to run different
+> > code paths depending on how the device is connected, and you also have
+> > to differentiate between the "I2C support is missing" case and the "I2C
+> > device registration failed" case, etc.
 > 
-> A board designer knows what the host supports,
+> For the devices I've dealt with there's very little work at the driver
+> level - the various interfaces that can be used each probe using the
+> normal device model, set some register read/write operations and
+> possibly some other things and then call into the bulk of the driver
+> which has all the I/O abstracted away from it.
 
-No, he doesn't have to. That's not board specific, that's SoC specific.
+It might make sense to define stubs for the CONFIG_I2C=n case for a few
+of the i2c API functions, which are called from common driver parts, in
+particular i2c_add/del_driver(), and as a matter of fact we already do
+this for i2c_register_board_info(). But for lower-level functions, this
+sounds wrong. The lower-level functions will only ever be called in
+functions which should be completely discarded if I2C support is
+missing from the kernel, and I would not count on gcc to be smart
+enough to really discard all the code thanks to the i2c API being all
+stubs. Meaning you end up with drivers larger than they should be -
+which is no good for embedded systems.
 
-> knows what the sensor supports,
+I would really expect all I2C-related code to be in one place of the
+driver (or even in a separate source file) and same for SPI-related
+code. Then surrounding one big block of code with an ifdef doesn't
+sound that difficult to read.
 
-Ditto, this is sensor-specific, not board-specific.
+> The error handling is already an issue with the current situation since
+> people are just silently building out the I2C support when I2C is not
+> enabled.  At the minute the main problem is with people not remembering
+> to do the #ifdef (a lot of platforms really need I2C enabled to be
+> useful so people never think to do the build without).
 
-> and knows if he added any inverters on the board, and based on 
-> all that information he can just setup these parameters for the sensor 
-> chip. Settings that are fixed on the sensor chip he can just ignore, he 
-> only need to specify those settings that the sensor really needs.
+I can't think of a way to solve this, other than what you do today
+(build without I2C support from times to times and fix what needs to
+be.) At least today you have a link breakage that tells you a given
+driver needs to be reviewed for the CONFIG_I2C=n case. If we add stubs
+all around to workaround the link breakage, this means the review never
+happens, so the code might as well build and link but not work properly
+or at least not be optimal. I wouldn't call this progress.
 
-Of all the boards that I know of that use soc-camera only one (supposedly) 
-had an inverter on one line, and even that one is not in the mainline. So, 
-in the present soc-camera code not a single board have to bother with 
-that. And now you want to add _all_ those polarity, master / slave flags 
-to _all_ of them? Let me try again:
+What could be done, OTOH, is to surround all the function declarations
+in <linux/i2c.h> with a simple #ifdef CONFIG_I2C, so that mistakes are
+caught earlier (build time instead of link time.)
 
-you have an HSYNC output on the sensor. Its capabilities are known to the 
-sensor driver
-
-you have an HSYNC input on the SoC. Its capabilities are known to the 
-SoC-specific camera host driver
-
-these two lines are routed on the board to connect either directly or over 
-some logic, hopefully, not more complex than an inverter. Now, this is 
-_the_ _only_ bit of information, that is specific to the board.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Jean Delvare
