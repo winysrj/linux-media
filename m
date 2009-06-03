@@ -1,58 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:52468 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752400AbZFZSdI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2009 14:33:08 -0400
-Subject: Re: Bah! How do I change channels?
-From: Andy Walls <awalls@radix.net>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Robert Krakora <rob.krakora@messagenetsystems.com>,
-	video4linux-list@redhat.com, linux-media@vger.kernel.org
-In-Reply-To: <829197380906261023n7e960f43pcd25d82eb12f91dd@mail.gmail.com>
-References: <COL103-W53A73F78F552D9FD9BAA2A88350@phx.gbl>
-	 <1246017001.4755.4.camel@palomino.walls.org>
-	 <829197380906260642m2cd87ae5qd6487dc5eae91e51@mail.gmail.com>
-	 <b24e53350906261019u45bba60erc7ee41222896388b@mail.gmail.com>
-	 <829197380906261023n7e960f43pcd25d82eb12f91dd@mail.gmail.com>
-Content-Type: text/plain
-Date: Fri, 26 Jun 2009 14:34:48 -0400
-Message-Id: <1246041288.3159.51.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-ew0-f224.google.com ([209.85.219.224]:46485 "EHLO
+	mail-ew0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751841AbZFCF7Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jun 2009 01:59:16 -0400
+Received: by ewy24 with SMTP id 24so9349382ewy.37
+        for <linux-media@vger.kernel.org>; Tue, 02 Jun 2009 22:59:17 -0700 (PDT)
+Date: Wed, 3 Jun 2009 07:58:13 +0200 (CEST)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: "Soeren D. Schulze" <soeren.d.schulze@gmx.de>
+cc: linux-media@vger.kernel.org
+Subject: Re: Aspect ratio change does not take effect (DVB-S)
+In-Reply-To: <4A259071.3070500@gmx.de>
+Message-ID: <alpine.DEB.2.01.0906030752150.5194@ybpnyubfg.ybpnyqbznva>
+References: <4A259071.3070500@gmx.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2009-06-26 at 13:23 -0400, Devin Heitmueller wrote:
-> On Fri, Jun 26, 2009 at 1:19 PM, Robert
-> Krakora<rob.krakora@messagenetsystems.com> wrote:
-> > I had ran into this before with the KWorld a few months back.
-> > However, whatever problem existed that forced me to add
-> > "no_poweroff=1" to modprobe.conf for the em28xx module has went away.
-> > I have been able to use v4l-ctl or ivtv-tune without any problems to
-> > tune analog channels over cable.
-> 
-> Well, bear in mind that if you run v4l-ctl *after* the program is
-> streaming it should work.  However, if you run v4l-ctl and then try to
-> stream I suspect it will fail.
-> 
-> If it's working, then perhaps I should take a look at the power
-> management code in em28xx/xc2028 since I don't know why it would work
+Moin Sören,
+
+On Tue, 2 Jun 2009, Soeren D. Schulze wrote:
+
+> right now, but there seems to be a little bug:  When watching the TV
+> stream using and szap and mplayer, changes in the aspect ratio of the TV
+> program do not take effect until mplayer is restarted.  This used to
+> work with the former device!
+
+This should be an issue with `mplayer' -- the aspect ratio is
+simply part of the datastream sent as an MPEG transport stream
+as encoded by the broadcaster.
+
+`mplayer' is known to have this issue with the option `-vc mpeg12'
+while in recent mplayer, the default is `-vc ffmpeg12' where this
+aspect ratio switching works properly.  Try adding that latter
+option and see if it works as expected.
 
 
-Hmm, that sure sounds like a V4L2 spec violation.  From the V4L2 close()
-description:
-
-"Closes the device. Any I/O in progress is terminated and resources
-associated with the file descriptor are freed. However data format
-parameters, current input or output, control values or other properties
-remain unchanged."
-
-
-Regards,
-Andy
-
-> (and perhaps the tuner is *not* being powered down like it should be).
-> 
-> Devin
-> 
-
+barry bouwsma
