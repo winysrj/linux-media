@@ -1,70 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:34711 "EHLO mx2.redhat.com"
+Received: from mx2.redhat.com ([66.187.237.31]:42656 "EHLO mx2.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751564AbZFQOjo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 10:39:44 -0400
-Message-ID: <4A390093.5090003@redhat.com>
-Date: Wed, 17 Jun 2009 16:41:23 +0200
+	id S1751586AbZFCI5m (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Jun 2009 04:57:42 -0400
+Message-ID: <4A263B42.1010006@redhat.com>
+Date: Wed, 03 Jun 2009 10:58:42 +0200
 From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Convert cpia driver to v4l2,      drop parallel port version
- support?
-References: <13104.62.70.2.252.1245224630.squirrel@webmail.xs4all.nl>	<20090617065621.23515ab7@pedra.chehab.org>	<4A38CCAF.5060202@redhat.com> <20090617112802.152a6d64@pedra.chehab.org>
-In-Reply-To: <20090617112802.152a6d64@pedra.chehab.org>
+To: Erik de Castro Lopo <erik@bcode.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Creating a V4L driver for a USB camera
+References: <20090603141350.04cde59b.erik@bcode.com>
+In-Reply-To: <20090603141350.04cde59b.erik@bcode.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi,
 
-On 06/17/2009 04:28 PM, Mauro Carvalho Chehab wrote:
-> Em Wed, 17 Jun 2009 12:59:59 +0200
-> Hans de Goede<hdegoede@redhat.com>  escreveu:
+On 06/03/2009 06:13 AM, Erik de Castro Lopo wrote:
+> Hi all,
+>
+> I'm a senior software engineer [0] with a small startup. Our product
+> is Linux based and makes use of a 3M pixel camera. Unfortunately, the
+> camera we have been using for the last 3 years is no longer being
+> produced.
+>
+> We have found two candidate replacement cameras, one with a binary
+> only driver and user space library and one with a windows driver
+> but no Linux driver.
+>
+> My questions:
+>
+>   - How difficult is it to create a GPL V4L driver for a USB camera
+>     by snooping the USB traffic of the device when connected to
+>     a windows machine? The intention is to merge this work into
+>     the V4L mainline and ultimately the kernel.
 >
 
-<snip>
+That depends mainly on the format of the image data by the cam,
+if the cam sends raw bayer data, or raw yuv / rgb then this is doable,
+if it uses plain JPEG it is also doable. If it uses some custom
+compression then you need a wizzkid to crack the code. I've tried
+this myself, and I failed, you really need someone with the right
+mindset to reverse engineer a compression algorithm. Merely being
+a good programmer is not enough.
 
->>
->> As for usbvideo that supports (amongst others) the st6422 (from the out of tree
->> qc-usb-messenger driver), but only one usb-id ??. I'm currently finishing up adding
->> st6422 support to gspca (with all known usb-id's), I have 2 different cams to test this with.
->
-> I have here one Logitech quickcam. There are several variants, and the in-tree
-> and out-tree drivers support different models. I can test it here and give you
-> a feedback. However, I don't have the original driver for it.
->
+>   - How much work is involved in the above for someone experienced
+>     in writing V4L drivers?
 
-Ok, what is its usb id (they tend to be unique for Logitech cams) ?
+This can vary wildly, assuming the video data format is a known one,
+a wild estimate would be that this takes 2 fulltime weeks (with hands
+on hardware access). But it could be that it takes much longer if
+somehow the cam is strange (or worse, like buggy).
 
->> zc0301
->> only supports one usb-id which has not yet been tested with gspca, used to claim a lot more
->> usb-id's but didn't actually work with those as it only supported the bridge, not the sensor
->> ->  remove it now ?
->
-> I have one zc0301 cam that works with this driver. The last time I checked, it
-> didn't work with gspca. I'll double check.
+>   - Are there people involved with the V4L project that would be
+>     willing to undertake this project under contract?
 >
 
-Ok, let me know how it goes. If it does not work, guess what I want you to bring along
-to plumbers ? (you are coming to plumbers, or .. ? )
-
->> sn9c102
->> Supports a large number of cams also supported by gspca's sonixb / sonixj driver, we're using
->> #ifdef .... macros to detect if both are being build at the same time to include usb-id's only
->> in one of the 2.
->
-> Btw, it would be interesting to work with the out-of-tree microdia driver,
-> since there are some models that are supported only by the alternative driver.
-
-Ack, only one small problem, which is another reason why Luca's drivers should slowly be phased
-out, Luca has gone closed source with his sn9cxxx driver.
-
-There is an out of tree driver for the new sn9c2xx models you talk about though, with active
-developers, I've pushing them to get it into the mainline, I'll give it another try soonish.
+Your welcome to send me a couple of cams, that is usually all the
+payment I expect, I also don't make any promises (I do this on top
+of my dayjob). But first things first, what are the usb-id's of
+the cams, can you send me (offlist) the windows drivers ? Chances are
+the chipset used is already supported.
 
 Regards,
 
