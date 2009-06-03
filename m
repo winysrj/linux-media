@@ -1,75 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:35565 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750842AbZFAR5S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2009 13:57:18 -0400
-Date: Mon, 1 Jun 2009 14:57:14 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Paulraj, Sandeep" <s-paulraj@ti.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"Grosen, Mark" <mgrosen@ti.com>
-Subject: Re: New Driver for DaVinci DM355/DM365/DM6446
-Message-ID: <20090601145714.36158fe8@pedra.chehab.org>
-In-Reply-To: <C9D59C82B94F474B872F2092A87F261481797F62@dlee07.ent.ti.com>
-References: <C9D59C82B94F474B872F2092A87F261481797D4B@dlee07.ent.ti.com>
-	<20090601133436.06a4a4a0@pedra.chehab.org>
-	<C9D59C82B94F474B872F2092A87F261481797F62@dlee07.ent.ti.com>
+Received: from b186.blue.fastwebserver.de ([62.141.42.186]:58380 "EHLO
+	mail.gw90.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755690AbZFCM22 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Jun 2009 08:28:28 -0400
+Received: from f053037080.adsl.alicedsl.de ([78.53.37.80] helo=[192.168.178.21])
+	by mail.gw90.de with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <paulepanter@users.sourceforge.net>)
+	id 1MBn4P-0001Fj-2c
+	for linux-media@vger.kernel.org; Wed, 03 Jun 2009 09:47:41 +0000
+Subject: Supportive (TV) hardware manufactures/companies
+From: Paul Menzel <paulepanter@users.sourceforge.net>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-XGbguOCETvCgszJ0vPLB"
+Date: Wed, 03 Jun 2009 11:47:34 +0200
+Message-Id: <1244022454.5947.44.camel@mattotaupa.wohnung.familie-menzel.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 1 Jun 2009 11:54:37 -0500
-"Paulraj, Sandeep" <s-paulraj@ti.com> escreveu:
 
-> 
-> 
-> > -----Original Message-----
-> > From: Mauro Carvalho Chehab [mailto:mchehab@infradead.org]
-> > Sent: Monday, June 01, 2009 12:35 PM
-> > To: Paulraj, Sandeep
-> > Cc: linux-media@vger.kernel.org; linux-kernel@vger.kernel.org; Grosen,
-> > Mark
-> > Subject: Re: New Driver for DaVinci DM355/DM365/DM6446
-> > 
-> > Em Mon, 1 Jun 2009 09:56:40 -0500
-> > "Paulraj, Sandeep" <s-paulraj@ti.com> escreveu:
-> > 
-> > >
-> > > Hello,
-> > >
-> > > WE have a module(H3A) on Davinci DM6446,DM355 and DM365.
-> > >
-> > > Customers require a way to collect the data required to perform the Auto
-> > Exposure (AE), Auto Focus(AF), and Auto White balance (AWB) in hardware as
-> > opposed to software. This is primarily for performance reasons as there is
-> > not enough software processing MIPS (to do 3A statistics) available in
-> > > an imaging/video system.
-> > >
-> > > Including this block in hardware reduces the load on the processor and
-> > bandwidth to the memory as the data is collected on the fly from the
-> > imager.
-> > >
-> > > This modules collects statistics and we currently implement it as a
-> > character driver.
-> > >
-> > > Which mailing list would be the most appropriate mailing list to submit
-> > patches for review?
-> > 
-> > You should send they to:
-> > 	LMML <linux-media@vger.kernel.org>
-> > 
-> > If you are proposing API changes, please submit they first.
-> [Sandeep] WE don't propose any API changes. This module for which we want to submit patches is a TI proprietary IP. We currently implement this as a character device and have a few IOCTL's.
-> We do not follow the V4L2 framework and do not use any V4L2 IOCTLs.
-> 
-> Can we continue to use it as a character driver?
+--=-XGbguOCETvCgszJ0vPLB
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-In this case, I don't see why you want it to be upstream.
+Dear list,
 
 
+I am planning on buying (USB) DVB-T hardware. One of my criteria is to
+buy a product from a company supporting GNU/Linux or free driver
+development (code, hardware, etc.).
 
-Cheers,
-Mauro
+I did only find this message [1] about TechnoTrend G=C3=B6rler GmbH and
+Terratec has an extra URL for GNU/Linux [2].
+
+There were no information about manufacturers supporting free drivers in
+the German article about hardware support in the Linux kernel in the
+Linux Magazin 8/2008 [3 =C2=BBWebcams und DVB-Empf=C3=A4nger=C2=AB, not yet=
+ freely
+available].
+
+Could you please give me some information about this, what buying
+decision would most profit your goals/free drivers.
+
+
+Thanks,
+
+Paul
+
+
+[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg05625.html
+[2] http://linux.terratec.de/
+[3] http://www.linux-magazin.de/Heft-Abo/Ausgaben/2008/08
+
+--=-XGbguOCETvCgszJ0vPLB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Dies ist ein digital signierter Nachrichtenteil
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkomRrYACgkQPX1aK2wOHViaGgCfS37q5q1eN5H/4f+vOTMqKy9b
+DPEAniv0J2AIBA1UzEjBAl5zl6DatDm0
+=SuNn
+-----END PGP SIGNATURE-----
+
+--=-XGbguOCETvCgszJ0vPLB--
+
