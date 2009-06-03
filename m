@@ -1,55 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1106 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752352AbZFHJbC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2009 05:31:02 -0400
-Message-ID: <53644.62.70.2.252.1244453448.squirrel@webmail.xs4all.nl>
-Date: Mon, 8 Jun 2009 11:30:48 +0200 (CEST)
-Subject: Re: [PATCHv6 0 of 7] FM Transmitter (si4713) and another changes
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Eduardo Valentin" <eduardo.valentin@nokia.com>
-Cc: "ext Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Linux-Media" <linux-media@vger.kernel.org>,
-	"Nurkkala Eero.An" <ext-eero.nurkkala@nokia.com>,
-	"Eduardo Valentin" <eduardo.valentin@nokia.com>
+Received: from mail-bw0-f222.google.com ([209.85.218.222]:54383 "EHLO
+	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752458AbZFCGSc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jun 2009 02:18:32 -0400
+Received: by bwz22 with SMTP id 22so8446405bwz.37
+        for <linux-media@vger.kernel.org>; Tue, 02 Jun 2009 23:18:33 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+In-Reply-To: <20090603141350.04cde59b.erik@bcode.com>
+References: <20090603141350.04cde59b.erik@bcode.com>
+Date: Wed, 3 Jun 2009 08:18:33 +0200
+Message-ID: <62e5edd40906022318l230992b7n34e5178b7e1a7d46@mail.gmail.com>
+Subject: Re: Creating a V4L driver for a USB camera
+From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+To: Erik de Castro Lopo <erik@bcode.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
-> Hello all,
+2009/6/3 Erik de Castro Lopo <erik@bcode.com>:
+> Hi all,
 >
->   I'm resending the FM transmitter driver and the proposed changes in
-> v4l2 api files in order to cover the fmtx extended controls class.
+> I'm a senior software engineer [0] with a small startup. Our product
+> is Linux based and makes use of a 3M pixel camera. Unfortunately, the
+> camera we have been using for the last 3 years is no longer being
+> produced.
 >
->   Difference from version #5 is that now I've dropped the patch which
-> adds a new i2c helper function. And now this series is based on Hans
-> tree: http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-subdev. That tree
-> has the proper refactoring of v4l2 i2c helper functions. The work
-> done before in the patch dropped here, now was done by Hans.
+> We have found two candidate replacement cameras, one with a binary
+> only driver and user space library and one with a windows driver
+> but no Linux driver.
 >
->   So, now the series includes only changes to add the new v4l2
-> FMTX extended controls (and its documetation) and si4713 i2c and platform
-> drivers (and its documentation as well).
-
-Pending unforeseen circumstances I will do a full review tomorrow.
-
-Regards,
-
-        Hans
-
->   Again, comments are welcome.
+> My questions:
 >
-> BR,
->
-> ---
-> Eduardo Valentin
->
+>  - How difficult is it to create a GPL V4L driver for a USB camera
+>   by snooping the USB traffic of the device when connected to
+>   a windows machine? The intention is to merge this work into
+>   the V4L mainline and ultimately the kernel.
 
+Do you have any datasheet available on what usb bridge / sensor that is used?
+If the chipsets are undocumented and some proprietary image
+compression technique is used, the time to reverse-engineer them can
+be quite lengthy.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
+Best regards,
+Erik
