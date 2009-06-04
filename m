@@ -1,53 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hora-obscura.de ([213.133.111.163]:35253 "EHLO hora-obscura.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752488AbZFAIHw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Jun 2009 04:07:52 -0400
-Message-ID: <4A238C48.7090405@hora-obscura.de>
-Date: Mon, 01 Jun 2009 11:07:36 +0300
-From: Stefan Kost <ensonic@hora-obscura.de>
+Received: from banach.math.auburn.edu ([131.204.45.3]:37611 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751537AbZFDRgQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jun 2009 13:36:16 -0400
+Date: Thu, 4 Jun 2009 12:50:45 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Erik de Castro Lopo <erik@bcode.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: Creating a V4L driver for a USB camera
+In-Reply-To: <20090604153328.4a3f2a6f.erik@bcode.com>
+Message-ID: <alpine.LNX.2.00.0906041234230.18205@banach.math.auburn.edu>
+References: <20090603141350.04cde59b.erik@bcode.com> <62e5edd40906022318l230992b7n34e5178b7e1a7d46@mail.gmail.com> <20090604100110.c837c3df.erik@bcode.com> <alpine.LNX.2.00.0906032014530.17538@banach.math.auburn.edu> <20090604115216.513cc41c.erik@bcode.com>
+ <alpine.LNX.2.00.0906032213001.17620@banach.math.auburn.edu> <20090604153328.4a3f2a6f.erik@bcode.com>
 MIME-Version: 1.0
-To: Trent Piepho <xyzzy@speakeasy.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: webcam drivers and V4L2_MEMORY_USERPTR support
-References: <4A238292.6000205@hora-obscura.de> <Pine.LNX.4.58.0906010056140.32713@shell2.speakeasy.net>
-In-Reply-To: <Pine.LNX.4.58.0906010056140.32713@shell2.speakeasy.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Trent Piepho schrieb:
-> On Mon, 1 Jun 2009, Stefan Kost wrote:
->   
->> I have implemented support for V4L2_MEMORY_USERPTR buffers in gstreamers
->> v4l2src [1]. This allows to request shared memory buffers from xvideo,
->> capture into those and therefore save a memcpy. This works great with
->> the v4l2 driver on our embedded device.
->>
->> When I was testing this on my desktop, I noticed that almost no driver
->> seems to support it.
->> I tested zc0301 and uvcvideo, but also grepped the kernel driver
->> sources. It seems that gspca might support it, but I ave not confirmed
->> it. Is there a technical reason for it, or is it simply not implemented?
->>     
+
+
+On Thu, 4 Jun 2009, Erik de Castro Lopo wrote:
+
+> On Thu, 4 Jun 2009 14:02:37 +1000
+> Theodore Kilgore <kilgota@banach.math.auburn.edu> wrote:
 >
-> userptr support is relatively new and so it has less support, especially
-> with driver that pre-date it.  Maybe USB cams use a compressed format and
-> so userptr with xvideo would not work anyway since xv won't support the
-> camera's native format.  It certainly could be done for bt8xx, cx88,
-> saa7134, etc.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
-Yes, I am aware of the format issue. On the gstreamer side formats are
-negotiated. Plugins export e.g. wat colorpsaces they support and the
-zerocopy path can only be taken if e.g. both support UVYV. Luckily this
-is quite common.
+>> Well, if you are interested in using the camera as a still camera, then
+>> probably you ought also to send an inquiry over to
+>>
+>> gphoto-devel@lists.sourceforge.net
+>>
+>> because that is, basically, where the still camera support is done, not
+>> here.
+>
+> Well our current camera has a V4L based driver so we'd like to stick
+> to that :-).
 
-But thanks for the info. I have nver touched kernel code sofar, but if I
-find some free time, I can try to add support for it in one driver.
+As I explained, it is a matter of what one wants to do with the camera 
+which kind of driver one wants to construct. Also it is a matter of what 
+exactly that the particular camera will do. To take the two extreme cases:
 
-Stefan
+-- if you have a camera which will not act as a webcam, a V4L driver will 
+probably not materialize.
+
+-- if you have a webcam which has no ability to act as a still camera, 
+then no Gphoto driver will materialize.
+
+And if the camera can do both of the above, then it is possible (and it 
+occurs, too) that the camera has a Gphoto driver for its still camera 
+functionality and it has a V4L driver for its webcam functionality. But 
+the still camera and webcam functions are conceptually different and 
+require distinct methodologies to support them in Linux.
+
+In other words, the kind of software support which is required by new 
+camera X is determined by the properties of camera X alone. That was my 
+point.
+
+> Ok, to the lsusb -v info:
+>
+>    Bus 001 Device 011: ID 0547:8031 Anchor Chips, Inc.
+>    Device Descriptor:
+>      bLength                18
+>      bDescriptorType         1
+>      bcdUSB               2.00
+>      bDeviceClass            0 (Defined at Interface level)
+>      bDeviceSubClass         0
+>      bDeviceProtocol         0
+>      bMaxPacketSize0        64
+>      idVendor           0x0547 Anchor Chips, Inc.
+>      idProduct          0x8031
+>      bcdDevice            0.00
+>      iManufacturer           1
+>      iProduct                2
+>      iSerial                 0
+>      bNumConfigurations      1
+>      Configuration Descriptor:
+>        bLength                 9
+>        bDescriptorType         2
+>        wTotalLength           32
+>        bNumInterfaces          1
+>        bConfigurationValue     1
+>        iConfiguration          0
+>        bmAttributes         0x80
+>          (Bus Powered)
+>        MaxPower              100mA
+>        Interface Descriptor:
+>          bLength                 9
+>          bDescriptorType         4
+>          bInterfaceNumber        0
+>          bAlternateSetting       0
+>          bNumEndpoints           2
+>          bInterfaceClass       255 Vendor Specific Class
+>          bInterfaceSubClass      0
+>          bInterfaceProtocol      0
+>          iInterface              0
+>          Endpoint Descriptor:
+>            bLength                 7
+>            bDescriptorType         5
+>            bEndpointAddress     0x81  EP 1 IN
+>            bmAttributes            3
+>              Transfer Type            Interrupt
+>              Synch Type               None
+>              Usage Type               Data
+>            wMaxPacketSize     0x0004  1x 4 bytes
+>            bInterval               0
+>          Endpoint Descriptor:
+>            bLength                 7
+>            bDescriptorType         5
+>            bEndpointAddress     0x82  EP 2 IN
+>            bmAttributes            2
+>              Transfer Type            Bulk
+>              Synch Type               None
+>              Usage Type               Data
+>            wMaxPacketSize     0x0200  1x 512 bytes
+>            bInterval               0
+>
+>
+> The "Vendor Specific Class" above suggests that this camera does not
+> behave like a proper USV video or still camera, but rather uses its
+> own protocol (just like the camera we are replacing).
+
+Yes. That seems quite clear.
+
+>
+> I have managed to convince the manufactuer of the fact that its a
+> good idea to provide some information and/or windows source code,
+> but as yet I can't predict how good that information will be.
+
+If the manufacturer truly provides meaningful information, that would be 
+very good. Therefore, I restrain myself from expressing general pessimism 
+about the prospects.
+
+Theodore Kilgore
