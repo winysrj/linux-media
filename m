@@ -1,109 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1656 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752477AbZFNSQZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Jun 2009 14:16:25 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id n5EIGR3q041871
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 14 Jun 2009 20:16:27 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 14 Jun 2009 20:16:27 +0200 (CEST)
-Message-Id: <200906141816.n5EIGR3q041871@smtp-vbr10.xs4all.nl>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4349 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751153AbZFDL01 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jun 2009 07:26:27 -0400
+Message-ID: <63455.62.70.2.252.1244114783.squirrel@webmail.xs4all.nl>
+Date: Thu, 4 Jun 2009 13:26:23 +0200 (CEST)
+Subject: Re: What alternative way could be possible for initializing sensor
+      rigistors?
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	"Dongsoo Kim" <dongsoo45.kim@samsung.com>,
+	=?iso-8859-1?Q?=B1=E8=C7=FC=C1=D8?= <riverful.kim@samsung.com>,
+	=?iso-8859-1?Q?=B9=CE=BA=B4=C8=A3?= <bhmin@samsung.com>,
+	=?iso-8859-1?Q?=B9=DA=B0=E6=B9=CE?= <kyungmin.park@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
 
-Results of the daily build of v4l-dvb:
+> Hello everyone,
+>
+> In subdev framework, we already have "init" API  but not recommended
+> for new drivers to use this. But I'm so frustrated for the absence of
+> that kind of API.
 
-date:        Sun Jun 14 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11965:bff77ec33116
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+What I want to do is that you can pass such data through the board_info.
+Patch for that have been posted but I still haven't had the chance to sit
+down and review them :-(
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-x86_64: WARNINGS
-sparse (linux-2.6.30): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+This method is the common method for existing i2c drivers and should (I
+think) be used for all new i2c drivers.
 
-Detailed results are available here:
+> I'm working on camera driver which needs to programme registors
+> through I2C bus and just stuck figuring out how to make it programmed
+> in device open (in this case, camera interface should be opened)
+> procedure.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+You're not trying to pass register/value pairs to the i2c driver, are you?
+You should tell the i2c driver what you want and let the i2c driver do the
+register programming for you. Only the i2c driver should know about the
+registers of the i2c device.
 
-Full logs are available here:
+> So, if I have no chance to use "init" API with implementing
+> my driver, which API should be used? Actually without "init" API, I
+> should make my driver to programme initializing registors in s_fmt or
+> s_parm sort of APIs.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+Use init as long as the new functions passing the board_info to the i2c
+core are not yet available. You can convert once we have the new API in
+place.
 
-The V4L2 specification from this daily build is here:
+> Any other alternative API is served in subdev framework? Please let me
+> know if there is something I missed.
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+It's work in progress and I'm the bottleneck here :-(
 
-The DVB API specification from this daily build is here:
+> BTW, subdev framework is really
+> cool. Totally arranged and easy to use.
 
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+Thanks!
+
+Regards,
+
+         Hans
+
+> Cheers,
+>
+> Nate
+>
+>
+> --
+> =
+> DongSoo, Nathaniel Kim
+> Engineer
+> Mobile S/W Platform Lab.
+> Digital Media & Communications R&D Centre
+> Samsung Electronics CO., LTD.
+> e-mail : dongsoo.kim@gmail.com
+>           dongsoo45.kim@samsung.com
+>
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
