@@ -1,56 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.219]:38304 "HELO smtp0.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752271AbZFRIvt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 04:51:49 -0400
-Message-ID: <4A39FE96.4010004@epfl.ch>
-Date: Thu, 18 Jun 2009 10:45:10 +0200
-From: Valentin Longchamp <valentin.longchamp@epfl.ch>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Sascha Hauer <s.hauer@pengutronix.de>
-Subject: mx31moboard MT9T031 camera support
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3474 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753957AbZFDSOP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jun 2009 14:14:15 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n54IEGeL053992
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 4 Jun 2009 20:14:16 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 4 Jun 2009 20:14:16 +0200 (CEST)
+Message-Id: <200906041814.n54IEGeL053992@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I am trying to follow your developments at porting soc-camera to 
-v4l2-subdev. However, even if I understand quite correctly soc-camera, 
-it is quite difficult for me to get all the subtleties in your work.
+Results of the daily build of v4l-dvb:
 
-That's why I am asking you for a little help: when do you think would be 
-the best timing for me to add the mt9t031 camera support for mx31moboard 
-within your current process ?
+date:        Thu Jun  4 19:00:02 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11921:111c819aed36
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-I guess it should not be too difficult, I had done it before, and I can 
-base myself on what you have done for pcm037:
-http://download.open-technology.de/soc-camera/20090617/0025-pcm037-add-MT9T031-camera-support.patch
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-rc7-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-rc7-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-rc7-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-rc7-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-rc7-m32r: OK
+linux-2.6.22.19-mips: ERRORS
+linux-2.6.26-mips: ERRORS
+linux-2.6.27-mips: ERRORS
+linux-2.6.28-mips: ERRORS
+linux-2.6.29.1-mips: ERRORS
+linux-2.6.30-rc7-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-rc7-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-rc7-x86_64: WARNINGS
+sparse (linux-2.6.29.1): OK
+sparse (linux-2.6.30-rc7): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-Now I have a second question. On our robot, we physically have two 
-cameras (one looking to the front and one looking at a mirror) connected 
-to the i.MX31 physical bus. We have one signal that allows us to control 
-the multiplexer for the bus lines (video signals and I2C) through a 
-GPIO. This now works with a single camera declared in software and 
-choices to the multiplexer done when no image transfer is happening ( 
-/dev/video is not open). What do you think should be the correct way of 
-dealing with these two cameras with the current driver implementation 
-(should I continue to declare only one camera in the software) ?
+Detailed results are available here:
 
-And do you think it could be possible to "hot-switch" from one camera to 
-the other ? My colleagues ask about it, I tell them that from my point 
-of view this seems not possible without changing the drivers, and even 
-the drivers would have to be changed quite heavily and it is not trivial.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-Best Regards
+Full logs are available here:
 
-Val
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
--- 
-Valentin Longchamp, PhD Student, EPFL-STI-LSRO1
-valentin.longchamp@epfl.ch, Phone: +41216937827
-http://people.epfl.ch/valentin.longchamp
-MEA3485, Station 9, CH-1015 Lausanne
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
