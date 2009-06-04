@@ -1,59 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f226.google.com ([209.85.217.226]:55605 "EHLO
-	mail-gx0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751288AbZFZOuc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2009 10:50:32 -0400
-Received: by gxk26 with SMTP id 26so878953gxk.13
-        for <linux-media@vger.kernel.org>; Fri, 26 Jun 2009 07:50:35 -0700 (PDT)
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3288 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751683AbZFDJ1h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jun 2009 05:27:37 -0400
+Message-ID: <5143.62.70.2.252.1244107655.squirrel@webmail.xs4all.nl>
+Date: Thu, 4 Jun 2009 11:27:35 +0200 (CEST)
+Subject: Re: [PATCH]V4L:some v4l drivers have error for
+     video_register_device
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "figo.zhang" <figo.zhang@kolorific.com>
+Cc: "Laurent Pinchart" <laurent.pinchart@skynet.be>,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <4A44DCFB.3010906@koala.ie>
-References: <4A448634.7000209@powercraft.nl>
-	 <829197380906260640r45a31a83gd4bf23c06fdcf88f@mail.gmail.com>
-	 <4A44DCFB.3010906@koala.ie>
-Date: Fri, 26 Jun 2009 10:50:32 -0400
-Message-ID: <829197380906260750yc99868i9da83ee0153943aa@mail.gmail.com>
-Subject: Re: Pinnacle Systems PCTV 330e and Hauppauge WinTV HVR 900 (R2) not
-	working under Debian 2.6.30-1
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Simon Kenyon <simon@koala.ie>
-Cc: Jelle de Jong <jelledejong@powercraft.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 26, 2009 at 10:36 AM, Simon Kenyon<simon@koala.ie> wrote:
-> as you know i have the xl10353 variant. and you got it to work on my
-> machine.
->
-> now i know you don't want to hear this but the same code will not work on
-> another machine.
-> both are running 2.6.28-gentoo-r5, however i'm pretty sure the
-> configurations are different.
-> the working machine has an MSI KA780G MS-7551 [SB700 chipset] motherboard
-> and
-> the non-working machine has an ASUSTeK M3N78-EM [GeForce 8200 chipset]
-> motherboard
->
-> in fact, i've seen reference on this list to the fact that there are
-> problems with the SB700. that seems to be the opposite to me.
-> i will check it out on an Atom based netbook and an old Intel Centrino
-> laptop to see if the code works there.
-> i suspect it will - but need to confirm it.
->
-> i'm afriad it is two steps forward and one step backwards
-> --
-> simon
 
-Well, that's better than one step forward and two steps backward.  :-)
+> On Thu, 2009-06-04 at 11:18 +0200, Laurent Pinchart wrote:
+>> Hi,
+>>
+>> On Thursday 04 June 2009 06:20:07 figo.zhang wrote:
+>> > The function video_register_device() will call the
+>> > video_register_device_index(). In this function, firtly it will do
+>> some
+>> > argments check , if failed,it will return a negative number such as
+>> > -EINVAL, and then do cdev_alloc() and device_register(), if success
+>> return
+>> > zero. so video_register_device_index() canot return a a positive
+>> number.
+>> >
+>> > for example, see the drivers/media/video/stk-webcam.c (line 1325):
+>> >
+>> > err = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
+>> > 	if (err)
+>> > 		STK_ERROR("v4l registration failed\n");
+>> > 	else
+>> > 		STK_INFO("Syntek USB2.0 Camera is now controlling video device"
+>> > 			" /dev/video%d\n", dev->vdev.num);
+>> >
+>> > in my opinion, it will be cleaner to do something like this:
+>> >
+>> > err = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
+>> > 	if (err != 0)
+>> > 		STK_ERROR("v4l registration failed\n");
+>> > 	else
+>> > 		STK_INFO("Syntek USB2.0 Camera is now controlling video device"
+>> > 			" /dev/video%d\n", dev->vdev.num);
+>>
+>> What's the difference ? (err != 0) and (err) are identical.
+>>
+>> Best regards,
+>>
+>> Laurent Pinchart
+>
+> yes, it is the same, but it is easy for reading.
 
-Send me the dmesg offline and I will work with you to try to debug the
-issue.  I have some significant doubts this is an em28xx issue though.
+To be honest, I think '(err)' is easier to read. Unless there is some new
+CodingStyle rule I'm not aware of I see no reason for applying these
+changes.
 
-Devin
+Regards,
+
+        Hans
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
