@@ -1,70 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail7.sea5.speakeasy.net ([69.17.117.9]:43829 "EHLO
-	mail7.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752991AbZFFROq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Jun 2009 13:14:46 -0400
-Date: Sat, 6 Jun 2009 10:14:46 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Eduardo Valentin <eduardo.valentin@nokia.com>,
-	"\\\\\\ext Mauro Carvalho Chehab\\\\\\" <mchehab@infradead.org>,
-	"\\\\\\Nurkkala Eero.An (EXT-Offcode/Oulu)\\\\\\"
-	<ext-Eero.Nurkkala@nokia.com>,
-	"\\\\\\ext Douglas Schilling Landgraf\\\\\\" <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-Subject: Re: [PATCHv5 1 of 8] v4l2_subdev i2c: Add v4l2_i2c_new_subdev_board
- i2c helper function
-In-Reply-To: <200906061449.46720.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.58.0906060940420.32713@shell2.speakeasy.net>
-References: <1243582408-13084-1-git-send-email-eduardo.valentin@nokia.com>
- <1243582408-13084-2-git-send-email-eduardo.valentin@nokia.com>
- <200906061359.19732.hverkuil@xs4all.nl> <200906061449.46720.hverkuil@xs4all.nl>
+Received: from znsun1.ifh.de ([141.34.1.16]:47764 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751744AbZFDIKM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Jun 2009 04:10:12 -0400
+Date: Thu, 4 Jun 2009 10:10:05 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Marco Borm <linux-dvb@retrodesignfan.eu>
+cc: linux-media@vger.kernel.org
+Subject: Re: Terratec DT USB XS Diversity/DiB0070+vdr: "URB status: Value
+ too large for defined data type"+USB reset
+In-Reply-To: <4A259186.2040200@retrodesignfan.eu>
+Message-ID: <alpine.LRH.1.10.0906041005300.6294@pub3.ifh.de>
+References: <4A232498.2080202@retrodesignfan.eu> <4A244D3F.8050809@retrodesignfan.eu> <alpine.LRH.1.10.0906021001440.31650@pub3.ifh.de> <4A259186.2040200@retrodesignfan.eu>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 6 Jun 2009, Hans Verkuil wrote:
-> On Saturday 06 June 2009 13:59:19 Hans Verkuil wrote:
-> > I propose to change the API as follows:
-> >
-> > #define V4L2_I2C_ADDRS(addr, addrs...) \
-> > 	((const unsigned short []){ addr, ## addrs, I2C_CLIENT_END })
-> >
-> > struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
-> >                 struct i2c_adapter *adapter,
-> >                 const char *module_name, const char *client_type,
-> > 		u8 addr, const unsigned short *addrs);
-> >
-> > struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device *v4l2_dev,
-> >                 struct i2c_adapter *adapter,
-> >                 const char *module_name, const char *client_type,
-> >                 int irq, void *platform_data,
-> >                 u8 addr, const unsigned short *addrs);
-> >
-> > /* Only available for kernels >= 2.6.26 */
-> > struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device
-> > *v4l2_dev, struct i2c_adapter *adapter, const char *module_name, struct
-> > i2c_board_info *info, const unsigned short *addrs);
+Hi Marco,
 
-Maybe "addrs" could be changed to something like "probed_addrs" so it's
-easier to tell that the two address fields are used differently?
+On Tue, 2 Jun 2009, Marco Borm wrote:
+>> Definitely interesting. This is a known issue for the dib0700 device, which 
+>> happens on some USB host controllers. Actually which one do you use?
+>
+> "USB Controller: ATI Technologies Inc SB700/SB800 USB OHCI0 Controller"
+>
+> Hmm, looks bad: http://www.google.com/search?q=dib0700+sb700
+> But I am wondering if this could really be some bigger linux USB-stack 
+> problem, because it runs with Linux/totem for hours (mplayer was wrong). For 
+> me it looks like vdr uses some feature the driver doesn't handle correctly. 
+> Isn't the EOVERFLOW some local error value from the usb stack generates if 
+> some given buffer was to small?
 
-Is v4l2_i2c_new_subdev() in effect just a wrapper around
-v4l2_i2c_new_subdev_cfg() that calls it with NO_IRQ and NULL for irq and
-platform_data?
+:(. It is a long story for the SB700 ATI HC ... It turned out for DiBcom 
+that ATI fixed the HC-driver for Windows to make things work correctly.
 
-And could v4l2_i2c_new_subdev_cfg() be done like this?
+At some point in time they provided a patch for Linux and it was actually 
+included in 2.6.21 or 22 .
 
-struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device *v4l2_dev,
-                 struct i2c_adapter *adapter, const char *module_name,
-		 const char *client_type, int irq, void *platform_data,
-                 u8 addr, const unsigned short *addrs)
-{
-	struct i2c_board_info info = {
-		.addr = addr, .platform_data = platform_data, .irq = irq, };
+There is some work going on on 2.6.30 for almost similar problems for 
+another device, maybe it is worth to either:
 
-	strlcpy(info.type, client_type, sizeof(info.type));
-	return v4l2_i2c_new_subdev_board(v4l2_dev, adapter, module_name,
-			                 &info, addrs);
-}
+1) try out latest 2.6.30 releases
+2) do a (manual) bisect with older kernel to find out which change has 
+made things worse (this is extremely long)
+
+>> Do you connect the device directly to the PC or is there an extension cable 
+>> or another USB hub in between?
+> I tried it with a longer and the short cable which was in the package, never 
+> directly and never with a hub.
+
+Knowing that you have the SB700, I can surely say, it's not the cable, but 
+the controller.
+
+Patrick.
+
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
