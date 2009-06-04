@@ -1,109 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4038 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752815AbZFWSPZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jun 2009 14:15:25 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id n5NIFRmt053434
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 23 Jun 2009 20:15:27 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 23 Jun 2009 20:15:27 +0200 (CEST)
-Message-Id: <200906231815.n5NIFRmt053434@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+Received: from mail.kolorific.com ([61.63.28.39]:37150 "EHLO
+	mail.kolorific.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753242AbZFDJbW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jun 2009 05:31:22 -0400
+Subject: Re: [PATCH]V4L:some v4l drivers have error for
+ video_register_device
+From: "figo.zhang" <figo.zhang@kolorific.com>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	kraxel@bytesex.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	alan@lxorguk.ukuu.org.uk,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	akpm@linux-foundation.org
+In-Reply-To: <200906041118.01025.laurent.pinchart@skynet.be>
+References: <1243394739.3384.16.camel@myhost>
+	 <1244089207.3445.31.camel@myhost>
+	 <200906041118.01025.laurent.pinchart@skynet.be>
+Content-Type: text/plain
+Date: Thu, 04 Jun 2009 17:31:23 +0800
+Message-Id: <1244107883.3445.38.camel@myhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Thu, 2009-06-04 at 11:18 +0200, Laurent Pinchart wrote:
+> Hi,
+> 
+> On Thursday 04 June 2009 06:20:07 figo.zhang wrote:
+> > The function video_register_device() will call the
+> > video_register_device_index(). In this function, firtly it will do some
+> > argments check , if failed,it will return a negative number such as
+> > -EINVAL, and then do cdev_alloc() and device_register(), if success return
+> > zero. so video_register_device_index() canot return a a positive number.
+> >
+> > for example, see the drivers/media/video/stk-webcam.c (line 1325):
+> >
+> > err = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
+> > 	if (err)
+> > 		STK_ERROR("v4l registration failed\n");
+> > 	else
+> > 		STK_INFO("Syntek USB2.0 Camera is now controlling video device"
+> > 			" /dev/video%d\n", dev->vdev.num);
+> >
+> > in my opinion, it will be cleaner to do something like this:
+> >
+> > err = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
+> > 	if (err != 0)
+> > 		STK_ERROR("v4l registration failed\n");
+> > 	else
+> > 		STK_INFO("Syntek USB2.0 Camera is now controlling video device"
+> > 			" /dev/video%d\n", dev->vdev.num);
+> 
+> What's the difference ? (err != 0) and (err) are identical.
+> 
+> Best regards,
+> 
+> Laurent Pinchart
 
-Results of the daily build of v4l-dvb:
+yes, it is the same, but it is easy for reading.
 
-date:        Tue Jun 23 19:00:04 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12132:b362d09e34d4
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+btw, see driver/media/video/ov511.c (line 5853):
+	if (video_register_device(ov->vdev, VFL_TYPE_GRABBER,
+			unit_video[i]) >= 0) {
+			break;
+		}
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-x86_64: WARNINGS
-sparse (linux-2.6.30): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+it would not return a positive number,i think. pls see my other path:
+http://www.spinics.net/lists/linux-media/msg06140.html
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
