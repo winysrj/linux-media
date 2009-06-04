@@ -1,61 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:42067 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751346AbZFATCF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2009 15:02:05 -0400
-Date: Mon, 1 Jun 2009 16:02:01 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: "Paulraj, Sandeep" <s-paulraj@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"Grosen, Mark" <mgrosen@ti.com>
-Subject: Re: New Driver for DaVinci DM355/DM365/DM6446
-Message-ID: <20090601160201.4f3bdd56@pedra.chehab.org>
-In-Reply-To: <A24693684029E5489D1D202277BE8944405CFFE6@dlee02.ent.ti.com>
-References: <C9D59C82B94F474B872F2092A87F261481797D4B@dlee07.ent.ti.com>
-	<A24693684029E5489D1D202277BE8944405CFFE6@dlee02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from perceval.irobotique.be ([92.243.18.41]:44645 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752091AbZFDJSE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jun 2009 05:18:04 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: "figo.zhang" <figo.zhang@kolorific.com>
+Subject: Re: [PATCH]V4L:some v4l drivers have error for video_register_device
+Date: Thu, 4 Jun 2009 11:18:00 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	kraxel@bytesex.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	alan@lxorguk.ukuu.org.uk,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	akpm@linux-foundation.org
+References: <1243394739.3384.16.camel@myhost> <1244089207.3445.31.camel@myhost>
+In-Reply-To: <1244089207.3445.31.camel@myhost>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906041118.01025.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 1 Jun 2009 13:38:37 -0500
-"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com> escreveu:
+Hi,
 
-> > From: linux-media-owner@vger.kernel.org [linux-media-owner@vger.kernel.org] On Behalf Of Paulraj, Sandeep
-> > Sent: Monday, June 01, 2009 5:56 PM
-> > To: linux-media@vger.kernel.org
-> > Cc: linux-kernel@vger.kernel.org; Grosen, Mark
-> > Subject: New Driver for DaVinci DM355/DM365/DM6446
-> > 
-> > Hello,
-> > 
-> > WE have a module(H3A) on Davinci DM6446,DM355 and DM365.
-> > 
-> > Customers require a way to collect the data required to perform the Auto Exposure (AE), Auto Focus(AF), and Auto White balance (AWB) in hardware as opposed to software. > This is primarily for performance reasons as there is not enough software processing MIPS (to do 3A statistics) available in
-> > an imaging/video system.
-> > 
-> > Including this block in hardware reduces the load on the processor and bandwidth to the memory as the data is collected on the fly from the imager.
-> > 
-> > This modules collects statistics and we currently implement it as a character driver.
-> 
-> This also exists in OMAP3 chips, and is part of the ISP module.
-> 
-> I maintain, along with Sakari Ailus, a V4L2 camera driver, which is currently just shared through a gitorious repository:
-> 
-> http://gitorious.org/omap3camera
-> 
-> The way we offer an interface for the user to be able to request this statistics is with the usage of private IOCTLs declared inside the same V4L2 capturing device driver.
-> 
-> So, that way we have a V4L2 driver which has a private call, instead of having it separately from the capture driver.
+On Thursday 04 June 2009 06:20:07 figo.zhang wrote:
+> The function video_register_device() will call the
+> video_register_device_index(). In this function, firtly it will do some
+> argments check , if failed,it will return a negative number such as
+> -EINVAL, and then do cdev_alloc() and device_register(), if success return
+> zero. so video_register_device_index() canot return a a positive number.
+>
+> for example, see the drivers/media/video/stk-webcam.c (line 1325):
+>
+> err = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
+> 	if (err)
+> 		STK_ERROR("v4l registration failed\n");
+> 	else
+> 		STK_INFO("Syntek USB2.0 Camera is now controlling video device"
+> 			" /dev/video%d\n", dev->vdev.num);
+>
+> in my opinion, it will be cleaner to do something like this:
+>
+> err = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
+> 	if (err != 0)
+> 		STK_ERROR("v4l registration failed\n");
+> 	else
+> 		STK_INFO("Syntek USB2.0 Camera is now controlling video device"
+> 			" /dev/video%d\n", dev->vdev.num);
 
-This seems to be a much better approach, provided that the private IOCTL's will
-be properly documented on a public document. If there are enough usage for
-they, we may even add them as an optional part of V4L2 API.
+What's the difference ? (err != 0) and (err) are identical.
 
+Best regards,
 
+Laurent Pinchart
 
-Cheers,
-Mauro
