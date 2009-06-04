@@ -1,113 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52312 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752466AbZFPOYm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2009 10:24:42 -0400
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sakari Ailus <sakari.ailus@nokia.com>
-CC: "Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"Subrahmanya, Chaithrika" <chaithrika@ti.com>,
-	David Cohen <david.cohen@nokia.com>,
-	"Curran, Dominic" <dcurran@ti.com>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>,
-	Eero Nurkkala <ext-eero.nurkkala@nokia.com>,
-	Felipe Balbi <felipe.balbi@nokia.com>,
-	"Shah, Hardik" <hardik.shah@ti.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>, "Hadli, Manjunath" <mrh@ti.com>,
-	Mikko Hurskainen <mikko.hurskainen@nokia.com>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"Menon, Nishanth" <nm@ti.com>, "R, Sivaraj" <sivaraj@ti.com>,
-	"Paulraj, Sandeep" <s-paulraj@ti.com>,
-	Tomi Valkeinen <tomi.valkeinen@nokia.com>,
-	Tuukka Toivonen <tuukka.o.toivonen@nokia.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Tue, 16 Jun 2009 09:24:14 -0500
-Subject: RE: OMAP patches for linux-media
-Message-ID: <A24693684029E5489D1D202277BE8944405D0032@dlee02.ent.ti.com>
-References: <20090616104018.44075a80@pedra.chehab.org>
-In-Reply-To: <20090616104018.44075a80@pedra.chehab.org>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mail.bcode.com ([150.101.204.108]:43101 "EHLO mail.bcode.com"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750696AbZFDFd2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 4 Jun 2009 01:33:28 -0400
+Date: Thu, 4 Jun 2009 15:33:28 +1000
+From: Erik de Castro Lopo <erik@bcode.com>
+To: linux-media@vger.kernel.org
+Cc: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+Subject: Re: Creating a V4L driver for a USB camera
+Message-Id: <20090604153328.4a3f2a6f.erik@bcode.com>
+In-Reply-To: <alpine.LNX.2.00.0906032213001.17620@banach.math.auburn.edu>
+References: <20090603141350.04cde59b.erik@bcode.com>
+	<62e5edd40906022318l230992b7n34e5178b7e1a7d46@mail.gmail.com>
+	<20090604100110.c837c3df.erik@bcode.com>
+	<alpine.LNX.2.00.0906032014530.17538@banach.math.auburn.edu>
+	<20090604115216.513cc41c.erik@bcode.com>
+	<alpine.LNX.2.00.0906032213001.17620@banach.math.auburn.edu>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> From: Mauro Carvalho Chehab [mchehab@infradead.org]
-> Sent: Tuesday, June 16, 2009 8:40 AM
-> To: Sakari Ailus
-> Cc: Jadav, Brijesh R; Subrahmanya, Chaithrika; David Cohen; Curran, Dominic; Eduardo Valentin; Eero Nurkkala; Felipe Balbi; Shah, Hardik; Nagalla, Hari; Hadli, Manjunath; Mikko Hurskainen; Karicheri, Muralidharan; Menon, Nishanth; R, Sivaraj; Paulraj, Sandeep; Aguirre Rodriguez, Sergio Alberto; Tomi Valkeinen; Tuukka Toivonen; Hiremath, Vaibhav; Hans Verkuil; Linux Media Mailing List
-> Subject: OMAP patches for linux-media
-> 
-> Hi Sakari and others,
-> 
-> I'm seeing lots of patches and discussions for OMAP and DaVinci being handled
-> at the linux-media Mailing List, as part of the development process of the open
-> source drivers.
-> 
-> However, it is hard to track all those discussions and be sure what patches are
-> ready for merging and what patches are just RFC.
-> 
-> On the development model we use here, we have driver maintainers that are
-> responsible to discuss about improvements on their drivers. They are generally
-> the driver authors or the one that first started submitting the patches for
-> that driver(s).
-> 
-> One of the roles of the driver maintainers is to collect the patches for the
-> drivers they maintain, merge on their trees, and periodically ask the patch
-> merge.
-> 
-> One fundamental concept on Kernel development is the concept of "Commit earlier
-> and commit often", meaning that the better is to send small, incremental, and
-> periodic patches, than wait until having everything done, then submit a big
-> patch. Every time I receive a big patch I need to postpone its analysis and
-> open a big window on my schedule to analyze it. Of course, this means to
-> postpone it, and generally results on lots of comments going back to developer,
-> that, in turn, will need to do lots of changes and return me back with another
-> big patch for me to analyze again, resulting on a long period of time for
-> merging it.
-> 
-> As you, Sakari, was the first one that started merging the OMAP drivers, I was
-> expecting that you would be the one that will handle the figure of the driver
-> maintainer for OMAP. I even created you an account at linuxtv for you to create
-> your trees there and ask me to merge from it.
-> 
-> Unfortunately, you haven't sent me any pull requests yet along this year. This
-> is concerning me a lot, since, at the end, I'll need to review big piles of
-> patches and/or drivers when you decide to submit the final version.
-> 
-> So, I decided to send you this email, c/c a random list of people that I
-> believe are involved on the submit and/or review process of those patches, in
-> the hope to better understand and to discuss what's happening and how can we
-> speedup the merge process of those patches.
+On Thu, 4 Jun 2009 14:02:37 +1000
+Theodore Kilgore <kilgota@banach.math.auburn.edu> wrote:
 
-Hi Mauro,
-
-We are currently going through an internal debugging process on new found issues while testing the driver on a proprietary HW/SW platform.
-
-As there is priority for us to find stability in this platforms, we had to put aside a bit the maintenance of the shared patches.
-
-One maybe important news is that I'll be creating a new tree soon to host current OMAP3 and future OMAP4 camera drivers for upstream from TI perspective. My main task will be to maintain this tree in TI, and take care of upstreaming and fixing patches for acceptance by both linux-omap and linux-media lists.
-
-Some of the known to-dos are:
-- v4l2_subdev conversion
-- Regulator framework usage
-- ISP registration as a memory to memory device.
-
-I hope to resume this task soon, and keep in touch with the community on the latest version of patches. I'll let you know when the next version is ready for merge.
-
-Thanks for your concern and time on this.
-
-Regards,
-Sergio
+> Well, if you are interested in using the camera as a still camera, then 
+> probably you ought also to send an inquiry over to
 > 
+> gphoto-devel@lists.sourceforge.net
 > 
-> 
-> Cheers,
-> Mauro
-> 
-> 
+> because that is, basically, where the still camera support is done, not 
+> here.
+
+Well our current camera has a V4L based driver so we'd like to stick
+to that :-).
+
+> So the reason for these examples is, it is this kind of information which 
+> one must use to judge the situation, and it is this kind of information 
+> which one would have to provide in order to begin to get definitive 
+> answers. This, in fact, is where one must start.
+
+Ok, to the lsusb -v info:
+
+    Bus 001 Device 011: ID 0547:8031 Anchor Chips, Inc. 
+    Device Descriptor:
+      bLength                18
+      bDescriptorType         1
+      bcdUSB               2.00
+      bDeviceClass            0 (Defined at Interface level)
+      bDeviceSubClass         0 
+      bDeviceProtocol         0 
+      bMaxPacketSize0        64
+      idVendor           0x0547 Anchor Chips, Inc.
+      idProduct          0x8031 
+      bcdDevice            0.00
+      iManufacturer           1 
+      iProduct                2 
+      iSerial                 0 
+      bNumConfigurations      1
+      Configuration Descriptor:
+        bLength                 9
+        bDescriptorType         2
+        wTotalLength           32
+        bNumInterfaces          1
+        bConfigurationValue     1
+        iConfiguration          0 
+        bmAttributes         0x80
+          (Bus Powered)
+        MaxPower              100mA
+        Interface Descriptor:
+          bLength                 9
+          bDescriptorType         4
+          bInterfaceNumber        0
+          bAlternateSetting       0
+          bNumEndpoints           2
+          bInterfaceClass       255 Vendor Specific Class
+          bInterfaceSubClass      0 
+          bInterfaceProtocol      0 
+          iInterface              0 
+          Endpoint Descriptor:
+            bLength                 7
+            bDescriptorType         5
+            bEndpointAddress     0x81  EP 1 IN
+            bmAttributes            3
+              Transfer Type            Interrupt
+              Synch Type               None
+              Usage Type               Data
+            wMaxPacketSize     0x0004  1x 4 bytes
+            bInterval               0
+          Endpoint Descriptor:
+            bLength                 7
+            bDescriptorType         5
+            bEndpointAddress     0x82  EP 2 IN
+            bmAttributes            2
+              Transfer Type            Bulk
+              Synch Type               None
+              Usage Type               Data
+            wMaxPacketSize     0x0200  1x 512 bytes
+            bInterval               0
+
+
+The "Vendor Specific Class" above suggests that this camera does not
+behave like a proper USV video or still camera, but rather uses its
+own protocol (just like the camera we are replacing).
+
+I have managed to convince the manufactuer of the fact that its a
+good idea to provide some information and/or windows source code,
+but as yet I can't predict how good that information will be.
+
+Erik
+-- 
+=======================
+erik de castro lopo
+senior design engineer
+
+bCODE
+level 2, 2a glen street
+milsons point
+sydney nsw 2061
+australia
+
+tel +61 (0)2 9954 4411
+fax +61 (0)2 9954 4422
+www.bcode.com
