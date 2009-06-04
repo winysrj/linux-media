@@ -1,102 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:35299 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751383AbZFTOSy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Jun 2009 10:18:54 -0400
-Date: Sat, 20 Jun 2009 17:12:47 +0300
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
-Subject: Re: RFC: FM modulator and RDS encoder V4L2 API additions
-Message-ID: <20090620141247.GB32540@esdhcp037198.research.nokia.com>
-Reply-To: eduardo.valentin@nokia.com
-References: <200906201505.24721.hverkuil@xs4all.nl>
+Received: from yw-out-2324.google.com ([74.125.46.28]:28556 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750958AbZFDAJC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jun 2009 20:09:02 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so207965ywb.1
+        for <linux-media@vger.kernel.org>; Wed, 03 Jun 2009 17:09:04 -0700 (PDT)
+Message-ID: <4A271083.1060100@gmail.com>
+Date: Wed, 03 Jun 2009 20:08:35 -0400
+From: =?UTF-8?B?RGFuaWVsIFNhbnRpYsOhw7Fleg==?= <dansanti@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <200906201505.24721.hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Re: Fwd: driver trident tm5600
+References: <fc70a2550906011337v14a33ddfue20eaffb06d289c@mail.gmail.com>	 <fc70a2550906021427s61221090l8bbd738d223df41a@mail.gmail.com>	 <4A263E07.6070804@yahoo.co.nz> <fc70a2550906031250v4ed29e6bs90a6ba255246449a@mail.gmail.com> <4A26DB12.9030708@yahoo.co.nz>
+In-Reply-To: <4A26DB12.9030708@yahoo.co.nz>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+hello again!
 
-On Sat, Jun 20, 2009 at 03:05:24PM +0200, ext Hans Verkuil wrote:
-> Hi all,
-> 
-> Besides the new RDS controls implemented by Eduardo we also need a few 
-> additions to the V4L2 API.
-> 
-> First of all we need two new capabilities for struct v4l2_capability:
-> 
-> #define V4L2_CAP_RDS_OUTPUT     0x0000800 /* Is an RDS encoder */
-> #define V4L2_CAP_MODULATOR 	0x0008000 /* has a modulator */
-> 
-> The current V4L2 spec says in section 1.6.2 that you should set 
-> V4L2_CAP_TUNER when you have a modulator. I see absolutely no reason why we 
-> shouldn't add a proper CAP_MODULATOR instead. Almost all caps already come 
-> in an input and output variant, so it also makes sense to have a tuner and 
-> a separate modulator capability. Since Eduardo's FM transmitter is the 
-> first driver with a modulator that will go into the tree we do not have to 
-> worry about backwards compatibility, so I think we should fix this weird 
-> rule.
-> 
-> For the same reason we should add an RDS_OUTPUT capability since not all FM 
-> transmitters might have a RDS encoder. Again, this is also consistent with 
-> the V4L2_CAP_RDS_CAPTURE capability that we already have.
-> 
-> The RDS decoder API adds a new v4l2_tuner RDS capability and RDS subchannel 
-> flag. These are reused in v4l2_modulator. If the RDS capability is set, 
-> then the modulator can encode RDS. If the V4L2_TUNER_SUB_RDS channel is 
-> specified in txsubchans, then the transmitter will turn on the RDS encoder, 
-> otherwise it is turned off. This is consistent with the way txsubchans is 
-> used for the audio modulation.
-> 
-> Eduardo, this will replace the RDS_TX_ENABLED control, so if this goes in 
-> then that control has to be removed.
+now when i tried to compile, appear :
 
-I like this approach. Looks cleaner. How about moving some of the *_ENABLED features
-from FM TX class to a CAP flag? As you are proposing for RDS? I mean, some of them
-are consistent with audio modulation (copying from my patch):
+v4l/tm6000-dvb.c:240: error: unknown field 'video_dev' specified in
+initializer
+v4l/tm6000-dvb.c:240: warning: initialization makes integer from
+pointer without a cast
 
-+#define V4L2_CID_RDS_TX_ENABLED                        (V4L2_CID_FM_TX_CLASS_BASE + 1)
+after i tried changing video_dev by videodev, but still happend
 
-This one you are already proposing to move to a CAP flag.
-
-+#define V4L2_CID_AUDIO_LIMITER_ENABLED         (V4L2_CID_FM_TX_CLASS_BASE + 6)
-This is relevant to modulators which apply some sort of dynamic audio control to
-maximize audio volume and minimize receiver-generated distortion. Also important
-to prevent audio over-modulation.
-
-+#define V4L2_CID_AUDIO_COMPRESSION_ENABLED     (V4L2_CID_FM_TX_CLASS_BASE + 9)
-Enables or disables the audio compression feature.
-This feature amplifies signals below the threshold by a fixed gain and compresses audio
-signals above the threshold by the ratio of Threshold/(Gain + Threshold).
-
-+
-+#define V4L2_CID_PILOT_TONE_ENABLED            (V4L2_CID_FM_TX_CLASS_BASE + 14)
-Some modulator generates pilot tone in audio channel.
-
-I mean, what do you think to have those as a flag in txsubchans instead of
-a separated ext control ?
-
-> 
-> I've made a first implementation of these changes in this tree: 
-> http://linuxtv.org/hg/~hverkuil/v4l-dvb-rds-enc
-> 
-> This tree also contains the RDS decoder changes from my v4l-dvb-rds tree 
-> since it needs to build on those.
-> 
-> Comments?
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> -- 
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+>>
+>>     Daniel Santibáńez wrote:
+>>
+>>
+>>         Hello.!!
+>>         i tried to install a driver for this usb device, long time
+>> i try
+>>         to finish but, when i probe the driver error by erro
+>> appear,and
+>>          this don't work aparently.. when i run modprobe this say:
+>>
+>>         tm6000-alsa: Unknow symbol tm6000_get_reg
+>>         tm6000-alsa: Unknow symbol tm6000_set_reg
+>>
+>>         what i have to do.? could you help me.?? exist a how to?
+>>         actualy? thanks.
+>>
+>>
+>>         I currently use:
+>>
+>>         Kernel        : Linux 2.6.28-12-generic (i686)
+>>         Compiled        : #43-Ubuntu SMP Fri May 1 19:27:06 UTC 2009
+>>         C Library        : GNU C Library version 2.9 (stable)
+>>         Distribution        : Ubuntu 9.04
+>>         Desktop Environment        : GNOME 2.26
+>>
+>>     Hi Daniel,
+>>
+>>     I suggest you post to the linux-media mailing list in future. That
+>>     way the mailing lists acts as a knowledge base for other people
+>> with
+>>     the same problem. See http://www.linuxtv.org/lists.php for
+>> details.
+>>     I used BCC in case you don't want your e-mail address on a
+>> public site.
+>>
+>>     Did you pull from the http://linuxtv.org/hg/~mchehab/tm6010
+>>     <http://linuxtv.org/hg/%7Emchehab/tm6010> repository with last
+>>     change dated 28 Nov 2008? That code compiles on Ubuntu 8.10 but
+>> not
+>>     on Ubuntu 9.04. You could try the following (untested) patch to
+>>     resolve this.
+>>
+>>     I only have experience trying to get the Hauppauge HVR-900H
+>> working
+>>     with this driver. It does not currently work for me with New
+>> Zealand
+>>     television.
+>>
+>>     Kevin
+>>
+>>     diff -r ca10a33f275b linux/drivers/media/dvb/dvb-core/dvbdev.c
+>>     --- a/linux/drivers/media/dvb/dvb-core/dvbdev.c Sun Apr 05
+>> 10:57:01
+>>     2009 +1200
+>>     +++ b/linux/drivers/media/dvb/dvb-core/dvbdev.c Wed Jun 03
+>> 20:45:03
+>>     2009 +1200
+>>     @@ -261,7 +261,7 @@
+>>
+>>      #if LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 27)
+>>            clsdev = device_create(dvb_class, adap->device,
+>>     -                              MKDEV(DVB_MAJOR,
+>>     nums2minor(adap->num, type, id)),
+>>     +                              MKDEV(DVB_MAJOR, minor),
+>>                                   NULL, "dvb%d.%s%d", adap->num,
+>>     dnames[type], id);
+>>      #elif LINUX_VERSION_CODE == KERNEL_VERSION(2, 6, 27)
+>>            clsdev = device_create_drvdata(dvb_class, adap->device,
+>>     diff -r ca10a33f275b
+>> linux/drivers/media/video/tm6000/tm6000-alsa.c
+>>     --- a/linux/drivers/media/video/tm6000/tm6000-alsa.c    Sun Apr 05
+>>     10:57:01 2009 +1200
+>>     +++ b/linux/drivers/media/video/tm6000/tm6000-alsa.c    Wed Jun 03
+>>     20:45:03 2009 +1200
+>>     @@ -17,7 +17,7 @@
+>>      #include <linux/usb.h>
+>>
+>>      #include <asm/delay.h>
+>>     -#include <sound/driver.h>
+>>     +/*#include <sound/driver.h>*/
+>>      #include <sound/core.h>
+>>      #include <sound/pcm.h>
+>>      #include <sound/pcm_params.h>
+>>     diff -r ca10a33f275b linux/drivers/media/video/tm6000/tm6000-i2c.c
+>>     --- a/linux/drivers/media/video/tm6000/tm6000-i2c.c     Sun Apr 05
+>>     10:57:01 2009 +1200
+>>     +++ b/linux/drivers/media/video/tm6000/tm6000-i2c.c     Wed Jun 03
+>>     20:45:03 2009 +1200
+>>     @@ -258,7 +258,7 @@
+>>
+>>      /* Tuner callback to provide the proper gpio changes needed for
+>>     xc2028 */
+>>
+>>     -static int tm6000_tuner_callback(void *ptr, int command, int arg)
+>>     +static int tm6000_tuner_callback(void *ptr, int component, int
+>>     command, int arg)
+>>      {
+>>            int rc=0;
+>>            struct tm6000_core *dev = ptr;
+>>
+>>
 
 -- 
-Eduardo Valentin
+Daniel Santibáñez
+Ð.§.
+
