@@ -1,117 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:58188 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1756897AbZFKHM4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2009 03:12:56 -0400
-Date: Thu, 11 Jun 2009 09:13:03 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Magnus Damm <magnus.damm@gmail.com>,
-	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Subject: [PATCH 4/4] sh_mobile_ceu_camera: add a control for the camera
- low-pass filter
-In-Reply-To: <Pine.LNX.4.64.0906101549160.4817@axis700.grange>
-Message-ID: <Pine.LNX.4.64.0906101606460.4817@axis700.grange>
-References: <Pine.LNX.4.64.0906101549160.4817@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from zone0.gcu-squad.org ([212.85.147.21]:28502 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755896AbZFDOHW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jun 2009 10:07:22 -0400
+Date: Thu, 4 Jun 2009 16:07:16 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: LMML <linux-media@vger.kernel.org>
+Cc: V4L and DVB maintainers <v4l-dvb-maintainer@linuxtv.org>
+Subject: [PATCH] Add missing __devexit_p()
+Message-ID: <20090604160716.6c6718aa@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the V4L2_CID_SHARPNESS control to switch SH-mobile camera low-pass filter.
+Add missing __devexit_p() to several drivers. Also add a few missing
+__init, __devinit and __exit markers. These errors could result in
+build failures depending on the kernel configuration.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
 ---
+ linux/drivers/media/dvb/bt8xx/bt878.c                 |    8 +-------
+ linux/drivers/media/video/cx88/cx88-alsa.c            |    7 +++----
+ linux/drivers/media/video/mx3_camera.c                |    6 +++---
+ linux/drivers/media/video/pxa_camera.c                |    6 +++---
+ linux/drivers/media/video/soc_camera.c                |    2 +-
+ linux/drivers/media/video/usbvision/usbvision-video.c |    2 +-
+ linux/drivers/media/video/zoran/zoran_card.c          |    2 +-
+ 7 files changed, 13 insertions(+), 20 deletions(-)
 
-Is this a suitable control for this filter?
-
- drivers/media/video/sh_mobile_ceu_camera.c |   54 +++++++++++++++++++++++++++-
- 1 files changed, 53 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index 7ac4d92..8274fb1 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -499,7 +499,6 @@ static int sh_mobile_ceu_set_bus_param(struct soc_camera_device *icd,
- 	ceu_write(pcdev, CAPWR, (height << 16) | width);
- 	ceu_write(pcdev, CFLCR, 0); /* no scaling */
- 	ceu_write(pcdev, CFSZR, (height << 16) | cfszr_width);
--	ceu_write(pcdev, CLFCR, 0); /* no lowpass filter */
+--- v4l-dvb.orig/linux/drivers/media/dvb/bt8xx/bt878.c	2009-03-01 16:09:08.000000000 +0100
++++ v4l-dvb/linux/drivers/media/dvb/bt8xx/bt878.c	2009-06-04 14:00:41.000000000 +0200
+@@ -512,12 +512,6 @@ static int __devinit bt878_probe(struct
+ 	pci_set_master(dev);
+ 	pci_set_drvdata(dev, bt);
  
- 	/* A few words about byte order (observed in Big Endian mode)
- 	 *
-@@ -784,6 +783,55 @@ static void sh_mobile_ceu_init_videobuf(struct videobuf_queue *q,
- 				       icd);
- }
- 
-+static int sh_mobile_ceu_get_ctrl(struct soc_camera_device *icd,
-+				  struct v4l2_control *ctrl)
-+{
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-+	struct sh_mobile_ceu_dev *pcdev = ici->priv;
-+	u32 val;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_SHARPNESS:
-+		val = ceu_read(pcdev, CLFCR);
-+		ctrl->value = val ^ 1;
-+		return 0;
-+	}
-+	return -ENOIOCTLCMD;
-+}
-+
-+static int sh_mobile_ceu_set_ctrl(struct soc_camera_device *icd,
-+				  struct v4l2_control *ctrl)
-+{
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-+	struct sh_mobile_ceu_dev *pcdev = ici->priv;
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_SHARPNESS:
-+		switch (icd->current_fmt->fourcc) {
-+		case V4L2_PIX_FMT_NV12:
-+		case V4L2_PIX_FMT_NV21:
-+		case V4L2_PIX_FMT_NV16:
-+		case V4L2_PIX_FMT_NV61:
-+			ceu_write(pcdev, CLFCR, !ctrl->value);
-+			return 0;
-+		}
-+		return -EINVAL;
-+	}
-+	return -ENOIOCTLCMD;
-+}
-+
-+static const struct v4l2_queryctrl sh_mobile_ceu_controls[] = {
-+	{
-+		.id		= V4L2_CID_SHARPNESS,
-+		.type		= V4L2_CTRL_TYPE_BOOLEAN,
-+		.name		= "Low-pass filter",
-+		.minimum	= 0,
-+		.maximum	= 1,
-+		.step		= 1,
-+		.default_value	= 0,
-+	},
-+};
-+
- static struct soc_camera_host_ops sh_mobile_ceu_host_ops = {
- 	.owner		= THIS_MODULE,
- 	.add		= sh_mobile_ceu_add_device,
-@@ -792,11 +840,15 @@ static struct soc_camera_host_ops sh_mobile_ceu_host_ops = {
- 	.set_crop	= sh_mobile_ceu_set_crop,
- 	.set_fmt	= sh_mobile_ceu_set_fmt,
- 	.try_fmt	= sh_mobile_ceu_try_fmt,
-+	.set_ctrl	= sh_mobile_ceu_set_ctrl,
-+	.get_ctrl	= sh_mobile_ceu_get_ctrl,
- 	.reqbufs	= sh_mobile_ceu_reqbufs,
- 	.poll		= sh_mobile_ceu_poll,
- 	.querycap	= sh_mobile_ceu_querycap,
- 	.set_bus_param	= sh_mobile_ceu_set_bus_param,
- 	.init_videobuf	= sh_mobile_ceu_init_videobuf,
-+	.controls	= sh_mobile_ceu_controls,
-+	.num_controls	= ARRAY_SIZE(sh_mobile_ceu_controls),
+-/*        if(init_bt878(btv) < 0) {
+-		bt878_remove(dev);
+-		return -EIO;
+-	}
+-*/
+-
+ 	if ((result = bt878_mem_alloc(bt))) {
+ 		printk(KERN_ERR "bt878: failed to allocate memory!\n");
+ 		goto fail2;
+@@ -583,7 +577,7 @@ static struct pci_driver bt878_pci_drive
+       .name	= "bt878",
+       .id_table = bt878_pci_tbl,
+       .probe	= bt878_probe,
+-      .remove	= bt878_remove,
++      .remove	= __devexit_p(bt878_remove),
  };
  
- static int __devinit sh_mobile_ceu_probe(struct platform_device *pdev)
--- 
-1.6.2.4
+ static int bt878_pci_driver_registered;
+--- v4l-dvb.orig/linux/drivers/media/video/cx88/cx88-alsa.c	2009-04-17 11:22:56.000000000 +0200
++++ v4l-dvb/linux/drivers/media/video/cx88/cx88-alsa.c	2009-06-04 14:04:37.000000000 +0200
+@@ -939,7 +939,7 @@ static struct pci_driver cx88_audio_pci_
+ 	.name     = "cx88_audio",
+ 	.id_table = cx88_audio_pci_tbl,
+ 	.probe    = cx88_audio_initdev,
+-	.remove   = cx88_audio_finidev,
++	.remove   = __devexit_p(cx88_audio_finidev),
+ };
+ 
+ /****************************************************************************
+@@ -949,7 +949,7 @@ static struct pci_driver cx88_audio_pci_
+ /*
+  * module init
+  */
+-static int cx88_audio_init(void)
++static int __init cx88_audio_init(void)
+ {
+ 	printk(KERN_INFO "cx2388x alsa driver version %d.%d.%d loaded\n",
+ 	       (CX88_VERSION_CODE >> 16) & 0xff,
+@@ -965,9 +965,8 @@ static int cx88_audio_init(void)
+ /*
+  * module remove
+  */
+-static void cx88_audio_fini(void)
++static void __exit cx88_audio_fini(void)
+ {
+-
+ 	pci_unregister_driver(&cx88_audio_pci_driver);
+ }
+ 
+--- v4l-dvb.orig/linux/drivers/media/video/mx3_camera.c	2009-04-29 14:30:29.000000000 +0200
++++ v4l-dvb/linux/drivers/media/video/mx3_camera.c	2009-06-04 14:05:25.000000000 +0200
+@@ -1074,7 +1074,7 @@ static struct soc_camera_host_ops mx3_so
+ 	.set_bus_param	= mx3_camera_set_bus_param,
+ };
+ 
+-static int mx3_camera_probe(struct platform_device *pdev)
++static int __devinit mx3_camera_probe(struct platform_device *pdev)
+ {
+ 	struct mx3_camera_dev *mx3_cam;
+ 	struct resource *res;
+@@ -1194,11 +1194,11 @@ static struct platform_driver mx3_camera
+ 		.name	= MX3_CAM_DRV_NAME,
+ 	},
+ 	.probe		= mx3_camera_probe,
+-	.remove		= __exit_p(mx3_camera_remove),
++	.remove		= __devexit_p(mx3_camera_remove),
+ };
+ 
+ 
+-static int __devinit mx3_camera_init(void)
++static int __init mx3_camera_init(void)
+ {
+ 	return platform_driver_register(&mx3_camera_driver);
+ }
+--- v4l-dvb.orig/linux/drivers/media/video/pxa_camera.c	2009-06-04 13:45:28.000000000 +0200
++++ v4l-dvb/linux/drivers/media/video/pxa_camera.c	2009-06-04 14:03:05.000000000 +0200
+@@ -1541,7 +1541,7 @@ static struct soc_camera_host_ops pxa_so
+ 	.set_bus_param	= pxa_camera_set_bus_param,
+ };
+ 
+-static int pxa_camera_probe(struct platform_device *pdev)
++static int __devinit pxa_camera_probe(struct platform_device *pdev)
+ {
+ 	struct pxa_camera_dev *pcdev;
+ 	struct resource *res;
+@@ -1716,11 +1716,11 @@ static struct platform_driver pxa_camera
+ 		.name	= PXA_CAM_DRV_NAME,
+ 	},
+ 	.probe		= pxa_camera_probe,
+-	.remove		= __exit_p(pxa_camera_remove),
++	.remove		= __devexit_p(pxa_camera_remove),
+ };
+ 
+ 
+-static int __devinit pxa_camera_init(void)
++static int __init pxa_camera_init(void)
+ {
+ 	return platform_driver_register(&pxa_camera_driver);
+ }
+--- v4l-dvb.orig/linux/drivers/media/video/soc_camera.c	2009-05-11 11:12:03.000000000 +0200
++++ v4l-dvb/linux/drivers/media/video/soc_camera.c	2009-06-04 14:04:58.000000000 +0200
+@@ -1206,7 +1206,7 @@ static int __devexit soc_camera_pdrv_rem
+ 
+ static struct platform_driver __refdata soc_camera_pdrv = {
+ 	.probe	= soc_camera_pdrv_probe,
+-	.remove	= __exit_p(soc_camera_pdrv_remove),
++	.remove	= __devexit_p(soc_camera_pdrv_remove),
+ 	.driver	= {
+ 		.name = "soc-camera-pdrv",
+ 		.owner = THIS_MODULE,
+--- v4l-dvb.orig/linux/drivers/media/video/usbvision/usbvision-video.c	2009-05-12 10:19:32.000000000 +0200
++++ v4l-dvb/linux/drivers/media/video/usbvision/usbvision-video.c	2009-06-04 14:03:58.000000000 +0200
+@@ -1794,7 +1794,7 @@ static struct usb_driver usbvision_drive
+ 	.name		= "usbvision",
+ 	.id_table	= usbvision_table,
+ 	.probe		= usbvision_probe,
+-	.disconnect	= usbvision_disconnect
++	.disconnect	= __devexit_p(usbvision_disconnect),
+ };
+ 
+ /*
+--- v4l-dvb.orig/linux/drivers/media/video/zoran/zoran_card.c	2009-05-12 10:19:32.000000000 +0200
++++ v4l-dvb/linux/drivers/media/video/zoran/zoran_card.c	2009-06-04 14:05:46.000000000 +0200
+@@ -1478,7 +1478,7 @@ static struct pci_driver zoran_driver =
+ 	.name = "zr36067",
+ 	.id_table = zr36067_pci_tbl,
+ 	.probe = zoran_probe,
+-	.remove = zoran_remove,
++	.remove = __devexit_p(zoran_remove),
+ };
+ 
+ static int __init zoran_init(void)
 
+
+-- 
+Jean Delvare
