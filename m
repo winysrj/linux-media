@@ -1,105 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:31600 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751113AbZFPLNm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2009 07:13:42 -0400
-Date: Tue, 16 Jun 2009 14:07:55 +0300
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
-	ext Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-Subject: Re: [PATCHv7 0/9] FM Transmitter (si4713) and another changes
-Message-ID: <20090616110755.GD16092@esdhcp037198.research.nokia.com>
-Reply-To: eduardo.valentin@nokia.com
-References: <1244827840-886-1-git-send-email-eduardo.valentin@nokia.com> <200906141337.20665.hverkuil@xs4all.nl> <20090616104714.GA16092@esdhcp037198.research.nokia.com> <200906161301.51543.hverkuil@xs4all.nl>
+Received: from wf-out-1314.google.com ([209.85.200.172]:51565 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753089AbZFEHHU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2009 03:07:20 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so601722wfd.4
+        for <linux-media@vger.kernel.org>; Fri, 05 Jun 2009 00:07:22 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <200906161301.51543.hverkuil@xs4all.nl>
+In-Reply-To: <63455.62.70.2.252.1244114783.squirrel@webmail.xs4all.nl>
+References: <63455.62.70.2.252.1244114783.squirrel@webmail.xs4all.nl>
+Date: Fri, 5 Jun 2009 16:07:22 +0900
+Message-ID: <5e9665e10906050007m19cf4524u18031512c1d74ee@mail.gmail.com>
+Subject: Re: What alternative way could be possible for initializing sensor
+	rigistors?
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Dongsoo Kim <dongsoo45.kim@samsung.com>,
+	=?ISO-8859-1?B?sejH/MHY?= <riverful.kim@samsung.com>,
+	=?ISO-8859-1?B?uc66tMij?= <bhmin@samsung.com>,
+	=?ISO-8859-1?B?udqw5rnO?= <kyungmin.park@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 16, 2009 at 01:01:51PM +0200, ext Hans Verkuil wrote:
-> On Tuesday 16 June 2009 12:47:14 Eduardo Valentin wrote:
-> > Hi Hans,
-> >
-> > On Sun, Jun 14, 2009 at 01:37:20PM +0200, ext Hans Verkuil wrote:
-> 
-> <snip>
-> 
-> > > I think the refactoring should be done first. I don't believe it is
-> > > that much work and experience shows that it is better to do this right
-> > > away while you are still motivated :-)
-> >
-> > hehehe.. Yes, that's what I was expecting :-). No problem. I've started
-> > it. I will resend the series once I've completed the re-factoring and I
-> > 've made some testing after that. I hope tomorrow or so.
-> >
-> > > The string control support should not go into 2.6.31. I would like to
-> > > do that only in the v4l-dvb tree (so it will appear in 2.6.32) since I
-> > > want to give that a bit more time to mature. I implemented it very
-> > > quickly and I do not feel comfortable queueing this for 2.6.31.
-> >
-> > Right. Yes, better to test the stuff a bit more.
-> >
-> > > In addition it is still unclear if Mauro will merge my v4l-dvb-subdev2
-> > > tree for 2.6.31. I hope so, since otherwise it will hamper the
-> > > development of this and other embedded platforms.
-> >
-> > Ok.
-> >
-> > > I also need to add a new V4L2_CAP_MODULATOR (which needs a review as
-> > > well).
-> > >
-> > > And finally I realized that we need to add some v4l2_modulator
-> > > capabilities for the RDS encoder similar to the upcoming v4l2_tuner RDS
-> > > capabilities as is described in this RFC:
-> > >
-> > > http://www.mail-archive.com/linux-media%40vger.kernel.org/msg02498.html
-> > >
-> > > I haven't had time to implement this RFC and I know that is not going
-> > > to make 2.6.31. It's now almost at the top of my TODO list, so it
-> > > should go in soon (pending unforeseen circumstances).
-> >
-> > Ok. I'll take a look at it.
-> 
-> I've worked on this yesterday. You can take a look at my v4l-dvb-rds tree. 
-> Both the API and the documentation of it in the v4l2-spec is in there. I 
-> started work on updating the few RDS decoders that we have, but that is not 
-> yet in that tree.
-> 
-> > > As a result of rereading this RFC I also started to wonder about
-> > > whether the si4713 supports the MMBS functionality. Do you know
-> > > anything about that?
-> >
-> > No. Not that I know. Can you point some link?
-> 
-> http://www.rds.org.uk/rdsfrdsrbds.html
-> 
-> But I've just read here:
-> 
-> http://www.rds.org.uk/rds98/pdf/rdsForum_standards_090414_8.pdf
-> 
-> that MMBS is discontinued. I'll need to investigate this further, but if 
-> this is indeed true then this can be removed completely from our RDS 
-> decoder and encoder APIs.
+On Thu, Jun 4, 2009 at 8:26 PM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
+>
+>> Hello everyone,
+>>
+>> In subdev framework, we already have "init" API  but not recommended
+>> for new drivers to use this. But I'm so frustrated for the absence of
+>> that kind of API.
+>
+> What I want to do is that you can pass such data through the board_info.
+> Patch for that have been posted but I still haven't had the chance to sit
+> down and review them :-(
 
-Yes, better to double check. At least with si4713, I haven't heard anything about this.
+Hmm... I tried to find the patch you mentioned, but still not popping
+up. Can you give me some hint?
 
-> 
+>
+> This method is the common method for existing i2c drivers and should (I
+> think) be used for all new i2c drivers.
+>
+>> I'm working on camera driver which needs to programme registors
+>> through I2C bus and just stuck figuring out how to make it programmed
+>> in device open (in this case, camera interface should be opened)
+>> procedure.
+>
+> You're not trying to pass register/value pairs to the i2c driver, are you?
+> You should tell the i2c driver what you want and let the i2c driver do the
+> register programming for you. Only the i2c driver should know about the
+> registers of the i2c device.
+
+Actually I'm trying to do a very ordinary I2C programming job through
+i2c_transfer() like any of sensor device. There are so many registers
+to be programmed..like hundreds? I suppose..One single register is
+consisted of 2bytes for address and 2bytes for values or multiple
+bytes for some cases.
+
+>
+>> So, if I have no chance to use "init" API with implementing
+>> my driver, which API should be used? Actually without "init" API, I
+>> should make my driver to programme initializing registors in s_fmt or
+>> s_parm sort of APIs.
+>
+> Use init as long as the new functions passing the board_info to the i2c
+> core are not yet available. You can convert once we have the new API in
+> place.
+>
+
+OK, I'll try to use if I can't find the patch using board_info you
+have mentioned.
+
+>> Any other alternative API is served in subdev framework? Please let me
+>> know if there is something I missed.
+>
+> It's work in progress and I'm the bottleneck here :-(
+>
+
+I really wanna give you a hand! If I could..
+Cheers,
+
+Nate
+
+>> BTW, subdev framework is really
+>> cool. Totally arranged and easy to use.
+>
+> Thanks!
+>
 > Regards,
-> 
-> 	Hans
-> 
-> 
-> 
-> -- 
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+>
+>         Hans
+>
+>> Cheers,
+>>
+>> Nate
+>>
+>>
+>> --
+>> =
+>> DongSoo, Nathaniel Kim
+>> Engineer
+>> Mobile S/W Platform Lab.
+>> Digital Media & Communications R&D Centre
+>> Samsung Electronics CO., LTD.
+>> e-mail : dongsoo.kim@gmail.com
+>>           dongsoo45.kim@samsung.com
+>>
+>
+>
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+>
+>
+
+
 
 -- 
-Eduardo Valentin
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
