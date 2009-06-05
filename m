@@ -1,114 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2330 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933027AbZFLSSS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jun 2009 14:18:18 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id n5CIIJkM030864
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 12 Jun 2009 20:18:19 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 12 Jun 2009 20:18:19 +0200 (CEST)
-Message-Id: <200906121818.n5CIIJkM030864@smtp-vbr9.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from zone0.gcu-squad.org ([212.85.147.21]:24757 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756853AbZFEINo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2009 04:13:44 -0400
+Date: Fri, 5 Jun 2009 10:13:30 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Paul Mundt <lethal@linux-sh.org>, linux-next@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-i2c@vger.kernel.org
+Subject: [PATCH] i2c: Don't advertise i2c functions when not available
+Message-ID: <20090605101330.2f93e9ab@hyperion.delvare>
+In-Reply-To: <20090602093431.GA19390@rakim.wolfsonmicro.main>
+References: <20090527070850.GA11221@linux-sh.org>
+	<20090527091831.26b60d6d@hyperion.delvare>
+	<20090527120140.GC1970@sirena.org.uk>
+	<20090602091229.0810f54b@hyperion.delvare>
+	<20090602093431.GA19390@rakim.wolfsonmicro.main>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Tue, 2 Jun 2009 10:34:32 +0100, Mark Brown wrote:
+> On Tue, Jun 02, 2009 at 09:12:29AM +0200, Jean Delvare wrote:
+> > What could be done, OTOH, is to surround all the function declarations
+> > in <linux/i2c.h> with a simple #ifdef CONFIG_I2C, so that mistakes are
+> > caught earlier (build time instead of link time.)
+> 
+> That'd be helpful, yes.
 
-Results of the daily build of v4l-dvb:
+Here you go:
 
-date:        Fri Jun 12 19:00:07 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11965:bff77ec33116
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+From: Jean Delvare <khali@linux-fr.org>
+Subject: i2c: Don't advertise i2c functions when not available
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.22.19-mips: ERRORS
-linux-2.6.26-mips: ERRORS
-linux-2.6.27-mips: ERRORS
-linux-2.6.28-mips: ERRORS
-linux-2.6.29.1-mips: ERRORS
-linux-2.6.30-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-x86_64: WARNINGS
-sparse (linux-2.6.30): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+Surround i2c function declarations with ifdefs, so that they aren't
+advertised when i2c-core isn't actually built. That way, drivers using
+these functions unconditionally will result in an immediate build
+failure, rather than a late linking failure which is harder to figure
+out.
 
-Detailed results are available here:
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Paul Mundt <lethal@linux-sh.org>
+---
+ include/linux/i2c.h |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+--- linux-2.6.30-rc8.orig/include/linux/i2c.h	2009-06-05 08:43:48.000000000 +0200
++++ linux-2.6.30-rc8/include/linux/i2c.h	2009-06-05 09:34:27.000000000 +0200
+@@ -47,6 +47,7 @@ struct i2c_driver;
+ union i2c_smbus_data;
+ struct i2c_board_info;
+ 
++#if defined CONFIG_I2C || defined CONFIG_I2C_MODULE
+ /*
+  * The master routines are the ones normally used to transmit data to devices
+  * on a bus (or read from them). Apart from two basic transfer functions to
+@@ -93,6 +94,7 @@ extern s32 i2c_smbus_read_i2c_block_data
+ extern s32 i2c_smbus_write_i2c_block_data(struct i2c_client *client,
+ 					  u8 command, u8 length,
+ 					  const u8 *values);
++#endif /* I2C */
+ 
+ /**
+  * struct i2c_driver - represent an I2C device driver
+@@ -260,6 +262,7 @@ struct i2c_board_info {
+ 	.type = dev_type, .addr = (dev_addr)
+ 
+ 
++#if defined CONFIG_I2C || defined CONFIG_I2C_MODULE
+ /* Add-on boards should register/unregister their devices; e.g. a board
+  * with integrated I2C, a config eeprom, sensors, and a codec that's
+  * used in conjunction with the primary hardware.
+@@ -283,6 +286,7 @@ extern struct i2c_client *
+ i2c_new_dummy(struct i2c_adapter *adap, u16 address);
+ 
+ extern void i2c_unregister_device(struct i2c_client *);
++#endif /* I2C */
+ 
+ /* Mainboard arch_initcall() code should register all its I2C devices.
+  * This is done at arch_initcall time, before declaring any i2c adapters.
+@@ -299,7 +303,7 @@ i2c_register_board_info(int busnum, stru
+ {
+ 	return 0;
+ }
+-#endif
++#endif /* I2C_BOARDINFO */
+ 
+ /*
+  * The following structs are for those who like to implement new bus drivers:
+@@ -394,6 +398,7 @@ struct i2c_client_address_data {
+ 
+ /* administration...
+  */
++#if defined CONFIG_I2C || defined CONFIG_I2C_MODULE
+ extern int i2c_add_adapter(struct i2c_adapter *);
+ extern int i2c_del_adapter(struct i2c_adapter *);
+ extern int i2c_add_numbered_adapter(struct i2c_adapter *);
+@@ -435,6 +440,7 @@ static inline int i2c_adapter_id(struct
+ {
+ 	return adap->nr;
+ }
++#endif /* I2C */
+ #endif /* __KERNEL__ */
+ 
+ /**
 
-Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+-- 
+Jean Delvare
