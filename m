@@ -1,41 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.9]:43597 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753058AbZFWHu3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jun 2009 03:50:29 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org
-Subject: Re: lsmod path hardcoded in v4l/Makefile
-Date: Tue, 23 Jun 2009 09:50:26 +0200
-Cc: Andy Walls <awalls@radix.net>
-References: <200906221636.25006.zzam@gentoo.org> <1245710531.3190.7.camel@palomino.walls.org>
-In-Reply-To: <1245710531.3190.7.camel@palomino.walls.org>
+Received: from znsun1.ifh.de ([141.34.1.16]:58630 "EHLO znsun1.ifh.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751331AbZFEP7p (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Jun 2009 11:59:45 -0400
+Date: Fri, 5 Jun 2009 17:59:16 +0200 (CEST)
+From: Patrick Boettcher <patrick.boettcher@desy.de>
+To: Gonsolo <gonsolo@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: Can't find firmware when resuming
+In-Reply-To: <4A2844E0.1010902@gmail.com>
+Message-ID: <alpine.LRH.1.10.0906050925280.23189@pub2.ifh.de>
+References: <4A2844E0.1010902@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200906230950.26287.zzam@gentoo.org>
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Dienstag, 23. Juni 2009, Andy Walls wrote:
-> On Mon, 2009-06-22 at 16:36 +0200, Matthias Schwarzott wrote:
-> > Hi list!
-> >
-> > It seems the path to lsmod tool is hardcoded in the Makefile for
-> > out-of-tree building of v4l-dvb.
-> > Now at least gentoo has moved lsmod from /sbin to /bin.
-> > Additionally it is bad style (or at least I am told so), to not rely on
-> > $PATH but hardcode pathes for tools that should be in $PATH.
+Hi Gonsolo,
+
+I'm adding the LMML.
+
+On Fri, 5 Jun 2009, Gonsolo wrote:
+
+> Hello!
 >
-> It's a potential security hole to rely on $PATH instead of absolute
-> paths when running a command as root.
+> Is the following problem known?
+> The Hauppauge Nova-T stick hangs the resume for 60 seconds.
+> The firmware is there and I can watch TV before suspending.
+>
+> From my dmesg:
+>
+> [34258.180072] usb 1-1: reset high speed USB device using ehci_hcd and 
+> address 4
+> [34258.312799] dvb-usb: found a 'Hauppauge Nova-T Stick' in cold state, will 
+> try to load a firmware
+> [34258.312805] usb 1-1: firmware: requesting dvb-usb-dib0700-1.20.fw
+> [34318.312097] dvb-usb: did not find the firmware file. 
+> (dvb-usb-dib0700-1.20.fw) Please see linux/Documentation/dvb/ for mor
+> e details on firmware-problems. (-2)
 
-Shouldn't $PATH of root be considered safe? Else the distro or the system 
-setup is doing something worse, and can't be improved by using fixed pathes 
-in some scripts and Makefiles.
+You are resuming from suspend2disk, right?
 
-Regards
-Matthias
+The driver is using a standard method to retrieve the firmware buffer from 
+user-space, if it does not work, it is a problem of you installation, 
+namely udev.
+
+OTOH, the dvb-usb-framework is not ready to handle a suspend2disk 
+correctly. E.g. being able to suspend2disk while watching TV will work, 
+but when resuming it will be seen as a device disconnect and the 
+application will stop to work.
+
+
+Patrick.
+
+--
+   Mail: patrick.boettcher@desy.de
+   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
