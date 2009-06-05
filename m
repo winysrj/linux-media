@@ -1,51 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f210.google.com ([209.85.219.210]:55082 "EHLO
-	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752606AbZFYSiK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2009 14:38:10 -0400
-Received: by ewy6 with SMTP id 6so2573772ewy.37
-        for <linux-media@vger.kernel.org>; Thu, 25 Jun 2009 11:38:12 -0700 (PDT)
+Received: from mail-fx0-f213.google.com ([209.85.220.213]:36950 "EHLO
+	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754163AbZFEUJr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2009 16:09:47 -0400
+Received: by fxm9 with SMTP id 9so819596fxm.37
+        for <linux-media@vger.kernel.org>; Fri, 05 Jun 2009 13:09:48 -0700 (PDT)
+Message-ID: <4A297B86.6000807@gmail.com>
+Date: Fri, 05 Jun 2009 22:09:42 +0200
+From: Gonsolo <gonsolo@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <829197380906251125t56fe49ccqee97eab659be9974@mail.gmail.com>
-References: <36839.62.70.2.252.1245937439.squirrel@webmail.xs4all.nl>
-	 <829197380906251125t56fe49ccqee97eab659be9974@mail.gmail.com>
-Date: Thu, 25 Jun 2009 14:38:12 -0400
-Message-ID: <37219a840906251138n4f101500o6c3833272a6b92@mail.gmail.com>
-Subject: Re: [PARTIALLY SOLVED] Can't use my Pinnacle PCTV HD Pro stick - what
-	am I doing wrong?
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, video4linux-list@redhat.com,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Patrick Boettcher <patrick.boettcher@desy.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: Can't find firmware when resuming
+References: <4A2844E0.1010902@gmail.com> <alpine.LRH.1.10.0906050925280.23189@pub2.ifh.de>
+In-Reply-To: <alpine.LRH.1.10.0906050925280.23189@pub2.ifh.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 25, 2009 at 2:25 PM, Devin
-Heitmueller<dheitmueller@kernellabs.com> wrote:
-> Hans,
->
-> I just spoke with mkrufky, and he confirmed the issue does occur with
-> the HVR-950.  However, the em28xx driver does not do a printk() when
-> the subdev registration fails (I will submit a patch to fix that).
->
-> Please let me know if you have any further question.
->
-> Thanks for your assistance,
+>> Is the following problem known?
+>> The Hauppauge Nova-T stick hangs the resume for 60 seconds.
+>> The firmware is there and I can watch TV before suspending.
+>>
+>> From my dmesg:
+>>
+>> [34258.180072] usb 1-1: reset high speed USB device using ehci_hcd and 
+>> address 4
+>> [34258.312799] dvb-usb: found a 'Hauppauge Nova-T Stick' in cold 
+>> state, will try to load a firmware
+>> [34258.312805] usb 1-1: firmware: requesting dvb-usb-dib0700-1.20.fw
+>> [34318.312097] dvb-usb: did not find the firmware file. 
+>> (dvb-usb-dib0700-1.20.fw) Please see linux/Documentation/dvb/ for mor
+>> e details on firmware-problems. (-2)
+> 
+> You are resuming from suspend2disk, right?
+> 
+> The driver is using a standard method to retrieve the firmware buffer 
+> from user-space, if it does not work, it is a problem of you 
+> installation, namely udev.
 
-I'd like to add:
+Is it possible that this is a initrd problem?
+I found out that device initialization is done before running /sbin/init 
+(which includes running running /etc/rcS which includes mounting sysfs).
+I also found out about the FIRMWARE_IN_KERNEL config. The Ubuntu kernel 
+leaves this unset.
 
-Testing against 2.6.24.7: v4l subdev registration fails.
-Testing against 2.6.25.20: v4l subdev registration fails.
-...
-Testing against 2.6.26.8: success!
-Testing against 2.6.27.25: success!
-Testing against 2.6.28.10: success!
-... (I didn't bother testing 2.6.29.y)
-Testing against 2.6.30: success!
+Is it possible that the kernel tries to initialize the device when 
+running the initial ramdisk? Then it seems natural that it can't find 
+the firmware because it is not included as I found out with:
 
-Regards,
+file-roller /boot/initrd.img-2.6.30-020630rc8-generic
 
-Mike
+So I guess this is an Ubuntu bug about initrd/firmare configuration?
+
+Thank you.
+
+g
