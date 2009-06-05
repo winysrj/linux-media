@@ -1,62 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:32944 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763965AbZFROD6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 10:03:58 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv8  6/9] FMTx: si4713: Add files to add radio interface for si4713
-Date: Thu, 18 Jun 2009 16:55:48 +0300
-Message-Id: <1245333351-28157-7-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1245333351-28157-6-git-send-email-eduardo.valentin@nokia.com>
-References: <1245333351-28157-1-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-2-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-3-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-4-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-5-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-6-git-send-email-eduardo.valentin@nokia.com>
+Received: from av7-2-sn3.vrr.skanova.net ([81.228.9.182]:48310 "EHLO
+	av7-2-sn3.vrr.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751162AbZFEOCN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2009 10:02:13 -0400
+Message-ID: <4A292067.1070405@mocean-labs.com>
+Date: Fri, 05 Jun 2009 15:40:55 +0200
+From: =?ISO-8859-15?Q?Richard_R=F6jfors?=
+	<richard.rojfors.ext@mocean-labs.com>
+MIME-Version: 1.0
+To: linux-kernel@vger.kernel.org
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 5/9] V4L2: Added Timberdale Logiwin driver
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds files which creates the radio interface
-for si4713 FM transmitter (modulator) devices.
+V4L2 video capture driver for the logiwin IP on the Timberdale FPGA.
 
-In order to do the real access to device registers, this
-driver uses the v4l2 subdev interface exported by si4713 i2c driver.
+The driver uses the Timberdale DMA engine
 
-Signed-off-by: "Eduardo Valentin <eduardo.valentin@nokia.com>"
+Signed-off-by: Richard Röjfors <richard.rojfors.ext@mocean-labs.com>
 ---
- linux/drivers/media/radio/radio-si4713.c |  367 ++++++++++++++++++++++++++++++
- linux/include/media/radio-si4713.h       |   30 +++
- 2 files changed, 397 insertions(+), 0 deletions(-)
- create mode 100644 linux/drivers/media/radio/radio-si4713.c
- create mode 100644 linux/include/media/radio-si4713.h
-
-diff --git a/linux/drivers/media/radio/radio-si4713.c b/linux/drivers/media/radio/radio-si4713.c
-new file mode 100644
-index 0000000..7b3b665
---- /dev/null
-+++ b/linux/drivers/media/radio/radio-si4713.c
-@@ -0,0 +1,367 @@
+Index: linux-2.6.30-rc7/drivers/media/video/timblogiw.c
+===================================================================
+--- linux-2.6.30-rc7/drivers/media/video/timblogiw.c	(revision 0)
++++ linux-2.6.30-rc7/drivers/media/video/timblogiw.c	(revision 867)
+@@ -0,0 +1,949 @@
 +/*
-+ * drivers/media/radio/radio-si4713.c
-+ *
-+ * Platform Driver for Silicon Labs Si4713 FM Radio Transmitter:
-+ *
-+ * Copyright (c) 2008 Instituto Nokia de Tecnologia - INdT
-+ * Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
++ * timblogiw.c timberdale FPGA LogiWin Video In driver
++ * Copyright (c) 2009 Intel Corporation
 + *
 + * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + *
 + * This program is distributed in the hope that it will be useful,
 + * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -65,389 +43,1071 @@ index 0000000..7b3b665
 + *
 + * You should have received a copy of the GNU General Public License
 + * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 + */
 +
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
++/* Supports:
++ * Timberdale FPGA LogiWin Video In
++ */
++
++#include <linux/list.h>
 +#include <linux/version.h>
-+#include <linux/platform_device.h>
-+#include <linux/i2c.h>
-+#include <linux/videodev2.h>
-+#include <media/v4l2-device.h>
++#include <linux/module.h>
++#include <linux/pci.h>
++#include <linux/dma-mapping.h>
 +#include <media/v4l2-common.h>
 +#include <media/v4l2-ioctl.h>
-+#include <media/radio-si4713.h>
++#include <media/v4l2-device.h>
++#include <linux/platform_device.h>
++#include <linux/interrupt.h>
++#include "timblogiw.h"
++#include <linux/mfd/timbdma.h>
++#include <linux/i2c.h>
++#include <media/timb_video.h>
 +
-+/* module parameters */
-+static int radio_nr = -1;	/* radio device minor (-1 ==> auto assign) */
-+module_param(radio_nr, int, 0);
-+MODULE_PARM_DESC(radio_nr,
-+		 "Minor number for radio device (-1 ==> auto assign)");
++#define TIMBLOGIW_CTRL 0x40
 +
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Eduardo Valentin <eduardo.valentin@nokia.com>");
-+MODULE_DESCRIPTION("Platform driver for Si4713 FM Radio Transmitter");
-+MODULE_VERSION("0.0.1");
++#define TIMBLOGIW_H_SCALE 0x20
++#define TIMBLOGIW_V_SCALE 0x28
 +
-+/* Driver state struct */
-+struct radio_si4713_device {
-+	struct v4l2_device		v4l2_dev;
-+	struct video_device		*radio_dev;
++#define TIMBLOGIW_X_CROP 0x58
++#define TIMBLOGIW_Y_CROP 0x60
++
++#define TIMBLOGIW_W_CROP 0x00
++#define TIMBLOGIW_H_CROP 0x08
++
++#define TIMBLOGIW_VERSION_CODE 0x02
++
++#define TIMBLOGIW_BUF	0x04
++#define TIMBLOGIW_TBI	0x2c
++#define TIMBLOGIW_BPL	0x30
++
++#define dbg(...)
++
++#define DMA_BUFFER_SIZE (720 * 576 * 2)
++
++const struct timblogiw_tvnorm timblogiw_tvnorms[] = {
++	{
++		.std			= V4L2_STD_PAL,
++		.name			= "PAL",
++		.width			= 720,
++		.height			= 576
++	},
++	{
++		.std			= V4L2_STD_NTSC_M,
++		.name			= "NTSC",
++		.width			= 720,
++		.height			= 480
++	}
 +};
 +
-+/* radio_si4713_fops - file operations interface */
-+static const struct v4l2_file_operations radio_si4713_fops = {
-+	.owner		= THIS_MODULE,
-+	.ioctl		= video_ioctl2,
-+};
-+
-+/* Video4Linux Interface */
-+static int radio_si4713_fill_audout(struct v4l2_audioout *vao)
++static int timblogiw_bytes_per_line(const struct timblogiw_tvnorm *norm)
 +{
-+	/* TODO: check presence of audio output */
-+	strlcpy(vao->name, "FM Modulator Audio Out", 32);
++	return norm->width * 2;
++}
 +
++
++static int timblogiw_frame_size(const struct timblogiw_tvnorm *norm)
++{
++	return norm->height * timblogiw_bytes_per_line(norm);
++}
++
++static const struct timblogiw_tvnorm *timblogiw_get_norm(const v4l2_std_id std)
++{
++	int i;
++	for (i = 0; i < ARRAY_SIZE(timblogiw_tvnorms); i++)
++		if (timblogiw_tvnorms[i].std == std)
++			return timblogiw_tvnorms + i;
++
++	/* default to first element */
++	return timblogiw_tvnorms;
++}
++
++static void timblogiw_handleframe(unsigned long arg)
++{
++	struct timblogiw_frame *f;
++	struct timblogiw *lw = (struct timblogiw *)arg;
++
++	spin_lock_bh(&lw->queue_lock);
++	if (lw->dma.filled && !list_empty(&lw->inqueue)) {
++		/* put the entry in the outqueue */
++		f = list_entry(lw->inqueue.next, struct timblogiw_frame, frame);
++
++		/* copy data from the DMA buffer */
++		memcpy(f->bufmem, lw->dma.filled->buf, f->buf.length);
++		/* buffer consumed */
++		lw->dma.filled = NULL;
++
++		do_gettimeofday(&f->buf.timestamp);
++		f->buf.sequence = ++lw->frame_count;
++		f->buf.field = V4L2_FIELD_NONE;
++		f->state = F_DONE;
++		f->buf.bytesused = f->buf.length;
++		list_move_tail(&f->frame, &lw->outqueue);
++		/* wake up any waiter */
++		wake_up(&lw->wait_frame);
++	} else {
++		/* No user buffer available, consume buffer anyway
++		 * who wants an old video frame?
++		 */
++		lw->dma.filled = NULL;
++	}
++	spin_unlock_bh(&lw->queue_lock);
++}
++
++static int timblogiw_isr(u32 flag, void *pdev)
++{
++	struct timblogiw *lw = (struct timblogiw *)pdev;
++
++	if (!lw->dma.filled && (flag & DMA_IRQ_VIDEO_RX)) {
++		/* Got a frame, store it, and flip to next DMA buffer */
++		lw->dma.filled = lw->dma.transfer + lw->dma.curr;
++		lw->dma.curr = !lw->dma.curr;
++	}
++
++	if (lw->stream == STREAM_ON)
++		timb_start_dma(DMA_IRQ_VIDEO_RX,
++			lw->dma.transfer[lw->dma.curr].handle,
++			timblogiw_frame_size(lw->cur_norm),
++			timblogiw_bytes_per_line(lw->cur_norm));
++
++	if (flag & DMA_IRQ_VIDEO_DROP)
++		dbg("%s: frame dropped\n", __func__);
++	if (flag & DMA_IRQ_VIDEO_RX) {
++		dbg("%s: frame RX\n", __func__);
++		tasklet_schedule(&lw->tasklet);
++	}
 +	return 0;
 +}
 +
-+static int radio_si4713_enumaudout(struct file *file, void *priv,
-+						struct v4l2_audioout *vao)
++static void timblogiw_empty_framequeues(struct timblogiw *lw)
 +{
-+	return radio_si4713_fill_audout(vao);
++	u32 i;
++
++	dbg("%s\n", __func__);
++
++	INIT_LIST_HEAD(&lw->inqueue);
++	INIT_LIST_HEAD(&lw->outqueue);
++
++	for (i = 0; i < lw->num_frames; i++) {
++		lw->frame[i].state = F_UNUSED;
++		lw->frame[i].buf.bytesused = 0;
++	}
 +}
 +
-+static int radio_si4713_g_audout(struct file *file, void *priv,
-+					struct v4l2_audioout *vao)
++u32 timblogiw_request_buffers(struct timblogiw *lw, u32 count)
 +{
-+	int rval = radio_si4713_fill_audout(vao);
++	/* needs to be page aligned cause the */
++	/* buffers can be mapped individually! */
++	const size_t imagesize = PAGE_ALIGN(timblogiw_frame_size(lw->cur_norm));
++	void *buff = NULL;
++	u32 i;
 +
-+	vao->index = 0;
++	dbg("%s - request of %i buffers of size %zi\n",
++		__func__, count, imagesize);
 +
-+	return rval;
++	lw->dma.transfer[0].buf = pci_alloc_consistent(lw->dev, DMA_BUFFER_SIZE,
++		&lw->dma.transfer[0].handle);
++	lw->dma.transfer[1].buf = pci_alloc_consistent(lw->dev, DMA_BUFFER_SIZE,
++		&lw->dma.transfer[1].handle);
++	if ((lw->dma.transfer[0].buf == NULL) ||
++		(lw->dma.transfer[1].buf == NULL)) {
++		printk(KERN_ALERT "alloc failed\n");
++		if (lw->dma.transfer[0].buf != NULL)
++			pci_free_consistent(lw->dev, DMA_BUFFER_SIZE,
++				lw->dma.transfer[0].buf,
++				lw->dma.transfer[0].handle);
++		if (lw->dma.transfer[1].buf != NULL)
++			pci_free_consistent(lw->dev, DMA_BUFFER_SIZE,
++				lw->dma.transfer[1].buf,
++				lw->dma.transfer[1].handle);
++		return 0;
++	}
++
++	if (count > TIMBLOGIW_NUM_FRAMES)
++		count = TIMBLOGIW_NUM_FRAMES;
++
++	lw->num_frames = count;
++	while (lw->num_frames > 0) {
++		buff = vmalloc_32(lw->num_frames * imagesize);
++		if (buff) {
++			memset(buff, 0, lw->num_frames * imagesize);
++			break;
++		}
++		lw->num_frames--;
++	}
++
++	for (i = 0; i < lw->num_frames; i++) {
++		lw->frame[i].bufmem = buff + i * imagesize;
++		lw->frame[i].buf.index = i;
++		lw->frame[i].buf.m.offset = i * imagesize;
++		lw->frame[i].buf.length = timblogiw_frame_size(lw->cur_norm);
++		lw->frame[i].buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++		lw->frame[i].buf.sequence = 0;
++		lw->frame[i].buf.field = V4L2_FIELD_NONE;
++		lw->frame[i].buf.memory = V4L2_MEMORY_MMAP;
++		lw->frame[i].buf.flags = 0;
++	}
++
++	lw->dma.curr = 0;
++	lw->dma.filled = NULL;
++	return lw->num_frames;
 +}
 +
-+static int radio_si4713_s_audout(struct file *file, void *priv,
-+					struct v4l2_audioout *vao)
++void timblogiw_release_buffers(struct timblogiw *lw)
 +{
-+	return vao->index ? -EINVAL : 0;
++	dbg("%s\n", __func__);
++
++	if (lw->frame[0].bufmem != NULL) {
++		vfree(lw->frame[0].bufmem);
++		lw->frame[0].bufmem = NULL;
++		lw->num_frames = TIMBLOGIW_NUM_FRAMES;
++		pci_free_consistent(lw->dev, DMA_BUFFER_SIZE,
++			lw->dma.transfer[0].buf, lw->dma.transfer[0].handle);
++		pci_free_consistent(lw->dev, DMA_BUFFER_SIZE,
++			lw->dma.transfer[1].buf, lw->dma.transfer[1].handle);
++	}
 +}
 +
-+/* radio_si4713_querycap - query device capabilities */
-+static int radio_si4713_querycap(struct file *file, void *priv,
-+					struct v4l2_capability *capability)
++/* IOCTL functions */
++
++static int timblogiw_g_fmt(struct file *file, void  *priv,
++	struct v4l2_format *format)
 +{
-+	struct radio_si4713_device *rsdev;
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
 +
-+	rsdev = video_get_drvdata(video_devdata(file));
++	dbg("%s\n",  __func__);
 +
-+	strlcpy(capability->driver, "radio-si4713", sizeof(capability->driver));
-+	strlcpy(capability->card, "Silicon Labs Si4713 Modulator",
-+				sizeof(capability->card));
-+	capability->capabilities = V4L2_CAP_MODULATOR;
-+
-+	return 0;
-+}
-+
-+/* radio_si4713_queryctrl - enumerate control items */
-+static int radio_si4713_queryctrl(struct file *file, void *priv,
-+						struct v4l2_queryctrl *qc)
-+{
-+	/* Must be sorted from low to high control ID! */
-+	static const u32 user_ctrls[] = {
-+		V4L2_CID_USER_CLASS,
-+		V4L2_CID_AUDIO_MUTE,
-+		0
-+	};
-+
-+	/* Must be sorted from low to high control ID! */
-+	static const u32 fmtx_ctrls[] = {
-+		V4L2_CID_FM_TX_CLASS,
-+		V4L2_CID_RDS_TX_ENABLED,
-+		V4L2_CID_RDS_TX_PI,
-+		V4L2_CID_RDS_TX_PTY,
-+		V4L2_CID_RDS_TX_PS_NAME,
-+		V4L2_CID_RDS_TX_RADIO_TEXT,
-+		V4L2_CID_AUDIO_LIMITER_ENABLED,
-+		V4L2_CID_AUDIO_LIMITER_RELEASE_TIME,
-+		V4L2_CID_AUDIO_LIMITER_DEVIATION,
-+		V4L2_CID_AUDIO_COMPRESSION_ENABLED,
-+		V4L2_CID_AUDIO_COMPRESSION_GAIN,
-+		V4L2_CID_AUDIO_COMPRESSION_THRESHOLD,
-+		V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME,
-+		V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME,
-+		V4L2_CID_PILOT_TONE_ENABLED,
-+		V4L2_CID_PILOT_TONE_DEVIATION,
-+		V4L2_CID_PILOT_TONE_FREQUENCY,
-+		V4L2_CID_FM_TX_PREEMPHASIS,
-+		V4L2_CID_TUNE_POWER_LEVEL,
-+		V4L2_CID_TUNE_ANTENNA_CAPACITOR,
-+		0
-+	};
-+	static const u32 *ctrl_classes[] = {
-+		user_ctrls,
-+		fmtx_ctrls,
-+		NULL
-+	};
-+	struct radio_si4713_device *rsdev;
-+
-+	rsdev = video_get_drvdata(video_devdata(file));
-+
-+	qc->id = v4l2_ctrl_next(ctrl_classes, qc->id);
-+	if (qc->id == 0)
++	if (format->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
 +		return -EINVAL;
 +
-+	if (qc->id == V4L2_CID_USER_CLASS || qc->id == V4L2_CID_FM_TX_CLASS)
-+		return v4l2_ctrl_query_fill(qc, 0, 0, 0, 0);
-+
-+	return v4l2_device_call_until_err(&rsdev->v4l2_dev, 0, core,
-+						queryctrl, qc);
++	format->fmt.pix.width = lw->cur_norm->width;
++	format->fmt.pix.height = lw->cur_norm->height;
++	format->fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV;
++	format->fmt.pix.bytesperline = timblogiw_bytes_per_line(lw->cur_norm);
++	format->fmt.pix.sizeimage = timblogiw_frame_size(lw->cur_norm);
++	format->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
++	format->fmt.pix.field = V4L2_FIELD_NONE;
++	return 0;
 +}
 +
-+/*
-+ * v4l2 ioctl call backs.
-+ * we are just a wrapper for v4l2_sub_devs.
-+ */
-+static inline struct v4l2_device *get_v4l2_dev(struct file *file)
++static int timblogiw_try_fmt(struct file *file, void  *priv,
++	struct v4l2_format *format)
 +{
-+	return &((struct radio_si4713_device *)video_drvdata(file))->v4l2_dev;
-+}
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++	struct v4l2_pix_format *pix = &format->fmt.pix;
 +
-+static int radio_si4713_g_ext_ctrls(struct file *file, void *p,
-+						struct v4l2_ext_controls *vecs)
-+{
-+	return v4l2_device_call_until_err(get_v4l2_dev(file), 0, core,
-+							g_ext_ctrls, vecs);
-+}
++	dbg("%s - width=%d, height=%d, pixelformat=%d, field=%d\n"
++		"bytes per line %d, size image: %d, colorspace: %d\n",
++		__func__,
++		pix->width, pix->height, pix->pixelformat, pix->field,
++		pix->bytesperline, pix->sizeimage, pix->colorspace);
 +
-+static int radio_si4713_s_ext_ctrls(struct file *file, void *p,
-+						struct v4l2_ext_controls *vecs)
-+{
-+	return v4l2_device_call_until_err(get_v4l2_dev(file), 0, core,
-+							s_ext_ctrls, vecs);
-+}
++	if (format->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
 +
-+static int radio_si4713_g_ctrl(struct file *file, void *p,
-+						struct v4l2_control *vc)
-+{
-+	return v4l2_device_call_until_err(get_v4l2_dev(file), 0, core,
-+							g_ctrl, vc);
-+}
++	if (format->fmt.pix.field != V4L2_FIELD_NONE)
++		return -EINVAL;
 +
-+static int radio_si4713_s_ctrl(struct file *file, void *p,
-+						struct v4l2_control *vc)
-+{
-+	return v4l2_device_call_until_err(get_v4l2_dev(file), 0, core,
-+							s_ctrl, vc);
-+}
-+
-+static int radio_si4713_g_modulator(struct file *file, void *p,
-+						struct v4l2_modulator *vm)
-+{
-+	return v4l2_device_call_until_err(get_v4l2_dev(file), 0, tuner,
-+							g_modulator, vm);
-+}
-+
-+static int radio_si4713_s_modulator(struct file *file, void *p,
-+						struct v4l2_modulator *vm)
-+{
-+	return v4l2_device_call_until_err(get_v4l2_dev(file), 0, tuner,
-+							s_modulator, vm);
-+}
-+
-+static int radio_si4713_g_frequency(struct file *file, void *p,
-+						struct v4l2_frequency *vf)
-+{
-+	return v4l2_device_call_until_err(get_v4l2_dev(file), 0, tuner,
-+							g_frequency, vf);
-+}
-+
-+static int radio_si4713_s_frequency(struct file *file, void *p,
-+						struct v4l2_frequency *vf)
-+{
-+	return v4l2_device_call_until_err(get_v4l2_dev(file), 0, tuner,
-+							s_frequency, vf);
-+}
-+
-+static long radio_si4713_default(struct file *file, void *p, int cmd, void *arg)
-+{
-+	return v4l2_device_call_until_err(get_v4l2_dev(file), 0, core,
-+							ioctl, cmd, arg);
-+}
-+
-+static struct v4l2_ioctl_ops radio_si4713_ioctl_ops = {
-+	.vidioc_enumaudout	= radio_si4713_enumaudout,
-+	.vidioc_g_audout	= radio_si4713_g_audout,
-+	.vidioc_s_audout	= radio_si4713_s_audout,
-+	.vidioc_querycap	= radio_si4713_querycap,
-+	.vidioc_queryctrl	= radio_si4713_queryctrl,
-+	.vidioc_g_ext_ctrls	= radio_si4713_g_ext_ctrls,
-+	.vidioc_s_ext_ctrls	= radio_si4713_s_ext_ctrls,
-+	.vidioc_g_ctrl		= radio_si4713_g_ctrl,
-+	.vidioc_s_ctrl		= radio_si4713_s_ctrl,
-+	.vidioc_g_modulator	= radio_si4713_g_modulator,
-+	.vidioc_s_modulator	= radio_si4713_s_modulator,
-+	.vidioc_g_frequency	= radio_si4713_g_frequency,
-+	.vidioc_s_frequency	= radio_si4713_s_frequency,
-+	.vidioc_default		= radio_si4713_default,
-+};
-+
-+/* radio_si4713_vdev_template - video device interface */
-+static struct video_device radio_si4713_vdev_template = {
-+	.fops			= &radio_si4713_fops,
-+	.name			= "radio-si4713",
-+	.release		= video_device_release,
-+	.ioctl_ops		= &radio_si4713_ioctl_ops,
-+};
-+
-+/* Platform driver interface */
-+/* radio_si4713_pdriver_probe - probe for the device */
-+static int radio_si4713_pdriver_probe(struct platform_device *pdev)
-+{
-+	struct radio_si4713_platform_data *pdata = pdev->dev.platform_data;
-+	struct radio_si4713_device *rsdev;
-+	struct i2c_adapter *adapter;
-+	struct v4l2_subdev *sd;
-+	int rval = 0;
-+
-+	if (!pdata) {
-+		dev_err(&pdev->dev, "Cannot proceed without platform data.\n");
-+		rval = -EINVAL;
-+		goto exit;
++	if ((lw->cur_norm->height != pix->height) ||
++		(lw->cur_norm->width != pix->width)) {
++		pix->width = lw->cur_norm->width;
++		pix->height = lw->cur_norm->height;
 +	}
-+
-+	rsdev = kzalloc(sizeof *rsdev, GFP_KERNEL);
-+	if (!rsdev) {
-+		dev_err(&pdev->dev, "Failed to alloc video device.\n");
-+		rval = -ENOMEM;
-+		goto exit;
-+	}
-+
-+	rval = v4l2_device_register(&pdev->dev, &rsdev->v4l2_dev);
-+	if (rval) {
-+		dev_err(&pdev->dev, "Failed to register v4l2 device.\n");
-+		goto free_rsdev;
-+	}
-+
-+	adapter = i2c_get_adapter(pdata->i2c_bus);
-+	if (!adapter) {
-+		dev_err(&pdev->dev, "Cannot get i2c adapter %d\n",
-+							pdata->i2c_bus);
-+		rval = -ENODEV;
-+		goto unregister_v4l2_dev;
-+	}
-+
-+	sd = v4l2_i2c_new_subdev_board(&rsdev->v4l2_dev, adapter, "si4713_i2c",
-+					pdata->subdev_board_info, NULL);
-+	if (!sd) {
-+		dev_err(&pdev->dev, "Cannot get v4l2 subdevice\n");
-+		rval = -ENODEV;
-+		goto unregister_v4l2_dev;
-+	}
-+
-+	rsdev->radio_dev = video_device_alloc();
-+	if (!rsdev->radio_dev) {
-+		dev_err(&pdev->dev, "Failed to alloc video device.\n");
-+		rval = -ENOMEM;
-+		goto unregister_v4l2_dev;
-+	}
-+
-+	memcpy(rsdev->radio_dev, &radio_si4713_vdev_template,
-+			sizeof(radio_si4713_vdev_template));
-+	video_set_drvdata(rsdev->radio_dev, rsdev);
-+	if (video_register_device(rsdev->radio_dev, VFL_TYPE_RADIO, radio_nr)) {
-+		dev_err(&pdev->dev, "Could not register video device.\n");
-+		rval = -EIO;
-+		goto free_vdev;
-+	}
-+	dev_info(&pdev->dev, "New device successfully probed\n");
-+
-+	goto exit;
-+
-+free_vdev:
-+	video_device_release(rsdev->radio_dev);
-+unregister_v4l2_dev:
-+	v4l2_device_unregister(&rsdev->v4l2_dev);
-+free_rsdev:
-+	kfree(rsdev);
-+exit:
-+	return rval;
-+}
-+
-+/* radio_si4713_pdriver_remove - remove the device */
-+static int __exit radio_si4713_pdriver_remove(struct platform_device *pdev)
-+{
-+	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
-+	struct radio_si4713_device *rsdev = container_of(v4l2_dev,
-+						struct radio_si4713_device,
-+						v4l2_dev);
-+
-+	video_unregister_device(rsdev->radio_dev);
-+	v4l2_device_unregister(&rsdev->v4l2_dev);
-+	kfree(rsdev);
 +
 +	return 0;
 +}
 +
-+static struct platform_driver radio_si4713_pdriver = {
-+	.driver		= {
-+		.name	= "radio-si4713",
-+	},
-+	.probe		= radio_si4713_pdriver_probe,
-+	.remove         = __exit_p(radio_si4713_pdriver_remove),
++static int timblogiw_querycap(struct file *file, void  *priv,
++	struct v4l2_capability *cap)
++{
++	dbg("%s\n",  __func__);
++	memset(cap, 0, sizeof(*cap));
++	strncpy(cap->card, "Timberdale Video", sizeof(cap->card)-1);
++	strncpy(cap->driver, "Timblogiw", sizeof(cap->card)-1);
++	cap->version = TIMBLOGIW_VERSION_CODE;
++	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE |
++		V4L2_CAP_STREAMING;
++
++	return 0;
++}
++
++static int timblogiw_enum_fmt(struct file *file, void  *priv,
++	struct v4l2_fmtdesc *fmt)
++{
++	dbg("%s, index: %d\n",  __func__, fmt->index);
++
++	if (fmt->index != 0)
++		return -EINVAL;
++	memset(fmt, 0, sizeof(*fmt));
++	fmt->index = 0;
++	fmt->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	strncpy(fmt->description, "4:2:2, packed, YUYV",
++		sizeof(fmt->description)-1);
++	fmt->pixelformat = V4L2_PIX_FMT_YUYV;
++	memset(fmt->reserved, 0, sizeof(fmt->reserved));
++
++	return 0;
++}
++
++static int timblogiw_reqbufs(struct file *file, void  *priv,
++	struct v4l2_requestbuffers *rb)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++
++	dbg("%s\n",  __func__);
++
++	if (rb->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
++		rb->memory != V4L2_MEMORY_MMAP)
++		return -EINVAL;
++
++	timblogiw_empty_framequeues(lw);
++
++	timblogiw_release_buffers(lw);
++	if (rb->count)
++		rb->count = timblogiw_request_buffers(lw, rb->count);
++
++	dbg("%s - VIDIOC_REQBUFS: io method is mmap. num bufs %i\n",
++		__func__, rb->count);
++
++	return 0;
++}
++
++static int timblogiw_querybuf(struct file *file, void  *priv,
++	struct v4l2_buffer *b)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++
++	dbg("%s\n",  __func__);
++
++	if (b->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
++		b->index >= lw->num_frames)
++		return -EINVAL;
++
++	memcpy(b, &lw->frame[b->index].buf, sizeof(*b));
++
++	if (lw->frame[b->index].vma_use_count)
++		b->flags |= V4L2_BUF_FLAG_MAPPED;
++
++	if (lw->frame[b->index].state == F_DONE)
++		b->flags |= V4L2_BUF_FLAG_DONE;
++	else if (lw->frame[b->index].state != F_UNUSED)
++		b->flags |= V4L2_BUF_FLAG_QUEUED;
++
++	return 0;
++}
++
++static int timblogiw_qbuf(struct file *file, void  *priv, struct v4l2_buffer *b)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++	unsigned long lock_flags;
++
++	if (b->type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
++		b->index >= lw->num_frames)
++		return -EINVAL;
++
++	if (lw->frame[b->index].state != F_UNUSED)
++		return -EAGAIN;
++
++	if (b->memory != V4L2_MEMORY_MMAP)
++		return -EINVAL;
++
++	lw->frame[b->index].state = F_QUEUED;
++
++	spin_lock_irqsave(&lw->queue_lock, lock_flags);
++	list_add_tail(&lw->frame[b->index].frame, &lw->inqueue);
++	spin_unlock_irqrestore(&lw->queue_lock, lock_flags);
++
++	return 0;
++}
++
++static int timblogiw_dqbuf(struct file *file, void  *priv,
++	struct v4l2_buffer *b)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++	struct timblogiw_frame *f;
++	unsigned long lock_flags;
++	int ret = 0;
++
++	if (b->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
++		dbg("%s - VIDIOC_DQBUF, illegal buf type!\n",
++			__func__);
++		return -EINVAL;
++	}
++
++	if (list_empty(&lw->outqueue)) {
++		if (file->f_flags & O_NONBLOCK)
++			return -EAGAIN;
++
++		ret = wait_event_interruptible(lw->wait_frame,
++			!list_empty(&lw->outqueue));
++		if (ret)
++			return ret;
++	}
++
++	spin_lock_irqsave(&lw->queue_lock, lock_flags);
++	f = list_entry(lw->outqueue.next,
++			struct timblogiw_frame, frame);
++	list_del(lw->outqueue.next);
++	spin_unlock_irqrestore(&lw->queue_lock, lock_flags);
++
++	f->state = F_UNUSED;
++	memcpy(b, &f->buf, sizeof(*b));
++
++	if (f->vma_use_count)
++		b->flags |= V4L2_BUF_FLAG_MAPPED;
++
++	return 0;
++}
++
++static int timblogiw_g_std(struct file *file, void  *priv, v4l2_std_id *std)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++
++	dbg("%s\n",  __func__);
++
++	*std = lw->cur_norm->std;
++	return 0;
++}
++
++static int timblogiw_s_std(struct file *file, void  *priv, v4l2_std_id *std)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++
++	dbg("%s\n",  __func__);
++
++	if (!(*std & lw->cur_norm->std))
++		return -EINVAL;
++	return 0;
++}
++
++static int timblogiw_enuminput(struct file *file, void  *priv,
++	struct v4l2_input *inp)
++{
++	dbg("%s\n",  __func__);
++
++	if (inp->index != 0)
++		return -EINVAL;
++
++	memset(inp, 0, sizeof(*inp));
++	inp->index = 0;
++
++	strncpy(inp->name, "Timb input 1", sizeof(inp->name) - 1);
++	inp->type = V4L2_INPUT_TYPE_CAMERA;
++	inp->std = V4L2_STD_ALL;
++
++	return 0;
++}
++
++static int timblogiw_g_input(struct file *file, void  *priv,
++	unsigned int *input)
++{
++	dbg("%s\n",  __func__);
++
++	*input = 0;
++
++	return 0;
++}
++
++static int timblogiw_s_input(struct file *file, void  *priv, unsigned int input)
++{
++	dbg("%s\n",  __func__);
++
++	if (input != 0)
++		return -EINVAL;
++	return 0;
++}
++
++static int timblogiw_streamon(struct file *file, void  *priv, unsigned int type)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++	struct timblogiw_frame *f;
++
++	dbg("%s\n",  __func__);
++
++	if (type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
++		dbg("%s - No capture device\n", __func__);
++		return -EINVAL;
++	}
++
++	if (list_empty(&lw->inqueue)) {
++		dbg("%s - inqueue is empty\n", __func__);
++		return -EINVAL;
++	}
++
++	if (lw->stream == STREAM_ON)
++		return 0;
++
++	lw->stream = STREAM_ON;
++
++	f = list_entry(lw->inqueue.next,
++		struct timblogiw_frame, frame);
++
++	dbg("%s - f size: %d, bpr: %d, dma addr: %x\n", __func__,
++		timblogiw_frame_size(lw->cur_norm),
++		timblogiw_bytes_per_line(lw->cur_norm),
++		(unsigned int)lw->dma.transfer[lw->dma.curr].handle);
++
++	timb_start_dma(DMA_IRQ_VIDEO_RX,
++		lw->dma.transfer[lw->dma.curr].handle,
++		timblogiw_frame_size(lw->cur_norm),
++		timblogiw_bytes_per_line(lw->cur_norm));
++
++	return 0;
++}
++
++static int timblogiw_streamoff(struct file *file, void  *priv,
++	unsigned int type)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++
++	dbg("%s\n",  __func__);
++
++	if (type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	if (lw->stream == STREAM_ON) {
++		unsigned long lock_flags;
++		spin_lock_irqsave(&lw->queue_lock, lock_flags);
++		timb_stop_dma(DMA_IRQ_VIDEO_RX);
++		lw->stream = STREAM_OFF;
++		spin_unlock_irqrestore(&lw->queue_lock, lock_flags);
++	}
++	timblogiw_empty_framequeues(lw);
++
++	return 0;
++}
++
++static int timblogiw_querystd(struct file *file, void  *priv, v4l2_std_id *std)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++
++	dbg("%s\n",  __func__);
++
++	return v4l2_subdev_call(lw->sd_enc, video, querystd, std);
++}
++
++static int timblogiw_enum_framesizes(struct file *file, void  *priv,
++	struct v4l2_frmsizeenum *fsize)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++
++	dbg("%s - index: %d, format: %d\n",  __func__,
++		fsize->index, fsize->pixel_format);
++
++	if ((fsize->index != 0) ||
++		(fsize->pixel_format != V4L2_PIX_FMT_YUYV))
++		return -EINVAL;
++
++	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++	fsize->discrete.width = lw->cur_norm->width;
++	fsize->discrete.height = lw->cur_norm->height;
++
++	return 0;
++}
++
++/*******************************
++ * Device Operations functions *
++ *******************************/
++
++static int timblogiw_open(struct file *file)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++	v4l2_std_id std = V4L2_STD_UNKNOWN;
++
++	dbg("%s -\n", __func__);
++
++	mutex_init(&lw->fileop_lock);
++	spin_lock_init(&lw->queue_lock);
++	init_waitqueue_head(&lw->wait_frame);
++
++	mutex_lock(&lw->lock);
++
++	timblogiw_querystd(file, NULL, &std);
++	lw->video_dev->tvnorms = std;
++	lw->cur_norm = timblogiw_get_norm(std);
++
++	file->private_data = lw;
++	lw->stream = STREAM_OFF;
++	lw->num_frames = TIMBLOGIW_NUM_FRAMES;
++
++	timblogiw_empty_framequeues(lw);
++	timb_set_dma_interruptcb(DMA_IRQ_VIDEO_RX | DMA_IRQ_VIDEO_DROP,
++		timblogiw_isr, (void *)lw);
++	mutex_unlock(&lw->lock);
++
++	return 0;
++}
++
++static int timblogiw_close(struct file *file)
++{
++	struct timblogiw *lw = file->private_data;
++
++	dbg("%s - entry\n", __func__);
++
++	mutex_lock(&lw->lock);
++
++	timb_stop_dma(DMA_IRQ_VIDEO_RX);
++	timb_set_dma_interruptcb(DMA_IRQ_VIDEO_RX | DMA_IRQ_VIDEO_DROP, NULL,
++		NULL);
++	timblogiw_release_buffers(lw);
++
++	mutex_unlock(&lw->lock);
++	return 0;
++}
++
++static ssize_t timblogiw_read(struct file *file, char __user *data,
++	size_t count, loff_t *ppos)
++{
++	dbg("%s - read request\n", __func__);
++	return -EINVAL;
++}
++
++static void timblogiw_vm_open(struct vm_area_struct *vma)
++{
++	struct timblogiw_frame *f = vma->vm_private_data;
++	f->vma_use_count++;
++}
++
++static void timblogiw_vm_close(struct vm_area_struct *vma)
++{
++	struct timblogiw_frame *f = vma->vm_private_data;
++	f->vma_use_count--;
++}
++
++static struct vm_operations_struct timblogiw_vm_ops = {
++	.open = timblogiw_vm_open,
++	.close = timblogiw_vm_close,
 +};
 +
-+/* Module Interface */
-+static int __init radio_si4713_module_init(void)
++static int timblogiw_mmap(struct file *filp, struct vm_area_struct *vma)
 +{
-+	return platform_driver_register(&radio_si4713_pdriver);
++	unsigned long size = vma->vm_end - vma->vm_start, start = vma->vm_start;
++	void *pos;
++	u32 i;
++	int ret = -EINVAL;
++
++	struct timblogiw *lw = filp->private_data;
++	dbg("%s\n", __func__);
++
++	if (mutex_lock_interruptible(&lw->fileop_lock))
++		return -ERESTARTSYS;
++
++	if (!(vma->vm_flags & VM_WRITE) ||
++		size != PAGE_ALIGN(lw->frame[0].buf.length))
++		goto error_unlock;
++
++	for (i = 0; i < lw->num_frames; i++)
++		if ((lw->frame[i].buf.m.offset >> PAGE_SHIFT) == vma->vm_pgoff)
++			break;
++
++	if (i == lw->num_frames) {
++		dbg("%s - user supplied mapping address is out of range\n",
++			__func__);
++		goto error_unlock;
++	}
++
++	vma->vm_flags |= VM_IO;
++	vma->vm_flags |= VM_RESERVED;	/* Do not swap out this VMA */
++
++	pos = lw->frame[i].bufmem;
++	while (size > 0) {		/* size is page-aligned */
++		if (vm_insert_page(vma, start, vmalloc_to_page(pos))) {
++			dbg("%s - vm_insert_page failed\n", __func__);
++			ret = -EAGAIN;
++			goto error_unlock;
++		}
++		start += PAGE_SIZE;
++		pos += PAGE_SIZE;
++		size -= PAGE_SIZE;
++	}
++
++	vma->vm_ops = &timblogiw_vm_ops;
++	vma->vm_private_data = &lw->frame[i];
++	timblogiw_vm_open(vma);
++	ret = 0;
++
++error_unlock:
++	mutex_unlock(&lw->fileop_lock);
++	return ret;
 +}
 +
-+static void __exit radio_si4713_module_exit(void)
++
++void timblogiw_vdev_release(struct video_device *vdev)
 +{
-+	platform_driver_unregister(&radio_si4713_pdriver);
++	kfree(vdev);
 +}
 +
-+module_init(radio_si4713_module_init);
-+module_exit(radio_si4713_module_exit);
++static const struct v4l2_ioctl_ops timblogiw_ioctl_ops = {
++	.vidioc_querycap      = timblogiw_querycap,
++	.vidioc_enum_fmt_vid_cap  = timblogiw_enum_fmt,
++	.vidioc_g_fmt_vid_cap     = timblogiw_g_fmt,
++	.vidioc_try_fmt_vid_cap   = timblogiw_try_fmt,
++	.vidioc_s_fmt_vid_cap     = timblogiw_try_fmt,
++	.vidioc_reqbufs       = timblogiw_reqbufs,
++	.vidioc_querybuf      = timblogiw_querybuf,
++	.vidioc_qbuf          = timblogiw_qbuf,
++	.vidioc_dqbuf         = timblogiw_dqbuf,
++	.vidioc_g_std         = timblogiw_g_std,
++	.vidioc_s_std         = timblogiw_s_std,
++	.vidioc_enum_input    = timblogiw_enuminput,
++	.vidioc_g_input       = timblogiw_g_input,
++	.vidioc_s_input       = timblogiw_s_input,
++	.vidioc_streamon      = timblogiw_streamon,
++	.vidioc_streamoff     = timblogiw_streamoff,
++	.vidioc_querystd      = timblogiw_querystd,
++	.vidioc_enum_framesizes = timblogiw_enum_framesizes,
++};
 +
-diff --git a/linux/include/media/radio-si4713.h b/linux/include/media/radio-si4713.h
-new file mode 100644
-index 0000000..f6aae29
---- /dev/null
-+++ b/linux/include/media/radio-si4713.h
-@@ -0,0 +1,30 @@
++static const struct v4l2_file_operations timblogiw_fops = {
++	.owner		= THIS_MODULE,
++	.open	 	= timblogiw_open,
++	.release	= timblogiw_close,
++	.ioctl		= video_ioctl2, /* V4L2 ioctl handler */
++	.mmap		= timblogiw_mmap,
++	.read		= timblogiw_read,
++};
++
++static const struct video_device timblogiw_template = {
++	.name		= TIMBLOGIWIN_NAME,
++	.fops		= &timblogiw_fops,
++	.ioctl_ops 	= &timblogiw_ioctl_ops,
++	.release	= &timblogiw_vdev_release,
++	.minor		= -1
++};
++
++
++struct find_addr_arg {
++	char const *name;
++	struct i2c_client *client;
++};
++
++static int find_name(struct device *dev, void *argp)
++{
++	struct find_addr_arg	*arg = (struct find_addr_arg *)argp;
++	struct i2c_client	*client = i2c_verify_client(dev);
++
++	if (client && !strcmp(arg->name, client->name) && client->driver)
++		arg->client = client;
++
++	return 0;
++}
++
++static int timblogiw_probe(struct platform_device *dev)
++{
++	int err;
++	struct timblogiw *lw;
++	struct resource *iomem;
++	struct timb_video_platform_data *pdata = dev->dev.platform_data;
++	struct i2c_adapter *adapt;
++	struct i2c_client *encoder;
++	struct find_addr_arg find_arg;
++
++	if (!pdata) {
++		printk(KERN_ERR "timblogiw: Platform data missing\n");
++		err = -EINVAL;
++		goto err_mem;
++	}
++
++	iomem = platform_get_resource(dev, IORESOURCE_MEM, 0);
++	if (!iomem) {
++		err = -EINVAL;
++		goto err_mem;
++	}
++
++	lw = kzalloc(sizeof(*lw), GFP_KERNEL);
++	if (!lw) {
++		err = -EINVAL;
++		goto err_mem;
++	}
++
++	/* find the PCI device from the parent... */
++	if (!dev->dev.parent) {
++		printk(KERN_ERR "timblogiw: No parent device found??\n");
++		err = -ENODEV;
++		goto err_encoder;
++	}
++
++	lw->dev = container_of(dev->dev.parent, struct pci_dev, dev);
++
++	/* find the video decoder */
++	adapt = i2c_get_adapter(pdata->i2c_adapter);
++	if (!adapt) {
++		printk(KERN_ERR "timblogiw: No I2C bus\n");
++		err = -ENODEV;
++		goto err_encoder;
++	}
++
++	/* now find the encoder */
++#ifdef MODULE
++	request_module(pdata->encoder);
++#endif
++	/* Code for finding the I2C child */
++	find_arg.name = pdata->encoder;
++	find_arg.client = NULL;
++	device_for_each_child(&adapt->dev, &find_arg, find_name);
++	encoder = find_arg.client;
++	i2c_put_adapter(adapt);
++
++	if (!encoder) {
++		printk(KERN_ERR "timblogiw: Failed to get encoder\n");
++		err = -ENODEV;
++		goto err_encoder;
++	}
++
++	/* Lock the module */
++	if (!try_module_get(encoder->driver->driver.owner)) {
++		err = -ENODEV;
++		goto err_encoder;
++	}
++
++	lw->sd_enc = i2c_get_clientdata(encoder);
++
++	mutex_init(&lw->lock);
++
++	lw->video_dev = video_device_alloc();
++	if (!lw->video_dev) {
++		err = -ENOMEM;
++		goto err_video_req;
++	}
++	*lw->video_dev = timblogiw_template;
++
++	err = video_register_device(lw->video_dev, VFL_TYPE_GRABBER, 0);
++	if (err) {
++		video_device_release(lw->video_dev);
++		printk(KERN_ALERT "Error reg video\n");
++		goto err_video_req;
++	}
++
++	tasklet_init(&lw->tasklet, timblogiw_handleframe, (unsigned long)lw);
++
++	if (!request_mem_region(iomem->start, resource_size(iomem),
++		"timb-video")) {
++		err = -EBUSY;
++		goto err_request;
++	}
++
++	lw->membase = ioremap(iomem->start, resource_size(iomem));
++	if (!lw->membase) {
++		err = -ENOMEM;
++		goto err_ioremap;
++	}
++
++	platform_set_drvdata(dev, lw);
++	video_set_drvdata(lw->video_dev, lw);
++
++	return 0;
++
++err_ioremap:
++	release_mem_region(iomem->start, resource_size(iomem));
++err_request:
++	if (-1 != lw->video_dev->minor)
++		video_unregister_device(lw->video_dev);
++	else
++		video_device_release(lw->video_dev);
++err_video_req:
++	module_put(lw->sd_enc->owner);
++err_encoder:
++	kfree(lw);
++err_mem:
++	printk(KERN_ERR
++		"timblogiw: Failed to register Timberdale Video In: %d\n", err);
++
++	return err;
++}
++
++static int timblogiw_remove(struct platform_device *dev)
++{
++	struct timblogiw *lw = platform_get_drvdata(dev);
++	struct resource *iomem = platform_get_resource(dev, IORESOURCE_MEM, 0);
++
++	if (-1 != lw->video_dev->minor)
++		video_unregister_device(lw->video_dev);
++	else
++		video_device_release(lw->video_dev);
++
++	module_put(lw->sd_enc->owner);
++	tasklet_kill(&lw->tasklet);
++	iounmap(lw->membase);
++	release_mem_region(iomem->start, resource_size(iomem));
++	kfree(lw);
++
++	return 0;
++}
++
++static struct platform_driver timblogiw_platform_driver = {
++	.driver = {
++		.name	= "timb-video",
++		.owner	= THIS_MODULE,
++	},
++	.probe		= timblogiw_probe,
++	.remove		= timblogiw_remove,
++};
++
++/*--------------------------------------------------------------------------*/
++
++static int __init timblogiw_init(void)
++{
++	return platform_driver_register(&timblogiw_platform_driver);
++}
++
++static void __exit timblogiw_exit(void)
++{
++	platform_driver_unregister(&timblogiw_platform_driver);
++}
++
++module_init(timblogiw_init);
++module_exit(timblogiw_exit);
++
++MODULE_DESCRIPTION("Timberdale Video In driver");
++MODULE_AUTHOR("Mocean Laboratories <info@mocean-labs.com>");
++MODULE_LICENSE("GPL v2");
++MODULE_ALIAS("platform:timb-video");
++
+Index: linux-2.6.30-rc7/drivers/media/video/timblogiw.h
+===================================================================
+--- linux-2.6.30-rc7/drivers/media/video/timblogiw.h	(revision 0)
++++ linux-2.6.30-rc7/drivers/media/video/timblogiw.h	(revision 864)
+@@ -0,0 +1,94 @@
 +/*
-+ * include/media/radio-si4713.h
++ * timblogiw.h timberdale FPGA LogiWin Video In driver defines
++ * Copyright (c) 2009 Intel Corporation
 + *
-+ * Board related data definitions for Si4713 radio transmitter chip.
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + *
-+ * Copyright (c) 2009 Nokia Corporation
-+ * Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
 + *
-+ * This file is licensed under the terms of the GNU General Public License
-+ * version 2. This program is licensed "as is" without any warranty of any
-+ * kind, whether express or implied.
-+ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 + */
 +
-+#ifndef RADIO_SI4713_H
-+#define RADIO_SI4713_H
++/* Supports:
++ * Timberdale FPGA LogiWin Video In
++ */
++
++#ifndef _TIMBLOGIW_H
++#define _TIMBLOGIW_H
++
++#include <linux/interrupt.h>
++
++#define TIMBLOGIWIN_NAME    "Timberdale Video-In"
++
++#define TIMBLOGIW_NUM_FRAMES	10
++
++
++enum timblogiw_stream_state {
++	STREAM_OFF,
++	STREAM_ON,
++};
++
++enum timblogiw_frame_state {
++	F_UNUSED = 0,
++	F_QUEUED,
++	F_GRABBING,
++	F_DONE,
++	F_ERROR,
++};
++
++struct timblogiw_frame {
++	void				*bufmem;
++	struct v4l2_buffer		buf;
++	enum timblogiw_frame_state	state;
++	struct list_head		frame;
++	unsigned long			vma_use_count;
++};
++
++struct timblogiw_tvnorm {
++	v4l2_std_id std;
++	char    *name;
++	u16     width;
++	u16     height;
++};
++
++
++
++struct timbdma_transfer {
++	dma_addr_t	handle;
++	void		*buf;
++};
++
++struct timbdma_control {
++	struct timbdma_transfer	transfer[2];
++	struct timbdma_transfer *filled;
++	int curr;
++};
++
++struct timblogiw {
++	struct i2c_client		*decoder;
++	struct timblogiw_frame		frame[TIMBLOGIW_NUM_FRAMES];
++	int				num_frames;
++	unsigned int			frame_count;
++	struct list_head		inqueue, outqueue;
++	spinlock_t			queue_lock; /* mutual exclusion */
++	enum timblogiw_stream_state	stream;
++	struct video_device		*video_dev;
++	struct mutex			lock, fileop_lock;
++	wait_queue_head_t		wait_frame;
++	struct timblogiw_tvnorm const	*cur_norm;
++	struct pci_dev			*dev;
++	struct timbdma_control		dma;
++	void __iomem			*membase;
++	struct tasklet_struct		tasklet;
++	struct v4l2_subdev *sd_enc;	/* encoder */
++};
++
++#endif /* _TIMBLOGIW_H */
++
+Index: linux-2.6.30-rc7/include/media/timb_video.h
+===================================================================
+--- linux-2.6.30-rc7/include/media/timb_video.h	(revision 0)
++++ linux-2.6.30-rc7/include/media/timb_video.h	(revision 864)
+@@ -0,0 +1,30 @@
++/*
++ * timb_video.h Platform struct for the Timberdale video driver
++ * Copyright (c) 2009 Intel Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#ifndef _TIMB_VIDEO_
++#define _TIMB_VIDEO_ 1
 +
 +#include <linux/i2c.h>
 +
-+#define SI4713_NAME "radio-si4713"
-+
-+/*
-+ * Platform dependent definition
-+ */
-+struct radio_si4713_platform_data {
-+	int i2c_bus;
-+	struct i2c_board_info *subdev_board_info;
++struct timb_video_platform_data {
++	int i2c_adapter; /* The I2C adapter where the encoder is attached */
++	char encoder[32];
 +};
 +
-+#endif /* ifndef RADIO_SI4713_H*/
--- 
-1.6.2.GIT
-
++#endif
++
