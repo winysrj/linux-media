@@ -1,266 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:57124 "EHLO mail1.radix.net"
+Received: from hora-obscura.de ([213.133.111.163]:45730 "EHLO hora-obscura.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750765AbZFUERh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Jun 2009 00:17:37 -0400
-Subject: Re: Sakar 57379 USB Digital Video Camera...
-From: Andy Walls <awalls@radix.net>
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <alpine.LNX.2.00.0906201956270.28975@banach.math.auburn.edu>
-References: <1245375652.20630.6.camel@palomino.walls.org>
-	 <alpine.LNX.2.00.0906182113010.17417@banach.math.auburn.edu>
-	 <1245386416.20630.31.camel@palomino.walls.org>
-	 <alpine.LNX.2.00.0906190016070.17528@banach.math.auburn.edu>
-	 <1245435414.4181.7.camel@palomino.walls.org>
-	 <alpine.LNX.2.00.0906191855110.18505@banach.math.auburn.edu>
-	 <1245462845.3168.40.camel@palomino.walls.org>
-	 <alpine.LNX.2.00.0906192253080.18675@banach.math.auburn.edu>
-	 <1245525813.3178.24.camel@palomino.walls.org>
-	 <1245538316.3296.36.camel@palomino.walls.org>
-	 <alpine.LNX.2.00.0906201956270.28975@banach.math.auburn.edu>
-Content-Type: text/plain
-Date: Sun, 21 Jun 2009 00:19:17 -0400
-Message-Id: <1245557957.3296.215.camel@palomino.walls.org>
-Mime-Version: 1.0
+	id S1752795AbZFEHnn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 5 Jun 2009 03:43:43 -0400
+Message-ID: <4A28CC9B.6070306@hora-obscura.de>
+Date: Fri, 05 Jun 2009 10:43:23 +0300
+From: Stefan Kost <ensonic@hora-obscura.de>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Trent Piepho <xyzzy@speakeasy.org>, linux-media@vger.kernel.org
+Subject: Re: webcam drivers and V4L2_MEMORY_USERPTR support
+References: <4A238292.6000205@hora-obscura.de> <Pine.LNX.4.58.0906010056140.32713@shell2.speakeasy.net> <4A23CF7F.3070301@redhat.com>
+In-Reply-To: <4A23CF7F.3070301@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-06-20 at 20:04 -0500, Theodore Kilgore wrote:
-> 
+Hans de Goede schrieb:
+>
+>
+> On 06/01/2009 09:58 AM, Trent Piepho wrote:
+>> On Mon, 1 Jun 2009, Stefan Kost wrote:
+>>> I have implemented support for V4L2_MEMORY_USERPTR buffers in
+>>> gstreamers
+>>> v4l2src [1]. This allows to request shared memory buffers from xvideo,
+>>> capture into those and therefore save a memcpy. This works great with
+>>> the v4l2 driver on our embedded device.
+>>>
+>>> When I was testing this on my desktop, I noticed that almost no driver
+>>> seems to support it.
+>>> I tested zc0301 and uvcvideo, but also grepped the kernel driver
+>>> sources. It seems that gspca might support it, but I ave not confirmed
+>>> it. Is there a technical reason for it, or is it simply not
+>>> implemented?
+>>
+>> userptr support is relatively new and so it has less support, especially
+>> with driver that pre-date it.  Maybe USB cams use a compressed format
+>> and
+>> so userptr with xvideo would not work anyway since xv won't support the
+>> camera's native format.  It certainly could be done for bt8xx, cx88,
+>> saa7134, etc.
+>
+> Even in the webcam with custom compressed format case, userptr support
+> could
+> be useful to safe a memcpy, as libv4l currently fakes mmap buffers, so
+> what
+> happens  is:
+>
+> cam >direct transfer> mmap buffer >libv4l format conversion> fake mmap
+> buffer
+> >application-memcpy> dest buffer
+>
+> So if libv4l would support userptr's (which it currently does not do) we
+> could still safe a memcpy here.
+Do you mean that if a driver supports userptr and one uses libv4l
+instead of the direct ioctl, there is a regression and the app is
+getting told only mmap works? For higher pixels counts extra memcpy's
+are scary, especially if they are no visible. Sorry for the naive
+question, but what is libv4l role regarding buffer allocations?
 
-> >>> Sure looks that way. I took a closer look at the lines starting with ff ff
-> >>> ff ff strings, and I found a couple more things. Here are several lines
-> >>> from an extract from that snoop, consisting of what appear to be
-> >>> consecutive SOF lines.
-> >>>
-> >>>      00000000: ff ff ff ff 00 00 1c 70 3c 00 0f 01 00 00 00 00
-> >>>      00000000: ff ff ff ff 00 00 34 59 1e 00 1b 06 00 00 00 00
-> >>>      00000000: ff ff ff ff 00 00 36 89 1e 00 1c 07 00 00 00 00
-> >>>      00000000: ff ff ff ff 00 00 35 fc 1e 00 1b 08 00 00 00 00
-> >>>      00000000: ff ff ff ff 00 00 35 84 1e 00 1b 09 00 00 00 00
-> >>>
-> >>> The last non-zero byte is a frame counter. Presumably, the gap between the
-> >>> 01 and the 06 occurs because the camera was just then starting up and
-> >>> things were a bit chaotic. The rest of the lines in the file are
-> >>> completely consistent, counting consecutively from 09 to 49 (hex, of
-> >>> course) at which point I killed the stream.
-> >>>
-> >>> The byte previous to that one (reading downwards 0f 1b 1c 1b 1b ...) gives
-> >>> the number of 0x200-byte blocks in that frame, before the next marker
-> >>> comes along. So if we start from the frame labeled "06" then from there on
-> >>> the frames are approximately the same size, but not identical. For example
-> >>> the size of frame 06 is 0x1b*0x200. That is, 27*512 bytes.
-> >
-> > Here's the init for my camera:
-> >
-> > 0000: 71 81
-> > 0000: 70 05
-> > 0000: 95 70
-> > 0000: 00
-> > 0000: 71 81
-> > 0000: 70 04
-> > 0000: 95 70
-> > 0000: 00
-> > 0000: 71 00
-> > 0000: 70 08
-> > 0000: 95 70
-> > 0000: 00
-> > 0000: 94 02
-> > 0000: de 24
-> > 0000: 94 02
-> > 0000: dd f0
-> > 0000: 94 02
-> > 0000: e3 22 <--- different
-> > 0000: 94 02
-> > 0000: e4 00
-> > 0000: 94 02
-> > 0000: e5 00 <--- not repeated like in the sequence above
-> > 0000: 94 02
-> > 0000: e6 22 <--- different
-> > 0000: 94 03
-> > 0000: aa 01 <--- different
-> > 0000: 71 1e
-> > 0000: 70 06
-> > 0000: 71 80
-> > 0000: 70 07
-> >
-> > And here's the terminal sequence:
-> >
-> > 0000: 71 00
-> > 0000: 70 09
-> > 0000: 71 80
-> > 0000: 70 05
-> >
-> > They look amazingly similar to yours.
-> >
-> > Here are the buffers with the supposed SOF marker:
-> >
-> > 0000: ff ff ff ff 00 00 18 43 1e 00 0d fa 00 00 00 00
-> > 0000: ff ff ff ff 00 00 18 26 1e 00 0d 00 00 00 00 00
-> > 0000: ff ff ff ff 00 00 17 fa 1e 00 0c 01 00 00 00 00
-> > 0000: ff ff ff ff 00 00 18 4e 1e 00 0d 02 00 00 00 00
-> > 0000: ff ff ff ff 00 00 18 91 1e 00 0d 03 00 00 00 00
-> > 0000: ff ff ff ff 00 00 18 90 1e 00 0d 04 00 00 00 00
-> > 0000: ff ff ff ff 00 00 18 4b 1e 00 0d 05 00 00 00 00
-> > 0000: ff ff ff ff 00 00 18 8a 1e 00 0d 06 00 00 00 00
-> >
-> > Again very similar.  I had the camera pointed at a mostly white test
-> > target with some large blue numbers printed on it, so the sammler
-> > buffers probably just indicate how simple the test target was.
-> >
-> > The frames from my camera were coming at 100 ms intervals instead of 130
-> > ms intervals.  So maybe some scaling constant has changed with my
-> > supposed frame presentation frequency field that contains 0x1e00.
-
-> 
-> This looks quite similar. The differences in the init sequence may be 
-> significant, but more likely I would speculate that they are 
-> insubstantial. Probably the little differences are due to who actually 
-> wrote the camera driver. Those guys over there also put their pants on one 
-> leg at a time just like the rest of us, after all. I think they do things 
-> like hiring students to write their drivers. If so, they might possibly 
-> get the same kind of results that could be expected over here from similar 
-> arrangements.
-
-Agree.
-
-The more I dig into this, the more I think (hope or wish?) the stuff in
-the usb snoop logs looks MJPEG.
-
-I started looking at an AVI file that I recorded with the camera.  It
-looks like a DV AVI Type-2 file.
-
-In the AVI file header, my camera reports:
-
-00000d0: 0000 0000 7374 7264 ac00 0000 4a65 696c  ....strd....Jeil
-00000e0: 696e 2020 5465 6368 6e6f 6c6f 6779 2043  in  Technology C
-00000f0: 6f2e 2c20 4c74 642e 4a4c 3230 3038 5632  o., Ltd.JL2008V2
-0000100: 4330 3037 3030 3130 2020 2020 2020 2020  C0070010        
-
-So looking up the JL2008A datasheet, my camera's capabilities match the
-data sheet very well.
-
-http://jeilin.com.tw/eng/product_detail.php?p_id=5
-http://jeilin.com.tw/mana_php/Download/File/JL2008A%20v1.3.pdf
-
-The only video compression that is mentioned on the webpage and in the
-datasheet is JPEG.
-
-Trying to learn about DV AVI Type 2 files I've found roughly how
-individual chunk headers look.  They each have a stream fourcc that
-starts 'nnxx' in ASCII, where nn is the stream number and xx is
-
-db - uncompressed video frame
-dc - compressed video frame
-wb - audio data
-
-$ xxd 00004.avi  | grep -E ' 303[0-2] ((646)|(776))' 
-
-00001f0: 14fe 0c00 6d6f 7669 3031 7762 401f 0000  ....movi01wb@...  <-- audio
-0002140: 3032 6462 0041 0000 ffe2 55aa 0500 0000  02db.A....U.....  <-- video
-0006250: 3032 6462 0041 0000 ffe2 55aa 0500 0001  02db.A....U.....  <-- video
-000a360: 3032 6462 0041 0000 ffe2 55aa 0500 0002  02db.A....U.....  <-- video
-000e470: 3032 6462 0041 0000 ffe2 55aa 0500 0003  02db.A....U.....  <-- video
-0012580: 3032 6462 0041 0000 ffe2 55aa 0500 0004  02db.A....U.....  <-- video
-0016690: 3030 6463 281c 0000 ffd8 ffe0 0016 4156  00dc(.........AV  <-- compressed video
-00182c0: 3030 6463 e81b 0000 ffd8 ffe0 0016 4156  00dc..........AV  <-- compressed video
-0019eb0: 3030 6463 c81b 0000 ffd8 ffe0 0016 4156  00dc..........AV  <-- compressed video
-
->From the AVI header and from the compressed video chunk headers, the
-compressed video stream is MJPEG.
-
-I don't know what the uncompressed video (02db) chunks are.  The AVI
-header doesn't mention a third stream (stream 02).  The length of each
-chunk of this third stream is 0x4100 = 0x20 * 0x200 and each one has an
-incrementing sequence number in the header.
-
-Doing some math:
-
-320 * 240 = 76800 = 0x12c00
-
-0x12c00 / 0x4100 = 0x4.9d = 4.61
-
-so 5 chunks of 0x4100 bytes would be needed for one uncompressed 320x240
-frame at 8 bits/pixel.  Those uncompressed video chunks always come in
-groups of 5 in the AVI file.
-
-
-The idx section at the end of the AVI file only indexes the compressed
-video (00dc) and audio (01wb) chunks:
-
-00d0000: 0000 0000 0000 0000 6964 7831 4005 0000  ........idx1@...
-00d0010: 3031 7762 0000 0000 0400 0000 401f 0000  01wb........@...
-00d0020: 3030 6463 1000 0000 9c64 0100 281c 0000  00dc.....d..(...
-00d0030: 3030 6463 1000 0000 cc80 0100 e81b 0000  00dc............
-00d0040: 3030 6463 1000 0000 bc9c 0100 c81b 0000  00dc............
-00d0050: 3030 6463 1000 0000 8cb8 0100 f81b 0000  00dc............
-00d0060: 3030 6463 1000 0000 8cd4 0100 581c 0000  00dc........X...
-
-
-My tired eyes are telling me the AVI file's MJPEG compressed video
-stream (00dc) looks like what comes out of the camera in webcam mode
-than the AVI file's uncompressed video stream.
-
-The first 0x110 bytes of the MJPEG stream (00dc) chunks in the AVI file
-remain invariant, except for 3, 32 bit values related to length: The AVI
-stream 00dc chunk length and the MJPEG AVI1 App's field size and padded
-field size (I think).
-
-0099560: 30 30 64 63 78 0e 00 00 ff d8 ff e0 00 16 41 56  00dcx.........AV
-                     ^^^^^^^^^^^--- Chunk/padded length
-0099570: 49 31 00 00 78 0e 00 00 71 0e 00 00 00 00 00 00  I1..x...q.......
-                     ^^^^^^^^^^^ ^^^^^^^^^^^ --- actual length
-0099580: 00 00 ff dd 00 04 00 00 ff db 00 c5 00 14 0e 0f  ................
-0099590: 12 0f 0d 14 12 10 12 17 15 14 18 1e 32 21 1e 1c  ............2!..
-00995a0: 1c 1e 3d 2c 2e 24 32 49 40 4c 4b 47 40 46 45 50  ..=,.$2I@LKG@FEP
-00995b0: 5a 73 62 50 55 6d 56 45 46 64 88 65 6d 77 7b 81  ZsbPUmVEFd.emw{.
-00995c0: 82 81 4e 60 8d 97 8c 7d 96 73 7e 81 7c 01 15 17  ..N`...}.s~.|...
-00995d0: 17 1e 1a 1e 3b 21 21 3b 7c 53 46 53 7c 7c 7c 7c  ....;!!;|SFS||||
-00995e0: 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c  ||||||||||||||||
-00995f0: 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c  ||||||||||||||||
-0099600: 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 02 15  ||||||||||||||..
-0099610: 17 17 1e 1a 1e 3b 21 21 3b 7c 53 46 53 7c 7c 7c  .....;!!;|SFS|||
-0099620: 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c  ||||||||||||||||
-0099630: 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c  ||||||||||||||||
-0099640: 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c 7c ff  |||||||||||||||.
-0099650: c0 00 11 08 00 f0 01 40 03 01 22 00 02 11 01 03  .......@..".....
-0099660: 11 02 ff da 00 0c 03 01 00 02 11 03 11 00 3f 00  ..............?.
-         (end of the invariant portion of an MJPEG chunk in an AVI file)
-
-0099670: a1 46 73 d3 f9 51 ce 3e b4 77 e6 82 ec 02 83 e9  .Fs..Q.>.w......
-0099680: 8a 3b d1 d3 a5 2b 88 07 4a 4e a4 d1 da 97 de 90  .;...+..JN......
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-                                     |
-First 32 bytes of the MJPEG chunk payload data that varies.
-
-
-The invariant, MJPEG header portion contains some quantization tables, a
-SOS marker, and SOF marker etc.
-
-The payload after the SOS marker (ff da 00 0c 03 01 00 02 11 03 11 00 3f 00)
-reminds me a lot of what the camera puts out in webcam mode.
-
-I suppose if you've seen one blob of Huffman coded data, you've seen
-them all, so the webcam mode could be putting out something wildly
-different from MJPEG data.  However, I'm betting that the webcam uses an
-implicit MJPEG header and only sends the encoded data.
-
-
-> As to
-> 
-> > 0000: e5 00 <--- not repeated like in the sequence above
-> 
-> that was a transcription error on my part, committed by using the mouse to 
-> copy something in two pieces that was too long to copy at once. Check the 
-> log I sent along. But I think it is not really there.
-
-OK.  I'm not too concerned about this at the moment.
-
-Regards,
-Andy
-
-> Theodore Kilgore
-
+In ourcase we don't need any extra format conversion from libv4l. I am
+fine if it works without extra memcpy in that case and I understand that
+it would be tricky to support inplace formats conversions for some
+formats and extra memcpy for the rest.
+>
+> I would be willing to take *clean, non invasive* patches to libv4l to add
+> userptr support, but I'm not sure if this can be done in a clean way
+> (haven't
+> tried).
+Where are the libv4l sources hosted. I found your blog and the freshmeat
+page only so far.
+>
+> An alternative could be for the app to just use read() in the above case
+> as then the app already provides the dest buffer. And the conversion
+> will write
+> directly to the application provided buffer.
+The driver in question support streaming. Isn't that the better way to
+do it.
+>
+> Regards,
+>
+> Hans
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
