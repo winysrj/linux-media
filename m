@@ -1,40 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out002.kontent.com ([81.88.40.216]:44735 "EHLO
-	smtp-out002.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753878AbZFHLCR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2009 07:02:17 -0400
-From: Oliver Neukum <oliver@neukum.org>
-To: Alexey Klimov <klimov.linux@gmail.com>
-Subject: Re: Probably strange bug with usb radio-mr800
-Date: Mon, 8 Jun 2009 13:03:02 +0200
-Cc: Linux Media <linux-media@vger.kernel.org>,
-	linux-usb@vger.kernel.org,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Greg KH <gregkh@suse.de>
-References: <208cbae30905271051jfe3294bye415b5b4cd0ce14b@mail.gmail.com> <200906062307.14730.oliver@neukum.org> <208cbae30906070641j12cc04c1vcaf28f31b38e8e1e@mail.gmail.com>
-In-Reply-To: <208cbae30906070641j12cc04c1vcaf28f31b38e8e1e@mail.gmail.com>
+Received: from mail4.sea5.speakeasy.net ([69.17.117.6]:42093 "EHLO
+	mail4.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752703AbZFFRtx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Jun 2009 13:49:53 -0400
+Date: Sat, 6 Jun 2009 10:49:54 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Andy Walls <awalls@radix.net>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>,
+	"\\\\\\ext Mauro Carvalho Chehab\\\\\\" <mchehab@infradead.org>,
+	"\\\\\\Nurkkala Eero.An (EXT-Offcode/Oulu)\\\\\\"
+	<ext-Eero.Nurkkala@nokia.com>,
+	"\\\\\\ext Douglas Schilling Landgraf\\\\\\" <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCHv5 1 of 8] v4l2_subdev i2c: Add v4l2_i2c_new_subdev_board
+ i2c helper function
+In-Reply-To: <1244301548.3149.27.camel@palomino.walls.org>
+Message-ID: <Pine.LNX.4.58.0906061036090.32713@shell2.speakeasy.net>
+References: <1243582408-13084-1-git-send-email-eduardo.valentin@nokia.com>
+ <1243582408-13084-2-git-send-email-eduardo.valentin@nokia.com>
+ <200906061359.19732.hverkuil@xs4all.nl>  <200906061449.46720.hverkuil@xs4all.nl>
+ <1244301548.3149.27.camel@palomino.walls.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200906081303.02570.oliver@neukum.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Sonntag, 7. Juni 2009 15:41:13 schrieb Alexey Klimov:
-
-> > If not, the driver may not be 64bit clean. Which driver is affected?
+On Sat, 6 Jun 2009, Andy Walls wrote:
+> +Alternatively, you can create the unsigned short array dynamically:
+> +
+> +struct v4l2_subdev *sd = v4l2_i2c_subdev(v4l2_dev, adapter,
+> +	       "module_foo", "chipid", 0, V4L2_I2C_ADDRS(0x10, 0x12));
 >
-> media/radio/radio-mr800.c
+> Strictly speaking, that's not "dynamically" in the sense of the
+> generated machine code - everything is going to come from the local
+> stack and the initialized data space.  The compiler will probably be
+> smart enough to generate an unnamed array in the initialized data space
+> anyway, avoiding the use of local stack for the array. :)
 
-I can see no obvious 64bit problem.
+No such luck, gcc will create an array on the stack and then initialize it
+with a series of move word instructions.  It isn't even smart enough to
+turn:
 
-> Please, also take a look in my first letter to usb and v4l mail lists
-> from May 27.
+        movw    $1, (%esp)
+        movw    $2, 2(%esp)
+        movw    $3, 4(%esp)
+        movw    $-1, 6(%esp)
 
-Please resend that and put linux-usb@vger.kernel.org into cc.
+into:
+	movl	$0x00020001, (%esp)
+	movl	$0xffff0003, 4(%esp)
 
-	Regards
-		Oliver
+Now, if you use a different syntax, and change this:
 
+#define V4L2_I2C_ADDRS(addr, addrs...) \
+        ((const unsigned short []){ addr, ## addrs, -1 })
+#define bar(addrs...)   _bar(V4L2_I2C_ADDRS(addrs))
+
+into this:
+
+#define bar(addr, addrs...) \
+        ({ const unsigned short _a[] = {addr, ## addrs, -1}; _bar(_a); })
+
+If all the values are constants, then for the latter method only gcc will
+will create an array in the initialized data segment and use that.
