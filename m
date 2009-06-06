@@ -1,53 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4218 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751558AbZFQHoH (ORCPT
+Received: from mail-in-09.arcor-online.net ([151.189.21.49]:60691 "EHLO
+	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752606AbZFFX0Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 03:44:07 -0400
-Message-ID: <13104.62.70.2.252.1245224630.squirrel@webmail.xs4all.nl>
-Date: Wed, 17 Jun 2009 09:43:50 +0200 (CEST)
-Subject: Re: Convert cpia driver to v4l2,
-      drop parallel port version support?
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Hans de Goede" <hdegoede@redhat.com>
-Cc: "Linux Media Mailing List" <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Sat, 6 Jun 2009 19:26:25 -0400
+Subject: Re: RFC: proposal for new i2c.h macro to initialize i2c address
+	lists  on the fly
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Jon Smirl <jonsmirl@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-i2c@vger.kernel.org,
+	linux-media@vger.kernel.org
+In-Reply-To: <9e4733910906061520o7b0b2858wf4530cf672b1adc9@mail.gmail.com>
+References: <200906061500.49338.hverkuil@xs4all.nl>
+	 <9e4733910906061520o7b0b2858wf4530cf672b1adc9@mail.gmail.com>
+Content-Type: text/plain
+Date: Sun, 07 Jun 2009 01:23:02 +0200
+Message-Id: <1244330582.17786.12.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
-> Hi,
->
-> I recently have been bying second hand usb webcams left and right
-> one of them (a creative unknown model) uses the cpia1 chipset, and
-> works with the v4l1 driver currently in the kernel.
->
-> One of these days I would like to convert it to a v4l2 driver using
-> gspca as basis, this however will cause us to use parallel port support
-> (that or we need to keep the old code around for the parallel port
-> version).
->
-> I personally think that loosing support for the parallel port
-> version is ok given that the parallel port itslef is rapidly
-> disappearing, what do you think ?
+Am Samstag, den 06.06.2009, 18:20 -0400 schrieb Jon Smirl:
+> On Sat, Jun 6, 2009 at 9:00 AM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
+> > Hi all,
+> >
+> > For video4linux we sometimes need to probe for a single i2c address.
+> > Normally you would do it like this:
+> 
+> Why does video4linux need to probe to find i2c devices? Can't the
+> address be determined by knowing the PCI ID of the board?
 
-I agree wholeheartedly. If we remove pp support, then we can also remove
-the bw-qcam and c-qcam drivers since they too use the parallel port.
+NO, are you dreaming ?
 
-BTW, I also have a cpia1 camera available for testing. I can also test
-ov511 (I saw that you added support for that to gspca). Ditto for the
-stv680 and w9968cf.
+Even the m$ attempts over additional stuff, that _eventually_ conforms
+to something in the eeprom are doomed.
 
-Note that I can mail these devices to you if you want to work on
-integrating them into gspca. I'm pretty sure I won't have time for that
-myself.
+That is also not about video4linux anymore, since decades now soon, but
+about v4l-dvb.
 
-Regards,
+For real interesting stuff it does not work anymore and never did.
 
-           Hans
+You should have a look at real hardware.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Cheers,
+Hermann
+
 
