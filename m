@@ -1,78 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f191.google.com ([209.85.210.191]:46399 "EHLO
-	mail-yx0-f191.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751312AbZFZRnA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2009 13:43:00 -0400
-Received: by yxe29 with SMTP id 29so444929yxe.33
-        for <linux-media@vger.kernel.org>; Fri, 26 Jun 2009 10:43:03 -0700 (PDT)
+Received: from mail7.sea5.speakeasy.net ([69.17.117.9]:43829 "EHLO
+	mail7.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752991AbZFFROq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Jun 2009 13:14:46 -0400
+Date: Sat, 6 Jun 2009 10:14:46 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Eduardo Valentin <eduardo.valentin@nokia.com>,
+	"\\\\\\ext Mauro Carvalho Chehab\\\\\\" <mchehab@infradead.org>,
+	"\\\\\\Nurkkala Eero.An (EXT-Offcode/Oulu)\\\\\\"
+	<ext-Eero.Nurkkala@nokia.com>,
+	"\\\\\\ext Douglas Schilling Landgraf\\\\\\" <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCHv5 1 of 8] v4l2_subdev i2c: Add v4l2_i2c_new_subdev_board
+ i2c helper function
+In-Reply-To: <200906061449.46720.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.58.0906060940420.32713@shell2.speakeasy.net>
+References: <1243582408-13084-1-git-send-email-eduardo.valentin@nokia.com>
+ <1243582408-13084-2-git-send-email-eduardo.valentin@nokia.com>
+ <200906061359.19732.hverkuil@xs4all.nl> <200906061449.46720.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <829197380906260642m2cd87ae5qd6487dc5eae91e51@mail.gmail.com>
-References: <COL103-W53A73F78F552D9FD9BAA2A88350@phx.gbl>
-	 <1246017001.4755.4.camel@palomino.walls.org>
-	 <829197380906260642m2cd87ae5qd6487dc5eae91e51@mail.gmail.com>
-Date: Fri, 26 Jun 2009 13:19:23 -0400
-Message-ID: <b24e53350906261019u45bba60erc7ee41222896388b@mail.gmail.com>
-Subject: Re: Bah! How do I change channels?
-From: Robert Krakora <rob.krakora@messagenetsystems.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Andy Walls <awalls@radix.net>, video4linux-list@redhat.com,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 26, 2009 at 9:42 AM, Devin
-Heitmueller<dheitmueller@kernellabs.com> wrote:
-> On Fri, Jun 26, 2009 at 7:50 AM, Andy Walls<awalls@radix.net> wrote:
->> I use either v4l2-ctl or ivtv-tune
->>
->> $ ivtv-tune -d /dev/video0 -t us-bcast -c 3
->> /dev/video0: 61.250 MHz
->>
->> $ v4l2-ctl -d /dev/video0 -f 61.250
->> Frequency set to 980 (61.250000 MHz)
->>
->>
->> Regards,
->> Andy
->
-> Hello Andy,
->
-> I had sent George some email off-list with basically the same
-> commands.  I think what might be happening here is the tuner gets
-> powered down when not in use, so I think it might be powered down
-> between the v4l-ctl command and the running of the other application.
->
-> I have sent him a series of commands to try where he modprobes the
-> xc3028 driver with "no_poweroff=1", and we will see if that starts
-> working.
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
->
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
->
+On Sat, 6 Jun 2009, Hans Verkuil wrote:
+> On Saturday 06 June 2009 13:59:19 Hans Verkuil wrote:
+> > I propose to change the API as follows:
+> >
+> > #define V4L2_I2C_ADDRS(addr, addrs...) \
+> > 	((const unsigned short []){ addr, ## addrs, I2C_CLIENT_END })
+> >
+> > struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
+> >                 struct i2c_adapter *adapter,
+> >                 const char *module_name, const char *client_type,
+> > 		u8 addr, const unsigned short *addrs);
+> >
+> > struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device *v4l2_dev,
+> >                 struct i2c_adapter *adapter,
+> >                 const char *module_name, const char *client_type,
+> >                 int irq, void *platform_data,
+> >                 u8 addr, const unsigned short *addrs);
+> >
+> > /* Only available for kernels >= 2.6.26 */
+> > struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device
+> > *v4l2_dev, struct i2c_adapter *adapter, const char *module_name, struct
+> > i2c_board_info *info, const unsigned short *addrs);
 
-I had ran into this before with the KWorld a few months back.
-However, whatever problem existed that forced me to add
-"no_poweroff=1" to modprobe.conf for the em28xx module has went away.
-I have been able to use v4l-ctl or ivtv-tune without any problems to
-tune analog channels over cable.
+Maybe "addrs" could be changed to something like "probed_addrs" so it's
+easier to tell that the two address fields are used differently?
 
--- 
-Rob Krakora
-Senior Software Engineer
-MessageNet Systems
-101 East Carmel Dr. Suite 105
-Carmel, IN 46032
-(317)566-1677 Ext. 206
-(317)663-0808 Fax
+Is v4l2_i2c_new_subdev() in effect just a wrapper around
+v4l2_i2c_new_subdev_cfg() that calls it with NO_IRQ and NULL for irq and
+platform_data?
+
+And could v4l2_i2c_new_subdev_cfg() be done like this?
+
+struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device *v4l2_dev,
+                 struct i2c_adapter *adapter, const char *module_name,
+		 const char *client_type, int irq, void *platform_data,
+                 u8 addr, const unsigned short *addrs)
+{
+	struct i2c_board_info info = {
+		.addr = addr, .platform_data = platform_data, .irq = irq, };
+
+	strlcpy(info.type, client_type, sizeof(info.type));
+	return v4l2_i2c_new_subdev_board(v4l2_dev, adapter, module_name,
+			                 &info, addrs);
+}
