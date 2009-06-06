@@ -1,39 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:47601 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751983AbZFAOs2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2009 10:48:28 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Date: Mon, 1 Jun 2009 09:48:21 -0500
-Subject: RE: [PATCH 3/9] dm355 ccdc module for vpfe capture driver
-Message-ID: <A69FA2915331DC488A831521EAE36FE401354ECDB2@dlee06.ent.ti.com>
-References: <1242412603-11390-1-git-send-email-m-karicheri2@ti.com>
- <200905281518.18879.laurent.pinchart@skynet.be>
-In-Reply-To: <200905281518.18879.laurent.pinchart@skynet.be>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from [195.7.61.12] ([195.7.61.12]:59671 "EHLO killala.koala.ie"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751788AbZFFUhs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 6 Jun 2009 16:37:48 -0400
+Message-ID: <4A2AD39B.9010700@koala.ie>
+Date: Sat, 06 Jun 2009 21:37:47 +0100
+From: Simon Kenyon <simon@koala.ie>
 MIME-Version: 1.0
+To: "Igor M. Liplianin" <liplianin@me.by>
+CC: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] SDMC DM1105N not being detected
+References: <e6ac15e50904022156u40221c3fib15d1b4cdf36461@mail.gmail.com> <4A295F87.50307@koala.ie> <4A2966EA.8080406@koala.ie> <200906061157.16433.liplianin@me.by>
+In-Reply-To: <200906061157.16433.liplianin@me.by>
+Content-Type: text/plain; charset=KOI8-R; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent,
+Igor M. Liplianin wrote:
+> On 5 June 2009 21:41:46 Simon Kenyon wrote:
+>> Simon Kenyon wrote:
+>>> Simon Kenyon wrote:
+>>>> the picture seems to be breaking up badly
+>>>> will revert to my version and see if that fixes it
+>>> [sorry for the delay. i was away on business]
+>>>
+>>> i've checked and your original code, modified to compile and including
+>>> my changes to control the LNB works very well; the patch you posted does
+>>> not. i have swapped between the two and rebooted several times to make
+>>> sure.
+>>>
+>>> i will do a diff and see what the differences are
+>>>
+>>> regards
+>>> --
+>>> simon
+>> the main changes seem to be a reworking of the interrupt handling and
+>> some i2c changes
+>> --
+>> simon
+> How fast is your system?
+> 
 
-Thanks for reviewing this. I have not gone through all of your comments, but would like to respond to the following one first. I will respond to the rest as I do the rework.
+reasonably fast
+it is a dual core AMD64 X2 running at 3.1GHz
 
->I've had a quick look at the DM355 and DM6446 datasheets. The CCDC and VPSS
->registers share the same memory block. Can't you use a single resource ?
->
->One nice (and better in my opinion) solution would be to declare a
->structure
->with all the VPSS/CCDC registers as they are implemented in hardware and
->access the structure fields with __raw_read/write*. You would then store a
->single pointer only. Check arch/powerpc/include/asm/immap_cpm2.h for an
->example.
 
-I think, a better solution will be to move the vpss system module part to the board specific file dm355.c or dm6446.c and export functions to configure them as needed by the different drivers. The vpss has evolved quite a lot from DM6446 to DM355 to DM365. Registers such as INTSEL and INTSTAT and others are applicable to other modules as well, not just the ccdc module. The VPBE and resizer drivers will need to configure them too. Also the vpss system module features available in DM365 is much more than that in DM355. Interrupts line to ARM are programmable in DM365 vpss and multiple vpss irq lines can be muxed to the ARM side. So I would imaging functions enable/disable irq line to arm, clearing irq bits, enabling various clocks etc can be done in a specific soc specific file (dm355.c, dm365.c or dm6446.c) and can be exported for use in specific drivers. I just want to get your feedback so that I can make this change. With this change, there is no need to use structures for holding register offsets as you have suggested.
+/proc/cpuinfo says:
+
+processor       : 0
+vendor_id       : AuthenticAMD
+cpu family      : 15
+model           : 107
+model name      : AMD Athlon(tm) 64 X2 Dual Core Processor 6000+
+stepping        : 2
+cpu MHz         : 3100.268
+cache size      : 512 KB
+physical id     : 0
+siblings        : 2
+core id         : 0
+cpu cores       : 2
+apicid          : 0
+initial apicid  : 0
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 1
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge 
+mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext 
+fxsr_opt rdtscp lm 3dnowext 3dnow rep_good pni cx16 lahf_lm cmp_legacy 
+svm extapic cr8_legacy 3dnowprefetch
+bogomips        : 6203.89
+TLB size        : 1024 4K pages
+clflush size    : 64
+cache_alignment : 64
+address sizes   : 40 bits physical, 48 bits virtual
+power management: ts fid vid ttp tm stc 100mhzsteps
+
+processor       : 1
+vendor_id       : AuthenticAMD
+cpu family      : 15
+model           : 107
+model name      : AMD Athlon(tm) 64 X2 Dual Core Processor 6000+
+stepping        : 2
+cpu MHz         : 3100.268
+cache size      : 512 KB
+physical id     : 0
+siblings        : 2
+core id         : 1
+cpu cores       : 2
+apicid          : 1
+initial apicid  : 1
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 1
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge 
+mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext 
+fxsr_opt rdtscp lm 3dnowext 3dnow rep_good pni cx16 lahf_lm cmp_legacy 
+svm extapic cr8_legacy 3dnowprefetch
+bogomips        : 6203.89
+TLB size        : 1024 4K pages
+clflush size    : 64
+cache_alignment : 64
+address sizes   : 40 bits physical, 48 bits virtual
+power management: ts fid vid ttp tm stc 100mhzsteps
