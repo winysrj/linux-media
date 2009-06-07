@@ -1,142 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from belle.abrahamsson.com ([194.187.61.10]:4933 "EHLO
-	belle.abrahamsson.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752058AbZFCScT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jun 2009 14:32:19 -0400
-From: "Sverker Abrahamsson" <sverker@abrahamsson.com>
-To: "'Trent Piepho'" <xyzzy@speakeasy.org>
-Cc: "'Jose Diaz'" <xt4mhz@gmail.com>, <linux-media@vger.kernel.org>
-References: <!&!AAAAAAAAAAAYAAAAAAAAAN5fehIZv/BBsQLx9nhfoL3ihQAAEAAAAKI1En61O+tDoEZgbOaYLvMBAAAAAA==@abrahamsson.com> <Pine.LNX.4.58.0905141315060.7837@shell2.speakeasy.net>
-In-Reply-To: <Pine.LNX.4.58.0905141315060.7837@shell2.speakeasy.net>
-Subject: RE: Sound capture with Osprey 230
-Date: Wed, 3 Jun 2009 20:02:17 +0200
-Message-ID: <!&!AAAAAAAAAAAYAAAAAAAAAN5fehIZv/BBsQLx9nhfoL3ihQAAEAAAAKAjJeyyHNpLpQTWrIR9M9IBAAAAAA==@abrahamsson.com>
+Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:3385 "EHLO
+	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752520AbZFGNiI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jun 2009 09:38:08 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Jon Smirl <jonsmirl@gmail.com>
+Subject: Re: RFC: proposal for new i2c.h macro to initialize i2c address lists  on the fly
+Date: Sun, 7 Jun 2009 15:38:07 +0200
+Cc: linux-i2c@vger.kernel.org, linux-media@vger.kernel.org
+References: <200906061500.49338.hverkuil@xs4all.nl> <9e4733910906070625i74477c9ma422b061eb61449d@mail.gmail.com> <9e4733910906070630i1ffcb821xb912f5ea662c7bef@mail.gmail.com>
+In-Reply-To: <9e4733910906070630i1ffcb821xb912f5ea662c7bef@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Language: sv
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200906071538.07268.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Trent
+On Sunday 07 June 2009 15:30:50 Jon Smirl wrote:
+> On Sun, Jun 7, 2009 at 9:25 AM, Jon Smirl<jonsmirl@gmail.com> wrote:
+> > On Sun, Jun 7, 2009 at 2:35 AM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
+> >> On Sunday 07 June 2009 00:20:26 Jon Smirl wrote:
+> >>> On Sat, Jun 6, 2009 at 9:00 AM, Hans Verkuil<hverkuil@xs4all.nl> 
+wrote:
+> >>> > Hi all,
+> >>> >
+> >>> > For video4linux we sometimes need to probe for a single i2c
+> >>> > address. Normally you would do it like this:
+> >>>
+> >>> Why does video4linux need to probe to find i2c devices? Can't the
+> >>> address be determined by knowing the PCI ID of the board?
+> >>
+> >> There are two reasons we need to probe: it is either because when the
+> >> board was added no one bothered to record which chip was on what
+> >> address (this happened in particular with old drivers like bttv) or
+> >> because there is simply no other way to determine the presence or
+> >> absence of an i2c device.
+> >
+> > Unrecorded boards could be handled by adding a printk at driver init
+> > time asking people to email you the needed information. Then remove
+> > the printks as soon as you get the answer.
 
-> -----Original Message-----
-> From: Trent Piepho [mailto:xyzzy@speakeasy.org]
-> Sent: den 14 maj 2009 22:37
-> To: Sverker Abrahamsson
-> Cc: 'Jose Diaz'; linux-media@vger.kernel.org
-> Subject: Re: Sound capture with Osprey 230
-> 
-> On Mon, 11 May 2009, Sverker Abrahamsson wrote:
-> > Hi all,
-> > I've been using Osprey 230 cards for AV capture for several years,
-> earlier
-> > with a modified version of Viewcast's driver but it was never very
-> stable.
-> > When doing a new setup I therefore wanted to get the Alsa driver to
-> work. I
-> > found that there were two trees in the repository in regards to these
-> cards,
-> > http://linuxtv.org/hg/~mchehab/osprey and
-> http://linuxtv.org/hg/~tap/osprey.
-> > It seems that mchehab tree is the patches that Viewcast submitted
-> which does
-> > not address the necessary changes for ALSA driver while tap tree does
-> but
-> > for Osprey 440 and older kernels.
-> 
-> Mauro's tree with viewcast's patches is even older than mine, wrt
-> kernel
-> support.
-> 
-> > I've therefore ported the changes from tap to the main tree and added
-> > support for detecting Osprey 210/220/230 plus a minor fix to support
-> > specifying digital_rate as module parameter. It might also work for
-> Osprey
-> > 240 (which is PCI-e variant of 230) but I don't have any such card so
-> I
-> > haven't been able to test.
-> 
-> Instead of modifying my patch, it would be better if you could provide
-> a
-> patch on top of it that adds support for your new card.
+It's rather unfeasible when you are dealing with dozens and dozens of cards. 
+We also know that there are variants of these cards out there where they 
+changed audio chips or tuner chips without changing anything. It's not a 
+big deal, that's why we have the i2c probing to solve these cases. Newer 
+drivers try to avoid probing wherever possible, of course.
 
-The reason why I didn't do that was your tree is almost two years old and
-didn't compile on a 2.6.27 kernel. It was far less work to take the
-significant parts of your driver and port them over to the main tree.
+> >> E.g. there are three versions of one card: without upd64083 (Y/C
+> >> separation device) and upd64031a (ghost reduction device), with only
+> >> the upd64031a and one with both. Since they all have the same PCI ID
+> >> the only way to determine the model is to probe.
+> >
+> > Did they happen to change the subsystem device_id? There are two pairs
+> > of PCI IDs on each card. Most of the time the subsystem vendor/device
+> > isn't set.
 
-> > The only question mark I have is that the current implementation use
-> the
-> > depreciated interfaces from bttv-if.c to find which bttv driver
-> corresponds
-> > to this audio driver and adds a function to get the bttv core. It is
-> > suggested to use the routines in bttv-gpio.c instead but I don't find
-> an
-> > obvious replacement for bttv_get_pcidev nor how to get bttv_core.
-> 
-> The interface in bttv-if.c has been "deprecated" for years now, yet no
-> one
-> has come up with something to replace it with.  I think Gerd was
-> getting a
-> bit ahead of himself when he declared it obsolete.
+No, it's all the same. This is very common for the cheaper cards. They take 
+a reference design, modify it and never bother to change the IDs.
 
-The function I use is the one you added to get a reference to the bttv
-structure. For gpio operations it would be possible to use the new
-interface, only that those functions aren't exported so that other drivers
-can call them.
- 
-> > I see two alternatives:
-> > 1. Implement snd-87x module as a subdevice to bttv. Is this correct
-> as the
-> > video and audio devices are two separate pci devices?
-> 
-> The audio and video devices aren't just separate pci devices, they are
-> also
-> two unrelated devices to the linux device model.  The driver model
-> doesn't
-> have any means to call one a subdevice of the other.
-> 
-> Somehow, there needs to be a means for the audio driver to find the
-> video
-> driver so that it can get access to the gpio lines and the i2c bus.
-> But,
-> this is only necessary for the osprey cards.  The audio driver for
-> other
-> cards doesn't need gpios or i2c.  So, it would be nice to allow just
-> the
-> audio driver with no video to be loaded.
+Regards,
 
-While I partly agree with you that it would be a nicer solution to be able
-to use the audio driver separately I don't see the need in reality. The
-video chip is there, to have it's driver loaded to be able to use the audio
-capture is a small drawback, if any. Only if someone needed that
-functionality badly enough to do the work to implement it would happen, but
-it would require substantial rewrite of the base driver with the potential
-to create problems for other cards.
- 
-> The problem with my implementation is that after the audio bttv driver
-> gets
-> a pointer to the video driver's core, the video driver could go away
-> and
-> leave the audio driver with a dangling pointer.  That's one of the
-> reasons
-> I haven't merged my osprey code.  The other is that I have cards with
-> bttv
-> audio to test with.
- 
-No, the video driver can't be unloaded without the audio driver have been
-unloaded before as the latter is depending on the former
+	Hans
 
-/Sverker
- 
- 
+>
+> Example using lspci -vvv -nn
+>
+> This is an Intel ICH8 but Dell as set in a subsystem id if 1028:01db
+> to indicate their custom use of the generic part.
+>
+> 00:1f.3 SMBus [0c05]: Intel Corporation 82801H (ICH8 Family) SMBus
+> Controller [8086:283e] (rev 02)
+> 	Subsystem: Dell Device [1028:01db]
+> 	Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr-
+> Stepping- SERR+ FastB2B- DisINTx-
+> 	Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
+> <TAbort- <MAbort- >SERR- <PERR- INTx-
+> 	Interrupt: pin C routed to IRQ 10
+> 	Region 0: Memory at dffdab00 (32-bit, non-prefetchable) [size=256]
+> 	Region 4: I/O ports at ece0 [size=32]
+> 	Kernel modules: i2c-i801
+>
+> > Getting rid of the probes altogether is the most reliable solution.
+> > There is probably a way to identify these boards more specifically
+> > that you haven't discovered yet.  PCI subsystem device ID is worth
+> > checking.
+> >
+> >> Regards,
+> >>
+> >>        Hans
+> >>
+> >>> > static const unsigned short addrs[] = {
+> >>> >        addr, I2C_CLIENT_END
+> >>> > };
+> >>> >
+> >>> > client = i2c_new_probed_device(adapter, &info, addrs);
+> >>> >
+> >>> > This is a bit awkward and I came up with this macro:
+> >>> >
+> >>> > #define V4L2_I2C_ADDRS(addr, addrs...) \
+> >>> >        ((const unsigned short []){ addr, ## addrs, I2C_CLIENT_END
+> >>> > })
+> >>> >
+> >>> > This can construct a list of one or more i2c addresses on the fly.
+> >>> > But this is something that really belongs in i2c.h, renamed to
+> >>> > I2C_ADDRS.
+> >>> >
+> >>> > With this macro we can just do:
+> >>> >
+> >>> > client = i2c_new_probed_device(adapter, &info, I2C_ADDRS(addr));
+> >>> >
+> >>> > Comments?
+> >>> >
+> >>> > Regards,
+> >>> >
+> >>> >        Hans
+> >>> >
+> >>> > --
+> >>> > Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> >>> > Telecom --
+> >>> > To unsubscribe from this list: send the line "unsubscribe
+> >>> > linux-i2c" in the body of a message to majordomo@vger.kernel.org
+> >>> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>
+> >> --
+> >> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+> >
+> > --
+> > Jon Smirl
+> > jonsmirl@gmail.com
 
-__________ Information fran ESET NOD32 Antivirus, version av
-virussignaturdatabas 4127 (20090603) __________
 
-Meddelandet har kontrollerats av ESET NOD32 Antivirus.
 
-http://www.esetscandinavia.com
- 
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
