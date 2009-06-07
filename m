@@ -1,96 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp28.orange.fr ([80.12.242.100]:26731 "EHLO smtp28.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756456AbZFVQcH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2009 12:32:07 -0400
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2808.orange.fr (SMTP Server) with ESMTP id C11AF70000A4
-	for <linux-media@vger.kernel.org>; Mon, 22 Jun 2009 18:32:04 +0200 (CEST)
-Received: from [192.168.1.10] (AMontsouris-153-1-34-115.w90-2.abo.wanadoo.fr [90.2.137.115])
-	by mwinf2808.orange.fr (SMTP Server) with ESMTP id 9502370000A3
-	for <linux-media@vger.kernel.org>; Mon, 22 Jun 2009 18:32:04 +0200 (CEST)
-Message-ID: <4A3FB1FE.3080902@orange.fr>
-Date: Mon, 22 Jun 2009 18:31:58 +0200
-From: claude <claude.vezzi@orange.fr>
+Received: from mailrelay009.isp.belgacom.be ([195.238.6.176]:5725 "EHLO
+	mailrelay009.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753190AbZFGRbp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Jun 2009 13:31:45 -0400
+Received: from [192.168.1.4] (athloroad.xperim.be [192.168.1.4])
+	(authenticated bits=0)
+	by via.xperim.be (8.14.2/8.14.2/Debian-2build1) with ESMTP id n57HVD1v006709
+	for <linux-media@vger.kernel.org>; Sun, 7 Jun 2009 19:31:14 +0200
+Message-ID: <4A2BF95E.8040009@computer.org>
+Date: Sun, 07 Jun 2009 19:31:10 +0200
+From: Jan Ceuleers <jan.ceuleers@computer.org>
 MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: pxdvr3200 scan failed
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: Broken link in get_dvb_firmware for nxt2004 (A180)
+Content-Type: multipart/mixed;
+ boundary="------------070509000805090107070104"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have upgraded my dvb-t card to a leadtek pxdvr3200 but unfortunatly
-scan always fails
+This is a multi-part message in MIME format.
+--------------070509000805090107070104
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-i use a 2.6.30 amd64 kernel
+Hi!
 
-with kaffeine 0.8.7  (when tuned: signal 56% snr 88%)
+I read the following on the mythtv-users mailing list, and I'd just like to make sure that you guys are aware of it as well.
 
-Using DVB device 0:0 "Zarlink ZL10353 DVB-T"
-tuning DVB-T to 586000000 Hz
-inv:2 bw:0 fecH:9 fecL:9 mod:6 tm:2 gi:4 hier:4
-.... LOCKED.
-Transponders: 23/57
-scanMode=0
-it's dvb 2!
+The script get_dvb_firmware no longer works for obtaining the nxt2004 firmware because AVer have reorganised their websites. The wanted file is now available from the following URL:
 
-Invalid section length or timeout: pid=17
+http://www.avermedia-usa.com/support/Drivers/AVerTVHD_MCE_A180_Drv_v1.2.2.16.zip
 
+The patch is therefore as follows (this is against 2.6.29; inlined and attached).
 
-Invalid section length or timeout: pid=0
+Note that I don't subscribe to the mailing list.
 
-Frontend closed
-............................
+Cheers, Jan
 
-with scan
+--- linux-2.6.29/Documentation/dvb/get_dvb_firmware.orig        2009-06-07 14:38:20.000000000 +0200
++++ linux-2.6.29/Documentation/dvb/get_dvb_firmware     2009-06-07 14:38:55.000000000 +0200
+@@ -317,7 +317,7 @@
 
-scan -v -f 0 -t 1 paris-tnt.txt
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 474166000 0 2 9 3 1 0 0
-initial transponder 498166000 0 2 9 3 1 0 0
-initial transponder 522166000 0 2 9 3 1 0 0
-initial transponder 538166000 0 2 9 3 1 0 0
-initial transponder 562166000 0 2 9 3 1 0 0
-initial transponder 586166000 0 3 9 3 1 2 0
-initial transponder 714166000 0 3 9 3 1 2 0
-initial transponder 738166000 0 2 9 3 1 0 0
-initial transponder 754166000 0 2 9 3 1 0 0
-initial transponder 762166000 0 2 9 3 1 0 0
-initial transponder 786166000 0 2 9 3 1 0 0
-initial transponder 810166000 0 2 9 3 1 0 0
- >>> tune to:
-474166000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
- >>> tuning status == 0x00
- >>> tuning status == 0x1e
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
-WARNING: filter timeout pid 0x0010
-...............
+ sub nxt2004 {
+     my $sourcefile = "AVerTVHD_MCE_A180_Drv_v1.2.2.16.zip";
+-    my $url = "http://www.aver.com/support/Drivers/$sourcefile";
++    my $url = "http://www.avermedia-usa.com/support/Drivers/$sourcefile";
+     my $hash = "111cb885b1e009188346d72acfed024c";
+     my $outfile = "dvb-fe-nxt2004.fw";
+     my $tmpdir = tempdir(DIR => "/tmp", CLEANUP => 1);
 
-Each time i do a scan kernel logs
+--------------070509000805090107070104
+Content-Type: text/plain;
+ name="averfw.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="averfw.patch"
 
-Jun 20 18:46:03 reppe kernel: xc2028 1-0061: Loading 80 firmware images
-from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
-Jun 20 18:46:04 reppe kernel: xc2028 1-0061: Loading firmware for
-type=BASE F8MHZ (3), id 0000000000000000.
-Jun 20 18:46:05 reppe kernel: xc2028 1-0061: Loading firmware for
-type=D2633 DTV7 (90), id 0000000000000000.
-Jun 20 18:46:05 reppe kernel: xc2028 1-0061: Loading SCODE for type=DTV6
-QAM DTV7 DTV78 DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id
-0000000000000000.
-Jun 20 18:46:22 reppe kernel: xc2028 1-0061: Loading firmware for
-type=D2633 DTV78 (110), id 0000000000000000.
-Jun 20 18:46:22 reppe kernel: xc2028 1-0061: Loading SCODE for type=DTV6
-QAM DTV7 DTV78 DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id
-0000000000000000.
-Jun 20 18:46:34 reppe kernel: xc2028 1-0061: Loading firmware for
-type=BASE F8MHZ (3), id 0000000000000000.
-Jun 20 18:46:35 reppe kernel: xc2028 1-0061: Loading firmware for
-type=D2633 DTV78 (110), id 0000000000000000.
-Jun 20 18:46:35 reppe kernel: xc2028 1-0061: Loading SCODE for type=DTV6
-QAM DTV7 DTV78 DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id
-0000000000000000.
+--- linux-2.6.29/Documentation/dvb/get_dvb_firmware.orig	2009-06-07 14:38:20.000000000 +0200
++++ linux-2.6.29/Documentation/dvb/get_dvb_firmware	2009-06-07 14:38:55.000000000 +0200
+@@ -317,7 +317,7 @@
+ 
+ sub nxt2004 {
+     my $sourcefile = "AVerTVHD_MCE_A180_Drv_v1.2.2.16.zip";
+-    my $url = "http://www.aver.com/support/Drivers/$sourcefile";
++    my $url = "http://www.avermedia-usa.com/support/Drivers/$sourcefile";
+     my $hash = "111cb885b1e009188346d72acfed024c";
+     my $outfile = "dvb-fe-nxt2004.fw";
+     my $tmpdir = tempdir(DIR => "/tmp", CLEANUP => 1);
 
-
-
+--------------070509000805090107070104--
