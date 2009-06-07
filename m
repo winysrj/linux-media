@@ -1,97 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:3035 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752205AbZFKLvk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2009 07:51:40 -0400
-Message-ID: <61298.62.70.2.252.1244721072.squirrel@webmail.xs4all.nl>
-Date: Thu, 11 Jun 2009 13:51:12 +0200 (CEST)
-Subject: Re: [PATCH] ov511.c: video_register_device() return zero on success
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "Figo.zhang" <figo1802@gmail.com>, linux-media@vger.kernel.org,
-	mark@alpha.dyndns.org, cpbotha@ieee.org, kraxel@bytesex.org,
-	claudio@conectiva.com
+Received: from mx2.redhat.com ([66.187.237.31]:60508 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751996AbZFGNv4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Jun 2009 09:51:56 -0400
+Message-ID: <4A2BE212.2070009@redhat.com>
+Date: Sun, 07 Jun 2009 17:51:46 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: Lennart Poettering <mzxreary@0pointer.de>
+CC: linux-kernel@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] V4L/pwc - use usb_interface as parent, not usb_device
+References: <20090604191813.GA6281@tango.0pointer.de>
+In-Reply-To: <20090604191813.GA6281@tango.0pointer.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Looks good, we recently fixed the same issue in the gspca driver to,
 
-> Em Thu, 11 Jun 2009 08:36:00 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Acked-by: Hans de Goede <hdegoede@redhat.com>
+
+On 06/04/2009 09:18 PM, Lennart Poettering wrote:
+> The current code creates a sysfs device path where the video4linux
+> device is child of the usb device itself instead of the interface it
+> belongs to. That is evil and confuses udev.
 >
+> This patch does basically the same thing as Kay's similar patch for the
+> ov511 driver:
 >
->> Since I made that change I'm willing to look at this. Some comments
->> definitely
->> need improving at the least.
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=ce96d0a44a4f8d1bb3dc12b5e98cb688c1bc730d
 >
-> Thanks! Since the behavior changed, it is important to better document it.
+> (Resent 2nd time, due to missing Signed-off-by)
 >
->> Also ivtv and cx18 rely on the current behavior,
->> so any changes need to be done carefully.
->>
->> But one question first: isn't the current approach not better anyway
->> than the
->> old approach? In the past device creation would fail if you specified an
->> explicit device kernel number that was already in use. Now it will
->> attempt
->> to fulfill the request and skip to the next free number otherwise. Seems
->> a
->> pretty good approach to me.
+> Lennart
 >
-> Well, the idea of not failing due to that is interesting. Yet, those force
-> parameters are provided to avoid that a different modprobe order would
-> change
-> the device nodes. By doing something different than requested by the users
-> without
-> even warning them about that doesn't sound nice. At least a KERN_ERR log
-> should be printed if the selected nr is different than the requested one.
-
-KERN_WARNING would be better, I think. It is not an error after all.
-
-> In the specific case of ov511, however, it caused a regression, since the
-> used
-> logic to get the next value of the array were based on the failure of
-> video_register_device(). As it doesn't fail anymore, the current logic is
-> broken.
+> Signed-off-by: Lennart Poettering<mzxreary@0pointer.de>
+> ---
+>   drivers/media/video/pwc/pwc-if.c |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
 >
->> There haven't been any complaints about this (probably also because
->> nobody is
->> using it).
->>
->> Let me know what you want and I can implement it. It's not that hard.
+> diff --git a/drivers/media/video/pwc/pwc-if.c b/drivers/media/video/pwc/pwc-if.c
+> index 7c542ca..92d4177 100644
+> --- a/drivers/media/video/pwc/pwc-if.c
+> +++ b/drivers/media/video/pwc/pwc-if.c
+> @@ -1783,7 +1783,7 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
+>   		return -ENOMEM;
+>   	}
+>   	memcpy(pdev->vdev,&pwc_template, sizeof(pwc_template));
+> -	pdev->vdev->parent =&(udev->dev);
+> +	pdev->vdev->parent =&intf->dev;
+>   	strcpy(pdev->vdev->name, name);
+>   	video_set_drvdata(pdev->vdev, pdev);
 >
-> IMO, what should be done:
->
-> 1) better comment the function;
-> 2) generate a KERN_ERR at v4l2-dev, if the requested nr is not available;
-> 3) replace ov511 logic to restore the old behavior (or improve it a little
-> bit);
-> 4) double check if similar regressions are present on other drivers. Since
-> ov511 is an old driver, I don't doubt that its logic is duplicated on
-> other
-> devices.
-
-I've just double checked all video_register_device calls and ov511.c is
-the only one with this behavior.
-
-Regards,
-
-        Hans
-
->
-> Since ov511 is used for an usb device, extra care should be taken, since
-> it
-> should be considered the possibility of successive hot plug/unplug. I
-> wrote an
-> interesting logic for this at em28xx driver, that can be used as an
-> alternative
-> to the current logic
-
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
