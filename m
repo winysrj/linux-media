@@ -1,112 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from server50105.uk2net.com ([83.170.97.106]:45691 "EHLO
-	mail.autotrain.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751702AbZF2NdP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2009 09:33:15 -0400
-Date: Mon, 29 Jun 2009 14:04:11 +0100 (BST)
-From: Tim Williams <tmw@autotrain.org>
-To: linux-media@vger.kernel.org
-cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] USBVision device defaults
-In-Reply-To: <1246275235.3917.12.camel@palomino.walls.org>
-Message-ID: <alpine.LRH.2.00.0906291303170.29847@server50105.uk2net.com>
-References: <alpine.LRH.2.00.0906261505320.14258@server50105.uk2net.com> <1246275235.3917.12.camel@palomino.walls.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+Received: from mail1.radix.net ([207.192.128.31]:53060 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754083AbZFGT7o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Jun 2009 15:59:44 -0400
+Subject: Re: RFC: proposal for new i2c.h macro to initialize i2c address
+ lists  on the fly
+From: Andy Walls <awalls@radix.net>
+To: Jon Smirl <jonsmirl@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-i2c@vger.kernel.org,
+	linux-media@vger.kernel.org
+In-Reply-To: <9e4733910906070625i74477c9ma422b061eb61449d@mail.gmail.com>
+References: <200906061500.49338.hverkuil@xs4all.nl>
+	 <9e4733910906061520o7b0b2858wf4530cf672b1adc9@mail.gmail.com>
+	 <200906070835.46989.hverkuil@xs4all.nl>
+	 <9e4733910906070625i74477c9ma422b061eb61449d@mail.gmail.com>
+Content-Type: text/plain
+Date: Sun, 07 Jun 2009 16:00:31 -0400
+Message-Id: <1244404831.3141.33.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 29 Jun 2009, Andy Walls wrote:
+On Sun, 2009-06-07 at 09:25 -0400, Jon Smirl wrote:
+> On Sun, Jun 7, 2009 at 2:35 AM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
+> > On Sunday 07 June 2009 00:20:26 Jon Smirl wrote:
+> >> On Sat, Jun 6, 2009 at 9:00 AM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
+> >> > Hi all,
+> >> >
+> >> > For video4linux we sometimes need to probe for a single i2c address.
+> >> > Normally you would do it like this:
+> >>
+> >> Why does video4linux need to probe to find i2c devices? Can't the
+> >> address be determined by knowing the PCI ID of the board?
+> >
+> > There are two reasons we need to probe: it is either because when the board
+> > was added no one bothered to record which chip was on what address (this
+> > happened in particular with old drivers like bttv) or because there is
+> > simply no other way to determine the presence or absence of an i2c device.
+> 
+> Unrecorded boards could be handled by adding a printk at driver init
+> time asking people to email you the needed information. Then remove
+> the printks as soon as you get the answer.
+> 
+> >
+> > E.g. there are three versions of one card: without upd64083 (Y/C separation
+> > device) and upd64031a (ghost reduction device), with only the upd64031a and
+> > one with both. Since they all have the same PCI ID the only way to
+> > determine the model is to probe.
+> 
+> Did they happen to change the subsystem device_id? There are two pairs
+> of PCI IDs on each card. Most of the time the subsystem vendor/device
+> isn't set.
+> 
+> Getting rid of the probes altogether is the most reliable solution.
+> There is probably a way to identify these boards more specifically
+> that you haven't discovered yet.  PCI subsystem device ID is worth
+> checking.
 
-> According to the V4L2 specification for the close() call, all devices
-> should remember their settings.
->
-> There have been recent discussions on devices that do power management
-> not saving the RF tuner freq after the final close() (and what to do
-> about it), but the last input and standard should be preserved.  (Note,
-> I have not looked at the usbvision driver to look for problems.)
+Jon,
 
-It would appear that the usbvision driver isn't following the spec. As I 
-mentioned in my earlier message, there is an LED which indicates that the 
-box is active. Under windows this comes on and stays on after the first 
-use, until reboot. Under linux it always goes off when the programme using 
-the device exits.
+This really is a well beaten topic for v4l-dvb devices.
 
-> What precise WinTV USB device/verision are you using?
+1. Device IDs are used to identify the bridge chip.
+2. Subsystem IDs are used to identify the specfic card.
+3. Vendor provided serial EEPROMs (sitting at 8-bit I2C address 0xA0)
+can provide some amplifying information about the board layout.
 
->From lsusb :
+There is variation in the I2C peripherals used on a video card PCB per
+any Subsystem ID.  It's not a granular enough descriptor.
 
-Bus 002 Device 002: ID 0573:4d22 Zoran Co. Personal Media Division 
-(Nogatech) Hauppauge WinTV-USB II (PAL) Model 566
+The data from serial EEPROMs, if the vendor was nice enough to even
+include one, may not have a known decoding.  
 
-> Try something like:
->
-> $ v4l2-ctl --help
-> $ v4l2-ctl -d /dev/video0 --log-status
-> $ v4l2-ctl -d /dev/video0 --list-inputs
-> $ v4l2-ctl -d /dev/video0 --set-input=2
-> $ v4l2-ctl -d /dev/video0 --log-status
+I agree that I2C probing is bad/undesirable.  But for some video boards,
+there is no other way than probing without each end user having expert
+knowledge of the PCB layout.
 
-[root@saucy ~]# v4l2-ctl -d /dev/video0 --log-status
-[root@saucy ~]# v4l2-ctl -d /dev/video0 --list-inputs
-ioctl: VIDIOC_ENUMINPUT
-         Input   : 0
-         Name    : Television
-         Type    : 0x00000001
-         Audioset: 0x00000001
-         Tuner   : 0x00000000
-         Standard: 0x0000000000FFB1FF ( PAL NTSC SECAM )
-         Status  : 0
+Not probing, for cases where there is no other automated means to divine
+the I2C devices used, would likely require an annoying or unsutainable
+level of end user support be provided from a volunteer community.
 
-         Input   : 1
-         Name    : Composite Video Input
-         Type    : 0x00000002
-         Audioset: 0x00000000
-         Tuner   : 0x00000000
-         Standard: 0x00000000000000FF ( PAL )
-         Status  : 0
+Regards,
+Andy
 
-         Input   : 2
-         Name    : S-Video Input
-         Type    : 0x00000002
-         Audioset: 0x00000000
-         Tuner   : 0x00000000
-         Standard: 0x00000000000000FF ( PAL )
-         Status  : 0
-[root@saucy ~]# v4l2-ctl -d /dev/video0 --set-input=2
-Video input set to 2 (S-Video Input)
-[root@saucy ~]# v4l2-ctl -d /dev/video0 --log-status
-[root@saucy ~]#
 
-Each of these commands causes the following messages to be repeated in 
-/var/log/messages
+> > Regards,
+> >
+> >        Hans
+> >
+> >>
+> >> > static const unsigned short addrs[] = {
+> >> >        addr, I2C_CLIENT_END
+> >> > };
+> >> >
+> >> > client = i2c_new_probed_device(adapter, &info, addrs);
+> >> >
+> >> > This is a bit awkward and I came up with this macro:
+> >> >
+> >> > #define V4L2_I2C_ADDRS(addr, addrs...) \
+> >> >        ((const unsigned short []){ addr, ## addrs, I2C_CLIENT_END })
+> >> >
+> >> > This can construct a list of one or more i2c addresses on the fly. But
+> >> > this is something that really belongs in i2c.h, renamed to I2C_ADDRS.
+> >> >
+> >> > With this macro we can just do:
+> >> >
+> >> > client = i2c_new_probed_device(adapter, &info, I2C_ADDRS(addr));
+> >> >
+> >> > Comments?
+> >> >
+> >> > Regards,
+> >> >
+> >> >        Hans
+> >> >
+> >> > --
+> >> > Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+> >> > --
+> >> > To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
+> >> > the body of a message to majordomo@vger.kernel.org
+> >> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> >
+> >
+> > --
+> > Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+> >
+> 
+> 
+> 
 
-Jun 29 13:43:06 saucy kernel: saa7115' 1-0025: saa7113 found 
-(1f7113d0e100000) @ 0x4a (usbvision #0)
-Jun 29 13:43:08 saucy kernel: tuner' 1-0061: chip found @ 0xc2 (usbvision 
-#0)
-Jun 29 13:43:08 saucy kernel: tuner-simple 1-0061: creating new instance
-Jun 29 13:43:08 saucy kernel: tuner-simple 1-0061: type set to 5 (Philips 
-PAL_BG (FI1216 and compatibles))
-Jun 29 13:43:12 saucy kernel: tuner-simple 1-0061: destroying instance
-
-I'm currently using kernel 2.6.27.21-desktop-1mnb on Mandriva 2009.0.
-
-Tim W
-
--- 
-Tim Williams BSc MSc MBCS
-Euromotor Autotrain LLP
-58 Jacoby Place
-Priory Road
-Edgbaston
-Birmingham
-B5 7UW
-United Kingdom
-
-Web : http://www.autotrain.org
-Tel : +44 (0)121 414 2214
-
-EuroMotor-AutoTrain is a company registered in the UK, Registration
-number: OC317070.
