@@ -1,84 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f213.google.com ([209.85.218.213]:43538 "EHLO
-	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752505AbZFOAWc (ORCPT
+Received: from nschwqsrv03p.mx.bigpond.com ([61.9.189.237]:63957 "EHLO
+	nschwqsrv03p.mx.bigpond.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752561AbZFGP1j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Jun 2009 20:22:32 -0400
-Received: by bwz9 with SMTP id 9so3038201bwz.37
-        for <linux-media@vger.kernel.org>; Sun, 14 Jun 2009 17:22:33 -0700 (PDT)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Simon Kenyon <simon@koala.ie>
-Subject: Re: [linux-dvb] SDMC DM1105N not being detected
-Date: Mon, 15 Jun 2009 03:24:47 +0300
-Cc: "Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org
-References: <e6ac15e50904022156u40221c3fib15d1b4cdf36461@mail.gmail.com> <200906121205.08345.liplianin@me.by> <4A357E65.3060404@koala.ie>
-In-Reply-To: <4A357E65.3060404@koala.ie>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="koi8-r"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200906150324.47856.liplianin@me.by>
+	Sun, 7 Jun 2009 11:27:39 -0400
+From: Barry Kitson <b.kitson@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Barry Kitson <b.kitson@gmail.com>
+Subject: [PATCH] saa7134: add support for AVerMedia M103 (f736)
+Date: Sun,  7 Jun 2009 23:41:03 +1000
+Message-Id: <1244382063-9640-1-git-send-email-b.kitson@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15 June 2009 01:49:09 Simon Kenyon wrote:
-> Igor M. Liplianin wrote:
-> > On 6 June 2009 23:37:47 Simon Kenyon wrote:
-> >> Igor M. Liplianin wrote:
-> >>> On 5 June 2009 21:41:46 Simon Kenyon wrote:
-> >>>> Simon Kenyon wrote:
-> >>>>> Simon Kenyon wrote:
-> >>>>>> the picture seems to be breaking up badly
-> >>>>>> will revert to my version and see if that fixes it
-> >>>>>
-> >>>>> [sorry for the delay. i was away on business]
-> >>>>>
-> >>>>> i've checked and your original code, modified to compile and
-> >>>>> including my changes to control the LNB works very well; the patch
-> >>>>> you posted does not. i have swapped between the two and rebooted
-> >>>>> several times to make sure.
-> >>>>>
-> >>>>> i will do a diff and see what the differences are
-> >>>>>
-> >>>>> regards
-> >>>>> --
-> >>>>> simon
-> >>>>
-> >>>> the main changes seem to be a reworking of the interrupt handling and
-> >>>> some i2c changes
-> >>>> --
-> >>>> simon
-> >>>
-> >>> How fast is your system?
-> >>
-> >> reasonably fast
-> >> it is a dual core AMD64 X2 running at 3.1GHz
-> >
-> > Main change is to move demuxing from interrupt to work handler.
-> > So I prepaired another patch, with separate work queue.
-> > May be you find some time to test.
-> >
-> > I wonder CPU usage and interrupts count(cat /proc/interrupts) while
-> > viewing DVB. I guess your card generates a lot of unnecessary(unknown ?)
-> > irq's.
-> >
-> > Another idea is to increase dma buffer.
->
-> i've tested that now
-> sorry for the delay - at a family wedding
->
-> anyway, that seems to work fine. will st some more, but the first
-> results (with kaffeine) seem good.
->
-> i did a complete scan and then tried about 20 different channels. they
-> all seemed to work fine.
->
-> thanks
-> --
-> simon
-Good news.
-Thank you for testing.
+Add 1461:f736 to the list of identifiers corresponding to the
+SAA7134_BOARD_AVERMEDIA_M103 board.  This patch adds support for
+a variant of the AVerMedia M103 MiniPCI DVB-T Hybrid card.
 
+Signed-off-by: Barry Kitson <b.kitson@gmail.com>
+---
+ Documentation/video4linux/CARDLIST.saa7134  |    2 +-
+ drivers/media/video/saa7134/saa7134-cards.c |    6 ++++++
+ 2 files changed, 7 insertions(+), 1 deletions(-)
 
-Igor
+diff --git a/Documentation/video4linux/CARDLIST.saa7134 b/Documentation/video4linux/CARDLIST.saa7134
+index b8d4705..fa16e6c 100644
+--- a/Documentation/video4linux/CARDLIST.saa7134
++++ b/Documentation/video4linux/CARDLIST.saa7134
+@@ -143,7 +143,7 @@
+ 142 -> Beholder BeholdTV H6                     [5ace:6290]
+ 143 -> Beholder BeholdTV M63                    [5ace:6191]
+ 144 -> Beholder BeholdTV M6 Extra               [5ace:6193]
+-145 -> AVerMedia MiniPCI DVB-T Hybrid M103      [1461:f636]
++145 -> AVerMedia MiniPCI DVB-T Hybrid M103      [1461:f636,1461:f736]
+ 146 -> ASUSTeK P7131 Analog
+ 147 -> Asus Tiger 3in1                          [1043:4878]
+ 148 -> Encore ENLTV-FM v5.3                     [1a7f:2008]
+diff --git a/drivers/media/video/saa7134/saa7134-cards.c b/drivers/media/video/saa7134/saa7134-cards.c
+index e2febcd..0863c3e 100644
+--- a/drivers/media/video/saa7134/saa7134-cards.c
++++ b/drivers/media/video/saa7134/saa7134-cards.c
+@@ -5723,6 +5723,12 @@ struct pci_device_id saa7134_pci_tbl[] = {
+ 	}, {
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
++		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
++		.subdevice    = 0xf736,
++		.driver_data  = SAA7134_BOARD_AVERMEDIA_M103,
++	}, {
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
+ 		.subvendor    = 0x1043,
+ 		.subdevice    = 0x4878, /* REV:1.02G */
+ 		.driver_data  = SAA7134_BOARD_ASUSTeK_TIGER_3IN1,
+-- 
+1.6.3.1
+
