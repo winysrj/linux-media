@@ -1,102 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f190.google.com ([209.85.216.190]:62398 "EHLO
-	mail-px0-f190.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751110AbZF3ATK (ORCPT
+Received: from mail-in-02.arcor-online.net ([151.189.21.42]:43628 "EHLO
+	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752289AbZFGSfP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2009 20:19:10 -0400
-Received: by pxi28 with SMTP id 28so3707931pxi.33
-        for <linux-media@vger.kernel.org>; Mon, 29 Jun 2009 17:19:13 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 30 Jun 2009 10:19:13 +1000
-Message-ID: <c21478f30906291719r41ba5accu75c5bfd3dcb81276@mail.gmail.com>
-Subject: XC2028 Tuner - firmware issues
-From: Andrej Falout <andrej@falout.org>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 7 Jun 2009 14:35:15 -0400
+Subject: Re: Leadtek Winfast DTV-1000S
+From: hermann pitton <hermann-pitton@arcor.de>
+To: braddo@tranceaddict.net
+Cc: mkrufky@linuxtv.org, linux-media@vger.kernel.org
+In-Reply-To: <20090607084707.ADBA25BE@resin15.mta.everyone.net>
+References: <20090607084707.ADBA25BE@resin15.mta.everyone.net>
+Content-Type: text/plain
+Date: Sun, 07 Jun 2009 20:30:08 +0200
+Message-Id: <1244399408.9764.10.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello *,
+Hi,
 
-Device: Kaiser Baas USB Hybrid (Analogue and Digital) TV Tuner (KBA01003):
+Am Sonntag, den 07.06.2009, 08:47 -0700 schrieb Brad Allen:
+> Dear Mike,
+> 
+> Have not heard from you in quite some time, has there been any progress on getting this card up and running? As I said to you in a previous email it is extremely close using the settings for card #156, however it fails to detect any DVB-T channels, although the signal strength meter works while its scanning for them.
+> 
+> I have not tried the FM component of the card.
+> 
+> Here is lspci -vvv -nn output,
+> 
+> 00:0e.0 Multimedia controller [0480]: Philips Semiconductors SAA7130 Video Broadcast Decoder [1131:7130] (rev 01)
+> 	Subsystem: LeadTek Research Inc. Device [107d:6655]
+> 	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+> 	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+> 	Latency: 32 (21000ns min, 8000ns max)
+> 	Interrupt: pin A routed to IRQ 12
+> 	Region 0: Memory at eb001000 (32-bit, non-prefetchable) [size=1K]
+> 	Capabilities: <access denied>
+> 
+> For anyone else reading this card is a DVB-T and FM receiver using the SAA7130, TDA10048 and TDA18271. 
+> 
+> Please let me know if theres anything I can do to be of further assistance.
+> 
+> Thanks,
+> 
+> Brad Allen
 
-http://www.kaiserbaas.com/KBA01003_KB202-1_Kaiser_Baas_USB_Hybrid_HD_TV_Tuner.html
+for your information and for all others interested.
 
-Digital DVB-T works fine, but analogue TV & FM radio does not.
+Henry Wu did send modified saa7134 files with support for this card on
+Tuesday off list.
 
-Current Mercurial:
+Mike replied, that he will set up a test repository as soon he gets some
+time for doing so.
 
-Jun 29 18:53:53 polar kernel: usb 8-1: new high speed USB device using
-ehci_hcd and address 4
-Jun 29 18:53:54 polar kernel: usb 8-1: configuration #1 chosen from 1 choice
-Jun 29 18:53:54 polar kernel: dvb-usb: found a 'YUAN High-Tech
-STK7700PH' in cold state, will try to load a firmware
-Jun 29 18:53:54 polar kernel: firmware: requesting dvb-usb-dib0700-1.20.fw
-Jun 29 18:53:54 polar kernel: dvb-usb: downloading firmware from file
-'dvb-usb-dib0700-1.20.fw'
-Jun 29 18:53:54 polar kernel: dib0700: firmware started successfully.
-Jun 29 18:53:54 polar kernel: dvb-usb: found a 'YUAN High-Tech
-STK7700PH' in warm state.
-Jun 29 18:53:54 polar kernel: dvb-usb: will pass the complete MPEG2
-transport stream to the software demuxer.
-Jun 29 18:53:54 polar kernel: DVB: registering new adapter (YUAN
-High-Tech STK7700PH)
-Jun 29 18:53:55 polar kernel: DVB: registering adapter 2 frontend 0
-(DiBcom 7000PC)...
-Jun 29 18:53:55 polar kernel: xc2028 11-0061: creating new instance
-Jun 29 18:53:55 polar kernel: xc2028 11-0061: type set to XCeive
-xc2028/xc3028 tuner
-Jun 29 18:53:55 polar kernel: input: IR-receiver inside an USB DVB
-receiver as /devices/pci0000:00/0000:00:1d.7/usb8/8-1/input/input11
-Jun 29 18:53:55 polar kernel: dvb-usb: schedule remote query interval
-to 50 msecs.
-Jun 29 18:53:55 polar kernel: dvb-usb: YUAN High-Tech STK7700PH
-successfully initialized and connected.
-Jun 29 18:53:55 polar kernel: usb 8-1: New USB device found,
-idVendor=1164, idProduct=1f08
-Jun 29 18:53:55 polar kernel: usb 8-1: New USB device strings: Mfr=1,
-Product=2, SerialNumber=3
-Jun 29 18:53:55 polar kernel: usb 8-1: Product: STK7700D
-Jun 29 18:53:55 polar kernel: usb 8-1: Manufacturer: YUANRD
-Jun 29 18:53:55 polar kernel: usb 8-1: SerialNumber: 0000000001
+The most noticeable difference to the Hauppauge card is, that it works
+in TS parallel mode.
 
-Please note that xc2028 load ended WITHOUT an attempt to load the firmware.
-
-Reading on http://www.linuxtv.org/wiki/index.php/Xceive_XC3028/XC2028 :
-
-"In order for the proper firmware to load, the bridge chip must be
-coded with a xc3028-specific setup and a tuner_callback, with the
-proper GPIO codes to reset the xc2028/3038. "... etc
-
-Googling around I also found that there was/is a known problem with
-loading firmware:
-
-http://www.linuxtv.org/pipermail/linux-dvb/2008-September/028559.html :
-> >> [ 274.439468] xc2028 3-0061: seek_firmware called, want type=D2620
-> >> DTV6 (28), id 0000000000000000.
-> >> [ 274.439472] xc2028 3-0061: Can't find firmware for type=D2620 DTV6
-> >> (28), id 0000000000000000.
-> >> [ 274.439475] xc2028 3-0061: load_firmware called
-> >> [ 274.439477] xc2028 3-0061: seek_firmware called, want type=D2620
-> >> DTV6 (28), id 0000000000000000.
-> >> [ 274.439481] xc2028 3-0061: Can't find firmware for type=D2620 DTV6
-> >> (28), id 0000000000000000.
-
-I also find out that others are experiencing exactly the same behavior:
-
-https://www.linuxquestions.org/questions/linux-hardware-18/tv-tuner-yuan-mc770a-analog-part-help-719282/
-
-
-I did spend a fair bit of time researching this, so please dont hate
-me if the answer is already available somewhere :-) Just a pointer
-will do...
-
-If this is not an issue with a known solution, is there anything I can
-do? I am a SW developer, but my understanding of HW drivers is close
-to zero.
-
-Your knowledge and help is very much appreciated!
+Please wait a little until Mike is done with his review and announces
+the card for testing here on the list.
 
 Cheers,
-Andrej Falout
+Hermann
+
+
+
+
