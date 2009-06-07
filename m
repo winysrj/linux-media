@@ -1,36 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46447 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750725AbZFJALP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Jun 2009 20:11:15 -0400
-Message-ID: <4A2EFA23.6020602@iki.fi>
-Date: Wed, 10 Jun 2009 03:11:15 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Jan Nikitenko <jan.nikitenko@gmail.com>
-CC: linux-media@vger.kernel.org,
-	Christopher Pascoe <c.pascoe@itee.uq.edu.au>
-Subject: Re: AVerTV Volar Black HD: i2c oops in warm state on mips
-References: <4A28CEAD.9000000@gmail.com> <4A293B89.30502@iki.fi> <c4bc83220906091539x51ec2931i9260e36363784728@mail.gmail.com>
-In-Reply-To: <c4bc83220906091539x51ec2931i9260e36363784728@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([18.85.46.34]:34340 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752443AbZFGPYj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jun 2009 11:24:39 -0400
+Date: Sun, 7 Jun 2009 12:24:37 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Jan Ceuleers <jan.ceuleers@computer.org>
+Subject: Fw: Broken link in get_dvb_firmware for nxt2004 (A180)
+Message-ID: <20090607122437.731302d3@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/eghlGvr8G65qKZ8jkRcXsN0"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/10/2009 01:39 AM, Jan Nikitenko wrote:
-> Solved with "[PATCH] af9015: fix stack corruption bug".
+--MP_/eghlGvr8G65qKZ8jkRcXsN0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Jan, Thank you very much.
+Jan,
 
-I reviewed your patch and seems to be correct.
+Instead of v4l-dvb-maintainer and V4L ML, please send patches to
+linux-media@vger.kernel.org, otherwise, patchwork won't catch it.
 
-This error leads to the zl10353.c and there it was copied to qt1010.c 
-and af9015.c.
+Forwarded message:
 
-Probably you want also fix those and pick up credits :)
+Date: Sun, 07 Jun 2009 14:42:15 +0200
+From: Jan Ceuleers <jan.ceuleers@computer.org>
+To: mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org,        video4linux-list@redhat.com
+Subject: Re: Broken link in get_dvb_firmware for nxt2004 (A180)
 
-regards
-Antti
--- 
-http://palosaari.fi/
+
+Errr... The patch was produced the wrong way around. Sorry about that. 
+Trying again.
+
+
+
+
+
+
+Cheers,
+Mauro
+
+--MP_/eghlGvr8G65qKZ8jkRcXsN0
+Content-Type: text/plain; name=averfw.patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=averfw.patch
+
+--- linux-2.6.29/Documentation/dvb/get_dvb_firmware.orig	2009-06-07 14:38:20.000000000 +0200
++++ linux-2.6.29/Documentation/dvb/get_dvb_firmware	2009-06-07 14:38:55.000000000 +0200
+@@ -317,7 +317,7 @@
+ 
+ sub nxt2004 {
+     my $sourcefile = "AVerTVHD_MCE_A180_Drv_v1.2.2.16.zip";
+-    my $url = "http://www.aver.com/support/Drivers/$sourcefile";
++    my $url = "http://www.avermedia-usa.com/support/Drivers/$sourcefile";
+     my $hash = "111cb885b1e009188346d72acfed024c";
+     my $outfile = "dvb-fe-nxt2004.fw";
+     my $tmpdir = tempdir(DIR => "/tmp", CLEANUP => 1);
+
+--MP_/eghlGvr8G65qKZ8jkRcXsN0--
