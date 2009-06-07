@@ -1,66 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:25713 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756207AbZFPLaf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2009 07:30:35 -0400
-Subject: Re: [PATCHv7 7/9] FMTx: si4713: Add files to handle si4713 i2c
- device
-From: Eero Nurkkala <ext-eero.nurkkala@nokia.com>
-Reply-To: ext-eero.nurkkala@nokia.com
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
-	ext Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-In-Reply-To: <200906161322.13518.hverkuil@xs4all.nl>
-References: <1244827840-886-1-git-send-email-eduardo.valentin@nokia.com>
-	 <200906141431.55725.hverkuil@xs4all.nl>
-	 <20090616110609.GC16092@esdhcp037198.research.nokia.com>
-	 <200906161322.13518.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Tue, 16 Jun 2009 14:30:08 +0300
-Message-Id: <1245151808.3166.2.camel@eenurkka-desktop>
-Mime-Version: 1.0
+Received: from mx2.redhat.com ([66.187.237.31]:54945 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752466AbZFGOBr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Jun 2009 10:01:47 -0400
+Message-ID: <4A2BE470.3060005@redhat.com>
+Date: Sun, 07 Jun 2009 18:01:52 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Stefan Kost <ensonic@hora-obscura.de>
+CC: Trent Piepho <xyzzy@speakeasy.org>, linux-media@vger.kernel.org
+Subject: Re: webcam drivers and V4L2_MEMORY_USERPTR support
+References: <4A238292.6000205@hora-obscura.de> <Pine.LNX.4.58.0906010056140.32713@shell2.speakeasy.net> <4A23CF7F.3070301@redhat.com> <4A28CC9B.6070306@hora-obscura.de>
+In-Reply-To: <4A28CC9B.6070306@hora-obscura.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2009-06-16 at 13:22 +0200, ext Hans Verkuil wrote:
-> On Tuesday 16 June 2009 13:06:09 Eduardo Valentin wrote:
-> > On Sun, Jun 14, 2009 at 02:31:55PM +0200, ext Hans Verkuil wrote:
-> > > > +     if (rval < 0)
-> > > > +             goto exit;
-> > > > +
-> > > > +     /* TODO: How to set frequency to measure current signal length
-> > > > */
-> > >
-> > > Huh? I don't understand this TODO.
-> >
-> > The todo is about the property this device had, to report signal length
-> 
-> 'signal length' or 'signal strength'? If it is the former, then I don't 
-> understand what you mean with that term.
-> 
-> > of a freq. It used to work like: user echoes the freq on sysfs entry.
-> > when reading the same entry, it reports the signal noise there.
-> >
-> > This is something which I still don't know the proper place to put.
-> >
-> > I thought in another ext control. But I don't know if this fix into
-> > the fm tx controls. Maybe I should use a private one ?
-> 
-> I need to understand this better first.
-> 
-> Regards,
-> 
-> 	Hans
-> 
 
-Transmitter turns into a receiver and measures the RSSI level of
-the frequency. If it's high (< -90 -100dB), it's probably not a good
-idea to transmit any on such frequency as the interference is too great.
 
-- Eero
+On 06/05/2009 09:43 AM, Stefan Kost wrote:
+> Hans de Goede schrieb:
+>>
+>> On 06/01/2009 09:58 AM, Trent Piepho wrote:
+>>> On Mon, 1 Jun 2009, Stefan Kost wrote:
+>>>> I have implemented support for V4L2_MEMORY_USERPTR buffers in
+>>>> gstreamers
+>>>> v4l2src [1]. This allows to request shared memory buffers from xvideo,
+>>>> capture into those and therefore save a memcpy. This works great with
+>>>> the v4l2 driver on our embedded device.
+>>>>
+>>>> When I was testing this on my desktop, I noticed that almost no driver
+>>>> seems to support it.
+>>>> I tested zc0301 and uvcvideo, but also grepped the kernel driver
+>>>> sources. It seems that gspca might support it, but I ave not confirmed
+>>>> it. Is there a technical reason for it, or is it simply not
+>>>> implemented?
+>>> userptr support is relatively new and so it has less support, especially
+>>> with driver that pre-date it.  Maybe USB cams use a compressed format
+>>> and
+>>> so userptr with xvideo would not work anyway since xv won't support the
+>>> camera's native format.  It certainly could be done for bt8xx, cx88,
+>>> saa7134, etc.
+>> Even in the webcam with custom compressed format case, userptr support
+>> could
+>> be useful to safe a memcpy, as libv4l currently fakes mmap buffers, so
+>> what
+>> happens  is:
+>>
+>> cam>direct transfer>  mmap buffer>libv4l format conversion>  fake mmap
+>> buffer
+>>> application-memcpy>  dest buffer
+>> So if libv4l would support userptr's (which it currently does not do) we
+>> could still safe a memcpy here.
+> Do you mean that if a driver supports userptr and one uses libv4l
+> instead of the direct ioctl, there is a regression and the app iuppo
+> getting told only mmap works?
 
+Yes, this was done this way for simplicity's sake (libv4l2 is complex
+enough at is). At the time this decision was made it was an easy one to
+make as userptr support mostly was (and I believe still is) a paper
+excercise. Iow no applications and almost no drivers support it. If
+more applications start supporting it, support can and should be
+added to libv4l2. But this will be tricky.
+
+> For higher pixels counts extra memcpy's
+> are scary, especially if they are no visible. Sorry for the naive
+> question, but what is libv4l role regarding buffer allocations?
+>
+> In ourcase we don't need any extra format conversion from libv4l. I am
+> fine if it works without extra memcpy in that case and I understand that
+> it would be tricky to support inplace formats conversions for some
+> formats and extra memcpy for the rest.
+>> I would be willing to take *clean, non invasive* patches to libv4l to add
+>> userptr support, but I'm not sure if this can be done in a clean way
+>> (haven't
+>> tried).
+> Where are the libv4l sources hosted. I found your blog and the freshmeat
+> page only so far.
+
+The sources are part of the v4l-dvb mercurial tree. But the latest 
+version is in my personal tree, please use that to base patches on:
+http://linuxtv.org/hg/~hgoede/libv4l
+
+Regards,
+
+Hans
