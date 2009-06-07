@@ -1,63 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:48058 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755549AbZF1NOK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Jun 2009 09:14:10 -0400
-From: Peter =?iso-8859-1?q?H=FCwe?= <PeterHuewe@gmx.de>
-To: Jean-Francois Moine <moinejf@free.fr>
-Subject: Problem with 046d:08af Logitech Quickcam Easy/Cool - broken with in-kernel drivers, works with gspcav1
-Date: Sun, 28 Jun 2009 15:14:10 +0200
-Cc: linux-media@vger.kernel.org
+Received: from rev-89-235-36-82.velbnet.cz ([89.235.36.82]:51705 "EHLO
+	link-v.kaznejov.cz" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1753198AbZFGIxx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jun 2009 04:53:53 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by link-v.kaznejov.cz (Postfix) with ESMTP id A6287C0535
+	for <linux-media@vger.kernel.org>; Sun,  7 Jun 2009 10:43:37 +0200 (CEST)
+Received: from link-v.kaznejov.cz ([127.0.0.1])
+	by localhost (kaznejov.cz [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id ROU7pdcXajtn for <linux-media@vger.kernel.org>;
+	Sun,  7 Jun 2009 10:43:33 +0200 (CEST)
+Received: from [192.168.62.2] (unknown [192.168.62.2])
+	by link-v.kaznejov.cz (Postfix) with ESMTP id AA0EDCE3FB
+	for <linux-media@vger.kernel.org>; Sun,  7 Jun 2009 10:43:33 +0200 (CEST)
+Message-ID: <4A2B7DB4.2000802@kaznejov.cz>
+Date: Sun, 07 Jun 2009 10:43:32 +0200
+From: jirik <jirik@kaznejov.cz>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+To: linux-media@vger.kernel.org
+Subject: Hauppauge WinTV NOVA-S and DiseqC problem
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200906281514.10689.PeterHuewe@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hello,
 
-I just tried out the in-kernel gspca drivers for my 046d:08af Logitech, Inc. 
-QuickCam Easy/Cool, however I don't get any picture with cheese and only 
-green noise with skype.
+It is not new problem, but because it is not fixed after 2.5 year, I 
+must try to make focus to bugfix again.
 
-Before using the in-kernel drivers the webcam used to work quite well with the 
-old out-of-kernel gspcav1 drivers.
+Problem on isl6421 driver is two types of LNB current limitation. 
+Default type of current limitation is not possible use in combination 
+wit DiseqC.
 
-I compared both drivers and the old ones used the SENSOR_HV7131B, whereas the 
-new driver detects the  HV7131R(c)
+Detail and patch for bug fix is here:
+http://www.linuxtv.org/pipermail/linux-dvb/2006-November/014567.html
 
-snippet old driver:
-		case 0x08af:
-			spca50x->desc = LogitechQCCool;
-			spca50x->bridge = BRIDGE_ZC3XX;
-			spca50x->sensor = SENSOR_HV7131B;
+This patch is over 2.5year old, but still not integrated to sources. 
+Problem is real, in DVBN forum exist many threads with this problem and 
+when I try make google query for "isl6421 dcl linux", it will return 
+pages where this patch is known (over 1300 pages). Pages without 
+solution for this problem is little bit more.
 
+Coul me somebody tell how to add this patch to official sources?
 
-output dmesg after plugin camera in
-	usb 4-2: new full speed USB device using uhci_hcd and address 6
-	usb 4-2: configuration #1 chosen from 1 choice
-	gspca: probing 046d:08af
-	zc3xx: probe 2wr ov vga 0x0000
-	zc3xx: probe sensor -> 11
-	zc3xx: Find Sensor HV7131R(c)
-	gspca: probe ok
-	usbcore: registered new interface driver zc3xx
-	zc3xx: registered
-
-
-I already tried out the module_param force_sensor for the values 4,5,6 - but 
-neither gave an appropriate result.
-
-
-I hope you can help me resolve this issue - I would be glad if I could help 
-testing/debugging the problem.
-
-
-Best Regards,
-Peter
-
+Jiri
 
 
