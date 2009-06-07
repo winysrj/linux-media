@@ -1,133 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:37611 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751537AbZFDRgQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jun 2009 13:36:16 -0400
-Date: Thu, 4 Jun 2009 12:50:45 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Erik de Castro Lopo <erik@bcode.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: Creating a V4L driver for a USB camera
-In-Reply-To: <20090604153328.4a3f2a6f.erik@bcode.com>
-Message-ID: <alpine.LNX.2.00.0906041234230.18205@banach.math.auburn.edu>
-References: <20090603141350.04cde59b.erik@bcode.com> <62e5edd40906022318l230992b7n34e5178b7e1a7d46@mail.gmail.com> <20090604100110.c837c3df.erik@bcode.com> <alpine.LNX.2.00.0906032014530.17538@banach.math.auburn.edu> <20090604115216.513cc41c.erik@bcode.com>
- <alpine.LNX.2.00.0906032213001.17620@banach.math.auburn.edu> <20090604153328.4a3f2a6f.erik@bcode.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:36309 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755679AbZFGVGj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Jun 2009 17:06:39 -0400
+Subject: Re: RFC: proposal for new i2c.h macro to initialize i2c address
+	lists  on the fly
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andy Walls <awalls@radix.net>
+Cc: Jon Smirl <jonsmirl@gmail.com>, Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-i2c@vger.kernel.org, linux-media@vger.kernel.org
+In-Reply-To: <1244404831.3141.33.camel@palomino.walls.org>
+References: <200906061500.49338.hverkuil@xs4all.nl>
+	 <9e4733910906061520o7b0b2858wf4530cf672b1adc9@mail.gmail.com>
+	 <200906070835.46989.hverkuil@xs4all.nl>
+	 <9e4733910906070625i74477c9ma422b061eb61449d@mail.gmail.com>
+	 <1244404831.3141.33.camel@palomino.walls.org>
+Content-Type: text/plain
+Date: Sun, 07 Jun 2009 23:01:22 +0200
+Message-Id: <1244408482.9764.33.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
+
+Am Sonntag, den 07.06.2009, 16:00 -0400 schrieb Andy Walls:
+> On Sun, 2009-06-07 at 09:25 -0400, Jon Smirl wrote:
+> > On Sun, Jun 7, 2009 at 2:35 AM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
+> > > On Sunday 07 June 2009 00:20:26 Jon Smirl wrote:
+> > >> On Sat, Jun 6, 2009 at 9:00 AM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
+> > >> > Hi all,
+> > >> >
+> > >> > For video4linux we sometimes need to probe for a single i2c address.
+> > >> > Normally you would do it like this:
+> > >>
+> > >> Why does video4linux need to probe to find i2c devices? Can't the
+> > >> address be determined by knowing the PCI ID of the board?
+> > >
+> > > There are two reasons we need to probe: it is either because when the board
+> > > was added no one bothered to record which chip was on what address (this
+> > > happened in particular with old drivers like bttv) or because there is
+> > > simply no other way to determine the presence or absence of an i2c device.
+> > 
+> > Unrecorded boards could be handled by adding a printk at driver init
+> > time asking people to email you the needed information. Then remove
+> > the printks as soon as you get the answer.
+> > 
+> > >
+> > > E.g. there are three versions of one card: without upd64083 (Y/C separation
+> > > device) and upd64031a (ghost reduction device), with only the upd64031a and
+> > > one with both. Since they all have the same PCI ID the only way to
+> > > determine the model is to probe.
+> > 
+> > Did they happen to change the subsystem device_id? There are two pairs
+> > of PCI IDs on each card. Most of the time the subsystem vendor/device
+> > isn't set.
+> > 
+> > Getting rid of the probes altogether is the most reliable solution.
+> > There is probably a way to identify these boards more specifically
+> > that you haven't discovered yet.  PCI subsystem device ID is worth
+> > checking.
+> 
+> Jon,
+> 
+> This really is a well beaten topic for v4l-dvb devices.
+> 
+> 1. Device IDs are used to identify the bridge chip.
+> 2. Subsystem IDs are used to identify the specfic card.
+> 3. Vendor provided serial EEPROMs (sitting at 8-bit I2C address 0xA0)
+> can provide some amplifying information about the board layout.
+> 
+> There is variation in the I2C peripherals used on a video card PCB per
+> any Subsystem ID.  It's not a granular enough descriptor.
+> 
+> The data from serial EEPROMs, if the vendor was nice enough to even
+> include one, may not have a known decoding.  
+> 
+> I agree that I2C probing is bad/undesirable.  But for some video boards,
+> there is no other way than probing without each end user having expert
+> knowledge of the PCB layout.
+> 
+> Not probing, for cases where there is no other automated means to divine
+> the I2C devices used, would likely require an annoying or unsutainable
+> level of end user support be provided from a volunteer community.
+> 
+> Regards,
+> Andy
+
+about detecting and identifying i2c devices on a TV card it is really a
+long story ...
+
+Everybody talking about such should have at least a look at the bttv
+driver before announcing RFC stuff.
+
+It should make wonder, what all is used to come around.
+(resistors on unused gpios for example)
+
+On later drivers, like the saa7134, there were really high hopes to get
+out of that previous total misery, highest respect to all sorting it
+however possible and did it well then, by reliable PCI subsystem stuff.
+
+But to give one more example, Asus, by far not the worst, did force the
+users to uninstall all other TV card drivers on their m$ systems in
+2005, if the tda8275a hybrid should be in use. (don't work anymore ...)
+
+On that we have always been much better!
+
+Jon's suggestions are on the level of 2002 and he is not in any details.
+
+Cheers,
+Hermann
+
+ 
+
+> > > Regards,
+> > >
+> > >        Hans
+> > >
+> > >>
+> > >> > static const unsigned short addrs[] = {
+> > >> >        addr, I2C_CLIENT_END
+> > >> > };
+> > >> >
+> > >> > client = i2c_new_probed_device(adapter, &info, addrs);
+> > >> >
+> > >> > This is a bit awkward and I came up with this macro:
+> > >> >
+> > >> > #define V4L2_I2C_ADDRS(addr, addrs...) \
+> > >> >        ((const unsigned short []){ addr, ## addrs, I2C_CLIENT_END })
+> > >> >
+> > >> > This can construct a list of one or more i2c addresses on the fly. But
+> > >> > this is something that really belongs in i2c.h, renamed to I2C_ADDRS.
+> > >> >
+> > >> > With this macro we can just do:
+> > >> >
+> > >> > client = i2c_new_probed_device(adapter, &info, I2C_ADDRS(addr));
+> > >> >
+> > >> > Comments?
+> > >> >
+> > >> > Regards,
+> > >> >
+> > >> >        Hans
+> > >> >
 
 
-On Thu, 4 Jun 2009, Erik de Castro Lopo wrote:
-
-> On Thu, 4 Jun 2009 14:02:37 +1000
-> Theodore Kilgore <kilgota@banach.math.auburn.edu> wrote:
->
->> Well, if you are interested in using the camera as a still camera, then
->> probably you ought also to send an inquiry over to
->>
->> gphoto-devel@lists.sourceforge.net
->>
->> because that is, basically, where the still camera support is done, not
->> here.
->
-> Well our current camera has a V4L based driver so we'd like to stick
-> to that :-).
-
-As I explained, it is a matter of what one wants to do with the camera 
-which kind of driver one wants to construct. Also it is a matter of what 
-exactly that the particular camera will do. To take the two extreme cases:
-
--- if you have a camera which will not act as a webcam, a V4L driver will 
-probably not materialize.
-
--- if you have a webcam which has no ability to act as a still camera, 
-then no Gphoto driver will materialize.
-
-And if the camera can do both of the above, then it is possible (and it 
-occurs, too) that the camera has a Gphoto driver for its still camera 
-functionality and it has a V4L driver for its webcam functionality. But 
-the still camera and webcam functions are conceptually different and 
-require distinct methodologies to support them in Linux.
-
-In other words, the kind of software support which is required by new 
-camera X is determined by the properties of camera X alone. That was my 
-point.
-
-> Ok, to the lsusb -v info:
->
->    Bus 001 Device 011: ID 0547:8031 Anchor Chips, Inc.
->    Device Descriptor:
->      bLength                18
->      bDescriptorType         1
->      bcdUSB               2.00
->      bDeviceClass            0 (Defined at Interface level)
->      bDeviceSubClass         0
->      bDeviceProtocol         0
->      bMaxPacketSize0        64
->      idVendor           0x0547 Anchor Chips, Inc.
->      idProduct          0x8031
->      bcdDevice            0.00
->      iManufacturer           1
->      iProduct                2
->      iSerial                 0
->      bNumConfigurations      1
->      Configuration Descriptor:
->        bLength                 9
->        bDescriptorType         2
->        wTotalLength           32
->        bNumInterfaces          1
->        bConfigurationValue     1
->        iConfiguration          0
->        bmAttributes         0x80
->          (Bus Powered)
->        MaxPower              100mA
->        Interface Descriptor:
->          bLength                 9
->          bDescriptorType         4
->          bInterfaceNumber        0
->          bAlternateSetting       0
->          bNumEndpoints           2
->          bInterfaceClass       255 Vendor Specific Class
->          bInterfaceSubClass      0
->          bInterfaceProtocol      0
->          iInterface              0
->          Endpoint Descriptor:
->            bLength                 7
->            bDescriptorType         5
->            bEndpointAddress     0x81  EP 1 IN
->            bmAttributes            3
->              Transfer Type            Interrupt
->              Synch Type               None
->              Usage Type               Data
->            wMaxPacketSize     0x0004  1x 4 bytes
->            bInterval               0
->          Endpoint Descriptor:
->            bLength                 7
->            bDescriptorType         5
->            bEndpointAddress     0x82  EP 2 IN
->            bmAttributes            2
->              Transfer Type            Bulk
->              Synch Type               None
->              Usage Type               Data
->            wMaxPacketSize     0x0200  1x 512 bytes
->            bInterval               0
->
->
-> The "Vendor Specific Class" above suggests that this camera does not
-> behave like a proper USV video or still camera, but rather uses its
-> own protocol (just like the camera we are replacing).
-
-Yes. That seems quite clear.
-
->
-> I have managed to convince the manufactuer of the fact that its a
-> good idea to provide some information and/or windows source code,
-> but as yet I can't predict how good that information will be.
-
-If the manufacturer truly provides meaningful information, that would be 
-very good. Therefore, I restrain myself from expressing general pessimism 
-about the prospects.
-
-Theodore Kilgore
