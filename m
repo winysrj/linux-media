@@ -1,102 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1229 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750959AbZFQKck (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 06:32:40 -0400
-Message-ID: <5963.62.70.2.252.1245234734.squirrel@webmail.xs4all.nl>
-Date: Wed, 17 Jun 2009 12:32:14 +0200 (CEST)
-Subject: Re: Convert cpia driver to v4l2,
-           drop parallel port version support?
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "Hans de Goede" <hdegoede@redhat.com>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from smtp.nokia.com ([192.100.122.230]:53307 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750918AbZFHIWd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2009 04:22:33 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv6 0 of 7] FM Transmitter (si4713) and another changes
+Date: Mon,  8 Jun 2009 11:18:00 +0300
+Message-Id: <1244449087-5543-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello all,
 
-> Em Wed, 17 Jun 2009 09:43:50 +0200 (CEST)
-> "Hans Verkuil" <hverkuil@xs4all.nl> escreveu:
->
->> > I recently have been bying second hand usb webcams left and right
->> > one of them (a creative unknown model) uses the cpia1 chipset, and
->> > works with the v4l1 driver currently in the kernel.
->> >
->> > One of these days I would like to convert it to a v4l2 driver using
->> > gspca as basis, this however will cause us to use parallel port
->> support
->> > (that or we need to keep the old code around for the parallel port
->> > version).
->> >
->> > I personally think that loosing support for the parallel port
->> > version is ok given that the parallel port itslef is rapidly
->> > disappearing, what do you think ?
->>
->> I agree wholeheartedly. If we remove pp support, then we can also remove
->> the bw-qcam and c-qcam drivers since they too use the parallel port.
->
-> Maybe I'm too nostalgic, but those are the first V4L drivers. It would be
-> fun
-> to keep supporting them with V4L2 API ;)
+  I'm resending the FM transmitter driver and the proposed changes in
+v4l2 api files in order to cover the fmtx extended controls class.
 
-I have a pms ISA card and it is still on my list to convert that one to
-V4L2. Shouldn't be difficult. It is my understanding that that is the very
-first v4l driver, so that should satisfy any nostalgic feelings :-)
+  Difference from version #5 is that now I've dropped the patch which
+adds a new i2c helper function. And now this series is based on Hans
+tree: http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-subdev. That tree
+has the proper refactoring of v4l2 i2c helper functions. The work
+done before in the patch dropped here, now was done by Hans.
 
-> That's said, while it is probably not that hard to develop a gspca-pp
-> driver,
-> I'm not against removing parallel port support or even removing those
-> drivers
-> due to technical reasons, like the end of V4L1 drivers.
->
-> By looking at the remaining V4L1 drivers, we have:
->
-> 	ov511 - already implemented with V4L2 on gspca. Can be easily removed;
->
-> 	se401, stv680, usbvideo, vicam - USB V4L1 drivers. IMO, it is valuable
-> 		to convert them to gspca;
->
-> 	cpia2, pwc - supports both V4L1 and V4L2 API. It shouldn't be hard to
-> convert them
-> 		to vidio_ioctl2 and remove V4L1 API.
->
-> 	stradis - a saa7146 V4L1 only driver - I never understood this one well,
-> since there is
-> 		already another saa7146 driver running V4L2, used by mxb, hexium_gemini
-> and
-> 		hexium_orion. To make things worse, stradis, mxb and hexium_orion are
-> registering for
-> 		the same PCI device (the generic saa7146 PCI ID). If nobody volunteers
-> to convert
-> 		and test with V4L2, then maybe we can just remove it. The better
-> conversion would
-> 		probably be to use the V4L2 support at the saa7146 driver.
->
-> 	arv - seems to be a VGA output driver - Only implements 3 ioctls:
-> 		VIDIOCGCAP and VIDIOCGWIN/VIDIOCSWIN. It shouldn't be hard to convert it
-> to V4L2.
-> 		I'm not sure if this is still used in practice.
->
-> 	bw-qcam, pms, c-qcam, cpia, w9966 - very old drivers that use direct io
-> and/or parport;
->
-> IMO, after having all USB ID's for se401, stv680, usbvideo and vicam
-> devices supported
-> by a V4L2 driver, we can just remove V4L1 ioctls from cpia2 and pwc, and
-> the drivers that
-> will still remain using only the legacy API can be dropped. Anything more
-> converted will be a bonus
+  So, now the series includes only changes to add the new v4l2
+FMTX extended controls (and its documetation) and si4713 i2c and platform
+drivers (and its documentation as well).
 
-I have a cpia2 device as well that I can use to test.
+  Again, comments are welcome.
 
-Regards,
+BR,
 
-        Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
+---
+Eduardo Valentin
