@@ -1,88 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:54945 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752466AbZFGOBr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Jun 2009 10:01:47 -0400
-Message-ID: <4A2BE470.3060005@redhat.com>
-Date: Sun, 07 Jun 2009 18:01:52 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from srv2.rent-a-guru.de ([212.86.204.162]:5013 "EHLO
+	mx02.rent-a-guru.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751382AbZFHGbX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2009 02:31:23 -0400
+Date: Mon, 8 Jun 2009 08:31:04 +0200
+From: Michael Stapelberg <michael+lm@stapelberg.de>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: linux-media@vger.kernel.org, dl6jv@chaoswelle.de
+Subject: Re: [PATCH] bt8xx: Add support for the Conexant Fusion 878a /
+	Twinhan VP 1025 DVB-S
+Message-ID: <20090608063104.GO10731@mx01>
+References: <20090607202748.GM10731@mx01> <Pine.LNX.4.58.0906071703570.32713@shell2.speakeasy.net>
 MIME-Version: 1.0
-To: Stefan Kost <ensonic@hora-obscura.de>
-CC: Trent Piepho <xyzzy@speakeasy.org>, linux-media@vger.kernel.org
-Subject: Re: webcam drivers and V4L2_MEMORY_USERPTR support
-References: <4A238292.6000205@hora-obscura.de> <Pine.LNX.4.58.0906010056140.32713@shell2.speakeasy.net> <4A23CF7F.3070301@redhat.com> <4A28CC9B.6070306@hora-obscura.de>
-In-Reply-To: <4A28CC9B.6070306@hora-obscura.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="n/aVsWSeQ4JHkrmm"
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.0906071703570.32713@shell2.speakeasy.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+--n/aVsWSeQ4JHkrmm
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 06/05/2009 09:43 AM, Stefan Kost wrote:
-> Hans de Goede schrieb:
->>
->> On 06/01/2009 09:58 AM, Trent Piepho wrote:
->>> On Mon, 1 Jun 2009, Stefan Kost wrote:
->>>> I have implemented support for V4L2_MEMORY_USERPTR buffers in
->>>> gstreamers
->>>> v4l2src [1]. This allows to request shared memory buffers from xvideo,
->>>> capture into those and therefore save a memcpy. This works great with
->>>> the v4l2 driver on our embedded device.
->>>>
->>>> When I was testing this on my desktop, I noticed that almost no driver
->>>> seems to support it.
->>>> I tested zc0301 and uvcvideo, but also grepped the kernel driver
->>>> sources. It seems that gspca might support it, but I ave not confirmed
->>>> it. Is there a technical reason for it, or is it simply not
->>>> implemented?
->>> userptr support is relatively new and so it has less support, especially
->>> with driver that pre-date it.  Maybe USB cams use a compressed format
->>> and
->>> so userptr with xvideo would not work anyway since xv won't support the
->>> camera's native format.  It certainly could be done for bt8xx, cx88,
->>> saa7134, etc.
->> Even in the webcam with custom compressed format case, userptr support
->> could
->> be useful to safe a memcpy, as libv4l currently fakes mmap buffers, so
->> what
->> happens  is:
->>
->> cam>direct transfer>  mmap buffer>libv4l format conversion>  fake mmap
->> buffer
->>> application-memcpy>  dest buffer
->> So if libv4l would support userptr's (which it currently does not do) we
->> could still safe a memcpy here.
-> Do you mean that if a driver supports userptr and one uses libv4l
-> instead of the direct ioctl, there is a regression and the app iuppo
-> getting told only mmap works?
+Hi Trent,
 
-Yes, this was done this way for simplicity's sake (libv4l2 is complex
-enough at is). At the time this decision was made it was an easy one to
-make as userptr support mostly was (and I believe still is) a paper
-excercise. Iow no applications and almost no drivers support it. If
-more applications start supporting it, support can and should be
-added to libv4l2. But this will be tricky.
+* [08.06.09 02:24]:
+> You can remove Conexant Fusion from the board name.  All the boards for
+> that driver use that same chip.  Just use "Twinhan VP 1025 DVB-S".
+Alright, thanks for clearing that up.
 
-> For higher pixels counts extra memcpy's
-> are scary, especially if they are no visible. Sorry for the naive
-> question, but what is libv4l role regarding buffer allocations?
->
-> In ourcase we don't need any extra format conversion from libv4l. I am
-> fine if it works without extra memcpy in that case and I understand that
-> it would be tricky to support inplace formats conversions for some
-> formats and extra memcpy for the rest.
->> I would be willing to take *clean, non invasive* patches to libv4l to add
->> userptr support, but I'm not sure if this can be done in a clean way
->> (haven't
->> tried).
-> Where are the libv4l sources hosted. I found your blog and the freshmeat
-> page only so far.
+> Don't you need to add it to the list in bttv-cards.c in order to use the
+> card?
+Not sure about that, it wasn=E2=80=99t necessary for me.
 
-The sources are part of the v4l-dvb mercurial tree. But the latest 
-version is in my personal tree, please use that to base patches on:
-http://linuxtv.org/hg/~hgoede/libv4l
+Best regards,
+Michael
 
-Regards,
+--n/aVsWSeQ4JHkrmm
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
-Hans
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iQIcBAEBCAAGBQJKLLAoAAoJEE5xYO1KyO4d1A4P/jWCm8LhT0gm6CMYFiXZOkLP
+hGxw7OfYqX7BeOWeI3iJLwl79xVgPYwA43aUIbkS86prvzhACQmuGRKqKQMfTm3w
+HPuY90M34mT83G932UJrabpUNL44+RYyDVWov8mDgEvUnR4GS6v5+RHBdBwAA6wO
+QOT4EgJ37OwC7b6OPxoyiW0aUvxA0OObrhRLx5R2x2UGLPj5c87k3RZR6ogdseds
+fih50HUU8xgfjn4lE2zGgz0n5v/aGDBZW/az6LKSJ/51TcDtXc9m7fvNSRzOSJS2
+hBlC/hFnx5thW1vDzrFJk40qrKlKup0eVl0i0ssi77MVA5zlunVIXw9jxRUsfzGl
+7qCxldX17ArHEsMmkzjHJd0009d29CODjkPB3ONIHuYIGd13NOIP67JN/s0xA/fS
+JX04c7GJh2qAKFs7poeT69PutlA5f6958dQu2M/LUcRUrlXpsvOMA8BqfmyDPlVf
+3PtDhA2WWladmUwzrjY7UI9/8p8N+Rt+h419l8uQcXD82p7UteeF/0F115qPrKi1
+9AcANCB8s5woiO0m/WP1uHleJlZG8RlV48iw0ubDU/NiEhG4kSV8Cu4kVIqw8pEI
+cuQLjxxT93huZmdpVuuv0g5aqNSjf+APrv0wMtlAt6i858TwHfBiVimKv3IimGg1
+OABTuaPfx/e+AgJvA3A9
+=rufE
+-----END PGP SIGNATURE-----
+
+--n/aVsWSeQ4JHkrmm--
