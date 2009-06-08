@@ -1,145 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:37893 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752580AbZFYPMy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2009 11:12:54 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5PFCqmJ029521
-	for <linux-media@vger.kernel.org>; Thu, 25 Jun 2009 10:12:57 -0500
-Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id n5PFCqD9015730
-	for <linux-media@vger.kernel.org>; Thu, 25 Jun 2009 10:12:52 -0500 (CDT)
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	Muralidharan Karicheri <a0868495@dal.design.ti.com>
-Date: Thu, 25 Jun 2009 10:12:50 -0500
-Subject: RE: [PATCH] adding support for setting bus parameters in sub device
-Message-ID: <A69FA2915331DC488A831521EAE36FE40139F9DC89@dlee06.ent.ti.com>
-References: <1245273405-9060-1-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1245273405-9060-1-git-send-email-m-karicheri2@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from smtp.nokia.com ([192.100.122.233]:36383 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750836AbZFHHL2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2009 03:11:28 -0400
+Date: Mon, 8 Jun 2009 10:06:53 +0300
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: ext Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
+	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Eduardo Valentin <edubezval@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCHv5 1 of 8] v4l2_subdev i2c: Add
+	v4l2_i2c_new_subdev_board i2c helper function
+Message-ID: <20090608070652.GA5168@esdhcp037198.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+References: <1243582408-13084-1-git-send-email-eduardo.valentin@nokia.com> <20090608001922.6adcfcaa@gmail.com> <20090608061132.GA20224@esdhcp037198.research.nokia.com> <200906080838.32517.hverkuil@xs4all.nl>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200906080838.32517.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, Jun 08, 2009 at 08:38:32AM +0200, ext Hans Verkuil wrote:
+> On Monday 08 June 2009 08:11:32 Eduardo Valentin wrote:
+> > Hi guys,
+> >
+> > On Mon, Jun 08, 2009 at 05:19:22AM +0200, ext Douglas Schilling Landgraf 
+> wrote:
+> > > Hi,
+> > >
+> > > On Sun, 7 Jun 2009 22:29:14 -0300
+> > >
+> > > Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
+> > > > Em Sun, 7 Jun 2009 08:40:08 +0200
+> > > >
+> > > > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > > > > On Saturday 06 June 2009 22:40:21 Eduardo Valentin wrote:
+> > > > > > Hi Hans,
+> > > > > >
+> > > > > > On Sat, Jun 6, 2009 at 8:09 PM, Hans Verkuil <hverkuil@xs4all.nl>
+> > > > > >
+> > > > > > wrote:
+> > > > > > > On Saturday 06 June 2009 14:49:46 Hans Verkuil wrote:
+> > > > > > > > On Saturday 06 June 2009 13:59:19 Hans Verkuil wrote:
+> >
+> > <snip>
+> >
+> > > > No please. We did already lots of change due to the i2c changes, and
+> > > > there are still some occasional complaints at ML about regressions
+> > > > that might be due to i2c changes.
+> > > >
+> > > > Let's keep 2.6.31 clean, as previously agreed, without new KABI
+> > > > changes. We should focus 2.6.31 on fixing any core issues that may
+> > > > still have. Only with 2.6.30 we'll start to have feedbacks from
+> > > > normal users.
+> >
+> > <snip>
+> >
+> > > > > > I've cloned your tree and took a look at your code. Well, looks
+> > > > > > like the proper way to do this change.
+> > > > > > I didn't take this approach because it touchs other drivers.
+> > > > > > However, concentrating the code  in only one
+> > > > > > function is better. I also saw that you have fixed the kernel
+> > > > > > version check in the v4l2_device_unregister
+> > > > > > function. Great!
+> > > > > >
+> > > > > > I will resend my series without this patch. I will rebase it on
+> > > > > > top of your subdev tree so the new api
+> > > > > > can be used straight. Is that ok?
+> > > > >
+> > > > > Yes, sure. Just be aware that there may be some small changes to my
+> > > > > patch based on feedback I get. But it is a good test anyway of this
+> > > > > API to see if it works well for you.
+> > > >
+> > > > Eduardo,
+> > > >
+> > > > Let's analyze and merge your changes using the current development
+> > > > tree. If you think that Hans approach is better (I haven't analyzed
+> > > > it yet), then it can later be converted to the new approach
+> > >
+> > > I have talked with Eduardo during last week and if there is no
+> > > objections, I am ready to request a pull from the current/last
+> > > patches series.
+> >
+> > Yes, my series is already in one of Douglas' trees and we have tested it.
+> > However, in that series there is one patch which does partially what Hans
+> > is proposing. Which is: add a way to pass platform info to i2c drivers,
+> > using v4l2 i2c helper functions. They way it is done in this patch it
+> > does not affect any other driver. Hans did also some re-factoring in
+> > existing i2c helper function, besides adding new way to pass platform
+> > data.
+> 
+> No, I don't agree with that. Your patch has some issues: no cleanup after 
+> s_config returns an error, and if we introduce s_config then it should be 
+> called by *all* v4l2_new_subdev* functions. That way i2c drivers that 
+> implement this can use it reliably for their initialization.
+> 
+> I see no point in doing the same work twice. We have one clean solution into 
+> which I put quite a bit of time, and one that hacks new functionality into 
+> an already flawed API.
 
-Is this ready to get merged or still require discussion before merge?
+Agreed. No point in doing the same work.
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-email: m-karicheri2@ti.com
+> 
+> This was also the reason why I didn't just sign off on Eduardo's patch. I 
+> strongly suspected I needed to do some proper refactoring first and when I 
+> finally had the time to look into this last Saturday I discovered it did 
+> indeed needed refactoring.
+> 
+> >
+> > If you agree we can use it for now and in next window we
+> > change things to have them using the way Hans did (which is more
+> > complete).
+> 
+> Going with a suboptimal solution when a proper clean one is available is a 
+> really bad idea IMHO.
 
->-----Original Message-----
->From: Karicheri, Muralidharan
->Sent: Wednesday, June 17, 2009 5:17 PM
->To: linux-media@vger.kernel.org
->Cc: davinci-linux-open-source@linux.davincidsp.com; Muralidharan Karicheri;
->Karicheri, Muralidharan
->Subject: [PATCH] adding support for setting bus parameters in sub device
->
->From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
->
->This patch adds support for setting bus parameters such as bus type
->(Raw Bayer or Raw YUV image data bus), bus width (example 10 bit raw
->image data bus, 10 bit BT.656 etc.), and polarities (vsync, hsync, field
->etc) in sub device. This allows bridge driver to configure the sub device
->bus for a specific set of bus parameters through s_bus() function call.
->This also can be used to define platform specific bus parameters for
->host and sub-devices.
->
->Reviewed by: Hans Verkuil <hverkuil@xs4all.nl>
->Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
->---
->Applies to v4l-dvb repository
->
-> include/media/v4l2-subdev.h |   40
->++++++++++++++++++++++++++++++++++++++++
-> 1 files changed, 40 insertions(+), 0 deletions(-)
->
->diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
->index 1785608..8532b91 100644
->--- a/include/media/v4l2-subdev.h
->+++ b/include/media/v4l2-subdev.h
->@@ -37,6 +37,43 @@ struct v4l2_decode_vbi_line {
-> 	u32 type;		/* VBI service type (V4L2_SLICED_*). 0 if no
->service found */
-> };
->
->+/*
->+ * Some sub-devices are connected to the host/bridge device through a bus
->that
->+ * carries the clock, vsync, hsync and data. Some interfaces such as
->BT.656
->+ * carries the sync embedded in the data where as others have separate
->line
->+ * carrying the sync signals. The structure below is used to define bus
->+ * configuration parameters for host as well as sub-device
->+ */
->+enum v4l2_bus_type {
->+	/* Raw YUV image data bus */
->+	V4L2_BUS_RAW_YUV,
->+	/* Raw Bayer image data bus */
->+	V4L2_BUS_RAW_BAYER
->+};
->+
->+struct v4l2_bus_settings {
->+	/* yuv or bayer image data bus */
->+	enum v4l2_bus_type type;
->+	/* subdev bus width */
->+	u8 subdev_width;
->+	/* host bus width */
->+	u8 host_width;
->+	/* embedded sync, set this when sync is embedded in the data stream
->*/
->+	unsigned embedded_sync:1;
->+	/* master or slave */
->+	unsigned host_is_master:1;
->+	/* 0 - active low, 1 - active high */
->+	unsigned pol_vsync:1;
->+	/* 0 - active low, 1 - active high */
->+	unsigned pol_hsync:1;
->+	/* 0 - low to high , 1 - high to low */
->+	unsigned pol_field:1;
->+	/* 0 - active low , 1 - active high */
->+	unsigned pol_data:1;
->+	/* 0 - sample at falling edge , 1 - sample at rising edge */
->+	unsigned edge_pclock:1;
->+};
->+
-> /* Sub-devices are devices that are connected somehow to the main bridge
->    device. These devices are usually audio/video muxers/encoders/decoders
->or
->    sensors and webcam controllers.
->@@ -199,6 +236,8 @@ struct v4l2_subdev_audio_ops {
->
->    s_routing: see s_routing in audio_ops, except this version is for video
-> 	devices.
->+
->+   s_bus: set bus parameters in sub device to configure the bus
->  */
-> struct v4l2_subdev_video_ops {
-> 	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32
->config);
->@@ -219,6 +258,7 @@ struct v4l2_subdev_video_ops {
-> 	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
-> 	int (*enum_framesizes)(struct v4l2_subdev *sd, struct
->v4l2_frmsizeenum *fsize);
-> 	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct
->v4l2_frmivalenum *fival);
->+	int (*s_bus)(struct v4l2_subdev *sd, const struct v4l2_bus_settings
->*bus);
-> };
->
-> struct v4l2_subdev_ops {
->--
->1.6.0.4
+As I already said, I really liked your approach because it re-factors the
+API. No problem for me to rebase the patches on top of that.
 
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> >
+> > What do you think?
+> >
+> > > Cheers,
+> > > Douglas
+> >
+> > Cheers,
+> 
+> 
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+
+-- 
+Eduardo Valentin
