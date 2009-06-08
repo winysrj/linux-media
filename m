@@ -1,50 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:38205 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755988AbZFJTob (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2009 15:44:31 -0400
-Message-Id: <200906101944.n5AJiKW6031741@imap1.linux-foundation.org>
-Subject: [patch 3/6] vino: replace dma_sync_single with dma_sync_single_for_cpu
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	fujita.tomonori@lab.ntt.co.jp
-From: akpm@linux-foundation.org
-Date: Wed, 10 Jun 2009 12:44:20 -0700
+Received: from mail2.sea5.speakeasy.net ([69.17.117.4]:54597 "EHLO
+	mail2.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752571AbZFHAXl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jun 2009 20:23:41 -0400
+Date: Sun, 7 Jun 2009 17:23:42 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Michael Stapelberg <michael+lm@stapelberg.de>
+cc: linux-media@vger.kernel.org, dl6jv@chaoswelle.de
+Subject: Re: [PATCH] bt8xx: Add support for the Conexant Fusion 878a / Twinhan
+ VP 1025 DVB-S
+In-Reply-To: <20090607202748.GM10731@mx01>
+Message-ID: <Pine.LNX.4.58.0906071703570.32713@shell2.speakeasy.net>
+References: <20090607202748.GM10731@mx01>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+On Sun, 7 Jun 2009, Michael Stapelberg wrote:
+> Add fefe:0001 to the list of identifiers for the bt8xx driver. The chip is
+> named Conexant Fusion 878a, the card is a Twinhan VP 1025 DVB-S PCI.
+>
+> Please commit the attached patch.
 
-This replaces dma_sync_single() with dma_sync_single_for_cpu() because
-dma_sync_single() is an obsolete API; include/linux/dma-mapping.h says:
+You can remove Conexant Fusion from the board name.  All the boards for
+that driver use that same chip.  Just use "Twinhan VP 1025 DVB-S".
 
-/* Backwards compat, remove in 2.7.x */
-#define dma_sync_single		dma_sync_single_for_cpu
-#define dma_sync_sg		dma_sync_sg_for_cpu
-
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/media/video/vino.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-diff -puN drivers/media/video/vino.c~vino-replace-dma_sync_single-with-dma_sync_single_for_cpu drivers/media/video/vino.c
---- a/drivers/media/video/vino.c~vino-replace-dma_sync_single-with-dma_sync_single_for_cpu
-+++ a/drivers/media/video/vino.c
-@@ -868,9 +868,9 @@ static void vino_sync_buffer(struct vino
- 	dprintk("vino_sync_buffer():\n");
- 
- 	for (i = 0; i < fb->desc_table.page_count; i++)
--		dma_sync_single(NULL,
--				fb->desc_table.dma_cpu[VINO_PAGE_RATIO * i],
--				PAGE_SIZE, DMA_FROM_DEVICE);
-+		dma_sync_single_for_cpu(NULL,
-+					fb->desc_table.dma_cpu[VINO_PAGE_RATIO * i],
-+					PAGE_SIZE, DMA_FROM_DEVICE);
- }
- 
- /* Framebuffer fifo functions (need to be locked externally) */
-_
+Don't you need to add it to the list in bttv-cards.c in order to use the
+card?
