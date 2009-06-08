@@ -1,51 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:51987 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753169AbZFZSR0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2009 14:17:26 -0400
-Subject: Re: v4l2_subdev GPIO and Pin Control ops (Re: PxDVR3200 H LinuxTV
- v4l-dvb patch : Pull GPIO-20 low for DVB-T)
-From: Andy Walls <awalls@radix.net>
-To: Steven Toth <stoth@kernellabs.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>,
-	Terry Wu <terrywu2009@gmail.com>
-In-Reply-To: <4A44F697.2020008@kernellabs.com>
-References: <8992.62.70.2.252.1245760429.squirrel@webmail.xs4all.nl>
-	 <1245897611.24270.19.camel@palomino.walls.org>
-	 <200906250839.40916.hverkuil@xs4all.nl>
-	 <1245928543.4172.13.camel@palomino.walls.org>
-	 <4A44DD1A.4030200@kernellabs.com>
-	 <1246032766.3159.12.camel@palomino.walls.org>
-	 <4A44F697.2020008@kernellabs.com>
-Content-Type: text/plain
-Date: Fri, 26 Jun 2009 14:19:21 -0400
-Message-Id: <1246040361.3159.37.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([192.100.122.230]:35882 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751437AbZFHGPu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2009 02:15:50 -0400
+Date: Mon, 8 Jun 2009 09:11:32 +0300
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: ext Douglas Schilling Landgraf <dougsland@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Eduardo Valentin <edubezval@gmail.com>,
+	"Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCHv5 1 of 8] v4l2_subdev i2c: Add
+	v4l2_i2c_new_subdev_board i2c helper function
+Message-ID: <20090608061132.GA20224@esdhcp037198.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+References: <1243582408-13084-1-git-send-email-eduardo.valentin@nokia.com> <200906061909.28157.hverkuil@xs4all.nl> <a0580c510906061340j6c1ee990xdf581ccaaad8fe0e@mail.gmail.com> <200906070840.09166.hverkuil@xs4all.nl> <20090607222914.314c3fc7@pedra.chehab.org> <20090608001922.6adcfcaa@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20090608001922.6adcfcaa@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2009-06-26 at 12:25 -0400, Steven Toth wrote:
-> On 6/26/09 12:12 PM, Andy Walls wrote:
+Hi guys,
 
-> >
-> > My plan was to add the necessary support to the cx25840 module for
-> > setting up the cx23885 pin control multiplexers (subdev config time),
-> > the GPIO 23-19 directions (subdev config time), and the GPIO 23-19
-> > output states (dynamically as needed via subdev's .s_gpio call).
+On Mon, Jun 08, 2009 at 05:19:22AM +0200, ext Douglas Schilling Landgraf wrote:
+> Hi,
 > 
-> Ahh. I'm already working on this, the code is partially merged for the GPIO 
-> overhaul (a few weeks ago). I'm currently on the next stage. You should see some 
-> todo comments in the current cx23885 driver.
+> On Sun, 7 Jun 2009 22:29:14 -0300
+> Mauro Carvalho Chehab <mchehab@infradead.org> wrote:
 > 
-> Doesn't the cx23885 driver already configure the multiplexer pins at config time 
-> for the cx25840? Check the -cards.c for the HVR1800 entry.
+> > Em Sun, 7 Jun 2009 08:40:08 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> > > On Saturday 06 June 2009 22:40:21 Eduardo Valentin wrote:
+> > > > Hi Hans,
+> > > >
+> > > > On Sat, Jun 6, 2009 at 8:09 PM, Hans Verkuil <hverkuil@xs4all.nl>
+> > > > wrote:
+> > > > > On Saturday 06 June 2009 14:49:46 Hans Verkuil wrote:
+> > > > > > On Saturday 06 June 2009 13:59:19 Hans Verkuil wrote:
 
-I'm not talking about the AFE Mux, I was refering to things like, as an
-example, if an external pin could be configured as either GPIO[n] pin or
-an audio sample clock.  The mux setting that handles that. 
+<snip>
 
-Regards,
-Andy
+> > 
+> > No please. We did already lots of change due to the i2c changes, and
+> > there are still some occasional complaints at ML about regressions
+> > that might be due to i2c changes.
+> > 
+> > Let's keep 2.6.31 clean, as previously agreed, without new KABI
+> > changes. We should focus 2.6.31 on fixing any core issues that may
+> > still have. Only with 2.6.30 we'll start to have feedbacks from
+> > normal users.
 
+<snip>
+
+> > > >
+> > > > I've cloned your tree and took a look at your code. Well, looks
+> > > > like the proper way to do this change.
+> > > > I didn't take this approach because it touchs other drivers.
+> > > > However, concentrating the code  in only one
+> > > > function is better. I also saw that you have fixed the kernel
+> > > > version check in the v4l2_device_unregister
+> > > > function. Great!
+> > > >
+> > > > I will resend my series without this patch. I will rebase it on
+> > > > top of your subdev tree so the new api
+> > > > can be used straight. Is that ok?
+> > > 
+> > > Yes, sure. Just be aware that there may be some small changes to my
+> > > patch based on feedback I get. But it is a good test anyway of this
+> > > API to see if it works well for you.
+> > 
+> > Eduardo,
+> > 
+> > Let's analyze and merge your changes using the current development
+> > tree. If you think that Hans approach is better (I haven't analyzed
+> > it yet), then it can later be converted to the new approach
+> > 
+> 
+> I have talked with Eduardo during last week and if there is no
+> objections, I am ready to request a pull from the current/last
+> patches series.
+
+Yes, my series is already in one of Douglas' trees and we have tested it.
+However, in that series there is one patch which does partially what Hans is
+proposing. Which is: add a way to pass platform info to i2c drivers, using
+v4l2 i2c helper functions. They way it is done in this patch it does not affect
+any other driver. Hans did also some re-factoring in existing i2c helper function,
+besides adding new way to pass platform data.
+
+If you agree we can use it for now and in next window we
+change things to have them using the way Hans did (which is more complete).
+
+What do you think?
+
+> 
+> Cheers,
+> Douglas
+
+
+Cheers,
+
+-- 
+Eduardo Valentin
