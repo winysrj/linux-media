@@ -1,57 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01a.mail.t-online.hu ([84.2.40.6]:55573 "EHLO
-	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757270AbZFJPwK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2009 11:52:10 -0400
-Message-ID: <4A2FD61A.9030003@freemail.hu>
-Date: Wed, 10 Jun 2009 17:49:46 +0200
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+Received: from mail.gmx.net ([213.165.64.20]:42515 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751386AbZFHTTw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Jun 2009 15:19:52 -0400
+Date: Mon, 8 Jun 2009 21:19:50 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Paul Mundt <lethal@linux-sh.org>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Darius Augulis <augulis.darius@gmail.com>
+Subject: Re: [PATCH 00/10 v2] soc-camera conversions
+In-Reply-To: <20090519030536.GA20195@linux-sh.org>
+Message-ID: <Pine.LNX.4.64.0906082113390.4396@axis700.grange>
+References: <Pine.LNX.4.64.0905151817070.4658@axis700.grange>
+ <20090519030536.GA20195@linux-sh.org>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Laurent Pinchart <laurent.pinchart@skynet.be>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC,PATCH] VIDIOC_G_EXT_CTRLS does not handle NULL pointer correctly
-References: <200905251317.02633.laurent.pinchart@skynet.be>	<20090525111634.0f9593be@pedra.chehab.org>	<20090610105228.3ca409ba@pedra.chehab.org> <20090610105357.14aad29f@pedra.chehab.org>
-In-Reply-To: <20090610105357.14aad29f@pedra.chehab.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> Em Wed, 10 Jun 2009 10:52:28 -0300
-> Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
-> 
->> Em Mon, 25 May 2009 11:16:34 -0300
->> Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
->>
->>> Em Mon, 25 May 2009 13:17:02 +0200
->>> Laurent Pinchart <laurent.pinchart@skynet.be> escreveu:
->>>
->>>> Hi everybody,
->>>>
->>>> Márton Németh found an integer overflow bug in the extended control ioctl 
->>>> handling code. This affects both video_usercopy and video_ioctl2. See 
->>>> http://bugzilla.kernel.org/show_bug.cgi?id=13357 for a detailed description of 
->>>> the problem.
->>>>
->>>> Restricting v4l2_ext_controls::count to values smaller than KMALLOC_MAX_SIZE /
->>>> sizeof(struct v4l2_ext_control) should be enough, but we might want to 
->>>> restrict the value even further. I'd like opinions on this.
->>> Seems fine to my eyes, but being so close to kmalloc size doesn't seem to be a
->>> good idea. It seems better to choose an arbitrary size big enough to handle all current needs.
->> I'll apply the current version, but I still think we should restrict it to a lower value.
-> 
-> 
-> Hmm... SOB is missing. Márton and Laurent, could you please sign it
+On Tue, 19 May 2009, Paul Mundt wrote:
 
-As I wrote at http://bugzilla.kernel.org/show_bug.cgi?id=13357#c6 :
+> On Fri, May 15, 2009 at 07:18:45PM +0200, Guennadi Liakhovetski wrote:
+> > this is the next round of soc-camera conversions. Run-tested on i.MX31, 
+> > PXA270, SH7722, compile-tested only for i.MX1. It should have been a 
+> > "straight-forward" port of the previous version to a more current tree, 
+> > but then I started converting soc_camera_platform, and things became a bit 
+> > more complex... As a bonus, now soc-camera can handle not only i2c 
+> > subdevices, and we can even drop the CONFIG_I2C dependency again. I'll 
+> > also upload a comlpete stack somewhere a bit later, for example for those, 
+> > wishing to test it on i.MX31, otherwise the series will not apply cleanly. 
+> > 
+> > I'd like to push the first 8 of them asap, 9 and 10 will still have to be 
+> > reworked
+> > 
+> > Paul, I put you on "cc" on all patches, because, unfortunately, several of 
+> > them affect arch/sh. But I'll mention it explicitly in each such patch.
+> > 
+> Looks ok to me, there shouldn't be any problems with taking these all
+> through the v4l tree. Feel free to add my Acked-by if you like. I guess
+> we will find out in -next if there are any conflicts or not :-)
 
-Tested-by: Márton Németh <nm127@freemail.hu>
+Yes, can do this, thanks, but first these 3 patches (including Magnus' 
+ack) have to be applied to sh: 
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg05223.html
+which in turn depend on
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg04724.html
+and the latter one is already in the next tree. Would you like me to also 
+merge and pull the above three patches via v4l or would you be applying 
+them yourself?
 
-Regards,
-
-	Márton Németh
-
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
