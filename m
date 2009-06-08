@@ -1,75 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3780 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751632AbZFSP3S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jun 2009 11:29:18 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [REVIEW] refactoring video_register_device
-Date: Fri, 19 Jun 2009 17:29:08 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from rv-out-0506.google.com ([209.85.198.226]:15993 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750782AbZFHG4E convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2009 02:56:04 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so1129837rvb.1
+        for <linux-media@vger.kernel.org>; Sun, 07 Jun 2009 23:56:06 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200906191729.09255.hverkuil@xs4all.nl>
+In-Reply-To: <1244426759.6740.31.camel@xie>
+References: <1244426759.6740.31.camel@xie>
+Date: Mon, 8 Jun 2009 15:56:06 +0900
+Message-ID: <5e9665e10906072356l686f4301v2546460c86bdf721@mail.gmail.com>
+Subject: Re: About the VIDIOC_DQBUF
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: xie <yili.xie@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hello Xie,
 
-Based on your earlier comments I refactored the video_register_device 
-function.
+I'm not sure which camera interface driver you are using, but it seems
+to be camera interface driver's problem. Let me guess, are you using
+pxa camera interface driver from Marvell?(proprietary but not in up
+stream kernel)
+It just looks like that camera interface driver is not returning
+proper data in dqbuf.
 
-My code is here http://www.linuxtv.org/hg/~hverkuil/v4l-dvb and it contains 
-the following four patches:
+And one more thing. I prefer to use byteused rather than length in
+buf. because as far as I know the size of preview data from camera is
+in byte unit which we need to copy to memory. But it should be
+possible to use length, I guess..
+Cheers,
 
-- v4l: remove video_register_device_index
+Nate
 
-This implements the RFC I posted earlier: video_register_device_index is not 
-actually used in any of the drivers so we can remove it and instead 
-automatically determine the index for each device. This simplifies the 
-video_register_device function in preparation for the next patch.
+On Mon, Jun 8, 2009 at 11:05 AM, xie<yili.xie@gmail.com> wrote:
+> Dear all ~~
+>
+> I have met a issue when I used the mmap method for previewing . I just
+> used the standard code as spec to get the image data :
+> status_t CameraHardwareProwave::V4l2Camera::v4l2CaptureMainloop()
+> {
+>        LOG_FUNCTION_NAME
+>        int rt  ;
+>        unsigned int i ;
+>        fd_set fds ;
+>        struct timeval tv ;
+>        struct v4l2_buffer buf ;
+>
+>        for(;;){
+>                FD_ZERO(&fds) ;
+>                FD_SET(v4l2Fd, &fds) ;
+>                //now the time is long ,just for debug
+>                tv.tv_sec = 2 ;
+>                tv.tv_usec = 0 ;
+>
+>                rt = select(v4l2Fd + 1, &fds, NULL, NULL, &tv) ;
+>                LOGD("The value of select return : %d\n", rt) ;
+>
+>                /********** for debug
+>                if(V4L2_NOERROR != v4l2ReadFrame()){
+>                        LOGE("READ ERROR") ;
+>                }
+>                ***********/
+>
+>                if(-1 == rt){
+>                        LOGE("there is something wrong in select function(select)") ;
+>                        //no defined error manage
+>                        return V4L2_IOCTL_ERROR ;
+>                }
+>                if(0 == rt){
+>                        LOGE("wait for data timeout in select") ;
+>                        return V4L2_TIMEOUT ;
+>                }
+>
+>                memset(&buf, 0, sizeof(buf)) ;
+>                buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE ;
+>                buf.memory = V4L2_MEMORY_MMAP ;
+>                if(-1 == ioctl(v4l2Fd, VIDIOC_DQBUF, &buf)){
+>                    LOGE("there is something wrong in dequeue buffer(VIDIOC_DQBUF)") ;
+>                        return V4L2_IOCTL_ERROR ;
+>                }
+>
+>                assert(i < n_buf) ;
+>                LOGE("buf.index  0buf.length = %d %d \n", buf.index , buf.length) ;
+>        memcpy((mCameraProwave->getPreviewHeap())->base(),
+> v4l2Buffer[buf.index].start, buf.length) ;
+>                if(-1 == ioctl(v4l2Fd, VIDIOC_QBUF, &buf)){
+>                    LOGE("there is something wrong in enqueue buffer(VIDIOC_QBUF)") ;
+>                        return V4L2_IOCTL_ERROR ;
+>                }
+>                //break ;   //i don't know whether the break is needed ;
+>
+>        }
+>        return V4L2_NOERROR ;
+> }
+>
+> when executed the VIDIOC_DQBUF IOCTL,the return value was right, but the
+> value of buf.length would always  be zero. Then I used the read()
+> function to read raw data in the file handle for debug, and I can get
+> the raw data. Anybody have met this issue before ? Who can give me some
+> advices or tell me what is wrong , thanks a lot ~
+>
+>
 
-- v4l: refactor video_register_device
 
-This does the main refactoring. The term 'kernel number' is now replaced 
-with 'device node number', which is hopefully more understandable. The code 
-to find the device node number and minor number has been split off and 
-exists in two variants, depending on CONFIG_VIDEO_FIXED_MINOR_RANGES.
-
-I also found and fixed a potential race condition.
-
-- ivtv/cx18: replace 'kernel number' with 'device node number'.
-
-Minor changes to ivtv/cx18 to conform to the new terminology.
-
-- v4l: warn when desired devnodenr is in use & add _no_warn function
-
-Added the warning when the desired device node number was already in use and 
-add a video_register_device_no_warn variant for use with ivtv and cx18 
-where that warning is not appropriate.
-
-Hopefully this makes this function easier to understand, but I'm too closely 
-familiar with the code to tell whether I've succeeded. So this needs to be 
-reviewed first.
-
-Thanks,
-
-        Hans
-
-diffstat:
- Documentation/video4linux/v4l2-framework.txt |   43 ++--
- drivers/media/video/cx18/cx18-driver.c       |    2
- drivers/media/video/cx18/cx18-streams.c      |    4
- drivers/media/video/ivtv/ivtv-driver.c       |    2
- drivers/media/video/ivtv/ivtv-streams.c      |    4
- drivers/media/video/v4l2-dev.c               |  270 
-+++++++++++++++------------
- include/media/v4l2-dev.h                     |    6
- 7 files changed, 192 insertions(+), 139 deletions(-)
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
