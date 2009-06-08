@@ -1,80 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4529 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752996AbZF0M6S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Jun 2009 08:58:18 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Subject: Re: v4l2_int_device vs v4l2_subdev?
-Date: Sat, 27 Jun 2009 14:58:14 +0200
-Cc: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	Gary Thomas <gary@mlbassoc.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-References: <4A43FD77.1020709@mlbassoc.com> <200906260830.20193.hverkuil@xs4all.nl> <A24693684029E5489D1D202277BE8944405D0043@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE8944405D0043@dlee02.ent.ti.com>
+Received: from wf-out-1314.google.com ([209.85.200.170]:29898 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752767AbZFHB3D convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jun 2009 21:29:03 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so1156894wfd.4
+        for <linux-media@vger.kernel.org>; Sun, 07 Jun 2009 18:29:05 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200906271458.14579.hverkuil@xs4all.nl>
+In-Reply-To: <1244424059.3144.14.camel@palomino.walls.org>
+References: <ab60605f580782732ecd676ecbab3ea3.squirrel@mail.voxel.net>
+	 <829197380906071812m591c3c3dy2cdac036d116a574@mail.gmail.com>
+	 <1244424059.3144.14.camel@palomino.walls.org>
+Date: Sun, 7 Jun 2009 21:29:05 -0400
+Message-ID: <829197380906071829r4132690ao965d88d589c65e5a@mail.gmail.com>
+Subject: Re: funny colors from XC5000 on big endian systems
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Andy Walls <awalls@radix.net>
+Cc: "W. Michael Petullo" <mike@flyn.org>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 26 June 2009 16:43:52 Aguirre Rodriguez, Sergio Alberto wrote:
-> > > But in user space there is nothing changed having access to
-> > > device and control them.
-> > > As you know, subdev and int-device is all about how to bind
-> > > interface(or host?) and device and make them communicated each other.
-> > > But using subdev device driver with int-device supporting interface
-> > > (or host) device driver? it won't make any communication.
-> > > So if you are running out of time with your project, you'd better use
-> > > old driver of TVP. Like TVP driver in kernel 2.6.28 I suppose. But if
-> > > you have enough time and wanna be challenging, try to convert
-> > > in-device based omap3 camera interface driver to subdev supporting
-> > > one.
-> > 
-> > Someone's got to do this. v4l2_subdev is the future and it has many
-> > advantages over the older interfaces. The ability to be able to use the
-> > same i2c driver in anything from USB webcams to PCI capture cards to
-> > omap/davinci embedded platforms is very powerful.
-> 
-> Hi,
-> 
-> We have already this framework migration planned, but we haven't been
-> able to do it, because we are still solving stability issues on the driver.
-> 
-> I beg for your patience, and i hope i can get my hands on this pretty soon.
-> 
-> I'll be updating my tree when i have something.
+On Sun, Jun 7, 2009 at 9:20 PM, Andy Walls<awalls@radix.net> wrote:
+> You may also want to check if CVBS or S-Video also shows the problem.  A
+> simple test that will conclusively eliminate the XC5000.
+>
+> Regards,
+> Andy
 
-Sorry, I was a bit harsh there. It was not aimed at you, Sergio, but at others
-who read this. I just want to make sure that everyone is aware of this new
-framework and how important it is to migrate to this framework.
+Well, it won't really be conclusive in this case - it's an
+intermittent bug in the hardware, and is much more likely to occur
+with the xc5000 because it happens when the signal needs to resync
+(the 16-bit YUYV byte pair sometimes is read on the wrong boundary).
+Hence it tends to occur more often with the xc5000 because of changing
+channels (but can occur on the CVBS or S-Video inputs as well).  The
+au0828 driver has code to detect this condition but there might be an
+issue with the check.
 
-Moving to a new framework can be a very time consuming process, but I think
-it is very important to try and get this finished as soon as possible. With
-the inclusion of the omap and davinci drivers in the kernel I'm sure a lot
-of new sensor and video drivers will start popping up. And if they are
-written as subdev drivers from the start, then that will make inclusion in
-the kernel much easier. Since sensors especially are also used in combination
-with other SoCs and webcams it will be very useful indeed to have fully
-reusable sensor drivers.
+Once I know the answer to the questions posed to Mike, I can work with
+him to debug the issue.
 
-It's an very active period for the v4l-dvb subsystem with a lot of new
-drivers and new functionality so any design decisions taken will be with
-us for a long time. The extra time spent now on moving to v4l2_subdev and
-thinking on how to design new APIs for new functionality is well worth it.
-
-I consider this a critical time for the v4l subsystem in particular: once
-all drivers use v4l2_subdev we will have a very powerful foundation to build
-on.
-
-Regards,
-
-	Hans
+Devin
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
