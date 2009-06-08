@@ -1,57 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:38423 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754104AbZFJNyO convert rfc822-to-8bit (ORCPT
+Received: from deliverator2.ecc.gatech.edu ([130.207.185.172]:40585 "EHLO
+	deliverator2.ecc.gatech.edu" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750715AbZFHRQm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2009 09:54:14 -0400
-Date: Wed, 10 Jun 2009 10:53:57 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Laurent Pinchart <laurent.pinchart@skynet.be>,
-	linux-media@vger.kernel.org, nm127@freemail.hu
-Subject: Re: [RFC,PATCH] VIDIOC_G_EXT_CTRLS does not handle NULL pointer
- correctly
-Message-ID: <20090610105357.14aad29f@pedra.chehab.org>
-In-Reply-To: <20090610105228.3ca409ba@pedra.chehab.org>
-References: <200905251317.02633.laurent.pinchart@skynet.be>
-	<20090525111634.0f9593be@pedra.chehab.org>
-	<20090610105228.3ca409ba@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Mon, 8 Jun 2009 13:16:42 -0400
+Message-ID: <4A2D4778.4090505@gatech.edu>
+Date: Mon, 08 Jun 2009 13:16:40 -0400
+From: David Ward <david.ward@gatech.edu>
+MIME-Version: 1.0
+To: Steven Toth <stoth@kernellabs.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: cx18, s5h1409: chronic bit errors, only under Linux
+References: <4A2CE866.4010602@gatech.edu> <4A2D1CAA.2090500@kernellabs.com> <829197380906080717x37dd1fd8n8f37fb320ab20a37@mail.gmail.com> <4A2D3A40.8090307@gatech.edu> <4A2D3CE2.7090307@kernellabs.com>
+In-Reply-To: <4A2D3CE2.7090307@kernellabs.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 10 Jun 2009 10:52:28 -0300
-Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
+On 06/08/2009 12:31 PM, Steven Toth wrote:
+> Your SNR is very low, 0x12c is 30db. I assume you're using digital 
+> cable this is borderline.
+Oh okay ... I wasn't sure how to translate those values before.
 
-> Em Mon, 25 May 2009 11:16:34 -0300
-> Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
-> 
-> > Em Mon, 25 May 2009 13:17:02 +0200
-> > Laurent Pinchart <laurent.pinchart@skynet.be> escreveu:
-> > 
-> > > Hi everybody,
-> > > 
-> > > Márton Németh found an integer overflow bug in the extended control ioctl 
-> > > handling code. This affects both video_usercopy and video_ioctl2. See 
-> > > http://bugzilla.kernel.org/show_bug.cgi?id=13357 for a detailed description of 
-> > > the problem.
-> > > 
-> > 
-> > > Restricting v4l2_ext_controls::count to values smaller than KMALLOC_MAX_SIZE /
-> > > sizeof(struct v4l2_ext_control) should be enough, but we might want to 
-> > > restrict the value even further. I'd like opinions on this.
-> > 
-> > Seems fine to my eyes, but being so close to kmalloc size doesn't seem to be a
-> > good idea. It seems better to choose an arbitrary size big enough to handle all current needs.
-> 
-> I'll apply the current version, but I still think we should restrict it to a lower value.
+> I like my cable system at home to be atleast 32db (0x140) bare 
+> minimum, it's typically 0x160 (36db) for comfort.
+In your opinion, would I have enough justification for asking Comcast to 
+increase the signal strength coming to my house?  I'd like to avoid 
+calling someone to come out to my house to say "your TV works fine, 
+what's the problem?" and get slapped with a repair fee.  I wasn't sure 
+how well I could trust the SNR values reported by the card either...  I 
+wish I had a meter or something to test it on my own.  When I move the 
+computer directly to the input for the entire house, I get an increase 
+of about 0.1dB.
 
+FYI, the signal strength is about 1dB higher for clear QAM signals.  
+(The values I sent are for ATSC.)
 
-Hmm... SOB is missing. Márton and Laurent, could you please sign it
+> It's possible that the tuner and 1409 driver are a little more 
+> optimized under windows.
+>
+> How much attenuation can you add under windows with signal loss? It's 
+> probably reasonably close to the edge also.
+>
+I tuned to the same channel under Windows, and I used the Signal 
+Strength Indicator application from Hauppauge (downloadable under the 
+Accessories page in the Support section).  It's reporting a SNR of 29-30 
+dB, and the value for 'correctable' errors goes to a single-digit value 
+about every 5 seconds -- following the same pattern seen with 'azap'.  
+However, the difference is that 'uncorrectable' errors stays at 0.  
+Under Linux, it seems that all errors are 'uncorrectable'.
 
+Does the error correction occur in the driver or in the chipset?  Seems 
+to me like maybe error correction is either not enabled or not 
+implemented correctly by the driver?
 
+I agree that the SNR could be better, and if you think it is worth a 
+try, I'll see what Comcast will do.  However, because Windows and my TV 
+work almost flawlessly, the Linux driver would ideally handle the 
+signals at least as well as them...
 
-Cheers,
-Mauro
+Let me know what else is helpful from me, and thanks again for your help.
+
+David
