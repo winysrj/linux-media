@@ -1,55 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:55683 "EHLO
-	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751341AbZFIT0Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 15:26:25 -0400
-Received: from host143-65.hauppauge.com
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta5.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KKZ001XDKO02CG0@mta5.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Tue, 09 Jun 2009 15:26:25 -0400 (EDT)
-Date: Tue, 09 Jun 2009 15:26:18 -0400
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: cx18, s5h1409: chronic bit errors, only under Linux
-In-reply-to: <829197380906091207s19df864cl50fd14d57abb1dd4@mail.gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: David Ward <david.ward@gatech.edu>, linux-media@vger.kernel.org
-Message-id: <4A2EB75A.4070409@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <4A2CE866.4010602@gatech.edu> <4A2D4778.4090505@gatech.edu>
- <4A2D7277.7080400@kernellabs.com>
- <829197380906081336n48d6090bmc4f92692a5496cd6@mail.gmail.com>
- <4A2E6FDD.5000602@kernellabs.com>
- <829197380906090723t434eef6dje1eb8a781babd5c7@mail.gmail.com>
- <4A2E70A3.7070002@kernellabs.com> <4A2EAF56.2090508@gatech.edu>
- <829197380906091155u43319c82i548a9f08928d3826@mail.gmail.com>
- <4A2EB233.3080800@kernellabs.com>
- <829197380906091207s19df864cl50fd14d57abb1dd4@mail.gmail.com>
+Received: from mail-px0-f187.google.com ([209.85.216.187]:45865 "EHLO
+	mail-px0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753525AbZFHCMn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jun 2009 22:12:43 -0400
+Received: by pxi17 with SMTP id 17so112988pxi.33
+        for <linux-media@vger.kernel.org>; Sun, 07 Jun 2009 19:12:45 -0700 (PDT)
+Subject: About the VIDIOC_DQBUF
+From: xie <yili.xie@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: "Dongsoo, Nathaniel Kim(V4L2)" <dongsoo.kim@gmail.com>
+Content-Type: text/plain
+Date: Mon, 08 Jun 2009 10:05:59 +0800
+Message-Id: <1244426759.6740.31.camel@xie>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> On Tue, Jun 9, 2009 at 3:04 PM, Steven Toth <stoth@kernellabs.com> wrote:
->> 40db.
->>
->> --
->> Steven Toth - Kernel Labs
->> http://www.kernellabs.com
->>
-> 
-> Just checked the source.  It's 40dB for QAM256, but 30dB for ATSC and
-> QAM64.  Are we sure he's doing QAM256 and not QAM64?
-> 
-> Devin
-> 
+Dear all ~~
 
-30db for the top end of ATSC sounds about right.
+I have met a issue when I used the mmap method for previewing . I just
+used the standard code as spec to get the image data :
+status_t CameraHardwareProwave::V4l2Camera::v4l2CaptureMainloop()
+{
+	LOG_FUNCTION_NAME
+	int rt  ;
+	unsigned int i ;
+	fd_set fds ;
+	struct timeval tv ;
+	struct v4l2_buffer buf ;
 
-David, when you ran the windows signal monitor - did it claim QAM64 or 256 when 
-it was reporting 30db?
+	for(;;){
+		FD_ZERO(&fds) ;
+		FD_SET(v4l2Fd, &fds) ;
+		//now the time is long ,just for debug
+		tv.tv_sec = 2 ;
+		tv.tv_usec = 0 ;
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+		rt = select(v4l2Fd + 1, &fds, NULL, NULL, &tv) ;
+		LOGD("The value of select return : %d\n", rt) ;
+		
+		/********** for debug
+		if(V4L2_NOERROR != v4l2ReadFrame()){
+			LOGE("READ ERROR") ;
+		}
+                ***********/
+		
+		if(-1 == rt){
+			LOGE("there is something wrong in select function(select)") ;
+			//no defined error manage
+			return V4L2_IOCTL_ERROR ;
+		}
+		if(0 == rt){
+			LOGE("wait for data timeout in select") ;
+			return V4L2_TIMEOUT ;
+		}
+
+		memset(&buf, 0, sizeof(buf)) ;
+		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE ;
+		buf.memory = V4L2_MEMORY_MMAP ;
+		if(-1 == ioctl(v4l2Fd, VIDIOC_DQBUF, &buf)){
+		    LOGE("there is something wrong in dequeue buffer(VIDIOC_DQBUF)") ;
+			return V4L2_IOCTL_ERROR ;
+		}
+		
+		assert(i < n_buf) ;
+		LOGE("buf.index  0buf.length = %d %d \n", buf.index , buf.length) ;
+        memcpy((mCameraProwave->getPreviewHeap())->base(),
+v4l2Buffer[buf.index].start, buf.length) ;
+		if(-1 == ioctl(v4l2Fd, VIDIOC_QBUF, &buf)){
+		    LOGE("there is something wrong in enqueue buffer(VIDIOC_QBUF)") ;
+			return V4L2_IOCTL_ERROR ;
+		}
+		//break ;   //i don't know whether the break is needed ;
+		 
+	}
+	return V4L2_NOERROR ;
+}
+
+when executed the VIDIOC_DQBUF IOCTL,the return value was right, but the
+value of buf.length would always  be zero. Then I used the read()
+function to read raw data in the file handle for debug, and I can get
+the raw data. Anybody have met this issue before ? Who can give me some
+advices or tell me what is wrong , thanks a lot ~
+
