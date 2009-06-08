@@ -1,53 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197]:48992 "EHLO
-	mta2.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752144AbZFIOXY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 10:23:24 -0400
-Received: from host143-65.hauppauge.com
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta2.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KKZ00LOY6N09WF0@mta2.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Tue, 09 Jun 2009 10:23:25 -0400 (EDT)
-Date: Tue, 09 Jun 2009 10:23:23 -0400
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: cx18, s5h1409: chronic bit errors, only under Linux
-In-reply-to: <4A2D7C99.3090609@gatech.edu>
-To: David Ward <david.ward@gatech.edu>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Message-id: <4A2E705B.6060905@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <4A2CE866.4010602@gatech.edu> <4A2D1CAA.2090500@kernellabs.com>
- <829197380906080717x37dd1fd8n8f37fb320ab20a37@mail.gmail.com>
- <4A2D3A40.8090307@gatech.edu> <4A2D3CE2.7090307@kernellabs.com>
- <4A2D4778.4090505@gatech.edu> <4A2D7277.7080400@kernellabs.com>
- <829197380906081336n48d6090bmc4f92692a5496cd6@mail.gmail.com>
- <4A2D7C99.3090609@gatech.edu>
+Received: from mail.gmx.net ([213.165.64.20]:55148 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751264AbZFHRww (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Jun 2009 13:52:52 -0400
+Date: Mon, 8 Jun 2009 19:53:07 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Jonathan Cameron <jic23@cam.ac.uk>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: soc-camera: Why are exposure and gain handled via special cases?
+In-Reply-To: <4A2D3CFF.9010303@cam.ac.uk>
+Message-ID: <Pine.LNX.4.64.0906081946430.4396@axis700.grange>
+References: <4A2D3CFF.9010303@cam.ac.uk>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-David Ward wrote:
-> On 06/08/2009 04:36 PM, Devin Heitmueller wrote:
->> On Mon, Jun 8, 2009 at 4:20 PM, Steven Toth<stoth@kernellabs.com>  wrote:
->>   
->>> We're getting into the realm of 'do you need to amplify and/or debug 
->>> your
->>> cable network', and out of the realm of driver development.
->>>      
-> Comcast is coming tomorrow to check out the signal quality.  They said 
-> that they expect to deliver SNR in the range of 33dB - 45dB to the 
-> premises.  I will let you know how that affects Linux captures.
+On Mon, 8 Jun 2009, Jonathan Cameron wrote:
 
-33 should be fine for any Linux TV device. Make sure the engineer checks for 
-33db across a range of the higher (80 thru 100) rf channels (where rf falloff of 
-common).
+> Hi All,
+> 
+> Whilst working on merging the various ov7670 drivers posted
+> recently, I came across the following in soc-camera:
+> 
+> static int soc_camera_g_ctrl(struct file *file, void *priv,
+> 			     struct v4l2_control *ctrl)
+> {
+> 	struct soc_camera_file *icf = file->private_data;
+> 	struct soc_camera_device *icd = icf->icd;
+> 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> 
+> 	WARN_ON(priv != file->private_data);
+> 
+> 	switch (ctrl->id) {
+> 	case V4L2_CID_GAIN:
+> 		if (icd->gain == (unsigned short)~0)
+> 			return -EINVAL;
+> 		ctrl->value = icd->gain;
+> 		return 0;
+> 	case V4L2_CID_EXPOSURE:
+> 		if (icd->exposure == (unsigned short)~0)
+> 			return -EINVAL;
+> 		ctrl->value = icd->exposure;
+> 		return 0;
+> 	}
+> 
+> 	return v4l2_device_call_until_err(&ici->v4l2_dev, (__u32)icd, core, g_ctrl, ctrl);
+> }
+> 
+> Why are these two cases and only these two handled by soc-camera rather than being passed
+> on to the drivers?
 
-Let us know how you get on.
+In the case of statically configured gain and exposure it is the easiest 
+to cache the last configured value and just return it when requested. At 
+the time I wrote that code I wasn't sure what to return if autoexposure or 
+autogain were configured. In the beginning these two controls actually 
+also were implemented individually, but their implementation was 
+identical, so, I united them. If this is becomming a problem now, we can 
+revert it.
 
-Regards,
-
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
