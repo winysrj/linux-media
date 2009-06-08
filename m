@@ -1,117 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.172]:51565 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753089AbZFEHHU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2009 03:07:20 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so601722wfd.4
-        for <linux-media@vger.kernel.org>; Fri, 05 Jun 2009 00:07:22 -0700 (PDT)
+Received: from mail-px0-f200.google.com ([209.85.216.200]:60520 "EHLO
+	mail-px0-f200.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754713AbZFHLqr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2009 07:46:47 -0400
+Received: by pxi38 with SMTP id 38so3887pxi.33
+        for <linux-media@vger.kernel.org>; Mon, 08 Jun 2009 04:46:48 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <63455.62.70.2.252.1244114783.squirrel@webmail.xs4all.nl>
-References: <63455.62.70.2.252.1244114783.squirrel@webmail.xs4all.nl>
-Date: Fri, 5 Jun 2009 16:07:22 +0900
-Message-ID: <5e9665e10906050007m19cf4524u18031512c1d74ee@mail.gmail.com>
-Subject: Re: What alternative way could be possible for initializing sensor
-	rigistors?
+In-Reply-To: <1244448176.15110.0.camel@xie>
+References: <1244426759.6740.31.camel@xie>
+	 <5e9665e10906072356l686f4301v2546460c86bdf721@mail.gmail.com>
+	 <1244448176.15110.0.camel@xie>
+Date: Mon, 8 Jun 2009 20:40:40 +0900
+Message-ID: <5e9665e10906080440p446e1044sf869e73ae1f6c1a8@mail.gmail.com>
+Subject: Re: About the VIDIOC_DQBUF
 From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Dongsoo Kim <dongsoo45.kim@samsung.com>,
-	=?ISO-8859-1?B?sejH/MHY?= <riverful.kim@samsung.com>,
-	=?ISO-8859-1?B?uc66tMij?= <bhmin@samsung.com>,
-	=?ISO-8859-1?B?udqw5rnO?= <kyungmin.park@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: xie <yili.xie@gmail.com>
+Cc: v4l2_linux <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 4, 2009 at 8:26 PM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
->
->> Hello everyone,
->>
->> In subdev framework, we already have "init" API  but not recommended
->> for new drivers to use this. But I'm so frustrated for the absence of
->> that kind of API.
->
-> What I want to do is that you can pass such data through the board_info.
-> Patch for that have been posted but I still haven't had the chance to sit
-> down and review them :-(
+Hi,
 
-Hmm... I tried to find the patch you mentioned, but still not popping
-up. Can you give me some hint?
+Sorry I'm not an expert, you can expect expertise from maintainers not from me.
+But before answering your question about capturing, I'm not sure about
+what the "full frame" means. I just assume that you meant to say the
+biggest resolution of image frame, right?
 
->
-> This method is the common method for existing i2c drivers and should (I
-> think) be used for all new i2c drivers.
->
->> I'm working on camera driver which needs to programme registors
->> through I2C bus and just stuck figuring out how to make it programmed
->> in device open (in this case, camera interface should be opened)
->> procedure.
->
-> You're not trying to pass register/value pairs to the i2c driver, are you?
-> You should tell the i2c driver what you want and let the i2c driver do the
-> register programming for you. Only the i2c driver should know about the
-> registers of the i2c device.
-
-Actually I'm trying to do a very ordinary I2C programming job through
-i2c_transfer() like any of sensor device. There are so many registers
-to be programmed..like hundreds? I suppose..One single register is
-consisted of 2bytes for address and 2bytes for values or multiple
-bytes for some cases.
-
->
->> So, if I have no chance to use "init" API with implementing
->> my driver, which API should be used? Actually without "init" API, I
->> should make my driver to programme initializing registors in s_fmt or
->> s_parm sort of APIs.
->
-> Use init as long as the new functions passing the board_info to the i2c
-> core are not yet available. You can convert once we have the new API in
-> place.
->
-
-OK, I'll try to use if I can't find the patch using board_info you
-have mentioned.
-
->> Any other alternative API is served in subdev framework? Please let me
->> know if there is something I missed.
->
-> It's work in progress and I'm the bottleneck here :-(
->
-
-I really wanna give you a hand! If I could..
+So, when you are to capture a full resolution data while preview is
+working, you need to stop preview with streamoff, re-configure
+resolution with s_fmt to external camera module and  start capturing
+issuing streamon with re-configured resolution. I think you are
+well-aware with this, aren't you? And in my opinion, memcpy may be
+cool for that. What else are you expecting to use? and for what?
+Anyway, I wish you luck.
 Cheers,
 
 Nate
 
->> BTW, subdev framework is really
->> cool. Totally arranged and easy to use.
+
+On Mon, Jun 8, 2009 at 5:02 PM, xie<yili.xie@gmail.com> wrote:
+> Hi Dongsoo, Nathaniel ~
+> You must be expert on V4l2 ~ Thanks very much for your help and advice
+> ~!~
+> I used the MXC camera interface driver from Fressscale ,I readed the
+> driver interface just now ,and have fouded that the driver not modified
+> the buf.lenth but buf.byteused . You are very right , I will use the
+> buf.byteused instead of buf.length ~
 >
-> Thanks!
+> There is also a problem I want to consult to you ~ Can i get a full
+> frame with the below method if the driver have no problem ?
 >
-> Regards,
+> memcpy((mCameraProwave->getPreviewHeap())->base(),
+> v4l2Buffer[buf.index].start, buf.byteused) ;
 >
->         Hans
+> Because I just need to implement a hal for getting the frame data and
+> post it to top layer , so I used the memcpy simply . Am I right ~ ? Or
+> what about your advice ?
 >
+> Thanks a lot ~~
+>
+>
+>
+> $B:_(B 2009-06-08$B0lE*(B 15:56 +0900$B!$(BDongsoo, Nathaniel Kim$B<LF;!'(B
+>> Hello Xie,
+>>
+>> I'm not sure which camera interface driver you are using, but it seems
+>> to be camera interface driver's problem. Let me guess, are you using
+>> pxa camera interface driver from Marvell?(proprietary but not in up
+>> stream kernel)
+>> It just looks like that camera interface driver is not returning
+>> proper data in dqbuf.
+>>
+>> And one more thing. I prefer to use byteused rather than length in
+>> buf. because as far as I know the size of preview data from camera is
+>> in byte unit which we need to copy to memory. But it should be
+>> possible to use length, I guess..
 >> Cheers,
 >>
 >> Nate
 >>
+>> On Mon, Jun 8, 2009 at 11:05 AM, xie<yili.xie@gmail.com> wrote:
+>> > Dear all ~~
+>> >
+>> > I have met a issue when I used the mmap method for previewing . I just
+>> > used the standard code as spec to get the image data :
+>> > status_t CameraHardwareProwave::V4l2Camera::v4l2CaptureMainloop()
+>> > {
+>> >        LOG_FUNCTION_NAME
+>> >        int rt  ;
+>> >        unsigned int i ;
+>> >        fd_set fds ;
+>> >        struct timeval tv ;
+>> >        struct v4l2_buffer buf ;
+>> >
+>> >        for(;;){
+>> >                FD_ZERO(&fds) ;
+>> >                FD_SET(v4l2Fd, &fds) ;
+>> >                //now the time is long ,just for debug
+>> >                tv.tv_sec = 2 ;
+>> >                tv.tv_usec = 0 ;
+>> >
+>> >                rt = select(v4l2Fd + 1, &fds, NULL, NULL, &tv) ;
+>> >                LOGD("The value of select return : %d\n", rt) ;
+>> >
+>> >                /********** for debug
+>> >                if(V4L2_NOERROR != v4l2ReadFrame()){
+>> >                        LOGE("READ ERROR") ;
+>> >                }
+>> >                ***********/
+>> >
+>> >                if(-1 == rt){
+>> >                        LOGE("there is something wrong in select function(select)") ;
+>> >                        //no defined error manage
+>> >                        return V4L2_IOCTL_ERROR ;
+>> >                }
+>> >                if(0 == rt){
+>> >                        LOGE("wait for data timeout in select") ;
+>> >                        return V4L2_TIMEOUT ;
+>> >                }
+>> >
+>> >                memset(&buf, 0, sizeof(buf)) ;
+>> >                buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE ;
+>> >                buf.memory = V4L2_MEMORY_MMAP ;
+>> >                if(-1 == ioctl(v4l2Fd, VIDIOC_DQBUF, &buf)){
+>> >                    LOGE("there is something wrong in dequeue buffer(VIDIOC_DQBUF)") ;
+>> >                        return V4L2_IOCTL_ERROR ;
+>> >                }
+>> >
+>> >                assert(i < n_buf) ;
+>> >                LOGE("buf.index  0buf.length = %d %d \n", buf.index , buf.length) ;
+>> >        memcpy((mCameraProwave->getPreviewHeap())->base(),
+>> > v4l2Buffer[buf.index].start, buf.length) ;
+>> >                if(-1 == ioctl(v4l2Fd, VIDIOC_QBUF, &buf)){
+>> >                    LOGE("there is something wrong in enqueue buffer(VIDIOC_QBUF)") ;
+>> >                        return V4L2_IOCTL_ERROR ;
+>> >                }
+>> >                //break ;   //i don't know whether the break is needed ;
+>> >
+>> >        }
+>> >        return V4L2_NOERROR ;
+>> > }
+>> >
+>> > when executed the VIDIOC_DQBUF IOCTL,the return value was right, but the
+>> > value of buf.length would always  be zero. Then I used the read()
+>> > function to read raw data in the file handle for debug, and I can get
+>> > the raw data. Anybody have met this issue before ? Who can give me some
+>> > advices or tell me what is wrong , thanks a lot ~
+>> >
+>> >
 >>
->> --
->> =
->> DongSoo, Nathaniel Kim
->> Engineer
->> Mobile S/W Platform Lab.
->> Digital Media & Communications R&D Centre
->> Samsung Electronics CO., LTD.
->> e-mail : dongsoo.kim@gmail.com
->>           dongsoo45.kim@samsung.com
 >>
->
->
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+>>
 >
 >
 
