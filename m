@@ -1,97 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ppsw-1.csi.cam.ac.uk ([131.111.8.131]:36638 "EHLO
-	ppsw-1.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752666AbZFPOo2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2009 10:44:28 -0400
-Message-ID: <4A37AFF0.9090004@cam.ac.uk>
-Date: Tue, 16 Jun 2009 14:45:04 +0000
-From: Jonathan Cameron <jic23@cam.ac.uk>
+Received: from mx2.redhat.com ([66.187.237.31]:53718 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753169AbZFHOxE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Jun 2009 10:53:04 -0400
+Message-ID: <4A2D261B.9040104@redhat.com>
+Date: Mon, 08 Jun 2009 16:54:19 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Darius <augulis.darius@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH] soc-camera: ov7670 merged multiple drivers and moved
- over to v4l2-subdev
-References: <4A365918.40801@cam.ac.uk> <Pine.LNX.4.64.0906161552420.4880@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0906161552420.4880@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Stefan Kost <ensonic@hora-obscura.de>
+CC: Trent Piepho <xyzzy@speakeasy.org>, linux-media@vger.kernel.org
+Subject: Re: webcam drivers and V4L2_MEMORY_USERPTR support
+References: <4A238292.6000205@hora-obscura.de> <Pine.LNX.4.58.0906010056140.32713@shell2.speakeasy.net> <4A23CF7F.3070301@redhat.com> <4A28CC9B.6070306@hora-obscura.de> <4A2BE470.3060005@redhat.com> <4A2CD2C1.40805@hora-obscura.de>
+In-Reply-To: <4A2CD2C1.40805@hora-obscura.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski wrote:
-> On Mon, 15 Jun 2009, Jonathan Cameron wrote:
-> 
->> From: Jonathan Cameron <jic23@cam.ac.uk>
+Hi all,
+
+On 06/08/2009 10:58 AM, Stefan Kost wrote:
+> Hans de Goede schrieb:
 >>
->> OV7670 soc-camera driver. Merge of drivers from Jonathan Corbet,
->> Darius Augulis and Jonathan Cameron
-> 
-> Could you please, describe in more detail how you merged them?
-Mostly by combining the various register sets and then adding pretty much
-all the functionality in each of them, testing pretty much everything.
+>> On 06/05/2009 09:43 AM, Stefan Kost wrote:
+>>> Hans de Goede schrieb:
+>>>> On 06/01/2009 09:58 AM, Trent Piepho wrote:
+>>>>> On Mon, 1 Jun 2009, Stefan Kost wrote:
+>>>>>> I have implemented support for V4L2_MEMORY_USERPTR buffers in
+>>>>>> gstreamers
+>>>>>> v4l2src [1]. This allows to request shared memory buffers from
+>>>>>> xvideo,
+>>>>>> capture into those and therefore save a memcpy. This works great with
+>>>>>> the v4l2 driver on our embedded device.
+>>>>>>
+>>>>>> When I was testing this on my desktop, I noticed that almost no
+>>>>>> driver
+>>>>>> seems to support it.
+>>>>>> I tested zc0301 and uvcvideo, but also grepped the kernel driver
+>>>>>> sources. It seems that gspca might support it, but I ave not
+>>>>>> confirmed
+>>>>>> it. Is there a technical reason for it, or is it simply not
+>>>>>> implemented?
+>>>>> userptr support is relatively new and so it has less support,
+>>>>> especially
+>>>>> with driver that pre-date it.  Maybe USB cams use a compressed format
+>>>>> and
+>>>>> so userptr with xvideo would not work anyway since xv won't support
+>>>>> the
+>>>>> camera's native format.  It certainly could be done for bt8xx, cx88,
+>>>>> saa7134, etc.
+>>>> Even in the webcam with custom compressed format case, userptr support
+>>>> could
+>>>> be useful to safe a memcpy, as libv4l currently fakes mmap buffers, so
+>>>> what
+>>>> happens  is:
+>>>>
+>>>> cam>direct transfer>   mmap buffer>libv4l format conversion>   fake mmap
+>>>> buffer
+>>>>> application-memcpy>   dest buffer
+>>>> So if libv4l would support userptr's (which it currently does not
+>>>> do) we
+>>>> could still safe a memcpy here.
+>>> Do you mean that if a driver supports userptr and one uses libv4l
+>>> instead of the direct ioctl, there is a regression and the app iuppo
+>>> getting told only mmap works?
+>> Yes, this was done this way for simplicity's sake (libv4l2 is complex
+>> enough at is). At the time this decision was made it was an easy one to
+>> make as userptr support mostly was (and I believe still is) a paper
+>> excercise. Iow no applications and almost no drivers support it. If
+>> more applications start supporting it, support can and should be
+>> added to libv4l2. But this will be tricky.
+> E.g. omap2 v4l2 drivers (e.g. used in Nokia N800/N810) support it and
+> the new drivers fro omap3 will do the same. I probably need to revert
+> the libv4l usage in gstreamer than as we can have regressions in
+> applications ...
 
-Note that a lot of what was in those drivers (usually labeled as untested)
-simply doesn't work and is based on 'magic' register sets provided by
-omnivision.
- 
-> However, I am not sure this is the best way to go. I think, a better 
-> approach would be to take a driver currently in the mainline, perhaps, 
-> the most feature-complete one if there are several of them there,
-That is more or less what I've done (it's based on Jonathan Corbet's driver).
-Darius' driver and mine have never been in mainline. Darius' was a complete
-rewrite based on doc's he has under NDA.  Mine was based on Jonathan
-Corbet's one with a few bits leveraged from a working tinyos driver for the
-platform I'm using (principally because Omnivision are ignoring both myself
-and the board supplier).
- 
-> convert 
-> it and its user(s) to v4l2-subdev, extend it with any features missing in 
-> it and present in other drivers, then switch users of all other ov7670 
-> drivers over to this one,
-That's the problem. The only mainlined driver is specifically for an OLPC
-machine.  The driver is tied to specific i2c device and doesn't use anything
-anywhere near soc-camera or v4l2-subdev.
+Erm the current (0.10.15) gstreamer libv4l2 plugin does not even use
+USERPTR support (which confirms my I didn't implement it because
+nothing uses it reasoning), so there can be no regression.
 
-While it would be nice to get a single driver working
-for this hardware as well as more conventional soc-camera devices, it isn't
-going to happen without a lot of input from someone with an olpc.  The chip
-is interfaced through a Marvell 88alp101 'cafe' chip which does a whole host
-of random things alongside being video processor and taking a quick look at
-that would be written in a completely different fashion if it were done now
-(mfd with subdevices etc, v4l2-sudev)
+Now not using libv4l will make gstreamer applications not work with
+*hundreds* of different webcam models (and that is not an exageration),
+see:
+http://moinejf.free.fr/webcam.html
 
-So basically in the ideal world it would happen exactly as you've suggested,
-but I doubt it'll happen any time soon and in the meantime there is no in
-kernel support for those of us using the chip on other platforms.
+For an incomplete list, now some there may work without libv4l, but most
+don't.
 
-*looks hopefully in the direction of Jonathan Corbet and other olpc owners*
+So given as a choice:
+* not having a performance enhancement, which was never present before
+   so no regression
+* not working with *hundreds* of different webcam models
 
-> and finally make it work with soc-camera. This 
-> way you get a series of smaller and reviewable patches, instead of a 
-> completely new driver, that reproduces a lot of existing code but has to 
-> be reviewed anew. How does this sound?
-Would be fine if the original driver (or anything terribly close to it)
-were useable on a platform I actually have without more or less being rewritten.
+Which one are you going to choose ? I will most certainly know
+where to redirect the bug reports.
 
-I can back track the driver to be as close to that as possible and still
-functional, but I'm not entirely sure it will make the code any easier to
-review and you'll loose a lot the functionality lifted from Darius' as
-my original drivers.
+Regards,
 
-The original posting I made was as close as you can reasonably get to
-Jonathan's original driver.
-
-http://patchwork.kernel.org/patch/12192/
-
-At the time it wasn't really reviewed (beyond a few comments)
-as you were just commencing the soc-camera conversion and it made
-sense to wait for after that.
-
-I'm not really sure how we should proceed with this. I'm particularly
-loath to touch the olpc driver unless we have a reasonable number of
-people willing to test.
-
-Jonathan
+Hans
