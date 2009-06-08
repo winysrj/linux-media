@@ -1,101 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:43545 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1756156AbZFSGyv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jun 2009 02:54:51 -0400
-Date: Fri, 19 Jun 2009 08:54:56 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v2] soc-camera: fix missing clean up on error path
-In-Reply-To: <uvdmt9iy9.wl%morimoto.kuninori@renesas.com>
-Message-ID: <Pine.LNX.4.64.0906190847480.4204@axis700.grange>
-References: <ud49domlx.wl%morimoto.kuninori@renesas.com>
- <Pine.LNX.4.64.0906091057120.4085@axis700.grange> <ubpoxoelq.wl%morimoto.kuninori@renesas.com>
- <Pine.LNX.4.64.0906181722460.7460@axis700.grange> <uvdmt9iy9.wl%morimoto.kuninori@renesas.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp.nokia.com ([192.100.122.230]:53361 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752302AbZFHIW6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2009 04:22:58 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv6 6 of 7] FMTx: si4713: Add Kconfig and Makefile entries
+Date: Mon,  8 Jun 2009 11:18:06 +0300
+Message-Id: <1244449087-5543-7-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1244449087-5543-6-git-send-email-eduardo.valentin@nokia.com>
+References: <1244449087-5543-1-git-send-email-eduardo.valentin@nokia.com>
+ <1244449087-5543-2-git-send-email-eduardo.valentin@nokia.com>
+ <1244449087-5543-3-git-send-email-eduardo.valentin@nokia.com>
+ <1244449087-5543-4-git-send-email-eduardo.valentin@nokia.com>
+ <1244449087-5543-5-git-send-email-eduardo.valentin@nokia.com>
+ <1244449087-5543-6-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-soc-camera: fix missing clean up on error path
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-If soc_camera_init_user_formats() fails in soc_camera_probe(), we have to call
-client's .remove() method to unregister the video device.
-
-Reported-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+# HG changeset patch
+# User Eduardo Valentin <eduardo.valentin@nokia.com>
+# Date 1243414607 -10800
+# Node ID fbdd1a2a4fd099a98b1a48f3853a78c0a544632d
+# Parent  786afca68fc9fd35b18ee5cb4166b491613b13a5
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 ---
-(please use the new V4L Mailing List)
+ drivers/media/radio/Kconfig  |   22 ++++++++++++++++++++++
+ drivers/media/radio/Makefile |    3 +++
+ 2 files changed, 25 insertions(+), 0 deletions(-)
 
-On Fri, 19 Jun 2009, Kuninori Morimoto wrote:
-
-> > If soc_camera_init_user_formats() fails in soc_camera_probe(), we have to call
-> > client's .remove() method to unregister the video device.
-> > 
-> > Reported-by: Kuninori Morimoto <morimoto.kuninori@renesas.com>
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > ---
-> > Hi Morimoto-san
-> (snip)
-> > Could you please verify that this patch fixed your problem?
-> 
-> Thank you nice patch.
-> I tried this, but kernel stoped in boot.
-> 
-> soc_camera_video_stop is called from icd->ops->remove 
-> I think it have dead lock by icd->video_lock.
-> 
-> my kernel is from Paul's git and it's Makefile said 2.6.30-rc6
-
-Yes, you're right. Please, try this version, but this is a bigger change, 
-also affecting the regular (not error) path, so, I will have to test it 
-too.
-
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index 78010ab..9f5ae81 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -877,8 +877,11 @@ static int soc_camera_probe(struct device *dev)
- 			(unsigned short)~0;
+diff -r 786afca68fc9 -r fbdd1a2a4fd0 linux/drivers/media/radio/Kconfig
+--- a/linux/drivers/media/radio/Kconfig	Wed May 27 11:56:46 2009 +0300
++++ b/linux/drivers/media/radio/Kconfig	Wed May 27 11:56:47 2009 +0300
+@@ -339,6 +339,28 @@
+ 	help
+ 	  Enter the I/O port of your Zoltrix radio card.
  
- 		ret = soc_camera_init_user_formats(icd);
--		if (ret < 0)
-+		if (ret < 0) {
-+			if (icd->ops->remove)
-+				icd->ops->remove(icd);
- 			goto eiufmt;
-+		}
- 
- 		icd->height	= DEFAULT_HEIGHT;
- 		icd->width	= DEFAULT_WIDTH;
-@@ -902,8 +905,10 @@ static int soc_camera_remove(struct device *dev)
- {
- 	struct soc_camera_device *icd = to_soc_camera_dev(dev);
- 
-+	mutex_lock(&icd->video_lock);
- 	if (icd->ops->remove)
- 		icd->ops->remove(icd);
-+	mutex_unlock(&icd->video_lock);
- 
- 	soc_camera_free_user_formats(icd);
- 
-@@ -1145,6 +1150,7 @@ evidallocd:
- }
- EXPORT_SYMBOL(soc_camera_video_start);
- 
-+/* Called from client .remove() methods with .video_lock held */
- void soc_camera_video_stop(struct soc_camera_device *icd)
- {
- 	struct video_device *vdev = icd->vdev;
-@@ -1154,10 +1160,8 @@ void soc_camera_video_stop(struct soc_camera_device *icd)
- 	if (!icd->dev.parent || !vdev)
- 		return;
- 
--	mutex_lock(&icd->video_lock);
- 	video_unregister_device(vdev);
- 	icd->vdev = NULL;
--	mutex_unlock(&icd->video_lock);
- }
- EXPORT_SYMBOL(soc_camera_video_stop);
- 
++config I2C_SI4713
++	tristate "I2C driver for Silicon Labs Si4713 device"
++	depends on I2C && VIDEO_V4L2
++	---help---
++	  Say Y here if you want support to Si4713 I2C device.
++	  This device driver supports only i2c bus.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called si4713.
++
++config RADIO_SI4713
++	tristate "Silicon Labs Si4713 FM Radio Transmitter support"
++	depends on I2C && VIDEO_V4L2
++	---help---
++	  Say Y here if you want support to Si4713 FM Radio Transmitter.
++	  This device can transmit audio through FM. It can transmit
++	  EDS and EBDS signals as well. This module is the v4l2 radio
++	  interface for the i2c driver of this device.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called radio-si4713.
++
+ config USB_DSBR
+ 	tristate "D-Link/GemTek USB FM radio support"
+ 	depends on USB && VIDEO_V4L2
+diff -r 786afca68fc9 -r fbdd1a2a4fd0 linux/drivers/media/radio/Makefile
+--- a/linux/drivers/media/radio/Makefile	Wed May 27 11:56:46 2009 +0300
++++ b/linux/drivers/media/radio/Makefile	Wed May 27 11:56:47 2009 +0300
+@@ -15,6 +15,9 @@
+ obj-$(CONFIG_RADIO_GEMTEK) += radio-gemtek.o
+ obj-$(CONFIG_RADIO_GEMTEK_PCI) += radio-gemtek-pci.o
+ obj-$(CONFIG_RADIO_TRUST) += radio-trust.o
++obj-$(CONFIG_I2C_SI4713) += si4713-i2c.o
++si4713-i2c-objs := si4713.o si4713-subdev.o
++obj-$(CONFIG_RADIO_SI4713) += radio-si4713.o
+ obj-$(CONFIG_RADIO_MAESTRO) += radio-maestro.o
+ obj-$(CONFIG_USB_DSBR) += dsbr100.o
+ obj-$(CONFIG_USB_SI470X) += radio-si470x.o
