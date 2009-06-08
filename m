@@ -1,148 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2778 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752502AbZFEHwQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2009 03:52:16 -0400
-Message-ID: <21435.62.70.2.252.1244188332.squirrel@webmail.xs4all.nl>
-Date: Fri, 5 Jun 2009 09:52:12 +0200 (CEST)
-Subject: Re: What alternative way could be possible for initializing sensor
-      rigistors?
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	"Dongsoo Kim" <dongsoo45.kim@samsung.com>,
-	=?iso-8859-1?Q?=B1=E8=C7=FC=C1=D8?= <riverful.kim@samsung.com>,
-	=?iso-8859-1?Q?=B9=CE=BA=B4=C8=A3?= <bhmin@samsung.com>,
-	=?iso-8859-1?Q?=B9=DA=B0=E6=B9=CE?= <kyungmin.park@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from smtp.nokia.com ([192.100.105.134]:49507 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750929AbZFHIWl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2009 04:22:41 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv6 7 of 7] FMTx: si4713: Add document file
+Date: Mon,  8 Jun 2009 11:18:07 +0300
+Message-Id: <1244449087-5543-8-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1244449087-5543-7-git-send-email-eduardo.valentin@nokia.com>
+References: <1244449087-5543-1-git-send-email-eduardo.valentin@nokia.com>
+ <1244449087-5543-2-git-send-email-eduardo.valentin@nokia.com>
+ <1244449087-5543-3-git-send-email-eduardo.valentin@nokia.com>
+ <1244449087-5543-4-git-send-email-eduardo.valentin@nokia.com>
+ <1244449087-5543-5-git-send-email-eduardo.valentin@nokia.com>
+ <1244449087-5543-6-git-send-email-eduardo.valentin@nokia.com>
+ <1244449087-5543-7-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-> On Thu, Jun 4, 2009 at 8:26 PM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
->>
->>> Hello everyone,
->>>
->>> In subdev framework, we already have "init" API  but not recommended
->>> for new drivers to use this. But I'm so frustrated for the absence of
->>> that kind of API.
->>
->> What I want to do is that you can pass such data through the board_info.
->> Patch for that have been posted but I still haven't had the chance to
->> sit
->> down and review them :-(
->
-> Hmm... I tried to find the patch you mentioned, but still not popping
-> up. Can you give me some hint?
+# HG changeset patch
+# User Eduardo Valentin <eduardo.valentin@nokia.com>
+# Date 1243414607 -10800
+# Node ID 2456c8fc506ecf928d2e95da36d611d094c0ec55
+# Parent  fbdd1a2a4fd099a98b1a48f3853a78c0a544632d
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ Documentation/video4linux/si4713.txt |  133 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 133 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/video4linux/si4713.txt
 
-It's this one:
-
-http://patchwork.kernel.org/patch/25385/
-
-At least, I believe that's the latest version of it.
-
->>
->> This method is the common method for existing i2c drivers and should (I
->> think) be used for all new i2c drivers.
->>
->>> I'm working on camera driver which needs to programme registors
->>> through I2C bus and just stuck figuring out how to make it programmed
->>> in device open (in this case, camera interface should be opened)
->>> procedure.
->>
->> You're not trying to pass register/value pairs to the i2c driver, are
->> you?
->> You should tell the i2c driver what you want and let the i2c driver do
->> the
->> register programming for you. Only the i2c driver should know about the
->> registers of the i2c device.
->
-> Actually I'm trying to do a very ordinary I2C programming job through
-> i2c_transfer() like any of sensor device. There are so many registers
-> to be programmed..like hundreds? I suppose..One single register is
-> consisted of 2bytes for address and 2bytes for values or multiple
-> bytes for some cases.
-
-Yes, but such programming should only be done from the i2c device driver.
-You should never attempt to set registers in an i2c device from another
-driver.
-
-Regards,
-
-       Hans
-
->>> So, if I have no chance to use "init" API with implementing
->>> my driver, which API should be used? Actually without "init" API, I
->>> should make my driver to programme initializing registors in s_fmt or
->>> s_parm sort of APIs.
->>
->> Use init as long as the new functions passing the board_info to the i2c
->> core are not yet available. You can convert once we have the new API in
->> place.
->>
->
-> OK, I'll try to use if I can't find the patch using board_info you
-> have mentioned.
->
->>> Any other alternative API is served in subdev framework? Please let me
->>> know if there is something I missed.
->>
->> It's work in progress and I'm the bottleneck here :-(
->>
->
-> I really wanna give you a hand! If I could..
-> Cheers,
->
-> Nate
->
->>> BTW, subdev framework is really
->>> cool. Totally arranged and easy to use.
->>
->> Thanks!
->>
->> Regards,
->>
->>         Hans
->>
->>> Cheers,
->>>
->>> Nate
->>>
->>>
->>> --
->>> =
->>> DongSoo, Nathaniel Kim
->>> Engineer
->>> Mobile S/W Platform Lab.
->>> Digital Media & Communications R&D Centre
->>> Samsung Electronics CO., LTD.
->>> e-mail : dongsoo.kim@gmail.com
->>>           dongsoo45.kim@samsung.com
->>>
->>
->>
->> --
->> Hans Verkuil - video4linux developer - sponsored by TANDBERG
->>
->>
->
->
->
-> --
-> =
-> DongSoo, Nathaniel Kim
-> Engineer
-> Mobile S/W Platform Lab.
-> Digital Media & Communications R&D Centre
-> Samsung Electronics CO., LTD.
-> e-mail : dongsoo.kim@gmail.com
->           dongsoo45.kim@samsung.com
->
->
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
+diff -r fbdd1a2a4fd0 -r 2456c8fc506e linux/Documentation/video4linux/si4713.txt
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/linux/Documentation/video4linux/si4713.txt	Wed May 27 11:56:47 2009 +0300
+@@ -0,0 +1,133 @@
++Driver for I2C radios for the Silicon Labs Si4713 FM Radio Transmitters
++
++Copyright (c) 2009 Nokia Corporation
++Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
++
++
++Information about the Device
++============================
++This chip is a Silicon Labs product. It is a I2C device, currently on 0Ã—63 address.
++Basically, it has transmission and signal noise level measurement features.
++
++The Si4713 integrates transmit functions for FM broadcast stereo transmission.
++The chip also allows integrated receive power scanning to identify low signal
++power FM channels.
++
++The chip is programmed using commands and responses. There are also several
++properties which can change the behavior of this chip.
++
++Users must comply with local regulations on radio frequency (RF) transmission.
++
++Device driver description
++=========================
++There are two modules to handle this device. One is a I2C device driver
++and the other is a platform driver.
++
++The I2C device driver exports a v4l2-subdev interface to the kernel. Also
++it exports several device properties through sysfs interface to the user land.
++All properties can also be accessed by v4l2 extended controls interface, by
++using the v4l2-subdev calls (g_ext_ctrls, s_ext_ctrls).
++
++The platform device driver exports a v4l2 radio device interface to user land.
++So, it uses the I2C device driver as a sub device in order to send the user
++commands to the actual device. Basically it is a wrapper to the I2C device driver.
++
++So, in summary, the device driver has two interfaces to the user space.
++
++Applications can use v4l2 radio API to specify frequency of operation, mute state,
++etc. But mostly of its properties will be present in the extended controls.
++However, the device properties can also be accessed through its sysfs directory.
++
++When the v4l2 mute property is set to 1 (true), the driver will turn the chip off.
++
++Properties description
++======================
++
++The properties can be accessed in sysfs device directory. Using v4l2 extended
++controls as well.
++
++# ls
++acomp_attack_time        modalias                 rds_radio_text
++acomp_enabled            name                     region
++acomp_gain               pilot_deviation          region_bottom_frequency
++acomp_release_time       pilot_enabled            region_channel_spacing
++acomp_threshold          pilot_frequency          region_preemphasis
++antenna_capacitor        power                    region_top_frequency
++bus                      power_level              stereo_enabled
++driver                   rds_enabled              subsystem
++limiter_deviation        rds_pi                   tune_measure
++limiter_enabled          rds_ps_name              uevent
++limiter_release_time     rds_pty
++
++Here is a summary of them:
++
++* Pilot is an audible tone sent by the device.
++
++pilot_frequency - Configures the frequency of the stereo pilot tone.
++pilot_deviation - Configures pilot tone frequency deviation level.
++pilot_enabled - Enables or disables the pilot tone feature.
++
++* The si4713 device is capable of applying audio compression to the transmitted signal.
++
++acomp_enabled - Enables or disables the audio dynamic range control feature.
++acomp_gain - Sets the gain for audio dynamic range control.
++acomp_threshold - Sets the threshold level for audio dynamic range control.
++acomp_attack_time - Sets the attack time for audio dynamic range control.
++acomp_release_time - Sets the release time for audio dynamic range control.
++
++* Limiter setups audio deviation limiter feature. Once a over deviation occurs,
++it is possible to adjust the front-end gain of the audio input and always
++prevent over deviation.
++
++limiter_enabled - Enables or disables the limiter feature.
++limiter_deviation - Configures audio frequency deviation level.
++limiter_release_time - Sets the limiter release time.
++
++* Tuning power
++
++power_level - Sets the output power level for signal transmission.
++antenna_capacitor - This selects the value of antenna tuning capacitor manually
++or automatically if set to zero.
++tune_measure - With this you can get the value of signal length of a specific frequency.
++
++* RDS related
++
++rds_enabled - Enables or disables the RDS feature.
++rds_ps_name - Sets the RDS ps name field for transmission.
++rds_radio_text - Sets the RDS radio text for transmission.
++rds_pi - Sets the RDS PI field for transmission.
++rds_pty - Sets the RDS PTY field for transmission.
++
++* Region related
++
++Setting region will affect other region properties.
++
++region_bottom_frequency
++region_channel_spacing
++region_preemphasis
++region_top_frequency
++region - Selects which country specific setting should be assumed.
++
++* stereo_enabled - Enables or disables stereo mode.
++
++Testing
++=======
++Testing is usually done with fmtools utility for managing FM tuner cards.
++The tool can be found under Debian/Testing packages.
++
++The basic command list is:
++
++$ fm on     # Sets mute = false
++$ fm off    # Sets mute = true
++$ fm <freq> # Tunes to the frequency <freq>
++
++Of course, you should have the audio working and play something through alsa
++API to get something different of mute transmitted.
++
++To play with the above described properties, you can just use 'echo' and
++'cat' commands. For example, changing the rds_ps_name property, you just do:
++
++echo "Dummy FM Station" > /sys/bus/i2c/devices/X-0063/rds_ps_name
++
++where "X" is the i2c bus id which the device is connected.
++
