@@ -1,14 +1,19 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web62106.mail.re1.yahoo.com ([69.147.74.244])
-	by mail.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <kiwigb@yahoo.com>) id 1MDEh4-0006nt-OD
-	for linux-dvb@linuxtv.org; Sun, 07 Jun 2009 11:29:35 +0200
-Message-ID: <789797.12247.qm@web62106.mail.re1.yahoo.com>
-Date: Sun, 7 Jun 2009 02:28:59 -0700 (PDT)
-From: GJB <kiwigb@yahoo.com>
+Received: from hermes.acsalaska.net ([209.112.173.230])
+	by mail.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <rogerx@sdf.lonestar.org>) id 1MDWpI-0002qw-DH
+	for linux-dvb@linuxtv.org; Mon, 08 Jun 2009 06:51:17 +0200
+Received: from [192.168.1.3] (66-230-83-240-rb1.fai.dsl.dynamic.acsalaska.net
+	[66.230.83.240])
+	by hermes.acsalaska.net (8.14.1/8.14.1) with ESMTP id n584p60Z079462
+	for <linux-dvb@linuxtv.org>; Sun, 7 Jun 2009 20:51:07 -0800 (AKDT)
+	(envelope-from rogerx@sdf.lonestar.org)
+From: Roger <rogerx@sdf.lonestar.org>
 To: linux-dvb@linuxtv.org
-MIME-Version: 1.0
-Subject: [linux-dvb] Any takers?
+Date: Sun, 07 Jun 2009 20:51:03 -0800
+Message-Id: <1244436663.3797.3.camel@localhost2.local>
+Mime-Version: 1.0
+Subject: [linux-dvb] s5h1411_readreg: readreg error (ret == -5)
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,25 +28,32 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+>From looking at "linux/drivers/media/dvb/frontends/s5h1411.c",  The
+s5h1411_readreg wants to see "2" but is getting "-5" from the i2c bus.
 
+--- Snip ---
 
-I've waited six months for a reply on this one,
+s5h1411_readreg: readreg error (ret == -5)
+pvrusb2: unregistering DVB devices
+device: 'dvb0.net0': device_unregister
 
-http://www.linuxtv.org/pipermail/linux-dvb/2008-December/030966.html
+--- Snip ---
 
-nada, so I'm guessing no one wants to take it on or knows anything about it?
-
-I've worked with Toshiba gear (18 years) and linux (15 years) i.e. most my computing life .... this is going to be a turning point. I can't believe Toshiba has put their name on such an absolute crap piece of hardware/firmware/software package. I can only conclude that it is symptomatic of the health of Toshiba electronics, I'm going to avoid Toshiba products and recommending them in a professional capacity (as a systems engineer) as I have done in the past.
-
-Linux-TV is not really the venue for such a rant but just one more outlet that I'll be trying to turn people off Toshiba, they are going downhill, it is clear. They used to be solid and reliable to a fault, but their products have been getting progressively more flakey (and shiny and flimsy too I noticed, too many marketing types, not enough engineers I suspect.)
-
-Regards,
-
-Greg B.
+What exactly does this mean?
 
 
 
-      
+$ uname -a
+Linux localhost2.local 2.6.29-gentoo-r4Y #9 SMP PREEMPT Tue Jun 2
+03:38:16 AKDT 2009 i686 Pentium III (Coppermine) GenuineIntel GNU/Linux
+
+Using pvrusb2 which requests firmware to initialize a Hauppauge HVR-1950
+device.
+
+-- 
+Roger
+http://rogerx.freeshell.org
+
 
 _______________________________________________
 linux-dvb users mailing list
