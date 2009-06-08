@@ -1,50 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55307 "EHLO bear.ext.ti.com"
+Received: from zero.voxel.net ([69.9.191.6]:41109 "EHLO zero.voxel.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755671AbZFKOoH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2009 10:44:07 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans de Goede <hdegoede@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-CC: =?iso-8859-1?Q?Jean-Philippe_Fran=E7ois?= <jp.francois@cynove.com>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Thu, 11 Jun 2009 09:43:44 -0500
-Subject: RE: mt9t031 (was RE: [PATCH] adding support for setting bus
-           parameters in sub device)
-Message-ID: <A69FA2915331DC488A831521EAE36FE40139A09002@dlee06.ent.ti.com>
-References: <42113.62.70.2.252.1244712785.squirrel@webmail.xs4all.nl>
- <4A30D101.3090207@redhat.com>
-In-Reply-To: <4A30D101.3090207@redhat.com>
-Content-Language: en-US
+	id S1753525AbZFHCMv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 7 Jun 2009 22:12:51 -0400
+Message-ID: <4f363d5e6b409da696b35f7e2a966952.squirrel@mail.voxel.net>
+Date: Sun, 7 Jun 2009 22:12:53 -0400 (EDT)
+Subject: Re: funny colors from XC5000 on big endian systems
+From: "W. Michael Petullo" <mike@flyn.org>
+To: "Devin Heitmueller" <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+>> Is it possible that the XC5000 driver does not work properly on big
+>> endian systems? I am using Linux/PowerPC 2.6.29.4. I have tried to view
+>> an analog NTSC video stream from a Hauppauge 950Q using various
+>> applications (including GStreamer v4lsrc and XawTV). The video is
+>> always present, but in purple and green hues.
 
->
->> - video streaming devices like the davinci videoports where you can hook
->> up HDTV receivers or FPGAs: here you definitely need a new API to setup
->> the streaming parameters, and you want to be able to do that from the
->> application as well. Actually, sensors are also hooked up to these
->devices
->> in practice. And there you also want to be able to setup these parameters.
->> You will see this mostly (only?) on embedded platforms.
->>
->
->I agree we need an in kernel API for this, but why expose it to
->userspace, as you say this will only happen on embedded systems,
->shouldn't the info then go in a board_info file / struct ?
->
-No we still need a way for application to set these timings at the device. For example, it needs to tell a TVP7002 device to scan at 720p/1080p similar to S_STD. From user prespective, it is just like S_STD. See my email on the details...
+> Do you see the issue using tvtime?  This will help isolate whether it's
+> an application compatibility issue or whether it's related to endianness
+> (and I do almost all my testing with tvtime).
 
->Regards,
->
->Hans
+Tvtime works like a charm. The colors look fine. This is the first I've
+seen tvtime and it seems great. Now we may be getting off the topic, but
+does anyone know why xawtv, streamer and GStreamer's v4l2src would muck up
+the colors?
+
+> You indicated that you had reason to believe it's a PowerPC issue.  Is
+> there any reason that you came to that conclusion other than that you're
+> running on ppc?  I'm not discounting the possibility, but it would be
+> good to know if you have other information that supports your theory.
+
+It was a hypothesis, but based on experience in "seeing" endian bugs in
+video code and "hearing" endian bugs in audio code. After using PowerPC
+long enough, you learn to jump to the endian conclusion pretty quickly. I
+was wrong!
+
+Thanks.
+
+Mike
 
