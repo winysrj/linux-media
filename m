@@ -1,68 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:37266 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751534AbZFFWUZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Jun 2009 18:20:25 -0400
+Received: from mail-ew0-f210.google.com ([209.85.219.210]:54371 "EHLO
+	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752734AbZFIG5Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 02:57:25 -0400
+Received: by ewy6 with SMTP id 6so4878298ewy.37
+        for <linux-media@vger.kernel.org>; Mon, 08 Jun 2009 23:57:26 -0700 (PDT)
+Message-ID: <4A2E07D1.3070901@gmail.com>
+Date: Tue, 09 Jun 2009 08:57:21 +0200
+From: Claes Lindblom <claesl@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <200906061500.49338.hverkuil@xs4all.nl>
-References: <200906061500.49338.hverkuil@xs4all.nl>
-Date: Sat, 6 Jun 2009 18:20:26 -0400
-Message-ID: <9e4733910906061520o7b0b2858wf4530cf672b1adc9@mail.gmail.com>
-Subject: Re: RFC: proposal for new i2c.h macro to initialize i2c address lists
-	on the fly
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-i2c@vger.kernel.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] SkyStar HD2 issues, signal sensitivity, etc.
+References: <621110570904131518w220106d7u67934966dbb8c7dd@mail.gmail.com> <49E3D16E.3070307@gmail.com>
+In-Reply-To: <49E3D16E.3070307@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jun 6, 2009 at 9:00 AM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
-> Hi all,
->
-> For video4linux we sometimes need to probe for a single i2c address.
-> Normally you would do it like this:
+Hi,
 
-Why does video4linux need to probe to find i2c devices? Can't the
-address be determined by knowing the PCI ID of the board?
+Manu Abraham wrote:
+> The s2-liplianin tree doesn't use an updated tree for the mantis
+> based devices unfortunately. It is stuck with older changesets of
+> the mantis tree.
+>
+> The s2-liplianin tree contains (ed) ? some clock related changes
+> which were not favourable for the STB0899 demodulator, which is
+> capable of causing potential hardware damage.
+>   
+Is this still valid that s2-liplianin tree is out of date and if so, 
+does anyone have a patch to update it?
+It's does not sound so good when we start talking about hardware damage.
 
+I have a problem with the recent s2-liplianin that the driver stops 
+working and both scanning and tuning fails and a reboot does not help
+and I have to poweroff my computer and restart it for it to work again.
+Has anyone had the same issue? It's running on a Gigabyte GA M56S S3 
+motherboard if that's any help.
 
->
-> static const unsigned short addrs[] = {
->        addr, I2C_CLIENT_END
-> };
->
-> client = i2c_new_probed_device(adapter, &info, addrs);
->
-> This is a bit awkward and I came up with this macro:
->
-> #define V4L2_I2C_ADDRS(addr, addrs...) \
->        ((const unsigned short []){ addr, ## addrs, I2C_CLIENT_END })
->
-> This can construct a list of one or more i2c addresses on the fly. But this
-> is something that really belongs in i2c.h, renamed to I2C_ADDRS.
->
-> With this macro we can just do:
->
-> client = i2c_new_probed_device(adapter, &info, I2C_ADDRS(addr));
->
-> Comments?
->
-> Regards,
->
->        Hans
->
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-i2c" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
-
--- 
-Jon Smirl
-jonsmirl@gmail.com
+Regards
+Claes Lindblom
