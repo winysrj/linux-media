@@ -1,82 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:43991 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1757186AbZFNTAR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Jun 2009 15:00:17 -0400
-Date: Sun, 14 Jun 2009 21:00:23 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
-	Darius Augulis <augulis.darius@gmail.com>
-Subject: Re: [PATCH] adding support for setting bus parameters in sub device
-In-Reply-To: <200906141917.25328.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.0906142042380.3407@axis700.grange>
-References: <62904.62.70.2.252.1244810776.squirrel@webmail.xs4all.nl>
- <200906121800.51177.hverkuil@xs4all.nl> <Pine.LNX.4.64.0906141719510.4412@axis700.grange>
- <200906141917.25328.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49839 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751042AbZFISuB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Jun 2009 14:50:01 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n59Inw86017448
+	for <linux-media@vger.kernel.org>; Tue, 9 Jun 2009 13:50:03 -0500
+From: m-karicheri2@ti.com
+To: linux-media@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH 5/10 - v2] ccdc hw device header file for vpfe capture
+Date: Tue,  9 Jun 2009 14:49:57 -0400
+Message-Id: <1244573397-20508-1-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 14 Jun 2009, Hans Verkuil wrote:
+From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
 
-> The point I'm making here is that since the autoconf part is done in software
-> it *can* be changed. And while just looking at the code there is no reason why
-> choosing a positive vs. negative polarity makes any difference if both host
-> and i2c device support it, from a hardware standpoint it *can* make a
-> difference.
-> 
-> In practice you verify and certify your hardware using specific bus settings.
-> An autoconf algorithm just obfuscates those settings. And relying on it to
-> always return the same settings in the future seems also wishful thinking.
+CCDC hw device header file
 
-Ok, I think, now I get it. Your real concern is the only case when both 
-parties can be configured in software for either polarity. And whereas we 
-think (ok, make it "I think") this means, both configurations should work, 
-in practice only one of them is guaranteed to. And you think having an 
-optional board preference flag is not enough, it should be mandatory.
+Adds ccdc hw device header for vpfe capture driver
 
-I see your point now. I am still not positive this case alone is enough to 
-force all boards to specify all polarities. How about, we use 
-autonegotiation where there's only one valid configuration. If both 
-possibilities and no preference is set - ok, we can decide. Either we 
-complain loudly in the log and try our luck, or we complain and fail. 
-Let's see:
+Incorporated review comments against previous patch
 
-	hs hi  hs lo  vs hi  vs lo  pclk rise  pclk fall  d hi  d lo  master  slave
+Reviewed By "Hans Verkuil".
+Reviewed By "Laurent Pinchart".
 
-mt9v022   x      x      x      x        x          x       x     -      x       x
-
-mt9m001   x      -      x      -        -          x       x     -      x       -
-
-mt9m111   x      -      x      -        x          -       x     -      x       -
-
-mt9t031   x      -      x      -        x          x       x     -      x       -
-
-ov772x    x      -      x      -        x          -       x     -      x       -
-
-tw9910    x      -      x      -        x          -       x     -      x       -
-
-(hs = hsync, vs = vsync, pclk = pixel clock, d = data) So, as you see, 
-this free choice is not so often.
-
-> > In  
-> > any case, I am adding authors, maintainers and major contributors to 
-> > various soc-camera host drivers to CC and asking them to express their 
-> > opinion on this matter. I will not add anything else here to avoid any 
-> > "unfair competition":-) they will have to go a couple emails back in this 
-> > thread to better understand what is being discussed here.
-> 
-> It will definitely be interesting to see what others think.
-
-Thanks
-Guennadi
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Applies to v4l-dvb repository
+
+ drivers/media/video/davinci/ccdc_hw_device.h |  110 ++++++++++++++++++++++++++
+ 1 files changed, 110 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/davinci/ccdc_hw_device.h
+
+diff --git a/drivers/media/video/davinci/ccdc_hw_device.h b/drivers/media/video/davinci/ccdc_hw_device.h
+new file mode 100644
+index 0000000..86b9b35
+--- /dev/null
++++ b/drivers/media/video/davinci/ccdc_hw_device.h
+@@ -0,0 +1,110 @@
++/*
++ * Copyright (C) 2008-2009 Texas Instruments Inc
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ * ccdc device API
++ */
++#ifndef _CCDC_HW_DEVICE_H
++#define _CCDC_HW_DEVICE_H
++
++#ifdef __KERNEL__
++#include <linux/videodev2.h>
++#include <linux/device.h>
++#include <media/davinci/vpfe_types.h>
++#include <media/davinci/ccdc_types.h>
++
++/*
++ * ccdc hw operations
++ */
++struct ccdc_hw_ops {
++	/* Pointer to initialize function to initialize ccdc device */
++	int (*open) (struct device *dev);
++	/* Pointer to deinitialize function */
++	int (*close) (struct device *dev);
++	/* set ccdc base address */
++	void (*set_ccdc_base)(void *base, int size);
++	/* Pointer to function to enable or disable ccdc */
++	void (*enable) (int en);
++	/* reset sbl. only for 6446 */
++	void (*reset) (void);
++	/* enable output to sdram */
++	void (*enable_out_to_sdram) (int en);
++	/* Pointer to function to set hw parameters */
++	int (*set_hw_if_params) (struct vpfe_hw_if_param *param);
++	/* get interface parameters */
++	int (*get_hw_if_params) (struct vpfe_hw_if_param *param);
++	/*
++	 * Pointer to function to set parameters. Used
++	 * for implementing VPFE_S_CCDC_PARAMS
++	 */
++	int (*set_params) (void *params);
++	/*
++	 * Pointer to function to get parameter. Used
++	 * for implementing VPFE_G_CCDC_PARAMS
++	 */
++	int (*get_params) (void *params);
++	/* Pointer to function to configure ccdc */
++	int (*configure) (void);
++
++	/* Pointer to function to set buffer type */
++	int (*set_buftype) (enum ccdc_buftype buf_type);
++	/* Pointer to function to get buffer type */
++	enum ccdc_buftype (*get_buftype) (void);
++	/* Pointer to function to set frame format */
++	int (*set_frame_format) (enum ccdc_frmfmt frm_fmt);
++	/* Pointer to function to get frame format */
++	enum ccdc_frmfmt (*get_frame_format) (void);
++	/* enumerate hw pix formats */
++	int (*enum_pix)(u32 *hw_pix, int i);
++	/* Pointer to function to set buffer type */
++	u32 (*get_pixel_format) (void);
++	/* Pointer to function to get pixel format. */
++	int (*set_pixel_format) (u32 pixfmt);
++	/* Pointer to function to set image window */
++	int (*set_image_window) (struct v4l2_rect *win);
++	/* Pointer to function to set image window */
++	void (*get_image_window) (struct v4l2_rect *win);
++	/* Pointer to function to get line length */
++	unsigned int (*get_line_length) (void);
++
++	/* Query CCDC control IDs */
++	int (*queryctrl)(struct v4l2_queryctrl *qctrl);
++	/* Set CCDC control */
++	int (*set_control)(struct v4l2_control *ctrl);
++	/* Get CCDC control */
++	int (*get_control)(struct v4l2_control *ctrl);
++
++	/* Pointer to function to set frame buffer address */
++	void (*setfbaddr) (unsigned long addr);
++	/* Pointer to function to get field id */
++	int (*getfid) (void);
++};
++
++struct ccdc_hw_device {
++	/* ccdc device name */
++	char name[32];
++	/* module owner */
++	struct module *owner;
++	/* hw ops */
++	struct ccdc_hw_ops hw_ops;
++};
++
++/* Used by CCDC module to register & unregister with vpfe capture driver */
++int vpfe_register_ccdc_device(struct ccdc_hw_device *dev);
++void vpfe_unregister_ccdc_device(struct ccdc_hw_device *dev);
++
++#endif
++#endif
+-- 
+1.6.0.4
+
