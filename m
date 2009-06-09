@@ -1,58 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bcode.com ([150.101.204.108]:7388 "EHLO mail.bcode.com"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753965AbZFDABK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jun 2009 20:01:10 -0400
-Date: Thu, 4 Jun 2009 10:01:10 +1000
-From: Erik de Castro Lopo <erik@bcode.com>
-To: linux-media@vger.kernel.org
-Cc: Erik =?UTF-8?B?QW5kcsOpbg==?= <erik.andren@gmail.com>
-Subject: Re: Creating a V4L driver for a USB camera
-Message-Id: <20090604100110.c837c3df.erik@bcode.com>
-In-Reply-To: <62e5edd40906022318l230992b7n34e5178b7e1a7d46@mail.gmail.com>
-References: <20090603141350.04cde59b.erik@bcode.com>
-	<62e5edd40906022318l230992b7n34e5178b7e1a7d46@mail.gmail.com>
+Received: from mail-fx0-f213.google.com ([209.85.220.213]:44429 "EHLO
+	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759559AbZFIK7W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 06:59:22 -0400
+Received: by fxm9 with SMTP id 9so2867722fxm.37
+        for <linux-media@vger.kernel.org>; Tue, 09 Jun 2009 03:59:23 -0700 (PDT)
+Subject: [patch review] gspca - stv06xx: remove needless if check and goto
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: Jean-Francois Moine <moinejf@free.fr>,
+	Erik =?ISO-8859-1?Q?Andr=E9n?= <erik.andren@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 09 Jun 2009 14:59:40 +0400
+Message-Id: <1244545180.28249.8.camel@tux.localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 3 Jun 2009 16:18:33 +1000
-Erik Andrén <erik.andren@gmail.com> wrote:
+Hello, Jean-Francois and Erik André
 
-> Do you have any datasheet available on what usb bridge / sensor that is used?
+What do you think about such small change?
+Looks like the code doesn't need if-check and goto here in stv06xx_stopN
+function. The code after label "out" does this.
 
-The USB device itself comes up as :
+--
+Patch removes needless if check and goto. 
 
-    Bus 001 Device 011: ID 0547:8031 Anchor Chips, Inc
 
-The sensor is a Micron MT9T001P12STC and I have the data sheet for it.
+Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
+--
+diff -r ed3781a79c73 linux/drivers/media/video/gspca/stv06xx/stv06xx.c
+--- a/linux/drivers/media/video/gspca/stv06xx/stv06xx.c	Sat Jun 06 16:31:34 2009 +0400
++++ b/linux/drivers/media/video/gspca/stv06xx/stv06xx.c	Tue Jun 09 14:49:04 2009 +0400
+@@ -293,8 +293,6 @@
+ 		goto out;
+ 
+ 	err = sd->sensor->stop(sd);
+-	if (err < 0)
+-		goto out;
+ 
+ out:
+ 	if (err < 0)
 
-I've asked the manufacturer for source code to the windows driver
-and docs/source/whatever for the USB interface.
 
-> If the chipsets are undocumented and some proprietary image
-> compression technique is used, the time to reverse-engineer them can
-> be quite lengthy.
-
-I happen to know that the sensor/camera (via the windows driver) can
-provide raw bayer data which is what I'm after (our application is
-machine vision and bayer works best).
-
-Cheers,
-Erik
 -- 
-=======================
-erik de castro lopo
-senior design engineer
+Best regards, Klimov Alexey
 
-bCODE
-level 2, 2a glen street
-milsons point
-sydney nsw 2061
-australia
-
-tel +61 (0)2 9954 4411
-fax +61 (0)2 9954 4422
-www.bcode.com
