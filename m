@@ -1,101 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f210.google.com ([209.85.219.210]:51909 "EHLO
-	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751063AbZFIWbz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 18:31:55 -0400
-Received: by ewy6 with SMTP id 6so402407ewy.37
-        for <linux-media@vger.kernel.org>; Tue, 09 Jun 2009 15:31:56 -0700 (PDT)
-MIME-Version: 1.0
-Date: Wed, 10 Jun 2009 00:31:55 +0200
-Message-ID: <c4bc83220906091531h20677733kd993ed50c0bc74ec@mail.gmail.com>
-Subject: [PATCH] af9015: fix stack corruption bug
-From: Jan Nikitenko <jan.nikitenko@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-pz0-f171.google.com ([209.85.222.171]:43328 "EHLO
+	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753095AbZFICW6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2009 22:22:58 -0400
+Received: by pzk1 with SMTP id 1so2660741pzk.33
+        for <linux-media@vger.kernel.org>; Mon, 08 Jun 2009 19:23:00 -0700 (PDT)
+Subject: Re: About the VIDIOC_DQBUF
+From: xie <yili.xie@gmail.com>
+To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Cc: v4l2_linux <linux-media@vger.kernel.org>
+In-Reply-To: <5e9665e10906080440p446e1044sf869e73ae1f6c1a8@mail.gmail.com>
+References: <1244426759.6740.31.camel@xie>
+	 <5e9665e10906072356l686f4301v2546460c86bdf721@mail.gmail.com>
+	 <1244448176.15110.0.camel@xie>
+	 <5e9665e10906080440p446e1044sf869e73ae1f6c1a8@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 09 Jun 2009 10:22:38 +0800
+Message-Id: <1244514158.8451.17.camel@xie>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes stack corruption bug present in af9015_eeprom_dump():
-the buffer buf is one byte smaller than required - there is 4 chars
-for address prefix, 16*3 chars for dump of 16 eeprom bytes per line
-and 1 byte for zero ending the string required, i.e. 53 bytes, but
-only 52 are provided.
-The one byte missing in stack based buffer buf causes following oops
-on MIPS little endian platform, because i2c_adap pointer in
-af9015_af9013_frontend_attach() is corrupted by inlined function
-af9015_eeprom_dump():
+hi ~~ Dongsoo, Nathaniel ~
 
-CPU 0 Unable to handle kernel paging request at virtual address 00000000, epc ==
-803a4488, ra == c049a1c8
-Oops[#1]:
-Cpu 0
-$ 0   : 00000000 10003c00 00000000 803a4468
-$ 4   : 8f17c600 8f067b30 00000002 00000038
-$ 8   : 00000001 8faf3e98 11da000d 09010002
-$12   : 00000000 00000000 00000000 0000000a
-$16   : 8f17c600 8f067b68 8faf3c00 8f067c04
-$20   : 8f067b9c 00000100 8f067bf0 80104100
-$24   : 00000000 2aba9fb0
-$28   : 8f066000 8f067af0 802cbc48 c049a1c8
-Hi    : 00000000
-Lo    : 00000000
-epc   : 803a4488 i2c_transfer+0x20/0x104
-   Not tainted
-ra    : c049a1c8 af9013_read_reg+0x78/0xc4 [af9013]
-Status: 10003c03    KERNEL EXL IE
-Cause : 00808008
-BadVA : 00000000
-PrId  : 03030200 (Au1550)
-Modules linked in: af9013 dvb_usb_af9015(+) dvb_usb dvb_core firmware_class
-i2c_au1550 au1550_spi
-Process modprobe (pid: 2757, threadinfo=8f066000, task=8fade098, tls=2aad6470)
-Stack : c049f5e0 80163090 805ba880 00000100 8f067bf0 0000d733 8f067b68 8faf3c00
-       8f067c04 c049a1c8 80163bc0 8056a630 8f067b40 80163224 80569fc8 8f0033d7
-       00000038 80140003 8f067b2c 00010038 c0420001 8f067b28 c049f5e0 00000004
-       00000004 c049a524 c049d5a8 c049d5a8 00000000 803a6700 00000000 8f17c600
-       c042a7a4 8f17c600 c042a7a4 c049c924 00000000 00000000 00000002 613a6c00
-       ...
-Call Trace:
-[<803a4488>] i2c_transfer+0x20/0x104
-[<c049a1c8>] af9013_read_reg+0x78/0xc4 [af9013]
-[<c049a524>] af9013_read_reg_bits+0x2c/0x70 [af9013]
-[<c049c924>] af9013_attach+0x98/0x65c [af9013]
-[<c04257bc>] af9015_af9013_frontend_attach+0x214/0x67c [dvb_usb_af9015]
-[<c03e2428>] dvb_usb_adapter_frontend_init+0x20/0x12c [dvb_usb]
-[<c03e1ad8>] dvb_usb_device_init+0x374/0x6b0 [dvb_usb]
-[<c0426120>] af9015_usb_probe+0x4fc/0xfcc [dvb_usb_af9015]
-[<80381024>] usb_probe_interface+0xbc/0x218
-[<803227fc>] driver_probe_device+0x12c/0x30c
-[<80322a80>] __driver_attach+0xa4/0xac
-[<80321ed0>] bus_for_each_dev+0x60/0xd0
-[<8032162c>] bus_add_driver+0x1e8/0x2a8
-[<80322cdc>] driver_register+0x7c/0x17c
-[<80380d30>] usb_register_driver+0xa0/0x12c
-[<c042e030>] af9015_usb_module_init+0x30/0x6c [dvb_usb_af9015]
-[<8010d2a4>] __kprobes_text_end+0x3c/0x1f4
-[<80167150>] sys_init_module+0xb8/0x1cc
-[<80102370>] stack_done+0x20/0x3c
+I am sorry for disturbing you, and not descripe the question clear ~
+Thanks very much for your help ~~ 
+
+I know that I must stop preview with streamoff and re-configure with
+s_fmt ~~ I have asked to you before ~!~
+
+The "full frame" means a complete frame ~Because I just need to get the
+frame data and post it to multimedia framework, so I want to  consult to
+you that if I can get a complete frame with memcpy ~~
+
+I want to know that can I get a complete frame from buf.start to the
+end , and the memory-lenth is buf.byteused ~ 
+
+            buf.byteused
+    |-----------------------------|
+buf.start                        end
 
 
-Code: afb10018  7000003f  00808021 <8c430000> 7000003f  1060002d  00c09021
-8f830014  3c02efff
 
-Signed-off-by: Jan Nikitenko <jan.nikitenko@gmail.com>
----
- linux/drivers/media/dvb/dvb-usb/af9015.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -r cff06234b725 linux/drivers/media/dvb/dvb-usb/af9015.c
---- a/linux/drivers/media/dvb/dvb-usb/af9015.c	Sun May 31 23:07:01 2009 +0300
-+++ b/linux/drivers/media/dvb/dvb-usb/af9015.c	Wed Jun 10 00:25:53 2009 +0200
-@@ -541,7 +541,7 @@
- /* dump eeprom */
- static int af9015_eeprom_dump(struct dvb_usb_device *d)
- {
--	char buf[52], buf2[4];
-+	char buf[4+3*16+1], buf2[4];
- 	u8 reg, val;
 
- 	for (reg = 0; ; reg++) {
+
+
+在 2009-06-08一的 20:40 +0900，Dongsoo, Nathaniel Kim写道：
+> Hi,
+> 
+> Sorry I'm not an expert, you can expect expertise from maintainers not from me.
+> But before answering your question about capturing, I'm not sure about
+> what the "full frame" means. I just assume that you meant to say the
+> biggest resolution of image frame, right?
+> 
+> So, when you are to capture a full resolution data while preview is
+> working, you need to stop preview with streamoff, re-configure
+> resolution with s_fmt to external camera module and  start capturing
+> issuing streamon with re-configured resolution. I think you are
+> well-aware with this, aren't you? And in my opinion, memcpy may be
+> cool for that. What else are you expecting to use? and for what?
+> Anyway, I wish you luck.
+> Cheers,
+> 
+> Nate
+> 
+> 
+> On Mon, Jun 8, 2009 at 5:02 PM, xie<yili.xie@gmail.com> wrote:
+> > Hi Dongsoo, Nathaniel ~
+> > You must be expert on V4l2 ~ Thanks very much for your help and advice
+> > ~!~
+> > I used the MXC camera interface driver from Fressscale ,I readed the
+> > driver interface just now ,and have fouded that the driver not modified
+> > the buf.lenth but buf.byteused . You are very right , I will use the
+> > buf.byteused instead of buf.length ~
+> >
+> > There is also a problem I want to consult to you ~ Can i get a full
+> > frame with the below method if the driver have no problem ?
+> >
+> > memcpy((mCameraProwave->getPreviewHeap())->base(),
+> > v4l2Buffer[buf.index].start, buf.byteused) ;
+> >
+> > Because I just need to implement a hal for getting the frame data and
+> > post it to top layer , so I used the memcpy simply . Am I right ~ ? Or
+> > what about your advice ?
+> >
+> > Thanks a lot ~~
+> >
+> >
+> >
+> > 在 2009-06-08一的 15:56 +0900，Dongsoo, Nathaniel Kim写道：
+> >> Hello Xie,
+> >>
+> >> I'm not sure which camera interface driver you are using, but it seems
+> >> to be camera interface driver's problem. Let me guess, are you using
+> >> pxa camera interface driver from Marvell?(proprietary but not in up
+> >> stream kernel)
+> >> It just looks like that camera interface driver is not returning
+> >> proper data in dqbuf.
+> >>
+> >> And one more thing. I prefer to use byteused rather than length in
+> >> buf. because as far as I know the size of preview data from camera is
+> >> in byte unit which we need to copy to memory. But it should be
+> >> possible to use length, I guess..
+> >> Cheers,
+> >>
+> >> Nate
+> >>
+> >> On Mon, Jun 8, 2009 at 11:05 AM, xie<yili.xie@gmail.com> wrote:
+> >> > Dear all ~~
+> >> >
+> >> > I have met a issue when I used the mmap method for previewing . I just
+> >> > used the standard code as spec to get the image data :
+> >> > status_t CameraHardwareProwave::V4l2Camera::v4l2CaptureMainloop()
+> >> > {
+> >> >        LOG_FUNCTION_NAME
+> >> >        int rt  ;
+> >> >        unsigned int i ;
+> >> >        fd_set fds ;
+> >> >        struct timeval tv ;
+> >> >        struct v4l2_buffer buf ;
+> >> >
+> >> >        for(;;){
+> >> >                FD_ZERO(&fds) ;
+> >> >                FD_SET(v4l2Fd, &fds) ;
+> >> >                //now the time is long ,just for debug
+> >> >                tv.tv_sec = 2 ;
+> >> >                tv.tv_usec = 0 ;
+> >> >
+> >> >                rt = select(v4l2Fd + 1, &fds, NULL, NULL, &tv) ;
+> >> >                LOGD("The value of select return : %d\n", rt) ;
+> >> >
+> >> >                /********** for debug
+> >> >                if(V4L2_NOERROR != v4l2ReadFrame()){
+> >> >                        LOGE("READ ERROR") ;
+> >> >                }
+> >> >                ***********/
+> >> >
+> >> >                if(-1 == rt){
+> >> >                        LOGE("there is something wrong in select function(select)") ;
+> >> >                        //no defined error manage
+> >> >                        return V4L2_IOCTL_ERROR ;
+> >> >                }
+> >> >                if(0 == rt){
+> >> >                        LOGE("wait for data timeout in select") ;
+> >> >                        return V4L2_TIMEOUT ;
+> >> >                }
+> >> >
+> >> >                memset(&buf, 0, sizeof(buf)) ;
+> >> >                buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE ;
+> >> >                buf.memory = V4L2_MEMORY_MMAP ;
+> >> >                if(-1 == ioctl(v4l2Fd, VIDIOC_DQBUF, &buf)){
+> >> >                    LOGE("there is something wrong in dequeue buffer(VIDIOC_DQBUF)") ;
+> >> >                        return V4L2_IOCTL_ERROR ;
+> >> >                }
+> >> >
+> >> >                assert(i < n_buf) ;
+> >> >                LOGE("buf.index  0buf.length = %d %d \n", buf.index , buf.length) ;
+> >> >        memcpy((mCameraProwave->getPreviewHeap())->base(),
+> >> > v4l2Buffer[buf.index].start, buf.length) ;
+> >> >                if(-1 == ioctl(v4l2Fd, VIDIOC_QBUF, &buf)){
+> >> >                    LOGE("there is something wrong in enqueue buffer(VIDIOC_QBUF)") ;
+> >> >                        return V4L2_IOCTL_ERROR ;
+> >> >                }
+> >> >                //break ;   //i don't know whether the break is needed ;
+> >> >
+> >> >        }
+> >> >        return V4L2_NOERROR ;
+> >> > }
+> >> >
+> >> > when executed the VIDIOC_DQBUF IOCTL,the return value was right, but the
+> >> > value of buf.length would always  be zero. Then I used the read()
+> >> > function to read raw data in the file handle for debug, and I can get
+> >> > the raw data. Anybody have met this issue before ? Who can give me some
+> >> > advices or tell me what is wrong , thanks a lot ~
+> >> >
+> >> >
+> >>
+> >>
+> >>
+> >
+> >
+> 
+> 
+> 
+
