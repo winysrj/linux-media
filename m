@@ -1,301 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from av11-1-sn2.hy.skanova.net ([81.228.8.183]:54861 "EHLO
-	av11-1-sn2.hy.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752717AbZFCL3O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jun 2009 07:29:14 -0400
-Received: from smtp4-2-sn2.hy.skanova.net (smtp4-2-sn2.hy.skanova.net [81.228.8.93])
-	by av11-1-sn2.hy.skanova.net (Postfix) with ESMTP id B9E8337FD7
-	for <linux-media@vger.kernel.org>; Wed,  3 Jun 2009 12:57:35 +0200 (CEST)
-Received: from the-apple.local (194-237-7-146.customer.telia.com [194.237.7.146])
-	by smtp4-2-sn2.hy.skanova.net (Postfix) with ESMTP id A3AA837E51
-	for <linux-media@vger.kernel.org>; Wed,  3 Jun 2009 12:57:35 +0200 (CEST)
-Message-ID: <4A26571F.4020906@mocean-labs.com>
-Date: Wed, 03 Jun 2009 12:57:35 +0200
-From: =?UTF-8?B?UmljaGFyZCBSwprDtmpmb3Jz?=
-	<richard.rojfors.ext@mocean-labs.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:39201 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752120AbZFISxN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 14:53:13 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n59Ir7te003191
+	for <linux-media@vger.kernel.org>; Tue, 9 Jun 2009 13:53:15 -0500
+Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id n59Ir7jj022047
+	for <linux-media@vger.kernel.org>; Tue, 9 Jun 2009 13:53:07 -0500 (CDT)
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	Muralidharan Karicheri <a0868495@dal.design.ti.com>
+Date: Tue, 9 Jun 2009 13:53:04 -0500
+Subject: RE: [PATCH 5/10 - v2] ccdc hw device header file for vpfe capture
+Message-ID: <A69FA2915331DC488A831521EAE36FE4013564FB62@dlee06.ent.ti.com>
+References: <1244573397-20508-1-git-send-email-m-karicheri2@ti.com>
+In-Reply-To: <1244573397-20508-1-git-send-email-m-karicheri2@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH] video: Initial support for ADV7180
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an initial driver for Analog Devices ADV7180 Video Decoder.
+Please ignore this, it has wrong series number. I will re-send it soon
 
-So far it only supports query standard.
+email: m-karicheri2@ti.com
 
-Signed-off-by: Richard Röjfors <richard.rojfors.ext@mocean-labs.com>
----
-Index: linux-2.6.30-rc7/drivers/media/video/adv7180.c
-===================================================================
---- linux-2.6.30-rc7/drivers/media/video/adv7180.c	(revision 0)
-+++ linux-2.6.30-rc7/drivers/media/video/adv7180.c	(revision 867)
-@@ -0,0 +1,221 @@
-+/*
-+ * adv7180.c Analog Devices ADV7180 video decoder driver
-+ * Copyright (c) 2009 Intel Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/errno.h>
-+#include <linux/kernel.h>
-+#include <linux/interrupt.h>
-+#include <linux/i2c.h>
-+#include <linux/i2c-id.h>
-+#include <media/v4l2-ioctl.h>
-+#include <linux/videodev2.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-chip-ident.h>
-+#include <media/v4l2-i2c-drv.h>
-+
-+
-+#define ADV7180_INPUT_CONTROL_REG	0x00
-+#define ADV7180_INPUT_CONTROL_PAL_BG_NTSC_J_SECAM	0x00
-+#define ADV7180_AUTODETECT_ENABLE_REG	0x07
-+#define ADV7180_AUTODETECT_DEFAULT	0x7f
-+
-+
-+#define ADV7180_STATUS1_REG 0x10
-+#define ADV7180_STATUS1_AUTOD_MASK 0x70
-+#define ADV7180_STATUS1_AUTOD_NTSM_M_J	0x00
-+#define ADV7180_STATUS1_AUTOD_NTSC_4_43 0x10
-+#define ADV7180_STATUS1_AUTOD_PAL_M	0x20
-+#define ADV7180_STATUS1_AUTOD_PAL_60	0x30
-+#define ADV7180_STATUS1_AUTOD_PAL_B_G	0x40
-+#define ADV7180_STATUS1_AUTOD_SECAM	0x50
-+#define ADV7180_STATUS1_AUTOD_PAL_COMB	0x60
-+#define ADV7180_STATUS1_AUTOD_SECAM_525	0x70
-+
-+#define ADV7180_IDENT_REG 0x11
-+#define ADV7180_ID_7180 0x18
-+
-+
-+static unsigned short normal_i2c[] = { 0x42 >> 1, I2C_CLIENT_END };
-+
-+I2C_CLIENT_INSMOD;
-+
-+struct adv7180_state {
-+	struct v4l2_subdev sd;
-+};
-+
-+static v4l2_std_id determine_norm(struct i2c_client *client)
-+{
-+	u8 status1 = i2c_smbus_read_byte_data(client, ADV7180_STATUS1_REG);
-+
-+	switch (status1 & ADV7180_STATUS1_AUTOD_MASK) {
-+	case ADV7180_STATUS1_AUTOD_NTSM_M_J:
-+		return V4L2_STD_NTSC_M_JP;
-+	case ADV7180_STATUS1_AUTOD_NTSC_4_43:
-+		return V4L2_STD_NTSC_443;
-+	case ADV7180_STATUS1_AUTOD_PAL_M:
-+		return V4L2_STD_PAL_M;
-+	case ADV7180_STATUS1_AUTOD_PAL_60:
-+		return V4L2_STD_PAL_60;
-+	case ADV7180_STATUS1_AUTOD_PAL_B_G:
-+		return V4L2_STD_PAL;
-+	case ADV7180_STATUS1_AUTOD_SECAM:
-+		return V4L2_STD_SECAM;
-+	case ADV7180_STATUS1_AUTOD_PAL_COMB:
-+		return V4L2_STD_PAL_Nc | V4L2_STD_PAL_N;
-+	case ADV7180_STATUS1_AUTOD_SECAM_525:
-+		return V4L2_STD_SECAM;
-+	default:
-+		return V4L2_STD_UNKNOWN;
-+	}
-+}
-+
-+static inline struct adv7180_state *to_state(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct adv7180_state, sd);
-+}
-+
-+static int adv7180_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
-+	*(v4l2_std_id *)std = determine_norm(client);
-+	return 0;
-+}
-+
-+static int adv7180_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+{
-+	return -EINVAL;
-+}
-+
-+static int adv7180_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+{
-+	return -EINVAL;
-+}
-+
-+static int adv7180_g_chip_ident(struct v4l2_subdev *sd,
-+	struct v4l2_dbg_chip_ident *chip)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
-+	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_ADV7180, 0);
-+}
-+
-+static int adv7180_log_status(struct v4l2_subdev *sd)
-+{
-+	v4l2_info(sd, "Normal operation\n");
-+	return 0;
-+}
-+
-+static irqreturn_t adv7180_irq(int irq, void *devid)
-+{
-+	return IRQ_NONE;
-+}
-+
-+static const struct v4l2_subdev_video_ops adv7180_video_ops = {
-+	.querystd = adv7180_querystd,
-+};
-+
-+static const struct v4l2_subdev_core_ops adv7180_core_ops = {
-+	.log_status = adv7180_log_status,
-+	.g_chip_ident = adv7180_g_chip_ident,
-+	.g_ctrl = adv7180_g_ctrl,
-+	.s_ctrl = adv7180_s_ctrl,
-+};
-+
-+static const struct v4l2_subdev_ops adv7180_ops = {
-+	.core = &adv7180_core_ops,
-+	.video = &adv7180_video_ops,
-+};
-+
-+/*
-+ * Generic i2c probe
-+ * concerning the addresses: i2c wants 7 bit (without the r/w bit), so '>>1'
-+ */
-+
-+static int adv7180_probe(struct i2c_client *client,
-+			const struct i2c_device_id *id)
-+{
-+	struct adv7180_state *state;
-+	struct v4l2_subdev *sd;
-+
-+	/* Check if the adapter supports the needed features */
-+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-+		return -EIO;
-+
-+	v4l_info(client, "chip found @ 0x%02x (%s)\n",
-+			client->addr << 1, client->adapter->name);
-+
-+	state = kmalloc(sizeof(struct adv7180_state), GFP_KERNEL);
-+	if (state == NULL)
-+		return -ENOMEM;
-+	sd = &state->sd;
-+	v4l2_i2c_subdev_init(sd, client, &adv7180_ops);
-+
-+	/* Initialize adv7180 */
-+
-+	/* register interrupt, can be used later */
-+	if (client->irq > 0) {
-+		/* we can use IRQ */
-+		int err = request_irq(client->irq, adv7180_irq, IRQF_SHARED,
-+			"adv7180", sd);
-+		if (err) {
-+			printk(KERN_ERR "adv7180: Failed to request IRQ\n");
-+			v4l2_device_unregister_subdev(sd);
-+			kfree(state);
-+			return err;
-+		}
-+	}
-+
-+	/* enable autodetection */
-+	i2c_smbus_write_byte_data(client, ADV7180_INPUT_CONTROL_REG,
-+		ADV7180_INPUT_CONTROL_PAL_BG_NTSC_J_SECAM);
-+	i2c_smbus_write_byte_data(client, ADV7180_AUTODETECT_ENABLE_REG,
-+		ADV7180_AUTODETECT_DEFAULT);
-+	return 0;
-+}
-+
-+static int adv7180_remove(struct i2c_client *client)
-+{
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+
-+	if (client->irq > 0)
-+		free_irq(client->irq, sd);
-+
-+	v4l2_device_unregister_subdev(sd);
-+	kfree(to_state(sd));
-+	return 0;
-+}
-+
-+static const struct i2c_device_id adv7180_id[] = {
-+	{ "adv7180", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(i2c, adv7180_id);
-+
-+static struct v4l2_i2c_driver_data v4l2_i2c_data = {
-+	.name = "adv7180",
-+	.probe = adv7180_probe,
-+	.remove = adv7180_remove,
-+	.id_table = adv7180_id,
-+};
-+
-+MODULE_DESCRIPTION("Analog Devices ADV7180 video decoder driver");
-+MODULE_AUTHOR("Mocean Laboratories");
-+MODULE_LICENSE("GPL v2");
-+
-Index: linux-2.6.30-rc7/drivers/media/video/Kconfig
-===================================================================
---- linux-2.6.30-rc7/drivers/media/video/Kconfig	(revision 861)
-+++ linux-2.6.30-rc7/drivers/media/video/Kconfig	(working copy)
-@@ -265,6 +265,15 @@
-
- comment "Video decoders"
-
-+config VIDEO_ADV7180
-+	tristate "Analog Devices ADV7180 decoder"
-+	depends on VIDEO_V4L2 && I2C
-+	---help---
-+	  Support for the Analog Devices ADV7180 video decoder.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called adv7180.
-+
- config VIDEO_BT819
- 	tristate "BT819A VideoStream decoder"
- 	depends on VIDEO_V4L2 && I2C
-Index: linux-2.6.30-rc7/drivers/media/video/Makefile
-===================================================================
---- linux-2.6.30-rc7/drivers/media/video/Makefile	(revision 861)
-+++ linux-2.6.30-rc7/drivers/media/video/Makefile	(working copy)
-@@ -49,6 +49,7 @@
- obj-$(CONFIG_VIDEO_SAA7191) += saa7191.o
- obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
- obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
-+obj-$(CONFIG_VIDEO_ADV7180) += adv7180.o
- obj-$(CONFIG_VIDEO_VPX3220) += vpx3220.o
- obj-$(CONFIG_VIDEO_BT819) += bt819.o
- obj-$(CONFIG_VIDEO_BT856) += bt856.o
-Index: linux-2.6.30-rc7/include/media/v4l2-chip-ident.h
-===================================================================
---- linux-2.6.30-rc7/include/media/v4l2-chip-ident.h	(revision 861)
-+++ linux-2.6.30-rc7/include/media/v4l2-chip-ident.h	(working copy)
-@@ -131,6 +131,9 @@
- 	/* module adv7175: just ident 7175 */
- 	V4L2_IDENT_ADV7175 = 7175,
-
-+	/* module adv7180: just ident 7180 */
-+	V4L2_IDENT_ADV7180 = 7180,
-+
- 	/* module saa7185: just ident 7185 */
- 	V4L2_IDENT_SAA7185 = 7185,
+>-----Original Message-----
+>From: Karicheri, Muralidharan
+>Sent: Tuesday, June 09, 2009 2:50 PM
+>To: linux-media@vger.kernel.org
+>Cc: davinci-linux-open-source@linux.davincidsp.com; Muralidharan Karicheri;
+>Karicheri, Muralidharan
+>Subject: [PATCH 5/10 - v2] ccdc hw device header file for vpfe capture
+>
+>From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
+>
+>CCDC hw device header file
+>
+>Adds ccdc hw device header for vpfe capture driver
+>
+>Incorporated review comments against previous patch
+>
+>Reviewed By "Hans Verkuil".
+>Reviewed By "Laurent Pinchart".
+>
+>Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+>---
+>Applies to v4l-dvb repository
+>
+> drivers/media/video/davinci/ccdc_hw_device.h |  110
+>++++++++++++++++++++++++++
+> 1 files changed, 110 insertions(+), 0 deletions(-)
+> create mode 100644 drivers/media/video/davinci/ccdc_hw_device.h
+>
+>diff --git a/drivers/media/video/davinci/ccdc_hw_device.h
+>b/drivers/media/video/davinci/ccdc_hw_device.h
+>new file mode 100644
+>index 0000000..86b9b35
+>--- /dev/null
+>+++ b/drivers/media/video/davinci/ccdc_hw_device.h
+>@@ -0,0 +1,110 @@
+>+/*
+>+ * Copyright (C) 2008-2009 Texas Instruments Inc
+>+ *
+>+ * This program is free software; you can redistribute it and/or modify
+>+ * it under the terms of the GNU General Public License as published by
+>+ * the Free Software Foundation; either version 2 of the License, or
+>+ * (at your option) any later version.
+>+ *
+>+ * This program is distributed in the hope that it will be useful,
+>+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+>+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>+ * GNU General Public License for more details.
+>+ *
+>+ * You should have received a copy of the GNU General Public License
+>+ * along with this program; if not, write to the Free Software
+>+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
+>USA
+>+ *
+>+ * ccdc device API
+>+ */
+>+#ifndef _CCDC_HW_DEVICE_H
+>+#define _CCDC_HW_DEVICE_H
+>+
+>+#ifdef __KERNEL__
+>+#include <linux/videodev2.h>
+>+#include <linux/device.h>
+>+#include <media/davinci/vpfe_types.h>
+>+#include <media/davinci/ccdc_types.h>
+>+
+>+/*
+>+ * ccdc hw operations
+>+ */
+>+struct ccdc_hw_ops {
+>+	/* Pointer to initialize function to initialize ccdc device */
+>+	int (*open) (struct device *dev);
+>+	/* Pointer to deinitialize function */
+>+	int (*close) (struct device *dev);
+>+	/* set ccdc base address */
+>+	void (*set_ccdc_base)(void *base, int size);
+>+	/* Pointer to function to enable or disable ccdc */
+>+	void (*enable) (int en);
+>+	/* reset sbl. only for 6446 */
+>+	void (*reset) (void);
+>+	/* enable output to sdram */
+>+	void (*enable_out_to_sdram) (int en);
+>+	/* Pointer to function to set hw parameters */
+>+	int (*set_hw_if_params) (struct vpfe_hw_if_param *param);
+>+	/* get interface parameters */
+>+	int (*get_hw_if_params) (struct vpfe_hw_if_param *param);
+>+	/*
+>+	 * Pointer to function to set parameters. Used
+>+	 * for implementing VPFE_S_CCDC_PARAMS
+>+	 */
+>+	int (*set_params) (void *params);
+>+	/*
+>+	 * Pointer to function to get parameter. Used
+>+	 * for implementing VPFE_G_CCDC_PARAMS
+>+	 */
+>+	int (*get_params) (void *params);
+>+	/* Pointer to function to configure ccdc */
+>+	int (*configure) (void);
+>+
+>+	/* Pointer to function to set buffer type */
+>+	int (*set_buftype) (enum ccdc_buftype buf_type);
+>+	/* Pointer to function to get buffer type */
+>+	enum ccdc_buftype (*get_buftype) (void);
+>+	/* Pointer to function to set frame format */
+>+	int (*set_frame_format) (enum ccdc_frmfmt frm_fmt);
+>+	/* Pointer to function to get frame format */
+>+	enum ccdc_frmfmt (*get_frame_format) (void);
+>+	/* enumerate hw pix formats */
+>+	int (*enum_pix)(u32 *hw_pix, int i);
+>+	/* Pointer to function to set buffer type */
+>+	u32 (*get_pixel_format) (void);
+>+	/* Pointer to function to get pixel format. */
+>+	int (*set_pixel_format) (u32 pixfmt);
+>+	/* Pointer to function to set image window */
+>+	int (*set_image_window) (struct v4l2_rect *win);
+>+	/* Pointer to function to set image window */
+>+	void (*get_image_window) (struct v4l2_rect *win);
+>+	/* Pointer to function to get line length */
+>+	unsigned int (*get_line_length) (void);
+>+
+>+	/* Query CCDC control IDs */
+>+	int (*queryctrl)(struct v4l2_queryctrl *qctrl);
+>+	/* Set CCDC control */
+>+	int (*set_control)(struct v4l2_control *ctrl);
+>+	/* Get CCDC control */
+>+	int (*get_control)(struct v4l2_control *ctrl);
+>+
+>+	/* Pointer to function to set frame buffer address */
+>+	void (*setfbaddr) (unsigned long addr);
+>+	/* Pointer to function to get field id */
+>+	int (*getfid) (void);
+>+};
+>+
+>+struct ccdc_hw_device {
+>+	/* ccdc device name */
+>+	char name[32];
+>+	/* module owner */
+>+	struct module *owner;
+>+	/* hw ops */
+>+	struct ccdc_hw_ops hw_ops;
+>+};
+>+
+>+/* Used by CCDC module to register & unregister with vpfe capture driver
+>*/
+>+int vpfe_register_ccdc_device(struct ccdc_hw_device *dev);
+>+void vpfe_unregister_ccdc_device(struct ccdc_hw_device *dev);
+>+
+>+#endif
+>+#endif
+>--
+>1.6.0.4
 
