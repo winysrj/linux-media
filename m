@@ -1,87 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:55604 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752950AbZFVQ20 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2009 12:28:26 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv9 2/9] v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX controls
-Date: Mon, 22 Jun 2009 19:21:29 +0300
-Message-Id: <1245687696-6730-3-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1245687696-6730-2-git-send-email-eduardo.valentin@nokia.com>
-References: <1245687696-6730-1-git-send-email-eduardo.valentin@nokia.com>
- <1245687696-6730-2-git-send-email-eduardo.valentin@nokia.com>
+Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197]:48992 "EHLO
+	mta2.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752144AbZFIOXY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 10:23:24 -0400
+Received: from host143-65.hauppauge.com
+ (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta2.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KKZ00LOY6N09WF0@mta2.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Tue, 09 Jun 2009 10:23:25 -0400 (EDT)
+Date: Tue, 09 Jun 2009 10:23:23 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: cx18, s5h1409: chronic bit errors, only under Linux
+In-reply-to: <4A2D7C99.3090609@gatech.edu>
+To: David Ward <david.ward@gatech.edu>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Message-id: <4A2E705B.6060905@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <4A2CE866.4010602@gatech.edu> <4A2D1CAA.2090500@kernellabs.com>
+ <829197380906080717x37dd1fd8n8f37fb320ab20a37@mail.gmail.com>
+ <4A2D3A40.8090307@gatech.edu> <4A2D3CE2.7090307@kernellabs.com>
+ <4A2D4778.4090505@gatech.edu> <4A2D7277.7080400@kernellabs.com>
+ <829197380906081336n48d6090bmc4f92692a5496cd6@mail.gmail.com>
+ <4A2D7C99.3090609@gatech.edu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a new class of extended controls. This class
-is intended to support FM Radio Modulators properties such as:
-rds, audio limiters, audio compression, pilot tone generation,
-tuning power levels and preemphasis properties.
+David Ward wrote:
+> On 06/08/2009 04:36 PM, Devin Heitmueller wrote:
+>> On Mon, Jun 8, 2009 at 4:20 PM, Steven Toth<stoth@kernellabs.com>  wrote:
+>>   
+>>> We're getting into the realm of 'do you need to amplify and/or debug 
+>>> your
+>>> cable network', and out of the realm of driver development.
+>>>      
+> Comcast is coming tomorrow to check out the signal quality.  They said 
+> that they expect to deliver SNR in the range of 33dB - 45dB to the 
+> premises.  I will let you know how that affects Linux captures.
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- linux/include/linux/videodev2.h |   33 +++++++++++++++++++++++++++++++++
- 1 files changed, 33 insertions(+), 0 deletions(-)
+33 should be fine for any Linux TV device. Make sure the engineer checks for 
+33db across a range of the higher (80 thru 100) rf channels (where rf falloff of 
+common).
 
-diff --git a/linux/include/linux/videodev2.h b/linux/include/linux/videodev2.h
-index 50aa92b..8bd7810 100644
---- a/linux/include/linux/videodev2.h
-+++ b/linux/include/linux/videodev2.h
-@@ -809,6 +809,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
- #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
- #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
-+#define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
- 
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-@@ -1148,6 +1149,38 @@ enum  v4l2_exposure_auto_type {
- 
- #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
- 
-+/* FM Modulator class control IDs */
-+#define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
-+#define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
-+
-+#define V4L2_CID_RDS_TX_PI			(V4L2_CID_FM_TX_CLASS_BASE + 1)
-+#define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 2)
-+#define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 3)
-+#define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 4)
-+
-+#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 5)
-+#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 6)
-+#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FM_TX_CLASS_BASE + 7)
-+
-+#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FM_TX_CLASS_BASE + 8)
-+#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FM_TX_CLASS_BASE + 9)
-+#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FM_TX_CLASS_BASE + 10)
-+#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 11)
-+#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 12)
-+
-+#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 13)
-+#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 14)
-+#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FM_TX_CLASS_BASE + 15)
-+
-+#define V4L2_CID_FM_TX_PREEMPHASIS		(V4L2_CID_FM_TX_CLASS_BASE + 16)
-+enum v4l2_preemphasis {
-+	V4L2_PREEMPHASIS_DISABLED	= 0,
-+	V4L2_PREEMPHASIS_50_uS		= 1,
-+	V4L2_PREEMPHASIS_75_uS		= 2,
-+};
-+#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 17)
-+#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 18)
-+
- /*
-  *	T U N I N G
-  */
+Let us know how you get on.
+
+Regards,
+
 -- 
-1.6.2.GIT
-
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
