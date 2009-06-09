@@ -1,56 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:48690 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751330AbZFAWjl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Jun 2009 18:39:41 -0400
-Subject: Re: Wiki software update
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Johannes Stezenbach <js@linuxtv.org>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <20090601114159.GA7041@linuxtv.org>
-References: <20090531232836.GB20941@linuxtv.org>
-	 <1243814887.3927.5.camel@pc07.localdom.local>
-	 <20090601114159.GA7041@linuxtv.org>
-Content-Type: text/plain
-Date: Tue, 02 Jun 2009 00:27:20 +0200
-Message-Id: <1243895240.3719.51.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198]:61444 "EHLO
+	mta3.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752394AbZFITEY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 15:04:24 -0400
+Received: from host143-65.hauppauge.com
+ (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta3.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KKZ00EWNJNCQ700@mta3.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Tue, 09 Jun 2009 15:04:25 -0400 (EDT)
+Date: Tue, 09 Jun 2009 15:04:19 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: cx18, s5h1409: chronic bit errors, only under Linux
+In-reply-to: <829197380906091155u43319c82i548a9f08928d3826@mail.gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: David Ward <david.ward@gatech.edu>, linux-media@vger.kernel.org
+Message-id: <4A2EB233.3080800@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <4A2CE866.4010602@gatech.edu> <4A2D3A40.8090307@gatech.edu>
+ <4A2D3CE2.7090307@kernellabs.com> <4A2D4778.4090505@gatech.edu>
+ <4A2D7277.7080400@kernellabs.com>
+ <829197380906081336n48d6090bmc4f92692a5496cd6@mail.gmail.com>
+ <4A2E6FDD.5000602@kernellabs.com>
+ <829197380906090723t434eef6dje1eb8a781babd5c7@mail.gmail.com>
+ <4A2E70A3.7070002@kernellabs.com> <4A2EAF56.2090508@gatech.edu>
+ <829197380906091155u43319c82i548a9f08928d3826@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Johannes,
-
-Am Montag, den 01.06.2009, 13:41 +0200 schrieb Johannes Stezenbach:
-> Hi Hermann,
+Devin Heitmueller wrote:
+> On Tue, Jun 9, 2009 at 2:52 PM, David Ward <david.ward@gatech.edu> wrote:
+>> On 06/09/2009 10:24 AM, Steven Toth wrote:
+>>> David has called out Comcast to review his installation.
+>> After replacing all the connectors and some cables from the pole all the way
+>> to the outlet, their meter ultimately showed 39-40dB at the outlet.  My card
+>> is showing the same SNR values as before.  Go figure.
+>>
 > 
-> On Mon, Jun 01, 2009 at 02:08:07AM +0200, hermann pitton wrote:
-> > Am Montag, den 01.06.2009, 01:28 +0200 schrieb Johannes Stezenbach:
-> > > 
-> > > I just updated the V4L-DVB Wiki and the old V4L Wiki
-> > > to MediaWiki-1.14.0. Please let me know in case
-> > > something broke.
-> > 
-> > did not test all links, but on this one some older issues seem to still
-> > perpetuate.
-> > 
-> > http://www.linuxtv.org/wiki/index.php?title=How_to_Perform_a_Bisect&action=edit
-> > 
-> > I get, that I'm not allowed to do that.
+> I want to say that the SNR counter for the s5h1409 caps out at 30dB,
+> but I would have to double check the source code.
 > 
-> Well, you need to be logged in to create or edit pages. Or are
-> you saying that you cannot edit this page even though you are logged in?
+> Devin
 > 
-> 
-> Johannes
 
-sorry, my bad.
+40db.
 
-Thought it means also a site on the wiki,
-but it obviously only tries to provide the external link.
-
-Thanks,
-Hermann
-
-
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
