@@ -1,96 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f214.google.com ([209.85.217.214]:39025 "EHLO
-	mail-gx0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759246AbZFQILM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 04:11:12 -0400
-Received: by gxk10 with SMTP id 10so262469gxk.13
-        for <linux-media@vger.kernel.org>; Wed, 17 Jun 2009 01:11:14 -0700 (PDT)
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1888 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760116AbZFIMCb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 08:02:31 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: eduardo.valentin@nokia.com
+Subject: Re: [PATCHv6 5 of 7] FMTx: si4713: Add files to add radio interface for si4713
+Date: Tue, 9 Jun 2009 14:02:01 +0200
+Cc: ext Mauro Carvalho Chehab <mchehab@infradead.org>,
+	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
+References: <1244449087-5543-1-git-send-email-eduardo.valentin@nokia.com> <200906091241.38423.hverkuil@xs4all.nl> <20090609111111.GA16911@esdhcp037198.research.nokia.com>
+In-Reply-To: <20090609111111.GA16911@esdhcp037198.research.nokia.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.0906141719510.4412@axis700.grange>
-References: <62904.62.70.2.252.1244810776.squirrel@webmail.xs4all.nl>
-	 <Pine.LNX.4.64.0906121454410.4843@axis700.grange>
-	 <200906121800.51177.hverkuil@xs4all.nl>
-	 <Pine.LNX.4.64.0906141719510.4412@axis700.grange>
-Date: Wed, 17 Jun 2009 17:11:13 +0900
-Message-ID: <aec7e5c30906170111y1f16919bie46b1e66f84a6a54@mail.gmail.com>
-Subject: Re: [PATCH] adding support for setting bus parameters in sub device
-From: Magnus Damm <magnus.damm@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
-	Darius Augulis <augulis.darius@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906091402.01581.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 15, 2009 at 12:33 AM, Guennadi
-Liakhovetski<g.liakhovetski@gmx.de> wrote:
-> On Fri, 12 Jun 2009, Hans Verkuil wrote:
->
->> On Friday 12 June 2009 14:59:03 Guennadi Liakhovetski wrote:
->> > On Fri, 12 Jun 2009, Hans Verkuil wrote:
->> >
->> > > > 1. it is very unusual that the board designer has to mandate what signal
->> > > > polarity has to be used - only when there's additional logic between the
->> > > > capture device and the host. So, we shouldn't overload all boards with
->> > > > this information. Board-code authors will be grateful to us!
->> > >
->> > > I talked to my colleague who actually designs boards like that about what
->> > > he would prefer. His opinion is that he wants to set this himself, rather
->> > > than leave it as the result of a software negotiation. It simplifies
->> > > verification and debugging the hardware, and in addition there may be
->> > > cases where subtle timing differences between e.g. sampling on a falling
->> > > edge vs rising edge can actually become an important factor, particularly
->> > > on high frequencies.
+On Tuesday 09 June 2009 13:11:11 Eduardo Valentin wrote:
+> Hi Hans,
+> 
+> On Tue, Jun 09, 2009 at 12:41:38PM +0200, ext Hans Verkuil wrote:
 
-Let me guess, your coworker is a hardware designer? Letting hardware
-people do hardware design is usually a good idea, but I'm yet to see
-good software written by hardware people. =)
+<snip>
 
->> > I'd say this is different. You're talking about cases where you _want_ to
->> > be able to configure it explicitly, I am saying you do not have to _force_
->> > all to do this. Now, this selection only makes sense if both are
->> > configurable, right? In this case, e.g., pxa270 driver does support
->> > platform-specified preference. So, if both the host and the client can
->> > configure either polarity in the software you _can_ still specify the
->> > preferred one in platform data and it will be used.
->> >
->> > I think, the ability to specify inverters and the preferred polarity
->> > should cover all possible cases.
->>
->> In my opinion you should always want to set this explicitly. This is not
->> something you want to leave to chance. Say you autoconfigure this. Now
->> someone either changes the autoconf algorithm, or a previously undocumented
->> register was discovered for the i2c device and it can suddenly configure the
->> polarity of some signal that was previously thought to be fixed, or something
->> else happens causing a different polarity to be negotiated.
->
-> TBH, the argumentation like "someone changes the autoconf algorithm" or
-> "previously undocumented register is discovered" doesn't convince me. In
-> any case, I am adding authors, maintainers and major contributors to
-> various soc-camera host drivers to CC and asking them to express their
-> opinion on this matter. I will not add anything else here to avoid any
-> "unfair competition":-) they will have to go a couple emails back in this
-> thread to better understand what is being discussed here.
+> > > +static struct v4l2_ioctl_ops radio_si4713_ioctl_ops = {
+> > > +     .vidioc_g_input         = radio_si4713_vidioc_g_input,
+> > > +     .vidioc_s_input         = radio_si4713_vidioc_s_input,
+> > > +     .vidioc_g_audio         = radio_si4713_vidioc_g_audio,
+> > > +     .vidioc_s_audio         = radio_si4713_vidioc_s_audio,
+> > > +     .vidioc_querycap        = radio_si4713_vidioc_querycap,
+> > > +     .vidioc_queryctrl       = radio_si4713_vidioc_queryctrl,
+> > > +     .vidioc_g_ext_ctrls     = radio_si4713_vidioc_g_ext_ctrls,
+> > > +     .vidioc_s_ext_ctrls     = radio_si4713_vidioc_s_ext_ctrls,
+> > > +     .vidioc_g_ctrl          = radio_si4713_vidioc_g_ctrl,
+> > > +     .vidioc_s_ctrl          = radio_si4713_vidioc_s_ctrl,
+> > > +     .vidioc_g_tuner         = radio_si4713_vidioc_g_tuner,
+> > > +     .vidioc_s_tuner         = radio_si4713_vidioc_s_tuner,
+> > 
+> > It's a modulator device, so it should implement g/s_modulator rather than
+> > g/s_tuner.
+> > 
+> > Now, here I am running into a problem: looking at section 1.6.2 in the v4l2
+> > spec I see that in QUERYCAP you are supposed to return CAP_TUNER and rely on
+> > ENUMOUTPUT to determine which output has a modulator. I think it is nuts that
+> > there is no CAP_MODULATOR. I propose adding this. There are currently NO
+> > modulator drivers in v4l-dvb, nor have I ever heard from out-of-tree
+> > modulator drivers (not that I particularly care about that), so it should be
+> > safe to add it.
+> > 
+> > The next problem is that ENUMOUTPUT does not apply to a radio modulator.
+> > This problem is actually also present on radio tuners. Currently all radio
+> > tuner drivers implement g/s_input and g/s_audio but no enuminput or enumaudio.
+> > 
+> > I think g/s_input is bogus since these devices have no video inputs.
+> > However, neither g/s_audio nor enumaudio can currently tell the application
+> > whether the audio input is connected to a tuner. Only enuminput can do that
+> > currently. This would be an argument for using g/s_input if it wasn't for
+> > the fact that none of the radio drivers actually implements enuminput.
+> > 
+> > I propose adding a V4L2_AUDCAP_TUNER capability telling this application
+> > that the audio input is connected to a tuner, and adding a
+> > V4L2_AUDOUTCAP_MODULATOR capability for struct v4l2_audioout to do the same
+> > for a modulator.
+> > 
+> > Comments?
+> 
+> Ok. Here comes the real needed changes to support the radio modulator.
+> You may not remember, but in previous versions of this series I commented
+> that this driver was fully based on fm receiver existing drivers.
+> 
+> I think that's why I went in the mistake of implementing g_audio, s_audio
+> instead of g_audout, s_audout. Also, the same mistake of implementing
+> the s,g_input done in fm receiver drivers was repeated here.
+> 
+> Also, I think another thing has biased me to add this wrong callbacks. I use
+> fmtools to test the driver, for setting fm freq for instance.
+> 
+> I admit, there are wrong callbacks.
+> 
+> So, I'd ask which application to use to test the driver ?
 
-I think automatic negotiation is a good thing if it is implemented correctly.
+You have the honor of adding the first modulator driver to the kernel, so
+there are no apps yet. That said, I suggest adding support for g/s_modulator
+to the v4l2-ctl tool (in v4l2-apps/util). It's the swiss army knife utility
+of v4l2 and can call most ioctls from the command line.
+ 
+> About the suggested changes (adding V4L2_AUDCAP_TUNER and V4L2_AUDOUTCAP_MODULATOR),
+> I think it is a reasonable way to do it. However, it'd be nice to hear more opinions.
+> But, if I understood correctly, this would be the method to determine
+> if the driver is a fm transmitter (aka modulator) ?
 
-Actually, i think modelling software after hardware is a good thing
-and from that perspective the soc_camera was (and still is) a very
-good fit for our on-chip SoC. Apart from host/sensor separation, the
-main benefits in my mind are autonegotiation and separate
-configuration for camera sensor, capture interface and board.
+The CAP_MODULATOR capability is used to determine if the driver supports a
+modulator, and the new capabilities for v4l2_audio and v4l2_audioout can be
+used to determine which audio input/output is hooked up to a tuner or
+modulator. In theory there may be multiple inputs and outputs where some
+are connected to a tuner/modulator and others are straight inputs/outputs.
 
-I don't mind doing the same outside soc_camera, and I agree with Hans
-that in some cases it's nice to hard code and skip the "magic"
-negotiation. I'm however pretty sure the soc_camera allows hard coding
-though, so in that case you get the best of two worlds.
+It is common for video capture cards (tuner input vs. Composite/Line-In
+inputs), but there is a case to be made that this is very unlikely for
+radio tuners/modulators. So perhaps I'm paranoid :-)
 
-Cheers,
+Actually, looking at it a bit closer it is not enough to just set the
+capability, you also need to set the index of the associated tuner or
+modulatory, which would mean using one of the reserved fields.
 
-/ magnus
+Hmm, this is getting complicated. Perhaps we should just add a CAP_MODULATOR
+capability and leave it at that for now. I think the MODULATOR capability
+is really needed, otherwise there is no easy way to check whether it is a
+tuner or modulator device.
+
+Regards,
+
+	Hans
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
