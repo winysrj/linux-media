@@ -1,193 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:48557 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751162AbZFEQnn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2009 12:43:43 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: Re: [PATCH 1/9] vpfe-capture bridge driver for DM355 & DM6446
-Date: Fri, 5 Jun 2009 18:43:40 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-References: <1242412559-11325-1-git-send-email-m-karicheri2@ti.com> <200905270140.53696.laurent.pinchart@skynet.be> <A69FA2915331DC488A831521EAE36FE4013557AC64@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE4013557AC64@dlee06.ent.ti.com>
+Received: from mail-ew0-f210.google.com ([209.85.219.210]:51909 "EHLO
+	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751063AbZFIWbz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 18:31:55 -0400
+Received: by ewy6 with SMTP id 6so402407ewy.37
+        for <linux-media@vger.kernel.org>; Tue, 09 Jun 2009 15:31:56 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Date: Wed, 10 Jun 2009 00:31:55 +0200
+Message-ID: <c4bc83220906091531h20677733kd993ed50c0bc74ec@mail.gmail.com>
+Subject: [PATCH] af9015: fix stack corruption bug
+From: Jan Nikitenko <jan.nikitenko@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <200906051843.41105.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This patch fixes stack corruption bug present in af9015_eeprom_dump():
+the buffer buf is one byte smaller than required - there is 4 chars
+for address prefix, 16*3 chars for dump of 16 eeprom bytes per line
+and 1 byte for zero ending the string required, i.e. 53 bytes, but
+only 52 are provided.
+The one byte missing in stack based buffer buf causes following oops
+on MIPS little endian platform, because i2c_adap pointer in
+af9015_af9013_frontend_attach() is corrupted by inlined function
+af9015_eeprom_dump():
 
-I've removed the points to which my response would just have been 'ok'.
+CPU 0 Unable to handle kernel paging request at virtual address 00000000, epc ==
+803a4488, ra == c049a1c8
+Oops[#1]:
+Cpu 0
+$ 0   : 00000000 10003c00 00000000 803a4468
+$ 4   : 8f17c600 8f067b30 00000002 00000038
+$ 8   : 00000001 8faf3e98 11da000d 09010002
+$12   : 00000000 00000000 00000000 0000000a
+$16   : 8f17c600 8f067b68 8faf3c00 8f067c04
+$20   : 8f067b9c 00000100 8f067bf0 80104100
+$24   : 00000000 2aba9fb0
+$28   : 8f066000 8f067af0 802cbc48 c049a1c8
+Hi    : 00000000
+Lo    : 00000000
+epc   : 803a4488 i2c_transfer+0x20/0x104
+   Not tainted
+ra    : c049a1c8 af9013_read_reg+0x78/0xc4 [af9013]
+Status: 10003c03    KERNEL EXL IE
+Cause : 00808008
+BadVA : 00000000
+PrId  : 03030200 (Au1550)
+Modules linked in: af9013 dvb_usb_af9015(+) dvb_usb dvb_core firmware_class
+i2c_au1550 au1550_spi
+Process modprobe (pid: 2757, threadinfo=8f066000, task=8fade098, tls=2aad6470)
+Stack : c049f5e0 80163090 805ba880 00000100 8f067bf0 0000d733 8f067b68 8faf3c00
+       8f067c04 c049a1c8 80163bc0 8056a630 8f067b40 80163224 80569fc8 8f0033d7
+       00000038 80140003 8f067b2c 00010038 c0420001 8f067b28 c049f5e0 00000004
+       00000004 c049a524 c049d5a8 c049d5a8 00000000 803a6700 00000000 8f17c600
+       c042a7a4 8f17c600 c042a7a4 c049c924 00000000 00000000 00000002 613a6c00
+       ...
+Call Trace:
+[<803a4488>] i2c_transfer+0x20/0x104
+[<c049a1c8>] af9013_read_reg+0x78/0xc4 [af9013]
+[<c049a524>] af9013_read_reg_bits+0x2c/0x70 [af9013]
+[<c049c924>] af9013_attach+0x98/0x65c [af9013]
+[<c04257bc>] af9015_af9013_frontend_attach+0x214/0x67c [dvb_usb_af9015]
+[<c03e2428>] dvb_usb_adapter_frontend_init+0x20/0x12c [dvb_usb]
+[<c03e1ad8>] dvb_usb_device_init+0x374/0x6b0 [dvb_usb]
+[<c0426120>] af9015_usb_probe+0x4fc/0xfcc [dvb_usb_af9015]
+[<80381024>] usb_probe_interface+0xbc/0x218
+[<803227fc>] driver_probe_device+0x12c/0x30c
+[<80322a80>] __driver_attach+0xa4/0xac
+[<80321ed0>] bus_for_each_dev+0x60/0xd0
+[<8032162c>] bus_add_driver+0x1e8/0x2a8
+[<80322cdc>] driver_register+0x7c/0x17c
+[<80380d30>] usb_register_driver+0xa0/0x12c
+[<c042e030>] af9015_usb_module_init+0x30/0x6c [dvb_usb_af9015]
+[<8010d2a4>] __kprobes_text_end+0x3c/0x1f4
+[<80167150>] sys_init_module+0xb8/0x1cc
+[<80102370>] stack_done+0x20/0x3c
 
-On Wednesday 03 June 2009 16:46:05 Karicheri, Muralidharan wrote:
-> > > +#include <media/tvp514x.h>
-> >
-> > We should try to get rid of the TVP514x dependency. See below where
-> > TVP5146 support is explicit for a discussion on this.
->
-> [MK]Agree. Only reason this is included is to configure the vpfe hw
-> interface based on the sub device (tvp5146) output format. The output from
-> TVP device is BT656. The bridge driver is expected to work with multiple
-> interfaces such as BT.656, BT.1120, RAW image data bus consisting of 10 bit
-> data, vsync, hsync etc. So I need to have a way of getting/setting hw
-> interface parameters based on sub device output interface. Currently this
-> support is not available in sub device.
 
-Unfortunately. However, it's the right way to go. Let's all cross our fingers 
-and hope Hans will be able to find some time in his busy schedule to comment 
-on this :-)
+Code: afb10018  7000003f  00808021 <8c430000> 7000003f  1060002d  00c09021
+8f830014  3c02efff
 
-> I see some discussion in the mailing list for allowing bridge driver to set
-> the platform data in the sub device using s_config or 
-> v4l2_i2c_subdev_board(). I am not sure what will come out of this. Hans had
-> a comment against DM6467 display driver to use the new v4l2 api
-> v4l2_i2c_new_probed_subdev_addr(). When using this API, I find that the i2c
-> driver is probed without setting the platform data (assume this is not
-> defined statically using i2c_board_info in board setup file). Since both
-> sub-device and bridge driver needs to be aware of the interface or bus that
-> are used for connecting the devices, I strongly feel a need for defining a
-> structure for interface configuration in the v4l2-subdev.h, define the
-> values in board setup file and pass the same from bridge driver to sub
-> device as an argument to v4l2_i2c_new_probed_subdev_addr() and set the same
-> before calling the probe. I have posted an RFC for this in the linux media
-> mailing list. So this cannot be done at this time.
+Signed-off-by: Jan Nikitenko <jan.nikitenko@gmail.com>
+---
+ linux/drivers/media/dvb/dvb-usb/af9015.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I'll try to comment your RFC, but I'm not familiar with v4l2-subdev yet.
+diff -r cff06234b725 linux/drivers/media/dvb/dvb-usb/af9015.c
+--- a/linux/drivers/media/dvb/dvb-usb/af9015.c	Sun May 31 23:07:01 2009 +0300
++++ b/linux/drivers/media/dvb/dvb-usb/af9015.c	Wed Jun 10 00:25:53 2009 +0200
+@@ -541,7 +541,7 @@
+ /* dump eeprom */
+ static int af9015_eeprom_dump(struct dvb_usb_device *d)
+ {
+-	char buf[52], buf2[4];
++	char buf[4+3*16+1], buf2[4];
+ 	u8 reg, val;
 
-> > > +            /* Since this is hw default, we will find this pix format
-> > > */ +            temp = vpfe_lookup_hw_format(pixfmt->pixelformat); +
-> > > +    } else {
-> > > +            /* check if hw supports it */
-> > > +            pix_fmt = &vpfe_pix_fmts[temp];
-> > > +            temp = 0;
-> > > +            found = 0;
-> > > +            while (ccdc_dev->hw_ops.enum_pix(&hw_pix, temp) >= 0) {
-> > > +                    if (pix_fmt->hw_fmt == hw_pix) {
-> > > +                            found = 1;
-> > > +                            break;
-> > > +                    }
-> > > +                    temp++;
-> >
-> >Wouldn't it be better to have a try_frame_format CCDC operation for this ?
->
-> [MK] vpfe capture can support multiple formats based on platform and ccdc
-> and previewer/resizer's availability. So vpfe capture has to query both
-> ccdc and previewer/resizer hw modules to check if a given pixel format can
-> be used. Since try_frame_format() generally adjust the values to match
-> hardware, this cannot work in this situation. In my implementation, I can
-> query previewer/resizer if a pixel format is not supported in ccdc.
-
-Are the formats supported by the CCDC, previewer and resizer modules dynamic ? 
-If they can't change at runtime it would be easier to store them in a table 
-that can be directly accessed by the VPFE driver instead of using an 
-enumeration callback.
-
-> > > +
-> > > +static int vpfe_g_fmt_vid_cap(struct file *file, void *priv,
-> > > +                            struct v4l2_format *fmt)
-> > > +{
-> > > +    struct vpfe_device *vpfe_dev = video_drvdata(file);
-> > > +    int ret = 0;
-> > > +
-> > > +    v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_g_fmt_vid_cap\n");
-> > > +    /*
-> > > +     * Fill in the information about
-> > > +     * format
-> > > +     */
-> > > +    ret = mutex_lock_interruptible(&vpfe_dev->lock);
-> >
-> > Do we really need to make it interruptible (here and in most other
-> > places) ?
->
-> [MK] Generally interruptible is used since application can catch signal
-> and take appropriate action as needed. What is your suggestion? I have
-> investigated it's usage among v4l2 drivers in the tree. Most of them uses
-> mutex_lock()/unlock(), while few like vino.c uses
-> mutex_lock_interruptible() version for handling ioctls. The dm6467_vpif
-> display driver recently reviewed and approved by Hans uses interruptible()
-> version. I am not sure if this comment is to be addressed or leave as is.
-> Please respond.
-
-Using an interruptible mutex might not be worth it if the code that runs with 
-the mutex held is guaranteed to be fast. However, it won't hurt as the C 
-library will retry the syscall. I'm fine with interruptible mutexes.
-
-> > I'm under the impression that it should have a defined value, but the code
-> > is hard to follow and I might be wrong.
->
-> [MK] I thought you understood the code very well, if not there wouldn't be
-> this much comment :)
-
-Let's say I understand it will enough to make a bunch of annoying comments ;-)
-
-> > > +{
-> > > +    struct vpfe_device *vpfe_dev = video_drvdata(file);
-> > > +    struct vpfe_config *cfg = vpfe_dev->cfg;
-> > > +    struct vpfe_fh *fh = file->private_data;
-> > > +    struct vpfe_subdev_info *subdev;
-> > > +    unsigned long addr;
-> > > +    int ret = 0;
-> > > +
-> > > +    v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_streamon\n");
-> > > +
-> > > +    if (V4L2_BUF_TYPE_VIDEO_CAPTURE != i) {
-> > > +            v4l2_err(&vpfe_dev->v4l2_dev, "Invalid buf type\n");
-> > > +            return -EINVAL;
-> > > +    }
-> > > +
-> > > +    /* If file handle is not allowed IO, return error */
-> > > +    if (!fh->io_allowed) {
-> > > +            v4l2_err(&vpfe_dev->v4l2_dev, "fh->io_allowed\n");
-> > > +            return -EACCES;
-> > > +    }
-> > > +
-> > > +    subdev = &cfg->sub_devs[vpfe_dev->current_subdev];
-> > > +    ret = v4l2_device_call_until_err(&vpfe_dev->v4l2_dev,
-> > > subdev->grp_id, +                                    video, s_stream,
-> > > 1);
-> > > +
-> > > +    if (ret && (ret != -ENOIOCTLCMD)) {
-> > > +            v4l2_err(&vpfe_dev->v4l2_dev, "stream on failed in
-> > > subdev\n"); +            return -EINVAL;
-> > > +    }
-> > > +
-> > > +    /* Call videobuf_streamon to start streaming * in videobuf */
-> > > +    ret = videobuf_streamon(&vpfe_dev->buffer_queue);
-> > > +    if (ret)
-> > > +            return ret;
-> > > +
-> > > +    ret = mutex_lock_interruptible(&vpfe_dev->lock);
-> > > +    if (ret)
-> > > +            goto streamoff;
-> > > +    /* If buffer queue is empty, return error */
-> > > +    if (list_empty(&vpfe_dev->dma_queue)) {
-> > > +            v4l2_err(&vpfe_dev->v4l2_dev, "buffer queue is empty\n");
-> > > +            ret = -EIO;
-> > > +            goto unlock_out;
-> > > +    }
-> >
-> > Why don't you check that before starting the stream ?
->
-> [MK] I think you are confused by the comment. I changed it to indicate it
-> is dma_queue. As part of videobuf_streamon(), v4l2 buffer layer calls
-> videobuf_queue, where buffers are moved from buffer_queue to dma_queue by
-> vpfe_capture. So this is correct.
-
-Maybe you could check for list_empyt(&vpfe_dev->buffer_queue.stream) before 
-starting the stream instead. If I remember correctly, while the driver doesn't 
-support VIDIOC_STREAM without any queued buffer, we plan to fix that (and 
-other small issues such as VIDIOC_REQBUFS being called multiple times) later, 
-so the code will go away eventually.
-
-Best regards,
-
-Laurent Pinchart
-
+ 	for (reg = 0; ; reg++) {
