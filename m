@@ -1,43 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 136-022.dsl.LABridge.com ([206.117.136.22]:1113 "EHLO
-	mail.perches.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756667AbZF1Q1f (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Jun 2009 12:27:35 -0400
-From: Joe Perches <joe@perches.com>
-To: linux-kernel@vger.kernel.org
-Cc: trivial@kernel.org, Andrew Morton <akpm@linux-foundation.org>,
-	Andy Walls <awalls@radix.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, ivtv-users@ivtvdriver.org,
-	ivtv-devel@ivtvdriver.org
-Subject: [PATCH 22/62] drivers/media/video/cx18/cx18-fileops.c: Remove unnecessary semicolons
-Date: Sun, 28 Jun 2009 09:26:27 -0700
-Message-Id: <7eeefbbba34fc477540566c6b1888cb7c871f4cd.1246173681.git.joe@perches.com>
-In-Reply-To: <cover.1246173664.git.joe@perches.com>
-References: <cover.1246173664.git.joe@perches.com>
+Received: from yw-out-2324.google.com ([74.125.46.30]:16965 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752978AbZFIACJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2009 20:02:09 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so2320698ywb.1
+        for <linux-media@vger.kernel.org>; Mon, 08 Jun 2009 17:02:11 -0700 (PDT)
+MIME-Version: 1.0
+Date: Tue, 9 Jun 2009 10:02:11 +1000
+Message-ID: <18d7e3930906081702u2cf8c2f1x95ca2004749b1ac4@mail.gmail.com>
+Subject: Re: [linux-dvb] SAA7162 status
+From: Hot Wheelz <hot.wheelz79@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- drivers/media/video/cx18/cx18-fileops.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Hi guys,
 
-diff --git a/drivers/media/video/cx18/cx18-fileops.c b/drivers/media/video/cx18/cx18-fileops.c
-index 29969c1..04d9c25 100644
---- a/drivers/media/video/cx18/cx18-fileops.c
-+++ b/drivers/media/video/cx18/cx18-fileops.c
-@@ -690,7 +690,7 @@ int cx18_v4l2_open(struct file *filp)
- 	int res;
- 	struct video_device *video_dev = video_devdata(filp);
- 	struct cx18_stream *s = video_get_drvdata(video_dev);
--	struct cx18 *cx = s->cx;;
-+	struct cx18 *cx = s->cx;
- 
- 	mutex_lock(&cx->serialize_lock);
- 	if (cx18_init_on_first_open(cx)) {
--- 
-1.6.3.1.10.g659a0.dirty
+How does one find out what is left to be done with the above project.
 
+I have been following http://jusst.de/hg/saa716x closely and it's
+getting there the work that Manu A is heading up is awesome keep up
+the good work.
+
+I just wanted to know where you were at with the driver\s what is left
+to be done? because I may be able to offer some assistance if
+required...I’ll see what I can do anyway to get done and across the
+line.
+
+Thanks.
