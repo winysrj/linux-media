@@ -1,41 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f224.google.com ([209.85.219.224]:46485 "EHLO
-	mail-ew0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751841AbZFCF7Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jun 2009 01:59:16 -0400
-Received: by ewy24 with SMTP id 24so9349382ewy.37
-        for <linux-media@vger.kernel.org>; Tue, 02 Jun 2009 22:59:17 -0700 (PDT)
-Date: Wed, 3 Jun 2009 07:58:13 +0200 (CEST)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: "Soeren D. Schulze" <soeren.d.schulze@gmx.de>
-cc: linux-media@vger.kernel.org
-Subject: Re: Aspect ratio change does not take effect (DVB-S)
-In-Reply-To: <4A259071.3070500@gmx.de>
-Message-ID: <alpine.DEB.2.01.0906030752150.5194@ybpnyubfg.ybpnyqbznva>
-References: <4A259071.3070500@gmx.de>
+Received: from qw-out-2122.google.com ([74.125.92.25]:40242 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750976AbZFITHt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 15:07:49 -0400
+Received: by qw-out-2122.google.com with SMTP id 5so136647qwd.37
+        for <linux-media@vger.kernel.org>; Tue, 09 Jun 2009 12:07:51 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <4A2EB233.3080800@kernellabs.com>
+References: <4A2CE866.4010602@gatech.edu> <4A2D4778.4090505@gatech.edu>
+	 <4A2D7277.7080400@kernellabs.com>
+	 <829197380906081336n48d6090bmc4f92692a5496cd6@mail.gmail.com>
+	 <4A2E6FDD.5000602@kernellabs.com>
+	 <829197380906090723t434eef6dje1eb8a781babd5c7@mail.gmail.com>
+	 <4A2E70A3.7070002@kernellabs.com> <4A2EAF56.2090508@gatech.edu>
+	 <829197380906091155u43319c82i548a9f08928d3826@mail.gmail.com>
+	 <4A2EB233.3080800@kernellabs.com>
+Date: Tue, 9 Jun 2009 15:07:50 -0400
+Message-ID: <829197380906091207s19df864cl50fd14d57abb1dd4@mail.gmail.com>
+Subject: Re: cx18, s5h1409: chronic bit errors, only under Linux
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Steven Toth <stoth@kernellabs.com>
+Cc: David Ward <david.ward@gatech.edu>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Moin Sören,
+On Tue, Jun 9, 2009 at 3:04 PM, Steven Toth <stoth@kernellabs.com> wrote:
+>
+> 40db.
+>
+> --
+> Steven Toth - Kernel Labs
+> http://www.kernellabs.com
+>
 
-On Tue, 2 Jun 2009, Soeren D. Schulze wrote:
+Just checked the source.  It's 40dB for QAM256, but 30dB for ATSC and
+QAM64.  Are we sure he's doing QAM256 and not QAM64?
 
-> right now, but there seems to be a little bug:  When watching the TV
-> stream using and szap and mplayer, changes in the aspect ratio of the TV
-> program do not take effect until mplayer is restarted.  This used to
-> work with the former device!
+Devin
 
-This should be an issue with `mplayer' -- the aspect ratio is
-simply part of the datastream sent as an MPEG transport stream
-as encoded by the broadcaster.
-
-`mplayer' is known to have this issue with the option `-vc mpeg12'
-while in recent mplayer, the default is `-vc ffmpeg12' where this
-aspect ratio switching works properly.  Try adding that latter
-option and see if it works as expected.
-
-
-barry bouwsma
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
