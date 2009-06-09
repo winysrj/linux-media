@@ -1,202 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from col0-omc2-s8.col0.hotmail.com ([65.55.34.82]:44179 "EHLO
-	col0-omc2-s8.col0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751762AbZFUCse convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Jun 2009 22:48:34 -0400
-Message-ID: <COL103-W53605D85359D631FC60D0F88380@phx.gbl>
-From: George Adams <g_adams27@hotmail.com>
-To: <linux-media@vger.kernel.org>
-Subject: Can't use my Pinnacle PCTV HD Pro stick - what am I doing wrong?
-Date: Sat, 20 Jun 2009 22:42:27 -0400
-Content-Type: text/plain; charset="Windows-1252"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43573 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753562AbZFIQzT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 12:55:19 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 9 Jun 2009 11:55:15 -0500
+Subject: RE: [RFC] passing bus/interface parameters from bridge driver to
+ sub device
+Message-ID: <A69FA2915331DC488A831521EAE36FE4013564FA4E@dlee06.ent.ti.com>
+References: <A69FA2915331DC488A831521EAE36FE4013557A8AF@dlee06.ent.ti.com>
+ <200906091833.26174.hverkuil@xs4all.nl>
+ <A69FA2915331DC488A831521EAE36FE4013564FA48@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE4013564FA48@dlee06.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Some typo corrected....
+>-----Original Message-----
+>From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>owner@vger.kernel.org] On Behalf Of Karicheri, Muralidharan
+>Sent: Tuesday, June 09, 2009 12:51 PM
+>To: Hans Verkuil
+>Cc: linux-media@vger.kernel.org
+>Subject: RE: [RFC] passing bus/interface parameters from bridge driver to
+>sub device
+>
+>
+>Hans,
+>
+>Thanks for looking into this...
+>
+>>>
+>>> 1) I want to use v4l2_i2c_new_probed_subdev_addr() to load and probe the
+>>> the v4l2 sub-device from my vpfe capture driver. Currently the api's
+>>> available doesn't allow setting platform data in the client before the
+>>> sub-device's probe is called. I see that there is discussion about
+>adding
+>>> i2c_board_info as an argument to the api. I would need this to allow
+>>> loading of sub-device from vpfe capture. I have seen patches sent by
+>>> Eduardo Valentin & Guennadi Liakhovetski addressing the issue. Do you
+>>> have any suggestions for use in my vpfe capture driver?
+>>
+>>As you have probably seen by now I've made changes to the v4l2 core that
+>>make it easy to use an i2c_board_info struct when creating a subdev. So as
+>>far as I can tell that solves this issue completely.
+>>
+>>The code is in my v4l-dvb-subdev tree.
+>>
+>[MK] Yes. I have been following this and will resolve this.
+>>> 2) I need a common structure (preferably in i2c-subdev.h for defining
+>and
+>>> using bus (interface) parameters in the bridge (vpfe capture) and sub
+>>> device (tvp514x or mt9t031) drivers. This will allow bridge driver to
+>>> read these values from platform data and set the same in the vpfe
+>capture
+>>> driver and sub device drivers. Since bus parameters such as interface
+>>> type (BT.656, BT.1120, Raw Bayer image data etc), polarity of various
+>>> signals etc are used across bridge and sub-devices, it make sense to add
+>>> it to i2c-subdev.h. Here is what I have come up with. If this support is
+>>> not already planned, I would like to sent a patch for the same.
+>>
+>>It makes sense to define a struct in v4l2-subdev.h and a core ops to set
+>it
+>>(s_bus).
+>>
+>>However, I would pack it differently:
+>>
+>>struct v4l2_subdev_bus {
+>>	enum v4l2_subdev_bus_type type;
+>>	u8 width;
+>>	unsigned pol_vsync:1;
+>>	unsigned pol_hsync:1;
+>>	unsigned pol_field:1;
+>>	unsigned pol_pclock:1;
+>>};
+>>
+>[MK] Looks good to me. So is it up to the bridge driver and sub devices to
+>determine how they interpret the values of pol_xxx fields? Since same sub-
+>device might work across multiple bridge drivers, it is worth documenting them >as given in my RFC. I would like to add one more field for data polarity :-
+>	unsigned pol_data:1;
+>
+>Will you take care of this yourself or expecting me to send a patch for the
+>same?
+>
+>Regards,
+>Murali
+>>It's more concise this way.
+>>
+>>Regards,
+>>
+>>	Hans
+>>
+>>> +/*
+>>> + * Some Sub-devices are connected to the bridge device through a bus
+>>> + * that carries the clock, vsync, hsync and data. Some interfaces
+>>> + * such as BT.656 carries the sync embedded in the data where as others
+>>> + * have seperate line carrying the sync signals. This structure is
+>>> + * used by bridge driver to set the desired bus parameters in the sub
+>>> + * device to work with it.
+>>> + */
+>>> +enum v4l2_subdev_bus_type {
+>>> +	/* BT.656 interface. Embedded syncs */
+>>> +	V4L2_SUBDEV_BUS_BT_656,
+>>> +	/* BT.1120 interface. Embedded syncs */
+>>> +	V4L2_SUBDEV_BUS_BT_1120,
+>>> +	/* 8 bit YCbCr muxed bus, separate sync and field id signals */
+>>> +	V4L2_SUBDEV_BUS_YCBCR_8,
+>>> +	/* 16 bit YCbCr bus, separate sync and field id signals */
+>>> +	V4L2_SUBDEV_BUS_YCBCR_16,
+>>> +	/* Raw Bayer data bus, 8 - 16 bit wide, sync signals  */
+>>> +	V4L2_SUBDEV_BUS_RAW_BAYER
+>>> +};
+>>> +
+>>> +/* Raw bayer data bus width */
+>>> +enum v4l2_subdev_raw_bayer_data_width {
+>>> +	V4L2_SUBDEV_RAW_BAYER_DATA_8BIT,
+>>> +	V4L2_SUBDEV_RAW_BAYER_DATA_9BIT,
+>>> +	V4L2_SUBDEV_RAW_BAYER_DATA_10BIT,
+>>> +	V4L2_SUBDEV_RAW_BAYER_DATA_11BIT,
+>>> +	V4L2_SUBDEV_RAW_BAYER_DATA_12BIT,
+>>> +	V4L2_SUBDEV_RAW_BAYER_DATA_13BIT,
+>>> +	V4L2_SUBDEV_RAW_BAYER_DATA_14BIT,
+>>> +	V4L2_SUBDEV_RAW_BAYER_DATA_15BIT,
+>>> +	V4L2_SUBDEV_RAW_BAYER_DATA_16BIT
+>>> +};
+>>> +
+>>> +struct v4l2_subdev_bus_params {
+>>> +	/* bus type */
+>>> +	enum v4l2_subdev_bus_type type;
+>>> +	/* data size for raw bayer data bus */
+>>> +	enum v4l2_subdev_raw_bayer_data_width width;
+>>> +	/* polarity of vsync. 0 - active low, 1 - active high */
+>>> +	u8 vsync_pol;
+>>> +	/* polarity of hsync. 0 - active low, 1 - active low */
+>>> +	u8 hsync_pol;
+>>> +	/* polarity of field id, 0 - low to high, 1 - high to low */
+>>> +	u8 fid_pol;
+>>> +	/* polarity of data. 0 - active low, 1 - active high */
+>>> +	u8 data_pol;
+>>> +	/* pclk polarity. 0 - sample at falling edge, 1 - sample at rising
+>>edge
+>>> */ +	u8 pclk_pol;
+>>> +};
+>>> +
+>>> Murali Karicheri
+>>> email: m-karicheri2@ti.com
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>>
+>>--
+>>Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+>>--
+>>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>the body of a message to majordomo@vger.kernel.org
+>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Hello.  I'm having problems getting my (USB) PCTV HD Pro Stick (800e,
-the "old" style) to work under V4L.  Could anyone spot the problem in
-what I'm doing?
-
-I'm running Ubuntu 8.04.2 LTS (the 2.6.24-24-server kernel), and am
-following this procedure (based on
-http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers). 
-I intend to use this to tune to USA NTSC channel 3 (to capture a
-close-captioned feed inside our building)
-
-1) Copy the firmware I need (xc3028-v27.fw) to /lib/firmware
-
-2) cd /usr/local/src
-
-3) hg clone http://linuxtv.org/hg/v4l-dvb
-
-4) cd v4l-dvb
-
-5) make rminstall; make distclean; make; make install
-
-These seems to do what it's supposed to - installs the drivers into
-/lib/modules/2.6.24-24-server .  My PCTV HD Pro Stick uses the em28xx
-drivers.
-
-> find /lib/modules/ -type f -name "em28*" -mtime -1
-    /lib/modules/2.6.24-24-server/kernel/drivers/media/video/em28xx/em28xx.ko
-    /lib/modules/2.6.24-24-server/kernel/drivers/media/video/em28xx/em28xx-dvb.ko
-
-6) Reboot with the USB capture device plugged in
-
-7) Examine "dmesg" for details related to the capture device
-
-- em28xx: New device Pinnacle Systems PCTV 800e @ 480 Mbps (2304:0227, interface 0, class 0)
-- em28xx #0: Identified as Pinnacle PCTV HD Pro Stick (card=17)
-- em28xx #0: chip ID is em2882/em2883
-- - -> GSI 22 (level, low) -> IRQ 22
-- PCI: Setting latency timer of device 0000:00:1b.0 to 64
-- em28xx #0: i2c eeprom 00: 1a eb 67 95 04 23 27 02 d0 12 5c 03 8e 16 a4 1c
-- em28xx #0: i2c eeprom 10: 6a 24 27 57 46 07 01 00 00 00 00 00 00 00 00 00
-- em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 02 00 b8 00 00 00 5b 1c 00 00
-- em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 00 00 00 00 00 00
-- em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-- em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-- em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 24 03 50 00 69 00
-- em28xx #0: i2c eeprom 70: 6e 00 6e 00 61 00 63 00 6c 00 65 00 20 00 53 00
-- em28xx #0: i2c eeprom 80: 79 00 73 00 74 00 65 00 6d 00 73 00 00 00 16 03
-- em28xx #0: i2c eeprom 90: 50 00 43 00 54 00 56 00 20 00 38 00 30 00 30 00
-- em28xx #0: i2c eeprom a0: 65 00 00 00 1c 03 30 00 36 00 31 00 30 00 30 00
-- em28xx #0: i2c eeprom b0: 31 00 30 00 33 00 39 00 34 00 34 00 32 00 00 00
-- em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-- em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-- em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-- em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-- em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x2de5abbf
-- em28xx #0: EEPROM info:
-- em28xx #0:       AC97 audio (5 sample rates)
-- em28xx #0:       500mA max power
-- em28xx #0:       Table at 0x27, strings=0x168e, 0x1ca4, 0x246a
-- hda_codec: Unknown model for ALC882, trying auto-probe from BIOS...
-- input: em28xx IR (em28xx #0) as /devices/pci0000:00/0000:00:1a.7/usb4/4-3/input/input6
-- - -> GSI 20 (level, low) -> IRQ 23
-- Vortex: init.... em28xx #0: Config register raw data: 0xd0
-- em28xx #0: AC97 vendor ID = 0xffffffff
-- em28xx #0: AC97 features = 0x6a90
-- em28xx #0: Empia 202 AC97 audio processor detected
-- em28xx #0: v4l2 driver version 0.1.2
-- em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
-- usbcore: registered new interface driver em28xx
-- em28xx driver loaded
-- xc2028 0-0061: creating new instance
-- xc2028 0-0061: type set to XCeive xc2028/xc3028 tuner
-- em28xx #0/2: xc3028 attached
-- DVB: registering new adapter (em28xx #0)
-- DVB: registering adapter 0 frontend 0 (LG Electronics LGDT3303 VSB/QAM Frontend)...
-- Successfully loaded em28xx-dvb
-- Em28xx: Initialized (Em28xx dvb Extension) extension
-- done.
-
-Everything looks good - the drivers are getting called and the card is
-recognized.  However, all my attempts to get something "out of it"
-aren't working.  I tried firing up "tvtime", but it just launches a
-blank, black screen and hanges.  The menu won't come up, the channel
-won't change, right-clicking isn't responsive, it won't close, and I
-have to kill it.
-
-I also tried mencoder, but I get this:
-
-> mencoder -nosound -tv driver=v4l2:width=640:height=480 tv://3 -o /tmp/tv.avi -ovc raw -endpos 5
-
-MEncoder 2:1.0~rc2-0ubuntu13.1+medibuntu1 (C) 2000-2007 MPlayer Team
-CPU: Intel(R) Core(TM)2 Quad CPU    Q9550  @ 2.83GHz
-  (Family: 6, Model: 23, Stepping: 10)
-CPUflags: Type: 6 MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1
-Compiled with runtime CPU detection.
-success: format: 9  data: 0x0 - 0x0
-TV file format detected.
-Selected driver: v4l2
- name: Video 4 Linux 2 input
- author: Martin Olschewski 
- comment: first try, more to come ;-)
-Selected device: Pinnacle PCTV HD Pro Stick
- Tuner cap:
- Tuner rxs:
- Capabilites:  video capture  tuner  audio  read/write  streaming
- supported norms: 0 = NTSC; 1 = NTSC-M; 2 = NTSC-M-JP; 3 = NTSC-M-KR; 4
-   = NTSC-443; 5 = PAL; 6 = PAL-BG; 7 = PAL-H; 8 = PAL-I; 9 = PAL-DK;
-   10 = PAL-M; 11 = PAL-N; 12 = PAL-Nc; 13 = PAL-60; 14 = SECAM; 15 =
-   SECAM-B; 16 = SECAM-G; 17 = SECAM-H; 18 = SECAM-DK; 19 = SECAM-L; 20
-   = SECAM-Lc;
- inputs: 0 = Television; 1 = Composite1; 2 = S-Video;
- Current input: 0
- Current format: YUYV
-v4l2: ioctl set format failed: Invalid argument
-v4l2: ioctl set format failed: Invalid argument
-v4l2: ioctl set format failed: Invalid argument
-v4l2: ioctl query control failed: Invalid argument
-v4l2: ioctl query control failed: Invalid argument
-v4l2: ioctl query control failed: Invalid argument
-v4l2: ioctl query control failed: Invalid argument
-[V] filefmt:9  fourcc:0x32595559  size:640x480  fps:25.00  ftime:=0.0400
-Opening video filter: [expand osd=1]
-Expand: -1 x -1, -1 ; -1, osd: 1, aspect: 0.000000, round: 1
-==========================================================================
-Opening video decoder: [raw] RAW Uncompressed Video
-VDec: vo config request - 640 x 480 (preferred colorspace: Packed YUY2)
-VDec: using Packed YUY2 as output csp (no 0)
-Movie-Aspect is undefined - no prescaling applied.
-Selected video codec: [rawyuy2] vfm: raw (RAW YUY2)
-==========================================================================
-Forcing audio preload to 0, max pts correction to 0.
-v4l2: select timeout
-
-Skipping frame!
-Pos:   0.0s      1f ( 0%)  0.96fps Trem:   0min   0mb  A-V:0.000 [0:0]
-Skipping frame!
-v4l2: select timeout( 0%)  1.28fps Trem:   0min   0mb  A-V:0.000 [0:0]
-
-Skipping frame!
-Pos:   0.0s      3f ( 0%)  1.44fps Trem:   0min   0mb  A-V:0.000 [0:0]
-Skipping frame!
-v4l2: select timeout( 0%)  1.54fps Trem:   0min   0mb  A-V:0.000 [0:0]
-
-Skipping frame!
-Pos:   0.0s      5f ( 0%)  1.60fps Trem:   0min   0mb  A-V:0.000 [0:0]
-Skipping frame!
-v4l2: select timeout( 0%)  1.65fps Trem:   0min   0mb  A-V:0.000 [0:0]
-
-Skipping frame!
-Pos:   0.0s      7f ( 0%)  1.68fps Trem:   0min   0mb  A-V:0.000 [0:0]
-Skipping frame!
-Pos:   0.0s      8f ( 0%)  1.71fps Trem:   0min   0mb  A-V:0.000 [0:0]
-
-
-The resulting file (/tmp/tv.avi) is only 4K and not a valid AVI file.  
-
-
-
-One thing I noticed that differs from what I was expecting is that
-nowhere in the "dmesg" output does it say anything about the firmware
-file.  I was expecting to see this in "dmesg":
-
-- firmware: requesting xc3028-v27.fw
-- xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw, 
--   type: xc2028 firmware, ver 2.7
-
-but nothing approximating those lines appears at all.  I tried deleting
-/lib/firmware/xc3028-v27.fw entirely to see if it would complain, but
-it loaded up exactly the same way after I rebooted...  and still didn't
-work.
-
-So my questions are:
-
-1) Why is the firmware file not being read?  Has something happened to
-the em28xx drivers recently that causes this file not to be needed
-anymore?  Or is something else going wrong?
-
-2) Is that the reason for the problem, or have you spotted something
-else I've done wrong?
-
-Thanks greatly to anyone who can help!
-
-_________________________________________________________________
-Bing™  brings you maps, menus, and reviews organized in one place.   Try it now.
-http://www.bing.com/search?q=restaurants&form=MLOGEN&publ=WLHMTAG&crea=TEXT_MLOGEN_Core_tagline_local_1x1
