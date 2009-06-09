@@ -1,45 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f190.google.com ([209.85.221.190]:35718 "EHLO
-	mail-qy0-f190.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756003AbZFISz6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 14:55:58 -0400
-Received: by qyk28 with SMTP id 28so295131qyk.33
-        for <linux-media@vger.kernel.org>; Tue, 09 Jun 2009 11:55:59 -0700 (PDT)
+Received: from mail-fx0-f213.google.com ([209.85.220.213]:34347 "EHLO
+	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755205AbZFILhk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 07:37:40 -0400
+Received: by fxm9 with SMTP id 9so2893660fxm.37
+        for <linux-media@vger.kernel.org>; Tue, 09 Jun 2009 04:37:41 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <4A2EAF56.2090508@gatech.edu>
-References: <4A2CE866.4010602@gatech.edu> <4A2D3A40.8090307@gatech.edu>
-	 <4A2D3CE2.7090307@kernellabs.com> <4A2D4778.4090505@gatech.edu>
-	 <4A2D7277.7080400@kernellabs.com>
-	 <829197380906081336n48d6090bmc4f92692a5496cd6@mail.gmail.com>
-	 <4A2E6FDD.5000602@kernellabs.com>
-	 <829197380906090723t434eef6dje1eb8a781babd5c7@mail.gmail.com>
-	 <4A2E70A3.7070002@kernellabs.com> <4A2EAF56.2090508@gatech.edu>
-Date: Tue, 9 Jun 2009 14:55:58 -0400
-Message-ID: <829197380906091155u43319c82i548a9f08928d3826@mail.gmail.com>
-Subject: Re: cx18, s5h1409: chronic bit errors, only under Linux
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: David Ward <david.ward@gatech.edu>
-Cc: Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
+In-Reply-To: <1244545180.28249.8.camel@tux.localhost>
+References: <1244545180.28249.8.camel@tux.localhost>
+Date: Tue, 9 Jun 2009 13:37:41 +0200
+Message-ID: <62e5edd40906090437p3bcb9dbav6bd6875f3c281245@mail.gmail.com>
+Subject: Re: [patch review] gspca - stv06xx: remove needless if check and goto
+From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
+To: Alexey Klimov <klimov.linux@gmail.com>
+Cc: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 9, 2009 at 2:52 PM, David Ward <david.ward@gatech.edu> wrote:
-> On 06/09/2009 10:24 AM, Steven Toth wrote:
->>
->> David has called out Comcast to review his installation.
+2009/6/9 Alexey Klimov <klimov.linux@gmail.com>:
+> Hello, Jean-Francois and Erik André
 >
-> After replacing all the connectors and some cables from the pole all the way
-> to the outlet, their meter ultimately showed 39-40dB at the outlet.  My card
-> is showing the same SNR values as before.  Go figure.
+> What do you think about such small change?
+> Looks like the code doesn't need if-check and goto here in stv06xx_stopN
+> function. The code after label "out" does this.
 >
+> --
+> Patch removes needless if check and goto.
+>
+>
+> Signed-off-by: Alexey Klimov <klimov.linux@gmail.com>
 
-I want to say that the SNR counter for the s5h1409 caps out at 30dB,
-but I would have to double check the source code.
+Looks sane.
+Thank you for reporting.
 
-Devin
+Best regards,
+Erik
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Reviewed-by: Erik Andrén <erik.andren@gmail.com>
+
+
+> --
+> diff -r ed3781a79c73 linux/drivers/media/video/gspca/stv06xx/stv06xx.c
+> --- a/linux/drivers/media/video/gspca/stv06xx/stv06xx.c Sat Jun 06 16:31:34 2009 +0400
+> +++ b/linux/drivers/media/video/gspca/stv06xx/stv06xx.c Tue Jun 09 14:49:04 2009 +0400
+> @@ -293,8 +293,6 @@
+>                goto out;
+>
+>        err = sd->sensor->stop(sd);
+> -       if (err < 0)
+> -               goto out;
+>
+>  out:
+>        if (err < 0)
+>
+>
+> --
+> Best regards, Klimov Alexey
+>
+>
