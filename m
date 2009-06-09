@@ -1,65 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from srv2.rent-a-guru.de ([212.86.204.162]:5013 "EHLO
-	mx02.rent-a-guru.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751382AbZFHGbX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2009 02:31:23 -0400
-Date: Mon, 8 Jun 2009 08:31:04 +0200
-From: Michael Stapelberg <michael+lm@stapelberg.de>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: linux-media@vger.kernel.org, dl6jv@chaoswelle.de
-Subject: Re: [PATCH] bt8xx: Add support for the Conexant Fusion 878a /
-	Twinhan VP 1025 DVB-S
-Message-ID: <20090608063104.GO10731@mx01>
-References: <20090607202748.GM10731@mx01> <Pine.LNX.4.58.0906071703570.32713@shell2.speakeasy.net>
+Received: from qw-out-2122.google.com ([74.125.92.26]:2399 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758402AbZFIOGS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 10:06:18 -0400
+Received: by qw-out-2122.google.com with SMTP id 5so2484713qwd.37
+        for <linux-media@vger.kernel.org>; Tue, 09 Jun 2009 07:06:20 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="n/aVsWSeQ4JHkrmm"
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0906071703570.32713@shell2.speakeasy.net>
+In-Reply-To: <625E57E0-150D-40A1-AF90-7B0112D16931@flyn.org>
+References: <4f363d5e6b409da696b35f7e2a966952.squirrel@mail.voxel.net>
+	 <829197380906071921g54469ee7uac77c10d380a7e0a@mail.gmail.com>
+	 <625E57E0-150D-40A1-AF90-7B0112D16931@flyn.org>
+Date: Tue, 9 Jun 2009 10:06:20 -0400
+Message-ID: <829197380906090706h1f287623m979811f6c0b5956e@mail.gmail.com>
+Subject: Re: funny colors from XC5000 on big endian systems
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: "W. Michael Petullo" <mike@flyn.org>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, Jun 8, 2009 at 7:09 PM, W. Michael Petullo <mike@flyn.org> wrote:
+> I have a VCR connected to my 950Q using the coaxial interface.
+>
+> Kernel is 2.6.29.4.
+>
+> I am using streamer from Fedora's xawtv-3.95-11.fc11.ppc:
+>
+> v4lctl setchannel 3
+> streamer -r 30 -s 640x480 -f jpeg -i Television -n NTSC-M -c /dev/video0 -o
+> ~/Desktop/foo.avi -t 00:60:00
+>
+> I am using gstreamer-plugins-good-0.10.14-2.fc11.ppc:
+>
+> gst-launch v4l2src ! ffmpegcolorspace ! ximagesink
+>
+> Mike
 
---n/aVsWSeQ4JHkrmm
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hello Mike,
 
-Hi Trent,
+Just a quick follow up, I was up until 1am debugging this issue. It
+appears that a couple of the ioctl calls are failing when negotiating
+the capabilities of the analog support.  As a result, the gstreamer
+v4l code is falling back to a default colorspace.
 
-* [08.06.09 02:24]:
-> You can remove Conexant Fusion from the board name.  All the boards for
-> that driver use that same chip.  Just use "Twinhan VP 1025 DVB-S".
-Alright, thanks for clearing that up.
+The command I sent you should be good enough for it to work for you,
+but I obviously need to debug this further so that the autonegotiation
+works properly.
 
-> Don't you need to add it to the list in bttv-cards.c in order to use the
-> card?
-Not sure about that, it wasn=E2=80=99t necessary for me.
+Devin
 
-Best regards,
-Michael
-
---n/aVsWSeQ4JHkrmm
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iQIcBAEBCAAGBQJKLLAoAAoJEE5xYO1KyO4d1A4P/jWCm8LhT0gm6CMYFiXZOkLP
-hGxw7OfYqX7BeOWeI3iJLwl79xVgPYwA43aUIbkS86prvzhACQmuGRKqKQMfTm3w
-HPuY90M34mT83G932UJrabpUNL44+RYyDVWov8mDgEvUnR4GS6v5+RHBdBwAA6wO
-QOT4EgJ37OwC7b6OPxoyiW0aUvxA0OObrhRLx5R2x2UGLPj5c87k3RZR6ogdseds
-fih50HUU8xgfjn4lE2zGgz0n5v/aGDBZW/az6LKSJ/51TcDtXc9m7fvNSRzOSJS2
-hBlC/hFnx5thW1vDzrFJk40qrKlKup0eVl0i0ssi77MVA5zlunVIXw9jxRUsfzGl
-7qCxldX17ArHEsMmkzjHJd0009d29CODjkPB3ONIHuYIGd13NOIP67JN/s0xA/fS
-JX04c7GJh2qAKFs7poeT69PutlA5f6958dQu2M/LUcRUrlXpsvOMA8BqfmyDPlVf
-3PtDhA2WWladmUwzrjY7UI9/8p8N+Rt+h419l8uQcXD82p7UteeF/0F115qPrKi1
-9AcANCB8s5woiO0m/WP1uHleJlZG8RlV48iw0ubDU/NiEhG4kSV8Cu4kVIqw8pEI
-cuQLjxxT93huZmdpVuuv0g5aqNSjf+APrv0wMtlAt6i858TwHfBiVimKv3IimGg1
-OABTuaPfx/e+AgJvA3A9
-=rufE
------END PGP SIGNATURE-----
-
---n/aVsWSeQ4JHkrmm--
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
