@@ -1,89 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:56528 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751989AbZFSRcR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jun 2009 13:32:17 -0400
-Date: Fri, 19 Jun 2009 12:47:02 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Andy Walls <awalls@radix.net>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Sakar 57379 USB Digital Video Camera...
-In-Reply-To: <1245386416.20630.31.camel@palomino.walls.org>
-Message-ID: <alpine.LNX.2.00.0906190016070.17528@banach.math.auburn.edu>
-References: <1245375652.20630.6.camel@palomino.walls.org>  <alpine.LNX.2.00.0906182113010.17417@banach.math.auburn.edu> <1245386416.20630.31.camel@palomino.walls.org>
+Received: from bear.ext.ti.com ([192.94.94.41]:49071 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752830AbZFIVU0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 17:20:26 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	Muralidharan Karicheri <a0868495@dal.design.ti.com>
+Date: Tue, 9 Jun 2009 16:20:21 -0500
+Subject: RE: [PATCH RFC] adding support for setting bus parameters in sub
+ device
+Message-ID: <A69FA2915331DC488A831521EAE36FE4013564FCA0@dlee06.ent.ti.com>
+References: <1244580953-24188-1-git-send-email-m-karicheri2@ti.com>
+ <200906092303.01871.hverkuil@xs4all.nl>
+In-Reply-To: <200906092303.01871.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+email: m-karicheri2@ti.com
 
-On Fri, 19 Jun 2009, Andy Walls wrote:
-
-> On Thu, 2009-06-18 at 21:43 -0500, Theodore Kilgore wrote:
+>-----Original Message-----
+>From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+>Sent: Tuesday, June 09, 2009 5:03 PM
+>To: Karicheri, Muralidharan
+>Cc: linux-media@vger.kernel.org; davinci-linux-open-
+>source@linux.davincidsp.com; Muralidharan Karicheri
+>Subject: Re: [PATCH RFC] adding support for setting bus parameters in sub
+>device
+>
+>On Tuesday 09 June 2009 22:55:53 m-karicheri2@ti.com wrote:
+>> From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
 >>
->> On Thu, 18 Jun 2009, Andy Walls wrote:
->>>
->>>
->>>
+>> re-sending with RFC in the header
 >>
->> Interesting. To answer your question, I have no idea off the top of my
->> head. I do have what seems to be a similar camera. It is
+>> This patch adds support for setting bus parameters such as bus type
+>> (BT.656, BT.1120 etc), width (example 10 bit raw image data bus)
+>> and polarities (vsync, hsync, field etc) in sub device. This allows
+>> bridge driver to configure the sub device for a specific set of bus
+>> parameters through s_bus() function call.
 >>
->> Bus 005 Device 006: ID 0979:0371 Jeilin Technology Corp., Ltd
+>> Reviewed By "Hans Verkuil".
+>> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+>> ---
+>> Applies to v4l-dvb repository
 >>
->> and the rest of the lsusb output looks quite similar. I do not know,
->> though, if it has any chance of working as a webcam. Somehow, the thought
->> never occurred to me back when I got the thing. I would have to hunt some
->> stuff down even to know if it is claimed to work as a webcam.
+>>  include/media/v4l2-subdev.h |   36 ++++++++++++++++++++++++++++++++++++
+>>  1 files changed, 36 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+>> index 1785608..c1cfb3b 100644
+>> --- a/include/media/v4l2-subdev.h
+>> +++ b/include/media/v4l2-subdev.h
+>> @@ -37,6 +37,41 @@ struct v4l2_decode_vbi_line {
+>>  	u32 type;		/* VBI service type (V4L2_SLICED_*). 0 if no
+>service found
+>> */ };
+>>
+>> +/*
+>> + * Some sub-devices are connected to the bridge device through a bus
+>> that + * carries * the clock, vsync, hsync and data. Some interfaces such
+>> as BT.656 + * carries the sync embedded in the data where as others have
+>> separate line + * carrying the sync signals. The structure below is used
+>> by bridge driver to + * set the desired bus parameters in the sub device
+>> to work with it. + */
+>> +enum v4l2_subdev_bus_type {
+>> +	/* BT.656 interface. Embedded sync */
+>> +	V4L2_SUBDEV_BUS_BT_656,
+>> +	/* BT.1120 interface. Embedded sync */
+>> +	V4L2_SUBDEV_BUS_BT_1120,
+>> +	/* 8 bit muxed YCbCr bus, separate sync and field signals */
+>> +	V4L2_SUBDEV_BUS_YCBCR_8,
+>> +	/* 16 bit YCbCr bus, separate sync and field signals */
+>> +	V4L2_SUBDEV_BUS_YCBCR_16,
 >
-> The packaging that mine came in claims "3-in-1":
+>Hmm, what do you mean with "8 bit muxed YCbCr bus"? It's not clear to me
+>what the format of these YCBCR bus types is exactly.
 >
-> digital video camcorder (with microphone)
-> digital camera
-> web cam
+[MK] For YCbCr16, there is separate bus to carry Y and CbCr data, where as on YCbCr8, both gets multiplexed over same 8 bit bus (Y, Cb, Y, Cr, Y, Cb.... The difference between V4L2_SUBDEV_BUS_BT_656 and V4L2_SUBDEV_BUS_YCBCR_8 is that sync is embedded with data in the former, where as there is dedicated sync lines for the latter.
+>> +	/* Raw Bayer image data bus , 8 - 16 bit wide, sync signals */
+>> +	V4L2_SUBDEV_BUS_RAW_BAYER
+>> +};
+>> +
+>> +struct v4l2_subdev_bus	{
+>> +	enum v4l2_subdev_bus_type type;
+>> +	u8 width;
+>> +	/* 0 - active low, 1 - active high */
+>> +	unsigned pol_vsync:1;
+>> +	/* 0 - active low, 1 - active high */
+>> +	unsigned pol_hsync:1;
+>> +	/* 0 - low to high , 1 - high to low */
+>> +	unsigned pol_field:1;
+>> +	/* 0 - sample at falling edge , 1 - sample at rising edge */
+>> +	unsigned pol_pclock:1;
+>> +	/* 0 - active low , 1 - active high */
+>> +	unsigned pol_data:1;
+>> +};
+>> +
+>>  /* Sub-devices are devices that are connected somehow to the main bridge
+>>     device. These devices are usually audio/video
+>> muxers/encoders/decoders or sensors and webcam controllers.
+>> @@ -109,6 +144,7 @@ struct v4l2_subdev_core_ops {
+>>  	int (*querymenu)(struct v4l2_subdev *sd, struct v4l2_querymenu *qm);
+>>  	int (*s_std)(struct v4l2_subdev *sd, v4l2_std_id norm);
+>>  	long (*ioctl)(struct v4l2_subdev *sd, unsigned int cmd, void *arg);
+>> +	int (*s_bus)(struct v4l2_subdev *sd, struct v4l2_subdev_bus *bus);
 >
+>Make this 'const struct v4l2_subdev_bus *bus'.
 >
->> You did say that it comes up as a different USB device when it is a
->> webcam? You mean, a different product ID or so?
+Ok.
+>>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+>>  	int (*g_register)(struct v4l2_subdev *sd, struct v4l2_dbg_register
+>> *reg); int (*s_register)(struct v4l2_subdev *sd, struct v4l2_dbg_register
+>> *reg);
 >
-> Yes
+>Regards,
 >
-> Look for this in the original lsusb output I provided
-> :
->>> Webcam mode:
->>>
->>> Bus 003 Device 005: ID 0979:0280 Jeilin Technology Corp., Ltd
->>> Device Descriptor:
-
-Oops, right you are. Blame it on my old eyes. They are the same age as the 
-rest of me, but sometimes they feel older.
-
-Another thing I could not see in front of me when I looked at my Jeilin 
-Mass Storage camera, was what is written on it. It says there it is a 
-Cobra DMC300, and it says
-
-"Digital Video & Camera"
-
-I never paid any attention to that before, because for years my priorities 
-were still cameras. But now, just in case I have lost the driver CD, I 
-went out to Google and found what claims to be a driver for it. I hope 
-that, with such a long idleness just sitting on a back corner of the desk, 
-the battery has not died in the camera. If I get some time in the next few 
-days to try to fight Windows, I will make some logs of my own. Then we can 
-compare notes and see if the two cameras are similar, or not. What I am 
-hoping for, obviously, is that both cameras are downloading JPEG frames, 
-and use similar methods to do that. If that is true (we don't know that, 
-of course) then the only problem I can imagine is that both of them are 
-reported, even in webcam mode, as Mass Storage Bulk Transport devices. If 
-so, then the camera(s) would need to be blacklisted by mass-storage when 
-set up as webcams.
-
-Now that I got the supposed driver, I should go out on the web and get the 
-supposed manual for my camera. Then perhaps I can know how it is supposed 
-to be used as a webcam and get the needed sniffs. Meanwhile, I hope that 
-you will do the same.
-
-Theodore Kilgore
+>	Hans
+>
+>--
+>Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
