@@ -1,98 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4239 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751883AbZFZGaZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2009 02:30:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Subject: Re: v4l2_int_device vs v4l2_subdev?
-Date: Fri, 26 Jun 2009 08:30:19 +0200
-Cc: Gary Thomas <gary@mlbassoc.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	linux-omap@vger.kernel.org
-References: <4A43FD77.1020709@mlbassoc.com> <5e9665e10906252227i4f667915rc1b52d6148c1a0e9@mail.gmail.com>
-In-Reply-To: <5e9665e10906252227i4f667915rc1b52d6148c1a0e9@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200906260830.20193.hverkuil@xs4all.nl>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4618 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754822AbZFISOY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 14:14:24 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id n59IEPSf044066
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 9 Jun 2009 20:14:25 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 9 Jun 2009 20:14:25 +0200 (CEST)
+Message-Id: <200906091814.n59IEPSf044066@smtp-vbr5.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 26 June 2009 07:27:15 Dongsoo, Nathaniel Kim wrote:
-> Hello,
-> 
-> On Fri, Jun 26, 2009 at 7:43 AM, Gary Thomas<gary@mlbassoc.com> wrote:
-> > Still trying to wrap my head around the OMAP/34xx camera support.
-> > I need to use the TVP5150 sensor/controller, but the existing
-> > driver uses v4l_subdev.  The "working" examples I've found
-> > (from Sergio's tree) use sensors like ov3640 with uses v4l2_int_device
-> >
-> > Are these two totally separate beasts?
-> > If I have an infrastructure (I assume) based on v4l2_int_device,
-> > how do I use a v4l2_subdev device driver?  or need I move one to
-> > the other?
-> >
-> 
-> I've been through the same case (now I'm trying to use subdev
-> framework and writing a new device driver based on that)
-> As far as I understand, every v4l2 drivers are moving on subdev
-> framework.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-That's right. There were three different incompatible interfaces between
-the host and an i2c device. This made it impossible to reuse e.g. a sensor
-driver based on v4l2-int-device for omap in a USB webcam based around
-the old i2c-ioctl interface. The v4l2_subdev interface was created that
-will replace all these other interfaces. We will not accept new
-non-v4l2-subdev drivers in the kernel, and we are working hard to convert
-the last remaining non-v4l2-subdev drivers as soon as possible.
+Results of the daily build of v4l-dvb:
 
-> But in user space there is nothing changed having access to 
-> device and control them.
-> As you know, subdev and int-device is all about how to bind
-> interface(or host?) and device and make them communicated each other.
-> But using subdev device driver with int-device supporting interface
-> (or host) device driver? it won't make any communication.
-> So if you are running out of time with your project, you'd better use
-> old driver of TVP. Like TVP driver in kernel 2.6.28 I suppose. But if
-> you have enough time and wanna be challenging, try to convert
-> in-device based omap3 camera interface driver to subdev supporting
-> one.
+date:        Tue Jun  9 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11930:ed3781a79c73
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Someone's got to do this. v4l2_subdev is the future and it has many
-advantages over the older interfaces. The ability to be able to use the
-same i2c driver in anything from USB webcams to PCI capture cards to
-omap/davinci embedded platforms is very powerful.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-rc7-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-rc7-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-rc7-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-rc7-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-rc7-m32r: OK
+linux-2.6.22.19-mips: ERRORS
+linux-2.6.26-mips: ERRORS
+linux-2.6.27-mips: ERRORS
+linux-2.6.28-mips: ERRORS
+linux-2.6.29.1-mips: ERRORS
+linux-2.6.30-rc7-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-rc7-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-rc7-x86_64: WARNINGS
+sparse (linux-2.6.29.1): OK
+sparse (linux-2.6.30-rc7): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
-Regards,
+Detailed results are available here:
 
-	Hans
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-> Cheers,
-> 
-> Nate
-> 
-> 
-> > ... dizzy from traveling down too many twisty little passages :-(
-> >
-> > --
-> > ------------------------------------------------------------
-> > Gary Thomas                 |  Consulting for the
-> > MLB Associates              |    Embedded world
-> > ------------------------------------------------------------
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> 
-> 
-> 
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
+The V4L2 specification from this daily build is here:
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
