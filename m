@@ -1,175 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43573 "EHLO arroyo.ext.ti.com"
+Received: from mail1.radix.net ([207.192.128.31]:58950 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753562AbZFIQzT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 12:55:19 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 9 Jun 2009 11:55:15 -0500
-Subject: RE: [RFC] passing bus/interface parameters from bridge driver to
- sub device
-Message-ID: <A69FA2915331DC488A831521EAE36FE4013564FA4E@dlee06.ent.ti.com>
-References: <A69FA2915331DC488A831521EAE36FE4013557A8AF@dlee06.ent.ti.com>
- <200906091833.26174.hverkuil@xs4all.nl>
- <A69FA2915331DC488A831521EAE36FE4013564FA48@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE4013564FA48@dlee06.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	id S1751986AbZFIBq6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Jun 2009 21:46:58 -0400
+Subject: Re: [PATCHv6 3 of 7] Add documentation description for FM
+ Transmitter Extended Control Class
+From: Andy Walls <awalls@radix.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Eduardo Valentin <eduardo.valentin@nokia.com>,
+	ext Mauro Carvalho Chehab <mchehab@infradead.org>,
+	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	"Nurkkala Eero.An" <ext-eero.nurkkala@nokia.com>
+In-Reply-To: <17445.62.70.2.252.1244461630.squirrel@webmail.xs4all.nl>
+References: <17445.62.70.2.252.1244461630.squirrel@webmail.xs4all.nl>
+Content-Type: text/plain
+Date: Mon, 08 Jun 2009 21:47:33 -0400
+Message-Id: <1244512053.3147.109.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some typo corrected....
->-----Original Message-----
->From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->owner@vger.kernel.org] On Behalf Of Karicheri, Muralidharan
->Sent: Tuesday, June 09, 2009 12:51 PM
->To: Hans Verkuil
->Cc: linux-media@vger.kernel.org
->Subject: RE: [RFC] passing bus/interface parameters from bridge driver to
->sub device
->
->
->Hans,
->
->Thanks for looking into this...
->
->>>
->>> 1) I want to use v4l2_i2c_new_probed_subdev_addr() to load and probe the
->>> the v4l2 sub-device from my vpfe capture driver. Currently the api's
->>> available doesn't allow setting platform data in the client before the
->>> sub-device's probe is called. I see that there is discussion about
->adding
->>> i2c_board_info as an argument to the api. I would need this to allow
->>> loading of sub-device from vpfe capture. I have seen patches sent by
->>> Eduardo Valentin & Guennadi Liakhovetski addressing the issue. Do you
->>> have any suggestions for use in my vpfe capture driver?
->>
->>As you have probably seen by now I've made changes to the v4l2 core that
->>make it easy to use an i2c_board_info struct when creating a subdev. So as
->>far as I can tell that solves this issue completely.
->>
->>The code is in my v4l-dvb-subdev tree.
->>
->[MK] Yes. I have been following this and will resolve this.
->>> 2) I need a common structure (preferably in i2c-subdev.h for defining
->and
->>> using bus (interface) parameters in the bridge (vpfe capture) and sub
->>> device (tvp514x or mt9t031) drivers. This will allow bridge driver to
->>> read these values from platform data and set the same in the vpfe
->capture
->>> driver and sub device drivers. Since bus parameters such as interface
->>> type (BT.656, BT.1120, Raw Bayer image data etc), polarity of various
->>> signals etc are used across bridge and sub-devices, it make sense to add
->>> it to i2c-subdev.h. Here is what I have come up with. If this support is
->>> not already planned, I would like to sent a patch for the same.
->>
->>It makes sense to define a struct in v4l2-subdev.h and a core ops to set
->it
->>(s_bus).
->>
->>However, I would pack it differently:
->>
->>struct v4l2_subdev_bus {
->>	enum v4l2_subdev_bus_type type;
->>	u8 width;
->>	unsigned pol_vsync:1;
->>	unsigned pol_hsync:1;
->>	unsigned pol_field:1;
->>	unsigned pol_pclock:1;
->>};
->>
->[MK] Looks good to me. So is it up to the bridge driver and sub devices to
->determine how they interpret the values of pol_xxx fields? Since same sub-
->device might work across multiple bridge drivers, it is worth documenting them >as given in my RFC. I would like to add one more field for data polarity :-
->	unsigned pol_data:1;
->
->Will you take care of this yourself or expecting me to send a patch for the
->same?
->
->Regards,
->Murali
->>It's more concise this way.
->>
->>Regards,
->>
->>	Hans
->>
->>> +/*
->>> + * Some Sub-devices are connected to the bridge device through a bus
->>> + * that carries the clock, vsync, hsync and data. Some interfaces
->>> + * such as BT.656 carries the sync embedded in the data where as others
->>> + * have seperate line carrying the sync signals. This structure is
->>> + * used by bridge driver to set the desired bus parameters in the sub
->>> + * device to work with it.
->>> + */
->>> +enum v4l2_subdev_bus_type {
->>> +	/* BT.656 interface. Embedded syncs */
->>> +	V4L2_SUBDEV_BUS_BT_656,
->>> +	/* BT.1120 interface. Embedded syncs */
->>> +	V4L2_SUBDEV_BUS_BT_1120,
->>> +	/* 8 bit YCbCr muxed bus, separate sync and field id signals */
->>> +	V4L2_SUBDEV_BUS_YCBCR_8,
->>> +	/* 16 bit YCbCr bus, separate sync and field id signals */
->>> +	V4L2_SUBDEV_BUS_YCBCR_16,
->>> +	/* Raw Bayer data bus, 8 - 16 bit wide, sync signals  */
->>> +	V4L2_SUBDEV_BUS_RAW_BAYER
->>> +};
->>> +
->>> +/* Raw bayer data bus width */
->>> +enum v4l2_subdev_raw_bayer_data_width {
->>> +	V4L2_SUBDEV_RAW_BAYER_DATA_8BIT,
->>> +	V4L2_SUBDEV_RAW_BAYER_DATA_9BIT,
->>> +	V4L2_SUBDEV_RAW_BAYER_DATA_10BIT,
->>> +	V4L2_SUBDEV_RAW_BAYER_DATA_11BIT,
->>> +	V4L2_SUBDEV_RAW_BAYER_DATA_12BIT,
->>> +	V4L2_SUBDEV_RAW_BAYER_DATA_13BIT,
->>> +	V4L2_SUBDEV_RAW_BAYER_DATA_14BIT,
->>> +	V4L2_SUBDEV_RAW_BAYER_DATA_15BIT,
->>> +	V4L2_SUBDEV_RAW_BAYER_DATA_16BIT
->>> +};
->>> +
->>> +struct v4l2_subdev_bus_params {
->>> +	/* bus type */
->>> +	enum v4l2_subdev_bus_type type;
->>> +	/* data size for raw bayer data bus */
->>> +	enum v4l2_subdev_raw_bayer_data_width width;
->>> +	/* polarity of vsync. 0 - active low, 1 - active high */
->>> +	u8 vsync_pol;
->>> +	/* polarity of hsync. 0 - active low, 1 - active low */
->>> +	u8 hsync_pol;
->>> +	/* polarity of field id, 0 - low to high, 1 - high to low */
->>> +	u8 fid_pol;
->>> +	/* polarity of data. 0 - active low, 1 - active high */
->>> +	u8 data_pol;
->>> +	/* pclk polarity. 0 - sample at falling edge, 1 - sample at rising
->>edge
->>> */ +	u8 pclk_pol;
->>> +};
->>> +
->>> Murali Karicheri
->>> email: m-karicheri2@ti.com
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
->>
->>--
->>Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
->>--
->>To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>the body of a message to majordomo@vger.kernel.org
->>More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Mon, 2009-06-08 at 13:47 +0200, Hans Verkuil wrote:
+> OK, I had some time, so here are a few comments:
+> 
+> > From: Eduardo Valentin <eduardo.valentin@nokia.com>
+
+> > +	  <row><entry spanname="descr">Configures the pre-emphasis value for
+> > broadcasting.
+> > +A pre-emphasis filter is applied to the broadcast to accentuate the high
+> > audio frequencies.
+> > +Depending on the region, a time constant of either 50 or 75 useconds is
+> > used. Possible values
+> > +are:</entry>
+> > +	</row><row>
+> > +	<entrytbl spanname="descr" cols="2">
+> > +		  <tbody valign="top">
+> > +		    <row>
+> > +
+> > <entry><constant>V4L2_FMTX_PREEMPHASIS_DISABLED</constant>&nbsp;</entry>
+> > +		      <entry>No pre-emphasis is applied.</entry>
+> > +		    </row>
+> > +		    <row>
+> > +
+> > <entry><constant>V4L2_FMTX_PREEMPHASIS_50_uS</constant>&nbsp;</entry>
+> > +		      <entry>A pre-emphasis of 50 uS is used.</entry>
+> > +		    </row>
+> > +		    <row>
+> > +
+> > <entry><constant>V4L2_FMTX_PREEMPHASIS_75_uS</constant>&nbsp;</entry>
+> > +		      <entry>A pre-emphasis of 75 uS is used.</entry>
+> > +		    </row>
+> > +		  </tbody>
+> > +		</entrytbl>
+> > +
+> > +	  </row>
+> 
+> Do you know when to use which pre-emphasis?
+
+I depends on what de-emphasis filter the receivers are using.  This is
+usually a national or regional regulatory decision imposed upon the
+broadcasters and hence receiver manufacturers.
+
+The choice made by regulators probably depends on allowable field
+strength (chosen by regulators) for the broadcast area and the expected
+propagation conditions and man-made noise sources (which dominate in
+VHF).
+
+Preemphasis boosts the normally smaller magnitude, high frequency part
+of the FM signal spectrum.  The receiver can then attenuate the received
+noise and knock down the higher frequency part of the FM signal back
+down to normal levels with a deemphasis filter.  The end result is an
+imporved SNR for the high frequency part of the FM signal spectrum.
+
+The CX25843 datasheet actually has an OK picture.
+
+>  There is a similar MPEG
+> control but I've never been able to find out when to use pre-emphasis and
+> which mode should be used. I'd appreciate it if you can point me to some
+> documentation on this issue. And perhaps that info should also be added to
+> this doc.
+
+If you have audio that you know has a lot of high frequency content
+(televised music concert), you may wish to use pre-emphahsis filtering
+before compression, and not use it for something with mostly low freqs
+(a talk show).  You of course have to have the pre-emphasis filters
+available and the ability to enable/disable them.
+
+The preemphasis parameters in MPEG are to describe the preemphasis added
+to the baseband audio, or the deepmhasis that must occur after the audio
+is decompressed back to baseband.  The idea is that digitzation and
+compression processing are going to introduce noise that will be
+significant compared to the high frequency components of the audio.  A
+preemphahsis filter amplifies these before sampling.  That way, after
+reconstruction on the other end, the high frequency audio can be
+deemphasized with a complementary filter.
+
+MPEG can carry metadata specifying a 50/15 us or a CCITT J.17 filter
+characteristic.
+
+For 44.1 ksps, 50us and 15 us correspond to filter corner freqs of
+
+1/(50 us * 2 * pi) = 3.183 kHz
+1/(15 us * 2 * pi) = 10.61 kHz
+
+with a 10 dB change in gain between the two corners (I think).
+
+
+It looks like the CCITT J.17 curve corresponds to the pre-emphasis
+filter used by NICAM.  There's a picture of the J.17 preemphasis curve
+here in section 4.1:
+
+http://tallyho.bc.nu/~steve/nicam.html
+
+The CX25843 data sheet also has a picture of a NICAM de-emphasis filter
+characteristic.
+
+(Someone should really pull out the standards and verify all that.)
+
+
+
+> > +	  <row>
+> > +	    <entry
+> > spanname="id"><constant>V4L2_CID_TUNE_ANTENNA_CAPACITOR</constant>&nbsp;</entry>
+> > +	    <entry>integer</entry>
+> > +	  </row>
+> > +	  <row><entry spanname="descr">This selects the value of antenna tuning
+> > capacitor
+> > +manually or automatically if set to zero. Unit, range and step are
+> > driver-specific.</entry>
+> 
+> Same question: is there a reason why the unit is driver-specific?
+
+
+Because for a peaking control, an absolute unit doesn't matter.  It
+would probably be too much work to figure out what they  Though for a
+capacitor, one would expect a unit to be some fraction of a Farad.
+
+If I'm guessing right, this value is used to tune an impedance matching
+circuit for maximum power transfer to the antenna.  While tweaking this,
+I assume one is inspecting an output somewhere else for a peak or
+minimum level.  This really seems like something you usually want to
+happen automatically with a control loop anyway (which is handled by the
+0 case).
+
+Regards,
+Andy
+
+> > +	  </row>
+> > +	  <row><entry></entry></row>
+> > +	</tbody>
+> > +      </tgroup>
+> > +      </table>
+> > +    </section>
+> >  </section>
+> >
+> >    <!--
+> >
+> 
+> Regards,
+> 
+>          Hans
+
 
