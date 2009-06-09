@@ -1,83 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:35850 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1765098AbZFOSoT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Jun 2009 14:44:19 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Date: Mon, 15 Jun 2009 13:44:15 -0500
-Subject: RE: Did I miss any other patches or RFCs that need to be reviewed?
-Message-ID: <A69FA2915331DC488A831521EAE36FE40139DF93D9@dlee06.ent.ti.com>
-References: <200906141636.39198.hverkuil@xs4all.nl>
- <A69FA2915331DC488A831521EAE36FE40139DF92E4@dlee06.ent.ti.com>
- <200906151956.18572.hverkuil@xs4all.nl>
-In-Reply-To: <200906151956.18572.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mail-gx0-f214.google.com ([209.85.217.214]:37289 "EHLO
+	mail-gx0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751562AbZFIBpd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2009 21:45:33 -0400
+Received: by gxk10 with SMTP id 10so2583205gxk.13
+        for <linux-media@vger.kernel.org>; Mon, 08 Jun 2009 18:45:35 -0700 (PDT)
 MIME-Version: 1.0
+Date: Mon, 8 Jun 2009 21:45:34 -0400
+Message-ID: <246c01f50906081845j4d8d062enbd9644edb0cf4d1d@mail.gmail.com>
+Subject: SPCA505 and 506 with X10 VA11A
+From: Joe Belford <joebelford@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGFucywNCg0KVGhhdCBpcyBncmVhdCENCg0KT25jZSBJIGNoYW5nZSB0aGUgY29kZSBiYXNlZCBv
-biB0aGUgY29tbWVudHMsIGRvIHlvdSB0aGluayB0aGVyZSBpcyBhIGNoYW5jZSB0byBnZXQgdGhl
-IGRyaXZlciB0byBiZSBtZXJnZWQgdG8gMi42LjMxIChJZiBzbywgaG93IHNvb24gc2hvdWxkIEkg
-YmUgcmVhZHkgd2l0aCB0aGUgbmV4dCB2ZXJzaW9uLCB2MyBvZiB0aGUgcGF0Y2gpIG9yIGRvIHdl
-IG5lZWQgdG8gd2FpdCB1bnRpbCAyLjYuMzI/DQoNClJlZ2FyZHMsDQpNdXJhbGkgS2FyaWNoZXJp
-DQpTb2Z0d2FyZSBEZXNpZ24gRW5naW5lZXINClRleGFzIEluc3RydW1lbnRzIEluYy4NCkdlcm1h
-bnRvd24sIE1EIDIwODc0DQpQaG9uZSA6IDMwMS01MTUtMzczNg0KZW1haWw6IG0ta2FyaWNoZXJp
-MkB0aS5jb20NCg0KPi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+RnJvbTogSGFucyBWZXJr
-dWlsIFttYWlsdG86aHZlcmt1aWxAeHM0YWxsLm5sXQ0KPlNlbnQ6IE1vbmRheSwgSnVuZSAxNSwg
-MjAwOSAxOjU2IFBNDQo+VG86IEthcmljaGVyaSwgTXVyYWxpZGhhcmFuDQo+Q2M6IGxpbnV4LW1l
-ZGlhQHZnZXIua2VybmVsLm9yZzsgZGF2aW5jaS1saW51eC1vcGVuLQ0KPnNvdXJjZUBsaW51eC5k
-YXZpbmNpZHNwLmNvbTsgbGludXgtb21hcEB2Z2VyLmtlcm5lbC5vcmcNCj5TdWJqZWN0OiBSZTog
-RGlkIEkgbWlzcyBhbnkgb3RoZXIgcGF0Y2hlcyBvciBSRkNzIHRoYXQgbmVlZCB0byBiZSByZXZp
-ZXdlZD8NCj4NCj5PbiBNb25kYXkgMTUgSnVuZSAyMDA5IDE4OjI0OjUzIEthcmljaGVyaSwgTXVy
-YWxpZGhhcmFuIHdyb3RlOg0KPj4gSGFucywNCj4+DQo+PiBUaGFua3MgZm9yIHlvdXIgcmV2aWV3
-LiBJIHdpbGwgZ2V0IGJhY2sgdG8geW91IGlmIEkgbmVlZCBtb3JlDQo+PiBpbmZvcm1hdGlvbiBv
-biB5b3VyIGNvbW1lbnRzLg0KPj4NCj4+IFlvdSBoYXZlIHJldmlld2VkIHRoZSBmb2xsb3dpbmcg
-cGF0Y2hlcyBpbiB0aGlzIHNlcmllcy4uLg0KPj4gMSw3LDgsMTANCj4NCj5UaG9zZSB3ZXJlIHRo
-ZSBvbmx5IG9uZXMgSSBoYWQgYW55IGNvbW1lbnRzIG9uLiBTbyBJJ20gaGFwcHkgd2l0aCB0aGUN
-Cj5vdGhlcnMuDQo+DQo+UmVnYXJkcywNCj4NCj4JSGFucw0KPg0KPj4NCj4+IEZvbGxvd2luZyBh
-cmUgcGFydCBvZiB0aGlzIHNlcmllcyB3aGljaCByZXF1aXJlcyByZXZpZXcgYXMgd2VsbC4NCj4+
-DQo+PiBbUEFUQ0ggMi8xMCAtIHYyXSBjY2RjIGh3IGRldmljZSBoZWFkZXIgZmlsZSBmb3IgdnBm
-ZSBjYXB0dXJlDQo+PiBbUEFUQ0ggMy8xMCAtIHYyXSBkbTM1NSBjY2RjIG1vZHVsZSBmb3IgdnBm
-ZSBjYXB0dXJlIGRyaXZlcg0KPj4gW1BBVENIIDQvMTAgLSB2Ml0gZG02NDR4IGNjZGMgbW9kdWxl
-IGZvciB2cGZlIGNhcHR1cmUgZHJpdmVyDQo+PiBbUEFUQ0ggNS8xMCAtIHYyXSBjY2RjIHR5cGVz
-IHVzZWQgYWNyb3NzIGNjZGMgbW9kdWxlcyBmb3IgdnBmZSBjYXB0dXJlDQo+ZHJpdmVyDQo+Pg0K
-Pj4gKG5vdCBtdWNoIHRvIHJldmlldyBpbiB0aGUgYmVsb3cgcGF0Y2ggKQ0KPj4NCj4+IFBBVENI
-IDYvMTAgLSB2Ml0gTWFrZWZpbGUgYW5kIGNvbmZpZyBmaWxlcyBmb3IgdnBmZSBjYXB0dXJlIGRy
-aXZlcg0KPj4NCj4+IHJlZ2FyZHMsDQo+Pg0KPj4gTXVyYWxpIEthcmljaGVyaQ0KPj4gU29mdHdh
-cmUgRGVzaWduIEVuZ2luZWVyDQo+PiBUZXhhcyBJbnN0cnVtZW50cyBJbmMuDQo+PiBHZXJtYW50
-b3duLCBNRCAyMDg3NA0KPj4gZW1haWw6IG0ta2FyaWNoZXJpMkB0aS5jb20NCj4+DQo+PiA+LS0t
-LS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4+ID5Gcm9tOiBkYXZpbmNpLWxpbnV4LW9wZW4tc291
-cmNlLWJvdW5jZXMrbS0NCj4+ID5rYXJpY2hlcmkyPXRpLmNvbUBsaW51eC5kYXZpbmNpZHNwLmNv
-bSBbbWFpbHRvOmRhdmluY2ktbGludXgtb3Blbi0NCj5zb3VyY2UtDQo+PiA+Ym91bmNlcyttLWth
-cmljaGVyaTI9dGkuY29tQGxpbnV4LmRhdmluY2lkc3AuY29tXSBPbiBCZWhhbGYgT2YgSGFucw0K
-PlZlcmt1aWwNCj4+ID5TZW50OiBTdW5kYXksIEp1bmUgMTQsIDIwMDkgMTA6MzcgQU0NCj4+ID5U
-bzogbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnDQo+PiA+Q2M6IGRhdmluY2ktbGludXgtb3Bl
-bi1zb3VyY2VAbGludXguZGF2aW5jaWRzcC5jb207IGxpbnV4LQ0KPj4gPm9tYXBAdmdlci5rZXJu
-ZWwub3JnDQo+PiA+U3ViamVjdDogRGlkIEkgbWlzcyBhbnkgb3RoZXIgcGF0Y2hlcyBvciBSRkNz
-IHRoYXQgbmVlZCB0byBiZSByZXZpZXdlZD8NCj4+ID4NCj4+ID5IaSBhbGwsDQo+PiA+DQo+PiA+
-SSB0aGluayBJJ3ZlIGZpbmFsbHkgZmluaXNoZWQgcmV2aWV3aW5nIGFsbCB0aGUgcGVuZGluZyBw
-YXRjaGVzLg0KPj4gPg0KPj4gPkFyZSB0aGVyZSBhbnkgdGhhdCBJJ3ZlIG1pc3NlZD8gT3IgYXJl
-IHRoZXJlIG90aGVyIHBvc3RpbmdzIHRoYXQgbmVlZCBteQ0KPj4gPmF0dGVudGlvbj8NCj4+ID4N
-Cj4+ID5QbGVhc2UgbGV0IG1lIGtub3csIG90aGVyd2lzZSBJIGFzc3VtZSB0aGF0IEknbSAoZmlu
-YWxseSEpIHVwIHRvIGRhdGUuDQo+PiA+DQo+PiA+UmVnYXJkcywNCj4+ID4NCj4+ID4JSGFucw0K
-Pj4gPg0KPj4gPi0tDQo+PiA+SGFucyBWZXJrdWlsIC0gdmlkZW80bGludXggZGV2ZWxvcGVyIC0g
-c3BvbnNvcmVkIGJ5IFRBTkRCRVJHIFRlbGVjb20NCj4+ID4NCj4+ID5fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXw0KPj4gPkRhdmluY2ktbGludXgtb3Blbi1z
-b3VyY2UgbWFpbGluZyBsaXN0DQo+PiA+RGF2aW5jaS1saW51eC1vcGVuLXNvdXJjZUBsaW51eC5k
-YXZpbmNpZHNwLmNvbQ0KPj4gPmh0dHA6Ly9saW51eC5kYXZpbmNpZHNwLmNvbS9tYWlsbWFuL2xp
-c3RpbmZvL2RhdmluY2ktbGludXgtb3Blbi1zb3VyY2UNCj4+DQo+77+977+977+9ey5u77+9K++/
-ve+/ve+/ve+/ve+/ve+/ve+/vSsl77+977+977+977+977+93bYX77+977+9d++/ve+/vXsubu+/
-vSvvv73vv73vv73vv71777+977+9Z++/ve+/ve+/ve+/ve+/vV5u77+9cu+/ve+/ve+/vXrvv70a
-77+977+9aO+/ve+/ve+/ve+/vSbvv73vv73vv71677+977+9eu+/vd6X77+9DQo+K++/ve+/vSt6
-Zu+/ve+/ve+/vWjvv73vv73vv71+77+977+977+977+9ae+/ve+/ve+/ve+/ve+/ve+/ve+/ve+/
-vXpf77+9D++/vWo6K3bvv73vv73vv70p36Pvv71tDQo+Pg0KPj4NCj4+DQo+DQo+DQo+DQo+LS0N
-Cj5IYW5zIFZlcmt1aWwgLSB2aWRlbzRsaW51eCBkZXZlbG9wZXIgLSBzcG9uc29yZWQgYnkgVEFO
-REJFUkcgVGVsZWNvbQ0KDQo=
+I have an X10 VA11A I'd like to get working with V4L2.  As some are
+probably aware this device shares a vendor/product id with another
+webcam that uses the spca505 module.  I've been through the source for
+these modules and noticed the fixme's and was wondering If someone
+could suggest a starting point to get this working.  I have some
+experience with linux driver development working with handheld
+devices.
+
+Thanks,
+Joe
