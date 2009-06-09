@@ -1,94 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:55059 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753237AbZFBPrC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Jun 2009 11:47:02 -0400
-Date: Tue, 2 Jun 2009 17:47:16 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Magnus Damm <magnus.damm@gmail.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	morimoto.kuninori@renesas.com, matthieu.castet@parrot.com
-Subject: [PATCH] sh-mobile-ceu-camera: do not wait for interrupt when releasing
- buffers
-In-Reply-To: <20090226103932.30237.96661.sendpatchset@rx1.opensource.se>
-Message-ID: <Pine.LNX.4.64.0906021641090.4824@axis700.grange>
-References: <20090226103932.30237.96661.sendpatchset@rx1.opensource.se>
+Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:42080 "EHLO
+	t61.ukuu.org.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752763AbZFIMAb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 08:00:31 -0400
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: [PATCH 1/2] se401: Fix unsafe use of sprintf with identical
+	source/destination
+To: linux-media@vger.kernel.org, mchehab@infradead.org
+Date: Tue, 09 Jun 2009 13:56:35 +0100
+Message-ID: <20090609125546.10098.31807.stgit@t61.ukuu.org.uk>
+In-Reply-To: <20090609125408.10098.45945.stgit@t61.ukuu.org.uk>
+References: <20090609125408.10098.45945.stgit@t61.ukuu.org.uk>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Patch
+From: Alan Cox <alan@linux.intel.com>
 
-[PATCH] video: use videobuf_waiton() in sh_mobile_ceu free_buffer()
+Closes-bug: http://bugzilla.kernel.org/show_bug.cgi?id=13435
 
-was not quite correct. It closed a race, but introduced a potential 
-lock-up, if for some reason an interrupt does not come. This has been 
-observed in tests with tw9910. This patch safely dequeues buffers without 
-waiting for their completion. It also moves a buffer state assignment 
-under a spinlock to make it atomic with queuing of the buffer.
-
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Alan Cox <alan@linux.intel.com>
 ---
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index d890f8d..67c7dcd 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -296,8 +306,8 @@ static void sh_mobile_ceu_videobuf_queue(struct videobuf_queue *vq,
- 	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %zd\n", __func__,
- 		vb, vb->baddr, vb->bsize);
+
+ drivers/media/video/se401.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
+
+
+diff --git a/drivers/media/video/se401.c b/drivers/media/video/se401.c
+index 5990ab3..08129a8 100644
+--- a/drivers/media/video/se401.c
++++ b/drivers/media/video/se401.c
+@@ -1244,17 +1244,18 @@ static int se401_init(struct usb_se401 *se401, int button)
+ 	int i=0, rc;
+ 	unsigned char cp[0x40];
+ 	char temp[200];
++	int slen;
  
--	vb->state = VIDEOBUF_QUEUED;
- 	spin_lock_irqsave(&pcdev->lock, flags);
-+	vb->state = VIDEOBUF_QUEUED;
- 	list_add_tail(&vb->queue, &pcdev->capture);
+ 	/* led on */
+ 	se401_sndctrl(1, se401, SE401_REQ_LED_CONTROL, 1, NULL, 0);
  
- 	if (!pcdev->active) {
-@@ -311,6 +321,27 @@ static void sh_mobile_ceu_videobuf_queue(struct videobuf_queue *vq,
- static void sh_mobile_ceu_videobuf_release(struct videobuf_queue *vq,
- 					   struct videobuf_buffer *vb)
- {
-+	struct soc_camera_device *icd = vq->priv_data;
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-+	struct sh_mobile_ceu_dev *pcdev = ici->priv;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&pcdev->lock, flags);
-+
-+	if (pcdev->active == vb) {
-+		/* disable capture (release DMA buffer), reset */
-+		ceu_write(pcdev, CAPSR, 1 << 16);
-+		pcdev->active = NULL;
-+	}
-+
-+	if ((vb->state == VIDEOBUF_ACTIVE || vb->state == VIDEOBUF_QUEUED) &&
-+	    !list_empty(&vb->queue)) {
-+		vb->state = VIDEOBUF_ERROR;
-+		list_del_init(&vb->queue);
-+	}
-+
-+	spin_unlock_irqrestore(&pcdev->lock, flags);
-+
- 	free_buffer(vq, container_of(vb, struct sh_mobile_ceu_buffer, vb));
- }
+ 	/* get camera descriptor */
+ 	rc=se401_sndctrl(0, se401, SE401_REQ_GET_CAMERA_DESCRIPTOR, 0, cp, sizeof(cp));
+-	if (cp[1]!=0x41) {
++	if (cp[1] != 0x41) {
+ 		err("Wrong descriptor type");
+ 		return 1;
+ 	}
+-	sprintf (temp, "ExtraFeatures: %d", cp[3]);
++	slen = snprintf(temp, 200, "ExtraFeatures: %d", cp[3]);
  
-@@ -330,6 +361,10 @@ static irqreturn_t sh_mobile_ceu_irq(int irq, void *data)
- 	spin_lock_irqsave(&pcdev->lock, flags);
- 
- 	vb = pcdev->active;
-+	if (!vb)
-+		/* Stale interrupt from a released buffer */
-+		goto out;
-+
- 	list_del_init(&vb->queue);
- 
- 	if (!list_empty(&pcdev->capture))
-@@ -344,6 +379,8 @@ static irqreturn_t sh_mobile_ceu_irq(int irq, void *data)
- 	do_gettimeofday(&vb->ts);
- 	vb->field_count++;
- 	wake_up(&vb->done);
-+
-+out:
- 	spin_unlock_irqrestore(&pcdev->lock, flags);
- 
- 	return IRQ_HANDLED;
+ 	se401->sizes=cp[4]+cp[5]*256;
+ 	se401->width=kmalloc(se401->sizes*sizeof(int), GFP_KERNEL);
+@@ -1269,9 +1270,10 @@ static int se401_init(struct usb_se401 *se401, int button)
+ 		    se401->width[i]=cp[6+i*4+0]+cp[6+i*4+1]*256;
+ 		    se401->height[i]=cp[6+i*4+2]+cp[6+i*4+3]*256;
+ 	}
+-	sprintf (temp, "%s Sizes:", temp);
++	slen += snprintf (temp + slen, 200 - slen, " Sizes:");
+ 	for (i=0; i<se401->sizes; i++) {
+-		sprintf(temp, "%s %dx%d", temp, se401->width[i], se401->height[i]);
++		slen += snprintf(temp + slen, 200 - slen,
++			" %dx%d", se401->width[i], se401->height[i]);
+ 	}
+ 	dev_info(&se401->dev->dev, "%s\n", temp);
+ 	se401->maxframesize=se401->width[se401->sizes-1]*se401->height[se401->sizes-1]*3;
+
