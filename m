@@ -1,121 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:60452 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753440AbZFAX7O (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Jun 2009 19:59:14 -0400
-Subject: Re: [hg:v4l-dvb] tuner-xc2028: Fix offset frequencies for DVB @
- 6MHz
-From: Andy Walls <awalls@radix.net>
-To: Mauro Carvalho Chehab via Mercurial <mchehab@redhat.com>
-Cc: Terry Wu <terrywu2009@gmail.com>, linux-media@vger.kernel.org,
-	mchehab@infradead.org
-In-Reply-To: <E1MB9Iw-0003dl-Fe@mail.linuxtv.org>
-References: <E1MB9Iw-0003dl-Fe@mail.linuxtv.org>
-Content-Type: text/plain
-Date: Mon, 01 Jun 2009 20:00:33 -0400
-Message-Id: <1243900833.3959.13.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:48875 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751331AbZFJQC3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Jun 2009 12:02:29 -0400
+Date: Wed, 10 Jun 2009 18:02:39 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: S_FMT vs. S_CROP
+In-Reply-To: <49D46D2E.5090702@hni.uni-paderborn.de>
+Message-ID: <Pine.LNX.4.64.0906101738140.4817@axis700.grange>
+References: <49CBB13F.7090609@hni.uni-paderborn.de>
+ <Pine.LNX.4.64.0903261831430.5438@axis700.grange> <49D32B16.2070101@hni.uni-paderborn.de>
+ <Pine.LNX.4.64.0904011831340.5389@axis700.grange> <49D46D2E.5090702@hni.uni-paderborn.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-06-01 at 17:20 +0200, Patch from Mauro Carvalho Chehab
-wrote:
-> The patch number 11918 was added via Mauro Carvalho Chehab <mchehab@redhat.com>
-> to http://linuxtv.org/hg/v4l-dvb master development tree.
-> 
-> Kernel patches in this development tree may be modified to be backward
-> compatible with older kernels. Compatibility modifications will be
-> removed before inclusion into the mainstream Kernel
-> 
-> If anyone has any objections, please let us know by sending a message to:
-> 	Linux Media Mailing List <linux-media@vger.kernel.org>
-> 
-> ------
-> 
-> From: Mauro Carvalho Chehab  <mchehab@redhat.com>
-> tuner-xc2028: Fix offset frequencies for DVB @ 6MHz
-> 
-> 
-> Both ATSC and DVB @ 6MHz bandwidth require the same offset.
-> 
-> While we're fixing it, let's cleanup the bandwidth setup to better
-> reflect the fact that it is a function of the bandwidth.
-> 
-> Thanks to Terry Wu <terrywu2009@gmail.com> for pointing this issue and
-> to Andy Walls <awalls@radix.net> for an initial patch for this fix.
-> 
-> Priority: normal
-> 
-> CC: Terry Wu <terrywu2009@gmail.com>
-> CC: Andy Walls <awalls@radix.net>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+This question - how S_FMT and S_CROP affest image geometry - has been 
+discussed at least twice before - that's only with my participation, don't 
+know if and how often it has come up before. But the fact, that in two 
+discussions we came up with different results seems to suggest, that this 
+is not something trivially known by all except me.
 
-Acked-by: Andy Walls <awalls@radix.net>
+First time I asked this question in this thread
 
-You may want to emphasize with a comment that 'offset = 0' is used for
-T_ANALOG_TV.  It's somewhat hidden by its initialization early in the
-function.
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg00052.html
 
-Italy also appears to use 7 MHz VHF and 8 MHz UHF.
+and Mauro replied (see above thread for a complete reply):
 
-Regards,
-Andy
+On Thu, 8 Jan 2009, Mauro Carvalho Chehab wrote:
 
-> ---
-> 
->  linux/drivers/media/common/tuners/tuner-xc2028.c |   32 ++++++++-------
->  1 file changed, 19 insertions(+), 13 deletions(-)
-> 
-> diff -r c78c18fe3dc9 -r e6a8672631a0 linux/drivers/media/common/tuners/tuner-xc2028.c
-> --- a/linux/drivers/media/common/tuners/tuner-xc2028.c	Mon Jun 01 11:46:08 2009 -0300
-> +++ b/linux/drivers/media/common/tuners/tuner-xc2028.c	Mon Jun 01 12:18:10 2009 -0300
-> @@ -921,22 +921,28 @@ static int generic_set_freq(struct dvb_f
->  	 * that xc2028 will be in a safe state.
->  	 * Maybe this might also be needed for DTV.
->  	 */
-> -	if (new_mode == T_ANALOG_TV) {
-> +	if (new_mode == T_ANALOG_TV)
->  		rc = send_seq(priv, {0x00, 0x00});
-> -	} else if (priv->cur_fw.type & ATSC) {
-> -		offset = 1750000;
-> -	} else {
-> -		offset = 2750000;
-> +
-> +	/*
-> +	 * Digital modes require an offset to adjust to the
-> +	 * proper frequency
-> +	 */
-> +	if (new_mode != T_ANALOG_TV) {
-> +		/* Sets the offset according with firmware */
-> +		if (priv->cur_fw.type & DTV6)
-> +			offset = 1750000;
-> +		if (priv->cur_fw.type & DTV7)
-> +			offset = 2250000;
-> +		else	/* DTV8 or DTV78 */
-> +			offset = 2750000;
-> +
->  		/*
-> -		 * We must adjust the offset by 500kHz in two cases in order
-> -		 * to correctly center the IF output:
-> -		 * 1) When the ZARLINK456 or DIBCOM52 tables were explicitly
-> -		 *    selected and a 7MHz channel is tuned;
-> -		 * 2) When tuning a VHF channel with DTV78 firmware.
-> +		 * We must adjust the offset by 500kHz  when
-> +		 * tuning a 7MHz VHF channel with DTV78 firmware
-> +		 * (used in Australia)
->  		 */
-> -		if (((priv->cur_fw.type & DTV7) &&
-> -		     (priv->cur_fw.scode_table & (ZARLINK456 | DIBCOM52))) ||
-> -		    ((priv->cur_fw.type & DTV78) && freq < 470000000))
-> +		if ((priv->cur_fw.type & DTV78) && freq < 470000000)
->  			offset -= 500000;
->  	}
->  
-> 
-> 
-> ---
-> 
-> Patch is available at: http://linuxtv.org/hg/v4l-dvb/rev/e6a8672631a0f5f549f5ee5db3acac4f35013942
-> 
+> On Wed, 7 Jan 2009 10:14:31 +0100 (CET)
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
 
+[snip]
+
+> > For example on mt9t031 
+> > binning and skipping are used for that. Whereas CROP uses the current 
+> > scaling configuration and selects a sub-window, so, once you've done S_FMT 
+> > to 320x240, a crop request for 640x480 might well fail.
+> 
+> I also understand this way. You cannot crop with a resolution bigger than what
+> you've selected.
+
+(Let's call this statement M1:-))
+
+> > For this you have 
+> > to issue a S_FMT, i.e., change scaling. Or would one have to re-scale 
+> > transparently?
+> > 
+> > Is this interpretation correct? It seems to reflect the API as documented 
+> > on http://v4l2spec.bytesex.org/spec/book1.htm correctly.
+> > 
+> > If it is correct, then what should CROP_CAP return as maximum supported 
+> > window sizes? Should it return them according to the current scaling or 
+> > according to scale 1?
+> 
+> I understand that it should return against the current scaling.
+
+(and this one M2, whereas I understand it as "current scaling" means 
+"current scaling coefficient", not "current scaled output windof")
+
+Then in another thread
+
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg03512.html
+
+Stefan motivated for an incomatibly different interpretation of the 
+standard:
+
+On Thu, 2 Apr 2009, Stefan Herbrechtsmeier wrote:
+
+[snip]
+
+> The user doesn't have to remember the scale anyway. Only the ways a different.
+> You interpret S_CROP
+> as something like a cutting of the S_FMT window. I interpret S_FMT as a output
+> format selection
+> and S_CROP as a sensor window selection.
+
+which I now interpret as
+
+S_FMT(640x480) means "scale whatever rectangle has been selected on the 
+sensor to produce an output window of 640x480" and S_CROP(2048x1536) means 
+"take a window of 2048x1536 sensor pixels from the sensor and scale it to 
+whatever output window has been or will be selected by S_FMT." This 
+contradicts M1, because you certainly can crop a larger (sensor) window. 
+Also, I now believe, that [GS]_CROP and, logically, CROPCAP operate in 
+sensor pixels and shall not depend on any scales, which contradicts (my 
+understanding of) M2.
+
+It now seems to be quite simple to me:
+
+{G,S,TRY}_FMT configure output geometry in user pixels
+[GS]_CROP, CROPCAP configure input window in sensor pixels
+
+The thus configured input window should be mapped (scaled) into the output 
+window.
+
+Now, which one is correct?
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
