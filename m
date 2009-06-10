@@ -1,103 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:62452 "EHLO mail1.radix.net"
+Received: from mx2.redhat.com ([66.187.237.31]:55941 "EHLO mx2.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756690AbZFAKpA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Jun 2009 06:45:00 -0400
-Subject: Re: [PATCH] xc2028: Add support for Taiwan 6 MHz DVB-T
-From: Andy Walls <awalls@radix.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, Terry Wu <terrywu2009@gmail.com>
-In-Reply-To: <1243817414.3140.68.camel@palomino.walls.org>
-References: <1243773703.3133.24.camel@palomino.walls.org>
-	 <20090531102220.2ebf15ca@pedra.chehab.org>
-	 <1243791558.3147.38.camel@palomino.walls.org>
-	 <20090531163335.4c13546e@pedra.chehab.org>
-	 <1243817414.3140.68.camel@palomino.walls.org>
-Content-Type: text/plain
-Date: Mon, 01 Jun 2009 06:45:38 -0400
-Message-Id: <1243853138.3139.16.camel@palomino.walls.org>
+	id S1751089AbZFJQwS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Jun 2009 12:52:18 -0400
+Date: Wed, 10 Jun 2009 13:52:00 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: jirislaby@gmail.com, fujita.tomonori@lab.ntt.co.jp,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	akpm@linux-foundation.org
+Subject: Re: [PATCH] vino: replace dma_sync_single with
+ dma_sync_single_for_cpu
+Message-ID: <20090610135200.00b858b8@pedra.chehab.org>
+In-Reply-To: <20090601110831E.fujita.tomonori@lab.ntt.co.jp>
+References: <20090528100938I.fujita.tomonori@lab.ntt.co.jp>
+	<4A1E28E6.2090807@gmail.com>
+	<20090601110831E.fujita.tomonori@lab.ntt.co.jp>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2009-05-31 at 20:50 -0400, Andy Walls wrote^Wescreveu:
-> On Sun, 2009-05-31 at 16:33 -0300, Mauro Carvalho Chehab wrote:
-> > Em Sun, 31 May 2009 13:39:18 -0400
-> > Andy Walls <awalls@radix.net> escreveu:
-> > 
+Em Mon, 1 Jun 2009 11:08:26 +0900
+FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp> escreveu:
+
+> On Thu, 28 May 2009 08:02:14 +0200
+> Jiri Slaby <jirislaby@gmail.com> wrote:
 > 
-> then I guess I'm OK with the change you have. 
+> > On 05/28/2009 03:10 AM, FUJITA Tomonori wrote:
+> > > This replaces dma_sync_single() with dma_sync_single_for_cpu() because
+> > > dma_sync_single() is an obsolete API; include/linux/dma-mapping.h says:
+> > > 
+> > > /* Backwards compat, remove in 2.7.x */
+> > > #define dma_sync_single		dma_sync_single_for_cpu
+> > > #define dma_sync_sg		dma_sync_sg_for_cpu
+> > > 
+> > > Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+> > > ---
+> > >  drivers/media/video/vino.c |    6 +++---
+> > >  1 files changed, 3 insertions(+), 3 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/video/vino.c b/drivers/media/video/vino.c
+> > > index 43e0998..97b082f 100644
+> > > --- a/drivers/media/video/vino.c
+> > > +++ b/drivers/media/video/vino.c
+> > > @@ -868,9 +868,9 @@ static void vino_sync_buffer(struct vino_framebuffer *fb)
+> > >  	dprintk("vino_sync_buffer():\n");
+> > >  
+> > >  	for (i = 0; i < fb->desc_table.page_count; i++)
+> > > -		dma_sync_single(NULL,
+> > > -				fb->desc_table.dma_cpu[VINO_PAGE_RATIO * i],
+> > > -				PAGE_SIZE, DMA_FROM_DEVICE);
+> > > +		dma_sync_single_for_cpu(NULL,
+> > > +					fb->desc_table.dma_cpu[VINO_PAGE_RATIO * i],
+> > > +					PAGE_SIZE, DMA_FROM_DEVICE);
+> > 
+> > Shouldn't be there sync_for_device in vino_dma_setup (or somewhere)
+> > then? If I understand the API correctly this won't (and didn't) work on
+> > some platforms.
 
-Hmmm. Maybe not.
+Well, this driver is bound to an specific architecture:
+
+config VIDEO_VINO
+        tristate "SGI Vino Video For Linux (EXPERIMENTAL)"
+        depends on I2C && SGI_IP22 && EXPERIMENTAL && VIDEO_V4L2
+
+So, it works only with a few SGI machines.
 
 > 
-> > So, the proper patch to tuner-xc3028 seems to be the enclosed one.
-> > 
-> > If both of you and Terry agree, I'll apply this one at the tree.
-
-I have to do more looking.  The 
-
- 
-> > +   } else if (priv->cur_fw.type & DTV6) {
-> > +           /* For Taiwan DVB-T 6 MHz bandwidth - Terry Wu */
-> > +           offset = 1750000;
-
-offset part of Terry's patch is missing from yours.  Based on what I now
-know, I think setting the offset is necessary for 6 MHz DVB-T (DTV6) to
-work.  I'll try to resubmit something tonight.
-
-Regards,
-Andy
-
-> > Cheers,
-> > Mauro.
-> > 
-> > 
-> > diff --git a/linux/drivers/media/common/tuners/tuner-xc2028.c b/linux/drivers/media/common/tuners/tuner-xc2028.c
-> > --- a/linux/drivers/media/common/tuners/tuner-xc2028.c
-> > +++ b/linux/drivers/media/common/tuners/tuner-xc2028.c
-> > @@ -1026,21 +1026,20 @@ static int xc2028_set_params(struct dvb_
-> >  	switch(fe->ops.info.type) {
-> >  	case FE_OFDM:
-> >  		bw = p->u.ofdm.bandwidth;
-> > -		break;
-> > -	case FE_QAM:
-> > -		tuner_info("WARN: There are some reports that "
-> > -			   "QAM 6 MHz doesn't work.\n"
-> > -			   "If this works for you, please report by "
-> > -			   "e-mail to: v4l-dvb-maintainer@linuxtv.org\n");
-> > -		bw = BANDWIDTH_6_MHZ;
-> > -		type |= QAM;
-> > +		/*
-> > +		 * The only countries with 6MHz seem to be Taiwan/Uruguay.
-> > +		 * Both seem to require QAM firmware for OFDM decoding
-> > +		 * Tested in Taiwan by Terry Wu <terrywu2009@gmail.com>
-> > +		 */
-> > +		if (bw == BANDWIDTH_6_MHZ)
-> > +			type |= QAM;
-> >  		break;
-> >  	case FE_ATSC:
-> >  		bw = BANDWIDTH_6_MHZ;
-> >  		/* The only ATSC firmware (at least on v2.7) is D2633 */
-> >  		type |= ATSC | D2633;
-> >  		break;
-> > -	/* DVB-S is not supported */
-> > +	/* DVB-S and pure QAM (FE_QAM) are not supported */
-> >  	default:
-> >  		return -EINVAL;
-> >  	}
-> > 
-> > 
-> > 
-> > 
-> > Cheers,
-> > Mauro
-> > 
+> Yeah, you might be right.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> However, looks like this driver does only DMA_FROM_DEVICE transfer and
+> cpu doesn't modify the DMA buffer.
 > 
+> So we don't need to worry that the hardware gets old data. And it's
+> not possible that we write back old data in cache to the main memory
+> after DMA. It means that the driver doesn't need
+> sync_single_for_device(), I think.
+> 
+> Note that this patch doesn't break the driver (this patch doesn't
+> change anything). If this patch doesn't work, then this driver is
+> already broken.
 
+This driver were written a long time ago. I'm not sure if it still works fine,
+since all patches we receive are related to API changes.
+
+Yet, it seems better to apply your patch, since it doesn't hurt. For now, I'll
+apply it.
+
+It would be interesting to have someone to test the removal of this call, since
+it looks that this call is not needed.
+
+Cheers,
+Mauro
