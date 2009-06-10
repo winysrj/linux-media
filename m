@@ -1,60 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:36950 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754163AbZFEUJr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2009 16:09:47 -0400
-Received: by fxm9 with SMTP id 9so819596fxm.37
-        for <linux-media@vger.kernel.org>; Fri, 05 Jun 2009 13:09:48 -0700 (PDT)
-Message-ID: <4A297B86.6000807@gmail.com>
-Date: Fri, 05 Jun 2009 22:09:42 +0200
-From: Gonsolo <gonsolo@gmail.com>
-MIME-Version: 1.0
-To: Patrick Boettcher <patrick.boettcher@desy.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: Can't find firmware when resuming
-References: <4A2844E0.1010902@gmail.com> <alpine.LRH.1.10.0906050925280.23189@pub2.ifh.de>
-In-Reply-To: <alpine.LRH.1.10.0906050925280.23189@pub2.ifh.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from arroyo.ext.ti.com ([192.94.94.40]:52752 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759292AbZFJRAz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Jun 2009 13:00:55 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5AH0qMA031750
+	for <linux-media@vger.kernel.org>; Wed, 10 Jun 2009 12:00:57 -0500
+From: m-karicheri2@ti.com
+To: linux-media@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [RFC PATCH] adding support for setting bus parameters in sub device
+Date: Wed, 10 Jun 2009 13:00:50 -0400
+Message-Id: <1244653250-4640-1-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> Is the following problem known?
->> The Hauppauge Nova-T stick hangs the resume for 60 seconds.
->> The firmware is there and I can watch TV before suspending.
->>
->> From my dmesg:
->>
->> [34258.180072] usb 1-1: reset high speed USB device using ehci_hcd and 
->> address 4
->> [34258.312799] dvb-usb: found a 'Hauppauge Nova-T Stick' in cold 
->> state, will try to load a firmware
->> [34258.312805] usb 1-1: firmware: requesting dvb-usb-dib0700-1.20.fw
->> [34318.312097] dvb-usb: did not find the firmware file. 
->> (dvb-usb-dib0700-1.20.fw) Please see linux/Documentation/dvb/ for mor
->> e details on firmware-problems. (-2)
-> 
-> You are resuming from suspend2disk, right?
-> 
-> The driver is using a standard method to retrieve the firmware buffer 
-> from user-space, if it does not work, it is a problem of you 
-> installation, namely udev.
+From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
 
-Is it possible that this is a initrd problem?
-I found out that device initialization is done before running /sbin/init 
-(which includes running running /etc/rcS which includes mounting sysfs).
-I also found out about the FIRMWARE_IN_KERNEL config. The Ubuntu kernel 
-leaves this unset.
+This patch adds support for setting bus parameters such as bus type
+(Raw Bayer or Raw YUV image data bus), bus width (example 10 bit raw
+image data bus, 10 bit BT.656 etc.), and polarities (vsync, hsync, field
+etc) in sub device. This allows bridge driver to configure the sub device
+interface for a specific set of bus parameters through s_bus() function call.
 
-Is it possible that the kernel tries to initialize the device when 
-running the initial ramdisk? Then it seems natural that it can't find 
-the firmware because it is not included as I found out with:
+Reviewed By "Hans Verkuil".
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+---
+Applies to v4l-dvb repository
 
-file-roller /boot/initrd.img-2.6.30-020630rc8-generic
+ include/media/v4l2-subdev.h |   36 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 36 insertions(+), 0 deletions(-)
 
-So I guess this is an Ubuntu bug about initrd/firmare configuration?
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 1785608..8e719c4 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -37,6 +37,39 @@ struct v4l2_decode_vbi_line {
+ 	u32 type;		/* VBI service type (V4L2_SLICED_*). 0 if no service found */
+ };
+ 
++/*
++ * Some sub-devices are connected to the bridge device through a bus that
++ * carries * the clock, vsync, hsync and data. Some interfaces such as BT.656
++ * carries the sync embedded in the data where as others have separate line
++ * carrying the sync signals. The structure below is used by bridge driver to
++ * set the desired bus parameters in the sub device to work with it.
++ */
++enum v4l2_subdev_bus_type {
++	/* Raw YUV image data bus */
++	V4L2_SUBDEV_BUS_RAW_YUV,
++	/* Raw Bayer image data bus */
++	V4L2_SUBDEV_BUS_RAW_BAYER
++};
++
++struct v4l2_subdev_bus	{
++	/* yuv or bayer image data bus */
++	enum v4l2_subdev_bus_type type;
++	/* bus width */
++	u8 width;
++	/* embedded sync, set this when sync is embedded in the data stream */
++	unsigned embedded_sync:1;
++	/* 0 - active low, 1 - active high */
++	unsigned pol_vsync:1;
++	/* 0 - active low, 1 - active high */
++	unsigned pol_hsync:1;
++	/* 0 - low to high , 1 - high to low */
++	unsigned pol_field:1;
++	/* 0 - sample at falling edge , 1 - sample at rising edge */
++	unsigned pol_pclock:1;
++	/* 0 - active low , 1 - active high */
++	unsigned pol_data:1;
++};
++
+ /* Sub-devices are devices that are connected somehow to the main bridge
+    device. These devices are usually audio/video muxers/encoders/decoders or
+    sensors and webcam controllers.
+@@ -199,6 +232,8 @@ struct v4l2_subdev_audio_ops {
+ 
+    s_routing: see s_routing in audio_ops, except this version is for video
+ 	devices.
++
++   s_bus: set bus parameters in sub device to configure the interface
+  */
+ struct v4l2_subdev_video_ops {
+ 	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
+@@ -219,6 +254,7 @@ struct v4l2_subdev_video_ops {
+ 	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
+ 	int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum *fsize);
+ 	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct v4l2_frmivalenum *fival);
++	int (*s_bus)(struct v4l2_subdev *sd, const struct v4l2_subdev_bus *bus);
+ };
+ 
+ struct v4l2_subdev_ops {
+-- 
+1.6.0.4
 
-Thank you.
-
-g
