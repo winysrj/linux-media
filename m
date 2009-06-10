@@ -1,107 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f109.google.com ([209.85.222.109]:44799 "EHLO
-	mail-pz0-f109.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752216AbZFAPTV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2009 11:19:21 -0400
-Received: by pzk7 with SMTP id 7so6061021pzk.33
-        for <linux-media@vger.kernel.org>; Mon, 01 Jun 2009 08:19:22 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20]:48785 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1759392AbZFJQpW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Jun 2009 12:45:22 -0400
+Date: Wed, 10 Jun 2009 18:45:36 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: soc-camera: status, roadmap
+Message-ID: <Pine.LNX.4.64.0906101802450.4817@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <d9def9db0905230805h5258a9b6h7920a5bd4ce62e7c@mail.gmail.com>
-References: <d9def9db0905230704n4f8b725aj3dc3021187d5ae12@mail.gmail.com>
-	 <d9def9db0905230749r3e39de5m3f4e1c28c1d596bd@mail.gmail.com>
-	 <d9def9db0905230805h5258a9b6h7920a5bd4ce62e7c@mail.gmail.com>
-Date: Mon, 1 Jun 2009 11:19:22 -0400
-Message-ID: <829197380906010819s8cfdfedn9d47dbfef0ca1d04@mail.gmail.com>
-Subject: Re: [PATCH] em28xx device mode detection based on endpoints
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Markus Rechberger <mrechberger@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, May 23, 2009 at 11:05 AM, Markus Rechberger
-<mrechberger@gmail.com> wrote:
-> Hi,
->
-> On Sat, May 23, 2009 at 4:49 PM, Markus Rechberger
-> <mrechberger@gmail.com> wrote:
->> On Sat, May 23, 2009 at 4:04 PM, Markus Rechberger
->> <mrechberger@gmail.com> wrote:
->>> Hi,
->>>
->>> for em28xx devices the device node detection can be based on the
->>> encoded endpoint address, for example EP 0x81 (USB IN, Interrupt),
->>> 0x82 (analog video EP), 0x83 (analog audio ep), 0x84 (mpeg-ts input
->>> EP).
->>> It is not necessary that digital TV devices have a frontend, the
->>> em28xx chip only specifies an MPEG-TS input EP.
->>>
->>> Following patch adds a check based on the Endpoints, although it might
->>> be extended that all devices match the possible devicenodes based on
->>> the endpoints, currently the driver registers an analog TV node by
->>> default for all unknown devices which is not necessarily correct, this
->>> patch disables the ATV node if no analog TV endpoint is available.
->>>
->>
->
-> attached patch fixes the deregistration, as well loads the em28xx-dvb
-> module automatically as soon as an MPEG-TS endpoint was found.
->
-> Signed-off-by: Markus Rechberger <mrechberger@gmail.com>
->
-> best regards,
-> Markus
->
+Hi all
 
-Hello Markus,
+for those interested here's a (not so) short status report and a proposed 
+roadmap for general soc-camera development, and, of course, its ongoing 
+conversion to v4l2-subdev API.
 
-I spent some time reviewing this patch, and the patch's content does
-not seem to match your description of its functionality.  Further,
-this patch appears to be a combination of a number of several
-different changes, rather than being broken into separate patches.
+1. v4l2-subdev conversion. I have posted several versions of the 
+conversion patch series to the list, of which the last takes an IMHO 
+correct approach of a graduate conversion, avoiding mega-patches, 
+modifying multiple platforms and drivers at once. With this approach the 
+roadmap consists of the following steps:
 
-First off, I totally agree that the analog subsystem should not be
-loaded on devices such as em287[0-4].  I was going to do this work
-(using the chip id to determine analog support) but just had not had a
-chance to doing the necessary testing to ensure it did not break
-anything.
+1.1. preparatory patch to soc-camera core, allowing parallel existence of 
+"legacy" (all in the mainline) platforms and converted platforms (pcm037 
+i.MX31 platform so far) by introducing some backwards compatibility code. 
+This patch is currently in v4l next and in linux-next, i.e., it is going 
+in with 2.6.31.
 
-The patch appears to be primarily for devices that are not supported
-in the kernel.  In fact, the logic as written *only* gets used for
-unknown devices.  Further, the code that doesn't create the frontend
-device has no application in the kernel.  All devices currently in the
-kernel make use of the dvb frontend interface, so there is no
-practical application to loading the driver and setting up the isoc
-handlers but blocking access to the dvb frontend device.
+1.2. convert all (around 7) mainline platforms to the new layout. This 
+step is necessary for further conversions, but it depends on 1.1. 
+Therefore this can only be done later in 2.6.31 merge window, when 1.1. is 
+in the mainline.
 
-Aside from the code that selectively disables analog support, the
-patch only seems to advance compatibility with your userland em28xx
-framework while providing no benefit to the in-kernel driver.
+1.3. convert soc-camera core and drivers to an intermediate state, with 
+which all cameras are registered by platforms as platform devices, later 
+soc-camera core probes them and dynamically registers respective i2c (or 
+other, as in soc_camera_platform.c case) devices. This patch depends on 
+1.2., and it is hard to expect to be able to push these three steps within 
+the 2.6.31 merge window. It could be possible, we could request to accept 
+this patch after -rc1, maybe we would be allowed to do this, but
 
-Regarding the possibility of custom firmware, we currently do not have
-any devices in the in-kernel driver that make use of custom firmware.
-If you could tell me how to check for custom firmware versus the
-default vendor firmware, I could potentially do a patch that uses the
-vendor registers unless custom firmware is installed, at which point
-we could have custom logic (such as using the endpoint definition).
-However, given there are no such devices in-kernel, this is not a high
-priority as far as I am concerned.
+1.4. this is the actual conversion to v4l2-subdev. It depends on some bits 
+and pieces in the v4l2-subdev framework, which are still in progress 
+(e.g. v4l2_i2c_new_subdev_board), I believe (Hans, am I right? or what's 
+the outcome of Mauro's last reply to you in the "[PULL] 
+http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-subdev" thread?), so, it 
+becomes practically impossible to also pull it for 2.6.31.
 
-For what it's worth, I did add an additional patch to allow the user
-to disable the 480Mbps check via a modprobe option (to avoid a
-regression for any of your existing customers), and I will be checking
-in the code to properly compute the isoc size for em2874/em2884 based
-on the vendor registers (even though there are currently no supported
-devices in the kernel that require it currently).  However, I do not
-believe the patch you have proposed is appropriate for inclusion in
-the mainline kernel.
+Now, I do not want to have soc-camera in the intermediate 1.3. state for a 
+whole 2.6.31 kernel, which means, we have to postpone 1.3. and 1.4. until 
+2.6.32.
 
-Regards,
+2. The above means, I'll have to maintain and update my patches for a 
+whole 2.6.31 development cycle. In this time I'll try to update and upload 
+them as a quilt patch series and announce it on the list a couple of 
+times.
 
-Devin
+3. This also means, development will become more difficult, new features 
+and drivers will only be accepted on the top of my patch stack, bugfixes 
+will have to be accpeted against the mainline, which then will mean extra 
+porting work for me.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+4. In a message I posted a few minutes ago
+
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg06294.html
+
+I'm asking about a correct interpretation of S_CROP and S_FMT operations. 
+I suspect, what soc-camera framework and all drivers thereunder are doing 
+is wrong, and have to be fixed rather sooner than later. However, I'd be 
+very much against fixing this in the present stack, because that would 
+mean a _lot_ of porting. So, this will remain standard-non-compliant until 
+2.6.32 too.
+
+5. The conversion described in (1) is only partial, in its current form it 
+does not replace the existing soc-camera API between sensor drivers and 
+the soc-camera core with v4l2-subdev operations completely. Partly because 
+many of the current soc-camera methods are still missing in v4l2-subdev, 
+partly because it just makes more sense to first push the principle 
+conversion in the mainline, which at least removes soc-camera device 
+registration and switches to i2c driver autoloading and replaces some 
+trivially replaceable methods, like [gs]_fmt, [gs]_register, [gs]_control. 
+Some of the missing methods, like [gs]_crop should be easy to add, others, 
+like pixel format and bus parameter negotiations would require some 
+thinking and substantial work. Which makes this all some 2.6.33 
+material... but who wants to think that far...
+
+6. As you see, this all looks like a lot of work, and I so far have been 
+doing all of this in my free time. But it would become difficult with 
+these amounts of work. So, I would welcome if either someone would step 
+forward to help with this work, or if some company would volunteer to 
+support this work financially.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
