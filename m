@@ -1,113 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1973 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934822AbZFOVOk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Jun 2009 17:14:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: RFC: remove video_register_device_index, add video_register_device_range
-Date: Mon, 15 Jun 2009 23:14:30 +0200
-Cc: linux-media@vger.kernel.org
-References: <200906151325.29079.hverkuil@xs4all.nl> <200906151602.40677.hverkuil@xs4all.nl> <20090615165113.190a9de5@pedra.chehab.org>
-In-Reply-To: <20090615165113.190a9de5@pedra.chehab.org>
+Received: from mail.gmx.net ([213.165.64.20]:60776 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752857AbZFJXMn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Jun 2009 19:12:43 -0400
+Date: Thu, 11 Jun 2009 01:12:48 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Muralidharan Karicheri <m-karicheri2@ti.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	davinci-linux-open-source@linux.davincidsp.com
+Subject: Re: [PATCH] adding support for setting bus parameters in sub device
+In-Reply-To: <200906102351.34219.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0906110056460.4817@axis700.grange>
+References: <1244580891-24153-1-git-send-email-m-karicheri2@ti.com>
+ <200906102251.57644.hverkuil@xs4all.nl> <Pine.LNX.4.64.0906102311410.4817@axis700.grange>
+ <200906102351.34219.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200906152314.31198.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 15 June 2009 21:51:13 Mauro Carvalho Chehab wrote:
-> Em Mon, 15 Jun 2009 16:02:40 +0200
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
+On Wed, 10 Jun 2009, Hans Verkuil wrote:
+
+> On Wednesday 10 June 2009 23:30:55 Guennadi Liakhovetski wrote:
+> > On Wed, 10 Jun 2009, Hans Verkuil wrote:
+> > > My view of this would be that the board specification specifies the
+> > > sensor (and possibly other chips) that are on the board. And to me it
+> > > makes sense that that also supplies the bus settings. I agree that it
+> > > is not complex code, but I think it is also unnecessary code. Why
+> > > negotiate if you can just set it?
 > >
-> > The sticking point for me is that warning since for cx18/ivtv it is OK if you
-> > get something else then you specified (since it is a starting index meant to
-> > distinguish mpeg encoders from raw video inputs, from mpeg decoders, etc.).
-> > 
-> > So generating a warning for those two drivers is not correct.
-> Ok.
+> > Why force all platforms to set it if the driver is perfectly capable do
+> > this itself? As I said - this is not a platform-specific feature, it's
+> > chip-specific. What good would it make to have all platforms using
+> > mt9t031 to specify, that yes, the chip can use both falling and rising
+> > pclk edge, but only active high vsync and hsync?
 > 
-> > Perhaps we should add a V4L2_FL_KNUM_OFFSET flag for the struct video_device
-> > flags field that tell the register function that 'nr' should be interpreted
-> > as a kernel number offset, and not as a preferred number. In the latter case
-> > you generate a warning, in the first case you don't.
+> ???
 > 
-> Hmm... V4L2_FL_KNUM_OFFSET seems a too obfuscated name. Also, such flag would
-> be needed by just the register function, so, IMO, a parameter would work better.
+> You will just tell the chip what to use. So you set 'use falling edge' and 
+> either set 'active high vsync/hsync' or just leave that out since you know 
+> the mt9t031 has that fixed. You don't specify in the platform data what the 
+> chip can support, that's not relevant. You know what the host expects and 
+> you pass that information on to the chip.
+> 
+> A board designer knows what the host supports,
 
-That was the idea with the video_register_device_range() proposal. I don't want
-to modify all existing video_register_device() calls.
+No, he doesn't have to. That's not board specific, that's SoC specific.
 
-> Also, am I wrong or is there anything wrong with the flags?
-> 
-> The only place I'm seeing this being used is here:
-> 
-> $ grep 'vdev->flags' v4l/*.[ch]
-> v4l/v4l2-dev.c: set_bit(V4L2_FL_UNREGISTERED, &vdev->flags);
-> 
-> It is being set, but no code seems to actually test for it. So, IMO, we can
-> just remove this field.
+> knows what the sensor supports,
 
-No, it is used a lot through the video_is_unregistered() inline in
-media/v4l2-dev.h.
+Ditto, this is sensor-specific, not board-specific.
 
-> 
-> One alternative would be to implement it as something like:
-> 
-> +int __must_check __video_register_device(struct video_device *vdev,
-> +                                      const int type, const int nr, int warn_if_skip);
-> 
-> #define video_register_device(vdev, type, nr) __video_register_device(vdev, type, nr, 0)
+> and knows if he added any inverters on the board, and based on 
+> all that information he can just setup these parameters for the sensor 
+> chip. Settings that are fixed on the sensor chip he can just ignore, he 
+> only need to specify those settings that the sensor really needs.
 
-Hmm, that's an option. Although I'd make it a static inline:
+Of all the boards that I know of that use soc-camera only one (supposedly) 
+had an inverter on one line, and even that one is not in the mainline. So, 
+in the present soc-camera code not a single board have to bother with 
+that. And now you want to add _all_ those polarity, master / slave flags 
+to _all_ of them? Let me try again:
 
-static inline int __must_check video_register_device(...)
-{
-	return __video_register_device(vdev, type, nr, 1);
-}
+you have an HSYNC output on the sensor. Its capabilities are known to the 
+sensor driver
 
-Regards,
+you have an HSYNC input on the SoC. Its capabilities are known to the 
+SoC-specific camera host driver
 
-	Hans
+these two lines are routed on the board to connect either directly or over 
+some logic, hopefully, not more complex than an inverter. Now, this is 
+_the_ _only_ bit of information, that is specific to the board.
 
-> 
-> > 
-> > I think it isn't a bad idea to use a flag. It reflects the two possible use
-> > cases: one for drivers that create multiple video (or vbi) devices and use the
-> > kernel number to reflect the purpose of each video device, and the other where
-> > the user wants a specific kernel number. In the latter case the driver creates
-> > a single video device.
-> > 
-> > I don't want to see a lot of kernel warnings each time an ivtv or cx18 driver
-> > is loaded. Those warnings do not apply to those drivers.
-> > 
-> > BTW: please note that my v4l-dvb-misc tree contains a patch to clean up the
-> > comments/variable names in v4l2-dev.c. You might want to pull that in first.
-> 
-> Please see my comments for your v4l-dvb-misc tree pull request. Let's first
-> work on that changeset, and then we can discuss better about the warning issue.
-> 
-> > Regards,
-> > 
-> > 	Han
-> 
-> 
-> 
-> Cheers,
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
