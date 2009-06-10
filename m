@@ -1,51 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.10]:42432 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754605AbZFSMlO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jun 2009 08:41:14 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Use kzalloc for frontend states to have struct dvb_frontend properly initialized
-Date: Fri, 19 Jun 2009 14:41:12 +0200
-Cc: Andreas Oberritter <obi@linuxtv.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Steven Toth <stoth@linuxtv.org>
-References: <200906191321.05477.zzam@gentoo.org> <4A3B809D.7050709@linuxtv.org>
-In-Reply-To: <4A3B809D.7050709@linuxtv.org>
+Received: from mail.gmx.net ([213.165.64.20]:56666 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1758689AbZFJVhe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Jun 2009 17:37:34 -0400
+Date: Wed, 10 Jun 2009 23:37:37 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	Muralidharan Karicheri <a0868495@dal.design.ti.com>
+Subject: RE: mt9t031 (was RE: [PATCH] adding support for setting bus parameters
+ in sub device)
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40139A08E4F@dlee06.ent.ti.com>
+Message-ID: <Pine.LNX.4.64.0906102337130.4817@axis700.grange>
+References: <1244580891-24153-1-git-send-email-m-karicheri2@ti.com>
+ <Pine.LNX.4.64.0906102022320.4817@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40139A08DC3@dlee06.ent.ti.com>
+ <Pine.LNX.4.64.0906102303190.4817@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40139A08E4F@dlee06.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200906191441.13521.zzam@gentoo.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Freitag, 19. Juni 2009, Andreas Oberritter wrote:
-> Hello Matthias,
->
-> Matthias Schwarzott wrote:
-> > This patch changes most frontend drivers to allocate their state
-> > structure via kzalloc and not kmalloc. This is done to properly
-> > initialize the embedded "struct dvb_frontend frontend" field, that they
-> > all have.
-> >
-> > The visible effect of this struct being uninitalized is, that the member
-> > "id" that is used to set the name of kernel thread is totally random.
-> >
-> > [...]
-> >
-> > Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
->
-> I still think that this id doesn't belong into struct dvb_frontend and
-> should be private to the drivers, but using kzalloc is a good idea in
-> every case. Did you verify that none of the drivers does an additional
-> memset?
-Yes, I did verify that. There are no memset calls for that memory.
+On Wed, 10 Jun 2009, Karicheri, Muralidharan wrote:
 
-> If so, you can add my "Acked-by: Andreas Oberritter 
-> <obi@linuxtv.org>".
->
-Regards
-Matthias
+> 
+> 
+> >> We need
+> >> streaming capability in the driver. This is how our driver works
+> >> with mt9t031 sensor
+> >> 		  raw-bus (10 bit)
+> >> vpfe-capture  ----------------- mt9t031 driver
+> >> 	  |					   |
+> >> 	  V				         V
+> >> 	VPFE	 				MT9T031
+> >>
+> >> VPFE hardware has internal timing and DMA controller to
+> >> copy data frame by frame from the sensor output to SDRAM.
+> >> The PCLK form the sensor is used to generate the internal
+> >> timing.
+> >
+> >So, what is missing in the driver apart from the ability to specify
+> >a frame-rate?
+> >
+> [MK] Does the mt9t031 output one frame (snapshot) like in a camera or 
+> can it output frame continuously along with PCLK, Hsync and Vsync 
+> signals like in a video streaming device. VPFE capture can accept frames 
+> continuously from the sensor synchronized to PCLK, HSYNC and VSYNC and 
+> output frames to application using QBUF/DQBUF. In our implementation, we 
+> have timing parameters for the sensor to do streaming at various 
+> resolutions and fps. So application calls S_STD to set these timings. I 
+> am not sure if this is an acceptable way of implementing it. Any 
+> comments?
+
+Yes, it is streaming.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
