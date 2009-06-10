@@ -1,138 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:3385 "EHLO
-	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752520AbZFGNiI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jun 2009 09:38:08 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Jon Smirl <jonsmirl@gmail.com>
-Subject: Re: RFC: proposal for new i2c.h macro to initialize i2c address lists  on the fly
-Date: Sun, 7 Jun 2009 15:38:07 +0200
-Cc: linux-i2c@vger.kernel.org, linux-media@vger.kernel.org
-References: <200906061500.49338.hverkuil@xs4all.nl> <9e4733910906070625i74477c9ma422b061eb61449d@mail.gmail.com> <9e4733910906070630i1ffcb821xb912f5ea662c7bef@mail.gmail.com>
-In-Reply-To: <9e4733910906070630i1ffcb821xb912f5ea662c7bef@mail.gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:50057 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752590AbZFJRhR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Jun 2009 13:37:17 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5AHbEBZ004866
+	for <linux-media@vger.kernel.org>; Wed, 10 Jun 2009 12:37:19 -0500
+Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id n5AHbD0P003153
+	for <linux-media@vger.kernel.org>; Wed, 10 Jun 2009 12:37:13 -0500 (CDT)
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	Muralidharan Karicheri <a0868495@dal.design.ti.com>
+Date: Wed, 10 Jun 2009 12:37:12 -0500
+Subject: RE: [PATCH 0/10 - v2] ARM: DaVinci: Video: DM355/DM6446 VPFE
+ Capture driver
+Message-ID: <A69FA2915331DC488A831521EAE36FE40139A08C1A@dlee06.ent.ti.com>
+References: <1244573204-20391-1-git-send-email-m-karicheri2@ti.com>
+In-Reply-To: <1244573204-20391-1-git-send-email-m-karicheri2@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200906071538.07268.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 07 June 2009 15:30:50 Jon Smirl wrote:
-> On Sun, Jun 7, 2009 at 9:25 AM, Jon Smirl<jonsmirl@gmail.com> wrote:
-> > On Sun, Jun 7, 2009 at 2:35 AM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
-> >> On Sunday 07 June 2009 00:20:26 Jon Smirl wrote:
-> >>> On Sat, Jun 6, 2009 at 9:00 AM, Hans Verkuil<hverkuil@xs4all.nl> 
-wrote:
-> >>> > Hi all,
-> >>> >
-> >>> > For video4linux we sometimes need to probe for a single i2c
-> >>> > address. Normally you would do it like this:
-> >>>
-> >>> Why does video4linux need to probe to find i2c devices? Can't the
-> >>> address be determined by knowing the PCI ID of the board?
-> >>
-> >> There are two reasons we need to probe: it is either because when the
-> >> board was added no one bothered to record which chip was on what
-> >> address (this happened in particular with old drivers like bttv) or
-> >> because there is simply no other way to determine the presence or
-> >> absence of an i2c device.
-> >
-> > Unrecorded boards could be handled by adding a printk at driver init
-> > time asking people to email you the needed information. Then remove
-> > the printks as soon as you get the answer.
+Hello all,
 
-It's rather unfeasible when you are dealing with dozens and dozens of cards. 
-We also know that there are variants of these cards out there where they 
-changed audio chips or tuner chips without changing anything. It's not a 
-big deal, that's why we have the i2c probing to solve these cases. Newer 
-drivers try to avoid probing wherever possible, of course.
+My patch 1/10 of this series somehow doesn't make it to linux-media@vger.kernel.org. I can see it locally. 
 
-> >> E.g. there are three versions of one card: without upd64083 (Y/C
-> >> separation device) and upd64031a (ghost reduction device), with only
-> >> the upd64031a and one with both. Since they all have the same PCI ID
-> >> the only way to determine the model is to probe.
-> >
-> > Did they happen to change the subsystem device_id? There are two pairs
-> > of PCI IDs on each card. Most of the time the subsystem vendor/device
-> > isn't set.
+Here is the header part of the patch. I can't see any thing wrong.
+I have tried re-sending with subject changed as follows, but nothing helped.
+Do you know what could cause this?
 
-No, it's all the same. This is very common for the cheaper cards. They take 
-a reference design, modify it and never bother to change the IDs.
+[PATCH 1/10 - v2] vpfe capture bridge driver fro DM355 & DM6446
+[PATCH 1/10 - v2] vpfe capture bridge driver fro DM355 and DM6446
 
-Regards,
+[PATCH 1/10 - v2] vpfe-capture bridge driver fro DM355 & DM6446
 
-	Hans
+From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
 
+VPFE Capture bridge driver
+
+This is version, v2 of vpfe capture bridge driver for doing video
+capture on DM355 and DM6446 evms. The ccdc hw modules register with the
+driver and are used for configuring the CCD Controller for a specific
+decoder interface. The driver also registers the sub devices required
+for a specific evm. More than one sub devices can be registered.
+This allows driver to switch dynamically to capture video from
+any sub device that is registered. Currently only one sub device
+(tvp5146) is supported. But in future this driver is expected
+to do capture from sensor devices such as Micron's MT9T001,MT9T031
+and MT9P031 etc. The driver currently supports MMAP based IO.
+
+Following are the updates based on review comments:-
+	1) minor number is allocated dynamically
+	2) updates to QUERYCAP handling
+	3) eliminated intermediate vpfe pixel format
+	4) refactored few functions
+	5) reworked isr routines for reducing indentation
+	6) reworked vpfe_check_format and added a documentation
+	   for algorithm
+	7) fixed memory leak in probe()
+
+TODO list :
+	1) load sub device from bridge driver. Hans has enhanced
+	the v4l2-subdevice framework to do this. Will be updated
+	soon to pick this.
+	
+		
+Reviewed By "Hans Verkuil".
+Reviewed By "Laurent Pinchart".
+
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+---
+Applies to v4l-dvb repository
+
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+Phone : 301-515-3736
+email: m-karicheri2@ti.com
+
+>-----Original Message-----
+>From: Karicheri, Muralidharan
+>Sent: Tuesday, June 09, 2009 2:47 PM
+>To: linux-media@vger.kernel.org
+>Cc: davinci-linux-open-source@linux.davincidsp.com; Muralidharan Karicheri;
+>Karicheri, Muralidharan
+>Subject: [PATCH 0/10 - v2] ARM: DaVinci: Video: DM355/DM6446 VPFE Capture
+>driver
 >
-> Example using lspci -vvv -nn
+>From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
 >
-> This is an Intel ICH8 but Dell as set in a subsystem id if 1028:01db
-> to indicate their custom use of the generic part.
+>VPFE Capture driver for DaVinci Media SOCs :- DM355 and DM6446
 >
-> 00:1f.3 SMBus [0c05]: Intel Corporation 82801H (ICH8 Family) SMBus
-> Controller [8086:283e] (rev 02)
-> 	Subsystem: Dell Device [1028:01db]
-> 	Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr-
-> Stepping- SERR+ FastB2B- DisINTx-
-> 	Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-
-> <TAbort- <MAbort- >SERR- <PERR- INTx-
-> 	Interrupt: pin C routed to IRQ 10
-> 	Region 0: Memory at dffdab00 (32-bit, non-prefetchable) [size=256]
-> 	Region 4: I/O ports at ece0 [size=32]
-> 	Kernel modules: i2c-i801
+>This is the version v2 of the patch series. This is the reworked
+>version of the driver based on comments received against the last
+>version of the patch.
 >
-> > Getting rid of the probes altogether is the most reliable solution.
-> > There is probably a way to identify these boards more specifically
-> > that you haven't discovered yet.  PCI subsystem device ID is worth
-> > checking.
-> >
-> >> Regards,
-> >>
-> >>        Hans
-> >>
-> >>> > static const unsigned short addrs[] = {
-> >>> >        addr, I2C_CLIENT_END
-> >>> > };
-> >>> >
-> >>> > client = i2c_new_probed_device(adapter, &info, addrs);
-> >>> >
-> >>> > This is a bit awkward and I came up with this macro:
-> >>> >
-> >>> > #define V4L2_I2C_ADDRS(addr, addrs...) \
-> >>> >        ((const unsigned short []){ addr, ## addrs, I2C_CLIENT_END
-> >>> > })
-> >>> >
-> >>> > This can construct a list of one or more i2c addresses on the fly.
-> >>> > But this is something that really belongs in i2c.h, renamed to
-> >>> > I2C_ADDRS.
-> >>> >
-> >>> > With this macro we can just do:
-> >>> >
-> >>> > client = i2c_new_probed_device(adapter, &info, I2C_ADDRS(addr));
-> >>> >
-> >>> > Comments?
-> >>> >
-> >>> > Regards,
-> >>> >
-> >>> >        Hans
-> >>> >
-> >>> > --
-> >>> > Hans Verkuil - video4linux developer - sponsored by TANDBERG
-> >>> > Telecom --
-> >>> > To unsubscribe from this list: send the line "unsubscribe
-> >>> > linux-i2c" in the body of a message to majordomo@vger.kernel.org
-> >>> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>
-> >> --
-> >> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-> >
-> > --
-> > Jon Smirl
-> > jonsmirl@gmail.com
-
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+>+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>These patches add support for VPFE (Video Processing Front End) based
+>video capture on DM355 and DM6446 EVMs. For more details on the hardware
+>configuration and capabilities, please refer the vpfe_capture.c header.
+>This patch set consists of following:-
+>
+>Patch 1: VPFE Capture bridge driver
+>Patch 2: CCDC hw device header file
+>Patch 3: DM355 CCDC hw module
+>Patch 4: DM644x CCDC hw module
+>Patch 5: common types used across CCDC modules
+>Patch 6: Makefile and config files for the driver
+>Patch 7: DM355 platform and board setup
+>Patch 8: DM644x platform and board setup
+>Patch 9: Remove outdated driver files from davinci git tree
+>Patch 10: common vpss hw module for video drivers
+>
+>NOTE:
+>
+>Dependent on the TVP514x decoder driver patch for migrating the
+>driver to sub device model from Vaibhav Hiremath
+>
+>Following tests are performed.
+>	1) Capture and display video (PAL & NTSC) from tvp5146 decoder.
+>	   Displayed using fbdev device driver available on davinci git tree
+>	2) Tested with driver built statically and dynamically
+>
+>Muralidhara Karicheri
+>
+>Reviewed By "Hans Verkuil".
+>Reviewed By "Laurent Pinchart".
+>
+>Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
