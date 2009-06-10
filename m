@@ -1,90 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:23725 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756663AbZFPAxz (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:38360 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752505AbZFJNwe convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Jun 2009 20:53:55 -0400
-Received: by fg-out-1718.google.com with SMTP id 16so1228631fgg.17
-        for <linux-media@vger.kernel.org>; Mon, 15 Jun 2009 17:53:57 -0700 (PDT)
-Date: Tue, 16 Jun 2009 10:55:23 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: linux-media@vger.kernel.org, video4linux-list@redhat.com
-Subject: [PATCH] FM1216MK5 FM radio patch
-Message-ID: <20090616105523.0d03862c@glory.loctelecom.ru>
+	Wed, 10 Jun 2009 09:52:34 -0400
+Date: Wed, 10 Jun 2009 10:52:28 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Laurent Pinchart <laurent.pinchart@skynet.be>,
+	linux-media@vger.kernel.org, nm127@freemail.hu
+Subject: Re: [RFC,PATCH] VIDIOC_G_EXT_CTRLS does not handle NULL pointer
+ correctly
+Message-ID: <20090610105228.3ca409ba@pedra.chehab.org>
+In-Reply-To: <20090525111634.0f9593be@pedra.chehab.org>
+References: <200905251317.02633.laurent.pinchart@skynet.be>
+	<20090525111634.0f9593be@pedra.chehab.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/+Yz3JX0bgCVWi4_sBYGW73v"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/+Yz3JX0bgCVWi4_sBYGW73v
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Em Mon, 25 May 2009 11:16:34 -0300
+Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
 
-Hi
+> Em Mon, 25 May 2009 13:17:02 +0200
+> Laurent Pinchart <laurent.pinchart@skynet.be> escreveu:
+> 
+> > Hi everybody,
+> > 
+> > Márton Németh found an integer overflow bug in the extended control ioctl 
+> > handling code. This affects both video_usercopy and video_ioctl2. See 
+> > http://bugzilla.kernel.org/show_bug.cgi?id=13357 for a detailed description of 
+> > the problem.
+> > 
+> 
+> > Restricting v4l2_ext_controls::count to values smaller than KMALLOC_MAX_SIZE /
+> > sizeof(struct v4l2_ext_control) should be enough, but we might want to 
+> > restrict the value even further. I'd like opinions on this.
+> 
+> Seems fine to my eyes, but being so close to kmalloc size doesn't seem to be a
+> good idea. It seems better to choose an arbitrary size big enough to handle all current needs.
 
-Next code for implement Philips FM1216MK5.
-
-1. Implement get_stereo function.
-2. Add correct data byte for FM radio mode.
-
-diff -r bff77ec33116 linux/drivers/media/common/tuners/tuner-simple.c
---- a/linux/drivers/media/common/tuners/tuner-simple.c	Thu Jun 11 18:44:23 2009 -0300
-+++ b/linux/drivers/media/common/tuners/tuner-simple.c	Tue Jun 16 05:27:52 2009 +1000
-@@ -145,6 +145,8 @@
- 	case TUNER_LG_NTSC_TAPE:
- 	case TUNER_TCL_MF02GIP_5N:
- 		return ((status & TUNER_SIGNAL) == TUNER_STEREO_MK3);
-+	case TUNER_PHILIPS_FM1216MK5:
-+		return status | TUNER_STEREO;
- 	default:
- 		return status & TUNER_STEREO;
- 	}
-@@ -514,6 +516,10 @@
- 	case TUNER_PHILIPS_FM1256_IH3:
- 	case TUNER_TCL_MF02GIP_5N:
- 		buffer[3] = 0x19;
-+		break;
-+	case TUNER_PHILIPS_FM1216MK5:
-+		buffer[2] = 0x88;
-+		buffer[3] = 0x09;
- 		break;
- 	case TUNER_TNF_5335MF:
- 		buffer[3] = 0x11;
-
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+I'll apply the current version, but I still think we should restrict it to a lower value.
 
 
-With my best regards, Dmitry.
---MP_/+Yz3JX0bgCVWi4_sBYGW73v
-Content-Type: text/x-patch; name=behold_mk5_fm.patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=behold_mk5_fm.patch
 
-diff -r bff77ec33116 linux/drivers/media/common/tuners/tuner-simple.c
---- a/linux/drivers/media/common/tuners/tuner-simple.c	Thu Jun 11 18:44:23 2009 -0300
-+++ b/linux/drivers/media/common/tuners/tuner-simple.c	Tue Jun 16 05:27:52 2009 +1000
-@@ -145,6 +145,8 @@
- 	case TUNER_LG_NTSC_TAPE:
- 	case TUNER_TCL_MF02GIP_5N:
- 		return ((status & TUNER_SIGNAL) == TUNER_STEREO_MK3);
-+	case TUNER_PHILIPS_FM1216MK5:
-+		return status | TUNER_STEREO;
- 	default:
- 		return status & TUNER_STEREO;
- 	}
-@@ -514,6 +516,10 @@
- 	case TUNER_PHILIPS_FM1256_IH3:
- 	case TUNER_TCL_MF02GIP_5N:
- 		buffer[3] = 0x19;
-+		break;
-+	case TUNER_PHILIPS_FM1216MK5:
-+		buffer[2] = 0x88;
-+		buffer[3] = 0x09;
- 		break;
- 	case TUNER_TNF_5335MF:
- 		buffer[3] = 0x11;
-
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-
---MP_/+Yz3JX0bgCVWi4_sBYGW73v--
+Cheers,
+Mauro
