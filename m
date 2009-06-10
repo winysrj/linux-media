@@ -1,31 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f178.google.com ([209.85.216.178]:36065 "EHLO
-	mail-px0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757395AbZFKKEL (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51112 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756786AbZFJTou (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2009 06:04:11 -0400
-Received: by pxi8 with SMTP id 8so322541pxi.33
-        for <linux-media@vger.kernel.org>; Thu, 11 Jun 2009 03:04:13 -0700 (PDT)
-Subject: About v4l2 output interface
-From: xie <yili.xie@gmail.com>
-To: "Dongsoo, Nathaniel Kim(V4L2)" <dongsoo.kim@gmail.com>
-Cc: v4l2_linux <linux-media@vger.kernel.org>
-Content-Type: text/plain
-Date: Thu, 11 Jun 2009 18:02:51 +0800
-Message-Id: <1244714571.6464.34.camel@xie>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 10 Jun 2009 15:44:50 -0400
+Message-Id: <200906101944.n5AJiJoG031738@imap1.linux-foundation.org>
+Subject: [patch 2/6] dvb-core: fix potential mutex_unlock without mutex_lock in dvb_dvr_read
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	simon@fire.lp0.eu
+From: akpm@linux-foundation.org
+Date: Wed, 10 Jun 2009 12:44:19 -0700
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Dongsoo Nathaniel ~~
+From: Simon Arlott <simon@fire.lp0.eu>
 
-In the spec , I have readed this sentence :
-Video output devices encode stills or image sequences as analog video
-signal.
-Can you give me a function-example about output interface in real life
-~~ ?
-Thanks ~
+dvb_dvr_read may unlock the dmxdev mutex and return -ENODEV, except this
+function is a file op and will never be called with the mutex held.
 
-Best regards ~!~
+There's existing mutex_lock and mutex_unlock around the actual read but
+it's commented out.  These should probably be uncommented but the read
+blocks and this could block another non-blocking reader on the mutex
+instead.
 
+This change comments out the extra mutex_unlock.
+
+[akpm@linux-foundation.org: cleanups, simplification]
+Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/media/dvb/dvb-core/dmxdev.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
+
+diff -puN drivers/media/dvb/dvb-core/dmxdev.c~dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read drivers/media/dvb/dvb-core/dmxdev.c
+--- a/drivers/media/dvb/dvb-core/dmxdev.c~dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read
++++ a/drivers/media/dvb/dvb-core/dmxdev.c
+@@ -244,19 +244,13 @@ static ssize_t dvb_dvr_read(struct file 
+ {
+ 	struct dvb_device *dvbdev = file->private_data;
+ 	struct dmxdev *dmxdev = dvbdev->priv;
+-	int ret;
+ 
+-	if (dmxdev->exit) {
+-		mutex_unlock(&dmxdev->mutex);
++	if (dmxdev->exit)
+ 		return -ENODEV;
+-	}
+ 
+-	//mutex_lock(&dmxdev->mutex);
+-	ret = dvb_dmxdev_buffer_read(&dmxdev->dvr_buffer,
+-				     file->f_flags & O_NONBLOCK,
+-				     buf, count, ppos);
+-	//mutex_unlock(&dmxdev->mutex);
+-	return ret;
++	return dvb_dmxdev_buffer_read(&dmxdev->dvr_buffer,
++				      file->f_flags & O_NONBLOCK,
++				      buf, count, ppos);
+ }
+ 
+ static int dvb_dvr_set_buffer_size(struct dmxdev *dmxdev,
+_
