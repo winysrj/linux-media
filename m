@@ -1,89 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:49734 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755547AbZFQRYS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 13:24:18 -0400
-Message-ID: <4A392719.8070102@redhat.com>
-Date: Wed, 17 Jun 2009 19:25:45 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:39457 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932098AbZFJVbA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Jun 2009 17:31:00 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	Muralidharan Karicheri <a0868495@dal.design.ti.com>
+Date: Wed, 10 Jun 2009 16:30:57 -0500
+Subject: RE: [PATCH 0/10 - v2] ARM: DaVinci: Video: DM355/DM6446 VPFE
+ Capture driver
+Message-ID: <A69FA2915331DC488A831521EAE36FE40139A08E51@dlee06.ent.ti.com>
+References: <1244573204-20391-1-git-send-email-m-karicheri2@ti.com>
+ <200906102328.16328.hverkuil@xs4all.nl>
+In-Reply-To: <200906102328.16328.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Convert cpia driver to v4l2,      drop parallel port version
- support?
-References: <13104.62.70.2.252.1245224630.squirrel@webmail.xs4all.nl>	<20090617065621.23515ab7@pedra.chehab.org>	<4A38CCAF.5060202@redhat.com>	<20090617112802.152a6d64@pedra.chehab.org>	<4A390093.5090003@redhat.com> <20090617122352.261e1a16@pedra.chehab.org>
-In-Reply-To: <20090617122352.261e1a16@pedra.chehab.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hans,
 
-On 06/17/2009 05:23 PM, Mauro Carvalho Chehab wrote:
-> Em Wed, 17 Jun 2009 16:41:23 +0200
-> Hans de Goede<hdegoede@redhat.com>  escreveu:
+Great! I look forward for your comments.
+
+Murali Karicheri
+email: m-karicheri2@ti.com
+
+>-----Original Message-----
+>From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+>Sent: Wednesday, June 10, 2009 5:28 PM
+>To: Karicheri, Muralidharan
+>Cc: linux-media@vger.kernel.org; davinci-linux-open-
+>source@linux.davincidsp.com; Muralidharan Karicheri
+>Subject: Re: [PATCH 0/10 - v2] ARM: DaVinci: Video: DM355/DM6446 VPFE
+>Capture driver
 >
->> Hi all,
+>On Tuesday 09 June 2009 20:46:44 m-karicheri2@ti.com wrote:
+>> From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
 >>
->> On 06/17/2009 04:28 PM, Mauro Carvalho Chehab wrote:
->>> Em Wed, 17 Jun 2009 12:59:59 +0200
->>> Hans de Goede<hdegoede@redhat.com>   escreveu:
->>>
->> <snip>
+>> VPFE Capture driver for DaVinci Media SOCs :- DM355 and DM6446
 >>
->>>> As for usbvideo that supports (amongst others) the st6422 (from the out of tree
->>>> qc-usb-messenger driver), but only one usb-id ??. I'm currently finishing up adding
->>>> st6422 support to gspca (with all known usb-id's), I have 2 different cams to test this with.
->>> I have here one Logitech quickcam. There are several variants, and the in-tree
->>> and out-tree drivers support different models. I can test it here and give you
->>> a feedback. However, I don't have the original driver for it.
->>>
->> Ok, what is its usb id (they tend to be unique for Logitech cams) ?
+>> This is the version v2 of the patch series. This is the reworked
+>> version of the driver based on comments received against the last
+>> version of the patch.
 >
-> The one I have is this one:
+>I'll be reviewing this Friday or Saturday.
 >
-> Bus 005 Device 003: ID 046d:08f6 Logitech, Inc. QuickCam Messenger Plus
+>Regards,
 >
-> This is supported by one quickcam driver.
+>	Hans
 >
+>>
+>> +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+>> These patches add support for VPFE (Video Processing Front End) based
+>> video capture on DM355 and DM6446 EVMs. For more details on the hardware
+>> configuration and capabilities, please refer the vpfe_capture.c header.
+>> This patch set consists of following:-
+>>
+>> Patch 1: VPFE Capture bridge driver
+>> Patch 2: CCDC hw device header file
+>> Patch 3: DM355 CCDC hw module
+>> Patch 4: DM644x CCDC hw module
+>> Patch 5: common types used across CCDC modules
+>> Patch 6: Makefile and config files for the driver
+>> Patch 7: DM355 platform and board setup
+>> Patch 8: DM644x platform and board setup
+>> Patch 9: Remove outdated driver files from davinci git tree
+>> Patch 10: common vpss hw module for video drivers
+>>
+>> NOTE:
+>>
+>> Dependent on the TVP514x decoder driver patch for migrating the
+>> driver to sub device model from Vaibhav Hiremath
+>>
+>> Following tests are performed.
+>> 	1) Capture and display video (PAL & NTSC) from tvp5146 decoder.
+>> 	   Displayed using fbdev device driver available on davinci git tree
+>> 	2) Tested with driver built statically and dynamically
+>>
+>> Muralidhara Karicheri
+>>
+>> Reviewed By "Hans Verkuil".
+>> Reviewed By "Laurent Pinchart".
+>>
+>> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+>
+>--
+>Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
-Ah, that is one of the 2 models I have access to, so I can promise you that one will work fine
-with the new st6422 support I'm doing.
-
->>>> zc0301
->>>> only supports one usb-id which has not yet been tested with gspca, used to claim a lot more
->>>> usb-id's but didn't actually work with those as it only supported the bridge, not the sensor
->>>> ->   remove it now ?
->>> I have one zc0301 cam that works with this driver. The last time I checked, it
->>> didn't work with gspca. I'll double check.
->>>
->> Ok, let me know how it goes.
->
-> The zc0301 camera is this one:
->
-> Bus 005 Device 002: ID 046d:08ae Logitech, Inc. QuickCam for Notebooks
->
-> zc0301 driver says this:
->
-> [98174.672464] zc0301: V4L2 driver for ZC0301[P] Image Processor and Control Chip v1:1.10
-> [98174.672517] usb 5-2: ZC0301[P] Image Processor and Control Chip detected (vid/pid 0x046D:0x08AE)
-> [98174.713717] usb 5-2: PAS202BCB image sensor detected
->
-> The cam works as expected.
->
-
-Hmm, bummer I don't have any zc3xx test cams with a pas202b sensor, guess I need to find one :)
-
->
-> I probably won't go to LPC this year, since I'm programming to be at Japan Linux
-> Symposium in October, and it seems too much jet leg for me to be in Portland in
-> Sept and in Japan in Oct ;)
->
-
-Ah too bad, but understandable.
-
-Regards,
-
-Hans
