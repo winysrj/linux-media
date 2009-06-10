@@ -1,105 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f218.google.com ([209.85.220.218]:64435 "EHLO
-	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751312AbZF0LqH (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3229 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761175AbZFJUJW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Jun 2009 07:46:07 -0400
-Received: by fxm18 with SMTP id 18so155986fxm.37
-        for <linux-media@vger.kernel.org>; Sat, 27 Jun 2009 04:46:08 -0700 (PDT)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: mo.ucina@gmail.com
-Subject: Re: [linux-dvb] Support for Compro VideoMate S350 - Testing Results
-Date: Sat, 27 Jun 2009 14:48:23 +0300
-Cc: linux-media@vger.kernel.org, "Jan D. Louw" <jd.louw@mweb.co.za>
-References: <81c0b0550905250703o786a2a65ib757287da841dc11@mail.gmail.com> <200906231804.28893.liplianin@me.by> <4A45E1C0.8090603@gmail.com>
-In-Reply-To: <4A45E1C0.8090603@gmail.com>
+	Wed, 10 Jun 2009 16:09:22 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: soc-camera: status, roadmap
+Date: Wed, 10 Jun 2009 22:09:07 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <Pine.LNX.4.64.0906101802450.4817@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0906101802450.4817@axis700.grange>
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="koi8-r"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200906271448.24162.liplianin@me.by>
+Message-Id: <200906102209.08535.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27 June 2009 12:09:20 O&M Ugarcina wrote:
-> Hello Igor ,
->
-> I want to thank you for making those patches available . I have been
-> able to patch the latest HG pull and to compile and install the drivers
-> . I decided to install the whole lot as it was a bit hard to workout
-> just the ko's responsible for the S350 . After installing the card I
-> have this from dmesg :
->
-> saa7130/34: v4l2 driver version 0.2.15 loaded
-> saa7134 0000:04:01.0: PCI INT A -> GSI 22 (level, low) -> IRQ 22
-> saa7130[0]: found at 0000:04:01.0, rev: 1, irq: 22, latency: 64, mmio:
-> 0xfeaffc00
-> saa7130[0]: subsystem: 185b:c900, board: Compro VideoMate S350/S300
-> [card=169,autodetected]
-> saa7130[0]: board init: gpio is 843f00
-> input: saa7134 IR (Compro VideoMate S3 as
-> /devices/pci0000:00/0000:00:1e.0/0000:04:01.0/input/input5
-> iTCO_vendor_support: vendor-support=0
-> iTCO_wdt: Intel TCO WatchDog Timer Driver v1.03 (30-Apr-2008)
-> iTCO_wdt: Found a ICH8 or ICH8R TCO device (Version=2, TCOBASE=0x0860)
-> iTCO_wdt: initialized. heartbeat=30 sec (nowayout=0)
-> parport_pc 00:0b: reported by Plug and Play ACPI
-> parport0: PC-style at 0x378 (0x778), irq 7 [PCSPP,TRISTATE,EPP]
-> saa7130[0]: i2c eeprom 00: 5b 18 00 c9 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-> saa7130[0]: i2c eeprom 10: 00 ff 86 0f ff 20 ff ff ff ff ff ff ff ff ff ff
-> saa7130[0]: i2c eeprom 20: 01 40 01 02 02 01 03 01 08 ff 00 87 ff ff ff ff
-> saa7130[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7130[0]: i2c eeprom 40: ff d6 00 c0 86 1c 02 01 02 ff ff ff ff ff ff ff
-> saa7130[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff cb
-> saa7130[0]: i2c eeprom 60: 30 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7130[0]: i2c eeprom 70: 00 00 00 10 03 9c ff ff ff ff ff ff ff ff ff ff
-> saa7130[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7130[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7130[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7130[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7130[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7130[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7130[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7130[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> saa7130[0]: registered device video0 [v4l2]
-> saa7130[0]: registered device vbi0
-> i801_smbus 0000:00:1f.3: enabling device (0001 -> 0003)
-> i801_smbus 0000:00:1f.3: PCI INT C -> GSI 18 (level, low) -> IRQ 18
-> ACPI: I/O resource 0000:00:1f.3 [0x400-0x41f] conflicts with ACPI region
-> SMRG [0x400-0x40f]
-> ACPI: Device needs an ACPI driver
-> ppdev: user-space parallel port driver
-> dvb_init() allocating 1 frontend
-> HDA Intel 0000:00:1b.0: PCI INT A -> GSI 22 (level, low) -> IRQ 22
-> HDA Intel 0000:00:1b.0: setting latency timer to 64
-> cx88/0: cx2388x v4l2 driver version 0.0.7 loaded
-> cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.7 loaded
-> DVB: registering new adapter (saa7130[0])
-> DVB: registering adapter 0 frontend 0 (Zarlink ZL10313 DVB-S).
->
->
-> I was able to tune into my favourite satellite with mythtv with no
-> problems . I also was able to tune to another satellite using the mythtv
-> configuration for 4 way diseqc . So 4 way diseqc works fine for me .
-> Picture is satble and very good , sound also is ok . I will just run it
-> now to see how the system stability is over a longer period of time .
->
-> One small issue I have noticed : and that is in mythtv the signal
-> strength indicator shows very low with S350 now . Before I was getting
-> with TT1500S around 79 to 89% while now with S350 I see about 18% for
-> the same channel .
-It is not about more or less sensitivity, it is about how to represent :(
+Hi Guennadi,
 
-I have positive reports about Compro S350 in russian also.
-http://forum.free-x.de/wbb/index.php?page=Thread&threadID=474
-I will try to push :)
+Let me start with a big Thank You! for all your hard work on this! Much 
+appreciated!
 
+On Wednesday 10 June 2009 18:45:36 Guennadi Liakhovetski wrote:
+> Hi all
 >
-> Best Regards
+> for those interested here's a (not so) short status report and a proposed
+> roadmap for general soc-camera development, and, of course, its ongoing
+> conversion to v4l2-subdev API.
 >
-> Milorad
+> 1. v4l2-subdev conversion. I have posted several versions of the
+> conversion patch series to the list, of which the last takes an IMHO
+> correct approach of a graduate conversion, avoiding mega-patches,
+> modifying multiple platforms and drivers at once. With this approach the
+> roadmap consists of the following steps:
+>
+> 1.1. preparatory patch to soc-camera core, allowing parallel existence of
+> "legacy" (all in the mainline) platforms and converted platforms (pcm037
+> i.MX31 platform so far) by introducing some backwards compatibility code.
+> This patch is currently in v4l next and in linux-next, i.e., it is going
+> in with 2.6.31.
+>
+> 1.2. convert all (around 7) mainline platforms to the new layout. This
+> step is necessary for further conversions, but it depends on 1.1.
+> Therefore this can only be done later in 2.6.31 merge window, when 1.1.
+> is in the mainline.
+>
+> 1.3. convert soc-camera core and drivers to an intermediate state, with
+> which all cameras are registered by platforms as platform devices, later
+> soc-camera core probes them and dynamically registers respective i2c (or
+> other, as in soc_camera_platform.c case) devices. This patch depends on
+> 1.2., and it is hard to expect to be able to push these three steps
+> within the 2.6.31 merge window. It could be possible, we could request to
+> accept this patch after -rc1, maybe we would be allowed to do this, but
+>
+> 1.4. this is the actual conversion to v4l2-subdev. It depends on some
+> bits and pieces in the v4l2-subdev framework, which are still in progress
+> (e.g. v4l2_i2c_new_subdev_board), I believe (Hans, am I right? or what's
+> the outcome of Mauro's last reply to you in the "[PULL]
+> http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-subdev" thread?), so, it
+> becomes practically impossible to also pull it for 2.6.31.
 
-Best Regards
- 
-Igor
+I haven't seen a reaction yet from Mauro regarding my latest pull request: I 
+think it addresses all his concerns regarding existing functionality so I 
+actually hope this can be merged. It would help a lot with this and similar 
+efforts.
+
+> Now, I do not want to have soc-camera in the intermediate 1.3. state for
+> a whole 2.6.31 kernel, which means, we have to postpone 1.3. and 1.4.
+> until 2.6.32.
+>
+> 2. The above means, I'll have to maintain and update my patches for a
+> whole 2.6.31 development cycle. In this time I'll try to update and
+> upload them as a quilt patch series and announce it on the list a couple
+> of times.
+>
+> 3. This also means, development will become more difficult, new features
+> and drivers will only be accepted on the top of my patch stack, bugfixes
+> will have to be accpeted against the mainline, which then will mean extra
+> porting work for me.
+
+If there is anything I can do to help this along, please let me know. In 
+particular: what else besides the v4l2_i2c_new_subdev_board do you need? I 
+didn't have much time in the past few weeks, but things are more relaxed 
+now and I expect to be able to do a lot more in the coming weeks (fingers 
+crossed :-) ).
+
+Regards,
+
+	Hans
+
+> 4. In a message I posted a few minutes ago
+>
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg06294.html
+>
+> I'm asking about a correct interpretation of S_CROP and S_FMT operations.
+> I suspect, what soc-camera framework and all drivers thereunder are doing
+> is wrong, and have to be fixed rather sooner than later. However, I'd be
+> very much against fixing this in the present stack, because that would
+> mean a _lot_ of porting. So, this will remain standard-non-compliant
+> until 2.6.32 too.
+>
+> 5. The conversion described in (1) is only partial, in its current form
+> it does not replace the existing soc-camera API between sensor drivers
+> and the soc-camera core with v4l2-subdev operations completely. Partly
+> because many of the current soc-camera methods are still missing in
+> v4l2-subdev, partly because it just makes more sense to first push the
+> principle conversion in the mainline, which at least removes soc-camera
+> device registration and switches to i2c driver autoloading and replaces
+> some trivially replaceable methods, like [gs]_fmt, [gs]_register,
+> [gs]_control. Some of the missing methods, like [gs]_crop should be easy
+> to add, others, like pixel format and bus parameter negotiations would
+> require some thinking and substantial work. Which makes this all some
+> 2.6.33
+> material... but who wants to think that far...
+>
+> 6. As you see, this all looks like a lot of work, and I so far have been
+> doing all of this in my free time. But it would become difficult with
+> these amounts of work. So, I would welcome if either someone would step
+> forward to help with this work, or if some company would volunteer to
+> support this work financially.
+>
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
