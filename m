@@ -1,109 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:1906 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753286AbZFQSOz (ORCPT
+Received: from mail-px0-f200.google.com ([209.85.216.200]:61837 "EHLO
+	mail-px0-f200.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754070AbZFJPGY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:14:55 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr17.xs4all.nl (8.13.8/8.13.8) with ESMTP id n5HIEudQ075262
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 17 Jun 2009 20:14:57 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 17 Jun 2009 20:14:56 +0200 (CEST)
-Message-Id: <200906171814.n5HIEudQ075262@smtp-vbr17.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+	Wed, 10 Jun 2009 11:06:24 -0400
+Received: by pxi38 with SMTP id 38so760545pxi.33
+        for <linux-media@vger.kernel.org>; Wed, 10 Jun 2009 08:06:25 -0700 (PDT)
+Subject: Re: how to mmap in  videobuf-dma-sg.c
+From: "Figo.zhang" <figo1802@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+In-Reply-To: <1242902911.12072.3.camel@myhost>
+References: <1242881164.3824.2.camel@myhost>
+	 <20090521073518.1c0c0a5b@pedra.chehab.org>
+	 <1242902911.12072.3.camel@myhost>
+Content-Type: text/plain
+Date: Wed, 10 Jun 2009 23:06:20 +0800
+Message-Id: <1244646380.15773.15.camel@myhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Thu, 2009-05-21 at 18:48 +0800, Figo.zhang wrote:
+> On Thu, 2009-05-21 at 07:35 -0300, Mauro Carvalho Chehab wrote:
+> > Em Thu, 21 May 2009 12:46:04 +0800
+> > "Figo.zhang" <figo1802@gmail.com> escreveu:
+> > 
+> > > hi,all,
+> > >  I am puzzle that how to mmap ( V4L2_MEMORY_MMAP) in videobuf-dma-sg.c?
+> > > 
+> > > In this file, it alloc the momery using vmalloc_32() , and put this
+> > > momery into sglist table,and then use dma_map_sg() to create sg dma at
+> > > __videobuf_iolock() function. but in __videobuf_mmap_mapper(), i canot
+> > > understand how it do the mmap? 
+> > > why it not use the remap_vmalloc_range() to do the mmap?
+> > 
+> > The answer is simple: remap_vmalloc_range() is newer than videobuf code. This
+> > part of the code was written back to kernel 2.4, and nobody cared to update it
+> > to use those newer functions, and simplify its code.
+> > 
+> > If you want, feel free to propose some cleanups on it
+> > 
+> > 
+> > 
+> > Cheers,
+> > Mauro
+> 
+> hi mauro,
+> Thank you! 
+> But i canot found the similar function code of remap_vmalloc_range() in
+> the videobuf-dma-contig.c file. So i want to know the how is work in
+> __videobuf_mmap_mapper() function?
+> 
+> 
 
-Results of the daily build of v4l-dvb:
+hi mauro:
+Thank you. But i still have a puzzle question about mmap() in
+videobuf-dma-sg.c. I canot find how to remap the dma buffer
+(which alloc by vmalloc_32()) to the vma area in
+__videobuf_mmap_mapper()? 
 
-date:        Wed Jun 17 19:00:05 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12010:b385a43af222
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+there is my test driver code about dma-sg,it work well. i use
+remap_pfn_range() to remap the dma buffer to vma area in mmap method.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-x86_64: WARNINGS
-sparse (linux-2.6.30): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+so would you like to give me some detail about it?
 
-Detailed results are available here:
+Best Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+Figo.zhang
 
-Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+static int mydev_alloc_dma_sg(struct mydev_device *dev, struct mydev_buf
+*buf)
+{
+	int nr_pages;
+	
+	int i;
+	struct page *pg;
+	unsigned char * virt;
 
-The V4L2 specification failed to build, but the last compiled spec is here:
+	nr_pages = mydev_buffer_pages(buf->size);
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+	buf->nr_pages = nr_pages;
 
-The DVB API specification from this daily build is here:
+	dprintk("%s:: buf->nr_pages =%d\n", __func__, buf->nr_pages);
+	
+	buf->sglist = kcalloc(buf->nr_pages, sizeof(struct scatterlist),
+GFP_KERNEL);
+	if (NULL == buf->sglist)
+		return NULL;
+	
+	sg_init_table(buf->sglist, buf->nr_pages);
 
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+	buf->vmalloc = vmalloc_32(buf->nr_pages << PAGE_SHIFT);
+
+	memset(buf->vmalloc,0,buf->nr_pages << PAGE_SHIFT);
+
+	virt = buf->vmalloc;
+	
+	for(i = 0; i< buf->nr_pages; i++,virt += PAGE_SIZE){
+		pg = vmalloc_to_page(virt);
+		if (NULL == pg)
+			goto nopage;
+		BUG_ON(PageHighMem(pg));
+		sg_set_page(&buf->sglist[i], pg, PAGE_SIZE, 0);
+		
+		}
+
+	buf->sglen = dma_map_sg(&dev->pci->dev, buf->sglist,
+					buf->nr_pages, DMA_FROM_DEVICE);
+
+	return 0;
+	
+ nopage:
+	dprintk("sgl: oops - no page\n");
+	kfree(buf->sglist);
+	return 0;
+}
+
+in mmap();
+
+static int do_mmap_sg(struct mydev_device  *dev, struct vm_area_struct *
+vma)
+{
+	struct videobuf_mapping *map;
+	unsigned long pos,page;
+	unsigned long start = vma->vm_start;
+	unsigned long size = vma->vm_end - vma->vm_start;
+	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
+	unsigned int first, last, end;
+
+	int retval = -EINVAL;
+	int i;
+
+	/* look for first buffer to map */
+	for (first = 0; first < VIDEO_MAX_FRAME; first++) {
+	
+		if (dev->ktbuf[first].boff == (vma->vm_pgoff << PAGE_SHIFT))
+			break;
+	}
+	if (VIDEO_MAX_FRAME == first) {
+		dprintk("mmap app bug: offset invalid [offset=0x%lx]\n",
+			(vma->vm_pgoff << PAGE_SHIFT));
+		goto done;
+	}
+	/* create mapping + update buffer list */
+	retval = -ENOMEM;
+	map = kmalloc(sizeof(struct videobuf_mapping),GFP_KERNEL);
+	if (NULL == map)
+		goto done;
+
+		pos = (unsigned long)dev->ktbuf[first].vmalloc;
+
+	while (size > 0) {
+		page = vmalloc_to_pfn((void *)pos);
+		if (remap_pfn_range(vma, start, page, PAGE_SIZE, PAGE_SHARED)) {
+			return -EAGAIN;
+		}
+		start += PAGE_SIZE;
+		pos += PAGE_SIZE;
+		if (size > PAGE_SIZE)
+			size -= PAGE_SIZE;
+		else
+			size = 0;
+	}
+
+	map->count    = 1;
+	map->start    = vma->vm_start;
+	map->end      = vma->vm_end;
+	vma->vm_ops   = &mydev_vm_ops;
+	vma->vm_flags |=/* VM_DONTEXPAND |*/ VM_RESERVED;
+vma->vm_flags &= ~VM_IO; /* using shared anonymous pages */
+	vma->vm_private_data = map;
+
+	mydev_vm_open(vma);
+	retval = 0;
+
+ done:
+	return retval;
+}
+
+
+
+
 
