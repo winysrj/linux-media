@@ -1,59 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-12.arcor-online.net ([151.189.21.52]:37996 "EHLO
-	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750728AbZFRTWm (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:51620 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758056AbZFJToh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 15:22:42 -0400
-Subject: Re: ok more details: Re: bttv problem loading takes about several
-	minutes
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Halim Sahin <halim.sahin@t-online.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Trent Piepho <xyzzy@speakeasy.org>, linux-media@vger.kernel.org
-In-Reply-To: <20090618140129.GA13370@halim.local>
-References: <28237.62.70.2.252.1245331454.squirrel@webmail.xs4all.nl>
-	 <20090618140129.GA13370@halim.local>
-Content-Type: text/plain
-Date: Thu, 18 Jun 2009 21:21:44 +0200
-Message-Id: <1245352904.3924.3.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 10 Jun 2009 15:44:37 -0400
+Message-Id: <200906101944.n5AJiN6N031809@imap1.linux-foundation.org>
+Subject: [patch 5/6] v4l: generate KEY_CAMERA instead of BTN_0 key events on input devices
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	mzxreary@0pointer.de
+From: akpm@linux-foundation.org
+Date: Wed, 10 Jun 2009 12:44:23 -0700
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Lennart Poettering <mzxreary@0pointer.de>
 
-Am Donnerstag, den 18.06.2009, 16:01 +0200 schrieb Halim Sahin:
-> Hi,
-> you can see at my dmesg output
-> [ 2282.430209] bttv: driver version 0.9.18 loaded
-> 
-> i have done
-> hg clone http://linuxtv.org/hg/v4l-dvb
-> cd v4l-dvb
-> make && make install 
-> reboot
-> No idea why I don't have the audiodev modparam?
-> Regards
-> Halim
-> 
+A bunch of V4L drivers generate BTN_0 instead of KEY_CAMERA key presses.
 
-Halim, we should get that in sync.
+X11 is able to handle KEY_CAMERA automatically these days while BTN_0 is
+not treated at all.  Thus it would be of big benefit if the camera drivers
+would consistently generate KEY_CAMERA.  Some drivers (uvc) already do,
+this patch updates the remaining drivers to do the same.
 
-parm:           autoload:obsolete option, please do not use anymore (int)
-parm:           audiodev:specify audio device:
-                -1 = no audio
-                 0 = autodetect (default)
-                 1 = msp3400
-                 2 = tda7432
-                 3 = tvaudio (array of int)
-parm:           saa6588:if 1, then load the saa6588 RDS module, default (0) is to use the card definition.
-parm:           no_overlay:allow override overlay default (0 disables, 1 enables) [some VIA/SIS chipsets are known to have problem with overlay] (int)
+I only possess a limited set of webcams, so this isn't tested with all
+cameras.  The patch is rather trivial and compile tested, so I'd say it's
+still good enough to get merged.
 
-Hopefully we don't need to fall back on Konfuzius for it ;)
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Lennart Poettering <mzxreary@0pointer.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Cheers,
-Hermann
+ drivers/media/video/pwc/pwc-if.c                  |    4 ++--
+ drivers/media/video/usbvideo/konicawc.c           |    4 ++--
+ drivers/media/video/usbvideo/quickcam_messenger.c |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-
-
+diff -puN drivers/media/video/pwc/pwc-if.c~v4l-generate-key_camera-instead-of-btn_0-key-events-on-input-devices drivers/media/video/pwc/pwc-if.c
+--- a/drivers/media/video/pwc/pwc-if.c~v4l-generate-key_camera-instead-of-btn_0-key-events-on-input-devices
++++ a/drivers/media/video/pwc/pwc-if.c
+@@ -601,7 +601,7 @@ static void pwc_snapshot_button(struct p
+ 
+ #ifdef CONFIG_USB_PWC_INPUT_EVDEV
+ 	if (pdev->button_dev) {
+-		input_report_key(pdev->button_dev, BTN_0, down);
++		input_report_key(pdev->button_dev, KEY_CAMERA, down);
+ 		input_sync(pdev->button_dev);
+ 	}
+ #endif
+@@ -1847,7 +1847,7 @@ static int usb_pwc_probe(struct usb_inte
+ 	usb_to_input_id(pdev->udev, &pdev->button_dev->id);
+ 	pdev->button_dev->dev.parent = &pdev->udev->dev;
+ 	pdev->button_dev->evbit[0] = BIT_MASK(EV_KEY);
+-	pdev->button_dev->keybit[BIT_WORD(BTN_0)] = BIT_MASK(BTN_0);
++	pdev->button_dev->keybit[BIT_WORD(KEY_CAMERA)] = BIT_MASK(KEY_CAMERA);
+ 
+ 	rc = input_register_device(pdev->button_dev);
+ 	if (rc) {
+diff -puN drivers/media/video/usbvideo/konicawc.c~v4l-generate-key_camera-instead-of-btn_0-key-events-on-input-devices drivers/media/video/usbvideo/konicawc.c
+--- a/drivers/media/video/usbvideo/konicawc.c~v4l-generate-key_camera-instead-of-btn_0-key-events-on-input-devices
++++ a/drivers/media/video/usbvideo/konicawc.c
+@@ -240,7 +240,7 @@ static void konicawc_register_input(stru
+ 	input_dev->dev.parent = &dev->dev;
+ 
+ 	input_dev->evbit[0] = BIT_MASK(EV_KEY);
+-	input_dev->keybit[BIT_WORD(BTN_0)] = BIT_MASK(BTN_0);
++	input_dev->keybit[BIT_WORD(KEY_CAMERA)] = BIT_MASK(KEY_CAMERA);
+ 
+ 	error = input_register_device(cam->input);
+ 	if (error) {
+@@ -263,7 +263,7 @@ static void konicawc_unregister_input(st
+ static void konicawc_report_buttonstat(struct konicawc *cam)
+ {
+ 	if (cam->input) {
+-		input_report_key(cam->input, BTN_0, cam->buttonsts);
++		input_report_key(cam->input, KEY_CAMERA, cam->buttonsts);
+ 		input_sync(cam->input);
+ 	}
+ }
+diff -puN drivers/media/video/usbvideo/quickcam_messenger.c~v4l-generate-key_camera-instead-of-btn_0-key-events-on-input-devices drivers/media/video/usbvideo/quickcam_messenger.c
+--- a/drivers/media/video/usbvideo/quickcam_messenger.c~v4l-generate-key_camera-instead-of-btn_0-key-events-on-input-devices
++++ a/drivers/media/video/usbvideo/quickcam_messenger.c
+@@ -103,7 +103,7 @@ static void qcm_register_input(struct qc
+ 	input_dev->dev.parent = &dev->dev;
+ 
+ 	input_dev->evbit[0] = BIT_MASK(EV_KEY);
+-	input_dev->keybit[BIT_WORD(BTN_0)] = BIT_MASK(BTN_0);
++	input_dev->keybit[BIT_WORD(KEY_CAMERA)] = BIT_MASK(KEY_CAMERA);
+ 
+ 	error = input_register_device(cam->input);
+ 	if (error) {
+@@ -126,7 +126,7 @@ static void qcm_unregister_input(struct 
+ static void qcm_report_buttonstat(struct qcm *cam)
+ {
+ 	if (cam->input) {
+-		input_report_key(cam->input, BTN_0, cam->button_sts);
++		input_report_key(cam->input, KEY_CAMERA, cam->button_sts);
+ 		input_sync(cam->input);
+ 	}
+ }
+_
