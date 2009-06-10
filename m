@@ -1,70 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:42656 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751586AbZFCI5m (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2009 04:57:42 -0400
-Message-ID: <4A263B42.1010006@redhat.com>
-Date: Wed, 03 Jun 2009 10:58:42 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from deliverator5.ecc.gatech.edu ([130.207.185.175]:46956 "EHLO
+	deliverator5.ecc.gatech.edu" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757782AbZFJILh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Jun 2009 04:11:37 -0400
+Message-ID: <4A2F6AB3.7080406@gatech.edu>
+Date: Wed, 10 Jun 2009 04:11:31 -0400
+From: David Ward <david.ward@gatech.edu>
 MIME-Version: 1.0
-To: Erik de Castro Lopo <erik@bcode.com>
+To: Steven Toth <stoth@kernellabs.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
 CC: linux-media@vger.kernel.org
-Subject: Re: Creating a V4L driver for a USB camera
-References: <20090603141350.04cde59b.erik@bcode.com>
-In-Reply-To: <20090603141350.04cde59b.erik@bcode.com>
+Subject: Re: cx18, s5h1409: chronic bit errors, only under Linux
+References: <4A2CE866.4010602@gatech.edu> <4A2D4778.4090505@gatech.edu> <4A2D7277.7080400@kernellabs.com> <829197380906081336n48d6090bmc4f92692a5496cd6@mail.gmail.com> <4A2E6FDD.5000602@kernellabs.com> <829197380906090723t434eef6dje1eb8a781babd5c7@mail.gmail.com> <4A2E70A3.7070002@kernellabs.com> <4A2EAF56.2090508@gatech.edu> <829197380906091155u43319c82i548a9f08928d3826@mail.gmail.com> <4A2EB233.3080800@kernellabs.com> <829197380906091207s19df864cl50fd14d57abb1dd4@mail.gmail.com> <4A2EB75A.4070409@kernellabs.com>
+In-Reply-To: <4A2EB75A.4070409@kernellabs.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-On 06/03/2009 06:13 AM, Erik de Castro Lopo wrote:
-> Hi all,
+On 06/09/2009 03:26 PM, Steven Toth wrote:
+> 30db for the top end of ATSC sounds about right.
 >
-> I'm a senior software engineer [0] with a small startup. Our product
-> is Linux based and makes use of a 3M pixel camera. Unfortunately, the
-> camera we have been using for the last 3 years is no longer being
-> produced.
+> David, when you ran the windows signal monitor - did it claim QAM64 or 
+> 256 when it was reporting 30db?
+
+Steven and Devin,
+
+All the digital signals are 256 QAM.
+
+> 39 is very good, exceptional.
 >
-> We have found two candidate replacement cameras, one with a binary
-> only driver and user space library and one with a windows driver
-> but no Linux driver.
+> And did they do as I suggested, which is measure db across the high 
+> channels? ... and ideally against your problematic channel?
 >
-> My questions:
->
->   - How difficult is it to create a GPL V4L driver for a USB camera
->     by snooping the USB traffic of the device when connected to
->     a windows machine? The intention is to merge this work into
->     the V4L mainline and ultimately the kernel.
->
+> I assume not.
 
-That depends mainly on the format of the image data by the cam,
-if the cam sends raw bayer data, or raw yuv / rgb then this is doable,
-if it uses plain JPEG it is also doable. If it uses some custom
-compression then you need a wizzkid to crack the code. I've tried
-this myself, and I failed, you really need someone with the right
-mindset to reverse engineer a compression algorithm. Merely being
-a good programmer is not enough.
+Comcast checked the outlet on channels 2 (41 dB) and 83 (39 dB).  I 
+looked afterwards and saw that the first of those is analog programming, 
+but the second just appears as analog noise on my TV set. (??)  I asked 
+them to check a specific ATSC channel, but it seems that their meter was 
+fixed to those two frequencies, which doesn't really help.  The ATSC 
+rebroadcasts by Comcast are on high frequencies; the program I am 
+testing primarily is on channel 79 (tunes at 555 MHz).
 
->   - How much work is involved in the above for someone experienced
->     in writing V4L drivers?
+Under Windows I'm now seeing 34.5-34.8 dB for lower frequency QAM, 
+32.5-32.7 dB for higher frequency QAM, and about 30.5 dB for ATSC.  
+Under Linux with azap, the corresponding BER/UNC values are 0x0140, 
+0x0134, and 0x0132.  I'm not exactly sure what numbers I should be going 
+by here...again, wish I had my own meter.
 
-This can vary wildly, assuming the video data format is a known one,
-a wild estimate would be that this takes 2 fulltime weeks (with hands
-on hardware access). But it could be that it takes much longer if
-somehow the cam is strange (or worse, like buggy).
+I admit that I ruled out the idea of RF issues too soon, which I really 
+should know better than.  After reading the thread at 
+http://forums.gbpvr.com/showthread.php?t=36049 I'm now realizing why 
+reception on the TV and tuner card isn't going to be equal, due to 
+limited size and shielding of tuner circuitry on a PCI form factor card 
+vs. on a TV set.  Makes sense.
 
->   - Are there people involved with the V4L project that would be
->     willing to undertake this project under contract?
->
+Still, I am continuing to see uncorrectable bit errors at the same rate 
+as before under Linux, while Windows sees errors but corrects them.  I 
+would think that both drivers should be receiving identical streams of 
+data from the chipset, and should be able to process them the same way?  
+That's what is confusing me.
 
-Your welcome to send me a couple of cams, that is usually all the
-payment I expect, I also don't make any promises (I do this on top
-of my dayjob). But first things first, what are the usb-id's of
-the cams, can you send me (offlist) the windows drivers ? Chances are
-the chipset used is already supported.
+Ideally I would like to have access to a lot more equipment to control 
+all the variables and make it easier to reproduce what I am seeing...but 
+I don't here...
 
-Regards,
+Or do you guys think that this is still primarily an RF problem?  I 
+don't know what else I could do about that though.  Since the SNR did 
+not improve when I hooked the tuner card directly into the cable input 
+from the street, I'm concerned that putting an amplifier would not help 
+and could just make things worse.  And clearly Comcast now considers me 
+to be within their quality thresholds.
 
-Hans
+I really appreciate your help and patience with me, especially to the 
+extent that this is going outside the realm of DVB drivers.
+
+David
