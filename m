@@ -1,79 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58293 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753862AbZFPT6u convert rfc822-to-8bit (ORCPT
+Received: from mail8.sea5.speakeasy.net ([69.17.117.10]:47784 "EHLO
+	mail8.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752484AbZFJVjT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2009 15:58:50 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5GJwmmw007015
-	for <linux-media@vger.kernel.org>; Tue, 16 Jun 2009 14:58:53 -0500
-Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
-	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id n5GJwlQ7016693
-	for <linux-media@vger.kernel.org>; Tue, 16 Jun 2009 14:58:47 -0500 (CDT)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id n5GJwlpD020190
-	for <linux-media@vger.kernel.org>; Tue, 16 Jun 2009 14:58:47 -0500 (CDT)
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 16 Jun 2009 14:58:46 -0500
-Subject: RE: USERPTR buffer exchange mechanism
-Message-ID: <A69FA2915331DC488A831521EAE36FE40139DF996A@dlee06.ent.ti.com>
-References: <A69FA2915331DC488A831521EAE36FE40139A09594@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE40139A09594@dlee06.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Wed, 10 Jun 2009 17:39:19 -0400
+Date: Wed, 10 Jun 2009 14:39:21 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: S_FMT vs. S_CROP
+In-Reply-To: <200906102323.43677.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.58.0906101438550.32713@shell2.speakeasy.net>
+References: <49CBB13F.7090609@hni.uni-paderborn.de> <49D46D2E.5090702@hni.uni-paderborn.de>
+ <Pine.LNX.4.64.0906101738140.4817@axis700.grange> <200906102323.43677.hverkuil@xs4all.nl>
 MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wed, 10 Jun 2009, Hans Verkuil wrote:
+> On Wednesday 10 June 2009 18:02:39 Guennadi Liakhovetski wrote:
+> > This question - how S_FMT and S_CROP affest image geometry - has been
+> > discussed at least twice before - that's only with my participation,
+> > don't know if and how often it has come up before. But the fact, that in
+> > two discussions we came up with different results seems to suggest, that
+> > this is not something trivially known by all except me.
+> >
+> > First time I asked this question in this thread
+> >
+> > http://www.mail-archive.com/linux-media@vger.kernel.org/msg00052.html
+> >
+> > and Mauro replied (see above thread for a complete reply):
+> >
+> > On Thu, 8 Jan 2009, Mauro Carvalho Chehab wrote:
+> > > On Wed, 7 Jan 2009 10:14:31 +0100 (CET)
+> > > Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> >
+> > [snip]
+> >
+> > > > For example on mt9t031
+> > > > binning and skipping are used for that. Whereas CROP uses the current
+> > > > scaling configuration and selects a sub-window, so, once you've done
+> > > > S_FMT to 320x240, a crop request for 640x480 might well fail.
+> > >
+> > > I also understand this way. You cannot crop with a resolution bigger
+> > > than what you've selected.
+> >
+> > (Let's call this statement M1:-))
+>
+> If I read the spec correctly, in particular section 1.11.1, then cropping
+> comes before scaling, so you can crop to 640x480 (S_CROP) and scale that to
+> 320x240 (S_FMT). S_FMT scales the cropped rectangle.
 
-Any suggestion here?
-
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-email: m-karicheri2@ti.com
-
->-----Original Message-----
->From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->owner@vger.kernel.org] On Behalf Of Karicheri, Muralidharan
->Sent: Friday, June 12, 2009 10:57 AM
->To: linux-media@vger.kernel.org
->Subject: USERPTR buffer exchange mechanism
->
->Hi,
->
->I would like to explore what level of support is available in the v4l
->buffer exchange mechanism for USERPTR buffer exchange.
->
->In our internal release, we had a hack to support this feature. We use
->contiguous buffers in our user ptr hack implementation. The buffers are
->allocated in a kernel module that export api to pass the physical address
->of the allocated buffer to the user application. In the v4l2 driver,
->USERPTR IO mechanism will be requested, and in QBUF, the ptr passed to the
->driver is the above physical address. One thing we observed was that even
->in this case, we had to use index in the buffer structure without which it
->doesn't work.
->
->Anyone has any insight into how to port this capability to the open source
->kernel v4l2 driver? In other words, can I use userptr IO mechanism and pass
->contigous buffer address like above? If so, Is there a driver example I can
->refer to port this to my vpfe capture driver?
->
->Thanks in advance.
->
->Murali Karicheri
->Software Design Engineer
->Texas Instruments Inc.
->Germantown, MD 20874
->email: m-karicheri2@ti.com
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+This is my understanding of how it's supposed to work as well.
