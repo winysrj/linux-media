@@ -1,47 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:44975 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753531AbZFTIVE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Jun 2009 04:21:04 -0400
-Message-ID: <4A3C9BAD.5010106@gmx.de>
-Date: Sat, 20 Jun 2009 10:19:57 +0200
-From: wk <handygewinnspiel@gmx.de>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1531 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757837AbZFJV2S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Jun 2009 17:28:18 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: m-karicheri2@ti.com
+Subject: Re: [PATCH 0/10 - v2] ARM: DaVinci: Video: DM355/DM6446 VPFE Capture driver
+Date: Wed, 10 Jun 2009 23:28:16 +0200
+Cc: linux-media@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com,
+	Muralidharan Karicheri <a0868495@dal.design.ti.com>
+References: <1244573204-20391-1-git-send-email-m-karicheri2@ti.com>
+In-Reply-To: <1244573204-20391-1-git-send-email-m-karicheri2@ti.com>
 MIME-Version: 1.0
-To: Edouard Lafargue <edouard@lafargue.name>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: ivtv && Radio Data System (RDS) - is there something 	planned/already
- available
-References: <4A3B7851.6080008@gmx.de> <200906191343.59596.hverkuil@xs4all.nl> <268161120906190505v4100f87eh68b8b9e774aa32e9@mail.gmail.com>
-In-Reply-To: <268161120906190505v4100f87eh68b8b9e774aa32e9@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906102328.16328.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Edouard Lafargue wrote:
-> On Fri, Jun 19, 2009 at 1:43 PM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
->   
->> On Friday 19 June 2009 13:36:49 wk wrote:
->>     
->>> Is there anything planned/ongoing to support Radio Data System (RDS)
->>> with ivtv supported cards?
->>> Would be quite helpful for analogue radio channel scanning and finding
->>> the matching channel names.
->>> Is there something out to be tested?
->>>       
->> As far as I know there are no ivtv-based cards with RDS functionality. If
->> you have one that can do RDS under Windows, then please let me know and I
->> can take a look.
->>     
+On Tuesday 09 June 2009 20:46:44 m-karicheri2@ti.com wrote:
+> From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
 >
->   A workaround can be to use a 10$ USB radio with RDS support and use
-> it as a secondary (silent) tuner for doing the scanning operations in
-> the background, so that you can have a fully up to date radio stations
-> list all the time without impacting the listening of your main radio
-> tuner - works very well!
+> VPFE Capture driver for DaVinci Media SOCs :- DM355 and DM6446
 >
->   
-Well, the idea was to integrate this into a channel scanning tool. So 
-this wouldnt be an option.
+> This is the version v2 of the patch series. This is the reworked
+> version of the driver based on comments received against the last
+> version of the patch.
 
-Winfried
+I'll be reviewing this Friday or Saturday.
+
+Regards,
+
+	Hans
+
+>
+> +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+> These patches add support for VPFE (Video Processing Front End) based
+> video capture on DM355 and DM6446 EVMs. For more details on the hardware
+> configuration and capabilities, please refer the vpfe_capture.c header.
+> This patch set consists of following:-
+>
+> Patch 1: VPFE Capture bridge driver
+> Patch 2: CCDC hw device header file
+> Patch 3: DM355 CCDC hw module
+> Patch 4: DM644x CCDC hw module
+> Patch 5: common types used across CCDC modules
+> Patch 6: Makefile and config files for the driver
+> Patch 7: DM355 platform and board setup
+> Patch 8: DM644x platform and board setup
+> Patch 9: Remove outdated driver files from davinci git tree
+> Patch 10: common vpss hw module for video drivers
+>
+> NOTE:
+>
+> Dependent on the TVP514x decoder driver patch for migrating the
+> driver to sub device model from Vaibhav Hiremath
+>
+> Following tests are performed.
+> 	1) Capture and display video (PAL & NTSC) from tvp5146 decoder.
+> 	   Displayed using fbdev device driver available on davinci git tree
+> 	2) Tested with driver built statically and dynamically
+>
+> Muralidhara Karicheri
+>
+> Reviewed By "Hans Verkuil".
+> Reviewed By "Laurent Pinchart".
+>
+> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
