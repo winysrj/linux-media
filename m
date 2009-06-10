@@ -1,22 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n5RA5UoN027543
-	for <video4linux-list@redhat.com>; Sat, 27 Jun 2009 06:05:30 -0400
-Received: from smtp3-g21.free.fr (smtp3-g21.free.fr [212.27.42.3])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n5RA5DY2022109
-	for <video4linux-list@redhat.com>; Sat, 27 Jun 2009 06:05:15 -0400
-Date: Sat, 27 Jun 2009 12:05:03 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: eric.paturage@orange.fr
-Message-ID: <20090627120503.2fe8362e@free.fr>
-In-Reply-To: <200906270947.n5R9lwG04574@neptune.localwarp.net>
-References: <200906270947.n5R9lwG04574@neptune.localwarp.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: video4linux-list@redhat.com
-Subject: Re: STV06xx and 046d:0840 "Logitech, Inc. QuickCam Express" /
- "Dexxa cam" (not working)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n5A8OjRD009983
+	for <video4linux-list@redhat.com>; Wed, 10 Jun 2009 04:24:45 -0400
+Received: from smtp809.mail.ird.yahoo.com (smtp809.mail.ird.yahoo.com
+	[217.146.188.69])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n5A8OUIi011878
+	for <video4linux-list@redhat.com>; Wed, 10 Jun 2009 04:24:30 -0400
+From: "Peter Marshall" <peter.marshall@ergiton.co.uk>
+To: "V4L Mailing List" <video4linux-list@redhat.com>
+Date: Wed, 10 Jun 2009 09:22:35 +0100
+Message-ID: <000c01c9e9a4$9cb9f230$d62dd690$@marshall@ergiton.co.uk>
+MIME-Version: 1.0
+Content-Language: en-gb
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Subject: Can I use the Hauppauge WinTV-HVR-4000 with MythBuntu 9.04?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,40 +27,27 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Sat, 27 Jun 2009 11:47:36 +0200 (CEST)
-eric.paturage@orange.fr wrote:
+Hi V4L dlist,
 
-> Hello 
+I am new to both Linux and Myth TV, but have a technical background (both
+hardware and software) and am willing to learn!
 
-Hello Eric,
+I am setting up a MythBuntu system (hardware based on LXF117 article) and am
+now selecting TV card(s).
 
-You should not use this list. The right one for Linux media is:
-	linux-media@vger.kernel.org
+ 
 
-> I am trying to get my Dexxa cam to work with the "new" driver
-> STV06xx . no success so far ...
-> the tests here, have been done with the version of v4l that comme
-> with 2.6.29.4 i get the same with 2.6.30  . i have also tried the v4l
-> "mercurial" from a few days ago . ---->same it does not work. 
-	[snip]
-> Are  there any tests or further debug i can do , to help find out
-> what is the problem with this driver ? 
-> according to a post from Hans de Goede in January , Camera with
-> HDCS-1000/1100 sensor might or might not work (further testing
-> needed . I have a feeling that timing issues are involved , as i get
-> a garbage picture with debug on , and a time-out without debug ...
+>From my searches, I think I can use the WinTV-HVR-4000 card, but can anyone
+confirm they have got it working?
 
-You give here the result of an old version (2.6.29). For such problems,
-you should always use the last mercurial version from LinuxTv.
+Can I use more than 1 input or do I need 2 cards to record two programmes at
+the same time?
 
-The maintainer of this subdriver is Erik Andrén (see Cc:). Erik, may
-you help Eric?
+ 
 
-Regards.
+Thanks in advance for any responses,
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Peter
 
 --
 video4linux-list mailing list
