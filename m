@@ -1,91 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.hauppauge.com ([167.206.143.4]:4308 "EHLO
-	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752859AbZF3VvC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jun 2009 17:51:02 -0400
-Message-ID: <4A4A88C3.9020608@linuxtv.org>
-Date: Tue, 30 Jun 2009 17:50:59 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:38061 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750878AbZFJAG5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Jun 2009 20:06:57 -0400
+Message-ID: <4A2EF922.5040102@iki.fi>
+Date: Wed, 10 Jun 2009 03:06:58 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: gczerw@comcast.net
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [linux-dvb] Hauppauge HVR-1800 not working at all
-References: <200906301301.04604.gczerw@comcast.net> <200906301548.02518.gczerw@comcast.net> <829197380906301256w2f0a701ak2332d9ec2cfae35e@mail.gmail.com> <200906301749.05168.gczerw@comcast.net>
-In-Reply-To: <200906301749.05168.gczerw@comcast.net>
+To: Jan Nikitenko <jan.nikitenko@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] af9015: fix stack corruption bug
+References: <c4bc83220906091531h20677733kd993ed50c0bc74ec@mail.gmail.com>
+In-Reply-To: <c4bc83220906091531h20677733kd993ed50c0bc74ec@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-George Czerw wrote:
-> On Tuesday 30 June 2009 15:56:08 Devin Heitmueller wrote:
->   
->> On Tue, Jun 30, 2009 at 3:48 PM, George Czerw<gczerw@comcast.net> wrote:
->>     
->>> Devin, thanks for the reply.
->>>
->>> Lsmod showed that "tuner" was NOT loaded (wonder why?), a "modprobe
->>> tuner" took care of that and now the HVR-1800 is displaying video
->>> perfectly and the tuning function works.  I guess that I'll have to add
->>> "tuner" into modprobe.preload.d????  Now if only I can get the sound
->>> functioning along with the video!
->>>
->>> George
->>>       
->> Admittedly, I don't know why you would have to load the tuner module
->> manually on the HVR-1800.  I haven't had to do this on other products?
->>
->> If you are doing raw video capture, then you need to manually tell
->> applications where to find the ALSA device that provides the audio.
->> If you're capturing via the MPEG encoder, then the audio will be
->> embedded in the stream.
->>
->> Devin
->>     
->
-> I don't understand why the audio/mpeg ports of the HVR-1800 don't show up in 
-> output of lspci:
->
-> 03:00.0 Multimedia video controller: Conexant Systems, Inc. Device 8880 (rev 
-> 0f)
->         Subsystem: Hauppauge computer works Inc. Device 7801                    
->         Flags: bus master, fast devsel, latency 0, IRQ 17                       
->         Memory at f9c00000 (64-bit, non-prefetchable) [size=2M]                 
->         Capabilities: [40] Express Endpoint, MSI 00                             
->         Capabilities: [80] Power Management version 2                           
->         Capabilities: [90] Vital Product Data                                   
->         Capabilities: [a0] MSI: Mask- 64bit+ Count=1/1 Enable-                  
->         Capabilities: [100] Advanced Error Reporting                            
->         Capabilities: [200] Virtual Channel <?>                                 
->         Kernel driver in use: cx23885                                           
->         Kernel modules: cx23885
->
->
-> even though the dmesg output clearly shows this:
->
-> tveeprom 0-0050: decoder processor is CX23887 (idx 37) 
-> tveeprom 0-0050: audio processor is CX23887 (idx 42)
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
+On 06/10/2009 01:31 AM, Jan Nikitenko wrote:
+> This patch fixes stack corruption bug present in af9015_eeprom_dump():
+> the buffer buf is one byte smaller than required - there is 4 chars
+> for address prefix, 16*3 chars for dump of 16 eeprom bytes per line
+> and 1 byte for zero ending the string required, i.e. 53 bytes, but
+> only 52 are provided.
+> The one byte missing in stack based buffer buf causes following oops
+> on MIPS little endian platform, because i2c_adap pointer in
+> af9015_af9013_frontend_attach() is corrupted by inlined function
+> af9015_eeprom_dump():
 
+> Signed-off-by: Jan Nikitenko<jan.nikitenko@gmail.com>
 
+Acked-by: Antti Palosaari <crope@iki.fi>
 
-
-Please try this:
-
-When you have tvtime open and running with video working already, do:
-
-mplayer /dev/video1
-
-(assuming that tvtime is open on video0)
-
-Then, you'll get mplayer complete with both audio and video.
-
--Mike
+regards
+Antti
+-- 
+http://palosaari.fi/
