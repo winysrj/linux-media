@@ -1,70 +1,315 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f213.google.com ([209.85.218.213]:53910 "EHLO
-	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752822AbZF2Vnf (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4160 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756740AbZFKGJX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2009 17:43:35 -0400
-Received: by bwz9 with SMTP id 9so3544299bwz.37
-        for <linux-media@vger.kernel.org>; Mon, 29 Jun 2009 14:43:37 -0700 (PDT)
-MIME-Version: 1.0
-Date: Mon, 29 Jun 2009 22:43:36 +0100
-Message-ID: <9057c8440906291443y5fb2cbb7ke72a988737169ca4@mail.gmail.com>
-Subject: Compro Videomate S350 - new version?
-From: Richard Smith <theras@gmail.com>
+	Thu, 11 Jun 2009 02:09:23 -0400
+Received: from tschai.lan (cm-84.208.85.194.getinternet.no [84.208.85.194])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id n5B69N5I042410
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 11 Jun 2009 08:09:24 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: RFC: PATCH: add new s_config subdev ops and v4l2_i2c_new_subdev_cfg/board calls
+Date: Thu, 11 Jun 2009 08:09:22 +0200
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906110809.23148.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-I bought a Compro Videomate S350 DVB-S card a few weeks ago as it was
-cheap and looked like it might work with Linux using Jan Louw's
-patches.  However, my S350 seems to be slightly different - it uses a
-SAA7135 chip so isn't correctly identified.  Changing the PCI Vendor
-ID to 0x7133 in the S350 patch fixed this, but unfortunately this is
-the same PCI Vendor / Device / subvendor / subdevice as the Compro
-Videomate T750 - an entirely different, DVB-T board.  I'm not sure how
-these should be told apart - maybe using eeprom content?
-Anyway, once this was updated the card still didn't work.  I realised
-there was no voltage on the RF input to power the LNB, so by trial and
-error found a GPIO bit that appears to turn LNB voltage on and off.
-Instead of 0x8000 used in Jan's patch, use 0xC000 for GPIO setup.
-With this change the card appears to work, at least receiving DVB-S.
-I haven't tested the IR remote control or analogue inputs.
-I hope this info is of some use to somebody, and that it's considered
-if the S350 support gets added to v4l-dvb tree.  I'm not sure if my
-card is rare, or a sign of things to come.
+As per Mauro's request here is the patch adding the new core functionality.
 
-Here is the kernel log after modifying the driver:
+To quote from my original pull request:
 
-saa7133[0]: found at 0000:04:09.0, rev: 209, irq: 5, latency: 64,
-mmio: 0xfaafe800
-saa7133[0]: subsystem: 185b:c900, board: Compro VideoMate S350/300
-[card=169,autodetected]
-saa7133[0]: board init: gpio is 843f00
-saa7133[0]: i2c eeprom 00: 5b 18 00 c9 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
-saa7133[0]: i2c eeprom 10: 00 ff 86 0f ff 20 ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 03 01 08 ff 00 87 ff ff ff ff
-saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 40: ff d6 00 c0 86 1c 02 01 02 ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff cb
-saa7133[0]: i2c eeprom 60: 35 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 70: 00 00 00 01 40 2a ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: registered device video0 [v4l2]
-saa7133[0]: registered device vbi0
-dvb_init() allocating 1 frontend
-DVB: registering new adapter (saa7133[0])
-DVB: registering adapter 0 frontend 0 (Zarlink ZL10313 DVB-S)...
+"This time I've only added new functions and left the existing ones in place.
+I did add a bit of code to the existing v4l2_i2c_new_(probed_)subdev 
+functions to call the new s_config op if it is available. Existing subdev 
+drivers never set this new op, so this code will not effect current 
+behavior. But for new drivers that do set s_config it is important that it 
+is called no matter what flavor of these functions is used.
 
-Regards,
+At the end of the 2.6.31 cycle we can replace the current 
+v4l2_i2c_new_(probed_)subdev calls with the new one I had in my earlier 
+patches."
 
-Richard Smith.
+Comments are welcome.
+
+	Hans
+
+# HG changeset patch
+# User Hans Verkuil <hverkuil@xs4all.nl>
+# Date 1244578353 -7200
+# Node ID d9d3f747395109de316eadeed1d1d52b8440f84b
+# Parent  ed3781a79c734f35b800d0b55d276cd62d793141
+v4l2: add new s_config subdev ops and v4l2_i2c_new_subdev_cfg/board calls
+
+From: Hans Verkuil <hverkuil@xs4all.nl>
+
+Add a new s_config core ops call: this is called with the irq and platform
+data to be used to initialize the subdev.
+
+Added new v4l2_i2c_new_subdev_cfg and v4l2_i2c_new_subdev_board calls
+that allows you to pass these new arguments.
+
+The existing v4l2_i2c_new_subdev functions were modified to also call
+s_config.
+
+In the future the existing v4l2_i2c_new_subdev functions will be replaced
+by a single v4l2_i2c_new_subdev function similar to v4l2_i2c_new_subdev_cfg
+but without the irq and platform_data arguments.
+
+Priority: normal
+
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+
+diff -r ed3781a79c73 -r d9d3f7473951 linux/drivers/media/video/v4l2-common.c
+--- a/linux/drivers/media/video/v4l2-common.c	Sat Jun 06 16:31:34 2009 +0400
++++ b/linux/drivers/media/video/v4l2-common.c	Tue Jun 09 22:12:33 2009 +0200
+@@ -868,6 +868,17 @@
+ 	/* Decrease the module use count to match the first try_module_get. */
+ 	module_put(client->driver->driver.owner);
+ 
++	if (sd) {
++		/* We return errors from v4l2_subdev_call only if we have the
++		   callback as the .s_config is not mandatory */
++		int err = v4l2_subdev_call(sd, core, s_config, 0, NULL);
++
++		if (err && err != -ENOIOCTLCMD) {
++			v4l2_device_unregister_subdev(sd);
++			sd = NULL;
++		}
++	}
++
+ error:
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
+ 	/* If we have a client but no subdev, then something went wrong and
+@@ -931,6 +942,17 @@
+ 	/* Decrease the module use count to match the first try_module_get. */
+ 	module_put(client->driver->driver.owner);
+ 
++	if (sd) {
++		/* We return errors from v4l2_subdev_call only if we have the
++		   callback as the .s_config is not mandatory */
++		int err = v4l2_subdev_call(sd, core, s_config, 0, NULL);
++
++		if (err && err != -ENOIOCTLCMD) {
++			v4l2_device_unregister_subdev(sd);
++			sd = NULL;
++		}
++	}
++
+ error:
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
+ 	/* If we have a client but no subdev, then something went wrong and
+@@ -952,6 +974,150 @@
+ 			module_name, client_type, addrs);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_i2c_new_probed_subdev_addr);
++
++/* Load an i2c sub-device. */
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
++struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
++		struct i2c_adapter *adapter, const char *module_name,
++		struct i2c_board_info *info, const unsigned short *probe_addrs)
++{
++	struct v4l2_subdev *sd = NULL;
++	struct i2c_client *client;
++
++	BUG_ON(!v4l2_dev);
++
++	if (module_name)
++		request_module(module_name);
++
++	/* Create the i2c client */
++	if (info->addr == 0 && probe_addrs)
++		client = i2c_new_probed_device(adapter, info, probe_addrs);
++	else
++		client = i2c_new_device(adapter, info);
++
++	/* Note: by loading the module first we are certain that c->driver
++	   will be set if the driver was found. If the module was not loaded
++	   first, then the i2c core tries to delay-load the module for us,
++	   and then c->driver is still NULL until the module is finally
++	   loaded. This delay-load mechanism doesn't work if other drivers
++	   want to use the i2c device, so explicitly loading the module
++	   is the best alternative. */
++	if (client == NULL || client->driver == NULL)
++		goto error;
++
++	/* Lock the module so we can safely get the v4l2_subdev pointer */
++	if (!try_module_get(client->driver->driver.owner))
++		goto error;
++	sd = i2c_get_clientdata(client);
++
++	/* Register with the v4l2_device which increases the module's
++	   use count as well. */
++	if (v4l2_device_register_subdev(v4l2_dev, sd))
++		sd = NULL;
++	/* Decrease the module use count to match the first try_module_get. */
++	module_put(client->driver->driver.owner);
++
++	if (sd) {
++		/* We return errors from v4l2_subdev_call only if we have the
++		   callback as the .s_config is not mandatory */
++		int err = v4l2_subdev_call(sd, core, s_config,
++				info->irq, info->platform_data);
++
++		if (err && err != -ENOIOCTLCMD) {
++			v4l2_device_unregister_subdev(sd);
++			sd = NULL;
++		}
++	}
++
++error:
++	/* If we have a client but no subdev, then something went wrong and
++	   we must unregister the client. */
++	if (client && sd == NULL)
++		i2c_unregister_device(client);
++	return sd;
++}
++EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev_board);
++
++struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device *v4l2_dev,
++		struct i2c_adapter *adapter,
++		const char *module_name, const char *client_type,
++		int irq, void *platform_data,
++		u8 addr, const unsigned short *probe_addrs)
++{
++	struct i2c_board_info info;
++
++	/* Setup the i2c board info with the device type and
++	   the device address. */
++	memset(&info, 0, sizeof(info));
++	strlcpy(info.type, client_type, sizeof(info.type));
++	info.addr = addr;
++	info.irq = irq;
++	info.platform_data = platform_data;
++
++	return v4l2_i2c_new_subdev_board(v4l2_dev, adapter, module_name,
++			&info, probe_addrs);
++}
++EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev_cfg);
++#else
++struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device *v4l2_dev,
++		struct i2c_adapter *adapter,
++		const char *module_name, const char *client_type,
++		int irq, void *platform_data,
++		u8 addr, const unsigned short *probe_addrs)
++{
++	struct v4l2_subdev *sd = NULL;
++	struct i2c_client *client;
++
++	BUG_ON(!v4l2_dev);
++
++	if (module_name)
++		request_module(module_name);
++
++	if (addr == 0 && probe_addrs) {
++		/* Legacy code: loading the module should automatically
++		   probe and create the i2c_client on the adapter.
++		   Try to find the client by walking the adapter's client list
++		   for each of the possible addresses. */
++		while (!client && *probe_addrs != I2C_CLIENT_END)
++			client = v4l2_i2c_legacy_find_client(adapter, *probe_addrs++);
++	} else {
++		/* Legacy code: loading the module automatically probes and
++		   creates the i2c_client on the adapter. Try to find the
++		   client by walking the adapter's client list. */
++		client = v4l2_i2c_legacy_find_client(adapter, addr);
++	}
++	if (client == NULL || client->driver == NULL)
++		goto error;
++
++	/* Lock the module so we can safely get the v4l2_subdev pointer */
++	if (!try_module_get(client->driver->driver.owner))
++		goto error;
++	sd = i2c_get_clientdata(client);
++
++	/* Register with the v4l2_device which increases the module's
++	   use count as well. */
++	if (v4l2_device_register_subdev(v4l2_dev, sd))
++		sd = NULL;
++	/* Decrease the module use count to match the first try_module_get. */
++	module_put(client->driver->driver.owner);
++
++	if (sd) {
++		/* We return errors from v4l2_subdev_call only if we have the
++		   callback as the .s_config is not mandatory */
++		int err = v4l2_subdev_call(sd, core, s_config,
++				irq, platform_data);
++
++		if (err && err != -ENOIOCTLCMD) {
++			v4l2_device_unregister_subdev(sd);
++			sd = NULL;
++		}
++	}
++
++error:
++	return sd;
++}
++EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev_cfg);
++#endif
+ 
+ /* Return i2c client address of v4l2_subdev. */
+ unsigned short v4l2_i2c_subdev_addr(struct v4l2_subdev *sd)
+diff -r ed3781a79c73 -r d9d3f7473951 linux/include/media/v4l2-common.h
+--- a/linux/include/media/v4l2-common.h	Sat Jun 06 16:31:34 2009 +0400
++++ b/linux/include/media/v4l2-common.h	Tue Jun 09 22:12:33 2009 +0200
+@@ -158,6 +158,24 @@
+ struct v4l2_subdev *v4l2_i2c_new_probed_subdev_addr(struct v4l2_device *v4l2_dev,
+ 		struct i2c_adapter *adapter,
+ 		const char *module_name, const char *client_type, u8 addr);
++
++/* Load an i2c module and return an initialized v4l2_subdev struct.
++   Only call request_module if module_name != NULL.
++   The client_type argument is the name of the chip that's on the adapter. */
++struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device *v4l2_dev,
++		struct i2c_adapter *adapter,
++		const char *module_name, const char *client_type,
++		int irq, void *platform_data,
++		u8 addr, const unsigned short *probe_addrs);
++
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
++struct i2c_board_info;
++
++struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
++		struct i2c_adapter *adapter, const char *module_name,
++		struct i2c_board_info *info, const unsigned short *probe_addrs);
++#endif
++
+ /* Initialize an v4l2_subdev with data from an i2c_client struct */
+ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+ 		const struct v4l2_subdev_ops *ops);
+diff -r ed3781a79c73 -r d9d3f7473951 linux/include/media/v4l2-subdev.h
+--- a/linux/include/media/v4l2-subdev.h	Sat Jun 06 16:31:34 2009 +0400
++++ b/linux/include/media/v4l2-subdev.h	Tue Jun 09 22:12:33 2009 +0200
+@@ -79,7 +79,11 @@
+    not yet implemented) since ops provide proper type-checking.
+  */
+ 
+-/* init: initialize the sensor registors to some sort of reasonable default
++/* s_config: if set, then it is always called by the v4l2_i2c_new_subdev*
++	functions after the v4l2_subdev was registered. It is used to pass
++	platform data to the subdev which can be used during initialization.
++
++   init: initialize the sensor registors to some sort of reasonable default
+ 	values. Do not use for new drivers and should be removed in existing
+ 	drivers.
+ 
+@@ -96,6 +100,7 @@
+ struct v4l2_subdev_core_ops {
+ 	int (*g_chip_ident)(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip);
+ 	int (*log_status)(struct v4l2_subdev *sd);
++	int (*s_config)(struct v4l2_subdev *sd, int irq, void *platform_data);
+ 	int (*init)(struct v4l2_subdev *sd, u32 val);
+ 	int (*load_fw)(struct v4l2_subdev *sd);
+ 	int (*reset)(struct v4l2_subdev *sd, u32 val);
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
