@@ -1,110 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ppsw-1.csi.cam.ac.uk ([131.111.8.131]:49209 "EHLO
-	ppsw-1.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755013AbZFRKTj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 06:19:39 -0400
-Message-ID: <4A3A14E4.2000301@cam.ac.uk>
-Date: Thu, 18 Jun 2009 10:20:20 +0000
-From: Jonathan Cameron <jic23@cam.ac.uk>
+Received: from mail.gmx.net ([213.165.64.20]:45564 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1756897AbZFKHMt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jun 2009 03:12:49 -0400
+Date: Thu, 11 Jun 2009 09:12:56 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Magnus Damm <magnus.damm@gmail.com>,
+	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Subject: [PATCH 3/4] soc-camera: add support for camera-host controls
+In-Reply-To: <Pine.LNX.4.64.0906101549160.4817@axis700.grange>
+Message-ID: <Pine.LNX.4.64.0906101604420.4817@axis700.grange>
+References: <Pine.LNX.4.64.0906101549160.4817@axis700.grange>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: OV7670: getting it working with soc-camera.
-References: <4A392E31.4050705@cam.ac.uk> <Pine.LNX.4.64.0906172022570.4218@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0906172022570.4218@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski wrote:
-> On Wed, 17 Jun 2009, Jonathan Cameron wrote:
-> 
->> This is purely for info of anyone else wanting to use the ov7670
->> with Guennadi's recent work on converted soc-camera to v4l2-subdevs.
->>
->> It may not be completely minimal, but it's letting me take pictures ;)
-> 
-> Cool, I like it! Not the pictures, but the fact that the required patch 
-> turned out to be so small. Of course, you understand this is not what 
-> we'll eventually commit, but, I think, this is a good start. In principle, 
-> if a device has all parameters fixed, there's no merit in trying to set 
-> them.
-Yup, my intention is to slowly remove elements as they become unnecessary
-(and push any that actually make sense to the mailing list).
+Until now soc-camera only supported client (sensor) controls. This patch
+enables camera-host drivers to implement their own controls too.
 
-> 
->> Couple of minor queries:
->>
->> Currently it is assumed that there is a means of telling the chip to
->> use particular bus params.  In the case of this one it doesn't support
->> anything other than 8 bit. Stuff may get added down the line, but
->> in meantime does anyone mind if we make icd->ops->set_bus_param
->> optional in soc-camera?
-> 
-> struct soc_camera_ops will disappear completely anyway, and we don't know 
-> yet what the v4l2-subdev counterpart will look like.
-> 
-Sure, I'll wait and see whether this question is relevant down the line.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/soc_camera.c |   24 ++++++++++++++++++++++++
+ include/media/soc_camera.h       |    4 ++++
+ 2 files changed, 28 insertions(+), 0 deletions(-)
 
-...
-
->> Or for that matter why the address is right shifted by
->> 1 in:
->>
->> v4l_info(client, "chip found @ 0x%02x (%s)\n",
->> 	 client->addr << 1, client->adapter->name);
->>
->> Admittedly the data sheet uses an 'unusual' convention for the
->> address (separate write and read address which correspond to
->> a single address of 0x21 with the relevant write bit set as
->> appropriate).
-> 
-> That's exactly the reason, I think. Many (or most?) datasheets specify i2c 
-> addresses which are a double of Linux i2c address. IIRC this is just a 
-> Linux convention to use the shifted address.
-
-Um. I'm not sure I agree with this.  The convention when specifying the
-address in registration is to use correct one (without the write bit)
-and based on a lot of non video chips I've come across is about 50 / 50
-on how they document it (with many using a delightful and random mix of the two)
-If you are going to have a registration scheme that requires the board code
-to specify the address as 0x21 then to my mind having the driver declare
-it as being on 0x42 seems rather odd and misleading.
-
-This is particularly true here where the driver is using smbus calls as
-that specification is very clear indeed on the fact that addresses are 7 bit.
-Admittedly this chip uses the sccb bus protocol that just 'happens'
-to bare a startling resemblance to smbus / i2c.
-
-Still this isn't exactly a crucial element of the driver!
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index 824c68b..8e987ca 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -633,6 +633,7 @@ static int soc_camera_queryctrl(struct file *file, void *priv,
+ {
+ 	struct soc_camera_file *icf = file->private_data;
+ 	struct soc_camera_device *icd = icf->icd;
++	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+ 	int i;
  
->> As ever any comments welcome. Thanks to Guennadi Liakhovetski
->> for his soc-camera work and Hans Verkuil for conversion of the
->> ov7670 to soc-dev.
->>
->> Tested against a merge of todays v4l-next tree and Linus' current
->> with the minor pxa-camera bug I posted earlier fixed and Guennadi's
->> extensive patch set applied (this requires a few hand merges, but
->> nothing too nasty).
-> 
-> Good to know.
-> 
-> A couple of comments:
-> 
+ 	WARN_ON(priv != file->private_data);
+@@ -640,6 +641,15 @@ static int soc_camera_queryctrl(struct file *file, void *priv,
+ 	if (!qc->id)
+ 		return -EINVAL;
+ 
++	/* First check host controls */
++	for (i = 0; i < ici->ops->num_controls; i++)
++		if (qc->id == ici->ops->controls[i].id) {
++			memcpy(qc, &(ici->ops->controls[i]),
++				sizeof(*qc));
++			return 0;
++		}
++
++	/* Then device controls */
+ 	for (i = 0; i < icd->ops->num_controls; i++)
+ 		if (qc->id == icd->ops->controls[i].id) {
+ 			memcpy(qc, &(icd->ops->controls[i]),
+@@ -656,6 +666,7 @@ static int soc_camera_g_ctrl(struct file *file, void *priv,
+ 	struct soc_camera_file *icf = file->private_data;
+ 	struct soc_camera_device *icd = icf->icd;
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++	int ret;
+ 
+ 	WARN_ON(priv != file->private_data);
+ 
+@@ -672,6 +683,12 @@ static int soc_camera_g_ctrl(struct file *file, void *priv,
+ 		return 0;
+ 	}
+ 
++	if (ici->ops->get_ctrl) {
++		ret = ici->ops->get_ctrl(icd, ctrl);
++		if (ret != -ENOIOCTLCMD)
++			return ret;
++	}
++
+ 	return v4l2_device_call_until_err(&ici->v4l2_dev, (__u32)icd, core, g_ctrl, ctrl);
+ }
+ 
+@@ -681,9 +698,16 @@ static int soc_camera_s_ctrl(struct file *file, void *priv,
+ 	struct soc_camera_file *icf = file->private_data;
+ 	struct soc_camera_device *icd = icf->icd;
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
++	int ret;
+ 
+ 	WARN_ON(priv != file->private_data);
+ 
++	if (ici->ops->set_ctrl) {
++		ret = ici->ops->set_ctrl(icd, ctrl);
++		if (ret != -ENOIOCTLCMD)
++			return ret;
++	}
++
+ 	return v4l2_device_call_until_err(&ici->v4l2_dev, (__u32)icd, core, s_ctrl, ctrl);
+ }
+ 
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index 3bc5b6b..2d116bb 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -83,7 +83,11 @@ struct soc_camera_host_ops {
+ 	int (*reqbufs)(struct soc_camera_file *, struct v4l2_requestbuffers *);
+ 	int (*querycap)(struct soc_camera_host *, struct v4l2_capability *);
+ 	int (*set_bus_param)(struct soc_camera_device *, __u32);
++	int (*get_ctrl)(struct soc_camera_device *, struct v4l2_control *);
++	int (*set_ctrl)(struct soc_camera_device *, struct v4l2_control *);
+ 	unsigned int (*poll)(struct file *, poll_table *);
++	const struct v4l2_queryctrl *controls;
++	int num_controls;
+ };
+ 
+ #define SOCAM_SENSOR_INVERT_PCLK	(1 << 0)
+-- 
+1.6.2.4
 
-...
->> +#endif
-> 
-> ...and this switching. All this should be done in struct soc_camera_link 
-> .power() and .reset() methods in your platform code.
-Ah, I'd missed those methods, thanks!
-
-You are quite right about the i2c_device_table as well, not sure what
-got into me there.
-
-Thanks,
-
-Jonathan
