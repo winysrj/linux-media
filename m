@@ -1,134 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f181.google.com ([209.85.216.181]:41621 "EHLO
-	mail-px0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754346AbZFGBWD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Jun 2009 21:22:03 -0400
-Received: by pxi11 with SMTP id 11so270063pxi.33
-        for <linux-media@vger.kernel.org>; Sat, 06 Jun 2009 18:22:04 -0700 (PDT)
-Subject: Re: [PATCH]videobuf-core.c: add pointer check
-From: "Figo.zhang" <figo1802@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <1244337379.3355.1.camel@myhost>
-References: <1244337379.3355.1.camel@myhost>
-Content-Type: text/plain
-Date: Sun, 07 Jun 2009 09:21:29 +0800
-Message-Id: <1244337689.3355.6.camel@myhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-pz0-f192.google.com ([209.85.222.192]:42370 "EHLO
+	mail-pz0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756875AbZFKLKM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jun 2009 07:10:12 -0400
+Received: by pzk30 with SMTP id 30so86910pzk.33
+        for <linux-media@vger.kernel.org>; Thu, 11 Jun 2009 04:10:14 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.0906101604420.4817@axis700.grange>
+References: <Pine.LNX.4.64.0906101549160.4817@axis700.grange>
+	 <Pine.LNX.4.64.0906101604420.4817@axis700.grange>
+Date: Thu, 11 Jun 2009 20:10:14 +0900
+Message-ID: <5e9665e10906110410w7893e016g6e35742c9a55889d@mail.gmail.com>
+Subject: Re: [PATCH 3/4] soc-camera: add support for camera-host controls
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2009-06-07 at 09:16 +0800, Figo.zhang wrote:
-> On Wed, 2009-06-03 at 10:01 +0800, Figo.zhang wrote:
-> > add poiter check for videobuf_queue_core_init().
-> > 
-> > any guys who write a v4l driver, pass a NULL pointer or a non-inintial
-> > pointer to the first parameter such as videobuf_queue_sg_init() , it 
-> > would be crashed.
-> > 
-> > Signed-off-by: Figo.zhang <figo1802@xxxxxxxxx>
-> > --- 
-> > drivers/media/video/videobuf-core.c |    1 +
-> >  1 files changed, 1 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
-> > index b7b0584..5f41fd9 100644
-> > --- a/drivers/media/video/videobuf-core.c
-> > +++ b/drivers/media/video/videobuf-core.c
-> > @@ -118,6 +118,7 @@ void videobuf_queue_core_init(struct videobuf_queue *q,
-> >  			 void *priv,
-> >  			 struct videobuf_qtype_ops *int_ops)
-> >  {
-> > +	BUG_ON(!q);
-> >  	memset(q, 0, sizeof(*q));
-> >  	q->irqlock   = irqlock;
-> >  	q->dev       = dev;
-> > 
-> 
-> i do a test driver for it, the main code like this.
-> 
-> struct mydev_dev{
-> 	struct video_device *video_dev;
-> 	...
-> 	struct videobuf_queue      *cap;
-> };
-> 
-> 
-> 
-> static int video_open(struct inode *inode, struct file *file)
-> {
-> 	...
-> 	videobuf_queue_dma_contig_init(dev->cap, &video_qops,
-> 				&dev->pci->dev, &dev->slock,
-> 				V4L2_BUF_TYPE_VIDEO_CAPTURE,
-> 				V4L2_FIELD_ALTERNATE,
-> 				sizeof(struct mydev_buf),
-> 				dev);
-> 
-> 	...
-> }
-> 
-> i pass a non-initial pointer for the first argment, so it crashed.
-> 
-> 
-> 
-> BUG: unable to handle kernel NULL pointer dereference at 00000000
-> IP: [<f8d6bd67>] :videobuf_core:videobuf_queue_core_init+0x1b/0xbf
-> *pde = 7ed5a067 
-> Oops: 0002 [#1] SMP 
-> Modules linked in: mydev_drv tvp5160_vd videobuf_dma_contig videobuf_dma_sg
->  videobuf_core videocodec videodev v4l2_int_device v4l2_common v4l1_compat
->  compat_ioctl32 fuse i915 drm sco bridge stp bnep l2cap bluetooth sunrpc ipv6
-> cpufreq_ondemand acpi_cpufreq dm_multipath uinput snd_hda_intel snd_seq_dummy 
-> snd_seq_oss snd_seq_midi_event snd_seq snd_seq_device ppdev snd_pcm_oss parport_pc
->  snd_mixer_oss snd_pcm snd_timer snd_page_alloc snd_hwdep parport snd i2c_i801 
-> i2c_core pcspkr soundcore iTCO_wdt iTCO_vendor_support r8169 mii ftdi_sio usbserial
->  ata_generic pata_acpi [last unloaded: microcode]
-> 
-> Pid: 4053, comm: capture Not tainted (2.6.27.5-117.fc10.i686 #1)
-> EIP: 0060:[<f8d6bd67>] EFLAGS: 00210246 CPU: 1
-> EIP is at videobuf_queue_core_init+0x1b/0xbf [videobuf_core]
-> EAX: 00000000 EBX: 00000000 ECX: 00000036 EDX: 00000036
-> ESI: f8e1e158 EDI: 00000000 EBP: f15f3e28 ESP: f15f3e18
->  DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
-> Process capture (pid: 4053, ti=f15f3000 task=f1550000 task.ti=f15f3000)
-> Stack: f790905c f5fd5224 f15d8840 f5811560 f15f3e48 f8e01163 f5fd5224 00000001 
->        00000007 0000006c f5fd5200 f8e0202c f15f3e70 f8e1b5a0 f5fd5224 00000001 
->        00000007 0000006c f5fd5200 f8e0faa4 00000000 f15d8840 f15f3e88 f8e0c195 
-> Call Trace:
->  [<f8e01163>] ? videobuf_queue_dma_contig_init+0x1c/0x21 [videobuf_dma_contig]
->  [<f8e1b5a0>] ? video_open+0x8b/0xb1 [kt2741drv]
->  [<f8e0c195>] ? video_open+0xc7/0x125 [videodev]
->  [<c0492767>] ? chrdev_open+0x12b/0x142
->  [<c048edd2>] ? __dentry_open+0x10e/0x1fc
->  [<c048ef47>] ? nameidata_to_filp+0x1f/0x33
->  [<c049263c>] ? chrdev_open+0x0/0x142
->  [<c0498a3c>] ? do_filp_open+0x31c/0x611
->  [<c048a971>] ? virt_to_head_page+0x22/0x2e
->  [<c041d8ba>] ? need_resched+0x18/0x22
->  [<c048ebf0>] ? do_sys_open+0x42/0xb7
->  [<c048eca7>] ? sys_open+0x1e/0x26
->  [<c0403c76>] ? syscall_call+0x7/0xb
->  [<c06a007b>] ? init_intel_cacheinfo+0x0/0x421
->  =======================
-> Code: d8 e8 69 ff ff ff 89 d8 e8 6d a9 93 c7 5b 5d c3 55 89 e5 57 89 c7 56 89
->  d6 53 ba 36 00 00 00 83 ec 04 89 c3 89 4d f0 31 c0 89 d1 <f3> ab 8b 45 08 8b
->  4d f0 89 b3 b8 00 00 00 89 43 10 8b 45 0c 89 
-> EIP: [<f8d6bd67>] videobuf_queue_core_init+0x1b/0xbf [videobuf_core] SS:ESP 0068:f15f3e18
-> ---[ end trace 4bfe52d17b82af8c ]---
-> 
-> so i think it need to add pointer checking for the first argment of videobuf_queue_core_init(),
-> the videobuf code would be more stronger and reliable.
-> 
+Hello Guennadi,
 
-hi, Mauro & Hans,
+It's a very interesting patch. Actually some camera interfaces support
+for various image effects and I was wondering how to use them in SoC
+camera subsystem.
 
-at this point, would you agree with me or would you like to give me some
-advice?
+But here is a question. Is it possible to make a choice with the same
+CID between icd and ici? I mean, if both of camera interface and
+camera device are supporting for same CID how can user select any of
+them to use? Sometimes, some image effects supported by camera
+interface are not good so I want to use the same effect supported by
+external camera ISP device.
 
-Best Regards,
+I think, it might be possible but I can't see how.
+Cheers,
 
-Figo.zhang
+Nate
 
+On Thu, Jun 11, 2009 at 4:12 PM, Guennadi
+Liakhovetski<g.liakhovetski@gmx.de> wrote:
+> Until now soc-camera only supported client (sensor) controls. This patch
+> enables camera-host drivers to implement their own controls too.
+>
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+>  drivers/media/video/soc_camera.c |   24 ++++++++++++++++++++++++
+>  include/media/soc_camera.h       |    4 ++++
+>  2 files changed, 28 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+> index 824c68b..8e987ca 100644
+> --- a/drivers/media/video/soc_camera.c
+> +++ b/drivers/media/video/soc_camera.c
+> @@ -633,6 +633,7 @@ static int soc_camera_queryctrl(struct file *file, void *priv,
+>  {
+>        struct soc_camera_file *icf = file->private_data;
+>        struct soc_camera_device *icd = icf->icd;
+> +       struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+>        int i;
+>
+>        WARN_ON(priv != file->private_data);
+> @@ -640,6 +641,15 @@ static int soc_camera_queryctrl(struct file *file, void *priv,
+>        if (!qc->id)
+>                return -EINVAL;
+>
+> +       /* First check host controls */
+> +       for (i = 0; i < ici->ops->num_controls; i++)
+> +               if (qc->id == ici->ops->controls[i].id) {
+> +                       memcpy(qc, &(ici->ops->controls[i]),
+> +                               sizeof(*qc));
+> +                       return 0;
+> +               }
+> +
+> +       /* Then device controls */
+>        for (i = 0; i < icd->ops->num_controls; i++)
+>                if (qc->id == icd->ops->controls[i].id) {
+>                        memcpy(qc, &(icd->ops->controls[i]),
+> @@ -656,6 +666,7 @@ static int soc_camera_g_ctrl(struct file *file, void *priv,
+>        struct soc_camera_file *icf = file->private_data;
+>        struct soc_camera_device *icd = icf->icd;
+>        struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> +       int ret;
+>
+>        WARN_ON(priv != file->private_data);
+>
+> @@ -672,6 +683,12 @@ static int soc_camera_g_ctrl(struct file *file, void *priv,
+>                return 0;
+>        }
+>
+> +       if (ici->ops->get_ctrl) {
+> +               ret = ici->ops->get_ctrl(icd, ctrl);
+> +               if (ret != -ENOIOCTLCMD)
+> +                       return ret;
+> +       }
+> +
+>        return v4l2_device_call_until_err(&ici->v4l2_dev, (__u32)icd, core, g_ctrl, ctrl);
+>  }
+>
+> @@ -681,9 +698,16 @@ static int soc_camera_s_ctrl(struct file *file, void *priv,
+>        struct soc_camera_file *icf = file->private_data;
+>        struct soc_camera_device *icd = icf->icd;
+>        struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> +       int ret;
+>
+>        WARN_ON(priv != file->private_data);
+>
+> +       if (ici->ops->set_ctrl) {
+> +               ret = ici->ops->set_ctrl(icd, ctrl);
+> +               if (ret != -ENOIOCTLCMD)
+> +                       return ret;
+> +       }
+> +
+>        return v4l2_device_call_until_err(&ici->v4l2_dev, (__u32)icd, core, s_ctrl, ctrl);
+>  }
+>
+> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+> index 3bc5b6b..2d116bb 100644
+> --- a/include/media/soc_camera.h
+> +++ b/include/media/soc_camera.h
+> @@ -83,7 +83,11 @@ struct soc_camera_host_ops {
+>        int (*reqbufs)(struct soc_camera_file *, struct v4l2_requestbuffers *);
+>        int (*querycap)(struct soc_camera_host *, struct v4l2_capability *);
+>        int (*set_bus_param)(struct soc_camera_device *, __u32);
+> +       int (*get_ctrl)(struct soc_camera_device *, struct v4l2_control *);
+> +       int (*set_ctrl)(struct soc_camera_device *, struct v4l2_control *);
+>        unsigned int (*poll)(struct file *, poll_table *);
+> +       const struct v4l2_queryctrl *controls;
+> +       int num_controls;
+>  };
+>
+>  #define SOCAM_SENSOR_INVERT_PCLK       (1 << 0)
+> --
+> 1.6.2.4
+>
+>
+
+
+
+-- 
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
