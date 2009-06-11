@@ -1,94 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52155 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756852AbZFIUz5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 16:55:57 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n59Ktt6N028392
-	for <linux-media@vger.kernel.org>; Tue, 9 Jun 2009 15:56:00 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH RFC] adding support for setting bus parameters in sub device
-Date: Tue,  9 Jun 2009 16:55:53 -0400
-Message-Id: <1244580953-24188-1-git-send-email-m-karicheri2@ti.com>
+Received: from cnc.isely.net ([64.81.146.143]:59378 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758212AbZFKSsm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jun 2009 14:48:42 -0400
+Date: Thu, 11 Jun 2009 13:48:44 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: Steven Toth <stoth@kernellabs.com>
+cc: Roger <rogerx@sdf.lonestar.org>, linux-media@vger.kernel.org
+Subject: Re: s5h1411_readreg: readreg error (ret == -5)
+In-Reply-To: <4A311A64.4080008@kernellabs.com>
+Message-ID: <Pine.LNX.4.64.0906111343220.17086@cnc.isely.net>
+References: <1244446830.3797.6.camel@localhost2.local>
+ <Pine.LNX.4.64.0906102257130.7298@cnc.isely.net> <4A311A64.4080008@kernellabs.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
+On Thu, 11 Jun 2009, Steven Toth wrote:
 
-re-sending with RFC in the header
+> Mike Isely wrote:
+> > On Sun, 7 Jun 2009, Roger wrote:
+> > 
+> > > >From looking at "linux/drivers/media/dvb/frontends/s5h1411.c",  The
+> > > s5h1411_readreg wants to see "2" but is getting "-5" from the i2c bus.
+> > > 
+> > > --- Snip ---
+> > > 
+> > > s5h1411_readreg: readreg error (ret == -5)
+> > > pvrusb2: unregistering DVB devices
+> > > device: 'dvb0.net0': device_unregister
+> > > 
+> > > --- Snip ---
+> > > 
+> > > What exactly does this mean?
+> > 
+> > Roger:
+> > 
+> > It means that the module attempted an I2C transfer and the transfer failed.
+> > The I2C adapter within the pvrusb2 driver will return either the number of
+> > bytes that it transferred or a failure code.  The failure code, as is normal
+> > convention in the kernel, will be a negated errno value.  Thus the expected
+> > value of 2 would be the fact that it probably tried a 2 byte transfer, while
+> > the actual value returned of -5 indicate an EIO error, which is what the
+> > pvrusb2 driver will return when the underlying I2C transaction has failed.
+> > 
+> > Of course the real question is not that it failed but why it failed.  And
+> > for that I unfortunately do not have an answer.  It's possible that the
+> > s5h1411 driver did something that the chip didn't like and the chip
+> > responded by going deaf on the I2C bus.  More than a few I2C-driven parts
+> > can behave this way.  It's also possible that the part might have been busy
+> > and unable to respond - but usually in that case the driver for such a part
+> > will be written with this in mind and will know how / when to communicate
+> > with the hardware.
+> 
+> Roger:
+> 
+> Another possibility, although I don't know the PVRUSB2 driver too well, the
+> s5h1411 is being held in reset when the driver unloads _AFTER_ the last active
+> use was analog video (assuming the s5h1411 is floated in reset as the FX2
+> input port might be shared with the analog encoder)
 
-This patch adds support for setting bus parameters such as bus type
-(BT.656, BT.1120 etc), width (example 10 bit raw image data bus)
-and polarities (vsync, hsync, field etc) in sub device. This allows
-bridge driver to configure the sub device for a specific set of bus
-parameters through s_bus() function call.
+Good point.  The pvrusb2 driver is not currently doing anything specific 
+- or at least deliberate - via the FX2 to move that part in/out of 
+reset.  (Of course, I am issuing FX2 commands to shift modes and that 
+might in turn be triggering other things.)  But even if I did do 
+something specific, what kind of impact is that likely to do on the 
+corresponding, blissfully ignorant, driver?
 
-Reviewed By "Hans Verkuil".
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
-Applies to v4l-dvb repository
+This actually drives towards a larger issue - the pvrusb2 driver works 
+with various V4L-only sub-devices, e.g. cx25840, which have no relevance 
+in digital mode but I can't really control when that corresponding 
+driver is enabled / disabled.  So if I have to take an extra step to 
+physically disable a chip when in digital mode, then this might impact 
+the sub-driver which otherwise is going to have no clue what is really 
+going on.
 
- include/media/v4l2-subdev.h |   36 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 36 insertions(+), 0 deletions(-)
+  -Mike
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 1785608..c1cfb3b 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -37,6 +37,41 @@ struct v4l2_decode_vbi_line {
- 	u32 type;		/* VBI service type (V4L2_SLICED_*). 0 if no service found */
- };
- 
-+/*
-+ * Some sub-devices are connected to the bridge device through a bus that
-+ * carries * the clock, vsync, hsync and data. Some interfaces such as BT.656
-+ * carries the sync embedded in the data where as others have separate line
-+ * carrying the sync signals. The structure below is used by bridge driver to
-+ * set the desired bus parameters in the sub device to work with it.
-+ */
-+enum v4l2_subdev_bus_type {
-+	/* BT.656 interface. Embedded sync */
-+	V4L2_SUBDEV_BUS_BT_656,
-+	/* BT.1120 interface. Embedded sync */
-+	V4L2_SUBDEV_BUS_BT_1120,
-+	/* 8 bit muxed YCbCr bus, separate sync and field signals */
-+	V4L2_SUBDEV_BUS_YCBCR_8,
-+	/* 16 bit YCbCr bus, separate sync and field signals */
-+	V4L2_SUBDEV_BUS_YCBCR_16,
-+	/* Raw Bayer image data bus , 8 - 16 bit wide, sync signals */
-+	V4L2_SUBDEV_BUS_RAW_BAYER
-+};
-+
-+struct v4l2_subdev_bus	{
-+	enum v4l2_subdev_bus_type type;
-+	u8 width;
-+	/* 0 - active low, 1 - active high */
-+	unsigned pol_vsync:1;
-+	/* 0 - active low, 1 - active high */
-+	unsigned pol_hsync:1;
-+	/* 0 - low to high , 1 - high to low */
-+	unsigned pol_field:1;
-+	/* 0 - sample at falling edge , 1 - sample at rising edge */
-+	unsigned pol_pclock:1;
-+	/* 0 - active low , 1 - active high */
-+	unsigned pol_data:1;
-+};
-+
- /* Sub-devices are devices that are connected somehow to the main bridge
-    device. These devices are usually audio/video muxers/encoders/decoders or
-    sensors and webcam controllers.
-@@ -109,6 +144,7 @@ struct v4l2_subdev_core_ops {
- 	int (*querymenu)(struct v4l2_subdev *sd, struct v4l2_querymenu *qm);
- 	int (*s_std)(struct v4l2_subdev *sd, v4l2_std_id norm);
- 	long (*ioctl)(struct v4l2_subdev *sd, unsigned int cmd, void *arg);
-+	int (*s_bus)(struct v4l2_subdev *sd, struct v4l2_subdev_bus *bus);
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	int (*g_register)(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg);
- 	int (*s_register)(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg);
+
 -- 
-1.6.0.4
 
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
