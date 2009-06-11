@@ -1,55 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f210.google.com ([209.85.219.210]:53568 "EHLO
-	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751683AbZFWSiq (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:39132 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753108AbZFKRA6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jun 2009 14:38:46 -0400
-Received: by ewy6 with SMTP id 6so422485ewy.37
-        for <linux-media@vger.kernel.org>; Tue, 23 Jun 2009 11:38:48 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4d5f8630906220351w7c6e233fg8aea5d72f51466e9@mail.gmail.com>
-References: <51276.202.168.20.241.1244411983.squirrel@webmail.velocity.net.au>
-	 <37219a840906160833l1c045848o6cc2d5e3e74c6df1@mail.gmail.com>
-	 <1245199671.7551.6.camel@pc07.localdom.local>
-	 <4d5f8630906182120j6f49cd85sd459c14d05c8b722@mail.gmail.com>
-	 <4d5f8630906182203h739363aeu85996062f282e106@mail.gmail.com>
-	 <6ab2c27e0906190110p196f709fp2aefbfc0063f334c@mail.gmail.com>
-	 <4d5f8630906190242w1af2ad66u79e0f96ccf613afe@mail.gmail.com>
-	 <1245430287.3985.5.camel@pc07.localdom.local>
-	 <37219a840906191228t7222e21dyc2c221bb5d9e22bb@mail.gmail.com>
-	 <4d5f8630906220351w7c6e233fg8aea5d72f51466e9@mail.gmail.com>
-Date: Tue, 23 Jun 2009 14:38:48 -0400
-Message-ID: <37219a840906231138g59a2a749ucd4e0a92be906430@mail.gmail.com>
-Subject: Re: Leadtek Winfast DTV-1000S
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: James Moschou <james.moschou@gmail.com>
-Cc: hermann pitton <hermann-pitton@arcor.de>,
-	linux-media <linux-media@vger.kernel.org>,
-	Terry Wu <terrywu2009@gmail.com>, paul10@planar.id.au,
-	braddo@tranceaddict.net, Sander Pientka <cumulus0007@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Thu, 11 Jun 2009 13:00:58 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5BH0tru022645
+	for <linux-media@vger.kernel.org>; Thu, 11 Jun 2009 12:01:00 -0500
+From: m-karicheri2@ti.com
+To: linux-media@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH 2/10 - v2] ccdc hw device header file for vpfe capture
+Date: Thu, 11 Jun 2009 13:00:41 -0400
+Message-Id: <1244739649-27466-3-git-send-email-m-karicheri2@ti.com>
+In-Reply-To: <1244739649-27466-2-git-send-email-m-karicheri2@ti.com>
+References: <1244739649-27466-1-git-send-email-m-karicheri2@ti.com>
+ <1244739649-27466-2-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(apologies if you've received this email twice -- something is strange
-with my kernellabs.com email settings -- I will look into this soon)
+From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
 
-On Mon, Jun 22, 2009 at 6:51 AM, James Moschou<james.moschou@gmail.com> wrote:
-> Using dtv1000s tree revision 21a03349f7f9 and a blank modprobe.conf
->
-> I can tune to channels but never all of them in the single run of w_scan.
-> Every time I run w_scan it's different channels that say 'filter timeout'.
+CCDC hw device header file
 
-James,
+Adds ccdc hw device header for vpfe capture driver
 
-Unfortunately, I can't say that a driver bug is the cause of your
-inconsistency -- perhaps you can aim your antennae a bit better, or
-find some other cause of interference.  Bad cabling?
+Incorporated review comments against previous patch
 
-Lets say that you have your channels.conf all set up and ready -- once
-you found all your services, do you have trouble keeping a stream?
+Reviewed By "Hans Verkuil".
+Reviewed By "Laurent Pinchart".
 
-Regards,
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+---
+Applies to v4l-dvb repository
 
-Mike
+ drivers/media/video/davinci/ccdc_hw_device.h |  110 ++++++++++++++++++++++++++
+ 1 files changed, 110 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/davinci/ccdc_hw_device.h
+
+diff --git a/drivers/media/video/davinci/ccdc_hw_device.h b/drivers/media/video/davinci/ccdc_hw_device.h
+new file mode 100644
+index 0000000..86b9b35
+--- /dev/null
++++ b/drivers/media/video/davinci/ccdc_hw_device.h
+@@ -0,0 +1,110 @@
++/*
++ * Copyright (C) 2008-2009 Texas Instruments Inc
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ * ccdc device API
++ */
++#ifndef _CCDC_HW_DEVICE_H
++#define _CCDC_HW_DEVICE_H
++
++#ifdef __KERNEL__
++#include <linux/videodev2.h>
++#include <linux/device.h>
++#include <media/davinci/vpfe_types.h>
++#include <media/davinci/ccdc_types.h>
++
++/*
++ * ccdc hw operations
++ */
++struct ccdc_hw_ops {
++	/* Pointer to initialize function to initialize ccdc device */
++	int (*open) (struct device *dev);
++	/* Pointer to deinitialize function */
++	int (*close) (struct device *dev);
++	/* set ccdc base address */
++	void (*set_ccdc_base)(void *base, int size);
++	/* Pointer to function to enable or disable ccdc */
++	void (*enable) (int en);
++	/* reset sbl. only for 6446 */
++	void (*reset) (void);
++	/* enable output to sdram */
++	void (*enable_out_to_sdram) (int en);
++	/* Pointer to function to set hw parameters */
++	int (*set_hw_if_params) (struct vpfe_hw_if_param *param);
++	/* get interface parameters */
++	int (*get_hw_if_params) (struct vpfe_hw_if_param *param);
++	/*
++	 * Pointer to function to set parameters. Used
++	 * for implementing VPFE_S_CCDC_PARAMS
++	 */
++	int (*set_params) (void *params);
++	/*
++	 * Pointer to function to get parameter. Used
++	 * for implementing VPFE_G_CCDC_PARAMS
++	 */
++	int (*get_params) (void *params);
++	/* Pointer to function to configure ccdc */
++	int (*configure) (void);
++
++	/* Pointer to function to set buffer type */
++	int (*set_buftype) (enum ccdc_buftype buf_type);
++	/* Pointer to function to get buffer type */
++	enum ccdc_buftype (*get_buftype) (void);
++	/* Pointer to function to set frame format */
++	int (*set_frame_format) (enum ccdc_frmfmt frm_fmt);
++	/* Pointer to function to get frame format */
++	enum ccdc_frmfmt (*get_frame_format) (void);
++	/* enumerate hw pix formats */
++	int (*enum_pix)(u32 *hw_pix, int i);
++	/* Pointer to function to set buffer type */
++	u32 (*get_pixel_format) (void);
++	/* Pointer to function to get pixel format. */
++	int (*set_pixel_format) (u32 pixfmt);
++	/* Pointer to function to set image window */
++	int (*set_image_window) (struct v4l2_rect *win);
++	/* Pointer to function to set image window */
++	void (*get_image_window) (struct v4l2_rect *win);
++	/* Pointer to function to get line length */
++	unsigned int (*get_line_length) (void);
++
++	/* Query CCDC control IDs */
++	int (*queryctrl)(struct v4l2_queryctrl *qctrl);
++	/* Set CCDC control */
++	int (*set_control)(struct v4l2_control *ctrl);
++	/* Get CCDC control */
++	int (*get_control)(struct v4l2_control *ctrl);
++
++	/* Pointer to function to set frame buffer address */
++	void (*setfbaddr) (unsigned long addr);
++	/* Pointer to function to get field id */
++	int (*getfid) (void);
++};
++
++struct ccdc_hw_device {
++	/* ccdc device name */
++	char name[32];
++	/* module owner */
++	struct module *owner;
++	/* hw ops */
++	struct ccdc_hw_ops hw_ops;
++};
++
++/* Used by CCDC module to register & unregister with vpfe capture driver */
++int vpfe_register_ccdc_device(struct ccdc_hw_device *dev);
++void vpfe_unregister_ccdc_device(struct ccdc_hw_device *dev);
++
++#endif
++#endif
+-- 
+1.6.0.4
+
