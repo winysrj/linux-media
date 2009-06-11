@@ -1,53 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4069 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751632AbZFSQE4 convert rfc822-to-8bit (ORCPT
+Received: from mail.gmx.net ([213.165.64.20]:55734 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752200AbZFKMQr convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jun 2009 12:04:56 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: v4l-dvb compile broken with stock Ubuntu Karmic build  (firedtv-ieee1394.c errors)
-Date: Fri, 19 Jun 2009 18:04:55 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <829197380906190752v981e81sb94c8c294b68dbd2@mail.gmail.com> <200906191733.57136.hverkuil@xs4all.nl> <829197380906190842w48fc7c13if02822d9dae8e252@mail.gmail.com>
-In-Reply-To: <829197380906190842w48fc7c13if02822d9dae8e252@mail.gmail.com>
+	Thu, 11 Jun 2009 08:16:47 -0400
+Date: Thu, 11 Jun 2009 14:16:59 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>
+Subject: Re: [PATCH 3/4] soc-camera: add support for camera-host controls
+In-Reply-To: <5e9665e10906110410w7893e016g6e35742c9a55889d@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0906111413250.5625@axis700.grange>
+References: <Pine.LNX.4.64.0906101549160.4817@axis700.grange>
+ <Pine.LNX.4.64.0906101604420.4817@axis700.grange>
+ <5e9665e10906110410w7893e016g6e35742c9a55889d@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200906191804.55564.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 19 June 2009 17:42:18 Devin Heitmueller wrote:
-> On Fri, Jun 19, 2009 at 11:33 AM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
-> > What's the compile error exactly? The firedtv driver compiles fine in
-> > the daily build against the vanilla 2.6.30 kernel.
+On Thu, 11 Jun 2009, Dongsoo, Nathaniel Kim wrote:
+
+> Hello Guennadi,
+> 
+> It's a very interesting patch. Actually some camera interfaces support
+> for various image effects and I was wondering how to use them in SoC
+> camera subsystem.
+> 
+> But here is a question. Is it possible to make a choice with the same
+> CID between icd and ici? I mean, if both of camera interface and
+> camera device are supporting for same CID how can user select any of
+> them to use? Sometimes, some image effects supported by camera
+> interface are not good so I want to use the same effect supported by
+> external camera ISP device.
+> 
+> I think, it might be possible but I can't see how.
+
+> > @@ -681,9 +698,16 @@ static int soc_camera_s_ctrl(struct file *file, void *priv,
+> >        struct soc_camera_file *icf = file->private_data;
+> >        struct soc_camera_device *icd = icf->icd;
+> >        struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> > +       int ret;
 > >
-> > Regards,
+> >        WARN_ON(priv != file->private_data);
 > >
-> >        Hans
->
-> Unfortunately, I sent the email from work and didn't have the output
-> in front of me (or else I would have pasted it into the email).
-> Several people also reported it on #linuxtv on 6/11, but it looks like
-> the pastebins have already expired.  :-(
->
-> I will provide the output tonight.  I started to debug it last night,
-> and it seems that firedtv-ieee1494.c doesn't normally get compiled at
-> all, so if you add 1394 support to your build you will likely also see
-> the issue.
+> > +       if (ici->ops->set_ctrl) {
+> > +               ret = ici->ops->set_ctrl(icd, ctrl);
+> > +               if (ret != -ENOIOCTLCMD)
+> > +                       return ret;
+> > +       }
+> > +
+> >        return v4l2_device_call_until_err(&ici->v4l2_dev, (__u32)icd, core, s_ctrl, ctrl);
+> >  }
 
-Hmm, I discovered that firedtv-1394.c isn't compiled in the daily build even 
-though ieee1394 is enabled in the kernel. I can manually enable it, though: 
-make menuconfig, disable and enable the firedtv driver, and then it 
-magically works. But even then it still compiles fine against the vanilla 
-2.6.30 kernel.
+Should be easy to see in the patch. Host's s_ctrl is called first. It can 
+return -ENOIOCTLCMD then sensor's control will be called too. Ot the host 
+may choose to call sensor's control itself, which, however, is 
+discouraged.
 
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
