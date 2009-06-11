@@ -1,134 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:45478 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754324AbZFATNR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2009 15:13:17 -0400
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"Paulraj, Sandeep" <s-paulraj@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"Grosen, Mark" <mgrosen@ti.com>
-Date: Mon, 1 Jun 2009 14:13:13 -0500
-Subject: RE: New Driver for DaVinci DM355/DM365/DM6446
-Message-ID: <A24693684029E5489D1D202277BE8944405CFFE7@dlee02.ent.ti.com>
-References: <C9D59C82B94F474B872F2092A87F261481797D4B@dlee07.ent.ti.com>
- <A24693684029E5489D1D202277BE8944405CFFE6@dlee02.ent.ti.com>,<A69FA2915331DC488A831521EAE36FE401354ED000@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE401354ED000@dlee06.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from yw-out-2324.google.com ([74.125.46.28]:29161 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752053AbZFKMjQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jun 2009 08:39:16 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so986075ywb.1
+        for <linux-media@vger.kernel.org>; Thu, 11 Jun 2009 05:39:18 -0700 (PDT)
 MIME-Version: 1.0
+Date: Thu, 11 Jun 2009 20:39:18 +0800
+Message-ID: <15ed362e0906110539ud3349f6x351beabb3e1ed281@mail.gmail.com>
+Subject: [PATCH 4/4] cx23885: add card Magic-Pro ProHDTV Extreme 2
+From: David Wong <davidtlwong@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: multipart/mixed; boundary=0022150491575f58f8046c11e190
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> From: Karicheri, Muralidharan
-> Sent: Monday, June 01, 2009 9:58 PM
-> To: Aguirre Rodriguez, Sergio Alberto; Paulraj, Sandeep; linux-media@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org; Grosen, Mark
-> Subject: RE: New Driver for DaVinci DM355/DM365/DM6446
-> 
-> Sergio,
-> 
-> Is it part of the patches Vaibhav & others from TI are submitting to open source ?
+--0022150491575f58f8046c11e190
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-Yes, currently I have been sharing this codebase with Vaibhav, which he is taking for the 3530 EVM, which uses the camera ISP to receive images from a video decoder using a parallel BT656 output.
+cx23885: add card Magic-Pro  ProHDTV Extreme 2 PCI-E.
 
+Signed-off-by: David T.L. Wong <davidtlwong <at> gmail.com>
 
-> I know that there is an
-> ongoing effort at TI India to submit the resizer driver to open source for OMAP3?
+--0022150491575f58f8046c11e190
+Content-Type: text/x-patch; charset=US-ASCII; name="cx23885_magicpro_prohdtve2.patch"
+Content-Disposition: attachment; filename="cx23885_magicpro_prohdtve2.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fvtgepeg0
 
-I guess this is still on hold, as the current internal approach is not acceptable in the V4L2 standards.
-
-> As per the email
-> exchanges I had with Vaibhav (TI India) on this, it is part of the ISP module.
-
-That's correct.
-
-> We plan to submit the
-> patches to open source for H3A and was trying to see which is the right way to do it.
-
-The ISP driver core that we are sharing, it already has the H3A driver on it, which is accessed through Private IOCTLs declared inside the driver.
-
-> We will
-> investigate the tree you mentioned below and let you know if we have additional questions.
-
-Vaibhav should be already familiar with this codebase, so maybe it could be easier for you to talk with him about this.
-
-> The plan is to align with OMAP3 for the implementation.
-
-Although the current code maintenance is on hold because i've been busy with some other custormer requirements, i havent been able to continue working on the pending TODOs so far. But as this strategy on a better collaboration with the community is attempted, i'm trying ot find my way to get back wit hthe maintenance of this driver to meet at least the required changes for acceptance of the driver.
-
-It'll be definitively good to align on this, so we can avoid rewriting the same thing over again.
-
-Regards,
-Sergio
-> 
-> regards,
-> 
-> Murali Karicheri
-> email: m-karicheri2@ti.com
-> 
->-----Original Message-----
->From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio Alberto
->Sent: Monday, June 01, 2009 2:39 PM
->To: Paulraj, Sandeep; linux-media@vger.kernel.org
->Cc: linux-kernel@vger.kernel.org; Grosen, Mark
->Subject: RE: New Driver for DaVinci DM355/DM365/DM6446
->
->> From: linux-media-owner@vger.kernel.org [linux-media-
->owner@vger.kernel.org] On Behalf Of Paulraj, Sandeep
->> Sent: Monday, June 01, 2009 5:56 PM
->> To: linux-media@vger.kernel.org
->> Cc: linux-kernel@vger.kernel.org; Grosen, Mark
->> Subject: New Driver for DaVinci DM355/DM365/DM6446
->>
->> Hello,
->>
->> WE have a module(H3A) on Davinci DM6446,DM355 and DM365.
->>
->> Customers require a way to collect the data required to perform the Auto
->Exposure (AE), Auto Focus(AF), and Auto White balance (AWB) in hardware as
->opposed to software. > This is primarily for performance reasons as there
->is not enough software processing MIPS (to do 3A statistics) available in
->> an imaging/video system.
->>
->> Including this block in hardware reduces the load on the processor and
->bandwidth to the memory as the data is collected on the fly from the imager.
->>
->> This modules collects statistics and we currently implement it as a
->character driver.
->
->This also exists in OMAP3 chips, and is part of the ISP module.
->
->I maintain, along with Sakari Ailus, a V4L2 camera driver, which is
->currently just shared through a gitorious repository:
->
->http://gitorious.org/omap3camera
->
->The way we offer an interface for the user to be able to request this
->statistics is with the usage of private IOCTLs declared inside the same
->V4L2 capturing device driver.
->
->So, that way we have a V4L2 driver which has a private call, instead of
->having it separately from the capture driver.
->
->Regards,
->Sergio
->>
->> Which mailing list would be the most appropriate mailing list to submit
->patches for review?
->>
->> Thanks,
->> Sandeep
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+ZGlmZiAtciBhOTI1MTBhYWQ5ZTIgLXIgNzE5NWNmYmNhOTc0IGxpbnV4L2RyaXZlcnMvbWVkaWEv
+dmlkZW8vY3gyMzg4NS9jeDIzODg1LWNhcmRzLmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92
+aWRlby9jeDIzODg1L2N4MjM4ODUtY2FyZHMuYwlUaHUgSnVuIDExIDE5OjA3OjE1IDIwMDkgKzA4
+MDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1L2N4MjM4ODUtY2FyZHMu
+YwlUaHUgSnVuIDExIDIwOjA0OjA0IDIwMDkgKzA4MDAKQEAgLTIwMiw2ICsyMDIsMTAgQEAKIAkJ
+Lm5hbWUJCT0gIk15Z2ljYSBYODUwNiBETUItVEgiLAogCQkucG9ydGIJCT0gQ1gyMzg4NV9NUEVH
+X0RWQiwKIAl9LAorCVtDWDIzODg1X0JPQVJEX01BR0lDUFJPX1BST0hEVFZFMl0gPSB7CisJCS5u
+YW1lCQk9ICJNYWdpYy1Qcm8gUHJvSERUViBFeHRyZW1lIDIiLAorCQkucG9ydGIJCT0gQ1gyMzg4
+NV9NUEVHX0RWQiwKKwl9LAogfTsKIGNvbnN0IHVuc2lnbmVkIGludCBjeDIzODg1X2Jjb3VudCA9
+IEFSUkFZX1NJWkUoY3gyMzg4NV9ib2FyZHMpOwogCkBAIC0zMjUsNiArMzI5LDEwIEBACiAJCS5z
+dWJ2ZW5kb3IgPSAweDE0ZjEsCiAJCS5zdWJkZXZpY2UgPSAweDg2NTEsCiAJCS5jYXJkICAgICAg
+PSBDWDIzODg1X0JPQVJEX01ZR0lDQV9YODUwNiwKKwl9LCB7CisJCS5zdWJ2ZW5kb3IgPSAweDE0
+ZjEsCisJCS5zdWJkZXZpY2UgPSAweDg2NTcsCisJCS5jYXJkICAgICAgPSBDWDIzODg1X0JPQVJE
+X01BR0lDUFJPX1BST0hEVFZFMiwKIAl9LAogfTsKIGNvbnN0IHVuc2lnbmVkIGludCBjeDIzODg1
+X2lkY291bnQgPSBBUlJBWV9TSVpFKGN4MjM4ODVfc3ViaWRzKTsKQEAgLTcxNiw4ICs3MjQsOSBA
+QAogCQljeDIzODg1X2dwaW9fc2V0KGRldiwgR1BJT185KTsKIAkJYnJlYWs7CiAJY2FzZSBDWDIz
+ODg1X0JPQVJEX01ZR0lDQV9YODUwNjoKKwljYXNlIENYMjM4ODVfQk9BUkRfTUFHSUNQUk9fUFJP
+SERUVkUyOgogCQkvKiBHUElPLTEgcmVzZXQgWEM1MDAwICovCi0JCS8qIEdQSU8tMiByZXNldCBM
+R1M4R0w1ICovCisJCS8qIEdQSU8tMiByZXNldCBMR1M4R0w1IC8gTEdTOEc3NSAqLwogCQljeF9z
+ZXQoR1AwX0lPLCAweDAwMDYwMDAwKTsKIAkJY3hfY2xlYXIoR1AwX0lPLCAweDAwMDAwMDA2KTsK
+IAkJbWRlbGF5KDEwMCk7CkBAIC04MjgsNiArODM3LDcgQEAKIAkJdHMyLT5zcmNfc2VsX3ZhbCAg
+ID0gQ1gyMzg4NV9TUkNfU0VMX1BBUkFMTEVMX01QRUdfVklERU87CiAJCWJyZWFrOwogCWNhc2Ug
+Q1gyMzg4NV9CT0FSRF9NWUdJQ0FfWDg1MDY6CisJY2FzZSBDWDIzODg1X0JPQVJEX01BR0lDUFJP
+X1BST0hEVFZFMjoKIAkJdHMxLT5nZW5fY3RybF92YWwgID0gMHg1OyAvKiBQYXJhbGxlbCAqLwog
+CQl0czEtPnRzX2Nsa19lbl92YWwgPSAweDE7IC8qIEVuYWJsZSBUU19DTEsgKi8KIAkJdHMxLT5z
+cmNfc2VsX3ZhbCAgID0gQ1gyMzg4NV9TUkNfU0VMX1BBUkFMTEVMX01QRUdfVklERU87CmRpZmYg
+LXIgYTkyNTEwYWFkOWUyIC1yIDcxOTVjZmJjYTk3NCBsaW51eC9kcml2ZXJzL21lZGlhL3ZpZGVv
+L2N4MjM4ODUvY3gyMzg4NS1kdmIuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4
+MjM4ODUvY3gyMzg4NS1kdmIuYwlUaHUgSnVuIDExIDE5OjA3OjE1IDIwMDkgKzA4MDAKKysrIGIv
+bGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1L2N4MjM4ODUtZHZiLmMJVGh1IEp1biAx
+MSAyMDowNDowNCAyMDA5ICswODAwCkBAIC00NDEsNiArNDQxLDI2IEBACiAJLmlmX2toeiA9IDUz
+ODAsCiB9OwogCitzdGF0aWMgc3RydWN0IGxnczhneHhfY29uZmlnIG1hZ2ljcHJvX3Byb2hkdHZl
+Ml9sZ3M4Zzc1X2NvbmZpZyA9IHsKKwkucHJvZCA9IExHUzhHWFhfUFJPRF9MR1M4Rzc1LAorCS5k
+ZW1vZF9hZGRyZXNzID0gMHgxOSwKKwkuc2VyaWFsX3RzID0gMCwKKwkudHNfY2xrX3BvbCA9IDEs
+CisJLnRzX2Nsa19nYXRlZCA9IDEsCisJLmlmX2Nsa19mcmVxID0gMzA0MDAsIC8qIDMwLjQgTUh6
+ICovCisJLmlmX2ZyZXEgPSA2NTAwLCAvKiA2LjUwIE1IeiAqLworCS5pZl9uZWdfY2VudGVyID0g
+MSwKKwkuZXh0X2FkYyA9IDAsCisJLmFkY19zaWduZWQgPSAxLAorCS5hZGNfdnBwID0gMiwgLyog
+MS42IFZwcCAqLworCS5pZl9uZWdfZWRnZSA9IDEsCit9OworCitzdGF0aWMgc3RydWN0IHhjNTAw
+MF9jb25maWcgbWFnaWNwcm9fcHJvaGR0dmUyX3hjNTAwMF9jb25maWcgPSB7CisJLmkyY19hZGRy
+ZXNzID0gMHg2MSwKKwkuaWZfa2h6ID0gNjUwMCwKK307CisKIHN0YXRpYyBpbnQgZHZiX3JlZ2lz
+dGVyKHN0cnVjdCBjeDIzODg1X3RzcG9ydCAqcG9ydCkKIHsKIAlzdHJ1Y3QgY3gyMzg4NV9kZXYg
+KmRldiA9IHBvcnQtPmRldjsKQEAgLTc3OSw2ICs3OTksMTkgQEAKIAkJCQkmbXlnaWNhX3g4NTA2
+X3hjNTAwMF9jb25maWcpOwogCQl9CiAJCWJyZWFrOworCWNhc2UgQ1gyMzg4NV9CT0FSRF9NQUdJ
+Q1BST19QUk9IRFRWRTI6CisJCWkyY19idXMgPSAmZGV2LT5pMmNfYnVzWzBdOworCQlpMmNfYnVz
+MiA9ICZkZXYtPmkyY19idXNbMV07CisJCWZlMC0+ZHZiLmZyb250ZW5kID0gZHZiX2F0dGFjaChs
+Z3M4Z3h4X2F0dGFjaCwKKwkJCSZtYWdpY3Byb19wcm9oZHR2ZTJfbGdzOGc3NV9jb25maWcsCisJ
+CQkmaTJjX2J1cy0+aTJjX2FkYXApOworCQlpZiAoZmUwLT5kdmIuZnJvbnRlbmQgIT0gTlVMTCkg
+eworCQkJZHZiX2F0dGFjaCh4YzUwMDBfYXR0YWNoLAorCQkJCWZlMC0+ZHZiLmZyb250ZW5kLAor
+CQkJCSZpMmNfYnVzMi0+aTJjX2FkYXAsCisJCQkJJm1hZ2ljcHJvX3Byb2hkdHZlMl94YzUwMDBf
+Y29uZmlnKTsKKwkJfQorCQlicmVhazsKIAlkZWZhdWx0OgogCQlwcmludGsoS0VSTl9JTkZPICIl
+czogVGhlIGZyb250ZW5kIG9mIHlvdXIgRFZCL0FUU0MgY2FyZCAiCiAJCQkiIGlzbid0IHN1cHBv
+cnRlZCB5ZXRcbiIsCmRpZmYgLXIgYTkyNTEwYWFkOWUyIC1yIDcxOTVjZmJjYTk3NCBsaW51eC9k
+cml2ZXJzL21lZGlhL3ZpZGVvL2N4MjM4ODUvY3gyMzg4NS5oCi0tLSBhL2xpbnV4L2RyaXZlcnMv
+bWVkaWEvdmlkZW8vY3gyMzg4NS9jeDIzODg1LmgJVGh1IEp1biAxMSAxOTowNzoxNSAyMDA5ICsw
+ODAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyMzg4NS9jeDIzODg1LmgJVGh1
+IEp1biAxMSAyMDowNDowNCAyMDA5ICswODAwCkBAIC03Nyw2ICs3Nyw3IEBACiAjZGVmaW5lIENY
+MjM4ODVfQk9BUkRfSEFVUFBBVUdFX0hWUjEyNTUgICAgICAgIDIwCiAjZGVmaW5lIENYMjM4ODVf
+Qk9BUkRfSEFVUFBBVUdFX0hWUjEyMTAgICAgICAgIDIxCiAjZGVmaW5lIENYMjM4ODVfQk9BUkRf
+TVlHSUNBX1g4NTA2ICAgICAgICAgICAgIDIyCisjZGVmaW5lIENYMjM4ODVfQk9BUkRfTUFHSUNQ
+Uk9fUFJPSERUVkUyICAgICAgIDIzCiAKICNkZWZpbmUgR1BJT18wIDB4MDAwMDAwMDEKICNkZWZp
+bmUgR1BJT18xIDB4MDAwMDAwMDIK
+--0022150491575f58f8046c11e190--
