@@ -1,114 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2915 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751310AbZFMSQq (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:56508 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754184AbZFKPAO convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Jun 2009 14:16:46 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id n5DIGlET048110
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 13 Jun 2009 20:16:47 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 13 Jun 2009 20:16:47 +0200 (CEST)
-Message-Id: <200906131816.n5DIGlET048110@smtp-vbr13.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Thu, 11 Jun 2009 11:00:14 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+Date: Thu, 11 Jun 2009 10:00:05 -0500
+Subject: RE: mt9t031 (was RE: [PATCH] adding support for setting bus
+ parameters in sub device)
+Message-ID: <A69FA2915331DC488A831521EAE36FE40139A09039@dlee06.ent.ti.com>
+References: <1244580891-24153-1-git-send-email-m-karicheri2@ti.com>
+ <Pine.LNX.4.64.0906102022320.4817@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40139A08DC3@dlee06.ent.ti.com>
+ <Pine.LNX.4.64.0906102303190.4817@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40139A08E4F@dlee06.ent.ti.com>
+ <Pine.LNX.4.64.0906102337130.4817@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40139A08E67@dlee06.ent.ti.com>
+ <Pine.LNX.4.64.0906110112590.4817@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0906110112590.4817@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+>On Wed, 10 Jun 2009, Karicheri, Muralidharan wrote:
+>
+>> So how do I know what frame-rate I get? Sensor output frame rate depends
+>> on the resolution of the frame, blanking, exposure time etc.
+>
+>This is not supported.
+>
+I am still not clear. You had said in an earlier email that it can support streaming. That means application can stream frames from the capture device.
+I know you don't have support for setting a specific frame rate, but it must be outputting frame at some rate right?
 
-Results of the daily build of v4l-dvb:
+Here is my usecase.
 
-date:        Sat Jun 13 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11965:bff77ec33116
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+open capture device,
+set resolutions (say VGA) for capture (S_FMT ???)
+request buffer for streaming & mmap & QUERYBUF
+start streaming (STREAMON)
+DQBUF/QBUF in a loop -> get VGA buffers at some fps.
+STREAMOFF
+close device
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.22.19-mips: ERRORS
-linux-2.6.26-mips: ERRORS
-linux-2.6.27-mips: ERRORS
-linux-2.6.28-mips: ERRORS
-linux-2.6.29.1-mips: ERRORS
-linux-2.6.30-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-x86_64: WARNINGS
-sparse (linux-2.6.30): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+Is this possible with mt9t031 available currently in the tree? This requires sensor device output frames continuously on the bus using PCLK/HSYNC/VSYNC timing to the bridge device connected to the bus. Can you give a use case like above that you are using. I just want to estimate how much effort is required to add this support in the mt9t031 driver.
 
-Detailed results are available here:
+Thanks
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+Murali
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+>Thanks
+>Guennadi
+>---
+>Guennadi Liakhovetski, Ph.D.
+>Freelance Open-Source Software Developer
+>http://www.open-technology.de/
 
