@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with SMTP id n5J7p9E4004503
-	for <video4linux-list@redhat.com>; Fri, 19 Jun 2009 03:51:09 -0400
-Received: from smtp4.versatel.nl (smtp4.versatel.nl [62.58.50.91])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n5J7naXr015526
-	for <video4linux-list@redhat.com>; Fri, 19 Jun 2009 03:49:36 -0400
-Message-ID: <4A3B437F.3070101@hhs.nl>
-Date: Fri, 19 Jun 2009 09:51:27 +0200
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n5BJJMXt020645
+	for <video4linux-list@redhat.com>; Thu, 11 Jun 2009 15:19:22 -0400
+Received: from smtp2.versatel.nl (smtp2.versatel.nl [62.58.50.89])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n5BJJ7RY030379
+	for <video4linux-list@redhat.com>; Thu, 11 Jun 2009 15:19:07 -0400
+Message-ID: <4A3158F8.5090504@hhs.nl>
+Date: Thu, 11 Jun 2009 21:20:24 +0200
 From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-To: Russell King <rjkfsm@gmail.com>
-References: <ab1abcde0906171431r3782f252pdd2a3b7f24a72d0e@mail.gmail.com>
-In-Reply-To: <ab1abcde0906171431r3782f252pdd2a3b7f24a72d0e@mail.gmail.com>
+To: James <bjlockie@lockie.ca>
+References: <4A2D439E.4080209@lockie.ca>
+In-Reply-To: <4A2D439E.4080209@lockie.ca>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: video4linux-list@redhat.com
-Subject: Re: Still no fix
+Cc: Video 4 Linux Mailing List <video4linux-list@redhat.com>
+Subject: Re: who  to ask (wireless mouse and ov511 driver)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,23 +27,41 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 06/17/2009 11:31 PM, Russell King wrote:
-> Hi,
+On 06/08/2009 07:00 PM, James wrote:
+> My wireless mouse gets jerky (or freezes)  when I plug in my USB webcam.
 >
-> I am trying to use an old Creative Instant Webcam with the gspca module that
-> ships with the 2.6.29 kernel and almost all I get are problems. It does not
-> matter if I use my laptop with an ATI video card or my desktop with an
-> nVidia card. I have tried using the webcam as the only device on the USB
-> hub. Funny thing is that "mplayer tv:// -tv
-> driver=v4l2:width=352:height=288:device=/dev/video0"
-> works properly.
+> usb 2-6: Product: USB Receiver
+> usb 2-6: Manufacturer: Logitech
+> usb 2-6: configuration #1 chosen from 1 choice
+> input: Logitech USB Receiver as
+> /devices/pci0000:00/0000:00:02.0/usb2/2-6/2-6:1.0/input/input0
+> logitech 0003:046D:C517.0001: input,hidraw0: USB HID v1.10 Keyboard
+> [Logitech USB Receiver] on usb-0000:00:02.0-6/input0
+> logitech 0003:046D:C517.0002: fixing up Logitech keyboard report descriptor
+> input: Logitech USB Receiver as
+> /devices/pci0000:00/0000:00:02.0/usb2/2-6/2-6:1.1/input/input1
+> logitech 0003:046D:C517.0002: input,hiddev96,hidraw1: USB HID v1.10
+> Mouse [Logitech USB Receiver] on usb-0000:00:02.0-6/input1
 >
+> ov511 2-1:1.0: USB OV511+ video device found
+> usb 2-1: model: Creative Labs WebCam 3
+> usb 2-1: Sensor is an OV7620
+>
+> The webcam worked fine with a regular USB mouse and keyboard.
+> Who should I talk to?
 
-Hi,
+Ah, thanks that is important info. In that case I think what you are seeing
+is electronic interference from the webcam. I have that exact same mode,
+and I opened it up once, there are 2 crystals in there for high frequency
+clocks in about the same frequency as the radio frequency used by some wireless
+devices, and all the electronics in the webcam are completely unshielded (as they
+are in most webcams).
 
-what is the output dmesg after plugging in that webcam ?
-
-Also are you using libv4l ?
+So I think your options are limited to:
+1 do not use a wireless mouse
+2 get one of those new wireless mouses which use one of the Gigahertz bands to
+   communicate
+3 get a new webcam
 
 Regards,
 
