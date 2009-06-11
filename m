@@ -1,48 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.29]:19813 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751616AbZFSPmQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jun 2009 11:42:16 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so1016131ywb.1
-        for <linux-media@vger.kernel.org>; Fri, 19 Jun 2009 08:42:19 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20]:47949 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754639AbZFKK72 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jun 2009 06:59:28 -0400
+Date: Thu, 11 Jun 2009 12:59:39 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] soc_camera: Fix debug output of supported formats count
+In-Reply-To: <77e3600851e692cb4ee9.1238662505@SCT-Book>
+Message-ID: <Pine.LNX.4.64.0906111259160.5625@axis700.grange>
+References: <77e3600851e692cb4ee9.1238662505@SCT-Book>
 MIME-Version: 1.0
-In-Reply-To: <200906191733.57136.hverkuil@xs4all.nl>
-References: <829197380906190752v981e81sb94c8c294b68dbd2@mail.gmail.com>
-	 <200906191733.57136.hverkuil@xs4all.nl>
-Date: Fri, 19 Jun 2009 11:42:18 -0400
-Message-ID: <829197380906190842w48fc7c13if02822d9dae8e252@mail.gmail.com>
-Subject: Re: v4l-dvb compile broken with stock Ubuntu Karmic build
-	(firedtv-ieee1394.c errors)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 19, 2009 at 11:33 AM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
-> What's the compile error exactly? The firedtv driver compiles fine in the
-> daily build against the vanilla 2.6.30 kernel.
->
-> Regards,
->
->        Hans
->
+On Thu, 2 Apr 2009, Stefan Herbrechtsmeier wrote:
 
-Unfortunately, I sent the email from work and didn't have the output
-in front of me (or else I would have pasted it into the email).
-Several people also reported it on #linuxtv on 6/11, but it looks like
-the pastebins have already expired.  :-(
+> The supported formats count must be set to 0 after debug output
+> right before the second pass.
+> 
 
-I will provide the output tonight.  I started to debug it last night,
-and it seems that firedtv-ieee1494.c doesn't normally get compiled at
-all, so if you add 1394 support to your build you will likely also see
-the issue.
+Hi Stefan, could you please resend with your Sob?
 
-Devin
+Thanks
+Guennadi
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+> diff --git a/linux/drivers/media/video/soc_camera.c b/linux/drivers/media/video/soc_camera.c
+> --- a/linux/drivers/media/video/soc_camera.c
+> +++ b/linux/drivers/media/video/soc_camera.c
+> @@ -236,11 +236,11 @@ static int soc_camera_init_user_formats(
+>  		return -ENOMEM;
+>  
+>  	icd->num_user_formats = fmts;
+> -	fmts = 0;
+>  
+>  	dev_dbg(&icd->dev, "Found %d supported formats.\n", fmts);
+>  
+>  	/* Second pass - actually fill data formats */
+> +	fmts = 0;
+>  	for (i = 0; i < icd->num_formats; i++)
+>  		if (!ici->ops->get_formats) {
+>  			icd->user_formats[i].host_fmt = icd->formats + i;
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
