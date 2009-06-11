@@ -1,57 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ppsw-0.csi.cam.ac.uk ([131.111.8.130]:48402 "EHLO
-	ppsw-0.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755615AbZFHQbh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2009 12:31:37 -0400
-Received: from coriolanus.eng.cam.ac.uk ([129.169.154.144]:57146)
-	by ppsw-0.csi.cam.ac.uk (smtp.hermes.cam.ac.uk [131.111.8.150]:25)
-	with esmtpsa (PLAIN:jic23) (TLSv1:DHE-RSA-AES256-SHA:256)
-	id 1MDhl5-0004aQ-0v (Exim 4.70) for linux-media@vger.kernel.org
-	(return-path <jic23@cam.ac.uk>); Mon, 08 Jun 2009 17:31:39 +0100
-Message-ID: <4A2D3CFF.9010303@cam.ac.uk>
-Date: Mon, 08 Jun 2009 16:31:59 +0000
-From: Jonathan Cameron <jic23@cam.ac.uk>
+Received: from mail.gmx.net ([213.165.64.20]:47140 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1758885AbZFKMNG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jun 2009 08:13:06 -0400
+Date: Thu, 11 Jun 2009 14:13:19 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@skynet.be>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Subject: Re: [PATCH 1/4] V4L2: add a new V4L2_CID_BAND_STOP_FILTER integer
+ control
+In-Reply-To: <200906111403.01021.laurent.pinchart@skynet.be>
+Message-ID: <Pine.LNX.4.64.0906111410590.5625@axis700.grange>
+References: <Pine.LNX.4.64.0906101549160.4817@axis700.grange>
+ <Pine.LNX.4.64.0906101558090.4817@axis700.grange> <200906111403.01021.laurent.pinchart@skynet.be>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: soc-camera: Why are exposure and gain handled via special cases?
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+On Thu, 11 Jun 2009, Laurent Pinchart wrote:
 
-Whilst working on merging the various ov7670 drivers posted
-recently, I came across the following in soc-camera:
+> Hi Guennadi,
+> 
+> On Thursday 11 June 2009 09:12:37 Guennadi Liakhovetski wrote:
+> > Add a new V4L2_CID_BAND_STOP_FILTER integer control, which either switches
+> > the band-stop filter off, or sets it to a certain strength.
+> 
+> I'm quoting your e-mail from 2009-05-27:
+> 
+> > COMJ[2] - Band filter enable. After adjust frame rate to match indoor
+> > light frequency, this bit enable a different exposure algorithm to cut
+> > light band induced by fluorescent light.
+> 
+> As Nate pointed out, that seems to some kind of anti-flicker control and not a 
+> band stop filter.
 
-static int soc_camera_g_ctrl(struct file *file, void *priv,
-			     struct v4l2_control *ctrl)
-{
-	struct soc_camera_file *icf = file->private_data;
-	struct soc_camera_device *icd = icf->icd;
-	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+Well, it _is_ a band-stop filter, at least this is how it is referred to 
+in the docs. It might be serving as an anti-flicker control, don't know, 
+if that's going to be the consensus, we can rename it, sure.
 
-	WARN_ON(priv != file->private_data);
-
-	switch (ctrl->id) {
-	case V4L2_CID_GAIN:
-		if (icd->gain == (unsigned short)~0)
-			return -EINVAL;
-		ctrl->value = icd->gain;
-		return 0;
-	case V4L2_CID_EXPOSURE:
-		if (icd->exposure == (unsigned short)~0)
-			return -EINVAL;
-		ctrl->value = icd->exposure;
-		return 0;
-	}
-
-	return v4l2_device_call_until_err(&ici->v4l2_dev, (__u32)icd, core, g_ctrl, ctrl);
-}
-
-Why are these two cases and only these two handled by soc-camera rather than being passed
-on to the drivers?
-
-Thanks,
-
-Jonathan
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
