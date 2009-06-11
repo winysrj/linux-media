@@ -1,53 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mk-outboundfilter-6-a-2.mail.uk.tiscali.com ([212.74.114.16]:1759
-	"EHLO mk-outboundfilter-6-a-2.mail.uk.tiscali.com"
+Received: from mx2.redhat.com ([66.187.237.31]:57197 "EHLO mx2.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753054AbZFCOPE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2009 10:15:04 -0400
-Message-ID: <4A26832B.5060508@nildram.co.uk>
-Date: Wed, 03 Jun 2009 15:05:31 +0100
-From: Lou Otway <lotway@nildram.co.uk>
-Reply-To: lotway@nildram.co.uk
+	id S1753949AbZFKJki (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jun 2009 05:40:38 -0400
+Message-ID: <4A30D101.3090207@redhat.com>
+Date: Thu, 11 Jun 2009 11:40:17 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: David Lister <foceni@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Digital Everywhere FloppyDTV / FireDTV (incl. CI)
-References: <4A197CE8.9040404@gmail.com>
-In-Reply-To: <4A197CE8.9040404@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: =?ISO-8859-1?Q?Jean-Philippe_Fran=E7ois?= <jp.francois@cynove.com>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: mt9t031 (was RE: [PATCH] adding support for setting bus     
+      parameters in sub device)
+References: <42113.62.70.2.252.1244712785.squirrel@webmail.xs4all.nl>
+In-Reply-To: <42113.62.70.2.252.1244712785.squirrel@webmail.xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-David Lister wrote:
-> Hi all,
-> 
-> just found out that these cards have finally some preliminary Linux
-> support. They seem quite versatile and even customizable -- a true gift
-> for dedicated hobbyists. :) PCI/PCIe/AGP or floppy drive mounting and
-> firewire /connection/ chaining look especially interesting. Even
-> FloppyDTV is apparently half internal, half external - sort of. Anybody
-> with hands-on access? Any updates? Share your experience! :o)
 
-I have been evaluating the Floppy DTV DVB-S2, DVB-T and DVB-C variants.
 
-So far I have managed to get fairly good results from the DVB-S2 and 
-DVB-T adapters but I can't get the DVB-C device to tune under linux. I 
-tested it with a windows PC to be sure it wasn't faulty and it worked fine.
+On 06/11/2009 11:33 AM, Hans Verkuil wrote:
+>>
+>> On 06/11/2009 10:35 AM, Hans Verkuil wrote:
 
-I've had them all working (i.e. appearing as devices) while chained one 
-to the next and when individually connected to a 1394 adapter card.
+<snip (a lot)>
 
-Now I need to spend some more time to see if they will give the 
-performance I need, but so far so good.
+>> Hmm,
+>>
+>> Why would we want the *application* to set things like this *at all* ?
+>> with sensors hsync and vsync and other timing are something between
+>> the bridge and the sensor, actaully in my experience the correct
+>> hsync / vsync timings to program the sensor to are very much bridge
+>> specific. So IMHO this should not be exposed to userspace at all.
+>>
+>> All userspace should be able to control is the resolution and the
+>> framerate. Although controlling the framerate in many cases also
+>> means controlling the maximum exposure time. So in many cases
+>> one cannot even control the framerate. (Asking for 30 fps in an
+>> artificially illuminated room will get you a very dark, useless
+>> picture, with most sensors). Yes this means that with cams with
+>> use autoexposure (which is something which we really want where ever
+>> possible), the framerate can and will change while streaming.
+>
+> I think we have three possible use cases here:
+>
+> - old-style standard definition video: use S_STD
+>
 
-If anyone has been able to tune the cable adapter under linux I'd like 
-to hear more.
+Ack
 
-I had to make a small modification to the driver to enable some frontend 
-settings required by my applications, but apart from that the latest v4l 
-  drivers have been sufficient.
+> - webcam-like devices: a combination of S_FMT and S_PARM I think? Correct
+> me if I'm wrong. S_STD is useless for this, right?
+>
 
-Cheers,
+Ack
 
-Lou
+> - video streaming devices like the davinci videoports where you can hook
+> up HDTV receivers or FPGAs: here you definitely need a new API to setup
+> the streaming parameters, and you want to be able to do that from the
+> application as well. Actually, sensors are also hooked up to these devices
+> in practice. And there you also want to be able to setup these parameters.
+> You will see this mostly (only?) on embedded platforms.
+>
+
+I agree we need an in kernel API for this, but why expose it to 
+userspace, as you say this will only happen on embedded systems, 
+shouldn't the info then go in a board_info file / struct ?
+
+Regards,
+
+Hans
