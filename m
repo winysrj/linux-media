@@ -1,43 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:36291 "EHLO mx2.redhat.com"
+Received: from mail1.radix.net ([207.192.128.31]:42426 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753003AbZFQG6p (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 02:58:45 -0400
-Received: from int-mx2.corp.redhat.com (int-mx2.corp.redhat.com [172.16.27.26])
-	by mx2.redhat.com (8.13.8/8.13.8) with ESMTP id n5H6wm3o027900
-	for <linux-media@vger.kernel.org>; Wed, 17 Jun 2009 02:58:48 -0400
-Received: from ns3.rdu.redhat.com (ns3.rdu.redhat.com [10.11.255.199])
-	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n5H6wSNe005395
-	for <linux-media@vger.kernel.org>; Wed, 17 Jun 2009 02:58:34 -0400
-Received: from localhost.localdomain (vpn-10-20.str.redhat.com [10.32.10.20])
-	by ns3.rdu.redhat.com (8.13.8/8.13.8) with ESMTP id n5H6wR9Z015402
-	for <linux-media@vger.kernel.org>; Wed, 17 Jun 2009 02:58:27 -0400
-Message-ID: <4A38947E.5060405@redhat.com>
-Date: Wed, 17 Jun 2009 09:00:14 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Convert cpia driver to v4l2, drop parallel port version support?
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	id S1754130AbZFKK5F (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jun 2009 06:57:05 -0400
+Subject: [PATCH v2] tuner-xc2028: Fix 7 MHz DVB-T
+From: Andy Walls <awalls@radix.net>
+To: linux-media@vger.kernel.org
+Cc: Terry Wu <terrywu2009@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain
+Date: Thu, 11 Jun 2009 06:57:50 -0400
+Message-Id: <1244717870.3158.22.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+All,
 
-I recently have been bying second hand usb webcams left and right
-one of them (a creative unknown model) uses the cpia1 chipset, and
-works with the v4l1 driver currently in the kernel.
+The following patch should fix 7 MHz DVB-T with the XC3028 using the
+DTV7 firmware from the xc3028-v27.fw firmware image.
 
-One of these days I would like to convert it to a v4l2 driver using
-gspca as basis, this however will cause us to use parallel port support
-(that or we need to keep the old code around for the parallel port
-version).
-
-I personally think that loosing support for the parallel port
-version is ok given that the parallel port itslef is rapidly
-disappearing, what do you think ?
+Comments?
 
 Regards,
+Andy Walls
 
-Hans
+Signed-off-by: Andy Walls <awalls@radix.net>
+Tested-by: Terry Wu <terrywu2009@gmail.com>
+
+diff -r fad35ab59848 linux/drivers/media/common/tuners/tuner-xc2028.c
+--- a/linux/drivers/media/common/tuners/tuner-xc2028.c	Fri Jun 05 08:42:27 2009 -0400
++++ b/linux/drivers/media/common/tuners/tuner-xc2028.c	Thu Jun 11 06:52:55 2009 -0400
+@@ -1099,8 +1099,19 @@
+ 	}
+ 
+ 	/* All S-code tables need a 200kHz shift */
+-	if (priv->ctrl.demod)
++	if (priv->ctrl.demod) {
+ 		demod = priv->ctrl.demod + 200;
++		/*
++		 * The DTV7 S-code table needs a 700 kHz shift.
++		 * Thanks to Terry Wu <terrywu2009@gmail.com> for reporting this
++		 *
++		 * DTV7 is only used in Australia.  Germany or Italy may also
++		 * use this firmware after initialization, but a tune to a UHF
++		 * channel should then cause DTV78 to be used.
++		 */
++		if (type & DTV7)
++			demod += 500;
++	}
+ 
+ 	return generic_set_freq(fe, p->frequency,
+ 				T_DIGITAL_TV, type, 0, demod);
+
+
