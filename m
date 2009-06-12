@@ -1,113 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f177.google.com ([209.85.222.177]:46643 "EHLO
-	mail-pz0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755451AbZFBL3k convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2009 07:29:40 -0400
-Received: by pzk7 with SMTP id 7so6590703pzk.33
-        for <linux-media@vger.kernel.org>; Tue, 02 Jun 2009 04:29:41 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <200906021244.44288.laurent.pinchart@skynet.be>
-References: <200906021244.44288.laurent.pinchart@skynet.be>
-Date: Tue, 2 Jun 2009 20:29:41 +0900
-Message-ID: <5e9665e10906020429p3d27ff9ie89bbd2a4aa19577@mail.gmail.com>
-Subject: Re: VIDIOC_[GS]_JPEGCOMP clarifications
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp.nokia.com ([192.100.122.230]:56953 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760719AbZFLRgL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Jun 2009 13:36:11 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv7 9/9] FMTx: si4713: Add document file
+Date: Fri, 12 Jun 2009 20:30:40 +0300
+Message-Id: <1244827840-886-10-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1244827840-886-9-git-send-email-eduardo.valentin@nokia.com>
+References: <1244827840-886-1-git-send-email-eduardo.valentin@nokia.com>
+ <1244827840-886-2-git-send-email-eduardo.valentin@nokia.com>
+ <1244827840-886-3-git-send-email-eduardo.valentin@nokia.com>
+ <1244827840-886-4-git-send-email-eduardo.valentin@nokia.com>
+ <1244827840-886-5-git-send-email-eduardo.valentin@nokia.com>
+ <1244827840-886-6-git-send-email-eduardo.valentin@nokia.com>
+ <1244827840-886-7-git-send-email-eduardo.valentin@nokia.com>
+ <1244827840-886-8-git-send-email-eduardo.valentin@nokia.com>
+ <1244827840-886-9-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This patch adds a document file for si4713 device driver.
+It describes the driver interfaces and organization.
 
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ linux/Documentation/video4linux/si4713.txt |  137 ++++++++++++++++++++++++++++
+ 1 files changed, 137 insertions(+), 0 deletions(-)
+ create mode 100644 linux/Documentation/video4linux/si4713.txt
 
-On Tue, Jun 2, 2009 at 7:44 PM, Laurent Pinchart
-<laurent.pinchart@skynet.be> wrote:
-> Hi everybody,
->
-> the VIDIOC_[GS]_JPEGCOMP documentation in the V4L2 specification is far from
-> being clear and complete (which is probably why it's marked as [to do]). I'm
-> implementing support for this ioctl in the uvcvideo driver and I'd like to
-> request your opinion about the expected ioctl behavior.
->
-> - VIDIOC_[GS]_JPEGCOMP only make sense for (M)JPEG compressed formats. Should
-> the ioctls return an error (-EINVAL ?) when the currently selected format
-> isn't (M)JPEG ?
-
-I think JPEGCOMP ioctl is not respected doing the compression job
-right at time it is being issued. In my opinion, it has to be saved
-until next time it issues JPEG encoding with proper pixel format like
-(M)JPEG. So, it seems to be OK not to return error even if it is not
-working with expected JPEG format at the moment.
-
-
->
-> - VIDIOC_S_JPEGCOMP is a write-only ioctl. As such it can't return the quality
-> value really applied to the device when the requested quality can't be
-> achieved (either because the value is out of bounds or the quality values
-> supported by the device have a higher granularity). Should the ioctl still
-> succeed in that case, and apply a closest match quality to the device ?
->
-
-I think the quality parameter is not that critical item to be
-configured that precisely in some point of view. But it is obvious
-that it shouldn't be OK if it is not configured with "closest
-matching" quality. I think this quantified way of quality setting is
-quite choosy. I prefer to configure with preset like "high quality"
-"standard quality" "low quality"...
-So, I should say that it's not that critical to be configured to with
-closest matching quality but not to far from expecting quality. (is it
-maintainable in driver?)
-
-> - Similarly, should VIDIOC_S_JPEGCOMP fail if the requested JPEG markers
-> combination is not supported by the device, or should it silently fix the
-> value ?
-
-If the device is just supporting only encoder feature, it may be OK I
-guess.. But if it supports encoder and decoder both of them and user
-application trying to use decoder feature on encoded output with it's
-own encoder, I'm afraid in some cases it can be matter. Especially
-with quantization tables markers.
-
-I think in this case it should return error if there is any problem
-with JPEG markers in the first place
-
-
->
-> - While JPEG-specific fields (such as markers) don't make sense for frame-
-> based compressed formats other than (M)JPEG, the quality field does. Would it
-> be abusing the ioctl to use the quality field to get/set the compression
-> quality for compression formats similar to JPEG ? If it would, what's the
-> preferred way to set compression quality in V4L2 ?
->
-
-In the close context I posted a RFC for ENUM_FRAMESIZES for JPEG (not
-the compression rate sorry). Can I have your opinion about that if you
-don't mind? Please find following archive :
-http://www.spinics.net/lists/linux-media/msg05013.html
-Cheers,
-
-Nate
-
-> Best regards,
->
-> Laurent Pinchart
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
-
+diff --git a/linux/Documentation/video4linux/si4713.txt b/linux/Documentation/video4linux/si4713.txt
+new file mode 100644
+index 0000000..46e5e58
+--- /dev/null
++++ b/linux/Documentation/video4linux/si4713.txt
+@@ -0,0 +1,137 @@
++Driver for I2C radios for the Silicon Labs Si4713 FM Radio Transmitters
++
++Copyright (c) 2009 Nokia Corporation
++Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
++
++
++Information about the Device
++============================
++This chip is a Silicon Labs product. It is a I2C device, currently on 0Ã—63 address.
++Basically, it has transmission and signal noise level measurement features.
++
++The Si4713 integrates transmit functions for FM broadcast stereo transmission.
++The chip also allows integrated receive power scanning to identify low signal
++power FM channels.
++
++The chip is programmed using commands and responses. There are also several
++properties which can change the behavior of this chip.
++
++Users must comply with local regulations on radio frequency (RF) transmission.
++
++Device driver description
++=========================
++There are two modules to handle this device. One is a I2C device driver
++and the other is a platform driver.
++
++The I2C device driver exports a v4l2-subdev interface to the kernel.
++All properties can also be accessed by v4l2 extended controls interface, by
++using the v4l2-subdev calls (g_ext_ctrls, s_ext_ctrls).
++
++The platform device driver exports a v4l2 radio device interface to user land.
++So, it uses the I2C device driver as a sub device in order to send the user
++commands to the actual device. Basically it is a wrapper to the I2C device driver.
++
++Applications can use v4l2 radio API to specify frequency of operation, mute state,
++etc. But mostly of its properties will be present in the extended controls.
++
++When the v4l2 mute property is set to 1 (true), the driver will turn the chip off.
++
++Properties description
++======================
++
++The properties can be accessed using v4l2 extended controls.
++Here is an output from v4l2-ctl util:
++
++# v4l2-ctl -d /dev/radio0 -l --all
++Driver Info:
++        Driver name   : radio-si4713
++        Card type     : Silicon Labs Si4713 Modulator
++        Bus info      : 
++        Driver version: 0
++        Capabilities  : 0x00080000
++                Modulator
++Audio output: 0 (FM Modulator Audio Out)
++Frequency: 1408000 (88000.000000 MHz)
++Video Standard = 0x00000000
++Modulator:
++        Name                 : FM Modulator
++        Capabilities         : 62.5 Hz stereo 
++        Frequency range      : 76.0 MHz - 108.0 MHz
++        Available subchannels: mono stereo 
++
++User Controls
++
++                           mute (bool) : default=1 value=0
++
++FM Radio Modulator Controls
++
++            rds_feature_enabled (bool) : default=1 value=1
++                 rds_program_id (int)  : min=0 max=65535 step=1 default=0 value=0
++               rds_program_type (int)  : min=0 max=31 step=1 default=0 value=0
++                    rds_ps_name (str)  : value='Si4713  ' len=8
++' len=9          rds_radio_text (str)  : value='Si4713  
++  audio_limiter_feature_enabled (bool) : default=1 value=1
++     audio_limiter_release_time (int)  : min=250 max=102390 step=50 default=5010 value=5010 flags=slider
++        audio_limiter_deviation (int)  : min=0 max=90000 step=10 default=66250 value=66250 flags=slider
++audio_compression_feature_enabl (bool) : default=1 value=1
++         audio_compression_gain (int)  : min=0 max=20 step=1 default=15 value=15 flags=slider
++    audio_compression_threshold (int)  : min=-40 max=0 step=1 default=-40 value=-40 flags=slider
++  audio_compression_attack_time (int)  : min=0 max=5000 step=500 default=0 value=2000 flags=slider
++ audio_compression_release_time (int)  : min=100000 max=1000000 step=100000 default=1000000 value=1000000 flags=slider
++     pilot_tone_feature_enabled (bool) : default=1 value=1
++           pilot_tone_deviation (int)  : min=0 max=90000 step=10 default=6750 value=6750 flags=slider
++           pilot_tone_frequency (int)  : min=0 max=19000 step=1 default=19000 value=19000 flags=slider
++          pre_emphasis_settings (menu) : min=0 max=2 default=1 value=2
++               tune_power_level (int)  : min=0 max=120 step=1 default=88 value=88 flags=slider
++         tune_antenna_capacitor (int)  : min=0 max=191 step=1 default=0 value=110 flags=slider
++
++Here is a summary of them:
++
++* Pilot is an audible tone sent by the device.
++
++pilot_frequency - Configures the frequency of the stereo pilot tone.
++pilot_deviation - Configures pilot tone frequency deviation level.
++pilot_enabled - Enables or disables the pilot tone feature.
++
++* The si4713 device is capable of applying audio compression to the transmitted signal.
++
++acomp_enabled - Enables or disables the audio dynamic range control feature.
++acomp_gain - Sets the gain for audio dynamic range control.
++acomp_threshold - Sets the threshold level for audio dynamic range control.
++acomp_attack_time - Sets the attack time for audio dynamic range control.
++acomp_release_time - Sets the release time for audio dynamic range control.
++
++* Limiter setups audio deviation limiter feature. Once a over deviation occurs,
++it is possible to adjust the front-end gain of the audio input and always
++prevent over deviation.
++
++limiter_enabled - Enables or disables the limiter feature.
++limiter_deviation - Configures audio frequency deviation level.
++limiter_release_time - Sets the limiter release time.
++
++* Tuning power
++
++power_level - Sets the output power level for signal transmission.
++antenna_capacitor - This selects the value of antenna tuning capacitor manually
++or automatically if set to zero.
++
++* RDS related
++
++rds_enabled - Enables or disables the RDS feature.
++rds_ps_name - Sets the RDS ps name field for transmission.
++rds_radio_text - Sets the RDS radio text for transmission.
++rds_pi - Sets the RDS PI field for transmission.
++rds_pty - Sets the RDS PTY field for transmission.
++
++* Region related
++
++preemphasis - sets the preemphasis to be applied for transmission.
++
++Testing
++=======
++Testing is usually done with v4l2-ctl utility for managing FM tuner cards.
++The tool can be found in v4l-dvb repository under v4l2-apps/util directory.
++
++Example for setting rds ps name:
++# v4l2-ctl -d /dev/radio0 --set-ctrl=rds_ps_name="Dummy"
++
 -- 
-=
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
+1.6.2.GIT
+
