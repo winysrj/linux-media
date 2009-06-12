@@ -1,9 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:37878 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759972AbZFROED (ORCPT
+Received: from smtp.nokia.com ([192.100.122.230]:56972 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755482AbZFLRgW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 10:04:03 -0400
+	Fri, 12 Jun 2009 13:36:22 -0400
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
 To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
 	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
@@ -12,107 +12,123 @@ Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
 	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
 	Linux-Media <linux-media@vger.kernel.org>,
 	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv8  4/9] v4l2-ctl: Add support for FM TX controls
-Date: Thu, 18 Jun 2009 16:55:46 +0300
-Message-Id: <1245333351-28157-5-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1245333351-28157-4-git-send-email-eduardo.valentin@nokia.com>
-References: <1245333351-28157-1-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-2-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-3-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-4-git-send-email-eduardo.valentin@nokia.com>
+Subject: [PATCHv7 3/9] v4l2: video device: Add FM_TX controls default configurations
+Date: Fri, 12 Jun 2009 20:30:34 +0300
+Message-Id: <1244827840-886-4-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1244827840-886-3-git-send-email-eduardo.valentin@nokia.com>
+References: <1244827840-886-1-git-send-email-eduardo.valentin@nokia.com>
+ <1244827840-886-2-git-send-email-eduardo.valentin@nokia.com>
+ <1244827840-886-3-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds simple support for FM TX extended controls
-on v4l2-ctl utility.
-
 Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 ---
- v4l2-apps/util/v4l2-ctl.cpp |   36 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 36 insertions(+), 0 deletions(-)
+ linux/drivers/media/video/v4l2-common.c |   50 +++++++++++++++++++++++++++++++
+ 1 files changed, 50 insertions(+), 0 deletions(-)
 
-diff --git a/v4l2-apps/util/v4l2-ctl.cpp b/v4l2-apps/util/v4l2-ctl.cpp
-index 2c7290f..45a2310 100644
---- a/v4l2-apps/util/v4l2-ctl.cpp
-+++ b/v4l2-apps/util/v4l2-ctl.cpp
-@@ -148,6 +148,7 @@ typedef std::vector<struct v4l2_ext_control> ctrl_list;
- static ctrl_list user_ctrls;
- static ctrl_list mpeg_ctrls;
- static ctrl_list camera_ctrls;
-+static ctrl_list fm_tx_ctrls;
+diff --git a/linux/drivers/media/video/v4l2-common.c b/linux/drivers/media/video/v4l2-common.c
+index 5cfd727..9b6cf9f 100644
+--- a/linux/drivers/media/video/v4l2-common.c
++++ b/linux/drivers/media/video/v4l2-common.c
+@@ -345,6 +345,12 @@ const char **v4l2_ctrl_get_menu(u32 id)
+ 		"Sepia",
+ 		NULL
+ 	};
++	static const char *fm_tx_preemphasis[] = {
++		"No preemphasis",
++		"50 useconds",
++		"75 useconds",
++		NULL,
++	};
  
- typedef std::map<std::string, unsigned> ctrl_strmap;
- static ctrl_strmap ctrl_str2id;
-@@ -2166,6 +2167,8 @@ set_vid_fmt_error:
- 				mpeg_ctrls.push_back(ctrl);
- 			else if (V4L2_CTRL_ID2CLASS(ctrl.id) == V4L2_CTRL_CLASS_CAMERA)
- 				camera_ctrls.push_back(ctrl);
-+			else if (V4L2_CTRL_ID2CLASS(ctrl.id) == V4L2_CTRL_CLASS_FM_TX)
-+				fm_tx_ctrls.push_back(ctrl);
- 			else
- 				user_ctrls.push_back(ctrl);
- 		}
-@@ -2212,6 +2215,22 @@ set_vid_fmt_error:
- 				}
- 			}
- 		}
-+		if (fm_tx_ctrls.size()) {
-+			ctrls.ctrl_class = V4L2_CTRL_CLASS_FM_TX;
-+			ctrls.count = fm_tx_ctrls.size();
-+			ctrls.controls = &fm_tx_ctrls[0];
-+			if (doioctl(fd, VIDIOC_S_EXT_CTRLS, &ctrls, "VIDIOC_S_EXT_CTRLS")) {
-+				if (ctrls.error_idx >= ctrls.count) {
-+					fprintf(stderr, "Error setting FM Modulator controls: %s\n",
-+						strerror(errno));
-+				}
-+				else {
-+					fprintf(stderr, "%s: %s\n",
-+						ctrl_id2str[fm_tx_ctrls[ctrls.error_idx].id].c_str(),
-+						strerror(errno));
-+				}
-+			}
-+		}
+ 	switch (id) {
+ 		case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+@@ -383,6 +389,8 @@ const char **v4l2_ctrl_get_menu(u32 id)
+ 			return camera_exposure_auto;
+ 		case V4L2_CID_COLORFX:
+ 			return colorfx;
++		case V4L2_CID_PREEMPHASIS:
++			return fm_tx_preemphasis;
+ 		default:
+ 			return NULL;
  	}
+@@ -481,6 +489,28 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
+ 	case V4L2_CID_PRIVACY:			return "Privacy";
  
- 	/* Get options */
-@@ -2429,6 +2448,7 @@ set_vid_fmt_error:
- 		mpeg_ctrls.clear();
- 		camera_ctrls.clear();
- 		user_ctrls.clear();
-+		fm_tx_ctrls.clear();
- 		for (ctrl_get_list::iterator iter = get_ctrls.begin();
- 				iter != get_ctrls.end(); ++iter) {
- 			struct v4l2_ext_control ctrl = { 0 };
-@@ -2443,6 +2463,8 @@ set_vid_fmt_error:
- 				mpeg_ctrls.push_back(ctrl);
- 			else if (V4L2_CTRL_ID2CLASS(ctrl.id) == V4L2_CTRL_CLASS_CAMERA)
- 				camera_ctrls.push_back(ctrl);
-+			else if (V4L2_CTRL_ID2CLASS(ctrl.id) == V4L2_CTRL_CLASS_FM_TX)
-+				fm_tx_ctrls.push_back(ctrl);
- 			else
- 				user_ctrls.push_back(ctrl);
- 		}
-@@ -2481,6 +2503,20 @@ set_vid_fmt_error:
- 					printf("%s: %d\n", ctrl_id2str[ctrl.id].c_str(), ctrl.value);
- 			}
- 		}
-+		if (fm_tx_ctrls.size()) {
-+			ctrls.ctrl_class = V4L2_CTRL_CLASS_FM_TX;
-+			ctrls.count = fm_tx_ctrls.size();
-+			ctrls.controls = &fm_tx_ctrls[0];
-+			doioctl(fd, VIDIOC_G_EXT_CTRLS, &ctrls, "VIDIOC_G_EXT_CTRLS");
-+			for (unsigned i = 0; i < fm_tx_ctrls.size(); i++) {
-+				struct v4l2_ext_control ctrl = fm_tx_ctrls[i];
++	/* FM Radio Modulator control */
++	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
++	case V4L2_CID_RDS_ENABLED:		return "RDS Feature Enabled";
++	case V4L2_CID_RDS_PI:			return "RDS Program ID";
++	case V4L2_CID_RDS_PTY:			return "RDS Program Type";
++	case V4L2_CID_RDS_PS_NAME:		return "RDS PS Name";
++	case V4L2_CID_RDS_RADIO_TEXT:		return "RDS Radio Text";
++	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
++	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
++	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
++	case V4L2_CID_AUDIO_COMPRESSION_ENABLED: return "Audio Compression Feature Enabled";
++	case V4L2_CID_AUDIO_COMPRESSION_GAIN:	return "Audio Compression Gain";
++	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD: return "Audio Compression Threshold";
++	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME: return "Audio Compression Attack Time";
++	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME: return "Audio Compression Release Time";
++	case V4L2_CID_PILOT_TONE_ENABLED:	return "Pilot Tone Feature Enabled";
++	case V4L2_CID_PILOT_TONE_DEVIATION:	return "Pilot Tone Deviation";
++	case V4L2_CID_PILOT_TONE_FREQUENCY:	return "Pilot Tone Frequency";
++	case V4L2_CID_PREEMPHASIS:		return "Pre-emphasis settings";
++	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
++	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
 +
-+				if (ctrl_id2type[ctrl.id] == V4L2_CTRL_TYPE_STRING)
-+					printf("%s: '%s'\n", ctrl_id2str[ctrl.id].c_str(), ctrl.string);
-+				else
-+					printf("%s: %d\n", ctrl_id2str[ctrl.id].c_str(), ctrl.value);
-+			}
-+		}
+ 	default:
+ 		return NULL;
  	}
- 
- 	if (options[OptGetTuner]) {
+@@ -513,6 +543,10 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+ 	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
+ 	case V4L2_CID_FOCUS_AUTO:
+ 	case V4L2_CID_PRIVACY:
++	case V4L2_CID_RDS_ENABLED:
++	case V4L2_CID_AUDIO_LIMITER_ENABLED:
++	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
++	case V4L2_CID_PILOT_TONE_ENABLED:
+ 		qctrl->type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		min = 0;
+ 		max = step = 1;
+@@ -541,12 +575,18 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+ 	case V4L2_CID_MPEG_STREAM_VBI_FMT:
+ 	case V4L2_CID_EXPOSURE_AUTO:
+ 	case V4L2_CID_COLORFX:
++	case V4L2_CID_PREEMPHASIS:
+ 		qctrl->type = V4L2_CTRL_TYPE_MENU;
+ 		step = 1;
+ 		break;
++	case V4L2_CID_RDS_PS_NAME:
++	case V4L2_CID_RDS_RADIO_TEXT:
++		qctrl->type = V4L2_CTRL_TYPE_STRING;
++		break;
+ 	case V4L2_CID_USER_CLASS:
+ 	case V4L2_CID_CAMERA_CLASS:
+ 	case V4L2_CID_MPEG_CLASS:
++	case V4L2_CID_FM_TX_CLASS:
+ 		qctrl->type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 		min = max = step = def = 0;
+@@ -575,6 +615,16 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+ 	case V4L2_CID_BLUE_BALANCE:
+ 	case V4L2_CID_GAMMA:
+ 	case V4L2_CID_SHARPNESS:
++	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME:
++	case V4L2_CID_AUDIO_LIMITER_DEVIATION:
++	case V4L2_CID_AUDIO_COMPRESSION_GAIN:
++	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD:
++	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME:
++	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME:
++	case V4L2_CID_PILOT_TONE_DEVIATION:
++	case V4L2_CID_PILOT_TONE_FREQUENCY:
++	case V4L2_CID_TUNE_POWER_LEVEL:
++	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
+ 		qctrl->flags |= V4L2_CTRL_FLAG_SLIDER;
+ 		break;
+ 	case V4L2_CID_PAN_RELATIVE:
 -- 
 1.6.2.GIT
 
