@@ -1,63 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:52480 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752456AbZFZQdJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2009 12:33:09 -0400
-Date: Fri, 26 Jun 2009 11:33:11 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: jmdk <jmdk@aokks.org>
-cc: linux-media@vger.kernel.org
-Subject: Re: Cropping with Hauppauge HVR-1900
-In-Reply-To: <4A44990F.5050901@aokks.org>
-Message-ID: <Pine.LNX.4.64.0906261126350.31925@cnc.isely.net>
-References: <4A44990F.5050901@aokks.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from yw-out-2324.google.com ([74.125.46.28]:3361 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751545AbZFLQx2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Jun 2009 12:53:28 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so1551849ywb.1
+        for <linux-media@vger.kernel.org>; Fri, 12 Jun 2009 09:53:29 -0700 (PDT)
+MIME-Version: 1.0
+Date: Fri, 12 Jun 2009 12:53:29 -0400
+Message-ID: <b24e53350906120953v7eeb595dpe58ca138dcf438b5@mail.gmail.com>
+Subject: Fwd: [PATCH 2/2] uvc: Added two webcams with 'No FID' quirk.
+From: Robert Krakora <rob.krakora@messagenetsystems.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 26 Jun 2009, jmdk wrote:
+From: Robert Krakora <rob.krakora@messagenetsystems.com>
 
-> Hello,
-> 
-> I have a Hauppauge HVR-1900 which works fine with the pvrusb2 driver.
-> However because most TV channels now air with 16:9 content inside 4:3
-> images, I would like to crop out the top and bottom black bars before
-> encoding via the hardware MPEG2 encoder. I tried using the ctl_crop_top
-> and ctl_crop_height in  /sysfs as well as the --set-crop option of
-> v4l2-ctrl but only received error messages indicating a value out of range.
-> 
-> The card has a cx25843 which should support cropping. Does anyone know
-> how to get this feature to work ?
-> 
-> Thanks in advance for the help,
+Added two webcams with 'No FID' quirk.
 
-Unfortunately the cx25840 driver does not implement any cropping 
-capability and the recent change to the v4l-subdevice architecture 
-currently lacks the API entrypoints to make such a thing possible :-(
+Priority: normal
 
-A pvrusb2 user a while back (it's in the pvrusb2 list archives) came up 
-with some patches to the cx25840 driver that implement cropping.  He 
-also generated corresponding patches for the pvrusb2 driver.  I merged 
-his pvrusb2 patches (which is why you see that support in the driver) 
-but not the cx25840 patches since I'm not an expert on that chip and I 
-don't have the ability to verify that the patches preserve correct 
-behavior for all the other devices that use the same chip.  I did pass 
-the cx25840 patches to Hans Verkuil and he tried them out at the time 
-and basically pronounced them "ok" but I think even he wasn't sure if it 
-was doing everything right.
+Signed-off-by: Robert Krakora <rob.krakora@messagenetsystems.com>
 
-That was a while ago and the cx25840 driver has undergone enough other 
-changes to make merging those patches a lot more difficult - plus the 
-v4l-subdevice stuff needs additional changes to support the extra 
-cropping API.
-
-  -Mike
-
-
--- 
-
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+diff -r bff77ec33116 linux/drivers/media/video/uvc/uvc_driver.c
+--- a/linux/drivers/media/video/uvc/uvc_driver.c        Thu Jun 11
+18:44:23 2009 -0300
++++ b/linux/drivers/media/video/uvc/uvc_driver.c        Fri Jun 12
+11:35:04 2009 -0400
+@@ -1919,6 +1919,24 @@
+          .bInterfaceSubClass   = 1,
+          .bInterfaceProtocol   = 0,
+          .driver_info          = UVC_QUIRK_STREAM_NO_FID },
++       /* Suyin Corp. HP Webcam */
++       { .match_flags          = USB_DEVICE_ID_MATCH_DEVICE
++                               | USB_DEVICE_ID_MATCH_INT_INFO,
++         .idVendor             = 0x064e,
++         .idProduct            = 0xa110,
++         .bInterfaceClass      = USB_CLASS_VIDEO,
++         .bInterfaceSubClass   = 1,
++         .bInterfaceProtocol   = 0,
++         .driver_info          = UVC_QUIRK_STREAM_NO_FID },
++       /* Creative Live! Cam Optia AF */
++       { .match_flags          = USB_DEVICE_ID_MATCH_DEVICE
++                               | USB_DEVICE_ID_MATCH_INT_INFO,
++         .idVendor             = 0x041e,
++         .idProduct            = 0x406d,
++         .bInterfaceClass      = USB_CLASS_VIDEO,
++         .bInterfaceSubClass   = 1,
++         .bInterfaceProtocol   = 0,
++         .driver_info          = UVC_QUIRK_STREAM_NO_FID },
+        /* Aveo Technology USB 2.0 Camera */
+        { .match_flags          = USB_DEVICE_ID_MATCH_DEVICE
+                                | USB_DEVICE_ID_MATCH_INT_INFO,
