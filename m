@@ -1,19 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with SMTP id n5GA6M7a020202
-	for <video4linux-list@redhat.com>; Tue, 16 Jun 2009 06:06:22 -0400
-Received: from smtp.adamobredband.com (smtp.adamobredband.com [91.126.224.27])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n5GA67uH002550
-	for <video4linux-list@redhat.com>; Tue, 16 Jun 2009 06:06:07 -0400
-From: sacha <sacha@hemmail.se>
-To: video4linux-list@redhat.com, linux-dvb@linuxtv.org
-Content-Type: text/plain
-Date: Mon, 15 Jun 2009 22:36:00 +0200
-Message-Id: <1245098160.20120.0.camel@asrock>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Cc: 
-Subject: Terratec Cinergy HTC USB XS HD
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with SMTP id n5CCdfuC020785
+	for <video4linux-list@redhat.com>; Fri, 12 Jun 2009 08:39:41 -0400
+Received: from sohosted4.com (ns1.sohosted4.com [195.8.208.32])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n5CCdNHo025072
+	for <video4linux-list@redhat.com>; Fri, 12 Jun 2009 08:39:24 -0400
+Date: Fri, 12 Jun 2009 14:40:38 +0200
+To: video4linux-list Mailing List <video4linux-list@redhat.com>
+Message-ID: <20090612124038.GC18091@pazuzu.ehv.virtualproteins.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+From: hlambermont@virtualproteins.com (Hans Lambermont)
+Subject: Focus control for SPC1330NC ?
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,15 +24,16 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello
+Hi all,
 
-Does anybody know if this devise will ever work with Linux?
-It was promised by one person last year the support will be available
-within months. One year has gone, nothing happens.
-Is there any alternatives to develop a driver for this devise aside from
-this person?
+The Philips SPC 1330NC defaults to autofocus which works fine using linux-uvc.
 
-KR
+In MS-Windows the camera can also be set to manual focus, and the focus
+controlled via a slider.
+
+Can the camera be set to manual focus, and focus controlled from Linux as well ?
+
+-- Hans
 
 --
 video4linux-list mailing list
