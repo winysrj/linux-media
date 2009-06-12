@@ -1,70 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59262 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751129AbZFQVBr convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2330 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933027AbZFLSSS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 17:01:47 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Sakari Ailus <sakari.ailus@nokia.com>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"Subrahmanya, Chaithrika" <chaithrika@ti.com>,
-	David Cohen <david.cohen@nokia.com>,
-	"Curran, Dominic" <dcurran@ti.com>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>,
-	Eero Nurkkala <ext-eero.nurkkala@nokia.com>,
-	Felipe Balbi <felipe.balbi@nokia.com>,
-	"Shah, Hardik" <hardik.shah@ti.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>, "Hadli, Manjunath" <mrh@ti.com>,
-	Mikko Hurskainen <mikko.hurskainen@nokia.com>,
-	"Menon, Nishanth" <nm@ti.com>, "R, Sivaraj" <sivaraj@ti.com>,
-	"Paulraj, Sandeep" <s-paulraj@ti.com>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	Tomi Valkeinen <tomi.valkeinen@nokia.com>,
-	Tuukka Toivonen <tuukka.o.toivonen@nokia.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Wed, 17 Jun 2009 16:01:21 -0500
-Subject: RE: [DaVinci] patches for linux-media
-Message-ID: <A69FA2915331DC488A831521EAE36FE40139DF9EE9@dlee06.ent.ti.com>
-References: <20090616104018.44075a80@pedra.chehab.org>
- <200906170830.14052.hverkuil@xs4all.nl>
-In-Reply-To: <200906170830.14052.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+	Fri, 12 Jun 2009 14:18:18 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id n5CIIJkM030864
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 12 Jun 2009 20:18:19 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 12 Jun 2009 20:18:19 +0200 (CEST)
+Message-Id: <200906121818.n5CIIJkM030864@smtp-vbr9.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans & Mauro,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-The v3 version of the DaVici VPFE Capture driver and TVP514x driver has been sent to the list for review. I expect this to sail through with out any comments as I have addressed few minor comments from last review. I think Hans will send you the pull request for these patches. Once again, it will be great if this can be merged to 2.6.31.
+Results of the daily build of v4l-dvb:
 
-Murali Karicheri
-m-karicheri2@ti.com
+date:        Fri Jun 12 19:00:07 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11965:bff77ec33116
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
->I have proposed this before, but I'll do it again: I'm more than happy to
->be
->the official person who collects and organizes the omap and davinci patches
->for you and who does the initial reviews. This is effectively already the
->case since I've been reviewing both omap and davinci patches pretty much
->from the beginning.
->
->Both the omap2/3 display driver and the davinci drivers are now very close
->to be ready for inclusion in the kernel as my last reviews only found some
->minor things.
->
->Part of the reason for the delays for both omap and davinci was that they
->had to be modified for v4l2_subdev, which was an absolute necessity, and
->because they simply needed quite a bit of work to make them suitable for
->inclusion in the kernel.
->
->Regards,
->
->	Hans
->
->--
->Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.22.19-mips: ERRORS
+linux-2.6.26-mips: ERRORS
+linux-2.6.27-mips: ERRORS
+linux-2.6.28-mips: ERRORS
+linux-2.6.29.1-mips: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-x86_64: WARNINGS
+sparse (linux-2.6.30): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
