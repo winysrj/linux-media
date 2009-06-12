@@ -1,54 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f222.google.com ([209.85.218.222]:33976 "EHLO
-	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756728AbZFBGCD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2009 02:02:03 -0400
-Received: by bwz22 with SMTP id 22so7902477bwz.37
-        for <linux-media@vger.kernel.org>; Mon, 01 Jun 2009 23:02:03 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <200905262106.03697.domi.dumont@free.fr>
-References: <eaf6cbc30905252243m2d6e1537vd255e49f289c0f33@mail.gmail.com>
-	 <200905262106.03697.domi.dumont@free.fr>
-Date: Tue, 2 Jun 2009 08:56:11 +0300
-Message-ID: <eaf6cbc30906012256j5ab600e6wffa5f315c076213a@mail.gmail.com>
-Subject: Re: Problem with SCM/Viaccess CAM
-From: Tomer Barletz <barletz@gmail.com>
-To: Dominique Dumont <domi.dumont@free.fr>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from psmtp12.wxs.nl ([195.121.247.24]:64189 "EHLO psmtp12.wxs.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751940AbZFLTxd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Jun 2009 15:53:33 -0400
+Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
+ by psmtp12.wxs.nl
+ (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
+ with ESMTP id <0KL500KOT5X5HJ@psmtp12.wxs.nl> for linux-media@vger.kernel.org;
+ Fri, 12 Jun 2009 21:53:35 +0200 (MEST)
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by localhost (8.14.3/8.14.3/Debian-4) with ESMTP id n5CJrSEQ003997	for
+ <linux-media@vger.kernel.org>; Fri, 12 Jun 2009 21:53:29 +0200
+Date: Fri, 12 Jun 2009 21:53:28 +0200
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: Re: [linux-dvb] Remote af9015 Conceptronic
+In-reply-to: <bc67ac90906090053g31ed44e7q1f6c96d86c9fd6f0@mail.gmail.com>
+To: linux-media@vger.kernel.org
+Message-id: <4A32B238.9070000@hoogenraad.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <bc67ac90906090053g31ed44e7q1f6c96d86c9fd6f0@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dominique,
-I've tried to increase the time-out period from 5 to 10 seconds (as it
-is with current source), but with no success.
-Did your patch involved any other changes besides this one? How can I
-obtain your patch? Did you changed dvb_ca_en50221.c only, or were
-there any other files changed?
-I know that my kernel is slightly old ;), but it is currently not
-feasible for me to upgrade.
+The IR tables are hardcoded in the driver that can be found at:
+http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2
 
-Thanks,
-Tomer
+It has 3 sets parameters, and by default is set to tthe NEC one.
+ir_protocol
+Specify RTL2381 remote: 0=NEC, 1=RC5, 2=Conceptronic (defaults to 0)
 
-On Tue, May 26, 2009 at 10:06 PM, Dominique Dumont <domi.dumont@free.fr> wrote:
-> Le Tuesday 26 May 2009 07:43:15 Tomer Barletz, vous avez écrit :
->> Hi,
->> When inserting a SCM/Viaccess CAM, I get the following message:
->> dvb_ca adapter 0: DVB CAM did not respond :(
->>
->> According to this:
->> http://linuxtv.org/hg/v4l-dvb/file/142fd6020df3/linux/Documentation/dvb/ci.
->>txt this CAM should work.
->>
->> I'm using kernel 2.6.10.
->
-> SCM CAMs are very slow to start up. I've submitted a patch to work-around this
-> issue a few years ago. IIRC, this was around 2.6.14.
->
-> So you should upgrade your kernel
->
-> HTH
->
->
+   sudo modprobe -r dvb_usb_rtl2831u
+   sudo modprobe dvb-usb-rtl2831u ir_protocol=2
+
+to be compliant with the Conceptronic IR
+
+Daniel Sanchez wrote:
+> Hi,
+> I'm have Conceptronic USB2.0 DVB-T CTVDIGRCU V3.0 and remote not working,
+> In method 'af9015_read_config' set IR mode: 4 and set rc_key_map to NULL;
+> Why I'm read ir_table to set?
+> It's possible follow this instructions? 
+> http://linuxtv.org/wiki/index.php/Remote_controllers-V4L#How_to_add_remote_control_support_to_a_card_.28GPIO_remotes.29
+> 
+> Thanks
+> 
+> 
+> ------------------------------------------------------------------------
+> 
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+
+-- 
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
