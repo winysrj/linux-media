@@ -1,86 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:33097 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1764007AbZFROD6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 10:03:58 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv8  8/9] FMTx: si4713: Add Kconfig and Makefile entries
-Date: Thu, 18 Jun 2009 16:55:50 +0300
-Message-Id: <1245333351-28157-9-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1245333351-28157-8-git-send-email-eduardo.valentin@nokia.com>
-References: <1245333351-28157-1-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-2-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-3-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-4-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-5-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-6-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-7-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-8-git-send-email-eduardo.valentin@nokia.com>
+Received: from mail.bcode.com ([150.101.204.108]:62092 "EHLO mail.bcode.com"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751833AbZFLBC3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jun 2009 21:02:29 -0400
+Date: Fri, 12 Jun 2009 11:02:28 +1000
+From: Erik de Castro Lopo <erik@bcode.com>
+To: linux-media@vger.kernel.org
+Subject: GPL code for Omnivision USB video camera available.
+Message-Id: <20090612110228.3f7e42ab.erik@bcode.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simple add Makefile and Kconfig entries.
+Hi all,
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- linux/drivers/media/radio/Kconfig  |   22 ++++++++++++++++++++++
- linux/drivers/media/radio/Makefile |    2 ++
- 2 files changed, 24 insertions(+), 0 deletions(-)
+I have a driver for a USB video camera that I'd like to see added to
+the mainline kernel, mainly so I don't have to fix breakage due to
+constant changes in the kernel :-).
 
-diff --git a/linux/drivers/media/radio/Kconfig b/linux/drivers/media/radio/Kconfig
-index 3315cac..6c6a409 100644
---- a/linux/drivers/media/radio/Kconfig
-+++ b/linux/drivers/media/radio/Kconfig
-@@ -339,6 +339,28 @@ config RADIO_ZOLTRIX_PORT
- 	help
- 	  Enter the I/O port of your Zoltrix radio card.
- 
-+config I2C_SI4713
-+	tristate "I2C driver for Silicon Labs Si4713 device"
-+	depends on I2C && VIDEO_V4L2
-+	---help---
-+	  Say Y here if you want support to Si4713 I2C device.
-+	  This device driver supports only i2c bus.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called si4713.
-+
-+config RADIO_SI4713
-+	tristate "Silicon Labs Si4713 FM Radio Transmitter support"
-+	depends on I2C && VIDEO_V4L2
-+	---help---
-+	  Say Y here if you want support to Si4713 FM Radio Transmitter.
-+	  This device can transmit audio through FM. It can transmit
-+	  EDS and EBDS signals as well. This module is the v4l2 radio
-+	  interface for the i2c driver of this device.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called radio-si4713.
-+
- config USB_DSBR
- 	tristate "D-Link/GemTek USB FM radio support"
- 	depends on USB && VIDEO_V4L2
-diff --git a/linux/drivers/media/radio/Makefile b/linux/drivers/media/radio/Makefile
-index 0f2b35b..34ae761 100644
---- a/linux/drivers/media/radio/Makefile
-+++ b/linux/drivers/media/radio/Makefile
-@@ -15,6 +15,8 @@ obj-$(CONFIG_RADIO_ZOLTRIX) += radio-zoltrix.o
- obj-$(CONFIG_RADIO_GEMTEK) += radio-gemtek.o
- obj-$(CONFIG_RADIO_GEMTEK_PCI) += radio-gemtek-pci.o
- obj-$(CONFIG_RADIO_TRUST) += radio-trust.o
-+obj-$(CONFIG_I2C_SI4713) += si4713-i2c.o
-+obj-$(CONFIG_RADIO_SI4713) += radio-si4713.o
- obj-$(CONFIG_RADIO_MAESTRO) += radio-maestro.o
- obj-$(CONFIG_USB_DSBR) += dsbr100.o
- obj-$(CONFIG_USB_SI470X) += radio-si470x.o
+The code is GPL and is available here:
+
+    http://stage.bcode.com/erikd/ovcamchip
+
+and the history of this code is here:
+
+    http://stage.bcode.com/erikd/ovcamchip/README
+
+My problem is that I am way too busy to sheperd this into the kernel
+myself. If someone is willing to work on getting this in, I can send
+them a camera to keep. If getting paid is more likely to help someone
+focus on the task then that is also a possibility.
+
+Any takers? Please email me privately.
+
+Cheers,
+Erik
 -- 
-1.6.2.GIT
+=======================
+erik de castro lopo
+senior design engineer
 
+bCODE
+level 2, 2a glen street
+milsons point
+sydney nsw 2061
+australia
+
+tel +61 (0)2 9954 4411
+fax +61 (0)2 9954 4422
+www.bcode.com
