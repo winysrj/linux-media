@@ -1,87 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f213.google.com ([209.85.218.213]:33832 "EHLO
-	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756833AbZFRLVq (ORCPT
+Received: from mail.gmx.net ([213.165.64.20]:49896 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752390AbZFLG36 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 07:21:46 -0400
-Received: by bwz9 with SMTP id 9so979613bwz.37
-        for <linux-media@vger.kernel.org>; Thu, 18 Jun 2009 04:21:47 -0700 (PDT)
-Date: Thu, 18 Jun 2009 13:22:27 +0200
-From: Jan Nikitenko <jan.nikitenko@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] af9015: avoid magically sized temporal buffer in
-	eeprom_dump
-Message-ID: <20090618112227.GA9930@nikitenko.systek.local>
-References: <c4bc83220906091531h20677733kd993ed50c0bc74ec@mail.gmail.com> <4A2EF922.5040102@iki.fi> <20090618111253.GC9575@nikitenko.systek.local>
+	Fri, 12 Jun 2009 02:29:58 -0400
+Date: Fri, 12 Jun 2009 08:30:02 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>
+Subject: Re: [PATCH 3/4] soc-camera: add support for camera-host controls
+In-Reply-To: <5e9665e10906111853w1af3aec9wcf647a280d3635e7@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0906120820450.4843@axis700.grange>
+References: <Pine.LNX.4.64.0906101549160.4817@axis700.grange>
+ <Pine.LNX.4.64.0906101604420.4817@axis700.grange>
+ <5e9665e10906110410w7893e016g6e35742c9a55889d@mail.gmail.com>
+ <Pine.LNX.4.64.0906111413250.5625@axis700.grange>
+ <5e9665e10906111853w1af3aec9wcf647a280d3635e7@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4A2EF922.5040102@iki.fi>
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace printing to magically sized temporal buffer with use of KERN_CONT
-for continual printing of eeprom registers dump.
+On Fri, 12 Jun 2009, Dongsoo, Nathaniel Kim wrote:
 
-Since deb_info is defined as dprintk, which is defined as printk without
-additional parameters, meaning that deb_info is equivalent to direct printk
-(without KERN_ facility), we can use KERN_DEBUG and KERN_CONT in there,
-eliminating the need for sprintf into temporal buffer with not easily
-readable/magical size.
+> Hello Guennadi,
+> 
+> So let's assume that camera interface device can process
+> V4L2_CID_SHARPNESS and even external camera device can process that,
+> then according to your patch both of camera interface and external
+> camera device can be issued to process V4L2_CID_SHARPNESS which I
+> guess will make image sharpened twice. Am I getting the patch right?
 
-Though it's strange, that deb_info definition uses printk without KERN_
-facility and callers don't use it either.
+Please, do not top-post!
 
-Signed-off-by: Jan Nikitenko <jan.nikitenko@gmail.com>
+I am sorry, is it really so difficult to understand
 
+> >> > +               ret = ici->ops->set_ctrl(icd, ctrl);
+> >> > +               if (ret != -ENOIOCTLCMD)
+> >> > +                       return ret;
+
+which means just one thing: the camera host (interface if you like) driver 
+decides, whether it wants client's control to be called, in which case it 
+has to return -ENOIOCTLCMD, or it returns any other code (0 or a negative 
+error code), then the client will not be called.
+
+> If I'm getting right, it might be better to give user make a choice
+> through platform data or some sort of variable which can make a choice
+> between camera interface and camera device to process the CID. It
+> could be just in aspect of manufacturer mind, we do love to make a
+> choice between same features in different devices in easy way. So
+> never mind if my idea is not helpful making your driver elegant :-)
+
+So far it seems too much to me. Let's wait until we get a case where it 
+really makes sense for platform code to decide who processes certain 
+controls. I think giving the host driver the power to decide should be ok 
+for now.
+
+Thanks
+Guennadi
 ---
-
-(added missing Singned-off)
-
-I do not see better solution for the magical sized buffer, since print_hex_dump
-like functions need dump of registers in memory (so the magical sized temporal
-buffer would be needed for a copy anyway).
-If deb_info was defined with inside KERN_ facility, then this patch would not
-be valid and so the magically sized temporal buffer might be acceptable to keep
-there.
-
-This patch depends on 'af9015: fix stack corruption bug' patch.
-
- linux/drivers/media/dvb/dvb-usb/af9015.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
-
-diff -r 722c6faf3ab5 linux/drivers/media/dvb/dvb-usb/af9015.c
---- a/linux/drivers/media/dvb/dvb-usb/af9015.c	Wed Jun 17 22:39:23 2009 -0300
-+++ b/linux/drivers/media/dvb/dvb-usb/af9015.c	Thu Jun 18 08:49:58 2009 +0200
-@@ -541,24 +541,22 @@
- /* dump eeprom */
- static int af9015_eeprom_dump(struct dvb_usb_device *d)
- {
--	char buf[4+3*16+1], buf2[4];
- 	u8 reg, val;
- 
- 	for (reg = 0; ; reg++) {
- 		if (reg % 16 == 0) {
- 			if (reg)
--				deb_info("%s\n", buf);
--			sprintf(buf, "%02x: ", reg);
-+				deb_info(KERN_CONT "\n");
-+			deb_info(KERN_DEBUG "%02x:", reg);
- 		}
- 		if (af9015_read_reg_i2c(d, AF9015_I2C_EEPROM, reg, &val) == 0)
--			sprintf(buf2, "%02x ", val);
-+			deb_info(KERN_CONT, " %02x", val);
- 		else
--			strcpy(buf2, "-- ");
--		strcat(buf, buf2);
-+			deb_info(KERN_CONT, " --");
- 		if (reg == 0xff)
- 			break;
- 	}
--	deb_info("%s\n", buf);
-+	deb_info(KERN_CONT "\n");
- 	return 0;
- }
- 
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
