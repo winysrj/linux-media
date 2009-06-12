@@ -1,59 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:47428 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932876AbZFLIEd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jun 2009 04:04:33 -0400
-Date: Fri, 12 Jun 2009 10:04:09 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: v4l-dvb-maintainer@linuxtv.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Udo A. Steinberg" <udo@hypervisor.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [v4l-dvb-maintainer] 2.6.30: missing audio device in bttv
-Message-ID: <20090612100409.04bb0fe5@hyperion.delvare>
-In-Reply-To: <200906120118.20700.hverkuil@xs4all.nl>
-References: <20090611221402.66709817@laptop.hypervisor.org>
-	<200906120026.13897.hverkuil@xs4all.nl>
-	<20090611200746.40b14855@pedra.chehab.org>
-	<200906120118.20700.hverkuil@xs4all.nl>
+Received: from mail1.radix.net ([207.192.128.31]:34813 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755682AbZFLVLS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Jun 2009 17:11:18 -0400
+Subject: Re: s5h1411_readreg: readreg error (ret == -5)
+From: Andy Walls <awalls@radix.net>
+To: Mike Isely <isely@isely.net>
+Cc: Roger <rogerx@sdf.lonestar.org>,
+	Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.64.0906121531100.6470@cnc.isely.net>
+References: <1244446830.3797.6.camel@localhost2.local>
+	 <Pine.LNX.4.64.0906102257130.7298@cnc.isely.net>
+	 <4A311A64.4080008@kernellabs.com>
+	 <Pine.LNX.4.64.0906111343220.17086@cnc.isely.net>
+	 <1244759335.9812.2.camel@localhost2.local>
+	 <Pine.LNX.4.64.0906121531100.6470@cnc.isely.net>
+Content-Type: text/plain
+Date: Fri, 12 Jun 2009 17:12:03 -0400
+Message-Id: <1244841123.3264.55.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 12 Jun 2009 01:18:20 +0200, Hans Verkuil wrote:
-> On Friday 12 June 2009 01:07:46 Mauro Carvalho Chehab wrote:
-> > I suspect that we'll need to work with the initialization order after the new
-> > i2c binding model to avoid such troubles.
-> > 
-> > I remember that we had a similar issue with alsa and saa7134. At the end, Linus [1]
-> > had to do add this, as a quick hack (unfortunately, it is still there - it
-> > seems that alsa guys forgot about that issue):
-> > 
-> > late_initcall(saa7134_alsa_init);
-> > 
-> > On that time, he suggested the usage of subsys_initcall() for alsa. I suspect
-> > that we'll need to do the same for I2C and for V4L core. I'm not sure what
-> > would be the alternative to be done with i2c ancillary drivers.
-> > 
-> > Maybe one alternative would be to use fs_initcall, that seems to be already
-> > used by some non-fs related calls, like cpu governor [2].
+On Fri, 2009-06-12 at 15:33 -0500, Mike Isely wrote:
+> I am unable to reproduce the s5h1411 error here.
 > 
-> As long as the i2c modules come first there shouldn't be any problem. That's
-> pretty easy to arrange. So the i2c core inits first, then i2c drivers, then
-> v4l2 drivers. That's the proper order.
+> However my HVR-1950 loads the s5h1409 module - NOT s5h1411.ko; I wonder 
+> if Hauppauge has changed chips on newer devices and so you're running a 
+> different tuner module.
 
-This is already what we have in 2.6.30 as far as I can see.
+The digital demodulator driver to use is hardcoded in pvrusb2-devattr.c:
 
-> The ir-kbd-i2c module needed to be after the v4l2 modules since that still
-> relies on autoprobing. If it comes first, then it seems to mess up tveeprom
-> for some reason. Once ir-kbd-i2c no longer does autoprobing, then it probably
-> should move back to the other i2c modules.
+static const struct pvr2_dvb_props pvr2_750xx_dvb_props = {
+        .frontend_attach = pvr2_s5h1409_attach,
+        .tuner_attach    = pvr2_tda18271_8295_attach,
+};
 
-Hopefully this will happen in the next few days :)
+static const struct pvr2_dvb_props pvr2_751xx_dvb_props = {
+        .frontend_attach = pvr2_s5h1411_attach,
+        .tuner_attach    = pvr2_tda18271_8295_attach,
+};
+...
+static const struct pvr2_device_desc pvr2_device_750xx = {
+                .description = "WinTV HVR-1950 Model Category 750xx",
+...
+                .dvb_props = &pvr2_750xx_dvb_props,
+#endif
+};
+...
+static const struct pvr2_device_desc pvr2_device_751xx = {
+                .description = "WinTV HVR-1950 Model Category 751xx",
+...
+                .dvb_props = &pvr2_751xx_dvb_props,
+#endif
+};
 
--- 
-Jean Delvare
+
+>   That would explain the different behavior.  
+> Unfortunately it also means it will be very difficult for me to track 
+> the problem down here since I don't have that device variant.
+
+If you have more than 1 HVR-1950, maybe one is a 751xx variant.
+
+When I ran into I2C errors often, it was because of PCI bus errors
+screwing up the bit banging.  Obviously, that's not the case here.
+
+-Andy
+
+>   -Mike
+
+
