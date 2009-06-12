@@ -1,71 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f214.google.com ([209.85.217.214]:35321 "EHLO
-	mail-gx0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750859AbZFSAwB convert rfc822-to-8bit (ORCPT
+Received: from mail-px0-f187.google.com ([209.85.216.187]:38137 "EHLO
+	mail-px0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757955AbZFLHD4 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 20:52:01 -0400
-Received: by gxk10 with SMTP id 10so2351708gxk.13
-        for <linux-media@vger.kernel.org>; Thu, 18 Jun 2009 17:52:03 -0700 (PDT)
+	Fri, 12 Jun 2009 03:03:56 -0400
+Received: by mail-px0-f187.google.com with SMTP id 17so475823pxi.33
+        for <linux-media@vger.kernel.org>; Fri, 12 Jun 2009 00:03:59 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <ccdf9f470906180606w1046ee88nda933b4e6638357a@mail.gmail.com>
-References: <ccdf9f470906171618r26518ce7pa97d747e301009ca@mail.gmail.com>
-	 <1a297b360906180132l49aa7be4j8a1e238aa9bac65@mail.gmail.com>
-	 <1a297b360906180148lefc2d8fp972647ad0df64320@mail.gmail.com>
-	 <ccdf9f470906180606w1046ee88nda933b4e6638357a@mail.gmail.com>
-Date: Thu, 18 Jun 2009 19:52:03 -0500
-Message-ID: <ccdf9f470906181752u65c8d7f1nce46e3d46991b70c@mail.gmail.com>
-Subject: Re: [Patch] New utility program atsc_epg added to dvb-apps utility
-	suite.
-From: Yufei Yuan <yfyuan@gmail.com>
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=windows-1252
+In-Reply-To: <Pine.LNX.4.64.0906120820450.4843@axis700.grange>
+References: <Pine.LNX.4.64.0906101549160.4817@axis700.grange>
+	 <Pine.LNX.4.64.0906101604420.4817@axis700.grange>
+	 <5e9665e10906110410w7893e016g6e35742c9a55889d@mail.gmail.com>
+	 <Pine.LNX.4.64.0906111413250.5625@axis700.grange>
+	 <5e9665e10906111853w1af3aec9wcf647a280d3635e7@mail.gmail.com>
+	 <Pine.LNX.4.64.0906120820450.4843@axis700.grange>
+Date: Fri, 12 Jun 2009 16:03:59 +0900
+Message-ID: <5e9665e10906120003w3f031c6ic90c79427603f4d2@mail.gmail.com>
+Subject: Re: [PATCH 3/4] soc-camera: add support for camera-host controls
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Magnus Damm <magnus.damm@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Okay, this one serves as a test as well. It's a trivial one to fix the
-broken dvb-apps building process with gcc4.4 on kernel 2.6.30, another
-way to eliminate the packed bitfield warning is to split the field,
-but that is unwanted.
+On Fri, Jun 12, 2009 at 3:30 PM, Guennadi
+Liakhovetski<g.liakhovetski@gmx.de> wrote:
+> On Fri, 12 Jun 2009, Dongsoo, Nathaniel Kim wrote:
+>
+>> Hello Guennadi,
+>>
+>> So let's assume that camera interface device can process
+>> V4L2_CID_SHARPNESS and even external camera device can process that,
+>> then according to your patch both of camera interface and external
+>> camera device can be issued to process V4L2_CID_SHARPNESS which I
+>> guess will make image sharpened twice. Am I getting the patch right?
+>
+> Please, do not top-post!
 
-previous build error:
+Sorry for top-posting. just forgot the netiquette.
 
-make[2]: Entering directory `/home/alex/source/dvb-apps/util/scan'
-perl section_generate.pl atsc_psip_section.pl
-CC scan.o
-In file included from scan.c:48:
-atsc_psip_section.h:57: note: Offset of packed bit-field ‘reserved2’
-has changed in GCC 4.4
-CC atsc_psip_section.o
-In file included from atsc_psip_section.c:2:
-atsc_psip_section.h:57: note: Offset of packed bit-field ‘reserved2’
-has changed in GCC 4.4
-CC diseqc.o
-In file included from diseqc.c:4:
-/usr/include/time.h:104: error: conflicting types for ‘timer_t’
-/usr/include/linux/types.h:22: note: previous declaration of ‘timer_t’ was here
-make[2]: *** [diseqc.o] Error 1
-make[2]: Leaving directory `/home/alex/source/dvb-apps/util/scan'
-make[1]: *** [all] Error 2
-make[1]: Leaving directory `/home/alex/source/dvb-apps/util'
-make: *** [all] Error 2
+>
+> I am sorry, is it really so difficult to understand
+>
+>> >> > +               ret = ici->ops->set_ctrl(icd, ctrl);
+>> >> > +               if (ret != -ENOIOCTLCMD)
+>> >> > +                       return ret;
+>
+> which means just one thing: the camera host (interface if you like) driver
+> decides, whether it wants client's control to be called, in which case it
+> has to return -ENOIOCTLCMD, or it returns any other code (0 or a negative
+> error code), then the client will not be called.
+>
 
---- dvb-apps/util/scan/Makefile.orig    2009-06-18 19:43:52.397924757 -0500
-+++ dvb-apps/util/scan/Makefile 2009-06-18 19:44:34.764925070 -0500
-@@ -14,7 +14,7 @@ inst_bin = $(binaries)
+yes I understand what you intended. but what I wanted to tell you was
+with this way, user should modify the camera host driver if they want
+to make camera host to return -ENOIOCTLCMD.
 
- removing = atsc_psip_section.c atsc_psip_section.h
+>> If I'm getting right, it might be better to give user make a choice
+>> through platform data or some sort of variable which can make a choice
+>> between camera interface and camera device to process the CID. It
+>> could be just in aspect of manufacturer mind, we do love to make a
+>> choice between same features in different devices in easy way. So
+>> never mind if my idea is not helpful making your driver elegant :-)
+>
+> So far it seems too much to me. Let's wait until we get a case where it
+> really makes sense for platform code to decide who processes certain
+> controls. I think giving the host driver the power to decide should be ok
+> for now.
+>
 
--CPPFLAGS += -DDATADIR=\"$(prefix)/share\"
-+CPPFLAGS += -Wno-packed-bitfield-compat -D__KERNEL_STRICT_NAMES
--DDATADIR=\"$(prefix)/share\"
+I totally understand. you are already doing a great job. I won't push you.
+Cheers,
 
- .PHONY: all
+Nate
 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+>
 
 
 
 -- 
-Even uttering "HI" or "HAO" is offensive, sometime, somewhere. Reader
-discretion is advised.
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
