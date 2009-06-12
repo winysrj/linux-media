@@ -1,80 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:35640 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1757960AbZFRJUQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 05:20:16 -0400
-Date: Thu, 18 Jun 2009 11:20:17 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Valentin Longchamp <valentin.longchamp@epfl.ch>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: mx31moboard MT9T031 camera support
-In-Reply-To: <4A39FE96.4010004@epfl.ch>
-Message-ID: <Pine.LNX.4.64.0906181054280.5779@axis700.grange>
-References: <4A39FE96.4010004@epfl.ch>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from zone0.gcu-squad.org ([212.85.147.21]:47428 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932876AbZFLIEd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Jun 2009 04:04:33 -0400
+Date: Fri, 12 Jun 2009 10:04:09 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: v4l-dvb-maintainer@linuxtv.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Udo A. Steinberg" <udo@hypervisor.org>,
+	linux-media@vger.kernel.org
+Subject: Re: [v4l-dvb-maintainer] 2.6.30: missing audio device in bttv
+Message-ID: <20090612100409.04bb0fe5@hyperion.delvare>
+In-Reply-To: <200906120118.20700.hverkuil@xs4all.nl>
+References: <20090611221402.66709817@laptop.hypervisor.org>
+	<200906120026.13897.hverkuil@xs4all.nl>
+	<20090611200746.40b14855@pedra.chehab.org>
+	<200906120118.20700.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 18 Jun 2009, Valentin Longchamp wrote:
-
-> Hi Guennadi,
+On Fri, 12 Jun 2009 01:18:20 +0200, Hans Verkuil wrote:
+> On Friday 12 June 2009 01:07:46 Mauro Carvalho Chehab wrote:
+> > I suspect that we'll need to work with the initialization order after the new
+> > i2c binding model to avoid such troubles.
+> > 
+> > I remember that we had a similar issue with alsa and saa7134. At the end, Linus [1]
+> > had to do add this, as a quick hack (unfortunately, it is still there - it
+> > seems that alsa guys forgot about that issue):
+> > 
+> > late_initcall(saa7134_alsa_init);
+> > 
+> > On that time, he suggested the usage of subsys_initcall() for alsa. I suspect
+> > that we'll need to do the same for I2C and for V4L core. I'm not sure what
+> > would be the alternative to be done with i2c ancillary drivers.
+> > 
+> > Maybe one alternative would be to use fs_initcall, that seems to be already
+> > used by some non-fs related calls, like cpu governor [2].
 > 
-> I am trying to follow your developments at porting soc-camera to v4l2-subdev.
-> However, even if I understand quite correctly soc-camera, it is quite
-> difficult for me to get all the subtleties in your work.
-> 
-> That's why I am asking you for a little help: when do you think would be the
-> best timing for me to add the mt9t031 camera support for mx31moboard within
-> your current process ?
+> As long as the i2c modules come first there shouldn't be any problem. That's
+> pretty easy to arrange. So the i2c core inits first, then i2c drivers, then
+> v4l2 drivers. That's the proper order.
 
-You can do this now, based either on the v4l tree, or wait for Linus to 
-pull it - a pull request has been sent ba Mauro yesterday, looks like 
-Linus hasn't pulled yet.
+This is already what we have in 2.6.30 as far as I can see.
 
-The way you add your platform is going to change, and the pull, that I'm 
-referring to above makes it possible for both "old style" and "new style" 
-board camera data to work. Of course, it would be best for you to 
-implement the "new style" platform data. You can do this by either looking 
-at my patches, which I've posted to the lists earlier, and which are also 
-included in my patch stack, which I announced yesterday. Or you can wait a 
-bit until I update my pcm037 patch (going to do this now) and post it to 
-arm-kernel. I'll (try not to forget to) add you to cc, that should be 
-quite easy to follow for you.
+> The ir-kbd-i2c module needed to be after the v4l2 modules since that still
+> relies on autoprobing. If it comes first, then it seems to mess up tveeprom
+> for some reason. Once ir-kbd-i2c no longer does autoprobing, then it probably
+> should move back to the other i2c modules.
 
-> I guess it should not be too difficult, I had done it before, and I can base
-> myself on what you have done for pcm037:
-> http://download.open-technology.de/soc-camera/20090617/0025-pcm037-add-MT9T031-camera-support.patch
+Hopefully this will happen in the next few days :)
 
-Yes, use this or wait a bit for an updated version.
-
-> Now I have a second question. On our robot, we physically have two cameras
-> (one looking to the front and one looking at a mirror) connected to the i.MX31
-> physical bus. We have one signal that allows us to control the multiplexer for
-> the bus lines (video signals and I2C) through a GPIO. This now works with a
-> single camera declared in software and choices to the multiplexer done when no
-> image transfer is happening ( /dev/video is not open). What do you think
-> should be the correct way of dealing with these two cameras with the current
-> driver implementation (should I continue to declare only one camera in the
-> software) ?
-> 
-> And do you think it could be possible to "hot-switch" from one camera to the
-> other ? My colleagues ask about it, I tell them that from my point of view
-> this seems not possible without changing the drivers, and even the drivers
-> would have to be changed quite heavily and it is not trivial.
-
-Do the cameras use different i2c addresses? If they use the same address I 
-don't think you'd be able to register them simultaneously. If they do use 
-different addresses, you can register both of them and use platform 
-.power() callback to switch between them using your multiplexer. See 
-arch/sh/boards/mach-migor/setup.c for an example. There was also a 
-proposal to use switching input to select a data source, but this is 
-currently unsupported by soc-camera.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Jean Delvare
