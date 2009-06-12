@@ -1,91 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45826 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751994AbZFVOT4 (ORCPT
+Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:3193 "EHLO
+	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751697AbZFLQA5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2009 10:19:56 -0400
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: Dongsoo Kim <dongsoo.kim@gmail.com>
-CC: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Koskipaa Antti (Nokia-D/Helsinki)" <antti.koskipaa@nokia.com>,
-	"Cohen David.A (Nokia-D/Helsinki)" <david.cohen@nokia.com>,
-	Alexey Klimov <klimov.linux@gmail.com>,
-	"gary@mlbassoc.com" <gary@mlbassoc.com>
-Date: Mon, 22 Jun 2009 09:21:35 -0500
-Subject: RE: OMAP3 ISP and camera drivers (update 2)
-Message-ID: <A24693684029E5489D1D202277BE894441306D8A@dlee02.ent.ti.com>
-References: <4A3A7AE2.9080303@maxwell.research.nokia.com>
- <5e9665e10906200205ga45073eue92b73abba79e41c@mail.gmail.com>
- <200906221652.02119.tuukka.o.toivonen@nokia.com>
- <A24693684029E5489D1D202277BE894441306D3E@dlee02.ent.ti.com>
- <1DA2ED23-DD14-4E7C-9CDB-D86009620337@gmail.com>
-In-Reply-To: <1DA2ED23-DD14-4E7C-9CDB-D86009620337@gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+	Fri, 12 Jun 2009 12:00:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] adding support for setting bus parameters in sub device
+Date: Fri, 12 Jun 2009 18:00:50 +0200
+Cc: Muralidharan Karicheri <m-karicheri2@ti.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <62904.62.70.2.252.1244810776.squirrel@webmail.xs4all.nl> <Pine.LNX.4.64.0906121454410.4843@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0906121454410.4843@axis700.grange>
 MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906121800.51177.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBEb25nc29vIEtpbSBbbWFpbHRv
-OmRvbmdzb28ua2ltQGdtYWlsLmNvbV0NCj4gU2VudDogTW9uZGF5LCBKdW5lIDIyLCAyMDA5IDk6
-MDUgQU0NCj4gVG86IEFndWlycmUgUm9kcmlndWV6LCBTZXJnaW8gQWxiZXJ0bw0KPiBDYzogVHV1
-a2thLk8gVG9pdm9uZW47IFNha2FyaSBBaWx1czsgbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3Jn
-Ow0KPiBIaXJlbWF0aCwgVmFpYmhhdjsgS29za2lwYWEgQW50dGkgKE5va2lhLUQvSGVsc2lua2kp
-OyBDb2hlbiBEYXZpZC5BDQo+IChOb2tpYS1EL0hlbHNpbmtpKTsgQWxleGV5IEtsaW1vdjsgZ2Fy
-eUBtbGJhc3NvYy5jb20NCj4gU3ViamVjdDogUmU6IE9NQVAzIElTUCBhbmQgY2FtZXJhIGRyaXZl
-cnMgKHVwZGF0ZSAyKQ0KPiANCj4gDQo+IDIwMDkuIDA2LiAyMiwg7Jik7ZuEIDExOjAxLCBBZ3Vp
-cnJlIFJvZHJpZ3VleiwgU2VyZ2lvIEFsYmVydG8g7J6R7ISxOg0KPiANCj4gPj4gLS0tLS1Pcmln
-aW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4gRnJvbTogbGludXgtbWVkaWEtb3duZXJAdmdlci5rZXJu
-ZWwub3JnIFttYWlsdG86bGludXgtbWVkaWEtDQo+ID4+IG93bmVyQHZnZXIua2VybmVsLm9yZ10g
-T24gQmVoYWxmIE9mIFR1dWtrYS5PIFRvaXZvbmVuDQo+ID4+IFNlbnQ6IE1vbmRheSwgSnVuZSAy
-MiwgMjAwOSA4OjUyIEFNDQo+ID4+IFRvOiBleHQgRG9uZ3NvbywgTmF0aGFuaWVsIEtpbQ0KPiA+
-PiBDYzogU2FrYXJpIEFpbHVzOyBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmc7IEFndWlycmUg
-Um9kcmlndWV6LA0KPiA+PiBTZXJnaW8NCj4gPj4gQWxiZXJ0bzsgSGlyZW1hdGgsIFZhaWJoYXY7
-IEtvc2tpcGFhIEFudHRpIChOb2tpYS1EL0hlbHNpbmtpKTsgQ29oZW4NCj4gPj4gRGF2aWQuQSAo
-Tm9raWEtRC9IZWxzaW5raSk7IEFsZXhleSBLbGltb3Y7IGdhcnlAbWxiYXNzb2MuY29tDQo+ID4+
-IFN1YmplY3Q6IFJlOiBPTUFQMyBJU1AgYW5kIGNhbWVyYSBkcml2ZXJzICh1cGRhdGUgMikNCj4g
-Pj4NCj4gPj4gT24gU2F0dXJkYXkgMjAgSnVuZSAyMDA5IDEyOjA1OjEzIGV4dCBEb25nc29vLCBO
-YXRoYW5pZWwgS2ltIHdyb3RlOg0KPiA+Pj4gRm9sbG93aW5nIHBhdGNoLg0KPiA+Pj4NCj4gPj4N
-Cj4gaHR0cDovL3d3dy5naXRvcmlvdXMub3JnL29tYXAzY2FtZXJhL21haW5saW5lL2NvbW1pdC9k
-OTJjOTY0MDYyOTYzMTBhOTc3YjANCj4gPj4gMGY0NWIyMDk1MjM5MjliMTViNQ0KPiA+Pj4gV2hh
-dCBoYXBwZW5zIHRvIHRoZSBjYXBhYmlsaXR5IHdoZW4gdGhlIGludCBkZXZpY2UgaXMgZHVtbXk/
-IChkb2VzDQo+ID4+PiBpdA0KPiA+Pj4gbWVhbiB0aGF0IHRoZXJlIGlzIG5vIGludCBkZXZpY2U/
-KQ0KPiA+Pg0KPiA+PiBZZXMsIHdoZW4gdGhlIGludCBkZXZpY2UgaXMgZHVtbXksIHRoZXJlIGlz
-IG5vIHN1Y2ggYSBkZXZpY2UuDQo+ID4+IEZvciBleGFtcGxlLCB3aGVuIHZkZXYtPnZkZXZfc2Vu
-c29yID09IHY0bDJfaW50X2RldmljZV9kdW1teSgpDQo+ID4+IGl0IG1lYW5zIHRoYXQgdGhlIGRl
-dmljZSBoYXMgbm8gc2Vuc29yLg0KPiA+Pg0KPiA+PiBJbiB0aGF0IGNhc2UsIG9idmlvdXNseSwg
-dGhlIGRldmljZSBpcyBub3QgY2FwYWJsZSBvZiBjYXB0dXJpbmcNCj4gPj4gb3Igc3RyZWFtaW5n
-Lg0KPiA+Pg0KPiA+Pj4gQW5kIG9uZSBtb3JlIHRoaW5nLiBJZiBJIHdhbnQgdG8gdGVzdCBob3cg
-dGhlICJJU1AiIGRyaXZlciBpcw0KPiA+Pj4gd29ya2luZywNCj4gPj4+IGlzIHRoZXJlIGFueSB0
-YXJnZXQgYm9hcmQgdGhhdCBJIGNhbiBidXkgYWxzbyBhIHNlbnNvciBkZXZpY2UNCj4gPj4+IGFs
-cmVhZHkNCj4gPj4+IGF0dGFjaGVkIG9uIGl0Pw0KPiA+Pg0KPiA+PiBJIHRoaW5rIHRoYXQgVEkg
-cHJvYmFibHkgaGFzIHNvbWUgYm9hcmRzIGZvciBzYWxlLCB5b3UNCj4gPj4gY291bGQgdGFrZSBh
-IGxvb2sgYXQgdGhlaXIgd2ViIHBhZ2VzLg0KPiA+DQo+ID4gSGkgTmF0ZSwNCj4gPg0KPiA+IEkn
-bSBjdXJyZW50bHkgcmViYXNpbmcgdGhlc2UgcGF0Y2hlcyBvbiB0b3Agb2YgbGF0ZXN0IEtldmlu
-J3MgUE0NCj4gPiB0cmVlLCBhbmQgdHJ5aW5nIHRvIG1ha2UgMzQzMFNEUCAoTVQ5UDAxMiBhbmQg
-T1YzNjQwKSwgWm9vbTEgYW5kDQo+ID4gWm9vbTIgKG5vdCB0aGVyZSB5ZXQsIGJ1dCBpbiB0aGUg
-d29ya3MpIHNlbnNvcnMgdG8gd29yayBpbiB0aGVyZS4NCj4gDQo+IFRoYW5rIHlvdSBTZXJnaW8u
-IFNvIHlvdSBtZWFuIHRoYXQgSSBjYW4gYnV5IE9NQVAgWm9vbSB0YXJnZXQgYm9hcmQNCj4gd2l0
-aCBNVCBvciBPViBzZW5zb3Igb24gaXQgc29vbmVyIG9yIGxhdGVyPyBjb29sIQ0KDQpBRkFJSywg
-d2hlbiB5b3UgYnV5IHRoZSBab29tIFRhcmdldCBwbGF0Zm9ybSwgeW91IGNhbiBvbmx5IGhhdmUg
-T1YzNjQwIHNlbnNvci4gQlVUIHlvdSBjb3VsZCBoYWNrIHRoZSBib2FyZCB0byBpbmNsdWRlIGFu
-b3RoZXIgc2Vuc29yIChNYXliZSBjb25zdWx0aW5nIExvZ2ljIHBlb3BsZSBjb3VsZCBjbGFyaWZ5
-IHRoaXMpLg0KDQpJbiBab29tMSwgSSdsbCBiZSBhYmxlIGp1c3QgdG8gdGVzdCB0aGUgT1YzNjQw
-IHNlbnNvciwgd2hpY2ggaXMgdGhlIG9uZSBJIGhhdmUgYXZhaWxhYmxlIGhlcmUuDQoNCk9uIDM0
-MzBTRFAsIGlzIHdoZXJlIEkgZG8gaGF2ZSBNVDlQMDEyIHNlbnNvciAoNU1QIFJBVyBzZW5zb3Ip
-IGNvbm5lY3RlZCBpbiBwYXJhbGxlbCwgYW5kIGFuIE9WMzY0MCAoU21hcnQgc2Vuc29yLCBidXQg
-ZHJpdmVyIGlzIHVzaW5nIGl0IGFzIFJBVyBzZW5zb3IgY3VycmVudGx5IG9ubHkpIGluIENTSTIg
-aW50ZXJmYWNlLg0KDQo+IA0KPiA+DQo+ID4gWW91IGNhbiBmaW5kIHRoaXMgdHJlZSBvbjoNCj4g
-Pg0KPiA+IGh0dHA6Ly9kZXYub21hcHpvb20ub3JnLz9wPXNhYWd1aXJyZS9saW51eC1vbWFwLWNh
-bWVyYS5naXQ7YT1zdW1tYXJ5DQo+ID4NCj4gPiBDaGVja291dCBkZXZlbCBicmFuY2guDQo+ID4N
-Cj4gPiBUaGF0J3MgbXkgbGF0ZXN0IHByb2dyZXNzLg0KPiANCj4gT0sgSSdsbCB0cnkgdG8gbG9v
-ayBhdCB0aGUgZGV2ZWwgYnJhbmNoLg0KPiBDaGVlcnMsDQo+IA0KPiBOYXRlDQo+IA0KPiA+DQo+
-ID4gUmVnYXJkcywNCj4gPiBTZXJnaW8NCj4gPj4NCj4gPj4gLSBUdXVra2ENCj4gPj4gLS0NCj4g
-Pj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2Ny
-aWJlIGxpbnV4LQ0KPiA+PiBtZWRpYSIgaW4NCj4gPj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRv
-IG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCj4gPj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAg
-aHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo+ID4NCj4gDQoNCg==
+On Friday 12 June 2009 14:59:03 Guennadi Liakhovetski wrote:
+> On Fri, 12 Jun 2009, Hans Verkuil wrote:
+> 
+> > > 1. it is very unusual that the board designer has to mandate what signal
+> > > polarity has to be used - only when there's additional logic between the
+> > > capture device and the host. So, we shouldn't overload all boards with
+> > > this information. Board-code authors will be grateful to us!
+> > 
+> > I talked to my colleague who actually designs boards like that about what
+> > he would prefer. His opinion is that he wants to set this himself, rather
+> > than leave it as the result of a software negotiation. It simplifies
+> > verification and debugging the hardware, and in addition there may be
+> > cases where subtle timing differences between e.g. sampling on a falling
+> > edge vs rising edge can actually become an important factor, particularly
+> > on high frequencies.
+> 
+> I'd say this is different. You're talking about cases where you _want_ to 
+> be able to configure it explicitly, I am saying you do not have to _force_ 
+> all to do this. Now, this selection only makes sense if both are 
+> configurable, right? In this case, e.g., pxa270 driver does support 
+> platform-specified preference. So, if both the host and the client can 
+> configure either polarity in the software you _can_ still specify the 
+> preferred one in platform data and it will be used.
+> 
+> I think, the ability to specify inverters and the preferred polarity 
+> should cover all possible cases.
+
+In my opinion you should always want to set this explicitly. This is not
+something you want to leave to chance. Say you autoconfigure this. Now
+someone either changes the autoconf algorithm, or a previously undocumented
+register was discovered for the i2c device and it can suddenly configure the
+polarity of some signal that was previously thought to be fixed, or something
+else happens causing a different polarity to be negotiated. Suddenly the board
+doesn't work because it was never verified or tested with that different
+polarity. Or worse: it glitches only 0.001% of the time. That's going to be a
+nasty bug to find.
+
+You generally verify your board with specific bus settings, and that's what
+should also be configured explicitly. Sure, it is nice not to have to think
+about this. The problem is that I believe that you *have* to think about it.
+
+The longer I think about this, the more convinced I am that relying on
+autoconfiguration is a bad design.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
