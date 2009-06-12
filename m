@@ -1,73 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta05.westchester.pa.mail.comcast.net ([76.96.62.48]:37930
-	"EHLO QMTA05.westchester.pa.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754917AbZF3TsB (ORCPT
+Received: from mail-in-16.arcor-online.net ([151.189.21.56]:35099 "EHLO
+	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752089AbZFLWmy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jun 2009 15:48:01 -0400
-From: George Czerw <gczerw@comcast.net>
-Reply-To: gczerw@comcast.net
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [linux-dvb] Hauppauge HVR-1800 not working at all
-Date: Tue, 30 Jun 2009 15:48:02 -0400
-Cc: Michael Krufky <mkrufky@linuxtv.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <200906301301.04604.gczerw@comcast.net> <4A4A64F9.6070807@linuxtv.org> <829197380906301227q52e7b215p359adaa3206dba79@mail.gmail.com>
-In-Reply-To: <829197380906301227q52e7b215p359adaa3206dba79@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Fri, 12 Jun 2009 18:42:54 -0400
+Subject: Re: s5h1411_readreg: readreg error (ret == -5)
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Mike Isely <isely@isely.net>
+Cc: Andy Walls <awalls@radix.net>, Roger <rogerx@sdf.lonestar.org>,
+	Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.64.0906121627000.6470@cnc.isely.net>
+References: <1244446830.3797.6.camel@localhost2.local>
+	 <Pine.LNX.4.64.0906102257130.7298@cnc.isely.net>
+	 <4A311A64.4080008@kernellabs.com>
+	 <Pine.LNX.4.64.0906111343220.17086@cnc.isely.net>
+	 <1244759335.9812.2.camel@localhost2.local>
+	 <Pine.LNX.4.64.0906121531100.6470@cnc.isely.net>
+	 <1244841123.3264.55.camel@palomino.walls.org>
+	 <Pine.LNX.4.64.0906121627000.6470@cnc.isely.net>
+Content-Type: text/plain
+Date: Sat, 13 Jun 2009 00:39:30 +0200
+Message-Id: <1244846370.3803.44.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200906301548.02518.gczerw@comcast.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 30 June 2009 15:27:30 Devin Heitmueller wrote:
-> On Tue, Jun 30, 2009 at 3:18 PM, Michael Krufky<mkrufky@linuxtv.org> wrote:
-> >> Mike, thanks for the reply.  Two questions...
-> >>
-> >> 1.  What do you mean by "spigots"?
-> >>
-> >> 2.  By the tuner module, do you mean the cx23885??
-> >>
-> >> Output of lsmod shows that cx25840, cx23885 & cx2341x are loaded
-> >>
-> >> cx25840                27856  0
-> >>         cx23885                85552  0
-> >>               cx2341x                12800  1 cx23885
-> >>                     videobuf_dma_sg        12160  1 cx23885
-> >>                           videobuf_dvb            6848  1 cx23885
-> >>                                 dvb_core               86112  1
-> >> videobuf_dvb videobuf_core          17888  3
-> >> cx23885,videobuf_dma_sg,videobuf_dvb              v4l2_common
-> >>  16220  3 cx25840,cx23885,cx2341x                           videodev
-> >>       40320  3 cx25840,cx23885,v4l2_common                      
-> >> v4l1_compat 13440  1 videodev
-> >>  btcx_risc               4772  1 cx23885
-> >>       tveeprom               11872  1 cx23885
-> >
-> > Please, never remove cc from the public mailinglist.  (cc re-added)
-> >
-> > When I said 'tuner' module, I meant 'tuner' module :-P
-> >
-> > Hope this helps,
-> >
-> > Mike
->
-> To clarify Mike's point, he means there is a module called "tuner"
-> that you should see in the lsmod.  Also, when he refers to spigots, he
-> is referring to the F-connectors on the edge card that you would
-> connect the coax cable to.
->
-> Devin
+Hi,
 
-Devin, thanks for the reply.
+Am Freitag, den 12.06.2009, 16:27 -0500 schrieb Mike Isely:
+> Well now I feel like an idiot.  Thanks for pointing that out in my own 
+> code :-)
+> 
+> Still digging through this.
+> 
+>   -Mike
 
-Lsmod showed that "tuner" was NOT loaded (wonder why?), a "modprobe tuner" 
-took care of that and now the HVR-1800 is displaying video perfectly and the 
-tuning function works.  I guess that I'll have to add "tuner" into 
-modprobe.preload.d????  Now if only I can get the sound functioning along with 
-the video!
+despite of that and to feed the weasel.
 
-George
+We'll have to look through different drivers, if we can make more use of
+potential present device information in the eeproms.
+
+There are always OEMs not following for example the Philips eeprom
+layout in all details, most visible on different primary analog/hybrid
+tuner type enumeration, and I don't even claim to know the latter in all
+details,
+
+and it needs more work on it,
+
+but we have a lot of congruence for details in the 16 bytes including
+0x40 and up from it across most manufacturers, including Hauppauge.
+
+According to Hartmut, unfortunately not active currently, even different
+LNA types, more and more devices with such do appear, are encoded in the
+eeprom, if the OEM follows the plan. I don't know where yet, but might
+be worth some time to try to find it out.
+
+I had some hopes that this would also be known for the Hauppauge
+eeproms, but seems not.
+
+The most undiscovered configurations seem to be such ones about antenna
+inputs and their switching. Again according to Hartmut, and he did not
+know exactly what is going on here, some for us and him at this point
+unknown checksums are used to derive even that information :(
+
+For what I can see, and I might be of course still wrong, we can also
+not determine plain digital tuner types, digital demodulator types of
+any kind and the type of possibly present second and third tuners, but
+at least their addresses, regularly shared by multiple chips, become
+often visible. (some OEMs have only 0xff still for all that)
+
+Cheers,
+Hermann
+
+> 
+On Fri, 12 Jun 2009, Andy Walls wrote:
+> 
+> > On Fri, 2009-06-12 at 15:33 -0500, Mike Isely wrote:
+> > > I am unable to reproduce the s5h1411 error here.
+> > > 
+> > > However my HVR-1950 loads the s5h1409 module - NOT s5h1411.ko; I wonder 
+> > > if Hauppauge has changed chips on newer devices and so you're running a 
+> > > different tuner module.
+> > 
+> > The digital demodulator driver to use is hardcoded in pvrusb2-devattr.c:
+> > 
+> > static const struct pvr2_dvb_props pvr2_750xx_dvb_props = {
+> >         .frontend_attach = pvr2_s5h1409_attach,
+> >         .tuner_attach    = pvr2_tda18271_8295_attach,
+> > };
+> > 
+> > static const struct pvr2_dvb_props pvr2_751xx_dvb_props = {
+> >         .frontend_attach = pvr2_s5h1411_attach,
+> >         .tuner_attach    = pvr2_tda18271_8295_attach,
+> > };
+> > ...
+> > static const struct pvr2_device_desc pvr2_device_750xx = {
+> >                 .description = "WinTV HVR-1950 Model Category 750xx",
+> > ...
+> >                 .dvb_props = &pvr2_750xx_dvb_props,
+> > #endif
+> > };
+> > ...
+> > static const struct pvr2_device_desc pvr2_device_751xx = {
+> >                 .description = "WinTV HVR-1950 Model Category 751xx",
+> > ...
+> >                 .dvb_props = &pvr2_751xx_dvb_props,
+> > #endif
+> > };
+> > 
+> > 
+> > >   That would explain the different behavior.  
+> > > Unfortunately it also means it will be very difficult for me to track 
+> > > the problem down here since I don't have that device variant.
+> > 
+> > If you have more than 1 HVR-1950, maybe one is a 751xx variant.
+> > 
+> > When I ran into I2C errors often, it was because of PCI bus errors
+> > screwing up the bit banging.  Obviously, that's not the case here.
+> > 
+> > -Andy
+> > 
+> > >   -Mike
+> > 
+> > 
+> > 
+> 
 
