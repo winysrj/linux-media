@@ -1,55 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f210.google.com ([209.85.219.210]:56010 "EHLO
-	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751432AbZFZSZq (ORCPT
+Received: from smtp.nokia.com ([192.100.122.230]:56949 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760684AbZFLRgK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2009 14:25:46 -0400
-Received: by ewy6 with SMTP id 6so3634131ewy.37
-        for <linux-media@vger.kernel.org>; Fri, 26 Jun 2009 11:25:47 -0700 (PDT)
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "chaithrika" <chaithrika@ti.com>, linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com,
-	"'Manjunath Hadli'" <mrh@ti.com>,
-	"'Brijesh Jadav'" <brijesh.j@ti.com>
-Subject: Re: [PATCH] Subject: [PATCH v3 1/4] ARM: DaVinci: DM646x Video: Platform and board specific setup
-References: <1241789157-23350-1-git-send-email-chaithrika@ti.com>
-	<00cd01c9f311$77faf9a0$67f0ece0$@com>
-	<200906262010.31064.hverkuil@xs4all.nl>
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Date: Fri, 26 Jun 2009 11:25:42 -0700
-In-Reply-To: <200906262010.31064.hverkuil@xs4all.nl> (Hans Verkuil's message of "Fri\, 26 Jun 2009 20\:10\:30 +0200")
-Message-ID: <87ws6yetsp.fsf@deeprootsystems.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	Fri, 12 Jun 2009 13:36:10 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv7 4/9] v4l2-ctl: Add support for FM TX controls
+Date: Fri, 12 Jun 2009 20:30:35 +0300
+Message-Id: <1244827840-886-5-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1244827840-886-4-git-send-email-eduardo.valentin@nokia.com>
+References: <1244827840-886-1-git-send-email-eduardo.valentin@nokia.com>
+ <1244827840-886-2-git-send-email-eduardo.valentin@nokia.com>
+ <1244827840-886-3-git-send-email-eduardo.valentin@nokia.com>
+ <1244827840-886-4-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil <hverkuil@xs4all.nl> writes:
+This patch adds simple support for FM TX extended controls
+on v4l2-ctl utility.
 
-> On Monday 22 June 2009 10:14:30 chaithrika wrote:
->> Kevin,
->> 
->> I think this patch has to be taken into DaVinci tree so that it
->> can be submitted upstream. This patch has to be present in the Linux 
->> tree for Hans to prepare a pull request for DM646x display driver 
->> patches.
->
-> What are the plans for this patch? Will Kevin take care of this? In that
-> case the v4l patches will have to wait until this patch is in Linus' git
-> tree. Alternatively, we can pull this in via the v4l-dvb git tree. I think
-> that is propably the easiest approach.
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ v4l2-apps/util/v4l2-ctl.cpp |   36 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 36 insertions(+), 0 deletions(-)
 
-Hans, I'm ok if you pull this directly into v4l-dvb git.   But first, I
-there are a couple minor problems with this patch.  I'll reply
-to the original post.
+diff --git a/v4l2-apps/util/v4l2-ctl.cpp b/v4l2-apps/util/v4l2-ctl.cpp
+index 2c7290f..45a2310 100644
+--- a/v4l2-apps/util/v4l2-ctl.cpp
++++ b/v4l2-apps/util/v4l2-ctl.cpp
+@@ -148,6 +148,7 @@ typedef std::vector<struct v4l2_ext_control> ctrl_list;
+ static ctrl_list user_ctrls;
+ static ctrl_list mpeg_ctrls;
+ static ctrl_list camera_ctrls;
++static ctrl_list fm_tx_ctrls;
+ 
+ typedef std::map<std::string, unsigned> ctrl_strmap;
+ static ctrl_strmap ctrl_str2id;
+@@ -2166,6 +2167,8 @@ set_vid_fmt_error:
+ 				mpeg_ctrls.push_back(ctrl);
+ 			else if (V4L2_CTRL_ID2CLASS(ctrl.id) == V4L2_CTRL_CLASS_CAMERA)
+ 				camera_ctrls.push_back(ctrl);
++			else if (V4L2_CTRL_ID2CLASS(ctrl.id) == V4L2_CTRL_CLASS_FM_TX)
++				fm_tx_ctrls.push_back(ctrl);
+ 			else
+ 				user_ctrls.push_back(ctrl);
+ 		}
+@@ -2212,6 +2215,22 @@ set_vid_fmt_error:
+ 				}
+ 			}
+ 		}
++		if (fm_tx_ctrls.size()) {
++			ctrls.ctrl_class = V4L2_CTRL_CLASS_FM_TX;
++			ctrls.count = fm_tx_ctrls.size();
++			ctrls.controls = &fm_tx_ctrls[0];
++			if (doioctl(fd, VIDIOC_S_EXT_CTRLS, &ctrls, "VIDIOC_S_EXT_CTRLS")) {
++				if (ctrls.error_idx >= ctrls.count) {
++					fprintf(stderr, "Error setting FM Modulator controls: %s\n",
++						strerror(errno));
++				}
++				else {
++					fprintf(stderr, "%s: %s\n",
++						ctrl_id2str[fm_tx_ctrls[ctrls.error_idx].id].c_str(),
++						strerror(errno));
++				}
++			}
++		}
+ 	}
+ 
+ 	/* Get options */
+@@ -2429,6 +2448,7 @@ set_vid_fmt_error:
+ 		mpeg_ctrls.clear();
+ 		camera_ctrls.clear();
+ 		user_ctrls.clear();
++		fm_tx_ctrls.clear();
+ 		for (ctrl_get_list::iterator iter = get_ctrls.begin();
+ 				iter != get_ctrls.end(); ++iter) {
+ 			struct v4l2_ext_control ctrl = { 0 };
+@@ -2443,6 +2463,8 @@ set_vid_fmt_error:
+ 				mpeg_ctrls.push_back(ctrl);
+ 			else if (V4L2_CTRL_ID2CLASS(ctrl.id) == V4L2_CTRL_CLASS_CAMERA)
+ 				camera_ctrls.push_back(ctrl);
++			else if (V4L2_CTRL_ID2CLASS(ctrl.id) == V4L2_CTRL_CLASS_FM_TX)
++				fm_tx_ctrls.push_back(ctrl);
+ 			else
+ 				user_ctrls.push_back(ctrl);
+ 		}
+@@ -2481,6 +2503,20 @@ set_vid_fmt_error:
+ 					printf("%s: %d\n", ctrl_id2str[ctrl.id].c_str(), ctrl.value);
+ 			}
+ 		}
++		if (fm_tx_ctrls.size()) {
++			ctrls.ctrl_class = V4L2_CTRL_CLASS_FM_TX;
++			ctrls.count = fm_tx_ctrls.size();
++			ctrls.controls = &fm_tx_ctrls[0];
++			doioctl(fd, VIDIOC_G_EXT_CTRLS, &ctrls, "VIDIOC_G_EXT_CTRLS");
++			for (unsigned i = 0; i < fm_tx_ctrls.size(); i++) {
++				struct v4l2_ext_control ctrl = fm_tx_ctrls[i];
++
++				if (ctrl_id2type[ctrl.id] == V4L2_CTRL_TYPE_STRING)
++					printf("%s: '%s'\n", ctrl_id2str[ctrl.id].c_str(), ctrl.string);
++				else
++					printf("%s: %d\n", ctrl_id2str[ctrl.id].c_str(), ctrl.value);
++			}
++		}
+ 	}
+ 
+ 	if (options[OptGetTuner]) {
+-- 
+1.6.2.GIT
 
-Also, please let me know the url and branch so I can be sure to handle
-any problems with other davinci patces going upstream.
-
-Is this tree part of linux-next?  I now have a 'for-next' branch
-of DaVinci git which is included in linux-next so any potential
-conflicts will be found there as well.
-
-Thanks,
-
-Kevin
