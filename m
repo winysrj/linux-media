@@ -1,42 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f212.google.com ([209.85.220.212]:47289 "EHLO
-	mail-fx0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752141AbZFRIcY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 04:32:24 -0400
-Received: by fxm8 with SMTP id 8so862961fxm.37
-        for <linux-media@vger.kernel.org>; Thu, 18 Jun 2009 01:32:26 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <ccdf9f470906171618r26518ce7pa97d747e301009ca@mail.gmail.com>
-References: <ccdf9f470906171618r26518ce7pa97d747e301009ca@mail.gmail.com>
-Date: Thu, 18 Jun 2009 12:32:26 +0400
-Message-ID: <1a297b360906180132l49aa7be4j8a1e238aa9bac65@mail.gmail.com>
-Subject: Re: [Patch] New utility program atsc_epg added to dvb-apps utility
-	suite.
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Yufei Yuan <yfyuan@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail.bcode.com ([150.101.204.108]:13888 "EHLO mail.bcode.com"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751090AbZFMApY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Jun 2009 20:45:24 -0400
+Date: Sat, 13 Jun 2009 10:45:24 +1000
+From: Erik de Castro Lopo <erik@bcode.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: GPL code for Omnivision USB video camera available.
+Message-Id: <20090613104524.781027d8.erik@bcode.com>
+In-Reply-To: <4A31FB0A.8030104@redhat.com>
+References: <20090612110228.3f7e42ab.erik@bcode.com>
+	<4A31FB0A.8030104@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/6/18 Yufei Yuan <yfyuan@gmail.com>:
-> Hi,
->
-> I am not sure if this is the correct mailing list to send this patch.
-> From the LinuxTV website, it seems that currently dvb-apps project has
-> no owner.
->
-> A new utility atsc_epg is added into the dvb-apps utility suite. It
-> parses PSIP information carried in OTA ATSC channels, and constructs a
-> basic EPG in a terminal window. Changes were also made to files to
-> please GCC4.4.
->
-> The patch is against latest revision 1278 from the dvb-apps repository.
+Hans de Goede wrote:
 
+> This looks to me like its just ov51x-jpeg made to compile with the
+> latest kernel.
 
-Please do send the patch with tabs instead of spaces for indentation.
+Its more than that. This driver supports a number of cameras and the
+only one we (bCODE) are really interested in is the ovfx2 driver.
 
-Regards,
-Manu
+> Did you make any functional changes?
+
+I believe the ovfx2 driver is completely new.
+
+> Also I wonder if you're subscribed to the (low trafic) ov51x-jpeg
+> mailinglist, that seems to be the right thing todo for someone who tries
+> to get that driver in to the mainline.
+
+Sorry its the ovfx2 that I'm interested in pushing into  the kernel.
+
+> May I ask what cam you have? I could certainly use more people testing
+> this.
+
+It looks like this on the USB bus:
+
+    Bus 007 Device 002: ID 05a9:2800 OmniVision Technologies, Inc. 
+
+Cheers,
+Erik
+-- 
+=======================
+erik de castro lopo
+senior design engineer
+
+bCODE
+level 2, 2a glen street
+milsons point
+sydney nsw 2061
+australia
+
+tel +61 (0)2 9954 4411
+fax +61 (0)2 9954 4422
+www.bcode.com
