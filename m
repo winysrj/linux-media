@@ -1,78 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1565 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753320AbZFSMmT convert rfc822-to-8bit (ORCPT
+Received: from mail-fx0-f216.google.com ([209.85.220.216]:52335 "EHLO
+	mail-fx0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750940AbZFMNvN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jun 2009 08:42:19 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Alexey Klimov <klimov.linux@gmail.com>
-Subject: Re: [PATCH 3/11 - v3] dm355 ccdc module for vpfe capture driver
-Date: Fri, 19 Jun 2009 14:42:16 +0200
-Cc: m-karicheri2@ti.com, linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com
-References: <1245269484-8325-1-git-send-email-m-karicheri2@ti.com> <1245269484-8325-4-git-send-email-m-karicheri2@ti.com> <208cbae30906171451x789f00ak94799447c9a012a5@mail.gmail.com>
-In-Reply-To: <208cbae30906171451x789f00ak94799447c9a012a5@mail.gmail.com>
+	Sat, 13 Jun 2009 09:51:13 -0400
+Received: by fxm12 with SMTP id 12so1127512fxm.37
+        for <linux-media@vger.kernel.org>; Sat, 13 Jun 2009 06:51:15 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200906191442.17151.hverkuil@xs4all.nl>
+In-Reply-To: <373b18710906130647u7d273c2ap2c150ecbe504381c@mail.gmail.com>
+References: <373b18710906130647u7d273c2ap2c150ecbe504381c@mail.gmail.com>
+Date: Sat, 13 Jun 2009 17:51:15 +0400
+Message-ID: <373b18710906130651h7ada315dk184891c46b8f71e@mail.gmail.com>
+Subject: Re: convert some data to dvb
+From: Alexey Smirnov <alsmirn@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 17 June 2009 23:51:43 Alexey Klimov wrote:
-> Hello,
-> one more small comment
->
-> On Thu, Jun 18, 2009 at 12:11 AM, <m-karicheri2@ti.com> wrote:
-> > From: Muralidharan Karicheri <m-karicheri2@ti.com>
-> >
-> > DM355 CCDC hw module
-> >
-> > Adds ccdc hw module for DM355 CCDC. This registers with the bridge
-> > driver a set of hw_ops for configuring the CCDC for a specific
-> > decoder device connected to vpfe.
-> >
-> > The module description and owner information added
->
-> <snip>
->
-> > +static int dm355_ccdc_init(void)
-> > +{
-> > +       printk(KERN_NOTICE "dm355_ccdc_init\n");
-> > +       if (vpfe_register_ccdc_device(&ccdc_hw_dev) < 0)
-> > +               return -1;
->
-> Don't you want to rewrite this to return good error code?
-> int ret;
-> printk();
-> ret = vpfe_register_ccdc_device();
-> if (ret < 0)
-> return ret;
->
-> I know you have tight/fast track/hard schedule, so you can do this
-> improvement later, after merging this patch.
+   Hi All,
 
-I haven't changed this or the similar comment in patch 4/11, but it is 
-something that Muralidharan should look at and fix later.
+can anybody advise me a tool to convert some input data (for ex. text)
+to dvb format?
 
-Regards,
+I don't pursue, that out data will be readable :). It's simple
+interesting to know the size of stream alteration.
 
-	Hans
-
->
-> > +       printk(KERN_NOTICE "%s is registered with vpfe.\n",
-> > +               ccdc_hw_dev.name);
-> > +       return 0;
-> > +}
-> > +
-> > +static void dm355_ccdc_exit(void)
-> > +{
-> > +       vpfe_unregister_ccdc_device(&ccdc_hw_dev);
-> > +}
-
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+--
+Sincerely yours,
+Smirnov Alexey
