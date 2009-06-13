@@ -1,64 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:50782 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753488AbZFQW30 convert rfc822-to-8bit (ORCPT
+Received: from simmts7-srv.bellnexxia.net ([206.47.199.165]:37852 "EHLO
+	simmts7-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754241AbZFMRHh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 18:29:26 -0400
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: Zach LeRoy <zleroy@rii.ricoh.com>,
-	linux-omap <linux-omap@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Date: Wed, 17 Jun 2009 17:30:56 -0500
-Subject: RE: OMAP34XXCAM: Micron mt9d111 sensor support?
-Message-ID: <A24693684029E5489D1D202277BE894441165A1C@dlee02.ent.ti.com>
-References: <25120191.127591245276351735.JavaMail.root@mailx.crc.ricoh.com>
-In-Reply-To: <25120191.127591245276351735.JavaMail.root@mailx.crc.ricoh.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Sat, 13 Jun 2009 13:07:37 -0400
+Received: from simip9-ac.srvr.bell.ca ([206.47.199.87])
+          by simmts7-srv.bellnexxia.net
+          (InterMail vM.5.01.06.13 201-253-122-130-113-20050324) with ESMTP
+          id <20090613170739.ETWH1679.simmts7-srv.bellnexxia.net@simip9-ac.srvr.bell.ca>
+          for <linux-media@vger.kernel.org>;
+          Sat, 13 Jun 2009 13:07:39 -0400
+From: <glope@bellnet.ca>
+Reply-To: cokeprize1@btinternet.com
+To: <info@winner.org>
+Subject: You won =?iso-8859-1?B?ozEsMDAwLDAwMC4wMA==?=
+Date: Sat, 13 Jun 2009 13:07:38 -0400
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
+Message-Id: <20090613170739.ETWH1679.simmts7-srv.bellnexxia.net@simip9-ac.srvr.bell.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+1,000,000.000 pounds was awarded to you by your email ID, for your 
+prize claim, provide
+your name
+country.
+sex
+age
+telephone 
+occupation.
+Mr. Anthony Campbell
+Email: cokeprize1@btinternet.com
 
-
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Zach LeRoy
-> Sent: Wednesday, June 17, 2009 5:06 PM
-> To: linux-omap; linux-media@vger.kernel.org
-> Subject: OMAP34XXCAM: Micron mt9d111 sensor support?
-> 
-> I am working on adding support for a micron 2 MP sensor: mt9d111 on a
-> gumsitx overo.  This is a i2c-controlled sensor.  Ideally, I would like to
-> use the omap34xxcam driver to interface with this sensor.  I am wondering
-> if there are currently any distributions which already include support for
-> this sensor through the omap34xxcam driver, or if anyone else is
-> interested in this topic.
-
-Hi Zach,
-
-I'm working along with Sakari Ailus and others in this omap34xxcam driver you're talking about, and we are in the process to provide a newer patchset to work on the latest l-o tree.
-
-Sakari is sharing the camera core here:
-
-http://gitorious.org/omap3camera
-
-And I have also this repository which contains a snapshot of Sakari's tree + support from some sensors I have available for the 3430SDP and LDP (the name could confuse with the above, but I'll change the name/location soon):
-
-http://gitorious.org/omap3-linux-camera-driver
-
-Testing the driver with as much sensors as we can is very interesting (at least for me), because that help us spot possible bugs that aren't seen with our current HW. So, I'll be looking forward if you add this sensor driver to the supported list :)
-
-Regards,
-Sergio
-> 
-> Cheers,
-> 
-> Zach LeRoy
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
