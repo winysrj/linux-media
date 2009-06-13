@@ -1,118 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:56949 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760684AbZFLRgK (ORCPT
+Received: from hermes.acsalaska.net ([209.112.173.230]:56380 "EHLO
+	hermes.acsalaska.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751156AbZFMDGM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jun 2009 13:36:10 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv7 4/9] v4l2-ctl: Add support for FM TX controls
-Date: Fri, 12 Jun 2009 20:30:35 +0300
-Message-Id: <1244827840-886-5-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1244827840-886-4-git-send-email-eduardo.valentin@nokia.com>
-References: <1244827840-886-1-git-send-email-eduardo.valentin@nokia.com>
- <1244827840-886-2-git-send-email-eduardo.valentin@nokia.com>
- <1244827840-886-3-git-send-email-eduardo.valentin@nokia.com>
- <1244827840-886-4-git-send-email-eduardo.valentin@nokia.com>
+	Fri, 12 Jun 2009 23:06:12 -0400
+Received: from [192.168.1.3] (66-230-87-63-rb1.fai.dsl.dynamic.acsalaska.net [66.230.87.63])
+	by hermes.acsalaska.net (8.14.1/8.14.1) with ESMTP id n5D36COw059454
+	for <linux-media@vger.kernel.org>; Fri, 12 Jun 2009 19:06:12 -0800 (AKDT)
+	(envelope-from rogerx@sdf.lonestar.org)
+Subject: Re: s5h1411_readreg: readreg error (ret == -5)
+From: Roger <rogerx@sdf.lonestar.org>
+To: linux-media <linux-media@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.0906121627000.6470@cnc.isely.net>
+References: <1244446830.3797.6.camel@localhost2.local>
+	 <Pine.LNX.4.64.0906102257130.7298@cnc.isely.net>
+	 <4A311A64.4080008@kernellabs.com>
+	 <Pine.LNX.4.64.0906111343220.17086@cnc.isely.net>
+	 <1244759335.9812.2.camel@localhost2.local>
+	 <Pine.LNX.4.64.0906121531100.6470@cnc.isely.net>
+	 <1244841123.3264.55.camel@palomino.walls.org>
+	 <Pine.LNX.4.64.0906121627000.6470@cnc.isely.net>
+Content-Type: text/plain
+Date: Fri, 12 Jun 2009 19:06:11 -0800
+Message-Id: <1244862371.10484.2.camel@localhost2.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds simple support for FM TX extended controls
-on v4l2-ctl utility.
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- v4l2-apps/util/v4l2-ctl.cpp |   36 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 36 insertions(+), 0 deletions(-)
+> On Fri, 12 Jun 2009, Andy Walls wrote:
+> > 
+> > The digital demodulator driver to use is hardcoded in pvrusb2-devattr.c:
+> > 
+> > static const struct pvr2_dvb_props pvr2_750xx_dvb_props = {
+> >         .frontend_attach = pvr2_s5h1409_attach,
+> >         .tuner_attach    = pvr2_tda18271_8295_attach,
+> > };
+> > 
+> > static const struct pvr2_dvb_props pvr2_751xx_dvb_props = {
+> >         .frontend_attach = pvr2_s5h1411_attach,
+> >         .tuner_attach    = pvr2_tda18271_8295_attach,
+> > };
+> > ...
+> > static const struct pvr2_device_desc pvr2_device_750xx = {
+> >                 .description = "WinTV HVR-1950 Model Category 750xx",
+> > ...
+> >                 .dvb_props = &pvr2_750xx_dvb_props,
+> > #endif
+> > };
+> > ...
+> > static const struct pvr2_device_desc pvr2_device_751xx = {
+> >                 .description = "WinTV HVR-1950 Model Category 751xx",
+> > ...
+> >                 .dvb_props = &pvr2_751xx_dvb_props,
+> > #endif
 
-diff --git a/v4l2-apps/util/v4l2-ctl.cpp b/v4l2-apps/util/v4l2-ctl.cpp
-index 2c7290f..45a2310 100644
---- a/v4l2-apps/util/v4l2-ctl.cpp
-+++ b/v4l2-apps/util/v4l2-ctl.cpp
-@@ -148,6 +148,7 @@ typedef std::vector<struct v4l2_ext_control> ctrl_list;
- static ctrl_list user_ctrls;
- static ctrl_list mpeg_ctrls;
- static ctrl_list camera_ctrls;
-+static ctrl_list fm_tx_ctrls;
- 
- typedef std::map<std::string, unsigned> ctrl_strmap;
- static ctrl_strmap ctrl_str2id;
-@@ -2166,6 +2167,8 @@ set_vid_fmt_error:
- 				mpeg_ctrls.push_back(ctrl);
- 			else if (V4L2_CTRL_ID2CLASS(ctrl.id) == V4L2_CTRL_CLASS_CAMERA)
- 				camera_ctrls.push_back(ctrl);
-+			else if (V4L2_CTRL_ID2CLASS(ctrl.id) == V4L2_CTRL_CLASS_FM_TX)
-+				fm_tx_ctrls.push_back(ctrl);
- 			else
- 				user_ctrls.push_back(ctrl);
- 		}
-@@ -2212,6 +2215,22 @@ set_vid_fmt_error:
- 				}
- 			}
- 		}
-+		if (fm_tx_ctrls.size()) {
-+			ctrls.ctrl_class = V4L2_CTRL_CLASS_FM_TX;
-+			ctrls.count = fm_tx_ctrls.size();
-+			ctrls.controls = &fm_tx_ctrls[0];
-+			if (doioctl(fd, VIDIOC_S_EXT_CTRLS, &ctrls, "VIDIOC_S_EXT_CTRLS")) {
-+				if (ctrls.error_idx >= ctrls.count) {
-+					fprintf(stderr, "Error setting FM Modulator controls: %s\n",
-+						strerror(errno));
-+				}
-+				else {
-+					fprintf(stderr, "%s: %s\n",
-+						ctrl_id2str[fm_tx_ctrls[ctrls.error_idx].id].c_str(),
-+						strerror(errno));
-+				}
-+			}
-+		}
- 	}
- 
- 	/* Get options */
-@@ -2429,6 +2448,7 @@ set_vid_fmt_error:
- 		mpeg_ctrls.clear();
- 		camera_ctrls.clear();
- 		user_ctrls.clear();
-+		fm_tx_ctrls.clear();
- 		for (ctrl_get_list::iterator iter = get_ctrls.begin();
- 				iter != get_ctrls.end(); ++iter) {
- 			struct v4l2_ext_control ctrl = { 0 };
-@@ -2443,6 +2463,8 @@ set_vid_fmt_error:
- 				mpeg_ctrls.push_back(ctrl);
- 			else if (V4L2_CTRL_ID2CLASS(ctrl.id) == V4L2_CTRL_CLASS_CAMERA)
- 				camera_ctrls.push_back(ctrl);
-+			else if (V4L2_CTRL_ID2CLASS(ctrl.id) == V4L2_CTRL_CLASS_FM_TX)
-+				fm_tx_ctrls.push_back(ctrl);
- 			else
- 				user_ctrls.push_back(ctrl);
- 		}
-@@ -2481,6 +2503,20 @@ set_vid_fmt_error:
- 					printf("%s: %d\n", ctrl_id2str[ctrl.id].c_str(), ctrl.value);
- 			}
- 		}
-+		if (fm_tx_ctrls.size()) {
-+			ctrls.ctrl_class = V4L2_CTRL_CLASS_FM_TX;
-+			ctrls.count = fm_tx_ctrls.size();
-+			ctrls.controls = &fm_tx_ctrls[0];
-+			doioctl(fd, VIDIOC_G_EXT_CTRLS, &ctrls, "VIDIOC_G_EXT_CTRLS");
-+			for (unsigned i = 0; i < fm_tx_ctrls.size(); i++) {
-+				struct v4l2_ext_control ctrl = fm_tx_ctrls[i];
-+
-+				if (ctrl_id2type[ctrl.id] == V4L2_CTRL_TYPE_STRING)
-+					printf("%s: '%s'\n", ctrl_id2str[ctrl.id].c_str(), ctrl.string);
-+				else
-+					printf("%s: %d\n", ctrl_id2str[ctrl.id].c_str(), ctrl.value);
-+			}
-+		}
- 	}
- 
- 	if (options[OptGetTuner]) {
+And, just to verify the obvious:
+
+WinTV-HVR-1950
+NTSC/ATSC/QAM
+75111 LF
+REV C3E9
+
+(with a very nice light green RoHS sticker)
+
 -- 
-1.6.2.GIT
+Roger
+http://rogerx.freeshell.org
 
