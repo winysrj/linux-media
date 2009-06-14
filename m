@@ -1,174 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:28502 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755896AbZFDOHW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jun 2009 10:07:22 -0400
-Date: Thu, 4 Jun 2009 16:07:16 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: V4L and DVB maintainers <v4l-dvb-maintainer@linuxtv.org>
-Subject: [PATCH] Add missing __devexit_p()
-Message-ID: <20090604160716.6c6718aa@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:39016 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1757338AbZFNPdH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Jun 2009 11:33:07 -0400
+Date: Sun, 14 Jun 2009 17:33:19 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Muralidharan Karicheri <m-karicheri2@ti.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
+	Darius Augulis <augulis.darius@gmail.com>
+Subject: Re: [PATCH] adding support for setting bus parameters in sub device
+In-Reply-To: <200906121800.51177.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0906141719510.4412@axis700.grange>
+References: <62904.62.70.2.252.1244810776.squirrel@webmail.xs4all.nl>
+ <Pine.LNX.4.64.0906121454410.4843@axis700.grange> <200906121800.51177.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add missing __devexit_p() to several drivers. Also add a few missing
-__init, __devinit and __exit markers. These errors could result in
-build failures depending on the kernel configuration.
+On Fri, 12 Jun 2009, Hans Verkuil wrote:
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> On Friday 12 June 2009 14:59:03 Guennadi Liakhovetski wrote:
+> > On Fri, 12 Jun 2009, Hans Verkuil wrote:
+> > 
+> > > > 1. it is very unusual that the board designer has to mandate what signal
+> > > > polarity has to be used - only when there's additional logic between the
+> > > > capture device and the host. So, we shouldn't overload all boards with
+> > > > this information. Board-code authors will be grateful to us!
+> > > 
+> > > I talked to my colleague who actually designs boards like that about what
+> > > he would prefer. His opinion is that he wants to set this himself, rather
+> > > than leave it as the result of a software negotiation. It simplifies
+> > > verification and debugging the hardware, and in addition there may be
+> > > cases where subtle timing differences between e.g. sampling on a falling
+> > > edge vs rising edge can actually become an important factor, particularly
+> > > on high frequencies.
+> > 
+> > I'd say this is different. You're talking about cases where you _want_ to 
+> > be able to configure it explicitly, I am saying you do not have to _force_ 
+> > all to do this. Now, this selection only makes sense if both are 
+> > configurable, right? In this case, e.g., pxa270 driver does support 
+> > platform-specified preference. So, if both the host and the client can 
+> > configure either polarity in the software you _can_ still specify the 
+> > preferred one in platform data and it will be used.
+> > 
+> > I think, the ability to specify inverters and the preferred polarity 
+> > should cover all possible cases.
+> 
+> In my opinion you should always want to set this explicitly. This is not
+> something you want to leave to chance. Say you autoconfigure this. Now
+> someone either changes the autoconf algorithm, or a previously undocumented
+> register was discovered for the i2c device and it can suddenly configure the
+> polarity of some signal that was previously thought to be fixed, or something
+> else happens causing a different polarity to be negotiated.
+
+TBH, the argumentation like "someone changes the autoconf algorithm" or 
+"previously undocumented register is discovered" doesn't convince me. In 
+any case, I am adding authors, maintainers and major contributors to 
+various soc-camera host drivers to CC and asking them to express their 
+opinion on this matter. I will not add anything else here to avoid any 
+"unfair competition":-) they will have to go a couple emails back in this 
+thread to better understand what is being discussed here.
+
+> Suddenly the board
+> doesn't work because it was never verified or tested with that different
+> polarity. Or worse: it glitches only 0.001% of the time. That's going to be a
+> nasty bug to find.
+> 
+> You generally verify your board with specific bus settings, and that's what
+> should also be configured explicitly. Sure, it is nice not to have to think
+> about this. The problem is that I believe that you *have* to think about it.
+> 
+> The longer I think about this, the more convinced I am that relying on
+> autoconfiguration is a bad design.
+
+Thanks
+Guennadi
 ---
- linux/drivers/media/dvb/bt8xx/bt878.c                 |    8 +-------
- linux/drivers/media/video/cx88/cx88-alsa.c            |    7 +++----
- linux/drivers/media/video/mx3_camera.c                |    6 +++---
- linux/drivers/media/video/pxa_camera.c                |    6 +++---
- linux/drivers/media/video/soc_camera.c                |    2 +-
- linux/drivers/media/video/usbvision/usbvision-video.c |    2 +-
- linux/drivers/media/video/zoran/zoran_card.c          |    2 +-
- 7 files changed, 13 insertions(+), 20 deletions(-)
-
---- v4l-dvb.orig/linux/drivers/media/dvb/bt8xx/bt878.c	2009-03-01 16:09:08.000000000 +0100
-+++ v4l-dvb/linux/drivers/media/dvb/bt8xx/bt878.c	2009-06-04 14:00:41.000000000 +0200
-@@ -512,12 +512,6 @@ static int __devinit bt878_probe(struct
- 	pci_set_master(dev);
- 	pci_set_drvdata(dev, bt);
- 
--/*        if(init_bt878(btv) < 0) {
--		bt878_remove(dev);
--		return -EIO;
--	}
--*/
--
- 	if ((result = bt878_mem_alloc(bt))) {
- 		printk(KERN_ERR "bt878: failed to allocate memory!\n");
- 		goto fail2;
-@@ -583,7 +577,7 @@ static struct pci_driver bt878_pci_drive
-       .name	= "bt878",
-       .id_table = bt878_pci_tbl,
-       .probe	= bt878_probe,
--      .remove	= bt878_remove,
-+      .remove	= __devexit_p(bt878_remove),
- };
- 
- static int bt878_pci_driver_registered;
---- v4l-dvb.orig/linux/drivers/media/video/cx88/cx88-alsa.c	2009-04-17 11:22:56.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/cx88/cx88-alsa.c	2009-06-04 14:04:37.000000000 +0200
-@@ -939,7 +939,7 @@ static struct pci_driver cx88_audio_pci_
- 	.name     = "cx88_audio",
- 	.id_table = cx88_audio_pci_tbl,
- 	.probe    = cx88_audio_initdev,
--	.remove   = cx88_audio_finidev,
-+	.remove   = __devexit_p(cx88_audio_finidev),
- };
- 
- /****************************************************************************
-@@ -949,7 +949,7 @@ static struct pci_driver cx88_audio_pci_
- /*
-  * module init
-  */
--static int cx88_audio_init(void)
-+static int __init cx88_audio_init(void)
- {
- 	printk(KERN_INFO "cx2388x alsa driver version %d.%d.%d loaded\n",
- 	       (CX88_VERSION_CODE >> 16) & 0xff,
-@@ -965,9 +965,8 @@ static int cx88_audio_init(void)
- /*
-  * module remove
-  */
--static void cx88_audio_fini(void)
-+static void __exit cx88_audio_fini(void)
- {
--
- 	pci_unregister_driver(&cx88_audio_pci_driver);
- }
- 
---- v4l-dvb.orig/linux/drivers/media/video/mx3_camera.c	2009-04-29 14:30:29.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/mx3_camera.c	2009-06-04 14:05:25.000000000 +0200
-@@ -1074,7 +1074,7 @@ static struct soc_camera_host_ops mx3_so
- 	.set_bus_param	= mx3_camera_set_bus_param,
- };
- 
--static int mx3_camera_probe(struct platform_device *pdev)
-+static int __devinit mx3_camera_probe(struct platform_device *pdev)
- {
- 	struct mx3_camera_dev *mx3_cam;
- 	struct resource *res;
-@@ -1194,11 +1194,11 @@ static struct platform_driver mx3_camera
- 		.name	= MX3_CAM_DRV_NAME,
- 	},
- 	.probe		= mx3_camera_probe,
--	.remove		= __exit_p(mx3_camera_remove),
-+	.remove		= __devexit_p(mx3_camera_remove),
- };
- 
- 
--static int __devinit mx3_camera_init(void)
-+static int __init mx3_camera_init(void)
- {
- 	return platform_driver_register(&mx3_camera_driver);
- }
---- v4l-dvb.orig/linux/drivers/media/video/pxa_camera.c	2009-06-04 13:45:28.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/pxa_camera.c	2009-06-04 14:03:05.000000000 +0200
-@@ -1541,7 +1541,7 @@ static struct soc_camera_host_ops pxa_so
- 	.set_bus_param	= pxa_camera_set_bus_param,
- };
- 
--static int pxa_camera_probe(struct platform_device *pdev)
-+static int __devinit pxa_camera_probe(struct platform_device *pdev)
- {
- 	struct pxa_camera_dev *pcdev;
- 	struct resource *res;
-@@ -1716,11 +1716,11 @@ static struct platform_driver pxa_camera
- 		.name	= PXA_CAM_DRV_NAME,
- 	},
- 	.probe		= pxa_camera_probe,
--	.remove		= __exit_p(pxa_camera_remove),
-+	.remove		= __devexit_p(pxa_camera_remove),
- };
- 
- 
--static int __devinit pxa_camera_init(void)
-+static int __init pxa_camera_init(void)
- {
- 	return platform_driver_register(&pxa_camera_driver);
- }
---- v4l-dvb.orig/linux/drivers/media/video/soc_camera.c	2009-05-11 11:12:03.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/soc_camera.c	2009-06-04 14:04:58.000000000 +0200
-@@ -1206,7 +1206,7 @@ static int __devexit soc_camera_pdrv_rem
- 
- static struct platform_driver __refdata soc_camera_pdrv = {
- 	.probe	= soc_camera_pdrv_probe,
--	.remove	= __exit_p(soc_camera_pdrv_remove),
-+	.remove	= __devexit_p(soc_camera_pdrv_remove),
- 	.driver	= {
- 		.name = "soc-camera-pdrv",
- 		.owner = THIS_MODULE,
---- v4l-dvb.orig/linux/drivers/media/video/usbvision/usbvision-video.c	2009-05-12 10:19:32.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/usbvision/usbvision-video.c	2009-06-04 14:03:58.000000000 +0200
-@@ -1794,7 +1794,7 @@ static struct usb_driver usbvision_drive
- 	.name		= "usbvision",
- 	.id_table	= usbvision_table,
- 	.probe		= usbvision_probe,
--	.disconnect	= usbvision_disconnect
-+	.disconnect	= __devexit_p(usbvision_disconnect),
- };
- 
- /*
---- v4l-dvb.orig/linux/drivers/media/video/zoran/zoran_card.c	2009-05-12 10:19:32.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/zoran/zoran_card.c	2009-06-04 14:05:46.000000000 +0200
-@@ -1478,7 +1478,7 @@ static struct pci_driver zoran_driver =
- 	.name = "zr36067",
- 	.id_table = zr36067_pci_tbl,
- 	.probe = zoran_probe,
--	.remove = zoran_remove,
-+	.remove = __devexit_p(zoran_remove),
- };
- 
- static int __init zoran_init(void)
-
-
--- 
-Jean Delvare
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
