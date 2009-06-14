@@ -1,49 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:47140 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1758885AbZFKMNG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2009 08:13:06 -0400
-Date: Thu, 11 Jun 2009 14:13:19 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Subject: Re: [PATCH 1/4] V4L2: add a new V4L2_CID_BAND_STOP_FILTER integer
- control
-In-Reply-To: <200906111403.01021.laurent.pinchart@skynet.be>
-Message-ID: <Pine.LNX.4.64.0906111410590.5625@axis700.grange>
-References: <Pine.LNX.4.64.0906101549160.4817@axis700.grange>
- <Pine.LNX.4.64.0906101558090.4817@axis700.grange> <200906111403.01021.laurent.pinchart@skynet.be>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4928 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755512AbZFNOgk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Jun 2009 10:36:40 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Did I miss any other patches or RFCs that need to be reviewed?
+Date: Sun, 14 Jun 2009 16:36:38 +0200
+Cc: linux-omap@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906141636.39198.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 11 Jun 2009, Laurent Pinchart wrote:
+Hi all,
 
-> Hi Guennadi,
-> 
-> On Thursday 11 June 2009 09:12:37 Guennadi Liakhovetski wrote:
-> > Add a new V4L2_CID_BAND_STOP_FILTER integer control, which either switches
-> > the band-stop filter off, or sets it to a certain strength.
-> 
-> I'm quoting your e-mail from 2009-05-27:
-> 
-> > COMJ[2] - Band filter enable. After adjust frame rate to match indoor
-> > light frequency, this bit enable a different exposure algorithm to cut
-> > light band induced by fluorescent light.
-> 
-> As Nate pointed out, that seems to some kind of anti-flicker control and not a 
-> band stop filter.
+I think I've finally finished reviewing all the pending patches.
 
-Well, it _is_ a band-stop filter, at least this is how it is referred to 
-in the docs. It might be serving as an anti-flicker control, don't know, 
-if that's going to be the consensus, we can rename it, sure.
+Are there any that I've missed? Or are there other postings that need my
+attention?
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Please let me know, otherwise I assume that I'm (finally!) up to date.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
