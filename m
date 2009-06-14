@@ -1,61 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55355 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751320AbZFORm4 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Jun 2009 13:42:56 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Alexey Klimov <klimov.linux@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	Muralidharan Karicheri <a0868495@dal.design.ti.com>
-Date: Mon, 15 Jun 2009 12:42:51 -0500
-Subject: RE: [PATCH 10/10 - v2] common vpss module for video drivers
-Message-ID: <A69FA2915331DC488A831521EAE36FE40139DF9364@dlee06.ent.ti.com>
-References: <1244739649-27466-1-git-send-email-m-karicheri2@ti.com>
-	 <1244739649-27466-3-git-send-email-m-karicheri2@ti.com>
-	 <1244739649-27466-4-git-send-email-m-karicheri2@ti.com>
-	 <1244739649-27466-5-git-send-email-m-karicheri2@ti.com>
-	 <1244739649-27466-6-git-send-email-m-karicheri2@ti.com>
-	 <1244739649-27466-7-git-send-email-m-karicheri2@ti.com>
-	 <1244739649-27466-8-git-send-email-m-karicheri2@ti.com>
-	 <1244739649-27466-9-git-send-email-m-karicheri2@ti.com>
-	 <1244739649-27466-10-git-send-email-m-karicheri2@ti.com>
-	 <1244739649-27466-11-git-send-email-m-karicheri2@ti.com>
- <208cbae30906111623s3cf1939emb552ef465fed4cea@mail.gmail.com>
-In-Reply-To: <208cbae30906111623s3cf1939emb552ef465fed4cea@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Received: from mail.gmx.net ([213.165.64.20]:43991 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1757186AbZFNTAR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Jun 2009 15:00:17 -0400
+Date: Sun, 14 Jun 2009 21:00:23 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Muralidharan Karicheri <m-karicheri2@ti.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
+	Darius Augulis <augulis.darius@gmail.com>
+Subject: Re: [PATCH] adding support for setting bus parameters in sub device
+In-Reply-To: <200906141917.25328.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0906142042380.3407@axis700.grange>
+References: <62904.62.70.2.252.1244810776.squirrel@webmail.xs4all.nl>
+ <200906121800.51177.hverkuil@xs4all.nl> <Pine.LNX.4.64.0906141719510.4412@axis700.grange>
+ <200906141917.25328.hverkuil@xs4all.nl>
 MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sun, 14 Jun 2009, Hans Verkuil wrote:
 
-=
->dm644x_clear_wbl_overflow;
->> +       else
->> +               return -ENODEV;
->
->Do you need clean up procedure if you return error here? I mean -
->calls to release_mem_region, release_mem_region, etc
->
-Oops! I need to add that. Thanks.
->> +       spin_lock_init(&oper_cfg.vpss_lock);
->> +       dev_info(&pdev->dev, "%s vpss probe success\n",
->oper_cfg.vpss_name);
->> +       return 0;
->> +fail3:
->> +       release_mem_region(oper_cfg.r2->start, oper_cfg.len2);
->> +fail2:
->> +       iounmap(oper_cfg.vpss_bl_regs_base);
->> +fail1:
->> +       release_mem_region(oper_cfg.r1->start, oper_cfg.len1);
->> +       return status;
->> +}
->
->
->--
->Best regards, Klimov Alexey
+> The point I'm making here is that since the autoconf part is done in software
+> it *can* be changed. And while just looking at the code there is no reason why
+> choosing a positive vs. negative polarity makes any difference if both host
+> and i2c device support it, from a hardware standpoint it *can* make a
+> difference.
+> 
+> In practice you verify and certify your hardware using specific bus settings.
+> An autoconf algorithm just obfuscates those settings. And relying on it to
+> always return the same settings in the future seems also wishful thinking.
 
+Ok, I think, now I get it. Your real concern is the only case when both 
+parties can be configured in software for either polarity. And whereas we 
+think (ok, make it "I think") this means, both configurations should work, 
+in practice only one of them is guaranteed to. And you think having an 
+optional board preference flag is not enough, it should be mandatory.
+
+I see your point now. I am still not positive this case alone is enough to 
+force all boards to specify all polarities. How about, we use 
+autonegotiation where there's only one valid configuration. If both 
+possibilities and no preference is set - ok, we can decide. Either we 
+complain loudly in the log and try our luck, or we complain and fail. 
+Let's see:
+
+	hs hi  hs lo  vs hi  vs lo  pclk rise  pclk fall  d hi  d lo  master  slave
+
+mt9v022   x      x      x      x        x          x       x     -      x       x
+
+mt9m001   x      -      x      -        -          x       x     -      x       -
+
+mt9m111   x      -      x      -        x          -       x     -      x       -
+
+mt9t031   x      -      x      -        x          x       x     -      x       -
+
+ov772x    x      -      x      -        x          -       x     -      x       -
+
+tw9910    x      -      x      -        x          -       x     -      x       -
+
+(hs = hsync, vs = vsync, pclk = pixel clock, d = data) So, as you see, 
+this free choice is not so often.
+
+> > In  
+> > any case, I am adding authors, maintainers and major contributors to 
+> > various soc-camera host drivers to CC and asking them to express their 
+> > opinion on this matter. I will not add anything else here to avoid any 
+> > "unfair competition":-) they will have to go a couple emails back in this 
+> > thread to better understand what is being discussed here.
+> 
+> It will definitely be interesting to see what others think.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
