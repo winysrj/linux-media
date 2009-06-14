@@ -1,187 +1,428 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-16.arcor-online.net ([151.189.21.56]:58116 "EHLO
-	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752267AbZFWDB0 (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4291 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754042AbZFNO0F (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2009 23:01:26 -0400
-Subject: Re: Can't use my Pinnacle PCTV HD Pro stick - what am I doing
-	wrong?
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Robert Krakora <rob.krakora@messagenetsystems.com>
-Cc: George Adams <g_adams27@hotmail.com>, video4linux-list@redhat.com,
-	linux-media@vger.kernel.org
-In-Reply-To: <b24e53350906221948id6d70aq75b1dde27715969@mail.gmail.com>
-References: <COL103-W53605D85359D631FC60D0F88380@phx.gbl>
-	 <COL103-W40B198179C2E84587DC71F88380@phx.gbl>
-	 <829197380906211429k7176a93fm49d49851e6d2df1e@mail.gmail.com>
-	 <COL103-W308B321250A646D788B25188390@phx.gbl>
-	 <b24e53350906221940v5e8c34cy676c6b0f02380d10@mail.gmail.com>
-	 <b24e53350906221948id6d70aq75b1dde27715969@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Date: Tue, 23 Jun 2009 04:57:51 +0200
-Message-Id: <1245725871.12341.21.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	Sun, 14 Jun 2009 10:26:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: m-karicheri2@ti.com
+Subject: Re: [PATCH 10/10 - v2] common vpss module for video drivers
+Date: Sun, 14 Jun 2009 16:26:05 +0200
+Cc: linux-media@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com,
+	Muralidharan Karicheri <a0868495@dal.design.ti.com>
+References: <1244739649-27466-1-git-send-email-m-karicheri2@ti.com> <1244739649-27466-10-git-send-email-m-karicheri2@ti.com> <1244739649-27466-11-git-send-email-m-karicheri2@ti.com>
+In-Reply-To: <1244739649-27466-11-git-send-email-m-karicheri2@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906141626.05561.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-Am Montag, den 22.06.2009, 22:48 -0400 schrieb Robert Krakora:
-> On Mon, Jun 22, 2009 at 10:40 PM, Robert
-> Krakora<rob.krakora@messagenetsystems.com> wrote:
-> > On Mon, Jun 22, 2009 at 5:39 PM, George Adams<g_adams27@hotmail.com> wrote:
-> >>
-> >> Hello again.  I have some updates now that I've been able to make some further tests.
-> >>
-> >> 1) My Pinnacle PCTV HD Pro (800e) stick does, in fact, work correctly under Windows.  The scanning detects the one channel we're running over our closed circuit cable (channel 3) and displays it on-screen just fine.  (audio over channel 3 works as well)
-> >>
-> >>
-> >> 2) Devin, my installation process is "hg clone http://linuxtv.org/hg/v4l-dvb; cd v4l-dvb; make rminstall; make distclean; make; make install"  This appears to install everything v4l-related as modules in the appropriate directories.  For instance:
-> >>
-> >>>  uname -r
-> >> 2.6.24-24-server
-> >>
-> >>> find /lib/modules/`uname -r` -type f -name em28xx\* -o -name tvp\*
-> >> /lib/modules/2.6.24-24-server/kernel/drivers/media/video/tvp5150.ko
-> >> /lib/modules/2.6.24-24-server/kernel/drivers/media/video/em28xx/em28xx.ko
-> >> /lib/modules/2.6.24-24-server/kernel/drivers/media/video/em28xx/em28xx-dvb.ko
-> >>
-> >>
-> >> 3) tvtime still hangs when launched.
-> >>
-> >>
-> >> 4) Running zapping gives the error "VBI Initialization failed.  /dev/vbi0 (Pinnacle PCTV HD Pro) is not a raw vbi device)".  Continuing on and trying to choose the "Preferences" menu option segfaults the program (and this is the Ubuntu-distributed "zapping" package)
-> >>
-> >>
-> >> 5) Running Paul's suggested "mplayer" command gives the following:
-> >>
-> >>> mplayer -vo xv tv:// -tv driver=v4l2:alsa:immediatemode=0:adevice=hw.1,0:norm=ntsc:chanlist=us-cable:channel=3
-> >>
-> >> MPlayer 1.0rc2-4.2.4 (C) 2000-2007 MPlayer Team
-> >> CPU: Intel(R) Core(TM)2 Quad CPU    Q9550  @ 2.83GHz (Family: 6, Model: 23, Stepping: 10)
-> >> CPUflags:  MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1
-> >> Compiled with runtime CPU detection.
-> >> mplayer: could not connect to socket
-> >> mplayer: No such file or directory
-> >> Failed to open LIRC support. You will not be able to use your remote control.
-> >>
-> >> Playing tv://.
-> >> TV file format detected.
-> >> Selected driver: v4l2
-> >>  name: Video 4 Linux 2 input
-> >>  author: Martin Olschewski
-> >>  comment: first try, more to come ;-)
-> >> Selected device: Pinnacle PCTV HD Pro Stick
-> >>  Tuner cap:
-> >>  Tuner rxs:
-> >>  Capabilites:  video capture  tuner  audio  read/write  streaming
-> >>  supported norms: 0 = NTSC; 1 = NTSC-M; 2 = NTSC-M-JP; 3 = NTSC-M-KR; 4 = NTSC-443; 5 = PAL; 6 = PAL-BG; 7 = PAL-H; 8 = PAL-I; 9 = PAL-DK; 10 = PAL-M; 11 = PAL-N; 12 = PAL-Nc; 13 = PAL-60; 14 = SECAM;
-> >>  inputs: 0 = Television; 1 = Composite1; 2 = S-Video;
-> >>  Current input: 0
-> >>  Current format: YUYV
-> >> v4l2: current audio mode is : MONO
-> >> v4l2: ioctl set format failed: Invalid argument
-> >> v4l2: ioctl set format failed: Invalid argument
-> >> v4l2: ioctl set format failed: Invalid argument
-> >> Selected channel: 3 (freq: 61.250)
-> >> Video buffer shorter than 3 times audio frame duration.
-> >> You will probably experience heavy framedrops.
-> >> v4l2: ioctl query control failed: Invalid argument
-> >> v4l2: ioctl query control failed: Invalid argument
-> >> v4l2: ioctl query control failed: Invalid argument
-> >> v4l2: ioctl query control failed: Invalid argument
-> >> xscreensaver_disable: Could not find XScreenSaver window.
-> >> GNOME screensaver disabled
-> >> ==========================================================================
-> >> Opening video decoder: [raw] RAW Uncompressed Video
-> >> VDec: vo config request - 640 x 480 (preferred colorspace: Packed YUY2)
-> >> VDec: using Packed YUY2 as output csp (no 0)
-> >> Movie-Aspect is undefined - no prescaling applied.
-> >> VO: [xv] 640x480 => 640x480 Packed YUY2
-> >> Selected video codec: [rawyuy2] vfm: raw (RAW YUY2)
-> >> ==========================================================================
-> >> ==========================================================================
-> >> Forced audio codec: mad
-> >> Opening audio decoder: [pcm] Uncompressed PCM audio decoder
-> >> AUDIO: 44100 Hz, 1 ch, s16le, 705.6 kbit/100.00% (ratio: 88200->88200)
-> >> Selected audio codec: [pcm] afm: pcm (Uncompressed PCM)
-> >> ==========================================================================
-> >> AO: [pulse] 44100Hz 1ch s16le (2 bytes per sample)
-> >> Starting playback...
-> >> v4l2: select timeout
-> >> A:   0.5 V:   0.0 A-V:  0.472 ct:  0.000   1/  1 ??% ??% ??,?% 1 0 [[JMA:   0.9 V:   0.0 A-V:  0.940 ct:  0.003   2/  2 ??% ??% ??,?% 2 0 [[JMv4l2: select timeout
-> >> A:   1.5 V:   0.0 A-V:  1.479 ct:  0.007   3/  3 ??% ??% ??,?% 3 0 [[JMA:   2.0 V:   0.0 A-V:  1.981 ct:  0.010   4/  4 ??% ??% ??,?% 4 0 [[JMv4l2: select timeout
-> >> A:   2.5 V:   0.0 A-V:  2.485 ct:  0.013   5/  5 ??% ??% ??,?% 5 0 [[JMA:   3.0 V:   0.0 A-V:  2.957 ct:  0.017   6/  6 ??% ??% ??,?% 6 0 [[JMv4l2: select timeout
-> >> A:   3.5 V:   0.0 A-V:  3.460 ct:  0.020   7/  7 ??% ??% ??,?% 7 0 [[JMA:   4.0 V:   0.0 A-V:  3.956 ct:  0.022   8/  8 ??% ??% ??,?% 8 0 [[JMv4l2: select timeout
-> >> A:   4.5 V:   0.0 A-V:  4.460 ct:  0.025   9/  9 ??% ??% ??,?% 9 0 [[JMA:   5.0 V:   0.0 A-V:  4.956 ct:  0.027  10/ 10 ??% ??% ??,?% 10 0 [[JMv4l2: select timeout
-> >>
-> >>
-> >> The Mplayer screen itself remains green the whole time.
-> >>
-> >>
-> >> So the surprise to me is that the Pinnacle device is not actually broken.  By this point, I had been sure it was a hardware problem.  Now I realize that it's something else.  And so I would again appreciate any suggestions you might have.  Thank you once again!
-> >>
-> >> (My installation process, just for reference, distilled down:)
-> >>> cd /usr/local/src
-> >>> hg clone http://linuxtv.org/hg/v4l-dvb
-> >>> cd v4l-dvb
-> >>> make rminstall; make distclean; make; make install
-> >>> cd /tmp
-> >>> wget http://www.steventoth.net/linux/xc5000/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip
-> >>> unzip -j HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip Driver85/hcw85bda.sys
-> >>> perl /usr/local/src/v4l-dvb/linux/Documentation/video4linux/extract_xc3028.pl
-> >>> mv xc3028-v27.fw /lib/firmware/xc3028-v27.fw
-> >>
-> >>
-> >>
-> >>
-> >> _________________________________________________________________
-> >> Hotmail® has ever-growing storage! Don’t worry about storage limits.
-> >> http://windowslive.com/Tutorial/Hotmail/Storage?ocid=TXT_TAGLM_WL_HM_Tutorial_Storage_062009
-> >>
-> >> --
-> >> video4linux-list mailing list
-> >> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> >> https://www.redhat.com/mailman/listinfo/video4linux-list
-> >>
-> >>
-> >
-> > George:
-> >
-> > Hello.  Try playing your audio only channel with this mplayer command line:
-> >
-> > mplayer -vc dummy -vo null tv:// -tv
-> > driver=v4l2:alsa:immediatemode=0:adevice=hw.1,0:norm=ntsc:chanlist=us-cable:channel=3
-> >
-> > Best Regards,
-> >
-> > --
-> > Rob Krakora
-> > Senior Software Engineer
-> > MessageNet Systems
-> > 101 East Carmel Dr. Suite 105
-> > Carmel, IN 46032
-> > (317)566-1677 Ext. 206
-> > (317)663-0808 Fax
-> >
+On Thursday 11 June 2009 19:00:49 m-karicheri2@ti.com wrote:
+> From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
 > 
-> George:
+> common voss module for video drivers
 > 
-> If it is not an audio only channel, then specify the video device:  If
-> your video device may be something other than 'video0' like 'video1'.
+> This is a new module added for vpss library functions that are
+> used for configuring vpss system module. All video drivers will
+> include vpss.h header file and call functions defined in this
+> module to configure vpss system module.
 > 
-> mplayer -vo xv tv:// -tv
-> driver=v4l2:device=/dev/video0:alsa:immediatemode=0:adevice=hw.1,0:norm=ntsc:chanlist=us-cable:channel=3
 > 
-> Best Regards,
+> Reviewed By "Hans Verkuil".
+> Reviewed By "Laurent Pinchart".
 > 
+> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+> ---
+>  drivers/media/video/davinci/vpss.c |  290 ++++++++++++++++++++++++++++++++++++
+>  include/media/davinci/vpss.h       |   69 +++++++++
+>  2 files changed, 359 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/davinci/vpss.c
+>  create mode 100644 include/media/davinci/vpss.h
+> 
+> diff --git a/drivers/media/video/davinci/vpss.c b/drivers/media/video/davinci/vpss.c
+> new file mode 100644
+> index 0000000..def021e
+> --- /dev/null
+> +++ b/drivers/media/video/davinci/vpss.c
+> @@ -0,0 +1,290 @@
+> +/*
+> + * Copyright (C) 2009 Texas Instruments.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + *
+> + * common vpss driver for all video drivers.
+> + */
+> +#include <linux/kernel.h>
+> +#include <linux/sched.h>
+> +#include <linux/init.h>
+> +#include <linux/module.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/spinlock.h>
+> +#include <linux/compiler.h>
+> +#include <linux/io.h>
+> +#include <mach/hardware.h>
+> +#include <media/davinci/vpss.h>
+> +
+> +/* DM644x defines */
+> +#define DM644X_SBL_PCR_VPSS		(4)
+> +
+> +/* vpss BL register offsets */
+> +#define DM355_VPSSBL_CCDCMUX		0x1c
+> +/* vpss CLK register offsets */
+> +#define DM355_VPSSCLK_CLKCTRL		0x04
+> +/* masks and shifts */
+> +#define VPSS_HSSISEL_SHIFT		4
+> +
+> +/*
+> + * vpss operations. Depends on platform. Not all functions are available
+> + * on all platforms. The api, first check if a functio is available before
+> + * invoking it. In the probe, the function ptrs are intialized based on
+> + * vpss name. vpss name can be "dm355_vpss", "dm644x_vpss" etc.
+> + */
+> +struct vpss_hw_ops {
+> +	/* enable clock */
+> +	int (*enable_clock)(enum vpss_clock_sel clock_sel, int en);
+> +	/* select input to ccdc */
+> +	void (*select_ccdc_source)(enum vpss_ccdc_source_sel src_sel);
+> +	/* clear wbl overlflow bit */
+> +	int (*clear_wbl_overflow)(enum vpss_wbl_sel wbl_sel);
+> +};
+> +
+> +/* vpss configuration */
+> +struct vpss_oper_config {
+> +	__iomem void *vpss_bl_regs_base;
+> +	__iomem void *vpss_regs_base;
+> +	struct resource		*r1;
+> +	resource_size_t		len1;
+> +	struct resource		*r2;
+> +	resource_size_t		len2;
+> +	char vpss_name[32];
+> +	spinlock_t vpss_lock;
+> +	struct vpss_hw_ops hw_ops;
+> +};
+> +
+> +static struct vpss_oper_config oper_cfg;
+> +
+> +/* register access routines */
+> +static inline u32 bl_regr(u32 offset)
+> +{
+> +	return __raw_readl(oper_cfg.vpss_bl_regs_base + offset);
+> +}
+> +
+> +static inline void bl_regw(u32 val, u32 offset)
+> +{
+> +	__raw_writel(val, oper_cfg.vpss_bl_regs_base + offset);
+> +}
+> +
+> +static inline u32 vpss_regr(u32 offset)
+> +{
+> +	return __raw_readl(oper_cfg.vpss_regs_base + offset);
+> +}
+> +
+> +static inline void vpss_regw(u32 val, u32 offset)
+> +{
+> +	__raw_writel(val, oper_cfg.vpss_regs_base + offset);
+> +}
+> +
+> +static void dm355_select_ccdc_source(enum vpss_ccdc_source_sel src_sel)
+> +{
+> +	bl_regw(src_sel << VPSS_HSSISEL_SHIFT, DM355_VPSSBL_CCDCMUX);
+> +}
+> +
+> +int vpss_select_ccdc_source(enum vpss_ccdc_source_sel src_sel)
+> +{
+> +	if (!oper_cfg.hw_ops.select_ccdc_source)
+> +		return -1;
+> +
+> +	dm355_select_ccdc_source(src_sel);
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(vpss_select_ccdc_source);
+> +
+> +static int dm644x_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel)
+> +{
+> +	u32 mask = 1, val;
+> +
+> +	if (wbl_sel < VPSS_PCR_AEW_WBL_0 ||
+> +	    wbl_sel > VPSS_PCR_CCDC_WBL_O)
+> +		return -1;
+> +
+> +	/* writing a 0 clear the overflow */
+> +	mask = ~(mask << wbl_sel);
+> +	val = bl_regr(DM644X_SBL_PCR_VPSS) & mask;
+> +	bl_regw(val, DM644X_SBL_PCR_VPSS);
+> +	return 0;
+> +}
+> +
+> +int vpss_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel)
+> +{
+> +	if (!oper_cfg.hw_ops.clear_wbl_overflow)
+> +		return -1;
+> +
+> +	return oper_cfg.hw_ops.clear_wbl_overflow(wbl_sel);
+> +}
+> +EXPORT_SYMBOL(vpss_clear_wbl_overflow);
+> +
+> +/*
+> + *  dm355_enable_clock - Enable VPSS Clock
+> + *  @clock_sel: CLock to be enabled/disabled
+> + *  @en: enable/disable flag
+> + *
+> + *  This is called to enable or disable a vpss clock
+> + */
+> +static int dm355_enable_clock(enum vpss_clock_sel clock_sel, int en)
+> +{
+> +	unsigned long flags;
+> +	u32 utemp, mask = 0x1, shift = 0;
+> +
+> +	switch (clock_sel) {
+> +	case VPSS_VPBE_CLOCK:
+> +		/* nothing since lsb */
+> +		break;
+> +	case VPSS_VENC_CLOCK_SEL:
+> +		shift = 2;
+> +		break;
+> +	case VPSS_CFALD_CLOCK:
+> +		shift = 3;
+> +		break;
+> +	case VPSS_H3A_CLOCK:
+> +		shift = 4;
+> +		break;
+> +	case VPSS_IPIPE_CLOCK:
+> +		shift = 5;
+> +		break;
+> +	case VPSS_CCDC_CLOCK:
+> +		shift = 6;
+> +		break;
+> +	default:
+> +		printk(KERN_ERR "dm355_enable_clock:"
+> +				" Invalid selector: %d\n", clock_sel);
+> +		return -1;
+> +	}
+> +
+> +	spin_lock_irqsave(&oper_cfg.vpss_lock, flags);
+> +	utemp = vpss_regr(DM355_VPSSCLK_CLKCTRL);
+> +	if (!en)
+> +		utemp &= ~(mask << shift);
+> +	else
+> +		utemp |= (mask << shift);
+> +
+> +	vpss_regw(utemp, DM355_VPSSCLK_CLKCTRL);
+> +	spin_unlock_irqrestore(&oper_cfg.vpss_lock, flags);
+> +	return 0;
+> +}
+> +
+> +int vpss_enable_clock(enum vpss_clock_sel clock_sel, int en)
+> +{
+> +	if (!oper_cfg.hw_ops.enable_clock)
+> +		return -1;
+> +
+> +	return oper_cfg.hw_ops.enable_clock(clock_sel, en);
+> +}
+> +EXPORT_SYMBOL(vpss_enable_clock);
+> +
+> +static int __init vpss_probe(struct platform_device *pdev)
+> +{
+> +	int			status;
+> +
+> +	if (!pdev->dev.platform_data) {
+> +		dev_err(&pdev->dev, "vpss, no platform data\n");
+> +		return -ENOENT;
+> +	}
+> +
+> +	strcpy(oper_cfg.vpss_name, pdev->dev.platform_data);
+> +	dev_info(&pdev->dev, "%s vpss probed\n", oper_cfg.vpss_name);
+> +	oper_cfg.r1 = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	if (!oper_cfg.r1)
+> +		return -ENOENT;
+> +
+> +	oper_cfg.len1 = oper_cfg.r1->end - oper_cfg.r1->start + 1;
+> +
+> +	oper_cfg.r1 = request_mem_region(oper_cfg.r1->start, oper_cfg.len1,
+> +					 oper_cfg.r1->name);
+> +	if (!oper_cfg.r1)
+> +		return -EBUSY;
+> +
+> +	oper_cfg.vpss_bl_regs_base = ioremap(oper_cfg.r1->start, oper_cfg.len1);
+> +	if (!oper_cfg.vpss_bl_regs_base) {
+> +		status = -EBUSY;
+> +		goto fail1;
+> +	}
+> +
+> +	if (!strcmp(oper_cfg.vpss_name, "dm355_vpss")) {
+> +		oper_cfg.r2 = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+> +		if (!oper_cfg.r2) {
+> +			status = -ENOENT;
+> +			goto fail2;
+> +		}
+> +		oper_cfg.len2 = oper_cfg.r2->end - oper_cfg.r2->start + 1;
+> +		oper_cfg.r2 = request_mem_region(oper_cfg.r2->start,
+> +						 oper_cfg.len2,
+> +						 oper_cfg.r2->name);
+> +		if (!oper_cfg.r2) {
+> +			status = -EBUSY;
+> +			goto fail2;
+> +		}
+> +
+> +		oper_cfg.vpss_regs_base = ioremap(oper_cfg.r2->start,
+> +						  oper_cfg.len2);
+> +		if (!oper_cfg.vpss_regs_base) {
+> +			status = -EBUSY;
+> +			goto fail3;
+> +		}
+> +	}
+> +
+> +	if (!strcmp(oper_cfg.vpss_name, "dm355_vpss")) {
+> +		oper_cfg.hw_ops.enable_clock = dm355_enable_clock;
+> +		oper_cfg.hw_ops.select_ccdc_source = dm355_select_ccdc_source;
+> +	} else if (!strcmp(oper_cfg.vpss_name, "dm644x_vpss"))
+> +		oper_cfg.hw_ops.clear_wbl_overflow = dm644x_clear_wbl_overflow;
+> +	else
+> +		return -ENODEV;
+> +	spin_lock_init(&oper_cfg.vpss_lock);
+> +	dev_info(&pdev->dev, "%s vpss probe success\n", oper_cfg.vpss_name);
+> +	return 0;
+> +fail3:
+> +	release_mem_region(oper_cfg.r2->start, oper_cfg.len2);
+> +fail2:
+> +	iounmap(oper_cfg.vpss_bl_regs_base);
+> +fail1:
+> +	release_mem_region(oper_cfg.r1->start, oper_cfg.len1);
+> +	return status;
+> +}
+> +
+> +static int vpss_remove(struct platform_device *pdev)
+> +{
+> +	iounmap(oper_cfg.vpss_bl_regs_base);
+> +	release_mem_region(oper_cfg.r1->start, oper_cfg.len1);
+> +	if (!strcmp(oper_cfg.vpss_name, "dm355_vpss")) {
+> +		iounmap(oper_cfg.vpss_regs_base);
+> +		release_mem_region(oper_cfg.r2->start, oper_cfg.len2);
+> +	}
+> +	return 0;
+> +}
+> +
+> +static struct platform_driver vpss_driver = {
+> +	.driver = {
+> +		.name	= "vpss",
+> +		.owner = THIS_MODULE,
+> +	},
+> +	.remove = __devexit_p(vpss_remove),
+> +	.probe = vpss_probe,
+> +};
+> +
+> +static void vpss_exit(void)
+> +{
+> +	platform_driver_unregister(&vpss_driver);
+> +}
+> +
+> +static int __init vpss_init(void)
+> +{
+> +	return platform_driver_register(&vpss_driver);
+> +}
+> +subsys_initcall(vpss_init);
+> +module_exit(vpss_exit);
+> +MODULE_LICENSE("GPL");
 
-Rob,
+MODULE_AUTHOR? MODULE_DESCRIPTION? Also suggest moving these to the top of
+the source.
 
-please take at least care to not further spread and duplicate the
-advertisements for m$ bullshit here.
+> diff --git a/include/media/davinci/vpss.h b/include/media/davinci/vpss.h
+> new file mode 100644
+> index 0000000..fcdff74
+> --- /dev/null
+> +++ b/include/media/davinci/vpss.h
+> @@ -0,0 +1,69 @@
+> +/*
+> + * Copyright (C) 2009 Texas Instruments Inc
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+> + *
+> + * vpss - video processing subsystem module header file.
+> + *
+> + * Include this header file if a driver needs to configure vpss system
+> + * module. It exports a set of library functions  for video drivers to
+> + * configure vpss system module functions such as clock enable/disable,
+> + * vpss interrupt mux to arm, and other common vpss system module
+> + * functions.
+> + */
+> +#ifndef _VPSS_H
+> +#define _VPSS_H
+> +
+> +/* selector for ccdc input selection on DM355 */
+> +enum vpss_ccdc_source_sel {
+> +	VPSS_CCDCIN,
+> +	VPSS_HSSIIN
+> +};
+> +
+> +/* Used for enable/diable VPSS Clock */
+> +enum vpss_clock_sel {
+> +	/* DM355/DM365 */
+> +	VPSS_CCDC_CLOCK,
+> +	VPSS_IPIPE_CLOCK,
+> +	VPSS_H3A_CLOCK,
+> +	VPSS_CFALD_CLOCK,
+> +	/*
+> +	 * When using VPSS_VENC_CLOCK_SEL in vpss_enable_clock() api
+> +	 * following applies:-
+> +	 * en = 0 selects ENC_CLK
+> +	 * en = 1 selects ENC_CLK/2
+> +	 */
+> +	VPSS_VENC_CLOCK_SEL,
+> +	VPSS_VPBE_CLOCK,
+> +};
+> +
+> +/* select input to ccdc on dm355 */
+> +int vpss_select_ccdc_source(enum vpss_ccdc_source_sel src_sel);
+> +/* enable/disable a vpss clock, 0 - success, -1 - failure */
+> +int vpss_enable_clock(enum vpss_clock_sel clock_sel, int en);
+> +
+> +/* wbl reset for dm644x */
+> +enum vpss_wbl_sel {
+> +	VPSS_PCR_AEW_WBL_0 = 16,
+> +	VPSS_PCR_AF_WBL_0,
+> +	VPSS_PCR_RSZ4_WBL_0,
+> +	VPSS_PCR_RSZ3_WBL_0,
+> +	VPSS_PCR_RSZ2_WBL_0,
+> +	VPSS_PCR_RSZ1_WBL_0,
+> +	VPSS_PCR_PREV_WBL_0,
+> +	VPSS_PCR_CCDC_WBL_O,
+> +};
+> +int vpss_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel);
+> +#endif
 
-Cheers,
-Hermann
+Regards,
 
+	Hans
 
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
