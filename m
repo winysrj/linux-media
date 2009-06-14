@@ -1,36 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from elasmtp-dupuy.atl.sa.earthlink.net ([209.86.89.62]:41856 "EHLO
-	elasmtp-dupuy.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753962AbZFUX5O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Jun 2009 19:57:14 -0400
-Received: from [209.86.224.52] (helo=mswamui-valley.atl.sa.earthlink.net)
-	by elasmtp-dupuy.atl.sa.earthlink.net with esmtpa (Exim 4.67)
-	(envelope-from <whelky-82852@mypacks.net>)
-	id 1MIWuR-0003yN-CF
-	for linux-media@vger.kernel.org; Sun, 21 Jun 2009 19:57:15 -0400
-Message-ID: <24713386.1245628635222.JavaMail.root@mswamui-valley.atl.sa.earthlink.net>
-Date: Sun, 21 Jun 2009 19:57:14 -0400 (EDT)
-From: whelky-82852@mypacks.net
-To: linux-media@vger.kernel.org
-Subject: Hauppauge HVR-1250 IR Support? (CX23885)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Received: from mx2.redhat.com ([66.187.237.31]:39085 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750947AbZFNJtq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Jun 2009 05:49:46 -0400
+Message-ID: <4A34C81A.1020306@redhat.com>
+Date: Sun, 14 Jun 2009 11:51:22 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Erik de Castro Lopo <erik@bcode.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: GPL code for Omnivision USB video camera available.
+References: <20090612110228.3f7e42ab.erik@bcode.com>	<4A31FB0A.8030104@redhat.com> <20090613104524.781027d8.erik@bcode.com>
+In-Reply-To: <20090613104524.781027d8.erik@bcode.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I was wondering if anyone is working on IR support for this card? I looked through cx23885-cards.c and its not supported.
+Hi Erik,
 
-627         switch (dev->board) {
-628         case CX23885_BOARD_HAUPPAUGE_HVR1250:
-629         case CX23885_BOARD_HAUPPAUGE_HVR1500:
-630         case CX23885_BOARD_HAUPPAUGE_HVR1500Q:
-631         case CX23885_BOARD_HAUPPAUGE_HVR1800:
-632         case CX23885_BOARD_HAUPPAUGE_HVR1200:
-633         case CX23885_BOARD_HAUPPAUGE_HVR1400:
-634                 /* FIXME: Implement me */
-635                 break;
+For the latest version of the gspca ov519 driver, with all me
+recent work for adding ov511 and ov518 support in it see:
+http://linuxtv.org/hg/~hgoede/gspca
 
-Thanks!
 
+Regards,
+
+Hans
+
+
+On 06/13/2009 02:45 AM, Erik de Castro Lopo wrote:
+> Hans de Goede wrote:
+>
+>> This looks to me like its just ov51x-jpeg made to compile with the
+>> latest kernel.
+>
+> Its more than that. This driver supports a number of cameras and the
+> only one we (bCODE) are really interested in is the ovfx2 driver.
+>
+>> Did you make any functional changes?
+>
+> I believe the ovfx2 driver is completely new.
+>
+>> Also I wonder if you're subscribed to the (low trafic) ov51x-jpeg
+>> mailinglist, that seems to be the right thing todo for someone who tries
+>> to get that driver in to the mainline.
+>
+> Sorry its the ovfx2 that I'm interested in pushing into  the kernel.
+>
+>> May I ask what cam you have? I could certainly use more people testing
+>> this.
+>
+> It looks like this on the USB bus:
+>
+>      Bus 007 Device 002: ID 05a9:2800 OmniVision Technologies, Inc.
+>
+> Cheers,
+> Erik
