@@ -1,64 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-02.arcor-online.net ([151.189.21.42]:37529 "EHLO
-	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750727AbZFIBA2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Jun 2009 21:00:28 -0400
-Subject: Re: RFC - Locking resources between V4L and DVB interfaces
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Rusty Scott <rustys@ieee.org>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <1243367475.15846.19.camel@godzilla>
-References: <1243367475.15846.19.camel@godzilla>
-Content-Type: text/plain
-Date: Tue, 09 Jun 2009 02:52:15 +0200
-Message-Id: <1244508735.3918.29.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:37814 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751495AbZFNQNy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Jun 2009 12:13:54 -0400
+Message-ID: <4A3521C2.1050509@iki.fi>
+Date: Sun, 14 Jun 2009 19:13:54 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Simon Kenyon <simon@koala.ie>
+CC: linux-media@vger.kernel.org
+Subject: Re: {wanted] support for PDTV001 dual tuner PCI DVB-T card [EC188/EC100
+ and 2x MxL5003S]
+References: <4A34D581.7080306@koala.ie>
+In-Reply-To: <4A34D581.7080306@koala.ie>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rusty,
+On 06/14/2009 01:48 PM, Simon Kenyon wrote:
+> just bought one of these on the off-chance that it might work
+> i did not know what chips were on the car when i bought it
+> but at €17 for a dual tuner dvb-t pci card i reckoned it was worth a try
+> i have looked at the card and it has:
+>
+> the e3c EC188/EC100 pair of pci chips
+> a pair of MaxLinear MxL5003S silicon tuners
 
-Am Dienstag, den 26.05.2009, 13:51 -0600 schrieb Rusty Scott:
-> Hello all,
-> I talked to Mauro offline about this issue and he indicated that it was
-> an area that could use some attention.  So I have decided to take this
-> issue on and am looking for comments about how this should work.
-> 
-> Issue: The DVB and V4L interfaces are considered different devices from
-> a system standpoint.  However they often share a hardware resource, such
-> as a tuner, on many cards.  There is currently no locking on the shared
-> resource, so one interface could interfere with the resources already in
-> use by the other.
-> 
-> My experience in the code tree and API are not very in depth.  I've only
-> helped maintain some card specific code to this point.  I'm looking for
-> comments and information on various ways to accomplish this and possible
-> gotchas to watch out for.  Any pointers, suggestions or other help on
-> this would be appreciated.
-> 
-> Thanks,
-> 
-> Rusty
-> 
+EC188 chip contains PCI -bridge and integrated EC100 demodulator. Just 
+like EC168 that is USB equivalent interface chip.
 
-if it is only about Mauro trying to distribute some work, it is ok, but
-if it should be only about some exams done soon, better forget about it.
+> it seems that there is support for the tuners but i only found support
+> for the EC168 USB chip set.
 
-I don't expect the latter, but it would sound very similar.
+Tuners are supported and also demodulator part have some kind of base 
+driver in my EC168 devel tree. Someone should write PCI -bridge driver. 
+I don't have any PCI -experience and I am not very motivated even 
+finalize EC188/EC100 due to lack of specs.
 
-So, you start with Steven's & friends multi frontend usage on the cx88.
+> is there any prospect of support for this card? i don't think i could
+> write it myself but i certainly could test it.
 
-If you are still looking for work, the md8080 Medion Quad(ro) and some
-other at least triple devices on the saa7134 driver might be interesting
-concerning existing hardware based on reference designs.
-(This may include limitations only resolved in later chipsets,
-eventually...)
+In my understanding, no one is working for that currently.
 
-Cheers,
-Hermann
-
-
-
-
+regards
+Antti
+-- 
+http://palosaari.fi/
