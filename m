@@ -1,16 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-bw0-f216.google.com ([209.85.218.216])
+Received: from tischtennistrainer.eu ([85.214.38.218])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <inadsan@gmail.com>) id 1MDw9L-0005BA-Ch
-	for linux-dvb@linuxtv.org; Tue, 09 Jun 2009 09:53:39 +0200
-Received: by bwz12 with SMTP id 12so3540710bwz.17
-	for <linux-dvb@linuxtv.org>; Tue, 09 Jun 2009 00:53:06 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 9 Jun 2009 09:53:05 +0200
-Message-ID: <bc67ac90906090053g31ed44e7q1f6c96d86c9fd6f0@mail.gmail.com>
-From: Daniel Sanchez <inadsan@gmail.com>
+	(envelope-from <christian@heidingsfelder-partner.de>)
+	id 1MFmXC-0007sd-Jc
+	for linux-dvb@linuxtv.org; Sun, 14 Jun 2009 12:01:55 +0200
+Received: from scheffeneu.localnet (unknown [80.152.217.184])
+	(Authenticated sender: christian@heidingsfelder-partner.de)
+	by tischtennistrainer.eu (Postfix) with ESMTPSA id E5E2D2430145
+	for <linux-dvb@linuxtv.org>; Sun, 14 Jun 2009 10:06:12 +0000 (UTC)
+Content-Disposition: inline
+From: "Christian Heidingsfelder [Heidingsfelder + Partner]"
+	<christian@heidingsfelder-partner.de>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Remote af9015 Conceptronic
+Date: Sun, 14 Jun 2009 12:01:46 +0200
+MIME-Version: 1.0
+Message-Id: <200906141201.46456.christian@heidingsfelder-partner.de>
+Subject: [linux-dvb] Fwd: TT-Connect S2 -3650 CI and Pinnacle PCTV Dual Sat
+	Pro PCI 4000I
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,53 +25,195 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0468212850=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0468212850==
-Content-Type: multipart/alternative; boundary=001485f8129022a643046be5a6d1
 
---001485f8129022a643046be5a6d1
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+----------  Forwarded Message  ----------
 
-Hi,
-I'm have Conceptronic USB2.0 DVB-T CTVDIGRCU V3.0 and remote not working,
-In method 'af9015_read_config' set IR mode: 4 and set rc_key_map to NULL;
-Why I'm read ir_table to set?
-It's possible follow this instructions?
-http://linuxtv.org/wiki/index.php/Remote_controllers-V4L#How_to_add_remote_control_support_to_a_card_.28GPIO_remotes.29
+Subject: TT-Connect S2 -3650 CI and Pinnacle PCTV Dual Sat Pro PCI 4000I
+Date: Saturday 13 June 2009
+From: "Christian Heidingsfelder [Heidingsfelder + Partner]" =
 
-Thanks
+<christian@heidingsfelder-partner.de>
+To: linux-dvb@linuxtv.org
 
---001485f8129022a643046be5a6d1
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+First of all : =
 
-Hi,<br>I&#39;m have Conceptronic USB2.0 DVB-T CTVDIGRCU V3.0 and remote not=
- working, <br>In method &#39;af9015_read_config&#39; set IR mode: 4 and set=
- rc_key_map to NULL;<br>Why I&#39;m read ir_table to set?<br>It&#39;s possi=
-ble follow this instructions? <a href=3D"http://linuxtv.org/wiki/index.php/=
-Remote_controllers-V4L#How_to_add_remote_control_support_to_a_card_.28GPIO_=
-remotes.29">http://linuxtv.org/wiki/index.php/Remote_controllers-V4L#How_to=
-_add_remote_control_support_to_a_card_.28GPIO_remotes.29</a><br>
-<br>Thanks<br>
+Hi to all (and especially to Faruk) :) . =
 
---001485f8129022a643046be5a6d1--
+It seems i own the two not working DVB-S Devices on linux. =
+
+Its a TT-Connect S2 -3650 CI and a Pinnacle PCTV Dual Sat Pro PCI 4000I. =
+
+Is there any chance to get one of them working. I use Gentoo with the 2.6.2=
+9-
+gentoo-r5 kernel.
+
+Regards Chris
 
 
---===============0468212850==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+-- =
+
+
+Mit freundlichen Gr=FC=DFen
+Christian Heidingsfelder
+Heidingsfelder + Partner
+Kirchgasse 9
+72474 Winterlingen-Benzingen
+Tel: +49 7577 933864
+Fax: +49 7577 933863
+christian@heidingsfelder.eu
+DE =
+
+
+--
+***********************************
+Diese eMailadresse ist keine Zustelladresse.
+Aus technischen Gruenden kann ich Ihre eMail nicht sofort nach =
+
+Eingang darauf =FCberpruefen, ob sie Fristen oder Termine enthaelt. =
+
+Daher uebernehme ich keine Gewaehr, da=DF Ihre Nachricht so =
+
+rechtzeitig gelesen wird, da=DF alle zur Einhaltung von etwaigen =
+
+Fristen oder Terminen notwendigen Massnahmen ergriffen werden =
+
+koennen. =
+
+Bitte uebermitteln Sie solche Schriftstuecke per Fax oder Brief an =
+
+die weiter obenstehende Anschrift.
+***********************************
+Hiermit widerspreche ich ausdruecklich jeglicher Nutzung oder =
+
+Uebermittlung meiner Daten, gleichgueltig, zu welchen Zwecken oder =
+
+an welchen Empfaenger sie erfolgt. Insbesondere widerspreche ich =
+
+der Nutzung oder Uebermittlung meiner Daten fuer Werbe, Markt- =
+
+oder Meinungsforschungszwecken gemaess =
+
+=A7 28 Absatz 3 Bundesdatenschutzgesetz.
+***********************************
+Sicherheitshinweis:
+Wie Sie wissen, k=F6nnen eMails missbr=E4uchlich unter fremden Namen =
+
+erstellt oder ver=E4ndert werden. Aus diesem Grunde bitte ich um =
+
+Verst=E4ndnis daf=FCr, da=DF ich zu Ihrem und meinem Schutz die =
+
+rechtliche Verbindlichkeit der in dieser eMail gemachten =
+
+Erkl=E4rungen ausschliessen mu=DF. Diese Regelung gilt nur dann nicht, =
+
+wenn ich mit Ihnen eine anderweitige schriftliche Vereinbarung =
+
+=FCber die Einhaltung von Sicherheits- und =
+
+Verschl=FCsselungstandards getroffen habe.
+***********************************
+Si forte in alienas manus oberraverit hec peregrina epistola =
+
+incertis ventis dimissa, sed Deo commendata, precamur ut ei =
+
+reddatur cui soli destinata, nec preripiat quisquam non sibi =
+
+parata.
+(Falls dieser umherreisende Brief, der in unsichere Winde
+entsendet, aber Gott anvertraut wurde, zuf=E4llig in fremde
+H=E4nde geraten ist, so bitte ich, dass er dem gegeben werde,
+an wen allein er gerichtet ist, und dass niemand ihn stiehlt,
+f=FCr den er nicht gemacht ist.)
+
+
+-------------------------------------------------------
+-- =
+
+
+-- =
+
+
+Mit freundlichen Gr=FC=DFen
+Christian Heidingsfelder
+Heidingsfelder + Partner
+Kirchgasse 9
+72474 Winterlingen-Benzingen
+Tel: +49 7577 933864
+Fax: +49 7577 933863
+christian@heidingsfelder.eu
+DE =
+
+
+--
+***********************************
+Diese eMailadresse ist keine Zustelladresse.
+Aus technischen Gruenden kann ich Ihre eMail nicht sofort nach =
+
+Eingang darauf =FCberpruefen, ob sie Fristen oder Termine enthaelt. =
+
+Daher uebernehme ich keine Gewaehr, da=DF Ihre Nachricht so =
+
+rechtzeitig gelesen wird, da=DF alle zur Einhaltung von etwaigen =
+
+Fristen oder Terminen notwendigen Massnahmen ergriffen werden =
+
+koennen. =
+
+Bitte uebermitteln Sie solche Schriftstuecke per Fax oder Brief an =
+
+die weiter obenstehende Anschrift.
+***********************************
+Hiermit widerspreche ich ausdruecklich jeglicher Nutzung oder =
+
+Uebermittlung meiner Daten, gleichgueltig, zu welchen Zwecken oder =
+
+an welchen Empfaenger sie erfolgt. Insbesondere widerspreche ich =
+
+der Nutzung oder Uebermittlung meiner Daten fuer Werbe, Markt- =
+
+oder Meinungsforschungszwecken gemaess =
+
+=A7 28 Absatz 3 Bundesdatenschutzgesetz.
+***********************************
+Sicherheitshinweis:
+Wie Sie wissen, k=F6nnen eMails missbr=E4uchlich unter fremden Namen =
+
+erstellt oder ver=E4ndert werden. Aus diesem Grunde bitte ich um =
+
+Verst=E4ndnis daf=FCr, da=DF ich zu Ihrem und meinem Schutz die =
+
+rechtliche Verbindlichkeit der in dieser eMail gemachten =
+
+Erkl=E4rungen ausschliessen mu=DF. Diese Regelung gilt nur dann nicht, =
+
+wenn ich mit Ihnen eine anderweitige schriftliche Vereinbarung =
+
+=FCber die Einhaltung von Sicherheits- und =
+
+Verschl=FCsselungstandards getroffen habe.
+***********************************
+Si forte in alienas manus oberraverit hec peregrina epistola =
+
+incertis ventis dimissa, sed Deo commendata, precamur ut ei =
+
+reddatur cui soli destinata, nec preripiat quisquam non sibi =
+
+parata.
+(Falls dieser umherreisende Brief, der in unsichere Winde
+entsendet, aber Gott anvertraut wurde, zuf=E4llig in fremde
+H=E4nde geraten ist, so bitte ich, dass er dem gegeben werde,
+an wen allein er gerichtet ist, und dass niemand ihn stiehlt,
+f=FCr den er nicht gemacht ist.)
+
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0468212850==--
