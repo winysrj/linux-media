@@ -1,71 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:43416 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757955AbZFNTIU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Jun 2009 15:08:20 -0400
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Muralidharan Karicheri <m-karicheri2@ti.com>,
-	  Linux Media Mailing List <linux-media@vger.kernel.org>,
-	  Magnus Damm <magnus.damm@gmail.com>,
-	  Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
-	  Darius Augulis <augulis.darius@gmail.com>
-Subject: Re: [PATCH] adding support for setting bus parameters in sub device
-References: <62904.62.70.2.252.1244810776.squirrel@webmail.xs4all.nl>
-	<Pine.LNX.4.64.0906121454410.4843@axis700.grange>
-	<200906121800.51177.hverkuil@xs4all.nl>
-	<Pine.LNX.4.64.0906141719510.4412@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Sun, 14 Jun 2009 21:08:12 +0200
-Message-ID: <87ab4a7hwj.fsf@free.fr>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2799 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750709AbZFNOc0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Jun 2009 10:32:26 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: hvaibhav@ti.com
+Subject: tcm825x.c: migrating to sub-device framework? (was: TVP514x: Migration to sub-device framework)
+Date: Sun, 14 Jun 2009 16:32:21 +0200
+Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com,
+	Brijesh Jadav <brijesh.j@ti.com>,
+	Hardik Shah <hardik.shah@ti.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+References: <hvaibhav@ti.com> <200906141214.38355.hverkuil@xs4all.nl> <200906141444.54105.hverkuil@xs4all.nl>
+In-Reply-To: <200906141444.54105.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906141632.21098.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Let's begin the maintainers party.
+On Sunday 14 June 2009 14:44:53 Hans Verkuil wrote:
+> On Sunday 14 June 2009 12:14:38 Hans Verkuil wrote:
+> > On Wednesday 06 May 2009 20:31:33 hvaibhav@ti.com wrote:
+> > > From: Vaibhav Hiremath <hvaibhav@ti.com>
+> > > 
+> > > This patch converts TVP514x driver to sub-device framework
+> > > from V4L2-int framework.
 
-> A board designer knows what the host supports, knows what the sensor 
-> supports, and knows if he added any inverters on the board, and based on 
-> all that information he can just setup these parameters for the sensor 
-> chip. Settings that are fixed on the sensor chip he can just ignore, he 
-> only need to specify those settings that the sensor really needs.
-I don't think that's true Hans.
-A lot of mainline's kernel boards have been written by passionate people, having
-no access to boards layout (for pxa, the includes corgi, tosa, hx4700, mioa701,
-all palm series, ...)
+Now that tvp514x is converted to using v4l2_subdev (pending a few small final
+tweaks) there is only one driver left that uses the v4l2-int-device.h API:
+tcm825x.c.
 
-For these people, having an "autonegociation algorithm" is one less thing to
-bother about.
+What is involved in converting this driver as well? And who can do this?
 
-> > In my opinion you should always want to set this explicitly. This is not
-> > something you want to leave to chance. Say you autoconfigure this. Now
-> > someone either changes the autoconf algorithm, or a previously undocumented
-> > register was discovered for the i2c device and it can suddenly configure the
-> > polarity of some signal that was previously thought to be fixed, or something
-> > else happens causing a different polarity to be negotiated.
-If you're afraid of side effects, you can force the polarity in board code with
-the current framework.
+Regards,
 
-If we reduce the current autonegociation code to polarity (forget bus witdh,
-...) :
- - if board coder sets unique polarities, they'll be chosen (1)
- - if board coder doesn't set them, the autonegociation algorithm will choose
-   (2)
+	Hans
 
-What you want to do is to force all board developers to explicitely polarities,
-to only use subset (1) of current negociation algorithm. I see no technical
-point motivating this. The existing algorithm is richer.
-
-Personnaly, I'll consider that reducing soc_camera framework to (1) instead of
-(1)+(2) is a regretable regression. As part of the board maintaineers having no
-access to my board's design, I find the current framework a help.
-
-I still don't understand clearly why delete (2) from current framework. As I
-said, "the board designer knows polarities" doesn't stand in our communauty
-where board are developped without prior knowledge.
-
-So Hans, why do you want to delete (2) ?
-
---
-Robert
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
