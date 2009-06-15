@@ -1,109 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2993 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753717AbZFRSPP (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2659 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752875AbZFOWkb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 14:15:15 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id n5IIFHxS008230
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 18 Jun 2009 20:15:17 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 18 Jun 2009 20:15:17 +0200 (CEST)
-Message-Id: <200906181815.n5IIFHxS008230@smtp-vbr10.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+	Mon, 15 Jun 2009 18:40:31 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Subject: Re: [PATCH 7/10 - v2] DM355 platform changes for vpfe capture driver
+Date: Tue, 16 Jun 2009 00:40:16 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	Muralidharan Karicheri <a0868495@dal.design.ti.com>
+References: <1244739649-27466-1-git-send-email-m-karicheri2@ti.com> <200906141622.55197.hverkuil@xs4all.nl> <A69FA2915331DC488A831521EAE36FE40139DF95B3@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40139DF95B3@dlee06.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906160040.16827.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Tuesday 16 June 2009 00:24:34 Karicheri, Muralidharan wrote:
+> Hans,
+>
+> Please see my response below.
 
-Results of the daily build of v4l-dvb:
+<snip>
 
-date:        Thu Jun 18 19:00:05 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12070:722c6faf3ab5
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+> >A general remark: currently you link your inputs directly to a subdev.
+> > This approach has two disadvantages:
+> >
+> >1) It doesn't work if there are no subdevs at all (e.g. because
+> > everything goes through an fpga).
+>
+> [MK] Not sure what you mean here. If there is an FPGA, there should be
+> something to make a selection between FPGA vs the rest of the decoders.
+> FPGA will have an input and there should be some way it reports the
+> detected standard etc. So why can't it be implemented by a sub device
+> (may be less configuration since most of the logic is in FPGA).
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-x86_64: WARNINGS
-sparse (linux-2.6.30): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+Hopefully my previous reply explains what I meant. I wasn't clear here 
+either.
 
-Detailed results are available here:
+> >2) It fixes the reported order of the inputs to the order of the
+> > subdevs.
+>
+> [MK]Is that an issue? I don't see why.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+It's a minor issue. But applications typically enumerate inputs to present a 
+list to the user which inputs there are. And if there are a lot then it can 
+be useful to have them in a specific order. Either to group the inputs 
+based on some criterium or to reflect the labeling on the box. It's a 
+nice-to-have, I admit.
 
-Full logs are available here:
+> >I think it is better to have a separate array of input descriptions that
+> >refer to a subdev when an input is associated with that subdev.
+>
+> [MK] Are suggesting an link from input array entry into sub device entry
+> input index?
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+Yes.
 
-The V4L2 specification failed to build, but the last compiled spec is here:
+> How do you translate the input from application to a sub 
+> device or FPGA input? What if there are two "composite" inputs on two
+> different sub devices?
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+A "Composite 1" input would point to subdev 1 and the "Composite 2" input 
+would point to subdev 2. Or do you mean something else? (I'm not sure I 
+entirely understand your question)
 
-The DVB API specification from this daily build is here:
+>
+> >flexible that way, and I actually think that the vpfe driver will be
+> >simplified as well.
+>
+> [MK], Not sure at this point.
 
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+The advantage is that the ENUMINPUT and S/G_INPUT functions can do a simple 
+lookup in the input array and immediately find the subdev index. Rather 
+than iterating over all subdevs and counting the number of inputs in order 
+to find which input belongs to which subdev.
 
+This is probably a stronger argument than my others are :-)
+
+Regards,
+
+	Hans
+
+>
+> Murali
+> m-karicher2@ti.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
