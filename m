@@ -1,50 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.24]:20159 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750866AbZF3T4O convert rfc822-to-8bit (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:55355 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751320AbZFORm4 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jun 2009 15:56:14 -0400
-Received: by qw-out-2122.google.com with SMTP id 9so185817qwb.37
-        for <linux-media@vger.kernel.org>; Tue, 30 Jun 2009 12:56:17 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <200906301548.02518.gczerw@comcast.net>
-References: <200906301301.04604.gczerw@comcast.net>
-	 <4A4A64F9.6070807@linuxtv.org>
-	 <829197380906301227q52e7b215p359adaa3206dba79@mail.gmail.com>
-	 <200906301548.02518.gczerw@comcast.net>
-Date: Tue, 30 Jun 2009 15:56:08 -0400
-Message-ID: <829197380906301256w2f0a701ak2332d9ec2cfae35e@mail.gmail.com>
-Subject: Re: [linux-dvb] Hauppauge HVR-1800 not working at all
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: gczerw@comcast.net
-Cc: Michael Krufky <mkrufky@linuxtv.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 15 Jun 2009 13:42:56 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Alexey Klimov <klimov.linux@gmail.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	Muralidharan Karicheri <a0868495@dal.design.ti.com>
+Date: Mon, 15 Jun 2009 12:42:51 -0500
+Subject: RE: [PATCH 10/10 - v2] common vpss module for video drivers
+Message-ID: <A69FA2915331DC488A831521EAE36FE40139DF9364@dlee06.ent.ti.com>
+References: <1244739649-27466-1-git-send-email-m-karicheri2@ti.com>
+	 <1244739649-27466-3-git-send-email-m-karicheri2@ti.com>
+	 <1244739649-27466-4-git-send-email-m-karicheri2@ti.com>
+	 <1244739649-27466-5-git-send-email-m-karicheri2@ti.com>
+	 <1244739649-27466-6-git-send-email-m-karicheri2@ti.com>
+	 <1244739649-27466-7-git-send-email-m-karicheri2@ti.com>
+	 <1244739649-27466-8-git-send-email-m-karicheri2@ti.com>
+	 <1244739649-27466-9-git-send-email-m-karicheri2@ti.com>
+	 <1244739649-27466-10-git-send-email-m-karicheri2@ti.com>
+	 <1244739649-27466-11-git-send-email-m-karicheri2@ti.com>
+ <208cbae30906111623s3cf1939emb552ef465fed4cea@mail.gmail.com>
+In-Reply-To: <208cbae30906111623s3cf1939emb552ef465fed4cea@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 30, 2009 at 3:48 PM, George Czerw<gczerw@comcast.net> wrote:
-> Devin, thanks for the reply.
+
+=
+>dm644x_clear_wbl_overflow;
+>> +       else
+>> +               return -ENODEV;
 >
-> Lsmod showed that "tuner" was NOT loaded (wonder why?), a "modprobe tuner"
-> took care of that and now the HVR-1800 is displaying video perfectly and the
-> tuning function works.  I guess that I'll have to add "tuner" into
-> modprobe.preload.d????  Now if only I can get the sound functioning along with
-> the video!
+>Do you need clean up procedure if you return error here? I mean -
+>calls to release_mem_region, release_mem_region, etc
 >
-> George
+Oops! I need to add that. Thanks.
+>> +       spin_lock_init(&oper_cfg.vpss_lock);
+>> +       dev_info(&pdev->dev, "%s vpss probe success\n",
+>oper_cfg.vpss_name);
+>> +       return 0;
+>> +fail3:
+>> +       release_mem_region(oper_cfg.r2->start, oper_cfg.len2);
+>> +fail2:
+>> +       iounmap(oper_cfg.vpss_bl_regs_base);
+>> +fail1:
+>> +       release_mem_region(oper_cfg.r1->start, oper_cfg.len1);
+>> +       return status;
+>> +}
+>
+>
+>--
+>Best regards, Klimov Alexey
 
-Admittedly, I don't know why you would have to load the tuner module
-manually on the HVR-1800.  I haven't had to do this on other products?
-
-If you are doing raw video capture, then you need to manually tell
-applications where to find the ALSA device that provides the audio.
-If you're capturing via the MPEG encoder, then the audio will be
-embedded in the stream.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
