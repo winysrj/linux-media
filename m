@@ -1,72 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailrelay009.isp.belgacom.be ([195.238.6.176]:5725 "EHLO
-	mailrelay009.isp.belgacom.be" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753190AbZFGRbp (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3028 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932957AbZFOSPI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Jun 2009 13:31:45 -0400
-Received: from [192.168.1.4] (athloroad.xperim.be [192.168.1.4])
+	Mon, 15 Jun 2009 14:15:08 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
 	(authenticated bits=0)
-	by via.xperim.be (8.14.2/8.14.2/Debian-2build1) with ESMTP id n57HVD1v006709
-	for <linux-media@vger.kernel.org>; Sun, 7 Jun 2009 19:31:14 +0200
-Message-ID: <4A2BF95E.8040009@computer.org>
-Date: Sun, 07 Jun 2009 19:31:10 +0200
-From: Jan Ceuleers <jan.ceuleers@computer.org>
-MIME-Version: 1.0
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id n5FIF5Z4025328
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 15 Jun 2009 20:15:10 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 15 Jun 2009 20:15:05 +0200 (CEST)
+Message-Id: <200906151815.n5FIF5Z4025328@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: Broken link in get_dvb_firmware for nxt2004 (A180)
-Content-Type: multipart/mixed;
- boundary="------------070509000805090107070104"
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------070509000805090107070104
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Hi!
+Results of the daily build of v4l-dvb:
 
-I read the following on the mythtv-users mailing list, and I'd just like to make sure that you guys are aware of it as well.
+date:        Mon Jun 15 19:00:04 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   11975:144d8d0cebc5
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-The script get_dvb_firmware no longer works for obtaining the nxt2004 firmware because AVer have reorganised their websites. The wanted file is now available from the following URL:
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-x86_64: WARNINGS
+sparse (linux-2.6.30): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
-http://www.avermedia-usa.com/support/Drivers/AVerTVHD_MCE_A180_Drv_v1.2.2.16.zip
+Detailed results are available here:
 
-The patch is therefore as follows (this is against 2.6.29; inlined and attached).
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Note that I don't subscribe to the mailing list.
+Full logs are available here:
 
-Cheers, Jan
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
---- linux-2.6.29/Documentation/dvb/get_dvb_firmware.orig        2009-06-07 14:38:20.000000000 +0200
-+++ linux-2.6.29/Documentation/dvb/get_dvb_firmware     2009-06-07 14:38:55.000000000 +0200
-@@ -317,7 +317,7 @@
+The V4L2 specification failed to build, but the last compiled spec is here:
 
- sub nxt2004 {
-     my $sourcefile = "AVerTVHD_MCE_A180_Drv_v1.2.2.16.zip";
--    my $url = "http://www.aver.com/support/Drivers/$sourcefile";
-+    my $url = "http://www.avermedia-usa.com/support/Drivers/$sourcefile";
-     my $hash = "111cb885b1e009188346d72acfed024c";
-     my $outfile = "dvb-fe-nxt2004.fw";
-     my $tmpdir = tempdir(DIR => "/tmp", CLEANUP => 1);
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
---------------070509000805090107070104
-Content-Type: text/plain;
- name="averfw.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="averfw.patch"
+The DVB API specification from this daily build is here:
 
---- linux-2.6.29/Documentation/dvb/get_dvb_firmware.orig	2009-06-07 14:38:20.000000000 +0200
-+++ linux-2.6.29/Documentation/dvb/get_dvb_firmware	2009-06-07 14:38:55.000000000 +0200
-@@ -317,7 +317,7 @@
- 
- sub nxt2004 {
-     my $sourcefile = "AVerTVHD_MCE_A180_Drv_v1.2.2.16.zip";
--    my $url = "http://www.aver.com/support/Drivers/$sourcefile";
-+    my $url = "http://www.avermedia-usa.com/support/Drivers/$sourcefile";
-     my $hash = "111cb885b1e009188346d72acfed024c";
-     my $outfile = "dvb-fe-nxt2004.fw";
-     my $tmpdir = tempdir(DIR => "/tmp", CLEANUP => 1);
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
---------------070509000805090107070104--
