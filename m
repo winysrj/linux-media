@@ -1,531 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:31137 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754212AbZFILPt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 07:15:49 -0400
-Date: Tue, 9 Jun 2009 14:11:11 +0300
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
-	ext Mauro Carvalho Chehab <mchehab@infradead.org>,
-	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>
-Subject: Re: [PATCHv6 5 of 7] FMTx: si4713: Add files to add radio
-	interface for si4713
-Message-ID: <20090609111111.GA16911@esdhcp037198.research.nokia.com>
-Reply-To: eduardo.valentin@nokia.com
-References: <1244449087-5543-1-git-send-email-eduardo.valentin@nokia.com> <1244449087-5543-5-git-send-email-eduardo.valentin@nokia.com> <1244449087-5543-6-git-send-email-eduardo.valentin@nokia.com> <200906091241.38423.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <200906091241.38423.hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([18.85.46.34]:39949 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751521AbZFONpg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Jun 2009 09:45:36 -0400
+Date: Mon, 15 Jun 2009 10:44:21 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: RFC: remove video_register_device_index, add
+ video_register_device_range
+Message-ID: <20090615104421.5d6db842@pedra.chehab.org>
+In-Reply-To: <200906151325.29079.hverkuil@xs4all.nl>
+References: <200906151325.29079.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Mon, 15 Jun 2009 13:25:28 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-On Tue, Jun 09, 2009 at 12:41:38PM +0200, ext Hans Verkuil wrote:
-> On Monday 08 June 2009 10:18:05 Eduardo Valentin wrote:
-> > From: Eduardo Valentin <eduardo.valentin@nokia.com>
-> >
-> > # HG changeset patch
-> > # User "Eduardo Valentin <eduardo.valentin@nokia.com>"
-> > # Date 1244446611 -10800
-> > # Node ID 92ec243dd1882c136a588898dd5b7a1913ca0f4b
-> > # Parent  2456c8fc506ecf928d2e95da36d611d094c0ec55
-> > This patch adds files which creates the radio interface
-> > for si4713 FM transmitter devices.
-> >
-> > Priority: normal
-> >
-> > Signed-off-by: "Eduardo Valentin <eduardo.valentin@nokia.com>"
-> >
-> > diff -r 2456c8fc506e -r 92ec243dd188 linux/drivers/media/radio/radio-si4713.c
-> > --- /dev/null Thu Jan 01 00:00:00 1970 +0000
-> > +++ b/linux/drivers/media/radio/radio-si4713.c        Mon Jun 08 10:36:51 2009 +0300
-> > @@ -0,0 +1,332 @@
-> > +/*
-> > + * drivers/media/radio/radio-si4713.c
-> > + *
-> > + * Platform Driver for Silicon Labs Si4713 FM Radio Transmitter:
-> > + *
-> > + * Copyright (c) 2008 Instituto Nokia de Tecnologia - INdT
-> > + * Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License as published by
-> > + * the Free Software Foundation; either version 2 of the License, or
-> > + * (at your option) any later version.
-> > + *
-> > + * This program is distributed in the hope that it will be useful,
-> > + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> > + * GNU General Public License for more details.
-> > + *
-> > + * You should have received a copy of the GNU General Public License
-> > + * along with this program; if not, write to the Free Software
-> > + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-> > + */
-> > +
-> > +#include <linux/kernel.h>
-> > +#include <linux/module.h>
-> > +#include <linux/init.h>
-> > +#include <linux/version.h>
-> > +#include <linux/platform_device.h>
-> > +#include <linux/i2c.h>
-> > +#include <linux/videodev2.h>
-> > +#include <media/v4l2-device.h>
-> > +#include <media/v4l2-common.h>
-> > +#include <media/v4l2-ioctl.h>
-> > +
-> > +#include "radio-si4713.h"
-> > +#include "si4713.h"
-> > +
-> > +/* module parameters */
-> > +static int radio_nr = -1;    /* radio device minor (-1 ==> auto assign) */
-> > +
-> > +/* radio_si4713_fops - file operations interface */
-> > +static const struct v4l2_file_operations radio_si4713_fops = {
-> > +     .owner          = THIS_MODULE,
-> > +     .ioctl          = video_ioctl2,
-> > +};
-> > +
-> > +/* Video4Linux Interface */
-> > +static int radio_si4713_vidioc_g_audio(struct file *file, void *priv,
-> > +                                     struct v4l2_audio *audio)
-> > +{
-> > +     if (audio->index > 1)
-> > +             return -EINVAL;
-> > +
-> > +     strncpy(audio->name, "Radio", 32);
-> > +     audio->capability = V4L2_AUDCAP_STEREO;
-> > +
-> > +     return 0;
-> > +}
-> > +
-> > +static int radio_si4713_vidioc_s_audio(struct file *file, void *priv,
-> > +                                     struct v4l2_audio *audio)
-> > +{
-> > +     if (audio->index != 0)
-> > +             return -EINVAL;
-> > +
-> > +     return 0;
-> > +}
+> Hi all,
 > 
-> This is a transmitter (aka modulator) device, so it should implement g_audout,
-> s_audout and enumaudout rather than s_audio and g_audio.
-> 
-> > +
-> > +static int radio_si4713_vidioc_g_input(struct file *file, void *priv,
-> > +                                     unsigned int *i)
-> > +{
-> > +     *i = 0;
-> > +
-> > +     return 0;
-> > +}
-> > +
-> > +static int radio_si4713_vidioc_s_input(struct file *file, void *priv,
-> > +                                     unsigned int i)
-> > +{
-> > +     if (i != 0)
-> > +             return -EINVAL;
-> > +
-> > +     return 0;
-> > +}
-> 
-> These are not needed: it is an audio only device, so no video. Since g/s_input
-> deals with video inputs these are not relevant. And even if it was, then it
-> would have to be g/s_output :-)
-> 
-> > +
-> > +/* radio_si4713_vidioc_querycap - query device capabilities */
-> > +static int radio_si4713_vidioc_querycap(struct file *file, void *priv,
-> > +                                     struct v4l2_capability *capability)
-> > +{
-> > +     struct radio_si4713_device *rsdev;
-> > +
-> > +     rsdev = video_get_drvdata(video_devdata(file));
-> > +
-> > +     strlcpy(capability->driver, "radio-si4713", sizeof(capability->driver));
-> > +     strlcpy(capability->card, "Silicon Labs Si4713 FM Radio Transmitter",
-> > +                             sizeof(capability->card));
-> > +     capability->capabilities = V4L2_CAP_TUNER;
-> > +
-> > +     return 0;
-> > +}
-> > +
-> > +/* radio_si4713_vidioc_queryctrl - enumerate control items */
-> > +static int radio_si4713_vidioc_queryctrl(struct file *file, void *priv,
-> > +                                             struct v4l2_queryctrl *qc)
-> > +{
-> > +
-> > +     /* Must be sorted from low to high control ID! */
-> > +     static const u32 user_ctrls[] = {
-> > +             V4L2_CID_USER_CLASS,
-> > +             V4L2_CID_AUDIO_VOLUME,
-> > +             V4L2_CID_AUDIO_BALANCE,
-> > +             V4L2_CID_AUDIO_BASS,
-> > +             V4L2_CID_AUDIO_TREBLE,
-> > +             V4L2_CID_AUDIO_LOUDNESS,
-> > +             V4L2_CID_AUDIO_MUTE,
-> > +             0
-> > +     };
-> > +
-> > +     /* Must be sorted from low to high control ID! */
-> > +     static const u32 fmtx_ctrls[] = {
-> > +             V4L2_CID_FMTX_CLASS,
-> > +             V4L2_CID_RDS_ENABLED,
-> > +             V4L2_CID_RDS_PI,
-> > +             V4L2_CID_RDS_PTY,
-> > +             V4L2_CID_RDS_PS_NAME,
-> > +             V4L2_CID_RDS_RADIO_TEXT,
-> > +             V4L2_CID_AUDIO_LIMITER_ENABLED,
-> > +             V4L2_CID_AUDIO_LIMITER_RELEASE_TIME,
-> > +             V4L2_CID_AUDIO_LIMITER_DEVIATION,
-> > +             V4L2_CID_AUDIO_COMPRESSION_ENABLED,
-> > +             V4L2_CID_AUDIO_COMPRESSION_GAIN,
-> > +             V4L2_CID_AUDIO_COMPRESSION_THRESHOLD,
-> > +             V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME,
-> > +             V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME,
-> > +             V4L2_CID_PILOT_TONE_ENABLED,
-> > +             V4L2_CID_PILOT_TONE_DEVIATION,
-> > +             V4L2_CID_PILOT_TONE_FREQUENCY,
-> > +             V4L2_CID_PREEMPHASIS,
-> > +             V4L2_CID_TUNE_POWER_LEVEL,
-> > +             V4L2_CID_TUNE_ANTENNA_CAPACITOR,
-> > +             0
-> > +     };
-> > +     static const u32 *ctrl_classes[] = {
-> > +             user_ctrls,
-> > +             fmtx_ctrls,
-> > +             NULL
-> > +     };
-> > +     struct radio_si4713_device *rsdev;
-> > +
-> > +     rsdev = video_get_drvdata(video_devdata(file));
-> > +
-> > +     qc->id = v4l2_ctrl_next(ctrl_classes, qc->id);
-> > +     if (qc->id == 0)
-> > +             return -EINVAL;
-> > +
-> > +     if (qc->id == V4L2_CID_USER_CLASS || qc->id == V4L2_CID_FMTX_CLASS)
-> > +             return v4l2_ctrl_query_fill(qc, 0, 0, 0, 0);
-> > +
-> > +     return v4l2_device_call_until_err(&rsdev->v4l2_dev, 0, core,
-> > +                                             queryctrl, qc);
-> > +}
-> > +
-> > +
-> > +/*
-> > + * radio_si4713_vidioc_template - Produce a v4l2 vidioc call back.
-> > + * Can be used because we are just a wrapper for v4l2_sub_devs.
-> > + */
-> > +#define radio_si4713_vidioc_template(type, callback, arg_type)               \
-> > +static int radio_si4713_vidioc_##callback(struct file *file, void *p,        \
-> > +                                             arg_type a)             \
-> > +{                                                                    \
-> > +     struct radio_si4713_device *rsdev;                              \
-> > +                                                                     \
-> > +     rsdev = video_get_drvdata(video_devdata(file));                 \
-> > +                                                                     \
-> > +     return v4l2_device_call_until_err(&rsdev->v4l2_dev, 0, type,    \
-> > +                                                     callback, a);   \
-> > +}
-> > +
-> > +radio_si4713_vidioc_template(core, g_ext_ctrls, struct v4l2_ext_controls *)
-> > +radio_si4713_vidioc_template(core, s_ext_ctrls, struct v4l2_ext_controls *)
-> > +radio_si4713_vidioc_template(core, g_ctrl, struct v4l2_control *)
-> > +radio_si4713_vidioc_template(core, s_ctrl, struct v4l2_control *)
-> > +radio_si4713_vidioc_template(tuner, g_tuner, struct v4l2_tuner *)
-> > +radio_si4713_vidioc_template(tuner, s_tuner, struct v4l2_tuner *)
-> > +radio_si4713_vidioc_template(tuner, g_frequency, struct v4l2_frequency *)
-> > +radio_si4713_vidioc_template(tuner, s_frequency, struct v4l2_frequency *)
-> 
-> Yuck. Just write it like this:
-> 
-> static inline struct v4l2_device *get_v4l2_dev(struct file *file)
-> {
->         return &((struct radio_si4713_device *)video_drvdata(file))->v4l2_dev;
-> }
-> 
-> static int radio_si4713_vidioc_g_tuner(struct file *file, void *priv,
->                                                 struct v4l2_tuner *t)
-> {
->         return v4l2_device_call_until_err(get_v4l2_dev(file), 0, tuner, g_tuner, t);
-> }
-> 
-> It's much nicer than using macros.
+> While looking at the video_register_device changes that broke ov511 I realized
+> that the video_register_device_index function is never called from drivers. It
+> will always assign a default index number. I also don't see a good use-case
+> for giving it an explicit index. My proposal is to remove this API. Since it
+> is never called, nothing will change effectively. I'm never happy with unused
+> functions.
 
-Well, the idea of that template was just to avoid too many lines
-of little functions wrapping to the v4l2_device_call_until_err.
+It sounds ok to me.
 
+> However, I think we do need a new video_register_device_range function. This
+> would be identical to video_register_device, but with an additional count
+> argument: this allows drivers to select a kernel number in the range of
+> nr to nr + count - 1. If cnt == -1, then the maximum is the compiled-in
+> maximum.
 > 
-> I also suggest shortening the function name to si4713_g_tuner. The current
-> naming convention is a bit of a mouthful.
+> So video_register_device would call video_register_device_range(...nr, 1),
+> thus restoring the original behavior, while ivtv and cx18 can call
+> video_register_device_range(...nr, -1), thus keeping the current behavior.
 
-Right. Agreed.
+I don't think that this is needed. The issue with ov511 is that it was using
+the error condition of video_register to identify how much ov511 devices were
+already registered.
 
-> 
-> > +
-> > +static struct v4l2_ioctl_ops radio_si4713_ioctl_ops = {
-> > +     .vidioc_g_input         = radio_si4713_vidioc_g_input,
-> > +     .vidioc_s_input         = radio_si4713_vidioc_s_input,
-> > +     .vidioc_g_audio         = radio_si4713_vidioc_g_audio,
-> > +     .vidioc_s_audio         = radio_si4713_vidioc_s_audio,
-> > +     .vidioc_querycap        = radio_si4713_vidioc_querycap,
-> > +     .vidioc_queryctrl       = radio_si4713_vidioc_queryctrl,
-> > +     .vidioc_g_ext_ctrls     = radio_si4713_vidioc_g_ext_ctrls,
-> > +     .vidioc_s_ext_ctrls     = radio_si4713_vidioc_s_ext_ctrls,
-> > +     .vidioc_g_ctrl          = radio_si4713_vidioc_g_ctrl,
-> > +     .vidioc_s_ctrl          = radio_si4713_vidioc_s_ctrl,
-> > +     .vidioc_g_tuner         = radio_si4713_vidioc_g_tuner,
-> > +     .vidioc_s_tuner         = radio_si4713_vidioc_s_tuner,
-> 
-> It's a modulator device, so it should implement g/s_modulator rather than
-> g/s_tuner.
-> 
-> Now, here I am running into a problem: looking at section 1.6.2 in the v4l2
-> spec I see that in QUERYCAP you are supposed to return CAP_TUNER and rely on
-> ENUMOUTPUT to determine which output has a modulator. I think it is nuts that
-> there is no CAP_MODULATOR. I propose adding this. There are currently NO
-> modulator drivers in v4l-dvb, nor have I ever heard from out-of-tree
-> modulator drivers (not that I particularly care about that), so it should be
-> safe to add it.
-> 
-> The next problem is that ENUMOUTPUT does not apply to a radio modulator.
-> This problem is actually also present on radio tuners. Currently all radio
-> tuner drivers implement g/s_input and g/s_audio but no enuminput or enumaudio.
-> 
-> I think g/s_input is bogus since these devices have no video inputs.
-> However, neither g/s_audio nor enumaudio can currently tell the application
-> whether the audio input is connected to a tuner. Only enuminput can do that
-> currently. This would be an argument for using g/s_input if it wasn't for
-> the fact that none of the radio drivers actually implements enuminput.
-> 
-> I propose adding a V4L2_AUDCAP_TUNER capability telling this application
-> that the audio input is connected to a tuner, and adding a
-> V4L2_AUDOUTCAP_MODULATOR capability for struct v4l2_audioout to do the same
-> for a modulator.
-> 
-> Comments?
+I already fixed it by adding an explicit device number count on it, just like
+all the other drivers. With this, ov511 will behave like the other drivers.
 
-Ok. Here comes the real needed changes to support the radio modulator.
-You may not remember, but in previous versions of this series I commented
-that this driver was fully based on fm receiver existing drivers.
+With the current implementation, it should honor the explicit minor order
+passed via modprobe parameter, as before.
 
-I think that's why I went in the mistake of implementing g_audio, s_audio
-instead of g_audout, s_audout. Also, the same mistake of implementing
-the s,g_input done in fm receiver drivers was repeated here.
+There's one small change on the behavior that it is also present on all other
+devices that allow users to explicit the desired minor order: instead of
+failing if that device is already used, it will get the next available one.
+IMO, this is better than just failing. So, the only remaining issue is that
+video_register should print a warning if it had to get a different minor than
+specified.
 
-Also, I think another thing has biased me to add this wrong callbacks. I use
-fmtools to test the driver, for setting fm freq for instance.
+In other words, the enclosed patch seems to be a good approach to close this
+issue
 
-I admit, there are wrong callbacks.
 
-So, I'd ask which application to use to test the driver ?
 
-About the suggested changes (adding V4L2_AUDCAP_TUNER and V4L2_AUDOUTCAP_MODULATOR),
-I think it is a reasonable way to do it. However, it'd be nice to hear more opinions.
-But, if I understood correctly, this would be the method to determine
-if the driver is a fm transmitter (aka modulator) ?
+Cheers,
+Mauro
 
-> 
-> Regards,
-> 
->         Hans
-> 
-> 
-> > +     .vidioc_g_frequency     = radio_si4713_vidioc_g_frequency,
-> > +     .vidioc_s_frequency     = radio_si4713_vidioc_s_frequency,
-> > +};
-> > +
-> > +/* radio_si4713_vdev_template - video device interface */
-> > +static struct video_device radio_si4713_vdev_template = {
-> > +     .fops                   = &radio_si4713_fops,
-> > +     .name                   = "radio-si4713",
-> > +     .release                = video_device_release,
-> > +     .ioctl_ops              = &radio_si4713_ioctl_ops,
-> > +};
-> > +
-> > +/* Platform driver interface */
-> > +/* radio_si4713_pdriver_probe - probe for the device */
-> > +static int radio_si4713_pdriver_probe(struct platform_device *pdev)
-> > +{
-> > +     struct radio_si4713_platform_data *pdata = pdev->dev.platform_data;
-> > +     struct radio_si4713_device *rsdev;
-> > +     struct i2c_adapter *adapter;
-> > +     struct v4l2_subdev *sd;
-> > +     int rval = 0;
-> > +
-> > +     if (!pdata) {
-> > +             dev_err(&pdev->dev, "Cannot proceed without platform data.\n");
-> > +             rval = -EINVAL;
-> > +             goto exit;
-> > +     }
-> > +
-> > +     rsdev = kzalloc(sizeof *rsdev, GFP_KERNEL);
-> > +     if (!rsdev) {
-> > +             dev_err(&pdev->dev, "Failed to alloc video device.\n");
-> > +             rval = -ENOMEM;
-> > +             goto exit;
-> > +     }
-> > +
-> > +     rval = v4l2_device_register(&pdev->dev, &rsdev->v4l2_dev);
-> > +     if (rval) {
-> > +             dev_err(&pdev->dev, "Failed to register v4l2 device.\n");
-> > +             goto free_rsdev;
-> > +     }
-> > +
-> > +     adapter = i2c_get_adapter(pdata->i2c_bus);
-> > +     if (!adapter) {
-> > +             dev_err(&pdev->dev, "Cannot get i2c adapter %d\n",
-> > +                                                     pdata->i2c_bus);
-> > +             rval = -ENODEV;
-> > +             goto unregister_v4l2_dev;
-> > +     }
-> > +
-> > +     sd = v4l2_i2c_new_subdev_board(&rsdev->v4l2_dev, adapter, "si4713_i2c",
-> > +                                     pdata->subdev_board_info, NULL);
-> > +     if (!sd) {
-> > +             dev_err(&pdev->dev, "Cannot get v4l2 subdevice\n");
-> > +             rval = -ENODEV;
-> > +             goto unregister_v4l2_dev;
-> > +     }
-> > +
-> > +     rsdev->radio_dev = video_device_alloc();
-> > +     if (!rsdev->radio_dev) {
-> > +             dev_err(&pdev->dev, "Failed to alloc video device.\n");
-> > +             rval = -ENOMEM;
-> > +             goto unregister_v4l2_dev;
-> > +     }
-> > +
-> > +     memcpy(rsdev->radio_dev, &radio_si4713_vdev_template,
-> > +                     sizeof(radio_si4713_vdev_template));
-> > +     video_set_drvdata(rsdev->radio_dev, rsdev);
-> > +     if (video_register_device(rsdev->radio_dev, VFL_TYPE_RADIO, radio_nr)) {
-> > +             dev_err(&pdev->dev, "Could not register video device.\n");
-> > +             rval = -EIO;
-> > +             goto free_vdev;
-> > +     }
-> > +     dev_info(&pdev->dev, "New device successfully probed\n");
-> > +
-> > +     goto exit;
-> > +
-> > +free_vdev:
-> > +     video_device_release(rsdev->radio_dev);
-> > +unregister_v4l2_dev:
-> > +     v4l2_device_unregister(&rsdev->v4l2_dev);
-> > +free_rsdev:
-> > +     kfree(rsdev);
-> > +exit:
-> > +     return rval;
-> > +}
-> > +
-> > +/* radio_si4713_pdriver_remove - remove the device */
-> > +static int __exit radio_si4713_pdriver_remove(struct platform_device *pdev)
-> > +{
-> > +     struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
-> > +     struct radio_si4713_device *rsdev = container_of(v4l2_dev,
-> > +                                             struct radio_si4713_device,
-> > +                                             v4l2_dev);
-> > +
-> > +     video_unregister_device(rsdev->radio_dev);
-> > +     v4l2_device_unregister(&rsdev->v4l2_dev);
-> > +     kfree(rsdev);
-> > +
-> > +     return 0;
-> > +}
-> > +
-> > +static struct platform_driver radio_si4713_pdriver = {
-> > +     .driver         = {
-> > +             .name   = "radio-si4713",
-> > +     },
-> > +     .probe          = radio_si4713_pdriver_probe,
-> > +     .remove         = __exit_p(radio_si4713_pdriver_remove),
-> > +};
-> > +
-> > +/* Module Interface */
-> > +static int __init radio_si4713_module_init(void)
-> > +{
-> > +     return platform_driver_register(&radio_si4713_pdriver);
-> > +}
-> > +
-> > +static void __exit radio_si4713_module_exit(void)
-> > +{
-> > +     platform_driver_unregister(&radio_si4713_pdriver);
-> > +}
-> > +
-> > +module_init(radio_si4713_module_init);
-> > +module_exit(radio_si4713_module_exit);
-> > +
-> > +module_param(radio_nr, int, 0);
-> > +MODULE_PARM_DESC(radio_nr,
-> > +              "Minor number for radio device (-1 ==> auto assign)");
-> > +
-> > +MODULE_LICENSE("GPL");
-> > +MODULE_AUTHOR("Eduardo Valentin <eduardo.valentin@nokia.com>");
-> > +MODULE_DESCRIPTION("Platform driver for Si4713 FM Radio Transmitter");
-> > +MODULE_VERSION("0.0.1");
-> > diff -r 2456c8fc506e -r 92ec243dd188 linux/drivers/media/radio/radio-si4713.h
-> > --- /dev/null Thu Jan 01 00:00:00 1970 +0000
-> > +++ b/linux/drivers/media/radio/radio-si4713.h        Mon Jun 08 10:36:51 2009 +0300
-> > @@ -0,0 +1,48 @@
-> > +/*
-> > + * drivers/media/radio/radio-si4713.h
-> > + *
-> > + * Property and commands definitions for Si4713 radio transmitter chip.
-> > + *
-> > + * Copyright (c) 2008 Instituto Nokia de Tecnologia - INdT
-> > + * Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
-> > + *
-> > + * This file is licensed under the terms of the GNU General Public License
-> > + * version 2. This program is licensed "as is" without any warranty of any
-> > + * kind, whether express or implied.
-> > + *
-> > + */
-> > +
-> > +#ifndef RADIO_SI4713_H
-> > +#define RADIO_SI4713_H
-> > +
-> > +#include <linux/i2c.h>
-> > +#include <media/v4l2-device.h>
-> > +
-> > +#define SI4713_NAME "radio-si4713"
-> > +
-> > +/* The SI4713 I2C sensor chip has a fixed slave address of 0xc6. */
-> > +#define SI4713_I2C_ADDR_BUSEN_HIGH   0x63
-> > +#define SI4713_I2C_ADDR_BUSEN_LOW    0x11
-> > +
-> > +/*
-> > + * Platform dependent definition
-> > + */
-> > +struct si4713_platform_data {
-> > +     /* Set power state, zero is off, non-zero is on. */
-> > +     int (*set_power)(int power);
-> > +};
-> > +
-> > +/*
-> > + * Platform driver device state struct
-> > + */
-> > +struct radio_si4713_device {
-> > +     struct v4l2_device              v4l2_dev;
-> > +     struct video_device             *radio_dev;
-> > +};
-> > +
-> > +struct radio_si4713_platform_data {
-> > +     int i2c_bus;
-> > +     struct i2c_board_info *subdev_board_info;
-> > +};
-> > +
-> > +#endif /* ifndef RADIO_SI4713_H*/
-> >
-> >
-> 
-> 
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+---
 
--- 
-Eduardo Valentin
+v4l2-dev: Print a warning if need to use a different minor than specified
+
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+video_register_device has two behaviors: dynamic minor attribution or 
+forced minor attribution. The latter mode is used to allow users to 
+force probing a device using a certain minor order. Even for the last 
+case, video_register_device won't fail if that minor is already used 
+but, instead, it will seek for the next available minor, without warning 
+users about that.
+
+While don't fail due to a busy minor seems the better behavior, it 
+should be printing a warning when this happen.
+
+While here, let's remove video_register_device_index(), since no driver 
+is using it.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+---
+ linux/drivers/media/video/v4l2-dev.c |   31 ++++++++++++++++---------------
+ linux/include/media/v4l2-dev.h       |    5 ++---
+ 2 files changed, 18 insertions(+), 18 deletions(-)
+
+--- master.orig/linux/drivers/media/video/v4l2-dev.c
++++ master/linux/drivers/media/video/v4l2-dev.c
+@@ -384,23 +384,18 @@ static int get_index(struct video_device
+ 	return i == VIDEO_NUM_DEVICES ? -ENFILE : i;
+ }
+ 
+-int video_register_device(struct video_device *vdev, int type, int nr)
+-{
+-	return video_register_device_index(vdev, type, nr, -1);
+-}
+-EXPORT_SYMBOL(video_register_device);
+ 
+ /**
+- *	video_register_device_index - register video4linux devices
++ *	video_register_device - register video4linux devices
+  *	@vdev: video device structure we want to register
+  *	@type: type of device to register
+  *	@nr:   which device number (0 == /dev/video0, 1 == /dev/video1, ...
+  *             -1 == first free)
+- *	@index: stream number based on parent device;
+- *		-1 if auto assign, requested number otherwise
+  *
+  *	The registration code assigns minor numbers based on the type
+- *	requested. -ENFILE is returned in all the device slots for this
++ *	requested. If the requested one is already used, get the next
++ *	available one and prints a warning.
++ *	-ENFILE is returned in all the device slots for this
+  *	category are full. If not then the minor field is set and the
+  *	driver initialize function is called (if non %NULL).
+  *
+@@ -416,10 +411,10 @@ EXPORT_SYMBOL(video_register_device);
+  *
+  *	%VFL_TYPE_RADIO - A radio card
+  */
+-int video_register_device_index(struct video_device *vdev, int type, int nr,
+-					int index)
++int video_register_device(struct video_device *vdev, const int type,
++			  const int desirednr)
+ {
+-	int i = 0;
++	int i = 0, nr;
+ 	int ret;
+ 	int minor_offset = 0;
+ 	int minor_cnt = VIDEO_NUM_DEVICES;
+@@ -493,7 +488,8 @@ int video_register_device_index(struct v
+ 
+ 	/* Pick a minor number */
+ 	mutex_lock(&videodev_lock);
+-	nr = find_next_zero_bit(video_nums[type], minor_cnt, nr == -1 ? 0 : nr);
++	nr = find_next_zero_bit(video_nums[type], minor_cnt,
++				desirednr == -1 ? 0 : desirednr);
+ 	if (nr == minor_cnt)
+ 		nr = find_first_zero_bit(video_nums[type], minor_cnt);
+ 	if (nr == minor_cnt) {
+@@ -501,6 +497,11 @@ int video_register_device_index(struct v
+ 		mutex_unlock(&videodev_lock);
+ 		return -ENFILE;
+ 	}
++
++	if (desirednr >= 0 && nr != desirednr)
++		printk(KERN_INFO "Minor %d is already used. Using instead %d\n",
++		       desirednr, nr);
++
+ #ifdef CONFIG_VIDEO_FIXED_MINOR_RANGES
+ 	/* 1-on-1 mapping of kernel number to minor number */
+ 	i = nr;
+@@ -520,7 +521,7 @@ int video_register_device_index(struct v
+ 	set_bit(nr, video_nums[type]);
+ 	/* Should not happen since we thought this minor was free */
+ 	WARN_ON(video_device[vdev->minor] != NULL);
+-	ret = vdev->index = get_index(vdev, index);
++	ret = vdev->index = get_index(vdev, -1);
+ 	mutex_unlock(&videodev_lock);
+ 
+ 	if (ret < 0) {
+@@ -612,7 +613,7 @@ cleanup:
+ 	vdev->minor = -1;
+ 	return ret;
+ }
+-EXPORT_SYMBOL(video_register_device_index);
++EXPORT_SYMBOL(video_register_device);
+ 
+ /**
+  *	video_unregister_device - unregister a video4linux device
+--- master.orig/linux/include/media/v4l2-dev.h
++++ master/linux/include/media/v4l2-dev.h
+@@ -103,9 +103,8 @@ struct video_device
+    you call video_device_release() on failure.
+ 
+    Also note that vdev->minor is set to -1 if the registration failed. */
+-int __must_check video_register_device(struct video_device *vdev, int type, int nr);
+-int __must_check video_register_device_index(struct video_device *vdev,
+-						int type, int nr, int index);
++int __must_check video_register_device(struct video_device *vdev,
++				       const int type, const int nr);
+ 
+ /* Unregister video devices. Will do nothing if vdev == NULL or
+    vdev->minor < 0. */
+
