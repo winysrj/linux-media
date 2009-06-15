@@ -1,63 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f204.google.com ([209.85.210.204]:50773 "EHLO
-	mail-yx0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752169AbZFZT3T convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3467 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754408AbZFOVq3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2009 15:29:19 -0400
-Received: by yxe42 with SMTP id 42so71787yxe.33
-        for <linux-media@vger.kernel.org>; Fri, 26 Jun 2009 12:29:21 -0700 (PDT)
+	Mon, 15 Jun 2009 17:46:29 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Subject: Re: Did I miss any other patches or RFCs that need to be reviewed?
+Date: Mon, 15 Jun 2009 23:46:22 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+References: <200906141636.39198.hverkuil@xs4all.nl> <200906151956.18572.hverkuil@xs4all.nl> <A69FA2915331DC488A831521EAE36FE40139DF93D9@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40139DF93D9@dlee06.ent.ti.com>
 MIME-Version: 1.0
-In-Reply-To: <1246042980.3159.68.camel@palomino.walls.org>
-References: <COL103-W53A73F78F552D9FD9BAA2A88350@phx.gbl>
-	 <1246017001.4755.4.camel@palomino.walls.org>
-	 <829197380906260642m2cd87ae5qd6487dc5eae91e51@mail.gmail.com>
-	 <b24e53350906261019u45bba60erc7ee41222896388b@mail.gmail.com>
-	 <829197380906261023n7e960f43pcd25d82eb12f91dd@mail.gmail.com>
-	 <1246041288.3159.51.camel@palomino.walls.org>
-	 <829197380906261147g311d9a0ap7c9d5efc1473bf85@mail.gmail.com>
-	 <1246042980.3159.68.camel@palomino.walls.org>
-Date: Fri, 26 Jun 2009 15:29:21 -0400
-Message-ID: <829197380906261229g6e9f38q4be149597930ef0@mail.gmail.com>
-Subject: Re: Bah! How do I change channels?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Andy Walls <awalls@radix.net>
-Cc: Robert Krakora <rob.krakora@messagenetsystems.com>,
-	video4linux-list@redhat.com, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906152346.23318.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 26, 2009 at 3:02 PM, Andy Walls<awalls@radix.net> wrote:
-> All I'm saying is that it is obviously the expected behavior, it the
-> specified behavior, and all the userland apps and scripts are written
-> with that behavior in mind.
+On Monday 15 June 2009 20:44:15 Karicheri, Muralidharan wrote:
+> Hans,
 >
-> The applications' expectation of that behavior is, of course, why we are
-> having this discussion.
+> That is great!
 >
-> Assuming arguendo, maintaing state in the face of power management is a
-> hard requirement on the driver; I'll still contend it's harder to change
-> the existing base of applications and user scripts.  Until the spec and
-> all the existing apps change, not adhering to the spec leads to user
-> confusion.
+> Once I change the code based on the comments, do you think there is a
+> chance to get the driver to be merged to 2.6.31 (If so, how soon should I
+> be ready with the next version, v3 of the patch) or do we need to wait
+> until 2.6.32?
 
-I guess that means that every product that has a tuner which
-implements the sleep callback is broken.  And yet this is the first
-case I've heard a user complain, which makes me wonder how big a
-population is out there that is using scripts to control the tuner.  I
-suspect most people are just using applications like MythTV, xawtv or
-tvtime, which won't have these issues.
+If you want to have a chance to get this in 2.6.31 then you have to be 
+quick, and even then I can't guarantee anything. It will depend on Mauro to 
+a large extent. The 2.6.31 merge window is now open but will close in 1-2 
+weeks. After that it depends on Mauro whether he will allow it to be 
+merged.
 
-I don't intend to come across as argumentative, but if we haven't
-heard a massive outcry about this by now, maybe nobody actually cares
-and thus we shouldn't spend the time to build a whole infrastructure
-to preserve the driver state across the low power mode.  Those people
-who really do care can just disable the power management with a
-modprobe option.
+It's a pretty tight schedule, I'm afraid.
 
-Devin
+Regards,
+
+	Hans
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
