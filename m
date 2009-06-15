@@ -1,13 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Date: Mon, 29 Jun 2009 14:45:53 +0800 (CST)
-From: =?gbk?B?wO7OsA==?= <54216deren@163.com>
-To: video4linux-list <video4linux-list@redhat.com>,
-	video4linux-list-request <video4linux-list-request@redhat.com>
-Message-ID: <24008205.248811246257953398.JavaMail.coremail@bj163app99.163.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=gbk
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with SMTP id n5GA6M7a020202
+	for <video4linux-list@redhat.com>; Tue, 16 Jun 2009 06:06:22 -0400
+Received: from smtp.adamobredband.com (smtp.adamobredband.com [91.126.224.27])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n5GA67uH002550
+	for <video4linux-list@redhat.com>; Tue, 16 Jun 2009 06:06:07 -0400
+From: sacha <sacha@hemmail.se>
+To: video4linux-list@redhat.com, linux-dvb@linuxtv.org
+Content-Type: text/plain
+Date: Mon, 15 Jun 2009 22:36:00 +0200
+Message-Id: <1245098160.20120.0.camel@asrock>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Subject: VIDIOC_QBUF - overflow
+Cc: 
+Subject: Terratec Cinergy HTC USB XS HD
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -19,8 +25,16 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+Hello
 
-would anybody help me ?? When my test is running ,the warning "VIDIOC_QBUF - overflow"  appears,and the picture on tv is not so good ,sometime the picture jitted .
+Does anybody know if this devise will ever work with Linux?
+It was promised by one person last year the support will be available
+within months. One year has gone, nothing happens.
+Is there any alternatives to develop a driver for this devise aside from
+this person?
+
+KR
+
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
