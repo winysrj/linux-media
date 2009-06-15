@@ -1,122 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from as-10.de ([212.112.241.2]:39938 "EHLO mail.as-10.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755636AbZFRMGL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 08:06:11 -0400
-Date: Thu, 18 Jun 2009 14:05:51 +0200
-From: Halim Sahin <halim.sahin@t-online.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Trent Piepho <xyzzy@speakeasy.org>, linux-media@vger.kernel.org
-Subject: Re: ok more details: Re: bttv problem loading takes about several
-	minutes
-Message-ID: <20090618120551.GA6486@halim.local>
-References: <40897.62.70.2.252.1245323396.squirrel@webmail.xs4all.nl>
+Received: from smtp.nokia.com ([192.100.122.233]:24580 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756780AbZFOIps (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Jun 2009 04:45:48 -0400
+Message-ID: <4A360A28.8080008@maxwell.research.nokia.com>
+Date: Mon, 15 Jun 2009 11:45:28 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <40897.62.70.2.252.1245323396.squirrel@webmail.xs4all.nl>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: hvaibhav@ti.com, linux-media@vger.kernel.org,
+	linux-omap@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com,
+	Brijesh Jadav <brijesh.j@ti.com>,
+	Hardik Shah <hardik.shah@ti.com>
+Subject: Re: tcm825x.c: migrating to sub-device framework?
+References: <hvaibhav@ti.com> <200906141214.38355.hverkuil@xs4all.nl> <200906141444.54105.hverkuil@xs4all.nl> <200906141632.21098.hverkuil@xs4all.nl>
+In-Reply-To: <200906141632.21098.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-On Do, Jun 18, 2009 at 01:09:56 +0200, Hans Verkuil wrote:
+Hans Verkuil wrote:
+> On Sunday 14 June 2009 14:44:53 Hans Verkuil wrote:
+>> On Sunday 14 June 2009 12:14:38 Hans Verkuil wrote:
+>>> On Wednesday 06 May 2009 20:31:33 hvaibhav@ti.com wrote:
+>>>> From: Vaibhav Hiremath <hvaibhav@ti.com>
+>>>>
+>>>> This patch converts TVP514x driver to sub-device framework
+>>>> from V4L2-int framework.
 > 
-> > Hi,
-> > sorry for the nusable output!
-> > I found the time consuming funktion:
-> >         bttv_init_card2(btv);
-> > This takes about 4 min. today.
-> > my new testcode:
-> >         /* needs to be done before i2c is registered */
-> > printk("linke 2:bttv_init_card1(btv);\n");
-> >
-> >         bttv_init_card1(btv);
-> >
-> >         /* register i2c + gpio */
-> > printk("line 3: init_bttv_i2c(btv);\n");
-> >
-> >         init_bttv_i2c(btv);
-> >
-> >         /* some card-specific stuff (needs working i2c) */
-> > printk("line4:         some card-specific stuff needs working i2c \n");
-> >         bttv_init_card2(btv);
-> > printk("irq init\n");
-> >
-> >         init_irqreg(btv);
-> >
-> > dmesg output:
-> > [ 2282.430209] bttv: driver version 0.9.18 loaded
-> > [ 2282.430216] bttv: using 8 buffers with 2080k (520 pages) each for
-> > capture
-> > [ 2282.430313] bttv: Bt8xx card found (0).
-> > [ 2282.430334] bttv0: Bt878 (rev 17) at 0000:00:0b.0, irq: 19, latency:
-> > 32, mmio
-> > : 0xf7800000
-> > [ 2282.430777] bttv0: using: Leadtek WinFast 2000/ WinFast 2000 XP
-> > [card=34,insm
-> > od option]
-> > [ 2282.430839] bttv_gpio_tracking(bt
-> > [ 2282.430843] bttv0: gpio: en=00000000, out=00000000 in=003ff502 [init]
-> > [ 2282.430845] linke 2:bttv_init_card1(btv);
-> > [ 2282.430859] line 3: init_bttv_i2c(btv);
-> > [ 2282.430917] line4:         some card-specific stuff needs working i2c
-> > [ 2282.430922] bttv0: tuner type=24
-> >
-> > Ok here is the 4 min dely and after that the following linkes were printed
-> > out:
-> >
-> > [ 2416.836017] bttv0: audio absent, no audio device found!
-> 
-> When you tested this with bttv 0.9.17, wasn't the delay then before the
-> text 'tuner type=24'?
-> 
-> Anyway, if you modprobe with the option 'audiodev=-1', will that solve
-> this? If not, then can you do the same printk trick in the bttv_init_card2
-> function?
+> Now that tvp514x is converted to using v4l2_subdev (pending a few small final
+> tweaks) there is only one driver left that uses the v4l2-int-device.h API:
+> tcm825x.c.
 
-I couldn't find a parameter audiodev in bttv module
-Do you mean audioall??
-It has no effect.
-So I need an older revision of v4l-dvb to test the 17. drivers.
-Thanks
-regards
-Halim
-
-> 
-> Regards,
-> 
->         Hans
-> 
-> > [ 2416.836024] irq init
-> > [ 2416.840551] bttv0: registered device video1
-> > [ 2416.840684] bttv0: registered device vbi0
-> > [ 2416.840716] bttv0: registered device radio0
-> > [ 2416.840736] bttv0: PLL: 28636363 => 35468950 .<6>bttv0: PLL: 28636363
-> > => 3546
-> > 8950 . ok
-> > [ 2416.856221] input: bttv IR (card=34) as
-> > /devices/pci0000:00/0000:00:0b.0/inpu
-> > t/input10
-> > [ 2416.864069]  ok
-> >
-> > Hope that helps!
-> > Regards
-> > Halim
-> > --
-> > Halim Sahin
-> > E-Mail:
-> > halim.sahin (at) t-online.de
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> 
-> 
-> -- 
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+There's also the OMAP 2 camera driver (master), 
+drivers/media/video/omap24xxcam.c. The tcm825x is the slave driver that 
+is used in conjunction with omap24xxcam on N800 and N810.
 
 -- 
-Halim Sahin
-E-Mail:				
-halim.sahin (at) t-online.de
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
