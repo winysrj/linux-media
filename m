@@ -1,55 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:49499 "EHLO mail1.radix.net"
+Received: from main.gmane.org ([80.91.229.2]:57790 "EHLO ciao.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752111AbZF1RRf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Jun 2009 13:17:35 -0400
-Subject: Re: [PATCH 22/62] drivers/media/video/cx18/cx18-fileops.c: Remove
- unnecessary semicolons
-From: Andy Walls <awalls@radix.net>
-To: Joe Perches <joe@perches.com>
-Cc: linux-kernel@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-In-Reply-To: <7eeefbbba34fc477540566c6b1888cb7c871f4cd.1246173681.git.joe@perches.com>
-References: <cover.1246173664.git.joe@perches.com>
-	 <7eeefbbba34fc477540566c6b1888cb7c871f4cd.1246173681.git.joe@perches.com>
-Content-Type: text/plain
-Date: Sun, 28 Jun 2009 13:17:40 -0400
-Message-Id: <1246209460.1550.12.camel@palomino.walls.org>
+	id S1754622AbZFRJuC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Jun 2009 05:50:02 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1MHEFu-0003ZL-7q
+	for linux-media@vger.kernel.org; Thu, 18 Jun 2009 09:50:02 +0000
+Received: from cs27111223.pp.htv.fi ([89.27.111.223])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 18 Jun 2009 09:50:02 +0000
+Received: from ay by cs27111223.pp.htv.fi with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 18 Jun 2009 09:50:02 +0000
+To: linux-media@vger.kernel.org
+From: ay@nospam.invalid (Ari =?iso-8859-1?Q?Yrj=F6l=E4?=)
+Subject: Re: Digital Everywhere FloppyDTV / FireDTV (incl. CI)
+Date: Mon, 15 Jun 2009 22:42:14 +0300
+Message-ID: <87eitlmgh5.fsf@galileo.zzint>
+References: <4A197CE8.9040404@gmail.com> <4A26832B.5060508@nildram.co.uk> <e9a4f5af0906040530k3dc3095ofa621459e7eb0d12@mail.gmail.com>
+Reply-To: ay@hut.fi
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2009-06-28 at 09:26 -0700, Joe Perches wrote:
-> Signed-off-by: Joe Perches <joe@perches.com>
-> ---
->  drivers/media/video/cx18/cx18-fileops.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/cx18/cx18-fileops.c b/drivers/media/video/cx18/cx18-fileops.c
-> index 29969c1..04d9c25 100644
-> --- a/drivers/media/video/cx18/cx18-fileops.c
-> +++ b/drivers/media/video/cx18/cx18-fileops.c
-> @@ -690,7 +690,7 @@ int cx18_v4l2_open(struct file *filp)
->  	int res;
->  	struct video_device *video_dev = video_devdata(filp);
->  	struct cx18_stream *s = video_get_drvdata(video_dev);
-> -	struct cx18 *cx = s->cx;;
-> +	struct cx18 *cx = s->cx;
->  
->  	mutex_lock(&cx->serialize_lock);
->  	if (cx18_init_on_first_open(cx)) {
+"Johannes T. K." <linuxmedia@tangkristensen.dk> writes:
 
-Acked-by: Andy Walls <awalls@radix.net>
+>>
+>> If anyone has been able to tune the cable adapter under linux I'd like to
+>> hear more.
+>>
+>
+> I have a firedtv c/ci which I have had some success with in linux. I
+> have no problem tuning and watching/recoding programs as long as they
+> are not scrambled.
 
-This is on topic for the ivtv-devel list, but must we spam the
-ivtv-users list with this sort of trivia? 
+Same here, the CI part is useless with firedtv driver. I have
+self-compiled VDR v1.7.7 running with xine-plugin on Debian
+testing/unstable 2.6.29 x86_64, and there's no CAM menu available in
+VDR's setup screen. Tested with older SCM Conax and now CAS7 capable NP4
+Conax CAM, no success. Both CAMs work fine with Sony Bravia V3000, and
+SCM card was working fine in a Technotrend T1500+CI (DVB-T) with VDR v1.4.7.
 
-Perhaps your Maintainers file scraper script could be tweaked a little?
+Updating firmware of my FloppyDTV C/CI (which can only be done on a
+Windows box, great) didn't help anything either, but it seems to have
+made things even worse. Now there's occasional errors like
 
-Regards,
-Andy
+Jun 15 21:40:04 silver kernel: firedtv 00128726020026b2-0: FCP response timed out
+
+which didn't show up before firmware update. Now VDR recordings from FTA
+channels fail sometimes too, and kernel log gets filled with 
+
+DVB (dvb_dmxdev_filter_start): could not alloc feed
+
 
