@@ -1,58 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.28]:25987 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753837AbZFMNmL (ORCPT
+Received: from mail-bw0-f213.google.com ([209.85.218.213]:43538 "EHLO
+	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752505AbZFOAWc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Jun 2009 09:42:11 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so1889413ywb.1
-        for <linux-media@vger.kernel.org>; Sat, 13 Jun 2009 06:42:13 -0700 (PDT)
+	Sun, 14 Jun 2009 20:22:32 -0400
+Received: by bwz9 with SMTP id 9so3038201bwz.37
+        for <linux-media@vger.kernel.org>; Sun, 14 Jun 2009 17:22:33 -0700 (PDT)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Simon Kenyon <simon@koala.ie>
+Subject: Re: [linux-dvb] SDMC DM1105N not being detected
+Date: Mon, 15 Jun 2009 03:24:47 +0300
+Cc: "Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org
+References: <e6ac15e50904022156u40221c3fib15d1b4cdf36461@mail.gmail.com> <200906121205.08345.liplianin@me.by> <4A357E65.3060404@koala.ie>
+In-Reply-To: <4A357E65.3060404@koala.ie>
 MIME-Version: 1.0
-In-Reply-To: <c68f135e0906130530g68b42491sf453ca7c846b8ab8@mail.gmail.com>
-References: <c68f135e0906130502l42476a1ctd4cd7710d461199e@mail.gmail.com>
-	 <c68f135e0906130530g68b42491sf453ca7c846b8ab8@mail.gmail.com>
-Date: Sat, 13 Jun 2009 09:42:13 -0400
-Message-ID: <829197380906130642q19923107s886fa49c918d624e@mail.gmail.com>
-Subject: Re: Em28xx Log as requested
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: andrea.merello@gmail.com
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="koi8-r"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906150324.47856.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jun 13, 2009 at 8:30 AM, Andrea Merello<andrea.merello@gmail.com> wrote:
-> I got it work only one time, and I cannot reproduce it anymore. I
-> loaded forcing card=7
+On 15 June 2009 01:49:09 Simon Kenyon wrote:
+> Igor M. Liplianin wrote:
+> > On 6 June 2009 23:37:47 Simon Kenyon wrote:
+> >> Igor M. Liplianin wrote:
+> >>> On 5 June 2009 21:41:46 Simon Kenyon wrote:
+> >>>> Simon Kenyon wrote:
+> >>>>> Simon Kenyon wrote:
+> >>>>>> the picture seems to be breaking up badly
+> >>>>>> will revert to my version and see if that fixes it
+> >>>>>
+> >>>>> [sorry for the delay. i was away on business]
+> >>>>>
+> >>>>> i've checked and your original code, modified to compile and
+> >>>>> including my changes to control the LNB works very well; the patch
+> >>>>> you posted does not. i have swapped between the two and rebooted
+> >>>>> several times to make sure.
+> >>>>>
+> >>>>> i will do a diff and see what the differences are
+> >>>>>
+> >>>>> regards
+> >>>>> --
+> >>>>> simon
+> >>>>
+> >>>> the main changes seem to be a reworking of the interrupt handling and
+> >>>> some i2c changes
+> >>>> --
+> >>>> simon
+> >>>
+> >>> How fast is your system?
+> >>
+> >> reasonably fast
+> >> it is a dual core AMD64 X2 running at 3.1GHz
+> >
+> > Main change is to move demuxing from interrupt to work handler.
+> > So I prepaired another patch, with separate work queue.
+> > May be you find some time to test.
+> >
+> > I wonder CPU usage and interrupts count(cat /proc/interrupts) while
+> > viewing DVB. I guess your card generates a lot of unnecessary(unknown ?)
+> > irq's.
+> >
+> > Another idea is to increase dma buffer.
 >
-> When worked it could find the philips video decoder IC. Other times,
-> when it does not work, it does not claim to find that IC (see previous
-> mail with log)
+> i've tested that now
+> sorry for the delay - at a family wedding
 >
-> Maybe you are interested in the log..
-> It worked by setting input 1 (the second starting by 0) as video composite.
-> I suppose input 0 is the svideo
+> anyway, that seems to work fine. will st some more, but the first
+> results (with kaffeine) seem good.
 >
-> Andrea
+> i did a complete scan and then tried about 20 different channels. they
+> all seemed to work fine.
+>
+> thanks
+> --
+> simon
+Good news.
+Thank you for testing.
 
-Hello Andrea,
 
-This board shouldn't be too hard to make work.  Could you please do
-the following:
-
-In the case where the device failed with card=7, send the dmesg output
-(it should be slightly different).
-
-Are you using rmmod/modprobe to test, or are you physically
-unplugging/replugging the device?
-
-Also, can you provide a link to a digital photo of the device, so we
-can confirm what inputs/outputs the device has?
-
-Cheers,
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Igor
