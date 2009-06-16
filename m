@@ -1,71 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f210.google.com ([209.85.219.210]:34677 "EHLO
-	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755005AbZFZTrx convert rfc822-to-8bit (ORCPT
+Received: from smtp1.infomaniak.ch ([84.16.68.89]:42386 "EHLO
+	smtp1.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750902AbZFPHek (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2009 15:47:53 -0400
-Received: by ewy6 with SMTP id 6so3708790ewy.37
-        for <linux-media@vger.kernel.org>; Fri, 26 Jun 2009 12:47:55 -0700 (PDT)
+	Tue, 16 Jun 2009 03:34:40 -0400
+Received: from IO.local (4-167.105-92.cust.bluewin.ch [92.105.167.4])
+	(authenticated bits=0)
+	by smtp1.infomaniak.ch (8.14.2/8.14.2) with ESMTP id n5G7Ybxa027909
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 16 Jun 2009 09:34:41 +0200
+Message-ID: <4A374B0D.4030303@deckpoint.ch>
+Date: Tue, 16 Jun 2009 09:34:37 +0200
+From: Thomas Kernen <tkernen@deckpoint.ch>
 MIME-Version: 1.0
-In-Reply-To: <829197380906261059g68023af3k712c1e135b40edca@mail.gmail.com>
-References: <36839.62.70.2.252.1245937439.squirrel@webmail.xs4all.nl>
-	 <829197380906251125t56fe49ccqee97eab659be9974@mail.gmail.com>
-	 <200906261950.27065.hverkuil@xs4all.nl>
-	 <829197380906261059g68023af3k712c1e135b40edca@mail.gmail.com>
-Date: Fri, 26 Jun 2009 15:47:54 -0400
-Message-ID: <37219a840906261247u6cc98afayd0a0fd9b4927be96@mail.gmail.com>
-Subject: Re: [PARTIALLY SOLVED] Can't use my Pinnacle PCTV HD Pro stick - what
-	am I doing wrong?
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	George Adams <g_adams27@hotmail.com>,
-	linux-media@vger.kernel.org, video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org
+Subject: [SOLVED] Re: TT-S1500 budget-ci registeration
+References: <4A36B2F1.5060006@deckpoint.ch> <4A36CAD3.4030806@deckpoint.ch>
+In-Reply-To: <4A36CAD3.4030806@deckpoint.ch>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 26, 2009 at 1:59 PM, Devin
-Heitmueller<dheitmueller@kernellabs.com> wrote:
-> On Fri, Jun 26, 2009 at 1:50 PM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
->> On Thursday 25 June 2009 20:25:31 Devin Heitmueller wrote:
->>> Hans,
->>>
->>> I just spoke with mkrufky, and he confirmed the issue does occur with
->>> the HVR-950.  However, the em28xx driver does not do a printk() when
->>> the subdev registration fails (I will submit a patch to fix that).
->>>
->>> Please let me know if you have any further question.
->>>
->>> Thanks for your assistance,
->>>
->>> Devin
->>>
+Thomas Kernen wrote:
+> Thomas Kernen wrote:
 >>
->> Fixed in my http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-misc tree.
+>> Hello to all,
 >>
->> A pull request for this has already been posted, so it should be merged soon
->> I hope.
+>> I'm currently testing a TT-S1500 budget card with the TT budget CI 
+>> adapter with vl4 tree and kernel 2.6.28.
 >>
->> It was a trivial change: originally the new i2c API would be used for kernels
->> 2.6.22 and up, until it was discovered that there was a serious bug in the i2c
->> core that wasn't fixed until 2.6.26. So I changed it to kernel 2.6.26.
+>> When I modprobe budget_ci, the CI adapter seems to be detected but not 
+>> registered in /dev/dvb/adapter3/ca0 as I would have expected it to be.
 >>
->> Unfortunately, the em28xx driver was still using 2.6.22 as the cut-off point,
->> preventing i2c drivers from being initialized. So em28xx was broken for
->> kernels 2.6.22-2.6.25.
->
-> Ok, I will submit a comparable fix for au0828.  I guess maybe it makes
-> sense also to audit all the bridges where we set the .class field to
-> ensure they all are for 2.6.26.
+>> Instead I see the following output:
+>>
+>> [  148.664846] input: Budget-CI dvb ir receiver saa7146 (0) as 
+>> /devices/pci0000:00/0000:00:1e.0/0000:11:09.0/input/input5
+>>
+>> Any suggestions/ideas what the cause may be and how I can attempt to 
+>> solve this?
+>>
+>> Thanks
+>> Thomas
+>> -- 
+> 
+> And I realised I cut and pasted the wrong line: I was expecting to see 
+> "budget_ci: CI interface initialised" after the other line but nothing 
+> of the like did appear. Nor any line indicating an error.
+> 
+> As one can see from the lspci the drivers claim to be in use:
+> 
+> 11:09.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+>     Subsystem: Technotrend Systemtechnik GmbH Device 1017
+>     Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr+ 
+> Stepping- SERR- FastB2B- DisINTx-
+>     Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- 
+> <TAbort- <MAbort- >SERR- <PERR- INTx-
+>     Latency: 123 (3750ns min, 9500ns max)
+>     Interrupt: pin A routed to IRQ 23
+>     Region 0: Memory at d0220000 (32-bit, non-prefetchable) [size=512]
+>     Kernel driver in use: budget_ci dvb
+>     Kernel modules: budget-ci
+> 
+> Am I missing a point here? I can't find anything that addresses this in 
+> the LinuxTV wiki or in the archives of the mailing list.
+> 
 
-Thanks Devin and Hans.
+It would appear that I enjoy speaking to myself on this mailer ;-)
 
-I fixed it in the au0828 driver...  Fix and pull request are here:
+Anyway, good news is that the issue had to do with a defective cable 
+that was bridging the Budget CI and the TT S-1500. It is now functional 
+and descrambles the Viaccess streams I needed to test against.
 
-http://www.spinics.net/lists/linux-media/msg07360.html
+Later today I will update the wiki pages with the details of my setup:
 
-Cheers,
+[    8.850659] saa7146: register extension 'budget_ci dvb'.
+[    8.850678] budget_ci dvb 0000:11:08.0: PCI INT A -> GSI 22 (level, 
+low) -> IRQ 22
+[    8.850695] saa7146: found saa7146 @ mem ffffc20001198000 (revision 
+1, irq 22) (0x13c2,0x1017).
+[    8.850698] saa7146 (0): dma buffer size 192512
+[    8.850700] DVB: registering new adapter (TT-Budget/S-1500 PCI)
+[    8.910869] adapter has MAC addr = 00:d0:5c:64:c2:55
+[    8.911046] input: Budget-CI dvb ir receiver saa7146 (0) as 
+/devices/pci0000:00/0000:00:1e.0/0000:11:08.0/input/input4
+[    8.972616] budget_ci: CI interface initialised
+[    9.335816] LNBx2x attached on addr=8DVB: registering adapter 0 
+frontend 0 (ST STV0299 DVB-S)...
+[    9.340535] dvb_ca adapter 0: DVB CAM detected and initialised 
+successfully
 
-Mike
+CAM Application type: 01
+CAM Application manufacturer: 02ca
+CAM Manufacturer code: 3000
+CAM Menu string: PowerCam_HD V2.0.4
+
+
+Hopefully this might be useful to others too.
+
+Thomas
