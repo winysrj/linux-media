@@ -1,90 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3020 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750737AbZFQLTA (ORCPT
+Received: from mail8.sea5.speakeasy.net ([69.17.117.10]:52345 "EHLO
+	mail8.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753287AbZFPSGx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 07:19:00 -0400
-Message-ID: <15768.62.70.2.252.1245237542.squirrel@webmail.xs4all.nl>
-Date: Wed, 17 Jun 2009 13:19:02 +0200 (CEST)
-Subject: Re: [PATCH] adding support for setting bus parameters in sub device
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-Cc: "Magnus Damm" <magnus.damm@gmail.com>,
-	"Muralidharan Karicheri" <m-karicheri2@ti.com>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
-	"Robert Jarzmik" <robert.jarzmik@free.fr>,
-	"Paulius Zaleckas" <paulius.zaleckas@teltonika.lt>,
-	"Darius Augulis" <augulis.darius@gmail.com>,
-	"Mauro Carvalho Chehab" <mchehab@infradead.org>
+	Tue, 16 Jun 2009 14:06:53 -0400
+Date: Tue, 16 Jun 2009 11:06:55 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+cc: ext Hans Verkuil <hverkuil@xs4all.nl>,
+	Eduardo Valentin <edubezval@gmail.com>,
+	ext Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCHv7 2/9] v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX
+ controls
+In-Reply-To: <20090616105234.GB16092@esdhcp037198.research.nokia.com>
+Message-ID: <Pine.LNX.4.58.0906161104260.32713@shell2.speakeasy.net>
+References: <1244827840-886-1-git-send-email-eduardo.valentin@nokia.com>
+ <a0580c510906140350o532a106dm1e2f876ebc60b3d0@mail.gmail.com>
+ <Pine.LNX.4.58.0906140919110.32713@shell2.speakeasy.net>
+ <200906141859.13982.hverkuil@xs4all.nl> <20090616105234.GB16092@esdhcp037198.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-> On Wed, 17 Jun 2009, Hans Verkuil wrote:
+On Tue, 16 Jun 2009, Eduardo Valentin wrote:
+> On Sun, Jun 14, 2009 at 06:59:13PM +0200, ext Hans Verkuil wrote:
+> > On Sunday 14 June 2009 18:23:41 Trent Piepho wrote:
+> > > > > similar V4L2_CID_MPEG_EMPHASIS control and others might well appear in the
+> > > > > future, so I think this name should be more specific to the FM_TX API.
+> > >
+> > > The cx88 driver could get support for setting the fm preemphasis via a
+> > > control.  I added support via a module option, but a control would be
+> > > better.  You're saying it shouldn't use this fm preemphasis control?
+> >
+> > Correct. This set the pre-emphasis when transmitting. For receiving you want
+> > a separate control. Although the enum should be made generic. So FM_TX can be
+> > removed from the enum.
+> >
+> > Why should we have one rx and one tx control for this? Because you can have
+> > both receivers and transmitters in one device and you want independent control
+> > of the two.
 >
->> It is my strong opinion that while autonegotiation is easy to use, it is
->> not a wise choice to make. Filling in a single struct with the bus
->> settings to use for each board-subdev combination (usually there is only
->> one) is simple, straight-forward and unambiguous. And I really don't see
->> why that should take much time at all. And I consider it a very good
->> point
->> that the programmer is forced to think about this for a bit.
->
-> Ok, my opinion is, that we should keep autonegotiation, but if you like,
-> we can print a BIG-FAT-WARNING if both polarities are supported and no
-> platform preference is set.
+> Yes, agreed here. There is the possibility to have receiver and transmitter
+> both in the same device. So, I think it is better to have separated controls.
 
-I'd rather see a message stating which bus settings were chosen. That way
-if something fails in the future you can compare which bus settings were
-chosen in the past with the new bus settings and see if something changed
-there.
-
-> I think, we've heard all opinions, unless someone would like to add
-> something? Would it be fair to ask Mauro to make a decision? Or we can
-> just count votes (which I would obviously prefer),
-
-Obviously :-) Since the only non-soc driver that needs this right now is
-tvp514x I'm pretty sure you'll get the most votes :-)
-
-But this is something that should be decided on technical merits, and not
-on what is easier for converting soc-camera. I'm not saying that is your
-only or main reason for wanting to keep autonegotiation, but it no doubt
-plays a role (perfectly understandable, BTW).
-
-Just note that it is exactly my experiences with dm646x and with closely
-working with the hardware team that made me realize the dangers of
-autonegotiation. A year ago I would have agreed with you, but now I feel
-very strongly that it is the wrong approach. Usually I would accept this
-code, even if I thought it was not the optimal solution, in the interest
-of finishing the conversion quickly. But I fear that if this goes in, then
-it will be next to impossible to change in the future.
-
-It simply boils down to this for me: I want to see unambiguous and
-explicit bus settings in the code so the reader can safely assume that the
-hardware was verified and/or certified for those settings. Even if you
-just picked some settings because you didn't have access to the preferred
-bus settings that the hardware manufacturer did his verification or
-certification with, then that will still show which settings you used to
-do your own testing. That's very important information to have in the
-code.
-
-Assuming that any autonegotiation code will always return the same result
-is in my opinion wishful thinking. Look at the problems we have in
-removing autoprobing from i2c: I'm pretty sure someone at the time also
-thought that autoprobing would never cause a problem.
-
-> but I'll accept Mauro's
-> decision too.
-
-That's fine by me as well.
-
-Regards,
-
-        Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
+Is both a receiver and transmitter in the same device different than having
+two receivers or two transmitters?  In which case, since controls are not
+assigned to a specific input, how does one handle that?
