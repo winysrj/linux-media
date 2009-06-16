@@ -1,96 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:44614 "EHLO arroyo.ext.ti.com"
+Received: from mx2.redhat.com ([66.187.237.31]:58574 "EHLO mx2.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753890AbZFAS6q convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2009 14:58:46 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"Paulraj, Sandeep" <s-paulraj@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"Grosen, Mark" <mgrosen@ti.com>
-Date: Mon, 1 Jun 2009 13:58:43 -0500
-Subject: RE: New Driver for DaVinci DM355/DM365/DM6446
-Message-ID: <A69FA2915331DC488A831521EAE36FE401354ED000@dlee06.ent.ti.com>
-References: <C9D59C82B94F474B872F2092A87F261481797D4B@dlee07.ent.ti.com>
- <A24693684029E5489D1D202277BE8944405CFFE6@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE8944405CFFE6@dlee02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	id S1754973AbZFPPvp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Jun 2009 11:51:45 -0400
+Date: Tue, 16 Jun 2009 12:51:34 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: "Figo.zhang" <figo1802@gmail.com>
+Cc: linux-media@vger.kernel.org, kraxel@bytesex.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: [PATCH V2] poll method lose race condition
+Message-ID: <20090616125134.6de8a286@pedra.chehab.org>
+In-Reply-To: <1243821904.3499.5.camel@myhost>
+References: <1243821904.3499.5.camel@myhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sergio,
+Em Mon, 01 Jun 2009 10:05:04 +0800
+"Figo.zhang" <figo1802@gmail.com> escreveu:
 
-Is it part of the patches Vaibhav & others from TI are submitting to open source ? I know that there is an ongoing effort at TI India to submit the resizer driver to open source for OMAP3? As per the email exchanges I had with Vaibhav (TI India) on this, it is part of the ISP module. We plan to submit the patches to open source for H3A and was trying to see which is the right way to do it. We will investigate the tree you mentioned below and let you know if we have additional questions. The plan is to align with OMAP3 for the implementation.
+>  bttv-driver.c,cx23885-video.c,cx88-video.c: poll method lose race condition for capture video.
+> 
+>  In v2, use the clear logic.Thanks to Trent Piepho's help.
+> 
+> Signed-off-by: Figo.zhang <figo1802@gmail.com>
+> ---
+>  drivers/media/video/bt8xx/bttv-driver.c     |   20 ++++++++++++--------
+>  drivers/media/video/cx23885/cx23885-video.c |   15 +++++++++++----
+>  drivers/media/video/cx88/cx88-video.c       |   15 +++++++++++----
+>  3 files changed, 34 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
+> index 23b7499..8d20528 100644
+> --- a/drivers/media/video/bt8xx/bttv-driver.c
+> +++ b/drivers/media/video/bt8xx/bttv-driver.c
+> @@ -3152,6 +3152,7 @@ static unsigned int bttv_poll(struct file *file, poll_table *wait)
+>  	struct bttv_fh *fh = file->private_data;
+>  	struct bttv_buffer *buf;
+>  	enum v4l2_field field;
+> +	unsigned int rc = POLLERR;
+>  
+>  	if (V4L2_BUF_TYPE_VBI_CAPTURE == fh->type) {
+>  		if (!check_alloc_btres(fh->btv,fh,RESOURCE_VBI))
+> @@ -3160,9 +3161,10 @@ static unsigned int bttv_poll(struct file *file, poll_table *wait)
+>  	}
+>  
+>  	if (check_btres(fh,RESOURCE_VIDEO_STREAM)) {
+> +		mutex_lock(&fh->cap.vb_lock);
+>  		/* streaming capture */
+>  		if (list_empty(&fh->cap.stream))
+> -			return POLLERR;
+> +			return done;
 
-regards,
+Here, you're keeping the mutex locked. Maybe you wanted to do a "goto done" ?
 
-Murali Karicheri
-email: m-karicheri2@ti.com
+>  		buf = list_entry(fh->cap.stream.next,struct bttv_buffer,vb.stream);
+>  	} else {
+>  		/* read() capture */
+> @@ -3170,16 +3172,16 @@ static unsigned int bttv_poll(struct file *file, poll_table *wait)
+>  		if (NULL == fh->cap.read_buf) {
+>  			/* need to capture a new frame */
+>  			if (locked_btres(fh->btv,RESOURCE_VIDEO_STREAM))
+> -				goto err;
+> +				goto done;
+>  			fh->cap.read_buf = videobuf_sg_alloc(fh->cap.msize);
+>  			if (NULL == fh->cap.read_buf)
+> -				goto err;
+> +				goto done;
+>  			fh->cap.read_buf->memory = V4L2_MEMORY_USERPTR;
+>  			field = videobuf_next_field(&fh->cap);
+>  			if (0 != fh->cap.ops->buf_prepare(&fh->cap,fh->cap.read_buf,field)) {
+>  				kfree (fh->cap.read_buf);
+>  				fh->cap.read_buf = NULL;
+> -				goto err;
+> +				goto done;
+>  			}
+>  			fh->cap.ops->buf_queue(&fh->cap,fh->cap.read_buf);
+>  			fh->cap.read_off = 0;
+> @@ -3191,11 +3193,13 @@ static unsigned int bttv_poll(struct file *file, poll_table *wait)
+>  	poll_wait(file, &buf->vb.done, wait);
+>  	if (buf->vb.state == VIDEOBUF_DONE ||
+>  	    buf->vb.state == VIDEOBUF_ERROR)
+> -		return POLLIN|POLLRDNORM;
+> -	return 0;
+> -err:
+> +		rc =  POLLIN|POLLRDNORM;
+> +	else 
+> +		rc = 0;
+> +	
+> +done:
+>  	mutex_unlock(&fh->cap.vb_lock);
+> -	return POLLERR;
+> +	return rc;
+>  }
+>  
+>  static int bttv_open(struct file *file)
+> diff --git a/drivers/media/video/cx23885/cx23885-video.c b/drivers/media/video/cx23885/cx23885-video.c
+> index 68068c6..f542493 100644
+> --- a/drivers/media/video/cx23885/cx23885-video.c
+> +++ b/drivers/media/video/cx23885/cx23885-video.c
+> @@ -796,6 +796,7 @@ static unsigned int video_poll(struct file *file,
+>  {
+>  	struct cx23885_fh *fh = file->private_data;
+>  	struct cx23885_buffer *buf;
+> +	unsigned int rc = POLLERR;
+>  
+>  	if (V4L2_BUF_TYPE_VBI_CAPTURE == fh->type) {
+>  		if (!res_get(fh->dev, fh, RESOURCE_VBI))
+> @@ -803,23 +804,29 @@ static unsigned int video_poll(struct file *file,
+>  		return videobuf_poll_stream(file, &fh->vbiq, wait);
+>  	}
+>  
+> +	mutex_lock(&fh->vidq.vb_lock);
+>  	if (res_check(fh, RESOURCE_VIDEO)) {
+>  		/* streaming capture */
+>  		if (list_empty(&fh->vidq.stream))
+> -			return POLLERR;
+> +			goto done;
+>  		buf = list_entry(fh->vidq.stream.next,
+>  			struct cx23885_buffer, vb.stream);
+>  	} else {
+>  		/* read() capture */
+>  		buf = (struct cx23885_buffer *)fh->vidq.read_buf;
+>  		if (NULL == buf)
+> -			return POLLERR;
+> +			goto done;
+>  	}
+>  	poll_wait(file, &buf->vb.done, wait);
+>  	if (buf->vb.state == VIDEOBUF_DONE ||
+>  	    buf->vb.state == VIDEOBUF_ERROR)
+> -		return POLLIN|POLLRDNORM;
+> -	return 0;
+> +		rc =  POLLIN|POLLRDNORM;
+> +	else
+> +		rc = 0;
+> +
+> +done:
+> +	mutex_unlock(&fh->vidq.vb_lock);
+> +	return rc;
+>  }
+>  
+>  static int video_release(struct file *file)
+> diff --git a/drivers/media/video/cx88/cx88-video.c b/drivers/media/video/cx88/cx88-video.c
+> index b993d42..b1ca54b 100644
+> --- a/drivers/media/video/cx88/cx88-video.c
+> +++ b/drivers/media/video/cx88/cx88-video.c
+> @@ -869,6 +869,7 @@ video_poll(struct file *file, struct poll_table_struct *wait)
+>  {
+>  	struct cx8800_fh *fh = file->private_data;
+>  	struct cx88_buffer *buf;
+> +	unsigned int rc = POLLERR;
+>  
+>  	if (V4L2_BUF_TYPE_VBI_CAPTURE == fh->type) {
+>  		if (!res_get(fh->dev,fh,RESOURCE_VBI))
+> @@ -876,22 +877,28 @@ video_poll(struct file *file, struct poll_table_struct *wait)
+>  		return videobuf_poll_stream(file, &fh->vbiq, wait);
+>  	}
+>  
+> +	mutex_lock(&fh->vidq.vb_lock);
+>  	if (res_check(fh,RESOURCE_VIDEO)) {
+>  		/* streaming capture */
+>  		if (list_empty(&fh->vidq.stream))
+> -			return POLLERR;
+> +			goto done;
+>  		buf = list_entry(fh->vidq.stream.next,struct cx88_buffer,vb.stream);
+>  	} else {
+>  		/* read() capture */
+>  		buf = (struct cx88_buffer*)fh->vidq.read_buf;
+>  		if (NULL == buf)
+> -			return POLLERR;
+> +			goto done;
+>  	}
+>  	poll_wait(file, &buf->vb.done, wait);
+>  	if (buf->vb.state == VIDEOBUF_DONE ||
+>  	    buf->vb.state == VIDEOBUF_ERROR)
+> -		return POLLIN|POLLRDNORM;
+> -	return 0;
+> +		rc =  POLLIN|POLLRDNORM;
+> +	else
+> +		rc = 0;
+> +
+> +done:
+> +	mutex_unlock(&fh->vidq.vb_lock);
+> +	return rc;
+>  }
+>  
+>  static int video_release(struct file *file)
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
->-----Original Message-----
->From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio Alberto
->Sent: Monday, June 01, 2009 2:39 PM
->To: Paulraj, Sandeep; linux-media@vger.kernel.org
->Cc: linux-kernel@vger.kernel.org; Grosen, Mark
->Subject: RE: New Driver for DaVinci DM355/DM365/DM6446
->
->> From: linux-media-owner@vger.kernel.org [linux-media-
->owner@vger.kernel.org] On Behalf Of Paulraj, Sandeep
->> Sent: Monday, June 01, 2009 5:56 PM
->> To: linux-media@vger.kernel.org
->> Cc: linux-kernel@vger.kernel.org; Grosen, Mark
->> Subject: New Driver for DaVinci DM355/DM365/DM6446
->>
->> Hello,
->>
->> WE have a module(H3A) on Davinci DM6446,DM355 and DM365.
->>
->> Customers require a way to collect the data required to perform the Auto
->Exposure (AE), Auto Focus(AF), and Auto White balance (AWB) in hardware as
->opposed to software. > This is primarily for performance reasons as there
->is not enough software processing MIPS (to do 3A statistics) available in
->> an imaging/video system.
->>
->> Including this block in hardware reduces the load on the processor and
->bandwidth to the memory as the data is collected on the fly from the imager.
->>
->> This modules collects statistics and we currently implement it as a
->character driver.
->
->This also exists in OMAP3 chips, and is part of the ISP module.
->
->I maintain, along with Sakari Ailus, a V4L2 camera driver, which is
->currently just shared through a gitorious repository:
->
->http://gitorious.org/omap3camera
->
->The way we offer an interface for the user to be able to request this
->statistics is with the usage of private IOCTLs declared inside the same
->V4L2 capturing device driver.
->
->So, that way we have a V4L2 driver which has a private call, instead of
->having it separately from the capture driver.
->
->Regards,
->Sergio
->>
->> Which mailing list would be the most appropriate mailing list to submit
->patches for review?
->>
->> Thanks,
->> Sandeep
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+-- 
+
+Cheers,
+Mauro
