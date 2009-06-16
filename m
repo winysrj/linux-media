@@ -1,161 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39132 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753108AbZFKRA6 (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:37764 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754938AbZFPTV6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2009 13:00:58 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5BH0tru022645
-	for <linux-media@vger.kernel.org>; Thu, 11 Jun 2009 12:01:00 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH 2/10 - v2] ccdc hw device header file for vpfe capture
-Date: Thu, 11 Jun 2009 13:00:41 -0400
-Message-Id: <1244739649-27466-3-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1244739649-27466-2-git-send-email-m-karicheri2@ti.com>
-References: <1244739649-27466-1-git-send-email-m-karicheri2@ti.com>
- <1244739649-27466-2-git-send-email-m-karicheri2@ti.com>
+	Tue, 16 Jun 2009 15:21:58 -0400
+Date: Tue, 16 Jun 2009 16:21:56 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: David Wong <davidtlwong@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/4] cx23885: add card Magic-Pro ProHDTV Extreme 2
+Message-ID: <20090616162156.1c4a5f93@pedra.chehab.org>
+In-Reply-To: <15ed362e0906110539ud3349f6x351beabb3e1ed281@mail.gmail.com>
+References: <15ed362e0906110539ud3349f6x351beabb3e1ed281@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
+Em Thu, 11 Jun 2009 20:39:18 +0800
+David Wong <davidtlwong@gmail.com> escreveu:
 
-CCDC hw device header file
+> cx23885: add card Magic-Pro  ProHDTV Extreme 2 PCI-E.
+> 
+> Signed-off-by: David T.L. Wong <davidtlwong <at> gmail.com>
 
-Adds ccdc hw device header for vpfe capture driver
+Since changes were requested on the previous patch, it makes no sense to apply
+this one. Please, re-submit this one after fixing the pointed issues on the
+previous one.
 
-Incorporated review comments against previous patch
 
-Reviewed By "Hans Verkuil".
-Reviewed By "Laurent Pinchart".
 
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
-Applies to v4l-dvb repository
-
- drivers/media/video/davinci/ccdc_hw_device.h |  110 ++++++++++++++++++++++++++
- 1 files changed, 110 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/davinci/ccdc_hw_device.h
-
-diff --git a/drivers/media/video/davinci/ccdc_hw_device.h b/drivers/media/video/davinci/ccdc_hw_device.h
-new file mode 100644
-index 0000000..86b9b35
---- /dev/null
-+++ b/drivers/media/video/davinci/ccdc_hw_device.h
-@@ -0,0 +1,110 @@
-+/*
-+ * Copyright (C) 2008-2009 Texas Instruments Inc
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ * ccdc device API
-+ */
-+#ifndef _CCDC_HW_DEVICE_H
-+#define _CCDC_HW_DEVICE_H
-+
-+#ifdef __KERNEL__
-+#include <linux/videodev2.h>
-+#include <linux/device.h>
-+#include <media/davinci/vpfe_types.h>
-+#include <media/davinci/ccdc_types.h>
-+
-+/*
-+ * ccdc hw operations
-+ */
-+struct ccdc_hw_ops {
-+	/* Pointer to initialize function to initialize ccdc device */
-+	int (*open) (struct device *dev);
-+	/* Pointer to deinitialize function */
-+	int (*close) (struct device *dev);
-+	/* set ccdc base address */
-+	void (*set_ccdc_base)(void *base, int size);
-+	/* Pointer to function to enable or disable ccdc */
-+	void (*enable) (int en);
-+	/* reset sbl. only for 6446 */
-+	void (*reset) (void);
-+	/* enable output to sdram */
-+	void (*enable_out_to_sdram) (int en);
-+	/* Pointer to function to set hw parameters */
-+	int (*set_hw_if_params) (struct vpfe_hw_if_param *param);
-+	/* get interface parameters */
-+	int (*get_hw_if_params) (struct vpfe_hw_if_param *param);
-+	/*
-+	 * Pointer to function to set parameters. Used
-+	 * for implementing VPFE_S_CCDC_PARAMS
-+	 */
-+	int (*set_params) (void *params);
-+	/*
-+	 * Pointer to function to get parameter. Used
-+	 * for implementing VPFE_G_CCDC_PARAMS
-+	 */
-+	int (*get_params) (void *params);
-+	/* Pointer to function to configure ccdc */
-+	int (*configure) (void);
-+
-+	/* Pointer to function to set buffer type */
-+	int (*set_buftype) (enum ccdc_buftype buf_type);
-+	/* Pointer to function to get buffer type */
-+	enum ccdc_buftype (*get_buftype) (void);
-+	/* Pointer to function to set frame format */
-+	int (*set_frame_format) (enum ccdc_frmfmt frm_fmt);
-+	/* Pointer to function to get frame format */
-+	enum ccdc_frmfmt (*get_frame_format) (void);
-+	/* enumerate hw pix formats */
-+	int (*enum_pix)(u32 *hw_pix, int i);
-+	/* Pointer to function to set buffer type */
-+	u32 (*get_pixel_format) (void);
-+	/* Pointer to function to get pixel format. */
-+	int (*set_pixel_format) (u32 pixfmt);
-+	/* Pointer to function to set image window */
-+	int (*set_image_window) (struct v4l2_rect *win);
-+	/* Pointer to function to set image window */
-+	void (*get_image_window) (struct v4l2_rect *win);
-+	/* Pointer to function to get line length */
-+	unsigned int (*get_line_length) (void);
-+
-+	/* Query CCDC control IDs */
-+	int (*queryctrl)(struct v4l2_queryctrl *qctrl);
-+	/* Set CCDC control */
-+	int (*set_control)(struct v4l2_control *ctrl);
-+	/* Get CCDC control */
-+	int (*get_control)(struct v4l2_control *ctrl);
-+
-+	/* Pointer to function to set frame buffer address */
-+	void (*setfbaddr) (unsigned long addr);
-+	/* Pointer to function to get field id */
-+	int (*getfid) (void);
-+};
-+
-+struct ccdc_hw_device {
-+	/* ccdc device name */
-+	char name[32];
-+	/* module owner */
-+	struct module *owner;
-+	/* hw ops */
-+	struct ccdc_hw_ops hw_ops;
-+};
-+
-+/* Used by CCDC module to register & unregister with vpfe capture driver */
-+int vpfe_register_ccdc_device(struct ccdc_hw_device *dev);
-+void vpfe_unregister_ccdc_device(struct ccdc_hw_device *dev);
-+
-+#endif
-+#endif
--- 
-1.6.0.4
-
+Cheers,
+Mauro
