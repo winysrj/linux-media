@@ -1,217 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:33114 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761352AbZFROEE (ORCPT
+Received: from smtp.nokia.com ([192.100.122.233]:21738 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751113AbZFPK62 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 10:04:04 -0400
+	Tue, 16 Jun 2009 06:58:28 -0400
+Date: Tue, 16 Jun 2009 13:52:34 +0300
 From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+To: ext Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Trent Piepho <xyzzy@speakeasy.org>,
+	Eduardo Valentin <edubezval@gmail.com>,
+	"Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
+	ext Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
 	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv8  9/9] FMTx: si4713: Add document file
-Date: Thu, 18 Jun 2009 16:55:51 +0300
-Message-Id: <1245333351-28157-10-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1245333351-28157-9-git-send-email-eduardo.valentin@nokia.com>
-References: <1245333351-28157-1-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-2-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-3-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-4-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-5-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-6-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-7-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-8-git-send-email-eduardo.valentin@nokia.com>
- <1245333351-28157-9-git-send-email-eduardo.valentin@nokia.com>
+	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCHv7 2/9] v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX
+	controls
+Message-ID: <20090616105234.GB16092@esdhcp037198.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+References: <1244827840-886-1-git-send-email-eduardo.valentin@nokia.com> <a0580c510906140350o532a106dm1e2f876ebc60b3d0@mail.gmail.com> <Pine.LNX.4.58.0906140919110.32713@shell2.speakeasy.net> <200906141859.13982.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <200906141859.13982.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a document file for si4713 device driver.
-It describes the driver interfaces and organization.
+On Sun, Jun 14, 2009 at 06:59:13PM +0200, ext Hans Verkuil wrote:
+> On Sunday 14 June 2009 18:23:41 Trent Piepho wrote:
+> > On Sun, 14 Jun 2009, Eduardo Valentin wrote:
+> > > >> +/* FM Modulator class control IDs */
+> > > >> +#define V4L2_CID_FM_TX_CLASS_BASE      (V4L2_CTRL_CLASS_FM_TX | 0x900)
+> > > >> +#define V4L2_CID_FM_TX_CLASS                 (V4L2_CTRL_CLASS_FM_TX | 1)
+> > > >> +
+> > > >> +#define V4L2_CID_RDS_ENABLED                 (V4L2_CID_FM_TX_CLASS_BASE + 1)
+> > > >> +#define V4L2_CID_RDS_PI                              (V4L2_CID_FM_TX_CLASS_BASE + 2)
+> > > >> +#define V4L2_CID_RDS_PTY                     (V4L2_CID_FM_TX_CLASS_BASE + 3)
+> > > >> +#define V4L2_CID_RDS_PS_NAME                 (V4L2_CID_FM_TX_CLASS_BASE + 4)
+> > > >> +#define V4L2_CID_RDS_RADIO_TEXT                      (V4L2_CID_FM_TX_CLASS_BASE + 5)
+> > > >
+> > > > I think these RDS controls should be renamed to V4L2_CID_RDS_TX_. This makes
+> > > > it clear that these controls relate to the RDS transmitter instead of a
+> > > > receiver. I would not be surprised to see similar controls appear for an RDS
+> > > > receiver in the future.
+> > 
+> > So there should there be different controls to set the same thing, one set
+> > for tx and another for rx?
+> 
+> Sure. Say some RDS decoder stores the PI in a register. I can imagine that
+> we add a V4L2_CID_RDS_RX_PI control for that. Whereas a V4L2_CID_RDS_TX_PI
+> control will return the PI sent out by the encoder.
+> 
+> Currently no such controls exist (or are needed) for an RDS decoder, but I
+> wouldn't be surprised at all if we need them at some point in the future.
+> 
+> > 
+> > > >> +#define V4L2_CID_PREEMPHASIS                 (V4L2_CID_FM_TX_CLASS_BASE + 17)
+> > > >> +enum v4l2_fm_tx_preemphasis {
+> > > >> +     V4L2_FM_TX_PREEMPHASIS_DISABLED         = 0,
+> > > >> +     V4L2_FM_TX_PREEMPHASIS_50_uS            = 1,
+> > > >> +     V4L2_FM_TX_PREEMPHASIS_75_uS            = 2,
+> > > >> +};
+> > > >
+> > > > I suggest renaming this to V4L2_CID_FM_TX_PREEMPHASIS. There is already a
+> > > > similar V4L2_CID_MPEG_EMPHASIS control and others might well appear in the
+> > > > future, so I think this name should be more specific to the FM_TX API.
+> > 
+> > The cx88 driver could get support for setting the fm preemphasis via a
+> > control.  I added support via a module option, but a control would be
+> > better.  You're saying it shouldn't use this fm preemphasis control?
+> 
+> Correct. This set the pre-emphasis when transmitting. For receiving you want
+> a separate control. Although the enum should be made generic. So FM_TX can be
+> removed from the enum.
+> 
+> Why should we have one rx and one tx control for this? Because you can have
+> both receivers and transmitters in one device and you want independent control
+> of the two.
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- linux/Documentation/video4linux/si4713.txt |  169 ++++++++++++++++++++++++++++
- 1 files changed, 169 insertions(+), 0 deletions(-)
- create mode 100644 linux/Documentation/video4linux/si4713.txt
+Yes, agreed here. There is the possibility to have receiver and transmitter
+both in the same device. So, I think it is better to have separated controls.
 
-diff --git a/linux/Documentation/video4linux/si4713.txt b/linux/Documentation/video4linux/si4713.txt
-new file mode 100644
-index 0000000..8944abe
---- /dev/null
-+++ b/linux/Documentation/video4linux/si4713.txt
-@@ -0,0 +1,169 @@
-+Driver for I2C radios for the Silicon Labs Si4713 FM Radio Transmitters
-+
-+Copyright (c) 2009 Nokia Corporation
-+Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
-+
-+
-+Information about the Device
-+============================
-+This chip is a Silicon Labs product. It is a I2C device, currently on 0Ã—63 address.
-+Basically, it has transmission and signal noise level measurement features.
-+
-+The Si4713 integrates transmit functions for FM broadcast stereo transmission.
-+The chip also allows integrated receive power scanning to identify low signal
-+power FM channels.
-+
-+The chip is programmed using commands and responses. There are also several
-+properties which can change the behavior of this chip.
-+
-+Users must comply with local regulations on radio frequency (RF) transmission.
-+
-+Device driver description
-+=========================
-+There are two modules to handle this device. One is a I2C device driver
-+and the other is a platform driver.
-+
-+The I2C device driver exports a v4l2-subdev interface to the kernel.
-+All properties can also be accessed by v4l2 extended controls interface, by
-+using the v4l2-subdev calls (g_ext_ctrls, s_ext_ctrls).
-+
-+The platform device driver exports a v4l2 radio device interface to user land.
-+So, it uses the I2C device driver as a sub device in order to send the user
-+commands to the actual device. Basically it is a wrapper to the I2C device driver.
-+
-+Applications can use v4l2 radio API to specify frequency of operation, mute state,
-+etc. But mostly of its properties will be present in the extended controls.
-+
-+When the v4l2 mute property is set to 1 (true), the driver will turn the chip off.
-+
-+Properties description
-+======================
-+
-+The properties can be accessed using v4l2 extended controls.
-+Here is an output from v4l2-ctl util:
-+
-+# v4l2-ctl -d /dev/radio0 -l --all
-+Driver Info:
-+        Driver name   : radio-si4713
-+        Card type     : Silicon Labs Si4713 Modulator
-+        Bus info      : 
-+        Driver version: 0
-+        Capabilities  : 0x00080000
-+                Modulator
-+Audio output: 0 (FM Modulator Audio Out)
-+Frequency: 1408000 (88000.000000 MHz)
-+Video Standard = 0x00000000
-+Modulator:
-+        Name                 : FM Modulator
-+        Capabilities         : 62.5 Hz stereo 
-+        Frequency range      : 76.0 MHz - 108.0 MHz
-+        Available subchannels: mono stereo 
-+
-+User Controls
-+
-+                           mute (bool) : default=1 value=0
-+
-+FM Radio Modulator Controls
-+
-+            rds_feature_enabled (bool) : default=1 value=1
-+                 rds_program_id (int)  : min=0 max=65535 step=1 default=0 value=0
-+               rds_program_type (int)  : min=0 max=31 step=1 default=0 value=0
-+                    rds_ps_name (str)  : value='Si4713  ' len=8
-+' len=9          rds_radio_text (str)  : value='Si4713  
-+  audio_limiter_feature_enabled (bool) : default=1 value=1
-+     audio_limiter_release_time (int)  : min=250 max=102390 step=50 default=5010 value=5010 flags=slider
-+        audio_limiter_deviation (int)  : min=0 max=90000 step=10 default=66250 value=66250 flags=slider
-+audio_compression_feature_enabl (bool) : default=1 value=1
-+         audio_compression_gain (int)  : min=0 max=20 step=1 default=15 value=15 flags=slider
-+    audio_compression_threshold (int)  : min=-40 max=0 step=1 default=-40 value=-40 flags=slider
-+  audio_compression_attack_time (int)  : min=0 max=5000 step=500 default=0 value=2000 flags=slider
-+ audio_compression_release_time (int)  : min=100000 max=1000000 step=100000 default=1000000 value=1000000 flags=slider
-+     pilot_tone_feature_enabled (bool) : default=1 value=1
-+           pilot_tone_deviation (int)  : min=0 max=90000 step=10 default=6750 value=6750 flags=slider
-+           pilot_tone_frequency (int)  : min=0 max=19000 step=1 default=19000 value=19000 flags=slider
-+          pre_emphasis_settings (menu) : min=0 max=2 default=1 value=2
-+               tune_power_level (int)  : min=0 max=120 step=1 default=88 value=88 flags=slider
-+         tune_antenna_capacitor (int)  : min=0 max=191 step=1 default=0 value=110 flags=slider
-+
-+Here is a summary of them:
-+
-+* Pilot is an audible tone sent by the device.
-+
-+pilot_frequency - Configures the frequency of the stereo pilot tone.
-+pilot_deviation - Configures pilot tone frequency deviation level.
-+pilot_enabled - Enables or disables the pilot tone feature.
-+
-+* The si4713 device is capable of applying audio compression to the transmitted signal.
-+
-+acomp_enabled - Enables or disables the audio dynamic range control feature.
-+acomp_gain - Sets the gain for audio dynamic range control.
-+acomp_threshold - Sets the threshold level for audio dynamic range control.
-+acomp_attack_time - Sets the attack time for audio dynamic range control.
-+acomp_release_time - Sets the release time for audio dynamic range control.
-+
-+* Limiter setups audio deviation limiter feature. Once a over deviation occurs,
-+it is possible to adjust the front-end gain of the audio input and always
-+prevent over deviation.
-+
-+limiter_enabled - Enables or disables the limiter feature.
-+limiter_deviation - Configures audio frequency deviation level.
-+limiter_release_time - Sets the limiter release time.
-+
-+* Tuning power
-+
-+power_level - Sets the output power level for signal transmission.
-+antenna_capacitor - This selects the value of antenna tuning capacitor manually
-+or automatically if set to zero.
-+
-+* RDS related
-+
-+rds_enabled - Enables or disables the RDS feature.
-+rds_ps_name - Sets the RDS ps name field for transmission.
-+rds_radio_text - Sets the RDS radio text for transmission.
-+rds_pi - Sets the RDS PI field for transmission.
-+rds_pty - Sets the RDS PTY field for transmission.
-+
-+* Region related
-+
-+preemphasis - sets the preemphasis to be applied for transmission.
-+
-+RSSI
-+====
-+
-+This device also has an interface to measure RSSI. To do that, you should
-+ioctl the device node. Here is an code of example:
-+
-+int main (int argc, char *argv[])
-+{
-+        struct si4713_rssi rssi;
-+        int fd = open("/dev/radio0", O_RDWR);
-+        int rval;
-+
-+        if (argc < 2)
-+                return -EINVAL;
-+
-+        if (fd < 0)
-+                return fd;
-+
-+        sscanf(argv[1], "%d", &rssi.frequency);
-+
-+        rval = ioctl(fd, SI4713_IO_MEASURE_RSSI, &rssi);
-+        if (rval < 0)
-+                return rval;
-+
-+        printf("rssi: %d\n", rssi.rssi);
-+
-+        close(fd);
-+}
-+
-+The struct si4713_rssi and SI4713_IO_MEASURE_RSSI are defined under
-+include/media/si4713.h.
-+
-+Testing
-+=======
-+Testing is usually done with v4l2-ctl utility for managing FM tuner cards.
-+The tool can be found in v4l-dvb repository under v4l2-apps/util directory.
-+
-+Example for setting rds ps name:
-+# v4l2-ctl -d /dev/radio0 --set-ctrl=rds_ps_name="Dummy"
-+
+> 
+> It is my believe that the other fm_tx controls are unambiguously transmitter
+> related, so I don't think they need a TX prefix. It doesn't hurt if someone
+> can double check that, though.
+
+hmm.. I see no problem removing the fmtx prefix of the preemphasis
+enum. But, if it is becoming a generic enum, better to check if its
+meaning is the same of existing emphasis enum for mpeg.
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 -- 
-1.6.2.GIT
-
+Eduardo Valentin
