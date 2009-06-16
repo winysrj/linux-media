@@ -1,92 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:55597 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750698AbZFZPXN convert rfc822-to-8bit (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.157]:23725 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756663AbZFPAxz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2009 11:23:13 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Fri, 26 Jun 2009 10:23:07 -0500
-Subject: RE: [PATCH] mt9t031 - migration to sub device frame work
-Message-ID: <A69FA2915331DC488A831521EAE36FE40139F9E115@dlee06.ent.ti.com>
-References: <1245874609-15246-1-git-send-email-m-karicheri2@ti.com>
- <Pine.LNX.4.64.0906251944420.4663@axis700.grange>
- <A69FA2915331DC488A831521EAE36FE40139F9DEC4@dlee06.ent.ti.com>
- <200906260847.19818.hverkuil@xs4all.nl>
- <Pine.LNX.4.64.0906260852290.4449@axis700.grange>
- <A69FA2915331DC488A831521EAE36FE40139F9E0D9@dlee06.ent.ti.com>
- <Pine.LNX.4.64.0906261657170.4449@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0906261657170.4449@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Mon, 15 Jun 2009 20:53:55 -0400
+Received: by fg-out-1718.google.com with SMTP id 16so1228631fgg.17
+        for <linux-media@vger.kernel.org>; Mon, 15 Jun 2009 17:53:57 -0700 (PDT)
+Date: Tue, 16 Jun 2009 10:55:23 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: linux-media@vger.kernel.org, video4linux-list@redhat.com
+Subject: [PATCH] FM1216MK5 FM radio patch
+Message-ID: <20090616105523.0d03862c@glory.loctelecom.ru>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/+Yz3JX0bgCVWi4_sBYGW73v"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi,
+--MP_/+Yz3JX0bgCVWi4_sBYGW73v
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-<snip>
->
->I thought you would be doing the latter part - v4l2-subdev conversion.
->Which is good. But, you wrote:
->
->> This patch migrates mt9t031 driver from SOC Camera interface to
->> sub device interface. This is sent to get a feedback about the
->> changes done since I am not sure if some of the functionality
->> that is removed works okay with SOC Camera bridge driver or
->> not. Following functions are to be discussed and added as needed:-
->
->which I understand like you probably have broken soc-camera functionality
->of this driver, which I cannot accept. Yes, I want to move forward to
->v4l2-subdev, but - we cannot introduce regressions!
->
-That is why the review is done with your help to make sure there are no gaps.
+Hi
 
-<snip>
->> I don't see a point in duplicating the work already done by me.
->
->I don't like duplicating work either, and I don't think we're doing that.
->As I said, what I am doing at the moment is fixing all soc-camera drivers
->for proper cropping / scaling. In principle I welcome your help with the
->v4l2-subdev migration, but currently it conflicts with my above work, and
->it introduces a regression.
->
-I see your point. I think what we could do is to keep this patch in our internal tree until you complete fixing the cropping/scaling issue. I will merge your future patches to this version. When you are ready to do the migration to sub device frame work, we could review this driver again and merge. Could you agree with this plan?
+Next code for implement Philips FM1216MK5.
 
->> So could you
->> please work with me by reviewing this patch and then use this for your
->> work? I will take care of merging any updates to this based on your
->> patches (like the crop one)
->
->Unfortunately, I do not think I'll be able to review your patch today,
->will have to wait until the next week, sorry.
->
-Any way there is no hurry since it will stay in our internal tree for the time being. So please review when you get a chance. I will post a patch based on Han's comment. 
->> >> > >>  {
->> >> > >> -    s32 data = i2c_smbus_read_word_data(client, reg);
->> >> > >> +    s32 data;
->> >> > >> +
->> >> > >> +    data = i2c_smbus_read_word_data(client, reg);
->> >> > >>      return data < 0 ? data : swab16(data);
->> >
->> >Looks like it will take me considerable time to review the patch and NAK
->> >all changes like this one...
->> >
->> I didn't get it. Are you referring to the 3 lines of code above? For
->> this patch this code change is unnecessary, but I have to do this if sd
->> is used as argument to this function as suggested by Hans.
->
->Exactly. It is _not_ needed for this patch. Only if we _do_ accept Hans'
->suggestion to use the subdev pointer all the way down to register-access
->functions, _then_ you might need to modify this code.
->
->Thanks
->Guennadi
->---
->Guennadi Liakhovetski, Ph.D.
->Freelance Open-Source Software Developer
->http://www.open-technology.de/
+1. Implement get_stereo function.
+2. Add correct data byte for FM radio mode.
 
+diff -r bff77ec33116 linux/drivers/media/common/tuners/tuner-simple.c
+--- a/linux/drivers/media/common/tuners/tuner-simple.c	Thu Jun 11 18:44:23 2009 -0300
++++ b/linux/drivers/media/common/tuners/tuner-simple.c	Tue Jun 16 05:27:52 2009 +1000
+@@ -145,6 +145,8 @@
+ 	case TUNER_LG_NTSC_TAPE:
+ 	case TUNER_TCL_MF02GIP_5N:
+ 		return ((status & TUNER_SIGNAL) == TUNER_STEREO_MK3);
++	case TUNER_PHILIPS_FM1216MK5:
++		return status | TUNER_STEREO;
+ 	default:
+ 		return status & TUNER_STEREO;
+ 	}
+@@ -514,6 +516,10 @@
+ 	case TUNER_PHILIPS_FM1256_IH3:
+ 	case TUNER_TCL_MF02GIP_5N:
+ 		buffer[3] = 0x19;
++		break;
++	case TUNER_PHILIPS_FM1216MK5:
++		buffer[2] = 0x88;
++		buffer[3] = 0x09;
+ 		break;
+ 	case TUNER_TNF_5335MF:
+ 		buffer[3] = 0x11;
+
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+
+
+With my best regards, Dmitry.
+--MP_/+Yz3JX0bgCVWi4_sBYGW73v
+Content-Type: text/x-patch; name=behold_mk5_fm.patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=behold_mk5_fm.patch
+
+diff -r bff77ec33116 linux/drivers/media/common/tuners/tuner-simple.c
+--- a/linux/drivers/media/common/tuners/tuner-simple.c	Thu Jun 11 18:44:23 2009 -0300
++++ b/linux/drivers/media/common/tuners/tuner-simple.c	Tue Jun 16 05:27:52 2009 +1000
+@@ -145,6 +145,8 @@
+ 	case TUNER_LG_NTSC_TAPE:
+ 	case TUNER_TCL_MF02GIP_5N:
+ 		return ((status & TUNER_SIGNAL) == TUNER_STEREO_MK3);
++	case TUNER_PHILIPS_FM1216MK5:
++		return status | TUNER_STEREO;
+ 	default:
+ 		return status & TUNER_STEREO;
+ 	}
+@@ -514,6 +516,10 @@
+ 	case TUNER_PHILIPS_FM1256_IH3:
+ 	case TUNER_TCL_MF02GIP_5N:
+ 		buffer[3] = 0x19;
++		break;
++	case TUNER_PHILIPS_FM1216MK5:
++		buffer[2] = 0x88;
++		buffer[3] = 0x09;
+ 		break;
+ 	case TUNER_TNF_5335MF:
+ 		buffer[3] = 0x11;
+
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+
+--MP_/+Yz3JX0bgCVWi4_sBYGW73v--
