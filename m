@@ -1,65 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51112 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756786AbZFJTou (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2009 15:44:50 -0400
-Message-Id: <200906101944.n5AJiJoG031738@imap1.linux-foundation.org>
-Subject: [patch 2/6] dvb-core: fix potential mutex_unlock without mutex_lock in dvb_dvr_read
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	simon@fire.lp0.eu
-From: akpm@linux-foundation.org
-Date: Wed, 10 Jun 2009 12:44:19 -0700
+Received: from mx2.redhat.com ([66.187.237.31]:36899 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754976AbZFPQiz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Jun 2009 12:38:55 -0400
+Date: Tue, 16 Jun 2009 13:38:53 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: "Figo.zhang" <figo1802@gmail.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: [PATCH] videobuf-dma-sg.c : not need memset()
+Message-ID: <20090616133853.64f5086a@pedra.chehab.org>
+In-Reply-To: <1243995225.3459.15.camel@myhost>
+References: <1243995225.3459.15.camel@myhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Simon Arlott <simon@fire.lp0.eu>
+Fingo,
 
-dvb_dvr_read may unlock the dmxdev mutex and return -ENODEV, except this
-function is a file op and will never be called with the mutex held.
+Em Wed, 03 Jun 2009 10:13:44 +0800
+"Figo.zhang" <figo1802@gmail.com> escreveu:
 
-There's existing mutex_lock and mutex_unlock around the actual read but
-it's commented out.  These should probably be uncommented but the read
-blocks and this could block another non-blocking reader on the mutex
-instead.
+> mem have malloc zero memory by kzalloc(), so it have not need to 
+> memset().
+>  
+> Signed-off-by: Figo.zhang <figo1802@gmail.com>
+> --- 
+>  drivers/media/video/videobuf-dma-sg.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
+> index da1790e..add2f34 100644
+> --- a/drivers/media/video/videobuf-dma-sg.c
+> +++ b/drivers/media/video/videobuf-dma-sg.c
+> @@ -420,7 +420,7 @@ static void *__videobuf_alloc(size_t size)
+>  	mem = vb->priv = ((char *)vb)+size;
+>  	mem->magic=MAGIC_SG_MEM;
+>  
+> -	videobuf_dma_init(&mem->dma);
+> +	mem->dma.magic = MAGIC_DMABUF;
 
-This change comments out the extra mutex_unlock.
+Technically, this patch is correct. However, I'm afraid that a future change at
+videobuf_dma_init could cause a breakage. IMO, if we do such change, the better
+would be to split videobuf_dma_init into two functions or to add a comment at
+the code warning that this should match the init done at videobuf_dma_init.
 
-[akpm@linux-foundation.org: cleanups, simplification]
-Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+>  
+>  	dprintk(1,"%s: allocated at %p(%ld+%ld) & %p(%ld)\n",
+>  		__func__,vb,(long)sizeof(*vb),(long)size-sizeof(*vb),
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
- drivers/media/dvb/dvb-core/dmxdev.c |   14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN drivers/media/dvb/dvb-core/dmxdev.c~dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read drivers/media/dvb/dvb-core/dmxdev.c
---- a/drivers/media/dvb/dvb-core/dmxdev.c~dvb-core-fix-potential-mutex_unlock-without-mutex_lock-in-dvb_dvr_read
-+++ a/drivers/media/dvb/dvb-core/dmxdev.c
-@@ -244,19 +244,13 @@ static ssize_t dvb_dvr_read(struct file 
- {
- 	struct dvb_device *dvbdev = file->private_data;
- 	struct dmxdev *dmxdev = dvbdev->priv;
--	int ret;
- 
--	if (dmxdev->exit) {
--		mutex_unlock(&dmxdev->mutex);
-+	if (dmxdev->exit)
- 		return -ENODEV;
--	}
- 
--	//mutex_lock(&dmxdev->mutex);
--	ret = dvb_dmxdev_buffer_read(&dmxdev->dvr_buffer,
--				     file->f_flags & O_NONBLOCK,
--				     buf, count, ppos);
--	//mutex_unlock(&dmxdev->mutex);
--	return ret;
-+	return dvb_dmxdev_buffer_read(&dmxdev->dvr_buffer,
-+				      file->f_flags & O_NONBLOCK,
-+				      buf, count, ppos);
- }
- 
- static int dvb_dvr_set_buffer_size(struct dmxdev *dmxdev,
-_
+-- 
+
+Cheers,
+Mauro
