@@ -1,144 +1,226 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f210.google.com ([209.85.219.210]:40324 "EHLO
-	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751444AbZFVVsz convert rfc822-to-8bit (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:50288 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756634AbZFPKxW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2009 17:48:55 -0400
-Received: by ewy6 with SMTP id 6so5066228ewy.37
-        for <linux-media@vger.kernel.org>; Mon, 22 Jun 2009 14:48:56 -0700 (PDT)
+	Tue, 16 Jun 2009 06:53:22 -0400
+Date: Tue, 16 Jun 2009 13:47:14 +0300
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: ext Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
+	ext Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCHv7 0/9] FM Transmitter (si4713) and another changes
+Message-ID: <20090616104714.GA16092@esdhcp037198.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+References: <1244827840-886-1-git-send-email-eduardo.valentin@nokia.com> <200906141337.20665.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <COL103-W308B321250A646D788B25188390@phx.gbl>
-References: <COL103-W53605D85359D631FC60D0F88380@phx.gbl>
-	 <COL103-W40B198179C2E84587DC71F88380@phx.gbl>
-	 <829197380906211429k7176a93fm49d49851e6d2df1e@mail.gmail.com>
-	 <COL103-W308B321250A646D788B25188390@phx.gbl>
-Date: Mon, 22 Jun 2009 17:48:55 -0400
-Message-ID: <829197380906221448l5739e2f1j19757687ceba31e8@mail.gmail.com>
-Subject: Re: Can't use my Pinnacle PCTV HD Pro stick - what am I doing wrong?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: George Adams <g_adams27@hotmail.com>
-Cc: linux-media@vger.kernel.org, video4linux-list@redhat.com
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200906141337.20665.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 22, 2009 at 5:39 PM, George Adams<g_adams27@hotmail.com> wrote:
->
-> Hello again.  I have some updates now that I've been able to make some further tests.
->
-> 1) My Pinnacle PCTV HD Pro (800e) stick does, in fact, work correctly under Windows.  The scanning detects the one channel we're running over our closed circuit cable (channel 3) and displays it on-screen just fine.  (audio over channel 3 works as well)
->
->
-> 2) Devin, my installation process is "hg clone http://linuxtv.org/hg/v4l-dvb; cd v4l-dvb; make rminstall; make distclean; make; make install"  This appears to install everything v4l-related as modules in the appropriate directories.  For instance:
->
->>  uname -r
-> 2.6.24-24-server
->
->> find /lib/modules/`uname -r` -type f -name em28xx\* -o -name tvp\*
-> /lib/modules/2.6.24-24-server/kernel/drivers/media/video/tvp5150.ko
-> /lib/modules/2.6.24-24-server/kernel/drivers/media/video/em28xx/em28xx.ko
-> /lib/modules/2.6.24-24-server/kernel/drivers/media/video/em28xx/em28xx-dvb.ko
->
->
-> 3) tvtime still hangs when launched.
->
->
-> 4) Running zapping gives the error "VBI Initialization failed.  /dev/vbi0 (Pinnacle PCTV HD Pro) is not a raw vbi device)".  Continuing on and trying to choose the "Preferences" menu option segfaults the program (and this is the Ubuntu-distributed "zapping" package)
->
->
-> 5) Running Paul's suggested "mplayer" command gives the following:
->
->> mplayer -vo xv tv:// -tv driver=v4l2:alsa:immediatemode=0:adevice=hw.1,0:norm=ntsc:chanlist=us-cable:channel=3
->
-> MPlayer 1.0rc2-4.2.4 (C) 2000-2007 MPlayer Team
-> CPU: Intel(R) Core(TM)2 Quad CPU    Q9550  @ 2.83GHz (Family: 6, Model: 23, Stepping: 10)
-> CPUflags:  MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1
-> Compiled with runtime CPU detection.
-> mplayer: could not connect to socket
-> mplayer: No such file or directory
-> Failed to open LIRC support. You will not be able to use your remote control.
->
-> Playing tv://.
-> TV file format detected.
-> Selected driver: v4l2
->  name: Video 4 Linux 2 input
->  author: Martin Olschewski
->  comment: first try, more to come ;-)
-> Selected device: Pinnacle PCTV HD Pro Stick
->  Tuner cap:
->  Tuner rxs:
->  Capabilites:  video capture  tuner  audio  read/write  streaming
->  supported norms: 0 = NTSC; 1 = NTSC-M; 2 = NTSC-M-JP; 3 = NTSC-M-KR; 4 = NTSC-443; 5 = PAL; 6 = PAL-BG; 7 = PAL-H; 8 = PAL-I; 9 = PAL-DK; 10 = PAL-M; 11 = PAL-N; 12 = PAL-Nc; 13 = PAL-60; 14 = SECAM;
->  inputs: 0 = Television; 1 = Composite1; 2 = S-Video;
->  Current input: 0
->  Current format: YUYV
-> v4l2: current audio mode is : MONO
-> v4l2: ioctl set format failed: Invalid argument
-> v4l2: ioctl set format failed: Invalid argument
-> v4l2: ioctl set format failed: Invalid argument
-> Selected channel: 3 (freq: 61.250)
-> Video buffer shorter than 3 times audio frame duration.
-> You will probably experience heavy framedrops.
-> v4l2: ioctl query control failed: Invalid argument
-> v4l2: ioctl query control failed: Invalid argument
-> v4l2: ioctl query control failed: Invalid argument
-> v4l2: ioctl query control failed: Invalid argument
-> xscreensaver_disable: Could not find XScreenSaver window.
-> GNOME screensaver disabled
-> ==========================================================================
-> Opening video decoder: [raw] RAW Uncompressed Video
-> VDec: vo config request - 640 x 480 (preferred colorspace: Packed YUY2)
-> VDec: using Packed YUY2 as output csp (no 0)
-> Movie-Aspect is undefined - no prescaling applied.
-> VO: [xv] 640x480 => 640x480 Packed YUY2
-> Selected video codec: [rawyuy2] vfm: raw (RAW YUY2)
-> ==========================================================================
-> ==========================================================================
-> Forced audio codec: mad
-> Opening audio decoder: [pcm] Uncompressed PCM audio decoder
-> AUDIO: 44100 Hz, 1 ch, s16le, 705.6 kbit/100.00% (ratio: 88200->88200)
-> Selected audio codec: [pcm] afm: pcm (Uncompressed PCM)
-> ==========================================================================
-> AO: [pulse] 44100Hz 1ch s16le (2 bytes per sample)
-> Starting playback...
-> v4l2: select timeout
-> A:   0.5 V:   0.0 A-V:  0.472 ct:  0.000   1/  1 ??% ??% ??,?% 1 0 [[JMA:   0.9 V:   0.0 A-V:  0.940 ct:  0.003   2/  2 ??% ??% ??,?% 2 0 [[JMv4l2: select timeout
-> A:   1.5 V:   0.0 A-V:  1.479 ct:  0.007   3/  3 ??% ??% ??,?% 3 0 [[JMA:   2.0 V:   0.0 A-V:  1.981 ct:  0.010   4/  4 ??% ??% ??,?% 4 0 [[JMv4l2: select timeout
-> A:   2.5 V:   0.0 A-V:  2.485 ct:  0.013   5/  5 ??% ??% ??,?% 5 0 [[JMA:   3.0 V:   0.0 A-V:  2.957 ct:  0.017   6/  6 ??% ??% ??,?% 6 0 [[JMv4l2: select timeout
-> A:   3.5 V:   0.0 A-V:  3.460 ct:  0.020   7/  7 ??% ??% ??,?% 7 0 [[JMA:   4.0 V:   0.0 A-V:  3.956 ct:  0.022   8/  8 ??% ??% ??,?% 8 0 [[JMv4l2: select timeout
-> A:   4.5 V:   0.0 A-V:  4.460 ct:  0.025   9/  9 ??% ??% ??,?% 9 0 [[JMA:   5.0 V:   0.0 A-V:  4.956 ct:  0.027  10/ 10 ??% ??% ??,?% 10 0 [[JMv4l2: select timeout
->
->
-> The Mplayer screen itself remains green the whole time.
->
->
-> So the surprise to me is that the Pinnacle device is not actually broken.  By this point, I had been sure it was a hardware problem.  Now I realize that it's something else.  And so I would again appreciate any suggestions you might have.  Thank you once again!
->
-> (My installation process, just for reference, distilled down:)
->> cd /usr/local/src
->> hg clone http://linuxtv.org/hg/v4l-dvb
->> cd v4l-dvb
->> make rminstall; make distclean; make; make install
->> cd /tmp
->> wget http://www.steventoth.net/linux/xc5000/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip
->> unzip -j HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip Driver85/hcw85bda.sys
->> perl /usr/local/src/v4l-dvb/linux/Documentation/video4linux/extract_xc3028.pl
->> mv xc3028-v27.fw /lib/firmware/xc3028-v27.fw
->
->
->
->
-> _________________________________________________________________
-> Hotmail® has ever-growing storage! Don’t worry about storage limits.
-> http://windowslive.com/Tutorial/Hotmail/Storage?ocid=TXT_TAGLM_WL_HM_Tutorial_Storage_062009
+Hi Hans,
 
-Ok, here's something to try.  I assume you are rebooting the box,
-keeping the stick plugged in.  Please unplug the device, plug it back
-in, and then post the full dmesg output.
+On Sun, Jun 14, 2009 at 01:37:20PM +0200, ext Hans Verkuil wrote:
+> On Friday 12 June 2009 19:30:31 Eduardo Valentin wrote:
+> > Hello all,
+> > 
+> >   I'm resending the FM transmitter driver and the proposed changes in
+> > v4l2 api files in order to cover the fmtx extended controls class.
+> > 
+> >   Difference from version #6 is that now I've added added lots of comments
+> > made by Hans. Here is a list of changes:
+> > - Reduce card type string
+> > - Remove unused ext controls
+> > - Remove s/g_audio and add s/g_audout and enumaudout
+> > - remove g/s_input
+> > - remove s/g_tuner and add s/g_modulator on subdev and platform driver
+> > - reduce function names
+> > - Update documentation
+> > - remove a few unused and empty lines
+> > - remove sysfs interface
+> > - rename dev_to_v4l2 to si4713_to_v4l2 (and vice-versa) macros
+> > - Remove disabled controls
+> > - Add string support
+> > - remove v4l2_i2c_driver_data
+> > - Join si4713.c with si4713-subdev.c
+> > - move platform data to include/media
+> > - update documentation
+> > 
+> > And now this series is based on two of Hans' trees:
+> > http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-subdev2.
+> > http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-str.
+> > 
+> > The first tree has refactoring of v4l2 i2c helper functions. The second
+> > one has string support for extended controls, which is used in this driver.
+> > 
+> >   So, now the series includes changes to add the new v4l2
+> > FMTX extended controls (and its documetation) and si4713 i2c and platform
+> > drivers (and its documentation as well). Besides that, there is also
+> > a patch to add g_modulator to v4l2-subdev and a patch to add support
+> > for fm tx class in v4l2-ctl util.
+> > 
+> >   In the TODO list there are two things:
+> > i. the signal level measurement property is missing.
+> > ii. Re-factor the driver so all that get/set internal functions are removed.
+> > 
+> >   I believe those TODO's can be done later on, if there is still time to get
+> > this driver merged into this window. But of course, this is my opinion,
+> > I will understand also if you ask to do them before merge it.
+> 
+> I think the refactoring should be done first. I don't believe it is that much
+> work and experience shows that it is better to do this right away while you are
+> still motivated :-)
 
-Devin
+hehehe.. Yes, that's what I was expecting :-). No problem. I've started it.
+I will resend the series once I've completed the re-factoring and
+I 've made some testing after that. I hope tomorrow or so.
+
+> 
+> The string control support should not go into 2.6.31. I would like to do that
+> only in the v4l-dvb tree (so it will appear in 2.6.32) since I want to give that
+> a bit more time to mature. I implemented it very quickly and I do not feel
+> comfortable queueing this for 2.6.31.
+> 
+
+Right. Yes, better to test the stuff a bit more.
+
+> In addition it is still unclear if Mauro will merge my v4l-dvb-subdev2 tree for
+> 2.6.31. I hope so, since otherwise it will hamper the development of this and
+> other embedded platforms.
+
+Ok.
+
+> 
+> I also need to add a new V4L2_CAP_MODULATOR (which needs a review as well).
+> 
+> And finally I realized that we need to add some v4l2_modulator capabilities
+> for the RDS encoder similar to the upcoming v4l2_tuner RDS capabilities as
+> is described in this RFC:
+> 
+> http://www.mail-archive.com/linux-media%40vger.kernel.org/msg02498.html
+> 
+> I haven't had time to implement this RFC and I know that is not going to make
+> 2.6.31. It's now almost at the top of my TODO list, so it should go in soon
+> (pending unforeseen circumstances).
+
+Ok. I'll take a look at it.
+
+> 
+> As a result of rereading this RFC I also started to wonder about whether
+> the si4713 supports the MMBS functionality. Do you know anything about that?
+
+No. Not that I know. Can you point some link?
+
+> 
+> Taken all together I think that 2.6.31 is probably not feasible. If it was
+> another two weeks until the merge window, then it would. But the merge window
+> is already open, and there are just too many little TODOs for this driver. And
+> it's also a new API, so we need to be more careful than usual.
+
+Yes. Sure.
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> >   With these series, the driver is now functional through the v4l2 extended
+> > controls changes. Here is an output of v4l2-ctl:
+> >  # v4l2-ctl -d /dev/radio0 -l --all
+> > Driver Info:
+> >         Driver name   : radio-si4713
+> >         Card type     : Silicon Labs Si4713 Modulator
+> >         Bus info      : 
+> >         Driver version: 0
+> >         Capabilities  : 0x00080000
+> >                 Modulator
+> > Audio output: 0 (FM Modulator Audio Out)
+> > Frequency: 1552000 (97000.000000 MHz)
+> > Video Standard = 0x00000000
+> > Modulator:
+> >         Name                 : FM Modulator
+> >         Capabilities         : 62.5 Hz stereo 
+> >         Frequency range      : 76.0 MHz - 108.0 MHz
+> >         Available subchannels: mono stereo 
+> > 
+> > User Controls
+> > 
+> >                            mute (bool) : default=1 value=0
+> > 
+> > FM Radio Modulator Controls
+> > 
+> >             rds_feature_enabled (bool) : default=1 value=1
+> >                  rds_program_id (int)  : min=0 max=65535 step=1 default=0 value=0
+> >                rds_program_type (int)  : min=0 max=31 step=1 default=0 value=0
+> >                     rds_ps_name (str)  : value='Si4713  ' len=8
+> > ' len=9          rds_radio_text (str)  : value='Si4713  
+> >   audio_limiter_feature_enabled (bool) : default=1 value=1
+> >      audio_limiter_release_time (int)  : min=250 max=102390 step=50 default=5010 value=5010 flags=slider
+> >         audio_limiter_deviation (int)  : min=0 max=90000 step=10 default=66250 value=66250 flags=slider
+> > audio_compression_feature_enabl (bool) : default=1 value=1
+> >          audio_compression_gain (int)  : min=0 max=20 step=1 default=15 value=15 flags=slider
+> >     audio_compression_threshold (int)  : min=-40 max=0 step=1 default=-40 value=-40 flags=slider
+> >   audio_compression_attack_time (int)  : min=0 max=5000 step=500 default=0 value=2000 flags=slider
+> >  audio_compression_release_time (int)  : min=100000 max=1000000 step=100000 default=1000000 value=1000000 flags=slider
+> >      pilot_tone_feature_enabled (bool) : default=1 value=1
+> >            pilot_tone_deviation (int)  : min=0 max=90000 step=10 default=6750 value=6750 flags=slider
+> >            pilot_tone_frequency (int)  : min=0 max=19000 step=1 default=19000 value=19000 flags=slider
+> >           pre_emphasis_settings (menu) : min=0 max=2 default=1 value=1
+> >                tune_power_level (int)  : min=0 max=120 step=1 default=88 value=120 flags=slider
+> >          tune_antenna_capacitor (int)  : min=0 max=191 step=1 default=0 value=68 flags=slider
+> > 
+> > 
+> >   Again, comments are welcome.
+> > 
+> > BR,
+> > 
+> > Eduardo Valentin (9):
+> >   v4l2-subdev.h: Add g_modulator callbacks to subdev api
+> >   v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX controls
+> >   v4l2: video device: Add FM_TX controls default configurations
+> >   v4l2-ctl: Add support for FM TX controls
+> >   v4l2-spec: Add documentation description for FM TX extended control
+> >     class
+> >   FMTx: si4713: Add files to add radio interface for si4713
+> >   FMTx: si4713: Add files to handle si4713 i2c device
+> >   FMTx: si4713: Add Kconfig and Makefile entries
+> >   FMTx: si4713: Add document file
+> > 
+> >  linux/Documentation/video4linux/si4713.txt |  137 ++
+> >  linux/drivers/media/radio/Kconfig          |   22 +
+> >  linux/drivers/media/radio/Makefile         |    2 +
+> >  linux/drivers/media/radio/radio-si4713.c   |  325 ++++
+> >  linux/drivers/media/radio/si4713-i2c.c     | 2813 ++++++++++++++++++++++++++++
+> >  linux/drivers/media/radio/si4713-i2c.h     |  226 +++
+> >  linux/drivers/media/video/v4l2-common.c    |   50 +
+> >  linux/include/linux/videodev2.h            |   34 +
+> >  linux/include/media/si4713.h               |   40 +
+> >  linux/include/media/v4l2-subdev.h          |    2 +
+> >  v4l2-apps/util/v4l2-ctl.cpp                |   36 +
+> >  v4l2-spec/Makefile                         |    1 +
+> >  v4l2-spec/biblio.sgml                      |   10 +
+> >  v4l2-spec/controls.sgml                    |  205 ++
+> >  14 files changed, 3903 insertions(+), 0 deletions(-)
+> >  create mode 100644 linux/Documentation/video4linux/si4713.txt
+> >  create mode 100644 linux/drivers/media/radio/radio-si4713.c
+> >  create mode 100644 linux/drivers/media/radio/si4713-i2c.c
+> >  create mode 100644 linux/drivers/media/radio/si4713-i2c.h
+> >  create mode 100644 linux/include/media/si4713.h
+> > 
+> > 
+> > 
+> 
+> 
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Eduardo Valentin
