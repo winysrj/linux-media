@@ -1,61 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-05.arcor-online.net ([151.189.21.45]:60406 "EHLO
-	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752324AbZF3BzU (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:49827 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761024AbZFPS7o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2009 21:55:20 -0400
-Subject: Re: [PATCH 3/3 - v0] davinci: platform changes to support vpfe
-	camera  capture
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Andrej Falout <andrej@falout.org>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <c21478f30906291804o6ec7a380kabc8c9d2e929fbb2@mail.gmail.com>
-References: <1246053948-8371-1-git-send-email-m-karicheri2@ti.com>
-	 <200906291043.43140.david-b@pacbell.net>
-	 <A69FA2915331DC488A831521EAE36FE401448CE221@dlee06.ent.ti.com>
-	 <200906291555.35568.david-b@pacbell.net>
-	 <c21478f30906291804o6ec7a380kabc8c9d2e929fbb2@mail.gmail.com>
-Content-Type: text/plain
-Date: Tue, 30 Jun 2009 03:53:03 +0200
-Message-Id: <1246326783.3808.25.camel@pc07.localdom.local>
+	Tue, 16 Jun 2009 14:59:44 -0400
+Date: Tue, 16 Jun 2009 15:59:37 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Jan Nikitenko <jan.nikitenko@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Christopher Pascoe <c.pascoe@itee.uq.edu.au>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] zl10353 and qt1010: fix stack corruption bug
+Message-ID: <20090616155937.3f5d869d@pedra.chehab.org>
+In-Reply-To: <4A2F50E0.8030404@gmail.com>
+References: <4A28CEAD.9000000@gmail.com>
+	<4A293B89.30502@iki.fi>
+	<c4bc83220906091539x51ec2931i9260e36363784728@mail.gmail.com>
+	<4A2EFA23.6020602@iki.fi>
+	<4A2F50E0.8030404@gmail.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Wed, 10 Jun 2009 08:21:20 +0200
+Jan Nikitenko <jan.nikitenko@gmail.com> escreveu:
 
-Am Dienstag, den 30.06.2009, 11:04 +1000 schrieb Andrej Falout:
-> > I can't believe the current linux-media or V4L2 trees are
-> > six months out of date.
+> This patch fixes stack corruption bug present in dump_regs function of zl10353 
+> and qt1010 drivers:
+> the buffer buf is one byte smaller than required - there is 4 chars
+> for address prefix, 16*3 chars for dump of 16 eeprom bytes per line
+> and 1 byte for zero ending the string required, i.e. 53 bytes, but
+> only 52 were provided.
+> The one byte missing in stack based buffer buf can cause stack corruption 
+> possibly leading to kernel oops, as discovered originally with af9015 driver.
 > 
-> So which tree is the current dev then?
+> Signed-off-by: Jan Nikitenko <jan.nikitenko@gmail.com>
 > 
-> (Pls excuse the new guy)
-> Cheers,
-> Andrej
+> ---
+> 
+> Antti Palosaari wrote:
+>  > On 06/10/2009 01:39 AM, Jan Nikitenko wrote:
+>  >> Solved with "[PATCH] af9015: fix stack corruption bug".
+>  >
+>  > This error leads to the zl10353.c and there it was copied to qt1010.c
+>  > and af9015.c.
+>  >
+> Antti, thanks for pointing out that the same problem was also in zl10353.c and 
+> qt1010.c. Include your Sign-off-by, please.
+> 
+> Best regards,
+> Jan
+> 
+>   linux/drivers/media/common/tuners/qt1010.c  |    2 +-
+>   linux/drivers/media/dvb/frontends/zl10353.c |    2 +-
+>   2 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff -r cff06234b725 linux/drivers/media/common/tuners/qt1010.c
+> --- a/linux/drivers/media/common/tuners/qt1010.c	Sun May 31 23:07:01 2009 +0300
+> +++ b/linux/drivers/media/common/tuners/qt1010.c	Wed Jun 10 07:37:51 2009 +0200
+> @@ -65,7 +65,7 @@
+>   /* dump all registers */
+>   static void qt1010_dump_regs(struct qt1010_priv *priv)
+>   {
+> -	char buf[52], buf2[4];
+> +	char buf[4+3*16+1], buf2[4];
 
-currently latest is always ours and Mauro's v4l-dvb at linuxtv.org.
+CodingStyle is incorrect. It should be buf[4 + 3 * 16 + 1].
 
-For specific new drivers, latest is in the developer(s) repo(s) working
-on it and that is not restricted to what is present at linuxtv.org.
 
-We are usually three to four months in advance, until Linus' next cycle
-starts and we spit all out then, but keep all the rest that needs
-further work until the then next kernel release ...
+>   	u8 reg, val;
+> 
+>   	for (reg = 0; ; reg++) {
+> diff -r cff06234b725 linux/drivers/media/dvb/frontends/zl10353.c
+> --- a/linux/drivers/media/dvb/frontends/zl10353.c	Sun May 31 23:07:01 2009 +0300
+> +++ b/linux/drivers/media/dvb/frontends/zl10353.c	Wed Jun 10 07:37:51 2009 +0200
+> @@ -102,7 +102,7 @@
+>   static void zl10353_dump_regs(struct dvb_frontend *fe)
+>   {
+>   	struct zl10353_state *state = fe->demodulator_priv;
+> -	char buf[52], buf2[4];
+> +	char buf[4+3*16+1], buf2[4];
 
-Mauro's git tree is always in sync with what Linus has, but latest is
-mercurial v4l-dvb and what comes in there, or, further going out into
-the wild, what the individual developers have working on something
-specific not yet in ...
+Same CodingStyle issue here.
 
-Until they come from other git trees much in delay, or from
-manufacturers trees, or other way out of sync, no problem seen here for
-that the last four years.
+>   	int ret;
+>   	u8 reg;
+> 
+
+Without having actually looking at the source code, would it be possible to
+change the logic in order to use something else instead of a magic number for
+buf size - e. g. using sizeof(something) ?
+
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+
 
 Cheers,
-Hermann
-
-
-
-
+Mauro
