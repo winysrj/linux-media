@@ -1,50 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:60472 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750997AbZFQPCE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 11:02:04 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-Date: Wed, 17 Jun 2009 10:02:01 -0500
-Subject: RE: [PATCH 1/10 - v2] vpfe capture bridge driver for DM355 and
- DM6446
-Message-ID: <A69FA2915331DC488A831521EAE36FE40139DF9C0B@dlee06.ent.ti.com>
-References: <1244739649-27466-1-git-send-email-m-karicheri2@ti.com>
- <200906160029.01328.hverkuil@xs4all.nl>
- <A69FA2915331DC488A831521EAE36FE40139DF96ED@dlee06.ent.ti.com>
- <200906170839.06421.hverkuil@xs4all.nl>
-In-Reply-To: <200906170839.06421.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from smtp7.aruba.it ([62.149.128.206]:43647 "HELO smtp5.aruba.it"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1756498AbZFPO0v (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Jun 2009 10:26:51 -0400
+Message-ID: <4A37ABB5.60600@avalpa.com>
+Date: Tue, 16 Jun 2009 16:27:01 +0200
+From: Andrea Venturi <a.venturi@avalpa.com>
 MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: OpenCaster ver 2.0 has been released; more then a DSMCC carousel,
+ now it's a playout for audio/video
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->>
->> <snip>
->
->Can you post your latest proposal for the s_bus op?
->
->I propose a few changes: the name of the struct should be something like
->v4l2_bus_settings, the master/slave bit should be renamed to something
->like 'host_is_master', and we should have two widths: subdev_width and
->host_width.
->
->That way the same structure can be used for both host and subdev, unless
->some of the polarities are inverted. In that case you need to make two
->structs, one for host and one for the subdev.
->
->It is possible to add info on inverters to the struct, but unless inverters
->are used a lot more frequently than I expect I am inclined not to do that
->at this time.
->
-[MK]Today I am planning to send my v3 version of the vpfe capture patch and also tvp514x patch since Vaibhav is pre-occupied with some other activities. I have discussed the changes with Vaibhav for this driver.
+After another year of furious development, we are proud to announce the
+birth of OpenCaster version 2.0 (licensed GPL v2).
 
-For s_bus, I will try if I can send a patch today. BTW, do you expect me to add one bool for active high, one for active low etc as done in SoC camera ?
+It's still a complete DSMCC carousel server useful for MHP, MHEG and OTA 
+dacasting, anyway now it's also a seamless playout of Audio/Video 
+properly encoded files.
 
-Murali 
+Main new 2.0 features:
+
+     * seamless playout of off-line MPEG2 encoded videos
+     * IP multicast driver for IPTV service generation
+     * updated manual (one hundred page long)
+     * tested with Rohde & Schwarz DVM100L for PCR precision and accuracy
+     * interworking with Computer Modules DVB ASI gears
+
+
+Go get it here:
+
+   http://www.avalpa.com/the-key-values/15-free-software/33-opencaster
+
+Hope you'll find useful.
+
+regards
