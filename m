@@ -1,163 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2160 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752688AbZFFRJr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Jun 2009 13:09:47 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCHv5 1 of 8] v4l2_subdev i2c: Add v4l2_i2c_new_subdev_board i2c helper function
-Date: Sat, 6 Jun 2009 19:09:28 +0200
-Cc: "\\\"ext Mauro Carvalho Chehab\\\"" <mchehab@infradead.org>,
-	"\\\"Nurkkala Eero.An (EXT-Offcode/Oulu)\\\""
-	<ext-Eero.Nurkkala@nokia.com>,
-	"\\\"ext Douglas Schilling Landgraf\\\"" <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-References: <1243582408-13084-1-git-send-email-eduardo.valentin@nokia.com> <200906061359.19732.hverkuil@xs4all.nl> <200906061449.46720.hverkuil@xs4all.nl>
-In-Reply-To: <200906061449.46720.hverkuil@xs4all.nl>
+Received: from mail-bw0-f213.google.com ([209.85.218.213]:63049 "EHLO
+	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753102AbZFPPhs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Jun 2009 11:37:48 -0400
+Received: by bwz9 with SMTP id 9so4149853bwz.37
+        for <linux-media@vger.kernel.org>; Tue, 16 Jun 2009 08:37:48 -0700 (PDT)
+Message-ID: <4A37BBB4.1070301@gmail.com>
+Date: Tue, 16 Jun 2009 18:35:16 +0300
+From: Darius Augulis <augulis.darius@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] soc-camera: ov7670 merged multiple drivers and moved
+ over to v4l2-subdev
+References: <4A365918.40801@cam.ac.uk> <Pine.LNX.4.64.0906161552420.4880@axis700.grange> <4A37AFF0.9090004@cam.ac.uk>
+In-Reply-To: <4A37AFF0.9090004@cam.ac.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200906061909.28157.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 06 June 2009 14:49:46 Hans Verkuil wrote:
-> On Saturday 06 June 2009 13:59:19 Hans Verkuil wrote:
-> > On Friday 29 May 2009 09:33:21 Eduardo Valentin wrote:
-> > > # HG changeset patch
-> > > # User Eduardo Valentin <eduardo.valentin@nokia.com>
-> > > # Date 1243414605 -10800
-> > > # Branch export
-> > > # Node ID 4fb354645426f8b187c2c90cd8528b2518461005
-> > > # Parent  142fd6020df3b4d543068155e49a2618140efa49
-> > > Device drivers of v4l2_subdev devices may want to have
-> > > board specific data. This patch adds an helper function
-> > > to allow bridge drivers to pass board specific data to
-> > > v4l2_subdev drivers.
-> > >
-> > > For those drivers which need to support kernel versions
-> > > bellow 2.6.26, a .s_config callback was added. The
-> > > idea of this callback is to pass board configuration
-> > > as well. In that case, subdev driver should set .s_config
-> > > properly, because v4l2_i2c_new_subdev_board will call
-> > > the .s_config directly. Of course, if we are >= 2.6.26,
-> > > the same data will be passed through i2c board info as well.
-> >
-> > Hi Eduardo,
-> >
-> > I finally had some time to look at this. After some thought I realized
-> > that the main problem is really that the API is becoming quite messy.
-> > Basically there are 9 different ways of loading and initializing a
-> > subdev:
-> >
-> > First there are three basic initialization calls: no initialization,
-> > passing irq and platform_data, and passing the i2c_board_info struct
-> > directly (preferred for drivers that don't need pre-2.6.26
-> > compatibility).
-> >
-> > And for each flavor you would like to see three different versions as
-> > well: one with a fixed known i2c address, one where you probe for a
-> > list of addresses, and one where you can probe for a single i2c
-> > address.
-> >
-> > I propose to change the API as follows:
-> >
-> > #define V4L2_I2C_ADDRS(addr, addrs...) \
-> > 	((const unsigned short []){ addr, ## addrs, I2C_CLIENT_END })
-> >
-> > struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
-> >                 struct i2c_adapter *adapter,
-> >                 const char *module_name, const char *client_type,
-> > 		u8 addr, const unsigned short *addrs);
-> >
-> > struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device
-> > *v4l2_dev, struct i2c_adapter *adapter,
-> >                 const char *module_name, const char *client_type,
-> >                 int irq, void *platform_data,
-> >                 u8 addr, const unsigned short *addrs);
-> >
-> > /* Only available for kernels >= 2.6.26 */
-> > struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device
-> > *v4l2_dev, struct i2c_adapter *adapter, const char *module_name, struct
-> > i2c_board_info *info, const unsigned short *addrs);
-> >
-> > If you use a fixed address, then only set addr (or info.addr) and set
-> > addrs to NULL. If you want to probe for a list of addrs, then set addrs
-> > to the list of addrs. If you want to probe for a single addr, then use
-> > V4L2_I2C_ADDRS(addr) as the addrs argument. This constructs an array
-> > with just two entries. Actually, this macro can also create arrays with
-> > more entries.
-> >
-> > Note that v4l2_i2c_new_subdev will be an inline that calls
-> > v4l2_i2c_new_subdev_cfg with 0, NULL for the irq and platform_data.
-> >
-> > And for kernels >= 2.6.26 v4l2_i2c_new_subdev_cfg can be an inline
-> > calling v4l2_i2c_new_subdev_board.
-> >
-> > This approach reduces the number of functions to just one (not counting
-> > the inlines) and simplifies things all around. It does mean that all
-> > sources need to be changed, but if we go this route, then now is the
-> > time before the 2.6.31 window is closed. And I would also like to
-> > remove the '_new' from these function names. I never thought it added
-> > anything useful.
-> >
-> > Comments? If we decide to go this way, then I need to know soon so that
-> > I can make the changes before the 2.6.31 window closes.
-> >
-> > BTW, if the new s_config subdev call is present, then it should always
-> > be called. That way the subdev driver can safely do all of its
-> > initialization in s_config, no matter how it was initialized.
-> >
-> > Sorry about the long delay in replying to this: it's been very hectic
-> > lately at the expense of my v4l-dvb work.
+On 06/16/2009 05:45 PM, Jonathan Cameron wrote:
+> Guennadi Liakhovetski wrote:
+>> On Mon, 15 Jun 2009, Jonathan Cameron wrote:
+>>
+>>> From: Jonathan Cameron <jic23@cam.ac.uk>
+>>>
+>>> OV7670 soc-camera driver. Merge of drivers from Jonathan Corbet,
+>>> Darius Augulis and Jonathan Cameron 
+>> Could you please, describe in more detail how you merged them? 
+> Mostly by combining the various register sets and then adding pretty much
+> all the functionality in each of them, testing pretty much everything.
 >
-> I've done the initial conversion to the new API (no _cfg or _board
-> version yet) in my ~hverkuil/v4l-dvb-subdev tree. It really simplifies
-> things and if nobody objects then I'd like to get this in before 2.6.31.
+> Note that a lot of what was in those drivers (usually labeled as untested)
+> simply doesn't work and is based on 'magic' register sets provided by
+> omnivision.
+>
+>> However, I am not sure this is the best way to go. I think, a better
+>> approach would be to take a driver currently in the mainline, perhaps,
+>> the most feature-complete one if there are several of them there, 
+> That is more or less what I've done (it's based on Jonathan Corbet's 
+> driver).
+> Darius' driver and mine have never been in mainline. Darius' was a 
+> complete
+> rewrite based on doc's he has under NDA. Mine was based on Jonathan
+> Corbet's one with a few bits leveraged from a working tinyos driver 
+> for the
+> platform I'm using (principally because Omnivision are ignoring both 
+> myself
+> and the board supplier). 
 
-I've added the new _cfg and _board fucntions as well in this tree. It needs 
-a bit of a cleanup before I can do a pull request (the last two patches 
-should be merged to one), but otherwise this is the code as I think it 
-should be:
+It's very difficult to write 'normal' driver for it.
+Omnivision does not provide useful documentation,
+only long constant arrays with few strange comments.
+Beside documentation is poor, there are lot of errors in register 
+description.
+Many things are mistery, not documented and seems Omnivision does not 
+have such documentation.
+I thing this sensor isn't perfect for embedded projects. It's 'designed' 
+for webcams, where reliability and quality are not needed.
+With ov7720 similar situation...
 
-/* Construct an I2C_CLIENT_END-terminated array of i2c addresses on the fly 
-*/
-#define V4L2_I2C_ADDRS(addr, addrs...) \
-        ((const unsigned short []){ addr, ## addrs, I2C_CLIENT_END })
+>
+>> convert
+>> it and its user(s) to v4l2-subdev, extend it with any features 
+>> missing in
+>> it and present in other drivers, then switch users of all other ov7670
+>> drivers over to this one, 
+> That's the problem. The only mainlined driver is specifically for an OLPC
+> machine. The driver is tied to specific i2c device and doesn't use 
+> anything
+> anywhere near soc-camera or v4l2-subdev.
+>
+> While it would be nice to get a single driver working
+> for this hardware as well as more conventional soc-camera devices, it 
+> isn't
+> going to happen without a lot of input from someone with an olpc. The chip
+> is interfaced through a Marvell 88alp101 'cafe' chip which does a 
+> whole host
+> of random things alongside being video processor and taking a quick 
+> look at
+> that would be written in a completely different fashion if it were 
+> done now
+> (mfd with subdevices etc, v4l2-sudev)
+>
+> So basically in the ideal world it would happen exactly as you've 
+> suggested,
+> but I doubt it'll happen any time soon and in the meantime there is no in
+> kernel support for those of us using the chip on other platforms.
+>
+> *looks hopefully in the direction of Jonathan Corbet and other olpc 
+> owners*
+>
+>> and finally make it work with soc-camera. This
+>> way you get a series of smaller and reviewable patches, instead of a
+>> completely new driver, that reproduces a lot of existing code but has to
+>> be reviewed anew. How does this sound? 
+> Would be fine if the original driver (or anything terribly close to it)
+> were useable on a platform I actually have without more or less being 
+> rewritten.
+>
+> I can back track the driver to be as close to that as possible and still
+> functional, but I'm not entirely sure it will make the code any easier to
+> review and you'll loose a lot the functionality lifted from Darius' as
+> my original drivers.
+>
+> The original posting I made was as close as you can reasonably get to
+> Jonathan's original driver.
+>
+> http://patchwork.kernel.org/patch/12192/
+>
+> At the time it wasn't really reviewed (beyond a few comments)
+> as you were just commencing the soc-camera conversion and it made
+> sense to wait for after that.
+>
+> I'm not really sure how we should proceed with this. I'm particularly
+> loath to touch the olpc driver unless we have a reasonable number of
+> people willing to test.
+>
+> Jonathan
+>
 
-/* Load an i2c module and return an initialized v4l2_subdev struct.
-   Only call request_module if module_name != NULL.
-   The client_type argument is the name of the chip that's on the adapter. 
-*/
-struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device *v4l2_dev,
-                struct i2c_adapter *adapter,
-                const char *module_name, const char *client_type,
-                int irq, void *platform_data,
-                u8 addr, const unsigned short *addrs);
-
-static inline struct v4l2_subdev *v4l2_i2c_new_subdev(
-                struct v4l2_device *v4l2_dev,
-                struct i2c_adapter *adapter,
-                const char *module_name, const char *client_type,
-                u8 addr, const unsigned short *addrs)
-{
-        return v4l2_i2c_new_subdev_cfg(v4l2_dev, adapter, module_name,
-                        client_type, 0, NULL, addr, addrs);
-}
-
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
-struct i2c_board_info;
-
-struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
-                struct i2c_adapter *adapter, const char *module_name,
-                struct i2c_board_info *info, const unsigned short *addrs);
-#endif
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
