@@ -1,68 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:37219 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751233AbZFESRI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2009 14:17:08 -0400
-Received: by fxm9 with SMTP id 9so758684fxm.37
-        for <linux-media@vger.kernel.org>; Fri, 05 Jun 2009 11:17:09 -0700 (PDT)
-Message-ID: <4A296122.7070701@gmail.com>
-Date: Fri, 05 Jun 2009 20:17:06 +0200
-From: Gonsolo <gonsolo@gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:58151 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754677AbZFPPke convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Jun 2009 11:40:34 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sakari Ailus <sakari.ailus@nokia.com>
+CC: "Jadav, Brijesh R" <brijesh.j@ti.com>,
+	"Subrahmanya, Chaithrika" <chaithrika@ti.com>,
+	David Cohen <david.cohen@nokia.com>,
+	"Curran, Dominic" <dcurran@ti.com>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>,
+	Eero Nurkkala <ext-eero.nurkkala@nokia.com>,
+	Felipe Balbi <felipe.balbi@nokia.com>,
+	"Shah, Hardik" <hardik.shah@ti.com>,
+	"Nagalla, Hari" <hnagalla@ti.com>, "Hadli, Manjunath" <mrh@ti.com>,
+	Mikko Hurskainen <mikko.hurskainen@nokia.com>,
+	"Menon, Nishanth" <nm@ti.com>, "R, Sivaraj" <sivaraj@ti.com>,
+	"Paulraj, Sandeep" <s-paulraj@ti.com>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	Tomi Valkeinen <tomi.valkeinen@nokia.com>,
+	Tuukka Toivonen <tuukka.o.toivonen@nokia.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Tue, 16 Jun 2009 10:40:18 -0500
+Subject: RE: OMAP patches for linux-media
+Message-ID: <A69FA2915331DC488A831521EAE36FE40139DF9796@dlee06.ent.ti.com>
+References: <20090616104018.44075a80@pedra.chehab.org>
+In-Reply-To: <20090616104018.44075a80@pedra.chehab.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Patrick Boettcher <patrick.boettcher@desy.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: Can't find firmware when resuming
-References: <4A2844E0.1010902@gmail.com> <alpine.LRH.1.10.0906050925280.23189@pub2.ifh.de>
-In-Reply-To: <alpine.LRH.1.10.0906050925280.23189@pub2.ifh.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> Is the following problem known?
->> The Hauppauge Nova-T stick hangs the resume for 60 seconds.
->> The firmware is there and I can watch TV before suspending.
->>
->> From my dmesg:
->>
->> [34258.180072] usb 1-1: reset high speed USB device using ehci_hcd and 
->> address 4
->> [34258.312799] dvb-usb: found a 'Hauppauge Nova-T Stick' in cold 
->> state, will try to load a firmware
->> [34258.312805] usb 1-1: firmware: requesting dvb-usb-dib0700-1.20.fw
->> [34318.312097] dvb-usb: did not find the firmware file. 
->> (dvb-usb-dib0700-1.20.fw) Please see linux/Documentation/dvb/ for mor
->> e details on firmware-problems. (-2)
-> 
-> You are resuming from suspend2disk, right?
+Hi Mauro,
 
-This was suspend to ram but it happened with suspend to disk too.
+[snip]
+>
+>I'm seeing lots of patches and discussions for OMAP and DaVinci being
+>handled
+>at the linux-media Mailing List, as part of the development process of the
+>open
+>source drivers.
 
-> The driver is using a standard method to retrieve the firmware buffer 
-> from user-space, if it does not work, it is a problem of you 
-> installation, namely udev.
+[MK] I along with Chaithrika are working with Hans Verkuil to get the DaVinci video drivers added to open source. I believe VPIF display driver for DM6467 is ready for merge. The VPFE capture driver for DM355 and DM6446 is almost ready. I will be creating the version 3 (hopefully final) version of the patch and review the same in the list.
+Do you think these patches can be merged to 2.6.31? This will be of great help to us if this can be done since we have other works lined up based on these and our customers are waiting for this for a very long time.
 
-This is Ubuntu Jaunty with a kernel 2.6.30rc8 from 
-http://kernel.ubuntu.com/~kernel-ppa/mainline/ but I am pretty confident 
-that it happened with the 2.6.28, too.
+[snip]
+>
+>One fundamental concept on Kernel development is the concept of "Commit
+>earlier
+>and commit often", meaning that the better is to send small, incremental,
+>and
+>periodic patches, than wait until having everything done, then submit a big
 
-Ok, I grepped for udev in /var/log and found:
+[MK] With that in mind, we began our porting work with minimum set of features and stripped off many of the features so that we can add them incrementally.
 
-May 30 15:08:24 ups firmware.sh[30098]: udev firmware loader misses 
-sysfs directory
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+email: m-karicheri2@ti.com
 
-It seems that the dev in sysfs can't be found.
-I will try to investigate that.
 
-> OTOH, the dvb-usb-framework is not ready to handle a suspend2disk 
-> correctly. E.g. being able to suspend2disk while watching TV will work, 
-> but when resuming it will be seen as a device disconnect and the 
-> application will stop to work.
 
-As long I only have to push a button in me-tv to turn it on again that's 
-ok with me.
-
-Thank you for your answer.
-
-g
