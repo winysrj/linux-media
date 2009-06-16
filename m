@@ -1,80 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from deliverator5.ecc.gatech.edu ([130.207.185.175]:35517 "EHLO
-	deliverator5.ecc.gatech.edu" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753676AbZFHKbD (ORCPT
+Received: from ppsw-1.csi.cam.ac.uk ([131.111.8.131]:36638 "EHLO
+	ppsw-1.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752666AbZFPOo2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Jun 2009 06:31:03 -0400
-Received: from deliverator5.ecc.gatech.edu (localhost [127.0.0.1])
-	by localhost (Postfix) with SMTP id 251881800E7
-	for <linux-media@vger.kernel.org>; Mon,  8 Jun 2009 06:31:05 -0400 (EDT)
-Received: from mail7.gatech.edu (bigip.ecc.gatech.edu [130.207.185.140])
-	by deliverator5.ecc.gatech.edu (Postfix) with ESMTP id 9A8661800E2
-	for <linux-media@vger.kernel.org>; Mon,  8 Jun 2009 06:31:04 -0400 (EDT)
-Received: from [192.168.0.131] (bigip.ecc.gatech.edu [130.207.185.140])
-	(Authenticated sender: gtg131s)
-	by mail7.gatech.edu (Postfix) with ESMTP id 744362C8939
-	for <linux-media@vger.kernel.org>; Mon,  8 Jun 2009 06:31:04 -0400 (EDT)
-Message-ID: <4A2CE866.4010602@gatech.edu>
-Date: Mon, 08 Jun 2009 06:31:02 -0400
-From: David Ward <david.ward@gatech.edu>
+	Tue, 16 Jun 2009 10:44:28 -0400
+Message-ID: <4A37AFF0.9090004@cam.ac.uk>
+Date: Tue, 16 Jun 2009 14:45:04 +0000
+From: Jonathan Cameron <jic23@cam.ac.uk>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: cx18, s5h1409: chronic bit errors, only under Linux
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Darius <augulis.darius@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: Re: [PATCH] soc-camera: ov7670 merged multiple drivers and moved
+ over to v4l2-subdev
+References: <4A365918.40801@cam.ac.uk> <Pine.LNX.4.64.0906161552420.4880@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0906161552420.4880@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have a Hauppauge WinTV-HVR-1600 that I am using to capture ATSC and 
-clear QAM programming from cable television (Comcast of Chattanooga).  
-This card uses the cx18 and s5h1409 kernel modules.
+Guennadi Liakhovetski wrote:
+> On Mon, 15 Jun 2009, Jonathan Cameron wrote:
+> 
+>> From: Jonathan Cameron <jic23@cam.ac.uk>
+>>
+>> OV7670 soc-camera driver. Merge of drivers from Jonathan Corbet,
+>> Darius Augulis and Jonathan Cameron
+> 
+> Could you please, describe in more detail how you merged them?
+Mostly by combining the various register sets and then adding pretty much
+all the functionality in each of them, testing pretty much everything.
 
-There are frequent bursts of bit errors occurring every few seconds in 
-the incoming transport stream, when I have the card tuned under Linux.  
-This causes artifacts in the received video as well as skipping in the 
-received audio, to the point that it is practically unwatchable.  
-However, under Windows on the same system/capture card, I can tune to 
-the same programs with nearly perfect reception (no bit errors).  Also 
-these programs appear on my TV with great quality as well.  The problem 
-is happening on all of several different frequencies/programs that I 
-have tried, although it is more pronounced on some programs 
-(particularly ATSC) than others.
+Note that a lot of what was in those drivers (usually labeled as untested)
+simply doesn't work and is based on 'magic' register sets provided by
+omnivision.
+ 
+> However, I am not sure this is the best way to go. I think, a better 
+> approach would be to take a driver currently in the mainline, perhaps, 
+> the most feature-complete one if there are several of them there,
+That is more or less what I've done (it's based on Jonathan Corbet's driver).
+Darius' driver and mine have never been in mainline. Darius' was a complete
+rewrite based on doc's he has under NDA.  Mine was based on Jonathan
+Corbet's one with a few bits leveraged from a working tinyos driver for the
+platform I'm using (principally because Omnivision are ignoring both myself
+and the board supplier).
+ 
+> convert 
+> it and its user(s) to v4l2-subdev, extend it with any features missing in 
+> it and present in other drivers, then switch users of all other ov7670 
+> drivers over to this one,
+That's the problem. The only mainlined driver is specifically for an OLPC
+machine.  The driver is tied to specific i2c device and doesn't use anything
+anywhere near soc-camera or v4l2-subdev.
 
-I have tried the latest v4l-dvb development sources under both kernel 
-2.6.24 and kernel 2.6.29, and additionally I have tried to use the 
-unmodified v4l-dvb from kernel 2.6.29.  Additionally, I have tried both 
-the recommended cx23418 firmware from linuxtv.org, as well as the newer 
-firmware provided by latest the Hauppauge drivers for Windows (which I 
-am using successfully under Windows).  Unfortunately they all produce 
-the same results.
+While it would be nice to get a single driver working
+for this hardware as well as more conventional soc-camera devices, it isn't
+going to happen without a lot of input from someone with an olpc.  The chip
+is interfaced through a Marvell 88alp101 'cafe' chip which does a whole host
+of random things alongside being video processor and taking a quick look at
+that would be written in a completely different fashion if it were done now
+(mfd with subdevices etc, v4l2-sudev)
 
-I primarily use MythTV to capture the programs to a file, and the 
-resulting file exhibits these problems.  However, I can also see the bit 
-errors when I simply use the 'azap' application to tune the card 
-directly (and also read the dvr0 device into a file).  The BER and UNC 
-values reported by 'azap' are non-zero approximately one out of every 
-five samples; then they are usually around 0x200, though this varies.  
-The BER and UNC values are almost always identical, i.e., no error 
-correction is taking place, only error detection.  Additionally I am not 
-seeing any TS continuity or TEI flag errors, as detectable in the system 
-log with the latest changeset.
+So basically in the ideal world it would happen exactly as you've suggested,
+but I doubt it'll happen any time soon and in the meantime there is no in
+kernel support for those of us using the chip on other platforms.
 
-I have tried to rule out other possible causes such as a weak input 
-signal (by hooking the capture card directly to the household cable 
-television input, bypassing all coaxial splitters) and system-specific 
-issues (by trying this on three different systems).  However, to me it 
-seems that the problem must be originating from an issue in the kernel 
-modules for this card.
+*looks hopefully in the direction of Jonathan Corbet and other olpc owners*
 
-I understand that having some errors in the transport stream is 
-unavoidable, and I have tried postprocessing with an application such as 
-Project-X.  However, it does not magically take care of this -- the 
-length of the video is reduced by about 20% and the resulting video 
-jumps around constantly.
+> and finally make it work with soc-camera. This 
+> way you get a series of smaller and reviewable patches, instead of a 
+> completely new driver, that reproduces a lot of existing code but has to 
+> be reviewed anew. How does this sound?
+Would be fine if the original driver (or anything terribly close to it)
+were useable on a platform I actually have without more or less being rewritten.
 
-Please let me know how I should proceed in solving this.  I would be 
-happy to provide samples of captured video, results from new tests, etc.
+I can back track the driver to be as close to that as possible and still
+functional, but I'm not entirely sure it will make the code any easier to
+review and you'll loose a lot the functionality lifted from Darius' as
+my original drivers.
 
-Thanks,
+The original posting I made was as close as you can reasonably get to
+Jonathan's original driver.
 
-David Ward
+http://patchwork.kernel.org/patch/12192/
+
+At the time it wasn't really reviewed (beyond a few comments)
+as you were just commencing the soc-camera conversion and it made
+sense to wait for after that.
+
+I'm not really sure how we should proceed with this. I'm particularly
+loath to touch the olpc driver unless we have a reasonable number of
+people willing to test.
+
+Jonathan
