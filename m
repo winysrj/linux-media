@@ -1,93 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.230]:28152 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752214AbZFECvm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jun 2009 22:51:42 -0400
-Received: by rv-out-0506.google.com with SMTP id f9so558284rvb.1
-        for <linux-media@vger.kernel.org>; Thu, 04 Jun 2009 19:51:44 -0700 (PDT)
-Subject: Re: [PATCH]V4L:some v4l drivers have error for
- video_register_device
-From: "Figo.zhang" <figo1802@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@skynet.be>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	akpm@linux-foundation.org
-In-Reply-To: <5143.62.70.2.252.1244107655.squirrel@webmail.xs4all.nl>
-References: <5143.62.70.2.252.1244107655.squirrel@webmail.xs4all.nl>
-Content-Type: text/plain
-Date: Fri, 05 Jun 2009 10:51:36 +0800
-Message-Id: <1244170296.4603.17.camel@myhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from kroah.org ([198.145.64.141]:48422 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935893AbZFPFv3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Jun 2009 01:51:29 -0400
+From: Greg Kroah-Hartman <gregkh@suse.de>
+To: linux-kernel@vger.kernel.org
+Cc: Greg Kroah-Hartman <gregkh@suse.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 43/64] media: remove driver_data direct access of struct device
+Date: Mon, 15 Jun 2009 22:46:32 -0700
+Message-Id: <1245131213-24168-43-git-send-email-gregkh@suse.de>
+In-Reply-To: <20090616051351.GA23627@kroah.com>
+References: <20090616051351.GA23627@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-06-04 at 11:27 +0200, Hans Verkuil wrote:
-> > On Thu, 2009-06-04 at 11:18 +0200, Laurent Pinchart wrote:
-> >> Hi,
-> >>
-> >> On Thursday 04 June 2009 06:20:07 figo.zhang wrote:
-> >> > The function video_register_device() will call the
-> >> > video_register_device_index(). In this function, firtly it will do
-> >> some
-> >> > argments check , if failed,it will return a negative number such as
-> >> > -EINVAL, and then do cdev_alloc() and device_register(), if success
-> >> return
-> >> > zero. so video_register_device_index() canot return a a positive
-> >> number.
-> >> >
-> >> > for example, see the drivers/media/video/stk-webcam.c (line 1325):
-> >> >
-> >> > err = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
-> >> > 	if (err)
-> >> > 		STK_ERROR("v4l registration failed\n");
-> >> > 	else
-> >> > 		STK_INFO("Syntek USB2.0 Camera is now controlling video device"
-> >> > 			" /dev/video%d\n", dev->vdev.num);
-> >> >
-> >> > in my opinion, it will be cleaner to do something like this:
-> >> >
-> >> > err = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
-> >> > 	if (err != 0)
-> >> > 		STK_ERROR("v4l registration failed\n");
-> >> > 	else
-> >> > 		STK_INFO("Syntek USB2.0 Camera is now controlling video device"
-> >> > 			" /dev/video%d\n", dev->vdev.num);
-> >>
-> >> What's the difference ? (err != 0) and (err) are identical.
-> >>
-> >> Best regards,
-> >>
-> >> Laurent Pinchart
-> >
-> > yes, it is the same, but it is easy for reading.
-> 
-> To be honest, I think '(err)' is easier to read. Unless there is some new
-> CodingStyle rule I'm not aware of I see no reason for applying these
-> changes.
-> 
-> Regards,
-> 
->         Hans
-> 
+In the near future, the driver core is going to not allow direct access
+to the driver_data pointer in struct device.  Instead, the functions
+dev_get_drvdata() and dev_set_drvdata() should be used.  These functions
+have been around since the beginning, so are backwards compatible with
+all older kernel versions.
 
-yes, but i found the the kernel code using the '(err != 0) or (err == 0)' is
-more popular,in v4l code for example:
 
-v4l1-compat.c  line 507
-v4l2-int-device.c  line 52
-arv.c   line 333
-arv.c   line 844,856
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Acked-by: Mike Isely <isely@pobox.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+---
+ drivers/media/dvb/firewire/firedtv-1394.c   |    4 ++--
+ drivers/media/dvb/firewire/firedtv-dvb.c    |    2 +-
+ drivers/media/video/pvrusb2/pvrusb2-sysfs.c |   22 +++++++++++-----------
+ 3 files changed, 14 insertions(+), 14 deletions(-)
 
-videobuf-core.c  line 529,766,984,1002,1053
-videobuf-dma-sg.c  line 211,222,248,350,456,671,
-
-.....
-
-so i dont know which style is recommended for kernel code?
-
-Best Regards,
-
-Figo.zhang
-
+diff --git a/drivers/media/dvb/firewire/firedtv-1394.c b/drivers/media/dvb/firewire/firedtv-1394.c
+index 4e20765..2b6eeea 100644
+--- a/drivers/media/dvb/firewire/firedtv-1394.c
++++ b/drivers/media/dvb/firewire/firedtv-1394.c
+@@ -225,7 +225,7 @@ fail_free:
+ 
+ static int node_remove(struct device *dev)
+ {
+-	struct firedtv *fdtv = dev->driver_data;
++	struct firedtv *fdtv = dev_get_drvdata(dev);
+ 
+ 	fdtv_dvb_unregister(fdtv);
+ 
+@@ -242,7 +242,7 @@ static int node_remove(struct device *dev)
+ 
+ static int node_update(struct unit_directory *ud)
+ {
+-	struct firedtv *fdtv = ud->device.driver_data;
++	struct firedtv *fdtv = dev_get_drvdata(&ud->device);
+ 
+ 	if (fdtv->isochannel >= 0)
+ 		cmp_establish_pp_connection(fdtv, fdtv->subunit,
+diff --git a/drivers/media/dvb/firewire/firedtv-dvb.c b/drivers/media/dvb/firewire/firedtv-dvb.c
+index 9d308dd..5742fde 100644
+--- a/drivers/media/dvb/firewire/firedtv-dvb.c
++++ b/drivers/media/dvb/firewire/firedtv-dvb.c
+@@ -268,7 +268,7 @@ struct firedtv *fdtv_alloc(struct device *dev,
+ 	if (!fdtv)
+ 		return NULL;
+ 
+-	dev->driver_data	= fdtv;
++	dev_set_drvdata(dev, fdtv);
+ 	fdtv->device		= dev;
+ 	fdtv->isochannel	= -1;
+ 	fdtv->voltage		= 0xff;
+diff --git a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c b/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
+index 299c1cb..6c23456 100644
+--- a/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
++++ b/drivers/media/video/pvrusb2/pvrusb2-sysfs.c
+@@ -539,7 +539,7 @@ static void class_dev_destroy(struct pvr2_sysfs *sfp)
+ 					 &sfp->attr_unit_number);
+ 	}
+ 	pvr2_sysfs_trace("Destroying class_dev id=%p",sfp->class_dev);
+-	sfp->class_dev->driver_data = NULL;
++	dev_set_drvdata(sfp->class_dev, NULL);
+ 	device_unregister(sfp->class_dev);
+ 	sfp->class_dev = NULL;
+ }
+@@ -549,7 +549,7 @@ static ssize_t v4l_minor_number_show(struct device *class_dev,
+ 				     struct device_attribute *attr, char *buf)
+ {
+ 	struct pvr2_sysfs *sfp;
+-	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
++	sfp = dev_get_drvdata(class_dev);
+ 	if (!sfp) return -EINVAL;
+ 	return scnprintf(buf,PAGE_SIZE,"%d\n",
+ 			 pvr2_hdw_v4l_get_minor_number(sfp->channel.hdw,
+@@ -561,7 +561,7 @@ static ssize_t bus_info_show(struct device *class_dev,
+ 			     struct device_attribute *attr, char *buf)
+ {
+ 	struct pvr2_sysfs *sfp;
+-	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
++	sfp = dev_get_drvdata(class_dev);
+ 	if (!sfp) return -EINVAL;
+ 	return scnprintf(buf,PAGE_SIZE,"%s\n",
+ 			 pvr2_hdw_get_bus_info(sfp->channel.hdw));
+@@ -572,7 +572,7 @@ static ssize_t hdw_name_show(struct device *class_dev,
+ 			     struct device_attribute *attr, char *buf)
+ {
+ 	struct pvr2_sysfs *sfp;
+-	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
++	sfp = dev_get_drvdata(class_dev);
+ 	if (!sfp) return -EINVAL;
+ 	return scnprintf(buf,PAGE_SIZE,"%s\n",
+ 			 pvr2_hdw_get_type(sfp->channel.hdw));
+@@ -583,7 +583,7 @@ static ssize_t hdw_desc_show(struct device *class_dev,
+ 			     struct device_attribute *attr, char *buf)
+ {
+ 	struct pvr2_sysfs *sfp;
+-	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
++	sfp = dev_get_drvdata(class_dev);
+ 	if (!sfp) return -EINVAL;
+ 	return scnprintf(buf,PAGE_SIZE,"%s\n",
+ 			 pvr2_hdw_get_desc(sfp->channel.hdw));
+@@ -595,7 +595,7 @@ static ssize_t v4l_radio_minor_number_show(struct device *class_dev,
+ 					   char *buf)
+ {
+ 	struct pvr2_sysfs *sfp;
+-	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
++	sfp = dev_get_drvdata(class_dev);
+ 	if (!sfp) return -EINVAL;
+ 	return scnprintf(buf,PAGE_SIZE,"%d\n",
+ 			 pvr2_hdw_v4l_get_minor_number(sfp->channel.hdw,
+@@ -607,7 +607,7 @@ static ssize_t unit_number_show(struct device *class_dev,
+ 				struct device_attribute *attr, char *buf)
+ {
+ 	struct pvr2_sysfs *sfp;
+-	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
++	sfp = dev_get_drvdata(class_dev);
+ 	if (!sfp) return -EINVAL;
+ 	return scnprintf(buf,PAGE_SIZE,"%d\n",
+ 			 pvr2_hdw_get_unit_number(sfp->channel.hdw));
+@@ -635,7 +635,7 @@ static void class_dev_create(struct pvr2_sysfs *sfp,
+ 	class_dev->parent = &usb_dev->dev;
+ 
+ 	sfp->class_dev = class_dev;
+-	class_dev->driver_data = sfp;
++	dev_set_drvdata(class_dev, sfp);
+ 	ret = device_register(class_dev);
+ 	if (ret) {
+ 		pvr2_trace(PVR2_TRACE_ERROR_LEGS,
+@@ -792,7 +792,7 @@ static ssize_t debuginfo_show(struct device *class_dev,
+ 			      struct device_attribute *attr, char *buf)
+ {
+ 	struct pvr2_sysfs *sfp;
+-	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
++	sfp = dev_get_drvdata(class_dev);
+ 	if (!sfp) return -EINVAL;
+ 	pvr2_hdw_trigger_module_log(sfp->channel.hdw);
+ 	return pvr2_debugifc_print_info(sfp->channel.hdw,buf,PAGE_SIZE);
+@@ -803,7 +803,7 @@ static ssize_t debugcmd_show(struct device *class_dev,
+ 			     struct device_attribute *attr, char *buf)
+ {
+ 	struct pvr2_sysfs *sfp;
+-	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
++	sfp = dev_get_drvdata(class_dev);
+ 	if (!sfp) return -EINVAL;
+ 	return pvr2_debugifc_print_status(sfp->channel.hdw,buf,PAGE_SIZE);
+ }
+@@ -816,7 +816,7 @@ static ssize_t debugcmd_store(struct device *class_dev,
+ 	struct pvr2_sysfs *sfp;
+ 	int ret;
+ 
+-	sfp = (struct pvr2_sysfs *)class_dev->driver_data;
++	sfp = dev_get_drvdata(class_dev);
+ 	if (!sfp) return -EINVAL;
+ 
+ 	ret = pvr2_debugifc_docmd(sfp->channel.hdw,buf,count);
+-- 
+1.6.3.2
 
