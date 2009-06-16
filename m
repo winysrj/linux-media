@@ -1,68 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:55734 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752200AbZFKMQr convert rfc822-to-8bit (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:52312 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752466AbZFPOYm convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2009 08:16:47 -0400
-Date: Thu, 11 Jun 2009 14:16:59 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>
-Subject: Re: [PATCH 3/4] soc-camera: add support for camera-host controls
-In-Reply-To: <5e9665e10906110410w7893e016g6e35742c9a55889d@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.0906111413250.5625@axis700.grange>
-References: <Pine.LNX.4.64.0906101549160.4817@axis700.grange>
- <Pine.LNX.4.64.0906101604420.4817@axis700.grange>
- <5e9665e10906110410w7893e016g6e35742c9a55889d@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+	Tue, 16 Jun 2009 10:24:42 -0400
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Sakari Ailus <sakari.ailus@nokia.com>
+CC: "Jadav, Brijesh R" <brijesh.j@ti.com>,
+	"Subrahmanya, Chaithrika" <chaithrika@ti.com>,
+	David Cohen <david.cohen@nokia.com>,
+	"Curran, Dominic" <dcurran@ti.com>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>,
+	Eero Nurkkala <ext-eero.nurkkala@nokia.com>,
+	Felipe Balbi <felipe.balbi@nokia.com>,
+	"Shah, Hardik" <hardik.shah@ti.com>,
+	"Nagalla, Hari" <hnagalla@ti.com>, "Hadli, Manjunath" <mrh@ti.com>,
+	Mikko Hurskainen <mikko.hurskainen@nokia.com>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"Menon, Nishanth" <nm@ti.com>, "R, Sivaraj" <sivaraj@ti.com>,
+	"Paulraj, Sandeep" <s-paulraj@ti.com>,
+	Tomi Valkeinen <tomi.valkeinen@nokia.com>,
+	Tuukka Toivonen <tuukka.o.toivonen@nokia.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Tue, 16 Jun 2009 09:24:14 -0500
+Subject: RE: OMAP patches for linux-media
+Message-ID: <A24693684029E5489D1D202277BE8944405D0032@dlee02.ent.ti.com>
+References: <20090616104018.44075a80@pedra.chehab.org>
+In-Reply-To: <20090616104018.44075a80@pedra.chehab.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 11 Jun 2009, Dongsoo, Nathaniel Kim wrote:
-
-> Hello Guennadi,
+> From: Mauro Carvalho Chehab [mchehab@infradead.org]
+> Sent: Tuesday, June 16, 2009 8:40 AM
+> To: Sakari Ailus
+> Cc: Jadav, Brijesh R; Subrahmanya, Chaithrika; David Cohen; Curran, Dominic; Eduardo Valentin; Eero Nurkkala; Felipe Balbi; Shah, Hardik; Nagalla, Hari; Hadli, Manjunath; Mikko Hurskainen; Karicheri, Muralidharan; Menon, Nishanth; R, Sivaraj; Paulraj, Sandeep; Aguirre Rodriguez, Sergio Alberto; Tomi Valkeinen; Tuukka Toivonen; Hiremath, Vaibhav; Hans Verkuil; Linux Media Mailing List
+> Subject: OMAP patches for linux-media
 > 
-> It's a very interesting patch. Actually some camera interfaces support
-> for various image effects and I was wondering how to use them in SoC
-> camera subsystem.
+> Hi Sakari and others,
 > 
-> But here is a question. Is it possible to make a choice with the same
-> CID between icd and ici? I mean, if both of camera interface and
-> camera device are supporting for same CID how can user select any of
-> them to use? Sometimes, some image effects supported by camera
-> interface are not good so I want to use the same effect supported by
-> external camera ISP device.
+> I'm seeing lots of patches and discussions for OMAP and DaVinci being handled
+> at the linux-media Mailing List, as part of the development process of the open
+> source drivers.
 > 
-> I think, it might be possible but I can't see how.
+> However, it is hard to track all those discussions and be sure what patches are
+> ready for merging and what patches are just RFC.
+> 
+> On the development model we use here, we have driver maintainers that are
+> responsible to discuss about improvements on their drivers. They are generally
+> the driver authors or the one that first started submitting the patches for
+> that driver(s).
+> 
+> One of the roles of the driver maintainers is to collect the patches for the
+> drivers they maintain, merge on their trees, and periodically ask the patch
+> merge.
+> 
+> One fundamental concept on Kernel development is the concept of "Commit earlier
+> and commit often", meaning that the better is to send small, incremental, and
+> periodic patches, than wait until having everything done, then submit a big
+> patch. Every time I receive a big patch I need to postpone its analysis and
+> open a big window on my schedule to analyze it. Of course, this means to
+> postpone it, and generally results on lots of comments going back to developer,
+> that, in turn, will need to do lots of changes and return me back with another
+> big patch for me to analyze again, resulting on a long period of time for
+> merging it.
+> 
+> As you, Sakari, was the first one that started merging the OMAP drivers, I was
+> expecting that you would be the one that will handle the figure of the driver
+> maintainer for OMAP. I even created you an account at linuxtv for you to create
+> your trees there and ask me to merge from it.
+> 
+> Unfortunately, you haven't sent me any pull requests yet along this year. This
+> is concerning me a lot, since, at the end, I'll need to review big piles of
+> patches and/or drivers when you decide to submit the final version.
+> 
+> So, I decided to send you this email, c/c a random list of people that I
+> believe are involved on the submit and/or review process of those patches, in
+> the hope to better understand and to discuss what's happening and how can we
+> speedup the merge process of those patches.
 
-> > @@ -681,9 +698,16 @@ static int soc_camera_s_ctrl(struct file *file, void *priv,
-> >        struct soc_camera_file *icf = file->private_data;
-> >        struct soc_camera_device *icd = icf->icd;
-> >        struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
-> > +       int ret;
-> >
-> >        WARN_ON(priv != file->private_data);
-> >
-> > +       if (ici->ops->set_ctrl) {
-> > +               ret = ici->ops->set_ctrl(icd, ctrl);
-> > +               if (ret != -ENOIOCTLCMD)
-> > +                       return ret;
-> > +       }
-> > +
-> >        return v4l2_device_call_until_err(&ici->v4l2_dev, (__u32)icd, core, s_ctrl, ctrl);
-> >  }
+Hi Mauro,
 
-Should be easy to see in the patch. Host's s_ctrl is called first. It can 
-return -ENOIOCTLCMD then sensor's control will be called too. Ot the host 
-may choose to call sensor's control itself, which, however, is 
-discouraged.
+We are currently going through an internal debugging process on new found issues while testing the driver on a proprietary HW/SW platform.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+As there is priority for us to find stability in this platforms, we had to put aside a bit the maintenance of the shared patches.
+
+One maybe important news is that I'll be creating a new tree soon to host current OMAP3 and future OMAP4 camera drivers for upstream from TI perspective. My main task will be to maintain this tree in TI, and take care of upstreaming and fixing patches for acceptance by both linux-omap and linux-media lists.
+
+Some of the known to-dos are:
+- v4l2_subdev conversion
+- Regulator framework usage
+- ISP registration as a memory to memory device.
+
+I hope to resume this task soon, and keep in touch with the community on the latest version of patches. I'll let you know when the next version is ready for merge.
+
+Thanks for your concern and time on this.
+
+Regards,
+Sergio
+> 
+> 
+> 
+> Cheers,
+> Mauro
+> 
+> 
