@@ -1,103 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.216.174]:42699 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750866AbZFVOFY convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:36165 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756039AbZFQO2J (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2009 10:05:24 -0400
-Received: by pxi4 with SMTP id 4so59639pxi.33
-        for <linux-media@vger.kernel.org>; Mon, 22 Jun 2009 07:05:27 -0700 (PDT)
-Cc: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Koskipaa Antti (Nokia-D/Helsinki)" <antti.koskipaa@nokia.com>,
-	"Cohen David.A (Nokia-D/Helsinki)" <david.cohen@nokia.com>,
-	Alexey Klimov <klimov.linux@gmail.com>,
-	"gary@mlbassoc.com" <gary@mlbassoc.com>
-Message-Id: <1DA2ED23-DD14-4E7C-9CDB-D86009620337@gmail.com>
-From: Dongsoo Kim <dongsoo.kim@gmail.com>
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE894441306D3E@dlee02.ent.ti.com>
-Content-Type: text/plain; charset=EUC-KR; format=flowed; delsp=yes
-Content-Transfer-Encoding: 8BIT
-Mime-Version: 1.0 (Apple Message framework v935.3)
-Subject: Re: OMAP3 ISP and camera drivers (update 2)
-Date: Mon, 22 Jun 2009 23:05:15 +0900
-References: <4A3A7AE2.9080303@maxwell.research.nokia.com> <5e9665e10906200205ga45073eue92b73abba79e41c@mail.gmail.com> <200906221652.02119.tuukka.o.toivonen@nokia.com> <A24693684029E5489D1D202277BE894441306D3E@dlee02.ent.ti.com>
+	Wed, 17 Jun 2009 10:28:09 -0400
+Date: Wed, 17 Jun 2009 11:28:02 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Convert cpia driver to v4l2,      drop parallel port version
+ support?
+Message-ID: <20090617112802.152a6d64@pedra.chehab.org>
+In-Reply-To: <4A38CCAF.5060202@redhat.com>
+References: <13104.62.70.2.252.1245224630.squirrel@webmail.xs4all.nl>
+	<20090617065621.23515ab7@pedra.chehab.org>
+	<4A38CCAF.5060202@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Em Wed, 17 Jun 2009 12:59:59 +0200
+Hans de Goede <hdegoede@redhat.com> escreveu:
 
-2009. 06. 22, 오후 11:01, Aguirre Rodriguez, Sergio Alberto 작성:
+> 
+> 
+> On 06/17/2009 11:56 AM, Mauro Carvalho Chehab wrote:
+> > Em Wed, 17 Jun 2009 09:43:50 +0200 (CEST)
+> > "Hans Verkuil"<hverkuil@xs4all.nl>  escreveu:
+> >
+> >>> I recently have been bying second hand usb webcams left and right
+> >>> one of them (a creative unknown model) uses the cpia1 chipset, and
+> >>> works with the v4l1 driver currently in the kernel.
+> >>>
+> >>> One of these days I would like to convert it to a v4l2 driver using
+> >>> gspca as basis, this however will cause us to use parallel port support
+> >>> (that or we need to keep the old code around for the parallel port
+> >>> version).
+> >>>
+> >>> I personally think that loosing support for the parallel port
+> >>> version is ok given that the parallel port itslef is rapidly
+> >>> disappearing, what do you think ?
+> >> I agree wholeheartedly. If we remove pp support, then we can also remove
+> >> the bw-qcam and c-qcam drivers since they too use the parallel port.
+> >
+> > Maybe I'm too nostalgic, but those are the first V4L drivers. It would be fun
+> > to keep supporting them with V4L2 API ;)
+> >
+> > That's said, while it is probably not that hard to develop a gspca-pp driver,
+> > I'm not against removing parallel port support or even removing those drivers
+> > due to technical reasons, like the end of V4L1 drivers.
+> >
+> > By looking at the remaining V4L1 drivers, we have:
+> >
+> > 	ov511 - already implemented with V4L2 on gspca. Can be easily removed;
+> >
+> 
+> Yip, this one is a done deal :)
+> 
+> > 	se401, stv680, usbvideo, vicam - USB V4L1 drivers. IMO, it is valuable
+> > 		to convert them to gspca;
+> >
+> 
+> I've recently bought a (second hand) stv680 cam, haven't seriously tested it yet,
+> so I dunno if it works with the v4l1 driver. I agree it would be good to convert these,
+> and I can work on this as time permits, but I won't be converting code I don't have
+> HW to test for.
+> 
+> As for usbvideo that supports (amongst others) the st6422 (from the out of tree
+> qc-usb-messenger driver), but only one usb-id ??. I'm currently finishing up adding
+> st6422 support to gspca (with all known usb-id's), I have 2 different cams to test this with.
 
->> -----Original Message-----
->> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->> owner@vger.kernel.org] On Behalf Of Tuukka.O Toivonen
->> Sent: Monday, June 22, 2009 8:52 AM
->> To: ext Dongsoo, Nathaniel Kim
->> Cc: Sakari Ailus; linux-media@vger.kernel.org; Aguirre Rodriguez,  
->> Sergio
->> Alberto; Hiremath, Vaibhav; Koskipaa Antti (Nokia-D/Helsinki); Cohen
->> David.A (Nokia-D/Helsinki); Alexey Klimov; gary@mlbassoc.com
->> Subject: Re: OMAP3 ISP and camera drivers (update 2)
->>
->> On Saturday 20 June 2009 12:05:13 ext Dongsoo, Nathaniel Kim wrote:
->>> Following patch.
->>>
->> http://www.gitorious.org/omap3camera/mainline/commit/d92c96406296310a977b0
->> 0f45b209523929b15b5
->>> What happens to the capability when the int device is dummy? (does  
->>> it
->>> mean that there is no int device?)
->>
->> Yes, when the int device is dummy, there is no such a device.
->> For example, when vdev->vdev_sensor == v4l2_int_device_dummy()
->> it means that the device has no sensor.
->>
->> In that case, obviously, the device is not capable of capturing
->> or streaming.
->>
->>> And one more thing. If I want to test how the "ISP" driver is  
->>> working,
->>> is there any target board that I can buy also a sensor device  
->>> already
->>> attached on it?
->>
->> I think that TI probably has some boards for sale, you
->> could take a look at their web pages.
->
-> Hi Nate,
->
-> I'm currently rebasing these patches on top of latest Kevin's PM  
-> tree, and trying to make 3430SDP (MT9P012 and OV3640), Zoom1 and  
-> Zoom2 (not there yet, but in the works) sensors to work in there.
+I have here one Logitech quickcam. There are several variants, and the in-tree
+and out-tree drivers support different models. I can test it here and give you
+a feedback. However, I don't have the original driver for it.
 
-Thank you Sergio. So you mean that I can buy OMAP Zoom target board  
-with MT or OV sensor on it sooner or later? cool!
+> zc0301
+> only supports one usb-id which has not yet been tested with gspca, used to claim a lot more
+> usb-id's but didn't actually work with those as it only supported the bridge, not the sensor
+> -> remove it now ?
 
->
-> You can find this tree on:
->
-> http://dev.omapzoom.org/?p=saaguirre/linux-omap-camera.git;a=summary
->
-> Checkout devel branch.
->
-> That's my latest progress.
+I have one zc0301 cam that works with this driver. The last time I checked, it
+didn't work with gspca. I'll double check.
 
-OK I'll try to look at the devel branch.
+> et61x251
+> Only supports using this bridge in combination with one type of sensor where as gspca
+> supports 2 type of sensors. gspca support is untested AFAIK.
+> -> ?
+> 
+> sn9c102
+> Supports a large number of cams also supported by gspca's sonixb / sonixj driver, we're using
+> #ifdef .... macros to detect if both are being build at the same time to include usb-id's only
+> in one of the 2.
+
+Btw, it would be interesting to work with the out-of-tree microdia driver,
+since there are some models that are supported only by the alternative driver. 
+> 
+> As seems normal for drivers from this author the driver used to claim a lot of usb-id's it
+> couldn't actually work with as it only supported the bridge, not the sensor. We've removed all
+> those and are now slowly moving over the remaining usb-ids to gspca as things get tested
+> with gspca.
+> -> Keep on moving over usb-id's then when only a few are left, drop it
+
+It makes no sense to have two drivers for the same cams. Once having support
+for all USB ID's, we can mark the alternative driver as deprecated and remove
+it at the next kernel version.
+
+
+
 Cheers,
-
-Nate
-
->
-> Regards,
-> Sergio
->>
->> - Tuukka
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux- 
->> media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
+Mauro
