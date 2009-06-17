@@ -1,95 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:43571 "EHLO
+Received: from bombadil.infradead.org ([18.85.46.34]:59836 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751536AbZFKXHw (ORCPT
+	with ESMTP id S1759821AbZFQJ43 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2009 19:07:52 -0400
-Date: Thu, 11 Jun 2009 20:07:46 -0300
+	Wed, 17 Jun 2009 05:56:29 -0400
+Date: Wed, 17 Jun 2009 06:56:21 -0300
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Jean Delvare <khali@linux-fr.org>, v4l-dvb-maintainer@linuxtv.org,
-	"Udo A. Steinberg" <udo@hypervisor.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [v4l-dvb-maintainer] 2.6.30: missing audio device in bttv
-Message-ID: <20090611200746.40b14855@pedra.chehab.org>
-In-Reply-To: <200906120026.13897.hverkuil@xs4all.nl>
-References: <20090611221402.66709817@laptop.hypervisor.org>
-	<200906112222.50283.hverkuil@xs4all.nl>
-	<20090611192052.782d47af@pedra.chehab.org>
-	<200906120026.13897.hverkuil@xs4all.nl>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Cc: "Hans de Goede" <hdegoede@redhat.com>,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>
+Subject: Re: Convert cpia driver to v4l2,      drop parallel port version
+ support?
+Message-ID: <20090617065621.23515ab7@pedra.chehab.org>
+In-Reply-To: <13104.62.70.2.252.1245224630.squirrel@webmail.xs4all.nl>
+References: <13104.62.70.2.252.1245224630.squirrel@webmail.xs4all.nl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 12 Jun 2009 00:26:13 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Em Wed, 17 Jun 2009 09:43:50 +0200 (CEST)
+"Hans Verkuil" <hverkuil@xs4all.nl> escreveu:
 
-> On Friday 12 June 2009 00:20:52 Mauro Carvalho Chehab wrote:
-> > Em Thu, 11 Jun 2009 22:22:50 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> > > On Thursday 11 June 2009 22:18:10 Hans Verkuil wrote:
-> > > > On Thursday 11 June 2009 22:14:02 Udo A. Steinberg wrote:
-> > > > > Hi all,
-> > > > > 
-> > > > > With Linux 2.6.30 the BTTV driver for my WinTV card claims
-> > > > > 
-> > > > > 	bttv0: audio absent, no audio device found!
-> > > > > 
-> > > > > and audio does not work. This worked up to and including 2.6.29. Is this a
-> > > > > known issue? Does anyone have a fix or a patch for me to try?
-> > > > 
-> > > > You've no doubt compiled the bttv driver into the kernel and not as a module.
-> > > > 
-> > > > I've just pushed a fix for this to my tree: http://www.linuxtv.org/hg/~hverkuil/v4l-dvb
-> > > 
-> > > I've also attached a diff against 2.6.30 since the patch in my tree is against
-> > > the newer v4l-dvb repository and doesn't apply cleanly against 2.6.30.
-> > 
-> > 
-> > > # All i2c modules must come first:
-> > 
-> > Argh! this is an ugly solution. This can be an workaround for 2.6.30, but the
-> > proper solution is to make sure that i2c core got initialized before any i2c
-> > client.
-> > 
-> > Jean,
-> > 
-> > is there any patch meant to fix the usage of i2c when I2C and drivers are compiled with 'Y' ?
+> > I recently have been bying second hand usb webcams left and right
+> > one of them (a creative unknown model) uses the cpia1 chipset, and
+> > works with the v4l1 driver currently in the kernel.
+> >
+> > One of these days I would like to convert it to a v4l2 driver using
+> > gspca as basis, this however will cause us to use parallel port support
+> > (that or we need to keep the old code around for the parallel port
+> > version).
+> >
+> > I personally think that loosing support for the parallel port
+> > version is ok given that the parallel port itslef is rapidly
+> > disappearing, what do you think ?
 > 
-> No, the i2c core is initialized just fine,
+> I agree wholeheartedly. If we remove pp support, then we can also remove
+> the bw-qcam and c-qcam drivers since they too use the parallel port.
 
-I remember I had to commit a patch moving drivers/media to be compiled after to
-i2c core due to a similar problem (git changeset a357482a1e8fdd39f0a58c33ed2ffd0f1becb825).
+Maybe I'm too nostalgic, but those are the first V4L drivers. It would be fun
+to keep supporting them with V4L2 API ;)
 
-> but the msp3400 module is later in
-> the init sequence than bttv. So when bttv initializes and tries to find and
-> init the msp3400 module it won't find it.
+That's said, while it is probably not that hard to develop a gspca-pp driver,
+I'm not against removing parallel port support or even removing those drivers
+due to technical reasons, like the end of V4L1 drivers.
 
-> 
-> There is something weird going on with either the tveeprom module and/or the
-> ir-kbd-i2c module. I'm looking into that.
+By looking at the remaining V4L1 drivers, we have:
 
-I suspect that we'll need to work with the initialization order after the new
-i2c binding model to avoid such troubles.
+	ov511 - already implemented with V4L2 on gspca. Can be easily removed;
 
-I remember that we had a similar issue with alsa and saa7134. At the end, Linus [1]
-had to do add this, as a quick hack (unfortunately, it is still there - it
-seems that alsa guys forgot about that issue):
+	se401, stv680, usbvideo, vicam - USB V4L1 drivers. IMO, it is valuable
+		to convert them to gspca;
 
-late_initcall(saa7134_alsa_init);
+	cpia2, pwc - supports both V4L1 and V4L2 API. It shouldn't be hard to convert them
+		to vidio_ioctl2 and remove V4L1 API.
 
-On that time, he suggested the usage of subsys_initcall() for alsa. I suspect
-that we'll need to do the same for I2C and for V4L core. I'm not sure what
-would be the alternative to be done with i2c ancillary drivers.
+	stradis - a saa7146 V4L1 only driver - I never understood this one well, since there is
+		already another saa7146 driver running V4L2, used by mxb, hexium_gemini and
+		hexium_orion. To make things worse, stradis, mxb and hexium_orion are registering for
+		the same PCI device (the generic saa7146 PCI ID). If nobody volunteers to convert
+		and test with V4L2, then maybe we can just remove it. The better conversion would
+		probably be to use the V4L2 support at the saa7146 driver.
 
-Maybe one alternative would be to use fs_initcall, that seems to be already
-used by some non-fs related calls, like cpu governor [2].
+	arv - seems to be a VGA output driver - Only implements 3 ioctls:
+		VIDIOCGCAP and VIDIOCGWIN/VIDIOCSWIN. It shouldn't be hard to convert it to V4L2.
+		I'm not sure if this is still used in practice.
 
-[1] http://lkml.org/lkml/2007/3/23/285
-[2] http://tomoyo.sourceforge.jp/cgi-bin/lxr/ident?i=fs_initcall
+	bw-qcam, pms, c-qcam, cpia, w9966 - very old drivers that use direct io and/or parport;
+
+IMO, after having all USB ID's for se401, stv680, usbvideo and vicam devices supported
+by a V4L2 driver, we can just remove V4L1 ioctls from cpia2 and pwc, and the drivers that
+will still remain using only the legacy API can be dropped. Anything more converted will be a bonus
+
 
 
 Cheers,
