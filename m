@@ -1,70 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qmta10.westchester.pa.mail.comcast.net ([76.96.62.17]:45682
-	"EHLO QMTA10.westchester.pa.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753635AbZF3VtE (ORCPT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4226 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755224AbZFQTFq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jun 2009 17:49:04 -0400
-From: George Czerw <gczerw@comcast.net>
-Reply-To: gczerw@comcast.net
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [linux-dvb] Hauppauge HVR-1800 not working at all
-Date: Tue, 30 Jun 2009 17:49:05 -0400
-Cc: Michael Krufky <mkrufky@linuxtv.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <200906301301.04604.gczerw@comcast.net> <200906301548.02518.gczerw@comcast.net> <829197380906301256w2f0a701ak2332d9ec2cfae35e@mail.gmail.com>
-In-Reply-To: <829197380906301256w2f0a701ak2332d9ec2cfae35e@mail.gmail.com>
+	Wed, 17 Jun 2009 15:05:46 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Subject: Re: [PATCH 1/10 - v2] vpfe capture bridge driver for DM355 and DM6446
+Date: Wed, 17 Jun 2009 21:05:44 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+References: <1244739649-27466-1-git-send-email-m-karicheri2@ti.com> <200906170839.06421.hverkuil@xs4all.nl> <A69FA2915331DC488A831521EAE36FE40139DF9C0B@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40139DF9C0B@dlee06.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
+Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200906301749.05168.gczerw@comcast.net>
+Message-Id: <200906172105.45040.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 30 June 2009 15:56:08 Devin Heitmueller wrote:
-> On Tue, Jun 30, 2009 at 3:48 PM, George Czerw<gczerw@comcast.net> wrote:
-> > Devin, thanks for the reply.
+On Wednesday 17 June 2009 17:02:01 Karicheri, Muralidharan wrote:
+> >> <snip>
 > >
-> > Lsmod showed that "tuner" was NOT loaded (wonder why?), a "modprobe
-> > tuner" took care of that and now the HVR-1800 is displaying video
-> > perfectly and the tuning function works.  I guess that I'll have to add
-> > "tuner" into modprobe.preload.d????  Now if only I can get the sound
-> > functioning along with the video!
+> >Can you post your latest proposal for the s_bus op?
 > >
-> > George
+> >I propose a few changes: the name of the struct should be something like
+> >v4l2_bus_settings, the master/slave bit should be renamed to something
+> >like 'host_is_master', and we should have two widths: subdev_width and
+> >host_width.
+> >
+> >That way the same structure can be used for both host and subdev, unless
+> >some of the polarities are inverted. In that case you need to make two
+> >structs, one for host and one for the subdev.
+> >
+> >It is possible to add info on inverters to the struct, but unless
+> > inverters are used a lot more frequently than I expect I am inclined
+> > not to do that at this time.
 >
-> Admittedly, I don't know why you would have to load the tuner module
-> manually on the HVR-1800.  I haven't had to do this on other products?
+> [MK]Today I am planning to send my v3 version of the vpfe capture patch
+> and also tvp514x patch since Vaibhav is pre-occupied with some other
+> activities. I have discussed the changes with Vaibhav for this driver.
 >
-> If you are doing raw video capture, then you need to manually tell
-> applications where to find the ALSA device that provides the audio.
-> If you're capturing via the MPEG encoder, then the audio will be
-> embedded in the stream.
->
-> Devin
+> For s_bus, I will try if I can send a patch today. BTW, do you expect me
+> to add one bool for active high, one for active low etc as done in SoC
+> camera ?
 
-I don't understand why the audio/mpeg ports of the HVR-1800 don't show up in 
-output of lspci:
+Since I remain opposed to autonegotiation, there is IMO no need for this.
 
-03:00.0 Multimedia video controller: Conexant Systems, Inc. Device 8880 (rev 
-0f)
-        Subsystem: Hauppauge computer works Inc. Device 7801                    
-        Flags: bus master, fast devsel, latency 0, IRQ 17                       
-        Memory at f9c00000 (64-bit, non-prefetchable) [size=2M]                 
-        Capabilities: [40] Express Endpoint, MSI 00                             
-        Capabilities: [80] Power Management version 2                           
-        Capabilities: [90] Vital Product Data                                   
-        Capabilities: [a0] MSI: Mask- 64bit+ Count=1/1 Enable-                  
-        Capabilities: [100] Advanced Error Reporting                            
-        Capabilities: [200] Virtual Channel <?>                                 
-        Kernel driver in use: cx23885                                           
-        Kernel modules: cx23885
+Regards,
 
+	Hans
 
-even though the dmesg output clearly shows this:
-
-tveeprom 0-0050: decoder processor is CX23887 (idx 37) 
-tveeprom 0-0050: audio processor is CX23887 (idx 42)
-
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
