@@ -1,109 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1629 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751767AbZFSSOx (ORCPT
+Received: from mailout03.t-online.de ([194.25.134.81]:46569 "EHLO
+	mailout03.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751738AbZFQTzw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jun 2009 14:14:53 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id n5JIEtGd041980
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 19 Jun 2009 20:14:56 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 19 Jun 2009 20:14:55 +0200 (CEST)
-Message-Id: <200906191814.n5JIEtGd041980@smtp-vbr12.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+	Wed, 17 Jun 2009 15:55:52 -0400
+Date: Wed, 17 Jun 2009 21:38:17 +0200
+From: Halim Sahin <halim.sahin@t-online.de>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: bttv problem loading takes about several minutes
+Message-ID: <20090617193817.GA12345@halim.local>
+References: <20090617162400.GA11690@halim.local> <Pine.LNX.4.58.0906171001510.32713@shell2.speakeasy.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.58.0906171001510.32713@shell2.speakeasy.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi,
+The card is a
+winfast tv 2000 xp rm edition
+lspci -vvv says:
 
-Results of the daily build of v4l-dvb:
+00:0b.0 Multimedia video controller: Brooktree Corporation Bt878 Video Capture (rev 11)
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 32 (4000ns min, 10000ns max)
+	Interrupt: pin A routed to IRQ 19
+	Region 0: Memory at f7800000 (32-bit, prefetchable) [size=4K]
+	Capabilities: [44] Vital Product Data <?>
+	Capabilities: [4c] Power Management version 2
+		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+	Kernel driver in use: bttv
+	Kernel modules: bttv
 
-date:        Fri Jun 19 19:00:02 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12070:722c6faf3ab5
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+00:0b.1 Multimedia controller: Brooktree Corporation Bt878 Audio Capture (rev 11)
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 32 (1000ns min, 63750ns max)
+	Interrupt: pin A routed to IRQ 5
+	Region 0: Memory at f7000000 (32-bit, prefetchable) [size=4K]
+	Capabilities: [44] Vital Product Data <?>
+	Capabilities: [4c] Power Management version 2
+		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
+		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-x86_64: WARNINGS
-sparse (linux-2.6.30): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
 
-Detailed results are available here:
+HTH.
+Halim
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+-- 
+Halim Sahin
+E-Mail:				
+halim.sahin (at) t-online.de
