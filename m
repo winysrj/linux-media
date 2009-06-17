@@ -1,30 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42593 "EHLO
+Received: from devils.ext.ti.com ([198.47.26.153]:47575 "EHLO
 	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756605AbZFISuY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 14:50:24 -0400
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n59IoLS4017282
-	for <linux-media@vger.kernel.org>; Tue, 9 Jun 2009 13:50:26 -0500
+	with ESMTP id S1756693AbZFQULa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jun 2009 16:11:30 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5HKBRw2004371
+	for <linux-media@vger.kernel.org>; Wed, 17 Jun 2009 15:11:32 -0500
 From: m-karicheri2@ti.com
 To: linux-media@vger.kernel.org
 Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
 	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH 5/10 - v2] ccdc types used across ccdc modules for vpfe capture driver
-Date: Tue,  9 Jun 2009 14:50:20 -0400
-Message-Id: <1244573420-20551-1-git-send-email-m-karicheri2@ti.com>
+Subject: [PATCH 5/11 - v3] ccdc types used across ccdc modules for vpfe capture driver
+Date: Wed, 17 Jun 2009 16:11:18 -0400
+Message-Id: <1245269484-8325-6-git-send-email-m-karicheri2@ti.com>
+In-Reply-To: <1245269484-8325-5-git-send-email-m-karicheri2@ti.com>
+References: <1245269484-8325-1-git-send-email-m-karicheri2@ti.com>
+ <1245269484-8325-2-git-send-email-m-karicheri2@ti.com>
+ <1245269484-8325-3-git-send-email-m-karicheri2@ti.com>
+ <1245269484-8325-4-git-send-email-m-karicheri2@ti.com>
+ <1245269484-8325-5-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
+From: Muralidharan Karicheri <m-karicheri2@ti.com>
 
 common types used across CCDC modules
 
 No change from last version
 
-Reviewed By "Hans Verkuil".
-Reviewed By "Laurent Pinchart".
+Reviewed by: Hans Verkuil <hverkuil@xs4all.nl>
+Reviewed by: Laurent Pinchart <laurent.pinchart@skynet.be>
 
 Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
 ---
