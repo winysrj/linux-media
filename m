@@ -1,89 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hora-obscura.de ([213.133.111.163]:45730 "EHLO hora-obscura.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752795AbZFEHnn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2009 03:43:43 -0400
-Message-ID: <4A28CC9B.6070306@hora-obscura.de>
-Date: Fri, 05 Jun 2009 10:43:23 +0300
-From: Stefan Kost <ensonic@hora-obscura.de>
+Received: from yw-out-2324.google.com ([74.125.46.28]:7760 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750974AbZFQEiL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jun 2009 00:38:11 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so55059ywb.1
+        for <linux-media@vger.kernel.org>; Tue, 16 Jun 2009 21:38:13 -0700 (PDT)
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Trent Piepho <xyzzy@speakeasy.org>, linux-media@vger.kernel.org
-Subject: Re: webcam drivers and V4L2_MEMORY_USERPTR support
-References: <4A238292.6000205@hora-obscura.de> <Pine.LNX.4.58.0906010056140.32713@shell2.speakeasy.net> <4A23CF7F.3070301@redhat.com>
-In-Reply-To: <4A23CF7F.3070301@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Date: Wed, 17 Jun 2009 12:38:12 +0800
+Message-ID: <15ed362e0906162138u7ffd97ecn67314df35da55701@mail.gmail.com>
+Subject: [PATCH 2/2] [Resend] cx23885: add card Magic-Pro ProHDTV Extreme 2
+From: David Wong <davidtlwong@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: multipart/mixed; boundary=000325553c92e7de63046c83dbfd
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans de Goede schrieb:
->
->
-> On 06/01/2009 09:58 AM, Trent Piepho wrote:
->> On Mon, 1 Jun 2009, Stefan Kost wrote:
->>> I have implemented support for V4L2_MEMORY_USERPTR buffers in
->>> gstreamers
->>> v4l2src [1]. This allows to request shared memory buffers from xvideo,
->>> capture into those and therefore save a memcpy. This works great with
->>> the v4l2 driver on our embedded device.
->>>
->>> When I was testing this on my desktop, I noticed that almost no driver
->>> seems to support it.
->>> I tested zc0301 and uvcvideo, but also grepped the kernel driver
->>> sources. It seems that gspca might support it, but I ave not confirmed
->>> it. Is there a technical reason for it, or is it simply not
->>> implemented?
->>
->> userptr support is relatively new and so it has less support, especially
->> with driver that pre-date it.  Maybe USB cams use a compressed format
->> and
->> so userptr with xvideo would not work anyway since xv won't support the
->> camera's native format.  It certainly could be done for bt8xx, cx88,
->> saa7134, etc.
->
-> Even in the webcam with custom compressed format case, userptr support
-> could
-> be useful to safe a memcpy, as libv4l currently fakes mmap buffers, so
-> what
-> happens  is:
->
-> cam >direct transfer> mmap buffer >libv4l format conversion> fake mmap
-> buffer
-> >application-memcpy> dest buffer
->
-> So if libv4l would support userptr's (which it currently does not do) we
-> could still safe a memcpy here.
-Do you mean that if a driver supports userptr and one uses libv4l
-instead of the direct ioctl, there is a regression and the app is
-getting told only mmap works? For higher pixels counts extra memcpy's
-are scary, especially if they are no visible. Sorry for the naive
-question, but what is libv4l role regarding buffer allocations?
+--000325553c92e7de63046c83dbfd
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-In ourcase we don't need any extra format conversion from libv4l. I am
-fine if it works without extra memcpy in that case and I understand that
-it would be tricky to support inplace formats conversions for some
-formats and extra memcpy for the rest.
->
-> I would be willing to take *clean, non invasive* patches to libv4l to add
-> userptr support, but I'm not sure if this can be done in a clean way
-> (haven't
-> tried).
-Where are the libv4l sources hosted. I found your blog and the freshmeat
-page only so far.
->
-> An alternative could be for the app to just use read() in the above case
-> as then the app already provides the dest buffer. And the conversion
-> will write
-> directly to the application provided buffer.
-The driver in question support streaming. Isn't that the better way to
-do it.
->
-> Regards,
->
-> Hans
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+cx23885: add card Magic-Pro  ProHDTV Extreme 2 PCI-E.
 
+Signed-off-by: David T.L. Wong <davidtlwong@gmail.com>
+
+--000325553c92e7de63046c83dbfd
+Content-Type: text/x-diff; charset=US-ASCII; name="cx23885_magicpro_prohdtve2.patch"
+Content-Disposition: attachment; filename="cx23885_magicpro_prohdtve2.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fw1jtcvn0
+
+ZGlmZiAtciBhOTI1MTBhYWQ5ZTIgLXIgNzE5NWNmYmNhOTc0IGxpbnV4L2RyaXZlcnMvbWVkaWEv
+dmlkZW8vY3gyMzg4NS9jeDIzODg1LWNhcmRzLmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92
+aWRlby9jeDIzODg1L2N4MjM4ODUtY2FyZHMuYwlUaHUgSnVuIDExIDE5OjA3OjE1IDIwMDkgKzA4
+MDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1L2N4MjM4ODUtY2FyZHMu
+YwlUaHUgSnVuIDExIDIwOjA0OjA0IDIwMDkgKzA4MDAKQEAgLTIwMiw2ICsyMDIsMTAgQEAKIAkJ
+Lm5hbWUJCT0gIk15Z2ljYSBYODUwNiBETUItVEgiLAogCQkucG9ydGIJCT0gQ1gyMzg4NV9NUEVH
+X0RWQiwKIAl9LAorCVtDWDIzODg1X0JPQVJEX01BR0lDUFJPX1BST0hEVFZFMl0gPSB7CisJCS5u
+YW1lCQk9ICJNYWdpYy1Qcm8gUHJvSERUViBFeHRyZW1lIDIiLAorCQkucG9ydGIJCT0gQ1gyMzg4
+NV9NUEVHX0RWQiwKKwl9LAogfTsKIGNvbnN0IHVuc2lnbmVkIGludCBjeDIzODg1X2Jjb3VudCA9
+IEFSUkFZX1NJWkUoY3gyMzg4NV9ib2FyZHMpOwogCkBAIC0zMjUsNiArMzI5LDEwIEBACiAJCS5z
+dWJ2ZW5kb3IgPSAweDE0ZjEsCiAJCS5zdWJkZXZpY2UgPSAweDg2NTEsCiAJCS5jYXJkICAgICAg
+PSBDWDIzODg1X0JPQVJEX01ZR0lDQV9YODUwNiwKKwl9LCB7CisJCS5zdWJ2ZW5kb3IgPSAweDE0
+ZjEsCisJCS5zdWJkZXZpY2UgPSAweDg2NTcsCisJCS5jYXJkICAgICAgPSBDWDIzODg1X0JPQVJE
+X01BR0lDUFJPX1BST0hEVFZFMiwKIAl9LAogfTsKIGNvbnN0IHVuc2lnbmVkIGludCBjeDIzODg1
+X2lkY291bnQgPSBBUlJBWV9TSVpFKGN4MjM4ODVfc3ViaWRzKTsKQEAgLTcxNiw4ICs3MjQsOSBA
+QAogCQljeDIzODg1X2dwaW9fc2V0KGRldiwgR1BJT185KTsKIAkJYnJlYWs7CiAJY2FzZSBDWDIz
+ODg1X0JPQVJEX01ZR0lDQV9YODUwNjoKKwljYXNlIENYMjM4ODVfQk9BUkRfTUFHSUNQUk9fUFJP
+SERUVkUyOgogCQkvKiBHUElPLTEgcmVzZXQgWEM1MDAwICovCi0JCS8qIEdQSU8tMiByZXNldCBM
+R1M4R0w1ICovCisJCS8qIEdQSU8tMiByZXNldCBMR1M4R0w1IC8gTEdTOEc3NSAqLwogCQljeF9z
+ZXQoR1AwX0lPLCAweDAwMDYwMDAwKTsKIAkJY3hfY2xlYXIoR1AwX0lPLCAweDAwMDAwMDA2KTsK
+IAkJbWRlbGF5KDEwMCk7CkBAIC04MjgsNiArODM3LDcgQEAKIAkJdHMyLT5zcmNfc2VsX3ZhbCAg
+ID0gQ1gyMzg4NV9TUkNfU0VMX1BBUkFMTEVMX01QRUdfVklERU87CiAJCWJyZWFrOwogCWNhc2Ug
+Q1gyMzg4NV9CT0FSRF9NWUdJQ0FfWDg1MDY6CisJY2FzZSBDWDIzODg1X0JPQVJEX01BR0lDUFJP
+X1BST0hEVFZFMjoKIAkJdHMxLT5nZW5fY3RybF92YWwgID0gMHg1OyAvKiBQYXJhbGxlbCAqLwog
+CQl0czEtPnRzX2Nsa19lbl92YWwgPSAweDE7IC8qIEVuYWJsZSBUU19DTEsgKi8KIAkJdHMxLT5z
+cmNfc2VsX3ZhbCAgID0gQ1gyMzg4NV9TUkNfU0VMX1BBUkFMTEVMX01QRUdfVklERU87CmRpZmYg
+LXIgYTkyNTEwYWFkOWUyIC1yIDcxOTVjZmJjYTk3NCBsaW51eC9kcml2ZXJzL21lZGlhL3ZpZGVv
+L2N4MjM4ODUvY3gyMzg4NS1kdmIuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4
+MjM4ODUvY3gyMzg4NS1kdmIuYwlUaHUgSnVuIDExIDE5OjA3OjE1IDIwMDkgKzA4MDAKKysrIGIv
+bGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1L2N4MjM4ODUtZHZiLmMJVGh1IEp1biAx
+MSAyMDowNDowNCAyMDA5ICswODAwCkBAIC00NDEsNiArNDQxLDI2IEBACiAJLmlmX2toeiA9IDUz
+ODAsCiB9OwogCitzdGF0aWMgc3RydWN0IGxnczhneHhfY29uZmlnIG1hZ2ljcHJvX3Byb2hkdHZl
+Ml9sZ3M4Zzc1X2NvbmZpZyA9IHsKKwkucHJvZCA9IExHUzhHWFhfUFJPRF9MR1M4Rzc1LAorCS5k
+ZW1vZF9hZGRyZXNzID0gMHgxOSwKKwkuc2VyaWFsX3RzID0gMCwKKwkudHNfY2xrX3BvbCA9IDEs
+CisJLnRzX2Nsa19nYXRlZCA9IDEsCisJLmlmX2Nsa19mcmVxID0gMzA0MDAsIC8qIDMwLjQgTUh6
+ICovCisJLmlmX2ZyZXEgPSA2NTAwLCAvKiA2LjUwIE1IeiAqLworCS5pZl9uZWdfY2VudGVyID0g
+MSwKKwkuZXh0X2FkYyA9IDAsCisJLmFkY19zaWduZWQgPSAxLAorCS5hZGNfdnBwID0gMiwgLyog
+MS42IFZwcCAqLworCS5pZl9uZWdfZWRnZSA9IDEsCit9OworCitzdGF0aWMgc3RydWN0IHhjNTAw
+MF9jb25maWcgbWFnaWNwcm9fcHJvaGR0dmUyX3hjNTAwMF9jb25maWcgPSB7CisJLmkyY19hZGRy
+ZXNzID0gMHg2MSwKKwkuaWZfa2h6ID0gNjUwMCwKK307CisKIHN0YXRpYyBpbnQgZHZiX3JlZ2lz
+dGVyKHN0cnVjdCBjeDIzODg1X3RzcG9ydCAqcG9ydCkKIHsKIAlzdHJ1Y3QgY3gyMzg4NV9kZXYg
+KmRldiA9IHBvcnQtPmRldjsKQEAgLTc3OSw2ICs3OTksMTkgQEAKIAkJCQkmbXlnaWNhX3g4NTA2
+X3hjNTAwMF9jb25maWcpOwogCQl9CiAJCWJyZWFrOworCWNhc2UgQ1gyMzg4NV9CT0FSRF9NQUdJ
+Q1BST19QUk9IRFRWRTI6CisJCWkyY19idXMgPSAmZGV2LT5pMmNfYnVzWzBdOworCQlpMmNfYnVz
+MiA9ICZkZXYtPmkyY19idXNbMV07CisJCWZlMC0+ZHZiLmZyb250ZW5kID0gZHZiX2F0dGFjaChs
+Z3M4Z3h4X2F0dGFjaCwKKwkJCSZtYWdpY3Byb19wcm9oZHR2ZTJfbGdzOGc3NV9jb25maWcsCisJ
+CQkmaTJjX2J1cy0+aTJjX2FkYXApOworCQlpZiAoZmUwLT5kdmIuZnJvbnRlbmQgIT0gTlVMTCkg
+eworCQkJZHZiX2F0dGFjaCh4YzUwMDBfYXR0YWNoLAorCQkJCWZlMC0+ZHZiLmZyb250ZW5kLAor
+CQkJCSZpMmNfYnVzMi0+aTJjX2FkYXAsCisJCQkJJm1hZ2ljcHJvX3Byb2hkdHZlMl94YzUwMDBf
+Y29uZmlnKTsKKwkJfQorCQlicmVhazsKIAlkZWZhdWx0OgogCQlwcmludGsoS0VSTl9JTkZPICIl
+czogVGhlIGZyb250ZW5kIG9mIHlvdXIgRFZCL0FUU0MgY2FyZCAiCiAJCQkiIGlzbid0IHN1cHBv
+cnRlZCB5ZXRcbiIsCmRpZmYgLXIgYTkyNTEwYWFkOWUyIC1yIDcxOTVjZmJjYTk3NCBsaW51eC9k
+cml2ZXJzL21lZGlhL3ZpZGVvL2N4MjM4ODUvY3gyMzg4NS5oCi0tLSBhL2xpbnV4L2RyaXZlcnMv
+bWVkaWEvdmlkZW8vY3gyMzg4NS9jeDIzODg1LmgJVGh1IEp1biAxMSAxOTowNzoxNSAyMDA5ICsw
+ODAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyMzg4NS9jeDIzODg1LmgJVGh1
+IEp1biAxMSAyMDowNDowNCAyMDA5ICswODAwCkBAIC03Nyw2ICs3Nyw3IEBACiAjZGVmaW5lIENY
+MjM4ODVfQk9BUkRfSEFVUFBBVUdFX0hWUjEyNTUgICAgICAgIDIwCiAjZGVmaW5lIENYMjM4ODVf
+Qk9BUkRfSEFVUFBBVUdFX0hWUjEyMTAgICAgICAgIDIxCiAjZGVmaW5lIENYMjM4ODVfQk9BUkRf
+TVlHSUNBX1g4NTA2ICAgICAgICAgICAgIDIyCisjZGVmaW5lIENYMjM4ODVfQk9BUkRfTUFHSUNQ
+Uk9fUFJPSERUVkUyICAgICAgIDIzCiAKICNkZWZpbmUgR1BJT18wIDB4MDAwMDAwMDEKICNkZWZp
+bmUgR1BJT18xIDB4MDAwMDAwMDIK
+--000325553c92e7de63046c83dbfd--
