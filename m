@@ -1,60 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:46711 "EHLO
-	opensource2.wolfsonmicro.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755382AbZFBJeb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Jun 2009 05:34:31 -0400
-Date: Tue, 2 Jun 2009 10:34:32 +0100
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Paul Mundt <lethal@linux-sh.org>, linux-next@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-i2c@vger.kernel.org
-Subject: Re: [PATCH] i2c: Simplified CONFIG_I2C=n interface.
-Message-ID: <20090602093431.GA19390@rakim.wolfsonmicro.main>
-References: <20090527070850.GA11221@linux-sh.org> <20090527091831.26b60d6d@hyperion.delvare> <20090527120140.GC1970@sirena.org.uk> <20090602091229.0810f54b@hyperion.delvare>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090602091229.0810f54b@hyperion.delvare>
+Received: from bear.ext.ti.com ([192.94.94.41]:53722 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760180AbZFQULd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jun 2009 16:11:33 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5HKBQMd012946
+	for <linux-media@vger.kernel.org>; Wed, 17 Jun 2009 15:11:31 -0500
+From: m-karicheri2@ti.com
+To: linux-media@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH 0/11 - v3] ARM: DaVinci: Video: DM355/DM6446 VPFE Capture driver
+Date: Wed, 17 Jun 2009 16:11:13 -0400
+Message-Id: <1245269484-8325-1-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 02, 2009 at 09:12:29AM +0200, Jean Delvare wrote:
-> On Wed, 27 May 2009 13:01:40 +0100, Mark Brown wrote:
+From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
 
-> > It's extremely common for devices like the CODECs and PMICs used in
-> > embedded systems to have both I2C and SPI interfaces, selectable via a
+Big Thanks to all reviewers who have contributed to this driver
+by reviewing and offering valuable comments.
 
-> Can you please point me at a couple of affected drivers?
+VPFE Capture driver for DaVinci Media SOCs :- DM355 and DM6446
 
-Most of the Wolfson CODECs in sound/soc/codecs are affected (more than
-actually have the SPI code at the minute), probably a lot of the other
-CODECs there too.  I'd expect most I2C devices in drivers/mfd will also
-be affectd.  For anything with more than a few registers the tendency is
-to have both options unless there's a hardware constraint.
+This is the version v3 of the patch series. This is the reworked
+version of the driver based on comments received against the last
+version (v2) of the patch and is expected to be final version
+candidate for merge to upstream kernel
 
-> I would really expect all I2C-related code to be in one place of the
-> driver (or even in a separate source file) and same for SPI-related
-> code. Then surrounding one big block of code with an ifdef doesn't
-> sound that difficult to read.
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+These patches add support for VPFE (Video Processing Front End) based
+video capture on DM355 and DM6446 EVMs. For more details on the hardware
+configuration and capabilities, please refer the vpfe_capture.c header.
+This patch set consists of following:- 
 
-It's not a legibility issue, it's to do with people remembering to
-handle all the cases.  It's a bit of a PITA but not the end of the
-world - I'm mentioning this more because you were suggesting that a
-driver that was still useful with I2C=n was unusual rather than anything
-else.
+Patch 1: VPFE Capture bridge driver
+Patch 2: CCDC hw device header file
+Patch 3: DM355 CCDC hw module
+Patch 4: DM644x CCDC hw module
+Patch 5: ccdc types used across CCDC modules
+Patch 6: Makefile and config files for the driver
+Patch 7: DM355 platform and board setup
+Patch 8: DM644x platform and board setup
+Patch 9: common vpss hw module for video drivers
+Patch 10: Remove outdated driver files from davinci git tree
+Patch 11: Makefile and config files for the davinci git tree (New
+from v2)
 
-> driver needs to be reviewed for the CONFIG_I2C=n case. If we add stubs
-> all around to workaround the link breakage, this means the review never
-> happens, so the code might as well build and link but not work properly
-> or at least not be optimal. I wouldn't call this progress.
+NOTE:
 
-I can't really see a situation where things wouldn't work properly
-beyond the current situation where I2C support can just be built out -
-if nobody is running the code then that's a separate issue.
+1. Patches 10-11 are only for DaVinci GIT tree. Others applies to
+DaVinci GIT and v4l-dvb
 
-> What could be done, OTOH, is to surround all the function declarations
-> in <linux/i2c.h> with a simple #ifdef CONFIG_I2C, so that mistakes are
-> caught earlier (build time instead of link time.)
+2. Dependent on the TVP514x decoder driver patch for migrating the
+driver to sub device model from Vaibhav Hiremath. I am sending the
+reworked version of this patch instead of Vaibhav.
 
-That'd be helpful, yes.
+Following tests are performed.
+	1) Capture and display video (PAL & NTSC) from tvp5146 decoder.
+	   Displayed using fbdev device driver available on davinci git tree
+	2) Tested with driver built statically and dynamically
+
+Muralidhara Karicheri
+
+Reviewed by: Hans Verkuil <hverkuil@xs4all.nl>
+Reviewed by: Laurent Pinchart <laurent.pinchart@skynet.be>
+Reviewed by: Alexey Klimov <klimov.linux@gmail.com>
+Reviewed by: Kevin Hilman <khilman@deeprootsystems.com>
+Reviewed by: David Brownell <david-b@pacbell.net>
+
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
