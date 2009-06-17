@@ -1,52 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:25178 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751690AbZFHMiz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2009 08:38:55 -0400
-Date: Mon, 8 Jun 2009 14:39:32 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-i2c@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: RFC: proposal for new i2c.h macro to initialize i2c address
- lists on the fly
-Message-ID: <20090608143932.36cd1b4f@hyperion.delvare>
-In-Reply-To: <200906061500.49338.hverkuil@xs4all.nl>
-References: <200906061500.49338.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mx2.redhat.com ([66.187.237.31]:49734 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755547AbZFQRYS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jun 2009 13:24:18 -0400
+Message-ID: <4A392719.8070102@redhat.com>
+Date: Wed, 17 Jun 2009 19:25:45 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Convert cpia driver to v4l2,      drop parallel port version
+ support?
+References: <13104.62.70.2.252.1245224630.squirrel@webmail.xs4all.nl>	<20090617065621.23515ab7@pedra.chehab.org>	<4A38CCAF.5060202@redhat.com>	<20090617112802.152a6d64@pedra.chehab.org>	<4A390093.5090003@redhat.com> <20090617122352.261e1a16@pedra.chehab.org>
+In-Reply-To: <20090617122352.261e1a16@pedra.chehab.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi,
 
-On Sat, 6 Jun 2009 15:00:48 +0200, Hans Verkuil wrote:
-> For video4linux we sometimes need to probe for a single i2c address. 
-> Normally you would do it like this:
-> 
-> static const unsigned short addrs[] = {
-> 	addr, I2C_CLIENT_END
-> };
-> 
-> client = i2c_new_probed_device(adapter, &info, addrs);
-> 
-> This is a bit awkward and I came up with this macro:
-> 
-> #define V4L2_I2C_ADDRS(addr, addrs...) \
->         ((const unsigned short []){ addr, ## addrs, I2C_CLIENT_END })
-> 
-> This can construct a list of one or more i2c addresses on the fly. But this 
-> is something that really belongs in i2c.h, renamed to I2C_ADDRS.
-> 
-> With this macro we can just do:
-> 
-> client = i2c_new_probed_device(adapter, &info, I2C_ADDRS(addr));
-> 
-> Comments?
+On 06/17/2009 05:23 PM, Mauro Carvalho Chehab wrote:
+> Em Wed, 17 Jun 2009 16:41:23 +0200
+> Hans de Goede<hdegoede@redhat.com>  escreveu:
+>
+>> Hi all,
+>>
+>> On 06/17/2009 04:28 PM, Mauro Carvalho Chehab wrote:
+>>> Em Wed, 17 Jun 2009 12:59:59 +0200
+>>> Hans de Goede<hdegoede@redhat.com>   escreveu:
+>>>
+>> <snip>
+>>
+>>>> As for usbvideo that supports (amongst others) the st6422 (from the out of tree
+>>>> qc-usb-messenger driver), but only one usb-id ??. I'm currently finishing up adding
+>>>> st6422 support to gspca (with all known usb-id's), I have 2 different cams to test this with.
+>>> I have here one Logitech quickcam. There are several variants, and the in-tree
+>>> and out-tree drivers support different models. I can test it here and give you
+>>> a feedback. However, I don't have the original driver for it.
+>>>
+>> Ok, what is its usb id (they tend to be unique for Logitech cams) ?
+>
+> The one I have is this one:
+>
+> Bus 005 Device 003: ID 046d:08f6 Logitech, Inc. QuickCam Messenger Plus
+>
+> This is supported by one quickcam driver.
+>
 
-I'm not a big fan of macros which hide how things work, but if this
-makes your life easier, why not. Just send a patch and I'll queue it up
-for 2.6.31.
+Ah, that is one of the 2 models I have access to, so I can promise you that one will work fine
+with the new st6422 support I'm doing.
 
--- 
-Jean Delvare
+>>>> zc0301
+>>>> only supports one usb-id which has not yet been tested with gspca, used to claim a lot more
+>>>> usb-id's but didn't actually work with those as it only supported the bridge, not the sensor
+>>>> ->   remove it now ?
+>>> I have one zc0301 cam that works with this driver. The last time I checked, it
+>>> didn't work with gspca. I'll double check.
+>>>
+>> Ok, let me know how it goes.
+>
+> The zc0301 camera is this one:
+>
+> Bus 005 Device 002: ID 046d:08ae Logitech, Inc. QuickCam for Notebooks
+>
+> zc0301 driver says this:
+>
+> [98174.672464] zc0301: V4L2 driver for ZC0301[P] Image Processor and Control Chip v1:1.10
+> [98174.672517] usb 5-2: ZC0301[P] Image Processor and Control Chip detected (vid/pid 0x046D:0x08AE)
+> [98174.713717] usb 5-2: PAS202BCB image sensor detected
+>
+> The cam works as expected.
+>
+
+Hmm, bummer I don't have any zc3xx test cams with a pas202b sensor, guess I need to find one :)
+
+>
+> I probably won't go to LPC this year, since I'm programming to be at Japan Linux
+> Symposium in October, and it seems too much jet leg for me to be in Portland in
+> Sept and in Japan in Oct ;)
+>
+
+Ah too bad, but understandable.
+
+Regards,
+
+Hans
