@@ -1,20 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n57LsEpK029062
-	for <video4linux-list@redhat.com>; Sun, 7 Jun 2009 17:54:14 -0400
-Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.245])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n57Lrwis008556
-	for <video4linux-list@redhat.com>; Sun, 7 Jun 2009 17:53:58 -0400
-Received: by an-out-0708.google.com with SMTP id b38so1631951ana.36
-	for <video4linux-list@redhat.com>; Sun, 07 Jun 2009 14:53:57 -0700 (PDT)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with SMTP id n5HLWC9N027275
+	for <video4linux-list@redhat.com>; Wed, 17 Jun 2009 17:32:12 -0400
+Received: from an-out-0708.google.com (an-out-0708.google.com [209.85.132.247])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n5HLVqPE011747
+	for <video4linux-list@redhat.com>; Wed, 17 Jun 2009 17:31:52 -0400
+Received: by an-out-0708.google.com with SMTP id b38so291435ana.36
+	for <video4linux-list@redhat.com>; Wed, 17 Jun 2009 14:31:52 -0700 (PDT)
 MIME-Version: 1.0
-Date: Sun, 7 Jun 2009 17:53:57 -0400
-Message-ID: <ab1abcde0906071453x40c5c2f8y45c1a9c9ddefbb1d@mail.gmail.com>
+Date: Wed, 17 Jun 2009 17:31:52 -0400
+Message-ID: <ab1abcde0906171431r3782f252pdd2a3b7f24a72d0e@mail.gmail.com>
 From: Russell King <rjkfsm@gmail.com>
 To: video4linux-list@redhat.com
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: Creative Instant GSPCA
+Subject: Still no fix
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -33,7 +33,8 @@ ships with the 2.6.29 kernel and almost all I get are problems. It does not
 matter if I use my laptop with an ATI video card or my desktop with an
 nVidia card. I have tried using the webcam as the only device on the USB
 hub. Funny thing is that "mplayer tv:// -tv
-driver=v4l2:width=352:height=288:device=/dev/video0" works properly.
+driver=v4l2:width=352:height=288:device=/dev/video0"
+works properly.
 
 On the desktop PC, lsusb gives me:
 Bus 003 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
