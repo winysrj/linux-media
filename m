@@ -1,47 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.170]:29898 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752767AbZFHB3D convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jun 2009 21:29:03 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so1156894wfd.4
-        for <linux-media@vger.kernel.org>; Sun, 07 Jun 2009 18:29:05 -0700 (PDT)
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2001 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757846AbZFQKiN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jun 2009 06:38:13 -0400
+Message-ID: <10710.62.70.2.252.1245235094.squirrel@webmail.xs4all.nl>
+Date: Wed, 17 Jun 2009 12:38:14 +0200 (CEST)
+Subject: Re: [PATCH] v4l: add cropping prototypes to struct
+     v4l2_subdev_video_ops
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+Cc: "Linux Media Mailing List" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <1244424059.3144.14.camel@palomino.walls.org>
-References: <ab60605f580782732ecd676ecbab3ea3.squirrel@mail.voxel.net>
-	 <829197380906071812m591c3c3dy2cdac036d116a574@mail.gmail.com>
-	 <1244424059.3144.14.camel@palomino.walls.org>
-Date: Sun, 7 Jun 2009 21:29:05 -0400
-Message-ID: <829197380906071829r4132690ao965d88d589c65e5a@mail.gmail.com>
-Subject: Re: funny colors from XC5000 on big endian systems
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Andy Walls <awalls@radix.net>
-Cc: "W. Michael Petullo" <mike@flyn.org>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jun 7, 2009 at 9:20 PM, Andy Walls<awalls@radix.net> wrote:
-> You may also want to check if CVBS or S-Video also shows the problem.  A
-> simple test that will conclusively eliminate the XC5000.
+
+> Add g_crop, s_crop and cropcap methods to video v4l2-subdev operations.
 >
-> Regards,
-> Andy
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+>
+> Hans, is this all that's needed?
 
-Well, it won't really be conclusive in this case - it's an
-intermittent bug in the hardware, and is much more likely to occur
-with the xc5000 because it happens when the signal needs to resync
-(the 16-bit YUYV byte pair sometimes is read on the wrong boundary).
-Hence it tends to occur more often with the xc5000 because of changing
-channels (but can occur on the CVBS or S-Video inputs as well).  The
-au0828 driver has code to detect this condition but there might be an
-issue with the check.
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-Once I know the answer to the questions posed to Mike, I can work with
-him to debug the issue.
+Regards,
 
-Devin
+       Hans
+
+>
+>  include/media/v4l2-subdev.h |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
+>
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 1785608..673a4e1 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -215,6 +215,9 @@ struct v4l2_subdev_video_ops {
+>  	int (*g_fmt)(struct v4l2_subdev *sd, struct v4l2_format *fmt);
+>  	int (*try_fmt)(struct v4l2_subdev *sd, struct v4l2_format *fmt);
+>  	int (*s_fmt)(struct v4l2_subdev *sd, struct v4l2_format *fmt);
+> +	int (*cropcap)(struct v4l2_subdev *sd, struct v4l2_cropcap *cc);
+> +	int (*g_crop)(struct v4l2_subdev *sd, struct v4l2_crop *crop);
+> +	int (*s_crop)(struct v4l2_subdev *sd, struct v4l2_crop *crop);
+>  	int (*g_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
+>  	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
+>  	int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum
+> *fsize);
+> --
+> 1.6.2.4
+>
+>
+
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
