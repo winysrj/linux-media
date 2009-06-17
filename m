@@ -1,167 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.velocitynet.com.au ([203.17.154.25]:55538 "EHLO
-	m0.velocity.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753706AbZFGHwV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jun 2009 03:52:21 -0400
-Received: from webmail.velocity.net.au (unknown [203.17.154.9])
-	by m0.velocity.net.au (Postfix) with ESMTP id 6BC9260063
-	for <linux-media@vger.kernel.org>; Sun,  7 Jun 2009 17:52:21 +1000 (EST)
-Message-ID: <64501.202.168.20.241.1244361141.squirrel@webmail.velocity.net.au>
-Date: Sun, 7 Jun 2009 17:52:21 +1000 (EST)
-Subject: RE: Leadtek Winfast DTV-1000S
-From: paul10@planar.id.au
-To: linux-media@vger.kernel.org
+Received: from ppsw-5.csi.cam.ac.uk ([131.111.8.135]:41057 "EHLO
+	ppsw-5.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751949AbZFQJZv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jun 2009 05:25:51 -0400
+Message-ID: <4A38B6C5.3020108@cam.ac.uk>
+Date: Wed, 17 Jun 2009 09:26:29 +0000
+From: Jonathan Cameron <jic23@cam.ac.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Darius <augulis.darius@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>
+Subject: Re: [PATCH] soc-camera: ov7670 merged multiple drivers and moved
+ over to v4l2-subdev
+References: <4A365918.40801@cam.ac.uk> <Pine.LNX.4.64.0906161552420.4880@axis700.grange> <4A37AFF0.9090004@cam.ac.uk> <200906170844.42512.hverkuil@xs4all.nl>
+In-Reply-To: <200906170844.42512.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-OK, I've pulled the card and taken a photo, and then removed the other
-cards in my box so as to see the messages for this card only.
+Hans Verkuil wrote:
+> On Tuesday 16 June 2009 16:45:04 Jonathan Cameron wrote:
+>> Guennadi Liakhovetski wrote:
+>>> On Mon, 15 Jun 2009, Jonathan Cameron wrote:
+>>>> From: Jonathan Cameron <jic23@cam.ac.uk>
+>>>>
+>>>> OV7670 soc-camera driver. Merge of drivers from Jonathan Corbet,
+>>>> Darius Augulis and Jonathan Cameron
+>>> Could you please, describe in more detail how you merged them?
+>> Mostly by combining the various register sets and then adding pretty much
+>> all the functionality in each of them, testing pretty much everything.
+>>
+>> Note that a lot of what was in those drivers (usually labeled as
+>> untested) simply doesn't work and is based on 'magic' register sets
+>> provided by omnivision.
+>>
+>>> However, I am not sure this is the best way to go. I think, a better
+>>> approach would be to take a driver currently in the mainline, perhaps,
+>>> the most feature-complete one if there are several of them there,
+>> That is more or less what I've done (it's based on Jonathan Corbet's
+>> driver). Darius' driver and mine have never been in mainline. Darius' was
+>> a complete rewrite based on doc's he has under NDA.  Mine was based on
+>> Jonathan Corbet's one with a few bits leveraged from a working tinyos
+>> driver for the platform I'm using (principally because Omnivision are
+>> ignoring both myself and the board supplier).
+>>
+>>> convert
+>>> it and its user(s) to v4l2-subdev, extend it with any features missing
+>>> in it and present in other drivers, then switch users of all other
+>>> ov7670 drivers over to this one,
+>> That's the problem. The only mainlined driver is specifically for an OLPC
+>> machine.  The driver is tied to specific i2c device and doesn't use
+>> anything anywhere near soc-camera or v4l2-subdev.
+> 
+> Yes, it does. ov7670.c was converted to v4l2-subdev in 2.6.30.
+Ah! thanks for the heads up on that.
+Some how I missed that entirely.
+> 
+>> While it would be nice to get a single driver working
+>> for this hardware as well as more conventional soc-camera devices, it
+>> isn't going to happen without a lot of input from someone with an olpc. 
+>> The chip is interfaced through a Marvell 88alp101 'cafe' chip which does
+>> a whole host of random things alongside being video processor and taking
+>> a quick look at that would be written in a completely different fashion
+>> if it were done now (mfd with subdevices etc, v4l2-sudev)
+>>
+>> So basically in the ideal world it would happen exactly as you've
+>> suggested, but I doubt it'll happen any time soon and in the meantime
+>> there is no in kernel support for those of us using the chip on other
+>> platforms.
+>>
+>> *looks hopefully in the direction of Jonathan Corbet and other olpc
+>> owners*
+> 
+> I have an olpc, but I still haven't had the time to setup a proper test 
+> environment on it. However, I managed to clear my backlog of reviews in the 
+> past few days so hopefully I can find some time this weekend to set it up.
+Cool.
+> 
+>>> and finally make it work with soc-camera. This
+>>> way you get a series of smaller and reviewable patches, instead of a
+>>> completely new driver, that reproduces a lot of existing code but has
+>>> to be reviewed anew. How does this sound?
+>> Would be fine if the original driver (or anything terribly close to it)
+>> were useable on a platform I actually have without more or less being
+>> rewritten.
+>>
+>> I can back track the driver to be as close to that as possible and still
+>> functional, but I'm not entirely sure it will make the code any easier to
+>> review and you'll loose a lot the functionality lifted from Darius' as
+>> my original drivers.
+>>
+>> The original posting I made was as close as you can reasonably get to
+>> Jonathan's original driver.
+>>
+>> http://patchwork.kernel.org/patch/12192/
+>>
+>> At the time it wasn't really reviewed (beyond a few comments)
+>> as you were just commencing the soc-camera conversion and it made
+>> sense to wait for after that.
+>>
+>> I'm not really sure how we should proceed with this. I'm particularly
+>> loath to touch the olpc driver unless we have a reasonable number of
+>> people willing to test.
+> 
+> The current ov7670.c driver in the 2.6.30 tree (and the v4l-dvb repository) 
+> is already v4l2_subdev based and should be reusable in other platforms, 
+> including soc-camera once that has also been converted to use v4l2_subdev.
+Excellent, I'll look at moving the functionality patches based on this driver
+and Darius' on to that then.  Sorry for repeating some of your work, I somehow
+completely forgot your original email saying this was on it's way!
 
-It looks to me like it doesn't like the tuner, perhaps because the eeprom
-information isn't as expected.  Further, I probably don't have the right
-firmware, as I copied the firmware from the Hauppage driver.
-
-Information attached here is:
-  1.  Links to everything I've found on the web that is relevant
-  2.  Link to the photo of the card.  The chips aren't particularly
-readable 3.  List of every number I can read on the various chips (at
-least the
-larger ones)
-  4.  Kernel logs from my boot
-
-I'm hoping Mike or someone else can help me with where to go next.  I
-reckon a good start is to get the firmware - I have the windows drivers
-but no idea how to get firmware out of them.  I also reckon I need the
-eeprom info, but also no idea how I go about setting that up either.
-
-Thanks for any advice anyone can give on how to progress from here.  I see
-somewhere I can specify a tuner for the card, but I actually can't work
-out what tuner this card has - the TDA10048 doesn't seem to be a tuner,
-and I can't see any other chips that are tuners.
-
-Paul
-
-
-
-1.  Links:
-  Some other guy trying to get this working - prior to TDA10048 support
-being included
-  http://www.linuxtv.org/pipermail/linux-dvb/2008-April/025586.html
-
-  The driver version I pulled and used from Mike Krufky
-  http://kernellabs.com/hg/~mk/hvr1110
-
-  A thread from a local forum in which I discussed this, may be useful
-http://forums.whirlpool.net.au/forum-replies-archive.cfm/1212297.html
-
-  Windows drivers
-  http://drivers.softpedia.com/get/TV-Tuner-Co/LEADTEK/Leadtek-WinFast-DTV1000S-XP-Driver-20070907-WHQL.shtml
-
-  Instructions for getting firmware for an hvr1200
-  steventoth.net/linux/hvr1200
-
-2.  Link to photo of the card
-   planar.id.au/img_0050.jpg
-
-3.  All the numbers from the various chips.  Where there are a few spaces
-between numbers for a given chip, that generally means it runs over
-multiple lines on the chip itself.  I've searched on the web to see what
-each of them are, and put that info in where I could find it (after the
-:).
-
-   Top left (small black) - TDA 10048HN   Q617YFD   07   2PGD7062 :Channel
-receiver
-  Top mid-right (mid black) - AT8PS56S    HKECSG752 :Microcontroller Top
-mid (small black) - HT24LC02 :Memory device
-  Bottom mid (large black)  NXP SAA7130HL  VL3669.1   17   kS607491 :Video
-broadcast decoder
-  mid-right (silver oval) - 32.1F7M
-  Far right (small black) - MT1117    3.30719A :Linear voltage / regulator
-Bottom mid-left (small black) - MT1117    3.3.0719A
-
-4.  Kernel logs of the boot
-   planar.id.au/dmesg.log
-
-Interesting bits from that log copied in here:
-[   10.515224] Linux video capture interface: v2.00
-[   10.607398] saa7130/34: v4l2 driver version 0.2.15 loaded
-[   10.615508] saa7134 0000:05:00.0: PCI INT A -> GSI 20 (level, low) ->
-IRQ 20
-[   10.623719] saa7130[0]: found at 0000:05:00.0, rev: 1, irq: 20,
-latency: 32, mmio: 0xf9100000
-[   10.632179] saa7130[0]: subsystem: 107d:6655, board: Hauppauge
-WinTV-HVR1110r3 DVB-T/Hybrid [card=156,insmod option]
-[   10.640920] saa7130[0]: board init: gpio is 22000
-[   10.672049] IRQ 20/saa7130[0]: IRQF_DISABLED is not guaranteed on
-shared IRQs
-[   10.718381] HDA Intel 0000:00:1b.0: PCI INT A -> GSI 22 (level, low) ->
-IRQ 22
-[   10.727458] HDA Intel 0000:00:1b.0: setting latency timer to 64 [  
-10.832019] saa7130[0]: i2c eeprom 00: 7d 10 55 66 54 20 1c 00 43 43 a9 1c
-55 d2 b2 92
-[   10.832026] saa7130[0]: i2c eeprom 10: 00 ff 82 0e ff 20 ff ff ff ff ff
-ff ff ff ff ff
-[   10.832031] saa7130[0]: i2c eeprom 20: 01 40 01 01 01 ff 01 03 08 ff 00
-8a ff ff ff ff
-[   10.832037] saa7130[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.832042] saa7130[0]: i2c eeprom 40: ff 35 00 c0 00 10 03 02 ff 04 ff
-ff ff ff ff ff
-[   10.832048] saa7130[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.832053] saa7130[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.832059] saa7130[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.832064] saa7130[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.832070] saa7130[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.832075] saa7130[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.832081] saa7130[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.832087] saa7130[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.832092] saa7130[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.832098] saa7130[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.832103] saa7130[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff
-[   10.832110] tveeprom 1-0050: Encountered bad packet header [ff].
-Corrupt or not a Hauppauge eeprom.
-[   10.832112] saa7130[0]: warning: unknown hauppauge model #0
-[   10.832114] saa7130[0]: hauppauge eeprom: model=0
-[   10.876030] Chip ID is not zero. It is not a TEA5767
-[   10.876076] tuner 1-0060: chip found @ 0xc0 (saa7130[0])
-[   10.940029] tda8290: no gate control were provided!
-[   10.940080] tuner 1-0060: Tuner has no way to set tv freq
-[   10.940086] tuner 1-0060: Tuner has no way to set tv freq
-[   10.940138] saa7130[0]: registered device video0 [v4l2]
-[   10.940156] saa7130[0]: registered device vbi0
-[   10.940176] saa7130[0]: registered device radio0
-[   11.141895] dvb_init() allocating 1 frontend
-[   11.311046] tda18271 1-0060: creating new instance
-[   11.328032] TDA18271HD/C1 detected @ 1-0060
-[   11.752019] DVB: registering new adapter (saa7130[0])
-[   11.759684] DVB: registering adapter 0 frontend 0 (NXP TDA10048HN
-DVB-T)...
-[   11.939570] Adding 3903784k swap on /dev/sde2.  Priority:-1 extents:1
-across:3903784k
-[   11.959709] Adding 3903784k swap on /dev/sdd2.  Priority:-2 extents:1
-across:3903784k
-[   12.100022] tda10048_firmware_upload: waiting for firmware upload
-(dvb-fe-tda10048-1.0.fw)...
-[   12.108284] saa7134 0000:05:00.0: firmware: requesting
-dvb-fe-tda10048-1.0.fw
-[   12.166215] tda10048_firmware_upload: firmware read 24878 bytes. [  
-12.174376] tda10048_firmware_upload: firmware uploading
-[   16.260025] tda10048_firmware_upload: firmware uploaded
-
-
-
-
+Jonathan
