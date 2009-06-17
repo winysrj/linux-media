@@ -1,78 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f177.google.com ([209.85.222.177]:46817 "EHLO
-	mail-pz0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751381AbZFBAMp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2009 20:12:45 -0400
-Received: by pzk7 with SMTP id 7so6294060pzk.33
-        for <linux-media@vger.kernel.org>; Mon, 01 Jun 2009 17:12:47 -0700 (PDT)
-To: "Karicheri\, Muralidharan" <m-karicheri2@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@skynet.be>,
-	"linux-media\@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source\@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 3/9] dm355 ccdc module for vpfe capture driver
-References: <1242412603-11390-1-git-send-email-m-karicheri2@ti.com>
-	<200905281518.18879.laurent.pinchart@skynet.be>
-	<A69FA2915331DC488A831521EAE36FE401354ECDB2@dlee06.ent.ti.com>
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Date: Mon, 01 Jun 2009 17:12:41 -0700
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE401354ECDB2@dlee06.ent.ti.com> (Muralidharan Karicheri's message of "Mon\, 1 Jun 2009 09\:48\:21 -0500")
-Message-ID: <87y6sbo5mu.fsf@deeprootsystems.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from bombadil.infradead.org ([18.85.46.34]:33781 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752560AbZFQC21 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Jun 2009 22:28:27 -0400
+Date: Tue, 16 Jun 2009 23:28:25 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: AH <andrzej.hajda@wp.pl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] High resolution timer for cx88 remotes
+Message-ID: <20090616232825.31978261@pedra.chehab.org>
+In-Reply-To: <4A17E6A9.4070409@wp.pl>
+References: <4A17E6A9.4070409@wp.pl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-"Karicheri, Muralidharan" <m-karicheri2@ti.com> writes:
+Em Sat, 23 May 2009 14:06:01 +0200
+AH <andrzej.hajda@wp.pl> escreveu:
 
-> Laurent,
->
-> Thanks for reviewing this. I have not gone through all of your comments, but would like to respond to the following one first. I will respond to the rest as I do the rework.
->
->>I've had a quick look at the DM355 and DM6446 datasheets. The CCDC and VPSS
->>registers share the same memory block. Can't you use a single resource ?
->>
->>One nice (and better in my opinion) solution would be to declare a
->>structure
->>with all the VPSS/CCDC registers as they are implemented in hardware and
->>access the structure fields with __raw_read/write*. You would then store a
->>single pointer only. Check arch/powerpc/include/asm/immap_cpm2.h for an
->>example.
->
-> I think, a better solution will be to move the vpss system module
-> part to the board specific file dm355.c or dm6446.c 
+> Hi
+> 
+> Some remotes requires short polling interval which in modern kernels is 
+> below resolution of standard scheduler (schedule_delayed_work), this 
+> causes problem of missed keystrokes. One of the solutions is to raise 
+> kernel timer frequency, my proposition is to use high resolution timers 
+> which are present in kernel since 2.6.16 (at least API AFAIK).
+> I have encountered this problem on my Winfast 2000XP Expert, but after 
+> checking cx88-input.c it seems that following cards can be affected also:
+> WINFAST2000XP_EXPERT
+> WINFAST_DTV1000
+> WINFAST_TV2000_XP_GLOBAL
+> PROLINK_PLAYTVPVR
+> PIXELVIEW_PLAYTV_ULTRA_PRO
+> PROLINK_PV_8000GT
+> PROLINK_PV_GLOBAL_XTREME
+> KWORLD_LTV883
+> MSI_TVANYWHERE_MASTER
+> 
+> Patched driver seems to work on my system, with kernel 2.6.28.
+> I have removed kernel checks for versions below 2.6.20 - they were 
+> because of API changes in scheduler.
+> 
+> I have not tested it on older kernels.
+> 
+> Regards
+> AH
+> 
+> diff -r 315bc4b65b4f linux/drivers/media/video/cx88/cx88-input.c
+> --- a/linux/drivers/media/video/cx88/cx88-input.c       Sun May 17 
+> 12:28:55 2009 +0000
+> +++ b/linux/drivers/media/video/cx88/cx88-input.c       Sat May 23 
+> 14:04:17 2009 +0200
+> @@ -23,10 +23,10 @@
+>   */
+> 
+>  #include <linux/init.h>
+> -#include <linux/delay.h>
+>  #include <linux/input.h>
+>  #include <linux/pci.h>
+>  #include <linux/module.h>
+> +#include <linux/hrtimer.h>
+> 
+>  #include "compat.h"
+>  #include "cx88.h"
+> @@ -49,7 +49,7 @@
+> 
+>         /* poll external decoder */
+>         int polling;
+> -       struct delayed_work work;
+> +       struct hrtimer timer;
+>         u32 gpio_addr;
+>         u32 last_gpio;
+>         u32 mask_keycode;
+> @@ -144,31 +144,25 @@
+>         }
+>  }
+> 
+> -#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20)
+> -static void cx88_ir_work(void *data)
+> -#else
+> -static void cx88_ir_work(struct work_struct *work)
+> -#endif
+> +enum hrtimer_restart cx88_ir_work(struct hrtimer *timer)
+>  {
+> -#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20)
+> -       struct cx88_IR *ir = data;
+> -#else
+> -       struct cx88_IR *ir = container_of(work, struct cx88_IR, work.work);
+> -#endif
+> +       unsigned long missed;
+> +       struct cx88_IR *ir = container_of(timer, struct cx88_IR, timer);
+> 
+>         cx88_ir_handle_key(ir);
+> -       schedule_delayed_work(&ir->work, msecs_to_jiffies(ir->polling));
+> +       missed = hrtimer_forward_now(&ir->timer, ktime_set(0, 
+> ir->polling * 1000000));
 
-Just to clarify, the files you mention are SoC specific files, not
-board-specific files...
+Hmm... this patch got line wrapped. please fix it and re-send.
 
-> and export functions to configure them as needed by the different
-> drivers.
+> +       if (missed > 1)
+> +               ir_dprintk("Missed ticks %ld\n", missed - 1);
+> +
+> +       return HRTIMER_RESTART;
+>  }
+> 
+>  void cx88_ir_start(struct cx88_core *core, struct cx88_IR *ir)
+>  {
+>         if (ir->polling) {
+> -#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20)
+> -               INIT_DELAYED_WORK(&ir->work, cx88_ir_work, ir);
+> -#else
+> -               INIT_DELAYED_WORK(&ir->work, cx88_ir_work);
+> -#endif
+> -               schedule_delayed_work(&ir->work, 0);
+> +               hrtimer_init(&ir->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+> +               ir->timer.function = cx88_ir_work;
+> +               hrtimer_start(&ir->timer, ktime_set(0, ir->polling * 
+> 1000000), HRTIMER_MODE_REL);
+>         }
+>         if (ir->sampling) {
+>                 core->pci_irqmask |= PCI_INT_IR_SMPINT;
+> @@ -185,7 +179,7 @@
+>         }
+> 
+>         if (ir->polling)
+> -               cancel_delayed_work_sync(&ir->work);
+> +               hrtimer_cancel(&ir->timer);
+>  }
+> 
+>  /* 
+> ---------------------------------------------------------------------- */
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-My first reaction to this is... no.  I'm reluctant to have a bunch of
-driver specific hooks in the core davinci SoC specific code.  I'd much
-rather see this stuff kept along with the driver in drivers/media/*
-and abstracted as necessary there.
 
-> The vpss has evolved quite a lot from DM6446 to DM355 to
-> DM365. Registers such as INTSEL and INTSTAT and others are
-> applicable to other modules as well, not just the ccdc module. The
-> VPBE and resizer drivers will need to configure them too. Also the
-> vpss system module features available in DM365 is much more than
-> that in DM355. 
 
-Based on this, it sounds to me that this driver needs to be broken up
-a little bit more and some of the shared pieces need to be abstracted
-out so they can be shared among the modules.
 
-> Interrupts line to ARM are programmable in DM365 vpss and multiple
-> vpss irq lines can be muxed to the ARM side. So I would imaging
-> functions enable/disable irq line to arm, clearing irq bits,
-> enabling various clocks etc can be done in a specific soc specific
-> file (dm355.c, dm365.c or dm6446.c) and can be exported for use in
-> specific drivers. I just want to get your feedback so that I can
-> make this change. With this change, there is no need to use
-> structures for holding register offsets as you have suggested.
-
-Kevin
-
+Cheers,
+Mauro
