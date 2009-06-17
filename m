@@ -1,25 +1,18 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n5UG5GZe001427
-	for <video4linux-list@redhat.com>; Tue, 30 Jun 2009 12:05:16 -0400
-Received: from rv-out-0506.google.com (rv-out-0506.google.com [209.85.198.233])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n5UG53g0012601
-	for <video4linux-list@redhat.com>; Tue, 30 Jun 2009 12:05:03 -0400
-Received: by rv-out-0506.google.com with SMTP id b25so86943rvf.51
-	for <video4linux-list@redhat.com>; Tue, 30 Jun 2009 09:05:03 -0700 (PDT)
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with SMTP id n5H8o9UB005273
+	for <video4linux-list@redhat.com>; Wed, 17 Jun 2009 04:50:09 -0400
+Received: from linos.es (centrodatos.linos.es [86.109.105.97])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id n5H8nrjd021231
+	for <video4linux-list@redhat.com>; Wed, 17 Jun 2009 04:49:54 -0400
+Message-ID: <4A38AE27.40601@linos.es>
+Date: Wed, 17 Jun 2009 10:49:43 +0200
+From: Linos <info@linos.es>
 MIME-Version: 1.0
-In-Reply-To: <b24e53350906290842g788a4cau8e8f19bcf318188a@mail.gmail.com>
-References: <b24e53350906290842g788a4cau8e8f19bcf318188a@mail.gmail.com>
-Date: Tue, 30 Jun 2009 12:05:03 -0400
-Message-ID: <b24e53350906300905k3d3d2141geb247736402dba10@mail.gmail.com>
-From: Robert Krakora <rob.krakora@messagenetsystems.com>
-To: V4L <video4linux-list@redhat.com>,
-	Devin Heitmueller <devin.heitmueller@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
-Cc: 
-Subject: Re: v4l2-ctl problem attempting to turn of auto exposure control on
-	Creative Optia AF
+To: video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Subject: bttv problem
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,74 +24,16 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Mon, Jun 29, 2009 at 11:42 AM, Robert
-Krakora<rob.krakora@messagenetsystems.com> wrote:
-> All:
->
-> I am using the tip V4L code with a Captiva Optia AF webcam and I am
-> trying to turn off auto exposure via v4l2-ctl.  However, v4l2-ctl is
-> indicating an I/O error (see below).  I notice that the control is
-> listed as 'menu' and not 'int' or 'bool' as the other controls.  What
-> am I doing wrong?
->
-> [root@vizioconfrm104 ivtv-utils-1.3.0]# v4l2-ctl --list-ctrls
->                     brightness (int)  : min=-64 max=64 step=1 default=0 value=0
->                       contrast (int)  : min=0 max=64 step=1 default=32 value=32
->                     saturation (int)  : min=0 max=128 step=1
-> default=64 value=64
->                            hue (int)  : min=-40 max=40 step=1 default=0 value=0
->  white_balance_temperature_auto (bool) : default=1 value=1
->                          gamma (int)  : min=72 max=500 step=1
-> default=110 value=110
->                           gain (int)  : min=0 max=100 step=1 default=0 value=0
->           power_line_frequency (menu) : min=0 max=2 default=2 value=2
->      white_balance_temperature (int)  : min=2800 max=6500 step=1
-> default=6500 value=6500
->                      sharpness (int)  : min=0 max=6 step=1 default=3 value=3
->         backlight_compensation (int)  : min=0 max=2 step=1 default=1 value=1
->                  exposure_auto (menu) : min=0 max=3 default=3 value=3
->              exposure_absolute (int)  : min=1 max=5000 step=1
-> default=300 value=300
->         exposure_auto_priority (bool) : default=0 value=0
->                 focus_absolute (int)  : min=1 max=20 step=1 default=1 value=1
->                     focus_auto (bool) : default=1 value=1
->                  zoom_absolute (int)  : min=0 max=3 step=1 default=0 value=0
-> [root@vizioconfrm104 ivtv-utils-1.3.0]# v4l2-ctl --verbose
-> --set-ctrl=exposure_auto=0
-> VIDIOC_QUERYCAP: ok
-> VIDIOC_S_CTRL: failed: Input/output error
-> exposure_auto: Input/output error
-> [root@vizioconfrm104 ivtv-utils-1.3.0]#
->
-> Best Regards,
->
-> --
-> Rob Krakora
-> Senior Software Engineer
-> MessageNet Systems
-> 101 East Carmel Dr. Suite 105
-> Carmel, IN 46032
-> (317)566-1677 Ext. 206
-> (317)663-0808 Fax
->
+Hello,
+	i posted this problem any time ago ( 
+https://www.redhat.com/mailman/private/video4linux-list/2008-October/msg00246.html 
+), but still it seems to be in the last kernel, for details of the bug please 
+read the link, i have upgraded this week to 2.6.30 and still i have to execute 
+the code Daniel send the list to fix the bug in the bttv driver in 2.6.26, i am 
+missing something or still have not been fixed in mainstream kernel?
 
-Hello All,
-
-Please disregard the previous e-mail that I sent.  I was able to set
-the 'exposure_auto' control to '1' (manual) successfully.  I was
-mistakenly trying to set it to '0' (automatic) which seems to be
-prohibited.
-
-Best Regards,
-
--- 
-Rob Krakora
-Senior Software Engineer
-MessageNet Systems
-101 East Carmel Dr. Suite 105
-Carmel, IN 46032
-(317)566-1677 Ext. 206
-(317)663-0808 Fax
+Regards,
+Miguel Angel.
 
 --
 video4linux-list mailing list
