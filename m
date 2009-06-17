@@ -1,36 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:59098 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751313AbZFTISL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Jun 2009 04:18:11 -0400
-Message-ID: <4A3C9AFE.4080307@gmx.de>
-Date: Sat, 20 Jun 2009 10:17:02 +0200
-From: wk <handygewinnspiel@gmx.de>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: ivtv && Radio Data System (RDS) - is there something planned/already
- available
-References: <4A3B7851.6080008@gmx.de> <200906191343.59596.hverkuil@xs4all.nl>
-In-Reply-To: <200906191343.59596.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Received: from bombadil.infradead.org ([18.85.46.34]:44116 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1765796AbZFQNSu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jun 2009 09:18:50 -0400
+Date: Wed, 17 Jun 2009 10:18:45 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Matthias Schwarzott <zzam@gentoo.org>
+Cc: linux-media@vger.kernel.org,
+	Jan Nikitenko <jan.nikitenko@gmail.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Christopher Pascoe <c.pascoe@itee.uq.edu.au>
+Subject: Re: [PATCH] zl10353 and qt1010: fix stack corruption bug
+Message-ID: <20090617101845.425f9249@pedra.chehab.org>
+In-Reply-To: <200906171426.29468.zzam@gentoo.org>
+References: <4A28CEAD.9000000@gmail.com>
+	<20090616155937.3f5d869d@pedra.chehab.org>
+	<4A38DA79.70707@gmail.com>
+	<200906171426.29468.zzam@gentoo.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil schrieb:
-> On Friday 19 June 2009 13:36:49 wk wrote:
->   
->> Is there anything planned/ongoing to support Radio Data System (RDS)
->> with ivtv supported cards?
->> Would be quite helpful for analogue radio channel scanning and finding
->> the matching channel names.
->> Is there something out to be tested?
->>     
->
-> As far as I know there are no ivtv-based cards with RDS functionality. 
+Em Wed, 17 Jun 2009 14:26:28 +0200
+Matthias Schwarzott <zzam@gentoo.org> escreveu:
 
-Ok, if the hardware doesnt support it, further questions are meaningless..
+> On Mittwoch, 17. Juni 2009, Jan Nikitenko wrote:
+> >
+> > Or we could use sizeof, like this:
+> >     char buf[sizeof("00: ") - 1 + 16 * (sizeof("00 ") - 1) + 1]
+> > or
+> >     char buf[sizeof("00: 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f
+> > ")] but it is not very readable in my opinion either.
+> >
+> > Maybe the best way would be to avoid the need for temporal buffer
+> > completely by directly using printk in a loop, that is only the first
+> > printk with KERN_DEBUG, followed by sequence of printk with registers dump
+> > and final printk with end of line (but isn't a printk without KERN_
+> > facility coding style problem as well?).
+> >
+> 
+> Exactly for this case, line continuation, there is KERN_CONT defined.
 
-thanks,
-Winfried
+There are some functions meant for printing hex dumps at kernel.h:
+
+extern void hex_dump_to_buffer(const void *buf, size_t len,
+                                int rowsize, int groupsize,
+                                char *linebuf, size_t linebuflen, bool ascii);
+extern void print_hex_dump(const char *level, const char *prefix_str,
+                                int prefix_type, int rowsize, int groupsize,
+                                const void *buf, size_t len, bool ascii);
+extern void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
+                        const void *buf, size_t len);
+
+Also, it is possible to use kasprintf() to dynamically allocate a temporary
+buffer. If you use it, you'll need to do a kfree after its usage.
+
+
+
+Cheers,
+Mauro
