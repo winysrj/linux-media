@@ -1,63 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay00.pair.com ([209.68.5.9]:2204 "HELO relay00.pair.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752717AbZFCLv5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2009 07:51:57 -0400
-Message-ID: <4A2663DC.1050804@papercut.com>
-Date: Wed, 03 Jun 2009 21:51:56 +1000
-From: Matt Doran <matt.doran@papercut.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:59262 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751129AbZFQVBr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jun 2009 17:01:47 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Sakari Ailus <sakari.ailus@nokia.com>,
+	"Jadav, Brijesh R" <brijesh.j@ti.com>,
+	"Subrahmanya, Chaithrika" <chaithrika@ti.com>,
+	David Cohen <david.cohen@nokia.com>,
+	"Curran, Dominic" <dcurran@ti.com>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>,
+	Eero Nurkkala <ext-eero.nurkkala@nokia.com>,
+	Felipe Balbi <felipe.balbi@nokia.com>,
+	"Shah, Hardik" <hardik.shah@ti.com>,
+	"Nagalla, Hari" <hnagalla@ti.com>, "Hadli, Manjunath" <mrh@ti.com>,
+	Mikko Hurskainen <mikko.hurskainen@nokia.com>,
+	"Menon, Nishanth" <nm@ti.com>, "R, Sivaraj" <sivaraj@ti.com>,
+	"Paulraj, Sandeep" <s-paulraj@ti.com>,
+	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	Tomi Valkeinen <tomi.valkeinen@nokia.com>,
+	Tuukka Toivonen <tuukka.o.toivonen@nokia.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Wed, 17 Jun 2009 16:01:21 -0500
+Subject: RE: [DaVinci] patches for linux-media
+Message-ID: <A69FA2915331DC488A831521EAE36FE40139DF9EE9@dlee06.ent.ti.com>
+References: <20090616104018.44075a80@pedra.chehab.org>
+ <200906170830.14052.hverkuil@xs4all.nl>
+In-Reply-To: <200906170830.14052.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: videodev: Unknown symbol i2c_unregister_device (in kernels older
- than 2.6.26)
-References: <4A19D3D9.9010800@papercut.com> <20090527154107.6b79a160@pedra.chehab.org>
-In-Reply-To: <20090527154107.6b79a160@pedra.chehab.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> Em Mon, 25 May 2009 09:10:17 +1000
-> Matt Doran <matt.doran@papercut.com> escreveu:
->
->   
->> Hi there,
->>
->> I tried using the latest v4l code on an Mythtv box running 2.6.20, but 
->> the v4l videodev module fails to load with the following warnings:
->>
->>     videodev: Unknown symbol i2c_unregister_device
->>     v4l2_common: Unknown symbol v4l2_device_register_subdev
->>
->>
->> It seems the "i2c_unregister_device" function was added in 2.6.26.   
->> References to this function in v4l2-common.c are enclosed in an ifdef like:
->>
->>     #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
->>
->>
->> However in "v4l2_device_unregister()" in v4l2-device.c, there is a 
->> reference to "i2c_unregister_device" without any ifdefs.   I am running 
->> a pretty old kernel, but I'd guess anyone running 2.6.25 or earlier will 
->> have this problem.   It seems this code was added by Mauro 3 weeks ago 
->> in this rev:
->>
->>     http://linuxtv.org/hg/v4l-dvb/rev/87afa7a4ccdf
->>     
->
-> I've just applied a patch at the tree that should fix this issue. It adds
-> several tests and the code, but, hopefully, it should be possible even to use
-> the IR's with kernels starting from 2.6.16.
->
->
->   
-Thanks Mauro. 
+Hi Hans & Mauro,
 
-I've recompiled all drivers without compile error and I've been using 
-everything for a few days now and it all works great.
+The v3 version of the DaVici VPFE Capture driver and TVP514x driver has been sent to the list for review. I expect this to sail through with out any comments as I have addressed few minor comments from last review. I think Hans will send you the pull request for these patches. Once again, it will be great if this can be merged to 2.6.31.
 
-Thanks again!
-Matt
+Murali Karicheri
+m-karicheri2@ti.com
+
+>I have proposed this before, but I'll do it again: I'm more than happy to
+>be
+>the official person who collects and organizes the omap and davinci patches
+>for you and who does the initial reviews. This is effectively already the
+>case since I've been reviewing both omap and davinci patches pretty much
+>from the beginning.
+>
+>Both the omap2/3 display driver and the davinci drivers are now very close
+>to be ready for inclusion in the kernel as my last reviews only found some
+>minor things.
+>
+>Part of the reason for the delays for both omap and davinci was that they
+>had to be modified for v4l2_subdev, which was an absolute necessity, and
+>because they simply needed quite a bit of work to make them suitable for
+>inclusion in the kernel.
+>
+>Regards,
+>
+>	Hans
+>
+>--
+>Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
