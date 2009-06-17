@@ -1,43 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f210.google.com ([209.85.219.210]:54371 "EHLO
-	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752734AbZFIG5Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 02:57:25 -0400
-Received: by ewy6 with SMTP id 6so4878298ewy.37
-        for <linux-media@vger.kernel.org>; Mon, 08 Jun 2009 23:57:26 -0700 (PDT)
-Message-ID: <4A2E07D1.3070901@gmail.com>
-Date: Tue, 09 Jun 2009 08:57:21 +0200
-From: Claes Lindblom <claesl@gmail.com>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3197 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755688AbZFQId3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jun 2009 04:33:29 -0400
+Message-ID: <52243.62.70.2.252.1245227586.squirrel@webmail.xs4all.nl>
+Date: Wed, 17 Jun 2009 10:33:06 +0200 (CEST)
+Subject: Re: [PATCH] adding support for setting bus parameters in sub device
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Magnus Damm" <magnus.damm@gmail.com>
+Cc: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
+	"Muralidharan Karicheri" <m-karicheri2@ti.com>,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
+	"Robert Jarzmik" <robert.jarzmik@free.fr>,
+	"Paulius Zaleckas" <paulius.zaleckas@teltonika.lt>,
+	"Darius Augulis" <augulis.darius@gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] SkyStar HD2 issues, signal sensitivity, etc.
-References: <621110570904131518w220106d7u67934966dbb8c7dd@mail.gmail.com> <49E3D16E.3070307@gmail.com>
-In-Reply-To: <49E3D16E.3070307@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-Manu Abraham wrote:
-> The s2-liplianin tree doesn't use an updated tree for the mantis
-> based devices unfortunately. It is stuck with older changesets of
-> the mantis tree.
+> On Mon, Jun 15, 2009 at 12:33 AM, Guennadi
+> Liakhovetski<g.liakhovetski@gmx.de> wrote:
+>> On Fri, 12 Jun 2009, Hans Verkuil wrote:
+>>
+>>> On Friday 12 June 2009 14:59:03 Guennadi Liakhovetski wrote:
+>>> > On Fri, 12 Jun 2009, Hans Verkuil wrote:
+>>> >
+>>> > > > 1. it is very unusual that the board designer has to mandate what
+>>> signal
+>>> > > > polarity has to be used - only when there's additional logic
+>>> between the
+>>> > > > capture device and the host. So, we shouldn't overload all boards
+>>> with
+>>> > > > this information. Board-code authors will be grateful to us!
+>>> > >
+>>> > > I talked to my colleague who actually designs boards like that
+>>> about what
+>>> > > he would prefer. His opinion is that he wants to set this himself,
+>>> rather
+>>> > > than leave it as the result of a software negotiation. It
+>>> simplifies
+>>> > > verification and debugging the hardware, and in addition there may
+>>> be
+>>> > > cases where subtle timing differences between e.g. sampling on a
+>>> falling
+>>> > > edge vs rising edge can actually become an important factor,
+>>> particularly
+>>> > > on high frequencies.
 >
-> The s2-liplianin tree contains (ed) ? some clock related changes
-> which were not favourable for the STB0899 demodulator, which is
-> capable of causing potential hardware damage.
->   
-Is this still valid that s2-liplianin tree is out of date and if so, 
-does anyone have a patch to update it?
-It's does not sound so good when we start talking about hardware damage.
+> Let me guess, your coworker is a hardware designer? Letting hardware
+> people do hardware design is usually a good idea, but I'm yet to see
+> good software written by hardware people. =)
 
-I have a problem with the recent s2-liplianin that the driver stops 
-working and both scanning and tuning fails and a reboot does not help
-and I have to poweroff my computer and restart it for it to work again.
-Has anyone had the same issue? It's running on a Gigabyte GA M56S S3 
-motherboard if that's any help.
+I agree. That's why I'm doing the software part :-)
 
-Regards
-Claes Lindblom
+>>> > I'd say this is different. You're talking about cases where you
+>>> _want_ to
+>>> > be able to configure it explicitly, I am saying you do not have to
+>>> _force_
+>>> > all to do this. Now, this selection only makes sense if both are
+>>> > configurable, right? In this case, e.g., pxa270 driver does support
+>>> > platform-specified preference. So, if both the host and the client
+>>> can
+>>> > configure either polarity in the software you _can_ still specify the
+>>> > preferred one in platform data and it will be used.
+>>> >
+>>> > I think, the ability to specify inverters and the preferred polarity
+>>> > should cover all possible cases.
+>>>
+>>> In my opinion you should always want to set this explicitly. This is
+>>> not
+>>> something you want to leave to chance. Say you autoconfigure this. Now
+>>> someone either changes the autoconf algorithm, or a previously
+>>> undocumented
+>>> register was discovered for the i2c device and it can suddenly
+>>> configure the
+>>> polarity of some signal that was previously thought to be fixed, or
+>>> something
+>>> else happens causing a different polarity to be negotiated.
+>>
+>> TBH, the argumentation like "someone changes the autoconf algorithm" or
+>> "previously undocumented register is discovered" doesn't convince me. In
+>> any case, I am adding authors, maintainers and major contributors to
+>> various soc-camera host drivers to CC and asking them to express their
+>> opinion on this matter. I will not add anything else here to avoid any
+>> "unfair competition":-) they will have to go a couple emails back in
+>> this
+>> thread to better understand what is being discussed here.
+>
+> I think automatic negotiation is a good thing if it is implemented
+> correctly.
+>
+> Actually, i think modelling software after hardware is a good thing
+> and from that perspective the soc_camera was (and still is) a very
+> good fit for our on-chip SoC. Apart from host/sensor separation, the
+> main benefits in my mind are autonegotiation and separate
+> configuration for camera sensor, capture interface and board.
+>
+> I don't mind doing the same outside soc_camera, and I agree with Hans
+> that in some cases it's nice to hard code and skip the "magic"
+> negotiation. I'm however pretty sure the soc_camera allows hard coding
+> though, so in that case you get the best of two worlds.
+
+It is my strong opinion that while autonegotiation is easy to use, it is
+not a wise choice to make. Filling in a single struct with the bus
+settings to use for each board-subdev combination (usually there is only
+one) is simple, straight-forward and unambiguous. And I really don't see
+why that should take much time at all. And I consider it a very good point
+that the programmer is forced to think about this for a bit.
+
+Regards,
+
+        Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
