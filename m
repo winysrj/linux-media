@@ -1,313 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40414 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756544AbZFQULa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 16:11:30 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5HKBSJc009840
-	for <linux-media@vger.kernel.org>; Wed, 17 Jun 2009 15:11:33 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH 7/11 - v3] DM355 platform changes for vpfe capture driver
-Date: Wed, 17 Jun 2009 16:11:20 -0400
-Message-Id: <1245269484-8325-8-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1245269484-8325-7-git-send-email-m-karicheri2@ti.com>
-References: <1245269484-8325-1-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-2-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-3-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-4-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-5-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-6-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-7-git-send-email-m-karicheri2@ti.com>
+Received: from smtp.nokia.com ([192.100.122.230]:30979 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755976AbZFQRlL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jun 2009 13:41:11 -0400
+Message-ID: <4A392A90.2060509@nokia.com>
+Date: Wed, 17 Jun 2009 20:40:32 +0300
+From: Sakari Ailus <sakari.ailus@nokia.com>
+Reply-To: sakari.ailus@maxwell.research.nokia.com
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Brijesh Jadav <brijesh.j@ti.com>,
+	Chaithrika Subrahmanya <chaithrika@ti.com>,
+	"Cohen David.A (Nokia-D/Helsinki)" <david.cohen@nokia.com>,
+	Dominic Curran <dcurran@ti.com>,
+	"Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Balbi Felipe (Nokia-D/Helsinki)" <felipe.balbi@nokia.com>,
+	Hardik Shah <hardik.shah@ti.com>,
+	Hari Nagalla <hnagalla@ti.com>, Manjunath Hadli <mrh@ti.com>,
+	"Hurskainen Mikko (Nokia-D/Helsinki)" <mikko.hurskainen@nokia.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>,
+	Nishanth Menon <nm@ti.com>, R Sivaraj <sivaraj@ti.com>,
+	Sandeep Paulraj <s-paulraj@ti.com>,
+	Sergio Alberto Aguirre Rodriguez <saaguirre@ti.com>,
+	"Valkeinen Tomi (Nokia-D/Helsinki)" <Tomi.Valkeinen@nokia.com>,
+	"Toivonen Tuukka.O (Nokia-D/Oulu)" <tuukka.o.toivonen@nokia.com>,
+	Vaibhav Hiremath <hvaibhav@ti.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: OMAP patches for linux-media
+References: <20090616104018.44075a80@pedra.chehab.org>
+In-Reply-To: <20090616104018.44075a80@pedra.chehab.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+Mauro Carvalho Chehab wrote:
+> Hi Sakari and others,
 
-DM355 platform and board setup
+Hi, Mauro!
 
-This has platform and board setup changes to support vpfe capture
-driver for DM355 EVMs.
+> I'm seeing lots of patches and discussions for OMAP and DaVinci being handled
+> at the linux-media Mailing List, as part of the development process of the open
+> source drivers.
+> 
+> However, it is hard to track all those discussions and be sure what patches are
+> ready for merging and what patches are just RFC.
+> 
+> On the development model we use here, we have driver maintainers that are
+> responsible to discuss about improvements on their drivers. They are generally
+> the driver authors or the one that first started submitting the patches for
+> that driver(s). 
+> 
+> One of the roles of the driver maintainers is to collect the patches for the
+> drivers they maintain, merge on their trees, and periodically ask the patch
+> merge. 
+> 
+> One fundamental concept on Kernel development is the concept of "Commit earlier
+> and commit often", meaning that the better is to send small, incremental, and
+> periodic patches, than wait until having everything done, then submit a big
+> patch. Every time I receive a big patch I need to postpone its analysis and
+> open a big window on my schedule to analyze it. Of course, this means to
+> postpone it, and generally results on lots of comments going back to developer,
+> that, in turn, will need to do lots of changes and return me back with another
+> big patch for me to analyze again, resulting on a long period of time for
+> merging it.
+> 
+> As you, Sakari, was the first one that started merging the OMAP drivers, I was
+> expecting that you would be the one that will handle the figure of the driver
+> maintainer for OMAP. I even created you an account at linuxtv for you to create
+> your trees there and ask me to merge from it.
+> 
+> Unfortunately, you haven't sent me any pull requests yet along this year. This
+> is concerning me a lot, since, at the end, I'll need to review big piles of
+> patches and/or drivers when you decide to submit the final version.
+> 
+> So, I decided to send you this email, c/c a random list of people that I
+> believe are involved on the submit and/or review process of those patches, in
+> the hope to better understand and to discuss what's happening and how can we
+> speedup the merge process of those patches.
 
-summary of changes
-	1) replaced v4l2_routing structure with vpfe structure for route
-	2) ccdc bus parameter settings added
-	3) input name string changed to Composite and S-Video
- 
-Reviewed by: Hans Verkuil <hverkuil@xs4all.nl>
-Reviewed by: Laurent Pinchart <laurent.pinchart@skynet.be>
-Reviewed by: Kevin Hilman <khilman@deeprootsystems.com>
-Reviewed by: David Brownell <david-b@pacbell.net>
+There are a few reasons for apparent stalling of the development 
+process. I should have sent a status update earlier.
 
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
-Applies to Davinci GIT Tree
+The code quality of the ISP driver was originally quite low and from 
+that part it wouldn't have made much sense to repeatedly post that for 
+reviewing. It's been improving since many of the subdrivers have been 
+refactored or rewritten since I last posted the patchset. The end result 
+should be (more?) easily understood by human beings...
 
- arch/arm/mach-davinci/board-dm355-evm.c    |   76 ++++++++++++++++++++++++-
- arch/arm/mach-davinci/dm355.c              |   83 ++++++++++++++++++++++++++++
- arch/arm/mach-davinci/include/mach/dm355.h |    2 +
- arch/arm/mach-davinci/include/mach/mux.h   |    9 +++
- 4 files changed, 167 insertions(+), 3 deletions(-)
+Another reason for no upstream patches is that we are still depending on 
+the obsolete v4l2-int-device in the camera / sensor / lens / flash 
+driver interface. Hans' opinion was that we must switch to v4l2_subdev 
+instead with which I fully agree. However, due to our internal reasons 
+we have not been able to even start that transition process yet.
 
-diff --git a/arch/arm/mach-davinci/board-dm355-evm.c b/arch/arm/mach-davinci/board-dm355-evm.c
-index 5ac2f56..513be53 100644
---- a/arch/arm/mach-davinci/board-dm355-evm.c
-+++ b/arch/arm/mach-davinci/board-dm355-evm.c
-@@ -20,6 +20,8 @@
- #include <linux/io.h>
- #include <linux/gpio.h>
- #include <linux/clk.h>
-+#include <linux/videodev2.h>
-+#include <media/tvp514x.h>
- #include <linux/spi/spi.h>
- #include <linux/spi/eeprom.h>
- 
-@@ -134,12 +136,22 @@ static void dm355evm_mmcsd_gpios(unsigned gpio)
- 	dm355evm_mmc_gpios = gpio;
- }
- 
-+static struct tvp514x_platform_data tvp5146_pdata = {
-+	.clk_polarity = 0,
-+	.hs_polarity = 1,
-+	.vs_polarity = 1
-+};
-+
- static struct i2c_board_info dm355evm_i2c_info[] = {
--	{ I2C_BOARD_INFO("dm355evm_msp", 0x25),
-+	{	I2C_BOARD_INFO("dm355evm_msp", 0x25),
- 		.platform_data = dm355evm_mmcsd_gpios,
--		/* plus irq */ },
-+	},
-+	{
-+		I2C_BOARD_INFO("tvp5146", 0x5d),
-+		.platform_data = &tvp5146_pdata,
-+	},
-+	/* { plus irq  }, */
- 	/* { I2C_BOARD_INFO("tlv320aic3x", 0x1b), }, */
--	/* { I2C_BOARD_INFO("tvp5146", 0x5d), }, */
- };
- 
- static void __init evm_init_i2c(void)
-@@ -178,6 +190,62 @@ static struct platform_device dm355evm_dm9000 = {
- 	.num_resources	= ARRAY_SIZE(dm355evm_dm9000_rsrc),
- };
- 
-+#define TVP514X_STD_ALL	(V4L2_STD_NTSC | V4L2_STD_PAL)
-+/* Inputs available at the TVP5146 */
-+static struct v4l2_input tvp5146_inputs[] = {
-+	{
-+		.index = 0,
-+		.name = "Composite",
-+		.type = V4L2_INPUT_TYPE_CAMERA,
-+		.std = TVP514X_STD_ALL,
-+	},
-+	{
-+		.index = 1,
-+		.name = "S-Video",
-+		.type = V4L2_INPUT_TYPE_CAMERA,
-+		.std = TVP514X_STD_ALL,
-+	},
-+};
-+
-+/*
-+ * this is the route info for connecting each input to decoder
-+ * ouput that goes to vpfe. There is a one to one correspondence
-+ * with tvp5146_inputs
-+ */
-+static struct vpfe_route tvp5146_routes[] = {
-+	{
-+		.input = INPUT_CVBS_VI2B,
-+		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
-+	},
-+	{
-+		.input = INPUT_SVIDEO_VI2C_VI1C,
-+		.output = OUTPUT_10BIT_422_EMBEDDED_SYNC,
-+	},
-+};
-+
-+static struct vpfe_subdev_info vpfe_sub_devs[] = {
-+	{
-+		.name = "tvp5146",
-+		.grp_id = 0,
-+		.num_inputs = ARRAY_SIZE(tvp5146_inputs),
-+		.inputs = tvp5146_inputs,
-+		.routes = tvp5146_routes,
-+		.can_route = 1,
-+		.ccdc_if_params = {
-+			.if_type = VPFE_BT656,
-+			.hdpol = VPFE_PINPOL_POSITIVE,
-+			.vdpol = VPFE_PINPOL_POSITIVE,
-+		},
-+	}
-+};
-+
-+static struct vpfe_config vpfe_cfg = {
-+	.num_subdevs = ARRAY_SIZE(vpfe_sub_devs),
-+	.sub_devs = vpfe_sub_devs,
-+	.card_name = "DM355 EVM",
-+	.ccdc = "DM355 CCDC",
-+};
-+
- static struct platform_device *davinci_evm_devices[] __initdata = {
- 	&dm355evm_dm9000,
- 	&davinci_nand_device,
-@@ -189,6 +257,8 @@ static struct davinci_uart_config uart_config __initdata = {
- 
- static void __init dm355_evm_map_io(void)
- {
-+	/* setup input configuration for VPFE input devices */
-+	dm355_set_vpfe_config(&vpfe_cfg);
- 	dm355_init();
- }
- 
-diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
-index f0b10b4..7a7b020 100644
---- a/arch/arm/mach-davinci/dm355.c
-+++ b/arch/arm/mach-davinci/dm355.c
-@@ -481,6 +481,14 @@ INT_CFG(DM355,  INT_EDMA_TC1_ERR,     4,    1,    1,     false)
- EVT_CFG(DM355,  EVT8_ASP1_TX,	      0,    1,    0,     false)
- EVT_CFG(DM355,  EVT9_ASP1_RX,	      1,    1,    0,     false)
- EVT_CFG(DM355,  EVT26_MMC0_RX,	      2,    1,    0,     false)
-+
-+MUX_CFG(DM355,	VIN_PCLK,	0,   14,    1,    1,	 false)
-+MUX_CFG(DM355,	VIN_CAM_WEN,	0,   13,    1,    1,	 false)
-+MUX_CFG(DM355,	VIN_CAM_VD,	0,   12,    1,    1,	 false)
-+MUX_CFG(DM355,	VIN_CAM_HD,	0,   11,    1,    1,	 false)
-+MUX_CFG(DM355,	VIN_YIN_EN,	0,   10,    1,    1,	 false)
-+MUX_CFG(DM355,	VIN_CINL_EN,	0,   0,   0xff, 0x55,	 false)
-+MUX_CFG(DM355,	VIN_CINH_EN,	0,   8,     3,    3,	 false)
- #endif
- };
- 
-@@ -623,6 +631,67 @@ static struct platform_device dm355_edma_device = {
- 	.resource		= edma_resources,
- };
- 
-+static struct resource dm355_vpss_resources[] = {
-+	{
-+		/* VPSS BL Base address */
-+		.name		= "vpss",
-+		.start          = 0x01c70800,
-+		.end            = 0x01c70800 + 0xff,
-+		.flags          = IORESOURCE_MEM,
-+	},
-+	{
-+		/* VPSS CLK Base address */
-+		.name		= "vpss",
-+		.start          = 0x01c70000,
-+		.end            = 0x01c70000 + 0xf,
-+		.flags          = IORESOURCE_MEM,
-+	},
-+};
-+
-+static struct platform_device dm355_vpss_device = {
-+	.name			= "vpss",
-+	.id			= -1,
-+	.dev.platform_data	= "dm355_vpss",
-+	.num_resources		= ARRAY_SIZE(dm355_vpss_resources),
-+	.resource		= dm355_vpss_resources,
-+};
-+
-+static struct resource vpfe_resources[] = {
-+	{
-+		.start          = IRQ_VDINT0,
-+		.end            = IRQ_VDINT0,
-+		.flags          = IORESOURCE_IRQ,
-+	},
-+	{
-+		.start          = IRQ_VDINT1,
-+		.end            = IRQ_VDINT1,
-+		.flags          = IORESOURCE_IRQ,
-+	},
-+	/* CCDC Base address */
-+	{
-+		.flags          = IORESOURCE_MEM,
-+		.start          = 0x01c70600,
-+		.end            = 0x01c70600 + 0x1ff,
-+	},
-+};
-+
-+static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
-+static struct platform_device vpfe_capture_dev = {
-+	.name		= CAPTURE_DRV_NAME,
-+	.id		= -1,
-+	.num_resources	= ARRAY_SIZE(vpfe_resources),
-+	.resource	= vpfe_resources,
-+	.dev = {
-+		.dma_mask		= &vpfe_capture_dma_mask,
-+		.coherent_dma_mask	= DMA_BIT_MASK(32),
-+	},
-+};
-+
-+void dm355_set_vpfe_config(struct vpfe_config *cfg)
-+{
-+	vpfe_capture_dev.dev.platform_data = cfg;
-+}
-+
- /*----------------------------------------------------------------------*/
- 
- static struct map_desc dm355_io_desc[] = {
-@@ -743,6 +812,20 @@ static int __init dm355_init_devices(void)
- 
- 	davinci_cfg_reg(DM355_INT_EDMA_CC);
- 	platform_device_register(&dm355_edma_device);
-+	platform_device_register(&dm355_vpss_device);
-+	/*
-+	 * setup Mux configuration for vpfe input and register
-+	 * vpfe capture platform device
-+	 */
-+	davinci_cfg_reg(DM355_VIN_PCLK);
-+	davinci_cfg_reg(DM355_VIN_CAM_WEN);
-+	davinci_cfg_reg(DM355_VIN_CAM_VD);
-+	davinci_cfg_reg(DM355_VIN_CAM_HD);
-+	davinci_cfg_reg(DM355_VIN_YIN_EN);
-+	davinci_cfg_reg(DM355_VIN_CINL_EN);
-+	davinci_cfg_reg(DM355_VIN_CINH_EN);
-+	platform_device_register(&vpfe_capture_dev);
-+
- 	return 0;
- }
- postcore_initcall(dm355_init_devices);
-diff --git a/arch/arm/mach-davinci/include/mach/dm355.h b/arch/arm/mach-davinci/include/mach/dm355.h
-index 54903b7..e28713c 100644
---- a/arch/arm/mach-davinci/include/mach/dm355.h
-+++ b/arch/arm/mach-davinci/include/mach/dm355.h
-@@ -12,11 +12,13 @@
- #define __ASM_ARCH_DM355_H
- 
- #include <mach/hardware.h>
-+#include <media/davinci/vpfe_capture.h>
- 
- struct spi_board_info;
- 
- void __init dm355_init(void);
- void dm355_init_spi0(unsigned chipselect_mask,
- 		struct spi_board_info *info, unsigned len);
-+void dm355_set_vpfe_config(struct vpfe_config *cfg);
- 
- #endif /* __ASM_ARCH_DM355_H */
-diff --git a/arch/arm/mach-davinci/include/mach/mux.h b/arch/arm/mach-davinci/include/mach/mux.h
-index a5eed8f..e21eec1 100644
---- a/arch/arm/mach-davinci/include/mach/mux.h
-+++ b/arch/arm/mach-davinci/include/mach/mux.h
-@@ -154,6 +154,15 @@ enum davinci_dm355_index {
- 	DM355_EVT8_ASP1_TX,
- 	DM355_EVT9_ASP1_RX,
- 	DM355_EVT26_MMC0_RX,
-+
-+	/* Video In Pin Mux */
-+	DM355_VIN_PCLK,
-+	DM355_VIN_CAM_WEN,
-+	DM355_VIN_CAM_VD,
-+	DM355_VIN_CAM_HD,
-+	DM355_VIN_YIN_EN,
-+	DM355_VIN_CINL_EN,
-+	DM355_VIN_CINH_EN,
- };
- 
- enum davinci_dm365_index {
+There is no definite deadline for the v4l2_subdev transition (or even 
+its start) at the moment. I'm planning to update the patchset in 
+Gitorious, however.
+
+Best regards,
+
 -- 
-1.6.0.4
-
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
