@@ -1,123 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4985 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753764AbZFFMuA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Jun 2009 08:50:00 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCHv5 1 of 8] v4l2_subdev i2c: Add v4l2_i2c_new_subdev_board i2c helper function
-Date: Sat, 6 Jun 2009 14:49:46 +0200
-Cc: "\\\"ext Mauro Carvalho Chehab\\\"" <mchehab@infradead.org>,
-	"\\\"Nurkkala Eero.An (EXT-Offcode/Oulu)\\\""
-	<ext-Eero.Nurkkala@nokia.com>,
-	"\\\"ext Douglas Schilling Landgraf\\\"" <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-References: <1243582408-13084-1-git-send-email-eduardo.valentin@nokia.com> <1243582408-13084-2-git-send-email-eduardo.valentin@nokia.com> <200906061359.19732.hverkuil@xs4all.nl>
-In-Reply-To: <200906061359.19732.hverkuil@xs4all.nl>
+Received: from as-10.de ([212.112.241.2]:34775 "EHLO mail.as-10.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757430AbZFQQcM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jun 2009 12:32:12 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.as-10.de (Postfix) with ESMTP id 50CE233A829
+	for <linux-media@vger.kernel.org>; Wed, 17 Jun 2009 18:21:59 +0200 (CEST)
+Received: from mail.as-10.de ([127.0.0.1])
+	by localhost (as-10.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id fo9etoXG64We for <linux-media@vger.kernel.org>;
+	Wed, 17 Jun 2009 18:21:59 +0200 (CEST)
+Received: from halim.local (pD9E3FFF3.dip.t-dialin.net [217.227.255.243])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: web11p28)
+	by mail.as-10.de (Postfix) with ESMTPSA id 1F50233A7E1
+	for <linux-media@vger.kernel.org>; Wed, 17 Jun 2009 18:21:59 +0200 (CEST)
+Date: Wed, 17 Jun 2009 18:24:00 +0200
+From: Halim Sahin <halim.sahin@t-online.de>
+To: linux-media@vger.kernel.org
+Subject: bttv problem loading takes about several minutes
+Message-ID: <20090617162400.GA11690@halim.local>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Message-Id: <200906061449.46720.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 06 June 2009 13:59:19 Hans Verkuil wrote:
-> On Friday 29 May 2009 09:33:21 Eduardo Valentin wrote:
-> > # HG changeset patch
-> > # User Eduardo Valentin <eduardo.valentin@nokia.com>
-> > # Date 1243414605 -10800
-> > # Branch export
-> > # Node ID 4fb354645426f8b187c2c90cd8528b2518461005
-> > # Parent  142fd6020df3b4d543068155e49a2618140efa49
-> > Device drivers of v4l2_subdev devices may want to have
-> > board specific data. This patch adds an helper function
-> > to allow bridge drivers to pass board specific data to
-> > v4l2_subdev drivers.
-> >
-> > For those drivers which need to support kernel versions
-> > bellow 2.6.26, a .s_config callback was added. The
-> > idea of this callback is to pass board configuration
-> > as well. In that case, subdev driver should set .s_config
-> > properly, because v4l2_i2c_new_subdev_board will call
-> > the .s_config directly. Of course, if we are >= 2.6.26,
-> > the same data will be passed through i2c board info as well.
->
-> Hi Eduardo,
->
-> I finally had some time to look at this. After some thought I realized
-> that the main problem is really that the API is becoming quite messy.
-> Basically there are 9 different ways of loading and initializing a
-> subdev:
->
-> First there are three basic initialization calls: no initialization,
-> passing irq and platform_data, and passing the i2c_board_info struct
-> directly (preferred for drivers that don't need pre-2.6.26
-> compatibility).
->
-> And for each flavor you would like to see three different versions as
-> well: one with a fixed known i2c address, one where you probe for a list
-> of addresses, and one where you can probe for a single i2c address.
->
-> I propose to change the API as follows:
->
-> #define V4L2_I2C_ADDRS(addr, addrs...) \
-> 	((const unsigned short []){ addr, ## addrs, I2C_CLIENT_END })
->
-> struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
->                 struct i2c_adapter *adapter,
->                 const char *module_name, const char *client_type,
-> 		u8 addr, const unsigned short *addrs);
->
-> struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device *v4l2_dev,
->                 struct i2c_adapter *adapter,
->                 const char *module_name, const char *client_type,
->                 int irq, void *platform_data,
->                 u8 addr, const unsigned short *addrs);
->
-> /* Only available for kernels >= 2.6.26 */
-> struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device
-> *v4l2_dev, struct i2c_adapter *adapter, const char *module_name, struct
-> i2c_board_info *info, const unsigned short *addrs);
->
-> If you use a fixed address, then only set addr (or info.addr) and set
-> addrs to NULL. If you want to probe for a list of addrs, then set addrs
-> to the list of addrs. If you want to probe for a single addr, then use
-> V4L2_I2C_ADDRS(addr) as the addrs argument. This constructs an array with
-> just two entries. Actually, this macro can also create arrays with more
-> entries.
->
-> Note that v4l2_i2c_new_subdev will be an inline that calls
-> v4l2_i2c_new_subdev_cfg with 0, NULL for the irq and platform_data.
->
-> And for kernels >= 2.6.26 v4l2_i2c_new_subdev_cfg can be an inline
-> calling v4l2_i2c_new_subdev_board.
->
-> This approach reduces the number of functions to just one (not counting
-> the inlines) and simplifies things all around. It does mean that all
-> sources need to be changed, but if we go this route, then now is the time
-> before the 2.6.31 window is closed. And I would also like to remove the
-> '_new' from these function names. I never thought it added anything
-> useful.
->
-> Comments? If we decide to go this way, then I need to know soon so that I
-> can make the changes before the 2.6.31 window closes.
->
-> BTW, if the new s_config subdev call is present, then it should always be
-> called. That way the subdev driver can safely do all of its
-> initialization in s_config, no matter how it was initialized.
->
-> Sorry about the long delay in replying to this: it's been very hectic
-> lately at the expense of my v4l-dvb work.
+Hi,
+In the past I could use this card by typing
+modprobe bttv card=34 tuner=24 gbuffers=16
+Giving this command with current drivers has some problems:
+1. it takes several minutes to load bttv module.
+2. capturing doesn't work any more (dropped frames etc).
+Tested with current v4l-dvb from hg, ubuntu 9.04, 
+debian lenny.
 
-I've done the initial conversion to the new API (no _cfg or _board version 
-yet) in my ~hverkuil/v4l-dvb-subdev tree. It really simplifies things and 
-if nobody objects then I'd like to get this in before 2.6.31.
+I have a bt878  based card from leadtek.
 
-Regards,
+Here is my output after loading the driver:
+[ 3013.735459] bttv: driver version 0.9.17 loaded
+[ 3013.735470] bttv: using 32 buffers with 16k (4 pages) each for capture
+[ 3013.735542] bttv: Bt8xx card found (0).
+[ 3013.735562] bttv0: Bt878 (rev 17) at 0000:00:0b.0, irq: 19, latency: 32, mmio
+: 0xf7800000
+[ 3013.737762] bttv0: using: Leadtek WinFast 2000/ WinFast 2000 XP [card=34,insm
+od option]
+[ 3013.737825] bttv0: gpio: en=00000000, out=00000000 in=003ff502 [init]
+[ 3148.136017] bttv0: tuner type=24
+[ 3148.136029] bttv0: i2c: checking for MSP34xx @ 0x80... not found
+[ 3154.536019] bttv0: i2c: checking for TDA9875 @ 0xb0... not found
+[ 3160.936018] bttv0: i2c: checking for TDA7432 @ 0x8a... not found
+[ 3167.351398] bttv0: registered device video0
+[ 3167.351434] bttv0: registered device vbi0
+[ 3167.351463] bttv0: registered device radio0
+[ 3167.351485] bttv0: PLL: 28636363 => 35468950 . ok
+[ 3167.364182] input: bttv IR (card=34) as /class/input/input6
 
-	Hans
+Please help!
+Regards
+Halim
+
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Halim Sahin
+E-Mail:				
+halim.sahin (at) t-online.de
