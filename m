@@ -1,113 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4428 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753112AbZFRLlx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 07:41:53 -0400
-Message-ID: <45744.62.70.2.252.1245325314.squirrel@webmail.xs4all.nl>
-Date: Thu, 18 Jun 2009 13:41:54 +0200 (CEST)
-Subject: Re: OMAP patches for linux-media
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: sakari.ailus@maxwell.research.nokia.com, sakari.ailus@nokia.com,
-	"Brijesh Jadav" <brijesh.j@ti.com>,
-	"Chaithrika Subrahmanya" <chaithrika@ti.com>,
-	"Cohen David.A" <david.cohen@nokia.com>,
-	"Dominic Curran" <dcurran@ti.com>,
-	"Valentin Eduardo" <eduardo.valentin@nokia.com>,
-	"Nurkkala Eero.An" <ext-eero.nurkkala@nokia.com>,
-	"Balbi Felipe" <felipe.balbi@nokia.com>,
-	"Hardik Shah" <hardik.shah@ti.com>,
-	"Hari Nagalla" <hnagalla@ti.com>, "Manjunath Hadli" <mrh@ti.com>,
-	"Hurskainen Mikko" <mikko.hurskainen@nokia.com>,
-	"Muralidharan Karicheri" <m-karicheri2@ti.com>,
-	"Nishanth Menon" <nm@ti.com>, "R Sivaraj" <sivaraj@ti.com>,
-	"Sandeep Paulraj" <s-paulraj@ti.com>,
-	"Sergio Alberto Aguirre Rodriguez" <saaguirre@ti.com>,
-	"Valkeinen Tomi" <tomi.valkeinen@nokia.com>,
-	"Toivonen Tuukka.O" <tuukka.o.toivonen@nokia.com>,
-	"Vaibhav Hiremath" <hvaibhav@ti.com>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from comal.ext.ti.com ([198.47.26.152]:45176 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751342AbZFQVQt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jun 2009 17:16:49 -0400
+Received: from dlep34.itg.ti.com ([157.170.170.115])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5HLGkRe011150
+	for <linux-media@vger.kernel.org>; Wed, 17 Jun 2009 16:16:51 -0500
+From: m-karicheri2@ti.com
+To: linux-media@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
+	Murali Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH] adding support for setting bus parameters in sub device
+Date: Wed, 17 Jun 2009 17:16:45 -0400
+Message-Id: <1245273405-9060-1-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
 
-> Hi Sakari,
->
-> Em Wed, 17 Jun 2009 20:40:32 +0300
-> Sakari Ailus <sakari.ailus@nokia.com> escreveu:
->
->> > So, I decided to send you this email, c/c a random list of people that
->> I
->> > believe are involved on the submit and/or review process of those
->> patches, in
->> > the hope to better understand and to discuss what's happening and how
->> can we
->> > speedup the merge process of those patches.
->>
->> There are a few reasons for apparent stalling of the development
->> process. I should have sent a status update earlier.
->>
->> The code quality of the ISP driver was originally quite low and from
->> that part it wouldn't have made much sense to repeatedly post that for
->> reviewing. It's been improving since many of the subdrivers have been
->> refactored or rewritten since I last posted the patchset. The end result
->> should be (more?) easily understood by human beings...
->
-> Ok, makes sense.
->
->> Another reason for no upstream patches is that we are still depending on
->> the obsolete v4l2-int-device in the camera / sensor / lens / flash
->> driver interface. Hans' opinion was that we must switch to v4l2_subdev
->> instead with which I fully agree. However, due to our internal reasons
->> we have not been able to even start that transition process yet.
->>
->> There is no definite deadline for the v4l2_subdev transition (or even
->> its start) at the moment. I'm planning to update the patchset in
->> Gitorious, however.
->
-> I also see advantages on porting it to v4l2 dev/subdev. However, I don't
-> see
-> much sense on holding a driver for such a long time just because an
-> internal
-> KABI, especially since the old v4l2-int-device is still supported, and
-> provided
-> that you'll do the conversion anyway.
+This patch adds support for setting bus parameters such as bus type
+(Raw Bayer or Raw YUV image data bus), bus width (example 10 bit raw
+image data bus, 10 bit BT.656 etc.), and polarities (vsync, hsync, field
+etc) in sub device. This allows bridge driver to configure the sub device
+bus for a specific set of bus parameters through s_bus() function call.
+This also can be used to define platform specific bus parameters for
+host and sub-devices.
 
-That part is very important. The tvp514x driver went in while still using
-v4l2-int-device, but the deal was that it would be converted as soon as
-possible, in principle before the next kernel release. That was indeed the
-case (and I'll prepare a pull request for that tomorrow), so I was OK with
-it.
+Reviewed by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
+---
+Applies to v4l-dvb repository
 
-So if we accept other v4l2-int-device drivers, then only if we have a
-solid agreement on when they will be converted to v4l2_subdev. It is very
-tempting to postpone that once a driver is in, but the only way we can
-have real reuse of i2c drivers is if they all use the same API.
+ include/media/v4l2-subdev.h |   40 ++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 40 insertions(+), 0 deletions(-)
 
-Just my 5 cents...
-
-Regards,
-
-         Hans
-
->
-> Whatever you decide, it is up to you do choose the proper snapshot where
-> you
-> consider the code ready for the merge submission.
->
-> Just be nice with me by avoid sending me all drivers at the same time, on
-> big
-> pull requests ;)
->
-> Cheers,
-> Mauro
->
-
-
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 1785608..8532b91 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -37,6 +37,43 @@ struct v4l2_decode_vbi_line {
+ 	u32 type;		/* VBI service type (V4L2_SLICED_*). 0 if no service found */
+ };
+ 
++/*
++ * Some sub-devices are connected to the host/bridge device through a bus that
++ * carries the clock, vsync, hsync and data. Some interfaces such as BT.656
++ * carries the sync embedded in the data where as others have separate line
++ * carrying the sync signals. The structure below is used to define bus
++ * configuration parameters for host as well as sub-device
++ */
++enum v4l2_bus_type {
++	/* Raw YUV image data bus */
++	V4L2_BUS_RAW_YUV,
++	/* Raw Bayer image data bus */
++	V4L2_BUS_RAW_BAYER
++};
++
++struct v4l2_bus_settings {
++	/* yuv or bayer image data bus */
++	enum v4l2_bus_type type;
++	/* subdev bus width */
++	u8 subdev_width;
++	/* host bus width */
++	u8 host_width;
++	/* embedded sync, set this when sync is embedded in the data stream */
++	unsigned embedded_sync:1;
++	/* master or slave */
++	unsigned host_is_master:1;
++	/* 0 - active low, 1 - active high */
++	unsigned pol_vsync:1;
++	/* 0 - active low, 1 - active high */
++	unsigned pol_hsync:1;
++	/* 0 - low to high , 1 - high to low */
++	unsigned pol_field:1;
++	/* 0 - active low , 1 - active high */
++	unsigned pol_data:1;
++	/* 0 - sample at falling edge , 1 - sample at rising edge */
++	unsigned edge_pclock:1;
++};
++
+ /* Sub-devices are devices that are connected somehow to the main bridge
+    device. These devices are usually audio/video muxers/encoders/decoders or
+    sensors and webcam controllers.
+@@ -199,6 +236,8 @@ struct v4l2_subdev_audio_ops {
+ 
+    s_routing: see s_routing in audio_ops, except this version is for video
+ 	devices.
++
++   s_bus: set bus parameters in sub device to configure the bus
+  */
+ struct v4l2_subdev_video_ops {
+ 	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
+@@ -219,6 +258,7 @@ struct v4l2_subdev_video_ops {
+ 	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
+ 	int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum *fsize);
+ 	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct v4l2_frmivalenum *fival);
++	int (*s_bus)(struct v4l2_subdev *sd, const struct v4l2_bus_settings *bus);
+ };
+ 
+ struct v4l2_subdev_ops {
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+1.6.0.4
 
