@@ -1,44 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:24580 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756780AbZFOIps (ORCPT
+Received: from mail-in-03.arcor-online.net ([151.189.21.43]:55243 "EHLO
+	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751569AbZFQXva (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Jun 2009 04:45:48 -0400
-Message-ID: <4A360A28.8080008@maxwell.research.nokia.com>
-Date: Mon, 15 Jun 2009 11:45:28 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: hvaibhav@ti.com, linux-media@vger.kernel.org,
-	linux-omap@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com,
-	Brijesh Jadav <brijesh.j@ti.com>,
-	Hardik Shah <hardik.shah@ti.com>
-Subject: Re: tcm825x.c: migrating to sub-device framework?
-References: <hvaibhav@ti.com> <200906141214.38355.hverkuil@xs4all.nl> <200906141444.54105.hverkuil@xs4all.nl> <200906141632.21098.hverkuil@xs4all.nl>
-In-Reply-To: <200906141632.21098.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Wed, 17 Jun 2009 19:51:30 -0400
+Subject: Re: [Patch] New utility program atsc_epg added to dvb-apps utility
+	suite.
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Yufei Yuan <yfyuan@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <ccdf9f470906171618r26518ce7pa97d747e301009ca@mail.gmail.com>
+References: <ccdf9f470906171618r26518ce7pa97d747e301009ca@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Date: Thu, 18 Jun 2009 01:51:25 +0200
+Message-Id: <1245282685.8827.29.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> On Sunday 14 June 2009 14:44:53 Hans Verkuil wrote:
->> On Sunday 14 June 2009 12:14:38 Hans Verkuil wrote:
->>> On Wednesday 06 May 2009 20:31:33 hvaibhav@ti.com wrote:
->>>> From: Vaibhav Hiremath <hvaibhav@ti.com>
->>>>
->>>> This patch converts TVP514x driver to sub-device framework
->>>> from V4L2-int framework.
+
+Am Mittwoch, den 17.06.2009, 18:18 -0500 schrieb Yufei Yuan:
+> Hi,
 > 
-> Now that tvp514x is converted to using v4l2_subdev (pending a few small final
-> tweaks) there is only one driver left that uses the v4l2-int-device.h API:
-> tcm825x.c.
+> I am not sure if this is the correct mailing list to send this patch.
+> >From the LinuxTV website, it seems that currently dvb-apps project
+> has
+> no owner.
+> 
+> A new utility atsc_epg is added into the dvb-apps utility suite. It
+> parses PSIP information carried in OTA ATSC channels, and constructs a
+> basic EPG in a terminal window. Changes were also made to files to
+> please GCC4.4.
+> 
+> The patch is against latest revision 1278 from the dvb-apps
+> repository.
+> 
+> Regards,
+> Yufei Yuan
+> 
+> -- 
+> 好学近乎智，力行近乎仁，知耻近乎勇。
+> Eagerness in learning is close to intelligence.
+> Commitment in doing is close to nobleness.
+> Realization of shamefulness is close to courageousness.
 
-There's also the OMAP 2 camera driver (master), 
-drivers/media/video/omap24xxcam.c. The tcm825x is the slave driver that 
-is used in conjunction with omap24xxcam on N800 and N810.
+Getting engaged into footers ...
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+The above blindly assumes that there is a balance within that reduction
+to three cases ... (we know two are enough)
+
+You miss at least several hundred years of history on the other side of
+the planet.
+
+I totally disagree with that kind of stuff.
+
+Most explicitly with the third variant.
+
+That way you can still press any slave into any army ...
+
+
+
+
+
+
+
