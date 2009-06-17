@@ -1,63 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:34340 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752443AbZFGPYj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jun 2009 11:24:39 -0400
-Date: Sun, 7 Jun 2009 12:24:37 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Jan Ceuleers <jan.ceuleers@computer.org>
-Subject: Fw: Broken link in get_dvb_firmware for nxt2004 (A180)
-Message-ID: <20090607122437.731302d3@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/eghlGvr8G65qKZ8jkRcXsN0"
+Received: from mail.gmx.net ([213.165.64.20]:57923 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S932855AbZFQIq6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jun 2009 04:46:58 -0400
+Date: Wed, 17 Jun 2009 10:46:58 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Magnus Damm <magnus.damm@gmail.com>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
+	Darius Augulis <augulis.darius@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] adding support for setting bus parameters in sub device
+In-Reply-To: <52243.62.70.2.252.1245227586.squirrel@webmail.xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0906171043120.4218@axis700.grange>
+References: <52243.62.70.2.252.1245227586.squirrel@webmail.xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/eghlGvr8G65qKZ8jkRcXsN0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Wed, 17 Jun 2009, Hans Verkuil wrote:
 
-Jan,
+> It is my strong opinion that while autonegotiation is easy to use, it is
+> not a wise choice to make. Filling in a single struct with the bus
+> settings to use for each board-subdev combination (usually there is only
+> one) is simple, straight-forward and unambiguous. And I really don't see
+> why that should take much time at all. And I consider it a very good point
+> that the programmer is forced to think about this for a bit.
 
-Instead of v4l-dvb-maintainer and V4L ML, please send patches to
-linux-media@vger.kernel.org, otherwise, patchwork won't catch it.
+Ok, my opinion is, that we should keep autonegotiation, but if you like, 
+we can print a BIG-FAT-WARNING if both polarities are supported and no 
+platform preference is set.
 
-Forwarded message:
+I think, we've heard all opinions, unless someone would like to add 
+something? Would it be fair to ask Mauro to make a decision? Or we can 
+just count votes (which I would obviously prefer), but I'll accept Mauro's 
+decision too.
 
-Date: Sun, 07 Jun 2009 14:42:15 +0200
-From: Jan Ceuleers <jan.ceuleers@computer.org>
-To: mchehab@infradead.org, v4l-dvb-maintainer@linuxtv.org,        video4linux-list@redhat.com
-Subject: Re: Broken link in get_dvb_firmware for nxt2004 (A180)
-
-
-Errr... The patch was produced the wrong way around. Sorry about that. 
-Trying again.
-
-
-
-
-
-
-Cheers,
-Mauro
-
---MP_/eghlGvr8G65qKZ8jkRcXsN0
-Content-Type: text/plain; name=averfw.patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=averfw.patch
-
---- linux-2.6.29/Documentation/dvb/get_dvb_firmware.orig	2009-06-07 14:38:20.000000000 +0200
-+++ linux-2.6.29/Documentation/dvb/get_dvb_firmware	2009-06-07 14:38:55.000000000 +0200
-@@ -317,7 +317,7 @@
- 
- sub nxt2004 {
-     my $sourcefile = "AVerTVHD_MCE_A180_Drv_v1.2.2.16.zip";
--    my $url = "http://www.aver.com/support/Drivers/$sourcefile";
-+    my $url = "http://www.avermedia-usa.com/support/Drivers/$sourcefile";
-     my $hash = "111cb885b1e009188346d72acfed024c";
-     my $outfile = "dvb-fe-nxt2004.fw";
-     my $tmpdir = tempdir(DIR => "/tmp", CLEANUP => 1);
-
---MP_/eghlGvr8G65qKZ8jkRcXsN0--
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
