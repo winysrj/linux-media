@@ -1,183 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f216.google.com ([209.85.220.216]:61431 "EHLO
-	mail-fx0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755382AbZFBGy6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2009 02:54:58 -0400
-Received: by fxm12 with SMTP id 12so6263843fxm.37
-        for <linux-media@vger.kernel.org>; Mon, 01 Jun 2009 23:54:58 -0700 (PDT)
+Received: from mail-gx0-f214.google.com ([209.85.217.214]:39025 "EHLO
+	mail-gx0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759246AbZFQILM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jun 2009 04:11:12 -0400
+Received: by gxk10 with SMTP id 10so262469gxk.13
+        for <linux-media@vger.kernel.org>; Wed, 17 Jun 2009 01:11:14 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <4A23D25F.9060700@deckpoint.ch>
-References: <4A23D25F.9060700@deckpoint.ch>
-Date: Tue, 2 Jun 2009 09:54:58 +0300
-Message-ID: <eaf6cbc30906012354n5bab2b41k58d717c80ca96936@mail.gmail.com>
-Subject: Re: CAM initialisation failing
-From: Tomer Barletz <barletz@gmail.com>
-To: Thomas Kernen <tkernen@deckpoint.ch>
-Cc: linux-media@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.64.0906141719510.4412@axis700.grange>
+References: <62904.62.70.2.252.1244810776.squirrel@webmail.xs4all.nl>
+	 <Pine.LNX.4.64.0906121454410.4843@axis700.grange>
+	 <200906121800.51177.hverkuil@xs4all.nl>
+	 <Pine.LNX.4.64.0906141719510.4412@axis700.grange>
+Date: Wed, 17 Jun 2009 17:11:13 +0900
+Message-ID: <aec7e5c30906170111y1f16919bie46b1e66f84a6a54@mail.gmail.com>
+Subject: Re: [PATCH] adding support for setting bus parameters in sub device
+From: Magnus Damm <magnus.damm@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
+	Darius Augulis <augulis.darius@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 1, 2009 at 4:06 PM, Thomas Kernen <tkernen@deckpoint.ch> wrote:
+On Mon, Jun 15, 2009 at 12:33 AM, Guennadi
+Liakhovetski<g.liakhovetski@gmx.de> wrote:
+> On Fri, 12 Jun 2009, Hans Verkuil wrote:
 >
-> Dear community,
->
-> After finally getting my Mystique SaTiX DVB-S2 PCI card (clone of KNC1 DVB
-> Station S2), I'm now facing trouble with the CAM initialisation (KNC1 CA
-> daughter card, PowerCam Pro CAM and Viaccess card)
->
-> All of the hardware (DVB-S2 PCI card, sat card, CI, CAM) has been tested
-> under Windows with any issues, hence I suspect this is a module related
-> issue.
->
-> To try and better understand the issue, I added some debug statements to the
-> following modules:
-> options dvb-core cam_debug=1 debug=1
-> options budget-core debug=1
->
-> And this is the output I'm getting:
->
-> [    9.146782] DVB: registering new adapter (KNC1 DVB-S2)
-> [    9.203364] adapter failed MAC signature check
-> [    9.203366] encoded MAC from EEPROM was
-> ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff:ff
-> [    9.410061] budget_av: saa7113_init(): saa7113 not found on KNC card
-> [    9.510352] KNC1-1: MAC addr = 00:09:d6:65:2d:91
-> [    9.642505] saa7146 (0) saa7146_i2c_writeout [irq]: timed out waiting for
-> end of xfer
-> [    9.764427] stb0899_attach: Attaching STB0899
-> [    9.776853] tda8261_attach: Attaching TDA8261 8PSK/QPSK tuner
-> [    9.776855] DVB: registering adapter 1 frontend 0 (STB0899
-> Multistandard)...
-> [    9.776888] dvb_ca_en50221_init
-> [    9.777048] budget-av: ci interface initialised.
-> [    9.777050] dvb_ca_en50221_thread
-> <snip>
-> [   14.770017] budget-av: cam inserted A
-> [   14.770032] budget_av: ciintf_slot_reset(): ciintf_slot_reset
-> [   14.950033] TUPLE type:0x1d length:4
-> [   14.950041]   0x00: 0x00 .
-> [   14.950048]   0x01: 0x61 a
-> [   14.950055]   0x02: 0x00 .
-> [   14.950063]   0x03: 0xff .
-> [   14.950076] TUPLE type:0x1c length:4
-> [   14.950083]   0x00: 0x00 .
-> [   14.950091]   0x01: 0xd3 .
-> [   14.950098]   0x02: 0x00 .
-> [   14.950105]   0x03: 0xff .
-> [   14.950118] TUPLE type:0x15 length:11
-> [   14.950126]   0x00: 0x05 .
-> [   14.950133]   0x01: 0x00 .
-> [   14.950140]   0x02: 0x47 G
-> [   14.950147]   0x03: 0x00 .
-> [   14.950154]   0x04: 0x4d M
-> [   14.950161]   0x05: 0x00 .
-> [   14.950168]   0x06: 0x4c L
-> [   14.950175]   0x07: 0x00 .
-> [   14.950182]   0x08: 0x4c L
-> [   14.950189]   0x09: 0x00 .
-> [   14.950196]   0x0a: 0xff .
-> [   14.950210] TUPLE type:0x20 length:4
-> [   14.950217]   0x00: 0x02 .
-> [   14.950224]   0x01: 0xca .
-> [   14.950232]   0x02: 0x12 .
-> [   14.950239]   0x03: 0x60 `
-> [   14.950252] TUPLE type:0x1a length:21
-> [   14.950260]   0x00: 0x01 .
-> [   14.950267]   0x01: 0x0f .
-> [   14.950274]   0x02: 0x00 .
-> [   14.950281]   0x03: 0x02 .
-> [   14.950288]   0x04: 0x03 .
-> [   14.950295]   0x05: 0xc0 .
-> [   14.950302]   0x06: 0x0e .
-> [   14.950309]   0x07: 0x41 A
-> [   14.950316]   0x08: 0x02 .
-> [   14.950323]   0x09: 0x44 D
-> [   14.950330]   0x0a: 0x56 V
-> [   14.950337]   0x0b: 0x42 B
-> [   14.950344]   0x0c: 0x5f _
-> [   14.950352]   0x0d: 0x43 C
-> [   14.950359]   0x0e: 0x49 I
-> [   14.950366]   0x0f: 0x5f _
-> [   14.950373]   0x10: 0x56 V
-> [   14.950380]   0x11: 0x31 1
-> [   14.950387]   0x12: 0x2e .
-> [   14.950394]   0x13: 0x30 0
-> [   14.950401]   0x14: 0x30 0
-> [   14.950415] TUPLE type:0x1b length:42
-> [   14.950422]   0x00: 0xcf .
-> [   14.950429]   0x01: 0x04 .
-> [   14.950436]   0x02: 0x09 .
-> [   14.950443]   0x03: 0x7f .
-> [   14.950450]   0x04: 0x55 U
-> [   14.950458]   0x05: 0xcd .
-> [   14.950465]   0x06: 0x19 .
-> [   14.950472]   0x07: 0xd5 .
-> [   14.950479]   0x08: 0x19 .
-> [   14.950486]   0x09: 0x3d =
-> [   14.950493]   0x0a: 0x9e .
-> [   14.950500]   0x0b: 0x25 %
-> [   14.950507]   0x0c: 0x26 &
-> [   14.950514]   0x0d: 0x54 T
-> [   14.950521]   0x0e: 0x22 "
-> [   14.950528]   0x0f: 0xc0 .
-> [   14.950535]   0x10: 0x09 .
-> [   14.950542]   0x11: 0x44 D
-> [   14.950549]   0x12: 0x56 V
-> [   14.950557]   0x13: 0x42 B
-> [   14.950564]   0x14: 0x5f _
-> [   14.950571]   0x15: 0x48 H
-> [   14.950578]   0x16: 0x4f O
-> [   14.950585]   0x17: 0x53 S
-> [   14.950592]   0x18: 0x54 T
-> [   14.950599]   0x19: 0x00 .
-> [   14.950606]   0x1a: 0xc1 .
-> [   14.950613]   0x1b: 0x0e .
-> [   14.950620]   0x1c: 0x44 D
-> [   14.950627]   0x1d: 0x56 V
-> [   14.950634]   0x1e: 0x42 B
-> [   14.950642]   0x1f: 0x5f _
-> [   14.950649]   0x20: 0x43 C
-> [   14.950656]   0x21: 0x49 I
-> [   14.950663]   0x22: 0x5f _
-> [   14.950670]   0x23: 0x4d M
-> [   14.950677]   0x24: 0x4f O
-> [   14.950684]   0x25: 0x44 D
-> [   14.950691]   0x26: 0x55 U
-> [   14.950698]   0x27: 0x4c L
-> [   14.950705]   0x28: 0x45 E
-> [   14.950712]   0x29: 0x00 .
-> [   14.950727] TUPLE type:0x14 length:0
-> [   14.950734] END OF CHAIN TUPLE type:0xff
-> [   14.950735] Valid DVB CAM detected MANID:ca02 DEVID:6012 CONFIGBASE:0x200
-> CONFIGOPTION:0xf
-> [   14.950736] dvb_ca_en50221_set_configoption
-> [   14.950750] Set configoption 0xf, read configoption 0xf
-> [   14.950757] DVB CAM validated successfully
-> <snip>
-> [   15.050023] dvb_ca_en50221_link_init
-> [   15.050030] dvb_ca_en50221_wait_if_status
-> [   15.050037] dvb_ca_en50221_wait_if_status succeeded timeout:0
-> [   15.050038] dvb_ca_en50221_read_data
-> [   15.050084] dvb_ca adapter 1: DVB CAM link initialisation failed :(
->
-> So if I understand correctly the CAM is ok but the en50221 module is times
-> out when trying to read the card, is this correct?
->
-> Any pointers/suggestions would be most welcomed.
-> Thomas
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+>> On Friday 12 June 2009 14:59:03 Guennadi Liakhovetski wrote:
+>> > On Fri, 12 Jun 2009, Hans Verkuil wrote:
+>> >
+>> > > > 1. it is very unusual that the board designer has to mandate what signal
+>> > > > polarity has to be used - only when there's additional logic between the
+>> > > > capture device and the host. So, we shouldn't overload all boards with
+>> > > > this information. Board-code authors will be grateful to us!
+>> > >
+>> > > I talked to my colleague who actually designs boards like that about what
+>> > > he would prefer. His opinion is that he wants to set this himself, rather
+>> > > than leave it as the result of a software negotiation. It simplifies
+>> > > verification and debugging the hardware, and in addition there may be
+>> > > cases where subtle timing differences between e.g. sampling on a falling
+>> > > edge vs rising edge can actually become an important factor, particularly
+>> > > on high frequencies.
 
-Hi Thomas,
-This looks very similar to my problem.
-See here:
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg05743.html
+Let me guess, your coworker is a hardware designer? Letting hardware
+people do hardware design is usually a good idea, but I'm yet to see
+good software written by hardware people. =)
 
-Tomer
+>> > I'd say this is different. You're talking about cases where you _want_ to
+>> > be able to configure it explicitly, I am saying you do not have to _force_
+>> > all to do this. Now, this selection only makes sense if both are
+>> > configurable, right? In this case, e.g., pxa270 driver does support
+>> > platform-specified preference. So, if both the host and the client can
+>> > configure either polarity in the software you _can_ still specify the
+>> > preferred one in platform data and it will be used.
+>> >
+>> > I think, the ability to specify inverters and the preferred polarity
+>> > should cover all possible cases.
+>>
+>> In my opinion you should always want to set this explicitly. This is not
+>> something you want to leave to chance. Say you autoconfigure this. Now
+>> someone either changes the autoconf algorithm, or a previously undocumented
+>> register was discovered for the i2c device and it can suddenly configure the
+>> polarity of some signal that was previously thought to be fixed, or something
+>> else happens causing a different polarity to be negotiated.
+>
+> TBH, the argumentation like "someone changes the autoconf algorithm" or
+> "previously undocumented register is discovered" doesn't convince me. In
+> any case, I am adding authors, maintainers and major contributors to
+> various soc-camera host drivers to CC and asking them to express their
+> opinion on this matter. I will not add anything else here to avoid any
+> "unfair competition":-) they will have to go a couple emails back in this
+> thread to better understand what is being discussed here.
+
+I think automatic negotiation is a good thing if it is implemented correctly.
+
+Actually, i think modelling software after hardware is a good thing
+and from that perspective the soc_camera was (and still is) a very
+good fit for our on-chip SoC. Apart from host/sensor separation, the
+main benefits in my mind are autonegotiation and separate
+configuration for camera sensor, capture interface and board.
+
+I don't mind doing the same outside soc_camera, and I agree with Hans
+that in some cases it's nice to hard code and skip the "magic"
+negotiation. I'm however pretty sure the soc_camera allows hard coding
+though, so in that case you get the best of two worlds.
+
+Cheers,
+
+/ magnus
