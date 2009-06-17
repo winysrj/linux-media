@@ -1,49 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:37431 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757830AbZFJToh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2009 15:44:37 -0400
-Message-Id: <200906101944.n5AJiMDU031766@imap1.linux-foundation.org>
-Subject: [patch 4/6] V4L/pwc: use usb_interface as parent, not usb_device
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	mzxreary@0pointer.de, kay.sievers@vrfy.org
-From: akpm@linux-foundation.org
-Date: Wed, 10 Jun 2009 12:44:21 -0700
+Received: from mail1.radix.net ([207.192.128.31]:41136 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751136AbZFQKzc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jun 2009 06:55:32 -0400
+Subject: Re: Convert cpia driver to v4l2, drop parallel port version
+ support?
+From: Andy Walls <awalls@radix.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <13104.62.70.2.252.1245224630.squirrel@webmail.xs4all.nl>
+References: <13104.62.70.2.252.1245224630.squirrel@webmail.xs4all.nl>
+Content-Type: text/plain
+Date: Wed, 17 Jun 2009 06:56:07 -0400
+Message-Id: <1245236167.3147.34.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lennart Poettering <mzxreary@0pointer.de>
+On Wed, 2009-06-17 at 09:43 +0200, Hans Verkuil wrote:
 
-The current code creates a sysfs device path where the video4linux device
-is child of the usb device itself instead of the interface it belongs to. 
-That is evil and confuses udev.
+> > I personally think that loosing support for the parallel port
+> > version is ok given that the parallel port itslef is rapidly
+> > disappearing, what do you think ?
+> 
+> I agree wholeheartedly. If we remove pp support, then we can also remove
+> the bw-qcam and c-qcam drivers since they too use the parallel port.
 
-This patch does basically the same thing as Kay's similar patch for the
-ov511 driver:
+Maybe I just like keeping old hardware up and running, but...
 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=ce96d0a44a4f8d1bb3dc12b5e98cb688c1bc730d
+I think it may be better to remove camera drivers when a majority of the
+actual camera hardware is likely to reach EOL, as existing parallel
+ports will likely outlive the cameras.
 
-Cc: Kay Sievers <kay.sievers@vrfy.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Signed-off-by: Lennart Poettering <mzxreary@0pointer.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+My PC I got in Dec 2005 has a parellel port, as does the motherboard I
+purchased 2008.
 
- drivers/media/video/pwc/pwc-if.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I have a 802.11g router (ASUS WL-500g) with a parallel port.  It works
+nicely as a remote print server.  From my perspective, that parallel
+port isn't going away anytime soon.
 
-diff -puN drivers/media/video/pwc/pwc-if.c~v4l-pwc-use-usb_interface-as-parent-not-usb_device drivers/media/video/pwc/pwc-if.c
---- a/drivers/media/video/pwc/pwc-if.c~v4l-pwc-use-usb_interface-as-parent-not-usb_device
-+++ a/drivers/media/video/pwc/pwc-if.c
-@@ -1783,7 +1783,7 @@ static int usb_pwc_probe(struct usb_inte
- 		return -ENOMEM;
- 	}
- 	memcpy(pdev->vdev, &pwc_template, sizeof(pwc_template));
--	pdev->vdev->parent = &(udev->dev);
-+	pdev->vdev->parent = &intf->dev;
- 	strcpy(pdev->vdev->name, name);
- 	video_set_drvdata(pdev->vdev, pdev);
- 
-_
+
+<irrelevant aside>
+At least the custom firmware for the WL-500g
+( http://oleg.wl500g.info/ ) has the ability to use webcams for snapping
+pictures and emailing away a notification.  I'm pretty sure PP webcams
+are not actually supported though.
+
+The wireless router surveillance case is probably not relevant though,
+as routers are usually using (very) old kernels.
+</irrelevant aside>
+
+-Andy
+
