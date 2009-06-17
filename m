@@ -1,129 +1,346 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-16.arcor-online.net ([151.189.21.56]:35099 "EHLO
-	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752089AbZFLWmy (ORCPT
+Received: from an-out-0708.google.com ([209.85.132.244]:33258 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752260AbZFQV33 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jun 2009 18:42:54 -0400
-Subject: Re: s5h1411_readreg: readreg error (ret == -5)
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Mike Isely <isely@isely.net>
-Cc: Andy Walls <awalls@radix.net>, Roger <rogerx@sdf.lonestar.org>,
-	Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
-In-Reply-To: <Pine.LNX.4.64.0906121627000.6470@cnc.isely.net>
-References: <1244446830.3797.6.camel@localhost2.local>
-	 <Pine.LNX.4.64.0906102257130.7298@cnc.isely.net>
-	 <4A311A64.4080008@kernellabs.com>
-	 <Pine.LNX.4.64.0906111343220.17086@cnc.isely.net>
-	 <1244759335.9812.2.camel@localhost2.local>
-	 <Pine.LNX.4.64.0906121531100.6470@cnc.isely.net>
-	 <1244841123.3264.55.camel@palomino.walls.org>
-	 <Pine.LNX.4.64.0906121627000.6470@cnc.isely.net>
-Content-Type: text/plain
-Date: Sat, 13 Jun 2009 00:39:30 +0200
-Message-Id: <1244846370.3803.44.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 17 Jun 2009 17:29:29 -0400
+Received: by an-out-0708.google.com with SMTP id d40so975663and.1
+        for <linux-media@vger.kernel.org>; Wed, 17 Jun 2009 14:29:31 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1245269484-8325-2-git-send-email-m-karicheri2@ti.com>
+References: <1245269484-8325-1-git-send-email-m-karicheri2@ti.com>
+	 <1245269484-8325-2-git-send-email-m-karicheri2@ti.com>
+Date: Thu, 18 Jun 2009 01:29:31 +0400
+Message-ID: <208cbae30906171429q3d5aeb3fy26788be1f415c289@mail.gmail.com>
+Subject: Re: [PATCH 1/11 - v3] vpfe capture bridge driver for DM355 and DM6446
+From: Alexey Klimov <klimov.linux@gmail.com>
+To: m-karicheri2@ti.com
+Cc: linux-media@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hello,
 
-Am Freitag, den 12.06.2009, 16:27 -0500 schrieb Mike Isely:
-> Well now I feel like an idiot.  Thanks for pointing that out in my own 
-> code :-)
-> 
-> Still digging through this.
-> 
->   -Mike
+very small comments, see below please
 
-despite of that and to feed the weasel.
+On Thu, Jun 18, 2009 at 12:11 AM, <m-karicheri2@ti.com> wrote:
+> From: Muralidharan Karicheri <m-karicheri2@ti.com>
 
-We'll have to look through different drivers, if we can make more use of
-potential present device information in the eeproms.
+<snip>
 
-There are always OEMs not following for example the Philips eeprom
-layout in all details, most visible on different primary analog/hybrid
-tuner type enumeration, and I don't even claim to know the latter in all
-details,
+> +static int vpfe_enable_clock(struct vpfe_device *vpfe_dev)
+> +{
+> +       struct vpfe_config *vpfe_cfg = vpfe_dev->cfg;
+> +       int ret = -ENOENT;
+> +
+> +       vpfe_cfg->vpssclk = clk_get(vpfe_dev->pdev, "vpss_master");
+> +       if (NULL == vpfe_cfg->vpssclk) {
+> +               v4l2_err(vpfe_dev->pdev->driver, "No clock defined for"
+> +                        "vpss_master\n");
+> +               return ret;
+> +       }
+> +
+> +       if (clk_enable(vpfe_cfg->vpssclk)) {
+> +               v4l2_err(vpfe_dev->pdev->driver,
+> +                       "vpfe vpss master clock not enabled");
+> +               goto out;
+> +       }
+> +       v4l2_info(vpfe_dev->pdev->driver,
+> +                "vpfe vpss master clock enabled\n");
+> +
+> +       vpfe_cfg->slaveclk = clk_get(vpfe_dev->pdev, "vpss_slave");
+> +       if (NULL == vpfe_cfg->slaveclk) {
+> +               v4l2_err(vpfe_dev->pdev->driver,
+> +                       "No clock defined for vpss slave\n");
+> +               goto out;
+> +       }
+> +
+> +       if (clk_enable(vpfe_cfg->slaveclk)) {
+> +               v4l2_err(vpfe_dev->pdev->driver,
+> +                        "vpfe vpss slave clock not enabled");
+> +               goto out;
+> +       }
+> +       v4l2_info(vpfe_dev->pdev->driver,
+> +                "vpfe vpss slave clock enabled\n");
+> +       return 0;
+> +out:
+> +       if (vpfe_cfg->vpssclk)
+> +               clk_put(vpfe_cfg->vpssclk);
+> +       if (vpfe_cfg->slaveclk)
+> +               clk_put(vpfe_cfg->slaveclk);
+> +
+> +       return -1;
+> +}
+> +
+> +/*
+> + * vpfe_probe : This function creates device entries by register
+> + * itself to the V4L2 driver and initializes fields of each
+> + * device objects
+> + */
+> +static __init int vpfe_probe(struct platform_device *pdev)
+> +{
+> +       struct vpfe_config *vpfe_cfg;
+> +       struct resource *res1;
+> +       struct vpfe_device *vpfe_dev;
+> +       struct i2c_adapter *i2c_adap;
+> +       struct i2c_client *client;
+> +       struct video_device *vfd;
+> +       int ret = -ENOMEM, i, j;
+> +       int num_subdevs = 0;
+> +
+> +       /* Get the pointer to the device object */
+> +       vpfe_dev = vpfe_initialize();
+> +
+> +       if (!vpfe_dev) {
+> +               v4l2_err(pdev->dev.driver,
+> +                       "Failed to allocate memory for vpfe_dev\n");
+> +               return ret;
+> +       }
+> +
+> +       vpfe_dev->pdev = &pdev->dev;
+> +
+> +       if (NULL == pdev->dev.platform_data) {
+> +               v4l2_err(pdev->dev.driver, "Unable to get vpfe config\n");
+> +               ret = -ENOENT;
+> +               goto probe_free_dev_mem;
+> +       }
+> +
+> +       vpfe_cfg = pdev->dev.platform_data;
+> +       vpfe_dev->cfg = vpfe_cfg;
+> +       if (NULL == vpfe_cfg->ccdc ||
+> +           NULL == vpfe_cfg->card_name ||
+> +           NULL == vpfe_cfg->sub_devs) {
+> +               v4l2_err(pdev->dev.driver, "null ptr in vpfe_cfg\n");
+> +               ret = -ENOENT;
+> +               goto probe_free_dev_mem;
+> +       }
+> +
+> +       /* enable vpss clocks */
+> +       ret = vpfe_enable_clock(vpfe_dev);
+> +       if (ret)
+> +               goto probe_free_dev_mem;
+> +
+> +       mutex_lock(&ccdc_lock);
+> +       /* Allocate memory for ccdc configuration */
+> +       ccdc_cfg = kmalloc(sizeof(struct ccdc_config), GFP_KERNEL);
+> +       if (NULL == ccdc_cfg) {
+> +               v4l2_err(pdev->dev.driver, "Memory allocation failed for"
+> +                       "ccdc_cfg");
+> +               goto probe_disable_clock;
+> +       }
+> +
+> +       strncpy(ccdc_cfg->name, vpfe_cfg->ccdc, 32);
+> +       /* Get VINT0 irq resource */
+> +       res1 = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
+> +       if (!res1) {
+> +               v4l2_err(pdev->dev.driver, "Unable to get interrupt for VINT0");
 
-and it needs more work on it,
+Do you want to add "\n" to the end of this message? If i'm now wrong
+it's better to check other messages in this patch for "\n". Please,
+check.
 
-but we have a lot of congruence for details in the 16 bytes including
-0x40 and up from it across most manufacturers, including Hauppauge.
+> +               ret = -ENOENT;
+> +               goto probe_disable_clock;
+> +       }
+> +       vpfe_dev->ccdc_irq0 = res1->start;
+> +
+> +       /* Get VINT1 irq resource */
+> +       res1 = platform_get_resource(pdev,
+> +                               IORESOURCE_IRQ, 1);
+> +       if (!res1) {
+> +               v4l2_err(pdev->dev.driver, "Unable to get interrupt for VINT1");
 
-According to Hartmut, unfortunately not active currently, even different
-LNA types, more and more devices with such do appear, are encoded in the
-eeprom, if the OEM follows the plan. I don't know where yet, but might
-be worth some time to try to find it out.
+"\n" ?
 
-I had some hopes that this would also be known for the Hauppauge
-eeproms, but seems not.
+> +               ret = -ENOENT;
+> +               goto probe_disable_clock;
+> +       }
+> +       vpfe_dev->ccdc_irq1 = res1->start;
+> +
+> +       /* Get address base of CCDC */
+> +       res1 = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +       if (!res1) {
+> +               v4l2_err(pdev->dev.driver,
+> +                       "Unable to get register address map\n");
+> +               ret = -ENOENT;
+> +               goto probe_disable_clock;
+> +       }
+> +
+> +       ccdc_cfg->ccdc_addr_size = res1->end - res1->start + 1;
+> +       if (!request_mem_region(res1->start, ccdc_cfg->ccdc_addr_size,
+> +                               pdev->dev.driver->name)) {
+> +               v4l2_err(pdev->dev.driver,
+> +                       "Failed request_mem_region for ccdc base\n");
+> +               ret = -ENXIO;
+> +               goto probe_disable_clock;
+> +       }
+> +       ccdc_cfg->ccdc_addr = ioremap_nocache(res1->start,
+> +                                            ccdc_cfg->ccdc_addr_size);
+> +       if (!ccdc_cfg->ccdc_addr) {
+> +               v4l2_err(pdev->dev.driver, "Unable to ioremap ccdc addr\n");
+> +               ret = -ENXIO;
+> +               goto probe_out_release_mem1;
+> +       }
+> +
+> +       ret = request_irq(vpfe_dev->ccdc_irq0, vpfe_isr, IRQF_DISABLED,
+> +                         "vpfe_capture0", vpfe_dev);
+> +
+> +       if (0 != ret) {
+> +               v4l2_err(pdev->dev.driver, "Unable to request interrupt\n");
+> +               goto probe_out_unmap1;
+> +       }
+> +
+> +       /* Allocate memory for video device */
+> +       vfd = video_device_alloc();
+> +       if (NULL == vfd) {
+> +               ret = ENOMEM;
 
-The most undiscovered configurations seem to be such ones about antenna
-inputs and their switching. Again according to Hartmut, and he did not
-know exactly what is going on here, some for us and him at this point
-unknown checksums are used to derive even that information :(
+ret = -ENOMEM?
 
-For what I can see, and I might be of course still wrong, we can also
-not determine plain digital tuner types, digital demodulator types of
-any kind and the type of possibly present second and third tuners, but
-at least their addresses, regularly shared by multiple chips, become
-often visible. (some OEMs have only 0xff still for all that)
+> +               v4l2_err(pdev->dev.driver,
+> +                       "Unable to alloc video device\n");
+> +               goto probe_out_release_irq;
+> +       }
+> +
+> +       /* Initialize field of video device */
+> +       vfd->release            = video_device_release;
+> +       vfd->current_norm       = V4L2_STD_UNKNOWN;
+> +       vfd->fops               = &vpfe_fops;
+> +       vfd->ioctl_ops          = &vpfe_ioctl_ops;
+> +       vfd->minor              = -1;
+> +       vfd->tvnorms            = 0;
+> +       vfd->current_norm       = V4L2_STD_PAL;
+> +       vfd->v4l2_dev           = &vpfe_dev->v4l2_dev;
+> +       snprintf(vfd->name, sizeof(vfd->name),
+> +                "%s_V%d.%d.%d",
+> +                CAPTURE_DRV_NAME,
+> +                (VPFE_CAPTURE_VERSION_CODE >> 16) & 0xff,
+> +                (VPFE_CAPTURE_VERSION_CODE >> 8) & 0xff,
+> +                (VPFE_CAPTURE_VERSION_CODE) & 0xff);
+> +       /* Set video_dev to the video device */
+> +       vpfe_dev->video_dev     = vfd;
+> +
+> +       ret = v4l2_device_register(&pdev->dev, &vpfe_dev->v4l2_dev);
+> +       if (ret) {
+> +               v4l2_err(pdev->dev.driver,
+> +                       "Unable to register v4l2 device.\n");
+> +               goto probe_out_video_release;
+> +       }
+> +       v4l2_info(&vpfe_dev->v4l2_dev, "v4l2 device registered\n");
+> +       spin_lock_init(&vpfe_dev->irqlock);
+> +       spin_lock_init(&vpfe_dev->dma_queue_lock);
+> +       mutex_init(&vpfe_dev->lock);
+> +
+> +       /* Initialize field of the device objects */
+> +       vpfe_dev->numbuffers = config_params.numbuffers;
+> +
+> +       /* Initialize prio member of device object */
+> +       v4l2_prio_init(&vpfe_dev->prio);
+> +       /* register video device */
+> +       v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
+> +               "trying to register vpfe device.\n");
+> +       v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
+> +               "video_dev=%x\n", (int)&vpfe_dev->video_dev);
+> +       vpfe_dev->fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +       ret = video_register_device(vpfe_dev->video_dev,
+> +                                   VFL_TYPE_GRABBER, -1);
+> +
+> +       if (ret) {
+> +               v4l2_err(pdev->dev.driver,
+> +                       "Unable to register video device.\n");
+> +               goto probe_out_v4l2_unregister;
+> +       }
+> +
+> +       v4l2_info(&vpfe_dev->v4l2_dev, "video device registered\n");
+> +       /* set the driver data in platform device */
+> +       platform_set_drvdata(pdev, vpfe_dev);
+> +       /* set driver private data */
+> +       video_set_drvdata(vpfe_dev->video_dev, vpfe_dev);
+> +       i2c_adap = i2c_get_adapter(1);
+> +       vpfe_cfg = pdev->dev.platform_data;
+> +       num_subdevs = vpfe_cfg->num_subdevs;
+> +       vpfe_dev->sd = kmalloc(sizeof(struct v4l2_subdev *) * num_subdevs,
+> +                               GFP_KERNEL);
+> +       if (NULL == vpfe_dev->sd) {
+> +               v4l2_err(&vpfe_dev->v4l2_dev,
+> +                       "unable to allocate memory for subdevice pointers\n");
+> +               ret = -ENOMEM;
+> +               goto probe_out_video_unregister;
+> +       }
+> +
+> +       for (i = 0; i < num_subdevs; i++) {
+> +               struct vpfe_subdev_info *sdinfo = &vpfe_cfg->sub_devs[i];
+> +               struct v4l2_input *inps;
+> +
+> +               list_for_each_entry(client, &i2c_adap->clients, list) {
+> +                       if (!strcmp(client->name, sdinfo->name))
+> +                               break;
+> +               }
+> +
+> +               if (NULL == client) {
+> +                       v4l2_err(&vpfe_dev->v4l2_dev, "No Subdevice found\n");
+> +                       ret =  -ENODEV;
+> +                       goto probe_sd_out;
+> +               }
+> +
+> +               /* Get subdevice data from the client */
+> +               vpfe_dev->sd[i] = i2c_get_clientdata(client);
+> +               if (NULL == vpfe_dev->sd[i]) {
+> +                       v4l2_err(&vpfe_dev->v4l2_dev,
+> +                               "No Subdevice data\n");
+> +                       ret =  -ENODEV;
+> +                       goto probe_sd_out;
+> +               }
+> +
+> +               vpfe_dev->sd[i]->grp_id = sdinfo->grp_id;
+> +               ret = v4l2_device_register_subdev(&vpfe_dev->v4l2_dev,
+> +                                                 vpfe_dev->sd[i]);
+> +               if (ret) {
+> +                       ret =  -ENODEV;
+> +                       v4l2_err(&vpfe_dev->v4l2_dev,
+> +                               "Error registering v4l2 sub-device\n");
+> +                       goto probe_sd_out;
+> +               }
+> +               v4l2_info(&vpfe_dev->v4l2_dev, "v4l2 sub device %s"
+> +                         " registered\n", client->name);
+> +
+> +               /* update tvnorms from the sub devices */
+> +               for (j = 0; j < sdinfo->num_inputs; j++) {
+> +                       inps = &sdinfo->inputs[j];
+> +                       vfd->tvnorms |= inps->std;
+> +               }
+> +       }
+> +       /* We have at least one sub device to work with */
+> +       vpfe_dev->current_subdev = &vpfe_cfg->sub_devs[0];
+> +       mutex_unlock(&ccdc_lock);
+> +       return 0;
+> +
+> +probe_sd_out:
+> +       for (j = i; j >= 0; j--)
+> +               v4l2_device_unregister_subdev(vpfe_dev->sd[j]);
+> +       kfree(vpfe_dev->sd);
+> +probe_out_video_unregister:
+> +       video_unregister_device(vpfe_dev->video_dev);
+> +probe_out_v4l2_unregister:
+> +       v4l2_device_unregister(&vpfe_dev->v4l2_dev);
+> +probe_out_video_release:
+> +       video_device_release(vpfe_dev->video_dev);
+> +probe_out_release_irq:
+> +       free_irq(vpfe_dev->ccdc_irq0, vpfe_dev);
+> +probe_out_unmap1:
+> +       iounmap(ccdc_cfg->ccdc_addr);
+> +probe_out_release_mem1:
+> +       release_mem_region(res1->start, res1->end - res1->start + 1);
+> +probe_disable_clock:
+> +       vpfe_disable_clock(vpfe_dev);
+> +       mutex_unlock(&ccdc_lock);
+> +       kfree(ccdc_cfg);
+> +probe_free_dev_mem:
+> +       kfree(vpfe_dev);
+> +       return ret;
 
-Cheers,
-Hermann
-
-> 
-On Fri, 12 Jun 2009, Andy Walls wrote:
-> 
-> > On Fri, 2009-06-12 at 15:33 -0500, Mike Isely wrote:
-> > > I am unable to reproduce the s5h1411 error here.
-> > > 
-> > > However my HVR-1950 loads the s5h1409 module - NOT s5h1411.ko; I wonder 
-> > > if Hauppauge has changed chips on newer devices and so you're running a 
-> > > different tuner module.
-> > 
-> > The digital demodulator driver to use is hardcoded in pvrusb2-devattr.c:
-> > 
-> > static const struct pvr2_dvb_props pvr2_750xx_dvb_props = {
-> >         .frontend_attach = pvr2_s5h1409_attach,
-> >         .tuner_attach    = pvr2_tda18271_8295_attach,
-> > };
-> > 
-> > static const struct pvr2_dvb_props pvr2_751xx_dvb_props = {
-> >         .frontend_attach = pvr2_s5h1411_attach,
-> >         .tuner_attach    = pvr2_tda18271_8295_attach,
-> > };
-> > ...
-> > static const struct pvr2_device_desc pvr2_device_750xx = {
-> >                 .description = "WinTV HVR-1950 Model Category 750xx",
-> > ...
-> >                 .dvb_props = &pvr2_750xx_dvb_props,
-> > #endif
-> > };
-> > ...
-> > static const struct pvr2_device_desc pvr2_device_751xx = {
-> >                 .description = "WinTV HVR-1950 Model Category 751xx",
-> > ...
-> >                 .dvb_props = &pvr2_751xx_dvb_props,
-> > #endif
-> > };
-> > 
-> > 
-> > >   That would explain the different behavior.  
-> > > Unfortunately it also means it will be very difficult for me to track 
-> > > the problem down here since I don't have that device variant.
-> > 
-> > If you have more than 1 HVR-1950, maybe one is a 751xx variant.
-> > 
-> > When I ran into I2C errors often, it was because of PCI bus errors
-> > screwing up the bit banging.  Obviously, that's not the case here.
-> > 
-> > -Andy
-> > 
-> > >   -Mike
-> > 
-> > 
-> > 
-> 
-
+-- 
+Best regards, Klimov Alexey
