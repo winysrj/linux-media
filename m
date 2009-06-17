@@ -1,15 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3288 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751683AbZFDJ1h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jun 2009 05:27:37 -0400
-Message-ID: <5143.62.70.2.252.1244107655.squirrel@webmail.xs4all.nl>
-Date: Thu, 4 Jun 2009 11:27:35 +0200 (CEST)
-Subject: Re: [PATCH]V4L:some v4l drivers have error for
-     video_register_device
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1911 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751987AbZFQL1S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jun 2009 07:27:18 -0400
+Message-ID: <16165.62.70.2.252.1245238018.squirrel@webmail.xs4all.nl>
+Date: Wed, 17 Jun 2009 13:26:58 +0200 (CEST)
+Subject: Re: Convert cpia driver to v4l2,
+      drop parallel port version support?
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "figo.zhang" <figo.zhang@kolorific.com>
-Cc: "Laurent Pinchart" <laurent.pinchart@skynet.be>,
+To: "Andy Walls" <awalls@radix.net>
+Cc: "Hans de Goede" <hdegoede@redhat.com>,
 	"Linux Media Mailing List" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -18,52 +19,54 @@ Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-> On Thu, 2009-06-04 at 11:18 +0200, Laurent Pinchart wrote:
->> Hi,
->>
->> On Thursday 04 June 2009 06:20:07 figo.zhang wrote:
->> > The function video_register_device() will call the
->> > video_register_device_index(). In this function, firtly it will do
->> some
->> > argments check , if failed,it will return a negative number such as
->> > -EINVAL, and then do cdev_alloc() and device_register(), if success
->> return
->> > zero. so video_register_device_index() canot return a a positive
->> number.
->> >
->> > for example, see the drivers/media/video/stk-webcam.c (line 1325):
->> >
->> > err = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
->> > 	if (err)
->> > 		STK_ERROR("v4l registration failed\n");
->> > 	else
->> > 		STK_INFO("Syntek USB2.0 Camera is now controlling video device"
->> > 			" /dev/video%d\n", dev->vdev.num);
->> >
->> > in my opinion, it will be cleaner to do something like this:
->> >
->> > err = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
->> > 	if (err != 0)
->> > 		STK_ERROR("v4l registration failed\n");
->> > 	else
->> > 		STK_INFO("Syntek USB2.0 Camera is now controlling video device"
->> > 			" /dev/video%d\n", dev->vdev.num);
->>
->> What's the difference ? (err != 0) and (err) are identical.
->>
->> Best regards,
->>
->> Laurent Pinchart
+> On Wed, 2009-06-17 at 09:43 +0200, Hans Verkuil wrote:
 >
-> yes, it is the same, but it is easy for reading.
+>> > I personally think that loosing support for the parallel port
+>> > version is ok given that the parallel port itslef is rapidly
+>> > disappearing, what do you think ?
+>>
+>> I agree wholeheartedly. If we remove pp support, then we can also remove
+>> the bw-qcam and c-qcam drivers since they too use the parallel port.
+>
+> Maybe I just like keeping old hardware up and running, but...
+>
+> I think it may be better to remove camera drivers when a majority of the
+> actual camera hardware is likely to reach EOL, as existing parallel
+> ports will likely outlive the cameras.
 
-To be honest, I think '(err)' is easier to read. Unless there is some new
-CodingStyle rule I'm not aware of I see no reason for applying these
-changes.
+For sure. But these are really old webcams with correspondingly very poor
+resolutions. I haven't been able to track one down on ebay and as far as I
+know nobody has one of these beasts to test with. I can't see anyone using
+parallel port webcams. I actually wonder whether these drivers still work.
+And converting to v4l2 without having the hardware is very hard indeed.
 
 Regards,
 
-        Hans
+         Hans
+
+>
+> My PC I got in Dec 2005 has a parellel port, as does the motherboard I
+> purchased 2008.
+>
+> I have a 802.11g router (ASUS WL-500g) with a parallel port.  It works
+> nicely as a remote print server.  From my perspective, that parallel
+> port isn't going away anytime soon.
+>
+>
+> <irrelevant aside>
+> At least the custom firmware for the WL-500g
+> ( http://oleg.wl500g.info/ ) has the ability to use webcams for snapping
+> pictures and emailing away a notification.  I'm pretty sure PP webcams
+> are not actually supported though.
+>
+> The wireless router surveillance case is probably not relevant though,
+> as routers are usually using (very) old kernels.
+> </irrelevant aside>
+>
+> -Andy
+>
+>
+
 
 -- 
 Hans Verkuil - video4linux developer - sponsored by TANDBERG
