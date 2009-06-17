@@ -1,48 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:45732 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753874AbZFRKKo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 06:10:44 -0400
-Date: Thu, 18 Jun 2009 12:10:53 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Valentin Longchamp <valentin.longchamp@epfl.ch>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: mx31moboard MT9T031 camera support
-In-Reply-To: <4A3A0E41.5020208@epfl.ch>
-Message-ID: <Pine.LNX.4.64.0906181200050.5779@axis700.grange>
-References: <4A39FE96.4010004@epfl.ch> <Pine.LNX.4.64.0906181054280.5779@axis700.grange>
- <4A3A0E41.5020208@epfl.ch>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from bombadil.infradead.org ([18.85.46.34]:46136 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1765573AbZFQN3Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jun 2009 09:29:16 -0400
+Date: Wed, 17 Jun 2009 10:29:10 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Cc: "Andy Walls" <awalls@radix.net>,
+	"Hans de Goede" <hdegoede@redhat.com>,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>
+Subject: Re: Convert cpia driver to v4l2,      drop parallel port version
+ support?
+Message-ID: <20090617102910.2d51e95e@pedra.chehab.org>
+In-Reply-To: <16165.62.70.2.252.1245238018.squirrel@webmail.xs4all.nl>
+References: <16165.62.70.2.252.1245238018.squirrel@webmail.xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 18 Jun 2009, Valentin Longchamp wrote:
+Em Wed, 17 Jun 2009 13:26:58 +0200 (CEST)
+"Hans Verkuil" <hverkuil@xs4all.nl> escreveu:
 
-> The sensor chips both are mt9t031 so they have the same i2c address (I have
-> looked at the datasheet, and I don't think this can be changed). So I cannot
-> use them both at the same time.
+> 
+> > On Wed, 2009-06-17 at 09:43 +0200, Hans Verkuil wrote:
+> >
+> >> > I personally think that loosing support for the parallel port
+> >> > version is ok given that the parallel port itslef is rapidly
+> >> > disappearing, what do you think ?
+> >>
+> >> I agree wholeheartedly. If we remove pp support, then we can also remove
+> >> the bw-qcam and c-qcam drivers since they too use the parallel port.
+> >
+> > Maybe I just like keeping old hardware up and running, but...
+> >
+> > I think it may be better to remove camera drivers when a majority of the
+> > actual camera hardware is likely to reach EOL, as existing parallel
+> > ports will likely outlive the cameras.
 
-Right, but I think, there are some i2c ICs, that allow for address 
-translations. Don't remember what they are called, some multiplexers or 
-some such.
+Parallel port will still be there for some time. However, Parallel port webcams
+are less common.
 
-> Now you talk about the .power() callback, I could use it so that the
-> multiplexer is managed by it, using a similar mechanism as in mach-migor. If
-> this could allow me one different /dev/video nod for each camera (that of
-> course cannot be used at the same time), it would simplify a lot of things for
-> my users. I will give it a try (hoping that this also works at driver
-> registering ... we will see).
+> For sure. But these are really old webcams with correspondingly very poor
+> resolutions. I haven't been able to track one down on ebay and as far as I
+> know nobody has one of these beasts to test with. I can't see anyone using
+> parallel port webcams. I actually wonder whether these drivers still work.
+> And converting to v4l2 without having the hardware is very hard indeed.
 
-Don't think it would work, at least not with the current stack. With the 
-new stack video devices are registered at host-driver registration time, 
-after i2c devices are registered. It wouldn't work with the old stack 
-either.
+Maybe Alan Cox might still have some of those cams. Some of those old cameras
+were used on specialized hardware, like microscopes. Maybe it still could make
+sense to support them, but somebody with the hardware should convert to V4L2
+and test with the real hardware. Otherwise, I agree that the better is just to
+remove the parallel port camera drivers from newer kernels.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+
+
+Cheers,
+Mauro
