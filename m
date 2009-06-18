@@ -1,349 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from Siano-NV.ser.netvision.net.il ([199.203.99.233]:20566 "EHLO
-	Siano-NV.ser.netvision.net.il" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752761AbZFPMvn convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2009 08:51:43 -0400
-Content-class: urn:content-classes:message
+Received: from mail-fx0-f212.google.com ([209.85.220.212]:47289 "EHLO
+	mail-fx0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752141AbZFRIcY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Jun 2009 04:32:24 -0400
+Received: by fxm8 with SMTP id 8so862961fxm.37
+        for <linux-media@vger.kernel.org>; Thu, 18 Jun 2009 01:32:26 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Subject: RE: [PATCH] [09051_49] Siano: smscore - upgrade firmware loading engine
-Date: Tue, 16 Jun 2009 15:39:01 +0300
-Message-ID: <3E442BA883529143B4AB72530285FC5D01E212C0@s-mail.siano-ms.ent>
-In-Reply-To: <37219a840905190923k60e9daecve4d9a1de176bdbd8@mail.gmail.com>
-References: <886732.24607.qm@web110811.mail.gq1.yahoo.com> <37219a840905190923k60e9daecve4d9a1de176bdbd8@mail.gmail.com>
-From: "Udi Atar" <udia@siano-ms.com>
-To: "Michael Krufky" <mkrufky@linuxtv.org>,
-	"Uri Shkolnik" <urishk@yahoo.com>
-Cc: "LinuxML" <linux-media@vger.kernel.org>,
-	"Mauro Carvalho Chehab" <mchehab@infradead.org>
+In-Reply-To: <ccdf9f470906171618r26518ce7pa97d747e301009ca@mail.gmail.com>
+References: <ccdf9f470906171618r26518ce7pa97d747e301009ca@mail.gmail.com>
+Date: Thu, 18 Jun 2009 12:32:26 +0400
+Message-ID: <1a297b360906180132l49aa7be4j8a1e238aa9bac65@mail.gmail.com>
+Subject: Re: [Patch] New utility program atsc_epg added to dvb-apps utility
+	suite.
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Yufei Yuan <yfyuan@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The README.patches file in v4l-dvb clearly states that it is OK to use version checking to allow backporting.
-
-########################################################################
-k) Sometimes it is necessary to introduce some testing code inside a
-   module or remove parts that are not yet finished. Also, compatibility
-   tests may be required to provide backporting.
-
-   To allow compatibility tests, linux/version.h is automatically
-   included by the building system. This allows adding tests like:
-
-	#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 16)
-	#include <linux/mutex.h>
-	#else
-	#include <asm/semaphore.h>
-	#endif
-########################################################################
-
-The patch allows older version of the kernel, and embedded platforms, that choose not to include the "request firmware" mechanism to continue working with the Siano driver.
-
-As for the SMS_HOSTLIB_SUBSYS, the Siano driver supports standards which are not currently implemented in V4L (i.e. CMMB). I see no reason why we should create a duplicate driver for DVB-T and CMMB, if the codebase is exactly the same. 
-
-Best regards,
-Udi Atar
+2009/6/18 Yufei Yuan <yfyuan@gmail.com>:
+> Hi,
+>
+> I am not sure if this is the correct mailing list to send this patch.
+> From the LinuxTV website, it seems that currently dvb-apps project has
+> no owner.
+>
+> A new utility atsc_epg is added into the dvb-apps utility suite. It
+> parses PSIP information carried in OTA ATSC channels, and constructs a
+> basic EPG in a terminal window. Changes were also made to files to
+> please GCC4.4.
+>
+> The patch is against latest revision 1278 from the dvb-apps repository.
 
 
------Original Message-----
-From: linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] On Behalf Of Michael Krufky
-Sent: Tuesday, May 19, 2009 7:24 PM
-To: Uri Shkolnik
-Cc: LinuxML; Mauro Carvalho Chehab
-Subject: Re: [PATCH] [09051_49] Siano: smscore - upgrade firmware loading engine
-
-On Tue, May 19, 2009 at 11:43 AM, Uri Shkolnik <urishk@yahoo.com> wrote:
->
-> # HG changeset patch
-> # User Uri Shkolnik <uris@siano-ms.com>
-> # Date 1242748115 -10800
-> # Node ID 4d75f9d1c4f96d65a8ad312c21e488a212ee58a3
-> # Parent  cfb4106f3ceaee9fe8f7e3acc9d4adec1baffe5e
-> [09051_49] Siano: smscore - upgrade firmware loading engine
->
-> From: Uri Shkolnik <uris@siano-ms.com>
->
-> Upgrade the firmware loading (download and switching) engine.
->
-> Priority: normal
->
-> Signed-off-by: Uri Shkolnik <uris@siano-ms.com>
->
-> diff -r cfb4106f3cea -r 4d75f9d1c4f9 linux/drivers/media/dvb/siano/smscoreapi.c
-> --- a/linux/drivers/media/dvb/siano/smscoreapi.c        Tue May 19 18:38:07 2009 +0300
-> +++ b/linux/drivers/media/dvb/siano/smscoreapi.c        Tue May 19 18:48:35 2009 +0300
-> @@ -28,7 +28,7 @@
->  #include <linux/dma-mapping.h>
->  #include <linux/delay.h>
->  #include <linux/io.h>
-> -
-> +#include <linux/uaccess.h>
->  #include <linux/firmware.h>
->  #include <linux/wait.h>
->  #include <asm/byteorder.h>
-> @@ -36,7 +36,13 @@
->  #include "smscoreapi.h"
->  #include "sms-cards.h"
->  #include "smsir.h"
-> -#include "smsendian.h"
-> +#define MAX_GPIO_PIN_NUMBER    31
-> +
-> +#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 10)
-> +#define REQUEST_FIRMWARE_SUPPORTED
-> +#else
-> +#define DEFAULT_FW_FILE_PATH "/lib/firmware"
-> +#endif
->
->  static int sms_dbg;
->  module_param_named(debug, sms_dbg, int, 0644);
-> @@ -459,8 +465,6 @@ static int smscore_init_ir(struct smscor
->                                msg->msgData[0] = coredev->ir.controller;
->                                msg->msgData[1] = coredev->ir.timeout;
->
-> -                               smsendian_handle_tx_message(
-> -                                       (struct SmsMsgHdr_ST2 *)msg);
->                                rc = smscore_sendrequest_and_wait(coredev, msg,
->                                                msg->xMsgHeader. msgLength,
->                                                &coredev->ir_init_done);
-> @@ -486,12 +490,16 @@ static int smscore_init_ir(struct smscor
->  */
->  int smscore_start_device(struct smscore_device_t *coredev)
->  {
-> -       int rc = smscore_set_device_mode(
-> -                       coredev, smscore_registry_getmode(coredev->devpath));
-> +       int rc;
-> +
-> +#ifdef REQUEST_FIRMWARE_SUPPORTED
-> +       rc = smscore_set_device_mode(coredev, smscore_registry_getmode(
-> +                       coredev->devpath));
->        if (rc < 0) {
-> -               sms_info("set device mode faile , rc %d", rc);
-> +               sms_info("set device mode failed , rc %d", rc);
->                return rc;
->        }
-> +#endif
->
->        kmutex_lock(&g_smscore_deviceslock);
->
-> @@ -632,11 +640,14 @@ static int smscore_load_firmware_from_fi
->                                           loadfirmware_t loadfirmware_handler)
->  {
->        int rc = -ENOENT;
-> +       u8 *fw_buf;
-> +       u32 fw_buf_size;
-> +
-> +#ifdef REQUEST_FIRMWARE_SUPPORTED
->        const struct firmware *fw;
-> -       u8 *fw_buffer;
->
-> -       if (loadfirmware_handler == NULL && !(coredev->device_flags &
-> -                                             SMS_DEVICE_FAMILY2))
-> +       if (loadfirmware_handler == NULL && !(coredev->device_flags
-> +                       & SMS_DEVICE_FAMILY2))
->                return -EINVAL;
->
->        rc = request_firmware(&fw, filename, coredev->device);
-> @@ -645,26 +656,36 @@ static int smscore_load_firmware_from_fi
->                return rc;
->        }
->        sms_info("read FW %s, size=%zd", filename, fw->size);
-> -       fw_buffer = kmalloc(ALIGN(fw->size, SMS_ALLOC_ALIGNMENT),
-> -                           GFP_KERNEL | GFP_DMA);
-> -       if (fw_buffer) {
-> -               memcpy(fw_buffer, fw->data, fw->size);
-> +       fw_buf = kmalloc(ALIGN(fw->size, SMS_ALLOC_ALIGNMENT),
-> +                               GFP_KERNEL | GFP_DMA);
-> +       if (!fw_buf) {
-> +               sms_info("failed to allocate firmware buffer");
-> +               return -ENOMEM;
-> +       }
-> +       memcpy(fw_buf, fw->data, fw->size);
-> +       fw_buf_size = fw->size;
-> +#else
-> +       if (!coredev->fw_buf) {
-> +               sms_info("missing fw file buffer");
-> +               return -EINVAL;
-> +       }
-> +       fw_buf = coredev->fw_buf;
-> +       fw_buf_size = coredev->fw_buf_size;
-> +#endif
->
-> -               rc = (coredev->device_flags & SMS_DEVICE_FAMILY2) ?
-> -                     smscore_load_firmware_family2(coredev,
-> -                                                   fw_buffer,
-> -                                                   fw->size) :
-> -                     loadfirmware_handler(coredev->context,
-> -                                          fw_buffer, fw->size);
-> +       rc = (coredev->device_flags & SMS_DEVICE_FAMILY2) ?
-> +               smscore_load_firmware_family2(coredev, fw_buf, fw_buf_size)
-> +               : loadfirmware_handler(coredev->context, fw_buf,
-> +               fw_buf_size);
->
-> -               kfree(fw_buffer);
-> -       } else {
-> -               sms_info("failed to allocate firmware buffer");
-> -               rc = -ENOMEM;
-> -       }
-> +       kfree(fw_buf);
->
-> +#ifdef REQUEST_FIRMWARE_SUPPORTED
->        release_firmware(fw);
-> -
-> +#else
-> +       coredev->fw_buf = NULL;
-> +       coredev->fw_buf_size = 0;
-> +#endif
->        return rc;
->  }
->
-> @@ -911,6 +932,74 @@ int smscore_set_device_mode(struct smsco
->  }
->
->  /**
-> + * calls device handler to get fw file name
-> + *
-> + * @param coredev pointer to a coredev object returned by
-> + *                smscore_register_device
-> + * @param filename pointer to user buffer to fill the file name
-> + *
-> + * @return 0 on success, <0 on error.
-> + */
-> +int smscore_get_fw_filename(struct smscore_device_t *coredev, int mode,
-> +               char *filename) {
-> +       int rc = 0;
-> +       enum sms_device_type_st type;
-> +       char tmpname[200];
-> +
-> +       type = smscore_registry_gettype(coredev->devpath);
-> +
-> +#ifdef REQUEST_FIRMWARE_SUPPORTED
-> +       /* driver not need file system services */
-> +       tmpname[0] = '\0';
-> +#else
-> +       sprintf(tmpname, "%s/%s", DEFAULT_FW_FILE_PATH,
-> +                       smscore_fw_lkup[mode][type]);
-> +#endif
-> +       if (copy_to_user(filename, tmpname, strlen(tmpname) + 1)) {
-> +               sms_err("Failed copy file path to user buffer\n");
-> +               return -EFAULT;
-> +       }
-> +       return rc;
-> +}
-> +
-> +/**
-> + * calls device handler to keep fw buff for later use
-> + *
-> + * @param coredev pointer to a coredev object returned by
-> + *                smscore_register_device
-> + * @param ufwbuf  pointer to user fw buffer
-> + * @param size    size in bytes of buffer
-> + *
-> + * @return 0 on success, <0 on error.
-> + */
-> +int smscore_send_fw_file(struct smscore_device_t *coredev, u8 *ufwbuf,
-> +               int size) {
-> +       int rc = 0;
-> +
-> +       /* free old buffer */
-> +       if (coredev->fw_buf != NULL) {
-> +               kfree(coredev->fw_buf);
-> +               coredev->fw_buf = NULL;
-> +       }
-> +
-> +       coredev->fw_buf = kmalloc(ALIGN(size, SMS_ALLOC_ALIGNMENT), GFP_KERNEL
-> +                       | GFP_DMA);
-> +       if (!coredev->fw_buf) {
-> +               sms_err("Failed allocate FW buffer memory\n");
-> +               return -EFAULT;
-> +       }
-> +
-> +       if (copy_from_user(coredev->fw_buf, ufwbuf, size)) {
-> +               sms_err("Failed copy FW from user buffer\n");
-> +               kfree(coredev->fw_buf);
-> +               return -EFAULT;
-> +       }
-> +       coredev->fw_buf_size = size;
-> +
-> +       return rc;
-> +}
-> +
-> +/**
->  * calls device handler to get current mode of operation
->  *
->  * @param coredev pointer to a coredev object returned by
-> @@ -1280,7 +1369,7 @@ int smsclient_sendrequest(struct smscore
->  }
->  EXPORT_SYMBOL_GPL(smsclient_sendrequest);
->
-> -#if 0
-> +#ifdef SMS_HOSTLIB_SUBSYS
->  /**
->  * return the size of large (common) buffer
->  *
-> @@ -1329,7 +1418,7 @@ static int smscore_map_common_buffer(str
->
->        return 0;
->  }
-> -#endif
-> +#endif /* SMS_HOSTLIB_SUBSYS */
->
->  /* old GPIO managments implementation */
->  int smscore_configure_gpio(struct smscore_device_t *coredev, u32 pin,
-> @@ -1515,7 +1604,6 @@ int smscore_gpio_configure(struct smscor
->                pMsg->msgData[5] = 0;
->        }
->
-> -       smsendian_handle_tx_message((struct SmsMsgHdr_ST *)pMsg);
->        rc = smscore_sendrequest_and_wait(coredev, pMsg, totalLen,
->                        &coredev->gpio_configuration_done);
->
-> @@ -1565,7 +1653,6 @@ int smscore_gpio_set_level(struct smscor
->        pMsg->msgData[1] = NewLevel;
->
->        /* Send message to SMS */
-> -       smsendian_handle_tx_message((struct SmsMsgHdr_ST *)pMsg);
->        rc = smscore_sendrequest_and_wait(coredev, pMsg, totalLen,
->                        &coredev->gpio_set_level_done);
->
-> @@ -1614,7 +1701,6 @@ int smscore_gpio_get_level(struct smscor
->        pMsg->msgData[1] = 0;
->
->        /* Send message to SMS */
-> -       smsendian_handle_tx_message((struct SmsMsgHdr_ST *)pMsg);
->        rc = smscore_sendrequest_and_wait(coredev, pMsg, totalLen,
->                        &coredev->gpio_get_level_done);
->
->
->
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
-
-This patch should not be merged in its current form.
-
-Linux kernel driver development shall be against the current -rc
-kernel, and there is no need to reinvent the "REQUEST_FIRMWARE"
-mechanism.
-
-Furthermore, the changeset introduces more bits of this
-"SMS_HOSTLIB_SUBSYS" -- this requires a binary library present on the
-host system.  This completely violates the "no multiple APIs in
-kernel" and "no proprietary APIs in kernel" guidelines.
-
-Uri, what are your plans for this?
+Please do send the patch with tabs instead of spaces for indentation.
 
 Regards,
-
-Mike
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Manu
