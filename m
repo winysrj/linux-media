@@ -1,113 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f195.google.com ([209.85.222.195]:42051 "EHLO
-	mail-pz0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751271AbZFTJFL (ORCPT
+Received: from smtp.nokia.com ([192.100.122.233]:32945 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1763904AbZFROD5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Jun 2009 05:05:11 -0400
-Received: by pzk33 with SMTP id 33so209719pzk.33
-        for <linux-media@vger.kernel.org>; Sat, 20 Jun 2009 02:05:13 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4A3A7AE2.9080303@maxwell.research.nokia.com>
-References: <4A3A7AE2.9080303@maxwell.research.nokia.com>
-Date: Sat, 20 Jun 2009 18:05:13 +0900
-Message-ID: <5e9665e10906200205ga45073eue92b73abba79e41c@mail.gmail.com>
-Subject: Re: OMAP3 ISP and camera drivers (update 2)
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	"ext Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	Toivonen Tuukka Olli Artturi <tuukka.o.toivonen@nokia.com>,
-	=?ISO-8859-1?Q?Koskip=E4=E4_Antti_Jussi_Petteri?=
-	<antti.koskipaa@nokia.com>,
-	Cohen David Abraham <david.cohen@nokia.com>,
-	Alexey Klimov <klimov.linux@gmail.com>, gary@mlbassoc.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Thu, 18 Jun 2009 10:03:57 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv8  0/9] FM Transmitter (si4713) and another changes
+Date: Thu, 18 Jun 2009 16:55:42 +0300
+Message-Id: <1245333351-28157-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sakari,
+Hello all,
 
-2009/6/19 Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>:
-> Hi,
->
-> I've again updated the patchset in Gitorious after a long break. It's
-> here. The base is fairly recent linux-omap (May) but I wouldn't expect
-> problems in rebasing on top of newer updates either.
->
-> <URL:http://www.gitorious.org/projects/omap3camera>
->
-> The amount of changes is more or less huge but I'll try to summarise
-> them. The base branch is no longer needed, the patch has been integrated
-> to linux-omap. The v4l2_subdev transition hasn't begun yet, however.
->
-> - Many ISP subdrivers have been rewritten or refactored. The new code
-> should be easier to understand.
->
-> - VIDIOC_TRY_FMT has no longer have side effects except perhaps to the
-> resizer. This is being worked on.
->
-> - Crop has been mostly rewritten.
->
-> - Locking has been corrected, although probably not definitely fixed.
->
-> - A separate ispstat module for handling the H3A, AF and HIST statistics.
-> H3A and AF are using it already.
->
-> - Lots of redundant code has been removed.
->
-> - Most busy-locked register are should be no longer updated when
-> corresponding modules are busy. There are still some cases this is
-> happening, though.
->
-> - Configuration of the modules in the interrupt handler is done so that the
-> module is disabled first or used in oneshot mode.
->
-> - Lots of things I can't remember now. The individual changes can be seen in
-> the omap3isp and omap34xxcam branches. The branches just contain the patches
-> in order so git diff doesn't help, unfortunately.
->
-> I won't be available for questions for a month or so (holidays). In the
-> meantime you can contact Tuukka Toivonen, David Cohen and Sergio Aguirre for
-> questions.
->
-> --
-> Sakari Ailus
-> sakari.ailus@maxwell.research.nokia.com
->
->
->
+  First of all, I'd like to thank you for the good review. The driver
+is getting better and better. With this new API change, si4713 is looking
+like a fm transmitter driver.
 
-By the way, it's quite tough doing a code review without a patch
-in-lined with e-mail.
-Anyway, I took a quick look at the gitorious repository and found
-something strange.
-Following patch.
-http://www.gitorious.org/omap3camera/mainline/commit/d92c96406296310a977b00f45b209523929b15b5
-What happens to the capability when the int device is dummy? (does it
-mean that there is no int device?)
+  So, I'm resending the FM transmitter driver and the proposed changes in
+v4l2 api files in order to cover the fmtx extended controls class.
 
-And the most thing that makes me cautious to review the patch is all
-about v4l2 subdev thing. Because most device drivers in V4L2
-repository already got started moving to subdev framework.
+  Difference from version #7 is that now I've added added lots of comments
+made by Hans. Here is a list of changes:
+- A few renames of constant definitions
+- Updates in proposed documentation
+- Split of platform data info into 2 header, one for platform driver and
+  other to i2c driver
+- Use of v4l2_* family of logging/debugging instead of dev_*
+- Improvement of debug messages
+- Fix in the use of string controls
+- Fix in the use of txsubchans
+- Creation of private ioctl to read rssi
+- Minor fixes all around the code
+- Remotion of get/set style of function, previously used for the sysfs interface
 
-And one more thing. If I want to test how the "ISP" driver is working,
-is there any target board that I can buy also a sensor device already
-attached on it? If anybody knows that, please let me know.
-Cheers,
+As before, this series is based on two of Hans' trees:
+http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-subdev2.
+http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-str.
 
-Nate
+The first tree has refactoring of v4l2 i2c helper functions. The second
+one has string support for extended controls, which is used in this driver.
 
+  So, now the series includes changes to add the new v4l2
+FMTX extended controls (and its documetation) and si4713 i2c and platform
+drivers (and its documentation as well). Besides that, there is also
+a patch to add g_modulator to v4l2-subdev and a patch to add support
+for fm tx class in v4l2-ctl util.
 
+BR,
 
+Eduardo Valentin (9):
+  v4l2-subdev.h: Add g_modulator callbacks to subdev api
+  v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX controls
+  v4l2: video device: Add FM_TX controls default configurations
+  v4l2-ctl: Add support for FM TX controls
+  v4l2-spec: Add documentation description for FM TX extended control
+    class
+  FMTx: si4713: Add files to add radio interface for si4713
+  FMTx: si4713: Add files to handle si4713 i2c device
+  FMTx: si4713: Add Kconfig and Makefile entries
+  FMTx: si4713: Add document file
 
--- 
-=
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
+ linux/Documentation/video4linux/si4713.txt |  169 +++
+ linux/drivers/media/radio/Kconfig          |   22 +
+ linux/drivers/media/radio/Makefile         |    2 +
+ linux/drivers/media/radio/radio-si4713.c   |  367 +++++
+ linux/drivers/media/radio/si4713-i2c.c     | 2015 ++++++++++++++++++++++++++++
+ linux/drivers/media/radio/si4713-i2c.h     |  226 ++++
+ linux/drivers/media/video/v4l2-common.c    |   50 +
+ linux/include/linux/videodev2.h            |   34 +
+ linux/include/media/radio-si4713.h         |   30 +
+ linux/include/media/si4713.h               |   40 +
+ linux/include/media/v4l2-subdev.h          |    2 +
+ v4l2-apps/util/v4l2-ctl.cpp                |   36 +
+ v4l2-spec/Makefile                         |    1 +
+ v4l2-spec/biblio.sgml                      |   10 +
+ v4l2-spec/controls.sgml                    |  206 +++
+ 15 files changed, 3210 insertions(+), 0 deletions(-)
+ create mode 100644 linux/Documentation/video4linux/si4713.txt
+ create mode 100644 linux/drivers/media/radio/radio-si4713.c
+ create mode 100644 linux/drivers/media/radio/si4713-i2c.c
+ create mode 100644 linux/drivers/media/radio/si4713-i2c.h
+ create mode 100644 linux/include/media/radio-si4713.h
+ create mode 100644 linux/include/media/si4713.h
+
