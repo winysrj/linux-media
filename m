@@ -1,105 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ppsw-1.csi.cam.ac.uk ([131.111.8.131]:54067 "EHLO
-	ppsw-1.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757739AbZFRL6v (ORCPT
+Received: from mailout01.t-online.de ([194.25.134.80]:41658 "EHLO
+	mailout01.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753536AbZFRKS7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 07:58:51 -0400
-Message-ID: <4A3A2C23.1040104@cam.ac.uk>
-Date: Thu, 18 Jun 2009 11:59:31 +0000
-From: Jonathan Cameron <jic23@cam.ac.uk>
+	Thu, 18 Jun 2009 06:18:59 -0400
+Date: Thu, 18 Jun 2009 12:18:31 +0200
+From: Halim Sahin <halim.sahin@t-online.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Trent Piepho <xyzzy@speakeasy.org>, linux-media@vger.kernel.org
+Subject: ok more details: Re: bttv problem loading takes about several
+	minutes
+Message-ID: <20090618101831.GA5760@halim.local>
+References: <20090617162400.GA11690@halim.local> <Pine.LNX.4.58.0906171001510.32713@shell2.speakeasy.net> <200906172206.27230.hverkuil@xs4all.nl> <20090618095808.GA5685@halim.local>
 MIME-Version: 1.0
-To: Jonathan Cameron <jic23@cam.ac.uk>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: OV7670: getting it working with soc-camera.
-References: <4A392E31.4050705@cam.ac.uk> <Pine.LNX.4.64.0906172022570.4218@axis700.grange> <4A3A14E4.2000301@cam.ac.uk>
-In-Reply-To: <4A3A14E4.2000301@cam.ac.uk>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20090618095808.GA5685@halim.local>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Updated temporary patch to get ov7670 working with soc camera.
+Hi,
+sorry for the nusable output!
+I found the time consuming funktion:
+        bttv_init_card2(btv);
+This takes about 4 min. today.
+my new testcode:
+        /* needs to be done before i2c is registered */
+printk("linke 2:bttv_init_card1(btv);\n");
 
----
-Basically this is the original patch with the changes Guennadi
-suggested. Again this is only for info, not a formal patch submission.
+        bttv_init_card1(btv);
 
+        /* register i2c + gpio */
+printk("line 3: init_bttv_i2c(btv);\n");
 
-diff --git a/drivers/media/video/ov7670.c b/drivers/media/video/ov7670.c
-index 0e2184e..9bea804 100644
---- a/drivers/media/video/ov7670.c
-+++ b/drivers/media/video/ov7670.c
-@@ -19,6 +19,12 @@
- #include <media/v4l2-chip-ident.h>
- #include <media/v4l2-i2c-drv.h>
- 
-+#define OV7670_SOC
-+
-+
-+#ifdef OV7670_SOC
-+#include <media/soc_camera.h>
-+#endif /* OV7670_SOC */
- 
- MODULE_AUTHOR("Jonathan Corbet <corbet@lwn.net>");
- MODULE_DESCRIPTION("A low-level driver for OmniVision ov7670 sensors");
-@@ -1239,13 +1245,58 @@ static const struct v4l2_subdev_ops ov7670_ops = {
- };
- 
- /* ----------------------------------------------------------------------- */
-+#ifdef OV7670_SOC
-+
-+static unsigned long ov7670_soc_query_bus_param(struct soc_camera_device *icd)
-+{
-+	struct soc_camera_link *icl = to_soc_camera_link(icd);
-+
-+	unsigned long flags = SOCAM_PCLK_SAMPLE_RISING | SOCAM_MASTER |
-+		SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_HSYNC_ACTIVE_HIGH |
-+		SOCAM_DATAWIDTH_8 | SOCAM_DATA_ACTIVE_HIGH;
-+
-+	return soc_camera_apply_sensor_flags(icl, flags);
-+}
-+/* This device only supports one bus option */
-+static int ov7670_soc_set_bus_param(struct soc_camera_device *icd,
-+				    unsigned long flags)
-+{
-+	return 0;
-+}
-+
-+static struct soc_camera_ops ov7670_soc_ops = {
-+	.set_bus_param = ov7670_soc_set_bus_param,
-+	.query_bus_param = ov7670_soc_query_bus_param,
-+};
- 
-+#define SETFOURCC(type) .name = (#type), .fourcc = (V4L2_PIX_FMT_ ## type)
-+static const struct soc_camera_data_format ov7670_soc_fmt_lists[] = {
-+	{
-+		SETFOURCC(YUYV),
-+		.depth = 16,
-+		.colorspace = V4L2_COLORSPACE_JPEG,
-+	}, {
-+		SETFOURCC(RGB565),
-+		.depth = 16,
-+		.colorspace = V4L2_COLORSPACE_SRGB,
-+	},
-+};
-+
-+#endif
- static int ov7670_probe(struct i2c_client *client,
- 			const struct i2c_device_id *id)
- {
- 	struct v4l2_subdev *sd;
- 	struct ov7670_info *info;
- 	int ret;
-+#ifdef OV7670_SOC
-+	struct soc_camera_device *icd = client->dev.platform_data;
-+	icd->ops = &ov7670_soc_ops;
-+	icd->rect_max.width = VGA_WIDTH;
-+	icd->rect_max.height = VGA_HEIGHT;
-+	icd->formats = ov7670_soc_fmt_lists;
-+	icd->num_formats = ARRAY_SIZE(ov7670_soc_fmt_lists);
-+#endif
- 
- 	info = kzalloc(sizeof(struct ov7670_info), GFP_KERNEL);
- 	if (info == NULL)
+        init_bttv_i2c(btv);
+
+        /* some card-specific stuff (needs working i2c) */
+printk("line4:         some card-specific stuff needs working i2c \n");
+        bttv_init_card2(btv);
+printk("irq init\n");
+
+        init_irqreg(btv);
+
+dmesg output:
+[ 2282.430209] bttv: driver version 0.9.18 loaded
+[ 2282.430216] bttv: using 8 buffers with 2080k (520 pages) each for capture
+[ 2282.430313] bttv: Bt8xx card found (0).
+[ 2282.430334] bttv0: Bt878 (rev 17) at 0000:00:0b.0, irq: 19, latency: 32, mmio
+: 0xf7800000
+[ 2282.430777] bttv0: using: Leadtek WinFast 2000/ WinFast 2000 XP [card=34,insm
+od option]
+[ 2282.430839] bttv_gpio_tracking(bt
+[ 2282.430843] bttv0: gpio: en=00000000, out=00000000 in=003ff502 [init]
+[ 2282.430845] linke 2:bttv_init_card1(btv);
+[ 2282.430859] line 3: init_bttv_i2c(btv);
+[ 2282.430917] line4:         some card-specific stuff needs working i2c
+[ 2282.430922] bttv0: tuner type=24
+
+Ok here is the 4 min dely and after that the following linkes were printed out:
+
+[ 2416.836017] bttv0: audio absent, no audio device found!
+[ 2416.836024] irq init
+[ 2416.840551] bttv0: registered device video1
+[ 2416.840684] bttv0: registered device vbi0
+[ 2416.840716] bttv0: registered device radio0
+[ 2416.840736] bttv0: PLL: 28636363 => 35468950 .<6>bttv0: PLL: 28636363 => 3546
+8950 . ok
+[ 2416.856221] input: bttv IR (card=34) as /devices/pci0000:00/0000:00:0b.0/inpu
+t/input10
+[ 2416.864069]  ok
+
+Hope that helps!
+Regards
+Halim
+-- 
+Halim Sahin
+E-Mail:				
+halim.sahin (at) t-online.de
