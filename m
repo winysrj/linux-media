@@ -1,105 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f187.google.com ([209.85.222.187]:36944 "EHLO
-	mail-pz0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751851AbZFLBxV convert rfc822-to-8bit (ORCPT
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:58431 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751299AbZFRBXY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2009 21:53:21 -0400
-Received: by pzk17 with SMTP id 17so282010pzk.33
-        for <linux-media@vger.kernel.org>; Thu, 11 Jun 2009 18:53:22 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.0906111413250.5625@axis700.grange>
-References: <Pine.LNX.4.64.0906101549160.4817@axis700.grange>
-	 <Pine.LNX.4.64.0906101604420.4817@axis700.grange>
-	 <5e9665e10906110410w7893e016g6e35742c9a55889d@mail.gmail.com>
-	 <Pine.LNX.4.64.0906111413250.5625@axis700.grange>
-Date: Fri, 12 Jun 2009 10:53:20 +0900
-Message-ID: <5e9665e10906111853w1af3aec9wcf647a280d3635e7@mail.gmail.com>
-Subject: Re: [PATCH 3/4] soc-camera: add support for camera-host controls
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 17 Jun 2009 21:23:24 -0400
+Subject: Re: [Patch] New utility program atsc_epg added to dvb-apps utility
+	suite.
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Yufei Yuan <yfyuan@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+In-Reply-To: <ccdf9f470906171812t177a3974g357754c3af9051aa@mail.gmail.com>
+References: <ccdf9f470906171618r26518ce7pa97d747e301009ca@mail.gmail.com>
+	 <1245282685.8827.29.camel@pc07.localdom.local>
+	 <ccdf9f470906171706gc36e43bq4e2092d948c1fbf5@mail.gmail.com>
+	 <1245284055.8827.36.camel@pc07.localdom.local>
+	 <ccdf9f470906171720i4076642dna483643c55a4a85f@mail.gmail.com>
+	 <1245285015.10476.4.camel@pc07.localdom.local>
+	 <ccdf9f470906171746k8e5ac37j9c0a48823f98ba87@mail.gmail.com>
+	 <1245287154.10476.19.camel@pc07.localdom.local>
+	 <ccdf9f470906171812t177a3974g357754c3af9051aa@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Date: Thu, 18 Jun 2009 03:23:07 +0200
+Message-Id: <1245288187.10476.22.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Guennadi,
 
-So let's assume that camera interface device can process
-V4L2_CID_SHARPNESS and even external camera device can process that,
-then according to your patch both of camera interface and external
-camera device can be issued to process V4L2_CID_SHARPNESS which I
-guess will make image sharpened twice. Am I getting the patch right?
+Am Mittwoch, den 17.06.2009, 20:12 -0500 schrieb Yufei Yuan:
+> Okay, you win. Apology to others in the list who have to endure the
+> garbage talk.
+> 
+> Regards,
+> Yufei Yuan
 
-If I'm getting right, it might be better to give user make a choice
-through platform data or some sort of variable which can make a choice
-between camera interface and camera device to process the CID. It
-could be just in aspect of manufacturer mind, we do love to make a
-choice between same features in different devices in easy way. So
-never mind if my idea is not helpful making your driver elegant :-)
-Cheers,
+Sorry for abusing you for a ride out on mail footers.
 
-Nate
+Best,
+Hermann
 
+> 
+> On Wed, Jun 17, 2009 at 8:05 PM, hermann pitton<hermann-pitton@arcor.de> wrote:
+> > Am Mittwoch, den 17.06.2009, 19:46 -0500 schrieb Yufei Yuan:
+> >> Age would cure neither naivety nor stupidity. I would imagine only a
+> >> self-important white supremacist would utter such comments in public
+> >> against a total stranger. If you can read the Chinese above, I
+> >> *seriously* doubt that, it's what Confucious said around 500BC, to
+> >> encourage learning and repentance.
+> >
+> > That was of course totally clear and exactly that is the annoyance !
+> >
+> >>
+> >> I may not do a good job in translation, sorry about that. But blindly
+> >> interpret other's intention based on one's own narrow personal
+> >> experience, or cultural context, is the origin of the trouble between
+> >> groups and nations, in this case, two individuals.
+> >
+> > OK, let's keep the footers uncensored ;)
+> >
+> >> Regards,
+> >>
+> >> On Wed, Jun 17, 2009 at 7:30 PM, hermann pitton<hermann-pitton@arcor.de> wrote:
+> >> >
+> >> > Am Mittwoch, den 17.06.2009, 19:20 -0500 schrieb Yufei Yuan:
+> >> >> If you take such an intolerant attitude against what others opinion
+> >> >> might be, your words might just be deemed worthless, or should I say
+> >> >> *bullshit*, by others. It is really sad that this world is never in
+> >> >> shortage of people like you.
+> >> >>
+> >> >> What a shame of humanity.
+> >> >>
+> >> >> Regards,
+> >> >
+> >> > I'm a German born in 1957.
+> >> >
+> >> > If that could help you any further in the future not to claim to have
+> >> > the three golden rules ...
+> >> >
+> >> > Cheers,
+> >> > Hermann
+> >> >
+> >> >>
+> >> >> On Wed, Jun 17, 2009 at 7:14 PM, hermann pitton<hermann-pitton@arcor.de> wrote:
+> >> >> > Hi,
+> >> >> >
+> >> >> > Am Mittwoch, den 17.06.2009, 19:06 -0500 schrieb Yufei Yuan:
+> >> >> >> Sorry I guess this is about the way the patch was generated? Or about
+> >> >> >> the utility itself?
+> >> >> >>
+> >> >> >> Regards,
+> >> >> >
+> >> >> > most likely.
+> >> >> >
+> >> >> > And that is what I exactly do mean.
+> >> >> >
+> >> >> > Obviously you don't have any control about the footers others provide
+> >> >> > for you, if you go shopping ;)
+> >> >> >
+> >> >> > --
+> >> >> > å¥½å­¦è¿‘ä¹Žæ™ºï¼ŒåŠ›è¡Œè¿‘ä¹Žä»ï¼ŒçŸ¥è€»è¿‘ä¹Žå‹‡ã€‚
+> >> >> > Eagerness in learning is close to intelligence.
+> >> >> > Commitment in doing is close to nobleness.
+> >> >> > Realization of shamefulness is close to courageousness.
+> >> >> >
+> >> >> > :)
+> >> >> >
+> >> >> > what a bullshit.
+> >> >> >
+> >> >> > Cheers,
+> >> >> > Hermann
+> >> >> >
+> >> >> >>
+> >> >> >> On Wed, Jun 17, 2009 at 6:51 PM, hermann pitton<hermann-pitton@arcor.de> wrote:
+> >> >> >> >
+> >> >> >> > Am Mittwoch, den 17.06.2009, 18:18 -0500 schrieb Yufei Yuan:
+> >> >> >> >> Hi,
+> >> >> >> >>
+> >> >> >> >> I am not sure if this is the correct mailing list to send this patch.
+> >> >> >> >> >From the LinuxTV website, it seems that currently dvb-apps project
+> >> >> >> >> has
+> >> >> >> >> no owner.
+> >> >> >> >>
+> >> >> >> >> A new utility atsc_epg is added into the dvb-apps utility suite. It
+> >> >> >> >> parses PSIP information carried in OTA ATSC channels, and constructs a
+> >> >> >> >> basic EPG in a terminal window. Changes were also made to files to
+> >> >> >> >> please GCC4.4.
+> >> >> >> >>
+> >> >> >> >> The patch is against latest revision 1278 from the dvb-apps
+> >> >> >> >> repository.
+> >> >> >> >>
+> >> >> >> >> Regards,
+> >> >> >> >> Yufei Yuan
+> >> >> >> >>
+> >> >> >> >> --
+> >> >> >> >> å¥½å­¦è¿‘ä¹Žæ™ºï¼ŒåŠ›è¡Œè¿‘ä¹Žä»ï¼ŒçŸ¥è€»è¿‘ä¹Žå‹‡ã€‚
+> >> >> >> >> Eagerness in learning is close to intelligence.
+> >> >> >> >> Commitment in doing is close to nobleness.
+> >> >> >> >> Realization of shamefulness is close to courageousness.
+> >> >> >> >
+> >> >> >> > Getting engaged into footers ...
+> >> >> >> >
+> >> >> >> > The above blindly assumes that there is a balance within that reduction
+> >> >> >> > to three cases ... (we know two are enough)
+> >> >> >> >
+> >> >> >> > You miss at least several hundred years of history on the other side of
+> >> >> >> > the planet.
+> >> >> >> >
+> >> >> >> > I totally disagree with that kind of stuff.
+> >> >> >> >
+> >> >> >> > Most explicitly with the third variant.
+> >> >> >> >
+> >> >> >> > That way you can still press any slave into any army ...
+> >> >> >> >
+> >> >
+> >> >
+> >> >
+> >>
+> >>
+> >>
+> >
+> >
+> 
+> 
+> 
 
-On Thu, Jun 11, 2009 at 9:16 PM, Guennadi
-Liakhovetski<g.liakhovetski@gmx.de> wrote:
-> On Thu, 11 Jun 2009, Dongsoo, Nathaniel Kim wrote:
->
->> Hello Guennadi,
->>
->> It's a very interesting patch. Actually some camera interfaces support
->> for various image effects and I was wondering how to use them in SoC
->> camera subsystem.
->>
->> But here is a question. Is it possible to make a choice with the same
->> CID between icd and ici? I mean, if both of camera interface and
->> camera device are supporting for same CID how can user select any of
->> them to use? Sometimes, some image effects supported by camera
->> interface are not good so I want to use the same effect supported by
->> external camera ISP device.
->>
->> I think, it might be possible but I can't see how.
->
->> > @@ -681,9 +698,16 @@ static int soc_camera_s_ctrl(struct file *file, void *priv,
->> >        struct soc_camera_file *icf = file->private_data;
->> >        struct soc_camera_device *icd = icf->icd;
->> >        struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
->> > +       int ret;
->> >
->> >        WARN_ON(priv != file->private_data);
->> >
->> > +       if (ici->ops->set_ctrl) {
->> > +               ret = ici->ops->set_ctrl(icd, ctrl);
->> > +               if (ret != -ENOIOCTLCMD)
->> > +                       return ret;
->> > +       }
->> > +
->> >        return v4l2_device_call_until_err(&ici->v4l2_dev, (__u32)icd, core, s_ctrl, ctrl);
->> >  }
->
-> Should be easy to see in the patch. Host's s_ctrl is called first. It can
-> return -ENOIOCTLCMD then sensor's control will be called too. Ot the host
-> may choose to call sensor's control itself, which, however, is
-> discouraged.
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
->
-
-
-
--- 
-=
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
