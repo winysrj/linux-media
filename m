@@ -1,107 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2263 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753394AbZFNKqY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Jun 2009 06:46:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCHv7 2/9] v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX controls
-Date: Sun, 14 Jun 2009 12:46:02 +0200
-Cc: "ext Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-References: <1244827840-886-1-git-send-email-eduardo.valentin@nokia.com> <1244827840-886-2-git-send-email-eduardo.valentin@nokia.com> <1244827840-886-3-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1244827840-886-3-git-send-email-eduardo.valentin@nokia.com>
+Received: from smtp0.epfl.ch ([128.178.224.219]:36564 "HELO smtp0.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752131AbZFRJwA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Jun 2009 05:52:00 -0400
+Message-ID: <4A3A0E41.5020208@epfl.ch>
+Date: Thu, 18 Jun 2009 11:52:01 +0200
+From: Valentin Longchamp <valentin.longchamp@epfl.ch>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: mx31moboard MT9T031 camera support
+References: <4A39FE96.4010004@epfl.ch> <Pine.LNX.4.64.0906181054280.5779@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0906181054280.5779@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200906141246.02884.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 12 June 2009 19:30:33 Eduardo Valentin wrote:
-> This patch adds a new class of extended controls. This class
-> is intended to support FM Radio Modulators properties such as:
-> rds, audio limiters, audio compression, pilot tone generation,
-> tuning power levels and preemphasis properties.
+Guennadi Liakhovetski wrote:
+> On Thu, 18 Jun 2009, Valentin Longchamp wrote:
 > 
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> ---
->  linux/include/linux/videodev2.h |   34 ++++++++++++++++++++++++++++++++++
->  1 files changed, 34 insertions(+), 0 deletions(-)
+>> Hi Guennadi,
+>>
+>> I am trying to follow your developments at porting soc-camera to v4l2-subdev.
+>> However, even if I understand quite correctly soc-camera, it is quite
+>> difficult for me to get all the subtleties in your work.
+>>
+>> That's why I am asking you for a little help: when do you think would be the
+>> best timing for me to add the mt9t031 camera support for mx31moboard within
+>> your current process ?
 > 
-> diff --git a/linux/include/linux/videodev2.h b/linux/include/linux/videodev2.h
-> index b8cffc9..9733435 100644
-> --- a/linux/include/linux/videodev2.h
-> +++ b/linux/include/linux/videodev2.h
-> @@ -806,6 +806,7 @@ struct v4l2_ext_controls {
->  #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
->  #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
->  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
-> +#define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
->  
->  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
->  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-> @@ -1144,6 +1145,39 @@ enum  v4l2_exposure_auto_type {
->  
->  #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
->  
-> +/* FM Modulator class control IDs */
-> +#define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
-> +#define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
-> +
-> +#define V4L2_CID_RDS_ENABLED			(V4L2_CID_FM_TX_CLASS_BASE + 1)
-> +#define V4L2_CID_RDS_PI				(V4L2_CID_FM_TX_CLASS_BASE + 2)
-> +#define V4L2_CID_RDS_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 3)
-> +#define V4L2_CID_RDS_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 4)
-> +#define V4L2_CID_RDS_RADIO_TEXT			(V4L2_CID_FM_TX_CLASS_BASE + 5)
+> You can do this now, based either on the v4l tree, or wait for Linus to 
+> pull it - a pull request has been sent ba Mauro yesterday, looks like 
+> Linus hasn't pulled yet.
+> 
+> The way you add your platform is going to change, and the pull, that I'm 
+> referring to above makes it possible for both "old style" and "new style" 
+> board camera data to work. Of course, it would be best for you to 
+> implement the "new style" platform data. You can do this by either looking 
+> at my patches, which I've posted to the lists earlier, and which are also 
+> included in my patch stack, which I announced yesterday. Or you can wait a 
+> bit until I update my pcm037 patch (going to do this now) and post it to 
+> arm-kernel. I'll (try not to forget to) add you to cc, that should be 
+> quite easy to follow for you.
+> 
+>> I guess it should not be too difficult, I had done it before, and I can base
+>> myself on what you have done for pcm037:
+>> http://download.open-technology.de/soc-camera/20090617/0025-pcm037-add-MT9T031-camera-support.patch
+> 
+> Yes, use this or wait a bit for an updated version.
 
-I think these RDS controls should be renamed to V4L2_CID_RDS_TX_. This makes
-it clear that these controls relate to the RDS transmitter instead of a
-receiver. I would not be surprised to see similar controls appear for an RDS
-receiver in the future.
+OK, thanks a lot. Since I am busy at other things at the moment, I am 
+going to wait for you updated version and that things are stabilized a 
+little bit with the 31-rc1. And I will use the "new style" platform data.
 
-> +
-> +#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 6)
-> +#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 7)
-> +#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FM_TX_CLASS_BASE + 8)
-> +
-> +#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FM_TX_CLASS_BASE + 9)
-> +#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FM_TX_CLASS_BASE + 10)
-> +#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FM_TX_CLASS_BASE + 11)
-> +#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 12)
-> +#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 13)
-> +
-> +#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 14)
-> +#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 15)
-> +#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FM_TX_CLASS_BASE + 16)
-> +
-> +#define V4L2_CID_PREEMPHASIS			(V4L2_CID_FM_TX_CLASS_BASE + 17)
-> +enum v4l2_fm_tx_preemphasis {
-> +	V4L2_FM_TX_PREEMPHASIS_DISABLED		= 0,
-> +	V4L2_FM_TX_PREEMPHASIS_50_uS		= 1,
-> +	V4L2_FM_TX_PREEMPHASIS_75_uS		= 2,
-> +};
+> 
+>> Now I have a second question. On our robot, we physically have two cameras
+>> (one looking to the front and one looking at a mirror) connected to the i.MX31
+>> physical bus. We have one signal that allows us to control the multiplexer for
+>> the bus lines (video signals and I2C) through a GPIO. This now works with a
+>> single camera declared in software and choices to the multiplexer done when no
+>> image transfer is happening ( /dev/video is not open). What do you think
+>> should be the correct way of dealing with these two cameras with the current
+>> driver implementation (should I continue to declare only one camera in the
+>> software) ?
+>>
+>> And do you think it could be possible to "hot-switch" from one camera to the
+>> other ? My colleagues ask about it, I tell them that from my point of view
+>> this seems not possible without changing the drivers, and even the drivers
+>> would have to be changed quite heavily and it is not trivial.
+> 
+> Do the cameras use different i2c addresses? If they use the same address I 
+> don't think you'd be able to register them simultaneously. If they do use 
+> different addresses, you can register both of them and use platform 
+> .power() callback to switch between them using your multiplexer. See 
+> arch/sh/boards/mach-migor/setup.c for an example. There was also a 
+> proposal to use switching input to select a data source, but this is 
+> currently unsupported by soc-camera.
+> 
 
-I suggest renaming this to V4L2_CID_FM_TX_PREEMPHASIS. There is already a
-similar V4L2_CID_MPEG_EMPHASIS control and others might well appear in the
-future, so I think this name should be more specific to the FM_TX API.
+The sensor chips both are mt9t031 so they have the same i2c address (I 
+have looked at the datasheet, and I don't think this can be changed). So 
+I cannot use them both at the same time.
 
-> +#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 18)
-> +#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 19)
-> +
->  /*
->   *	T U N I N G
->   */
+Now you talk about the .power() callback, I could use it so that the 
+multiplexer is managed by it, using a similar mechanism as in 
+mach-migor. If this could allow me one different /dev/video nod for each 
+camera (that of course cannot be used at the same time), it would 
+simplify a lot of things for my users. I will give it a try (hoping that 
+this also works at driver registering ... we will see).
 
-Regards,
+Thanks for your answers.
 
-	Hans
+Val
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Valentin Longchamp, PhD Student, EPFL-STI-LSRO1
+valentin.longchamp@epfl.ch, Phone: +41216937827
+http://people.epfl.ch/valentin.longchamp
+MEA3485, Station 9, CH-1015 Lausanne
