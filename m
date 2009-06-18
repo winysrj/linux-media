@@ -1,118 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4737 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752438AbZF3SQh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jun 2009 14:16:37 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n5UIGdAr098140
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 30 Jun 2009 20:16:39 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 30 Jun 2009 20:16:39 +0200 (CEST)
-Message-Id: <200906301816.n5UIGdAr098140@smtp-vbr4.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from as-10.de ([212.112.241.2]:39938 "EHLO mail.as-10.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755636AbZFRMGL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Jun 2009 08:06:11 -0400
+Date: Thu, 18 Jun 2009 14:05:51 +0200
+From: Halim Sahin <halim.sahin@t-online.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Trent Piepho <xyzzy@speakeasy.org>, linux-media@vger.kernel.org
+Subject: Re: ok more details: Re: bttv problem loading takes about several
+	minutes
+Message-ID: <20090618120551.GA6486@halim.local>
+References: <40897.62.70.2.252.1245323396.squirrel@webmail.xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <40897.62.70.2.252.1245323396.squirrel@webmail.xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi,
+On Do, Jun 18, 2009 at 01:09:56 +0200, Hans Verkuil wrote:
+> 
+> > Hi,
+> > sorry for the nusable output!
+> > I found the time consuming funktion:
+> >         bttv_init_card2(btv);
+> > This takes about 4 min. today.
+> > my new testcode:
+> >         /* needs to be done before i2c is registered */
+> > printk("linke 2:bttv_init_card1(btv);\n");
+> >
+> >         bttv_init_card1(btv);
+> >
+> >         /* register i2c + gpio */
+> > printk("line 3: init_bttv_i2c(btv);\n");
+> >
+> >         init_bttv_i2c(btv);
+> >
+> >         /* some card-specific stuff (needs working i2c) */
+> > printk("line4:         some card-specific stuff needs working i2c \n");
+> >         bttv_init_card2(btv);
+> > printk("irq init\n");
+> >
+> >         init_irqreg(btv);
+> >
+> > dmesg output:
+> > [ 2282.430209] bttv: driver version 0.9.18 loaded
+> > [ 2282.430216] bttv: using 8 buffers with 2080k (520 pages) each for
+> > capture
+> > [ 2282.430313] bttv: Bt8xx card found (0).
+> > [ 2282.430334] bttv0: Bt878 (rev 17) at 0000:00:0b.0, irq: 19, latency:
+> > 32, mmio
+> > : 0xf7800000
+> > [ 2282.430777] bttv0: using: Leadtek WinFast 2000/ WinFast 2000 XP
+> > [card=34,insm
+> > od option]
+> > [ 2282.430839] bttv_gpio_tracking(bt
+> > [ 2282.430843] bttv0: gpio: en=00000000, out=00000000 in=003ff502 [init]
+> > [ 2282.430845] linke 2:bttv_init_card1(btv);
+> > [ 2282.430859] line 3: init_bttv_i2c(btv);
+> > [ 2282.430917] line4:         some card-specific stuff needs working i2c
+> > [ 2282.430922] bttv0: tuner type=24
+> >
+> > Ok here is the 4 min dely and after that the following linkes were printed
+> > out:
+> >
+> > [ 2416.836017] bttv0: audio absent, no audio device found!
+> 
+> When you tested this with bttv 0.9.17, wasn't the delay then before the
+> text 'tuner type=24'?
+> 
+> Anyway, if you modprobe with the option 'audiodev=-1', will that solve
+> this? If not, then can you do the same printk trick in the bttv_init_card2
+> function?
 
-Results of the daily build of v4l-dvb:
+I couldn't find a parameter audiodev in bttv module
+Do you mean audioall??
+It has no effect.
+So I need an older revision of v4l-dvb to test the 17. drivers.
+Thanks
+regards
+Halim
 
-date:        Tue Jun 30 19:00:05 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12145:519e04ce8fda
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+> 
+> Regards,
+> 
+>         Hans
+> 
+> > [ 2416.836024] irq init
+> > [ 2416.840551] bttv0: registered device video1
+> > [ 2416.840684] bttv0: registered device vbi0
+> > [ 2416.840716] bttv0: registered device radio0
+> > [ 2416.840736] bttv0: PLL: 28636363 => 35468950 .<6>bttv0: PLL: 28636363
+> > => 3546
+> > 8950 . ok
+> > [ 2416.856221] input: bttv IR (card=34) as
+> > /devices/pci0000:00/0000:00:0b.0/inpu
+> > t/input10
+> > [ 2416.864069]  ok
+> >
+> > Hope that helps!
+> > Regards
+> > Halim
+> > --
+> > Halim Sahin
+> > E-Mail:
+> > halim.sahin (at) t-online.de
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> 
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc1-armv5: ERRORS
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-rc1-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc1-i686: ERRORS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc1-m32r: ERRORS
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-rc1-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc1-x86_64: ERRORS
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc1): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+-- 
+Halim Sahin
+E-Mail:				
+halim.sahin (at) t-online.de
