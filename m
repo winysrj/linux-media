@@ -1,101 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39457 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932098AbZFJVbA convert rfc822-to-8bit (ORCPT
+Received: from mail-bw0-f213.google.com ([209.85.218.213]:33832 "EHLO
+	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756833AbZFRLVq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2009 17:31:00 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	Muralidharan Karicheri <a0868495@dal.design.ti.com>
-Date: Wed, 10 Jun 2009 16:30:57 -0500
-Subject: RE: [PATCH 0/10 - v2] ARM: DaVinci: Video: DM355/DM6446 VPFE
- Capture driver
-Message-ID: <A69FA2915331DC488A831521EAE36FE40139A08E51@dlee06.ent.ti.com>
-References: <1244573204-20391-1-git-send-email-m-karicheri2@ti.com>
- <200906102328.16328.hverkuil@xs4all.nl>
-In-Reply-To: <200906102328.16328.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Thu, 18 Jun 2009 07:21:46 -0400
+Received: by bwz9 with SMTP id 9so979613bwz.37
+        for <linux-media@vger.kernel.org>; Thu, 18 Jun 2009 04:21:47 -0700 (PDT)
+Date: Thu, 18 Jun 2009 13:22:27 +0200
+From: Jan Nikitenko <jan.nikitenko@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] af9015: avoid magically sized temporal buffer in
+	eeprom_dump
+Message-ID: <20090618112227.GA9930@nikitenko.systek.local>
+References: <c4bc83220906091531h20677733kd993ed50c0bc74ec@mail.gmail.com> <4A2EF922.5040102@iki.fi> <20090618111253.GC9575@nikitenko.systek.local>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4A2EF922.5040102@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
+Replace printing to magically sized temporal buffer with use of KERN_CONT
+for continual printing of eeprom registers dump.
 
-Great! I look forward for your comments.
+Since deb_info is defined as dprintk, which is defined as printk without
+additional parameters, meaning that deb_info is equivalent to direct printk
+(without KERN_ facility), we can use KERN_DEBUG and KERN_CONT in there,
+eliminating the need for sprintf into temporal buffer with not easily
+readable/magical size.
 
-Murali Karicheri
-email: m-karicheri2@ti.com
+Though it's strange, that deb_info definition uses printk without KERN_
+facility and callers don't use it either.
 
->-----Original Message-----
->From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
->Sent: Wednesday, June 10, 2009 5:28 PM
->To: Karicheri, Muralidharan
->Cc: linux-media@vger.kernel.org; davinci-linux-open-
->source@linux.davincidsp.com; Muralidharan Karicheri
->Subject: Re: [PATCH 0/10 - v2] ARM: DaVinci: Video: DM355/DM6446 VPFE
->Capture driver
->
->On Tuesday 09 June 2009 20:46:44 m-karicheri2@ti.com wrote:
->> From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
->>
->> VPFE Capture driver for DaVinci Media SOCs :- DM355 and DM6446
->>
->> This is the version v2 of the patch series. This is the reworked
->> version of the driver based on comments received against the last
->> version of the patch.
->
->I'll be reviewing this Friday or Saturday.
->
->Regards,
->
->	Hans
->
->>
->> +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
->> These patches add support for VPFE (Video Processing Front End) based
->> video capture on DM355 and DM6446 EVMs. For more details on the hardware
->> configuration and capabilities, please refer the vpfe_capture.c header.
->> This patch set consists of following:-
->>
->> Patch 1: VPFE Capture bridge driver
->> Patch 2: CCDC hw device header file
->> Patch 3: DM355 CCDC hw module
->> Patch 4: DM644x CCDC hw module
->> Patch 5: common types used across CCDC modules
->> Patch 6: Makefile and config files for the driver
->> Patch 7: DM355 platform and board setup
->> Patch 8: DM644x platform and board setup
->> Patch 9: Remove outdated driver files from davinci git tree
->> Patch 10: common vpss hw module for video drivers
->>
->> NOTE:
->>
->> Dependent on the TVP514x decoder driver patch for migrating the
->> driver to sub device model from Vaibhav Hiremath
->>
->> Following tests are performed.
->> 	1) Capture and display video (PAL & NTSC) from tvp5146 decoder.
->> 	   Displayed using fbdev device driver available on davinci git tree
->> 	2) Tested with driver built statically and dynamically
->>
->> Muralidhara Karicheri
->>
->> Reviewed By "Hans Verkuil".
->> Reviewed By "Laurent Pinchart".
->>
->> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
->
->--
->Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Signed-off-by: Jan Nikitenko <jan.nikitenko@gmail.com>
 
+---
+
+(added missing Singned-off)
+
+I do not see better solution for the magical sized buffer, since print_hex_dump
+like functions need dump of registers in memory (so the magical sized temporal
+buffer would be needed for a copy anyway).
+If deb_info was defined with inside KERN_ facility, then this patch would not
+be valid and so the magically sized temporal buffer might be acceptable to keep
+there.
+
+This patch depends on 'af9015: fix stack corruption bug' patch.
+
+ linux/drivers/media/dvb/dvb-usb/af9015.c |   12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
+
+diff -r 722c6faf3ab5 linux/drivers/media/dvb/dvb-usb/af9015.c
+--- a/linux/drivers/media/dvb/dvb-usb/af9015.c	Wed Jun 17 22:39:23 2009 -0300
++++ b/linux/drivers/media/dvb/dvb-usb/af9015.c	Thu Jun 18 08:49:58 2009 +0200
+@@ -541,24 +541,22 @@
+ /* dump eeprom */
+ static int af9015_eeprom_dump(struct dvb_usb_device *d)
+ {
+-	char buf[4+3*16+1], buf2[4];
+ 	u8 reg, val;
+ 
+ 	for (reg = 0; ; reg++) {
+ 		if (reg % 16 == 0) {
+ 			if (reg)
+-				deb_info("%s\n", buf);
+-			sprintf(buf, "%02x: ", reg);
++				deb_info(KERN_CONT "\n");
++			deb_info(KERN_DEBUG "%02x:", reg);
+ 		}
+ 		if (af9015_read_reg_i2c(d, AF9015_I2C_EEPROM, reg, &val) == 0)
+-			sprintf(buf2, "%02x ", val);
++			deb_info(KERN_CONT, " %02x", val);
+ 		else
+-			strcpy(buf2, "-- ");
+-		strcat(buf, buf2);
++			deb_info(KERN_CONT, " --");
+ 		if (reg == 0xff)
+ 			break;
+ 	}
+-	deb_info("%s\n", buf);
++	deb_info(KERN_CONT "\n");
+ 	return 0;
+ }
+ 
