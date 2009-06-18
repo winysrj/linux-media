@@ -1,62 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:57389 "EHLO
-	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754146AbZFVSPZ (ORCPT
+Received: from mail.gmx.net ([213.165.64.20]:41418 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751184AbZFRRbe convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2009 14:15:25 -0400
-Received: from host143-65.hauppauge.com
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta5.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KLN00L7XK1FW170@mta5.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Mon, 22 Jun 2009 14:15:16 -0400 (EDT)
-Date: Mon, 22 Jun 2009 14:15:12 -0400
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: Hauppauge HVR-1250 IR Support? (CX23885)
-In-reply-to: <2840372.1245692029927.JavaMail.root@elwamui-ovcar.atl.sa.earthlink.net>
-To: whelky-82852@mypacks.net
-Cc: linux-media@vger.kernel.org
-Message-id: <4A3FCA30.1050801@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7BIT
-References: <2840372.1245692029927.JavaMail.root@elwamui-ovcar.atl.sa.earthlink.net>
+	Thu, 18 Jun 2009 13:31:34 -0400
+Date: Thu, 18 Jun 2009 19:31:49 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: S_FMT vs. S_CROP
+In-Reply-To: <200906102323.43677.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.0906181920380.7460@axis700.grange>
+References: <49CBB13F.7090609@hni.uni-paderborn.de> <49D46D2E.5090702@hni.uni-paderborn.de>
+ <Pine.LNX.4.64.0906101738140.4817@axis700.grange> <200906102323.43677.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-whelky-82852@mypacks.net wrote:
-> 
-> -----Original Message-----
->> From: Steven Toth <stoth@kernellabs.com>
->> Sent: Jun 22, 2009 7:29 AM
->> To: whelky-82852@mypacks.net
->> Cc: linux-media@vger.kernel.org
->> Subject: Re: Hauppauge HVR-1250 IR Support? (CX23885)
->>
->> whelky-82852@mypacks.net wrote:
->>> I was wondering if anyone is working on IR support for this card? I looked through cx23885-cards.c and its not supported.
->>>
->>> 627         switch (dev->board) {
->>> 628         case CX23885_BOARD_HAUPPAUGE_HVR1250:
->>> 629         case CX23885_BOARD_HAUPPAUGE_HVR1500:
->>> 630         case CX23885_BOARD_HAUPPAUGE_HVR1500Q:
->>> 631         case CX23885_BOARD_HAUPPAUGE_HVR1800:
->>> 632         case CX23885_BOARD_HAUPPAUGE_HVR1200:
->>> 633         case CX23885_BOARD_HAUPPAUGE_HVR1400:
->>> 634                 /* FIXME: Implement me */
->>> 635                 break;
->> Not currently.
->>
->> -- 
->> Steven Toth - Kernel Labs
->> http://www.kernellabs.com
-> 
-> Thanks for reply.
-> 
-> Are there some roadblocks that make this card different from others that are supported? Is is possible to take a working driver and tweak/hack it, or is it way more complex that that?
+Ok, a couple of things have become clearer to me, some others managed to 
+confuse me again:
 
-Time / motivation are the roadblock. It's a different IR design to all existing 
-drivers so it needs a decent chunk of effort to bring it into life.
+On Wed, 10 Jun 2009, Hans Verkuil wrote:
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+> On Wednesday 10 June 2009 18:02:39 Guennadi Liakhovetski wrote:
+
+[snip]
+
+> > which I now interpret as
+> >
+> > S_FMT(640x480) means "scale whatever rectangle has been selected on the
+> > sensor to produce an output window of 640x480" and S_CROP(2048x1536)
+> > means "take a window of 2048x1536 sensor pixels from the sensor and scale
+> > it to whatever output window has been or will be selected by S_FMT." This
+> > contradicts M1, because you certainly can crop a larger (sensor) window.
+> > Also, I now believe, that [GS]_CROP and, logically, CROPCAP operate in
+> > sensor pixels and shall not depend on any scales, which contradicts (my
+> > understanding of) M2.
+> >
+> > It now seems to be quite simple to me:
+> >
+> > {G,S,TRY}_FMT configure output geometry in user pixels
+> > [GS]_CROP, CROPCAP configure input window in sensor pixels
+> 
+> Agreed.
+> 
+> > The thus configured input window should be mapped (scaled) into the
+> > output window.
+> >
+> > Now, which one is correct?
+> 
+> Your interpretation is correct to the best of my knowledge. I think the 
+> cropping API remains one of the worst explained ioctls in the spec. There 
+> are some weird things you can get into when dealing with S-Video (PAL/NTSC) 
+> like signals, but for sensors like this it is as you described.
+
+It seems, my above interpretation contradicts with the following statement 
+from the description of S_CROP in the spec:
+
+<quote>
+Second the driver adjusts the image size (the opposite rectangle of the 
+scaling process, source or target depending on the data direction) to the 
+closest size possible while maintaining the current horizontal and 
+vertical scaling factor.
+</quote>
+
+I read this as "you crop according to the user request and yor new scaled 
+image is a result of your new crop area and _old_ scaling factors."
+
+Now, if you set up the crop, and preserve the scaling factors, what the 
+heck does "adjusts the image size ... to the closest size possible"... 
+What else adjustment freedom does one have here? Shall I be bending the 
+sensor in the third dimension or what?...
+
+And btw, the calculations and reasoning in the example in 1.11.2 I cannot 
+follow at all. For example this "The present scaling factors limit 
+cropping to 640 × 384" I cannot derive however hard I try. And this "the 
+driver returns the cropping size 608 × 384 and adjusts the image size to 
+closest possible 304 × 192" means the scaling factors are now both 2:1 as 
+a result of S_CROP, and before S_CROP the horisontal scale used to be 1:1, 
+so, it changed, which again contradicts (IMHO) S_CROP definition above.
+
+HEEEEELP!
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
