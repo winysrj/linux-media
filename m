@@ -1,84 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tischtennistrainer.eu ([85.214.38.218]:54298 "EHLO
-	tischtennistrainer.eu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752958AbZFMUlN convert rfc822-to-8bit (ORCPT
+Received: from mail-fx0-f212.google.com ([209.85.220.212]:38897 "EHLO
+	mail-fx0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753556AbZFRIsB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Jun 2009 16:41:13 -0400
-Received: from scheffeneu.localnet (unknown [80.152.217.184])
-	(Authenticated sender: christian@heidingsfelder-partner.de)
-	by tischtennistrainer.eu (Postfix) with ESMTPSA id 1B7E52430142
-	for <linux-media@vger.kernel.org>; Sat, 13 Jun 2009 20:35:39 +0000 (UTC)
-From: "Christian Heidingsfelder [Heidingsfelder + Partner]"
-	<christian@heidingsfelder-partner.de>
-To: linux-media@vger.kernel.org
-Subject: TT-Connect S2 -3650 CI and a Pinnacle PCTV Dual Sat Pro PCI 4000I
-Date: Sat, 13 Jun 2009 22:31:19 +0200
+	Thu, 18 Jun 2009 04:48:01 -0400
+Received: by fxm8 with SMTP id 8so871838fxm.37
+        for <linux-media@vger.kernel.org>; Thu, 18 Jun 2009 01:48:03 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200906132231.19962.christian@heidingsfelder-partner.de>
+In-Reply-To: <1a297b360906180132l49aa7be4j8a1e238aa9bac65@mail.gmail.com>
+References: <ccdf9f470906171618r26518ce7pa97d747e301009ca@mail.gmail.com>
+	 <1a297b360906180132l49aa7be4j8a1e238aa9bac65@mail.gmail.com>
+Date: Thu, 18 Jun 2009 12:48:03 +0400
+Message-ID: <1a297b360906180148lefc2d8fp972647ad0df64320@mail.gmail.com>
+Subject: Re: [Patch] New utility program atsc_epg added to dvb-apps utility
+	suite.
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Yufei Yuan <yfyuan@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-First of all : Hi :) . 
-It seems i own the two not working DVB-S Devices. 
-Its a TT-Connect S2 -3650 CI and a Pinnacle PCTV Dual Sat Pro PCI 4000I. 
-Is there any chance to get one of them working. I use Gentoo with the 2.6.29-
-gentoo-r5 kernel.
+On Thu, Jun 18, 2009 at 12:32 PM, Manu Abraham<abraham.manu@gmail.com> wrote:
+> 2009/6/18 Yufei Yuan <yfyuan@gmail.com>:
+>> Hi,
+>>
+>> I am not sure if this is the correct mailing list to send this patch.
+>> From the LinuxTV website, it seems that currently dvb-apps project has
+>> no owner.
+>>
+>> A new utility atsc_epg is added into the dvb-apps utility suite. It
+>> parses PSIP information carried in OTA ATSC channels, and constructs a
+>> basic EPG in a terminal window. Changes were also made to files to
+>> please GCC4.4.
+>>
+>> The patch is against latest revision 1278 from the dvb-apps repository.
+>
+>
+> Please do send the patch with tabs instead of spaces for indentation.
 
-Regards Chris
--- 
+Also:
 
--- 
+* please cleanup the white spaces in the patch, if any.
+* please use the unified format, diff -u option.
 
-Mit freundlichen Grüßen
-Christian Heidingsfelder
-Heidingsfelder + Partner
-Kirchgasse 9
-72474 Winterlingen-Benzingen
-Tel: +49 7577 933864
-Fax: +49 7577 933863
-christian@heidingsfelder.eu
-DE 
-
---
-***********************************
-Diese eMailadresse ist keine Zustelladresse.
-Aus technischen Gruenden kann ich Ihre eMail nicht sofort nach 
-Eingang darauf überpruefen, ob sie Fristen oder Termine enthaelt. 
-Daher uebernehme ich keine Gewaehr, daß Ihre Nachricht so 
-rechtzeitig gelesen wird, daß alle zur Einhaltung von etwaigen 
-Fristen oder Terminen notwendigen Massnahmen ergriffen werden 
-koennen. 
-Bitte uebermitteln Sie solche Schriftstuecke per Fax oder Brief an 
-die weiter obenstehende Anschrift.
-***********************************
-Hiermit widerspreche ich ausdruecklich jeglicher Nutzung oder 
-Uebermittlung meiner Daten, gleichgueltig, zu welchen Zwecken oder 
-an welchen Empfaenger sie erfolgt. Insbesondere widerspreche ich 
-der Nutzung oder Uebermittlung meiner Daten fuer Werbe, Markt- 
-oder Meinungsforschungszwecken gemaess 
-§ 28 Absatz 3 Bundesdatenschutzgesetz.
-***********************************
-Sicherheitshinweis:
-Wie Sie wissen, können eMails missbräuchlich unter fremden Namen 
-erstellt oder verändert werden. Aus diesem Grunde bitte ich um 
-Verständnis dafür, daß ich zu Ihrem und meinem Schutz die 
-rechtliche Verbindlichkeit der in dieser eMail gemachten 
-Erklärungen ausschliessen muß. Diese Regelung gilt nur dann nicht, 
-wenn ich mit Ihnen eine anderweitige schriftliche Vereinbarung 
-über die Einhaltung von Sicherheits- und 
-Verschlüsselungstandards getroffen habe.
-***********************************
-Si forte in alienas manus oberraverit hec peregrina epistola 
-incertis ventis dimissa, sed Deo commendata, precamur ut ei 
-reddatur cui soli destinata, nec preripiat quisquam non sibi 
-parata.
-(Falls dieser umherreisende Brief, der in unsichere Winde
-entsendet, aber Gott anvertraut wurde, zufällig in fremde
-Hände geraten ist, so bitte ich, dass er dem gegeben werde,
-an wen allein er gerichtet ist, und dass niemand ihn stiehlt,
-für den er nicht gemacht ist.)
-
+Regards,
+Manu
