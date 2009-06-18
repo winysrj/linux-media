@@ -1,40 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp7.aruba.it ([62.149.128.206]:43647 "HELO smtp5.aruba.it"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1756498AbZFPO0v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2009 10:26:51 -0400
-Message-ID: <4A37ABB5.60600@avalpa.com>
-Date: Tue, 16 Jun 2009 16:27:01 +0200
-From: Andrea Venturi <a.venturi@avalpa.com>
+Received: from smtp0.epfl.ch ([128.178.224.219]:38304 "HELO smtp0.epfl.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752271AbZFRIvt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Jun 2009 04:51:49 -0400
+Message-ID: <4A39FE96.4010004@epfl.ch>
+Date: Thu, 18 Jun 2009 10:45:10 +0200
+From: Valentin Longchamp <valentin.longchamp@epfl.ch>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: OpenCaster ver 2.0 has been released; more then a DSMCC carousel,
- now it's a playout for audio/video
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Sascha Hauer <s.hauer@pengutronix.de>
+Subject: mx31moboard MT9T031 camera support
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After another year of furious development, we are proud to announce the
-birth of OpenCaster version 2.0 (licensed GPL v2).
+Hi Guennadi,
 
-It's still a complete DSMCC carousel server useful for MHP, MHEG and OTA 
-dacasting, anyway now it's also a seamless playout of Audio/Video 
-properly encoded files.
+I am trying to follow your developments at porting soc-camera to 
+v4l2-subdev. However, even if I understand quite correctly soc-camera, 
+it is quite difficult for me to get all the subtleties in your work.
 
-Main new 2.0 features:
+That's why I am asking you for a little help: when do you think would be 
+the best timing for me to add the mt9t031 camera support for mx31moboard 
+within your current process ?
 
-     * seamless playout of off-line MPEG2 encoded videos
-     * IP multicast driver for IPTV service generation
-     * updated manual (one hundred page long)
-     * tested with Rohde & Schwarz DVM100L for PCR precision and accuracy
-     * interworking with Computer Modules DVB ASI gears
+I guess it should not be too difficult, I had done it before, and I can 
+base myself on what you have done for pcm037:
+http://download.open-technology.de/soc-camera/20090617/0025-pcm037-add-MT9T031-camera-support.patch
 
+Now I have a second question. On our robot, we physically have two 
+cameras (one looking to the front and one looking at a mirror) connected 
+to the i.MX31 physical bus. We have one signal that allows us to control 
+the multiplexer for the bus lines (video signals and I2C) through a 
+GPIO. This now works with a single camera declared in software and 
+choices to the multiplexer done when no image transfer is happening ( 
+/dev/video is not open). What do you think should be the correct way of 
+dealing with these two cameras with the current driver implementation 
+(should I continue to declare only one camera in the software) ?
 
-Go get it here:
+And do you think it could be possible to "hot-switch" from one camera to 
+the other ? My colleagues ask about it, I tell them that from my point 
+of view this seems not possible without changing the drivers, and even 
+the drivers would have to be changed quite heavily and it is not trivial.
 
-   http://www.avalpa.com/the-key-values/15-free-software/33-opencaster
+Best Regards
 
-Hope you'll find useful.
+Val
 
-regards
+-- 
+Valentin Longchamp, PhD Student, EPFL-STI-LSRO1
+valentin.longchamp@epfl.ch, Phone: +41216937827
+http://people.epfl.ch/valentin.longchamp
+MEA3485, Station 9, CH-1015 Lausanne
