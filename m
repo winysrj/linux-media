@@ -1,59 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.156]:35732 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752126AbZFQSLn (ORCPT
+Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:2349 "EHLO
+	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755923AbZFRLJ4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 14:11:43 -0400
-Received: by fg-out-1718.google.com with SMTP id d23so940869fga.17
-        for <linux-media@vger.kernel.org>; Wed, 17 Jun 2009 11:11:45 -0700 (PDT)
-Message-ID: <4A3931DC.1060003@gmail.com>
-Date: Wed, 17 Jun 2009 14:11:40 -0400
-From: Brian Johnson <brijohn@gmail.com>
+	Thu, 18 Jun 2009 07:09:56 -0400
+Message-ID: <40897.62.70.2.252.1245323396.squirrel@webmail.xs4all.nl>
+Date: Thu, 18 Jun 2009 13:09:56 +0200 (CEST)
+Subject: Re: ok more details: Re: bttv problem loading takes about several
+     minutes
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Halim Sahin" <halim.sahin@t-online.de>
+Cc: "Trent Piepho" <xyzzy@speakeasy.org>, linux-media@vger.kernel.org
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Convert cpia driver to v4l2,      drop parallel port version
- support?
-References: <13104.62.70.2.252.1245224630.squirrel@webmail.xs4all.nl>	<20090617065621.23515ab7@pedra.chehab.org>	<4A38CCAF.5060202@redhat.com> <20090617112802.152a6d64@pedra.chehab.org> <4A390093.5090003@redhat.com>
-In-Reply-To: <4A390093.5090003@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans de Goede wrote:
->>> sn9c102
->>> Supports a large number of cams also supported by gspca's sonixb / sonixj driver, we're using
->>> #ifdef .... macros to detect if both are being build at the same time to include usb-id's only
->>> in one of the 2.
->> Btw, it would be interesting to work with the out-of-tree microdia driver,
->> since there are some models that are supported only by the alternative driver.
-> 
-> Ack, only one small problem, which is another reason why Luca's drivers should slowly be phased
-> out, Luca has gone closed source with his sn9cxxx driver.
-> 
-> There is an out of tree driver for the new sn9c2xx models you talk about though, with active
-> developers, I've pushing them to get it into the mainline, I'll give it another try soonish.
-> 
 
-Hello I'm one of the developers for the current out of tree sn9c20x driver.  What needs to be done in order
-to get the sn9c20x code into the mainline? Am i right in assuming it would be preferred to move the code into 
-a sn9c20x gspca subdriver rather then include the complete out of tree driver? If this is the case I can work
-on a set of patches to implement our code as a gspca subdriver.
+> Hi,
+> sorry for the nusable output!
+> I found the time consuming funktion:
+>         bttv_init_card2(btv);
+> This takes about 4 min. today.
+> my new testcode:
+>         /* needs to be done before i2c is registered */
+> printk("linke 2:bttv_init_card1(btv);\n");
+>
+>         bttv_init_card1(btv);
+>
+>         /* register i2c + gpio */
+> printk("line 3: init_bttv_i2c(btv);\n");
+>
+>         init_bttv_i2c(btv);
+>
+>         /* some card-specific stuff (needs working i2c) */
+> printk("line4:         some card-specific stuff needs working i2c \n");
+>         bttv_init_card2(btv);
+> printk("irq init\n");
+>
+>         init_irqreg(btv);
+>
+> dmesg output:
+> [ 2282.430209] bttv: driver version 0.9.18 loaded
+> [ 2282.430216] bttv: using 8 buffers with 2080k (520 pages) each for
+> capture
+> [ 2282.430313] bttv: Bt8xx card found (0).
+> [ 2282.430334] bttv0: Bt878 (rev 17) at 0000:00:0b.0, irq: 19, latency:
+> 32, mmio
+> : 0xf7800000
+> [ 2282.430777] bttv0: using: Leadtek WinFast 2000/ WinFast 2000 XP
+> [card=34,insm
+> od option]
+> [ 2282.430839] bttv_gpio_tracking(bt
+> [ 2282.430843] bttv0: gpio: en=00000000, out=00000000 in=003ff502 [init]
+> [ 2282.430845] linke 2:bttv_init_card1(btv);
+> [ 2282.430859] line 3: init_bttv_i2c(btv);
+> [ 2282.430917] line4:         some card-specific stuff needs working i2c
+> [ 2282.430922] bttv0: tuner type=24
+>
+> Ok here is the 4 min dely and after that the following linkes were printed
+> out:
+>
+> [ 2416.836017] bttv0: audio absent, no audio device found!
 
-Also i have a few questions regarding submitting the patches.
+When you tested this with bttv 0.9.17, wasn't the delay then before the
+text 'tuner type=24'?
 
-1) In addition to sending them to linux-media should I CC them to anyone in particular?
-2) The entire patch would likely be about 70k. Should I just send one patch or split the
-thing up into several?
+Anyway, if you modprobe with the option 'audiodev=-1', will that solve
+this? If not, then can you do the same printk trick in the bttv_init_card2
+function?
 
-Thanks,
-Brian
+Regards,
 
+        Hans
+
+> [ 2416.836024] irq init
+> [ 2416.840551] bttv0: registered device video1
+> [ 2416.840684] bttv0: registered device vbi0
+> [ 2416.840716] bttv0: registered device radio0
+> [ 2416.840736] bttv0: PLL: 28636363 => 35468950 .<6>bttv0: PLL: 28636363
+> => 3546
+> 8950 . ok
+> [ 2416.856221] input: bttv IR (card=34) as
+> /devices/pci0000:00/0000:00:0b.0/inpu
+> t/input10
+> [ 2416.864069]  ok
+>
+> Hope that helps!
+> Regards
+> Halim
+> --
+> Halim Sahin
+> E-Mail:
+> halim.sahin (at) t-online.de
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
 
