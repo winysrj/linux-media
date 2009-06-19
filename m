@@ -1,54 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:37712 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756408AbZFPTUx (ORCPT
+Received: from smtp.wellnetcz.com ([212.24.148.102]:40503 "EHLO
+	smtp.wellnetcz.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751887AbZFSUaR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2009 15:20:53 -0400
-Date: Tue, 16 Jun 2009 16:20:51 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: David Wong <davidtlwong@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/4] lgs8gxx: add lgs8g75 support
-Message-ID: <20090616162051.57510242@pedra.chehab.org>
-In-Reply-To: <15ed362e0906110539j6edc0ca6o773b9a8866ae5b6a@mail.gmail.com>
-References: <15ed362e0906110539j6edc0ca6o773b9a8866ae5b6a@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Fri, 19 Jun 2009 16:30:17 -0400
+From: Jiri Slaby <jirislaby@gmail.com>
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jiri Slaby <jirislaby@gmail.com>
+Subject: [PATCH 2/4] V4L: em28xx, fix lock imbalance
+Date: Fri, 19 Jun 2009 22:30:05 +0200
+Message-Id: <1245443407-17410-2-git-send-email-jirislaby@gmail.com>
+In-Reply-To: <1245443407-17410-1-git-send-email-jirislaby@gmail.com>
+References: <1245443407-17410-1-git-send-email-jirislaby@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 11 Jun 2009 20:39:12 +0800
-David Wong <davidtlwong@gmail.com> escreveu:
+There is one omitted unlock in em28xx_usb_probe. Fix that.
 
-> @@ -238,21 +384,26 @@
->  					  u8 *finished)
->  {
->  	int ret = 0;
-> -	u8 t;
-> +	u8 reg, mask, val;
->  
-> -	ret = lgs8gxx_read_reg(priv, 0xA4, &t);
-> -	if (ret != 0)
-> -		return ret;
-> +	if (priv->config->prod == LGS8GXX_PROD_LGS8G75) {
-> +		reg = 0x1f; mask = 0xC0; val = 0x80;
-> +	} else {
-> +		reg = 0xA4; mask = 0x03; val = 0x01;
-> +	}
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+---
+ drivers/media/video/em28xx/em28xx-cards.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Please, one statement per line.
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+index 36abb35..922d21d 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -2445,6 +2445,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 	retval = em28xx_init_dev(&dev, udev, interface, nr);
+ 	if (retval) {
+ 		em28xx_devused &= ~(1<<dev->devno);
++		mutex_unlock(&dev->lock);
+ 		kfree(dev);
+ 		goto err;
+ 	}
+-- 
+1.6.3.2
 
-> +	if (priv->config->prod == LGS8GXX_PROD_LGS8G75) {
-> +		reg_total = 0x28; reg_err = 0x2C;
-> +	} else {
-> +		reg_total = 0xD0; reg_err = 0xD4;
-> +	}
-
-Please, one statement per line.
-
-
-
-
-Cheers,
-Mauro
