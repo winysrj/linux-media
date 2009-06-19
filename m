@@ -1,86 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:4658 "EHLO
-	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755213AbZFRGLx (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3780 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751632AbZFSP3S (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 02:11:53 -0400
+	Fri, 19 Jun 2009 11:29:18 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: Re: [DaVinci] patches for linux-media
-Date: Thu, 18 Jun 2009 08:11:51 +0200
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Sakari Ailus <sakari.ailus@nokia.com>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"Subrahmanya, Chaithrika" <chaithrika@ti.com>,
-	David Cohen <david.cohen@nokia.com>,
-	"Curran, Dominic" <dcurran@ti.com>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>,
-	Eero Nurkkala <ext-eero.nurkkala@nokia.com>,
-	Felipe Balbi <felipe.balbi@nokia.com>,
-	"Shah, Hardik" <hardik.shah@ti.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>, "Hadli, Manjunath" <mrh@ti.com>,
-	Mikko Hurskainen <mikko.hurskainen@nokia.com>,
-	"Menon, Nishanth" <nm@ti.com>, "R, Sivaraj" <sivaraj@ti.com>,
-	"Paulraj, Sandeep" <s-paulraj@ti.com>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	Tomi Valkeinen <tomi.valkeinen@nokia.com>,
-	Tuukka Toivonen <tuukka.o.toivonen@nokia.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <20090616104018.44075a80@pedra.chehab.org> <200906170830.14052.hverkuil@xs4all.nl> <A69FA2915331DC488A831521EAE36FE40139DF9EE9@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE40139DF9EE9@dlee06.ent.ti.com>
+To: linux-media@vger.kernel.org
+Subject: [REVIEW] refactoring video_register_device
+Date: Fri, 19 Jun 2009 17:29:08 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200906180811.51808.hverkuil@xs4all.nl>
+Message-Id: <200906191729.09255.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 17 June 2009 23:01:21 Karicheri, Muralidharan wrote:
-> Hi Hans & Mauro,
->
-> The v3 version of the DaVici VPFE Capture driver and TVP514x driver has
-> been sent to the list for review. I expect this to sail through with out
-> any comments as I have addressed few minor comments from last review. I
-> think Hans will send you the pull request for these patches. Once again,
-> it will be great if this can be merged to 2.6.31.
+Hi Mauro,
 
-I'll prepare a pull request for this tomorrow.
+Based on your earlier comments I refactored the video_register_device 
+function.
 
-Regards,
+My code is here http://www.linuxtv.org/hg/~hverkuil/v4l-dvb and it contains 
+the following four patches:
 
-	Hans
+- v4l: remove video_register_device_index
 
->
-> Murali Karicheri
-> m-karicheri2@ti.com
->
-> >I have proposed this before, but I'll do it again: I'm more than happy
-> > to be
-> >the official person who collects and organizes the omap and davinci
-> > patches for you and who does the initial reviews. This is effectively
-> > already the case since I've been reviewing both omap and davinci
-> > patches pretty much from the beginning.
-> >
-> >Both the omap2/3 display driver and the davinci drivers are now very
-> > close to be ready for inclusion in the kernel as my last reviews only
-> > found some minor things.
-> >
-> >Part of the reason for the delays for both omap and davinci was that
-> > they had to be modified for v4l2_subdev, which was an absolute
-> > necessity, and because they simply needed quite a bit of work to make
-> > them suitable for inclusion in the kernel.
-> >
-> >Regards,
-> >
-> >	Hans
-> >
-> >--
-> >Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+This implements the RFC I posted earlier: video_register_device_index is not 
+actually used in any of the drivers so we can remove it and instead 
+automatically determine the index for each device. This simplifies the 
+video_register_device function in preparation for the next patch.
 
+- v4l: refactor video_register_device
 
+This does the main refactoring. The term 'kernel number' is now replaced 
+with 'device node number', which is hopefully more understandable. The code 
+to find the device node number and minor number has been split off and 
+exists in two variants, depending on CONFIG_VIDEO_FIXED_MINOR_RANGES.
+
+I also found and fixed a potential race condition.
+
+- ivtv/cx18: replace 'kernel number' with 'device node number'.
+
+Minor changes to ivtv/cx18 to conform to the new terminology.
+
+- v4l: warn when desired devnodenr is in use & add _no_warn function
+
+Added the warning when the desired device node number was already in use and 
+add a video_register_device_no_warn variant for use with ivtv and cx18 
+where that warning is not appropriate.
+
+Hopefully this makes this function easier to understand, but I'm too closely 
+familiar with the code to tell whether I've succeeded. So this needs to be 
+reviewed first.
+
+Thanks,
+
+        Hans
+
+diffstat:
+ Documentation/video4linux/v4l2-framework.txt |   43 ++--
+ drivers/media/video/cx18/cx18-driver.c       |    2
+ drivers/media/video/cx18/cx18-streams.c      |    4
+ drivers/media/video/ivtv/ivtv-driver.c       |    2
+ drivers/media/video/ivtv/ivtv-streams.c      |    4
+ drivers/media/video/v4l2-dev.c               |  270 
++++++++++++++++------------
+ include/media/v4l2-dev.h                     |    6
+ 7 files changed, 192 insertions(+), 139 deletions(-)
 
 -- 
 Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
