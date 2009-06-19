@@ -1,61 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f210.google.com ([209.85.219.210]:56941 "EHLO
-	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484AbZF3RzN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jun 2009 13:55:13 -0400
-Received: by ewy6 with SMTP id 6so411791ewy.37
-        for <linux-media@vger.kernel.org>; Tue, 30 Jun 2009 10:55:16 -0700 (PDT)
+Received: from as-10.de ([212.112.241.2]:34396 "EHLO mail.as-10.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751047AbZFSLtg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Jun 2009 07:49:36 -0400
+Date: Fri, 19 Jun 2009 13:49:37 +0200
+From: Halim Sahin <halim.sahin@t-online.de>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: ok more details: Re: bttv problem loading takes about several
+	minutes
+Message-ID: <20090619114937.GA4493@halim.local>
+References: <28237.62.70.2.252.1245331454.squirrel@webmail.xs4all.nl> <20090618140129.GA13370@halim.local> <1245352904.3924.3.camel@pc07.localdom.local>
 MIME-Version: 1.0
-In-Reply-To: <4A48C4E8.6010107@kernellabs.com>
-References: <3833b9400906201508w14f15b96i41e0963186a0a2cb@mail.gmail.com>
-	 <3833b9400906290548wd8b2ba1s22266f0152e83f40@mail.gmail.com>
-	 <4A48C4E8.6010107@kernellabs.com>
-Date: Tue, 30 Jun 2009 13:55:16 -0400
-Message-ID: <37219a840906301055y72647f10vae7a584fb7bd04aa@mail.gmail.com>
-Subject: Re: cx23885, new hardware revision found
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Steven Toth <stoth@kernellabs.com>
-Cc: linux-media@vger.kernel.org, Michael Kutyna <mkutyna@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1245352904.3924.3.camel@pc07.localdom.local>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 29, 2009 at 9:43 AM, Steven Toth<stoth@kernellabs.com> wrote:
->>> cx23885_dev_checkrevision() New hardware revision found 0x0
->>> cx23885_dev_checkrevision() Hardware revision unknown 0x0
->>> cx23885[0]/0: found at 0000:02:00.0, rev: 4, irq: 17, latency: 0,
->>> mmio: 0xfd800000
->>> cx23885 0000:02:00.0: setting latency timer to 64
->>>
->>> I'm pretty sure that is the problem but I don't know how to fix it.  I
->
-> The new revision isn't the problem, the above code is for information
-> purposes so we can track new revs of the silicon in this mailing list. Most
-> likely the demodulators / tuners are not configured correctly. DViCO
-> probably changed something.
->
-> Double check that the silicon and gpios / settings inside the cx23885 driver
-> for the existing card definition match the silicon and configuration for
-> this new card you have.
->
+Hi,
+Ok I have tested 
+modprobe bttv audiodev=-1 card=34 tuner=24 gbuffers=16
 
-It's not a new revision.  Something else is wrong.  I have both
-revisions of this board, and they display the same revision
-information as Hauppauge cx23885-based products:
+I am seeing again the delay.
+More ideas?
+Regards
+Halim
 
-mk@codes:~$ dmesg | grep checkrevision
-[  136.689267] cx23885_dev_checkrevision() Hardware revision = 0xb0
-[  136.914968] cx23885_dev_checkrevision() Hardware revision = 0xb0
-[  137.086548] cx23885_dev_checkrevision() Hardware revision = 0xb0
 
-If it was a PCI card I would suggest moving it to another PCI slot,
-but I'm not sure that would help at all in the case of PCIe.
-
-DViCO has not updated their Windows driver since April of last year.
-I think that Michael Kutyna should confirm that the device works in
-windows before anybody proceeds to troubleshoot this any further -- it
-might just be a bad board / platform.
-
--Mike Krufky
+-- 
+Halim Sahin
+E-Mail:				
+halim.sahin (at) t-online.de
