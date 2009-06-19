@@ -1,58 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.infomaniak.ch ([84.16.68.89]:57316 "EHLO
-	smtp1.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752385AbZFWIOf (ORCPT
+Received: from mail-ew0-f210.google.com ([209.85.219.210]:57680 "EHLO
+	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751498AbZFSNOB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jun 2009 04:14:35 -0400
-Message-ID: <4A408EE0.7070001@deckpoint.ch>
-Date: Tue, 23 Jun 2009 10:14:24 +0200
-From: Thomas Kernen <tkernen@deckpoint.ch>
+	Fri, 19 Jun 2009 09:14:01 -0400
+Received: by ewy6 with SMTP id 6so2534243ewy.37
+        for <linux-media@vger.kernel.org>; Fri, 19 Jun 2009 06:14:01 -0700 (PDT)
+Message-ID: <4A3B8F11.6050806@gmail.com>
+Date: Fri, 19 Jun 2009 14:13:53 +0100
+From: pb <pb.maillists@googlemail.com>
 MIME-Version: 1.0
-To: Andy Zivkovic <zivkovic.andy@gmail.com>,
-	linux-media@vger.kernel.org, Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: Seeking recommendation for DVB-S PCI card with on-card CI
-References: <4A3E4562.1050602@deckpoint.ch> <924cdc9c0906222008g6e9f2a8dl79c0664acfc02934@mail.gmail.com>
-In-Reply-To: <924cdc9c0906222008g6e9f2a8dl79c0664acfc02934@mail.gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Subject: Problems receiving hd channels from astra 19.2 with cx800 driver
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andy Zivkovic wrote:
->> Are these the same boards and/or different revisions? Are they supported by
->> the Mantis driver including the CI? This part I wasn't able to confirm from
->> my search.
-> 
-> Thomas,
-> 
-> The maintis driver currently doesn't support CI. Unfortunately I
-> bought a Twinhan SP300 (1034) before I knew this, so I now have a
-> DVB-S card that is effectively useless to me, but I'm hopeful someone
-> will fix the driver one day (although I bought the card months ago and
-> I'm close to cancelling my sat subscription since the set top box I
-> have is crap, so I don't watch it enough to justify the monthly fees).
-> 
-> In mid May, Manu, who I think is a (the?) mantis developer, posted on
-> this list saying he hadn't had time to work on mantis CI for the 2
-> months prior to that. I haven't noticed anything new since then, so I
-> don't know where it's at.
-> 
+Hello,
 
-Andy,
+I am using a Tevii S460 DVB-S2 card in a linux environment. Useing the 
+lasted v4l driver source.
+Use mplayer to test the adapter.
+Can receive BBC HD from astra 28.2 including the digital audio.
+How ever when I try HD channels from Astra 19.2 I get error from the 
+cx8802 driver, cx8802_start_dma() Failed. Unsupported value in .mpeg (0
+Can receive 'normal' channels from astra 19.2.
+Linux version 1.6.29-R5, latest v4l sources ( downloaded 4 days ago)
+The S460 is the only PCI card in the system, motherboard NC62K from Jetway.
+Does this sound familiar?
 
-Thanks for the feedback, that was what I feared (CI not supported). 
-Better to know ahead of time that after ordering such a card
-
-Manu,
-
-Any chance you would be able to comment on the planned roadmap for the 
-CI support on the Azurewave/Twinham 1034 based cards?
-
-All,
-
-Are there any known working PCI based solutions that have the CI slot on 
-the card itself? I'm attempting to find something that can be self 
-contained within a single PCI slot.
-
-Regards,
-Thomas
+Regards
+Peter
