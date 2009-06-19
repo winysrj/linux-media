@@ -1,74 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:47194 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1762088AbZFJT7O (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2009 15:59:14 -0400
-Date: Wed, 10 Jun 2009 21:59:13 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	davinci-linux-open-source@linux.davincidsp.com
-Subject: Re: [PATCH] adding support for setting bus parameters in sub device
-In-Reply-To: <200906102149.32244.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.0906102153120.4817@axis700.grange>
-References: <1244580891-24153-1-git-send-email-m-karicheri2@ti.com>
- <Pine.LNX.4.64.0906102022320.4817@axis700.grange> <200906102149.32244.hverkuil@xs4all.nl>
+Received: from mail-gx0-f214.google.com ([209.85.217.214]:48251 "EHLO
+	mail-gx0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750846AbZFSDO2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Jun 2009 23:14:28 -0400
+Received: by gxk10 with SMTP id 10so2455724gxk.13
+        for <linux-media@vger.kernel.org>; Thu, 18 Jun 2009 20:14:31 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <52243.62.70.2.252.1245227586.squirrel@webmail.xs4all.nl>
+References: <52243.62.70.2.252.1245227586.squirrel@webmail.xs4all.nl>
+Date: Fri, 19 Jun 2009 12:14:31 +0900
+Message-ID: <aec7e5c30906182014h3888a4dbt5ee8bf12b92fbc8c@mail.gmail.com>
+Subject: Re: [PATCH] adding support for setting bus parameters in sub device
+From: Magnus Damm <magnus.damm@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Muralidharan Karicheri <m-karicheri2@ti.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
+	Darius Augulis <augulis.darius@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 10 Jun 2009, Hans Verkuil wrote:
+On Wed, Jun 17, 2009 at 5:33 PM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
+>> I think automatic negotiation is a good thing if it is implemented
+>> correctly.
+>>
+>> Actually, i think modelling software after hardware is a good thing
+>> and from that perspective the soc_camera was (and still is) a very
+>> good fit for our on-chip SoC. Apart from host/sensor separation, the
+>> main benefits in my mind are autonegotiation and separate
+>> configuration for camera sensor, capture interface and board.
+>>
+>> I don't mind doing the same outside soc_camera, and I agree with Hans
+>> that in some cases it's nice to hard code and skip the "magic"
+>> negotiation. I'm however pretty sure the soc_camera allows hard coding
+>> though, so in that case you get the best of two worlds.
+>
+> It is my strong opinion that while autonegotiation is easy to use, it is
+> not a wise choice to make. Filling in a single struct with the bus
+> settings to use for each board-subdev combination (usually there is only
+> one) is simple, straight-forward and unambiguous. And I really don't see
+> why that should take much time at all. And I consider it a very good point
+> that the programmer is forced to think about this for a bit.
 
-> On Wednesday 10 June 2009 20:32:25 Guennadi Liakhovetski wrote:
-> > On Tue, 9 Jun 2009, m-karicheri2@ti.com wrote:
-> > > From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
-> > >
-> > > This patch adds support for setting bus parameters such as bus type
-> > > (BT.656, BT.1120 etc), width (example 10 bit raw image data bus)
-> > > and polarities (vsync, hsync, field etc) in sub device. This allows
-> > > bridge driver to configure the sub device for a specific set of bus
-> > > parameters through s_bus() function call.
-> >
-> > Yes, this is required, but this is not enough. Firstly, you're missing at
-> > least one more flag - master or slave. Secondly, it is not enough to
-> > provide a s_bus function. Many hosts and sensors can configure one of
-> > several alternate configurations - they can select signal polarities,
-> > data widths, master / slave role, etc. Whereas others have some or all of
-> > these parameters fixed. That's why we have a query method in soc-camera,
-> > which delivers all supported configurations, and then the host can select
-> > some mutually acceptable subset. No, just returning an error code is not
-> > enough.
-> 
-> Why would you want to query this? I would expect this to be fixed settings: 
-> something that is determined by the architecture. Actually, I would expect 
-> this to be part of the platform_data in many cases and setup when the i2c 
-> driver is initialized and not touched afterwards.
-> 
-> If we want to negotiate these bus settings, then we indeed need something 
-> more. But it seems unnecessarily complex to me to implement autonegotiation 
-> when this is in practice a fixed setting determined by how the sensor is 
-> hooked up to the host.
+I agree that it's good to force the programmer to think. In this case
+I assume you are talking about the board support engineer or at least
+the person writing software to attach a camera sensor with capture
+hardware.
 
-On the platform level I have so far seen two options: signal connected 
-directly or via an inverter. For that you need platform data, yes. But 
-otherwise - why? say, if both your sensor and your host can select hsync 
-polarity in software - what should platform tell about it? This knowledge 
-belongs in the respective drivers - they know, that they can configure 
-arbitrary polarity and they advertise that. Another sensor, that is 
-statically active high - what does platform have to do with it? The driver 
-knows perfectly, that it can only do one polarity, and it negotiates that. 
-Earlier we also had this flags configured in platform code, but then we 
-realised that this wasn't correct. This information and configuration 
-methods are chip-specific, not platform-specific.
+You are not against letting drivers export their capabilites at least?
+I'd like to see drivers that exports capabilites about which signals
+that are supported and which states that are valid. So for instance,
+the SuperH CEU driver supports both active high and active low HSYNC
+and VSYNC signals. I'd like to make sure that the driver writers are
+forced to think and export a bitmap of capabilites describing all
+valid pin states. A little bit in the same way that i2c drivers use
+->functionality() to export a bitmap of capabilites. Then if the
+assignment of the pin states is automatic or hard coded I don't care
+about.
 
-And the negotiation code is not that complex - just copy respective 
-soc-camera functions, later the originals will be removed.
+Cheers,
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+/ magnus
