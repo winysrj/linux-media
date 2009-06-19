@@ -1,146 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:37052 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752524AbZFFBdc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jun 2009 21:33:32 -0400
-Subject: Re: [PATCH] tuner-simple, tveeprom: Add support for the FQ1216LME
- MK3
-From: Andy Walls <awalls@radix.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: hermann pitton <hermann-pitton@arcor.de>,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Dmitri Belimov <d.belimov@gmail.com>, Ant <ant@symons.net.au>,
-	Martin Dauskardt <martin.dauskardt@gmx.de>,
-	Discussion list for development of the IVTV driver
-	<ivtv-devel@ivtvdriver.org>
-In-Reply-To: <20090605210221.781db05f@pedra.chehab.org>
-References: <200905210909.43333.martin.dauskardt@gmx.de>
-	 <1243389830.4046.52.camel@palomino.walls.org>
-	 <4A1CB353.7020906@symons.net.au> <200905270809.53056.hverkuil@xs4all.nl>
-	 <1243502498.3722.17.camel@pc07.localdom.local>
-	 <1244238732.4440.15.camel@palomino.walls.org>
-	 <20090605210221.781db05f@pedra.chehab.org>
-Content-Type: text/plain
-Date: Fri, 05 Jun 2009 21:29:27 -0400
-Message-Id: <1244251767.3140.17.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from ppsw-0.csi.cam.ac.uk ([131.111.8.130]:51820 "EHLO
+	ppsw-0.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751822AbZFSRpz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Jun 2009 13:45:55 -0400
+Message-ID: <4A3BCEFD.6000201@cam.ac.uk>
+Date: Fri, 19 Jun 2009 17:46:37 +0000
+From: Jonathan Cameron <jic23@cam.ac.uk>
+MIME-Version: 1.0
+To: Jonathan Cameron <jic23@cam.ac.uk>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: OV7670: getting it working with soc-camera.
+References: <4A392E31.4050705@cam.ac.uk> <Pine.LNX.4.64.0906172022570.4218@axis700.grange> <4A3A14E4.2000301@cam.ac.uk> <4A3A2C23.1040104@cam.ac.uk>
+In-Reply-To: <4A3A2C23.1040104@cam.ac.uk>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2009-06-05 at 21:02 -0300, Mauro Carvalho Chehab wrote:
-> Em Fri, 05 Jun 2009 17:52:12 -0400
-> Andy Walls <awalls@radix.net> escreveu:
+Hi All,
+
+Turns out that, in addition the below, one more soc-camera ops
+function is still needed.
+
+Init is required in my case to make a call to the subdev->ops->core_ops->init
+function in order to put the register contents back after the reset callback
+in soc_camera_open.
+
+I'm guessing down the line it will make sense to call this directly in soc_camera
+or are the circumstances where it should call additional init functions?
+
+
+
+
+> Updated temporary patch to get ov7670 working with soc camera.
 > 
-> > Hi,
-> > 
-> > This patch:
-> > 
-> > 1. adds explicit support for the FQ1216LME MK3
-> > 
-> > 2. points the tveeprom module to the FQ1216LME MK3 entry for EEPROMs
-> > claiming FQ1216LME MK3 and MK5.
-> > 
-> > 3. refactors some code in simple_post_tune() because
-> > 
-> > a. I needed to set the Auxillary Byte, as did TUNER_LG_TDVS_H06XF, so I
-> > could set the TUA6030 TOP to external AGC per the datasheet.
-> > 
-> > b. I wanted to do fast tuning while managing PLL phase noise, like the
-> > TUNER_MICROTUNE_4042FI5 was already doing.
-> > 
-> > 
-> > Hermann & Dmitri,
-> > 
-> > I think what is done for setting the charge pump current for the
-> > TUNER_MICROTUNE_4042FI5 & FQ1216LME_MK3 in this patch is better than
-> > fixing the control byte to a constant value of 0xce.
-> 
-> The idea seems good, and it is probably interesting to do it also with other
-> tuners.
-> 
-> On a quick view to see the code, however, one part of the code popped up on my eyes:
-> 
-> > +static int simple_wait_pll_lock(struct dvb_frontend *fe, unsigned int timeout,
-> > +				unsigned long interval)
-> > +{
-> > +	unsigned long expire;
-> > +	int locked = 0;
-> > +
-> > +	for (expire = jiffies + msecs_to_jiffies(timeout);
-> > +	     !time_after(jiffies, expire);
-> > +	     udelay(interval)) {
-> > +
-> > +		if (tuner_islocked(tuner_read_status(fe))) {
-> > +			locked = 1;
-> > +			break;
-> > +		}
-> > +	}
-> > +	return locked;
-> > +}
+> ---
+> Basically this is the original patch with the changes Guennadi
+> suggested. Again this is only for info, not a formal patch submission.
 > 
 > 
-> It is better to use a do {} while construct in situations like above, to make
-> the loop easier to read.
-
-Ok.  That's easy to change.
-
-
-> Yet, I don't like the idea of using udelay to wait for up a long interval like
-> on the above code  - you can delay it up to max(unsigned int) with the above code.
+> diff --git a/drivers/media/video/ov7670.c b/drivers/media/video/ov7670.c
+> index 0e2184e..9bea804 100644
+> --- a/drivers/media/video/ov7670.c
+> +++ b/drivers/media/video/ov7670.c
+> @@ -19,6 +19,12 @@
+>  #include <media/v4l2-chip-ident.h>
+>  #include <media/v4l2-i2c-drv.h>
+>  
+> +#define OV7670_SOC
+> +
+> +
+> +#ifdef OV7670_SOC
+> +#include <media/soc_camera.h>
+> +#endif /* OV7670_SOC */
+>  
+>  MODULE_AUTHOR("Jonathan Corbet <corbet@lwn.net>");
+>  MODULE_DESCRIPTION("A low-level driver for OmniVision ov7670 sensors");
+> @@ -1239,13 +1245,58 @@ static const struct v4l2_subdev_ops ov7670_ops = {
+>  };
+>  
+>  /* ----------------------------------------------------------------------- */
+> +#ifdef OV7670_SOC
+> +
+> +static unsigned long ov7670_soc_query_bus_param(struct soc_camera_device *icd)
+> +{
+> +	struct soc_camera_link *icl = to_soc_camera_link(icd);
+> +
+> +	unsigned long flags = SOCAM_PCLK_SAMPLE_RISING | SOCAM_MASTER |
+> +		SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_HSYNC_ACTIVE_HIGH |
+> +		SOCAM_DATAWIDTH_8 | SOCAM_DATA_ACTIVE_HIGH;
+> +
+> +	return soc_camera_apply_sensor_flags(icl, flags);
+> +}
+> +/* This device only supports one bus option */
+> +static int ov7670_soc_set_bus_param(struct soc_camera_device *icd,
+> +				    unsigned long flags)
+> +{
+> +	return 0;
+> +}
+> +
+> +static struct soc_camera_ops ov7670_soc_ops = {
+> +	.set_bus_param = ov7670_soc_set_bus_param,
+> +	.query_bus_param = ov7670_soc_query_bus_param,
+> +};
+>  
+> +#define SETFOURCC(type) .name = (#type), .fourcc = (V4L2_PIX_FMT_ ## type)
+> +static const struct soc_camera_data_format ov7670_soc_fmt_lists[] = {
+> +	{
+> +		SETFOURCC(YUYV),
+> +		.depth = 16,
+> +		.colorspace = V4L2_COLORSPACE_JPEG,
+> +	}, {
+> +		SETFOURCC(RGB565),
+> +		.depth = 16,
+> +		.colorspace = V4L2_COLORSPACE_SRGB,
+> +	},
+> +};
+> +
+> +#endif
+>  static int ov7670_probe(struct i2c_client *client,
+>  			const struct i2c_device_id *id)
+>  {
+>  	struct v4l2_subdev *sd;
+>  	struct ov7670_info *info;
+>  	int ret;
+> +#ifdef OV7670_SOC
+> +	struct soc_camera_device *icd = client->dev.platform_data;
+> +	icd->ops = &ov7670_soc_ops;
+> +	icd->rect_max.width = VGA_WIDTH;
+> +	icd->rect_max.height = VGA_HEIGHT;
+> +	icd->formats = ov7670_soc_fmt_lists;
+> +	icd->num_formats = ARRAY_SIZE(ov7670_soc_fmt_lists);
+> +#endif
+>  
+>  	info = kzalloc(sizeof(struct ov7670_info), GFP_KERNEL);
+>  	if (info == NULL)
 > 
-> Holding CPU for a long period of time is really a very bad idea. Instead, you
-> should use, for example, a waitqueue for it, like:
-
-First: I agree busy waiting is simplistic and stupid - things could be
-done better.
-
-However I essentially only reimplemented the loop that
-TUNER_MICROTUNE_4042FI5 used: it busy waited for 1 ms in intervals of 10
-usecs.
-
-Aside from assuming some sort of exploit, I'm not sure how the loop
-could wind up busy waiting for max(unsigned int) msecs as the two calls
-to it were:
-
-	simple_wait_pll_lock(fe, 3, 128);
-	simple_wait_pll_lock(fe, 1, 10);
-
-depending on the tuner type.  I also though time_after() was supposed to
-handle jiffies wrapping around.
-
-	
-
-> static int simple_wait_pll_lock(struct dvb_frontend *fe, unsigned int timeout)
-> {
-> 	DEFINE_WAIT(wait);
-> 	wait_event_timeout(wait, tuner_islocked(tuner_read_status(fe)), timeout);
-> 	return (tuner_islocked(tuner_read_status(fe)));
-> }
-> 
-> This is cleaner, and, as wait_event_timeout() will call schedule(), the CPU will
-> be released to deal with other tasks or to go to low power consumption level,
-> saving some power (especially important on notebooks) and causing penalty on
-> machine's performance
-
-Well, there's not a real event for which to wait.  It's really just
-going to be a poll of the FL bit at an interval smaller than the minimum
-wait.  Implementing something that schedule()s between the polls
-shouldn't be that hard.
-
-Although, I'll defer doing something more complex right now though,
-until I test it with a tuner I have.  My real goal was to get the
-FQ1216LME properly supported.
-
-
-Over the air analog TV is disappearing for me in 7 days.  I may not care
-about analog tuning perfomance in a week. ;)
-
-Regards,
-Andy
-
-
-> Cheers,
-> Mauro
-
 
