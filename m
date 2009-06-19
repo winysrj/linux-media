@@ -1,53 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from server50105.uk2net.com ([83.170.97.106]:33750 "EHLO
-	mail.autotrain.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752863AbZF3Kzc (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1565 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753320AbZFSMmT convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jun 2009 06:55:32 -0400
-Date: Tue, 30 Jun 2009 11:55:37 +0100 (BST)
-From: Tim Williams <tmw@autotrain.org>
-To: linux-media@vger.kernel.org
-cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] USBVision device defaults
-In-Reply-To: <20090629214747.2fba7b4a@lugdush.houroukhai.org>
-Message-ID: <alpine.LRH.2.00.0906301110090.28946@server50105.uk2net.com>
-References: <alpine.LRH.2.00.0906261505320.14258@server50105.uk2net.com> <20090629214747.2fba7b4a@lugdush.houroukhai.org>
+	Fri, 19 Jun 2009 08:42:19 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Alexey Klimov <klimov.linux@gmail.com>
+Subject: Re: [PATCH 3/11 - v3] dm355 ccdc module for vpfe capture driver
+Date: Fri, 19 Jun 2009 14:42:16 +0200
+Cc: m-karicheri2@ti.com, linux-media@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com
+References: <1245269484-8325-1-git-send-email-m-karicheri2@ti.com> <1245269484-8325-4-git-send-email-m-karicheri2@ti.com> <208cbae30906171451x789f00ak94799447c9a012a5@mail.gmail.com>
+In-Reply-To: <208cbae30906171451x789f00ak94799447c9a012a5@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200906191442.17151.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 29 Jun 2009, Thierry MERLE wrote:
+On Wednesday 17 June 2009 23:51:43 Alexey Klimov wrote:
+> Hello,
+> one more small comment
+>
+> On Thu, Jun 18, 2009 at 12:11 AM, <m-karicheri2@ti.com> wrote:
+> > From: Muralidharan Karicheri <m-karicheri2@ti.com>
+> >
+> > DM355 CCDC hw module
+> >
+> > Adds ccdc hw module for DM355 CCDC. This registers with the bridge
+> > driver a set of hw_ops for configuring the CCDC for a specific
+> > decoder device connected to vpfe.
+> >
+> > The module description and owner information added
+>
+> <snip>
+>
+> > +static int dm355_ccdc_init(void)
+> > +{
+> > +       printk(KERN_NOTICE "dm355_ccdc_init\n");
+> > +       if (vpfe_register_ccdc_device(&ccdc_hw_dev) < 0)
+> > +               return -1;
+>
+> Don't you want to rewrite this to return good error code?
+> int ret;
+> printk();
+> ret = vpfe_register_ccdc_device();
+> if (ret < 0)
+> return ret;
+>
+> I know you have tight/fast track/hard schedule, so you can do this
+> improvement later, after merging this patch.
 
-> I remember a guy that did the trick with the vloopback device.
-> Searching a bit on the Internet, it seems that flashcam
-> http://www.swift-tools.net/Flashcam/ can be convenient for your needs.
+I haven't changed this or the similar comment in patch 4/11, but it is 
+something that Muralidharan should look at and fix later.
 
-Looks like a useful tool, it certainly keeps the video device active.
+Regards,
 
-Unfortunatly it doesn't really solve my problem, since it still starts the 
-usbvision device up with default settings and the vloopback device dosn't 
-seem to support pushing through config parameters set using v4ctl to the 
-original underlying video device.
+	Hans
 
-It does however fix another problem I had which was that flash caused 
-firefox to freeze when you exit the page containing the flash webcam 
-applet.
+>
+> > +       printk(KERN_NOTICE "%s is registered with vpfe.\n",
+> > +               ccdc_hw_dev.name);
+> > +       return 0;
+> > +}
+> > +
+> > +static void dm355_ccdc_exit(void)
+> > +{
+> > +       vpfe_unregister_ccdc_device(&ccdc_hw_dev);
+> > +}
 
-Tim W
+
 
 -- 
-Tim Williams BSc MSc MBCS
-Euromotor Autotrain LLP
-58 Jacoby Place
-Priory Road
-Edgbaston
-Birmingham
-B5 7UW
-United Kingdom
-
-Web : http://www.autotrain.org
-Tel : +44 (0)121 414 2214
-
-EuroMotor-AutoTrain is a company registered in the UK, Registration
-number: OC317070.
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
