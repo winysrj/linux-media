@@ -1,100 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:60556 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750934AbZFYLNx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2009 07:13:53 -0400
-Subject: Re: v4l2_subdev GPIO and Pin Control ops (Re: PxDVR3200 H LinuxTV
- v4l-dvb patch : Pull GPIO-20 low for DVB-T)
-From: Andy Walls <awalls@radix.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>, stoth@kernellabs.com,
-	Terry Wu <terrywu2009@gmail.com>
-In-Reply-To: <200906250839.40916.hverkuil@xs4all.nl>
-References: <8992.62.70.2.252.1245760429.squirrel@webmail.xs4all.nl>
-	 <1245897611.24270.19.camel@palomino.walls.org>
-	 <200906250839.40916.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Thu, 25 Jun 2009 07:15:43 -0400
-Message-Id: <1245928543.4172.13.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4069 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751632AbZFSQE4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Jun 2009 12:04:56 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: v4l-dvb compile broken with stock Ubuntu Karmic build  (firedtv-ieee1394.c errors)
+Date: Fri, 19 Jun 2009 18:04:55 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <829197380906190752v981e81sb94c8c294b68dbd2@mail.gmail.com> <200906191733.57136.hverkuil@xs4all.nl> <829197380906190842w48fc7c13if02822d9dae8e252@mail.gmail.com>
+In-Reply-To: <829197380906190842w48fc7c13if02822d9dae8e252@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200906191804.55564.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-06-25 at 08:39 +0200, Hans Verkuil wrote:
-> On Thursday 25 June 2009 04:40:11 Andy Walls wrote:
-> > On Tue, 2009-06-23 at 14:33 +0200, Hans Verkuil wrote:
-> > > > On Tue, 2009-06-23 at 11:39 +0800, Terry Wu wrote:
-> > > >
-> > 
-> > > There is already an s_gpio in the core ops. It would be simple to add a
-> > > g_gpio as well if needed.
-> > 
-> > Hans,
-> > 
-> > As you probably know
-> > 
-> > 	int (*s_gpio)(v4l2_subdev *sd, u32 val);
-> > 
-> > is a little too simple for initial setup of GPIO pins.  With the
-> > collection of chips & cores supported by cx25840 module, setting the
-> > GPIO configuration also requires:
-> > 
-> > 	direction: In or Out
-> > 	multiplexed pins: GPIO or some other function
-> > 
-> > I could tack on direction as an argument to s_gpio(), but I think that
-> > is a bit inconvenient..  I'd rather have a 
-> > 
-> > 	int (*s_gpio_config)(v4l2_subdev *sd, u32 dir, u32 initval);
-> > 
-> > but that leaves out the method for multiplexed pin/pad configuration.
-> > Perhaps explicity setting a GPIO direction to OUT could be an implicit
-> > indication that a multiplexed pin should be set to it's GPIO function.
-> > However, that doesn't help for GPIO inputs that might have their pins
-> > multiplexed with other functions.
-> > 
-> > Here's an idea on how to specify multiplexed pin configuration
-> > information and it could involve pins that multiplex functions other
-> > than GPIO (the CX25843 is quite flexible in this regard):
-> > 
-> > 	int (*s_pin_function)(v4l2_subdev *sd, u32 pin_id, u32 function);
-> > 
-> > The type checking ends up pretty weak, but I figured it was better than
-> > a 'void *config' that had a subdev specific collection of pin
-> > configuration information.
-> > 
-> > Comments?
-> 
-> Hi Andy,
-> 
-> Is there any driver that needs to setup the multiplex functions? If not, then
-> I would not add support for this at the moment.
+On Friday 19 June 2009 17:42:18 Devin Heitmueller wrote:
+> On Fri, Jun 19, 2009 at 11:33 AM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
+> > What's the compile error exactly? The firedtv driver compiles fine in
+> > the daily build against the vanilla 2.6.30 kernel.
+> >
+> > Regards,
+> >
+> >        Hans
+>
+> Unfortunately, I sent the email from work and didn't have the output
+> in front of me (or else I would have pasted it into the email).
+> Several people also reported it on #linuxtv on 6/11, but it looks like
+> the pastebins have already expired.  :-(
+>
+> I will provide the output tonight.  I started to debug it last night,
+> and it seems that firedtv-ieee1494.c doesn't normally get compiled at
+> all, so if you add 1394 support to your build you will likely also see
+> the issue.
 
-Well, the group of GPIO pins in question for the CX23885 are all
-multiplexed with other functions.  We could just initialize the CX23885
-to have those pins set as GPIOs, but I have to check the cx23885 driver
-to make sure that's safe.
-
-
-> Adding unused code is a bad
-> idea in general.
-
-Yes.
-
-> In addition, such information should only be needed at initialization time,
-> and since we now have the new v4l2_i2c_new_subdev_cfg function I think that
-> that is the right way to do this. The same approach can be used for setting
-> the gpio pin directions. That too is something you setup at config time.
-
-
-Yup. OK, thanks.
+Hmm, I discovered that firedtv-1394.c isn't compiled in the daily build even 
+though ieee1394 is enabled in the kernel. I can manually enable it, though: 
+make menuconfig, disable and enable the firedtv driver, and then it 
+magically works. But even then it still compiles fine against the vanilla 
+2.6.30 kernel.
 
 Regards,
-Andy
 
-> Regards,
-> 
-> 	Hans
-> 
+	Hans
 
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
