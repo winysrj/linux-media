@@ -1,56 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:38204 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753713AbZFAQej (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2009 12:34:39 -0400
-Date: Mon, 1 Jun 2009 13:34:36 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Paulraj, Sandeep" <s-paulraj@ti.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"Grosen, Mark" <mgrosen@ti.com>
-Subject: Re: New Driver for DaVinci DM355/DM365/DM6446
-Message-ID: <20090601133436.06a4a4a0@pedra.chehab.org>
-In-Reply-To: <C9D59C82B94F474B872F2092A87F261481797D4B@dlee07.ent.ti.com>
-References: <C9D59C82B94F474B872F2092A87F261481797D4B@dlee07.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-gx0-f214.google.com ([209.85.217.214]:59871 "EHLO
+	mail-gx0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751767AbZFSPZN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Jun 2009 11:25:13 -0400
+Received: by gxk10 with SMTP id 10so2931265gxk.13
+        for <linux-media@vger.kernel.org>; Fri, 19 Jun 2009 08:25:15 -0700 (PDT)
+MIME-Version: 1.0
+Date: Fri, 19 Jun 2009 10:52:06 -0400
+Message-ID: <829197380906190752v981e81sb94c8c294b68dbd2@mail.gmail.com>
+Subject: v4l-dvb compile broken with stock Ubuntu Karmic build
+	(firedtv-ieee1394.c errors)
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 1 Jun 2009 09:56:40 -0500
-"Paulraj, Sandeep" <s-paulraj@ti.com> escreveu:
+It seems that attempting to compile the current v4l-dvb against a
+stock Karmic Koala build fails.  I suspect this has to do with the
+fact that 2.6.30 is built with ieee1394 enabled, which causes
+firedtv-ieee1394.c to get compiled, and that file references #include
+files that do not exist.  As far as I can tell, IEEE1394 is not
+enabled in my 2.6.27 build, which is why I was not seeing it before.
 
-> 
-> Hello,
-> 
-> WE have a module(H3A) on Davinci DM6446,DM355 and DM365.
-> 
-> Customers require a way to collect the data required to perform the Auto Exposure (AE), Auto Focus(AF), and Auto White balance (AWB) in hardware as opposed to software. This is primarily for performance reasons as there is not enough software processing MIPS (to do 3A statistics) available in
-> an imaging/video system.
-> 
-> Including this block in hardware reduces the load on the processor and bandwidth to the memory as the data is collected on the fly from the imager.
-> 
-> This modules collects statistics and we currently implement it as a character driver.
-> 
-> Which mailing list would be the most appropriate mailing list to submit patches for review?
+Other users reported this issue on the #linuxtv irc a few days ago,
+and I though it was just something weird about their environment.
 
-You should send they to:
-	LMML <linux-media@vger.kernel.org>
+I'm not familiar with the firedtv driver, so if someone who is wants
+to chime in, I would appreciate it.
 
-If you are proposing API changes, please submit they first.
+Devin
 
-> 
-> Thanks,
-> Sandeep
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
-
-Cheers,
-Mauro
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
