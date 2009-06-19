@@ -1,194 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:46728 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752113AbZFFUkU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Jun 2009 16:40:20 -0400
-Received: by fxm9 with SMTP id 9so1308988fxm.37
-        for <linux-media@vger.kernel.org>; Sat, 06 Jun 2009 13:40:21 -0700 (PDT)
+Received: from mail-px0-f189.google.com ([209.85.216.189]:56248 "EHLO
+	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750752AbZFSFDU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Jun 2009 01:03:20 -0400
+Received: by pxi27 with SMTP id 27so1537047pxi.33
+        for <linux-media@vger.kernel.org>; Thu, 18 Jun 2009 22:03:23 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <200906061909.28157.hverkuil@xs4all.nl>
-References: <1243582408-13084-1-git-send-email-eduardo.valentin@nokia.com>
-	 <200906061359.19732.hverkuil@xs4all.nl>
-	 <200906061449.46720.hverkuil@xs4all.nl>
-	 <200906061909.28157.hverkuil@xs4all.nl>
-Date: Sat, 6 Jun 2009 23:40:21 +0300
-Message-ID: <a0580c510906061340j6c1ee990xdf581ccaaad8fe0e@mail.gmail.com>
-Subject: Re: [PATCHv5 1 of 8] v4l2_subdev i2c: Add v4l2_i2c_new_subdev_board
-	i2c helper function
-From: Eduardo Valentin <edubezval@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Eduardo Valentin <eduardo.valentin@nokia.com>,
-	"\\\"ext Mauro Carvalho Chehab\\\"" <mchehab@infradead.org>,
-	"\\\"Nurkkala Eero.An (EXT-Offcode/Oulu)\\\""
-	<ext-Eero.Nurkkala@nokia.com>,
-	"\\\"ext Douglas Schilling Landgraf\\\"" <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <4d5f8630906182120j6f49cd85sd459c14d05c8b722@mail.gmail.com>
+References: <51276.202.168.20.241.1244411983.squirrel@webmail.velocity.net.au>
+	 <1244414375.3823.11.camel@pc07.localdom.local>
+	 <37219a840906160833l1c045848o6cc2d5e3e74c6df1@mail.gmail.com>
+	 <1245199671.7551.6.camel@pc07.localdom.local>
+	 <4d5f8630906182120j6f49cd85sd459c14d05c8b722@mail.gmail.com>
+Date: Fri, 19 Jun 2009 14:33:22 +0930
+Message-ID: <4d5f8630906182203h739363aeu85996062f282e106@mail.gmail.com>
+Subject: Re: Leadtek Winfast DTV-1000S
+From: James Moschou <james.moschou@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Cc: Michael Krufky <mkrufky@kernellabs.com>, paul10@planar.id.au,
+	braddo@tranceaddict.net, Terry Wu <terrywu2009@gmail.com>,
+	Sander Pientka <cumulus0007@gmail.com>,
+	hermann pitton <hermann-pitton@arcor.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+OK after adding 'options saa7134 card=156' to /etc/modprobe.d/modprobe.conf
+it loads correctly, thanks Brad.
 
-On Sat, Jun 6, 2009 at 8:09 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> On Saturday 06 June 2009 14:49:46 Hans Verkuil wrote:
-> > On Saturday 06 June 2009 13:59:19 Hans Verkuil wrote:
-> > > On Friday 29 May 2009 09:33:21 Eduardo Valentin wrote:
-> > > > # HG changeset patch
-> > > > # User Eduardo Valentin <eduardo.valentin@nokia.com>
-> > > > # Date 1243414605 -10800
-> > > > # Branch export
-> > > > # Node ID 4fb354645426f8b187c2c90cd8528b2518461005
-> > > > # Parent  142fd6020df3b4d543068155e49a2618140efa49
-> > > > Device drivers of v4l2_subdev devices may want to have
-> > > > board specific data. This patch adds an helper function
-> > > > to allow bridge drivers to pass board specific data to
-> > > > v4l2_subdev drivers.
-> > > >
-> > > > For those drivers which need to support kernel versions
-> > > > bellow 2.6.26, a .s_config callback was added. The
-> > > > idea of this callback is to pass board configuration
-> > > > as well. In that case, subdev driver should set .s_config
-> > > > properly, because v4l2_i2c_new_subdev_board will call
-> > > > the .s_config directly. Of course, if we are >= 2.6.26,
-> > > > the same data will be passed through i2c board info as well.
-> > >
-> > > Hi Eduardo,
-> > >
-> > > I finally had some time to look at this. After some thought I realized
-> > > that the main problem is really that the API is becoming quite messy.
-> > > Basically there are 9 different ways of loading and initializing a
-> > > subdev:
-> > >
-> > > First there are three basic initialization calls: no initialization,
-> > > passing irq and platform_data, and passing the i2c_board_info struct
-> > > directly (preferred for drivers that don't need pre-2.6.26
-> > > compatibility).
-> > >
-> > > And for each flavor you would like to see three different versions as
-> > > well: one with a fixed known i2c address, one where you probe for a
-> > > list of addresses, and one where you can probe for a single i2c
-> > > address.
-> > >
-> > > I propose to change the API as follows:
-> > >
-> > > #define V4L2_I2C_ADDRS(addr, addrs...) \
-> > >     ((const unsigned short []){ addr, ## addrs, I2C_CLIENT_END })
-> > >
-> > > struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
-> > >                 struct i2c_adapter *adapter,
-> > >                 const char *module_name, const char *client_type,
-> > >             u8 addr, const unsigned short *addrs);
-> > >
-> > > struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device
-> > > *v4l2_dev, struct i2c_adapter *adapter,
-> > >                 const char *module_name, const char *client_type,
-> > >                 int irq, void *platform_data,
-> > >                 u8 addr, const unsigned short *addrs);
-> > >
-> > > /* Only available for kernels >= 2.6.26 */
-> > > struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device
-> > > *v4l2_dev, struct i2c_adapter *adapter, const char *module_name, struct
-> > > i2c_board_info *info, const unsigned short *addrs);
-> > >
-> > > If you use a fixed address, then only set addr (or info.addr) and set
-> > > addrs to NULL. If you want to probe for a list of addrs, then set addrs
-> > > to the list of addrs. If you want to probe for a single addr, then use
-> > > V4L2_I2C_ADDRS(addr) as the addrs argument. This constructs an array
-> > > with just two entries. Actually, this macro can also create arrays with
-> > > more entries.
-> > >
-> > > Note that v4l2_i2c_new_subdev will be an inline that calls
-> > > v4l2_i2c_new_subdev_cfg with 0, NULL for the irq and platform_data.
-> > >
-> > > And for kernels >= 2.6.26 v4l2_i2c_new_subdev_cfg can be an inline
-> > > calling v4l2_i2c_new_subdev_board.
-> > >
-> > > This approach reduces the number of functions to just one (not counting
-> > > the inlines) and simplifies things all around. It does mean that all
-> > > sources need to be changed, but if we go this route, then now is the
-> > > time before the 2.6.31 window is closed. And I would also like to
-> > > remove the '_new' from these function names. I never thought it added
-> > > anything useful.
-> > >
-> > > Comments? If we decide to go this way, then I need to know soon so that
-> > > I can make the changes before the 2.6.31 window closes.
-> > >
-> > > BTW, if the new s_config subdev call is present, then it should always
-> > > be called. That way the subdev driver can safely do all of its
-> > > initialization in s_config, no matter how it was initialized.
-> > >
-> > > Sorry about the long delay in replying to this: it's been very hectic
-> > > lately at the expense of my v4l-dvb work.
-> >
-> > I've done the initial conversion to the new API (no _cfg or _board
-> > version yet) in my ~hverkuil/v4l-dvb-subdev tree. It really simplifies
-> > things and if nobody objects then I'd like to get this in before 2.6.31.
->
-> I've added the new _cfg and _board fucntions as well in this tree. It needs
-> a bit of a cleanup before I can do a pull request (the last two patches
-> should be merged to one), but otherwise this is the code as I think it
-> should be:
->
-> /* Construct an I2C_CLIENT_END-terminated array of i2c addresses on the fly
-> */
-> #define V4L2_I2C_ADDRS(addr, addrs...) \
->        ((const unsigned short []){ addr, ## addrs, I2C_CLIENT_END })
->
-> /* Load an i2c module and return an initialized v4l2_subdev struct.
->   Only call request_module if module_name != NULL.
->   The client_type argument is the name of the chip that's on the adapter.
-> */
-> struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device *v4l2_dev,
->                struct i2c_adapter *adapter,
->                const char *module_name, const char *client_type,
->                int irq, void *platform_data,
->                u8 addr, const unsigned short *addrs);
->
-> static inline struct v4l2_subdev *v4l2_i2c_new_subdev(
->                struct v4l2_device *v4l2_dev,
->                struct i2c_adapter *adapter,
->                const char *module_name, const char *client_type,
->                u8 addr, const unsigned short *addrs)
-> {
->        return v4l2_i2c_new_subdev_cfg(v4l2_dev, adapter, module_name,
->                        client_type, 0, NULL, addr, addrs);
-> }
->
-> #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
-> struct i2c_board_info;
->
-> struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
->                struct i2c_adapter *adapter, const char *module_name,
->                struct i2c_board_info *info, const unsigned short *addrs);
-> #endif
->
-> Regards,
->
->        Hans
+dmesg:
 
-I've cloned your tree and took a look at your code. Well, looks like
-the proper way to do this change.
-I didn't take this approach because it touchs other drivers. However,
-concentrating the code  in only one
-function is better. I also saw that you have fixed the kernel version
-check in the v4l2_device_unregister
-function. Great!
-
-I will resend my series without this patch. I will rebase it on top of
-your subdev tree so the new api
-can be used straight. Is that ok?
-
->
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
---
-Eduardo Bezerra Valentin
+[    8.438243] Linux video capture interface: v2.00
+[    8.606434] nvidia 0000:01:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+[    8.606440] nvidia 0000:01:00.0: setting latency timer to 64
+[    8.607114] NVRM: loading NVIDIA UNIX x86_64 Kernel Module
+185.18.14  Wed May 27 01:23:47 PDT 2009
+[    8.626542] input: PC Speaker as /devices/platform/pcspkr/input/input6
+[    8.659879] iTCO_vendor_support: vendor-support=0
+[    8.666626] iTCO_wdt: Intel TCO WatchDog Timer Driver v1.05
+[    8.666736] iTCO_wdt: Found a ICH9 TCO device (Version=2, TCOBASE=0x0460)
+[    8.666811] iTCO_wdt: initialized. heartbeat=30 sec (nowayout=0)
+[    8.742132] saa7130/34: v4l2 driver version 0.2.15 loaded
+[    8.742181] saa7134 0000:05:01.0: PCI INT A -> GSI 19 (level, low) -> IRQ 19
+[    8.742186] saa7130[0]: found at 0000:05:01.0, rev: 1, irq: 19,
+latency: 32, mmio: 0xfb002000
+[    8.742191] saa7130[0]: subsystem: 107d:6655, board: Hauppauge
+WinTV-HVR1110r3 DVB-T/Hybrid [card=156,insmod option]
+[    8.742214] saa7130[0]: board init: gpio is 22000
+[    8.852862] HDA Intel 0000:00:1b.0: PCI INT A -> GSI 22 (level,
+low) -> IRQ 22
+[    8.852908] HDA Intel 0000:00:1b.0: setting latency timer to 64
+[    8.916022] saa7130[0]: i2c eeprom 00: 7d 10 55 66 54 20 1c 00 43
+43 a9 1c 55 d2 b2 92
+[    8.916031] saa7130[0]: i2c eeprom 10: 00 ff 82 0e ff 20 ff ff ff
+ff ff ff ff ff ff ff
+[    8.916039] saa7130[0]: i2c eeprom 20: 01 40 01 01 01 ff 01 03 08
+ff 00 8a ff ff ff ff
+[    8.916046] saa7130[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[    8.916054] saa7130[0]: i2c eeprom 40: ff 35 00 c0 00 10 03 02 ff
+04 ff ff ff ff ff ff
+[    8.916062] saa7130[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[    8.916069] saa7130[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[    8.916077] saa7130[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[    8.916085] saa7130[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[    8.916092] saa7130[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[    8.916100] saa7130[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[    8.916108] saa7130[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[    8.916115] saa7130[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[    8.916123] saa7130[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[    8.916131] saa7130[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[    8.916138] saa7130[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[    8.916148] tveeprom 0-0050: Encountered bad packet header [ff].
+Corrupt or not a Hauppauge eeprom.
+[    8.916150] saa7130[0]: warning: unknown hauppauge model #0
+[    8.916151] saa7130[0]: hauppauge eeprom: model=0
+[    8.980528] Chip ID is not zero. It is not a TEA5767
+[    8.980592] tuner 0-0060: chip found @ 0xc0 (saa7130[0])
+[    9.016010] tda8290: no gate control were provided!
+[    9.016080] tuner 0-0060: Tuner has no way to set tv freq
+[    9.016086] tuner 0-0060: Tuner has no way to set tv freq
+[    9.016171] saa7130[0]: registered device video0 [v4l2]
+[    9.016215] saa7130[0]: registered device vbi0
+[    9.016251] saa7130[0]: registered device radio0
+[    9.016387] rt2400pci 0000:05:00.0: PCI INT A -> GSI 20 (level,
+low) -> IRQ 20
+[    9.024385] phy0: Selected rate control algorithm 'pid'
+[    9.028685] saa7134 ALSA driver for DMA sound loaded
+[    9.028688] saa7130[0]/alsa: Hauppauge WinTV-HVR1110r3 DVB-T/Hybrid
+doesn't support digital audio
+[    9.060205] dvb_init() allocating 1 frontend
+[    9.093967] Registered led device: rt2400pci-phy0:radio
+[    9.093980] Registered led device: rt2400pci-phy0:quality
+[    9.150392] lp0: using parport0 (interrupt-driven).
+[    9.174892] tda18271 0-0060: creating new instance
+[    9.184029] TDA18271HD/C1 detected @ 0-0060
+[    9.211513] Adding 6024332k swap on /dev/sda5.  Priority:-1
+extents:1 across:6024332k
+[    9.588014] DVB: registering new adapter (saa7130[0])
+[    9.588018] DVB: registering adapter 0 frontend 0 (NXP TDA10048HN DVB-T)...
+[    9.739258] EXT4 FS on sda1, internal journal on sda1:8
+[    9.916017] tda10048_firmware_upload: waiting for firmware upload
+(dvb-fe-tda10048-1.0.fw)...
+[    9.916022] saa7134 0000:05:01.0: firmware: requesting dvb-fe-tda10048-1.0.fw
+[   10.020209] tda10048_firmware_upload: Upload failed. (file not found?)
+[   10.466227] kjournald starting.  Commit interval 5 seconds
+[   10.466428] EXT3 FS on sda3, internal journal
+[   10.466432] EXT3-fs: mounted filesystem with ordered data mode.
+[   10.616663] type=1505 audit(1245387419.676:2):
+operation="profile_load" name="/usr/share/gdm/guest-session/Xsession"
+name2="default" pid=2116
+[   10.647644] type=1505 audit(1245387419.704:3):
+operation="profile_load" name="/sbin/dhclient-script" name2="default"
+pid=2120
+[   10.647715] type=1505 audit(1245387419.704:4):
+operation="profile_load" name="/sbin/dhclient3" name2="default"
+pid=2120
+[   10.647747] type=1505 audit(1245387419.704:5):
+operation="profile_load"
+name="/usr/lib/NetworkManager/nm-dhcp-client.action" name2="default"
+pid=2120
+[   10.647775] type=1505 audit(1245387419.704:6):
+operation="profile_load"
+name="/usr/lib/connman/scripts/dhclient-script" name2="default"
+pid=2120
+[   10.733586] type=1505 audit(1245387419.792:7):
+operation="profile_load" name="/usr/lib/cups/backend/cups-pdf"
+name2="default" pid=2125
+[   10.733704] type=1505 audit(1245387419.792:8):
+operation="profile_load" name="/usr/sbin/cupsd" name2="default"
+pid=2125
+[   10.753465] type=1505 audit(1245387419.812:9):
+operation="profile_load" name="/usr/sbin/tcpdump" name2="default"
+pid=2129
+[   13.133547] vboxdrv: Trying to deactivate the NMI watchdog permanently...
+[   13.133550] vboxdrv: Successfully done.
+[   13.133551] vboxdrv: Found 2 processor cores.
+[   13.134200] VBoxDrv: dbg - g_abExecMemory=ffffffffa0d4eaa0
+[   13.134216] vboxdrv: fAsync=0 offMin=0x1c7 offMax=0x18aa
+[   13.134252] vboxdrv: TSC mode is 'synchronous', kernel timer mode
+is 'normal'.
+[   13.134254] vboxdrv: Successfully loaded version 2.1.4_OSE
+(interface 0x000a0009).
+[   13.338753] VBoxNetFlt: dbg - g_abExecMemory=ffffffffa0eed940
+[   18.940672] r8169: eth0: link down
+[   18.940962] ADDRCONF(NETDEV_UP): eth0: link is not ready
+[   18.968910] ADDRCONF(NETDEV_UP): wlan0: link is not ready
+[   30.988344] wlan0: authenticate with AP 00:1d:92:15:2a:f1
+[   31.008515] wlan0: authenticated
+[   31.008518] wlan0: associate with AP 00:1d:92:15:2a:f1
+[   31.010596] wlan0: RX AssocResp from 00:1d:92:15:2a:f1 (capab=0x11
+status=0 aid=2)
+[   31.010598] wlan0: associated
+[   31.011417] ADDRCONF(NETDEV_CHANGE): wlan0: link becomes ready
+[   41.560010] wlan0: no IPv6 routers present
