@@ -1,38 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.29]:36307 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751672AbZFEIx6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2009 04:53:58 -0400
+Received: from mail-ew0-f210.google.com ([209.85.219.210]:58268 "EHLO
+	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751904AbZFSPbt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Jun 2009 11:31:49 -0400
+Received: by ewy6 with SMTP id 6so2650821ewy.37
+        for <linux-media@vger.kernel.org>; Fri, 19 Jun 2009 08:31:51 -0700 (PDT)
+Message-ID: <4A3BAF65.3050807@gmail.com>
+Date: Fri, 19 Jun 2009 16:31:49 +0100
+From: pb <pb.maillists@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <20090604225349.GA8453@suse.de>
-References: <208cbae30905271051jfe3294bye415b5b4cd0ce14b@mail.gmail.com>
-	 <208cbae30906041543v583b411ah4434e66acf83fa77@mail.gmail.com>
-	 <20090604225349.GA8453@suse.de>
-Date: Fri, 5 Jun 2009 12:54:00 +0400
-Message-ID: <208cbae30906050154u5bae7f2cr7a06adb21171b292@mail.gmail.com>
-Subject: Re: Probably strange bug with usb radio-mr800
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Greg KH <gregkh@suse.de>
-Cc: Linux Media <linux-media@vger.kernel.org>,
-	linux-usb@vger.kernel.org,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media <linux-media@vger.kernel.org>
+Subject: Problems receiving hd channels from astra 19.2 with cx800 driver
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 5, 2009 at 2:53 AM, Greg KH<gregkh@suse.de> wrote:
-> On Fri, Jun 05, 2009 at 02:43:04AM +0400, Alexey Klimov wrote:
->> Is there any ideas about different behaviour of device on 32- and
->> 64-bit platforms with the same usb bulk messages?
->
-> No, there should be no difference.
->
-> Have you run usbmon to look at the data on the wire?
+Hello,
 
-Of course, there is my first letter (from May 27) on usb and v4l mail
-lists with usbmon output.
-Here is the link http://www.spinics.net/lists/linux-media/msg06051.html
+I am using a Tevii S460 DVB-S2 card in a linux environment. Useing the 
+lasted v4l driver source.
+Use mplayer to test the adapter.
+Can receive BBC HD from astra 28.2 including the digital audio.
+How ever when I try HD channels from Astra 19.2 I get error from the 
+cx8802 driver, cx8802_start_dma() Failed. Unsupported value in .mpeg (0
+Can receive 'normal' channels from astra 19.2.
+Linux version 1.6.29-R5, latest v4l sources ( downloaded 4 days ago)
+The S460 is the only PCI card in the system, motherboard NC62K from Jetway.
+Does this sound familiar?
 
--- 
-Best regards, Klimov Alexey
+Regards
+Peter
