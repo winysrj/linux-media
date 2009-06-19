@@ -1,65 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:60762 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751228AbZFVFNq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2009 01:13:46 -0400
-Message-ID: <4A3F130D.1020909@linuxtv.org>
-Date: Mon, 22 Jun 2009 07:13:49 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from banach.math.auburn.edu ([131.204.45.3]:56528 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751989AbZFSRcR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Jun 2009 13:32:17 -0400
+Date: Fri, 19 Jun 2009 12:47:02 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Andy Walls <awalls@radix.net>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Sakar 57379 USB Digital Video Camera...
+In-Reply-To: <1245386416.20630.31.camel@palomino.walls.org>
+Message-ID: <alpine.LNX.2.00.0906190016070.17528@banach.math.auburn.edu>
+References: <1245375652.20630.6.camel@palomino.walls.org>  <alpine.LNX.2.00.0906182113010.17417@banach.math.auburn.edu> <1245386416.20630.31.camel@palomino.walls.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: LinuxTv <linux-dvb@linuxtv.org>
-Subject: Re: [linux-dvb] @Sky Pilot, Neotion Pilot, Checksum hacking
-References: <200906212002.55867.JuergenUrban@gmx.de>
-In-Reply-To: <200906212002.55867.JuergenUrban@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Juergen Urban wrote:
-> Now I've a problem with the 1-byte-checksum calculation. Each message 
-> which I send to the device has a checksum (last byte). I don't know how to 
-> calculate the checksum.
-> Did someone know how to reverse engineer a 1-byte-checksum?
-> Did someone see these type of messages before?
-> Did someone detect any algorithm in the checksum values?
-> 
-> Here are examples:
-> 
-> static unsigned char ep03_msg109[] = {
-> 	0x81, 0x05, 0x01, 0x00, 0x02, 0x01, 0x06, 0x00,
-> 	0x01, 0xd0, 0x1e, 0x01, 0x00,
-> 	0xca /* Checksum */
-> };
-> 
-> static unsigned char ep03_msg110[] = {
-> 	0x81, 0x05, 0x01, 0x00, 0x02, 0x01, 0x06, 0x00,
-> 	0x01, 0xd0, 0x1f, 0x01, 0x00,
-> 	0xcb /* Checksum */
-> };
-> 
-> In the above example the checksum is incremented by one and there is also one 
-> byte incremented by one in the payload (0x1e -> 0x1f and 0xca -> 0xcb). this 
-> seems to be a simple addition.
-> 
-> static unsigned char ep03_msg111[] = {
-> 	0x81, 0x05, 0x01, 0x00, 0x02, 0x01, 0x06, 0x00,
-> 	0x01, 0xd0, 0x20, 0x01, 0x00,
-> 	0xf4 /* Checksum */
-> };
 
-It's a simple XOR of all bytes with an initial value of 0x84.
 
-unsigned int calc_cs(const unsigned char *buf, unsigned int n)
-{
-        unsigned int i, cs = 0x84;
+On Fri, 19 Jun 2009, Andy Walls wrote:
 
-        for (i = 0; i < n; i++)
-                cs ^= buf[i];
+> On Thu, 2009-06-18 at 21:43 -0500, Theodore Kilgore wrote:
+>>
+>> On Thu, 18 Jun 2009, Andy Walls wrote:
+>>>
+>>>
+>>>
+>>
+>> Interesting. To answer your question, I have no idea off the top of my
+>> head. I do have what seems to be a similar camera. It is
+>>
+>> Bus 005 Device 006: ID 0979:0371 Jeilin Technology Corp., Ltd
+>>
+>> and the rest of the lsusb output looks quite similar. I do not know,
+>> though, if it has any chance of working as a webcam. Somehow, the thought
+>> never occurred to me back when I got the thing. I would have to hunt some
+>> stuff down even to know if it is claimed to work as a webcam.
+>
+> The packaging that mine came in claims "3-in-1":
+>
+> digital video camcorder (with microphone)
+> digital camera
+> web cam
+>
+>
+>> You did say that it comes up as a different USB device when it is a
+>> webcam? You mean, a different product ID or so?
+>
+> Yes
+>
+> Look for this in the original lsusb output I provided
+> :
+>>> Webcam mode:
+>>>
+>>> Bus 003 Device 005: ID 0979:0280 Jeilin Technology Corp., Ltd
+>>> Device Descriptor:
 
-        return cs;
-}
+Oops, right you are. Blame it on my old eyes. They are the same age as the 
+rest of me, but sometimes they feel older.
 
-Regards,
-Andreas
+Another thing I could not see in front of me when I looked at my Jeilin 
+Mass Storage camera, was what is written on it. It says there it is a 
+Cobra DMC300, and it says
+
+"Digital Video & Camera"
+
+I never paid any attention to that before, because for years my priorities 
+were still cameras. But now, just in case I have lost the driver CD, I 
+went out to Google and found what claims to be a driver for it. I hope 
+that, with such a long idleness just sitting on a back corner of the desk, 
+the battery has not died in the camera. If I get some time in the next few 
+days to try to fight Windows, I will make some logs of my own. Then we can 
+compare notes and see if the two cameras are similar, or not. What I am 
+hoping for, obviously, is that both cameras are downloading JPEG frames, 
+and use similar methods to do that. If that is true (we don't know that, 
+of course) then the only problem I can imagine is that both of them are 
+reported, even in webcam mode, as Mass Storage Bulk Transport devices. If 
+so, then the camera(s) would need to be blacklisted by mass-storage when 
+set up as webcams.
+
+Now that I got the supposed driver, I should go out on the web and get the 
+supposed manual for my camera. Then perhaps I can know how it is supposed 
+to be used as a webcam and get the needed sniffs. Meanwhile, I hope that 
+you will do the same.
+
+Theodore Kilgore
+
