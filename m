@@ -1,40 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [195.7.61.12] ([195.7.61.12]:39137 "EHLO killala.koala.ie"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751763AbZFVTqJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2009 15:46:09 -0400
-Received: from [195.7.61.29] (joburg.koala.ie [195.7.61.29])
-	(authenticated bits=0)
-	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id n5MJk8td027790
-	for <linux-media@vger.kernel.org>; Mon, 22 Jun 2009 20:46:09 +0100
-Message-ID: <4A3FDF80.9040906@koala.ie>
-Date: Mon, 22 Jun 2009 20:46:08 +0100
-From: Simon Kenyon <simon@koala.ie>
-MIME-Version: 1.0
+Received: from smtp-cloud1.xs4all.nl ([194.109.24.61]:7073 "EHLO
+	smtp-cloud1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752550AbZFTSPN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Jun 2009 14:15:13 -0400
+Date: Sat, 20 Jun 2009 20:15:15 +0200
+Message-ID: <75.6C.11686.3372D3A4@smtp-cloud1.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] Best stable DVB-S2 cards
-References: <1245698505.3906.14.camel@asrock>
-In-Reply-To: <1245698505.3906.14.camel@asrock>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-sacha wrote:
-> Forget all that has with stability to do on Linux, it will never work!
-> It is my experience after three years of desperate trying. I have the
-> same card and some others. Sometimes they works sometimes no. 24 hours
-> running is called High Availability in IT world and can be assured only
-> by the commercial solutions. Believe me, I spent 14 years in commercial
-> Unix and know what I am talking about.
->   
-that cannot go unchallenged
-my linux boxes never crash
-not unless i do something really stupid
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-they have been up for 16 days
-and that is so short because i had a power failure
+Results of the daily build of v4l-dvb:
 
-and i've been using unix/linux for over 25 years
---
-simon
+date:        Sat Jun 20 19:00:05 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12093:2899ad868fc6
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
+
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: WARNINGS
+linux-2.6.28-armv5: WARNINGS
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-x86_64: WARNINGS
+sparse (linux-2.6.30): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: OK
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: OK
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
