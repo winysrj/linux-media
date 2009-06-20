@@ -1,53 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198]:57810 "EHLO
-	mta3.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752798AbZFZOjk (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:35299 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751383AbZFTOSy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2009 10:39:40 -0400
-Received: from host143-65.hauppauge.com
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta3.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KLU000X4OQ14II0@mta3.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Fri, 26 Jun 2009 10:39:37 -0400 (EDT)
-Date: Fri, 26 Jun 2009 10:39:35 -0400
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: Hauppauge WinTV-HVR 900H support on Linux, any news?
-In-reply-to: <4A435641.20207@linuxmail.org>
-To: Antonio Jimenez <ajimenez@linuxmail.org>
-Cc: linux-media@vger.kernel.org
-Message-id: <4A44DDA7.5020101@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <4A435641.20207@linuxmail.org>
+	Sat, 20 Jun 2009 10:18:54 -0400
+Date: Sat, 20 Jun 2009 17:12:47 +0300
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: ext Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
+Subject: Re: RFC: FM modulator and RDS encoder V4L2 API additions
+Message-ID: <20090620141247.GB32540@esdhcp037198.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+References: <200906201505.24721.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200906201505.24721.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 6/25/09 6:49 AM, Antonio Jimenez wrote:
+Hi Hans,
+
+On Sat, Jun 20, 2009 at 03:05:24PM +0200, ext Hans Verkuil wrote:
 > Hi all,
->
->
-> is there any news or progress with the work for Hauppauge WinTV-HVR 900H
-> under Linux?
->
-> I read in March some emails here about this theme and I was very happy
-> with it, because I have one of these cards. But suddenly there were no
-> more news about it. I am still reading the linux-media mail list summary
-> every day, but there are no more news.
->
-> I can help testing, but only the digital section, cause here where I
-> live the analogic TV is already disabled.
->
-> Please.. any ray of hope? :)
+> 
+> Besides the new RDS controls implemented by Eduardo we also need a few 
+> additions to the V4L2 API.
+> 
+> First of all we need two new capabilities for struct v4l2_capability:
+> 
+> #define V4L2_CAP_RDS_OUTPUT     0x0000800 /* Is an RDS encoder */
+> #define V4L2_CAP_MODULATOR 	0x0008000 /* has a modulator */
+> 
+> The current V4L2 spec says in section 1.6.2 that you should set 
+> V4L2_CAP_TUNER when you have a modulator. I see absolutely no reason why we 
+> shouldn't add a proper CAP_MODULATOR instead. Almost all caps already come 
+> in an input and output variant, so it also makes sense to have a tuner and 
+> a separate modulator capability. Since Eduardo's FM transmitter is the 
+> first driver with a modulator that will go into the tree we do not have to 
+> worry about backwards compatibility, so I think we should fix this weird 
+> rule.
+> 
+> For the same reason we should add an RDS_OUTPUT capability since not all FM 
+> transmitters might have a RDS encoder. Again, this is also consistent with 
+> the V4L2_CAP_RDS_CAPTURE capability that we already have.
+> 
+> The RDS decoder API adds a new v4l2_tuner RDS capability and RDS subchannel 
+> flag. These are reused in v4l2_modulator. If the RDS capability is set, 
+> then the modulator can encode RDS. If the V4L2_TUNER_SUB_RDS channel is 
+> specified in txsubchans, then the transmitter will turn on the RDS encoder, 
+> otherwise it is turned off. This is consistent with the way txsubchans is 
+> used for the audio modulation.
+> 
+> Eduardo, this will replace the RDS_TX_ENABLED control, so if this goes in 
+> then that control has to be removed.
 
-Hope is not lost, but news is slow.
+I like this approach. Looks cleaner. How about moving some of the *_ENABLED features
+from FM TX class to a CAP flag? As you are proposing for RDS? I mean, some of them
+are consistent with audio modulation (copying from my patch):
 
-Hauppauge are in negotiations with a silicon vendor to release a datasheet. It's 
-taking longer than we'd all like. Once this is done and the 900H is working then 
-I'd expect a number of other products to also benefit from the work.
++#define V4L2_CID_RDS_TX_ENABLED                        (V4L2_CID_FM_TX_CLASS_BASE + 1)
 
-No ETA currently.
+This one you are already proposing to move to a CAP flag.
+
++#define V4L2_CID_AUDIO_LIMITER_ENABLED         (V4L2_CID_FM_TX_CLASS_BASE + 6)
+This is relevant to modulators which apply some sort of dynamic audio control to
+maximize audio volume and minimize receiver-generated distortion. Also important
+to prevent audio over-modulation.
+
++#define V4L2_CID_AUDIO_COMPRESSION_ENABLED     (V4L2_CID_FM_TX_CLASS_BASE + 9)
+Enables or disables the audio compression feature.
+This feature amplifies signals below the threshold by a fixed gain and compresses audio
+signals above the threshold by the ratio of Threshold/(Gain + Threshold).
+
++
++#define V4L2_CID_PILOT_TONE_ENABLED            (V4L2_CID_FM_TX_CLASS_BASE + 14)
+Some modulator generates pilot tone in audio channel.
+
+I mean, what do you think to have those as a flag in txsubchans instead of
+a separated ext control ?
+
+> 
+> I've made a first implementation of these changes in this tree: 
+> http://linuxtv.org/hg/~hverkuil/v4l-dvb-rds-enc
+> 
+> This tree also contains the RDS decoder changes from my v4l-dvb-rds tree 
+> since it needs to build on those.
+> 
+> Comments?
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Eduardo Valentin
