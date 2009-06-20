@@ -1,65 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55007 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751779AbZFLQVN convert rfc822-to-8bit (ORCPT
+Received: from mail-yx0-f203.google.com ([209.85.210.203]:51797 "EHLO
+	mail-yx0-f203.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754926AbZFTRbh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jun 2009 12:21:13 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Fri, 12 Jun 2009 11:21:09 -0500
-Subject: RE: [PATCH (V2)] TVP514x: Migration to sub-device framework - Is it
- approved ???
-Message-ID: <A69FA2915331DC488A831521EAE36FE40139A0966E@dlee06.ent.ti.com>
-References: <A69FA2915331DC488A831521EAE36FE40139A0963F@dlee06.ent.ti.com>
- <200906121817.31086.hverkuil@xs4all.nl>
-In-Reply-To: <200906121817.31086.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+	Sat, 20 Jun 2009 13:31:37 -0400
+Received: by yxe41 with SMTP id 41so23935yxe.33
+        for <linux-media@vger.kernel.org>; Sat, 20 Jun 2009 10:31:40 -0700 (PDT)
+Subject: Re: [Patch] dvb-apps: code cleanup and bug fix.
+From: Yufei Yuan <yfyuan@gmail.com>
+Reply-To: yfyuan@gmail.com
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <1245518159.15347.38.camel@core2duo.localdomain>
+References: <ccdf9f470906171618r26518ce7pa97d747e301009ca@mail.gmail.com>
+	 <1a297b360906180132l49aa7be4j8a1e238aa9bac65@mail.gmail.com>
+	 <1a297b360906180148lefc2d8fp972647ad0df64320@mail.gmail.com>
+	 <ccdf9f470906180606w1046ee88nda933b4e6638357a@mail.gmail.com>
+	 <ccdf9f470906181752u65c8d7f1nce46e3d46991b70c@mail.gmail.com>
+	 <ccdf9f470906181839h4047acc1t1d537300a0b4b581@mail.gmail.com>
+	 <ccdf9f470906181855m2d6c471cm12afea3f228fd57c@mail.gmail.com>
+	 <1a297b360906200030y1322de83j296ced63e713ef66@mail.gmail.com>
+	 <1245518159.15347.38.camel@core2duo.localdomain>
+Content-Type: text/plain
+Date: Sat, 20 Jun 2009 12:31:38 -0500
+Message-Id: <1245519098.15347.40.camel@core2duo.localdomain>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
+The Makefile part of the last patch was not correct. Please use this one, sorry.
 
-Greatly appreciated, given the ton of issues you are currently busy with!
+--- dvb-apps/util/scan/Makefile	2009-06-20 12:28:52.544986677 -0500
++++ dvb-apps_local/util/scan/Makefile	2009-06-20 12:27:08.597924784 -0500
+@@ -14,7 +14,7 @@ inst_bin = $(binaries)
+ 
+ removing = atsc_psip_section.c atsc_psip_section.h
+ 
+-CPPFLAGS += -DDATADIR=\"$(prefix)/share\"
++CPPFLAGS += -Wno-packed-bitfield-compat -D__KERNEL_STRICT_NAMES -DDATADIR=\"$(prefix)/share\"
+ 
+ .PHONY: all
+ 
 
-Let me know, after review, your feel about possible merge plan for these patches. 2.6.31 or 2.6.32
+On Sat, 2009-06-20 at 12:16 -0500, Yufei Yuan wrote:
+> This patch is against dvb-apps 1281. Following is what has been done:
+> 
+> 1. atsc_epg bug fix: when ETM message gets longer than 256 characters, the last
+> character was chopped, due to incorrect calling to snprintf().
+> 2. atsc_epg code cleanup:
+>   - white space added after keywords;
+>   - hard wrap around column 80 removed;
+>   - one-line conditional statement now w/o brackets.
+> 3. scan Makefile workaround for building in gcc4.4/kernel 2.6.30 was not picked up in 1279, include again.
+> 
+> Regards,
+> 
+> Signed-off-by: Yufei Yuan <yfyuan@gmail.com>
+> 
 
-Regards,
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-email: m-karicheri2@ti.com
-
->-----Original Message-----
->From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
->Sent: Friday, June 12, 2009 12:18 PM
->To: Karicheri, Muralidharan
->Cc: linux-media@vger.kernel.org
->Subject: Re: [PATCH (V2)] TVP514x: Migration to sub-device framework - Is
->it approved ???
->
->On Friday 12 June 2009 18:04:34 Karicheri, Muralidharan wrote:
->> Hi,
->>
->> This patch is sent for review last month. I have posted a vpfe capture
->> driver patch that is dependent on this one. Is this one close to approval
->> or what is the plan?
->>
->> I see some updates required to this patch based on my patch for
->> supporting bus parameter which is being reviewed currently.
->
->I'll review this tomorrow. I'm planning to go through my pending reviews
->this weekend. It's been piling up the last few weeks due to travel and a
->very busy period at work.
->
->Regards,
->
->	Hans
->
->--
->Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
