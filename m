@@ -1,44 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.172]:10556 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752457AbZFPHNR (ORCPT
+Received: from host-srv-101.hosting.jkg-it-services.net ([85.25.179.239]:35700
+	"EHLO mail01.hosting.jkg-it-services.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753038AbZFTU32 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2009 03:13:17 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so1725252wfd.4
-        for <linux-media@vger.kernel.org>; Tue, 16 Jun 2009 00:13:19 -0700 (PDT)
-Subject: DViCO FusionHDTV DVB-T Hybrid Tuning Regression
-From: David Coles <coles.david@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Tue, 16 Jun 2009 17:13:13 +1000
-Message-Id: <1245136393.4396.82.camel@krikkit>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sat, 20 Jun 2009 16:29:28 -0400
+To: <linux-media@vger.kernel.org>
+Subject: Dual DVB-S2 Card
+MIME-Version: 1.0
+Date: Sat, 20 Jun 2009 22:19:30 +0200
+From: =?UTF-8?Q?Jens_Krehbiel-Gr=C3=A4ther?=
+	<jens.krehbiel-graether@jkg-it-services.de>
+Message-ID: <57b4ac7aa53bbb6e913d4c3c16d95fb6@imap.hosting.jkg-it-services.net>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-I've been trying to track down a driver regression in my DViCO
-FusionHDTV DVB-T Hybrid card that makes it impossible to tune to DVB
-stations. In recent kernels (anything in past year) the card is detected
-and /dev/dvb tree is created but attempting to scan for channels only
-results in a 'tuning failed!!!'.
+Hi!
 
-Tuning works quite happily on the 2.6.17 kernel (very old) but appears
-to have broken somewhere around 2.6.22. Bisecting the v4l-dvb tree has
-the card turning at r4675, unable to compile r4676 and r4677, then
-no /dev/dvb tree being created until r5333 where tuning no longer works.
 
-I've had a look at these diffs and guess it's possible that it broke
-during the refactor at r4676, but being unable to test the card between
-r4676 and r5332 makes it quite hard to narrow down (I'm also unsure why
-r5333, apparently a change to the saa7134 code would have fixed the
-missing /dev/dvb tree).
 
-I'm a bit stuck at this point, but I do have a test machine set up and
-quite happy to put some time into helping fix this.
+Does anyone know something about this card?
 
-Regards,
-David Coles
 
+
+http://www.media-pointer.de/index.php?page=shop.product_details&flypage=flypage.tpl&product_id=6&category_id=3&option=com_virtuemart&Itemid=1
+
+
+
+I think this card is a type of the reference design from micronas (think of
+
+the year 2006??).
+
+
+
+http://www.computerbase.de/news/hardware/multimedia/2006/august/micronas_pci_express_dual-dvb-s2-tuner/
+
+
+
+(Sorry, all in german)
+
+
+
+I send a request to the manufacturer and asked what chips are used on the
+
+card. When I get an answer I will post it here.
+
+
+
+If this card hast the STB0899/6100 chip, i think it should work with S2-API
+
+repository of Igor Liplianin or Manu Abraham???
+
+Do you think I can use both tuner "out of the box" with these drivers??
+
+
+
+Thanks for your information!
+
+
+
+Jens
