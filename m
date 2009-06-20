@@ -1,441 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:47578 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759270AbZFQULa (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:34773 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751229AbZFTOH4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 16:11:30 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5HKBSoP004373
-	for <linux-media@vger.kernel.org>; Wed, 17 Jun 2009 15:11:33 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH 9/11 - v3] common vpss module for video drivers
-Date: Wed, 17 Jun 2009 16:11:22 -0400
-Message-Id: <1245269484-8325-10-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1245269484-8325-9-git-send-email-m-karicheri2@ti.com>
-References: <1245269484-8325-1-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-2-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-3-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-4-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-5-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-6-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-7-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-8-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-9-git-send-email-m-karicheri2@ti.com>
+	Sat, 20 Jun 2009 10:07:56 -0400
+Date: Sat, 20 Jun 2009 17:01:28 +0300
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: ext Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
+	ext Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCHv8  7/9] FMTx: si4713: Add files to handle si4713 i2c
+ device
+Message-ID: <20090620140128.GA32540@esdhcp037198.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+References: <1245333351-28157-1-git-send-email-eduardo.valentin@nokia.com>
+ <1245333351-28157-7-git-send-email-eduardo.valentin@nokia.com>
+ <1245333351-28157-8-git-send-email-eduardo.valentin@nokia.com>
+ <200906201527.09666.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200906201527.09666.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+Hi Hans,
 
-common voss module for video drivers
+On Sat, Jun 20, 2009 at 03:27:09PM +0200, ext Hans Verkuil wrote:
+> On Thursday 18 June 2009 15:55:49 Eduardo Valentin wrote:
+> > This patch adds files to control si4713 devices.
+> > Internal functions to control device properties
+> > and initialization procedures are into these files.
+> > Also, a v4l2 subdev interface is also exported.
+> > This way other drivers can use this as v4l2 i2c subdevice.
+> >
+> > Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+> > ---
+> >  linux/drivers/media/radio/si4713-i2c.c | 2015
+> > ++++++++++++++++++++++++++++++++ linux/drivers/media/radio/si4713-i2c.h |
+> >  226 ++++
+> >  linux/include/media/si4713.h           |   40 +
+> >  3 files changed, 2281 insertions(+), 0 deletions(-)
+> >  create mode 100644 linux/drivers/media/radio/si4713-i2c.c
+> >  create mode 100644 linux/drivers/media/radio/si4713-i2c.h
+> >  create mode 100644 linux/include/media/si4713.h
+> >
+> 
+> <snip>
+> 
+> > diff --git a/linux/include/media/si4713.h b/linux/include/media/si4713.h
+> > new file mode 100644
+> > index 0000000..d0960e2
+> > --- /dev/null
+> > +++ b/linux/include/media/si4713.h
+> > @@ -0,0 +1,40 @@
+> > +/*
+> > + * include/media/si4713.h
+> > + *
+> > + * Board related data definitions for Si4713 i2c device driver.
+> > + *
+> > + * Copyright (c) 2009 Nokia Corporation
+> > + * Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
+> > + *
+> > + * This file is licensed under the terms of the GNU General Public
+> > License + * version 2. This program is licensed "as is" without any
+> > warranty of any + * kind, whether express or implied.
+> > + *
+> > + */
+> > +
+> > +#ifndef SI4713_H
+> > +#define SI4713_H
+> > +
+> > +/* The SI4713 I2C sensor chip has a fixed slave address of 0xc6 or 0x22.
+> > */ +#define SI4713_I2C_ADDR_BUSEN_HIGH	0x63
+> > +#define SI4713_I2C_ADDR_BUSEN_LOW	0x11
+> > +
+> > +/*
+> > + * Platform dependent definition
+> > + */
+> > +struct si4713_platform_data {
+> > +	/* Set power state, zero is off, non-zero is on. */
+> > +	int (*set_power)(int power);
+> > +};
+> > +
+> > +/*
+> > + * structure to query for RSSI.
+> > + */
+> > +struct si4713_rssi {
+> > +	unsigned int frequency;
+> > +	int rssi;
+> > +};
+> 
+> I propose to change this struct a bit:
+> 
+> struct si4713_rssi {
+> 	__u32 index;		/* modulator index */
+> 	__u32 frequency;	/* frequency */
+> 	__s32 rssi;		/* result */
+> 	__u32 reserved[4];	/* drivers and apps must init this to 0 */
+> };
+> 
+> The idea is that in the future this might become a regular ioctl and in that 
+> case it would be nice if we can just copy this struct to videodev2.h and 
+> rename it. In that case the si4713 has to support both private and public 
+> ioctls, but since the struct pointer passed to ioctl is the same for the 
+> private and public ioctls it is very easy to implement that.
+> 
+> The rssi field needs to be documented better in this header: what is the 
+> meaning of the returned value and what is the unit? Does it have to be a 
+> signed value, or should it be unsigned instead?
+> 
 
-This is a new module added for vpss library functions that are
-used for configuring vpss system module. All video drivers will
-include vpss.h header file and call functions defined in this
-module to configure vpss system module.
+Re-thinking this struct as something that can be moved to videode2.h, then
+I agree with you. I'll resend then with the proposed structure and more
+description about it.
 
-Following are the updates:-
-	1) added module owner, description and GPL macros
-	2) some error conditions addressed in the probe
-	
-Reviewed by: Hans Verkuil <hverkuil@xs4all.nl>
-Reviewed by: Laurent Pinchart <laurent.pinchart@skynet.be>
-Reviewed by: Alexey Klimov <klimov.linux@gmail.com>
+> > +#define SI4713_IO_MEASURE_RSSI	_IOWR('V', BASE_VIDIOC_PRIVATE + 0, \
+> > +						struct si4713_rssi)
+> 
+> This needs to be documented as well: what exactly does it do? It is 
+> important to have that information in this header for future reference.
+> 
+> Can you also rename it to SI4713_IOC_MEASURE_RSSI? 'IOC' seems to be 
+> preferred above 'IO'.
 
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
-Applies to v4l-dvb repository
+Yes, no problem.
 
- drivers/media/video/davinci/vpss.c |  301 ++++++++++++++++++++++++++++++++++++
- include/media/davinci/vpss.h       |   69 ++++++++
- 2 files changed, 370 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/davinci/vpss.c
- create mode 100644 include/media/davinci/vpss.h
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > +
+> > +#endif /* ifndef SI4713_H*/
+> 
+> 
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
-diff --git a/drivers/media/video/davinci/vpss.c b/drivers/media/video/davinci/vpss.c
-new file mode 100644
-index 0000000..6d709ca
---- /dev/null
-+++ b/drivers/media/video/davinci/vpss.c
-@@ -0,0 +1,301 @@
-+/*
-+ * Copyright (C) 2009 Texas Instruments.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ *
-+ * common vpss driver for all video drivers.
-+ */
-+#include <linux/kernel.h>
-+#include <linux/sched.h>
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/spinlock.h>
-+#include <linux/compiler.h>
-+#include <linux/io.h>
-+#include <mach/hardware.h>
-+#include <media/davinci/vpss.h>
-+
-+MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("VPSS Driver");
-+MODULE_AUTHOR("Texas Instruments");
-+
-+/* DM644x defines */
-+#define DM644X_SBL_PCR_VPSS		(4)
-+
-+/* vpss BL register offsets */
-+#define DM355_VPSSBL_CCDCMUX		0x1c
-+/* vpss CLK register offsets */
-+#define DM355_VPSSCLK_CLKCTRL		0x04
-+/* masks and shifts */
-+#define VPSS_HSSISEL_SHIFT		4
-+
-+/*
-+ * vpss operations. Depends on platform. Not all functions are available
-+ * on all platforms. The api, first check if a functio is available before
-+ * invoking it. In the probe, the function ptrs are intialized based on
-+ * vpss name. vpss name can be "dm355_vpss", "dm644x_vpss" etc.
-+ */
-+struct vpss_hw_ops {
-+	/* enable clock */
-+	int (*enable_clock)(enum vpss_clock_sel clock_sel, int en);
-+	/* select input to ccdc */
-+	void (*select_ccdc_source)(enum vpss_ccdc_source_sel src_sel);
-+	/* clear wbl overlflow bit */
-+	int (*clear_wbl_overflow)(enum vpss_wbl_sel wbl_sel);
-+};
-+
-+/* vpss configuration */
-+struct vpss_oper_config {
-+	__iomem void *vpss_bl_regs_base;
-+	__iomem void *vpss_regs_base;
-+	struct resource		*r1;
-+	resource_size_t		len1;
-+	struct resource		*r2;
-+	resource_size_t		len2;
-+	char vpss_name[32];
-+	spinlock_t vpss_lock;
-+	struct vpss_hw_ops hw_ops;
-+};
-+
-+static struct vpss_oper_config oper_cfg;
-+
-+/* register access routines */
-+static inline u32 bl_regr(u32 offset)
-+{
-+	return __raw_readl(oper_cfg.vpss_bl_regs_base + offset);
-+}
-+
-+static inline void bl_regw(u32 val, u32 offset)
-+{
-+	__raw_writel(val, oper_cfg.vpss_bl_regs_base + offset);
-+}
-+
-+static inline u32 vpss_regr(u32 offset)
-+{
-+	return __raw_readl(oper_cfg.vpss_regs_base + offset);
-+}
-+
-+static inline void vpss_regw(u32 val, u32 offset)
-+{
-+	__raw_writel(val, oper_cfg.vpss_regs_base + offset);
-+}
-+
-+static void dm355_select_ccdc_source(enum vpss_ccdc_source_sel src_sel)
-+{
-+	bl_regw(src_sel << VPSS_HSSISEL_SHIFT, DM355_VPSSBL_CCDCMUX);
-+}
-+
-+int vpss_select_ccdc_source(enum vpss_ccdc_source_sel src_sel)
-+{
-+	if (!oper_cfg.hw_ops.select_ccdc_source)
-+		return -1;
-+
-+	dm355_select_ccdc_source(src_sel);
-+	return 0;
-+}
-+EXPORT_SYMBOL(vpss_select_ccdc_source);
-+
-+static int dm644x_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel)
-+{
-+	u32 mask = 1, val;
-+
-+	if (wbl_sel < VPSS_PCR_AEW_WBL_0 ||
-+	    wbl_sel > VPSS_PCR_CCDC_WBL_O)
-+		return -1;
-+
-+	/* writing a 0 clear the overflow */
-+	mask = ~(mask << wbl_sel);
-+	val = bl_regr(DM644X_SBL_PCR_VPSS) & mask;
-+	bl_regw(val, DM644X_SBL_PCR_VPSS);
-+	return 0;
-+}
-+
-+int vpss_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel)
-+{
-+	if (!oper_cfg.hw_ops.clear_wbl_overflow)
-+		return -1;
-+
-+	return oper_cfg.hw_ops.clear_wbl_overflow(wbl_sel);
-+}
-+EXPORT_SYMBOL(vpss_clear_wbl_overflow);
-+
-+/*
-+ *  dm355_enable_clock - Enable VPSS Clock
-+ *  @clock_sel: CLock to be enabled/disabled
-+ *  @en: enable/disable flag
-+ *
-+ *  This is called to enable or disable a vpss clock
-+ */
-+static int dm355_enable_clock(enum vpss_clock_sel clock_sel, int en)
-+{
-+	unsigned long flags;
-+	u32 utemp, mask = 0x1, shift = 0;
-+
-+	switch (clock_sel) {
-+	case VPSS_VPBE_CLOCK:
-+		/* nothing since lsb */
-+		break;
-+	case VPSS_VENC_CLOCK_SEL:
-+		shift = 2;
-+		break;
-+	case VPSS_CFALD_CLOCK:
-+		shift = 3;
-+		break;
-+	case VPSS_H3A_CLOCK:
-+		shift = 4;
-+		break;
-+	case VPSS_IPIPE_CLOCK:
-+		shift = 5;
-+		break;
-+	case VPSS_CCDC_CLOCK:
-+		shift = 6;
-+		break;
-+	default:
-+		printk(KERN_ERR "dm355_enable_clock:"
-+				" Invalid selector: %d\n", clock_sel);
-+		return -1;
-+	}
-+
-+	spin_lock_irqsave(&oper_cfg.vpss_lock, flags);
-+	utemp = vpss_regr(DM355_VPSSCLK_CLKCTRL);
-+	if (!en)
-+		utemp &= ~(mask << shift);
-+	else
-+		utemp |= (mask << shift);
-+
-+	vpss_regw(utemp, DM355_VPSSCLK_CLKCTRL);
-+	spin_unlock_irqrestore(&oper_cfg.vpss_lock, flags);
-+	return 0;
-+}
-+
-+int vpss_enable_clock(enum vpss_clock_sel clock_sel, int en)
-+{
-+	if (!oper_cfg.hw_ops.enable_clock)
-+		return -1;
-+
-+	return oper_cfg.hw_ops.enable_clock(clock_sel, en);
-+}
-+EXPORT_SYMBOL(vpss_enable_clock);
-+
-+static int __init vpss_probe(struct platform_device *pdev)
-+{
-+	int status, dm355 = 0;
-+
-+	if (!pdev->dev.platform_data) {
-+		dev_err(&pdev->dev, "no platform data\n");
-+		return -ENOENT;
-+	}
-+	strcpy(oper_cfg.vpss_name, pdev->dev.platform_data);
-+
-+	if (!strcmp(oper_cfg.vpss_name, "dm355_vpss"))
-+		dm355 = 1;
-+	else if (strcmp(oper_cfg.vpss_name, "dm644x_vpss")) {
-+		dev_err(&pdev->dev, "vpss driver not supported on"
-+			" this platform\n");
-+		return -ENODEV;
-+	}
-+
-+	dev_info(&pdev->dev, "%s vpss probed\n", oper_cfg.vpss_name);
-+	oper_cfg.r1 = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	if (!oper_cfg.r1)
-+		return -ENOENT;
-+
-+	oper_cfg.len1 = oper_cfg.r1->end - oper_cfg.r1->start + 1;
-+
-+	oper_cfg.r1 = request_mem_region(oper_cfg.r1->start, oper_cfg.len1,
-+					 oper_cfg.r1->name);
-+	if (!oper_cfg.r1)
-+		return -EBUSY;
-+
-+	oper_cfg.vpss_bl_regs_base = ioremap(oper_cfg.r1->start, oper_cfg.len1);
-+	if (!oper_cfg.vpss_bl_regs_base) {
-+		status = -EBUSY;
-+		goto fail1;
-+	}
-+
-+	if (dm355) {
-+		oper_cfg.r2 = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+		if (!oper_cfg.r2) {
-+			status = -ENOENT;
-+			goto fail2;
-+		}
-+		oper_cfg.len2 = oper_cfg.r2->end - oper_cfg.r2->start + 1;
-+		oper_cfg.r2 = request_mem_region(oper_cfg.r2->start,
-+						 oper_cfg.len2,
-+						 oper_cfg.r2->name);
-+		if (!oper_cfg.r2) {
-+			status = -EBUSY;
-+			goto fail2;
-+		}
-+
-+		oper_cfg.vpss_regs_base = ioremap(oper_cfg.r2->start,
-+						  oper_cfg.len2);
-+		if (!oper_cfg.vpss_regs_base) {
-+			status = -EBUSY;
-+			goto fail3;
-+		}
-+	}
-+
-+	if (dm355) {
-+		oper_cfg.hw_ops.enable_clock = dm355_enable_clock;
-+		oper_cfg.hw_ops.select_ccdc_source = dm355_select_ccdc_source;
-+	} else
-+		oper_cfg.hw_ops.clear_wbl_overflow = dm644x_clear_wbl_overflow;
-+
-+	spin_lock_init(&oper_cfg.vpss_lock);
-+	dev_info(&pdev->dev, "%s vpss probe success\n", oper_cfg.vpss_name);
-+	return 0;
-+
-+fail3:
-+	release_mem_region(oper_cfg.r2->start, oper_cfg.len2);
-+fail2:
-+	iounmap(oper_cfg.vpss_bl_regs_base);
-+fail1:
-+	release_mem_region(oper_cfg.r1->start, oper_cfg.len1);
-+	return status;
-+}
-+
-+static int vpss_remove(struct platform_device *pdev)
-+{
-+	iounmap(oper_cfg.vpss_bl_regs_base);
-+	release_mem_region(oper_cfg.r1->start, oper_cfg.len1);
-+	if (!strcmp(oper_cfg.vpss_name, "dm355_vpss")) {
-+		iounmap(oper_cfg.vpss_regs_base);
-+		release_mem_region(oper_cfg.r2->start, oper_cfg.len2);
-+	}
-+	return 0;
-+}
-+
-+static struct platform_driver vpss_driver = {
-+	.driver = {
-+		.name	= "vpss",
-+		.owner = THIS_MODULE,
-+	},
-+	.remove = __devexit_p(vpss_remove),
-+	.probe = vpss_probe,
-+};
-+
-+static void vpss_exit(void)
-+{
-+	platform_driver_unregister(&vpss_driver);
-+}
-+
-+static int __init vpss_init(void)
-+{
-+	return platform_driver_register(&vpss_driver);
-+}
-+subsys_initcall(vpss_init);
-+module_exit(vpss_exit);
-diff --git a/include/media/davinci/vpss.h b/include/media/davinci/vpss.h
-new file mode 100644
-index 0000000..fcdff74
---- /dev/null
-+++ b/include/media/davinci/vpss.h
-@@ -0,0 +1,69 @@
-+/*
-+ * Copyright (C) 2009 Texas Instruments Inc
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ * vpss - video processing subsystem module header file.
-+ *
-+ * Include this header file if a driver needs to configure vpss system
-+ * module. It exports a set of library functions  for video drivers to
-+ * configure vpss system module functions such as clock enable/disable,
-+ * vpss interrupt mux to arm, and other common vpss system module
-+ * functions.
-+ */
-+#ifndef _VPSS_H
-+#define _VPSS_H
-+
-+/* selector for ccdc input selection on DM355 */
-+enum vpss_ccdc_source_sel {
-+	VPSS_CCDCIN,
-+	VPSS_HSSIIN
-+};
-+
-+/* Used for enable/diable VPSS Clock */
-+enum vpss_clock_sel {
-+	/* DM355/DM365 */
-+	VPSS_CCDC_CLOCK,
-+	VPSS_IPIPE_CLOCK,
-+	VPSS_H3A_CLOCK,
-+	VPSS_CFALD_CLOCK,
-+	/*
-+	 * When using VPSS_VENC_CLOCK_SEL in vpss_enable_clock() api
-+	 * following applies:-
-+	 * en = 0 selects ENC_CLK
-+	 * en = 1 selects ENC_CLK/2
-+	 */
-+	VPSS_VENC_CLOCK_SEL,
-+	VPSS_VPBE_CLOCK,
-+};
-+
-+/* select input to ccdc on dm355 */
-+int vpss_select_ccdc_source(enum vpss_ccdc_source_sel src_sel);
-+/* enable/disable a vpss clock, 0 - success, -1 - failure */
-+int vpss_enable_clock(enum vpss_clock_sel clock_sel, int en);
-+
-+/* wbl reset for dm644x */
-+enum vpss_wbl_sel {
-+	VPSS_PCR_AEW_WBL_0 = 16,
-+	VPSS_PCR_AF_WBL_0,
-+	VPSS_PCR_RSZ4_WBL_0,
-+	VPSS_PCR_RSZ3_WBL_0,
-+	VPSS_PCR_RSZ2_WBL_0,
-+	VPSS_PCR_RSZ1_WBL_0,
-+	VPSS_PCR_PREV_WBL_0,
-+	VPSS_PCR_CCDC_WBL_O,
-+};
-+int vpss_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel);
-+#endif
 -- 
-1.6.0.4
-
+Eduardo Valentin
