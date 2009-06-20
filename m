@@ -1,124 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-07.arcor-online.net ([151.189.21.47]:35625 "EHLO
-	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751955AbZF1Bju (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2147 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751939AbZFTN1Y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Jun 2009 21:39:50 -0400
-Subject: RE: Bah! How do I change channels?
-From: hermann pitton <hermann-pitton@arcor.de>
-To: George Adams <g_adams27@hotmail.com>
-Cc: dheitmueller@kernellabs.com, awalls@radix.net,
-	video4linux-list@redhat.com, linux-media@vger.kernel.org
-In-Reply-To: <COL103-W513258452EA45C7700193888320@phx.gbl>
-References: <COL103-W53A73F78F552D9FD9BAA2A88350@phx.gbl>
-	 <1246017001.4755.4.camel@palomino.walls.org>
-	 <829197380906260642m2cd87ae5qd6487dc5eae91e51@mail.gmail.com>
-	 <COL103-W513258452EA45C7700193888320@phx.gbl>
-Content-Type: text/plain
-Date: Sun, 28 Jun 2009 03:39:05 +0200
-Message-Id: <1246153145.13091.5.camel@pc07.localdom.local>
-Mime-Version: 1.0
+	Sat, 20 Jun 2009 09:27:24 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCHv8  7/9] FMTx: si4713: Add files to handle si4713 i2c device
+Date: Sat, 20 Jun 2009 15:27:09 +0200
+Cc: "ext Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+References: <1245333351-28157-1-git-send-email-eduardo.valentin@nokia.com> <1245333351-28157-7-git-send-email-eduardo.valentin@nokia.com> <1245333351-28157-8-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1245333351-28157-8-git-send-email-eduardo.valentin@nokia.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906201527.09666.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Thursday 18 June 2009 15:55:49 Eduardo Valentin wrote:
+> This patch adds files to control si4713 devices.
+> Internal functions to control device properties
+> and initialization procedures are into these files.
+> Also, a v4l2 subdev interface is also exported.
+> This way other drivers can use this as v4l2 i2c subdevice.
+>
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+> ---
+>  linux/drivers/media/radio/si4713-i2c.c | 2015
+> ++++++++++++++++++++++++++++++++ linux/drivers/media/radio/si4713-i2c.h |
+>  226 ++++
+>  linux/include/media/si4713.h           |   40 +
+>  3 files changed, 2281 insertions(+), 0 deletions(-)
+>  create mode 100644 linux/drivers/media/radio/si4713-i2c.c
+>  create mode 100644 linux/drivers/media/radio/si4713-i2c.h
+>  create mode 100644 linux/include/media/si4713.h
+>
 
-Am Samstag, den 27.06.2009, 00:25 -0400 schrieb George Adams:
-> Thanks again to both of you for your help.  I gave the no_poweroff flag a try, but didn't see any difference.  I also tried a "setchannel 3" during the middle of the encoding session, and also saw no change.
+<snip>
 
-hm, I'm late on the party, but for Gerd's v4lctl try to RTFM.
+> diff --git a/linux/include/media/si4713.h b/linux/include/media/si4713.h
+> new file mode 100644
+> index 0000000..d0960e2
+> --- /dev/null
+> +++ b/linux/include/media/si4713.h
+> @@ -0,0 +1,40 @@
+> +/*
+> + * include/media/si4713.h
+> + *
+> + * Board related data definitions for Si4713 i2c device driver.
+> + *
+> + * Copyright (c) 2009 Nokia Corporation
+> + * Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
+> + *
+> + * This file is licensed under the terms of the GNU General Public
+> License + * version 2. This program is licensed "as is" without any
+> warranty of any + * kind, whether express or implied.
+> + *
+> + */
+> +
+> +#ifndef SI4713_H
+> +#define SI4713_H
+> +
+> +/* The SI4713 I2C sensor chip has a fixed slave address of 0xc6 or 0x22.
+> */ +#define SI4713_I2C_ADDR_BUSEN_HIGH	0x63
+> +#define SI4713_I2C_ADDR_BUSEN_LOW	0x11
+> +
+> +/*
+> + * Platform dependent definition
+> + */
+> +struct si4713_platform_data {
+> +	/* Set power state, zero is off, non-zero is on. */
+> +	int (*set_power)(int power);
+> +};
+> +
+> +/*
+> + * structure to query for RSSI.
+> + */
+> +struct si4713_rssi {
+> +	unsigned int frequency;
+> +	int rssi;
+> +};
 
-The "setchannel" options reads from .xawtv.
+I propose to change this struct a bit:
 
-For me it still works, but issues with tda827x silicon tuners are known
-walking the ioctls.
+struct si4713_rssi {
+	__u32 index;		/* modulator index */
+	__u32 frequency;	/* frequency */
+	__s32 rssi;		/* result */
+	__u32 reserved[4];	/* drivers and apps must init this to 0 */
+};
 
-Cheers,
-Hermann
+The idea is that in the future this might become a regular ioctl and in that 
+case it would be nice if we can just copy this struct to videodev2.h and 
+rename it. In that case the si4713 has to support both private and public 
+ioctls, but since the struct pointer passed to ioctl is the same for the 
+private and public ioctls it is very easy to implement that.
 
- 
-> But I think I've found the problem:
->  
-> > v4lctl setnorm NTSC; v4lctl setfreqtab us-bcast; v4lctl -v 1 setchannel 3
-> vid-open: trying: v4l2-old... 
-> vid-open: failed: v4l2-old
-> vid-open: trying: v4l2... 
-> v4l2: open
-> v4l2: device info:
->   em28xx 0.1.1 / Pinnacle PCTV HD Pro Stick @ usb-0000:00:1a.7-1
-> vid-open: ok: v4l2
-> freq: reading /usr/share/xawtv/Index.map
-> v4l2:   tuner cap:
-> v4l2:   tuner rxs:
-> v4l2:   tuner cur: MONO
-> cmd: "setchannel" "3"
-> v4l2: freq: 0.000
-> v4l2: close
->  
-> 
-> What?  freq: 0.000 ?  After finding the ivtv package and compiling its utils, I confirm it with this:
->  
-> > v4l2-ctl -F
-> Frequency: 0 (0.000000 MHz)
->  
-> > ivtv-tune -c 3
-> /dev/video0: 61.250 MHz
->  
-> > v4l2-ctl -F              
-> Frequency: 980 (61.250000 MHz)
->  
-> > v4lctl setchannel 3
-> 
-> > v4l2-ctl -F      
-> Frequency: 0 (0.000000 MHz)
->  
-> 
-> So mysteriously, it seems like v4lctl is just plain not working.  And ivtv-tune, on the other hand, is working just fine.  After I do that and start Helix Producer, I see channel 3 just like I had hoped.
->  
-> (strangely, v4lctl can do other things fine, like change the norm from NTSC to PAL.  It just can't change the channel.)
->  
-> So, sorry that it went off in rabbit trails of the device powering down and so forth.  I wonder what happened to my v4lctl program, though?  xawtv itself (running in X) seems to work fine when I tell it to change the channel...
->  
-> 
-> 
-> 
-> 
-> 
-> > Date: Fri, 26 Jun 2009 09:42:06 -0400
-> > Subject: Re: Bah! How do I change channels?
-> > From: dheitmueller@kernellabs.com
-> > To: awalls@radix.net
-> > CC: g_adams27@hotmail.com; video4linux-list@redhat.com; linux-media@vger.kernel.org
-> > 
-> > On Fri, Jun 26, 2009 at 7:50 AM, Andy Walls wrote:
-> >> I use either v4l2-ctl or ivtv-tune
-> >>
-> >> $ ivtv-tune -d /dev/video0 -t us-bcast -c 3
-> >> /dev/video0: 61.250 MHz
-> >>
-> >> $ v4l2-ctl -d /dev/video0 -f 61.250
-> >> Frequency set to 980 (61.250000 MHz)
-> >>
-> >>
-> >> Regards,
-> >> Andy
-> > 
-> > Hello Andy,
-> > 
-> > I had sent George some email off-list with basically the same
-> > commands. I think what might be happening here is the tuner gets
-> > powered down when not in use, so I think it might be powered down
-> > between the v4l-ctl command and the running of the other application.
-> > 
-> > I have sent him a series of commands to try where he modprobes the
-> > xc3028 driver with "no_poweroff=1", and we will see if that starts
-> > working.
-> > 
-> > Devin
-> > 
-> > -- 
-> > Devin J. Heitmueller - Kernel Labs
-> > http://www.kernellabs.com
+The rssi field needs to be documented better in this header: what is the 
+meaning of the returned value and what is the unit? Does it have to be a 
+signed value, or should it be unsigned instead?
+
+> +#define SI4713_IO_MEASURE_RSSI	_IOWR('V', BASE_VIDIOC_PRIVATE + 0, \
+> +						struct si4713_rssi)
+
+This needs to be documented as well: what exactly does it do? It is 
+important to have that information in this header for future reference.
+
+Can you also rename it to SI4713_IOC_MEASURE_RSSI? 'IOC' seems to be 
+preferred above 'IO'.
+
+Regards,
+
+	Hans
+
+> +
+> +#endif /* ifndef SI4713_H*/
 
 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
