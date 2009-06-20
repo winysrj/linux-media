@@ -1,64 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:44116 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765796AbZFQNSu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 09:18:50 -0400
-Date: Wed, 17 Jun 2009 10:18:45 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Matthias Schwarzott <zzam@gentoo.org>
-Cc: linux-media@vger.kernel.org,
-	Jan Nikitenko <jan.nikitenko@gmail.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Christopher Pascoe <c.pascoe@itee.uq.edu.au>
-Subject: Re: [PATCH] zl10353 and qt1010: fix stack corruption bug
-Message-ID: <20090617101845.425f9249@pedra.chehab.org>
-In-Reply-To: <200906171426.29468.zzam@gentoo.org>
-References: <4A28CEAD.9000000@gmail.com>
-	<20090616155937.3f5d869d@pedra.chehab.org>
-	<4A38DA79.70707@gmail.com>
-	<200906171426.29468.zzam@gentoo.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail.gmx.net ([213.165.64.20]:47419 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753240AbZFTVbz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Jun 2009 17:31:55 -0400
+From: Tobias Lorenz <tobias.lorenz@gmx.net>
+To: Edouard Lafargue <edouard@lafargue.name>
+Subject: Re: [PATCH / resubmit] USB interrupt support for radio-si470x FM radio driver
+Date: Sat, 20 Jun 2009 23:31:53 +0200
+Cc: Alexey Klimov <klimov.linux@gmail.com>,
+	linux-media@vger.kernel.org,
+	Douglas Schilling Landgraf <dougsland@gmail.com>
+References: <268161120906160611q32ac27a8r1574d4a9ffa63829@mail.gmail.com> <208cbae30906161448q16a7e00bx31e6d3b3c35111e5@mail.gmail.com> <268161120906171022j14645f78yf5e075679c30b57c@mail.gmail.com>
+In-Reply-To: <268161120906171022j14645f78yf5e075679c30b57c@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906202331.54058.tobias.lorenz@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 17 Jun 2009 14:26:28 +0200
-Matthias Schwarzott <zzam@gentoo.org> escreveu:
+Hi,
 
-> On Mittwoch, 17. Juni 2009, Jan Nikitenko wrote:
-> >
-> > Or we could use sizeof, like this:
-> >     char buf[sizeof("00: ") - 1 + 16 * (sizeof("00 ") - 1) + 1]
-> > or
-> >     char buf[sizeof("00: 00 01 02 03 04 05 06 07 08 09 0a 0b 0c 0d 0e 0f
-> > ")] but it is not very readable in my opinion either.
-> >
-> > Maybe the best way would be to avoid the need for temporal buffer
-> > completely by directly using printk in a loop, that is only the first
-> > printk with KERN_DEBUG, followed by sequence of printk with registers dump
-> > and final printk with end of line (but isn't a printk without KERN_
-> > facility coding style problem as well?).
-> >
+>    Following up on your comments, here is the patch against the
+> current mercurial tree, still works fine, and indeed, the stereo/mono
+> and strength indicators work better on this newer version. RDS
+> reception remains better with my patch :-) Now I just need to bundle
+> this with icecast to get mp3 streaming with embedded RDS info, but
+> that's outside of the scope of this list.
 > 
-> Exactly for this case, line continuation, there is KERN_CONT defined.
+>    Thanks for all your help, now on to Tobias, I guess!
 
-There are some functions meant for printing hex dumps at kernel.h:
+perfect patch. Thank you Ed. I never figured out how to use interrupt URBs. This really seams to fix the click problem on unbuffered audio forwarding.
 
-extern void hex_dump_to_buffer(const void *buf, size_t len,
-                                int rowsize, int groupsize,
-                                char *linebuf, size_t linebuflen, bool ascii);
-extern void print_hex_dump(const char *level, const char *prefix_str,
-                                int prefix_type, int rowsize, int groupsize,
-                                const void *buf, size_t len, bool ascii);
-extern void print_hex_dump_bytes(const char *prefix_str, int prefix_type,
-                        const void *buf, size_t len);
+The suggestion/question I have is if we want to keep the "users now" log messages in fops_open and fops_release.
+After all the testing today this fills up my logs...
 
-Also, it is possible to use kasprintf() to dynamically allocate a temporary
-buffer. If you use it, you'll need to do a kfree after its usage.
+I'm going to upload this to mercurial and send Mauro a pull request.
 
-
-
-Cheers,
-Mauro
+Bye,
+Toby
