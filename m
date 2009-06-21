@@ -1,1370 +1,416 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f214.google.com ([209.85.217.214]:57612 "EHLO
-	mail-gx0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752241AbZFTCiH (ORCPT
+Received: from an-out-0708.google.com ([209.85.132.250]:64144 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752133AbZFUAje convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jun 2009 22:38:07 -0400
-Received: by gxk10 with SMTP id 10so3515115gxk.13
-        for <linux-media@vger.kernel.org>; Fri, 19 Jun 2009 19:38:09 -0700 (PDT)
-Subject: Re: [Patch] New utility program atsc_epg added to dvb-apps utility
- suite.
-From: Yufei Yuan <yfyuan@gmail.com>
-Reply-To: yfyuan@gmail.com
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: Manu Abraham <abraham.manu@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <1245461313.3887.17.camel@pc07.localdom.local>
-References: <ccdf9f470906171618r26518ce7pa97d747e301009ca@mail.gmail.com>
-	 <1a297b360906180132l49aa7be4j8a1e238aa9bac65@mail.gmail.com>
-	 <1a297b360906180148lefc2d8fp972647ad0df64320@mail.gmail.com>
-	 <ccdf9f470906180606w1046ee88nda933b4e6638357a@mail.gmail.com>
-	 <ccdf9f470906181752u65c8d7f1nce46e3d46991b70c@mail.gmail.com>
-	 <ccdf9f470906181839h4047acc1t1d537300a0b4b581@mail.gmail.com>
-	 <1245458510.3887.10.camel@pc07.localdom.local>
-	 <ccdf9f470906191800j1f90eeceq40d876c0e019f89f@mail.gmail.com>
-	 <1245461313.3887.17.camel@pc07.localdom.local>
-Content-Type: text/plain
-Date: Fri, 19 Jun 2009 21:38:02 -0500
-Message-Id: <1245465487.14312.17.camel@core2duo.localdomain>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sat, 20 Jun 2009 20:39:34 -0400
+Received: by an-out-0708.google.com with SMTP id d40so4576802and.1
+        for <linux-media@vger.kernel.org>; Sat, 20 Jun 2009 17:39:35 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <COL103-W5242CD3E26117EB289B48488380@phx.gbl>
+References: <COL103-W5242CD3E26117EB289B48488380@phx.gbl>
+Date: Sat, 20 Jun 2009 20:39:35 -0400
+Message-ID: <829197380906201739h6f655751hd510281fafca31ba@mail.gmail.com>
+Subject: =?windows-1256?Q?Re=3A_=5Blinux=2Ddvb=5D_Can=27t_use_my_Pinnacle_PCTV_HD_Pro_st?=
+	=?windows-1256?Q?ick_=2D_what_am_I_doing_wrong=3F=FE?=
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ok, let me first summarize what I have done in order not to waste your time again. I used Evolution client, 
-used preformatted option, sent it to my other email box, forwarded it back and saved it as text file, then
-patched the original tree, so far everything looks okay. Hopefully you guys can do start to do next step.
+2009/6/20 George Adams <g_adams27@hotmail.com>:
+>
+> Hello.  I'm having problems getting my (USB) PCTV HD Pro Stick (800e,
+>
+> the "old" style) to work under V4L.  Could anyone spot the problem in
+>
+> what I'm doing?
+>
+>
+>
+> I'm running Ubuntu 8.04.2 LTS (the 2.6.24-24-server kernel), and am
+>
+> following this procedure (based on
+>
+> http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers).
+>
+> I intend to use this to tune to USA NTSC channel 3 (to capture a
+>
+> close-captioned feed inside our building)
+>
+>
+>
+> 1) Extract and copy the firmware file I need
+>
+>   (xc3028-v27.fw) to /lib/firmware
+>
+>
+>
+> 2) cd /usr/local/src
+>
+>
+>
+> 3) hg clone http://linuxtv.org/hg/v4l-dvb
+>
+>
+>
+> 4) cd v4l-dvb
+>
+>
+>
+> 5) make rminstall; make distclean; make; make install
+>
+>
+>
+> These seems to do what it's supposed to - installs the drivers into
+>
+> /lib/modules/2.6.24-24-server .  My PCTV HD Pro Stick uses the em28xx
+>
+> drivers.
+>
+>
+>
+>> find /lib/modules/ -type f -name "em28*" -mtime -1
+>
+>    /lib/modules/2.6.24-24-server/kernel/drivers/media/video/em28xx/em28xx.ko
+>
+>    /lib/modules/2.6.24-24-server/kernel/drivers/media/video/em28xx/em28xx-dvb.ko
+>
+>
+>
+> 6) Reboot with the USB capture device plugged in
+>
+>
+>
+> 7) Examine "dmesg" for details related to the capture device
+>
+>
+>
+> - em28xx: New device Pinnacle Systems PCTV 800e @ 480 Mbps (2304:0227, interface 0, class 0)
+>
+> - em28xx #0: Identified as Pinnacle PCTV HD Pro Stick (card=17)
+>
+> - em28xx #0: chip ID is em2882/em2883
+>
+> - - -> GSI 22 (level, low) -> IRQ 22
+>
+> - PCI: Setting latency timer of device 0000:00:1b.0 to 64
+>
+> - em28xx #0: i2c eeprom 00: 1a eb 67 95 04 23 27 02 d0 12 5c 03 8e 16 a4 1c
+>
+> - em28xx #0: i2c eeprom 10: 6a 24 27 57 46 07 01 00 00 00 00 00 00 00 00 00
+>
+> - em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 02 00 b8 00 00 00 5b 1c 00 00
+>
+> - em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 00 00 00 00 00 00
+>
+> - em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>
+> - em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>
+> - em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 24 03 50 00 69 00
+>
+> - em28xx #0: i2c eeprom 70: 6e 00 6e 00 61 00 63 00 6c 00 65 00 20 00 53 00
+>
+> - em28xx #0: i2c eeprom 80: 79 00 73 00 74 00 65 00 6d 00 73 00 00 00 16 03
+>
+> - em28xx #0: i2c eeprom 90: 50 00 43 00 54 00 56 00 20 00 38 00 30 00 30 00
+>
+> - em28xx #0: i2c eeprom a0: 65 00 00 00 1c 03 30 00 36 00 31 00 30 00 30 00
+>
+> - em28xx #0: i2c eeprom b0: 31 00 30 00 33 00 39 00 34 00 34 00 32 00 00 00
+>
+> - em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>
+> - em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>
+> - em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>
+> - em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+>
+> - em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x2de5abbf
+>
+> - em28xx #0: EEPROM info:
+>
+> - em28xx #0:       AC97 audio (5 sample rates)
+>
+> - em28xx #0:       500mA max power
+>
+> - em28xx #0:       Table at 0x27, strings=0x168e, 0x1ca4, 0x246a
+>
+> - hda_codec: Unknown model for ALC882, trying auto-probe from BIOS...
+>
+> - input: em28xx IR (em28xx #0) as /devices/pci0000:00/0000:00:1a.7/usb4/4-3/input/input6
+>
+> - - -> GSI 20 (level, low) -> IRQ 23
+>
+> - Vortex: init.... em28xx #0: Config register raw data: 0xd0
+>
+> - em28xx #0: AC97 vendor ID = 0xffffffff
+>
+> - em28xx #0: AC97 features = 0x6a90
+>
+> - em28xx #0: Empia 202 AC97 audio processor detected
+>
+> - em28xx #0: v4l2 driver version 0.1.2
+>
+> - em28xx #0: V4L2 device registered as /dev/video0 and /dev/vbi0
+>
+> - usbcore: registered new interface driver em28xx
+>
+> - em28xx driver loaded
+>
+> - xc2028 0-0061: creating new instance
+>
+> - xc2028 0-0061: type set to XCeive xc2028/xc3028 tuner
+>
+> - em28xx #0/2: xc3028 attached
+>
+> - DVB: registering new adapter (em28xx #0)
+>
+> - DVB: registering adapter 0 frontend 0 (LG Electronics LGDT3303 VSB/QAM Frontend)...
+>
+> - Successfully loaded em28xx-dvb
+>
+> - Em28xx: Initialized (Em28xx dvb Extension) extension
+>
+> - done.
+>
+>
+>
+> Everything looks good - the drivers are getting called and the card is
+>
+> recognized.  However, all my attempts to get something "out of it"
+>
+> aren't working.  I tried firing up "tvtime", but it just launches a
+>
+> blank, black screen and hanges.  The menu won't come up, the channel
+>
+> won't change, right-clicking isn't responsive, it won't close, and I
+>
+> have to kill it.
+>
+>
+>
+> I also tried mencoder, but I get this:
+>
+>
+>
+>> mencoder -nosound -tv driver=v4l2:width=640:height=480 tv://3 -o /tmp/tv.avi -ovc raw -endpos 5
+>
+>
+>
+> MEncoder 2:1.0~rc2-0ubuntu13.1+medibuntu1 (C) 2000-2007 MPlayer Team
+>
+> CPU: Intel(R) Core(TM)2 Quad CPU    Q9550  @ 2.83GHz
+>
+>  (Family: 6, Model: 23, Stepping: 10)
+>
+> CPUflags: Type: 6 MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1
+>
+> Compiled with runtime CPU detection.
+>
+> success: format: 9  data: 0x0 - 0x0
+>
+> TV file format detected.
+>
+> Selected driver: v4l2
+>
+>  name: Video 4 Linux 2 input
+>
+>  author: Martin Olschewski
+>
+>  comment: first try, more to come ;-)
+>
+> Selected device: Pinnacle PCTV HD Pro Stick
+>
+>  Tuner cap:
+>
+>  Tuner rxs:
+>
+>  Capabilites:  video capture  tuner  audio  read/write  streaming
+>
+>  supported norms: 0 = NTSC; 1 = NTSC-M; 2 = NTSC-M-JP; 3 = NTSC-M-KR; 4
+>
+>   = NTSC-443; 5 = PAL; 6 = PAL-BG; 7 = PAL-H; 8 = PAL-I; 9 = PAL-DK;
+>
+>   10 = PAL-M; 11 = PAL-N; 12 = PAL-Nc; 13 = PAL-60; 14 = SECAM; 15 =
+>
+>   SECAM-B; 16 = SECAM-G; 17 = SECAM-H; 18 = SECAM-DK; 19 = SECAM-L; 20
+>
+>   = SECAM-Lc;
+>
+>  inputs: 0 = Television; 1 = Composite1; 2 = S-Video;
+>
+>  Current input: 0
+>
+>  Current format: YUYV
+>
+> v4l2: ioctl set format failed: Invalid argument
+>
+> v4l2: ioctl set format failed: Invalid argument
+>
+> v4l2: ioctl set format failed: Invalid argument
+>
+> v4l2: ioctl query control failed: Invalid argument
+>
+> v4l2: ioctl query control failed: Invalid argument
+>
+> v4l2: ioctl query control failed: Invalid argument
+>
+> v4l2: ioctl query control failed: Invalid argument
+>
+> [V] filefmt:9  fourcc:0x32595559  size:640x480  fps:25.00  ftime:=0.0400
+>
+> Opening video filter: [expand osd=1]
+>
+> Expand: -1 x -1, -1 ; -1, osd: 1, aspect: 0.000000, round: 1
+>
+> ==========================================================================
+>
+> Opening video decoder: [raw] RAW Uncompressed Video
+>
+> VDec: vo config request - 640 x 480 (preferred colorspace: Packed YUY2)
+>
+> VDec: using Packed YUY2 as output csp (no 0)
+>
+> Movie-Aspect is undefined - no prescaling applied.
+>
+> Selected video codec: [rawyuy2] vfm: raw (RAW YUY2)
+>
+> ==========================================================================
+>
+> Forcing audio preload to 0, max pts correction to 0.
+>
+> v4l2: select timeout
+>
+>
+>
+> Skipping frame!
+>
+> Pos:   0.0s      1f ( 0%)  0.96fps Trem:   0min   0mb  A-V:0.000 [0:0]
+>
+> Skipping frame!
+>
+> v4l2: select timeout( 0%)  1.28fps Trem:   0min   0mb  A-V:0.000 [0:0]
+>
+>
+>
+> Skipping frame!
+>
+> Pos:   0.0s      3f ( 0%)  1.44fps Trem:   0min   0mb  A-V:0.000 [0:0]
+>
+> Skipping frame!
+>
+> v4l2: select timeout( 0%)  1.54fps Trem:   0min   0mb  A-V:0.000 [0:0]
+>
+>
+>
+> Skipping frame!
+>
+> Pos:   0.0s      5f ( 0%)  1.60fps Trem:   0min   0mb  A-V:0.000 [0:0]
+>
+> Skipping frame!
+>
+> v4l2: select timeout( 0%)  1.65fps Trem:   0min   0mb  A-V:0.000 [0:0]
+>
+>
+>
+> Skipping frame!
+>
+> Pos:   0.0s      7f ( 0%)  1.68fps Trem:   0min   0mb  A-V:0.000 [0:0]
+>
+> Skipping frame!
+>
+> Pos:   0.0s      8f ( 0%)  1.71fps Trem:   0min   0mb  A-V:0.000 [0:0]
+>
+>
+>
+>
+>
+> The resulting file (/tmp/tv.avi) is only 4K and not a valid AVI file.
+>
+>
+>
+>
+>
+>
+>
+> One thing I noticed that differs from what I was expecting is that
+>
+> nowhere in the "dmesg" output does it say anything about the firmware
+>
+> file.  I was expecting to see this in "dmesg":
+>
+>
+>
+> - firmware: requesting xc3028-v27.fw
+>
+> - xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw,
+>
+> -   type: xc2028 firmware, ver 2.7
+>
+>
+>
+> but nothing approximating those lines appears at all.  I tried deleting
+>
+> /lib/firmware/xc3028-v27.fw entirely to see if it would complain, but
+>
+> it loaded up exactly the same way after I rebooted...  and still didn't
+>
+> work.
+>
+>
+>
+> So my questions are:
+>
+>
+>
+> 1) Why is the firmware file not being read?  Has something happened to
+>
+> the em28xx drivers recently that causes this file not to be needed
+>
+> anymore?  Or is something else going wrong?
+>
+>
+>
+> 2) Is that the reason for the problem, or have you spotted something
+>
+> else I've done wrong?
+>
+>
+>
+> Thanks greatly to anyone who can help!
+>
+> _________________________________________________________________
+> Insert movie times and more without leaving Hotmail®.
+> http://windowslive.com/Tutorial/Hotmail/QuickAdd?ocid=TXT_TAGLM_WL_HM_Tutorial_QuickAdd_062009
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
-I do apologize for your wasted time.
+Hello George,
 
-Signed-off-by: Yufei Yuan <yfyuan@gmail.com>
+I did the original support for the PCTV 800e.  I just checked out the
+v4l-dvb latest code and tried it out, and everything looks ok from
+here (confirming there was no regression).
 
-diff -uprN dvb-apps/util/atsc_epg/atsc_epg.c dvb-apps_new/util/atsc_epg/atsc_epg.c
---- dvb-apps/util/atsc_epg/atsc_epg.c	1969-12-31 18:00:00.000000000 -0600
-+++ dvb-apps_new/util/atsc_epg/atsc_epg.c	2009-06-19 20:31:17.710924970 -0500
-@@ -0,0 +1,1249 @@
-+/*
-+ * atsc_epg utility
-+ *
-+ * Copyright (C) 2009 Yufei Yuan <yfyuan@gmail.com>
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-+ */
-+
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <unistd.h>
-+#include <string.h>
-+#include <time.h>
-+#include <signal.h>
-+#include <sys/types.h>
-+#include <sys/stat.h>
-+#include <fcntl.h>
-+#include <sys/ioctl.h>
-+#include <sys/poll.h>
-+#include <errno.h>
-+#include <getopt.h>
-+#include <stdarg.h>
-+#include <libdvbapi/dvbfe.h>
-+#include <libdvbapi/dvbdemux.h>
-+#include <libucsi/dvb/section.h>
-+#include <libucsi/atsc/section.h>
-+#include <libucsi/atsc/types.h>
-+
-+#define TIMEOUT				60
-+#define RRT_TIMEOUT			60
-+#define MAX_NUM_EVENT_TABLES		128
-+#define TITLE_BUFFER_LEN		4096
-+#define MESSAGE_BUFFER_LEN		(16 * 1024)
-+#define MAX_NUM_CHANNELS		16
-+#define MAX_NUM_EVENTS_PER_CHANNEL	(4 * 24 * 7)
-+
-+static int atsc_scan_table(int dmxfd, uint16_t pid, enum atsc_section_tag tag,
-+	void **table_section);
-+
-+static const char *program;
-+static int adapter = 0;
-+static int period = 12; /* hours */
-+static int frequency;
-+static int enable_ett = 0;
-+static int ctrl_c = 0;
-+static const char *modulation = NULL;
-+static char separator[80];
-+void (*old_handler)(int);
-+
-+struct atsc_string_buffer {
-+	int buf_len;
-+	int buf_pos;
-+	char *string;
-+};
-+
-+struct atsc_event_info {
-+	uint16_t id;
-+	struct tm start;
-+	struct tm end;
-+	int title_pos;
-+	int title_len;
-+	int msg_pos;
-+	int msg_len;
-+};
-+
-+struct atsc_eit_section_info {
-+	uint8_t section_num;
-+	uint8_t num_events;
-+	uint8_t num_etms;
-+	uint8_t num_received_etms;
-+	struct atsc_event_info **events;
-+};
-+
-+struct atsc_eit_info {
-+	int num_eit_sections;
-+	struct atsc_eit_section_info *section;
-+};
-+
-+struct atsc_channel_info {
-+	uint8_t num_eits;
-+	uint8_t service_type;
-+	char short_name[8];
-+	uint16_t major_num;
-+	uint16_t minor_num;
-+	uint16_t tsid;
-+	uint16_t prog_num;
-+	uint16_t src_id;
-+	struct atsc_eit_info *eit;
-+	struct atsc_event_info *last_event;
-+	int event_info_index;
-+	struct atsc_event_info e[MAX_NUM_EVENTS_PER_CHANNEL];
-+	struct atsc_string_buffer title_buf;
-+	struct atsc_string_buffer msg_buf;
-+};
-+
-+struct atsc_virtual_channels_info {
-+	int num_channels;
-+	uint16_t eit_pid[MAX_NUM_EVENT_TABLES];
-+	uint16_t ett_pid[MAX_NUM_EVENT_TABLES];
-+	struct atsc_channel_info ch[MAX_NUM_CHANNELS];
-+} guide;
-+
-+struct mgt_table_name {
-+	uint16_t range;
-+	const char *string;
-+};
-+
-+struct mgt_table_name mgt_tab_name_array[] = {
-+	{0x0000, "terrestrial VCT with current_next_indictor=1"},
-+	{0x0001, "terrestrial VCT with current_next_indictor=0"},
-+	{0x0002, "cable VCT with current_next_indictor=1"},
-+	{0x0003, "cable VCT with current_next_indictor=0"},
-+	{0x0004, "channel ETT"},
-+	{0x0005, "DCCSCT"},
-+	{0x00FF, "reserved for future ATSC use"},
-+	{0x017F, "EIT"},
-+	{0x01FF, "reserved for future ATSC use"},
-+	{0x027F, "event ETT"},
-+	{0x02FF, "reserved for future ATSC use"}, /* FIXME */
-+	{0x03FF, "RRT with rating region"},
-+	{0x0FFF, "user private"},
-+	{0x13FF, "reserved for future ATSC use"},
-+	{0x14FF, "DCCT with dcc_id"},
-+	{0xFFFF, "reserved for future ATSC use"}
-+};
-+
-+const char *channel_modulation_mode[] = {
-+	"",
-+	"analog",
-+	"SCTE mode 1",
-+	"SCTE mode 2",
-+	"ATSC 8VSB",
-+	"ATSC 16VSB"
-+};
-+
-+const char *channel_service_type[] = {
-+	"",
-+	"analog TV",
-+	"ATSC digital TV",
-+	"ATSC audio",
-+	"ATSC data-only"
-+};
-+
-+void *(*table_callback[16])(struct atsc_section_psip *) =
-+{
-+	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-+	(void *(*)(struct atsc_section_psip *))atsc_mgt_section_codec,
-+	(void *(*)(struct atsc_section_psip *))atsc_tvct_section_codec,
-+	(void *(*)(struct atsc_section_psip *))atsc_cvct_section_codec,
-+	(void *(*)(struct atsc_section_psip *))atsc_rrt_section_codec,
-+	(void *(*)(struct atsc_section_psip *))atsc_eit_section_codec,
-+	(void *(*)(struct atsc_section_psip *))atsc_ett_section_codec,
-+	(void *(*)(struct atsc_section_psip *))atsc_stt_section_codec,
-+	NULL, NULL
-+};
-+
-+static void int_handler(int sig_num)
-+{
-+	if(SIGINT != sig_num) {
-+		return;
-+	}
-+	ctrl_c = 1;
-+}
-+
-+/* shamelessly stolen from dvbsnoop, but almost not modified */
-+static uint32_t get_bits(const uint8_t *buf, int startbit, int bitlen)
-+{
-+	const uint8_t *b;
-+	uint32_t mask,tmp_long;
-+	int bitHigh,i;
-+
-+	b = &buf[startbit / 8];
-+	startbit %= 8;
-+
-+	bitHigh = 8;
-+	tmp_long = b[0];
-+	for (i = 0; i < ((bitlen-1) >> 3); i++) {
-+		tmp_long <<= 8;
-+		tmp_long  |= b[i+1];
-+		bitHigh   += 8;
-+	}
-+
-+	startbit = bitHigh - startbit - bitlen;
-+	tmp_long = tmp_long >> startbit;
-+	mask     = (1ULL << bitlen) - 1;
-+	return tmp_long & mask;
-+}
-+
-+static void usage(void)
-+{
-+	fprintf(stderr, "usage: %s [-a <n>] -f <frequency> [-p <period>]"
-+		" [-m <modulation>] [-t] [-h]\n", program);
-+}
-+
-+static void help(void)
-+{
-+	fprintf(stderr,
-+	"\nhelp:\n"
-+	"%s [-a <n>] -f <frequency> [-p <period>] [-m <modulation>] [-t] [-h]\n"
-+	"  -a: adapter index to use, (default 0)\n"
-+	"  -f: tuning frequency\n"
-+	"  -p: period in hours, (default 12)\n"
-+	"  -m: modulation ATSC vsb_8|vsb_16 (default vsb_8)\n"
-+	"  -t: enable ETT to receive program details, if available\n"
-+	"  -h: display this message\n", program);
-+}
-+
-+static int close_frontend(struct dvbfe_handle *fe)
-+{
-+	if(NULL == fe) {
-+		fprintf(stderr, "%s(): NULL pointer detected\n", __FUNCTION__);
-+	}
-+
-+	dvbfe_close(fe);
-+
-+	return 0;
-+}
-+
-+static int open_frontend(struct dvbfe_handle **fe)
-+{
-+	struct dvbfe_info fe_info;
-+
-+	if(NULL == (*fe = dvbfe_open(adapter, 0, 0))) {
-+		fprintf(stderr, "%s(): error calling dvbfe_open()\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+	dvbfe_get_info(*fe, 0, &fe_info, DVBFE_INFO_QUERYTYPE_IMMEDIATE, 0);
-+	if(DVBFE_TYPE_ATSC != fe_info.type) {
-+		fprintf(stderr, "%s(): only ATSC frontend supported currently\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+	fe_info.feparams.frequency = frequency;
-+	fe_info.feparams.inversion = DVBFE_INVERSION_AUTO;
-+	fe_info.feparams.u.atsc.modulation = DVBFE_ATSC_MOD_VSB_8;
-+	fprintf(stdout, "tuning to %d Hz, please wait...\n", frequency);
-+	if(dvbfe_set(*fe, &fe_info.feparams, TIMEOUT * 1000)) {
-+		fprintf(stderr, "%s(): cannot lock to %d Hz in %d seconds\n",
-+			__FUNCTION__, frequency, TIMEOUT);
-+		return -1;
-+	}
-+	fprintf(stdout, "tuner locked.\n");
-+
-+	return 0;
-+}
-+
-+#ifdef ENABLE_RRT
-+/* this is untested as since this part of the library is broken */
-+static int parse_rrt(int dmxfd)
-+{
-+	const enum atsc_section_tag tag = stag_atsc_rating_region;
-+	struct atsc_rrt_section *rrt;
-+	struct atsc_text *region_name;
-+	struct atsc_text_string *atsc_str;
-+	int i, j, ret;
-+
-+	i = 0;
-+	fprintf(stdout, "waiting for RRT: ");
-+	fflush(stdout);
-+	while(i < RRT_TIMEOUT) {
-+		ret = atsc_scan_table(dmxfd, ATSC_BASE_PID, tag, (void **)&rrt);
-+		if(0 > ret) {
-+			fprintf(stderr, "%s(): error calling atsc_scan_table()\n",
-+				__FUNCTION__);
-+			return -1;
-+		}
-+		if(0 == ret) {
-+			if(RRT_TIMEOUT > i) {
-+				fprintf(stdout, ".");
-+				fflush(stdout);
-+			} else {
-+				fprintf(stdout, "\nno RRT in %d seconds\n",
-+					RRT_TIMEOUT);
-+				return 0;
-+			}
-+			i += TIMEOUT;
-+		} else {
-+			fprintf(stdout, "\n");
-+			fflush(stdout);
-+			break;
-+		}
-+	}
-+
-+	region_name = atsc_rrt_section_rating_region_name_text(rrt);
-+	atsc_text_strings_for_each(region_name, atsc_str, i) {
-+		struct atsc_text_string_segment *seg;
-+
-+		atsc_text_string_segments_for_each(atsc_str, seg, j) {
-+			const char *c;
-+			int k;
-+			if(seg->mode < 0x3E) {
-+				fprintf(stderr, "%s(): text mode of 0x%02X "
-+					"not supported yet\n",
-+					__FUNCTION__, seg->mode);
-+				return -1;
-+			}
-+			c = (const char *)atsc_text_string_segment_bytes(seg);
-+			for(k = 0; k < seg->number_bytes; k++) {
-+				fprintf(stdout, "%c", c[k]);
-+			}
-+		}
-+	}
-+
-+	return 0;
-+}
-+#endif
-+
-+static int parse_stt(int dmxfd)
-+{
-+	const enum atsc_section_tag tag = stag_atsc_system_time;
-+	const struct atsc_stt_section *stt;
-+	time_t rx_time;
-+	time_t sys_time;
-+	int ret;
-+
-+	ret = atsc_scan_table(dmxfd, ATSC_BASE_PID, tag, (void **)&stt);
-+	if(0 > ret) {
-+		fprintf(stderr, "%s(): error calling atsc_scan_table()\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+	if(0 == ret) {
-+		fprintf(stdout, "no STT in %d seconds\n", TIMEOUT);
-+		return 0;
-+	}
-+
-+	rx_time = atsctime_to_unixtime(stt->system_time);
-+	time(&sys_time);
-+	fprintf(stdout, "system time: %s", ctime(&sys_time));
-+	fprintf(stdout, "TS STT time: %s", ctime(&rx_time));
-+
-+	return 0;
-+}
-+
-+static int parse_tvct(int dmxfd)
-+{
-+	int num_sections;
-+	uint32_t section_pattern;
-+	const enum atsc_section_tag tag = stag_atsc_terrestrial_virtual_channel;
-+	struct atsc_tvct_section *tvct;
-+	struct atsc_tvct_channel *ch;
-+	struct atsc_channel_info *curr_info;
-+	int i, k, ret;
-+
-+	section_pattern = 0;
-+	num_sections = -1;
-+
-+	do {
-+		ret = atsc_scan_table(dmxfd, ATSC_BASE_PID, tag, (void **)&tvct);
-+		if(0 > ret) {
-+			fprintf(stderr, "%s(): error calling atsc_scan_table()\n",
-+			__FUNCTION__);
-+			return -1;
-+		}
-+		if(0 == ret) {
-+			fprintf(stdout, "no TVCT in %d seconds\n", TIMEOUT);
-+			return 0;
-+		}
-+
-+		if(-1 == num_sections) {
-+			num_sections = 1 + tvct->head.ext_head.last_section_number;
-+			if(32 < num_sections) {
-+				fprintf(stderr, "%s(): no support yet for "
-+					"tables having more than 32 sections\n",
-+					__FUNCTION__);
-+				return -1;
-+			}
-+		} else {
-+			if(num_sections !=
-+				1 + tvct->head.ext_head.last_section_number) {
-+				fprintf(stderr,
-+					"%s(): last section number does not match\n",
-+					__FUNCTION__);
-+				return -1;
-+			}
-+		}
-+		if(section_pattern & (1 << tvct->head.ext_head.section_number)) {
-+			continue;
-+		}
-+		section_pattern |= 1 << tvct->head.ext_head.section_number;
-+
-+		if(MAX_NUM_CHANNELS < guide.num_channels +
-+			tvct->num_channels_in_section) {
-+			fprintf(stderr, "%s(): no support for more than %d "
-+				"virtual channels in a pyhsical channel\n",
-+				__FUNCTION__, MAX_NUM_CHANNELS);
-+			return -1;
-+		}
-+		curr_info = &guide.ch[guide.num_channels];
-+		guide.num_channels += tvct->num_channels_in_section;
-+
-+	atsc_tvct_section_channels_for_each(tvct, ch, i) {
-+		/* initialize the curr_info structure */
-+		/* each EIT covers 3 hours */
-+		curr_info->num_eits = (period / 3) + !!(period % 3);
-+		while (curr_info->num_eits &&
-+			(0xFFFF == guide.eit_pid[curr_info->num_eits - 1])) {
-+			curr_info->num_eits -= 1;
-+		}
-+		if(curr_info->eit) {
-+			fprintf(stderr, "%s(): non-NULL pointer detected "
-+				"during initialization", __FUNCTION__);
-+			return -1;
-+		}
-+		if(NULL == (curr_info->eit = calloc(curr_info->num_eits,
-+			sizeof(struct atsc_eit_info)))) {
-+			fprintf(stderr, "%s(): error calling calloc()\n",
-+				__FUNCTION__);
-+			return -1;
-+		}
-+		if(NULL == (curr_info->title_buf.string = calloc(TITLE_BUFFER_LEN,
-+			sizeof(char)))) {
-+			fprintf(stderr, "%s(): error calling calloc()\n",
-+				__FUNCTION__);
-+			return -1;
-+		}
-+		curr_info->title_buf.buf_len = TITLE_BUFFER_LEN;
-+		curr_info->title_buf.buf_pos = 0;
-+
-+		if(NULL == (curr_info->msg_buf.string = calloc(MESSAGE_BUFFER_LEN,
-+			sizeof(char)))) {
-+			fprintf(stderr, "%s(): error calling calloc()\n",
-+				__FUNCTION__);
-+			return -1;
-+		}
-+		curr_info->msg_buf.buf_len = MESSAGE_BUFFER_LEN;
-+		curr_info->msg_buf.buf_pos = 0;
-+
-+		for(k = 0; k < 7; k++) {
-+			curr_info->short_name[k] =
-+				get_bits((const uint8_t *)ch->short_name,
-+				k * 16, 16);
-+		}
-+		curr_info->service_type = ch->service_type;
-+		curr_info->major_num = ch->major_channel_number;
-+		curr_info->minor_num = ch->minor_channel_number;
-+		curr_info->tsid = ch->channel_TSID;
-+		curr_info->prog_num = ch->program_number;
-+		curr_info->src_id = ch->source_id;
-+		curr_info++;
-+		}
-+	} while(section_pattern != (uint32_t)((1 << num_sections) - 1));
-+
-+	return 0;
-+}
-+
-+static int match_event(struct atsc_eit_info *eit, uint16_t event_id,
-+	struct atsc_event_info **event, uint8_t *curr_index)
-+{
-+	int j, k;
-+	struct atsc_eit_section_info *section;
-+
-+	if(NULL == eit || NULL == event || NULL == curr_index) {
-+		fprintf(stderr, "%s(): NULL pointer detected\n", __FUNCTION__);
-+		return -1;
-+	}
-+
-+	for(j = 0; j < eit->num_eit_sections; j++) {
-+		section = &eit->section[j];
-+
-+		for(k = 0; k < section->num_events; k++) {
-+			if(section->events[k] && section->events[k]->id ==
-+				event_id) {
-+				*event = section->events[k];
-+				break;
-+			}
-+		}
-+		if(*event) {
-+			*curr_index = j;
-+			break;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int parse_message(struct atsc_channel_info *channel,
-+	struct atsc_ett_section *ett, struct atsc_event_info *event)
-+{
-+	int i, j;
-+	struct atsc_text *text;
-+	struct atsc_text_string *str;
-+
-+	if(NULL == ett || NULL == event || NULL == channel) {
-+		fprintf(stderr, "%s(): NULL pointer detected\n", __FUNCTION__);
-+		return -1;
-+	}
-+
-+	text = atsc_ett_section_extended_text_message(ett);
-+	atsc_text_strings_for_each(text, str, i) {
-+		struct atsc_text_string_segment *seg;
-+
-+		atsc_text_string_segments_for_each(str, seg, j) {
-+			event->msg_pos = channel->msg_buf.buf_pos;
-+			if(0 > atsc_text_segment_decode(seg,
-+				(uint8_t **)&channel->msg_buf.string,
-+				(size_t *)&channel->msg_buf.buf_len,
-+				(size_t *)&channel->msg_buf.buf_pos)) {
-+				fprintf(stderr, "%s(): error calling "
-+					"atsc_text_segment_decode()\n",
-+					__FUNCTION__);
-+				return -1;
-+			}
-+			event->msg_len = channel->msg_buf.buf_pos -
-+				event->msg_pos;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int parse_ett(int dmxfd, int index, uint16_t pid)
-+{
-+	uint8_t curr_index;
-+	uint32_t section_pattern;
-+	const enum atsc_section_tag tag = stag_atsc_extended_text;
-+	struct atsc_eit_info *eit;
-+	struct atsc_ett_section *ett;
-+	struct atsc_channel_info *channel;
-+	struct atsc_event_info *event;
-+	struct atsc_eit_section_info *section;
-+	uint16_t source_id, event_id;
-+	int c, ret;
-+
-+	if(0xFFFF == guide.ett_pid[index]) {
-+		return 0;
-+	}
-+
-+	for(c = 0; c < guide.num_channels; c++) {
-+		channel = &guide.ch[c];
-+		eit = &channel->eit[index];
-+
-+		section_pattern = 0;
-+		while(section_pattern !=
-+			(uint32_t)((1 << eit->num_eit_sections) - 1)) {
-+			if(ctrl_c) {
-+				return 0;
-+			}
-+			ret = atsc_scan_table(dmxfd, pid, tag, (void **)&ett);
-+			fprintf(stdout, ".");
-+			fflush(stdout);
-+			if(0 > ret) {
-+				fprintf(stderr, "%s(): error calling "
-+					"atsc_scan_table()\n", __FUNCTION__);
-+				return -1;
-+			}
-+			if(0 == ret) {
-+				fprintf(stdout, "no ETT %d in %d seconds\n",
-+					index, TIMEOUT);
-+				return 0;
-+			}
-+
-+			source_id = ett->ETM_source_id;
-+			event_id = ett->ETM_sub_id;
-+			if(source_id != channel->src_id) {
-+				continue;
-+			}
-+
-+			event = NULL;
-+			if(match_event(eit, event_id, &event, &curr_index)) {
-+				fprintf(stderr, "%s(): error calling "
-+					"match_event()\n", __FUNCTION__);
-+				return -1;
-+			}
-+			if(NULL == event) {
-+				continue;
-+			}
-+			if(section_pattern & (1 << curr_index)) {
-+				/* the section has been filled, so skip,
-+				 * not consider version yet
-+				 */
-+				continue;
-+			}
-+			if(event->msg_len) {
-+				/* the message has been filled */
-+				continue;
-+			}
-+
-+			if(parse_message(channel, ett, event)) {
-+				fprintf(stderr, "%s(): error calling "
-+					"parse_message()\n", __FUNCTION__);
-+				return -1;
-+			}
-+			section = &eit->section[curr_index];
-+			if(++section->num_received_etms == section->num_etms) {
-+				section_pattern |= 1 << curr_index;
-+			}
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int parse_events(struct atsc_channel_info *curr_info,
-+	struct atsc_eit_section *eit, struct atsc_eit_section_info *section)
-+{
-+	int i, j, k;
-+	struct atsc_eit_event *e;
-+	time_t start_time, end_time;
-+
-+	if(NULL == curr_info || NULL == eit) {
-+		fprintf(stderr, "%s(): NULL pointer detected\n", __FUNCTION__);
-+		return -1;
-+	}
-+
-+	atsc_eit_section_events_for_each(eit, e, i) {
-+		struct atsc_text *title;
-+		struct atsc_text_string *str;
-+		struct atsc_event_info *e_info =
-+			&curr_info->e[curr_info->event_info_index];
-+
-+		if(0 == i && curr_info->last_event) {
-+			if(e->event_id == curr_info->last_event->id) {
-+				section->events[i] = NULL;
-+				/* skip if it's the same event spanning
-+				 * over sections
-+				 */
-+				continue;
-+			}
-+		}
-+		curr_info->event_info_index += 1;
-+		section->events[i] = e_info;
-+		e_info->id = e->event_id;
-+		start_time = atsctime_to_unixtime(e->start_time);
-+		end_time = start_time + e->length_in_seconds;
-+		localtime_r(&start_time, &e_info->start);
-+		localtime_r(&end_time, &e_info->end);
-+		if(0 != e->ETM_location && 3 != e->ETM_location) {
-+			/* FIXME assume 1 and 2 is interchangable as of now */
-+			section->num_etms++;
-+		}
-+
-+		title = atsc_eit_event_name_title_text(e);
-+		atsc_text_strings_for_each(title, str, j) {
-+			struct atsc_text_string_segment *seg;
-+
-+			atsc_text_string_segments_for_each(str, seg, k) {
-+				e_info->title_pos = curr_info->title_buf.buf_pos;
-+				if(0 > atsc_text_segment_decode(seg,
-+					(uint8_t **)&curr_info->title_buf.string,
-+					(size_t *)&curr_info->title_buf.buf_len,
-+					(size_t *)&curr_info->title_buf.buf_pos)) {
-+					fprintf(stderr, "%s(): error calling "
-+						"atsc_text_segment_decode()\n",
-+						__FUNCTION__);
-+					return -1;
-+				}
-+				e_info->title_len = curr_info->title_buf.buf_pos -
-+					e_info->title_pos + 1;
-+			}
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int parse_eit(int dmxfd, int index, uint16_t pid)
-+{
-+	int num_sections;
-+	uint8_t section_num;
-+	uint8_t curr_channel_index;
-+	uint32_t section_pattern;
-+	const enum atsc_section_tag tag = stag_atsc_event_information;
-+	struct atsc_eit_section *eit;
-+	struct atsc_channel_info *curr_info;
-+	struct atsc_eit_info *eit_info;
-+	struct atsc_eit_section_info *section;
-+	uint16_t source_id;
-+	uint32_t eit_instance_pattern = 0;
-+	int i, k, ret;
-+
-+	while(eit_instance_pattern !=
-+		(uint32_t)((1 << guide.num_channels) - 1)) {
-+		source_id = 0xFFFF;
-+		section_pattern = 0;
-+		num_sections = -1;
-+
-+		do {
-+			ret = atsc_scan_table(dmxfd, pid, tag, (void **)&eit);
-+			fprintf(stdout, ".");
-+			fflush(stdout);
-+			if(0 > ret) {
-+				fprintf(stderr, "%s(): error calling "
-+					"atsc_scan_table()\n", __FUNCTION__);
-+				return -1;
-+			}
-+			if(0 == ret) {
-+				fprintf(stdout, "no EIT %d in %d seconds\n",
-+					index, TIMEOUT);
-+				return 0;
-+			}
-+
-+			if(0xFFFF == source_id) {
-+			source_id = atsc_eit_section_source_id(eit);
-+			for(k = 0; k < guide.num_channels; k++) {
-+				if(source_id == guide.ch[k].src_id) {
-+					curr_info = &guide.ch[k];
-+					curr_channel_index = k;
-+					if(0 == index) {
-+						curr_info->last_event = NULL;
-+					}
-+					break;
-+				}
-+			}
-+			if(k == guide.num_channels) {
-+				fprintf(stderr, "%s(): cannot find source_id "
-+					"0x%04X in the EIT\n",
-+					__FUNCTION__, source_id);
-+				return -1;
-+			}
-+			} else {
-+				if(source_id !=
-+					atsc_eit_section_source_id(eit)) {
-+					continue;
-+				}
-+			}
-+			if(eit_instance_pattern & (1 << curr_channel_index)) {
-+				/* we have received this instance,
-+				 * so quit quick
-+				 */
-+				break;
-+			}
-+
-+			if(-1 == num_sections) {
-+				num_sections = 1 +
-+					eit->head.ext_head.last_section_number;
-+				if(32 < num_sections) {
-+					fprintf(stderr,
-+						"%s(): no support yet for "
-+						"tables having more than "
-+						"32 sections\n", __FUNCTION__);
-+					return -1;
-+				}
-+			} else {
-+				if(num_sections != 1 +
-+					eit->head.ext_head.last_section_number) {
-+					fprintf(stderr,
-+						"%s(): last section number "
-+						"does not match\n",
-+						__FUNCTION__);
-+					return -1;
-+				}
-+			}
-+			if(section_pattern &
-+				(1 << eit->head.ext_head.section_number)) {
-+				continue;
-+			}
-+			section_pattern |= 1 << eit->head.ext_head.section_number;
-+
-+			eit_info = &curr_info->eit[index];
-+			if(NULL == (eit_info->section =
-+				realloc(eit_info->section,
-+				(eit_info->num_eit_sections + 1) *
-+				sizeof(struct atsc_eit_section_info)))) {
-+				fprintf(stderr,
-+					"%s(): error calling realloc()\n",
-+					__FUNCTION__);
-+				return -1;
-+			}
-+			section_num = eit->head.ext_head.section_number;
-+			if(0 == eit_info->num_eit_sections) {
-+				eit_info->num_eit_sections = 1;
-+				section = eit_info->section;
-+			} else {
-+				/* have to sort it into section order
-+				 * (temporal order)
-+				 */
-+				for(i = 0; i < eit_info->num_eit_sections; i++) {
-+					if(eit_info->section[i].section_num >
-+						section_num) {
-+						break;
-+					}
-+				}
-+				memmove(&eit_info->section[i + 1],
-+					&eit_info->section[i],
-+					(eit_info->num_eit_sections - i) *
-+					sizeof(struct atsc_eit_section_info));
-+				section = &eit_info->section[i - 1];
-+				section = &eit_info->section[i];
-+				eit_info->num_eit_sections += 1;
-+			}
-+
-+			section->section_num = section_num;
-+			section->num_events = eit->num_events_in_section;
-+			section->num_etms = 0;
-+			section->num_received_etms = 0;
-+			if(NULL == (section->events = calloc(section->num_events,
-+				sizeof(struct atsc_event_info *)))) {
-+				fprintf(stderr, "%s(): error calling calloc()\n",
-+					__FUNCTION__);
-+				return -1;
-+			}
-+			if(parse_events(curr_info, eit, section)) {
-+				fprintf(stderr, "%s(): error calling "
-+					"parse_events()\n", __FUNCTION__);
-+				return -1;
-+			}
-+		} while(section_pattern != (uint32_t)((1 << num_sections) - 1));
-+		eit_instance_pattern |= 1 << curr_channel_index;
-+	}
-+
-+	for(i = 0; i < guide.num_channels; i++) {
-+		struct atsc_channel_info *channel = &guide.ch[i];
-+		struct atsc_eit_info *ei = &channel->eit[index];
-+		struct atsc_eit_section_info *s;
-+
-+		if(0 == ei->num_eit_sections) {
-+			channel->last_event = NULL;
-+			continue;
-+		}
-+		s = &ei->section[ei->num_eit_sections - 1];
-+		/* BUG: it's incorrect when last section has no event */
-+		if(0 == s->num_events) {
-+			channel->last_event = NULL;
-+			continue;
-+		}
-+		channel->last_event = s->events[s->num_events - 1];
-+	}
-+
-+	return 0;
-+}
-+
-+static int parse_mgt(int dmxfd)
-+{
-+	const enum atsc_section_tag tag = stag_atsc_master_guide;
-+	struct atsc_mgt_section *mgt;
-+	struct atsc_mgt_table *t;
-+	int i, j, ret;
-+
-+	ret = atsc_scan_table(dmxfd, ATSC_BASE_PID, tag, (void **)&mgt);
-+	if(0 > ret) {
-+		fprintf(stderr, "%s(): error calling atsc_scan_table()\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+	if(0 == ret) {
-+		fprintf(stdout, "no MGT in %d seconds\n", TIMEOUT);
-+		return 0;
-+	}
-+
-+	fprintf(stdout, "MGT table:\n");
-+	atsc_mgt_section_tables_for_each(mgt, t, i) {
-+		struct mgt_table_name table;
-+
-+	for(j = 0; j < (int)(sizeof(mgt_tab_name_array) /
-+		sizeof(struct mgt_table_name)); j++) {
-+		if(t->table_type > mgt_tab_name_array[j].range) {
-+			continue;
-+		}
-+		table = mgt_tab_name_array[j];
-+		if(0 == j || mgt_tab_name_array[j - 1].range + 1 ==
-+			mgt_tab_name_array[j].range) {
-+			j = -1;
-+		} else {
-+			j = t->table_type - mgt_tab_name_array[j - 1].range - 1;
-+			if(0x017F == table.range) {
-+				guide.eit_pid[j] = t->table_type_PID;
-+			} else if (0x027F == table.range) {
-+				guide.ett_pid[j] = t->table_type_PID;
-+			}
-+		}
-+		break;
-+	}
-+
-+		fprintf(stdout, "  %2d: type = 0x%04X, PID = 0x%04X, %s", i,
-+			t->table_type, t->table_type_PID, table.string);
-+		if(-1 != j) {
-+			fprintf(stdout, " %d", j);
-+		}
-+		fprintf(stdout, "\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static int cleanup_guide(void)
-+{
-+	int i, j, k;
-+
-+	for(i = 0; i < guide.num_channels; i++) {
-+		struct atsc_channel_info *channel = &guide.ch[i];
-+
-+		if(channel->title_buf.string) {
-+			free(channel->title_buf.string);
-+		}
-+		if(channel->msg_buf.string) {
-+			free(channel->msg_buf.string);
-+		}
-+		for(j = 0; j < channel->num_eits; j++) {
-+			struct atsc_eit_info *eit = &channel->eit[j];
-+
-+			for(k = 0; k < eit->num_eit_sections; k++) {
-+				struct atsc_eit_section_info *section =
-+					&eit->section[k];
-+				if(section->num_events) {
-+					free(section->events);
-+				}
-+			}
-+			if(k) {
-+				free(eit->section);
-+			}
-+		}
-+		if(j) {
-+			free(channel->eit);
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int print_events(struct atsc_channel_info *channel,
-+	struct atsc_eit_section_info *section)
-+{
-+	int m;
-+	char line[256];
-+
-+	if(NULL == section) {
-+		fprintf(stderr, "%s(): NULL pointer detected", __FUNCTION__);
-+		return -1;
-+	}
-+	for(m = 0; m < section->num_events; m++) {
-+		struct atsc_event_info *event =
-+			section->events[m];
-+
-+		if(NULL == event) {
-+			continue;
-+		}
-+		fprintf(stdout, "|%02d:%02d--%02d:%02d| ",
-+			event->start.tm_hour, event->start.tm_min,
-+			event->end.tm_hour, event->end.tm_min);
-+		snprintf(line, event->title_len, "%s",
-+			&channel->title_buf.string[event->title_pos]);
-+		line[event->title_len] = '\0';
-+		fprintf(stdout, "%s\n", line);
-+		if(event->msg_len) {
-+			int len = event->msg_len;
-+			int pos = event->msg_pos;
-+			size_t part;
-+
-+			do {
-+				part = len > 255 ? 255 : len;
-+				snprintf(line, part + 1, "%s",
-+					&channel->msg_buf.string[pos]);
-+				line[part] = '\0';
-+				fprintf(stdout, "%s", line);
-+				len -= part;
-+				pos += part;
-+			} while(0 < len);
-+			fprintf(stdout, "\n");
-+		}
-+	}
-+	return 0;
-+}
-+
-+static int print_guide(void)
-+{
-+	int i, j, k;
-+
-+	fprintf(stdout, "%s\n", separator);
-+	for(i = 0; i < guide.num_channels; i++) {
-+		struct atsc_channel_info *channel = &guide.ch[i];
-+
-+		fprintf(stdout, "%d.%d  %s\n", channel->major_num,
-+			channel->minor_num, channel->short_name);
-+		for(j = 0; j < channel->num_eits; j++) {
-+			struct atsc_eit_info *eit = &channel->eit[j];
-+
-+			for(k = 0; k < eit->num_eit_sections; k++) {
-+				struct atsc_eit_section_info *section =
-+					&eit->section[k];
-+				if(print_events(channel, section)) {
-+					fprintf(stderr, "%s(): error calling "
-+						"print_events()\n", __FUNCTION__);
-+					return -1;
-+				}
-+			}
-+		}
-+		fprintf(stdout, "%s\n", separator);
-+	}
-+
-+	return 0;
-+}
-+
-+static int open_demux(int *dmxfd)
-+{
-+	if((*dmxfd = dvbdemux_open_demux(adapter, 0, 0)) < 0) {
-+		fprintf(stderr, "%s(): error calling dvbdemux_open_demux()\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+	return 0;
-+}
-+
-+static int close_demux(int dmxfd)
-+{
-+	if(dvbdemux_stop(dmxfd)) {
-+		fprintf(stderr, "%s(): error calling dvbdemux_stop()\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+	return 0;
-+}
-+
-+/* used other utilities as template and generalized here */
-+static int atsc_scan_table(int dmxfd, uint16_t pid, enum atsc_section_tag tag,
-+	void **table_section)
-+{
-+	uint8_t filter[18];
-+	uint8_t mask[18];
-+	unsigned char sibuf[4096];
-+	int size;
-+	int ret;
-+	struct pollfd pollfd;
-+	struct section *section;
-+	struct section_ext *section_ext;
-+	struct atsc_section_psip *psip;
-+
-+	/* create a section filter for the table */
-+	memset(filter, 0, sizeof(filter));
-+	memset(mask, 0, sizeof(mask));
-+	filter[0] = tag;
-+	mask[0] = 0xFF;
-+	if(dvbdemux_set_section_filter(dmxfd, pid, filter, mask, 1, 1)) {
-+		fprintf(stderr, "%s(): error calling atsc_scan_table()\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+
-+	/* poll for data */
-+	pollfd.fd = dmxfd;
-+	pollfd.events = POLLIN | POLLERR |POLLPRI;
-+	if((ret = poll(&pollfd, 1, TIMEOUT * 1000)) < 0) {
-+		if(ctrl_c) {
-+			return 0;
-+		}
-+		fprintf(stderr, "%s(): error calling poll()\n", __FUNCTION__);
-+		return -1;
-+	}
-+
-+	if(0 == ret) {
-+		return 0;
-+	}
-+
-+	/* read it */
-+	if((size = read(dmxfd, sibuf, sizeof(sibuf))) < 0) {
-+		fprintf(stderr, "%s(): error calling read()\n", __FUNCTION__);
-+		return -1;
-+	}
-+
-+	/* parse section */
-+	section = section_codec(sibuf, size);
-+	if(NULL == section) {
-+		fprintf(stderr, "%s(): error calling section_codec()\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+
-+	section_ext = section_ext_decode(section, 0);
-+	if(NULL == section_ext) {
-+		fprintf(stderr, "%s(): error calling section_ext_decode()\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+
-+	psip = atsc_section_psip_decode(section_ext);
-+	if(NULL == psip) {
-+		fprintf(stderr,
-+			"%s(): error calling atsc_section_psip_decode()\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+
-+	*table_section = table_callback[tag & 0x0F](psip);
-+	if(NULL == *table_section) {
-+		fprintf(stderr, "%s(): error decode table section\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+
-+	return 1;
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	int i, dmxfd;
-+	struct dvbfe_handle *fe;
-+
-+	program = argv[0];
-+
-+	if(1 == argc) {
-+		usage();
-+		exit(-1);
-+	}
-+
-+	for( ; ; ) {
-+		char c;
-+
-+		if(-1 == (c = getopt(argc, argv, "a:f:p:m:th"))) {
-+			break;
-+		}
-+
-+		switch(c) {
-+		case 'a':
-+			adapter = strtoll(optarg, NULL, 0);
-+			break;
-+
-+		case 'f':
-+			frequency = strtol(optarg, NULL, 0);
-+			break;
-+
-+		case 'p':
-+			period = strtol(optarg, NULL, 0);
-+			/* each table covers 3 hours */
-+			if((3 * MAX_NUM_EVENT_TABLES) < period) {
-+				period = 3 * MAX_NUM_EVENT_TABLES;
-+			}
-+			break;
-+
-+		case 'm':
-+			/* just stub, so far ATSC only has VSB_8 */
-+			modulation = optarg;
-+			break;
-+
-+		case 't':
-+			enable_ett = 1;
-+			break;
-+
-+		case 'h':
-+			help();
-+			exit(0);
-+
-+		default:
-+			usage();
-+			exit(-1);
-+		}
-+	}
-+
-+	memset(separator, '-', sizeof(separator));
-+	separator[79] = '\0';
-+	memset(&guide, 0, sizeof(struct atsc_virtual_channels_info));
-+	memset(guide.eit_pid, 0xFF, MAX_NUM_EVENT_TABLES * sizeof(uint16_t));
-+	memset(guide.ett_pid, 0xFF, MAX_NUM_EVENT_TABLES * sizeof(uint16_t));
-+
-+	if(open_frontend(&fe)) {
-+		fprintf(stderr, "%s(): error calling open_frontend()\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+
-+	if(open_demux(&dmxfd)) {
-+		fprintf(stderr, "%s(): error calling open_demux()\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+
-+	if(parse_stt(dmxfd)) {
-+		fprintf(stderr, "%s(): error calling parse_stt()\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+
-+	if(parse_mgt(dmxfd)) {
-+		fprintf(stderr, "%s(): error calling parse_mgt()\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+
-+	if(parse_tvct(dmxfd)) {
-+		fprintf(stderr, "%s(): error calling parse_tvct()\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+
-+#ifdef ENABLE_RRT
-+	if(parse_rrt(dmxfd)) {
-+		fprintf(stderr, "%s(): error calling parse_rrt()\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+#endif
-+
-+	fprintf(stdout, "receiving EIT ");
-+	for(i = 0; i < guide.ch[0].num_eits; i++) {
-+		if(parse_eit(dmxfd, i, guide.eit_pid[i])) {
-+			fprintf(stderr, "%s(): error calling parse_eit()\n",
-+				__FUNCTION__);
-+			return -1;
-+		}
-+	}
-+	fprintf(stdout, "\n");
-+
-+	old_handler = signal(SIGINT, int_handler);
-+	if(enable_ett) {
-+		fprintf(stdout, "receiving ETT ");
-+		for(i = 0; i < guide.ch[0].num_eits; i++) {
-+			if(0xFFFF != guide.ett_pid[i]) {
-+				if(parse_ett(dmxfd, i, guide.ett_pid[i])) {
-+					fprintf(stderr, "%s(): error calling "
-+						"parse_eit()\n", __FUNCTION__);
-+					return -1;
-+				}
-+			}
-+			if(ctrl_c) {
-+				break;
-+			}
-+		}
-+		fprintf(stdout, "\n");
-+	}
-+	signal(SIGINT, old_handler);
-+
-+	if(print_guide()) {
-+		fprintf(stderr, "%s(): error calling print_guide()\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+
-+	if(cleanup_guide()) {
-+		fprintf(stderr, "%s(): error calling cleanup_guide()\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+
-+	if(close_demux(dmxfd)) {
-+		fprintf(stderr, "%s(): error calling close_demux()\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+
-+	if(close_frontend(fe)) {
-+		fprintf(stderr, "%s(): error calling close_demux()\n",
-+			__FUNCTION__);
-+		return -1;
-+	}
-+
-+	return 0;
-+}
-diff -uprN dvb-apps/util/atsc_epg/Makefile dvb-apps_new/util/atsc_epg/Makefile
---- dvb-apps/util/atsc_epg/Makefile	1969-12-31 18:00:00.000000000 -0600
-+++ dvb-apps_new/util/atsc_epg/Makefile	2009-06-18 20:11:58.362985962 -0500
-@@ -0,0 +1,16 @@
-+# Makefile for linuxtv.org dvb-apps/util/atsc_epg
-+
-+binaries = atsc_epg
-+
-+inst_bin = $(binaries)
-+
-+CPPFLAGS += -I../../lib -std=c99 -D_POSIX_SOURCE
-+#LDFLAGS  += -static -L../../lib/libdvbapi -L../../lib/libucsi
-+LDFLAGS  += -L../../lib/libdvbapi -L../../lib/libucsi
-+LDLIBS   += -ldvbapi -lucsi
-+
-+.PHONY: all
-+
-+all: $(binaries)
-+
-+include ../../Make.rules
-diff -uprN dvb-apps/util/atsc_epg/README dvb-apps_new/util/atsc_epg/README
---- dvb-apps/util/atsc_epg/README	1969-12-31 18:00:00.000000000 -0600
-+++ dvb-apps_new/util/atsc_epg/README	2009-06-18 20:33:47.836924378 -0500
-@@ -0,0 +1,12 @@
-+Hi there,
-+
-+atsc_epg is a small utility for obtaining information such as programs, EPG 
-+(electronic program guide) from an ATSC channel. 
-+
-+Pulling the detailed information, i.e., option '-t', may take fairly long 
-+time, or never ending, which is a bug of the PSIP generator. Ctrl+C can be 
-+used to abort and the received parts will be printed.
-+
-+Enjoy,
-+Yufei
-+
-diff -uprN dvb-apps/util/Makefile dvb-apps_new/util/Makefile
---- dvb-apps/util/Makefile	2009-06-18 19:43:30.034986539 -0500
-+++ dvb-apps_new/util/Makefile	2009-06-18 20:11:41.169986806 -0500
-@@ -3,6 +3,7 @@
- .PHONY: all clean install
- 
- all clean install:
-+	$(MAKE) -C atsc_epg $@
- 	$(MAKE) -C av7110_loadkeys $@
- 	$(MAKE) -C dib3000-watch $@
- 	$(MAKE) -C dst-utils $@
+>From the dmesg output you sent, it looks like the tvp5150 video
+decoder was not detected.  Could you please unplug/replug the device
+again send the dmesg again.
 
+Also, have you tried it under Windows to confirm the hardware is not defective?
 
-On Sat, 2009-06-20 at 03:28 +0200, hermann pitton wrote: 
-> Hi,
-> 
-> Am Freitag, den 19.06.2009, 20:00 -0500 schrieb Yufei Yuan:
-> > Thanks for your time. It's my first time to do this, so I have been
-> > trying to follow literally on the wiki page to do it right. If you can
-> > elaborate a bit about what is broken? Is it the patch created
-> > incorrectly, or it is pasted incorrectly, or the style is still
-> > problematic?
-> > 
-> > I noticed that cutting and pasting from my console to the gmail
-> > compose window does not seem working alright. How do you normally do
-> > the inlining?
-> > 
-> > I have a full weekend to do this, and I do realize from the wiki page
-> > that it does not appear to be simple, :)
-> > 
-> > I now simply disable the footer, don't worry.
-> 
-> Just keep it on your decision. I'm not against to learn from the past.
-> 
-> It starts with lots of broken lines.
-> 
-> Cheers,
-> Hermann
+Please send future email to the linux-media mailing list, since
+linux-dvb is deprecated.
 
+Devin
 
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
