@@ -1,15 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bay0-omc2-s28.bay0.hotmail.com ([65.54.246.164])
+Received: from col0-omc3-s6.col0.hotmail.com ([65.55.34.144])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <legssmit@hotmail.com>) id 1MJOz3-0006qQ-Ib
-	for linux-dvb@linuxtv.org; Wed, 24 Jun 2009 11:41:38 +0200
-Message-ID: <BAY111-W32D2A0319B9EE35C1A7008D1370@phx.gbl>
-From: Legs Smit <legssmit@hotmail.com>
+	(envelope-from <g_adams27@hotmail.com>) id 1MIAZg-0004Q4-QQ
+	for linux-dvb@linuxtv.org; Sun, 21 Jun 2009 02:06:24 +0200
+Message-ID: <COL103-W5242CD3E26117EB289B48488380@phx.gbl>
+From: George Adams <g_adams27@hotmail.com>
 To: <linux-dvb@linuxtv.org>
-Date: Wed, 24 Jun 2009 09:41:01 +0000
+Date: Sat, 20 Jun 2009 20:05:45 -0400
 MIME-Version: 1.0
-Subject: [linux-dvb] s2-liplianin with TT S2-3600 gives TS continuity errors
- on high (niced!) cpu load
+Subject: [linux-dvb] =?windows-1256?q?Can=27t_use_my_Pinnacle_PCTV_HD_Pro_?=
+ =?windows-1256?q?stick_-_what_am_I_doing_wrong=3F=FE?=
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -18,94 +18,160 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1500905730=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="windows-1256"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1500905730==
-Content-Type: multipart/alternative;
-	boundary="_bb1b0025-c3ed-4af0-8d70-4ded530001d6_"
-
---_bb1b0025-c3ed-4af0-8d70-4ded530001d6_
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-
-On my 2.6.26.8 kernel=2C vdr-1.7.0 system I am running the current s2-lipli=
-anin drivers. VDR is patched with the vdr-1.7.0-s2api-07102008-h264-clean.d=
-iff patch.
-
-I have one TT S2-3600 (usb) card=2C 2 TT budget cards=2C and 1 1 TT full fe=
-ature (1.3) card on my system.
-All works fine=2C BUT when background jobs fill up my system (e.g. Noad=2C =
-but also cpuburn-in) I get TS continuity errors on the TT-S2-3600 . The bac=
-kground jobs work on lowest (19) priority=2C all others on normal (0) prio.
-This ONLY occurs on the USB card=2C all PCI cards have no problems with thi=
-s. It seems some part of the communication between the card and VDR is runn=
-ing on a priority that is too low...
-1) Can anyone confirm this kind of behaviour?2) How can I help to debug thi=
-s problem?
-I already tried vdr-1.7.5 -> same problemI have used multiproto S2-drivers =
-before=2C and I can't remember that I had this problem then...
-Thanks all for all this beautiful open source software!!!!!
-_________________________________________________________________
-Gratis emoticons voor in je Messenger!
-http://www.msnmessengerexperience.nl/chuck/=
-
---_bb1b0025-c3ed-4af0-8d70-4ded530001d6_
-Content-Type: text/html; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
-
-<html>
-<head>
-<style>
-.hmmessage P
-{
-margin:0px=3B
-padding:0px
-}
-body.hmmessage
-{
-font-size: 10pt=3B
-font-family:Verdana
-}
-</style>
-</head>
-<body class=3D'hmmessage'>
-<div>On my 2.6.26.8 kernel=2C vdr-1.7.0 system I am running the current s2-=
-liplianin drivers. VDR is patched with the&nbsp=3Bvdr-1.7.0-s2api-07102008-=
-h264-clean.diff patch.<br></div><div><br></div><div>I have one TT S2-3600 (=
-usb) card=2C 2 TT budget cards=2C and 1 1 TT full feature (1.3) card on my =
-system.</div><div><br></div><div>All works fine=2C BUT when background jobs=
- fill up my system (e.g. Noad=2C but also cpuburn-in) I get TS continuity e=
-rrors on the TT-S2-3600 . The background jobs work on lowest (19) priority=
-=2C all others on normal (0) prio.</div><div><br></div><div>This ONLY occur=
-s on the USB card=2C all PCI cards have no problems with this. It seems som=
-e part of the communication between the card and VDR is running on a priori=
-ty that is too low...</div><div><br></div><div>1) Can anyone confirm this k=
-ind of behaviour?</div><div>2) How can I help to debug this problem?</div><=
-div><br></div><div>I already tried vdr-1.7.5 -&gt=3B same problem</div><div=
->I have used multiproto S2-drivers before=2C and I can't remember that I ha=
-d this problem then...</div><div><br></div><div>Thanks all for all this bea=
-utiful open source software!!!!!</div><br /><hr />Alle tips en trics. <a hr=
-ef=3D'http://www.microsoft.com/netherlands/windowslive/Views/tipsItemDetail=
-.aspx' target=3D'_new'>Ontdek nu de nieuwe Windows Live</a></body>
-</html>=
-
---_bb1b0025-c3ed-4af0-8d70-4ded530001d6_--
-
-
---===============1500905730==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1500905730==--
+CkhlbGxvLiAgSSdtIGhhdmluZyBwcm9ibGVtcyBnZXR0aW5nIG15IChVU0IpIFBDVFYgSEQgUHJv
+IFN0aWNrICg4MDBlLAoKdGhlICJvbGQiIHN0eWxlKSB0byB3b3JrIHVuZGVyIFY0TC4gIENvdWxk
+IGFueW9uZSBzcG90IHRoZSBwcm9ibGVtIGluCgp3aGF0IEknbSBkb2luZz8KCgoKSSdtIHJ1bm5p
+bmcgVWJ1bnR1IDguMDQuMiBMVFMgKHRoZSAyLjYuMjQtMjQtc2VydmVyIGtlcm5lbCksIGFuZCBh
+bQoKZm9sbG93aW5nIHRoaXMgcHJvY2VkdXJlIChiYXNlZCBvbgoKaHR0cDovL3d3dy5saW51eHR2
+Lm9yZy93aWtpL2luZGV4LnBocC9Ib3dfdG9fT2J0YWluLF9CdWlsZF9hbmRfSW5zdGFsbF9WNEwt
+RFZCX0RldmljZV9Ecml2ZXJzKS4gCgpJIGludGVuZCB0byB1c2UgdGhpcyB0byB0dW5lIHRvIFVT
+QSBOVFNDIGNoYW5uZWwgMyAodG8gY2FwdHVyZSBhCgpjbG9zZS1jYXB0aW9uZWQgZmVlZCBpbnNp
+ZGUgb3VyIGJ1aWxkaW5nKQoKCgoxKSBFeHRyYWN0IGFuZCBjb3B5IHRoZSBmaXJtd2FyZSBmaWxl
+IEkgbmVlZCAKCiAgICh4YzMwMjgtdjI3LmZ3KSB0byAvbGliL2Zpcm13YXJlCgoKCjIpIGNkIC91
+c3IvbG9jYWwvc3JjCgoKCjMpIGhnIGNsb25lIGh0dHA6Ly9saW51eHR2Lm9yZy9oZy92NGwtZHZi
+CgoKCjQpIGNkIHY0bC1kdmIKCgoKNSkgbWFrZSBybWluc3RhbGw7IG1ha2UgZGlzdGNsZWFuOyBt
+YWtlOyBtYWtlIGluc3RhbGwKCgoKVGhlc2Ugc2VlbXMgdG8gZG8gd2hhdCBpdCdzIHN1cHBvc2Vk
+IHRvIC0gaW5zdGFsbHMgdGhlIGRyaXZlcnMgaW50bwoKL2xpYi9tb2R1bGVzLzIuNi4yNC0yNC1z
+ZXJ2ZXIgLiAgTXkgUENUViBIRCBQcm8gU3RpY2sgdXNlcyB0aGUgZW0yOHh4Cgpkcml2ZXJzLgoK
+Cgo+IGZpbmQgL2xpYi9tb2R1bGVzLyAtdHlwZSBmIC1uYW1lICJlbTI4KiIgLW10aW1lIC0xCgog
+ICAgL2xpYi9tb2R1bGVzLzIuNi4yNC0yNC1zZXJ2ZXIva2VybmVsL2RyaXZlcnMvbWVkaWEvdmlk
+ZW8vZW0yOHh4L2VtMjh4eC5rbwoKICAgIC9saWIvbW9kdWxlcy8yLjYuMjQtMjQtc2VydmVyL2tl
+cm5lbC9kcml2ZXJzL21lZGlhL3ZpZGVvL2VtMjh4eC9lbTI4eHgtZHZiLmtvCgoKCjYpIFJlYm9v
+dCB3aXRoIHRoZSBVU0IgY2FwdHVyZSBkZXZpY2UgcGx1Z2dlZCBpbgoKCgo3KSBFeGFtaW5lICJk
+bWVzZyIgZm9yIGRldGFpbHMgcmVsYXRlZCB0byB0aGUgY2FwdHVyZSBkZXZpY2UKCgoKLSBlbTI4
+eHg6IE5ldyBkZXZpY2UgUGlubmFjbGUgU3lzdGVtcyBQQ1RWIDgwMGUgQCA0ODAgTWJwcyAoMjMw
+NDowMjI3LCBpbnRlcmZhY2UgMCwgY2xhc3MgMCkKCi0gZW0yOHh4ICMwOiBJZGVudGlmaWVkIGFz
+IFBpbm5hY2xlIFBDVFYgSEQgUHJvIFN0aWNrIChjYXJkPTE3KQoKLSBlbTI4eHggIzA6IGNoaXAg
+SUQgaXMgZW0yODgyL2VtMjg4MwoKLSAtIC0+IEdTSSAyMiAobGV2ZWwsIGxvdykgLT4gSVJRIDIy
+CgotIFBDSTogU2V0dGluZyBsYXRlbmN5IHRpbWVyIG9mIGRldmljZSAwMDAwOjAwOjFiLjAgdG8g
+NjQKCi0gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDAwOiAxYSBlYiA2NyA5NSAwNCAyMyAyNyAwMiBk
+MCAxMiA1YyAwMyA4ZSAxNiBhNCAxYwoKLSBlbTI4eHggIzA6IGkyYyBlZXByb20gMTA6IDZhIDI0
+IDI3IDU3IDQ2IDA3IDAxIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwCgotIGVtMjh4eCAjMDog
+aTJjIGVlcHJvbSAyMDogNDYgMDAgMDEgMDAgZjAgMTAgMDIgMDAgYjggMDAgMDAgMDAgNWIgMWMg
+MDAgMDAKCi0gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDMwOiAwMCAwMCAyMCA0MCAyMCA4MCAwMiAy
+MCAwMSAwMSAwMCAwMCAwMCAwMCAwMCAwMAoKLSBlbTI4eHggIzA6IGkyYyBlZXByb20gNDA6IDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwCgotIGVtMjh4eCAj
+MDogaTJjIGVlcHJvbSA1MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAKCi0gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDYwOiAwMCAwMCAwMCAwMCAwMCAwMCAw
+MCAwMCAwMCAwMCAyNCAwMyA1MCAwMCA2OSAwMAoKLSBlbTI4eHggIzA6IGkyYyBlZXByb20gNzA6
+IDZlIDAwIDZlIDAwIDYxIDAwIDYzIDAwIDZjIDAwIDY1IDAwIDIwIDAwIDUzIDAwCgotIGVtMjh4
+eCAjMDogaTJjIGVlcHJvbSA4MDogNzkgMDAgNzMgMDAgNzQgMDAgNjUgMDAgNmQgMDAgNzMgMDAg
+MDAgMDAgMTYgMDMKCi0gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIDkwOiA1MCAwMCA0MyAwMCA1NCAw
+MCA1NiAwMCAyMCAwMCAzOCAwMCAzMCAwMCAzMCAwMAoKLSBlbTI4eHggIzA6IGkyYyBlZXByb20g
+YTA6IDY1IDAwIDAwIDAwIDFjIDAzIDMwIDAwIDM2IDAwIDMxIDAwIDMwIDAwIDMwIDAwCgotIGVt
+Mjh4eCAjMDogaTJjIGVlcHJvbSBiMDogMzEgMDAgMzAgMDAgMzMgMDAgMzkgMDAgMzQgMDAgMzQg
+MDAgMzIgMDAgMDAgMDAKCi0gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIGMwOiAwMCAwMCAwMCAwMCAw
+MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMAoKLSBlbTI4eHggIzA6IGkyYyBlZXBy
+b20gZDA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwCgot
+IGVtMjh4eCAjMDogaTJjIGVlcHJvbSBlMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAgMDAgMDAKCi0gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIGYwOiAwMCAwMCAwMCAw
+MCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMAoKLSBlbTI4eHggIzA6IEVFUFJP
+TSBJRD0gMHg5NTY3ZWIxYSwgRUVQUk9NIGhhc2ggPSAweDJkZTVhYmJmCgotIGVtMjh4eCAjMDog
+RUVQUk9NIGluZm86CgotIGVtMjh4eCAjMDogICAgICAgQUM5NyBhdWRpbyAoNSBzYW1wbGUgcmF0
+ZXMpCgotIGVtMjh4eCAjMDogICAgICAgNTAwbUEgbWF4IHBvd2VyCgotIGVtMjh4eCAjMDogICAg
+ICAgVGFibGUgYXQgMHgyNywgc3RyaW5ncz0weDE2OGUsIDB4MWNhNCwgMHgyNDZhCgotIGhkYV9j
+b2RlYzogVW5rbm93biBtb2RlbCBmb3IgQUxDODgyLCB0cnlpbmcgYXV0by1wcm9iZSBmcm9tIEJJ
+T1MuLi4KCi0gaW5wdXQ6IGVtMjh4eCBJUiAoZW0yOHh4ICMwKSBhcyAvZGV2aWNlcy9wY2kwMDAw
+OjAwLzAwMDA6MDA6MWEuNy91c2I0LzQtMy9pbnB1dC9pbnB1dDYKCi0gLSAtPiBHU0kgMjAgKGxl
+dmVsLCBsb3cpIC0+IElSUSAyMwoKLSBWb3J0ZXg6IGluaXQuLi4uIGVtMjh4eCAjMDogQ29uZmln
+IHJlZ2lzdGVyIHJhdyBkYXRhOiAweGQwCgotIGVtMjh4eCAjMDogQUM5NyB2ZW5kb3IgSUQgPSAw
+eGZmZmZmZmZmCgotIGVtMjh4eCAjMDogQUM5NyBmZWF0dXJlcyA9IDB4NmE5MAoKLSBlbTI4eHgg
+IzA6IEVtcGlhIDIwMiBBQzk3IGF1ZGlvIHByb2Nlc3NvciBkZXRlY3RlZAoKLSBlbTI4eHggIzA6
+IHY0bDIgZHJpdmVyIHZlcnNpb24gMC4xLjIKCi0gZW0yOHh4ICMwOiBWNEwyIGRldmljZSByZWdp
+c3RlcmVkIGFzIC9kZXYvdmlkZW8wIGFuZCAvZGV2L3ZiaTAKCi0gdXNiY29yZTogcmVnaXN0ZXJl
+ZCBuZXcgaW50ZXJmYWNlIGRyaXZlciBlbTI4eHgKCi0gZW0yOHh4IGRyaXZlciBsb2FkZWQKCi0g
+eGMyMDI4IDAtMDA2MTogY3JlYXRpbmcgbmV3IGluc3RhbmNlCgotIHhjMjAyOCAwLTAwNjE6IHR5
+cGUgc2V0IHRvIFhDZWl2ZSB4YzIwMjgveGMzMDI4IHR1bmVyCgotIGVtMjh4eCAjMC8yOiB4YzMw
+MjggYXR0YWNoZWQKCi0gRFZCOiByZWdpc3RlcmluZyBuZXcgYWRhcHRlciAoZW0yOHh4ICMwKQoK
+LSBEVkI6IHJlZ2lzdGVyaW5nIGFkYXB0ZXIgMCBmcm9udGVuZCAwIChMRyBFbGVjdHJvbmljcyBM
+R0RUMzMwMyBWU0IvUUFNIEZyb250ZW5kKS4uLgoKLSBTdWNjZXNzZnVsbHkgbG9hZGVkIGVtMjh4
+eC1kdmIKCi0gRW0yOHh4OiBJbml0aWFsaXplZCAoRW0yOHh4IGR2YiBFeHRlbnNpb24pIGV4dGVu
+c2lvbgoKLSBkb25lLgoKCgpFdmVyeXRoaW5nIGxvb2tzIGdvb2QgLSB0aGUgZHJpdmVycyBhcmUg
+Z2V0dGluZyBjYWxsZWQgYW5kIHRoZSBjYXJkIGlzCgpyZWNvZ25pemVkLiAgSG93ZXZlciwgYWxs
+IG15IGF0dGVtcHRzIHRvIGdldCBzb21ldGhpbmcgIm91dCBvZiBpdCIKCmFyZW4ndCB3b3JraW5n
+LiAgSSB0cmllZCBmaXJpbmcgdXAgInR2dGltZSIsIGJ1dCBpdCBqdXN0IGxhdW5jaGVzIGEKCmJs
+YW5rLCBibGFjayBzY3JlZW4gYW5kIGhhbmdlcy4gIFRoZSBtZW51IHdvbid0IGNvbWUgdXAsIHRo
+ZSBjaGFubmVsCgp3b24ndCBjaGFuZ2UsIHJpZ2h0LWNsaWNraW5nIGlzbid0IHJlc3BvbnNpdmUs
+IGl0IHdvbid0IGNsb3NlLCBhbmQgSQoKaGF2ZSB0byBraWxsIGl0LgoKCgpJIGFsc28gdHJpZWQg
+bWVuY29kZXIsIGJ1dCBJIGdldCB0aGlzOgoKCgo+IG1lbmNvZGVyIC1ub3NvdW5kIC10diBkcml2
+ZXI9djRsMjp3aWR0aD02NDA6aGVpZ2h0PTQ4MCB0djovLzMgLW8gL3RtcC90di5hdmkgLW92YyBy
+YXcgLWVuZHBvcyA1CgoKCk1FbmNvZGVyIDI6MS4wfnJjMi0wdWJ1bnR1MTMuMSttZWRpYnVudHUx
+IChDKSAyMDAwLTIwMDcgTVBsYXllciBUZWFtCgpDUFU6IEludGVsKFIpIENvcmUoVE0pMiBRdWFk
+IENQVSAgICBROTU1MCAgQCAyLjgzR0h6CgogIChGYW1pbHk6IDYsIE1vZGVsOiAyMywgU3RlcHBp
+bmc6IDEwKQoKQ1BVZmxhZ3M6IFR5cGU6IDYgTU1YOiAxIE1NWDI6IDEgM0ROb3c6IDAgM0ROb3cy
+OiAwIFNTRTogMSBTU0UyOiAxCgpDb21waWxlZCB3aXRoIHJ1bnRpbWUgQ1BVIGRldGVjdGlvbi4K
+CnN1Y2Nlc3M6IGZvcm1hdDogOSAgZGF0YTogMHgwIC0gMHgwCgpUViBmaWxlIGZvcm1hdCBkZXRl
+Y3RlZC4KClNlbGVjdGVkIGRyaXZlcjogdjRsMgoKIG5hbWU6IFZpZGVvIDQgTGludXggMiBpbnB1
+dAoKIGF1dGhvcjogTWFydGluIE9sc2NoZXdza2kgCgogY29tbWVudDogZmlyc3QgdHJ5LCBtb3Jl
+IHRvIGNvbWUgOy0pCgpTZWxlY3RlZCBkZXZpY2U6IFBpbm5hY2xlIFBDVFYgSEQgUHJvIFN0aWNr
+CgogVHVuZXIgY2FwOgoKIFR1bmVyIHJ4czoKCiBDYXBhYmlsaXRlczogIHZpZGVvIGNhcHR1cmUg
+IHR1bmVyICBhdWRpbyAgcmVhZC93cml0ZSAgc3RyZWFtaW5nCgogc3VwcG9ydGVkIG5vcm1zOiAw
+ID0gTlRTQzsgMSA9IE5UU0MtTTsgMiA9IE5UU0MtTS1KUDsgMyA9IE5UU0MtTS1LUjsgNAoKICAg
+PSBOVFNDLTQ0MzsgNSA9IFBBTDsgNiA9IFBBTC1CRzsgNyA9IFBBTC1IOyA4ID0gUEFMLUk7IDkg
+PSBQQUwtREs7CgogICAxMCA9IFBBTC1NOyAxMSA9IFBBTC1OOyAxMiA9IFBBTC1OYzsgMTMgPSBQ
+QUwtNjA7IDE0ID0gU0VDQU07IDE1ID0KCiAgIFNFQ0FNLUI7IDE2ID0gU0VDQU0tRzsgMTcgPSBT
+RUNBTS1IOyAxOCA9IFNFQ0FNLURLOyAxOSA9IFNFQ0FNLUw7IDIwCgogICA9IFNFQ0FNLUxjOwoK
+IGlucHV0czogMCA9IFRlbGV2aXNpb247IDEgPSBDb21wb3NpdGUxOyAyID0gUy1WaWRlbzsKCiBD
+dXJyZW50IGlucHV0OiAwCgogQ3VycmVudCBmb3JtYXQ6IFlVWVYKCnY0bDI6IGlvY3RsIHNldCBm
+b3JtYXQgZmFpbGVkOiBJbnZhbGlkIGFyZ3VtZW50Cgp2NGwyOiBpb2N0bCBzZXQgZm9ybWF0IGZh
+aWxlZDogSW52YWxpZCBhcmd1bWVudAoKdjRsMjogaW9jdGwgc2V0IGZvcm1hdCBmYWlsZWQ6IElu
+dmFsaWQgYXJndW1lbnQKCnY0bDI6IGlvY3RsIHF1ZXJ5IGNvbnRyb2wgZmFpbGVkOiBJbnZhbGlk
+IGFyZ3VtZW50Cgp2NGwyOiBpb2N0bCBxdWVyeSBjb250cm9sIGZhaWxlZDogSW52YWxpZCBhcmd1
+bWVudAoKdjRsMjogaW9jdGwgcXVlcnkgY29udHJvbCBmYWlsZWQ6IEludmFsaWQgYXJndW1lbnQK
+CnY0bDI6IGlvY3RsIHF1ZXJ5IGNvbnRyb2wgZmFpbGVkOiBJbnZhbGlkIGFyZ3VtZW50CgpbVl0g
+ZmlsZWZtdDo5ICBmb3VyY2M6MHgzMjU5NTU1OSAgc2l6ZTo2NDB4NDgwICBmcHM6MjUuMDAgIGZ0
+aW1lOj0wLjA0MDAKCk9wZW5pbmcgdmlkZW8gZmlsdGVyOiBbZXhwYW5kIG9zZD0xXQoKRXhwYW5k
+OiAtMSB4IC0xLCAtMSA7IC0xLCBvc2Q6IDEsIGFzcGVjdDogMC4wMDAwMDAsIHJvdW5kOiAxCgo9
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PQoKT3BlbmluZyB2aWRlbyBkZWNvZGVyOiBbcmF3XSBSQVcgVW5jb21w
+cmVzc2VkIFZpZGVvCgpWRGVjOiB2byBjb25maWcgcmVxdWVzdCAtIDY0MCB4IDQ4MCAocHJlZmVy
+cmVkIGNvbG9yc3BhY2U6IFBhY2tlZCBZVVkyKQoKVkRlYzogdXNpbmcgUGFja2VkIFlVWTIgYXMg
+b3V0cHV0IGNzcCAobm8gMCkKCk1vdmllLUFzcGVjdCBpcyB1bmRlZmluZWQgLSBubyBwcmVzY2Fs
+aW5nIGFwcGxpZWQuCgpTZWxlY3RlZCB2aWRlbyBjb2RlYzogW3Jhd3l1eTJdIHZmbTogcmF3IChS
+QVcgWVVZMikKCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09CgpGb3JjaW5nIGF1ZGlvIHByZWxvYWQgdG8gMCwg
+bWF4IHB0cyBjb3JyZWN0aW9uIHRvIDAuCgp2NGwyOiBzZWxlY3QgdGltZW91dAoKCgpTa2lwcGlu
+ZyBmcmFtZSEKClBvczogICAwLjBzICAgICAgMWYgKCAwJSkgIDAuOTZmcHMgVHJlbTogICAwbWlu
+ICAgMG1iICBBLVY6MC4wMDAgWzA6MF0KClNraXBwaW5nIGZyYW1lIQoKdjRsMjogc2VsZWN0IHRp
+bWVvdXQoIDAlKSAgMS4yOGZwcyBUcmVtOiAgIDBtaW4gICAwbWIgIEEtVjowLjAwMCBbMDowXQoK
+CgpTa2lwcGluZyBmcmFtZSEKClBvczogICAwLjBzICAgICAgM2YgKCAwJSkgIDEuNDRmcHMgVHJl
+bTogICAwbWluICAgMG1iICBBLVY6MC4wMDAgWzA6MF0KClNraXBwaW5nIGZyYW1lIQoKdjRsMjog
+c2VsZWN0IHRpbWVvdXQoIDAlKSAgMS41NGZwcyBUcmVtOiAgIDBtaW4gICAwbWIgIEEtVjowLjAw
+MCBbMDowXQoKCgpTa2lwcGluZyBmcmFtZSEKClBvczogICAwLjBzICAgICAgNWYgKCAwJSkgIDEu
+NjBmcHMgVHJlbTogICAwbWluICAgMG1iICBBLVY6MC4wMDAgWzA6MF0KClNraXBwaW5nIGZyYW1l
+IQoKdjRsMjogc2VsZWN0IHRpbWVvdXQoIDAlKSAgMS42NWZwcyBUcmVtOiAgIDBtaW4gICAwbWIg
+IEEtVjowLjAwMCBbMDowXQoKCgpTa2lwcGluZyBmcmFtZSEKClBvczogICAwLjBzICAgICAgN2Yg
+KCAwJSkgIDEuNjhmcHMgVHJlbTogICAwbWluICAgMG1iICBBLVY6MC4wMDAgWzA6MF0KClNraXBw
+aW5nIGZyYW1lIQoKUG9zOiAgIDAuMHMgICAgICA4ZiAoIDAlKSAgMS43MWZwcyBUcmVtOiAgIDBt
+aW4gICAwbWIgIEEtVjowLjAwMCBbMDowXQoKCgoKClRoZSByZXN1bHRpbmcgZmlsZSAoL3RtcC90
+di5hdmkpIGlzIG9ubHkgNEsgYW5kIG5vdCBhIHZhbGlkIEFWSSBmaWxlLiAgCgoKCgoKCgpPbmUg
+dGhpbmcgSSBub3RpY2VkIHRoYXQgZGlmZmVycyBmcm9tIHdoYXQgSSB3YXMgZXhwZWN0aW5nIGlz
+IHRoYXQKCm5vd2hlcmUgaW4gdGhlICJkbWVzZyIgb3V0cHV0IGRvZXMgaXQgc2F5IGFueXRoaW5n
+IGFib3V0IHRoZSBmaXJtd2FyZQoKZmlsZS4gIEkgd2FzIGV4cGVjdGluZyB0byBzZWUgdGhpcyBp
+biAiZG1lc2ciOgoKCgotIGZpcm13YXJlOiByZXF1ZXN0aW5nIHhjMzAyOC12MjcuZncKCi0geGMy
+MDI4IDEtMDA2MTogTG9hZGluZyA4MCBmaXJtd2FyZSBpbWFnZXMgZnJvbSB4YzMwMjgtdjI3LmZ3
+LCAKCi0gICB0eXBlOiB4YzIwMjggZmlybXdhcmUsIHZlciAyLjcKCgoKYnV0IG5vdGhpbmcgYXBw
+cm94aW1hdGluZyB0aG9zZSBsaW5lcyBhcHBlYXJzIGF0IGFsbC4gIEkgdHJpZWQgZGVsZXRpbmcK
+Ci9saWIvZmlybXdhcmUveGMzMDI4LXYyNy5mdyBlbnRpcmVseSB0byBzZWUgaWYgaXQgd291bGQg
+Y29tcGxhaW4sIGJ1dAoKaXQgbG9hZGVkIHVwIGV4YWN0bHkgdGhlIHNhbWUgd2F5IGFmdGVyIEkg
+cmVib290ZWQuLi4gIGFuZCBzdGlsbCBkaWRuJ3QKCndvcmsuCgoKClNvIG15IHF1ZXN0aW9ucyBh
+cmU6CgoKCjEpIFdoeSBpcyB0aGUgZmlybXdhcmUgZmlsZSBub3QgYmVpbmcgcmVhZD8gIEhhcyBz
+b21ldGhpbmcgaGFwcGVuZWQgdG8KCnRoZSBlbTI4eHggZHJpdmVycyByZWNlbnRseSB0aGF0IGNh
+dXNlcyB0aGlzIGZpbGUgbm90IHRvIGJlIG5lZWRlZAoKYW55bW9yZT8gIE9yIGlzIHNvbWV0aGlu
+ZyBlbHNlIGdvaW5nIHdyb25nPwoKCgoyKSBJcyB0aGF0IHRoZSByZWFzb24gZm9yIHRoZSBwcm9i
+bGVtLCBvciBoYXZlIHlvdSBzcG90dGVkIHNvbWV0aGluZwoKZWxzZSBJJ3ZlIGRvbmUgd3Jvbmc/
+CgoKClRoYW5rcyBncmVhdGx5IHRvIGFueW9uZSB3aG8gY2FuIGhlbHAhCgpfX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpJbnNl
+cnQgbW92aWUgdGltZXMgYW5kIG1vcmUgd2l0aG91dCBsZWF2aW5nIEhvdG1haWyuLgpodHRwOi8v
+d2luZG93c2xpdmUuY29tL1R1dG9yaWFsL0hvdG1haWwvUXVpY2tBZGQ/b2NpZD1UWFRfVEFHTE1f
+V0xfSE1fVHV0b3JpYWxfUXVpY2tBZGRfMDYyMDA5CgpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgdXNlcnMgbWFpbGluZyBsaXN0CkZvciBW
+NEwvRFZCIGRldmVsb3BtZW50LCBwbGVhc2UgdXNlIGluc3RlYWQgbGludXgtbWVkaWFAdmdlci5r
+ZXJuZWwub3JnCmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2Nn
+aS1iaW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
