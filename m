@@ -1,234 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:54589 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753325AbZF2Oqm convert rfc822-to-8bit (ORCPT
+Received: from mail-ew0-f210.google.com ([209.85.219.210]:39688 "EHLO
+	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751514AbZFVNaU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2009 10:46:42 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>
-Date: Mon, 29 Jun 2009 09:46:38 -0500
-Subject: RE: [RFC PATCH] adding support for setting bus parameters in sub
-      device
-Message-ID: <A69FA2915331DC488A831521EAE36FE401448CDDD4@dlee06.ent.ti.com>
-References: <42333.62.70.2.252.1246267577.squirrel@webmail.xs4all.nl>
-In-Reply-To: <42333.62.70.2.252.1246267577.squirrel@webmail.xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Mon, 22 Jun 2009 09:30:20 -0400
+Received: by ewy6 with SMTP id 6so4698891ewy.37
+        for <linux-media@vger.kernel.org>; Mon, 22 Jun 2009 06:30:21 -0700 (PDT)
+Message-ID: <4A3FA3AC.1010703@gmail.com>
+Date: Mon, 22 Jun 2009 17:30:52 +0200
+From: Roel Kluin <roel.kluin@gmail.com>
 MIME-Version: 1.0
+To: hverkuil@xs4all.nl, mchehab@infradead.org
+CC: linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: [PATCH] media: remove redundant tests on unsigned
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
+input, inp and i are unsigned. When negative they are wrapped and caught by the
+other test.
 
-When connecting a sensor like mt9t031 to SoC like DM355, DM6446 etc, driver also need to know which MSB of the sensor data bus connected to which host bus. For example, on DM365, we have following connection:-
-
-data 9 (MSB) of the sensor is connected to data 11 of the host bus. For 10 bit sensor, this means, the lower 2 bits of the received data are zeros and for a 12 bit sensor, it has valid data. 
-
-So I suggest including another field for this. 
-
-unsigned host_msb:5; (8 - 15) ??
-
-
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-email: m-karicheri2@ti.com
-
->-----Original Message-----
->From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
->Sent: Monday, June 29, 2009 5:26 AM
->To: Karicheri, Muralidharan
->Cc: linux-media@vger.kernel.org; davinci-linux-open-
->source@linux.davincidsp.com
->Subject: Re: [RFC PATCH] adding support for setting bus parameters in sub
->device
->
->Hi Murali,
->
->> From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
->>
->> This patch adds support for setting bus parameters such as bus type
->> (Raw Bayer or Raw YUV image data bus), bus width (example 10 bit raw
->> image data bus, 10 bit BT.656 etc.), and polarities (vsync, hsync, field
->> etc) in sub device. This allows bridge driver to configure the sub device
->> bus for a specific set of bus parameters through s_bus() function call.
->> This also can be used to define platform specific bus parameters for
->> host and sub-devices.
->>
->> Reviewed by: Hans Verkuil <hverkuil@xs4all.nl>
->> Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
->> ---
->> Applies to v4l-dvb repository
->>
->>  include/media/v4l2-subdev.h |   40
->> ++++++++++++++++++++++++++++++++++++++++
->>  1 files changed, 40 insertions(+), 0 deletions(-)
->>
->> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
->> index 1785608..2f5ec98 100644
->> --- a/include/media/v4l2-subdev.h
->> +++ b/include/media/v4l2-subdev.h
->> @@ -37,6 +37,43 @@ struct v4l2_decode_vbi_line {
->>  	u32 type;		/* VBI service type (V4L2_SLICED_*). 0 if no
->service found */
->>  };
->>
->> +/*
->> + * Some sub-devices are connected to the host/bridge device through a
->bus
->> that
->> + * carries the clock, vsync, hsync and data. Some interfaces such as
->> BT.656
->> + * carries the sync embedded in the data where as others have separate
->> line
->> + * carrying the sync signals. The structure below is used to define bus
->> + * configuration parameters for host as well as sub-device
->> + */
->> +enum v4l2_subdev_bus_type {
->> +	/* Raw YUV image data bus */
->> +	V4L2_SUBDEV_BUS_RAW_YUV,
->> +	/* Raw Bayer image data bus */
->> +	V4L2_SUBDEV_BUS_RAW_BAYER
->> +};
->> +
->> +struct v4l2_bus_settings {
->> +	/* yuv or bayer image data bus */
->> +	enum v4l2_subdev_bus_type type;
->> +	/* subdev bus width */
->> +	u8 subdev_width;
->> +	/* host bus width */
->> +	u8 host_width;
->> +	/* embedded sync, set this when sync is embedded in the data stream
->*/
->> +	unsigned embedded_sync:1;
->> +	/* master or slave */
->> +	unsigned host_is_master:1;
->> +	/* 0 - active low, 1 - active high */
->> +	unsigned pol_vsync:1;
->> +	/* 0 - active low, 1 - active high */
->> +	unsigned pol_hsync:1;
->> +	/* 0 - low to high , 1 - high to low */
->> +	unsigned pol_field:1;
->> +	/* 0 - sample at falling edge , 1 - sample at rising edge */
->> +	unsigned pol_pclock:1;
->> +	/* 0 - active low , 1 - active high */
->> +	unsigned pol_data:1;
->> +};
->
->I've been thinking about this for a while and I think this struct should
->be extended with the host bus parameters as well:
->
->struct v4l2_bus_settings {
->	/* yuv or bayer image data bus */
->	enum v4l2_bus_type type;
->	/* embedded sync, set this when sync is embedded in the data stream
->*/
->	unsigned embedded_sync:1;
->	/* master or slave */
->	unsigned host_is_master:1;
->
->	/* bus width */
->	unsigned sd_width:8;
->	/* 0 - active low, 1 - active high */
->	unsigned sd_pol_vsync:1;
->	/* 0 - active low, 1 - active high */
->	unsigned sd_pol_hsync:1;
->	/* 0 - low to high, 1 - high to low */
->	unsigned sd_pol_field:1;
->	/* 0 - sample at falling edge, 1 - sample at rising edge */
->	unsigned sd_edge_pclock:1;
->	/* 0 - active low, 1 - active high */
->	unsigned sd_pol_data:1;
->
->	/* host bus width */
->	unsigned host_width:8;
->	/* 0 - active low, 1 - active high */
->	unsigned host_pol_vsync:1;
->	/* 0 - active low, 1 - active high */
->	unsigned host_pol_hsync:1;
->	/* 0 - low to high, 1 - high to low */
->	unsigned host_pol_field:1;
->	/* 0 - sample at falling edge, 1 - sample at rising edge */
->	unsigned host_edge_pclock:1;
->	/* 0 - active low, 1 - active high */
->	unsigned host_pol_data:1;
->};
->
->It makes sense since you need to setup both ends of the bus, and having
->both ends defined in the same struct keeps everything together. I have
->thought about having separate host and subdev structs, but part of the bus
->description is always common (bus type, master/slave, embedded/separate
->syncs), while another part can be different for each end of the bus.
->
->It's all bitfields, so it is a very compact representation.
->
->In addition, I think we need to require that at the start of the s_bus
->implementation in the host or subdev there should be a standard comment
->block describing the possible combinations supported by the hardware:
->
->/* Subdevice foo supports the following bus settings:
->
->   types: RAW_BAYER (widths: 8/10/12, syncs: embedded/separate)
->          RAW_YUV (widths: 8/16, syncs: embedded)
->   bus master: slave
->   vsync polarity: 0/1
->   hsync polarity: 0/1
->   field polarity: not applicable
->   sampling edge pixelclock: 0/1
->   data polarity: 1
-> */
->
->This should make it easy for implementers to pick a valid set of bus
->parameters.
->
->Regards,
->
->       Hans
->
->> +
->>  /* Sub-devices are devices that are connected somehow to the main bridge
->>     device. These devices are usually audio/video
->muxers/encoders/decoders
->> or
->>     sensors and webcam controllers.
->> @@ -199,6 +236,8 @@ struct v4l2_subdev_audio_ops {
->>
->>     s_routing: see s_routing in audio_ops, except this version is for
->> video
->>  	devices.
->> +
->> +   s_bus: set bus parameters in sub device to configure the bus
->>   */
->>  struct v4l2_subdev_video_ops {
->>  	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32
->> config);
->> @@ -219,6 +258,7 @@ struct v4l2_subdev_video_ops {
->>  	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
->>  	int (*enum_framesizes)(struct v4l2_subdev *sd, struct
->v4l2_frmsizeenum
->> *fsize);
->>  	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct
->> v4l2_frmivalenum *fival);
->> +	int (*s_bus)(struct v4l2_subdev *sd, const struct v4l2_bus_settings
->> *bus);
->>  };
->>
->>  struct v4l2_subdev_ops {
->> --
->> 1.6.0.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
->--
->Hans Verkuil - video4linux developer - sponsored by TANDBERG
->
-
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+diff --git a/drivers/media/dvb/ttpci/av7110_v4l.c b/drivers/media/dvb/ttpci/av7110_v4l.c
+index ce64c62..8986d96 100644
+--- a/drivers/media/dvb/ttpci/av7110_v4l.c
++++ b/drivers/media/dvb/ttpci/av7110_v4l.c
+@@ -490,7 +490,7 @@ static int vidioc_s_input(struct file *file, void *fh, unsigned int input)
+ 	if (!av7110->analog_tuner_flags)
+ 		return 0;
+ 
+-	if (input < 0 || input >= 4)
++	if (input >= 4)
+ 		return -EINVAL;
+ 
+ 	av7110->current_input = input;
+diff --git a/drivers/media/video/cx18/cx18-ioctl.c b/drivers/media/video/cx18/cx18-ioctl.c
+index d7b1921..fc76e4d 100644
+--- a/drivers/media/video/cx18/cx18-ioctl.c
++++ b/drivers/media/video/cx18/cx18-ioctl.c
+@@ -605,7 +605,7 @@ int cx18_s_input(struct file *file, void *fh, unsigned int inp)
+ 	if (ret)
+ 		return ret;
+ 
+-	if (inp < 0 || inp >= cx->nof_inputs)
++	if (inp >= cx->nof_inputs)
+ 		return -EINVAL;
+ 
+ 	if (inp == cx->active_input) {
+diff --git a/drivers/media/video/saa7134/saa7134-video.c b/drivers/media/video/saa7134/saa7134-video.c
+index e305c16..103096b 100644
+--- a/drivers/media/video/saa7134/saa7134-video.c
++++ b/drivers/media/video/saa7134/saa7134-video.c
+@@ -1797,7 +1797,7 @@ static int saa7134_s_input(struct file *file, void *priv, unsigned int i)
+ 	if (0 != err)
+ 		return err;
+ 
+-	if (i < 0  ||  i >= SAA7134_INPUT_MAX)
++	if (i >= SAA7134_INPUT_MAX)
+ 		return -EINVAL;
+ 	if (NULL == card_in(dev, i).name)
+ 		return -EINVAL;
