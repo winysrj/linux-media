@@ -1,162 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:35119 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753308AbZFWNbq convert rfc822-to-8bit (ORCPT
+Received: from smtp.nokia.com ([192.100.122.233]:58543 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756645AbZFVQ2e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jun 2009 09:31:46 -0400
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: Gary Thomas <gary@mlbassoc.com>
-CC: Zach LeRoy <zleroy@rii.ricoh.com>,
-	linux-omap <linux-omap@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Date: Tue, 23 Jun 2009 08:33:24 -0500
-Subject: RE: OMAP34XXCAM: Micron mt9d111 sensor support?
-Message-ID: <A24693684029E5489D1D202277BE89444130777E@dlee02.ent.ti.com>
-References: <25120191.127591245276351735.JavaMail.root@mailx.crc.ricoh.com>
- <A24693684029E5489D1D202277BE894441165A1C@dlee02.ent.ti.com>
- <4A3FC80B.9000302@mlbassoc.com>
- <A24693684029E5489D1D202277BE89444130773E@dlee02.ent.ti.com>
- <4A40D736.9050701@mlbassoc.com>
-In-Reply-To: <4A40D736.9050701@mlbassoc.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Mon, 22 Jun 2009 12:28:34 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv9 3/9] v4l2: video device: Add FM_TX controls default configurations
+Date: Mon, 22 Jun 2009 19:21:30 +0300
+Message-Id: <1245687696-6730-4-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1245687696-6730-3-git-send-email-eduardo.valentin@nokia.com>
+References: <1245687696-6730-1-git-send-email-eduardo.valentin@nokia.com>
+ <1245687696-6730-2-git-send-email-eduardo.valentin@nokia.com>
+ <1245687696-6730-3-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ linux/drivers/media/video/v4l2-common.c |   48 +++++++++++++++++++++++++++++++
+ 1 files changed, 48 insertions(+), 0 deletions(-)
 
-
-> -----Original Message-----
-> From: Gary Thomas [mailto:gary@mlbassoc.com]
-> Sent: Tuesday, June 23, 2009 8:23 AM
-> To: Aguirre Rodriguez, Sergio Alberto
-> Cc: Zach LeRoy; linux-omap; linux-media@vger.kernel.org; Sakari Ailus
-> Subject: Re: OMAP34XXCAM: Micron mt9d111 sensor support?
-> 
-> Aguirre Rodriguez, Sergio Alberto wrote:
-> >> -----Original Message-----
-> >> From: Gary Thomas [mailto:gary@mlbassoc.com]
-> >> Sent: Monday, June 22, 2009 1:06 PM
-> >> To: Aguirre Rodriguez, Sergio Alberto
-> >> Cc: Zach LeRoy; linux-omap; linux-media@vger.kernel.org; Sakari Ailus
-> >> Subject: Re: OMAP34XXCAM: Micron mt9d111 sensor support?
-> >>
-> >> Aguirre Rodriguez, Sergio Alberto wrote:
-> >>>> -----Original Message-----
-> >>>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> >>>> owner@vger.kernel.org] On Behalf Of Zach LeRoy
-> >>>> Sent: Wednesday, June 17, 2009 5:06 PM
-> >>>> To: linux-omap; linux-media@vger.kernel.org
-> >>>> Subject: OMAP34XXCAM: Micron mt9d111 sensor support?
-> >>>>
-> >>>> I am working on adding support for a micron 2 MP sensor: mt9d111 on a
-> >>>> gumsitx overo.  This is a i2c-controlled sensor.  Ideally, I would
-> like
-> >> to
-> >>>> use the omap34xxcam driver to interface with this sensor.  I am
-> >> wondering
-> >>>> if there are currently any distributions which already include
-> support
-> >> for
-> >>>> this sensor through the omap34xxcam driver, or if anyone else is
-> >>>> interested in this topic.
-> >>>>
-> >>> Hi Zach,
-> >>>
-> >>> I'm working along with Sakari Ailus and others in this omap34xxcam
-> >> driver you're talking about, and we are in the process to provide a
-> newer
-> >> patchset to work on the latest l-o tree.
-> >>> Sakari is sharing the camera core here:
-> >>>
-> >>> http://gitorious.org/omap3camera
-> >>>
-> >>> And I have also this repository which contains a snapshot of Sakari's
-> >> tree + support from some sensors I have available for the 3430SDP and
-> LDP
-> >> (the name could confuse with the above, but I'll change the
-> name/location
-> >> soon):
-> >>> http://gitorious.org/omap3-linux-camera-driver
-> >>>
-> >>> Testing the driver with as much sensors as we can is very interesting
-> >> (at least for me), because that help us spot possible bugs that aren't
-> >> seen with our current HW. So, I'll be looking forward if you add this
-> >> sensor driver to the supported list :)
-> >> I'd like to move forward using this on OMAP/3530 with TVP5150 (S-video
-> in)
-> >>
-> >> Sadly, the tree above (omap3-linux-camera-driver) won't build for the
-> >> Zoom/LDP:
-> >>   CC      arch/arm/mach-omap2/board-ldp-camera.o
-> >> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
-> >> camera.c:59:
-> >> error: implicit declaration of function 'PAGE_ALIGN'
-> >> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
-> >> camera.c:59:
-> >> error: initializer element is not constant
-> >> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
-> >> camera.c:59:
-> >> error: (near initialization for 'ov3640_hwc.capture_mem')
-> >> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
-> camera.c:
-> >> In function 'ov3640_sensor_set_prv_data':
-> >> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
-> >> camera.c:89:
-> >> error: 'hwc' undeclared (first use in this function)
-> >> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
-> >> camera.c:89:
-> >> error: (Each undeclared identifier is reported only once
-> >> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
-> >> camera.c:89:
-> >> error: for each function it appears in.)
-> >>
-> >> Looking at the code, it seems that some pieces are missing - merge
-> >> problem maybe?
-> >
-> > Hi Gary,
-> >
-> > I'm currently on the process to rebase and verify all this code on
-> 3430SDP, Zoom1 and soon Zoom2.
-> >
-> > Here you can find my progress:
-> >
-> >   http://dev.omapzoom.org/?p=saaguirre/linux-omap-camera.git;a=summary
-> >
-> > Check devel branch, which contains all latest Sakari's tree patches
-> (http://gitorious.org/omap3camera) rebased on top of latest Kevin's l-o PM
-> tree, plus the patches, which are still in works, to make the above
-> mentioned platforms to work.
-> >
-> > I'm first trying to make 3430SDP work, don't have a Zoom1/Zoom2 handy
-> right now...
-> >
-> > My gitorious tree will eventually disappear, as I can work better with
-> this new one.
-> >
-> > I'll consolidate some patches when this sensor code is ready, and will
-> CC you if interested.
-> >
-> 
-> Thanks.  I've already checked out this tree and at least
-> it builds for the Zoom (I have one here).  Is this in a
-> state where I can test it for you?  What do you use to
-> capture video from the sensor?
-
-I normally use a small test binary I wrote which saves the captured frames to memory, so later I can see them with either IrfanView (when capturing RAW images) or PYUV for seeing the YUV422 images.
-
-You should be able to use any standard V4l2 capturing application anyways.
-
-Regards,
-Sergio
-
-> 
-> 
-> --
-> ------------------------------------------------------------
-> Gary Thomas                 |  Consulting for the
-> MLB Associates              |    Embedded world
-> ------------------------------------------------------------
+diff --git a/linux/drivers/media/video/v4l2-common.c b/linux/drivers/media/video/v4l2-common.c
+index 1f0b8ef..e5b3f6e 100644
+--- a/linux/drivers/media/video/v4l2-common.c
++++ b/linux/drivers/media/video/v4l2-common.c
+@@ -345,6 +345,12 @@ const char **v4l2_ctrl_get_menu(u32 id)
+ 		"Sepia",
+ 		NULL
+ 	};
++	static const char *fm_tx_preemphasis[] = {
++		"No preemphasis",
++		"50 useconds",
++		"75 useconds",
++		NULL,
++	};
+ 
+ 	switch (id) {
+ 		case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+@@ -383,6 +389,8 @@ const char **v4l2_ctrl_get_menu(u32 id)
+ 			return camera_exposure_auto;
+ 		case V4L2_CID_COLORFX:
+ 			return colorfx;
++		case V4L2_CID_FM_TX_PREEMPHASIS:
++			return fm_tx_preemphasis;
+ 		default:
+ 			return NULL;
+ 	}
+@@ -481,6 +489,27 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
+ 	case V4L2_CID_PRIVACY:			return "Privacy";
+ 
++	/* FM Radio Modulator control */
++	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
++	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
++	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
++	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
++	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
++	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
++	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
++	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
++	case V4L2_CID_AUDIO_COMPRESSION_ENABLED: return "Audio Compression Feature Enabled";
++	case V4L2_CID_AUDIO_COMPRESSION_GAIN:	return "Audio Compression Gain";
++	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD: return "Audio Compression Threshold";
++	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME: return "Audio Compression Attack Time";
++	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME: return "Audio Compression Release Time";
++	case V4L2_CID_PILOT_TONE_ENABLED:	return "Pilot Tone Feature Enabled";
++	case V4L2_CID_PILOT_TONE_DEVIATION:	return "Pilot Tone Deviation";
++	case V4L2_CID_PILOT_TONE_FREQUENCY:	return "Pilot Tone Frequency";
++	case V4L2_CID_FM_TX_PREEMPHASIS:	return "Pre-emphasis settings";
++	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
++	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
++
+ 	default:
+ 		return NULL;
+ 	}
+@@ -513,6 +542,9 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+ 	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
+ 	case V4L2_CID_FOCUS_AUTO:
+ 	case V4L2_CID_PRIVACY:
++	case V4L2_CID_AUDIO_LIMITER_ENABLED:
++	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
++	case V4L2_CID_PILOT_TONE_ENABLED:
+ 		qctrl->type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		min = 0;
+ 		max = step = 1;
+@@ -541,12 +573,18 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+ 	case V4L2_CID_MPEG_STREAM_VBI_FMT:
+ 	case V4L2_CID_EXPOSURE_AUTO:
+ 	case V4L2_CID_COLORFX:
++	case V4L2_CID_FM_TX_PREEMPHASIS:
+ 		qctrl->type = V4L2_CTRL_TYPE_MENU;
+ 		step = 1;
+ 		break;
++	case V4L2_CID_RDS_TX_PS_NAME:
++	case V4L2_CID_RDS_TX_RADIO_TEXT:
++		qctrl->type = V4L2_CTRL_TYPE_STRING;
++		break;
+ 	case V4L2_CID_USER_CLASS:
+ 	case V4L2_CID_CAMERA_CLASS:
+ 	case V4L2_CID_MPEG_CLASS:
++	case V4L2_CID_FM_TX_CLASS:
+ 		qctrl->type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 		min = max = step = def = 0;
+@@ -575,6 +613,16 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+ 	case V4L2_CID_BLUE_BALANCE:
+ 	case V4L2_CID_GAMMA:
+ 	case V4L2_CID_SHARPNESS:
++	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME:
++	case V4L2_CID_AUDIO_LIMITER_DEVIATION:
++	case V4L2_CID_AUDIO_COMPRESSION_GAIN:
++	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD:
++	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME:
++	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME:
++	case V4L2_CID_PILOT_TONE_DEVIATION:
++	case V4L2_CID_PILOT_TONE_FREQUENCY:
++	case V4L2_CID_TUNE_POWER_LEVEL:
++	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
+ 		qctrl->flags |= V4L2_CTRL_FLAG_SLIDER;
+ 		break;
+ 	case V4L2_CID_PAN_RELATIVE:
+-- 
+1.6.2.GIT
 
