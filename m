@@ -1,105 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:45176 "EHLO comal.ext.ti.com"
+Received: from mail1.radix.net ([207.192.128.31]:33191 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751342AbZFQVQt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 17:16:49 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5HLGkRe011150
-	for <linux-media@vger.kernel.org>; Wed, 17 Jun 2009 16:16:51 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
-	Murali Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH] adding support for setting bus parameters in sub device
-Date: Wed, 17 Jun 2009 17:16:45 -0400
-Message-Id: <1245273405-9060-1-git-send-email-m-karicheri2@ti.com>
+	id S1751228AbZFVL0q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Jun 2009 07:26:46 -0400
+Subject: Re: Sakar 57379 USB Digital Video Camera...
+From: Andy Walls <awalls@radix.net>
+To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <alpine.LNX.2.00.0906212230200.31693@banach.math.auburn.edu>
+References: <1245375652.20630.6.camel@palomino.walls.org>
+	 <alpine.LNX.2.00.0906182113010.17417@banach.math.auburn.edu>
+	 <1245386416.20630.31.camel@palomino.walls.org>
+	 <alpine.LNX.2.00.0906190016070.17528@banach.math.auburn.edu>
+	 <1245435414.4181.7.camel@palomino.walls.org>
+	 <alpine.LNX.2.00.0906191855110.18505@banach.math.auburn.edu>
+	 <1245462845.3168.40.camel@palomino.walls.org>
+	 <alpine.LNX.2.00.0906192253080.18675@banach.math.auburn.edu>
+	 <1245525813.3178.24.camel@palomino.walls.org>
+	 <1245538316.3296.36.camel@palomino.walls.org>
+	 <alpine.LNX.2.00.0906201956270.28975@banach.math.auburn.edu>
+	 <1245557957.3296.215.camel@palomino.walls.org>
+	 <alpine.LNX.2.00.0906211019500.31206@banach.math.auburn.edu>
+	 <1245634667.3815.54.camel@palomino.walls.org>
+	 <alpine.LNX.2.00.0906212230200.31693@banach.math.auburn.edu>
+Content-Type: text/plain
+Date: Mon, 22 Jun 2009 07:27:40 -0400
+Message-Id: <1245670060.3178.14.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
+On Sun, 2009-06-21 at 22:39 -0500, Theodore Kilgore wrote:
+> Andy,
+> 
+> You are right. Your camera is emitting JPEG while streaming. I just 
+> succeeded in creating an image which resembles your test picture by 
+> extracting the frame data for one frame, tacking on a header, and running 
+> hex2bin on the combined file. I did not get the thing quite right, because 
+> your header is from your JPEG photo (640x480) and your stream is probably 
+> 320x240. But I got something out which is obviously recognizable.
 
-This patch adds support for setting bus parameters such as bus type
-(Raw Bayer or Raw YUV image data bus), bus width (example 10 bit raw
-image data bus, 10 bit BT.656 etc.), and polarities (vsync, hsync, field
-etc) in sub device. This allows bridge driver to configure the sub device
-bus for a specific set of bus parameters through s_bus() function call.
-This also can be used to define platform specific bus parameters for
-host and sub-devices.
+Excellent.  Going from "It may never work" to "something recognizable"
+in one weekend is good progress.
 
-Reviewed by: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
----
-Applies to v4l-dvb repository
+> Therefore with a little bit of further tweaking it will presumably come 
+> out exactly so. Namely, I have to remember where to stick the two 
+> dimensions into the header.
 
- include/media/v4l2-subdev.h |   40 ++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 40 insertions(+), 0 deletions(-)
+Yes, as far as I'm concerned the problem is solved.  The details are
+left as an exercise for the reader. ;)
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 1785608..8532b91 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -37,6 +37,43 @@ struct v4l2_decode_vbi_line {
- 	u32 type;		/* VBI service type (V4L2_SLICED_*). 0 if no service found */
- };
- 
-+/*
-+ * Some sub-devices are connected to the host/bridge device through a bus that
-+ * carries the clock, vsync, hsync and data. Some interfaces such as BT.656
-+ * carries the sync embedded in the data where as others have separate line
-+ * carrying the sync signals. The structure below is used to define bus
-+ * configuration parameters for host as well as sub-device
-+ */
-+enum v4l2_bus_type {
-+	/* Raw YUV image data bus */
-+	V4L2_BUS_RAW_YUV,
-+	/* Raw Bayer image data bus */
-+	V4L2_BUS_RAW_BAYER
-+};
-+
-+struct v4l2_bus_settings {
-+	/* yuv or bayer image data bus */
-+	enum v4l2_bus_type type;
-+	/* subdev bus width */
-+	u8 subdev_width;
-+	/* host bus width */
-+	u8 host_width;
-+	/* embedded sync, set this when sync is embedded in the data stream */
-+	unsigned embedded_sync:1;
-+	/* master or slave */
-+	unsigned host_is_master:1;
-+	/* 0 - active low, 1 - active high */
-+	unsigned pol_vsync:1;
-+	/* 0 - active low, 1 - active high */
-+	unsigned pol_hsync:1;
-+	/* 0 - low to high , 1 - high to low */
-+	unsigned pol_field:1;
-+	/* 0 - active low , 1 - active high */
-+	unsigned pol_data:1;
-+	/* 0 - sample at falling edge , 1 - sample at rising edge */
-+	unsigned edge_pclock:1;
-+};
-+
- /* Sub-devices are devices that are connected somehow to the main bridge
-    device. These devices are usually audio/video muxers/encoders/decoders or
-    sensors and webcam controllers.
-@@ -199,6 +236,8 @@ struct v4l2_subdev_audio_ops {
- 
-    s_routing: see s_routing in audio_ops, except this version is for video
- 	devices.
-+
-+   s_bus: set bus parameters in sub device to configure the bus
-  */
- struct v4l2_subdev_video_ops {
- 	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
-@@ -219,6 +258,7 @@ struct v4l2_subdev_video_ops {
- 	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
- 	int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum *fsize);
- 	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct v4l2_frmivalenum *fival);
-+	int (*s_bus)(struct v4l2_subdev *sd, const struct v4l2_bus_settings *bus);
- };
- 
- struct v4l2_subdev_ops {
--- 
-1.6.0.4
+
+I'm not up to speed on Linux webcam kernel to userspace API details.
+However, might I suggest going forward for testing at least, that when
+one starts the webcam streaming, the driver emit the stream in the form
+of an AVI.  You'd need an AVI header declaring only an MJPEG 'vids'
+stream - no 'auds' nor 'idx' - and a 'movi' section with RIFF/AVI chunks
+that have MJPEG headers and the webcam payload.
+
+I haven't seen evidence that audio comes from the webcam when it is
+streaming, but I haven't looked very much either.
+
+
+
+>  As my students in courses like calculus say, 
+> "Sir, it has been a long time since I studied that." Whereupon I reply, 
+> "With my white hair, I wonder how far I could get with that excuse?"
+
+:)
+
+> I will send you a copy of the results for your amusement. It is obviously 
+> the first attempt, so do not laugh at the fact that you get two copies of
+> 
+>  	 3
+>  	x6
+>  	--
+> 
+> side by side, please.
+
+In retrospect, I should have used the 6x7 (or 6x9) flash card, so the
+answer would have been 42. :)
+
+Regards,
+Andy
+
+
+> Theodore Kilgore
+
 
