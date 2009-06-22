@@ -1,99 +1,269 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:52752 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759292AbZFJRAz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2009 13:00:55 -0400
-Received: from dlep33.itg.ti.com ([157.170.170.112])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5AH0qMA031750
-	for <linux-media@vger.kernel.org>; Wed, 10 Jun 2009 12:00:57 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [RFC PATCH] adding support for setting bus parameters in sub device
-Date: Wed, 10 Jun 2009 13:00:50 -0400
-Message-Id: <1244653250-4640-1-git-send-email-m-karicheri2@ti.com>
+Received: from smtp.nokia.com ([192.100.122.233]:58530 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755252AbZFVQ2V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Jun 2009 12:28:21 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv9 5/9] v4l2-spec: Add documentation description for FM TX extended control class
+Date: Mon, 22 Jun 2009 19:21:32 +0300
+Message-Id: <1245687696-6730-6-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1245687696-6730-5-git-send-email-eduardo.valentin@nokia.com>
+References: <1245687696-6730-1-git-send-email-eduardo.valentin@nokia.com>
+ <1245687696-6730-2-git-send-email-eduardo.valentin@nokia.com>
+ <1245687696-6730-3-git-send-email-eduardo.valentin@nokia.com>
+ <1245687696-6730-4-git-send-email-eduardo.valentin@nokia.com>
+ <1245687696-6730-5-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
+This single patch adds documentation description for FM Modulator (FM_TX)
+Extended Control Class and its Control IDs. The text was added under
+"Extended Controls" section.
 
-This patch adds support for setting bus parameters such as bus type
-(Raw Bayer or Raw YUV image data bus), bus width (example 10 bit raw
-image data bus, 10 bit BT.656 etc.), and polarities (vsync, hsync, field
-etc) in sub device. This allows bridge driver to configure the sub device
-interface for a specific set of bus parameters through s_bus() function call.
-
-Reviewed By "Hans Verkuil".
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 ---
-Applies to v4l-dvb repository
+ v4l2-spec/Makefile      |    1 +
+ v4l2-spec/controls.sgml |  200 +++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 201 insertions(+), 0 deletions(-)
 
- include/media/v4l2-subdev.h |   36 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 36 insertions(+), 0 deletions(-)
-
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 1785608..8e719c4 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -37,6 +37,39 @@ struct v4l2_decode_vbi_line {
- 	u32 type;		/* VBI service type (V4L2_SLICED_*). 0 if no service found */
- };
+diff --git a/v4l2-spec/Makefile b/v4l2-spec/Makefile
+index 7a19924..6b46433 100644
+--- a/v4l2-spec/Makefile
++++ b/v4l2-spec/Makefile
+@@ -242,6 +242,7 @@ ENUMS = \
+ 	v4l2_power_line_frequency \
+ 	v4l2_priority \
+ 	v4l2_tuner_type \
++	v4l2_preemphasis \
  
-+/*
-+ * Some sub-devices are connected to the bridge device through a bus that
-+ * carries * the clock, vsync, hsync and data. Some interfaces such as BT.656
-+ * carries the sync embedded in the data where as others have separate line
-+ * carrying the sync signals. The structure below is used by bridge driver to
-+ * set the desired bus parameters in the sub device to work with it.
-+ */
-+enum v4l2_subdev_bus_type {
-+	/* Raw YUV image data bus */
-+	V4L2_SUBDEV_BUS_RAW_YUV,
-+	/* Raw Bayer image data bus */
-+	V4L2_SUBDEV_BUS_RAW_BAYER
-+};
+ STRUCTS = \
+ 	v4l2_audio \
+diff --git a/v4l2-spec/controls.sgml b/v4l2-spec/controls.sgml
+index 477a970..205a7a6 100644
+--- a/v4l2-spec/controls.sgml
++++ b/v4l2-spec/controls.sgml
+@@ -458,6 +458,12 @@ video is actually encoded into that format.</para>
+       <para>Unfortunately, the original control API lacked some
+ features needed for these new uses and so it was extended into the
+ (not terribly originally named) extended control API.</para>
 +
-+struct v4l2_subdev_bus	{
-+	/* yuv or bayer image data bus */
-+	enum v4l2_subdev_bus_type type;
-+	/* bus width */
-+	u8 width;
-+	/* embedded sync, set this when sync is embedded in the data stream */
-+	unsigned embedded_sync:1;
-+	/* 0 - active low, 1 - active high */
-+	unsigned pol_vsync:1;
-+	/* 0 - active low, 1 - active high */
-+	unsigned pol_hsync:1;
-+	/* 0 - low to high , 1 - high to low */
-+	unsigned pol_field:1;
-+	/* 0 - sample at falling edge , 1 - sample at rising edge */
-+	unsigned pol_pclock:1;
-+	/* 0 - active low , 1 - active high */
-+	unsigned pol_data:1;
-+};
-+
- /* Sub-devices are devices that are connected somehow to the main bridge
-    device. These devices are usually audio/video muxers/encoders/decoders or
-    sensors and webcam controllers.
-@@ -199,6 +232,8 @@ struct v4l2_subdev_audio_ops {
++      <para>Even though the MPEG encoding API was the first effort
++to use the Extended Control API, nowadays there are also other classes
++of Extended Controls, such as Camera Controls and FM Transmitter Controls.
++The Extended Controls API as well as all Extended Controls classes are
++described in the following text.</para>
+     </section>
  
-    s_routing: see s_routing in audio_ops, except this version is for video
- 	devices.
+     <section>
+@@ -1816,6 +1822,200 @@ control must support read access and may support write access.</entry>
+       </tgroup>
+     </table>
+   </section>
 +
-+   s_bus: set bus parameters in sub device to configure the interface
-  */
- struct v4l2_subdev_video_ops {
- 	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
-@@ -219,6 +254,7 @@ struct v4l2_subdev_video_ops {
- 	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
- 	int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum *fsize);
- 	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct v4l2_frmivalenum *fival);
-+	int (*s_bus)(struct v4l2_subdev *sd, const struct v4l2_subdev_bus *bus);
- };
++    <section id="fm-tx-controls">
++      <title>FM Transmitter Control Reference</title>
++
++      <para>The FM Transmitter (FM_TX) class includes controls for common features of
++FM transmissions capable devices. Currently this class include parameters for audio
++compression, pilot tone generation, audio deviation limiter, RDS transmission and
++tuning power features.</para>
++
++      <table pgwide="1" frame="none" id="fm-tx-control-id">
++      <title>FM_TX Control IDs</title>
++
++      <tgroup cols="4">
++	<colspec colname="c1" colwidth="1*">
++	<colspec colname="c2" colwidth="6*">
++	<colspec colname="c3" colwidth="2*">
++	<colspec colname="c4" colwidth="6*">
++	<spanspec namest="c1" nameend="c2" spanname="id">
++	<spanspec namest="c2" nameend="c4" spanname="descr">
++	<thead>
++	  <row>
++	    <entry spanname="id" align="left">ID</entry>
++	    <entry align="left">Type</entry>
++	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row><entry></entry></row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FM_TX_CLASS</constant>&nbsp;</entry>
++	    <entry>class</entry>
++	  </row><row><entry spanname="descr">The FM_TX class
++descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
++description of this control class.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_TX_PI</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the RDS Programme Identification field
++for transmission.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_TX_PTY</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the RDS Programme Type field for transmission.
++This encodes up to 31 pre-defined programme types.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_TX_PS_NAME</constant>&nbsp;</entry>
++	    <entry>string</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the Programme Service name (PS_NAME) for transmission.
++It is intended for static display on a receiver. It is the primary aid to listeners in programme service
++identification and selection. The use of PS to transmit text other than a single eight character name is not permitted.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_TX_RADIO_TEXT</constant>&nbsp;</entry>
++	    <entry>string</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the Radio Text info for transmission. It is a textual description of
++what is being broadcasted. RDS Radio Text can be applied when broadcaster wishes to transmit longer PS names,
++programme-related information or any other text. In these cases, RadioText should be used in addition to
++<constant>V4L2_CID_RDS_TX_PS_NAME</constant>.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_ENABLED</constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row><entry spanname="descr">Enables or disables the audio deviation limiter feature.
++The limiter is useful when trying to maximize the audio volume, minimize receiver-generated
++distortion and prevent overmodulation.
++</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_RELEASE_TIME</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the audio deviation limiter feature release time.
++Unit is in useconds. Step and range are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_DEVIATION</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures audio frequency deviation level in Hz.
++The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_ENABLED</constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row><entry spanname="descr">Enables or disables the audio compression feature.
++This feature amplifies signals below the threshold by a fixed gain and compresses audio
++signals above the threshold by the ratio of Threshold/(Gain + Threshold).</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_GAIN</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the gain for audio compression feature. It is
++a dB value. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_THRESHOLD</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the threshold level for audio compression freature.
++It is a dB value. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the attack time for audio compression feature.
++It is a useconds value. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the release time for audio compression feature.
++It is a useconds value. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_ENABLED</constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row><entry spanname="descr">Enables or disables the pilot tone generation feature.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_DEVIATION</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures pilot tone frequency deviation level. Unit is
++in Hz. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_FREQUENCY</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures pilot tone frequency value. Unit is
++in Hz. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FM_TX_PREEMPHASIS</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row id="v4l2-preemphasis"><entry spanname="descr">Configures the pre-emphasis value for broadcasting.
++A pre-emphasis filter is applied to the broadcast to accentuate the high audio frequencies.
++Depending on the region, a time constant of either 50 or 75 useconds is used. The enum&nbsp;v4l2_preemphasis
++defines possible values for pre-emphasis. Here they are:</entry>
++	</row><row>
++	<entrytbl spanname="descr" cols="2">
++		  <tbody valign="top">
++		    <row>
++		      <entry><constant>V4L2_PREEMPHASIS_DISABLED</constant>&nbsp;</entry>
++		      <entry>No pre-emphasis is applied.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_PREEMPHASIS_50_uS</constant>&nbsp;</entry>
++		      <entry>A pre-emphasis of 50 uS is used.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_PREEMPHASIS_75_uS</constant>&nbsp;</entry>
++		      <entry>A pre-emphasis of 75 uS is used.</entry>
++		    </row>
++		  </tbody>
++		</entrytbl>
++
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_TUNE_POWER_LEVEL</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the output power level for signal transmission.
++Unit is in dBuV. Range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_TUNE_ANTENNA_CAPACITOR</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">This selects the value of antenna tuning capacitor
++manually or automatically if set to zero. Unit, range and step are driver-specific.</entry>
++	  </row>
++	  <row><entry></entry></row>
++	</tbody>
++      </tgroup>
++      </table>
++
++<para>For more details about RDS specification, refer to
++<xref linkend="en50067"> document, from CENELEC.</para>
++    </section>
+ </section>
  
- struct v4l2_subdev_ops {
+   <!--
 -- 
-1.6.0.4
+1.6.2.GIT
 
