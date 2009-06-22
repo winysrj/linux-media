@@ -1,56 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.26]:2399 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758402AbZFIOGS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jun 2009 10:06:18 -0400
-Received: by qw-out-2122.google.com with SMTP id 5so2484713qwd.37
-        for <linux-media@vger.kernel.org>; Tue, 09 Jun 2009 07:06:20 -0700 (PDT)
+Received: from mail-out.m-online.net ([212.18.0.9]:37581 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757325AbZFVOcv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Jun 2009 10:32:51 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: mt312: Fix checkpatch warnings
+Date: Mon, 22 Jun 2009 16:32:47 +0200
 MIME-Version: 1.0
-In-Reply-To: <625E57E0-150D-40A1-AF90-7B0112D16931@flyn.org>
-References: <4f363d5e6b409da696b35f7e2a966952.squirrel@mail.voxel.net>
-	 <829197380906071921g54469ee7uac77c10d380a7e0a@mail.gmail.com>
-	 <625E57E0-150D-40A1-AF90-7B0112D16931@flyn.org>
-Date: Tue, 9 Jun 2009 10:06:20 -0400
-Message-ID: <829197380906090706h1f287623m979811f6c0b5956e@mail.gmail.com>
-Subject: Re: funny colors from XC5000 on big endian systems
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: "W. Michael Petullo" <mike@flyn.org>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_QY5PKpeQ96Qqouq"
+Message-Id: <200906221632.48271.zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 8, 2009 at 7:09 PM, W. Michael Petullo <mike@flyn.org> wrote:
-> I have a VCR connected to my 950Q using the coaxial interface.
->
-> Kernel is 2.6.29.4.
->
-> I am using streamer from Fedora's xawtv-3.95-11.fc11.ppc:
->
-> v4lctl setchannel 3
-> streamer -r 30 -s 640x480 -f jpeg -i Television -n NTSC-M -c /dev/video0 -o
-> ~/Desktop/foo.avi -t 00:60:00
->
-> I am using gstreamer-plugins-good-0.10.14-2.fc11.ppc:
->
-> gst-launch v4l2src ! ffmpegcolorspace ! ximagesink
->
-> Mike
+--Boundary-00=_QY5PKpeQ96Qqouq
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-Hello Mike,
+Hi list!
 
-Just a quick follow up, I was up until 1am debugging this issue. It
-appears that a couple of the ioctl calls are failing when negotiating
-the capabilities of the analog support.  As a result, the gstreamer
-v4l code is falling back to a default colorspace.
+This patch fixes some checkpatch warnings in mt312-driver.
 
-The command I sent you should be good enough for it to work for you,
-but I obviously need to debug this further so that the autonegotiation
-works properly.
+Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
 
-Devin
+Regards
+Matthias
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+--Boundary-00=_QY5PKpeQ96Qqouq
+Content-Type: text/x-diff;
+  charset="iso 8859-15";
+  name="mt312-coding-style.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="mt312-coding-style.diff"
+
+Index: v4l-dvb/linux/drivers/media/dvb/frontends/mt312.c
+===================================================================
+--- v4l-dvb.orig/linux/drivers/media/dvb/frontends/mt312.c
++++ v4l-dvb/linux/drivers/media/dvb/frontends/mt312.c
+@@ -85,7 +85,7 @@ static int mt312_read(struct mt312_state
+ 		int i;
+ 		dprintk("R(%d):", reg & 0x7f);
+ 		for (i = 0; i < count; i++)
+-			printk(" %02x", buf[i]);
++			printk(KERN_CONT " %02x", buf[i]);
+ 		printk("\n");
+ 	}
+ 
+@@ -103,7 +103,7 @@ static int mt312_write(struct mt312_stat
+ 		int i;
+ 		dprintk("W(%d):", reg & 0x7f);
+ 		for (i = 0; i < count; i++)
+-			printk(" %02x", src[i]);
++			printk(KERN_CONT " %02x", src[i]);
+ 		printk("\n");
+ 	}
+ 
+@@ -744,7 +744,8 @@ static struct dvb_frontend_ops mt312_ops
+ 		.type = FE_QPSK,
+ 		.frequency_min = 950000,
+ 		.frequency_max = 2150000,
+-		.frequency_stepsize = (MT312_PLL_CLK / 1000) / 128, /* FIXME: adjust freq to real used xtal */
++		/* FIXME: adjust freq to real used xtal */
++		.frequency_stepsize = (MT312_PLL_CLK / 1000) / 128,
+ 		.symbol_rate_min = MT312_SYS_CLK / 128, /* FIXME as above */
+ 		.symbol_rate_max = MT312_SYS_CLK / 2,
+ 		.caps =
+Index: v4l-dvb/linux/drivers/media/dvb/frontends/zl10036.c
+===================================================================
+--- v4l-dvb.orig/linux/drivers/media/dvb/frontends/zl10036.c
++++ v4l-dvb/linux/drivers/media/dvb/frontends/zl10036.c
+@@ -29,7 +29,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/dvb/frontend.h>
+-#include <asm/types.h>
++#include <linux/types.h>
+ #include "compat.h"
+ 
+ #include "zl10036.h"
+
+--Boundary-00=_QY5PKpeQ96Qqouq--
