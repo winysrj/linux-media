@@ -1,296 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:56974 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756988AbZFLRgW (ORCPT
+Received: from mail-fx0-f224.google.com ([209.85.220.224]:50924 "EHLO
+	mail-fx0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750970AbZFVRB6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jun 2009 13:36:22 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv7 5/9] v4l2-spec: Add documentation description for FM TX extended control class
-Date: Fri, 12 Jun 2009 20:30:36 +0300
-Message-Id: <1244827840-886-6-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1244827840-886-5-git-send-email-eduardo.valentin@nokia.com>
-References: <1244827840-886-1-git-send-email-eduardo.valentin@nokia.com>
- <1244827840-886-2-git-send-email-eduardo.valentin@nokia.com>
- <1244827840-886-3-git-send-email-eduardo.valentin@nokia.com>
- <1244827840-886-4-git-send-email-eduardo.valentin@nokia.com>
- <1244827840-886-5-git-send-email-eduardo.valentin@nokia.com>
+	Mon, 22 Jun 2009 13:01:58 -0400
+Received: by fxm24 with SMTP id 24so859747fxm.37
+        for <linux-media@vger.kernel.org>; Mon, 22 Jun 2009 10:02:00 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <88b49f150906220027n17820baaxd4d4f63238a18de8@mail.gmail.com>
+References: <88b49f150906211444u39a8eae1v77a15f32e4062775@mail.gmail.com>
+	 <d9def9db0906212339k3af44f3dg80fe119784391dfe@mail.gmail.com>
+	 <88b49f150906220027n17820baaxd4d4f63238a18de8@mail.gmail.com>
+Date: Mon, 22 Jun 2009 20:01:59 +0300
+Message-ID: <88b49f150906221001i7d8eb7c5x2af79452398c5c9e@mail.gmail.com>
+Subject: Fwd: [linux-dvb] Kworld DVB-T 323UR problems
+From: Laszlo Kustan <lkustan@gmail.com>
+To: Markus Rechberger <mrechberger@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This single patch adds documentation description for FM Modulator (FM_TX)
-Extended Control Class and its Control IDs. The text was added under
-"Extended Controls" section.
+Hi again,
+Here is the correct dmesg output when my usb port is recognized
+properly The output is kind of weird, because this tuner does not have
+radio but according to dmesg it is switching the device to FM mode...
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- v4l2-spec/Makefile      |    1 +
- v4l2-spec/biblio.sgml   |   10 +++
- v4l2-spec/controls.sgml |  205 +++++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 216 insertions(+), 0 deletions(-)
+[  550.908041] usb 1-4: new high speed USB device using ehci_hcd and address 6
+[  551.075241] usb 1-4: configuration #1 chosen from 1 choice
+[  551.075525] em28xx: new video device (eb1a:e323): interface 0, class 255
+[  551.075530] em28xx: device is attached to a USB 2.0 bus
+[  551.075536] em28xx #0: Alternate settings: 8
+[  551.075540] em28xx #0: Alternate setting 0, max size= 0
+[  551.075544] em28xx #0: Alternate setting 1, max size= 0
+[  551.075548] em28xx #0: Alternate setting 2, max size= 1448
+[  551.075553] em28xx #0: Alternate setting 3, max size= 2048
+[  551.075557] em28xx #0: Alternate setting 4, max size= 2304
+[  551.075561] em28xx #0: Alternate setting 5, max size= 2580
+[  551.075565] em28xx #0: Alternate setting 6, max size= 2892
+[  551.075569] em28xx #0: Alternate setting 7, max size= 3072
+[  551.658207] attach_inform: tvp5150 detected.
+[  551.720539] tvp5150 5-005c: tvp5150am1 detected.
+[  553.360916] successfully attached tuner
+[  553.368599] em28xx #0: V4L2 VBI device registered as /dev/vbi0
+[  553.389033] em28xx #0: V4L2 device registered as /dev/video0
+[  553.389041] em28xx-audio.c: probing for em28x1 non standard usbaudio
+[  553.389045] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+[  553.421218] em2880-dvb.c: DVB Init
+[  554.076418] DVB: registering new adapter (em2880 DVB-T)
+[  554.076431] DVB: registering adapter 0 frontend 0 (Zarlink ZL10353 DVB-T)...
+[  554.081209] em28xx #0: Found KWorld E323
+[  554.410650] opening radio device and trying to acquire exclusive lock
+[  554.410661] switching device to FM mode
 
-diff --git a/v4l2-spec/Makefile b/v4l2-spec/Makefile
-index 7a19924..bfe2965 100644
---- a/v4l2-spec/Makefile
-+++ b/v4l2-spec/Makefile
-@@ -242,6 +242,7 @@ ENUMS = \
- 	v4l2_power_line_frequency \
- 	v4l2_priority \
- 	v4l2_tuner_type \
-+	v4l2_fm_tx_preemphasis \
- 
- STRUCTS = \
- 	v4l2_audio \
-diff --git a/v4l2-spec/biblio.sgml b/v4l2-spec/biblio.sgml
-index b013ece..0921849 100644
---- a/v4l2-spec/biblio.sgml
-+++ b/v4l2-spec/biblio.sgml
-@@ -11,6 +11,16 @@ url="http://www.eia.org">http://www.eia.org</ulink>)</corpauthor>
- Service"</title>
-     </biblioentry>
- 
-+    <biblioentry id="en50067">
-+      <abbrev>EN&nbsp;50067</abbrev>
-+      <authorgroup>
-+	<corpauthor>CENELEC European Committee for Electrotechnical Standardization
-+(<ulink url="http://www.cenelec.eu">http://www.cenelec.eu</ulink>)</corpauthor>
-+      </authorgroup>
-+      <title>EN 50067 "Specification of the radio data system (RDS) for
-+VHF/FM sound broadcasting in the frequency range from 87,5 to 108,0 MHz"</title>
-+    </biblioentry>
-+
-     <biblioentry id="en300294">
-       <abbrev>EN&nbsp;300&nbsp;294</abbrev>
-       <authorgroup>
-diff --git a/v4l2-spec/controls.sgml b/v4l2-spec/controls.sgml
-index 477a970..0bb6f00 100644
---- a/v4l2-spec/controls.sgml
-+++ b/v4l2-spec/controls.sgml
-@@ -458,6 +458,12 @@ video is actually encoded into that format.</para>
-       <para>Unfortunately, the original control API lacked some
- features needed for these new uses and so it was extended into the
- (not terribly originally named) extended control API.</para>
-+
-+      <para>Even though the MPEG encoding API was the first effort
-+to use the Extended Control API, nowadays there are also other classes
-+of Extended Controls, such as Camera Controls and FM Transmitter Controls.
-+The Extended Controls API as well as all Extended Controls classes are
-+described in the following text.</para>
-     </section>
- 
-     <section>
-@@ -1816,6 +1822,205 @@ control must support read access and may support write access.</entry>
-       </tgroup>
-     </table>
-   </section>
-+
-+    <section id="fm-tx-controls">
-+      <title>FM Transmitter Control Reference</title>
-+
-+      <para>The FM Transmitter (FM_TX) class includes controls for common features of
-+FM transmissions capable devices. Currently this class include parameters for audio
-+compression, pilot tone generation, audio deviation limiter, RDS transmission and
-+tuning power features.</para>
-+
-+      <table pgwide="1" frame="none" id="fm-tx-control-id">
-+      <title>FM_TX Control IDs</title>
-+
-+      <tgroup cols="4">
-+	<colspec colname="c1" colwidth="1*">
-+	<colspec colname="c2" colwidth="6*">
-+	<colspec colname="c3" colwidth="2*">
-+	<colspec colname="c4" colwidth="6*">
-+	<spanspec namest="c1" nameend="c2" spanname="id">
-+	<spanspec namest="c2" nameend="c4" spanname="descr">
-+	<thead>
-+	  <row>
-+	    <entry spanname="id" align="left">ID</entry>
-+	    <entry align="left">Type</entry>
-+	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-+	  </row>
-+	</thead>
-+	<tbody valign="top">
-+	  <row><entry></entry></row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_FM_TX_CLASS</constant>&nbsp;</entry>
-+	    <entry>class</entry>
-+	  </row><row><entry spanname="descr">The FM_TX class
-+descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
-+description of this control class.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RDS_ENABLED</constant>&nbsp;</entry>
-+	    <entry>boolean</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Enables or disables the RDS transmission feature.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RDS_PI</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the RDS Programme Identification field
-+for transmission.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RDS_PTY</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the RDS Programme Type field for transmission.
-+This coding of up to 31 pre-defined programme types.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RDS_PS_NAME</constant>&nbsp;</entry>
-+	    <entry>string</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the Programme Service name (PS_NAME) for transmission.
-+It is intended for static display on a receiver. It is the primary aid to listeners in programme service
-+identification and selection. The use of PS to transmit text other than a single eight character name is not permitted.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RDS_RADIO_TEXT</constant>&nbsp;</entry>
-+	    <entry>string</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the Radio Text info for transmission. It is a textual description of
-+what is being broadcasted. If broadcaster wishes to transmit longer PS names, programme-related information or any other
-+text, then RadioText should be used.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_ENABLED</constant>&nbsp;</entry>
-+	    <entry>boolean</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Enables or disables the audio deviation limiter feature.
-+The limiter is useful when trying to maximize the audio volume, minimize receiver-generated
-+distortion and prevent overmodulation.
-+</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_RELEASE_TIME</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the audio deviation limiter feature release time.
-+The unit, step and range are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_DEVIATION</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Configures audio frequency deviation level in Hz.
-+The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_ENABLED</constant>&nbsp;</entry>
-+	    <entry>boolean</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Enables or disables the audio compression feature.
-+This feature amplifies signals below the threshold by a fixed gain and compresses audio
-+signals above the threshold by the ratio of Threshold/(Gain + Threshold).</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_GAIN</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the gain for audio compression feature. It is
-+a dB value. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_THRESHOLD</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the threshold level for audio compression freature.
-+It is a dB value. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the attack time for audio compression feature.
-+It is a useconds value. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the release time for audio compression feature.
-+It is a useconds value. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_ENABLED</constant>&nbsp;</entry>
-+	    <entry>boolean</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Enables or disables the pilot tone generation feature.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_DEVIATION</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Configures pilot tone frequency deviation level. Unit is
-+in Hz. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_FREQUENCY</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Configures pilot tone frequency value. Unit is
-+in Hz. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_PREEMPHASIS</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row id="v4l2-fm-tx-preemphasis"><entry spanname="descr">Configures the pre-emphasis value for broadcasting.
-+A pre-emphasis filter is applied to the broadcast to accentuate the high audio frequencies.
-+Depending on the region, a time constant of either 50 or 75 useconds is used. The enum&nbsp;v4l2_fm_tx_preemphasis
-+defines possible values for pre-emphasis. Here they are:</entry>
-+	</row><row>
-+	<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_FM_TX_PREEMPHASIS_DISABLED</constant>&nbsp;</entry>
-+		      <entry>No pre-emphasis is applied.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_FM_TX_PREEMPHASIS_50_uS</constant>&nbsp;</entry>
-+		      <entry>A pre-emphasis of 50 uS is used.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_FM_TX_PREEMPHASIS_75_uS</constant>&nbsp;</entry>
-+		      <entry>A pre-emphasis of 75 uS is used.</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_TUNE_POWER_LEVEL</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the output power level for signal transmission.
-+Unit is in dBuV. Range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_TUNE_ANTENNA_CAPACITOR</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">This selects the value of antenna tuning capacitor
-+manually or automatically if set to zero. Unit, range and step are driver-specific.</entry>
-+	  </row>
-+	  <row><entry></entry></row>
-+	</tbody>
-+      </tgroup>
-+      </table>
-+
-+<para>For more details about RDS specification, refer to
-+<xref linkend="en50067"> document, from CENELEC.</para>
-+    </section>
- </section>
- 
-   <!--
--- 
-1.6.2.GIT
+Laszlo
 
+---------- Forwarded message ----------
+From: Laszlo Kustan <lkustan@gmail.com>
+Date: Mon, Jun 22, 2009 at 10:27 AM
+Subject: Re: [linux-dvb] Kworld DVB-T 323UR problems
+To: Markus Rechberger <mrechberger@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+
+
+Hi Markus,
+Sorry, it seems that sometimes my usb is not recognized as 2.0, I
+wonder why this happens.
+Anyway, I'll send you in the afternoon a correct dmesg output, but the
+results are the same: same problems with analog routing and no remote.
+After I installed your tvtime version (had to install the deb version
+as the sources are not available on your site (internal server
+error)), there were some problems with libswscale (the link had other
+name than tvtime was looking for), I renamed the link and that's how I
+ended up with the error message I already wrote:
+Access type not available
+
+Any idea how to get rid of this or any feasible solution for the analog audio?
+
+Thanks, Laszlo
+
+>
+> please pay attention to that line... it probably will not work with usb 1.0.
+>
+> Markus
