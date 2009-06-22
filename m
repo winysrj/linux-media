@@ -1,71 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:59901 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751917AbZF3SoA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jun 2009 14:44:00 -0400
-Message-ID: <4A4A5D79.9080403@redhat.com>
-Date: Tue, 30 Jun 2009 20:46:17 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: eric.paturage@orange.fr, linux-media@vger.kernel.org
-Subject: Re: (very) wrong picture with sonixj driver and  0c45:6128
-References: <200906291843.n5TIhoO04486@neptune.localwarp.net> <20090630124624.7c64a597@free.fr>
-In-Reply-To: <20090630124624.7c64a597@free.fr>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([192.100.105.134]:55594 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755168AbZFVQ2V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Jun 2009 12:28:21 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv9 1/9] v4l2-subdev.h: Add g_modulator callbacks to subdev api
+Date: Mon, 22 Jun 2009 19:21:28 +0300
+Message-Id: <1245687696-6730-2-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1245687696-6730-1-git-send-email-eduardo.valentin@nokia.com>
+References: <1245687696-6730-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ linux/include/media/v4l2-subdev.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
+diff --git a/linux/include/media/v4l2-subdev.h b/linux/include/media/v4l2-subdev.h
+index 5dcb367..4dc3788 100644
+--- a/linux/include/media/v4l2-subdev.h
++++ b/linux/include/media/v4l2-subdev.h
+@@ -137,6 +137,8 @@ struct v4l2_subdev_tuner_ops {
+ 	int (*g_frequency)(struct v4l2_subdev *sd, struct v4l2_frequency *freq);
+ 	int (*g_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
+ 	int (*s_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
++	int (*g_modulator)(struct v4l2_subdev *sd, struct v4l2_modulator *vm);
++	int (*s_modulator)(struct v4l2_subdev *sd, struct v4l2_modulator *vm);
+ 	int (*s_type_addr)(struct v4l2_subdev *sd, struct tuner_setup *type);
+ 	int (*s_config)(struct v4l2_subdev *sd, const struct v4l2_priv_tun_config *config);
+ 	int (*s_standby)(struct v4l2_subdev *sd);
+-- 
+1.6.2.GIT
 
-On 06/30/2009 12:46 PM, Jean-Francois Moine wrote:
-> On Mon, 29 Jun 2009 20:43:29 +0200 (CEST)
-> eric.paturage@orange.fr wrote:
->> i am trying to use an "ngs skull" webcam with the gspca sonixj
->> driver . i enclose a screen copy , so one can see what what i mean :
->> the image is flatten vertically , there is 25% missing on the left .
->> and the color is all wrong , over-bright  . (no matter how much i try
->> to correct with v4l_ctl) the tests have been done with the latest
->> mercurial version of the v4l drivers (from sunday evening) on
->> 2.6.29.4 . I also tried it on 2 other computers (2.6.28.2 ) and
->> 2.6.27.4 . with sames results .
-> 	[snip]
->> any idea what is going on ?
->>
->> I can provide more detailled log if needed , by setting the debug
->> param in gspca_main
->
-> Hello Eric,
->
-> Looking at the ms-win driver, it seems that the bridge is not the right
-> one. May you try to change it? This is done in the mercurial tree
-> editing the file:
->
-> 	linux/drivers/media/video/gspca/sonixj.c
->
-> and replacing the line 2379 from:
->
-> {USB_DEVICE(0x0c45, 0x6128), BSI(SN9C110, OM6802, 0x21)}, /*sn9c325?*/
->
-> to
->
-> {USB_DEVICE(0x0c45, 0x6128), BSI(SN9C120, OM6802, 0x21)}, /*sn9c325*/
->                                       ~~~
->
-> Don't forget to do 'make', 'make install' and 'rmmod gspca_sonixj'...
->
-
-Hi,
-
-I happen to own a cam with the same USB id myself, and it shows the same
-issues as described by Eric. Changing the bridge id does not help I'm
-afraid.
-
-I'm afraid I don't have the time to fix this in the near future (it is on
-my to do but no idea when I'll get around to it). But I'm more then willing
-to test any fixes.
-
-Regards,
-
-Hans
