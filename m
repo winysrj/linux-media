@@ -1,61 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tango.0pointer.de ([85.214.72.216]:60217 "EHLO
-	tango.0pointer.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752390AbZFDT3H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jun 2009 15:29:07 -0400
-Date: Thu, 4 Jun 2009 21:18:13 +0200
-From: Lennart Poettering <mzxreary@0pointer.de>
-To: linux-kernel@vger.kernel.org
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH] V4L/pwc - use usb_interface as parent, not usb_device
-Message-ID: <20090604191813.GA6281@tango.0pointer.de>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45680 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751444AbZFVONe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Jun 2009 10:13:34 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Alexey Klimov <klimov.linux@gmail.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>
+Date: Mon, 22 Jun 2009 09:13:29 -0500
+Subject: RE: [PATCH 3/11 - v3] dm355 ccdc module for vpfe capture driver
+Message-ID: <A69FA2915331DC488A831521EAE36FE40139EDB046@dlee06.ent.ti.com>
+References: <1245269484-8325-1-git-send-email-m-karicheri2@ti.com>
+ <1245269484-8325-4-git-send-email-m-karicheri2@ti.com>
+ <208cbae30906171451x789f00ak94799447c9a012a5@mail.gmail.com>
+ <200906191442.17151.hverkuil@xs4all.nl>
+In-Reply-To: <200906191442.17151.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The current code creates a sysfs device path where the video4linux
-device is child of the usb device itself instead of the interface it
-belongs to. That is evil and confuses udev.
+>> <snip>
+>>
+>> > +static int dm355_ccdc_init(void)
+>> > +{
+>> > +       printk(KERN_NOTICE "dm355_ccdc_init\n");
+>> > +       if (vpfe_register_ccdc_device(&ccdc_hw_dev) < 0)
+>> > +               return -1;
+>>
+>> Don't you want to rewrite this to return good error code?
+>> int ret;
+>> printk();
+>> ret = vpfe_register_ccdc_device();
+>> if (ret < 0)
+>> return ret;
+>>
+>> I know you have tight/fast track/hard schedule, so you can do this
+>> improvement later, after merging this patch.
+>
+>I haven't changed this or the similar comment in patch 4/11, but it is
+>something that Muralidharan should look at and fix later.
+>
+>Regards,
+>
+>	Hans
+[MK] I will take care of this through a separate patch
 
-This patch does basically the same thing as Kay's similar patch for the
-ov511 driver:
-
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=ce96d0a44a4f8d1bb3dc12b5e98cb688c1bc730d
-
-(Resent 2nd time, due to missing Signed-off-by)
-
-Lennart
-
-Signed-off-by: Lennart Poettering <mzxreary@0pointer.de>
----
- drivers/media/video/pwc/pwc-if.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/pwc/pwc-if.c b/drivers/media/video/pwc/pwc-if.c
-index 7c542ca..92d4177 100644
---- a/drivers/media/video/pwc/pwc-if.c
-+++ b/drivers/media/video/pwc/pwc-if.c
-@@ -1783,7 +1783,7 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
- 		return -ENOMEM;
- 	}
- 	memcpy(pdev->vdev, &pwc_template, sizeof(pwc_template));
--	pdev->vdev->parent = &(udev->dev);
-+	pdev->vdev->parent = &intf->dev;
- 	strcpy(pdev->vdev->name, name);
- 	video_set_drvdata(pdev->vdev, pdev);
- 
--- 
-1.6.2.2
-
-
-
-Lennart
-
--- 
-Lennart Poettering                        Red Hat, Inc.
-lennart [at] poettering [dot] net         ICQ# 11060553
-http://0pointer.net/lennart/           GnuPG 0x1A015CC4
+Murali
