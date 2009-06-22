@@ -1,139 +1,393 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:50057 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752590AbZFJRhR convert rfc822-to-8bit (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:51631 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752204AbZFVIPa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2009 13:37:17 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5AHbEBZ004866
-	for <linux-media@vger.kernel.org>; Wed, 10 Jun 2009 12:37:19 -0500
-Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id n5AHbD0P003153
-	for <linux-media@vger.kernel.org>; Wed, 10 Jun 2009 12:37:13 -0500 (CDT)
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	Muralidharan Karicheri <a0868495@dal.design.ti.com>
-Date: Wed, 10 Jun 2009 12:37:12 -0500
-Subject: RE: [PATCH 0/10 - v2] ARM: DaVinci: Video: DM355/DM6446 VPFE
- Capture driver
-Message-ID: <A69FA2915331DC488A831521EAE36FE40139A08C1A@dlee06.ent.ti.com>
-References: <1244573204-20391-1-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1244573204-20391-1-git-send-email-m-karicheri2@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Mon, 22 Jun 2009 04:15:30 -0400
+From: "chaithrika" <chaithrika@ti.com>
+To: "'Chaithrika U S'" <chaithrika@ti.com>,
+	<linux-media@vger.kernel.org>
+Cc: <davinci-linux-open-source@linux.davincidsp.com>,
+	"'Manjunath Hadli'" <mrh@ti.com>,
+	"'Brijesh Jadav'" <brijesh.j@ti.com>,
+	"'Kevin Hilman'" <khilman@deeprootsystems.com>,
+	"'Hans Verkuil'" <hverkuil@xs4all.nl>
+References: <1241789157-23350-1-git-send-email-chaithrika@ti.com>
+In-Reply-To: <1241789157-23350-1-git-send-email-chaithrika@ti.com>
+Subject: RE: [PATCH] Subject: [PATCH v3 1/4] ARM: DaVinci: DM646x Video: Platform and board specific setup
+Date: Mon, 22 Jun 2009 13:44:30 +0530
+Message-ID: <00cd01c9f311$77faf9a0$67f0ece0$@com>
 MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+Content-Language: en-us
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello all,
+Kevin,
 
-My patch 1/10 of this series somehow doesn't make it to linux-media@vger.kernel.org. I can see it locally. 
+I think this patch has to be taken into DaVinci tree so that it
+can be submitted upstream. This patch has to be present in the Linux 
+tree for Hans to prepare a pull request for DM646x display driver 
+patches.
 
-Here is the header part of the patch. I can't see any thing wrong.
-I have tried re-sending with subject changed as follows, but nothing helped.
-Do you know what could cause this?
+Regards,
+Chaithrika
 
-[PATCH 1/10 - v2] vpfe capture bridge driver fro DM355 & DM6446
-[PATCH 1/10 - v2] vpfe capture bridge driver fro DM355 and DM6446
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Chaithrika U S
+> Sent: Friday, May 08, 2009 6:56 PM
+> To: linux-media@vger.kernel.org
+> Cc: davinci-linux-open-source@linux.davincidsp.com; Chaithrika U S;
+> Manjunath Hadli; Brijesh Jadav
+> Subject: [PATCH] Subject: [PATCH v3 1/4] ARM: DaVinci: DM646x Video:
+> Platform and board specific setup
+> 
+> Platform specific display device setup for DM646x EVM
+> 
+> Add platform device and resource structures. Also define a platform
+> specific
+> clock setup function that can be accessed by the driver to configure
+> the clock
+> and CPLD.
+> 
+> This patch is dependent on a patch submitted earlier, which adds
+> Pin Mux and clock definitions for Video on DM646x.
+> 
+> Signed-off-by: Manjunath Hadli <mrh@ti.com>
+> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
+> Signed-off-by: Chaithrika U S <chaithrika@ti.com>
+> ---
+> Applies to Davinci GIT tree
+> 
+>  arch/arm/mach-davinci/board-dm646x-evm.c    |  122
+> +++++++++++++++++++++++++++
+>  arch/arm/mach-davinci/dm646x.c              |   63 ++++++++++++++
+>  arch/arm/mach-davinci/include/mach/dm646x.h |   25 ++++++
+>  3 files changed, 210 insertions(+), 0 deletions(-)
+> 
+> diff --git a/arch/arm/mach-davinci/board-dm646x-evm.c b/arch/arm/mach-
+> davinci/board-dm646x-evm.c
+> index a55f45c..b64ae1c 100644
+> --- a/arch/arm/mach-davinci/board-dm646x-evm.c
+> +++ b/arch/arm/mach-davinci/board-dm646x-evm.c
+> @@ -52,6 +52,19 @@
+>  #define DM646X_EVM_PHY_MASK		(0x2)
+>  #define DM646X_EVM_MDIO_FREQUENCY	(2200000) /* PHY bus frequency */
+> 
+> +#define VIDCLKCTL_OFFSET	(0x38)
+> +#define VSCLKDIS_OFFSET		(0x6c)
+> +
+> +#define VCH2CLK_MASK		(BIT_MASK(10) | BIT_MASK(9) |
+> BIT_MASK(8))
+> +#define VCH2CLK_SYSCLK8		(BIT(9))
+> +#define VCH2CLK_AUXCLK		(BIT(9) | BIT(8))
+> +#define VCH3CLK_MASK		(BIT_MASK(14) | BIT_MASK(13) |
+> BIT_MASK(12))
+> +#define VCH3CLK_SYSCLK8		(BIT(13))
+> +#define VCH3CLK_AUXCLK		(BIT(14) | BIT(13))
+> +
+> +#define VIDCH2CLK		(BIT(10))
+> +#define VIDCH3CLK		(BIT(11))
+> +
+>  static struct davinci_uart_config uart_config __initdata = {
+>  	.enabled_uarts = (1 << 0),
+>  };
+> @@ -206,6 +219,40 @@ static struct at24_platform_data eeprom_info = {
+>  	.context	= (void *)0x7f00,
+>  };
+> 
+> +static struct i2c_client *cpld_client;
+> +
+> +static int cpld_video_probe(struct i2c_client *client,
+> +			const struct i2c_device_id *id)
+> +{
+> +	cpld_client = client;
+> +	return 0;
+> +}
+> +
+> +static int __devexit cpld_video_remove(struct i2c_client *client)
+> +{
+> +	cpld_client = NULL;
+> +	return 0;
+> +}
+> +
+> +static const struct i2c_device_id cpld_video_id[] = {
+> +	{ "cpld_video", 0 },
+> +	{ }
+> +};
+> +
+> +static struct i2c_driver cpld_video_driver = {
+> +	.driver = {
+> +		.name	= "cpld_video",
+> +	},
+> +	.probe		= cpld_video_probe,
+> +	.remove		= cpld_video_remove,
+> +	.id_table	= cpld_video_id,
+> +};
+> +
+> +static void evm_init_cpld(void)
+> +{
+> +	i2c_add_driver(&cpld_video_driver);
+> +}
+> +
+>  static struct i2c_board_info __initdata i2c_info[] =  {
+>  	{
+>  		I2C_BOARD_INFO("24c256", 0x50),
+> @@ -215,6 +262,9 @@ static struct i2c_board_info __initdata i2c_info[]
+> =  {
+>  		I2C_BOARD_INFO("pcf8574a", 0x38),
+>  		.platform_data	= &pcf_data,
+>  	},
+> +	{
+> +		I2C_BOARD_INFO("cpld_video", 0x3B),
+> +	},
+>  };
+> 
+>  static struct davinci_i2c_platform_data i2c_pdata = {
+> @@ -222,10 +272,81 @@ static struct davinci_i2c_platform_data i2c_pdata
+> = {
+>  	.bus_delay      = 0 /* usec */,
+>  };
+> 
+> +static int set_vpif_clock(int mux_mode, int hd)
+> +{
+> +	int val = 0;
+> +	int err = 0;
+> +	unsigned int value;
+> +	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
+> +
+> +	/* disable the clock */
+> +	value = __raw_readl(base + VSCLKDIS_OFFSET);
+> +	value |= (VIDCH3CLK | VIDCH2CLK);
+> +	__raw_writel(value, base + VSCLKDIS_OFFSET);
+> +
+> +	val = i2c_smbus_read_byte(cpld_client);
+> +	if (val < 0)
+> +		return val;
+> +
+> +	if (mux_mode == 1)
+> +		val &= ~0x40;
+> +	else
+> +		val |= 0x40;
+> +
+> +	err = i2c_smbus_write_byte(cpld_client, val);
+> +	if (err)
+> +		return err;
+> +
+> +	value = __raw_readl(base + VIDCLKCTL_OFFSET);
+> +	value &= ~(VCH2CLK_MASK);
+> +	value &= ~(VCH3CLK_MASK);
+> +
+> +	if (hd >= 1)
+> +		value |= (VCH2CLK_SYSCLK8 | VCH3CLK_SYSCLK8);
+> +	else
+> +		value |= (VCH2CLK_AUXCLK | VCH3CLK_AUXCLK);
+> +
+> +	__raw_writel(value, base + VIDCLKCTL_OFFSET);
+> +
+> +	/* enable the clock */
+> +	value = __raw_readl(base + VSCLKDIS_OFFSET);
+> +	value &= ~(VIDCH3CLK | VIDCH2CLK);
+> +	__raw_writel(value, base + VSCLKDIS_OFFSET);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct subdev_info dm646x_vpif_subdev[] = {
+> +	{
+> +		.addr	= 0x2A,
+> +		.name	= "adv7343",
+> +	},
+> +	{
+> +		.addr	= 0x2C,
+> +		.name	= "ths7303",
+> +	},
+> +};
+> +
+> +static const char *output[] = {
+> +	"Composite",
+> +	"Component",
+> +	"S-Video",
+> +};
+> +
+> +static struct vpif_config dm646x_vpif_config = {
+> +	.set_clock	= set_vpif_clock,
+> +	.subdevinfo	= dm646x_vpif_subdev,
+> +	.subdev_count	= ARRAY_SIZE(dm646x_vpif_subdev),
+> +	.output		= output,
+> +	.output_count	= ARRAY_SIZE(output),
+> +	.card_name	= "DM646x EVM",
+> +};
+> +
+>  static void __init evm_init_i2c(void)
+>  {
+>  	davinci_init_i2c(&i2c_pdata);
+>  	i2c_register_board_info(1, i2c_info, ARRAY_SIZE(i2c_info));
+> +	evm_init_cpld();
+>  }
+> 
+>  static void __init davinci_map_io(void)
+> @@ -242,6 +363,7 @@ static __init void evm_init(void)
+> 
+>  	soc_info->emac_pdata->phy_mask = DM646X_EVM_PHY_MASK;
+>  	soc_info->emac_pdata->mdio_max_freq = DM646X_EVM_MDIO_FREQUENCY;
+> +	dm646x_setup_vpif(&dm646x_vpif_config);
+>  }
+> 
+>  static __init void davinci_dm646x_evm_irq_init(void)
+> diff --git a/arch/arm/mach-davinci/dm646x.c b/arch/arm/mach-
+> davinci/dm646x.c
+> index 3cd09c1..94e17a3 100644
+> --- a/arch/arm/mach-davinci/dm646x.c
+> +++ b/arch/arm/mach-davinci/dm646x.c
+> @@ -13,6 +13,7 @@
+>  #include <linux/clk.h>
+>  #include <linux/serial_8250.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/dma-mapping.h>
+> 
+>  #include <asm/mach/map.h>
+> 
+> @@ -31,6 +32,15 @@
+>  #include "clock.h"
+>  #include "mux.h"
+> 
+> +#define DAVINCI_VPIF_BASE       (0x01C12000)
+> +#define VDD3P3V_PWDN_OFFSET	(0x48)
+> +#define VSCLKDIS_OFFSET		(0x6C)
+> +
+> +#define VDD3P3V_VID_MASK	(BIT_MASK(7) | BIT_MASK(6) | BIT_MASK(5)
+> |\
+> +					BIT_MASK(4))
+> +#define VSCLKDIS_MASK		(BIT_MASK(11) | BIT_MASK(10) |
+> BIT_MASK(9) |\
+> +					BIT_MASK(8))
+> +
+>  /*
+>   * Device specific clocks
+>   */
+> @@ -509,6 +519,37 @@ static struct platform_device dm646x_edma_device =
+> {
+>  	.resource		= edma_resources,
+>  };
+> 
+> +static u64 vpif_dma_mask = DMA_32BIT_MASK;
+> +
+> +static struct resource vpif_resource[] = {
+> +	{
+> +		.start	= DAVINCI_VPIF_BASE,
+> +		.end	= DAVINCI_VPIF_BASE + 0x03fff,
+> +		.flags	= IORESOURCE_MEM,
+> +	},
+> +	{
+> +		.start = IRQ_DM646X_VP_VERTINT2,
+> +		.end   = IRQ_DM646X_VP_VERTINT2,
+> +		.flags = IORESOURCE_IRQ,
+> +	},
+> +	{
+> +		.start = IRQ_DM646X_VP_VERTINT3,
+> +		.end   = IRQ_DM646X_VP_VERTINT3,
+> +		.flags = IORESOURCE_IRQ,
+> +	},
+> +};
+> +
+> +static struct platform_device vpif_display_dev = {
+> +	.name		= "vpif_display",
+> +	.id		= -1,
+> +	.dev		= {
+> +			.dma_mask 		= &vpif_dma_mask,
+> +			.coherent_dma_mask	= DMA_32BIT_MASK,
+> +	},
+> +	.resource	= vpif_resource,
+> +	.num_resources	= ARRAY_SIZE(vpif_resource),
+> +};
+> +
+>  /*--------------------------------------------------------------------
+> --*/
+> 
+>  static struct map_desc dm646x_io_desc[] = {
+> @@ -619,6 +660,28 @@ static struct davinci_soc_info
+> davinci_soc_info_dm646x = {
+>  	.sram_len		= SZ_32K,
+>  };
+> 
+> +void dm646x_setup_vpif(struct vpif_config *config)
+> +{
+> +	unsigned int value;
+> +	void __iomem *base = IO_ADDRESS(DAVINCI_SYSTEM_MODULE_BASE);
+> +
+> +	value = __raw_readl(base + VSCLKDIS_OFFSET);
+> +	value &= ~VSCLKDIS_MASK;
+> +	__raw_writel(value, base + VSCLKDIS_OFFSET);
+> +
+> +	value = __raw_readl(base + VDD3P3V_PWDN_OFFSET);
+> +	value &= ~VDD3P3V_VID_MASK;
+> +	__raw_writel(value, base + VDD3P3V_PWDN_OFFSET);
+> +
+> +	davinci_cfg_reg(DM646X_STSOMUX_DISABLE);
+> +	davinci_cfg_reg(DM646X_STSIMUX_DISABLE);
+> +	davinci_cfg_reg(DM646X_PTSOMUX_DISABLE);
+> +	davinci_cfg_reg(DM646X_PTSIMUX_DISABLE);
+> +
+> +	vpif_display_dev.dev.platform_data = config;
+> +	platform_device_register(&vpif_display_dev);
+> +}
+> +
+>  void __init dm646x_init(void)
+>  {
+>  	davinci_common_init(&davinci_soc_info_dm646x);
+> diff --git a/arch/arm/mach-davinci/include/mach/dm646x.h
+> b/arch/arm/mach-davinci/include/mach/dm646x.h
+> index 7afc613..9c3666c 100644
+> --- a/arch/arm/mach-davinci/include/mach/dm646x.h
+> +++ b/arch/arm/mach-davinci/include/mach/dm646x.h
+> @@ -12,6 +12,7 @@
+>  #define __ASM_ARCH_DM646X_H
+> 
+>  #include <linux/platform_device.h>
+> +#include <linux/i2c.h>
+>  #include <mach/hardware.h>
+>  #include <mach/emac.h>
+> 
+> @@ -24,4 +25,28 @@
+> 
+>  void __init dm646x_init(void);
+> 
+> +void dm646x_video_init(void);
+> +
+> +struct vpif_output {
+> +	u16 id;
+> +	const char *name;
+> +};
+> +
+> +struct subdev_info {
+> +	unsigned short addr;
+> +	const char *name;
+> +};
+> +
+> +struct vpif_config {
+> +	int (*set_clock)(int, int);
+> +	const struct subdev_info *subdevinfo;
+> +	int subdev_count;
+> +	const char **output;
+> +	int output_count;
+> +	const char *card_name;
+> +};
+> +
+> +
+> +void dm646x_setup_vpif(struct vpif_config *config);
+> +
+>  #endif /* __ASM_ARCH_DM646X_H */
+> --
+> 1.5.6
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-[PATCH 1/10 - v2] vpfe-capture bridge driver fro DM355 & DM6446
 
-From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
-
-VPFE Capture bridge driver
-
-This is version, v2 of vpfe capture bridge driver for doing video
-capture on DM355 and DM6446 evms. The ccdc hw modules register with the
-driver and are used for configuring the CCD Controller for a specific
-decoder interface. The driver also registers the sub devices required
-for a specific evm. More than one sub devices can be registered.
-This allows driver to switch dynamically to capture video from
-any sub device that is registered. Currently only one sub device
-(tvp5146) is supported. But in future this driver is expected
-to do capture from sensor devices such as Micron's MT9T001,MT9T031
-and MT9P031 etc. The driver currently supports MMAP based IO.
-
-Following are the updates based on review comments:-
-	1) minor number is allocated dynamically
-	2) updates to QUERYCAP handling
-	3) eliminated intermediate vpfe pixel format
-	4) refactored few functions
-	5) reworked isr routines for reducing indentation
-	6) reworked vpfe_check_format and added a documentation
-	   for algorithm
-	7) fixed memory leak in probe()
-
-TODO list :
-	1) load sub device from bridge driver. Hans has enhanced
-	the v4l2-subdevice framework to do this. Will be updated
-	soon to pick this.
-	
-		
-Reviewed By "Hans Verkuil".
-Reviewed By "Laurent Pinchart".
-
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
-Applies to v4l-dvb repository
-
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-Phone : 301-515-3736
-email: m-karicheri2@ti.com
-
->-----Original Message-----
->From: Karicheri, Muralidharan
->Sent: Tuesday, June 09, 2009 2:47 PM
->To: linux-media@vger.kernel.org
->Cc: davinci-linux-open-source@linux.davincidsp.com; Muralidharan Karicheri;
->Karicheri, Muralidharan
->Subject: [PATCH 0/10 - v2] ARM: DaVinci: Video: DM355/DM6446 VPFE Capture
->driver
->
->From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
->
->VPFE Capture driver for DaVinci Media SOCs :- DM355 and DM6446
->
->This is the version v2 of the patch series. This is the reworked
->version of the driver based on comments received against the last
->version of the patch.
->
->+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
->These patches add support for VPFE (Video Processing Front End) based
->video capture on DM355 and DM6446 EVMs. For more details on the hardware
->configuration and capabilities, please refer the vpfe_capture.c header.
->This patch set consists of following:-
->
->Patch 1: VPFE Capture bridge driver
->Patch 2: CCDC hw device header file
->Patch 3: DM355 CCDC hw module
->Patch 4: DM644x CCDC hw module
->Patch 5: common types used across CCDC modules
->Patch 6: Makefile and config files for the driver
->Patch 7: DM355 platform and board setup
->Patch 8: DM644x platform and board setup
->Patch 9: Remove outdated driver files from davinci git tree
->Patch 10: common vpss hw module for video drivers
->
->NOTE:
->
->Dependent on the TVP514x decoder driver patch for migrating the
->driver to sub device model from Vaibhav Hiremath
->
->Following tests are performed.
->	1) Capture and display video (PAL & NTSC) from tvp5146 decoder.
->	   Displayed using fbdev device driver available on davinci git tree
->	2) Tested with driver built statically and dynamically
->
->Muralidhara Karicheri
->
->Reviewed By "Hans Verkuil".
->Reviewed By "Laurent Pinchart".
->
->Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
