@@ -1,50 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:44415 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754179AbZFKAbF (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:43738 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751927AbZFVOAJ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2009 20:31:05 -0400
-Date: Wed, 10 Jun 2009 21:31:01 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: soc-camera: status, roadmap
-Message-ID: <20090610213101.1eec7e17@pedra.chehab.org>
-In-Reply-To: <200906102209.08535.hverkuil@xs4all.nl>
-References: <Pine.LNX.4.64.0906101802450.4817@axis700.grange>
-	<200906102209.08535.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Mon, 22 Jun 2009 10:00:09 -0400
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
+	"ext Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Koskipaa Antti (Nokia-D/Helsinki)" <antti.koskipaa@nokia.com>,
+	"Cohen David.A (Nokia-D/Helsinki)" <david.cohen@nokia.com>,
+	Alexey Klimov <klimov.linux@gmail.com>,
+	"gary@mlbassoc.com" <gary@mlbassoc.com>
+Date: Mon, 22 Jun 2009 09:01:46 -0500
+Subject: RE: OMAP3 ISP and camera drivers (update 2)
+Message-ID: <A24693684029E5489D1D202277BE894441306D3E@dlee02.ent.ti.com>
+References: <4A3A7AE2.9080303@maxwell.research.nokia.com>
+ <5e9665e10906200205ga45073eue92b73abba79e41c@mail.gmail.com>
+ <200906221652.02119.tuukka.o.toivonen@nokia.com>
+In-Reply-To: <200906221652.02119.tuukka.o.toivonen@nokia.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 10 Jun 2009 22:09:07 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-
-> > 1.4. this is the actual conversion to v4l2-subdev. It depends on some
-> > bits and pieces in the v4l2-subdev framework, which are still in progress
-> > (e.g. v4l2_i2c_new_subdev_board), I believe (Hans, am I right? or what's
-> > the outcome of Mauro's last reply to you in the "[PULL]
-> > http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-subdev" thread?), so, it
-> > becomes practically impossible to also pull it for 2.6.31.
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Tuukka.O Toivonen
+> Sent: Monday, June 22, 2009 8:52 AM
+> To: ext Dongsoo, Nathaniel Kim
+> Cc: Sakari Ailus; linux-media@vger.kernel.org; Aguirre Rodriguez, Sergio
+> Alberto; Hiremath, Vaibhav; Koskipaa Antti (Nokia-D/Helsinki); Cohen
+> David.A (Nokia-D/Helsinki); Alexey Klimov; gary@mlbassoc.com
+> Subject: Re: OMAP3 ISP and camera drivers (update 2)
 > 
-> I haven't seen a reaction yet from Mauro regarding my latest pull request: I 
-> think it addresses all his concerns regarding existing functionality so I 
-> actually hope this can be merged. It would help a lot with this and similar 
-> efforts.
+> On Saturday 20 June 2009 12:05:13 ext Dongsoo, Nathaniel Kim wrote:
+> > Following patch.
+> >
+> http://www.gitorious.org/omap3camera/mainline/commit/d92c96406296310a977b0
+> 0f45b209523929b15b5
+> > What happens to the capability when the int device is dummy? (does it
+> > mean that there is no int device?)
+> 
+> Yes, when the int device is dummy, there is no such a device.
+> For example, when vdev->vdev_sensor == v4l2_int_device_dummy()
+> it means that the device has no sensor.
+> 
+> In that case, obviously, the device is not capable of capturing
+> or streaming.
+> 
+> > And one more thing. If I want to test how the "ISP" driver is working,
+> > is there any target board that I can buy also a sensor device already
+> > attached on it?
+> 
+> I think that TI probably has some boards for sale, you
+> could take a look at their web pages.
 
-As Guennadi pointed, it seems that those patches were not yet properly
-discussed at the ML.
+Hi Nate,
 
-Since they touch at the core of the subsystem, could you please submit they as
-RFC, at linux-media? 
+I'm currently rebasing these patches on top of latest Kevin's PM tree, and trying to make 3430SDP (MT9P012 and OV3640), Zoom1 and Zoom2 (not there yet, but in the works) sensors to work in there.
 
-Let's give people some time to review the newly added functions. After that,
-you can send me V3 of your pull request.
+You can find this tree on:
 
+http://dev.omapzoom.org/?p=saaguirre/linux-omap-camera.git;a=summary
 
+Checkout devel branch.
 
-Cheers,
-Mauro
+That's my latest progress.
+
+Regards,
+Sergio
+> 
+> - Tuukka
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
