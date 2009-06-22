@@ -1,82 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:37090 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:41525 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753963AbZFKP6J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2009 11:58:09 -0400
-Date: Thu, 11 Jun 2009 17:58:23 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: mt9t031 (was RE: [PATCH] adding support for setting bus parameters
- in sub device)
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE40139A09039@dlee06.ent.ti.com>
-Message-ID: <Pine.LNX.4.64.0906111755550.5625@axis700.grange>
-References: <1244580891-24153-1-git-send-email-m-karicheri2@ti.com>
- <Pine.LNX.4.64.0906102022320.4817@axis700.grange>
- <A69FA2915331DC488A831521EAE36FE40139A08DC3@dlee06.ent.ti.com>
- <Pine.LNX.4.64.0906102303190.4817@axis700.grange>
- <A69FA2915331DC488A831521EAE36FE40139A08E4F@dlee06.ent.ti.com>
- <Pine.LNX.4.64.0906102337130.4817@axis700.grange>
- <A69FA2915331DC488A831521EAE36FE40139A08E67@dlee06.ent.ti.com>
- <Pine.LNX.4.64.0906110112590.4817@axis700.grange>
- <A69FA2915331DC488A831521EAE36FE40139A09039@dlee06.ent.ti.com>
+	id S1751542AbZFVV7P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Jun 2009 17:59:15 -0400
+From: Juergen Urban <JuergenUrban@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] @Sky Pilot, Neotion Pilot, Checksum hacking
+Date: Mon, 22 Jun 2009 23:58:57 +0200
+References: <200906212002.55867.JuergenUrban@gmx.de> <4A3F130D.1020909@linuxtv.org>
+In-Reply-To: <4A3F130D.1020909@linuxtv.org>
+Cc: LinuxTv <linux-dvb@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906222358.57371.JuergenUrban@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 11 Jun 2009, Karicheri, Muralidharan wrote:
-
-> >On Wed, 10 Jun 2009, Karicheri, Muralidharan wrote:
+On Monday 22 June 2009 07:13:49 Andreas Oberritter wrote:
+> Juergen Urban wrote:
+> > Now I've a problem with the 1-byte-checksum calculation. Each message
+> > which I send to the device has a checksum (last byte). I don't know how
+> > to calculate the checksum.
+> > Did someone know how to reverse engineer a 1-byte-checksum?
+> > Did someone see these type of messages before?
+> > Did someone detect any algorithm in the checksum values?
 > >
-> >> So how do I know what frame-rate I get? Sensor output frame rate depends
-> >> on the resolution of the frame, blanking, exposure time etc.
+> > Here are examples:
 > >
-> >This is not supported.
+> > static unsigned char ep03_msg109[] = {
+> > 	0x81, 0x05, 0x01, 0x00, 0x02, 0x01, 0x06, 0x00,
+> > 	0x01, 0xd0, 0x1e, 0x01, 0x00,
+> > 	0xca /* Checksum */
+> > };
 > >
-> I am still not clear. You had said in an earlier email that it can 
-> support streaming. That means application can stream frames from the 
-> capture device.
-> I know you don't have support for setting a specific frame rate, but it 
-> must be outputting frame at some rate right?
+> > static unsigned char ep03_msg110[] = {
+> > 	0x81, 0x05, 0x01, 0x00, 0x02, 0x01, 0x06, 0x00,
+> > 	0x01, 0xd0, 0x1f, 0x01, 0x00,
+> > 	0xcb /* Checksum */
+> > };
+> >
+> > In the above example the checksum is incremented by one and there is also
+> > one byte incremented by one in the payload (0x1e -> 0x1f and 0xca ->
+> > 0xcb). this seems to be a simple addition.
+> >
+> > static unsigned char ep03_msg111[] = {
+> > 	0x81, 0x05, 0x01, 0x00, 0x02, 0x01, 0x06, 0x00,
+> > 	0x01, 0xd0, 0x20, 0x01, 0x00,
+> > 	0xf4 /* Checksum */
+> > };
+>
+> It's a simple XOR of all bytes with an initial value of 0x84.
+>
+> unsigned int calc_cs(const unsigned char *buf, unsigned int n)
+> {
+>         unsigned int i, cs = 0x84;
+>
+>         for (i = 0; i < n; i++)
+>                 cs ^= buf[i];
+>
+>         return cs;
+> }
+>
+> Regards,
+> Andreas
+>
 
-I am sorry, I do not know how I can explain myself clearer.
+Thanks. I didn't thought that a simple XOR has this effect. Now I see that the 
+initial value of 0x84 is same as 0x81 ^ 0x05, so the first 2 bytes are not part 
+of the message. I got it working in my test application.
 
-Yes, you can stream video with mt9t031.
+Best regards
+Juergen Urban
 
-No, you neither get the framerate measured by the driver nor can you set a 
-specific framerate. Frames are produced as fast as it goes, depending on 
-clock settings, frame size, black areas, autoexposure.
-
-Thanks
-Guennadi
-
-> 
-> Here is my usecase.
-> 
-> open capture device,
-> set resolutions (say VGA) for capture (S_FMT ???)
-> request buffer for streaming & mmap & QUERYBUF
-> start streaming (STREAMON)
-> DQBUF/QBUF in a loop -> get VGA buffers at some fps.
-> STREAMOFF
-> close device
-> 
-> Is this possible with mt9t031 available currently in the tree? This requires sensor device output frames continuously on the bus using PCLK/HSYNC/VSYNC timing to the bridge device connected to the bus. Can you give a use case like above that you are using. I just want to estimate how much effort is required to add this support in the mt9t031 driver.
-> 
-> Thanks
-> 
-> Murali
-> 
-> >Thanks
-> >Guennadi
-> >---
-> >Guennadi Liakhovetski, Ph.D.
-> >Freelance Open-Source Software Developer
-> >http://www.open-technology.de/
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
