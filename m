@@ -1,91 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:53204 "EHLO mail1.radix.net"
+Received: from smtp28.orange.fr ([80.12.242.100]:26731 "EHLO smtp28.orange.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752703AbZFFPRp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 6 Jun 2009 11:17:45 -0400
-Subject: Re: [PATCHv5 1 of 8] v4l2_subdev i2c: Add
- v4l2_i2c_new_subdev_board i2c helper function
-From: Andy Walls <awalls@radix.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Eduardo Valentin <eduardo.valentin@nokia.com>,
-	"\\\"ext Mauro Carvalho Chehab\\\"" <mchehab@infradead.org>,
-	"\\\"Nurkkala Eero.An (EXT-Offcode/Oulu)\\\""
-	<ext-Eero.Nurkkala@nokia.com>,
-	"\\\"ext Douglas Schilling Landgraf\\\"" <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-In-Reply-To: <200906061449.46720.hverkuil@xs4all.nl>
-References: <1243582408-13084-1-git-send-email-eduardo.valentin@nokia.com>
-	 <1243582408-13084-2-git-send-email-eduardo.valentin@nokia.com>
-	 <200906061359.19732.hverkuil@xs4all.nl>
-	 <200906061449.46720.hverkuil@xs4all.nl>
-Content-Type: text/plain
-Date: Sat, 06 Jun 2009 11:19:08 -0400
-Message-Id: <1244301548.3149.27.camel@palomino.walls.org>
-Mime-Version: 1.0
+	id S1756456AbZFVQcH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Jun 2009 12:32:07 -0400
+Received: from me-wanadoo.net (localhost [127.0.0.1])
+	by mwinf2808.orange.fr (SMTP Server) with ESMTP id C11AF70000A4
+	for <linux-media@vger.kernel.org>; Mon, 22 Jun 2009 18:32:04 +0200 (CEST)
+Received: from [192.168.1.10] (AMontsouris-153-1-34-115.w90-2.abo.wanadoo.fr [90.2.137.115])
+	by mwinf2808.orange.fr (SMTP Server) with ESMTP id 9502370000A3
+	for <linux-media@vger.kernel.org>; Mon, 22 Jun 2009 18:32:04 +0200 (CEST)
+Message-ID: <4A3FB1FE.3080902@orange.fr>
+Date: Mon, 22 Jun 2009 18:31:58 +0200
+From: claude <claude.vezzi@orange.fr>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: pxdvr3200 scan failed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-06-06 at 14:49 +0200, Hans Verkuil wrote:
+I have upgraded my dvb-t card to a leadtek pxdvr3200 but unfortunatly
+scan always fails
 
-> > I propose to change the API as follows:
-> >
-> > #define V4L2_I2C_ADDRS(addr, addrs...) \
-> > 	((const unsigned short []){ addr, ## addrs, I2C_CLIENT_END })
+i use a 2.6.30 amd64 kernel
 
-> > Comments? If we decide to go this way, then I need to know soon so that I
-> > can make the changes before the 2.6.31 window closes.
+with kaffeine 0.8.7  (when tuned: signal 56% snr 88%)
 
+Using DVB device 0:0 "Zarlink ZL10353 DVB-T"
+tuning DVB-T to 586000000 Hz
+inv:2 bw:0 fecH:9 fecL:9 mod:6 tm:2 gi:4 hier:4
+.... LOCKED.
+Transponders: 23/57
+scanMode=0
+it's dvb 2!
 
-> I've done the initial conversion to the new API (no _cfg or _board version 
-> yet) in my ~hverkuil/v4l-dvb-subdev tree. It really simplifies things and 
-> if nobody objects then I'd like to get this in before 2.6.31.
-
-
-+Alternatively, you can create the unsigned short array dynamically: 
-+ 
-+struct v4l2_subdev *sd = v4l2_i2c_subdev(v4l2_dev, adapter, 
-+	       "module_foo", "chipid", 0, V4L2_I2C_ADDRS(0x10, 0x12)); 
-
-Strictly speaking, that's not "dynamically" in the sense of the
-generated machine code - everything is going to come from the local
-stack and the initialized data space.  The compiler will probably be
-smart enough to generate an unnamed array in the initialized data space
-anyway, avoiding the use of local stack for the array. :)
-
-Anyway, the macro looks fine to me.
-
-But...
+Invalid section length or timeout: pid=17
 
 
-@@ -100,16 +100,16 @@ int cx18_i2c_register(struct cx18 *cx, u 
+Invalid section length or timeout: pid=0
 
-	if (hw == CX18_HW_TUNER) { 
-		/* special tuner group handling */ 
--		sd = v4l2_i2c_new_probed_subdev(&cx->v4l2_dev, 
--				adap, mod, type, cx->card_i2c->radio); 
-+		sd = v4l2_i2c_subdev(&cx->v4l2_dev, 
-+				adap, mod, type, 0, cx->card_i2c->radio); 
+Frontend closed
+............................
 
+with scan
 
-Something happened with readability for maintenance purposes.  We're in
-cx18_i2c_register(), we're probing, we're allocating new objects, and
-we're registering with two subsystems (i2c and v4l).  However, all we
-see on the surface is
+scan -v -f 0 -t 1 paris-tnt.txt
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder 474166000 0 2 9 3 1 0 0
+initial transponder 498166000 0 2 9 3 1 0 0
+initial transponder 522166000 0 2 9 3 1 0 0
+initial transponder 538166000 0 2 9 3 1 0 0
+initial transponder 562166000 0 2 9 3 1 0 0
+initial transponder 586166000 0 3 9 3 1 2 0
+initial transponder 714166000 0 3 9 3 1 2 0
+initial transponder 738166000 0 2 9 3 1 0 0
+initial transponder 754166000 0 2 9 3 1 0 0
+initial transponder 762166000 0 2 9 3 1 0 0
+initial transponder 786166000 0 2 9 3 1 0 0
+initial transponder 810166000 0 2 9 3 1 0 0
+ >>> tune to:
+474166000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+ >>> tuning status == 0x00
+ >>> tuning status == 0x1e
+WARNING: filter timeout pid 0x0011
+WARNING: filter timeout pid 0x0000
+WARNING: filter timeout pid 0x0010
+...............
 
-    "foo = v4l2_i2c_subdev(blah, blah, blah, ... );"
+Each time i do a scan kernel logs
 
-The ALSA subsystem at least uses "_create" for object constructor type
-functions.  The v4l2 subdev framework has sophisticated constructors for
-convenience.  I know "new" wasn't strcitly correct, as the function does
-probe, create, & register an object.  However, the proposed name does
-not make it obvious that it's a constructor, IMO.
+Jun 20 18:46:03 reppe kernel: xc2028 1-0061: Loading 80 firmware images
+from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+Jun 20 18:46:04 reppe kernel: xc2028 1-0061: Loading firmware for
+type=BASE F8MHZ (3), id 0000000000000000.
+Jun 20 18:46:05 reppe kernel: xc2028 1-0061: Loading firmware for
+type=D2633 DTV7 (90), id 0000000000000000.
+Jun 20 18:46:05 reppe kernel: xc2028 1-0061: Loading SCODE for type=DTV6
+QAM DTV7 DTV78 DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id
+0000000000000000.
+Jun 20 18:46:22 reppe kernel: xc2028 1-0061: Loading firmware for
+type=D2633 DTV78 (110), id 0000000000000000.
+Jun 20 18:46:22 reppe kernel: xc2028 1-0061: Loading SCODE for type=DTV6
+QAM DTV7 DTV78 DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id
+0000000000000000.
+Jun 20 18:46:34 reppe kernel: xc2028 1-0061: Loading firmware for
+type=BASE F8MHZ (3), id 0000000000000000.
+Jun 20 18:46:35 reppe kernel: xc2028 1-0061: Loading firmware for
+type=D2633 DTV78 (110), id 0000000000000000.
+Jun 20 18:46:35 reppe kernel: xc2028 1-0061: Loading SCODE for type=DTV6
+QAM DTV7 DTV78 DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id
+0000000000000000.
 
-Regards,
-Andy
-
-> Regards,
-> 
-> 	Hans
 
 
