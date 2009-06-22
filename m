@@ -1,111 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:48875 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751331AbZFJQC3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2009 12:02:29 -0400
-Date: Wed, 10 Jun 2009 18:02:39 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Stefan Herbrechtsmeier <hbmeier@hni.uni-paderborn.de>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: S_FMT vs. S_CROP
-In-Reply-To: <49D46D2E.5090702@hni.uni-paderborn.de>
-Message-ID: <Pine.LNX.4.64.0906101738140.4817@axis700.grange>
-References: <49CBB13F.7090609@hni.uni-paderborn.de>
- <Pine.LNX.4.64.0903261831430.5438@axis700.grange> <49D32B16.2070101@hni.uni-paderborn.de>
- <Pine.LNX.4.64.0904011831340.5389@axis700.grange> <49D46D2E.5090702@hni.uni-paderborn.de>
+Received: from host-srv-101.hosting.jkg-it-services.net ([85.25.179.239]:46628
+	"EHLO mail01.hosting.jkg-it-services.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755758AbZFVRdJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Jun 2009 13:33:09 -0400
+To: <linux-media@vger.kernel.org>
+Subject: Re: Dual DVB-S2 Card
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Mon, 22 Jun 2009 19:33:10 +0200
+From: =?UTF-8?Q?Jens_Krehbiel-Gr=C3=A4ther?=
+	<jens.krehbiel-graether@jkg-it-services.de>
+In-Reply-To: <57b4ac7aa53bbb6e913d4c3c16d95fb6@imap.hosting.jkg-it-services.net>
+References: <57b4ac7aa53bbb6e913d4c3c16d95fb6@imap.hosting.jkg-it-services.net>
+Message-ID: <6cfd8c29e0d5b7cec4541de7e5eb5be8@imap.hosting.jkg-it-services.net>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This question - how S_FMT and S_CROP affest image geometry - has been 
-discussed at least twice before - that's only with my participation, don't 
-know if and how often it has come up before. But the fact, that in two 
-discussions we came up with different results seems to suggest, that this 
-is not something trivially known by all except me.
 
-First time I asked this question in this thread
+Hi!
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg00052.html
 
-and Mauro replied (see above thread for a complete reply):
 
-On Thu, 8 Jan 2009, Mauro Carvalho Chehab wrote:
+I got answer from Media-Pointer about this Dual DVB-S2-Card.
 
-> On Wed, 7 Jan 2009 10:14:31 +0100 (CET)
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
 
-[snip]
 
-> > For example on mt9t031 
-> > binning and skipping are used for that. Whereas CROP uses the current 
-> > scaling configuration and selects a sub-window, so, once you've done S_FMT 
-> > to 320x240, a crop request for 640x480 might well fail.
+<answer>
+
+das Micronas Referenz Design hat auf dem STB6100 (5V Tuner) du dem STV0899
+
+sowie dem LNBH 221 aufgebaut.
+
+Wir haben die neuen Chips verwendet, STB6110A (3V Tuner) und dem STV 0900B
+
+(Cut/2) und dem LNBH 24.
+
+</answer>
+
+
+
+In english:
+
+This card is not based on the reference design of Micronas, which uses the
+
+STB6100 (5V tuner), the STV0899 and the LNBH 221.
+
+They used a "new" chip-version, the STB6110A (3V tuner), the STV0900B
+
+(Cut/2) and the LNBH 24.
+
+
+
+How about the driver status under linux? I found Igor Liplianin added
+
+support for it about 3 months ago. Is it working well? And is it working
+
+with dual tuner?? I bouht a few devices in the past 5 years which told to
+
+be working under linux, but some devices won't run. :-(
+
+So when I buy this card it would be nice to know if it works or not..
+
+
+
+Jens
+
+
+
+
+
+
+
+
+
+On Sat, 20 Jun 2009 22:19:30 +0200, Jens Krehbiel-Gräther
+
+<jens.krehbiel-graether@jkg-it-services.de> wrote:
+
+> Hi!
+
 > 
-> I also understand this way. You cannot crop with a resolution bigger than what
-> you've selected.
 
-(Let's call this statement M1:-))
+> Does anyone know something about this card?
 
-> > For this you have 
-> > to issue a S_FMT, i.e., change scaling. Or would one have to re-scale 
-> > transparently?
-> > 
-> > Is this interpretation correct? It seems to reflect the API as documented 
-> > on http://v4l2spec.bytesex.org/spec/book1.htm correctly.
-> > 
-> > If it is correct, then what should CROP_CAP return as maximum supported 
-> > window sizes? Should it return them according to the current scaling or 
-> > according to scale 1?
 > 
-> I understand that it should return against the current scaling.
 
-(and this one M2, whereas I understand it as "current scaling" means 
-"current scaling coefficient", not "current scaled output windof")
+>
 
-Then in another thread
+http://www.media-pointer.de/index.php?page=shop.product_details&flypage=flypage.tpl&product_id=6&category_id=3&option=com_virtuemart&Itemid=1
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg03512.html
+> 
 
-Stefan motivated for an incomatibly different interpretation of the 
-standard:
+> I think this card is a type of the reference design from micronas (think
 
-On Thu, 2 Apr 2009, Stefan Herbrechtsmeier wrote:
+of
 
-[snip]
+> the year 2006??).
 
-> The user doesn't have to remember the scale anyway. Only the ways a different.
-> You interpret S_CROP
-> as something like a cutting of the S_FMT window. I interpret S_FMT as a output
-> format selection
-> and S_CROP as a sensor window selection.
+> 
 
-which I now interpret as
+>
 
-S_FMT(640x480) means "scale whatever rectangle has been selected on the 
-sensor to produce an output window of 640x480" and S_CROP(2048x1536) means 
-"take a window of 2048x1536 sensor pixels from the sensor and scale it to 
-whatever output window has been or will be selected by S_FMT." This 
-contradicts M1, because you certainly can crop a larger (sensor) window. 
-Also, I now believe, that [GS]_CROP and, logically, CROPCAP operate in 
-sensor pixels and shall not depend on any scales, which contradicts (my 
-understanding of) M2.
+http://www.computerbase.de/news/hardware/multimedia/2006/august/micronas_pci_express_dual-dvb-s2-tuner/
 
-It now seems to be quite simple to me:
+> 
 
-{G,S,TRY}_FMT configure output geometry in user pixels
-[GS]_CROP, CROPCAP configure input window in sensor pixels
+> (Sorry, all in german)
 
-The thus configured input window should be mapped (scaled) into the output 
-window.
+> 
 
-Now, which one is correct?
+> I send a request to the manufacturer and asked what chips are used on the
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> card. When I get an answer I will post it here.
+
+> 
+
+> If this card hast the STB0899/6100 chip, i think it should work with
+
+S2-API
+
+> repository of Igor Liplianin or Manu Abraham???
+
+> Do you think I can use both tuner "out of the box" with these drivers??
+
+> 
+
+> Thanks for your information!
+
+> 
+
+> Jens
+
+> --
+
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+
+> the body of a message to majordomo@vger.kernel.org
+
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
