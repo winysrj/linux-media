@@ -1,28 +1,36 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n51IKJig009830
-	for <video4linux-list@redhat.com>; Mon, 1 Jun 2009 14:20:19 -0400
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n51IK5sR026278
-	for <video4linux-list@redhat.com>; Mon, 1 Jun 2009 14:20:05 -0400
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1MBC78-0007FM-Dl
-	for video4linux-list@redhat.com; Mon, 01 Jun 2009 18:20:02 +0000
-Received: from dslb-092-076-230-199.pools.arcor-ip.net ([92.76.230.199])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Mon, 01 Jun 2009 18:20:02 +0000
-Received: from feldmann_markus by dslb-092-076-230-199.pools.arcor-ip.net with
-	local (Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Mon, 01 Jun 2009 18:20:02 +0000
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n5MGZl4d021478
+	for <video4linux-list@redhat.com>; Mon, 22 Jun 2009 12:35:47 -0400
+Received: from smtp1.sscnet.ucla.edu (smtp1.sscnet.ucla.edu [128.97.229.231])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n5MGZVwE026600
+	for <video4linux-list@redhat.com>; Mon, 22 Jun 2009 12:35:31 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by smtp1.sscnet.ucla.edu (8.13.8/8.13.8) with ESMTP id n5MGZVJb032082
+	for <video4linux-list@redhat.com>; Mon, 22 Jun 2009 09:35:31 -0700
+Received: from smtp1.sscnet.ucla.edu ([127.0.0.1])
+	by localhost (smtp1.sscnet.ucla.edu [127.0.0.1]) (amavisd-new,
+	port 10024)
+	with ESMTP id P9gtEoyfHirL for <video4linux-list@redhat.com>;
+	Mon, 22 Jun 2009 09:35:23 -0700 (PDT)
+Received: from smtp5.sscnet.ucla.edu (smtp5.sscnet.ucla.edu [128.97.229.235])
+	by smtp1.sscnet.ucla.edu (8.13.8/8.13.8) with ESMTP id n5MGZJb8032076
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <video4linux-list@redhat.com>; Mon, 22 Jun 2009 09:35:19 -0700
+Received: from weber.sscnet.ucla.edu (weber.sscnet.ucla.edu [128.97.42.3])
+	by smtp5.sscnet.ucla.edu (8.13.8/8.13.8) with ESMTP id n5MGZCSB018596
+	for <video4linux-list@redhat.com>; Mon, 22 Jun 2009 09:35:12 -0700
+Received: from TimTi-2.local (vpn-8061f42c.host.ucla.edu [128.97.244.44])
+	by weber.sscnet.ucla.edu (8.14.2/8.14.2) with ESMTP id n5MGZ67B004551
+	for <video4linux-list@redhat.com>; Mon, 22 Jun 2009 09:35:07 -0700 (PDT)
+Message-ID: <4A3FB2E8.50606@cogweb.net>
+Date: Mon, 22 Jun 2009 09:35:52 -0700
+From: David Liontooth <lionteeth@cogweb.net>
+MIME-Version: 1.0
 To: video4linux-list@redhat.com
-From: Markus Feldmann <feldmann_markus@gmx.de>
-Date: Mon, 01 Jun 2009 15:28:08 +0200
-Message-ID: <h00l19$du2$1@ger.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Subject: Introduction needed to set up my radio/tv card Bt878
+Subject: Error logging
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,21 +42,42 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi All,
+v4l device errors, such as VBI read errors, are no longer showing up 
+anywhere in my logs -- not in dmesg, not in syslog, not in 
+/var/log/debug. I'm running Debian sid.
 
-i want to set up my tv/radio adapter to listen to my favorite music 
-channels.
+I see them in the terminal window where I run the recording process. 
+They used to show up in dmesg and syslog.
 
-i have the following adapter:
->            +-14.4-[0000:03]--+-03.0  Brooktree Corporation Bt878 Video Capture [109e:036e]
->            |                 \-03.1  Brooktree Corporation Device [109e:0868]
+Does anybody know what I can do to direct these errors to syslog? Is 
+this change due to my local configuration or upstream changes in logging?
 
-At this time i am compiling a new kernel with the module bttv.
+Here's my syslog.conf:
 
-Any additional advice for me ?
-What modules do i need ?
+#  /etc/syslog.conf     Configuration file for syslogd.
+#
+#                       For more information see syslog.conf(5)
+#                       manpage.
 
-regards Markus
+#
+# First some standard logfiles.  Log by facility.
+#
+
+auth,authpriv.*                 /var/log/auth.log
+*.*;auth,authpriv.none          -/var/log/syslog
+cron.*                          /var/log/cron.log
+daemon.*                        -/var/log/daemon.log
+kern.*                          -/var/log/kern.log
+lpr.*                           -/var/log/lpr.log
+mail.*                          -/var/log/mail.log
+user.*                          -/var/log/user.log
+uucp.*                          /var/log/uucp.log
+
+Appreciate any insights into this.
+
+Cheers,
+David
+
 
 --
 video4linux-list mailing list
