@@ -1,68 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.29]:64060 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751493AbZFLQvB (ORCPT
+Received: from host-srv-101.hosting.jkg-it-services.net ([85.25.179.239]:49896
+	"EHLO mail01.hosting.jkg-it-services.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751184AbZFVRNN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jun 2009 12:51:01 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so1550839ywb.1
-        for <linux-media@vger.kernel.org>; Fri, 12 Jun 2009 09:51:03 -0700 (PDT)
+	Mon, 22 Jun 2009 13:13:13 -0400
+To: <linux-media@vger.kernel.org>
+Subject: Re: Dual DVB-S2 Card
 MIME-Version: 1.0
-Date: Fri, 12 Jun 2009 12:51:03 -0400
-Message-ID: <b24e53350906120951l552301c8x71b17fa4d45c8d1b@mail.gmail.com>
-Subject: [PATCH 1/2] uvc: Fix for no return value check of uvc_ctrl_set()
-	which calls mutex_lock_interruptible()
-From: Robert Krakora <rob.krakora@messagenetsystems.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Date: Mon, 22 Jun 2009 19:13:15 +0200
+From: =?UTF-8?Q?Jens_Krehbiel-Gr=C3=A4ther?=
+	<jens.krehbiel-graether@jkg-it-services.de>
+Cc: <linux-media@vger.kernel.org>
+In-Reply-To: <57b4ac7aa53bbb6e913d4c3c16d95fb6@imap.hosting.jkg-it-services.net>
+References: <57b4ac7aa53bbb6e913d4c3c16d95fb6@imap.hosting.jkg-it-services.net>
+Message-ID: <e3d7cebdbee43e83a9d9e821a4620a69@imap.hosting.jkg-it-services.net>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Robert Krakora <rob.krakora@messagenetsystems.com>
 
-Fix for no return value check of uvc_ctrl_set() which calls
-mutex_lock_interruptible().
+On Sat, 20 Jun 2009 22:19:30 +0200, Jens Krehbiel-Gräther
 
-Priority: normal
+<jens.krehbiel-graether@jkg-it-services.de> wrote:
 
-Signed-off-by: Robert Krakora <rob.krakora@messagenetsystems.com>
+> Hi!
 
-diff -r bff77ec33116 linux/drivers/media/video/uvc/uvc_v4l2.c
---- a/linux/drivers/media/video/uvc/uvc_v4l2.c  Thu Jun 11 18:44:23 2009 -0300
-+++ b/linux/drivers/media/video/uvc/uvc_v4l2.c  Fri Jun 12 11:35:04 2009 -0400
-@@ -538,7 +538,10 @@
-                memset(&xctrl, 0, sizeof xctrl);
-                xctrl.id = ctrl->id;
+> 
 
--               uvc_ctrl_begin(video);
-+               ret = uvc_ctrl_begin(video);
-+               if (ret < 0)
-+                       return ret;
-+
-                ret = uvc_ctrl_get(video, &xctrl);
-                uvc_ctrl_rollback(video);
-                if (ret >= 0)
-@@ -555,7 +558,10 @@
-                xctrl.id = ctrl->id;
-                xctrl.value = ctrl->value;
+> Does anyone know something about this card?
 
--               uvc_ctrl_begin(video);
-+               ret = uvc_ctrl_begin(video);
-+               if (ret < 0)
-+                       return ret;
-+
-                ret = uvc_ctrl_set(video, &xctrl);
-                if (ret < 0) {
-                        uvc_ctrl_rollback(video);
-@@ -574,7 +580,10 @@
-                struct v4l2_ext_control *ctrl = ctrls->controls;
-                unsigned int i;
+> 
 
--               uvc_ctrl_begin(video);
-+               ret = uvc_ctrl_begin(video);
-+               if (ret < 0)
-+                       return ret;
-+
-                for (i = 0; i < ctrls->count; ++ctrl, ++i) {
-                        ret = uvc_ctrl_get(video, ctrl);
-                        if (ret < 0) {
+>
+
+http://www.media-pointer.de/index.php?page=shop.product_details&flypage=flypage.tpl&product_id=6&category_id=3&option=com_virtuemart&Itemid=1
+
+> 
+
+> I think this card is a type of the reference design from micronas (think
+
+of
+
+> the year 2006??).
+
+> 
+
+>
+
+http://www.computerbase.de/news/hardware/multimedia/2006/august/micronas_pci_express_dual-dvb-s2-tuner/
+
+> 
+
+> (Sorry, all in german)
+
+> 
+
+> I send a request to the manufacturer and asked what chips are used on the
+
+> card. When I get an answer I will post it here.
+
+> 
+
+> If this card hast the STB0899/6100 chip, i think it should work with
+
+S2-API
+
+> repository of Igor Liplianin or Manu Abraham???
+
+> Do you think I can use both tuner "out of the box" with these drivers??
+
+> 
+
+> Thanks for your information!
+
+> 
+
+> Jens
+
+> --
+
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+
+> the body of a message to majordomo@vger.kernel.org
+
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
