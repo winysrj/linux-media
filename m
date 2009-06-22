@@ -1,114 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3787 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753118AbZFGSO0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jun 2009 14:14:26 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id n57IERCc045588
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 7 Jun 2009 20:14:27 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 7 Jun 2009 20:14:27 +0200 (CEST)
-Message-Id: <200906071814.n57IERCc045588@smtp-vbr8.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from elasmtp-curtail.atl.sa.earthlink.net ([209.86.89.64]:49626 "EHLO
+	elasmtp-curtail.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752075AbZFVRdr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Jun 2009 13:33:47 -0400
+Message-ID: <2840372.1245692029927.JavaMail.root@elwamui-ovcar.atl.sa.earthlink.net>
+Date: Mon, 22 Jun 2009 10:33:49 -0700 (GMT-07:00)
+From: whelky-82852@mypacks.net
+To: Steven Toth <stoth@kernellabs.com>, whelky-82852@mypacks.net
+Subject: Re: Hauppauge HVR-1250 IR Support? (CX23885)
+Cc: linux-media@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
 
-Results of the daily build of v4l-dvb:
 
-date:        Sun Jun  7 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11929:5ed2a853b692
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+-----Original Message-----
+>From: Steven Toth <stoth@kernellabs.com>
+>Sent: Jun 22, 2009 7:29 AM
+>To: whelky-82852@mypacks.net
+>Cc: linux-media@vger.kernel.org
+>Subject: Re: Hauppauge HVR-1250 IR Support? (CX23885)
+>
+>whelky-82852@mypacks.net wrote:
+>> I was wondering if anyone is working on IR support for this card? I looked through cx23885-cards.c and its not supported.
+>> 
+>> 627         switch (dev->board) {
+>> 628         case CX23885_BOARD_HAUPPAUGE_HVR1250:
+>> 629         case CX23885_BOARD_HAUPPAUGE_HVR1500:
+>> 630         case CX23885_BOARD_HAUPPAUGE_HVR1500Q:
+>> 631         case CX23885_BOARD_HAUPPAUGE_HVR1800:
+>> 632         case CX23885_BOARD_HAUPPAUGE_HVR1200:
+>> 633         case CX23885_BOARD_HAUPPAUGE_HVR1400:
+>> 634                 /* FIXME: Implement me */
+>> 635                 break;
+>
+>Not currently.
+>
+>-- 
+>Steven Toth - Kernel Labs
+>http://www.kernellabs.com
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-rc7-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-rc7-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-rc7-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-rc7-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-rc7-m32r: OK
-linux-2.6.22.19-mips: ERRORS
-linux-2.6.26-mips: ERRORS
-linux-2.6.27-mips: ERRORS
-linux-2.6.28-mips: ERRORS
-linux-2.6.29.1-mips: ERRORS
-linux-2.6.30-rc7-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-rc7-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-rc7-x86_64: WARNINGS
-sparse (linux-2.6.29.1): OK
-sparse (linux-2.6.30-rc7): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+Thanks for reply.
 
-Detailed results are available here:
+Are there some roadblocks that make this card different from others that are supported? Is is possible to take a working driver and tweak/hack it, or is it way more complex that that?
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+Thanks!
