@@ -1,109 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4106 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751442AbZFPSPT (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:45826 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751994AbZFVOT4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2009 14:15:19 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id n5GIFDD1027375
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 16 Jun 2009 20:15:21 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 16 Jun 2009 20:15:13 +0200 (CEST)
-Message-Id: <200906161815.n5GIFDD1027375@smtp-vbr9.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+	Mon, 22 Jun 2009 10:19:56 -0400
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: Dongsoo Kim <dongsoo.kim@gmail.com>
+CC: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Koskipaa Antti (Nokia-D/Helsinki)" <antti.koskipaa@nokia.com>,
+	"Cohen David.A (Nokia-D/Helsinki)" <david.cohen@nokia.com>,
+	Alexey Klimov <klimov.linux@gmail.com>,
+	"gary@mlbassoc.com" <gary@mlbassoc.com>
+Date: Mon, 22 Jun 2009 09:21:35 -0500
+Subject: RE: OMAP3 ISP and camera drivers (update 2)
+Message-ID: <A24693684029E5489D1D202277BE894441306D8A@dlee02.ent.ti.com>
+References: <4A3A7AE2.9080303@maxwell.research.nokia.com>
+ <5e9665e10906200205ga45073eue92b73abba79e41c@mail.gmail.com>
+ <200906221652.02119.tuukka.o.toivonen@nokia.com>
+ <A24693684029E5489D1D202277BE894441306D3E@dlee02.ent.ti.com>
+ <1DA2ED23-DD14-4E7C-9CDB-D86009620337@gmail.com>
+In-Reply-To: <1DA2ED23-DD14-4E7C-9CDB-D86009620337@gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
-
-Results of the daily build of v4l-dvb:
-
-date:        Tue Jun 16 19:00:05 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11994:770e035ab1bd
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
-
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-x86_64: WARNINGS
-sparse (linux-2.6.30): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBEb25nc29vIEtpbSBbbWFpbHRv
+OmRvbmdzb28ua2ltQGdtYWlsLmNvbV0NCj4gU2VudDogTW9uZGF5LCBKdW5lIDIyLCAyMDA5IDk6
+MDUgQU0NCj4gVG86IEFndWlycmUgUm9kcmlndWV6LCBTZXJnaW8gQWxiZXJ0bw0KPiBDYzogVHV1
+a2thLk8gVG9pdm9uZW47IFNha2FyaSBBaWx1czsgbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3Jn
+Ow0KPiBIaXJlbWF0aCwgVmFpYmhhdjsgS29za2lwYWEgQW50dGkgKE5va2lhLUQvSGVsc2lua2kp
+OyBDb2hlbiBEYXZpZC5BDQo+IChOb2tpYS1EL0hlbHNpbmtpKTsgQWxleGV5IEtsaW1vdjsgZ2Fy
+eUBtbGJhc3NvYy5jb20NCj4gU3ViamVjdDogUmU6IE9NQVAzIElTUCBhbmQgY2FtZXJhIGRyaXZl
+cnMgKHVwZGF0ZSAyKQ0KPiANCj4gDQo+IDIwMDkuIDA2LiAyMiwg7Jik7ZuEIDExOjAxLCBBZ3Vp
+cnJlIFJvZHJpZ3VleiwgU2VyZ2lvIEFsYmVydG8g7J6R7ISxOg0KPiANCj4gPj4gLS0tLS1Pcmln
+aW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4gRnJvbTogbGludXgtbWVkaWEtb3duZXJAdmdlci5rZXJu
+ZWwub3JnIFttYWlsdG86bGludXgtbWVkaWEtDQo+ID4+IG93bmVyQHZnZXIua2VybmVsLm9yZ10g
+T24gQmVoYWxmIE9mIFR1dWtrYS5PIFRvaXZvbmVuDQo+ID4+IFNlbnQ6IE1vbmRheSwgSnVuZSAy
+MiwgMjAwOSA4OjUyIEFNDQo+ID4+IFRvOiBleHQgRG9uZ3NvbywgTmF0aGFuaWVsIEtpbQ0KPiA+
+PiBDYzogU2FrYXJpIEFpbHVzOyBsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmc7IEFndWlycmUg
+Um9kcmlndWV6LA0KPiA+PiBTZXJnaW8NCj4gPj4gQWxiZXJ0bzsgSGlyZW1hdGgsIFZhaWJoYXY7
+IEtvc2tpcGFhIEFudHRpIChOb2tpYS1EL0hlbHNpbmtpKTsgQ29oZW4NCj4gPj4gRGF2aWQuQSAo
+Tm9raWEtRC9IZWxzaW5raSk7IEFsZXhleSBLbGltb3Y7IGdhcnlAbWxiYXNzb2MuY29tDQo+ID4+
+IFN1YmplY3Q6IFJlOiBPTUFQMyBJU1AgYW5kIGNhbWVyYSBkcml2ZXJzICh1cGRhdGUgMikNCj4g
+Pj4NCj4gPj4gT24gU2F0dXJkYXkgMjAgSnVuZSAyMDA5IDEyOjA1OjEzIGV4dCBEb25nc29vLCBO
+YXRoYW5pZWwgS2ltIHdyb3RlOg0KPiA+Pj4gRm9sbG93aW5nIHBhdGNoLg0KPiA+Pj4NCj4gPj4N
+Cj4gaHR0cDovL3d3dy5naXRvcmlvdXMub3JnL29tYXAzY2FtZXJhL21haW5saW5lL2NvbW1pdC9k
+OTJjOTY0MDYyOTYzMTBhOTc3YjANCj4gPj4gMGY0NWIyMDk1MjM5MjliMTViNQ0KPiA+Pj4gV2hh
+dCBoYXBwZW5zIHRvIHRoZSBjYXBhYmlsaXR5IHdoZW4gdGhlIGludCBkZXZpY2UgaXMgZHVtbXk/
+IChkb2VzDQo+ID4+PiBpdA0KPiA+Pj4gbWVhbiB0aGF0IHRoZXJlIGlzIG5vIGludCBkZXZpY2U/
+KQ0KPiA+Pg0KPiA+PiBZZXMsIHdoZW4gdGhlIGludCBkZXZpY2UgaXMgZHVtbXksIHRoZXJlIGlz
+IG5vIHN1Y2ggYSBkZXZpY2UuDQo+ID4+IEZvciBleGFtcGxlLCB3aGVuIHZkZXYtPnZkZXZfc2Vu
+c29yID09IHY0bDJfaW50X2RldmljZV9kdW1teSgpDQo+ID4+IGl0IG1lYW5zIHRoYXQgdGhlIGRl
+dmljZSBoYXMgbm8gc2Vuc29yLg0KPiA+Pg0KPiA+PiBJbiB0aGF0IGNhc2UsIG9idmlvdXNseSwg
+dGhlIGRldmljZSBpcyBub3QgY2FwYWJsZSBvZiBjYXB0dXJpbmcNCj4gPj4gb3Igc3RyZWFtaW5n
+Lg0KPiA+Pg0KPiA+Pj4gQW5kIG9uZSBtb3JlIHRoaW5nLiBJZiBJIHdhbnQgdG8gdGVzdCBob3cg
+dGhlICJJU1AiIGRyaXZlciBpcw0KPiA+Pj4gd29ya2luZywNCj4gPj4+IGlzIHRoZXJlIGFueSB0
+YXJnZXQgYm9hcmQgdGhhdCBJIGNhbiBidXkgYWxzbyBhIHNlbnNvciBkZXZpY2UNCj4gPj4+IGFs
+cmVhZHkNCj4gPj4+IGF0dGFjaGVkIG9uIGl0Pw0KPiA+Pg0KPiA+PiBJIHRoaW5rIHRoYXQgVEkg
+cHJvYmFibHkgaGFzIHNvbWUgYm9hcmRzIGZvciBzYWxlLCB5b3UNCj4gPj4gY291bGQgdGFrZSBh
+IGxvb2sgYXQgdGhlaXIgd2ViIHBhZ2VzLg0KPiA+DQo+ID4gSGkgTmF0ZSwNCj4gPg0KPiA+IEkn
+bSBjdXJyZW50bHkgcmViYXNpbmcgdGhlc2UgcGF0Y2hlcyBvbiB0b3Agb2YgbGF0ZXN0IEtldmlu
+J3MgUE0NCj4gPiB0cmVlLCBhbmQgdHJ5aW5nIHRvIG1ha2UgMzQzMFNEUCAoTVQ5UDAxMiBhbmQg
+T1YzNjQwKSwgWm9vbTEgYW5kDQo+ID4gWm9vbTIgKG5vdCB0aGVyZSB5ZXQsIGJ1dCBpbiB0aGUg
+d29ya3MpIHNlbnNvcnMgdG8gd29yayBpbiB0aGVyZS4NCj4gDQo+IFRoYW5rIHlvdSBTZXJnaW8u
+IFNvIHlvdSBtZWFuIHRoYXQgSSBjYW4gYnV5IE9NQVAgWm9vbSB0YXJnZXQgYm9hcmQNCj4gd2l0
+aCBNVCBvciBPViBzZW5zb3Igb24gaXQgc29vbmVyIG9yIGxhdGVyPyBjb29sIQ0KDQpBRkFJSywg
+d2hlbiB5b3UgYnV5IHRoZSBab29tIFRhcmdldCBwbGF0Zm9ybSwgeW91IGNhbiBvbmx5IGhhdmUg
+T1YzNjQwIHNlbnNvci4gQlVUIHlvdSBjb3VsZCBoYWNrIHRoZSBib2FyZCB0byBpbmNsdWRlIGFu
+b3RoZXIgc2Vuc29yIChNYXliZSBjb25zdWx0aW5nIExvZ2ljIHBlb3BsZSBjb3VsZCBjbGFyaWZ5
+IHRoaXMpLg0KDQpJbiBab29tMSwgSSdsbCBiZSBhYmxlIGp1c3QgdG8gdGVzdCB0aGUgT1YzNjQw
+IHNlbnNvciwgd2hpY2ggaXMgdGhlIG9uZSBJIGhhdmUgYXZhaWxhYmxlIGhlcmUuDQoNCk9uIDM0
+MzBTRFAsIGlzIHdoZXJlIEkgZG8gaGF2ZSBNVDlQMDEyIHNlbnNvciAoNU1QIFJBVyBzZW5zb3Ip
+IGNvbm5lY3RlZCBpbiBwYXJhbGxlbCwgYW5kIGFuIE9WMzY0MCAoU21hcnQgc2Vuc29yLCBidXQg
+ZHJpdmVyIGlzIHVzaW5nIGl0IGFzIFJBVyBzZW5zb3IgY3VycmVudGx5IG9ubHkpIGluIENTSTIg
+aW50ZXJmYWNlLg0KDQo+IA0KPiA+DQo+ID4gWW91IGNhbiBmaW5kIHRoaXMgdHJlZSBvbjoNCj4g
+Pg0KPiA+IGh0dHA6Ly9kZXYub21hcHpvb20ub3JnLz9wPXNhYWd1aXJyZS9saW51eC1vbWFwLWNh
+bWVyYS5naXQ7YT1zdW1tYXJ5DQo+ID4NCj4gPiBDaGVja291dCBkZXZlbCBicmFuY2guDQo+ID4N
+Cj4gPiBUaGF0J3MgbXkgbGF0ZXN0IHByb2dyZXNzLg0KPiANCj4gT0sgSSdsbCB0cnkgdG8gbG9v
+ayBhdCB0aGUgZGV2ZWwgYnJhbmNoLg0KPiBDaGVlcnMsDQo+IA0KPiBOYXRlDQo+IA0KPiA+DQo+
+ID4gUmVnYXJkcywNCj4gPiBTZXJnaW8NCj4gPj4NCj4gPj4gLSBUdXVra2ENCj4gPj4gLS0NCj4g
+Pj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2Ny
+aWJlIGxpbnV4LQ0KPiA+PiBtZWRpYSIgaW4NCj4gPj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRv
+IG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCj4gPj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAg
+aHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo+ID4NCj4gDQoNCg==
