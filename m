@@ -1,96 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:55941 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751089AbZFJQwS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2009 12:52:18 -0400
-Date: Wed, 10 Jun 2009 13:52:00 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: jirislaby@gmail.com, fujita.tomonori@lab.ntt.co.jp,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	akpm@linux-foundation.org
-Subject: Re: [PATCH] vino: replace dma_sync_single with
- dma_sync_single_for_cpu
-Message-ID: <20090610135200.00b858b8@pedra.chehab.org>
-In-Reply-To: <20090601110831E.fujita.tomonori@lab.ntt.co.jp>
-References: <20090528100938I.fujita.tomonori@lab.ntt.co.jp>
-	<4A1E28E6.2090807@gmail.com>
-	<20090601110831E.fujita.tomonori@lab.ntt.co.jp>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([192.100.122.233]:58501 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752099AbZFVQ2O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Jun 2009 12:28:14 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv9 0/9] FM Transmitter (si4713) and another changes
+Date: Mon, 22 Jun 2009 19:21:27 +0300
+Message-Id: <1245687696-6730-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 1 Jun 2009 11:08:26 +0900
-FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp> escreveu:
+Hello all,
 
-> On Thu, 28 May 2009 08:02:14 +0200
-> Jiri Slaby <jirislaby@gmail.com> wrote:
-> 
-> > On 05/28/2009 03:10 AM, FUJITA Tomonori wrote:
-> > > This replaces dma_sync_single() with dma_sync_single_for_cpu() because
-> > > dma_sync_single() is an obsolete API; include/linux/dma-mapping.h says:
-> > > 
-> > > /* Backwards compat, remove in 2.7.x */
-> > > #define dma_sync_single		dma_sync_single_for_cpu
-> > > #define dma_sync_sg		dma_sync_sg_for_cpu
-> > > 
-> > > Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-> > > ---
-> > >  drivers/media/video/vino.c |    6 +++---
-> > >  1 files changed, 3 insertions(+), 3 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/video/vino.c b/drivers/media/video/vino.c
-> > > index 43e0998..97b082f 100644
-> > > --- a/drivers/media/video/vino.c
-> > > +++ b/drivers/media/video/vino.c
-> > > @@ -868,9 +868,9 @@ static void vino_sync_buffer(struct vino_framebuffer *fb)
-> > >  	dprintk("vino_sync_buffer():\n");
-> > >  
-> > >  	for (i = 0; i < fb->desc_table.page_count; i++)
-> > > -		dma_sync_single(NULL,
-> > > -				fb->desc_table.dma_cpu[VINO_PAGE_RATIO * i],
-> > > -				PAGE_SIZE, DMA_FROM_DEVICE);
-> > > +		dma_sync_single_for_cpu(NULL,
-> > > +					fb->desc_table.dma_cpu[VINO_PAGE_RATIO * i],
-> > > +					PAGE_SIZE, DMA_FROM_DEVICE);
-> > 
-> > Shouldn't be there sync_for_device in vino_dma_setup (or somewhere)
-> > then? If I understand the API correctly this won't (and didn't) work on
-> > some platforms.
+  First of all, I'd like to thank you for the good review. The driver
+is getting better and better. With this new API change, si4713 is looking
+like a fm transmitter driver.
 
-Well, this driver is bound to an specific architecture:
+  So, I'm resending the FM transmitter driver and the proposed changes in
+v4l2 api files in order to cover the fmtx extended controls class.
 
-config VIDEO_VINO
-        tristate "SGI Vino Video For Linux (EXPERIMENTAL)"
-        depends on I2C && SGI_IP22 && EXPERIMENTAL && VIDEO_V4L2
+  Differences from version #8 are:
+- Use of new modulator Capabilities
+- Use of new RDS modulator Capabilities and usage of txsubchannel
+- Proper definition of struct si4713_rssi. It was renamed also to si4713_rnl
+  (which stands to received noise level)
+- Updates for documentation
 
-So, it works only with a few SGI machines.
+  Now this series is based on *three* of Hans' trees:
+http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-subdev2.
+http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-str.
+http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-rds-enc.
 
-> 
-> Yeah, you might be right.
-> 
-> However, looks like this driver does only DMA_FROM_DEVICE transfer and
-> cpu doesn't modify the DMA buffer.
-> 
-> So we don't need to worry that the hardware gets old data. And it's
-> not possible that we write back old data in cache to the main memory
-> after DMA. It means that the driver doesn't need
-> sync_single_for_device(), I think.
-> 
-> Note that this patch doesn't break the driver (this patch doesn't
-> change anything). If this patch doesn't work, then this driver is
-> already broken.
+  The first tree has refactoring of v4l2 i2c helper functions. The second
+one has string support for extended controls, which is used in this driver.
+And the last one is the proposed changes for RDS capable modulators/receivers.
+As the ~hverkuil/v4l-dvb-rds-enc has already reference for EN50067, I didn't
+touch the v4l2-spec/biblio.sgml.
 
-This driver were written a long time ago. I'm not sure if it still works fine,
-since all patches we receive are related to API changes.
+  Here is simplified list of things included in this series:
+- support for g/s_modulator into subdev api
+- addition of fm tx extended controls and their proper documentation
+- addition of fm tx extended controls in v4l2-ctl util
+- addition of si4713: platform and i2c drivers and its documentation
 
-Yet, it seems better to apply your patch, since it doesn't hurt. For now, I'll
-apply it.
+BR,
 
-It would be interesting to have someone to test the removal of this call, since
-it looks that this call is not needed.
 
-Cheers,
-Mauro
+Eduardo Valentin (9):
+  v4l2-subdev.h: Add g_modulator callbacks to subdev api
+  v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX controls
+  v4l2: video device: Add FM_TX controls default configurations
+  v4l2-ctl: Add support for FM TX controls
+  v4l2-spec: Add documentation description for FM TX extended control
+    class
+  FMTx: si4713: Add files to add radio interface for si4713
+  FMTx: si4713: Add files to handle si4713 i2c device
+  FMTx: si4713: Add Kconfig and Makefile entries
+  FMTx: si4713: Add document file
+
+ linux/Documentation/video4linux/si4713.txt |  175 +++
+ linux/drivers/media/radio/Kconfig          |   22 +
+ linux/drivers/media/radio/Makefile         |    2 +
+ linux/drivers/media/radio/radio-si4713.c   |  366 +++++
+ linux/drivers/media/radio/si4713-i2c.c     | 2011 ++++++++++++++++++++++++++++
+ linux/drivers/media/radio/si4713-i2c.h     |  226 ++++
+ linux/drivers/media/video/v4l2-common.c    |   48 +
+ linux/include/linux/videodev2.h            |   33 +
+ linux/include/media/radio-si4713.h         |   30 +
+ linux/include/media/si4713.h               |   49 +
+ linux/include/media/v4l2-subdev.h          |    2 +
+ v4l2-apps/util/v4l2-ctl.cpp                |   36 +
+ v4l2-spec/Makefile                         |    1 +
+ v4l2-spec/controls.sgml                    |  200 +++
+ 14 files changed, 3201 insertions(+), 0 deletions(-)
+ create mode 100644 linux/Documentation/video4linux/si4713.txt
+ create mode 100644 linux/drivers/media/radio/radio-si4713.c
+ create mode 100644 linux/drivers/media/radio/si4713-i2c.c
+ create mode 100644 linux/drivers/media/radio/si4713-i2c.h
+ create mode 100644 linux/include/media/radio-si4713.h
+ create mode 100644 linux/include/media/si4713.h
+
