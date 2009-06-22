@@ -1,103 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hora-obscura.de ([213.133.111.163]:47297 "EHLO hora-obscura.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753255AbZFHI7F (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Jun 2009 04:59:05 -0400
-Message-ID: <4A2CD2C1.40805@hora-obscura.de>
-Date: Mon, 08 Jun 2009 11:58:41 +0300
-From: Stefan Kost <ensonic@hora-obscura.de>
-MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Trent Piepho <xyzzy@speakeasy.org>, linux-media@vger.kernel.org
-Subject: Re: webcam drivers and V4L2_MEMORY_USERPTR support
-References: <4A238292.6000205@hora-obscura.de> <Pine.LNX.4.58.0906010056140.32713@shell2.speakeasy.net> <4A23CF7F.3070301@redhat.com> <4A28CC9B.6070306@hora-obscura.de> <4A2BE470.3060005@redhat.com>
-In-Reply-To: <4A2BE470.3060005@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([192.100.105.134]:55604 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752950AbZFVQ20 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Jun 2009 12:28:26 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv9 2/9] v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX controls
+Date: Mon, 22 Jun 2009 19:21:29 +0300
+Message-Id: <1245687696-6730-3-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1245687696-6730-2-git-send-email-eduardo.valentin@nokia.com>
+References: <1245687696-6730-1-git-send-email-eduardo.valentin@nokia.com>
+ <1245687696-6730-2-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans de Goede schrieb:
->
->
-> On 06/05/2009 09:43 AM, Stefan Kost wrote:
->> Hans de Goede schrieb:
->>>
->>> On 06/01/2009 09:58 AM, Trent Piepho wrote:
->>>> On Mon, 1 Jun 2009, Stefan Kost wrote:
->>>>> I have implemented support for V4L2_MEMORY_USERPTR buffers in
->>>>> gstreamers
->>>>> v4l2src [1]. This allows to request shared memory buffers from
->>>>> xvideo,
->>>>> capture into those and therefore save a memcpy. This works great with
->>>>> the v4l2 driver on our embedded device.
->>>>>
->>>>> When I was testing this on my desktop, I noticed that almost no
->>>>> driver
->>>>> seems to support it.
->>>>> I tested zc0301 and uvcvideo, but also grepped the kernel driver
->>>>> sources. It seems that gspca might support it, but I ave not
->>>>> confirmed
->>>>> it. Is there a technical reason for it, or is it simply not
->>>>> implemented?
->>>> userptr support is relatively new and so it has less support,
->>>> especially
->>>> with driver that pre-date it.  Maybe USB cams use a compressed format
->>>> and
->>>> so userptr with xvideo would not work anyway since xv won't support
->>>> the
->>>> camera's native format.  It certainly could be done for bt8xx, cx88,
->>>> saa7134, etc.
->>> Even in the webcam with custom compressed format case, userptr support
->>> could
->>> be useful to safe a memcpy, as libv4l currently fakes mmap buffers, so
->>> what
->>> happens  is:
->>>
->>> cam>direct transfer>  mmap buffer>libv4l format conversion>  fake mmap
->>> buffer
->>>> application-memcpy>  dest buffer
->>> So if libv4l would support userptr's (which it currently does not
->>> do) we
->>> could still safe a memcpy here.
->> Do you mean that if a driver supports userptr and one uses libv4l
->> instead of the direct ioctl, there is a regression and the app iuppo
->> getting told only mmap works?
->
-> Yes, this was done this way for simplicity's sake (libv4l2 is complex
-> enough at is). At the time this decision was made it was an easy one to
-> make as userptr support mostly was (and I believe still is) a paper
-> excercise. Iow no applications and almost no drivers support it. If
-> more applications start supporting it, support can and should be
-> added to libv4l2. But this will be tricky.
-E.g. omap2 v4l2 drivers (e.g. used in Nokia N800/N810) support it and
-the new drivers fro omap3 will do the same. I probably need to revert
-the libv4l usage in gstreamer than as we can have regressions in
-applications ...
->> For higher pixels counts extra memcpy's
->> are scary, especially if they are no visible. Sorry for the naive
->> question, but what is libv4l role regarding buffer allocations?
->>
->> In ourcase we don't need any extra format conversion from libv4l. I am
->> fine if it works without extra memcpy in that case and I understand that
->> it would be tricky to support inplace formats conversions for some
->> formats and extra memcpy for the rest.
->>> I would be willing to take *clean, non invasive* patches to libv4l
->>> to add
->>> userptr support, but I'm not sure if this can be done in a clean way
->>> (haven't
->>> tried).
->> Where are the libv4l sources hosted. I found your blog and the freshmeat
->> page only so far.
->
-> The sources are part of the v4l-dvb mercurial tree. But the latest
-> version is in my personal tree, please use that to base patches on:
-> http://linuxtv.org/hg/~hgoede/libv4l
-Don't count on it. I am quite busy in my current projects :/
-Stefan
+This patch adds a new class of extended controls. This class
+is intended to support FM Radio Modulators properties such as:
+rds, audio limiters, audio compression, pilot tone generation,
+tuning power levels and preemphasis properties.
 
->
-> Regards,
->
-> Hans
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ linux/include/linux/videodev2.h |   33 +++++++++++++++++++++++++++++++++
+ 1 files changed, 33 insertions(+), 0 deletions(-)
+
+diff --git a/linux/include/linux/videodev2.h b/linux/include/linux/videodev2.h
+index 50aa92b..8bd7810 100644
+--- a/linux/include/linux/videodev2.h
++++ b/linux/include/linux/videodev2.h
+@@ -809,6 +809,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
+ #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+ #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
++#define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
+ 
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -1148,6 +1149,38 @@ enum  v4l2_exposure_auto_type {
+ 
+ #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
+ 
++/* FM Modulator class control IDs */
++#define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
++#define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
++
++#define V4L2_CID_RDS_TX_PI			(V4L2_CID_FM_TX_CLASS_BASE + 1)
++#define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 2)
++#define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 3)
++#define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 4)
++
++#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 5)
++#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 6)
++#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FM_TX_CLASS_BASE + 7)
++
++#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FM_TX_CLASS_BASE + 8)
++#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FM_TX_CLASS_BASE + 9)
++#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FM_TX_CLASS_BASE + 10)
++#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 11)
++#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 12)
++
++#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 13)
++#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 14)
++#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FM_TX_CLASS_BASE + 15)
++
++#define V4L2_CID_FM_TX_PREEMPHASIS		(V4L2_CID_FM_TX_CLASS_BASE + 16)
++enum v4l2_preemphasis {
++	V4L2_PREEMPHASIS_DISABLED	= 0,
++	V4L2_PREEMPHASIS_50_uS		= 1,
++	V4L2_PREEMPHASIS_75_uS		= 2,
++};
++#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 17)
++#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 18)
++
+ /*
+  *	T U N I N G
+  */
+-- 
+1.6.2.GIT
 
