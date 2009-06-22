@@ -1,103 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51620 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758056AbZFJToh (ORCPT
+Received: from mail-fx0-f224.google.com ([209.85.220.224]:46713 "EHLO
+	mail-fx0-f224.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751347AbZFVGjj convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2009 15:44:37 -0400
-Message-Id: <200906101944.n5AJiN6N031809@imap1.linux-foundation.org>
-Subject: [patch 5/6] v4l: generate KEY_CAMERA instead of BTN_0 key events on input devices
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	mzxreary@0pointer.de
-From: akpm@linux-foundation.org
-Date: Wed, 10 Jun 2009 12:44:23 -0700
+	Mon, 22 Jun 2009 02:39:39 -0400
+Received: by fxm24 with SMTP id 24so428654fxm.37
+        for <linux-media@vger.kernel.org>; Sun, 21 Jun 2009 23:39:40 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <88b49f150906211444u39a8eae1v77a15f32e4062775@mail.gmail.com>
+References: <88b49f150906211444u39a8eae1v77a15f32e4062775@mail.gmail.com>
+Date: Mon, 22 Jun 2009 08:39:40 +0200
+Message-ID: <d9def9db0906212339k3af44f3dg80fe119784391dfe@mail.gmail.com>
+Subject: Re: [linux-dvb] Kworld DVB-T 323UR problems
+From: Markus Rechberger <mrechberger@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lennart Poettering <mzxreary@0pointer.de>
+On Sun, Jun 21, 2009 at 11:44 PM, Laszlo Kustan<lkustan@gmail.com> wrote:
+> Hi everyone,
+> I have a Kword DVB-T 323UR connected to a Linux Mint 7 Gloria (based
+> on Ubuntu Jaunty), kernel 2.6.28.
+> I successfully compiled em28xx, the firmware was obtained based on these steps:
+> 1) Download the windows driver with something like:
+> wget http://www.steventoth.net/linux/xc5000/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip
+> 2) Extract the file hcw85bda.sys from the zip into the current dir:
+> unzip -j HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip Driver85/hcw85bda.sys
+> 3) run the script:
+> ./extract_xc3028.pl
+> 4) copy the generated file:
+> cp xc3028-v27.fw /lib/firmware
+>
+> My windows driver is called embda.sys, so I'm not sure whether the
+> firmware is 100% good for my tuner or not.
+> I have a couple of problems:
+> 1. no analog audio, but I found out this works with workarounds
+>
+> I tried several tricks:
+> a. sox -c 2 -r 32000 -t ossdsp /dev/dsp1 -t ossdsp /dev/dsp
+> this works, but with a 4-5 second delay between audio and video
+>
+> b. arecord -D hw:1,0 -r 32000 -c 2 -f S16_LE | play -q -c 2 -r 32000 -t wav - &
+> I get an error:
+> laco@laco-desktop ~ $ arecord -D hw:1,0 -r 32000 -c 2 -f S16_LE | play
+> -q -c 2 -r 32000 -t wav - &
+> [1] 9084
+> laco@laco-desktop ~ $ Recording WAVE 'stdin' : Signed 16 bit Little
+> Endian, Rate 32000 Hz, Stereo
+> Warning: rate is not accurate (requested = 32000Hz, got = 48000Hz)
+>         please, try the plug plugin
+> arecord: pcm_read:1529: read error: Input/output error
+> play wav: Premature EOF on .wav input file
+>
+> c. install modified tvtime from mcentral.de
+> I get an error in this case too:
+> Reading configuration from /usr/etc/tvtime/tvtime.xml
+> Reading configuration from /home/laco/.tvtime/tvtime.xml
+> HDA NVidia : AD198x Analog hw:0,0
+> Em28xx Audio : Empia 28xx Capture hw:1,0
+> opening: hw:1,0
+> Access type not available
+>
+> My arecord -l output is:
+> laco@laco-desktop ~ $ arecord -l
+> **** List of CAPTURE Hardware Devices ****
+> card 0: NVidia [HDA NVidia], device 0: AD198x Analog [AD198x Analog]
+>  Subdevices: 1/1
+>  Subdevice #0: subdevice #0
+> card 1: Em28xx Audio [Em28xx Audio], device 0: Em28xx Audio [Empia 28xx Capture]
+>  Subdevices: 1/1
+>  Subdevice #0: subdevice #0
+>
+> 2. my remote is not recognized. Here is the em28xx part from dmesg:
+> laco@laco-desktop ~ $ dmesg | grep em28xx
+> [11231.562817] em28xx v4l2 driver version 0.0.1 loaded
+> [11231.564913] em28xx: new video device (eb1a:e323): interface 0, class 255
+> [11231.564920] em28xx: setting up device on a USB 1.1 bus
+> [11231.564924] em28xx: your device won't work properly when
+> [11231.564927] em28xx: not attached to a USB 2.0 highspeed bus
+> [11231.564931] em28xx: more information:
+> [11231.564933] em28xx: http://mcentral.de/wiki/index.php5/Talk:Em2880
 
-A bunch of V4L drivers generate BTN_0 instead of KEY_CAMERA key presses.
+please pay attention to that line... it probably will not work with usb 1.0.
 
-X11 is able to handle KEY_CAMERA automatically these days while BTN_0 is
-not treated at all.  Thus it would be of big benefit if the camera drivers
-would consistently generate KEY_CAMERA.  Some drivers (uvc) already do,
-this patch updates the remaining drivers to do the same.
+Markus
 
-I only possess a limited set of webcams, so this isn't tested with all
-cameras.  The patch is rather trivial and compile tested, so I'd say it's
-still good enough to get merged.
-
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Signed-off-by: Lennart Poettering <mzxreary@0pointer.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- drivers/media/video/pwc/pwc-if.c                  |    4 ++--
- drivers/media/video/usbvideo/konicawc.c           |    4 ++--
- drivers/media/video/usbvideo/quickcam_messenger.c |    4 ++--
- 3 files changed, 6 insertions(+), 6 deletions(-)
-
-diff -puN drivers/media/video/pwc/pwc-if.c~v4l-generate-key_camera-instead-of-btn_0-key-events-on-input-devices drivers/media/video/pwc/pwc-if.c
---- a/drivers/media/video/pwc/pwc-if.c~v4l-generate-key_camera-instead-of-btn_0-key-events-on-input-devices
-+++ a/drivers/media/video/pwc/pwc-if.c
-@@ -601,7 +601,7 @@ static void pwc_snapshot_button(struct p
- 
- #ifdef CONFIG_USB_PWC_INPUT_EVDEV
- 	if (pdev->button_dev) {
--		input_report_key(pdev->button_dev, BTN_0, down);
-+		input_report_key(pdev->button_dev, KEY_CAMERA, down);
- 		input_sync(pdev->button_dev);
- 	}
- #endif
-@@ -1847,7 +1847,7 @@ static int usb_pwc_probe(struct usb_inte
- 	usb_to_input_id(pdev->udev, &pdev->button_dev->id);
- 	pdev->button_dev->dev.parent = &pdev->udev->dev;
- 	pdev->button_dev->evbit[0] = BIT_MASK(EV_KEY);
--	pdev->button_dev->keybit[BIT_WORD(BTN_0)] = BIT_MASK(BTN_0);
-+	pdev->button_dev->keybit[BIT_WORD(KEY_CAMERA)] = BIT_MASK(KEY_CAMERA);
- 
- 	rc = input_register_device(pdev->button_dev);
- 	if (rc) {
-diff -puN drivers/media/video/usbvideo/konicawc.c~v4l-generate-key_camera-instead-of-btn_0-key-events-on-input-devices drivers/media/video/usbvideo/konicawc.c
---- a/drivers/media/video/usbvideo/konicawc.c~v4l-generate-key_camera-instead-of-btn_0-key-events-on-input-devices
-+++ a/drivers/media/video/usbvideo/konicawc.c
-@@ -240,7 +240,7 @@ static void konicawc_register_input(stru
- 	input_dev->dev.parent = &dev->dev;
- 
- 	input_dev->evbit[0] = BIT_MASK(EV_KEY);
--	input_dev->keybit[BIT_WORD(BTN_0)] = BIT_MASK(BTN_0);
-+	input_dev->keybit[BIT_WORD(KEY_CAMERA)] = BIT_MASK(KEY_CAMERA);
- 
- 	error = input_register_device(cam->input);
- 	if (error) {
-@@ -263,7 +263,7 @@ static void konicawc_unregister_input(st
- static void konicawc_report_buttonstat(struct konicawc *cam)
- {
- 	if (cam->input) {
--		input_report_key(cam->input, BTN_0, cam->buttonsts);
-+		input_report_key(cam->input, KEY_CAMERA, cam->buttonsts);
- 		input_sync(cam->input);
- 	}
- }
-diff -puN drivers/media/video/usbvideo/quickcam_messenger.c~v4l-generate-key_camera-instead-of-btn_0-key-events-on-input-devices drivers/media/video/usbvideo/quickcam_messenger.c
---- a/drivers/media/video/usbvideo/quickcam_messenger.c~v4l-generate-key_camera-instead-of-btn_0-key-events-on-input-devices
-+++ a/drivers/media/video/usbvideo/quickcam_messenger.c
-@@ -103,7 +103,7 @@ static void qcm_register_input(struct qc
- 	input_dev->dev.parent = &dev->dev;
- 
- 	input_dev->evbit[0] = BIT_MASK(EV_KEY);
--	input_dev->keybit[BIT_WORD(BTN_0)] = BIT_MASK(BTN_0);
-+	input_dev->keybit[BIT_WORD(KEY_CAMERA)] = BIT_MASK(KEY_CAMERA);
- 
- 	error = input_register_device(cam->input);
- 	if (error) {
-@@ -126,7 +126,7 @@ static void qcm_unregister_input(struct 
- static void qcm_report_buttonstat(struct qcm *cam)
- {
- 	if (cam->input) {
--		input_report_key(cam->input, BTN_0, cam->button_sts);
-+		input_report_key(cam->input, KEY_CAMERA, cam->button_sts);
- 		input_sync(cam->input);
- 	}
- }
-_
+> [11231.564942] em28xx #0: Alternate settings: 8
+> [11231.564946] em28xx #0: Alternate setting 0, max size= 0
+> [11231.564950] em28xx #0: Alternate setting 1, max size= 512
+> [11231.564954] em28xx #0: Alternate setting 2, max size= 640
+> [11231.564958] em28xx #0: Alternate setting 3, max size= 768
+> [11231.564962] em28xx #0: Alternate setting 4, max size= 832
+> [11231.564966] em28xx #0: Alternate setting 5, max size= 896
+> [11231.564969] em28xx #0: Alternate setting 6, max size= 960
+> [11231.564973] em28xx #0: Alternate setting 7, max size= 1020
+> [11240.939178] em28xx #0: V4L2 VBI device registered as /dev/vbi0
+> [11240.998075] em28xx #0: V4L2 device registered as /dev/video0
+> [11240.998087] em28xx #0: Found KWorld E323
+> [11240.998153] usbcore: registered new interface driver em28xx
+> [11241.064491] em28xx-audio.c: probing for em28x1 non standard usbaudio
+> [11241.064497] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+> [11241.922736] em28xx-audio: device is currently in analog TV mode
+>
+> Nothing about input devices here and neither in /proc/bus/input/devices.
+>
+> 3. heat problems
+> I noticed that when it is connected, it gets quite hot, even if no dvb
+> software is running. In Windows it does not get so hot, even when
+> watching tv.
+>
+> Sorry for this long mail.
+> The first point would be the most important to solve, if you need more
+> details to help me, no problem.
+> Thanks, Laszlo
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
