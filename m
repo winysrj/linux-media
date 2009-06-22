@@ -1,52 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f210.google.com ([209.85.219.210]:37020 "EHLO
-	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752471AbZFZSgS (ORCPT
+Received: from mail-bw0-f213.google.com ([209.85.218.213]:34891 "EHLO
+	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752837AbZFVHbo convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2009 14:36:18 -0400
-Received: by ewy6 with SMTP id 6so3643644ewy.37
-        for <linux-media@vger.kernel.org>; Fri, 26 Jun 2009 11:36:20 -0700 (PDT)
-To: Chaithrika U S <chaithrika@ti.com>
-Cc: linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com,
-	Manjunath Hadli <mrh@ti.com>, Brijesh Jadav <brijesh.j@ti.com>
-Subject: Re: [PATCH] Subject: [PATCH v3 1/4] ARM: DaVinci: DM646x Video: Platform and board specific setup
-References: <1241789157-23350-1-git-send-email-chaithrika@ti.com>
-	<87ljneeti5.fsf@deeprootsystems.com>
-From: Kevin Hilman <khilman@deeprootsystems.com>
-Date: Fri, 26 Jun 2009 11:36:14 -0700
-In-Reply-To: <87ljneeti5.fsf@deeprootsystems.com> (Kevin Hilman's message of "Fri\, 26 Jun 2009 11\:32\:02 -0700")
-Message-ID: <87d48qetb5.fsf@deeprootsystems.com>
+	Mon, 22 Jun 2009 03:31:44 -0400
+Received: by bwz9 with SMTP id 9so2916513bwz.37
+        for <linux-media@vger.kernel.org>; Mon, 22 Jun 2009 00:31:46 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Date: Mon, 22 Jun 2009 10:31:46 +0300
+Message-ID: <88b49f150906220031o75e69b20id5e6a282fb96e581@mail.gmail.com>
+Subject: Kworld DVB-T 323UR problems
+From: Laszlo Kustan <lkustan@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Kevin Hilman <khilman@deeprootsystems.com> writes:
+Hi Markus,
+Sorry, it seems that sometimes my usb is not recognized as 2.0, I
+wonder why this happens.
+Anyway, I'll send you in the afternoon a correct dmesg output, but the
+results are the same: same problems with analog routing and no remote.
+After I installed your tvtime version (had to install the deb version
+as the sources are not available on your site (internal server
+error)), there were some problems with libswscale (the link had other
+name than tvtime was looking for), I renamed the link and that's how I
+ended up with the error message I already wrote:
+Access type not available
 
-> Chaithrika U S <chaithrika@ti.com> writes:
->
->> Platform specific display device setup for DM646x EVM
->>
->> Add platform device and resource structures. Also define a platform specific
->> clock setup function that can be accessed by the driver to configure the clock
->> and CPLD.
->>
->> This patch is dependent on a patch submitted earlier, which adds
->> Pin Mux and clock definitions for Video on DM646x.
->>
->> Signed-off-by: Manjunath Hadli <mrh@ti.com>
->> Signed-off-by: Brijesh Jadav <brijesh.j@ti.com>
->> Signed-off-by: Chaithrika U S <chaithrika@ti.com>
->> ---
->> Applies to Davinci GIT tree
->
-> Needs an update to apply to current linus or davinci git.
+Any idea how to get rid of this or any feasible solution for the analog audio?
 
-Please ignore this review, I see there was a newer version posted.
-Will review shortly.
+Thanks, Laszlo
 
-Sorry for the confusion.
 
-Kevin
+   please pay attention to that line... it probably will not work with usb 1.0.
 
+   Markus
