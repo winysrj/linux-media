@@ -1,73 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f213.google.com ([209.85.218.213]:64923 "EHLO
-	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753313AbZFRLMK (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:36927 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750970AbZFVA16 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 07:12:10 -0400
-Received: by bwz9 with SMTP id 9so974319bwz.37
-        for <linux-media@vger.kernel.org>; Thu, 18 Jun 2009 04:12:12 -0700 (PDT)
-Date: Thu, 18 Jun 2009 13:12:53 +0200
-From: Jan Nikitenko <jan.nikitenko@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] af9015: avoid magically sized temporal buffer in
-	eeprom_dump
-Message-ID: <20090618111253.GC9575@nikitenko.systek.local>
-References: <c4bc83220906091531h20677733kd993ed50c0bc74ec@mail.gmail.com> <4A2EF922.5040102@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4A2EF922.5040102@iki.fi>
+	Sun, 21 Jun 2009 20:27:58 -0400
+Date: Sun, 21 Jun 2009 21:27:56 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Dennis Campbell <denniscampbell73@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: dvb-t with kernel 2.6.15?
+Message-ID: <20090621212756.09907f3f@pedra.chehab.org>
+In-Reply-To: <1d41be3c0906211036r1235ee6bo5870cb4185f4ee38@mail.gmail.com>
+References: <1d41be3c0906211036r1235ee6bo5870cb4185f4ee38@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace printing to magically sized temporal buffer with use of KERN_CONT for continual printing of eeprom registers dump.
+Em Sun, 21 Jun 2009 19:36:42 +0200
+Dennis Campbell <denniscampbell73@gmail.com> escreveu:
 
-Since deb_info is defined as dprintk, which is defined as printk without additional parameters, meaning that deb_info is equivalent to direct printk (without KERN_ facility), we can use KERN_DEBUG and KERN_CONT in there, eliminating the need for sprintf into temporal buffer with not easily readable/magical size.
+> Hello,
+> I have seen that the v4l-dvb modules work only for kernel > 2.6.15. I
+> have a Pinnacle 72e USB DVB-T stick i would like to use with a 2.6.15
+> (ARM)kernel. This would be a dibcom 0700 driver. Is there any
+> possibilty at all to get this working, or do I have to get a dvb-t usb
+> stick that is supported by the 2.6.15 kernel? How good was the dvb-t
+> support using the 2.6.15 kernel? Thanks for any help.
 
-Though it's strange, that deb_info definition uses printk without KERN_ facility and callers don't use it either.
+You may try to compile it with 2.6.15, by changing versions.txt file, or by
+explicitly enabling support for older kernels via "make menuconfig".
 
----
+It is a good idea to take a look at the changeset that stripped compat with
+kernels older than 2.6.16:
 
-I do not see better solution for the magical sized buffer, since print_hex_dump like functions need dump of registers in memory (so the magical sized temporal buffer would be needed for a copy anyway).
-If deb_info was defined with inside KERN_ facility, then this patch would not be valid and so the magically sized temporal buffer might be acceptable to keep there.
+changeset:   8240:fc86dc29e6a3
+parent:      8235:9ff62c80bf4c
+user:        Hans Verkuil <hverkuil@xs4all.nl>
+date:        Tue Jul 08 17:40:58 2008 +0200
+summary:     v4l-dvb: remove support for kernels < 2.6.16
 
-This patch depends on 'af9015: fix stack corruption bug' patch.
 
- linux/drivers/media/dvb/dvb-usb/af9015.c |   12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
 
-diff -r 722c6faf3ab5 linux/drivers/media/dvb/dvb-usb/af9015.c
---- a/linux/drivers/media/dvb/dvb-usb/af9015.c	Wed Jun 17 22:39:23 2009 -0300
-+++ b/linux/drivers/media/dvb/dvb-usb/af9015.c	Thu Jun 18 08:49:58 2009 +0200
-@@ -541,24 +541,22 @@
- /* dump eeprom */
- static int af9015_eeprom_dump(struct dvb_usb_device *d)
- {
--	char buf[4+3*16+1], buf2[4];
- 	u8 reg, val;
- 
- 	for (reg = 0; ; reg++) {
- 		if (reg % 16 == 0) {
- 			if (reg)
--				deb_info("%s\n", buf);
--			sprintf(buf, "%02x: ", reg);
-+				deb_info(KERN_CONT "\n");
-+			deb_info(KERN_DEBUG "%02x:", reg);
- 		}
- 		if (af9015_read_reg_i2c(d, AF9015_I2C_EEPROM, reg, &val) == 0)
--			sprintf(buf2, "%02x ", val);
-+			deb_info(KERN_CONT, " %02x", val);
- 		else
--			strcpy(buf2, "-- ");
--		strcat(buf, buf2);
-+			deb_info(KERN_CONT, " --");
- 		if (reg == 0xff)
- 			break;
- 	}
--	deb_info("%s\n", buf);
-+	deb_info(KERN_CONT "\n");
- 	return 0;
- }
- 
+Cheers,
+Mauro
