@@ -1,68 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f214.google.com ([209.85.217.214]:48251 "EHLO
-	mail-gx0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750846AbZFSDO2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 23:14:28 -0400
-Received: by gxk10 with SMTP id 10so2455724gxk.13
-        for <linux-media@vger.kernel.org>; Thu, 18 Jun 2009 20:14:31 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <52243.62.70.2.252.1245227586.squirrel@webmail.xs4all.nl>
-References: <52243.62.70.2.252.1245227586.squirrel@webmail.xs4all.nl>
-Date: Fri, 19 Jun 2009 12:14:31 +0900
-Message-ID: <aec7e5c30906182014h3888a4dbt5ee8bf12b92fbc8c@mail.gmail.com>
-Subject: Re: [PATCH] adding support for setting bus parameters in sub device
-From: Magnus Damm <magnus.damm@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
-	Darius Augulis <augulis.darius@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35253 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751138AbZFVLIV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Jun 2009 07:08:21 -0400
+From: Chaithrika U S <chaithrika@ti.com>
+To: linux-media@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com, hverkuil@xs4all.nl,
+	Chaithrika U S <chaithrika@ti.com>
+Subject: [PATCH] ARM: DaVinci: DM646x Video: Fix compile time warnings for mutex locking
+Date: Mon, 22 Jun 2009 06:25:12 -0400
+Message-Id: <1245666312-31388-1-git-send-email-chaithrika@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 17, 2009 at 5:33 PM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
->> I think automatic negotiation is a good thing if it is implemented
->> correctly.
->>
->> Actually, i think modelling software after hardware is a good thing
->> and from that perspective the soc_camera was (and still is) a very
->> good fit for our on-chip SoC. Apart from host/sensor separation, the
->> main benefits in my mind are autonegotiation and separate
->> configuration for camera sensor, capture interface and board.
->>
->> I don't mind doing the same outside soc_camera, and I agree with Hans
->> that in some cases it's nice to hard code and skip the "magic"
->> negotiation. I'm however pretty sure the soc_camera allows hard coding
->> though, so in that case you get the best of two worlds.
->
-> It is my strong opinion that while autonegotiation is easy to use, it is
-> not a wise choice to make. Filling in a single struct with the bus
-> settings to use for each board-subdev combination (usually there is only
-> one) is simple, straight-forward and unambiguous. And I really don't see
-> why that should take much time at all. And I consider it a very good point
-> that the programmer is forced to think about this for a bit.
+mutex_lock_interruptible return value has to be handled properly to indicate
+the status to the higher layers of the kernel.
 
-I agree that it's good to force the programmer to think. In this case
-I assume you are talking about the board support engineer or at least
-the person writing software to attach a camera sensor with capture
-hardware.
+Signed-off-by: Chaithrika U S <chaithrika@ti.com>
+---
+Applies to v4l-dvb-dm646x repo maintained by Hans Verkuil
+at http://linuxtv.org/hg/~hverkuil/v4l-dvb-dm646x/
 
-You are not against letting drivers export their capabilites at least?
-I'd like to see drivers that exports capabilites about which signals
-that are supported and which states that are valid. So for instance,
-the SuperH CEU driver supports both active high and active low HSYNC
-and VSYNC signals. I'd like to make sure that the driver writers are
-forced to think and export a bitmap of capabilites describing all
-valid pin states. A little bit in the same way that i2c drivers use
-->functionality() to export a bitmap of capabilites. Then if the
-assignment of the pin states is automatic or hard coded I don't care
-about.
+ drivers/media/video/davinci/vpif_display.c |   31 ++++++++++++++++++++-------
+ 1 files changed, 23 insertions(+), 8 deletions(-)
 
-Cheers,
+diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
+index 5e2b86b..969d4b3 100644
+--- a/drivers/media/video/davinci/vpif_display.c
++++ b/drivers/media/video/davinci/vpif_display.c
+@@ -636,7 +636,9 @@ static int vpif_release(struct file *filep)
+ 	struct channel_obj *ch = fh->channel;
+ 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+ 
+-	mutex_lock_interruptible(&common->lock);
++	if (mutex_lock_interruptible(&common->lock))
++		return -ERESTARTSYS;
++
+ 	/* if this instance is doing IO */
+ 	if (fh->io_allowed[VPIF_VIDEO_INDEX]) {
+ 		/* Reset io_usrs member of channel object */
+@@ -720,7 +722,9 @@ static int vpif_g_fmt_vid_out(struct file *file, void *priv,
+ 		return -EINVAL;
+ 
+ 	/* Fill in the information about format */
+-	mutex_lock_interruptible(&common->lock);
++	if (mutex_lock_interruptible(&common->lock))
++		return -ERESTARTSYS;
++
+ 	if (vpif_get_std_info(ch)) {
+ 		vpif_err("Error getting the standard info\n");
+ 		return -EINVAL;
+@@ -768,7 +772,9 @@ static int vpif_s_fmt_vid_out(struct file *file, void *priv,
+ 	/* store the pix format in the channel object */
+ 	common->fmt.fmt.pix = *pixfmt;
+ 	/* store the format in the channel object */
+-	mutex_lock_interruptible(&common->lock);
++	if (mutex_lock_interruptible(&common->lock))
++		return -ERESTARTSYS;
++
+ 	common->fmt = *fmt;
+ 	mutex_unlock(&common->lock);
+ 
+@@ -819,7 +825,9 @@ static int vpif_reqbufs(struct file *file, void *priv,
+ 	index = VPIF_VIDEO_INDEX;
+ 
+ 	common = &ch->common[index];
+-	mutex_lock_interruptible(&common->lock);
++	if (mutex_lock_interruptible(&common->lock))
++		return -ERESTARTSYS;
++
+ 	if (common->fmt.type != reqbuf->type) {
+ 		ret = -EINVAL;
+ 		goto reqbuf_exit;
+@@ -979,7 +987,8 @@ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id *std_id)
+ 	}
+ 
+ 	/* Call encoder subdevice function to set the standard */
+-	mutex_lock_interruptible(&common->lock);
++	if (mutex_lock_interruptible(&common->lock))
++		return -ERESTARTSYS;
+ 
+ 	ch->video.stdid = *std_id;
+ 	/* Get the information about the standard */
+@@ -1085,7 +1094,9 @@ static int vpif_streamon(struct file *file, void *priv,
+ 		return ret;
+ 	}
+ 
+-	mutex_lock_interruptible(&common->lock);
++	if (mutex_lock_interruptible(&common->lock))
++		return -ERESTARTSYS;
++
+ 	/* If buffer queue is empty, return error */
+ 	if (list_empty(&common->dma_queue)) {
+ 		vpif_err("buffer queue is empty\n");
+@@ -1185,7 +1196,9 @@ static int vpif_streamoff(struct file *file, void *priv,
+ 		return -EINVAL;
+ 	}
+ 
+-	mutex_lock_interruptible(&common->lock);
++	if (mutex_lock_interruptible(&common->lock))
++		return -ERESTARTSYS;
++
+ 	if (buftype == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+ 		/* disable channel */
+ 		if (VPIF_CHANNEL2_VIDEO == ch->channel_id) {
+@@ -1248,7 +1261,9 @@ static int vpif_s_output(struct file *file, void *priv, unsigned int i)
+ 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
+ 	int ret = 0;
+ 
+-	mutex_lock_interruptible(&common->lock);
++	if (mutex_lock_interruptible(&common->lock))
++		return -ERESTARTSYS;
++
+ 	if (common->started) {
+ 		vpif_err("Streaming in progress\n");
+ 		ret = -EBUSY;
+-- 
+1.5.6
 
-/ magnus
