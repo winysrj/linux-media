@@ -1,30 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n51K306c025223
-	for <video4linux-list@redhat.com>; Mon, 1 Jun 2009 16:03:00 -0400
-Received: from swip.net (mailfe15.tele2.se [212.247.155.193])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n51K2gCi014965
-	for <video4linux-list@redhat.com>; Mon, 1 Jun 2009 16:02:43 -0400
-Received: from smtp.alstadheim.priv.no (account mc432237@c2i.net
-	[193.216.78.228] verified)
-	by mailfe15.swip.net (CommuniGate Pro SMTP 5.2.13)
-	with ESMTPA id 504773985 for video4linux-list@redhat.com;
-	Mon, 01 Jun 2009 22:02:42 +0200
-Received: from [192.168.2.22] (unknown [192.168.2.22])
-	(Authenticated sender: hakon)
-	by smtp.alstadheim.priv.no (Postfix) with ESMTPSA id 96A3051BB
-	for <video4linux-list@redhat.com>;
-	Mon,  1 Jun 2009 22:02:41 +0200 (CEST)
-Message-ID: <4A2433E2.4050807@alstadheim.priv.no>
-Date: Mon, 01 Jun 2009 22:02:42 +0200
-From: =?ISO-8859-1?Q?H=E5kon_Alstadheim?= <hakon@alstadheim.priv.no>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n5N8mB7w028629
+	for <video4linux-list@redhat.com>; Tue, 23 Jun 2009 04:48:12 -0400
+Received: from mx-out.facebook.com (outmail009.ash1.tfbnw.net [69.63.184.109])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n5N8lsgF026366
+	for <video4linux-list@redhat.com>; Tue, 23 Jun 2009 04:47:54 -0400
+Date: Tue, 23 Jun 2009 01:47:53 -0700
+To: Video4linux-list <video4linux-list@redhat.com>
+From: Vandana Vuthoo <invite+k5_v51ud@facebookmail.com>
+Message-ID: <f4c6f1d68819850dea49ccf9500a180a@localhost.localdomain>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-References: <745af8a00906011105x7a69b478obbab7c738aaa9e06@mail.gmail.com>
-In-Reply-To: <745af8a00906011105x7a69b478obbab7c738aaa9e06@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Subject: Re: saa7134 surveillance
+Content-Type: text/plain; charset = "UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Subject: Check out my photos on Facebook
+Reply-To: Vandana Vuthoo <vandana.vuthoo@gmail.com>
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,28 +25,20 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-S P wrote:
-> Hi!
-> I have a surveillance card with saa7134 chips. It should be able to
-> see 8 cameras at a time, but there is only 4 video devices in /dev of
-> this card.
-> These devices are working fine, each device's channel 0(there isn't
-> any other channel of these devices) is an input for a camera.
-> So, how could I manage it to be 8 devices?
->
->   
-Kernel-version ? Newer kernels allow you to set v4l subsystem to 
-"allocate minor device numbers dynamically". This is supposed to allow 
-more than 4 devices on a single card, according to the help-text of the 
-2.6.29 kernel I just compiled.
+Hi Video4linux-list,
 
-Caveat: All this is from memory, ~24hours old.
+I set up a Facebook profile where I can post my pictures, videos and events and I want to add you as a friend so you can see it. First, you need to join Facebook! Once you join, you can also create your own profile.
 
--- 
-Håkon Alstadheim
-47 35 39 38
+Thanks,
+Vandana
+
+To sign up for Facebook, follow the link below:
+http://www.facebook.com/p.php?i=3D1265299686&k=3DZ6LT2462U66CUCFDYDZ2YWP&r
 
 
+video4linux-list@redhat.com was invited to join Facebook by Vandana Vuthoo. If you do not wish to receive this type of email from Facebook in the future, please click on the link below to unsubscribe.
+http://www.facebook.com/o.php?k=3D5158d6&u=3D1248657831&mid=3Daa93e7G4a6d01a7G0G8
+Facebook's offices are located at 1601 S. California Ave., Palo Alto, CA 94304.
 
 --
 video4linux-list mailing list
