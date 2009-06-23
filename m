@@ -1,20 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Message-ID: <COL103-W528F8A33AD6A34779DB71888340@phx.gbl>
-From: George Adams <g_adams27@hotmail.com>
-To: <dheitmueller@kernellabs.com>
-Date: Thu, 25 Jun 2009 10:59:01 -0400
-In-Reply-To: <829197380906250738x36483ee3sb747019a4d1f23c4@mail.gmail.com>
-References: <36839.62.70.2.252.1245937439.squirrel@webmail.xs4all.nl>
-	<829197380906250700s3f96262bhad95e9a758e88d3f@mail.gmail.com>
-	<COL103-W2753C79E5C866460426A1888340@phx.gbl>
-	<829197380906250738x36483ee3sb747019a4d1f23c4@mail.gmail.com>
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n5NGK8KU007198
+	for <video4linux-list@redhat.com>; Tue, 23 Jun 2009 12:20:08 -0400
+Received: from toq2-srv.bellnexxia.net (toq2.bellnexxia.net [209.226.175.121])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n5NGJk0b018115
+	for <video4linux-list@redhat.com>; Tue, 23 Jun 2009 12:19:47 -0400
+Message-ID: <4A40D3C0.5030205@ctecworld.com>
+Date: Tue, 23 Jun 2009 09:08:16 -0400
+From: j <jlafontaine@ctecworld.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: quoted-printable
-Cc: hverkuil@xs4all.nl, video4linux-list@redhat.com,
-	linux-media@vger.kernel.org
-Subject: RE: [PARTIALLY SOLVED] Can't use my Pinnacle PCTV HD Pro stick -
- what 	am I doing wrong?
+To: Vandana Vuthoo <vandana.vuthoo@gmail.com>
+References: <f4c6f1d68819850dea49ccf9500a180a@localhost.localdomain>
+In-Reply-To: <f4c6f1d68819850dea49ccf9500a180a@localhost.localdomain>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Video4linux-list <video4linux-list@redhat.com>
+Subject: Re: Check out my photos on Facebook
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,52 +25,43 @@ List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
-List-ID: <linux-media.vger.kernel.org>
+List-ID: <video4linux-list@redhat.com>
+
+U should at least create a v4l group discussion on facebook instead of 
+notice us of your vacation photo
+
+Vandana Vuthoo wrote:
+> Hi Video4linux-list,
+>
+> I set up a Facebook profile where I can post my pictures, videos and events and I want to add you as a friend so you can see it. First, you need to join Facebook! Once you join, you can also create your own profile.
+>
+> Thanks,
+> Vandana
+>
+> To sign up for Facebook, follow the link below:
+> http://www.facebook.com/p.php?i=1265299686&k=Z6LT2462U66CUCFDYDZ2YWP&r
+>
+>
+> video4linux-list@redhat.com was invited to join Facebook by Vandana Vuthoo. If you do not wish to receive this type of email from Facebook in the future, please click on the link below to unsubscribe.
+> http://www.facebook.com/o.php?k=5158d6&u=1248657831&mid=aa93e7G4a6d01a7G0G8
+> Facebook's offices are located at 1601 S. California Ave., Palo Alto, CA 94304.
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
+> --
+>  
+> This message has been verified by LastSpam (http://www.lastspam.com) eMail security service, provided by SoluLAN 
+> Ce courriel a ete verifie par le service de securite pour courriels LastSpam (http://www.lastspam.com), fourni par SoluLAN (http://www.solulan.com) 
+> www.solulan.com
+>
+>   
 
 
-Can I ask a much more mundane question?  I'm sure there's a simple answer=
-=2C but all my googling hasn't shown it to me yet.=20
+-- 
 
-
-
-When this card works=2C I use it with Helix Producer to generate video for =
-RealPlayer.  A command like this starts the encoding:
-
-
-
-> LD_PRELOAD=3D/usr/local/lib/libv4l/v4l1compat.so /usr/local/helix/produce=
-r/producer -vc /dev/video0 -vp 0 -ac 0 -ap 'line'
-
-
-
-However=2C Helix Producer is unable to change the channel on the device.=20
-It can only grab whatever the card is currently tuned to.  (This is a
-closed-circuit coax feed within our building=2C broadcasting on analog
-channel 3). =20
-
-
-
-And for the life of me=2C I can't find a program or utility that will let
-me change the analog cable channel my tuner card picks up.  I've seen
-various utilities for scanning and changing digital channels (e.g.
-w_scan)=2C but none that seem to apply to old NTSC channels.  The silly
-workaround that I have to do is sit at the console=2C fire up X=2C launch
-"tvtime"=2C change it to channel 3=2C then quit "tvtime".  Then Helix
-Producer can record off that channel. =20
-
-
-
-Surely there must be some command-line way to change the Pinnacle device to=
- channel 3 before I launch Helix Producer?
-
-
-
-Thanks!
-
-
-_________________________________________________________________
-Windows Live=99: Keep your life in sync.=20
-http://windowslive.com/explore?ocid=3DTXT_TAGLM_WL_BR_life_in_synch_062009=
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
