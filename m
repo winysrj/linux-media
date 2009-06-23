@@ -1,43 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:32921 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761756AbZFRODn (ORCPT
+Received: from mail-in-16.arcor-online.net ([151.189.21.56]:58116 "EHLO
+	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752267AbZFWDB0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 10:03:43 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv8  1/9] v4l2-subdev.h: Add g_modulator callbacks to subdev api
-Date: Thu, 18 Jun 2009 16:55:43 +0300
-Message-Id: <1245333351-28157-2-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1245333351-28157-1-git-send-email-eduardo.valentin@nokia.com>
-References: <1245333351-28157-1-git-send-email-eduardo.valentin@nokia.com>
+	Mon, 22 Jun 2009 23:01:26 -0400
+Subject: Re: Can't use my Pinnacle PCTV HD Pro stick - what am I doing
+	wrong?
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Robert Krakora <rob.krakora@messagenetsystems.com>
+Cc: George Adams <g_adams27@hotmail.com>, video4linux-list@redhat.com,
+	linux-media@vger.kernel.org
+In-Reply-To: <b24e53350906221948id6d70aq75b1dde27715969@mail.gmail.com>
+References: <COL103-W53605D85359D631FC60D0F88380@phx.gbl>
+	 <COL103-W40B198179C2E84587DC71F88380@phx.gbl>
+	 <829197380906211429k7176a93fm49d49851e6d2df1e@mail.gmail.com>
+	 <COL103-W308B321250A646D788B25188390@phx.gbl>
+	 <b24e53350906221940v5e8c34cy676c6b0f02380d10@mail.gmail.com>
+	 <b24e53350906221948id6d70aq75b1dde27715969@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Date: Tue, 23 Jun 2009 04:57:51 +0200
+Message-Id: <1245725871.12341.21.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- linux/include/media/v4l2-subdev.h |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/linux/include/media/v4l2-subdev.h b/linux/include/media/v4l2-subdev.h
-index 5dcb367..4dc3788 100644
---- a/linux/include/media/v4l2-subdev.h
-+++ b/linux/include/media/v4l2-subdev.h
-@@ -137,6 +137,8 @@ struct v4l2_subdev_tuner_ops {
- 	int (*g_frequency)(struct v4l2_subdev *sd, struct v4l2_frequency *freq);
- 	int (*g_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
- 	int (*s_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
-+	int (*g_modulator)(struct v4l2_subdev *sd, struct v4l2_modulator *vm);
-+	int (*s_modulator)(struct v4l2_subdev *sd, struct v4l2_modulator *vm);
- 	int (*s_type_addr)(struct v4l2_subdev *sd, struct tuner_setup *type);
- 	int (*s_config)(struct v4l2_subdev *sd, const struct v4l2_priv_tun_config *config);
- 	int (*s_standby)(struct v4l2_subdev *sd);
--- 
-1.6.2.GIT
+Am Montag, den 22.06.2009, 22:48 -0400 schrieb Robert Krakora:
+> On Mon, Jun 22, 2009 at 10:40 PM, Robert
+> Krakora<rob.krakora@messagenetsystems.com> wrote:
+> > On Mon, Jun 22, 2009 at 5:39 PM, George Adams<g_adams27@hotmail.com> wrote:
+> >>
+> >> Hello again.  I have some updates now that I've been able to make some further tests.
+> >>
+> >> 1) My Pinnacle PCTV HD Pro (800e) stick does, in fact, work correctly under Windows.  The scanning detects the one channel we're running over our closed circuit cable (channel 3) and displays it on-screen just fine.  (audio over channel 3 works as well)
+> >>
+> >>
+> >> 2) Devin, my installation process is "hg clone http://linuxtv.org/hg/v4l-dvb; cd v4l-dvb; make rminstall; make distclean; make; make install"  This appears to install everything v4l-related as modules in the appropriate directories.  For instance:
+> >>
+> >>>  uname -r
+> >> 2.6.24-24-server
+> >>
+> >>> find /lib/modules/`uname -r` -type f -name em28xx\* -o -name tvp\*
+> >> /lib/modules/2.6.24-24-server/kernel/drivers/media/video/tvp5150.ko
+> >> /lib/modules/2.6.24-24-server/kernel/drivers/media/video/em28xx/em28xx.ko
+> >> /lib/modules/2.6.24-24-server/kernel/drivers/media/video/em28xx/em28xx-dvb.ko
+> >>
+> >>
+> >> 3) tvtime still hangs when launched.
+> >>
+> >>
+> >> 4) Running zapping gives the error "VBI Initialization failed.  /dev/vbi0 (Pinnacle PCTV HD Pro) is not a raw vbi device)".  Continuing on and trying to choose the "Preferences" menu option segfaults the program (and this is the Ubuntu-distributed "zapping" package)
+> >>
+> >>
+> >> 5) Running Paul's suggested "mplayer" command gives the following:
+> >>
+> >>> mplayer -vo xv tv:// -tv driver=v4l2:alsa:immediatemode=0:adevice=hw.1,0:norm=ntsc:chanlist=us-cable:channel=3
+> >>
+> >> MPlayer 1.0rc2-4.2.4 (C) 2000-2007 MPlayer Team
+> >> CPU: Intel(R) Core(TM)2 Quad CPU    Q9550  @ 2.83GHz (Family: 6, Model: 23, Stepping: 10)
+> >> CPUflags:  MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1
+> >> Compiled with runtime CPU detection.
+> >> mplayer: could not connect to socket
+> >> mplayer: No such file or directory
+> >> Failed to open LIRC support. You will not be able to use your remote control.
+> >>
+> >> Playing tv://.
+> >> TV file format detected.
+> >> Selected driver: v4l2
+> >>  name: Video 4 Linux 2 input
+> >>  author: Martin Olschewski
+> >>  comment: first try, more to come ;-)
+> >> Selected device: Pinnacle PCTV HD Pro Stick
+> >>  Tuner cap:
+> >>  Tuner rxs:
+> >>  Capabilites:  video capture  tuner  audio  read/write  streaming
+> >>  supported norms: 0 = NTSC; 1 = NTSC-M; 2 = NTSC-M-JP; 3 = NTSC-M-KR; 4 = NTSC-443; 5 = PAL; 6 = PAL-BG; 7 = PAL-H; 8 = PAL-I; 9 = PAL-DK; 10 = PAL-M; 11 = PAL-N; 12 = PAL-Nc; 13 = PAL-60; 14 = SECAM;
+> >>  inputs: 0 = Television; 1 = Composite1; 2 = S-Video;
+> >>  Current input: 0
+> >>  Current format: YUYV
+> >> v4l2: current audio mode is : MONO
+> >> v4l2: ioctl set format failed: Invalid argument
+> >> v4l2: ioctl set format failed: Invalid argument
+> >> v4l2: ioctl set format failed: Invalid argument
+> >> Selected channel: 3 (freq: 61.250)
+> >> Video buffer shorter than 3 times audio frame duration.
+> >> You will probably experience heavy framedrops.
+> >> v4l2: ioctl query control failed: Invalid argument
+> >> v4l2: ioctl query control failed: Invalid argument
+> >> v4l2: ioctl query control failed: Invalid argument
+> >> v4l2: ioctl query control failed: Invalid argument
+> >> xscreensaver_disable: Could not find XScreenSaver window.
+> >> GNOME screensaver disabled
+> >> ==========================================================================
+> >> Opening video decoder: [raw] RAW Uncompressed Video
+> >> VDec: vo config request - 640 x 480 (preferred colorspace: Packed YUY2)
+> >> VDec: using Packed YUY2 as output csp (no 0)
+> >> Movie-Aspect is undefined - no prescaling applied.
+> >> VO: [xv] 640x480 => 640x480 Packed YUY2
+> >> Selected video codec: [rawyuy2] vfm: raw (RAW YUY2)
+> >> ==========================================================================
+> >> ==========================================================================
+> >> Forced audio codec: mad
+> >> Opening audio decoder: [pcm] Uncompressed PCM audio decoder
+> >> AUDIO: 44100 Hz, 1 ch, s16le, 705.6 kbit/100.00% (ratio: 88200->88200)
+> >> Selected audio codec: [pcm] afm: pcm (Uncompressed PCM)
+> >> ==========================================================================
+> >> AO: [pulse] 44100Hz 1ch s16le (2 bytes per sample)
+> >> Starting playback...
+> >> v4l2: select timeout
+> >> A:   0.5 V:   0.0 A-V:  0.472 ct:  0.000   1/  1 ??% ??% ??,?% 1 0 [[JMA:   0.9 V:   0.0 A-V:  0.940 ct:  0.003   2/  2 ??% ??% ??,?% 2 0 [[JMv4l2: select timeout
+> >> A:   1.5 V:   0.0 A-V:  1.479 ct:  0.007   3/  3 ??% ??% ??,?% 3 0 [[JMA:   2.0 V:   0.0 A-V:  1.981 ct:  0.010   4/  4 ??% ??% ??,?% 4 0 [[JMv4l2: select timeout
+> >> A:   2.5 V:   0.0 A-V:  2.485 ct:  0.013   5/  5 ??% ??% ??,?% 5 0 [[JMA:   3.0 V:   0.0 A-V:  2.957 ct:  0.017   6/  6 ??% ??% ??,?% 6 0 [[JMv4l2: select timeout
+> >> A:   3.5 V:   0.0 A-V:  3.460 ct:  0.020   7/  7 ??% ??% ??,?% 7 0 [[JMA:   4.0 V:   0.0 A-V:  3.956 ct:  0.022   8/  8 ??% ??% ??,?% 8 0 [[JMv4l2: select timeout
+> >> A:   4.5 V:   0.0 A-V:  4.460 ct:  0.025   9/  9 ??% ??% ??,?% 9 0 [[JMA:   5.0 V:   0.0 A-V:  4.956 ct:  0.027  10/ 10 ??% ??% ??,?% 10 0 [[JMv4l2: select timeout
+> >>
+> >>
+> >> The Mplayer screen itself remains green the whole time.
+> >>
+> >>
+> >> So the surprise to me is that the Pinnacle device is not actually broken.  By this point, I had been sure it was a hardware problem.  Now I realize that it's something else.  And so I would again appreciate any suggestions you might have.  Thank you once again!
+> >>
+> >> (My installation process, just for reference, distilled down:)
+> >>> cd /usr/local/src
+> >>> hg clone http://linuxtv.org/hg/v4l-dvb
+> >>> cd v4l-dvb
+> >>> make rminstall; make distclean; make; make install
+> >>> cd /tmp
+> >>> wget http://www.steventoth.net/linux/xc5000/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip
+> >>> unzip -j HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip Driver85/hcw85bda.sys
+> >>> perl /usr/local/src/v4l-dvb/linux/Documentation/video4linux/extract_xc3028.pl
+> >>> mv xc3028-v27.fw /lib/firmware/xc3028-v27.fw
+> >>
+> >>
+> >>
+> >>
+> >> _________________________________________________________________
+> >> Hotmail® has ever-growing storage! Don’t worry about storage limits.
+> >> http://windowslive.com/Tutorial/Hotmail/Storage?ocid=TXT_TAGLM_WL_HM_Tutorial_Storage_062009
+> >>
+> >> --
+> >> video4linux-list mailing list
+> >> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> >> https://www.redhat.com/mailman/listinfo/video4linux-list
+> >>
+> >>
+> >
+> > George:
+> >
+> > Hello.  Try playing your audio only channel with this mplayer command line:
+> >
+> > mplayer -vc dummy -vo null tv:// -tv
+> > driver=v4l2:alsa:immediatemode=0:adevice=hw.1,0:norm=ntsc:chanlist=us-cable:channel=3
+> >
+> > Best Regards,
+> >
+> > --
+> > Rob Krakora
+> > Senior Software Engineer
+> > MessageNet Systems
+> > 101 East Carmel Dr. Suite 105
+> > Carmel, IN 46032
+> > (317)566-1677 Ext. 206
+> > (317)663-0808 Fax
+> >
+> 
+> George:
+> 
+> If it is not an audio only channel, then specify the video device:  If
+> your video device may be something other than 'video0' like 'video1'.
+> 
+> mplayer -vo xv tv:// -tv
+> driver=v4l2:device=/dev/video0:alsa:immediatemode=0:adevice=hw.1,0:norm=ntsc:chanlist=us-cable:channel=3
+> 
+> Best Regards,
+> 
+
+Rob,
+
+please take at least care to not further spread and duplicate the
+advertisements for m$ bullshit here.
+
+Cheers,
+Hermann
+
 
