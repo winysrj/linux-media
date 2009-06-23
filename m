@@ -1,98 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4917 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751000AbZFPLCE (ORCPT
+Received: from mail-px0-f174.google.com ([209.85.216.174]:53082 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755351AbZFWPga convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2009 07:02:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: eduardo.valentin@nokia.com
-Subject: Re: [PATCHv7 0/9] FM Transmitter (si4713) and another changes
-Date: Tue, 16 Jun 2009 13:01:51 +0200
-Cc: ext Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-References: <1244827840-886-1-git-send-email-eduardo.valentin@nokia.com> <200906141337.20665.hverkuil@xs4all.nl> <20090616104714.GA16092@esdhcp037198.research.nokia.com>
-In-Reply-To: <20090616104714.GA16092@esdhcp037198.research.nokia.com>
+	Tue, 23 Jun 2009 11:36:30 -0400
+Received: by pxi4 with SMTP id 4so104689pxi.33
+        for <linux-media@vger.kernel.org>; Tue, 23 Jun 2009 08:36:33 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200906161301.51543.hverkuil@xs4all.nl>
+In-Reply-To: <1243024963.14790.1316818399@webmail.messagingengine.com>
+References: <1243024963.14790.1316818399@webmail.messagingengine.com>
+Date: Wed, 24 Jun 2009 01:36:33 +1000
+Message-ID: <b5c455cf0906230836q196f6fb3p81014ae2f1322515@mail.gmail.com>
+Subject: Re: [linux-dvb] Gigabyte GT-P8000 dvb-t / analog / fm radio - pci
+From: c kuruwita <ckuruwita.pub@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 16 June 2009 12:47:14 Eduardo Valentin wrote:
-> Hi Hans,
+Hi
+
+You could try using the "card=" option when loading the kernel module
+and use the cardnumber of a similar supported saa7134 dvb card.
+you can find a complete list of supported card saa713 dvb cards in
+"Documentation/video4linux/CARDLIST.saa7134".
+
+Cheers
+
+Chatura
+
+On Sat, May 23, 2009 at 6:42 AM, <jhmoodie@telkomsa.net> wrote:
+> Does anyone have any information on the support status of this card? Or
+> perhaps any hints I might try to get it working?
 >
-> On Sun, Jun 14, 2009 at 01:37:20PM +0200, ext Hans Verkuil wrote:
-
-<snip>
-
-> > I think the refactoring should be done first. I don't believe it is
-> > that much work and experience shows that it is better to do this right
-> > away while you are still motivated :-)
+> I have built and installed the latest V4L-DVB kernel driver modules, but
+> no luck.
 >
-> hehehe.. Yes, that's what I was expecting :-). No problem. I've started
-> it. I will resend the series once I've completed the re-factoring and I
-> 've made some testing after that. I hope tomorrow or so.
+> I noticed windows installs Philips 3xhybrid drivers if this helps...
 >
-> > The string control support should not go into 2.6.31. I would like to
-> > do that only in the v4l-dvb tree (so it will appear in 2.6.32) since I
-> > want to give that a bit more time to mature. I implemented it very
-> > quickly and I do not feel comfortable queueing this for 2.6.31.
+> Product website:
+> http://www.gigabyte.com.tw/Products/TVCard/Products_Spec.aspx?ClassValue=TV+Card&ProductID=2757&ProductName=GT-P8000
 >
-> Right. Yes, better to test the stuff a bit more.
+> Tuner NXP 18271
+> Decoder NXP 7131E
 >
-> > In addition it is still unclear if Mauro will merge my v4l-dvb-subdev2
-> > tree for 2.6.31. I hope so, since otherwise it will hamper the
-> > development of this and other embedded platforms.
+> lspci -vnn:
+> 00:09.0 Multimedia controller [0480]: Philips Semiconductors
+> SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
+>        Subsystem: Giga-byte Technology Device [1458:9004]
+>        Flags: bus master, medium devsel, latency 32, IRQ 11
+>        Memory at e6000000 (32-bit, non-prefetchable) [size=2K]
+>        Capabilities: [40] Power Management version 2
+>        Kernel driver in use: saa7134
+>        Kernel modules: saa7134
 >
-> Ok.
+> dmesg output:
+> [ 3089.801191] saa7130/34: v4l2 driver version 0.2.15 loaded
+> [ 3089.801419] saa7133[0]: found at 0000:00:09.0, rev: 209, irq: 11,
+> latency: 32, mmio: 0xe6000000
+> [ 3089.801443] saa7133[0]: subsystem: 1458:9004, board: UNKNOWN/GENERIC
+> [card=0,autodetected]
+> [ 3089.801656] saa7133[0]: board init: gpio is 40000
+> [ 3089.952088] saa7133[0]: i2c eeprom 00: 58 14 04 90 54 20 1c 00 43 43
+> a9
+> 1c 55 d2 b2 92
+> [ 3089.952125] saa7133[0]: i2c eeprom 10: ff ff ff ff ff 20 ff ff ff ff
+> ff
+> ff ff ff ff ff
+> [ 3089.952153] saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 01 03 08 ff
+> 00
+> b3 ff ff ff ff
+> [ 3089.952180] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff
+> ff
+> ff ff ff ff ff
+> [ 3089.952206] saa7133[0]: i2c eeprom 40: 50 35 00 c0 96 10 05 32 d5 15
+> 0e
+> 00 ff ff ff ff
+> [ 3089.952233] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff
+> ff
+> ff ff ff ff ff
+> [ 3089.952260] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff
+> ff
+> ff ff ff ff ff
+> [ 3089.952287] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff
+> ff
+> ff ff ff ff ff
+> [ 3089.952314] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff
+> ff
+> ff ff ff ff ff
+> [ 3089.952340] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff
+> ff
+> ff ff ff ff ff
+> [ 3089.952367] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff
+> ff
+> ff ff ff ff ff
+> [ 3089.952394] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff
+> ff
+> ff ff ff ff ff
+> [ 3089.952421] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff
+> ff
+> ff ff ff ff ff
+> [ 3089.952447] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff
+> ff
+> ff ff ff ff ff
+> [ 3089.952474] saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff
+> ff
+> ff ff ff ff ff
+> [ 3089.952501] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff
+> ff
+> ff ff ff ff ff
+> [ 3089.953430] saa7133[0]: registered device video0 [v4l2]
+> [ 3089.953507] saa7133[0]: registered device vbi0
+> [ 3090.023006] saa7134 ALSA driver for DMA sound loaded
+> [ 3090.023158] saa7133[0]/alsa: saa7133[0] at 0xe6000000 irq 11
+> registered
+> as card -2
 >
-> > I also need to add a new V4L2_CAP_MODULATOR (which needs a review as
-> > well).
-> >
-> > And finally I realized that we need to add some v4l2_modulator
-> > capabilities for the RDS encoder similar to the upcoming v4l2_tuner RDS
-> > capabilities as is described in this RFC:
-> >
-> > http://www.mail-archive.com/linux-media%40vger.kernel.org/msg02498.html
-> >
-> > I haven't had time to implement this RFC and I know that is not going
-> > to make 2.6.31. It's now almost at the top of my TODO list, so it
-> > should go in soon (pending unforeseen circumstances).
+> --
 >
-> Ok. I'll take a look at it.
-
-I've worked on this yesterday. You can take a look at my v4l-dvb-rds tree. 
-Both the API and the documentation of it in the v4l2-spec is in there. I 
-started work on updating the few RDS decoders that we have, but that is not 
-yet in that tree.
-
-> > As a result of rereading this RFC I also started to wonder about
-> > whether the si4713 supports the MMBS functionality. Do you know
-> > anything about that?
+>  raincloud@fastmail.fm
 >
-> No. Not that I know. Can you point some link?
-
-http://www.rds.org.uk/rdsfrdsrbds.html
-
-But I've just read here:
-
-http://www.rds.org.uk/rds98/pdf/rdsForum_standards_090414_8.pdf
-
-that MMBS is discontinued. I'll need to investigate this further, but if 
-this is indeed true then this can be removed completely from our RDS 
-decoder and encoder APIs.
-
-Regards,
-
-	Hans
-
-
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+> --
+> http://www.fastmail.fm - Email service worth paying for. Try it for free
+>
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
