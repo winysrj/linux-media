@@ -1,130 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3340 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756265AbZFKJd3 (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:39845 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758116AbZFWNOa convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2009 05:33:29 -0400
-Message-ID: <42113.62.70.2.252.1244712785.squirrel@webmail.xs4all.nl>
-Date: Thu, 11 Jun 2009 11:33:05 +0200 (CEST)
-Subject: Re: mt9t031 (was RE: [PATCH] adding support for setting bus      
-     parameters in sub device)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Hans de Goede" <hdegoede@redhat.com>
-Cc: Jean-Philippe =?iso-8859-1?Q?Fran=E7ois?=
-	<jp.francois@cynove.com>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"Muralidharan Karicheri" <a0868495@dal.design.ti.com>,
-	"Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+	Tue, 23 Jun 2009 09:14:30 -0400
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: Gary Thomas <gary@mlbassoc.com>
+CC: Zach LeRoy <zleroy@rii.ricoh.com>,
+	linux-omap <linux-omap@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Date: Tue, 23 Jun 2009 08:16:13 -0500
+Subject: RE: OMAP34XXCAM: Micron mt9d111 sensor support?
+Message-ID: <A24693684029E5489D1D202277BE89444130773E@dlee02.ent.ti.com>
+References: <25120191.127591245276351735.JavaMail.root@mailx.crc.ricoh.com>
+ <A24693684029E5489D1D202277BE894441165A1C@dlee02.ent.ti.com>
+ <4A3FC80B.9000302@mlbassoc.com>
+In-Reply-To: <4A3FC80B.9000302@mlbassoc.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+> -----Original Message-----
+> From: Gary Thomas [mailto:gary@mlbassoc.com]
+> Sent: Monday, June 22, 2009 1:06 PM
+> To: Aguirre Rodriguez, Sergio Alberto
+> Cc: Zach LeRoy; linux-omap; linux-media@vger.kernel.org; Sakari Ailus
+> Subject: Re: OMAP34XXCAM: Micron mt9d111 sensor support?
+> 
+> Aguirre Rodriguez, Sergio Alberto wrote:
+> >
+> >> -----Original Message-----
+> >> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> >> owner@vger.kernel.org] On Behalf Of Zach LeRoy
+> >> Sent: Wednesday, June 17, 2009 5:06 PM
+> >> To: linux-omap; linux-media@vger.kernel.org
+> >> Subject: OMAP34XXCAM: Micron mt9d111 sensor support?
+> >>
+> >> I am working on adding support for a micron 2 MP sensor: mt9d111 on a
+> >> gumsitx overo.  This is a i2c-controlled sensor.  Ideally, I would like
+> to
+> >> use the omap34xxcam driver to interface with this sensor.  I am
+> wondering
+> >> if there are currently any distributions which already include support
+> for
+> >> this sensor through the omap34xxcam driver, or if anyone else is
+> >> interested in this topic.
+> >>
+> >
+> > Hi Zach,
+> >
+> > I'm working along with Sakari Ailus and others in this omap34xxcam
+> driver you're talking about, and we are in the process to provide a newer
+> patchset to work on the latest l-o tree.
+> >
+> > Sakari is sharing the camera core here:
+> >
+> > http://gitorious.org/omap3camera
+> >
+> > And I have also this repository which contains a snapshot of Sakari's
+> tree + support from some sensors I have available for the 3430SDP and LDP
+> (the name could confuse with the above, but I'll change the name/location
+> soon):
+> >
+> > http://gitorious.org/omap3-linux-camera-driver
+> >
+> > Testing the driver with as much sensors as we can is very interesting
+> (at least for me), because that help us spot possible bugs that aren't
+> seen with our current HW. So, I'll be looking forward if you add this
+> sensor driver to the supported list :)
+> >
+> 
+> I'd like to move forward using this on OMAP/3530 with TVP5150 (S-video in)
+> 
+> Sadly, the tree above (omap3-linux-camera-driver) won't build for the
+> Zoom/LDP:
+>   CC      arch/arm/mach-omap2/board-ldp-camera.o
+> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+> camera.c:59:
+> error: implicit declaration of function 'PAGE_ALIGN'
+> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+> camera.c:59:
+> error: initializer element is not constant
+> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+> camera.c:59:
+> error: (near initialization for 'ov3640_hwc.capture_mem')
+> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-camera.c:
+> In function 'ov3640_sensor_set_prv_data':
+> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+> camera.c:89:
+> error: 'hwc' undeclared (first use in this function)
+> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+> camera.c:89:
+> error: (Each undeclared identifier is reported only once
+> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+> camera.c:89:
+> error: for each function it appears in.)
+> 
+> Looking at the code, it seems that some pieces are missing - merge
+> problem maybe?
 
->
->
-> On 06/11/2009 10:35 AM, Hans Verkuil wrote:
->>> Karicheri, Muralidharan a écrit :
->>>>>> We need
->>>>>> streaming capability in the driver. This is how our driver works
->>>>>> with mt9t031 sensor
->>>>>> 		  raw-bus (10 bit)
->>>>>> vpfe-capture  ----------------- mt9t031 driver
->>>>>> 	  |					   |
->>>>>> 	  V				         V
->>>>>> 	VPFE	 				MT9T031
->>>>>>
->>>>>> VPFE hardware has internal timing and DMA controller to
->>>>>> copy data frame by frame from the sensor output to SDRAM.
->>>>>> The PCLK form the sensor is used to generate the internal
->>>>>> timing.
->>>>> So, what is missing in the driver apart from the ability to specify
->>>>> a frame-rate?
->>>>>
->>>> [MK] Does the mt9t031 output one frame (snapshot) like in a camera or
->>>> can it output frame continuously along with PCLK, Hsync and Vsync
->>>> signals like in a video streaming device. VPFE capture can accept
->>>> frames
->>>> continuously from the sensor synchronized to PCLK, HSYNC and VSYNC and
->>>> output frames to application using QBUF/DQBUF. In our implementation,
->>>> we
->>>> have timing parameters for the sensor to do streaming at various
->>>> resolutions and fps. So application calls S_STD to set these timings.
->>>> I
->>>> am not sure if this is an acceptable way of implementing it. Any
->>>> comments?
->>>>
->>> PCLK, HSYNC, VSYNC are generated by the CMOS sensor. I don't think you
->>> can set the timings. Depending on sensor settings, pixel clock speed
->>> etc
->>> .., the frame rate will vary.
->>>
->>> You could perhaps play with the CMOS sensor registers so that when
->>> settings a standard, the driver somehow set the various exposition
->>> parameter and pll settings to get a specified framerate.
->>>
->>> This will vary with each sensor and each platform (because of
->>> pixelclock). More over, chances are that it will be conflicting with
->>> other control.
->>>
->>> For example if you set a fixed gain and autoexpo, some sensor will see
->>> a drop in fps under low light conditions. I think this kind of
->>> arbitration  should be left to userspace.
->>>
->>> Unless the sensor supports a specific standard, I don't think the
->>> driver
->>> should try to make behind the scene modification to camera sensor
->>> register in response to a S_STD ioctl.
->>
->> The S_STD call is hopelessly inadequate to deal with these types of
->> devices. What is needed is a new call that allows you to set the exact
->> timings you want: frame width/height, back/front porch, h/vsync width,
->> pixelclock. It is my opinion that the use of S_STD should be limited to
->> standard definition type inputs, and not used for other devices like
->> sensors or HD video.
->>
->> Proposals for such a new ioctl are welcome :-)
->>
->
-> Hmm,
->
-> Why would we want the *application* to set things like this *at all* ?
-> with sensors hsync and vsync and other timing are something between
-> the bridge and the sensor, actaully in my experience the correct
-> hsync / vsync timings to program the sensor to are very much bridge
-> specific. So IMHO this should not be exposed to userspace at all.
->
-> All userspace should be able to control is the resolution and the
-> framerate. Although controlling the framerate in many cases also
-> means controlling the maximum exposure time. So in many cases
-> one cannot even control the framerate. (Asking for 30 fps in an
-> artificially illuminated room will get you a very dark, useless
-> picture, with most sensors). Yes this means that with cams with
-> use autoexposure (which is something which we really want where ever
-> possible), the framerate can and will change while streaming.
+Hi Gary,
 
-I think we have three possible use cases here:
+I'm currently on the process to rebase and verify all this code on 3430SDP, Zoom1 and soon Zoom2.
 
-- old-style standard definition video: use S_STD
+Here you can find my progress:
 
-- webcam-like devices: a combination of S_FMT and S_PARM I think? Correct
-me if I'm wrong. S_STD is useless for this, right?
+  http://dev.omapzoom.org/?p=saaguirre/linux-omap-camera.git;a=summary
 
-- video streaming devices like the davinci videoports where you can hook
-up HDTV receivers or FPGAs: here you definitely need a new API to setup
-the streaming parameters, and you want to be able to do that from the
-application as well. Actually, sensors are also hooked up to these devices
-in practice. And there you also want to be able to setup these parameters.
-You will see this mostly (only?) on embedded platforms.
+Check devel branch, which contains all latest Sakari's tree patches (http://gitorious.org/omap3camera) rebased on top of latest Kevin's l-o PM tree, plus the patches, which are still in works, to make the above mentioned platforms to work.
+
+I'm first trying to make 3430SDP work, don't have a Zoom1/Zoom2 handy right now...
+
+My gitorious tree will eventually disappear, as I can work better with this new one.
+
+I'll consolidate some patches when this sensor code is ready, and will CC you if interested.
 
 Regards,
+Sergio
 
-        Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> 
+> --
+> ------------------------------------------------------------
+> Gary Thomas                 |  Consulting for the
+> MLB Associates              |    Embedded world
+> ------------------------------------------------------------
+> 
 
