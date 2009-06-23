@@ -1,33 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f226.google.com ([209.85.217.226]:50472 "EHLO
-	mail-gx0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751680AbZF3CIl convert rfc822-to-8bit (ORCPT
+Received: from mail1.sea5.speakeasy.net ([69.17.117.3]:41410 "EHLO
+	mail1.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756138AbZFWT3H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2009 22:08:41 -0400
-Received: by gxk26 with SMTP id 26so4594425gxk.13
-        for <linux-media@vger.kernel.org>; Mon, 29 Jun 2009 19:08:44 -0700 (PDT)
+	Tue, 23 Jun 2009 15:29:07 -0400
+Date: Tue, 23 Jun 2009 12:29:09 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Matthias Schwarzott <zzam@gentoo.org>
+cc: linux-media@vger.kernel.org, Andy Walls <awalls@radix.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: lsmod path hardcoded in v4l/Makefile
+In-Reply-To: <200906230950.26287.zzam@gentoo.org>
+Message-ID: <Pine.LNX.4.58.0906231214360.6411@shell2.speakeasy.net>
+References: <200906221636.25006.zzam@gentoo.org> <1245710531.3190.7.camel@palomino.walls.org>
+ <200906230950.26287.zzam@gentoo.org>
 MIME-Version: 1.0
-In-Reply-To: <829197380906291759q7ded8117tee12214073d85e67@mail.gmail.com>
-References: <c21478f30906291719r41ba5accu75c5bfd3dcb81276@mail.gmail.com>
-	 <829197380906291759q7ded8117tee12214073d85e67@mail.gmail.com>
-Date: Tue, 30 Jun 2009 12:08:44 +1000
-Message-ID: <c21478f30906291908y2f601577sfc94e7abc378d9e5@mail.gmail.com>
-Subject: Re: XC2028 Tuner - firmware issues
-From: Andrej Falout <andrej@falout.org>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> The dvb-usb framework doesn't have any analog support.  Therefore none
-> of the dib0700 based devices will support analog either (the problem
-> is not specific to your device and has nothing to do with the xc3028
-> firmware).
+On Tue, 23 Jun 2009, Matthias Schwarzott wrote:
+> > On Mon, 2009-06-22 at 16:36 +0200, Matthias Schwarzott wrote:
+> > > It seems the path to lsmod tool is hardcoded in the Makefile for
+> > > out-of-tree building of v4l-dvb.
+> >
+> Shouldn't $PATH of root be considered safe? Else the distro or the system
 
-Thanks for this, Devin. Are there no plans to support analog in
-dvb-usb in the future, or is someone maybe working on this?
+I believe make will set the variable whenever the makefile is used, even
+when building as non-root.
 
-Cheers,
-Andrej Falout
+It turns out that it was just lsmod with no path originally, but Michael
+Krufky changed it back in 2005 (commit b0e7b40744ef) to have a hardcoded
+path.  Then later in commit c91e7f84a1d6 the only use of 'v4l_modules' was
+deleted, so we can just delete this line and not worry about sbin and
+paths.
+
+Mauro,
+
+Please pull from http://linuxtv.org/hg/~tap/fix
+
+for the following changeset:
+
+build: Remove module list cruft
+http://linuxtv.org/hg/~tap/fix?cmd=changeset;node=fb228bb1ad9f
