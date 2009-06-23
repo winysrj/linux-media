@@ -1,19 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-ew0-f225.google.com ([209.85.219.225])
+Received: from claranet-outbound-smtp01.uk.clara.net ([195.8.89.34])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <rigolo@gmail.com>) id 1MBMkj-0000ZF-PI
-	for linux-dvb@linuxtv.org; Tue, 02 Jun 2009 07:41:38 +0200
-Received: by ewy25 with SMTP id 25so5513726ewy.17
-	for <linux-dvb@linuxtv.org>; Mon, 01 Jun 2009 22:41:04 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <205146930906011430me1a1327ka9da449169a4e984@mail.gmail.com>
-References: <205146930906011430me1a1327ka9da449169a4e984@mail.gmail.com>
-Date: Tue, 2 Jun 2009 07:41:04 +0200
-Message-ID: <205146930906012241m2e96458cw66f105e60d299cf3@mail.gmail.com>
-From: Hein Rigolo <rigolo@gmail.com>
+	(envelope-from <news@onastick.clara.co.uk>) id 1MJBlv-0003hR-6I
+	for linux-dvb@linuxtv.org; Tue, 23 Jun 2009 21:35:11 +0200
+Received: from [79.123.74.191] (port=10695 helo=mail.onasticksoftware.net)
+	by relay01.mail.eu.clara.net (relay.clara.net [213.253.3.41]:1025)
+	with esmtp id 1MJBlM-0002kM-5b (Exim 4.69) for linux-dvb@linuxtv.org
+	(return-path <news@onastick.clara.co.uk>);
+	Tue, 23 Jun 2009 20:34:37 +0100
+Received: from onasticksoftware.net (lapdog.onasticksoftware.net [192.168.0.3])
+	by mail.onasticksoftware.net (Postfix) with ESMTP id 4FE222F442A
+	for <linux-dvb@linuxtv.org>; Tue, 23 Jun 2009 20:34:34 +0100 (BST)
+Message-ID: <EOPJI6B23SQKFwSx@onasticksoftware.net>
+Date: Tue, 23 Jun 2009 20:33:10 +0100
 To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary=0016367fa1681280b7046b56fd72
-Subject: [linux-dvb] [PATCH] dvb-apps DVB-C nl-Ziggo initial tuning file
+From: jon bird <news@onastick.clara.co.uk>
+MIME-Version: 1.0
+Subject: [linux-dvb] dvb v4l code break webcam drivers
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -22,149 +25,117 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---0016367fa1681280b7046b56fd72
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+I replaced my stock Linux V4l/dvb drivers with the versions from cvs on 
+linuxtv.org whilst attempting to resolve problems with my Nova-T stick 
+(a red herring as it happens). However what I've discovered since is 
+that they argue quite badly with drivers for the 2 webcams I have (of 
+course the webcam drivers themselves may be at fault here but I thought 
+it worth pointing out....).
 
-I have created an initial scanning file that can be used on all DVB-C
-networks that make up the Ziggo DVB-C cable network in the
-Netherlands. Ziggo is the result of a merger of 3 Cable Companies in
-the Netherlands. Because of that the nl-Casema initial tuning file is
-no longer needed (it was merged into nl-Ziggo)
+Replacing the linux kernel modules (2.6.26) resolves the problem and 
+both these and the DVB side work.
 
-This initial tuning file has the 4 main frequencies that are used
-within the Ziggo DVB-C network for the main transport streams. From
-there you can find all other Transport Streams.
+here's the log from the snapshot I took 2 days ago:
 
-Based on this document:
-http://blob.ziggo.nl/dynamic/NL_HOME/PDF-UPLOAD/Gebruikers-Handleiding-Digi=
-taleTV.pdf
-chapter 4
+Jun 22 17:17:55 fridge kernel: ------------[ cut here ]------------
+Jun 22 17:17:55 fridge kernel: WARNING: at 
+/opt2/data/kernel/v4l-dvb-6c50c4b2ef70/v4l/v4l2-dev.c:434 
+video_register_device_index+0x3a/0x354 [videodev]()
+Jun 22 17:17:55 fridge kernel: Modules linked in: gspca(+) videodev 
+v4l1_compat af_packet nfsd exportfs usbserial ppdev parport_pc lp 
+parport snd_pcm_oss snd_mixer_oss snd_via82xx snd_ac97_codec ac97_bus 
+snd_pcm snd_timer snd_page_alloc snd_mpu401_uart snd_rawmidi 
+snd_seq_device snd soundcore xt_TCPMSS xt_DSCP ipt_MASQUERADE ipt_LOG 
+ipt_REDIRECT xt_state joydev evdev dvb_usb_dib0700 dib7000p dib7000m 
+dvb_usb dvb_core firmware_class dib3000mc dibx000_common dib0070 
+uhci_hcd ohci_hcd ehci_hcd usbcore ipv6 8139too mii ipt_REJECT 
+iptable_mangle iptable_nat nf_nat iptable_filter nf_conntrack_ipv4 
+nf_conntrack ip_tables mt2060 i2c_core sata_via libata dock 8250 
+serial_core
+Jun 22 17:17:55 fridge kernel: Pid: 3853, comm: modprobe Not tainted 
+2.6.26 #9
+Jun 22 17:17:55 fridge kernel:  [warn_on_slowpath+62/91] 
+warn_on_slowpath+0x3e/0x5b
+Jun 22 17:17:55 fridge kernel:  [<c0117690>] warn_on_slowpath+0x3e/0x5b
+Jun 22 17:17:55 fridge kernel:  [__wake_up+15/21] __wake_up+0xf/0x15
+Jun 22 17:17:55 fridge kernel:  [<c0114aa9>] __wake_up+0xf/0x15
+Jun 22 17:17:55 fridge kernel:  [wake_up_klogd+43/45] 
+wake_up_klogd+0x2b/0x2d
+Jun 22 17:17:55 fridge kernel:  [<c0118109>] wake_up_klogd+0x2b/0x2d
+Jun 22 17:17:55 fridge kernel:  [<f8982405>] 
+usb_internal_control_msg+0x54/0x61 [usbcore]
+Jun 22 17:17:55 fridge kernel:  [<f8982490>] usb_control_msg+0x7e/0x8b 
+[usbcore]
+Jun 22 17:17:55 fridge kernel:  [printk+14/17] printk+0xe/0x11
+Jun 22 17:17:55 fridge kernel:  [<c0117cdc>] printk+0xe/0x11
+Jun 22 17:17:55 fridge kernel:  [<f8ca5a6d>] 
+spca5xx_getcapability+0xa2/0xad [gspca]
+Jun 22 17:17:55 fridge kernel:  [<f8c353ae>] 
+video_register_device_index+0x3a/0x354 [videodev]
+Jun 22 17:17:55 fridge kernel:  [<f8c35372>] 
+video_register_device+0x7/0x9 [videodev]
+Jun 22 17:17:55 fridge kernel:  [<f8caa441>] spca5xx_probe+0x1f4/0x287 
+[gspca]
+Jun 22 17:17:55 fridge kernel:  [<f8983b95>] 
+usb_probe_interface+0xb3/0xde [usbcore]
+Jun 22 17:17:55 fridge kernel:  [__driver_attach+0/85] 
+__driver_attach+0x0/0x55
+Jun 22 17:17:55 fridge kernel:  [<c0227384>] __driver_attach+0x0/0x55
+Jun 22 17:17:55 fridge kernel:  [really_probe+112/226] 
+really_probe+0x70/0xe2
+Jun 22 17:17:55 fridge kernel:  [<c022725d>] really_probe+0x70/0xe2
+Jun 22 17:17:55 fridge kernel:  [driver_probe_device+54/62] 
+driver_probe_device+0x36/0x3e
+Jun 22 17:17:55 fridge kernel:  [<c022731a>] 
+driver_probe_device+0x36/0x3e
+Jun 22 17:17:55 fridge kernel:  [__driver_attach+55/85] 
+__driver_attach+0x37/0x55
+Jun 22 17:17:55 fridge kernel:  [<c02273bb>] __driver_attach+0x37/0x55
+Jun 22 17:17:55 fridge kernel:  [bus_for_each_dev+53/89] 
+bus_for_each_dev+0x35/0x59
+Jun 22 17:17:55 fridge kernel:  [<c02267b6>] bus_for_each_dev+0x35/0x59
+Jun 22 17:17:55 fridge kernel:  [driver_attach+17/19] 
+driver_attach+0x11/0x13
+Jun 22 17:17:55 fridge kernel:  [<c02273ea>] driver_attach+0x11/0x13
+Jun 22 17:17:55 fridge kernel:  [__driver_attach+0/85] 
+__driver_attach+0x0/0x55
+Jun 22 17:17:55 fridge kernel:  [<c0227384>] __driver_attach+0x0/0x55
+Jun 22 17:17:55 fridge kernel:  [bus_add_driver+138/306] 
+bus_add_driver+0x8a/0x132
+Jun 22 17:17:55 fridge kernel:  [<c0226cf4>] bus_add_driver+0x8a/0x132
+Jun 22 17:17:55 fridge kernel:  [driver_register+104/136] 
+driver_register+0x68/0x88
+Jun 22 17:17:55 fridge kernel:  [<c0227716>] driver_register+0x68/0x88
+Jun 22 17:17:55 fridge kernel:  [<f898409b>] 
+usb_register_driver+0x52/0x9c [usbcore]
+Jun 22 17:17:55 fridge kernel:  [<f8b37014>] usb_spca5xx_init+0x14/0x31 
+[gspca]
+Jun 22 17:17:55 fridge kernel:  [<c0131660>] sys_init_module+0x84/0x173
+Jun 22 17:17:55 fridge kernel:  [syscall_call+7/11] syscall_call+0x7/0xb
+Jun 22 17:17:55 fridge kernel:  [<c0102a22>] syscall_call+0x7/0xb
+Jun 22 17:17:55 fridge kernel:  =======================
+Jun 22 17:17:55 fridge kernel: ---[ end trace be190c3dbfd1c67f ]---
 
-Because Ziggo is making use of NIT Others to specify the actual
-Frequencies of the other transport streams you really need to to use
-the -n option of the scan utility in dvb-apps.
 
-Based on the resulting channels.conf I have also constructed a more
-detailed initial tuning file for my specific DVB-C network (Region
-Zwolle). Here you do not need to use the -n option of scan.
+this happens with the spca5xx webcam driver and the old Logitech 
+quickcam express driver.
 
-diff -r 9655c8cfeed8 util/scan/dvb-c/nl-Casema
---- a/util/scan/dvb-c/nl-Casema=A0=A0=A0 Tue May 19 14:48:06 2009 +0200
-+++ /dev/null=A0=A0=A0 Thu Jan 01 00:00:00 1970 +0000
-@@ -1,3 +0,0 @@
--# Casema Netherlands
--# freq sr fec mod
--C 372000000 6875000 NONE QAM64
-diff -r 9655c8cfeed8 util/scan/dvb-c/nl-Ziggo
---- /dev/null=A0=A0=A0 Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-c/nl-Ziggo=A0=A0=A0 Sun May 31 21:04:48 2009 +0200
-@@ -0,0 +1,14 @@
-+# Initial Tuning file for nl-Ziggo
-+# This file only lists the main
-+# frequencies. You still need to do
-+# a network scan to find other
-+# transponders.
-+#
-+# based on:
-+# http://blob.ziggo.nl/dynamic/NL_HOME/PDF-UPLOAD/Gebruikers-Handleiding-D=
-igitaleTV.pdf
-+# Chapter 4
-+#
-+C 372000000 6875000 NONE QAM64 # Main Frequency Ziggo/Casema
-+C 514000000 6875000 NONE QAM64 # Main Frequency Ziggo/Multikabel
-+C 356000000 6875000 NONE QAM64 # Main Frequency Ziggo/@Home Zuid
-+C 369000000 6875000 NONE QAM64 # Main Frequency Ziggo/@Home Noord
-diff -r 9655c8cfeed8 util/scan/dvb-c/nl-Ziggo-Zwolle
---- /dev/null=A0=A0=A0 Thu Jan 01 00:00:00 1970 +0000
-+++ b/util/scan/dvb-c/nl-Ziggo-Zwolle=A0=A0=A0 Sun May 31 21:04:48 2009 +02=
-00
-@@ -0,0 +1,26 @@
-+C 313000000 6875000 NONE QAM64 # TS=A0=A0 1
-+C 361000000 6875000 NONE QAM64 # TS=A0=A0 2
-+C 353000000 6875000 NONE QAM64 # TS=A0=A0 3
-+C 345000000 6875000 NONE QAM64 # TS=A0=A0 4
-+C 818000000 6875000 NONE QAM64 # TS=A0=A0 5
-+C 329000000 6875000 NONE QAM64 # TS=A0=A0 6
-+C 810000000 6875000 NONE QAM64 # TS=A0=A0 7
-+C 305000000 6875000 NONE QAM64 # TS=A0=A0 8
-+C 762000000 6875000 NONE QAM64 # TS=A0=A0 9
-+C 618000000 6875000 NONE QAM64 # TS=A0 10
-+C 610000000 6875000 NONE QAM64 # TS=A0 11
-+C 337000000 6875000 NONE QAM64 # TS=A0 12
-+C 321000000 6875000 NONE QAM64 # TS=A0 13
-+C 385000000 6875000 NONE QAM64 # TS=A0 14
-+C 393000000 6875000 NONE QAM64 # TS=A0 15
-+C 401000000 6875000 NONE QAM64 # TS=A0 16
-+C 369000000 6875000 NONE QAM64 # TS=A0 18 (main TS)
-+C 297000000 6875000 NONE QAM64 # TS=A0 19
-+C 377000000 6875000 NONE QAM64 # TS=A0 22
-+C 754000000 6875000 NONE QAM64 # TS=A0 23
-+C 642000000 6875000 NONE QAM64 # TS=A0 24
-+C 650000000 6875000 NONE QAM64 # TS=A0 25
-+C 794000000 6875000 NONE QAM64 # TS=A0 26
-+C 409000000 6875000 NONE QAM64 # TS=A0 27
-+C 425000000 6875000 NONE QAM64 # TS 206
-+C 417000000 6875000 NONE QAM64 # TS 207
 
---0016367fa1681280b7046b56fd72
-Content-Type: text/x-patch; charset=US-ASCII; name="nl-Ziggo-2009-05-31.patch"
-Content-Disposition: attachment; filename="nl-Ziggo-2009-05-31.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fve4jvbk0
+-- 
+== jon bird - software engineer
+== <reply to address _may_ be invalid, real mail below>
+== <reduce rsi, stop using the shift key>
+== posted as: news 'at' onastick 'dot' clara.co.uk
 
-ZGlmZiAtciA5NjU1YzhjZmVlZDggdXRpbC9zY2FuL2R2Yi1jL25sLUNhc2VtYQotLS0gYS91dGls
-L3NjYW4vZHZiLWMvbmwtQ2FzZW1hCVR1ZSBNYXkgMTkgMTQ6NDg6MDYgMjAwOSArMDIwMAorKysg
-L2Rldi9udWxsCVRodSBKYW4gMDEgMDA6MDA6MDAgMTk3MCArMDAwMApAQCAtMSwzICswLDAgQEAK
-LSMgQ2FzZW1hIE5ldGhlcmxhbmRzCi0jIGZyZXEgc3IgZmVjIG1vZAotQyAzNzIwMDAwMDAgNjg3
-NTAwMCBOT05FIFFBTTY0CmRpZmYgLXIgOTY1NWM4Y2ZlZWQ4IHV0aWwvc2Nhbi9kdmItYy9ubC1a
-aWdnbwotLS0gL2Rldi9udWxsCVRodSBKYW4gMDEgMDA6MDA6MDAgMTk3MCArMDAwMAorKysgYi91
-dGlsL3NjYW4vZHZiLWMvbmwtWmlnZ28JU3VuIE1heSAzMSAyMTowNDo0OCAyMDA5ICswMjAwCkBA
-IC0wLDAgKzEsMTQgQEAKKyMgSW5pdGlhbCBUdW5pbmcgZmlsZSBmb3IgbmwtWmlnZ28KKyMgVGhp
-cyBmaWxlIG9ubHkgbGlzdHMgdGhlIG1haW4KKyMgZnJlcXVlbmNpZXMuIFlvdSBzdGlsbCBuZWVk
-IHRvIGRvCisjIGEgbmV0d29yayBzY2FuIHRvIGZpbmQgb3RoZXIKKyMgdHJhbnNwb25kZXJzLgor
-IworIyBiYXNlZCBvbjoKKyMgaHR0cDovL2Jsb2IuemlnZ28ubmwvZHluYW1pYy9OTF9IT01FL1BE
-Ri1VUExPQUQvR2VicnVpa2Vycy1IYW5kbGVpZGluZy1EaWdpdGFsZVRWLnBkZgorIyBDaGFwdGVy
-IDQKKyMKK0MgMzcyMDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NCAjIE1haW4gRnJlcXVlbmN5IFpp
-Z2dvL0Nhc2VtYQorQyA1MTQwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0ICMgTWFpbiBGcmVxdWVu
-Y3kgWmlnZ28vTXVsdGlrYWJlbAorQyAzNTYwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0ICMgTWFp
-biBGcmVxdWVuY3kgWmlnZ28vQEhvbWUgWnVpZAorQyAzNjkwMDAwMDAgNjg3NTAwMCBOT05FIFFB
-TTY0ICMgTWFpbiBGcmVxdWVuY3kgWmlnZ28vQEhvbWUgTm9vcmQKZGlmZiAtciA5NjU1YzhjZmVl
-ZDggdXRpbC9zY2FuL2R2Yi1jL25sLVppZ2dvLVp3b2xsZQotLS0gL2Rldi9udWxsCVRodSBKYW4g
-MDEgMDA6MDA6MDAgMTk3MCArMDAwMAorKysgYi91dGlsL3NjYW4vZHZiLWMvbmwtWmlnZ28tWndv
-bGxlCVN1biBNYXkgMzEgMjE6MDQ6NDggMjAwOSArMDIwMApAQCAtMCwwICsxLDI2IEBACitDIDMx
-MzAwMDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQgIyBUUyAgIDEKK0MgMzYxMDAwMDAwIDY4NzUwMDAg
-Tk9ORSBRQU02NCAjIFRTICAgMgorQyAzNTMwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0ICMgVFMg
-ICAzCitDIDM0NTAwMDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQgIyBUUyAgIDQKK0MgODE4MDAwMDAw
-IDY4NzUwMDAgTk9ORSBRQU02NCAjIFRTICAgNQorQyAzMjkwMDAwMDAgNjg3NTAwMCBOT05FIFFB
-TTY0ICMgVFMgICA2CitDIDgxMDAwMDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQgIyBUUyAgIDcKK0Mg
-MzA1MDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NCAjIFRTICAgOAorQyA3NjIwMDAwMDAgNjg3NTAw
-MCBOT05FIFFBTTY0ICMgVFMgICA5CitDIDYxODAwMDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQgIyBU
-UyAgMTAKK0MgNjEwMDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NCAjIFRTICAxMQorQyAzMzcwMDAw
-MDAgNjg3NTAwMCBOT05FIFFBTTY0ICMgVFMgIDEyCitDIDMyMTAwMDAwMCA2ODc1MDAwIE5PTkUg
-UUFNNjQgIyBUUyAgMTMKK0MgMzg1MDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NCAjIFRTICAxNAor
-QyAzOTMwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0ICMgVFMgIDE1CitDIDQwMTAwMDAwMCA2ODc1
-MDAwIE5PTkUgUUFNNjQgIyBUUyAgMTYKK0MgMzY5MDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NCAj
-IFRTICAxOCAobWFpbiBUUykKK0MgMjk3MDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02NCAjIFRTICAx
-OQorQyAzNzcwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0ICMgVFMgIDIyCitDIDc1NDAwMDAwMCA2
-ODc1MDAwIE5PTkUgUUFNNjQgIyBUUyAgMjMKK0MgNjQyMDAwMDAwIDY4NzUwMDAgTk9ORSBRQU02
-NCAjIFRTICAyNAorQyA2NTAwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0ICMgVFMgIDI1CitDIDc5
-NDAwMDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQgIyBUUyAgMjYKK0MgNDA5MDAwMDAwIDY4NzUwMDAg
-Tk9ORSBRQU02NCAjIFRTICAyNworQyA0MjUwMDAwMDAgNjg3NTAwMCBOT05FIFFBTTY0ICMgVFMg
-MjA2CitDIDQxNzAwMDAwMCA2ODc1MDAwIE5PTkUgUUFNNjQgIyBUUyAyMDcK
---0016367fa1681280b7046b56fd72
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---0016367fa1681280b7046b56fd72--
