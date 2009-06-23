@@ -1,57 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout03.t-online.de ([194.25.134.81]:46569 "EHLO
-	mailout03.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751738AbZFQTzw (ORCPT
+Received: from yw-out-2324.google.com ([74.125.46.28]:49611 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752778AbZFWCkL convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 15:55:52 -0400
-Date: Wed, 17 Jun 2009 21:38:17 +0200
-From: Halim Sahin <halim.sahin@t-online.de>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: bttv problem loading takes about several minutes
-Message-ID: <20090617193817.GA12345@halim.local>
-References: <20090617162400.GA11690@halim.local> <Pine.LNX.4.58.0906171001510.32713@shell2.speakeasy.net>
+	Mon, 22 Jun 2009 22:40:11 -0400
+Received: by yw-out-2324.google.com with SMTP id 2so2587624ywt.35
+        for <linux-media@vger.kernel.org>; Mon, 22 Jun 2009 19:40:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.58.0906171001510.32713@shell2.speakeasy.net>
+In-Reply-To: <COL103-W308B321250A646D788B25188390@phx.gbl>
+References: <COL103-W53605D85359D631FC60D0F88380@phx.gbl>
+	 <COL103-W40B198179C2E84587DC71F88380@phx.gbl>
+	 <829197380906211429k7176a93fm49d49851e6d2df1e@mail.gmail.com>
+	 <COL103-W308B321250A646D788B25188390@phx.gbl>
+Date: Mon, 22 Jun 2009 22:40:13 -0400
+Message-ID: <b24e53350906221940v5e8c34cy676c6b0f02380d10@mail.gmail.com>
+Subject: Re: Can't use my Pinnacle PCTV HD Pro stick - what am I doing wrong?
+From: Robert Krakora <rob.krakora@messagenetsystems.com>
+To: George Adams <g_adams27@hotmail.com>
+Cc: dheitmueller@kernellabs.com, video4linux-list@redhat.com,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-The card is a
-winfast tv 2000 xp rm edition
-lspci -vvv says:
+On Mon, Jun 22, 2009 at 5:39 PM, George Adams<g_adams27@hotmail.com> wrote:
+>
+> Hello again.  I have some updates now that I've been able to make some further tests.
+>
+> 1) My Pinnacle PCTV HD Pro (800e) stick does, in fact, work correctly under Windows.  The scanning detects the one channel we're running over our closed circuit cable (channel 3) and displays it on-screen just fine.  (audio over channel 3 works as well)
+>
+>
+> 2) Devin, my installation process is "hg clone http://linuxtv.org/hg/v4l-dvb; cd v4l-dvb; make rminstall; make distclean; make; make install"  This appears to install everything v4l-related as modules in the appropriate directories.  For instance:
+>
+>>  uname -r
+> 2.6.24-24-server
+>
+>> find /lib/modules/`uname -r` -type f -name em28xx\* -o -name tvp\*
+> /lib/modules/2.6.24-24-server/kernel/drivers/media/video/tvp5150.ko
+> /lib/modules/2.6.24-24-server/kernel/drivers/media/video/em28xx/em28xx.ko
+> /lib/modules/2.6.24-24-server/kernel/drivers/media/video/em28xx/em28xx-dvb.ko
+>
+>
+> 3) tvtime still hangs when launched.
+>
+>
+> 4) Running zapping gives the error "VBI Initialization failed.  /dev/vbi0 (Pinnacle PCTV HD Pro) is not a raw vbi device)".  Continuing on and trying to choose the "Preferences" menu option segfaults the program (and this is the Ubuntu-distributed "zapping" package)
+>
+>
+> 5) Running Paul's suggested "mplayer" command gives the following:
+>
+>> mplayer -vo xv tv:// -tv driver=v4l2:alsa:immediatemode=0:adevice=hw.1,0:norm=ntsc:chanlist=us-cable:channel=3
+>
+> MPlayer 1.0rc2-4.2.4 (C) 2000-2007 MPlayer Team
+> CPU: Intel(R) Core(TM)2 Quad CPU    Q9550  @ 2.83GHz (Family: 6, Model: 23, Stepping: 10)
+> CPUflags:  MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1
+> Compiled with runtime CPU detection.
+> mplayer: could not connect to socket
+> mplayer: No such file or directory
+> Failed to open LIRC support. You will not be able to use your remote control.
+>
+> Playing tv://.
+> TV file format detected.
+> Selected driver: v4l2
+>  name: Video 4 Linux 2 input
+>  author: Martin Olschewski
+>  comment: first try, more to come ;-)
+> Selected device: Pinnacle PCTV HD Pro Stick
+>  Tuner cap:
+>  Tuner rxs:
+>  Capabilites:  video capture  tuner  audio  read/write  streaming
+>  supported norms: 0 = NTSC; 1 = NTSC-M; 2 = NTSC-M-JP; 3 = NTSC-M-KR; 4 = NTSC-443; 5 = PAL; 6 = PAL-BG; 7 = PAL-H; 8 = PAL-I; 9 = PAL-DK; 10 = PAL-M; 11 = PAL-N; 12 = PAL-Nc; 13 = PAL-60; 14 = SECAM;
+>  inputs: 0 = Television; 1 = Composite1; 2 = S-Video;
+>  Current input: 0
+>  Current format: YUYV
+> v4l2: current audio mode is : MONO
+> v4l2: ioctl set format failed: Invalid argument
+> v4l2: ioctl set format failed: Invalid argument
+> v4l2: ioctl set format failed: Invalid argument
+> Selected channel: 3 (freq: 61.250)
+> Video buffer shorter than 3 times audio frame duration.
+> You will probably experience heavy framedrops.
+> v4l2: ioctl query control failed: Invalid argument
+> v4l2: ioctl query control failed: Invalid argument
+> v4l2: ioctl query control failed: Invalid argument
+> v4l2: ioctl query control failed: Invalid argument
+> xscreensaver_disable: Could not find XScreenSaver window.
+> GNOME screensaver disabled
+> ==========================================================================
+> Opening video decoder: [raw] RAW Uncompressed Video
+> VDec: vo config request - 640 x 480 (preferred colorspace: Packed YUY2)
+> VDec: using Packed YUY2 as output csp (no 0)
+> Movie-Aspect is undefined - no prescaling applied.
+> VO: [xv] 640x480 => 640x480 Packed YUY2
+> Selected video codec: [rawyuy2] vfm: raw (RAW YUY2)
+> ==========================================================================
+> ==========================================================================
+> Forced audio codec: mad
+> Opening audio decoder: [pcm] Uncompressed PCM audio decoder
+> AUDIO: 44100 Hz, 1 ch, s16le, 705.6 kbit/100.00% (ratio: 88200->88200)
+> Selected audio codec: [pcm] afm: pcm (Uncompressed PCM)
+> ==========================================================================
+> AO: [pulse] 44100Hz 1ch s16le (2 bytes per sample)
+> Starting playback...
+> v4l2: select timeout
+> A:   0.5 V:   0.0 A-V:  0.472 ct:  0.000   1/  1 ??% ??% ??,?% 1 0 [[JMA:   0.9 V:   0.0 A-V:  0.940 ct:  0.003   2/  2 ??% ??% ??,?% 2 0 [[JMv4l2: select timeout
+> A:   1.5 V:   0.0 A-V:  1.479 ct:  0.007   3/  3 ??% ??% ??,?% 3 0 [[JMA:   2.0 V:   0.0 A-V:  1.981 ct:  0.010   4/  4 ??% ??% ??,?% 4 0 [[JMv4l2: select timeout
+> A:   2.5 V:   0.0 A-V:  2.485 ct:  0.013   5/  5 ??% ??% ??,?% 5 0 [[JMA:   3.0 V:   0.0 A-V:  2.957 ct:  0.017   6/  6 ??% ??% ??,?% 6 0 [[JMv4l2: select timeout
+> A:   3.5 V:   0.0 A-V:  3.460 ct:  0.020   7/  7 ??% ??% ??,?% 7 0 [[JMA:   4.0 V:   0.0 A-V:  3.956 ct:  0.022   8/  8 ??% ??% ??,?% 8 0 [[JMv4l2: select timeout
+> A:   4.5 V:   0.0 A-V:  4.460 ct:  0.025   9/  9 ??% ??% ??,?% 9 0 [[JMA:   5.0 V:   0.0 A-V:  4.956 ct:  0.027  10/ 10 ??% ??% ??,?% 10 0 [[JMv4l2: select timeout
+>
+>
+> The Mplayer screen itself remains green the whole time.
+>
+>
+> So the surprise to me is that the Pinnacle device is not actually broken.  By this point, I had been sure it was a hardware problem.  Now I realize that it's something else.  And so I would again appreciate any suggestions you might have.  Thank you once again!
+>
+> (My installation process, just for reference, distilled down:)
+>> cd /usr/local/src
+>> hg clone http://linuxtv.org/hg/v4l-dvb
+>> cd v4l-dvb
+>> make rminstall; make distclean; make; make install
+>> cd /tmp
+>> wget http://www.steventoth.net/linux/xc5000/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip
+>> unzip -j HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip Driver85/hcw85bda.sys
+>> perl /usr/local/src/v4l-dvb/linux/Documentation/video4linux/extract_xc3028.pl
+>> mv xc3028-v27.fw /lib/firmware/xc3028-v27.fw
+>
+>
+>
+>
+> _________________________________________________________________
+> Hotmail® has ever-growing storage! Don’t worry about storage limits.
+> http://windowslive.com/Tutorial/Hotmail/Storage?ocid=TXT_TAGLM_WL_HM_Tutorial_Storage_062009
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
+>
 
-00:0b.0 Multimedia video controller: Brooktree Corporation Bt878 Video Capture (rev 11)
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
-	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
-	Latency: 32 (4000ns min, 10000ns max)
-	Interrupt: pin A routed to IRQ 19
-	Region 0: Memory at f7800000 (32-bit, prefetchable) [size=4K]
-	Capabilities: [44] Vital Product Data <?>
-	Capabilities: [4c] Power Management version 2
-		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-	Kernel driver in use: bttv
-	Kernel modules: bttv
+George:
 
-00:0b.1 Multimedia controller: Brooktree Corporation Bt878 Audio Capture (rev 11)
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
-	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
-	Latency: 32 (1000ns min, 63750ns max)
-	Interrupt: pin A routed to IRQ 5
-	Region 0: Memory at f7000000 (32-bit, prefetchable) [size=4K]
-	Capabilities: [44] Vital Product Data <?>
-	Capabilities: [4c] Power Management version 2
-		Flags: PMEClk- DSI+ D1- D2- AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot-,D3cold-)
-		Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+Hello.  Try playing your audio only channel with this mplayer command line:
 
+mplayer -vc dummy -vo null tv:// -tv
+driver=v4l2:alsa:immediatemode=0:adevice=hw.1,0:norm=ntsc:chanlist=us-cable:channel=3
 
-HTH.
-Halim
+Best Regards,
 
 -- 
-Halim Sahin
-E-Mail:				
-halim.sahin (at) t-online.de
+Rob Krakora
+Senior Software Engineer
+MessageNet Systems
+101 East Carmel Dr. Suite 105
+Carmel, IN 46032
+(317)566-1677 Ext. 206
+(317)663-0808 Fax
