@@ -1,103 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-cloud1.xs4all.nl ([194.109.24.61]:7073 "EHLO
-	smtp-cloud1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752550AbZFTSPN (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:35303 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753340AbZFWNfF convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Jun 2009 14:15:13 -0400
-Date: Sat, 20 Jun 2009 20:15:15 +0200
-Message-ID: <75.6C.11686.3372D3A4@smtp-cloud1.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+	Tue, 23 Jun 2009 09:35:05 -0400
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
+	Gary Thomas <gary@mlbassoc.com>
+CC: Zach LeRoy <zleroy@rii.ricoh.com>,
+	linux-omap <linux-omap@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Date: Tue, 23 Jun 2009 08:36:37 -0500
+Subject: RE: OMAP34XXCAM: Micron mt9d111 sensor support?
+Message-ID: <A24693684029E5489D1D202277BE894441307788@dlee02.ent.ti.com>
+References: <25120191.127591245276351735.JavaMail.root@mailx.crc.ricoh.com>
+ <A24693684029E5489D1D202277BE894441165A1C@dlee02.ent.ti.com>
+ <4A3FC80B.9000302@mlbassoc.com>
+ <A24693684029E5489D1D202277BE89444130773E@dlee02.ent.ti.com>
+ <4A40D736.9050701@mlbassoc.com>
+ <A24693684029E5489D1D202277BE89444130777E@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE89444130777E@dlee02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio Alberto
+> From: Gary Thomas [mailto:gary@mlbassoc.com]
+> > Aguirre Rodriguez, Sergio Alberto wrote:
+> > > From: Gary Thomas [mailto:gary@mlbassoc.com]
+> > >> Aguirre Rodriguez, Sergio Alberto wrote:
+> > >>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> > >>> owner@vger.kernel.org] On Behalf Of Zach LeRoy
+> > >>>> I am working on adding support for a micron 2 MP sensor: mt9d111 on
+> a
+> > >>>> gumsitx overo.  This is a i2c-controlled sensor.  Ideally, I would
+> > like
+> > >> to
+> > >>>> use the omap34xxcam driver to interface with this sensor.  I am
+> > >> wondering
+> > >>>> if there are currently any distributions which already include
+> > support
+> > >> for
+> > >>>> this sensor through the omap34xxcam driver, or if anyone else is
+> > >>>> interested in this topic.
+> > >>>>
+> > >>> Hi Zach,
+> > >>>
+> > >>> I'm working along with Sakari Ailus and others in this omap34xxcam
+> > >> driver you're talking about, and we are in the process to provide a
+> > newer
+> > >> patchset to work on the latest l-o tree.
+> > >>> Sakari is sharing the camera core here:
+> > >>>
+> > >>> http://gitorious.org/omap3camera
+> > >>>
+> > >>> And I have also this repository which contains a snapshot of
+> Sakari's
+> > >> tree + support from some sensors I have available for the 3430SDP and
+> > LDP
+> > >> (the name could confuse with the above, but I'll change the
+> > name/location
+> > >> soon):
+> > >>> http://gitorious.org/omap3-linux-camera-driver
+> > >>>
+> > >>> Testing the driver with as much sensors as we can is very
+> interesting
+> > >> (at least for me), because that help us spot possible bugs that
+> aren't
+> > >> seen with our current HW. So, I'll be looking forward if you add this
+> > >> sensor driver to the supported list :)
+> > >> I'd like to move forward using this on OMAP/3530 with TVP5150 (S-
+> video
+> > in)
+> > >>
+> > >> Sadly, the tree above (omap3-linux-camera-driver) won't build for the
+> > >> Zoom/LDP:
+> > >>   CC      arch/arm/mach-omap2/board-ldp-camera.o
+> > >> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+> > >> camera.c:59:
+> > >> error: implicit declaration of function 'PAGE_ALIGN'
+> > >> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+> > >> camera.c:59:
+> > >> error: initializer element is not constant
+> > >> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+> > >> camera.c:59:
+> > >> error: (near initialization for 'ov3640_hwc.capture_mem')
+> > >> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+> > camera.c:
+> > >> In function 'ov3640_sensor_set_prv_data':
+> > >> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+> > >> camera.c:89:
+> > >> error: 'hwc' undeclared (first use in this function)
+> > >> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+> > >> camera.c:89:
+> > >> error: (Each undeclared identifier is reported only once
+> > >> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+> > >> camera.c:89:
+> > >> error: for each function it appears in.)
+> > >>
+> > >> Looking at the code, it seems that some pieces are missing - merge
+> > >> problem maybe?
+> > >
+> > > Hi Gary,
+> > >
+> > > I'm currently on the process to rebase and verify all this code on
+> > 3430SDP, Zoom1 and soon Zoom2.
+> > >
+> > > Here you can find my progress:
+> > >
+> > >   http://dev.omapzoom.org/?p=saaguirre/linux-omap-camera.git;a=summary
+> > >
+> > > Check devel branch, which contains all latest Sakari's tree patches
+> > (http://gitorious.org/omap3camera) rebased on top of latest Kevin's l-o
+> PM
+> > tree, plus the patches, which are still in works, to make the above
+> > mentioned platforms to work.
+> > >
+> > > I'm first trying to make 3430SDP work, don't have a Zoom1/Zoom2 handy
+> > right now...
+> > >
+> > > My gitorious tree will eventually disappear, as I can work better with
+> > this new one.
+> > >
+> > > I'll consolidate some patches when this sensor code is ready, and will
+> > CC you if interested.
+> > >
+> >
+> > Thanks.  I've already checked out this tree and at least
+> > it builds for the Zoom (I have one here).  Is this in a
+> > state where I can test it for you?  What do you use to
+> > capture video from the sensor?
+> 
+> I normally use a small test binary I wrote which saves the captured frames
+> to memory, so later I can see them with either IrfanView (when capturing
+> RAW images) or PYUV for seeing the YUV422 images.
+> 
+> You should be able to use any standard V4l2 capturing application anyways.
+> 
 
-Results of the daily build of v4l-dvb:
+Btw, any contribution would be completely welcome. Either on Testing or on development. :)
 
-date:        Sat Jun 20 19:00:05 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12093:2899ad868fc6
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Thanks for your interest in helping.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-x86_64: WARNINGS
-sparse (linux-2.6.30): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L2 specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+> Regards,
+> Sergio
+> 
+> >
+> >
+> > --
+> > ------------------------------------------------------------
+> > Gary Thomas                 |  Consulting for the
+> > MLB Associates              |    Embedded world
+> > ------------------------------------------------------------
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
