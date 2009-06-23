@@ -1,55 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58160 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754135AbZFOQY5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Jun 2009 12:24:57 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Date: Mon, 15 Jun 2009 11:24:53 -0500
-Subject: RE: Did I miss any other patches or RFCs that need to be reviewed?
-Message-ID: <A69FA2915331DC488A831521EAE36FE40139DF92E4@dlee06.ent.ti.com>
-References: <200906141636.39198.hverkuil@xs4all.nl>
-In-Reply-To: <200906141636.39198.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mail-out.m-online.net ([212.18.0.9]:49482 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751495AbZFWIYQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Jun 2009 04:24:16 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org
+Subject: Re: lsmod path hardcoded in v4l/Makefile
+Date: Tue, 23 Jun 2009 10:24:13 +0200
+Cc: Theodore Kilgore <kilgota@banach.math.auburn.edu>,
+	Andy Walls <awalls@radix.net>
+References: <200906221636.25006.zzam@gentoo.org> <1245710531.3190.7.camel@palomino.walls.org> <alpine.LNX.2.00.0906221833160.24027@banach.math.auburn.edu>
+In-Reply-To: <alpine.LNX.2.00.0906221833160.24027@banach.math.auburn.edu>
 MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906231024.14033.zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGFucywNCg0KVGhhbmtzIGZvciB5b3VyIHJldmlldy4gSSB3aWxsIGdldCBiYWNrIHRvIHlvdSBp
-ZiBJIG5lZWQgbW9yZQ0KaW5mb3JtYXRpb24gb24geW91ciBjb21tZW50cy4NCg0KWW91IGhhdmUg
-cmV2aWV3ZWQgdGhlIGZvbGxvd2luZyBwYXRjaGVzIGluIHRoaXMgc2VyaWVzLi4uDQoxLDcsOCwx
-MA0KDQpGb2xsb3dpbmcgYXJlIHBhcnQgb2YgdGhpcyBzZXJpZXMgd2hpY2ggcmVxdWlyZXMgcmV2
-aWV3IGFzIHdlbGwuDQoNCltQQVRDSCAyLzEwIC0gdjJdIGNjZGMgaHcgZGV2aWNlIGhlYWRlciBm
-aWxlIGZvciB2cGZlIGNhcHR1cmUNCltQQVRDSCAzLzEwIC0gdjJdIGRtMzU1IGNjZGMgbW9kdWxl
-IGZvciB2cGZlIGNhcHR1cmUgZHJpdmVyDQpbUEFUQ0ggNC8xMCAtIHYyXSBkbTY0NHggY2NkYyBt
-b2R1bGUgZm9yIHZwZmUgY2FwdHVyZSBkcml2ZXINCltQQVRDSCA1LzEwIC0gdjJdIGNjZGMgdHlw
-ZXMgdXNlZCBhY3Jvc3MgY2NkYyBtb2R1bGVzIGZvciB2cGZlIGNhcHR1cmUgZHJpdmVyDQoNCihu
-b3QgbXVjaCB0byByZXZpZXcgaW4gdGhlIGJlbG93IHBhdGNoICkNCg0KUEFUQ0ggNi8xMCAtIHYy
-XSBNYWtlZmlsZSBhbmQgY29uZmlnIGZpbGVzIGZvciB2cGZlIGNhcHR1cmUgZHJpdmVyIA0KDQpy
-ZWdhcmRzLA0KDQpNdXJhbGkgS2FyaWNoZXJpDQpTb2Z0d2FyZSBEZXNpZ24gRW5naW5lZXINClRl
-eGFzIEluc3RydW1lbnRzIEluYy4NCkdlcm1hbnRvd24sIE1EIDIwODc0DQplbWFpbDogbS1rYXJp
-Y2hlcmkyQHRpLmNvbQ0KDQo+LS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj5Gcm9tOiBkYXZp
-bmNpLWxpbnV4LW9wZW4tc291cmNlLWJvdW5jZXMrbS0NCj5rYXJpY2hlcmkyPXRpLmNvbUBsaW51
-eC5kYXZpbmNpZHNwLmNvbSBbbWFpbHRvOmRhdmluY2ktbGludXgtb3Blbi1zb3VyY2UtDQo+Ym91
-bmNlcyttLWthcmljaGVyaTI9dGkuY29tQGxpbnV4LmRhdmluY2lkc3AuY29tXSBPbiBCZWhhbGYg
-T2YgSGFucyBWZXJrdWlsDQo+U2VudDogU3VuZGF5LCBKdW5lIDE0LCAyMDA5IDEwOjM3IEFNDQo+
-VG86IGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZw0KPkNjOiBkYXZpbmNpLWxpbnV4LW9wZW4t
-c291cmNlQGxpbnV4LmRhdmluY2lkc3AuY29tOyBsaW51eC0NCj5vbWFwQHZnZXIua2VybmVsLm9y
-Zw0KPlN1YmplY3Q6IERpZCBJIG1pc3MgYW55IG90aGVyIHBhdGNoZXMgb3IgUkZDcyB0aGF0IG5l
-ZWQgdG8gYmUgcmV2aWV3ZWQ/DQo+DQo+SGkgYWxsLA0KPg0KPkkgdGhpbmsgSSd2ZSBmaW5hbGx5
-IGZpbmlzaGVkIHJldmlld2luZyBhbGwgdGhlIHBlbmRpbmcgcGF0Y2hlcy4NCj4NCj5BcmUgdGhl
-cmUgYW55IHRoYXQgSSd2ZSBtaXNzZWQ/IE9yIGFyZSB0aGVyZSBvdGhlciBwb3N0aW5ncyB0aGF0
-IG5lZWQgbXkNCj5hdHRlbnRpb24/DQo+DQo+UGxlYXNlIGxldCBtZSBrbm93LCBvdGhlcndpc2Ug
-SSBhc3N1bWUgdGhhdCBJJ20gKGZpbmFsbHkhKSB1cCB0byBkYXRlLg0KPg0KPlJlZ2FyZHMsDQo+
-DQo+CUhhbnMNCj4NCj4tLQ0KPkhhbnMgVmVya3VpbCAtIHZpZGVvNGxpbnV4IGRldmVsb3BlciAt
-IHNwb25zb3JlZCBieSBUQU5EQkVSRyBUZWxlY29tDQo+DQo+X19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX18NCj5EYXZpbmNpLWxpbnV4LW9wZW4tc291cmNlIG1h
-aWxpbmcgbGlzdA0KPkRhdmluY2ktbGludXgtb3Blbi1zb3VyY2VAbGludXguZGF2aW5jaWRzcC5j
-b20NCj5odHRwOi8vbGludXguZGF2aW5jaWRzcC5jb20vbWFpbG1hbi9saXN0aW5mby9kYXZpbmNp
-LWxpbnV4LW9wZW4tc291cmNlDQo=
+On Dienstag, 23. Juni 2009, Theodore Kilgore wrote:
+> On Mon, 22 Jun 2009, Andy Walls wrote:
+> > On Mon, 2009-06-22 at 16:36 +0200, Matthias Schwarzott wrote:
+> >> Hi list!
+> >>
+> >> It seems the path to lsmod tool is hardcoded in the Makefile for
+> >> out-of-tree building of v4l-dvb.
+> >> Now at least gentoo has moved lsmod from /sbin to /bin.
+>
+> Sorry, but is it considered impertinent to ask why that lsmod should be
+> moved from /sbin (system binaries, and lsmod certainly is one of those)
+> and stick it into /bin instead? Is there any cogent reason for doing a
+
+/sbin are binaries that only root should use. But lsmod can be used by users, 
+too.
+Suse also has only /bin/lsmod I think.
+I don't know too much about the reason for the move, but it was long ago - 
+version 0.9.11 contained that move and was released around year 2003.
+Gentoo ebuild added /sbin/lsmod as compat symlink for things still hardcoding 
+the path, but that was removed 2009 - 6 years should be enough.
+
+> thing like that, which may have escaped my attention? Unless one is making
+> some very small distro for some very small hardware and (say) one of /bin
+> and /sbin is symlinked to the other, I find a change like that to be
+> extremely puzzling. So, really. Why?
+For a real answer to "why", do ask module-init-tools maintainer.
+
+Regards
+Matthias
