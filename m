@@ -1,36 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:46088 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752054AbZF1UvA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Jun 2009 16:51:00 -0400
-From: Peter =?iso-8859-1?q?H=FCwe?= <PeterHuewe@gmx.de>
-To: Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: Problem with 046d:08af Logitech Quickcam Easy/Cool - broken with in-kernel drivers, works with gspcav1
-Date: Sun, 28 Jun 2009 22:50:58 +0200
-Cc: linux-media@vger.kernel.org
-References: <200906281514.10689.PeterHuewe@gmx.de> <20090628201447.792efe63@free.fr>
-In-Reply-To: <20090628201447.792efe63@free.fr>
+Received: from mail-out.m-online.net ([212.18.0.9]:43597 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753058AbZFWHu3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Jun 2009 03:50:29 -0400
+From: Matthias Schwarzott <zzam@gentoo.org>
+To: linux-media@vger.kernel.org
+Subject: Re: lsmod path hardcoded in v4l/Makefile
+Date: Tue, 23 Jun 2009 09:50:26 +0200
+Cc: Andy Walls <awalls@radix.net>
+References: <200906221636.25006.zzam@gentoo.org> <1245710531.3190.7.camel@palomino.walls.org>
+In-Reply-To: <1245710531.3190.7.camel@palomino.walls.org>
 MIME-Version: 1.0
 Content-Type: text/plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200906282250.58652.PeterHuewe@gmx.de>
+Message-Id: <200906230950.26287.zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Did you use the v4l2 wrapper when running the applications? (look in my
-> page for more information)
+On Dienstag, 23. Juni 2009, Andy Walls wrote:
+> On Mon, 2009-06-22 at 16:36 +0200, Matthias Schwarzott wrote:
+> > Hi list!
+> >
+> > It seems the path to lsmod tool is hardcoded in the Makefile for
+> > out-of-tree building of v4l-dvb.
+> > Now at least gentoo has moved lsmod from /sbin to /bin.
+> > Additionally it is bad style (or at least I am told so), to not rely on
+> > $PATH but hardcode pathes for tools that should be in $PATH.
+>
+> It's a potential security hole to rely on $PATH instead of absolute
+> paths when running a command as root.
 
+Shouldn't $PATH of root be considered safe? Else the distro or the system 
+setup is doing something worse, and can't be improved by using fixed pathes 
+in some scripts and Makefiles.
 
-Hi,
-I tried using cheese with 
-LD_PRELOAD=/usr/lib64/libv4l/v4l1compat.so - and it works!
-
-However this does not work with skype :/ (skype does not allow preloading)
-
-Any suggestions how I get skype to use the compat wrapper?
-
-
-Thank you,
-Peter
+Regards
+Matthias
