@@ -1,49 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1044 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752799AbZFFNBC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Jun 2009 09:01:02 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-i2c@vger.kernel.org, linux-media@vger.kernel.org
-Subject: RFC: proposal for new i2c.h macro to initialize i2c address lists on the fly
-Date: Sat, 6 Jun 2009 15:00:48 +0200
+Received: from hermes.mlbassoc.com ([76.76.67.137]:3074 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753661AbZFWNkO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Jun 2009 09:40:14 -0400
+Message-ID: <4A40DB40.9000909@mlbassoc.com>
+Date: Tue, 23 Jun 2009 07:40:16 -0600
+From: Gary Thomas <gary@mlbassoc.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+CC: Zach LeRoy <zleroy@rii.ricoh.com>,
+	linux-omap <linux-omap@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: OMAP34XXCAM: Micron mt9d111 sensor support?
+References: <25120191.127591245276351735.JavaMail.root@mailx.crc.ricoh.com> <A24693684029E5489D1D202277BE894441165A1C@dlee02.ent.ti.com> <4A3FC80B.9000302@mlbassoc.com> <A24693684029E5489D1D202277BE89444130773E@dlee02.ent.ti.com> <4A40D736.9050701@mlbassoc.com> <A24693684029E5489D1D202277BE89444130777E@dlee02.ent.ti.com> <A24693684029E5489D1D202277BE894441307788@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894441307788@dlee02.ent.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200906061500.49338.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Aguirre Rodriguez, Sergio Alberto wrote:
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio Alberto
+>> From: Gary Thomas [mailto:gary@mlbassoc.com]
+>>> Aguirre Rodriguez, Sergio Alberto wrote:
+>>>> From: Gary Thomas [mailto:gary@mlbassoc.com]
+>>>>> Aguirre Rodriguez, Sergio Alberto wrote:
+>>>>>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>>>>>> owner@vger.kernel.org] On Behalf Of Zach LeRoy
+>>>>>>> I am working on adding support for a micron 2 MP sensor: mt9d111 on
+>> a
+>>>>>>> gumsitx overo.  This is a i2c-controlled sensor.  Ideally, I would
+>>> like
+>>>>> to
+>>>>>>> use the omap34xxcam driver to interface with this sensor.  I am
+>>>>> wondering
+>>>>>>> if there are currently any distributions which already include
+>>> support
+>>>>> for
+>>>>>>> this sensor through the omap34xxcam driver, or if anyone else is
+>>>>>>> interested in this topic.
+>>>>>>>
+>>>>>> Hi Zach,
+>>>>>>
+>>>>>> I'm working along with Sakari Ailus and others in this omap34xxcam
+>>>>> driver you're talking about, and we are in the process to provide a
+>>> newer
+>>>>> patchset to work on the latest l-o tree.
+>>>>>> Sakari is sharing the camera core here:
+>>>>>>
+>>>>>> http://gitorious.org/omap3camera
+>>>>>>
+>>>>>> And I have also this repository which contains a snapshot of
+>> Sakari's
+>>>>> tree + support from some sensors I have available for the 3430SDP and
+>>> LDP
+>>>>> (the name could confuse with the above, but I'll change the
+>>> name/location
+>>>>> soon):
+>>>>>> http://gitorious.org/omap3-linux-camera-driver
+>>>>>>
+>>>>>> Testing the driver with as much sensors as we can is very
+>> interesting
+>>>>> (at least for me), because that help us spot possible bugs that
+>> aren't
+>>>>> seen with our current HW. So, I'll be looking forward if you add this
+>>>>> sensor driver to the supported list :)
+>>>>> I'd like to move forward using this on OMAP/3530 with TVP5150 (S-
+>> video
+>>> in)
+>>>>> Sadly, the tree above (omap3-linux-camera-driver) won't build for the
+>>>>> Zoom/LDP:
+>>>>>   CC      arch/arm/mach-omap2/board-ldp-camera.o
+>>>>> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+>>>>> camera.c:59:
+>>>>> error: implicit declaration of function 'PAGE_ALIGN'
+>>>>> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+>>>>> camera.c:59:
+>>>>> error: initializer element is not constant
+>>>>> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+>>>>> camera.c:59:
+>>>>> error: (near initialization for 'ov3640_hwc.capture_mem')
+>>>>> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+>>> camera.c:
+>>>>> In function 'ov3640_sensor_set_prv_data':
+>>>>> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+>>>>> camera.c:89:
+>>>>> error: 'hwc' undeclared (first use in this function)
+>>>>> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+>>>>> camera.c:89:
+>>>>> error: (Each undeclared identifier is reported only once
+>>>>> /local/omap3-linux-camera-driver/arch/arm/mach-omap2/board-ldp-
+>>>>> camera.c:89:
+>>>>> error: for each function it appears in.)
+>>>>>
+>>>>> Looking at the code, it seems that some pieces are missing - merge
+>>>>> problem maybe?
+>>>> Hi Gary,
+>>>>
+>>>> I'm currently on the process to rebase and verify all this code on
+>>> 3430SDP, Zoom1 and soon Zoom2.
+>>>> Here you can find my progress:
+>>>>
+>>>>   http://dev.omapzoom.org/?p=saaguirre/linux-omap-camera.git;a=summary
+>>>>
+>>>> Check devel branch, which contains all latest Sakari's tree patches
+>>> (http://gitorious.org/omap3camera) rebased on top of latest Kevin's l-o
+>> PM
+>>> tree, plus the patches, which are still in works, to make the above
+>>> mentioned platforms to work.
+>>>> I'm first trying to make 3430SDP work, don't have a Zoom1/Zoom2 handy
+>>> right now...
+>>>> My gitorious tree will eventually disappear, as I can work better with
+>>> this new one.
+>>>> I'll consolidate some patches when this sensor code is ready, and will
+>>> CC you if interested.
+>>> Thanks.  I've already checked out this tree and at least
+>>> it builds for the Zoom (I have one here).  Is this in a
+>>> state where I can test it for you?  What do you use to
+>>> capture video from the sensor?
+>> I normally use a small test binary I wrote which saves the captured frames
+>> to memory, so later I can see them with either IrfanView (when capturing
+>> RAW images) or PYUV for seeing the YUV422 images.
+>>
+>> You should be able to use any standard V4l2 capturing application anyways.
+>>
+> 
+> Btw, any contribution would be completely welcome. Either on Testing or on development. :)
+> 
+> Thanks for your interest in helping.
 
-For video4linux we sometimes need to probe for a single i2c address. 
-Normally you would do it like this:
+I've built for the Zoom, now I just need to figure out how
+to capture the data.  I'll let you know if I have any questions
+or problems.
 
-static const unsigned short addrs[] = {
-	addr, I2C_CLIENT_END
-};
-
-client = i2c_new_probed_device(adapter, &info, addrs);
-
-This is a bit awkward and I came up with this macro:
-
-#define V4L2_I2C_ADDRS(addr, addrs...) \
-        ((const unsigned short []){ addr, ## addrs, I2C_CLIENT_END })
-
-This can construct a list of one or more i2c addresses on the fly. But this 
-is something that really belongs in i2c.h, renamed to I2C_ADDRS.
-
-With this macro we can just do:
-
-client = i2c_new_probed_device(adapter, &info, I2C_ADDRS(addr));
-
-Comments?
-
-Regards,
-
-	Hans
+Thanks
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
