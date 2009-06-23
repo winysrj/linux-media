@@ -1,118 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:58538 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755538AbZFVQ2Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2009 12:28:25 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv9 4/9] v4l2-ctl: Add support for FM TX controls
-Date: Mon, 22 Jun 2009 19:21:31 +0300
-Message-Id: <1245687696-6730-5-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1245687696-6730-4-git-send-email-eduardo.valentin@nokia.com>
-References: <1245687696-6730-1-git-send-email-eduardo.valentin@nokia.com>
- <1245687696-6730-2-git-send-email-eduardo.valentin@nokia.com>
- <1245687696-6730-3-git-send-email-eduardo.valentin@nokia.com>
- <1245687696-6730-4-git-send-email-eduardo.valentin@nokia.com>
+Received: from smtp19.orange.fr ([80.12.242.1]:7447 "EHLO smtp19.orange.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752523AbZFWMAW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Jun 2009 08:00:22 -0400
+Received: from smtp19.orange.fr (mwinf1928 [172.22.129.128])
+	by mwinf1905.orange.fr (SMTP Server) with ESMTP id EA2D21C01E15
+	for <linux-media@vger.kernel.org>; Tue, 23 Jun 2009 13:02:31 +0200 (CEST)
+Message-ID: <4A40B61F.7080405@orange.fr>
+Date: Tue, 23 Jun 2009 13:01:51 +0200
+From: claude <claude.vezzi@orange.fr>
+MIME-Version: 1.0
+To: Terry Wu <terrywu2009@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: PxDVR3200 H LinuxTV v4l-dvb patch : Pull GPIO-20 low for DVB-T
+References: <6ab2c27e0906222039y5b931f46vf7692d6e46248b68@mail.gmail.com>
+In-Reply-To: <6ab2c27e0906222039y5b931f46vf7692d6e46248b68@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds simple support for FM TX extended controls
-on v4l2-ctl utility.
+Terry Wu a écrit :
+> Hi,
+>
+>     I add the following codes in the cx23885_initialize() of cx25840-core.c:
+> 	/* Drive GPIO2 (GPIO 19~23) direction and values for DVB-T */
+> 	cx25840_and_or(client, 0x160, 0x1d, 0x00);
+> 	cx25840_write(client, 0x164, 0x00);
+>
+>     Before that, the tuning status is 0x1e, but <0> service found.
+>     Now, I can watch DVB-T (Taiwan, 6MHz bandwidth).
+>
+>     And if you are living in Australia, you should update the
+> tuner-xc2028.c too:
+>     http://tw1965.myweb.hinet.net/Linux/v4l-dvb/20090611-TDA18271HDC2/tuner-xc2028.c
+>
+> Best Regards,
+> Terry
+>   
+I have updaded the cx23885_initialize() function of the  cx25840-core.c 
+file with your codes.
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- v4l2-apps/util/v4l2-ctl.cpp |   36 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 36 insertions(+), 0 deletions(-)
+But with the new built kernel i have the same error both with scan and 
+kaffeine.
 
-diff --git a/v4l2-apps/util/v4l2-ctl.cpp b/v4l2-apps/util/v4l2-ctl.cpp
-index 7a4cf0e..0399eb1 100644
---- a/v4l2-apps/util/v4l2-ctl.cpp
-+++ b/v4l2-apps/util/v4l2-ctl.cpp
-@@ -148,6 +148,7 @@ typedef std::vector<struct v4l2_ext_control> ctrl_list;
- static ctrl_list user_ctrls;
- static ctrl_list mpeg_ctrls;
- static ctrl_list camera_ctrls;
-+static ctrl_list fm_tx_ctrls;
- 
- typedef std::map<std::string, unsigned> ctrl_strmap;
- static ctrl_strmap ctrl_str2id;
-@@ -2181,6 +2182,8 @@ set_vid_fmt_error:
- 				mpeg_ctrls.push_back(ctrl);
- 			else if (V4L2_CTRL_ID2CLASS(ctrl.id) == V4L2_CTRL_CLASS_CAMERA)
- 				camera_ctrls.push_back(ctrl);
-+			else if (V4L2_CTRL_ID2CLASS(ctrl.id) == V4L2_CTRL_CLASS_FM_TX)
-+				fm_tx_ctrls.push_back(ctrl);
- 			else
- 				user_ctrls.push_back(ctrl);
- 		}
-@@ -2227,6 +2230,22 @@ set_vid_fmt_error:
- 				}
- 			}
- 		}
-+		if (fm_tx_ctrls.size()) {
-+			ctrls.ctrl_class = V4L2_CTRL_CLASS_FM_TX;
-+			ctrls.count = fm_tx_ctrls.size();
-+			ctrls.controls = &fm_tx_ctrls[0];
-+			if (doioctl(fd, VIDIOC_S_EXT_CTRLS, &ctrls, "VIDIOC_S_EXT_CTRLS")) {
-+				if (ctrls.error_idx >= ctrls.count) {
-+					fprintf(stderr, "Error setting FM Modulator controls: %s\n",
-+						strerror(errno));
-+				}
-+				else {
-+					fprintf(stderr, "%s: %s\n",
-+						ctrl_id2str[fm_tx_ctrls[ctrls.error_idx].id].c_str(),
-+						strerror(errno));
-+				}
-+			}
-+		}
- 	}
- 
- 	/* Get options */
-@@ -2444,6 +2463,7 @@ set_vid_fmt_error:
- 		mpeg_ctrls.clear();
- 		camera_ctrls.clear();
- 		user_ctrls.clear();
-+		fm_tx_ctrls.clear();
- 		for (ctrl_get_list::iterator iter = get_ctrls.begin();
- 				iter != get_ctrls.end(); ++iter) {
- 			struct v4l2_ext_control ctrl = { 0 };
-@@ -2458,6 +2478,8 @@ set_vid_fmt_error:
- 				mpeg_ctrls.push_back(ctrl);
- 			else if (V4L2_CTRL_ID2CLASS(ctrl.id) == V4L2_CTRL_CLASS_CAMERA)
- 				camera_ctrls.push_back(ctrl);
-+			else if (V4L2_CTRL_ID2CLASS(ctrl.id) == V4L2_CTRL_CLASS_FM_TX)
-+				fm_tx_ctrls.push_back(ctrl);
- 			else
- 				user_ctrls.push_back(ctrl);
- 		}
-@@ -2496,6 +2518,20 @@ set_vid_fmt_error:
- 					printf("%s: %d\n", ctrl_id2str[ctrl.id].c_str(), ctrl.value);
- 			}
- 		}
-+		if (fm_tx_ctrls.size()) {
-+			ctrls.ctrl_class = V4L2_CTRL_CLASS_FM_TX;
-+			ctrls.count = fm_tx_ctrls.size();
-+			ctrls.controls = &fm_tx_ctrls[0];
-+			doioctl(fd, VIDIOC_G_EXT_CTRLS, &ctrls, "VIDIOC_G_EXT_CTRLS");
-+			for (unsigned i = 0; i < fm_tx_ctrls.size(); i++) {
-+				struct v4l2_ext_control ctrl = fm_tx_ctrls[i];
-+
-+				if (ctrl_id2type[ctrl.id] == V4L2_CTRL_TYPE_STRING)
-+					printf("%s: '%s'\n", ctrl_id2str[ctrl.id].c_str(), ctrl.string);
-+				else
-+					printf("%s: %d\n", ctrl_id2str[ctrl.id].c_str(), ctrl.value);
-+			}
-+		}
- 	}
- 
- 	if (options[OptGetTuner]) {
--- 
-1.6.2.GIT
+Best regards
+
+Claude
+
+
 
