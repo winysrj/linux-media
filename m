@@ -1,137 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f213.google.com ([209.85.220.213]:55169 "EHLO
-	mail-fx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751240AbZFXJvc convert rfc822-to-8bit (ORCPT
+Received: from yw-out-2324.google.com ([74.125.46.29]:52695 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750986AbZFWCsa convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jun 2009 05:51:32 -0400
-Received: by fxm9 with SMTP id 9so620192fxm.37
-        for <linux-media@vger.kernel.org>; Wed, 24 Jun 2009 02:51:33 -0700 (PDT)
+	Mon, 22 Jun 2009 22:48:30 -0400
+Received: by yw-out-2324.google.com with SMTP id 5so2135269ywb.1
+        for <linux-media@vger.kernel.org>; Mon, 22 Jun 2009 19:48:31 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <EOPJI6B23SQKFwSx@onasticksoftware.net>
-References: <EOPJI6B23SQKFwSx@onasticksoftware.net>
-From: =?UTF-8?B?Um9tw6Fu?= <roman.pena.perez@gmail.com>
-Date: Wed, 24 Jun 2009 11:51:13 +0200
-Message-ID: <28a25ce0906240251ia3a7492y14327289ca1e60cb@mail.gmail.com>
-Subject: Re: [linux-dvb] dvb v4l code break webcam drivers
-To: linux-media@vger.kernel.org, linux-dvb <linux-dvb@linuxtv.org>,
-	jon bird <news@onastick.clara.co.uk>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <b24e53350906221940v5e8c34cy676c6b0f02380d10@mail.gmail.com>
+References: <COL103-W53605D85359D631FC60D0F88380@phx.gbl>
+	 <COL103-W40B198179C2E84587DC71F88380@phx.gbl>
+	 <829197380906211429k7176a93fm49d49851e6d2df1e@mail.gmail.com>
+	 <COL103-W308B321250A646D788B25188390@phx.gbl>
+	 <b24e53350906221940v5e8c34cy676c6b0f02380d10@mail.gmail.com>
+Date: Mon, 22 Jun 2009 22:48:31 -0400
+Message-ID: <b24e53350906221948id6d70aq75b1dde27715969@mail.gmail.com>
+Subject: Re: Can't use my Pinnacle PCTV HD Pro stick - what am I doing wrong?
+From: Robert Krakora <rob.krakora@messagenetsystems.com>
+To: George Adams <g_adams27@hotmail.com>
+Cc: dheitmueller@kernellabs.com, video4linux-list@redhat.com,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/6/23 jon bird <news@onastick.clara.co.uk>:
-> I replaced my stock Linux V4l/dvb drivers with the versions from cvs on
-> linuxtv.org whilst attempting to resolve problems with my Nova-T stick
-> (a red herring as it happens). However what I've discovered since is
-> that they argue quite badly with drivers for the 2 webcams I have (of
-> course the webcam drivers themselves may be at fault here but I thought
-> it worth pointing out....).
+On Mon, Jun 22, 2009 at 10:40 PM, Robert
+Krakora<rob.krakora@messagenetsystems.com> wrote:
+> On Mon, Jun 22, 2009 at 5:39 PM, George Adams<g_adams27@hotmail.com> wrote:
+>>
+>> Hello again.  I have some updates now that I've been able to make some further tests.
+>>
+>> 1) My Pinnacle PCTV HD Pro (800e) stick does, in fact, work correctly under Windows.  The scanning detects the one channel we're running over our closed circuit cable (channel 3) and displays it on-screen just fine.  (audio over channel 3 works as well)
+>>
+>>
+>> 2) Devin, my installation process is "hg clone http://linuxtv.org/hg/v4l-dvb; cd v4l-dvb; make rminstall; make distclean; make; make install"  This appears to install everything v4l-related as modules in the appropriate directories.  For instance:
+>>
+>>>  uname -r
+>> 2.6.24-24-server
+>>
+>>> find /lib/modules/`uname -r` -type f -name em28xx\* -o -name tvp\*
+>> /lib/modules/2.6.24-24-server/kernel/drivers/media/video/tvp5150.ko
+>> /lib/modules/2.6.24-24-server/kernel/drivers/media/video/em28xx/em28xx.ko
+>> /lib/modules/2.6.24-24-server/kernel/drivers/media/video/em28xx/em28xx-dvb.ko
+>>
+>>
+>> 3) tvtime still hangs when launched.
+>>
+>>
+>> 4) Running zapping gives the error "VBI Initialization failed.  /dev/vbi0 (Pinnacle PCTV HD Pro) is not a raw vbi device)".  Continuing on and trying to choose the "Preferences" menu option segfaults the program (and this is the Ubuntu-distributed "zapping" package)
+>>
+>>
+>> 5) Running Paul's suggested "mplayer" command gives the following:
+>>
+>>> mplayer -vo xv tv:// -tv driver=v4l2:alsa:immediatemode=0:adevice=hw.1,0:norm=ntsc:chanlist=us-cable:channel=3
+>>
+>> MPlayer 1.0rc2-4.2.4 (C) 2000-2007 MPlayer Team
+>> CPU: Intel(R) Core(TM)2 Quad CPU    Q9550  @ 2.83GHz (Family: 6, Model: 23, Stepping: 10)
+>> CPUflags:  MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1
+>> Compiled with runtime CPU detection.
+>> mplayer: could not connect to socket
+>> mplayer: No such file or directory
+>> Failed to open LIRC support. You will not be able to use your remote control.
+>>
+>> Playing tv://.
+>> TV file format detected.
+>> Selected driver: v4l2
+>>  name: Video 4 Linux 2 input
+>>  author: Martin Olschewski
+>>  comment: first try, more to come ;-)
+>> Selected device: Pinnacle PCTV HD Pro Stick
+>>  Tuner cap:
+>>  Tuner rxs:
+>>  Capabilites:  video capture  tuner  audio  read/write  streaming
+>>  supported norms: 0 = NTSC; 1 = NTSC-M; 2 = NTSC-M-JP; 3 = NTSC-M-KR; 4 = NTSC-443; 5 = PAL; 6 = PAL-BG; 7 = PAL-H; 8 = PAL-I; 9 = PAL-DK; 10 = PAL-M; 11 = PAL-N; 12 = PAL-Nc; 13 = PAL-60; 14 = SECAM;
+>>  inputs: 0 = Television; 1 = Composite1; 2 = S-Video;
+>>  Current input: 0
+>>  Current format: YUYV
+>> v4l2: current audio mode is : MONO
+>> v4l2: ioctl set format failed: Invalid argument
+>> v4l2: ioctl set format failed: Invalid argument
+>> v4l2: ioctl set format failed: Invalid argument
+>> Selected channel: 3 (freq: 61.250)
+>> Video buffer shorter than 3 times audio frame duration.
+>> You will probably experience heavy framedrops.
+>> v4l2: ioctl query control failed: Invalid argument
+>> v4l2: ioctl query control failed: Invalid argument
+>> v4l2: ioctl query control failed: Invalid argument
+>> v4l2: ioctl query control failed: Invalid argument
+>> xscreensaver_disable: Could not find XScreenSaver window.
+>> GNOME screensaver disabled
+>> ==========================================================================
+>> Opening video decoder: [raw] RAW Uncompressed Video
+>> VDec: vo config request - 640 x 480 (preferred colorspace: Packed YUY2)
+>> VDec: using Packed YUY2 as output csp (no 0)
+>> Movie-Aspect is undefined - no prescaling applied.
+>> VO: [xv] 640x480 => 640x480 Packed YUY2
+>> Selected video codec: [rawyuy2] vfm: raw (RAW YUY2)
+>> ==========================================================================
+>> ==========================================================================
+>> Forced audio codec: mad
+>> Opening audio decoder: [pcm] Uncompressed PCM audio decoder
+>> AUDIO: 44100 Hz, 1 ch, s16le, 705.6 kbit/100.00% (ratio: 88200->88200)
+>> Selected audio codec: [pcm] afm: pcm (Uncompressed PCM)
+>> ==========================================================================
+>> AO: [pulse] 44100Hz 1ch s16le (2 bytes per sample)
+>> Starting playback...
+>> v4l2: select timeout
+>> A:   0.5 V:   0.0 A-V:  0.472 ct:  0.000   1/  1 ??% ??% ??,?% 1 0 [[JMA:   0.9 V:   0.0 A-V:  0.940 ct:  0.003   2/  2 ??% ??% ??,?% 2 0 [[JMv4l2: select timeout
+>> A:   1.5 V:   0.0 A-V:  1.479 ct:  0.007   3/  3 ??% ??% ??,?% 3 0 [[JMA:   2.0 V:   0.0 A-V:  1.981 ct:  0.010   4/  4 ??% ??% ??,?% 4 0 [[JMv4l2: select timeout
+>> A:   2.5 V:   0.0 A-V:  2.485 ct:  0.013   5/  5 ??% ??% ??,?% 5 0 [[JMA:   3.0 V:   0.0 A-V:  2.957 ct:  0.017   6/  6 ??% ??% ??,?% 6 0 [[JMv4l2: select timeout
+>> A:   3.5 V:   0.0 A-V:  3.460 ct:  0.020   7/  7 ??% ??% ??,?% 7 0 [[JMA:   4.0 V:   0.0 A-V:  3.956 ct:  0.022   8/  8 ??% ??% ??,?% 8 0 [[JMv4l2: select timeout
+>> A:   4.5 V:   0.0 A-V:  4.460 ct:  0.025   9/  9 ??% ??% ??,?% 9 0 [[JMA:   5.0 V:   0.0 A-V:  4.956 ct:  0.027  10/ 10 ??% ??% ??,?% 10 0 [[JMv4l2: select timeout
+>>
+>>
+>> The Mplayer screen itself remains green the whole time.
+>>
+>>
+>> So the surprise to me is that the Pinnacle device is not actually broken.  By this point, I had been sure it was a hardware problem.  Now I realize that it's something else.  And so I would again appreciate any suggestions you might have.  Thank you once again!
+>>
+>> (My installation process, just for reference, distilled down:)
+>>> cd /usr/local/src
+>>> hg clone http://linuxtv.org/hg/v4l-dvb
+>>> cd v4l-dvb
+>>> make rminstall; make distclean; make; make install
+>>> cd /tmp
+>>> wget http://www.steventoth.net/linux/xc5000/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip
+>>> unzip -j HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip Driver85/hcw85bda.sys
+>>> perl /usr/local/src/v4l-dvb/linux/Documentation/video4linux/extract_xc3028.pl
+>>> mv xc3028-v27.fw /lib/firmware/xc3028-v27.fw
+>>
+>>
+>>
+>>
+>> _________________________________________________________________
+>> Hotmail® has ever-growing storage! Don’t worry about storage limits.
+>> http://windowslive.com/Tutorial/Hotmail/Storage?ocid=TXT_TAGLM_WL_HM_Tutorial_Storage_062009
+>>
+>> --
+>> video4linux-list mailing list
+>> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+>> https://www.redhat.com/mailman/listinfo/video4linux-list
+>>
+>>
 >
-> Replacing the linux kernel modules (2.6.26) resolves the problem and
-> both these and the DVB side work.
+> George:
 >
-> here's the log from the snapshot I took 2 days ago:
+> Hello.  Try playing your audio only channel with this mplayer command line:
 >
-> Jun 22 17:17:55 fridge kernel: ------------[ cut here ]------------
-> Jun 22 17:17:55 fridge kernel: WARNING: at
-> /opt2/data/kernel/v4l-dvb-6c50c4b2ef70/v4l/v4l2-dev.c:434
-> video_register_device_index+0x3a/0x354 [videodev]()
-> Jun 22 17:17:55 fridge kernel: Modules linked in: gspca(+) videodev
-> v4l1_compat af_packet nfsd exportfs usbserial ppdev parport_pc lp
-> parport snd_pcm_oss snd_mixer_oss snd_via82xx snd_ac97_codec ac97_bus
-> snd_pcm snd_timer snd_page_alloc snd_mpu401_uart snd_rawmidi
-> snd_seq_device snd soundcore xt_TCPMSS xt_DSCP ipt_MASQUERADE ipt_LOG
-> ipt_REDIRECT xt_state joydev evdev dvb_usb_dib0700 dib7000p dib7000m
-> dvb_usb dvb_core firmware_class dib3000mc dibx000_common dib0070
-> uhci_hcd ohci_hcd ehci_hcd usbcore ipv6 8139too mii ipt_REJECT
-> iptable_mangle iptable_nat nf_nat iptable_filter nf_conntrack_ipv4
-> nf_conntrack ip_tables mt2060 i2c_core sata_via libata dock 8250
-> serial_core
-> Jun 22 17:17:55 fridge kernel: Pid: 3853, comm: modprobe Not tainted
-> 2.6.26 #9
-> Jun 22 17:17:55 fridge kernel: Â [warn_on_slowpath+62/91]
-> warn_on_slowpath+0x3e/0x5b
-> Jun 22 17:17:55 fridge kernel: Â [<c0117690>] warn_on_slowpath+0x3e/0x5b
-> Jun 22 17:17:55 fridge kernel: Â [__wake_up+15/21] __wake_up+0xf/0x15
-> Jun 22 17:17:55 fridge kernel: Â [<c0114aa9>] __wake_up+0xf/0x15
-> Jun 22 17:17:55 fridge kernel: Â [wake_up_klogd+43/45]
-> wake_up_klogd+0x2b/0x2d
-> Jun 22 17:17:55 fridge kernel: Â [<c0118109>] wake_up_klogd+0x2b/0x2d
-> Jun 22 17:17:55 fridge kernel: Â [<f8982405>]
-> usb_internal_control_msg+0x54/0x61 [usbcore]
-> Jun 22 17:17:55 fridge kernel: Â [<f8982490>] usb_control_msg+0x7e/0x8b
-> [usbcore]
-> Jun 22 17:17:55 fridge kernel: Â [printk+14/17] printk+0xe/0x11
-> Jun 22 17:17:55 fridge kernel: Â [<c0117cdc>] printk+0xe/0x11
-> Jun 22 17:17:55 fridge kernel: Â [<f8ca5a6d>]
-> spca5xx_getcapability+0xa2/0xad [gspca]
-> Jun 22 17:17:55 fridge kernel: Â [<f8c353ae>]
-> video_register_device_index+0x3a/0x354 [videodev]
-> Jun 22 17:17:55 fridge kernel: Â [<f8c35372>]
-> video_register_device+0x7/0x9 [videodev]
-> Jun 22 17:17:55 fridge kernel: Â [<f8caa441>] spca5xx_probe+0x1f4/0x287
-> [gspca]
-> Jun 22 17:17:55 fridge kernel: Â [<f8983b95>]
-> usb_probe_interface+0xb3/0xde [usbcore]
-> Jun 22 17:17:55 fridge kernel: Â [__driver_attach+0/85]
-> __driver_attach+0x0/0x55
-> Jun 22 17:17:55 fridge kernel: Â [<c0227384>] __driver_attach+0x0/0x55
-> Jun 22 17:17:55 fridge kernel: Â [really_probe+112/226]
-> really_probe+0x70/0xe2
-> Jun 22 17:17:55 fridge kernel: Â [<c022725d>] really_probe+0x70/0xe2
-> Jun 22 17:17:55 fridge kernel: Â [driver_probe_device+54/62]
-> driver_probe_device+0x36/0x3e
-> Jun 22 17:17:55 fridge kernel: Â [<c022731a>]
-> driver_probe_device+0x36/0x3e
-> Jun 22 17:17:55 fridge kernel: Â [__driver_attach+55/85]
-> __driver_attach+0x37/0x55
-> Jun 22 17:17:55 fridge kernel: Â [<c02273bb>] __driver_attach+0x37/0x55
-> Jun 22 17:17:55 fridge kernel: Â [bus_for_each_dev+53/89]
-> bus_for_each_dev+0x35/0x59
-> Jun 22 17:17:55 fridge kernel: Â [<c02267b6>] bus_for_each_dev+0x35/0x59
-> Jun 22 17:17:55 fridge kernel: Â [driver_attach+17/19]
-> driver_attach+0x11/0x13
-> Jun 22 17:17:55 fridge kernel: Â [<c02273ea>] driver_attach+0x11/0x13
-> Jun 22 17:17:55 fridge kernel: Â [__driver_attach+0/85]
-> __driver_attach+0x0/0x55
-> Jun 22 17:17:55 fridge kernel: Â [<c0227384>] __driver_attach+0x0/0x55
-> Jun 22 17:17:55 fridge kernel: Â [bus_add_driver+138/306]
-> bus_add_driver+0x8a/0x132
-> Jun 22 17:17:55 fridge kernel: Â [<c0226cf4>] bus_add_driver+0x8a/0x132
-> Jun 22 17:17:55 fridge kernel: Â [driver_register+104/136]
-> driver_register+0x68/0x88
-> Jun 22 17:17:55 fridge kernel: Â [<c0227716>] driver_register+0x68/0x88
-> Jun 22 17:17:55 fridge kernel: Â [<f898409b>]
-> usb_register_driver+0x52/0x9c [usbcore]
-> Jun 22 17:17:55 fridge kernel: Â [<f8b37014>] usb_spca5xx_init+0x14/0x31
-> [gspca]
-> Jun 22 17:17:55 fridge kernel: Â [<c0131660>] sys_init_module+0x84/0x173
-> Jun 22 17:17:55 fridge kernel: Â [syscall_call+7/11] syscall_call+0x7/0xb
-> Jun 22 17:17:55 fridge kernel: Â [<c0102a22>] syscall_call+0x7/0xb
-> Jun 22 17:17:55 fridge kernel: Â =======================
-> Jun 22 17:17:55 fridge kernel: ---[ end trace be190c3dbfd1c67f ]---
+> mplayer -vc dummy -vo null tv:// -tv
+> driver=v4l2:alsa:immediatemode=0:adevice=hw.1,0:norm=ntsc:chanlist=us-cable:channel=3
 >
->
-> this happens with the spca5xx webcam driver and the old Logitech
-> quickcam express driver.
->
+> Best Regards,
 >
 > --
-> == jon bird - software engineer
-> == <reply to address _may_ be invalid, real mail below>
-> == <reduce rsi, stop using the shift key>
-> == posted as: news 'at' onastick 'dot' clara.co.uk
->
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> Rob Krakora
+> Senior Software Engineer
+> MessageNet Systems
+> 101 East Carmel Dr. Suite 105
+> Carmel, IN 46032
+> (317)566-1677 Ext. 206
+> (317)663-0808 Fax
 >
 
- I can confirm this behaviour on gspcaxx and spcaxx drivers since
-several years ago.
+George:
 
-  RomÃ¡n
+If it is not an audio only channel, then specify the video device:  If
+your video device may be something other than 'video0' like 'video1'.
+
+mplayer -vo xv tv:// -tv
+driver=v4l2:device=/dev/video0:alsa:immediatemode=0:adevice=hw.1,0:norm=ntsc:chanlist=us-cable:channel=3
+
+Best Regards,
+
+-- 
+Rob Krakora
+Senior Software Engineer
+MessageNet Systems
+101 East Carmel Dr. Suite 105
+Carmel, IN 46032
+(317)566-1677 Ext. 206
+(317)663-0808 Fax
