@@ -1,20 +1,15 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail-ew0-f225.google.com ([209.85.219.225])
+Received: from bay0-omc2-s28.bay0.hotmail.com ([65.54.246.164])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <claesl@gmail.com>) id 1MEe8a-0003qX-OO
-	for linux-dvb@linuxtv.org; Thu, 11 Jun 2009 08:51:48 +0200
-Received: by ewy25 with SMTP id 25so1484269ewy.17
-	for <linux-dvb@linuxtv.org>; Wed, 10 Jun 2009 23:51:15 -0700 (PDT)
-Message-ID: <4A30A95D.3040008@gmail.com>
-Date: Thu, 11 Jun 2009 08:51:09 +0200
-From: Claes Lindblom <claesl@gmail.com>
+	(envelope-from <legssmit@hotmail.com>) id 1MJOz3-0006qQ-Ib
+	for linux-dvb@linuxtv.org; Wed, 24 Jun 2009 11:41:38 +0200
+Message-ID: <BAY111-W32D2A0319B9EE35C1A7008D1370@phx.gbl>
+From: Legs Smit <legssmit@hotmail.com>
+To: <linux-dvb@linuxtv.org>
+Date: Wed, 24 Jun 2009 09:41:01 +0000
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-References: <621110570904131518w220106d7u67934966dbb8c7dd@mail.gmail.com>	<49E3D16E.3070307@gmail.com>
-	<49E3D21D.7010406@gmail.com>
-In-Reply-To: <49E3D21D.7010406@gmail.com>
-Cc: abraham.manu@gmail.com
-Subject: Re: [linux-dvb] SkyStar HD2 issues, signal sensitivity, etc.
+Subject: [linux-dvb] s2-liplianin with TT S2-3600 gives TS continuity errors
+ on high (niced!) cpu load
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,39 +18,94 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1500905730=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+--===============1500905730==
+Content-Type: multipart/alternative;
+	boundary="_bb1b0025-c3ed-4af0-8d70-4ded530001d6_"
 
-Manu Abraham wrote:
-> The s2-liplianin tree doesn't use an updated tree for the mantis
-> based devices unfortunately. It is stuck with older changesets of
-> the mantis tree.
->
-> The s2-liplianin tree contains (ed) ? some clock related changes
-> which were not favourable for the STB0899 demodulator, which is
-> capable of causing potential hardware damage.
->   
-Is this still valid that s2-liplianin tree is out of date and if so, 
-does anyone have a patch to update it?
-It's does not sound so good when we start talking about hardware damage.
+--_bb1b0025-c3ed-4af0-8d70-4ded530001d6_
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-I have a problem with the recent s2-liplianin that the driver stops 
-working and both scanning and tuning fails and a reboot does not help
-and I have to poweroff my computer and restart it for it to work again.
-Has anyone had the same issue? It's running on a Gigabyte GA M56S S3 
-motherboard if that's any help.
 
-Regards
-Claes Lindblom
+On my 2.6.26.8 kernel=2C vdr-1.7.0 system I am running the current s2-lipli=
+anin drivers. VDR is patched with the vdr-1.7.0-s2api-07102008-h264-clean.d=
+iff patch.
 
+I have one TT S2-3600 (usb) card=2C 2 TT budget cards=2C and 1 1 TT full fe=
+ature (1.3) card on my system.
+All works fine=2C BUT when background jobs fill up my system (e.g. Noad=2C =
+but also cpuburn-in) I get TS continuity errors on the TT-S2-3600 . The bac=
+kground jobs work on lowest (19) priority=2C all others on normal (0) prio.
+This ONLY occurs on the USB card=2C all PCI cards have no problems with thi=
+s. It seems some part of the communication between the card and VDR is runn=
+ing on a priority that is too low...
+1) Can anyone confirm this kind of behaviour?2) How can I help to debug thi=
+s problem?
+I already tried vdr-1.7.5 -> same problemI have used multiproto S2-drivers =
+before=2C and I can't remember that I had this problem then...
+Thanks all for all this beautiful open source software!!!!!
+_________________________________________________________________
+Gratis emoticons voor in je Messenger!
+http://www.msnmessengerexperience.nl/chuck/=
+
+--_bb1b0025-c3ed-4af0-8d70-4ded530001d6_
+Content-Type: text/html; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+<html>
+<head>
+<style>
+.hmmessage P
+{
+margin:0px=3B
+padding:0px
+}
+body.hmmessage
+{
+font-size: 10pt=3B
+font-family:Verdana
+}
+</style>
+</head>
+<body class=3D'hmmessage'>
+<div>On my 2.6.26.8 kernel=2C vdr-1.7.0 system I am running the current s2-=
+liplianin drivers. VDR is patched with the&nbsp=3Bvdr-1.7.0-s2api-07102008-=
+h264-clean.diff patch.<br></div><div><br></div><div>I have one TT S2-3600 (=
+usb) card=2C 2 TT budget cards=2C and 1 1 TT full feature (1.3) card on my =
+system.</div><div><br></div><div>All works fine=2C BUT when background jobs=
+ fill up my system (e.g. Noad=2C but also cpuburn-in) I get TS continuity e=
+rrors on the TT-S2-3600 . The background jobs work on lowest (19) priority=
+=2C all others on normal (0) prio.</div><div><br></div><div>This ONLY occur=
+s on the USB card=2C all PCI cards have no problems with this. It seems som=
+e part of the communication between the card and VDR is running on a priori=
+ty that is too low...</div><div><br></div><div>1) Can anyone confirm this k=
+ind of behaviour?</div><div>2) How can I help to debug this problem?</div><=
+div><br></div><div>I already tried vdr-1.7.5 -&gt=3B same problem</div><div=
+>I have used multiproto S2-drivers before=2C and I can't remember that I ha=
+d this problem then...</div><div><br></div><div>Thanks all for all this bea=
+utiful open source software!!!!!</div><br /><hr />Alle tips en trics. <a hr=
+ef=3D'http://www.microsoft.com/netherlands/windowslive/Views/tipsItemDetail=
+.aspx' target=3D'_new'>Ontdek nu de nieuwe Windows Live</a></body>
+</html>=
+
+--_bb1b0025-c3ed-4af0-8d70-4ded530001d6_--
+
+
+--===============1500905730==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1500905730==--
