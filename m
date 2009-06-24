@@ -1,19 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from hermes.acsalaska.net ([209.112.173.230])
+Received: from mail-ew0-f222.google.com ([209.85.219.222])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <rogerx@sdf.lonestar.org>) id 1MDWpI-0002qw-DH
-	for linux-dvb@linuxtv.org; Mon, 08 Jun 2009 06:51:17 +0200
-Received: from [192.168.1.3] (66-230-83-240-rb1.fai.dsl.dynamic.acsalaska.net
-	[66.230.83.240])
-	by hermes.acsalaska.net (8.14.1/8.14.1) with ESMTP id n584p60Z079462
-	for <linux-dvb@linuxtv.org>; Sun, 7 Jun 2009 20:51:07 -0800 (AKDT)
-	(envelope-from rogerx@sdf.lonestar.org)
-From: Roger <rogerx@sdf.lonestar.org>
+	(envelope-from <balteo@gmail.com>) id 1MJSzR-0008VD-0d
+	for linux-dvb@linuxtv.org; Wed, 24 Jun 2009 15:58:17 +0200
+Received: by ewy22 with SMTP id 22so869770ewy.26
+	for <linux-dvb@linuxtv.org>; Wed, 24 Jun 2009 06:57:43 -0700 (PDT)
+MIME-Version: 1.0
+Date: Wed, 24 Jun 2009 15:57:43 +0200
+Message-ID: <1460a1a20906240657t5b114b68r27beba0735a0e3f7@mail.gmail.com>
+From: Julien Martin <balteo@gmail.com>
 To: linux-dvb@linuxtv.org
-Date: Sun, 07 Jun 2009 20:51:03 -0800
-Message-Id: <1244436663.3797.3.camel@localhost2.local>
-Mime-Version: 1.0
-Subject: [linux-dvb] s5h1411_readreg: readreg error (ret == -5)
+Subject: [linux-dvb] how to code a driver for a tv tuner card??
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -22,41 +19,57 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1073996366=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
->From looking at "linux/drivers/media/dvb/frontends/s5h1411.c",  The
-s5h1411_readreg wants to see "2" but is getting "-5" from the i2c bus.
+--===============1073996366==
+Content-Type: multipart/alternative; boundary=0015174beb1cc323b2046d187d83
 
---- Snip ---
+--0015174beb1cc323b2046d187d83
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-s5h1411_readreg: readreg error (ret == -5)
-pvrusb2: unregistering DVB devices
-device: 'dvb0.net0': device_unregister
+Hello,
 
---- Snip ---
+I am posting today because I am VERY interested in learning more about how
+to code a driver for a tv tuner card.
 
-What exactly does this mean?
+I am learning C and to a lesser extent Assembly.
+
+Could you be so kind as to answer the following questions:
+
+1. What documentation do you suggest I read in order to start coding drivers
+for tv tuner cards for Linux?
+2. What programming languages are used for the above purpose?
+3. Do I need to know electronics?
+
+Thanks in advance,
+
+Julien.
+
+--0015174beb1cc323b2046d187d83
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+Hello,<br><br>I am posting today because I am VERY interested in learning more about how to code a driver for a tv tuner card.<br><br>I am learning C and to a lesser extent Assembly.<br><br>Could you be so kind as to answer the following questions:<br>
+<br>1. What documentation do you suggest I read in order to start coding drivers for tv tuner cards for Linux?<br>2. What programming languages are used for the above purpose?<br>3. Do I need to know electronics?<br><br>Thanks in advance,<br>
+<br>Julien.<br>
+
+--0015174beb1cc323b2046d187d83--
 
 
-
-$ uname -a
-Linux localhost2.local 2.6.29-gentoo-r4Y #9 SMP PREEMPT Tue Jun 2
-03:38:16 AKDT 2009 i686 Pentium III (Coppermine) GenuineIntel GNU/Linux
-
-Using pvrusb2 which requests firmware to initialize a Hauppauge HVR-1950
-device.
-
--- 
-Roger
-http://rogerx.freeshell.org
-
+--===============1073996366==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1073996366==--
