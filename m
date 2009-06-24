@@ -1,55 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:41162 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755917AbZFAS66 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jun 2009 14:58:58 -0400
-Date: Mon, 1 Jun 2009 15:58:54 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Paulraj, Sandeep" <s-paulraj@ti.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"Grosen, Mark" <mgrosen@ti.com>
-Subject: Re: New Driver for DaVinci DM355/DM365/DM6446
-Message-ID: <20090601155854.38350ab5@pedra.chehab.org>
-In-Reply-To: <C9D59C82B94F474B872F2092A87F2614817980B0@dlee07.ent.ti.com>
-References: <C9D59C82B94F474B872F2092A87F261481797D4B@dlee07.ent.ti.com>
-	<20090601133436.06a4a4a0@pedra.chehab.org>
-	<C9D59C82B94F474B872F2092A87F261481797F62@dlee07.ent.ti.com>
-	<20090601145714.36158fe8@pedra.chehab.org>
-	<C9D59C82B94F474B872F2092A87F2614817980B0@dlee07.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from doors.huapi.net.ar ([168.83.68.222]:58837 "EHLO
+	doors.huapi.net.ar" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751548AbZFXPEG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Jun 2009 11:04:06 -0400
+Received: from [201.216.241.201] (helo=[192.168.101.3])
+	by doors.huapi.net.ar with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <tron@acm.org>)
+	id 1MJTgv-000122-JH
+	for linux-media@vger.kernel.org; Wed, 24 Jun 2009 11:43:14 -0300
+Message-ID: <4A423B88.9060602@acm.org>
+Date: Wed, 24 Jun 2009 11:43:20 -0300
+From: Carlos G Mendioroz <tron@acm.org>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+References: <1460a1a20906240657t5b114b68r27beba0735a0e3f7@mail.gmail.com> <200906241623.29466.hftom@free.fr>
+In-Reply-To: <200906241623.29466.hftom@free.fr>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
+Subject: Re: [linux-dvb] how to code a driver for a tv tuner card??
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 1 Jun 2009 13:39:17 -0500
-"Paulraj, Sandeep" <s-paulraj@ti.com> escreveu:
+There's a problem, though.
+Programming data for the chipsets seems not to be easily available.
 
-> > > [Sandeep] WE don't propose any API changes. This module for which we  
-> > want to submit patches is a TI proprietary IP. We currently implement this
-> > as a character device and have a few IOCTL's.  
-> > > We do not follow the V4L2 framework and do not use any V4L2 IOCTLs.
-> > >
-> > > Can we continue to use it as a character driver?  
-> > 
-> > In this case, I don't see why you want it to be upstream.  
-> [Sandeep] TI customers and TI itself want to see this driver part of open source trees. Considering this we would like to submit our patches to the linux-media mailing list.
-> IS this OK?
+I would also love to be able to make a try at supporting a card (in my
+case, the HVR-2250 in analog mode) but to do so requires access to info
+that I could not get.
 
-If you're just providing a character API with some protocol protected by IP,
-you're not providing the source code of the driver, but something else. 
+-Carlos
 
-It is not ok to provide such driver. 
+Christophe Thommeret @ 24/6/2009 11:23 UTC -0300 dixit:
+> Le Wednesday 24 June 2009 15:57:43 Julien Martin, vous avez écrit :
+>> Hello,
+>>
+>> I am posting today because I am VERY interested in learning more about how
+>> to code a driver for a tv tuner card.
+>>
+>> I am learning C and to a lesser extent Assembly.
+>>
+>> Could you be so kind as to answer the following questions:
+>>
+>> 1. What documentation do you suggest I read in order to start coding
+>> drivers for tv tuner cards for Linux?
+>> 2. What programming languages are used for the above purpose?
+>> 3. Do I need to know electronics?
+> 
+>  Browsing the v4l-dvb repository should answer most of your questions ..
+> 
 
-Also, even if you disclosure your protocol, it makes no sense to create another
-API for userspace communication, for features that already exists or can easily
-expand to accommodate your needs. 
-
-So, you should really use the V4L2 API for the driver, expanding it where
-required, if you want it to be considered for upstream addition.
-
-
-
-Cheers,
-Mauro
+-- 
+Carlos G Mendioroz  <tron@acm.org>
