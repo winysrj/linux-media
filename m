@@ -1,53 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bcode.com ([150.101.204.108]:62092 "EHLO mail.bcode.com"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751833AbZFLBC3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2009 21:02:29 -0400
-Date: Fri, 12 Jun 2009 11:02:28 +1000
-From: Erik de Castro Lopo <erik@bcode.com>
-To: linux-media@vger.kernel.org
-Subject: GPL code for Omnivision USB video camera available.
-Message-Id: <20090612110228.3f7e42ab.erik@bcode.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-yx0-f186.google.com ([209.85.210.186]:55022 "EHLO
+	mail-yx0-f186.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755868AbZFYNOo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Jun 2009 09:14:44 -0400
+Received: by yxe16 with SMTP id 16so507991yxe.33
+        for <linux-media@vger.kernel.org>; Thu, 25 Jun 2009 06:14:46 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <COL103-W1055421B0E48007A57D79988340@phx.gbl>
+References: <COL103-W53605D85359D631FC60D0F88380@phx.gbl>
+	 <COL103-W40B198179C2E84587DC71F88380@phx.gbl>
+	 <829197380906211429k7176a93fm49d49851e6d2df1e@mail.gmail.com>
+	 <COL103-W308B321250A646D788B25188390@phx.gbl>
+	 <829197380906221453pa0738b4j6fb7c4b045f6aa1@mail.gmail.com>
+	 <COL103-W1055421B0E48007A57D79988340@phx.gbl>
+Date: Thu, 25 Jun 2009 09:14:42 -0400
+Message-ID: <829197380906250614x30c118f1w1896811776ef998d@mail.gmail.com>
+Subject: Re: [PARTIALLY SOLVED] Can't use my Pinnacle PCTV HD Pro stick - what
+	am I doing wrong?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: George Adams <g_adams27@hotmail.com>
+Cc: linux-media@vger.kernel.org, video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Thu, Jun 25, 2009 at 1:17 AM, George Adams<g_adams27@hotmail.com> wrote:
+>
+> Hello!  In a last ditch effort, I decided to try downloading a v4l driver snapshot from February back when I had my Pinnacle HD Pro Stick device working.  To my amazement, the old drivers worked!
+>
+> By process of elimination (trying newer and newer drivers until my Pinnacle device was once again not recognized), it appears that changeset 11331 (http://linuxtv.org/hg/v4l-dvb/rev/00525b115901), from Mar. 31 2009, is the first one that causes my device to not be recognized.  This is the changeset that updated the em28xx driver from 0.1.1 to 0.1.2.  Here, again, is the dmesg output from a newer driver that does NOT work (this one from a driver set one day later, on Apr. 1, 2009):
 
-I have a driver for a USB video camera that I'd like to see added to
-the mainline kernel, mainly so I don't have to fix breakage due to
-constant changes in the kernel :-).
+Interesting.  What distro and version of the kernel are you running?
 
-The code is GPL and is available here:
+Yesterday Michael Krufky pointed out to me that the v4l subdev
+registration is broken for the au0828 driver when using the current
+tip against Ubuntu Hardy (2.6.24), so it now seems likely that it's
+the exact same issue.
 
-    http://stage.bcode.com/erikd/ovcamchip
+Thanks for taking the time to narrow down the actual change that
+caused the issue.
 
-and the history of this code is here:
+I guess somebody is going to have to build a box with Hardy and debug
+this issue.  :-/
 
-    http://stage.bcode.com/erikd/ovcamchip/README
+Devin
 
-My problem is that I am way too busy to sheperd this into the kernel
-myself. If someone is willing to work on getting this in, I can send
-them a camera to keep. If getting paid is more likely to help someone
-focus on the task then that is also a possibility.
-
-Any takers? Please email me privately.
-
-Cheers,
-Erik
 -- 
-=======================
-erik de castro lopo
-senior design engineer
-
-bCODE
-level 2, 2a glen street
-milsons point
-sydney nsw 2061
-australia
-
-tel +61 (0)2 9954 4411
-fax +61 (0)2 9954 4422
-www.bcode.com
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
