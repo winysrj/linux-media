@@ -1,126 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:44181 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755306AbZFKUBX (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:37893 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752580AbZFYPMy convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2009 16:01:23 -0400
-Date: Thu, 11 Jun 2009 17:01:20 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Andy Walls <awalls@radix.net>
-Cc: linux-media@vger.kernel.org, Terry Wu <terrywu2009@gmail.com>,
-	Christopher Pascoe <c.pascoe@itee.uq.edu.au>
-Subject: Re: [PATCH v2] tuner-xc2028: Fix 7 MHz DVB-T
-Message-ID: <20090611170120.2a0d7179@pedra.chehab.org>
-In-Reply-To: <1244717870.3158.22.camel@palomino.walls.org>
-References: <1244717870.3158.22.camel@palomino.walls.org>
-Mime-Version: 1.0
+	Thu, 25 Jun 2009 11:12:54 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5PFCqmJ029521
+	for <linux-media@vger.kernel.org>; Thu, 25 Jun 2009 10:12:57 -0500
+Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id n5PFCqD9015730
+	for <linux-media@vger.kernel.org>; Thu, 25 Jun 2009 10:12:52 -0500 (CDT)
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	Muralidharan Karicheri <a0868495@dal.design.ti.com>
+Date: Thu, 25 Jun 2009 10:12:50 -0500
+Subject: RE: [PATCH] adding support for setting bus parameters in sub device
+Message-ID: <A69FA2915331DC488A831521EAE36FE40139F9DC89@dlee06.ent.ti.com>
+References: <1245273405-9060-1-git-send-email-m-karicheri2@ti.com>
+In-Reply-To: <1245273405-9060-1-git-send-email-m-karicheri2@ti.com>
+Content-Language: en-US
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 11 Jun 2009 06:57:50 -0400
-Andy Walls <awalls@radix.net> escreveu:
+Hi,
 
-> All,
-> 
-> The following patch should fix 7 MHz DVB-T with the XC3028 using the
-> DTV7 firmware from the xc3028-v27.fw firmware image.
+Is this ready to get merged or still require discussion before merge?
 
-DTV7 and DTV78 support were added and tested in Australia by Christopher
-Pascoe, as can be seen on his tree that it is known to work in Australia:
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+email: m-karicheri2@ti.com
 
-	http://linuxtv.org/hg/~pascoe/xc-test/file/d4f7804a393c/linux/drivers/media/video/tuner-xc2028.c
+>-----Original Message-----
+>From: Karicheri, Muralidharan
+>Sent: Wednesday, June 17, 2009 5:17 PM
+>To: linux-media@vger.kernel.org
+>Cc: davinci-linux-open-source@linux.davincidsp.com; Muralidharan Karicheri;
+>Karicheri, Muralidharan
+>Subject: [PATCH] adding support for setting bus parameters in sub device
+>
+>From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
+>
+>This patch adds support for setting bus parameters such as bus type
+>(Raw Bayer or Raw YUV image data bus), bus width (example 10 bit raw
+>image data bus, 10 bit BT.656 etc.), and polarities (vsync, hsync, field
+>etc) in sub device. This allows bridge driver to configure the sub device
+>bus for a specific set of bus parameters through s_bus() function call.
+>This also can be used to define platform specific bus parameters for
+>host and sub-devices.
+>
+>Reviewed by: Hans Verkuil <hverkuil@xs4all.nl>
+>Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
+>---
+>Applies to v4l-dvb repository
+>
+> include/media/v4l2-subdev.h |   40
+>++++++++++++++++++++++++++++++++++++++++
+> 1 files changed, 40 insertions(+), 0 deletions(-)
+>
+>diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+>index 1785608..8532b91 100644
+>--- a/include/media/v4l2-subdev.h
+>+++ b/include/media/v4l2-subdev.h
+>@@ -37,6 +37,43 @@ struct v4l2_decode_vbi_line {
+> 	u32 type;		/* VBI service type (V4L2_SLICED_*). 0 if no
+>service found */
+> };
+>
+>+/*
+>+ * Some sub-devices are connected to the host/bridge device through a bus
+>that
+>+ * carries the clock, vsync, hsync and data. Some interfaces such as
+>BT.656
+>+ * carries the sync embedded in the data where as others have separate
+>line
+>+ * carrying the sync signals. The structure below is used to define bus
+>+ * configuration parameters for host as well as sub-device
+>+ */
+>+enum v4l2_bus_type {
+>+	/* Raw YUV image data bus */
+>+	V4L2_BUS_RAW_YUV,
+>+	/* Raw Bayer image data bus */
+>+	V4L2_BUS_RAW_BAYER
+>+};
+>+
+>+struct v4l2_bus_settings {
+>+	/* yuv or bayer image data bus */
+>+	enum v4l2_bus_type type;
+>+	/* subdev bus width */
+>+	u8 subdev_width;
+>+	/* host bus width */
+>+	u8 host_width;
+>+	/* embedded sync, set this when sync is embedded in the data stream
+>*/
+>+	unsigned embedded_sync:1;
+>+	/* master or slave */
+>+	unsigned host_is_master:1;
+>+	/* 0 - active low, 1 - active high */
+>+	unsigned pol_vsync:1;
+>+	/* 0 - active low, 1 - active high */
+>+	unsigned pol_hsync:1;
+>+	/* 0 - low to high , 1 - high to low */
+>+	unsigned pol_field:1;
+>+	/* 0 - active low , 1 - active high */
+>+	unsigned pol_data:1;
+>+	/* 0 - sample at falling edge , 1 - sample at rising edge */
+>+	unsigned edge_pclock:1;
+>+};
+>+
+> /* Sub-devices are devices that are connected somehow to the main bridge
+>    device. These devices are usually audio/video muxers/encoders/decoders
+>or
+>    sensors and webcam controllers.
+>@@ -199,6 +236,8 @@ struct v4l2_subdev_audio_ops {
+>
+>    s_routing: see s_routing in audio_ops, except this version is for video
+> 	devices.
+>+
+>+   s_bus: set bus parameters in sub device to configure the bus
+>  */
+> struct v4l2_subdev_video_ops {
+> 	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32
+>config);
+>@@ -219,6 +258,7 @@ struct v4l2_subdev_video_ops {
+> 	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
+> 	int (*enum_framesizes)(struct v4l2_subdev *sd, struct
+>v4l2_frmsizeenum *fsize);
+> 	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct
+>v4l2_frmivalenum *fival);
+>+	int (*s_bus)(struct v4l2_subdev *sd, const struct v4l2_bus_settings
+>*bus);
+> };
+>
+> struct v4l2_subdev_ops {
+>--
+>1.6.0.4
 
-On that time, he did some experimental tests and observed what should be the
-real offset.
-
-His code does this:
-
-} else { /* DTV */
-	offset = 27500000;
-+	/*
-+	 * We must adjust the offset by 500kHz in two cases in order
-+	 * to correctly center the IF output:
-+	 * 1) When the ZARLINK456 or DIBCOM52 tables were explicitly
-+	 *    selected and a 7MHz channel is tuned;
-+	 * 2) When tuning a VHF channel with DTV78 firmware.
-+	 */
-+	if (((priv->cur_fw.type & DTV7) &&
-+	     (priv->cur_fw.scode_table & (ZARLINK456 | DIBCOM52))) ||
-+	    ((priv->cur_fw.type & DTV78) && freq < 470000000))
-		offset -= 500000; 
-
-So, it selects ZARLINK456 or DIBCOM52, depending on the demod IF, and corrects
-the offset to be 2250000Hz for DTV7 or DTV78 firmwares and VHF.
-
-This is exactly what we're doing with the current code:
-
-                else if (priv->cur_fw.type & DTV7)
-                        offset = 2250000;
-                else    /* DTV8 or DTV78 */
-                        offset = 2750000;
-
-                /*
-                 * We must adjust the offset by 500kHz  when
-                 * tuning a 7MHz VHF channel with DTV78 firmware
-                 * (used in Australia, Italy and Germany)
-                 */
-                if ((priv->cur_fw.type & DTV78) && freq < 470000000)
-                        offset -= 500000;
-
-So, I suspect that the current code is correct.
-
-For us to double check if any other change at the code didn't break for
-Australia (and other DTV7/DTV78 countries), it would be really cool if people
-could report about success or failure with tuner xc3028 on those countries.
-
-For now, I'll mark this patch as RFC at patchwork.
-
-Unfortunately, we've lost the contact with Christopher, since AFAIK, he moved
-to another country.
-
-Cheers,
-Mauro.
-
-> 
-> Comments?
-> 
-> Regards,
-> Andy Walls
-> 
-> Signed-off-by: Andy Walls <awalls@radix.net>
-> Tested-by: Terry Wu <terrywu2009@gmail.com>
-> 
-> diff -r fad35ab59848 linux/drivers/media/common/tuners/tuner-xc2028.c
-> --- a/linux/drivers/media/common/tuners/tuner-xc2028.c	Fri Jun 05 08:42:27 2009 -0400
-> +++ b/linux/drivers/media/common/tuners/tuner-xc2028.c	Thu Jun 11 06:52:55 2009 -0400
-> @@ -1099,8 +1099,19 @@
->  	}
->  
->  	/* All S-code tables need a 200kHz shift */
-> -	if (priv->ctrl.demod)
-> +	if (priv->ctrl.demod) {
->  		demod = priv->ctrl.demod + 200;
-> +		/*
-> +		 * The DTV7 S-code table needs a 700 kHz shift.
-> +		 * Thanks to Terry Wu <terrywu2009@gmail.com> for reporting this
-> +		 *
-> +		 * DTV7 is only used in Australia.  Germany or Italy may also
-> +		 * use this firmware after initialization, but a tune to a UHF
-> +		 * channel should then cause DTV78 to be used.
-> +		 */
-> +		if (type & DTV7)
-> +			demod += 500;
-> +	}
->  
->  	return generic_set_freq(fe, p->frequency,
->  				T_DIGITAL_TV, type, 0, demod);
-> 
-> 
-
-
-
-
-Cheers,
-Mauro
