@@ -1,51 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3325 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750839AbZFZSQs (ORCPT
+Received: from mail-ew0-f210.google.com ([209.85.219.210]:55082 "EHLO
+	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752606AbZFYSiK convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2009 14:16:48 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Halim Sahin <halim.sahin@t-online.de>
-Subject: Re: ok more details: Re: bttv problem loading takes about several minutes
-Date: Fri, 26 Jun 2009 20:16:48 +0200
-Cc: hermann pitton <hermann-pitton@arcor.de>,
-	linux-media@vger.kernel.org
-References: <28237.62.70.2.252.1245331454.squirrel@webmail.xs4all.nl> <20090619114937.GA4493@halim.local> <200906191447.33642.hverkuil@xs4all.nl>
-In-Reply-To: <200906191447.33642.hverkuil@xs4all.nl>
+	Thu, 25 Jun 2009 14:38:10 -0400
+Received: by ewy6 with SMTP id 6so2573772ewy.37
+        for <linux-media@vger.kernel.org>; Thu, 25 Jun 2009 11:38:12 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200906262016.48659.hverkuil@xs4all.nl>
+In-Reply-To: <829197380906251125t56fe49ccqee97eab659be9974@mail.gmail.com>
+References: <36839.62.70.2.252.1245937439.squirrel@webmail.xs4all.nl>
+	 <829197380906251125t56fe49ccqee97eab659be9974@mail.gmail.com>
+Date: Thu, 25 Jun 2009 14:38:12 -0400
+Message-ID: <37219a840906251138n4f101500o6c3833272a6b92@mail.gmail.com>
+Subject: Re: [PARTIALLY SOLVED] Can't use my Pinnacle PCTV HD Pro stick - what
+	am I doing wrong?
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, video4linux-list@redhat.com,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 19 June 2009 14:47:33 Hans Verkuil wrote:
-> On Friday 19 June 2009 13:49:37 Halim Sahin wrote:
-> > Hi,
-> > Ok I have tested
-> > modprobe bttv audiodev=-1 card=34 tuner=24 gbuffers=16
-> >
-> > I am seeing again the delay.
-> > More ideas?
-> 
-> Use more printk messages in the bttv_init_card2() function to try and narrow 
-> down the exact function call that is causing the delay. I still have no 
-> idea what it might be.
-> 
-> Regards,
-> 
-> 	Hans
-> 
+On Thu, Jun 25, 2009 at 2:25 PM, Devin
+Heitmueller<dheitmueller@kernellabs.com> wrote:
+> Hans,
+>
+> I just spoke with mkrufky, and he confirmed the issue does occur with
+> the HVR-950.  However, the em28xx driver does not do a printk() when
+> the subdev registration fails (I will submit a patch to fix that).
+>
+> Please let me know if you have any further question.
+>
+> Thanks for your assistance,
 
-Hi Halim,
+I'd like to add:
 
-Did you have time to try and narrow this down?
+Testing against 2.6.24.7: v4l subdev registration fails.
+Testing against 2.6.25.20: v4l subdev registration fails.
+...
+Testing against 2.6.26.8: success!
+Testing against 2.6.27.25: success!
+Testing against 2.6.28.10: success!
+... (I didn't bother testing 2.6.29.y)
+Testing against 2.6.30: success!
 
 Regards,
 
-        Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Mike
