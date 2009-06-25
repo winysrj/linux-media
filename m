@@ -1,25 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hrndva-commlb.mail.rr.com ([71.74.57.9]:47114 "EHLO
-	hrndva-commlb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751026AbZFZFEN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2009 01:04:13 -0400
-Message-Id: <7h9gbp$dkab4u@rrcs-agw-01b.hrndva.rr.com>
-From: Dunhill Promo <kevin_jones@rrohio.com>
-Reply-To: dunhill02@9.cn
-To: <in@org>
-Subject: Mrs Rose Alvin
-Date: Fri, 26 Jun 2009 0:04:14 -0500
+Received: from mail.gmx.net ([213.165.64.20]:33617 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754987AbZFYPmF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Jun 2009 11:42:05 -0400
+Message-ID: <4A439A81.6000806@gmx.de>
+Date: Thu, 25 Jun 2009 17:40:49 +0200
+From: wk <handygewinnspiel@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+To: linux-media@vger.kernel.org
+Subject: Why is the old DVB ML still alive?
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-You have won  £750.000.00  GBP,  in this Year Dunhill Products Promotion,Please fill the form below for claims.
+Why is the old dvb (linux-dvb) mailing list still alive?
 
-1.Full Name
-2.Address
-3.Occupation
-4.Tel
-5.Nationality
+One of the arguments migrating all dvb related stuff to this combined ml 
+was to reduce overhead.
+But in fact some information might be lost now, since not everybody will 
+look at both ML's.
+Wouldn't it be a good idea to close the old ml now / is this foreseen at 
+all?
+
+--Winfried
