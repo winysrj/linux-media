@@ -1,93 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54413 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750866AbZFVPot convert rfc822-to-8bit (ORCPT
+Received: from mail-gx0-f222.google.com ([209.85.217.222]:37869 "EHLO
+	mail-gx0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753806AbZFYOAD convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2009 11:44:49 -0400
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: "Menon, Nishanth" <nm@ti.com>, Dongsoo Kim <dongsoo.kim@gmail.com>
-CC: "Tuukka.O Toivonen" <tuukka.o.toivonen@nokia.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Koskipaa Antti (Nokia-D/Helsinki)" <antti.koskipaa@nokia.com>,
-	"Cohen David.A (Nokia-D/Helsinki)" <david.cohen@nokia.com>,
-	Alexey Klimov <klimov.linux@gmail.com>,
-	"gary@mlbassoc.com" <gary@mlbassoc.com>
-Date: Mon, 22 Jun 2009 10:46:28 -0500
-Subject: RE: OMAP3 ISP and camera drivers (update 2)
-Message-ID: <A24693684029E5489D1D202277BE894441306F5F@dlee02.ent.ti.com>
-References: <4A3A7AE2.9080303@maxwell.research.nokia.com>
- <5e9665e10906200205ga45073eue92b73abba79e41c@mail.gmail.com>
- <200906221652.02119.tuukka.o.toivonen@nokia.com>
- <A24693684029E5489D1D202277BE894441306D3E@dlee02.ent.ti.com>
- <1DA2ED23-DD14-4E7C-9CDB-D86009620337@gmail.com>
- <A24693684029E5489D1D202277BE894441306D8A@dlee02.ent.ti.com>
- <7A436F7769CA33409C6B44B358BFFF0C0115F506D2@dlee02.ent.ti.com>
-In-Reply-To: <7A436F7769CA33409C6B44B358BFFF0C0115F506D2@dlee02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Thu, 25 Jun 2009 10:00:03 -0400
+Received: by gxk22 with SMTP id 22so772392gxk.13
+        for <linux-media@vger.kernel.org>; Thu, 25 Jun 2009 07:00:05 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <36839.62.70.2.252.1245937439.squirrel@webmail.xs4all.nl>
+References: <36839.62.70.2.252.1245937439.squirrel@webmail.xs4all.nl>
+Date: Thu, 25 Jun 2009 10:00:05 -0400
+Message-ID: <829197380906250700s3f96262bhad95e9a758e88d3f@mail.gmail.com>
+Subject: Re: [PARTIALLY SOLVED] Can't use my Pinnacle PCTV HD Pro stick - what
+	am I doing wrong?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: George Adams <g_adams27@hotmail.com>, linux-media@vger.kernel.org,
+	video4linux-list@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-> -----Original Message-----
-> From: Menon, Nishanth
-> Sent: Monday, June 22, 2009 9:50 AM
-> To: Aguirre Rodriguez, Sergio Alberto; Dongsoo Kim
-> Cc: Tuukka.O Toivonen; Sakari Ailus; linux-media@vger.kernel.org;
-> Hiremath, Vaibhav; Koskipaa Antti (Nokia-D/Helsinki); Cohen David.A
-> (Nokia-D/Helsinki); Alexey Klimov; gary@mlbassoc.com
-> Subject: RE: OMAP3 ISP and camera drivers (update 2)
-> 
-> > -----Original Message-----
-> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> > owner@vger.kernel.org] On Behalf Of Aguirre Rodriguez, Sergio Alberto
-> > Sent: Monday, June 22, 2009 5:22 PM
-> > > Thank you Sergio. So you mean that I can buy OMAP Zoom target board
-> > > with MT or OV sensor on it sooner or later? cool!
-> >
-> > AFAIK, when you buy the Zoom Target platform, you can only have OV3640
-> > sensor. BUT you could hack the board to include another sensor (Maybe
-> > consulting Logic people could clarify this).
-> >
-> > In Zoom1, I'll be able just to test the OV3640 sensor, which is the one
-> I
-> > have available here.
-> >
-> > On 3430SDP, is where I do have MT9P012 sensor (5MP RAW sensor) connected
-> > in parallel, and an OV3640 (Smart sensor, but driver is using it as RAW
-> > sensor currently only) in CSI2 interface.
-> >
-> 
-> Curious: Thought we had two sensors: OV3640[1] on zoom1 and a 8MP sensor
-> on zoom2[2] -> am I wrong in saying that the connectors are compatible
-> since both are CSI2[3]?
-
-You're not wrong. The connectors are compatible, it'll be a matter of the driver part located in board specific code to request the necessary datalanes for the transmission to be done adequately. But both should follow CSI2 standard spec.
-
-> 
-> SDP3430[4] supports MT9p012(CPI) and ov3640(CSI2).. as long as someone can
-> put a sensor with the right connectors and voltage checks, they should be
-> "plug and play" - at least from a h/w perspective ;)
-
-Yes, that's correct.
-
-Only proper sensor driver will be required of course...
-
-> 
+On Thu, Jun 25, 2009 at 9:43 AM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
+> Hmm, I have Hardy on my laptop at work so I can test this tomorrow with my
+> USB stick. It's a Hauppauge HVR<something>, but it does have a tvp5150. So
+> it should be close enough.
+>
 > Regards,
-> Nishanth Menon
-> Ref:
-> [1] http://www.ovt.com/products/part_detail.php?id=26
-> [2]
-> https://www.omapzoom.org/gf/project/omapzoom/wiki/?pagename=WhatIsZoom2
-> [3]
-> https://www.omapzoom.com/gf/project/omapandroid/mailman/?_forum_action=For
-> umMessageBrowse&thread_id=1912&action=ListThreads&mailman_id=22
-> [4]
-> http://focus.ti.com/general/docs/wtbu/wtbugencontent.tsp?templateId=6123&n
-> avigationId=12013&contentId=28741#sdp
+>
+>       Hans
+
+Hans,
+
+Oh thank goodness.  I was really hoping you would volunteer since you
+are clearly the best candidate for debugging subdev issues.  It took
+me two days to debug my last issue with v4l2_subdev registration and
+it required me to recompile the distro's kernel from source to debug
+the i2c stack.
+
+If you've got an em28xx device with the tvp5150, then it's probably an
+HVR-950, which is almost identical to the Pinnacle 800e.
+
+Cheers,
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
