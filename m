@@ -1,66 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-09.arcor-online.net ([151.189.21.49]:34876 "EHLO
-	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752335AbZFWCli (ORCPT
+Received: from 136-022.dsl.LABridge.com ([206.117.136.22]:1441 "EHLO
+	mail.perches.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754101AbZFYFNn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2009 22:41:38 -0400
-Subject: Re: SAA7133 failure under Kernel 2.6.29
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Another Sillyname <anothersname@googlemail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <a413d4880906221902u6ea088abk6cecfabd0f814051@mail.gmail.com>
-References: <a413d4880906221902u6ea088abk6cecfabd0f814051@mail.gmail.com>
-Content-Type: text/plain
-Date: Tue, 23 Jun 2009 04:37:57 +0200
-Message-Id: <1245724677.12341.16.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 25 Jun 2009 01:13:43 -0400
+From: Joe Perches <joe@perches.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Stelian Pop <stelian@popies.net>, linux-media@vger.kernel.org
+Subject: [PATCH 06/19] drivers/media: Use PCI_VDEVICE
+Date: Wed, 24 Jun 2009 22:13:22 -0700
+Message-Id: <1ddf60bd631911577e0b075b6457e39ec87416ae.1245906152.git.joe@perches.com>
+In-Reply-To: <cover.1245906151.git.joe@perches.com>
+References: <cover.1245906151.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/media/video/bt8xx/bttv-driver.c |   12 ++++--------
+ drivers/media/video/meye.c              |    3 +--
+ 2 files changed, 5 insertions(+), 10 deletions(-)
 
-Am Dienstag, den 23.06.2009, 03:02 +0100 schrieb Another Sillyname:
-> I noted from a discussion in the list back in April there were
-> problems with SAA7133 devices under 2.6.29 Kernel.
-> 
-> I have such a device and just upgraded to Fed 11 yesterday, device now
-> fails.  Under Fed 10 no problems.
-> 
-> I'm happy to provide dmesg and lspci and whatever else you need,
-> however don't want to clutter the list with data that may not be
-> needed.
-> 
-> The device in question is a 5168:3307 Lifeview Hybrid and I'm getting
-> the "IRQF_Disabled" error previously described.
-> 
-> Any ideas chaps?
-> 
-> Thanks in Advance
-
-thanks for your report!
-
-We tried to track it down, but there was no good/bad on mercurial to
-start on for me and kernel git stuff is pretty well off on any of it
-too.
-
-As far I can say it is not related to that "IRQF Disabled" stuff, but
-that seems to be a cruft anyway and I can't tell what finally all might
-come out of it.
-
-Currently I believe (my!) that it only happens with multiple saa7134
-driver devices.
-
-Likely you are another proof for, that this is not the case.
-
-Please provide related "dmesg" output.
-
-If you are in the same boat, only known current cure is to try a 2.6.30
-or faall back on a 2.6.28. (Likely even more in that soup)
-
-That is of course all still very unplesant (:
-
-Cheers,
-Hermann
-
+diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
+index 5eb1464..d8d3e1d 100644
+--- a/drivers/media/video/bt8xx/bttv-driver.c
++++ b/drivers/media/video/bt8xx/bttv-driver.c
+@@ -4591,14 +4591,10 @@ static int bttv_resume(struct pci_dev *pci_dev)
+ #endif
+ 
+ static struct pci_device_id bttv_pci_tbl[] = {
+-	{PCI_VENDOR_ID_BROOKTREE, PCI_DEVICE_ID_BT848,
+-	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
+-	{PCI_VENDOR_ID_BROOKTREE, PCI_DEVICE_ID_BT849,
+-	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
+-	{PCI_VENDOR_ID_BROOKTREE, PCI_DEVICE_ID_BT878,
+-	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
+-	{PCI_VENDOR_ID_BROOKTREE, PCI_DEVICE_ID_BT879,
+-	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
++	{PCI_VDEVICE(BROOKTREE, PCI_DEVICE_ID_BT848), 0},
++	{PCI_VDEVICE(BROOKTREE, PCI_DEVICE_ID_BT849), 0},
++	{PCI_VDEVICE(BROOKTREE, PCI_DEVICE_ID_BT878), 0},
++	{PCI_VDEVICE(BROOKTREE, PCI_DEVICE_ID_BT879), 0},
+ 	{0,}
+ };
+ 
+diff --git a/drivers/media/video/meye.c b/drivers/media/video/meye.c
+index 1d66855..d0765be 100644
+--- a/drivers/media/video/meye.c
++++ b/drivers/media/video/meye.c
+@@ -1915,8 +1915,7 @@ static void __devexit meye_remove(struct pci_dev *pcidev)
+ }
+ 
+ static struct pci_device_id meye_pci_tbl[] = {
+-	{ PCI_VENDOR_ID_KAWASAKI, PCI_DEVICE_ID_MCHIP_KL5A72002,
+-	  PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0 },
++	{ PCI_VDEVICE(KAWASAKI, PCI_DEVICE_ID_MCHIP_KL5A72002), 0 },
+ 	{ }
+ };
+ 
+-- 
+1.6.3.1.10.g659a0.dirty
 
