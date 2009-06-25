@@ -1,42 +1,83 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:51755 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755988AbZFJTod (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2009 15:44:33 -0400
-Message-Id: <200906101944.n5AJiIKQ031735@imap1.linux-foundation.org>
-Subject: [patch 1/6] radio-mr800.c: missing mutex include
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	abogani@texware.it
-From: akpm@linux-foundation.org
-Date: Wed, 10 Jun 2009 12:44:18 -0700
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <video4linux-list-bounces@redhat.com>
+Message-ID: <COL103-W2753C79E5C866460426A1888340@phx.gbl>
+From: George Adams <g_adams27@hotmail.com>
+To: <dheitmueller@kernellabs.com>, <hverkuil@xs4all.nl>
+Date: Thu, 25 Jun 2009 10:34:56 -0400
+In-Reply-To: <829197380906250700s3f96262bhad95e9a758e88d3f@mail.gmail.com>
+References: <36839.62.70.2.252.1245937439.squirrel@webmail.xs4all.nl>
+	<829197380906250700s3f96262bhad95e9a758e88d3f@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: quoted-printable
+Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
+Subject: RE: [PARTIALLY SOLVED] Can't use my Pinnacle PCTV HD Pro stick -
+ what 	am I doing wrong?
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <linux-media.vger.kernel.org>
 
-From: Alessio Igor Bogani <abogani@texware.it>
 
-radio-mr800.c uses struct mutex, so while <linux/mutex.h> seems to be
-pulled in indirectly by one of the headers it already includes, the right
-thing is to include it directly.
+Y'all are very kind to help - thank you.  I am indeed running Ubuntu Hardy =
+(8.04.2 LTS)=2C kernel on a quad-core Q9550 box.  I'll be happy to provide =
+any other system details that may assist.  "uname -a" returns:
 
-Signed-off-by: Alessio Igor Bogani <abogani@texware.it>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Linux spurgeon 2.6.24-24-server #1 SMP Wed Apr 15 16:36:01 UTC 2009 i686 GN=
+U/Linux
 
- drivers/media/radio/radio-mr800.c |    1 +
- 1 file changed, 1 insertion(+)
 
-diff -puN drivers/media/radio/radio-mr800.c~radio-mr800c-missing-mutex-include drivers/media/radio/radio-mr800.c
---- a/drivers/media/radio/radio-mr800.c~radio-mr800c-missing-mutex-include
-+++ a/drivers/media/radio/radio-mr800.c
-@@ -64,6 +64,7 @@
- #include <media/v4l2-ioctl.h>
- #include <linux/usb.h>
- #include <linux/version.h>	/* for KERNEL_VERSION MACRO */
-+#include <linux/mutex.h>
- 
- /* driver and module definitions */
- #define DRIVER_AUTHOR "Alexey Klimov <klimov.linux@gmail.com>"
-_
+
+
+
+> Date: Thu=2C 25 Jun 2009 10:00:05 -0400
+> Subject: Re: [PARTIALLY SOLVED] Can't use my Pinnacle PCTV HD Pro stick -=
+ what 	am I doing wrong?
+> From: dheitmueller@kernellabs.com
+> To: hverkuil@xs4all.nl
+> CC: g_adams27@hotmail.com=3B linux-media@vger.kernel.org=3B video4linux-l=
+ist@redhat.com
+>=20
+> On Thu=2C Jun 25=2C 2009 at 9:43 AM=2C Hans Verkuil<hverkuil@xs4all.nl> w=
+rote:
+> > Hmm=2C I have Hardy on my laptop at work so I can test this tomorrow wi=
+th my
+> > USB stick. It's a Hauppauge HVR<something>=2C but it does have a tvp515=
+0. So
+> > it should be close enough.
+> >
+> > Regards=2C
+> >
+> >       Hans
+>=20
+> Hans=2C
+>=20
+> Oh thank goodness.  I was really hoping you would volunteer since you
+> are clearly the best candidate for debugging subdev issues.  It took
+> me two days to debug my last issue with v4l2_subdev registration and
+> it required me to recompile the distro's kernel from source to debug
+> the i2c stack.
+>=20
+> If you've got an em28xx device with the tvp5150=2C then it's probably an
+> HVR-950=2C which is almost identical to the Pinnacle 800e.
+>=20
+> Cheers=2C
+>=20
+> Devin
+>=20
+> --=20
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+
+_________________________________________________________________
+Windows Live=99: Keep your life in sync.=20
+http://windowslive.com/explore?ocid=3DTXT_TAGLM_WL_BR_life_in_synch_062009=
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
