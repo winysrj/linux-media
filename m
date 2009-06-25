@@ -1,95 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.28]:29161 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752053AbZFKMjQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2009 08:39:16 -0400
-Received: by yw-out-2324.google.com with SMTP id 5so986075ywb.1
-        for <linux-media@vger.kernel.org>; Thu, 11 Jun 2009 05:39:18 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:35289 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756565AbZFYOgi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Jun 2009 10:36:38 -0400
+Message-ID: <4A438B76.9070906@iki.fi>
+Date: Thu, 25 Jun 2009 17:36:38 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Date: Thu, 11 Jun 2009 20:39:18 +0800
-Message-ID: <15ed362e0906110539ud3349f6x351beabb3e1ed281@mail.gmail.com>
-Subject: [PATCH 4/4] cx23885: add card Magic-Pro ProHDTV Extreme 2
-From: David Wong <davidtlwong@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: multipart/mixed; boundary=0022150491575f58f8046c11e190
+To: Patrick Boettcher <patrick.boettcher@desy.de>,
+	Albert Comerma <albert.comerma@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Yuan EC372S: dib7000p_i2c_enumeration failed
+Content-Type: multipart/mixed;
+ boundary="------------090307030109000001000801"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0022150491575f58f8046c11e190
-Content-Type: text/plain; charset=UTF-8
+This is a multi-part message in MIME format.
+--------------090307030109000001000801
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-cx23885: add card Magic-Pro  ProHDTV Extreme 2 PCI-E.
+moikka!
+I just got USB-ExpressCard converter and tested one of my old sticks. 
+Here is result. Any idea?
 
-Signed-off-by: David T.L. Wong <davidtlwong <at> gmail.com>
+dib0700: stk7700P2_frontend_attach: dib7000p_i2c_enumeration failed. 
+Cannot continue
 
---0022150491575f58f8046c11e190
-Content-Type: text/x-patch; charset=US-ASCII; name="cx23885_magicpro_prohdtve2.patch"
-Content-Disposition: attachment; filename="cx23885_magicpro_prohdtve2.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_fvtgepeg0
+regards
+Antti
+-- 
+http://palosaari.fi/
 
-ZGlmZiAtciBhOTI1MTBhYWQ5ZTIgLXIgNzE5NWNmYmNhOTc0IGxpbnV4L2RyaXZlcnMvbWVkaWEv
-dmlkZW8vY3gyMzg4NS9jeDIzODg1LWNhcmRzLmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92
-aWRlby9jeDIzODg1L2N4MjM4ODUtY2FyZHMuYwlUaHUgSnVuIDExIDE5OjA3OjE1IDIwMDkgKzA4
-MDAKKysrIGIvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1L2N4MjM4ODUtY2FyZHMu
-YwlUaHUgSnVuIDExIDIwOjA0OjA0IDIwMDkgKzA4MDAKQEAgLTIwMiw2ICsyMDIsMTAgQEAKIAkJ
-Lm5hbWUJCT0gIk15Z2ljYSBYODUwNiBETUItVEgiLAogCQkucG9ydGIJCT0gQ1gyMzg4NV9NUEVH
-X0RWQiwKIAl9LAorCVtDWDIzODg1X0JPQVJEX01BR0lDUFJPX1BST0hEVFZFMl0gPSB7CisJCS5u
-YW1lCQk9ICJNYWdpYy1Qcm8gUHJvSERUViBFeHRyZW1lIDIiLAorCQkucG9ydGIJCT0gQ1gyMzg4
-NV9NUEVHX0RWQiwKKwl9LAogfTsKIGNvbnN0IHVuc2lnbmVkIGludCBjeDIzODg1X2Jjb3VudCA9
-IEFSUkFZX1NJWkUoY3gyMzg4NV9ib2FyZHMpOwogCkBAIC0zMjUsNiArMzI5LDEwIEBACiAJCS5z
-dWJ2ZW5kb3IgPSAweDE0ZjEsCiAJCS5zdWJkZXZpY2UgPSAweDg2NTEsCiAJCS5jYXJkICAgICAg
-PSBDWDIzODg1X0JPQVJEX01ZR0lDQV9YODUwNiwKKwl9LCB7CisJCS5zdWJ2ZW5kb3IgPSAweDE0
-ZjEsCisJCS5zdWJkZXZpY2UgPSAweDg2NTcsCisJCS5jYXJkICAgICAgPSBDWDIzODg1X0JPQVJE
-X01BR0lDUFJPX1BST0hEVFZFMiwKIAl9LAogfTsKIGNvbnN0IHVuc2lnbmVkIGludCBjeDIzODg1
-X2lkY291bnQgPSBBUlJBWV9TSVpFKGN4MjM4ODVfc3ViaWRzKTsKQEAgLTcxNiw4ICs3MjQsOSBA
-QAogCQljeDIzODg1X2dwaW9fc2V0KGRldiwgR1BJT185KTsKIAkJYnJlYWs7CiAJY2FzZSBDWDIz
-ODg1X0JPQVJEX01ZR0lDQV9YODUwNjoKKwljYXNlIENYMjM4ODVfQk9BUkRfTUFHSUNQUk9fUFJP
-SERUVkUyOgogCQkvKiBHUElPLTEgcmVzZXQgWEM1MDAwICovCi0JCS8qIEdQSU8tMiByZXNldCBM
-R1M4R0w1ICovCisJCS8qIEdQSU8tMiByZXNldCBMR1M4R0w1IC8gTEdTOEc3NSAqLwogCQljeF9z
-ZXQoR1AwX0lPLCAweDAwMDYwMDAwKTsKIAkJY3hfY2xlYXIoR1AwX0lPLCAweDAwMDAwMDA2KTsK
-IAkJbWRlbGF5KDEwMCk7CkBAIC04MjgsNiArODM3LDcgQEAKIAkJdHMyLT5zcmNfc2VsX3ZhbCAg
-ID0gQ1gyMzg4NV9TUkNfU0VMX1BBUkFMTEVMX01QRUdfVklERU87CiAJCWJyZWFrOwogCWNhc2Ug
-Q1gyMzg4NV9CT0FSRF9NWUdJQ0FfWDg1MDY6CisJY2FzZSBDWDIzODg1X0JPQVJEX01BR0lDUFJP
-X1BST0hEVFZFMjoKIAkJdHMxLT5nZW5fY3RybF92YWwgID0gMHg1OyAvKiBQYXJhbGxlbCAqLwog
-CQl0czEtPnRzX2Nsa19lbl92YWwgPSAweDE7IC8qIEVuYWJsZSBUU19DTEsgKi8KIAkJdHMxLT5z
-cmNfc2VsX3ZhbCAgID0gQ1gyMzg4NV9TUkNfU0VMX1BBUkFMTEVMX01QRUdfVklERU87CmRpZmYg
-LXIgYTkyNTEwYWFkOWUyIC1yIDcxOTVjZmJjYTk3NCBsaW51eC9kcml2ZXJzL21lZGlhL3ZpZGVv
-L2N4MjM4ODUvY3gyMzg4NS1kdmIuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4
-MjM4ODUvY3gyMzg4NS1kdmIuYwlUaHUgSnVuIDExIDE5OjA3OjE1IDIwMDkgKzA4MDAKKysrIGIv
-bGludXgvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1L2N4MjM4ODUtZHZiLmMJVGh1IEp1biAx
-MSAyMDowNDowNCAyMDA5ICswODAwCkBAIC00NDEsNiArNDQxLDI2IEBACiAJLmlmX2toeiA9IDUz
-ODAsCiB9OwogCitzdGF0aWMgc3RydWN0IGxnczhneHhfY29uZmlnIG1hZ2ljcHJvX3Byb2hkdHZl
-Ml9sZ3M4Zzc1X2NvbmZpZyA9IHsKKwkucHJvZCA9IExHUzhHWFhfUFJPRF9MR1M4Rzc1LAorCS5k
-ZW1vZF9hZGRyZXNzID0gMHgxOSwKKwkuc2VyaWFsX3RzID0gMCwKKwkudHNfY2xrX3BvbCA9IDEs
-CisJLnRzX2Nsa19nYXRlZCA9IDEsCisJLmlmX2Nsa19mcmVxID0gMzA0MDAsIC8qIDMwLjQgTUh6
-ICovCisJLmlmX2ZyZXEgPSA2NTAwLCAvKiA2LjUwIE1IeiAqLworCS5pZl9uZWdfY2VudGVyID0g
-MSwKKwkuZXh0X2FkYyA9IDAsCisJLmFkY19zaWduZWQgPSAxLAorCS5hZGNfdnBwID0gMiwgLyog
-MS42IFZwcCAqLworCS5pZl9uZWdfZWRnZSA9IDEsCit9OworCitzdGF0aWMgc3RydWN0IHhjNTAw
-MF9jb25maWcgbWFnaWNwcm9fcHJvaGR0dmUyX3hjNTAwMF9jb25maWcgPSB7CisJLmkyY19hZGRy
-ZXNzID0gMHg2MSwKKwkuaWZfa2h6ID0gNjUwMCwKK307CisKIHN0YXRpYyBpbnQgZHZiX3JlZ2lz
-dGVyKHN0cnVjdCBjeDIzODg1X3RzcG9ydCAqcG9ydCkKIHsKIAlzdHJ1Y3QgY3gyMzg4NV9kZXYg
-KmRldiA9IHBvcnQtPmRldjsKQEAgLTc3OSw2ICs3OTksMTkgQEAKIAkJCQkmbXlnaWNhX3g4NTA2
-X3hjNTAwMF9jb25maWcpOwogCQl9CiAJCWJyZWFrOworCWNhc2UgQ1gyMzg4NV9CT0FSRF9NQUdJ
-Q1BST19QUk9IRFRWRTI6CisJCWkyY19idXMgPSAmZGV2LT5pMmNfYnVzWzBdOworCQlpMmNfYnVz
-MiA9ICZkZXYtPmkyY19idXNbMV07CisJCWZlMC0+ZHZiLmZyb250ZW5kID0gZHZiX2F0dGFjaChs
-Z3M4Z3h4X2F0dGFjaCwKKwkJCSZtYWdpY3Byb19wcm9oZHR2ZTJfbGdzOGc3NV9jb25maWcsCisJ
-CQkmaTJjX2J1cy0+aTJjX2FkYXApOworCQlpZiAoZmUwLT5kdmIuZnJvbnRlbmQgIT0gTlVMTCkg
-eworCQkJZHZiX2F0dGFjaCh4YzUwMDBfYXR0YWNoLAorCQkJCWZlMC0+ZHZiLmZyb250ZW5kLAor
-CQkJCSZpMmNfYnVzMi0+aTJjX2FkYXAsCisJCQkJJm1hZ2ljcHJvX3Byb2hkdHZlMl94YzUwMDBf
-Y29uZmlnKTsKKwkJfQorCQlicmVhazsKIAlkZWZhdWx0OgogCQlwcmludGsoS0VSTl9JTkZPICIl
-czogVGhlIGZyb250ZW5kIG9mIHlvdXIgRFZCL0FUU0MgY2FyZCAiCiAJCQkiIGlzbid0IHN1cHBv
-cnRlZCB5ZXRcbiIsCmRpZmYgLXIgYTkyNTEwYWFkOWUyIC1yIDcxOTVjZmJjYTk3NCBsaW51eC9k
-cml2ZXJzL21lZGlhL3ZpZGVvL2N4MjM4ODUvY3gyMzg4NS5oCi0tLSBhL2xpbnV4L2RyaXZlcnMv
-bWVkaWEvdmlkZW8vY3gyMzg4NS9jeDIzODg1LmgJVGh1IEp1biAxMSAxOTowNzoxNSAyMDA5ICsw
-ODAwCisrKyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyMzg4NS9jeDIzODg1LmgJVGh1
-IEp1biAxMSAyMDowNDowNCAyMDA5ICswODAwCkBAIC03Nyw2ICs3Nyw3IEBACiAjZGVmaW5lIENY
-MjM4ODVfQk9BUkRfSEFVUFBBVUdFX0hWUjEyNTUgICAgICAgIDIwCiAjZGVmaW5lIENYMjM4ODVf
-Qk9BUkRfSEFVUFBBVUdFX0hWUjEyMTAgICAgICAgIDIxCiAjZGVmaW5lIENYMjM4ODVfQk9BUkRf
-TVlHSUNBX1g4NTA2ICAgICAgICAgICAgIDIyCisjZGVmaW5lIENYMjM4ODVfQk9BUkRfTUFHSUNQ
-Uk9fUFJPSERUVkUyICAgICAgIDIzCiAKICNkZWZpbmUgR1BJT18wIDB4MDAwMDAwMDEKICNkZWZp
-bmUgR1BJT18xIDB4MDAwMDAwMDIK
---0022150491575f58f8046c11e190--
+--------------090307030109000001000801
+Content-Type: text/plain;
+ name="Yuan_EC372S.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="Yuan_EC372S.txt"
+
+Jun 25 17:30:56 localhost kernel: usb 1-5: new high speed USB device using ehci_hcd and address 7
+Jun 25 17:30:56 localhost kernel: usb 1-5: New USB device found, idVendor=1164, idProduct=1edc
+Jun 25 17:30:56 localhost kernel: usb 1-5: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+Jun 25 17:30:56 localhost kernel: usb 1-5: Product: STK7700D
+Jun 25 17:30:56 localhost kernel: usb 1-5: Manufacturer: YUANRD
+Jun 25 17:30:56 localhost kernel: usb 1-5: SerialNumber: 0000000001
+Jun 25 17:30:56 localhost kernel: usb 1-5: configuration #1 chosen from 1 choice
+Jun 25 17:30:56 localhost kernel: dib0700: loaded with support for 9 different device-types
+Jun 25 17:30:56 localhost kernel: dvb-usb: found a 'Yuan EC372S' in cold state, will try to load a firmware
+Jun 25 17:30:56 localhost kernel: usb 1-5: firmware: requesting dvb-usb-dib0700-1.20.fw
+Jun 25 17:30:56 localhost kernel: dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
+Jun 25 17:30:59 localhost kernel: dib0700: firmware started successfully.
+Jun 25 17:30:59 localhost kernel: dvb-usb: found a 'Yuan EC372S' in warm state.
+Jun 25 17:30:59 localhost kernel: dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+Jun 25 17:30:59 localhost kernel: DVB: registering new adapter (Yuan EC372S)
+Jun 25 17:30:59 localhost kernel: dib0700: stk7700P2_frontend_attach: dib7000p_i2c_enumeration failed.  Cannot continue
+Jun 25 17:30:59 localhost kernel:
+Jun 25 17:30:59 localhost kernel: dvb-usb: no frontend was attached by 'Yuan EC372S'
+Jun 25 17:30:59 localhost kernel: input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:0b.1/usb1/1-5/input/input9
+Jun 25 17:30:59 localhost kernel: dvb-usb: schedule remote query interval to 50 msecs.
+Jun 25 17:30:59 localhost kernel: dvb-usb: Yuan EC372S successfully initialized and connected.
+Jun 25 17:30:59 localhost kernel: usbcore: registered new interface driver dvb_usb_dib0700
+^C
+[root@localhost ~]# uname -a
+Linux localhost 2.6.29.5-191.fc11.x86_64 #1 SMP Tue Jun 16 23:23:21 EDT 2009 x86_64 x86_64 x86_64 GNU/Linux
+
+
+--------------090307030109000001000801--
