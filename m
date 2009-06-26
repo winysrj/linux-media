@@ -1,25 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n58H0xqe020065
-	for <video4linux-list@redhat.com>; Mon, 8 Jun 2009 13:00:59 -0400
-Received: from smtp.nexicom.net (smtp.nexicom.net [216.168.96.13])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n58H0ima004862
-	for <video4linux-list@redhat.com>; Mon, 8 Jun 2009 13:00:44 -0400
-Received: from gw.lockie.ca (dyn-dsl-mb-76-75-91-197.nexicom.net
-	[76.75.91.197])
-	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id n58H0hGT019954
-	for <video4linux-list@redhat.com>; Mon, 8 Jun 2009 13:00:43 -0400
-Received: from [127.0.0.1] (localhost [127.0.0.1])
-	by gw.lockie.ca (Postfix) with ESMTP id 1767E18AD3
-	for <video4linux-list@redhat.com>; Mon,  8 Jun 2009 13:00:42 -0400 (EDT)
-Message-ID: <4A2D439E.4080209@lockie.ca>
-Date: Mon, 08 Jun 2009 13:00:14 -0400
-From: James <bjlockie@lockie.ca>
-MIME-Version: 1.0
-To: Video 4 Linux Mailing List <video4linux-list@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n5QLsvBJ021618
+	for <video4linux-list@redhat.com>; Fri, 26 Jun 2009 17:54:57 -0400
+Received: from mail-in-12.arcor-online.net (mail-in-12.arcor-online.net
+	[151.189.21.52])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n5QLscBi015611
+	for <video4linux-list@redhat.com>; Fri, 26 Jun 2009 17:54:38 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Vikraman Choudhury <vikraman.choudhury@gmail.com>
+In-Reply-To: <14b5ef430906251008j49859b24k93bcf2f122bf9590@mail.gmail.com>
+References: <14b5ef430906251008j49859b24k93bcf2f122bf9590@mail.gmail.com>
+Content-Type: text/plain
+Date: Fri, 26 Jun 2009 23:53:44 +0200
+Message-Id: <1246053224.8505.12.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Subject: who  to ask (wireless mouse and ov511 driver)
+Cc: video4linux-list@redhat.com
+Subject: Re: saa7134, help with integrated remote!
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,27 +28,87 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-My wireless mouse gets jerky (or freezes)  when I plug in my USB webcam.
+Hi Vikraman,
 
-usb 2-6: Product: USB Receiver
-usb 2-6: Manufacturer: Logitech
-usb 2-6: configuration #1 chosen from 1 choice
-input: Logitech USB Receiver as 
-/devices/pci0000:00/0000:00:02.0/usb2/2-6/2-6:1.0/input/input0
-logitech 0003:046D:C517.0001: input,hidraw0: USB HID v1.10 Keyboard 
-[Logitech USB Receiver] on usb-0000:00:02.0-6/input0
-logitech 0003:046D:C517.0002: fixing up Logitech keyboard report descriptor
-input: Logitech USB Receiver as 
-/devices/pci0000:00/0000:00:02.0/usb2/2-6/2-6:1.1/input/input1
-logitech 0003:046D:C517.0002: input,hiddev96,hidraw1: USB HID v1.10 
-Mouse [Logitech USB Receiver] on usb-0000:00:02.0-6/input1
+Am Donnerstag, den 25.06.2009, 22:38 +0530 schrieb Vikraman Choudhury: 
+> Hi, I have an analog TV tuner card (Enter 210-TV --
+> http://www.entermultimedia.com/tv_tuner_internal.html) with a Philips
+> SAA7134 chipset.
+> I can tune to all channels (PAL) by loading the module saa7134 passing
+> card=106 (card=3,10,42 , tuner=37,69 also work), and get audio using the
+> line-in cable.
+> However, I can't get the integrated ir remote to work, using any of the
+> above options. The device saa7134 IR is detected as /dev/input/event7, but
+> cat /dev/input/event7 either doesn't show any output or spits out the same
+> code repeatedly (without the remote pressed). I understand this means that
+> the card is not the model passed as argument. But, is there any possible way
+> to find the correct card= and tuner= configuration ?
+> 
+> System: Gentoo 2008.0 with vanilla-sources 2.6.30 CFLAGS="-O2
+> -march=pentium4 -pipe -fomit-frame-pointer" CHOST="i686-pc-linux-gnu"
+> 
+> Output from dmesg (options saa7134 card=106 in /etc/modprobe.conf) :
+> [    3.210960] saa7130/34: v4l2 driver version 0.2.15 loaded
+> [    3.211039] saa7134 0000:01:00.0: PCI INT A -> GSI 18 (level, low) -> IRQ
+> 18
+> [    3.211048] saa7130[0]: found at 0000:01:00.0, rev: 1, irq: 18, latency:
+> 32, mmio: 0xe8000000
+> [    3.211057] saa7130[0]: subsystem: 1131:0000, board: 10MOONS TM300 TV
+> Card [card=116,insmod option]
+> [    3.211077] saa7130[0]: board init: gpio is 17f00
+> [    3.211177] input: saa7134 IR (10MOONS TM300 TV Ca as
+> /devices/pci0000:00/0000:00:1e.0/0000:01:00.0/input/input6
+> [    3.211247] IRQ 18/saa7130[0]: IRQF_DISABLED is not guaranteed on shared
+> IRQs
+> [    3.312299] saa7130[0]: Huh, no eeprom present (err=-5)?
+> [    3.328111] tuner 1-0061: chip found @ 0xc2 (saa7130[0])
+> [    3.330042] tuner-simple 1-0061: creating new instance
+> [    3.330048] tuner-simple 1-0061: type set to 37 (LG PAL (newer TAPC
+> series))
+> [    3.336196] saa7130[0]: registered device video0 [v4l2]
+> [    3.336224] saa7130[0]: registered device vbi0
 
-ov511 2-1:1.0: USB OV511+ video device found
-usb 2-1: model: Creative Labs WebCam 3
-usb 2-1: Sensor is an OV7620
+we have lots of cards without eeprom like yours, especially with saa7130
+chips and you can't tell much about them without having them.
 
-The webcam  worked fine with a regular USB mouse and keyboard.
-Who should I talk to?
+For all the old tuners on them it is the same, if you don't look them
+up, but tuner=69 covers a lot of them. Tuner=37 might fail on UHF I
+guess.
+
+If you boot without forcing any other card previously, the gpio init of
+the card is the only thin trace to something it might have in common
+with others already or makes it unique.
+
+For "board init: gpio is 17f00" I seem not to find any trace in the
+archives and also not on the bttv-gallery.
+
+If the gpio init stays unchanged, you likely have to do the remote
+support yourself.
+
+If you can identify an IR micro controller on the board with connections
+to the gpio pins of the saa7130, you might find it on the
+http://www.bttv-gallery.de already on other cards too.
+
+The pinning of the saa7130 is available from Philps/NXP and links to
+such information can be found on the wiki.
+
+Also some instructions about how to get such stuff working.
+
+Basically you start with a mask_keycode 0x0 for a device in
+saa7134-input.c you are using to see all activity caused by the remote
+on the gpio pins. Then you try to find the keydown/up button and further
+all other gpios in use to get unique code for each button.
+
+Recent remotes are often more tricky, but for now I would not expect
+those on your hardware.
+
+BTW, we changed to linux-media@vger.kernel.org.
+
+Cheers,
+Hermann
+
+
+
 
 --
 video4linux-list mailing list
