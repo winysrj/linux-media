@@ -1,339 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f213.google.com ([209.85.218.213]:33860 "EHLO
-	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755011AbZFNKvz convert rfc822-to-8bit (ORCPT
+Received: from mail-gx0-f226.google.com ([209.85.217.226]:34273 "EHLO
+	mail-gx0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755905AbZFZSrB convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Jun 2009 06:51:55 -0400
-Received: by bwz9 with SMTP id 9so2817926bwz.37
-        for <linux-media@vger.kernel.org>; Sun, 14 Jun 2009 03:51:56 -0700 (PDT)
+	Fri, 26 Jun 2009 14:47:01 -0400
+Received: by gxk26 with SMTP id 26so1147809gxk.13
+        for <linux-media@vger.kernel.org>; Fri, 26 Jun 2009 11:47:03 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <200906141241.15118.hverkuil@xs4all.nl>
-References: <1244827840-886-1-git-send-email-eduardo.valentin@nokia.com>
-	 <1244827840-886-5-git-send-email-eduardo.valentin@nokia.com>
-	 <1244827840-886-6-git-send-email-eduardo.valentin@nokia.com>
-	 <200906141241.15118.hverkuil@xs4all.nl>
-Date: Sun, 14 Jun 2009 13:46:16 +0300
-Message-ID: <a0580c510906140346n6341afcbycd83ba6b074823bd@mail.gmail.com>
-Subject: Re: [PATCHv7 5/9] v4l2-spec: Add documentation description for FM TX
-	extended control class
-From: Eduardo Valentin <edubezval@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Eduardo Valentin <eduardo.valentin@nokia.com>,
-	ext Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>
+In-Reply-To: <1246041288.3159.51.camel@palomino.walls.org>
+References: <COL103-W53A73F78F552D9FD9BAA2A88350@phx.gbl>
+	 <1246017001.4755.4.camel@palomino.walls.org>
+	 <829197380906260642m2cd87ae5qd6487dc5eae91e51@mail.gmail.com>
+	 <b24e53350906261019u45bba60erc7ee41222896388b@mail.gmail.com>
+	 <829197380906261023n7e960f43pcd25d82eb12f91dd@mail.gmail.com>
+	 <1246041288.3159.51.camel@palomino.walls.org>
+Date: Fri, 26 Jun 2009 14:47:03 -0400
+Message-ID: <829197380906261147g311d9a0ap7c9d5efc1473bf85@mail.gmail.com>
+Subject: Re: Bah! How do I change channels?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Andy Walls <awalls@radix.net>
+Cc: Robert Krakora <rob.krakora@messagenetsystems.com>,
+	video4linux-list@redhat.com, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Sun, Jun 14, 2009 at 1:41 PM, Hans Verkuil<hverkuil@xs4all.nl> wrote:
-> On Friday 12 June 2009 19:30:36 Eduardo Valentin wrote:
->> This single patch adds documentation description for FM Modulator (FM_TX)
->> Extended Control Class and its Control IDs. The text was added under
->> "Extended Controls" section.
->>
->> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
->> ---
->>  v4l2-spec/Makefile      |    1 +
->>  v4l2-spec/biblio.sgml   |   10 +++
->>  v4l2-spec/controls.sgml |  205 +++++++++++++++++++++++++++++++++++++++++++++++
->>  3 files changed, 216 insertions(+), 0 deletions(-)
->>
->> diff --git a/v4l2-spec/Makefile b/v4l2-spec/Makefile
->> index 7a19924..bfe2965 100644
->> --- a/v4l2-spec/Makefile
->> +++ b/v4l2-spec/Makefile
->> @@ -242,6 +242,7 @@ ENUMS = \
->>       v4l2_power_line_frequency \
->>       v4l2_priority \
->>       v4l2_tuner_type \
->> +     v4l2_fm_tx_preemphasis \
->>
->>  STRUCTS = \
->>       v4l2_audio \
->> diff --git a/v4l2-spec/biblio.sgml b/v4l2-spec/biblio.sgml
->> index b013ece..0921849 100644
->> --- a/v4l2-spec/biblio.sgml
->> +++ b/v4l2-spec/biblio.sgml
->> @@ -11,6 +11,16 @@ url="http://www.eia.org">http://www.eia.org</ulink>)</corpauthor>
->>  Service"</title>
->>      </biblioentry>
->>
->> +    <biblioentry id="en50067">
->> +      <abbrev>EN&nbsp;50067</abbrev>
->> +      <authorgroup>
->> +     <corpauthor>CENELEC European Committee for Electrotechnical Standardization
->> +(<ulink url="http://www.cenelec.eu">http://www.cenelec.eu</ulink>)</corpauthor>
->> +      </authorgroup>
->> +      <title>EN 50067 "Specification of the radio data system (RDS) for
->> +VHF/FM sound broadcasting in the frequency range from 87,5 to 108,0 MHz"</title>
->> +    </biblioentry>
->> +
->>      <biblioentry id="en300294">
->>        <abbrev>EN&nbsp;300&nbsp;294</abbrev>
->>        <authorgroup>
->> diff --git a/v4l2-spec/controls.sgml b/v4l2-spec/controls.sgml
->> index 477a970..0bb6f00 100644
->> --- a/v4l2-spec/controls.sgml
->> +++ b/v4l2-spec/controls.sgml
->> @@ -458,6 +458,12 @@ video is actually encoded into that format.</para>
->>        <para>Unfortunately, the original control API lacked some
->>  features needed for these new uses and so it was extended into the
->>  (not terribly originally named) extended control API.</para>
->> +
->> +      <para>Even though the MPEG encoding API was the first effort
->> +to use the Extended Control API, nowadays there are also other classes
->> +of Extended Controls, such as Camera Controls and FM Transmitter Controls.
->> +The Extended Controls API as well as all Extended Controls classes are
->> +described in the following text.</para>
->>      </section>
->>
->>      <section>
->> @@ -1816,6 +1822,205 @@ control must support read access and may support write access.</entry>
->>        </tgroup>
->>      </table>
->>    </section>
->> +
->> +    <section id="fm-tx-controls">
->> +      <title>FM Transmitter Control Reference</title>
->> +
->> +      <para>The FM Transmitter (FM_TX) class includes controls for common features of
->> +FM transmissions capable devices. Currently this class include parameters for audio
->> +compression, pilot tone generation, audio deviation limiter, RDS transmission and
->> +tuning power features.</para>
->> +
->> +      <table pgwide="1" frame="none" id="fm-tx-control-id">
->> +      <title>FM_TX Control IDs</title>
->> +
->> +      <tgroup cols="4">
->> +     <colspec colname="c1" colwidth="1*">
->> +     <colspec colname="c2" colwidth="6*">
->> +     <colspec colname="c3" colwidth="2*">
->> +     <colspec colname="c4" colwidth="6*">
->> +     <spanspec namest="c1" nameend="c2" spanname="id">
->> +     <spanspec namest="c2" nameend="c4" spanname="descr">
->> +     <thead>
->> +       <row>
->> +         <entry spanname="id" align="left">ID</entry>
->> +         <entry align="left">Type</entry>
->> +       </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
->> +       </row>
->> +     </thead>
->> +     <tbody valign="top">
->> +       <row><entry></entry></row>
->> +       <row>
->> +         <entry spanname="id"><constant>V4L2_CID_FM_TX_CLASS</constant>&nbsp;</entry>
->> +         <entry>class</entry>
->> +       </row><row><entry spanname="descr">The FM_TX class
->> +descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
->> +description of this control class.</entry>
->> +       </row>
->> +       <row>
->> +         <entry spanname="id"><constant>V4L2_CID_RDS_ENABLED</constant>&nbsp;</entry>
->> +         <entry>boolean</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Enables or disables the RDS transmission feature.</entry>
->> +       </row>
->> +       <row>
->> +         <entry spanname="id"><constant>V4L2_CID_RDS_PI</constant>&nbsp;</entry>
->> +         <entry>integer</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Sets the RDS Programme Identification field
->> +for transmission.</entry>
->> +       </row>
->> +       <row>
->> +         <entry spanname="id"><constant>V4L2_CID_RDS_PTY</constant>&nbsp;</entry>
->> +         <entry>integer</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Sets the RDS Programme Type field for transmission.
->> +This coding of up to 31 pre-defined programme types.</entry>
+On Fri, Jun 26, 2009 at 2:34 PM, Andy Walls<awalls@radix.net> wrote:
+> Hmm, that sure sounds like a V4L2 spec violation.  From the V4L2 close()
+> description:
 >
-> coding -> encodes
-
-Right.
-
+> "Closes the device. Any I/O in progress is terminated and resources
+> associated with the file descriptor are freed. However data format
+> parameters, current input or output, control values or other properties
+> remain unchanged."
 >
->> +       </row>
->> +       <row>
->> +         <entry spanname="id"><constant>V4L2_CID_RDS_PS_NAME</constant>&nbsp;</entry>
->> +         <entry>string</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Sets the Programme Service name (PS_NAME) for transmission.
->> +It is intended for static display on a receiver. It is the primary aid to listeners in programme service
->> +identification and selection. The use of PS to transmit text other than a single eight character name is not permitted.</entry>
->> +       </row>
->> +       <row>
->> +         <entry spanname="id"><constant>V4L2_CID_RDS_RADIO_TEXT</constant>&nbsp;</entry>
->> +         <entry>string</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Sets the Radio Text info for transmission. It is a textual description of
->> +what is being broadcasted. If broadcaster wishes to transmit longer PS names, programme-related information or any other
->> +text, then RadioText should be used.</entry>
->
-> This is slightly ambiguous. I would suggest changing the ending to:
->
-> "should be used in addition to <constant>V4L2_CID_RDS_PS_NAME</constant>."
-
-I see. I'll change this.
-
->
->> +       </row>
->> +       <row>
->> +         <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_ENABLED</constant>&nbsp;</entry>
->> +         <entry>boolean</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Enables or disables the audio deviation limiter feature.
->> +The limiter is useful when trying to maximize the audio volume, minimize receiver-generated
->> +distortion and prevent overmodulation.
->> +</entry>
->> +       </row>
->> +       <row>
->> +         <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_RELEASE_TIME</constant>&nbsp;</entry>
->> +         <entry>integer</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Sets the audio deviation limiter feature release time.
->> +The unit, step and range are driver-specific.</entry>
->
-> I thought the unit was useconds?
-
-Yeah. Changing.
-
->
->> +       </row>
->> +       <row>
->> +         <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_DEVIATION</constant>&nbsp;</entry>
->> +         <entry>integer</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Configures audio frequency deviation level in Hz.
->> +The range and step are driver-specific.</entry>
->> +       </row>
->> +       <row>
->> +         <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_ENABLED</constant>&nbsp;</entry>
->> +         <entry>boolean</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Enables or disables the audio compression feature.
->> +This feature amplifies signals below the threshold by a fixed gain and compresses audio
->> +signals above the threshold by the ratio of Threshold/(Gain + Threshold).</entry>
->> +       </row>
->> +       <row>
->> +         <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_GAIN</constant>&nbsp;</entry>
->> +         <entry>integer</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Sets the gain for audio compression feature. It is
->> +a dB value. The range and step are driver-specific.</entry>
->> +       </row>
->> +       <row>
->> +         <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_THRESHOLD</constant>&nbsp;</entry>
->> +         <entry>integer</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Sets the threshold level for audio compression freature.
->> +It is a dB value. The range and step are driver-specific.</entry>
->> +       </row>
->> +       <row>
->> +         <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME</constant>&nbsp;</entry>
->> +         <entry>integer</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Sets the attack time for audio compression feature.
->> +It is a useconds value. The range and step are driver-specific.</entry>
->> +       </row>
->> +       <row>
->> +         <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME</constant>&nbsp;</entry>
->> +         <entry>integer</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Sets the release time for audio compression feature.
->> +It is a useconds value. The range and step are driver-specific.</entry>
->> +       </row>
->> +       <row>
->> +         <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_ENABLED</constant>&nbsp;</entry>
->> +         <entry>boolean</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Enables or disables the pilot tone generation feature.</entry>
->> +       </row>
->> +       <row>
->> +         <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_DEVIATION</constant>&nbsp;</entry>
->> +         <entry>integer</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Configures pilot tone frequency deviation level. Unit is
->> +in Hz. The range and step are driver-specific.</entry>
->> +       </row>
->> +       <row>
->> +         <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_FREQUENCY</constant>&nbsp;</entry>
->> +         <entry>integer</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Configures pilot tone frequency value. Unit is
->> +in Hz. The range and step are driver-specific.</entry>
->> +       </row>
->> +       <row>
->> +         <entry spanname="id"><constant>V4L2_CID_PREEMPHASIS</constant>&nbsp;</entry>
->> +         <entry>integer</entry>
->> +       </row>
->> +       <row id="v4l2-fm-tx-preemphasis"><entry spanname="descr">Configures the pre-emphasis value for broadcasting.
->> +A pre-emphasis filter is applied to the broadcast to accentuate the high audio frequencies.
->> +Depending on the region, a time constant of either 50 or 75 useconds is used. The enum&nbsp;v4l2_fm_tx_preemphasis
->> +defines possible values for pre-emphasis. Here they are:</entry>
->> +     </row><row>
->> +     <entrytbl spanname="descr" cols="2">
->> +               <tbody valign="top">
->> +                 <row>
->> +                   <entry><constant>V4L2_FM_TX_PREEMPHASIS_DISABLED</constant>&nbsp;</entry>
->> +                   <entry>No pre-emphasis is applied.</entry>
->> +                 </row>
->> +                 <row>
->> +                   <entry><constant>V4L2_FM_TX_PREEMPHASIS_50_uS</constant>&nbsp;</entry>
->> +                   <entry>A pre-emphasis of 50 uS is used.</entry>
->> +                 </row>
->> +                 <row>
->> +                   <entry><constant>V4L2_FM_TX_PREEMPHASIS_75_uS</constant>&nbsp;</entry>
->> +                   <entry>A pre-emphasis of 75 uS is used.</entry>
->> +                 </row>
->> +               </tbody>
->> +             </entrytbl>
->> +
->> +       </row>
->> +       <row>
->> +         <entry spanname="id"><constant>V4L2_CID_TUNE_POWER_LEVEL</constant>&nbsp;</entry>
->> +         <entry>integer</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Sets the output power level for signal transmission.
->> +Unit is in dBuV. Range and step are driver-specific.</entry>
->> +       </row>
->> +       <row>
->> +         <entry spanname="id"><constant>V4L2_CID_TUNE_ANTENNA_CAPACITOR</constant>&nbsp;</entry>
->> +         <entry>integer</entry>
->> +       </row>
->> +       <row><entry spanname="descr">This selects the value of antenna tuning capacitor
->> +manually or automatically if set to zero. Unit, range and step are driver-specific.</entry>
->> +       </row>
->> +       <row><entry></entry></row>
->> +     </tbody>
->> +      </tgroup>
->> +      </table>
->> +
->> +<para>For more details about RDS specification, refer to
->> +<xref linkend="en50067"> document, from CENELEC.</para>
->> +    </section>
->>  </section>
->>
->>    <!--
 >
 > Regards,
->
->        Hans
->
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> Andy
 
+I have no idea how that would work with power management.  It would
+mean that all the tuners and demod drivers which don't maintain state
+across powerdown would have to maintain some sort of cache of all of
+the programmed registers, and we would need to add some sort of
+"wakeup" callback which reprograms the device accordingly (currently
+we have a sleep callback but not a corresponding callback to wake the
+device back up).
 
+As a requirement, it might have been suitable for PCI cards where you
+don't care about power management (and therefore never power anything
+down), but I don't know how practical that is for USB or minicard
+devices where power management is critical because you're on a
+battery.
+
+Devin
 
 -- 
-Eduardo Bezerra Valentin
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
