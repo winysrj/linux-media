@@ -1,73 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:40260 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756196AbZFPQOF (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4184 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750839AbZFZSm1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2009 12:14:05 -0400
-Date: Tue, 16 Jun 2009 13:13:54 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-Cc: Sakari Ailus <sakari.ailus@nokia.com>,
-	"Jadav, Brijesh R" <brijesh.j@ti.com>,
-	"Subrahmanya, Chaithrika" <chaithrika@ti.com>,
-	David Cohen <david.cohen@nokia.com>,
-	"Curran, Dominic" <dcurran@ti.com>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>,
-	Eero Nurkkala <ext-eero.nurkkala@nokia.com>,
-	Felipe Balbi <felipe.balbi@nokia.com>,
-	"Shah, Hardik" <hardik.shah@ti.com>,
-	"Nagalla, Hari" <hnagalla@ti.com>, "Hadli, Manjunath" <mrh@ti.com>,
-	Mikko Hurskainen <mikko.hurskainen@nokia.com>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"Menon, Nishanth" <nm@ti.com>, "R, Sivaraj" <sivaraj@ti.com>,
-	"Paulraj, Sandeep" <s-paulraj@ti.com>,
-	Tomi Valkeinen <tomi.valkeinen@nokia.com>,
-	Tuukka Toivonen <tuukka.o.toivonen@nokia.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: OMAP patches for linux-media
-Message-ID: <20090616131354.0eee04b4@pedra.chehab.org>
-In-Reply-To: <A24693684029E5489D1D202277BE8944405D0032@dlee02.ent.ti.com>
-References: <20090616104018.44075a80@pedra.chehab.org>
-	<A24693684029E5489D1D202277BE8944405D0032@dlee02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Fri, 26 Jun 2009 14:42:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Kevin Hilman <khilman@deeprootsystems.com>
+Subject: Re: [PATCH] Subject: [PATCH v3 1/4] ARM: DaVinci: DM646x Video: Platform and board specific setup
+Date: Fri, 26 Jun 2009 20:42:25 +0200
+Cc: "chaithrika" <chaithrika@ti.com>, linux-media@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com,
+	"'Manjunath Hadli'" <mrh@ti.com>,
+	"'Brijesh Jadav'" <brijesh.j@ti.com>
+References: <1241789157-23350-1-git-send-email-chaithrika@ti.com> <200906262010.31064.hverkuil@xs4all.nl> <87ws6yetsp.fsf@deeprootsystems.com>
+In-Reply-To: <87ws6yetsp.fsf@deeprootsystems.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906262042.25802.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 16 Jun 2009 09:24:14 -0500
-"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com> escreveu:
-
-> Hi Mauro,
+On Friday 26 June 2009 20:25:42 Kevin Hilman wrote:
+> Hans Verkuil <hverkuil@xs4all.nl> writes:
 > 
-> We are currently going through an internal debugging process on new found issues while testing the driver on a proprietary HW/SW platform.
+> > On Monday 22 June 2009 10:14:30 chaithrika wrote:
+> >> Kevin,
+> >> 
+> >> I think this patch has to be taken into DaVinci tree so that it
+> >> can be submitted upstream. This patch has to be present in the Linux 
+> >> tree for Hans to prepare a pull request for DM646x display driver 
+> >> patches.
+> >
+> > What are the plans for this patch? Will Kevin take care of this? In that
+> > case the v4l patches will have to wait until this patch is in Linus' git
+> > tree. Alternatively, we can pull this in via the v4l-dvb git tree. I think
+> > that is propably the easiest approach.
 > 
-> As there is priority for us to find stability in this platforms, we had to put aside a bit the maintenance of the shared patches.
+> Hans, I'm ok if you pull this directly into v4l-dvb git.   But first, I
+> there are a couple minor problems with this patch.  I'll reply
+> to the original post.
 
-Ok.
-> 
-> One maybe important news is that I'll be creating a new tree soon to host current OMAP3 and future OMAP4 camera drivers for upstream from TI perspective. My main task will be to maintain this tree in TI, and take care of upstreaming and fixing patches for acceptance by both linux-omap and linux-media lists.
+OK. I'll wait for the fixed patch and I'll then ask Mauro to merge this
+platform patch and the vpif display driver into the v4l-dvb git tree.
 
-That's good news! I think there are still some OMAP 2 RFC patches that weren't
-applied. Are you also handling those?
+> Also, please let me know the url and branch so I can be sure to handle
+> any problems with other davinci patces going upstream.
 
-> Some of the known to-dos are:
-> - v4l2_subdev conversion
-> - Regulator framework usage
-> - ISP registration as a memory to memory device.
-> 
-> I hope to resume this task soon, and keep in touch with the community on the latest version of patches. I'll let you know when the next version is ready for merge.
+git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git#master
 
-Ok, thanks.
+> Is this tree part of linux-next?
 
-> Thanks for your concern and time on this.
-> 
-> Regards,
-> Sergio
+Yes.
 
+> I now have a 'for-next' branch 
+> of DaVinci git which is included in linux-next so any potential
+> conflicts will be found there as well.
 
+Regards,
 
-Cheers,
-Mauro
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
