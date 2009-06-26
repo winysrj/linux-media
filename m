@@ -1,58 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:44759 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755257AbZFKBkX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2009 21:40:23 -0400
-Date: Wed, 10 Jun 2009 22:39:51 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: "Figo.zhang" <figo1802@gmail.com>
-Cc: linux-media@vger.kernel.org, kraxel@bytesex.org,
-	Hans Verkuil <hverkuil@xs4all.nl>, mark@alpha.dyndns.org,
-	cpbotha@ieee.org, claudio@conectiva.com
-Subject: Re: [PATCH] ov511.c: video_register_device() return zero on success
-Message-ID: <20090610223951.3013892b@pedra.chehab.org>
-In-Reply-To: <1243752113.3425.12.camel@myhost>
-References: <1243752113.3425.12.camel@myhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198]:57810 "EHLO
+	mta3.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752798AbZFZOjk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jun 2009 10:39:40 -0400
+Received: from host143-65.hauppauge.com
+ (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta3.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KLU000X4OQ14II0@mta3.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Fri, 26 Jun 2009 10:39:37 -0400 (EDT)
+Date: Fri, 26 Jun 2009 10:39:35 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: Hauppauge WinTV-HVR 900H support on Linux, any news?
+In-reply-to: <4A435641.20207@linuxmail.org>
+To: Antonio Jimenez <ajimenez@linuxmail.org>
+Cc: linux-media@vger.kernel.org
+Message-id: <4A44DDA7.5020101@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <4A435641.20207@linuxmail.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 31 May 2009 14:41:52 +0800
-"Figo.zhang" <figo1802@gmail.com> escreveu:
+On 6/25/09 6:49 AM, Antonio Jimenez wrote:
+> Hi all,
+>
+>
+> is there any news or progress with the work for Hauppauge WinTV-HVR 900H
+> under Linux?
+>
+> I read in March some emails here about this theme and I was very happy
+> with it, because I have one of these cards. But suddenly there were no
+> more news about it. I am still reading the linux-media mail list summary
+> every day, but there are no more news.
+>
+> I can help testing, but only the digital section, cause here where I
+> live the analogic TV is already disabled.
+>
+> Please.. any ray of hope? :)
 
-> video_register_device() return zero on success, it would not return a positive integer.
-> 
-> Signed-off-by: Figo.zhang <figo1802@gmail.com>
-> --- 
->  drivers/media/video/ov511.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/ov511.c b/drivers/media/video/ov511.c
-> index 9af5532..816427e 100644
-> --- a/drivers/media/video/ov511.c
-> +++ b/drivers/media/video/ov511.c
-> @@ -5851,7 +5851,7 @@ ov51x_probe(struct usb_interface *intf, const struct usb_device_id *id)
->  			break;
->  
->  		if (video_register_device(ov->vdev, VFL_TYPE_GRABBER,
-> -			unit_video[i]) >= 0) {
-> +			unit_video[i]) == 0) {
->  			break;
->  		}
->  	}
+Hope is not lost, but news is slow.
 
-Nack.
+Hauppauge are in negotiations with a silicon vendor to release a datasheet. It's 
+taking longer than we'd all like. Once this is done and the 900H is working then 
+I'd expect a number of other products to also benefit from the work.
 
-Errors are always negative. So, any zero or positive value indicates that no error occurred.
-
-Yet, the logic for forcing ov51x to specific minor number seems broken: it will
-end by registering the device twice, if used.
-
-So, that part of the function needs a rewrite. I'll fix it.
+No ETA currently.
 
 -- 
-
-Cheers,
-Mauro
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
