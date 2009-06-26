@@ -1,328 +1,381 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.242]:42502 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755006AbZFKXar convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2009 19:30:47 -0400
-Received: by an-out-0708.google.com with SMTP id d40so3479420and.1
-        for <linux-media@vger.kernel.org>; Thu, 11 Jun 2009 16:30:49 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1244739649-27466-11-git-send-email-m-karicheri2@ti.com>
-References: <1244739649-27466-1-git-send-email-m-karicheri2@ti.com>
-	 <1244739649-27466-3-git-send-email-m-karicheri2@ti.com>
-	 <1244739649-27466-4-git-send-email-m-karicheri2@ti.com>
-	 <1244739649-27466-5-git-send-email-m-karicheri2@ti.com>
-	 <1244739649-27466-6-git-send-email-m-karicheri2@ti.com>
-	 <1244739649-27466-7-git-send-email-m-karicheri2@ti.com>
-	 <1244739649-27466-8-git-send-email-m-karicheri2@ti.com>
-	 <1244739649-27466-9-git-send-email-m-karicheri2@ti.com>
-	 <1244739649-27466-10-git-send-email-m-karicheri2@ti.com>
-	 <1244739649-27466-11-git-send-email-m-karicheri2@ti.com>
-Date: Fri, 12 Jun 2009 03:23:53 +0400
-Message-ID: <208cbae30906111623s3cf1939emb552ef465fed4cea@mail.gmail.com>
-Subject: Re: [PATCH 10/10 - v2] common vpss module for video drivers
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: m-karicheri2@ti.com
-Cc: linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <a0868495@dal.design.ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:49081 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751994AbZFZWFx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jun 2009 18:05:53 -0400
+From: m-karicheri2@ti.com
+To: davinci-linux-open-source@linux.davincidsp.com,
+	linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, khilman@deeprootsystems.com,
+	Muralidharan Karicheri <m-karicheri2@ti.com>
+Subject: [PATCH 3/3 - v0] davinci: platform changes to support vpfe camera capture
+Date: Fri, 26 Jun 2009 18:05:48 -0400
+Message-Id: <1246053948-8371-1-git-send-email-m-karicheri2@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Muralidharan Karicheri <m-karicheri2@ti.com>
 
-On Thu, Jun 11, 2009 at 9:00 PM, <m-karicheri2@ti.com> wrote:
-> From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
->
-> common voss module for video drivers
->
-> This is a new module added for vpss library functions that are
-> used for configuring vpss system module. All video drivers will
-> include vpss.h header file and call functions defined in this
-> module to configure vpss system module.
->
->
-> Reviewed By "Hans Verkuil".
-> Reviewed By "Laurent Pinchart".
->
-> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-> ---
->  drivers/media/video/davinci/vpss.c |  290 ++++++++++++++++++++++++++++++++++++
->  include/media/davinci/vpss.h       |   69 +++++++++
->  2 files changed, 359 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/davinci/vpss.c
->  create mode 100644 include/media/davinci/vpss.h
->
-> diff --git a/drivers/media/video/davinci/vpss.c b/drivers/media/video/davinci/vpss.c
-> new file mode 100644
-> index 0000000..def021e
-> --- /dev/null
-> +++ b/drivers/media/video/davinci/vpss.c
-> @@ -0,0 +1,290 @@
-> +/*
-> + * Copyright (C) 2009 Texas Instruments.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-> + *
-> + * common vpss driver for all video drivers.
-> + */
-> +#include <linux/kernel.h>
-> +#include <linux/sched.h>
-> +#include <linux/init.h>
-> +#include <linux/module.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/spinlock.h>
-> +#include <linux/compiler.h>
-> +#include <linux/io.h>
-> +#include <mach/hardware.h>
-> +#include <media/davinci/vpss.h>
-> +
-> +/* DM644x defines */
-> +#define DM644X_SBL_PCR_VPSS            (4)
-> +
-> +/* vpss BL register offsets */
-> +#define DM355_VPSSBL_CCDCMUX           0x1c
-> +/* vpss CLK register offsets */
-> +#define DM355_VPSSCLK_CLKCTRL          0x04
-> +/* masks and shifts */
-> +#define VPSS_HSSISEL_SHIFT             4
-> +
-> +/*
-> + * vpss operations. Depends on platform. Not all functions are available
-> + * on all platforms. The api, first check if a functio is available before
-> + * invoking it. In the probe, the function ptrs are intialized based on
-> + * vpss name. vpss name can be "dm355_vpss", "dm644x_vpss" etc.
-> + */
-> +struct vpss_hw_ops {
-> +       /* enable clock */
-> +       int (*enable_clock)(enum vpss_clock_sel clock_sel, int en);
-> +       /* select input to ccdc */
-> +       void (*select_ccdc_source)(enum vpss_ccdc_source_sel src_sel);
-> +       /* clear wbl overlflow bit */
-> +       int (*clear_wbl_overflow)(enum vpss_wbl_sel wbl_sel);
-> +};
-> +
-> +/* vpss configuration */
-> +struct vpss_oper_config {
-> +       __iomem void *vpss_bl_regs_base;
-> +       __iomem void *vpss_regs_base;
-> +       struct resource         *r1;
-> +       resource_size_t         len1;
-> +       struct resource         *r2;
-> +       resource_size_t         len2;
-> +       char vpss_name[32];
-> +       spinlock_t vpss_lock;
-> +       struct vpss_hw_ops hw_ops;
-> +};
-> +
-> +static struct vpss_oper_config oper_cfg;
-> +
-> +/* register access routines */
-> +static inline u32 bl_regr(u32 offset)
-> +{
-> +       return __raw_readl(oper_cfg.vpss_bl_regs_base + offset);
-> +}
-> +
-> +static inline void bl_regw(u32 val, u32 offset)
-> +{
-> +       __raw_writel(val, oper_cfg.vpss_bl_regs_base + offset);
-> +}
-> +
-> +static inline u32 vpss_regr(u32 offset)
-> +{
-> +       return __raw_readl(oper_cfg.vpss_regs_base + offset);
-> +}
-> +
-> +static inline void vpss_regw(u32 val, u32 offset)
-> +{
-> +       __raw_writel(val, oper_cfg.vpss_regs_base + offset);
-> +}
-> +
-> +static void dm355_select_ccdc_source(enum vpss_ccdc_source_sel src_sel)
-> +{
-> +       bl_regw(src_sel << VPSS_HSSISEL_SHIFT, DM355_VPSSBL_CCDCMUX);
-> +}
-> +
-> +int vpss_select_ccdc_source(enum vpss_ccdc_source_sel src_sel)
-> +{
-> +       if (!oper_cfg.hw_ops.select_ccdc_source)
-> +               return -1;
-> +
-> +       dm355_select_ccdc_source(src_sel);
-> +       return 0;
-> +}
-> +EXPORT_SYMBOL(vpss_select_ccdc_source);
-> +
-> +static int dm644x_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel)
-> +{
-> +       u32 mask = 1, val;
-> +
-> +       if (wbl_sel < VPSS_PCR_AEW_WBL_0 ||
-> +           wbl_sel > VPSS_PCR_CCDC_WBL_O)
-> +               return -1;
-> +
-> +       /* writing a 0 clear the overflow */
-> +       mask = ~(mask << wbl_sel);
-> +       val = bl_regr(DM644X_SBL_PCR_VPSS) & mask;
-> +       bl_regw(val, DM644X_SBL_PCR_VPSS);
-> +       return 0;
-> +}
-> +
-> +int vpss_clear_wbl_overflow(enum vpss_wbl_sel wbl_sel)
-> +{
-> +       if (!oper_cfg.hw_ops.clear_wbl_overflow)
-> +               return -1;
-> +
-> +       return oper_cfg.hw_ops.clear_wbl_overflow(wbl_sel);
-> +}
-> +EXPORT_SYMBOL(vpss_clear_wbl_overflow);
-> +
-> +/*
-> + *  dm355_enable_clock - Enable VPSS Clock
-> + *  @clock_sel: CLock to be enabled/disabled
-> + *  @en: enable/disable flag
-> + *
-> + *  This is called to enable or disable a vpss clock
-> + */
-> +static int dm355_enable_clock(enum vpss_clock_sel clock_sel, int en)
-> +{
-> +       unsigned long flags;
-> +       u32 utemp, mask = 0x1, shift = 0;
-> +
-> +       switch (clock_sel) {
-> +       case VPSS_VPBE_CLOCK:
-> +               /* nothing since lsb */
-> +               break;
-> +       case VPSS_VENC_CLOCK_SEL:
-> +               shift = 2;
-> +               break;
-> +       case VPSS_CFALD_CLOCK:
-> +               shift = 3;
-> +               break;
-> +       case VPSS_H3A_CLOCK:
-> +               shift = 4;
-> +               break;
-> +       case VPSS_IPIPE_CLOCK:
-> +               shift = 5;
-> +               break;
-> +       case VPSS_CCDC_CLOCK:
-> +               shift = 6;
-> +               break;
-> +       default:
-> +               printk(KERN_ERR "dm355_enable_clock:"
-> +                               " Invalid selector: %d\n", clock_sel);
-> +               return -1;
-> +       }
-> +
-> +       spin_lock_irqsave(&oper_cfg.vpss_lock, flags);
-> +       utemp = vpss_regr(DM355_VPSSCLK_CLKCTRL);
-> +       if (!en)
-> +               utemp &= ~(mask << shift);
-> +       else
-> +               utemp |= (mask << shift);
-> +
-> +       vpss_regw(utemp, DM355_VPSSCLK_CLKCTRL);
-> +       spin_unlock_irqrestore(&oper_cfg.vpss_lock, flags);
-> +       return 0;
-> +}
-> +
-> +int vpss_enable_clock(enum vpss_clock_sel clock_sel, int en)
-> +{
-> +       if (!oper_cfg.hw_ops.enable_clock)
-> +               return -1;
-> +
-> +       return oper_cfg.hw_ops.enable_clock(clock_sel, en);
-> +}
-> +EXPORT_SYMBOL(vpss_enable_clock);
-> +
-> +static int __init vpss_probe(struct platform_device *pdev)
-> +{
-> +       int                     status;
-> +
-> +       if (!pdev->dev.platform_data) {
-> +               dev_err(&pdev->dev, "vpss, no platform data\n");
-> +               return -ENOENT;
-> +       }
-> +
-> +       strcpy(oper_cfg.vpss_name, pdev->dev.platform_data);
-> +       dev_info(&pdev->dev, "%s vpss probed\n", oper_cfg.vpss_name);
-> +       oper_cfg.r1 = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +       if (!oper_cfg.r1)
-> +               return -ENOENT;
-> +
-> +       oper_cfg.len1 = oper_cfg.r1->end - oper_cfg.r1->start + 1;
-> +
-> +       oper_cfg.r1 = request_mem_region(oper_cfg.r1->start, oper_cfg.len1,
-> +                                        oper_cfg.r1->name);
-> +       if (!oper_cfg.r1)
-> +               return -EBUSY;
-> +
-> +       oper_cfg.vpss_bl_regs_base = ioremap(oper_cfg.r1->start, oper_cfg.len1);
-> +       if (!oper_cfg.vpss_bl_regs_base) {
-> +               status = -EBUSY;
-> +               goto fail1;
-> +       }
-> +
-> +       if (!strcmp(oper_cfg.vpss_name, "dm355_vpss")) {
-> +               oper_cfg.r2 = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-> +               if (!oper_cfg.r2) {
-> +                       status = -ENOENT;
-> +                       goto fail2;
-> +               }
-> +               oper_cfg.len2 = oper_cfg.r2->end - oper_cfg.r2->start + 1;
-> +               oper_cfg.r2 = request_mem_region(oper_cfg.r2->start,
-> +                                                oper_cfg.len2,
-> +                                                oper_cfg.r2->name);
-> +               if (!oper_cfg.r2) {
-> +                       status = -EBUSY;
-> +                       goto fail2;
-> +               }
-> +
-> +               oper_cfg.vpss_regs_base = ioremap(oper_cfg.r2->start,
-> +                                                 oper_cfg.len2);
-> +               if (!oper_cfg.vpss_regs_base) {
-> +                       status = -EBUSY;
-> +                       goto fail3;
-> +               }
-> +       }
-> +
-> +       if (!strcmp(oper_cfg.vpss_name, "dm355_vpss")) {
-> +               oper_cfg.hw_ops.enable_clock = dm355_enable_clock;
-> +               oper_cfg.hw_ops.select_ccdc_source = dm355_select_ccdc_source;
-> +       } else if (!strcmp(oper_cfg.vpss_name, "dm644x_vpss"))
-> +               oper_cfg.hw_ops.clear_wbl_overflow = dm644x_clear_wbl_overflow;
-> +       else
-> +               return -ENODEV;
+Following are the changes:-
+	1) moved i2c board specific part to sub device configuration
+	structure so that sub device can be loaded from vpfe capture
+	using the new v4l2_i2c_new_subdev_board() api
+	2) adding mt9t031 sub device configuration information for
+	DM355 as part of camera capture support to vpfe capture
+	3) adding support to setup raw data path and i2c switch
+	when capturing from mt9t031
 
-Do you need clean up procedure if you return error here? I mean -
-calls to release_mem_region, release_mem_region, etc
+NOTE: Depends on v3 version of vpfe capture driver patch
 
-> +       spin_lock_init(&oper_cfg.vpss_lock);
-> +       dev_info(&pdev->dev, "%s vpss probe success\n", oper_cfg.vpss_name);
-> +       return 0;
-> +fail3:
-> +       release_mem_region(oper_cfg.r2->start, oper_cfg.len2);
-> +fail2:
-> +       iounmap(oper_cfg.vpss_bl_regs_base);
-> +fail1:
-> +       release_mem_region(oper_cfg.r1->start, oper_cfg.len1);
-> +       return status;
-> +}
+Mandatory Reviewers: Kevin Hilman <khilman@deeprootsystems.com>
+Mandatory Reviewers: Hans Verkuil <hverkuil@xs4all.nl>
 
+Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+---
+Applies to DaVinci GIT Tree
 
+ arch/arm/mach-davinci/board-dm355-evm.c  |  208 ++++++++++++++++++++++++++++--
+ arch/arm/mach-davinci/board-dm644x-evm.c |   24 ++--
+ 2 files changed, 210 insertions(+), 22 deletions(-)
+
+diff --git a/arch/arm/mach-davinci/board-dm355-evm.c b/arch/arm/mach-davinci/board-dm355-evm.c
+index 513be53..a781ca2 100644
+--- a/arch/arm/mach-davinci/board-dm355-evm.c
++++ b/arch/arm/mach-davinci/board-dm355-evm.c
+@@ -136,10 +136,66 @@ static void dm355evm_mmcsd_gpios(unsigned gpio)
+ 	dm355evm_mmc_gpios = gpio;
+ }
+ 
+-static struct tvp514x_platform_data tvp5146_pdata = {
+-	.clk_polarity = 0,
+-	.hs_polarity = 1,
+-	.vs_polarity = 1
++/*
++ * MSP430 supports RTC, card detection, input from IR remote, and
++ * a bit more.  It triggers interrupts on GPIO(7) from pressing
++ * buttons on the IR remote, and for card detect switches.
++ */
++static struct i2c_client *dm355evm_msp;
++
++static int dm355evm_msp_probe(struct i2c_client *client,
++		const struct i2c_device_id *id)
++{
++	dm355evm_msp = client;
++	return 0;
++}
++
++static int dm355evm_msp_remove(struct i2c_client *client)
++{
++	dm355evm_msp = NULL;
++	return 0;
++}
++
++static const struct i2c_device_id dm355evm_msp_ids[] = {
++	{ "dm355evm_msp", 0, },
++	{ /* end of list */ },
++};
++
++static struct i2c_driver dm355evm_msp_driver = {
++	.driver.name	= "dm355evm_msp",
++	.id_table	= dm355evm_msp_ids,
++	.probe		= dm355evm_msp_probe,
++	.remove		= dm355evm_msp_remove,
++};
++
++#define PCA9543A_I2C_ADDR       (0x73)
++
++static struct i2c_client *pca9543a;
++
++static int pca9543a_probe(struct i2c_client *client,
++		const struct i2c_device_id *id)
++{
++	pca9543a = client;
++	return 0;
++}
++
++static int pca9543a_remove(struct i2c_client *client)
++{
++	pca9543a = NULL;
++	return 0;
++}
++
++static const struct i2c_device_id pca9543a_ids[] = {
++	{ "PCA9543A", 0, },
++	{ /* end of list */ },
++};
++
++/* This is for i2c driver for the MT9T031 header i2c switch */
++static struct i2c_driver pca9543a_driver = {
++	.driver.name	= "PCA9543A",
++	.id_table	= pca9543a_ids,
++	.probe		= pca9543a_probe,
++	.remove		= pca9543a_remove,
+ };
+ 
+ static struct i2c_board_info dm355evm_i2c_info[] = {
+@@ -147,13 +203,22 @@ static struct i2c_board_info dm355evm_i2c_info[] = {
+ 		.platform_data = dm355evm_mmcsd_gpios,
+ 	},
+ 	{
+-		I2C_BOARD_INFO("tvp5146", 0x5d),
+-		.platform_data = &tvp5146_pdata,
++		I2C_BOARD_INFO("PCA9543A", 0x73),
+ 	},
+ 	/* { plus irq  }, */
+ 	/* { I2C_BOARD_INFO("tlv320aic3x", 0x1b), }, */
+ };
+ 
++/* have_sensor() - Check if we have support for sensor interface */
++static inline int have_sensor(void)
++{
++#ifdef CONFIG_SOC_CAMERA_MT9T031
++	return 1;
++#else
++	return 0;
++#endif
++}
++
+ static void __init evm_init_i2c(void)
+ {
+ 	davinci_init_i2c(&i2c_pdata);
+@@ -161,9 +226,12 @@ static void __init evm_init_i2c(void)
+ 	gpio_request(5, "dm355evm_msp");
+ 	gpio_direction_input(5);
+ 	dm355evm_i2c_info[0].irq = gpio_to_irq(5);
+-
++	i2c_add_driver(&dm355evm_msp_driver);
++	if (have_sensor())
++		i2c_add_driver(&pca9543a_driver);
+ 	i2c_register_board_info(1, dm355evm_i2c_info,
+ 			ARRAY_SIZE(dm355evm_i2c_info));
++
+ }
+ 
+ static struct resource dm355evm_dm9000_rsrc[] = {
+@@ -190,6 +258,104 @@ static struct platform_device dm355evm_dm9000 = {
+ 	.num_resources	= ARRAY_SIZE(dm355evm_dm9000_rsrc),
+ };
+ 
++/**
++ * dm355evm_enable_raw_data_path() - Enable/Disable raw data path
++ * @en: enable/disbale flag
++ */
++static int dm355evm_enable_raw_data_path(int en)
++{
++	static char txbuf[2] = { 8, 0x80 };
++	int status;
++	struct i2c_msg msg = {
++			.flags = 0,
++			.len = 2,
++			.buf = (void __force *)txbuf,
++		};
++
++	if (!en)
++		txbuf[1] = 0;
++
++	if (!dm355evm_msp)
++		return -ENXIO;
++
++	msg.addr = dm355evm_msp->addr,
++	/* turn on/off the raw data path through msp430 */
++	status = i2c_transfer(dm355evm_msp->adapter, &msg, 1);
++	return status;
++}
++
++
++/**
++ * dm355_enable_i2c_switch() - Enable/Disable I2C switch PCA9543A for sensor
++ * @en: enable/disbale flag
++ */
++static int dm355evm_enable_i2c_switch(int en)
++{
++	static char val = 1;
++	int status;
++	struct i2c_msg msg = {
++			.flags = 0,
++			.len = 1,
++			.buf = &val,
++		};
++
++	if (!en)
++		val = 0;
++
++	if (!pca9543a)
++		return -ENXIO;
++
++	msg.addr = pca9543a->addr;
++	/* turn i2 switch, pca9543a, on/off */
++	status = i2c_transfer(pca9543a->adapter, &msg, 1);
++	return status;
++}
++
++/**
++ * dm355evm_setup_video_input() - setup video data path and i2c
++ * @id: sub device id
++ */
++static int dm355evm_setup_video_input(enum vpfe_subdev_id id)
++{
++	int ret;
++
++	switch (id) {
++	case VPFE_SUBDEV_MT9T031:
++	{
++		ret = dm355evm_enable_raw_data_path(1);
++		if (ret >= 0)
++			ret = dm355evm_enable_i2c_switch(1);
++		else
++			/* switch off i2c switch since we failed */
++			ret = dm355evm_enable_i2c_switch(0);
++		break;
++	}
++	case VPFE_SUBDEV_TVP5146:
++	{
++		ret = dm355evm_enable_raw_data_path(0);
++		break;
++	}
++	default:
++		return -1;
++	}
++	return (ret >= 0 ? 0 : -1);
++}
++
++/* Inputs available at the TVP5146 */
++static struct v4l2_input mt9t031_inputs[] = {
++	{
++		.index = 0,
++		.name = "Camera",
++		.type = V4L2_INPUT_TYPE_CAMERA,
++	}
++};
++
++static struct tvp514x_platform_data tvp5146_pdata = {
++	.clk_polarity = 0,
++	.hs_polarity = 1,
++	.vs_polarity = 1
++};
++
+ #define TVP514X_STD_ALL	(V4L2_STD_NTSC | V4L2_STD_PAL)
+ /* Inputs available at the TVP5146 */
+ static struct v4l2_input tvp5146_inputs[] = {
+@@ -207,7 +373,7 @@ static struct v4l2_input tvp5146_inputs[] = {
+ 	},
+ };
+ 
+-/*
++/**
+  * this is the route info for connecting each input to decoder
+  * ouput that goes to vpfe. There is a one to one correspondence
+  * with tvp5146_inputs
+@@ -225,8 +391,8 @@ static struct vpfe_route tvp5146_routes[] = {
+ 
+ static struct vpfe_subdev_info vpfe_sub_devs[] = {
+ 	{
+-		.name = "tvp5146",
+-		.grp_id = 0,
++		.name = TVP514X_MODULE_NAME,
++		.grp_id = VPFE_SUBDEV_TVP5146,
+ 		.num_inputs = ARRAY_SIZE(tvp5146_inputs),
+ 		.inputs = tvp5146_inputs,
+ 		.routes = tvp5146_routes,
+@@ -236,6 +402,27 @@ static struct vpfe_subdev_info vpfe_sub_devs[] = {
+ 			.hdpol = VPFE_PINPOL_POSITIVE,
+ 			.vdpol = VPFE_PINPOL_POSITIVE,
+ 		},
++		.board_info = {
++			I2C_BOARD_INFO("tvp5146", 0x5d),
++			.platform_data = &tvp5146_pdata,
++		},
++	},
++	{
++		.name = "mt9t031",
++		.camera = 1,
++		.grp_id = VPFE_SUBDEV_MT9T031,
++		.num_inputs = ARRAY_SIZE(mt9t031_inputs),
++		.inputs = mt9t031_inputs,
++		.ccdc_if_params = {
++			.if_type = VPFE_RAW_BAYER,
++			.hdpol = VPFE_PINPOL_POSITIVE,
++			.vdpol = VPFE_PINPOL_POSITIVE,
++		},
++		.board_info = {
++			I2C_BOARD_INFO("mt9t031", 0x5d),
++			/* this is for PCLK rising edge */
++			.platform_data = (void *)1,
++		},
+ 	}
+ };
+ 
+@@ -244,6 +431,7 @@ static struct vpfe_config vpfe_cfg = {
+ 	.sub_devs = vpfe_sub_devs,
+ 	.card_name = "DM355 EVM",
+ 	.ccdc = "DM355 CCDC",
++	.setup_input = dm355evm_setup_video_input,
+ };
+ 
+ static struct platform_device *davinci_evm_devices[] __initdata = {
+diff --git a/arch/arm/mach-davinci/board-dm644x-evm.c b/arch/arm/mach-davinci/board-dm644x-evm.c
+index 54f084b..310cd75 100644
+--- a/arch/arm/mach-davinci/board-dm644x-evm.c
++++ b/arch/arm/mach-davinci/board-dm644x-evm.c
+@@ -196,6 +196,12 @@ static struct platform_device davinci_fb_device = {
+ 	.num_resources = 0,
+ };
+ 
++static struct tvp514x_platform_data tvp5146_pdata = {
++	.clk_polarity = 0,
++	.hs_polarity = 1,
++	.vs_polarity = 1
++};
++
+ #define TVP514X_STD_ALL	(V4L2_STD_NTSC | V4L2_STD_PAL)
+ /* Inputs available at the TVP5146 */
+ static struct v4l2_input tvp5146_inputs[] = {
+@@ -231,8 +237,8 @@ static struct vpfe_route tvp5146_routes[] = {
+ 
+ static struct vpfe_subdev_info vpfe_sub_devs[] = {
+ 	{
+-		.name = "tvp5146",
+-		.grp_id = 0,
++		.name = TVP514X_MODULE_NAME,
++		.grp_id = VPFE_SUBDEV_TVP5146,
+ 		.num_inputs = ARRAY_SIZE(tvp5146_inputs),
+ 		.inputs = tvp5146_inputs,
+ 		.routes = tvp5146_routes,
+@@ -242,6 +248,10 @@ static struct vpfe_subdev_info vpfe_sub_devs[] = {
+ 			.hdpol = VPFE_PINPOL_POSITIVE,
+ 			.vdpol = VPFE_PINPOL_POSITIVE,
+ 		},
++		.board_info = {
++			I2C_BOARD_INFO("tvp5146", 0x5d),
++			.platform_data = &tvp5146_pdata,
++		},
+ 	},
+ };
+ 
+@@ -504,12 +514,6 @@ static struct at24_platform_data eeprom_info = {
+ 	.context	= (void *)0x7f00,
+ };
+ 
+-static struct tvp514x_platform_data tvp5146_pdata = {
+-	.clk_polarity = 0,
+-	.hs_polarity = 1,
+-	.vs_polarity = 1
+-};
+-
+ /*
+  * MSP430 supports RTC, card detection, input from IR remote, and
+  * a bit more.  It triggers interrupts on GPIO(7) from pressing
+@@ -621,10 +625,6 @@ static struct i2c_board_info __initdata i2c_info[] =  {
+ 		I2C_BOARD_INFO("24c256", 0x50),
+ 		.platform_data	= &eeprom_info,
+ 	},
+-	{
+-		I2C_BOARD_INFO("tvp5146", 0x5d),
+-		.platform_data = &tvp5146_pdata,
+-	},
+ 	/* ALSO:
+ 	 * - tvl320aic33 audio codec (0x1b)
+ 	 */
 -- 
-Best regards, Klimov Alexey
+1.6.0.4
+
