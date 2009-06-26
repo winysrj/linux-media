@@ -1,41 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.infomaniak.ch ([84.16.68.89]:41231 "EHLO
-	smtp1.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753197AbZFOUvk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Jun 2009 16:51:40 -0400
-Received: from IO.local (4-167.105-92.cust.bluewin.ch [92.105.167.4])
-	(authenticated bits=0)
-	by smtp1.infomaniak.ch (8.14.2/8.14.2) with ESMTP id n5FKjcBS025812
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 15 Jun 2009 22:46:05 +0200
-Message-ID: <4A36B2F1.5060006@deckpoint.ch>
-Date: Mon, 15 Jun 2009 22:45:37 +0200
-From: Thomas Kernen <tkernen@deckpoint.ch>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: TT-S1500 budget-ci registeration
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail1.radix.net ([207.192.128.31]:38696 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751587AbZFZLtT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jun 2009 07:49:19 -0400
+Subject: Re: Bah!  How do I change channels?
+From: Andy Walls <awalls@radix.net>
+To: George Adams <g_adams27@hotmail.com>
+Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
+In-Reply-To: <COL103-W53A73F78F552D9FD9BAA2A88350@phx.gbl>
+References: <COL103-W53A73F78F552D9FD9BAA2A88350@phx.gbl>
+Content-Type: text/plain
+Date: Fri, 26 Jun 2009 07:50:01 -0400
+Message-Id: <1246017001.4755.4.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, 2009-06-25 at 23:04 -0400, George Adams wrote:
+> Having gotten my Pinnacle HDTV Pro Stick working again under some old
+> v4l drivers, I'm now facing a much more mundane problem - I can't
+> figure out how to use the command line to change the channel.
+> 
+> The video feed (a closed-circuit feed) that's coming to the card is
+> over a coax cable, and is on (analog) channel 3.  My goal is to take
+> the input and use Helix Encoder to produce RealVideo output that can
+> be played using Real Player (yeah, not the ideal situation, but it's
+> what we're using for now)
+> 
+> Helix Producer (unlike "mencoder/mplayer") doesn't have the ability to
+> change the channel - it can only take whatever is coming over the
+> channel that the Pinnacle device is currently tuned to.  Devin pointed
+> me to the "v4lctl" command, but I'm not having any luck with it yet.  
 
-Hello to all,
+I use either v4l2-ctl or ivtv-tune
 
-I'm currently testing a TT-S1500 budget card with the TT budget CI 
-adapter with vl4 tree and kernel 2.6.28.
+$ ivtv-tune -d /dev/video0 -t us-bcast -c 3
+/dev/video0: 61.250 MHz
 
-When I modprobe budget_ci, the CI adapter seems to be detected but not 
-registered in /dev/dvb/adapter3/ca0 as I would have expected it to be.
+$ v4l2-ctl -d /dev/video0 -f 61.250
+Frequency set to 980 (61.250000 MHz)
 
-Instead I see the following output:
 
-[  148.664846] input: Budget-CI dvb ir receiver saa7146 (0) as 
-/devices/pci0000:00/0000:00:1e.0/0000:11:09.0/input/input5
+Regards,
+Andy
 
-Any suggestions/ideas what the cause may be and how I can attempt to 
-solve this?
 
-Thanks
-Thomas
