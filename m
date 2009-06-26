@@ -1,53 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53524 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754222AbZFZOsS convert rfc822-to-8bit (ORCPT
+Received: from www.emergencycommunicationsystems.com ([24.123.23.170]:55494
+	"EHLO unifiedpaging.messagenetsystems.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754294AbZFZT4N (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jun 2009 10:48:18 -0400
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-CC: Gary Thomas <gary@mlbassoc.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Date: Fri, 26 Jun 2009 09:43:52 -0500
-Subject: RE: v4l2_int_device vs v4l2_subdev?
-Message-ID: <A24693684029E5489D1D202277BE8944405D0043@dlee02.ent.ti.com>
-References: <4A43FD77.1020709@mlbassoc.com>
- <5e9665e10906252227i4f667915rc1b52d6148c1a0e9@mail.gmail.com>,<200906260830.20193.hverkuil@xs4all.nl>
-In-Reply-To: <200906260830.20193.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Fri, 26 Jun 2009 15:56:13 -0400
+Message-ID: <4A4527D0.5040703@messagenetsystems.com>
+Date: Fri, 26 Jun 2009 15:56:00 -0400
+From: Robert Vincent Krakora <rob.krakora@messagenetsystems.com>
 MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Andy Walls <awalls@radix.net>, video4linux-list@redhat.com,
+	linux-media@vger.kernel.org
+Subject: Re: Bah! How do I change channels?
+References: <COL103-W53A73F78F552D9FD9BAA2A88350@phx.gbl>	 <1246017001.4755.4.camel@palomino.walls.org>	 <829197380906260642m2cd87ae5qd6487dc5eae91e51@mail.gmail.com>	 <b24e53350906261019u45bba60erc7ee41222896388b@mail.gmail.com>	 <829197380906261023n7e960f43pcd25d82eb12f91dd@mail.gmail.com>	 <1246041288.3159.51.camel@palomino.walls.org>	 <829197380906261147g311d9a0ap7c9d5efc1473bf85@mail.gmail.com>	 <1246042980.3159.68.camel@palomino.walls.org> <829197380906261229g6e9f38q4be149597930ef0@mail.gmail.com>
+In-Reply-To: <829197380906261229g6e9f38q4be149597930ef0@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> > But in user space there is nothing changed having access to
-> > device and control them.
-> > As you know, subdev and int-device is all about how to bind
-> > interface(or host?) and device and make them communicated each other.
-> > But using subdev device driver with int-device supporting interface
-> > (or host) device driver? it won't make any communication.
-> > So if you are running out of time with your project, you'd better use
-> > old driver of TVP. Like TVP driver in kernel 2.6.28 I suppose. But if
-> > you have enough time and wanna be challenging, try to convert
-> > in-device based omap3 camera interface driver to subdev supporting
-> > one.
-> 
-> Someone's got to do this. v4l2_subdev is the future and it has many
-> advantages over the older interfaces. The ability to be able to use the
-> same i2c driver in anything from USB webcams to PCI capture cards to
-> omap/davinci embedded platforms is very powerful.
+Devin Heitmueller wrote:
+> On Fri, Jun 26, 2009 at 3:02 PM, Andy Walls<awalls@radix.net> wrote:
+>   
+>> All I'm saying is that it is obviously the expected behavior, it the
+>> specified behavior, and all the userland apps and scripts are written
+>> with that behavior in mind.
+>>
+>> The applications' expectation of that behavior is, of course, why we are
+>> having this discussion.
+>>
+>> Assuming arguendo, maintaing state in the face of power management is a
+>> hard requirement on the driver; I'll still contend it's harder to change
+>> the existing base of applications and user scripts.  Until the spec and
+>> all the existing apps change, not adhering to the spec leads to user
+>> confusion.
+>>     
+>
+> I guess that means that every product that has a tuner which
+> implements the sleep callback is broken.  And yet this is the first
+> case I've heard a user complain, which makes me wonder how big a
+> population is out there that is using scripts to control the tuner.  I
+> suspect most people are just using applications like MythTV, xawtv or
+> tvtime, which won't have these issues.
+>
+> I don't intend to come across as argumentative, but if we haven't
+> heard a massive outcry about this by now, maybe nobody actually cares
+> and thus we shouldn't spend the time to build a whole infrastructure
+> to preserve the driver state across the low power mode.  Those people
+> who really do care can just disable the power management with a
+> modprobe option.
+>
+> Devin
+>
+>   
+Devin:
 
-Hi,
+I care and I love the infrastructure that has been created.  However, it 
+seems as though there are devices that do not conform to the paradigm or 
+maybe they are not truly in "low power" mode.  My guess is the latter 
+otherwise there would be a flurry of complaints.
 
-We have already this framework migration planned, but we haven't been
-able to do it, because we are still solving stability issues on the driver.
+Best Regards,
 
-I beg for your patience, and i hope i can get my hands on this pretty soon.
-
-I'll be updating my tree when i have something.
-
-Regards,
-Sergio
+-- 
+Rob Krakora
+Senior Software Engineer
+MessageNet Systems
+101 East Carmel Dr. Suite 105
+Carmel, IN 46032
+(317)566-1677 Ext. 206
+(317)663-0808 Fax
