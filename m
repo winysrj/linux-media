@@ -1,51 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:48357 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1759710AbZFLM6x (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jun 2009 08:58:53 -0400
-Date: Fri, 12 Jun 2009 14:59:03 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] adding support for setting bus parameters in sub device
-In-Reply-To: <62904.62.70.2.252.1244810776.squirrel@webmail.xs4all.nl>
-Message-ID: <Pine.LNX.4.64.0906121454410.4843@axis700.grange>
-References: <62904.62.70.2.252.1244810776.squirrel@webmail.xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail1.radix.net ([207.192.128.31]:48271 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750720AbZFZQLz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jun 2009 12:11:55 -0400
+Subject: Re: v4l2_subdev GPIO and Pin Control ops (Re: PxDVR3200 H LinuxTV
+ v4l-dvb patch : Pull GPIO-20 low for DVB-T)
+From: Andy Walls <awalls@radix.net>
+To: Steven Toth <stoth@kernellabs.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>,
+	Terry Wu <terrywu2009@gmail.com>
+In-Reply-To: <4A44DD1A.4030200@kernellabs.com>
+References: <8992.62.70.2.252.1245760429.squirrel@webmail.xs4all.nl>
+	 <1245897611.24270.19.camel@palomino.walls.org>
+	 <200906250839.40916.hverkuil@xs4all.nl>
+	 <1245928543.4172.13.camel@palomino.walls.org>
+	 <4A44DD1A.4030200@kernellabs.com>
+Content-Type: text/plain
+Date: Fri, 26 Jun 2009 12:12:46 -0400
+Message-Id: <1246032766.3159.12.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 12 Jun 2009, Hans Verkuil wrote:
-
-> > 1. it is very unusual that the board designer has to mandate what signal
-> > polarity has to be used - only when there's additional logic between the
-> > capture device and the host. So, we shouldn't overload all boards with
-> > this information. Board-code authors will be grateful to us!
+On Fri, 2009-06-26 at 10:37 -0400, Steven Toth wrote:
+> On 6/25/09 7:15 AM, Andy Walls wrote:
+> > On Thu, 2009-06-25 at 08:39 +0200, Hans Verkuil wrote:
+> >> On Thursday 25 June 2009 04:40:11 Andy Walls wrote:
+> >>> On Tue, 2009-06-23 at 14:33 +0200, Hans Verkuil wrote:
+> >>>>> On Tue, 2009-06-23 at 11:39 +0800, Terry Wu wrote:
+> >>>>>
+> >>>> There is already an s_gpio in the core ops. It would be simple to add a
+> >>>> g_gpio as well if needed.
+> >>> Hans,
+> >>>
+> >>> As you probably know
+> >>>
+> >>> 	int (*s_gpio)(v4l2_subdev *sd, u32 val);
+> >>>
+> >>> is a little too simple for initial setup of GPIO pins.  With the
+> >>> collection of chips&  cores supported by cx25840 module, setting the
+> >>> GPIO configuration also requires:
+> >>>
+> >>> 	direction: In or Out
+> >>> 	multiplexed pins: GPIO or some other function
+> >>>
+> >>> I could tack on direction as an argument to s_gpio(), but I think that
+> >>> is a bit inconvenient..  I'd rather have a
+> >>>
+> >>> 	int (*s_gpio_config)(v4l2_subdev *sd, u32 dir, u32 initval);
+> >>>
+> >>> but that leaves out the method for multiplexed pin/pad configuration.
+> >>> Perhaps explicity setting a GPIO direction to OUT could be an implicit
+> >>> indication that a multiplexed pin should be set to it's GPIO function.
+> >>> However, that doesn't help for GPIO inputs that might have their pins
+> >>> multiplexed with other functions.
+> >>>
+> >>> Here's an idea on how to specify multiplexed pin configuration
+> >>> information and it could involve pins that multiplex functions other
+> >>> than GPIO (the CX25843 is quite flexible in this regard):
+> >>>
+> >>> 	int (*s_pin_function)(v4l2_subdev *sd, u32 pin_id, u32 function);
+> >>>
+> >>> The type checking ends up pretty weak, but I figured it was better than
+> >>> a 'void *config' that had a subdev specific collection of pin
+> >>> configuration information.
+> >>>
+> >>> Comments?
+> >> Hi Andy,
+> >>
+> >> Is there any driver that needs to setup the multiplex functions? If not, then
+> >> I would not add support for this at the moment.
+> >
+> > Well, the group of GPIO pins in question for the CX23885 are all
+> > multiplexed with other functions.  We could just initialize the CX23885
+> > to have those pins set as GPIOs, but I have to check the cx23885 driver
+> > to make sure that's safe.
 > 
-> I talked to my colleague who actually designs boards like that about what
-> he would prefer. His opinion is that he wants to set this himself, rather
-> than leave it as the result of a software negotiation. It simplifies
-> verification and debugging the hardware, and in addition there may be
-> cases where subtle timing differences between e.g. sampling on a falling
-> edge vs rising edge can actually become an important factor, particularly
-> on high frequencies.
+> I'm in the process of rationalizing the GPIO handing inside the cx23885 driver, 
+> largely because of the cx23417. The current encoder driver has a hardcoded GPIO 
+> used on GPIO 15. (legacy from the first HVR1800 implementation, which I'm 
+> cleaning up).
+> 
+> I would add this to the conversation, the product I'm working on now HVR1850 
+> needs to switch GPIO's on the fly to enable and disable parts (the ATSC demod) 
+> via an encoder GPIO pin, depending on the cards operating mode. This isn't a 
+> one-time operation, it needs to be dynamic.
+> 
+> In effect we have to tri-state / float certain parts depending whether we're in 
+> analog or digital mode, and depending on which tuner is being used.
 
-I'd say this is different. You're talking about cases where you _want_ to 
-be able to configure it explicitly, I am saying you do not have to _force_ 
-all to do this. Now, this selection only makes sense if both are 
-configurable, right? In this case, e.g., pxa270 driver does support 
-platform-specified preference. So, if both the host and the client can 
-configure either polarity in the software you _can_ still specify the 
-preferred one in platform data and it will be used.
 
-I think, the ability to specify inverters and the preferred polarity 
-should cover all possible cases.
+Steve,
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+The setting of GPIO's is (or will be) dynamic via the .s_gpio()
+v4l2_subdev operation.
+
+Just to clarify some things above:
+
+1. I assume setting of GPIO direction is not required to be done the
+fly.  Is that correct?
+
+2. I assume switching of the internal routing of signals to chip pins is
+not required to be done on the fly.  Is that correct?
+
+
+
+My plan was to add the necessary support to the cx25840 module for
+setting up the cx23885 pin control multiplexers (subdev config time),
+the GPIO 23-19 directions (subdev config time), and the GPIO 23-19
+output states (dynamically as needed via subdev's .s_gpio call).
+
+Is this a bad plan for your needs?
+
+Regards,
+Andy
+
