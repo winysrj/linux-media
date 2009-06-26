@@ -1,102 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from deliverator4.ecc.gatech.edu ([130.207.185.174]:34815 "EHLO
-	deliverator4.ecc.gatech.edu" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752160AbZFKV1d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2009 17:27:33 -0400
-Message-ID: <4A3176C3.50802@gatech.edu>
-Date: Thu, 11 Jun 2009 17:27:31 -0400
-From: David Ward <david.ward@gatech.edu>
+Received: from mail.gmx.net ([213.165.64.20]:57663 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752254AbZFZPFH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jun 2009 11:05:07 -0400
+Date: Fri, 26 Jun 2009 17:05:19 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH] mt9t031 - migration to sub device frame work
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40139F9E0D9@dlee06.ent.ti.com>
+Message-ID: <Pine.LNX.4.64.0906261657170.4449@axis700.grange>
+References: <1245874609-15246-1-git-send-email-m-karicheri2@ti.com>
+ <Pine.LNX.4.64.0906251944420.4663@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40139F9DEC4@dlee06.ent.ti.com>
+ <200906260847.19818.hverkuil@xs4all.nl> <Pine.LNX.4.64.0906260852290.4449@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40139F9E0D9@dlee06.ent.ti.com>
 MIME-Version: 1.0
-To: Steven Toth <stoth@kernellabs.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: cx18, s5h1409: chronic bit errors, only under Linux
-References: <4A2CE866.4010602@gatech.edu> <4A2D4778.4090505@gatech.edu> <4A2D7277.7080400@kernellabs.com> <829197380906081336n48d6090bmc4f92692a5496cd6@mail.gmail.com> <4A2E6FDD.5000602@kernellabs.com> <829197380906090723t434eef6dje1eb8a781babd5c7@mail.gmail.com> <4A2E70A3.7070002@kernellabs.com> <4A2EAF56.2090508@gatech.edu> <829197380906091155u43319c82i548a9f08928d3826@mail.gmail.com> <4A2EB233.3080800@kernellabs.com> <829197380906091207s19df864cl50fd14d57abb1dd4@mail.gmail.com> <4A2EB75A.4070409@kernellabs.com> <4A2F6AB3.7080406@gatech.edu> <4A2FC3EB.6010802@kernellabs.com>
-In-Reply-To: <4A2FC3EB.6010802@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/10/2009 10:32 AM, Steven Toth wrote:
-> David Ward wrote:
->> Comcast checked the outlet on channels 2 (41 dB) and 83 (39 dB).  I 
->> looked afterwards and saw that the first of those is analog 
->> programming, but the second just appears as analog noise on my TV 
->> set. (??)  I asked them to check a specific ATSC channel, but it 
->> seems that their meter was fixed to those two frequencies, which 
->> doesn't really help.  The ATSC rebroadcasts by Comcast are on high 
->> frequencies; the program I am testing primarily is on channel 79 
->> (tunes at 555 MHz).
+On Fri, 26 Jun 2009, Karicheri, Muralidharan wrote:
 
-I need to make a correction here.  I am receiving all programming over 
-digital cable.  I mistakenly thought that rebroadcasts of over-the-air 
-signals on a cable network followed all the ATSC specifications 
-(including the modulation scheme) over the particular carrier 
-frequency.  Now I understand that like all other digital cable channels, 
-local channels are broadcasted using QAM rather than 8VSB (but then they 
-also include PSIP data as required by the FCC).  So the SNR requirements 
-for QAM-256 are the ones that should apply to my situation.  That's a 
-big misunderstanding on my part...my bad.
+> >
+> >). I started by converting mx3-camera and mt9t031, and I shall upload an
+> >incomplete patch, converting only these drivers to my "testing" area,
+> >while I shall start converting the rest of the drivers... So, it is
+> >advisable to wait for that patch to appear and base any future (including
+> >this one) work on it, because it is a pretty big change and merging would
+> >be non-trivial.
+> >
+> I thought you wanted to offload some of the migration work and I had 
+> volunteered to do this since it is of interest to vpfe-capture.
 
-> Which of these three values is UNC/BER and which is snr? I don't 
-> understand, I need you to be more specific.
+Yes, but these are two unrelated (at least in theory) changes: fixing 
+cropping / scaling behaviour of _all_ aoc-camera drivers and the 
+soc-camera framework core, and removing the remaining bonds between 
+subdevice drivers and the soc-camera framework and replacing it properly 
+with v4l2-subdev API.
 
-Sorry for not being clear.  I tested again thoroughly under both Linux 
-and Windows before writing this response.
+I thought you would be doing the latter part - v4l2-subdev conversion. 
+Which is good. But, you wrote:
 
-Linux is tuning almost all channels at a SNR approximately 3 dB less 
-than under Windows.  That is why I now believe this is a tuner driver 
-problem.  I composed a table for myself with average SNRs per channel 
-while running both Windows and Linux to determine this, both with the 
-tuner card connected directly to the household cable, and connected 
-behind the splitter in my house.
+> This patch migrates mt9t031 driver from SOC Camera interface to
+> sub device interface. This is sent to get a feedback about the
+> changes done since I am not sure if some of the functionality
+> that is removed works okay with SOC Camera bridge driver or
+> not. Following functions are to be discussed and added as needed:-
 
-Under Windows, channels with low frequencies have an SNR of ~35 dB, and 
-channels with high frequency have an SNR of ~33 dB, when connected 
-directly to the household input.  The splitter at most gives me a loss 
-of 1 dB but often makes no difference.
+which I understand like you probably have broken soc-camera functionality 
+of this driver, which I cannot accept. Yes, I want to move forward to 
+v4l2-subdev, but - we cannot introduce regressions!
 
-Again, sorry for not making that clear.  I think the 3 dB difference is 
-the real issue at play here, and is the reason I'm writing this message 
-to this list, rather than one intended for household wiring issues.
+> I don't see a point in duplicating the work already done by me.
 
-> Did you get a chance to review the signal monitor to determine whether 
-> it was 64 or 256?
+I don't like duplicating work either, and I don't think we're doing that. 
+As I said, what I am doing at the moment is fixing all soc-camera drivers 
+for proper cropping / scaling. In principle I welcome your help with the 
+v4l2-subdev migration, but currently it conflicts with my above work, and 
+it introduces a regression.
 
-All channels are 256-QAM -- reported as such by both Linux and Windows.
+> So could you 
+> please work with me by reviewing this patch and then use this for your 
+> work? I will take care of merging any updates to this based on your 
+> patches (like the crop one)
 
-> If you have any way to attenuate the signal then you'll find that very 
-> quickly the windows 30.5 will drop just a little and you'll begin to 
-> see real uncorrectable errors. I alluded to this yesterday. With 30.5 
-> your just a fraction above 'working' reliably.
->
-> If you were to insert attenuation through some barrel connectors, or 
-> join some other cables together to impede the RF, you'd see that 30.5 
-> drop quickly and the errors would begin to appear. I suspect this will 
-> still occur, as I mentioned yesterday.
->
-> The windows drivers is working slightly better for you but it's still 
-> no where near good enough RF for reliable 24x7x365 viewing. You'll 
-> find the RF on your local cable rings varies during an average day. It 
-> certainly does for me on various products. What looks great today 
-> (when you're on the edge) can look ugly at 9pm in the evening or 7am 
-> thursday morning.
->
-> I wouldn't expect pristine recordings with Microsoft MCE (or other 
-> apps) (for any random moment in the week) with a 30.5 reading.
+Unfortunately, I do not think I'll be able to review your patch today, 
+will have to wait until the next week, sorry.
 
-Based on our discussion until now, the difference between 30.5 dB and 
-33.5 dB should be very significant, and I hope would warrant an 
-investigation into the cause (possibly asking Hauppauge/Conexant to 
-compare details of your tuner drivers against theirs?  I understand they 
-provide support to the Linux community).  As you said, if Windows was 
-only picking up the channels at 30.5 dB, then I shouldn't expect much 
-more than I am getting now, as I would be riding on a thin line between 
-errors and no errors.
+> >> > >>  {
+> >> > >> -    s32 data = i2c_smbus_read_word_data(client, reg);
+> >> > >> +    s32 data;
+> >> > >> +
+> >> > >> +    data = i2c_smbus_read_word_data(client, reg);
+> >> > >>      return data < 0 ? data : swab16(data);
+> >
+> >Looks like it will take me considerable time to review the patch and NAK
+> >all changes like this one...
+> >
+> I didn't get it. Are you referring to the 3 lines of code above? For 
+> this patch this code change is unnecessary, but I have to do this if sd 
+> is used as argument to this function as suggested by Hans.
 
-Sorry for not being accurate in some of my earlier messages, and thanks 
-for being patient with me.
+Exactly. It is _not_ needed for this patch. Only if we _do_ accept Hans' 
+suggestion to use the subdev pointer all the way down to register-access 
+functions, _then_ you might need to modify this code.
 
-David
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
