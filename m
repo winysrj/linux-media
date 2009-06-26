@@ -1,146 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout10.t-online.de ([194.25.134.21]:44981 "EHLO
-	mailout10.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752035AbZFRJ60 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jun 2009 05:58:26 -0400
-Date: Thu, 18 Jun 2009 11:58:08 +0200
-From: Halim Sahin <halim.sahin@t-online.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Trent Piepho <xyzzy@speakeasy.org>, linux-media@vger.kernel.org
-Subject: Re: bttv problem loading takes about several minutes
-Message-ID: <20090618095808.GA5685@halim.local>
-References: <20090617162400.GA11690@halim.local> <Pine.LNX.4.58.0906171001510.32713@shell2.speakeasy.net> <200906172206.27230.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <200906172206.27230.hverkuil@xs4all.nl>
+Received: from mail1.radix.net ([207.192.128.31]:53726 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751321AbZFZTJ4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jun 2009 15:09:56 -0400
+Subject: Re: v4l2_subdev GPIO and Pin Control ops (Re: PxDVR3200 H LinuxTV
+ v4l-dvb patch : Pull GPIO-20 low for DVB-T)
+From: Andy Walls <awalls@radix.net>
+To: Steven Toth <stoth@kernellabs.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>,
+	Terry Wu <terrywu2009@gmail.com>
+In-Reply-To: <4A44F697.2020008@kernellabs.com>
+References: <8992.62.70.2.252.1245760429.squirrel@webmail.xs4all.nl>
+	 <1245897611.24270.19.camel@palomino.walls.org>
+	 <200906250839.40916.hverkuil@xs4all.nl>
+	 <1245928543.4172.13.camel@palomino.walls.org>
+	 <4A44DD1A.4030200@kernellabs.com>
+	 <1246032766.3159.12.camel@palomino.walls.org>
+	 <4A44F697.2020008@kernellabs.com>
+Content-Type: text/plain
+Date: Fri, 26 Jun 2009 14:11:38 -0400
+Message-Id: <1246039898.3159.33.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-On Mi, Jun 17, 2009 at 10:06:26 +0200, Hans Verkuil wrote:
-> The log is from bttv version 0.9.17. The new code is only present in version 
-> 0.9.18. So this is definitely not related to any of my changes.
+On Fri, 2009-06-26 at 12:25 -0400, Steven Toth wrote:
+> On 6/26/09 12:12 PM, Andy Walls wrote:
+> > On Fri, 2009-06-26 at 10:37 -0400, Steven Toth wrote:
+> >> On 6/25/09 7:15 AM, Andy Walls wrote:
+> >>> On Thu, 2009-06-25 at 08:39 +0200, Hans Verkuil wrote:
+> >>>> On Thursday 25 June 2009 04:40:11 Andy Walls wrote:
+> >>>>> On Tue, 2009-06-23 at 14:33 +0200, Hans Verkuil wrote:
+> >>>>>>> On Tue, 2009-06-23 at 11:39 +0800, Terry Wu wrote:
+> >>>>>>>
+> >>>>>> There is already an s_gpio in the core ops. It would be simple to add a
+> >>>>>> g_gpio as well if needed.
+> >>>>> Hans,
+> >>>>>
+> >>>>> As you probably know
+> >>>>>
+> >>>>> 	int (*s_gpio)(v4l2_subdev *sd, u32 val);
+> >>>>>
+> >>>>> is a little too simple for initial setup of GPIO pins.  With the
+> >>>>> collection of chips&   cores supported by cx25840 module, setting the
+> >>>>> GPIO configuration also requires:
+> >>>>>
+> >>>>> 	direction: In or Out
+> >>>>> 	multiplexed pins: GPIO or some other function
+> >>>>>
+> >>>>> I could tack on direction as an argument to s_gpio(), but I think that
+> >>>>> is a bit inconvenient..  I'd rather have a
+> >>>>>
+> >>>>> 	int (*s_gpio_config)(v4l2_subdev *sd, u32 dir, u32 initval);
+> >>>>>
+> >>>>> but that leaves out the method for multiplexed pin/pad configuration.
+> >>>>> Perhaps explicity setting a GPIO direction to OUT could be an implicit
+> >>>>> indication that a multiplexed pin should be set to it's GPIO function.
+> >>>>> However, that doesn't help for GPIO inputs that might have their pins
+> >>>>> multiplexed with other functions.
+> >>>>>
+> >>>>> Here's an idea on how to specify multiplexed pin configuration
+> >>>>> information and it could involve pins that multiplex functions other
+> >>>>> than GPIO (the CX25843 is quite flexible in this regard):
+> >>>>>
+> >>>>> 	int (*s_pin_function)(v4l2_subdev *sd, u32 pin_id, u32 function);
+> >>>>>
+> >>>>> The type checking ends up pretty weak, but I figured it was better than
+> >>>>> a 'void *config' that had a subdev specific collection of pin
+> >>>>> configuration information.
+> >>>>>
+> >>>>> Comments?
+> >>>> Hi Andy,
+> >>>>
+> >>>> Is there any driver that needs to setup the multiplex functions? If not, then
+> >>>> I would not add support for this at the moment.
+> >>> Well, the group of GPIO pins in question for the CX23885 are all
+> >>> multiplexed with other functions.  We could just initialize the CX23885
+> >>> to have those pins set as GPIOs, but I have to check the cx23885 driver
+> >>> to make sure that's safe.
+> >> I'm in the process of rationalizing the GPIO handing inside the cx23885 driver,
+> >> largely because of the cx23417. The current encoder driver has a hardcoded GPIO
+> >> used on GPIO 15. (legacy from the first HVR1800 implementation, which I'm
+> >> cleaning up).
+> >>
+> >> I would add this to the conversation, the product I'm working on now HVR1850
+> >> needs to switch GPIO's on the fly to enable and disable parts (the ATSC demod)
+> >> via an encoder GPIO pin, depending on the cards operating mode. This isn't a
+> >> one-time operation, it needs to be dynamic.
+> >>
+> >> In effect we have to tri-state / float certain parts depending whether we're in
+> >> analog or digital mode, and depending on which tuner is being used.
+> >
+> >
+> > Steve,
+> >
+> > The setting of GPIO's is (or will be) dynamic via the .s_gpio()
+> > v4l2_subdev operation.
+> >
+> > Just to clarify some things above:
+> >
+> > 1. I assume setting of GPIO direction is not required to be done the
+> > fly.  Is that correct?
 > 
-> The text "bttv0: gpio: en=00000000, out=00000000 in=003ff502 [init]" comes 
-> from the call to bttv_gpio_tracking in bttv_probe, then the next 
-> text "bttv0: tuner type=24" comes from early in bttv_init_card2, before any 
-> i2c modules have been loaded.
-> 
-> The code in bttv_probe (bttv-driver.c) does this:
-> 
->         if (bttv_verbose)
->                 bttv_gpio_tracking(btv,"init");
-> 
->         /* needs to be done before i2c is registered */
->         bttv_init_card1(btv);
-> 
->         /* register i2c + gpio */
->         init_bttv_i2c(btv);
-> 
->         /* some card-specific stuff (needs working i2c) */
->         bttv_init_card2(btv);
-> 
-> So it looks like it can be either bttv_init_card1 or init_bttv_i2c that is 
-> causing the delay.
-> 
-> Halim, can you try to put some printk() statements in between the calls 
-> above to see which call is taking so long? Actually, it would be nice if 
-> you are able to 'drill-down' as well in whatever function is causing the 
-> delay, since I truly don't see what might be delaying things for you.
-
-So I have tested latest v4l-dvb from hg.
-The mentioned code was changed like this:
-        if (bttv_verbose)
-{
-printk ("bttv_gpio_tracking(bt");
-                bttv_gpio_tracking(btv,"init");
-}
-
-        /* needs to be done before i2c is registered */
-printk("bttv_init_card1(btv);");
-printk("        bttv_init_card1(btv);");
-
-        bttv_init_card1(btv);
-
-        /* register i2c + gpio */
-printk("        init_bttv_i2c(btv);");
-        init_bttv_i2c(btv);
-
-Result:
-[ 1069.277781] bttv: driver version 0.9.18 loaded
-[ 1069.277788] bttv: using 8 buffers with 2080k (520 pages) each for capture
-[ 1069.277886] bttv: Bt8xx card found (0).
-[ 1069.277906] bttv0: Bt878 (rev 17) at 0000:00:0b.0, irq: 19, latency: 32, mmio
-: 0xf7800000
-[ 1069.278105] bttv0: using: Leadtek WinFast 2000/ WinFast 2000 XP [card=34,insm
-od option]
-[ 1069.278167] bttv_gpio_tracking(bt<7>bttv0: gpio: en=00000000, out=00000000 in
-=003ff502 [init]
-[ 1069.278173] bttv_init_card1(btv);        bttv_init_card1(btv);        init_bt
-tv_i2c(btv);<6>bttv0: tuner type=24
-
- 
-> Regards,
-> 
-> 	Hans
+> No, incorrect. We have cases where we need to float the GPIO (HVR1300, HVR1850) 
+> we hack around this at the moment for various encoders and demods. Generally we 
+> need this functionality across a number of drivers.
 > 
 > >
-> > > Giving this command with current drivers has some problems:
-> > > 1. it takes several minutes to load bttv module.
-> > > 2. capturing doesn't work any more (dropped frames etc).
-> > > Tested with current v4l-dvb from hg, ubuntu 9.04,
-> > > debian lenny.
-> > >
-> > > I have a bt878  based card from leadtek.
-> > >
-> > > Here is my output after loading the driver:
-> > > [ 3013.735459] bttv: driver version 0.9.17 loaded
-> > > [ 3013.735470] bttv: using 32 buffers with 16k (4 pages) each for
-> > > capture [ 3013.735542] bttv: Bt8xx card found (0).
-> > > [ 3013.735562] bttv0: Bt878 (rev 17) at 0000:00:0b.0, irq: 19, latency:
-> > > 32, mmio
-> > >
-> > > : 0xf7800000
-> > >
-> > > [ 3013.737762] bttv0: using: Leadtek WinFast 2000/ WinFast 2000 XP
-> > > [card=34,insm od option]
-> > > [ 3013.737825] bttv0: gpio: en=00000000, out=00000000 in=003ff502
-> > > [init] [ 3148.136017] bttv0: tuner type=24
-> > > [ 3148.136029] bttv0: i2c: checking for MSP34xx @ 0x80... not found
-> > > [ 3154.536019] bttv0: i2c: checking for TDA9875 @ 0xb0... not found
-> > > [ 3160.936018] bttv0: i2c: checking for TDA7432 @ 0x8a... not found
-> > > [ 3167.351398] bttv0: registered device video0
-> > > [ 3167.351434] bttv0: registered device vbi0
-> > > [ 3167.351463] bttv0: registered device radio0
-> > > [ 3167.351485] bttv0: PLL: 28636363 => 35468950 . ok
-> > > [ 3167.364182] input: bttv IR (card=34) as /class/input/input6
-> > >
-> > > Please help!
-> > > Regards
-> > > Halim
-> > >
-> > >
-> > > --
-> > > Halim Sahin
-> > > E-Mail:
-> > > halim.sahin (at) t-online.de
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-media"
-> > > in the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 2. I assume switching of the internal routing of signals to chip pins is
+> > not required to be done on the fly.  Is that correct?
 > 
+> No, incorrect. Same as above.
 > 
+> >
+> >
+> >
+> > My plan was to add the necessary support to the cx25840 module for
+> > setting up the cx23885 pin control multiplexers (subdev config time),
+> > the GPIO 23-19 directions (subdev config time), and the GPIO 23-19
+> > output states (dynamically as needed via subdev's .s_gpio call).
 > 
-> -- 
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Ahh. I'm already working on this, the code is partially merged for the GPIO 
+> overhaul (a few weeks ago). I'm currently on the next stage. You should see some 
+> todo comments in the current cx23885 driver.
+> 
+> Doesn't the cx23885 driver already configure the multiplexer pins at config time 
+> for the cx25840? Check the -cards.c for the HVR1800 entry.
+> 
+> >
+> > Is this a bad plan for your needs?
+> 
+> It sounds like in some respects were working on the same thing, perhaps from 
+> different approaches. Although my needs are not to modify the 25840 driver as 
+> such, but have the cx23885 bridge be intelligent enough to be able to flip all 
+> 32 GPIO's regardless of whether they're in the avcore (embedded 25840), or the 
+> encoder or on the bridge itself.
+> 
+> If I'm late to the party and I've missed something obvious then I apologize in 
+> advance.
 
--- 
-Halim Sahin
-E-Mail:				
-halim.sahin (at) t-online.de
+Nope.  I'll spin down my effort which is at 5 lines of code so far. :)
+
+I was just going to handle part of the cx25840 module changes needed to
+add/fix GPIO settings for cx23885 since the cx23885 bridge essentailly
+is treating it's A/V core as a v4l2_subdevice (and since I muck with
+that module for ivtv occassionally and Hans was probably too busy).
+
+I just didn't want any needed cx25840 changes holding up support for the
+PxDVR3200 or any other card.
+
+Regards,
+Andy
+
