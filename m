@@ -1,117 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40065 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753929AbZFJPNS convert rfc822-to-8bit (ORCPT
+Received: from mail.emergencycommunicationsystems.com ([24.123.23.170]:51025
+	"EHLO unifiedpaging.messagenetsystems.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755046AbZFZSYr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2009 11:13:18 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	Muralidharan Karicheri <a0868495@dal.design.ti.com>
-Date: Wed, 10 Jun 2009 10:13:13 -0500
-Subject: RE: [PATCH RFC] adding support for setting bus parameters in sub
- device
-Message-ID: <A69FA2915331DC488A831521EAE36FE40139A08B16@dlee06.ent.ti.com>
-References: <1244580953-24188-1-git-send-email-m-karicheri2@ti.com>
- <200906092303.01871.hverkuil@xs4all.nl>
- <200906092307.29392.hverkuil@xs4all.nl>
-In-Reply-To: <200906092307.29392.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Fri, 26 Jun 2009 14:24:47 -0400
+Message-ID: <4A451049.2060801@messagenetsystems.com>
+Date: Fri, 26 Jun 2009 14:15:37 -0400
+From: Robert Vincent Krakora <rob.krakora@messagenetsystems.com>
 MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Andy Walls <awalls@radix.net>, video4linux-list@redhat.com,
+	linux-media@vger.kernel.org
+Subject: Re: Bah! How do I change channels?
+References: <COL103-W53A73F78F552D9FD9BAA2A88350@phx.gbl>	 <1246017001.4755.4.camel@palomino.walls.org>	 <829197380906260642m2cd87ae5qd6487dc5eae91e51@mail.gmail.com>	 <b24e53350906261019u45bba60erc7ee41222896388b@mail.gmail.com>	 <829197380906261023n7e960f43pcd25d82eb12f91dd@mail.gmail.com>	 <b24e53350906261028n1cb1abf6r6e0691759c6b8772@mail.gmail.com> <829197380906261032h2f5f5828p94ba7519ce7f38db@mail.gmail.com>
+In-Reply-To: <829197380906261032h2f5f5828p94ba7519ce7f38db@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Devin Heitmueller wrote:
+> On Fri, Jun 26, 2009 at 1:28 PM, Robert
+> Krakora<rob.krakora@messagenetsystems.com> wrote:
+>   
+>> Yes, it is run after mplayer initially tunes it.  However, what is the
+>> difference between mplayer tuning and v4l-ctl tuning?  They are both
+>> submitting the same IOCTLs to the driver to accomplish the same end
+>> result; or is mplayer probably submitting some additional IOCTLS to
+>> "wake" the device?
+>>     
+>
+> The issue is that the tuner gets powered down when the v4l device is
+> closed.  So, when running mplayer first, and then v4l-ctl is being
+> used to tune, the file handle is held active by mplayer.  But if you
+> run v4l-ctl first, the v4l-ctl opens the handle, tunes successfully,
+> and then closes the handle (which powers down the tuner).  Then when
+> running mplayer (or whatever app), the handle gets reopened but the
+> tuner is not tuned to the target frequency that v4l-ctl set.
+>
+> Devin
+>
+>   
+Aaahh yes...I think that you have told me that once before...sorry for 
+making you repeat yourself...
 
->> >
->> > +/*
->> > + * Some sub-devices are connected to the bridge device through a bus
->> > that + * carries * the clock, vsync, hsync and data. Some interfaces
->> > such as BT.656 + * carries the sync embedded in the data where as
->> > others have separate line + * carrying the sync signals. The structure
->> > below is used by bridge driver to + * set the desired bus parameters in
->> > the sub device to work with it. + */
->> > +enum v4l2_subdev_bus_type {
->> > +	/* BT.656 interface. Embedded sync */
->> > +	V4L2_SUBDEV_BUS_BT_656,
->> > +	/* BT.1120 interface. Embedded sync */
->> > +	V4L2_SUBDEV_BUS_BT_1120,
->> > +	/* 8 bit muxed YCbCr bus, separate sync and field signals */
->> > +	V4L2_SUBDEV_BUS_YCBCR_8,
->> > +	/* 16 bit YCbCr bus, separate sync and field signals */
->> > +	V4L2_SUBDEV_BUS_YCBCR_16,
->>
->> Hmm, what do you mean with "8 bit muxed YCbCr bus"? It's not clear to me
->> what the format of these YCBCR bus types is exactly.
->>
-[MK]I spent sometime yesterday looking at different interfaces that we support in our soc. Here is the list...
-BT.656, which is 8 bit or 10 bit multiplexed YCbCr bus
-BT.1120, which is 16 bit or 20 bit YCbCr bus
-YUV bus with separate sync signals (hsync, vsync and field)which could be 8 bit, 10 bit, 16 bit and 20 bit
-Since BT_656 & BT_1120 also carries YUV data, we could call them  as YUV bus. So we can classify bus type based on the type of data it carries as below..
+However, with ivtv-tune I can issue a tune to a channel and then open 
+mplayer with no tuning parameters and that channel is playing...
 
-enum v4l2_subdev_bus_type {
-	/* Raw YUV image data bus, such as BT.656, BT.1120, or with
-	 * separate sync
-	 */
-	V4L2_SUBDEV_BUS_RAW_YUV,
-      /* Raw Bayer image data bus , 8 - 16 bit wide, sync signals */
-	V4L2_SUBDEV_BUS_RAW_BAYER
-};
-
-Since we have width to describe the bus size, we could define all of the above bus types using above bus types and width. In addition we could add another Boolean to describe if sync is sent embedded or separate as below.
-Just want to do it right. If anyone has any comments about the classification, please reply. I will sent an updated patch soon.....
-
->> > +
->> > +struct v4l2_subdev_bus	{
->> > +	enum v4l2_subdev_bus_type type;
->> > +	u8 width;
-		unsigned embedded_sync:1;
->> > +	/* 0 - active low, 1 - active high */
->> > +	unsigned pol_vsync:1;
->> > +	/* 0 - active low, 1 - active high */
->> > +	unsigned pol_hsync:1;
->> > +	/* 0 - low to high , 1 - high to low */
->> > +	unsigned pol_field:1;
->> > +	/* 0 - sample at falling edge , 1 - sample at rising edge */
->> > +	unsigned pol_pclock:1;
->> > +	/* 0 - active low , 1 - active high */
->> > +	unsigned pol_data:1;
->> > +};
->> > +
->> >  /* Sub-devices are devices that are connected somehow to the main
->> > bridge device. These devices are usually audio/video
->> > muxers/encoders/decoders or sensors and webcam controllers.
->> > @@ -109,6 +144,7 @@ struct v4l2_subdev_core_ops {
->> >  	int (*querymenu)(struct v4l2_subdev *sd, struct v4l2_querymenu *qm);
->> >  	int (*s_std)(struct v4l2_subdev *sd, v4l2_std_id norm);
->> >  	long (*ioctl)(struct v4l2_subdev *sd, unsigned int cmd, void *arg);
->> > +	int (*s_bus)(struct v4l2_subdev *sd, struct v4l2_subdev_bus *bus);
->>
->> Make this 'const struct v4l2_subdev_bus *bus'.
->
->And move it to the video ops. This op is only relevant for video, after all.
->Yes, I know I said to add it to core initially; so sue me :-)
->
->Regards,
->
->	Hans
->
->>
->> >  #ifdef CONFIG_VIDEO_ADV_DEBUG
->> >  	int (*g_register)(struct v4l2_subdev *sd, struct v4l2_dbg_register
->> > *reg); int (*s_register)(struct v4l2_subdev *sd, struct
->> > v4l2_dbg_register *reg);
->>
->> Regards,
->>
->> 	Hans
->
->
->
->--
->Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-
+-- 
+Rob Krakora
+Senior Software Engineer
+MessageNet Systems
+101 East Carmel Dr. Suite 105
+Carmel, IN 46032
+(317)566-1677 Ext. 206
+(317)663-0808 Fax
