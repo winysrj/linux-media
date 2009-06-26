@@ -1,63 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f171.google.com ([209.85.222.171]:45002 "EHLO
-	mail-pz0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752832AbZFHBL6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jun 2009 21:11:58 -0400
-Received: by pzk1 with SMTP id 1so1884881pzk.33
-        for <linux-media@vger.kernel.org>; Sun, 07 Jun 2009 18:12:00 -0700 (PDT)
+Received: from mail-gx0-f226.google.com ([209.85.217.226]:55605 "EHLO
+	mail-gx0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751288AbZFZOuc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jun 2009 10:50:32 -0400
+Received: by gxk26 with SMTP id 26so878953gxk.13
+        for <linux-media@vger.kernel.org>; Fri, 26 Jun 2009 07:50:35 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <ab60605f580782732ecd676ecbab3ea3.squirrel@mail.voxel.net>
-References: <ab60605f580782732ecd676ecbab3ea3.squirrel@mail.voxel.net>
-Date: Sun, 7 Jun 2009 21:12:00 -0400
-Message-ID: <829197380906071812m591c3c3dy2cdac036d116a574@mail.gmail.com>
-Subject: Re: funny colors from XC5000 on big endian systems
+In-Reply-To: <4A44DCFB.3010906@koala.ie>
+References: <4A448634.7000209@powercraft.nl>
+	 <829197380906260640r45a31a83gd4bf23c06fdcf88f@mail.gmail.com>
+	 <4A44DCFB.3010906@koala.ie>
+Date: Fri, 26 Jun 2009 10:50:32 -0400
+Message-ID: <829197380906260750yc99868i9da83ee0153943aa@mail.gmail.com>
+Subject: Re: Pinnacle Systems PCTV 330e and Hauppauge WinTV HVR 900 (R2) not
+	working under Debian 2.6.30-1
 From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: "W. Michael Petullo" <mike@flyn.org>
-Cc: linux-media@vger.kernel.org
+To: Simon Kenyon <simon@koala.ie>
+Cc: Jelle de Jong <jelledejong@powercraft.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jun 7, 2009 at 8:22 PM, W. Michael Petullo<mike@flyn.org> wrote:
-> Is it possible that the XC5000 driver does not work properly on big endian
-> systems? I am using Linux/PowerPC 2.6.29.4. I have tried to view an analog
-> NTSC video stream from a Hauppauge 950Q using various applications
-> (including GStreamer v4lsrc and XawTV). The video is always present, but
-> in purple and green hues.
+On Fri, Jun 26, 2009 at 10:36 AM, Simon Kenyon<simon@koala.ie> wrote:
+> as you know i have the xl10353 variant. and you got it to work on my
+> machine.
 >
-> Mike
+> now i know you don't want to hear this but the same code will not work on
+> another machine.
+> both are running 2.6.28-gentoo-r5, however i'm pretty sure the
+> configurations are different.
+> the working machine has an MSI KA780G MS-7551 [SB700 chipset] motherboard
+> and
+> the non-working machine has an ASUSTeK M3N78-EM [GeForce 8200 chipset]
+> motherboard
 >
+> in fact, i've seen reference on this list to the fact that there are
+> problems with the SB700. that seems to be the opposite to me.
+> i will check it out on an Atom based netbook and an old Intel Centrino
+> laptop to see if the code works there.
+> i suspect it will - but need to confirm it.
+>
+> i'm afriad it is two steps forward and one step backwards
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> simon
 
-Hello Mike,
+Well, that's better than one step forward and two steps backward.  :-)
 
-Yes, there was an issue that resulted in purple/green colors, but I
-thought I had it fixed.  Perhaps the fix I made was endian specific (I
-will have to check the code).  Note that this is entirely an issue
-with the au8522 decoder driver, not the xc5000 tuner driver.
-
-Admittedly, I have done all my testing with x86, so it wouldn't
-surprise me if an endianness bug snuck in there (although I try to be
-conscious of these sorts of issues).
-
-Two questions:
-
-Do you see the issue using tvtime?  This will help isolate whether
-it's an application compatibility issue or whether it's related to
-endianness (and I do almost all my testing with tvtime).
-
-You indicated that you had reason to believe it's a PowerPC issue.  Is
-there any reason that you came to that conclusion other than that
-you're running on ppc?  I'm not discounting the possibility, but it
-would be good to know if you have other information that supports your
-theory.
-
-Regards,
+Send me the dmesg offline and I will work with you to try to debug the
+issue.  I have some significant doubts this is an em28xx issue though.
 
 Devin
 
