@@ -1,46 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:39965 "EHLO znsun1.ifh.de"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:53546 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751881AbZFOJsI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Jun 2009 05:48:08 -0400
-Date: Mon, 15 Jun 2009 11:48:05 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: linux-media@vger.kernel.org
-Subject: Re: dib3000mc.c and dib7000p.c compiler warnings
-In-Reply-To: <200906141134.43101.hverkuil@xs4all.nl>
-Message-ID: <alpine.LRH.1.10.0906151145570.23354@pub3.ifh.de>
-References: <200906141134.43101.hverkuil@xs4all.nl>
+	id S1751944AbZFZOur convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jun 2009 10:50:47 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Fri, 26 Jun 2009 09:50:32 -0500
+Subject: RE: [PATCH] mt9t031 - migration to sub device frame work
+Message-ID: <A69FA2915331DC488A831521EAE36FE40139F9E0D9@dlee06.ent.ti.com>
+References: <1245874609-15246-1-git-send-email-m-karicheri2@ti.com>
+ <Pine.LNX.4.64.0906251944420.4663@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40139F9DEC4@dlee06.ent.ti.com>
+ <200906260847.19818.hverkuil@xs4all.nl>
+ <Pine.LNX.4.64.0906260852290.4449@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0906260852290.4449@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-On Sun, 14 Jun 2009, Hans Verkuil wrote:
-
-> Hi Patrick,
 >
-> The daily build reports these warnings for dib3000mc.c and dib7000p.c:
+>). I started by converting mx3-camera and mt9t031, and I shall upload an
+>incomplete patch, converting only these drivers to my "testing" area,
+>while I shall start converting the rest of the drivers... So, it is
+>advisable to wait for that patch to appear and base any future (including
+>this one) work on it, because it is a pretty big change and merging would
+>be non-trivial.
 >
-> /marune/build/v4l-dvb-master/v4l/dib3000mc.c: In
-> function 'dib3000mc_i2c_enumeration':
-> /marune/build/v4l-dvb-master/v4l/dib3000mc.c:863: warning: the frame size of
-> 1508 bytes is larger than 1024 bytes
+I thought you wanted to offload some of the migration work and I had volunteered to do this since it is of interest to vpfe-capture. I don't see a point in duplicating the work already done by me. So could you please work with me by reviewing this patch and then use this for your work? I will take care of merging any updates to this based on your patches (like the crop one)
+
 >
-> /marune/build/v4l-dvb-master/v4l/dib7000p.c: In
-> function 'dib7000p_i2c_enumeration':
-> /marune/build/v4l-dvb-master/v4l/dib7000p.c:1341: warning: the frame size of
-> 1568 bytes is larger than 1024 bytes
+>> > >>  {
+>> > >> -    s32 data = i2c_smbus_read_word_data(client, reg);
+>> > >> +    s32 data;
+>> > >> +
+>> > >> +    data = i2c_smbus_read_word_data(client, reg);
+>> > >>      return data < 0 ? data : swab16(data);
 >
-> In both cases a big state struct is allocated on the stack. Would it be
-> possible to optimize that?
+>Looks like it will take me considerable time to review the patch and NAK
+>all changes like this one...
+>
+I didn't get it. Are you referring to the 3 lines of code above? For this patch this code change is unnecessary, but I have to do this if sd is used as argument to this function as suggested by Hans. 
 
-I agree that this is ugly and in fact I already have a solution for that. 
-But it's not ready as a patch nor can it published :(.
+>Thanks
+>Guennadi
+>---
+>Guennadi Liakhovetski, Ph.D.
+>Freelance Open-Source Software Developer
+>http://www.open-technology.de/
 
-I won't be able to work on it before mid-July. But then I will provide a 
-solution.
-
-thanks for raising this important problem,
-Patrick.
