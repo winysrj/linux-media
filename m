@@ -1,57 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bcode.com ([150.101.204.108]:18324 "EHLO mail.bcode.com"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753626AbZFDBwQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jun 2009 21:52:16 -0400
-Date: Thu, 4 Jun 2009 11:52:16 +1000
-From: Erik de Castro Lopo <erik@bcode.com>
-To: linux-media@vger.kernel.org
-Cc: Erik =?UTF-8?B?QW5kcsOpbg==?= <erik.andren@gmail.com>,
-	Theodore Kilgore <kilgota@banach.math.auburn.edu>
-Subject: Re: Creating a V4L driver for a USB camera
-Message-Id: <20090604115216.513cc41c.erik@bcode.com>
-In-Reply-To: <alpine.LNX.2.00.0906032014530.17538@banach.math.auburn.edu>
-References: <20090603141350.04cde59b.erik@bcode.com>
-	<62e5edd40906022318l230992b7n34e5178b7e1a7d46@mail.gmail.com>
-	<20090604100110.c837c3df.erik@bcode.com>
-	<alpine.LNX.2.00.0906032014530.17538@banach.math.auburn.edu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-yx0-f191.google.com ([209.85.210.191]:52008 "EHLO
+	mail-yx0-f191.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751795AbZFZRXB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jun 2009 13:23:01 -0400
+Received: by yxe29 with SMTP id 29so423099yxe.33
+        for <linux-media@vger.kernel.org>; Fri, 26 Jun 2009 10:23:03 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <b24e53350906261019u45bba60erc7ee41222896388b@mail.gmail.com>
+References: <COL103-W53A73F78F552D9FD9BAA2A88350@phx.gbl>
+	 <1246017001.4755.4.camel@palomino.walls.org>
+	 <829197380906260642m2cd87ae5qd6487dc5eae91e51@mail.gmail.com>
+	 <b24e53350906261019u45bba60erc7ee41222896388b@mail.gmail.com>
+Date: Fri, 26 Jun 2009 13:23:03 -0400
+Message-ID: <829197380906261023n7e960f43pcd25d82eb12f91dd@mail.gmail.com>
+Subject: Re: Bah! How do I change channels?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Robert Krakora <rob.krakora@messagenetsystems.com>
+Cc: Andy Walls <awalls@radix.net>, video4linux-list@redhat.com,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 4 Jun 2009 11:28:38 +1000
-Theodore Kilgore <kilgota@banach.math.auburn.edu> wrote:
+On Fri, Jun 26, 2009 at 1:19 PM, Robert
+Krakora<rob.krakora@messagenetsystems.com> wrote:
+> I had ran into this before with the KWorld a few months back.
+> However, whatever problem existed that forced me to add
+> "no_poweroff=1" to modprobe.conf for the em28xx module has went away.
+> I have been able to use v4l-ctl or ivtv-tune without any problems to
+> tune analog channels over cable.
 
-> If this is the case, then it ought not to be terribly difficult to write a 
-> basic driver. If you wanted still camera support, with which I have a bit 
-> more experience than with streaming support,
+Well, bear in mind that if you run v4l-ctl *after* the program is
+streaming it should work.  However, if you run v4l-ctl and then try to
+stream I suspect it will fail.
 
-Yep, only interested in still images ATM.
+If it's working, then perhaps I should take a look at the power
+management code in em28xx/xc2028 since I don't know why it would work
+(and perhaps the tuner is *not* being powered down like it should be).
 
-> Of course, I said above "basic" driver. That does not include things like 
-> color balance, contrast, or brightness controls. Such would probably take 
-> a little bit longer.
+Devin
 
-Als need contol over things like this. We have pretty good control
-over the lighting the camera works under so we tweak contrast/brightness/
-whatever in the camera to provide the bext possible image to the image
-processing.
-
-Cheers,
-Erik
 -- 
-=======================
-erik de castro lopo
-senior design engineer
-
-bCODE
-level 2, 2a glen street
-milsons point
-sydney nsw 2061
-australia
-
-tel +61 (0)2 9954 4411
-fax +61 (0)2 9954 4422
-www.bcode.com
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
