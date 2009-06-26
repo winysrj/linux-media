@@ -1,62 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:58198 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758031AbZFKEFb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2009 00:05:31 -0400
-Date: Wed, 10 Jun 2009 23:05:33 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Roger <rogerx@sdf.lonestar.org>
-cc: linux-media@vger.kernel.org
-Subject: Re: s5h1411_readreg: readreg error (ret == -5)
-In-Reply-To: <1244446830.3797.6.camel@localhost2.local>
-Message-ID: <Pine.LNX.4.64.0906102257130.7298@cnc.isely.net>
-References: <1244446830.3797.6.camel@localhost2.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4001 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754902AbZFZSQT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jun 2009 14:16:19 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id n5QIGKuJ091282
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 26 Jun 2009 20:16:21 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 26 Jun 2009 20:16:20 +0200 (CEST)
+Message-Id: <200906261816.n5QIGKuJ091282@smtp-vbr16.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 7 Jun 2009, Roger wrote:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> >From looking at "linux/drivers/media/dvb/frontends/s5h1411.c",  The
-> s5h1411_readreg wants to see "2" but is getting "-5" from the i2c bus.
-> 
-> --- Snip ---
-> 
-> s5h1411_readreg: readreg error (ret == -5)
-> pvrusb2: unregistering DVB devices
-> device: 'dvb0.net0': device_unregister
-> 
-> --- Snip ---
-> 
-> What exactly does this mean?
+Results of the daily build of v4l-dvb:
 
-Roger:
+date:        Fri Jun 26 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12133:05e6c5c9bcb4
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-It means that the module attempted an I2C transfer and the transfer 
-failed.  The I2C adapter within the pvrusb2 driver will return either 
-the number of bytes that it transferred or a failure code.  The failure 
-code, as is normal convention in the kernel, will be a negated errno 
-value.  Thus the expected value of 2 would be the fact that it probably 
-tried a 2 byte transfer, while the actual value returned of -5 indicate 
-an EIO error, which is what the pvrusb2 driver will return when the 
-underlying I2C transaction has failed.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc1-armv5: ERRORS
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-rc1-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-rc1-i686: ERRORS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc1-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-rc1-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-rc1-x86_64: ERRORS
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc1): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-Of course the real question is not that it failed but why it failed.  
-And for that I unfortunately do not have an answer.  It's possible that 
-the s5h1411 driver did something that the chip didn't like and the chip 
-responded by going deaf on the I2C bus.  More than a few I2C-driven 
-parts can behave this way.  It's also possible that the part might have 
-been busy and unable to respond - but usually in that case the driver 
-for such a part will be written with this in mind and will know how / 
-when to communicate with the hardware.
+Detailed results are available here:
 
-  -Mike
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
+Full logs are available here:
 
--- 
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
