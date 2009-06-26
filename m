@@ -1,41 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:47426 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755320AbZFDVai convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jun 2009 17:30:38 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>,
-	Kevin Hilman <khilman@deeprootsystems.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Date: Thu, 4 Jun 2009 16:30:16 -0500
-Subject: RE: [PATCH 3/9] dm355 ccdc module for vpfe capture driver
-Message-ID: <A69FA2915331DC488A831521EAE36FE4013557B51B@dlee06.ent.ti.com>
-References: <1242412603-11390-1-git-send-email-m-karicheri2@ti.com>
- <A69FA2915331DC488A831521EAE36FE401354ECDB2@dlee06.ent.ti.com>
- <87y6sbo5mu.fsf@deeprootsystems.com>
- <200906041141.38255.laurent.pinchart@skynet.be>
-In-Reply-To: <200906041141.38255.laurent.pinchart@skynet.be>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mail-yx0-f191.google.com ([209.85.210.191]:46399 "EHLO
+	mail-yx0-f191.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751312AbZFZRnA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jun 2009 13:43:00 -0400
+Received: by yxe29 with SMTP id 29so444929yxe.33
+        for <linux-media@vger.kernel.org>; Fri, 26 Jun 2009 10:43:03 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <829197380906260642m2cd87ae5qd6487dc5eae91e51@mail.gmail.com>
+References: <COL103-W53A73F78F552D9FD9BAA2A88350@phx.gbl>
+	 <1246017001.4755.4.camel@palomino.walls.org>
+	 <829197380906260642m2cd87ae5qd6487dc5eae91e51@mail.gmail.com>
+Date: Fri, 26 Jun 2009 13:19:23 -0400
+Message-ID: <b24e53350906261019u45bba60erc7ee41222896388b@mail.gmail.com>
+Subject: Re: Bah! How do I change channels?
+From: Robert Krakora <rob.krakora@messagenetsystems.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Andy Walls <awalls@radix.net>, video4linux-list@redhat.com,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, Jun 26, 2009 at 9:42 AM, Devin
+Heitmueller<dheitmueller@kernellabs.com> wrote:
+> On Fri, Jun 26, 2009 at 7:50 AM, Andy Walls<awalls@radix.net> wrote:
+>> I use either v4l2-ctl or ivtv-tune
 >>
->> My first reaction to this is... no.  I'm reluctant to have a bunch of
->> driver specific hooks in the core davinci SoC specific code.  I'd much
->> rather see this stuff kept along with the driver in drivers/media/*
->> and abstracted as necessary there.
+>> $ ivtv-tune -d /dev/video0 -t us-bcast -c 3
+>> /dev/video0: 61.250 MHz
+>>
+>> $ v4l2-ctl -d /dev/video0 -f 61.250
+>> Frequency set to 980 (61.250000 MHz)
+>>
+>>
+>> Regards,
+>> Andy
 >
->I agree with Kevin on this. arch/* is mostly meant for platform-specific
->infrastructure code. Device drivers should go in drivers/*. The
->VPSS/VPFE/CCDC/... abstraction should live in drivers/media/video/*. SoC-
->specific code that can be shared between multiple drivers (I remember we
->discussed IRQ routing for instance) can go in arch/*.
+> Hello Andy,
 >
-[MK] yes. As per your definition vpss module registers are shared across all video drivers. So it appears it has to go in arch/*. But I am now more inclined to write a platform driver for vpss that live inside media/video/davinci/ and shall export a bunch of library functions shared across drivers. I will make this change and will send it as part of v2 version of the patch series...
+> I had sent George some email off-list with basically the same
+> commands.  I think what might be happening here is the tuner gets
+> powered down when not in use, so I think it might be powered down
+> between the v4l-ctl command and the running of the other application.
+>
+> I have sent him a series of commands to try where he modprobes the
+> xc3028 driver with "no_poweroff=1", and we will see if that starts
+> working.
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
+>
 
+I had ran into this before with the KWorld a few months back.
+However, whatever problem existed that forced me to add
+"no_poweroff=1" to modprobe.conf for the em28xx module has went away.
+I have been able to use v4l-ctl or ivtv-tune without any problems to
+tune analog channels over cable.
+
+-- 
+Rob Krakora
+Senior Software Engineer
+MessageNet Systems
+101 East Carmel Dr. Suite 105
+Carmel, IN 46032
+(317)566-1677 Ext. 206
+(317)663-0808 Fax
