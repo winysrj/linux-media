@@ -1,107 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:4574 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757411AbZFJUwD (ORCPT
+Received: from node03.cambriumhosting.nl ([217.19.16.164]:53728 "EHLO
+	node03.cambriumhosting.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752943AbZFZI03 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jun 2009 16:52:03 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] adding support for setting bus parameters in sub device
-Date: Wed, 10 Jun 2009 22:51:57 +0200
-Cc: Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	davinci-linux-open-source@linux.davincidsp.com
-References: <1244580891-24153-1-git-send-email-m-karicheri2@ti.com> <200906102149.32244.hverkuil@xs4all.nl> <Pine.LNX.4.64.0906102153120.4817@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0906102153120.4817@axis700.grange>
+	Fri, 26 Jun 2009 04:26:29 -0400
+Message-ID: <4A448634.7000209@powercraft.nl>
+Date: Fri, 26 Jun 2009 10:26:28 +0200
+From: Jelle de Jong <jelledejong@powercraft.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200906102251.57644.hverkuil@xs4all.nl>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Pinnacle Systems PCTV 330e and Hauppauge WinTV HVR 900 (R2) not working
+ under Debian 2.6.30-1
+Content-Type: multipart/mixed;
+ boundary="------------070608070506090608060304"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 10 June 2009 21:59:13 Guennadi Liakhovetski wrote:
-> On Wed, 10 Jun 2009, Hans Verkuil wrote:
-> > On Wednesday 10 June 2009 20:32:25 Guennadi Liakhovetski wrote:
-> > > On Tue, 9 Jun 2009, m-karicheri2@ti.com wrote:
-> > > > From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
-> > > >
-> > > > This patch adds support for setting bus parameters such as bus type
-> > > > (BT.656, BT.1120 etc), width (example 10 bit raw image data bus)
-> > > > and polarities (vsync, hsync, field etc) in sub device. This allows
-> > > > bridge driver to configure the sub device for a specific set of bus
-> > > > parameters through s_bus() function call.
-> > >
-> > > Yes, this is required, but this is not enough. Firstly, you're
-> > > missing at least one more flag - master or slave. Secondly, it is not
-> > > enough to provide a s_bus function. Many hosts and sensors can
-> > > configure one of several alternate configurations - they can select
-> > > signal polarities, data widths, master / slave role, etc. Whereas
-> > > others have some or all of these parameters fixed. That's why we have
-> > > a query method in soc-camera, which delivers all supported
-> > > configurations, and then the host can select some mutually acceptable
-> > > subset. No, just returning an error code is not enough.
-> >
-> > Why would you want to query this? I would expect this to be fixed
-> > settings: something that is determined by the architecture. Actually, I
-> > would expect this to be part of the platform_data in many cases and
-> > setup when the i2c driver is initialized and not touched afterwards.
-> >
-> > If we want to negotiate these bus settings, then we indeed need
-> > something more. But it seems unnecessarily complex to me to implement
-> > autonegotiation when this is in practice a fixed setting determined by
-> > how the sensor is hooked up to the host.
->
-> On the platform level I have so far seen two options: signal connected
-> directly or via an inverter. For that you need platform data, yes. But
-> otherwise - why? say, if both your sensor and your host can select hsync
-> polarity in software - what should platform tell about it? This knowledge
-> belongs in the respective drivers - they know, that they can configure
-> arbitrary polarity and they advertise that. Another sensor, that is
-> statically active high - what does platform have to do with it? The
-> driver knows perfectly, that it can only do one polarity, and it
-> negotiates that. Earlier we also had this flags configured in platform
-> code, but then we realised that this wasn't correct. This information and
-> configuration methods are chip-specific, not platform-specific.
->
-> And the negotiation code is not that complex - just copy respective
-> soc-camera functions, later the originals will be removed.
+This is a multi-part message in MIME format.
+--------------070608070506090608060304
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-My view of this would be that the board specification specifies the sensor 
-(and possibly other chips) that are on the board. And to me it makes sense 
-that that also supplies the bus settings. I agree that it is not complex 
-code, but I think it is also unnecessary code. Why negotiate if you can 
-just set it?
+Hi all,
 
-BTW, looking at the code there doesn't seem to be a bus type (probably only 
-Bayer is used), correct? How is the datawidth negotiation done? Is the 
-largest available width chosen? I assume that the datawidth is generally 
-fixed by the host? I don't quite see how that can be negotiated since what 
-is chosen there is linked to how the video data is transferred to memory. 
-E.g., chosing a bus width of 8 or 10 bits can be the difference between 
-transferring 8 bit or 16 bit data (with 6 bits padding) when the image is 
-transferred to memory. If I would implement negotiation I would probably 
-limit it to those one-bit settings and not include bus type and width.
+This is sort of an updated report, I tested my em28xx based hybrid
+devices again and the dvb-t still does not work under the 2.6.30 kernel.
+I am not interested in the analog parts. So how is the process going on
+getting support for dvb-t in the kernel. I am also not interested in any
+non free non mainstream maintained code bases.
 
-Regards,
+I believe I sent some em28xx devices to Devin, so how is the process
+going, any luck?
 
-	Hans
+Question for Antti if he had any luck with the devices (rtl2831-r2) I send?
 
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best regards,
 
+Jelle de Jong
 
+--------------070608070506090608060304
+Content-Type: text/plain;
+ name="not-working-dvb-t-devices.txt"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="not-working-dvb-t-devices.txt"
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+JCBjYXQgL3Byb2MvdmVyc2lvbgpMaW51eCB2ZXJzaW9uIDIuNi4zMC0xLTY4NiAoRGViaWFu
+IDIuNi4zMC0xKSAod2FsZGlAZGViaWFuLm9yZykgKGdjYyB2ZXJzaW9uIDQuMy4zIChEZWJp
+YW4gNC4zLjMtMTEpICkgIzEgU01QIFN1biBKdW4gMTQgMTY6MTE6MzIgVVRDIDIwMDkKClsg
+MjYyOS4yOTI2MzRdIHVzYiAxLTI6IE5ldyBVU0IgZGV2aWNlIGZvdW5kLCBpZFZlbmRvcj0y
+MzA0LCBpZFByb2R1Y3Q9MDIyNgpbIDI2MjkuMjkyNjQ4XSB1c2IgMS0yOiBOZXcgVVNCIGRl
+dmljZSBzdHJpbmdzOiBNZnI9MywgUHJvZHVjdD0xLCBTZXJpYWxOdW1iZXI9MgpbIDI2Mjku
+MjkyNjYwXSB1c2IgMS0yOiBQcm9kdWN0OiBQQ1RWIDMzMGUKWyAyNjI5LjI5MjY2OV0gdXNi
+IDEtMjogTWFudWZhY3R1cmVyOiBQaW5uYWNsZSBTeXN0ZW1zClsgMjYyOS4yOTI2NzhdIHVz
+YiAxLTI6IFNlcmlhbE51bWJlcjogMDcwOTAxMDkwMjgwClsgMjYyOS4yOTMwMDNdIHVzYiAx
+LTI6IGNvbmZpZ3VyYXRpb24gIzEgY2hvc2VuIGZyb20gMSBjaG9pY2UKWyAyNjI5LjM4MDg0
+MF0gTGludXggdmlkZW8gY2FwdHVyZSBpbnRlcmZhY2U6IHYyLjAwClsgMjYyOS40NTgyODVd
+IGVtMjh4eDogTmV3IGRldmljZSBQaW5uYWNsZSBTeXN0ZW1zIFBDVFYgMzMwZSBAIDQ4MCBN
+YnBzICgyMzA0OjAyMjYsIGludGVyZmFjZSAwLCBjbGFzcyAwKQpbIDI2MjkuNDU4MzE5XSBl
+bTI4eHggIzA6IElkZW50aWZpZWQgYXMgUGlubmFjbGUgSHlicmlkIFBybyAoMikgKGNhcmQ9
+NTYpClsgMjYyOS40NTg2ODRdIGVtMjh4eCAjMDogY2hpcCBJRCBpcyBlbTI4ODIvZW0yODgz
+ClsgMjYyOS42MzI2MThdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSAwMDogMWEgZWIgNjcgOTUg
+MDQgMjMgMjYgMDIgZDAgMTIgNWMgMDMgOGUgMTYgYTQgMWMKWyAyNjI5LjYzMjY2Nl0gZW0y
+OHh4ICMwOiBpMmMgZWVwcm9tIDEwOiA2YSAyNCAyNyA1NyA0NiAwNyAwMSAwMCAwMCAwMCAw
+MCAwMCAwMCAwMCAwMCAwMApbIDI2MjkuNjMyNzA3XSBlbTI4eHggIzA6IGkyYyBlZXByb20g
+MjA6IDQ2IDAwIDAxIDAwIGYwIDEwIDAyIDAwIGI4IDAwIDAwIDAwIDViIGUwIDAwIDAwClsg
+MjYyOS42MzI3NDddIGVtMjh4eCAjMDogaTJjIGVlcHJvbSAzMDogMDAgMDAgMjAgNDAgMjAg
+NmUgMDIgMjAgMTAgMDEgMDAgMDAgMDAgMDAgMDAgMDAKWyAyNjI5LjYzMjc4N10gZW0yOHh4
+ICMwOiBpMmMgZWVwcm9tIDQwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
+MCAwMCAwMCAwMCAwMApbIDI2MjkuNjMyODI2XSBlbTI4eHggIzA6IGkyYyBlZXByb20gNTA6
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwClsgMjYy
+OS42MzI4NjVdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSA2MDogMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAgMjQgMDMgNTAgMDAgNjkgMDAKWyAyNjI5LjYzMjkwNV0gZW0yOHh4ICMw
+OiBpMmMgZWVwcm9tIDcwOiA2ZSAwMCA2ZSAwMCA2MSAwMCA2MyAwMCA2YyAwMCA2NSAwMCAy
+MCAwMCA1MyAwMApbIDI2MjkuNjMyOTQ1XSBlbTI4eHggIzA6IGkyYyBlZXByb20gODA6IDc5
+IDAwIDczIDAwIDc0IDAwIDY1IDAwIDZkIDAwIDczIDAwIDAwIDAwIDE2IDAzClsgMjYyOS42
+MzI5ODVdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSA5MDogNTAgMDAgNDMgMDAgNTQgMDAgNTYg
+MDAgMjAgMDAgMzMgMDAgMzMgMDAgMzAgMDAKWyAyNjI5LjYzMzAzOV0gZW0yOHh4ICMwOiBp
+MmMgZWVwcm9tIGEwOiA2NSAwMCAwMCAwMCAxYyAwMyAzMCAwMCAzNyAwMCAzMCAwMCAzOSAw
+MCAzMCAwMApbIDI2MjkuNjMzMDg0XSBlbTI4eHggIzA6IGkyYyBlZXByb20gYjA6IDMxIDAw
+IDMwIDAwIDM5IDAwIDMwIDAwIDMyIDAwIDM4IDAwIDMwIDAwIDAwIDAwClsgMjYyOS42MzMx
+MjRdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSBjMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAKWyAyNjI5LjYzMzE2M10gZW0yOHh4ICMwOiBpMmMg
+ZWVwcm9tIGQwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
+MCAwMApbIDI2MjkuNjMzMjAzXSBlbTI4eHggIzA6IGkyYyBlZXByb20gZTA6IDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwClsgMjYyOS42MzMyNDJd
+IGVtMjh4eCAjMDogaTJjIGVlcHJvbSBmMDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAKWyAyNjI5LjYzMzI4N10gZW0yOHh4ICMwOiBFRVBST00g
+SUQ9IDB4OTU2N2ViMWEsIEVFUFJPTSBoYXNoID0gMHg4N2IzYTViZgpbIDI2MjkuNjMzMjk1
+XSBlbTI4eHggIzA6IEVFUFJPTSBpbmZvOgpbIDI2MjkuNjMzMzAzXSBlbTI4eHggIzA6ICAg
+QUM5NyBhdWRpbyAoNSBzYW1wbGUgcmF0ZXMpClsgMjYyOS42MzMzMTBdIGVtMjh4eCAjMDog
+ICA1MDBtQSBtYXggcG93ZXIKWyAyNjI5LjYzMzMyMV0gZW0yOHh4ICMwOiAgIFRhYmxlIGF0
+IDB4MjcsIHN0cmluZ3M9MHgxNjhlLCAweDFjYTQsIDB4MjQ2YQpbIDI2MjkuNjMzMzMxXSBl
+bTI4eHggIzA6ClsgMjYyOS42MzMzMzVdClsgMjYyOS42MzMzNDVdIGVtMjh4eCAjMDogVGhl
+IHN1cHBvcnQgZm9yIHRoaXMgYm9hcmQgd2VyZW4ndCB2YWxpZCB5ZXQuClsgMjYyOS42MzMz
+NTRdIGVtMjh4eCAjMDogUGxlYXNlIHNlbmQgYSByZXBvcnQgb2YgaGF2aW5nIHRoaXMgd29y
+a2luZwpbIDI2MjkuNjMzMzYzXSBlbTI4eHggIzA6IG5vdCB0byBWNEwgbWFpbGluZyBsaXN0
+IChhbmQvb3IgdG8gb3RoZXIgYWRkcmVzc2VzKQpbIDI2MjkuNjMzMzY5XQpbIDI2MjkuNjQ2
+Njc3XSB0dnA1MTUwIDEtMDA1YzogY2hpcCBmb3VuZCBAIDB4YjggKGVtMjh4eCAjMCkKWyAy
+NjI5LjY2ODIwN10gdHVuZXIgMS0wMDYxOiBjaGlwIGZvdW5kIEAgMHhjMiAoZW0yOHh4ICMw
+KQpbIDI2MjkuNzA3MzAzXSB4YzIwMjggMS0wMDYxOiBjcmVhdGluZyBuZXcgaW5zdGFuY2UK
+WyAyNjI5LjcwNzMxOF0geGMyMDI4IDEtMDA2MTogdHlwZSBzZXQgdG8gWENlaXZlIHhjMjAy
+OC94YzMwMjggdHVuZXIKWyAyNjI5LjcwNzM0Nl0gaTJjLWFkYXB0ZXIgaTJjLTE6IGZpcm13
+YXJlOiByZXF1ZXN0aW5nIHhjMzAyOC12MjcuZncKWyAyNjI5LjcyNTU2Ml0geGMyMDI4IDEt
+MDA2MTogTG9hZGluZyA4MCBmaXJtd2FyZSBpbWFnZXMgZnJvbSB4YzMwMjgtdjI3LmZ3LCB0
+eXBlOiB4YzIwMjggZmlybXdhcmUsIHZlciAyLjcKWyAyNjI5Ljc3NjA2N10geGMyMDI4IDEt
+MDA2MTogTG9hZGluZyBmaXJtd2FyZSBmb3IgdHlwZT1CQVNFIE1UUyAoNSksIGlkIDAwMDAw
+MDAwMDAwMDAwMDAuClsgMjYzMC43ODc2NDFdIHhjMjAyOCAxLTAwNjE6IExvYWRpbmcgZmly
+bXdhcmUgZm9yIHR5cGU9TVRTICg0KSwgaWQgMDAwMDAwMDAwMDAwYjcwMC4KWyAyNjMwLjgw
+NDg3N10geGMyMDI4IDEtMDA2MTogTG9hZGluZyBTQ09ERSBmb3IgdHlwZT1NVFMgTENEIE5P
+R0QgTU9OTyBJRiBTQ09ERSBIQVNfSUZfNDUwMCAoNjAwMmIwMDQpLCBpZCAwMDAwMDAwMDAw
+MDBiNzAwLgpbIDI2MzAuOTg4MzMxXSBlbTI4eHggIzA6IENvbmZpZyByZWdpc3RlciByYXcg
+ZGF0YTogMHhkMApbIDI2MzAuOTg5MTIxXSBlbTI4eHggIzA6IEFDOTcgdmVuZG9yIElEID0g
+MHhmZmZmZmZmZgpbIDI2MzAuOTg5NDk2XSBlbTI4eHggIzA6IEFDOTcgZmVhdHVyZXMgPSAw
+eDZhOTAKWyAyNjMwLjk4OTUwNl0gZW0yOHh4ICMwOiBFbXBpYSAyMDIgQUM5NyBhdWRpbyBw
+cm9jZXNzb3IgZGV0ZWN0ZWQKWyAyNjMxLjExNjYyM10gdHZwNTE1MCAxLTAwNWM6IHR2cDUx
+NTBhbTEgZGV0ZWN0ZWQuClsgMjYzMS4yMzcxMzJdIGVtMjh4eCAjMDogdjRsMiBkcml2ZXIg
+dmVyc2lvbiAwLjEuMgpbIDI2MzEuMzE5MjE3XSBlbTI4eHggIzA6IFY0TDIgZGV2aWNlIHJl
+Z2lzdGVyZWQgYXMgL2Rldi92aWRlbzAgYW5kIC9kZXYvdmJpMApbIDI2MzEuMzMyMTQwXSB1
+c2Jjb3JlOiByZWdpc3RlcmVkIG5ldyBpbnRlcmZhY2UgZHJpdmVyIGVtMjh4eApbIDI2MzEu
+MzMyMTU5XSBlbTI4eHggZHJpdmVyIGxvYWRlZApbIDI2MzEuMzg1NjU1XSBlbTI4eHgtYXVk
+aW8uYzogcHJvYmluZyBmb3IgZW0yOHgxIG5vbiBzdGFuZGFyZCB1c2JhdWRpbwpbIDI2MzEu
+Mzg1NjcxXSBlbTI4eHgtYXVkaW8uYzogQ29weXJpZ2h0IChDKSAyMDA2IE1hcmt1cyBSZWNo
+YmVyZ2VyClsgMjYzMS4zODczNTldIEVtMjh4eDogSW5pdGlhbGl6ZWQgKEVtMjh4eCBBdWRp
+byBFeHRlbnNpb24pIGV4dGVuc2lvbgpbIDI2MzEuNjU2NjA4XSB0dnA1MTUwIDEtMDA1Yzog
+dHZwNTE1MGFtMSBkZXRlY3RlZC4KCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQoKWyAyNzQ5LjE0MDA5
+NV0gdXNiIDEtMjogbmV3IGhpZ2ggc3BlZWQgVVNCIGRldmljZSB1c2luZyBlaGNpX2hjZCBh
+bmQgYWRkcmVzcyA5ClsgMjc0OS4yNzc2NDldIHVzYiAxLTI6IE5ldyBVU0IgZGV2aWNlIGZv
+dW5kLCBpZFZlbmRvcj0yMDQwLCBpZFByb2R1Y3Q9NjUwMgpbIDI3NDkuMjc3NjY0XSB1c2Ig
+MS0yOiBOZXcgVVNCIGRldmljZSBzdHJpbmdzOiBNZnI9MCwgUHJvZHVjdD0xLCBTZXJpYWxO
+dW1iZXI9MgpbIDI3NDkuMjc3Njc2XSB1c2IgMS0yOiBQcm9kdWN0OiBXaW5UViBIVlItOTAw
+ClsgMjc0OS4yNzc2ODVdIHVzYiAxLTI6IFNlcmlhbE51bWJlcjogNDAzMDYwMDY3OApbIDI3
+NDkuMjc4MDE0XSB1c2IgMS0yOiBjb25maWd1cmF0aW9uICMxIGNob3NlbiBmcm9tIDEgY2hv
+aWNlClsgMjc0OS4yNzgzNDZdIGVtMjh4eDogTmV3IGRldmljZSBXaW5UViBIVlItOTAwIEAg
+NDgwIE1icHMgKDIwNDA6NjUwMiwgaW50ZXJmYWNlIDAsIGNsYXNzIDApClsgMjc0OS4yNzgz
+NzNdIGVtMjh4eCAjMDogSWRlbnRpZmllZCBhcyBIYXVwcGF1Z2UgV2luVFYgSFZSIDkwMCAo
+UjIpIChjYXJkPTE4KQpbIDI3NDkuMjc4NTIyXSBlbTI4eHggIzA6IGNoaXAgSUQgaXMgZW0y
+ODgyL2VtMjg4MwpbIDI3NDkuNDUxNTA2XSBlbTI4eHggIzA6IGkyYyBlZXByb20gMDA6IDFh
+IGViIDY3IDk1IDQwIDIwIDAyIDY1IGQwIDEyIDVjIDAzIDgyIDFlIDZhIDE4ClsgMjc0OS40
+NTE1NTNdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSAxMDogMDAgMDAgMjQgNTcgNjYgMDcgMDEg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAKWyAyNzQ5LjQ1MTU5NF0gZW0yOHh4ICMwOiBp
+MmMgZWVwcm9tIDIwOiA0NiAwMCAwMSAwMCBmMCAxMCAwMiAwMCBiOCAwMCAwMCAwMCA1YiBl
+MCAwMCAwMApbIDI3NDkuNDUxNjM0XSBlbTI4eHggIzA6IGkyYyBlZXByb20gMzA6IDAwIDAw
+IDIwIDQwIDIwIDZlIDAyIDIwIDEwIDAxIDAxIDAxIDAwIDAwIDAwIDAwClsgMjc0OS40NTE2
+NzRdIGVtMjh4eCAjMDogaTJjIGVlcHJvbSA0MDogMDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAg
+MDAgMDAgMDAgMDAgMDAgMDAgMDAgMDAKWyAyNzQ5LjQ1MTcxNF0gZW0yOHh4ICMwOiBpMmMg
+ZWVwcm9tIDUwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
+MCAwMApbIDI3NDkuNDUxNzUzXSBlbTI4eHggIzA6IGkyYyBlZXByb20gNjA6IDAwIDAwIDAw
+IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDE4IDAzIDM0IDAwIDMwIDAwClsgMjc0OS40NTE3OTNd
+IGVtMjh4eCAjMDogaTJjIGVlcHJvbSA3MDogMzMgMDAgMzAgMDAgMzYgMDAgMzAgMDAgMzAg
+MDAgMzYgMDAgMzcgMDAgMzggMDAKWyAyNzQ5LjQ1MTgzM10gZW0yOHh4ICMwOiBpMmMgZWVw
+cm9tIDgwOiAwMCAwMCAxZSAwMyA1NyAwMCA2OSAwMCA2ZSAwMCA1NCAwMCA1NiAwMCAyMCAw
+MApbIDI3NDkuNDUxODczXSBlbTI4eHggIzA6IGkyYyBlZXByb20gOTA6IDQ4IDAwIDU2IDAw
+IDUyIDAwIDJkIDAwIDM5IDAwIDMwIDAwIDMwIDAwIDAwIDAwClsgMjc0OS40NTE5MTNdIGVt
+Mjh4eCAjMDogaTJjIGVlcHJvbSBhMDogODQgMTIgMDAgMDAgMDUgNTAgMWEgN2YgZDQgNzgg
+MjMgZmEgZmQgZDAgMzggODkKWyAyNzQ5LjQ1MTk1M10gZW0yOHh4ICMwOiBpMmMgZWVwcm9t
+IGIwOiBmZiAwMCAwMCAwMCAwNCA4NCAwYSAwMCAwMSAwMSAyMCA3NyAwMCA0MCBlNiAxNQpb
+IDI3NDkuNDUxOTkzXSBlbTI4eHggIzA6IGkyYyBlZXByb20gYzA6IDNlIGYwIDc0IDAyIDAx
+IDAwIDAxIDc5IDAxIDAwIDAwIDAwIDAwIDAwIDAwIDAwClsgMjc0OS40NTIwNjVdIGVtMjh4
+eCAjMDogaTJjIGVlcHJvbSBkMDogODQgMTIgMDAgMDAgMDUgNTAgMWEgN2YgZDQgNzggMjMg
+ZmEgZmQgZDAgMzggODkKWyAyNzQ5LjQ1MjEwNl0gZW0yOHh4ICMwOiBpMmMgZWVwcm9tIGUw
+OiBmZiAwMCAwMCAwMCAwNCA4NCAwYSAwMCAwMSAwMSAyMCA3NyAwMCA0MCBlNiAxNQpbIDI3
+NDkuNDUyMTQ2XSBlbTI4eHggIzA6IGkyYyBlZXByb20gZjA6IDNlIGYwIDc0IDAyIDAxIDAw
+IDAxIDc5IDAxIDAwIDAwIDAwIDAwIDAwIDAwIDAwClsgMjc0OS40NTIxOTFdIGVtMjh4eCAj
+MDogRUVQUk9NIElEPSAweDk1NjdlYjFhLCBFRVBST00gaGFzaCA9IDB4YTljNzM4ZGQKWyAy
+NzQ5LjQ1MjE5OV0gZW0yOHh4ICMwOiBFRVBST00gaW5mbzoKWyAyNzQ5LjQ1MjIwN10gZW0y
+OHh4ICMwOiAgIEFDOTcgYXVkaW8gKDUgc2FtcGxlIHJhdGVzKQpbIDI3NDkuNDUyMjE0XSBl
+bTI4eHggIzA6ICAgNTAwbUEgbWF4IHBvd2VyClsgMjc0OS40NTIyMjVdIGVtMjh4eCAjMDog
+ICBUYWJsZSBhdCAweDI0LCBzdHJpbmdzPTB4MWU4MiwgMHgxODZhLCAweDAwMDAKWyAyNzQ5
+LjQ1Nzg3M10gdHZlZXByb20gMS0wMDUwOiBIYXVwcGF1Z2UgbW9kZWwgNjUwMTgsIHJldiBC
+M0MwLCBzZXJpYWwjIDQwNjg4MzgKWyAyNzQ5LjQ1Nzg5Ml0gdHZlZXByb20gMS0wMDUwOiB0
+dW5lciBtb2RlbCBpcyBYY2VpdmUgWEMzMDI4IChpZHggMTIwLCB0eXBlIDcxKQpbIDI3NDku
+NDU3OTA4XSB0dmVlcHJvbSAxLTAwNTA6IFRWIHN0YW5kYXJkcyBQQUwoQi9HKSBQQUwoSSkg
+UEFMKEQvRDEvSykgQVRTQy9EVkIgRGlnaXRhbCAoZWVwcm9tIDB4ZDQpClsgMjc0OS40NTc5
+MjFdIHR2ZWVwcm9tIDEtMDA1MDogYXVkaW8gcHJvY2Vzc29yIGlzIE5vbmUgKGlkeCAwKQpb
+IDI3NDkuNDU3OTMyXSB0dmVlcHJvbSAxLTAwNTA6IGhhcyByYWRpbwpbIDI3NDkuNDY0NTE1
+XSB0dnA1MTUwIDEtMDA1YzogY2hpcCBmb3VuZCBAIDB4YjggKGVtMjh4eCAjMCkKWyAyNzQ5
+LjQ3NjQ0Ml0gdHVuZXIgMS0wMDYxOiBjaGlwIGZvdW5kIEAgMHhjMiAoZW0yOHh4ICMwKQpb
+IDI3NDkuNDc2OTE2XSB4YzIwMjggMS0wMDYxOiBjcmVhdGluZyBuZXcgaW5zdGFuY2UKWyAy
+NzQ5LjQ3NjkzMl0geGMyMDI4IDEtMDA2MTogdHlwZSBzZXQgdG8gWENlaXZlIHhjMjAyOC94
+YzMwMjggdHVuZXIKWyAyNzQ5LjQ3Njk2M10gaTJjLWFkYXB0ZXIgaTJjLTE6IGZpcm13YXJl
+OiByZXF1ZXN0aW5nIHhjMzAyOC12MjcuZncKWyAyNzQ5LjQ5OTc4OF0geGMyMDI4IDEtMDA2
+MTogTG9hZGluZyA4MCBmaXJtd2FyZSBpbWFnZXMgZnJvbSB4YzMwMjgtdjI3LmZ3LCB0eXBl
+OiB4YzIwMjggZmlybXdhcmUsIHZlciAyLjcKWyAyNzQ5LjU0ODA2NV0geGMyMDI4IDEtMDA2
+MTogTG9hZGluZyBmaXJtd2FyZSBmb3IgdHlwZT1CQVNFIE1UUyAoNSksIGlkIDAwMDAwMDAw
+MDAwMDAwMDAuClsgMjc1MC41NTU0MDRdIHhjMjAyOCAxLTAwNjE6IExvYWRpbmcgZmlybXdh
+cmUgZm9yIHR5cGU9TVRTICg0KSwgaWQgMDAwMDAwMDAwMDAwYjcwMC4KWyAyNzUwLjU3Mjc2
+NV0geGMyMDI4IDEtMDA2MTogTG9hZGluZyBTQ09ERSBmb3IgdHlwZT1NVFMgTENEIE5PR0Qg
+TU9OTyBJRiBTQ09ERSBIQVNfSUZfNDUwMCAoNjAwMmIwMDQpLCBpZCAwMDAwMDAwMDAwMDBi
+NzAwLgpbIDI3NTAuNzU2NDYyXSBpbnB1dDogZW0yOHh4IElSIChlbTI4eHggIzApIGFzIC9k
+ZXZpY2VzL3BjaTAwMDA6MDAvMDAwMDowMDoxZC43L3VzYjEvMS0yL2lucHV0L2lucHV0MTIK
+WyAyNzUwLjc1NjkzOV0gZW0yOHh4ICMwOiBDb25maWcgcmVnaXN0ZXIgcmF3IGRhdGE6IDB4
+ZDAKWyAyNzUwLjc1Nzc3Nl0gZW0yOHh4ICMwOiBBQzk3IHZlbmRvciBJRCA9IDB4ZmZmZmZm
+ZmYKWyAyNzUwLjc1ODE1MF0gZW0yOHh4ICMwOiBBQzk3IGZlYXR1cmVzID0gMHg2YTkwClsg
+Mjc1MC43NTgxNjRdIGVtMjh4eCAjMDogRW1waWEgMjAyIEFDOTcgYXVkaW8gcHJvY2Vzc29y
+IGRldGVjdGVkClsgMjc1MC45MDA2MjZdIHR2cDUxNTAgMS0wMDVjOiB0dnA1MTUwYW0xIGRl
+dGVjdGVkLgpbIDI3NTEuMDM4MTQyXSBlbTI4eHggIzA6IHY0bDIgZHJpdmVyIHZlcnNpb24g
+MC4xLjIKWyAyNzUxLjEyMzk4MF0gZW0yOHh4ICMwOiBWNEwyIGRldmljZSByZWdpc3RlcmVk
+IGFzIC9kZXYvdmlkZW8wIGFuZCAvZGV2L3ZiaTAKWyAyNzUxLjEyMzk5MV0gZW0yOHh4LWF1
+ZGlvLmM6IHByb2JpbmcgZm9yIGVtMjh4MSBub24gc3RhbmRhcmQgdXNiYXVkaW8KWyAyNzUx
+LjEyMzk5N10gZW0yOHh4LWF1ZGlvLmM6IENvcHlyaWdodCAoQykgMjAwNiBNYXJrdXMgUmVj
+aGJlcmdlcgpbIDI3NTEuNDQwNjEzXSB0dnA1MTUwIDEtMDA1YzogdHZwNTE1MGFtMSBkZXRl
+Y3RlZC4KCg==
+--------------070608070506090608060304--
