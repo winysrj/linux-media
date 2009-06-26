@@ -1,39 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f210.google.com ([209.85.219.210]:34994 "EHLO
-	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750970AbZFVVxd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2009 17:53:33 -0400
-Received: by ewy6 with SMTP id 6so5069287ewy.37
-        for <linux-media@vger.kernel.org>; Mon, 22 Jun 2009 14:53:34 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20]:59638 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754361AbZFZPZs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jun 2009 11:25:48 -0400
+Date: Fri, 26 Jun 2009 17:25:58 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: [PATCH] mt9t031 - migration to sub device frame work
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE40139F9E115@dlee06.ent.ti.com>
+Message-ID: <Pine.LNX.4.64.0906261725250.4449@axis700.grange>
+References: <1245874609-15246-1-git-send-email-m-karicheri2@ti.com>
+ <Pine.LNX.4.64.0906251944420.4663@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40139F9DEC4@dlee06.ent.ti.com>
+ <200906260847.19818.hverkuil@xs4all.nl> <Pine.LNX.4.64.0906260852290.4449@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40139F9E0D9@dlee06.ent.ti.com>
+ <Pine.LNX.4.64.0906261657170.4449@axis700.grange>
+ <A69FA2915331DC488A831521EAE36FE40139F9E115@dlee06.ent.ti.com>
 MIME-Version: 1.0
-In-Reply-To: <COL103-W308B321250A646D788B25188390@phx.gbl>
-References: <COL103-W53605D85359D631FC60D0F88380@phx.gbl>
-	 <COL103-W40B198179C2E84587DC71F88380@phx.gbl>
-	 <829197380906211429k7176a93fm49d49851e6d2df1e@mail.gmail.com>
-	 <COL103-W308B321250A646D788B25188390@phx.gbl>
-Date: Mon, 22 Jun 2009 17:53:34 -0400
-Message-ID: <829197380906221453pa0738b4j6fb7c4b045f6aa1@mail.gmail.com>
-Subject: Re: Can't use my Pinnacle PCTV HD Pro stick - what am I doing wrong?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: George Adams <g_adams27@hotmail.com>
-Cc: linux-media@vger.kernel.org, video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 22, 2009 at 5:39 PM, George Adams<g_adams27@hotmail.com> wrote:
->
-> Hello again.  I have some updates now that I've been able to make some further tests.
-<snip>
+On Fri, 26 Jun 2009, Karicheri, Muralidharan wrote:
 
-Also, do you have the device plugged in via a powered USB hub?  And if
-so, are you unplugging the 800e from the hub, or are you unplugging
-the hub from the PC?
+> I see your point. I think what we could do is to keep this patch in our 
+> internal tree until you complete fixing the cropping/scaling issue. I 
+> will merge your future patches to this version. When you are ready to do 
+> the migration to sub device frame work, we could review this driver 
+> again and merge. Could you agree with this plan?
 
-Devin
+Yep, perfect.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
