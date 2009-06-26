@@ -1,75 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4438 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754048AbZFEKCt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jun 2009 06:02:49 -0400
-Message-ID: <22928.62.70.2.252.1244196160.squirrel@webmail.xs4all.nl>
-Date: Fri, 5 Jun 2009 12:02:40 +0200 (CEST)
-Subject: Re: [PATCH] ivtv: Fix PCI direction
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Alan Cox" <alan@lxorguk.ukuu.org.uk>
-Cc: torvalds@linux-foundation.org, linux-media@vger.kernel.org
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2752 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750815AbZFZRur (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jun 2009 13:50:47 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [PARTIALLY SOLVED] Can't use my Pinnacle PCTV HD Pro stick - what  am I doing wrong?
+Date: Fri, 26 Jun 2009 19:50:26 +0200
+Cc: George Adams <g_adams27@hotmail.com>, linux-media@vger.kernel.org,
+	video4linux-list@redhat.com,
+	Michael Krufky <mkrufky@kernellabs.com>
+References: <36839.62.70.2.252.1245937439.squirrel@webmail.xs4all.nl> <829197380906251125t56fe49ccqee97eab659be9974@mail.gmail.com>
+In-Reply-To: <829197380906251125t56fe49ccqee97eab659be9974@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906261950.27065.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thursday 25 June 2009 20:25:31 Devin Heitmueller wrote:
+> Hans,
+> 
+> I just spoke with mkrufky, and he confirmed the issue does occur with
+> the HVR-950.  However, the em28xx driver does not do a printk() when
+> the subdev registration fails (I will submit a patch to fix that).
+> 
+> Please let me know if you have any further question.
+> 
+> Thanks for your assistance,
+> 
+> Devin
+> 
 
-> From: Alan Cox <alan@linux.intel.com>
->
-> The ivtv stream buffers may be for receive or for send but the attached sg
-> handle is always destined cpu->device. We flush it correctly but the
-> allocation is wrongly done with the same type as the buffers.
->
-> See bug: http://bugzilla.kernel.org/show_bug.cgi?id=13385
->
-> (Note this doesn't close the bug - it fixes the ivtv part and in turn the
->  logging next shows up some rather alarming DMA sg list warnings in
-> libata)
->
-> Signed-off-by: Alan Cox <alan@linux.intel.com>
+Fixed in my http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-misc tree.
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+A pull request for this has already been posted, so it should be merged soon
+I hope.
 
-Thanks for looking at this! 'Real-life' has been seriously interfering
-with my linux work lately so I didn't have the time to pick this up
-myself.
+It was a trivial change: originally the new i2c API would be used for kernels
+2.6.22 and up, until it was discovered that there was a serious bug in the i2c
+core that wasn't fixed until 2.6.26. So I changed it to kernel 2.6.26.
+
+Unfortunately, the em28xx driver was still using 2.6.22 as the cut-off point,
+preventing i2c drivers from being initialized. So em28xx was broken for
+kernels 2.6.22-2.6.25.
 
 Regards,
 
-        Hans
-
-> ---
->
->  drivers/media/video/ivtv/ivtv-queue.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
->
->
-> diff --git a/drivers/media/video/ivtv/ivtv-queue.c
-> b/drivers/media/video/ivtv/ivtv-queue.c
-> index ff7b7de..7fde36e 100644
-> --- a/drivers/media/video/ivtv/ivtv-queue.c
-> +++ b/drivers/media/video/ivtv/ivtv-queue.c
-> @@ -230,7 +230,8 @@ int ivtv_stream_alloc(struct ivtv_stream *s)
->  		return -ENOMEM;
->  	}
->  	if (ivtv_might_use_dma(s)) {
-> -		s->sg_handle = pci_map_single(itv->pdev, s->sg_dma, sizeof(struct
-> ivtv_sg_element), s->dma);
-> +		s->sg_handle = pci_map_single(itv->pdev, s->sg_dma,
-> +				sizeof(struct ivtv_sg_element), PCI_DMA_TODEVICE);
->  		ivtv_stream_sync_for_cpu(s);
->  	}
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
+	Hans
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
