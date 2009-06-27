@@ -1,52 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.170]:53507 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752824AbZFKGqC (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1956 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753956AbZF0MJd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jun 2009 02:46:02 -0400
-Received: by wf-out-1314.google.com with SMTP id 26so495673wfd.4
-        for <linux-media@vger.kernel.org>; Wed, 10 Jun 2009 23:46:04 -0700 (PDT)
+	Sat, 27 Jun 2009 08:09:33 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: m-karicheri2@ti.com
+Subject: Re: [PATCH 2/3 - v0] V4L: ccdc driver - adding support for camera capture
+Date: Sat, 27 Jun 2009 14:09:32 +0200
+Cc: davinci-linux-open-source@linux.davincidsp.com,
+	linux-media@vger.kernel.org
+References: <1246053910-8337-1-git-send-email-m-karicheri2@ti.com>
+In-Reply-To: <1246053910-8337-1-git-send-email-m-karicheri2@ti.com>
 MIME-Version: 1.0
-Date: Thu, 11 Jun 2009 15:46:04 +0900
-Message-ID: <5e9665e10906102346v377b0047k54c10bdf8f7b6c0c@mail.gmail.com>
-Subject: About V4L2_MEMORY_OVERLAY
-From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-To: v4l2_linux <linux-media@vger.kernel.org>
-Cc: mchehab@redhat.com, Hans Verkuil <hverkuil@xs4all.nl>,
-	magnus.damm@gmail.com, Dongsoo Kim <dongsoo45.kim@samsung.com>,
-	=?EUC-KR?B?udqw5rnO?= <kyungmin.park@samsung.com>,
-	=?EUC-KR?B?sejH/MHY?= <riverful.kim@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906271409.32459.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everyone,
+On Saturday 27 June 2009 00:05:10 m-karicheri2@ti.com wrote:
+> From: Muralidharan Karicheri <m-karicheri2@ti.com>
+> 
+> Following updates to ccdc driver :-
+>  	1) Adding support for camera capture using mt9t031
+> 	2) Changed default resolution for ycbcr capture to NTSC to match
+> 	   with tvp514x driver.
+> 	3) Returns proper error code from ccdc_init (comments against previous patch
+> 	   version v3)
+> 
+> Mandatory Reviewers: Hans Verkuil <hverkuil@xs4all.nl>
+> 
+> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
+> ---
+> Applies to v4l-dvb repository
+> 
+>  drivers/media/video/davinci/dm355_ccdc.c  |   21 +++++++++++++--------
+>  drivers/media/video/davinci/dm644x_ccdc.c |   13 +++++++++----
+>  include/media/davinci/dm355_ccdc.h        |    2 +-
+>  include/media/davinci/dm644x_ccdc.h       |    2 +-
+>  4 files changed, 24 insertions(+), 14 deletions(-)
+> 
 
-What I'm curious is about what is V4L2_MEMORY_OVERLAY for. Even though
-I have been using overlay capability before, I always used
-V4L2_MEMORY_MMAP instead of that. And our v4l2 api document tells
-nothing about V4L2_MEMORY_MMAP (only [todo] is left..OMG ;-()
+<snip>
 
-But looking into videobuf, I can see some codes implemented for
-V4L2_MEMORY_OVERLAY. But I'm not sure about which point can make
-driver available for V4L2_MEMORY_OVERLAY.
+Looks OK.
 
-If the implementation of that method is still in progress, can I have
-any information or chance to participate? Until then I might be using
-V4L2_MEMORY_MMAP in my camera interface driver.
-Cheers,
+Regards,
 
-Nate
-
-
+	Hans
 
 -- 
-=
-DongSoo, Nathaniel Kim
-Engineer
-Mobile S/W Platform Lab.
-Digital Media & Communications R&D Centre
-Samsung Electronics CO., LTD.
-e-mail : dongsoo.kim@gmail.com
-          dongsoo45.kim@samsung.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
