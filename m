@@ -1,120 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f213.google.com ([209.85.218.213]:46269 "EHLO
-	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751035AbZFMMC1 (ORCPT
+Received: from 136-022.dsl.LABridge.com ([206.117.136.22]:1117 "EHLO
+	mail.perches.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754074AbZF1Q1i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Jun 2009 08:02:27 -0400
-Received: by bwz9 with SMTP id 9so2523086bwz.37
-        for <linux-media@vger.kernel.org>; Sat, 13 Jun 2009 05:02:28 -0700 (PDT)
-MIME-Version: 1.0
-Reply-To: andrea.merello@gmail.com
-Date: Sat, 13 Jun 2009 14:02:28 +0200
-Message-ID: <c68f135e0906130502l42476a1ctd4cd7710d461199e@mail.gmail.com>
-Subject: Em28xx Log as requested
-From: Andrea Merello <andrea.merello@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Sun, 28 Jun 2009 12:27:38 -0400
+From: Joe Perches <joe@perches.com>
+To: linux-kernel@vger.kernel.org
+Cc: trivial@kernel.org, Andrew Morton <akpm@linux-foundation.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 24/62] drivers/media: Remove unnecessary semicolons
+Date: Sun, 28 Jun 2009 09:26:29 -0700
+Message-Id: <0f97e10498e3638cfc949ca73717367cb19004d2.1246173681.git.joe@perches.com>
+In-Reply-To: <cover.1246173664.git.joe@perches.com>
+References: <cover.1246173664.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As requested in the log, I send it to the ML.
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/media/dvb/b2c2/flexcop-fe-tuner.c   |    2 +-
+ drivers/media/dvb/dvb-usb/dib0700_devices.c |    2 +-
+ drivers/media/dvb/frontends/cx24123.c       |    2 +-
+ drivers/media/dvb/frontends/dib0070.c       |    2 +-
+ drivers/media/dvb/frontends/stv0900_sw.c    |    2 +-
+ drivers/media/video/cx231xx/cx231xx-video.c |    4 ++--
+ drivers/media/video/cx23885/cx23885.h       |    2 +-
+ 7 files changed, 8 insertions(+), 8 deletions(-)
 
-The usb card is a "Xpert DVD Maker usb 2.0" VS-USB2800D
+diff --git a/drivers/media/dvb/b2c2/flexcop-fe-tuner.c b/drivers/media/dvb/b2c2/flexcop-fe-tuner.c
+index efb4a6c..bc37018 100644
+--- a/drivers/media/dvb/b2c2/flexcop-fe-tuner.c
++++ b/drivers/media/dvb/b2c2/flexcop-fe-tuner.c
+@@ -410,7 +410,7 @@ static int skystar2_rev28_attach(struct flexcop_device *fc,
+ 	if (!fc->fe)
+ 		return 0;
+ 
+-	i2c_tuner = cx24123_get_tuner_i2c_adapter(fc->fe);;
++	i2c_tuner = cx24123_get_tuner_i2c_adapter(fc->fe);
+ 	if (!i2c_tuner)
+ 		return 0;
+ 
+diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+index 818b2ab..49fd781 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
++++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+@@ -310,7 +310,7 @@ static int stk7700d_tuner_attach(struct dvb_usb_adapter *adap)
+ 	struct i2c_adapter *tun_i2c;
+ 	tun_i2c = dib7000p_get_i2c_master(adap->fe, DIBX000_I2C_INTERFACE_TUNER, 1);
+ 	return dvb_attach(mt2266_attach, adap->fe, tun_i2c,
+-		&stk7700d_mt2266_config[adap->id]) == NULL ? -ENODEV : 0;;
++		&stk7700d_mt2266_config[adap->id]) == NULL ? -ENODEV : 0;
+ }
+ 
+ /* STK7700-PH: Digital/Analog Hybrid Tuner, e.h. Cinergy HT USB HE */
+diff --git a/drivers/media/dvb/frontends/cx24123.c b/drivers/media/dvb/frontends/cx24123.c
+index 0592f04..d8f921b 100644
+--- a/drivers/media/dvb/frontends/cx24123.c
++++ b/drivers/media/dvb/frontends/cx24123.c
+@@ -458,7 +458,7 @@ static int cx24123_set_symbolrate(struct cx24123_state *state, u32 srate)
+ 	/*  check if symbol rate is within limits */
+ 	if ((srate > state->frontend.ops.info.symbol_rate_max) ||
+ 	    (srate < state->frontend.ops.info.symbol_rate_min))
+-		return -EOPNOTSUPP;;
++		return -EOPNOTSUPP;
+ 
+ 	/* choose the sampling rate high enough for the required operation,
+ 	   while optimizing the power consumed by the demodulator */
+diff --git a/drivers/media/dvb/frontends/dib0070.c b/drivers/media/dvb/frontends/dib0070.c
+index fe895bf..da92cbe 100644
+--- a/drivers/media/dvb/frontends/dib0070.c
++++ b/drivers/media/dvb/frontends/dib0070.c
+@@ -167,7 +167,7 @@ static int dib0070_tune_digital(struct dvb_frontend *fe, struct dvb_frontend_par
+ 					break;
+ 				case BAND_SBAND:
+ 					LO4_SET_VCO_HFDIV(lo4, 0, 0);
+-					LO4_SET_CTRIM(lo4, 1);;
++					LO4_SET_CTRIM(lo4, 1);
+ 					c = 1;
+ 					break;
+ 				case BAND_UHF:
+diff --git a/drivers/media/dvb/frontends/stv0900_sw.c b/drivers/media/dvb/frontends/stv0900_sw.c
+index a5a3153..962fde1 100644
+--- a/drivers/media/dvb/frontends/stv0900_sw.c
++++ b/drivers/media/dvb/frontends/stv0900_sw.c
+@@ -1721,7 +1721,7 @@ static enum fe_stv0900_signal_type stv0900_dvbs1_acq_workaround(struct dvb_front
+ 
+ 	s32 srate, demod_timeout,
+ 		fec_timeout, freq1, freq0;
+-	enum fe_stv0900_signal_type signal_type = STV0900_NODATA;;
++	enum fe_stv0900_signal_type signal_type = STV0900_NODATA;
+ 
+ 	switch (demod) {
+ 	case STV0900_DEMOD_1:
+diff --git a/drivers/media/video/cx231xx/cx231xx-video.c b/drivers/media/video/cx231xx/cx231xx-video.c
+index 609bae6..3650372 100644
+--- a/drivers/media/video/cx231xx/cx231xx-video.c
++++ b/drivers/media/video/cx231xx/cx231xx-video.c
+@@ -923,8 +923,8 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+ 
+ 	f->fmt.pix.width = dev->width;
+ 	f->fmt.pix.height = dev->height;
+-	f->fmt.pix.pixelformat = dev->format->fourcc;;
+-	f->fmt.pix.bytesperline = (dev->width * dev->format->depth + 7) >> 3;;
++	f->fmt.pix.pixelformat = dev->format->fourcc;
++	f->fmt.pix.bytesperline = (dev->width * dev->format->depth + 7) >> 3;
+ 	f->fmt.pix.sizeimage = f->fmt.pix.bytesperline * dev->height;
+ 	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
+ 
+diff --git a/drivers/media/video/cx23885/cx23885.h b/drivers/media/video/cx23885/cx23885.h
+index 1a2ac51..2915103 100644
+--- a/drivers/media/video/cx23885/cx23885.h
++++ b/drivers/media/video/cx23885/cx23885.h
+@@ -391,7 +391,7 @@ struct sram_channel {
+ 	u32  cmds_start;
+ 	u32  ctrl_start;
+ 	u32  cdt;
+-	u32  fifo_start;;
++	u32  fifo_start;
+ 	u32  fifo_size;
+ 	u32  ptr1_reg;
+ 	u32  ptr2_reg;
+-- 
+1.6.3.1.10.g659a0.dirty
 
-I am not able to get proper video from it yet..
-
-Andrea
-
-
- 8282.776728] em28xx: New device @ 480 Mbps (eb1a:2800, interface 0,
-class 0)
-[ 8282.776732] em28xx #0: Identified as Unknown EM2800 video grabber
-(card=0)
-[ 8282.776806] em28xx #0: em28xx chip ID = 7
-[ 8283.072027] em28xx #0: board has no eeprom
-[ 8292.296541] em28xx #0: Your board has no unique USB ID and thus
-need a hint to be detected.
-[ 8292.296547] em28xx #0: You may try to use card=<n> insmod option to
-workaround that.
-[ 8292.296550] em28xx #0: Please send an email with this log to:
-[ 8292.296552] em28xx #0:       V4L Mailing List
-<linux-media@vger.kernel.org>
-[ 8292.296555] em28xx #0: Board eeprom hash is 0x00000000
-[ 8292.296557] em28xx #0: Board i2c devicelist hash is 0x1b800080
-[ 8292.296560] em28xx #0: Here is a list of valid choices for the
-card=<n> insmod option:
-[ 8292.296563] em28xx #0:     card=0 -> Unknown EM2800 video grabber
-[ 8292.296566] em28xx #0:     card=1 -> Unknown EM2750/28xx video
-grabber
-[ 8292.296569] em28xx #0:     card=2 -> Terratec Cinergy 250 USB
-[ 8292.296572] em28xx #0:     card=3 -> Pinnacle PCTV USB 2
-[ 8292.296575] em28xx #0:     card=4 -> Hauppauge WinTV USB 2
-[ 8292.296577] em28xx #0:     card=5 -> MSI VOX USB 2.0
-[ 8292.296580] em28xx #0:     card=6 -> Terratec Cinergy 200 USB
-[ 8292.296583] em28xx #0:     card=7 -> Leadtek Winfast USB II
-[ 8292.296586] em28xx #0:     card=8 -> Kworld USB2800
-[ 8292.296588] em28xx #0:     card=9 -> Pinnacle Dazzle DVC
-90/100/101/107 / Kaiser Baas Video to DVD maker
-[ 8292.296592] em28xx #0:     card=10 -> Hauppauge WinTV HVR 900
-[ 8292.296595] em28xx #0:     card=11 -> Terratec Hybrid XS
-[ 8292.296597] em28xx #0:     card=12 -> Kworld PVR TV 2800 RF
-[ 8292.296600] em28xx #0:     card=13 -> Terratec Prodigy XS
-[ 8292.296603] em28xx #0:     card=14 -> SIIG AVTuner-PVR / Pixelview
-Prolink PlayTV USB 2.0
-[ 8292.296606] em28xx #0:     card=15 -> V-Gear PocketTV
-[ 8292.296609] em28xx #0:     card=16 -> Hauppauge WinTV HVR 950
-[ 8292.296611] em28xx #0:     card=17 -> Pinnacle PCTV HD Pro Stick
-[ 8292.296614] em28xx #0:     card=18 -> Hauppauge WinTV HVR 900 (R2)
-[ 8292.296617] em28xx #0:     card=19 -> PointNix Intra-Oral Camera
-[ 8292.296620] em28xx #0:     card=20 -> AMD ATI TV Wonder HD 600
-[ 8292.296623] em28xx #0:     card=21 -> eMPIA Technology, Inc.
-GrabBeeX+ Video Encoder
-[ 8292.296626] em28xx #0:     card=22 -> Unknown EM2750/EM2751 webcam grabber
-[ 8292.296629] em28xx #0:     card=23 -> Huaqi DLCW-130
-[ 8292.296631] em28xx #0:     card=24 -> D-Link DUB-T210 TV Tuner
-[ 8292.296634] em28xx #0:     card=25 -> Gadmei UTV310
-[ 8292.296637] em28xx #0:     card=26 -> Hercules Smart TV USB 2.0
-[ 8292.296640] em28xx #0:     card=27 -> Pinnacle PCTV USB 2 (Philips FM1216ME)
-[ 8292.296643] em28xx #0:     card=28 -> Leadtek Winfast USB II Deluxe
-[ 8292.296646] em28xx #0:     card=29 -> <NULL>
-[ 8292.296648] em28xx #0:     card=30 -> Videology 20K14XUSB USB2.0
-[ 8292.296651] em28xx #0:     card=31 -> Usbgear VD204v9
-[ 8292.296654] em28xx #0:     card=32 -> Supercomp USB 2.0 TV
-[ 8292.296656] em28xx #0:     card=33 -> <NULL>
-[ 8292.296659] em28xx #0:     card=34 -> Terratec Cinergy A Hybrid XS
-[ 8292.296662] em28xx #0:     card=35 -> Typhoon DVD Maker
-[ 8292.296664] em28xx #0:     card=36 -> NetGMBH Cam
-[ 8292.296667] em28xx #0:     card=37 -> Gadmei UTV330
-[ 8292.296669] em28xx #0:     card=38 -> Yakumo MovieMixer
-[ 8292.296672] em28xx #0:     card=39 -> KWorld PVRTV 300U
-[ 8292.296675] em28xx #0:     card=40 -> Plextor ConvertX PX-TV100U
-[ 8292.296678] em28xx #0:     card=41 -> Kworld 350 U DVB-T
-[ 8292.296680] em28xx #0:     card=42 -> Kworld 355 U DVB-T
-[ 8292.296683] em28xx #0:     card=43 -> Terratec Cinergy T XS
-[ 8292.296686] em28xx #0:     card=44 -> Terratec Cinergy T XS (MT2060)
-[ 8292.296689] em28xx #0:     card=45 -> Pinnacle PCTV DVB-T
-[ 8292.296696] em28xx #0:     card=46 -> Compro, VideoMate U3
-[ 8292.296698] em28xx #0:     card=47 -> KWorld DVB-T 305U
-[ 8292.296700] em28xx #0:     card=48 -> KWorld DVB-T 310U
-[ 8292.296701] em28xx #0:     card=49 -> MSI DigiVox A/D
-[ 8292.296703] em28xx #0:     card=50 -> MSI DigiVox A/D II
-[ 8292.296704] em28xx #0:     card=51 -> Terratec Hybrid XS Secam
-[ 8292.296706] em28xx #0:     card=52 -> DNT DA2 Hybrid
-[ 8292.296707] em28xx #0:     card=53 -> Pinnacle Hybrid Pro
-[ 8292.296709] em28xx #0:     card=54 -> Kworld VS-DVB-T 323UR
-[ 8292.296711] em28xx #0:     card=55 -> Terratec Hybrid XS (em2882)
-[ 8292.296712] em28xx #0:     card=56 -> Pinnacle Hybrid Pro (2)
-[ 8292.296714] em28xx #0:     card=57 -> Kworld PlusTV HD Hybrid 330
-[ 8292.296716] em28xx #0:     card=58 -> Compro VideoMate ForYou/Stereo
-[ 8292.296717] em28xx #0:     card=59 -> <NULL>
-[ 8292.296719] em28xx #0:     card=60 -> Hauppauge WinTV HVR 850
-[ 8292.296720] em28xx #0:     card=61 -> Pixelview PlayTV Box 4 USB 2.0
-[ 8292.296722] em28xx #0:     card=62 -> Gadmei TVR200
-[ 8292.296724] em28xx #0:     card=63 -> Kaiomy TVnPC U2
-[ 8292.296725] em28xx #0:     card=64 -> Easy Cap Capture DC-60
-[ 8292.296727] em28xx #0:     card=65 -> IO-DATA GV-MVP/SZ
-[ 8292.584197] em28xx #0: Config register raw data: 0x4d
-[ 8292.584199] em28xx #0: No AC97 audio processor
-[ 8292.648033] em28xx #0: v4l2 driver version 0.1.2
-[ 8292.940185] em28xx #0: V4L2 device registered as /dev/video1 and /dev/vbi1
