@@ -1,34 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp115.sbc.mail.sp1.yahoo.com ([69.147.64.88]:31875 "HELO
-	smtp115.sbc.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752064AbZF3OpH (ORCPT
+Received: from 136-022.dsl.LABridge.com ([206.117.136.22]:1114 "EHLO
+	mail.perches.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756740AbZF1Q1g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jun 2009 10:45:07 -0400
-From: David Brownell <david-b@pacbell.net>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: Re: [PATCH 3/3 - v0] davinci: platform changes to support vpfe camera capture
-Date: Tue, 30 Jun 2009 07:38:28 -0700
-Cc: "davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
+	Sun, 28 Jun 2009 12:27:36 -0400
+From: Joe Perches <joe@perches.com>
+To: linux-kernel@vger.kernel.org
+Cc: trivial@kernel.org, Andrew Morton <akpm@linux-foundation.org>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <1246053948-8371-1-git-send-email-m-karicheri2@ti.com> <200906291555.35568.david-b@pacbell.net> <A69FA2915331DC488A831521EAE36FE401448CE3AA@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE401448CE3AA@dlee06.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200906300738.28539.david-b@pacbell.net>
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, ivtv-users@ivtvdriver.org,
+	ivtv-devel@ivtvdriver.org
+Subject: [PATCH 23/62] drivers/media/video/ivtv/ivtv-driver.c: Remove unnecessary semicolons
+Date: Sun, 28 Jun 2009 09:26:28 -0700
+Message-Id: <c27c39ac544f3e2409668f58da294b4fbe3e9520.1246173681.git.joe@perches.com>
+In-Reply-To: <cover.1246173664.git.joe@perches.com>
+References: <cover.1246173664.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 30 June 2009, Karicheri, Muralidharan wrote:
-> The code that I am developing is most up to date and is written
-> against the latest tree.
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/media/video/ivtv/ivtv-driver.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-If you insist.  Regardless, the $SUBJECT patch had some
-significant problems (against current code) and should
-not merge.
-
+diff --git a/drivers/media/video/ivtv/ivtv-driver.c b/drivers/media/video/ivtv/ivtv-driver.c
+index 558f8a8..fa360d3 100644
+--- a/drivers/media/video/ivtv/ivtv-driver.c
++++ b/drivers/media/video/ivtv/ivtv-driver.c
+@@ -218,7 +218,7 @@ MODULE_PARM_DESC(ivtv_yuv_mode,
+ 		 "\t\t\tDefault: 0 (interlaced)");
+ MODULE_PARM_DESC(ivtv_yuv_threshold,
+ 		 "If ivtv_yuv_mode is 2 (auto) then playback content as\n\t\tprogressive if src height <= ivtv_yuvthreshold\n"
+-		 "\t\t\tDefault: 480");;
++		 "\t\t\tDefault: 480");
+ MODULE_PARM_DESC(enc_mpg_buffers,
+ 		 "Encoder MPG Buffers (in MB)\n"
+ 		 "\t\t\tDefault: " __stringify(IVTV_DEFAULT_ENC_MPG_BUFFERS));
+-- 
+1.6.3.1.10.g659a0.dirty
 
