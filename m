@@ -1,74 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from znsun1.ifh.de ([141.34.1.16]:46768 "EHLO znsun1.ifh.de"
+Received: from mail1.radix.net ([207.192.128.31]:49499 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751039AbZFDIFr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Jun 2009 04:05:47 -0400
-Date: Thu, 4 Jun 2009 10:05:21 +0200 (CEST)
-From: Patrick Boettcher <patrick.boettcher@desy.de>
-To: Soeren.Moch@stud.uni-hannover.de
-cc: linux-media@vger.kernel.org
-Subject: Re: dib0700 Nova-TD-Stick problem
-In-Reply-To: <20090603133631.159278y5l7uv8x0k@www.stud.uni-hannover.de>
-Message-ID: <alpine.LRH.1.10.0906041003130.6294@pub3.ifh.de>
-References: <20090603133631.159278y5l7uv8x0k@www.stud.uni-hannover.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+	id S1752111AbZF1RRf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Jun 2009 13:17:35 -0400
+Subject: Re: [PATCH 22/62] drivers/media/video/cx18/cx18-fileops.c: Remove
+ unnecessary semicolons
+From: Andy Walls <awalls@radix.net>
+To: Joe Perches <joe@perches.com>
+Cc: linux-kernel@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+In-Reply-To: <7eeefbbba34fc477540566c6b1888cb7c871f4cd.1246173681.git.joe@perches.com>
+References: <cover.1246173664.git.joe@perches.com>
+	 <7eeefbbba34fc477540566c6b1888cb7c871f4cd.1246173681.git.joe@perches.com>
+Content-Type: text/plain
+Date: Sun, 28 Jun 2009 13:17:40 -0400
+Message-Id: <1246209460.1550.12.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Soeren,
+On Sun, 2009-06-28 at 09:26 -0700, Joe Perches wrote:
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+>  drivers/media/video/cx18/cx18-fileops.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/cx18/cx18-fileops.c b/drivers/media/video/cx18/cx18-fileops.c
+> index 29969c1..04d9c25 100644
+> --- a/drivers/media/video/cx18/cx18-fileops.c
+> +++ b/drivers/media/video/cx18/cx18-fileops.c
+> @@ -690,7 +690,7 @@ int cx18_v4l2_open(struct file *filp)
+>  	int res;
+>  	struct video_device *video_dev = video_devdata(filp);
+>  	struct cx18_stream *s = video_get_drvdata(video_dev);
+> -	struct cx18 *cx = s->cx;;
+> +	struct cx18 *cx = s->cx;
+>  
+>  	mutex_lock(&cx->serialize_lock);
+>  	if (cx18_init_on_first_open(cx)) {
 
-On Wed, 3 Jun 2009, Soeren.Moch@stud.uni-hannover.de wrote:
+Acked-by: Andy Walls <awalls@radix.net>
 
-> Soeren.Moch wrote:
->> For a few weeks I use a Nova-TD-Stick and was annoyed with dvb stream
->> errors, although the demod bit-error-rate (BER/UNC) was zero.
->> 
->> I could track down this problem to dib0700_streaming_ctrl:
->> When one channel is streaming and the other channel is switched on, the
->> stream of the already running channel gets broken.
->> 
->> I think this is a firmware bug and should be fixed there, but I attach a
->> driver patch, which solved the problem for me. (Kernel 2.6.29.1, FW
->> 1.20, Nova-T-Stick + Nova-TD-Stick used together). Since I had to reduce
->> the urb count to 1, I consider this patch as quick hack, not a real
->> solution.
->> 
->> Probably the same problem exists with other dib0700 diversity/dual
->> devices, without a firmware fix a similar driver patch may be helpful.
->> 
->> Regards,
->> Soeren
->> 
->
-> Hi Patrick,
->
-> do you see any chance that somebody will fix the firmware?
+This is on topic for the ivtv-devel list, but must we spam the
+ivtv-users list with this sort of trivia? 
 
-No. :(
+Perhaps your Maintainers file scraper script could be tweaked a little?
 
-> If not, can you take into consideration to remove the 
-> dib0700_streaming_ctrl callback as in the (again) attached patch so 
-> solve the switch-on problem? The patch runs flawlessly on my vdr system 
-> for weeks now. There are no negative side effects from reducing the urb 
-> count to 1.
+Regards,
+Andy
 
-There might be a real problem in the dib0700 for the streaming_ctrl 
-function. I have to check that.
-
-> If you prefer a patch that removes the callback for all dib0700 devices or
-> only for all dual devices, I can prepare that. But I can test it only with
-> Nova-T-Stick and Nova-TD-Stick.
-
-I have some new devices here to test as well, I will try to do it during 
-the week(end).
-
-Sorry for not reacting in the first place. But I really couldn't do 
-anything at that time.
-
-regards,
-Patrick.
-
---
-   Mail: patrick.boettcher@desy.de
-   WWW:  http://www.wi-bw.tfh-wildau.de/~pboettch/
