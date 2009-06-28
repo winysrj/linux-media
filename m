@@ -1,31 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.240]:5847 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753498AbZGACg3 (ORCPT
+Received: from 136-022.dsl.LABridge.com ([206.117.136.22]:1483 "EHLO
+	mail.perches.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753995AbZF1RVT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jun 2009 22:36:29 -0400
-Received: by an-out-0708.google.com with SMTP id d40so1167635and.1
-        for <linux-media@vger.kernel.org>; Tue, 30 Jun 2009 19:36:32 -0700 (PDT)
-MIME-Version: 1.0
-Date: Wed, 1 Jul 2009 12:36:31 +1000
-Message-ID: <c21478f30906301936u40ac989fj9e2824b209ab2346@mail.gmail.com>
-Subject: Digital Audio Broadcast (DAB) devices support
-From: Andrej Falout <andrej@falout.org>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 28 Jun 2009 13:21:19 -0400
+Subject: Re: [PATCH 22/62] drivers/media/video/cx18/cx18-fileops.c: Remove
+ unnecessary semicolons
+From: Joe Perches <joe@perches.com>
+To: Andy Walls <awalls@radix.net>
+Cc: linux-kernel@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+In-Reply-To: <1246209460.1550.12.camel@palomino.walls.org>
+References: <cover.1246173664.git.joe@perches.com>
+	 <7eeefbbba34fc477540566c6b1888cb7c871f4cd.1246173681.git.joe@perches.com>
+	 <1246209460.1550.12.camel@palomino.walls.org>
+Content-Type: text/plain
+Date: Sun, 28 Jun 2009 10:21:19 -0700
+Message-Id: <1246209679.13673.6.camel@Joe-Laptop.home>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Sun, 2009-06-28 at 13:17 -0400, Andy Walls wrote:
+> This is on topic for the ivtv-devel list, but must we spam the
+> ivtv-users list with this sort of trivia? 
+> 
+> Perhaps your Maintainers file scraper script could be tweaked a little?
 
-Does V4L framework support DAB devices?
+Perhaps the ivtv-users list entries should be removed from MAINTAINERS
 
-Ideally something like
-
-http://cgi.ebay.com.au/USB-Digital-T-DMB-DAB-Radio-Video-Receiver-Recorder_W0QQitemZ130220495837QQcmdZViewItemQQptZUK_AudioVisualElectronics_PortableAudio_Radios?hash=item1e51bf13dd&_trksid=p3286.m20.l1116
-
-Here in Australia FM is going the way of the Dodo :-( Must get one soon...
-
-Thanks,
-Andrej Falout
