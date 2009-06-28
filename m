@@ -1,39 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [195.7.61.12] ([195.7.61.12]:35283 "EHLO killala.koala.ie"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1757175AbZFNKsd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Jun 2009 06:48:33 -0400
-Received: from [195.7.61.8] (killarney.koala.ie [195.7.61.8])
-	(authenticated bits=0)
-	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id n5EAmXN8007812
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 14 Jun 2009 11:48:35 +0100
-Message-ID: <4A34D581.7080306@koala.ie>
-Date: Sun, 14 Jun 2009 11:48:33 +0100
-From: Simon Kenyon <simon@koala.ie>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: {wanted] support for PDTV001 dual tuner PCI DVB-T card [EC188/EC100
- and 2x MxL5003S]
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Received: from smtp3-g21.free.fr ([212.27.42.3]:52048 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752696AbZF1SQI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Jun 2009 14:16:08 -0400
+Date: Sun, 28 Jun 2009 20:14:47 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Peter =?ISO-8859-1?Q?H=FCwe?= <PeterHuewe@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Problem with 046d:08af Logitech Quickcam Easy/Cool - broken
+ with in-kernel drivers, works with gspcav1
+Message-ID: <20090628201447.792efe63@free.fr>
+In-Reply-To: <200906281514.10689.PeterHuewe@gmx.de>
+References: <200906281514.10689.PeterHuewe@gmx.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-just bought one of these on the off-chance that it might work
-i did not know what chips were on the car when i bought it
-but at €17 for a dual tuner dvb-t pci card i reckoned it was worth a try
-i have looked at the card and it has:
+On Sun, 28 Jun 2009 15:14:10 +0200
+Peter Hüwe <PeterHuewe@gmx.de> wrote:
 
-the e3c EC188/EC100 pair of pci chips
-a pair of MaxLinear MxL5003S silicon tuners
+> I just tried out the in-kernel gspca drivers for my 046d:08af
+> Logitech, Inc. QuickCam Easy/Cool, however I don't get any picture
+> with cheese and only green noise with skype.
+> 
+> Before using the in-kernel drivers the webcam used to work quite well
+> with the old out-of-kernel gspcav1 drivers.
+> 
+> I compared both drivers and the old ones used the SENSOR_HV7131B,
+> whereas the new driver detects the  HV7131R(c)
+> 
+> snippet old driver:
+> 		case 0x08af:
+> 			spca50x->desc = LogitechQCCool;
+> 			spca50x->bridge = BRIDGE_ZC3XX;
+> 			spca50x->sensor = SENSOR_HV7131B;
+> 
+> 
+> output dmesg after plugin camera in
+> 	usb 4-2: new full speed USB device using uhci_hcd and address
+> 6 usb 4-2: configuration #1 chosen from 1 choice
+> 	gspca: probing 046d:08af
+> 	zc3xx: probe 2wr ov vga 0x0000
+> 	zc3xx: probe sensor -> 11
+> 	zc3xx: Find Sensor HV7131R(c)
+> 	gspca: probe ok
+> 	usbcore: registered new interface driver zc3xx
+> 	zc3xx: registered
+> 
+> I already tried out the module_param force_sensor for the values
+> 4,5,6 - but neither gave an appropriate result.
+> 
+> I hope you can help me resolve this issue - I would be glad if I
+> could help testing/debugging the problem.
 
-it seems that there is support for the tuners but i only found support 
-for the EC168 USB chip set.
+Hi Peter,
 
-is there any prospect of support for this card? i don't think i could 
-write it myself but i certainly could test it.
+Did you use the v4l2 wrapper when running the applications? (look in my
+page for more information)
 
-regards
---
-simon
+Otherwise, the sensor value set in the old gspcav1 driver was not used:
+the sensor was and is still found by probing the webcam hardware.
+
+Best regards.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
