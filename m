@@ -1,61 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f213.google.com ([209.85.218.213]:49800 "EHLO
-	mail-bw0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751484AbZF2Ms0 convert rfc822-to-8bit (ORCPT
+Received: from smtp105.sbc.mail.gq1.yahoo.com ([67.195.14.108]:23267 "HELO
+	smtp105.sbc.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754766AbZF2XCM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jun 2009 08:48:26 -0400
-Received: by bwz9 with SMTP id 9so3226683bwz.37
-        for <linux-media@vger.kernel.org>; Mon, 29 Jun 2009 05:48:27 -0700 (PDT)
+	Mon, 29 Jun 2009 19:02:12 -0400
+From: David Brownell <david-b@pacbell.net>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Subject: Re: [PATCH 3/3 - v0] davinci: platform changes to support vpfe camera capture
+Date: Mon, 29 Jun 2009 15:55:35 -0700
+Cc: "davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <1246053948-8371-1-git-send-email-m-karicheri2@ti.com> <200906291043.43140.david-b@pacbell.net> <A69FA2915331DC488A831521EAE36FE401448CE221@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE401448CE221@dlee06.ent.ti.com>
 MIME-Version: 1.0
-In-Reply-To: <3833b9400906201508w14f15b96i41e0963186a0a2cb@mail.gmail.com>
-References: <3833b9400906201508w14f15b96i41e0963186a0a2cb@mail.gmail.com>
-Date: Mon, 29 Jun 2009 08:48:27 -0400
-Message-ID: <3833b9400906290548wd8b2ba1s22266f0152e83f40@mail.gmail.com>
-Subject: Re: cx23885, new hardware revision found
-From: Michael Kutyna <mkutyna@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906291555.35568.david-b@pacbell.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-So does anybody have any ideas how I can attempt to proceed with this?
+On Monday 29 June 2009, Karicheri, Muralidharan wrote:
+> I think you didn't get my point. We have patches that are in
+> the pipeline waiting for merge that is neither available in
+> the upstream nor in the DaVinci tree.
 
-I was thinking of looking in the code for the checkrevision function
-and commenting it out to see what happens but I suspect that I'll get
-the same lack of signal.  It has been a few years since I have coded
-any C but I guess I can try.
+The linux-media pipeline.  Sure.  I'm quite familiar with
+what it means to have pathes depending on others, which are
+headed upstream by different merge queues.
 
-Thanks in advance for any assitance,
-mkutyna
 
-On Sat, Jun 20, 2009 at 6:08 PM, Michael Kutyna<mkutyna@gmail.com> wrote:
-> Hi, I just purchased a Dvico FusionHDTV7 Dual Express and intend on
-> using it with MythTV.  Unfortunately, the dvb-apps aren't working with
-> it just yet and I think I've narrowed down why.
->
-> I've used mercurial to get the latest v4l-dvb source, compiled and
-> installed the modules.  I downloaded the firmware from Steven Toth's
-> website, extracted and installed it.  This all seems to run fine.
->
-> Running scan against the us-ATSC-center-frequencies file returns no
-> channels and running femon -a 0 returns the following output:
->
-> status S     | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
->
-> After examining dmesg output, I noticed the following bit:
->
-> cx23885_dev_checkrevision() New hardware revision found 0x0
-> cx23885_dev_checkrevision() Hardware revision unknown 0x0
-> cx23885[0]/0: found at 0000:02:00.0, rev: 4, irq: 17, latency: 0,
-> mmio: 0xfd800000
-> cx23885 0000:02:00.0: setting latency timer to 64
->
-> I'm pretty sure that is the problem but I don't know how to fix it.  I
-> also tried using mercurial to get the v4l tree from
-> http://linuxtv.org/hg/~stoth/v4l-dvb/ with the same results as above.
->
-> Thanks in advance for any assistance you can offer.
->
-> mkutyna
->
+> That gets merged to 
+> upstream at some point in future and also will get rebased
+> to DaVinci later. But If I need to make patches based on them
+> (like this one) it can be done only by applying the patches
+> to the DaVinci tree and then creating new patches based on
+> that. That is why my note clearly says " Depends on v3 version
+> of vpfe capture driver patch"        
+
+Maybe you're not getting my point:  that submitting a patch
+series against mainline (or almost-mainline) means you don't
+trip across goofs like the one I first noted.  That one was
+pretty obvious.  The more subtle problems are harder to see...
+
+In this case, your patch ignored a driver that's been in GIT
+since December.  Which means that you're developing against
+a code base that's ... pretty old, not nearly current enough.
+
+I fully understand that all this video stuff is a large and
+complex chunk of driver code.  That's *ALL THE MORE REASON* to
+be sure you're tracking mainline (or in some cases the DaVinci
+platform code) very closely when you send patches upstream.
+Because all kinds of stuff will have changed between six months
+ago and today.  Standard policy is to develop such merge patches
+with more or less bleeding edge code, so integration issues
+show up (and get resolved) ASAP.
+
+I can't believe the current linux-media or V4L2 trees are
+six months out of date.
+
+- Dave
+
