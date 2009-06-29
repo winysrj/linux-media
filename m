@@ -1,19 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n5U7bJHM027820
-	for <video4linux-list@redhat.com>; Tue, 30 Jun 2009 03:37:19 -0400
-Received: from averel.grnet-hq.admin.grnet.gr (averel.grnet-hq.admin.grnet.gr
-	[195.251.29.3])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n5U7b3Iu009853
-	for <video4linux-list@redhat.com>; Tue, 30 Jun 2009 03:37:04 -0400
-Message-Id: <1F215A73-B1A5-42BA-998B-2A8FD014BF0B@admin.grnet.gr>
-From: Zenon Mousmoulas <zmousm@admin.grnet.gr>
-To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n5TFhHvL009085
+	for <video4linux-list@redhat.com>; Mon, 29 Jun 2009 11:43:17 -0400
+Received: from mail-gx0-f221.google.com (mail-gx0-f221.google.com
+	[209.85.217.221])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n5TFh3Vl021267
+	for <video4linux-list@redhat.com>; Mon, 29 Jun 2009 11:43:04 -0400
+Received: by gxk21 with SMTP id 21so6643314gxk.3
+	for <video4linux-list@redhat.com>; Mon, 29 Jun 2009 08:43:03 -0700 (PDT)
+MIME-Version: 1.0
+Date: Mon, 29 Jun 2009 11:42:54 -0400
+Message-ID: <b24e53350906290842g788a4cau8e8f19bcf318188a@mail.gmail.com>
+From: Robert Krakora <rob.krakora@messagenetsystems.com>
+To: V4L <video4linux-list@redhat.com>,
+	Devin Heitmueller <devin.heitmueller@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0 (Apple Message framework v935.3)
-Date: Tue, 30 Jun 2009 10:37:00 +0300
-Subject: hdpvr firmware and controls
+Cc: 
+Subject: v4l2-ctl problem attempting to turn of auto exposure control on
+	Creative Optia AF
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,41 +30,53 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+All:
 
-I have a Hauppauge HD PVR (model 1227, revision E2). I have tried  
-using it both with the 2.6.30 kernel (debian package) as well as  
-2.6.26 with the latest code from the v4l-dvb repo compiled on top.
+I am using the tip V4L code with a Captiva Optia AF webcam and I am
+trying to turn off auto exposure via v4l2-ctl.  However, v4l2-ctl is
+indicating an I/O error (see below).  I notice that the control is
+listed as 'menu' and not 'int' or 'bool' as the other controls.  What
+am I doing wrong?
 
-I have a couple of questions regarding the hdpvr driver:
+[root@vizioconfrm104 ivtv-utils-1.3.0]# v4l2-ctl --list-ctrls
+                     brightness (int)  : min=-64 max=64 step=1 default=0 value=0
+                       contrast (int)  : min=0 max=64 step=1 default=32 value=32
+                     saturation (int)  : min=0 max=128 step=1
+default=64 value=64
+                            hue (int)  : min=-40 max=40 step=1 default=0 value=0
+ white_balance_temperature_auto (bool) : default=1 value=1
+                          gamma (int)  : min=72 max=500 step=1
+default=110 value=110
+                           gain (int)  : min=0 max=100 step=1 default=0 value=0
+           power_line_frequency (menu) : min=0 max=2 default=2 value=2
+      white_balance_temperature (int)  : min=2800 max=6500 step=1
+default=6500 value=6500
+                      sharpness (int)  : min=0 max=6 step=1 default=3 value=3
+         backlight_compensation (int)  : min=0 max=2 step=1 default=1 value=1
+                  exposure_auto (menu) : min=0 max=3 default=3 value=3
+              exposure_absolute (int)  : min=1 max=5000 step=1
+default=300 value=300
+         exposure_auto_priority (bool) : default=0 value=0
+                 focus_absolute (int)  : min=1 max=20 step=1 default=1 value=1
+                     focus_auto (bool) : default=1 value=1
+                  zoom_absolute (int)  : min=0 max=3 step=1 default=0 value=0
+[root@vizioconfrm104 ivtv-utils-1.3.0]# v4l2-ctl --verbose
+--set-ctrl=exposure_auto=0
+VIDIOC_QUERYCAP: ok
+VIDIOC_S_CTRL: failed: Input/output error
+exposure_auto: Input/output error
+[root@vizioconfrm104 ivtv-utils-1.3.0]#
 
-- First of all, the driver says this, when loading:
-hdpvr 7-1:1.0: untested firmware version 0x12, the driver might not work
-Should I be worried? I've read about pre-loading the firmware but I  
-don't think it applies/makes a difference for these units.
+Best Regards,
 
-- I've noticed that at least one control is missing among the ones  
-listed by v4l2-ctl -l: GOP mode. I haven't used the HD PVR in Windows  
-but I think this control is available under some DirectX control  
-properties. It is also available in Steven Toth's HDPVR Capture tool  
-for MacOS. Is it missing from the v4l driver?
-
-- According to an FAQ by Hauppauge it seems that it is possible to  
-select the format of the bitstream the HD PVR delivers: TS, M2TS  
-(HDMV) or MP4. I haven't confirmed it but if so, it would also be  
-handy to be able to control this.
-
-My goal is to do live streaming using the A/V bitstream as encoded by  
-the HD PVR. So far I've had little success because VLC doesn't fully  
-understand (0.8.6h) or chokes (0.9.9a) on the MPEG-TS coming from the  
-device. I'm looking for other alternatives but I'd also like to try to  
-make this as simple as possible (GOP mode = simple, "plain" TS instead  
-of HDMV).
-
-Thanks in advance for any suggestions.
-
-Best regards,
-Z.
+-- 
+Rob Krakora
+Senior Software Engineer
+MessageNet Systems
+101 East Carmel Dr. Suite 105
+Carmel, IN 46032
+(317)566-1677 Ext. 206
+(317)663-0808 Fax
 
 --
 video4linux-list mailing list
