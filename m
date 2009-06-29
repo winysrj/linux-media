@@ -1,79 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:60574 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752300AbZFLMPL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jun 2009 08:15:11 -0400
-Date: Fri, 12 Jun 2009 14:15:21 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Muralidharan Karicheri <m-karicheri2@ti.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	davinci-linux-open-source@linux.davincidsp.com
-Subject: Re: [PATCH] adding support for setting bus parameters in sub device
-In-Reply-To: <200906102351.34219.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.0906121403300.4843@axis700.grange>
-References: <1244580891-24153-1-git-send-email-m-karicheri2@ti.com>
- <200906102251.57644.hverkuil@xs4all.nl> <Pine.LNX.4.64.0906102311410.4817@axis700.grange>
- <200906102351.34219.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp5-g21.free.fr ([212.27.42.5]:51323 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758806AbZF2Tr6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Jun 2009 15:47:58 -0400
+Date: Mon, 29 Jun 2009 21:47:47 +0200
+From: Thierry MERLE <thierry.merle@free.fr>
+To: linux-media@vger.kernel.org
+Cc: tmw@autotrain.org, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] USBVision device defaults
+Message-ID: <20090629214747.2fba7b4a@lugdush.houroukhai.org>
+In-Reply-To: <alpine.LRH.2.00.0906261505320.14258@server50105.uk2net.com>
+References: <alpine.LRH.2.00.0906261505320.14258@server50105.uk2net.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 10 Jun 2009, Hans Verkuil wrote:
+Hi Tim,
 
-> On Wednesday 10 June 2009 23:30:55 Guennadi Liakhovetski wrote:
-> > On Wed, 10 Jun 2009, Hans Verkuil wrote:
-> > > My view of this would be that the board specification specifies the
-> > > sensor (and possibly other chips) that are on the board. And to me it
-> > > makes sense that that also supplies the bus settings. I agree that it
-> > > is not complex code, but I think it is also unnecessary code. Why
-> > > negotiate if you can just set it?
-> >
-> > Why force all platforms to set it if the driver is perfectly capable do
-> > this itself? As I said - this is not a platform-specific feature, it's
-> > chip-specific. What good would it make to have all platforms using
-> > mt9t031 to specify, that yes, the chip can use both falling and rising
-> > pclk edge, but only active high vsync and hsync?
+On Mon, 29 Jun 2009 11:34:50 +0100 (BST)
+Tim Williams <tmw@autotrain.org> wrote:
+
 > 
-> ???
+> Hello,
 > 
-> You will just tell the chip what to use. So you set 'use falling edge' and 
-> either set 'active high vsync/hsync' or just leave that out since you know 
-> the mt9t031 has that fixed. You don't specify in the platform data what the 
-> chip can support, that's not relevant. You know what the host expects and 
-> you pass that information on to the chip.
+> I'm trying use a WinTV USB adaptor which uses the usbvision driver to 
+> capture the output of a video camera for streaming across the web, the 
+> idea being that there is a reliable local recording, even in the event of 
+> a computer crash, while allowing the remote viewers to see the proceedings 
+> live without needing to have two separate cameras.
 > 
-> A board designer knows what the host supports, knows what the sensor 
-> supports, and knows if he added any inverters on the board, and based on 
-> all that information he can just setup these parameters for the sensor 
-> chip. Settings that are fixed on the sensor chip he can just ignore, he 
-> only need to specify those settings that the sensor really needs.
-
-I'd like to have this resolved somehow (preferably my way of ourse:-)), 
-here once again (plus some new) my main arguments:
-
-1. it is very unusual that the board designer has to mandate what signal 
-polarity has to be used - only when there's additional logic between the 
-capture device and the host. So, we shouldn't overload all boards with 
-this information. Board-code authors will be grateful to us!
-
-2. what if you do have an inverter between the two? You'd have to tell the 
-sensor to use active high, and the host to use active low, i.e., you need 
-two sets of flags.
-
-3. all soc-camera boards rely on this autonegotiation. Do we really want 
-(and have) to add this useless information back to them? Back - because, 
-yes, we've been there we've done that before, but then we switched to the 
-current autonegotiation, which we are perfectly happy with so far (anyone 
-dares to object?:-)).
-
-4. the autonegiation code is simple and small, so, I really don't see a 
-reason to hardcode something, that we can perfectly autoconfigure.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> Unfortunately there is a catch, i'm using flash to do the broadcast 
+> and flash (in common with a lot of other software of this type) doesn't 
+> have the ability to set the input type and picture format, so you are 
+> stuck with the default, which is the rf-tuner. I have managed to make my 
+> own bodged driver which disables the rf-input so that I can get a picture 
+> via s-video, but it is stubbornly stuck in black and white, which i'm 
+> assuming is some kind of colour format problem.
+> 
+> If I use KDETV to look at the picture then everything comes through in 
+> colour, so this would seem to be a problem with the defaults built into 
+> the module being incorrect for my circumstances. Rather than carrying on 
+> with my bodged driver (this is the first time I have ever attempted to 
+> modify a C programme), what would be really great is away to achieve one 
+> of the following :
+> 
+> 1) Set the default input, tv standard and pixel format using module 
+> parameters in modprobe.conf
+> 2) Get the driver to 'remember' it's current settings when switching 
+> between applications. The windows driver for these devices does this, so 
+> all I have to do under windows is start up WinTV, make sure I have a good 
+> picture, close it down again and then start up the video broadcast in 
+> flash.
+> 3) A way to change the device settings using a 3rd party app even when the 
+> main video device is in use and can't be accessed. I've tried using v4lctl 
+> to set the parameters before starting a capture, but if the flash capture 
+> is active, then I (unsurprisingly) get device in use errors. If I use v4lctl 
+> before starting flash, then the settings don't stick. The capture box becomes 
+> active briefly (there is a red light on the box which indicates this), 
+> presumably accepts the setting and is then powered down again, causing 
+> the new setting to be immediately forgotten.
+> 
+> Any thoughts or help would be much appreciated.
+> 
+I remember a guy that did the trick with the vloopback device.
+Searching a bit on the Internet, it seems that flashcam 
+http://www.swift-tools.net/Flashcam/ can be convenient for your needs.
+HTH
+Regards,
+Thierry
