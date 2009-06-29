@@ -1,73 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:64262 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751147AbZFWVtM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jun 2009 17:49:12 -0400
-Subject: Re: PxDVR3200 H LinuxTV v4l-dvb patch : Pull GPIO-20 low for DVB-T
-From: Andy Walls <awalls@radix.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>, stoth@kernellabs.com,
-	Terry Wu <terrywu2009@gmail.com>
-In-Reply-To: <8992.62.70.2.252.1245760429.squirrel@webmail.xs4all.nl>
-References: <8992.62.70.2.252.1245760429.squirrel@webmail.xs4all.nl>
-Content-Type: text/plain
-Date: Tue, 23 Jun 2009 17:50:55 -0400
-Message-Id: <1245793855.3185.13.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3051 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754344AbZF2SQO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Jun 2009 14:16:14 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id n5TIGGLR045743
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 29 Jun 2009 20:16:16 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 29 Jun 2009 20:16:16 +0200 (CEST)
+Message-Id: <200906291816.n5TIGGLR045743@smtp-vbr15.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2009-06-23 at 14:33 +0200, Hans Verkuil wrote:
-> > On Tue, 2009-06-23 at 11:39 +0800, Terry Wu wrote:
-> >> Hi,
-> >>
-> >>     I add the following codes in the cx23885_initialize() of
-> >> cx25840-core.c:
-> >> 	/* Drive GPIO2 (GPIO 19~23) direction and values for DVB-T */
-> >> 	cx25840_and_or(client, 0x160, 0x1d, 0x00);
-> >> 	cx25840_write(client, 0x164, 0x00);
-> >>
-> >>     Before that, the tuning status is 0x1e, but <0> service found.
-> >>     Now, I can watch DVB-T (Taiwan, 6MHz bandwidth).
-> >>
-> >>     And if you are living in Australia, you should update the
-> >> tuner-xc2028.c too:
-> >>     http://tw1965.myweb.hinet.net/Linux/v4l-dvb/20090611-TDA18271HDC2/tuner-xc2028.c
-> >>
-> >> Best Regards,
-> >> Terry
-> >
-> >
-> > Hans,
-> >
-> > As I think of potential ways to handle this, I thought we may need to
-> > add a v4l2_subdev interface for setting and reading GPIO's.
-> 
-> There is already an s_gpio in the core ops. It would be simple to add a
-> g_gpio as well if needed.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Ooops.  Sorry for not doing my homework.  Thanks.
+Results of the daily build of v4l-dvb:
 
-> 
-> It is not a good idea to directly control GPIO pins from within a subdev
-> driver for the simple reason that the subdev driver has no idea how its
-> gpio pins are hooked up. This should really be done from the v4l driver
-> itself.
+date:        Mon Jun 29 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12133:05e6c5c9bcb4
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Agree. This is what I waas thinking.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc1-armv5: ERRORS
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-rc1-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-rc1-i686: ERRORS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc1-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-rc1-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-rc1-x86_64: ERRORS
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc1): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-Regards,
-Andy
+Detailed results are available here:
 
->  If you need a notification from the subdev that the v4l driver
-> needs to take some action, then the subdev can send a notification through
-> the notify function in v4l2_device. That's currently used by one subdev
-> driver that requires that the v4l driver toggles a GPIO pin at the right
-> time.
-> 
-> Regards,
-> 
->           Hans
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
