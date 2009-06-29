@@ -1,23 +1,20 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:59544 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751554AbZFHSc0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2009 14:32:26 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:54589 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753325AbZF2Oqm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Jun 2009 10:46:42 -0400
 From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: Hans Verkuil <hverkuil@xs4all.nl>
 CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
 	"davinci-linux-open-source@linux.davincidsp.com"
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	Muralidharan Karicheri <a0868495@dal.design.ti.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Date: Mon, 8 Jun 2009 13:32:19 -0500
-Subject: RE: [PATCH 1/9] vpfe-capture bridge driver for DM355 & DM6446
-Message-ID: <A69FA2915331DC488A831521EAE36FE4013564F558@dlee06.ent.ti.com>
-References: <1242412559-11325-1-git-send-email-m-karicheri2@ti.com>
- <200905270140.53696.laurent.pinchart@skynet.be>
- <A69FA2915331DC488A831521EAE36FE4013557AC64@dlee06.ent.ti.com>
- <200906051843.41105.laurent.pinchart@skynet.be>
-In-Reply-To: <200906051843.41105.laurent.pinchart@skynet.be>
+	<davinci-linux-open-source@linux.davincidsp.com>
+Date: Mon, 29 Jun 2009 09:46:38 -0500
+Subject: RE: [RFC PATCH] adding support for setting bus parameters in sub
+      device
+Message-ID: <A69FA2915331DC488A831521EAE36FE401448CDDD4@dlee06.ent.ti.com>
+References: <42333.62.70.2.252.1246267577.squirrel@webmail.xs4all.nl>
+In-Reply-To: <42333.62.70.2.252.1246267577.squirrel@webmail.xs4all.nl>
 Content-Language: en-US
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7BIT
@@ -25,227 +22,213 @@ MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hans,
+
+When connecting a sensor like mt9t031 to SoC like DM355, DM6446 etc, driver also need to know which MSB of the sensor data bus connected to which host bus. For example, on DM365, we have following connection:-
+
+data 9 (MSB) of the sensor is connected to data 11 of the host bus. For 10 bit sensor, this means, the lower 2 bits of the received data are zeros and for a 12 bit sensor, it has valid data. 
+
+So I suggest including another field for this. 
+
+unsigned host_msb:5; (8 - 15) ??
 
 
 Murali Karicheri
 Software Design Engineer
 Texas Instruments Inc.
 Germantown, MD 20874
-Phone : 301-515-3736
 email: m-karicheri2@ti.com
 
 >-----Original Message-----
->From: Laurent Pinchart [mailto:laurent.pinchart@skynet.be]
->Sent: Friday, June 05, 2009 12:44 PM
+>From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+>Sent: Monday, June 29, 2009 5:26 AM
 >To: Karicheri, Muralidharan
 >Cc: linux-media@vger.kernel.org; davinci-linux-open-
->source@linux.davincidsp.com; Muralidharan Karicheri; Hans Verkuil
->Subject: Re: [PATCH 1/9] vpfe-capture bridge driver for DM355 & DM6446
+>source@linux.davincidsp.com
+>Subject: Re: [RFC PATCH] adding support for setting bus parameters in sub
+>device
 >
->Hi,
+>Hi Murali,
 >
->I've removed the points to which my response would just have been 'ok'.
->
->On Wednesday 03 June 2009 16:46:05 Karicheri, Muralidharan wrote:
->> > > +#include <media/tvp514x.h>
->> >
->> > We should try to get rid of the TVP514x dependency. See below where
->> > TVP5146 support is explicit for a discussion on this.
+>> From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
 >>
->> [MK]Agree. Only reason this is included is to configure the vpfe hw
->> interface based on the sub device (tvp5146) output format. The output
->from
->> TVP device is BT656. The bridge driver is expected to work with multiple
->> interfaces such as BT.656, BT.1120, RAW image data bus consisting of 10
->bit
->> data, vsync, hsync etc. So I need to have a way of getting/setting hw
->> interface parameters based on sub device output interface. Currently this
->> support is not available in sub device.
->
->Unfortunately. However, it's the right way to go. Let's all cross our
->fingers
->and hope Hans will be able to find some time in his busy schedule to
->comment
->on this :-)
->
-[MK] Ok
->> I see some discussion in the mailing list for allowing bridge driver to
->set
->> the platform data in the sub device using s_config or
->> v4l2_i2c_subdev_board(). I am not sure what will come out of this. Hans
->had
->> a comment against DM6467 display driver to use the new v4l2 api
->> v4l2_i2c_new_probed_subdev_addr(). When using this API, I find that the
->i2c
->> driver is probed without setting the platform data (assume this is not
->> defined statically using i2c_board_info in board setup file). Since both
->> sub-device and bridge driver needs to be aware of the interface or bus
->that
->> are used for connecting the devices, I strongly feel a need for defining
->a
->> structure for interface configuration in the v4l2-subdev.h, define the
->> values in board setup file and pass the same from bridge driver to sub
->> device as an argument to v4l2_i2c_new_probed_subdev_addr() and set the
->same
->> before calling the probe. I have posted an RFC for this in the linux
->media
->> mailing list. So this cannot be done at this time.
->
->I'll try to comment your RFC, but I'm not familiar with v4l2-subdev yet.
->
->> > > +            /* Since this is hw default, we will find this pix
->format
->> > > */ +            temp = vpfe_lookup_hw_format(pixfmt->pixelformat); +
->> > > +    } else {
->> > > +            /* check if hw supports it */
->> > > +            pix_fmt = &vpfe_pix_fmts[temp];
->> > > +            temp = 0;
->> > > +            found = 0;
->> > > +            while (ccdc_dev->hw_ops.enum_pix(&hw_pix, temp) >= 0) {
->> > > +                    if (pix_fmt->hw_fmt == hw_pix) {
->> > > +                            found = 1;
->> > > +                            break;
->> > > +                    }
->> > > +                    temp++;
->> >
->> >Wouldn't it be better to have a try_frame_format CCDC operation for
->this ?
+>> This patch adds support for setting bus parameters such as bus type
+>> (Raw Bayer or Raw YUV image data bus), bus width (example 10 bit raw
+>> image data bus, 10 bit BT.656 etc.), and polarities (vsync, hsync, field
+>> etc) in sub device. This allows bridge driver to configure the sub device
+>> bus for a specific set of bus parameters through s_bus() function call.
+>> This also can be used to define platform specific bus parameters for
+>> host and sub-devices.
 >>
->> [MK] vpfe capture can support multiple formats based on platform and ccdc
->> and previewer/resizer's availability. So vpfe capture has to query both
->> ccdc and previewer/resizer hw modules to check if a given pixel format
->can
->> be used. Since try_frame_format() generally adjust the values to match
->> hardware, this cannot work in this situation. In my implementation, I can
->> query previewer/resizer if a pixel format is not supported in ccdc.
->
->Are the formats supported by the CCDC, previewer and resizer modules
->dynamic ?
->If they can't change at runtime it would be easier to store them in a table
->that can be directly accessed by the VPFE driver instead of using an
->enumeration callback.
->
-[MK] It is not dynamic. It depends on the platform and availability of previewer & resizer in the data path. Here is the list of formats supported per platform.
-
-DM6446 : CCDC (Raw Bayer 8 bit a-law compressed, Raw Bayer 16 bit uncompressed)
-DM6446 : previewer (Raw Bayer 16 bit uncompressed, UYVY)
-DM355 : CCDC (Raw Bayer 8 bit a-law compressed, Raw Bayer 16 bit uncompressed)
-DM355 : previewer/resizer (Raw Bayer 16 bit uncompressed, UYVY)
-DM365 : CCDC (Raw Bayer 8 bit a-law compressed, Raw Bayer 8 bit DPCM compressed, Raw Bayer 16 bit uncompressed)
-DM365 : previewer/resizer (Raw Bayer 16 bit uncompressed, UYVY, NV12)
-
-So if you need to keep a table, you need to do it on a per platform basis.
-It is more cleaner to Keep one table for all available formats and have a api function in the ccdc hw device or previewer/resizer device to enumerate it's formats, and then use the table above to lookup the format details as is done in my driver. BTW, I have removed the intermediate vpfe pixel format as per your comment. 
-
->> > > +
->> > > +static int vpfe_g_fmt_vid_cap(struct file *file, void *priv,
->> > > +                            struct v4l2_format *fmt)
->> > > +{
->> > > +    struct vpfe_device *vpfe_dev = video_drvdata(file);
->> > > +    int ret = 0;
->> > > +
->> > > +    v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_g_fmt_vid_cap\n");
->> > > +    /*
->> > > +     * Fill in the information about
->> > > +     * format
->> > > +     */
->> > > +    ret = mutex_lock_interruptible(&vpfe_dev->lock);
->> >
->> > Do we really need to make it interruptible (here and in most other
->> > places) ?
+>> Reviewed by: Hans Verkuil <hverkuil@xs4all.nl>
+>> Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
+>> ---
+>> Applies to v4l-dvb repository
 >>
->> [MK] Generally interruptible is used since application can catch signal
->> and take appropriate action as needed. What is your suggestion? I have
->> investigated it's usage among v4l2 drivers in the tree. Most of them uses
->> mutex_lock()/unlock(), while few like vino.c uses
->> mutex_lock_interruptible() version for handling ioctls. The dm6467_vpif
->> display driver recently reviewed and approved by Hans uses
->interruptible()
->> version. I am not sure if this comment is to be addressed or leave as is.
->> Please respond.
->
->Using an interruptible mutex might not be worth it if the code that runs
->with
->the mutex held is guaranteed to be fast. However, it won't hurt as the C
->library will retry the syscall. I'm fine with interruptible mutexes.
->
->> > I'm under the impression that it should have a defined value, but the
->code
->> > is hard to follow and I might be wrong.
+>>  include/media/v4l2-subdev.h |   40
+>> ++++++++++++++++++++++++++++++++++++++++
+>>  1 files changed, 40 insertions(+), 0 deletions(-)
 >>
->> [MK] I thought you understood the code very well, if not there wouldn't
->be
->> this much comment :)
->
->Let's say I understand it will enough to make a bunch of annoying
->comments ;-)
->
-[MK] Ok.
->> > > +{
->> > > +    struct vpfe_device *vpfe_dev = video_drvdata(file);
->> > > +    struct vpfe_config *cfg = vpfe_dev->cfg;
->> > > +    struct vpfe_fh *fh = file->private_data;
->> > > +    struct vpfe_subdev_info *subdev;
->> > > +    unsigned long addr;
->> > > +    int ret = 0;
->> > > +
->> > > +    v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev, "vpfe_streamon\n");
->> > > +
->> > > +    if (V4L2_BUF_TYPE_VIDEO_CAPTURE != i) {
->> > > +            v4l2_err(&vpfe_dev->v4l2_dev, "Invalid buf type\n");
->> > > +            return -EINVAL;
->> > > +    }
->> > > +
->> > > +    /* If file handle is not allowed IO, return error */
->> > > +    if (!fh->io_allowed) {
->> > > +            v4l2_err(&vpfe_dev->v4l2_dev, "fh->io_allowed\n");
->> > > +            return -EACCES;
->> > > +    }
->> > > +
->> > > +    subdev = &cfg->sub_devs[vpfe_dev->current_subdev];
->> > > +    ret = v4l2_device_call_until_err(&vpfe_dev->v4l2_dev,
->> > > subdev->grp_id, +                                    video, s_stream,
->> > > 1);
->> > > +
->> > > +    if (ret && (ret != -ENOIOCTLCMD)) {
->> > > +            v4l2_err(&vpfe_dev->v4l2_dev, "stream on failed in
->> > > subdev\n"); +            return -EINVAL;
->> > > +    }
->> > > +
->> > > +    /* Call videobuf_streamon to start streaming * in videobuf */
->> > > +    ret = videobuf_streamon(&vpfe_dev->buffer_queue);
->> > > +    if (ret)
->> > > +            return ret;
->> > > +
->> > > +    ret = mutex_lock_interruptible(&vpfe_dev->lock);
->> > > +    if (ret)
->> > > +            goto streamoff;
->> > > +    /* If buffer queue is empty, return error */
->> > > +    if (list_empty(&vpfe_dev->dma_queue)) {
->> > > +            v4l2_err(&vpfe_dev->v4l2_dev, "buffer queue is
->empty\n");
->> > > +            ret = -EIO;
->> > > +            goto unlock_out;
->> > > +    }
->> >
->> > Why don't you check that before starting the stream ?
+>> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+>> index 1785608..2f5ec98 100644
+>> --- a/include/media/v4l2-subdev.h
+>> +++ b/include/media/v4l2-subdev.h
+>> @@ -37,6 +37,43 @@ struct v4l2_decode_vbi_line {
+>>  	u32 type;		/* VBI service type (V4L2_SLICED_*). 0 if no
+>service found */
+>>  };
 >>
->> [MK] I think you are confused by the comment. I changed it to indicate it
->> is dma_queue. As part of videobuf_streamon(), v4l2 buffer layer calls
->> videobuf_queue, where buffers are moved from buffer_queue to dma_queue by
->> vpfe_capture. So this is correct.
+>> +/*
+>> + * Some sub-devices are connected to the host/bridge device through a
+>bus
+>> that
+>> + * carries the clock, vsync, hsync and data. Some interfaces such as
+>> BT.656
+>> + * carries the sync embedded in the data where as others have separate
+>> line
+>> + * carrying the sync signals. The structure below is used to define bus
+>> + * configuration parameters for host as well as sub-device
+>> + */
+>> +enum v4l2_subdev_bus_type {
+>> +	/* Raw YUV image data bus */
+>> +	V4L2_SUBDEV_BUS_RAW_YUV,
+>> +	/* Raw Bayer image data bus */
+>> +	V4L2_SUBDEV_BUS_RAW_BAYER
+>> +};
+>> +
+>> +struct v4l2_bus_settings {
+>> +	/* yuv or bayer image data bus */
+>> +	enum v4l2_subdev_bus_type type;
+>> +	/* subdev bus width */
+>> +	u8 subdev_width;
+>> +	/* host bus width */
+>> +	u8 host_width;
+>> +	/* embedded sync, set this when sync is embedded in the data stream
+>*/
+>> +	unsigned embedded_sync:1;
+>> +	/* master or slave */
+>> +	unsigned host_is_master:1;
+>> +	/* 0 - active low, 1 - active high */
+>> +	unsigned pol_vsync:1;
+>> +	/* 0 - active low, 1 - active high */
+>> +	unsigned pol_hsync:1;
+>> +	/* 0 - low to high , 1 - high to low */
+>> +	unsigned pol_field:1;
+>> +	/* 0 - sample at falling edge , 1 - sample at rising edge */
+>> +	unsigned pol_pclock:1;
+>> +	/* 0 - active low , 1 - active high */
+>> +	unsigned pol_data:1;
+>> +};
 >
->Maybe you could check for list_empyt(&vpfe_dev->buffer_queue.stream) before
->starting the stream instead. If I remember correctly, while the driver
->doesn't
->support VIDIOC_STREAM without any queued buffer, we plan to fix that (and
->other small issues such as VIDIOC_REQBUFS being called multiple times)
->later,
->so the code will go away eventually.
+>I've been thinking about this for a while and I think this struct should
+>be extended with the host bus parameters as well:
 >
-[MK] I will investigate
->Best regards,
+>struct v4l2_bus_settings {
+>	/* yuv or bayer image data bus */
+>	enum v4l2_bus_type type;
+>	/* embedded sync, set this when sync is embedded in the data stream
+>*/
+>	unsigned embedded_sync:1;
+>	/* master or slave */
+>	unsigned host_is_master:1;
 >
->Laurent Pinchart
+>	/* bus width */
+>	unsigned sd_width:8;
+>	/* 0 - active low, 1 - active high */
+>	unsigned sd_pol_vsync:1;
+>	/* 0 - active low, 1 - active high */
+>	unsigned sd_pol_hsync:1;
+>	/* 0 - low to high, 1 - high to low */
+>	unsigned sd_pol_field:1;
+>	/* 0 - sample at falling edge, 1 - sample at rising edge */
+>	unsigned sd_edge_pclock:1;
+>	/* 0 - active low, 1 - active high */
+>	unsigned sd_pol_data:1;
+>
+>	/* host bus width */
+>	unsigned host_width:8;
+>	/* 0 - active low, 1 - active high */
+>	unsigned host_pol_vsync:1;
+>	/* 0 - active low, 1 - active high */
+>	unsigned host_pol_hsync:1;
+>	/* 0 - low to high, 1 - high to low */
+>	unsigned host_pol_field:1;
+>	/* 0 - sample at falling edge, 1 - sample at rising edge */
+>	unsigned host_edge_pclock:1;
+>	/* 0 - active low, 1 - active high */
+>	unsigned host_pol_data:1;
+>};
+>
+>It makes sense since you need to setup both ends of the bus, and having
+>both ends defined in the same struct keeps everything together. I have
+>thought about having separate host and subdev structs, but part of the bus
+>description is always common (bus type, master/slave, embedded/separate
+>syncs), while another part can be different for each end of the bus.
+>
+>It's all bitfields, so it is a very compact representation.
+>
+>In addition, I think we need to require that at the start of the s_bus
+>implementation in the host or subdev there should be a standard comment
+>block describing the possible combinations supported by the hardware:
+>
+>/* Subdevice foo supports the following bus settings:
+>
+>   types: RAW_BAYER (widths: 8/10/12, syncs: embedded/separate)
+>          RAW_YUV (widths: 8/16, syncs: embedded)
+>   bus master: slave
+>   vsync polarity: 0/1
+>   hsync polarity: 0/1
+>   field polarity: not applicable
+>   sampling edge pixelclock: 0/1
+>   data polarity: 1
+> */
+>
+>This should make it easy for implementers to pick a valid set of bus
+>parameters.
+>
+>Regards,
+>
+>       Hans
+>
+>> +
+>>  /* Sub-devices are devices that are connected somehow to the main bridge
+>>     device. These devices are usually audio/video
+>muxers/encoders/decoders
+>> or
+>>     sensors and webcam controllers.
+>> @@ -199,6 +236,8 @@ struct v4l2_subdev_audio_ops {
+>>
+>>     s_routing: see s_routing in audio_ops, except this version is for
+>> video
+>>  	devices.
+>> +
+>> +   s_bus: set bus parameters in sub device to configure the bus
+>>   */
+>>  struct v4l2_subdev_video_ops {
+>>  	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32
+>> config);
+>> @@ -219,6 +258,7 @@ struct v4l2_subdev_video_ops {
+>>  	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
+>>  	int (*enum_framesizes)(struct v4l2_subdev *sd, struct
+>v4l2_frmsizeenum
+>> *fsize);
+>>  	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct
+>> v4l2_frmivalenum *fival);
+>> +	int (*s_bus)(struct v4l2_subdev *sd, const struct v4l2_bus_settings
+>> *bus);
+>>  };
+>>
+>>  struct v4l2_subdev_ops {
+>> --
+>> 1.6.0.4
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+>--
+>Hans Verkuil - video4linux developer - sponsored by TANDBERG
 >
 
