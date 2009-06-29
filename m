@@ -1,114 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2145 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754312AbZFBSOJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2009 14:14:09 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id n52IEAFE070559
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 2 Jun 2009 20:14:10 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 2 Jun 2009 20:14:10 +0200 (CEST)
-Message-Id: <200906021814.n52IEAFE070559@smtp-vbr10.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from server50105.uk2net.com ([83.170.97.106]:45691 "EHLO
+	mail.autotrain.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751702AbZF2NdP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Jun 2009 09:33:15 -0400
+Date: Mon, 29 Jun 2009 14:04:11 +0100 (BST)
+From: Tim Williams <tmw@autotrain.org>
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] USBVision device defaults
+In-Reply-To: <1246275235.3917.12.camel@palomino.walls.org>
+Message-ID: <alpine.LRH.2.00.0906291303170.29847@server50105.uk2net.com>
+References: <alpine.LRH.2.00.0906261505320.14258@server50105.uk2net.com> <1246275235.3917.12.camel@palomino.walls.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Mon, 29 Jun 2009, Andy Walls wrote:
 
-Results of the daily build of v4l-dvb:
+> According to the V4L2 specification for the close() call, all devices
+> should remember their settings.
+>
+> There have been recent discussions on devices that do power management
+> not saving the RF tuner freq after the final close() (and what to do
+> about it), but the last input and standard should be preserved.  (Note,
+> I have not looked at the usbvision driver to look for problems.)
 
-date:        Tue Jun  2 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   11919:5ec629d784ad
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+It would appear that the usbvision driver isn't following the spec. As I 
+mentioned in my earlier message, there is an LED which indicates that the 
+box is active. Under windows this comes on and stays on after the first 
+use, until reboot. Under linux it always goes off when the programme using 
+the device exits.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: WARNINGS
-linux-2.6.28-armv5: WARNINGS
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-rc7-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-rc7-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-rc7-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-rc7-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-rc7-m32r: OK
-linux-2.6.22.19-mips: ERRORS
-linux-2.6.26-mips: ERRORS
-linux-2.6.27-mips: ERRORS
-linux-2.6.28-mips: ERRORS
-linux-2.6.29.1-mips: ERRORS
-linux-2.6.30-rc7-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-rc7-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-rc7-x86_64: WARNINGS
-sparse (linux-2.6.29.1): OK
-sparse (linux-2.6.30-rc7): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+> What precise WinTV USB device/verision are you using?
 
-Detailed results are available here:
+>From lsusb :
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+Bus 002 Device 002: ID 0573:4d22 Zoran Co. Personal Media Division 
+(Nogatech) Hauppauge WinTV-USB II (PAL) Model 566
 
-Full logs are available here:
+> Try something like:
+>
+> $ v4l2-ctl --help
+> $ v4l2-ctl -d /dev/video0 --log-status
+> $ v4l2-ctl -d /dev/video0 --list-inputs
+> $ v4l2-ctl -d /dev/video0 --set-input=2
+> $ v4l2-ctl -d /dev/video0 --log-status
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+[root@saucy ~]# v4l2-ctl -d /dev/video0 --log-status
+[root@saucy ~]# v4l2-ctl -d /dev/video0 --list-inputs
+ioctl: VIDIOC_ENUMINPUT
+         Input   : 0
+         Name    : Television
+         Type    : 0x00000001
+         Audioset: 0x00000001
+         Tuner   : 0x00000000
+         Standard: 0x0000000000FFB1FF ( PAL NTSC SECAM )
+         Status  : 0
 
-The V4L2 specification from this daily build is here:
+         Input   : 1
+         Name    : Composite Video Input
+         Type    : 0x00000002
+         Audioset: 0x00000000
+         Tuner   : 0x00000000
+         Standard: 0x00000000000000FF ( PAL )
+         Status  : 0
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+         Input   : 2
+         Name    : S-Video Input
+         Type    : 0x00000002
+         Audioset: 0x00000000
+         Tuner   : 0x00000000
+         Standard: 0x00000000000000FF ( PAL )
+         Status  : 0
+[root@saucy ~]# v4l2-ctl -d /dev/video0 --set-input=2
+Video input set to 2 (S-Video Input)
+[root@saucy ~]# v4l2-ctl -d /dev/video0 --log-status
+[root@saucy ~]#
 
-The DVB API specification from this daily build is here:
+Each of these commands causes the following messages to be repeated in 
+/var/log/messages
 
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+Jun 29 13:43:06 saucy kernel: saa7115' 1-0025: saa7113 found 
+(1f7113d0e100000) @ 0x4a (usbvision #0)
+Jun 29 13:43:08 saucy kernel: tuner' 1-0061: chip found @ 0xc2 (usbvision 
+#0)
+Jun 29 13:43:08 saucy kernel: tuner-simple 1-0061: creating new instance
+Jun 29 13:43:08 saucy kernel: tuner-simple 1-0061: type set to 5 (Philips 
+PAL_BG (FI1216 and compatibles))
+Jun 29 13:43:12 saucy kernel: tuner-simple 1-0061: destroying instance
 
+I'm currently using kernel 2.6.27.21-desktop-1mnb on Mandriva 2009.0.
+
+Tim W
+
+-- 
+Tim Williams BSc MSc MBCS
+Euromotor Autotrain LLP
+58 Jacoby Place
+Priory Road
+Edgbaston
+Birmingham
+B5 7UW
+United Kingdom
+
+Web : http://www.autotrain.org
+Tel : +44 (0)121 414 2214
+
+EuroMotor-AutoTrain is a company registered in the UK, Registration
+number: OC317070.
