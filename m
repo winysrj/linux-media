@@ -1,137 +1,296 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:53720 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759569AbZFQULa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 16:11:30 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5HKBS8p012953
-	for <linux-media@vger.kernel.org>; Wed, 17 Jun 2009 15:11:33 -0500
-From: m-karicheri2@ti.com
-To: linux-media@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH 6/11 - v3] Makefile and config files for vpfe capture driver
-Date: Wed, 17 Jun 2009 16:11:19 -0400
-Message-Id: <1245269484-8325-7-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1245269484-8325-6-git-send-email-m-karicheri2@ti.com>
-References: <1245269484-8325-1-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-2-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-3-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-4-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-5-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-6-git-send-email-m-karicheri2@ti.com>
+Received: from smtpfb1-g21.free.fr ([212.27.42.9]:33992 "EHLO
+	smtpfb1-g21.free.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752856AbZF2QYO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Jun 2009 12:24:14 -0400
+Received: from smtp4-g21.free.fr (smtp4-g21.free.fr [212.27.42.4])
+	by smtpfb1-g21.free.fr (Postfix) with ESMTP id E6B8577CC56
+	for <linux-media@vger.kernel.org>; Mon, 29 Jun 2009 18:24:11 +0200 (CEST)
+Message-ID: <4A48EA7A.5050603@cynove.com>
+Date: Mon, 29 Jun 2009 18:23:22 +0200
+From: =?ISO-8859-1?Q?Jean-Philippe_Fran=E7ois?= <jp.francois@cynove.com>
+MIME-Version: 1.0
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	"davinci-linux-open-source@linux.davincidsp.com"
+	<davinci-linux-open-source@linux.davincidsp.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [RFC PATCH] adding support for setting bus parameters in sub
+ device
+References: <36355.62.70.2.252.1246287669.squirrel@webmail.xs4all.nl> <A69FA2915331DC488A831521EAE36FE401448CDEBF@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE401448CDEBF@dlee06.ent.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+Karicheri, Muralidharan a écrit :
+> Hans,
+> 
+> Had hit the send by mistake. Please ignore my previous reply...
+> 
+> <snip>
+>>> It seems very unlikely to me that someone would ever choose to e.g. zero
+>>> one or more MSB pins instead of the LSB pins in a case like this.
+>>>
+> 
+> No case in my experience...
+> 
+> <snip>
+>>> Or do you have examples where that actually happens?
+>>>
+> DM365 can work with 10 bit or 12 bit sensors. DM365 CCDC that receives the
+> image data needs to know which data lines have valid data. This is done by
+> specifying the MSB position. There is ccdc register to configure this information. Ideally, you could connect the MSB of sensor to following lines on host bus:-
+> 
+> data9-data15 for MT9T031
+> data11-data15 for MT9P031
+But then you could set the host bus width accordingly for example :
+MT9T031 MSB connected do data 9 : HOST Buswidth = 10
+MT9T031 MSB connected to data 15: Host Buswdth = 16
 
-Makefile and config files for the driver
+Since the host/sensor info are in the same structure, we can have 
+several subdev with different host buswidth.
 
-This adds Makefile and Kconfig changes to build vpfe capture driver.
+Jean-Philippe François
 
-No change in this version
-
-Reviewed by: Hans Verkuil <hverkuil@xs4all.nl>
-Reviewed by: Laurent Pinchart <laurent.pinchart@skynet.be>
-
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
-Applies to v4l-dvb repository
-
- drivers/media/video/Kconfig          |   49 ++++++++++++++++++++++++++++++++++
- drivers/media/video/Makefile         |    2 +
- drivers/media/video/davinci/Makefile |    9 ++++++
- 3 files changed, 60 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/davinci/Makefile
-
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 94f4405..8a1bd1c 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -497,6 +497,55 @@ config VIDEO_VIVI
- 	  Say Y here if you want to test video apps or debug V4L devices.
- 	  In doubt, say N.
- 
-+config VIDEO_VPSS_SYSTEM
-+	tristate "VPSS System module driver"
-+	depends on ARCH_DAVINCI
-+	help
-+	  Support for vpss system module for video driver
-+	default y
-+
-+config VIDEO_VPFE_CAPTURE
-+	tristate "VPFE Video Capture Driver"
-+	depends on VIDEO_V4L2 && ARCH_DAVINCI
-+	select VIDEOBUF_DMA_CONTIG
-+	help
-+	  Support for DMXXXX VPFE based frame grabber. This is the
-+	  common V4L2 module for following DMXXX SoCs from Texas
-+	  Instruments:- DM6446 & DM355.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called vpfe-capture.
-+
-+config VIDEO_DM6446_CCDC
-+	tristate "DM6446 CCDC HW module"
-+	depends on ARCH_DAVINCI_DM644x && VIDEO_VPFE_CAPTURE
-+	select VIDEO_VPSS_SYSTEM
-+	default y
-+	help
-+	   Enables DaVinci CCD hw module. DaVinci CCDC hw interfaces
-+	   with decoder modules such as TVP5146 over BT656 or
-+	   sensor module such as MT9T001 over a raw interface. This
-+	   module configures the interface and CCDC/ISIF to do
-+	   video frame capture from slave decoders.
-+
-+	   To compile this driver as a module, choose M here: the
-+	   module will be called vpfe.
-+
-+config VIDEO_DM355_CCDC
-+	tristate "DM355 CCDC HW module"
-+	depends on ARCH_DAVINCI_DM355 && VIDEO_VPFE_CAPTURE
-+	select VIDEO_VPSS_SYSTEM
-+	default y
-+	help
-+	   Enables DM355 CCD hw module. DM355 CCDC hw interfaces
-+	   with decoder modules such as TVP5146 over BT656 or
-+	   sensor module such as MT9T001 over a raw interface. This
-+	   module configures the interface and CCDC/ISIF to do
-+	   video frame capture from a slave decoders
-+
-+	   To compile this driver as a module, choose M here: the
-+	   module will be called vpfe.
-+
- source "drivers/media/video/bt8xx/Kconfig"
- 
- config VIDEO_PMS
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index 7fb3add..1f28495 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -153,6 +153,8 @@ obj-$(CONFIG_VIDEO_MX3)			+= mx3_camera.o
- obj-$(CONFIG_VIDEO_PXA27x)		+= pxa_camera.o
- obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
- 
-+obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
-+
- obj-$(CONFIG_VIDEO_AU0828) += au0828/
- 
- obj-$(CONFIG_USB_VIDEO_CLASS)	+= uvc/
-diff --git a/drivers/media/video/davinci/Makefile b/drivers/media/video/davinci/Makefile
-new file mode 100644
-index 0000000..b84a405
---- /dev/null
-+++ b/drivers/media/video/davinci/Makefile
-@@ -0,0 +1,9 @@
-+#
-+# Makefile for the davinci video device drivers.
-+#
-+
-+# Capture: DM6446 and DM355
-+obj-$(CONFIG_VIDEO_VPSS_SYSTEM) += vpss.o
-+obj-$(CONFIG_VIDEO_VPFE_CAPTURE) += vpfe_capture.o
-+obj-$(CONFIG_VIDEO_DM6446_CCDC) += dm644x_ccdc.o
-+obj-$(CONFIG_VIDEO_DM355_CCDC) += dm355_ccdc.o
--- 
-1.6.0.4
+> 
+> 
+> So it makes sense to specify this choice in the structure. I have not added this earlier since we wanted to use the structure only for sub device configuration. It has changed since then.
+> 
+> I am also not sure if s_bus() is required since this will get set in the platform data which could then be passed to the sub device using the new api while loading it. When would host driver call s_bus()?
+> 
+>>
+>>> If this never happens, then there is also no need for such a bitfield.
+>>>
+>>> I think I want to actually see someone using this before we add a field
+>>> like that.
+>>>
+>>> Regards,
+>>>
+>>>       Hans
+>>>
+>>>
+>>>>
+>>>> Murali Karicheri
+>>>> Software Design Engineer
+>>>> Texas Instruments Inc.
+>>>> Germantown, MD 20874
+>>>> email: m-karicheri2@ti.com
+>>>>
+>>>>> -----Original Message-----
+>>>>> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+>>>>> Sent: Monday, June 29, 2009 5:26 AM
+>>>>> To: Karicheri, Muralidharan
+>>>>> Cc: linux-media@vger.kernel.org; davinci-linux-open-
+>>>>> source@linux.davincidsp.com
+>>>>> Subject: Re: [RFC PATCH] adding support for setting bus parameters in
+>> sub
+>>>>> device
+>>>>>
+>>>>> Hi Murali,
+>>>>>
+>>>>>> From: Muralidharan Karicheri <a0868495@gt516km11.gt.design.ti.com>
+>>>>>>
+>>>>>> This patch adds support for setting bus parameters such as bus type
+>>>>>> (Raw Bayer or Raw YUV image data bus), bus width (example 10 bit raw
+>>>>>> image data bus, 10 bit BT.656 etc.), and polarities (vsync, hsync,
+>>>>>> field
+>>>>>> etc) in sub device. This allows bridge driver to configure the sub
+>>>>>> device
+>>>>>> bus for a specific set of bus parameters through s_bus() function call.
+>>>>>> This also can be used to define platform specific bus parameters for
+>>>>>> host and sub-devices.
+>>>>>>
+>>>>>> Reviewed by: Hans Verkuil <hverkuil@xs4all.nl>
+>>>>>> Signed-off-by: Murali Karicheri <m-karicheri2@ti.com>
+>>>>>> ---
+>>>>>> Applies to v4l-dvb repository
+>>>>>>
+>>>>>>  include/media/v4l2-subdev.h |   40
+>>>>>> ++++++++++++++++++++++++++++++++++++++++
+>>>>>>  1 files changed, 40 insertions(+), 0 deletions(-)
+>>>>>>
+>>>>>> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+>>>>>> index 1785608..2f5ec98 100644
+>>>>>> --- a/include/media/v4l2-subdev.h
+>>>>>> +++ b/include/media/v4l2-subdev.h
+>>>>>> @@ -37,6 +37,43 @@ struct v4l2_decode_vbi_line {
+>>>>>>  	u32 type;		/* VBI service type (V4L2_SLICED_*). 0 if no
+>>>>> service found */
+>>>>>>  };
+>>>>>>
+>>>>>> +/*
+>>>>>> + * Some sub-devices are connected to the host/bridge device through a
+>>>>> bus
+>>>>>> that
+>>>>>> + * carries the clock, vsync, hsync and data. Some interfaces such as
+>>>>>> BT.656
+>>>>>> + * carries the sync embedded in the data where as others have
+>> separate
+>>>>>> line
+>>>>>> + * carrying the sync signals. The structure below is used to define
+>>>>>> bus
+>>>>>> + * configuration parameters for host as well as sub-device
+>>>>>> + */
+>>>>>> +enum v4l2_subdev_bus_type {
+>>>>>> +	/* Raw YUV image data bus */
+>>>>>> +	V4L2_SUBDEV_BUS_RAW_YUV,
+>>>>>> +	/* Raw Bayer image data bus */
+>>>>>> +	V4L2_SUBDEV_BUS_RAW_BAYER
+>>>>>> +};
+>>>>>> +
+>>>>>> +struct v4l2_bus_settings {
+>>>>>> +	/* yuv or bayer image data bus */
+>>>>>> +	enum v4l2_subdev_bus_type type;
+>>>>>> +	/* subdev bus width */
+>>>>>> +	u8 subdev_width;
+>>>>>> +	/* host bus width */
+>>>>>> +	u8 host_width;
+>>>>>> +	/* embedded sync, set this when sync is embedded in the data
+>> stream
+>>>>> */
+>>>>>> +	unsigned embedded_sync:1;
+>>>>>> +	/* master or slave */
+>>>>>> +	unsigned host_is_master:1;
+>>>>>> +	/* 0 - active low, 1 - active high */
+>>>>>> +	unsigned pol_vsync:1;
+>>>>>> +	/* 0 - active low, 1 - active high */
+>>>>>> +	unsigned pol_hsync:1;
+>>>>>> +	/* 0 - low to high , 1 - high to low */
+>>>>>> +	unsigned pol_field:1;
+>>>>>> +	/* 0 - sample at falling edge , 1 - sample at rising edge */
+>>>>>> +	unsigned pol_pclock:1;
+>>>>>> +	/* 0 - active low , 1 - active high */
+>>>>>> +	unsigned pol_data:1;
+>>>>>> +};
+>>>>> I've been thinking about this for a while and I think this struct should
+>>>>> be extended with the host bus parameters as well:
+>>>>>
+>>>>> struct v4l2_bus_settings {
+>>>>> 	/* yuv or bayer image data bus */
+>>>>> 	enum v4l2_bus_type type;
+>>>>> 	/* embedded sync, set this when sync is embedded in the data stream
+>>>>> */
+>>>>> 	unsigned embedded_sync:1;
+>>>>> 	/* master or slave */
+>>>>> 	unsigned host_is_master:1;
+>>>>>
+>>>>> 	/* bus width */
+>>>>> 	unsigned sd_width:8;
+>>>>> 	/* 0 - active low, 1 - active high */
+>>>>> 	unsigned sd_pol_vsync:1;
+>>>>> 	/* 0 - active low, 1 - active high */
+>>>>> 	unsigned sd_pol_hsync:1;
+>>>>> 	/* 0 - low to high, 1 - high to low */
+>>>>> 	unsigned sd_pol_field:1;
+>>>>> 	/* 0 - sample at falling edge, 1 - sample at rising edge */
+>>>>> 	unsigned sd_edge_pclock:1;
+>>>>> 	/* 0 - active low, 1 - active high */
+>>>>> 	unsigned sd_pol_data:1;
+>>>>>
+>>>>> 	/* host bus width */
+>>>>> 	unsigned host_width:8;
+>>>>> 	/* 0 - active low, 1 - active high */
+>>>>> 	unsigned host_pol_vsync:1;
+>>>>> 	/* 0 - active low, 1 - active high */
+>>>>> 	unsigned host_pol_hsync:1;
+>>>>> 	/* 0 - low to high, 1 - high to low */
+>>>>> 	unsigned host_pol_field:1;
+>>>>> 	/* 0 - sample at falling edge, 1 - sample at rising edge */
+>>>>> 	unsigned host_edge_pclock:1;
+>>>>> 	/* 0 - active low, 1 - active high */
+>>>>> 	unsigned host_pol_data:1;
+>>>>> };
+>>>>>
+>>>>> It makes sense since you need to setup both ends of the bus, and having
+>>>>> both ends defined in the same struct keeps everything together. I have
+>>>>> thought about having separate host and subdev structs, but part of the
+>>>>> bus
+>>>>> description is always common (bus type, master/slave, embedded/separate
+>>>>> syncs), while another part can be different for each end of the bus.
+>>>>>
+>>>>> It's all bitfields, so it is a very compact representation.
+>>>>>
+>>>>> In addition, I think we need to require that at the start of the s_bus
+>>>>> implementation in the host or subdev there should be a standard comment
+>>>>> block describing the possible combinations supported by the hardware:
+>>>>>
+>>>>> /* Subdevice foo supports the following bus settings:
+>>>>>
+>>>>>   types: RAW_BAYER (widths: 8/10/12, syncs: embedded/separate)
+>>>>>          RAW_YUV (widths: 8/16, syncs: embedded)
+>>>>>   bus master: slave
+>>>>>   vsync polarity: 0/1
+>>>>>   hsync polarity: 0/1
+>>>>>   field polarity: not applicable
+>>>>>   sampling edge pixelclock: 0/1
+>>>>>   data polarity: 1
+>>>>> */
+>>>>>
+>>>>> This should make it easy for implementers to pick a valid set of bus
+>>>>> parameters.
+>>>>>
+>>>>> Regards,
+>>>>>
+>>>>>       Hans
+>>>>>
+>>>>>> +
+>>>>>>  /* Sub-devices are devices that are connected somehow to the main
+>>>>>> bridge
+>>>>>>     device. These devices are usually audio/video
+>>>>> muxers/encoders/decoders
+>>>>>> or
+>>>>>>     sensors and webcam controllers.
+>>>>>> @@ -199,6 +236,8 @@ struct v4l2_subdev_audio_ops {
+>>>>>>
+>>>>>>     s_routing: see s_routing in audio_ops, except this version is for
+>>>>>> video
+>>>>>>  	devices.
+>>>>>> +
+>>>>>> +   s_bus: set bus parameters in sub device to configure the bus
+>>>>>>   */
+>>>>>>  struct v4l2_subdev_video_ops {
+>>>>>>  	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output,
+>> u32
+>>>>>> config);
+>>>>>> @@ -219,6 +258,7 @@ struct v4l2_subdev_video_ops {
+>>>>>>  	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm
+>> *param);
+>>>>>>  	int (*enum_framesizes)(struct v4l2_subdev *sd, struct
+>>>>> v4l2_frmsizeenum
+>>>>>> *fsize);
+>>>>>>  	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct
+>>>>>> v4l2_frmivalenum *fival);
+>>>>>> +	int (*s_bus)(struct v4l2_subdev *sd, const struct
+>> v4l2_bus_settings
+>>>>>> *bus);
+>>>>>>  };
+>>>>>>
+>>>>>>  struct v4l2_subdev_ops {
+>>>>>> --
+>>>>>> 1.6.0.4
+>>>>>>
+>>>>>> --
+>>>>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>>>>>> in
+>>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>>>
+>>>>> --
+>>>>> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+>>>>>
+>>>>
+>>>>
+>>>
+>>> --
+>>> Hans Verkuil - video4linux developer - sponsored by TANDBERG
+>>>
+> 
+> _______________________________________________
+> Davinci-linux-open-source mailing list
+> Davinci-linux-open-source@linux.davincidsp.com
+> http://linux.davincidsp.com/mailman/listinfo/davinci-linux-open-source
+> 
 
