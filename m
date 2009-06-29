@@ -1,159 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38571 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755414AbZFQUL3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jun 2009 16:11:29 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n5HKBQD1001617
-	for <linux-media@vger.kernel.org>; Wed, 17 Jun 2009 15:11:31 -0500
-From: m-karicheri2@ti.com
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199]:45615 "EHLO
+	mta4.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751990AbZF2NnG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Jun 2009 09:43:06 -0400
+Received: from host143-65.hauppauge.com
+ (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta4.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0KM000GZA63RP6D0@mta4.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Mon, 29 Jun 2009 09:43:04 -0400 (EDT)
+Date: Mon, 29 Jun 2009 09:43:04 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: cx23885, new hardware revision found
+In-reply-to: <3833b9400906290548wd8b2ba1s22266f0152e83f40@mail.gmail.com>
 To: linux-media@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com,
-	Muralidharan Karicheri <m-karicheri2@ti.com>
-Subject: [PATCH 2/11 - v3] ccdc hw device header file for vpfe capture
-Date: Wed, 17 Jun 2009 16:11:15 -0400
-Message-Id: <1245269484-8325-3-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1245269484-8325-2-git-send-email-m-karicheri2@ti.com>
-References: <1245269484-8325-1-git-send-email-m-karicheri2@ti.com>
- <1245269484-8325-2-git-send-email-m-karicheri2@ti.com>
+Cc: Michael Kutyna <mkutyna@gmail.com>
+Message-id: <4A48C4E8.6010107@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <3833b9400906201508w14f15b96i41e0963186a0a2cb@mail.gmail.com>
+ <3833b9400906290548wd8b2ba1s22266f0152e83f40@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Muralidharan Karicheri <m-karicheri2@ti.com>
+>> cx23885_dev_checkrevision() New hardware revision found 0x0
+>> cx23885_dev_checkrevision() Hardware revision unknown 0x0
+>> cx23885[0]/0: found at 0000:02:00.0, rev: 4, irq: 17, latency: 0,
+>> mmio: 0xfd800000
+>> cx23885 0000:02:00.0: setting latency timer to 64
+>>
+>> I'm pretty sure that is the problem but I don't know how to fix it.  I
 
-CCDC hw device header file
+The new revision isn't the problem, the above code is for information purposes 
+so we can track new revs of the silicon in this mailing list. Most likely the 
+demodulators / tuners are not configured correctly. DViCO probably changed 
+something.
 
-Adds ccdc hw device header for vpfe capture driver
+Double check that the silicon and gpios / settings inside the cx23885 driver for 
+the existing card definition match the silicon and configuration for this new 
+card you have.
 
-No change from last version
-
-Reviewed by: Hans Verkuil <hverkuil@xs4all.nl>
-Reviewed by: Laurent Pinchart <laurent.pinchart@skynet.be>
-
-Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
----
-Applies to v4l-dvb repository
-
- drivers/media/video/davinci/ccdc_hw_device.h |  110 ++++++++++++++++++++++++++
- 1 files changed, 110 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/davinci/ccdc_hw_device.h
-
-diff --git a/drivers/media/video/davinci/ccdc_hw_device.h b/drivers/media/video/davinci/ccdc_hw_device.h
-new file mode 100644
-index 0000000..86b9b35
---- /dev/null
-+++ b/drivers/media/video/davinci/ccdc_hw_device.h
-@@ -0,0 +1,110 @@
-+/*
-+ * Copyright (C) 2008-2009 Texas Instruments Inc
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ * ccdc device API
-+ */
-+#ifndef _CCDC_HW_DEVICE_H
-+#define _CCDC_HW_DEVICE_H
-+
-+#ifdef __KERNEL__
-+#include <linux/videodev2.h>
-+#include <linux/device.h>
-+#include <media/davinci/vpfe_types.h>
-+#include <media/davinci/ccdc_types.h>
-+
-+/*
-+ * ccdc hw operations
-+ */
-+struct ccdc_hw_ops {
-+	/* Pointer to initialize function to initialize ccdc device */
-+	int (*open) (struct device *dev);
-+	/* Pointer to deinitialize function */
-+	int (*close) (struct device *dev);
-+	/* set ccdc base address */
-+	void (*set_ccdc_base)(void *base, int size);
-+	/* Pointer to function to enable or disable ccdc */
-+	void (*enable) (int en);
-+	/* reset sbl. only for 6446 */
-+	void (*reset) (void);
-+	/* enable output to sdram */
-+	void (*enable_out_to_sdram) (int en);
-+	/* Pointer to function to set hw parameters */
-+	int (*set_hw_if_params) (struct vpfe_hw_if_param *param);
-+	/* get interface parameters */
-+	int (*get_hw_if_params) (struct vpfe_hw_if_param *param);
-+	/*
-+	 * Pointer to function to set parameters. Used
-+	 * for implementing VPFE_S_CCDC_PARAMS
-+	 */
-+	int (*set_params) (void *params);
-+	/*
-+	 * Pointer to function to get parameter. Used
-+	 * for implementing VPFE_G_CCDC_PARAMS
-+	 */
-+	int (*get_params) (void *params);
-+	/* Pointer to function to configure ccdc */
-+	int (*configure) (void);
-+
-+	/* Pointer to function to set buffer type */
-+	int (*set_buftype) (enum ccdc_buftype buf_type);
-+	/* Pointer to function to get buffer type */
-+	enum ccdc_buftype (*get_buftype) (void);
-+	/* Pointer to function to set frame format */
-+	int (*set_frame_format) (enum ccdc_frmfmt frm_fmt);
-+	/* Pointer to function to get frame format */
-+	enum ccdc_frmfmt (*get_frame_format) (void);
-+	/* enumerate hw pix formats */
-+	int (*enum_pix)(u32 *hw_pix, int i);
-+	/* Pointer to function to set buffer type */
-+	u32 (*get_pixel_format) (void);
-+	/* Pointer to function to get pixel format. */
-+	int (*set_pixel_format) (u32 pixfmt);
-+	/* Pointer to function to set image window */
-+	int (*set_image_window) (struct v4l2_rect *win);
-+	/* Pointer to function to set image window */
-+	void (*get_image_window) (struct v4l2_rect *win);
-+	/* Pointer to function to get line length */
-+	unsigned int (*get_line_length) (void);
-+
-+	/* Query CCDC control IDs */
-+	int (*queryctrl)(struct v4l2_queryctrl *qctrl);
-+	/* Set CCDC control */
-+	int (*set_control)(struct v4l2_control *ctrl);
-+	/* Get CCDC control */
-+	int (*get_control)(struct v4l2_control *ctrl);
-+
-+	/* Pointer to function to set frame buffer address */
-+	void (*setfbaddr) (unsigned long addr);
-+	/* Pointer to function to get field id */
-+	int (*getfid) (void);
-+};
-+
-+struct ccdc_hw_device {
-+	/* ccdc device name */
-+	char name[32];
-+	/* module owner */
-+	struct module *owner;
-+	/* hw ops */
-+	struct ccdc_hw_ops hw_ops;
-+};
-+
-+/* Used by CCDC module to register & unregister with vpfe capture driver */
-+int vpfe_register_ccdc_device(struct ccdc_hw_device *dev);
-+void vpfe_unregister_ccdc_device(struct ccdc_hw_device *dev);
-+
-+#endif
-+#endif
 -- 
-1.6.0.4
-
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
