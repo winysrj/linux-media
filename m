@@ -1,58 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:60508 "EHLO mx2.redhat.com"
+Received: from mx2.redhat.com ([66.187.237.31]:59901 "EHLO mx2.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751996AbZFGNv4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Jun 2009 09:51:56 -0400
-Message-ID: <4A2BE212.2070009@redhat.com>
-Date: Sun, 07 Jun 2009 17:51:46 +0200
+	id S1751917AbZF3SoA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Jun 2009 14:44:00 -0400
+Message-ID: <4A4A5D79.9080403@redhat.com>
+Date: Tue, 30 Jun 2009 20:46:17 +0200
 From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Lennart Poettering <mzxreary@0pointer.de>
-CC: linux-kernel@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] V4L/pwc - use usb_interface as parent, not usb_device
-References: <20090604191813.GA6281@tango.0pointer.de>
-In-Reply-To: <20090604191813.GA6281@tango.0pointer.de>
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: eric.paturage@orange.fr, linux-media@vger.kernel.org
+Subject: Re: (very) wrong picture with sonixj driver and  0c45:6128
+References: <200906291843.n5TIhoO04486@neptune.localwarp.net> <20090630124624.7c64a597@free.fr>
+In-Reply-To: <20090630124624.7c64a597@free.fr>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Looks good, we recently fixed the same issue in the gspca driver to,
 
-Acked-by: Hans de Goede <hdegoede@redhat.com>
 
-On 06/04/2009 09:18 PM, Lennart Poettering wrote:
-> The current code creates a sysfs device path where the video4linux
-> device is child of the usb device itself instead of the interface it
-> belongs to. That is evil and confuses udev.
+On 06/30/2009 12:46 PM, Jean-Francois Moine wrote:
+> On Mon, 29 Jun 2009 20:43:29 +0200 (CEST)
+> eric.paturage@orange.fr wrote:
+>> i am trying to use an "ngs skull" webcam with the gspca sonixj
+>> driver . i enclose a screen copy , so one can see what what i mean :
+>> the image is flatten vertically , there is 25% missing on the left .
+>> and the color is all wrong , over-bright  . (no matter how much i try
+>> to correct with v4l_ctl) the tests have been done with the latest
+>> mercurial version of the v4l drivers (from sunday evening) on
+>> 2.6.29.4 . I also tried it on 2 other computers (2.6.28.2 ) and
+>> 2.6.27.4 . with sames results .
+> 	[snip]
+>> any idea what is going on ?
+>>
+>> I can provide more detailled log if needed , by setting the debug
+>> param in gspca_main
 >
-> This patch does basically the same thing as Kay's similar patch for the
-> ov511 driver:
+> Hello Eric,
 >
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=ce96d0a44a4f8d1bb3dc12b5e98cb688c1bc730d
+> Looking at the ms-win driver, it seems that the bridge is not the right
+> one. May you try to change it? This is done in the mercurial tree
+> editing the file:
 >
-> (Resent 2nd time, due to missing Signed-off-by)
+> 	linux/drivers/media/video/gspca/sonixj.c
 >
-> Lennart
+> and replacing the line 2379 from:
 >
-> Signed-off-by: Lennart Poettering<mzxreary@0pointer.de>
-> ---
->   drivers/media/video/pwc/pwc-if.c |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
+> {USB_DEVICE(0x0c45, 0x6128), BSI(SN9C110, OM6802, 0x21)}, /*sn9c325?*/
 >
-> diff --git a/drivers/media/video/pwc/pwc-if.c b/drivers/media/video/pwc/pwc-if.c
-> index 7c542ca..92d4177 100644
-> --- a/drivers/media/video/pwc/pwc-if.c
-> +++ b/drivers/media/video/pwc/pwc-if.c
-> @@ -1783,7 +1783,7 @@ static int usb_pwc_probe(struct usb_interface *intf, const struct usb_device_id
->   		return -ENOMEM;
->   	}
->   	memcpy(pdev->vdev,&pwc_template, sizeof(pwc_template));
-> -	pdev->vdev->parent =&(udev->dev);
-> +	pdev->vdev->parent =&intf->dev;
->   	strcpy(pdev->vdev->name, name);
->   	video_set_drvdata(pdev->vdev, pdev);
+> to
 >
+> {USB_DEVICE(0x0c45, 0x6128), BSI(SN9C120, OM6802, 0x21)}, /*sn9c325*/
+>                                       ~~~
+>
+> Don't forget to do 'make', 'make install' and 'rmmod gspca_sonixj'...
+>
+
+Hi,
+
+I happen to own a cam with the same USB id myself, and it shows the same
+issues as described by Eric. Changing the bridge id does not help I'm
+afraid.
+
+I'm afraid I don't have the time to fix this in the near future (it is on
+my to do but no idea when I'll get around to it). But I'm more then willing
+to test any fixes.
+
+Regards,
+
+Hans
