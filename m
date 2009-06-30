@@ -1,76 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.10]:47791 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756864AbZFVOg2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2009 10:36:28 -0400
-Received: from mail01.m-online.net (mail.m-online.net [192.168.3.149])
-	by mail-out.m-online.net (Postfix) with ESMTP id 44A621C000B0
-	for <linux-media@vger.kernel.org>; Mon, 22 Jun 2009 16:36:31 +0200 (CEST)
-Received: from localhost (dynscan2.mnet-online.de [192.168.1.215])
-	by mail.m-online.net (Postfix) with ESMTP id 3F848903CD
-	for <linux-media@vger.kernel.org>; Mon, 22 Jun 2009 16:36:31 +0200 (CEST)
-Received: from mail.mnet-online.de ([192.168.3.149])
-	by localhost (dynscan2.mnet-online.de [192.168.1.215]) (amavisd-new, port 10024)
-	with ESMTP id SFjhWBT7ui4W for <linux-media@vger.kernel.org>;
-	Mon, 22 Jun 2009 16:36:26 +0200 (CEST)
-Received: from gauss.x.fun (ppp-88-217-107-241.dynamic.mnet-online.de [88.217.107.241])
-	by mail.nefkom.net (Postfix) with ESMTP
-	for <linux-media@vger.kernel.org>; Mon, 22 Jun 2009 16:36:26 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by gauss.x.fun (Postfix) with ESMTP id EE0001FC9AA
-	for <linux-media@vger.kernel.org>; Mon, 22 Jun 2009 16:36:25 +0200 (CEST)
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: linux-media@vger.kernel.org
-Subject: lsmod path hardcoded in v4l/Makefile
-Date: Mon, 22 Jun 2009 16:36:24 +0200
-MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_pb5PKLuGMmQpqz9"
-Message-Id: <200906221636.25006.zzam@gentoo.org>
+Received: from smtp3-g21.free.fr ([212.27.42.3]:57474 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751508AbZF3Kqe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Jun 2009 06:46:34 -0400
+Date: Tue, 30 Jun 2009 12:46:24 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: eric.paturage@orange.fr
+Cc: linux-media@vger.kernel.org
+Subject: Re: (very) wrong picture with sonixj driver and  0c45:6128
+Message-ID: <20090630124624.7c64a597@free.fr>
+In-Reply-To: <200906291843.n5TIhoO04486@neptune.localwarp.net>
+References: <200906291843.n5TIhoO04486@neptune.localwarp.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Boundary-00=_pb5PKLuGMmQpqz9
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Mon, 29 Jun 2009 20:43:29 +0200 (CEST)
+eric.paturage@orange.fr wrote:
+> i am trying to use an "ngs skull" webcam with the gspca sonixj
+> driver . i enclose a screen copy , so one can see what what i mean :
+> the image is flatten vertically , there is 25% missing on the left .
+> and the color is all wrong , over-bright  . (no matter how much i try
+> to correct with v4l_ctl) the tests have been done with the latest
+> mercurial version of the v4l drivers (from sunday evening) on
+> 2.6.29.4 . I also tried it on 2 other computers (2.6.28.2 ) and
+> 2.6.27.4 . with sames results .
+	[snip]
+> any idea what is going on ? 
+> 
+> I can provide more detailled log if needed , by setting the debug
+> param in gspca_main 
 
-Hi list!
+Hello Eric,
 
-It seems the path to lsmod tool is hardcoded in the Makefile for out-of-tree 
-building of v4l-dvb.
-Now at least gentoo has moved lsmod from /sbin to /bin.
-Additionally it is bad style (or at least I am told so), to not rely on $PATH 
-but hardcode pathes for tools that should be in $PATH.
+Looking at the ms-win driver, it seems that the bridge is not the right
+one. May you try to change it? This is done in the mercurial tree
+editing the file:
 
-So the attached patch removes the hardcoded /sbin from the lsmod call.
+	linux/drivers/media/video/gspca/sonixj.c
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
+and replacing the line 2379 from:
 
-Regards
-Matthias
+{USB_DEVICE(0x0c45, 0x6128), BSI(SN9C110, OM6802, 0x21)}, /*sn9c325?*/
 
---Boundary-00=_pb5PKLuGMmQpqz9
-Content-Type: text/x-diff;
-  charset="iso 8859-15";
-  name="v4l-dvb-lsmod-path.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="v4l-dvb-lsmod-path.diff"
+to
 
-diff -r 65ec132f20df v4l/Makefile
---- a/v4l/Makefile	Wed May 27 15:53:00 2009 -0300
-+++ b/v4l/Makefile	Thu May 28 10:05:04 2009 +0200
-@@ -196,7 +196,7 @@
-   inst-m	:= $(obj-m)
- endif
- 
--v4l_modules := $(shell /sbin/lsmod|cut -d' ' -f1 ) $(patsubst %.ko,%,$(inst-m))
-+v4l_modules := $(shell lsmod|cut -d' ' -f1 ) $(patsubst %.ko,%,$(inst-m))
- 
- #################################################
- # locales seem to cause trouble sometimes.
+{USB_DEVICE(0x0c45, 0x6128), BSI(SN9C120, OM6802, 0x21)}, /*sn9c325*/
+                                     ~~~
 
---Boundary-00=_pb5PKLuGMmQpqz9--
+Don't forget to do 'make', 'make install' and 'rmmod gspca_sonixj'...
+
+Cheers.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
