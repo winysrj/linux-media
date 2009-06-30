@@ -1,89 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41468 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754911AbZFBRIF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2009 13:08:05 -0400
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id n52H82t1030442
-	for <linux-media@vger.kernel.org>; Tue, 2 Jun 2009 12:08:07 -0500
-Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id n52H828F008750
-	for <linux-media@vger.kernel.org>; Tue, 2 Jun 2009 12:08:02 -0500 (CDT)
-Received: from dsbe71.ent.ti.com (localhost [127.0.0.1])
-	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id n52H82Cq000547
-	for <linux-media@vger.kernel.org>; Tue, 2 Jun 2009 12:08:02 -0500 (CDT)
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 2 Jun 2009 12:08:01 -0500
-Subject: [RFC] passing bus/interface parameters from bridge driver to sub
- device
-Message-ID: <A69FA2915331DC488A831521EAE36FE4013557A8AF@dlee06.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:44431 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751110AbZF3ATu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Jun 2009 20:19:50 -0400
+Subject: Re: Compro Videomate S350 - new version?
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Richard Smith <theras@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <1246317441.6477.22.camel@pc07.localdom.local>
+References: <9057c8440906291443y5fb2cbb7ke72a988737169ca4@mail.gmail.com>
+	 <1246317441.6477.22.camel@pc07.localdom.local>
+Content-Type: text/plain
+Date: Tue, 30 Jun 2009 02:17:52 +0200
+Message-Id: <1246321072.6477.26.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
 
-1) I want to use v4l2_i2c_new_probed_subdev_addr() to load and probe the
-the v4l2 sub-device from my vpfe capture driver. Currently the api's available doesn't allow setting platform data in the client before the sub-device's probe is called. I see that there is discussion about adding i2c_board_info as an argument to the api. I would need this to allow loading of sub-device from vpfe capture. I have seen patches sent by Eduardo Valentin & Guennadi Liakhovetski addressing the issue. Do you have any suggestions for use in my vpfe capture driver?
+Am Dienstag, den 30.06.2009, 01:17 +0200 schrieb hermann pitton:
+> Hi Richard,
+> 
+> Am Montag, den 29.06.2009, 22:43 +0100 schrieb Richard Smith:
+> > Hi,
+> > I bought a Compro Videomate S350 DVB-S card a few weeks ago as it was
+> > cheap and looked like it might work with Linux using Jan Louw's
+> > patches.  However, my S350 seems to be slightly different - it uses a
+> > SAA7135 chip so isn't correctly identified.  Changing the PCI Vendor
+> > ID to 0x7133 in the S350 patch fixed this, but unfortunately this is
+> > the same PCI Vendor / Device / subvendor / subdevice as the Compro
+> > Videomate T750 - an entirely different, DVB-T board.  I'm not sure how
+> > these should be told apart - maybe using eeprom content?
+> > Anyway, once this was updated the card still didn't work.  I realised
+> > there was no voltage on the RF input to power the LNB, so by trial and
+> > error found a GPIO bit that appears to turn LNB voltage on and off.
+> > Instead of 0x8000 used in Jan's patch, use 0xC000 for GPIO setup.
 
-2) I need a common structure (preferably in i2c-subdev.h for defining and using bus (interface) parameters in the bridge (vpfe capture) and sub device (tvp514x or mt9t031) drivers. This will allow bridge driver to read these values from platform data and set the same in the vpfe capture driver and sub device drivers. Since bus parameters such as interface type (BT.656, BT.1120, Raw Bayer image data etc), polarity of various signals etc are used across bridge and sub-devices, it make sense to add it to i2c-subdev.h. Here is what I have come up with. If this support is not already planned, I would
-like to sent a patch for the same.
+Likely more comes up, but forgot to ask already if 0x4000 is enough?
 
-+/*
-+ * Some Sub-devices are connected to the bridge device through a bus
-+ * that carries the clock, vsync, hsync and data. Some interfaces
-+ * such as BT.656 carries the sync embedded in the data where as others
-+ * have seperate line carrying the sync signals. This structure is
-+ * used by bridge driver to set the desired bus parameters in the sub
-+ * device to work with it.
-+ */
-+enum v4l2_subdev_bus_type {
-+	/* BT.656 interface. Embedded syncs */
-+	V4L2_SUBDEV_BUS_BT_656,
-+	/* BT.1120 interface. Embedded syncs */
-+	V4L2_SUBDEV_BUS_BT_1120,
-+	/* 8 bit YCbCr muxed bus, separate sync and field id signals */
-+	V4L2_SUBDEV_BUS_YCBCR_8,
-+	/* 16 bit YCbCr bus, separate sync and field id signals */
-+	V4L2_SUBDEV_BUS_YCBCR_16,
-+	/* Raw Bayer data bus, 8 - 16 bit wide, sync signals  */
-+	V4L2_SUBDEV_BUS_RAW_BAYER
-+};
-+
-+/* Raw bayer data bus width */
-+enum v4l2_subdev_raw_bayer_data_width {
-+	V4L2_SUBDEV_RAW_BAYER_DATA_8BIT,	
-+	V4L2_SUBDEV_RAW_BAYER_DATA_9BIT,	
-+	V4L2_SUBDEV_RAW_BAYER_DATA_10BIT,	
-+	V4L2_SUBDEV_RAW_BAYER_DATA_11BIT,	
-+	V4L2_SUBDEV_RAW_BAYER_DATA_12BIT,	
-+	V4L2_SUBDEV_RAW_BAYER_DATA_13BIT,	
-+	V4L2_SUBDEV_RAW_BAYER_DATA_14BIT,	
-+	V4L2_SUBDEV_RAW_BAYER_DATA_15BIT,	
-+	V4L2_SUBDEV_RAW_BAYER_DATA_16BIT
-+};
-+
-+struct v4l2_subdev_bus_params {
-+	/* bus type */
-+	enum v4l2_subdev_bus_type type;
-+	/* data size for raw bayer data bus */
-+	enum v4l2_subdev_raw_bayer_data_width width;	
-+	/* polarity of vsync. 0 - active low, 1 - active high */
-+	u8 vsync_pol;
-+	/* polarity of hsync. 0 - active low, 1 - active low */
-+	u8 hsync_pol;
-+	/* polarity of field id, 0 - low to high, 1 - high to low */
-+	u8 fid_pol;
-+	/* polarity of data. 0 - active low, 1 - active high */
-+	u8 data_pol;
-+	/* pclk polarity. 0 - sample at falling edge, 1 - sample at rising edge */
-+	u8 pclk_pol;
-+};
-+
-Murali Karicheri
-email: m-karicheri2@ti.com
+Cheers,
+Hermann
+
+> > With this change the card appears to work, at least receiving DVB-S.
+> > I haven't tested the IR remote control or analogue inputs.
+> > I hope this info is of some use to somebody, and that it's considered
+> > if the S350 support gets added to v4l-dvb tree.  I'm not sure if my
+> > card is rare, or a sign of things to come.
+> > 
+> > Here is the kernel log after modifying the driver:
+> > 
+> > saa7133[0]: found at 0000:04:09.0, rev: 209, irq: 5, latency: 64,
+> > mmio: 0xfaafe800
+> > saa7133[0]: subsystem: 185b:c900, board: Compro VideoMate S350/300
+> > [card=169,autodetected]
+> > saa7133[0]: board init: gpio is 843f00
+> > saa7133[0]: i2c eeprom 00: 5b 18 00 c9 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+> > saa7133[0]: i2c eeprom 10: 00 ff 86 0f ff 20 ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 03 01 08 ff 00 87 ff ff ff ff
+> > saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom 40: ff d6 00 c0 86 1c 02 01 02 ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff cb
+> > saa7133[0]: i2c eeprom 60: 35 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom 70: 00 00 00 01 40 2a ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > saa7133[0]: registered device video0 [v4l2]
+> > saa7133[0]: registered device vbi0
+> > dvb_init() allocating 1 frontend
+> > DVB: registering new adapter (saa7133[0])
+> > DVB: registering adapter 0 frontend 0 (Zarlink ZL10313 DVB-S)...
+> > 
+> > Regards,
+> > 
+> > Richard Smith.
+> 
+> good work!
+> 
+> Compro has a lot of different cards with the same PCI subsystem (:
+> 
+> And you are right, we can't make a difference to the T750 by that, since
+> it also uses what is subsumed under the saa7133 chips. (saa7133/35/31e)
+> 
+> Nothing left to detect than use some byte from the eeprom, even the not
+> yet used board init for both is the same, might be different on the
+> T750.
+> 
+> > saa7130[0]: board init: gpio is 843f00
+> 
+> > saa7130[0]: i2c eeprom 00: 5b 18 00 c9 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+> > > saa7130[0]: i2c eeprom 10: 00 ff 86 0f ff 20 ff ff ff ff ff ff ff ff ff ff
+> > > saa7130[0]: i2c eeprom 20: 01 40 01 02 02 01 03 01 08 ff 00 87 ff ff ff ff
+> > > saa7130[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > saa7130[0]: i2c eeprom 40: ff d6 00 c0 86 1c 02 01 02 ff ff ff ff ff ff ff
+> > > saa7130[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff cb
+> > > saa7130[0]: i2c eeprom 60: 30 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > saa7130[0]: i2c eeprom 70: 00 00 00 10 03 9c ff ff ff ff ff ff ff ff ff ff
+> > > saa7130[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > saa7130[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > saa7130[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > saa7130[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > saa7130[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > saa7130[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > saa7130[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> > > saa7130[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> 
+> >From the Compro T750.
+> 
+> [ 13.317113] saa7130/34: v4l2 driver version 0.2.14 loaded
+> [ 13.317703] ACPI: PCI Interrupt Link [APC1] enabled at IRQ 16
+> [ 13.317709] saa7134 0000:04:08.0: PCI INT A -> Link[APC1] -> GSI 16
+> (level, low) -> IRQ 16
+> [ 13.317716] saa7133[0]: found at 0000:04:08.0, rev: 209, irq: 16,
+> latency: 32, mmio: 0xfdbfe000
+> [ 13.317723] saa7133[0]: subsystem: 185b:c900, board: Compro VideoMate
+> T750 [card=139,autodetected]
+> [ 13.317734] saa7133[0]: board init: gpio is 84bf00
+> [ 13.317746] saa7133[0]: Oops: IR config error [card=139]
+> [ 13.476035] saa7133[0]: i2c eeprom 00: 5b 18 00 c9 54 20 1c 00 43 43 a9
+> 1c 55 d2 b2 92
+> [ 13.476046] saa7133[0]: i2c eeprom 10: 00 ff 86 0f ff 20 ff ff ff ff ff
+> ff ff ff ff ff
+> [ 13.476055] saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 03 01 08 ff 00
+> 87 ff ff ff ff
+> [ 13.476064] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff
+> [ 13.476072] saa7133[0]: i2c eeprom 40: ff d7 00 c4 86 1e 05 ff 02 c2 ff
+> 01 c6 ff 05 ff
+> [ 13.476081] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff
+> ff ff ff ff cb
+> [ 13.476089] saa7133[0]: i2c eeprom 60: 35 ff ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff
+> [ 13.476098] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff
+> [ 13.476106] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff
+> [ 13.476115] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff
+> [ 13.476123] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff
+> [ 13.476132] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff
+> [ 13.476140] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff
+> [ 13.476149] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff
+> [ 13.476157] saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff
+> [ 13.476166] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff
+> ff ff ff ff ff
+> 
+> Seems we could use byte 0x41 like on the other Compro cards.
+> 
+> Tuner type is 0xd6 versus 0xd7 on the T750, also tuner address is 0xc0
+> versus 0xc4 and digital demod is 0x1c versus 0x1e. (not shifted >> 1)
+> 
+> Igor received also a patch for remote support on the S350.
+> 
+> Without looking into any further details yet, might me more to consider,
+> but maybe that IR patch works on recent Compro cards like the T750 too.
+> 
+
 
