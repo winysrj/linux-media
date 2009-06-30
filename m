@@ -1,73 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:43283 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759947AbZFBLvI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jun 2009 07:51:08 -0400
-Date: Tue, 2 Jun 2009 08:51:03 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-Cc: Stefan Kost <ensonic@hora-obscura.de>, linux-media@vger.kernel.org
-Subject: Re: webcam drivers and V4L2_MEMORY_USERPTR support
-Message-ID: <20090602085103.0639fe6a@pedra.chehab.org>
-In-Reply-To: <200906020112.37890.laurent.pinchart@skynet.be>
-References: <4A238292.6000205@hora-obscura.de>
-	<200906020112.37890.laurent.pinchart@skynet.be>
+Received: from mail-in-05.arcor-online.net ([151.189.21.45]:60406 "EHLO
+	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752324AbZF3BzU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Jun 2009 21:55:20 -0400
+Subject: Re: [PATCH 3/3 - v0] davinci: platform changes to support vpfe
+	camera  capture
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Andrej Falout <andrej@falout.org>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <c21478f30906291804o6ec7a380kabc8c9d2e929fbb2@mail.gmail.com>
+References: <1246053948-8371-1-git-send-email-m-karicheri2@ti.com>
+	 <200906291043.43140.david-b@pacbell.net>
+	 <A69FA2915331DC488A831521EAE36FE401448CE221@dlee06.ent.ti.com>
+	 <200906291555.35568.david-b@pacbell.net>
+	 <c21478f30906291804o6ec7a380kabc8c9d2e929fbb2@mail.gmail.com>
+Content-Type: text/plain
+Date: Tue, 30 Jun 2009 03:53:03 +0200
+Message-Id: <1246326783.3808.25.camel@pc07.localdom.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 2 Jun 2009 01:12:37 +0200
-Laurent Pinchart <laurent.pinchart@skynet.be> escreveu:
+Hi,
 
-> Hi Stefan,
+Am Dienstag, den 30.06.2009, 11:04 +1000 schrieb Andrej Falout:
+> > I can't believe the current linux-media or V4L2 trees are
+> > six months out of date.
 > 
-> On Monday 01 June 2009 09:26:10 Stefan Kost wrote:
-> > hi,
-> >
-> > I have implemented support for V4L2_MEMORY_USERPTR buffers in gstreamers
-> > v4l2src [1]. This allows to request shared memory buffers from xvideo,
-> > capture into those and therefore save a memcpy. This works great with
-> > the v4l2 driver on our embedded device.
-> >
-> > When I was testing this on my desktop, I noticed that almost no driver
-> > seems to support it.
-> > I tested zc0301 and uvcvideo, but also grepped the kernel driver
-> > sources. It seems that gspca might support it, but I ave not confirmed
-> > it. Is there a technical reason for it, or is it simply not implemented?
+> So which tree is the current dev then?
 > 
-> For the uvcvideo driver it's simply not implemented. I was about to give it a 
-> try when I found out a mismatch between the V4L2 specification and the 
-> videobuf implementation (which I wanted to use as the reference 
-> implementation).
-> 
-> The V4L2 specification states, in section 3.3, that
-> 
-> "The driver must be switched into user pointer I/O mode by calling the 
-> VIDIOC_REQBUFS with the desired buffer type. No buffers are allocated 
-> beforehands, consequently they are not indexed and cannot be queried like 
-> mapped buffers with the VIDIOC_QUERYBUF ioctl."
-> 
-> Example 3-2 shows that v4l2_requestbuffers::count is not used when using 
-> USERPTR.
-> 
-> However, videobuf pre-allocates v4l2_requestbuffers::count kernel-side buffer 
-> descriptors when VIDIOC_REQBUFS is called with USERPTR.
-> 
-> If someone could clarify which of the V4L2 specification or the videobuf 
-> implementation is right I could give USERPTR a try in the uvcvideo driver.
+> (Pls excuse the new guy)
+> Cheers,
+> Andrej
 
-It is better to assume that videobuf is right and fix the API spec. Videobuf is
-there since kernel 2.4 and not much changed on it, in terms of its operational
-mode. 
+currently latest is always ours and Mauro's v4l-dvb at linuxtv.org.
 
-So, the existing applications assume videobuf behaviour. Any change would break
-existing apps.
+For specific new drivers, latest is in the developer(s) repo(s) working
+on it and that is not restricted to what is present at linuxtv.org.
 
-So, it is better to fix the API spec to reflect the practical implementation.
+We are usually three to four months in advance, until Linus' next cycle
+starts and we spit all out then, but keep all the rest that needs
+further work until the then next kernel release ...
 
+Mauro's git tree is always in sync with what Linus has, but latest is
+mercurial v4l-dvb and what comes in there, or, further going out into
+the wild, what the individual developers have working on something
+specific not yet in ...
 
+Until they come from other git trees much in delay, or from
+manufacturers trees, or other way out of sync, no problem seen here for
+that the last four years.
 
 Cheers,
-Mauro
+Hermann
+
+
+
+
