@@ -1,68 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:47666 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752430AbZFYCiY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jun 2009 22:38:24 -0400
-Subject: v4l2_subdev GPIO and Pin Control ops (Re: PxDVR3200 H LinuxTV
- v4l-dvb patch : Pull GPIO-20 low for DVB-T)
-From: Andy Walls <awalls@radix.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>, stoth@kernellabs.com,
-	Terry Wu <terrywu2009@gmail.com>
-In-Reply-To: <8992.62.70.2.252.1245760429.squirrel@webmail.xs4all.nl>
-References: <8992.62.70.2.252.1245760429.squirrel@webmail.xs4all.nl>
-Content-Type: text/plain
-Date: Wed, 24 Jun 2009 22:40:11 -0400
-Message-Id: <1245897611.24270.19.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from qw-out-2122.google.com ([74.125.92.24]:20159 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750866AbZF3T4O convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Jun 2009 15:56:14 -0400
+Received: by qw-out-2122.google.com with SMTP id 9so185817qwb.37
+        for <linux-media@vger.kernel.org>; Tue, 30 Jun 2009 12:56:17 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <200906301548.02518.gczerw@comcast.net>
+References: <200906301301.04604.gczerw@comcast.net>
+	 <4A4A64F9.6070807@linuxtv.org>
+	 <829197380906301227q52e7b215p359adaa3206dba79@mail.gmail.com>
+	 <200906301548.02518.gczerw@comcast.net>
+Date: Tue, 30 Jun 2009 15:56:08 -0400
+Message-ID: <829197380906301256w2f0a701ak2332d9ec2cfae35e@mail.gmail.com>
+Subject: Re: [linux-dvb] Hauppauge HVR-1800 not working at all
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: gczerw@comcast.net
+Cc: Michael Krufky <mkrufky@linuxtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2009-06-23 at 14:33 +0200, Hans Verkuil wrote:
-> > On Tue, 2009-06-23 at 11:39 +0800, Terry Wu wrote:
-> >
+On Tue, Jun 30, 2009 at 3:48 PM, George Czerw<gczerw@comcast.net> wrote:
+> Devin, thanks for the reply.
+>
+> Lsmod showed that "tuner" was NOT loaded (wonder why?), a "modprobe tuner"
+> took care of that and now the HVR-1800 is displaying video perfectly and the
+> tuning function works.  I guess that I'll have to add "tuner" into
+> modprobe.preload.d????  Now if only I can get the sound functioning along with
+> the video!
+>
+> George
 
-> There is already an s_gpio in the core ops. It would be simple to add a
-> g_gpio as well if needed.
+Admittedly, I don't know why you would have to load the tuner module
+manually on the HVR-1800.  I haven't had to do this on other products?
 
-Hans,
+If you are doing raw video capture, then you need to manually tell
+applications where to find the ALSA device that provides the audio.
+If you're capturing via the MPEG encoder, then the audio will be
+embedded in the stream.
 
-As you probably know
+Devin
 
-	int (*s_gpio)(v4l2_subdev *sd, u32 val);
-
-is a little too simple for initial setup of GPIO pins.  With the
-collection of chips & cores supported by cx25840 module, setting the
-GPIO configuration also requires:
-
-	direction: In or Out
-	multiplexed pins: GPIO or some other function
-
-I could tack on direction as an argument to s_gpio(), but I think that
-is a bit inconvenient..  I'd rather have a 
-
-	int (*s_gpio_config)(v4l2_subdev *sd, u32 dir, u32 initval);
-
-but that leaves out the method for multiplexed pin/pad configuration.
-Perhaps explicity setting a GPIO direction to OUT could be an implicit
-indication that a multiplexed pin should be set to it's GPIO function.
-However, that doesn't help for GPIO inputs that might have their pins
-multiplexed with other functions.
-
-Here's an idea on how to specify multiplexed pin configuration
-information and it could involve pins that multiplex functions other
-than GPIO (the CX25843 is quite flexible in this regard):
-
-	int (*s_pin_function)(v4l2_subdev *sd, u32 pin_id, u32 function);
-
-The type checking ends up pretty weak, but I figured it was better than
-a 'void *config' that had a subdev specific collection of pin
-configuration information.
-
-Comments?
-
-Regards,
-Andy
-
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
