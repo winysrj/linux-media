@@ -1,45 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1072 "EHLO
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4737 "EHLO
 	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751905AbZFNJet (ORCPT
+	with ESMTP id S1752438AbZF3SQh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Jun 2009 05:34:49 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Patrick Boettcher <patrick.boettcher@desy.de>
-Subject: dib3000mc.c and dib7000p.c compiler warnings
-Date: Sun, 14 Jun 2009 11:34:42 +0200
-Cc: linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200906141134.43101.hverkuil@xs4all.nl>
+	Tue, 30 Jun 2009 14:16:37 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n5UIGdAr098140
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 30 Jun 2009 20:16:39 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 30 Jun 2009 20:16:39 +0200 (CEST)
+Message-Id: <200906301816.n5UIGdAr098140@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Patrick,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-The daily build reports these warnings for dib3000mc.c and dib7000p.c:
+Results of the daily build of v4l-dvb:
 
-/marune/build/v4l-dvb-master/v4l/dib3000mc.c: In 
-function 'dib3000mc_i2c_enumeration':
-/marune/build/v4l-dvb-master/v4l/dib3000mc.c:863: warning: the frame size of 
-1508 bytes is larger than 1024 bytes
+date:        Tue Jun 30 19:00:05 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12145:519e04ce8fda
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-/marune/build/v4l-dvb-master/v4l/dib7000p.c: In 
-function 'dib7000p_i2c_enumeration':
-/marune/build/v4l-dvb-master/v4l/dib7000p.c:1341: warning: the frame size of 
-1568 bytes is larger than 1024 bytes
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc1-armv5: ERRORS
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-rc1-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.12-i686: WARNINGS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.11-i686: WARNINGS
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-rc1-i686: ERRORS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc1-m32r: ERRORS
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-rc1-mips: ERRORS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.12-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.11-x86_64: WARNINGS
+linux-2.6.26-x86_64: WARNINGS
+linux-2.6.27-x86_64: WARNINGS
+linux-2.6.28-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-rc1-x86_64: ERRORS
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc1): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-In both cases a big state struct is allocated on the stack. Would it be 
-possible to optimize that?
+Detailed results are available here:
 
-If you are not the right person to deal with this, who might it be?
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Regards,
+Full logs are available here:
 
-	Hans
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+The V4L2 specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
