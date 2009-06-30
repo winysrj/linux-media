@@ -1,244 +1,263 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1533 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750758AbZFHGWj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jun 2009 02:22:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCHv5 1 of 8] v4l2_subdev i2c: Add v4l2_i2c_new_subdev_board i2c helper function
-Date: Mon, 8 Jun 2009 08:22:02 +0200
-Cc: Eduardo Valentin <edubezval@gmail.com>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>,
-	"\\\"Nurkkala Eero.An (EXT-Offcode/Oulu)\\\""
-	<ext-Eero.Nurkkala@nokia.com>,
-	"\\\"ext Douglas Schilling Landgraf\\\"" <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-References: <1243582408-13084-1-git-send-email-eduardo.valentin@nokia.com> <200906070840.09166.hverkuil@xs4all.nl> <20090607222914.314c3fc7@pedra.chehab.org>
-In-Reply-To: <20090607222914.314c3fc7@pedra.chehab.org>
+Received: from mail.hauppauge.com ([167.206.143.4]:4982 "EHLO
+	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752587AbZF3TSY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Jun 2009 15:18:24 -0400
+Message-ID: <4A4A64F9.6070807@linuxtv.org>
+Date: Tue, 30 Jun 2009 15:18:17 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <200906080822.03392.hverkuil@xs4all.nl>
+To: gczerw@comcast.net
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [linux-dvb] Hauppauge HVR-1800 not working at all
+References: <200906301301.04604.gczerw@comcast.net> <37219a840906301043q67e48d50nfc846ebf2158c05e@mail.gmail.com> <200906301451.52933.gczerw@comcast.net>
+In-Reply-To: <200906301451.52933.gczerw@comcast.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 08 June 2009 03:29:14 Mauro Carvalho Chehab wrote:
-> Em Sun, 7 Jun 2009 08:40:08 +0200
+George Czerw wrote:
+> On Tuesday 30 June 2009 13:43:49 you wrote:
+>   
+>> On Tue, Jun 30, 2009 at 1:01 PM, George Czerw<gczerw@comcast.net> wrote:
+>>     
+>>> Using Mandriva 2009.1 with HVR connected directly to analog cable.
+>>> Using 32-bit kernel 2.6.29.3-desktop-1.mnb.
+>>>
+>>> TVtime and xawTV both open but display only snow.  Channel scanning
+>>> yields nothing.
+>>>
+>>> If I boot into Vista and load MediaCenter, open liveTV and watch a
+>>> channel. Then close MediaCenter, exit Vista and boot into linux, TVtime
+>>> and xawTV (if I am lucky) might open-up and perfectly display the TV
+>>> channel that I was last viewing in Vista, but will not change channels to
+>>> another station no matter what I do.
+>>>
+>>> Please see the following outputs below. I would appreciate any
+>>> suggestions to resolve this. Not having hardware problems since
+>>> WinVista's media center works perfectly with this hardware.
+>>>
+>>> Thanks
+>>> George
+>>>
+>>> *************************
+>>>
+>>> tvtime -v
+>>> Running tvtime 1.0.2.
+>>>
+>>> Reading configuration from /etc/tvtime/tvtime.xml
+>>>
+>>> Reading configuration from /home/george/.tvtime/tvtime.xml
+>>>
+>>> cpuinfo: CPU Intel(R) Core(TM)2 Quad CPU Q8200 @ 2.33GHz, family 6,
+>>> model 7, stepping 7.
+>>>
+>>> cpuinfo: CPU measured at 2333.352MHz.
+>>>
+>>> xcommon: Display :0.0, vendor The X.Org Foundation, vendor release
+>>> 10601000
+>>>
+>>> xfullscreen: Using XINERAMA for dual-head information.
+>>> xfullscreen: Pixels are square.
+>>> xfullscreen: Number of displays is 1.
+>>> xfullscreen: Head 0 at 0,0 with size 1440x900.
+>>> xcommon: Have XTest, will use it to ping the screensaver.
+>>> xcommon: Pixel aspect ratio 1:1.
+>>> xcommon: Pixel aspect ratio 1:1.
+>>> xcommon: Window manager is KWin and is EWMH compliant.
+>>> xcommon: Using EWMH state fullscreen property.
+>>> xcommon: Using EWMH state above property.
+>>> xcommon: Using EWMH state below property.
+>>> xcommon: Pixel aspect ratio 1:1.
+>>> xcommon: Displaying in a 768x576 window inside 768x576 space.
+>>> xvoutput: Using XVIDEO adaptor 280: NV17 Video Texture.
+>>> speedycode: Using MMXEXT optimized functions.
+>>> station: Reading stationlist from /home/george/.tvtime/stationlist.xml
+>>> videoinput: Using video4linux2 driver 'cx23885', card 'Hauppauge
+>>> WinTV-HVR1800' (bus PCIe:0000:03:00.0).
+>>> videoinput: Version is 1, capabilities 5010011.
+>>> videoinput: Maximum input width: 720 pixels.
+>>> tvtime: Sampling input at 720 pixels per scanline.
+>>> xcommon: Pixel aspect ratio 1:1.
+>>> xcommon: Displaying in a 768x576 window inside 768x576 space.
+>>> xcommon: Received a map, marking window as visible (62).
+>>> xcommon: Window fully obscured, marking window as hidden (62).
+>>> xcommon: Window made visible, marking window as visible (62).
+>>> tvtime: Cleaning up.
+>>> Thank you for using tvtime.
+>>>
+>>> ********************
+>>>
+>>>
+>>> # lspci
+>>> 00:00.0 Host bridge: Intel Corporation 82G33/G31/P35/P31 Express DRAM
+>>> Controller (rev
+>>> 02)
+>>> 00:01.0 PCI bridge: Intel Corporation 82G33/G31/P35/P31 Express PCI
+>>> Express Root Port (rev
+>>> 02)
+>>> 00:1a.0 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI
+>>> Controller #4 (rev
+>>> 02)
+>>> 00:1a.1 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI
+>>> Controller #5 (rev
+>>> 02)
+>>> 00:1a.7 USB Controller: Intel Corporation 82801I (ICH9 Family) USB2 EHCI
+>>> Controller #2 (rev
+>>> 02)
+>>> 00:1b.0 Audio device: Intel Corporation 82801I (ICH9 Family) HD Audio
+>>> Controller (rev
+>>> 02)
+>>> 00:1c.0 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express
+>>> Port 1 (rev 02)
+>>> 00:1c.1 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express
+>>> Port 2 (rev 02)
+>>> 00:1c.2 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express
+>>> Port 3 (rev 02)
+>>> 00:1d.0 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI
+>>> Controller #1 (rev 02)
+>>> 00:1d.1 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI
+>>> Controller #2 (rev 02)
+>>> 00:1d.2 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI
+>>> Controller #3 (rev 02)
+>>> 00:1d.3 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI
+>>> Controller #6 (rev 02)
+>>> 00:1d.7 USB Controller: Intel Corporation 82801I (ICH9 Family) USB2 EHCI
+>>> Controller #1 (rev 02)
+>>> 00:1e.0 PCI bridge: Intel Corporation 82801 PCI Bridge (rev 92) 00:1f.0
+>>> ISA bridge: Intel Corporation 82801IR (ICH9R) LPC Interface Controller
+>>> (rev 02)
+>>> 00:1f.2 RAID bus controller: Intel Corporation 82801 SATA RAID Controller
+>>> (rev 02)
+>>> 00:1f.3 SMBus: Intel Corporation 82801I (ICH9 Family) SMBus Controller
+>>> (rev 02)
+>>> 01:05.0 FireWire (IEEE 1394): Agere Systems FW323 (rev 70) 02:00.0
+>>> Ethernet controller: Realtek Semiconductor Co., Ltd. RTL8111/8168B PCI
+>>> Express Gigabit Ethernet controller (rev 02) 03:00.0 Multimedia video
+>>> controller: Conexant Systems, Inc. Device 8880 (rev 0f)
+>>> 04:00.0 Network controller: Atheros Communications Inc. AR928X Wireless
+>>> Network Adapter (PCI-Express) (rev 01) 05:00.0 VGA compatible controller:
+>>> nVidia Corporation Device 0644 (rev a1)
+>>>
+>>> *******************
+>>>
+>>> # v4l-conf
+>>> v4l-conf: using X11 display :0.0
+>>> dga: version 2.0
+>>> WARNING: No DGA direct video mode for this display. mode: 1440x900,
+>>> depth=24, bpp=32, bpl=5760, base=unknown /dev/video0 [v4l2]: no overlay
+>>> support
+>>>
+>>> *******************
+>>> selected DMESG output:
+>>>
+>>> nvidia: module license 'NVIDIA' taints kernel.
+>>>
+>>> nvidia 0000:05:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+>>>
+>>> nvidia 0000:05:00.0: setting latency timer to 64
+>>>
+>>>
+>>> Linux video capture interface: v2.00
+>>>
+>>> cx23885 driver version 0.0.1 loaded
+>>>
+>>> cx23885 0000:03:00.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
+>>>
+>>> CORE cx23885[0]: subsystem: 0070:7801, board: Hauppauge WinTV-HVR1800
+>>> [card=2,autodetected]
+>>>
+>>> tveeprom 0-0050: Hauppauge model 78521, rev C1E9, serial# 5342357
+>>>
+>>> tveeprom 0-0050: MAC address is 00-0D-FE-51-84-95
+>>>
+>>> tveeprom 0-0050: tuner model is Philips 18271_8295 (idx 149, type 54)
+>>>
+>>> tveeprom 0-0050: TV standards NTSC(M) ATSC/DVB Digital (eeprom 0x88)
+>>>
+>>> tveeprom 0-0050: audio processor is CX23887 (idx 42)
+>>>
+>>> tveeprom 0-0050: decoder processor is CX23887 (idx 37)
+>>>
+>>> tveeprom 0-0050: has radio
+>>>
+>>> cx23885[0]: hauppauge eeprom: model=78521
+>>>
+>>> cx25840' 2-0044: cx25 0-21 found @ 0x88 (cx23885[0])
+>>>
+>>> cx23885[0]/0: registered device video0 [v4l2]
+>>>
+>>> cx25840' 2-0044: firmware: requesting v4l-cx23885-avcore-01.fw
+>>>
+>>> cx25840' 2-0044: loaded v4l-cx23885-avcore-01.fw firmware (16382 bytes)
+>>>
+>>> cx23885[0]: registered device video1 [mpeg]
+>>>
+>>> cx23885_dvb_register() allocating 1 frontend(s)
+>>>
+>>> cx23885[0]: cx23885 based dvb card
+>>>
+>>> MT2131: successfully identified at address 0x61
+>>>
+>>> DVB: registering new adapter (cx23885[0])
+>>>
+>>> DVB: registering adapter 0 frontend 0 (Samsung S5H1409 QAM/8VSB
+>>> Frontend)...
+>>>
+>>> cx23885_dev_checkrevision() Hardware revision = 0xb1
+>>>
+>>> cx23885[0]/0: found at 0000:03:00.0, rev: 15, irq: 17, latency: 0, mmio:
+>>> 0xf9c00000
+>>>
+>>> cx23885 0000:03:00.0: setting latency timer to 64
+>>>
+>>> IRQ 17/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+>>> NVRM: loading NVIDIA UNIX x86 Kernel Module 180.51 Thu Apr 16 19:02:15
+>>> PDT 2009
+>>>       
+>> Make sure that the 'tuner' module and the 'cx25840' modules are both
+>> loaded.
+>>
+>> Make sure that you're using the lower spigot (if you have 2 spigots)
+>> or the middle spigot (if you have 3 spigots)
+>>
+>> BTW, your email is off-topic for the linux-dvb mailing list.  I added
+>> cc to the linux-media mailing list, which is more appropriate for your
+>> analog television problem.
+>>
+>> Regards,
+>>
+>> Mike
+>>     
 >
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > On Saturday 06 June 2009 22:40:21 Eduardo Valentin wrote:
-> > > Hi Hans,
-> > >
-> > > On Sat, Jun 6, 2009 at 8:09 PM, Hans Verkuil <hverkuil@xs4all.nl> 
-wrote:
-> > > > On Saturday 06 June 2009 14:49:46 Hans Verkuil wrote:
-> > > > > On Saturday 06 June 2009 13:59:19 Hans Verkuil wrote:
-> > > > > > On Friday 29 May 2009 09:33:21 Eduardo Valentin wrote:
-> > > > > > > # HG changeset patch
-> > > > > > > # User Eduardo Valentin <eduardo.valentin@nokia.com>
-> > > > > > > # Date 1243414605 -10800
-> > > > > > > # Branch export
-> > > > > > > # Node ID 4fb354645426f8b187c2c90cd8528b2518461005
-> > > > > > > # Parent  142fd6020df3b4d543068155e49a2618140efa49
-> > > > > > > Device drivers of v4l2_subdev devices may want to have
-> > > > > > > board specific data. This patch adds an helper function
-> > > > > > > to allow bridge drivers to pass board specific data to
-> > > > > > > v4l2_subdev drivers.
-> > > > > > >
-> > > > > > > For those drivers which need to support kernel versions
-> > > > > > > bellow 2.6.26, a .s_config callback was added. The
-> > > > > > > idea of this callback is to pass board configuration
-> > > > > > > as well. In that case, subdev driver should set .s_config
-> > > > > > > properly, because v4l2_i2c_new_subdev_board will call
-> > > > > > > the .s_config directly. Of course, if we are >= 2.6.26,
-> > > > > > > the same data will be passed through i2c board info as well.
-> > > > > >
-> > > > > > Hi Eduardo,
-> > > > > >
-> > > > > > I finally had some time to look at this. After some thought I
-> > > > > > realized that the main problem is really that the API is
-> > > > > > becoming quite messy. Basically there are 9 different ways of
-> > > > > > loading and initializing a subdev:
-> > > > > >
-> > > > > > First there are three basic initialization calls: no
-> > > > > > initialization, passing irq and platform_data, and passing the
-> > > > > > i2c_board_info struct directly (preferred for drivers that
-> > > > > > don't need pre-2.6.26 compatibility).
-> > > > > >
-> > > > > > And for each flavor you would like to see three different
-> > > > > > versions as well: one with a fixed known i2c address, one where
-> > > > > > you probe for a list of addresses, and one where you can probe
-> > > > > > for a single i2c address.
-> > > > > >
-> > > > > > I propose to change the API as follows:
-> > > > > >
-> > > > > > #define V4L2_I2C_ADDRS(addr, addrs...) \
-> > > > > >     ((const unsigned short []){ addr, ## addrs, I2C_CLIENT_END
-> > > > > > })
-> > > > > >
-> > > > > > struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device
-> > > > > > *v4l2_dev, struct i2c_adapter *adapter,
-> > > > > >                 const char *module_name, const char
-> > > > > > *client_type, u8 addr, const unsigned short *addrs);
-> > > > > >
-> > > > > > struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device
-> > > > > > *v4l2_dev, struct i2c_adapter *adapter,
-> > > > > >                 const char *module_name, const char
-> > > > > > *client_type, int irq, void *platform_data,
-> > > > > >                 u8 addr, const unsigned short *addrs);
-> > > > > >
-> > > > > > /* Only available for kernels >= 2.6.26 */
-> > > > > > struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct
-> > > > > > v4l2_device *v4l2_dev, struct i2c_adapter *adapter, const char
-> > > > > > *module_name, struct i2c_board_info *info, const unsigned short
-> > > > > > *addrs);
-> > > > > >
-> > > > > > If you use a fixed address, then only set addr (or info.addr)
-> > > > > > and set addrs to NULL. If you want to probe for a list of
-> > > > > > addrs, then set addrs to the list of addrs. If you want to
-> > > > > > probe for a single addr, then use V4L2_I2C_ADDRS(addr) as the
-> > > > > > addrs argument. This constructs an array with just two entries.
-> > > > > > Actually, this macro can also create arrays with more entries.
-> > > > > >
-> > > > > > Note that v4l2_i2c_new_subdev will be an inline that calls
-> > > > > > v4l2_i2c_new_subdev_cfg with 0, NULL for the irq and
-> > > > > > platform_data.
-> > > > > >
-> > > > > > And for kernels >= 2.6.26 v4l2_i2c_new_subdev_cfg can be an
-> > > > > > inline calling v4l2_i2c_new_subdev_board.
-> > > > > >
-> > > > > > This approach reduces the number of functions to just one (not
-> > > > > > counting the inlines) and simplifies things all around. It does
-> > > > > > mean that all sources need to be changed, but if we go this
-> > > > > > route, then now is the time before the 2.6.31 window is closed.
-> > > > > > And I would also like to remove the '_new' from these function
-> > > > > > names. I never thought it added anything useful.
-> > > > > >
-> > > > > > Comments? If we decide to go this way, then I need to know soon
-> > > > > > so that I can make the changes before the 2.6.31 window closes.
-> > > > > >
-> > > > > > BTW, if the new s_config subdev call is present, then it should
-> > > > > > always be called. That way the subdev driver can safely do all
-> > > > > > of its initialization in s_config, no matter how it was
-> > > > > > initialized.
-> > > > > >
-> > > > > > Sorry about the long delay in replying to this: it's been very
-> > > > > > hectic lately at the expense of my v4l-dvb work.
-> > > > >
-> > > > > I've done the initial conversion to the new API (no _cfg or
-> > > > > _board version yet) in my ~hverkuil/v4l-dvb-subdev tree. It
-> > > > > really simplifies things and if nobody objects then I'd like to
-> > > > > get this in before 2.6.31.
+> Mike, thanks for the reply.  Two questions...
 >
-> No please. We did already lots of change due to the i2c changes, and
-> there are still some occasional complaints at ML about regressions that
-> might be due to i2c changes.
-
-Please point them out to me. I can't remember seeing those. Admittedly, I've 
-been swamped with work in the past few weeks, so I might have missed them.
-
-> Let's keep 2.6.31 clean, as previously agreed, without new KABI changes.
-> We should focus 2.6.31 on fixing any core issues that may still have.
-> Only with 2.6.30 we'll start to have feedbacks from normal users.
-
-It's a new API, so it is normal that we find things that need improvement. 
-This is the case here. Eduardo needs to pass extra initialization info to 
-the i2c drivers, so he is adding new functions to the API. But those make 
-an overly complex (as I've come to realize) API even more complex. Isn't is 
-better to do it right?
-
-And I don't see the advantage of waiting with this. If there are any 
-problems with 2.6.30 then we will get them whether we change this internal 
-API or not. In addition, I think this is pretty much the only change in the 
-API to be queued for 2.6.31.
-
-And how long do you intend to wait? It will take a while before all the 
-distros take up 2.6.30. So wait until 2.6.32? 2.6.33?
-
-> > > > I've added the new _cfg and _board fucntions as well in this tree.
-> > > > It needs a bit of a cleanup before I can do a pull request (the
-> > > > last two patches should be merged to one), but otherwise this is
-> > > > the code as I think it should be:
-> > > >
-> > > > /* Construct an I2C_CLIENT_END-terminated array of i2c addresses on
-> > > > the fly */
-> > > > #define V4L2_I2C_ADDRS(addr, addrs...) \
-> > > >        ((const unsigned short []){ addr, ## addrs, I2C_CLIENT_END
-> > > > })
-> > > >
-> > > > /* Load an i2c module and return an initialized v4l2_subdev struct.
-> > > >   Only call request_module if module_name != NULL.
-> > > >   The client_type argument is the name of the chip that's on the
-> > > > adapter. */
-> > > > struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device
-> > > > *v4l2_dev, struct i2c_adapter *adapter,
-> > > >                const char *module_name, const char *client_type,
-> > > >                int irq, void *platform_data,
-> > > >                u8 addr, const unsigned short *addrs);
-> > > >
-> > > > static inline struct v4l2_subdev *v4l2_i2c_new_subdev(
-> > > >                struct v4l2_device *v4l2_dev,
-> > > >                struct i2c_adapter *adapter,
-> > > >                const char *module_name, const char *client_type,
-> > > >                u8 addr, const unsigned short *addrs)
-> > > > {
-> > > >        return v4l2_i2c_new_subdev_cfg(v4l2_dev, adapter,
-> > > > module_name, client_type, 0, NULL, addr, addrs); }
-> > > >
-> > > > #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 26)
-> > > > struct i2c_board_info;
-> > > >
-> > > > struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device
-> > > > *v4l2_dev, struct i2c_adapter *adapter, const char *module_name,
-> > > > struct i2c_board_info *info, const unsigned short *addrs); #endif
-> > > >
-> > > > Regards,
-> > > >
-> > > >        Hans
-> > >
-> > > I've cloned your tree and took a look at your code. Well, looks like
-> > > the proper way to do this change.
-> > > I didn't take this approach because it touchs other drivers. However,
-> > > concentrating the code  in only one
-> > > function is better. I also saw that you have fixed the kernel version
-> > > check in the v4l2_device_unregister
-> > > function. Great!
-> > >
-> > > I will resend my series without this patch. I will rebase it on top
-> > > of your subdev tree so the new api
-> > > can be used straight. Is that ok?
-> >
-> > Yes, sure. Just be aware that there may be some small changes to my
-> > patch based on feedback I get. But it is a good test anyway of this API
-> > to see if it works well for you.
+> 1.  What do you mean by "spigots"?
 >
-> Eduardo,
+> 2.  By the tuner module, do you mean the cx23885??
 >
-> Let's analyze and merge your changes using the current development tree.
-> If you think that Hans approach is better (I haven't analyzed it yet),
-> then it can later be converted to the new approach
+> Output of lsmod shows that cx25840, cx23885 & cx2341x are loaded
+>
+> cx25840                27856  0                                                   
+> cx23885                85552  0                                                   
+> cx2341x                12800  1 cx23885                                           
+> videobuf_dma_sg        12160  1 cx23885                                           
+> videobuf_dvb            6848  1 cx23885                                           
+> dvb_core               86112  1 videobuf_dvb                                      
+> videobuf_core          17888  3 cx23885,videobuf_dma_sg,videobuf_dvb              
+> v4l2_common            16220  3 cx25840,cx23885,cx2341x                           
+> videodev               40320  3 cx25840,cx23885,v4l2_common                       
+> v4l1_compat            13440  1 videodev                                          
+> btcx_risc               4772  1 cx23885                                           
+> tveeprom               11872  1 cx23885
+>   
 
-If you really are opposed to my changes, then I need to look at these 
-patches again since they need to be modified a fair amount. They will have 
-to touch the core subdev API anyway, so let's do it right rather than 
-hacking in this new functionality and having to change it again in 2.6.32.
+Please, never remove cc from the public mailinglist.  (cc re-added)
 
-If something is wrong, then let's just fix it instead of trying to hack it 
-in. That only increases the chances of more errors. After implementing my 
-changes I came to realize that it is a much cleaner approach.
+When I said 'tuner' module, I meant 'tuner' module :-P
 
-One alternative that I would be OK with is to wait with this until the 
-2.6.31 window closes. But then Eduardo's driver won't make 2.6.31 either.
+Hope this helps,
 
-BTW, Eduardo isn't the only one who needs these changes. It crops up 
-whenever you deal with embedded devices. So please let us just fix this 
-part of the API.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Mike
