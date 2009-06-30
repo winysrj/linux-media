@@ -1,68 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-02.arcor-online.net ([151.189.21.42]:43628 "EHLO
-	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752289AbZFGSfP (ORCPT
+Received: from qmta09.westchester.pa.mail.comcast.net ([76.96.62.96]:55500
+	"EHLO QMTA09.westchester.pa.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752939AbZF3U3H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Jun 2009 14:35:15 -0400
-Subject: Re: Leadtek Winfast DTV-1000S
-From: hermann pitton <hermann-pitton@arcor.de>
-To: braddo@tranceaddict.net
-Cc: mkrufky@linuxtv.org, linux-media@vger.kernel.org
-In-Reply-To: <20090607084707.ADBA25BE@resin15.mta.everyone.net>
-References: <20090607084707.ADBA25BE@resin15.mta.everyone.net>
-Content-Type: text/plain
-Date: Sun, 07 Jun 2009 20:30:08 +0200
-Message-Id: <1244399408.9764.10.camel@pc07.localdom.local>
-Mime-Version: 1.0
+	Tue, 30 Jun 2009 16:29:07 -0400
+From: George Czerw <gczerw@comcast.net>
+Reply-To: gczerw@comcast.net
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [linux-dvb] Hauppauge HVR-1800 not working at all
+Date: Tue, 30 Jun 2009 16:29:09 -0400
+Cc: Michael Krufky <mkrufky@linuxtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <200906301301.04604.gczerw@comcast.net> <200906301548.02518.gczerw@comcast.net> <829197380906301256w2f0a701ak2332d9ec2cfae35e@mail.gmail.com>
+In-Reply-To: <829197380906301256w2f0a701ak2332d9ec2cfae35e@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906301629.09142.gczerw@comcast.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Tuesday 30 June 2009 15:56:08 Devin Heitmueller wrote:
+> On Tue, Jun 30, 2009 at 3:48 PM, George Czerw<gczerw@comcast.net> wrote:
+> > Devin, thanks for the reply.
+> >
+> > Lsmod showed that "tuner" was NOT loaded (wonder why?), a "modprobe
+> > tuner" took care of that and now the HVR-1800 is displaying video
+> > perfectly and the tuning function works.  I guess that I'll have to add
+> > "tuner" into modprobe.preload.d????  Now if only I can get the sound
+> > functioning along with the video!
+> >
+> > George
+>
+> Admittedly, I don't know why you would have to load the tuner module
+> manually on the HVR-1800.  I haven't had to do this on other products?
+>
+> If you are doing raw video capture, then you need to manually tell
+> applications where to find the ALSA device that provides the audio.
+> If you're capturing via the MPEG encoder, then the audio will be
+> embedded in the stream.
+>
+> Devin
 
-Am Sonntag, den 07.06.2009, 08:47 -0700 schrieb Brad Allen:
-> Dear Mike,
-> 
-> Have not heard from you in quite some time, has there been any progress on getting this card up and running? As I said to you in a previous email it is extremely close using the settings for card #156, however it fails to detect any DVB-T channels, although the signal strength meter works while its scanning for them.
-> 
-> I have not tried the FM component of the card.
-> 
-> Here is lspci -vvv -nn output,
-> 
-> 00:0e.0 Multimedia controller [0480]: Philips Semiconductors SAA7130 Video Broadcast Decoder [1131:7130] (rev 01)
-> 	Subsystem: LeadTek Research Inc. Device [107d:6655]
-> 	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
-> 	Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
-> 	Latency: 32 (21000ns min, 8000ns max)
-> 	Interrupt: pin A routed to IRQ 12
-> 	Region 0: Memory at eb001000 (32-bit, non-prefetchable) [size=1K]
-> 	Capabilities: <access denied>
-> 
-> For anyone else reading this card is a DVB-T and FM receiver using the SAA7130, TDA10048 and TDA18271. 
-> 
-> Please let me know if theres anything I can do to be of further assistance.
-> 
-> Thanks,
-> 
-> Brad Allen
+Well a shutdown and restart reveals that "tuner" is not being loaded 
+automagically, so I'll have to go the modprobe.preload.d route.
 
-for your information and for all others interested.
-
-Henry Wu did send modified saa7134 files with support for this card on
-Tuesday off list.
-
-Mike replied, that he will set up a test repository as soon he gets some
-time for doing so.
-
-The most noticeable difference to the Hauppauge card is, that it works
-in TS parallel mode.
-
-Please wait a little until Mike is done with his review and announces
-the card for testing here on the list.
-
-Cheers,
-Hermann
-
-
-
+I found a cx88_alsa driver listed, but I'm not sure how to go about getting 
+the system to use it.  I'll have to do some more research into this audio 
+issue because it's way over my head.
 
