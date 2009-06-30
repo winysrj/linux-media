@@ -1,58 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kolorific.com ([61.63.28.39]:47705 "EHLO
-	mail.kolorific.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752949AbZFDJUw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jun 2009 05:20:52 -0400
-Subject: Re: [PATCH]V4L:some v4l drivers have error for
- video_register_device
-From: "figo.zhang" <figo.zhang@kolorific.com>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <200906041118.01025.laurent.pinchart@skynet.be>
-References: <1243394739.3384.16.camel@myhost>
-	 <1244089207.3445.31.camel@myhost>
-	 <200906041118.01025.laurent.pinchart@skynet.be>
-Content-Type: text/plain
-Date: Thu, 04 Jun 2009 17:20:50 +0800
-Message-Id: <1244107250.3445.32.camel@myhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp27.orange.fr ([80.12.242.95]:64429 "EHLO smtp27.orange.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751818AbZF3TZu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Jun 2009 15:25:50 -0400
+Message-Id: <200906301927.n5UJRQ704365@neptune.localwarp.net>
+Date: Tue, 30 Jun 2009 21:27:05 +0200 (CEST)
+From: eric.paturage@orange.fr
+Reply-To: eric.paturage@orange.fr
+Subject: Re: (very) wrong picture with sonixj driver and  0c45:6128
+To: moinejf@free.fr
+cc: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-06-04 at 11:18 +0200, Laurent Pinchart wrote:
-> Hi,
+On 30 Jun, Jean-Francois Moine wrote:
 > 
-> On Thursday 04 June 2009 06:20:07 figo.zhang wrote:
-> > The function video_register_device() will call the
-> > video_register_device_index(). In this function, firtly it will do some
-> > argments check , if failed,it will return a negative number such as
-> > -EINVAL, and then do cdev_alloc() and device_register(), if success return
-> > zero. so video_register_device_index() canot return a a positive number.
-> >
-> > for example, see the drivers/media/video/stk-webcam.c (line 1325):
-> >
-> > err = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
-> > 	if (err)
-> > 		STK_ERROR("v4l registration failed\n");
-> > 	else
-> > 		STK_INFO("Syntek USB2.0 Camera is now controlling video device"
-> > 			" /dev/video%d\n", dev->vdev.num);
-> >
-> > in my opinion, it will be cleaner to do something like this:
-> >
-> > err = video_register_device(&dev->vdev, VFL_TYPE_GRABBER, -1);
-> > 	if (err != 0)
-> > 		STK_ERROR("v4l registration failed\n");
-> > 	else
-> > 		STK_INFO("Syntek USB2.0 Camera is now controlling video device"
-> > 			" /dev/video%d\n", dev->vdev.num);
-> 
-> What's the difference ? (err != 0) and (err) are identical.
-> 
-> Best regards,
-> 
-> Laurent Pinchart
+> On Mon, 29 Jun 2009 20:43:29 +0200 (CEST)
+> eric.paturage@orange.fr wrote:
+>> i am trying to use an "ngs skull" webcam with the gspca sonixj
+>> driver . i enclose a screen copy , so one can see what what i mean :
+>> the image is flatten vertically , there is 25% missing on the left .
+>> and the color is all wrong , over-bright  . (no matter how much i try
+>> to correct with v4l_ctl) the tests have been done with the latest
+>> mercurial version of the v4l drivers (from sunday evening) on
+>> 2.6.29.4 . I also tried it on 2 other computers (2.6.28.2 ) and
+>> 2.6.27.4 . with sames results .
+> 	[snip]
 
-yes, it is the same, but it is easy for reading.
+> Hello Eric,
+> 
+> Looking at the ms-win driver, it seems that the bridge is not the right
+> one. May you try to change it? This is done in the mercurial tree
+> editing the file:
+> 
+> 	linux/drivers/media/video/gspca/sonixj.c
+> 
+> and replacing the line 2379 from:
+> 
+> {USB_DEVICE(0x0c45, 0x6128), BSI(SN9C110, OM6802, 0x21)}, /*sn9c325?*/
+> 
+> to
+> 
+> {USB_DEVICE(0x0c45, 0x6128), BSI(SN9C120, OM6802, 0x21)}, /*sn9c325*/
+> 
+
+Hi JF
+thanks for your suggestion , I modified  sonixj.c compiled and reloaded the driver 
+but unfortunately   I get the same (wrong) picture as before  .
+I put some mild debug in /etc/modprobe.conf 
+  options gspca_main debug=0x000f
+
+here is the result in dmesg : 
+
+----------------------------------------------------
+   gspca: main v2.6.0 registered
+gspca: probing 0c45:6128
+sonixj: Sonix chip id: 12
+gspca: probe ok
+usbcore: registered new interface driver sonixj
+sonixj: registered
+gspca: svv open
+gspca: open done
+width = 160, height=120
+width = 320, height=240
+width = 640, height=480
+- Unknown type!
+gspca: try fmt cap JPEG 640x480
+gspca: try fmt cap JPEG 640x480
+gspca: frame alloc frsz: 230990
+gspca: reqbufs st:0 c:4
+gspca: mmap start:b74ab000 size:233472
+gspca: mmap start:b7472000 size:233472
+gspca: mmap start:b7439000 size:233472
+gspca: mmap start:b7400000 size:233472
+gspca: use alt 8 ep 0x81
+gspca: isoc 24 pkts size 1023 = bsize:24552
+gspca: kill transfer
+gspca: isoc 24 pkts size 1023 = bsize:24552
+gspca: stream on OK JPEG 640x480
+gspca: frame overflow 233714 > 233472
+gspca: frame overflow 233606 > 233472
+gspca: frame overflow 233901 > 233472
+gspca: kill transfer
+gspca: stream off OK
+gspca: svv close
+gspca: frame free
+gspca: close done  
+
+
+Regards                          
+
 
