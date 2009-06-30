@@ -1,86 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:21290 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751777AbZFVQ2O (ORCPT
+Received: from mail.hauppauge.com ([167.206.143.4]:4308 "EHLO
+	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752859AbZF3VvC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jun 2009 12:28:14 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv9 8/9] FMTx: si4713: Add Kconfig and Makefile entries
-Date: Mon, 22 Jun 2009 19:21:35 +0300
-Message-Id: <1245687696-6730-9-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1245687696-6730-8-git-send-email-eduardo.valentin@nokia.com>
-References: <1245687696-6730-1-git-send-email-eduardo.valentin@nokia.com>
- <1245687696-6730-2-git-send-email-eduardo.valentin@nokia.com>
- <1245687696-6730-3-git-send-email-eduardo.valentin@nokia.com>
- <1245687696-6730-4-git-send-email-eduardo.valentin@nokia.com>
- <1245687696-6730-5-git-send-email-eduardo.valentin@nokia.com>
- <1245687696-6730-6-git-send-email-eduardo.valentin@nokia.com>
- <1245687696-6730-7-git-send-email-eduardo.valentin@nokia.com>
- <1245687696-6730-8-git-send-email-eduardo.valentin@nokia.com>
+	Tue, 30 Jun 2009 17:51:02 -0400
+Message-ID: <4A4A88C3.9020608@linuxtv.org>
+Date: Tue, 30 Jun 2009 17:50:59 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+MIME-Version: 1.0
+To: gczerw@comcast.net
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [linux-dvb] Hauppauge HVR-1800 not working at all
+References: <200906301301.04604.gczerw@comcast.net> <200906301548.02518.gczerw@comcast.net> <829197380906301256w2f0a701ak2332d9ec2cfae35e@mail.gmail.com> <200906301749.05168.gczerw@comcast.net>
+In-Reply-To: <200906301749.05168.gczerw@comcast.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simple add Makefile and Kconfig entries.
+George Czerw wrote:
+> On Tuesday 30 June 2009 15:56:08 Devin Heitmueller wrote:
+>   
+>> On Tue, Jun 30, 2009 at 3:48 PM, George Czerw<gczerw@comcast.net> wrote:
+>>     
+>>> Devin, thanks for the reply.
+>>>
+>>> Lsmod showed that "tuner" was NOT loaded (wonder why?), a "modprobe
+>>> tuner" took care of that and now the HVR-1800 is displaying video
+>>> perfectly and the tuning function works.  I guess that I'll have to add
+>>> "tuner" into modprobe.preload.d????  Now if only I can get the sound
+>>> functioning along with the video!
+>>>
+>>> George
+>>>       
+>> Admittedly, I don't know why you would have to load the tuner module
+>> manually on the HVR-1800.  I haven't had to do this on other products?
+>>
+>> If you are doing raw video capture, then you need to manually tell
+>> applications where to find the ALSA device that provides the audio.
+>> If you're capturing via the MPEG encoder, then the audio will be
+>> embedded in the stream.
+>>
+>> Devin
+>>     
+>
+> I don't understand why the audio/mpeg ports of the HVR-1800 don't show up in 
+> output of lspci:
+>
+> 03:00.0 Multimedia video controller: Conexant Systems, Inc. Device 8880 (rev 
+> 0f)
+>         Subsystem: Hauppauge computer works Inc. Device 7801                    
+>         Flags: bus master, fast devsel, latency 0, IRQ 17                       
+>         Memory at f9c00000 (64-bit, non-prefetchable) [size=2M]                 
+>         Capabilities: [40] Express Endpoint, MSI 00                             
+>         Capabilities: [80] Power Management version 2                           
+>         Capabilities: [90] Vital Product Data                                   
+>         Capabilities: [a0] MSI: Mask- 64bit+ Count=1/1 Enable-                  
+>         Capabilities: [100] Advanced Error Reporting                            
+>         Capabilities: [200] Virtual Channel <?>                                 
+>         Kernel driver in use: cx23885                                           
+>         Kernel modules: cx23885
+>
+>
+> even though the dmesg output clearly shows this:
+>
+> tveeprom 0-0050: decoder processor is CX23887 (idx 37) 
+> tveeprom 0-0050: audio processor is CX23887 (idx 42)
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- linux/drivers/media/radio/Kconfig  |   22 ++++++++++++++++++++++
- linux/drivers/media/radio/Makefile |    2 ++
- 2 files changed, 24 insertions(+), 0 deletions(-)
 
-diff --git a/linux/drivers/media/radio/Kconfig b/linux/drivers/media/radio/Kconfig
-index 3315cac..6c6a409 100644
---- a/linux/drivers/media/radio/Kconfig
-+++ b/linux/drivers/media/radio/Kconfig
-@@ -339,6 +339,28 @@ config RADIO_ZOLTRIX_PORT
- 	help
- 	  Enter the I/O port of your Zoltrix radio card.
- 
-+config I2C_SI4713
-+	tristate "I2C driver for Silicon Labs Si4713 device"
-+	depends on I2C && VIDEO_V4L2
-+	---help---
-+	  Say Y here if you want support to Si4713 I2C device.
-+	  This device driver supports only i2c bus.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called si4713.
-+
-+config RADIO_SI4713
-+	tristate "Silicon Labs Si4713 FM Radio Transmitter support"
-+	depends on I2C && VIDEO_V4L2
-+	---help---
-+	  Say Y here if you want support to Si4713 FM Radio Transmitter.
-+	  This device can transmit audio through FM. It can transmit
-+	  EDS and EBDS signals as well. This module is the v4l2 radio
-+	  interface for the i2c driver of this device.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called radio-si4713.
-+
- config USB_DSBR
- 	tristate "D-Link/GemTek USB FM radio support"
- 	depends on USB && VIDEO_V4L2
-diff --git a/linux/drivers/media/radio/Makefile b/linux/drivers/media/radio/Makefile
-index 0f2b35b..34ae761 100644
---- a/linux/drivers/media/radio/Makefile
-+++ b/linux/drivers/media/radio/Makefile
-@@ -15,6 +15,8 @@ obj-$(CONFIG_RADIO_ZOLTRIX) += radio-zoltrix.o
- obj-$(CONFIG_RADIO_GEMTEK) += radio-gemtek.o
- obj-$(CONFIG_RADIO_GEMTEK_PCI) += radio-gemtek-pci.o
- obj-$(CONFIG_RADIO_TRUST) += radio-trust.o
-+obj-$(CONFIG_I2C_SI4713) += si4713-i2c.o
-+obj-$(CONFIG_RADIO_SI4713) += radio-si4713.o
- obj-$(CONFIG_RADIO_MAESTRO) += radio-maestro.o
- obj-$(CONFIG_USB_DSBR) += dsbr100.o
- obj-$(CONFIG_USB_SI470X) += radio-si470x.o
--- 
-1.6.2.GIT
 
+
+Please try this:
+
+When you have tvtime open and running with video working already, do:
+
+mplayer /dev/video1
+
+(assuming that tvtime is open on video0)
+
+Then, you'll get mplayer complete with both audio and video.
+
+-Mike
