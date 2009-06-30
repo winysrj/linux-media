@@ -1,55 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from doors.huapi.net.ar ([168.83.68.222]:58837 "EHLO
-	doors.huapi.net.ar" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751548AbZFXPEG (ORCPT
+Received: from qmta10.westchester.pa.mail.comcast.net ([76.96.62.17]:45682
+	"EHLO QMTA10.westchester.pa.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753635AbZF3VtE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jun 2009 11:04:06 -0400
-Received: from [201.216.241.201] (helo=[192.168.101.3])
-	by doors.huapi.net.ar with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <tron@acm.org>)
-	id 1MJTgv-000122-JH
-	for linux-media@vger.kernel.org; Wed, 24 Jun 2009 11:43:14 -0300
-Message-ID: <4A423B88.9060602@acm.org>
-Date: Wed, 24 Jun 2009 11:43:20 -0300
-From: Carlos G Mendioroz <tron@acm.org>
+	Tue, 30 Jun 2009 17:49:04 -0400
+From: George Czerw <gczerw@comcast.net>
+Reply-To: gczerw@comcast.net
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [linux-dvb] Hauppauge HVR-1800 not working at all
+Date: Tue, 30 Jun 2009 17:49:05 -0400
+Cc: Michael Krufky <mkrufky@linuxtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <200906301301.04604.gczerw@comcast.net> <200906301548.02518.gczerw@comcast.net> <829197380906301256w2f0a701ak2332d9ec2cfae35e@mail.gmail.com>
+In-Reply-To: <829197380906301256w2f0a701ak2332d9ec2cfae35e@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-References: <1460a1a20906240657t5b114b68r27beba0735a0e3f7@mail.gmail.com> <200906241623.29466.hftom@free.fr>
-In-Reply-To: <200906241623.29466.hftom@free.fr>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
-Subject: Re: [linux-dvb] how to code a driver for a tv tuner card??
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200906301749.05168.gczerw@comcast.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There's a problem, though.
-Programming data for the chipsets seems not to be easily available.
+On Tuesday 30 June 2009 15:56:08 Devin Heitmueller wrote:
+> On Tue, Jun 30, 2009 at 3:48 PM, George Czerw<gczerw@comcast.net> wrote:
+> > Devin, thanks for the reply.
+> >
+> > Lsmod showed that "tuner" was NOT loaded (wonder why?), a "modprobe
+> > tuner" took care of that and now the HVR-1800 is displaying video
+> > perfectly and the tuning function works.  I guess that I'll have to add
+> > "tuner" into modprobe.preload.d????  Now if only I can get the sound
+> > functioning along with the video!
+> >
+> > George
+>
+> Admittedly, I don't know why you would have to load the tuner module
+> manually on the HVR-1800.  I haven't had to do this on other products?
+>
+> If you are doing raw video capture, then you need to manually tell
+> applications where to find the ALSA device that provides the audio.
+> If you're capturing via the MPEG encoder, then the audio will be
+> embedded in the stream.
+>
+> Devin
 
-I would also love to be able to make a try at supporting a card (in my
-case, the HVR-2250 in analog mode) but to do so requires access to info
-that I could not get.
+I don't understand why the audio/mpeg ports of the HVR-1800 don't show up in 
+output of lspci:
 
--Carlos
+03:00.0 Multimedia video controller: Conexant Systems, Inc. Device 8880 (rev 
+0f)
+        Subsystem: Hauppauge computer works Inc. Device 7801                    
+        Flags: bus master, fast devsel, latency 0, IRQ 17                       
+        Memory at f9c00000 (64-bit, non-prefetchable) [size=2M]                 
+        Capabilities: [40] Express Endpoint, MSI 00                             
+        Capabilities: [80] Power Management version 2                           
+        Capabilities: [90] Vital Product Data                                   
+        Capabilities: [a0] MSI: Mask- 64bit+ Count=1/1 Enable-                  
+        Capabilities: [100] Advanced Error Reporting                            
+        Capabilities: [200] Virtual Channel <?>                                 
+        Kernel driver in use: cx23885                                           
+        Kernel modules: cx23885
 
-Christophe Thommeret @ 24/6/2009 11:23 UTC -0300 dixit:
-> Le Wednesday 24 June 2009 15:57:43 Julien Martin, vous avez écrit :
->> Hello,
->>
->> I am posting today because I am VERY interested in learning more about how
->> to code a driver for a tv tuner card.
->>
->> I am learning C and to a lesser extent Assembly.
->>
->> Could you be so kind as to answer the following questions:
->>
->> 1. What documentation do you suggest I read in order to start coding
->> drivers for tv tuner cards for Linux?
->> 2. What programming languages are used for the above purpose?
->> 3. Do I need to know electronics?
-> 
->  Browsing the v4l-dvb repository should answer most of your questions ..
-> 
 
--- 
-Carlos G Mendioroz  <tron@acm.org>
+even though the dmesg output clearly shows this:
+
+tveeprom 0-0050: decoder processor is CX23887 (idx 37) 
+tveeprom 0-0050: audio processor is CX23887 (idx 42)
+
+
