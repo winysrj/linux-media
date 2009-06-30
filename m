@@ -1,85 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:56612 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751304AbZFYUfA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2009 16:35:00 -0400
-Date: Thu, 25 Jun 2009 22:35:02 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH] mt9t031 - migration to sub device frame work
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE40139F9DEC4@dlee06.ent.ti.com>
-Message-ID: <Pine.LNX.4.64.0906252229020.4663@axis700.grange>
-References: <1245874609-15246-1-git-send-email-m-karicheri2@ti.com>
- <Pine.LNX.4.64.0906251944420.4663@axis700.grange>
- <A69FA2915331DC488A831521EAE36FE40139F9DEC4@dlee06.ent.ti.com>
+Received: from server50105.uk2net.com ([83.170.97.106]:33750 "EHLO
+	mail.autotrain.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752863AbZF3Kzc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Jun 2009 06:55:32 -0400
+Date: Tue, 30 Jun 2009 11:55:37 +0100 (BST)
+From: Tim Williams <tmw@autotrain.org>
+To: linux-media@vger.kernel.org
+cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] USBVision device defaults
+In-Reply-To: <20090629214747.2fba7b4a@lugdush.houroukhai.org>
+Message-ID: <alpine.LRH.2.00.0906301110090.28946@server50105.uk2net.com>
+References: <alpine.LRH.2.00.0906261505320.14258@server50105.uk2net.com> <20090629214747.2fba7b4a@lugdush.houroukhai.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(dropped moderated
-"davinci-linux-open-source@linux.davincidsp.com" <davinci-linux-open-source@linux.davincidsp.com>
-)
+On Mon, 29 Jun 2009, Thierry MERLE wrote:
 
-On Thu, 25 Jun 2009, Karicheri, Muralidharan wrote:
+> I remember a guy that did the trick with the vloopback device.
+> Searching a bit on the Internet, it seems that flashcam
+> http://www.swift-tools.net/Flashcam/ can be convenient for your needs.
 
-> 
-> >-----Original Message-----
-> >From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> >owner@vger.kernel.org] On Behalf Of Guennadi Liakhovetski
-> >Sent: Thursday, June 25, 2009 1:46 PM
-> >To: Karicheri, Muralidharan
-> >Cc: linux-media@vger.kernel.org; davinci-linux-open-
-> >source@linux.davincidsp.com
-> >Subject: Re: [PATCH] mt9t031 - migration to sub device frame work
-> >
-> >On Wed, 24 Jun 2009, m-karicheri2@ti.com wrote:
-> >
-> >> From: Muralidharan Karicheri <m-karicheri2@ti.com>
-> >>
-> >> This patch migrates mt9t031 driver from SOC Camera interface to
-> >> sub device interface. This is sent to get a feedback about the
-> >> changes done since I am not sure if some of the functionality
-> >> that is removed works okay with SOC Camera bridge driver or
-> >> not. Following functions are to be discussed and added as needed:-
-> >>
-> >>      1) query bus parameters
-> >>      2) set bus parameters
-> >>      3) set crop
-> >>
-> >> I have tested this with vpfe capture driver and I could capture
-> >> 640x480@17fps and 2048x1536@12fps resolution frames from the sensor.
-> >>
-> >> Reviewed by: Hans Verkuil <hverkuil@xs4all.nl>
-> >> Reviewed by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> >
-> >Excuse me? This is the first time I see this patch. FYI, "Reviewed-by"
-> >means that the respective person has actually reviewed the patch and
-> >submitted that line _him_ or _her_self!
-> >
-> >Thanks
-> >Guennadi
-> >
-> My mistake. I was assuming that by adding this line, I can get it 
-> reviewed by the mandatory reviewers. Is there a way to provide this 
-> information in the patch description?
+Looks like a useful tool, it certainly keeps the video device active.
 
-Yes, it should have been
+Unfortunatly it doesn't really solve my problem, since it still starts the 
+usbvision device up with default settings and the vloopback device dosn't 
+seem to support pushing through config parameters set using v4ctl to the 
+original underlying video device.
 
-Cc: Potential Reviewer <reviewer@provider.com>
+It does however fix another problem I had which was that flash caused 
+firefox to freeze when you exit the page containing the flash webcam 
+applet.
 
-and it would be useful to actually also cc those persons.
+Tim W
 
-> Could you please review this patch and give me the comments? I had 
-> exchanged emails with you in the past agreeing to do this migration. I 
-> remember you had accepted the same.
+-- 
+Tim Williams BSc MSc MBCS
+Euromotor Autotrain LLP
+58 Jacoby Place
+Priory Road
+Edgbaston
+Birmingham
+B5 7UW
+United Kingdom
 
-Sure, I will. Hopefully tomorrow.
+Web : http://www.autotrain.org
+Tel : +44 (0)121 414 2214
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+EuroMotor-AutoTrain is a company registered in the UK, Registration
+number: OC317070.
