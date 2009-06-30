@@ -1,47 +1,230 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:50828 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752716AbZF1SIV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Jun 2009 14:08:21 -0400
-Subject: Re: [PATCH 22/62] drivers/media/video/cx18/cx18-fileops.c: Remove
- unnecessary semicolons
-From: Andy Walls <awalls@radix.net>
-To: Joe Perches <joe@perches.com>
-Cc: linux-kernel@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-In-Reply-To: <1246209679.13673.6.camel@Joe-Laptop.home>
-References: <cover.1246173664.git.joe@perches.com>
-	 <7eeefbbba34fc477540566c6b1888cb7c871f4cd.1246173681.git.joe@perches.com>
-	 <1246209460.1550.12.camel@palomino.walls.org>
-	 <1246209679.13673.6.camel@Joe-Laptop.home>
-Content-Type: text/plain
-Date: Sun, 28 Jun 2009 14:10:08 -0400
-Message-Id: <1246212608.1550.45.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-ew0-f210.google.com ([209.85.219.210]:51114 "EHLO
+	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751514AbZF3Rns convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Jun 2009 13:43:48 -0400
+Received: by ewy6 with SMTP id 6so402770ewy.37
+        for <linux-media@vger.kernel.org>; Tue, 30 Jun 2009 10:43:50 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <200906301301.04604.gczerw@comcast.net>
+References: <200906301301.04604.gczerw@comcast.net>
+Date: Tue, 30 Jun 2009 13:43:49 -0400
+Message-ID: <37219a840906301043q67e48d50nfc846ebf2158c05e@mail.gmail.com>
+Subject: Re: [linux-dvb] Hauppauge HVR-1800 not working at all
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: linux-media@vger.kernel.org, gczerw@comcast.net
+Cc: linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2009-06-28 at 10:21 -0700, Joe Perches wrote:
-> On Sun, 2009-06-28 at 13:17 -0400, Andy Walls wrote:
-> > This is on topic for the ivtv-devel list, but must we spam the
-> > ivtv-users list with this sort of trivia? 
-> > 
-> > Perhaps your Maintainers file scraper script could be tweaked a little?
-> 
-> Perhaps the ivtv-users list entries should be removed from MAINTAINERS
+On Tue, Jun 30, 2009 at 1:01 PM, George Czerw<gczerw@comcast.net> wrote:
+>
+> Using Mandriva 2009.1 with HVR connected directly to analog cable.
+> Using 32-bit kernel 2.6.29.3-desktop-1.mnb.
+>
+> TVtime and xawTV both open but display only snow.  Channel scanning yields
+> nothing.
+>
+> If I boot into Vista and load MediaCenter, open liveTV and watch a channel.
+> Then close MediaCenter, exit Vista and boot into linux, TVtime and xawTV (if I
+> am lucky) might open-up and perfectly display the TV channel that I was last
+> viewing in Vista, but will not change channels to another station no matter
+> what I do.
+>
+> Please see the following outputs below. I would appreciate any
+> suggestions to resolve this. Not having hardware problems since WinVista's
+> media center works perfectly with this hardware.
+>
+> Thanks
+> George
+>
+> *************************
+>
+> tvtime -v
+> Running tvtime 1.0.2.
+>
+> Reading configuration from /etc/tvtime/tvtime.xml
+>
+> Reading configuration from /home/george/.tvtime/tvtime.xml
+>
+> cpuinfo: CPU Intel(R) Core(TM)2 Quad CPU Q8200 @ 2.33GHz, family 6,
+> model 7, stepping 7.
+>
+> cpuinfo: CPU measured at 2333.352MHz.
+>
+> xcommon: Display :0.0, vendor The X.Org Foundation, vendor release 10601000
+>
+> xfullscreen: Using XINERAMA for dual-head information.
+> xfullscreen: Pixels are square.
+> xfullscreen: Number of displays is 1.
+> xfullscreen: Head 0 at 0,0 with size 1440x900.
+> xcommon: Have XTest, will use it to ping the screensaver.
+> xcommon: Pixel aspect ratio 1:1.
+> xcommon: Pixel aspect ratio 1:1.
+> xcommon: Window manager is KWin and is EWMH compliant.
+> xcommon: Using EWMH state fullscreen property.
+> xcommon: Using EWMH state above property.
+> xcommon: Using EWMH state below property.
+> xcommon: Pixel aspect ratio 1:1.
+> xcommon: Displaying in a 768x576 window inside 768x576 space.
+> xvoutput: Using XVIDEO adaptor 280: NV17 Video Texture.
+> speedycode: Using MMXEXT optimized functions.
+> station: Reading stationlist from /home/george/.tvtime/stationlist.xml
+> videoinput: Using video4linux2 driver 'cx23885', card 'Hauppauge
+> WinTV-HVR1800' (bus PCIe:0000:03:00.0).
+> videoinput: Version is 1, capabilities 5010011.
+> videoinput: Maximum input width: 720 pixels.
+> tvtime: Sampling input at 720 pixels per scanline.
+> xcommon: Pixel aspect ratio 1:1.
+> xcommon: Displaying in a 768x576 window inside 768x576 space.
+> xcommon: Received a map, marking window as visible (62).
+> xcommon: Window fully obscured, marking window as hidden (62).
+> xcommon: Window made visible, marking window as visible (62).
+> tvtime: Cleaning up.
+> Thank you for using tvtime.
+>
+> ********************
+>
+>
+> # lspci
+> 00:00.0 Host bridge: Intel Corporation 82G33/G31/P35/P31 Express DRAM
+> Controller (rev
+> 02)
+> 00:01.0 PCI bridge: Intel Corporation 82G33/G31/P35/P31 Express PCI
+> Express Root Port (rev
+> 02)
+> 00:1a.0 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI
+> Controller #4 (rev
+> 02)
+> 00:1a.1 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI
+> Controller #5 (rev
+> 02)
+> 00:1a.7 USB Controller: Intel Corporation 82801I (ICH9 Family) USB2 EHCI
+> Controller #2 (rev
+> 02)
+> 00:1b.0 Audio device: Intel Corporation 82801I (ICH9 Family) HD Audio
+> Controller (rev
+> 02)
+> 00:1c.0 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express
+> Port 1 (rev 02)
+> 00:1c.1 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express
+> Port 2 (rev 02)
+> 00:1c.2 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express
+> Port 3 (rev 02)
+> 00:1d.0 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI
+> Controller #1 (rev 02)
+> 00:1d.1 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI
+> Controller #2 (rev 02)
+> 00:1d.2 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI
+> Controller #3 (rev 02)
+> 00:1d.3 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI
+> Controller #6 (rev 02)
+> 00:1d.7 USB Controller: Intel Corporation 82801I (ICH9 Family) USB2 EHCI
+> Controller #1 (rev 02)
+> 00:1e.0 PCI bridge: Intel Corporation 82801 PCI Bridge (rev 92) 00:1f.0
+> ISA bridge: Intel Corporation 82801IR (ICH9R) LPC Interface Controller
+> (rev 02)
+> 00:1f.2 RAID bus controller: Intel Corporation 82801 SATA RAID Controller
+> (rev 02)
+> 00:1f.3 SMBus: Intel Corporation 82801I (ICH9 Family) SMBus Controller
+> (rev 02)
+> 01:05.0 FireWire (IEEE 1394): Agere Systems FW323 (rev 70) 02:00.0
+> Ethernet controller: Realtek Semiconductor Co., Ltd. RTL8111/8168B PCI
+> Express Gigabit Ethernet controller (rev 02) 03:00.0 Multimedia video
+> controller: Conexant Systems, Inc. Device 8880 (rev 0f)
+> 04:00.0 Network controller: Atheros Communications Inc. AR928X Wireless
+> Network Adapter (PCI-Express) (rev 01) 05:00.0 VGA compatible controller:
+> nVidia Corporation Device 0644 (rev a1)
+>
+> *******************
+>
+> # v4l-conf
+> v4l-conf: using X11 display :0.0
+> dga: version 2.0
+> WARNING: No DGA direct video mode for this display. mode: 1440x900,
+> depth=24, bpp=32, bpl=5760, base=unknown /dev/video0 [v4l2]: no overlay
+> support
+>
+> *******************
+> selected DMESG output:
+>
+> nvidia: module license 'NVIDIA' taints kernel.
+>
+> nvidia 0000:05:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+>
+> nvidia 0000:05:00.0: setting latency timer to 64
+>
+>
+> Linux video capture interface: v2.00
+>
+> cx23885 driver version 0.0.1 loaded
+>
+> cx23885 0000:03:00.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
+>
+> CORE cx23885[0]: subsystem: 0070:7801, board: Hauppauge WinTV-HVR1800
+> [card=2,autodetected]
+>
+> tveeprom 0-0050: Hauppauge model 78521, rev C1E9, serial# 5342357
+>
+> tveeprom 0-0050: MAC address is 00-0D-FE-51-84-95
+>
+> tveeprom 0-0050: tuner model is Philips 18271_8295 (idx 149, type 54)
+>
+> tveeprom 0-0050: TV standards NTSC(M) ATSC/DVB Digital (eeprom 0x88)
+>
+> tveeprom 0-0050: audio processor is CX23887 (idx 42)
+>
+> tveeprom 0-0050: decoder processor is CX23887 (idx 37)
+>
+> tveeprom 0-0050: has radio
+>
+> cx23885[0]: hauppauge eeprom: model=78521
+>
+> cx25840' 2-0044: cx25 0-21 found @ 0x88 (cx23885[0])
+>
+> cx23885[0]/0: registered device video0 [v4l2]
+>
+> cx25840' 2-0044: firmware: requesting v4l-cx23885-avcore-01.fw
+>
+> cx25840' 2-0044: loaded v4l-cx23885-avcore-01.fw firmware (16382 bytes)
+>
+> cx23885[0]: registered device video1 [mpeg]
+>
+> cx23885_dvb_register() allocating 1 frontend(s)
+>
+> cx23885[0]: cx23885 based dvb card
+>
+> MT2131: successfully identified at address 0x61
+>
+> DVB: registering new adapter (cx23885[0])
+>
+> DVB: registering adapter 0 frontend 0 (Samsung S5H1409 QAM/8VSB
+> Frontend)...
+>
+> cx23885_dev_checkrevision() Hardware revision = 0xb1
+>
+> cx23885[0]/0: found at 0000:03:00.0, rev: 15, irq: 17, latency: 0, mmio:
+> 0xf9c00000
+>
+> cx23885 0000:03:00.0: setting latency timer to 64
+>
+> IRQ 17/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+> NVRM: loading NVIDIA UNIX x86 Kernel Module 180.51 Thu Apr 16 19:02:15
+> PDT 2009
 
-OK by me for 'CX18 VIDEO4LINUX DRIVER'.
 
-Also, a second website entry should be to be added for 'CX18 VIDEO4LINUX
-DRIVER'
+Make sure that the 'tuner' module and the 'cx25840' modules are both loaded.
 
-W:	http://www.ivtvdriver.org/index.php/Cx18
+Make sure that you're using the lower spigot (if you have 2 spigots)
+or the middle spigot (if you have 3 spigots)
 
+BTW, your email is off-topic for the linux-dvb mailing list.  I added
+cc to the linux-media mailing list, which is more appropriate for your
+analog television problem.
 
 Regards,
-Andy
 
+Mike
