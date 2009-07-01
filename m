@@ -1,53 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail8.sea5.speakeasy.net ([69.17.117.10]:52345 "EHLO
-	mail8.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753287AbZFPSGx (ORCPT
+Received: from an-out-0708.google.com ([209.85.132.250]:7833 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753507AbZGAC2i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jun 2009 14:06:53 -0400
-Date: Tue, 16 Jun 2009 11:06:55 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Eduardo Valentin <eduardo.valentin@nokia.com>
-cc: ext Hans Verkuil <hverkuil@xs4all.nl>,
-	Eduardo Valentin <edubezval@gmail.com>,
-	ext Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-Subject: Re: [PATCHv7 2/9] v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX
- controls
-In-Reply-To: <20090616105234.GB16092@esdhcp037198.research.nokia.com>
-Message-ID: <Pine.LNX.4.58.0906161104260.32713@shell2.speakeasy.net>
-References: <1244827840-886-1-git-send-email-eduardo.valentin@nokia.com>
- <a0580c510906140350o532a106dm1e2f876ebc60b3d0@mail.gmail.com>
- <Pine.LNX.4.58.0906140919110.32713@shell2.speakeasy.net>
- <200906141859.13982.hverkuil@xs4all.nl> <20090616105234.GB16092@esdhcp037198.research.nokia.com>
+	Tue, 30 Jun 2009 22:28:38 -0400
+Received: by an-out-0708.google.com with SMTP id d40so1158879and.1
+        for <linux-media@vger.kernel.org>; Tue, 30 Jun 2009 19:28:40 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <829197380906300442q3f3d0ed6w8c0d8bdeee3de6f9@mail.gmail.com>
+References: <c21478f30906291719r41ba5accu75c5bfd3dcb81276@mail.gmail.com>
+	 <829197380906291759q7ded8117tee12214073d85e67@mail.gmail.com>
+	 <c21478f30906291908y2f601577sfc94e7abc378d9e5@mail.gmail.com>
+	 <829197380906300442q3f3d0ed6w8c0d8bdeee3de6f9@mail.gmail.com>
+Date: Wed, 1 Jul 2009 12:28:40 +1000
+Message-ID: <c21478f30906301928r1564663fhb376bdac85ab6ffa@mail.gmail.com>
+Subject: Re: XC2028 Tuner - firmware issues
+From: Andrej Falout <andrej@falout.org>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 16 Jun 2009, Eduardo Valentin wrote:
-> On Sun, Jun 14, 2009 at 06:59:13PM +0200, ext Hans Verkuil wrote:
-> > On Sunday 14 June 2009 18:23:41 Trent Piepho wrote:
-> > > > > similar V4L2_CID_MPEG_EMPHASIS control and others might well appear in the
-> > > > > future, so I think this name should be more specific to the FM_TX API.
-> > >
-> > > The cx88 driver could get support for setting the fm preemphasis via a
-> > > control.  I added support via a module option, but a control would be
-> > > better.  You're saying it shouldn't use this fm preemphasis control?
-> >
-> > Correct. This set the pre-emphasis when transmitting. For receiving you want
-> > a separate control. Although the enum should be made generic. So FM_TX can be
-> > removed from the enum.
-> >
-> > Why should we have one rx and one tx control for this? Because you can have
-> > both receivers and transmitters in one device and you want independent control
-> > of the two.
+> It's been in this state for years now, and nobody is working on it.
 >
-> Yes, agreed here. There is the possibility to have receiver and transmitter
-> both in the same device. So, I think it is better to have separated controls.
+> I've been thinking about doing it myself for a while since I have a
+> couple of dib0700 boards, but it's a big project and I'm not sure I
+> have the motivation since I just completed work on analog support for
+> a different bridge (I'm also working on other drivers right now so
+> it's a question of priorities).
+>
+> It's a non-trivial project - easily a couple thousand lines of code.
 
-Is both a receiver and transmitter in the same device different than having
-two receivers or two transmitters?  In which case, since controls are not
-assigned to a specific input, how does one handle that?
+Looks like I better get another device... :-( So which analog support
+bridge did you complete? Any recommended device models?
+
+All I need is a USB hybrid analog PAL/DVB-T TV with FM tuner. (I'm in Australia)
+
+If you change your mind about dib0700, I can assure you that there are
+hundreds if not thousands Linux users out there searching for it, from
+what I've seen on forums.
+
+It would also help if wiki dib0700 page contained a big "ANALOG NOT
+SUPPORTED" note... A wiki page with known working and recommended
+devices, sorted by functionality/interface, would be even better...
+
+Thank you for all the knowledge and time invested in this important project!
+
+Cheers,
+Andrej Falout
