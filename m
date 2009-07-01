@@ -1,50 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:39778 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751970AbZGVBfv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jul 2009 21:35:51 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Steven Toth <stoth@kernellabs.com>
-Subject: Re: [PATCH] dvb: make digital side of pcHDTV HD-3000 functional again
-Date: Tue, 21 Jul 2009 21:35:47 -0400
-Cc: Trent Piepho <xyzzy@speakeasy.org>, linux-media@vger.kernel.org
-References: <200907201020.47581.jarod@redhat.com> <200907201650.23749.jarod@redhat.com> <4A65CF79.1040703@kernellabs.com>
-In-Reply-To: <4A65CF79.1040703@kernellabs.com>
+Received: from mail-ew0-f210.google.com ([209.85.219.210]:64317 "EHLO
+	mail-ew0-f210.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752348AbZGAHad (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jul 2009 03:30:33 -0400
+Received: by ewy6 with SMTP id 6so863619ewy.37
+        for <linux-media@vger.kernel.org>; Wed, 01 Jul 2009 00:30:35 -0700 (PDT)
+Date: Wed, 1 Jul 2009 09:30:27 +0200 (CEST)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Andrej Falout <andrej@falout.org>
+cc: linux-media@vger.kernel.org
+Subject: Re: Digital Audio Broadcast (DAB) devices support
+In-Reply-To: <c21478f30906301936u40ac989fj9e2824b209ab2346@mail.gmail.com>
+Message-ID: <alpine.DEB.2.01.0907010911570.5262@ybpnyubfg.ybpnyqbznva>
+References: <c21478f30906301936u40ac989fj9e2824b209ab2346@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907212135.47557.jarod@redhat.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 21 July 2009 10:23:53 Steven Toth wrote:
-> > Hrm, okay, I'll double-check that... If its not there, perhaps the card
-> > isn't quite seated correctly. Or the machine is bunk. Or the card has
-> > gone belly up. Amusing that it works as much as it does though, if any
-> > of the above is the case...
-> >
-> > Thanks for the info!
-> >
-> 
-> Jrod,
-> 
-> Yeah. If the pci enable bit for the transport engine is not enabled (thus 
-> showing up as pci device 8802) then I'm going to be surprised if the risc engine 
-> runs up at all (or runs perfectly).
-> 
-> I've seen issue like this in the past with various cx88 boards and it invariable 
-> turn out to be a corrupt eeprom or a badly seated PCI card.
-> 
-> or, no eeprom at all (unlikely on this board).
+On Wed, 1 Jul 2009, Andrej Falout wrote:
 
-So its either I have *two* machines with bad, but only slightly bad,
-and in the same way, PCI slots which seem to work fine with any other
-card I have (uh, unlikely), or my HD-3000 has gone belly up on me in
-some subtle way. The cx8802 part never shows up under lspci on either
-machine I've tried it in. Suck.
+> Does V4L framework support DAB devices?
 
--- 
-Jarod Wilson
-jarod@redhat.com
+Jein.  The V4L framework at present lacks some of what is needed
+to control and de-encode the Eureka 147 DAB/DAB+ family 
+broadcasts.
+
+However, there is at least one set of chipmaker's devices out
+there which can be used under Linux, making use of a vendor-
+supplied library to take care of the tuning and demultiplexing
+of one audio stream.  This chipmaker, Siano, is present in this
+forum, and either has already, or is in the progress of submitting
+patches to make it trivial to use their devices.  (I've stopped
+following closely)
+
+Search the list archives, as well as those of the original
+linux-dvb list, for pointers to their library and documentation,
+as well as to patches which I've successfully applied months ago.
+
+As far as devices with this family of chip, the only one I am
+aware of is the Terratec Cinergy Piranha, which I believe has
+been discontinued, and I'm not sure how widely through the world
+it has been available.  I don't know of others, and while I have
+read that at least one other chip manufacturer has a combination-
+format chipset in production, I don't know which products might
+contain it, or whether support under linux is possible.
+
+
+There is also a `dabusb' device available in the kernel, but
+this is for one particular device, and probably not that
+relevant to today's products.
+
+
+
+As far as extending the V4L framework to handle DAB, that will
+need someone far more familiar with the DAB family, and with the
+devices now available which can receive it, than I am.
+
+However, I can presently receive broadcasts under linux with the
+vendor-provided software, which is a start, and enough to keep
+me quiet.
+
+
+barry bouwsma
