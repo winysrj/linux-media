@@ -1,68 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp0.epfl.ch ([128.178.224.219]:49838 "HELO smtp0.epfl.ch"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750776AbZG3NeS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2009 09:34:18 -0400
-Message-ID: <4A71A159.60903@epfl.ch>
-Date: Thu, 30 Jul 2009 15:34:17 +0200
-From: Valentin Longchamp <valentin.longchamp@epfl.ch>
+Received: from an-out-0708.google.com ([209.85.132.240]:4475 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753019AbZGAIM5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jul 2009 04:12:57 -0400
+Received: by an-out-0708.google.com with SMTP id d40so1490986and.1
+        for <linux-media@vger.kernel.org>; Wed, 01 Jul 2009 01:12:59 -0700 (PDT)
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	"m-karicheri2@ti.com" <m-karicheri2@ti.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
-	Darius Augulis <augulis.darius@gmail.com>
-Subject: Re: [PATCH 0/4] soc-camera: cleanup + scaling / cropping API fix
-References: <Pine.LNX.4.64.0907291640010.4983@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0907291640010.4983@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <alpine.DEB.2.01.0907010911570.5262@ybpnyubfg.ybpnyqbznva>
+References: <c21478f30906301936u40ac989fj9e2824b209ab2346@mail.gmail.com>
+	 <alpine.DEB.2.01.0907010911570.5262@ybpnyubfg.ybpnyqbznva>
+Date: Wed, 1 Jul 2009 18:12:58 +1000
+Message-ID: <c21478f30907010112v5780b345icb22fdbb94dd84dd@mail.gmail.com>
+Subject: Re: Digital Audio Broadcast (DAB) devices support
+From: Andrej Falout <andrej@falout.org>
+To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Thanks for that Barry, it seems Terratec Cinergy Piranha was indeed
+discontinued, as I cant find it in shops anywhere? It's still on the
+web site (http://www.terratec.net/en/products/Cinergy_Piranha_1668.html)
 
-Guennadi Liakhovetski wrote:
-> Hi all
-> 
-> here goes a new iteration of the soc-camera scaling / cropping API 
-> compliance fix. In fact, this is only the first _complete_ one, the 
-> previous version only converted one platform - i.MX31 and one camera 
-> driver - MT9T031. This patch converts all soc-camera drivers. The most 
-> difficult one is the SuperH driver, since it is currently the only host 
-> driver implementing own scaling and cropping on top of those of sensor 
-> drivers. The first three patches in the series are purely cosmetic, 
-> unifying device objects, used in dev_dbg, dev_info... functions. These 
-> patches extend the patch series uploaded at 
-> http://download.open-technology.de/soc-camera/20090701/ with the actual 
-> scaling / cropping patch still in 
-> http://download.open-technology.de/testing/. The series is still based on 
-> the git://git.pengutronix.de/git/imx/linux-2.6.git (now gone) for-rmk 
-> branch, but the i.MX31 patches, that my patch-series depends on, are now 
-> in the mainline, so, I will be rebasing the stack soon. In the meantime, 
-> I'm afraid, it might require some fiddling to test the stack.
+EyeTV even has built-in support for it :
 
-I'd love to give your patches a try. But the fiddling looks very hard 
-for me ... patch 0010 does not apply correctly for me, and a 130K patch 
-to do by hand is .. looooong.
+http://forums.mactalk.com.au/11/32929-eyetv-2-5-1-a.html
 
-If someone could tell me how to get out of that hell, I could give it a 
-try, otherwise, I will have to wait for a rebase (I'm using Sascha's 
-mxc-master branch, currently based on 2.6.31-rc2):
+But on Terratec site, there is no mention of Linux drivers for this product.
 
-fatal: sha1 information is lacking or useless 
-(drivers/media/video/mt9m001.c).
-Repository lacks necessary blobs to fall back on 3-way merge.
-Cannot fall back to three-way merge.
+Shame. I would be happy with that one.
 
-Thanks
+Anyone else know of something equivalent that works on Linux?
 
-Val
+Cheers,
+Andrej Falout
 
--- 
-Valentin Longchamp, PhD Student, EPFL-STI-LSRO1
-valentin.longchamp@epfl.ch, Phone: +41216937827
-http://people.epfl.ch/valentin.longchamp
-MEA3485, Station 9, CH-1015 Lausanne
+
+On Wed, Jul 1, 2009 at 5:30 PM, BOUWSMA Barry<freebeer.bouwsma@gmail.com> wrote:
+> On Wed, 1 Jul 2009, Andrej Falout wrote:
+>
+>> Does V4L framework support DAB devices?
+>
+> Jein.  The V4L framework at present lacks some of what is needed
+> to control and de-encode the Eureka 147 DAB/DAB+ family
+> broadcasts.
+>
+> However, there is at least one set of chipmaker's devices out
+> there which can be used under Linux, making use of a vendor-
+> supplied library to take care of the tuning and demultiplexing
+> of one audio stream.  This chipmaker, Siano, is present in this
+> forum, and either has already, or is in the progress of submitting
+> patches to make it trivial to use their devices.  (I've stopped
+> following closely)
+>
+> Search the list archives, as well as those of the original
+> linux-dvb list, for pointers to their library and documentation,
+> as well as to patches which I've successfully applied months ago.
+>
+> As far as devices with this family of chip, the only one I am
+> aware of is the Terratec Cinergy Piranha, which I believe has
+> been discontinued, and I'm not sure how widely through the world
+> it has been available.  I don't know of others, and while I have
+> read that at least one other chip manufacturer has a combination-
+> format chipset in production, I don't know which products might
+> contain it, or whether support under linux is possible.
+>
+>
+> There is also a `dabusb' device available in the kernel, but
+> this is for one particular device, and probably not that
+> relevant to today's products.
+>
+>
+>
+> As far as extending the V4L framework to handle DAB, that will
+> need someone far more familiar with the DAB family, and with the
+> devices now available which can receive it, than I am.
+>
+> However, I can presently receive broadcasts under linux with the
+> vendor-provided software, which is a start, and enough to keep
+> me quiet.
+>
+>
+> barry bouwsma
+>
