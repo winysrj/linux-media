@@ -1,42 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f222.google.com ([209.85.217.222]:38145 "EHLO
-	mail-gx0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751225AbZFYPDG (ORCPT
+Received: from an-out-0708.google.com ([209.85.132.240]:5847 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753498AbZGACg3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jun 2009 11:03:06 -0400
-Received: by gxk22 with SMTP id 22so845285gxk.13
-        for <linux-media@vger.kernel.org>; Thu, 25 Jun 2009 08:03:08 -0700 (PDT)
+	Tue, 30 Jun 2009 22:36:29 -0400
+Received: by an-out-0708.google.com with SMTP id d40so1167635and.1
+        for <linux-media@vger.kernel.org>; Tue, 30 Jun 2009 19:36:32 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <COL103-W528F8A33AD6A34779DB71888340@phx.gbl>
-References: <36839.62.70.2.252.1245937439.squirrel@webmail.xs4all.nl>
-	 <829197380906250700s3f96262bhad95e9a758e88d3f@mail.gmail.com>
-	 <COL103-W2753C79E5C866460426A1888340@phx.gbl>
-	 <829197380906250738x36483ee3sb747019a4d1f23c4@mail.gmail.com>
-	 <COL103-W528F8A33AD6A34779DB71888340@phx.gbl>
-Date: Thu, 25 Jun 2009 11:03:07 -0400
-Message-ID: <829197380906250803j6dc2b138r1febf850febf5c50@mail.gmail.com>
-Subject: Re: [PARTIALLY SOLVED] Can't use my Pinnacle PCTV HD Pro stick - what
-	am I doing wrong?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: George Adams <g_adams27@hotmail.com>
-Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
-	video4linux-list@redhat.com
+Date: Wed, 1 Jul 2009 12:36:31 +1000
+Message-ID: <c21478f30906301936u40ac989fj9e2824b209ab2346@mail.gmail.com>
+Subject: Digital Audio Broadcast (DAB) devices support
+From: Andrej Falout <andrej@falout.org>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 25, 2009 at 10:59 AM, George Adams<g_adams27@hotmail.com> wrote:
-> Surely there must be some command-line way to change the Pinnacle device to
-> channel 3 before I launch Helix Producer?
+Hello,
 
-v4lctl setchannel 3
+Does V4L framework support DAB devices?
 
-Or you might want to consider using the composite or s-video input if
-that's available to you (the quality will be better).
+Ideally something like
 
-Devin
+http://cgi.ebay.com.au/USB-Digital-T-DMB-DAB-Radio-Video-Receiver-Recorder_W0QQitemZ130220495837QQcmdZViewItemQQptZUK_AudioVisualElectronics_PortableAudio_Radios?hash=item1e51bf13dd&_trksid=p3286.m20.l1116
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Here in Australia FM is going the way of the Dodo :-( Must get one soon...
+
+Thanks,
+Andrej Falout
