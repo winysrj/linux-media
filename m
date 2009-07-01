@@ -1,42 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:59694 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934216AbZGQIUE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jul 2009 04:20:04 -0400
-Date: Fri, 17 Jul 2009 05:19:56 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Pham Thanh Nam <phamthanhnam.ptn@gmail.com>
-Cc: hermann pitton <hermann-pitton@arcor.de>,
-	Laszlo Kustan <lkustan@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: AVerMedia AVerTV GO 007 FM, no radio sound (with routing
- enabled)
-Message-ID: <20090717051956.1b6253c4@pedra.chehab.org>
-In-Reply-To: <1247803058.26678.2.camel@AcerAspire4710>
-References: <88b49f150907161417r7d487078h3e27b514cf8dd5cf@mail.gmail.com>
-	<1247794346.3921.22.camel@AcerAspire4710>
-	<1247797282.3187.47.camel@pc07.localdom.local>
-	<1247803058.26678.2.camel@AcerAspire4710>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:48858 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754016AbZGATGJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Jul 2009 15:06:09 -0400
+Date: Wed, 1 Jul 2009 21:06:28 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Valentin Longchamp <valentin.longchamp@epfl.ch>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"m-karicheri2@ti.com" <m-karicheri2@ti.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH RFC] fix cropping and scaling for mx3-camera and mt9t031
+ drivers
+In-Reply-To: <4A4B9416.7040107@epfl.ch>
+Message-ID: <Pine.LNX.4.64.0907012048340.5609@axis700.grange>
+References: <Pine.LNX.4.64.0906301656471.5748@axis700.grange> <4A4B9416.7040107@epfl.ch>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 17 Jul 2009 10:57:38 +0700
-Pham Thanh Nam <phamthanhnam.ptn@gmail.com> escreveu:
+On Wed, 1 Jul 2009, Valentin Longchamp wrote:
 
-> Hi
-> So, should we add an option for this card? For example:
-> modprobe saa7134 card=57 radioontv
+> Guennadi Liakhovetski wrote:
+> > 
+> > While trying all possible skipping / binning combinations of mt9t031 I
+> > came across a problem, that in some configurations the sensor produces
+> > regular horizontal stripes. They depend on window geometry, with some
+> > skipping factors they can be eliminated by using properly aligned left
+> > window border, but with some other AFAICS valid parameter combinations
+> > stripes persist. And - they seem to depend on lighting conditions... I
+> > think, I'll try to ask Aptina again... Or does anyone have an idea what I
+> > might be doing wrong?
+> 
+> It may be completely unrelated, but we had quite similar problem with
+> our hardware. With a part of the image "saturated", we had some
+> artefacts (missing data in fact) on some horizontal lines: pixclk wave
+> was poor and the i.MX31 could not read data correctly. In order to
+> resovle this problem, we had to change the bus drivers (we now use some
+> SN74LVCH16244ADGGR that work well with the 3V3 signals from the camera).
+> Now even with high contrast and some parts saturated, pix clk looks nice and
+> we don't loose pixels anymore.
 
-IMO, we should just apply a patch doing the right thing.
+Hm interesting. What exactly did those missing pixels look like in your 
+case? In my case these are periodic horizontal lines of 1 or 2 (approx.) 
+pixels wide. Sometimes they are repeated one such stripe every x pixels, 
+sometimes they are repeated in pairs.
 
-I couldn't find any explanation for the change. Let's just fix it with a good
-explanation and hope that this will work with all AverTV GO 007 FM boards. If
-not, someone will complain.
-
-
-
-Cheers,
-Mauro
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
