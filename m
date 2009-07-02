@@ -1,72 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f183.google.com ([209.85.211.183]:36738 "EHLO
-	mail-yw0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750861AbZGaICH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jul 2009 04:02:07 -0400
-Received: by ywh13 with SMTP id 13so1511683ywh.15
-        for <linux-media@vger.kernel.org>; Fri, 31 Jul 2009 01:02:06 -0700 (PDT)
+Received: from mail-qy0-f193.google.com ([209.85.221.193]:41173 "EHLO
+	mail-qy0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753627AbZGBVS4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jul 2009 17:18:56 -0400
+Received: by qyk31 with SMTP id 31so2142071qyk.33
+        for <linux-media@vger.kernel.org>; Thu, 02 Jul 2009 14:18:59 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <4A729117.6010001@iol.it>
-References: <4A6F8AA5.3040900@iol.it>
-	 <829197380907281744o5c3a7eb7rd0d2cb8c53cd646f@mail.gmail.com>
-	 <4A7140DD.7040405@iol.it>
-	 <829197380907300533l488acd0bt2188c4c599417966@mail.gmail.com>
-	 <4A729117.6010001@iol.it>
-Date: Fri, 31 Jul 2009 04:02:06 -0400
-Message-ID: <829197380907310102w22fc3c69rbac27142ec04bc62@mail.gmail.com>
-Subject: Re: Terratec Cinergy HibridT XS
+In-Reply-To: <4A4D1DBD.4080607@powercraft.nl>
+References: <4A4481AC.4050302@powercraft.nl> <4A4A71B9.5010603@powercraft.nl>
+	 <4A4C7349.2080705@powercraft.nl>
+	 <829197380907020909s98d5a4s2d8fa1e145f2d64@mail.gmail.com>
+	 <4A4D1DBD.4080607@powercraft.nl>
+Date: Thu, 2 Jul 2009 17:18:58 -0400
+Message-ID: <829197380907021418x58c5e1c1q7976c47f9c17fddb@mail.gmail.com>
+Subject: Re: Afatech AF9013 DVB-T not working with mplayer radio streams
 From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: efa@iol.it
-Cc: linux-media@vger.kernel.org
+To: Jelle de Jong <jelledejong@powercraft.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 31, 2009 at 2:37 AM, Valerio Messina<efa@iol.it> wrote:
-> Devin Heitmueller ha scritto:
+On Thu, Jul 2, 2009 at 4:51 PM, Jelle de Jong<jelledejong@powercraft.nl> wrote:
+> Devin Heitmueller wrote:
+>> On Thu, Jul 2, 2009 at 4:43 AM, Jelle de Jong<jelledejong@powercraft.nl> wrote:
+>>> Is there an other USB DVB-T device that works out of the box with the
+>>> 2.9.30 kernel? Could somebody show me a link or name of this device so I
+>>> can buy and test it?
 >>
->> How are you testing the IR support?
+>> You might want to check out the WinTV-Ministick, which is both
+>> currently available for sale and supported in Linux.
+>>
+>> http://www.hauppauge.co.uk/site/products/data_ministickhd.html
+>>
+>> Devin
+>>
 >
-> starting Kaffeine with a Digital TV channel, pressing numeric key of the
-> remote in front of IR receiver connected to Terratec Cinergy Hybrid T XS.
+> Hi Devin,
 >
->> And are you using the Terratec
->> remote control that came with the product?
+> Thanks for your response, I am kind of hitting a deadline next Tuesday.
+> I must a kind of working dvb-t system here. The af9013 will be a backup
+> plan.
 >
-> yes, the one showed in this picture:
-> http://www.terratec.it/prodotti/schede_tv/TerraTec%20Cinergy%20Hybrid%20T%20USB%20XS/CinergyHybridTUSBXSscope.jpg
+> So this is my local supplier. Can I ask you to just make a list of
+> product ids (ArtNr) and I will order them, if they do not work I will
+> sent them out to developers that volunteer:
 >
->> Have you tried opening a
->> text editor, hitting the "1" key, and seeing if the character appears?
+> http://www.informatique.nl/cgi-bin/iqshop.cgi?M=ART&G=167
 >
-> I tried last evening, and no, does not appear any digit.
+> I am only interested in USB DVB-T devices. I will try to make the order
+> tomorrow morning.
 >
-> My lsusb ID is:
-> Bus 001 Device 007:
-> ID 0ccd:0042 TerraTec Electronic GmbH Cinergy Hybrid T XS
+> Thanks in advance,
 >
-> Note: with Ubuntu 8.04 K2.6.24-21-generic the TV and IR always worked.
-> With Ubuntu 8.10 and kernel
-> 2.6.27.7-generic, 2.6.27.9-generic, 2.6.27.11-generic, 2.6.27-14-generic
-> I needed to add some media Kheaders, but then TV and IR always worked.
-> The problem appear just after upgrade to Ubuntu 9.04 kernel
-> 2.6.28-13-generic and happen the same for 2.6.28-14-generic
+> Cheers,
 >
-> Valerio
+> Jelle
 
-I'm quite confident that it wasn't working in 8.04/8.10 with the stock
-kernel, given I spent every night for several weeks getting support
-for both variants of the device to work using hardware sent to me by a
-user.  And I had to create an IR profile for the remote control from
-scratch.
+Jelle,
 
-That said, the root of the problem seems to be that the IR support I
-wrote didn't find its way upstream.  I can only assume that I lost the
-patch when I was redoing my hg tree for submission.
+Well, before I offer any suggestions, bear in mind that I actually
+don't use DVB-T and I don't have these products, so I cannot claim
+that they work from my own experience.
 
-I will look around and see if I can find a backup of the old tree.
+Looking at the DVB-T USB entries in list you sent:
+
+the ASUS U3000 works according to the Wiki:
+
+http://linuxtv.org/wiki/index.php/ASUS_My_Cinema-U3000_Mini
+
+>From the Hauppauge list, the any HVR-900 you would buy today would
+almost certainly be an "HVR-900 R2", which is known to not be
+supported in the current tree.
+
+>From the Pinnacle list, I can tell you that both versions of the 340e
+are not supported (I am actively developing the xc4000 driver required
+for them this week).  According to the wiki, both the 72e and 73e do
+work:
+
+http://linuxtv.org/wiki/index.php/Pinnacle_PCTV_72e
+http://linuxtv.org/wiki/index.php/Pinnacle_PCTV_nano_Stick_%2873e%29
+
+I'm not familiar with the products from Plextor and Technisat.
 
 Devin
 
