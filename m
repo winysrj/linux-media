@@ -1,63 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out002.kontent.com ([81.88.40.216]:59581 "EHLO
-	smtp-out002.kontent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756369AbZGCQsg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jul 2009 12:48:36 -0400
-From: Oliver Neukum <oliver@neukum.org>
-To: kjsisson@bellsouth.net, mchehab@infradead.org,
-	linux-media@vger.kernel.org, USB list <linux-usb@vger.kernel.org>
-Subject: [patch]stv680: kfree called before usb_kill_urb
-Date: Fri, 3 Jul 2009 18:48:49 +0200
+Received: from mail.kapsi.fi ([217.30.184.167]:60853 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754215AbZGBWoZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Jul 2009 18:44:25 -0400
+Message-ID: <4A4D384C.3090101@iki.fi>
+Date: Fri, 03 Jul 2009 01:44:28 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+To: Jelle de Jong <jelledejong@powercraft.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Afatech AF9013 DVB-T not working with mplayer radio streams
+References: <4A4481AC.4050302@powercraft.nl> <4A4A71B9.5010603@powercraft.nl> <4A4C7349.2080705@powercraft.nl>
+In-Reply-To: <4A4C7349.2080705@powercraft.nl>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907031848.49825.oliver@neukum.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The irq handler will touch memory. Even in the error case some URBs may
-complete. Thus no memory must be kfreed before all URBs are killed.
+On 07/02/2009 11:43 AM, Jelle de Jong wrote:
+> Some extra information about the lockups of my AF9015, this is a serious
+> blocker issue for me. It happens when I watch a channel with totem-xine
+> and switch to an other channel, the device is then unable to lock to the
+> new channel, and totem-xine hangs. There are no messages in dmesg.
+>
+> Rebooting the system does not help getting the device working again, the
+> only way i found is to replug the usb device and this is not an option
+> for my systems because the usb devices are hidden.
 
-Signed-off-by: Oliver Neukum <oliver@neukum.org>
+I have seen that also with Totem-xine few times. Totem-xine hags totally 
+and it must be killed. But after that my device starts working without 
+replug (if I remember correctly). One thing could be power issue. If you 
+have possibility to test with powered USB -hub please do.
 
---
+> Is there an other USB DVB-T device that works out of the box with the
+> 2.9.30 kernel? Could somebody show me a link or name of this device so I
+> can buy and test it?
 
-commit e91d238d2b6f83f9b64b57b570ee150b1cd008e7
-Author: Oliver Neukum <oneukum@linux-d698.(none)>
-Date:   Fri Jul 3 18:18:26 2009 +0200
+DibCOM based sticks are usually good choice. There is many models from 
+many vendors, TerraTec, Artec (Artec T14BR is sold here in Finland 20-30e).
 
-    stv680: fix access to freed memory in error case
-    
-    in the error case some URBs may be active and access memory
-    URBs must be killed before any memory is freed
+DibCOM also uses big USB block size which seems to reduce system load. 
+Look examples from here:
+http://www.linuxtv.org/wiki/index.php/User:Hlangos
 
-diff --git a/drivers/media/video/stv680.c b/drivers/media/video/stv680.c
-index 75f286f..58c0148 100644
---- a/drivers/media/video/stv680.c
-+++ b/drivers/media/video/stv680.c
-@@ -733,10 +733,6 @@ static int stv680_start_stream (struct usb_stv *stv680)
- 	return 0;
- 
-  nomem_err:
--	for (i = 0; i < STV680_NUMSCRATCH; i++) {
--		kfree(stv680->scratch[i].data);
--		stv680->scratch[i].data = NULL;
--	}
- 	for (i = 0; i < STV680_NUMSBUF; i++) {
- 		usb_kill_urb(stv680->urb[i]);
- 		usb_free_urb(stv680->urb[i]);
-@@ -744,6 +740,11 @@ static int stv680_start_stream (struct usb_stv *stv680)
- 		kfree(stv680->sbuf[i].data);
- 		stv680->sbuf[i].data = NULL;
- 	}
-+	/* used in irq, free only as all URBs are dead */
-+	for (i = 0; i < STV680_NUMSCRATCH; i++) {
-+		kfree(stv680->scratch[i].data);
-+		stv680->scratch[i].data = NULL;
-+	}
- 	return -ENOMEM;
- 
- }
+Could someone explain why USB block size have so big effect to load?
 
+regards
+Antti
+-- 
+http://palosaari.fi/
