@@ -1,35 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nschwmtas04p.mx.bigpond.com ([61.9.189.146]:24771 "EHLO
-	nschwmtas04p.mx.bigpond.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755214AbZGHXYt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Jul 2009 19:24:49 -0400
-Received: from nschwotgx02p.mx.bigpond.com ([60.229.5.27])
-          by nschwmtas04p.mx.bigpond.com with ESMTP
-          id <20090708232446.MCZA2030.nschwmtas04p.mx.bigpond.com@nschwotgx02p.mx.bigpond.com>
-          for <linux-media@vger.kernel.org>; Wed, 8 Jul 2009 23:24:46 +0000
-Received: from 9CMDW1S ([60.229.5.27]) by nschwotgx02p.mx.bigpond.com
-          with SMTP
-          id <20090708232446.MSTM11262.nschwotgx02p.mx.bigpond.com@9CMDW1S>
-          for <linux-media@vger.kernel.org>; Wed, 8 Jul 2009 23:24:46 +0000
-Message-ID: <673D7F4B14224D55B9DBCC4D139554C3@ap.panavision.com>
-From: "Collier Family" <judithc@bigpond.net.au>
-To: <linux-media@vger.kernel.org>
-Subject: Re: cx23885, new hardware revision found
-Date: Thu, 9 Jul 2009 09:24:46 +1000
+Received: from server50105.uk2net.com ([83.170.97.106]:44074 "EHLO
+	mail.autotrain.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755296AbZGBNuA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jul 2009 09:50:00 -0400
+Date: Thu, 2 Jul 2009 14:50:02 +0100 (BST)
+From: Tim Williams <tmw@autotrain.org>
+To: linux-media@vger.kernel.org
+cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] USBVision device defaults
+In-Reply-To: <1246495183.4227.77.camel@palomino.walls.org>
+Message-ID: <alpine.LRH.2.00.0907021419270.988@server50105.uk2net.com>
+References: <alpine.LRH.2.00.0906261505320.14258@server50105.uk2net.com>  <1246275235.3917.12.camel@palomino.walls.org>  <alpine.LRH.2.00.0906291303170.29847@server50105.uk2net.com> <1246495183.4227.77.camel@palomino.walls.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I found there is a revision change - doesn't seem to affect the operation 
-but needs a patch to be detected.
+On Wed, 1 Jul 2009, Andy Walls wrote:
 
-See todays post.
+> It's unclear to me if the PowerOnAtOpen module parameter works properly
+> when set to 0.  It might actually prevent the automatic shutoff in 3
+> seconds if set to zero.
 
-Stephen 
+I hadn't spotted that option, it does seem to work and enables the device 
+to stay active after the programme using it has exited, preserving the 
+settings. With PowerOnAtOpen=0, using the normal unmodified driver, I can't 
+get a picture using either flash or kdetv. However, using my bodged driver 
+which forces use of the SVideo input, I can now get a colour picture in 
+flash by starting and exiting kdetv first. Odd, but it does at least 
+provide a workable solution to my problem.
 
+> Also, by inspection I think the driver has a bug you may be able to
+> exploit.  If you already have the driver open with an application,
+> trying to open it with another application will fail, but not before
+> reseting the poweroff timer back to three seconds.  So if you have an
+> app that attempts to open() and close() the usbvision device node every
+> 1 second, I think you can keep it from powering down and losing it's
+> settings.
+>
+> Here's a useless little program to do just that.  Compile it and invoke
+> it as 'program-name /dev/video0'
+
+I gave the code a try, it works up to a point, I get a colour picture in 
+flash, but the picture is frozen. I suspect your programme is grabbing 
+the video device back from flash before I can kill it.
+
+Thankyou for your help ! If anybody on this list decides to try and neaten 
+up the code for the usbvision driver, I'm happy to do a bit of testing 
+work (contant me on tmw@autotrain.org, I may not stay subscribed to this 
+email list permanantly).
+
+Tim W
+
+-- 
+Tim Williams BSc MSc MBCS
+Euromotor Autotrain LLP
+58 Jacoby Place
+Priory Road
+Edgbaston
+Birmingham
+B5 7UW
+United Kingdom
+
+Web : http://www.autotrain.org
+Tel : +44 (0)121 414 2214
+
+EuroMotor-AutoTrain is a company registered in the UK, Registration
+number: OC317070.
