@@ -1,116 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:46079 "EHLO ciao.gmane.org"
+Received: from mail1.radix.net ([207.192.128.31]:34845 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753143AbZGTXaT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2009 19:30:19 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1MT2JF-00020H-V1
-	for linux-media@vger.kernel.org; Mon, 20 Jul 2009 23:30:18 +0000
-Received: from host-78-14-94-150.cust-adsl.tiscali.it ([78.14.94.150])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 20 Jul 2009 23:30:17 +0000
-Received: from avljawrowski by host-78-14-94-150.cust-adsl.tiscali.it with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 20 Jul 2009 23:30:17 +0000
-To: linux-media@vger.kernel.org
-From: Avl Jawrowski <avljawrowski@gmail.com>
-Subject: Re: Problems with Pinnacle 310i (saa7134) and recent kernels
-Date: Mon, 20 Jul 2009 23:30:05 +0000 (UTC)
-Message-ID: <loom.20090720T224156-477@post.gmane.org>
-References: <loom.20090718T135733-267@post.gmane.org> <1248033581.3667.40.camel@pc07.localdom.local>
+	id S1752722AbZGBAiE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Jul 2009 20:38:04 -0400
+Subject: Re: [linux-dvb] USBVision device defaults
+From: Andy Walls <awalls@radix.net>
+To: Tim Williams <tmw@autotrain.org>
+Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+In-Reply-To: <alpine.LRH.2.00.0906291303170.29847@server50105.uk2net.com>
+References: <alpine.LRH.2.00.0906261505320.14258@server50105.uk2net.com>
+	 <1246275235.3917.12.camel@palomino.walls.org>
+	 <alpine.LRH.2.00.0906291303170.29847@server50105.uk2net.com>
+Content-Type: text/plain
+Date: Wed, 01 Jul 2009 20:39:43 -0400
+Message-Id: <1246495183.4227.77.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, thank you!
-
-hermann pitton <hermann-pitton <at> arcor.de> writes:
-
-> > tuner 1-004b: chip found @ 0x96 (saa7133[0])
-> > tda829x 1-004b: setting tuner address to 61
-> > tda829x 1-004b: type set to tda8290+75a
+On Mon, 2009-06-29 at 14:04 +0100, Tim Williams wrote:
+> On Mon, 29 Jun 2009, Andy Walls wrote:
 > 
-> Nothing about the IR, but at least all tuner modules seem to be
-> correctly loaded.
-
-Im not using the IR because for now I dont need it, but I will try it.
- 
-> What was your last good working kernel and was your eeprom already
-> failing there too, or is that new?
-
-I don't remember the last working kernel.
-I tried to recompile 2.6.25 but I obtain this error:
-
-DVB: Unable to find symbol tda10046_attach()
-saa7133[0]/dvb: frontend initialization failed
-
-The eeprom was working a few months ago giving this messages:
-
-saa7133[0]: found at 0000:01:02.0, rev: 209, irq: 19, latency: 64, mmio: 0xcfddf
-800
-saa7133[0]: subsystem: ffff:ffff, board: UNKNOWN/GENERIC [card=0,autodetected]
-saa7133[0]: board init: gpio is 600e000
-saa7133[0]: i2c eeprom 00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: registered device video0 [v4l2]
-saa7133[0]: registered device vbi0
-
-Even then the card was not recognised.
-
-> Usually such is caused by bad contacts of the PCI slot or by a bad PSU,
-> but we have reports from a Pinnacle 50i with the same i2c remote.
+> > According to the V4L2 specification for the close() call, all devices
+> > should remember their settings.
+> >
+> > There have been recent discussions on devices that do power management
+> > not saving the RF tuner freq after the final close() (and what to do
+> > about it), but the last input and standard should be preserved.  (Note,
+> > I have not looked at the usbvision driver to look for problems.)
 > 
-> It has i2c troubles (ARB_LOST) and then also problems on loading the
-> tuner modules correctly. With disable_ir=1 for saa7134 it became at
-> least somewhat usable again.
->
-> But for the 310i is another problem reported starting with kernel
-> 2.6.26.
-> 
-> The 310i and the HVR1110 are the only cards with LowNoiseAmplifier
-> config = 1. Before 2.6.26 two buffers were sent to the tuner at 0x61,
-> doing some undocumented LNA configuration, since 2.6.26 they go to the
-> analog IF demodulator tda8290 at 0x4b.
-> 
-> This was bisected here on the list and is wrong for the 300i.
-> Thread is "2.6.26 regression ..."
-> 
-> The HVR1110 using the same new configuration seems to come in variants
-> with and without LNA and nobody knows, how to make a difference for
-> those cards. At least still no reports about troubles with the new LNA
-> configuration there.
-> 
-> The attached patch against recent mercurial master v4l-dvb at
-> linuxtv.org tries to restore the pre 2.6.26 behaviour for DVB-T on the
-> 300i.
-> 
-> It changes also the i2c remote address of the Upmost Purple TV from 0x7a
-> to 0x3d, since recent i2c on >= 2.6.30 complains about it as invalid
-> 7-bit address, just in case.
-> 
-> Good luck,
-> 
-> Hermann
-> 
-> 
-> Attachment (saa7134-try_to_improve_the_310i.patch): text/x-patch, 1925 bytes
+> It would appear that the usbvision driver isn't following the spec. As I 
+> mentioned in my earlier message, there is an LED which indicates that the 
+> box is active. Under windows this comes on and stays on after the first 
+> use, until reboot. Under linux it always goes off when the programme using 
+> the device exits.
 
-I tried the patch with 2.6.30.2 on v4l-dvb-1cb6f19d2c9d, but I get only some
-errors (I have rebooted):
+I just looked at the usbvision driver - ugh.  It uses the big kernel
+lock - not good.  Only a single open at a time - inconvenient.  Powers
+off in <= 3 seconds (hardcoded) after close if the "PowerOnAtOpen"
+module parameter is set to 1 (the default) - not useful.  I think the 3
+seconds isn't guaranteed; it might be anywhere from 0 to 3 seconds.
 
-videodev: exports duplicate symbol video_unregister_device (owned by kernel)
-v4l2_common: exports duplicate symbol v4l2_chip_ident_i2c_client (owned by kerne
-l)
-saa7134: Unknown symbol v4l_bound_align_image
+It's unclear to me if the PowerOnAtOpen module parameter works properly
+when set to 0.  It might actually prevent the automatic shutoff in 3
+seconds if set to zero.
 
-I get these errors even not applying the patch.
+Also, by inspection I think the driver has a bug you may be able to
+exploit.  If you already have the driver open with an application,
+trying to open it with another application will fail, but not before
+reseting the poweroff timer back to three seconds.  So if you have an
+app that attempts to open() and close() the usbvision device node every
+1 second, I think you can keep it from powering down and losing it's
+settings.
+
+Here's a useless little program to do just that.  Compile it and invoke
+it as 'program-name /dev/video0'
+
+
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdlib.h>
+
+int main(int argc, char *argv[])
+{
+        int fd;
+
+        if (argc < 2)
+                exit(1);
+
+        for (;;) {
+                fd = open (argv[1], O_RDONLY);
+                if (fd >= 0)
+                        close(fd);
+                sleep(1);
+        }
+        exit(0);
+}
+
+
+Using it, you hopefully can use v4l2-ctl to set the input and have it
+preserved.
+
+The usbvision driver really needs some work to allow preserving settings
+and/or multiple opens.
+
+Regards,
+Andy
+
+
+
+> > What precise WinTV USB device/verision are you using?
+> 
+> >From lsusb :
+> 
+> Bus 002 Device 002: ID 0573:4d22 Zoran Co. Personal Media Division 
+> (Nogatech) Hauppauge WinTV-USB II (PAL) Model 566
+> 
+> > Try something like:
+> >
+> > $ v4l2-ctl --help
+> > $ v4l2-ctl -d /dev/video0 --log-status
+> > $ v4l2-ctl -d /dev/video0 --list-inputs
+> > $ v4l2-ctl -d /dev/video0 --set-input=2
+> > $ v4l2-ctl -d /dev/video0 --log-status
+> 
+> [root@saucy ~]# v4l2-ctl -d /dev/video0 --log-status
+> [root@saucy ~]# v4l2-ctl -d /dev/video0 --list-inputs
+> ioctl: VIDIOC_ENUMINPUT
+>          Input   : 0
+>          Name    : Television
+>          Type    : 0x00000001
+>          Audioset: 0x00000001
+>          Tuner   : 0x00000000
+>          Standard: 0x0000000000FFB1FF ( PAL NTSC SECAM )
+>          Status  : 0
+> 
+>          Input   : 1
+>          Name    : Composite Video Input
+>          Type    : 0x00000002
+>          Audioset: 0x00000000
+>          Tuner   : 0x00000000
+>          Standard: 0x00000000000000FF ( PAL )
+>          Status  : 0
+> 
+>          Input   : 2
+>          Name    : S-Video Input
+>          Type    : 0x00000002
+>          Audioset: 0x00000000
+>          Tuner   : 0x00000000
+>          Standard: 0x00000000000000FF ( PAL )
+>          Status  : 0
+> [root@saucy ~]# v4l2-ctl -d /dev/video0 --set-input=2
+> Video input set to 2 (S-Video Input)
+> [root@saucy ~]# v4l2-ctl -d /dev/video0 --log-status
+> [root@saucy ~]#
+> 
+> Each of these commands causes the following messages to be repeated in 
+> /var/log/messages
+> 
+> Jun 29 13:43:06 saucy kernel: saa7115' 1-0025: saa7113 found 
+> (1f7113d0e100000) @ 0x4a (usbvision #0)
+> Jun 29 13:43:08 saucy kernel: tuner' 1-0061: chip found @ 0xc2 (usbvision 
+> #0)
+> Jun 29 13:43:08 saucy kernel: tuner-simple 1-0061: creating new instance
+> Jun 29 13:43:08 saucy kernel: tuner-simple 1-0061: type set to 5 (Philips 
+> PAL_BG (FI1216 and compatibles))
+> Jun 29 13:43:12 saucy kernel: tuner-simple 1-0061: destroying instance
+> 
+> I'm currently using kernel 2.6.27.21-desktop-1mnb on Mandriva 2009.0.
+> 
+> Tim W
+> 
 
