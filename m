@@ -1,70 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:49916 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964867AbZGQQKf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jul 2009 12:10:35 -0400
-Date: Fri, 17 Jul 2009 18:10:33 +0200 (CEST)
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Subject: Re: [PATCH] firedtv: refine AVC debugging
-To: Henrik Kurelid <henke@kurelid.se>
-cc: linux-media@vger.kernel.org
-In-Reply-To: <2f15391f4f76f6a3126c0e8a9d61562c.squirrel@mail.kurelid.se>
-Message-ID: <tkrat.54463abf6a774c27@s5r6.in-berlin.de>
-References: <2f15391f4f76f6a3126c0e8a9d61562c.squirrel@mail.kurelid.se>
+Received: from mail-px0-f190.google.com ([209.85.216.190]:52905 "EHLO
+	mail-px0-f190.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753655AbZGBQJW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jul 2009 12:09:22 -0400
+Received: by pxi28 with SMTP id 28so1651843pxi.33
+        for <linux-media@vger.kernel.org>; Thu, 02 Jul 2009 09:09:25 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=us-ascii
-Content-Disposition: INLINE
+In-Reply-To: <4A4C7349.2080705@powercraft.nl>
+References: <4A4481AC.4050302@powercraft.nl> <4A4A71B9.5010603@powercraft.nl>
+	 <4A4C7349.2080705@powercraft.nl>
+Date: Thu, 2 Jul 2009 12:09:24 -0400
+Message-ID: <829197380907020909s98d5a4s2d8fa1e145f2d64@mail.gmail.com>
+Subject: Re: Afatech AF9013 DVB-T not working with mplayer radio streams
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Jelle de Jong <jelledejong@powercraft.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17 Jul, Henrik Kurelid wrote:
-[I wrote]
->> Shouldn't the three return statements in debug_fcp_opcode_flag_set be
->> 'return 0' rather than one?
-> I gave this some thought when I implemented it. These are "should not
-> happend"-situations where the drivers or hardware sends unknown/
-> unimplemented commands. Rather than making sure that they are never
-> seen in the logs I wanted them to always be logged (as long as some
-> debug logging is turned on) since they indicate driver/hw problems.
+On Thu, Jul 2, 2009 at 4:43 AM, Jelle de Jong<jelledejong@powercraft.nl> wrote:
+> Is there an other USB DVB-T device that works out of the box with the
+> 2.9.30 kernel? Could somebody show me a link or name of this device so I
+> can buy and test it?
 
-Ah, that's why.  Could be documented:
+You might want to check out the WinTV-Ministick, which is both
+currently available for sale and supported in Linux.
 
-static int debug_fcp_opcode_flag_set(unsigned int opcode,
-				     const u8 *data, int length)
-{
-	switch (opcode) {
-	case AVC_OPCODE_VENDOR:			break;
-	case AVC_OPCODE_READ_DESCRIPTOR:	return avc_debug & AVC_DEBUG_READ_DESCRIPTOR;
-	case AVC_OPCODE_DSIT:			return avc_debug & AVC_DEBUG_DSIT;
-	case AVC_OPCODE_DSD:			return avc_debug & AVC_DEBUG_DSD;
-	default:				goto unknown_opcode;
-	}
+http://www.hauppauge.co.uk/site/products/data_ministickhd.html
 
-	if (length < 7 ||
-	    data[3] != SFE_VENDOR_DE_COMPANYID_0 ||
-	    data[4] != SFE_VENDOR_DE_COMPANYID_1 ||
-	    data[5] != SFE_VENDOR_DE_COMPANYID_2)
-		goto unknown_opcode;
+Devin
 
-	switch (data[6]) {
-	case SFE_VENDOR_OPCODE_REGISTER_REMOTE_CONTROL:	return avc_debug & AVC_DEBUG_REGISTER_REMOTE_CONTROL;
-	case SFE_VENDOR_OPCODE_LNB_CONTROL:		return avc_debug & AVC_DEBUG_LNB_CONTROL;
-	case SFE_VENDOR_OPCODE_TUNE_QPSK:		return avc_debug & AVC_DEBUG_TUNE_QPSK;
-	case SFE_VENDOR_OPCODE_TUNE_QPSK2:		return avc_debug & AVC_DEBUG_TUNE_QPSK2;
-	case SFE_VENDOR_OPCODE_HOST2CA:			return avc_debug & AVC_DEBUG_HOST2CA;
-	case SFE_VENDOR_OPCODE_CA2HOST:			return avc_debug & AVC_DEBUG_CA2HOST;
-	}
-
-unknown_opcode:  /* should never happen, log it */
-	return 1;
-}
-
-
-By the way, from here it looks as if your MUA converted tabs to spaces.
-In your other patch too.
 -- 
-Stefan Richter
--=====-==--= -=== =---=
-http://arcgraph.de/sr/
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
