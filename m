@@ -1,264 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fmmailgate03.web.de ([217.72.192.234]:54859 "EHLO
-	fmmailgate03.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751739AbZGaUZ0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jul 2009 16:25:26 -0400
-Received: from smtp05.web.de (fmsmtp05.dlan.cinetic.de [172.20.4.166])
-	by fmmailgate03.web.de (Postfix) with ESMTP id 2B3A410938B81
-	for <linux-media@vger.kernel.org>; Fri, 31 Jul 2009 22:25:26 +0200 (CEST)
-Received: from [217.228.167.87] (helo=[172.16.99.2])
-	by smtp05.web.de with asmtp (TLSv1:AES256-SHA:256)
-	(WEB.DE 4.110 #277)
-	id 1MWyfN-0002zG-00
-	for linux-media@vger.kernel.org; Fri, 31 Jul 2009 22:25:25 +0200
-Message-ID: <4A735330.1000406@magic.ms>
-Date: Fri, 31 Jul 2009 22:25:20 +0200
-From: emagick@magic.ms
+Received: from outmailhost.telefonica.net ([213.4.149.242]:29626 "EHLO
+	ctsmtpout1.frontal.correo" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753018AbZGBPsa convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Jul 2009 11:48:30 -0400
+Received: from Inbox (80.27.35.194) by ctsmtpout1.frontal.correo (7.2.056.6) (authenticated as dcrypt$telefonica.net)
+        id 4A420A42001829C6 for linux-media@vger.kernel.org; Thu, 2 Jul 2009 17:42:39 +0200
+Message-ID: <4A420A42001829C6@ctsmtpout1.frontal.correo> (added by
+	    postmaster@telefonica.net)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Patch for  stack/DMA problems in Cinergy T2 drivers (2)
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+content-class: 
+From: dCrypt <dcrypt@telefonica.net>
+Subject: RE: [linux-dvb] Pinnacle dual Hybrid pro PCI-express - linuxTV!
+Date: Thu, 2 Jul 2009 17:42:34 +0200
+To: <linux-media@vger.kernel.org>
+Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Here's a patch for cinergyT2-core.c:
+Nobody has answered my question yet, I am still waiting to know how to enable 3010i in linux
 
---- a/drivers/media/dvb/dvb-usb/cinergyT2-fe.c	2009-06-10 05:05:27.000000000 +0200
-+++ b/drivers/media/dvb/dvb-usb/cinergyT2-fe.c	2009-07-31 22:02:48.000000000 +0200
-@@ -146,66 +146,103 @@
-  					fe_status_t *status)
-  {
-  	struct cinergyt2_fe_state *state = fe->demodulator_priv;
--	struct dvbt_get_status_msg result;
--	u8 cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
-+	struct dvbt_get_status_msg *result;
-+	static const u8 cmd0[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
-+        u8 *cmd;
-  	int ret;
+----- Mensaje original -----
+De: Matt <mattmoran76@gmail.com>
+Enviado: jueves, 02 de julio de 2009 17:26
+Para: linux-media@vger.kernel.org
+CC: linux-dvb@linuxtv.org
+Asunto: Re: [linux-dvb] Pinnacle dual Hybrid pro PCI-express - linuxTV!
 
--	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (u8 *)&result,
--			sizeof(result), 0);
--	if (ret < 0)
-+        cmd = kmalloc(sizeof(cmd0), GFP_KERNEL);
-+        if (!cmd) return -ENOMEM;
-+        memcpy(cmd, cmd0, sizeof(cmd0));
-+        result = kmalloc(sizeof(*result), GFP_KERNEL);
-+        if (!result) {
-+                kfree(cmd);
-+                return -ENOMEM;
-+        }
-+	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd0), (u8 *)result,
-+			sizeof(*result), 0);
-+        kfree(cmd);
-+	if (ret < 0) {
-+                kfree(result);
-  		return ret;
-+        }
+Hi,
 
-  	*status = 0;
+Is this thread saying that the Pinnacle 3010i is now supported under
+linux? if so does this go for the Pinnacle 7010i too?
 
--	if (0xffff - le16_to_cpu(result.gain) > 30)
-+	if (0xffff - le16_to_cpu(result->gain) > 30)
-  		*status |= FE_HAS_SIGNAL;
--	if (result.lock_bits & (1 << 6))
-+	if (result->lock_bits & (1 << 6))
-  		*status |= FE_HAS_LOCK;
--	if (result.lock_bits & (1 << 5))
-+	if (result->lock_bits & (1 << 5))
-  		*status |= FE_HAS_SYNC;
--	if (result.lock_bits & (1 << 4))
-+	if (result->lock_bits & (1 << 4))
-  		*status |= FE_HAS_CARRIER;
--	if (result.lock_bits & (1 << 1))
-+	if (result->lock_bits & (1 << 1))
-  		*status |= FE_HAS_VITERBI;
+Thanks,
 
-  	if ((*status & (FE_HAS_CARRIER | FE_HAS_VITERBI | FE_HAS_SYNC)) !=
-  			(FE_HAS_CARRIER | FE_HAS_VITERBI | FE_HAS_SYNC))
-  		*status &= ~FE_HAS_LOCK;
+Matt
 
-+        kfree(result);
-  	return 0;
-  }
+2009/3/27 dCrypt <dcrypt@telefonica.net>:
+> Hi,
+>
+> I also own a pair of Pinnacle 3010ix.
+>
+> Luca, where should the PCI ID go? I can't believe that adding a new card to
+> the supported card list is just that simple. Do you know a web page with
+> information about it?.
+>
+> Thanks
+>
+> -----Mensaje original-----
+> De: linux-dvb-bounces@linuxtv.org [mailto:linux-dvb-bounces@linuxtv.org] En
+> nombre de Luca Tettamanti
+> Enviado el: jueves, 15 de enero de 2009 16:44
+> Para: Catimimi
+> CC: linux-dvb@linuxtv.org; Linux-media
+> Asunto: Re: [linux-dvb] Pinnacle dual Hybrid pro PCI-express - linuxTV!
+>
+> On Wed, Jan 14, 2009 at 10:28 AM, Catimimi <catimimi@libertysurf.fr> wrote:
+>> try without the ".ko", i.e. instead, use:
+>>
+>> modprobe saa716x_hybrid
+>>
+>> OK, shame on me, it works but nothing happens.
+>
+> Of course ;-) The PCI ID of the card is not listed. I happen to have
+> the same card, you can add the ID to the list but note that the
+> frontend is not there yet... so the module will load, will print some
+> something... and that's it.
+> I have a couple of patches queued and I plan to do some
+> experimentation in the weekend though ;)
+>
+> Luca
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
-  static int cinergyt2_fe_read_ber(struct dvb_frontend *fe, u32 *ber)
-  {
-  	struct cinergyt2_fe_state *state = fe->demodulator_priv;
--	struct dvbt_get_status_msg status;
--	char cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
-+	struct dvbt_get_status_msg *status;
-+	static const u8 cmd0[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
-+        u8 *cmd;
-  	int ret;
-
--	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (char *)&status,
--				sizeof(status), 0);
--	if (ret < 0)
-+        cmd = kmalloc(sizeof(cmd0), GFP_KERNEL);
-+        if (!cmd) return -ENOMEM;
-+        memcpy(cmd, cmd0, sizeof(cmd0));
-+        status = kmalloc(sizeof(*status), GFP_KERNEL);
-+        if (!status) {
-+                kfree(cmd);
-+                return -ENOMEM;
-+        }
-+	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd0), (char *)status,
-+				sizeof(*status), 0);
-+        kfree(cmd);
-+	if (ret < 0) {
-+                kfree(status);
-  		return ret;
--
--	*ber = le32_to_cpu(status.viterbi_error_rate);
-+        }
-+	*ber = le32_to_cpu(status->viterbi_error_rate);
-+        kfree(status);
-  	return 0;
-  }
-
-  static int cinergyt2_fe_read_unc_blocks(struct dvb_frontend *fe, u32 *unc)
-  {
-  	struct cinergyt2_fe_state *state = fe->demodulator_priv;
--	struct dvbt_get_status_msg status;
--	u8 cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
-+	struct dvbt_get_status_msg *status;
-+	static const u8 cmd0[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
-+        u8 *cmd;
-  	int ret;
-
--	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (u8 *)&status,
--				sizeof(status), 0);
-+        cmd = kmalloc(sizeof(cmd0), GFP_KERNEL);
-+        if (!cmd) return -ENOMEM;
-+        memcpy(cmd, cmd0, sizeof(cmd0));
-+        status = kmalloc(sizeof(*status), GFP_KERNEL);
-+        if (!status) {
-+                kfree(cmd);
-+                return -ENOMEM;
-+        }
-+	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd0), (u8 *)status,
-+				sizeof(*status), 0);
-+        kfree(cmd);
-  	if (ret < 0) {
-+                kfree(status);
-  		err("cinergyt2_fe_read_unc_blocks() Failed! (Error=%d)\n",
-  			ret);
-  		return ret;
-  	}
--	*unc = le32_to_cpu(status.uncorrected_block_count);
-+	*unc = le32_to_cpu(status->uncorrected_block_count);
-+        kfree(status);
-  	return 0;
-  }
-
-@@ -213,35 +250,59 @@
-  						u16 *strength)
-  {
-  	struct cinergyt2_fe_state *state = fe->demodulator_priv;
--	struct dvbt_get_status_msg status;
--	char cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
-+	struct dvbt_get_status_msg *status;
-+	static const u8 cmd0[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
-+        u8 *cmd;
-  	int ret;
-
--	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (char *)&status,
--				sizeof(status), 0);
-+        cmd = kmalloc(sizeof(cmd0), GFP_KERNEL);
-+        if (!cmd) return -ENOMEM;
-+        memcpy(cmd, cmd0, sizeof(cmd0));
-+        status = kmalloc(sizeof(*status), GFP_KERNEL);
-+        if (!status) {
-+                kfree(cmd);
-+                return -ENOMEM;
-+        }
-+	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd0), (char *)status,
-+				sizeof(*status), 0);
-+        kfree(cmd);
-  	if (ret < 0) {
-+                kfree(status);
-  		err("cinergyt2_fe_read_signal_strength() Failed!"
-  			" (Error=%d)\n", ret);
-  		return ret;
-  	}
--	*strength = (0xffff - le16_to_cpu(status.gain));
-+	*strength = (0xffff - le16_to_cpu(status->gain));
-+        kfree(status);
-  	return 0;
-  }
-
-  static int cinergyt2_fe_read_snr(struct dvb_frontend *fe, u16 *snr)
-  {
-  	struct cinergyt2_fe_state *state = fe->demodulator_priv;
--	struct dvbt_get_status_msg status;
--	char cmd[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
-+	struct dvbt_get_status_msg *status;
-+	static const u8 cmd0[] = { CINERGYT2_EP1_GET_TUNER_STATUS };
-+        u8 *cmd;
-  	int ret;
-
--	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd), (char *)&status,
--				sizeof(status), 0);
-+        cmd = kmalloc(sizeof(cmd0), GFP_KERNEL);
-+        if (!cmd) return -ENOMEM;
-+        memcpy(cmd, cmd0, sizeof(cmd0));
-+        status = kmalloc(sizeof(*status), GFP_KERNEL);
-+        if (!status) {
-+                kfree(cmd);
-+                return -ENOMEM;
-+        }
-+	ret = dvb_usb_generic_rw(state->d, cmd, sizeof(cmd0), (char *)status,
-+				sizeof(*status), 0);
-+        kfree(cmd);
-  	if (ret < 0) {
-+                kfree(status);
-  		err("cinergyt2_fe_read_snr() Failed! (Error=%d)\n", ret);
-  		return ret;
-  	}
--	*snr = (status.snr << 8) | status.snr;
-+	*snr = (status->snr << 8) | status->snr;
-+        kfree(status);
-  	return 0;
-  }
-
-@@ -267,19 +328,27 @@
-  				  struct dvb_frontend_parameters *fep)
-  {
-  	struct cinergyt2_fe_state *state = fe->demodulator_priv;
--	struct dvbt_set_parameters_msg param;
--	char result[2];
-+        struct dvbt_set_parameters_msg *param;
-+        char *result;
-  	int err;
-
--	param.cmd = CINERGYT2_EP1_SET_TUNER_PARAMETERS;
--	param.tps = cpu_to_le16(compute_tps(fep));
--	param.freq = cpu_to_le32(fep->frequency / 1000);
--	param.bandwidth = 8 - fep->u.ofdm.bandwidth - BANDWIDTH_8_MHZ;
--
-+        param = kmalloc(sizeof(*param), GFP_KERNEL);
-+        if (!param) return -ENOMEM;
-+	param->cmd = CINERGYT2_EP1_SET_TUNER_PARAMETERS;
-+	param->tps = cpu_to_le16(compute_tps(fep));
-+	param->freq = cpu_to_le32(fep->frequency / 1000);
-+	param->bandwidth = 8 - fep->u.ofdm.bandwidth - BANDWIDTH_8_MHZ;
-+        result = kmalloc(2, GFP_KERNEL);
-+        if (!result) {
-+                kfree(param);
-+                return -ENOMEM;
-+        }
-  	err = dvb_usb_generic_rw(state->d,
--			(char *)&param, sizeof(param),
--			result, sizeof(result), 0);
--	if (err < 0)
-+			(char *)param, sizeof(*param),
-+                        result, 2, 0);
-+        kfree(param);
-+        kfree(result);
-+        if (err < 0)
-  		err("cinergyt2_fe_set_frontend() Failed! err=%d\n", err);
-
-  	return (err < 0) ? err : 0;
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
