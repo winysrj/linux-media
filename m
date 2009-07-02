@@ -1,77 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1398 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753065AbZG2HcA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jul 2009 03:32:00 -0400
-Message-ID: <10799.62.70.2.252.1248852719.squirrel@webmail.xs4all.nl>
-Date: Wed, 29 Jul 2009 09:31:59 +0200 (CEST)
-Subject: Re: How to save number of times using memcpy?
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Laurent Pinchart" <laurent.pinchart@skynet.be>
-Cc: "Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	"v4l2_linux" <linux-media@vger.kernel.org>,
-	"Dongsoo Kim" <dongsoo45.kim@samsung.com>,
-	=?iso-8859-1?Q?=EB=B0=95=EA=B2=BD=EB=AF=BC?=
-	<kyungmin.park@samsung.com>, jm105.lee@samsung.com,
-	=?iso-8859-1?Q?=EC=9D=B4=EC=84=B8=EB=AC=B8?=
-	<semun.lee@samsung.com>,
-	=?iso-8859-1?Q?=EB=8C=80=EC=9D=B8=EA=B8=B0?= <inki.dae@samsung.com>,
-	=?iso-8859-1?Q?=EA=B9=80=ED=98=95=EC=A4=80?=
-	<riverful.kim@samsung.com>
-MIME-Version: 1.0
+Received: from bombadil.infradead.org ([18.85.46.34]:46453 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751044AbZGBRXH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jul 2009 13:23:07 -0400
+Date: Thu, 2 Jul 2009 14:23:01 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Patch: Schedule obsolete v4l1 quickcam_messenger and ov511
+ drivers for removal
+Message-ID: <20090702142301.718d26e7@pedra.chehab.org>
+In-Reply-To: <4A40BEFA.1030404@redhat.com>
+References: <4A40BEFA.1030404@redhat.com>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
-> On Wednesday 29 July 2009 05:55:51 Mauro Carvalho Chehab wrote:
->> Em Wed, 29 Jul 2009 12:30:19 +0900
->>
->> "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com> escreveu:
->> > Sorry my bad. I missed something very important to explain my issue
->> > clear. The thing is, I want to reserve specific amount of continuous
->> > physical memory on machine initializing time. Therefor some multimedia
->> > peripherals can be using this memory area exclusively.
->> > That's what I was afraid of could not being adopted in main line
->> kernel.
->>
->> In the past, some drivers used to do that, but this is also a source
->> of problems, especially with general-purpose machines, where you're
->> loosing
->> memory that could otherwise be used by something else. I never tried to
->> get
->> the details, but I think the strategy were to pass a parameter during
->> kernel boot, for it to reserve some amount of memory that would later be
->> claimed by the V4L device.
->
-> It's actually a pretty common strategy for embedded hardware (the
-> "general-
-> purpose machine" case doesn't - for now - make much sense on an OMAP
-> processor
-> for instance). A memory chunk would be reserved at boot time at the end of
-> the
-> physical memory by passing the mem= parameter to the kernel. Video
-> applications would then mmap() /dev/mem to access that memory (I'd have to
-> check the details on that one, that's from my memory), and pass the
-> pointer
-> the the v4l2 driver using userptr I/O. This requires root privileges, and
-> people usually don't care about that when the final application is a
-> camera
-> (usually embedded in some device like a media player, an IP camera, ...).
+Em Tue, 23 Jun 2009 13:39:38 +0200
+Hans de Goede <hdegoede@redhat.com> escreveu:
 
-True. However, my experience is that this approach isn't needed in most
-cases as long as the v4l driver is compiled into the kernel. In that case
-it is called early enough in the boot sequence that there is still enough
-unfragmented memory available. This should definitely be the default case
-for drivers merged into v4l-dvb.
+> Schedule obsolete v4l1 quickcam_messenger and ov511 drivers for removal
+> 
 
-Regards,
+It would be better to add the "Files:" field to explicitly indicate what files
+will be removed, like the modified version of your patch. Please check if those
+are the files you're meaning to remove:
 
-        Hans
+---
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+From: Hans de Goede <hdegoede@redhat.com>
 
+Schedule obsolete v4l1 quickcam_messenger and ov511 drivers for removal
+
+[mchehab@redhat.com: add the files: tag to indicate what will be removed]
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
+index f8cd450..8a8c045 100644
+--- a/Documentation/feature-removal-schedule.txt
++++ b/Documentation/feature-removal-schedule.txt
+@@ -458,3 +458,19 @@ Why:	Remove the old legacy 32bit machine check code. This has been
+ 	but the old version has been kept around for easier testing. Note this
+ 	doesn't impact the old P5 and WinChip machine check handlers.
+ Who:	Andi Kleen <andi@firstfloor.org>
++
++----------------------------
++
++What:	usbvideo quickcam_messenger driver
++When:	2.6.32
++Why:	obsolete v4l1 driver replaced by gspca_stv06xx
++Who:	Hans de Goede <hdegoede@redhat.com>
++Files:	drivers/media/video/c-qcam.c drivers/media/video/bw-qcam.c
++
++----------------------------
++
++What:	ov511 v4l1 driver
++When:	2.6.32
++Why:	obsolete v4l1 driver replaced by gspca_ov519
++Who:	Hans de Goede <hdegoede@redhat.com>
++Files:	drivers/media/video/ov511.[ch]
+
+
+
+
+Cheers,
+Mauro
