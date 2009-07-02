@@ -1,14 +1,14 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from web23806.mail.ird.yahoo.com ([87.248.115.79])
-	by mail.linuxtv.org with smtp (Exim 4.63)
-	(envelope-from <diegicweb@yahoo.es>) id 1MStw6-0001ZF-8h
-	for linux-dvb@linuxtv.org; Mon, 20 Jul 2009 16:33:51 +0200
-Message-ID: <420792.31511.qm@web23806.mail.ird.yahoo.com>
-Date: Mon, 20 Jul 2009 14:33:16 +0000 (GMT)
-From: =?iso-8859-1?Q?Diego_P=E9rez_Hern=E1ndez?= <diegicweb@yahoo.es>
-To: linux-dvb@linuxtv.org
+Received: from mail.cooptel.qc.ca ([216.144.115.12] helo=amy.cooptel.qc.ca)
+	by mail.linuxtv.org with esmtp (Exim 4.63)
+	(envelope-from <rlemieu@cooptel.qc.ca>) id 1MMLj5-0001vg-6R
+	for linux-dvb@linuxtv.org; Thu, 02 Jul 2009 14:49:19 +0200
+Message-ID: <4A4CACAA.5060204@cooptel.qc.ca>
+Date: Thu, 02 Jul 2009 08:48:42 -0400
+From: Richard Lemieux <rlemieu@cooptel.qc.ca>
 MIME-Version: 1.0
-Subject: [linux-dvb] some technical help please!!!
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] kernel configuration: CX88 and RealTime kernel rt22.
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,24 +23,49 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+Hi,
 
-Hello linux-dvb friends!
+I applied patch-2.6.29.5-rt22.bz2 to a copy of my running 2.6.29.5
+kernel and I find that this removes support for CX88.  This is
+my first attempt at compiling/using the real-time kernel.
 
-I'm a spanish programmer, working now with Eclipse C/C++ and a tuner card (AVerTV DVB-T Volar).
+Just running 'menuconfig' without selecting other option purges
+CX88_DVB from the .config file.
 
-I'm using the functions described in DVB-API version 3 which I downloaded, and several obstacles are appearing while programming software which manages the mentioned card.
+pc3:/sa107/wa_rlx/linux-2.6.29.5-rt22$ cp /c/boot/sa103/config-2.6.29.5 .config
+pc3:/sa107/wa_rlx/linux-2.6.29.5-rt22$ grep CX88 .config
+CONFIG_VIDEO_CX88=m
+CONFIG_VIDEO_CX88_ALSA=m
+# CONFIG_VIDEO_CX88_BLACKBIRD is not set
+CONFIG_VIDEO_CX88_DVB=m
+CONFIG_VIDEO_CX88_MPEG=m
+CONFIG_VIDEO_CX88_VP3054=m
+pc3:/sa107/wa_rlx/linux-2.6.29.5-rt22$ make menuconfig
+scripts/kconfig/mconf arch/x86/Kconfig
+#
+# configuration written to .config
+#
 
-In particular I have problems with the function ioctl, in particular with its cases FE_GET_EVENT and SET_FRONTEND (they return error value, -1, while in other cases like READ_SNR, READ_BER, etc, everything works).
 
-I'm sure that my call to the functions (and the rest of the code) is alright but I never get the event, although the signal in my laboratory is more than enough.
+*** End of Linux kernel configuration.
+*** Execute 'make' to build the kernel or try 'make help'.
 
-I have tried everything I could imagine and now I'm bogged down.
-Have any of you worked in the same conditions? I would be very pleased to receive any help, suggestions, advice, whatever...
-
-Thank you very much!!
+pc3:/sa107/wa_rlx/linux-2.6.29.5-rt22$ grep CX88 .config
+pc3:/sa107/wa_rlx/linux-2.6.29.5-rt22$
 
 
-      
+All symbols with CX88 have disappeared from the .config file.
+
+Trying menuconfig and xconfig, both seem to know about CX88_DVB
+but there is no way to find 'Conexant 2388x' driver.
+
+Was this intended by the CX88 team or is it just just an error from
+the real-time team?  This is not that I absolutely need the realtime
+kernel, but I am just curious, and a number applications including
+'jack' would be happier with it.
+
+
+Richard
 
 _______________________________________________
 linux-dvb users mailing list
