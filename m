@@ -1,66 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay01.cambriumhosting.nl ([217.19.16.173]:40556 "EHLO
-	relay01.cambriumhosting.nl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753334AbZGKKb5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jul 2009 06:31:57 -0400
-Message-ID: <4A586A1A.3000501@powercraft.nl>
-Date: Sat, 11 Jul 2009 12:31:54 +0200
-From: Jelle de Jong <jelledejong@powercraft.nl>
+Received: from ppsw-7.csi.cam.ac.uk ([131.111.8.137]:38105 "EHLO
+	ppsw-7.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756777AbZGCTAy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jul 2009 15:00:54 -0400
+Message-ID: <4A4E5526.5040304@cam.ac.uk>
+Date: Fri, 03 Jul 2009 18:59:50 +0000
+From: Jonathan Cameron <jic23@cam.ac.uk>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Afatech AF9013 DVB-T not working with mplayer radio streams
-References: <4A4481AC.4050302@powercraft.nl> <4A4D34B3.8050605@iki.fi>	 <4A4E2B45.8080607@powercraft.nl>	 <829197380907091805h10bcf548kbf5435feeb30e067@mail.gmail.com>	 <4A572F7E.6010701@iki.fi> <829197380907100816o4a3daa22k78a424da5bebed1e@mail.gmail.com> <4A57AEC9.9040602@iki.fi> <4A57CA85.8090407@iki.fi>
-In-Reply-To: <4A57CA85.8090407@iki.fi>
-Content-Type: text/plain; charset=UTF-8
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: soc-camera: status, roadmap
+References: <Pine.LNX.4.64.0906101802450.4817@axis700.grange> <Pine.LNX.4.64.0906171458380.4218@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.0906171458380.4218@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Antti Palosaari wrote:
-> Hei Devin and Jelle,
+Guennadi Liakhovetski wrote:
+> On Wed, 10 Jun 2009, Guennadi Liakhovetski wrote:
 > 
-> On 07/11/2009 12:12 AM, Antti Palosaari wrote:
->>> I'm not the maintainer for this demod, so I'm not the best person to
->>> make such a fix. I spent four hours and debugged the issue as a favor
->>> to Jelle de Jong since he loaned me some hardware a couple of months
->>> ago. I guess I can make the fix, but it's just going to take away
->>> from time better spent on things I am more qualified to work on.
->>>
->>> Devin
->> I will fix that just right now. I think I will change demodulator from
->> "return error invalid value" to "force detect transmission parameters
->> automatically" in case of broken parameters given.
+>> 2. The above means, I'll have to maintain and update my patches for a 
+>> whole 2.6.31 development cycle. In this time I'll try to update and upload 
+>> them as a quilt patch series and announce it on the list a couple of 
+>> times.
 > 
-> It is fixed now as I see best way.
-> 
-> For reason or other my MPlayer didn't give garbage and I never seen any 
-> of those debugs added. I added just similar channels.conf line as Jelle 
-> but changed freq and PIDs used here. Maybe garbage fields are filled "0" 
-> which corresponds AUTO.
-> Anyhow, here it is. Could you test?
-> http://linuxtv.org/hg/~anttip/af9013/
-> 
-> regards
-> Antti
+> As promised, I just uploaded my current tree snapshot at 
+> http://download.open-technology.de/soc-camera/20090617/
+> This is nothing remarkable, just my current patch-stack for those working 
+> with the soc-camera framework. It is still based on a linux-next snapshot 
+> of 07.05.2009 "history" branch. The exact commit on which the stack is 
+> based is, as usual, in 0000-base. This is still based off 2.6.30-rc4, and 
+> I expect to upgrade next time after 2.6.31-rc1.
+>
+Hi Guennadi, 
 
-I tried to test it but it did not work, i tried to get some more
-information with printk i am sure but not much luck there. Al test where
-done on the test system, you can login and see for yourself.
+I notice you've posted newer version of these patches on your website. 20090701/
+I was wondering what tree these are based on?
+I can't seem to track down the base commit.
 
-Best regards,
+Thanks,
 
-Jelle
-
-cd
-hg clone http://linuxtv.org/hg/~anttip/af9013/
-cd af9013/
-make -j3
-sudo make install
-sudo make unload
-sudo modprobe dvb_usb_af9015
-mplayer -nolirc -nojoystick -dvbin card=1 -dvbin timeout=10
-dvb://"3FM(Digitenne)"
-# did not work
+Jonathan
