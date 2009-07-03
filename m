@@ -1,192 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f226.google.com ([209.85.219.226]:34295 "EHLO
-	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753185AbZG2AT3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jul 2009 20:19:29 -0400
-Received: by ewy26 with SMTP id 26so460164ewy.37
-        for <linux-media@vger.kernel.org>; Tue, 28 Jul 2009 17:19:29 -0700 (PDT)
-Subject: Patch: Kaiser Baas ExpressCard Dual HD Tuner
-From: James A Webb <jamesawebb@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-IkhWRI5/kIJ960PSGza2"
-Date: Wed, 29 Jul 2009 10:19:20 +1000
-Message-Id: <1248826760.3148.14.camel@cobra.jamesawebb.dyndns.org>
-Mime-Version: 1.0
+Received: from mail.gmx.net ([213.165.64.20]:40940 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1758209AbZGCTUU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Jul 2009 15:20:20 -0400
+Date: Fri, 3 Jul 2009 21:20:20 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Jonathan Cameron <jic23@cam.ac.uk>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: soc-camera: status, roadmap
+In-Reply-To: <4A4E5526.5040304@cam.ac.uk>
+Message-ID: <Pine.LNX.4.64.0907032119320.25247@axis700.grange>
+References: <Pine.LNX.4.64.0906101802450.4817@axis700.grange>
+ <Pine.LNX.4.64.0906171458380.4218@axis700.grange> <4A4E5526.5040304@cam.ac.uk>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Fri, 3 Jul 2009, Jonathan Cameron wrote:
 
---=-IkhWRI5/kIJ960PSGza2
-Content-Type: multipart/mixed; boundary="=-wiQ7wBP4xfasyc6MBVLW"
+> Guennadi Liakhovetski wrote:
+> > On Wed, 10 Jun 2009, Guennadi Liakhovetski wrote:
+> > 
+> >> 2. The above means, I'll have to maintain and update my patches for a 
+> >> whole 2.6.31 development cycle. In this time I'll try to update and upload 
+> >> them as a quilt patch series and announce it on the list a couple of 
+> >> times.
+> > 
+> > As promised, I just uploaded my current tree snapshot at 
+> > http://download.open-technology.de/soc-camera/20090617/
+> > This is nothing remarkable, just my current patch-stack for those working 
+> > with the soc-camera framework. It is still based on a linux-next snapshot 
+> > of 07.05.2009 "history" branch. The exact commit on which the stack is 
+> > based is, as usual, in 0000-base. This is still based off 2.6.30-rc4, and 
+> > I expect to upgrade next time after 2.6.31-rc1.
+> >
+> Hi Guennadi, 
+> 
+> I notice you've posted newer version of these patches on your website. 20090701/
+> I was wondering what tree these are based on?
+> I can't seem to track down the base commit.
 
+It has been announced here:
 
---=-wiQ7wBP4xfasyc6MBVLW
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/7492/focus=7534
 
-Hi.
-
-I'm new to the list - please bear with me.
-
-I've spent some time getting a recently purchased Kaiser Baas
-ExpressCard Dual HD Tuner working with MythTV.  I ended up patching some
-of the dib0700 work.  I'd like to submit the patches back to the
-community.
-
-Cheers.
-
---=20
-James A Webb
-
-Ph.  +61 (3) 9015 7807                        10 Dickens St, Blackburn
-Ph.  +64 (9)  889 0807                                   Victoria 3130
-Mob. +61 (40) 525 7807                                       Australia
-
---=-wiQ7wBP4xfasyc6MBVLW
-Content-Disposition: attachment; filename="dib0700_devices.c.patch"
-Content-Transfer-Encoding: base64
-Content-Type: text/x-patch; name="dib0700_devices.c.patch"; charset="UTF-8"
-
-LS0tIGxpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZGliMDcwMF9kZXZpY2VzLmMJMjAw
-OS0wNy0yNSAwNzo0Nzo1MS4wMDAwMDAwMDAgKzEwMDANCisrKyBkaWIwNzAwX2RldmljZXMuYwky
-MDA5LTA3LTI4IDE2OjMxOjQ3LjA1MzMyNzE1OSArMTAwMA0KQEAgLTE0NTYsNiArMTQ1Niw3IEBA
-DQogICAgICAgICAgICAgICAgICAgICAgICAgVVNCX1BJRF9URVJSQVRFQ19DSU5FUkdZX0RUX1hT
-X0RJVkVSU0lUWSkgfSwNCiAgICAgICAgIHsgVVNCX0RFVklDRShVU0JfVklEX0hBVVBQQVVHRSwg
-VVNCX1BJRF9IQVVQUEFVR0VfTk9WQV9URF9TVElDSykgfSwNCiAgICAgICAgIHsgVVNCX0RFVklD
-RShVU0JfVklEX0RJQkNPTSwgICAgVVNCX1BJRF9ESUJDT01fU1RLNzcwMEQpIH0sDQorICAgICAg
-ICB7IFVTQl9ERVZJQ0UoVVNCX1ZJRF9ZVUFOLCAgICAgIFVTQl9QSURfRElCQ09NX1NUSzc3MDBE
-WSkgfSwNCiAvKiAxNSAqL3sgVVNCX0RFVklDRShVU0JfVklEX0RJQkNPTSwgICAgVVNCX1BJRF9E
-SUJDT01fU1RLNzA3MFApIH0sDQogICAgICAgICB7IFVTQl9ERVZJQ0UoVVNCX1ZJRF9QSU5OQUNM
-RSwgIFVTQl9QSURfUElOTkFDTEVfUENUVl9EVkJfVF9GTEFTSCkgfSwNCiAgICAgICAgIHsgVVNC
-X0RFVklDRShVU0JfVklEX0RJQkNPTSwgICAgVVNCX1BJRF9ESUJDT01fU1RLNzA3MFBEKSB9LA0K
-
-
-
---=-wiQ7wBP4xfasyc6MBVLW
-Content-Disposition: attachment; filename="dmesg.txt"
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; name="dmesg.txt"; charset="UTF-8"
-
-dXNiIDEtMjogbmV3IGhpZ2ggc3BlZWQgVVNCIGRldmljZSB1c2luZyBlaGNpX2hjZCBhbmQgYWRk
-cmVzcyA0DQp1c2IgMS0yOiBOZXcgVVNCIGRldmljZSBmb3VuZCwgaWRWZW5kb3I9MTE2NCwgaWRQ
-cm9kdWN0PTFlOGMNCnVzYiAxLTI6IE5ldyBVU0IgZGV2aWNlIHN0cmluZ3M6IE1mcj0xLCBQcm9k
-dWN0PTIsIFNlcmlhbE51bWJlcj0zDQp1c2IgMS0yOiBQcm9kdWN0OiBTVEs3NzAwRA0KdXNiIDEt
-MjogTWFudWZhY3R1cmVyOiBZVUFOUkQNCnVzYiAxLTI6IFNlcmlhbE51bWJlcjogMDAwMDAwMDAw
-MQ0KdXNiIDEtMjogY29uZmlndXJhdGlvbiAjMSBjaG9zZW4gZnJvbSAxIGNob2ljZQ0KZGliMDcw
-MDogbG9hZGVkIHdpdGggc3VwcG9ydCBmb3IgOSBkaWZmZXJlbnQgZGV2aWNlLXR5cGVzDQpkdmIt
-dXNiOiBmb3VuZCBhICdEaUJjb20gU1RLNzA3MFAgcmVmZXJlbmNlIGRlc2lnbicgaW4gY29sZCBz
-dGF0ZSwgd2lsbCB0cnkgdG8gbG9hZCBhIGZpcm13YXJlDQp1c2IgMS0yOiBmaXJtd2FyZTogcmVx
-dWVzdGluZyBkdmItdXNiLWRpYjA3MDAtMS4yMC5mdw0KZHZiLXVzYjogZG93bmxvYWRpbmcgZmly
-bXdhcmUgZnJvbSBmaWxlICdkdmItdXNiLWRpYjA3MDAtMS4yMC5mdycNCmRpYjA3MDA6IGZpcm13
-YXJlIHN0YXJ0ZWQgc3VjY2Vzc2Z1bGx5Lg0KZHZiLXVzYjogZm91bmQgYSAnRGlCY29tIFNUSzcw
-NzBQIHJlZmVyZW5jZSBkZXNpZ24nIGluIHdhcm0gc3RhdGUuDQpkdmItdXNiOiB3aWxsIHBhc3Mg
-dGhlIGNvbXBsZXRlIE1QRUcyIHRyYW5zcG9ydCBzdHJlYW0gdG8gdGhlIHNvZnR3YXJlIGRlbXV4
-ZXIuDQpEVkI6IHJlZ2lzdGVyaW5nIG5ldyBhZGFwdGVyIChEaUJjb20gU1RLNzA3MFAgcmVmZXJl
-bmNlIGRlc2lnbikNCkRWQjogcmVnaXN0ZXJpbmcgYWRhcHRlciAwIGZyb250ZW5kIDAgKERpQmNv
-bSA3MDAwUEMpLi4uDQpEaUIwMDcwOiBzdWNjZXNzZnVsbHkgaWRlbnRpZmllZA0KaW5wdXQ6IElS
-LXJlY2VpdmVyIGluc2lkZSBhbiBVU0IgRFZCIHJlY2VpdmVyIGFzIC9kZXZpY2VzL3BjaTAwMDA6
-MDAvMDAwMDowMDoxYS43L3VzYjEvMS0yL2lucHV0L2lucHV0MTcNCmR2Yi11c2I6IHNjaGVkdWxl
-IHJlbW90ZSBxdWVyeSBpbnRlcnZhbCB0byA1MCBtc2Vjcy4NCmR2Yi11c2I6IERpQmNvbSBTVEs3
-MDcwUCByZWZlcmVuY2UgZGVzaWduIHN1Y2Nlc3NmdWxseSBpbml0aWFsaXplZCBhbmQgY29ubmVj
-dGVkLg0KdXNiY29yZTogcmVnaXN0ZXJlZCBuZXcgaW50ZXJmYWNlIGRyaXZlciBkdmJfdXNiX2Rp
-YjA3MDANCg==
-
-
---=-wiQ7wBP4xfasyc6MBVLW
-Content-Disposition: attachment; filename="dvb-usb-ids.h.patch"
-Content-Transfer-Encoding: base64
-Content-Type: text/x-patch; name="dvb-usb-ids.h.patch"; charset="UTF-8"
-
-LS0tIGxpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZHZiLXVzYi1pZHMuaAkyMDA5LTA3
-LTI1IDA3OjQ3OjUxLjAwMDAwMDAwMCArMTAwMA0KKysrIGR2Yi11c2ItaWRzLmgJMjAwOS0wNy0y
-OCAxNjozMTo0Ny4wNjYyODI1MTYgKzEwMDANCkBAIC05MCw2ICs5MCw3IEBADQogI2RlZmluZSBV
-U0JfUElEX0RJQkNPTV9TVEs3NzAwUCAgICAgICAgICAgICAgICAgICAgICAgICAweDFlMTQNCiAj
-ZGVmaW5lIFVTQl9QSURfRElCQ09NX1NUSzc3MDBQX1BDICAgICAgICAgICAgICAgICAgICAgIDB4
-MWU3OA0KICNkZWZpbmUgVVNCX1BJRF9ESUJDT01fU1RLNzcwMEQgICAgICAgICAgICAgICAgICAg
-ICAgICAgMHgxZWYwDQorI2RlZmluZSBVU0JfUElEX0RJQkNPTV9TVEs3NzAwRFkgICAgICAgICAg
-ICAgICAgICAgICAgICAweDFlOGMNCiAjZGVmaW5lIFVTQl9QSURfRElCQ09NX1NUSzc3MDBfVTcw
-MDAgICAgICAgICAgICAgICAgICAgIDB4NzAwMQ0KICNkZWZpbmUgVVNCX1BJRF9ESUJDT01fU1RL
-NzA3MFAgICAgICAgICAgICAgICAgICAgICAgICAgMHgxZWJjDQogI2RlZmluZSBVU0JfUElEX0RJ
-QkNPTV9TVEs3MDcwUEQgICAgICAgICAgICAgICAgICAgICAgICAweDFlYmUNCg==
-
-
---=-wiQ7wBP4xfasyc6MBVLW
-Content-Disposition: attachment; filename="lsusb.txt"
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; name="lsusb.txt"; charset="UTF-8"
-
-QnVzIDAwMSBEZXZpY2UgMDA0OiBJRCAxMTY0OjFlOGMgWVVBTiBIaWdoLVRlY2ggRGV2ZWxvcG1l
-bnQgQ28uLCBMdGQgDQpEZXZpY2UgRGVzY3JpcHRvcjoNCiAgYkxlbmd0aCAgICAgICAgICAgICAg
-ICAxOA0KICBiRGVzY3JpcHRvclR5cGUgICAgICAgICAxDQogIGJjZFVTQiAgICAgICAgICAgICAg
-IDIuMDANCiAgYkRldmljZUNsYXNzICAgICAgICAgICAgMCAoRGVmaW5lZCBhdCBJbnRlcmZhY2Ug
-bGV2ZWwpDQogIGJEZXZpY2VTdWJDbGFzcyAgICAgICAgIDAgDQogIGJEZXZpY2VQcm90b2NvbCAg
-ICAgICAgIDAgDQogIGJNYXhQYWNrZXRTaXplMCAgICAgICAgNjQNCiAgaWRWZW5kb3IgICAgICAg
-ICAgIDB4MTE2NCBZVUFOIEhpZ2gtVGVjaCBEZXZlbG9wbWVudCBDby4sIEx0ZA0KICBpZFByb2R1
-Y3QgICAgICAgICAgMHgxZThjIA0KICBiY2REZXZpY2UgICAgICAgICAgICAxLjAwDQogIGlNYW51
-ZmFjdHVyZXIgICAgICAgICAgIDEgWVVBTlJEDQogIGlQcm9kdWN0ICAgICAgICAgICAgICAgIDIg
-U1RLNzcwMEQNCiAgaVNlcmlhbCAgICAgICAgICAgICAgICAgMyAwMDAwMDAwMDAxDQogIGJOdW1D
-b25maWd1cmF0aW9ucyAgICAgIDENCiAgQ29uZmlndXJhdGlvbiBEZXNjcmlwdG9yOg0KICAgIGJM
-ZW5ndGggICAgICAgICAgICAgICAgIDkNCiAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICAyDQog
-ICAgd1RvdGFsTGVuZ3RoICAgICAgICAgICA0Ng0KICAgIGJOdW1JbnRlcmZhY2VzICAgICAgICAg
-IDENCiAgICBiQ29uZmlndXJhdGlvblZhbHVlICAgICAxDQogICAgaUNvbmZpZ3VyYXRpb24gICAg
-ICAgICAgMCANCiAgICBibUF0dHJpYnV0ZXMgICAgICAgICAweGEwDQogICAgICAoQnVzIFBvd2Vy
-ZWQpDQogICAgICBSZW1vdGUgV2FrZXVwDQogICAgTWF4UG93ZXIgICAgICAgICAgICAgIDUwMG1B
-DQogICAgSW50ZXJmYWNlIERlc2NyaXB0b3I6DQogICAgICBiTGVuZ3RoICAgICAgICAgICAgICAg
-ICA5DQogICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA0DQogICAgICBiSW50ZXJmYWNlTnVt
-YmVyICAgICAgICAwDQogICAgICBiQWx0ZXJuYXRlU2V0dGluZyAgICAgICAwDQogICAgICBiTnVt
-RW5kcG9pbnRzICAgICAgICAgICA0DQogICAgICBiSW50ZXJmYWNlQ2xhc3MgICAgICAgMjU1IFZl
-bmRvciBTcGVjaWZpYyBDbGFzcw0KICAgICAgYkludGVyZmFjZVN1YkNsYXNzICAgICAgMCANCiAg
-ICAgIGJJbnRlcmZhY2VQcm90b2NvbCAgICAgIDAgDQogICAgICBpSW50ZXJmYWNlICAgICAgICAg
-ICAgICAwIA0KICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoNCiAgICAgICAgYkxlbmd0aCAgICAg
-ICAgICAgICAgICAgNw0KICAgICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1DQogICAgICAg
-IGJFbmRwb2ludEFkZHJlc3MgICAgIDB4MDEgIEVQIDEgT1VUDQogICAgICAgIGJtQXR0cmlidXRl
-cyAgICAgICAgICAgIDINCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgQnVsaw0K
-ICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lDQogICAgICAgICAgVXNhZ2Ug
-VHlwZSAgICAgICAgICAgICAgIERhdGENCiAgICAgICAgd01heFBhY2tldFNpemUgICAgIDB4MDIw
-MCAgMXggNTEyIGJ5dGVzDQogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDENCiAgICAg
-IEVuZHBvaW50IERlc2NyaXB0b3I6DQogICAgICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDcN
-CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQ0KICAgICAgICBiRW5kcG9pbnRBZGRy
-ZXNzICAgICAweDgxICBFUCAxIElODQogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDIN
-CiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgQnVsaw0KICAgICAgICAgIFN5bmNo
-IFR5cGUgICAgICAgICAgICAgICBOb25lDQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAg
-ICAgIERhdGENCiAgICAgICAgd01heFBhY2tldFNpemUgICAgIDB4MDIwMCAgMXggNTEyIGJ5dGVz
-DQogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDENCiAgICAgIEVuZHBvaW50IERlc2Ny
-aXB0b3I6DQogICAgICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDcNCiAgICAgICAgYkRlc2Ny
-aXB0b3JUeXBlICAgICAgICAgNQ0KICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgyICBF
-UCAyIElODQogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDINCiAgICAgICAgICBUcmFu
-c2ZlciBUeXBlICAgICAgICAgICAgQnVsaw0KICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAg
-ICAgICBOb25lDQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGENCiAgICAg
-ICAgd01heFBhY2tldFNpemUgICAgIDB4MDIwMCAgMXggNTEyIGJ5dGVzDQogICAgICAgIGJJbnRl
-cnZhbCAgICAgICAgICAgICAgIDENCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6DQogICAgICAg
-IGJMZW5ndGggICAgICAgICAgICAgICAgIDcNCiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAg
-ICAgNQ0KICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgzICBFUCAzIElODQogICAgICAg
-IGJtQXR0cmlidXRlcyAgICAgICAgICAgIDINCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAg
-ICAgICAgQnVsaw0KICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lDQogICAg
-ICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGENCiAgICAgICAgd01heFBhY2tldFNp
-emUgICAgIDB4MDIwMCAgMXggNTEyIGJ5dGVzDQogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAg
-ICAgIDENCkRldmljZSBRdWFsaWZpZXIgKGZvciBvdGhlciBkZXZpY2Ugc3BlZWQpOg0KICBiTGVu
-Z3RoICAgICAgICAgICAgICAgIDEwDQogIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDYNCiAgYmNk
-VVNCICAgICAgICAgICAgICAgMi4wMA0KICBiRGV2aWNlQ2xhc3MgICAgICAgICAgICAwIChEZWZp
-bmVkIGF0IEludGVyZmFjZSBsZXZlbCkNCiAgYkRldmljZVN1YkNsYXNzICAgICAgICAgMCANCiAg
-YkRldmljZVByb3RvY29sICAgICAgICAgMCANCiAgYk1heFBhY2tldFNpemUwICAgICAgICA2NA0K
-ICBiTnVtQ29uZmlndXJhdGlvbnMgICAgICAxDQpEZXZpY2UgU3RhdHVzOiAgICAgMHgwMDAwDQog
-IChCdXMgUG93ZXJlZCkNCg==
-
-
---=-wiQ7wBP4xfasyc6MBVLW--
-
---=-IkhWRI5/kIJ960PSGza2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEABECAAYFAkpvlYgACgkQagqR2mFibuaH+gCgoynBYXEwYMXKp7Zi6O3x93T9
-Pp0AoLBF/XMZSemJ6cMcQ13Vd2a+nCa5
-=PsWb
------END PGP SIGNATURE-----
-
---=-IkhWRI5/kIJ960PSGza2--
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
