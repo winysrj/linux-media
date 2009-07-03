@@ -1,117 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:1386 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750824AbZGDSR2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jul 2009 14:17:28 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr17.xs4all.nl (8.13.8/8.13.8) with ESMTP id n64IHUR4055100
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 4 Jul 2009 20:17:31 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 4 Jul 2009 20:17:30 +0200 (CEST)
-Message-Id: <200907041817.n64IHUR4055100@smtp-vbr17.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from relay01.cambriumhosting.nl ([217.19.16.173]:33065 "EHLO
+	relay01.cambriumhosting.nl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755891AbZGCQBH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Jul 2009 12:01:07 -0400
+Message-ID: <4A4E2B45.8080607@powercraft.nl>
+Date: Fri, 03 Jul 2009 18:01:09 +0200
+From: Jelle de Jong <jelledejong@powercraft.nl>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Afatech AF9013 DVB-T not working with mplayer radio streams
+References: <4A4481AC.4050302@powercraft.nl> <4A4D34B3.8050605@iki.fi>
+In-Reply-To: <4A4D34B3.8050605@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Antti Palosaari wrote:
+> On 06/26/2009 11:07 AM, Jelle de Jong wrote:
+>> Hi all,
+>>
+>> Because i now use a new kernel and new mplayer versions I did some
+>> testing again on one of my long standing issues.
+>>
+>> My Afatech AF9015 DVB-T USB2.0 stick does not work with mplayer, other
+>> em28xx devices do work with mplayer.
+>>
+>> Would somebody be willing to do some tests and see if mplayers works on
+>> your devices?
+>>
+>> Debian 2.6.30-1
+>>
+>> /usr/bin/mplayer -identify -v -dvbin timeout=10 dvb://"3FM(Digitenne)"
+>>
+>> See the attachments for full details.
+> 
+> For me, this works. I tested this with MT2060 tuner device, as you have 
+> also. If I remember correctly it worked for you also when channel is 
+> selected by using tzap. I don't know what mplayer does differently.
+> 
+> Do the television channels in that same multiplex work with mplayer?
+> /usr/bin/mplayer -identify -v -dvbin timeout=10 dvb://"TELEVISION CHANNEL"
+> 
+> I added some delay for demod to wait lock. Could you try if this helps?
+> http://linuxtv.org/hg/~anttip/af9015_delay/
+> 
+> regards
+> Antti
 
-Results of the daily build of v4l-dvb:
+Hi Antti,
 
-date:        Sat Jul  4 19:00:04 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12174:493ed02d8330
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+I will get back to this next week, its a lot of work for me to compile
+the drivers but I will see if i can get it running. (a pre-compiled
+driver and some insmod for the 686 2.9.30 kernel would be an fast track
+option if you want to test it a.s.a.p.)
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc1-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-rc1-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc1-i686: ERRORS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc1-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-rc1-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc1-x86_64: ERRORS
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc1): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+Thanks in advance,
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+Jelle de Jong
