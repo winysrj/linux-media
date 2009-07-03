@@ -1,23 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n67DHHx8025515
-	for <video4linux-list@redhat.com>; Tue, 7 Jul 2009 09:17:17 -0400
-Received: from insvr08.insite.com.br (insvr08.insite.com.br [66.135.42.188])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n67DH16n013929
-	for <video4linux-list@redhat.com>; Tue, 7 Jul 2009 09:17:01 -0400
-From: Rafael Diniz <diniz@wimobilis.com.br>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n63KuC8f008625
+	for <video4linux-list@redhat.com>; Fri, 3 Jul 2009 16:56:12 -0400
+Received: from kuber.nabble.com (kuber.nabble.com [216.139.236.158])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n63KttH8025060
+	for <video4linux-list@redhat.com>; Fri, 3 Jul 2009 16:55:55 -0400
+Received: from tervel.nabble.com ([192.168.236.150])
+	by kuber.nabble.com with esmtp (Exim 4.63)
+	(envelope-from <bounces@n2.nabble.com>) id 1MMpnX-0004Bc-9E
+	for video4linux-list@redhat.com; Fri, 03 Jul 2009 13:55:55 -0700
+Message-ID: <1246654555282-3203325.post@n2.nabble.com>
+Date: Fri, 3 Jul 2009 13:55:55 -0700 (PDT)
+From: buhochileno <buhochileno@gmail.com>
 To: video4linux-list@redhat.com
-Date: Tue, 7 Jul 2009 10:23:13 -0300
-References: <3a9b62b20907062344p56d1ecafsbbb936c74eadfd43@mail.gmail.com>
-In-Reply-To: <3a9b62b20907062344p56d1ecafsbbb936c74eadfd43@mail.gmail.com>
+In-Reply-To: <1244577481.32457.1319583459@webmail.messagingengine.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Disposition: inline
-Message-Id: <200907071023.13820.diniz@wimobilis.com.br>
-Content-Transfer-Encoding: 8bit
-Cc: 
-Subject: Re: how to make qbuf
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+References: <1244577481.32457.1319583459@webmail.messagingengine.com>
+Subject: Re: KWorld VS-USB2800D recognized as PointNix Intra-Oral Camera -
+ No Composite Input
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,32 +31,100 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi 서정민,
-mplayer already have a v4l2 driver, right?
 
-bye,
-rafael diniz
 
-Em Terça-feira 07 Julho 2009, às 03:44:41, 서정민 escreveu:
-> Hi.
->
-> I'm making V4l2 device driver for mplayer.
-> But
-> It's too difficult to understand V4l2 driver internal structure.
->
-> I can't understand how to use VIDIOC_QBUF, VIDIOC_DQBUF ioctl and 'struct
-> videobuf_queue'
->
-> Why does v4l2 driver need to use 'videobuf_queue'?
->
-> Please. tell me v4l2 driver internal operation.
->
-> Thanks.
+
+Kay Wrobel wrote:
+> 
+> Hi video4linux list,
+> 
+> This may be something that has been asked in the past. I have a KWorld
+> VS-USB2800D video capture device and my Ubuntu 9.04 Jaunty recognizes it
+> as a PointNix Intra-Oral Camera. The only thing that works is the
+> S-Video input. However, I'd like to use the Composite input (regular
+> yellow RCA). So here's the dmesg:
+> 
+> [18325.975026] usb 3-2.2: USB disconnect, address 7
+> [18406.553718] usb 3-2.2: new full speed USB device using uhci_hcd and
+> address 8
+> [18406.655706] usb 3-2.2: not running at top speed; connect to a high
+> speed hub
+> [18406.664296] usb 3-2.2: configuration #1 chosen from 1 choice
+> [18406.666788] hub 3-2.2:1.0: USB hub found
+> [18406.668783] hub 3-2.2:1.0: 4 ports detected
+> [20149.760030] usb 1-6: new high speed USB device using ehci_hcd and
+> address 5
+> [20149.892966] usb 1-6: configuration #1 chosen from 1 choice
+> [20149.954275] Linux video capture interface: v2.00
+> [20149.964580] em28xx v4l2 driver version 0.1.0 loaded
+> [20149.964632] em28xx new video device (eb1a:2860): interface 0, class
+> 255
+> [20149.964640] em28xx Doesn't have usb audio class
+> [20149.964645] em28xx #0: Alternate settings: 8
+> [20149.964649] em28xx #0: Alternate setting 0, max size= 0
+> [20149.964653] em28xx #0: Alternate setting 1, max size= 0
+> [20149.964657] em28xx #0: Alternate setting 2, max size= 1448
+> [20149.964661] em28xx #0: Alternate setting 3, max size= 2048
+> [20149.964666] em28xx #0: Alternate setting 4, max size= 2304
+> [20149.964670] em28xx #0: Alternate setting 5, max size= 2580
+> [20149.964674] em28xx #0: Alternate setting 6, max size= 2892
+> [20149.964678] em28xx #0: Alternate setting 7, max size= 3072
+> [20149.964926] em28xx #0: chip ID is em2860
+> [20150.196540] em28xx #0: board has no eeprom
+> [20150.210897] em28xx #0: found i2c device @ 0x4a [saa7113h]
+> [20150.252142] em28xx #0: Your board has no unique USB ID.
+> [20150.252150] em28xx #0: A hint were successfully done, based on i2c
+> devicelist hash.
+> [20150.252155] em28xx #0: This method is not 100% failproof.
+> [20150.252160] em28xx #0: If the board were missdetected, please email
+> this log to:
+> [20150.252164] em28xx #0:       V4L Mailing List 
+> <video4linux-list@redhat.com>
+> [20150.252170] em28xx #0: Board detected as PointNix Intra-Oral Camera
+> [20150.252175] em28xx #0: Registering snapshot button...
+> [20150.252411] input: em28xx snapshot button as
+> /devices/pci0000:00/0000:00:1d.7/usb1/1-6/input/input6
+> [20150.643094] saa7115' 4-0025: saa7113 found (1f7113d0e100000) @ 0x4a
+> (em28xx #0)
+> [20151.920343] em28xx #0: V4L2 device registered as /dev/video0 and
+> /dev/vbi0
+> [20151.920351] em28xx #0: Found PointNix Intra-Oral Camera
+> [20151.920395] usbcore: registered new interface driver em28xx
+> [20151.927004] em28xx-audio.c: probing for em28x1 non standard usbaudio
+> [20151.927009] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+> [20151.927534] Em28xx: Initialized (Em28xx Audio Extension) extension
+> 
+> Notice how it only generates /dev/video0 and /dev/vbi0. I would have
+> expected to see two additional devices, like /dev/video1 and /dev/vbi1.
+> 
+> Maybe the detected Intra-Oral camera doesn't have that input, but the
+> KWorld VS-USB2008D does. What can be done to make the driver recognize
+> the Composite input correctly?
+> 
+> Thanks for any help...
+> -- 
+>   Kay Wrobel
+>   kwrobel@letterboxes.org
+> 
+> -- 
+> http://www.fastmail.fm - IMAP accessible web-mail
+> 
 > --
 > video4linux-list mailing list
 > Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 > https://www.redhat.com/mailman/listinfo/video4linux-list
+> 
+> 
 
+Hi, I'm on the same situation, any sucess?
+
+May be this is a v4l2 or ucv device...
+
+Mauricio
+
+-- 
+View this message in context: http://n2.nabble.com/KWorld-VS-USB2800D-recognized-as-PointNix-Intra-Oral-Camera---No-Composite-Input-tp3051767p3203325.html
+Sent from the video4linux-list mailing list archive at Nabble.com.
 
 --
 video4linux-list mailing list
