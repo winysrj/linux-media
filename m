@@ -1,49 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:35861 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755128AbZGOOXq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jul 2009 10:23:46 -0400
-From: Cedric Laczny <cedric.laczny@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: kernel-2.6.30 and TechnoTrend S2-3600 USB
-Date: Wed, 15 Jul 2009 16:23:44 +0200
+Received: from acoma.photonsoftware.net ([65.254.60.10]:43514 "EHLO
+	acoma.photonsoftware.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756020AbZGCQiC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jul 2009 12:38:02 -0400
+Received: from localhost ([127.0.0.1] helo=[127.0.0.100])
+	by acoma.photonsoftware.net with esmtpa (Exim 4.69)
+	(envelope-from <ldone@hubstar.net>)
+	id 1MMllu-0007qE-59
+	for linux-media@vger.kernel.org; Fri, 03 Jul 2009 17:37:58 +0100
+Message-ID: <4A4E33EC.6020703@hubstar.net>
+Date: Fri, 03 Jul 2009 17:38:04 +0100
+From: "ldone@hubstar.net" <ldone@hubstar.net>
+Reply-To: "l d one"@hubstar.net
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+To: linux-media@vger.kernel.org
+Subject: cx23885 HVR-1700 broken in v4l drivers vs standard kernel
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907151623.44440.cedric.laczny@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi - apologies for posting twice, posted this as a reply rather than a new thread - doing well with mailing lists!
 
-I saw in the linux-tv wiki that there is some way to get the TT S2-3600 to 
-work under linux using the s2liplianin-drivers. Also there is confirmation by 
-the following thread: 
-http://www.gentooforum.de/artikel/16632/technotrend-tt-connect-s2-3600-und-gentoo.html?s=ad37010b8eba15db1b12328a5013865e96856778
+if I use stock kernel (Suse)  2.6.27.23-0.1 the card works, scans and
+plays DVB-T channels.
+if I use the latest v4l drivers the card is recognised, and picked up,
+tune a channel, but cannot find any DVB-T channels.
 
-However, since the S2API now is also contained in the kernel, I would prefer 
-to use this directly and not the ones from the repository.
+I'm afraid I'm not sure what to look for there are quite a few structural changes to the code.
 
-In fact, when searching through the kernel-config, I found all drivers 
-(dvb-core.ko, dvb-usb.ko, stb0899.ko, stb6100.ko) when looking for 
-CONFIG_DVB_BUDGET_CI (-> SAA7146 DVB cards (aka Budget, Nova-PCI) ),
-except for dvb-usb-pctv452e.ko and lnbp22.ko. For the latter one, I found 
-lnbp21.ko and I think this is also working, especially since the wiki 
-states "STMicroelectronics LNBP21 LNB supply and control IC. "
-So the only thing that is missing is dvb-usb-pctv452e.ko!
+Thanks
 
-And therefore I was wondering if this was perhaps renamed when being moved to 
-the kernel? Actually, I was thinking that it might have become budget_ci.ko, 
-as all the other modules are also listed there under "Selects".
-Or maybe rather dvb-usb-ttusb2.ko (-> Pinnacle 400e DVB-S USB2.0 support), as 
-this is for Pinnacle?
-
-Did someone get the TechnoTrend S2-3600 USB to work with standard 
-kernel-2.6.30 and without using the extra drivers from s2-liplianin or could 
-help with any information about the dvb-usb-pctv452e.ko module?
-
-Best regards,
-
-Cedric
