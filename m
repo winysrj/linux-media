@@ -1,93 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ammma.de ([213.83.39.131]:2302 "EHLO ammma.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756703AbZGOBA2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jul 2009 21:00:28 -0400
-Received: from ammma.net (hydra.ammma.mil [192.168.110.1])
-	by ammma.de (8.11.6/8.11.6/AMMMa AG) with ESMTP id n6F0a0b18426
-	for <linux-media@vger.kernel.org>; Wed, 15 Jul 2009 02:36:00 +0200
-Received: from neo.wg.de (hydra.ammma.mil [192.168.110.1])
-	by ammma.net (8.12.11.20060308/8.12.11/AMMMa AG) with ESMTP id n6F0V4HT014575
-	for <linux-media@vger.kernel.org>; Wed, 15 Jul 2009 02:31:04 +0200
-Received: from localhost (localhost [127.0.0.1])
-	by neo.wg.de (Postfix) with ESMTP id CE35042519E
-	for <linux-media@vger.kernel.org>; Wed, 15 Jul 2009 02:31:03 +0200 (CEST)
-Received: from neo.wg.de ([127.0.0.1])
-	by localhost (neo.wg.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id vVp1wMocTfqO for <linux-media@vger.kernel.org>;
-	Wed, 15 Jul 2009 02:30:53 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by neo.wg.de (Postfix) with ESMTP id 7C01445E757
-	for <linux-media@vger.kernel.org>; Wed, 15 Jul 2009 02:30:53 +0200 (CEST)
-Message-ID: <20090715023053.52902q544z47hg84@neo.wg.de>
-Date: Wed, 15 Jul 2009 02:30:53 +0200
-From: Jan Schneider <jan@horde.org>
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] TechnoTrend C-2300 and QAM 128
-References: <30AD329C-50B6-44EA-ACD3-ED90713AA769@henes.no>
-In-Reply-To: <30AD329C-50B6-44EA-ACD3-ED90713AA769@henes.no>
-MIME-Version: 1.0
-Content-Type: multipart/signed;
- boundary="=_2bwsc0axww2s";
- protocol="application/pgp-signature";
- micalg="pgp-sha1"
+Received: from bombadil.infradead.org ([18.85.46.34]:47880 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751448AbZGCGVE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jul 2009 02:21:04 -0400
+Date: Fri, 3 Jul 2009 03:21:00 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Joel Jordan <zcacjxj@hotmail.com>
+Cc: <video4linux-list@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: eMPIA Silvercrest 2710
+Message-ID: <20090703032100.64c3f70d@pedra.chehab.org>
+In-Reply-To: <BAY103-W483504B84F25BC84275FAAC190@phx.gbl>
+References: <BAY103-W483504B84F25BC84275FAAC190@phx.gbl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is in MIME format and has been PGP signed.
+Hi Joel,
 
---=_2bwsc0axww2s
-Content-Type: text/plain;
- charset=ISO-8859-1;
- DelSp="Yes";
- format="flowed"
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Em Fri, 7 Nov 2008 10:10:45 +0000
+Joel Jordan <zcacjxj@hotmail.com> escreveu:
 
-Zitat von Johan Hen=E6s <johan@henes.no>:
+ 
+>   Has there been any work done on the eMPIA Silvercrest EM2710 (device for webcams)?
 
-> Hi !
->
-> Recently I have bought three TechnoTrend C-2300 for use in my Mythtv-
-> system. Everything seemed to go smooth, but for a major share of the
-> channels I have problems getting a channel lock. (Or if I do on some
-> of them, I get a "distorted" image with lots of "bit errors"....
->
-> Using the latest firmware for Linux : dvb-ttpci-01.fw-2622...
->
-> After poking around the Internet I found that QAM 128 has been a
-> problem for TechnoTrend cards, and the funny thing is that my cable-
-> provider is using QAM 128 for all channels (including the ones that
-> works very well).
->
-> As I experience problems with most of my channels I still thought
-> maybe this would be the problem. I haven't seen posts on the issue for
-> quite a while and realizing that the latest firmware available for
-> these cards is dated 2005, I wondered where I can find an updated
-> version or if anyone has a solution to my problem........
+I borrowed a Silvercrest 1.3 Mpix camera, based on em2710 and mt9v011 with a
+friend, at the end of a conference that happened last week. After spending some
+spare time on it at the airplane while returning back home, I discovered how to
+enable stream on it.
 
-This card has a broken tuner. Try tuning down all frequencies. I got =20
-best results by downtuning them by 500000.
+Basically, there were just a very few registers that was needing a different
+initialization, plus a driver to the sensor inside.
 
-Jan.
+Could you please test the latest development code and see if this works for you also?
 
---=20
-Do you need professional PHP or Horde consulting?
-http://horde.org/consulting/
---=_2bwsc0axww2s
-Content-Type: application/pgp-signature
-Content-Description: Digitale PGP-Unterschrift
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
+It is at:
+	http://linuxtv.org/hg/v4l-dvb
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
+The driver is the em28xx. As the camera uses the generic vendor usb id
+(eb1a:2820), you'll need to force the driver to load the proper card
+parameters, by using card=71 at module probing. This can be done by calling:
 
-iEYEABECAAYFAkpdIz0ACgkQeZECfE3luWlY2gCgyU6b7rEe2wA8l/kU0ROXKF92
-nzgAoNvvl8E0wKri1V1fiV5J1mkSFzG9
-=JrxQ
------END PGP SIGNATURE-----
+	modprobe em28xx card=71
 
---=_2bwsc0axww2s--
+Or by adding an options line on your /etc/modprobe.conf (or the equivalent file on your machine):
+	options em28xx card=71
 
+You need to do one of the above procedures _before_ plug the camera, or
+otherwise it will take the generic entry that won't work.
+
+Currently, the driver offers a very basic support. Only 640x480 with auto gain, auto
+bright, etc. The normal controls (contrast, bright, etc) are not available.
+
+When I have more spare time, I'll try to play with the sensors and see what
+else we can enable. The sensor seems to support some fancy things like digital
+zoom, and CIF/QVGA resolutions at higher rate. However, don't expect too much
+time from me on it, due to my other duties.
+
+If you also want to play with it, the specs of the sensor is available at:
+	http://download.micron.com/pdf/datasheets/imaging/MT9V011.pdf
+
+Feel free to submit us patches to improve the webcam support
+
+
+
+Cheers,
+Mauro
