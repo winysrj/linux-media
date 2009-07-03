@@ -1,52 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:57435 "EHLO smtp4-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754585AbZGUOaG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jul 2009 10:30:06 -0400
-Message-ID: <4A65D0E2.4060108@zerezo.com>
-Date: Tue, 21 Jul 2009 16:29:54 +0200
-From: Antoine Jacquet <royale@zerezo.com>
-MIME-Version: 1.0
-To: Lamarque Vieira Souza <lamarque@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, video4linux-list@redhat.com
-Subject: Re: [PATCH] Implement changing resolution on the fly for zr364xx
- driver
-References: <200907152054.56581.lamarque@gmail.com> <200907202046.43194.lamarque@gmail.com>
-In-Reply-To: <200907202046.43194.lamarque@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from zone0.gcu-squad.org ([212.85.147.21]:3056 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756072AbZGCUsi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jul 2009 16:48:38 -0400
+Date: Fri, 3 Jul 2009 22:48:29 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Andrzej Hajda <andrzej.hajda@wp.pl>
+Subject: [PATCH 2/2] cx88: High resolution timer for Remote Controls
+Message-ID: <20090703224829.0943886f@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Patch solves problem of missed keystrokes on some remote controls,
+as reported on http://bugzilla.kernel.org/show_bug.cgi?id=9637 .
 
-> This patch implements changing resolution in zr364xx_vidioc_s_fmt_vid_cap for 
-> zr364xx driver. This version is synced with v4l-dvb as of 20/Jul/2009. Tested 
-> with Creative PC-CAM 880.
+Signed-off-by: Andrzej Hajda <andrzej.hajda@wp.pl>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+Changes:
+* Driver no longer builds on kernels < 2.6.22, so add an entry to
+  v4l/versions.txt
+* Add a missing static.
+Build-tested on 2.6.22.
 
-Nice, I successfully tested your patch with 2 compatible webcams.
- From the users feedbacks I had before, it seems that some devices do 
-not support the 640x480 resolution, but I was not able to verify this 
-myself.
-This is the only concern I have, since some users may think the driver 
-is not working if the application automatically switches to the maximum 
-resolution with an incompatible device.
+ linux/drivers/media/video/cx88/cx88-input.c |   37 ++++++++++++----------------
+ v4l/versions.txt                            |    2 +
+ 2 files changed, 19 insertions(+), 20 deletions(-)
 
-> OBS: I had to increase MAX_FRAME_SIZE to prevent a hard crash in my notebook 
-> (caps lock blinking) when testing with mplayer, which automatically sets 
-> resolution to the maximum (640x480). Maybe we should add code to auto-detect 
-> frame size to prevent this kind of crash in the future.
+--- a/linux/drivers/media/video/cx88/cx88-input.c
++++ b/linux/drivers/media/video/cx88/cx88-input.c
+@@ -23,7 +23,7 @@
+  */
+ 
+ #include <linux/init.h>
+-#include <linux/delay.h>
++#include <linux/hrtimer.h>
+ #include <linux/input.h>
+ #include <linux/pci.h>
+ #include <linux/module.h>
+@@ -49,7 +49,7 @@ struct cx88_IR {
+ 
+ 	/* poll external decoder */
+ 	int polling;
+-	struct delayed_work work;
++	struct hrtimer timer;
+ 	u32 gpio_addr;
+ 	u32 last_gpio;
+ 	u32 mask_keycode;
+@@ -145,31 +145,28 @@ static void cx88_ir_handle_key(struct cx
+ 	}
+ }
+ 
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20)
+-static void cx88_ir_work(void *data)
+-#else
+-static void cx88_ir_work(struct work_struct *work)
+-#endif
++static enum hrtimer_restart cx88_ir_work(struct hrtimer *timer)
+ {
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20)
+-	struct cx88_IR *ir = data;
+-#else
+-	struct cx88_IR *ir = container_of(work, struct cx88_IR, work.work);
+-#endif
++	unsigned long missed;
++	struct cx88_IR *ir = container_of(timer, struct cx88_IR, timer);
+ 
+ 	cx88_ir_handle_key(ir);
+-	schedule_delayed_work(&ir->work, msecs_to_jiffies(ir->polling));
++	missed = hrtimer_forward_now(&ir->timer,
++				     ktime_set(0, ir->polling * 1000000));
++	if (missed > 1)
++		ir_dprintk("Missed ticks %ld\n", missed - 1);
++
++	return HRTIMER_RESTART;
+ }
+ 
+ void cx88_ir_start(struct cx88_core *core, struct cx88_IR *ir)
+ {
+ 	if (ir->polling) {
+-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20)
+-		INIT_DELAYED_WORK(&ir->work, cx88_ir_work, ir);
+-#else
+-		INIT_DELAYED_WORK(&ir->work, cx88_ir_work);
+-#endif
+-		schedule_delayed_work(&ir->work, 0);
++		hrtimer_init(&ir->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
++		ir->timer.function = cx88_ir_work;
++		hrtimer_start(&ir->timer,
++			      ktime_set(0, ir->polling * 1000000),
++			      HRTIMER_MODE_REL);
+ 	}
+ 	if (ir->sampling) {
+ 		core->pci_irqmask |= PCI_INT_IR_SMPINT;
+@@ -186,7 +183,7 @@ void cx88_ir_stop(struct cx88_core *core
+ 	}
+ 
+ 	if (ir->polling)
+-		cancel_delayed_work_sync(&ir->work);
++		hrtimer_cancel(&ir->timer);
+ }
+ 
+ /* ---------------------------------------------------------------------- */
+--- a/v4l/versions.txt
++++ b/v4l/versions.txt
+@@ -34,6 +34,8 @@ DVB_DRX397XD
+ DVB_DM1105
+ # This driver needs print_hex_dump
+ DVB_FIREDTV
++# This driver needs hrtimer API
++VIDEO_CX88
+ 
+ [2.6.20]
+ #This driver requires HID_REQ_GET_REPORT
 
-Yes, I also had this issue before. I don't know what is the good 
-approach to determine the best size with JPEG compression.
-
-I will push your changes to my tree and send a pull request to Mauro later.
-
-Regards,
-
-Antoine
 
 -- 
-Antoine "Royale" Jacquet
-http://royale.zerezo.com
+Jean Delvare
