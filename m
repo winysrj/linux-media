@@ -1,103 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eyemagnet.com ([202.160.117.202]:33246 "EHLO eyemagnet.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750865AbZGaXUQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jul 2009 19:20:16 -0400
-Received: from [192.168.1.183] (adsl-76-199-64-226.dsl.pltn13.sbcglobal.net [76.199.64.226])
-	(using SSLv3 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by eyemagnet.com (Postfix) with ESMTP id CD9B88240
-	for <linux-media@vger.kernel.org>; Sat,  1 Aug 2009 11:20:15 +1200 (NZST)
-Subject: USB devices supporting raw or sliced VBI for closed captioning?
-From: Steve Castellotti <sc@eyemagnet.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain
-Date: Fri, 31 Jul 2009 16:20:37 -0700
-Message-Id: <1249082438.18313.30.camel@odyssey.sc.user.nz.vpn>
+Received: from smtp-out112.alice.it ([85.37.17.112]:3632 "EHLO
+	smtp-out112.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753720AbZGCVm1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jul 2009 17:42:27 -0400
+Date: Fri, 3 Jul 2009 23:41:48 +0200
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>, rsc@pengutronix.de
+Subject: Re: pxa_camera: Oops in pxa_camera_probe.
+Message-Id: <20090703234148.b5aad4da.ospite@studenti.unina.it>
+In-Reply-To: <Pine.LNX.4.64.0907032200420.25247@axis700.grange>
+References: <20090701204325.2a277884.ospite@studenti.unina.it>
+	<20090703161140.845950e8.ospite@studenti.unina.it>
+	<Pine.LNX.4.64.0907032200420.25247@axis700.grange>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Fri__3_Jul_2009_23_41_49_+0200_fb_dv0LL+EYjBxb0"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+--Signature=_Fri__3_Jul_2009_23_41_49_+0200_fb_dv0LL+EYjBxb0
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-	I was wondering if anyone could please point me at a list or similar
-resource for USB capture devices which support raw (or sliced) VBI
-access for producing a closed caption transcript through software such
-as zbvi-ntsc-cc or ccextractor? Specifically I'm wanting a device
-capable of S-Video, Composite, or even Component input, not just ATSC,
-as most USB devices seem focused around these days.
+On Fri, 3 Jul 2009 22:03:27 +0200 (CEST)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
 
-	I've managed to get this working with various ivtv and saa713x based
-PCI devices, but aren't aware of any USB implementations of chipsets
-which use those drivers.
+> On Fri, 3 Jul 2009, Antonio Ospite wrote:
+>=20
+> > > Linux video capture interface: v2.00
+> > > Unable to handle kernel NULL pointer dereference at virtual address 0=
+0000060
+> > > pgd =3D c0004000
+> > > [00000060] *pgd=3D00000000
+> > > Internal error: Oops: f5 [#1] PREEMPT
+> > > Modules linked in:
+> > > CPU: 0    Tainted: G        W   (2.6.31-rc1-ezxdev #1)
+> > > PC is at dev_driver_string+0x0/0x38
+> > > LR is at pxa_camera_probe+0x144/0x428
+> >=20
+> > The offending dev_driver_str() here is the one in the dev_warn() call in
+> > mclk_get_divisor().
+> >=20
+> > This is what is happening: in struct pxacamera_platform_data I have:
+> > 	.mclk_10khz =3D 5000,
+> >=20
+> > which makes the > test in mclk_get_divisor() succeed calling dev_warn
+> > to report that the clock has been limited, but pcdev->soc_host.dev is
+> > still uninitialized at this time.
+> >=20
+> > I could lower the value in my platform data and avoid the bug, but it
+> > would be good to have this fixed ASAP anyway.
+> >=20
+> > The attached rough patch fixes the problem, but you will surely come
+> > out with a better one :)
+>=20
+> Why should I? Your patch seems correct to me so far, thanks. I'll push it=
+=20
+> for 2.6.31. Please, next time inline your patch as described in=20
+> Documentation/SubmittingPatches.
+>
 
+Well, it should be correct, I just thought it could be considered
+unpretty with the pcdev->soc_host initializations scattered here and
+there, that's what I was referring to.
+But, if this is ok to you, it's ok to me too :)
 
-	Searching online, I found this archived message:
+Ciao,
+   Antonio
 
-http://lists.zerezo.com/video4linux/msg16402.html
+--=20
+Antonio Ospite
+http://ao2.it
 
-which states:
+PGP public key ID: 0x4553B001
 
-> some em2840 and newer devices are able to capture raw vbi in
-> linux (sliced vbi isn't possible yet)
-> em2820, em2800, em2750 do not support vbi at all.
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
 
+--Signature=_Fri__3_Jul_2009_23_41_49_+0200_fb_dv0LL+EYjBxb0
+Content-Type: application/pgp-signature
 
-	Checking the em28xx driver homepage for recent models, I found this
-entry:
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
-http://mcentral.de/wiki/index.php5/Em2880
+iEYEARECAAYFAkpOex0ACgkQ5xr2akVTsAFMJgCfcPCHgdhV9cYkR0RTrPBKn6/v
+fR0AoIM9cor2y+7u+CId8e8jcqHV4E5D
+=FAyx
+-----END PGP SIGNATURE-----
 
-> officially the em2880 is em2840 + DVB_T
-
-
-	which implies that not only is the "em2880" series a "newer" device,
-but it should in fact already contain the "em2840" chip specifically
-mentioned.
-
-
-	Later on that same page, in the list of devices:
-
-ATI/AMD TV Wonder 600
-
-
-	and on the manufacturer's page:
-
-http://ati.amd.com/products/tvwonder600/usb/index.html
-
-
-	Under the list of "Input Connectors":
-
-> S-video input with adapter
-
-
-
-	Picking up one of these devices, I attempted to tune into the S-Video
-feed and check the /dev/vbi0 device, but received the same error message
-as I do with all other em28xx devices encountered thus far:
-
-> Cannot capture vbi data with v4l interface:
-> /dev/vbi0 (AMD ATI TV Wonder HD 600) is not a raw vbi device.
-
-
-
-	Can anyone please point me in the right direction?
-
-	I would much prefer to be certain the next purchase is supported.
-
-
-
-Thanks!
-
-
-Steve
-
-
--- 
-
-Steve Castellotti
-sc@eyemagnet.com
-Technical Director
-Eyemagnet Limited
-http://www.eyemagnet.com
-
+--Signature=_Fri__3_Jul_2009_23_41_49_+0200_fb_dv0LL+EYjBxb0--
