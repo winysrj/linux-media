@@ -1,23 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n6PKC8wa007333
-	for <video4linux-list@redhat.com>; Sat, 25 Jul 2009 16:12:08 -0400
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n6315pBZ021797
+	for <video4linux-list@redhat.com>; Thu, 2 Jul 2009 21:05:51 -0400
 Received: from mail-fx0-f223.google.com (mail-fx0-f223.google.com
 	[209.85.220.223])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n6PKBrbb001678
-	for <video4linux-list@redhat.com>; Sat, 25 Jul 2009 16:11:54 -0400
-Received: by fxm23 with SMTP id 23so258634fxm.3
-	for <video4linux-list@redhat.com>; Sat, 25 Jul 2009 13:11:53 -0700 (PDT)
-From: Denis Loginov <dinvlad@gmail.com>
-To: video4linux-list@redhat.com
-Date: Sat, 25 Jul 2009 23:11:37 +0300
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n6315ZEV013790
+	for <video4linux-list@redhat.com>; Thu, 2 Jul 2009 21:05:35 -0400
+Received: by fxm23 with SMTP id 23so1921785fxm.3
+	for <video4linux-list@redhat.com>; Thu, 02 Jul 2009 18:05:35 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907252311.37511.dinvlad@gmail.com>
-Subject: Patch for drivers/media/video/gspca/sonixj.c (new device added)
+In-Reply-To: <20090602220233.GA23136@geppetto>
+References: <20090602220233.GA23136@geppetto>
+Date: Fri, 3 Jul 2009 04:05:34 +0300
+Message-ID: <36c518800907021805v41ba3837n8dbd43fcdc0effcc@mail.gmail.com>
+From: vasaka@gmail.com
+To: video4linux-list Mailing List <video4linux-list@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
+Subject: Re: video loopback device
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,40 +29,66 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello. Included is a patch allowing to use DIGITUS DA-70811 webcam, also known 
-as ZSMC USB PC Camera ZS211 (with idVendor name = Microdia in lsusb).
+On Wed, Jun 3, 2009 at 1:02 AM, Stefano
+Sabatini<stefano.sabatini-lala@poste.it> wrote:
+> Hi all,
+>
+> I'm looking for an application/driver which let to create a
+> virtual device where to send the video output of an application or of
+> another video device.
+>
+> Typical application would be for example to capture from a webcam,
+> apply some filter to it, and finally pulish it to another application
+> reading from a video device.
+>
+> I see there are at least three distinct projects which provides a
+> video for loopback device:
+>
+> * video4linux loopback device/vloopback:
+>  http://www.lavrsen.dk/twiki/bin/view/Motion/VideoFourLinuxLoopbackDevice
+>
+>  Seems to be unmaintained, also if I'm not wrong it only supports
+>  video4linux and not video4linux 2 API.
+>
+> * video4linux2 virtual device
+>  http://sourceforge.net/projects/v4l2vd/
+>
+>  This should be the successor of vloopback, unfortunately it seem not
+>  to work with linux 2.6.26:
+>  https://sourceforge.net/forum/forum.php?thread_id=2897804&forum_id=579262
+>
+>  and also seems a little unmaintained.
+>
+> * http://code.google.com/p/v4l2loopback/
+>
+>  I don't know if there are applications using it, just read about it
+>  in this ML.
+>
+> I wonder if someone can express an opinion on these projects, for
+> example to tell their current status / usability.
+>
+> TIA, regards.
+>
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
 
-In file drivers/media/video/gspca/sonixj.c :
---- sonixj.c        2009-07-25 16:57:45.293263122 +0300
-+++ sonixj.c    2009-07-25 22:58:11.952516010 +0300
-@@ -1752,6 +1752,7 @@
- /*     {USB_DEVICE(0x0c45, 0x6122), BSI(SN9C110, ICM105C, 0x??)}, */
- /*     {USB_DEVICE(0x0c45, 0x6123), BSI(SN9C110, SanyoCCD, 0x??)}, */
-        {USB_DEVICE(0x0c45, 0x6128), BSI(SN9C110, OM6802, 0x21)}, /*sn9c325?*/
-+       {USB_DEVICE(0x0c45, 0x6148), BSI(SN9C325, OM6802, 0x21)}, /*sn9c110?*/
- /*bw600.inf:*/
-        {USB_DEVICE(0x0c45, 0x612a), BSI(SN9C120, OV7648, 0x21)}, /*sn9c110?*/
-        {USB_DEVICE(0x0c45, 0x612c), BSI(SN9C110, MO4000, 0x21)},
+Hello, I am an author of http://code.google.com/p/v4l2loopback/
+this driver works with kernels up to 2.6.30 and I also written small
+helper program to apply video effects
+http://code.google.com/p/v4lsink/
 
-Accordingly, 
-In file Documentation/video4linux/gspca.txt :
---- gspca.txt       2009-07-25 23:01:05.589518320 +0300
-+++ gspca.txt   2009-07-25 23:04:57.880516995 +0300
-@@ -271,6 +271,7 @@
- sonixj         0c45:613b       Surfer SN-206
- sonixj         0c45:613c       Sonix Pccam168
- sonixj         0c45:6143       Sonix Pccam168
-+sonixj         0c45:6148       Digitus DA-70811/ZSMC USB PC Camera 
-ZS211/Microdia
- sunplus                0d64:0303       Sunplus FashionCam DXG
- etoms          102c:6151       Qcam Sangha CIF
- etoms          102c:6251       Qcam xxxxxx VGA
+It works fine with skype and there is bug report about interaction
+with adobe flash. I started this driver exactly because all others did
+not work with skype.
 
-Tested on kernel 2.6.29, works fine for a cheap model.
-The only open question is what value for the bridge should be used: SN9C110, 
-SN9C120, or SN9C325 (camera works well with any of them).
+by the way, this mailing list is no longer used, please go to
+linux-media@vger.kernel.org mailing list
 
-Thank you for attention.
+
+vasaka
 
 --
 video4linux-list mailing list
