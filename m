@@ -1,78 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay01.cambriumhosting.nl ([217.19.16.173]:56335 "EHLO
-	relay01.cambriumhosting.nl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752139AbZGKLsi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jul 2009 07:48:38 -0400
-Message-ID: <4A587C13.5090708@powercraft.nl>
-Date: Sat, 11 Jul 2009 13:48:35 +0200
-From: Jelle de Jong <jelledejong@powercraft.nl>
+Received: from mx2.redhat.com ([66.187.237.31]:44598 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751171AbZGCJDL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Jul 2009 05:03:11 -0400
+Message-ID: <4A4DC9D9.9010907@redhat.com>
+Date: Fri, 03 Jul 2009 11:05:29 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Afatech AF9013 DVB-T not working with mplayer radio streams
-References: <4A4481AC.4050302@powercraft.nl> <4A4D34B3.8050605@iki.fi>	 <4A4E2B45.8080607@powercraft.nl>	 <829197380907091805h10bcf548kbf5435feeb30e067@mail.gmail.com>	 <4A572F7E.6010701@iki.fi> <829197380907100816o4a3daa22k78a424da5bebed1e@mail.gmail.com> <4A57AEC9.9040602@iki.fi> <4A57CA85.8090407@iki.fi> <4A586A1A.3000501@powercraft.nl>
-In-Reply-To: <4A586A1A.3000501@powercraft.nl>
-Content-Type: text/plain; charset=UTF-8
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Joel Jordan <zcacjxj@hotmail.com>, video4linux-list@redhat.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: eMPIA Silvercrest 2710
+References: <BAY103-W483504B84F25BC84275FAAC190@phx.gbl> <20090703032100.64c3f70d@pedra.chehab.org>
+In-Reply-To: <20090703032100.64c3f70d@pedra.chehab.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jelle de Jong wrote:
-> Antti Palosaari wrote:
->> Hei Devin and Jelle,
->>
->> On 07/11/2009 12:12 AM, Antti Palosaari wrote:
->>>> I'm not the maintainer for this demod, so I'm not the best person to
->>>> make such a fix. I spent four hours and debugged the issue as a favor
->>>> to Jelle de Jong since he loaned me some hardware a couple of months
->>>> ago. I guess I can make the fix, but it's just going to take away
->>>> from time better spent on things I am more qualified to work on.
->>>>
->>>> Devin
->>> I will fix that just right now. I think I will change demodulator from
->>> "return error invalid value" to "force detect transmission parameters
->>> automatically" in case of broken parameters given.
->> It is fixed now as I see best way.
->>
->> For reason or other my MPlayer didn't give garbage and I never seen any 
->> of those debugs added. I added just similar channels.conf line as Jelle 
->> but changed freq and PIDs used here. Maybe garbage fields are filled "0" 
->> which corresponds AUTO.
->> Anyhow, here it is. Could you test?
->> http://linuxtv.org/hg/~anttip/af9013/
->>
->> regards
->> Antti
-> 
-> I tried to test it but it did not work, i tried to get some more
-> information with printk i am sure but not much luck there. Al test where
-> done on the test system, you can login and see for yourself.
-> 
-> Best regards,
-> 
-> Jelle
-> 
-> cd
-> hg clone http://linuxtv.org/hg/~anttip/af9013/
-> cd af9013/
-> make -j3
-> sudo make install
-> sudo make unload
-> sudo modprobe dvb_usb_af9015
-> mplayer -nolirc -nojoystick -dvbin card=1 -dvbin timeout=10
-> dvb://"3FM(Digitenne)"
-> # did not work
-> 
+Hi,
 
-I keep doing test and the debug i got showed it was in auto mode, so i
-did a tzap -a 0 -c ~/.tzap/channels.conf -r "3FM(Digitenne)" no lock :D
-that other bug was teasing me again... :D I manually replugged the
-device and mplayer works perfect. So patch confirmed to build and work.
-Thank you very much!
 
-Best regards,
+On 07/03/2009 08:21 AM, Mauro Carvalho Chehab wrote:
+> Hi Joel,
+>
+> Em Fri, 7 Nov 2008 10:10:45 +0000
+> Joel Jordan<zcacjxj@hotmail.com>  escreveu:
+>
+>
+>>    Has there been any work done on the eMPIA Silvercrest EM2710 (device for webcams)?
+>
+> I borrowed a Silvercrest 1.3 Mpix camera, based on em2710 and mt9v011 with a
+> friend, at the end of a conference that happened last week. After spending some
+> spare time on it at the airplane while returning back home, I discovered how to
+> enable stream on it.
+>
 
-Jelle
+My that webcam has done some interesting travelling (me -> Dough -> you), I'm glad
+it finally ended at someone who has managed to get it to produce a picture under Linux.
 
+> Basically, there were just a very few registers that was needing a different
+> initialization, plus a driver to the sensor inside.
+>
+> Could you please test the latest development code and see if this works for you also?
+>
+> It is at:
+> 	http://linuxtv.org/hg/v4l-dvb
+>
+> The driver is the em28xx. As the camera uses the generic vendor usb id
+> (eb1a:2820), you'll need to force the driver to load the proper card
+> parameters, by using card=71 at module probing. This can be done by calling:
+>
+> 	modprobe em28xx card=71
+>
+> Or by adding an options line on your /etc/modprobe.conf (or the equivalent file on your machine):
+> 	options em28xx card=71
+>
+> You need to do one of the above procedures _before_ plug the camera, or
+> otherwise it will take the generic entry that won't work.
+>
+
+
+Hmm, having to specify the card=71 parameter, sucks, that makes this a very non plug
+and play / not just working experience for end users. Question would it be possible to
+modify the em28xx driver to, when it sees the generic usb-id, setup the i2c controller
+approriately and then check:
+1) If there is anything at the i2c address of the mt9v011 sensor
+2) Read a couple of identification registers (often sensors have special non changing
+    registers for this)
+3) If both the 1 and 2 test succeed set card to 71 itself ?
+
+This is how we handle the problem of having one generic usb-id for a certain bridge, with
+various different sensors used in different cams, I know the em28xx is a lot more complicated
+as it does a lot more, but this may still work ?
+
+Regards,
+
+Hans
