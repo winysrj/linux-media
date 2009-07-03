@@ -1,84 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f218.google.com ([209.85.220.218]:39622 "EHLO
-	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757313AbZGGN4B convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jul 2009 09:56:01 -0400
-Received: by fxm18 with SMTP id 18so4921169fxm.37
-        for <linux-media@vger.kernel.org>; Tue, 07 Jul 2009 06:55:59 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4A53509D.8060503@redhat.com>
-References: <4A53509D.8060503@redhat.com>
-Date: Tue, 7 Jul 2009 15:55:59 +0200
-Message-ID: <62e5edd40907070655g75dbfc5dy3799d85a15ad4a6c@mail.gmail.com>
-Subject: Re: RFC: howto handle driver changes which require libv4l > x.y ?
-From: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp.wellnetcz.com ([212.24.148.102]:57668 "EHLO
+	smtp.wellnetcz.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758959AbZGCUwB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jul 2009 16:52:01 -0400
+From: Jiri Slaby <jirislaby@gmail.com>
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	linux-kernel@vger.kernel.org, Jiri Slaby <jirislaby@gmail.com>
+Subject: [PATCH repost 3/4] V4L: hdpvr, fix lock imbalances
+Date: Fri,  3 Jul 2009 22:51:35 +0200
+Message-Id: <1246654296-23190-3-git-send-email-jirislaby@gmail.com>
+In-Reply-To: <1246654296-23190-1-git-send-email-jirislaby@gmail.com>
+References: <1246654296-23190-1-git-send-email-jirislaby@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/7/7 Hans de Goede <hdegoede@redhat.com>:
-> Hi All,
->
-> So recently I've hit 2 issues where kernel side fixes need
-> to go hand in hand with libv4l updates to not cause regressions.
->
-> First lets discuss the 2 cases:
-> 1) The pac207 driver currently limits the framerate (and thus
->   the minimum exposure time) because at higher framerate the
->   cam starts using a higher compression and we could not
->   decompress this. Thanks to Bertrik Sikken we can now handle
->   the higher decompression.
->
->   So no I really want to enable the higher framerates as those
->   are needed to make the cam work properly in full daylight.
->
->   But if I do this, things will regress for people with an
->   older libv4l, as that won't be able to decompress the frames
->
-> 2) Several zc3xxx cams have a timing issue between the bridge and
->   the sensor (the windows drivers have the same issue) which
->   makes them do only 320x236 instead of 320x240. Currently
->   we report their resolution to userspace as 320x240, leading to
->   a bar of noise at the bottom of the screen.
->
->   The fix here obviously is to report the real effective resoltion
->   to userspace, but this will cause regressions for apps which blindly
->   assume 320x240 is available (such as skype). The latest libv4l will
->   make the apps happy again by giving them 320x240 by adding small
->   black borders.
->
->
-> Now I see 2 solutions here:
->
-> a) Just make the changes, seen from the kernel side these are most
->   certainly bugfixes. I tend towards this for case 2)
->
-> b) Come up with an API to tell the libv4l version to the kernel and
->   make these changes in the drivers conditional on the libv4l version
->
->
-Solution b) sounds messy and will probably lead to a lot of error
-prone glue code in the kernel.
-Fast-forward a couple of libv4l releases and you will have a nightmare
-maintainability scenario.
+There are many lock imbalances in this driver. Fix all found.
 
-If people run an old libv4l with a new kernel and run into problem,
-just tell them to upgrade their libv4l version.
+Signed-off-by: Jiri Slaby <jirislaby@gmail.com>
+---
+ drivers/media/video/hdpvr/hdpvr-core.c  |   12 ++++++------
+ drivers/media/video/hdpvr/hdpvr-video.c |    6 ++++--
+ 2 files changed, 10 insertions(+), 8 deletions(-)
 
-My 2 cents,
-Erik
+diff --git a/drivers/media/video/hdpvr/hdpvr-core.c b/drivers/media/video/hdpvr/hdpvr-core.c
+index 188bd5a..1c9bc94 100644
+--- a/drivers/media/video/hdpvr/hdpvr-core.c
++++ b/drivers/media/video/hdpvr/hdpvr-core.c
+@@ -126,7 +126,7 @@ static int device_authorization(struct hdpvr_device *dev)
+ 	char *print_buf = kzalloc(5*buf_size+1, GFP_KERNEL);
+ 	if (!print_buf) {
+ 		v4l2_err(&dev->v4l2_dev, "Out of memory\n");
+-		goto error;
++		return retval;
+ 	}
+ #endif
+ 
+@@ -140,7 +140,7 @@ static int device_authorization(struct hdpvr_device *dev)
+ 	if (ret != 46) {
+ 		v4l2_err(&dev->v4l2_dev,
+ 			 "unexpected answer of status request, len %d\n", ret);
+-		goto error;
++		goto unlock;
+ 	}
+ #ifdef HDPVR_DEBUG
+ 	else {
+@@ -163,7 +163,7 @@ static int device_authorization(struct hdpvr_device *dev)
+ 		v4l2_err(&dev->v4l2_dev, "unknown firmware version 0x%x\n",
+ 			dev->usbc_buf[1]);
+ 		ret = -EINVAL;
+-		goto error;
++		goto unlock;
+ 	}
+ 
+ 	response = dev->usbc_buf+38;
+@@ -188,10 +188,10 @@ static int device_authorization(struct hdpvr_device *dev)
+ 			      10000);
+ 	v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
+ 		 "magic request returned %d\n", ret);
+-	mutex_unlock(&dev->usbc_mutex);
+ 
+ 	retval = ret != 8;
+-error:
++unlock:
++	mutex_unlock(&dev->usbc_mutex);
+ 	return retval;
+ }
+ 
+@@ -350,6 +350,7 @@ static int hdpvr_probe(struct usb_interface *interface,
+ 
+ 	mutex_lock(&dev->io_mutex);
+ 	if (hdpvr_alloc_buffers(dev, NUM_BUFFERS)) {
++		mutex_unlock(&dev->io_mutex);
+ 		v4l2_err(&dev->v4l2_dev,
+ 			 "allocating transfer buffers failed\n");
+ 		goto error;
+@@ -381,7 +382,6 @@ static int hdpvr_probe(struct usb_interface *interface,
+ 
+ error:
+ 	if (dev) {
+-		mutex_unlock(&dev->io_mutex);
+ 		/* this frees allocated memory */
+ 		hdpvr_delete(dev);
+ 	}
+diff --git a/drivers/media/video/hdpvr/hdpvr-video.c b/drivers/media/video/hdpvr/hdpvr-video.c
+index ccd47f5..5937de2 100644
+--- a/drivers/media/video/hdpvr/hdpvr-video.c
++++ b/drivers/media/video/hdpvr/hdpvr-video.c
+@@ -375,6 +375,7 @@ static int hdpvr_open(struct file *file)
+ 	 * in resumption */
+ 	mutex_lock(&dev->io_mutex);
+ 	dev->open_count++;
++	mutex_unlock(&dev->io_mutex);
+ 
+ 	fh->dev = dev;
+ 
+@@ -383,7 +384,6 @@ static int hdpvr_open(struct file *file)
+ 
+ 	retval = 0;
+ err:
+-	mutex_unlock(&dev->io_mutex);
+ 	return retval;
+ }
+ 
+@@ -519,8 +519,10 @@ static unsigned int hdpvr_poll(struct file *filp, poll_table *wait)
+ 
+ 	mutex_lock(&dev->io_mutex);
+ 
+-	if (video_is_unregistered(dev->video_dev))
++	if (video_is_unregistered(dev->video_dev)) {
++		mutex_unlock(&dev->io_mutex);
+ 		return -EIO;
++	}
+ 
+ 	if (dev->status == STATUS_IDLE) {
+ 		if (hdpvr_start_streaming(dev)) {
+-- 
+1.6.3.2
 
-
-> So this is my dilemma, your input is greatly appreciated.
->
-> Regards,
->
-> Hans
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
