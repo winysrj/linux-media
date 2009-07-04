@@ -1,117 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4584 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753190AbZGESRg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jul 2009 14:17:36 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id n65IHYZc081401
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 5 Jul 2009 20:17:39 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 5 Jul 2009 20:17:34 +0200 (CEST)
-Message-Id: <200907051817.n65IHYZc081401@smtp-vbr5.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from smtp-out26.alice.it ([85.33.2.26]:2030 "EHLO
+	smtp-out26.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752828AbZGDUH1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jul 2009 16:07:27 -0400
+Date: Sat, 4 Jul 2009 22:07:19 +0200
+From: Antonio Ospite <ospite@studenti.unina.it>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	rsc@pengutronix.de
+Subject: Re: pxa_camera: Oops in pxa_camera_probe.
+Message-Id: <20090704220719.fe1850bb.ospite@studenti.unina.it>
+In-Reply-To: <87skhcfdhh.fsf@free.fr>
+References: <20090701204325.2a277884.ospite@studenti.unina.it>
+	<20090703161140.845950e8.ospite@studenti.unina.it>
+	<Pine.LNX.4.64.0907032200420.25247@axis700.grange>
+	<20090703234148.b5aad4da.ospite@studenti.unina.it>
+	<87skhcfdhh.fsf@free.fr>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Sat__4_Jul_2009_22_07_19_+0200_Dr6Q.y2W09UTuNcC"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+--Signature=_Sat__4_Jul_2009_22_07_19_+0200_Dr6Q.y2W09UTuNcC
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Results of the daily build of v4l-dvb:
+On Sat, 04 Jul 2009 21:35:22 +0200
+Robert Jarzmik <robert.jarzmik@free.fr> wrote:
 
-date:        Sun Jul  5 19:00:05 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12191:d703149eab45
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+> >> > The offending dev_driver_str() here is the one in the dev_warn() cal=
+l in
+> >> > mclk_get_divisor().
+> >> >=20
+> >> > This is what is happening: in struct pxacamera_platform_data I have:
+> >> > 	.mclk_10khz =3D 5000,
+> >> >=20
+> >> > which makes the > test in mclk_get_divisor() succeed calling dev_warn
+> >> > to report that the clock has been limited, but pcdev->soc_host.dev is
+> >> > still uninitialized at this time.
+>
+> Antonio,
+>=20
+> Would you check [1] and see if your stack does correspond to the one I re=
+ported
+> some time ago ? As this is fresh in your memory, you'll be far quicker th=
+at me.
+>
+...
+> [1] http://osdir.com/ml/linux-media/2009-04/msg00874.html
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc1-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-rc1-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc1-i686: ERRORS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc1-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-rc1-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc1-x86_64: ERRORS
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc1): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: OK
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: OK
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+Yes, I think that is it. The offsets are different of course but the
+call stack is pretty much the same.
 
-Detailed results are available here:
+Regards,
+   Antonio
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+--=20
+Antonio Ospite
+http://ao2.it
 
-Full logs are available here:
+PGP public key ID: 0x4553B001
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+A: Because it messes up the order in which people normally read text.
+   See http://en.wikipedia.org/wiki/Posting_style
+Q: Why is top-posting such a bad thing?
+A: Top-posting.
+Q: What is the most annoying thing in e-mail?
 
-The V4L2 specification from this daily build is here:
+--Signature=_Sat__4_Jul_2009_22_07_19_+0200_Dr6Q.y2W09UTuNcC
+Content-Type: application/pgp-signature
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
-The DVB API specification from this daily build is here:
+iEYEARECAAYFAkpPtncACgkQ5xr2akVTsAEhIgCgghy4EgcOS+hfOFopcDlrlUP+
+gToAnR2iK8pCN4qF+n6qzCCQ5EQtrLMA
+=Nt88
+-----END PGP SIGNATURE-----
 
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+--Signature=_Sat__4_Jul_2009_22_07_19_+0200_Dr6Q.y2W09UTuNcC--
