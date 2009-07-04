@@ -1,118 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out114.alice.it ([85.37.17.114]:3245 "EHLO
-	smtp-out114.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753071AbZGASxo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jul 2009 14:53:44 -0400
-Date: Wed, 1 Jul 2009 20:43:25 +0200
-From: Antonio Ospite <ospite@studenti.unina.it>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <kernel@pengutronix.de>
-Subject: pxa_camera: Oops in pxa_camera_probe.
-Message-Id: <20090701204325.2a277884.ospite@studenti.unina.it>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Wed__1_Jul_2009_20_43_25_+0200_Cr3+M=AejwF7J_Uc"
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1669 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750901AbZGDSyE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jul 2009 14:54:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andy Walls <awalls@radix.net>
+Subject: Re: Short experiment with libudev to support media controller concept
+Date: Sat, 4 Jul 2009 20:54:02 +0200
+Cc: linux-media@vger.kernel.org
+References: <1246729935.2826.43.camel@morgan.walls.org>
+In-Reply-To: <1246729935.2826.43.camel@morgan.walls.org>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200907042054.02393.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Signature=_Wed__1_Jul_2009_20_43_25_+0200_Cr3+M=AejwF7J_Uc
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Saturday 04 July 2009 19:52:15 Andy Walls wrote:
+> Hans,
+> 
+> The inline source file at the end of this post is a small program I used
+> to play with libudev to see if it would complement the media controller
+> concept (as you suspected it would).
+> 
+> Documentation on the libudev calls is here:
+> 
+> 	http://www.kernel.org/pub/linux/utils/kernel/hotplug/libudev/
+> 
+> The test program I wrote takes a (type,major,minor) tuple and lists the
+> device node and device symlinks as fetched by libudev.
+> 
+> My test setup was a little strange since libudev is no longer maintained
+> separately but is bundled in with udev.  On my Fedora 9 system I have
+> udev v124 (Fedora 9 stock) and libudev v143 (custom built from the udev
+> 143 source).
+> 
+> Here's some output:
+> 
+> $ ./finddev -c -M 1 -m 3
+> Requested device: type 'c', major 1, minor 3
+> Device directory path: '/dev'
+> Device node: '/dev/null'
+> Device link: '/dev/XOR'
+> 
+> $ ls -al /dev/ | grep '[ /]null'
+> crw-rw-rw-   1 root root     1,   3 2009-07-04 08:34 null
+> lrwxrwxrwx   1 root root          4 2009-07-04 08:34 X0R -> null
+> lrwxrwxrwx   1 root root          4 2009-07-04 08:34 XOR -> null
+> 
+> (Hmmm, not perfect for /dev/null)
+> 
+> 
+> $ ./finddev -b -M 11 -m 0
+> Requested device: type 'b', major 11, minor 0
+> Device directory path: '/dev'
+> Device node: '/dev/sr0'
+> Device link: '/dev/scd0'
+> Device link: '/dev/disk/by-path/pci-0000:00:14.1-scsi-1:0:0:0'
+> Device link: '/dev/cdrom'
+> Device link: '/dev/cdrw'
+> 
+> $ ls -alR /dev/* | grep '[ /]sr0'
+> lrwxrwxrwx  1 root root          3 2009-07-04 08:34 /dev/cdrom -> sr0
+> lrwxrwxrwx  1 root root          3 2009-07-04 08:34 /dev/cdrw -> sr0
+> lrwxrwxrwx  1 root root          3 2009-07-04 08:34 /dev/scd0 -> sr0
+> brw-rw----+ 1 root disk    11,   0 2009-07-04 08:34 /dev/sr0
+> lrwxrwxrwx 1 root root   9 2009-07-04 08:34 pci-0000:00:14.1-scsi-1:0:0:0 -> ../../sr0
+> 
+> (OK for the CDROM drive.)
+> 
+> 
+> $ ./finddev -c -M 81 -m 9
+> Requested device: type 'c', major 81, minor 9
+> Device directory path: '/dev'
+> Device node: '/dev/video0'
+> Device link: '/dev/video'
+> 
+> $ ls -alR /dev/* | grep '[ /]video0'
+> lrwxrwxrwx  1 root root          6 2009-07-04 08:34 /dev/video -> video0
+> crw-rw----+ 1 root root    81,   9 2009-07-04 08:34 /dev/video0
+> 
+> (OK for video nodes)
+> 
+> 
+> $ ./finddev -c -M 116 -m 6
+> Requested device: type 'c', major 116, minor 6
+> Device directory path: '/dev'
+> Device node: '/dev/snd/pcmC0D0p'
+> 
+> $ ls -alR /dev/* | grep '[ /]pcmC0D0p'
+> crw-rw----+  1 root root 116, 6 2009-07-04 13:43 pcmC0D0p
+> 
+> (OK for ALSA PCM stream nodes).
+> 
+> 
+> Do you have any other particular questions about libudev's capabilities?
 
-Hi,
+Hi Andy,
 
-I get this with pxa-camera in mainline linux (from today).
-I haven't touched my board code which used to work in 2.6.30
+This looks very promising. Can you try a few things like adding new symlinks
+for video devices in the udev config file, or renaming the video0 node to,
+say, mpeg0? If finddev still returns the right nodes, then all that a media
+controller needs to do is to export the major and minor numbers for each
+node. That's exactly what I'm hoping for.
 
-Linux video capture interface: v2.00
-Unable to handle kernel NULL pointer dereference at virtual address 00000060
-pgd =3D c0004000
-[00000060] *pgd=3D00000000
-Internal error: Oops: f5 [#1] PREEMPT
-Modules linked in:
-CPU: 0    Tainted: G        W   (2.6.31-rc1-ezxdev #1)
-PC is at dev_driver_string+0x0/0x38
-LR is at pxa_camera_probe+0x144/0x428
-pc : [<c0168090>]    lr : [<c028d598>]    psr: 20000013
-sp : cc81feb0  ip : cc81e000  fp : c0382360
-r10: c0381d20  r9 : 00000000  r8 : c0381d28
-r7 : 0632ea00  r6 : 018cba80  r5 : 02faf080  r4 : cc8dea60
-r3 : 00000020  r2 : 000028a0  r1 : 0632ea00  r0 : 00000000
-Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-Control: 0000397f  Table: a0004000  DAC: 00000017
-Process swapper (pid: 1, stack limit =3D 0xcc81e278)
-Stack: (0xcc81feb0 to 0xcc820000)
-fea0:                                     00000001 c00e55e4 cc84f878 000000=
-21=20
-fec0: 00000000 c0381d28 c039ba68 c039ba68 c039ba68 00000000 00000000 c0398c=
-88=20
-fee0: 00000000 c016c588 c039ba68 c016b740 c0381d28 c039ba68 c0381d5c c016b8=
-54=20
-ff00: 00000000 cc81ff10 c016b7f4 c016ab58 cc823eb4 cc865b8c 00000000 c039ba=
-68=20
-ff20: c039ba68 cc9204c0 00000000 c016b118 c0312e28 c012e1d8 c039ba68 000000=
-00=20
-ff40: 00000000 00000000 00000000 00000001 c001cb98 c016bb50 00000000 c03a4e=
-4c=20
-ff60: 00000000 00000000 00000000 00000000 c001cb98 c00282f4 00000000 cc81ff=
-88=20
-ff80: c00de15c c028ed7c cc81ffc6 c0319370 c0888e00 00000140 cc81ffc6 cc8471=
-40=20
-ffa0: cc81ffc6 000000b8 c0888ef4 c00de2bc c00754f0 cc8471c0 c038df54 c00755=
-10=20
-ffc0: 00000000 38312c20 00000034 00000000 c00245ac 00000000 00000000 000000=
-00=20
-ffe0: 00000000 00000000 00000000 c00086fc 00000000 c0029e9c 55aa55aa 55aa55=
-aa=20
-[<c0168090>] (dev_driver_string+0x0/0x38) from [<c028d598>] (pxa_camera_pro=
-be+0x144/0x428)
-[<c028d598>] (pxa_camera_probe+0x144/0x428) from [<c016c588>] (platform_drv=
-_probe+0x1c/0x24)
-[<c016c588>] (platform_drv_probe+0x1c/0x24) from [<c016b740>] (driver_probe=
-_device+0xc0/0x174)
-[<c016b740>] (driver_probe_device+0xc0/0x174) from [<c016b854>] (__driver_a=
-ttach+0x60/0x84)
-[<c016b854>] (__driver_attach+0x60/0x84) from [<c016ab58>] (bus_for_each_de=
-v+0x48/0x80)
-[<c016ab58>] (bus_for_each_dev+0x48/0x80) from [<c016b118>] (bus_add_driver=
-+0xa0/0x224)
-[<c016b118>] (bus_add_driver+0xa0/0x224) from [<c016bb50>] (driver_register=
-+0xac/0x138)
-[<c016bb50>] (driver_register+0xac/0x138) from [<c00282f4>] (do_one_initcal=
-l+0x4c/0x184)
-[<c00282f4>] (do_one_initcall+0x4c/0x184) from [<c00086fc>] (kernel_init+0x=
-8c/0x104)
-[<c00086fc>] (kernel_init+0x8c/0x104) from [<c0029e9c>] (kernel_thread_exit=
-+0x0/0x8)
-Code: e8bd80f0 00002710 0001a36e 000f423f (e5903060)=20
----[ end trace 1b75b31a2719ed1d ]---
+Note that I will not have a lot of time to work in v4l-dvb for the next 10 to
+14 days as I have visitors this week and will be traveling abroad next week.
 
-Regards,
-   Antonio
+Thanks!
 
---=20
-Antonio Ospite
-http://ao2.it
+	Hans
 
-PGP public key ID: 0x4553B001
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
-A: Top-posting.
-Q: What is the most annoying thing in e-mail?
-
---Signature=_Wed__1_Jul_2009_20_43_25_+0200_Cr3+M=AejwF7J_Uc
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkpLrk0ACgkQ5xr2akVTsAHl5wCeOmTdR8tGCIEobxrDH0hzAch9
-D3sAnj1OwSaTM+MFvZEcSqXofBBMpt2l
-=mko3
------END PGP SIGNATURE-----
-
---Signature=_Wed__1_Jul_2009_20_43_25_+0200_Cr3+M=AejwF7J_Uc--
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
