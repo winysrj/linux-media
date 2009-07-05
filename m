@@ -1,55 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-09.arcor-online.net ([151.189.21.49]:51323 "EHLO
-	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758001AbZGADAF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jun 2009 23:00:05 -0400
-Subject: Re: Digital Audio Broadcast (DAB) devices support
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Andrej Falout <andrej@falout.org>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <c21478f30906301936u40ac989fj9e2824b209ab2346@mail.gmail.com>
-References: <c21478f30906301936u40ac989fj9e2824b209ab2346@mail.gmail.com>
-Content-Type: text/plain
-Date: Wed, 01 Jul 2009 04:55:47 +0200
-Message-Id: <1246416947.3854.12.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:45772 "EHLO
+	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752986AbZGEPBn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jul 2009 11:01:43 -0400
+Date: Mon, 6 Jul 2009 00:01:35 +0900
+From: Paul Mundt <lethal@linux-sh.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Wu Zhangjin <wuzhangjin@gmail.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-mips@linux-mips.org,
+	Krzysztof Helt <krzysztof.h1@wp.pl>,
+	Peter Zijlstra <a.p.zijlstra@chello.nl>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Ralf Baechle <ralf@linux-mips.org>, ???? <yanh@lemote.com>,
+	zhangfx <zhangfx@lemote.com>
+Subject: Re: [BUG] drivers/video/sis: deadlock introduced by "fbdev: add mutex for fb_mmap locking"
+Message-ID: <20090705150134.GB8326@linux-sh.org>
+References: <1246785112.14240.34.camel@falcon> <alpine.LFD.2.01.0907050715490.3210@localhost.localdomain> <20090705145203.GA8326@linux-sh.org> <alpine.LFD.2.01.0907050756280.3210@localhost.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.LFD.2.01.0907050756280.3210@localhost.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-Am Mittwoch, den 01.07.2009, 12:36 +1000 schrieb Andrej Falout:
-> Hello,
+On Sun, Jul 05, 2009 at 07:56:56AM -0700, Linus Torvalds wrote:
 > 
-> Does V4L framework support DAB devices?
 > 
-> Ideally something like
+> On Sun, 5 Jul 2009, Paul Mundt wrote:
+> >  			break;
+> >  	fb_info->node = i;
+> >  	mutex_init(&fb_info->lock);
+> > -	mutex_init(&fb_info->mm_lock);
 > 
-> http://cgi.ebay.com.au/USB-Digital-T-DMB-DAB-Radio-Video-Receiver-Recorder_W0QQitemZ130220495837QQcmdZViewItemQQptZUK_AudioVisualElectronics_PortableAudio_Radios?hash=item1e51bf13dd&_trksid=p3286.m20.l1116
+> Why not "lock" as well?
 > 
-> Here in Australia FM is going the way of the Dodo :-( Must get one soon...
-> 
-> Thanks,
-> Andrej Falout
+I had that initially, but matroxfb will break if we do that, and
+presently nothing cares about trying to take ->lock that early on.
 
-No. I think.
-
-Let's see what we can get further reported on it.
-
-In Europe, it is only one more dead rabbit.
-
-But the old FM radio scene is still very much alive.
-
-But some killing you with advertising.
-
-Italy is really great on that and much most advanced since decades ;)
-
-Cheers,
-Hermann
-
-
-
-
-
-
+->mm_lock was a special case as the lock/unlock pairs were sprinkled
+around well before initialization, while in the ->lock case all of the
+lock/unlock pairs are handled internally by the fbmem code (at least a
+quick grep does not show any drivers using it on their own).
