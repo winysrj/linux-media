@@ -1,46 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ppsw-7.csi.cam.ac.uk ([131.111.8.137]:38105 "EHLO
-	ppsw-7.csi.cam.ac.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756777AbZGCTAy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jul 2009 15:00:54 -0400
-Message-ID: <4A4E5526.5040304@cam.ac.uk>
-Date: Fri, 03 Jul 2009 18:59:50 +0000
-From: Jonathan Cameron <jic23@cam.ac.uk>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: soc-camera: status, roadmap
-References: <Pine.LNX.4.64.0906101802450.4817@axis700.grange> <Pine.LNX.4.64.0906171458380.4218@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.0906171458380.4218@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from zone0.gcu-squad.org ([212.85.147.21]:26000 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752311AbZGEI6d (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jul 2009 04:58:33 -0400
+Date: Sun, 5 Jul 2009 10:58:25 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Andrzej Hajda <andrzej.hajda@wp.pl>,
+	Trent Piepho <xyzzy@speakeasy.org>
+Subject: Re: [PATCH 1/2 v2] Compatibility layer for hrtimer API
+Message-ID: <20090705105825.0e05160c@hyperion.delvare>
+In-Reply-To: <20090703224652.339a63e7@hyperion.delvare>
+References: <20090703224652.339a63e7@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Guennadi Liakhovetski wrote:
-> On Wed, 10 Jun 2009, Guennadi Liakhovetski wrote:
-> 
->> 2. The above means, I'll have to maintain and update my patches for a 
->> whole 2.6.31 development cycle. In this time I'll try to update and upload 
->> them as a quilt patch series and announce it on the list a couple of 
->> times.
-> 
-> As promised, I just uploaded my current tree snapshot at 
-> http://download.open-technology.de/soc-camera/20090617/
-> This is nothing remarkable, just my current patch-stack for those working 
-> with the soc-camera framework. It is still based on a linux-next snapshot 
-> of 07.05.2009 "history" branch. The exact commit on which the stack is 
-> based is, as usual, in 0000-base. This is still based off 2.6.30-rc4, and 
-> I expect to upgrade next time after 2.6.31-rc1.
->
-Hi Guennadi, 
+Kernels 2.6.22 to 2.6.24 (inclusive) need some compatibility quirks
+for the hrtimer API. For older kernels, some required functions were
+not exported so there's nothing we can do. This means that drivers
+using the hrtimer infrastructure will no longer work for kernels older
+than 2.6.22.
 
-I notice you've posted newer version of these patches on your website. 20090701/
-I was wondering what tree these are based on?
-I can't seem to track down the base commit.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+---
+Updated according to Trent's comment: the compatibility code is only
+included if <linux/htrimer.h> was already included by the driver.
 
-Thanks,
+ v4l/compat.h |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-Jonathan
+--- v4l-dvb.orig/v4l/compat.h	2009-07-05 10:32:12.000000000 +0200
++++ v4l-dvb/v4l/compat.h	2009-07-05 10:33:37.000000000 +0200
+@@ -480,4 +480,23 @@ static inline unsigned long v4l_compat_f
+ }
+ #endif
+ 
++/*
++ * Compatibility code for hrtimer API
++ * This will make hrtimer usable for kernels 2.6.22 and later.
++ * For earlier kernels, not all required functions are exported
++ * so there's nothing we can do.
++ */
++
++#ifdef _LINUX_HRTIMER_H
++#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 25) && \
++	LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 22)
++/* Forward a hrtimer so it expires after the hrtimer's current now */
++static inline unsigned long hrtimer_forward_now(struct hrtimer *timer,
++						ktime_t interval)
++{
++	return hrtimer_forward(timer, timer->base->get_time(), interval);
++}
++#endif
++#endif /* _LINUX_HRTIMER_H */
++
+ #endif /*  _COMPAT_H */
+
+
+-- 
+Jean Delvare
