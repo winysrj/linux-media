@@ -1,24 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n6QKi8VF028573
-	for <video4linux-list@redhat.com>; Sun, 26 Jul 2009 16:44:08 -0400
-Received: from smtp-vbr12.xs4all.nl (smtp-vbr12.xs4all.nl [194.109.24.32])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n6QKhr4b002570
-	for <video4linux-list@redhat.com>; Sun, 26 Jul 2009 16:43:53 -0400
-Received: from webmail.xs4all.nl (dovemail8.xs4all.nl [194.109.26.10])
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id n6QKhqvw066331
-	for <video4linux-list@redhat.com>;
-	Sun, 26 Jul 2009 22:43:53 +0200 (CEST)
-	(envelope-from kweelist@xs4all.nl)
-Message-ID: <60449.82.95.124.251.1248641033.squirrel@webmail.xs4all.nl>
-Date: Sun, 26 Jul 2009 22:43:53 +0200 (CEST)
-From: kweelist@xs4all.nl
-To: video4linux-list@redhat.com
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n65Lg6WW000784
+	for <video4linux-list@redhat.com>; Sun, 5 Jul 2009 17:42:06 -0400
+Received: from mail-bw0-f221.google.com (mail-bw0-f221.google.com
+	[209.85.218.221])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n65LfmUG022882
+	for <video4linux-list@redhat.com>; Sun, 5 Jul 2009 17:41:48 -0400
+Received: by bwz21 with SMTP id 21so3376945bwz.3
+	for <video4linux-list@redhat.com>; Sun, 05 Jul 2009 14:41:47 -0700 (PDT)
+Message-ID: <4A511E18.2010305@gmail.com>
+Date: Mon, 06 Jul 2009 01:41:44 +0400
+From: fsulima <fsulima@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-Subject: how to remove black bars in letterboxed tv on widescreen monitor
-Reply-To: kweelist@xsall.nl.redhat.com
+To: Jackson Yee <jackson@gotpossum.com>
+References: <4A5089CF.3070606@gmail.com>
+	<26aa882f0907051330y6f092ca3x18e1f58e883352d4@mail.gmail.com>
+In-Reply-To: <26aa882f0907051330y6f092ca3x18e1f58e883352d4@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: video4linux-list@redhat.com
+Subject: Re: Please advise: 4channel capture device with HW compression for
+ Linux based DVR
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,55 +32,63 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-My V4L based television works pretty fine, but some small problems still
-give me headaches.
+Hi Jackson.
 
-I use a modest size 15 inch 4:3 lcd monitor but with an extension cable
-place it close to the couch. Much better than an expensive big screen at
-the other side of the room.
+Thanks for the answer.
+The first thing I realized when I learned how to use search on the 
+mailing list was that this question is very common so I was already 
+preparing to shot myself expecting the hear the advice to learn to use 
+search. :) It's a shame.
+Ok, back to the point...
 
-Most of the nice movies on television are letterboxed. On the regular
-4:3 tv or monitor screen, black bars are shown above and below the
-actual picture. Now I bought myself an 18.1 inch widescreen monitor,
-same height as the old one, but wider. (1366x768). The fun part is that
-the aspect ratio is 16:9, even wider than the regular widescreen of
-16:10, and the price was only 59 euro. The problem is that now I have
-black bars at all four sides of the picture which is still the same size
-as on the old monitor.
+The problem here is that I have a little unconventional hardware: it is 
+a small form factor Intel D945GCLF2D mini-ITX Motherboard + 
+integrated Intel Atom 330 2core 1.6Ghz. I have doubts about it's ability 
+to encode 4 channels of D1, besides Intel advertises Atom's performance 
+as video encoder: 
+http://www.intel.com/design/intarch/applnots/DSS_Appnote_r5.pdf.
+I really don't want to setup another device specifically for DVR, 
+especially with large form factor. Installing cheap capture device w/o 
+h/w compression sounds like a great option, but I'd really like to be 
+sure that Atom 330 is capable enough for this. Is there any expertise on 
+this?
 
-For television watching I use TVTIME, which works really fine, but seems
-to insist on displaying the black bars above and below the picture as
-transmitted by the tv program, resulting in a 4:3 picture, which then
-needs black bars left and right of the widescreen monitor to reduce it
-to my old 4:3 monitor.
+Regards,
+F S
 
-TVTIME does have a "widescreen" option, but this only stretches the 4:3
-picture including the black bars above and below to fill the widescreen
-tft, distorted.
-
-My current setup includes:
-- Ubuntu 9.04
-- Intel 865 chipset
-- 'intel' driver in xorg
-- screen resolution 1366x768 (formerly 1024x768)
-- tv card output resolution 720x568 (if I remember correctly) including
-black bars
-- application tvtime which scales the tv picture to fullscreen (using
-xorg module glx)
-
-What should I do?
-- Can I tweak TVTIME to crop the tv picture to get rid of the black bars
-above and below?
-- Should I get another tv application?
-- Should I tweek /etc/X11/xorg.conf to fool tvtime to make it think the
-(virtual) screen is 1366x1024?
-- Can I tweak something in the V4L setup?
-
-So far I did not succeed in any of these experiments. Any help is
-appreciated.
-
-
-
+Jackson Yee wrote:
+> If you're looking for a hardware card, the guys at bluecherry have
+> upcoming cards which should fit your needs quite nicely:
+>
+> http://store.bluecherry.net/category_s/115.htm
+>
+> For a four camera solution though, you can do real-time x264 encode
+> with a cheap dual-core processor. There's no need to buy the more
+> expensive hardware encoding cards unless you go for a 8 or 16 channel
+> solutions.
+>
+> Regards,
+> Jackson Yee
+> The Possum Company
+> 540-818-4079
+> me@gotpossum.com
+>
+> On Sun, Jul 5, 2009 at 7:09 AM, fsulima<fsulima@gmail.com> wrote:
+>   
+>> Hi all.
+>>
+>> I'm looking for components to build 4 channel Linux-based DVR solution
+>> exploiting hardware compression.
+>> Although I found some such boards, they do not appear to be supported under
+>> Linux.
+>>
+>> Please advise.
+>>
+>> WBR,
+>> F S.
+>>     
+>
+>   
 
 --
 video4linux-list mailing list
