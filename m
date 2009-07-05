@@ -1,64 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail4.sea5.speakeasy.net ([69.17.117.6]:45807 "EHLO
-	mail4.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752828AbZGEINL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jul 2009 04:13:11 -0400
-Date: Sun, 5 Jul 2009 01:13:14 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Jean Delvare <khali@linux-fr.org>
-cc: LMML <linux-media@vger.kernel.org>,
-	Andrzej Hajda <andrzej.hajda@wp.pl>
-Subject: Re: [PATCH 1/2] Compatibility layer for hrtimer API
-In-Reply-To: <20090703224652.339a63e7@hyperion.delvare>
-Message-ID: <Pine.LNX.4.58.0907050109420.6411@shell2.speakeasy.net>
-References: <20090703224652.339a63e7@hyperion.delvare>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp239.poczta.interia.pl ([217.74.64.239]:8128 "EHLO
+	smtp239.poczta.interia.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753316AbZGEO4W (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jul 2009 10:56:22 -0400
+Date: Sun, 5 Jul 2009 17:05:47 +0200
+From: Krzysztof Helt <krzysztof.h1@poczta.fm>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Wu Zhangjin <wuzhangjin@gmail.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-mips@linux-mips.org,
+	Krzysztof Helt <krzysztof.h1@wp.pl>,
+	Peter Zijlstra <a.p.zijlstra@chello.nl>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Ralf Baechle <ralf@linux-mips.org>,
+	=?UTF-8?Q?=E6=99=8F=E5=8D=8E?= <yanh@lemote.com>,
+	zhangfx <zhangfx@lemote.com>
+Subject: Re: [BUG] drivers/video/sis: deadlock introduced by
+ "fbdev: add mutex for fb_mmap locking"
+Message-Id: <20090705170547.c83f1cb9.krzysztof.h1@poczta.fm>
+In-Reply-To: <alpine.LFD.2.01.0907050715490.3210@localhost.localdomain>
+References: <1246785112.14240.34.camel@falcon>
+	<alpine.LFD.2.01.0907050715490.3210@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 3 Jul 2009, Jean Delvare wrote:
-> Kernels 2.6.22 to 2.6.24 (inclusive) need some compatibility quirks
-> for the hrtimer API. For older kernels, some required functions were
-> not exported so there's nothing we can do. This means that drivers
-> using the hrtimer infrastructure will no longer work for kernels older
-> than 2.6.22.
->
-> Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> ---
->  v4l/compat.h |   18 ++++++++++++++++++
->  1 file changed, 18 insertions(+)
->
-> --- a/v4l/compat.h
-> +++ b/v4l/compat.h
-> @@ -480,4 +480,22 @@ static inline unsigned long v4l_compat_f
->  }
->  #endif
->
-> +/*
-> + * Compatibility code for hrtimer API
-> + * This will make hrtimer usable for kernels 2.6.22 and later.
-> + * For earlier kernels, not all required functions are exported
-> + * so there's nothing we can do.
-> + */
-> +
-> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 25) && \
-> +	LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 22)
-> +#include <linux/hrtimer.h>
+On Sun, 5 Jul 2009 07:19:33 -0700 (PDT)
+Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-Instead of including hrtimer.h from compat.h it's better if you check if it
-has already been included and only enable the compat code in that case.
-That way hrtimer doesn't get included for files that don't need it and
-might define something that conflicts with something from hrtimer.  And it
-prevents someone from forgetting to include hrtimer when they needed it,
-but having the error masked because compat.h is doing it for them.
+> 
+> 
+> On Sun, 5 Jul 2009, Wu Zhangjin wrote:
+> > 
+> > then it works! so, I guess there is a deadlock introduced by the above
+> > commit.
+> 
+> Hmm. Perhaps more likely, the 'mm_lock' mutex hasn't even been initialized 
+> yet.  We appear to have had that problem with matroxfb and sm501fb, and it 
+> may be more common than that. See commit f50bf2b2.
+> 
+> That said, I do agree that the mm_lock seems to be causing more problems 
+> than it actually fixes, and maybe we should revert it. Krzysztof?
+> 
 
-> +/* Forward a hrtimer so it expires after the hrtimer's current now */
-> +static inline unsigned long hrtimer_forward_now(struct hrtimer *timer,
-> +						ktime_t interval)
-> +{
-> +	return hrtimer_forward(timer, timer->base->get_time(), interval);
-> +}
-> +#endif
-> +
->  #endif /*  _COMPAT_H */
+I vote for fixing these drivers after my change. I will send a patch for the sis driver soon. I am building new kernel now.
+
+Regards,
+Krzysztof
+
+----------------------------------------------------------------------
+Rozwiaz krzyzowke i  wygraj nagrody! 
+Sprawdz >>  http://link.interia.pl/f2232 
+
