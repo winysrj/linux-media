@@ -1,88 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:49394 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751855AbZG3Oa1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2009 10:30:27 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Laurent Pinchart <laurent.pinchart@skynet.be>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	v4l2_linux <linux-media@vger.kernel.org>,
-	Dongsoo Kim <dongsoo45.kim@samsung.com>,
-	=?Windows-1252?B?w6vCsOKAosOqwrLCvcOrwq/CvA==?=
-	<kyungmin.park@samsung.com>,
-	"jm105.lee@samsung.com" <jm105.lee@samsung.com>,
-	=?Windows-1252?B?w6zvv73CtMOs4oCewrjDq8Kswri=?=
-	<semun.lee@samsung.com>,
-	=?Windows-1252?B?w6vFkuKCrMOs77+9wrjDqsK4wrC=?=
-	<inki.dae@samsung.com>,
-	=?Windows-1252?B?w6rCueKCrMOty5zigKLDrMKk4oKs?=
-	<riverful.kim@samsung.com>
-Date: Thu, 30 Jul 2009 09:30:11 -0500
-Subject: RE: How to save number of times using memcpy?
-Message-ID: <A69FA2915331DC488A831521EAE36FE401450FB11F@dlee06.ent.ti.com>
-References: <10799.62.70.2.252.1248852719.squirrel@webmail.xs4all.nl>
-    <200907292352.00179.hverkuil@xs4all.nl>
-    <A69FA2915331DC488A831521EAE36FE401450FAFD0@dlee06.ent.ti.com>
-    <200907300831.39579.hverkuil@xs4all.nl>
-    <A69FA2915331DC488A831521EAE36FE401450FB0C7@dlee06.ent.ti.com>
- <de79b8390a2a633a34370bcc666d2914.squirrel@webmail.xs4all.nl>
-In-Reply-To: <de79b8390a2a633a34370bcc666d2914.squirrel@webmail.xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from zone0.gcu-squad.org ([212.85.147.21]:17182 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754082AbZGEIfQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jul 2009 04:35:16 -0400
+Date: Sun, 5 Jul 2009 10:35:13 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Andrzej Hajda <andrzej.hajda@wp.pl>
+Subject: Re: [PATCH 1/2] Compatibility layer for hrtimer API
+Message-ID: <20090705103513.7ad1abc6@hyperion.delvare>
+In-Reply-To: <Pine.LNX.4.58.0907050131220.6411@shell2.speakeasy.net>
+References: <20090703224652.339a63e7@hyperion.delvare>
+	<Pine.LNX.4.58.0907050109420.6411@shell2.speakeasy.net>
+	<20090705102720.07e08c3b@hyperion.delvare>
+	<Pine.LNX.4.58.0907050131220.6411@shell2.speakeasy.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+On Sun, 5 Jul 2009 01:32:42 -0700 (PDT), Trent Piepho wrote:
+> On Sun, 5 Jul 2009, Jean Delvare wrote:
+> 
+> > Hi Trent,
+> >
+> > On Sun, 5 Jul 2009 01:13:14 -0700 (PDT), Trent Piepho wrote:
+> > > On Fri, 3 Jul 2009, Jean Delvare wrote:
+> > > > Kernels 2.6.22 to 2.6.24 (inclusive) need some compatibility quirks
+> > > > for the hrtimer API. For older kernels, some required functions were
+> > > > not exported so there's nothing we can do. This means that drivers
+> > > > using the hrtimer infrastructure will no longer work for kernels older
+> > > > than 2.6.22.
+> > > >
+> > > > Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> > > > ---
+> > > >  v4l/compat.h |   18 ++++++++++++++++++
+> > > >  1 file changed, 18 insertions(+)
+> > > >
+> > > > --- a/v4l/compat.h
+> > > > +++ b/v4l/compat.h
+> > > > @@ -480,4 +480,22 @@ static inline unsigned long v4l_compat_f
+> > > >  }
+> > > >  #endif
+> > > >
+> > > > +/*
+> > > > + * Compatibility code for hrtimer API
+> > > > + * This will make hrtimer usable for kernels 2.6.22 and later.
+> > > > + * For earlier kernels, not all required functions are exported
+> > > > + * so there's nothing we can do.
+> > > > + */
+> > > > +
+> > > > +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 25) && \
+> > > > +	LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 22)
+> > > > +#include <linux/hrtimer.h>
+> > >
+> > > Instead of including hrtimer.h from compat.h it's better if you check if it
+> > > has already been included and only enable the compat code in that case.
+> > > That way hrtimer doesn't get included for files that don't need it and
+> > > might define something that conflicts with something from hrtimer.  And it
+> > > prevents someone from forgetting to include hrtimer when they needed it,
+> > > but having the error masked because compat.h is doing it for them.
+> >
+> > I see. But this will only work if compat.h is included after all
+> > headers. If it always the case? I see for example that cx88-input
+> > includes <media/ir-common.h> after "compat.h".
+> 
+> Headers that come from the kernel come before compat.h and headers that
+> come from the v4l-dvb tree come after compat.h.
 
-What do you suggest for this? Could we allocate coherent device memory using dma_declare_coherent_memory() ? This seems the only way to do it unless, video buffer layer does this when initializing the queue.
+Ah, OK. I'll send an updated patch as soon as I am done with testing it.
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-Phone : 301-515-3736
-email: m-karicheri2@ti.com
-
->-----Original Message-----
->From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->owner@vger.kernel.org] On Behalf Of Hans Verkuil
->Sent: Thursday, July 30, 2009 10:26 AM
->To: Karicheri, Muralidharan
->Cc: Laurent Pinchart; Mauro Carvalho Chehab; Dongsoo, Nathaniel Kim;
->v4l2_linux; Dongsoo Kim; ë°•ê²½ë¯¼; jm105.lee@samsung.com;
->ì�´ì„¸ë¬¸; ëŒ€ì�¸ê¸°; ê¹€�˜•ì¤€
->Subject: RE: How to save number of times using memcpy?
->
->
->> Hans,
->>
->> I don't see the code you are referring to. Here is the probe() from the
->> next branch of v4l-dvb. Could you point out the code that does the
->> allocation of frame buffers ? I had used this code as reference when
->> developing vpfe capture driver.
->>
->> Murali
->
->My apologies, I got it mixed up with older versions of this driver. I see
->that it now uses videobuf-dma-contig. This is going to be a real problem
->since this makes it impossible (or at least very hard) to allocate memory
->up front. I'm no expert on videobuf, but this is something that should be
->addressed, especially in the dma-contig case.
->
->Regards,
->
->          Hans
->
->--
->Hans Verkuil - video4linux developer - sponsored by TANDBERG
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Thanks,
+-- 
+Jean Delvare
