@@ -1,94 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:34763 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753728AbZGTXjn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2009 19:39:43 -0400
-Subject: Re: [PATCH 2/3] 2/3: cx18: Add i2c initialization for
- Z8F0811/Hauppage  IR transceivers
-From: Andy Walls <awalls@radix.net>
-To: Jarod Wilson <jarod@redhat.com>
-Cc: Jean Delvare <khali@linux-fr.org>, linux-media@vger.kernel.org,
-	Mark Lord <lkml@rtr.ca>, Mike Isely <isely@pobox.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Janne Grunau <j@jannau.net>
-In-Reply-To: <200907201451.33420.jarod@redhat.com>
-References: <1247862585.10066.16.camel@palomino.walls.org>
-	 <1247863615.10066.33.camel@palomino.walls.org>
-	 <20090719153854.55fb9df7@hyperion.delvare>
-	 <200907201451.33420.jarod@redhat.com>
-Content-Type: text/plain
-Date: Mon, 20 Jul 2009 19:40:07 -0400
-Message-Id: <1248133207.3148.49.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail8.sea5.speakeasy.net ([69.17.117.10]:60805 "EHLO
+	mail8.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752440AbZGEIci (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jul 2009 04:32:38 -0400
+Date: Sun, 5 Jul 2009 01:32:42 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Jean Delvare <khali@linux-fr.org>
+cc: LMML <linux-media@vger.kernel.org>,
+	Andrzej Hajda <andrzej.hajda@wp.pl>
+Subject: Re: [PATCH 1/2] Compatibility layer for hrtimer API
+In-Reply-To: <20090705102720.07e08c3b@hyperion.delvare>
+Message-ID: <Pine.LNX.4.58.0907050131220.6411@shell2.speakeasy.net>
+References: <20090703224652.339a63e7@hyperion.delvare>
+ <Pine.LNX.4.58.0907050109420.6411@shell2.speakeasy.net>
+ <20090705102720.07e08c3b@hyperion.delvare>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2009-07-20 at 14:51 -0400, Jarod Wilson wrote:
-> On Sunday 19 July 2009 09:38:54 Jean Delvare wrote:
-> > > 3. When using the new i2c binding model, I opted not to use ir_video for
-> > > the Z8F0811 loaded with microcode from Zilog/Hauppauge.  Since I needed
-> > > one name for Rx binding and one for Tx binding, I used these names:
-> > > 
-> > >       "ir_tx_z8f0811_haup"
-> > >       "ir_rx_z8f0811_haup"
-> > > 
-> > > [Which is ir_(func)_(part number)_(firmware_oem)].  It made sense to me.
-> > > I assume these are the names to which ir-kbd-i2c and lirc_* will have to
-> > > bind.  Is that correct?
-> > 
-> > Yes, this is correct, and the approach is good. Ideally the "ir_video"
-> > type would not exist (or would go away over time) and we would have a
-> > separate type name for each IR chip, resulting in much cleaner code.
-> > The reason for the current implementation is solely historical.
-> 
-> Cool. When fixing up lirc_i2c, I actually *did* have a question about
-> that which I forgot about until reading this. The only name I could
-> find in use anywhere at a glance was ir_video, so that's what lirc_i2c
-> is set to hook up to for the moment, but yeah, device-specific names
-> instead would be great. 
+On Sun, 5 Jul 2009, Jean Delvare wrote:
 
-Yes, I noted "ir_video" implied an IR receiver, but the IR blaster on
-the HVR-1600 and newer PVR-150's can't be called "ir_video" and have
-lirc_zilog do the right thing obviously.  So "in for a penny, in for a
-pound..."
+> Hi Trent,
+>
+> On Sun, 5 Jul 2009 01:13:14 -0700 (PDT), Trent Piepho wrote:
+> > On Fri, 3 Jul 2009, Jean Delvare wrote:
+> > > Kernels 2.6.22 to 2.6.24 (inclusive) need some compatibility quirks
+> > > for the hrtimer API. For older kernels, some required functions were
+> > > not exported so there's nothing we can do. This means that drivers
+> > > using the hrtimer infrastructure will no longer work for kernels older
+> > > than 2.6.22.
+> > >
+> > > Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> > > ---
+> > >  v4l/compat.h |   18 ++++++++++++++++++
+> > >  1 file changed, 18 insertions(+)
+> > >
+> > > --- a/v4l/compat.h
+> > > +++ b/v4l/compat.h
+> > > @@ -480,4 +480,22 @@ static inline unsigned long v4l_compat_f
+> > >  }
+> > >  #endif
+> > >
+> > > +/*
+> > > + * Compatibility code for hrtimer API
+> > > + * This will make hrtimer usable for kernels 2.6.22 and later.
+> > > + * For earlier kernels, not all required functions are exported
+> > > + * so there's nothing we can do.
+> > > + */
+> > > +
+> > > +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 25) && \
+> > > +	LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 22)
+> > > +#include <linux/hrtimer.h>
+> >
+> > Instead of including hrtimer.h from compat.h it's better if you check if it
+> > has already been included and only enable the compat code in that case.
+> > That way hrtimer doesn't get included for files that don't need it and
+> > might define something that conflicts with something from hrtimer.  And it
+> > prevents someone from forgetting to include hrtimer when they needed it,
+> > but having the error masked because compat.h is doing it for them.
+>
+> I see. But this will only work if compat.h is included after all
+> headers. If it always the case? I see for example that cx88-input
+> includes <media/ir-common.h> after "compat.h".
 
-
-Based on earlier posts from Jean, note that for microcontrollers the
-chip part number is not enough to uniquely identify the IR
-implementation since the firmware can be different.  I used the name
-"haup" to distinguish a Z8F0811 loaded with firmware from
-Hauppauge/Zilog.
-
-Given reports from users using lirc_pvr150, the different versions of
-firmware loaded into th Z8F0811 chips on the Hauppaugue boards all seem
-to be compatable to some degree.  Plus the IR program firmware can
-report its exact version if needed.
-
-
-
-> Hrm. Offhand, I don't have a clue what the
-> actual IR chip is on the PVR-x50 series,
-
-There are a few different IR chips on the PVR-x50 series AFAIK.  I know
-that if you find one sitting at 0x71 on the PVR-x50's, then it's likely
-a Zilog Z8 Encore! family microcontroller loaded with firmware program
-that probably originates from Zilog.  (A Zilog EULA comes with the
-Hauppauge Windows drivers.)
-
-Actually the Zilog Z8 chips respond to 0x70: blaster, 0x71 receiver,
-0x72 ???, 0x73 ???
-
-I was kind of hoping that addresses 0x72 and 0x73 might support some
-sort of "raw mode" or "learning mode", so I could to avoid the whole
-lirc_zilog "firmware image" mess.  But I haven't had time to expriment.
-
-Regards,
-Andy
-
->  let alone any of the other
-> cards lirc_i2c claims to support...
-
-
-
+Headers that come from the kernel come before compat.h and headers that
+come from the v4l-dvb tree come after compat.h.
