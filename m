@@ -1,59 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:45855 "EHLO
+Received: from bombadil.infradead.org ([18.85.46.34]:43942 "EHLO
 	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752908AbZGVQWK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2009 12:22:10 -0400
-Date: Wed, 22 Jul 2009 13:22:04 -0300
+	with ESMTP id S1753331AbZGFNPJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jul 2009 09:15:09 -0400
+Date: Mon, 6 Jul 2009 10:15:05 -0300
 From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Jelle de Jong <jelledejong@powercraft.nl>,
-	"linux-media@vger.kernel.org >> \"linux-media@vger.kernel.org\""
-	<linux-media@vger.kernel.org>
-Subject: Re: offering bounty for GPL'd dual em28xx support
-Message-ID: <20090722132204.774d7af3@pedra.chehab.org>
-In-Reply-To: <829197380907220806p4ed7a02bw3beff7c6776a858a@mail.gmail.com>
-References: <4A6666CC.7020008@eyemagnet.com>
-	<829197380907211842p4c9886a3q96a8b50e58e63cbf@mail.gmail.com>
-	<4A66E59E.9040502@powercraft.nl>
-	<829197380907220748kab85c63g6ebbaad07084c255@mail.gmail.com>
-	<4A6729CF.8080804@powercraft.nl>
-	<829197380907220806p4ed7a02bw3beff7c6776a858a@mail.gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Wally <wally@voosen.eu>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: eMpia Microscope Camera
+Message-ID: <20090706101505.194332c3@pedra.chehab.org>
+In-Reply-To: <Pine.LNX.4.64.0907032034150.25247@axis700.grange>
+References: <200907030900.53557.wally@voosen.eu>
+	<20090703133917.7c62ef47@pedra.chehab.org>
+	<Pine.LNX.4.64.0907031851580.25247@axis700.grange>
+	<200907031939.45207.wally@voosen.eu>
+	<Pine.LNX.4.64.0907032034150.25247@axis700.grange>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 22 Jul 2009 11:06:12 -0400
-Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
+Em Fri, 3 Jul 2009 20:35:08 +0200 (CEST)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
 
-> On Wed, Jul 22, 2009 at 11:01 AM, Jelle de
-> Jong<jelledejong@powercraft.nl> wrote:
-> > Funky timing of those mails :D.
-> >
-> > I saw only after sending my mail that Steve was talking about analog and
-> > that this is indeed different. Dual analog tuner support should be
-> > possible right? Maybe with some other analog usb chipsets? I don't know
-> > what the usb blocksize is or if they are isochronous transfers or bulk
-> > or control.
-> >
-> > I assume the video must be uncompressed transferred over usb because the
-> > decoding chip is on the usb device is not capable of doing compression
-> > encoding after the analog video decoding? Are there usb devices that do
-> > such tricks?
+> (re-adding the mailing list)
 > 
-> There were older devices that did compression, mainly designed to fit
-> the stream inside of 12Mbps USB.  However, they required onboard RAM
-> to buffer the frame which added considerable cost (in addition to the
-> overhead of doing the compression), and as a result pretty much all of
-> the USB 2.0 designs I have seen do not do any on-chip compression.
+> On Fri, 3 Jul 2009, Wally wrote:
 > 
-> The example which comes to mind is the Hauppauge Win-TV USB which uses
-> the usbvision chipset.
+> > Hello Guennadi, hello Mauro
+> > 
+> > that's means i have to wait 
+> > or is there a workaround or something else i can do for now ? 
+> 
+> you can either wait, or hack the mt9m001 driver to work for you, or help 
+> with development.
 
-pvrusb2 also has compression, provided by an external mpeg encoder. Those
-devices are USB 2.0
+The change at em28xx for it should be trivial. The enclosed patch should
+provide the mt9v001 glue, once having it ported to v4l2 dev/subdev.
+
+You'll need to use this patch _and_ the v4l dev/subdev version of mt9m001 driver.
+
+Change Huaqi to use mt9m001 driver.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/linux/drivers/media/video/em28xx/em28xx-cards.c b/linux/drivers/media/video/em28xx/em28xx-cards.c
+--- a/linux/drivers/media/video/em28xx/em28xx-cards.c
++++ b/linux/drivers/media/video/em28xx/em28xx-cards.c
+@@ -512,8 +512,9 @@ struct em28xx_board em28xx_boards[] = {
+ 	[EM2860_BOARD_NETGMBH_CAM] = {
+ 		/* Beijing Huaqi Information Digital Technology Co., Ltd */
+ 		.name         = "NetGMBH Cam",
+-		.valid        = EM28XX_BOARD_NOT_VALIDATED,
+-		.tuner_type   = TUNER_ABSENT,	/* This is a webcam */
++		.tuner_type   = TUNER_ABSENT,
++		.is_27xx      = 1,
++		.decoder      = EM28XX_MT9M001,
+ 		.input        = { {
+ 			.type     = EM28XX_VMUX_COMPOSITE1,
+ 			.vmux     = 0,
+@@ -1804,6 +1805,12 @@ static int em28xx_hint_sensor(struct em2
+ 		dev->model = EM2820_BOARD_SILVERCREST_WEBCAM;
+ 		sensor_name = "mt9v011";
+ 		break;
++        case 0x8411:
++        case 0x8421:
++        case 0x8431:
++                dev->model = EM2750_BOARD_DLCW_130;
++		sensor_name = "mt9m001";
++		break;
+ 	default:
+ 		printk("Unknown Sensor 0x%04x\n", be16_to_cpu(version));
+ 		return -EINVAL;
+@@ -2371,6 +2378,10 @@ void em28xx_card_setup(struct em28xx *de
+ 		v4l2_i2c_new_probed_subdev(&dev->v4l2_dev, &dev->i2c_adap,
+ 			"mt9v011", "mt9v011", mt9v011_addrs);
+ 
++	if (dev->board.decoder == EM28XX_MT9M001)
++		v4l2_i2c_new_probed_subdev(&dev->v4l2_dev, &dev->i2c_adap,
++			"mt9m001", "mt9m001", mt9v011_addrs);
++
+ 	if (dev->board.adecoder == EM28XX_TVAUDIO)
+ 		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap,
+ 			"tvaudio", "tvaudio", dev->board.tvaudio_addr);
+diff --git a/linux/drivers/media/video/em28xx/em28xx.h b/linux/drivers/media/video/em28xx/em28xx.h
+--- a/linux/drivers/media/video/em28xx/em28xx.h
++++ b/linux/drivers/media/video/em28xx/em28xx.h
+@@ -363,6 +363,7 @@ enum em28xx_decoder {
+ 	EM28XX_TVP5150,
+ 	EM28XX_SAA711X,
+ 	EM28XX_MT9V011,
++	EM28XX_MT9M001,
+ };
+ 
+ enum em28xx_adecoder {
+
+
+
+
 
 
 
