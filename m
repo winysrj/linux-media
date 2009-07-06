@@ -1,64 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay01.cambriumhosting.nl ([217.19.16.173]:42446 "EHLO
-	relay01.cambriumhosting.nl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755020AbZGCQJH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Jul 2009 12:09:07 -0400
-Message-ID: <4A4E2D24.8070504@powercraft.nl>
-Date: Fri, 03 Jul 2009 18:09:08 +0200
-From: Jelle de Jong <jelledejong@powercraft.nl>
-MIME-Version: 1.0
-To: Markus Rechberger <mrechberger@gmail.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Call for testers: Terratec Cinergy T XS USB support
-References: <829197380906290700n16a0f4faxd29caa12587222f7@mail.gmail.com> <d9def9db0907030313t4ea3685m8f63981696d63c96@mail.gmail.com>
-In-Reply-To: <d9def9db0907030313t4ea3685m8f63981696d63c96@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from wf-out-1314.google.com ([209.85.200.173]:13988 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757285AbZGFBNY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jul 2009 21:13:24 -0400
+Subject: Re: [BUG] drivers/video/sis: deadlock introduced by "fbdev: add
+ mutex for fb_mmap locking"
+From: Wu Zhangjin <wuzhangjin@gmail.com>
+Reply-To: wuzhangjin@gmail.com
+To: Krzysztof Helt <krzysztof.h1@poczta.fm>
+Cc: Paul Mundt <lethal@linux-sh.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-mips@linux-mips.org, Krzysztof Helt <krzysztof.h1@wp.pl>,
+	Peter Zijlstra <a.p.zijlstra@chello.nl>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Ralf Baechle <ralf@linux-mips.org>, ???? <yanh@lemote.com>,
+	zhangfx <zhangfx@lemote.com>
+In-Reply-To: <20090705181808.93be24a9.krzysztof.h1@poczta.fm>
+References: <1246785112.14240.34.camel@falcon>
+	 <alpine.LFD.2.01.0907050715490.3210@localhost.localdomain>
+	 <20090705145203.GA8326@linux-sh.org>
+	 <alpine.LFD.2.01.0907050756280.3210@localhost.localdomain>
+	 <20090705150134.GB8326@linux-sh.org>
+	 <alpine.LFD.2.01.0907050816110.3210@localhost.localdomain>
+	 <20090705152557.GA10588@linux-sh.org>
+	 <20090705181808.93be24a9.krzysztof.h1@poczta.fm>
+Content-Type: text/plain
+Date: Mon, 06 Jul 2009 09:13:11 +0800
+Message-Id: <1246842791.29532.2.camel@falcon>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Markus Rechberger wrote:
-> Hi all,
-> 
-> On Mon, Jun 29, 2009 at 4:00 PM, Devin
-> Heitmueller<dheitmueller@kernellabs.com> wrote:
->> Hello all,
->>
->> A few weeks ago, I did some work on support for the Terratec Cinergy T
->> XS USB product. �I successfully got the zl10353 version working and
->> issued a PULL request last week
->> (http://www.kernellabs.com/hg/~dheitmueller/em28xx-terratec-zl10353)
->>
-> 
-> There will be an alternative driver entirely in userspace available
-> which works across all major kernelversions and distributions. It will
-> support the old em28xx devices and handle audio routing for the most
-> popular TV applications directly.
-> 
-> This system makes compiling the drivers unnecessary across all
-> available linux systems between 2.6.15 and ongoing. This package also
-> allows commercial drivers from vendors, the API itself is almost the
-> same as the video4linux/linuxdvb API. Installing a driver takes less
-> than five seconds without having to take care about the kernel API or
-> having to set up a development system. Aside of that it's operating
-> system independent (working on Linux, MacOSX and FreeBSD).
-> I think this is the way to go for the future since it adds more
-> possibilities to the drivers, and it eases up and speeds up driver
-> development dramatically.
+Hi,
 
-Still keep feeling an itch to response to this. I am not interested in
-any proprietary driver binaries and I tried to work with you and
-contributed documentation, testing and lot of time to your em28xx
-project. I feel mislead and wasted my time trying to help you. Please
-don't response to this mail in this thread make a separate public thread
-if you want to discus it. I don't like thread highjacking. You are more
-then welcome to contribute code back in small patches for one change at
-a time that meets the Linux kernel licensing and coding guidelines. I
-sometimes got the feeling you are doing more good then harm working for
-Empiatech.
+On Sun, 2009-07-05 at 18:18 +0200, Krzysztof Helt wrote:
+> On Mon, 6 Jul 2009 00:25:57 +0900
+> Paul Mundt <lethal@linux-sh.org> wrote:
+> 
+> > On Sun, Jul 05, 2009 at 08:19:40AM -0700, Linus Torvalds wrote:
+> > > 
+> > > 
+> > > On Mon, 6 Jul 2009, Paul Mundt wrote:
+> > > > >
+> > > > > Why not "lock" as well?
+> > > > 
+> > > > I had that initially, but matroxfb will break if we do that, and
+> > > > presently nothing cares about trying to take ->lock that early on.
+> > > 
+> > > I really would rather have consistency than some odd rules like that.
+> > > 
+> > > In particular - if matroxfb is different and needs its own lock 
+> > > initialization because it doesn't use the common allocation routine, then 
+> > > please make _that_ consistent too. Rather than have it special-case just 
+> > > one lock that it needs to initialize separately, make it clear that since 
+> > > it does its own allocations it needs to initialize _everything_ 
+> > > separately.
+> > > 
+> > Ok, here is an updated version with an updated matroxfb and the sm501fb
+> > change reverted.
+> > 
+> > Signed-off-by: Paul Mundt <lethal@linux-sh.org>
+> > 
+> > ---
+> > 
+> 
+> This is incorrect way to fix this as some drivers do not use the framebuffer_alloc() 
+> at all. They use global (for a file) fb_info structure. I have done some cleanups to
+> the fbdev layer before the 2.6.31 and there should no drivers which uses kmalloc or
+> kzalloc to allocate the fb_info (your patch would break these drivers too).
+> 
+> A root of the whole mm_lock issue is that the fb_mmap() BKL protected two fb_info
+> fields which were never protected when set. I changed this by add the mm_lock 
+> around these fields but only in drivers which modified this fields AFTER call
+> to the register_framebuffer(). Some drivers set these fields using the same
+> function before and after the register_framebuffer(). I strongly believe that
+> setting these fields before the register_framebuffer() is wrong or redundant for
+> these drivers. See my fix for the sisfb driver below. 
+> 
+> I have tested the patch below. Wu Zhangjin, can you also confirm that this 
+> works for you (without your patch)?
+> 
 
-Best regards,
+This patch also works for me, thanks!
 
-Jelle de Jong
+Regards,
+Wu Zhangjin
+
+> I will look into the matroxfb and sm501fb drivers now. The same problem is
+> already fixed for the mx3fb driver and the patch is sent to Andrew Morton.
+> 
+> Regards,
+> Krzysztof
+> 
+> 
+> From: Krzysztof Helt <krzysztof.h1@wp.pl>
+> 
+> Remove redundant call to the sisfb_get_fix() before sis frambuffer is registered.
+> 
+> This fixes a problem with uninitialized the fb_info->mm_lock mutex.
+> 
+> Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+> ---
+> 
+> diff -urp linux-ref/drivers/video/sis/sis_main.c linux-next/drivers/video/sis/sis_main.c
+> --- linux-ref/drivers/video/sis/sis_main.c	2009-07-01 18:07:05.000000000 +0200
+> +++ linux-next/drivers/video/sis/sis_main.c	2009-07-05 17:20:33.000000000 +0200
+> @@ -6367,7 +6367,6 @@ error_3:	vfree(ivideo->bios_abase);
+>  		sis_fb_info->fix = ivideo->sisfb_fix;
+>  		sis_fb_info->screen_base = ivideo->video_vbase + ivideo->video_offset;
+>  		sis_fb_info->fbops = &sisfb_ops;
+> -		sisfb_get_fix(&sis_fb_info->fix, -1, sis_fb_info);
+>  		sis_fb_info->pseudo_palette = ivideo->pseudo_palette;
+>  
+>  		fb_alloc_cmap(&sis_fb_info->cmap, 256 , 0);
+> 
+> 
+> 
+> ----------------------------------------------------------------------
+> Najlepsze OC i AC tylko w Ergo Hestia
+> http://link.interia.pl/f222
+> 
+
