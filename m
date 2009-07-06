@@ -1,21 +1,16 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from fmmailgate02.web.de ([217.72.192.227])
+Received: from mail-fx0-f208.google.com ([209.85.220.208])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <emagick@magic.ms>) id 1MSD1P-0008Os-RM
-	for linux-dvb@linuxtv.org; Sat, 18 Jul 2009 18:44:28 +0200
-Received: from smtp07.web.de (fmsmtp07.dlan.cinetic.de [172.20.5.215])
-	by fmmailgate02.web.de (Postfix) with ESMTP id A981E10B582BC
-	for <linux-dvb@linuxtv.org>; Sat, 18 Jul 2009 18:43:54 +0200 (CEST)
-Received: from [217.228.192.251] (helo=[172.16.99.2])
-	by smtp07.web.de with asmtp (TLSv1:AES256-SHA:256)
-	(WEB.DE 4.110 #277) id 1MSD0s-00024a-00
-	for linux-dvb@linuxtv.org; Sat, 18 Jul 2009 18:43:54 +0200
-Message-ID: <4A61FBC7.3050006@magic.ms>
-Date: Sat, 18 Jul 2009 18:43:51 +0200
-From: emagick@magic.ms
+	(envelope-from <redtux1@googlemail.com>) id 1MNjnC-0003zR-BF
+	for linux-dvb@linuxtv.org; Mon, 06 Jul 2009 10:43:18 +0200
+Received: by fxm4 with SMTP id 4so2620833fxm.17
+	for <linux-dvb@linuxtv.org>; Mon, 06 Jul 2009 01:42:45 -0700 (PDT)
 MIME-Version: 1.0
+Date: Mon, 6 Jul 2009 09:42:43 +0100
+Message-ID: <ecc841d80907060142y29a7c7au136574d1cfc392c8@mail.gmail.com>
+From: Mike Martin <redtux1@googlemail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Cinergy T2 stopped working with kernel 2.6.30
+Subject: [linux-dvb] Status of em28xx support
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -24,26 +19,20 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-My Cinergy T2 (T=B2) doesn't work with kernels 2.6.30, 2.6.30.1, and 2.6.31=
--rc3,
-but it works with kernel 2.6.29. The kernel logs
+Hi
 
-   dvb-usb: recv bulk message failed: -110
+Is there any working support for empia chips at the moment (Hauppage HVR900 B2C)
 
-and the application (I've tried mythtv and mplayer) trying to access the DV=
-B receiver
-times out when trying to tune to a channel.
+I have been using Markus's driver but its been taken offline and my
+copy doesnt compile with latest kernel (F11)
 
-Is there anyone for whom dvb_usb_cinergyT2 works with kernel 2.6.30 or late=
-r?
-
-
+thanks
 
 _______________________________________________
 linux-dvb users mailing list
