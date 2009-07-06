@@ -1,28 +1,25 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n61ASp6l010713
-	for <video4linux-list@redhat.com>; Wed, 1 Jul 2009 06:28:51 -0400
-Received: from mailgw2.jenoptik.com (mailgw2.jenoptik.com [213.248.109.130])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n61AScBH030419
-	for <video4linux-list@redhat.com>; Wed, 1 Jul 2009 06:28:38 -0400
-Received: from hermes.jena-optronik.de (hermes [10.128.0.8])
-	by julia.jena-optronik.de (Postfix) with ESMTP id E93CB2102B
-	for <video4linux-list@redhat.com>;
-	Wed,  1 Jul 2009 12:28:36 +0200 (CEST)
-Received: from hermes.jena-optronik.de (localhost.localdomain [127.0.0.1])
-	by hermes.jena-optronik.de (8.13.8/8.13.8) with ESMTP id n61ASaqN008009
-	for <video4linux-list@redhat.com>; Wed, 1 Jul 2009 12:28:36 +0200
-Date: Wed, 1 Jul 2009 12:28:31 +0200
-From: "Jesko Schwarzer" <jesko.schwarzer@jena-optronik.de>
-To: "'V4L'" <video4linux-list@redhat.com>
-Message-ID: <"4430.30631246444116.hermes.jena-optronik.de*"@MHS>
-In-Reply-To: <b24e53350906300905k3d3d2141geb247736402dba10@mail.gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n66CN6XO006093
+	for <video4linux-list@redhat.com>; Mon, 6 Jul 2009 08:23:06 -0400
+Received: from out2.smtp.messagingengine.com (out2.smtp.messagingengine.com
+	[66.111.4.26])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n66CMmYM029797
+	for <video4linux-list@redhat.com>; Mon, 6 Jul 2009 08:22:48 -0400
+Message-Id: <1246882966.1165.1323684945@webmail.messagingengine.com>
+From: "Kay Wrobel" <kwrobel@letterboxes.org>
+To: "buhochileno" <buhochileno@gmail.com>, "V4L Mailing List"
+	<video4linux-list@redhat.com>
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-Content-Type: text/plain;
- 	charset="US-ASCII"
-Content-Disposition: inline
-Subject: Newbe question: How are SOC cameras integrated ? How to connect an
-	FPGA to the video interface ?
+In-Reply-To: <1246654555282-3203325.post@n2.nabble.com>
+References: <1244577481.32457.1319583459@webmail.messagingengine.com>
+	<1246654555282-3203325.post@n2.nabble.com>
+Date: Mon, 06 Jul 2009 07:22:46 -0500
+Cc: 
+Subject: Re: KWorld VS-USB2800D recognized as PointNix Intra-Oral Camera - No
+ Composite Input
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,18 +31,132 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
+Hi Mauricio,
 
-we currently use an OMAP Zoom board and want to connect an FPGA board to the
-video interface.
-One idea is to simulate an SOC camera like the MT9V022 device, but we don't
-know exacly how it is managed to from driver view.
-We use a 2.6.28 kernel and managed to integrate v4l2 and the SOC devices;
-but we did not get an /dev/video device ...
-And then, how to get a virtual MT9V022 running ? How to select ?
+Sorry for my late response. Yes, I was able to get it to work with the
+current version of v4l.
 
-Thanks in advance
-/Jesko
+I followed instructions given to my by Douglas Schilling:
+
+shell> hg clone http://www.linuxtv.org/hg/v4l-dvb
+shell> cd v4l-dvb
+shell> make
+shell> make unload
+shell> make install 
+shell> dmesg -c  (clear your dmesg)
+shell> modprobe em28xx 
+
+Kay
+
+On Fri, 03 Jul 2009 09:55 -0700, "buhochileno" <buhochileno@gmail.com>
+wrote:
+> 
+> 
+> 
+> Kay Wrobel wrote:
+> > 
+> > Hi video4linux list,
+> > 
+> > This may be something that has been asked in the past. I have a KWorld
+> > VS-USB2800D video capture device and my Ubuntu 9.04 Jaunty recognizes it
+> > as a PointNix Intra-Oral Camera. The only thing that works is the
+> > S-Video input. However, I'd like to use the Composite input (regular
+> > yellow RCA). So here's the dmesg:
+> > 
+> > [18325.975026] usb 3-2.2: USB disconnect, address 7
+> > [18406.553718] usb 3-2.2: new full speed USB device using uhci_hcd and
+> > address 8
+> > [18406.655706] usb 3-2.2: not running at top speed; connect to a high
+> > speed hub
+> > [18406.664296] usb 3-2.2: configuration #1 chosen from 1 choice
+> > [18406.666788] hub 3-2.2:1.0: USB hub found
+> > [18406.668783] hub 3-2.2:1.0: 4 ports detected
+> > [20149.760030] usb 1-6: new high speed USB device using ehci_hcd and
+> > address 5
+> > [20149.892966] usb 1-6: configuration #1 chosen from 1 choice
+> > [20149.954275] Linux video capture interface: v2.00
+> > [20149.964580] em28xx v4l2 driver version 0.1.0 loaded
+> > [20149.964632] em28xx new video device (eb1a:2860): interface 0, class
+> > 255
+> > [20149.964640] em28xx Doesn't have usb audio class
+> > [20149.964645] em28xx #0: Alternate settings: 8
+> > [20149.964649] em28xx #0: Alternate setting 0, max size= 0
+> > [20149.964653] em28xx #0: Alternate setting 1, max size= 0
+> > [20149.964657] em28xx #0: Alternate setting 2, max size= 1448
+> > [20149.964661] em28xx #0: Alternate setting 3, max size= 2048
+> > [20149.964666] em28xx #0: Alternate setting 4, max size= 2304
+> > [20149.964670] em28xx #0: Alternate setting 5, max size= 2580
+> > [20149.964674] em28xx #0: Alternate setting 6, max size= 2892
+> > [20149.964678] em28xx #0: Alternate setting 7, max size= 3072
+> > [20149.964926] em28xx #0: chip ID is em2860
+> > [20150.196540] em28xx #0: board has no eeprom
+> > [20150.210897] em28xx #0: found i2c device @ 0x4a [saa7113h]
+> > [20150.252142] em28xx #0: Your board has no unique USB ID.
+> > [20150.252150] em28xx #0: A hint were successfully done, based on i2c
+> > devicelist hash.
+> > [20150.252155] em28xx #0: This method is not 100% failproof.
+> > [20150.252160] em28xx #0: If the board were missdetected, please email
+> > this log to:
+> > [20150.252164] em28xx #0:       V4L Mailing List 
+> > <video4linux-list@redhat.com>
+> > [20150.252170] em28xx #0: Board detected as PointNix Intra-Oral Camera
+> > [20150.252175] em28xx #0: Registering snapshot button...
+> > [20150.252411] input: em28xx snapshot button as
+> > /devices/pci0000:00/0000:00:1d.7/usb1/1-6/input/input6
+> > [20150.643094] saa7115' 4-0025: saa7113 found (1f7113d0e100000) @ 0x4a
+> > (em28xx #0)
+> > [20151.920343] em28xx #0: V4L2 device registered as /dev/video0 and
+> > /dev/vbi0
+> > [20151.920351] em28xx #0: Found PointNix Intra-Oral Camera
+> > [20151.920395] usbcore: registered new interface driver em28xx
+> > [20151.927004] em28xx-audio.c: probing for em28x1 non standard usbaudio
+> > [20151.927009] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+> > [20151.927534] Em28xx: Initialized (Em28xx Audio Extension) extension
+> > 
+> > Notice how it only generates /dev/video0 and /dev/vbi0. I would have
+> > expected to see two additional devices, like /dev/video1 and /dev/vbi1.
+> > 
+> > Maybe the detected Intra-Oral camera doesn't have that input, but the
+> > KWorld VS-USB2008D does. What can be done to make the driver recognize
+> > the Composite input correctly?
+> > 
+> > Thanks for any help...
+> > -- 
+> >   Kay Wrobel
+> >   kwrobel@letterboxes.org
+> > 
+> > -- 
+> > http://www.fastmail.fm - IMAP accessible web-mail
+> > 
+> > --
+> > video4linux-list mailing list
+> > Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> > https://www.redhat.com/mailman/listinfo/video4linux-list
+> > 
+> > 
+> 
+> Hi, I'm on the same situation, any sucess?
+> 
+> May be this is a v4l2 or ucv device...
+> 
+> Mauricio
+> 
+> -- 
+> View this message in context:
+> http://n2.nabble.com/KWorld-VS-USB2800D-recognized-as-PointNix-Intra-Oral-Camera---No-Composite-Input-tp3051767p3203325.html
+> Sent from the video4linux-list mailing list archive at Nabble.com.
+> 
+> --
+> video4linux-list mailing list
+> Unsubscribe
+> mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+-- 
+  Kay Wrobel
+  kwrobel@letterboxes.org
+
+-- 
+http://www.fastmail.fm - The professional email service
 
 --
 video4linux-list mailing list
