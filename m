@@ -1,74 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:53452 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751337AbZGRMRR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jul 2009 08:17:17 -0400
-Received: by ey-out-2122.google.com with SMTP id 9so337867eyd.37
-        for <linux-media@vger.kernel.org>; Sat, 18 Jul 2009 05:17:15 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <200907181246.44288.mario.fetka@gmail.com>
-References: <1245098160.20120.0.camel@asrock>
-	 <1247882773.23687.14.camel@miki-desktop>
-	 <200907181246.44288.mario.fetka@gmail.com>
-Date: Sat, 18 Jul 2009 14:17:15 +0200
-Message-ID: <d9def9db0907180517p6aba52cbwf1617a512a0e7ad6@mail.gmail.com>
-Subject: Re: [linux-dvb] Terratec Cinergy HTC USB XS HD
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Mario Fetka <mario.fetka@gmail.com>
-Cc: Alain Kalker <miki@dds.nl>, linux-media@vger.kernel.org,
-	video4linux-list@redhat.com, linux-dvb@linuxtv.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp239.poczta.interia.pl ([217.74.64.239]:40840 "EHLO
+	smtp239.poczta.interia.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753479AbZGFOlD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jul 2009 10:41:03 -0400
+Date: Mon, 6 Jul 2009 16:50:36 +0200
+From: Krzysztof Helt <krzysztof.h1@poczta.fm>
+To: wuzhangjin@gmail.com
+Cc: Paul Mundt <lethal@linux-sh.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-mips@linux-mips.org, Krzysztof Helt <krzysztof.h1@wp.pl>,
+	Peter Zijlstra <a.p.zijlstra@chello.nl>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Ralf Baechle <ralf@linux-mips.org>, ???? <yanh@lemote.com>,
+	zhangfx <zhangfx@lemote.com>
+Subject: Re: [BUG] drivers/video/sis: deadlock introduced by
+ "fbdev: add mutex for fb_mmap locking"
+Message-Id: <20090706165036.d21bfaaa.krzysztof.h1@poczta.fm>
+In-Reply-To: <1246842791.29532.2.camel@falcon>
+References: <1246785112.14240.34.camel@falcon>
+	<alpine.LFD.2.01.0907050715490.3210@localhost.localdomain>
+	<20090705145203.GA8326@linux-sh.org>
+	<alpine.LFD.2.01.0907050756280.3210@localhost.localdomain>
+	<20090705150134.GB8326@linux-sh.org>
+	<alpine.LFD.2.01.0907050816110.3210@localhost.localdomain>
+	<20090705152557.GA10588@linux-sh.org>
+	<20090705181808.93be24a9.krzysztof.h1@poczta.fm>
+	<1246842791.29532.2.camel@falcon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 18, 2009 at 12:46 PM, Mario Fetka<mario.fetka@gmail.com> wrote:
-> On Saturday, 18. July 2009 04:06:13 Alain Kalker wrote:
->> Op maandag 15-06-2009 om 22:36 uur [tijdzone +0200], schreef sacha:
->> > Hello
->> >
->> > Does anybody know if this devise will ever work with Linux?
->> > It was promised by one person last year the support will be available
->> > within months. One year has gone, nothing happens.
->> > Is there any alternatives to develop a driver for this devise aside from
->> > this person?
->>
->> Since there has been no answer to your question for some time, I think I
->> will step in.
->>
->> >From http://mcentral.de/wiki/index.php5/Terratec_HTC_XS , the future for
->>
->> a driver from Markus for this device does seem to look quite bleak.
->> However, from looking in the mailinglist archive I gather that Steven
->> Toth has offered to try getting it to work if someone is willing to
->> provide him with a device.
->> Maybe you two could get in contact.
->> I myself am also interested in a driver for this device but I haven't
->> got one yet.
->>
->> Kind regards,
->>
->> Alain
->>
-> as far as i know there already exists a driver but it could not be published
-> as it is based on the micronas refernce driver
->
-> i think the problem is related to
->
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-December/030738.html
->
-> but this new situation with
-> http://www.tridentmicro.com/Product_drx_39xyK.asp
->
-> can maby change something about this chip
->
-> and it would be possible to get the rights to publish the driver under  gpl-2
->
+On Mon, 06 Jul 2009 09:13:11 +0800
+Wu Zhangjin <wuzhangjin@gmail.com> wrote:
 
-This won't solve the issue that the AVFB4910 has been discontinued.
-This affects FM Radio, Analogue TV, Composite and S-Video, that IC
-didn't get bought by Trident.
+> Hi,
+> 
+> 
+> This patch also works for me, thanks!
+> 
+> Regards,
+> Wu Zhangjin
+> 
 
-regards,
-Markus
+Who should I send this patch to be included as a 2.6.31 regression fix?
+
+Regards,
+Krzysztof
+
+> > 
+> > From: Krzysztof Helt <krzysztof.h1@wp.pl>
+> > 
+> > Remove redundant call to the sisfb_get_fix() before sis frambuffer is registered.
+> > 
+> > This fixes a problem with uninitialized the fb_info->mm_lock mutex.
+> > 
+> > Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
+> > ---
+> > 
+> > diff -urp linux-ref/drivers/video/sis/sis_main.c linux-next/drivers/video/sis/sis_main.c
+> > --- linux-ref/drivers/video/sis/sis_main.c	2009-07-01 18:07:05.000000000 +0200
+> > +++ linux-next/drivers/video/sis/sis_main.c	2009-07-05 17:20:33.000000000 +0200
+> > @@ -6367,7 +6367,6 @@ error_3:	vfree(ivideo->bios_abase);
+> >  		sis_fb_info->fix = ivideo->sisfb_fix;
+> >  		sis_fb_info->screen_base = ivideo->video_vbase + ivideo->video_offset;
+> >  		sis_fb_info->fbops = &sisfb_ops;
+> > -		sisfb_get_fix(&sis_fb_info->fix, -1, sis_fb_info);
+> >  		sis_fb_info->pseudo_palette = ivideo->pseudo_palette;
+> >  
+> >  		fb_alloc_cmap(&sis_fb_info->cmap, 256 , 0);
+> > 
+> > 
+> > 
+> > ----------------------------------------------------------------------
+> > Najlepsze OC i AC tylko w Ergo Hestia
+> > http://link.interia.pl/f222
+> > 
+> 
+> 
+
+----------------------------------------------------------------------
+Najlepsze OC i AC tylko w Ergo Hestia
+http://link.interia.pl/f222
+
