@@ -1,20 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n690xw6A025410
-	for <video4linux-list@redhat.com>; Wed, 8 Jul 2009 20:59:58 -0400
-Received: from m13-93.163.com (m13-93.163.com [220.181.13.93])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n690xeak020629
-	for <video4linux-list@redhat.com>; Wed, 8 Jul 2009 20:59:41 -0400
-Date: Thu, 9 Jul 2009 08:59:39 +0800 (CST)
-From: =?gbk?B?wO7OsA==?= <54216deren@163.com>
-To: video4linux-list <video4linux-list@redhat.com>
-Message-ID: <27409228.37591247101179127.JavaMail.coremail@bj163app93.163.com>
-In-Reply-To: <20090708160016.0386E61A25D@hormel.redhat.com>
-References: <20090708160016.0386E61A25D@hormel.redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=gbk
-Content-Transfer-Encoding: quoted-printable
-Subject: Re_ how to make qbuf.eml
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n661FEhZ002016
+	for <video4linux-list@redhat.com>; Sun, 5 Jul 2009 21:15:14 -0400
+Received: from mail-in-17.arcor-online.net (mail-in-17.arcor-online.net
+	[151.189.21.57])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n661EuAR032286
+	for <video4linux-list@redhat.com>; Sun, 5 Jul 2009 21:14:56 -0400
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Linos <info@linos.es>
+In-Reply-To: <4A512944.2010002@linos.es>
+References: <4A38AE27.40601@linos.es>  <4A512944.2010002@linos.es>
+Content-Type: text/plain; charset=UTF-8
+Date: Mon, 06 Jul 2009 03:14:33 +0200
+Message-Id: <1246842873.3708.22.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
+Cc: video4linux-list@redhat.com
+Subject: Re: bttv problem
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,47 +28,48 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello Lamarque Vieira Souza:
-I have read your answer about how to make qbuf .
-I am doing a VPU ( video process unit )test on imx27(Freescale company).=20
-The test include v4l2 part which will communicate with tv out  board and tv=
- in board.=20
-But there will be some information printed like below:
+Hi,
 
-VIDIOC_QBUF - overflow
+Am Montag, den 06.07.2009, 00:29 +0200 schrieb Linos:
+> Hello,
+> 	who is the bttv maintainer (if any), maybe i can inform him of this? Thanks.
 
-VIDIOC_QBUF - overflow
+for bttv it is really easy to find out :)
 
-VIDIOC_QBUF - overflow
+You look at the MAINTAINERS file on top level of every kernel.
 
-mxc_v4l_dqueue - overflow
+Daniel is for sure also very fine on it and also some others.
 
-mxc_v4l_dqueue =A8C overflow                   =20
+To have a chance, that somebody reads it, maybe again, don't post not
+working links to the subscribers only and not search-able archive at
+RedHat, but prefer the public available mirrors.
 
-mxc_v4l_dqueue - overflow
+It is annoying to dig through it by message numbers after login, since
+no direct link works.
 
-Would you please give me some advices about how to deal with the problems .
-Best regards .
-liwee=20
+BTW, we moved to linux-media@vger.kernel.org.
+
+Cheers,
+Hermann
 
 
+> Regards,
+> Miguel Angel.
+> 
+> Linos escribió:
+> > Hello,
+> >     i posted this problem any time ago ( 
+> > https://www.redhat.com/mailman/private/video4linux-list/2008-October/msg00246.html 
+> > ), but still it seems to be in the last kernel, for details of the bug 
+> > please read the link, i have upgraded this week to 2.6.30 and still i 
+> > have to execute the code Daniel send the list to fix the bug in the bttv 
+> > driver in 2.6.26, i am missing something or still have not been fixed in 
+> > mainstream kernel?
+> > 
+> > Regards,
+> > Miguel Angel.
+> > 
 
-
-=D4=DA2009-07-09=A3=ACvideo4linux-list-request@redhat.com =D0=B4=B5=C0=A3=
-=BA
->Send video4linux-list mailing list submissions to
->=09video4linux-list@redhat.com
->
->To subscribe or unsubscribe via the World Wide Web, visit
->=09https://www.redhat.com/mailman/listinfo/video4linux-list
->or, via email, send a message with subject or body 'help' to
->=09video4linux-list-request@redhat.com
->
->You can reach the person managing the list at
->=09video4linux-list-owner@redhat.com
->
->When replying, please edit your Subject line so it is more specific
->than "Re: Contents of video4linux-list digest..."
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
