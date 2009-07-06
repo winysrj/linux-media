@@ -1,133 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:46934 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751003AbZG3PFp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2009 11:05:45 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Laurent Pinchart <laurent.pinchart@skynet.be>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	v4l2_linux <linux-media@vger.kernel.org>,
-	Dongsoo Kim <dongsoo45.kim@samsung.com>,
-	=?Windows-1252?B?w6vCsOKAosOqwrLCvcOrwq/CvA==?=
-	<kyungmin.park@samsung.com>,
-	"jm105.lee@samsung.com" <jm105.lee@samsung.com>,
-	=?Windows-1252?B?w6zvv73CtMOs4oCewrjDq8Kswri=?=
-	<semun.lee@samsung.com>,
-	=?Windows-1252?B?w6vFkuKCrMOs77+9wrjDqsK4wrC=?=
-	<inki.dae@samsung.com>,
-	=?Windows-1252?B?w6rCueKCrMOty5zigKLDrMKk4oKs?=
-	<riverful.kim@samsung.com>
-Date: Thu, 30 Jul 2009 10:05:26 -0500
-Subject: RE: How to save number of times using memcpy?
-Message-ID: <A69FA2915331DC488A831521EAE36FE401450FB16E@dlee06.ent.ti.com>
-References: <10799.62.70.2.252.1248852719.squirrel@webmail.xs4all.nl>
-    <200907292352.00179.hverkuil@xs4all.nl>
-    <A69FA2915331DC488A831521EAE36FE401450FAFD0@dlee06.ent.ti.com>
-    <200907300831.39579.hverkuil@xs4all.nl>
-    <A69FA2915331DC488A831521EAE36FE401450FB0C7@dlee06.ent.ti.com>
-    <de79b8390a2a633a34370bcc666d2914.squirrel@webmail.xs4all.nl>
-    <A69FA2915331DC488A831521EAE36FE401450FB11F@dlee06.ent.ti.com>
- <ecf13427a4977f3ca5e778a6152ad17f.squirrel@webmail.xs4all.nl>
-In-Reply-To: <ecf13427a4977f3ca5e778a6152ad17f.squirrel@webmail.xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:56974 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753684AbZGFIql (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jul 2009 04:46:41 -0400
+Received: by fxm18 with SMTP id 18so3851700fxm.37
+        for <linux-media@vger.kernel.org>; Mon, 06 Jul 2009 01:46:44 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <68fea9390907020826w404eb64ep93cb30aed66496fe@mail.gmail.com>
+References: <496CB23D.6000606@libertysurf.fr> <496D7204.6030501@rogers.com>
+	 <496DB023.3090402@libertysurf.fr>
+	 <68676e00901150743q5576fefane2d2818dc6cd9cb0@mail.gmail.com>
+	 <004701c9aeef$0d127520$27375f60$@net>
+	 <68fea9390907020826w404eb64ep93cb30aed66496fe@mail.gmail.com>
+Date: Mon, 6 Jul 2009 09:46:44 +0100
+Message-ID: <68fea9390907060146m10effaf8s5283057c32514ba5@mail.gmail.com>
+Subject: Fwd: [linux-dvb] Pinnacle dual Hybrid pro PCI-express - linuxTV!
+From: Matt <mattmoran76@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
+Is this thread saying that the Pinnacle 3010i is now supported under
+linux? if so does this go for the Pinnacle 7010i too?
 
->-----Original Message-----
->From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->owner@vger.kernel.org] On Behalf Of Hans Verkuil
->Sent: Thursday, July 30, 2009 10:57 AM
->To: Karicheri, Muralidharan
->Cc: Laurent Pinchart; Mauro Carvalho Chehab; Dongsoo, Nathaniel Kim;
->v4l2_linux; Dongsoo Kim; ë°•ê²½ë¯¼; jm105.lee@samsung.com;
->ì�´ì„¸ë¬¸; ëŒ€ì�¸ê¸°; ê¹€�˜•ì¤€
->Subject: RE: How to save number of times using memcpy?
->
->
->> Mauro,
->>
->> What do you suggest for this? Could we allocate coherent device memory
->> using dma_declare_coherent_memory() ? This seems the only way to do it
->> unless, video buffer layer does this when initializing the queue.
->
->Or to be able to override the memory allocation in some way. Large
->contiguous buffers are hard to get once a system has been running for a
->while, so at least some buffers must be allocated up front and not on the
->first open() or VIDIOC_REQBUFS call. I'm surprised that this issue hasn't
->cropped up before.
->
+Thanks,
 
-Hans,
+Matt
 
-Our internal test team has already found this an issue in vpfe capture.c. I was about to send out email to the mailing list when this discussion came in. Also there is an issue in the video buffer layer that results in an oops if buffer allocation fails. i.e if we request HD resolution buffer, then videobuf_reqbuf causes an oops somewhere in dma_contig buffer allocation. I have traced it to an dev_err() call. I was busy with my dm6467 capture port that I couldn't spend enough time root causing it. I have seen this issue in dm6467 display driver as well. So this is an urgent issue to be resolved soon in our drivers.
-
->Regards,
+2009/3/27 dCrypt <dcrypt@telefonica.net>:
+> Hi,
 >
->         Hans
+> I also own a pair of Pinnacle 3010ix.
 >
+> Luca, where should the PCI ID go? I can't believe that adding a new card to
+> the supported card list is just that simple. Do you know a web page with
+> information about it?.
+>
+> Thanks
+>
+> -----Mensaje original-----
+> De: linux-dvb-bounces@linuxtv.org [mailto:linux-dvb-bounces@linuxtv.org] En
+> nombre de Luca Tettamanti
+> Enviado el: jueves, 15 de enero de 2009 16:44
+> Para: Catimimi
+> CC: linux-dvb@linuxtv.org; Linux-media
+> Asunto: Re: [linux-dvb] Pinnacle dual Hybrid pro PCI-express - linuxTV!
+>
+> On Wed, Jan 14, 2009 at 10:28 AM, Catimimi <catimimi@libertysurf.fr> wrote:
+>> try without the ".ko", i.e. instead, use:
 >>
->> Murali Karicheri
->> Software Design Engineer
->> Texas Instruments Inc.
->> Germantown, MD 20874
->> Phone : 301-515-3736
->> email: m-karicheri2@ti.com
+>> modprobe saa716x_hybrid
 >>
->>>-----Original Message-----
->>>From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->>>owner@vger.kernel.org] On Behalf Of Hans Verkuil
->>>Sent: Thursday, July 30, 2009 10:26 AM
->>>To: Karicheri, Muralidharan
->>>Cc: Laurent Pinchart; Mauro Carvalho Chehab; Dongsoo, Nathaniel Kim;
->>>v4l2_linux; Dongsoo Kim; ë°•ê²½ë¯¼; jm105.lee@samsung.com;
->>>ì�´ì„¸ë¬¸; ëŒ€ì�¸ê¸°; ê¹€�˜•ì¤€
->>>Subject: RE: How to save number of times using memcpy?
->>>
->>>
->>>> Hans,
->>>>
->>>> I don't see the code you are referring to. Here is the probe() from the
->>>> next branch of v4l-dvb. Could you point out the code that does the
->>>> allocation of frame buffers ? I had used this code as reference when
->>>> developing vpfe capture driver.
->>>>
->>>> Murali
->>>
->>>My apologies, I got it mixed up with older versions of this driver. I see
->>>that it now uses videobuf-dma-contig. This is going to be a real problem
->>>since this makes it impossible (or at least very hard) to allocate memory
->>>up front. I'm no expert on videobuf, but this is something that should be
->>>addressed, especially in the dma-contig case.
->>>
->>>Regards,
->>>
->>>          Hans
->>>
->>>--
->>>Hans Verkuil - video4linux developer - sponsored by TANDBERG
->>>
->>>--
->>>To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>>the body of a message to majordomo@vger.kernel.org
->>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
->>
+>> OK, shame on me, it works but nothing happens.
+>
+> Of course ;-) The PCI ID of the card is not listed. I happen to have
+> the same card, you can add the ID to the list but note that the
+> frontend is not there yet... so the module will load, will print some
+> something... and that's it.
+> I have a couple of patches queued and I plan to do some
+> experimentation in the weekend though ;)
+>
+> Luca
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 >
 >
->--
->Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 >
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
