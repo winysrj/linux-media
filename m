@@ -1,64 +1,87 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:26000 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752311AbZGEI6d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jul 2009 04:58:33 -0400
-Date: Sun, 5 Jul 2009 10:58:25 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Andrzej Hajda <andrzej.hajda@wp.pl>,
-	Trent Piepho <xyzzy@speakeasy.org>
-Subject: Re: [PATCH 1/2 v2] Compatibility layer for hrtimer API
-Message-ID: <20090705105825.0e05160c@hyperion.delvare>
-In-Reply-To: <20090703224652.339a63e7@hyperion.delvare>
-References: <20090703224652.339a63e7@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Return-path: <video4linux-list-bounces@redhat.com>
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n66KWZS5029987
+	for <video4linux-list@redhat.com>; Mon, 6 Jul 2009 16:32:35 -0400
+Received: from mail-bw0-f221.google.com (mail-bw0-f221.google.com
+	[209.85.218.221])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n66KWHqr026678
+	for <video4linux-list@redhat.com>; Mon, 6 Jul 2009 16:32:17 -0400
+Received: by bwz21 with SMTP id 21so4189516bwz.3
+	for <video4linux-list@redhat.com>; Mon, 06 Jul 2009 13:32:17 -0700 (PDT)
+Message-ID: <4A525F49.1030602@gmail.com>
+Date: Tue, 07 Jul 2009 00:32:09 +0400
+From: fsulima <fsulima@gmail.com>
+MIME-Version: 1.0
+To: Jackson Yee <jackson@gotpossum.com>
+References: <4A5089CF.3070606@gmail.com>	
+	<26aa882f0907051330y6f092ca3x18e1f58e883352d4@mail.gmail.com>	
+	<4A511E18.2010305@gmail.com>	
+	<26aa882f0907051606x9b9f63bi6a7a9d5ea7db6126@mail.gmail.com>	
+	<4A5140F0.40909@gmail.com>
+	<26aa882f0907051945k2d568e18ib47a9dd8aa9a6ccf@mail.gmail.com>
+In-Reply-To: <26aa882f0907051945k2d568e18ib47a9dd8aa9a6ccf@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
-List-ID: <linux-media.vger.kernel.org>
+Cc: video4linux-list@redhat.com
+Subject: Re: Please advise: 4channel capture device with HW compression for
+ Linux based DVR
+List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Sender: video4linux-list-bounces@redhat.com
+Errors-To: video4linux-list-bounces@redhat.com
+List-ID: <video4linux-list@redhat.com>
 
-Kernels 2.6.22 to 2.6.24 (inclusive) need some compatibility quirks
-for the hrtimer API. For older kernels, some required functions were
-not exported so there's nothing we can do. This means that drivers
-using the hrtimer infrastructure will no longer work for kernels older
-than 2.6.22.
+Hi again.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
-Updated according to Trent's comment: the compatibility code is only
-included if <linux/htrimer.h> was already included by the driver.
+I accidentally found an article which is very optimistic about Atom 
+performance on the task.
+Here it is: http://www.asmag.com/showpost/7806.aspx
+It made me hope, so again I want to give it a try on Atom.
 
- v4l/compat.h |   19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+The problem is the same - the capturing hardware.
+On the next shop I can find:
+1. 4channel 30fps USB capturer - exactly like one you mentioned yesterday.
+2. 4channel 120fps full-size PCI capturer (different ones)
+3. AOpen S180 Mini-ITX - Mini-ITX case with full-height PCI - 
+http://global.aopen.com/products_detail.aspx?Auno=2657 ;)
+I forgot to mention that my next shop is kinda good one :)
 
---- v4l-dvb.orig/v4l/compat.h	2009-07-05 10:32:12.000000000 +0200
-+++ v4l-dvb/v4l/compat.h	2009-07-05 10:33:37.000000000 +0200
-@@ -480,4 +480,23 @@ static inline unsigned long v4l_compat_f
- }
- #endif
- 
-+/*
-+ * Compatibility code for hrtimer API
-+ * This will make hrtimer usable for kernels 2.6.22 and later.
-+ * For earlier kernels, not all required functions are exported
-+ * so there's nothing we can do.
-+ */
-+
-+#ifdef _LINUX_HRTIMER_H
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 25) && \
-+	LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 22)
-+/* Forward a hrtimer so it expires after the hrtimer's current now */
-+static inline unsigned long hrtimer_forward_now(struct hrtimer *timer,
-+						ktime_t interval)
-+{
-+	return hrtimer_forward(timer, timer->base->get_time(), interval);
-+}
-+#endif
-+#endif /* _LINUX_HRTIMER_H */
-+
- #endif /*  _COMPAT_H */
+Right now I have In-Win case with low profile slot: 
+http://www.in-win.us/products_pccase_series.php?cat_id=1&series_id=24&model_id=241
+It looks like it may be possible to fit full-size PCI card in there, but 
+not arbitrary one and it would require some craft.
 
+So, I see the following options right now:
+1. Get USB capturer and give it a try at 30fps.
+2. Try to fit full-size PCI into existent case.
+3. Upgrade the case.
 
--- 
-Jean Delvare
+Any ideas?
+
+Regards,
+F S
+
+P.S.: I'm not sure if it became off-topic for the list, shall we switch 
+to private or it's ok?
+
+Jackson Yee wrote:
+> On Sun, Jul 5, 2009 at 8:10 PM, fsulima<fsulima@gmail.com> wrote:
+>   
+>> Oh, this is too pricy.
+>> Are you talking only about cards with H/W encoding or about all low profile
+>> multiple port capture cards?
+>>     
+>
+> *ALL* low profile multiple port capture cards. The good hardware
+> encode cards, particularly the h264 ones, run in the thousands.
+>   
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
