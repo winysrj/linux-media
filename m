@@ -1,118 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1124 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754891AbZGUGZH (ORCPT
+Received: from mail-in-12.arcor-online.net ([151.189.21.52]:34847 "EHLO
+	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756211AbZGGXp3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jul 2009 02:25:07 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id n6L6P4WJ018259
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 21 Jul 2009 08:25:05 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 21 Jul 2009 08:25:04 +0200 (CEST)
-Message-Id: <200907210625.n6L6P4WJ018259@smtp-vbr9.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Tue, 7 Jul 2009 19:45:29 -0400
+Subject: Re: regression : saa7134 with Pinnacle PCTV 50i (analog) can not
+	tune  anymore
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Michael Krufky <mkrufky@kernellabs.com>
+Cc: eric.paturage@orange.fr, linux-media@vger.kernel.org
+In-Reply-To: <37219a840907071618x3842aaaeo21c48c3d9273155c@mail.gmail.com>
+References: <200907070644.n676iS803945@neptune.localwarp.net>
+	 <1246999504.9754.9.camel@pc07.localdom.local>
+	 <37219a840907071618x3842aaaeo21c48c3d9273155c@mail.gmail.com>
+Content-Type: text/plain
+Date: Wed, 08 Jul 2009 01:41:16 +0200
+Message-Id: <1247010076.7300.7.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi Mike,
 
-Results of the daily build of v4l-dvb:
+Am Dienstag, den 07.07.2009, 19:18 -0400 schrieb Michael Krufky:
+> On Tue, Jul 7, 2009 at 4:45 PM, hermann pitton<hermann-pitton@arcor.de> wrote:
+> > As far I know we did not change the bus speed or anything, but some
+> > cards need and i2c quirk to work correctly with the clients.
+> >
+> > Mike recently changed the old quirk with good reasons and it was widely
+> > tested, also by me, without any negative effect seen.
+> >
+> > Maybe your card is a rare case needing the old quirk.
+> 
+> I've already testes in the Pinnacle board and the quirk did not cause
+> any new problems.
+> 
+> I mentioned, however, that I saw some frontend issues that should be
+> looked at.  I dont have time right now to deal with this myself, but
+> perhaps within the next few weeks I can take a look at it.
+> 
+> Meanwhile, that was with respect to digital reception, only -- I did
+> not have such problems with analog -- not that I recall, at least.
+> 
+> Also, it does no good to manually modprobe tda8290, tda827x or
+> tda18271 -- the -dvb bridge driver will attach those modules as
+> needed, just as the tuner.ko module would as well.
+> 
+> I'd recommend to go back to a stable vanilla kernel, then rebuild
+> v4l-dvb from linuxtv.org with all options enabled.  If there are still
+> issues at that point, it should be looked at again.
+> 
+> Sorry I dont have any real answers, but I have my eye on this thread
+> -- I'll chime in if I can offer any more advice.
+> 
+> Good Luck,
+> 
+> Mike
 
-date:        Tue Jul 21 08:14:53 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12321:824d2ff85bd5
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+thanks a lot for following Eric's report.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc1-armv5: OK
-linux-2.6.27-armv5-ixp: ERRORS
-linux-2.6.28-armv5-ixp: ERRORS
-linux-2.6.29.1-armv5-ixp: ERRORS
-linux-2.6.30-armv5-ixp: ERRORS
-linux-2.6.31-rc1-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: ERRORS
-linux-2.6.29.1-armv5-omap2: ERRORS
-linux-2.6.30-armv5-omap2: ERRORS
-linux-2.6.31-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.11-i686: ERRORS
-linux-2.6.26-i686: ERRORS
-linux-2.6.27-i686: ERRORS
-linux-2.6.28-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30-i686: ERRORS
-linux-2.6.31-rc1-i686: ERRORS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc1-m32r: OK
-linux-2.6.30-mips: ERRORS
-linux-2.6.31-rc1-mips: ERRORS
-linux-2.6.27-powerpc64: ERRORS
-linux-2.6.28-powerpc64: ERRORS
-linux-2.6.29.1-powerpc64: ERRORS
-linux-2.6.30-powerpc64: ERRORS
-linux-2.6.31-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.11-x86_64: ERRORS
-linux-2.6.26-x86_64: ERRORS
-linux-2.6.27-x86_64: ERRORS
-linux-2.6.28-x86_64: ERRORS
-linux-2.6.29.1-x86_64: ERRORS
-linux-2.6.30-x86_64: ERRORS
-linux-2.6.31-rc1-x86_64: ERRORS
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc1): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+I admit the case looks really strange and I have no better ideas at the
+moment than to take the quirk into account, since i2c seems really to be
+messed up on his card.
 
-Detailed results are available here:
+Did build a 2.6.30.1 one hour back and installed a recent v4l-dvb
+mercurial on it and even have full support for my graphics card now.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+No issues at all for what I can tell.
 
-Full logs are available here:
+Cheers,
+Hermann
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
