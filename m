@@ -1,61 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198]:40191 "EHLO
-	mta3.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751127AbZGTQiw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2009 12:38:52 -0400
-Received: from host143-81.hauppauge.com
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta3.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KN3005E3A8OH350@mta3.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Mon, 20 Jul 2009 12:38:48 -0400 (EDT)
-Date: Mon, 20 Jul 2009 12:38:44 -0400
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: potential null deref in mpeg_open()
-In-reply-to: <alpine.DEB.2.00.0907171457580.12306@bicker>
-To: Dan Carpenter <error27@gmail.com>
-Cc: mjpeg-users@lists.sourceforge.net, linux-media@vger.kernel.org
-Message-id: <4A649D94.6050609@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <alpine.DEB.2.00.0907171457580.12306@bicker>
+Received: from mail01a.mail.t-online.hu ([84.2.40.6]:63047 "EHLO
+	mail01a.mail.t-online.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755323AbZGGGVP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jul 2009 02:21:15 -0400
+Message-ID: <4A52E8A1.40408@freemail.hu>
+Date: Tue, 07 Jul 2009 08:18:09 +0200
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	linux-media@vger.kernel.org
+CC: LKML <linux-kernel@vger.kernel.org>
+Subject: [PATCH 2/2] v4l2: remove unnecessary vidioc_s_std() from gspca
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 7/19/09 7:47 AM, Dan Carpenter wrote:
-> Hello,
->
-> I am testing a source checker (http://repo.or.cz/w/smatch.git) and it
-> found a bug in in mpeg_open() from drivers/media/video/cx23885/cx23885-417.c
->
-> "dev" is null on line 1554, so on line 1558 dprintk() will cause a
-> kernel oops if it is in debug mode.
->
-> drivers/media/video/cx23885/cx23885-417.c
->    1554          struct cx23885_dev *h, *dev = NULL;
->    1555          struct list_head *list;
->    1556          struct cx23885_fh *fh;
->    1557
->    1558          dprintk(2, "%s()\n", __func__);
->
-> Here is how dprintk() is defined earlier.
->
-> drivers/media/video/cx23885/cx23885-417.c
->      59  #define dprintk(level, fmt, arg...)\
->      60          do { if (v4l_debug>= level) \
->      61                  printk(KERN_DEBUG "%s: " fmt, dev->name , ## arg);\
->      62          } while (0)
->
-> regards,
-> dan carpenter
+From: Márton Németh <nm127@freemail.hu>
 
-Thanks Dan,
+The vidioc_s_std() is not necessary when vdev->tvnorms == 0. [1]
 
-I'd actually seen this three weeks ago when addressing another issue, although 
-thanks for raising it. We're pushing a fix for this, and a few other fixes, 
-later today.
+The changeset was tested together with v4l-test 0.16 [2] with
+gspca_sunplus driver together with Trust 610 LCD POWERC@M ZOOM.
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+References:
+[1] V4L2 API specification, revision 0.24
+    http://v4l2spec.bytesex.org/spec/x448.htm
+
+[2] v4l-test: Test environment for Video For Linux Two API
+    http://v4l-test.sourceforge.net/
+
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+--- linux-2.6.31-rc1/drivers/media/video/gspca/gspca.c.orig	2009-06-25 01:25:37.000000000 +0200
++++ linux-2.6.31-rc1/drivers/media/video/gspca/gspca.c	2009-07-06 08:14:19.000000000 +0200
+@@ -1405,12 +1405,6 @@ static int vidioc_s_parm(struct file *fi
+ 	return 0;
+ }
+
+-static int vidioc_s_std(struct file *filp, void *priv,
+-			v4l2_std_id *parm)
+-{
+-	return 0;
+-}
+-
+ #ifdef CONFIG_VIDEO_V4L1_COMPAT
+ static int vidiocgmbuf(struct file *file, void *priv,
+ 			struct video_mbuf *mbuf)
+@@ -1881,7 +1875,6 @@ static const struct v4l2_ioctl_ops dev_i
+ 	.vidioc_s_jpegcomp	= vidioc_s_jpegcomp,
+ 	.vidioc_g_parm		= vidioc_g_parm,
+ 	.vidioc_s_parm		= vidioc_s_parm,
+-	.vidioc_s_std		= vidioc_s_std,
+ 	.vidioc_enum_framesizes = vidioc_enum_framesizes,
+ #ifdef CONFIG_VIDEO_V4L1_COMPAT
+ 	.vidiocgmbuf          = vidiocgmbuf,
