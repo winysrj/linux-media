@@ -1,118 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr17.xs4all.nl ([194.109.24.37]:4945 "EHLO
-	smtp-vbr17.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932149AbZGOSVQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jul 2009 14:21:16 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr17.xs4all.nl (8.13.8/8.13.8) with ESMTP id n6FILEAh024235
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 15 Jul 2009 20:21:14 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 15 Jul 2009 20:21:14 +0200 (CEST)
-Message-Id: <200907151821.n6FILEAh024235@smtp-vbr17.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from comal.ext.ti.com ([198.47.26.152]:52821 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755387AbZGGMjA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jul 2009 08:39:00 -0400
+From: Chaithrika U S <chaithrika@ti.com>
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Cc: mchehab@infradead.org, hverkuil@xs4all.nl,
+	davinci-linux-open-source@linux.davincidsp.com,
+	Chaithrika U S <chaithrika@ti.com>
+Subject: [PATCH]: v4l: DaVinci: DM646x: Updates to VPIF display driver
+Date: Tue,  7 Jul 2009 07:51:42 -0400
+Message-Id: <1246967503-8525-1-git-send-email-chaithrika@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Minor fixes like change in the names of the standards,
+remove inclusion of version.h in the header file.
 
-Results of the daily build of v4l-dvb:
+Signed-off-by: Chaithrika U S <chaithrika@ti.com>
+---
+Applies to v4l-dvb repo
 
-date:        Wed Jul 15 19:00:06 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12270:d754a2d5a376
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+ drivers/media/video/davinci/vpif_display.c |   16 +++++-----------
+ drivers/media/video/davinci/vpif_display.h |    1 -
+ 2 files changed, 5 insertions(+), 12 deletions(-)
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc1-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-rc1-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.12-i686: ERRORS
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc1-i686: WARNINGS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc1-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-rc1-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc1-powerpc64: OK
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.12-x86_64: ERRORS
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc1-x86_64: OK
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc1): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
+index 969d4b3..0fba8d8 100644
+--- a/drivers/media/video/davinci/vpif_display.c
++++ b/drivers/media/video/davinci/vpif_display.c
+@@ -85,11 +85,11 @@ static struct device *vpif_dev;
+ 
+ static const struct vpif_channel_config_params ch_params[] = {
+ 	{
+-		"NTSC", 720, 480, 30, 0, 1, 268, 1440, 1, 23, 263, 266,
++		"NTSC_M", 720, 480, 30, 0, 1, 268, 1440, 1, 23, 263, 266,
+ 		286, 525, 525, 0, 1, 0, V4L2_STD_525_60,
+ 	},
+ 	{
+-		"PAL", 720, 576, 25, 0, 1, 280, 1440, 1, 23, 311, 313,
++		"PAL_BDGHIK", 720, 576, 25, 0, 1, 280, 1440, 1, 23, 311, 313,
+ 		336, 624, 625, 0, 1, 0, V4L2_STD_625_50,
+ 	},
+ };
+@@ -390,6 +390,7 @@ static int vpif_get_std_info(struct channel_obj *ch)
+ 		config = &ch_params[index];
+ 		if (config->stdid & std_info->stdid) {
+ 			memcpy(std_info, config, sizeof(*config));
++			std_info->stdid = vid_ch->stdid & config->stdid;
+ 			break;
+ 		}
+ 	}
+@@ -997,6 +998,7 @@ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id *std_id)
+ 		return -EINVAL;
+ 	}
+ 
++	*std_id = ch->vpifparams.std_info.stdid;
+ 	if ((ch->vpifparams.std_info.width *
+ 		ch->vpifparams.std_info.height * 2) >
+ 		config_params.channel_bufsize[ch->channel_id]) {
+@@ -1395,7 +1397,7 @@ static int initialize_vpif(void)
+ 	/* Allocate memory for six channel objects */
+ 	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
+ 		vpif_obj.dev[i] =
+-		    kmalloc(sizeof(struct channel_obj), GFP_KERNEL);
++		    kzalloc(sizeof(struct channel_obj), GFP_KERNEL);
+ 		/* If memory allocation fails, return error */
+ 		if (!vpif_obj.dev[i]) {
+ 			free_channel_objects_index = i;
+@@ -1511,20 +1513,12 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		/* Initialize field of the channel objects */
+ 		atomic_set(&ch->usrs, 0);
+ 		for (k = 0; k < VPIF_NUMOBJECTS; k++) {
+-			ch->common[k].numbuffers = 0;
+ 			common = &ch->common[k];
+-			common->io_usrs = 0;
+-			common->started = 0;
+ 			spin_lock_init(&common->irqlock);
+ 			mutex_init(&common->lock);
+-			common->numbuffers = 0;
+ 			common->set_addr = NULL;
+-			common->ytop_off = common->ybtm_off = 0;
+-			common->ctop_off = common->cbtm_off = 0;
+ 			common->cur_frm = common->next_frm = NULL;
+-			memset(&common->fmt, 0, sizeof(common->fmt));
+ 			common->numbuffers = config_params.numbuffers[k];
+-
+ 		}
+ 		ch->initialized = 0;
+ 		ch->channel_id = j;
+diff --git a/drivers/media/video/davinci/vpif_display.h b/drivers/media/video/davinci/vpif_display.h
+index a2a7cd1..14efb89 100644
+--- a/drivers/media/video/davinci/vpif_display.h
++++ b/drivers/media/video/davinci/vpif_display.h
+@@ -18,7 +18,6 @@
+ 
+ /* Header files */
+ #include <linux/videodev2.h>
+-#include <linux/version.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-device.h>
+ #include <media/videobuf-core.h>
+-- 
+1.5.6
 
