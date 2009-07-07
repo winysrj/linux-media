@@ -1,48 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:47955 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752910AbZGNFLX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jul 2009 01:11:23 -0400
-Received: from epmmp1 (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0KMR00HZFAEY4U@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 14 Jul 2009 14:11:22 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0KMR004LLAEYBF@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 14 Jul 2009 14:11:22 +0900 (KST)
-Date: Tue, 14 Jul 2009 14:11:22 +0900
-From: Joonyoung Shim <jy0922.shim@samsung.com>
-Subject: [PATCH v2 0/4] radio-si470x: separate usb and i2c interface
+Received: from mail-ew0-f226.google.com ([209.85.219.226]:63421 "EHLO
+	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753727AbZGGBiq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jul 2009 21:38:46 -0400
+Received: by ewy26 with SMTP id 26so178395ewy.37
+        for <linux-media@vger.kernel.org>; Mon, 06 Jul 2009 18:38:49 -0700 (PDT)
+Date: Mon, 06 Jul 2009 21:31:28 -0400
+From: Manu <eallaud@gmail.com>
+Subject: Re : [linux-dvb] Best stable DVB-S2 cards
 To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, tobias.lorenz@gmx.net,
-	kyungmin.park@samsung.com, klimov.linux@gmail.com
-Message-id: <4A5C137A.2010104@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7BIT
+References: <OFAEA012C7.BAA6BA92-ONC12575DE.00386C0E-C12575DE.00386C1B@devoteam.com>
+	<4A524C80.3010102@gmail.com>
+In-Reply-To: <4A524C80.3010102@gmail.com> (from claesl@gmail.com on Mon Jul  6
+	15:12:00 2009)
+Message-Id: <1246930288.7402.0@manu-laptop>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, all
+Le 06/07/2009 15:12:00, Claes Lindblom a écrit :
+> Jens.Peder.Terjesen@devoteam.com wrote:
+> >
+> > -----sacha wrote: -----
+> >
+> > >To: claesl@gmail.com
+> > >From: sacha <sacha@hemmail.se>
+> > >Sent by: linux-dvb-bounces@linuxtv.org
+> > >Date: 22-06-2009 21:21
+> > >cc: linux-dvb@linuxtv.org
+> > >Subject: [linux-dvb] Best stable DVB-S2 cards
+> > >
+> > >Claes
+> > >Forget all that has with stability to do on Linux, it will never
+> > >work!
+> > >It is my experience after three years of desperate trying. I have
+> the
+> > >same card and some others. Sometimes they works sometimes no. 24
+> > >hours
+> > >running is called High Availability in IT world and can be assured
+> > >only
+> > >by the commercial solutions. Believe me, I spent 14 years in
+> > >commercial
+> > >Unix and know what I am talking about.
+> > >
+> > >KR
+> > >
+> > >>Hi,
+> > >>I currently have a Azurewave AD-SP400 CI (Twinhan VP-1041)  DVB-
+> S2
+> > >>card 
+> > >>but I'm not sure if it
+> > >>that stable to have it running 24h every day on a server.
+> > >>I'm looking for a good DVB-S2 card that works out of the box in
+> > >Linux 
+> > >>kernel, does anyone have any good
+> > >>recommendations, both with or without CI. It's important that it
+> is 
+> > >>stable so I don't have to restart the server.
+> > >>I'm running Ubuntu Server 9.04 64-bit with kernel
+> 2.6.28-11-server.
+> > >
+> > ></Claes
+> > >
+> >
+> > I have three Hauppauge HVR-4000. Two that have been used for DVB-S
+> for
+> > about one year and one for DVB-S2 for about half a year without any
+> > stability issues.
+> > In the beginning it was a little fiddly with patching v4l-dvb, but
+> > support for this card was included in v4l-dvb last autumn and in 
+> the
+> > 2.6.28 kernel in November or December last year.
+> >
+> Thats sounds really good, does it work well with DVB-S2 and Mythtv?
+> By the way to use them in the same computer?
+> 
+> What's the status of Technotrend TT 1600 and 3200 in the main
+> dvb-tree?
+> And how about the issues noted in this thread
+> http://linuxtv.org/pipermail/linux-dvb/2009-February/031779.html ?
 
-I send the radio-si470x patches worked on http://linuxtv.org/hg/v4l-dvb.
-The patches is updated to version 2.
+Here TT 3200 works great (using CI) for DVB-S pnmy. I cant tell for S2 
+as there is no transponder (apart for one but which has a way too high 
+symbol rate). I use the v4l-dvb tree and mythtv's trunk (dont remember 
+if I use a patch or not).
+Bye
+Manu
 
-I have a board with Silicon Labs si4709 chip using the i2c interface,
-but the radio-si470x is only support usb interface currently. I posted
-about separating usb and i2c interface in radio-si470x the past.
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg02483.html
-
-Tobias informed me the base code for seperating at 
-http://linuxtv.org/hg/~tlorenz/v4l-dvb of Tobias repository in above
-mail, i based on it, but it cannot find now at Tobias repository.
-
-The patch 1/4 is for separating common and usb code.
-The patch 2/4 is about using dev_* macro instead of printk.
-The patch 3/4 is about adding disconnect check function for i2c interface.
-The patch 4/4 is for supporting si470x i2c interface.
-
-Please review, thank you.
