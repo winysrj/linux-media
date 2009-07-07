@@ -1,169 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from basement.romerikebb.no ([217.212.249.2]:57887 "HELO
-	basement.romerikebb.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754022AbZGIVa6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jul 2009 17:30:58 -0400
-Message-Id: <BB609B4F-4DAB-4CA3-9AFE-C0C51EF6FDFD@henes.no>
-From: =?ISO-8859-1?Q?Johan_Hen=E6s?= <johan@henes.no>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0 (Apple Message framework v935.3)
-Subject: Technotrend C-2300 problem getting channel lock
-Date: Thu, 9 Jul 2009 23:24:15 +0200
+Received: from mail-in-02.arcor-online.net ([151.189.21.42]:49962 "EHLO
+	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754154AbZGGCkv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Jul 2009 22:40:51 -0400
+Subject: Re: Re : [linux-dvb] Best stable DVB-S2 cards
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Manu <eallaud@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <1246930288.7402.0@manu-laptop>
+References: <OFAEA012C7.BAA6BA92-ONC12575DE.00386C0E-C12575DE.00386C1B@devoteam.com>
+	 <4A524C80.3010102@gmail.com>  <1246930288.7402.0@manu-laptop>
+Content-Type: text/plain; charset=UTF-8
+Date: Tue, 07 Jul 2009 04:38:15 +0200
+Message-Id: <1246934295.3741.16.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi !
 
-Recently I have bought three TechnoTrend C-2300 for use in my Mythtv-
-system. Everything seemed to go smooth, but for a major share of the
-channels I have problems getting a channel lock. (Or if I do on some
-of them, I get a "distorted" image with lots of "bit errors"....
+Am Montag, den 06.07.2009, 21:31 -0400 schrieb Manu:
+> Le 06/07/2009 15:12:00, Claes Lindblom a écrit :
+> > Jens.Peder.Terjesen@devoteam.com wrote:
+> > >
+> > > -----sacha wrote: -----
+> > >
+> > > >To: claesl@gmail.com
+> > > >From: sacha <sacha@hemmail.se>
+> > > >Sent by: linux-dvb-bounces@linuxtv.org
+> > > >Date: 22-06-2009 21:21
+> > > >cc: linux-dvb@linuxtv.org
+> > > >Subject: [linux-dvb] Best stable DVB-S2 cards
+> > > >
+> > > >Claes
+> > > >Forget all that has with stability to do on Linux, it will never
+> > > >work!
+> > > >It is my experience after three years of desperate trying. I have
+> > the
+> > > >same card and some others. Sometimes they works sometimes no. 24
+> > > >hours
+> > > >running is called High Availability in IT world and can be assured
+> > > >only
+> > > >by the commercial solutions. Believe me, I spent 14 years in
+> > > >commercial
+> > > >Unix and know what I am talking about.
+> > > >
+> > > >KR
+> > > >
+> > > >>Hi,
+> > > >>I currently have a Azurewave AD-SP400 CI (Twinhan VP-1041)  DVB-
+> > S2
+> > > >>card 
+> > > >>but I'm not sure if it
+> > > >>that stable to have it running 24h every day on a server.
+> > > >>I'm looking for a good DVB-S2 card that works out of the box in
+> > > >Linux 
+> > > >>kernel, does anyone have any good
+> > > >>recommendations, both with or without CI. It's important that it
+> > is 
+> > > >>stable so I don't have to restart the server.
+> > > >>I'm running Ubuntu Server 9.04 64-bit with kernel
+> > 2.6.28-11-server.
+> > > >
+> > > ></Claes
+> > > >
+> > >
+> > > I have three Hauppauge HVR-4000. Two that have been used for DVB-S
+> > for
+> > > about one year and one for DVB-S2 for about half a year without any
+> > > stability issues.
+> > > In the beginning it was a little fiddly with patching v4l-dvb, but
+> > > support for this card was included in v4l-dvb last autumn and in 
+> > the
+> > > 2.6.28 kernel in November or December last year.
+> > >
+> > Thats sounds really good, does it work well with DVB-S2 and Mythtv?
+> > By the way to use them in the same computer?
+> > 
+> > What's the status of Technotrend TT 1600 and 3200 in the main
+> > dvb-tree?
+> > And how about the issues noted in this thread
+> > http://linuxtv.org/pipermail/linux-dvb/2009-February/031779.html ?
+> 
+> Here TT 3200 works great (using CI) for DVB-S pnmy. I cant tell for S2 
+> as there is no transponder (apart for one but which has a way too high 
+> symbol rate). I use the v4l-dvb tree and mythtv's trunk (dont remember 
+> if I use a patch or not).
+> Bye
+> Manu
+> 
 
-Using the latest firmware for Linux : dvb-ttpci-01.fw-2622...
+For the TT 1600 S2 are no further reports since then.
 
-After poking around the Internet I found that QAM 128 has been a
-problem for TechnoTrend cards, and the funny thing is that my cable-
-provider is using QAM 128 for all channels (including the ones that
-works very well).
+The only reason not to have one yet is being short of PCI slots (1
+special, 1 as usual) and I would have to remove a triple capable card,
+but still some PCIe slot is free, with not much getting back. The S2
+stuff here is mostly what BBC HD already had last year.
 
-As I experience problems with most of my channels I still thought
-maybe this would be the problem. I haven't seen posts on the issue for
-quite a while and realizing that the latest firmware available for
-these cards is dated 2005, I wondered where I can find an updated
-version or if anyone has a solution to my problem........
+If you fail on that one, I would still take it at the level of
+dvbshop.net and pay for all previous and additional shipping.
 
-Best regards,
 
-johan
-
-----
+Cheers,
+Hermann
 
 
 
-$ lspci -vvv:
 
-02:09.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-	Subsystem: Technotrend Systemtechnik GmbH Octal/Technotrend DVB-C  
-for  iTV
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-   
-Stepping- SERR- FastB2B-
-	Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-   
-<TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (3750ns min, 9500ns max)
-	Interrupt: pin A routed to IRQ 21
-	Region 0: Memory at feaffc00 (32-bit, non-prefetchable) [size=512]
+  
 
-02:0c.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-	Subsystem: Technotrend Systemtechnik GmbH Octal/Technotrend DVB-C  
-for  iTV
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-   
-Stepping- SERR- FastB2B-
-	Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-   
-<TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (3750ns min, 9500ns max)
-	Interrupt: pin A routed to IRQ 22
-	Region 0: Memory at feaff400 (32-bit, non-prefetchable) [size=512]
-
-02:0d.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-	Subsystem: Technotrend Systemtechnik GmbH Octal/Technotrend DVB-C  
-for  iTV
-	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-   
-Stepping- SERR- FastB2B-
-	Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort-   
-<TAbort- <MAbort- >SERR- <PERR-
-	Latency: 64 (3750ns min, 9500ns max)
-	Interrupt: pin A routed to IRQ 21
-	Region 0: Memory at feaff000 (32-bit, non-prefetchable) [size=512]
-
-
-Syslog :
-
-Jul  9 19:18:48 xxxxxxx kernel: [   53.409368] saa7146: register   
-extension 'dvb'.
-Jul  9 19:18:48 xxxxxxx kernel: [   53.409449] ACPI: PCI Interrupt   
-0000:02:09.0[A] -> GSI 21 (level, low) -> IRQ 21
-Jul  9 19:18:48 xxxxxxx kernel: [   53.409492] saa7146: found saa7146   
-@ mem e09a6c00 (revision 1, irq 21) (0x13c2,0x000a).
-Jul  9 19:18:48 xxxxxxx kernel: [   55.952909] DVB: registering new   
-adapter (Technotrend/Hauppauge WinTV Nexus-CA rev1.X)
-Jul  9 19:18:48 xxxxxxx kernel: [   56.013623] adapter has MAC addr =   
-00:d0:5c:03:93:c2
-Jul  9 19:18:48 xxxxxxx kernel: [   56.244761] dvb-ttpci: gpioirq   
-unknown type=0 len=0
-Jul  9 19:18:48 xxxxxxx kernel: [   56.282309] dvb-ttpci: info @ card   
-0: firm f0240009, rtsl b0250018, vid 71010068, app80002622
-Jul  9 19:18:48 xxxxxxx kernel: [   56.282313] dvb-ttpci: firmware @   
-card 0 supports CI link layer interface
-Jul  9 19:18:48 xxxxxxx kernel: [   56.621915] dvb-ttpci: DVB-C  
-analog  module @ card 0 detected, initializing MSP3415
-Jul  9 19:18:48 xxxxxxx kernel: [   56.733924] dvb_ttpci: saa7113 not   
-accessible.
-Jul  9 19:18:48 xxxxxxx kernel: [   56.831850] saa7146_vv: saa7146   
-(0): registered device video0 [v4l2]
-Jul  9 19:18:48 xxxxxxx kernel: [   56.831878] saa7146_vv: saa7146   
-(0): registered device vbi0 [v4l2]
-Jul  9 19:18:48 xxxxxxx kernel: [   56.897464] DVB: registering   
-frontend 0 (ST STV0297 DVB-C)...
-Jul  9 19:18:48 xxxxxxx kernel: [   56.897637] input: DVB on-card IR   
-receiver as /devices/pci0000:00/0000:00:1e.0/0000:02:09.0/input/input6
-Jul  9 19:18:48 xxxxxxx kernel: [   56.951177] dvb-ttpci: found   
-av7110-0.
-
-Jul  9 19:18:48 xxxxxxx kernel: [   56.951255] saa7146: found saa7146   
-@ mem e0a6c400 (revision 1, irq 22) (0x13c2,0x000a).
-Jul  9 19:18:48 xxxxxxx kernel: [   56.965145] DVB: registering new   
-adapter (Technotrend/Hauppauge WinTV Nexus-CA rev1.X)
-Jul  9 19:18:48 xxxxxxx kernel: [   57.021978] adapter has MAC addr =  
-00:d0:5c:03:95:4d
-Jul  9 19:18:48 xxxxxxx kernel: [   57.253096] dvb-ttpci: gpioirq   
-unknown type=0 len=0
-Jul  9 19:18:48 xxxxxxx kernel: [   57.290649] dvb-ttpci: info @ card   
-1: firm f0240009, rtsl b0250018, vid 71010068, app 80002622
-Jul  9 19:18:48 xxxxxxx kernel: [   57.290653] dvb-ttpci: firmware @   
-card 1 supports CI link layer interface
-Jul  9 19:18:48 xxxxxxx kernel: [   57.630258] dvb-ttpci: DVB-C  
-analog  module @ card 1 detected, initializing MSP3415
-Jul  9 19:18:48 xxxxxxx kernel: [   57.742249] dvb_ttpci: saa7113 not   
-accessible.
-Jul  9 19:18:48 xxxxxxx kernel: [   57.840242] saa7146_vv: saa7146   
-(1): registered device video1 [v4l2]
-Jul  9 19:18:48 xxxxxxx kernel: [   57.840271] saa7146_vv: saa7146   
-(1): registered device vbi1 [v4l2]
-Jul  9 19:18:48 xxxxxxx kernel: [   57.841111] DVB: registering   
-frontend 1 (ST STV0297 DVB-C)...
-Jul  9 19:18:48 xxxxxxx kernel: [   57.841295] input: DVB on-card IR   
-receiver as /devices/pci0000:00/0000:00:1e.0/0000:02:0c.0/input/input7
-Jul  9 19:18:48 xxxxxxx kernel: [   57.919590] dvb-ttpci: found   
-av7110-1.
-
-Jul  9 19:18:48 xxxxxxx kernel: [   57.919622] ACPI: PCI Interrupt   
-0000:02:0d.0[A] -> GSI 21 (level, low) -> IRQ 21
-Jul  9 19:18:48 xxxxxxx kernel: [   57.919661] saa7146: found saa7146   
-@ mem e0a8e000 (revision 1, irq 21) (0x13c2,0x000a).
-Jul  9 19:18:48 xxxxxxx kernel: [   57.934015] DVB: registering new   
-adapter (Technotrend/Hauppauge WinTV Nexus-CA rev1.X)
-Jul  9 19:18:48 xxxxxxx kernel: [   57.990392] adapter has MAC addr =   
-00:d0:5c:03:93:de
-Jul  9 19:18:48 xxxxxxx kernel: [   58.221518] dvb-ttpci: gpioirq   
-unknown type=0 len=0
-Jul  9 19:18:48 xxxxxxx kernel: [   58.259053] dvb-ttpci: info @ card   
-2: firm f0240009, rtsl b0250018, vid 71010068, app 80002622
-Jul  9 19:18:48 xxxxxxx kernel: [   58.259058] dvb-ttpci: firmware @   
-card 2 supports CI link layer interface
-Jul  9 19:18:48 xxxxxxx kernel: [   58.598657] dvb-ttpci: DVB-C  
-analog  module @ card 2 detected, initializing MSP3415
-Jul  9 19:18:48 xxxxxxx kernel: [   58.710702] dvb_ttpci: saa7113 not   
-accessible.
-Jul  9 19:18:48 xxxxxxx kernel: [   58.808584] saa7146_vv: saa7146   
-(2): registered device video2 [v4l2]
-Jul  9 19:18:48 xxxxxxx kernel: [   58.808614] saa7146_vv: saa7146   
-(2): registered device vbi2 [v4l2]
-Jul  9 19:18:48 xxxxxxx kernel: [   58.809458] DVB: registering   
-frontend 2 (ST STV0297 DVB-C)...
-Jul  9 19:18:48 xxxxxxx kernel: [   58.809643] input: DVB on-card IR   
-receiver as /devices/pci0000:00/0000:00:1e.0/0000:02:0d.0/input/input8
-Jul  9 19:18:48 xxxxxxx kernel: [   58.878002] dvb-ttpci: found   
-av7110-2.
 
