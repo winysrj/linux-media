@@ -1,22 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n65B9Vhf006832
-	for <video4linux-list@redhat.com>; Sun, 5 Jul 2009 07:09:31 -0400
-Received: from mail-fx0-f223.google.com (mail-fx0-f223.google.com
-	[209.85.220.223])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n65B9Gu6011755
-	for <video4linux-list@redhat.com>; Sun, 5 Jul 2009 07:09:16 -0400
-Received: by fxm23 with SMTP id 23so3138690fxm.3
-	for <video4linux-list@redhat.com>; Sun, 05 Jul 2009 04:09:16 -0700 (PDT)
-Message-ID: <4A5089CF.3070606@gmail.com>
-Date: Sun, 05 Jul 2009 15:09:03 +0400
-From: fsulima <fsulima@gmail.com>
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n676itgg021108
+	for <video4linux-list@redhat.com>; Tue, 7 Jul 2009 02:44:55 -0400
+Received: from mail-pz0-f200.google.com (mail-pz0-f200.google.com
+	[209.85.222.200])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n676ifYU029090
+	for <video4linux-list@redhat.com>; Tue, 7 Jul 2009 02:44:42 -0400
+Received: by pzk38 with SMTP id 38so1450174pzk.23
+	for <video4linux-list@redhat.com>; Mon, 06 Jul 2009 23:44:41 -0700 (PDT)
 MIME-Version: 1.0
+Date: Tue, 7 Jul 2009 15:44:41 +0900
+Message-ID: <3a9b62b20907062344p56d1ecafsbbb936c74eadfd43@mail.gmail.com>
+From: =?EUC-KR?B?vK3BpLnO?= <sirseo@gmail.com>
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Subject: Please advise: 4channel capture device with HW compression for Linux
- based DVR
+Subject: how to make qbuf
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,18 +27,20 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi all.
+Hi.
 
-I'm looking for components to build 4 channel Linux-based DVR solution 
-exploiting hardware compression.
-Although I found some such boards, they do not appear to be supported 
-under Linux.
+I'm making V4l2 device driver for mplayer.
+But
+It's too difficult to understand V4l2 driver internal structure.
 
-Please advise.
+I can't understand how to use VIDIOC_QBUF, VIDIOC_DQBUF ioctl and 'struct
+videobuf_queue'
 
-WBR,
-F S.
+Why does v4l2 driver need to use 'videobuf_queue'?
 
+Please. tell me v4l2 driver internal operation.
+
+Thanks.
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
