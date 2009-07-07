@@ -1,58 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay01.cambriumhosting.nl ([217.19.16.173]:53790 "EHLO
-	relay01.cambriumhosting.nl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754170AbZGCPVa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Jul 2009 11:21:30 -0400
-Message-ID: <4A4E220B.8090800@powercraft.nl>
-Date: Fri, 03 Jul 2009 17:21:47 +0200
-From: Jelle de Jong <jelledejong@powercraft.nl>
+Received: from mail.gmx.net ([213.165.64.20]:41950 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1758772AbZGGOhC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Jul 2009 10:37:02 -0400
+From: Nils Kassube <kassube@gmx.net>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: Fix for crash in dvb-usb-af9015
+Date: Tue, 7 Jul 2009 16:33:59 +0200
+Cc: linux-media@vger.kernel.org
+References: <200907071232.00459.kassube@gmx.net> <4A532ACA.1070607@iki.fi>
+In-Reply-To: <4A532ACA.1070607@iki.fi>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Call for testers: Terratec Cinergy T XS USB support
-References: <829197380906290700n16a0f4faxd29caa12587222f7@mail.gmail.com>
-In-Reply-To: <829197380906290700n16a0f4faxd29caa12587222f7@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200907071634.00168.kassube@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> Hello all,
-> 
-> A few weeks ago, I did some work on support for the Terratec Cinergy T
-> XS USB product.  I successfully got the zl10353 version working and
-> issued a PULL request last week
-> (http://www.kernellabs.com/hg/~dheitmueller/em28xx-terratec-zl10353)
-> 
-> However, the other version of the product, which contains a mt352 is
-> not yet working.
-> 
-> I am looking for people who own the device and would be willing to do
-> testing of a tree to help debug the issue.  Ideal candidates should
-> have the experience using DVB devices under Linux in addition to some
-> other known-working tuner product so we can be sure that certain
-> frequencies are available and that the antenna/location work properly.
->  If you are willing to provide remote SSH access for short periods of
-> time if necessary, also indicate that in your email.
-> 
-> Please email me if you are interested in helping out getting the device working.
-> 
-> Thank you,
-> 
-> Devin
-> 
+Hi Antti,
 
-Not much time to do the actual coding and compiling but I will set you
-up with :-)
+Antti Palosaari wrote:
+> Nils Kassube wrote:
+> > As I'm not familiar with the hardware, I can't say what buffer size
+> > would be appropriate but I can say that for my device the parameter
+>
+> I see the problem but your fix is not ideally correct for my eyes. 
 
-I will get you a dedicated machine with ssh access you can play with as
-much as you like, it will be up and running next week after Wednesday.
+You're probably right - like I wrote, I'm not familiar with the 
+hardware.
 
-Have you ever heard of ssh gateways, I am kind of good at this I build
-my support systems around this. So I will set you up with an account :D
+> I
+> don't have currently access to sniffs to ensure that but I think BOOT
+> should be write command. Now it is defined as read. I think moving
+> BOOT from read to write fixes problem.
 
-Best regards,
+Yes, that makes a lot of sense to me. Therefore I changed the code to 
+make it a write command like this:
 
-Jelle de Jong
+--- orig/linux-2.6.31/drivers/media/dvb/dvb-usb/af9015.c	2009-06-30 
+11:34:45.000000000 +0200
++++ linux-2.6.31/drivers/media/dvb/dvb-usb/af9015.c	2009-07-07 
+14:58:27.000000000 +0200
+@@ -81,7 +81,6 @@
+ 
+ 	switch (req->cmd) {
+ 	case GET_CONFIG:
+-	case BOOT:
+ 	case READ_MEMORY:
+ 	case RECONNECT_USB:
+ 	case GET_IR_CODE:
+@@ -100,6 +99,7 @@
+ 	case WRITE_VIRTUAL_MEMORY:
+ 	case COPY_FIRMWARE:
+ 	case DOWNLOAD_FIRMWARE:
++	case BOOT:
+ 		break;
+ 	default:
+ 		err("unknown command:%d", req->cmd);
+
+And of course I removed the earlier change. With this modification it 
+works as well.
+
+
+Nils
+
