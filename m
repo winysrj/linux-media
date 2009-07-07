@@ -1,165 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:33585 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752774AbZG2Hbg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jul 2009 03:31:36 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Subject: Re: How to save number of times using memcpy?
-Date: Wed, 29 Jul 2009 09:33:09 +0200
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"v4l2_linux" <linux-media@vger.kernel.org>,
-	Dongsoo Kim <dongsoo45.kim@samsung.com>,
-	=?utf-8?q?=EB=B0=95=EA=B2=BD=EB=AF=BC?= <kyungmin.park@samsung.com>,
-	jm105.lee@samsung.com,
-	=?utf-8?q?=EC=9D=B4=EC=84=B8=EB=AC=B8?= <semun.lee@samsung.com>,
-	=?utf-8?q?=EB=8C=80=EC=9D=B8=EA=B8=B0?= <inki.dae@samsung.com>,
-	=?utf-8?q?=EA=B9=80=ED=98=95=EC=A4=80?= <riverful.kim@samsung.com>
-References: <5e9665e10907271756l114f6e6ekeefa04d976b95c66@mail.gmail.com> <200907280939.12017.laurent.pinchart@skynet.be> <5e9665e10907282206i9e4b2a6hdf175ea79dba5ab4@mail.gmail.com>
-In-Reply-To: <5e9665e10907282206i9e4b2a6hdf175ea79dba5ab4@mail.gmail.com>
+Received: from mail-pz0-f193.google.com ([209.85.222.193]:38516 "EHLO
+	mail-pz0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752851AbZGGHvL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jul 2009 03:51:11 -0400
+Received: by pzk31 with SMTP id 31so2812469pzk.33
+        for <linux-media@vger.kernel.org>; Tue, 07 Jul 2009 00:51:14 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907290933.09804.laurent.pinchart@skynet.be>
+In-Reply-To: <20090616085609.7b816e40@pedra.chehab.org>
+References: <87bpq52axw.fsf@wei.zng.jp>
+	 <20090616085609.7b816e40@pedra.chehab.org>
+Date: Tue, 7 Jul 2009 16:51:14 +0900
+Message-ID: <8408c1a50907070051l7ad49d1kaebc2f2809789c68@mail.gmail.com>
+Subject: Re: [PATCH] Add the DTV_ISDB_TS_ID property for ISDB-S
+From: HIRANO Takahito <hiranotaka@zng.info>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nate,
+Hi,
 
-On Wednesday 29 July 2009 07:06:41 Dongsoo, Nathaniel Kim wrote:
-> 2009/7/28 Laurent Pinchart <laurent.pinchart@skynet.be>:
-> > On Tuesday 28 July 2009 08:54:12 Hans Verkuil wrote:
-> >> On Tuesday 28 July 2009 02:56:05 Dongsoo, Nathaniel Kim wrote:
-> >
-> > [snip]
-> >
-> > > > And the other one is about how to handle the buffer used between
-> > > > couple of multimedia devices.
-> > > > Let me take an example of a camcorder scenario which takes series of
-> > > > pictures and encode them in some sort of multimedia encoded format.
-> > > > And let's assume that we are using a device of a SoC H/W which has
-> > > > it's own camera and multimedia encoder device as well.
-> > > >
-> > > > The scenario might be going like following order ordinarily.
-> > > > 1. User application: open camera device node and tries to mmap
-> > > > buffer(A) to be used.
-> > > > 2. Camera interface: try to allocate memory in kernel space and
-> > > > creates mapping.
-> > >
-> > > Wrong, this should have been point 1 because by this time it's pretty
-> > > unlikely you can allocate the buffers needed due to memory
-> > > fragmentation.
-> > >
-> > > > 3. User application: open encoder device node and tries to mmap
-> > > > buffer(B) as input buffer and buffer(C) as output buffer to be used.
-> > > > 4. Start streaming
-> > > > 5. Camera interface: fetch data from external camera module and writes
-> > > > to the allocated buffer in kernel space and give back the memory
-> > > > address to user application through dqbuf
-> > > > 6. User application: memcpy(1st) returned buffer(A) to frame buffer
-> > > > therefore we can see as preview
-> > >
-> > > Unavoidable memcpy, unless there is some sort of hardware support to DMA
-> > > directly into the framebuffer.
-> >
-> > Or unless you use the USERPTR method instead of MMAP, providing your
-> > graphics hardware provides some sort of video display capabilities
-> > (similar to Xv for instance). You can then allocate a video buffer and
-> > ask the camera driver to DMA data directly to that buffer. This requires
-> >
-> > 1. the video buffer to be contiguous in virtual memory (no stride)
-> > 2. the video buffer to be contiguous in physical memory, OR the camera
-> > DMA to support scatter-gather.
+Thank you for your comment!
+Unfortunately, the vendor ended the sale of this device,
+so it became a bit meaningless to merge this to the mainline.
 
-I forgot something here, the second requirement is also fulfilled if your 
-platform has an iommu.
+Best Regards,
+HIRANO Takahito
 
-> Actually me and other engineers are not used to use USERPTR than MMAP.
-> But one thing obvious is the H/W we are working on is able to send
-> data directly from camera interface to frame buffer through FIFO
-> pipeline. With this way no memcpy necessary to display preview.
-
-userptr is pretty useful. You can (at least in theory, if the involved 
-hardware and drivers support it) use the mmap method with the camera driver, 
-and pass the mmap() pointer to the codec driver using the userptr method. You 
-could even allocate memory yourself and pass the pointer using userptr to both 
-drivers. No extra copy would then be required.
-
-> > > > 7. User application: memcpy(2nd) returned buffer(A) to buffer(B) of
-> > > > encoder device.
-> > >
-> > > So this is copying between two v4l2 video nodes, right?
-> >
-> > Does your hardware allow chaining the camera and codec directly without
-> > going through memory buffers ?
+2009/6/16 Mauro Carvalho Chehab <mchehab@infradead.org>:
+> Hi Hirano,
 >
-> Unfortunately no. Direct path is supported just between camera and
-> frame buffer. It should be better if it is supported between them but
-> I suppose that H/W designer wanted to make the codec device system
-> wide one.
+> Em Fri, 08 May 2009 00:24:11 +0900
+> hiranotaka@zng.info escreveu:
 >
-> > > > 7. Encoder device: encodes the data copied into buffer(B) and returns
-> > > > to user application through buffer(C)
-> > > > 8. User application: memcpy(3nd) encoded data from buffer(C) and save
-> > > > as file
-> > > > 9. do loop from 5 to 8 as long as you want to keep recording
-> > > >
-> > > > As you see above, at least three times of memcpy per frame are
-> > > > necessary to make the recording and preview happened. Of course I took
-> > > > a worst case for example because we can even take in-place thing for
-> > > > encoder buffer, but I jut wanted to consider of drivers not capable to
-> > > > take care of in-place algorithm for some reasons.
-> > > >
-> > > > Now let's imagine that we are recording 1920*1080 sized frame. can you
-> > > > draw the picture in your mind how it might be inefficient?
-> > > >
-> > > > So, my second question is "Is V4L2 covering the best practice of video
-> > > > recording for embedded system?"
-> > > > As you know, embedded systems are running out of memories..and don't
-> > > > have much enough memory bandwidth either.
-> > > > I'm not seeing any standard way for "device to device" buffer handling
-> > > > in V4L2 documents. If nobody has been considering this issue, can I
-> > > > bring it on the table for make it in a unified way, therefor we can
-> > > > make any improvement in opensource multimedia middlewares and drivers
-> > > > as well.
-> > >
-> > > It's been considered, see this RFC:
-> > >
-> > > http://www.archivum.info/video4linux-list%40redhat.com/2008-07/msg00371.
-> > > html
-> > >
-> > > A lot of the work done in the past year was actually to lay the
-> > > foundation for implementing media controllers and media processors.
-> > >
-> > > But with a framework like this it should be possible to tell the v4l2
-> > > driver to link the output of the camera module to the input of the
-> > > encoder. Functionality like that is currently missing in the API.
-> >
-> > There are two different use cases. The first one covers embedded hardware
-> > that provide a direct camera -> codec link without requiring any
-> > intervention of the CPU for data transfer. This is the most efficient
-> > solution if your hardware is clever enough. It would require additions to
-> > the v4l2 API to configure the links dynamically.
-> >
-> > The second one covers less clever embedded hardware, where video data has
-> > to go to a memory buffer between the camera interface and the codec. In
-> > that case it could be useful to allocate v4l2 buffers shared between the
-> > camera and codec v4l2 devices. This is not handled by v4l2 at the moment
-> > either.
+>> # HG changeset patch
+>> # User HIRANO Takahito <hiranotaka@zng.info>
+>> # Date 1235532786 -32400
+>> # Node ID 5e6932c1b659d6bfea781a81d06098e85c6ff203
+>> # Parent  fe524e0a64126791bdf3dd94a50bdcdb0592ef7f
+>> Add the DTV_ISDB_TS_ID property for ISDB-S
+>>
+>> In ISDB-S, time-devision duplex is used to multiplexing several waves
+>> in the same frequency. Each wave is identified by its own transport
+>> stream ID, or TS ID. We need to provide some way to specify this ID
+>> from user applications to handle ISDB-S frontends.
+>>
+>> This code has been tested with Earthsoft PT1 driver, which is under
+>> development at:
+>> http://bitbucket.org/hiranotaka/dvb-pt1/
 >
-> I suppose that I need to approach with the second one. So you mean
-> that this approach is not considered in v4l2 yet? I hope that it will
-> be a good opportunity for a new step.
-
-As explained above in this e-mail, I think you can get away with this using a 
-combination or mmap and userptr, or even userptr with both the camera and 
-codec drivers, unless they have different and incompatible requirements on the 
-physical memory where the buffers are stored.
-
-Regards,
-
-Laurent Pinchart
-
+> API changes should be submitted together with the driver. This allows us to
+> better understand driver needs.
+>
+> So, please re-submit this when you'll be ready to submit your driver.
+>
+> Thanks,
+> Mauro.
+>
+>>
+>> Signed-off-by: HIRANO Takahito <hiranotaka@zng.info>
+>>
+>> diff -r fe524e0a6412 -r 5e6932c1b659 linux/drivers/media/dvb/dvb-core/dvb_frontend.c
+>> --- a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c Tue May 05 08:50:54 2009 -0300
+>> +++ b/linux/drivers/media/dvb/dvb-core/dvb_frontend.c Wed Feb 25 12:33:06 2009 +0900
+>> @@ -946,6 +946,11 @@
+>>               .cmd    = DTV_TRANSMISSION_MODE,
+>>               .set    = 1,
+>>       },
+>> +     [DTV_ISDB_TS_ID] = {
+>> +             .name   = "DTV_ISDB_TS_ID",
+>> +             .cmd    = DTV_ISDB_TS_ID,
+>> +             .set    = 1,
+>> +     },
+>>       /* Get */
+>>       [DTV_DISEQC_SLAVE_REPLY] = {
+>>               .name   = "DTV_DISEQC_SLAVE_REPLY",
+>> @@ -1354,6 +1359,9 @@
+>>       case DTV_HIERARCHY:
+>>               tvp->u.data = fe->dtv_property_cache.hierarchy;
+>>               break;
+>> +     case DTV_ISDB_TS_ID:
+>> +             tvp->u.data = fe->dtv_property_cache.isdb_ts_id;
+>> +             break;
+>>       default:
+>>               r = -1;
+>>       }
+>> @@ -1460,6 +1468,9 @@
+>>       case DTV_HIERARCHY:
+>>               fe->dtv_property_cache.hierarchy = tvp->u.data;
+>>               break;
+>> +     case DTV_ISDB_TS_ID:
+>> +             fe->dtv_property_cache.isdb_ts_id = tvp->u.data;
+>> +             break;
+>>       default:
+>>               r = -1;
+>>       }
+>> diff -r fe524e0a6412 -r 5e6932c1b659 linux/drivers/media/dvb/dvb-core/dvb_frontend.h
+>> --- a/linux/drivers/media/dvb/dvb-core/dvb_frontend.h Tue May 05 08:50:54 2009 -0300
+>> +++ b/linux/drivers/media/dvb/dvb-core/dvb_frontend.h Wed Feb 25 12:33:06 2009 +0900
+>> @@ -355,6 +355,7 @@
+>>       fe_modulation_t         isdb_layerc_modulation;
+>>       u32                     isdb_layerc_segment_width;
+>>  #endif
+>> +     u32                     isdb_ts_id;
+>>  };
+>>
+>>  struct dvb_frontend {
+>> diff -r fe524e0a6412 -r 5e6932c1b659 linux/include/linux/dvb/frontend.h
+>> --- a/linux/include/linux/dvb/frontend.h      Tue May 05 08:50:54 2009 -0300
+>> +++ b/linux/include/linux/dvb/frontend.h      Wed Feb 25 12:33:06 2009 +0900
+>> @@ -307,7 +307,9 @@
+>>  #define DTV_TRANSMISSION_MODE                        39
+>>  #define DTV_HIERARCHY                                40
+>>
+>> -#define DTV_MAX_COMMAND                              DTV_HIERARCHY
+>> +#define DTV_ISDB_TS_ID                               41
+>> +
+>> +#define DTV_MAX_COMMAND                              DTV_ISDB_TS_ID
+>>
+>>  typedef enum fe_pilot {
+>>       PILOT_ON,
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+>
+>
+> Cheers,
+> Mauro
+>
