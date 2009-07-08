@@ -1,40 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail5.sea5.speakeasy.net ([69.17.117.7]:42546 "EHLO
-	mail5.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750744AbZG1HaE (ORCPT
+Received: from nschwmtas04p.mx.bigpond.com ([61.9.189.146]:24771 "EHLO
+	nschwmtas04p.mx.bigpond.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755214AbZGHXYt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jul 2009 03:30:04 -0400
-Date: Tue, 28 Jul 2009 00:30:04 -0700 (PDT)
-From: Trent Piepho <xyzzy@speakeasy.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Matthias Schwarzott <zzam@gentoo.org>, linux-media@vger.kernel.org,
-	Andy Walls <awalls@radix.net>
-Subject: Re: lsmod path hardcoded in v4l/Makefile
-In-Reply-To: <20090727220753.092616bd@pedra.chehab.org>
-Message-ID: <Pine.LNX.4.58.0907280027510.11911@shell2.speakeasy.net>
-References: <200906221636.25006.zzam@gentoo.org> <200906230950.26287.zzam@gentoo.org>
- <Pine.LNX.4.58.0906231214360.6411@shell2.speakeasy.net> <200907210914.37819.zzam@gentoo.org>
- <20090727220753.092616bd@pedra.chehab.org>
+	Wed, 8 Jul 2009 19:24:49 -0400
+Received: from nschwotgx02p.mx.bigpond.com ([60.229.5.27])
+          by nschwmtas04p.mx.bigpond.com with ESMTP
+          id <20090708232446.MCZA2030.nschwmtas04p.mx.bigpond.com@nschwotgx02p.mx.bigpond.com>
+          for <linux-media@vger.kernel.org>; Wed, 8 Jul 2009 23:24:46 +0000
+Received: from 9CMDW1S ([60.229.5.27]) by nschwotgx02p.mx.bigpond.com
+          with SMTP
+          id <20090708232446.MSTM11262.nschwotgx02p.mx.bigpond.com@9CMDW1S>
+          for <linux-media@vger.kernel.org>; Wed, 8 Jul 2009 23:24:46 +0000
+Message-ID: <673D7F4B14224D55B9DBCC4D139554C3@ap.panavision.com>
+From: "Collier Family" <judithc@bigpond.net.au>
+To: <linux-media@vger.kernel.org>
+Subject: Re: cx23885, new hardware revision found
+Date: Thu, 9 Jul 2009 09:24:46 +1000
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 27 Jul 2009, Mauro Carvalho Chehab wrote:
-> Em Tue, 21 Jul 2009 09:14:36 +0200
-> Matthias Schwarzott <zzam@gentoo.org> escreveu:
-> It is not a good idea to run as root. Most people compile everything
-> with a normal user and then use "sudo" command to install/remove/insert
-> modules. Unfortunately, depending on the distribution, sudo inherits PATH from
-> the normal user, instead of root. Due to that, if you replace it for just
-> lsmod, it will fail for people that don't use gentoo.
->
-> Maybe good solution is to test if lsmod (and other similar tools) are at /sbin
-> or /usr/sbin.
->
-> Alternatively, we can try to replace lsmod by something like (untested):
->
-> v4l_modules := $(shell PATH=$PATH:/usr/local/sbin:/usr/sbin:/sbin lsmod|cut -d' ' -f1 ) $(patsubst %.ko,%,$(inst-m))
+I found there is a revision change - doesn't seem to affect the operation 
+but needs a patch to be detected.
 
-Check my patch again, we can just delete the v4l_modules line as nothing
-uses it.
+See todays post.
+
+Stephen 
+
