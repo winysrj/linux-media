@@ -1,82 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:60144 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751107AbZGYOwK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jul 2009 10:52:10 -0400
-Date: Sat, 25 Jul 2009 17:41:27 +0300
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	"dougsland@gmail.com" <dougsland@gmail.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCHv10 6/8] FMTx: si4713: Add files to handle si4713 i2c
- device
-Message-ID: <20090725144127.GI10561@esdhcp037198.research.nokia.com>
-Reply-To: eduardo.valentin@nokia.com
-References: <1248453448-1668-1-git-send-email-eduardo.valentin@nokia.com>
- <200907251533.55361.hverkuil@xs4all.nl>
- <20090725132521.GE10561@esdhcp037198.research.nokia.com>
- <200907251639.18441.hverkuil@xs4all.nl>
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:36768 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755905AbZGIKB7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jul 2009 06:01:59 -0400
+Received: by fxm18 with SMTP id 18so44469fxm.37
+        for <linux-media@vger.kernel.org>; Thu, 09 Jul 2009 03:01:57 -0700 (PDT)
+From: Peter Janser <qbasic16@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: Status of Lite-On TVT-1060 support (unknown frontend)
+Date: Thu, 9 Jul 2009 12:01:55 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <200907251639.18441.hverkuil@xs4all.nl>
+Message-Id: <200907091201.55859.qbasic16@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 25, 2009 at 04:39:18PM +0200, ext Hans Verkuil wrote:
-> On Saturday 25 July 2009 15:25:21 Eduardo Valentin wrote:
-> > On Sat, Jul 25, 2009 at 03:33:55PM +0200, ext Hans Verkuil wrote:
-> > > On Saturday 25 July 2009 15:29:38 ext-Eero.Nurkkala@nokia.com wrote:
-> > > > 
-> > > > > I'm surprised at these MAX string lengths. Looking at the RDS standard it
-> > > > > seems that the max length for the PS_NAME is 8 and for RADIO_TEXT it is
-> > > > > either 32 (2A group) or 64 (2B group). I don't know which group the si4713
-> > > > > uses.
-> > > > > 
-> > > > > Can you clarify how this is used?
-> > > > > 
-> > > > > Regards,
-> > > > > 
-> > > > >         Hans
-> > > > 
-> > > > Well, PS_NAME can be 8 x n, but only 8 bytes are shown at once...
-> > > > so it keeps 'scrolling', or changes periodically. There's even commercial
-> > > > radio stations that do so.
-> > > 
-> > > And I'm assuming that the same is true for radio text. However, this behavior
-> > > contradicts the control description in the spec, so that should be clarified.
-> > 
-> > Yes, I'll add a comment explaining this for those defines.
-> 
-> Another question: what happens if I give a string that's e.g. 10 characters
-> long? What will happen then?
+Hi
 
-I believe receiver will still scroll, but may get confused. This case, it is better
-to pad with spaces.
+Maybe some of you have already heard some questions about the linux support of 
+the DVB-T card "Lite On TVT-1060", but all discussions about this card said 
+that it is not supported on linux for now, because nobody knows the frontend 
+(chip). some also said, that you'd have to unsolder the shielding to get the 
+name of the frontend chip.... and I won't try that as you may understand ;-)
+ 
+I've got this "unsupported" tvt-1060 in my Asus G2S and would like to get it 
+run.....
 
-> 
-> If the string must be exactly 8 x n long, then I think that it is a good idea
-> to start using the 'step' value of v4l2_queryctrl: this can be used to tell
-> the application that string lengths should be a multiple of the step value.
-> I've toyed with that idea before but I couldn't think of a good use case,
-> but this might be it.
+Operating system:
+Kubuntu 9.04 Jaunty Jackalope
+Kernel 2.6.28-13-generic
 
-I think that would be good. It is a way to report to user land what can be
-done in these cases which strings can be chopped in small pieces. Of course,
-documenting this part it is appreciated.
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> -- 
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+With the help of g00gle i have found some infos about this tv-card:
 
--- 
-Eduardo Valentin
+On one site, "Homocidical Teddy" wrote
+"The card itself is sold as a Liteon TL-1060, however it's actually a 
+reference-design USB Tuner using the DibCom 7700C1 dvb-t chip and an UNKNOWN 
+frontend."
+
+Found on http://forums.whirlpool.net.au/forum-replies-archive.cfm/995988.html
+
+
+After reading that (especially the last posts) I did some tests and edits 
+(logically in the v4l-dvb source folder):
+
+With the command "lsusb" i got the Vendor and the Product ID: "04ca:f016"
+ 
+"0x04ca" for "Lite On Technology"
+(to find in "~/Progs/v4l-dvb/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h")
+
+"0xf016" should stand for "TVT-1060" or another name of this dvb-t card... but 
+with "lsusb -v" the "idProduct" is empty.
+ This is because there is no entry for "f016" in "~/Progs/v4l-
+dvb/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h".
+
+
+Well, as the patch mentioned (on the site above) and with a bit imagination 
+and something like that I added
+ 
+#define USB_PID_LITEON_TVT_1060                0xf016
+
+to the Product ID section in the file "dvb-usb-ids.h" (mentioned before)
+after that i added also
+
+{ USB_DEVICE(USB_VID_LITEON,    USB_PID_LITEON_TVT_1060) },
+ 
+to the line 1501 (right above the "{ 0 }" entry) in the file "~/Progs/v4l-
+dvb/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c"
+As i found out before, there is the struct declaration "struct usb_device_id 
+dib0700_usb_id_table[] = { ...........}") which is as you know a device table.
+
+After these steps I took a look at "struct dvb_usb_device_properties 
+dib0700_devices[] = {...........}" (in "dib0700_devices.c") and there was my 
+problem!
+ In this struct you can find entrys for the frontend and tuner attach 
+describing an adapter and also a devices list for each of these different 
+adapters......
+
+
+
+NOW MY PROBLEM:
+In which of these sections (starting with "{ 
+DIB0700_DEFAULT_DEVICE_PROPERTIES,") should I add a device entry for my Lite-
+On TVT-1060 ?
+ Or should I write a complete new one?
+ 
+I have already tried this entry
+
+            {   "Lite-On TVT-1060",
+                { &dib0700_usb_id_table[54], NULL },
+                { NULL },
+            },
+
+in the device section for the adapter "stk7700d_...._attach" (frontend and 
+tuner).
+ Oh, and by the way don't forget to modify "num_device_descs =", it may 
+prevent from errors I think....don't know exactly why... =)
+
+The device entry above made my dvb-t card appear in dmesg after the command 
+"sudo modprobe dvb-usb-dib0700".
+ dmesg output:
+
+[ 2336.075406] dib0700: loaded with support for 9 different device-types
+[ 2336.075499] dvb-usb: found a 'Lite-On TVT-1060' in cold state, will try to 
+load a firmware
+[ 2336.075502] usb 1-4: firmware: requesting dvb-usb-dib0700-1.20.fw
+ [ 2336.189540] dvb-usb: downloading firmware from file 'dvb-usb-
+dib0700-1.20.fw'
+[ 2336.392856] dib0700: firmware started successfully.
+[ 2336.897028] dvb-usb: found a 'Lite-On TVT-1060' in warm state.
+ [ 2336.897079] dvb-usb: will pass the complete MPEG2 transport stream to the 
+software demuxer.
+[ 2336.897224] DVB: registering new adapter (Lite-On TVT-1060)
+[ 2336.945991] dib0700: stk7700d_frontend_attach: dib7000p_i2c_enumeration 
+failed.  Cannot continue
+ [ 2336.945993]
+[ 2336.945997] dvb-usb: no frontend was attached by 'Lite-On TVT-1060'
+[ 2336.945999] dvb-usb: will pass the complete MPEG2 transport stream to the 
+software demuxer.
+[ 2336.946320] DVB: registering new adapter (Lite-On TVT-1060)
+ [ 2336.947040] dvb-usb: no frontend was attached by 'Lite-On TVT-1060'
+[ 2336.947094] input: IR-receiver inside an USB DVB receiver as 
+/devices/pci0000:00/0000:00:1a.7/usb1/1-4/input/input14
+[ 2336.989093] dvb-usb: schedule remote query interval to 50 msecs.
+ [ 2336.989098] dvb-usb: Lite-On TVT-1060 successfully initialized and 
+connected.
+[ 2336.989268] usbcore: registered new interface driver dvb_usb_dib0700
+
+Now the following command shows what I have:
+ls -lR /dev/dvb/
+ /dev/dvb/:                                    
+insgesamt 0                                   
+drwxr-xr-x 2 root root 100 2009-07-09 10:52 adapter0
+drwxr-xr-x 2 root root 100 2009-07-09 10:52 adapter1
+
+/dev/dvb/adapter0:
+ insgesamt 0       
+crw-rw----+ 1 root video 212, 0 2009-07-09 10:52 demux0
+crw-rw----+ 1 root video 212, 1 2009-07-09 10:52 dvr0  
+crw-rw----+ 1 root video 212, 2 2009-07-09 10:52 net0  
+
+/dev/dvb/adapter1:
+ insgesamt 0       
+crw-rw----+ 1 root video 212, 3 2009-07-09 10:52 demux0
+crw-rw----+ 1 root video 212, 4 2009-07-09 10:52 dvr0  
+crw-rw----+ 1 root video 212, 5 2009-07-09 10:52 net0
+
+Unfortunately I can't watch anything on these devices......
+ Now I reached my borders of knowledge =)
+
+Thanks for any replies!
+Peter
+
+--
+-------------------------------------------
+Greetings from Switzerland 
+Thanks UBS for ruining a good reputation >:-(
