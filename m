@@ -1,123 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nskntqsrv03p.mx.bigpond.com ([61.9.168.237]:17597 "EHLO
-	nskntqsrv03p.mx.bigpond.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751554AbZGFWmk (ORCPT
+Received: from mail-in-05.arcor-online.net ([151.189.21.45]:47973 "EHLO
+	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753186AbZGIRrA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Jul 2009 18:42:40 -0400
-Message-ID: <8D607E79DBA24486B1B95672E58E0282@ap.panavision.com>
-From: "Collier Family" <judithc@bigpond.net.au>
-To: <sonofzev@iinet.net.au>, <linux-media@vger.kernel.org>
-References: <7978.1246899891@iinet.net.au>
-Subject: Re: DVICO Fusion Dual Express
-Date: Tue, 7 Jul 2009 07:52:13 +1000
-MIME-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
+	Thu, 9 Jul 2009 13:47:00 -0400
+Subject: Re: regression : saa7134  with Pinnacle PCTV 50i (analog) can not
+	tune anymore
+From: hermann pitton <hermann-pitton@arcor.de>
+To: eric.paturage@orange.fr
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <200907081908.n68J84c04245@neptune.localwarp.net>
+References: <200907081908.n68J84c04245@neptune.localwarp.net>
+Content-Type: text/plain
+Date: Thu, 09 Jul 2009 19:46:11 +0200
+Message-Id: <1247161571.4329.13.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for the reply
 
-After I sent the original message I pulled latest hg and installed.
+Am Mittwoch, den 08.07.2009, 21:07 +0200 schrieb
+eric.paturage@orange.fr:
+> > Hi Eric,
+> > 
+> > yes, arbitration lost on i2c is an error condition.
+> > 
+> > As far I know we did not change the bus speed or anything, but some
+> > cards need and i2c quirk to work correctly with the clients.
+> > 
+> > Mike recently changed the old quirk with good reasons and it was widely
+> > tested, also by me, without any negative effect seen.
+> > 
+> > Maybe your card is a rare case needing the old quirk.
+> > 
+> > You could try to change the quirk in saa7134-i2c.c
+> > 
+> > static int saa7134_i2c_xfer(struct i2c_adapter *i2c_adap,
+> > 			    struct i2c_msg *msgs, int num)
+> > {
+> > 	struct saa7134_dev *dev = i2c_adap->algo_data;
+> > 	enum i2c_status status;
+> > 	unsigned char data;
+> > 	int addr,rc,i,byte;
+> > 
+> > 	status = i2c_get_status(dev);
+> > 	if (!i2c_is_idle(status))
+> > 		if (!i2c_reset(dev))
+> > 			return -EIO;
+> > 
+> > 	d2printk("start xfer\n");
+> > 	d1printk(KERN_DEBUG "%s: i2c xfer:",dev->name);
+> > 	for (i = 0; i < num; i++) {
+> > 		if (!(msgs[i].flags & I2C_M_NOSTART) || 0 == i) {
+> > 			/* send address */
+> > 			d2printk("send address\n");
+> > 			addr  = msgs[i].addr << 1;
+> > 			if (msgs[i].flags & I2C_M_RD)
+> > 				addr |= 1;
+> > 			if (i > 0 && msgs[i].flags & I2C_M_RD && msgs[i].addr != 0x40) {
+> > 				/* workaround for a saa7134 i2c bug
+> > 				 * needed to talk to the mt352 demux
+> > 				 * thanks to pinnacle for the hint */
+> > 				int quirk = 0xfe;    <--------------------------------------
+> > 				d1printk(" [%02x quirk]",quirk);
+> > 				i2c_send_byte(dev,START,quirk);
+> > 				i2c_recv_byte(dev);
+> > 			}
+> > 
+> > back to 0xfd.
+> > 
+> > Cheers,
+> > Hermann
+> > 
+> 
+> H Hermann 
+> 
+> thanks for your suggestion .
+> No  improvement with changing the quirk to 0xfd , 
+> I still get the same error messages : 
+> i2c-adapter i2c-1: Invalid 7-bit address 0x7a
+> saa7133[0]: i2c xfer: < 8e >
+> input: i2c IR (Pinnacle PCTV) as /class/input/input4
+> ir-kbd-i2c: i2c IR (Pinnacle PCTV) detected at i2c-1/1-0047/ir0 [saa7133[0]]
+> saa7133[0]: i2c xfer: < 8f ERROR: ARB_LOST
+> saa7133[0]: i2c xfer: < 84 ERROR: NO_DEVICE
+> saa7133[0]: i2c xfer: < 86 ERROR: ARB_LOST
+> saa7133[0]: i2c xfer: < 94 ERROR: NO_DEVICE
+> saa7133[0]: i2c xfer: < 96 ERROR: ARB_LOST
+> saa7133[0]: i2c xfer: < c0 ERROR: NO_DEVICE
+> saa7133[0]: i2c xfer: < c2 ERROR: NO_DEVICE
+> saa7133[0]: i2c xfer: < c4 ERROR: NO_DEVICE
+> saa7133[0]: i2c xfer: < c6 ERROR: NO_DEVICE
+> saa7133[0]: i2c xfer: < c8 ERROR: NO_DEVICE      
+> 
+> 
+> Regards 
+> 
 
-It worked after that.
+Hi Eric,
 
-I suspect some relevent changes since Axel's last video4linux rpm.
+thanks for your time and testing.
 
-Stephen
+Before we need to start with v4l-dvb bisecting.
+
+There have only been a few changes for the saa7134 driver since what
+Mauro did send for 2.6.30.
+
+Mostly for ir-kbd-i2c and for your remote was no tester found.
+
+All i2c errors seem to start from the remote and that i2c remote stuff I
+don't have and can't fake.
+
+Did you try with options saa7134 disable_ir=1 already too?
+
+Cheers,
+Hermann
 
 
------ Original Message ----- 
-From: <sonofzev@iinet.net.au>
-To: <linux-media@vger.kernel.org>; "'Collier Family'" 
-<judithc@bigpond.net.au>
-Sent: Tuesday, July 07, 2009 3:04 AM
-Subject: Re: DVICO Fusion Dual Express
-
-
-
-Hi there
-
-I get this error message on some of my motherboards but not all, only when
-another tuner is in the machine..
-I think this was IRQ sharing related. When I have it on a newer board with 
-more
-interrupts it seems to work fine
-
-On Mon Jul  6 20:21 , "Collier Family"  sent:
-
->I have a Dvico Fusion Dual Express. It is unfortunately rev 4 and the
->firmware is not correct.
->
->lspci -vv -nn
->
->04:00.0 0400: 14f1:8852 (rev 04)
->        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
->Step
->ping- SERR- FastB2B-
->        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
->
->SERR-
->        Latency: 0
->        Interrupt: pin A routed to IRQ 193
->        Region 0: Memory at 57200000 (64-bit, non-prefetchable) [size=2M]
->        Capabilities: [40] Express Endpoint IRQ 0
->                Device: Supported: MaxPayload 128 bytes, PhantFunc 0,
->ExtTag-
->                Device: Latency L0s
->                Device: AtnBtn- AtnInd- PwrInd-
->                Device: Errors: Correctable- Non-Fatal- Fatal- Unsupported-
->                Device: RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
->                Device: MaxPayload 128 bytes, MaxReadReq 512 bytes
->                Link: Supported Speed 2.5Gb/s, Width x1, ASPM L0s L1, Port 
-> 0
->                Link: Latency L0s
->                Link: ASPM Disabled RCB 64 bytes CommClk+ ExtSynch-
->                Link: Speed 2.5Gb/s, Width x1
->        Capabilities: [80] Power Management version 2
->                Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA
->PME(D0+,D1+,D2+,D3hot
->+,D3cold-)
->                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
->        Capabilities: [90] Vital Product Data
->        Capabilities: [a0] Message Signalled Interrupts: 64bit+ Queue=0/0
->Enable
->-
->                Address: 0000000000000000  Data: 0000
->
->the system recognises it 2.6.18-128.1.10.el5 using
->video4linux-20090415-88.0.4.el5.x86_64 from atrpms
->
->I'm getting the following from firmware load
->
->Jul  6 20:18:41 localhost kernel: xc2028 1-0061: Loading firmware for
->type=BASE F8MHZ (3), id 0000000000000000.
->Jul  6 20:18:42 localhost kernel: xc2028 1-0061: Loading firmware for
->type=D2633 DTV7 (90), id 0000000000000000.
->Jul  6 20:18:42 localhost kernel: xc2028 1-0061: Loading SCODE for 
->type=DTV6
->QAM DTV7 DTV78 DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id
->0000000000000000.
->Jul  6 20:18:42 localhost kernel: xc2028 1-0061: Incorrect readback of
->firmware version.
->
->I suspect rev 4 uses different firmware.
->
->Any help would be greatly appreciated.
->
->Stephen
->
->
->
->
->
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media" in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
->)
 
 
