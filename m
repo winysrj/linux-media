@@ -1,66 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:54159 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751445AbZGXHbS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2009 03:31:18 -0400
-Date: Fri, 24 Jul 2009 10:20:53 +0300
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: New tree with final (?) string control implementation
-Message-ID: <20090724072053.GA32642@esdhcp037198.research.nokia.com>
-Reply-To: eduardo.valentin@nokia.com
-References: <200907232354.46673.hverkuil@xs4all.nl>
+Received: from mx2.redhat.com ([66.187.237.31]:59239 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756397AbZGINXi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jul 2009 09:23:38 -0400
+Message-ID: <4A55EFD8.8040201@hhs.nl>
+Date: Thu, 09 Jul 2009 15:25:44 +0200
+From: Hans de Goede <j.w.r.degoede@hhs.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <200907232354.46673.hverkuil@xs4all.nl>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: libv4l release: 0.6.0: the upside down release
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi All,
 
-On Thu, Jul 23, 2009 at 11:54:46PM +0200, ext Hans Verkuil wrote:
-> Hi Eduardo,
-> 
-> I've prepared a new tree:
-> 
-> http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-strctrl
+I'm very happy to announce the first release of the next
+stable series: libv4l-0.6.0
 
-good.
+This release features the following familiar features from
+previous 0.5.9x test releases:
+* Software whitebalancing
+* Software automatic gain and exposure for cams which lack
+   this in hardware
+* Software gamma control
+* Fake v4l2 controls to control all these
+* Software flipping controls
 
-> 
-> This contains the full string control implementation, including updates to 
-> the v4l2-spec, based on the RFC that I posted on Monday.
+And as a new feature it now has an extended list of laptops
+whose camera modules (mostly uvc) are known to be mounted
+upside down in the frame and it will automatically correct
+the image for this.
 
-Right.
+And ofcourse the standard addition of support for a few new
+camera output formats.
 
-> 
-> Can you prepare your si4713 patches against this tree and verify that 
-> everything is working well?
+libv4l-0.6.0
+-------------
+* Recognize disabled controls and replace with fake equivalents where
+   available
+* Add support for decompressing ov511 and ov518 "JPEG", by piping data through
+   an external helper as I've failed to contact Mark W. McClelland to get
+   permission to relicense the code. If you know a working email address for
+   Mark W. McClelland, please let me know.
+* Add tons of laptop models to the upside down devices table
+* Support for rgb565 source format by Mauro Carvalho Chehab
+* Many bug fixes (see the mercurial tree for details)
+* Improved pac207 decompression code to also support higher compression
+   modes of the pac207, which enables us to use higher framerates.
+   Many many thanks to Bertrik Sikken for figuring the decompression out!
 
-Sure, I've been off work last two weeks. But now I'm back and will get this
-task soon.
 
-> 
-> If it is, then I can make a pull request for this tree and soon after that 
-> you should be able to merge your si4713 driver as well. If I'm not mistaken 
-> the string controls API is the only missing bit that prevents your driver 
-> from being merged.
+Get it here:
+http://people.atrpms.net/~hdegoede/libv4l-0.6.0.tar.gz
 
-Yeah. There use to have three dependencies: subdev changes (i2c), modulator
-capabilities and ext ctl string support. I recall now that subdev is already
-merged. I'm not sure about the modulator support.
+Regards,
 
-> 
-> Thanks,
-> 
-> 	Hans
-> 
-> -- 
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Hans
 
--- 
-Eduardo Valentin
