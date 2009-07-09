@@ -1,60 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:58575 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751505AbZG2HZQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jul 2009 03:25:16 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: How to save number of times using memcpy?
-Date: Wed, 29 Jul 2009 09:26:40 +0200
-Cc: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	"v4l2_linux" <linux-media@vger.kernel.org>,
-	Dongsoo Kim <dongsoo45.kim@samsung.com>,
-	=?utf-8?q?=EB=B0=95=EA=B2=BD=EB=AF=BC?= <kyungmin.park@samsung.com>,
-	jm105.lee@samsung.com,
-	=?utf-8?q?=EC=9D=B4=EC=84=B8=EB=AC=B8?= <semun.lee@samsung.com>,
-	=?utf-8?q?=EB=8C=80=EC=9D=B8=EA=B8=B0?= <inki.dae@samsung.com>,
-	=?utf-8?q?=EA=B9=80=ED=98=95=EC=A4=80?= <riverful.kim@samsung.com>
-References: <5e9665e10907271756l114f6e6ekeefa04d976b95c66@mail.gmail.com> <5e9665e10907282030i7d25c6e4se1d52eff321da8e3@mail.gmail.com> <20090729005551.79430fe5@pedra.chehab.org>
-In-Reply-To: <20090729005551.79430fe5@pedra.chehab.org>
+Received: from smtp1.infomaniak.ch ([84.16.68.89]:46900 "EHLO
+	smtp1.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754415AbZGIWFS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jul 2009 18:05:18 -0400
+Received: from IO.local (149-238.105-92.cust.bluewin.ch [92.105.238.149])
+	(authenticated bits=0)
+	by smtp1.infomaniak.ch (8.14.2/8.14.2) with ESMTP id n69M598o015366
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 10 Jul 2009 00:05:13 +0200
+Message-ID: <4A566995.1050606@deckpoint.ch>
+Date: Fri, 10 Jul 2009 00:05:09 +0200
+From: Thomas Kernen <tkernen@deckpoint.ch>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: linux-media@vger.kernel.org
+Subject: Ubuntu kernel 2.6.28-11/13 and KNC One clone
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907290926.41488.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 29 July 2009 05:55:51 Mauro Carvalho Chehab wrote:
-> Em Wed, 29 Jul 2009 12:30:19 +0900
->
-> "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com> escreveu:
-> > Sorry my bad. I missed something very important to explain my issue
-> > clear. The thing is, I want to reserve specific amount of continuous
-> > physical memory on machine initializing time. Therefor some multimedia
-> > peripherals can be using this memory area exclusively.
-> > That's what I was afraid of could not being adopted in main line kernel.
->
-> In the past, some drivers used to do that, but this is also a source
-> of problems, especially with general-purpose machines, where you're loosing
-> memory that could otherwise be used by something else. I never tried to get
-> the details, but I think the strategy were to pass a parameter during
-> kernel boot, for it to reserve some amount of memory that would later be
-> claimed by the V4L device.
 
-It's actually a pretty common strategy for embedded hardware (the "general-
-purpose machine" case doesn't - for now - make much sense on an OMAP processor 
-for instance). A memory chunk would be reserved at boot time at the end of the 
-physical memory by passing the mem= parameter to the kernel. Video 
-applications would then mmap() /dev/mem to access that memory (I'd have to 
-check the details on that one, that's from my memory), and pass the pointer 
-the the v4l2 driver using userptr I/O. This requires root privileges, and 
-people usually don't care about that when the final application is a camera 
-(usually embedded in some device like a media player, an IP camera, ...).
+I just noticed something on a "minor" Ubuntu kernel upgrade. Running 
+Linux nylon 2.6.28-11-server #42-Ubuntu SMP Fri Apr 17 02:45:36 UTC 2009 
+x86_64 GNU/Linux and Ubuntu update system offers 2.6.28-13.
 
-Regards,
+I take the upgrade and notice that in 2.6.28-13 the budget-av module 
+will not load anymore for the KNC One DVB-S2 card.
 
-Laurent Pinchart
+11:09.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+	Subsystem: KNC One Device 0019
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr+ 
+Stepping- SERR- FastB2B- DisINTx-
+	Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- 
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 123 (3750ns min, 9500ns max)
+	Interrupt: pin A routed to IRQ 23
+	Region 0: Memory at d0220400 (32-bit, non-prefetchable) [size=512]
+	Kernel driver in use: budget_av
+	Kernel modules: budget-av
 
+The only diff is that -13 will not have the last 2 lines. Nothing in 
+dmesg that indicates any error on loading in -13.
+
+Is this worth reporting to the Ubuntu QA team or already old news?
+
+Thomas
