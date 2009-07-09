@@ -1,153 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:58647 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751658AbZGYPIg (ORCPT
+Received: from relay02.cambriumhosting.nl ([217.19.16.174]:34917 "EHLO
+	relay02.cambriumhosting.nl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756559AbZGILvC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jul 2009 11:08:36 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv11 3/8] v4l2: video device: Add FM TX controls default configurations
-Date: Sat, 25 Jul 2009 17:57:37 +0300
-Message-Id: <1248533862-20860-4-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1248533862-20860-3-git-send-email-eduardo.valentin@nokia.com>
-References: <1248533862-20860-1-git-send-email-eduardo.valentin@nokia.com>
- <1248533862-20860-2-git-send-email-eduardo.valentin@nokia.com>
- <1248533862-20860-3-git-send-email-eduardo.valentin@nokia.com>
+	Thu, 9 Jul 2009 07:51:02 -0400
+Message-ID: <4A55D9A3.4070502@powercraft.nl>
+Date: Thu, 09 Jul 2009 13:50:59 +0200
+From: Jelle de Jong <jelledejong@powercraft.nl>
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Call for testers: Terratec Cinergy T XS USB support
+References: <829197380906290700n16a0f4faxd29caa12587222f7@mail.gmail.com> <4A4E220B.8090800@powercraft.nl>
+In-Reply-To: <4A4E220B.8090800@powercraft.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds basic configurations for FM TX extended controls.
-That includes controls names, menu strings, pointer identification,
-type classification and flags configuration.
+Jelle de Jong schreef:
+> Devin Heitmueller wrote:
+>> Hello all,
+>>
+>> A few weeks ago, I did some work on support for the Terratec Cinergy T
+>> XS USB product.  I successfully got the zl10353 version working and
+>> issued a PULL request last week
+>> (http://www.kernellabs.com/hg/~dheitmueller/em28xx-terratec-zl10353)
+>>
+>> However, the other version of the product, which contains a mt352 is
+>> not yet working.
+>>
+>> I am looking for people who own the device and would be willing to do
+>> testing of a tree to help debug the issue.  Ideal candidates should
+>> have the experience using DVB devices under Linux in addition to some
+>> other known-working tuner product so we can be sure that certain
+>> frequencies are available and that the antenna/location work properly.
+>>  If you are willing to provide remote SSH access for short periods of
+>> time if necessary, also indicate that in your email.
+>>
+>> Please email me if you are interested in helping out getting the device working.
+>>
+>> Thank you,
+>>
+>> Devin
+>>
+> 
+> Not much time to do the actual coding and compiling but I will set you
+> up with :-)
+> 
+> I will get you a dedicated machine with ssh access you can play with as
+> much as you like, it will be up and running next week after Wednesday.
+> 
+> Have you ever heard of ssh gateways, I am kind of good at this I build
+> my support systems around this. So I will set you up with an account :D
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- linux/drivers/media/video/v4l2-common.c |   58 ++++++++++++++++++++++++++++++-
- 1 files changed, 57 insertions(+), 1 deletions(-)
+As said I made you a very nice dvb-t test station, you can log into it
+with a ssh gateway that I created for you. There are several usb dvb-t
+en hybrid devices attached, all with dvb-t signals, analog is also possible.
 
-diff --git a/linux/drivers/media/video/v4l2-common.c b/linux/drivers/media/video/v4l2-common.c
-index bd13702..2811f5b 100644
---- a/linux/drivers/media/video/v4l2-common.c
-+++ b/linux/drivers/media/video/v4l2-common.c
-@@ -343,6 +343,12 @@ const char **v4l2_ctrl_get_menu(u32 id)
- 		"Sepia",
- 		NULL
- 	};
-+	static const char *fm_tx_preemphasis[] = {
-+		"No preemphasis",
-+		"50 useconds",
-+		"75 useconds",
-+		NULL,
-+	};
- 
- 	switch (id) {
- 		case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-@@ -381,6 +387,8 @@ const char **v4l2_ctrl_get_menu(u32 id)
- 			return camera_exposure_auto;
- 		case V4L2_CID_COLORFX:
- 			return colorfx;
-+		case V4L2_CID_FM_TX_PREEMPHASIS:
-+			return fm_tx_preemphasis;
- 		default:
- 			return NULL;
- 	}
-@@ -479,6 +487,28 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
- 	case V4L2_CID_PRIVACY:			return "Privacy";
- 
-+	/* FM Radio Modulator control */
-+	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
-+	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
-+	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
-+	case V4L2_CID_RDS_TX_DEVIATION:		return "RDS Signal Deviation";
-+	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
-+	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
-+	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
-+	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
-+	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
-+	case V4L2_CID_AUDIO_COMPRESSION_ENABLED: return "Audio Compression Feature Enabled";
-+	case V4L2_CID_AUDIO_COMPRESSION_GAIN:	return "Audio Compression Gain";
-+	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD: return "Audio Compression Threshold";
-+	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME: return "Audio Compression Attack Time";
-+	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME: return "Audio Compression Release Time";
-+	case V4L2_CID_PILOT_TONE_ENABLED:	return "Pilot Tone Feature Enabled";
-+	case V4L2_CID_PILOT_TONE_DEVIATION:	return "Pilot Tone Deviation";
-+	case V4L2_CID_PILOT_TONE_FREQUENCY:	return "Pilot Tone Frequency";
-+	case V4L2_CID_FM_TX_PREEMPHASIS:	return "Pre-emphasis settings";
-+	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
-+	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
-+
- 	default:
- 		return NULL;
- 	}
-@@ -500,7 +530,13 @@ EXPORT_SYMBOL(v4l2_ctrl_is_value64);
-  * This information is used inside v4l2_compat_ioctl32. */
- int v4l2_ctrl_is_pointer(u32 id)
- {
--	return 0;
-+	switch (id) {
-+	case V4L2_CID_RDS_TX_PS_NAME:
-+	case V4L2_CID_RDS_TX_RADIO_TEXT:
-+		return 1;
-+	default:
-+		return 0;
-+	}
- }
- EXPORT_SYMBOL(v4l2_ctrl_is_pointer);
- 
-@@ -530,6 +566,9 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
- 	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
- 	case V4L2_CID_FOCUS_AUTO:
- 	case V4L2_CID_PRIVACY:
-+	case V4L2_CID_AUDIO_LIMITER_ENABLED:
-+	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
-+	case V4L2_CID_PILOT_TONE_ENABLED:
- 		qctrl->type = V4L2_CTRL_TYPE_BOOLEAN;
- 		min = 0;
- 		max = step = 1;
-@@ -558,12 +597,18 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
- 	case V4L2_CID_MPEG_STREAM_VBI_FMT:
- 	case V4L2_CID_EXPOSURE_AUTO:
- 	case V4L2_CID_COLORFX:
-+	case V4L2_CID_FM_TX_PREEMPHASIS:
- 		qctrl->type = V4L2_CTRL_TYPE_MENU;
- 		step = 1;
- 		break;
-+	case V4L2_CID_RDS_TX_PS_NAME:
-+	case V4L2_CID_RDS_TX_RADIO_TEXT:
-+		qctrl->type = V4L2_CTRL_TYPE_STRING;
-+		break;
- 	case V4L2_CID_USER_CLASS:
- 	case V4L2_CID_CAMERA_CLASS:
- 	case V4L2_CID_MPEG_CLASS:
-+	case V4L2_CID_FM_TX_CLASS:
- 		qctrl->type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 		min = max = step = def = 0;
-@@ -592,6 +637,17 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
- 	case V4L2_CID_BLUE_BALANCE:
- 	case V4L2_CID_GAMMA:
- 	case V4L2_CID_SHARPNESS:
-+	case V4L2_CID_RDS_TX_DEVIATION:
-+	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME:
-+	case V4L2_CID_AUDIO_LIMITER_DEVIATION:
-+	case V4L2_CID_AUDIO_COMPRESSION_GAIN:
-+	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD:
-+	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME:
-+	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME:
-+	case V4L2_CID_PILOT_TONE_DEVIATION:
-+	case V4L2_CID_PILOT_TONE_FREQUENCY:
-+	case V4L2_CID_TUNE_POWER_LEVEL:
-+	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
- 		qctrl->flags |= V4L2_CTRL_FLAG_SLIDER;
- 		break;
- 	case V4L2_CID_PAN_RELATIVE:
--- 
-1.6.2.GIT
+I send you an additional private email with the information you need to
+login into the systems. You have full root access and can compile what
+ever you want ;-p
 
+If you got any question you can contact me on IRC with the nickname
+tuxcrafter or use the pct-support-chat[1] tool.
+
+Best regards,
+
+Jelle de Jong
+
+[1]
+https://secure.powercraft.nl/svn/packages/trunk/source/pct-support-scripts/
