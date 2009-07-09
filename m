@@ -1,118 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1669 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750901AbZGDSyE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Jul 2009 14:54:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@radix.net>
-Subject: Re: Short experiment with libudev to support media controller concept
-Date: Sat, 4 Jul 2009 20:54:02 +0200
-Cc: linux-media@vger.kernel.org
-References: <1246729935.2826.43.camel@morgan.walls.org>
-In-Reply-To: <1246729935.2826.43.camel@morgan.walls.org>
+Received: from mx2.redhat.com ([66.187.237.31]:44763 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754661AbZGIJDM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Jul 2009 05:03:12 -0400
+Message-ID: <4A55B2E3.9050604@redhat.com>
+Date: Thu, 09 Jul 2009 11:05:39 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907042054.02393.hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: =?ISO-8859-1?Q?Erik_Andr=E9n?= <erik.andren@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: RFC: howto handle driver changes which require libv4l > x.y ?
+References: <4A53509D.8060503@redhat.com>	<62e5edd40907070655g75dbfc5dy3799d85a15ad4a6c@mail.gmail.com> <20090707113538.71ecd68e@pedra.chehab.org>
+In-Reply-To: <20090707113538.71ecd68e@pedra.chehab.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 04 July 2009 19:52:15 Andy Walls wrote:
-> Hans,
-> 
-> The inline source file at the end of this post is a small program I used
-> to play with libudev to see if it would complement the media controller
-> concept (as you suspected it would).
-> 
-> Documentation on the libudev calls is here:
-> 
-> 	http://www.kernel.org/pub/linux/utils/kernel/hotplug/libudev/
-> 
-> The test program I wrote takes a (type,major,minor) tuple and lists the
-> device node and device symlinks as fetched by libudev.
-> 
-> My test setup was a little strange since libudev is no longer maintained
-> separately but is bundled in with udev.  On my Fedora 9 system I have
-> udev v124 (Fedora 9 stock) and libudev v143 (custom built from the udev
-> 143 source).
-> 
-> Here's some output:
-> 
-> $ ./finddev -c -M 1 -m 3
-> Requested device: type 'c', major 1, minor 3
-> Device directory path: '/dev'
-> Device node: '/dev/null'
-> Device link: '/dev/XOR'
-> 
-> $ ls -al /dev/ | grep '[ /]null'
-> crw-rw-rw-   1 root root     1,   3 2009-07-04 08:34 null
-> lrwxrwxrwx   1 root root          4 2009-07-04 08:34 X0R -> null
-> lrwxrwxrwx   1 root root          4 2009-07-04 08:34 XOR -> null
-> 
-> (Hmmm, not perfect for /dev/null)
-> 
-> 
-> $ ./finddev -b -M 11 -m 0
-> Requested device: type 'b', major 11, minor 0
-> Device directory path: '/dev'
-> Device node: '/dev/sr0'
-> Device link: '/dev/scd0'
-> Device link: '/dev/disk/by-path/pci-0000:00:14.1-scsi-1:0:0:0'
-> Device link: '/dev/cdrom'
-> Device link: '/dev/cdrw'
-> 
-> $ ls -alR /dev/* | grep '[ /]sr0'
-> lrwxrwxrwx  1 root root          3 2009-07-04 08:34 /dev/cdrom -> sr0
-> lrwxrwxrwx  1 root root          3 2009-07-04 08:34 /dev/cdrw -> sr0
-> lrwxrwxrwx  1 root root          3 2009-07-04 08:34 /dev/scd0 -> sr0
-> brw-rw----+ 1 root disk    11,   0 2009-07-04 08:34 /dev/sr0
-> lrwxrwxrwx 1 root root   9 2009-07-04 08:34 pci-0000:00:14.1-scsi-1:0:0:0 -> ../../sr0
-> 
-> (OK for the CDROM drive.)
-> 
-> 
-> $ ./finddev -c -M 81 -m 9
-> Requested device: type 'c', major 81, minor 9
-> Device directory path: '/dev'
-> Device node: '/dev/video0'
-> Device link: '/dev/video'
-> 
-> $ ls -alR /dev/* | grep '[ /]video0'
-> lrwxrwxrwx  1 root root          6 2009-07-04 08:34 /dev/video -> video0
-> crw-rw----+ 1 root root    81,   9 2009-07-04 08:34 /dev/video0
-> 
-> (OK for video nodes)
-> 
-> 
-> $ ./finddev -c -M 116 -m 6
-> Requested device: type 'c', major 116, minor 6
-> Device directory path: '/dev'
-> Device node: '/dev/snd/pcmC0D0p'
-> 
-> $ ls -alR /dev/* | grep '[ /]pcmC0D0p'
-> crw-rw----+  1 root root 116, 6 2009-07-04 13:43 pcmC0D0p
-> 
-> (OK for ALSA PCM stream nodes).
-> 
-> 
-> Do you have any other particular questions about libudev's capabilities?
+Hi,
 
-Hi Andy,
+On 07/07/2009 04:35 PM, Mauro Carvalho Chehab wrote:
+> Em Tue, 7 Jul 2009 15:55:59 +0200
+> Erik Andrén<erik.andren@gmail.com>  escreveu:
+>
+>> 2009/7/7 Hans de Goede<hdegoede@redhat.com>:
+>>> Hi All,
+>>>
+>>> So recently I've hit 2 issues where kernel side fixes need
+>>> to go hand in hand with libv4l updates to not cause regressions.
+>>>
+>>> First lets discuss the 2 cases:
+>>> 1) The pac207 driver currently limits the framerate (and thus
+>>>    the minimum exposure time) because at higher framerate the
+>>>    cam starts using a higher compression and we could not
+>>>    decompress this. Thanks to Bertrik Sikken we can now handle
+>>>    the higher decompression.
+>>>
+>>>    So no I really want to enable the higher framerates as those
+>>>    are needed to make the cam work properly in full daylight.
+>>>
+>>>    But if I do this, things will regress for people with an
+>>>    older libv4l, as that won't be able to decompress the frames
+>>>
+>>> 2) Several zc3xxx cams have a timing issue between the bridge and
+>>>    the sensor (the windows drivers have the same issue) which
+>>>    makes them do only 320x236 instead of 320x240. Currently
+>>>    we report their resolution to userspace as 320x240, leading to
+>>>    a bar of noise at the bottom of the screen.
+>>>
+>>>    The fix here obviously is to report the real effective resoltion
+>>>    to userspace, but this will cause regressions for apps which blindly
+>>>    assume 320x240 is available (such as skype). The latest libv4l will
+>>>    make the apps happy again by giving them 320x240 by adding small
+>>>    black borders.
+>>>
+>>>
+>>> Now I see 2 solutions here:
+>>>
+>>> a) Just make the changes, seen from the kernel side these are most
+>>>    certainly bugfixes. I tend towards this for case 2)
+>>>
+>>> b) Come up with an API to tell the libv4l version to the kernel and
+>>>    make these changes in the drivers conditional on the libv4l version
+>>>
+>>>
+>> Solution b) sounds messy and will probably lead to a lot of error
+>> prone glue code in the kernel.
+>> Fast-forward a couple of libv4l releases and you will have a nightmare
+>> maintainability scenario.
+>>
+>> If people run an old libv4l with a new kernel and run into problem,
+>> just tell them to upgrade their libv4l version.
+>
+> (b) seems a very bad hack, IMO. Between the two, I choose (a).
+>
 
-This looks very promising. Can you try a few things like adding new symlinks
-for video devices in the udev config file, or renaming the video0 node to,
-say, mpeg0? If finddev still returns the right nodes, then all that a media
-controller needs to do is to export the major and minor numbers for each
-node. That's exactly what I'm hoping for.
+Ok,
 
-Note that I will not have a lot of time to work in v4l-dvb for the next 10 to
-14 days as I have visitors this week and will be traveling abroad next week.
+So (a) it is then, I'll do a libv4l-0.6.0 release today. And put the changes
+depend upon libv4l-0.6.0 in my tree then as time permits, they will then go
+into 2.6.32 eventually which should put enough time between the libv4l release
+and the kernel release for most people to have the newer libv4l.
 
-Thanks!
+Regards,
 
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Hans
