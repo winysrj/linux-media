@@ -1,147 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:48489 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750886AbZG1Hhu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jul 2009 03:37:50 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: How to save number of times using memcpy?
-Date: Tue, 28 Jul 2009 09:39:11 +0200
-Cc: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	"v4l2_linux" <linux-media@vger.kernel.org>,
-	Dongsoo Kim <dongsoo45.kim@samsung.com>,
-	=?utf-8?q?=EB=B0=95=EA=B2=BD=EB=AF=BC?= <kyungmin.park@samsung.com>,
-	jm105.lee@samsung.com,
-	=?utf-8?q?=EC=9D=B4=EC=84=B8=EB=AC=B8?= <semun.lee@samsung.com>,
-	=?utf-8?q?=EB=8C=80=EC=9D=B8=EA=B8=B0?= <inki.dae@samsung.com>,
-	=?utf-8?q?=EA=B9=80=ED=98=95=EC=A4=80?= <riverful.kim@samsung.com>
-References: <5e9665e10907271756l114f6e6ekeefa04d976b95c66@mail.gmail.com> <200907280854.12708.hverkuil@xs4all.nl>
-In-Reply-To: <200907280854.12708.hverkuil@xs4all.nl>
+Received: from urchin.earth.li ([193.201.200.73]:37574 "EHLO urchin.earth.li"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751055AbZGJTPz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jul 2009 15:15:55 -0400
+Received: from nick (helo=localhost)
+	by urchin.earth.li with local-esmtp (Exim 4.69)
+	(envelope-from <v4l@gagravarr.org>)
+	id 1MPLDL-0002Ea-E1
+	for linux-media@vger.kernel.org; Fri, 10 Jul 2009 19:52:55 +0100
+Date: Fri, 10 Jul 2009 19:52:55 +0100 (BST)
+From: Nick Burch <v4l@gagravarr.org>
+To: linux-media@vger.kernel.org
+Subject: KWorld USB DVB-T TV Stick II 395U almost but not quite working
+Message-ID: <Pine.LNX.4.64.0907101934320.22332@urchin.earth.li>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907280939.12017.laurent.pinchart@skynet.be>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 28 July 2009 08:54:12 Hans Verkuil wrote:
-> On Tuesday 28 July 2009 02:56:05 Dongsoo, Nathaniel Kim wrote:
-[snip]
-> > And the other one is about how to handle the buffer used between
-> > couple of multimedia devices.
-> > Let me take an example of a camcorder scenario which takes series of
-> > pictures and encode them in some sort of multimedia encoded format.
-> > And let's assume that we are using a device of a SoC H/W which has
-> > it's own camera and multimedia encoder device as well.
-> >
-> > The scenario might be going like following order ordinarily.
-> > 1. User application: open camera device node and tries to mmap
-> > buffer(A) to be used.
-> > 2. Camera interface: try to allocate memory in kernel space and creates
-> > mapping.
->
-> Wrong, this should have been point 1 because by this time it's pretty
-> unlikely you can allocate the buffers needed due to memory fragmentation.
->
-> > 3. User application: open encoder device node and tries to mmap
-> > buffer(B) as input buffer and buffer(C) as output buffer to be used.
-> > 4. Start streaming
-> > 5. Camera interface: fetch data from external camera module and writes
-> > to the allocated buffer in kernel space and give back the memory
-> > address to user application through dqbuf
-> > 6. User application: memcpy(1st) returned buffer(A) to frame buffer
-> > therefore we can see as preview
->
-> Unavoidable memcpy, unless there is some sort of hardware support to DMA
-> directly into the framebuffer.
+Hi All
 
-Or unless you use the USERPTR method instead of MMAP, providing your graphics 
-hardware provides some sort of video display capabilities (similar to Xv for 
-instance). You can then allocate a video buffer and ask the camera driver to 
-DMA data directly to that buffer. This requires
+I'm trying to get the KWorld 395U DVB-T usb tuner working, and failing at 
+the last hurdle. I think it might be an issue with the tuner chip, but 
+here's what I found:
 
-1. the video buffer to be contiguous in virtual memory (no stride)
-2. the video buffer to be contiguous in physical memory, OR the camera DMA to 
-support scatter-gather.
+Firstly, driver wise, I tried a stock ubuntu 9.04 2.6.28 kernel and the 
+af9015 driver. This driver loaded, but didn't recognise the card as one of 
+its, because my card has the newer USB id (1b80:e39b), and the kernel's 
+too old for the fix.
 
-> > 7. User application: memcpy(2nd) returned buffer(A) to buffer(B) of
-> > encoder device.
->
-> So this is copying between two v4l2 video nodes, right?
+Next, I tried with the vendor driver from tombcore.free.fr. This driver 
+(AF901X) loads fine, but again won't recognise the cards as one of its. I 
+tried adding in the usb ID and recompiling, but it didn't help, though 
+that might be due to my DKMS foo not being up to it...
 
-Does your hardware allow chaining the camera and codec directly without going 
-through memory buffers ?
+Finally, I grabbed the latest v4l-dvb code from mercurial. I unloaded all 
+the old drivers, removed the AF901X driver, and compiled and installed. 
+This time, the driver did find the card quite happily:
 
-> > 7. Encoder device: encodes the data copied into buffer(B) and returns
-> > to user application through buffer(C)
-> > 8. User application: memcpy(3nd) encoded data from buffer(C) and save as
-> > file
-> > 9. do loop from 5 to 8 as long as you want to keep recording
-> >
-> > As you see above, at least three times of memcpy per frame are
-> > necessary to make the recording and preview happened. Of course I took
-> > a worst case for example because we can even take in-place thing for
-> > encoder buffer, but I jut wanted to consider of drivers not capable to
-> > take care of in-place algorithm for some reasons.
-> >
-> > Now let's imagine that we are recording 1920*1080 sized frame. can you
-> > draw the picture in your mind how it might be inefficient?
-> >
-> > So, my second question is "Is V4L2 covering the best practice of video
-> > recording for embedded system?"
-> > As you know, embedded systems are running out of memories..and don't
-> > have much enough memory bandwidth either.
-> > I'm not seeing any standard way for "device to device" buffer handling
-> > in V4L2 documents. If nobody has been considering this issue, can I
-> > bring it on the table for make it in a unified way, therefor we can
-> > make any improvement in opensource multimedia middlewares and drivers
-> > as well.
->
-> It's been considered, see this RFC:
->
-> http://www.archivum.info/video4linux-list%40redhat.com/2008-07/msg00371.html
->
-> A lot of the work done in the past year was actually to lay the foundation
-> for implementing media controllers and media processors.
->
-> But with a framework like this it should be possible to tell the v4l2
-> driver to link the output of the camera module to the input of the encoder.
-> Functionality like that is currently missing in the API.
+usb 2-4: new high speed USB device using ehci_hcd and address 4
+usb 2-4: configuration #1 chosen from 1 choice
+dvb-usb: found a 'KWorld USB DVB-T TV Stick II (VS-DVB-T 395U)' in cold 
+state, will try to load a firmware
+usb 2-4: firmware: requesting dvb-usb-af9015.fw
+dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
+dvb-usb: found a 'KWorld USB DVB-T TV Stick II (VS-DVB-T 395U)' in warm state.
+dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+DVB: registering new adapter (KWorld USB DVB-T TV Stick II (VS-DVB-T 395U))
+af9013: firmware version:4.95.0
+DVB: registering adapter 0 frontend 0 (Afatech AF9013 DVB-T)...
 
-There are two different use cases. The first one covers embedded hardware that 
-provide a direct camera -> codec link without requiring any intervention of 
-the CPU for data transfer. This is the most efficient solution if your 
-hardware is clever enough. It would require additions to the v4l2 API to 
-configure the links dynamically.
+After this, /dev/dvb/adapter0/ exists, and contains the entries
+     demux0  dvr0  frontend0  net0
 
-The second one covers less clever embedded hardware, where video data has to 
-go to a memory buffer between the camera interface and the codec. In that case 
-it could be useful to allocate v4l2 buffers shared between the camera and 
-codec v4l2 devices. This is not handled by v4l2 at the moment either.
 
-> I plan on reworking this RFC during this year's Plumbers conference in
-> September (http://linuxplumbersconf.org/2009/). You should consider
-> attending if you want to join these discussions. It would be very valuable
-> to have your input.
->
-> > By the way.. among the examples above I mentioned, I took an example
-> > of codec device. right? How far are we with codec devices in V4L2
-> > community?
->
-> Not far. If I'm not mistaken Mauro preferred to implement this with what is
-> basically a media processor node, and those are not yet in place.
->
-> > Thanks to the ultimate H/W in these days, we are facing tremendous issues
-> > as well.
->
-> I know. As the RFC shows (even though it's a bit out of date) I do have a
-> good idea on how to implement it on a high level. The devil is in the
-> details, though. And in the time it takes to implement.
+Running dvbscan fails though:
+   root@myth:/usr/share/dvb# dvbscan dvb-t/uk-Oxford
+   Unable to query frontend status
 
-Regards,
+Running dvbtraffic doesn't give any errors, but doesn't give any output 
+either!
 
-Laurent Pinchart
+dvbsnoop is able to query the frontend info just fine:
+   dvbsnoop V1.4.50 -- http://dvbsnoop.sourceforge.net/
 
+   ---------------------------------------------------------
+   FrontEnd Info...
+   ---------------------------------------------------------
+
+   Device: /dev/dvb/adapter0/frontend0
+
+   Basic capabilities:
+     Name: "Afatech AF9013 DVB-T"
+     Frontend-type:       OFDM (DVB-T)
+     Frequency (min):     174000.000 kHz
+     Frequency (max):     862000.000 kHz
+     Frequency stepsiz:   250.000 kHz
+     Frequency tolerance: 0.000 kHz
+     Symbol rate (min):     0.000000 MSym/s
+     Symbol rate (max):     0.000000 MSym/s
+     Symbol rate tolerance: 0 ppm
+     Notifier delay: 0 ms
+     Frontend capabilities:
+         auto inversion
+         FEC 1/2
+         FEC 2/3
+         FEC 3/4
+         FEC 5/6
+         FEC 7/8
+         FEC AUTO
+         QPSK
+         QAM 16
+         QAM 64
+         QAM AUTO
+         auto transmission mode
+         auto guard interval
+         auto hierarchy
+
+   Current parameters:
+     Frequency:  578000.000 kHz
+     Inversion:  AUTO
+     Bandwidth:  6 MHz
+     Stream code rate (hi prio):  FEC 1/2
+     Stream code rate (lo prio):  FEC 1/2
+     Modulation:  QPSK
+     Transmission mode:  2k mode
+     Guard interval:  1/32
+     Hierarchy:  none
+
+dvbsnoop -s pidscan doesn't return anything, and dvbsnoop -s signal
+returns lots of "Sig: 0  SNR: 0  BER: 0  UBLK: 0  Stat: 0x02 [CARR ]"
+
+Finally, trying scan, I get lots of tuning failed warnings:
+   root@myth:/usr/share/dvb# scan dvb-t/uk-Oxford
+   scanning dvb-t/uk-Oxford
+   using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+   initial transponder 578000000 0 3 9 1 0 0 0
+   initial transponder 850000000 0 2 9 3 0 0 0
+   initial transponder 713833000 0 2 9 3 0 0 0
+   initial transponder 721833000 0 3 9 1 0 0 0
+   initial transponder 690000000 0 3 9 1 0 0 0
+   initial transponder 538000000 0 3 9 1 0 0 0
+   >>> tune to:
+   578000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+   WARNING: >>> tuning failed!!!
+   >>> tune to:
+   578000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_16:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+   (tuning failed)
+   WARNING: >>> tuning failed!!!
+   >>> tune to:
+   850000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_64:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
+(etc)
+
+Checking dmesg after a failed scan run, I see these two entries:
+   af9015: command failed:2
+   qt1010 I2C read failed
+
+
+Am I right in thinking from this that it's the qt1010 tuner that's the 
+problem? If so, can anyone suggest what I should do next to debug the 
+issue further?
+
+Thanks
+Nick
