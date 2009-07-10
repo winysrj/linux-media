@@ -1,85 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:51317 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753223AbZGXQsU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2009 12:48:20 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv10 7/8] FMTx: si4713: Add Kconfig and Makefile entries
-Date: Fri, 24 Jul 2009 19:37:27 +0300
-Message-Id: <1248453448-1668-8-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1248453448-1668-7-git-send-email-eduardo.valentin@nokia.com>
-References: <1248453448-1668-1-git-send-email-eduardo.valentin@nokia.com>
- <1248453448-1668-2-git-send-email-eduardo.valentin@nokia.com>
- <1248453448-1668-3-git-send-email-eduardo.valentin@nokia.com>
- <1248453448-1668-4-git-send-email-eduardo.valentin@nokia.com>
- <1248453448-1668-5-git-send-email-eduardo.valentin@nokia.com>
- <1248453448-1668-6-git-send-email-eduardo.valentin@nokia.com>
- <1248453448-1668-7-git-send-email-eduardo.valentin@nokia.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:43783 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751964AbZGJVMs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jul 2009 17:12:48 -0400
+Message-ID: <4A57AEC9.9040602@iki.fi>
+Date: Sat, 11 Jul 2009 00:12:41 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Jelle de Jong <jelledejong@powercraft.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Afatech AF9013 DVB-T not working with mplayer radio streams
+References: <4A4481AC.4050302@powercraft.nl> <4A4D34B3.8050605@iki.fi>	 <4A4E2B45.8080607@powercraft.nl>	 <829197380907091805h10bcf548kbf5435feeb30e067@mail.gmail.com>	 <4A572F7E.6010701@iki.fi> <829197380907100816o4a3daa22k78a424da5bebed1e@mail.gmail.com>
+In-Reply-To: <829197380907100816o4a3daa22k78a424da5bebed1e@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simple add Makefile and Kconfig entries.
+On 07/10/2009 06:16 PM, Devin Heitmueller wrote:
+> On Fri, Jul 10, 2009 at 8:09 AM, Antti Palosaari<crope@iki.fi>  wrote:
+>> af9013 is correct in my mind. af9013 will return -EINVAL (error invalid
+>> value) in case of first garbage value met (maybe better to switch auto mode
+>> when garbage value meet and print debug log?).
+>>
+>> Of course there should be at least debug printing to inform that... but fix
+>> you suggest is better for compatibility. You can do that, it is ok for me.
+>
+>> From a purist standpoint, I agree that the application at fault, and
+> if it were some no-name application I would just say "fix the broken
+> application".  Except it's not a no-name application - it's mplayer.
+>
+> Are you familiar with Postel's Law?
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- linux/drivers/media/radio/Kconfig  |   22 ++++++++++++++++++++++
- linux/drivers/media/radio/Makefile |    2 ++
- 2 files changed, 24 insertions(+), 0 deletions(-)
+No :)
 
-diff --git a/linux/drivers/media/radio/Kconfig b/linux/drivers/media/radio/Kconfig
-index 3315cac..6c6a409 100644
---- a/linux/drivers/media/radio/Kconfig
-+++ b/linux/drivers/media/radio/Kconfig
-@@ -339,6 +339,28 @@ config RADIO_ZOLTRIX_PORT
- 	help
- 	  Enter the I/O port of your Zoltrix radio card.
- 
-+config I2C_SI4713
-+	tristate "I2C driver for Silicon Labs Si4713 device"
-+	depends on I2C && VIDEO_V4L2
-+	---help---
-+	  Say Y here if you want support to Si4713 I2C device.
-+	  This device driver supports only i2c bus.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called si4713.
-+
-+config RADIO_SI4713
-+	tristate "Silicon Labs Si4713 FM Radio Transmitter support"
-+	depends on I2C && VIDEO_V4L2
-+	---help---
-+	  Say Y here if you want support to Si4713 FM Radio Transmitter.
-+	  This device can transmit audio through FM. It can transmit
-+	  EDS and EBDS signals as well. This module is the v4l2 radio
-+	  interface for the i2c driver of this device.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called radio-si4713.
-+
- config USB_DSBR
- 	tristate "D-Link/GemTek USB FM radio support"
- 	depends on USB && VIDEO_V4L2
-diff --git a/linux/drivers/media/radio/Makefile b/linux/drivers/media/radio/Makefile
-index 0f2b35b..34ae761 100644
---- a/linux/drivers/media/radio/Makefile
-+++ b/linux/drivers/media/radio/Makefile
-@@ -15,6 +15,8 @@ obj-$(CONFIG_RADIO_ZOLTRIX) += radio-zoltrix.o
- obj-$(CONFIG_RADIO_GEMTEK) += radio-gemtek.o
- obj-$(CONFIG_RADIO_GEMTEK_PCI) += radio-gemtek-pci.o
- obj-$(CONFIG_RADIO_TRUST) += radio-trust.o
-+obj-$(CONFIG_I2C_SI4713) += si4713-i2c.o
-+obj-$(CONFIG_RADIO_SI4713) += radio-si4713.o
- obj-$(CONFIG_RADIO_MAESTRO) += radio-maestro.o
- obj-$(CONFIG_USB_DSBR) += dsbr100.o
- obj-$(CONFIG_USB_SI470X) += radio-si470x.o
+> http://en.wikipedia.org/wiki/Postel%27s_Law
+>
+> Saying "this demod is not going to work properly with all versions of
+> one of the most popular applications", especially when other demods
+> handle the condition gracefully, is the sort of thing that causes real
+> problems for the Linux community.
+>
+> I'm not the maintainer for this demod, so I'm not the best person to
+> make such a fix.  I spent four hours and debugged the issue as a favor
+> to Jelle de Jong since he loaned me some hardware a couple of months
+> ago.  I guess I can make the fix, but it's just going to take away
+> from time better spent on things I am more qualified to work on.
+>
+> Devin
+
+I will fix that just right now. I think I will change demodulator from 
+"return error invalid value" to "force detect transmission parameters 
+automatically" in case of broken parameters given.
+
+thanks,
+Antti
 -- 
-1.6.2.GIT
-
+http://palosaari.fi/
