@@ -1,33 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acoma.photonsoftware.net ([65.254.60.10]:43514 "EHLO
-	acoma.photonsoftware.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756020AbZGCQiC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jul 2009 12:38:02 -0400
-Received: from localhost ([127.0.0.1] helo=[127.0.0.100])
-	by acoma.photonsoftware.net with esmtpa (Exim 4.69)
-	(envelope-from <ldone@hubstar.net>)
-	id 1MMllu-0007qE-59
-	for linux-media@vger.kernel.org; Fri, 03 Jul 2009 17:37:58 +0100
-Message-ID: <4A4E33EC.6020703@hubstar.net>
-Date: Fri, 03 Jul 2009 17:38:04 +0100
-From: "ldone@hubstar.net" <ldone@hubstar.net>
-Reply-To: "l d one"@hubstar.net
+Received: from mail-gx0-f226.google.com ([209.85.217.226]:34159 "EHLO
+	mail-gx0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751718AbZGJRJs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jul 2009 13:09:48 -0400
+Received: by gxk26 with SMTP id 26so1773381gxk.13
+        for <linux-media@vger.kernel.org>; Fri, 10 Jul 2009 10:09:47 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: cx23885 HVR-1700 broken in v4l drivers vs standard kernel
+In-Reply-To: <4A5760FA.6080203@powercraft.nl>
+References: <4A4481AC.4050302@powercraft.nl> <4A4D34B3.8050605@iki.fi>
+	 <4A4E2B45.8080607@powercraft.nl>
+	 <829197380907091805h10bcf548kbf5435feeb30e067@mail.gmail.com>
+	 <4A572F7E.6010701@iki.fi>
+	 <829197380907100816o4a3daa22k78a424da5bebed1e@mail.gmail.com>
+	 <4A5760FA.6080203@powercraft.nl>
+Date: Fri, 10 Jul 2009 13:09:15 -0400
+Message-ID: <829197380907101009m179b296cw52d2f9f190697247@mail.gmail.com>
+Subject: Re: Afatech AF9013 DVB-T not working with mplayer radio streams
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Jelle de Jong <jelledejong@powercraft.nl>
+Cc: Antti Palosaari <crope@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi - apologies for posting twice, posted this as a reply rather than a new thread - doing well with mailing lists!
+On Fri, Jul 10, 2009 at 11:40 AM, Jelle de
+Jong<jelledejong@powercraft.nl> wrote:
+> Antti if you can fix this issue and help in the future to make some
+> signal strength API for application, like w_scan, you can keep the
+> Realtek based dvb-t device I sent to you as a gift, some credits for me
+> in patches would also be nice since it takes up a lot of time and money
+> on my side to :D
 
-if I use stock kernel (Suse)  2.6.27.23-0.1 the card works, scans and
-plays DVB-T channels.
-if I use the latest v4l drivers the card is recognised, and picked up,
-tune a channel, but cannot find any DVB-T channels.
+I would *really* like to get the strength/SNR situation straightened
+out, since it effects all applications, including just the end user's
+ability to get some idea of the strength in Kaffeine (something that
+should be relatively simple).  I am continuing to brainstorm ideas
+some for of solution that won't be considered ridiculous to some
+percentage of the demod maintainers.
 
-I'm afraid I'm not sure what to look for there are quite a few structural changes to the code.
+I did make an effort to credit you for the patches based on your
+hardware so far:
 
-Thanks
+http://www.kernellabs.com/hg/~dheitmueller/em28xx-terratec-zl10353/rev/274eda5953b4
 
+> I tolled the mplayer people maybe 5 month's ago about this issue. They
+> were quite simple I had 4 devices that worked with mplayer one did not
+> the problem was with the device, they did not want to listen to the idea
+> something was wrong with there mplayer. If somebody want to convince
+> them with this new prove/research please do so, I let it rest.
+
+In fairness, I can appreciate why the mplayer developers' initial
+impression would be that this is a device-level problem since the
+software works with many other devices.  I did definitely confirm it
+to be a bug though, and now that we know *exactly* what is wrong,
+getting a fix upstream into mplayer shouldn't be very hard (it should
+be a ten line patch).  I cannot possibly see them suggesting that
+sending garbage values from the stack in an ioctl() call is
+appropriate behavior.  :-)
+
+If you want, do a cvs checkout of the latest mplayer source, get it to
+successfully compile and work in your environment, and I will see
+about logging in next week to cook up a patch we can submit upstream.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
