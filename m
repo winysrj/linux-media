@@ -1,77 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58960 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754948AbZGOVwB convert rfc822-to-8bit (ORCPT
+Received: from relay01.cambriumhosting.nl ([217.19.16.173]:48881 "EHLO
+	relay01.cambriumhosting.nl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751045AbZGJPkq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jul 2009 17:52:01 -0400
-From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
-To: John Sarman <johnsarman@gmail.com>,
-	"sakari.ailus@nokia.com" <sakari.ailus@nokia.com>,
-	Tuukka Toivonen <tuukka.o.toivonen@nokia.com>,
-	linux-media <linux-media@vger.kernel.org>
-Date: Wed, 15 Jul 2009 16:51:50 -0500
-Subject: RE: Help bringing up a sensor driver for isp omap34xx.c
-Message-ID: <A24693684029E5489D1D202277BE894449E14132@dlee02.ent.ti.com>
-References: <bb2708720907151444l3a93bcb3y75d227c4828ec311@mail.gmail.com>
-In-Reply-To: <bb2708720907151444l3a93bcb3y75d227c4828ec311@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Fri, 10 Jul 2009 11:40:46 -0400
+Message-ID: <4A5760FA.6080203@powercraft.nl>
+Date: Fri, 10 Jul 2009 17:40:42 +0200
+From: Jelle de Jong <jelledejong@powercraft.nl>
 MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Antti Palosaari <crope@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Afatech AF9013 DVB-T not working with mplayer radio streams
+References: <4A4481AC.4050302@powercraft.nl> <4A4D34B3.8050605@iki.fi>	 <4A4E2B45.8080607@powercraft.nl>	 <829197380907091805h10bcf548kbf5435feeb30e067@mail.gmail.com>	 <4A572F7E.6010701@iki.fi> <829197380907100816o4a3daa22k78a424da5bebed1e@mail.gmail.com>
+In-Reply-To: <829197380907100816o4a3daa22k78a424da5bebed1e@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(Unlooping Sameer and Mohit, as they don't longer maintain the driver)
-
-Hi John,
-
-> -----Original Message-----
-> From: John Sarman [mailto:johnsarman@gmail.com]
-> Sent: Wednesday, July 15, 2009 4:45 PM
-> To: sakari.ailus@nokia.com; Venkatraman, Sameer; Mohit Jalori; Aguirre
-> Rodriguez, Sergio Alberto; Tuukka Toivonen; linux-media
-> Subject: Help bringing up a sensor driver for isp omap34xx.c
+Devin Heitmueller wrote:
+> On Fri, Jul 10, 2009 at 8:09 AM, Antti Palosaari<crope@iki.fi> wrote:
+>> af9013 is correct in my mind. af9013 will return -EINVAL (error invalid
+>> value) in case of first garbage value met (maybe better to switch auto mode
+>> when garbage value meet and print debug log?).
+>>
+>> Of course there should be at least debug printing to inform that... but fix
+>> you suggest is better for compatibility. You can do that, it is ok for me.
 > 
-> Hello,
->    I am having a problem deciphering what is wrong with my sensor
-> driver.  It seems that everything operates on the driver but that I am
-> getting buffer overflows.  I have fully tested the image sensor and it
-> is set to operate in 640x480 mode. currently it is like 648x 487 for
-> the dummy pixels and lines.  I have enabled all the debugging #defines
-> in the latest code from the gitorious repository.
-
-Can you specify the gitorious repository URL you're using?
-
-  I also had to edit
-> a few debug statements because they cause the compile to fail. Those
-> failures were due to the resizer rewrite and since the #defines were
-> commented out that code was never compiled.  Anyways here is my dmesg
-> after I open and select the /dev/video0.
+> From a purist standpoint, I agree that the application at fault, and
+> if it were some no-name application I would just say "fix the broken
+> application".  Except it's not a no-name application - it's mplayer.
 > 
-> I have been banging my head against a wall for 2 weeks now.
+> Are you familiar with Postel's Law?
 > 
-> Thanks,
+> http://en.wikipedia.org/wiki/Postel%27s_Law
+> 
+> Saying "this demod is not going to work properly with all versions of
+> one of the most popular applications", especially when other demods
+> handle the condition gracefully, is the sort of thing that causes real
+> problems for the Linux community.
+> 
+> I'm not the maintainer for this demod, so I'm not the best person to
+> make such a fix.  I spent four hours and debugged the issue as a favor
+> to Jelle de Jong since he loaned me some hardware a couple of months
+> ago.  I guess I can make the fix, but it's just going to take away
+> from time better spent on things I am more qualified to work on.
+> 
+> Devin
 > 
 
-<snip>
+I agree with the arguments, I believe Antti did also and said to me he
+will try to work something out next week.
 
-> ISPCTRL: <1>isp_buf_queue: queue 0 vb 0, mmu 000a4000
-> ISPCTRL: <1>isp_buf_queue: queue 1 vb 1, mmu 0013a000
-> ISPCTRL: <1>isp_buf_queue: queue 2 vb 2, mmu 001d0000
-> ISPCTRL: <1>isp_buf_queue: queue 3 vb 3, mmu 00266000
-> ISPCTRL: HS_VS_IRQ <6>ISPCTRL: OVF_IRQ <6>ISPCTRL:
-> ISPCTRL: HS_VS_IRQ <6>ISPCTRL: OVF_IRQ <6>ISPCTRL:
-> ISPCTRL: HS_VS_IRQ <6>ISPCTRL: OVF_IRQ <6>ISPCTRL:
-> ISPCTRL: HS_VS_IRQ <6>ISPCTRL: OVF_IRQ <6>ISPCTRL:
+Antti if you can fix this issue and help in the future to make some
+signal strength API for application, like w_scan, you can keep the
+Realtek based dvb-t device I sent to you as a gift, some credits for me
+in patches would also be nice since it takes up a lot of time and money
+on my side to :D
 
-Seems that you're getting an overflow in the SBL (Shared Buffer Logic) component, which is the one that manages to save/load the buffers from memory.
+I tolled the mplayer people maybe 5 month's ago about this issue. They
+were quite simple I had 4 devices that worked with mplayer one did not
+the problem was with the device, they did not want to listen to the idea
+something was wrong with there mplayer. If somebody want to convince
+them with this new prove/research please do so, I let it rest.
 
-It could happen because the SBL is writing pretty slow to memory...
+Many thanks to Devin and Antti,
 
-Is it possible that you share your patches to integrate this sensor driver + boardfile changes you did?
+Best regards,
 
-That way I can help you more.
-
-Regards,
-Sergio
-
+Jelle
