@@ -1,154 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:51311 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752070AbZGXQsR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2009 12:48:17 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv10 3/8] v4l2: video device: Add FM_TX controls default configurations
-Date: Fri, 24 Jul 2009 19:37:23 +0300
-Message-Id: <1248453448-1668-4-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1248453448-1668-3-git-send-email-eduardo.valentin@nokia.com>
-References: <1248453448-1668-1-git-send-email-eduardo.valentin@nokia.com>
- <1248453448-1668-2-git-send-email-eduardo.valentin@nokia.com>
- <1248453448-1668-3-git-send-email-eduardo.valentin@nokia.com>
+Received: from smtp27.orange.fr ([80.12.242.96]:19383 "EHLO smtp27.orange.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750740AbZGJFvL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Jul 2009 01:51:11 -0400
+Message-Id: <200907100551.n6A5p9i03931@neptune.localwarp.net>
+Date: Fri, 10 Jul 2009 07:50:48 +0200 (CEST)
+From: eric.paturage@orange.fr
+Reply-To: eric.paturage@orange.fr
+Subject: Re: regression : saa7134  with Pinnacle PCTV 50i (analog) can not
+ tune anymore
+To: hermann-pitton@arcor.de
+cc: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- linux/drivers/media/video/v4l2-common.c |   63 ++++++++++++++++++++++++++++++-
- 1 files changed, 62 insertions(+), 1 deletions(-)
+On  9 Jul, hermann pitton wrote:
+> 
+> 
+> Am Mittwoch, den 08.07.2009, 21:07 +0200 schrieb
+> eric.paturage@orange.fr:
+>> > Hi Eric,
+>> > 
+>> > yes, arbitration lost on i2c is an error condition.
+>> > 
+>> > As far I know we did not change the bus speed or anything, but some
+>> > cards need and i2c quirk to work correctly with the clients.
+>> > 
+>> > Mike recently changed the old quirk with good reasons and it was widely
+>> > tested, also by me, without any negative effect seen.
+>> > 
+>> > Maybe your card is a rare case needing the old quirk.
+>> > 
+>> > You could try to change the quirk in saa7134-i2c.c
+>> > 
+>> > static int saa7134_i2c_xfer(struct i2c_adapter *i2c_adap,
+>> > 			    struct i2c_msg *msgs, int num)
+>> > {
+>> > 	struct saa7134_dev *dev = i2c_adap->algo_data;
+>> > 	enum i2c_status status;
+>> > 	unsigned char data;
+>> > 	int addr,rc,i,byte;
+>> > 
+>> > 	status = i2c_get_status(dev);
+>> > 	if (!i2c_is_idle(status))
+>> > 		if (!i2c_reset(dev))
+>> > 			return -EIO;
+>> > 
+>> > 	d2printk("start xfer\n");
+>> > 	d1printk(KERN_DEBUG "%s: i2c xfer:",dev->name);
+>> > 	for (i = 0; i < num; i++) {
+>> > 		if (!(msgs[i].flags & I2C_M_NOSTART) || 0 == i) {
+>> > 			/* send address */
+>> > 			d2printk("send address\n");
+>> > 			addr  = msgs[i].addr << 1;
+>> > 			if (msgs[i].flags & I2C_M_RD)
+>> > 				addr |= 1;
+>> > 			if (i > 0 && msgs[i].flags & I2C_M_RD && msgs[i].addr != 0x40) {
+>> > 				/* workaround for a saa7134 i2c bug
+>> > 				 * needed to talk to the mt352 demux
+>> > 				 * thanks to pinnacle for the hint */
+>> > 				int quirk = 0xfe;    <--------------------------------------
+>> > 				d1printk(" [%02x quirk]",quirk);
+>> > 				i2c_send_byte(dev,START,quirk);
+>> > 				i2c_recv_byte(dev);
+>> > 			}
+>> > 
+>> > back to 0xfd.
+>> > 
+>> > Cheers,
+>> > Hermann
+>> > 
+>> 
+>> H Hermann 
+>> 
+>> thanks for your suggestion .
+>> No  improvement with changing the quirk to 0xfd , 
+>> I still get the same error messages : 
+>> i2c-adapter i2c-1: Invalid 7-bit address 0x7a
+>> saa7133[0]: i2c xfer: < 8e >
+>> input: i2c IR (Pinnacle PCTV) as /class/input/input4
+>> ir-kbd-i2c: i2c IR (Pinnacle PCTV) detected at i2c-1/1-0047/ir0 [saa7133[0]]
+>> saa7133[0]: i2c xfer: < 8f ERROR: ARB_LOST
+>> saa7133[0]: i2c xfer: < 84 ERROR: NO_DEVICE
+>> saa7133[0]: i2c xfer: < 86 ERROR: ARB_LOST
+>> saa7133[0]: i2c xfer: < 94 ERROR: NO_DEVICE
+>> saa7133[0]: i2c xfer: < 96 ERROR: ARB_LOST
+>> saa7133[0]: i2c xfer: < c0 ERROR: NO_DEVICE
+>> saa7133[0]: i2c xfer: < c2 ERROR: NO_DEVICE
+>> saa7133[0]: i2c xfer: < c4 ERROR: NO_DEVICE
+>> saa7133[0]: i2c xfer: < c6 ERROR: NO_DEVICE
+>> saa7133[0]: i2c xfer: < c8 ERROR: NO_DEVICE      
+>> 
+>> 
+>> Regards 
+>> 
+> 
+> Hi Eric,
+> 
+> thanks for your time and testing.
+> 
+> Before we need to start with v4l-dvb bisecting.
+> 
+> There have only been a few changes for the saa7134 driver since what
+> Mauro did send for 2.6.30.
+> 
+> Mostly for ir-kbd-i2c and for your remote was no tester found.
+> 
+> All i2c errors seem to start from the remote and that i2c remote stuff I
+> don't have and can't fake.
+> 
+> Did you try with options saa7134 disable_ir=1 already too?
+> 
+> Cheers,
+> Hermann
+> 
+> 
 
-diff --git a/linux/drivers/media/video/v4l2-common.c b/linux/drivers/media/video/v4l2-common.c
-index bd13702..6fc0559 100644
---- a/linux/drivers/media/video/v4l2-common.c
-+++ b/linux/drivers/media/video/v4l2-common.c
-@@ -343,6 +343,12 @@ const char **v4l2_ctrl_get_menu(u32 id)
- 		"Sepia",
- 		NULL
- 	};
-+	static const char *fm_tx_preemphasis[] = {
-+		"No preemphasis",
-+		"50 useconds",
-+		"75 useconds",
-+		NULL,
-+	};
- 
- 	switch (id) {
- 		case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-@@ -381,6 +387,8 @@ const char **v4l2_ctrl_get_menu(u32 id)
- 			return camera_exposure_auto;
- 		case V4L2_CID_COLORFX:
- 			return colorfx;
-+		case V4L2_CID_FM_TX_PREEMPHASIS:
-+			return fm_tx_preemphasis;
- 		default:
- 			return NULL;
- 	}
-@@ -479,6 +487,28 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
- 	case V4L2_CID_PRIVACY:			return "Privacy";
- 
-+	/* FM Radio Modulator control */
-+	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
-+	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
-+	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
-+	case V4L2_CID_RDS_TX_DEVIATION:		return "RDS Signal Deviation";
-+	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
-+	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
-+	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
-+	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
-+	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
-+	case V4L2_CID_AUDIO_COMPRESSION_ENABLED: return "Audio Compression Feature Enabled";
-+	case V4L2_CID_AUDIO_COMPRESSION_GAIN:	return "Audio Compression Gain";
-+	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD: return "Audio Compression Threshold";
-+	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME: return "Audio Compression Attack Time";
-+	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME: return "Audio Compression Release Time";
-+	case V4L2_CID_PILOT_TONE_ENABLED:	return "Pilot Tone Feature Enabled";
-+	case V4L2_CID_PILOT_TONE_DEVIATION:	return "Pilot Tone Deviation";
-+	case V4L2_CID_PILOT_TONE_FREQUENCY:	return "Pilot Tone Frequency";
-+	case V4L2_CID_FM_TX_PREEMPHASIS:	return "Pre-emphasis settings";
-+	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
-+	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
-+
- 	default:
- 		return NULL;
- 	}
-@@ -500,7 +530,18 @@ EXPORT_SYMBOL(v4l2_ctrl_is_value64);
-  * This information is used inside v4l2_compat_ioctl32. */
- int v4l2_ctrl_is_pointer(u32 id)
- {
--	return 0;
-+	int is_pointer;
-+
-+	switch (id) {
-+	case V4L2_CID_RDS_TX_PS_NAME:
-+	case V4L2_CID_RDS_TX_RADIO_TEXT:
-+		is_pointer = 1;
-+		break;
-+	default:
-+		is_pointer = 0;
-+	}
-+
-+	return is_pointer;
- }
- EXPORT_SYMBOL(v4l2_ctrl_is_pointer);
- 
-@@ -530,6 +571,9 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
- 	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
- 	case V4L2_CID_FOCUS_AUTO:
- 	case V4L2_CID_PRIVACY:
-+	case V4L2_CID_AUDIO_LIMITER_ENABLED:
-+	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
-+	case V4L2_CID_PILOT_TONE_ENABLED:
- 		qctrl->type = V4L2_CTRL_TYPE_BOOLEAN;
- 		min = 0;
- 		max = step = 1;
-@@ -558,12 +602,18 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
- 	case V4L2_CID_MPEG_STREAM_VBI_FMT:
- 	case V4L2_CID_EXPOSURE_AUTO:
- 	case V4L2_CID_COLORFX:
-+	case V4L2_CID_FM_TX_PREEMPHASIS:
- 		qctrl->type = V4L2_CTRL_TYPE_MENU;
- 		step = 1;
- 		break;
-+	case V4L2_CID_RDS_TX_PS_NAME:
-+	case V4L2_CID_RDS_TX_RADIO_TEXT:
-+		qctrl->type = V4L2_CTRL_TYPE_STRING;
-+		break;
- 	case V4L2_CID_USER_CLASS:
- 	case V4L2_CID_CAMERA_CLASS:
- 	case V4L2_CID_MPEG_CLASS:
-+	case V4L2_CID_FM_TX_CLASS:
- 		qctrl->type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 		min = max = step = def = 0;
-@@ -592,6 +642,17 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
- 	case V4L2_CID_BLUE_BALANCE:
- 	case V4L2_CID_GAMMA:
- 	case V4L2_CID_SHARPNESS:
-+	case V4L2_CID_RDS_TX_DEVIATION:
-+	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME:
-+	case V4L2_CID_AUDIO_LIMITER_DEVIATION:
-+	case V4L2_CID_AUDIO_COMPRESSION_GAIN:
-+	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD:
-+	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME:
-+	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME:
-+	case V4L2_CID_PILOT_TONE_DEVIATION:
-+	case V4L2_CID_PILOT_TONE_FREQUENCY:
-+	case V4L2_CID_TUNE_POWER_LEVEL:
-+	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
- 		qctrl->flags |= V4L2_CTRL_FLAG_SLIDER;
- 		break;
- 	case V4L2_CID_PAN_RELATIVE:
--- 
-1.6.2.GIT
+Hi Hermann 
+
+I  tried this morning with the option disable_ir=1 (mercurial from 7/7/2009)
+there is some progress :
+
+case 1 : modprobe saa7134 
+the tuner does not load any submodule 
+message Jul 10 06:49:04 neptune kernel: TUNER: Unable to find symbol tda829x_probe()
+Jul 10 06:49:05 neptune kernel: DVB: Unable to find symbol tda9887_attach()
+Jul 10 06:51:21 neptune kernel: TUNER: Unable to find symbol tda829x_probe()
+Jul 10 06:51:21 neptune kernel: DVB: Unable to find symbol tda9887_attach()
+Jul 10 06:55:01 neptune kernel: TUNER: Unable to find symbol tda829x_probe()
+
+message" neptune kernel: tuner 1-004b: Tuner has no way to set tv freq
+equency " in /var/log/message 
+
+no pic with xawtv 
+xdtv hangs badly 
+
+tried with quirk at both values (0xfe and 0xfd )
+
+----------------------------------------------------------------------------------------
+
+case 2 :  modprobe saa7134  with having before manualy preloaded  tda827x and tda8290
+xawtv give a picture after maybe 10 sec  , it is very very slow to tune (about 6 or 7 sec ) .
+xdtv hangs completely  , no picture , no channel change (time out and try reset). 
+
+tried with quirk at both values (0xfe and 0xfd )
+
+Jul 10 07:29:16 neptune kernel: tuner 1-004b: chip found @ 0x96 (saa7133[0])
+Jul 10 07:29:16 neptune kernel: tda829x 1-004b: setting tuner address to 61
+Jul 10 07:29:16 neptune kernel: tda829x 1-004b: type set to tda8290+75a
+Jul 10 07:29:19 neptune kernel: saa7133[0]: registered device video0 [v4l2]
+Jul 10 07:29:19 neptune kernel: saa7133[0]: registered device vbi0
+Jul 10 07:29:19 neptune kernel: saa7133[0]: registered device radio0
+Jul 10 07:29:19 neptune kernel: saa7134 ALSA driver for DMA sound loaded
+Jul 10 07:29:19 neptune kernel: IRQ 11/saa7133[0]: IRQF_DISABLED is not guarante
+ed on shared IRQs
+Jul 10 07:29:19 neptune kernel: saa7133[0]/alsa: saa7133[0] at 0xed800000 irq 11
+ registered as card -1
+Jul 10 07:29:52 neptune kernel: 
+Jul 10 07:29:52 neptune kernel:  01 20 >
+Jul 10 07:30:02 neptune kernel: 
+Jul 10 07:30:57 neptune last message repeated 23 times
+Jul 10 07:31:19 neptune last message repeated 29 times
+Jul 10 07:34:40 neptune kernel: INFO: task xdtv:3912 blocked for more than 120 s
+econds.
+
+
+I can provide  more detailed dmesg , if needed . 
+
+regards 
+
 
