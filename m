@@ -1,92 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2253 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751290AbZGYOLL (ORCPT
+Received: from relay01.cambriumhosting.nl ([217.19.16.173]:56335 "EHLO
+	relay01.cambriumhosting.nl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752139AbZGKLsi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jul 2009 10:11:11 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCH 1/1] v4l2-ctl: Add G_MODULATOR before set/get frequency
-Date: Sat, 25 Jul 2009 16:10:53 +0200
-Cc: "ext Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-References: <1248453732-1966-1-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1248453732-1966-1-git-send-email-eduardo.valentin@nokia.com>
+	Sat, 11 Jul 2009 07:48:38 -0400
+Message-ID: <4A587C13.5090708@powercraft.nl>
+Date: Sat, 11 Jul 2009 13:48:35 +0200
+From: Jelle de Jong <jelledejong@powercraft.nl>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+To: Antti Palosaari <crope@iki.fi>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Afatech AF9013 DVB-T not working with mplayer radio streams
+References: <4A4481AC.4050302@powercraft.nl> <4A4D34B3.8050605@iki.fi>	 <4A4E2B45.8080607@powercraft.nl>	 <829197380907091805h10bcf548kbf5435feeb30e067@mail.gmail.com>	 <4A572F7E.6010701@iki.fi> <829197380907100816o4a3daa22k78a424da5bebed1e@mail.gmail.com> <4A57AEC9.9040602@iki.fi> <4A57CA85.8090407@iki.fi> <4A586A1A.3000501@powercraft.nl>
+In-Reply-To: <4A586A1A.3000501@powercraft.nl>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907251610.53698.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 24 July 2009 18:42:12 Eduardo Valentin wrote:
-> As there can be modulator devices with get/set frequency
-> callbacks, this patch adds support to them in v4l2-ctl utility.
-
-Thanks for this patch.
-
-I've implemented it somewhat differently (using the new V4L2_CAP_MODULATOR
-to decide whether to call G_TUNER or G_MODULATOR) and pushed it to my
-v4l-dvb-strctrl tree. I've also improved the string print function so things
-like newlines and carriage returns are printed as \r and \n.
-
-Can you mail me the output of 'v4l2-ctl --all -L' based on this updated
-version of v4l2-ctl? I'd like to check whether everything is now reported
-correctly.
-
-Regards,
-
-	Hans
-
+Jelle de Jong wrote:
+> Antti Palosaari wrote:
+>> Hei Devin and Jelle,
+>>
+>> On 07/11/2009 12:12 AM, Antti Palosaari wrote:
+>>>> I'm not the maintainer for this demod, so I'm not the best person to
+>>>> make such a fix. I spent four hours and debugged the issue as a favor
+>>>> to Jelle de Jong since he loaned me some hardware a couple of months
+>>>> ago. I guess I can make the fix, but it's just going to take away
+>>>> from time better spent on things I am more qualified to work on.
+>>>>
+>>>> Devin
+>>> I will fix that just right now. I think I will change demodulator from
+>>> "return error invalid value" to "force detect transmission parameters
+>>> automatically" in case of broken parameters given.
+>> It is fixed now as I see best way.
+>>
+>> For reason or other my MPlayer didn't give garbage and I never seen any 
+>> of those debugs added. I added just similar channels.conf line as Jelle 
+>> but changed freq and PIDs used here. Maybe garbage fields are filled "0" 
+>> which corresponds AUTO.
+>> Anyhow, here it is. Could you test?
+>> http://linuxtv.org/hg/~anttip/af9013/
+>>
+>> regards
+>> Antti
 > 
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> ---
->  v4l2-apps/util/v4l2-ctl.cpp |   10 +++++++++-
->  1 files changed, 9 insertions(+), 1 deletions(-)
+> I tried to test it but it did not work, i tried to get some more
+> information with printk i am sure but not much luck there. Al test where
+> done on the test system, you can login and see for yourself.
 > 
-> diff --git a/v4l2-apps/util/v4l2-ctl.cpp b/v4l2-apps/util/v4l2-ctl.cpp
-> index fc9e459..ff74177 100644
-> --- a/v4l2-apps/util/v4l2-ctl.cpp
-> +++ b/v4l2-apps/util/v4l2-ctl.cpp
-> @@ -1962,12 +1962,16 @@ int main(int argc, char **argv)
->  
->  	if (options[OptSetFreq]) {
->  		double fac = 16;
-> +		struct v4l2_modulator mt;
->  
-> +		memset(&mt, 0, sizeof(struct v4l2_modulator));
->  		if (doioctl(fd, VIDIOC_G_TUNER, &tuner, "VIDIOC_G_TUNER") == 0) {
->  			fac = (tuner.capability & V4L2_TUNER_CAP_LOW) ? 16000 : 16;
-> +			vf.type = tuner.type;
-> +		} else if (doioctl(fd, VIDIOC_G_MODULATOR, &mt, "VIDIOC_G_MODULATOR") == 0) {
-> +			fac = (mt.capability & V4L2_TUNER_CAP_LOW) ? 16000 : 16;
->  		}
->  		vf.tuner = 0;
-> -		vf.type = tuner.type;
->  		vf.frequency = __u32(freq * fac);
->  		if (doioctl(fd, VIDIOC_S_FREQUENCY, &vf,
->  			"VIDIOC_S_FREQUENCY") == 0)
-> @@ -2418,9 +2422,13 @@ set_vid_fmt_error:
->  
->  	if (options[OptGetFreq]) {
->  		double fac = 16;
-> +		struct v4l2_modulator mt;
->  
-> +		memset(&mt, 0, sizeof(struct v4l2_modulator));
->  		if (doioctl(fd, VIDIOC_G_TUNER, &tuner, "VIDIOC_G_TUNER") == 0) {
->  			fac = (tuner.capability & V4L2_TUNER_CAP_LOW) ? 16000 : 16;
-> +		} else if (doioctl(fd, VIDIOC_G_MODULATOR, &mt, "VIDIOC_G_MODULATOR") == 0) {
-> +			fac = (mt.capability & V4L2_TUNER_CAP_LOW) ? 16000 : 16;
->  		}
->  		vf.tuner = 0;
->  		if (doioctl(fd, VIDIOC_G_FREQUENCY, &vf, "VIDIOC_G_FREQUENCY") == 0)
+> Best regards,
+> 
+> Jelle
+> 
+> cd
+> hg clone http://linuxtv.org/hg/~anttip/af9013/
+> cd af9013/
+> make -j3
+> sudo make install
+> sudo make unload
+> sudo modprobe dvb_usb_af9015
+> mplayer -nolirc -nojoystick -dvbin card=1 -dvbin timeout=10
+> dvb://"3FM(Digitenne)"
+> # did not work
+> 
 
+I keep doing test and the debug i got showed it was in auto mode, so i
+did a tzap -a 0 -c ~/.tzap/channels.conf -r "3FM(Digitenne)" no lock :D
+that other bug was teasing me again... :D I manually replugged the
+device and mplayer works perfect. So patch confirmed to build and work.
+Thank you very much!
 
+Best regards,
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Jelle
+
