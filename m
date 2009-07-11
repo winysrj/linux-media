@@ -1,73 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:63465 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750759AbZGXGas convert rfc822-to-8bit (ORCPT
+Received: from mail-ew0-f226.google.com ([209.85.219.226]:51442 "EHLO
+	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751056AbZGKQoh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2009 02:30:48 -0400
-Received: by qw-out-2122.google.com with SMTP id 8so791650qwh.37
-        for <linux-media@vger.kernel.org>; Thu, 23 Jul 2009 23:30:48 -0700 (PDT)
+	Sat, 11 Jul 2009 12:44:37 -0400
+Received: by ewy26 with SMTP id 26so1744707ewy.37
+        for <linux-media@vger.kernel.org>; Sat, 11 Jul 2009 09:44:35 -0700 (PDT)
+Message-ID: <4A58C16C.3040508@gmail.com>
+Date: Sat, 11 Jul 2009 18:44:28 +0200
+From: Juan Luis <neonmann@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20090723114758.49a7026c@tele>
-References: <91b198a70907100305t762a4596r734e44f7f4f88bc3@mail.gmail.com>
-	 <91b198a70907130042y6594a96do8634eebdfef8ba5c@mail.gmail.com>
-	 <91b198a70907162030l760bd7c5r32daaf6823c1dbe6@mail.gmail.com>
-	 <20090717043225.4c786455@pedra.chehab.org>
-	 <20090717124431.1bd3ea43@free.fr>
-	 <91b198a70907200004y5418796dkbf491d2cae877fb7@mail.gmail.com>
-	 <20090720105325.26f2ae1a@free.fr>
-	 <91b198a70907201918l68435905u1ad590144d664a29@mail.gmail.com>
-	 <91b198a70907220215t14d509e7u8b33623cecafa26f@mail.gmail.com>
-	 <20090723114758.49a7026c@tele>
-Date: Fri, 24 Jul 2009 14:25:33 +0800
-Message-ID: <91b198a70907232325p4ad94fc5n680ccb7e06daa65e@mail.gmail.com>
-Subject: Re: Lenovo webcam problem which using gspca's vc032x driver
-From: AceLan Kao <acelan.kao@canonical.com>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>, hugh@canonical.com,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org
+Subject: Initial scan file for es-BaixoMinho es-Pontevedra
+Content-Type: multipart/mixed;
+ boundary="------------070801010704060704040107"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/7/23 Jean-Francois Moine <moinejf@free.fr>:
-> On Wed, 22 Jul 2009 17:15:15 +0800
-> AceLan Kao <acelan.kao@canonical.com> wrote:
->
->> I would like to know which version of vc032x.c won't make 041e:405b
->> device display upside down.
->> And have you let the 041e:405b device owner to test the SXGA setting
->> and with the 1280x960 resolution? What's the result?
->
->
-> Hi AceLan Kao,
->
-> The 041e:405b had a good display with the current version of vc032x
-> (i.e., including the change 'Webcam 041e:405b added and mi1310_soc
-> updated').
->
-> I've just asked the 405b owners to test the XGA resolution. I'll give
-> you the results as soon as I will get them.
->
-> Best regards.
->
-> --
-> Ken ar c'hentañ |             ** Breizh ha Linux atav! **
-> Jef             |               http://moinejf.free.fr/
->
+This is a multi-part message in MIME format.
+--------------070801010704060704040107
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Dear Jean-Francois,
 
-It sounds like that the Lenovo webcam(0x17ef, 0x4802) sensor and the
-0x041e, 0x405b device sensor doesn't be placed at the same direction
-and the initial tables seems not so compatible.
-Do you think that it would be better to split the code for these two
-model of webcams? If yes, I can do some help.
 
-Best regards,
-AceLan Kao.
+--------------070801010704060704040107
+Content-Type: message/rfc822;
+ name="Initial scan file for es-BaixoMinho es-Pontevedra.eml"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename*0="Initial scan file for es-BaixoMinho es-Pontevedra.eml"
 
--- 
-Chia-Lin Kao(AceLan)
-http://blog.acelan.idv.tw/
-E-Mail: acelan.kaoATcanonical.com (s/AT/@/)
+Return-Path: <neonmann@gmail.com>
+Received: from ?10.0.0.10? (85.Red-88-22-118.staticIP.rima-tde.net [88.22.118.85])
+        by mx.google.com with ESMTPS id g9sm6977465gvc.10.2009.07.11.09.43.08
+        (version=TLSv1/SSLv3 cipher=RC4-MD5);
+        Sat, 11 Jul 2009 09:43:08 -0700 (PDT)
+Message-ID: <4A58C117.7080701@gmail.com>
+Date: Sat, 11 Jul 2009 18:43:03 +0200
+From: Juan Luis <neonmann@gmail.com>
+User-Agent: Thunderbird 2.0.0.22 (Windows/20090605)
+MIME-Version: 1.0
+To: linux-dvb@linuxtv.org
+Subject: Initial scan file for es-BaixoMinho es-Pontevedra
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+Since there's no inital scan file for the Baixo Minho (Pontevedra -
+Spain) area here is my own file.
+This scan file might be also valid for the whole Pontevedra area but
+since Im not really sure of it I'll suggest naming it es-BaixoMinho
+
+#Initial scan file begining
+#------------------------------------------------------------------------------
+# file automatically generated by w_scan
+# (http://wirbel.htpc-forum.de/w_scan/index2.html)
+#! <w_scan> 20090528 1 0 OFDM ES </w_scan>
+#------------------------------------------------------------------------------
+# location and provider: Baixo Minho, Pontevedra (Spain)
+# date (yyyy-mm-dd)    : 2009-07-11
+# provided by (opt)    : neonmann@gmail.com
+#
+# T[2] <freq> <bw> <fec_hi> <fec_lo> <mod> <tm> <guard> <hi> [# comment]
+#------------------------------------------------------------------------------
+T 690000000 8MHz AUTO AUTO     AUTO AUTO AUTO AUTO      # SFN
+T 834000000 8MHz  2/3 NONE    QAM64   8k  1/4 NONE      # SFN
+T 842000000 8MHz  2/3 NONE    QAM64   8k  1/4 NONE
+T 850000000 8MHz  2/3 NONE    QAM64   8k  1/4 NONE      # SFN
+T 858000000 8MHz  2/3 NONE    QAM64   8k  1/4 NONE
+T 738000000 8MHz AUTO AUTO     AUTO AUTO AUTO AUTO      # SFN
+T 770000000 8MHz  2/3 NONE    QAM64   8k  1/4 NONE      # RAR Pontevedra
+T 810000000 8MHz  2/3 NONE    QAM64   8k  1/4 NONE      # RGE GALICIA
+#Initial scan file end
+
+--------------070801010704060704040107--
