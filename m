@@ -1,73 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f213.google.com ([209.85.217.213]:34974 "EHLO
-	mail-gx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752538AbZGWOFy (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2205 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751574AbZGKSXG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2009 10:05:54 -0400
-Received: by gxk9 with SMTP id 9so1740031gxk.13
-        for <linux-media@vger.kernel.org>; Thu, 23 Jul 2009 07:05:53 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <d9def9db0907230510h31d1d225pb1d317c9a41fa210@mail.gmail.com>
-References: <d9def9db0907230240w6d3a41fcv2fcef6cbb6e2cb8c@mail.gmail.com>
-	 <829197380907230441q18e21e4fn63b186370b3711de@mail.gmail.com>
-	 <d9def9db0907230443x49dd1b56m143b293e9bdbaaec@mail.gmail.com>
-	 <d9def9db0907230446k291db7bfm1ebcb314d0c97c2@mail.gmail.com>
-	 <829197380907230503y3a2ca24y4434ed759c1f4009@mail.gmail.com>
-	 <d9def9db0907230510h31d1d225pb1d317c9a41fa210@mail.gmail.com>
-Date: Thu, 23 Jul 2009 10:05:53 -0400
-Message-ID: <829197380907230705w4f1c3126r9cf156ca30aa2b5b@mail.gmail.com>
-Subject: Re: em28xx driver crashes device
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Markus Rechberger <mrechberger@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Sat, 11 Jul 2009 14:23:06 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id n6BIN4EC070096
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 11 Jul 2009 20:23:04 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 11 Jul 2009 20:23:04 +0200 (CEST)
+Message-Id: <200907111823.n6BIN4EC070096@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 23, 2009 at 8:10 AM, Markus Rechberger<mrechberger@gmail.com> wrote:
-> There's a pretty good disclosed detection from Empia available, the
-> linux kernel driver
-> just doesn't support it and very likely will never support it. Instead
-> of doing it the
-> wrong way it's better to turn it off or explicitly ask the user if he
-> wants to do something
-> undefined with his device.
-> The nvidia setup tools also provide an option to force it instead of
-> letting the software
-> just do whatever some developers don't know what it will cause...
-> You don't know what will happen to the device when doing that detection.
-> The initial device in question had to be replugged after we removed
-> the driver from the system.
-> You shouldn't invite people to do undefined things with their hardware
-> so they might break them
-> I think I will submit a few photos what physically can happen to the
-> device with wrong settings.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Well, if there is a known heuristic, I would be very happy to get rid
-of the autodetection logic.  I haven't looked at the Empia code in
-months so I should probably do that.
+Results of the daily build of v4l-dvb:
 
-Since I used to design hardware for a living, I am quite familiar with
-what can happen with incorrect GPIOs so I do not believe you need to
-attempt to convince me with photos, which is why I am in favor of
-removing the logic in question.  We just need to figure out how to do
-it without causing a regression in current device support.
+date:        Sat Jul 11 19:00:06 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12232:9ed0cb074784
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Interesting...  I took a quick look at the code, and it seems like the
-USB errors occur before we change any GPIOs, and more interesting it
-appears that the em2861 itself is wedged (which I believe is the first
-time I've seen that).  The code in the log above suggests that the
-autodetection concluded that the profile was not known, so it did not
-arbitrarily pick some incorrect device.  I am a bit surprised that
-just reading the eeprom once and doing a scan of the i2c bus would
-wedge the chip.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc1-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-rc1-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-rc1-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc1-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-rc1-mips: WARNINGS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-rc1-powerpc64: OK
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-rc1-x86_64: OK
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc1): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Is there any information you can give about the board in question in
-terms of what product it is or what components it contains?
+Detailed results are available here:
 
-Devin
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
