@@ -1,134 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2248 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756333AbZGCJTO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jul 2009 05:19:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: m-karicheri2@ti.com
-Subject: Re: [PATCH 1/11 - v3] vpfe capture bridge driver for DM355 and DM6446
-Date: Fri, 3 Jul 2009 11:18:52 +0200
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org
-References: <1246566758-26398-1-git-send-email-m-karicheri2@ti.com>
-In-Reply-To: <1246566758-26398-1-git-send-email-m-karicheri2@ti.com>
+Received: from mail-qy0-f193.google.com ([209.85.221.193]:48467 "EHLO
+	mail-qy0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751562AbZGKLCy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Jul 2009 07:02:54 -0400
+Received: by qyk31 with SMTP id 31so1211812qyk.33
+        for <linux-media@vger.kernel.org>; Sat, 11 Jul 2009 04:02:53 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Date: Sat, 11 Jul 2009 20:02:33 +0900
+Message-ID: <5e9665e10907110402t4b5777abu5f02a44d609405b1@mail.gmail.com>
+Subject: About v4l2 subdev s_config (for core) API?
+To: v4l2_linux <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	=?UTF-8?B?6rmA7ZiV7KSA?= <riverful.kim@samsung.com>,
+	Dongsoo Kim <dongsoo45.kim@samsung.com>,
+	=?UTF-8?B?67CV6rK966+8?= <kyungmin.park@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907031118.53623.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 02 July 2009 22:32:38 m-karicheri2@ti.com wrote:
-> From: Muralidharan Karicheri <m-karicheri2@ti.com>
-> 
-> Re-sending to add description (and also experimental status) for
-> VPFE_CMD_S_CCDC_RAW_PARAMS and updating debug prints with \n and
-> fixing an error coder ENOMEM
-> 
-> VPFE Capture bridge driver
-> 
-> This is version, v3 of vpfe capture bridge driver for doing video
-> capture on DM355 and DM6446 evms. The ccdc hw modules register with the
-> driver and are used for configuring the CCD Controller for a specific
-> decoder interface. The driver also registers the sub devices required
-> for a specific evm. More than one sub devices can be registered.
-> This allows driver to switch dynamically to capture video from
-> any sub device that is registered. Currently only one sub device
-> (tvp5146) is supported. But in future this driver is expected
-> to do capture from sensor devices such as Micron's MT9T001,MT9T031
-> and MT9P031 etc. The driver currently supports MMAP based IO.
-> 
-> Following are the updates based on review comments:-
-> 	1) clean up of setting bus parameters in ccdc
-> 	2) removed v4l2_routing structure type
-> 	3) module authors, description changes 
-> 	4) pixel aspect constants removed
-> 
-> Reviewed by: Hans Verkuil <hverkuil@xs4all.nl>
-> Reviewed by: Laurent Pinchart <laurent.pinchart@skynet.be>
-> Reviewed by: Alexey Klimov <klimov.linux@gmail.com>
-> Reviewed by: Mauro Carvalho Chehab <mchehab@infradead.org>
-> 
-> Signed-off-by: Muralidharan Karicheri <m-karicheri2@ti.com>
-> ---
-> Applies to v4l-dvb repository
-> 
->  drivers/media/video/davinci/vpfe_capture.c | 2138 ++++++++++++++++++++++++++++
->  include/media/davinci/vpfe_capture.h       |  195 +++
->  include/media/davinci/vpfe_types.h         |   51 +
->  3 files changed, 2384 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/davinci/vpfe_capture.c
->  create mode 100644 include/media/davinci/vpfe_capture.h
->  create mode 100644 include/media/davinci/vpfe_types.h
-> 
-> diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
-> new file mode 100644
-> index 0000000..600da0d
-> --- /dev/null
-> +++ b/drivers/media/video/davinci/vpfe_capture.c
+Hi,
 
-<snip>
+The thing is - Is it possible to make the subdev device not to be
+turned on in registering process using any of v4l2_i2c_new_subdev*** ?
+You can say that I can ignore the i2c errors in booting process, but I
+think it is not a pretty way.
 
-> +/*
-> + * vpfe_probe : This function creates device entries by register
-> + * itself to the V4L2 driver and initializes fields of each
-> + * device objects
-> + */
-> +static __init int vpfe_probe(struct platform_device *pdev)
-> +{
-> +	struct vpfe_config *vpfe_cfg;
-> +	struct resource *res1;
-> +	struct vpfe_device *vpfe_dev;
-> +	struct i2c_adapter *i2c_adap;
-> +	struct i2c_client *client;
-> +	struct video_device *vfd;
-> +	int ret = -ENOMEM, i, j;
-> +	int num_subdevs = 0;
+And for the reason I'm asking you about this, I need you to consider
+following conditions I carry.
 
-<snip>
+1. ARM embedded platform especially mobile handset.
+2. Mass production which is very concerned about power consumption.
+3. Strict and automated test process in product line.
 
-> +
-> +	for (i = 0; i < num_subdevs; i++) {
-> +		struct vpfe_subdev_info *sdinfo = &vpfe_cfg->sub_devs[i];
-> +		struct v4l2_input *inps;
-> +
-> +		list_for_each_entry(client, &i2c_adap->clients, list) {
-> +			if (!strcmp(client->name, sdinfo->name))
-> +				break;
-> +		}
+So, what I want to ask you is about s_config subdev call which is
+called from every single I2C subdev load in some kind of probe
+procedure. As s_config is supposed to do, it tries to initialize
+subdev device. which means it needs to turn on the subdev to make that
+initialized.
 
-This no longer compiles :-(
+But as I mentioned above if we make the product go through the product
+line, it turns on the subdev device even though nobody intended to
+turn the subdev on. It might be an issue in product vendor's point of
+view, because there should be a crystal clear reason for the
+consumption of power the subdev made. I'm working on camera device and
+speaking of which, camera devices are really power consuming device
+and some camera devices even take ages to be initialized as well.
 
-The latest linux git tree no longer has the i2c_adap->clients field, nor is
-there a 'list' field in struct i2c_client.
+So far I hope I made a good explanation about why I'm asking you about
+following question.
+By the way, it seems to be similar to the issue I've faced whe using
+old i2c driver model..I mean probing i2c devices on boot up sequence.
+Cheers,
 
-The initialization of the subdevs should be done in a similar way as
-vpif_probe does it in vpif_display.c (see my v4l-dvb-dm646x tree).
+Nate
 
-Using i2c core internals as is being done here is a really bad idea.
-Of course, when this was written originally the v4l2_i2c_new_subdev_board()
-function didn't exist yet, and you need that one in order to implement this
-properly.
-
-I've made a new v4l-dvb-vpfe-cap tree with your latest changes, but it is
-obviously impossible to merge at the moment and fixing this problem is, I
-suspect, a non-trivial change.
-
-I see three options:
-
-1) You manage to come up with a proper fix very quickly,
-2) We postpone everything until the next merge window,
-3) We only merge the tvp514x patches (not sure whether this is a useful
-   alternative or not).
-
-Mauro, the v4l-dvb-dm646x tree for which I posted a pull request a week ago
-compiles fine against the latest linux-git tree, so it shouldn't be a problem
-(I hope :-) ) to merge that one for 2.6.31.
-
-Regards,
-
-         Hans
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
