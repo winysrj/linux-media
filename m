@@ -1,118 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1939 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751379AbZGWSZn (ORCPT
+Received: from mail-in-03.arcor-online.net ([151.189.21.43]:50365 "EHLO
+	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757396AbZGKAl7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2009 14:25:43 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id n6NIPg33010136
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 23 Jul 2009 20:25:42 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 23 Jul 2009 20:25:42 +0200 (CEST)
-Message-Id: <200907231825.n6NIPg33010136@smtp-vbr5.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+	Fri, 10 Jul 2009 20:41:59 -0400
+Subject: Re: regression : saa7134  with Pinnacle PCTV 50i (analog) can not
+	tune anymore
+From: hermann pitton <hermann-pitton@arcor.de>
+To: eric.paturage@orange.fr, Jean Delvare <khali@linux-fr.org>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <200907100551.n6A5p9i03931@neptune.localwarp.net>
+References: <200907100551.n6A5p9i03931@neptune.localwarp.net>
+Content-Type: text/plain
+Date: Sat, 11 Jul 2009 02:40:56 +0200
+Message-Id: <1247272856.3159.14.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+[snip]
+> >> > 
+> >> 
+> >> H Hermann 
+> >> 
+> >> thanks for your suggestion .
+> >> No  improvement with changing the quirk to 0xfd , 
+> >> I still get the same error messages : 
+> >> i2c-adapter i2c-1: Invalid 7-bit address 0x7a
+> >> saa7133[0]: i2c xfer: < 8e >
+> >> input: i2c IR (Pinnacle PCTV) as /class/input/input4
+> >> ir-kbd-i2c: i2c IR (Pinnacle PCTV) detected at i2c-1/1-0047/ir0 [saa7133[0]]
+> >> saa7133[0]: i2c xfer: < 8f ERROR: ARB_LOST
+> >> saa7133[0]: i2c xfer: < 84 ERROR: NO_DEVICE
+> >> saa7133[0]: i2c xfer: < 86 ERROR: ARB_LOST
+> >> saa7133[0]: i2c xfer: < 94 ERROR: NO_DEVICE
+> >> saa7133[0]: i2c xfer: < 96 ERROR: ARB_LOST
+> >> saa7133[0]: i2c xfer: < c0 ERROR: NO_DEVICE
+> >> saa7133[0]: i2c xfer: < c2 ERROR: NO_DEVICE
+> >> saa7133[0]: i2c xfer: < c4 ERROR: NO_DEVICE
+> >> saa7133[0]: i2c xfer: < c6 ERROR: NO_DEVICE
+> >> saa7133[0]: i2c xfer: < c8 ERROR: NO_DEVICE      
+> >> 
+> >> 
+> >> Regards 
+> >> 
+> > 
+> > Hi Eric,
+> > 
+> > thanks for your time and testing.
+> > 
+> > Before we need to start with v4l-dvb bisecting.
+> > 
+> > There have only been a few changes for the saa7134 driver since what
+> > Mauro did send for 2.6.30.
+> > 
+> > Mostly for ir-kbd-i2c and for your remote was no tester found.
+> > 
+> > All i2c errors seem to start from the remote and that i2c remote stuff I
+> > don't have and can't fake.
+> > 
+> > Did you try with options saa7134 disable_ir=1 already too?
+> > 
+> > Cheers,
+> > Hermann
+> > 
+> > 
+> 
+> Hi Hermann 
+> 
+> I  tried this morning with the option disable_ir=1 (mercurial from 7/7/2009)
+> there is some progress :
+> 
+> case 1 : modprobe saa7134 
+> the tuner does not load any submodule 
+> message Jul 10 06:49:04 neptune kernel: TUNER: Unable to find symbol tda829x_probe()
+> Jul 10 06:49:05 neptune kernel: DVB: Unable to find symbol tda9887_attach()
+> Jul 10 06:51:21 neptune kernel: TUNER: Unable to find symbol tda829x_probe()
+> Jul 10 06:51:21 neptune kernel: DVB: Unable to find symbol tda9887_attach()
+> Jul 10 06:55:01 neptune kernel: TUNER: Unable to find symbol tda829x_probe()
+> 
+> message" neptune kernel: tuner 1-004b: Tuner has no way to set tv freq
+> equency " in /var/log/message 
+> 
+> no pic with xawtv 
+> xdtv hangs badly 
+> 
+> tried with quirk at both values (0xfe and 0xfd )
+> 
+> ----------------------------------------------------------------------------------------
+> 
+> case 2 :  modprobe saa7134  with having before manualy preloaded  tda827x and tda8290
+> xawtv give a picture after maybe 10 sec  , it is very very slow to tune (about 6 or 7 sec ) .
+> xdtv hangs completely  , no picture , no channel change (time out and try reset). 
+> 
+> tried with quirk at both values (0xfe and 0xfd )
+> 
+> Jul 10 07:29:16 neptune kernel: tuner 1-004b: chip found @ 0x96 (saa7133[0])
+> Jul 10 07:29:16 neptune kernel: tda829x 1-004b: setting tuner address to 61
+> Jul 10 07:29:16 neptune kernel: tda829x 1-004b: type set to tda8290+75a
+> Jul 10 07:29:19 neptune kernel: saa7133[0]: registered device video0 [v4l2]
+> Jul 10 07:29:19 neptune kernel: saa7133[0]: registered device vbi0
+> Jul 10 07:29:19 neptune kernel: saa7133[0]: registered device radio0
+> Jul 10 07:29:19 neptune kernel: saa7134 ALSA driver for DMA sound loaded
+> Jul 10 07:29:19 neptune kernel: IRQ 11/saa7133[0]: IRQF_DISABLED is not guarante
+> ed on shared IRQs
+> Jul 10 07:29:19 neptune kernel: saa7133[0]/alsa: saa7133[0] at 0xed800000 irq 11
+>  registered as card -1
+> Jul 10 07:29:52 neptune kernel: 
+> Jul 10 07:29:52 neptune kernel:  01 20 >
+> Jul 10 07:30:02 neptune kernel: 
+> Jul 10 07:30:57 neptune last message repeated 23 times
+> Jul 10 07:31:19 neptune last message repeated 29 times
+> Jul 10 07:34:40 neptune kernel: INFO: task xdtv:3912 blocked for more than 120 s
+> econds.
+> 
+> 
+> I can provide  more detailed dmesg , if needed . 
+> 
+> regards 
+> 
 
-Results of the daily build of v4l-dvb:
+Hi,
 
-date:        Thu Jul 23 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12324:6477aa1782d5
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+so it seems we can forget about Mike's i2c quirk change and need to look
+at Jean's ir-kbd-i2c changes next without having a tester.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc3-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-rc3-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-rc3-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: OK
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc3-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc3-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-rc3-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc3-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc3-x86_64: OK
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc3): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+There seems to be some read/write address mess.
 
-Detailed results are available here:
+I can only suggest to follow what is printed with i2c_debug=1 on
+changing a channel with the remote disabled and compare to what I have.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+Something more in between?
 
-Full logs are available here:
+Also, if on previously flaky attempts the tuner initialization sequence
+should have been disturbed, only a cold boot can improve that.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+It seems I have to report from Marathon here again and i don't like it
+at all ... ;)
 
-The V4L2 specification from this daily build is here:
+Cheers,
+Hermann
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
-The DVB API specification from this daily build is here:
 
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
+
 
