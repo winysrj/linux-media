@@ -1,33 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.154]:10867 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755341AbZGJPxJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jul 2009 11:53:09 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so275288fga.17
-        for <linux-media@vger.kernel.org>; Fri, 10 Jul 2009 08:53:06 -0700 (PDT)
-From: Mario Fetka <mario.fetka@gmail.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Status of Terratec Cinergy HTC USB XS HD?
-Date: Fri, 10 Jul 2009 17:53:05 +0200
+Received: from mail.gmx.net ([213.165.64.20]:59349 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751314AbZGKGD1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Jul 2009 02:03:27 -0400
+From: Nils Kassube <kassube@gmx.net>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: Fix for crash in dvb-usb-af9015
+Date: Sat, 11 Jul 2009 08:02:41 +0200
+Cc: linux-media@vger.kernel.org
+References: <200907071232.00459.kassube@gmx.net> <200907071634.00168.kassube@gmx.net> <4A57D371.4070307@iki.fi>
+In-Reply-To: <4A57D371.4070307@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <200907101753.05500.mario.fetka@gmail.com>
+Content-Disposition: inline
+Message-Id: <200907110802.42115.kassube@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hallo Raimund,
+Antti Palosaari wrote:
+> I need your signed off by tag in order to forward this mainline.
+> Patch is correct and I tested it also.
 
-i think the problem is related to 
+OK, here it is again with the requested line. And thanks for taking care
+of the issue.
 
-http://www.linuxtv.org/pipermail/linux-dvb/2008-December/030738.html
+Signed-off-by: Nils Kassube <kassube@gmx.net>
+---
+--- orig/linux-2.6.31/drivers/media/dvb/dvb-usb/af9015.c	2009-06-30 11:34:45.000000000 +0200
++++ linux-2.6.31/drivers/media/dvb/dvb-usb/af9015.c	2009-07-07 14:58:27.000000000 +0200
+@@ -81,7 +81,6 @@
+ 
+ 	switch (req->cmd) {
+ 	case GET_CONFIG:
+-	case BOOT:
+ 	case READ_MEMORY:
+ 	case RECONNECT_USB:
+ 	case GET_IR_CODE:
+@@ -100,6 +99,7 @@
+ 	case WRITE_VIRTUAL_MEMORY:
+ 	case COPY_FIRMWARE:
+ 	case DOWNLOAD_FIRMWARE:
++	case BOOT:
+ 		break;
+ 	default:
+ 		err("unknown command:%d", req->cmd);
 
-but this new situation with
-http://www.tridentmicro.com/Product_drx_39xyK.asp
-
-can maby change something about this chip
-
-thx
-Mario
