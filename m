@@ -1,71 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:45482 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933571AbZGQGRo (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1774 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751931AbZGKTNx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jul 2009 02:17:44 -0400
-Message-ID: <4A601785.2020600@s5r6.in-berlin.de>
-Date: Fri, 17 Jul 2009 08:17:41 +0200
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+	Sat, 11 Jul 2009 15:13:53 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Subject: Re: About v4l2 subdev s_config (for core) API?
+Date: Sat, 11 Jul 2009 21:13:42 +0200
+Cc: v4l2_linux <linux-media@vger.kernel.org>,
+	=?utf-8?q?=EA=B9=80=ED=98=95=EC=A4=80?= <riverful.kim@samsung.com>,
+	Dongsoo Kim <dongsoo45.kim@samsung.com>,
+	=?utf-8?q?=EB=B0=95=EA=B2=BD=EB=AF=BC?= <kyungmin.park@samsung.com>
+References: <5e9665e10907110402t4b5777abu5f02a44d609405b1@mail.gmail.com>
+In-Reply-To: <5e9665e10907110402t4b5777abu5f02a44d609405b1@mail.gmail.com>
 MIME-Version: 1.0
-To: Henrik Kurelid <henke@kurelid.se>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] firedtv: refine AVC debugging
-References: <101260728ec51cc1ec78699fbb0e5c37.squirrel@mail.kurelid.se>
-In-Reply-To: <101260728ec51cc1ec78699fbb0e5c37.squirrel@mail.kurelid.se>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200907112113.42883.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Henrik Kurelid wrote:
-> +static int debug_fcp_opcode_flag_set(unsigned int opcode,
-> +                                    const u8 *data, int length)
-> +{
-> +       switch (opcode) {
-> +       case AVC_OPCODE_VENDOR:                 break;
-> +       case AVC_OPCODE_READ_DESCRIPTOR:        return avc_debug & AVC_DEBUG_READ_DESCRIPTOR;
-> +       case AVC_OPCODE_DSIT:                   return avc_debug & AVC_DEBUG_DSIT;
-> +       case AVC_OPCODE_DSD:                    return avc_debug & AVC_DEBUG_DSD;
-> +       default:                                return 1;
-> +       }
-> +
-> +       if (length < 7 ||
-> +           data[3] != SFE_VENDOR_DE_COMPANYID_0 ||
-> +           data[4] != SFE_VENDOR_DE_COMPANYID_1 ||
-> +           data[5] != SFE_VENDOR_DE_COMPANYID_2)
-> +               return 1;
-> +
-> +       switch (data[6]) {
-> +       case SFE_VENDOR_OPCODE_REGISTER_REMOTE_CONTROL: return avc_debug & AVC_DEBUG_REGISTER_REMOTE_CONTROL;
-> +       case SFE_VENDOR_OPCODE_LNB_CONTROL:             return avc_debug & AVC_DEBUG_LNB_CONTROL;
-> +       case SFE_VENDOR_OPCODE_TUNE_QPSK:               return avc_debug & AVC_DEBUG_TUNE_QPSK;
-> +       case SFE_VENDOR_OPCODE_TUNE_QPSK2:              return avc_debug & AVC_DEBUG_TUNE_QPSK2;
-> +       case SFE_VENDOR_OPCODE_HOST2CA:                 return avc_debug & AVC_DEBUG_HOST2CA;
-> +       case SFE_VENDOR_OPCODE_CA2HOST:                 return avc_debug & AVC_DEBUG_CA2HOST;
-> +       }
-> +       return 1;
-> +}
-> +
->  static void debug_fcp(const u8 *data, int length)
->  {
->         unsigned int subunit_type, subunit_id, op;
->         const char *prefix = data[0] > 7 ? "FCP <- " : "FCP -> ";
-> 
-> -       if (avc_debug & AVC_DEBUG_FCP_SUBACTIONS) {
-> -               subunit_type = data[1] >> 3;
-> -               subunit_id = data[1] & 7;
-> -               op = subunit_type == 0x1e || subunit_id == 5 ? ~0 : data[2];
-> +       subunit_type = data[1] >> 3;
-> +       subunit_id = data[1] & 7;
-> +       op = subunit_type == 0x1e || subunit_id == 5 ? ~0 : data[2];
-> +       if (debug_fcp_opcode_flag_set(op, data, length)) {
->                 printk(KERN_INFO "%ssu=%x.%x l=%d: %-8s - %s\n",
-[...]
+On Saturday 11 July 2009 13:02:33 Dongsoo, Nathaniel Kim wrote:
+> Hi,
+>
+> The thing is - Is it possible to make the subdev device not to be
+> turned on in registering process using any of v4l2_i2c_new_subdev*** ?
+> You can say that I can ignore the i2c errors in booting process, but I
+> think it is not a pretty way.
+>
+> And for the reason I'm asking you about this, I need you to consider
+> following conditions I carry.
+>
+> 1. ARM embedded platform especially mobile handset.
+> 2. Mass production which is very concerned about power consumption.
+> 3. Strict and automated test process in product line.
+>
+> So, what I want to ask you is about s_config subdev call which is
+> called from every single I2C subdev load in some kind of probe
+> procedure. As s_config is supposed to do, it tries to initialize
+> subdev device. which means it needs to turn on the subdev to make that
+> initialized.
 
-Shouldn't the three return statements in debug_fcp_opcode_flag_set be 
-'return 0' rather than one?
+Actually, all s_config does is to pass the irq and platform_data arguments 
+to the subdev driver. The subdev driver can just store that information 
+somewhere and only use it when needed. It does not necessarily have to turn 
+on the sub-device.
+
+Whether to just store this info or turn on the sub-device is something that 
+each subdev driver writer has to decide.
+
+Note that this really has nothing to do with the existance of s_config: 
+s_config was only introduced in order to support legacy v4l2 drivers and 
+subdev drivers. In the (far?) future this will probably disappear and this 
+information will always be passed via struct i2c_board_info.
+
+> But as I mentioned above if we make the product go through the product
+> line, it turns on the subdev device even though nobody intended to
+> turn the subdev on. It might be an issue in product vendor's point of
+> view, because there should be a crystal clear reason for the
+> consumption of power the subdev made. I'm working on camera device and
+> speaking of which, camera devices are really power consuming device
+> and some camera devices even take ages to be initialized as well.
+>
+> So far I hope I made a good explanation about why I'm asking you about
+> following question.
+> By the way, it seems to be similar to the issue I've faced whe using
+> old i2c driver model..I mean probing i2c devices on boot up sequence.
+
+That at least should no longer be a problem anymore (as long as you don't 
+use the address-probing variants).
+
+Regards,
+
+	Hans
+
 -- 
-Stefan Richter
--=====-==--= -=== =---=
-http://arcgraph.de/sr/
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
