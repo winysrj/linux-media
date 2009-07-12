@@ -1,22 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n6UGY5OW006400
-	for <video4linux-list@redhat.com>; Thu, 30 Jul 2009 12:34:05 -0400
-Received: from seiner.com (flatoutfitness.com [66.178.130.209])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n6UGXqlc001315
-	for <video4linux-list@redhat.com>; Thu, 30 Jul 2009 12:33:52 -0400
-Received: from localhost ([127.0.0.1] helo=mail.seiner.com ident=www-data)
-	by seiner.com with esmtp (Exim 4.69) (envelope-from <yan@seiner.com>)
-	id 1MWYZj-0000u3-Sy
-	for video4linux-list@redhat.com; Thu, 30 Jul 2009 09:33:51 -0700
-Message-ID: <07b4da4ac69c4377dbc1e913ac65b460.squirrel@mail.seiner.com>
-Date: Thu, 30 Jul 2009 09:33:51 -0700 (PDT)
-From: "Yan Seiner" <yan@seiner.com>
-To: "V4L Mailing List" <video4linux-list@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain;charset=utf-8
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n6CL4bP6004342
+	for <video4linux-list@redhat.com>; Sun, 12 Jul 2009 17:04:37 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.159])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n6CL3Ipe032640
+	for <video4linux-list@redhat.com>; Sun, 12 Jul 2009 17:03:18 -0400
+Received: by fg-out-1718.google.com with SMTP id l26so524546fgb.7
+	for <video4linux-list@redhat.com>; Sun, 12 Jul 2009 14:03:18 -0700 (PDT)
+From: Tomche Mihajlov <mihajlov.t@gmail.com>
+To: video4linux-list@redhat.com
+Content-Type: text/plain
+Date: Sun, 12 Jul 2009 23:03:11 +0200
+Message-Id: <1247432591.6476.16.camel@anthrax-pc>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 8bit
-Subject: Supported hardware
+Subject: cx88-problem
+Reply-To: mihajlov.t@gmail.com
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,33 +27,106 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I'm looking for a supported PCI-e 4 or 8 channel card.  The wiki says no
-PCI-e cards are supported yet - but maybe I'm not looking in the right
-place.
+I have Compro VideoMate X800 TV Card with Conexant TV tuner and i can't
+get signal neither from Television nor Composite video input. I don't
+know whether problem is in the drivers or tv card. I'll very appreciate
+if you send me any kind of information about the problem.
+Here is output of dmesg and lspci:
 
-I need to connect 6 plain old analog cameras and run them via motion for a
-security system.  I don't need tuners, but I need a decent frame rate; at
-least 8 fps per camera.  I could use a single 8 channel card or two 4
-channel cards.
+root@anthrax-pc:/home/anthrax/Desktop/cx88-0.0.4# lspci -v|tail -23
+04:01.0 Multimedia video controller: Conexant Systems, Inc.
+CX23880/1/2/3 PCI Video and Audio Decoder (rev 05)
+	Subsystem: Compro Technology, Inc. Device e000
+	Flags: bus master, medium devsel, latency 64, IRQ 18
+	Memory at fd000000 (32-bit, non-prefetchable) [size=16M]
+	Capabilities: [44] Vital Product Data <?>
+	Capabilities: [4c] Power Management version 2
+	Kernel driver in use: cx8800
+	Kernel modules: cx8800
 
-I have 2 PCI-e 16x slots available.  I could make a couple of PCI slots
-available but that would require lots of reconfiguring.
+04:01.1 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3 PCI
+Video and Audio Decoder [Audio Port] (rev 05)
+	Subsystem: Compro Technology, Inc. Device e000
+	Flags: bus master, medium devsel, latency 64, IRQ 18
+	Memory at fc000000 (32-bit, non-prefetchable) [size=16M]
+	Capabilities: [4c] Power Management version 2
+	Kernel driver in use: cx88_audio
+	Kernel modules: cx88-alsa
 
-Anyone have any suggestions for affordable hardware?
+04:01.3 Multimedia controller: Conexant Systems, Inc. Device 8803 (rev
+05)
+	Subsystem: Compro Technology, Inc. Device e000
+	Flags: bus master, medium devsel, latency 64, IRQ 14
+	Memory at fb000000 (32-bit, non-prefetchable) [size=16M]
+	Capabilities: [4c] Power Management version 2
 
---Yan
+
+root@anthrax-pc:/home/anthrax# dmesg|grep cx
+[    9.820561] cx88/0: cx2388x v4l2 driver version 0.0.7 loaded
+[    9.820602] cx8800 0000:04:01.0: PCI INT A -> GSI 18 (level, low) ->
+IRQ 18
+[    9.821105] cx88[0]: subsystem: 185b:e000, board: Leadtek Winfast
+2000XP Expert [card=5,insmod option], frontend(s): 0
+[    9.821107] cx88[0]: TV tuner type 38, Radio tuner type -1
+[    9.839614] cx2388x alsa driver version 0.0.7 loaded
+[    9.953529] cx88[0]: i2c scan: found device @ 0x24  [???]
+[    9.998752] cx88[0]: i2c scan: found device @ 0xa0  [eeprom]
+[   10.015860] cx88[0]: i2c scan: found device @ 0xd0  [???]
+[   10.065317] tuner 0-0068: chip found @ 0xd0 (cx88[0])
+[   10.103608] cx88[0]: Leadtek eeprom invalid.
+[   10.129231] input: cx88 IR (Leadtek Winfast 2000XP
+as /devices/pci0000:00/0000:00:1e.0/0000:04:01.0/input/input6
+[   10.137578] cx88[0]/0: found at 0000:04:01.0, rev: 5, irq: 18,
+latency: 64, mmio: 0xfd000000
+[   10.137639] cx88[0]/0: registered device video0 [v4l2]
+[   10.137677] cx88[0]/0: registered device vbi0
+[   10.137720] cx88[0]/0: registered device radio0
+[   10.138213] cx88_audio 0000:04:01.1: PCI INT A -> GSI 18 (level, low)
+-> IRQ 18
+[   10.138237] cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
 
 
--- 
-   o__
-   ,>/'_         o__
-   (_)\(_)       ,>/'_          o__
-A day may come  (_)\(_)         ,>/'_      o__
-when the courage of men fails, (_)\(_)     ,>/'_                      o__
-when we forsake our friends and break all (_)\(_)                     ,>/'_
-bonds of fellowship, but it is not this day. But it is not this day! (_)\(_)
 
-This day we ride!
+
+root@anthrax-pc:/home/anthrax# lsmod|grep cx
+cx88_alsa              18696  1 
+cx8800                 39632  0 
+cx88xx                 84652  2 cx88_alsa,cx8800
+snd_pcm                82948  4 snd_hda_intel,snd_pcm_oss,cx88_alsa
+ir_common              56836  1 cx88xx
+i2c_algo_bit           14084  1 cx88xx
+v4l2_common            25728  3 tuner,cx8800,cx88xx
+videodev               44832  4 tuner,cx8800,cx88xx,v4l2_common
+tveeprom               20228  1 cx88xx
+snd                    62628  21
+snd_hda_intel,snd_seq_oss,snd_pcm_oss,snd_mixer_oss,cx88_alsa,snd_pcm,snd_rawmidi,snd_seq,snd_timer,snd_seq_device
+videobuf_dma_sg        20484  3 cx88_alsa,cx8800,cx88xx
+videobuf_core          26244  3 cx8800,cx88xx,videobuf_dma_sg
+btcx_risc              13064  3 cx88_alsa,cx8800,cx88xx
+
+
+
+root@anthrax-pc:/lib/modules/2.6.28-11-generic/kernel/drivers/media/video# cat /dev/video0 
+
+ 
+
+
+root@anthrax-pc:/lib/modules/2.6.28-11-generic/kernel/drivers/media/video# cat /dev/v4l/by-path/pci-0000\:04\:01.0-video-index0
+
+ 
+ 
+
+
+
+
+root@anthrax-pc:/lib/modules/2.6.28-11-generic/kernel/drivers/media/video# cat /dev/v4l/by-path/pci-0000\:04\:01.0-video-index1
+/00120011110/00//000000/0//./0100/0000010010000//00//1//20//011/.000100222101200//0/00/////01/////0/-/2/.//011100220/1101/01//..0000000././0/0./000110120110///01///010/001//0000///100121101100//011/-./1100000/./10./1101002200./0././0010/00/////0//110000121122110000///./00////00/0///00/.0100001100/011//10/21//0//..//0/./0/0/0100/.00/.00..0000///0/-.001100001//0101/0210000////0110/00.///000/00/0/011001/./1000.00/000..0/-.000/0//101111111110010/10/01/.//01//0///0..00/0011/-/1/010.////01///01022000//00.011133001//011000/010.-/0/000/////12-/001012000//120//01/0//.--/0010//02120011000/./00120///0/00000..120.11/0100/000011//0011//11..1101///11.000112112//00000//00/010000/00/.//01000/.0121/0000010/000011///.0200//00001010013301220/210100//110/00//1211./13200011010/0/./1100//011//0/../11.010010011001//0../00./1100-.21-/00120/011/2201//011/-.1110020-./010-.011/1111101220//11/0..0//0120.//.01/////0011.///111000/00110//00110.010/12000001111111/0000../00..00/000110/002210121131/10//10/000
+ 000..0/./10//0//0/1210001220/22001000/..////....011/.../2421.01/000110/11./.-/1//0000/0001/101201101./0011/.12/./000../00..110000110001210/000//00/0//01000120//121//1200011//0/00.///0..-/1///01./10/01112100000...0211/01/-.011//0/0/0/01/./12110010/000////00/0/./0/020//11111111//./01//0100//00//0010./001001111/01110011/0011///010/-.11/0000//000011011/.010//010///000/00/0//011/0110//0100//000//01010/////010/000011111/0000.//010../000./10./0010/0110111101000/0010.110001//000//0000001100000//1211000210..1//.02/0000/000100000000000/010///010///00000011/011//000100/1310/////./0//..0100//1///01/011111210100000..000/../00/0//0001210/010//010//000././111/01//..0000/01//01///01100/01///011/./1100//////120001110/000/.0100./1../33//0//11010/0//000//01110./0/0//0...010/./011011210/00//./10/010/0/00/.00/00/./10//020/0000/1101/////./1001./10//00011001100/00///00///12/010/////10//10010010/0100000//00//0/../00.///1//0/.//022000010/0011001/..///0///0100//22//011/0120/0001100110//12000011/0//0/
+ 010000000/0./1/1//0../000/00/////1231/0100//0//0010./0//././0/00//0110010000000/011112201//0/000./10/..//0//000/////000101112/0//00//./0/./10/////./0011001110/0110//020011100000/./11/..01110/10///010//0010..01000////001//012110032//11010/010/00/../00..//110//10000110./21///1100000../1210010/./00000121111110/021///010//./0000010/00000/0120/0100000//0111////0//..00/011000110//010./010/0000../000/./10/./11111021//0/./0110////0///00../00011121/1210//11/010/00./0/0///.,./00000011//01000001/./00.00/00//0100/010/1211/11000///000//100///////0200110/001110012000110/10/0////0/.00//0//0/0102310121//10010010/0//0//01100/01100012110//0/.020..01//.-.0/00/0./00000121000///0//0//.010/0//1//0/0000022112311000200000./0120./10////0//0001/01110132110/00///0///000////000001200001000/01//000//001/...0//110/00110100100210100001///01/00/00/./11/01111222101112./0/1/0./0..///000//1//0122002300//10/0110//0//////0/0//10//0000011/./022/.010110////./20//01010120011110000100/01////0/////0/000
+
+
+Thanks.
+
 
 --
 video4linux-list mailing list
