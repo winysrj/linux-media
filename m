@@ -1,64 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [195.7.61.12] ([195.7.61.12]:34113 "EHLO killala.koala.ie"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752833AbZGXOHY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2009 10:07:24 -0400
-Received: from [127.0.0.1] (killala.koala.ie [195.7.61.12])
-	(authenticated bits=0)
-	by killala.koala.ie (8.14.0/8.13.7) with ESMTP id n6OE7Mhd032105
-	for <linux-media@vger.kernel.org>; Fri, 24 Jul 2009 15:07:23 +0100
-Message-ID: <4A69C019.10103@koala.ie>
-Date: Fri, 24 Jul 2009 15:07:21 +0100
-From: Simon Kenyon <simon@koala.ie>
+Received: from fg-out-1718.google.com ([72.14.220.159]:61992 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751891AbZGLLbB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jul 2009 07:31:01 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so499089fga.17
+        for <linux-media@vger.kernel.org>; Sun, 12 Jul 2009 04:30:59 -0700 (PDT)
+Date: Sun, 12 Jul 2009 13:30:57 +0200
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Report: Compro Videomate Vista T750F
+From: Samuel Rakitnican <semirocket@gmail.com>
+Content-Type: text/plain; format=flowed; delsp=yes; charset=windows-1250
 MIME-Version: 1.0
-CC: linux-media@vger.kernel.org
-Subject: Re: em28xx driver crashes device
-References: <d9def9db0907230240w6d3a41fcv2fcef6cbb6e2cb8c@mail.gmail.com>	 <d9def9db0907230443x49dd1b56m143b293e9bdbaaec@mail.gmail.com>	 <d9def9db0907230446k291db7bfm1ebcb314d0c97c2@mail.gmail.com>	 <829197380907230503y3a2ca24y4434ed759c1f4009@mail.gmail.com>	 <d9def9db0907230510h31d1d225pb1d317c9a41fa210@mail.gmail.com>	 <829197380907230705w4f1c3126r9cf156ca30aa2b5b@mail.gmail.com>	 <d9def9db0907230729k4cc14707v763d242e14292ebb@mail.gmail.com>	 <20090723155935.285f9cba@pedra.chehab.org>	 <d9def9db0907240354x15927f29k2fc0939d25202e1@mail.gmail.com>	 <20090724090600.525c86b8@pedra.chehab.org> <d9def9db0907240515s28490707sfae205813033cad6@mail.gmail.com>
-In-Reply-To: <d9def9db0907240515s28490707sfae205813033cad6@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Message-ID: <op.uwycxowt80yj81@localhost>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Markus Rechberger wrote:
-> On Fri, Jul 24, 2009 at 2:06 PM, Mauro Carvalho
-> Chehab<mchehab@infradead.org> wrote:
->   
->> Em Fri, 24 Jul 2009 12:54:27 +0200
->> Markus Rechberger <mrechberger@gmail.com> escreveu:
->>
->>     
->>> someone has problems here? We also support available opensource
->>> players and will contribute some patches which can be used by all
->>> devices.
->>>       
->
-> Ah well Mauro,
->
->   
->> This mailing list, the freenode irc channels #v4l and #linuxtv, the V4L and the
->> LinuxTV mailing lists were created for discussing open source development
->> related to the kernel linux media drivers, the usability of those drivers and
->> related open source themes.
->>
->> Anything related to binary only userspace stuff is completely out of topic and
->> shouldn't be posted on the above places.
->>
->> Despiste what you're saying, your intention to drop support to open source is
->> clear: you are playing against open source since 2007, when you firstly proposed a
->> frontend hook at the kernel driver for userspace. This year, you dropped all
->> open source trees you used to have. So, it is clear that you're out of open
->> source business, and you won't be giving any open source support. So, please
->> stop posting at the open source forums
->>
->>     
->
-> there's no reason to argue with you since you have your own ideas. We
-> do give opensource support as well. So please find another target to
-> struggle around with. Let's see who's able to deliver the better
-> solution for endusers.
->   
-i see that mcentral.de/hg has disappeared
+As the card=139 (Compro Videomate T750)
+
+DVB: Not working, not implemented
+Analog: Not working
+Audio In: ? (my T750F has additional connector ?)
+Composite In: Working
+S-Video In: Working
+IR: Works with T300 codes and different keymap (needs to be implemented)
+	(http://www.spinics.net/lists/linux-media/msg07705.html)
+
+
+Analog TV and XCeive:
+
+Although John Newbigins reported that Analog is working in Apr 25 2007  
+with a patch. I did not try to implement this patch (by hand) because tree  
+changed big from that date, so it seems that this can not be done. At  
+least I can't.
+(http://www.linuxtv.org/pipermail/linux-dvb/2007-April/017449.html)
+
+With stock Slackware 12.2 it's showing a single channel (although tuner  
+does't work) that previously was selected in a windows application and  
+restarted.
+Thought I had to select in tvtime: Input configuration > Television  
+standard > PAL (Default was NTSC). And then Restart with new settings to  
+show up that channel. Otherwise it would still remain blue. XCeive is  
+recognized at 0xc2
+
+With new v4l-dvb tree channel is not showing up any more no mather what I  
+do.
+New v4l also recognizes XCeive at 0xc2:
+tuner' 0-0061: chip found @ 0xc2 (saa7133[0])
+xc2028 0-0061: creating new instance
+xc2028 0-0061: type set to XCeive xc2028/xc3028 tuner
+
+
+tvtime startup and shuting off:
+(Complete dump: http://pastebin.com/f376a8272)
+xc2028 1-0061: Loading firmware for type=BASE F8MHZ MTS (7), id  
+0000000000000000.
+xc2028 1-0061: i2c output error: rc = -5 (should be 64)
+xc2028 1-0061: -5 returned from send
+xc2028 1-0061: Error -22 while loading base firmware
+(and then shutting off tvtime gives a line)
+xc2028 1-0061: Error on line 1141: -5
+
+
+
+eeproms T750 and T750F (maybe needed for automatic IR keymap selection)
+
+T750
+saa7133[0]: i2c eeprom 00: 5b 18 00 c9 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+saa7133[0]: i2c eeprom 10: 00 ff 86 0f ff 20 ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 20: 01 40 01 03 03 01 03 01 08 ff 00 89 ff ff ff ff
+saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 40: ff d7 00 c4 86 1e 05 ff 02 c2 ff 01 ff ff ff ff
+saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff cb
+saa7133[0]: i2c eeprom 60: 30 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+
+T750F
+saa7133[0]: i2c eeprom 00: 5b 18 00 c9 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+saa7133[0]: i2c eeprom 10: 00 ff 86 0f ff 20 ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 03 01 08 ff 00 87 ff ff ff ff
+saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 40: ff d7 00 c4 86 1e 05 ff 02 c2 ff 01 c6 ff 05 ff
+saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff cb
+saa7133[0]: i2c eeprom 60: 35 ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+
+
+
 
 
