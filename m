@@ -1,81 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4086 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750826AbZGXI2Z (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4785 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754155AbZGLSZ0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2009 04:28:25 -0400
-Message-ID: <45562.62.70.2.252.1248424102.squirrel@webmail.xs4all.nl>
-Date: Fri, 24 Jul 2009 10:28:22 +0200 (CEST)
-Subject: Re: New tree with final (?) string control implementation
+	Sun, 12 Jul 2009 14:25:26 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id n6CIPOBO062548
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 12 Jul 2009 20:25:25 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 12 Jul 2009 20:25:24 +0200 (CEST)
+Message-Id: <200907121825.n6CIPOBO062548@smtp-vbr9.xs4all.nl>
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: eduardo.valentin@nokia.com
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> Hi Hans,
->
-> On Thu, Jul 23, 2009 at 11:54:46PM +0200, ext Hans Verkuil wrote:
->> Hi Eduardo,
->>
->> I've prepared a new tree:
->>
->> http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-strctrl
->
-> good.
->
->>
->> This contains the full string control implementation, including updates
->> to
->> the v4l2-spec, based on the RFC that I posted on Monday.
->
-> Right.
->
->>
->> Can you prepare your si4713 patches against this tree and verify that
->> everything is working well?
->
-> Sure, I've been off work last two weeks. But now I'm back and will get
-> this
-> task soon.
->
->>
->> If it is, then I can make a pull request for this tree and soon after
->> that
->> you should be able to merge your si4713 driver as well. If I'm not
->> mistaken
->> the string controls API is the only missing bit that prevents your
->> driver
->> from being merged.
->
-> Yeah. There use to have three dependencies: subdev changes (i2c),
-> modulator
-> capabilities and ext ctl string support. I recall now that subdev is
-> already
-> merged. I'm not sure about the modulator support.
+Results of the daily build of v4l-dvb:
 
-That was also merged about a week ago. So this is now the only missing piece.
+date:        Sun Jul 12 19:00:07 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12236:d277b05c41fe
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Two things to keep in mind when preparing the new patches:
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc1-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-rc1-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-rc1-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc1-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-rc1-mips: WARNINGS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-rc1-powerpc64: OK
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-rc1-x86_64: OK
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc1): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-1) The v4l2-spec documentation on the new string controls must also
-specify what character encoding is used. In this case you can refer to the
-RDS standard.
+Detailed results are available here:
 
-2) In media/video/v4l2-common.c there is a function
-v4l2_ctrl_is_pointer(). This should return 1 for all string controls. It
-is needed to ensure that string controls are converted correctly in
-v4l2-compat-ioctl32.c. Not really an issue on most embedded systems, but
-on intel platforms it is important to get this right.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Regards,
+Full logs are available here:
 
-       Hans
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
