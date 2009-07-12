@@ -1,118 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1340 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751652AbZGYSZt (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:49623 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752343AbZGLOXE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jul 2009 14:25:49 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id n6PIPmjB053754
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 25 Jul 2009 20:25:48 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 25 Jul 2009 20:25:48 +0200 (CEST)
-Message-Id: <200907251825.n6PIPmjB053754@smtp-vbr10.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
+	Sun, 12 Jul 2009 10:23:04 -0400
+Date: Sun, 12 Jul 2009 11:22:55 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Wally <wally@voosen.eu>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: eMpia Microscope Camera
+Message-ID: <20090712112255.72c9a949@pedra.chehab.org>
+In-Reply-To: <20090706101505.194332c3@pedra.chehab.org>
+References: <200907030900.53557.wally@voosen.eu>
+	<20090703133917.7c62ef47@pedra.chehab.org>
+	<Pine.LNX.4.64.0907031851580.25247@axis700.grange>
+	<200907031939.45207.wally@voosen.eu>
+	<Pine.LNX.4.64.0907032034150.25247@axis700.grange>
+	<20090706101505.194332c3@pedra.chehab.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi Wally,
 
-Results of the daily build of v4l-dvb:
+Em Mon, 6 Jul 2009 10:15:05 -0300
+Mauro Carvalho Chehab <mchehab@infradead.org> escreveu:
 
-date:        Sat Jul 25 19:00:05 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12339:f8f134705b65
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+> Em Fri, 3 Jul 2009 20:35:08 +0200 (CEST)
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
+> 
+> > (re-adding the mailing list)
+> > 
+> > On Fri, 3 Jul 2009, Wally wrote:
+> > 
+> > > Hello Guennadi, hello Mauro
+> > > 
+> > > that's means i have to wait 
+> > > or is there a workaround or something else i can do for now ? 
+> > 
+> > you can either wait, or hack the mt9m001 driver to work for you, or help 
+> > with development.
+> 
+> The change at em28xx for it should be trivial. The enclosed patch should
+> provide the mt9v001 glue, once having it ported to v4l2 dev/subdev.
+> 
+> You'll need to use this patch _and_ the v4l dev/subdev version of mt9m001 driver.
+> 
+> Change Huaqi to use mt9m001 driver.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+ 
+I did a few changes on em28xx that will help to have a better webcam support.
+Due to that, the patch I've sent before won't apply anymore.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc3-armv5: OK
-linux-2.6.27-armv5-ixp: OK
-linux-2.6.28-armv5-ixp: OK
-linux-2.6.29.1-armv5-ixp: OK
-linux-2.6.30-armv5-ixp: OK
-linux-2.6.31-rc3-armv5-ixp: OK
-linux-2.6.28-armv5-omap2: OK
-linux-2.6.29.1-armv5-omap2: OK
-linux-2.6.30-armv5-omap2: OK
-linux-2.6.31-rc3-armv5-omap2: OK
-linux-2.6.22.19-i686: OK
-linux-2.6.23.12-i686: OK
-linux-2.6.24.7-i686: OK
-linux-2.6.25.11-i686: OK
-linux-2.6.26-i686: OK
-linux-2.6.27-i686: OK
-linux-2.6.28-i686: OK
-linux-2.6.29.1-i686: OK
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc3-i686: OK
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc3-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-rc3-mips: WARNINGS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc3-powerpc64: OK
-linux-2.6.22.19-x86_64: OK
-linux-2.6.23.12-x86_64: OK
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.11-x86_64: OK
-linux-2.6.26-x86_64: OK
-linux-2.6.27-x86_64: OK
-linux-2.6.28-x86_64: OK
-linux-2.6.29.1-x86_64: OK
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc3-x86_64: OK
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc3): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: ERRORS
-linux-2.6.20.21-i686: OK
-linux-2.6.21.7-i686: OK
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: ERRORS
-linux-2.6.20.21-x86_64: OK
-linux-2.6.21.7-x86_64: OK
+Could you please test the enclosed patch? It adds a hack that may work with
+mt9m001 sensor.
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-Full logs are available here:
+Cheers,
+Mauro
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-The V4L2 specification from this daily build is here:
+---
+ linux/drivers/media/video/em28xx/em28xx-cards.c |   55 ++++++++++++++++++++++++
+ linux/drivers/media/video/em28xx/em28xx.h       |    1 
+ 2 files changed, 56 insertions(+)
 
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+--- master.orig/linux/drivers/media/video/em28xx/em28xx-cards.c
++++ master/linux/drivers/media/video/em28xx/em28xx-cards.c
+@@ -1778,6 +1778,46 @@ static inline void em28xx_set_model(stru
+ 				       EM28XX_I2C_FREQ_100_KHZ;
+ }
+ 
++/* FIXME: Should be replaced by a proper mt9m001 driver */
++static int em28xx_initialize_mt9m001(struct em28xx *dev)
++{
++	int i;
++	unsigned char regs[][3] = {
++		{ 0x0d, 0x00, 0x01 },
++		{ 0x0d, 0x00, 0x00 },
++		{ 0x01, 0x00, 0x08 },   /* ROWSTART */
++		{ 0x02, 0x00, 0x14 },   /* COLSTART */
++		{ 0x03, 0x01, 0xe0 },   /* WINDOW HEIGHT */
++		{ 0x04, 0x02, 0x80 },   /* WINDOW WIDTH */
++		{ 0x05, 0x00, 0x01 },   /* HORIZONTAL BLANKING */
++		{ 0x06, 0x00, 0x01 },   /* VERTICAL BLANKING */
++		{ 0x0d, 0x00, 0x02 },
++		{ 0x0a, 0x00, 0x00 },
++		{ 0x0c, 0x00, 0x00 },
++		{ 0x11, 0x00, 0x00 },
++		{ 0x1e, 0x80, 0x00 },
++		{ 0x5f, 0x89, 0x04 },
++		{ 0x60, 0x00, 0x00 },
++		{ 0x61, 0x00, 0x00 },
++		{ 0x62, 0x04, 0x98 },
++		{ 0x63, 0x00, 0x00 },
++		{ 0x64, 0x00, 0x00 },
++		{ 0x20, 0x11, 0x1d },
++		{ 0x06, 0x00, 0xf2 },
++		{ 0x05, 0x00, 0x13 },
++		{ 0x09, 0x10, 0xf2 },
++		{ 0x07, 0x00, 0x03 },
++		{ 0x2b, 0x00, 0x2a },
++		{ 0x2d, 0x00, 0x2a },
++		{ 0x2c, 0x00, 0x2a },
++		{ 0x2e, 0x00, 0x29 },
++		{ 0x07, 0x00, 0x02 },
++	};
++
++	for (i = 0; i < ARRAY_SIZE(regs); i++)
++		i2c_master_send(&dev->i2c_client, &regs[i][0], 3);
++}
++
+ /* HINT method: webcam I2C chips
+  *
+  * This method work for webcams with Micron sensors
+@@ -1809,6 +1849,14 @@ static int em28xx_hint_sensor(struct em2
+ 		sensor_name = "mt9v011";
+ 		dev->em28xx_sensor = EM28XX_MT9V011;
+ 		break;
++	case 0x8411:
++	case 0x8421:
++	case 0x8431:
++		dev->model = EM2750_BOARD_UNKNOWN;
++		sensor_name = "mt9m001";
++		dev->em28xx_sensor = EM28XX_MT9M001;
++		em28xx_initialize_mt9m001(dev);
++		break;
+ 	default:
+ 		printk("Unknown Micron Sensor 0x%04x\n", be16_to_cpu(version));
+ 		return -EINVAL;
+@@ -2376,6 +2424,13 @@ void em28xx_card_setup(struct em28xx *de
+ 		v4l2_i2c_new_probed_subdev(&dev->v4l2_dev, &dev->i2c_adap,
+ 			"mt9v011", "mt9v011", mt9v011_addrs);
+ 
++#if 0
++	/* FIXME: use mt9m001 after their conversion to v4l dev/subdev */
++	if (dev->em28xx_sensor == EM28XX_MT9M001)
++		v4l2_i2c_new_probed_subdev(&dev->v4l2_dev, &dev->i2c_adap,
++			"mt9m001", "mt9m001", mt9v011_addrs);
++#endif
++
+ 	if (dev->board.adecoder == EM28XX_TVAUDIO)
+ 		v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap,
+ 			"tvaudio", "tvaudio", dev->board.tvaudio_addr);
+--- master.orig/linux/drivers/media/video/em28xx/em28xx.h
++++ master/linux/drivers/media/video/em28xx/em28xx.h
+@@ -367,6 +367,7 @@ enum em28xx_decoder {
+ enum em28xx_sensor {
+ 	EM28XX_NOSENSOR = 0,
+ 	EM28XX_MT9V011,
++	EM28XX_MT9M001,
+ };
+ 
+ enum em28xx_adecoder {
 
