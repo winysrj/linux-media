@@ -1,477 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f184.google.com ([209.85.210.184]:51105 "EHLO
-	mail-yx0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751332AbZGNUvG convert rfc822-to-8bit (ORCPT
+Received: from mail.gmx.net ([213.165.64.20]:58927 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754511AbZGLReL convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jul 2009 16:51:06 -0400
+	Sun, 12 Jul 2009 13:34:11 -0400
+Date: Sun, 12 Jul 2009 19:34:18 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	v4l2_linux <linux-media@vger.kernel.org>,
+	riverful.kim@samsung.com, Dongsoo Kim <dongsoo45.kim@samsung.com>,
+	kyungmin.park@samsung.com
+Subject: Re: About v4l2 subdev s_config (for core) API?
+In-Reply-To: <5e9665e10907112232s32efed0eq2eb90c9f33647f6b@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.0907121931480.13280@axis700.grange>
+References: <5e9665e10907110402t4b5777abu5f02a44d609405b1@mail.gmail.com>
+ <200907112113.42883.hverkuil@xs4all.nl> <5e9665e10907112232s32efed0eq2eb90c9f33647f6b@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4A5CBF3D.80002@stanford.edu>
-References: <15157053.23861247590158808.JavaMail.root@mailx.crc.ricoh.com>
-	 <4A5CBF3D.80002@stanford.edu>
-Date: Tue, 14 Jul 2009 16:51:04 -0400
-Message-ID: <bb2708720907141351o585bc140r2bf2e3abbe71a526@mail.gmail.com>
-Subject: Re: Problems configuring OMAP35x ISP driver
-From: John Sarman <johnsarman@gmail.com>
-To: Eino-Ville Talvala <talvala@stanford.edu>
-Cc: Zach LeRoy <zleroy@rii.ricoh.com>,
-	"Aguirre Rodriguez, Sergio" <saaguirre@ti.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	linux-omap <linux-omap@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Eddy and anyone who may be able to help,
-  I am currently working on an Omnivision OV5620 and have used the
-ov3640 driver as a starting point.  I have the June 18( latest ? )
-code from the gitorious git repo.  I have thouroughly tested my i2c
-driver setup using a 500 Mhz oscilloscope and have configured the
-sensor to 640 x 480.  The only mode this supports is RAW
-V4L2_PIX_FMT_SGRBG10 and I have that as the only available format.  So
-far so good.  Sensor powers, configures etc, etc.  However when I run
-the sensor I get ISPCTRL: HS_VS_IRQ <6>ISPCTRL: OVF_IRQ <6>ISPCTRL:
-To test this I used the example code provided with v4l2 documentation.
- I have attached a complete log with all my added printk's set up as a
-poor mans stacktrace.
+On Sun, 12 Jul 2009, Dongsoo, Nathaniel Kim wrote:
 
-Stuck trying to determine where to go from here, I feel like I am so
-close to getting an image.
+> 2009/7/12 Hans Verkuil <hverkuil@xs4all.nl>:
+> > On Saturday 11 July 2009 13:02:33 Dongsoo, Nathaniel Kim wrote:
+> >> Hi,
+> >>
+> >> The thing is - Is it possible to make the subdev device not to be
+> >> turned on in registering process using any of v4l2_i2c_new_subdev*** ?
+> >> You can say that I can ignore the i2c errors in booting process, but I
+> >> think it is not a pretty way.
+> >>
+> >> And for the reason I'm asking you about this, I need you to consider
+> >> following conditions I carry.
+> >>
+> >> 1. ARM embedded platform especially mobile handset.
+> >> 2. Mass production which is very concerned about power consumption.
+> >> 3. Strict and automated test process in product line.
+> >>
+> >> So, what I want to ask you is about s_config subdev call which is
+> >> called from every single I2C subdev load in some kind of probe
+> >> procedure. As s_config is supposed to do, it tries to initialize
+> >> subdev device. which means it needs to turn on the subdev to make that
+> >> initialized.
+> >
+> > Actually, all s_config does is to pass the irq and platform_data arguments
+> > to the subdev driver. The subdev driver can just store that information
+> > somewhere and only use it when needed. It does not necessarily have to turn
+> > on the sub-device.
+> >
+> > Whether to just store this info or turn on the sub-device is something that
+> > each subdev driver writer has to decide.
+> >
+> > Note that this really has nothing to do with the existance of s_config:
+> > s_config was only introduced in order to support legacy v4l2 drivers and
+> > subdev drivers. In the (far?) future this will probably disappear and this
+> > information will always be passed via struct i2c_board_info.
+> >
+> >> But as I mentioned above if we make the product go through the product
+> >> line, it turns on the subdev device even though nobody intended to
+> >> turn the subdev on. It might be an issue in product vendor's point of
+> >> view, because there should be a crystal clear reason for the
+> >> consumption of power the subdev made. I'm working on camera device and
+> >> speaking of which, camera devices are really power consuming device
+> >> and some camera devices even take ages to be initialized as well.
+> >>
+> >> So far I hope I made a good explanation about why I'm asking you about
+> >> following question.
+> >> By the way, it seems to be similar to the issue I've faced whe using
+> >> old i2c driver model..I mean probing i2c devices on boot up sequence.
+> >
+> > That at least should no longer be a problem anymore (as long as you don't
+> > use the address-probing variants).
+> >
+> > Regards,
+> >
+> >        Hans
+> >
+> > --
+> > Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> >
+> 
+> Hello Hans,
+> 
+> I just needed an API for initializing soc camera device ;-( but after
+> reading your mail, it seems to be that I'm using a wrong API.
+> As you know, almost every cmos camera module needs to be programmed
+> through I2C(or SPI) when it is turned on to be initialized. And I
+> thought that s_config is the one which could be used.
+> If I'm getting wrong, which one can I use for that initialization
+> purpose? I referenced every v4l2 device driver in linuxtv repository
+> and cherry-picked the API in my own way.
 
-Thanks,
-John Sarman
+Hi Nate
 
-v4l2_open
-omap34xx: Opening device
-isp_get
-ISPCTRL: isp_get: old 0
-isp_enable_clocks
-isp_restore_ctx
-isp_restore_context
-isp_restore_context
-iommu_restore_ctx
-ISPHIST:  Restoring context
-isp_restore_context
-ISPH3A:  Restoring context
-isp_restore_context
-isp_restore_context
-ISPRESZ: Restoring context
-isp_restore_context
-ISPCTRL: isp_get: new 1
-omap34xxcam_slave_power_set
-OV5620: ioctl_s_power
-isp_set_xclk
-isp_reg_and_or
-ISPCTRL: isp_set_xclk(): cam_xclka set to 24000000 Hz
-BOARD_OVERO_CAMERA: Switching Power to 1
-OV5620: POWER ON
-isp_configure_interface
-isp_buf_init
-OV5620: Sensor Detected, calling configure
-ov5620:configure
-omap34xxcam_slave_power_set
-OV5620: ioctl_s_power
-BOARD_OVERO_CAMERA: Switching Power to 2
-OV5620: POWER STANDBY
-isp_set_xclk
-isp_reg_and_or
-ISPCTRL: isp_set_xclk(): cam_xclka set to 0 Hz
-OV5620: ioctl_g_fmt_cap
-omap34xxcam_s_pix_parm
-omap34xxcam_try_pix_parm
-omap34xxcam_try_pix_parm fps = 1
-OV5620: ioctl_enum_fmt_cap
-OV5620: ioctl_enum_fmt_cap index 0 type 1
-video4linux video0: trying fmt 30314142 (0)
-OV5620: ioctl_enum_framesizes
-isp_try_fmt_cap
-isp_try_pipeline
-video4linux video0: this w 640	h 480	fmt 30314142	-> w 640	h 480	 fmt
-30314142	wanted w 640	h 480	 fmt 30314142
-video4linux video0: renegotiate: w 640	h 480	w 1073741823	h 1073741823
-OV5620: ioctl_enum_frameintervals
-video4linux video0: fps 60
-the demoninator is 0
-video4linux video0: best_pix_in: w 640	h 480	fmt 30314142	ival 1/60
-OV5620: ioctl_enum_frameintervals
-video4linux video0: fps 30
-video4linux video0: closer fps: fps 29	 fps 59
-video4linux video0: best_pix_in: w 640	h 480	fmt 30314142	ival 1/30
-OV5620: ioctl_enum_frameintervals
-video4linux video0: fps 7
-video4linux video0: closer fps: fps 6	 fps 29
-video4linux video0: best_pix_in: w 640	h 480	fmt 30314142	ival 2/15
-OV5620: ioctl_enum_frameintervals
-OV5620: ioctl_enum_framesizes
-isp_try_fmt_cap
-isp_try_pipeline
-video4linux video0: this w 1280	h 960	fmt 30314142	-> w 1280	h 960	
-fmt 30314142	wanted w 640	h 480	 fmt 30314142
-video4linux video0: size diff bigger: w 1280	h 960	w 640	h 480
-OV5620: ioctl_enum_framesizes
-OV5620: ioctl_enum_fmt_cap
-OV5620: ioctl_enum_fmt_cap index 1 type 1
-video4linux video0: w 640, h 480, fmt 30314142 -> w 640, h 480
-video4linux video0: Wanted w 640, h 480, fmt 30314142
-omap34xxcam_s_pix_parm 1 0
-isp_s_fmt_cap
-isp_s_pipeline
-isp_release_resources
-isp_try_pipeline
-isp_reg_or
-isp_reg_or
-isp_reg_and_or
-isp_reg_and_or
-isp_reg_and
-isp_print_status
-ISPCTRL: ###ISP_CTRL=0x29c140
-ISPCTRL: ###ISP_TCTRL_CTRL=0x0
-ISPCTRL: ###ISP_SYSCONFIG=0x2000
-ISPCTRL: ###ISP_SYSSTATUS=0x1
-ISPCTRL: ###ISP_IRQ0ENABLE=0x0
-ISPCTRL: ###ISP_IRQ0STATUS=0x80000000
-isp_reg_and
-isp_reg_and
-isp_reg_and
-omap34xxcam_s_pix_parm 2 0
-OV5620: ioctl_g_fmt_cap
-OV5620: ioctl_s_fmt_cap
-OV5620: ioctl_try_fmt_cap
-OV5620: ioctl_try_fmt_cap WIDTH = 640
-OV5620: ioctl_try_fmt_cap HEIGHT = 480
-omap34xxcam_s_pix_parm 3 0
-OV5620: ioctl_s_parm
-OV5620 desired_fps = 7
-omap34xxcam_s_pix_parm 4 0
-omap34xx: Opened device
-video_do_ioctl
-omap34xxcam_vidioc_querycap
-video_do_ioctl
-omap34xxcam_cropcap
-OV5620: ioctl_g_fmt_cap
-video_do_ioctl
-omap34xxcam_vidioc_s_crop
-isp_s_crop
-video_do_ioctl
-omap34xxcam_vidioc_s_fmt_vid_cap
-omap34xxcam_s_pix_parm
-omap34xxcam_try_pix_parm
-omap34xxcam_try_pix_parm fps = 1
-OV5620: ioctl_enum_fmt_cap
-OV5620: ioctl_enum_fmt_cap index 0 type 1
-video4linux video0: trying fmt 30314142 (0)
-OV5620: ioctl_enum_framesizes
-isp_try_fmt_cap
-isp_try_pipeline
-video4linux video0: this w 640	h 480	fmt 30314142	-> w 640	h 480	 fmt
-56595559	wanted w 640	h 480	 fmt 56595559
-video4linux video0: renegotiate: w 640	h 480	w 1073741823	h 1073741823
-OV5620: ioctl_enum_frameintervals
-video4linux video0: fps 60
-the demoninator is 0
-video4linux video0: best_pix_in: w 640	h 480	fmt 30314142	ival 1/60
-OV5620: ioctl_enum_frameintervals
-video4linux video0: fps 30
-video4linux video0: closer fps: fps 29	 fps 59
-video4linux video0: best_pix_in: w 640	h 480	fmt 30314142	ival 1/30
-OV5620: ioctl_enum_frameintervals
-video4linux video0: fps 7
-video4linux video0: closer fps: fps 6	 fps 29
-video4linux video0: best_pix_in: w 640	h 480	fmt 30314142	ival 2/15
-OV5620: ioctl_enum_frameintervals
-OV5620: ioctl_enum_framesizes
-isp_try_fmt_cap
-isp_try_pipeline
-video4linux video0: this w 1280	h 960	fmt 30314142	-> w 640	h 480	 fmt
-56595559	wanted w 640	h 480	 fmt 56595559
-OV5620: ioctl_enum_frameintervals
-video4linux video0: fps 60
-video4linux video0: falling through
-OV5620: ioctl_enum_frameintervals
-OV5620: ioctl_enum_framesizes
-OV5620: ioctl_enum_fmt_cap
-OV5620: ioctl_enum_fmt_cap index 1 type 1
-video4linux video0: w 640, h 480, fmt 30314142 -> w 640, h 480
-video4linux video0: Wanted w 640, h 480, fmt 30314142
-omap34xxcam_s_pix_parm 1 0
-isp_s_fmt_cap
-isp_s_pipeline
-isp_release_resources
-isp_reg_and
-isp_try_pipeline
-isp_reg_or
-isp_reg_or
-isp_reg_and_or
-isp_reg_and
-isp_print_status
-ISPCTRL: ###ISP_CTRL=0x29c140
-ISPCTRL: ###ISP_TCTRL_CTRL=0x0
-ISPCTRL: ###ISP_SYSCONFIG=0x2000
-ISPCTRL: ###ISP_SYSSTATUS=0x1
-ISPCTRL: ###ISP_IRQ0ENABLE=0x0
-ISPCTRL: ###ISP_IRQ0STATUS=0x80000000
-isp_reg_and
-isp_reg_or
-isp_reg_and_or
-isp_reg_or
-isp_reg_and
-isp_reg_and
-isp_reg_or
-isp_reg_or
-isp_reg_or
-isp_reg_and
-ISPRESZ: ispresizer_config_datapath()+
-isp_reg_or
-ISPRESZ: ispresizer_config_ycpos()+
-isp_reg_and_or
-ISPRESZ: ispresizer_config_ycpos()-
-ISPRESZ: ispresizer_config_filter_coef()+
-ISPRESZ: ispresizer_config_filter_coef()-
-ISPRESZ: ispresizer_enable_cbilin()+
-isp_reg_and_or
-ISPRESZ: ispresizer_enable_cbilin()-
-ISPRESZ: ispresizer_config_luma_enhance()+
-ISPRESZ: ispresizer_config_luma_enhance()-
-ISPRESZ: ispresizer_config_datapath()-
-ISPRESZ: ispresizer_config_inlineoffset()+
-ISPRESZ: ispresizer_config_inlineoffset()-
-ISPRESZ: ispresizer_set_inaddr()+
-ISPRESZ: ispresizer_set_inaddr()-
-ISPRESZ: ispresizer_config_outlineoffset()+
-ISPRESZ: ispresizer_config_outlineoffset()-
-ISPRESZ: ispresizer_config_ycpos()+
-isp_reg_and_or
-ISPRESZ: ispresizer_config_ycpos()-
-ISPRESZ: ispresizer_config_size()-
-omap34xxcam_s_pix_parm 2 0
-OV5620: ioctl_g_fmt_cap
-OV5620: ioctl_s_fmt_cap
-OV5620: ioctl_try_fmt_cap
-OV5620: ioctl_try_fmt_cap WIDTH = 640
-OV5620: ioctl_try_fmt_cap HEIGHT = 480
-omap34xxcam_s_pix_parm 3 0
-OV5620: ioctl_s_parm
-OV5620 desired_fps = 7
-omap34xxcam_s_pix_parm 4 0
-video_do_ioctl
-omap34xxcam_vidioc_reqbufs
-omap34xxcam_vbq_setup
-SETTING UP with SIZEIMAGE = 614400
-isp_vbq_setup
-isp_tmp_buf_alloc
-isp_tmp_buf_free
-ISPRESZ: ispresizer_set_inaddr()+
-ISPRESZ: ispresizer_set_inaddr()-
-video_do_ioctl
-omap34xxcam_vidioc_querybuf
-omap34xxcam_mmap
-video_do_ioctl
-omap34xxcam_vidioc_querybuf
-omap34xxcam_mmap
-video_do_ioctl
-omap34xxcam_vidioc_querybuf
-omap34xxcam_mmap
-video_do_ioctl
-omap34xxcam_vidioc_querybuf
-omap34xxcam_mmap
-video_do_ioctl
-omap34xxcam_vidioc_qbuf
-omap34xxcam_vbq_prepare
-isp_vbq_prepare
-isp_ispmmu_vmap
-video_do_ioctl
-omap34xxcam_vidioc_qbuf
-omap34xxcam_vbq_prepare
-isp_vbq_prepare
-isp_ispmmu_vmap
-video_do_ioctl
-omap34xxcam_vidioc_qbuf
-omap34xxcam_vbq_prepare
-isp_vbq_prepare
-isp_ispmmu_vmap
-video_do_ioctl
-omap34xxcam_vidioc_qbuf
-omap34xxcam_vbq_prepare
-isp_vbq_prepare
-isp_ispmmu_vmap
-video_do_ioctl
-omap34xxcam_vidioc_streamon
-omap34xxcam_slave_power_set
-OV5620: ioctl_s_power
-isp_set_xclk
-isp_reg_and_or
-ISPCTRL: isp_set_xclk(): cam_xclka set to 24000000 Hz
-BOARD_OVERO_CAMERA: Switching Power to 1
-OV5620: POWER ON
-OV5620: Sensor Detected, calling configure
-ov5620:configure
-isp_start
-omap34xxcam_vbq_queue
-isp_buf_queue
-isp_vbq_sync
-isp_enable_int
-isp_set_buf
-ISPRESZ: ispresizer_set_outaddr()+
-ISPRESZ: ispresizer_set_outaddr()-
-isp_reg_and_or
-ISPCTRL: <1>isp_buf_queue: queue 0 vb 0, mmu 000a4000
-omap34xxcam_vbq_queue
-isp_buf_queue
-isp_vbq_sync
-ISPCTRL: <1>isp_buf_queue: queue 1 vb 1, mmu 0013a000
-omap34xxcam_vbq_queue
-isp_buf_queue
-isp_vbq_sync
-ISPCTRL: <1>isp_buf_queue: queue 2 vb 2, mmu 001d0000
-omap34xxcam_vbq_queue
-isp_buf_queue
-isp_vbq_sync
-ISPCTRL: <1>isp_buf_queue: queue 3 vb 3, mmu 00266000
-omap34xxcam_poll
-omap34xxcam_poll
-ISPCTRL: HS_VS_IRQ <6>ISPCTRL: OVF_IRQ <6>ISPCTRL:
--------!These were repeated several times!----------------------------
-ISPCTRL: HS_VS_IRQ <6>ISPCTRL: OVF_IRQ <6>ISPCTRL:
-omap34xxcam_poll
-ISPCTRL: HS_VS_IRQ <6>ISPCTRL: OVF_IRQ <6>ISPCTRL:
-omap34xxcam_vbq_release
-omap34xxcam_vbq_release
-omap34xxcam_vbq_release
-omap34xxcam_vbq_release
-omap34xxcam_release
-isp_stop
-isp_disable_int
-isp_stop_modules
-isp_disable_modules
-ISPH3A:     H3A disabled
-ISPHIST:    histogram disabled
-isp_reg_and_or
-ISPRESZ: +ispresizer_enable()+
-ISPRESZ: +ispresizer_enable()-
-isp_reg_and
-isp_reg_and_or
-omap3isp omap3isp: __isp_disable_modules: can't stop ccdc
-isp_icsi_enable
-isp_reg_and_or
-isp_buf_init
-isp_vbq_sync
-omap34xxcam_vbq_complete
-isp_vbq_sync
-omap34xxcam_vbq_complete
-isp_vbq_sync
-omap34xxcam_vbq_complete
-isp_vbq_sync
-omap34xxcam_vbq_complete
-isp_save_ctx
-isp_save_context
-isp_save_context
-iommu_save_ctx
-ISPHIST:  Saving context
-isp_save_context
-ISPH3A:  Saving context
-isp_save_context
-isp_save_context
-ISPRESZ: Saving context
-isp_save_context
-isp_reset
-isp_restore_ctx
-isp_restore_context
-isp_restore_context
-iommu_restore_ctx
-ISPHIST:  Restoring context
-isp_restore_context
-ISPH3A:  Restoring context
-isp_restore_context
-isp_restore_context
-ISPRESZ: Restoring context
-isp_restore_context
-omap34xxcam_vbq_release
-isp_vbq_release
-isp_vunmap
-omap34xxcam_vbq_release
-isp_vbq_release
-isp_vunmap
-omap34xxcam_vbq_release
-isp_vbq_release
-isp_vunmap
-omap34xxcam_vbq_release
-isp_vbq_release
-isp_vunmap
-omap34xxcam_slave_power_set
-OV5620: ioctl_s_power
-BOARD_OVERO_CAMERA: Switching Power to 2
-OV5620: POWER STANDBY
-isp_set_xclk
-isp_reg_and_or
-ISPCTRL: isp_set_xclk(): cam_xclka set to 0 Hz
-omap34xxcam_slave_power_set
-OV5620: ioctl_s_power
-OV5620: POWER OFF
-BOARD_OVERO_CAMERA: Switching Power to 0
-OV5620: POWER OFF
-isp_set_xclk
-isp_reg_and_or
-ISPCTRL: isp_set_xclk(): cam_xclka set to 0 Hz
-isp_put
-ISPCTRL: isp_put: old 1
-isp_save_ctx
-isp_save_context
-isp_save_context
-iommu_save_ctx
-ISPHIST:  Saving context
-isp_save_context
-ISPH3A:  Saving context
-isp_save_context
-isp_save_context
-ISPRESZ: Saving context
-isp_save_context
-isp_tmp_buf_free
-isp_release_resources
-isp_reg_and
-isp_reg_and
-isp_reg_and
-isp_disable_clocks
-ISPCTRL: isp_put: new 0
+You might want to have a look at my latest soc-camera (quilt) patch stack 
+at downloads.open-technology.de. There I do the same as what soc-camera 
+has been doing pretty much since the beginning - turn the device on for 
+probing, and then turn it off again - until open().
 
-
-On Tue, Jul 14, 2009 at 1:24 PM, Eino-Ville Talvala
-<talvala@stanford.edu> wrote:
->
-> Zach,
->
-> We've gotten a Aptina MT9P031 driver working with the latest ISP patchset, both with YUV and RAW data.
-> I don't know what the problem might be with YUYV data - we get useful YUYV data without any changes to the ISP defaults.
-> However, to request RAW data, that simply uses the CCDC and bypasses all the processing in the ISP, request the pixelformat of V4L2_PIX_FMT_SGRBG10.  This will give you two bytes per pixel, at least in our case (although we have a 12-bit sensor cut down to 10 bits), so be prepared to throw out every other byte.
->
-> Hope this helps,
->
-> Eino-Ville (Eddy) Talvala
-> Computer Graphics Lab
-> Stanford University
->
-> On 7/14/2009 9:49 AM, Zach LeRoy wrote:
->>
->> Hello Sergio,
->>
->> I spoke with you earlier about using the ISP and omap34xxcam drivers with a micron mt9d111 SOC sensor.  I have since been able to take pictures, but the sensor data is not making it through the ISP data-path correctly.  I know the problem is in the ISP data-path because I am configuring the sensor the exact same way as I have been on my working PXA system.  I am expecting 4:2:2 packed YUV data, but all of the U and V data is no more than 2 bits where it should be 8.  I know the ISP has a lot of capabilities, but all I want to use it for is grabbing 8-bit data from my sensor and putting it in a buffer untouched using the CCDC interface (and of course clocking and timing).  What are the key steps to take to get this type of configuration?
->>
->> Other Questions:
->>
->> Is there any processing done on YUV data in the ISP driver by default that I am missing?
->> Has any one else experienced similar problems while adding new sensor support?
->>
->> Any help here would be greatly appreciated.
->>
->> Thank you,
->>
->> Zach LeRoy
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
