@@ -1,98 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out112.alice.it ([85.37.17.112]:3632 "EHLO
-	smtp-out112.alice.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753720AbZGCVm1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jul 2009 17:42:27 -0400
-Date: Fri, 3 Jul 2009 23:41:48 +0200
-From: Antonio Ospite <ospite@studenti.unina.it>
+Received: from mail-qy0-f192.google.com ([209.85.221.192]:48957 "EHLO
+	mail-qy0-f192.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751228AbZGMAne convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Jul 2009 20:43:34 -0400
+Received: by qyk30 with SMTP id 30so438196qyk.33
+        for <linux-media@vger.kernel.org>; Sun, 12 Jul 2009 17:43:33 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.0907121931480.13280@axis700.grange>
+References: <5e9665e10907110402t4b5777abu5f02a44d609405b1@mail.gmail.com>
+	<200907112113.42883.hverkuil@xs4all.nl> <5e9665e10907112232s32efed0eq2eb90c9f33647f6b@mail.gmail.com>
+	<Pine.LNX.4.64.0907121931480.13280@axis700.grange>
+From: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Date: Mon, 13 Jul 2009 09:35:53 +0900
+Message-ID: <5e9665e10907121735i6da94d47jce3e1747a2917067@mail.gmail.com>
+Subject: Re: About v4l2 subdev s_config (for core) API?
 To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>, rsc@pengutronix.de
-Subject: Re: pxa_camera: Oops in pxa_camera_probe.
-Message-Id: <20090703234148.b5aad4da.ospite@studenti.unina.it>
-In-Reply-To: <Pine.LNX.4.64.0907032200420.25247@axis700.grange>
-References: <20090701204325.2a277884.ospite@studenti.unina.it>
-	<20090703161140.845950e8.ospite@studenti.unina.it>
-	<Pine.LNX.4.64.0907032200420.25247@axis700.grange>
-Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Fri__3_Jul_2009_23_41_49_+0200_fb_dv0LL+EYjBxb0"
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	v4l2_linux <linux-media@vger.kernel.org>,
+	riverful.kim@samsung.com, Dongsoo Kim <dongsoo45.kim@samsung.com>,
+	kyungmin.park@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Signature=_Fri__3_Jul_2009_23_41_49_+0200_fb_dv0LL+EYjBxb0
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, 3 Jul 2009 22:03:27 +0200 (CEST)
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-
-> On Fri, 3 Jul 2009, Antonio Ospite wrote:
->=20
-> > > Linux video capture interface: v2.00
-> > > Unable to handle kernel NULL pointer dereference at virtual address 0=
-0000060
-> > > pgd =3D c0004000
-> > > [00000060] *pgd=3D00000000
-> > > Internal error: Oops: f5 [#1] PREEMPT
-> > > Modules linked in:
-> > > CPU: 0    Tainted: G        W   (2.6.31-rc1-ezxdev #1)
-> > > PC is at dev_driver_string+0x0/0x38
-> > > LR is at pxa_camera_probe+0x144/0x428
-> >=20
-> > The offending dev_driver_str() here is the one in the dev_warn() call in
-> > mclk_get_divisor().
-> >=20
-> > This is what is happening: in struct pxacamera_platform_data I have:
-> > 	.mclk_10khz =3D 5000,
-> >=20
-> > which makes the > test in mclk_get_divisor() succeed calling dev_warn
-> > to report that the clock has been limited, but pcdev->soc_host.dev is
-> > still uninitialized at this time.
-> >=20
-> > I could lower the value in my platform data and avoid the bug, but it
-> > would be good to have this fixed ASAP anyway.
-> >=20
-> > The attached rough patch fixes the problem, but you will surely come
-> > out with a better one :)
->=20
-> Why should I? Your patch seems correct to me so far, thanks. I'll push it=
-=20
-> for 2.6.31. Please, next time inline your patch as described in=20
-> Documentation/SubmittingPatches.
+On Mon, Jul 13, 2009 at 2:34 AM, Guennadi
+Liakhovetski<g.liakhovetski@gmx.de> wrote:
+> On Sun, 12 Jul 2009, Dongsoo, Nathaniel Kim wrote:
+>
+>> 2009/7/12 Hans Verkuil <hverkuil@xs4all.nl>:
+>> > On Saturday 11 July 2009 13:02:33 Dongsoo, Nathaniel Kim wrote:
+>> >> Hi,
+>> >>
+>> >> The thing is - Is it possible to make the subdev device not to be
+>> >> turned on in registering process using any of v4l2_i2c_new_subdev*** ?
+>> >> You can say that I can ignore the i2c errors in booting process, but I
+>> >> think it is not a pretty way.
+>> >>
+>> >> And for the reason I'm asking you about this, I need you to consider
+>> >> following conditions I carry.
+>> >>
+>> >> 1. ARM embedded platform especially mobile handset.
+>> >> 2. Mass production which is very concerned about power consumption.
+>> >> 3. Strict and automated test process in product line.
+>> >>
+>> >> So, what I want to ask you is about s_config subdev call which is
+>> >> called from every single I2C subdev load in some kind of probe
+>> >> procedure. As s_config is supposed to do, it tries to initialize
+>> >> subdev device. which means it needs to turn on the subdev to make that
+>> >> initialized.
+>> >
+>> > Actually, all s_config does is to pass the irq and platform_data arguments
+>> > to the subdev driver. The subdev driver can just store that information
+>> > somewhere and only use it when needed. It does not necessarily have to turn
+>> > on the sub-device.
+>> >
+>> > Whether to just store this info or turn on the sub-device is something that
+>> > each subdev driver writer has to decide.
+>> >
+>> > Note that this really has nothing to do with the existance of s_config:
+>> > s_config was only introduced in order to support legacy v4l2 drivers and
+>> > subdev drivers. In the (far?) future this will probably disappear and this
+>> > information will always be passed via struct i2c_board_info.
+>> >
+>> >> But as I mentioned above if we make the product go through the product
+>> >> line, it turns on the subdev device even though nobody intended to
+>> >> turn the subdev on. It might be an issue in product vendor's point of
+>> >> view, because there should be a crystal clear reason for the
+>> >> consumption of power the subdev made. I'm working on camera device and
+>> >> speaking of which, camera devices are really power consuming device
+>> >> and some camera devices even take ages to be initialized as well.
+>> >>
+>> >> So far I hope I made a good explanation about why I'm asking you about
+>> >> following question.
+>> >> By the way, it seems to be similar to the issue I've faced whe using
+>> >> old i2c driver model..I mean probing i2c devices on boot up sequence.
+>> >
+>> > That at least should no longer be a problem anymore (as long as you don't
+>> > use the address-probing variants).
+>> >
+>> > Regards,
+>> >
+>> >        Hans
+>> >
+>> > --
+>> > Hans Verkuil - video4linux developer - sponsored by TANDBERG
+>> >
+>>
+>> Hello Hans,
+>>
+>> I just needed an API for initializing soc camera device ;-( but after
+>> reading your mail, it seems to be that I'm using a wrong API.
+>> As you know, almost every cmos camera module needs to be programmed
+>> through I2C(or SPI) when it is turned on to be initialized. And I
+>> thought that s_config is the one which could be used.
+>> If I'm getting wrong, which one can I use for that initialization
+>> purpose? I referenced every v4l2 device driver in linuxtv repository
+>> and cherry-picked the API in my own way.
+>
+> Hi Nate
+>
+> You might want to have a look at my latest soc-camera (quilt) patch stack
+> at downloads.open-technology.de. There I do the same as what soc-camera
+> has been doing pretty much since the beginning - turn the device on for
+> probing, and then turn it off again - until open().
+>
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
 >
 
-Well, it should be correct, I just thought it could be considered
-unpretty with the pcdev->soc_host initializations scattered here and
-there, that's what I was referring to.
-But, if this is ok to you, it's ok to me too :)
+Hi Guennadi,
 
-Ciao,
-   Antonio
+Thank you, and I'll check for your patch.
+Actually I didn't mean to turn on the devices on probing time
+mandatorily. Honestly I need to take a look at the subdev APIs more
+precisely and take the appropriate one for initializing sensor
+devices.
+Cheers,
 
---=20
-Antonio Ospite
-http://ao2.it
+Nate
 
-PGP public key ID: 0x4553B001
-
-A: Because it messes up the order in which people normally read text.
-   See http://en.wikipedia.org/wiki/Posting_style
-Q: Why is top-posting such a bad thing?
-A: Top-posting.
-Q: What is the most annoying thing in e-mail?
-
---Signature=_Fri__3_Jul_2009_23_41_49_+0200_fb_dv0LL+EYjBxb0
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkpOex0ACgkQ5xr2akVTsAFMJgCfcPCHgdhV9cYkR0RTrPBKn6/v
-fR0AoIM9cor2y+7u+CId8e8jcqHV4E5D
-=FAyx
------END PGP SIGNATURE-----
-
---Signature=_Fri__3_Jul_2009_23_41_49_+0200_fb_dv0LL+EYjBxb0--
+-- 
+=
+DongSoo, Nathaniel Kim
+Engineer
+Mobile S/W Platform Lab.
+Digital Media & Communications R&D Centre
+Samsung Electronics CO., LTD.
+e-mail : dongsoo.kim@gmail.com
+          dongsoo45.kim@samsung.com
