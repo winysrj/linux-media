@@ -1,56 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f226.google.com ([209.85.219.226]:38224 "EHLO
-	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755298AbZGGXSc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Jul 2009 19:18:32 -0400
-Received: by ewy26 with SMTP id 26so1119075ewy.37
-        for <linux-media@vger.kernel.org>; Tue, 07 Jul 2009 16:18:31 -0700 (PDT)
+Received: from fg-out-1718.google.com ([72.14.220.158]:51806 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754753AbZGMOgL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jul 2009 10:36:11 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so672097fga.17
+        for <linux-media@vger.kernel.org>; Mon, 13 Jul 2009 07:36:10 -0700 (PDT)
+Date: Mon, 13 Jul 2009 16:36:15 +0200
+To: "hermann pitton" <hermann-pitton@arcor.de>
+Subject: Re: Report: Compro Videomate Vista T750F
+From: Samuel Rakitnican <semirocket@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; format=flowed; delsp=yes; charset=windows-1250
 MIME-Version: 1.0
-In-Reply-To: <1246999504.9754.9.camel@pc07.localdom.local>
-References: <200907070644.n676iS803945@neptune.localwarp.net>
-	 <1246999504.9754.9.camel@pc07.localdom.local>
-Date: Tue, 7 Jul 2009 19:18:30 -0400
-Message-ID: <37219a840907071618x3842aaaeo21c48c3d9273155c@mail.gmail.com>
-Subject: Re: regression : saa7134 with Pinnacle PCTV 50i (analog) can not tune
-	anymore
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: eric.paturage@orange.fr, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+References: <op.uwycxowt80yj81@localhost>
+ <1247434386.5152.28.camel@pc07.localdom.local>
 Content-Transfer-Encoding: 7bit
+Message-ID: <op.uw0f6php80yj81@localhost>
+In-Reply-To: <1247434386.5152.28.camel@pc07.localdom.local>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 7, 2009 at 4:45 PM, hermann pitton<hermann-pitton@arcor.de> wrote:
-> As far I know we did not change the bus speed or anything, but some
-> cards need and i2c quirk to work correctly with the clients.
+  Hi Hermann,
+
+  On Sun, 12 Jul 2009 23:33:06 +0200, hermann pitton
+  <hermann-pitton@arcor.de> wrote:
+
+  [snip]
+> Hm, if I get it right, without using windows previously the XCeive at
+> 0x61 is not found and then it is tried in vain to use the qt1010 at
+> 0x62.
 >
-> Mike recently changed the old quirk with good reasons and it was widely
-> tested, also by me, without any negative effect seen.
+> Also, after using windows gpio20 seems to be high.
+> Maybe that is the gpio to get the tuner out of reset.
 >
-> Maybe your card is a rare case needing the old quirk.
+> Please try the attached patch as a shot into the dark.
+>
+  [snip]
 
-I've already testes in the Pinnacle board and the quirk did not cause
-any new problems.
+No, I pay attention when I test for channel that XCeive gets recognized
+as 0x61. When I do cold boot, or windows reboot its always gets
+recognized at 0x61. Sometimes (I don't know exactly what triggers that)
+the 0x61 gets omitted, and the result is that XCeive get recognized as
+0x62. The result is that channel is not showing any more, apparently.
 
-I mentioned, however, that I saw some frontend issues that should be
-looked at.  I dont have time right now to deal with this myself, but
-perhaps within the next few weeks I can take a look at it.
+I think that xc2028-27.fw file load failures triggers that behavior,
+because when I reboot linux with loading firmware failures, that
+behavior is showing (from what I have noticed).
 
-Meanwhile, that was with respect to digital reception, only -- I did
-not have such problems with analog -- not that I recall, at least.
+Sorry for the gpio alert, but I did some logging, and the gpio value
+varies, and depends on computer state. But it seems that is same in both
+cases after all. (details http://pastebin.com/f4c511dfc)
 
-Also, it does no good to manually modprobe tda8290, tda827x or
-tda18271 -- the -dvb bridge driver will attach those modules as
-needed, just as the tuner.ko module would as well.
-
-I'd recommend to go back to a stable vanilla kernel, then rebuild
-v4l-dvb from linuxtv.org with all options enabled.  If there are still
-issues at that point, it should be looked at again.
-
-Sorry I dont have any real answers, but I have my eye on this thread
--- I'll chime in if I can offer any more advice.
-
-Good Luck,
-
-Mike
+I tried your patch, too, and it's not working. Thank you for trying.
