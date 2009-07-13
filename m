@@ -1,58 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cp-out7.libero.it ([212.52.84.107]:39932 "EHLO
-	cp-out7.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751953AbZG3Gmi (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:55078 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752293AbZGMV5y convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2009 02:42:38 -0400
-Received: from [192.168.1.21] (151.59.218.157) by cp-out7.libero.it (8.5.107) (authenticated as efa@iol.it)
-        id 4A700F43001703A6 for linux-media@vger.kernel.org; Thu, 30 Jul 2009 08:42:38 +0200
-Message-ID: <4A7140DD.7040405@iol.it>
-Date: Thu, 30 Jul 2009 08:42:37 +0200
-From: Valerio Messina <efa@iol.it>
-Reply-To: efa@iol.it
+	Mon, 13 Jul 2009 17:57:54 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Mon, 13 Jul 2009 16:57:48 -0500
+Subject: RE: Control IOCTLs handling
+Message-ID: <A69FA2915331DC488A831521EAE36FE40144E4B8E8@dlee06.ent.ti.com>
+References: <A69FA2915331DC488A831521EAE36FE40144E4B70A@dlee06.ent.ti.com>
+ <200907132334.14309.hverkuil@xs4all.nl>
+In-Reply-To: <200907132334.14309.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-CC: linux-media@vger.kernel.org
-Subject: Re: Terratec Cinergy HibridT XS
-References: <4A6F8AA5.3040900@iol.it> <829197380907281744o5c3a7eb7rd0d2cb8c53cd646f@mail.gmail.com>
-In-Reply-To: <829197380907281744o5c3a7eb7rd0d2cb8c53cd646f@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> With past kernel and a patch as suggested here:
->> http://www.linuxtv.org/wiki/index.php/TerraTec
->> that link to:
->> http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_Hybrid_T_USB_XS
->> that link to:
->> http://mcentral.de/wiki/index.php5/Main_Page
- >> More bad now:
- >> http://mcentral.de/wiki/index.php5/Installation_Guide
- >> sell TV tuner, and do not support anymore the Terratec tuner, the source
- >> repository is disappeared, and install instruction is a commercial.
+Hans,
 
-I do not know if is correct that linuxtv.org link to a web site with 
-unsupported product/commercial.
-Please change the link in page:
-http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_Hybrid_T_USB_XS
+<snip>
 
->> and some troubles for Ubuntu kernel that I solved here:
->> https://bugs.launchpad.net/bugs/322732
->> worked well for a year or more.
+>> #define VIDIOC_S_EXT_CTRLS	_IOWR('V', 72, struct v4l2_ext_controls)
+>> #define VIDIOC_TRY_EXT_CTRLS	_IOWR('V', 73, struct
+>v4l2_ext_controls)
+>>
+>> Currently they are implemented using proprietary ioctls.
+>
+>Do you mean proprietary ioctls or proprietary controls? Here you talk about
+>ioctls where below you suddenly refer to 'control IDs'.
+>
 
-the Ubuntu kernel bug is fixed in 9.04
+I am referring to the proprietary ioctl (experimental) that we added in vpfe capture patch.
 
-Devin Heitmueller ha scritto:
-> That device, including full support for the IR, is now supported in
-> the mainline v4l-dvb tree (and will appear in kernel 2.6.31).  Just
-> follow the directions here to get the code:
-> http://linuxtv.org/repo
+Murali
 
-yesterday evening I downloaded the sources with mercurial, compiled and 
-installed.
-Same result, from dmesg the firmware file 'xc3028-v27.fw' is missing.
-When I put it in /lib/firmware Kaffeine video/audio work, but no IR.
-
-ready to help in debugging,
-Valerio
