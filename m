@@ -1,38 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f226.google.com ([209.85.219.226]:50691 "EHLO
-	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753823AbZGWLyt convert rfc822-to-8bit (ORCPT
+Received: from mailout5.samsung.com ([203.254.224.35]:32935 "EHLO
+	mailout5.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755390AbZGMLXo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2009 07:54:49 -0400
-Received: by ewy26 with SMTP id 26so909175ewy.37
-        for <linux-media@vger.kernel.org>; Thu, 23 Jul 2009 04:54:48 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <829197380907230451o302dba16nb2fe7fc395ec80ab@mail.gmail.com>
-References: <20090723111006.59010@gmx.net>
-	 <829197380907230451o302dba16nb2fe7fc395ec80ab@mail.gmail.com>
-Date: Thu, 23 Jul 2009 13:54:48 +0200
-Message-ID: <d9def9db0907230454r6706249fxef347e57f191b672@mail.gmail.com>
-Subject: Re: [linux-dvb] Terratec Cinergy HTC USB XS HD
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: anderse@gmx.de, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Mon, 13 Jul 2009 07:23:44 -0400
+Received: from epmmp2 (mailout5.samsung.com [203.254.224.35])
+ by mailout1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KMP0073IWZ8Y6@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 13 Jul 2009 20:23:32 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0KMP00I0OWZ8WT@mmp2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 13 Jul 2009 20:23:32 +0900 (KST)
+Date: Mon, 13 Jul 2009 20:23:32 +0900
+From: Joonyoung Shim <jy0922.shim@samsung.com>
+Subject: [PATCH 0/2] radio-si470x: separate usb and i2c interface
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, tobias.lorenz@gmx.net,
+	kyungmin.park@samsung.com
+Message-id: <4A5B1934.6080503@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 23, 2009 at 1:51 PM, Devin
-Heitmueller<dheitmueller@kernellabs.com> wrote:
-> On Thu, Jul 23, 2009 at 7:10 AM, <anderse@gmx.de> wrote:
->> Did Devin Heitmueller comment on that? AFAIK he already finished a driver for the DRX-3933J and I would think he might have interest to get in contact with trident in order of being allowed to publish his work.
->
-> I was aware of the Micronas sale.  At this point I would continue to
-> encourage users interested in Linux support for tuners to stay away
-> from the products that include the drx-k or drx-j.
->
+Hi, all
 
-we now do offer professional Linux support for DRX-K and DRX-J devices
-for customers.
+I send the radio-si470x patches worked on http://linuxtv.org/hg/v4l-dvb.
 
-Best Regards,
-Markus
+I have a board with Silicon Labs si4709 chip using the i2c interface,
+but the radio-si470x is only support usb interface currently. I posted
+about separating usb and i2c interface in radio-si470x the past.
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg02483.html
+
+Tobias informed me the base code for seperating at 
+http://linuxtv.org/hg/~tlorenz/v4l-dvb of Tobias repository in above
+mail, i based on it, but it cannot find now at Tobias repository.
+
+The patch 1/2 is for separating common and usb code, and
+the patch 2/2 is for supporting si470x i2c interface.
+
+Please review, thank you.
