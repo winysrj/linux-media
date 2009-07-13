@@ -1,82 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:43688 "EHLO mx2.redhat.com"
+Received: from mail1.radix.net ([207.192.128.31]:48672 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755340AbZGORxv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Jul 2009 13:53:51 -0400
-Message-ID: <4A5E1833.4030307@redhat.com>
-Date: Wed, 15 Jul 2009 19:56:03 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Brian Johnson <brijohn@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] gspca: Add sn9c20x subdriver
-References: <1246879822-21348-1-git-send-email-brijohn@gmail.com> <1246879822-21348-2-git-send-email-brijohn@gmail.com>
-In-Reply-To: <1246879822-21348-2-git-send-email-brijohn@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	id S1755413AbZGML1j (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jul 2009 07:27:39 -0400
+Subject: Re: About v4l2 subdev s_config (for core) API?
+From: Andy Walls <awalls@radix.net>
+To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	v4l2_linux <linux-media@vger.kernel.org>,
+	=?UTF-8?Q?=EA=B9=80=ED=98=95=EC=A4=80?= <riverful.kim@samsung.com>,
+	Dongsoo Kim <dongsoo45.kim@samsung.com>,
+	=?UTF-8?Q?=EB=B0=95=EA=B2=BD=EB=AF=BC?= <kyungmin.park@samsung.com>
+In-Reply-To: <5e9665e10907130417r7e4a7bfep85c89b61981c2748@mail.gmail.com>
+References: <5e9665e10907110402t4b5777abu5f02a44d609405b1@mail.gmail.com>
+	 <200907112113.42883.hverkuil@xs4all.nl>
+	 <5e9665e10907130119wd9d62ahaa027e49993cdc8c@mail.gmail.com>
+	 <200907131047.51249.hverkuil@xs4all.nl>
+	 <5e9665e10907130417r7e4a7bfep85c89b61981c2748@mail.gmail.com>
+Content-Type: text/plain
+Date: Mon, 13 Jul 2009 07:29:31 -0400
+Message-Id: <1247484571.4067.4.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, 2009-07-13 at 20:17 +0900, Dongsoo, Nathaniel Kim wrote:
 
-First of all many many thanks for doings this!
-There are 4 issues with this driver, 2 of which are blockers:
 
-1) The big one is the use of a custom debugging mechanism,
-    please use the v4l standard debugging mechanism
-    which is activated by the kernel config option
-    VIDEO_ADV_DEBUG, please use this define to
-    enable / disable the debugging features of this
-    driver and use the standard VIDIOC_DBG_G_REGISTER
-    and VIDIOC_DBG_S_REGISTER ioctl's instead of an
-    sysfs interface. Note I'm not very familiar with
-    these myself, please send any questions on this to the
-    list.
+> Well arranged thanks to you. BTW, can you tell me about
+> "s_crystal_freq" in detail? I can see that ivtv and saa7115 are using
+> that but can't figure out what is exactly for. At the earlier mail, I
+> considered that as a function let subdev device know about the
+> frequency of clock "given" not "made by". Am I right? Please let me
+> know if I'm getting wrong.
+> Cheers,
 
-2) :
+As I understand it, s_crystal_freq() should be used when a different
+crystal frequency could be used with a chip in differnt board designs.
+For programming PLLs or dividers, the sub_device driver needs to know
+what the crystal or reference frequency is.
 
-> +	switch (sd->sensor) {
-> +	case SENSOR_OV9650:
-> +		if (ov9650_init_sensor(gspca_dev)<  0)
-> +			return -ENODEV;
-> +		info("OV9650 sensor detected");
-> +		break;
-> +	case SENSOR_OV9655:
-> +		if (ov9655_init_sensor(gspca_dev)<  0)
-> +			return -ENODEV;
-> +		info("OV9655 sensor detected");
-> +		break;
-> +	case SENSOR_SOI968:
-> +		if (soi968_init_sensor(gspca_dev)<  0)
-> +			return -ENODEV;
-> +		info("SOI968 sensor detected");
-> +		break;
-> +	case SENSOR_OV7660:
-> +		if (ov7660_init_sensor(gspca_dev)<  0)
-> +			return -ENODEV;
-> +		info("OV7660 sensor detected");
+Regards,
+Andy
 
-You are missing a break here! Which I found out because
-my only sn9c20x cam has ab ov7660 sensor
 
-> +	case SENSOR_OV7670:
-> +		if (ov7670_init_sensor(gspca_dev)<  0)
-> +			return -ENODEV;
-> +		info("OV7670 sensor detected");
-> +		break;
 
-3) My cam works a lot better with the standalone driver
-then with you're gspca version. With your version it shows
-a bayer pattern ish pattern over the whole picture as if
-the bayer pixel order is of, except that the colors are right
-so that is most likely not the cause. I'll investigate this
-further as time permits.
+> Nate
 
-4) The evdev device creation and handling realyl belongs in the
-gspca core, as we can (and should) handle the snapshot button
-in other drivers too, but this is something which can be fixed
-after merging.
 
-Thanks & Regards,
-
-Hans
