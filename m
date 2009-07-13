@@ -1,124 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:46867 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753622AbZG2PkR (ORCPT
+Received: from mail-in-13.arcor-online.net ([151.189.21.53]:46618 "EHLO
+	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751336AbZGMBML (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jul 2009 11:40:17 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: Hugh Dickins <hugh.dickins@tiscali.co.uk>
-Subject: Re: Is get_user_pages() enough to prevent pages from being swapped out ?
-Date: Wed, 29 Jul 2009 17:41:52 +0200
-Cc: linux-kernel@vger.kernel.org,
-	"v4l2_linux" <linux-media@vger.kernel.org>
-References: <200907291123.12811.laurent.pinchart@skynet.be> <Pine.LNX.4.64.0907291551050.16769@sister.anvils>
-In-Reply-To: <Pine.LNX.4.64.0907291551050.16769@sister.anvils>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907291741.52783.laurent.pinchart@skynet.be>
+	Sun, 12 Jul 2009 21:12:11 -0400
+Subject: Re: [RFC] SAA713x setting audio capture frequency (ALSA)
+From: hermann pitton <hermann-pitton@arcor.de>
+To: =?UTF-8?Q?Old=C5=99ich_Jedli=C4=8Dka?= <oldium.pro@seznam.cz>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+In-Reply-To: <200907121948.39944.oldium.pro@seznam.cz>
+References: <200907121948.39944.oldium.pro@seznam.cz>
+Content-Type: text/plain; charset=UTF-8
+Date: Mon, 13 Jul 2009 03:06:41 +0200
+Message-Id: <1247447201.3235.38.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hugh,
+Hi Oldřich,
 
-first of all, thanks for your answer.
+this needs to be looked up during day time, preferably with the register
+settings for all involved saa713x devices, which I do not have ...
 
-On Wednesday 29 July 2009 17:26:11 Hugh Dickins wrote:
-> On Wed, 29 Jul 2009, Laurent Pinchart wrote:
-> > I'm trying to debug a video acquisition device driver and found myself
-> > having to dive deep into the memory management subsystem.
-> >
-> > The driver uses videobuf-dma-sg to manage video buffers. videobuf-dma-sg
-> > gets pointers to buffers from userspace and calls get_user_pages() to
-> > retrieve the list of pages underlying those buffers. The page list is
-> > used to build a scatter-gather list that is given to the hardware. The
-> > device then performs DMA directly to the memory.
-> >
-> > Pages underlying the buffers must obviously not be swapped out during
-> > DMA. The get_user_pages() (mm/memory.c) documentation seems to imply that
-> > returned pages are pinned to memory (my understanding of "pinned" is that
-> > they will not be swapped out):
->
-> ...
->
-> > However, all is seems to do for that purpose is incrementing the page
-> > reference count using get_page().
-> >
-> > I had a look through the memory management subsystem code and it seems to
-> > me that incrementing the reference count is not sufficient to make sure
-> > the page won't be swapped out. To ensure that, it should instead be
-> > marked as unevictable, either directly or by marking an associated VMA as
-> > VM_LOCKED. This is what the mlock() syscall does, in addition to calling
-> > get_user_pages().
-> >
-> > The MM subsystem is quite complex and my understanding might not be
-> > correct, so I'd appreciate if someone could shed light on the issue. Does
-> > get_user_pages() really pin pages to memory and prevent them from being
-> > swapped out in all circumstances ? If so, how does it do so ? If not,
-> > what's the proper way to make sure the pages won't disappear during DMA ?
->
-> You're right that get_user_pages() (called with a pagelist as you're
-> using) increments the page reference count.
->
-> And that is enough to pin the page in memory, in a sense that suits
-> the use of DMA.
->
-> I'm expressing it in that peculiar way, because:- On the one hand,
-> the page can only disappear from memory by memory hotremove, but
-> what you'll be worrying about is the page getting freed and reused
-> for another purpose while DMA is acting upon it - but raising the
-> reference count prevents that (and will prevent hotremove succeeding).
+Am Sonntag, den 12.07.2009, 19:48 +0200 schrieb Oldřich Jedlička:
+> Hi all,
+> 
+> I had a look at the audio code in saa7134 directory once again 
+> (saa7134-alsa.c and saa7134-tvaudio.c). It has one major problem - the 
+> frequency for SAA7134 isn't set during startup, only during the capture 
+> source change (that is another problem). But let's start from beginning, 
+> please comment what you find interresting, I will create a patch after the 
+> discussion for another discussion :-).
 
-Sorry about that confusion. I'm not too familiar with memory management so I 
-mixed the proper terms.
+;)
 
-> On the other hand, despite the raised reference count, under memory
-> pressure that page might get unmapped from the user pagetable, and
-> might even be written out to swap in its half-dirty state (though
-> is_page_cache_freeable() tries to avoid that); but it won't get
-> freed, and DMA will be to the physical address of the page (somebody
-> will correct me that it's actually the bus address or something else),
-> not to the userspace virtual address.  So it's irrelevant if that
-> vanishes for a while - when userspace accesses it again, the same
-> page (the one DMA occurs to) will be faulted back in there.
+> 1. SAA7133/SAA7135
+> 
+> SAA7133/SAA7135 always use DDEP (DemDec Easy Programming) mode which runs 
+> on 32kHz only. There is no need to change the frequency at all, so 
+> everything works except that the info coming from ALSA reports both 
+> frequencies 32kHz and 48kHz as available for recording. This can be easily 
+> changed in snd_card_saa7134_hw_params to report only 32kHz for 
+> SAA7133/SAA7135.
 
-Just to make sure I understand things properly, the copy of the page written 
-to swap will not be read back when the page is faulted back in by the kernel 
-as a result of the userspace process accessing it, right ?
+So, for now, agreed. But you should try to talk to Ricardo and Hartmut
+in this case. I can tell you about the three years it did not work.
 
-Why would the page be written out to swap if it's not going to be freed anyway 
-?
+> 2. SAA7134
+> 
+> SAA7134 is special in the way it programs the frequency by hand. It uses 32kHz 
+> DemDec mode for TV (DemDec works only in 32kHz mode), 32kHz for radio (this 
+> is locked), and 32kHz/48kHz for S-Video and Composite inputs. ALSA again 
+> reports both frequencies 32kHz and 48kHz as available for recording - this 
+> can be changed accordingly.
 
-> In contrast, mlock() is not enough to pin a page in memory in this
-> sense: from a userspace point of view, an mlock()ed page indeed is
-> locked into memory, but page migration (for NUMA balancing or for
-> memory hotremove) is still free to substitute an alternative page
-> there.  get_user_pages()'s raised reference count prevents that,
-> but mlock() does not.
+Agreed.
 
-Thanks for pointing that "detail" out.
+> The problem is that the frequency is never changed during inicialization like 
+> it was in OSS code (see 2.6.24 kernel, saa7134_oss_init1 calls mixer_recsrc). 
+> I think that this responsibility is now on the 
+> snd_card_saa7134_capture_prepare method - it should set the frequency in 
+> SAA7134_SIF_SAMPLE_FREQ register correctly, possibly also 
+> SAA7134_ANALOG_IO_SELECT. Note that the tvaudio's mute_input_7134 sets the 
+> frequency to 32kHz, this can be thrown away I think.
 
-> There is one little problem with the get_user_pages() pinning,
-> hopefully one that can never affect you at all.  If the task that
-> did the get_user_pages() forks, and parent or child userspace tries
-> to write to one of the pages in question while it's pinned (and it's
-> an anonymous page, not a pagecache page shared with underlying file),
-> then the first to touch it will get a copy of the original DMA page
-> at that instant, thereafter losing contact with the original DMA page.
->
-> One answer to that is to madvise such an area with MADV_DONTFORK,
-> then fork won't duplicate that area, so no Copy-on-Write issues
-> will arise.  That satisfies many of us, but others look for a
-> way to eliminate this issue completely.
+Agreed. If any, that is the only "regression" to report compared to
+saa7134-oss.
 
-I don't think the userspace processes we use here to access the video buffers 
-fork, but I'll double check that and use madvise in that case.
+> I tried to set SAA7134_SIF_SAMPLE_FREQ in snd_card_saa7134_capture_prepare  
+> and the capturing works correctly with 48kHz from my digital camera (Composite 
+> input).
 
-Thank you very much for your help.
+OK, that should be previous behaviour then.
 
-Best regards,
+> 3. Changing the capture source
+> 
+> The ALSA interface has three capture sources, all of them have left and right 
+> channels (boolean values) - LINE1, LINE2 and TV. The user can select any 
+> source - ALSA calls snd_saa7134_capsrc_put.
 
-Laurent Pinchart
+Note, without looking any further, LINE1 and LINE2 are left/right
+_pairs_ of stereo inputs. In saa7134-oss it was needed to select them
+card specific.
+
+> The ALSA controls are not updated, so it is possible to select both LINE1 and 
+> LINE2 at the same time, but recording will use only one of them - the last 
+> changed control wins. Moreover the left/right selection doesn't make any 
+> difference, the code ignores it.
+
+For saa7133/35/31e that was exactly Hartmut's plan. You don't have to
+care to select the right inputs anymore. And with Ricardo exporting the
+mute symbol from saa7134-tvaudio to saa7134-alsa, you don't have to care
+for this either. (mythtv v4l1, except you do ambiguous stuff from user
+side)
+
+> Here comes also the frequency problem of SAA7134. If the user starts with 
+> LINE1 and 48kHz and tries to switch to TV, the frequency will change to 32kHz 
+> (DemDec mode) - the application will not know, I guess there will be some 
+> buffer underruns.
+
+Anyway, to switch to 32kHz for TV is right currently, but it doesn't
+stop since years, that it is claimed, more is possible. No proof for any
+standard yet and A2 and NICAM won't do at least.
+
+> Note that any change of capture source control is overriden by the call to 
+> snd_card_saa7134_capture_prepare (called by ALSA before the capture source is 
+> opened) that takes the current input as set by saa7134_tvaudio_setinput 
+> (called by v4l interface). I think this is actually expected behaviour and 
+> can stay as it is now.
+
+There are also cards with mpeg encoders and you can't just mute or do
+what you want.
+
+> 
+> The easiest solution would be to throw away the capture source control and let 
+> the capture source initialization on the snd_card_saa7134_capture_prepare 
+> method (the source would be controlled by saa7134_tvaudio_setinput only - 
+> through v4l interface only), or limit the frequency to 32kHz only so that any 
+> source can be freely selected on any SAA713x hardware.
+
+I'm not sure, in case we are talking about all sources, talk about the
+same things already. Also, you might have noticed or not, there are also
+mute calls depending on having a signal.
+
+> Any other ideas, comments, corrections (I could be wrong in what I wrote, I'm 
+> not the SAA713x programming expert!), suggestions?
+> 
+> Cheers,
+> Oldrich.
+
+Given the problems we had previously, I'm not right sure, if we really
+have some now at all, hm, 02:52 am ;)
+
+But you have at least some reaction ...
+
+Cheers,
+Hermann
+
+
+
 
