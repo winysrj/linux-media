@@ -1,119 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4033 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753899AbZG2VwE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jul 2009 17:52:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: Re: How to save number of times using memcpy?
-Date: Wed, 29 Jul 2009 23:52:00 +0200
-Cc: Laurent Pinchart <laurent.pinchart@skynet.be>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	v4l2_linux <linux-media@vger.kernel.org>,
-	Dongsoo Kim <dongsoo45.kim@samsung.com>,
-	=?utf-8?q?=C3=AB=C2=B0=E2=80=A2=C3=AA=C2=B2=C2=BD=C3=AB=C2=AF=C2=BC?=
-	<kyungmin.park@samsung.com>,
-	"jm105.lee@samsung.com" <jm105.lee@samsung.com>,
-	=?utf-8?q?=C3=AC=EF=BF=BD=C2=B4=C3=AC=E2=80=9E=C2=B8=C3=AB=C2=AC=C2=B8?=
-	<semun.lee@samsung.com>,
-	=?utf-8?q?=C3=AB=C5=92=E2=82=AC=C3=AC=EF=BF=BD=C2=B8=C3=AA=C2=B8=C2=B0?=
-	<inki.dae@samsung.com>,
-	=?utf-8?q?=C3=AA=C2=B9=E2=82=AC=C3=AD=CB=9C=E2=80=A2=C3=AC=C2=A4?=
-	 =?utf-8?q?=E2=82=AC?= <riverful.kim@samsung.com>
-References: <10799.62.70.2.252.1248852719.squirrel@webmail.xs4all.nl> <A69FA2915331DC488A831521EAE36FE401450FAE31@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE401450FAE31@dlee06.ent.ti.com>
+Received: from t3rror.net ([213.133.102.34]:59083 "EHLO mail.t3rror.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756143AbZGMPMa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jul 2009 11:12:30 -0400
+From: Boris Cuber <me@boris64.net>
+Reply-To: me@boris64.net
+To: linux-media@vger.kernel.org
+Subject: Re: [GIT PATCHES for 2.6.31] V4L/DVB fixes
+Date: Mon, 13 Jul 2009 17:12:21 +0200
+References: <200907121550.36679.me@boris64.net> <200907131413.50826.zzam@gentoo.org> <200907131529.25786.cyber.bogh@gmx.de>
+In-Reply-To: <200907131529.25786.cyber.bogh@gmx.de>
+Cc: "'cyber.bogh'" <cyber.bogh@gmx.de>,
+	"'Matthias Schwarzott'" <zzam@gentoo.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="windows-1252"
+Content-Type: multipart/signed;
+  boundary="nextPart1485090.HuaTPL2USL";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907292352.00179.hverkuil@xs4all.nl>
+Message-Id: <200907131712.26909.me@boris64.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 29 July 2009 21:06:17 Karicheri, Muralidharan wrote:
-> Hans,
->
-> >True. However, my experience is that this approach isn't needed in most
-> >cases as long as the v4l driver is compiled into the kernel. In that
-> > case it is called early enough in the boot sequence that there is still
-> > enough unfragmented memory available. This should definitely be the
-> > default case for drivers merged into v4l-dvb.
->
-> In my understanding, the buffer is allocated in the video buffer layer
-> when driver makes the videobuf_reqbufs() call.
+--nextPart1485090.HuaTPL2USL
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 
-That depends completely on the driver implementation. In the case of the 
-davinci driver it will allocate memory for X buffers when the driver is 
-first initialized and it will use those when the application calls reqbufs. 
-If the app wants more than X buffers the driver will attempt to dynamically 
-allocate additional buffers, but those are usually hard to obtain.
-
-In my experience there is no problem for the driver to allocate the required 
-memory if it is done during driver initialization and if the driver is 
-compiled into the kernel.
-
-> Since this happens after 
-> the kernel is up, this is indeed a serious issue when we require HD
-> resolution buffers. When I have tested vpfe capture from MT9T031 with
-> 2048x1536 resolution buffer, the video buffer layer gives an oops due to
-> failure to allocate buffer( I think video buffer layer is not handling
-> error case when there are not enough buffers to allocate). Since buffer
-> allocation happens very late (not at initialization), it is unlikely to
-> succeed due to fragmentation issue.
-
-That is really a driver problem: omap should use the same allocation scheme 
-as davinci does. That works pretty reliably. Of course, if someone tries to 
-squeeze the last drop out of their system, then they still may have to use 
-nasty tricks to get it to work (like using the mem= kernel option). But 
-such tricks are a last resort in my opinion.
-
-> So I have added support for USERPTR 
-> IO in vpfe capture to handle high resolution capture. This requires a
-> kernel module to allocate contiguous buffer and the same is returned to
-> application using an IOCTL. The physical/logical address can then be
-> given to driver through USERPTR IO.
-
-What exactly is the point of doing this? I gather it is used to pass the 
-same physical memory from e.g. a capture device to e.g. a resizer device, 
-right? Otherwise I see no benefit to doing this as opposed to regular mmap 
-I/O.
-
-Regards,
-
-	Hans
-
-> Another way this can be done, when using mmap IO, is to allocate device
-> memory (I have not tried it myself, but this seems to work in SOC Camera
-> drivers) using dma_declare_coherent_memory() (Thanks to Guennadi
-> Liakhovetski for the suggestion). This function takes physical memory
-> address outside the kernel memory space. Then when dma_alloc_coherent()
-> is called by video buffer layer, the buffer is allocated from the above
-> pre-allocated device memory and will succeed always. But for this, the
-> target architecture require support for consistent memory allocation.
->
-> Murali
->
-> >Regards,
+Am Montag, 13. Juli 2009 schrieben Sie:
+> Am Montag 13 Juli 2009 14:13:50 schrieben Sie:
+> > On Sonntag, 12. Juli 2009, Boris Cuber wrote:
+> > > Hi kernel folks!
+> > >
+> > > Problem:
+> > > Since kernel-2.6.31-rc* my dvb-s adapter (Technisat SkyStar2 DVB card)
+> > > refuses to work (worked fine in every kernel up to 2.6.30.1).
+> > > So anything pulled into the new kernel seems to have broken
+> > > something (at least for me :/).
+> > >
+> > > I opened a detailed bug report here:
+> > > http://bugzilla.kernel.org/show_bug.cgi?id=3D13709
+> > > Please let me know if i can help in finding a solution
+> > > or testing a patch /whatever.
 > >
-> >        Hans
+> > This looks like it is related to this patch:
 > >
-> >--
-> >Hans Verkuil - video4linux developer - sponsored by TANDBERG
+> > commit d66b94b4aa2f40e134f8c07c58ae74ef3d523ee0
+> > Author: Patrick Boettcher <pb@linuxtv.org>
+> > Date:   Wed May 20 05:08:26 2009 -0300
 > >
-> >--
-> >To unsubscribe from this list: send the line "unsubscribe linux-media"
-> > in the body of a message to majordomo@vger.kernel.org
-> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >     V4L/DVB (11829): Rewrote frontend-attach mechanism to gain noise-le=
+ss
+> > deactivation of submodules
+> >
+> >     This patch is reorganizing the frontend-attach mechanism in order to
+> >     gain noise-less (superflous prints) deactivation of submodules.
+> >
+> >     Credits go to Uwe Bugla for helping to clean and test the code.
+> >
+> >     Signed-off-by: Uwe Bugla <uwe.bugla@gmx.de>
+> >     Signed-off-by: Patrick Boettcher <pb@linuxtv.org>
+> >     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> >
+> >
+> >
+> > All frontend-attach related code is wrapped by ifdefs like this:
+> > #if defined(CONFIG_DVB_MT312_MODULE) ||
+> > defined(CONFIG_DVB_STV0299_MODULE) <CODE>
+> > #endif
+> >
+> > So this code will only be compiled if one of the two drivers is compiled
+> > as a module, having them compiled in will omit this code.
+
+Hi Matthias
+
+thank you for your help. I manually edited=20
+those #ifdefs to temporary get around my problem.
+My dvb adapter is working again ;)
+
+
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Yes. And that's exactly the way things were planned and should also stay,
+> even if there exist a thousands of "Boris64" who do not have the slightest
+> idea about what kernel compilation is or could be.....
+
+Well, i always thought compiling your own kernel is about choice.
+And _my_ choice always was:
+I don't want use modules, because booting a monolithic=20
+kernel on my computer is slightly faster.
 
 
+>
+> No matter if we're talking about the main module, the frontend, the backe=
+nd
+> or whatever other part of not only a DVB driver:
+> None of them is permanently needed while the machine is running. So kmod
+> can kick them out of the memory if they aren't needed, if they were
+> compiled as module.
+>
+> But if you compile them into the kernel you are wasting system resources
+> because the main kernel becomes too big (I'd call that a "Windoze-effect"=
+).
+>
+> So compiling those drivers a module is gold, and any other choice is simp=
+ly
+> nonsense.
+>
+> > Trent Piepho seems to already have a patch for this, but it is not yet
+> > merged into the kernel.
+>
+> May Trent Piepho do whatever he likes. I do not think that any further
+> patch is necessary for that driver section.
+>
+> It would rather be necessary for some quirky users to enlarge their limit=
+ed
+> brain and understand what kernel compilation means and is here for.
+>
+> > Regards
+> > Matthias
+>
+> CU
+>
+> cyber.bogh
+>
+> P. S.: The other part that really makes me utmost angry about the "Boris'=
+s"
+> in that world:
+>
+> If you're doing really hard for months to enhance things, and you urgently
+> need testers to help and invest brain those Boris's aren't visible at all.
+> Nowhere!
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+Those "Boris's" can't remember that anyone ever asked'em to help.
+And "they" didn't subscribe to this list until "their" dvb card(s) didn't
+work anymore for some reason.
+
+
+>
+> Once things are done they come back and all they have got to do then is to
+> complain for stupid nonsense...
+>
+> How did Lou Reed say?
+> "Stick a fork in their ass, turn it over and they're done!"
+>
+
+Have a nice day,
+regards, Boris
+
+--nextPart1485090.HuaTPL2USL
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.11 (GNU/Linux)
+
+iQIcBAABAgAGBQJKW07aAAoJEONrv02ePEYN7IIP/2vXM8Qjdjnn7K1+tFJsA0W0
+Tdl2dqxFQf6eBlIO3Hnc3Rl2oGLyW5ONufJkm/Td4AtAAUtccoUFyt49lgjA81H9
+kwzUY6iPVfn1E4c8ZAiI+MDwBvtjncAjXGHqZe6+Ie2Ep5eQEXtZFnRcaU+6UNOZ
+c0/O0Rniq0tU31lXXJYyUcGqq0pkN+0YfOAcKX6lKvzvWg/SS99cZfBMQueM3U1A
+C9qappzrcREevSlTf+7DqqCGqtgW70McgjQfj5dGDCiAuaRSpxfDYckiho1w9CGc
+kof8NrQfjrrEsZJkMrxAUXoXFkzQoadx7kj25iHyfszFs4nO+Maj5rZwdt0bkxN5
+/aYT/ZibAFDtLE0INDpig+u7awAoroe+0JlivwCEIe8kZMqUlw2Jc45ZvfCxy1Wr
+fPK/fY7b1jmjnKEIwKLCFX/SAZEHo7cEXl/8S/IMTR45CUxo1wNj6Ft/9vRqbJkH
+2guamvzaE/OsUct33I53Y+0iApDgEqXV9bYIzbvl+rIFKFxyhckQq7eFe2/YT2SM
+ib9ztYYE4Z+fU81zJI3srB40IOmE8+vhvJVWniHFhKEZLtADWjCxpec6zFu//Gfn
+IqVwQT6s7T6Ed1nm452ZrCZZQwaMNVeyiajINGDYhfC72ueiIWfvxxsKf15Ua3u9
+winhxXnnhudBu/M8KlQT
+=+Fw6
+-----END PGP SIGNATURE-----
+
+--nextPart1485090.HuaTPL2USL--
