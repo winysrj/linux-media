@@ -1,97 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.26]:45542 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751313AbZG2Fpw convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4995 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756763AbZGMS0D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jul 2009 01:45:52 -0400
-Received: by ey-out-2122.google.com with SMTP id 9so140419eyd.37
-        for <linux-media@vger.kernel.org>; Tue, 28 Jul 2009 22:45:51 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1248834482.3377.3.camel@pc07.localdom.local>
-References: <4A6F8AA5.3040900@iol.it>
-	 <829197380907281744o5c3a7eb7rd0d2cb8c53cd646f@mail.gmail.com>
-	 <1248834482.3377.3.camel@pc07.localdom.local>
-Date: Wed, 29 Jul 2009 07:45:51 +0200
-Message-ID: <d9def9db0907282245v4e6f332ha4b5bb28ce5972f2@mail.gmail.com>
-Subject: Re: Terratec Cinergy HibridT XS
-From: Markus Rechberger <mrechberger@gmail.com>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>, efa@iol.it,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Mon, 13 Jul 2009 14:26:03 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id n6DIPuoA043091
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 13 Jul 2009 20:26:01 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 13 Jul 2009 20:25:56 +0200 (CEST)
+Message-Id: <200907131826.n6DIPuoA043091@smtp-vbr1.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 29, 2009 at 4:28 AM, hermann pitton<hermann-pitton@arcor.de> wrote:
-> Hi,
->
-> Am Dienstag, den 28.07.2009, 20:44 -0400 schrieb Devin Heitmueller:
->> On Tue, Jul 28, 2009 at 7:32 PM, Valerio Messina<efa@iol.it> wrote:
->> > hi all,
->> >
->> > I own a Terratec Cinergy HibridT XS
->> > with lsusb ID:
->> > Bus 001 Device 007:
->> > ID 0ccd:0042 TerraTec Electronic GmbH Cinergy Hybrid T XS
->> >
->> > With past kernel and a patch as suggested here:
->> > http://www.linuxtv.org/wiki/index.php/TerraTec
->> > that link to:
->> > http://www.linuxtv.org/wiki/index.php/TerraTec_Cinergy_Hybrid_T_USB_XS
->> > that link to:
->> > http://mcentral.de/wiki/index.php5/Main_Page
->> > and some troubles for Ubuntu kernel that I solved here:
->> > https://bugs.launchpad.net/bugs/322732
->> > worked well for a year or more.
->> >
->> > With last Ubuntu 9.04, kernel 2.6.28-13 seems have native support for the
->> > tuner, but from dmesg a file is missing: xc3028-v27.fw
->> > (maybe manage I2C for IR?)
->> > I found it on a web site, copied in /lib/firmware
->> > and now Kaffeine work, but ... no more IR remote command work.
->> >
->> > More bad now:
->> > http://mcentral.de/wiki/index.php5/Installation_Guide
->> > sell TV tuner, and do not support anymore the Terratec tuner, the source
->> > repository is disappeared, and install instruction is a commercial.
->
-> all in all it is really funny.
->
->> > Any chanches?
->> >
->> > thanks in advace,
->> > Valerio
->>
->> That device, including full support for the IR, is now supported in
->> the mainline v4l-dvb tree (and will appear in kernel 2.6.31).  Just
->> follow the directions here to get the code:
->>
->> http://linuxtv.org/repo
->>
->> Devin
->>
->
-> Hopefully nobody is mad enough to buy for such prices.
->
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-compared with other drivers it has some big advantages, eg. automatic
-audio routing (supports OSS/Alsa/reading audio external) - as tvtime
-doesn't support audio at all our solution automatically enables audio
-with it, installation works within a few seconds (everywhere, any
-distribution, eg eeepc, acer aspire one, ubuntu, redhat, suse..),
-kernel independent, more or less unix operating system independent as
-well.
-There's nothing comparable available, and it has full support from the
-chipdesign companies, just about anyone who doesn't know much about
-linux can easily handle it without the knowledge how to set up a
-development system. CI Support is on the roadmap as well for DVB-C.
-While all of that it is still compatible to existing kernel drivers.
-Updates will also affect all systems at once and won't need a
-particular kernel versions.
-So it is more like a question if someone wants a prebuilt, working car
-which has guaranteed support, or wants to build his own car both is
-doable of course.
+Results of the daily build of v4l-dvb:
 
-Best Regards,
-Markus
+date:        Mon Jul 13 19:00:22 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12238:a57e555da12a
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
+
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc1-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-rc1-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-rc1-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc1-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-rc1-mips: WARNINGS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-rc1-powerpc64: OK
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-rc1-x86_64: OK
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc1): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
