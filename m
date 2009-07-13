@@ -1,200 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:56857 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752492AbZGVB2Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jul 2009 21:28:24 -0400
-Subject: [PATCH v2 3/4] cx18: Add i2c initialization for Z8F0811/Hauppage
- IR transceivers
-From: Andy Walls <awalls@radix.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Cc: Jean Delvare <khali@linux-fr.org>, Mark Lord <lkml@rtr.ca>,
-	Jarod Wilson <jarod@redhat.com>, Mike Isely <isely@pobox.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Janne Grunau <j@jannau.net>
-Content-Type: text/plain
-Date: Tue, 21 Jul 2009 21:30:04 -0400
-Message-Id: <1248226204.3191.61.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from mail.gmx.net ([213.165.64.20]:52069 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755843AbZGMNa7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Jul 2009 09:30:59 -0400
+From: "cyber.bogh" <cyber.bogh@gmx.de>
+To: Matthias Schwarzott <zzam@gentoo.org>
+Subject: Re: [GIT PATCHES for 2.6.31] V4L/DVB fixes
+Date: Mon, 13 Jul 2009 15:29:25 +0200
+References: <200907121550.36679.me@boris64.net> <200907131413.50826.zzam@gentoo.org>
+In-Reply-To: <200907131413.50826.zzam@gentoo.org>
+Cc: linux-media@vger.kernel.org, me@boris64.net,
+	Trent Piepho <xyzzy@speakeasy.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200907131529.25786.cyber.bogh@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch add support to the cx18 driver for setting up the
-Z8F0811/Hauppauge IR Tx/Rx chip with the i2c binding model in newer
-kernels.
+Am Montag 13 Juli 2009 14:13:50 schrieben Sie:
+> On Sonntag, 12. Juli 2009, Boris Cuber wrote:
+> > Hi kernel folks!
+> >
+> > Problem:
+> > Since kernel-2.6.31-rc* my dvb-s adapter (Technisat SkyStar2 DVB card)
+> > refuses to work (worked fine in every kernel up to 2.6.30.1).
+> > So anything pulled into the new kernel seems to have broken
+> > something (at least for me :/).
+> >
+> > I opened a detailed bug report here:
+> > http://bugzilla.kernel.org/show_bug.cgi?id=13709
+> > Please let me know if i can help in finding a solution
+> > or testing a patch /whatever.
+>
+> This looks like it is related to this patch:
+>
+> commit d66b94b4aa2f40e134f8c07c58ae74ef3d523ee0
+> Author: Patrick Boettcher <pb@linuxtv.org>
+> Date:   Wed May 20 05:08:26 2009 -0300
+>
+>     V4L/DVB (11829): Rewrote frontend-attach mechanism to gain noise-less
+> deactivation of submodules
+>
+>     This patch is reorganizing the frontend-attach mechanism in order to
+>     gain noise-less (superflous prints) deactivation of submodules.
+>
+>     Credits go to Uwe Bugla for helping to clean and test the code.
+>
+>     Signed-off-by: Uwe Bugla <uwe.bugla@gmx.de>
+>     Signed-off-by: Patrick Boettcher <pb@linuxtv.org>
+>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+>
+>
+> All frontend-attach related code is wrapped by ifdefs like this:
+> #if defined(CONFIG_DVB_MT312_MODULE) || defined(CONFIG_DVB_STV0299_MODULE)
+> <CODE>
+> #endif
+>
+> So this code will only be compiled if one of the two drivers is compiled as
+> a module, having them compiled in will omit this code.
 
+Yes. And that's exactly the way things were planned and should also stay, even 
+if there exist a thousands of "Boris64" who do not have the slightest idea 
+about what kernel compilation is or could be.....
 
-Signed-off-by: Andy Walls <awalls@radix.net>
-Reviewed-by: Jean Delvare <khali@linux-fr.org>
+No matter if we're talking about the main module, the frontend, the backend or 
+whatever other part of not only a DVB driver:
+None of them is permanently needed while the machine is running. So kmod can 
+kick them out of the memory if they aren't needed, if they were compiled as 
+module.
 
+But if you compile them into the kernel you are wasting system resources 
+because the main kernel becomes too big (I'd call that a "Windoze-effect").
 
-diff -r 6477aa1782d5 linux/drivers/media/video/cx18/cx18-cards.c
---- a/linux/drivers/media/video/cx18/cx18-cards.c	Tue Jul 21 09:17:24 2009 -0300
-+++ b/linux/drivers/media/video/cx18/cx18-cards.c	Tue Jul 21 20:55:54 2009 -0400
-@@ -56,7 +56,8 @@
- 	.hw_audio_ctrl = CX18_HW_418_AV,
- 	.hw_muxer = CX18_HW_CS5345,
- 	.hw_all = CX18_HW_TVEEPROM | CX18_HW_418_AV | CX18_HW_TUNER |
--		  CX18_HW_CS5345 | CX18_HW_DVB | CX18_HW_GPIO_RESET_CTRL,
-+		  CX18_HW_CS5345 | CX18_HW_DVB | CX18_HW_GPIO_RESET_CTRL |
-+		  CX18_HW_Z8F0811_IR_HAUP,
- 	.video_inputs = {
- 		{ CX18_CARD_INPUT_VID_TUNER,  0, CX18_AV_COMPOSITE7 },
- 		{ CX18_CARD_INPUT_SVIDEO1,    1, CX18_AV_SVIDEO1    },
-@@ -102,7 +103,8 @@
- 	.hw_audio_ctrl = CX18_HW_418_AV,
- 	.hw_muxer = CX18_HW_CS5345,
- 	.hw_all = CX18_HW_TVEEPROM | CX18_HW_418_AV | CX18_HW_TUNER |
--		  CX18_HW_CS5345 | CX18_HW_DVB | CX18_HW_GPIO_RESET_CTRL,
-+		  CX18_HW_CS5345 | CX18_HW_DVB | CX18_HW_GPIO_RESET_CTRL |
-+		  CX18_HW_Z8F0811_IR_HAUP,
- 	.video_inputs = {
- 		{ CX18_CARD_INPUT_VID_TUNER,  0, CX18_AV_COMPOSITE7 },
- 		{ CX18_CARD_INPUT_SVIDEO1,    1, CX18_AV_SVIDEO1    },
-diff -r 6477aa1782d5 linux/drivers/media/video/cx18/cx18-cards.h
---- a/linux/drivers/media/video/cx18/cx18-cards.h	Tue Jul 21 09:17:24 2009 -0300
-+++ b/linux/drivers/media/video/cx18/cx18-cards.h	Tue Jul 21 20:55:54 2009 -0400
-@@ -22,13 +22,17 @@
-  */
- 
- /* hardware flags */
--#define CX18_HW_TUNER		(1 << 0)
--#define CX18_HW_TVEEPROM	(1 << 1)
--#define CX18_HW_CS5345		(1 << 2)
--#define CX18_HW_DVB		(1 << 3)
--#define CX18_HW_418_AV		(1 << 4)
--#define CX18_HW_GPIO_MUX	(1 << 5)
--#define CX18_HW_GPIO_RESET_CTRL	(1 << 6)
-+#define CX18_HW_TUNER			(1 << 0)
-+#define CX18_HW_TVEEPROM		(1 << 1)
-+#define CX18_HW_CS5345			(1 << 2)
-+#define CX18_HW_DVB			(1 << 3)
-+#define CX18_HW_418_AV			(1 << 4)
-+#define CX18_HW_GPIO_MUX		(1 << 5)
-+#define CX18_HW_GPIO_RESET_CTRL		(1 << 6)
-+#define CX18_HW_Z8F0811_IR_TX_HAUP	(1 << 7)
-+#define CX18_HW_Z8F0811_IR_RX_HAUP	(1 << 8)
-+#define CX18_HW_Z8F0811_IR_HAUP	(CX18_HW_Z8F0811_IR_RX_HAUP | \
-+				 CX18_HW_Z8F0811_IR_TX_HAUP)
- 
- /* video inputs */
- #define	CX18_CARD_INPUT_VID_TUNER	1
-diff -r 6477aa1782d5 linux/drivers/media/video/cx18/cx18-i2c.c
---- a/linux/drivers/media/video/cx18/cx18-i2c.c	Tue Jul 21 09:17:24 2009 -0300
-+++ b/linux/drivers/media/video/cx18/cx18-i2c.c	Tue Jul 21 20:55:54 2009 -0400
-@@ -28,6 +28,9 @@
- #include "cx18-gpio.h"
- #include "cx18-i2c.h"
- #include "cx18-irq.h"
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
-+#include <media/ir-kbd-i2c.h>
-+#endif
- 
- #define CX18_REG_I2C_1_WR   0xf15000
- #define CX18_REG_I2C_1_RD   0xf15008
-@@ -40,16 +43,20 @@
- #define GETSDL_BIT      0x0008
- 
- #define CX18_CS5345_I2C_ADDR		0x4c
-+#define CX18_Z8F0811_IR_TX_I2C_ADDR	0x70
-+#define CX18_Z8F0811_IR_RX_I2C_ADDR	0x71
- 
- /* This array should match the CX18_HW_ defines */
- static const u8 hw_addrs[] = {
--	0,			/* CX18_HW_TUNER */
--	0,			/* CX18_HW_TVEEPROM */
--	CX18_CS5345_I2C_ADDR,	/* CX18_HW_CS5345 */
--	0,			/* CX18_HW_DVB */
--	0,			/* CX18_HW_418_AV */
--	0,			/* CX18_HW_GPIO_MUX */
--	0,			/* CX18_HW_GPIO_RESET_CTRL */
-+	0,				/* CX18_HW_TUNER */
-+	0,				/* CX18_HW_TVEEPROM */
-+	CX18_CS5345_I2C_ADDR,		/* CX18_HW_CS5345 */
-+	0,				/* CX18_HW_DVB */
-+	0,				/* CX18_HW_418_AV */
-+	0,				/* CX18_HW_GPIO_MUX */
-+	0,				/* CX18_HW_GPIO_RESET_CTRL */
-+	CX18_Z8F0811_IR_TX_I2C_ADDR,	/* CX18_HW_Z8F0811_IR_TX_HAUP */
-+	CX18_Z8F0811_IR_RX_I2C_ADDR,	/* CX18_HW_Z8F0811_IR_RX_HAUP */
- };
- 
- /* This array should match the CX18_HW_ defines */
-@@ -62,6 +69,8 @@
- 	0,	/* CX18_HW_418_AV */
- 	0,	/* CX18_HW_GPIO_MUX */
- 	0,	/* CX18_HW_GPIO_RESET_CTRL */
-+	0,	/* CX18_HW_Z8F0811_IR_TX_HAUP */
-+	0,	/* CX18_HW_Z8F0811_IR_RX_HAUP */
- };
- 
- /* This array should match the CX18_HW_ defines */
-@@ -73,6 +82,8 @@
- 	NULL,		/* CX18_HW_418_AV */
- 	NULL,		/* CX18_HW_GPIO_MUX */
- 	NULL,		/* CX18_HW_GPIO_RESET_CTRL */
-+	NULL,		/* CX18_HW_Z8F0811_IR_TX_HAUP */
-+	NULL,		/* CX18_HW_Z8F0811_IR_RX_HAUP */
- };
- 
- /* This array should match the CX18_HW_ defines */
-@@ -84,8 +95,41 @@
- 	"cx23418_AV",
- 	"gpio_mux",
- 	"gpio_reset_ctrl",
-+	"ir_tx_z8f0811_haup",
-+	"ir_rx_z8f0811_haup",
- };
- 
-+static int cx18_i2c_new_ir(struct i2c_adapter *adap, u32 hw, const char *type,
-+			   u8 addr)
-+{
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
-+	struct i2c_board_info info;
-+	struct IR_i2c_init_data ir_init_data;
-+	unsigned short addr_list[2] = { addr, I2C_CLIENT_END };
-+
-+	memset(&info, 0, sizeof(struct i2c_board_info));
-+	strlcpy(info.type, type, I2C_NAME_SIZE);
-+
-+	/* Our default information for ir-kbd-i2c.c to use */
-+	switch (hw) {
-+	case CX18_HW_Z8F0811_IR_RX_HAUP:
-+		memset(&ir_init_data, 0, sizeof(struct IR_i2c_init_data));
-+		ir_init_data.ir_codes = ir_codes_hauppauge_new;
-+		ir_init_data.internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
-+		ir_init_data.type = IR_TYPE_RC5;
-+		ir_init_data.name = "CX23418 Z8F0811 Hauppauge";
-+		info.platform_data = &ir_init_data;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	return i2c_new_probed_device(adap, &info, addr_list) == NULL ? -1 : 0;
-+#else
-+	return -1;
-+#endif
-+}
-+
- int cx18_i2c_register(struct cx18 *cx, unsigned idx)
- {
- 	struct v4l2_subdev *sd;
-@@ -115,11 +159,14 @@
- 		return sd != NULL ? 0 : -1;
- 	}
- 
-+	if (hw & CX18_HW_Z8F0811_IR_HAUP)
-+		return cx18_i2c_new_ir(adap, hw, type, hw_addrs[idx]);
-+
- 	/* Is it not an I2C device or one we do not wish to register? */
- 	if (!hw_addrs[idx])
- 		return -1;
- 
--	/* It's an I2C device other than an analog tuner */
-+	/* It's an I2C device other than an analog tuner or IR chip */
- 	sd = v4l2_i2c_new_subdev(&cx->v4l2_dev, adap, mod, type, hw_addrs[idx]);
- 	if (sd != NULL)
- 		sd->grp_id = hw;
+So compiling those drivers a module is gold, and any other choice is simply 
+nonsense.
 
+> Trent Piepho seems to already have a patch for this, but it is not yet
+> merged into the kernel.
+
+May Trent Piepho do whatever he likes. I do not think that any further patch 
+is necessary for that driver section.
+
+It would rather be necessary for some quirky users to enlarge their limited 
+brain and understand what kernel compilation means and is here for.
+
+> Regards
+> Matthias
+
+CU
+
+cyber.bogh
+
+P. S.: The other part that really makes me utmost angry about the "Boris's" in 
+that world:
+
+If you're doing really hard for months to enhance things, and you urgently 
+need testers to help and invest brain those Boris's aren't visible at all. 
+Nowhere!
+
+Once things are done they come back and all they have got to do then is to 
+complain for stupid nonsense...
+
+How did Lou Reed say?
+"Stick a fork in their ass, turn it over and they're done!"
+
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
