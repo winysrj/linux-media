@@ -1,167 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:36030 "EHLO mx2.redhat.com"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39404 "EHLO arroyo.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752458AbZGXRka convert rfc822-to-8bit (ORCPT
+	id S1756844AbZGMSV1 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2009 13:40:30 -0400
-Date: Fri, 24 Jul 2009 14:40:20 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Greg KH <gregkh@suse.de>
-Subject: [GIT PATCHES for 2.6.31] V4L/DVB fixes
-Message-ID: <20090724144020.3f5a6bb7@pedra.chehab.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Mon, 13 Jul 2009 14:21:27 -0400
+Received: from dlep35.itg.ti.com ([157.170.170.118])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id n6DILM2p020512
+	for <linux-media@vger.kernel.org>; Mon, 13 Jul 2009 13:21:27 -0500
+Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
+	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id n6DILL6U012565
+	for <linux-media@vger.kernel.org>; Mon, 13 Jul 2009 13:21:22 -0500 (CDT)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id n6DILL9q001510
+	for <linux-media@vger.kernel.org>; Mon, 13 Jul 2009 13:21:21 -0500 (CDT)
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Mon, 13 Jul 2009 13:21:20 -0500
+Subject: Control IOCTLs handling
+Message-ID: <A69FA2915331DC488A831521EAE36FE40144E4B70A@dlee06.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Linus,
+Hi,
 
-Please pull from:
-        ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git for_linus
+I need to implement some controls for my driver and would like to understand the control ioctl framework available today. I am not very sure how the control ioctls are to be implemented and it is not well defined in the specification. I have provided below my understanding of the below set of controls. I would like to hear what you think about the same. 
 
-This series adds a new gscpca sub-driver for sn9c20x webcams. There are several
-popular webcam models supported by those Sonix/Microdia chips. 
+I see following controls defined for adjusting brightness, contrast etc.
 
-Greg can remove some linuxdriverproject.org requests from the project Wiki
-after this merge ;) Greg, for the USB ID details, you could take a look at
-Documentation/video4linux/gspca.txt changes (32 USB ID's added) or at
-http://linuxtv.org/wiki/index.php/Gspca. With this series, gspca alone supports
-660 different webcam models.
+V4L2_CID_BRIGHTNESS	integer	Picture brightness, or more precisely, the black level.
+V4L2_CID_CONTRAST	integer	Picture contrast or luma gain.
+V4L2_CID_SATURATION	integer	Picture color saturation or chroma gain.
+V4L2_CID_HUE	integer	Hue or color balance.
 
-It has also the following fixes:
+I think these controls refer to the YUV color space. Y (luma) and UV (chroma) signals will be modified by above controls.
 
-   - gspca:
-	main: Add support for vidioc_g_chip_ident and vidioc_g/s_register;
-	stv06xx-hdcs: update the sensor state, fix a sensor sequence bug and 
-		      correct the pixelformat;
-	m5602-s5k4aa: Remove erroneous register writes;
-	jpeg subdrivers: Check the result of kmalloc(jpeg header);
-	sonixj: Bad sensor init of non ov76xx sensors.
+V4L2_CID_DO_WHITE_BALANCE	button	This is an action control. When set (the value is ignored), the device will do a white balance and then hold the current setting. Contrast this with the boolean V4L2_CID_AUTO_WHITE_BALANCE, which, when activated, keeps adjusting the white balance.
+V4L2_CID_RED_BALANCE	integer	Red chroma balance.
+V4L2_CID_BLUE_BALANCE	integer	Blue chroma balance.
 
-   - em28xx:
-	Fixes bugs where webcams are detected, but, since there weren't any
-		sensor code, webcams failed to work;
-	Auto-detect mt9v011 sensors;
-	Added support and autodetection code for mt9m001 sensors;
-	Fixed webcam scaling;
-	make tuning work for Terratec Cinergy T XS USB (mt352 variant);
-	fix typo in mt352 init sequence for Terratec Cinergy T XS USB;
-	make support work for the Pinnacle Hybrid Pro (eb1a:2881);
-	set GPIO properly for Pinnacle Hybrid Pro analog support;
-	Make sure the tuner is initialized if generic empia USB id was used;
-	set demod profile for Pinnacle Hybrid Pro 320e;
-	fix tuning problem in HVR-900 (R1).
+My understanding is these controls are applied to RGB color space. V4L2_CID_AUTO_WHITE_BALANCE is applicable where hardware is capable of adjusting the wb automatically. But V4L2_CID_DO_WHITE_BALANCE is used in conjunction with V4L2_CID_RED_BALANCE & V4L2_CID_BLUE_BALANCE. i.e application set these values and they take effect when V4L2_CID_DO_WHITE_BALANCE is issued. So driver hold onto the current values until another set of above commands are issued.
 
-   - mt9v011 (new driver on 2.6.32 added on a previous merge):
-	implement VIDIOC_QUERYCTRL, adds function to calculate fps and adjust
-	the frequency of the used quartz cristal;
+But one question I have is (if the above is correct), why there is no V4L2_CID_GREEN_BALANCE ??
 
-   - af9013: auto-detect parameters in case of garbage given by app;
+I don't see any control IDs available for Bayer RGB color space.
 
-   - b2c2-flexcop: regression fix (BZ#13709): properly compile with builtin
-		   frontends;
+In our video hardware, there is a set of Gain values that can be applied to the Bayer RGB data. We can apply them individually to R, Gr, Gb or B color components. So I think we need to have 4 more controls defined for doing white balancing in the Bayer RGB color space that is applicable for sensors (like MT9T031) and image tuning hardware like the VPFE CCDC & IPIPE.
 
-   - bttv: fix regression: tvaudio must be loaded before tuner;
+Define following new controls for these in Bayer RGB color space White Balance (WB) controls??
 
-   - cx23885-417: fix broken IOCTL handling;
+V4L2_CID_BAYER_RED_BALANCE	integer	Bayer Red balance.
+V4L2_CID_BAYER_BLUE_BALANCE	integer	Bayer Blue balance.
+V4L2_CID_BAYER_GREEN_R_BALANCE	integer	Bayer Gr balance.
+V4L2_CID_BAYER_GREEN_B_BALANCE	integer	Bayer Gb balance.
 
-   - cx23885: check pointers before dereferencing in dprintk macro.
+There is also an offset value defined per color which is like adjusting the black level in the video image data. It is subtracted from the image byte.
+What you call this ? Should we define a new control, V4l2_CID_BAYER_OFFSET ??	
 
-Cheers,
-Mauro.
+In my experience, all these values (except offset) have a sign bit which means the nominal value is zero and it can be changed with positive or negative values.
 
----
+Then for image tuning hardware like, IPIPE (Image Pipe) of Texas Instruments, there are additional controls that are applicable. They are mostly applicable for devices that captures Bayer RGB data from sensors. Some of these are given below...
 
- Documentation/video4linux/CARDLIST.em28xx        |    2 +-
- Documentation/video4linux/gspca.txt              |   32 +
- drivers/media/dvb/b2c2/flexcop-fe-tuner.c        |   67 +-
- drivers/media/dvb/frontends/af9013.c             |   25 +-
- drivers/media/video/bt8xx/bttv-cards.c           |   92 +-
- drivers/media/video/bt8xx/bttv-driver.c          |    1 +
- drivers/media/video/bt8xx/bttv.h                 |    1 +
- drivers/media/video/cx23885/cx23885-417.c        |    4 +-
- drivers/media/video/em28xx/em28xx-cards.c        |  134 +-
- drivers/media/video/em28xx/em28xx-core.c         |   22 +-
- drivers/media/video/em28xx/em28xx-dvb.c          |   62 +-
- drivers/media/video/em28xx/em28xx-video.c        |   16 +-
- drivers/media/video/em28xx/em28xx.h              |   31 +-
- drivers/media/video/gspca/Kconfig                |   16 +
- drivers/media/video/gspca/Makefile               |    2 +
- drivers/media/video/gspca/conex.c                |    2 +
- drivers/media/video/gspca/gspca.c                |   73 +
- drivers/media/video/gspca/gspca.h                |    9 +
- drivers/media/video/gspca/m5602/m5602_s5k4aa.c   |    6 -
- drivers/media/video/gspca/mars.c                 |    2 +
- drivers/media/video/gspca/sn9c20x.c              | 2434 ++++++++++++++++++++++
- drivers/media/video/gspca/sonixj.c               |    4 +
- drivers/media/video/gspca/spca500.c              |    2 +
- drivers/media/video/gspca/stk014.c               |    2 +
- drivers/media/video/gspca/stv06xx/stv06xx_hdcs.c |   16 +-
- drivers/media/video/gspca/sunplus.c              |    2 +
- drivers/media/video/gspca/zc3xx.c                |    2 +
- drivers/media/video/mt9v011.c                    |   69 +-
- include/linux/videodev2.h                        |    1 +
- include/media/v4l2-chip-ident.h                  |   12 +
- 30 files changed, 2973 insertions(+), 170 deletions(-)
- create mode 100644 drivers/media/video/gspca/sn9c20x.c
+Defect Pixel correction - Correct dead pixels in the captured image data.
+Color Space conversion - Convert between Bayer RGB pattern and others
+Data Formatter - Allow reading of different arrangement of R, Gr, Gb, B color filters in the sensor.
+Black Clamp - Adjust blackness in the image data either automatically using black area pixels or using manual controls
+RGB to RGB gain control - After converting from Bayer RGB to RGB data, these 
+				  are applied
 
-Antti Palosaari (1):
-      V4L/DVB (12269): af9013: auto-detect parameters in case of garbage given by app
+RGB to YUV gain control - Applied after YUV conversion
+Noise filters - Noise filters to remove noise from the image data
 
-Brian Johnson (2):
-      V4L/DVB (12282): gspca - main: Support for vidioc_g_chip_ident and vidioc_g/s_register.
-      V4L/DVB (12283): gspca - sn9c20x: New subdriver for sn9c201 and sn9c202 bridges.
+VPFE hardware can do above processing on the image sensor data and how do we implement them. Do we implement them through following extended control IOCTLs ?
 
-Devin Heitmueller (7):
-      V4L/DVB (12257): em28xx: make tuning work for Terratec Cinergy T XS USB (mt352 variant)
-      V4L/DVB (12258): em28xx: fix typo in mt352 init sequence for Terratec Cinergy T XS USB
-      V4L/DVB (12260): em28xx: make support work for the Pinnacle Hybrid Pro (eb1a:2881)
-      V4L/DVB (12261): em28xx: set GPIO properly for Pinnacle Hybrid Pro analog support
-      V4L/DVB (12262): em28xx: Make sure the tuner is initialized if generic empia USB id was used
-      V4L/DVB (12263): em28xx: set demod profile for Pinnacle Hybrid Pro 320e
-      V4L/DVB (12265): em28xx: fix tuning problem in HVR-900 (R1)
+#define VIDIOC_G_EXT_CTRLS	_IOWR('V', 71, struct v4l2_ext_controls)
+#define VIDIOC_S_EXT_CTRLS	_IOWR('V', 72, struct v4l2_ext_controls)
+#define VIDIOC_TRY_EXT_CTRLS	_IOWR('V', 73, struct v4l2_ext_controls)
 
-Erik Andrén (4):
-      V4L/DVB (12221): gspca - stv06xx-hdcs: Actually update the sensor state
-      V4L/DVB (12222): gspca - stv06xx-hdcs: Fix sensor sequence bug
-      V4L/DVB (12223): gspca - stv06xx-hdcs: Correct the pixelformat
-      V4L/DVB (12224): gspca - m5602-s5k4aa: Remove erroneous register writes
+Currently they are implemented using proprietary ioctls. But if other hardware supports similar features, then it is worth standardizing these control IDs. But configuring them may still require proprietary structures. Does extended control structure will allow this?
 
-Hans Verkuil (1):
-      V4L/DVB (12300): bttv: fix regression: tvaudio must be loaded before tuner
+Following are the structures available for extended controls:-
 
-Jean-Francois Moine (1):
-      V4L/DVB (12267): gspca - sonixj: Bad sensor init of non ov76xx sensors.
+struct v4l2_ext_control {
+	__u32 id;
+	__u32 reserved2[2];
+	union {
+		__s32 value;
+		__s64 value64;
+		void *reserved;
+	};
+} __attribute__ ((packed));
 
-Julia Lawall (1):
-      V4L/DVB (12284): gspca - jpeg subdrivers: Check the result of kmalloc(jpeg header).
+struct v4l2_ext_controls {
+	__u32 ctrl_class;
+	__u32 count;
+	__u32 error_idx;
+	__u32 reserved[2];
+	struct v4l2_ext_control *controls;
+};
 
-Mauro Carvalho Chehab (14):
-      V4L/DVB (12233): em28xx: rename is_27xx to is_webcam
-      V4L/DVB (12234): em28xx-cards: use is_webcam flag for devices that are known to be webcams
-      V4L/DVB (12235): em28xx: detects sensors also with the generic em2750/2750 entry
-      V4L/DVB (12236): em28xx: stop abusing of board->decoder for sensor information
-      V4L/DVB (12237): mt9v011: implement VIDIOC_QUERYCTRL
-      V4L/DVB (12238): em28xx: call sensor detection code for all webcam entries
-      V4L/DVB (12239): em28xx: fix webcam scaling
-      V4L/DVB (12240): mt9v011: add a function to calculate frames per second rate
-      V4L/DVB (12241): mt9v011: Fix vstart
-      V4L/DVB (12242): mt9v011: implement core->s_config to allow adjusting xtal frequency
-      V4L/DVB (12243): em28xx: allow specifying sensor xtal frequency
-      V4L/DVB (12244): em28xx: adjust vinmode/vinctl based on the stream input format
-      V4L/DVB (12245): em28xx: add support for mt9m001 webcams
-      V4L/DVB (12286): sn9c20x: reorder includes to be like other drivers
 
-Michael Krufky (2):
-      V4L/DVB (12302): cx23885-417: fix broken IOCTL handling
-      V4L/DVB (12303): cx23885: check pointers before dereferencing in dprintk macro
+If I have to use v4l2_ext_control to configure the above modules in the hardware, I might have to use reserved field to pass the control parameter structure ptr to the driver. In that case it is better to rename the reserved field as to accept a ptr to configuration structure as :-
 
-Trent Piepho (1):
-      V4L/DVB (12291): b2c2: fix frontends compiled into kernel
+	void *config
 
----------------------------------------------------
-V4L/DVB development is hosted at http://linuxtv.org
+Finally, what is the criteria used for defining control classes? Currently we have USER, MPEG and CAMERA control classes. Do I need to define a new control class for the Bayer RGB color space WB and other controls mentioned here.
+
+
+Please let me know what your thoughts are....
+
+
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+email: m-karicheri2@ti.com
+
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+Phone : 301-515-3736
+email: m-karicheri2@ti.com
+
