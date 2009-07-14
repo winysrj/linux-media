@@ -1,60 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wa-out-1112.google.com ([209.85.146.182]:64567 "EHLO
-	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750804AbZGSTbJ (ORCPT
+Received: from toc.rii.ricoh.com ([205.226.66.129]:51275 "EHLO
+	mailx.crc.ricoh.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753373AbZGNQte (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jul 2009 15:31:09 -0400
-Date: Sun, 19 Jul 2009 12:31:04 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Mark Lord <lkml@rtr.ca>
-Cc: Jean Delvare <khali@linux-fr.org>, Andy Walls <awalls@radix.net>,
-	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Mike Isely <isely@pobox.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Janne Grunau <j@jannau.net>,
-	Linux Kernel <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 1/3] ir-kbd-i2c: Allow use of ir-kdb-i2c internal
-	get_key funcs and set ir_type
-Message-ID: <20090719193104.GA17495@dtor-d630.eng.vmware.com>
-References: <1247862585.10066.16.camel@palomino.walls.org> <1247862937.10066.21.camel@palomino.walls.org> <20090719144749.689c2b3a@hyperion.delvare> <4A6316F9.4070109@rtr.ca> <20090719145513.0502e0c9@hyperion.delvare> <4A631B41.5090301@rtr.ca> <4A631CEA.4090802@rtr.ca> <4A632FED.1000809@rtr.ca> <20090719190833.29451277@hyperion.delvare> <4A63656D.4070901@rtr.ca>
+	Tue, 14 Jul 2009 12:49:34 -0400
+Date: Tue, 14 Jul 2009 09:49:18 -0700 (PDT)
+From: Zach LeRoy <zleroy@rii.ricoh.com>
+To: "Aguirre Rodriguez, Sergio" <saaguirre@ti.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	linux-omap <linux-omap@vger.kernel.org>
+Message-ID: <15157053.23861247590158808.JavaMail.root@mailx.crc.ricoh.com>
+In-Reply-To: <17937063.23811247589353235.JavaMail.root@mailx.crc.ricoh.com>
+Subject: Problems configuring OMAP35x ISP driver
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4A63656D.4070901@rtr.ca>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jul 19, 2009 at 02:26:53PM -0400, Mark Lord wrote:
-> (resending.. somebody trimmed linux-kernel from the CC: earlier)
->
-> Jean Delvare wrote:
->> On Sun, 19 Jul 2009 10:38:37 -0400, Mark Lord wrote:
->>> I'm debugging various other b0rked things in 2.6.31 here right now,
->>> so I had a closer look at the Hauppauge I/R remote issue.
->>>
->>> The ir_kbd_i2c driver *does* still find it after all.
->>> But the difference is that the output from 'lsinput' has changed
->>> and no longer says "Hauppauge".  Which prevents the application from
->>> finding the remote control in the same way as before.
->>
->> OK, thanks for the investigation.
->>
->>> I'll hack the application code here now to use the new output,
->>> but I wonder what the the thousands of other users will do when
->>> they first try 2.6.31 after release ?
->>
->> Where does lsinput get the string from?
-> ..
->
-> Here's a test program for you:
->
+Hello Sergio,
 
-And I  think have a fix for that, commit
+I spoke with you earlier about using the ISP and omap34xxcam drivers with a micron mt9d111 SOC sensor.  I have since been able to take pictures, but the sensor data is not making it through the ISP data-path correctly.  I know the problem is in the ISP data-path because I am configuring the sensor the exact same way as I have been on my working PXA system.  I am expecting 4:2:2 packed YUV data, but all of the U and V data is no more than 2 bits where it should be 8.  I know the ISP has a lot of capabilities, but all I want to use it for is grabbing 8-bit data from my sensor and putting it in a buffer untouched using the CCDC interface (and of course clocking and timing).  What are the key steps to take to get this type of configuration?  
 
-f936601471d1454dacbd3b2a961fd4d883090aeb
+Other Questions:
 
-in the for-linus branch of my tree.
+Is there any processing done on YUV data in the ISP driver by default that I am missing?
+Has any one else experienced similar problems while adding new sensor support?
 
--- 
-Dmitry
+Any help here would be greatly appreciated.
+
+Thank you,
+
+Zach LeRoy
