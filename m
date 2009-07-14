@@ -1,69 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-01.arcor-online.net ([151.189.21.41]:57889 "EHLO
-	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752726AbZG1VKg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Jul 2009 17:10:36 -0400
-Subject: [PATCH] saa7134: fix the radio on Avermedia GO 007 FM
-From: hermann pitton <hermann-pitton@arcor.de>
+Received: from mail.gmx.net ([213.165.64.20]:43217 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753351AbZGNQOc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jul 2009 12:14:32 -0400
+Content-Type: text/plain; charset="us-ascii"
+Date: Tue, 14 Jul 2009 18:14:28 +0200
+From: aldoric@gmx.de
+Message-ID: <20090714161428.49520@gmx.net>
+MIME-Version: 1.0
+Subject: [Question] USB-Web-Cam becomes slower as darker the image becomes
 To: linux-media@vger.kernel.org
-Cc: Pham Thanh Nam <phamthanhnam.ptn@gmail.com>,
-	Laszlo Kustan <lkustan@gmail.com>
-Content-Type: multipart/mixed; boundary="=-8yQUkjRW39VDH/xdy1+z"
-Date: Tue, 28 Jul 2009 23:07:11 +0200
-Message-Id: <1248815231.3430.143.camel@pc07.localdom.local>
-Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello,
 
---=-8yQUkjRW39VDH/xdy1+z
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+I'm new to v4l-development. I was able to get the raw image into my application successfully. But the current problem is not only in limited to my self-developed application.
 
-We have support for radio on saa7133/35/31e cards with tda8290/8275(a)
-and 5.5MHz ceramic filter on the bridge chips since a while.
+All of my USB-webcams will get less FPS as darker the image becomes. In optimal cases I get around 30 frames per second. But if it's really dark I only get around 2-3 FPS.
 
-It was previously not tested, if this card supports it too, but the old
-"ghost" radio with wrong filters doesn't work anymore.
+I think that it might be the software gamma-correction. On v4l2ucp I didn't find a way to disable it.
 
-Thanks go to Pham Thanh Nam and Laszlo Kustan for reporting it working
-on that input.
+What do you think is the way to fasten up the video-recording? How can I disable software gamma-correction if this is the reason?
 
-Signed-off-by: hermann pitton <hermann-pitton@arcor.de>
-
-diff -r fd96af63f79b linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Fri Jun 19 19:56:56 2009 +0000
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue Jul 28 22:16:52 2009 +0200
-@@ -1633,7 +1633,7 @@
- 		}},
- 		.radio = {
- 			.name = name_radio,
--			.amux = LINE1,
-+			.amux = TV,
- 			.gpio = 0x00300001,
- 		},
- 		.mute = {
+Thanks in advance
 
 
-
---=-8yQUkjRW39VDH/xdy1+z
-Content-Disposition: inline; filename=saa7134_fix_radio_of_Avermedia-GO-007-FM.patch
-Content-Type: text/x-patch; name=saa7134_fix_radio_of_Avermedia-GO-007-FM.patch; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-diff -r fd96af63f79b linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Fri Jun 19 19:56:56 2009 +0000
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue Jul 28 22:16:52 2009 +0200
-@@ -1633,7 +1633,7 @@
- 		}},
- 		.radio = {
- 			.name = name_radio,
--			.amux = LINE1,
-+			.amux = TV,
- 			.gpio = 0x00300001,
- 		},
- 		.mute = {
-
---=-8yQUkjRW39VDH/xdy1+z--
-
+-- 
+Jetzt kostenlos herunterladen: Internet Explorer 8 und Mozilla Firefox 3 -
+sicherer, schneller und einfacher! http://portal.gmx.net/de/go/atbrowser
