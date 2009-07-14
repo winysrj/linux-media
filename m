@@ -1,45 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f226.google.com ([209.85.219.226]:34964 "EHLO
-	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752056AbZGWSOe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2009 14:14:34 -0400
-Received: by ewy26 with SMTP id 26so1207013ewy.37
-        for <linux-media@vger.kernel.org>; Thu, 23 Jul 2009 11:14:33 -0700 (PDT)
-Message-ID: <4A68A919.8070404@gmail.com>
-Date: Thu, 23 Jul 2009 20:16:57 +0200
-From: Roel Kluin <roel.kluin@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20]:42745 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755828AbZGNW2c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jul 2009 18:28:32 -0400
+Content-Type: text/plain; charset="iso-8859-1"
+Date: Wed, 15 Jul 2009 00:28:29 +0200
+From: "Hans Werner" <HWerner4@gmx.de>
+Message-ID: <20090714222829.51390@gmx.net>
 MIME-Version: 1.0
-To: mchehab@infradead.org, uris@siano-ms.com,
-	linux-media@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>
-Subject: [PATCH] Siano: Read buffer overflow
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Subject: DiSEqC 2.x and HVR-4000
+To: linux-media@vger.kernel.org
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With mode DEVICE_MODE_RAW_TUNER a read occurs past the end of smscore_fw_lkup[].
-Subsequently an attempt is made to load the firmware from the resulting
-filename.
+As far as I know the hardware of the Hauppauge HVR-4000 (cx24114 demod)
+supports DiSEqC 2.x, but there seems to be no implementation
+of diseqc_recv_slave_reply to obtain the messages from the slaves.
+DiSEqC 1.x works fine as far as I can tell.
 
-Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
----
-This can be reached only when coredev->device_flags contains SMS_DEVICE_FAMILY2,
-codedev->modes_supported does not include the DEVICE_MODE_RAW_TUNER bit flag,
-and the initial attempt to load firmware. Can this happen in practice on the
-hardware in question?
+Grepping for slave_reply implementations in v4l-dvb only shows s5h1420, 
+stb0899, stv0900 and stv090x.
 
-diff --git a/drivers/media/dvb/siano/smscoreapi.c b/drivers/media/dvb/siano/smscoreapi.c
-index a246903..bd9ab9d 100644
---- a/drivers/media/dvb/siano/smscoreapi.c
-+++ b/drivers/media/dvb/siano/smscoreapi.c
-@@ -816,7 +816,7 @@ int smscore_set_device_mode(struct smscore_device_t *coredev, int mode)
- 
- 	sms_debug("set device mode to %d", mode);
- 	if (coredev->device_flags & SMS_DEVICE_FAMILY2) {
--		if (mode < DEVICE_MODE_DVBT || mode > DEVICE_MODE_RAW_TUNER) {
-+		if (mode < DEVICE_MODE_DVBT || mode >= DEVICE_MODE_RAW_TUNER) {
- 			sms_err("invalid mode specified %d", mode);
- 			return -EINVAL;
- 		}
+Can anyone help?
+
+Thanks,
+Hans
+
+
+-- 
+Release early, release often.
+
+Neu: GMX Doppel-FLAT mit Internet-Flatrate + Telefon-Flatrate
+für nur 19,99 Euro/mtl.!* http://portal.gmx.net/de/go/dsl02
