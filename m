@@ -1,65 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f226.google.com ([209.85.219.226]:46457 "EHLO
-	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753684AbZGWOsi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2009 10:48:38 -0400
-Received: by ewy26 with SMTP id 26so1046001ewy.37
-        for <linux-media@vger.kernel.org>; Thu, 23 Jul 2009 07:48:37 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20]:35861 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755128AbZGOOXq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jul 2009 10:23:46 -0400
+From: Cedric Laczny <cedric.laczny@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: kernel-2.6.30 and TechnoTrend S2-3600 USB
+Date: Wed, 15 Jul 2009 16:23:44 +0200
 MIME-Version: 1.0
-In-Reply-To: <m3fxcnxy38.fsf@ursa.amorsen.dk>
-References: <20090723111006.59010@gmx.net>
-	 <d9def9db0907230433ua9f567fm15e1794f6b87fdf1@mail.gmail.com>
-	 <m3fxcnxy38.fsf@ursa.amorsen.dk>
-Date: Thu, 23 Jul 2009 16:48:37 +0200
-Message-ID: <d9def9db0907230748n320f51bbkeea3e4b0aa4ecd78@mail.gmail.com>
-Subject: Re: [linux-dvb] Terratec Cinergy HTC USB XS HD
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Benny Amorsen <benny+usenet@amorsen.dk>
-Cc: anderse@gmx.de, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200907151623.44440.cedric.laczny@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 23, 2009 at 4:39 PM, Benny Amorsen<benny+usenet@amorsen.dk> wrote:
-> Markus Rechberger <mrechberger@gmail.com> writes:
->
->> For those who are interested in such a solution:
->>
->> http://support.sundtek.de/index.php/topic,2.0.html
->>
->> http://sundtek.de/shop/Digital-TV-Sticks/Sundtek-MediaTV-Pro.html
->
-> This doesn't appear to have any support for CA modules? DVB-C is not
-> very useful around here without a CAM...
->
+Hi,
 
-We are currently discussing this with one of our partners as the
-situation changed
-with having everything in userspace the devices will usually have
-manufacturer support.
+I saw in the linux-tv wiki that there is some way to get the TT S2-3600 to 
+work under linux using the s2liplianin-drivers. Also there is confirmation by 
+the following thread: 
+http://www.gentooforum.de/artikel/16632/technotrend-tt-connect-s2-3600-und-gentoo.html?s=ad37010b8eba15db1b12328a5013865e96856778
 
->> There's a fully supported solution available for Linux already, it
->> also includes online Linux support. The installation of the drivers
->> can't be easier.
->
-> I have to admit that it is cool that the driver is in user space. How
-> about getting it included in the various Linux distributions?
->
+However, since the S2API now is also contained in the kernel, I would prefer 
+to use this directly and not the ones from the repository.
 
-We do not aim to include the drivers in any distribution as we can
-keep control on driver updates
-any time.
-The driver can be downloaded on our site.
-It is tested with various Linuxversions between 2.6.15 and 2.6.30 (32
-and 64bit).
-The entire system can coexist with already available Kerneldrivers
-(eg. linuxuvc driver), but it
-does not need any video4linux or dvb support in the kernel to be supported.
-It makes installing videodrivers a totally new experience, doable
-within a few seconds on
-most systems.
+In fact, when searching through the kernel-config, I found all drivers 
+(dvb-core.ko, dvb-usb.ko, stb0899.ko, stb6100.ko) when looking for 
+CONFIG_DVB_BUDGET_CI (-> SAA7146 DVB cards (aka Budget, Nova-PCI) ),
+except for dvb-usb-pctv452e.ko and lnbp22.ko. For the latter one, I found 
+lnbp21.ko and I think this is also working, especially since the wiki 
+states "STMicroelectronics LNBP21 LNB supply and control IC. "
+So the only thing that is missing is dvb-usb-pctv452e.ko!
 
-Best Regards,
-Markus
+And therefore I was wondering if this was perhaps renamed when being moved to 
+the kernel? Actually, I was thinking that it might have become budget_ci.ko, 
+as all the other modules are also listed there under "Selects".
+Or maybe rather dvb-usb-ttusb2.ko (-> Pinnacle 400e DVB-S USB2.0 support), as 
+this is for Pinnacle?
+
+Did someone get the TechnoTrend S2-3600 USB to work with standard 
+kernel-2.6.30 and without using the extra drivers from s2-liplianin or could 
+help with any information about the dvb-usb-pctv452e.ko module?
+
+Best regards,
+
+Cedric
