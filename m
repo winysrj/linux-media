@@ -1,116 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:63905 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751067AbZGKNAL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jul 2009 09:00:11 -0400
-Subject: Re: [linux-dvb] problems with Terratec Cinergy 1200 DVB-C MK3
- after mainboard switch
-From: Andy Walls <awalls@radix.net>
+Received: from proxy2.bredband.net ([195.54.101.72]:45188 "EHLO
+	proxy2.bredband.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752089AbZGONNZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jul 2009 09:13:25 -0400
+Received: from iph2.telenor.se (195.54.127.133) by proxy2.bredband.net (7.3.140.3)
+        id 49F59CBD01924ED8 for linux-media@vger.kernel.org; Wed, 15 Jul 2009 14:52:49 +0200
+Received: from evermeet.kurelid.se (localhost.localdomain [127.0.0.1])
+	by evermeet.kurelid.se (8.14.3/8.13.8) with ESMTP id n6FCqmNO004275
+	for <linux-media@vger.kernel.org>; Wed, 15 Jul 2009 14:52:48 +0200
+Message-ID: <fbb51e1441fc7d58fa0e4a50df19122b.squirrel@mail.kurelid.se>
+Date: Wed, 15 Jul 2009 14:52:48 +0200
+Subject: [PATCH] firedtv: add PID filtering for SW zigzag retune
+From: "Henrik Kurelid" <henke@kurelid.se>
 To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-In-Reply-To: <4A58893E.4060508@networkhell.de>
-References: <4A58893E.4060508@networkhell.de>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 11 Jul 2009 09:02:02 -0400
-Message-Id: <1247317322.3149.8.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2009-07-11 at 14:44 +0200, Matthias Müller wrote:
-> Hi,
-> 
-> I use two Cinergy 1200 DVB-C MK3 for quite a long time and had no 
-> problems so far. Now I switched to a new mainboard (Asus m4n78 pro) and 
-> after some time, the dvb-c cards aren't usable anymore. This can be 
-> triggered by heavy IO.
-> On both mainboards I use Ubuntu 9.04 with the same kernel version 
-> (2.6.28-13-generic, also tested with 2.6.28-14-server). While running 
-> vdr I see the following in syslog:
-> 
-> Jul 11 12:29:52 bowser vdr: [4678] frontend 0 lost lock on channel 6, tp 121
-> Jul 11 12:29:52 bowser kernel: [ 1235.601266] DVB: TDA10023(0): 
-> tda10023_readreg: readreg error (reg == 0x11, ret == -1)
-> Jul 11 12:29:52 bowser vdr: [4682] frontend 1 lost lock on channel 40, 
-> tp 730
-> Jul 11 12:29:52 bowser kernel: [ 1235.631263] DVB: TDA10023(1): 
-> tda10023_readreg: readreg error (reg == 0x11, ret == -1)
-> Jul 11 12:29:52 bowser kernel: [ 1235.701265] DVB: TDA10023(0): 
-> tda10023_readreg: readreg error (reg == 0x11, ret == -1)
-> Jul 11 12:29:52 bowser kernel: [ 1235.741264] DVB: TDA10023(1): 
-> tda10023_readreg: readreg error (reg == 0x11, ret == -1)
-> Jul 11 12:29:52 bowser kernel: [ 1235.801262] tda10023: lock tuner fails
-> Jul 11 12:29:52 bowser kernel: [ 1235.851263] DVB: TDA10023(1): 
-> tda10023_readreg: readreg error (reg == 0x11, ret == -1)
-> Jul 11 12:29:52 bowser kernel: [ 1235.951264] DVB: TDA10023(1): 
-> tda10023_readreg: readreg error (reg == 0x11, ret == -1)
-> Jul 11 12:29:52 bowser kernel: [ 1236.001263] tda10023: unlock tuner fails
-> Jul 11 12:29:52 bowser kernel: [ 1236.051271] tda10023: lock tuner fails
-> Jul 11 12:29:52 bowser kernel: [ 1236.101271] DVB: TDA10023(0): 
-> tda10023_readreg: readreg error (reg == 0x03, ret == -1)
-> Jul 11 12:29:53 bowser kernel: [ 1236.200557] DVB: TDA10023(0): 
-> tda10023_writereg, writereg error (reg == 0x03, val == 0x00, ret == -1)
-> 
-> Using lspci I see the following:
-> 
-> 01:05.0 Multimedia controller: Philips Semiconductors SAA7146 (rev ff) 
-> (prog-if ff)
->         !!! Unknown header type 7f
->         Kernel driver in use: budget_av
-> 
-> 01:07.0 Multimedia controller: Philips Semiconductors SAA7146 (rev ff) 
-> (prog-if ff)
->         !!! Unknown header type 7f
->         Kernel driver in use: budget_av
+Hi,
 
-This is not a PCI latency problem.
+There is a problem in the firedtv driver that causes recordings to stop if the SW zigzag algorithm in dvb-core kicks in with a retune after the
+application has set up the PID filters. Since tuning and setting PID filters uses the same AVC command (DSD) and only the replace subfunction is
+supported by the card, it is not possible to do a retune without setting the PID filters. This means that the PID filtering has to be sent in each
+tune.
 
-You appear to be experiencing PCI bus errors.  Read errors on the PCI
-bus return 0xffffffff and it looks like that's happening on your system:
+This problem applies to C and T cards since S and S2 cards tune using a vendor specific command. The patch below corrects the problem by sending the
+PID list in each tune. I have tested it on my T card with a good result. Since I can not test this on a C card I would appreciate if someone could
+try it out there as well.
 
-	(rev ff) (prog-if ff)
+How to trigger problem:
+Zap to a channel and output AV to a file, e.g. "tzap -c channels.conf SVT1 -r -o SVT1.ts". After a short while, pull the antenna cable from the
+card. The lock on the channel will disappear and the TS file will stop increasing in size. Wait a couple of seconds. Replug the cable again. You
+will get a lock on the channel again, but the TS file will never increase in size agains sinze no PIDS are filtered.
 
-PCI bus error are usually caused by the PCI bridge chips on your
-motherboard being overwhelmed or by bus signals of marginal quality or,
-of course, by actually defective hardware.
+Patch:
 
-As something simple and easy to try, I would suggest:
+>From dacd5b98be802176c10026617323f68b76ba19d0 Mon Sep 17 00:00:00 2001
+From: Henrik Kurelid <henrik@kurelid.se>
+Date: Tue, 14 Jul 2009 22:34:24 +0200
+Subject: [PATCH] firedtv: add PID filtering for SW zigzag retune
 
-1. Remove *all* your PCI cards
-2. Blow the dust out of *all* the slots.
-3. Reseat the cards.
+The AVC protocol uses the same command for tuning and PID filtering
+and since dvb-core uses a software zigzagging to do automatic
+retuning this could cause all PID filters to be cleared. PID
+filter information is now included in all DSD commands to the card.
 
-That will hopefully improve the signal quality on the bus.
+Signed-off-by: Henrik Kurelid <henrik@kurelid.se>
+---
+ drivers/media/dvb/firewire/firedtv-avc.c |   43 +++++++++++++++++++++--------
+ 1 files changed, 31 insertions(+), 12 deletions(-)
 
-You may also want to test with only 1 video capture card installed at
-first.
+diff --git a/drivers/media/dvb/firewire/firedtv-avc.c b/drivers/media/dvb/firewire/firedtv-avc.c
+index 32526f1..dccea83 100644
+--- a/drivers/media/dvb/firewire/firedtv-avc.c
++++ b/drivers/media/dvb/firewire/firedtv-avc.c
+@@ -254,6 +254,27 @@ int avc_recv(struct firedtv *fdtv, void *data, size_t length)
+        return 0;
+ }
+
++int add_pid_filter(struct firedtv *fdtv,
++                  u8* operand)
++{
++       int i, n, pos = 1;
++
++       for (i = 0, n = 0; i < 16; i++) {
++               if (test_bit(i, &fdtv->channel_active)) {
++                       operand[pos++] = 0x13; /* flowfunction relay */
++                       operand[pos++] = 0x80; /* dsd_sel_spec_valid_flags -> PID */
++                       operand[pos++] = (fdtv->channel_pid[i] >> 8) & 0x1f;
++                       operand[pos++] = fdtv->channel_pid[i] & 0xff;
++                       operand[pos++] = 0x00; /* tableID */
++                       operand[pos++] = 0x00; /* filter_length */
++                       n++;
++               }
++       }
++       operand[0] = n;
++
++       return pos;
++}
++
+ /*
+  * tuning command for setting the relative LNB frequency
+  * (not supported by the AVC standard)
+@@ -316,7 +337,8 @@ static void avc_tuner_tuneqpsk(struct firedtv *fdtv,
+        }
+ }
+
+-static void avc_tuner_dsd_dvb_c(struct dvb_frontend_parameters *params,
++static void avc_tuner_dsd_dvb_c(struct firedtv *fdtv,
++                               struct dvb_frontend_parameters *params,
+                                struct avc_command_frame *c)
+ {
+        c->opcode = AVC_OPCODE_DSD;
+@@ -378,13 +400,12 @@ static void avc_tuner_dsd_dvb_c(struct dvb_frontend_parameters *params,
+
+        c->operand[20] = 0x00;
+        c->operand[21] = 0x00;
+-       /* Nr_of_dsd_sel_specs = 0 -> no PIDs are transmitted */
+-       c->operand[22] = 0x00;
+-
+-       c->length = 28;
++       /* Add PIDs to filter */
++       c->length = ALIGN(22 + add_pid_filter(fdtv, &c->operand[22]) + 3, 4);
+ }
+
+-static void avc_tuner_dsd_dvb_t(struct dvb_frontend_parameters *params,
++static void avc_tuner_dsd_dvb_t(struct firedtv *fdtv,
++                               struct dvb_frontend_parameters *params,
+                                struct avc_command_frame *c)
+ {
+        struct dvb_ofdm_parameters *ofdm = &params->u.ofdm;
+@@ -481,10 +502,8 @@ static void avc_tuner_dsd_dvb_t(struct dvb_frontend_parameters *params,
+
+        c->operand[15] = 0x00; /* network_ID[0] */
+        c->operand[16] = 0x00; /* network_ID[1] */
+-       /* Nr_of_dsd_sel_specs = 0 -> no PIDs are transmitted */
+-       c->operand[17] = 0x00;
+-
+-       c->length = 24;
++       /* Add PIDs to filter */
++       c->length = ALIGN(17 + add_pid_filter(fdtv, &c->operand[17]) + 3, 4);
+ }
+
+ int avc_tuner_dsd(struct firedtv *fdtv,
+@@ -502,8 +521,8 @@ int avc_tuner_dsd(struct firedtv *fdtv,
+        switch (fdtv->type) {
+        case FIREDTV_DVB_S:
+        case FIREDTV_DVB_S2: avc_tuner_tuneqpsk(fdtv, params, c); break;
+-       case FIREDTV_DVB_C: avc_tuner_dsd_dvb_c(params, c); break;
+-       case FIREDTV_DVB_T: avc_tuner_dsd_dvb_t(params, c); break;
++       case FIREDTV_DVB_C: avc_tuner_dsd_dvb_c(fdtv, params, c); break;
++       case FIREDTV_DVB_T: avc_tuner_dsd_dvb_t(fdtv, params, c); break;
+        default:
+                BUG();
+        }
+-- 
+1.6.0.6
+
+
 
 Regards,
-Andy
-
-> Before the problem the lspci output looked like this:
-> 
-> 01:06.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
->         Subsystem: TERRATEC Electronic GmbH Device 1176
->         Flags: bus master, medium devsel, latency 32, IRQ 16
->         Memory at faeffc00 (32-bit, non-prefetchable) [size=512]
->         Kernel driver in use: budget_av
->         Kernel modules: budget-av
-> 
-> 01:07.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
->         Subsystem: TERRATEC Electronic GmbH Device 1176
->         Flags: bus master, medium devsel, latency 32, IRQ 19
->         Memory at faeff800 (32-bit, non-prefetchable) [size=512]
->         Kernel driver in use: budget_av
->         Kernel modules: budget-av
-> 
-> Searching on google I found something about adjusting pci-latencies to 
-> 64, I already tried that, but it didn't help. I updated the BIOS to the 
-> latest version, but that didn't help either.
-> 
-> Any ideas?
-> 
-> Matthias
-
-
+Henrik
