@@ -1,67 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:50398 "EHLO mx2.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751438AbZGVLzV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2009 07:55:21 -0400
-Date: Wed, 22 Jul 2009 08:54:36 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Jiri Kosina <jkosina@suse.cz>
-Cc: Peter =?ISO-8859-1?B?SPx3ZQ==?= <PeterHuewe@gmx.de>,
-	kernel-janitors@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Frederic CAND <frederic.cand@anevia.com>,
-	Trent Piepho <xyzzy@speakeasy.org>,
-	Darron Broad <darron@kewl.org>,
-	Steven Toth <stoth@linuxtv.org>,
-	"Igor M. Liplianin" <liplianin@me.by>,
-	Oleg Roitburd <oroitburd@gmail.com>,
-	Yang Hongyang <yanghy@cn.fujitsu.com>,
-	Jelle Foks <jelle@foks.us>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] media/video/cx88: adding __init/__exit macros to cx88
- drivers
-Message-ID: <20090722085436.6ebd43c1@pedra.chehab.org>
-In-Reply-To: <alpine.LNX.2.00.0907221138520.11648@wotan.suse.de>
-References: <200907170100.02816.PeterHuewe@gmx.de>
-	<200907221136.30036.PeterHuewe@gmx.de>
-	<alpine.LNX.2.00.0907221138520.11648@wotan.suse.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail.ammma.de ([213.83.39.131]:2302 "EHLO ammma.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756703AbZGOBA2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Jul 2009 21:00:28 -0400
+Received: from ammma.net (hydra.ammma.mil [192.168.110.1])
+	by ammma.de (8.11.6/8.11.6/AMMMa AG) with ESMTP id n6F0a0b18426
+	for <linux-media@vger.kernel.org>; Wed, 15 Jul 2009 02:36:00 +0200
+Received: from neo.wg.de (hydra.ammma.mil [192.168.110.1])
+	by ammma.net (8.12.11.20060308/8.12.11/AMMMa AG) with ESMTP id n6F0V4HT014575
+	for <linux-media@vger.kernel.org>; Wed, 15 Jul 2009 02:31:04 +0200
+Received: from localhost (localhost [127.0.0.1])
+	by neo.wg.de (Postfix) with ESMTP id CE35042519E
+	for <linux-media@vger.kernel.org>; Wed, 15 Jul 2009 02:31:03 +0200 (CEST)
+Received: from neo.wg.de ([127.0.0.1])
+	by localhost (neo.wg.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id vVp1wMocTfqO for <linux-media@vger.kernel.org>;
+	Wed, 15 Jul 2009 02:30:53 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by neo.wg.de (Postfix) with ESMTP id 7C01445E757
+	for <linux-media@vger.kernel.org>; Wed, 15 Jul 2009 02:30:53 +0200 (CEST)
+Message-ID: <20090715023053.52902q544z47hg84@neo.wg.de>
+Date: Wed, 15 Jul 2009 02:30:53 +0200
+From: Jan Schneider <jan@horde.org>
+To: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] TechnoTrend C-2300 and QAM 128
+References: <30AD329C-50B6-44EA-ACD3-ED90713AA769@henes.no>
+In-Reply-To: <30AD329C-50B6-44EA-ACD3-ED90713AA769@henes.no>
+MIME-Version: 1.0
+Content-Type: multipart/signed;
+ boundary="=_2bwsc0axww2s";
+ protocol="application/pgp-signature";
+ micalg="pgp-sha1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 22 Jul 2009 11:40:08 +0200 (CEST)
-Jiri Kosina <jkosina@suse.cz> escreveu:
+This message is in MIME format and has been PGP signed.
 
-> On Wed, 22 Jul 2009, Peter Hüwe wrote:
-> 
-> > > Trivial patch which adds the __init and __exit macros to the 
-> > > module_init / module_exit functions to several files in 
-> > > drivers/media/video/cx88/
-> > >
-> > > linux version 2.6.31-rc3 - linus git tree
-> > >
-> > > Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
-> > any updates on this patch?
+--=_2bwsc0axww2s
+Content-Type: text/plain;
+ charset=ISO-8859-1;
+ DelSp="Yes";
+ format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > 
-> > If my minor fixes bug you too much please give me a hint how I can improve my 
-> > patches.
-> 
-> Well the minor issue is that when you send trivial patches to 
-> trivial@kernel.org and also to all the involved maintainers, I am waiting 
-> for them to apply them into their trees and only if this doesn't happen 
-> after some time (I check regularly, but not very frequently), I apply to 
-> trivial queue.
+Zitat von Johan Hen=E6s <johan@henes.no>:
 
-Jiri,
+> Hi !
+>
+> Recently I have bought three TechnoTrend C-2300 for use in my Mythtv-
+> system. Everything seemed to go smooth, but for a major share of the
+> channels I have problems getting a channel lock. (Or if I do on some
+> of them, I get a "distorted" image with lots of "bit errors"....
+>
+> Using the latest firmware for Linux : dvb-ttpci-01.fw-2622...
+>
+> After poking around the Internet I found that QAM 128 has been a
+> problem for TechnoTrend cards, and the funny thing is that my cable-
+> provider is using QAM 128 for all channels (including the ones that
+> works very well).
+>
+> As I experience problems with most of my channels I still thought
+> maybe this would be the problem. I haven't seen posts on the issue for
+> quite a while and realizing that the latest firmware available for
+> these cards is dated 2005, I wondered where I can find an updated
+> version or if anyone has a solution to my problem........
 
-Are you applying it via trivial tree, or do you prefer if I apply this patch at
-linux-media one?
+This card has a broken tuner. Try tuning down all frequencies. I got =20
+best results by downtuning them by 500000.
 
--- 
+Jan.
 
-Cheers,
-Mauro
+--=20
+Do you need professional PHP or Horde consulting?
+http://horde.org/consulting/
+--=_2bwsc0axww2s
+Content-Type: application/pgp-signature
+Content-Description: Digitale PGP-Unterschrift
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.9 (GNU/Linux)
+
+iEYEABECAAYFAkpdIz0ACgkQeZECfE3luWlY2gCgyU6b7rEe2wA8l/kU0ROXKF92
+nzgAoNvvl8E0wKri1V1fiV5J1mkSFzG9
+=JrxQ
+-----END PGP SIGNATURE-----
+
+--=_2bwsc0axww2s--
+
