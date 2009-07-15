@@ -1,44 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:45772 "EHLO
-	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752986AbZGEPBn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jul 2009 11:01:43 -0400
-Date: Mon, 6 Jul 2009 00:01:35 +0900
-From: Paul Mundt <lethal@linux-sh.org>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Wu Zhangjin <wuzhangjin@gmail.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-mips@linux-mips.org,
-	Krzysztof Helt <krzysztof.h1@wp.pl>,
-	Peter Zijlstra <a.p.zijlstra@chello.nl>,
-	"Rafael J. Wysocki" <rjw@sisk.pl>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Ralf Baechle <ralf@linux-mips.org>, ???? <yanh@lemote.com>,
-	zhangfx <zhangfx@lemote.com>
-Subject: Re: [BUG] drivers/video/sis: deadlock introduced by "fbdev: add mutex for fb_mmap locking"
-Message-ID: <20090705150134.GB8326@linux-sh.org>
-References: <1246785112.14240.34.camel@falcon> <alpine.LFD.2.01.0907050715490.3210@localhost.localdomain> <20090705145203.GA8326@linux-sh.org> <alpine.LFD.2.01.0907050756280.3210@localhost.localdomain>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:58960 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754948AbZGOVwB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jul 2009 17:52:01 -0400
+From: "Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>
+To: John Sarman <johnsarman@gmail.com>,
+	"sakari.ailus@nokia.com" <sakari.ailus@nokia.com>,
+	Tuukka Toivonen <tuukka.o.toivonen@nokia.com>,
+	linux-media <linux-media@vger.kernel.org>
+Date: Wed, 15 Jul 2009 16:51:50 -0500
+Subject: RE: Help bringing up a sensor driver for isp omap34xx.c
+Message-ID: <A24693684029E5489D1D202277BE894449E14132@dlee02.ent.ti.com>
+References: <bb2708720907151444l3a93bcb3y75d227c4828ec311@mail.gmail.com>
+In-Reply-To: <bb2708720907151444l3a93bcb3y75d227c4828ec311@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.01.0907050756280.3210@localhost.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jul 05, 2009 at 07:56:56AM -0700, Linus Torvalds wrote:
-> 
-> 
-> On Sun, 5 Jul 2009, Paul Mundt wrote:
-> >  			break;
-> >  	fb_info->node = i;
-> >  	mutex_init(&fb_info->lock);
-> > -	mutex_init(&fb_info->mm_lock);
-> 
-> Why not "lock" as well?
-> 
-I had that initially, but matroxfb will break if we do that, and
-presently nothing cares about trying to take ->lock that early on.
+(Unlooping Sameer and Mohit, as they don't longer maintain the driver)
 
-->mm_lock was a special case as the lock/unlock pairs were sprinkled
-around well before initialization, while in the ->lock case all of the
-lock/unlock pairs are handled internally by the fbmem code (at least a
-quick grep does not show any drivers using it on their own).
+Hi John,
+
+> -----Original Message-----
+> From: John Sarman [mailto:johnsarman@gmail.com]
+> Sent: Wednesday, July 15, 2009 4:45 PM
+> To: sakari.ailus@nokia.com; Venkatraman, Sameer; Mohit Jalori; Aguirre
+> Rodriguez, Sergio Alberto; Tuukka Toivonen; linux-media
+> Subject: Help bringing up a sensor driver for isp omap34xx.c
+> 
+> Hello,
+>    I am having a problem deciphering what is wrong with my sensor
+> driver.  It seems that everything operates on the driver but that I am
+> getting buffer overflows.  I have fully tested the image sensor and it
+> is set to operate in 640x480 mode. currently it is like 648x 487 for
+> the dummy pixels and lines.  I have enabled all the debugging #defines
+> in the latest code from the gitorious repository.
+
+Can you specify the gitorious repository URL you're using?
+
+  I also had to edit
+> a few debug statements because they cause the compile to fail. Those
+> failures were due to the resizer rewrite and since the #defines were
+> commented out that code was never compiled.  Anyways here is my dmesg
+> after I open and select the /dev/video0.
+> 
+> I have been banging my head against a wall for 2 weeks now.
+> 
+> Thanks,
+> 
+
+<snip>
+
+> ISPCTRL: <1>isp_buf_queue: queue 0 vb 0, mmu 000a4000
+> ISPCTRL: <1>isp_buf_queue: queue 1 vb 1, mmu 0013a000
+> ISPCTRL: <1>isp_buf_queue: queue 2 vb 2, mmu 001d0000
+> ISPCTRL: <1>isp_buf_queue: queue 3 vb 3, mmu 00266000
+> ISPCTRL: HS_VS_IRQ <6>ISPCTRL: OVF_IRQ <6>ISPCTRL:
+> ISPCTRL: HS_VS_IRQ <6>ISPCTRL: OVF_IRQ <6>ISPCTRL:
+> ISPCTRL: HS_VS_IRQ <6>ISPCTRL: OVF_IRQ <6>ISPCTRL:
+> ISPCTRL: HS_VS_IRQ <6>ISPCTRL: OVF_IRQ <6>ISPCTRL:
+
+Seems that you're getting an overflow in the SBL (Shared Buffer Logic) component, which is the one that manages to save/load the buffers from memory.
+
+It could happen because the SBL is writing pretty slow to memory...
+
+Is it possible that you share your patches to integrate this sensor driver + boardfile changes you did?
+
+That way I can help you more.
+
+Regards,
+Sergio
+
