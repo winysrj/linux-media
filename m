@@ -1,64 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rtr.ca ([76.10.145.34]:54171 "EHLO mail.rtr.ca"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754527AbZGSPMD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jul 2009 11:12:03 -0400
-Message-ID: <4A6337C1.6080104@rtr.ca>
-Date: Sun, 19 Jul 2009 11:12:01 -0400
-From: Mark Lord <lkml@rtr.ca>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Steven Toth <stoth@linuxtv.org>, linux-media@vger.kernel.org,
-	Linux Kernel <linux-kernel@vger.kernel.org>
-Subject: Re: Regression 2.6.31: xc5000 no longer works with Myth-0.21-fixes
- 	branch
-References: <4A631C8F.7000002@rtr.ca> <829197380907190706i686fd1afwdca0d8be648129@mail.gmail.com>
-In-Reply-To: <829197380907190706i686fd1afwdca0d8be648129@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Received: from bombadil.infradead.org ([18.85.46.34]:39689 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755664AbZGOSdN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Jul 2009 14:33:13 -0400
+Date: Wed, 15 Jul 2009 15:32:39 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Oldrich Jedlicka <oldium.pro@seznam.cz>
+Cc: Hartmut Hackmann <hartmut.hackmann@t-online.de>,
+	Dmitri Belimov <d.belimov@gmail.com>,
+	Ricardo Cerqueira <v4l@cerqueira.org>,
+	LMML <linux-media@vger.kernel.org>,
+	hermann pitton <hermann-pitton@arcor.de>
+Subject: Re: [RFC] SAA713x setting audio capture frequency (ALSA)
+Message-ID: <20090715153239.48043b15@pedra.chehab.org>
+In-Reply-To: <200907151736.25586.oldium.pro@seznam.cz>
+References: <200907121948.39944.oldium.pro@seznam.cz>
+	<200907150857.13784.oldium.pro@seznam.cz>
+	<20090715055842.42ba195e@pedra.chehab.org>
+	<200907151736.25586.oldium.pro@seznam.cz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> On Sun, Jul 19, 2009 at 9:15 AM, Mark Lord<lkml@rtr.ca> wrote:
->> Devin,
->>
->> Thanks for your good efforts and updates on the xc5000 driver.
->> But the version in 2.6.31 no longer works with mythfrontend
->> from the 0.21-fixes branch of MythTV.
-..
-> Also, Could you please install the latest v4l-dvb code using the
-> directions at http://linuxtv.org/repo and see if the problem still
-> occurs.  This will tell us if the problem is some patch that didn't
-> make it upstream, and will make it easier for me to give you patches
-> that provide more debug info.
-..
+Em Wed, 15 Jul 2009 17:36:25 +0200
+Oldrich Jedlicka <oldium.pro@seznam.cz> escreveu:
 
-Okay, I pulled in v4l-dvb-bdd711bbc07e, built/installed/rebooted,
-and ended up with exactly the same behaviour.
 
-So the good news is, nothing appears to have been left out in 2.6.31. :)
+> > So, maybe the right thing to do is to report just 32 kHz.
+> 
+> Exactly. This is what I'm thinking about too. The typical ALSA usage 
+> (according to [1]) is:
+> 
+> 1. open the device
+> 2. set parameters of the device
+> 3. repeat until not done: read from the device, write to the device
+> 4. close the device
+> 
+> There is nothing in between ALSA and the program, so the frequency change 
+> isn't and cannot be propagated from the driver (for this to work there has to 
+> be somebody doing the frequency resampling).
+> 
+> So to have the ability to switch capture sources (the basic ALSA 
+> functionality), it is needed to support the same set of frequencies for all 
+> the capture sources - 32kHz.
+> 
+> If we can agree on this, then I have one part of questions closed :-)
+> 
+> [1] http://www.equalarea.com/paul/alsa-audio.html
 
-But still no really good clues to go on, other than this observation
-from before:
+Yes, I agree. 
 
->> The mythbackend (recording) program tunes/records fine with it,
->> but any attempt to watch "Live TV" via mythfrontend just locks
->> up the UI for 30 seconds or so, and then it reverts to the menus.
->>
->> I find that rather odd, as mythfrontend normally has very little
->> interaction with the tuner devices.  But it does try to read the
->> signal strength and quality from the tuner, so perhaps this is a
->> clue as to what has gone wrong?
-..
+The patch changing this should add a proper description and a source-code
+comment explaining why supporting 48kHz is not a good idea.
 
-Really, the mythfrontend DOES NOT DEAL WITH TUNERS directly,
-leaving that to the mythbackend.  EXCEPT for when it wants to show
-a signal strength/quality indication onscreen, which is done
-when tuning to a new channel.
 
-So it's got to be something on that pathway, I suspect,
-but despite being a kernel developer, I'm not terribly
-knowledgeable about V4L, DVB, or the MythTV internals.
 
-Cheers
+Cheers,
+Mauro
