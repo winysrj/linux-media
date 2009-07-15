@@ -1,87 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2147 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752068AbZG3GkF (ORCPT
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:45341 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755581AbZGOBBD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2009 02:40:05 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] em28xx: enable usb audio for plextor px-tv100u
-Date: Thu, 30 Jul 2009 08:39:46 +0200
-Cc: acano@fastmail.fm, linux-media@vger.kernel.org
-References: <20090718173758.GA32708@localhost.localdomain> <cb2af7c6ef118cb5fe1fab2720ec7973.squirrel@webmail.xs4all.nl> <20090730000634.21fea61a@pedra.chehab.org>
-In-Reply-To: <20090730000634.21fea61a@pedra.chehab.org>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+	Tue, 14 Jul 2009 21:01:03 -0400
+Subject: Re: Report: Compro Videomate Vista T750F
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Samuel Rakitnican <semirocket@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <op.uw0f6php80yj81@localhost>
+References: <op.uwycxowt80yj81@localhost>
+	 <1247434386.5152.28.camel@pc07.localdom.local>
+	 <op.uw0f6php80yj81@localhost>
+Content-Type: text/plain
+Date: Wed, 15 Jul 2009 02:51:39 +0200
+Message-Id: <1247619099.3188.8.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907300839.46715.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 30 July 2009 05:06:34 Mauro Carvalho Chehab wrote:
-> Em Wed, 29 Jul 2009 17:08:31 +0200
-> "Hans Verkuil" <hverkuil@xs4all.nl> escreveu:
+
+Am Montag, den 13.07.2009, 16:36 +0200 schrieb Samuel Rakitnican:
+> Hi Hermann,
 > 
-> > > I did some tests here: if we replace -EINVAL with -ENOIOCTLCMD, we can
-> > > properly
-> > > make v4l2_device_call_until_err() to work, fixing the lack of a proper
-> > > error
-> > > report at the drivers. This error code seems also appropriate for this
-> > > case.
-> > 
-> > This is not sufficient: v4l2_device_call_until_err is not really suitable
-> > for this. 
+>   On Sun, 12 Jul 2009 23:33:06 +0200, hermann pitton
+>   <hermann-pitton@arcor.de> wrote:
 > 
-> Agreed. Yet, the tests helped to see what changes were needed.
+>   [snip]
+> > Hm, if I get it right, without using windows previously the XCeive at
+> > 0x61 is not found and then it is tried in vain to use the qt1010 at
+> > 0x62.
+> >
+> > Also, after using windows gpio20 seems to be high.
+> > Maybe that is the gpio to get the tuner out of reset.
+> >
+> > Please try the attached patch as a shot into the dark.
+> >
+>   [snip]
 > 
-> >This would be better:
-> > 
-> > #define __v4l2_device_call_subdevs_ctrls(v4l2_dev, cond, o, f, args...) \
-> > ({                                                                      \
-> >         struct v4l2_subdev *sd;                                         \
-> >         long err = 0;                                                   \
-> >                                                                         \
-> >         list_for_each_entry(sd, &(v4l2_dev)->subdevs, list) {           \
-> >                 if ((cond) && sd->ops->o && sd->ops->o->f)              \
-> >                         err = sd->ops->o->f(sd , ##args);               \
-> >                 if (err && err != -ENOIOCTLCMD)                         \
+> No, I pay attention when I test for channel that XCeive gets recognized
+> as 0x61. When I do cold boot, or windows reboot its always gets
+> recognized at 0x61. Sometimes (I don't know exactly what triggers that)
+> the 0x61 gets omitted, and the result is that XCeive get recognized as
+> 0x62. The result is that channel is not showing any more, apparently.
 > 
-> No, this is not right. In the case of controls, it should be, instead:
+> I think that xc2028-27.fw file load failures triggers that behavior,
+> because when I reboot linux with loading firmware failures, that
+> behavior is showing (from what I have noticed).
 > 
->                  if (err != -ENOIOCTLCMD)
-
-Indeed.
-
+> Sorry for the gpio alert, but I did some logging, and the gpio value
+> varies, and depends on computer state. But it seems that is same in both
+> cases after all. (details http://pastebin.com/f4c511dfc)
 > 
-> Also, such routine is has nothing specific for ctrls, so, the naming doesn't
-> look nice. I'll find a better name.
+> I tried your patch, too, and it's not working. Thank you for trying.
 
-I hacked it together on short notice, so feel to hack it some more :-)
+Hi Samuel,
 
-> 
-> >                         break;                                          \
-> >         }                                                               \
-> >         (err == -ENOIOCTLCMD) ? -EINVAL : err;                          \
-> > })
-> > 
-> > This way -EINVAL is returned if the control isn't handled anywhere.
-> 
-> Ok, but I'm in doubt if -EINVAL is the better return code on such case, but, in
-> order to not break backward compatibility, better to return -EINVAL.
+thanks for that clarification.
 
-I'd love to be able to change the use of EINVAL for unknown controls. I think
-there are some other cases as well in the spec where EINVAL is incorrectly
-used. But that's almost impossible to change without breaking backwards
-compatibility.
+I don't know, if Markus has something better in his binary blob
+meanwhile, he was initially interested at least, but how to comment on
+stuff not shown anymore ...
 
-The only way I can think of doing this is by having the application explicitly
-request such changed behavior. But that's a very slippery slope to go on.
+At least, the remote will be operable for cheap.
 
-Regards,
+Does anybody know, why Compro doesn't clear the eeprom byte for the
+analog demodulator since years (0x86)? F* it.
 
-	Hans
+Cheers,
+Hermann
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+
+
+
+
