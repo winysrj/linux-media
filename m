@@ -1,16 +1,17 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail-ew0-f212.google.com ([209.85.219.212])
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <fonta72@gmail.com>) id 1MU363-00028t-Ds
-	for linux-dvb@linuxtv.org; Thu, 23 Jul 2009 20:32:53 +0200
-Received: by ewy8 with SMTP id 8so1204169ewy.17
-	for <linux-dvb@linuxtv.org>; Thu, 23 Jul 2009 11:32:17 -0700 (PDT)
-MIME-Version: 1.0
-Date: Thu, 23 Jul 2009 20:32:17 +0200
-Message-ID: <bb6641fe0907231132g3e744632x181fc44910f35ecf@mail.gmail.com>
-From: Angelo Fontana <fonta72@gmail.com>
+	(envelope-from <sammi@villingaholt.nu>) id 1MRaZQ-0000bR-76
+	for linux-dvb@linuxtv.org; Fri, 17 Jul 2009 01:41:01 +0200
+Received: by ewy8 with SMTP id 8so532966ewy.17
+	for <linux-dvb@linuxtv.org>; Thu, 16 Jul 2009 16:40:24 -0700 (PDT)
+Message-Id: <623C8383-6282-43FC-88C0-13E9F0060445@villingaholt.nu>
+From: =?ISO-8859-1?Q?Sam=FAel_J=F3n_Gunnarsson?= <sammi@villingaholt.nu>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb]  DVB-T support for Pinnacle PCTV Hybrid Pro Stick
+Mime-Version: 1.0 (Apple Message framework v935.3)
+Date: Thu, 16 Jul 2009 23:40:20 +0000
+Cc: =?ISO-8859-1?Q?Sam=FAel_J=F3n_Gunnarsson?= <sammi@villingaholt.nu>
+Subject: [linux-dvb] Gigabyte GT-P8000 dvb-t / analog / fm radio - pci
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -19,127 +20,144 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
-I'm trying to use my USB PTCV with linux (Debian Lenny).
-After compiling, installing the latest version of v4l-dvb drivers and
-loading em28xx-dvb module i can't use DVB features of the device.
+Hi all,
 
-This is the output of dmesg:
+I also have this kind of tv tuner card and I have sent a little  
+inquiry through gigabyte global support site asking for additional  
+details.
 
-------------------------------------------------
-fontang@debian:~/devel$ dmesg |=A0 tail -n 62
-[=A0 757.093719] Linux video capture interface: v2.00
-[=A0 757.217000] usbcore: registered new interface driver em28xx
-[=A0 757.217011] em28xx driver loaded
-[=A0 757.246117] Em28xx: Initialized (Em28xx dvb Extension) extension
-[=A0 867.356460] usb 4-5.2: new high speed USB device using ehci_hcd and ad=
-dress 4
-[=A0 867.456523] usb 4-5.2: configuration #1 chosen from 1 choice
-[=A0 867.458803] em28xx: New device Pinnacle Systems PCTV 330e @ 480
-Mbps (2304:0226, interface 0, class 0)
-[=A0 867.458835] em28xx #0: Identified as Pinnacle Hybrid Pro (2) (card=3D5=
-6)
-[=A0 867.459482] em28xx #0: chip ID is em2882/em2883
-[=A0 867.642402] em28xx #0: i2c eeprom 00: 1a eb 67 95 04 23 26 02 d0 12
-5c 03 8e 16 a4 1c
-[=A0 867.642418] em28xx #0: i2c eeprom 10: 6a 24 27 57 46 07 01 00 00 00
-00 00 00 00 00 00
-[=A0 867.642427] em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 02 00 b8 00
-00 00 5b e0 00 00
-[=A0 867.642435] em28xx #0: i2c eeprom 30: 00 00 20 40 20 6e 02 20 10 01
-00 00 00 00 00 00
-[=A0 867.642443] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[=A0 867.642451] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[=A0 867.642458] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00
-24 03 50 00 69 00
-[=A0 867.642466] em28xx #0: i2c eeprom 70: 6e 00 6e 00 61 00 63 00 6c 00
-65 00 20 00 53 00
-[=A0 867.642474] em28xx #0: i2c eeprom 80: 79 00 73 00 74 00 65 00 6d 00
-73 00 00 00 16 03
-[=A0 867.642482] em28xx #0: i2c eeprom 90: 50 00 43 00 54 00 56 00 20 00
-33 00 33 00 30 00
-[=A0 867.642490] em28xx #0: i2c eeprom a0: 65 00 00 00 1c 03 30 00 37 00
-30 00 34 00 30 00
-[=A0 867.642498] em28xx #0: i2c eeprom b0: 31 00 38 00 38 00 33 00 38 00
-35 00 38 00 00 00
-[=A0 867.642506] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[=A0 867.642514] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[=A0 867.642522] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[=A0 867.642530] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[=A0 867.642540] em28xx #0: EEPROM ID=3D 0x9567eb1a, EEPROM hash =3D 0xfab3=
-a3bf
-[=A0 867.642542] em28xx #0: EEPROM info:
-[=A0 867.642544] em28xx #0:=A0=A0=A0 AC97 audio (5 sample rates)
-[=A0 867.642546] em28xx #0:=A0=A0=A0 500mA max power
-[=A0 867.642549] em28xx #0:=A0=A0=A0 Table at 0x27, strings=3D0x168e, 0x1ca=
-4, 0x246a
-[=A0 867.642554] em28xx #0:
-[=A0 867.642555]
-[=A0 867.642560] em28xx #0: The support for this board weren't valid yet.
-[=A0 867.642563] em28xx #0: Please send a report of having this working
-[=A0 867.642565] em28xx #0: not to V4L mailing list (and/or to other addres=
-ses)
-[=A0 867.642567]
-[=A0 867.674478] tvp5150 1-005c: chip found @ 0xb8 (em28xx #0)
-[=A0 867.696840] tuner 1-0061: chip found @ 0xc2 (em28xx #0)
-[=A0 867.761130] xc2028 1-0061: creating new instance
-[=A0 867.761142] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
-[=A0 867.761158] firmware: requesting xc3028-v27.fw
-[=A0 867.852898] xc2028 1-0061: Loading 80 firmware images from
-xc3028-v27.fw, type: xc2028 firmware, ver 2.7
-[=A0 867.900375] xc2028 1-0061: Loading firmware for type=3DBASE MTS (5),
-id 0000000000000000.
-[=A0 868.328337] usb 4-5.4: reset low speed USB device using ehci_hcd
-and address 3
-[=A0 868.833424] xc2028 1-0061: Loading firmware for type=3DMTS (4), id
-000000000000b700.
-[=A0 868.848556] xc2028 1-0061: Loading SCODE for type=3DMTS LCD NOGD MONO
-IF SCODE HAS_IF_4500 (6002b004), id 000000000000b700.
-[=A0 869.032445] em28xx #0: Config register raw data: 0xd0
-[=A0 869.033538] em28xx #0: AC97 vendor ID =3D 0xffffffff
-[=A0 869.034037] em28xx #0: AC97 features =3D 0x6a90
-[=A0 869.034052] em28xx #0: Empia 202 AC97 audio processor detected
-[=A0 869.164527] tvp5150 1-005c: tvp5150am1 detected.
-[=A0 869.261040] em28xx #0: v4l2 driver version 0.1.2
-[=A0 869.380422] em28xx #0: V4L2 device registered as /dev/video0 and /dev/=
-vbi0
-[=A0 869.396451] usb 4-5.2: New USB device found, idVendor=3D2304, idProduc=
-t=3D0226
-[=A0 869.396474] usb 4-5.2: New USB device strings: Mfr=3D3, Product=3D1,
-SerialNumber=3D2
-[=A0 869.396486] usb 4-5.2: Product: PCTV 330e
-[=A0 869.396494] usb 4-5.2: Manufacturer: Pinnacle Systems
-[=A0 869.396502] usb 4-5.2: SerialNumber: 070401883858
-[=A0 869.449285] em28xx-audio.c: probing for em28x1 non standard usbaudio
-[=A0 869.449295] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-[=A0 869.449643] Em28xx: Initialized (Em28xx Audio Extension) extension
-[=A0 869.680595] tvp5150 1-005c: tvp5150am1 detected.
+I took down the details on my card (REV 3.01) and it was as follows:
 
-------------------------------------------------
+IC's on the board seen without my glasses ;-)
+NXP
+TDA10048HN
+Q722GZP		05
+2PG07472
+http://www.datasheetpro.com/897655_view_TDA10048HN_datasheet.html
 
-dmesg says that this device is not yet supported but it is present in
-the list of supported DVBT USB devices
-(http://www.linuxtv.org/wiki/index.php/DVB-T_USB_Devices).
+NXP
+SAA7131E/03/G
+CK3827		03
+SI1503.1
+TSG08012
+http://www.datasheetpro.com/1583522_view_SAA7131E_datasheet.html
 
-The analog part of the device works properly.
+Here is an output from dmesg on how the saa7134 was detected with out  
+parameters:
 
-Something wrong in my configuration?
-Is there any plan for a support of Pinnacle PCTV Hybrid Stick Pro in linux?
+[   10.786721] saa7130/34: v4l2 driver version 0.2.14 loaded
+[   10.786843] saa7134 0000:00:0a.0: PCI INT A -> GSI 18 (level, low) - 
+ > IRQ 18
+[   10.786915] saa7133[0]: found at 0000:00:0a.0, rev: 209, irq: 18,  
+latency: 32, mmio: 0xfa041000
+[   10.786994] saa7133[0]: subsystem: 1458:9004, board: UNKNOWN/ 
+GENERIC [card=0,autodetected]
+[   10.787173] saa7133[0]: board init: gpio is 0
+[   10.960016] saa7133[0]: i2c eeprom 00: 58 14 04 90 54 20 1c 00 43  
+43 a9 1c 55 d2 b2 92
+[   10.960846] saa7133[0]: i2c eeprom 10: ff ff ff ff ff 20 ff ff ff  
+ff ff ff ff ff ff ff
+[   10.961671] saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 01 03 08  
+ff 00 b3 ff ff ff ff
+[   10.962496] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[   10.963320] saa7133[0]: i2c eeprom 40: 50 35 00 c0 96 10 05 32 d5  
+15 0e 00 ff ff ff ff
+[   10.964239] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[   10.965063] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[   10.965887] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[   10.966711] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[   10.967535] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[   10.968359] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[   10.969184] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[   10.970015] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[   10.970840] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[   10.971663] saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[   10.972487] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[   10.973771] saa7133[0]: registered device video0 [v4l2]
+[   10.973856] saa7133[0]: registered device vbi0
 
-Thanks and regards.
-Angelo Fontana.
+Here is an output from dmesg on how the saa7134 was detected with  
+parameters: modprobe -v saa7134 card=81 i2c_scan=1
+
+[ 3021.884358] saa7130/34: v4l2 driver version 0.2.14 loaded
+[ 3021.884408] saa7133[0]: found at 0000:00:0a.0, rev: 209, irq: 18,  
+latency: 32, mmio: 0xfa041000
+[ 3021.884416] saa7133[0]: subsystem: 1458:9004, board: Philips Tiger  
+reference design [card=81,insmod option]
+[ 3021.884466] saa7133[0]: board init: gpio is 0
+[ 3022.074301] saa7133[0]: i2c eeprom 00: 58 14 04 90 54 20 1c 00 43  
+43 a9 1c 55 d2 b2 92
+[ 3022.074311] saa7133[0]: i2c eeprom 10: ff ff ff ff ff 20 ff ff ff  
+ff ff ff ff ff ff ff
+[ 3022.074320] saa7133[0]: i2c eeprom 20: 01 40 01 02 02 01 01 03 08  
+ff 00 b3 ff ff ff ff
+[ 3022.074327] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[ 3022.074335] saa7133[0]: i2c eeprom 40: 50 35 00 c0 96 10 05 32 d5  
+15 0e 00 ff ff ff ff
+[ 3022.074342] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[ 3022.074349] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[ 3022.074357] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[ 3022.074364] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[ 3022.074371] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[ 3022.074379] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[ 3022.074386] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[ 3022.074394] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[ 3022.074401] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[ 3022.074408] saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[ 3022.074416] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff  
+ff ff ff ff ff ff ff
+[ 3022.100102] saa7133[0]: i2c scan: found device @ 0x96  [???]
+[ 3022.120042] saa7133[0]: i2c scan: found device @ 0xa0  [eeprom]
+[ 3022.260159] tuner' 1-004b: chip found @ 0x96 (saa7133[0])
+[ 3022.450047] tda829x 1-004b: setting tuner address to 60
+[ 3022.534378] tda18271 1-0060: creating new instance
+[ 3022.620047] TDA18271HD/C1 detected @ 1-0060
+[ 3027.650038] tda829x 1-004b: type set to tda8290+18271
+[ 3038.470142] saa7133[0]: registered device video0 [v4l2]
+[ 3038.470170] saa7133[0]: registered device vbi0
+[ 3038.470202] saa7133[0]: registered device radio0
+[ 3038.802228] dvb_init() allocating 1 frontend
+[ 3039.120573] tda10046: chip is not answering. Giving up.
+
+
+As far as I can see the card should be using the TDA10048 instead of  
+TDA10046 which is used when modprobing with card=81. The reason that  
+i'm stating that is that the card does include the TDA10048HN chip.
+
+Is there any other card options that I should be using or some  
+particular source-code i should be looking into modifying ?
+
+Regards,
+Sammi
 
 _______________________________________________
 linux-dvb users mailing list
