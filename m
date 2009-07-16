@@ -1,162 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:55976 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751524AbZG2OmT (ORCPT
+Received: from mail-gx0-f213.google.com ([209.85.217.213]:55122 "EHLO
+	mail-gx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933224AbZGPUJk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jul 2009 10:42:19 -0400
-Date: Wed, 29 Jul 2009 11:42:11 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Cc: acano@fastmail.fm, linux-media@vger.kernel.org
-Subject: Re: [PATCH] em28xx: enable usb audio for plextor px-tv100u
-Message-ID: <20090729114211.065ed01f@pedra.chehab.org>
-In-Reply-To: <7aa4c771a5b1cf3117cf9faf027cc05c.squirrel@webmail.xs4all.nl>
-References: <20090718173758.GA32708@localhost.localdomain>
-	<20090729000753.GA24496@localhost.localdomain>
-	<20090729015730.34ab86c6@pedra.chehab.org>
-	<200907290809.32089.hverkuil@xs4all.nl>
-	<20090729094009.6dc01728@pedra.chehab.org>
-	<7aa4c771a5b1cf3117cf9faf027cc05c.squirrel@webmail.xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Thu, 16 Jul 2009 16:09:40 -0400
+Received: by gxk9 with SMTP id 9so632301gxk.13
+        for <linux-media@vger.kernel.org>; Thu, 16 Jul 2009 13:09:39 -0700 (PDT)
+From: Lamarque Vieira Souza <lamarque@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] Implement V4L2_CAP_STREAMING for zr364xx driver
+Date: Thu, 16 Jul 2009 17:09:07 -0300
+Cc: Antoine Jacquet <royale@zerezo.com>, linux-media@vger.kernel.org,
+	video4linux-list@redhat.com
+References: <200907152054.56581.lamarque@gmail.com> <20090716124506.26e7e6b0@pedra.chehab.org>
+In-Reply-To: <20090716124506.26e7e6b0@pedra.chehab.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200907161709.08087.lamarque@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 29 Jul 2009 15:14:22 +0200
-"Hans Verkuil" <hverkuil@xs4all.nl> escreveu:
-
-> 
-> > Em Wed, 29 Jul 2009 08:09:31 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Em Quinta-feira 16 Julho 2009, Mauro Carvalho Chehab escreveu:
+> Em Wed, 15 Jul 2009 20:54:55 -0300
+>
+> Lamarque Vieira Souza <lamarque@gmail.com> escreveu:
+> > This patch implements V4L2_CAP_STREAMING for the zr364xx driver, by
+> > converting the driver to use videobuf. This version is synced with
+> > v4l-dvb as of 15/Jul/2009.
 > >
-> >> On Wednesday 29 July 2009 06:57:30 Mauro Carvalho Chehab wrote:
-> >> > Em Tue, 28 Jul 2009 20:07:53 -0400
-> >> >
-> >> > acano@fastmail.fm escreveu:
-> >> > > On Mon, Jul 27, 2009 at 09:28:11PM -0300, Mauro Carvalho Chehab
-> >> wrote:
-> >> > > > Hi Acano,
-> >> > >
-> >> > > Tested-by: Angelo Cano <acano@fastmail.fm>
-> >> > >
-> >> > > works great
-> >> >
-> >> > Good!
-> >> >
-> >> > > > > +		/*FIXME hack to unmute usb audio stream */
-> >> > > > > +		em28xx_set_ctrl(dev, ctrl);
-> >> > > >
-> >> > > > Hmm... this function were removed. In thesis, you shouldn't need
-> >> to
-> >> > > > do anything to unmute.
-> >> > >
-> >> > > I still need it, see attachment.
-> >> > >
-> >> > > > Could you please try the enclosed patch and see if this is enough
-> >> to
-> >> > > > fix for Plextor? If so, please send me a Tested-by: tag for me to
-> >> add
-> >> > > > it at 2.6.31 fix patches.
-> >> > >
-> >> > > Like I said the patch works great, and also solves my audio volume
-> >> > > problem.  With your patch the volume is set to a sane value
-> >> > > (presumably 0db) and the distortion/clipping is gone.
-> >> > >
-> >> > > Thanks man.  The volume problem was driving me crazy.
-> >> >
-> >> > Ah, yes, there's a missing mute/unmute issue there. Instead of using
-> >> your
-> >> > code, I opted to duplicate part of ac97_set_ctrl code there.
-> >> >
-> >> > I opted to have a small duplicated code, but, IMO, it is now clearer
-> >> to
-> >> > see why we still need to call em28xx_audio_analog_set(). You will
-> >> notice
-> >> > that I've rearranged the place where I update volume and mute. The
-> >> > rationale is that v4l2_device_call_all() might eventually change a
-> >> value
-> >> > for volume/mute.
-> >> >
-> >> > Another reason is that, IMO, v4l2_device_call_all() should return
-> >> values.
-> >> > In the specific case of volume/mute, if the user tries to specify a
-> >> value
-> >> > outside the range, the -ERANGE should be returned.
-> >> >
-> >> > I've already committed the patches at the tree. Please double-check.
-> >> >
-> >> > Hans,
-> >> >
-> >> > we need to fix the returned error value for v4l2_device_call_all(). I
-> >> > know that this is an old issue that weren't changed by v4l dev/subdev
-> >> > conversion, but now it is easier for us to fix. The idea here is to be
-> >> > sure that, if a sub-driver with a proper handling for a function
-> >> returns
-> >> > an error value, this would be returned by v4l2_device_call_all().
-> >> Maybe
-> >> > we'll need to adjust some things at the sub-drivers.
-> >>
-> >> Use v4l2_device_call_until_err instead of v4l2_device_call_all. That
-> >> macro
-> >> checks for errors returned from the subdevs.
+> > Tested with Creative PC-CAM 880.
 > >
-> > It doesn't work as expected. If I use it for queryctl, for example, it
-> > returns
-> > an empty set of controls. If I use it for g_ctrl, it returns:
+> > It basically:
+> > . implements V4L2_CAP_STREAMING using videobuf;
 > >
-> > error 22 getting ctrl Brightness
-> > error 22 getting ctrl Contrast
-> > error 22 getting ctrl Saturation
-> > error 22 getting ctrl Hue
-> > error 22 getting ctrl Volume
-> > error 22 getting ctrl Balance
-> > error 22 getting ctrl Bass
-> > error 22 getting ctrl Treble
-> > error 22 getting ctrl Mute
-> > error 22 getting ctrl Loudness
+> > . re-implements V4L2_CAP_READWRITE using videobuf;
 > >
-> > The issue here is we need something that discards errors for
-> > non-implemented
-> > controls.
+> > . copies cam->udev->product to the card field of the v4l2_capability
+> > struct. That gives more information to the users about the webcam;
 > >
-> > As the sub-drivers are returning -EINVAL for non-implemented controls (and
-> > probably other stuff that aren't implemented there), the function will not
-> > work
-> > for some ioctls.
+> > . moves the brightness setting code from before requesting a frame (in
+> > read_frame) to the vidioc_s_ctrl ioctl. This way the brightness code is
+> > executed only when the application requests a change in brightness and
+> > not before every frame read;
 > >
-> > The proper fix seems to elect an error condition to be returned by driver
-> > when
-> > a function is not implemented, and such errors to be discarded by the
-> > macro.
+> > . comments part of zr364xx_vidioc_try_fmt_vid_cap that says that Skype +
+> > libv4l do not work.
 > >
-> > It seems that the proper error code for such case is this one:
+> > This patch fixes zr364xx for applications such as mplayer,
+> > Kopete+libv4l and Skype+libv4l can make use of the webcam that comes
+> > with zr364xx chip.
 > >
-> > #define ENOSYS          38      /* Function not implemented */
-> 
-> You are right, this macro doesn't work for these control functions. It it
-> is possible to implement a define like ENOSYS, but I prefer to work on
-> generic control processing code that is embedded in the v4l2 framework. It
-> looks like I'll finally have time to work on that this weekend.
+> > Signed-off-by: Lamarque V. Souza <lamarque@gmail.com>
+> > ---
+> >
+> > diff -r c300798213a9 linux/drivers/media/video/zr364xx.c
+> > --- a/linux/drivers/media/video/zr364xx.c	Sun Jul 05 19:08:55 2009 -0300
+> > +++ b/linux/drivers/media/video/zr364xx.c	Wed Jul 15 20:50:34 2009 -0300
+> > @@ -1,5 +1,5 @@
+> >  /*
+> > - * Zoran 364xx based USB webcam module version 0.72
+> > + * Zoran 364xx based USB webcam module version 0.73
+> >   *
+> >   * Allows you to use your USB webcam with V4L2 applications
+> >   * This is still in heavy developpement !
+> > @@ -10,6 +10,8 @@
+> >   * Heavily inspired by usb-skeleton.c, vicam.c, cpia.c and spca50x.c
+> > drivers * V4L2 version inspired by meye.c driver
+> >   *
+> > + * Some video buffer code by Lamarque based on s2255drv.c and vivi.c
+> > drivers. + *
+>
+> Maybe the better example for it is em28xx-video, where we firstly used
+> videobuf on usb devices.
 
+	I will take a look at em28xx-video. I used s2255drv.c and vivi.c because 
+their code organization are similar to zr364xx.c, so it was easier to know 
+what to do.
 
-I did some tests here: if we replace -EINVAL with -ENOIOCTLCMD, we can properly
-make v4l2_device_call_until_err() to work, fixing the lack of a proper error
-report at the drivers. This error code seems also appropriate for this case.
+> > +static void free_buffer(struct videobuf_queue *vq, struct zr364xx_buffer
+> > *buf)
+> > +{
+> > +	DBG("%s\n", __func__);
+> > +
+> > +	/*Lamarque: is this really needed? Sometimes this blocks rmmod forever
+> > +	 * after running Skype on an AMD64 system. */
+> > +	/*videobuf_waiton(&buf->vb, 0, 0);*/
+>
+> Answering to your note, take a look at em28xx-video implementation:
+>
+>         /* We used to wait for the buffer to finish here, but this didn't
+> work because, as we were keeping the state as VIDEOBUF_QUEUED,
+> videobuf_queue_cancel marked it as finished for us.
+>            (Also, it could wedge forever if the hardware was
+> misconfigured.)
+>
+>            This should be safe; by the time we get here, the buffer isn't
+>            queued anymore. If we ever start marking the buffers as
+>            VIDEOBUF_ACTIVE, it won't be, though.
+>         */
+>         spin_lock_irqsave(&dev->slock, flags);
+>         if (dev->isoc_ctl.buf == buf)
+>                 dev->isoc_ctl.buf = NULL;
+>         spin_unlock_irqrestore(&dev->slock, flags);
 
-This means several trivial patches on each v4l device driver, just replacing
-the error codes for 3 ioctl handlers (s_ctrl, g_ctrl, queryctrl).
+	Yes, the comment answers my question. There is no similar code in zr364xx.c 
+like the one above. zr364xx_camera does not have a member with zr364xxx_buffer 
+type (the equivalent type of dev->isoc_ctl.buf).
 
-I'll try to write such patches for v4l devices, since I want to get rid of this
-bug on 2.6.31, at least on em28xx driver. If I have more time, I'll fix other
-bridge drivers as well.
+> > +	if (pipe_info->state != 0) {
+> > +		if (usb_submit_urb(pipe_info->stream_urb, GFP_KERNEL))
+> > +			dev_err(&cam->udev->dev, "error submitting urb\n");
+> > +	} else {
+> > +		DBG("read pipe complete state 0\n");
+> > +	}
+>
+> Hmm...  for the usb_submit_urb() call that happens during IRQ context
+> (while you're receiving stream), you need to use:
+>         urb->status = usb_submit_urb(pipe_info->stream_urb, GFP_ATOMIC);
+>
+> otherwise, you may get the errors that Antoine is reporting
 
-> Currently the control handling code in our v4l drivers is, to be blunt, a
-> pile of crap. And it is ideal to move this into the v4l2 framework since
-> 90% of this is common code.
+	Ok, changed to GPF_ATOMIC. Could someone test this for me since I was not 
+able to reproduce this problem? The new patch is here 
+http://bach.metasys.com.br/~lamarque/zr364xx/zr364xx.c-streaming.patch-v4l-
+dvb-20090716 . I upload it to avoid bloating the mailing-list with a 40k 
+patch.
 
-Hmm, except for a few places that still implement this at the old way, most of
-the common code is already at v4l2 core. So, I'm not sure what you're referring.
+	I have computer here with dual core processor but no display. I need to get a 
+DVI <-> VGA adaptor to plug my DVI LCD on it, when I get one I am going to 
+test the changes with SMP enabled.
 
-Cheers,
-Mauro
+-- 
+Lamarque V. Souza
+http://www.geographicguide.com/brazil.htm
+Linux User #57137 - http://counter.li.org/
