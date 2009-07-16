@@ -1,261 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:55813 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750865AbZGYN7m (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:45452 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932549AbZGPQn1 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jul 2009 09:59:42 -0400
-Date: Sat, 25 Jul 2009 16:48:58 +0300
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
-Cc: ext Hans Verkuil <hverkuil@xs4all.nl>,
-	ext Mauro Carvalho Chehab <mchehab@infradead.org>,
-	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-Subject: Re: [PATCHv10 8/8] FMTx: si4713: Add document file
-Message-ID: <20090725134858.GF10561@esdhcp037198.research.nokia.com>
-Reply-To: eduardo.valentin@nokia.com
-References: <1248453448-1668-1-git-send-email-eduardo.valentin@nokia.com>
- <1248453448-1668-8-git-send-email-eduardo.valentin@nokia.com>
- <1248453448-1668-9-git-send-email-eduardo.valentin@nokia.com>
- <200907251525.25225.hverkuil@xs4all.nl>
- <20090725131705.GC10561@esdhcp037198.research.nokia.com>
+	Thu, 16 Jul 2009 12:43:27 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Lamarque Vieira Souza <lamarque@gmail.com>
+CC: Antoine Jacquet <royale@zerezo.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"video4linux-list@redhat.com" <video4linux-list@redhat.com>
+Date: Thu, 16 Jul 2009 11:42:55 -0500
+Subject: RE: [PATCH] Implement V4L2_CAP_STREAMING for zr364xx driver
+Message-ID: <A69FA2915331DC488A831521EAE36FE40144F1E612@dlee06.ent.ti.com>
+References: <200907152054.56581.lamarque@gmail.com>
+ <20090716124506.26e7e6b0@pedra.chehab.org>
+In-Reply-To: <20090716124506.26e7e6b0@pedra.chehab.org>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20090725131705.GC10561@esdhcp037198.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 25, 2009 at 03:17:05PM +0200, Valentin Eduardo (Nokia-D/Helsinki) wrote:
-> On Sat, Jul 25, 2009 at 03:25:25PM +0200, ext Hans Verkuil wrote:
-> > On Friday 24 July 2009 18:37:28 Eduardo Valentin wrote:
-> > > This patch adds a document file for si4713 device driver.
-> > > It describes the driver interfaces and organization.
-> > > 
-> > > Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> > > ---
-> > >  linux/Documentation/video4linux/si4713.txt |  175 ++++++++++++++++++++++++++++
-> > >  1 files changed, 175 insertions(+), 0 deletions(-)
-> > >  create mode 100644 linux/Documentation/video4linux/si4713.txt
-> > > 
-> > > diff --git a/linux/Documentation/video4linux/si4713.txt b/linux/Documentation/video4linux/si4713.txt
-> > > new file mode 100644
-> > > index 0000000..3843af5
-> > > --- /dev/null
-> > > +++ b/linux/Documentation/video4linux/si4713.txt
-> > > @@ -0,0 +1,175 @@
-> > > +Driver for I2C radios for the Silicon Labs Si4713 FM Radio Transmitters
-> > > +
-> > > +Copyright (c) 2009 Nokia Corporation
-> > > +Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
-> > > +
-> > > +
-> > > +Information about the Device
-> > > +============================
-> > > +This chip is a Silicon Labs product. It is a I2C device, currently on 0Ã—63 address.
-> > > +Basically, it has transmission and signal noise level measurement features.
-> > > +
-> > > +The Si4713 integrates transmit functions for FM broadcast stereo transmission.
-> > > +The chip also allows integrated receive power scanning to identify low signal
-> > > +power FM channels.
-> > > +
-> > > +The chip is programmed using commands and responses. There are also several
-> > > +properties which can change the behavior of this chip.
-> > > +
-> > > +Users must comply with local regulations on radio frequency (RF) transmission.
-> > > +
-> > > +Device driver description
-> > > +=========================
-> > > +There are two modules to handle this device. One is a I2C device driver
-> > > +and the other is a platform driver.
-> > > +
-> > > +The I2C device driver exports a v4l2-subdev interface to the kernel.
-> > > +All properties can also be accessed by v4l2 extended controls interface, by
-> > > +using the v4l2-subdev calls (g_ext_ctrls, s_ext_ctrls).
-> > > +
-> > > +The platform device driver exports a v4l2 radio device interface to user land.
-> > > +So, it uses the I2C device driver as a sub device in order to send the user
-> > > +commands to the actual device. Basically it is a wrapper to the I2C device driver.
-> > > +
-> > > +Applications can use v4l2 radio API to specify frequency of operation, mute state,
-> > > +etc. But mostly of its properties will be present in the extended controls.
-> > > +
-> > > +When the v4l2 mute property is set to 1 (true), the driver will turn the chip off.
-> > > +
-> > > +Properties description
-> > > +======================
-> > > +
-> > > +The properties can be accessed using v4l2 extended controls.
-> > > +Here is an output from v4l2-ctl util:
-> > > +
-> > > +# v4l2-ctl -d /dev/radio0 --all -l
-> > > +Driver Info:
-> > > +        Driver name   : radio-si4713
-> > > +        Card type     : Silicon Labs Si4713 Modulator
-> > > +        Bus info      : 
-> > > +        Driver version: 0
-> > > +        Capabilities  : 0x00080800
-> > > +                RDS Output
-> > > +                Modulator
-> > > +Audio output: 0 (FM Modulator Audio Out)
-> > > +Frequency: 1545600 (96.600000 MHz)
-> > > +Video Standard = 0x00000000
-> > > +Modulator:
-> > > +        Name                 : FM Modulator
-> > > +        Capabilities         : 62.5 Hz stereo rds 
-> > > +        Frequency range      : 76.0 MHz - 108.0 MHz
-> > > +        Available subchannels: mono rds 
-> > > +
-> > > +User Controls
-> > > +
-> > > +                           mute (bool) : default=1 value=0
-> > > +
-> > > +FM Radio Modulator Controls
-> > > +
-> > > +                 rds_program_id (int)  : min=0 max=65535 step=1 default=0 value=0
-> > > +               rds_program_type (int)  : min=0 max=31 step=1 default=0 value=0
-> > > +                    rds_ps_name (str)  : value='Si4713  ' len=1024
-> > > +' len=1024       rds_radio_text (str)  : value='Si4713  
-> > 
-> > This doesn't look right. I think this output is from an old v4l2-ctl version.
-> > I'd like to see this output anyway using the latest v4l2-ctl version as I
-> > haven't been able to test it myself.
-> 
-> Yeah. My bad, forgot to update here. This is the output from the older version.
+Mauro,
 
+Thanks. That was what I was thinking, but just want to see what issues I might face on the way. I am starting the work on DM6467 capture driver and you would be getting a patch soon for review in the mailing list.
 
-I've just checked that now v4l2-ctl does not report rds subchannel for txsubchannel.
-Just to confirm this is something which is missing right?
+Regards,
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+>-----Original Message-----
+>From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>owner@vger.kernel.org] On Behalf Of Mauro Carvalho Chehab
+>Sent: Thursday, July 16, 2009 11:45 AM
+>To: Lamarque Vieira Souza
+>Cc: Antoine Jacquet; linux-media@vger.kernel.org; video4linux-
+>list@redhat.com
+>Subject: Re: [PATCH] Implement V4L2_CAP_STREAMING for zr364xx driver
+>
+>Em Wed, 15 Jul 2009 20:54:55 -0300
+>Lamarque Vieira Souza <lamarque@gmail.com> escreveu:
+>
+>> This patch implements V4L2_CAP_STREAMING for the zr364xx driver, by
+>> converting the driver to use videobuf. This version is synced with v4l-
+>dvb as
+>> of 15/Jul/2009.
+>>
+>> Tested with Creative PC-CAM 880.
+>>
+>> It basically:
+>> . implements V4L2_CAP_STREAMING using videobuf;
+>>
+>> . re-implements V4L2_CAP_READWRITE using videobuf;
+>>
+>> . copies cam->udev->product to the card field of the v4l2_capability
+>struct.
+>> That gives more information to the users about the webcam;
+>>
+>> . moves the brightness setting code from before requesting a frame (in
+>> read_frame) to the vidioc_s_ctrl ioctl. This way the brightness code is
+>> executed only when the application requests a change in brightness and
+>> not before every frame read;
+>>
+>> . comments part of zr364xx_vidioc_try_fmt_vid_cap that says that Skype +
+>> libv4l do not work.
+>>
+>> This patch fixes zr364xx for applications such as mplayer,
+>> Kopete+libv4l and Skype+libv4l can make use of the webcam that comes
+>> with zr364xx chip.
+>>
+>> Signed-off-by: Lamarque V. Souza <lamarque@gmail.com>
+>> ---
+>>
+>> diff -r c300798213a9 linux/drivers/media/video/zr364xx.c
+>> --- a/linux/drivers/media/video/zr364xx.c	Sun Jul 05 19:08:55 2009 -
+>0300
+>> +++ b/linux/drivers/media/video/zr364xx.c	Wed Jul 15 20:50:34 2009 -
+>0300
+>> @@ -1,5 +1,5 @@
+>>  /*
+>> - * Zoran 364xx based USB webcam module version 0.72
+>> + * Zoran 364xx based USB webcam module version 0.73
+>>   *
+>>   * Allows you to use your USB webcam with V4L2 applications
+>>   * This is still in heavy developpement !
+>> @@ -10,6 +10,8 @@
+>>   * Heavily inspired by usb-skeleton.c, vicam.c, cpia.c and spca50x.c
+>drivers
+>>   * V4L2 version inspired by meye.c driver
+>>   *
+>> + * Some video buffer code by Lamarque based on s2255drv.c and vivi.c
+>drivers.
+>> + *
+>
+>Maybe the better example for it is em28xx-video, where we firstly used
+>videobuf
+>on usb devices.
+>
+>> +static void free_buffer(struct videobuf_queue *vq, struct zr364xx_buffer
+>> *buf)
+>> +{
+>> +	DBG("%s\n", __func__);
+>> +
+>> +	/*Lamarque: is this really needed? Sometimes this blocks rmmod
+>forever
+>> +	 * after running Skype on an AMD64 system. */
+>> +	/*videobuf_waiton(&buf->vb, 0, 0);*/
+>
+>Answering to your note, take a look at em28xx-video implementation:
+>
+>        /* We used to wait for the buffer to finish here, but this didn't
+>work
+>           because, as we were keeping the state as VIDEOBUF_QUEUED,
+>           videobuf_queue_cancel marked it as finished for us.
+>           (Also, it could wedge forever if the hardware was
+>misconfigured.)
+>
+>           This should be safe; by the time we get here, the buffer isn't
+>           queued anymore. If we ever start marking the buffers as
+>           VIDEOBUF_ACTIVE, it won't be, though.
+>        */
+>        spin_lock_irqsave(&dev->slock, flags);
+>        if (dev->isoc_ctl.buf == buf)
+>                dev->isoc_ctl.buf = NULL;
+>        spin_unlock_irqrestore(&dev->slock, flags);
+>
+>> +	if (pipe_info->state != 0) {
+>> +		if (usb_submit_urb(pipe_info->stream_urb, GFP_KERNEL))
+>> +			dev_err(&cam->udev->dev, "error submitting urb\n");
+>> +	} else {
+>> +		DBG("read pipe complete state 0\n");
+>> +	}
+>
+>Hmm...  for the usb_submit_urb() call that happens during IRQ context
+>(while
+>you're receiving stream), you need to use:
+>        urb->status = usb_submit_urb(pipe_info->stream_urb, GFP_ATOMIC);
+>
+>otherwise, you may get the errors that Antoine is reporting
+>
+>
+>
+>Cheers,
+>Mauro
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-In that case, I can include this minor addition also in v11.
-
-> 
-> > 
-> > Based on this output it also looks as if the rds_radio_text string has a \r
-> > at the end. If so, is it supposed to be there?
-> 
-> Yeah, the \r it is required for Radio Text.
-> 
-> 
-> > 
-> > Regards,
-> > 
-> >         Hans
-> > 
-> > > +  audio_limiter_feature_enabled (bool) : default=1 value=1
-> > > +     audio_limiter_release_time (int)  : min=250 max=102390 step=50 default=5010 value=5010 flags=slider
-> > > +        audio_limiter_deviation (int)  : min=0 max=90000 step=10 default=66250 value=1020 flags=slider
-> > > +audio_compression_feature_enabl (bool) : default=1 value=1
-> > > +         audio_compression_gain (int)  : min=0 max=20 step=1 default=15 value=15 flags=slider
-> > > +    audio_compression_threshold (int)  : min=-40 max=0 step=1 default=-40 value=-40 flags=slider
-> > > +  audio_compression_attack_time (int)  : min=0 max=5000 step=500 default=0 value=0 flags=slider
-> > > + audio_compression_release_time (int)  : min=100000 max=1000000 step=100000 default=1000000 value=1000000 flags=slider
-> > > +     pilot_tone_feature_enabled (bool) : default=1 value=1
-> > > +           pilot_tone_deviation (int)  : min=0 max=90000 step=10 default=6750 value=6750 flags=slider
-> > > +           pilot_tone_frequency (int)  : min=0 max=19000 step=1 default=19000 value=19000 flags=slider
-> > > +          pre_emphasis_settings (menu) : min=0 max=2 default=1 value=1
-> > > +               tune_power_level (int)  : min=0 max=120 step=1 default=88 value=120 flags=slider
-> > > +         tune_antenna_capacitor (int)  : min=0 max=191 step=1 default=0 value=112 flags=slider
-> > > +
-> > > +Here is a summary of them:
-> > > +
-> > > +* Pilot is an audible tone sent by the device.
-> > > +
-> > > +pilot_frequency - Configures the frequency of the stereo pilot tone.
-> > > +pilot_deviation - Configures pilot tone frequency deviation level.
-> > > +pilot_enabled - Enables or disables the pilot tone feature.
-> > > +
-> > > +* The si4713 device is capable of applying audio compression to the transmitted signal.
-> > > +
-> > > +acomp_enabled - Enables or disables the audio dynamic range control feature.
-> > > +acomp_gain - Sets the gain for audio dynamic range control.
-> > > +acomp_threshold - Sets the threshold level for audio dynamic range control.
-> > > +acomp_attack_time - Sets the attack time for audio dynamic range control.
-> > > +acomp_release_time - Sets the release time for audio dynamic range control.
-> > > +
-> > > +* Limiter setups audio deviation limiter feature. Once a over deviation occurs,
-> > > +it is possible to adjust the front-end gain of the audio input and always
-> > > +prevent over deviation.
-> > > +
-> > > +limiter_enabled - Enables or disables the limiter feature.
-> > > +limiter_deviation - Configures audio frequency deviation level.
-> > > +limiter_release_time - Sets the limiter release time.
-> > > +
-> > > +* Tuning power
-> > > +
-> > > +power_level - Sets the output power level for signal transmission.
-> > > +antenna_capacitor - This selects the value of antenna tuning capacitor manually
-> > > +or automatically if set to zero.
-> > > +
-> > > +* RDS related
-> > > +
-> > > +rds_ps_name - Sets the RDS ps name field for transmission.
-> > > +rds_radio_text - Sets the RDS radio text for transmission.
-> > > +rds_pi - Sets the RDS PI field for transmission.
-> > > +rds_pty - Sets the RDS PTY field for transmission.
-> > > +
-> > > +* Region related
-> > > +
-> > > +preemphasis - sets the preemphasis to be applied for transmission.
-> > > +
-> > > +RNL
-> > > +===
-> > > +
-> > > +This device also has an interface to measure received noise level. To do that, you should
-> > > +ioctl the device node. Here is an code of example:
-> > > +
-> > > +int main (int argc, char *argv[])
-> > > +{
-> > > +        struct si4713_rnl rnl;
-> > > +        int fd = open("/dev/radio0", O_RDWR);
-> > > +        int rval;
-> > > +
-> > > +        if (argc < 2)
-> > > +                return -EINVAL;
-> > > +
-> > > +        if (fd < 0)
-> > > +                return fd;
-> > > +
-> > > +        sscanf(argv[1], "%d", &rnl.frequency);
-> > > +
-> > > +        rval = ioctl(fd, SI4713_IOC_MEASURE_RNL, &rnl);
-> > > +        if (rval < 0)
-> > > +                return rval;
-> > > +
-> > > +        printf("received noise level: %d\n", rnl.rnl);
-> > > +
-> > > +        close(fd);
-> > > +}
-> > > +
-> > > +The struct si4713_rnl and SI4713_IOC_MEASURE_RNL are defined under
-> > > +include/media/si4713.h.
-> > > +
-> > > +Stereo/Mono and RDS subchannels
-> > > +===============================
-> > > +
-> > > +The device can also be configured using the available sub channels for
-> > > +transmission. To do that use S/G_MODULATOR ioctl and configure txsubchans properly.
-> > > +Refer to v4l2-spec for proper use of this ioctl.
-> > > +
-> > > +Testing
-> > > +=======
-> > > +Testing is usually done with v4l2-ctl utility for managing FM tuner cards.
-> > > +The tool can be found in v4l-dvb repository under v4l2-apps/util directory.
-> > > +
-> > > +Example for setting rds ps name:
-> > > +# v4l2-ctl -d /dev/radio0 --set-ctrl=rds_ps_name="Dummy"
-> > > +
-> > 
-> > 
-> > 
-> > -- 
-> > Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
-> 
-> -- 
-> Eduardo Valentin
-
--- 
-Eduardo Valentin
