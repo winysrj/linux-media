@@ -1,92 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f226.google.com ([209.85.219.226]:63421 "EHLO
-	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753727AbZGGBiq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jul 2009 21:38:46 -0400
-Received: by ewy26 with SMTP id 26so178395ewy.37
-        for <linux-media@vger.kernel.org>; Mon, 06 Jul 2009 18:38:49 -0700 (PDT)
-Date: Mon, 06 Jul 2009 21:31:28 -0400
-From: Manu <eallaud@gmail.com>
-Subject: Re : [linux-dvb] Best stable DVB-S2 cards
-To: linux-media@vger.kernel.org
-References: <OFAEA012C7.BAA6BA92-ONC12575DE.00386C0E-C12575DE.00386C1B@devoteam.com>
-	<4A524C80.3010102@gmail.com>
-In-Reply-To: <4A524C80.3010102@gmail.com> (from claesl@gmail.com on Mon Jul  6
-	15:12:00 2009)
-Message-Id: <1246930288.7402.0@manu-laptop>
+Received: from mail-bw0-f228.google.com ([209.85.218.228]:46181 "EHLO
+	mail-bw0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932919AbZGPVRK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Jul 2009 17:17:10 -0400
+Received: by bwz28 with SMTP id 28so379430bwz.37
+        for <linux-media@vger.kernel.org>; Thu, 16 Jul 2009 14:17:09 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Disposition: inline
-Content-Transfer-Encoding: 8BIT
+Date: Fri, 17 Jul 2009 00:17:08 +0300
+Message-ID: <88b49f150907161417r7d487078h3e27b514cf8dd5cf@mail.gmail.com>
+Subject: AVerMedia AVerTV GO 007 FM, no radio sound (with routing enabled)
+From: Laszlo Kustan <lkustan@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le 06/07/2009 15:12:00, Claes Lindblom a écrit :
-> Jens.Peder.Terjesen@devoteam.com wrote:
-> >
-> > -----sacha wrote: -----
-> >
-> > >To: claesl@gmail.com
-> > >From: sacha <sacha@hemmail.se>
-> > >Sent by: linux-dvb-bounces@linuxtv.org
-> > >Date: 22-06-2009 21:21
-> > >cc: linux-dvb@linuxtv.org
-> > >Subject: [linux-dvb] Best stable DVB-S2 cards
-> > >
-> > >Claes
-> > >Forget all that has with stability to do on Linux, it will never
-> > >work!
-> > >It is my experience after three years of desperate trying. I have
-> the
-> > >same card and some others. Sometimes they works sometimes no. 24
-> > >hours
-> > >running is called High Availability in IT world and can be assured
-> > >only
-> > >by the commercial solutions. Believe me, I spent 14 years in
-> > >commercial
-> > >Unix and know what I am talking about.
-> > >
-> > >KR
-> > >
-> > >>Hi,
-> > >>I currently have a Azurewave AD-SP400 CI (Twinhan VP-1041)  DVB-
-> S2
-> > >>card 
-> > >>but I'm not sure if it
-> > >>that stable to have it running 24h every day on a server.
-> > >>I'm looking for a good DVB-S2 card that works out of the box in
-> > >Linux 
-> > >>kernel, does anyone have any good
-> > >>recommendations, both with or without CI. It's important that it
-> is 
-> > >>stable so I don't have to restart the server.
-> > >>I'm running Ubuntu Server 9.04 64-bit with kernel
-> 2.6.28-11-server.
-> > >
-> > ></Claes
-> > >
-> >
-> > I have three Hauppauge HVR-4000. Two that have been used for DVB-S
-> for
-> > about one year and one for DVB-S2 for about half a year without any
-> > stability issues.
-> > In the beginning it was a little fiddly with patching v4l-dvb, but
-> > support for this card was included in v4l-dvb last autumn and in 
-> the
-> > 2.6.28 kernel in November or December last year.
-> >
-> Thats sounds really good, does it work well with DVB-S2 and Mythtv?
-> By the way to use them in the same computer?
-> 
-> What's the status of Technotrend TT 1600 and 3200 in the main
-> dvb-tree?
-> And how about the issues noted in this thread
-> http://linuxtv.org/pipermail/linux-dvb/2009-February/031779.html ?
+Hi all,
+I have problems with my AVerMedia AVerTV GO 007 FM tuner, kernel
+version 2.6.28. TV and remote are working correctly, but the radio
+does not have any sound.
+I already tried the steps described in
+http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_GO_007_FM but
+still no success. According to this:
+"The *latest revision*(PCI ID 1461:f31f) of the Avermedia AVerTV GO
+007 FM works "out of the box" in recent kernels"
+but it's not the case for me.
+/dev/radio0 is created, but radio is not functional. I can tune to
+different frequencies, but no change in the sound. The "antenna" icon
+of gnomeradio does not show any signal.
+If I try to scan with gnomeradio, it dies.
+I tried different tuner=xx insmod options, the maximum I could achieve
+was that gnomeradio finds some stations and the antenna icon shows
+that there is a signal, but still cannot hear anything.
+I enabled sound routing (that's how tvtime works correctly), but the
+radio is not functional yet:
+#!/bin/sh
+sox -c 2 -s -r 32000 -t ossdsp /dev/dsp1 -t ossdsp -r 32000 /dev/dsp &
+gnomeradio --mixer=/dev/mixer:pcm
+wait gnomeradio
+t=`pidof sox`;
+kill $t;
+amixer -c 0 sset PCM 80%,80%  unmute
 
-Here TT 3200 works great (using CI) for DVB-S pnmy. I cant tell for S2 
-as there is no transponder (apart for one but which has a way too high 
-symbol rate). I use the v4l-dvb tree and mythtv's trunk (dont remember 
-if I use a patch or not).
-Bye
-Manu
+dmesg output:
+[ 1360.408481] saa7130/34: v4l2 driver version 0.2.15 loaded
+[ 1360.408582] saa7133[0]: found at 0000:01:06.0, rev: 208, irq: 19,
+latency: 64, mmio: 0xdffff800
+[ 1360.408593] saa7133[0]: subsystem: 1461:f31f, board: Avermedia
+AVerTV GO 007 FM [card=57,autodetected]
+[ 1360.408663] saa7133[0]: board init: gpio is 80185
+[ 1360.408793] input: saa7134 IR (Avermedia AVerTV GO as
+/devices/pci0000:00/0000:00:04.0/0000:01:06.0/input/input7
+[ 1360.568037] saa7133[0]: i2c eeprom 00: 61 14 1f f3 ff ff ff ff ff
+ff ff ff ff ff ff ff
+[ 1360.568054] saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[ 1360.568068] saa7133[0]: i2c eeprom 20: ff d2 fe ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[ 1360.568082] saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[ 1360.568094] saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[ 1360.568107] saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[ 1360.568120] saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[ 1360.568133] saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[ 1360.568146] saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[ 1360.568159] saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[ 1360.568172] saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[ 1360.568185] saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[ 1360.568198] saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[ 1360.568211] saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[ 1360.568224] saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[ 1360.568237] saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[ 1360.608210] tuner 2-004b: chip found @ 0x96 (saa7133[0])
+[ 1360.688029] tda829x 2-004b: setting tuner address to 61
+[ 1360.752032] tda829x 2-004b: type set to tda8290+75
+[ 1365.492142] saa7133[0]: registered device video0 [v4l2]
+[ 1365.492181] saa7133[0]: registered device vbi0
+[ 1365.492218] saa7133[0]: registered device radio0
+[ 1365.502229] saa7134 ALSA driver for DMA sound loaded
+[ 1365.502288] saa7133[0]/alsa: saa7133[0] at 0xdffff800 irq 19
+registered as card -2
 
+On the tuner I see a SAA7131 and a TDA8275 integrated circuit.
+Please help me get my radio working.
+Thanks, Laszlo
