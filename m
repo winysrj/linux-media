@@ -1,185 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2888 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753164AbZGKT3A (ORCPT
+Received: from proxy1.bredband.net ([195.54.101.71]:41643 "EHLO
+	proxy1.bredband.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932805AbZGPVey (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Jul 2009 15:29:00 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@radix.net>
-Subject: Re: Short experiment with libudev to support media controller concept
-Date: Sat, 11 Jul 2009 21:28:54 +0200
-Cc: linux-media@vger.kernel.org
-References: <1246729935.2826.43.camel@morgan.walls.org> <1247339986.2817.28.camel@morgan.walls.org>
-In-Reply-To: <1247339986.2817.28.camel@morgan.walls.org>
+	Thu, 16 Jul 2009 17:34:54 -0400
+Received: from iph1.telenor.se (195.54.127.132) by proxy1.bredband.net (7.3.140.3)
+        id 49F5A15201A53E6B for linux-media@vger.kernel.org; Thu, 16 Jul 2009 23:34:52 +0200
+Message-ID: <101260728ec51cc1ec78699fbb0e5c37.squirrel@mail.kurelid.se>
+Date: Thu, 16 Jul 2009 23:34:50 +0200
+Subject: [PATCH] firedtv: refine AVC debugging
+From: "Henrik Kurelid" <henke@kurelid.se>
+To: linux-media@vger.kernel.org
+Cc: stefanr@s5r6.in-berlin.de
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907112128.54340.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 11 July 2009 21:19:46 Andy Walls wrote:
-> On Sat, 2009-07-04 at 13:52 -0400, Andy Walls wrote:
-> > Hans,
-> >
-> > The inline source file at the end of this post is a small program I
-> > used to play with libudev to see if it would complement the media
-> > controller concept (as you suspected it would).
-> >
-> > Documentation on the libudev calls is here:
-> >
-> > 	http://www.kernel.org/pub/linux/utils/kernel/hotplug/libudev/
-> >
-> > The test program I wrote takes a (type,major,minor) tuple and lists the
-> > device node and device symlinks as fetched by libudev.
-> >
-> > My test setup was a little strange since libudev is no longer
-> > maintained separately but is bundled in with udev.  On my Fedora 9
-> > system I have udev v124 (Fedora 9 stock) and libudev v143 (custom built
-> > from the udev 143 source).
-> >
-> > Here's some output:
-> >
-> >
-> > $ ./finddev -c -M 81 -m 9
-> > Requested device: type 'c', major 81, minor 9
-> > Device directory path: '/dev'
-> > Device node: '/dev/video0'
-> > Device link: '/dev/video'
-> >
-> > $ ls -alR /dev/* | grep '[ /]video0'
-> > lrwxrwxrwx  1 root root          6 2009-07-04 08:34 /dev/video ->
-> > video0 crw-rw----+ 1 root root    81,   9 2009-07-04 08:34 /dev/video0
-> >
-> > (OK for video nodes)
-> >
-> >
-> > $ ./finddev -c -M 116 -m 6
-> > Requested device: type 'c', major 116, minor 6
-> > Device directory path: '/dev'
-> > Device node: '/dev/snd/pcmC0D0p'
-> >
-> > $ ls -alR /dev/* | grep '[ /]pcmC0D0p'
-> > crw-rw----+  1 root root 116, 6 2009-07-04 13:43 pcmC0D0p
-> >
-> > (OK for ALSA PCM stream nodes).
-> >
-> >
-> > Do you have any other particular questions about libudev's
-> > capabilities?
->
-> OK, so more tests.  Two Major groups: with udev still running and with
-> udev not running (killed after I log in).
->
-> Case 1:
->
-> - udev running:
-> - Adding a manual symlink
->    # cd /dev
->    # ln -s video0 mpeg0
->
-> Result: finddev using libudev doesn't find the manual symlink
->
->
-> Case 2:
->
-> - udev running
-> - A manual mknod
->    # cd /dev
->    # mknod mpeg0 c 81 9
->
-> Result: finddev doesn't find the manually created device node
->
->
-> Case 3:
-> - same as case 2, but manually delete /dev/video0
->
-> Result: finddev reports /dev/video0 ! :(
+Hi,
 
-That's not surprising as cases 1-3 by-pass udev, so libudev knows nothing 
-about those changes.
+Here is another patch for the firedtv driver. This one changes the debug logging somewhat to make it easier to find issues with the driver since it
+is still fairly untested for variants of delivery systems, CAMs and CA systems.
 
->
->
-> Case 4:
-> - same as case 3
-> - add to 50-udev-default.rules:
-> 	KERNEL=="video[0-9]*", SYMLINK+="mpeg%n"
-> - Reload udev rules
-> 	udevadm control --reload_rules
-> 	udevadm trigger --subsystem-match=video4linux
->
-> Result: findddev reports the new '/dev/mpeg0' symlink for /dev/video0 as
-> well as the the '/dev/video' synmlink and the '/dev/video0' device
-> node. :)
+---
 
-Nice!
+firedtv: refine AVC debugging
 
->
-> Case 5:
-> - same as case 3
-> - add to 50-udev-default.rules:
-> 	KERNEL=="video[0-9]*", NAME="mpeg%n"
-> - Reload udev rules
-> 	udevadm control --reload_rules
-> 	udevadm trigger --subsystem-match=video4linux
->
-> Result: SELinux gripes at me because HAL is allowed to acces the
-> attributes of /dev/mpeg*. :)
-> finddev reports the new /dev/mpeg0 and the /dev/video symlink to it and
-> they both exist in the filesystem. :)
+The current AVC debugging can clog the log down a lot since many applications
+tend to check the signal strength very often. This patch enables users to
+select which AVC messages to log using a bitmask.
+In addition, it also enables the possibility to debug application PMTs sent
+to the driver. This will be usable since the CA support is still poorly tested
+for lots of CAMs and CA systems.
 
-Nice again!
+Signed-off-by: Henrik Kurelid <henrik@kurelid.se>
 
->
-> Case 6:
-> - after case 5
-> - kill udevd. :)
->
-> Result: finddev finds /dev/mpeg0 and the /dev/video symlink
+diff -r 48086ebb22a8 linux/drivers/media/dvb/firewire/firedtv-avc.c
+--- a/linux/drivers/media/dvb/firewire/firedtv-avc.c    Thu Jul 16 16:13:09 2009 +0200
++++ b/linux/drivers/media/dvb/firewire/firedtv-avc.c    Thu Jul 16 21:54:34 2009 +0200
+@@ -89,14 +89,31 @@ struct avc_response_frame {
+        u8 operand[509];
+ };
 
-Nice test :-) and nice result.
+-#define AVC_DEBUG_FCP_SUBACTIONS       1
+-#define AVC_DEBUG_FCP_PAYLOADS         2
++#define AVC_DEBUG_READ_DESCRIPTOR              0x0001
++#define AVC_DEBUG_DSIT                         0x0002
++#define AVC_DEBUG_DSD                          0x0004
++#define AVC_DEBUG_REGISTER_REMOTE_CONTROL      0x0008
++#define AVC_DEBUG_LNB_CONTROL                  0x0010
++#define AVC_DEBUG_TUNE_QPSK                    0x0020
++#define AVC_DEBUG_TUNE_QPSK2                   0x0040
++#define AVC_DEBUG_HOST2CA                      0x0080
++#define AVC_DEBUG_CA2HOST                      0x0100
++#define AVC_DEBUG_APPLICATION_PMT              0x4000
++#define AVC_DEBUG_FCP_PAYLOADS                 0x8000
 
-> Case 7:
-> - after case 6:
-> - manually remove /dev/mpeg0 and /dev/video
->
-> Result: finddev reports /dev/mpeg0 and the /dev/video symlink. :?
+ static int avc_debug;
+ module_param_named(debug, avc_debug, int, 0644);
+-MODULE_PARM_DESC(debug, "Verbose logging (default = 0"
+-       ", FCP subactions = "   __stringify(AVC_DEBUG_FCP_SUBACTIONS)
+-       ", FCP payloads = "     __stringify(AVC_DEBUG_FCP_PAYLOADS)
++MODULE_PARM_DESC(debug, "Verbose logging bitmask (none (default) = 0"
++       ", FCP subaction(READ DESCRIPTOR) = "           __stringify(AVC_DEBUG_READ_DESCRIPTOR)
++       ", FCP subaction(DSIT) = "                      __stringify(AVC_DEBUG_DSIT)
++       ", FCP subaction(REGISTER_REMOTE_CONTROL) = "   __stringify(AVC_DEBUG_REGISTER_REMOTE_CONTROL)
++       ", FCP subaction(LNB CONTROL) = "               __stringify(AVC_DEBUG_LNB_CONTROL)
++       ", FCP subaction(TUNE QPSK) = "                 __stringify(AVC_DEBUG_TUNE_QPSK)
++       ", FCP subaction(TUNE QPSK2) = "                __stringify(AVC_DEBUG_TUNE_QPSK2)
++       ", FCP subaction(HOST2CA) = "                   __stringify(AVC_DEBUG_HOST2CA)
++       ", FCP subaction(CA2HOST) = "                   __stringify(AVC_DEBUG_CA2HOST)
++       ", Application sent PMT = "                     __stringify(AVC_DEBUG_APPLICATION_PMT)
++       ", FCP payloads(for selected subactions) = "    __stringify(AVC_DEBUG_FCP_PAYLOADS)
+        ", or all = -1)");
 
-Similar to cases 1-3: you bypass udev so libudev won't know about it.
+ static const char *debug_fcp_ctype(unsigned int ctype)
+@@ -142,31 +159,67 @@ static const char *debug_fcp_opcode(unsi
+        return "Vendor";
+ }
 
->
->
-> Apparently libudev uses what's in the udev database and /sys but doesn't
-> look in the /dev directory for manual actions, even when udevd is dead.
++static int debug_fcp_opcode_flag_set(unsigned int opcode,
++                                    const u8 *data, int length)
++{
++       switch (opcode) {
++       case AVC_OPCODE_VENDOR:                 break;
++       case AVC_OPCODE_READ_DESCRIPTOR:        return avc_debug & AVC_DEBUG_READ_DESCRIPTOR;
++       case AVC_OPCODE_DSIT:                   return avc_debug & AVC_DEBUG_DSIT;
++       case AVC_OPCODE_DSD:                    return avc_debug & AVC_DEBUG_DSD;
++       default:                                return 1;
++       }
++
++       if (length < 7 ||
++           data[3] != SFE_VENDOR_DE_COMPANYID_0 ||
++           data[4] != SFE_VENDOR_DE_COMPANYID_1 ||
++           data[5] != SFE_VENDOR_DE_COMPANYID_2)
++               return 1;
++
++       switch (data[6]) {
++       case SFE_VENDOR_OPCODE_REGISTER_REMOTE_CONTROL: return avc_debug & AVC_DEBUG_REGISTER_REMOTE_CONTROL;
++       case SFE_VENDOR_OPCODE_LNB_CONTROL:             return avc_debug & AVC_DEBUG_LNB_CONTROL;
++       case SFE_VENDOR_OPCODE_TUNE_QPSK:               return avc_debug & AVC_DEBUG_TUNE_QPSK;
++       case SFE_VENDOR_OPCODE_TUNE_QPSK2:              return avc_debug & AVC_DEBUG_TUNE_QPSK2;
++       case SFE_VENDOR_OPCODE_HOST2CA:                 return avc_debug & AVC_DEBUG_HOST2CA;
++       case SFE_VENDOR_OPCODE_CA2HOST:                 return avc_debug & AVC_DEBUG_CA2HOST;
++       }
++       return 1;
++}
++
+ static void debug_fcp(const u8 *data, int length)
+ {
+        unsigned int subunit_type, subunit_id, op;
+        const char *prefix = data[0] > 7 ? "FCP <- " : "FCP -> ";
 
-That makes sense as udev is basically in charge of the /dev/ contents and 
-making manual /dev/ changes while udev is running defeats the purpose of 
-udev.
+-       if (avc_debug & AVC_DEBUG_FCP_SUBACTIONS) {
+-               subunit_type = data[1] >> 3;
+-               subunit_id = data[1] & 7;
+-               op = subunit_type == 0x1e || subunit_id == 5 ? ~0 : data[2];
++       subunit_type = data[1] >> 3;
++       subunit_id = data[1] & 7;
++       op = subunit_type == 0x1e || subunit_id == 5 ? ~0 : data[2];
++       if (debug_fcp_opcode_flag_set(op, data, length)) {
+                printk(KERN_INFO "%ssu=%x.%x l=%d: %-8s - %s\n",
+                       prefix, subunit_type, subunit_id, length,
+                       debug_fcp_ctype(data[0]),
+                       debug_fcp_opcode(op, data, length));
++               if (avc_debug & AVC_DEBUG_FCP_PAYLOADS)
++#if LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 22)
++                       print_hex_dump(KERN_INFO, prefix, DUMP_PREFIX_NONE, 16, 1,
++                                      data, length, false);
++#else
++                       print_hex_dump(KERN_INFO, prefix, DUMP_PREFIX_NONE, 16, 1,
++                                      (void *)data, length, false);
++#endif
+        }
++}
 
-I'm really happy finddev finds the symlinks as well. This means that the 
-major and minor numbers are all that is needed in order to reliably find 
-the right device nodes in /dev.
+-       if (avc_debug & AVC_DEBUG_FCP_PAYLOADS)
+-#if LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 22)
+-               print_hex_dump(KERN_INFO, prefix, DUMP_PREFIX_NONE, 16, 1,
+-                              data, length, false);
+-#else
+-               print_hex_dump(KERN_INFO, prefix, DUMP_PREFIX_NONE, 16, 1,
+-                              (void *)data, length, false);
+-#endif
++static void debug_pmt(char* msg,
++                     int length)
++{
++       printk(KERN_INFO "APP PMT -> l=%d\n", length);
++       print_hex_dump(KERN_INFO, "APP PMT -> ", DUMP_PREFIX_NONE, 16, 1,
++                      msg, length, false);
+ }
 
-Thanks!
++
+ static int __avc_write(struct firedtv *fdtv,
+                const struct avc_command_frame *c, struct avc_response_frame *r)
+ {
+@@ -987,6 +1040,9 @@ int avc_ca_pmt(struct firedtv *fdtv, cha
+        int es_info_length;
+        int crc32_csum;
 
-	Hans
++       if (unlikely(avc_debug & AVC_DEBUG_APPLICATION_PMT))
++               debug_pmt(msg, length);
++
+        memset(c, 0, sizeof(*c));
 
->
-> Regards,
-> Andy
->
-> > Regards,
-> > Andy
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+        c->ctype   = AVC_CTYPE_CONTROL;
 
 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
