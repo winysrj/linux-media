@@ -1,33 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n6UDeWsX028736
-	for <video4linux-list@redhat.com>; Thu, 30 Jul 2009 09:40:32 -0400
-Received: from mail-yw0-f199.google.com (mail-yw0-f199.google.com
-	[209.85.211.199])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n6UDeGmQ002368
-	for <video4linux-list@redhat.com>; Thu, 30 Jul 2009 09:40:16 -0400
-Received: by ywh37 with SMTP id 37so692047ywh.28
-	for <video4linux-list@redhat.com>; Thu, 30 Jul 2009 06:40:16 -0700 (PDT)
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n6GFvBoo023850
+	for <video4linux-list@redhat.com>; Thu, 16 Jul 2009 11:57:11 -0400
+Received: from mailgw2.jenoptik.com (mailgw2.jenoptik.com [213.248.109.130])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n6GFuv65021030
+	for <video4linux-list@redhat.com>; Thu, 16 Jul 2009 11:56:58 -0400
+Received: from hermes.jena-optronik.de (hermes [10.128.0.8])
+	by julia.jena-optronik.de (Postfix) with ESMTP id 45BB72102B
+	for <video4linux-list@redhat.com>;
+	Thu, 16 Jul 2009 17:56:56 +0200 (CEST)
+Received: from hermes.jena-optronik.de (localhost.localdomain [127.0.0.1])
+	by hermes.jena-optronik.de (8.13.8/8.13.8) with ESMTP id n6GFuuqd030950
+	for <video4linux-list@redhat.com>; Thu, 16 Jul 2009 17:56:56 +0200
+Date: Thu, 16 Jul 2009 17:56:42 +0200
+From: "Jesko Schwarzer" <jesko.schwarzer@jena-optronik.de>
+To: <video4linux-list@redhat.com>
+Message-ID: <"4430.36481247759815.hermes.jena-optronik.de*"@MHS>
+In-Reply-To: <20090716124506.26e7e6b0@pedra.chehab.org>
 MIME-Version: 1.0
-In-Reply-To: <4A71A11A.8070903@gmail.com>
-References: <1244577481.32457.1319583459@webmail.messagingengine.com>
-	<1246654555282-3203325.post@n2.nabble.com>
-	<1246882966.1165.1323684945@webmail.messagingengine.com>
-	<4A7058FA.4060409@gmail.com>
-	<829197380907290734l175a2c18sc76ae82b1f5d2eb@mail.gmail.com>
-	<829197380907290742t678039al95c800e9a8c8c22e@mail.gmail.com>
-	<4A706591.2090707@gmail.com>
-	<829197380907290820j2ed4d4a0ycdccf8ffebd992ca@mail.gmail.com>
-	<4A71A11A.8070903@gmail.com>
-Date: Thu, 30 Jul 2009 09:40:16 -0400
-Message-ID: <829197380907300640g2b0df1ddm31cdef61c4565d25@mail.gmail.com>
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: "buhochileno@gmail.com" <buhochileno@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: V4L Mailing List <video4linux-list@redhat.com>
-Subject: Re: KWorld VS-USB2800D recognized as PointNix Intra-Oral Camera -
-	No Composite Input
+Content-Type: text/plain;
+ 	charset="US-ASCII"
+Content-Disposition: inline
+Subject: Force driver to load (tcm825x)
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -39,34 +33,26 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Thu, Jul 30, 2009 at 9:33 AM,
-buhochileno@gmail.com<buhochileno@gmail.com> wrote:
-> Hi Devin,
->
-> As a aside note, and probably this was asked before, do you know any way to
-> set witch input be used as defoult in a device?, in my case xawtv allways
-> start trying to use the S-video input and I have to change to the composite
-> one, I now that xawtv have a config file in witch I can set something like
-> that, but that is just for xawtv, I mean a more permanent way, may be
-> setting something in the driver?, some dirty cheat in the code? ,
->
-> in advance thanks..
->
-> Mauricio
+Hello,
 
-Well, if your device is always connected, you could do something like
-run v4l2-ctl in a init script which sets the input.  Or if you don't
-care about using a custom compile of the v4l-dvb code, you can always
-reorder the inputs in the board entry in em28xx-cards.c.
+I am working to get the omap34xxcam with the tcm825x running. Currently I
+was not successful in forcing the driver to load and register (in absence of
+a real sensor). I do a probe when the driver starts and uncommented the i2c
+things.
 
-Unfortunately, there is not currently any sort of modprobe option to
-set the default device.
+It fails when calling the
 
-Devin
+vidioc_int_g_priv()
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Function in the device-register function of the "omap34xxcam.c".
+How do I get it accepting the data ?
+
+Is there any documentation to find?
+
+Any hint would be perfect.
+
+Kind regards
+/Jesko
 
 --
 video4linux-list mailing list
