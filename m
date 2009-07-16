@@ -1,62 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ipmail04.adl2.internode.on.net ([203.16.214.57]:52537 "EHLO
-	ipmail04.adl2.internode.on.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752389AbZGDH2E (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:46450 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932489AbZGPPpN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 4 Jul 2009 03:28:04 -0400
-Message-ID: <4A4F0486.8040601@adelaide.edu.au>
-Date: Sat, 04 Jul 2009 16:58:06 +0930
-From: Ian W Roberts <ian.w.roberts@adelaide.edu.au>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Adelaide Foothills DVB-T tuning
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Thu, 16 Jul 2009 11:45:13 -0400
+Date: Thu, 16 Jul 2009 12:45:06 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Lamarque Vieira Souza <lamarque@gmail.com>
+Cc: Antoine Jacquet <royale@zerezo.com>, linux-media@vger.kernel.org,
+	video4linux-list@redhat.com
+Subject: Re: [PATCH] Implement V4L2_CAP_STREAMING for zr364xx driver
+Message-ID: <20090716124506.26e7e6b0@pedra.chehab.org>
+In-Reply-To: <200907152054.56581.lamarque@gmail.com>
+References: <200907152054.56581.lamarque@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Linux Media people,
+Em Wed, 15 Jul 2009 20:54:55 -0300
+Lamarque Vieira Souza <lamarque@gmail.com> escreveu:
 
-I've struggled to tune various DVB-T devices in Mitcham South Australia. 
-Mitcham is in the foothills area of Adelaide without a clear line of 
-sight to the main Mt Lofty transmission towers. The tuning wizards, for 
-instance in me-tv, only display a single location file for Adelaide 
-(au-Adelaide). There is an alternative transmitter in the Adelaide CBD 
-(Grenfell Street) to cover this area.
+> This patch implements V4L2_CAP_STREAMING for the zr364xx driver, by
+> converting the driver to use videobuf. This version is synced with v4l-dvb as 
+> of 15/Jul/2009.
+> 
+> Tested with Creative PC-CAM 880.
+> 
+> It basically:
+> . implements V4L2_CAP_STREAMING using videobuf;
+> 
+> . re-implements V4L2_CAP_READWRITE using videobuf;
+> 
+> . copies cam->udev->product to the card field of the v4l2_capability struct.
+> That gives more information to the users about the webcam;
+> 
+> . moves the brightness setting code from before requesting a frame (in
+> read_frame) to the vidioc_s_ctrl ioctl. This way the brightness code is
+> executed only when the application requests a change in brightness and
+> not before every frame read;
+> 
+> . comments part of zr364xx_vidioc_try_fmt_vid_cap that says that Skype + 
+> libv4l do not work.
+> 
+> This patch fixes zr364xx for applications such as mplayer,
+> Kopete+libv4l and Skype+libv4l can make use of the webcam that comes
+> with zr364xx chip.
+> 
+> Signed-off-by: Lamarque V. Souza <lamarque@gmail.com>
+> ---
+> 
+> diff -r c300798213a9 linux/drivers/media/video/zr364xx.c
+> --- a/linux/drivers/media/video/zr364xx.c	Sun Jul 05 19:08:55 2009 -0300
+> +++ b/linux/drivers/media/video/zr364xx.c	Wed Jul 15 20:50:34 2009 -0300
+> @@ -1,5 +1,5 @@
+>  /*
+> - * Zoran 364xx based USB webcam module version 0.72
+> + * Zoran 364xx based USB webcam module version 0.73
+>   *
+>   * Allows you to use your USB webcam with V4L2 applications
+>   * This is still in heavy developpement !
+> @@ -10,6 +10,8 @@
+>   * Heavily inspired by usb-skeleton.c, vicam.c, cpia.c and spca50x.c drivers
+>   * V4L2 version inspired by meye.c driver
+>   *
+> + * Some video buffer code by Lamarque based on s2255drv.c and vivi.c drivers.
+> + *
 
-I did quite a bit of web searching looking for information about tuning 
-in this area without much success and no clear statement how to get 
-DVB-T devices tuned here.
+Maybe the better example for it is em28xx-video, where we firstly used videobuf
+on usb devices.
 
-Guessing that my problem was due to the lack of tuning information for 
-the Grenfell Street transmitter I created a new file 
-/usr/share/dvb/dvb-t/au-AdelaideFoothills with the following data. I 
-have been able to tune the 18 stations currently broadcast using the 
-standard me-tv tuning wizard. :-) I'm not sure that all the data in that 
-file is optimal but it works! Does anybody have any improvements to suggest.
+> +static void free_buffer(struct videobuf_queue *vq, struct zr364xx_buffer 
+> *buf)
+> +{
+> +	DBG("%s\n", __func__);
+> +
+> +	/*Lamarque: is this really needed? Sometimes this blocks rmmod forever
+> +	 * after running Skype on an AMD64 system. */
+> +	/*videobuf_waiton(&buf->vb, 0, 0);*/
 
-------------------------------------------------------------------------
-# Australia / Adelaide / Grenfell Street
-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-# ABC
-T 781625000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-# Seven
-T 711500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-# Nine
-T 795500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-# Ten
-T 732500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-# SBS
-T 760500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
-------------------------------------------------------------------------
+Answering to your note, take a look at em28xx-video implementation:
 
-It would be good if an entry equivalent to my au-AdelaideFoothills could 
-be included in the linux-tv packages so that residents in the Adelaide 
-foothills would have an easier experience with DVB-T. How can that data 
-be included? Who is in a position to incorporate the additional location 
-entry.
+        /* We used to wait for the buffer to finish here, but this didn't work
+           because, as we were keeping the state as VIDEOBUF_QUEUED,
+           videobuf_queue_cancel marked it as finished for us.
+           (Also, it could wedge forever if the hardware was misconfigured.)
 
-bye
+           This should be safe; by the time we get here, the buffer isn't
+           queued anymore. If we ever start marking the buffers as
+           VIDEOBUF_ACTIVE, it won't be, though.
+        */
+        spin_lock_irqsave(&dev->slock, flags);
+        if (dev->isoc_ctl.buf == buf)
+                dev->isoc_ctl.buf = NULL;
+        spin_unlock_irqrestore(&dev->slock, flags);
 
-ian
+> +	if (pipe_info->state != 0) {
+> +		if (usb_submit_urb(pipe_info->stream_urb, GFP_KERNEL))
+> +			dev_err(&cam->udev->dev, "error submitting urb\n");
+> +	} else {
+> +		DBG("read pipe complete state 0\n");
+> +	}
 
+Hmm...  for the usb_submit_urb() call that happens during IRQ context (while
+you're receiving stream), you need to use:
+        urb->status = usb_submit_urb(pipe_info->stream_urb, GFP_ATOMIC);
+
+otherwise, you may get the errors that Antoine is reporting
+
+
+
+Cheers,
+Mauro
