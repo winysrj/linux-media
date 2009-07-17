@@ -1,67 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:28690 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758131AbZGRKqr (ORCPT
+Received: from einhorn.in-berlin.de ([192.109.42.8]:49909 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964860AbZGQQJ5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jul 2009 06:46:47 -0400
-Received: by ey-out-2122.google.com with SMTP id 9so331586eyd.37
-        for <linux-media@vger.kernel.org>; Sat, 18 Jul 2009 03:46:46 -0700 (PDT)
-From: Mario Fetka <mario.fetka@gmail.com>
-To: Alain Kalker <miki@dds.nl>
-Subject: Re: [linux-dvb] Terratec Cinergy HTC USB XS HD
-Date: Sat, 18 Jul 2009 12:46:43 +0200
-Cc: linux-media@vger.kernel.org, video4linux-list@redhat.com,
-	linux-dvb@linuxtv.org
-References: <1245098160.20120.0.camel@asrock> <1247882773.23687.14.camel@miki-desktop>
-In-Reply-To: <1247882773.23687.14.camel@miki-desktop>
+	Fri, 17 Jul 2009 12:09:57 -0400
+Date: Fri, 17 Jul 2009 18:09:54 +0200 (CEST)
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: Re: [PATCH] firedtv: refine AVC debugging
+To: Henrik Kurelid <henke@kurelid.se>
+cc: linux-media@vger.kernel.org
+In-Reply-To: <2f15391f4f76f6a3126c0e8a9d61562c.squirrel@mail.kurelid.se>
+Message-ID: <tkrat.70d4e4ffb7268b89@s5r6.in-berlin.de>
+References: <2f15391f4f76f6a3126c0e8a9d61562c.squirrel@mail.kurelid.se>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <200907181246.44288.mario.fetka@gmail.com>
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday, 18. July 2009 04:06:13 Alain Kalker wrote:
-> Op maandag 15-06-2009 om 22:36 uur [tijdzone +0200], schreef sacha:
-> > Hello
-> >
-> > Does anybody know if this devise will ever work with Linux?
-> > It was promised by one person last year the support will be available
-> > within months. One year has gone, nothing happens.
-> > Is there any alternatives to develop a driver for this devise aside from
-> > this person?
->
-> Since there has been no answer to your question for some time, I think I
-> will step in.
->
-> >From http://mcentral.de/wiki/index.php5/Terratec_HTC_XS , the future for
->
-> a driver from Markus for this device does seem to look quite bleak.
-> However, from looking in the mailinglist archive I gather that Steven
-> Toth has offered to try getting it to work if someone is willing to
-> provide him with a device.
-> Maybe you two could get in contact.
-> I myself am also interested in a driver for this device but I haven't
-> got one yet.
->
-> Kind regards,
->
-> Alain
->
-as far as i know there already exists a driver but it could not be published 
-as it is based on the micronas refernce driver 
+On 17 Jul, Henrik Kurelid wrote:
+[I wrote]
+>> Shouldn't the three return statements in debug_fcp_opcode_flag_set be
+>> 'return 0' rather than one?
+> I gave this some thought when I implemented it. These are "should not
+> happend"-situations where the drivers or hardware sends unknown/
+> unimplemented commands. Rather than making sure that they are never
+> seen in the logs I wanted them to always be logged (as long as some
+> debug logging is turned on) since they indicate driver/hw problems.
 
-i think the problem is related to 
+Ah, that's why.  Could be documented:
 
-http://www.linuxtv.org/pipermail/linux-dvb/2008-December/030738.html
+static int debug_fcp_opcode_flag_set(unsigned int opcode,
+				     const u8 *data, int length)
+{
+	switch (opcode) {
+	case AVC_OPCODE_VENDOR:			break;
+	case AVC_OPCODE_READ_DESCRIPTOR:	return avc_debug & AVC_DEBUG_READ_DESCRIPTOR;
+	case AVC_OPCODE_DSIT:			return avc_debug & AVC_DEBUG_DSIT;
+	case AVC_OPCODE_DSD:			return avc_debug & AVC_DEBUG_DSD;
+	default:				goto unknown_opcode;
+	}
 
-but this new situation with
-http://www.tridentmicro.com/Product_drx_39xyK.asp
+	if (length < 7 ||
+	    data[3] != SFE_VENDOR_DE_COMPANYID_0 ||
+	    data[4] != SFE_VENDOR_DE_COMPANYID_1 ||
+	    data[5] != SFE_VENDOR_DE_COMPANYID_2)
+		goto unknown_opcode;
 
-can maby change something about this chip
+	switch (data[6]) {
+	case SFE_VENDOR_OPCODE_REGISTER_REMOTE_CONTROL:	return avc_debug & AVC_DEBUG_REGISTER_REMOTE_CONTROL;
+	case SFE_VENDOR_OPCODE_LNB_CONTROL:		return avc_debug & AVC_DEBUG_LNB_CONTROL;
+	case SFE_VENDOR_OPCODE_TUNE_QPSK:		return avc_debug & AVC_DEBUG_TUNE_QPSK;
+	case SFE_VENDOR_OPCODE_TUNE_QPSK2:		return avc_debug & AVC_DEBUG_TUNE_QPSK2;
+	case SFE_VENDOR_OPCODE_HOST2CA:			return avc_debug & AVC_DEBUG_HOST2CA;
+	case SFE_VENDOR_OPCODE_CA2HOST:			return avc_debug & AVC_DEBUG_CA2HOST;
+	}
 
-and it would be possible to get the rights to publish the driver under  gpl-2
+unknown_opcode:  /* should never happen, log it */
+	return 1;
+}
 
-thx
-Mario
+
+By the way, from here it looks as if your MUA converted tabs to spaces.
+In your other patch too.
+-- 
+Stefan Richter
+-=====-==--= -=== =---=
+http://arcgraph.de/sr/
+
