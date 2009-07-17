@@ -1,25 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n6CEJo75024901
-	for <video4linux-list@redhat.com>; Sun, 12 Jul 2009 10:19:50 -0400
-Received: from pasmtpB.tele.dk (pasmtpb.tele.dk [80.160.77.98])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n6CEJZ1h005187
-	for <video4linux-list@redhat.com>; Sun, 12 Jul 2009 10:19:36 -0400
-Received: from [10.0.0.19]
-	(0x5da6fe5a.cpe.ge-0-2-0-1104.arcnqu1.customer.tele.dk
-	[93.166.254.90])
-	by pasmtpB.tele.dk (Postfix) with ESMTP id C90F8E3031A
-	for <video4linux-list@redhat.com>;
-	Sun, 12 Jul 2009 16:19:34 +0200 (CEST)
-Message-ID: <4A59F0F5.5020009@softwarehuset.dk>
-Date: Sun, 12 Jul 2009 16:19:33 +0200
-From: Morten Stigaard Laursen <morten@softwarehuset.dk>
-MIME-Version: 1.0
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n6H18HJ2030769
+	for <video4linux-list@redhat.com>; Thu, 16 Jul 2009 21:08:17 -0400
+Received: from web34505.mail.mud.yahoo.com (web34505.mail.mud.yahoo.com
+	[66.163.178.171])
+	by mx3.redhat.com (8.13.8/8.13.8) with SMTP id n6H17e0u018445
+	for <video4linux-list@redhat.com>; Thu, 16 Jul 2009 21:07:40 -0400
+Message-ID: <50828.51121.qm@web34505.mail.mud.yahoo.com>
+Date: Thu, 16 Jul 2009 18:07:39 -0700 (PDT)
+From: Carlos Limarino <climarino@yahoo.com.ar>
 To: video4linux-list@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
-Subject: System crashes when trying to tune a channel using tzap with a
- LITE-ON USB2.0 DVB-T Tuner
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+Subject: problems with cx88 and PAL-Nc
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -31,155 +25,196 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi, I'm trying to get my USB DVB-T tuner up and running it is a rebrand 
-of the LITE-ON USB2.0 DVB-T Tuner and the kernel identifies it as such, 
-using the DiBcom 3000MC/P driver. And the led comes on when driver is 
-loaded as it's supposed to so everything looks right, however when I try 
-to tune a channel using Tzap the system crashes and prints the errors 
-attached below, I have tried the stick on another system (ubuntu 9.04) 
-and on that system it works perfectly.
-Any suggestions to how I might narrow down or solve this problem is 
-greatly appreciated.
+Hello,
 
-Thank you in advance for any help
-Morten S. Laursen
+After many attempts, I finally made some progress with my Compro Videomate =
+x50 (cx88 + xc2028). I added the necessary bits to a 'custom' callback func=
+tion and I'm able to get the TV signal and change channels. However, I'm ha=
+ving a hard time trying to use PAL-Nc . At first, I thought it was a proble=
+m related with the tuner, but it also happens with S-Video.=20
 
-The system I'm trying to run this on is and OMAP3 DevKit8000 Board using 
-a Texas Instruments OMAP3530 Arm processor (the same as the Beagle 
-boards), I'm running kernel 2.6.28-rc9-omap1.
+It works fine with PAL and NTSC, using TV as input or S-Video as input,. bu=
+t when I set PAL-Nc as the norm this happens (Fedora 11, lastest v4l-dvb, S=
+-Video input):=20
 
-Channels.conf:
-
-Tegnsprogstolkning:658000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:0:103
-DR1:658000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:111:121:101
-DR2:658000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:211:221:102
-TV 2 (Østjylland):658000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:2111:2121:213
-
-Console log from crash:
-
-devkit8000:~# tzap dr1
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-reading channels from file '/root/.tzap/channels.conf'
-tuning to 658000000 HzUnable to handle kernel NULL pointer dereference 
-at virtual address 00000000
- 
-video pid 0x006f, audio pid 0xpgd = c6d08000
-0079
-[00000000] *pgd=87baa031, *pte=00000000, *ppte=00000000
-Internal error: Oops: 817 [#1]
-Modules linked in:
-CPU: 0    Not tainted  (2.6.28-rc9-omap1 #4)
-PC is at dma_cache_maint+0x40/0xa8
-LR is at usb_hcd_submit_urb+0x178/0x888
-pc : [<c003310c>]    lr : [<c01f9cf4>]    psr: 20000013
-sp : c6d2dc50  ip : c6d2dc60  fp : c6d2dc5c
-r10: c78c9c48  r9 : 00000020  r8 : 00000000
-r7 : 00000000  r6 : c78dd800  r5 : c78c9c40  r4 : ffa42000
-r3 : 00000000  r2 : 00000002  r1 : ffa43000  r0 : ffa42000
-Flags: nzCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment user
-Control: 10c5387d  Table: 86d08018  DAC: 00000015
-Process tzap (pid: 1612, stack limit = 0xc6d2c2e0)
-Stack: (0xc6d2dc50 to 0xc6d2e000)
-dc40:                                     c6d2dd14 c6d2dc60 c01f9cf4 
-c00330d8 
-dc60: c6d2dccc c6d2dc70 c007ef64 c007d628 00000044 c004fb34 c781e01c 
-00000000 
-dc80: c03d3b18 00000000 00000000 00000001 00000000 c6d2c000 c03d3564 
-c03d3564 
-dca0: c02cb75c c03d3b18 000000d2 c03d3b14 00000000 00000000 c7813e90 
-c89a4000 
-dcc0: c89a4000 c0007220 c6d2dd14 c0092308 00000000 00000000 c7bec960 
-000002cf 
-dce0: c89a4000 00000002 c04c9ee0 c78c1c00 00000002 00000020 00000000 
-00001100 
-dd00: 00000001 c78c87d4 c6d2dd34 c6d2dd18 c01fa890 c01f9b88 c78c8a84 
-c78c8a84 
-dd20: 00000001 00000000 c6d2dd54 c6d2dd38 c01ee33c c01fa668 c78c873c 
-c8871000 
-dd40: 00000001 00000001 c6d2dd74 c6d2dd58 c01ed974 c01ee324 c8871000 
-c78c8828 
-dd60: c78c8a00 00000000 c6d2dd84 c6d2dd78 c01eda1c c01ed8b0 c6d2ddac 
-c6d2dd88 
-dd80: c01e0bd4 c01eda14 00000000 c01e0c18 0000006f c8986000 00000004 
-00000001 
-dda0: c6d2ddf4 c6d2ddb0 c01dec00 c01e0b5c 00008000 00000000 00000000 
-22222222 
-ddc0: 00000000 00000000 c8986000 c8986018 c8986000 c6d2de30 c898606c 
-00000000 
-dde0: c6c5c340 c78c8810 c6d2de24 c6d2ddf8 c01deec0 c01de880 c6d2de30 
-be9f3b94 
-de00: c6d2de30 00004014 40146f2c 00000001 c6c5c340 00000000 c6d2dedc 
-c6d2de28 
-de20: c01dd614 c01dec78 00000fff c78b00e0 0000006f 00000000 00000000 
-00000001 
-de40: 00000004 c008260c 60000013 c7b04b60 c6d2de6c c6d2de60 c01c0408 
-c01c40d4 
-de60: c6d2de84 c6d2de70 a0000013 c7af3000 c6d2de8c c6d2de80 c01c0408 
-c01c40d4 
-de80: c6d2dea4 c6d2de90 c01c0424 c01c03c4 00000022 c7af3000 00000000 
-60000093 
-dea0: a0000013 00000023 c7af3000 c6d2c000 00000000 40146f2c be9f3b94 
-40146f2c 
-dec0: c78b00e0 be9f3b94 c6d2c000 00000000 c6d2def4 c6d2dee0 c01de294 
-c01dd538 
-dee0: c01dec6c c004b354 c6d2df0c c6d2def8 c00a960c c01de284 c78b00e0 
-00000004 
-df00: c6d2df7c c6d2df10 c00a9a8c c00a95b0 00000000 c7bb8ea8 00000200 
-00000002 
-df20: c74e0cd8 c7bb8da0 00000023 be9f14e8 c6d2c000 00000000 c6d2df6c 
-c6d2df48 
-df40: c009e314 c00c4650 00000000 00000000 00000000 00000004 be9f3b94 
-40146f2c 
-df60: c78b00e0 c002df28 c6d2c000 00000000 c6d2dfa4 c6d2df80 c00a9b0c 
-c00a9654 
-df80: ffffffff 00000000 0000006f 00000001 be9f3f07 00000036 00000000 
-c6d2dfa8 
-dfa0: c002dd80 c00a9ad8 0000006f 00000001 00000004 40146f2c be9f3b94 
-00000004 
-dfc0: 0000006f 00000001 be9f3f07 00000036 0000b0c0 00000000 00000004 
-00000000 
-dfe0: 00013ca0 be9f3b90 00008b0c 400f4fbc 60000010 00000004 00000000 
-00000000 
-Backtrace: 
-[<c00330cc>] (dma_cache_maint+0x0/0xa8) from [<c01f9cf4>] 
-(usb_hcd_submit_urb+0x178/0x888)
-[<c01f9b7c>] (usb_hcd_submit_urb+0x0/0x888) from [<c01fa890>] 
-(usb_submit_urb+0x234/0x250)
-[<c01fa65c>] (usb_submit_urb+0x0/0x250) from [<c01ee33c>] 
-(usb_urb_submit+0x24/0x78)
- r7:00000000 r6:00000001 r5:c78c8a84 r4:c78c8a84
-[<c01ee318>] (usb_urb_submit+0x0/0x78) from [<c01ed974>] 
-(dvb_usb_ctrl_feed+0xd0/0x14c)
- r7:00000001 r6:00000001 r5:c8871000 r4:c78c873c
-[<c01ed8a4>] (dvb_usb_ctrl_feed+0x0/0x14c) from [<c01eda1c>] 
-(dvb_usb_start_feed+0x14/0x18)
- r7:00000000 r6:c78c8a00 r5:c78c8828 r4:c8871000
-[<c01eda08>] (dvb_usb_start_feed+0x0/0x18) from [<c01e0bd4>] 
-(dmx_ts_feed_start_filtering+0x84/0xc8)
-[<c01e0b50>] (dmx_ts_feed_start_filtering+0x0/0xc8) from [<c01dec00>] 
-(dvb_dmxdev_filter_start+0x38c/0x3f8)
- r9:00000001 r8:00000004 r7:c8986000 r6:0000006f r5:c01e0c18
-r4:00000000
-[<c01de874>] (dvb_dmxdev_filter_start+0x0/0x3f8) from [<c01deec0>] 
-(dvb_demux_do_ioctl+0x254/0x38c)
-[<c01dec6c>] (dvb_demux_do_ioctl+0x0/0x38c) from [<c01dd614>] 
-(dvb_usercopy+0xe8/0x170)
-[<c01dd52c>] (dvb_usercopy+0x0/0x170) from [<c01de294>] 
-(dvb_demux_ioctl+0x1c/0x28)
-[<c01de278>] (dvb_demux_ioctl+0x0/0x28) from [<c00a960c>] 
-(vfs_ioctl+0x68/0x78)
-[<c00a95a4>] (vfs_ioctl+0x0/0x78) from [<c00a9a8c>] 
-(do_vfs_ioctl+0x444/0x484)
- r5:00000004 r4:c78b00e0
-[<c00a9648>] (do_vfs_ioctl+0x0/0x484) from [<c00a9b0c>] 
-(sys_ioctl+0x40/0x64)
-[<c00a9acc>] (sys_ioctl+0x0/0x64) from [<c002dd80>] 
-(ret_fast_syscall+0x0/0x2c)
- r7:00000036 r6:be9f3f07 r5:00000001 r4:0000006f
-Code: 9a000001 e15c0003 3a000011 e3a03000 (e5833000) 
----[ end trace 39daa7aac997a191 ]---
-
-
+cx88/0: cx2388x v4l2 driver version 0.0.7 loaded
+cx8800 0000:04:01.0: PCI INT A -> GSI 19 (level, low) -> IRQ 19
+cx88[0]: subsystem: 185b:e000, board: Compro VideoMate X50 [card=3D82,autod=
+etected], frontend(s): 0
+cx88[0]: TV tuner type 71, Radio tuner type 71
+cx88[0]: cx88_reset
+tuner 1-0061: chip found @ 0xc2 (cx88[0])
+xc2028 1-0061: creating new instance
+xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+xc2028 1-0061: destroying instance
+xc2028 1-0061: creating new instance
+xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+cx88[0]: Asking xc2028/3028 to load firmware xc3028-v27.fw
+xc2028 1-0061: Error on line 1139: -6
+cx88[0]/0: found at 0000:04:01.0, rev: 5, irq: 19, latency: 32, mmio: 0xf40=
+00000
+IRQ 19/cx88[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+cx88[0]/0: registered device video0 [v4l2]
+cx88[0]/0: registered device vbi0
+cx88[0]/0: registered device radio0
+cx88[0]: set_tvnorm: "NTSC-M" fsc8=3D28636360 adc=3D28636363 vdec=3D2863636=
+0 db/dr=3D28636360/28636360
+cx88[0]: set_pll:=A0=A0=A0 MO_PLL_REG=A0=A0=A0=A0=A0=A0 0x00fffffe [old=3D0=
+x00f15f18,freq=3D28636360]
+cx88[0]: pll locked [pre=3D2,ofreq=3D28636360]
+cx88[0]: set_tvnorm: MO_INPUT_FORMAT=A0 0x00000001 [old=3D0x00000007]
+cx88[0]: set_tvnorm: MO_OUTPUT_FORMAT 0x181f0008 [old=3D0x181f0000]
+cx88[0]: set_tvnorm: MO_SCONV_REG=A0=A0=A0=A0 0x00020000 [old=3D0x00021f07]
+cx88[0]: set_tvnorm: MO_SUB_STEP=A0=A0=A0=A0=A0 0x00400000 [old=3D0x0043e0f=
+8]
+cx88[0]: set_tvnorm: MO_SUB_STEP_DR=A0=A0 0x00400000 [old=3D0x00538e38]
+cx88[0]: set_tvnorm: MO_AGC_BURST=A0=A0=A0=A0 0x00007270 [old=3D0x00006d63,=
+bdelay=3D114,agcdelay=3D112]
+cx88[0]: set_tvnorm: MO_HTOTAL=A0=A0=A0=A0=A0=A0=A0 0x0000038e [old=3D0x000=
+0135a,htotal=3D910]
+cx88[0]: set_scale: 320x240 [TB,NTSC-M]
+cx88[0]: set_scale: hdelay=A0 0x0038 (width 754)
+cx88[0]: set_scale: hscale=A0 0x15b3
+cx88[0]: set_scale: hactive 0x0140
+cx88[0]: set_scale: vdelay=A0 0x0018
+cx88[0]: set_scale: vscale=A0 0x1e00
+cx88[0]: set_scale: vactive 0x01e0
+cx88[0]: set_scale: filter=A0 0x80009
+cx8800 0000:04:01.0: firmware: requesting xc3028-v27.fw
+xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 =
+firmware, ver 2.7
+cx88[0]: Calling XC2028/3028 callback
+xc2028 1-0061: Loading firmware for type=3DBASE (1), id 0000000000000000.
+cx88[0]: Calling XC2028/3028 callback
+xc2028 1-0061: Loading firmware for type=3D(0), id 000000000000b700.
+SCODE (20000000), id 000000000000b700:
+xc2028 1-0061: Loading SCODE for type=3DMONO SCODE HAS_IF_4320 (60008000), =
+id 0000000000008000.
+cx88[0]: Calling XC2028/3028 callback
+cx88[0]: Calling XC2028/3028 callback
+xc2028 1-0061: Loading firmware for type=3DBASE FM (401), id 00000000000000=
+00.
+cx88[0]: Calling XC2028/3028 callback
+wlan0: no IPv6 routers present
+xc2028 1-0061: Loading firmware for type=3DFM (400), id 0000000000000000.
+cx88[0]: Calling XC2028/3028 callback
+cx88[0]: set_tvnorm: "PAL-Nc" fsc8=3D28656448 adc=3D28636363 vdec=3D2865644=
+8 db/dr=3D28656448/28656448
+cx88[0]: set_pll:=A0=A0=A0 MO_PLL_REG=A0=A0=A0=A0=A0=A0 0x01002df7 [old=3D0=
+x00fffffe,freq=3D28656448]
+cx88[0]: pll locked [pre=3D2,ofreq=3D28656448]
+cx88[0]: set_tvnorm: MO_INPUT_FORMAT=A0 0x00000007 [old=3D0x00000001]
+cx88[0]: set_tvnorm: MO_OUTPUT_FORMAT 0x1c1f0008 [old=3D0x181f0008]
+cx88[0]: set_tvnorm: MO_SCONV_REG=A0=A0=A0=A0 0x0001ffa4 [old=3D0x00020000]
+cx88[0]: set_tvnorm: MO_SUB_STEP=A0=A0=A0=A0=A0 0x00400000 [old=3D0x0040000=
+0]
+cx88[0]: set_tvnorm: MO_SUB_STEP_DR=A0=A0 0x00400000 [old=3D0x00400000]
+cx88[0]: set_tvnorm: MO_AGC_BURST=A0=A0=A0=A0 0x00007270 [old=3D0x00007270,=
+bdelay=3D114,agcdelay=3D112]
+cx88[0]: set_tvnorm: MO_HTOTAL=A0=A0=A0=A0=A0=A0=A0 0x00000395 [old=3D0x000=
+0038e,htotal=3D917]
+cx88[0]: set_scale: 320x240 [TB,PAL-Nc]
+cx88[0]: set_scale: hdelay=A0 0x0040 (width 922)
+cx88[0]: set_scale: hscale=A0 0x1e19
+cx88[0]: set_scale: hactive 0x0140
+cx88[0]: set_scale: vdelay=A0 0x0024
+cx88[0]: set_scale: vscale=A0 0x1d34
+cx88[0]: set_scale: vactive 0x0240
+cx88[0]: set_scale: filter=A0 0x80009
+cx88[0]/0: tvaudio support needs work for this tv norm [PAL-Nc], sorry
+cx88[0]: Calling XC2028/3028 callback
+xc2028 1-0061: Loading firmware for type=3DBASE (1), id 0000000000000000.
+cx88[0]: Calling XC2028/3028 callback
+xc2028 1-0061: Loading firmware for type=3D(0), id 000000000000b700.
+SCODE (20000000), id 000000000000b700:
+xc2028 1-0061: Loading SCODE for type=3DMONO SCODE HAS_IF_4320 (60008000), =
+id 0000000000008000.
+cx88[0]: Calling XC2028/3028 callback
+cx88[0]: set_scale: 720x576 [TB,PAL-Nc]
+cx88[0]: set_scale: hdelay=A0 0x0090 (width 922)
+cx88[0]: set_scale: hscale=A0 0x047d
+cx88[0]: set_scale: hactive 0x02d0
+cx88[0]: set_scale: vdelay=A0 0x0024
+cx88[0]: set_scale: vscale=A0 0x0000
+cx88[0]: set_scale: vactive 0x0240
+cx88[0]: set_scale: filter=A0 0x80008
+cx88[0]: set_tvnorm: "PAL-Nc" fsc8=3D28656448 adc=3D28636363 vdec=3D2865644=
+8 db/dr=3D28656448/28656448
+cx88[0]: set_pll:=A0=A0=A0 MO_PLL_REG=A0=A0=A0=A0=A0=A0 0x01002df7 [old=3D0=
+x01002df7,freq=3D28656448]
+cx88[0]: pll locked [pre=3D2,ofreq=3D28656448]
+cx88[0]: set_tvnorm: MO_INPUT_FORMAT=A0 0x00000007 [old=3D0x00000007]
+cx88[0]: set_tvnorm: MO_OUTPUT_FORMAT 0x1c1f0008 [old=3D0x1c1f0008]
+cx88[0]: set_tvnorm: MO_SCONV_REG=A0=A0=A0=A0 0x0001ffa4 [old=3D0x0001ffa4]
+cx88[0]: set_tvnorm: MO_SUB_STEP=A0=A0=A0=A0=A0 0x00400000 [old=3D0x0040000=
+0]
+cx88[0]: set_tvnorm: MO_SUB_STEP_DR=A0=A0 0x00400000 [old=3D0x00400000]
+cx88[0]: set_tvnorm: MO_AGC_BURST=A0=A0=A0=A0 0x00007270 [old=3D0x00007270,=
+bdelay=3D114,agcdelay=3D112]
+cx88[0]: set_tvnorm: MO_HTOTAL=A0=A0=A0=A0=A0=A0=A0 0x00000395 [old=3D0x000=
+00395,htotal=3D917]
+cx88[0]: set_scale: 320x240 [TB,PAL-Nc]
+cx88[0]: set_scale: hdelay=A0 0x0040 (width 922)
+cx88[0]: set_scale: hscale=A0 0x1e19
+cx88[0]: set_scale: hactive 0x0140
+cx88[0]: set_scale: vdelay=A0 0x0024
+cx88[0]: set_scale: vscale=A0 0x1d34
+cx88[0]: set_scale: vactive 0x0240
+cx88[0]: set_scale: filter=A0 0x82029
+cx88[0]: Calling XC2028/3028 callback
+cx88[0]: set_scale: 720x576 [TB,PAL-Nc]
+cx88[0]: set_scale: hdelay=A0 0x0090 (width 922)
+cx88[0]: set_scale: hscale=A0 0x047d
+cx88[0]: set_scale: hactive 0x02d0
+cx88[0]: set_scale: vdelay=A0 0x0024
+cx88[0]: set_scale: vscale=A0 0x0000
+cx88[0]: set_scale: vactive 0x0240
+cx88[0]: set_scale: filter=A0 0x82028
+cx88[0]: video y / packed - dma channel status dump
+cx88[0]:=A0=A0 cmds: initial risc: 0xcd9d6000
+cx88[0]:=A0=A0 cmds: cdt base=A0=A0=A0 : 0x00180440
+cx88[0]:=A0=A0 cmds: cdt size=A0=A0=A0 : 0x0000000c
+cx88[0]:=A0=A0 cmds: iq base=A0=A0=A0=A0 : 0x00180400
+cx88[0]:=A0=A0 cmds: iq size=A0=A0=A0=A0 : 0x00000010
+cx88[0]:=A0=A0 cmds: risc pc=A0=A0=A0=A0 : 0xcd9d6034
+cx88[0]:=A0=A0 cmds: iq wr ptr=A0=A0 : 0x0000010d
+cx88[0]:=A0=A0 cmds: iq rd ptr=A0=A0 : 0x00000101
+cx88[0]:=A0=A0 cmds: cdt current : 0x00000458
+cx88[0]:=A0=A0 cmds: pci target=A0 : 0x00000000
+cx88[0]:=A0=A0 cmds: line / byte : 0x00000000
+cx88[0]:=A0=A0 risc0: 0x80008000 [ sync resync count=3D0 ]
+cx88[0]:=A0=A0 risc1: 0x1c0005a0 [ write sol eol count=3D1440 ]
+cx88[0]:=A0=A0 risc2: 0xcd831000 [ arg #1 ]
+cx88[0]:=A0=A0 risc3: 0x180004c0 [ write sol count=3D1216 ]
+cx88[0]:=A0=A0 iq 0: 0x80008000 [ sync resync count=3D0 ]
+cx88[0]:=A0=A0 iq 1: 0x1c0005a0 [ write sol eol count=3D1440 ]
+cx88[0]:=A0=A0 iq 2: 0xcd831000 [ arg #1 ]
+cx88[0]:=A0=A0 iq 3: 0x180004c0 [ write sol count=3D1216 ]
+cx88[0]:=A0=A0 iq 4: 0xcd831b40 [ arg #1 ]
+cx88[0]:=A0=A0 iq 5: 0x140000e0 [ write eol count=3D224 ]
+cx88[0]:=A0=A0 iq 6: 0xcd832000 [ arg #1 ]
+cx88[0]:=A0=A0 iq 7: 0x1c0005a0 [ write sol eol count=3D1440 ]
+cx88[0]:=A0=A0 iq 8: 0xcd832680 [ arg #1 ]
+cx88[0]:=A0=A0 iq 9: 0x1c0005a0 [ write sol eol count=3D1440 ]
+cx88[0]:=A0=A0 iq a: 0xcd8331c0 [ arg #1 ]
+cx88[0]:=A0=A0 iq b: 0x18000300 [ write sol count=3D768 ]
+cx88[0]:=A0=A0 iq c: 0xcd833d00 [ arg #1 ]
+cx88[0]:=A0=A0 iq d: 0x0031c040 [ INVALID 21 20 cnt0 resync 14 count=3D64 ]
+cx88[0]:=A0=A0 iq e: 0x00000000 [ INVALID count=3D0 ]
+cx88[0]:=A0=A0 iq f: 0x00000011 [ INVALID count=3D17 ]
+cx88[0]: fifo: 0x00180c00 -> 0x183400
+cx88[0]: ctrl: 0x00180400 -> 0x180460
+cx88[0]:=A0=A0 ptr1_reg: 0x00181ce0
+cx88[0]:=A0=A0 ptr2_reg: 0x00180478
+cx88[0]:=A0=A0 cnt1_reg: 0x00000000
+cx88[0]:=A0=A0 cnt2_reg: 0x00000000
+cx88[0]/0: [ffff880121dfcc00/0] timeout - dma=3D0xcd9d6000
+cx88[0]/0: [ffff880121dfde00/1] timeout - dma=3D0xcd91a000
+cx88[0]/0: [ffff88011bdc8000/2] timeout - dma=3D0xcdb90000
+cx88[0]/0: [ffff88011bdc9200/3] timeout - dma=3D0xcdb92000
+=0A=0A__________________________________________________=0ACorreo Yahoo!=0A=
+Espacio para todos tus mensajes, antivirus y antispam =A1gratis! =0A=A1Abr=
+=ED tu cuenta ya! - http://correo.yahoo.com.ar
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
