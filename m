@@ -1,60 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:37616 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752138AbZG1BH6 (ORCPT
+Received: from wf-out-1314.google.com ([209.85.200.172]:49334 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757160AbZGQUvq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jul 2009 21:07:58 -0400
-Date: Mon, 27 Jul 2009 22:07:53 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Matthias Schwarzott <zzam@gentoo.org>
-Cc: linux-media@vger.kernel.org, Trent Piepho <xyzzy@speakeasy.org>,
-	Andy Walls <awalls@radix.net>
-Subject: Re: lsmod path hardcoded in v4l/Makefile
-Message-ID: <20090727220753.092616bd@pedra.chehab.org>
-In-Reply-To: <200907210914.37819.zzam@gentoo.org>
-References: <200906221636.25006.zzam@gentoo.org>
-	<200906230950.26287.zzam@gentoo.org>
-	<Pine.LNX.4.58.0906231214360.6411@shell2.speakeasy.net>
-	<200907210914.37819.zzam@gentoo.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Fri, 17 Jul 2009 16:51:46 -0400
+Received: by wf-out-1314.google.com with SMTP id 26so327740wfd.4
+        for <linux-media@vger.kernel.org>; Fri, 17 Jul 2009 13:51:46 -0700 (PDT)
+From: Brian Johnson <brijohn@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Brian Johnson <brijohn@gmail.com>
+Subject: [PATCH 1/2] gspca: add support for v4l2 debugging ioctls
+Date: Fri, 17 Jul 2009 16:51:42 -0400
+Message-Id: <1247863903-22125-2-git-send-email-brijohn@gmail.com>
+In-Reply-To: <1247863903-22125-1-git-send-email-brijohn@gmail.com>
+References: <1247863903-22125-1-git-send-email-brijohn@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 21 Jul 2009 09:14:36 +0200
-Matthias Schwarzott <zzam@gentoo.org> escreveu:
+This patch adds support for dbg_g_chip_ident, dbg_g_register,
+and dbg_s_register to the gspca core module.
 
+Signed-off-by: Brian Johnson <brijohn@gmail.com>
+---
+ drivers/media/video/gspca/gspca.c |   73 +++++++++++++++++++++++++++++++++++++
+ drivers/media/video/gspca/gspca.h |    7 ++++
+ 2 files changed, 80 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+index 1e89600..b8561df 100644
+--- a/drivers/media/video/gspca/gspca.c
++++ b/drivers/media/video/gspca/gspca.c
+@@ -727,6 +727,74 @@ static int gspca_get_mode(struct gspca_dev *gspca_dev,
+ 	return -EINVAL;
+ }
  
-> Hi Mauro!
-> 
-> is there any reason to not pull this besides time?
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++static int vidioc_g_register(struct file *file, void *priv,
++			struct v4l2_dbg_register *reg)
++{
++	int ret;
++	struct gspca_dev *gspca_dev = priv;
++
++	if (!gspca_dev->sd_desc->get_chip_ident)
++		return -EINVAL;
++
++	if (!gspca_dev->sd_desc->get_register)
++		return -EINVAL;
++
++	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
++		return -ERESTARTSYS;
++	if (gspca_dev->present)
++		ret = gspca_dev->sd_desc->get_register(gspca_dev, reg);
++	else
++		ret = -ENODEV;
++	mutex_unlock(&gspca_dev->usb_lock);
++
++	return ret;
++}
++
++static int vidioc_s_register(struct file *file, void *priv,
++			struct v4l2_dbg_register *reg)
++{
++	int ret;
++	struct gspca_dev *gspca_dev = priv;
++
++	if (!gspca_dev->sd_desc->get_chip_ident)
++		return -EINVAL;
++
++	if (!gspca_dev->sd_desc->set_register)
++		return -EINVAL;
++
++	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
++		return -ERESTARTSYS;
++	if (gspca_dev->present)
++		ret = gspca_dev->sd_desc->set_register(gspca_dev, reg);
++	else
++		ret = -ENODEV;
++	mutex_unlock(&gspca_dev->usb_lock);
++
++	return ret;
++}
++#endif
++
++static int vidioc_g_chip_ident(struct file *file, void *priv,
++			struct v4l2_dbg_chip_ident *chip)
++{
++	int ret;
++	struct gspca_dev *gspca_dev = priv;
++
++	if (!gspca_dev->sd_desc->get_chip_ident)
++		return -EINVAL;
++
++	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
++		return -ERESTARTSYS;
++	if (gspca_dev->present)
++		ret = gspca_dev->sd_desc->get_chip_ident(gspca_dev, chip);
++	else
++		ret = -ENODEV;
++	mutex_unlock(&gspca_dev->usb_lock);
++
++	return ret;
++}
++
+ static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
+ 				struct v4l2_fmtdesc *fmtdesc)
+ {
+@@ -1883,6 +1951,11 @@ static const struct v4l2_ioctl_ops dev_ioctl_ops = {
+ 	.vidioc_s_parm		= vidioc_s_parm,
+ 	.vidioc_s_std		= vidioc_s_std,
+ 	.vidioc_enum_framesizes = vidioc_enum_framesizes,
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++	.vidioc_g_register	= vidioc_g_register,
++	.vidioc_s_register	= vidioc_s_register,
++#endif
++	.vidioc_g_chip_ident	= vidioc_g_chip_ident,
+ #ifdef CONFIG_VIDEO_V4L1_COMPAT
+ 	.vidiocgmbuf          = vidiocgmbuf,
+ #endif
+diff --git a/drivers/media/video/gspca/gspca.h b/drivers/media/video/gspca/gspca.h
+index bd1faff..4f2a873 100644
+--- a/drivers/media/video/gspca/gspca.h
++++ b/drivers/media/video/gspca/gspca.h
+@@ -69,6 +69,10 @@ typedef void (*cam_v_op) (struct gspca_dev *);
+ typedef int (*cam_cf_op) (struct gspca_dev *, const struct usb_device_id *);
+ typedef int (*cam_jpg_op) (struct gspca_dev *,
+ 				struct v4l2_jpegcompression *);
++typedef int (*cam_reg_op) (struct gspca_dev *,
++				struct v4l2_dbg_register *);
++typedef int (*cam_ident_op) (struct gspca_dev *,
++				struct v4l2_dbg_chip_ident *);
+ typedef int (*cam_streamparm_op) (struct gspca_dev *,
+ 				  struct v4l2_streamparm *);
+ typedef int (*cam_qmnu_op) (struct gspca_dev *,
+@@ -105,6 +109,9 @@ struct sd_desc {
+ 	cam_qmnu_op querymenu;
+ 	cam_streamparm_op get_streamparm;
+ 	cam_streamparm_op set_streamparm;
++	cam_reg_op set_register;
++	cam_reg_op get_register;
++	cam_ident_op get_chip_ident;
+ };
+ 
+ /* packet types when moving from iso buf to frame buf */
+-- 
+1.5.6.3
 
-Time is one reason, however, there's another:
-
-It is not a good idea to run as root. Most people compile everything
-with a normal user and then use "sudo" command to install/remove/insert
-modules. Unfortunately, depending on the distribution, sudo inherits PATH from
-the normal user, instead of root. Due to that, if you replace it for just
-lsmod, it will fail for people that don't use gentoo.
-
-Maybe good solution is to test if lsmod (and other similar tools) are at /sbin
-or /usr/sbin. 
-
-Alternatively, we can try to replace lsmod by something like (untested):
-
-v4l_modules := $(shell PATH=$PATH:/usr/local/sbin:/usr/sbin:/sbin lsmod|cut -d' ' -f1 ) $(patsubst %.ko,%,$(inst-m))
-
-> 
-> Regards
-> Matthias
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
-
-Cheers,
-Mauro
