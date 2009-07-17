@@ -1,90 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:65017 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752432AbZGWO3D convert rfc822-to-8bit (ORCPT
+Received: from einhorn.in-berlin.de ([192.109.42.8]:45482 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933571AbZGQGRo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2009 10:29:03 -0400
-Received: by ey-out-2122.google.com with SMTP id 9so297911eyd.37
-        for <linux-media@vger.kernel.org>; Thu, 23 Jul 2009 07:29:02 -0700 (PDT)
+	Fri, 17 Jul 2009 02:17:44 -0400
+Message-ID: <4A601785.2020600@s5r6.in-berlin.de>
+Date: Fri, 17 Jul 2009 08:17:41 +0200
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
 MIME-Version: 1.0
-In-Reply-To: <829197380907230705w4f1c3126r9cf156ca30aa2b5b@mail.gmail.com>
-References: <d9def9db0907230240w6d3a41fcv2fcef6cbb6e2cb8c@mail.gmail.com>
-	 <829197380907230441q18e21e4fn63b186370b3711de@mail.gmail.com>
-	 <d9def9db0907230443x49dd1b56m143b293e9bdbaaec@mail.gmail.com>
-	 <d9def9db0907230446k291db7bfm1ebcb314d0c97c2@mail.gmail.com>
-	 <829197380907230503y3a2ca24y4434ed759c1f4009@mail.gmail.com>
-	 <d9def9db0907230510h31d1d225pb1d317c9a41fa210@mail.gmail.com>
-	 <829197380907230705w4f1c3126r9cf156ca30aa2b5b@mail.gmail.com>
-Date: Thu, 23 Jul 2009 16:29:02 +0200
-Message-ID: <d9def9db0907230729k4cc14707v763d242e14292ebb@mail.gmail.com>
-Subject: Re: em28xx driver crashes device
-From: Markus Rechberger <mrechberger@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Henrik Kurelid <henke@kurelid.se>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] firedtv: refine AVC debugging
+References: <101260728ec51cc1ec78699fbb0e5c37.squirrel@mail.kurelid.se>
+In-Reply-To: <101260728ec51cc1ec78699fbb0e5c37.squirrel@mail.kurelid.se>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 23, 2009 at 4:05 PM, Devin
-Heitmueller<dheitmueller@kernellabs.com> wrote:
-> On Thu, Jul 23, 2009 at 8:10 AM, Markus Rechberger<mrechberger@gmail.com> wrote:
->> There's a pretty good disclosed detection from Empia available, the
->> linux kernel driver
->> just doesn't support it and very likely will never support it. Instead
->> of doing it the
->> wrong way it's better to turn it off or explicitly ask the user if he
->> wants to do something
->> undefined with his device.
->> The nvidia setup tools also provide an option to force it instead of
->> letting the software
->> just do whatever some developers don't know what it will cause...
->> You don't know what will happen to the device when doing that detection.
->> The initial device in question had to be replugged after we removed
->> the driver from the system.
->> You shouldn't invite people to do undefined things with their hardware
->> so they might break them
->> I think I will submit a few photos what physically can happen to the
->> device with wrong settings.
->
-> Well, if there is a known heuristic, I would be very happy to get rid
-> of the autodetection logic.  I haven't looked at the Empia code in
-> months so I should probably do that.
->
-> Since I used to design hardware for a living, I am quite familiar with
-> what can happen with incorrect GPIOs so I do not believe you need to
-> attempt to convince me with photos, which is why I am in favor of
-> removing the logic in question.  We just need to figure out how to do
-> it without causing a regression in current device support.
->
-> Interesting...  I took a quick look at the code, and it seems like the
-> USB errors occur before we change any GPIOs, and more interesting it
-> appears that the em2861 itself is wedged (which I believe is the first
-> time I've seen that).  The code in the log above suggests that the
-> autodetection concluded that the profile was not known, so it did not
-> arbitrarily pick some incorrect device.  I am a bit surprised that
-> just reading the eeprom once and doing a scan of the i2c bus would
-> wedge the chip.
->
-> Is there any information you can give about the board in question in
-> terms of what product it is or what components it contains?
->
+Henrik Kurelid wrote:
+> +static int debug_fcp_opcode_flag_set(unsigned int opcode,
+> +                                    const u8 *data, int length)
+> +{
+> +       switch (opcode) {
+> +       case AVC_OPCODE_VENDOR:                 break;
+> +       case AVC_OPCODE_READ_DESCRIPTOR:        return avc_debug & AVC_DEBUG_READ_DESCRIPTOR;
+> +       case AVC_OPCODE_DSIT:                   return avc_debug & AVC_DEBUG_DSIT;
+> +       case AVC_OPCODE_DSD:                    return avc_debug & AVC_DEBUG_DSD;
+> +       default:                                return 1;
+> +       }
+> +
+> +       if (length < 7 ||
+> +           data[3] != SFE_VENDOR_DE_COMPANYID_0 ||
+> +           data[4] != SFE_VENDOR_DE_COMPANYID_1 ||
+> +           data[5] != SFE_VENDOR_DE_COMPANYID_2)
+> +               return 1;
+> +
+> +       switch (data[6]) {
+> +       case SFE_VENDOR_OPCODE_REGISTER_REMOTE_CONTROL: return avc_debug & AVC_DEBUG_REGISTER_REMOTE_CONTROL;
+> +       case SFE_VENDOR_OPCODE_LNB_CONTROL:             return avc_debug & AVC_DEBUG_LNB_CONTROL;
+> +       case SFE_VENDOR_OPCODE_TUNE_QPSK:               return avc_debug & AVC_DEBUG_TUNE_QPSK;
+> +       case SFE_VENDOR_OPCODE_TUNE_QPSK2:              return avc_debug & AVC_DEBUG_TUNE_QPSK2;
+> +       case SFE_VENDOR_OPCODE_HOST2CA:                 return avc_debug & AVC_DEBUG_HOST2CA;
+> +       case SFE_VENDOR_OPCODE_CA2HOST:                 return avc_debug & AVC_DEBUG_CA2HOST;
+> +       }
+> +       return 1;
+> +}
+> +
+>  static void debug_fcp(const u8 *data, int length)
+>  {
+>         unsigned int subunit_type, subunit_id, op;
+>         const char *prefix = data[0] > 7 ? "FCP <- " : "FCP -> ";
+> 
+> -       if (avc_debug & AVC_DEBUG_FCP_SUBACTIONS) {
+> -               subunit_type = data[1] >> 3;
+> -               subunit_id = data[1] & 7;
+> -               op = subunit_type == 0x1e || subunit_id == 5 ? ~0 : data[2];
+> +       subunit_type = data[1] >> 3;
+> +       subunit_id = data[1] & 7;
+> +       op = subunit_type == 0x1e || subunit_id == 5 ? ~0 : data[2];
+> +       if (debug_fcp_opcode_flag_set(op, data, length)) {
+>                 printk(KERN_INFO "%ssu=%x.%x l=%d: %-8s - %s\n",
+[...]
 
-it was a simple TVP5150 based device...
-
-I do not mean my old code either it's also a failure as I got more information
-for the new driver after we dropped the old project.
-As you know the new driver is entirely in Userpace and supported by all involved
-chipcompanies, it comes with its own LinuxDVB and video4linux2 Stack.
-
-Also vendors have a very low interest in supporting those devices in Kernelspace
-as installing devices which should be sold now are not supported by
-any distributions.
-Devices which have been sold one year ago have a very low till no
-motivation anymore.
-Most people are simply not able to compile the drivers and/or prepare
-the kernel development
-environment just for installing and using a TV Card.
-
-Regards,
-Markus
+Shouldn't the three return statements in debug_fcp_opcode_flag_set be 
+'return 0' rather than one?
+-- 
+Stefan Richter
+-=====-==--= -=== =---=
+http://arcgraph.de/sr/
