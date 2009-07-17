@@ -1,100 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:34721 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932866AbZGPVCQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2009 17:02:16 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Thu, 16 Jul 2009 16:01:53 -0500
-Subject: RE: Control IOCTLs handling
-Message-ID: <A69FA2915331DC488A831521EAE36FE40144F1E7F2@dlee06.ent.ti.com>
-References: <A69FA2915331DC488A831521EAE36FE40144E4B70A@dlee06.ent.ti.com>
- <4A5C3FAB.8@redhat.com>
-In-Reply-To: <4A5C3FAB.8@redhat.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-MIME-Version: 1.0
+Received: from mail1.radix.net ([207.192.128.31]:37760 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752079AbZGQUqK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jul 2009 16:46:10 -0400
+Subject: [PATCH 2/3] 2/3: cx18: Add i2c initialization for Z8F0811/Hauppage
+ IR transceivers
+From: Andy Walls <awalls@radix.net>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	Mark Lord <lkml@rtr.ca>, Mike Isely <isely@pobox.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Janne Grunau <j@jannau.net>
+In-Reply-To: <1247862585.10066.16.camel@palomino.walls.org>
+References: <1247862585.10066.16.camel@palomino.walls.org>
+Content-Type: text/plain
+Date: Fri, 17 Jul 2009 16:46:55 -0400
+Message-Id: <1247863615.10066.33.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-<Snip>
->
->> I don't see any control IDs available for Bayer RGB color space.
->>
->> In our video hardware, there is a set of Gain values that can be applied
->to the Bayer RGB data. We can apply them individually to R, Gr, Gb or B
->color components. So I think we need to have 4 more controls defined for
->doing white balancing in the Bayer RGB color space that is applicable for
->sensors (like MT9T031) and image tuning hardware like the VPFE CCDC&  IPIPE.
->>
->> Define following new controls for these in Bayer RGB color space White
->Balance (WB) controls??
->>
->> V4L2_CID_BAYER_RED_BALANCE	integer	Bayer Red balance.
->> V4L2_CID_BAYER_BLUE_BALANCE	integer	Bayer Blue balance.
->> V4L2_CID_BAYER_GREEN_R_BALANCE	integer	Bayer Gr balance.
->> V4L2_CID_BAYER_GREEN_B_BALANCE	integer	Bayer Gb balance.
->>
->> There is also an offset value defined per color which is like adjusting
->the black level in the video image data. It is subtracted from the image
->byte.
->> What you call this ? Should we define a new control,
->V4l2_CID_BAYER_OFFSET ??
->>
->
->I can't help but wonder if we should export all these as controls. One can
->probably export about 90% of the registers of a sensor as controls,
->but then why write a driver at all, why not just give the user an
->application to set the registers himself them ?
->
-I can agree that we don't expect all registers exported to user space as control. I have consulted with our internal (Texas Instruments) sensor experts. Our customers need to change the Gains mentioned above as part of the Automatic White Balance algorithm which runs in the user space. So these needs to be exported to user space either as a proprietary control or as a standard  control. These Gains have maximum, minimum and a default values and looks similar to a control function. So The idea of sending this email was to see if any other hardware has similar functionality. If so, it is worth adding it to the list of standard Control IDs. If not, it can stay as a proprietary control ID, but then we need a way to set proprietary controls.
+This patch add support to the cx18 driver for setting up the
+Z8F0811/Hauppauge IR Tx/Rx chip with the i2c binding model in newer
+kernels.
 
->When it comes to controls, less is more IMHO.
->
->So the question is can't we give these registers a sensible default setting
->and leave it at that?
->
-As I have said, this will not work for AWB algorithm implementation.
+My concerns/questions:
 
->And currently the answer to that is yes, there currently are 2 ways to do
->whitebalance for sensors
->under Linux:
->1) The sensor does it in hardware (using per color gains like above)
+1. When using the new i2c binding model, I'm not saving the returned
+pointer from i2c_new_probed_device() and am hence taking no action on
+trying to clean up IR i2c devices on module unload.  Will the i2c
+subsystem clean up this automatically when the adapter is unregistered
+on module unload?
 
-Why not let VPFE image processing modules to do this as well ?
+2. When using the new i2c binding model, I'm calling
+i2c_new_probed_device() twice: once for Rx (addr 0x71 of the Z8F0811)
+and another time for Tx (addr 0x70 of the Z8F0811).  Is it a problem to
+have two Linux i2c devices for two distinct addresses of the same
+underlying hardware device?
 
->2) libv4l does whitebalancing in software, in this case case a software
->gain is used as we can
->    control that very precisely and libv4l does not know the exact gain
->factor (and has no way to find
->    out) of per color gains exported through controls, so we just apply a
->software per color gain,
->    which we can control exactly.
->
-In my opinion, both hardware and software options should be available to application so that it can choose one over other. 
+3. When using the new i2c binding model, I opted not to use ir_video for
+the Z8F0811 loaded with microcode from Zilog/Hauppauge.  Since I needed
+one name for Rx binding and one for Tx binding, I used these names:
 
->So currently the best thing todo is, either:
->a) make the sensor do hardware whitebalance if it can (much prefered), or:
-Hardware here also should refers to image processing hardware like VPFE. So this calls for adding these control IDs to list of available control IDs. This are required for CCDC as well as IPIPE hardware modules in VPFE to do TI AWB algorithm.
+ 	"ir_tx_z8f0811_haup"
+	"ir_rx_z8f0811_haup"
 
->b) set all the per color gains in their default / middle position and
->handle
->    the whitebalancing fully in software.
->
-Our customers would like to use VPFE based AWB algorithm that needs to set Gains in VPFE as well as sensors. So this is a NACK for our hardware.
+[Which is ir_(func)_(part number)_(firmware_oem)].  It made sense to me.
+I assume these are the names to which ir-kbd-i2c and lirc_* will have to
+bind.  Is that correct?
 
->This applies even more to the per color offset's, I really see little use
->in exporting this to the
->end-user.
->
->You should look at controls as knobs the end user may want to tweak, if it
->is not something the end-user
->could want to / should tweak it should not be a control.
->
->Regards,
->
->Hans
+
+Regards,
+Andy
+
+
+
+diff -r d754a2d5a376 linux/drivers/media/video/cx18/cx18-cards.c
+--- a/linux/drivers/media/video/cx18/cx18-cards.c	Wed Jul 15 07:28:02 2009 -0300
++++ b/linux/drivers/media/video/cx18/cx18-cards.c	Fri Jul 17 16:05:28 2009 -0400
+@@ -56,7 +56,8 @@
+ 	.hw_audio_ctrl = CX18_HW_418_AV,
+ 	.hw_muxer = CX18_HW_CS5345,
+ 	.hw_all = CX18_HW_TVEEPROM | CX18_HW_418_AV | CX18_HW_TUNER |
+-		  CX18_HW_CS5345 | CX18_HW_DVB | CX18_HW_GPIO_RESET_CTRL,
++		  CX18_HW_CS5345 | CX18_HW_DVB | CX18_HW_GPIO_RESET_CTRL |
++		  CX18_HW_Z8F0811_IR_HAUP,
+ 	.video_inputs = {
+ 		{ CX18_CARD_INPUT_VID_TUNER,  0, CX18_AV_COMPOSITE7 },
+ 		{ CX18_CARD_INPUT_SVIDEO1,    1, CX18_AV_SVIDEO1    },
+@@ -102,7 +103,8 @@
+ 	.hw_audio_ctrl = CX18_HW_418_AV,
+ 	.hw_muxer = CX18_HW_CS5345,
+ 	.hw_all = CX18_HW_TVEEPROM | CX18_HW_418_AV | CX18_HW_TUNER |
+-		  CX18_HW_CS5345 | CX18_HW_DVB | CX18_HW_GPIO_RESET_CTRL,
++		  CX18_HW_CS5345 | CX18_HW_DVB | CX18_HW_GPIO_RESET_CTRL |
++		  CX18_HW_Z8F0811_IR_HAUP,
+ 	.video_inputs = {
+ 		{ CX18_CARD_INPUT_VID_TUNER,  0, CX18_AV_COMPOSITE7 },
+ 		{ CX18_CARD_INPUT_SVIDEO1,    1, CX18_AV_SVIDEO1    },
+diff -r d754a2d5a376 linux/drivers/media/video/cx18/cx18-cards.h
+--- a/linux/drivers/media/video/cx18/cx18-cards.h	Wed Jul 15 07:28:02 2009 -0300
++++ b/linux/drivers/media/video/cx18/cx18-cards.h	Fri Jul 17 16:05:28 2009 -0400
+@@ -22,13 +22,17 @@
+  */
+ 
+ /* hardware flags */
+-#define CX18_HW_TUNER		(1 << 0)
+-#define CX18_HW_TVEEPROM	(1 << 1)
+-#define CX18_HW_CS5345		(1 << 2)
+-#define CX18_HW_DVB		(1 << 3)
+-#define CX18_HW_418_AV		(1 << 4)
+-#define CX18_HW_GPIO_MUX	(1 << 5)
+-#define CX18_HW_GPIO_RESET_CTRL	(1 << 6)
++#define CX18_HW_TUNER			(1 << 0)
++#define CX18_HW_TVEEPROM		(1 << 1)
++#define CX18_HW_CS5345			(1 << 2)
++#define CX18_HW_DVB			(1 << 3)
++#define CX18_HW_418_AV			(1 << 4)
++#define CX18_HW_GPIO_MUX		(1 << 5)
++#define CX18_HW_GPIO_RESET_CTRL		(1 << 6)
++#define CX18_HW_Z8F0811_IR_TX_HAUP	(1 << 7)
++#define CX18_HW_Z8F0811_IR_RX_HAUP	(1 << 8)
++#define CX18_HW_Z8F0811_IR_HAUP	(CX18_HW_Z8F0811_IR_RX_HAUP | \
++				 CX18_HW_Z8F0811_IR_TX_HAUP)
+ 
+ /* video inputs */
+ #define	CX18_CARD_INPUT_VID_TUNER	1
+diff -r d754a2d5a376 linux/drivers/media/video/cx18/cx18-i2c.c
+--- a/linux/drivers/media/video/cx18/cx18-i2c.c	Wed Jul 15 07:28:02 2009 -0300
++++ b/linux/drivers/media/video/cx18/cx18-i2c.c	Fri Jul 17 16:05:28 2009 -0400
+@@ -40,16 +40,20 @@
+ #define GETSDL_BIT      0x0008
+ 
+ #define CX18_CS5345_I2C_ADDR		0x4c
++#define CX18_Z8F0811_IR_TX_I2C_ADDR	0x70
++#define CX18_Z8F0811_IR_RX_I2C_ADDR	0x71
+ 
+ /* This array should match the CX18_HW_ defines */
+ static const u8 hw_addrs[] = {
+-	0,			/* CX18_HW_TUNER */
+-	0,			/* CX18_HW_TVEEPROM */
+-	CX18_CS5345_I2C_ADDR,	/* CX18_HW_CS5345 */
+-	0,			/* CX18_HW_DVB */
+-	0,			/* CX18_HW_418_AV */
+-	0,			/* CX18_HW_GPIO_MUX */
+-	0,			/* CX18_HW_GPIO_RESET_CTRL */
++	0,				/* CX18_HW_TUNER */
++	0,				/* CX18_HW_TVEEPROM */
++	CX18_CS5345_I2C_ADDR,		/* CX18_HW_CS5345 */
++	0,				/* CX18_HW_DVB */
++	0,				/* CX18_HW_418_AV */
++	0,				/* CX18_HW_GPIO_MUX */
++	0,				/* CX18_HW_GPIO_RESET_CTRL */
++	CX18_Z8F0811_IR_TX_I2C_ADDR,	/* CX18_HW_Z8F0811_IR_TX_HAUP */
++	CX18_Z8F0811_IR_RX_I2C_ADDR,	/* CX18_HW_Z8F0811_IR_RX_HAUP */
+ };
+ 
+ /* This array should match the CX18_HW_ defines */
+@@ -62,6 +66,8 @@
+ 	0,	/* CX18_HW_418_AV */
+ 	0,	/* CX18_HW_GPIO_MUX */
+ 	0,	/* CX18_HW_GPIO_RESET_CTRL */
++	0,	/* CX18_HW_Z8F0811_IR_TX_HAUP */
++	0,	/* CX18_HW_Z8F0811_IR_RX_HAUP */
+ };
+ 
+ /* This array should match the CX18_HW_ defines */
+@@ -73,6 +79,8 @@
+ 	NULL,		/* CX18_HW_418_AV */
+ 	NULL,		/* CX18_HW_GPIO_MUX */
+ 	NULL,		/* CX18_HW_GPIO_RESET_CTRL */
++	NULL,		/* CX18_HW_Z8F0811_IR_TX_HAUP */
++	NULL,		/* CX18_HW_Z8F0811_IR_RX_HAUP */
+ };
+ 
+ /* This array should match the CX18_HW_ defines */
+@@ -84,8 +92,43 @@
+ 	"cx23418_AV",
+ 	"gpio_mux",
+ 	"gpio_reset_ctrl",
++	"ir_tx_z8f0811_haup",
++	"ir_rx_z8f0811_haup",
+ };
+ 
++static int cx18_i2c_new_ir(struct i2c_adapter *adap, u32 hw, const char *type,
++			   u8 addr)
++{
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
++	struct i2c_board_info info;
++	struct IR_i2c_init_data ir_init_data;
++	unsigned short addr_list[2] = { addr, I2C_CLIENT_END };
++
++	memset(&info, 0, sizeof(struct i2c_board_info));
++	strlcpy(info.type, type, I2C_NAME_SIZE);
++
++	/* Our default information for ir-kbd-i2c.c to use */
++	memset(&ir_init_data, 0, sizeof(struct IR_i2c_init_data));
++	switch (hw) {
++	case CX18_HW_Z8F0811_IR_RX_HAUP:
++		ir_init_data.ir_codes = ir_codes_hauppauge_new;
++		ir_init_data.get_key = NULL;
++		ir_init_data.internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
++		ir_init_data.type = IR_TYPE_RC5;
++		ir_init_data.name = "CX23418 Z8F0811 Hauppauge";
++		break;
++	default:
++		break;
++	}
++	if (ir_init_data.name)
++		info.platform_data = &ir_init_data;
++
++	return i2c_new_probed_device(adap, &info, addr_list) == NULL ? -1 : 0;
++#else
++	return -1;
++#endif
++}
++
+ int cx18_i2c_register(struct cx18 *cx, unsigned idx)
+ {
+ 	struct v4l2_subdev *sd;
+@@ -119,7 +162,10 @@
+ 	if (!hw_addrs[idx])
+ 		return -1;
+ 
+-	/* It's an I2C device other than an analog tuner */
++	if (hw & CX18_HW_Z8F0811_IR_HAUP)
++		return cx18_i2c_new_ir(adap, hw, type, hw_addrs[idx]);
++
++	/* It's an I2C device other than an analog tuner or IR chip */
+ 	sd = v4l2_i2c_new_subdev(&cx->v4l2_dev, adap, mod, type, hw_addrs[idx]);
+ 	if (sd != NULL)
+ 		sd->grp_id = hw;
+
 
