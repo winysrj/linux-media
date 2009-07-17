@@ -1,43 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:30021 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755027AbZG0NyJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jul 2009 09:54:09 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv13 1/8] v4l2-subdev.h: Add g_modulator callbacks to subdev api
-Date: Mon, 27 Jul 2009 16:42:52 +0300
-Message-Id: <1248702179-10403-2-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1248702179-10403-1-git-send-email-eduardo.valentin@nokia.com>
-References: <1248702179-10403-1-git-send-email-eduardo.valentin@nokia.com>
+Received: from mail1.radix.net ([207.192.128.31]:37239 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751106AbZGQU3i (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jul 2009 16:29:38 -0400
+Subject: [PATCH 0/3] ir-kbd-i2c, cx18: IR devices for CX23418 boards
+From: Andy Walls <awalls@radix.net>
+To: Jean Delvare <khali@linux-fr.org>, linux-media@vger.kernel.org
+Cc: Jarod Wilson <jarod@redhat.com>, Mark Lord <lkml@rtr.ca>,
+	Mike Isely <isely@pobox.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Janne Grunau <j@jannau.net>
+Content-Type: text/plain
+Date: Fri, 17 Jul 2009 16:29:45 -0400
+Message-Id: <1247862585.10066.16.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- linux/include/media/v4l2-subdev.h |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+Jean,
 
-diff --git a/linux/include/media/v4l2-subdev.h b/linux/include/media/v4l2-subdev.h
-index 89a39ce..d411345 100644
---- a/linux/include/media/v4l2-subdev.h
-+++ b/linux/include/media/v4l2-subdev.h
-@@ -137,6 +137,8 @@ struct v4l2_subdev_tuner_ops {
- 	int (*g_frequency)(struct v4l2_subdev *sd, struct v4l2_frequency *freq);
- 	int (*g_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
- 	int (*s_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
-+	int (*g_modulator)(struct v4l2_subdev *sd, struct v4l2_modulator *vm);
-+	int (*s_modulator)(struct v4l2_subdev *sd, struct v4l2_modulator *vm);
- 	int (*s_type_addr)(struct v4l2_subdev *sd, struct tuner_setup *type);
- 	int (*s_config)(struct v4l2_subdev *sd, const struct v4l2_priv_tun_config *config);
- 	int (*s_standby)(struct v4l2_subdev *sd);
--- 
-1.6.2.GIT
+The following patch series is my preliminary cut at getting the cx18
+bridge driver supported IR devices set up properly by the cx18 driver to
+allow use by ir-kbd-i2c, lirc_i2c, lirc_pvr150, and lirc_zilog for both
+old and new (>= 2.6.30) kernels.
+
+They are:
+
+1/3: ir-kbd-i2c: Allow use of ir-kdb-i2c internal get_key funcs and set ir_type
+2/3: cx18: Add i2c initialization for Z8F0811/Hauppage IR transceivers
+3/3: ir-kbd-i2c: Add support for Z8F0811/Hauppage IR transceivers
+
+Please take a look and tell me what's wrong.  I put specific points of
+concern I have before each patch.
+
+If this works for both ir-kbd-i2c and lirc_*, then I can add similar
+logic to fix up ivtv (at least for Zilog Z8 microcontroller IR devices).
+
+Regards,
+Andy
 
