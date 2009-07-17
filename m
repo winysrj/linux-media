@@ -1,43 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:31533 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751773AbZG0PX0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jul 2009 11:23:26 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv14 1/8] v4l2-subdev.h: Add g_modulator callbacks to subdev api
-Date: Mon, 27 Jul 2009 18:12:03 +0300
-Message-Id: <1248707530-4068-2-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1248707530-4068-1-git-send-email-eduardo.valentin@nokia.com>
-References: <1248707530-4068-1-git-send-email-eduardo.valentin@nokia.com>
+Received: from mail1.radix.net ([207.192.128.31]:37826 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754340AbZGQUsP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jul 2009 16:48:15 -0400
+Subject: [PATCH 3/3] ir-kbd-i2c: Add support for Z8F0811/Hauppage IR
+ transceivers
+From: Andy Walls <awalls@radix.net>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	Mark Lord <lkml@rtr.ca>, Mike Isely <isely@pobox.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Janne Grunau <j@jannau.net>
+In-Reply-To: <1247862585.10066.16.camel@palomino.walls.org>
+References: <1247862585.10066.16.camel@palomino.walls.org>
+Content-Type: text/plain
+Date: Fri, 17 Jul 2009 16:49:55 -0400
+Message-Id: <1247863795.10066.36.camel@palomino.walls.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- linux/include/media/v4l2-subdev.h |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+This patch adds support for Zilog Z8F0811 IR transceiver chips on
+CX2341[68] based boards to ir-kbd-i2c for both the old i2c binding model
+and the new i2c binding model.
 
-diff --git a/linux/include/media/v4l2-subdev.h b/linux/include/media/v4l2-subdev.h
-index 89a39ce..d411345 100644
---- a/linux/include/media/v4l2-subdev.h
-+++ b/linux/include/media/v4l2-subdev.h
-@@ -137,6 +137,8 @@ struct v4l2_subdev_tuner_ops {
- 	int (*g_frequency)(struct v4l2_subdev *sd, struct v4l2_frequency *freq);
- 	int (*g_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
- 	int (*s_tuner)(struct v4l2_subdev *sd, struct v4l2_tuner *vt);
-+	int (*g_modulator)(struct v4l2_subdev *sd, struct v4l2_modulator *vm);
-+	int (*s_modulator)(struct v4l2_subdev *sd, struct v4l2_modulator *vm);
- 	int (*s_type_addr)(struct v4l2_subdev *sd, struct tuner_setup *type);
- 	int (*s_config)(struct v4l2_subdev *sd, const struct v4l2_priv_tun_config *config);
- 	int (*s_standby)(struct v4l2_subdev *sd);
--- 
-1.6.2.GIT
+Regards,
+Andy
+
+diff -r d754a2d5a376 linux/drivers/media/video/ir-kbd-i2c.c
+--- a/linux/drivers/media/video/ir-kbd-i2c.c	Wed Jul 15 07:28:02 2009 -0300
++++ b/linux/drivers/media/video/ir-kbd-i2c.c	Fri Jul 17 16:05:28 2009 -0400
+@@ -442,9 +442,11 @@
+ 	case 0x47:
+ 	case 0x71:
+ 	case 0x2d:
+-		if (adap->id == I2C_HW_B_CX2388x) {
++		if (adap->id == I2C_HW_B_CX2388x ||
++		    adap->id == I2C_HW_B_CX2341X) {
+ 			/* Handled by cx88-input */
+-			name        = "CX2388x remote";
++			name = adap->id == I2C_HW_B_CX2341X ? "CX2341x remote"
++							    : "CX2388x remote";
+ 			ir_type     = IR_TYPE_RC5;
+ 			ir->get_key = get_key_haup_xvr;
+ 			if (hauppauge == 1) {
+@@ -697,7 +726,8 @@
+ static const struct i2c_device_id ir_kbd_id[] = {
+ 	/* Generic entry for any IR receiver */
+ 	{ "ir_video", 0 },
+-	/* IR device specific entries could be added here */
++	/* IR device specific entries should be added here */
++	{ "ir_rx_z8f0811_haup", 0 },
+ 	{ }
+ };
+ 
+
+
+
 
