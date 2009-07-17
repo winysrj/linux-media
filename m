@@ -1,115 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.153]:3804 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752575AbZGXKh5 (ORCPT
+Received: from mail-ew0-f226.google.com ([209.85.219.226]:53038 "EHLO
+	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964790AbZGQPjj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2009 06:37:57 -0400
-Received: by fg-out-1718.google.com with SMTP id e12so81751fga.17
-        for <linux-media@vger.kernel.org>; Fri, 24 Jul 2009 03:37:54 -0700 (PDT)
-Message-ID: <4A698F00.4060903@gmail.com>
-Date: Fri, 24 Jul 2009 12:37:52 +0200
-From: =?ISO-8859-1?Q?H=E1morszky_Bal=E1zs?= <balihb@gmail.com>
+	Fri, 17 Jul 2009 11:39:39 -0400
+Received: by ewy26 with SMTP id 26so952373ewy.37
+        for <linux-media@vger.kernel.org>; Fri, 17 Jul 2009 08:39:38 -0700 (PDT)
+Message-ID: <4A609BAA.6090204@gmail.com>
+Date: Fri, 17 Jul 2009 17:41:30 +0200
+From: Roel Kluin <roel.kluin@gmail.com>
 MIME-Version: 1.0
-To: Andrew Morton <akpm@linux-foundation.org>
-CC: bugzilla-daemon@bugzilla.kernel.org, mchehab@infradead.org,
-	linux-media@vger.kernel.org
-Subject: Re: [Bug 13708] Aiptek DV-T300 support is incomplete
-References: <bug-13708-12914@http.bugzilla.kernel.org/>	<200907201949.n6KJnOdY016111@demeter.kernel.org>	<5c3736670907201337n41f08957r94fcde4383dd74d9@mail.gmail.com> <20090723160138.83a3579e.akpm@linux-foundation.org>
-In-Reply-To: <20090723160138.83a3579e.akpm@linux-foundation.org>
-Content-Type: multipart/mixed;
- boundary="------------050204020407090701040208"
+To: mchehab@infradead.org, linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: [PATCH] media: strncpy does not null terminate string
+References: <4A607185.6020302@gmail.com>
+In-Reply-To: <4A607185.6020302@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------050204020407090701040208
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+strlcpy() will always null terminate the string.
 
-Andrew Morton wrote:
-> The patch doesn't apply to current kernels and fixing it looks non-trivial.
-
-I've attached a patch against the latest git tree.
-
-> There's no hurry - please email us a complete (tested, changelogged,
-> signed-off) patch when you have time to get onto it, thanks.
-
-I can't test it. The patch worked partially with kernel 2.6.29, but I 
-can't get it working with 2.6.30. With 2.6.29 the driver dies after a 
-few seconds, but with 2.6.30 the programs won't detect the camera.
-Also I only ported the patch to later kernels. I'm not the one who made 
-it. The patch is originally from the creator of the driver. I also don't 
-know how v4l works, so I have no idea how to fix the patch.
-
---------------050204020407090701040208
-Content-Type: text/x-patch;
- name="zr364xx.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="zr364xx.diff"
-
---- a/zr364xx.c	2009-07-24 12:19:40.000000000 +0200
-+++ b/zr364xx.c	2009-07-24 12:21:14.000000000 +0200
-@@ -59,6 +59,7 @@
- #define METHOD0 0
- #define METHOD1 1
- #define METHOD2 2
-+#define METHOD3 3
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-i2c.c b/drivers/media/dvb/dvb-usb/dvb-usb-i2c.c
+index 326f760..cead089 100644
+--- a/drivers/media/dvb/dvb-usb/dvb-usb-i2c.c
++++ b/drivers/media/dvb/dvb-usb/dvb-usb-i2c.c
+@@ -19,7 +19,7 @@ int dvb_usb_i2c_init(struct dvb_usb_device *d)
+ 		return -EINVAL;
+ 	}
  
- 
- /* Module parameters */
-@@ -95,7 +96,7 @@ static struct usb_device_id device_table
- 	{USB_DEVICE(0x06d6, 0x003b), .driver_info = METHOD0 },
- 	{USB_DEVICE(0x0a17, 0x004e), .driver_info = METHOD2 },
- 	{USB_DEVICE(0x041e, 0x405d), .driver_info = METHOD2 },
--	{USB_DEVICE(0x08ca, 0x2102), .driver_info = METHOD2 },
-+	{USB_DEVICE(0x08ca, 0x2102), .driver_info = METHOD3 },
- 	{}			/* Terminating entry */
- };
- 
-@@ -213,7 +214,7 @@ static message m2[] = {
- };
- 
- /* init table */
--static message *init[3] = { m0, m1, m2 };
-+static message *init[4] = { m0, m1, m2, m2 };
- 
- 
- /* JPEG static data in header (Huffman table, etc) */
-@@ -347,6 +348,11 @@ static int read_frame(struct zr364xx_cam
- 			    cam->buffer[3], cam->buffer[4], cam->buffer[5],
- 			    cam->buffer[6], cam->buffer[7], cam->buffer[8]);
- 		} else {
-+			if (ptr + actual_length - jpeg > MAX_FRAME_SIZE)
-+			{
-+				DBG("frame too big!");
-+				return 0;
-+			}
- 			memcpy(ptr, cam->buffer, actual_length);
- 			ptr += actual_length;
+-	strncpy(d->i2c_adap.name, d->desc->name, sizeof(d->i2c_adap.name));
++	strlcpy(d->i2c_adap.name, d->desc->name, sizeof(d->i2c_adap.name));
+ 	d->i2c_adap.class = I2C_CLASS_TV_DIGITAL,
+ 	d->i2c_adap.algo      = d->props.i2c_algo;
+ 	d->i2c_adap.algo_data = NULL;
+diff --git a/drivers/media/video/pwc/pwc-v4l.c b/drivers/media/video/pwc/pwc-v4l.c
+index 2876ce0..bdb4ced 100644
+--- a/drivers/media/video/pwc/pwc-v4l.c
++++ b/drivers/media/video/pwc/pwc-v4l.c
+@@ -1033,7 +1033,7 @@ long pwc_video_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 			if (std->index != 0)
+ 				return -EINVAL;
+ 			std->id = V4L2_STD_UNKNOWN;
+-			strncpy(std->name, "webcam", sizeof(std->name));
++			strlcpy(std->name, "webcam", sizeof(std->name));
+ 			return 0;
  		}
-@@ -847,6 +853,22 @@ static int zr364xx_probe(struct usb_inte
- 	m0d1[0] = mode;
- 	m1[2].value = 0xf000 + mode;
- 	m2[1].value = 0xf000 + mode;
-+
-+	/* special case for METHOD3, the modes are different */
-+	if (cam->method == METHOD3) {
-+		switch (mode) {
-+		case 1:
-+			m2[1].value = 0xf000 + 4;
-+			break;
-+		case 2:
-+			m2[1].value = 0xf000 + 0;
-+			break;
-+		default:
-+			m2[1].value = 0xf000 + 1;
-+			break;
-+		}
-+	}
-+
- 	header2[437] = cam->height / 256;
- 	header2[438] = cam->height % 256;
- 	header2[439] = cam->width / 256;
-
---------------050204020407090701040208--
+ 
+diff --git a/drivers/media/video/zoran/zoran_card.c b/drivers/media/video/zoran/zoran_card.c
+index 03dc2f3..9f43695 100644
+--- a/drivers/media/video/zoran/zoran_card.c
++++ b/drivers/media/video/zoran/zoran_card.c
+@@ -1169,7 +1169,7 @@ zoran_setup_videocodec (struct zoran *zr,
+ 	m->type = 0;
+ 
+ 	m->flags = CODEC_FLAG_ENCODER | CODEC_FLAG_DECODER;
+-	strncpy(m->name, ZR_DEVNAME(zr), sizeof(m->name));
++	strlcpy(m->name, ZR_DEVNAME(zr), sizeof(m->name));
+ 	m->data = zr;
+ 
+ 	switch (type)
