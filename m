@@ -1,49 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:58198 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752636AbZGSKnJ (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.234]:12630 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757155AbZGQUvq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jul 2009 06:43:09 -0400
-Date: Sun, 19 Jul 2009 11:42:58 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Chaithrika U S <chaithrika@ti.com>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	hverkuil@xs4all.nl, davinci-linux-open-source@linux.davincidsp.com,
-	Manjunath Hadli <mrh@ti.com>, Brijesh Jadav <brijesh.j@ti.com>,
-	Kevin Hilman <khilman@deeprootsystems.com>
-Subject: Re: [PATCH v2] ARM: DaVinci: DM646x Video: Platform and board
-	specific setup
-Message-ID: <20090719104258.GR12062@n2100.arm.linux.org.uk>
-References: <1246967577-8573-1-git-send-email-chaithrika@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1246967577-8573-1-git-send-email-chaithrika@ti.com>
+	Fri, 17 Jul 2009 16:51:46 -0400
+Received: by rv-out-0506.google.com with SMTP id f6so271778rvb.1
+        for <linux-media@vger.kernel.org>; Fri, 17 Jul 2009 13:51:46 -0700 (PDT)
+From: Brian Johnson <brijohn@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH 0/2] gspca sn9c20x subdriver rev2
+Date: Fri, 17 Jul 2009 16:51:41 -0400
+Message-Id: <1247863903-22125-1-git-send-email-brijohn@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 07, 2009 at 07:52:57AM -0400, Chaithrika U S wrote:
-> diff --git a/arch/arm/mach-davinci/include/mach/dm646x.h b/arch/arm/mach-davinci/include/mach/dm646x.h
-> index 0585484..1f247fb 100644
-> --- a/arch/arm/mach-davinci/include/mach/dm646x.h
-> +++ b/arch/arm/mach-davinci/include/mach/dm646x.h
-> @@ -26,4 +26,28 @@ void __init dm646x_init(void);
->  void __init dm646x_init_mcasp0(struct snd_platform_data *pdata);
->  void __init dm646x_init_mcasp1(struct snd_platform_data *pdata);
->  
-> +void dm646x_video_init(void);
-> +
-> +struct vpif_output {
-> +	u16 id;
-> +	const char *name;
-> +};
-> +
-> +struct subdev_info {
-> +	unsigned short addr;
-> +	const char *name;
-> +};
+Mauro,
+Here is the updated version of the gspca sn9c20x subdriver.
 
-'subdev_info' is far too generic to have in platform header files.
-Please rename this to at least vpif_subdev_info.
+I've removed the custom debugging support and replaced it with support
+for the v4l2 debugging ioctls. The first patch in this set adds support
+to the gspca core for those ioctls. Also included are the fixes Hans
+sent in his last email.
 
-Other than that, patch looks fine.
+Regards,
+Brian Johnson
+
