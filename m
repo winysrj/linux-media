@@ -1,58 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50675 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752302AbZGJVIN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jul 2009 17:08:13 -0400
-Message-ID: <4A57ADB3.9090805@iki.fi>
-Date: Sat, 11 Jul 2009 00:08:03 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Nick Burch <v4l@gagravarr.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: KWorld USB DVB-T TV Stick II 395U almost but not quite working
-References: <Pine.LNX.4.64.0907101934320.22332@urchin.earth.li>
-In-Reply-To: <Pine.LNX.4.64.0907101934320.22332@urchin.earth.li>
-Content-Type: text/plain; charset=US-ASCII; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1465 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934501AbZGQSVP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Jul 2009 14:21:15 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id n6HILDsM093632
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 17 Jul 2009 20:21:14 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 17 Jul 2009 20:21:13 +0200 (CEST)
+Message-Id: <200907171821.n6HILDsM093632@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/10/2009 09:52 PM, Nick Burch wrote:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> usb 2-4: new high speed USB device using ehci_hcd and address 4
-> usb 2-4: configuration #1 chosen from 1 choice
-> dvb-usb: found a 'KWorld USB DVB-T TV Stick II (VS-DVB-T 395U)' in cold
-> state, will try to load a firmware
-> usb 2-4: firmware: requesting dvb-usb-af9015.fw
-> dvb-usb: downloading firmware from file 'dvb-usb-af9015.fw'
-> dvb-usb: found a 'KWorld USB DVB-T TV Stick II (VS-DVB-T 395U)' in warm
-> state.
-> dvb-usb: will pass the complete MPEG2 transport stream to the software
-> demuxer.
-> DVB: registering new adapter (KWorld USB DVB-T TV Stick II (VS-DVB-T 395U))
-> af9013: firmware version:4.95.0
-> DVB: registering adapter 0 frontend 0 (Afatech AF9013 DVB-T)...
+Results of the daily build of v4l-dvb:
 
-No tuner.
+date:        Fri Jul 17 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12270:d754a2d5a376
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-> After this, /dev/dvb/adapter0/ exists, and contains the entries
-> demux0 dvr0 frontend0 net0
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc1-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-rc1-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-rc1-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc1-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-rc1-mips: WARNINGS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-rc1-powerpc64: OK
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-rc1-x86_64: OK
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc1): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-> Checking dmesg after a failed scan run, I see these two entries:
-> af9015: command failed:2
-> qt1010 I2C read failed
->
->
-> Am I right in thinking from this that it's the qt1010 tuner that's the
-> problem? If so, can anyone suggest what I should do next to debug the
-> issue further?
+Detailed results are available here:
 
-Tuner does not attach - I2C messages towards tuner are failing. That's 
-most probably due to wrong GPIOs, tuner is usually powered by GPIO pin. 
-It can also be wrong I2C address of tuner. You should take sniffs and 
-look correct GPIO and I2C from there.
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-regards
-Antti
--- 
-http://palosaari.fi/
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
