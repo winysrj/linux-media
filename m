@@ -1,106 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:33034 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750943AbZGVJPQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2009 05:15:16 -0400
-Received: by qw-out-2122.google.com with SMTP id 8so18452qwh.37
-        for <linux-media@vger.kernel.org>; Wed, 22 Jul 2009 02:15:15 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <91b198a70907201918l68435905u1ad590144d664a29@mail.gmail.com>
-References: <91b198a70907100305t762a4596r734e44f7f4f88bc3@mail.gmail.com>
-	 <20090711185415.3756dc26@pedra.chehab.org>
-	 <91b198a70907130042y6594a96do8634eebdfef8ba5c@mail.gmail.com>
-	 <91b198a70907162030l760bd7c5r32daaf6823c1dbe6@mail.gmail.com>
-	 <20090717043225.4c786455@pedra.chehab.org>
-	 <20090717124431.1bd3ea43@free.fr>
-	 <91b198a70907200004y5418796dkbf491d2cae877fb7@mail.gmail.com>
-	 <20090720105325.26f2ae1a@free.fr>
-	 <91b198a70907201918l68435905u1ad590144d664a29@mail.gmail.com>
-Date: Wed, 22 Jul 2009 17:15:15 +0800
-Message-ID: <91b198a70907220215t14d509e7u8b33623cecafa26f@mail.gmail.com>
-Subject: Re: Lenovo webcam problem which using gspca's vc032x driver
-From: AceLan Kao <acelan.kao@canonical.com>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>, hugh@canonical.com,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from main.gmane.org ([80.91.229.2]:42937 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751918AbZGROKI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Jul 2009 10:10:08 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1MSAbz-00089t-3Q
+	for linux-media@vger.kernel.org; Sat, 18 Jul 2009 14:10:03 +0000
+Received: from host-78-14-97-243.cust-adsl.tiscali.it ([78.14.97.243])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 18 Jul 2009 14:10:03 +0000
+Received: from avljawrowski by host-78-14-97-243.cust-adsl.tiscali.it with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 18 Jul 2009 14:10:03 +0000
+To: linux-media@vger.kernel.org
+From: Avl Jawrowski <avljawrowski@gmail.com>
+Subject: Problems with Pinnacle 310i (saa7134) and recent kernels
+Date: Sat, 18 Jul 2009 14:05:22 +0000 (UTC)
+Message-ID: <loom.20090718T135733-267@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2009/7/21 AceLan Kao <acelan.kao@canonical.com>:
-> 2009/7/20 Jean-Francois Moine <moinejf@free.fr>:
->> On Mon, 20 Jul 2009 15:04:05 +0800
->> AceLan Kao <acelan.kao@canonical.com> wrote:
->>
->>> I use "Lenovo WebCam Center" and "Dorgem" to do the webcam preview
->>> function, there are the following resolution settings
->>> 160x120
->>> 176x144
->>> 320x240
->>> 352x288
->>> 640x480
->>> Do you need all the resolutions logs?
->>>
->>> I try to use "Device Monitoring Studio" to log the USB traffic this
->>> time. You can download the QVGA and VGA USB snoop log and the .INF
->>> file from here. http://people.canonical.com/~acelan//bugs/lp310760/
->>
->> Hello Acelan Kao,
->>
->> Thanks for the files. I could not look at the dms logs, having no tool
->> to do. Anyway, the .inf gives the exact USB sequence you set.
->>
->> I got a return from one guy with the same sensor. He said the driver
->> works better (with the LEDs), but there are still some frame overflows
->> and the image is upside down. Have you such a problem?
->>
->> The sequence for the SXVGA mode (1280x1024) is defined in the .inf. I
->> extracted it and attached. Does it work for you?
->>
->> Best regards.
->>
->> --
->> Ken ar c'hentañ |             ** Breizh ha Linux atav! **
->> Jef             |               http://moinejf.free.fr/
->>
->
-> Dear Jean-Francois,
->
-> The SXGA setting works for me if the resolution set to 1280x960 and
-> the image is upside down.
-> ===
->        {1280, 960, V4L2_PIX_FMT_JPEG, V4L2_FIELD_NONE, /* mi13x0_soc only */
->                .bytesperline = 1280,
->                .sizeimage = 1280 * 960 * 1 / 4 + 590,
->                .colorspace = V4L2_COLORSPACE_JPEG,
->                .priv = 2},
-> ===
->
-> And for the QVGA and VGA resolution preview, my display is good, not
-> upside down.
->
-> Best regards,
-> AceLan Kao.
->
-> --
-> Chia-Lin Kao(AceLan)
-> http://blog.acelan.idv.tw/
-> E-Mail: acelan.kaoATcanonical.com (s/AT/@/)
->
+Hello,
+I have a problem with my Pinnacle PCTV Hybrid Pro PCI using recent kernels. With
+ 2.6.29 both dvbscan and MPlayer stopped to work giving:
 
-Dear Jean-Francois,
+dvbscan:
+Unable to query frontend status
 
-I would like to know which version of vc032x.c won't make 041e:405b
-device display upside down.
-And have you let the 041e:405b device owner to test the SXGA setting
-and with the 1280x960 resolution? What's the result?
+mplayer:
+MPlayer SVN-r29351-4.2.4 (C) 2000-2009 MPlayer Team
 
-Best regards,
-AceLan Kao.
+Not able to lock to the signal on the given frequency, timeout: 30
+dvb_tune, TUNING FAILED
 
--- 
-Chia-Lin Kao(AceLan)
-http://blog.acelan.idv.tw/
-E-Mail: acelan.kaoATcanonical.com (s/AT/@/)
+Now with 2.6.30.1 Kaffeine sometimes works and sometimes not, going in timeout.
+This is the hardware:
+
+01:02.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Vi
+deo Broadcast Decoder (rev d1)
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Step
+ping- SERR- FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort
+- <MAbort- >SERR- <PERR- INTx-
+        Latency: 32 (63750ns min, 63750ns max)
+        Interrupt: pin A routed to IRQ 22
+        Region 0: Memory at cfddf800 (32-bit, non-prefetchable) [size=2K]
+        Capabilities: [40] Power Management version 2
+                Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot
+-,D3cold-)
+                Status: D0 PME-Enable- DSel=0 DScale=3 PME-
+        Kernel driver in use: saa7134
+        Kernel modules: saa7134
+
+dmesg output:
+
+saa7130/34: v4l2 driver version 0.2.15 loaded
+saa7134 0000:01:02.0: PCI INT A -> GSI 22 (level, low) -> IRQ 22
+saa7133[0]: found at 0000:01:02.0, rev: 209, irq: 22, latency: 32, mmio: 0xcfddf
+800
+saa7133[0]: subsystem: ffff:ffff, board: Pinnacle PCTV 310i [card=101,insmod opt
+ion]
+saa7133[0]: board init: gpio is 600c000
+IRQ 22/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+saa7133[0]: i2c eeprom read error (err=-5)
+tuner 1-004b: chip found @ 0x96 (saa7133[0])
+tda829x 1-004b: setting tuner address to 61
+tda829x 1-004b: type set to tda8290+75a
+saa7133[0]: registered device video0 [v4l2]
+saa7133[0]: registered device vbi0
+saa7133[0]: registered device radio0
+dvb_init() allocating 1 frontend
+DVB: registering new adapter (saa7133[0])
+DVB: registering adapter 0 frontend 0 (Philips TDA10046H DVB-T)...
+tda1004x: setting up plls for 48MHz sampling clock
+tda1004x: found firmware revision 29 -- ok
+saa7134 ALSA driver for DMA sound loaded
+IRQ 22/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+saa7133[0]/alsa: saa7133[0] at 0xcfddf800 irq 22 registered as card -1
+tda1004x: setting up plls for 48MHz sampling clock
+tda1004x: found firmware revision 29 -- ok
+
+Can anyone help me getting my tyner working again?
+Thanks, avljawrowski
+
