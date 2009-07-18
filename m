@@ -1,203 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:28364 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754162AbZGVVlh convert rfc822-to-8bit (ORCPT
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:53432 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752103AbZGRA7w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2009 17:41:37 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so147083fga.17
-        for <linux-media@vger.kernel.org>; Wed, 22 Jul 2009 14:41:34 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <200907222307.25701.liplianin@me.by>
-References: <79fc70d20907221001v3a56a142v445d9167197ecf0d@mail.gmail.com>
-	 <d2f7e03e0907221018t53077d2dq1a530670c79320f1@mail.gmail.com>
-	 <79fc70d20907221143l530692d3hfaaa1f9a9a4a6be@mail.gmail.com>
-	 <200907222307.25701.liplianin@me.by>
-Date: Wed, 22 Jul 2009 22:41:33 +0100
-Message-ID: <79fc70d20907221441r3579b1ddyfb9e85a23b6a441e@mail.gmail.com>
-Subject: Re: [linux-dvb] Help Request: DM1105 STV0299 DVB-S PCI - Unable to
-	tune
-From: Shaun Murdoch <scrauny@gmail.com>
-To: "Igor M. Liplianin" <liplianin@me.by>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=KOI8-R
-Content-Transfer-Encoding: 8BIT
+	Fri, 17 Jul 2009 20:59:52 -0400
+Subject: Re: Report: Compro Videomate Vista T750F
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Samuel Rakitnican <semirocket@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <op.uw4gkkks80yj81@localhost>
+References: <op.uwycxowt80yj81@localhost>
+	 <1247434386.5152.28.camel@pc07.localdom.local>
+	 <op.uw4gkkks80yj81@localhost>
+Content-Type: text/plain
+Date: Sat, 18 Jul 2009 02:58:56 +0200
+Message-Id: <1247878736.4268.52.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Igor,
 
-Thanks - I will take the card out and get some pics.
+Am Mittwoch, den 15.07.2009, 20:35 +0200 schrieb Samuel Rakitnican:
+> On Sun, 12 Jul 2009 23:33:06 +0200, hermann pitton  
+> <hermann-pitton@arcor.de> wrote:
+> 
+> > Hi Samuel,
+> >
+> > Am Sonntag, den 12.07.2009, 13:30 +0200 schrieb Samuel Rakitnican:
+> >> As the card=139 (Compro Videomate T750)
+> >>
+> >> DVB: Not working, not implemented
+> >> Analog: Not working
+> >> Audio In: ? (my T750F has additional connector ?)
+> >
+> > if amux LINE2 doesn't work it is usually LINE1.
+> > If both don't work, there is a external gpio controlled switch/mux chip.
+> >
+> > Default is loop through for external audio in.
+> > Means, if the saa7134 driver is unloaded, should be passed through to
+> > audio out. If not, there is such a mux chip involved.
+> >
+> [snip]
+> 
+> 
+> 
+> Well, I haven't managed to get sound from Audio In connector, it's  
+> possible however that I'm doing something wrong. I tried selecting in  
+> tvtime both Composite and S-Video, and I've tried using SoX:
+> console$> ls /dev/dsp*
+> dsp dsp1
+> console$> sox -c 2 -s -r 32000 -t ossdsp /dev/dsp1 -t ossdsp -r 32000  
+> /dev/dsp &
+> 
+> for both .amux = LINE1 and LINE2 in saa7134-cards.c source file.
+> 
+> 
+> 
+> 
+> RegSpy log:
+> 
+> I have used RegSpy that comes with DScaler version 4.1.15. I'm hoping that  
+> they are of some use for both Analog television and Audio In.
+> 
+> I have found out values crucial to changing inputs for both audio and  
+> video. Note that SAA7134_GPIO_GPSTATUS keeps changing all the time between  
+> 84ff00 and 94bf00 nevertheless of the device status.
+> 
+> I have used VirtualDub (v1.7.7) as capturing application because it gives  
+> more control on input selecting (I can change audio input, not depending  
+> on video). From that I manage to distinguish values changing between video  
+> and audio.
+> 
+> The crucial value for video seems to be SAA7134_ANALOG_IN_CTRL1 while for  
+> audio seems to be values SAA7133_AUDIO_CLOCK_NOMINAL and  
+> SAA7133_PLL_CONTROL.
+> 
+> Changes: State 0 -> State 1: *****************************(Switch: Analog  
+> TV -> Composite)
+> SAA7134_GPIO_GPSTATUS:           0094ff00 -> 0494ff00  (-----0-- --------  
+> -------- --------)
+> SAA7134_ANALOG_IN_CTRL1:         83       -> 81        (------1-)
+> SAA7133_AUDIO_CLOCK_NOMINAL:     03187de7 -> 43187de7  (-0------ --------  
+> -------- --------)
+> SAA7133_PLL_CONTROL:             03       -> 43        (-0------)
+> 
+> Changes: State 1 -> State 2: *****************************(Switch:  
+> Composite -> S-Video)
+> SAA7134_GPIO_GPSTATUS:           0494ff00 -> 0284ff00  (-----10- ---1----  
+> -------- --------)
+> SAA7134_ANALOG_IN_CTRL1:         81       -> 88        (----0--1)
+> 
+> Changes: State 2 -> State 3: ***(Switch: Audio Source -> Audio Tuner  
+> (Still in S-Video mode))
+> SAA7134_GPIO_GPSTATUS:           0284ff00 -> 0294ff00  (-------- ---0----  
+> -------- --------)
+> SAA7133_AUDIO_CLOCK_NOMINAL:     43187de7 -> 03187de7  (-1------ --------  
+> -------- --------)  (same as 0)
+> SAA7133_PLL_CONTROL:             43       -> 03         
+> (-1------)                             (same as 0)
+> 
+> Changes: State 3 -> State 4: ******(Switch: Audio Source -> Audio Line  
+> (Still in S-Video mode))
+> SAA7134_GPIO_GPSTATUS:           0294ff00 -> 0484ff00  (-----01- ---1----  
+> -------- --------)
+> SAA7133_AUDIO_CLOCK_NOMINAL:     03187de7 -> 43187de7  (-0------ --------  
+> -------- --------)  (same as 1, 2)
+> SAA7133_PLL_CONTROL:             03       -> 43         
+> (-0------)                             (same as 1, 2)
+> 
+> (full log: http://pastebin.com/f5f8e6184)
+
+Hi Samuel,
+
+the above link still gives error not found.
+
+For an external audio mux it is always a single gpio pin for that.
+
+It is some same pin in the same state for composite and s-video,
+but different for TV mode.
+
+The above seems not to show such a pattern.
+
+Also you missed to print GPIO_GPMODE, which is the gpio mask.
+In that, pins actively used for switching are high, but m$ drivers do
+often also have for that specific card unrelated pins high.
+
+Gpio 8 to 15 are the remote gpios and gpio18 should be the key
+press/release.
+
+The rest above seems not to be consistent for what we are searching for.
+
+If you get some time again, do a cold boot and dump the gpio mode and
+state before any application did use the card.
+
+Then dump analog TV, composite and s-video and anything else you can
+test. The GPMODE and the GPSTATUS on top of any mode used is what is
+really interesting.
+
+It also prints the state of all gpios for each mode in binary, so if you
+manually mark the states you used, one can just copy and paste line by
+line and see the changing pins.
+
+As said, it should be a pin in the mask/GPMODE being the same for
+composite and s-video, but different for analog TV. Maybe better use the
+Compro software to get the logs.
 
 Cheers,
-Shaun
+Hermann
 
 
-2009/7/22 Igor M. Liplianin <liplianin@me.by>:
-> On 22 ÉÀÌÑ 2009 21:43:01 Shaun Murdoch wrote:
->> Hi,
->>
->> Thanks for the suggestion.
->>
->> I think there's something a bit weird with dvbtune. According to it's
->> man page the units for frequency (-f) are Hz. I am trying to tell it
->> 11.778 GHz - but you get errors if you do -f 11778000000. Equally you
->> also get errors if you assume it is MHz, i.e. -f 11778. š Anyway, if
->> it prints FE_HAS_SIGNAL and FE_HAS_CARRIER that must mean the
->> frequency I gave it is OK?
->>
->> In any case, scan doesn't work, nor does Kaffeine, so I don't think
->> it's that my use of dvbtune is wrong.
->>
->> Anyone got any other suggestions on what I can do to get this to lock?
->>
->> Thanks,
->> Shaun
->>
->> 2009/7/22 Seyyed Mohammad mohammadzadeh <softnhard.es@gmail.com>:
->> > Hello,
->> >
->> > I don't know what is the exact cause of your problem but I think you
->> > are tuning to a wrong frequency. You wrote:
->> >
->> > šdvbtune -f 1177800 -s 27500 -p v -m
->> >
->> > in which the frequency parameters has two extra zeros which cause the
->> > frequency to interpret as : 1,177,800 MHz !!!!!!!
->> >
->> > 2009/7/22 Shaun Murdoch <scrauny@gmail.com>
->> >
->> >> Hi everyone,
->> >> First post so please be gentle :-)
->> >> I was wondering if anyone can help me please - I am trying to get a
->> >> DVB-S PCI card working with Linux (Ubuntu 9.04). So far I can get the
->> >> card recognised by Linux, but it won't tune - Kaffeine does tell me that
->> >> there is 95% signal and 80% SNR, and I am using the same frequencies etc
->> >> that a standard Sky box uses. The card is very common on eBay so I am
->> >> sure there are plenty people who have tried this / would want this
->> >> working. Some details that I hope will help someone who knows more than
->> >> I do about this! The card is one of these:
->> >> http://cgi.ebay.co.uk/DVB-S-Satellite-TV-Tuner-Video-Capture-PCI-Card-Re
->> >>mote_W0QQitemZ130314645048QQcmdZViewItemQQptZUK_Computing_Computer_Compon
->> >>ents_Graphics_Video_TV_Cards_TW?hash=item1e575bae38&_trksid=p3286.c0.m14&
->> >>_trkparms=65:12|66:2|39:1|72:1690|293:1|294:50 lspci:
->> >> 03:09.0 Ethernet controller: Device 195d:1105 (rev 10)
->> >> My dmesg output - looks ok?:
->> >>
->> >> $ dmesg | grep DVB
->> >> [ š 12.174738] DVB: registering new adapter (dm1105)
->> >> [ š 12.839501] DVB: registering adapter 0 frontend 0 (ST STV0299
->> >> DVB-S)... [ š 12.839633] input: DVB on-card IR receiver as
->> >> /devices/pci0000:00/0000:00:1e.0/0000:03:09.0/input/input
->> >>
->> >> My output from scan - the problem:
->> >>
->> >> $ sudo scan -vvvvvv /usr/share/dvb/dvb-s/Astra-28.2E
->> >> scanning /usr/share/dvb/dvb-s/Astra-28.2E
->> >> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->> >>
->> >> >>> tune to: 11778:v:0:27500
->> >>
->> >> DiSEqC: switch pos 0, 13V, hiband (index 2)
->> >> diseqc_send_msg:56: DiSEqC: e0 10 38 f1 00 00
->> >> DVB-S IF freq is 1178000
->> >>
->> >> >>> tuning status == 0x03
->> >> >>> tuning status == 0x03
->> >> >>> tuning status == 0x03
->> >> >>> tuning status == 0x03
->> >> >>> tuning status == 0x03
->> >> >>> tuning status == 0x03
->> >> >>> tuning status == 0x03
->> >> >>> tuning status == 0x03
->> >> >>> tuning status == 0x03
->> >> >>> tuning status == 0x03
->> >>
->> >> WARNING: >>> tuning failed!!!
->> >>
->> >> This is the correct satellite for my location (south UK), I believe.
->> >> Have tried plenty. Nothing locks. I'm using the latest liplianin drivers
->> >> - did a mercurial checkout and build today:
->> >>
->> >> $ modinfo dm1105
->> >> filename:
->> >> /lib/modules/2.6.28-13-server/kernel/drivers/media/dvb/dm1105/dm1105.ko
->> >> license: š š š šGPL
->> >> description: š šSDMC DM1105 DVB driver
->> >> author: š š š š Igor M. Liplianin <liplianin@me.by>
->> >> srcversion: š š 46C1B3C3627D1937F75D732
->> >> alias: š š š š špci:v0000195Dd00001105sv*sd*bc*sc*i*
->> >> alias: š š š š špci:v0000109Fd0000036Fsv*sd*bc*sc*i*
->> >> depends: š š š šir-common,dvb-core
->> >> vermagic: š š š 2.6.28-13-server SMP mod_unload modversions
->> >> parm: š š š š š card:card type (array of int)
->> >> parm: š š š š š ir_debug:enable debugging information for IR decoding
->> >> (int) parm: š š š š š adapter_nr:DVB adapter numbers (array of short)
->> >>
->> >> Have also tried the latest v4l-dvb drivers and get exactly the same
->> >> tuning problems. Finally, dvbtune appears to say I have signal but
->> >> cannot lock:
->> >>
->> >> $ sudo dvbtune -f 1177800 -s 27500 -p v -m -tone 1 -vvvvvvvvvvv
->> >> [sudo] password for shaun:
->> >> Using DVB card "ST STV0299 DVB-S"
->> >> tuning DVB-S to L-Band:0, Pol:V Srate=27500000, 22kHz=on
->> >> polling....
->> >> Getting frontend event
->> >> FE_STATUS:
->> >> polling....
->> >> Getting frontend event
->> >> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER FE_HAS_VITERBI
->> >> polling....
->> >> Getting frontend event
->> >> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
->> >> polling....
->> >> Getting frontend event
->> >> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER FE_HAS_VITERBI
->> >> polling....
->> >> Getting frontend event
->> >> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
->> >> polling....
->> >> Getting frontend event
->> >> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER FE_HAS_VITERBI
->> >> polling....
->> >> Getting frontend event
->> >> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
->> >>
->> >> So I am thinking that this could be a driver issue? If the card has good
->> >> signal and SNR in Kaffeine, and dvbtune says it has signal and carrier -
->> >> but cannot lock? Please can someone help me debug this?
->> >> Thanks a lot!
->> >> Shaun
->> >>
->> >>
->> >>
->> >>
->> >>
->> >>
->> >>
->> >> _______________________________________________
->> >> linux-dvb users mailing list
->> >> For V4L/DVB development, please use instead linux-media@vger.kernel.org
->> >> linux-dvb@linuxtv.org
->> >> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->> >
->> > --
->> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> > the body of a message to majordomo@vger.kernel.org
->> > More majordomo info at šhttp://vger.kernel.org/majordomo-info.html
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at šhttp://vger.kernel.org/majordomo-info.html
-> Hi Shaun,
-> Did you read something on tuner can?
-> Or maybe you take a picture of tuner can without cover.
-> Also close look picture of card would be nice.
-> Though definately demod is stv0299, but tuner chip may be different.
-> I suspect it is stb6000, but such combination(stb6000 + stv0299) not supported in the driver now.
-> Anyway, you can try modprobe dm1105 with parameter card=1 from s2-liplianin tree.
->
-> Igor
->
->
