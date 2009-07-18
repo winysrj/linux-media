@@ -1,158 +1,478 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:18769 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752522AbZG0Lro (ORCPT
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:48274 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758148AbZGRKj7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jul 2009 07:47:44 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv12 3/8] v4l2: video device: Add FM TX controls default configurations
-Date: Mon, 27 Jul 2009 14:36:26 +0300
-Message-Id: <1248694591-11590-4-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1248694591-11590-3-git-send-email-eduardo.valentin@nokia.com>
-References: <1248694591-11590-1-git-send-email-eduardo.valentin@nokia.com>
- <1248694591-11590-2-git-send-email-eduardo.valentin@nokia.com>
- <1248694591-11590-3-git-send-email-eduardo.valentin@nokia.com>
+	Sat, 18 Jul 2009 06:39:59 -0400
+Received: by fxm18 with SMTP id 18so1159906fxm.37
+        for <linux-media@vger.kernel.org>; Sat, 18 Jul 2009 03:39:57 -0700 (PDT)
+Date: Sat, 18 Jul 2009 12:40:07 +0200
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Report: Compro Videomate Vista T750F
+From: "=?windows-1250?B?U2FtdWVsIFJha2l0bmnoYW4=?=" <semirocket@gmail.com>
+Content-Type: multipart/mixed; boundary=----------kFnDTGmERxdeuTIhhwXRFn
+MIME-Version: 1.0
+References: <op.uwycxowt80yj81@localhost>
+ <1247434386.5152.28.camel@pc07.localdom.local> <op.uw4gkkks80yj81@localhost>
+ <1247878736.4268.52.camel@pc07.localdom.local>
+Message-ID: <op.uw9ek3vot7szun@crni.lan>
+In-Reply-To: <1247878736.4268.52.camel@pc07.localdom.local>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds basic configurations for FM TX extended controls.
-That includes controls names, menu strings, pointer identification,
-type classification and flags configuration.
+------------kFnDTGmERxdeuTIhhwXRFn
+Content-Type: text/plain; format=flowed; delsp=yes; charset=windows-1250
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- linux/drivers/media/video/v4l2-common.c         |   50 +++++++++++++++++++++++
- linux/drivers/media/video/v4l2-compat-ioctl32.c |    8 +++-
- 2 files changed, 57 insertions(+), 1 deletions(-)
+Hi,
 
-diff --git a/linux/drivers/media/video/v4l2-common.c b/linux/drivers/media/video/v4l2-common.c
-index 870dc20..9e1ae23 100644
---- a/linux/drivers/media/video/v4l2-common.c
-+++ b/linux/drivers/media/video/v4l2-common.c
-@@ -343,6 +343,12 @@ const char **v4l2_ctrl_get_menu(u32 id)
- 		"Sepia",
- 		NULL
- 	};
-+	static const char *fm_tx_preemphasis[] = {
-+		"No preemphasis",
-+		"50 useconds",
-+		"75 useconds",
-+		NULL,
-+	};
- 
- 	switch (id) {
- 		case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-@@ -381,6 +387,8 @@ const char **v4l2_ctrl_get_menu(u32 id)
- 			return camera_exposure_auto;
- 		case V4L2_CID_COLORFX:
- 			return colorfx;
-+		case V4L2_CID_FM_TX_PREEMPHASIS:
-+			return fm_tx_preemphasis;
- 		default:
- 			return NULL;
- 	}
-@@ -479,6 +487,28 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
- 	case V4L2_CID_PRIVACY:			return "Privacy";
- 
-+	/* FM Radio Modulator control */
-+	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
-+	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
-+	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
-+	case V4L2_CID_RDS_TX_DEVIATION:		return "RDS Signal Deviation";
-+	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
-+	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
-+	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
-+	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
-+	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
-+	case V4L2_CID_AUDIO_COMPRESSION_ENABLED: return "Audio Compression Feature Enabled";
-+	case V4L2_CID_AUDIO_COMPRESSION_GAIN:	return "Audio Compression Gain";
-+	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD: return "Audio Compression Threshold";
-+	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME: return "Audio Compression Attack Time";
-+	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME: return "Audio Compression Release Time";
-+	case V4L2_CID_PILOT_TONE_ENABLED:	return "Pilot Tone Feature Enabled";
-+	case V4L2_CID_PILOT_TONE_DEVIATION:	return "Pilot Tone Deviation";
-+	case V4L2_CID_PILOT_TONE_FREQUENCY:	return "Pilot Tone Frequency";
-+	case V4L2_CID_FM_TX_PREEMPHASIS:	return "Pre-emphasis settings";
-+	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
-+	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
-+
- 	default:
- 		return NULL;
- 	}
-@@ -511,6 +541,9 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
- 	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
- 	case V4L2_CID_FOCUS_AUTO:
- 	case V4L2_CID_PRIVACY:
-+	case V4L2_CID_AUDIO_LIMITER_ENABLED:
-+	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
-+	case V4L2_CID_PILOT_TONE_ENABLED:
- 		qctrl->type = V4L2_CTRL_TYPE_BOOLEAN;
- 		min = 0;
- 		max = step = 1;
-@@ -539,12 +572,18 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
- 	case V4L2_CID_MPEG_STREAM_VBI_FMT:
- 	case V4L2_CID_EXPOSURE_AUTO:
- 	case V4L2_CID_COLORFX:
-+	case V4L2_CID_FM_TX_PREEMPHASIS:
- 		qctrl->type = V4L2_CTRL_TYPE_MENU;
- 		step = 1;
- 		break;
-+	case V4L2_CID_RDS_TX_PS_NAME:
-+	case V4L2_CID_RDS_TX_RADIO_TEXT:
-+		qctrl->type = V4L2_CTRL_TYPE_STRING;
-+		break;
- 	case V4L2_CID_USER_CLASS:
- 	case V4L2_CID_CAMERA_CLASS:
- 	case V4L2_CID_MPEG_CLASS:
-+	case V4L2_CID_FM_TX_CLASS:
- 		qctrl->type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 		min = max = step = def = 0;
-@@ -573,6 +612,17 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
- 	case V4L2_CID_BLUE_BALANCE:
- 	case V4L2_CID_GAMMA:
- 	case V4L2_CID_SHARPNESS:
-+	case V4L2_CID_RDS_TX_DEVIATION:
-+	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME:
-+	case V4L2_CID_AUDIO_LIMITER_DEVIATION:
-+	case V4L2_CID_AUDIO_COMPRESSION_GAIN:
-+	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD:
-+	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME:
-+	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME:
-+	case V4L2_CID_PILOT_TONE_DEVIATION:
-+	case V4L2_CID_PILOT_TONE_FREQUENCY:
-+	case V4L2_CID_TUNE_POWER_LEVEL:
-+	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:
- 		qctrl->flags |= V4L2_CTRL_FLAG_SLIDER;
- 		break;
- 	case V4L2_CID_PAN_RELATIVE:
-diff --git a/linux/drivers/media/video/v4l2-compat-ioctl32.c b/linux/drivers/media/video/v4l2-compat-ioctl32.c
-index 991fca1..f24009a 100644
---- a/linux/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/linux/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -620,7 +620,13 @@ static int ctrl_is_value64(u32 id)
-  * This information is used inside v4l2_compat_ioctl32. */
- static int ctrl_is_pointer(u32 id)
- {
--	return 0;
-+	switch (id) {
-+	case V4L2_CID_RDS_TX_PS_NAME:
-+	case V4L2_CID_RDS_TX_RADIO_TEXT:
-+		return 1;
-+	default:
-+		return 0;
-+	}
- }
- 
- static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext_controls32 __user *up)
--- 
-1.6.2.GIT
+On Sat, 18 Jul 2009 02:58:56 +0200, hermann pitton  
+<hermann-pitton@arcor.de> wrote:
+
+>> (full log: http://pastebin.com/f5f8e6184)
+>
+> Hi Samuel,
+>
+> the above link still gives error not found.
+>
+
+Strange, because to me works just fine. I'm going to add it directly as an  
+email attachement this time.
+
+> For an external audio mux it is always a single gpio pin for that.
+>
+> It is some same pin in the same state for composite and s-video,
+> but different for TV mode.
+>
+> The above seems not to show such a pattern.
+>
+> Also you missed to print GPIO_GPMODE, which is the gpio mask.
+> In that, pins actively used for switching are high, but m$ drivers do
+> often also have for that specific card unrelated pins high.
+>
+> Gpio 8 to 15 are the remote gpios and gpio18 should be the key
+> press/release.
+>
+> The rest above seems not to be consistent for what we are searching for.
+>
+> If you get some time again, do a cold boot and dump the gpio mode and
+> state before any application did use the card.
+>
+> Then dump analog TV, composite and s-video and anything else you can
+> test. The GPMODE and the GPSTATUS on top of any mode used is what is
+> really interesting.
+>
+
+As I mentioned before GPSTATUS keeps changing all the time (And I mean  
+frequent, measurable in miliseconds), and it seems that it hasn't any  
+connection between other values.
+
+> It also prints the state of all gpios for each mode in binary, so if you
+> manually mark the states you used, one can just copy and paste line by
+> line and see the changing pins.
+>
+> As said, it should be a pin in the mask/GPMODE being the same for
+> composite and s-video, but different for analog TV. Maybe better use the
+> Compro software to get the logs.
+>
+
+The mask/GPMODE doesn't change at all.
+
+I have used Compro software this time.
+
+> Cheers,
+> Hermann
+>
+>
+
+
+Regards
+
+------------kFnDTGmERxdeuTIhhwXRFn
+Content-Disposition: attachment; filename=SAA7133_0_cold-boot.txt
+Content-Type: text/plain; name=SAA7133_0_cold-boot.txt
+Content-Transfer-Encoding: 7bit
+
+SAA7133 Card [0]:
+
+Vendor ID:           0x1131
+Device ID:           0x7133
+Subsystem ID:        0xc900185b
+
+
+11 states dumped
+
+----------------------------------------------------------------------------------
+
+SAA7133 Card - State 0:
+SAA7134_GPIO_GPMODE:             8082c000   (10000000 10000010 11000000 00000000)                 
+SAA7134_GPIO_GPSTATUS:           0284ff00 * (00000010 10000100 11111111 00000000)                 
+SAA7134_ANALOG_IN_CTRL1:         88         (10001000)                                            
+SAA7133_ANALOG_IO_SELECT:        02         (00000010)                                            
+SAA7133_AUDIO_CLOCK_NOMINAL:     03187de7   (00000011 00011000 01111101 11100111)                 
+SAA7133_PLL_CONTROL:             03         (00000011)                                            
+SAA7133_AUDIO_CLOCKS_PER_FIELD:  0001e000   (00000000 00000001 11100000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL0:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL4:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL8:        00         (00000000)                                            
+SAA7134_I2S_OUTPUT_SELECT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_FORMAT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_LEVEL:        00         (00000000)                                            
+SAA7134_I2S_AUDIO_OUTPUT:        11         (00010001)                                            
+SAA7134_TS_PARALLEL:             04         (00000100)                                            
+SAA7134_TS_PARALLEL_SERIAL:      00         (00000000)                                            
+SAA7134_TS_SERIAL0:              00         (00000000)                                            
+SAA7134_TS_SERIAL1:              00         (00000000)                                            
+SAA7134_TS_DMA0:                 00         (00000000)                                            
+SAA7134_TS_DMA1:                 00         (00000000)                                            
+SAA7134_TS_DMA2:                 00         (00000000)                                            
+SAA7134_SPECIAL_MODE:            01         (00000001)                                            
+
+
+Changes: State 0 -> State 1: *****(Cold boot, nothing runs GPSTATUS keeps changing)
+SAA7134_GPIO_GPSTATUS:           0284ff00 -> 0694ff00  (-----0-- ---0---- -------- --------)  
+
+1 changes
+
+
+----------------------------------------------------------------------------------
+
+SAA7133 Card - State 1:
+SAA7134_GPIO_GPMODE:             8082c000   (10000000 10000010 11000000 00000000)                 
+SAA7134_GPIO_GPSTATUS:           0694ff00 * (00000110 10010100 11111111 00000000)  (was: 0284ff00)
+SAA7134_ANALOG_IN_CTRL1:         88         (10001000)                                            
+SAA7133_ANALOG_IO_SELECT:        02         (00000010)                                            
+SAA7133_AUDIO_CLOCK_NOMINAL:     03187de7   (00000011 00011000 01111101 11100111)                 
+SAA7133_PLL_CONTROL:             03         (00000011)                                            
+SAA7133_AUDIO_CLOCKS_PER_FIELD:  0001e000   (00000000 00000001 11100000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL0:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL4:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL8:        00         (00000000)                                            
+SAA7134_I2S_OUTPUT_SELECT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_FORMAT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_LEVEL:        00         (00000000)                                            
+SAA7134_I2S_AUDIO_OUTPUT:        11         (00010001)                                            
+SAA7134_TS_PARALLEL:             04         (00000100)                                            
+SAA7134_TS_PARALLEL_SERIAL:      00         (00000000)                                            
+SAA7134_TS_SERIAL0:              00         (00000000)                                            
+SAA7134_TS_SERIAL1:              00         (00000000)                                            
+SAA7134_TS_DMA0:                 00         (00000000)                                            
+SAA7134_TS_DMA1:                 00         (00000000)                                            
+SAA7134_TS_DMA2:                 00         (00000000)                                            
+SAA7134_SPECIAL_MODE:            01         (00000001)                                            
+
+
+Changes: State 1 -> State 2: *****(Nothing runs)
+SAA7134_GPIO_GPSTATUS:           0694ff00 -> 0294ff00  (-----1-- -------- -------- --------)  
+
+1 changes
+
+
+----------------------------------------------------------------------------------
+
+SAA7133 Card - State 2:
+SAA7134_GPIO_GPMODE:             8082c000   (10000000 10000010 11000000 00000000)                 
+SAA7134_GPIO_GPSTATUS:           0294ff00 * (00000010 10010100 11111111 00000000)  (was: 0694ff00)
+SAA7134_ANALOG_IN_CTRL1:         88         (10001000)                                            
+SAA7133_ANALOG_IO_SELECT:        02         (00000010)                                            
+SAA7133_AUDIO_CLOCK_NOMINAL:     03187de7   (00000011 00011000 01111101 11100111)                 
+SAA7133_PLL_CONTROL:             03         (00000011)                                            
+SAA7133_AUDIO_CLOCKS_PER_FIELD:  0001e000   (00000000 00000001 11100000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL0:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL4:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL8:        00         (00000000)                                            
+SAA7134_I2S_OUTPUT_SELECT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_FORMAT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_LEVEL:        00         (00000000)                                            
+SAA7134_I2S_AUDIO_OUTPUT:        11         (00010001)                                            
+SAA7134_TS_PARALLEL:             04         (00000100)                                            
+SAA7134_TS_PARALLEL_SERIAL:      00         (00000000)                                            
+SAA7134_TS_SERIAL0:              00         (00000000)                                            
+SAA7134_TS_SERIAL1:              00         (00000000)                                            
+SAA7134_TS_DMA0:                 00         (00000000)                                            
+SAA7134_TS_DMA1:                 00         (00000000)                                            
+SAA7134_TS_DMA2:                 00         (00000000)                                            
+SAA7134_SPECIAL_MODE:            01         (00000001)                                            
+
+
+Changes: State 2 -> State 3: *****(Nothing runs)
+SAA7134_GPIO_GPSTATUS:           0294ff00 -> 0084ff00  (------1- ---1---- -------- --------)  
+
+1 changes
+
+
+----------------------------------------------------------------------------------
+
+SAA7133 Card - State 3:
+SAA7134_GPIO_GPMODE:             8082c000   (10000000 10000010 11000000 00000000)                 
+SAA7134_GPIO_GPSTATUS:           0084ff00 * (00000000 10000100 11111111 00000000)  (was: 0294ff00)
+SAA7134_ANALOG_IN_CTRL1:         88         (10001000)                                            
+SAA7133_ANALOG_IO_SELECT:        02         (00000010)                                            
+SAA7133_AUDIO_CLOCK_NOMINAL:     03187de7   (00000011 00011000 01111101 11100111)                 
+SAA7133_PLL_CONTROL:             03         (00000011)                                            
+SAA7133_AUDIO_CLOCKS_PER_FIELD:  0001e000   (00000000 00000001 11100000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL0:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL4:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL8:        00         (00000000)                                            
+SAA7134_I2S_OUTPUT_SELECT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_FORMAT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_LEVEL:        00         (00000000)                                            
+SAA7134_I2S_AUDIO_OUTPUT:        11         (00010001)                                            
+SAA7134_TS_PARALLEL:             04         (00000100)                                            
+SAA7134_TS_PARALLEL_SERIAL:      00         (00000000)                                            
+SAA7134_TS_SERIAL0:              00         (00000000)                                            
+SAA7134_TS_SERIAL1:              00         (00000000)                                            
+SAA7134_TS_DMA0:                 00         (00000000)                                            
+SAA7134_TS_DMA1:                 00         (00000000)                                            
+SAA7134_TS_DMA2:                 00         (00000000)                                            
+SAA7134_SPECIAL_MODE:            01         (00000001)                                            
+
+
+Changes: State 3 -> State 4: *****(Nothing runs)
+SAA7134_GPIO_GPSTATUS:           0084ff00 -> 0494ff00  (-----0-- ---0---- -------- --------)  
+
+1 changes
+
+
+----------------------------------------------------------------------------------
+
+SAA7133 Card - State 4:
+SAA7134_GPIO_GPMODE:             8082c000   (10000000 10000010 11000000 00000000)                 
+SAA7134_GPIO_GPSTATUS:           0494ff00 * (00000100 10010100 11111111 00000000)  (was: 0084ff00)
+SAA7134_ANALOG_IN_CTRL1:         88 *       (10001000)                                            
+SAA7133_ANALOG_IO_SELECT:        02         (00000010)                                            
+SAA7133_AUDIO_CLOCK_NOMINAL:     03187de7   (00000011 00011000 01111101 11100111)                 
+SAA7133_PLL_CONTROL:             03         (00000011)                                            
+SAA7133_AUDIO_CLOCKS_PER_FIELD:  0001e000   (00000000 00000001 11100000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL0:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL4:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL8:        00         (00000000)                                            
+SAA7134_I2S_OUTPUT_SELECT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_FORMAT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_LEVEL:        00         (00000000)                                            
+SAA7134_I2S_AUDIO_OUTPUT:        11         (00010001)                                            
+SAA7134_TS_PARALLEL:             04         (00000100)                                            
+SAA7134_TS_PARALLEL_SERIAL:      00         (00000000)                                            
+SAA7134_TS_SERIAL0:              00         (00000000)                                            
+SAA7134_TS_SERIAL1:              00         (00000000)                                            
+SAA7134_TS_DMA0:                 00         (00000000)                                            
+SAA7134_TS_DMA1:                 00         (00000000)                                            
+SAA7134_TS_DMA2:                 00         (00000000)                                            
+SAA7134_SPECIAL_MODE:            01         (00000001)                                            
+
+
+Changes: State 4 -> State 5: *****(Turning on win software shows analog tv)
+SAA7134_GPIO_GPSTATUS:           0494ff00 -> 0884ff00  (----01-- ---1---- -------- --------)  
+SAA7134_ANALOG_IN_CTRL1:         88       -> 83        (----1-00)                             
+
+2 changes
+
+
+----------------------------------------------------------------------------------
+
+SAA7133 Card - State 5:
+SAA7134_GPIO_GPMODE:             8082c000   (10000000 10000010 11000000 00000000)                 
+SAA7134_GPIO_GPSTATUS:           0884ff00 * (00001000 10000100 11111111 00000000)  (was: 0494ff00)
+SAA7134_ANALOG_IN_CTRL1:         83 *       (10000011)                             (was: 88)      
+SAA7133_ANALOG_IO_SELECT:        02         (00000010)                                            
+SAA7133_AUDIO_CLOCK_NOMINAL:     03187de7 * (00000011 00011000 01111101 11100111)                 
+SAA7133_PLL_CONTROL:             03 *       (00000011)                                            
+SAA7133_AUDIO_CLOCKS_PER_FIELD:  0001e000   (00000000 00000001 11100000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL0:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL4:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL8:        00         (00000000)                                            
+SAA7134_I2S_OUTPUT_SELECT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_FORMAT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_LEVEL:        00         (00000000)                                            
+SAA7134_I2S_AUDIO_OUTPUT:        11         (00010001)                                            
+SAA7134_TS_PARALLEL:             04         (00000100)                                            
+SAA7134_TS_PARALLEL_SERIAL:      00         (00000000)                                            
+SAA7134_TS_SERIAL0:              00         (00000000)                                            
+SAA7134_TS_SERIAL1:              00         (00000000)                                            
+SAA7134_TS_DMA0:                 00         (00000000)                                            
+SAA7134_TS_DMA1:                 00         (00000000)                                            
+SAA7134_TS_DMA2:                 00         (00000000)                                            
+SAA7134_SPECIAL_MODE:            01         (00000001)                                            
+
+
+Changes: State 5 -> State 6: *****(Switch to Composite)
+SAA7134_GPIO_GPSTATUS:           0884ff00 -> 0494ff00  (----10-- ---0---- -------- --------)  (same as 4)
+SAA7134_ANALOG_IN_CTRL1:         83       -> 81        (------1-)                             
+SAA7133_AUDIO_CLOCK_NOMINAL:     03187de7 -> 43187de7  (-0------ -------- -------- --------)  
+SAA7133_PLL_CONTROL:             03       -> 43        (-0------)                             
+
+4 changes
+
+
+----------------------------------------------------------------------------------
+
+SAA7133 Card - State 6:
+SAA7134_GPIO_GPMODE:             8082c000   (10000000 10000010 11000000 00000000)                 
+SAA7134_GPIO_GPSTATUS:           0494ff00 * (00000100 10010100 11111111 00000000)  (was: 0884ff00)
+SAA7134_ANALOG_IN_CTRL1:         81 *       (10000001)                             (was: 83)      
+SAA7133_ANALOG_IO_SELECT:        02         (00000010)                                            
+SAA7133_AUDIO_CLOCK_NOMINAL:     43187de7   (01000011 00011000 01111101 11100111)  (was: 03187de7)
+SAA7133_PLL_CONTROL:             43         (01000011)                             (was: 03)      
+SAA7133_AUDIO_CLOCKS_PER_FIELD:  0001e000   (00000000 00000001 11100000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL0:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL4:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL8:        00         (00000000)                                            
+SAA7134_I2S_OUTPUT_SELECT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_FORMAT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_LEVEL:        00         (00000000)                                            
+SAA7134_I2S_AUDIO_OUTPUT:        11         (00010001)                                            
+SAA7134_TS_PARALLEL:             04         (00000100)                                            
+SAA7134_TS_PARALLEL_SERIAL:      00         (00000000)                                            
+SAA7134_TS_SERIAL0:              00         (00000000)                                            
+SAA7134_TS_SERIAL1:              00         (00000000)                                            
+SAA7134_TS_DMA0:                 00         (00000000)                                            
+SAA7134_TS_DMA1:                 00         (00000000)                                            
+SAA7134_TS_DMA2:                 00         (00000000)                                            
+SAA7134_SPECIAL_MODE:            01         (00000001)                                            
+
+
+Changes: State 6 -> State 7: *****(Switch to S-Video)
+SAA7134_GPIO_GPSTATUS:           0494ff00 -> 0084ff00  (-----1-- ---1---- -------- --------)  (same as 3)
+SAA7134_ANALOG_IN_CTRL1:         81       -> 88        (----0--1)                             (same as 0, 1, 2, 3, 4)
+
+2 changes
+
+
+----------------------------------------------------------------------------------
+
+SAA7133 Card - State 7:
+SAA7134_GPIO_GPMODE:             8082c000   (10000000 10000010 11000000 00000000)                 
+SAA7134_GPIO_GPSTATUS:           0084ff00 * (00000000 10000100 11111111 00000000)  (was: 0494ff00)
+SAA7134_ANALOG_IN_CTRL1:         88         (10001000)                             (was: 81)      
+SAA7133_ANALOG_IO_SELECT:        02         (00000010)                                            
+SAA7133_AUDIO_CLOCK_NOMINAL:     43187de7   (01000011 00011000 01111101 11100111)                 
+SAA7133_PLL_CONTROL:             43         (01000011)                                            
+SAA7133_AUDIO_CLOCKS_PER_FIELD:  0001e000   (00000000 00000001 11100000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL0:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL4:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL8:        00         (00000000)                                            
+SAA7134_I2S_OUTPUT_SELECT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_FORMAT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_LEVEL:        00         (00000000)                                            
+SAA7134_I2S_AUDIO_OUTPUT:        11         (00010001)                                            
+SAA7134_TS_PARALLEL:             04 *       (00000100)                                            
+SAA7134_TS_PARALLEL_SERIAL:      00 *       (00000000)                                            
+SAA7134_TS_SERIAL0:              00 *       (00000000)                                            
+SAA7134_TS_SERIAL1:              00         (00000000)                                            
+SAA7134_TS_DMA0:                 00 *       (00000000)                                            
+SAA7134_TS_DMA1:                 00 *       (00000000)                                            
+SAA7134_TS_DMA2:                 00         (00000000)                                            
+SAA7134_SPECIAL_MODE:            01         (00000001)                                            
+
+
+Changes: State 7 -> State 8: *****(Switch to DVB-T, I can't see DVB-T yet, so it's showing a black screen)
+SAA7134_GPIO_GPSTATUS:           0084ff00 -> 0694ff00  (-----00- ---0---- -------- --------)  (same as 1)
+SAA7134_TS_PARALLEL:             04       -> e4        (000-----)                             
+SAA7134_TS_PARALLEL_SERIAL:      00       -> b9        (0-000--0)                             
+SAA7134_TS_SERIAL0:              00       -> 40        (-0------)                             
+SAA7134_TS_DMA0:                 00       -> 35        (--00-0-0)                             
+SAA7134_TS_DMA1:                 00       -> 01        (-------0)                             
+
+6 changes
+
+
+----------------------------------------------------------------------------------
+
+SAA7133 Card - State 8:
+SAA7134_GPIO_GPMODE:             8082c000   (10000000 10000010 11000000 00000000)                 
+SAA7134_GPIO_GPSTATUS:           0694ff00 * (00000110 10010100 11111111 00000000)  (was: 0084ff00)
+SAA7134_ANALOG_IN_CTRL1:         88 *       (10001000)                                            
+SAA7133_ANALOG_IO_SELECT:        02         (00000010)                                            
+SAA7133_AUDIO_CLOCK_NOMINAL:     43187de7 * (01000011 00011000 01111101 11100111)                 
+SAA7133_PLL_CONTROL:             43 *       (01000011)                                            
+SAA7133_AUDIO_CLOCKS_PER_FIELD:  0001e000   (00000000 00000001 11100000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL0:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL4:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL8:        00         (00000000)                                            
+SAA7134_I2S_OUTPUT_SELECT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_FORMAT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_LEVEL:        00         (00000000)                                            
+SAA7134_I2S_AUDIO_OUTPUT:        11         (00010001)                                            
+SAA7134_TS_PARALLEL:             e4 *       (11100100)                             (was: 04)      
+SAA7134_TS_PARALLEL_SERIAL:      b9         (10111001)                             (was: 00)      
+SAA7134_TS_SERIAL0:              40         (01000000)                             (was: 00)      
+SAA7134_TS_SERIAL1:              00         (00000000)                                            
+SAA7134_TS_DMA0:                 35         (00110101)                             (was: 00)      
+SAA7134_TS_DMA1:                 01         (00000001)                             (was: 00)      
+SAA7134_TS_DMA2:                 00         (00000000)                                            
+SAA7134_SPECIAL_MODE:            01         (00000001)                                            
+
+
+Changes: State 8 -> State 9: *****(Switch back to analog)
+SAA7134_GPIO_GPSTATUS:           0694ff00 -> 0c84ff00  (----0-1- ---1---- -------- --------)  
+SAA7134_ANALOG_IN_CTRL1:         88       -> 83        (----1-00)                             (same as 5)
+SAA7133_AUDIO_CLOCK_NOMINAL:     43187de7 -> 03187de7  (-1------ -------- -------- --------)  (same as 0, 1, 2, 3, 4, 5)
+SAA7133_PLL_CONTROL:             43       -> 03        (-1------)                             (same as 0, 1, 2, 3, 4, 5)
+SAA7134_TS_PARALLEL:             e4       -> 64        (1-------)                             
+
+5 changes
+
+
+----------------------------------------------------------------------------------
+
+SAA7133 Card - State 9:
+SAA7134_GPIO_GPMODE:             8082c000   (10000000 10000010 11000000 00000000)                 
+SAA7134_GPIO_GPSTATUS:           0c84ff00 * (00001100 10000100 11111111 00000000)  (was: 0694ff00)
+SAA7134_ANALOG_IN_CTRL1:         83         (10000011)                             (was: 88)      
+SAA7133_ANALOG_IO_SELECT:        02         (00000010)                                            
+SAA7133_AUDIO_CLOCK_NOMINAL:     03187de7   (00000011 00011000 01111101 11100111)  (was: 43187de7)
+SAA7133_PLL_CONTROL:             03         (00000011)                             (was: 43)      
+SAA7133_AUDIO_CLOCKS_PER_FIELD:  0001e000   (00000000 00000001 11100000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL0:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL4:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL8:        00         (00000000)                                            
+SAA7134_I2S_OUTPUT_SELECT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_FORMAT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_LEVEL:        00         (00000000)                                            
+SAA7134_I2S_AUDIO_OUTPUT:        11         (00010001)                                            
+SAA7134_TS_PARALLEL:             64         (01100100)                             (was: e4)      
+SAA7134_TS_PARALLEL_SERIAL:      b9         (10111001)                                            
+SAA7134_TS_SERIAL0:              40         (01000000)                                            
+SAA7134_TS_SERIAL1:              00         (00000000)                                            
+SAA7134_TS_DMA0:                 35         (00110101)                                            
+SAA7134_TS_DMA1:                 01         (00000001)                                            
+SAA7134_TS_DMA2:                 00         (00000000)                                            
+SAA7134_SPECIAL_MODE:            01         (00000001)                                            
+
+
+Changes: State 9 -> Register Dump:
+SAA7134_GPIO_GPSTATUS:           0c84ff00 -> 0e94ff00  (------0- ---0---- -------- --------)  
+
+1 changes
+
+
+=================================================================================
+
+SAA7133 Card - Register Dump:
+SAA7134_GPIO_GPMODE:             8082c000   (10000000 10000010 11000000 00000000)                 
+SAA7134_GPIO_GPSTATUS:           0e94ff00   (00001110 10010100 11111111 00000000)  (was: 0c84ff00)
+SAA7134_ANALOG_IN_CTRL1:         83         (10000011)                                            
+SAA7133_ANALOG_IO_SELECT:        02         (00000010)                                            
+SAA7133_AUDIO_CLOCK_NOMINAL:     03187de7   (00000011 00011000 01111101 11100111)                 
+SAA7133_PLL_CONTROL:             03         (00000011)                                            
+SAA7133_AUDIO_CLOCKS_PER_FIELD:  0001e000   (00000000 00000001 11100000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL0:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL4:        00000000   (00000000 00000000 00000000 00000000)                 
+SAA7134_VIDEO_PORT_CTRL8:        00         (00000000)                                            
+SAA7134_I2S_OUTPUT_SELECT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_FORMAT:       00         (00000000)                                            
+SAA7134_I2S_OUTPUT_LEVEL:        00         (00000000)                                            
+SAA7134_I2S_AUDIO_OUTPUT:        11         (00010001)                                            
+SAA7134_TS_PARALLEL:             64         (01100100)                                            
+SAA7134_TS_PARALLEL_SERIAL:      b9         (10111001)                                            
+SAA7134_TS_SERIAL0:              40         (01000000)                                            
+SAA7134_TS_SERIAL1:              00         (00000000)                                            
+SAA7134_TS_DMA0:                 35         (00110101)                                            
+SAA7134_TS_DMA1:                 01         (00000001)                                            
+SAA7134_TS_DMA2:                 00         (00000000)                                            
+SAA7134_SPECIAL_MODE:            01         (00000001)                                            
+
+end of dump
+
+------------kFnDTGmERxdeuTIhhwXRFn--
 
