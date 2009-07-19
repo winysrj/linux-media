@@ -1,59 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:51595 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750892AbZGXAiM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2009 20:38:12 -0400
-Subject: Re: [PATCH] ivtv: Read buffer overflow
-From: Andy Walls <awalls@radix.net>
-To: Roel Kluin <roel.kluin@gmail.com>
-Cc: hverkuil@xs4all.nl, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>
-In-Reply-To: <4A68D6A2.1080800@gmail.com>
-References: <4A68D6A2.1080800@gmail.com>
-Content-Type: text/plain
-Date: Thu, 23 Jul 2009 20:36:07 -0400
-Message-Id: <1248395767.3176.97.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr3.xs4all.nl ([194.109.24.23]:2821 "EHLO
+	smtp-vbr3.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755008AbZGSSVA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jul 2009 14:21:00 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr3.xs4all.nl (8.13.8/8.13.8) with ESMTP id n6JIKwH4098810
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 19 Jul 2009 20:20:59 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 19 Jul 2009 20:20:58 +0200 (CEST)
+Message-Id: <200907191820.n6JIKwH4098810@smtp-vbr3.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-07-23 at 23:31 +0200, Roel Kluin wrote:
-> This mistakenly tests against sizeof(freqs) instead of the array size. Due to
-> the mask the only illegal value possible was 3.
-> 
-> Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Acked-by: Andy Walls <awalls@radix.net>
+Results of the daily build of v4l-dvb:
 
-The cx18 driver suffers from the exact same defect in cx18-controls.c.
+date:        Sun Jul 19 19:00:03 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12274:bdd711bbc07e
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-> ---
-> diff --git a/drivers/media/video/ivtv/ivtv-controls.c b/drivers/media/video/ivtv/ivtv-controls.c
-> index a3b77ed..4a9c8ce 100644
-> --- a/drivers/media/video/ivtv/ivtv-controls.c
-> +++ b/drivers/media/video/ivtv/ivtv-controls.c
-> @@ -17,6 +17,7 @@
->      along with this program; if not, write to the Free Software
->      Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
->   */
-> +#include <linux/kernel.h>
->  
->  #include "ivtv-driver.h"
->  #include "ivtv-cards.h"
-> @@ -281,7 +282,7 @@ int ivtv_s_ext_ctrls(struct file *file, void *fh, struct v4l2_ext_controls *c)
->  		idx = p.audio_properties & 0x03;
->  		/* The audio clock of the digitizer must match the codec sample
->  		   rate otherwise you get some very strange effects. */
-> -		if (idx < sizeof(freqs))
-> +		if (idx < ARRAY_SIZE(freqs))
->  			ivtv_call_all(itv, audio, s_clock_freq, freqs[idx]);
->  		return err;
->  	}
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc1-armv5: OK
+linux-2.6.27-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-ixp: WARNINGS
+linux-2.6.29.1-armv5-ixp: WARNINGS
+linux-2.6.30-armv5-ixp: WARNINGS
+linux-2.6.31-rc1-armv5-ixp: WARNINGS
+linux-2.6.28-armv5-omap2: WARNINGS
+linux-2.6.29.1-armv5-omap2: WARNINGS
+linux-2.6.30-armv5-omap2: WARNINGS
+linux-2.6.31-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: WARNINGS
+linux-2.6.27-i686: WARNINGS
+linux-2.6.28-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-rc1-i686: WARNINGS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc1-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-rc1-mips: WARNINGS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-rc1-powerpc64: OK
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-rc1-x86_64: OK
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc1): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
