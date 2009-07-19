@@ -1,61 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.redhat.com ([66.187.237.31]:34085 "EHLO mx2.redhat.com"
+Received: from rtr.ca ([76.10.145.34]:37062 "EHLO mail.rtr.ca"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751159AbZGVSNv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2009 14:13:51 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Trent Piepho <xyzzy@speakeasy.org>
-Subject: Re: [PATCH] dvb: make digital side of pcHDTV HD-3000 functional again
-Date: Wed, 22 Jul 2009 14:12:42 -0400
-Cc: Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
-References: <200907201020.47581.jarod@redhat.com> <Pine.LNX.4.58.0907212343130.11911@shell2.speakeasy.net> <200907221359.00892.jarod@redhat.com>
-In-Reply-To: <200907221359.00892.jarod@redhat.com>
+	id S1755145AbZGSSZI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jul 2009 14:25:08 -0400
+Message-ID: <4A636503.8030700@rtr.ca>
+Date: Sun, 19 Jul 2009 14:25:07 -0400
+From: Mark Lord <lkml@rtr.ca>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Steven Toth <stoth@linuxtv.org>, linux-media@vger.kernel.org,
+	Linux Kernel <linux-kernel@vger.kernel.org>
+Subject: Re: Regression 2.6.31: xc5000 no longer works with Myth-0.21-fixes
+ 	branch
+References: <4A631C8F.7000002@rtr.ca> <829197380907190706i686fd1afwdca0d8be648129@mail.gmail.com> <4A63317D.6040208@rtr.ca>
+In-Reply-To: <4A63317D.6040208@rtr.ca>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907221412.42871.jarod@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 22 July 2009 13:59:00 Jarod Wilson wrote:
-> On Wednesday 22 July 2009 02:51:12 Trent Piepho wrote:
-> > On Tue, 21 Jul 2009, Jarod Wilson wrote:
-...
-> > > So its either I have *two* machines with bad, but only slightly bad,
-> > > and in the same way, PCI slots which seem to work fine with any other
-> > > card I have (uh, unlikely), or my HD-3000 has gone belly up on me in
-> > > some subtle way. The cx8802 part never shows up under lspci on either
-> > > machine I've tried it in. Suck.
-> > 
-> > Check your eeprom, it could be set incorrectly.
-> > 
-> > "i2cdump -f 0 0x50" will show the contents if the HD-3000 has i2c bus 0.
-> > i2cdump with no arguments will tell you what each bus is.
-> > 
-> > The first 12 bytes should look something like this:
-> > 00: 06 ff ff ff 63 70 00 30 e0 01 40 ff 00 00 00 00    ?...cp.0??@.....
-> > 
-> > 
-> > The first byte should have bit 0x04 set to enable mpeg.
-> 
-> So here's what was in my eeprom:
-> 
-> 00: 00 00 00 00 63 70 00 30 e0 01 40 ff 00 00 00 00    ....cp.0??@.....
-> 
-> Sooo... For funsies, I figured out how to use i2cset, and made it match
-> your example. After rebooting, I have the cx8802 device showing up
-> again. Cool! Now to see if it actually *works*... :)
+Mark Lord wrote:
+..
+> Digital-only, since the tuner stick has never worked (and still doesn't)
+> for analog NTSC with MythTV-0.21-fixes.  That's okay, I really only use
+> it for digital ATSC over-the-air (OTA) reception.
+..
 
-Yup, seems to work, just did an OTA scan w/o a problem, azap gets a
-lock, signal and snr, dvbtraffic, and video coming off it look sane.
+Further to the analog -- which I don't care a whole bunch about --
+I did try tracing it through mythtv today.  The mythbackend thread
+that dies (segfault) is trying to read audio frames from the
+usb-audio device of the 950Q (/dev/dsp1).
 
-Now the question I have is how the hell did the eeprom get hosed over
-in the first place?...
+It seems to suffer massive stack corruption from something in there,
+though I'm not at all sure what the cause might be.
+Presumable this same myth code works with other tuners that lack
+hardware mpeg encoding, but I don't have any of those here to test with.
 
-In any case, thanks much! Happy to have it back in working order.
+I wonder if it's a 64-bit thing?  My mythbox is pure 64-bits.
 
--- 
-Jarod Wilson
-jarod@redhat.com
+Cheers
