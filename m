@@ -1,181 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:44237 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753252AbZGNFL6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jul 2009 01:11:58 -0400
-Received: from epmmp2 (mailout2.samsung.com [203.254.224.25])
- by mailout1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0KMR0085OAFX9Q@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 14 Jul 2009 14:11:57 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp2.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0KMR00DDWAFXSA@mmp2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 14 Jul 2009 14:11:57 +0900 (KST)
-Date: Tue, 14 Jul 2009 14:11:57 +0900
-From: Joonyoung Shim <jy0922.shim@samsung.com>
-Subject: [PATCH v2 3/4] radio-si470x: add disconnect check function
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, tobias.lorenz@gmx.net,
-	kyungmin.park@samsung.com, klimov.linux@gmail.com
-Message-id: <4A5C139D.3070409@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7BIT
+Received: from rtr.ca ([76.10.145.34]:44881 "EHLO mail.rtr.ca"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754318AbZGSNRb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jul 2009 09:17:31 -0400
+Message-ID: <4A631CEA.4090802@rtr.ca>
+Date: Sun, 19 Jul 2009 09:17:30 -0400
+From: Mark Lord <lkml@rtr.ca>
+MIME-Version: 1.0
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
+	Jarod Wilson <jarod@redhat.com>, Mike Isely <isely@pobox.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Janne Grunau <j@jannau.net>
+Subject: Re: [PATCH 1/3] ir-kbd-i2c: Allow use of ir-kdb-i2c internal get_key
+   funcs and set ir_type
+References: <1247862585.10066.16.camel@palomino.walls.org>	<1247862937.10066.21.camel@palomino.walls.org>	<20090719144749.689c2b3a@hyperion.delvare>	<4A6316F9.4070109@rtr.ca> <20090719145513.0502e0c9@hyperion.delvare> <4A631B41.5090301@rtr.ca>
+In-Reply-To: <4A631B41.5090301@rtr.ca>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The si470x_disconnect_check is function to check disconnect state of
-radio in common file. The function is implemented in each interface
-file.
+Mark Lord wrote:
+> Jean Delvare wrote:
+>> Hi Mark,
+>>
+>> On Sun, 19 Jul 2009 08:52:09 -0400, Mark Lord wrote:
+>>> While you folks are looking into ir-kbd-i2c,
+>>> perhaps one of you will fix the regressions
+>>> introduced in 2.6.31-* ?
+>>>
+>>> The drive no longer detects/works with the I/R port on
+>>> the Hauppauge PVR-250 cards, which is a user-visible regression.
+>>
+>> This is bad. If there a bugzilla entry? If not, where can I read more
+>> details / get in touch with an affected user?
+> ..
+> 
+> I imagine there will be thousands of affected users once the kernel
+> is released, but for now I'll volunteer as a guinea-pig.
+> 
+> It is difficult to test with 2.6.31 on the system at present, though,
+> because that kernel also breaks other things that the MythTV box relies on,
+> and the system is in regular use as our only PVR.
+> 
+> Right now, all I know is, that the PVR-250 IR port did not show up
+> in /dev/input/ with 2.6.31 after loading ir_kbd_i2c.  But it does show
+> up there with all previous kernels going back to the 2.6.1x days.
+..
 
-Signed-off-by: Joonyoung Shim <jy0922.shim@samsung.com>
----
- .../media/radio/si470x/radio-si470x-common.c       |   40 +++++++++----------
- .../drivers/media/radio/si470x/radio-si470x-usb.c  |   17 ++++++++
- linux/drivers/media/radio/si470x/radio-si470x.h    |    1 +
- 3 files changed, 37 insertions(+), 21 deletions(-)
+Actually, I meant to say that it does not show up in the output from
+the lsinput command, whereas it did show up there in all previous kernels.
 
-diff --git a/linux/drivers/media/radio/si470x/radio-si470x-common.c b/linux/drivers/media/radio/si470x/radio-si470x-common.c
-index 2be22bd..84cbea3 100644
---- a/linux/drivers/media/radio/si470x/radio-si470x-common.c
-+++ b/linux/drivers/media/radio/si470x/radio-si470x-common.c
-@@ -475,10 +475,9 @@ static int si470x_vidioc_g_ctrl(struct file *file, void *priv,
- 	int retval = 0;
- 
- 	/* safety checks */
--	if (radio->disconnected) {
--		retval = -EIO;
-+	retval = si470x_disconnect_check(radio);
-+	if (retval)
- 		goto done;
--	}
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUDIO_VOLUME:
-@@ -511,10 +510,9 @@ static int si470x_vidioc_s_ctrl(struct file *file, void *priv,
- 	int retval = 0;
- 
- 	/* safety checks */
--	if (radio->disconnected) {
--		retval = -EIO;
-+	retval = si470x_disconnect_check(radio);
-+	if (retval)
- 		goto done;
--	}
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUDIO_VOLUME:
-@@ -567,10 +565,10 @@ static int si470x_vidioc_g_tuner(struct file *file, void *priv,
- 	int retval = 0;
- 
- 	/* safety checks */
--	if (radio->disconnected) {
--		retval = -EIO;
-+	retval = si470x_disconnect_check(radio);
-+	if (retval)
- 		goto done;
--	}
-+
- 	if (tuner->index != 0) {
- 		retval = -EINVAL;
- 		goto done;
-@@ -649,10 +647,10 @@ static int si470x_vidioc_s_tuner(struct file *file, void *priv,
- 	int retval = -EINVAL;
- 
- 	/* safety checks */
--	if (radio->disconnected) {
--		retval = -EIO;
-+	retval = si470x_disconnect_check(radio);
-+	if (retval)
- 		goto done;
--	}
-+
- 	if (tuner->index != 0)
- 		goto done;
- 
-@@ -688,10 +686,10 @@ static int si470x_vidioc_g_frequency(struct file *file, void *priv,
- 	int retval = 0;
- 
- 	/* safety checks */
--	if (radio->disconnected) {
--		retval = -EIO;
-+	retval = si470x_disconnect_check(radio);
-+	if (retval)
- 		goto done;
--	}
-+
- 	if (freq->tuner != 0) {
- 		retval = -EINVAL;
- 		goto done;
-@@ -718,10 +716,10 @@ static int si470x_vidioc_s_frequency(struct file *file, void *priv,
- 	int retval = 0;
- 
- 	/* safety checks */
--	if (radio->disconnected) {
--		retval = -EIO;
-+	retval = si470x_disconnect_check(radio);
-+	if (retval)
- 		goto done;
--	}
-+
- 	if (freq->tuner != 0) {
- 		retval = -EINVAL;
- 		goto done;
-@@ -747,10 +745,10 @@ static int si470x_vidioc_s_hw_freq_seek(struct file *file, void *priv,
- 	int retval = 0;
- 
- 	/* safety checks */
--	if (radio->disconnected) {
--		retval = -EIO;
-+	retval = si470x_disconnect_check(radio);
-+	if (retval)
- 		goto done;
--	}
-+
- 	if (seek->tuner != 0) {
- 		retval = -EINVAL;
- 		goto done;
-diff --git a/linux/drivers/media/radio/si470x/radio-si470x-usb.c b/linux/drivers/media/radio/si470x/radio-si470x-usb.c
-index 6508161..2f5cf6c 100644
---- a/linux/drivers/media/radio/si470x/radio-si470x-usb.c
-+++ b/linux/drivers/media/radio/si470x/radio-si470x-usb.c
-@@ -371,6 +371,23 @@ static int si470x_get_scratch_page_versions(struct si470x_device *radio)
- 
- 
- /**************************************************************************
-+ * General Driver Functions - DISCONNECT_CHECK
-+ **************************************************************************/
-+
-+/*
-+ * si470x_disconnect_check - check whether radio disconnects
-+ */
-+int si470x_disconnect_check(struct si470x_device *radio)
-+{
-+	if (radio->disconnected)
-+		return -EIO;
-+	else
-+		return 0;
-+}
-+
-+
-+
-+/**************************************************************************
-  * RDS Driver Functions
-  **************************************************************************/
- 
-diff --git a/linux/drivers/media/radio/si470x/radio-si470x.h b/linux/drivers/media/radio/si470x/radio-si470x.h
-index 6b85315..6305f6b 100644
---- a/linux/drivers/media/radio/si470x/radio-si470x.h
-+++ b/linux/drivers/media/radio/si470x/radio-si470x.h
-@@ -193,6 +193,7 @@ extern const struct v4l2_file_operations si470x_fops;
- extern struct video_device si470x_viddev_template;
- int si470x_get_register(struct si470x_device *radio, int regnr);
- int si470x_set_register(struct si470x_device *radio, int regnr);
-+int si470x_disconnect_check(struct si470x_device *radio);
- int si470x_set_freq(struct si470x_device *radio, unsigned int freq);
- int si470x_start(struct si470x_device *radio);
- int si470x_stop(struct si470x_device *radio);
--- 
-1.6.0.4
+> So, to keep the pain level reasonable, perhaps you could send some
+> debugging patches, and I'll apply those, reconfigure the machine for
+> 2.6.31 again, and collect some output for you.  And also perhaps try
+> a few things locally as well to speed up the process.
+> 
+> Okay?
+> 
+> Thanks
+> 
+
