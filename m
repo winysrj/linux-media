@@ -1,43 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f226.google.com ([209.85.219.226]:49535 "EHLO
-	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754216AbZG0Nwz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jul 2009 09:52:55 -0400
-Received: by ewy26 with SMTP id 26so3167404ewy.37
-        for <linux-media@vger.kernel.org>; Mon, 27 Jul 2009 06:52:54 -0700 (PDT)
+Received: from rtr.ca ([76.10.145.34]:36794 "EHLO mail.rtr.ca"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754527AbZGSPxT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jul 2009 11:53:19 -0400
+Message-ID: <4A63416E.2070103@rtr.ca>
+Date: Sun, 19 Jul 2009 11:53:18 -0400
+From: Mark Lord <lkml@rtr.ca>
 MIME-Version: 1.0
-In-Reply-To: <20090727125112.995151CE833@ws1-6.us4.outblaze.com>
-References: <20090727125112.995151CE833@ws1-6.us4.outblaze.com>
-Date: Mon, 27 Jul 2009 15:52:53 +0200
-Message-ID: <d9def9db0907270652r60b579d0v848d2760a82002bc@mail.gmail.com>
-Subject: Re: [linux-dvb] DVB-C device
-From: Markus Rechberger <mrechberger@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Steven Toth <stoth@linuxtv.org>, linux-media@vger.kernel.org,
+	Linux Kernel <linux-kernel@vger.kernel.org>
+Subject: Re: Regression 2.6.31: xc5000 no longer works with Myth-0.21-fixes
+ 	branch
+References: <4A631C8F.7000002@rtr.ca> <829197380907190706i686fd1afwdca0d8be648129@mail.gmail.com> <4A6337C1.6080104@rtr.ca>
+In-Reply-To: <4A6337C1.6080104@rtr.ca>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 27, 2009 at 2:51 PM, Paul Guzowski<guzowskip@linuxmail.org> wrote:
->
->
->
-> ----------------------------------------------------------------------
-> Alex,
->
-> Not sure if it will meet your needs, but I am using a Pinnacle HDTV Pro USB
-> stick to watch television signals supplied by my cable company's set top
-> box.  To do so, I'm using MPlayer running on Ubuntu Jaunty.  Pinnacle's PCTV
-> business was sold to Hauppage but the stick (or  the Hauppage equivalent) is
-> still available and quite inexpensive (less than $50?).  If this might work
-> for you, I can pass you more details via separate correspondence.
->
+Mark Lord wrote:
+..
+> Really, the mythfrontend DOES NOT DEAL WITH TUNERS directly,
+> leaving that to the mythbackend.  EXCEPT for when it wants to show
+> a signal strength/quality indication onscreen, which is done
+> when tuning to a new channel.
+> 
+> So it's got to be something on that pathway, I suspect,
+> but despite being a kernel developer, I'm not terribly
+> knowledgeable about V4L, DVB, or the MythTV internals.
+..
 
-That's ATSC/QAM64/QAM256(likely). Digital Cable in US.
-DVB-C is slightly different than that. Sundtek MediaTV Pro is fully
-supported in the DVB-C USB area.
+Okay, got it.  Sort of.  :)
 
-Best Regards,
-Markus
+1. Patched mythtv to not show the signal strength info.  No effect.
+
+2. Substituted a different brand/model/chipset DVB tuner for the 950Q,
+and everything was working fine again.  So we know it's not a generic issue.
+
+3. In mythtv-setup -> CaptureCards -> DVB:1 -> RecordingOptions
+there is a tickbox for "Open DVB Card on Demand".  It was ticked,
+so I un-ticked that box.  Everything now works!
+
+When that tickbox was selected, the xc5000 took five (5) seconds to "open",
+as it did the firmware upload every time.  This appeared to exceed some
+timeout inside myth.
+
+With the tickbox NOT ticked, myth just opens the tuner once at startup,
+and keeps it open, so no more delay when it wants to use it.
+
+I wonder if we can be smarter/faster about the xc5000 firmware uploads?
+
+Cheers 
