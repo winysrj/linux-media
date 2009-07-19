@@ -1,62 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f213.google.com ([209.85.217.213]:49276 "EHLO
-	mail-gx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752107AbZGVQGG convert rfc822-to-8bit (ORCPT
+Received: from wa-out-1112.google.com ([209.85.146.182]:64567 "EHLO
+	wa-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750804AbZGSTbJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2009 12:06:06 -0400
-Received: by gxk9 with SMTP id 9so494350gxk.13
-        for <linux-media@vger.kernel.org>; Wed, 22 Jul 2009 09:06:06 -0700 (PDT)
+	Sun, 19 Jul 2009 15:31:09 -0400
+Date: Sun, 19 Jul 2009 12:31:04 -0700
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Mark Lord <lkml@rtr.ca>
+Cc: Jean Delvare <khali@linux-fr.org>, Andy Walls <awalls@radix.net>,
+	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	Mike Isely <isely@pobox.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Janne Grunau <j@jannau.net>,
+	Linux Kernel <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 1/3] ir-kbd-i2c: Allow use of ir-kdb-i2c internal
+	get_key funcs and set ir_type
+Message-ID: <20090719193104.GA17495@dtor-d630.eng.vmware.com>
+References: <1247862585.10066.16.camel@palomino.walls.org> <1247862937.10066.21.camel@palomino.walls.org> <20090719144749.689c2b3a@hyperion.delvare> <4A6316F9.4070109@rtr.ca> <20090719145513.0502e0c9@hyperion.delvare> <4A631B41.5090301@rtr.ca> <4A631CEA.4090802@rtr.ca> <4A632FED.1000809@rtr.ca> <20090719190833.29451277@hyperion.delvare> <4A63656D.4070901@rtr.ca>
 MIME-Version: 1.0
-In-Reply-To: <4A673638.2090001@kernellabs.com>
-References: <200907201020.47581.jarod@redhat.com>
-	 <200907201650.23749.jarod@redhat.com>
-	 <4A65CF79.1040703@kernellabs.com>
-	 <200907212135.47557.jarod@redhat.com>
-	 <20090722114806.39c8c1ea.bhepple@promptu.com>
-	 <4A673638.2090001@kernellabs.com>
-Date: Wed, 22 Jul 2009 12:06:05 -0400
-Message-ID: <829197380907220906q1bfacf45nad4a6e5b45230c3c@mail.gmail.com>
-Subject: Re: [PATCH] dvb: make digital side of pcHDTV HD-3000 functional again
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Steven Toth <stoth@kernellabs.com>
-Cc: Bob Hepple <bhepple@promptu.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4A63656D.4070901@rtr.ca>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 22, 2009 at 11:54 AM, Steven Toth<stoth@kernellabs.com> wrote:
-> On 7/21/09 9:48 PM, Bob Hepple wrote:
->>
->> On Tue, 21 Jul 2009 21:35:47 -0400
->> Jarod Wilson<jarod@redhat.com>  wrote:
->>
->>> So its either I have *two* machines with bad, but only slightly bad,
->>> and in the same way, PCI slots which seem to work fine with any other
->>> card I have (uh, unlikely),
->>
->> ... not unlikely if the two machines are similar - many motherboards
->> have borked PCI slots in one way or another - design faults or
->> idiosyncratic interpretation of the PCI standard.  I've seen it with
->> HP, Compaq, Digital m/bs just to name big names, smaller mfrs also get
->> it wrong. Sometimes just using another slot helps. Sometimes you need
->> to try a totally different motherboard.
->>
->> Maybe wrong to 'blame' the m/b mfr - it could just as easily be an
->> out-of-spec or creatively interpreted PCI standard on the card.
+On Sun, Jul 19, 2009 at 02:26:53PM -0400, Mark Lord wrote:
+> (resending.. somebody trimmed linux-kernel from the CC: earlier)
 >
-> My guess is that the eeprom was trashed.
+> Jean Delvare wrote:
+>> On Sun, 19 Jul 2009 10:38:37 -0400, Mark Lord wrote:
+>>> I'm debugging various other b0rked things in 2.6.31 here right now,
+>>> so I had a closer look at the Hauppauge I/R remote issue.
+>>>
+>>> The ir_kbd_i2c driver *does* still find it after all.
+>>> But the difference is that the output from 'lsinput' has changed
+>>> and no longer says "Hauppauge".  Which prevents the application from
+>>> finding the remote control in the same way as before.
+>>
+>> OK, thanks for the investigation.
+>>
+>>> I'll hack the application code here now to use the new output,
+>>> but I wonder what the the thousands of other users will do when
+>>> they first try 2.6.31 after release ?
+>>
+>> Where does lsinput get the string from?
+> ..
+>
+> Here's a test program for you:
+>
 
-I hate to be the one to make this observation, but since this card is
-specifically targeted at the Linux market, has anyone considered
-reaching out to the vendor to ask for help?
+And I  think have a fix for that, commit
 
-If their card really is broken in current kernels, I would think a
-company that specializes in selling Linux tuner products would be
-interested in such.
+f936601471d1454dacbd3b2a961fd4d883090aeb
 
-Devin
+in the for-linus branch of my tree.
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Dmitry
