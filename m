@@ -1,101 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp19.orange.fr ([80.12.242.18]:7803 "EHLO smtp19.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750824AbZGDSF7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 4 Jul 2009 14:05:59 -0400
-Message-Id: <200907041805.n64I5xQ04085@neptune.localwarp.net>
-Date: Sat, 4 Jul 2009 20:05:38 +0200 (CEST)
-From: eric.paturage@orange.fr
-Reply-To: eric.paturage@orange.fr
-Subject: Re: regression : saa7134  with Pinnacle PCTV 50i (analog) can not
- tune anymore
-To: hermann-pitton@arcor.de
-cc: linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=us-ascii
-Content-Disposition: INLINE
+Received: from mail-in-16.arcor-online.net ([151.189.21.56]:32814 "EHLO
+	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751562AbZGSXVo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jul 2009 19:21:44 -0400
+Subject: Re: Report: Compro Videomate Vista T750F
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Samuel =?UTF-8?Q?Rakitni=C4=8Dan?= <semirocket@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <op.uw9ek3vot7szun@crni.lan>
+References: <op.uwycxowt80yj81@localhost>
+	 <1247434386.5152.28.camel@pc07.localdom.local>
+	 <op.uw4gkkks80yj81@localhost>
+	 <1247878736.4268.52.camel@pc07.localdom.local> <op.uw9ek3vot7szun@crni.lan>
+Content-Type: text/plain; charset=UTF-8
+Date: Mon, 20 Jul 2009 01:16:27 +0200
+Message-Id: <1248045387.10911.13.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On  4 Jul, hermann pitton wrote:
-> 
-> Hello,
-> 
-> Am Samstag, den 04.07.2009, 15:16 +0200 schrieb eric.paturage@orange.fr:
->> hello 
->> 
->> I had my  Pinnacle PCTV 50i analog tv card working quite well for several years
->> with linux . but since mid june it can not tune anymore when using the latest mercurial version 
->> of the v4l2 drivers . 
->> It is working fine up to the official V4l2 driver of 2.6.30 .
->> 
->> 
->> here is an example of /var/log/messages with official v4l2 drivers of 2.6.27.4 (working well) :
-> 
-> [snip]
->> saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
->> TUNER: Unable to find symbol tda829x_probe()
-> ..^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> 
->> tuner 1-004b: chip found @ 0x96 (saa7133[0])
->> DVB: Unable to find symbol tda9887_attach()
->> saa7133[0]: registered device video0 [v4l2]
->> saa7133[0]: registered device vbi0
->> saa7133[0]: registered device radio0
->> saa7134 ALSA driver for DMA sound loaded
->> IRQ 11/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
->> saa7133[0]/alsa: saa7133[0] at 0xed800000 irq 11 registered as card -1
->> 
->> Jul  2 09:12:43 neptune kernel: tuner 1-004b: Tuner has no way to set tv freq
->> Jul  2 09:19:14 neptune kernel: tuner 1-004b: Tuner has no way to set tv freq
->> Jul  2 09:20:16 neptune kernel: tuner 1-004b: Tuner has no way to set tv freq
->> Jul  2 09:20:26 neptune kernel: tuner 1-004b: Tuner has no way to set tv freq
->> 
->> 
->> 
->> any idea what is going on ? 
-> 
-> out of some reason you don't have the tda8290 analog IF demodulator
-> module.
-> 
-> In theory this should be only possible, if you have selected
-> "Customize analog and hybrid tuner modules to build" and deselected
-> "TDA 8290/8295 + 8275(a)/18271 tuner combo".
-> 
-> I'm writing from a 2.6.29 and don't have such problems, but what makes
-> me wonder is, that you also don't have the tda9887. You don't need it
-> for that card, but I can't even deselect it at all.
-> 
-> With deselected tda8290 it gets loaded here instead, since within the
-> same address range.
-> 
-> Can you check with make xconfig/menuconfig, if the tda8290 is selected
-> on your build and watch if it is compiled at the beginning of "make"?
-> 
-> Cheers,
-> Hermann
+Hi Samuel,
 
+Am Samstag, den 18.07.2009, 12:40 +0200 schrieb Samuel Rakitničan:
+> Hi,
 > 
-Hi Hermann
+> On Sat, 18 Jul 2009 02:58:56 +0200, hermann pitton  
+> <hermann-pitton@arcor.de> wrote:
+> 
+> >> (full log: http://pastebin.com/f5f8e6184)
+> >
+> > Hi Samuel,
+> >
+> > the above link still gives error not found.
+> >
+> 
+> Strange, because to me works just fine. I'm going to add it directly as an  
+> email attachement this time.
 
-i checked the xconfig menu , I unselected "Customize analog and hybrid tuner modules to build" (just to be sure)
-the module tda8290.ko gets built  and installed (i double checked ) .
-[root@neptune / ]# cd /lib/modules/2.6.29.4
-[root@neptune 2.6.29.4]# find . -name "tda829*"
-./kernel/drivers/media/common/tuners/tda8290.ko
-[root@neptune 2.6.29.4]# uname -a
-Linux neptune.localwarp.net 2.6.29.4 #1 Mon Jun 1 11:01:38 CEST 2009 i686 AMD Athlon(tm) Processor unknown GNU/Linux
-[root@neptune 2.6.29.4]# find . -name "tda829*" -ls
- 36948   16 -rw-r--r--   1 root     root        15908 Jul  4 19:44 ./kernel/drivers/media/common/tuners/tda8290.ko
+oops, it was just that bracket in that link.
 
-but it does not get loaded automatically . I tried to load it manualy with modprobe , but, even with that module loaded 
-i still get :
+> > For an external audio mux it is always a single gpio pin for that.
+> >
+> > It is some same pin in the same state for composite and s-video,
+> > but different for TV mode.
+> >
+> > The above seems not to show such a pattern.
+> >
+> > Also you missed to print GPIO_GPMODE, which is the gpio mask.
+> > In that, pins actively used for switching are high, but m$ drivers do
+> > often also have for that specific card unrelated pins high.
+> >
+> > Gpio 8 to 15 are the remote gpios and gpio18 should be the key
+> > press/release.
+> >
+> > The rest above seems not to be consistent for what we are searching for.
+> >
+> > If you get some time again, do a cold boot and dump the gpio mode and
+> > state before any application did use the card.
+> >
+> > Then dump analog TV, composite and s-video and anything else you can
+> > test. The GPMODE and the GPSTATUS on top of any mode used is what is
+> > really interesting.
+> >
+> 
+> As I mentioned before GPSTATUS keeps changing all the time (And I mean  
+> frequent, measurable in miliseconds), and it seems that it hasn't any  
+> connection between other values.
+> 
+> > It also prints the state of all gpios for each mode in binary, so if you
+> > manually mark the states you used, one can just copy and paste line by
+> > line and see the changing pins.
+> >
+> > As said, it should be a pin in the mask/GPMODE being the same for
+> > composite and s-video, but different for analog TV. Maybe better use the
+> > Compro software to get the logs.
+> >
+> 
+> The mask/GPMODE doesn't change at all.
 
-tuner 1-004b: Tuner has no way to set tv freq
-tuner 1-004b: Tuner has no way to set tv freq
-tuner 1-004b: Tuner has no way to set tv freq
+That is at least good ;)
+Mask changes have been seen previously too.
+
+> I have used Compro software this time.
+
+Looked at it yesterday, but for an external gpio driven amux it seems
+not to have anything consistent.
+
+gpio dumps with virtualdub
+
+8082c000   (10000000 10000010 11000000 00000000) gpio_mask
+
+0094ff00 * (00000000 10010100 11111111 00000000) TV
+0494ff00 * (00000100 10010100 11111111 00000000) Composite
+0284ff00 * (00000010 10000100 11111111 00000000) S-Video
+
+0294ff00 * (00000010 10010100 11111111 00000000) audio tuner still in S-Video
+0484ff00 * (00000100 10000100 11111111 00000000) audio line still in S-Video
+
+-------------------------------------------
+
+gpio dumps with Compro software
+
+8082c000   (10000000 10000010 11000000 00000000) gpio mask
+
+0284ff00 * (00000010 10000100 11111111 00000000) nothing runs
+0694ff00 * (00000110 10010100 11111111 00000000) nothing runs
+0294ff00 * (00000010 10010100 11111111 00000000) nothing runs
+0084ff00 * (00000000 10000100 11111111 00000000) nothing runs
+0494ff00 * (00000100 10010100 11111111 00000000) nothing runs
+0884ff00 * (00001000 10000100 11111111 00000000) analog TV
+0494ff00 * (00000100 10010100 11111111 00000000) Composite
+0084ff00 * (00000000 10000100 11111111 00000000) S-Video
+0694ff00 * (00000110 10010100 11111111 00000000) DVB-T
+0c84ff00 * (00001100 10000100 11111111 00000000) back to analog
+
+For an gpio switch of an external amux, that pin would be high in the
+mask for all what was seen previously. Nothing like that.
+
+Eventually gpio-27 high could mean something for the tuner, but why it
+should mean something when virtualdub works for the tuner without it?
+
+I leave it to those more experienced.
+
+Cheers,
+Hermann
 
 
-cheers ,
+
+
 
 
