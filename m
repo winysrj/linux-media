@@ -1,88 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:39445 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752637AbZGXQsQ (ORCPT
+Received: from zone0.gcu-squad.org ([212.85.147.21]:5664 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750986AbZGSTkm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2009 12:48:16 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv10 2/8] v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX controls
-Date: Fri, 24 Jul 2009 19:37:22 +0300
-Message-Id: <1248453448-1668-3-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1248453448-1668-2-git-send-email-eduardo.valentin@nokia.com>
-References: <1248453448-1668-1-git-send-email-eduardo.valentin@nokia.com>
- <1248453448-1668-2-git-send-email-eduardo.valentin@nokia.com>
+	Sun, 19 Jul 2009 15:40:42 -0400
+Date: Sun, 19 Jul 2009 21:40:30 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Mark Lord <lkml@rtr.ca>
+Cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
+	Jarod Wilson <jarod@redhat.com>, Mike Isely <isely@pobox.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Janne Grunau <j@jannau.net>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-input@vger.kernel.org
+Subject: Re: Regression 2.6.31:  ioctl(EVIOCGNAME) no longer returns device
+ name
+Message-ID: <20090719214030.345a9944@hyperion.delvare>
+In-Reply-To: <4A637212.2000002@rtr.ca>
+References: <1247862585.10066.16.camel@palomino.walls.org>
+	<1247862937.10066.21.camel@palomino.walls.org>
+	<20090719144749.689c2b3a@hyperion.delvare>
+	<4A6316F9.4070109@rtr.ca>
+	<20090719145513.0502e0c9@hyperion.delvare>
+	<4A631B41.5090301@rtr.ca>
+	<4A631CEA.4090802@rtr.ca>
+	<4A632FED.1000809@rtr.ca>
+	<20090719190833.29451277@hyperion.delvare>
+	<4A63656D.4070901@rtr.ca>
+	<4A637212.2000002@rtr.ca>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a new class of extended controls. This class
-is intended to support FM Radio Modulators properties such as:
-rds, audio limiters, audio compression, pilot tone generation,
-tuning power levels and preemphasis properties.
+On Sun, 19 Jul 2009 15:20:50 -0400, Mark Lord wrote:
+> Mark Lord wrote:
+> > (resending.. somebody trimmed linux-kernel from the CC: earlier)
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- linux/include/linux/videodev2.h |   34 ++++++++++++++++++++++++++++++++++
- 1 files changed, 34 insertions(+), 0 deletions(-)
+FWIW I don't think it was there in the first place.
 
-diff --git a/linux/include/linux/videodev2.h b/linux/include/linux/videodev2.h
-index f68d3b1..2e84ec2 100644
---- a/linux/include/linux/videodev2.h
-+++ b/linux/include/linux/videodev2.h
-@@ -817,6 +817,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
- #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
- #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
-+#define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
- 
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-@@ -1156,6 +1157,39 @@ enum  v4l2_exposure_auto_type {
- 
- #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
- 
-+/* FM Modulator class control IDs */
-+#define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
-+#define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
-+
-+#define V4L2_CID_RDS_TX_PI			(V4L2_CID_FM_TX_CLASS_BASE + 1)
-+#define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 2)
-+#define V4L2_CID_RDS_TX_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 3)
-+#define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 4)
-+#define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 5)
-+
-+#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 6)
-+#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 7)
-+#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FM_TX_CLASS_BASE + 8)
-+
-+#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FM_TX_CLASS_BASE + 9)
-+#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FM_TX_CLASS_BASE + 10)
-+#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FM_TX_CLASS_BASE + 11)
-+#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 12)
-+#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 13)
-+
-+#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 14)
-+#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 15)
-+#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FM_TX_CLASS_BASE + 16)
-+
-+#define V4L2_CID_FM_TX_PREEMPHASIS		(V4L2_CID_FM_TX_CLASS_BASE + 17)
-+enum v4l2_preemphasis {
-+	V4L2_PREEMPHASIS_DISABLED	= 0,
-+	V4L2_PREEMPHASIS_50_uS		= 1,
-+	V4L2_PREEMPHASIS_75_uS		= 2,
-+};
-+#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 18)
-+#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 19)
-+
- /*
-  *	T U N I N G
-  */
+> > Jean Delvare wrote:
+> >> On Sun, 19 Jul 2009 10:38:37 -0400, Mark Lord wrote:
+> >>> I'm debugging various other b0rked things in 2.6.31 here right now,
+> >>> so I had a closer look at the Hauppauge I/R remote issue.
+> >>>
+> >>> The ir_kbd_i2c driver *does* still find it after all.
+> >>> But the difference is that the output from 'lsinput' has changed
+> >>> and no longer says "Hauppauge".  Which prevents the application from
+> >>> finding the remote control in the same way as before.
+> >>
+> >> OK, thanks for the investigation.
+> >>
+> >>> I'll hack the application code here now to use the new output,
+> >>> but I wonder what the the thousands of other users will do when
+> >>> they first try 2.6.31 after release ?
+> ..
+> 
+> Mmm.. appears to be a systemwide thing, not just for the i2c stuff.
+> *All* of the input devices now no longer show their real names
+> when queried with ioctl(EVIOCGNAME).  This is a regression from 2.6.30.
+> Note that the real names *are* still stored somewhere, because they
+> do still show up correctly under /sys/
+
+I was just coming to the same conclusion. So this doesn't have anything
+to do with the ir-kbd-i2c conversion after all... This is something for
+the input subsystem maintainers.
+
+I suspect this commit is related to the regression:
+
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=3d5cb60ef3042ac479dab82e5a945966a0d54d53
+
 -- 
-1.6.2.GIT
-
+Jean Delvare
