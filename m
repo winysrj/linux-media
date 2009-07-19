@@ -1,73 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:46453 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751044AbZGBRXH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jul 2009 13:23:07 -0400
-Date: Thu, 2 Jul 2009 14:23:01 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Patch: Schedule obsolete v4l1 quickcam_messenger and ov511
- drivers for removal
-Message-ID: <20090702142301.718d26e7@pedra.chehab.org>
-In-Reply-To: <4A40BEFA.1030404@redhat.com>
-References: <4A40BEFA.1030404@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from web23204.mail.ird.yahoo.com ([217.146.189.59]:48787 "HELO
+	web23204.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753133AbZGSLHm convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jul 2009 07:07:42 -0400
+Message-ID: <209977.44258.qm@web23204.mail.ird.yahoo.com>
+Date: Sun, 19 Jul 2009 11:00:59 +0000 (GMT)
+From: Newsy Paper <newspaperman_germany@yahoo.com>
+Subject: [linux-dvb] Re : Technotrend Budget S2-3200 Digital artefacts on  HDchannels
+To: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-Em Tue, 23 Jun 2009 13:39:38 +0200
-Hans de Goede <hdegoede@redhat.com> escreveu:
+is there any news about that topic? Did anyone find a solution? Also Orange @Atlantic Bird3 5W 11471 V 29950 2/3 8PSK suffers this problem.
 
-> Schedule obsolete v4l1 quickcam_messenger and ov511 drivers for removal
+--- Chris Silva <2manybills@gmail.com> schrieb am Sa, 14.2.2009:
+
+> Von: Chris Silva <2manybills@gmail.com>
+> Betreff: Re : [linux-dvb] Re : Technotrend Budget S2-3200 Digital artefacts on  HDchannels
+> An: linux-media@vger.kernel.org
+> Datum: Samstag, 14. Februar 2009, 23:46
+> On Sat, Feb 14, 2009 at 10:34 PM,
+> Chris Silva <2manybills@gmail.com>
+> wrote:
+> > On Fri, Feb 6, 2009 at 3:22 PM, Manu <eallaud@gmail.com>
+> wrote:
+> >>> Can you please send me a complete trace with
+> the stb6100 and stb0899
+> >>> modules loaded with verbose=5 for the 30MSPS
+> transponder what you
+> >>> are trying ? One simple szap would be enough
+> (no scan please) based
+> >>> on the http://jusst.de/hg/v4l-dvb tree.
+> >>>
+> >>> Before you start testing, start clean from a
+> cold boot after a
+> >>> powerdown. This makes it a bit more easier
+> identify things.
+> >>
+> >> OK I did just that with latest multiproto on a
+> 11495 MHz trnaposnder,
+> >> DVB-S2, 30MS/s, FEC 5/6 which works using the
+> provider's STB . I put
+> >> the log in attachement. You will observe a lock is
+> acquired really
+> >> briefly and then nothing. Obtained using:
+> >> szap2 -t 2
+> >> I hope this can give you some data. Let me know if
+> you need more info
+> >> (like putting some more printksin the source).
+> >> Bye
+> >> Manu
+> >>
+> >
+> > Sorry for the late reply, but the new list confuses
+> the hell out of me
+> > and I missed this message, somehow...
+> >
+> > Attached is a log file with the results of
+> dvb-apps/szap on a 30000
+> > 3/4 channel using a http://jusst.de/hg/v4l-dvb clean compile and cold
+> > boot as recommended.
+> >
+> > Also loaded stb6100 and stb0899 with verbose=5
+> >
+> > Command line used and result:
+> >
+> >
+> root@vdr:/usr/local/src/v4l-dvb_multi/dvb-apps/util/szap#
+> ./szap -c
+> > /video/channels.conf -n 7
+> > reading channels from file '/video/channels.conf'
+> > zapping to 7 '[006b]':
+> > sat 0, frequency = 12012 MHz H, symbolrate 30000000,
+> vpid = 0x1031,
+> > apid = 0x1032 sid = 0x1004
+> > using '/dev/dvb/adapter0/frontend0' and
+> '/dev/dvb/adapter0/demux0'
+> > status 00 | signal 7fb2 | snr 0000 | ber 00000000 |
+> unc fffffffe |
+> > status 00 | signal 7fb2 | snr 0000 | ber 00000000 |
+> unc fffffffe |
+> > [...]
+> > status 00 | signal 7fb2 | snr 0000 | ber 00000000 |
+> unc fffffffe |
+> > status 00 | signal 7fb2 | snr 0000 | ber 00000000 |
+> unc fffffffe |
+> >
+> > After that szapping to that problematic channel, I
+> tried a DVB-S
+> > channel, which locks without problems.
+> >
+> >
+> root@vdr:/usr/local/src/v4l-dvb_multi/dvb-apps/util/szap#
+> ./szap -c
+> > /video/channels.conf -H -n 33
+> > reading channels from file '/video/channels.conf'
+> > zapping to 33 'FOX':
+> > sat 0, frequency = 11617 MHz V, symbolrate 27500000,
+> vpid = 0x1b30,
+> > apid = 0x1b31 sid = 0x0000
+> > using '/dev/dvb/adapter0/frontend0' and
+> '/dev/dvb/adapter0/demux0'
+> > status 00 | signal  49% | snr   0%
+> | ber 0 | unc -2 |
+> > status 1e | signal   0% |
+> snr   0% | ber 0 | unc -2 | FE_HAS_LOCK
+> >
+> > Going to test your the same multiproto tree _with_
+> both patches you
+> > mentioned early on this thread.
+> >
+> > BTW, I can see all those channels just fine using a
+> DM800 and the
+> > provider original decoder with my subscription card.
+> >
+> > I'm positive that dish/lnb/connections aren't the
+> problem.
+> >
+> > Thanks for taking the time to address this particular
+> issue.
+> >
+> > Chris
+> >
+> 
+> As promised, a log with the exact same conditions described
+> above, but
+> with increase_timeout.patch and fix_iterations.patch
+> applied, referred
+> to on this same thread.
+> 
+> Chris
 > 
 
-It would be better to add the "Files:" field to explicitly indicate what files
-will be removed, like the modified version of your patch. Please check if those
-are the files you're meaning to remove:
 
----
-
-From: Hans de Goede <hdegoede@redhat.com>
-
-Schedule obsolete v4l1 quickcam_messenger and ov511 drivers for removal
-
-[mchehab@redhat.com: add the files: tag to indicate what will be removed]
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-index f8cd450..8a8c045 100644
---- a/Documentation/feature-removal-schedule.txt
-+++ b/Documentation/feature-removal-schedule.txt
-@@ -458,3 +458,19 @@ Why:	Remove the old legacy 32bit machine check code. This has been
- 	but the old version has been kept around for easier testing. Note this
- 	doesn't impact the old P5 and WinChip machine check handlers.
- Who:	Andi Kleen <andi@firstfloor.org>
-+
-+----------------------------
-+
-+What:	usbvideo quickcam_messenger driver
-+When:	2.6.32
-+Why:	obsolete v4l1 driver replaced by gspca_stv06xx
-+Who:	Hans de Goede <hdegoede@redhat.com>
-+Files:	drivers/media/video/c-qcam.c drivers/media/video/bw-qcam.c
-+
-+----------------------------
-+
-+What:	ov511 v4l1 driver
-+When:	2.6.32
-+Why:	obsolete v4l1 driver replaced by gspca_ov519
-+Who:	Hans de Goede <hdegoede@redhat.com>
-+Files:	drivers/media/video/ov511.[ch]
-
-
-
-
-Cheers,
-Mauro
+      
