@@ -1,33 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fmmailgate01.web.de ([217.72.192.221]:46493 "EHLO
-	fmmailgate01.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751501AbZG3Rqv (ORCPT
+Received: from mail-gx0-f213.google.com ([209.85.217.213]:44713 "EHLO
+	mail-gx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754313AbZGSOG0 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2009 13:46:51 -0400
-Received: from smtp07.web.de (fmsmtp07.dlan.cinetic.de [172.20.5.215])
-	by fmmailgate01.web.de (Postfix) with ESMTP id 4A83F10EEBEDF
-	for <linux-media@vger.kernel.org>; Thu, 30 Jul 2009 19:46:51 +0200 (CEST)
-Received: from [217.228.251.207] (helo=[172.16.99.2])
-	by smtp07.web.de with asmtp (TLSv1:AES256-SHA:256)
-	(WEB.DE 4.110 #277)
-	id 1MWZiN-0002GF-00
-	for linux-media@vger.kernel.org; Thu, 30 Jul 2009 19:46:51 +0200
-Message-ID: <4A71DC86.8070201@magic.ms>
-Date: Thu, 30 Jul 2009 19:46:46 +0200
-From: emagick@magic.ms
+	Sun, 19 Jul 2009 10:06:26 -0400
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Cinergy T2 stopped working with kernel 2.6.30
-References: <4A61FD76.8010409@magic.ms>
-In-Reply-To: <4A61FD76.8010409@magic.ms>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4A631C8F.7000002@rtr.ca>
+References: <4A631C8F.7000002@rtr.ca>
+Date: Sun, 19 Jul 2009 10:06:25 -0400
+Message-ID: <829197380907190706i686fd1afwdca0d8be648129@mail.gmail.com>
+Subject: Re: Regression 2.6.31: xc5000 no longer works with Myth-0.21-fixes
+	branch
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mark Lord <lkml@rtr.ca>
+Cc: Steven Toth <stoth@linuxtv.org>, linux-media@vger.kernel.org,
+	Linux Kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've now compared the generated assembly code for dvb_frontend_swzigzag_autotune()
-built with CONFIG_M486 vs. CONFIG_M586. Both versions are correct, but the one compiled
-with -march=i586 (for which tuning does not work) uses more stack space (one 32-bit
-word).
+On Sun, Jul 19, 2009 at 9:15 AM, Mark Lord<lkml@rtr.ca> wrote:
+> Devin,
+>
+> Thanks for your good efforts and updates on the xc5000 driver.
+> But the version in 2.6.31 no longer works with mythfrontend
+> from the 0.21-fixes branch of MythTV.
+>
+> The mythbackend (recording) program tunes/records fine with it,
+> but any attempt to watch "Live TV" via mythfrontend just locks
+> up the UI for 30 seconds or so, and then it reverts to the menus.
+>
+> I find that rather odd, as mythfrontend normally has very little
+> interaction with the tuner devices.  But it does try to read the
+> signal strength and quality from the tuner, so perhaps this is a
+> clue as to what has gone wrong?
+>
+> I also took just the xc5000.[ch] files from 2.6.31 and tried them
+> with 2.6.30, to help isolate things.  Exactly the same behaviour
+> was observed there, too.  The mythbackend could tune/record,
+> but the mythfrontend would lock up.
+>
+> ???
+>
 
-Does this ring any bells?
+Hello Mark,
+
+Thank you for the bug report.
+
+Michael Krufky and I tested the tuner changes with what I thought were
+all the tuners that used the xc5000 (yes, between the two of us we
+have quite a collection).  Perhaps we missed one though.
+
+Replacing xc5000.[ch] would normally be a good idea from a testing
+standpoint.  However, in this case it isn't very conclusive since the
+xc5000 performance and power management improvements exposed numerous
+bugs in various demods, bridges, and even one in dvb core (all of
+which I had to fix before the xc5000 work could be submitted
+upstream).
+
+Could you please provide the following:
+
+1.  Exactly which product you are using (including the USB/PCI id)
+2.  dmesg output from the time the card is inserted (or booted up if
+PCI) to the time *after* you attempted to use the frontend with
+mythtv.
+3.  Whether you are using the device for digital, analog, or both, and
+which the mythtv attempted to use when running the mythfrontend.
+
+Also, Could you please install the latest v4l-dvb code using the
+directions at http://linuxtv.org/repo and see if the problem still
+occurs.  This will tell us if the problem is some patch that didn't
+make it upstream, and will make it easier for me to give you patches
+that provide more debug info.
+
+I will be afk until tonight, but will check my email as soon as I get home.
+
+Cheers,
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
