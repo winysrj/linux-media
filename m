@@ -1,133 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f197.google.com ([209.85.210.197]:35771 "EHLO
-	mail-yx0-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753428AbZGVQCu convert rfc822-to-8bit (ORCPT
+Received: from mail-in-10.arcor-online.net ([151.189.21.50]:33340 "EHLO
+	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751079AbZGSUE0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2009 12:02:50 -0400
-Received: by yxe35 with SMTP id 35so462524yxe.33
-        for <linux-media@vger.kernel.org>; Wed, 22 Jul 2009 09:02:49 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20090722024320.2f1d9990@pedra.chehab.org>
-References: <4A6666CC.7020008@eyemagnet.com>
-	 <829197380907211842p4c9886a3q96a8b50e58e63cbf@mail.gmail.com>
-	 <4A667735.40002@eyemagnet.com>
-	 <829197380907211932v6048d099h2ebb50da05959d89@mail.gmail.com>
-	 <4A668BB9.1020700@eyemagnet.com>
-	 <20090722024320.2f1d9990@pedra.chehab.org>
-Date: Wed, 22 Jul 2009 12:02:48 -0400
-Message-ID: <829197380907220902p5044e931jf54edcec48b4c26f@mail.gmail.com>
-Subject: Re: offering bounty for GPL'd dual em28xx support
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Steve Castellotti <sc@eyemagnet.com>, linux-media@vger.kernel.org,
-	Hans de Goede <j.w.r.degoede@hhs.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Sun, 19 Jul 2009 16:04:26 -0400
+Subject: Re: Problems with Pinnacle 310i (saa7134) and recent kernels
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Avl Jawrowski <avljawrowski@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <loom.20090718T135733-267@post.gmane.org>
+References: <loom.20090718T135733-267@post.gmane.org>
+Content-Type: multipart/mixed; boundary="=-KVQiw/t0Tj9scf9B7Fgj"
+Date: Sun, 19 Jul 2009 21:59:41 +0200
+Message-Id: <1248033581.3667.40.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 22, 2009 at 1:43 AM, Mauro Carvalho
-Chehab<mchehab@infradead.org> wrote:
-> I did last year some code optimizations and tests in order to support more than one
-> em28xx device:
->
->        http://www.mail-archive.com/linux-usb@vger.kernel.org/msg01634.html
->
-> In summary, a 480 Mbps Usb 2.0 bus can be used up to 80% of its maximum
-> bandwidth, and a single video stream eats more than 40% of the maximum
-> available bandwidth, according with Usb 2.0 isoc transfer tables.
->
-> On that time, I did a patch that auto-adjusts the amount of used bandwidth
-> based on the resolution. So, in thesis, if you select 320x200, you'll eat less
-> bandwidth and you may have two devices connected at the same usb bus.
->
-> Before my patch, a video stream whose resolution is 720x480x30fps,16
-> bits/pixel, meaning about 166 Mbps stream rate (without USB oveheads) was
-> eating 60% of the maximum allowed bus speed (80% of 480 Mbps).
->
-> The rationale is that USB 2.0 has a limit on the maximum number of isoc packets
-> and packet size per second, based on timing issues.
->
-> I remember I did some tests that succeeded on eating less bandwidth, and that
-> it did work with more than one em28xx hardware.
->
-> There are a few missing features to allow the em28xx driver to eat less bandwidth:
->
-> 1) As we now support formats with 8 and 12 bits per pixel, we may optimize the
-> code as well to consider the number of bpp at the calculus on
-> em28xx_set_alternate().
->
-> In thesis, all we need to do is to replace the magic number "2" on the first
-> calculus:
->
->        unsigned int min_pkt_size = dev->width * 2 + 4;
->
->        /* When image size is bigger than a certain value,
->           the frame size should be increased, otherwise, only
->           green screen will be received.
->         */
->
->        if (dev->width * 2 * dev->height > 720 * 240 * 2)
->                min_pkt_size *= 2;
->
-> So, changing the first calculus to:
->        unsigned int min_pkt_size = ((dev->width * dev->format->depth + 7) >> 3) + 4;
->
-> and being sure that the function is properly called at the proper places (it
-> should be, already) will probably eat about half of the bandwidth, if you
-> select an 8 bpp output format (currently, only bayer formats are supported).
->
-> There's one issue here: most apps don't support bayer format, so we need libv4l
-> to convert. However, I'm not sure if libv4l will select bayer format, or will
-> keep using yuy2 for input. It would be nice to add some control on libv4l to
-> allow controlling the input format based on the user needs (less bandwidth or
-> less quality). I'm copying Hans here, since he maintains libv4l.
->
-> The second calculus were obtained experimentally. Not sure what is needed
-> there. Maybe Devin can came up with a better formula.
->
-> 2) to select also fps and calculate bandwidth accordingly.
->
-> For this to work, we need to discover a way to slow down the frame rate and see
-> if this will really allow using more devices.
->
-> On my tests on implementing em28xx Silvercrest webcam support, some weeks ago,
-> I discovered that slowing down the frame rate at the sensor is enough to slow
-> it down at em28xx driver. So, it is on my TODO list to add fps selection at the
-> driver, at least for devices with mt9v011 sensor.
->
-> I wish I had more than one em28xx webcam here for tests, but I currently have
-> just one (thanks to Hans that borrowed it to Douglas, that borrowed it to me).
->
-> If this strategy of slowing down the fps by changing the sensos also works with
-> analog demods, grabber devices can also benefit of such gains. In this case,
-> the solution is to add, if possible, a frame rate selection at saa7115 and
-> tvp5150 drivers. At the time I wrote the tvp5150 driver, I haven't cared to
-> provide such controls. I'll need to double check its datasheets to be sure if
-> this is possible.
 
-Hello Mauro,
+--=-KVQiw/t0Tj9scf9B7Fgj
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-As far as I know, the em28xx has no capability to adjust the frame
-rate.  It will forward the frames at whatever rate the ITU656 stream
-is delivered from the decoder.  I also don't think the tvp5150 will
-deliver frames at any rather other than the NTSC/PAL standard in
-question (but I would have to double-check the tvp5150 datasheet to be
-sure).
+Hi,
 
-I would like to spend some time looking closer at the formula used to
-calculate the set_alternate() call.  I just haven't had the time to
-invest in such an investigation given all the other stuff I am working
-on right now (in particular the three or four em28xx devices I am
-adding support for, the xc4000 driver work, and hvr-950q analog
-fixes).
+Am Samstag, den 18.07.2009, 14:05 +0000 schrieb Avl Jawrowski:
+> Hello,
+> I have a problem with my Pinnacle PCTV Hybrid Pro PCI using recent kernels. With
+>  2.6.29 both dvbscan and MPlayer stopped to work giving:
+> 
+> dvbscan:
+> Unable to query frontend status
+> 
+> mplayer:
+> MPlayer SVN-r29351-4.2.4 (C) 2000-2009 MPlayer Team
+> 
+> Not able to lock to the signal on the given frequency, timeout: 30
+> dvb_tune, TUNING FAILED
+> 
+> Now with 2.6.30.1 Kaffeine sometimes works and sometimes not, going in timeout.
+> This is the hardware:
+> 
+> 01:02.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Vi
+> deo Broadcast Decoder (rev d1)
+>         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Step
+> ping- SERR- FastB2B- DisINTx-
+>         Status: Cap+ 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort
+> - <MAbort- >SERR- <PERR- INTx-
+>         Latency: 32 (63750ns min, 63750ns max)
+>         Interrupt: pin A routed to IRQ 22
+>         Region 0: Memory at cfddf800 (32-bit, non-prefetchable) [size=2K]
+>         Capabilities: [40] Power Management version 2
+>                 Flags: PMEClk- DSI- D1+ D2+ AuxCurrent=0mA PME(D0-,D1-,D2-,D3hot
+> -,D3cold-)
+>                 Status: D0 PME-Enable- DSel=0 DScale=3 PME-
+>         Kernel driver in use: saa7134
+>         Kernel modules: saa7134
+> 
+> dmesg output:
+> 
+> saa7130/34: v4l2 driver version 0.2.15 loaded
+> saa7134 0000:01:02.0: PCI INT A -> GSI 22 (level, low) -> IRQ 22
+> saa7133[0]: found at 0000:01:02.0, rev: 209, irq: 22, latency: 32, mmio: 0xcfddf
+> 800
+> saa7133[0]: subsystem: ffff:ffff, board: Pinnacle PCTV 310i [card=101,insmod opt
+> ion]
 
-I didn't know about the 80% utilization cap for isoc, so thanks for
-providing the reference to that previous thread, which has some pretty
-interesting information.
+i2c fails to read the subsystem from the eeprom.
 
-Devin
+> saa7133[0]: board init: gpio is 600c000
+> IRQ 22/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+> saa7133[0]: i2c eeprom read error (err=-5)
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Confirmed here again for the complete eeprom content.
+
+> tuner 1-004b: chip found @ 0x96 (saa7133[0])
+> tda829x 1-004b: setting tuner address to 61
+> tda829x 1-004b: type set to tda8290+75a
+
+Nothing about the IR, but at least all tuner modules seem to be
+correctly loaded.
+
+> saa7133[0]: registered device video0 [v4l2]
+> saa7133[0]: registered device vbi0
+> saa7133[0]: registered device radio0
+> dvb_init() allocating 1 frontend
+> DVB: registering new adapter (saa7133[0])
+> DVB: registering adapter 0 frontend 0 (Philips TDA10046H DVB-T)...
+> tda1004x: setting up plls for 48MHz sampling clock
+> tda1004x: found firmware revision 29 -- ok
+> saa7134 ALSA driver for DMA sound loaded
+> IRQ 22/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+> saa7133[0]/alsa: saa7133[0] at 0xcfddf800 irq 22 registered as card -1
+> tda1004x: setting up plls for 48MHz sampling clock
+> tda1004x: found firmware revision 29 -- ok
+> 
+> Can anyone help me getting my tyner working again?
+> Thanks, avljawrowski
+> 
+
+What was your last good working kernel and was your eeprom already
+failing there too, or is that new?
+
+Usually such is caused by bad contacts of the PCI slot or by a bad PSU,
+but we have reports from a Pinnacle 50i with the same i2c remote.
+
+It has i2c troubles (ARB_LOST) and then also problems on loading the
+tuner modules correctly. With disable_ir=1 for saa7134 it became at
+least somewhat usable again.
+
+But for the 310i is another problem reported starting with kernel
+2.6.26.
+
+The 310i and the HVR1110 are the only cards with LowNoiseAmplifier
+config = 1. Before 2.6.26 two buffers were sent to the tuner at 0x61,
+doing some undocumented LNA configuration, since 2.6.26 they go to the
+analog IF demodulator tda8290 at 0x4b.
+
+This was bisected here on the list and is wrong for the 300i.
+Thread is "2.6.26 regression ..."
+
+The HVR1110 using the same new configuration seems to come in variants
+with and without LNA and nobody knows, how to make a difference for
+those cards. At least still no reports about troubles with the new LNA
+configuration there.
+
+The attached patch against recent mercurial master v4l-dvb at
+linuxtv.org tries to restore the pre 2.6.26 behaviour for DVB-T on the
+300i.
+
+It changes also the i2c remote address of the Upmost Purple TV from 0x7a
+to 0x3d, since recent i2c on >= 2.6.30 complains about it as invalid
+7-bit address, just in case.
+
+Good luck,
+
+Hermann
+
+
+
+
+
+
+
+
+--=-KVQiw/t0Tj9scf9B7Fgj
+Content-Description: 
+Content-Disposition: inline; filename=saa7134-try_to_improve_the_310i.patch
+Content-Type: text/x-patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+diff -r d277b05c41fe linux/drivers/media/video/ir-kbd-i2c.c
+--- a/linux/drivers/media/video/ir-kbd-i2c.c	Sun Jul 12 11:04:15 2009 -0300
++++ b/linux/drivers/media/video/ir-kbd-i2c.c	Sun Jul 19 19:44:30 2009 +0200
+@@ -601,7 +601,7 @@
+ 	*/
+ 
+ 	static const int probe_bttv[] = { 0x1a, 0x18, 0x4b, 0x64, 0x30, -1};
+-	static const int probe_saa7134[] = { 0x7a, 0x47, 0x71, 0x2d, -1 };
++	static const int probe_saa7134[] = { 0x3d, 0x47, 0x71, 0x2d, -1 };
+ 	static const int probe_em28XX[] = { 0x30, 0x47, -1 };
+ 	static const int probe_cx88[] = { 0x18, 0x6b, 0x71, -1 };
+ 	static const int probe_cx23885[] = { 0x6b, -1 };
+diff -r d277b05c41fe linux/drivers/media/video/saa7134/saa7134-dvb.c
+--- a/linux/drivers/media/video/saa7134/saa7134-dvb.c	Sun Jul 12 11:04:15 2009 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-dvb.c	Sun Jul 19 19:44:30 2009 +0200
+@@ -580,6 +580,13 @@
+ 	.switch_addr = 0x4b
+ };
+ 
++static struct tda827x_config tda827x_cfg_1_310i = {
++	.init = philips_tda827x_tuner_init,
++	.sleep = philips_tda827x_tuner_sleep,
++	.config = 1,
++	.switch_addr = 0x61
++};
++
+ static struct tda827x_config tda827x_cfg_2 = {
+ 	.init = philips_tda827x_tuner_init,
+ 	.sleep = philips_tda827x_tuner_sleep,
+@@ -1139,7 +1146,7 @@
+ 		break;
+ 	case SAA7134_BOARD_PINNACLE_PCTV_310i:
+ 		if (configure_tda827x_fe(dev, &pinnacle_pctv_310i_config,
+-					 &tda827x_cfg_1) < 0)
++					 &tda827x_cfg_1_310i) < 0)
+ 			goto dettach_frontend;
+ 		break;
+ 	case SAA7134_BOARD_HAUPPAUGE_HVR1110:
+diff -r d277b05c41fe linux/drivers/media/video/saa7134/saa7134-input.c
+--- a/linux/drivers/media/video/saa7134/saa7134-input.c	Sun Jul 12 11:04:15 2009 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-input.c	Sun Jul 19 19:44:30 2009 +0200
+@@ -737,7 +737,7 @@
+ 	struct i2c_board_info info;
+ 	struct IR_i2c_init_data init_data;
+ 	const unsigned short addr_list[] = {
+-		0x7a, 0x47, 0x71, 0x2d,
++		0x3d, 0x47, 0x71, 0x2d,
+ 		I2C_CLIENT_END
+ 	};
+ 
+
+--=-KVQiw/t0Tj9scf9B7Fgj--
+
