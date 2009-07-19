@@ -1,88 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:30001 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754606AbZG0NyA (ORCPT
+Received: from mail-yx0-f184.google.com ([209.85.210.184]:61667 "EHLO
+	mail-yx0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754190AbZGSMpP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jul 2009 09:54:00 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv13 2/8] v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX controls
-Date: Mon, 27 Jul 2009 16:42:53 +0300
-Message-Id: <1248702179-10403-3-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1248702179-10403-2-git-send-email-eduardo.valentin@nokia.com>
-References: <1248702179-10403-1-git-send-email-eduardo.valentin@nokia.com>
- <1248702179-10403-2-git-send-email-eduardo.valentin@nokia.com>
+	Sun, 19 Jul 2009 08:45:15 -0400
+Received: by yxe14 with SMTP id 14so2910004yxe.33
+        for <linux-media@vger.kernel.org>; Sun, 19 Jul 2009 05:45:14 -0700 (PDT)
+Date: Sun, 19 Jul 2009 14:47:04 +0300 (EAT)
+From: Dan Carpenter <error27@gmail.com>
+To: stoth@linuxtv.org
+cc: mjpeg-users@lists.sourceforge.net, linux-media@vger.kernel.org
+Subject: potential null deref in mpeg_open()
+Message-ID: <alpine.DEB.2.00.0907171457580.12306@bicker>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a new class of extended controls. This class
-is intended to support FM Radio Modulators properties such as:
-rds, audio limiters, audio compression, pilot tone generation,
-tuning power levels and preemphasis properties.
+Hello,
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- linux/include/linux/videodev2.h |   34 ++++++++++++++++++++++++++++++++++
- 1 files changed, 34 insertions(+), 0 deletions(-)
+I am testing a source checker (http://repo.or.cz/w/smatch.git) and it 
+found a bug in in mpeg_open() from drivers/media/video/cx23885/cx23885-417.c
 
-diff --git a/linux/include/linux/videodev2.h b/linux/include/linux/videodev2.h
-index b17898c..c58d453 100644
---- a/linux/include/linux/videodev2.h
-+++ b/linux/include/linux/videodev2.h
-@@ -817,6 +817,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
- #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
- #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
-+#define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
- 
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-@@ -1156,6 +1157,39 @@ enum  v4l2_exposure_auto_type {
- 
- #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
- 
-+/* FM Modulator class control IDs */
-+#define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
-+#define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
-+
-+#define V4L2_CID_RDS_TX_PI			(V4L2_CID_FM_TX_CLASS_BASE + 1)
-+#define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 2)
-+#define V4L2_CID_RDS_TX_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 3)
-+#define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 4)
-+#define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 5)
-+
-+#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 6)
-+#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 7)
-+#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FM_TX_CLASS_BASE + 8)
-+
-+#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FM_TX_CLASS_BASE + 9)
-+#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FM_TX_CLASS_BASE + 10)
-+#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FM_TX_CLASS_BASE + 11)
-+#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 12)
-+#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 13)
-+
-+#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 14)
-+#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 15)
-+#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FM_TX_CLASS_BASE + 16)
-+
-+#define V4L2_CID_FM_TX_PREEMPHASIS		(V4L2_CID_FM_TX_CLASS_BASE + 17)
-+enum v4l2_preemphasis {
-+	V4L2_PREEMPHASIS_DISABLED	= 0,
-+	V4L2_PREEMPHASIS_50_uS		= 1,
-+	V4L2_PREEMPHASIS_75_uS		= 2,
-+};
-+#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 18)
-+#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 19)
-+
- /*
-  *	T U N I N G
-  */
--- 
-1.6.2.GIT
+"dev" is null on line 1554, so on line 1558 dprintk() will cause a 
+kernel oops if it is in debug mode.
 
+drivers/media/video/cx23885/cx23885-417.c
+  1554          struct cx23885_dev *h, *dev = NULL;
+  1555          struct list_head *list;
+  1556          struct cx23885_fh *fh;
+  1557  
+  1558          dprintk(2, "%s()\n", __func__);
+
+Here is how dprintk() is defined earlier.
+
+drivers/media/video/cx23885/cx23885-417.c
+    59  #define dprintk(level, fmt, arg...)\
+    60          do { if (v4l_debug >= level) \
+    61                  printk(KERN_DEBUG "%s: " fmt, dev->name , ## arg);\
+    62          } while (0)
+
+regards,
+dan carpenter
