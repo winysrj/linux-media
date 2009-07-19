@@ -1,114 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:52069 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755843AbZGMNa7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jul 2009 09:30:59 -0400
-From: "cyber.bogh" <cyber.bogh@gmx.de>
-To: Matthias Schwarzott <zzam@gentoo.org>
-Subject: Re: [GIT PATCHES for 2.6.31] V4L/DVB fixes
-Date: Mon, 13 Jul 2009 15:29:25 +0200
-References: <200907121550.36679.me@boris64.net> <200907131413.50826.zzam@gentoo.org>
-In-Reply-To: <200907131413.50826.zzam@gentoo.org>
-Cc: linux-media@vger.kernel.org, me@boris64.net,
-	Trent Piepho <xyzzy@speakeasy.org>
+Received: from rtr.ca ([76.10.145.34]:37367 "EHLO mail.rtr.ca"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754437AbZGSOik (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jul 2009 10:38:40 -0400
+Message-ID: <4A632FED.1000809@rtr.ca>
+Date: Sun, 19 Jul 2009 10:38:37 -0400
+From: Mark Lord <lkml@rtr.ca>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
+	Jarod Wilson <jarod@redhat.com>, Mike Isely <isely@pobox.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Janne Grunau <j@jannau.net>
+Subject: Re: [PATCH 1/3] ir-kbd-i2c: Allow use of ir-kdb-i2c internal get_key
+   funcs and set ir_type
+References: <1247862585.10066.16.camel@palomino.walls.org>	<1247862937.10066.21.camel@palomino.walls.org>	<20090719144749.689c2b3a@hyperion.delvare>	<4A6316F9.4070109@rtr.ca> <20090719145513.0502e0c9@hyperion.delvare> <4A631B41.5090301@rtr.ca> <4A631CEA.4090802@rtr.ca>
+In-Reply-To: <4A631CEA.4090802@rtr.ca>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907131529.25786.cyber.bogh@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Montag 13 Juli 2009 14:13:50 schrieben Sie:
-> On Sonntag, 12. Juli 2009, Boris Cuber wrote:
-> > Hi kernel folks!
-> >
-> > Problem:
-> > Since kernel-2.6.31-rc* my dvb-s adapter (Technisat SkyStar2 DVB card)
-> > refuses to work (worked fine in every kernel up to 2.6.30.1).
-> > So anything pulled into the new kernel seems to have broken
-> > something (at least for me :/).
-> >
-> > I opened a detailed bug report here:
-> > http://bugzilla.kernel.org/show_bug.cgi?id=13709
-> > Please let me know if i can help in finding a solution
-> > or testing a patch /whatever.
->
-> This looks like it is related to this patch:
->
-> commit d66b94b4aa2f40e134f8c07c58ae74ef3d523ee0
-> Author: Patrick Boettcher <pb@linuxtv.org>
-> Date:   Wed May 20 05:08:26 2009 -0300
->
->     V4L/DVB (11829): Rewrote frontend-attach mechanism to gain noise-less
-> deactivation of submodules
->
->     This patch is reorganizing the frontend-attach mechanism in order to
->     gain noise-less (superflous prints) deactivation of submodules.
->
->     Credits go to Uwe Bugla for helping to clean and test the code.
->
->     Signed-off-by: Uwe Bugla <uwe.bugla@gmx.de>
->     Signed-off-by: Patrick Boettcher <pb@linuxtv.org>
->     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->
->
->
-> All frontend-attach related code is wrapped by ifdefs like this:
-> #if defined(CONFIG_DVB_MT312_MODULE) || defined(CONFIG_DVB_STV0299_MODULE)
-> <CODE>
-> #endif
->
-> So this code will only be compiled if one of the two drivers is compiled as
-> a module, having them compiled in will omit this code.
+Mark Lord wrote:
+> Mark Lord wrote:
+>> Jean Delvare wrote:
+>>> Hi Mark,
+>>>
+>>> On Sun, 19 Jul 2009 08:52:09 -0400, Mark Lord wrote:
+>>>> While you folks are looking into ir-kbd-i2c,
+>>>> perhaps one of you will fix the regressions
+>>>> introduced in 2.6.31-* ?
+>>>>
+>>>> The drive no longer detects/works with the I/R port on
+>>>> the Hauppauge PVR-250 cards, which is a user-visible regression.
+>>>
+>>> This is bad. If there a bugzilla entry? If not, where can I read more
+>>> details / get in touch with an affected user?
+>> ..
+>>
+>> I imagine there will be thousands of affected users once the kernel
+>> is released, but for now I'll volunteer as a guinea-pig.
+>>
+>> It is difficult to test with 2.6.31 on the system at present, though,
+>> because that kernel also breaks other things that the MythTV box 
+>> relies on,
+>> and the system is in regular use as our only PVR.
+>>
+>> Right now, all I know is, that the PVR-250 IR port did not show up
+>> in /dev/input/ with 2.6.31 after loading ir_kbd_i2c.  But it does show
+>> up there with all previous kernels going back to the 2.6.1x days.
+> ..
+> 
+> Actually, I meant to say that it does not show up in the output from
+> the lsinput command, whereas it did show up there in all previous kernels.
+> 
+>> So, to keep the pain level reasonable, perhaps you could send some
+>> debugging patches, and I'll apply those, reconfigure the machine for
+>> 2.6.31 again, and collect some output for you.  And also perhaps try
+>> a few things locally as well to speed up the process.
+..
 
-Yes. And that's exactly the way things were planned and should also stay, even 
-if there exist a thousands of "Boris64" who do not have the slightest idea 
-about what kernel compilation is or could be.....
+I'm debugging various other b0rked things in 2.6.31 here right now,
+so I had a closer look at the Hauppauge I/R remote issue.
 
-No matter if we're talking about the main module, the frontend, the backend or 
-whatever other part of not only a DVB driver:
-None of them is permanently needed while the machine is running. So kmod can 
-kick them out of the memory if they aren't needed, if they were compiled as 
-module.
+The ir_kbd_i2c driver *does* still find it after all.
+But the difference is that the output from 'lsinput' has changed
+and no longer says "Hauppauge".  Which prevents the application from
+finding the remote control in the same way as before.
 
-But if you compile them into the kernel you are wasting system resources 
-because the main kernel becomes too big (I'd call that a "Windoze-effect").
+I'll hack the application code here now to use the new output,
+but I wonder what the the thousands of other users will do when
+they first try 2.6.31 after release ?
 
-So compiling those drivers a module is gold, and any other choice is simply 
-nonsense.
-
-> Trent Piepho seems to already have a patch for this, but it is not yet
-> merged into the kernel.
-
-May Trent Piepho do whatever he likes. I do not think that any further patch 
-is necessary for that driver section.
-
-It would rather be necessary for some quirky users to enlarge their limited 
-brain and understand what kernel compilation means and is here for.
-
-> Regards
-> Matthias
-
-CU
-
-cyber.bogh
-
-P. S.: The other part that really makes me utmost angry about the "Boris's" in 
-that world:
-
-If you're doing really hard for months to enhance things, and you urgently 
-need testers to help and invest brain those Boris's aren't visible at all. 
-Nowhere!
-
-Once things are done they come back and all they have got to do then is to 
-complain for stupid nonsense...
-
-How did Lou Reed say?
-"Stick a fork in their ass, turn it over and they're done!"
-
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Cheers
