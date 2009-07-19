@@ -1,57 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from phobos02.frii.com ([216.17.128.162]:51155 "EHLO mail.frii.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755289AbZGYCWK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2009 22:22:10 -0400
-Date: Fri, 24 Jul 2009 20:22:06 -0600
-From: Mark Zimmerman <markzimm@frii.com>
-To: "Igor M. Liplianin" <liplianin@me.by>
-Cc: linux-media@vger.kernel.org
-Subject: Re: TBS 8920 still fails to initialize - cx24116_readreg error
-Message-ID: <20090725022206.GA17704@io.frii.com>
-References: <20090724023315.GA96337@io.frii.com> <200907241906.11914.liplianin@me.by>
+Received: from rtr.ca ([76.10.145.34]:37069 "EHLO mail.rtr.ca"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751663AbZGSS0y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jul 2009 14:26:54 -0400
+Message-ID: <4A63656D.4070901@rtr.ca>
+Date: Sun, 19 Jul 2009 14:26:53 -0400
+From: Mark Lord <lkml@rtr.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <200907241906.11914.liplianin@me.by>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
+	Jarod Wilson <jarod@redhat.com>, Mike Isely <isely@pobox.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Janne Grunau <j@jannau.net>,
+	Linux Kernel <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 1/3] ir-kbd-i2c: Allow use of ir-kdb-i2c internal get_key
+    funcs and set ir_type
+References: <1247862585.10066.16.camel@palomino.walls.org>	<1247862937.10066.21.camel@palomino.walls.org>	<20090719144749.689c2b3a@hyperion.delvare>	<4A6316F9.4070109@rtr.ca>	<20090719145513.0502e0c9@hyperion.delvare>	<4A631B41.5090301@rtr.ca>	<4A631CEA.4090802@rtr.ca>	<4A632FED.1000809@rtr.ca> <20090719190833.29451277@hyperion.delvare>
+In-Reply-To: <20090719190833.29451277@hyperion.delvare>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 24, 2009 at 07:06:11PM +0300, Igor M. Liplianin wrote:
-> On 24 ???? 2009 05:33:15 Mark Zimmerman wrote:
-> > Greetings:
-> >
-> > Using current current v4l-dvb drivers, I get the following in the
-> > dmesg:
-> >
-> > cx88[1]/2: subsystem: 8920:8888, board: TBS 8920 DVB-S/S2 [card=72]
-> > cx88[1]/2: cx2388x based DVB/ATSC card
-> > cx8802_alloc_frontends() allocating 1 frontend(s)
-> > cx24116_readreg: reg=0xff (error=-6)
-> > cx24116_readreg: reg=0xfe (error=-6)
-> > Invalid probe, probably not a CX24116 device
-> > cx88[1]/2: frontend initialization failed
-> > cx88[1]/2: dvb_register failed (err = -22)
-> > cx88[1]/2: cx8802 probe failed, err = -22
-> >
-> > Does this mean that one of the chips on this card is different than
-> > expected? How can I gather useful information about this?
-> Hi
-> You can try:
-> http://www.tbsdtv.com/download/tbs6920_8920_v23_linux_x86_x64.rar
+(resending.. somebody trimmed linux-kernel from the CC: earlier)
 
-This code did not compile as-is, but after I commented out some things
-in drivers I do not need, I managed to build something. The TBS card
-now seems to be initialized, but it also broke support for my DViCO
-FusionHDTV7 Dual Express card, which also uses a cx23885.
+Jean Delvare wrote:
+> On Sun, 19 Jul 2009 10:38:37 -0400, Mark Lord wrote:
+>> I'm debugging various other b0rked things in 2.6.31 here right now,
+>> so I had a closer look at the Hauppauge I/R remote issue.
+>>
+>> The ir_kbd_i2c driver *does* still find it after all.
+>> But the difference is that the output from 'lsinput' has changed
+>> and no longer says "Hauppauge".  Which prevents the application from
+>> finding the remote control in the same way as before.
+>
+> OK, thanks for the investigation.
+>
+>> I'll hack the application code here now to use the new output,
+>> but I wonder what the the thousands of other users will do when
+>> they first try 2.6.31 after release ?
+>
+> Where does lsinput get the string from?
+..
 
-I am going to move this card to another machine that does not have any
-other capture cards and repeat the process. This should make it easier
-to know what the TBS card/driver is doing.
+Here's a test program for you:
 
-I am assuming that you are interested in using me to gather
-information to update the v4l-dvb drivers so that this card can be
-supported properly. Is this correct?  Please let me know what I can do
-to assist.
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/input.h>
 
--- Mark
+// Invoke with "/dev/input/event4" as argv[1]
+//
+// On 2.6.30, this gives the real name, eg. "i2c IR (Hauppauge)".
+// On 2.6.31, it simply gives "event4" as the "name".
+
+int main(int argc, char *argv[])
+{
+	char buf[32];
+	int fd, rc;
+
+	fd = open(argv[1], O_RDONLY);
+	if (fd == -1) {
+		perror(argv[1]);
+		exit(1);
+	}
+	rc = ioctl(fd,EVIOCGNAME(sizeof(buf)),buf);
+	if (rc >= 0)
+		fprintf(stderr,"   name    : \"%.*s\"\n", rc, buf);
+	return 0;
+}
