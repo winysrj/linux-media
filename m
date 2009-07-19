@@ -1,151 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:61883 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750736AbZGSEKz (ORCPT
+Received: from zone0.gcu-squad.org ([212.85.147.21]:20947 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754709AbZGSRIl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jul 2009 00:10:55 -0400
-Received: by qw-out-2122.google.com with SMTP id 8so596625qwh.37
-        for <linux-media@vger.kernel.org>; Sat, 18 Jul 2009 21:10:54 -0700 (PDT)
-From: Brian Johnson <brijohn@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Jean-Francois Moine <moinejf@free.fr>,
+	Sun, 19 Jul 2009 13:08:41 -0400
+Date: Sun, 19 Jul 2009 19:08:33 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Mark Lord <lkml@rtr.ca>
+Cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
+	Jarod Wilson <jarod@redhat.com>, Mike Isely <isely@pobox.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Brian Johnson <brijohn@gmail.com>
-Subject: [PATCH 1/2] gspca: add support for v4l2 debugging ioctls
-Date: Sun, 19 Jul 2009 00:10:51 -0400
-Message-Id: <1247976652-17031-2-git-send-email-brijohn@gmail.com>
-In-Reply-To: <1247976652-17031-1-git-send-email-brijohn@gmail.com>
-References: <1247976652-17031-1-git-send-email-brijohn@gmail.com>
+	Janne Grunau <j@jannau.net>
+Subject: Re: [PATCH 1/3] ir-kbd-i2c: Allow use of ir-kdb-i2c internal
+ get_key    funcs and set ir_type
+Message-ID: <20090719190833.29451277@hyperion.delvare>
+In-Reply-To: <4A632FED.1000809@rtr.ca>
+References: <1247862585.10066.16.camel@palomino.walls.org>
+	<1247862937.10066.21.camel@palomino.walls.org>
+	<20090719144749.689c2b3a@hyperion.delvare>
+	<4A6316F9.4070109@rtr.ca>
+	<20090719145513.0502e0c9@hyperion.delvare>
+	<4A631B41.5090301@rtr.ca>
+	<4A631CEA.4090802@rtr.ca>
+	<4A632FED.1000809@rtr.ca>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for dbg_g_chip_ident, dbg_g_register,
-and dbg_s_register to the gspca core module.
+On Sun, 19 Jul 2009 10:38:37 -0400, Mark Lord wrote:
+> I'm debugging various other b0rked things in 2.6.31 here right now,
+> so I had a closer look at the Hauppauge I/R remote issue.
+> 
+> The ir_kbd_i2c driver *does* still find it after all.
+> But the difference is that the output from 'lsinput' has changed
+> and no longer says "Hauppauge".  Which prevents the application from
+> finding the remote control in the same way as before.
 
-Signed-off-by: Brian Johnson <brijohn@gmail.com>
----
- drivers/media/video/gspca/gspca.c |   73 +++++++++++++++++++++++++++++++++++++
- drivers/media/video/gspca/gspca.h |    9 +++++
- 2 files changed, 82 insertions(+), 0 deletions(-)
+OK, thanks for the investigation.
 
-diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-index 1e89600..b8561df 100644
---- a/drivers/media/video/gspca/gspca.c
-+++ b/drivers/media/video/gspca/gspca.c
-@@ -727,6 +727,74 @@ static int gspca_get_mode(struct gspca_dev *gspca_dev,
- 	return -EINVAL;
- }
- 
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+static int vidioc_g_register(struct file *file, void *priv,
-+			struct v4l2_dbg_register *reg)
-+{
-+	int ret;
-+	struct gspca_dev *gspca_dev = priv;
-+
-+	if (!gspca_dev->sd_desc->get_chip_ident)
-+		return -EINVAL;
-+
-+	if (!gspca_dev->sd_desc->get_register)
-+		return -EINVAL;
-+
-+	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
-+		return -ERESTARTSYS;
-+	if (gspca_dev->present)
-+		ret = gspca_dev->sd_desc->get_register(gspca_dev, reg);
-+	else
-+		ret = -ENODEV;
-+	mutex_unlock(&gspca_dev->usb_lock);
-+
-+	return ret;
-+}
-+
-+static int vidioc_s_register(struct file *file, void *priv,
-+			struct v4l2_dbg_register *reg)
-+{
-+	int ret;
-+	struct gspca_dev *gspca_dev = priv;
-+
-+	if (!gspca_dev->sd_desc->get_chip_ident)
-+		return -EINVAL;
-+
-+	if (!gspca_dev->sd_desc->set_register)
-+		return -EINVAL;
-+
-+	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
-+		return -ERESTARTSYS;
-+	if (gspca_dev->present)
-+		ret = gspca_dev->sd_desc->set_register(gspca_dev, reg);
-+	else
-+		ret = -ENODEV;
-+	mutex_unlock(&gspca_dev->usb_lock);
-+
-+	return ret;
-+}
-+#endif
-+
-+static int vidioc_g_chip_ident(struct file *file, void *priv,
-+			struct v4l2_dbg_chip_ident *chip)
-+{
-+	int ret;
-+	struct gspca_dev *gspca_dev = priv;
-+
-+	if (!gspca_dev->sd_desc->get_chip_ident)
-+		return -EINVAL;
-+
-+	if (mutex_lock_interruptible(&gspca_dev->usb_lock))
-+		return -ERESTARTSYS;
-+	if (gspca_dev->present)
-+		ret = gspca_dev->sd_desc->get_chip_ident(gspca_dev, chip);
-+	else
-+		ret = -ENODEV;
-+	mutex_unlock(&gspca_dev->usb_lock);
-+
-+	return ret;
-+}
-+
- static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
- 				struct v4l2_fmtdesc *fmtdesc)
- {
-@@ -1883,6 +1951,11 @@ static const struct v4l2_ioctl_ops dev_ioctl_ops = {
- 	.vidioc_s_parm		= vidioc_s_parm,
- 	.vidioc_s_std		= vidioc_s_std,
- 	.vidioc_enum_framesizes = vidioc_enum_framesizes,
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+	.vidioc_g_register	= vidioc_g_register,
-+	.vidioc_s_register	= vidioc_s_register,
-+#endif
-+	.vidioc_g_chip_ident	= vidioc_g_chip_ident,
- #ifdef CONFIG_VIDEO_V4L1_COMPAT
- 	.vidiocgmbuf          = vidiocgmbuf,
- #endif
-diff --git a/drivers/media/video/gspca/gspca.h b/drivers/media/video/gspca/gspca.h
-index bd1faff..46c4eff 100644
---- a/drivers/media/video/gspca/gspca.h
-+++ b/drivers/media/video/gspca/gspca.h
-@@ -69,6 +69,10 @@ typedef void (*cam_v_op) (struct gspca_dev *);
- typedef int (*cam_cf_op) (struct gspca_dev *, const struct usb_device_id *);
- typedef int (*cam_jpg_op) (struct gspca_dev *,
- 				struct v4l2_jpegcompression *);
-+typedef int (*cam_reg_op) (struct gspca_dev *,
-+				struct v4l2_dbg_register *);
-+typedef int (*cam_ident_op) (struct gspca_dev *,
-+				struct v4l2_dbg_chip_ident *);
- typedef int (*cam_streamparm_op) (struct gspca_dev *,
- 				  struct v4l2_streamparm *);
- typedef int (*cam_qmnu_op) (struct gspca_dev *,
-@@ -105,6 +109,11 @@ struct sd_desc {
- 	cam_qmnu_op querymenu;
- 	cam_streamparm_op get_streamparm;
- 	cam_streamparm_op set_streamparm;
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+	cam_reg_op set_register;
-+	cam_reg_op get_register;
-+#endif
-+	cam_ident_op get_chip_ident;
- };
- 
- /* packet types when moving from iso buf to frame buf */
+> I'll hack the application code here now to use the new output,
+> but I wonder what the the thousands of other users will do when
+> they first try 2.6.31 after release ?
+
+Where does lsinput get the string from?
+
+What exactly was it before, and what is it exactly in 2.6.31?
+
 -- 
-1.5.6.3
-
+Jean Delvare
