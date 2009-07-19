@@ -1,54 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:44537 "EHLO smtp4-g21.free.fr"
+Received: from smtp3-g21.free.fr ([212.27.42.3]:34891 "EHLO smtp3-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758036AbZGQXua (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jul 2009 19:50:30 -0400
-Message-ID: <4A610E3A.3090703@zerezo.com>
-Date: Sat, 18 Jul 2009 01:50:18 +0200
-From: Antoine Jacquet <royale@zerezo.com>
-MIME-Version: 1.0
-To: Lamarque Vieira Souza <lamarque@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, video4linux-list@redhat.com
-Subject: Re: [PATCH] Implement V4L2_CAP_STREAMING for zr364xx driver
-References: <200907152054.56581.lamarque@gmail.com> <20090716124506.26e7e6b0@pedra.chehab.org> <200907161709.08087.lamarque@gmail.com>
-In-Reply-To: <200907161709.08087.lamarque@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1751021AbZGSJLD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jul 2009 05:11:03 -0400
+Date: Sun, 19 Jul 2009 11:11:45 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Brian Johnson <brijohn@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH 0/2] gspca sn9c20x subdriver rev3
+Message-ID: <20090719111145.50db44ee@free.fr>
+In-Reply-To: <1247976652-17031-1-git-send-email-brijohn@gmail.com>
+References: <1247976652-17031-1-git-send-email-brijohn@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Sun, 19 Jul 2009 00:10:50 -0400
+Brian Johnson <brijohn@gmail.com> wrote:
 
-Lamarque Vieira Souza wrote:
-> Em Quinta-feira 16 Julho 2009, Mauro Carvalho Chehab escreveu:
->> Em Wed, 15 Jul 2009 20:54:55 -0300
-[...]
->>> +	if (pipe_info->state != 0) {
->>> +		if (usb_submit_urb(pipe_info->stream_urb, GFP_KERNEL))
->>> +			dev_err(&cam->udev->dev, "error submitting urb\n");
->>> +	} else {
->>> +		DBG("read pipe complete state 0\n");
->>> +	}
->> Hmm...  for the usb_submit_urb() call that happens during IRQ context
->> (while you're receiving stream), you need to use:
->>         urb->status = usb_submit_urb(pipe_info->stream_urb, GFP_ATOMIC);
->>
->> otherwise, you may get the errors that Antoine is reporting
+> Ok this one just has the following minor changes:
 > 
-> 	Ok, changed to GPF_ATOMIC. Could someone test this for me since I was not 
-> able to reproduce this problem? The new patch is here 
-> http://bach.metasys.com.br/~lamarque/zr364xx/zr364xx.c-streaming.patch-v4l-
-> dvb-20090716 . I upload it to avoid bloating the mailing-list with a 40k 
-> patch.
+> * operations set/get_register in the sd descriptor only exist if
+> CONFIG_VIDEO_ADV_DEBUG is defined
+> * use lowercase letters in hexidecimal notation
+> * add new supported webcams to
+> linux/Documentation/video4linux/gspca.txt
+> * check for NULL after kmalloc when creating jpg_hdr
 
-I confirm it fixes the issue.
-I will upload the patch to my branch and send a pull request to Mauro.
+Hello, Brian and Mauro,
 
-Thanks and best regards,
+I got the patches and sent a pull request. The changesets have a high
+priority.
 
-Antoine
+I just fixed a compilation warning issued when USB_GSPCA_SN9C20X_EVDEV
+was not set.
+
+Mauro, I could not update the maintainers list. Do you want Brian sends
+a new patch for that?
+
+Cheers.
 
 -- 
-Antoine "Royale" Jacquet
-http://royale.zerezo.com
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
