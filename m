@@ -1,51 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:32824 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750848AbZG2Hu6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jul 2009 03:50:58 -0400
-Date: Wed, 29 Jul 2009 09:50:57 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Gregor =?iso-8859-1?Q?Glash=FCttner?= <gregorprivat@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Technical Details on Abus Digiprotect TV8802 Capture Card
-Message-ID: <20090729075057.GA440@daniel.bse>
-References: <6842a4030907240040k676997c9oe93b5b03548a6123@mail.gmail.com>
+Received: from bombadil.infradead.org ([18.85.46.34]:35629 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752588AbZGSNxN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jul 2009 09:53:13 -0400
+Date: Sun, 19 Jul 2009 10:53:01 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: Brian Johnson <brijohn@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/2] gspca sn9c20x subdriver rev3
+Message-ID: <20090719105301.3ddb2f14@pedra.chehab.org>
+In-Reply-To: <20090719111145.50db44ee@free.fr>
+References: <1247976652-17031-1-git-send-email-brijohn@gmail.com>
+	<20090719111145.50db44ee@free.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <6842a4030907240040k676997c9oe93b5b03548a6123@mail.gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gregor,
+Em Sun, 19 Jul 2009 11:11:45 +0200
+Jean-Francois Moine <moinejf@free.fr> escreveu:
 
-On Fri, Jul 24, 2009 at 09:40:35AM +0200, Gregor Glashüttner wrote:
-> The card is called ABUS Digiprotect TV8802. Windows-software
-> (including drivers and monitoring software) can be found at
-> abus-sc.com (http://www.abus-sc.co.uk/International/Service-Downloads/Software?q=tv8802&Send=Search).
+> On Sun, 19 Jul 2009 00:10:50 -0400
+> Brian Johnson <brijohn@gmail.com> wrote:
+> 
+> > Ok this one just has the following minor changes:
+> > 
+> > * operations set/get_register in the sd descriptor only exist if
+> > CONFIG_VIDEO_ADV_DEBUG is defined
+> > * use lowercase letters in hexidecimal notation
+> > * add new supported webcams to
+> > linux/Documentation/video4linux/gspca.txt
+> > * check for NULL after kmalloc when creating jpg_hdr
+> 
+> Hello, Brian and Mauro,
+> 
+> I got the patches and sent a pull request. The changesets have a high
+> priority.
+> 
+> I just fixed a compilation warning issued when USB_GSPCA_SN9C20X_EVDEV
+> was not set.
+> 
+> Mauro, I could not update the maintainers list. Do you want Brian sends
+> a new patch for that?
 
-Coincidence that they removed the driver?..
+Yes. Please send your acked-by: after his patch
 
->  Subsystem: 0x00000000
 
-These cards can't be identified automatically.
 
->   Mute_GPDATA: 0x305000
->    Composite1_Mux   : 2
->    Composite1_GPDATA: 0x305002
->    Composite2_Mux   : 2
->    Composite2_GPDATA: 0x305001
->    Composite3_Mux   : 2
->    Composite3_GPDATA: 0x305003
->    Composite4_Mux   : 2
->    Composite4_GPDATA: 0x305002
-
-This looks like it might work with card 108 (Phytec VD-009).
-
-If not, can you put the card on a scanner and create pictures of both
-sides so that we can trace the signals? Please upload them on
-imageshack.us or similar instead of mailing them to the list.
-
-  Daniel
-
+Cheers,
+Mauro
