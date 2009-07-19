@@ -1,126 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.173]:13988 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757285AbZGFBNY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Jul 2009 21:13:24 -0400
-Subject: Re: [BUG] drivers/video/sis: deadlock introduced by "fbdev: add
- mutex for fb_mmap locking"
-From: Wu Zhangjin <wuzhangjin@gmail.com>
-Reply-To: wuzhangjin@gmail.com
-To: Krzysztof Helt <krzysztof.h1@poczta.fm>
-Cc: Paul Mundt <lethal@linux-sh.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-mips@linux-mips.org, Krzysztof Helt <krzysztof.h1@wp.pl>,
-	Peter Zijlstra <a.p.zijlstra@chello.nl>,
-	"Rafael J. Wysocki" <rjw@sisk.pl>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Ralf Baechle <ralf@linux-mips.org>, ???? <yanh@lemote.com>,
-	zhangfx <zhangfx@lemote.com>
-In-Reply-To: <20090705181808.93be24a9.krzysztof.h1@poczta.fm>
-References: <1246785112.14240.34.camel@falcon>
-	 <alpine.LFD.2.01.0907050715490.3210@localhost.localdomain>
-	 <20090705145203.GA8326@linux-sh.org>
-	 <alpine.LFD.2.01.0907050756280.3210@localhost.localdomain>
-	 <20090705150134.GB8326@linux-sh.org>
-	 <alpine.LFD.2.01.0907050816110.3210@localhost.localdomain>
-	 <20090705152557.GA10588@linux-sh.org>
-	 <20090705181808.93be24a9.krzysztof.h1@poczta.fm>
-Content-Type: text/plain
-Date: Mon, 06 Jul 2009 09:13:11 +0800
-Message-Id: <1246842791.29532.2.camel@falcon>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:22531 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753573AbZGSMsF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Jul 2009 08:48:05 -0400
+Date: Sun, 19 Jul 2009 14:47:49 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Andy Walls <awalls@radix.net>
+Cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	Mark Lord <lkml@rtr.ca>, Mike Isely <isely@pobox.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Janne Grunau <j@jannau.net>
+Subject: Re: [PATCH 1/3] ir-kbd-i2c: Allow use of ir-kdb-i2c internal
+ get_key  funcs and set ir_type
+Message-ID: <20090719144749.689c2b3a@hyperion.delvare>
+In-Reply-To: <1247862937.10066.21.camel@palomino.walls.org>
+References: <1247862585.10066.16.camel@palomino.walls.org>
+	<1247862937.10066.21.camel@palomino.walls.org>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Andy,
 
-On Sun, 2009-07-05 at 18:18 +0200, Krzysztof Helt wrote:
-> On Mon, 6 Jul 2009 00:25:57 +0900
-> Paul Mundt <lethal@linux-sh.org> wrote:
+On Fri, 17 Jul 2009 16:35:37 -0400, Andy Walls wrote:
+> This patch augments the init data passed by bridge drivers to ir-kbd-i2c
+> so that the ir_type can be set explicitly and so ir-kbd-i2c internal
+> get_key functions can be reused without requiring symbols from
+> ir-kbd-i2c in the bridge driver.
 > 
-> > On Sun, Jul 05, 2009 at 08:19:40AM -0700, Linus Torvalds wrote:
-> > > 
-> > > 
-> > > On Mon, 6 Jul 2009, Paul Mundt wrote:
-> > > > >
-> > > > > Why not "lock" as well?
-> > > > 
-> > > > I had that initially, but matroxfb will break if we do that, and
-> > > > presently nothing cares about trying to take ->lock that early on.
-> > > 
-> > > I really would rather have consistency than some odd rules like that.
-> > > 
-> > > In particular - if matroxfb is different and needs its own lock 
-> > > initialization because it doesn't use the common allocation routine, then 
-> > > please make _that_ consistent too. Rather than have it special-case just 
-> > > one lock that it needs to initialize separately, make it clear that since 
-> > > it does its own allocations it needs to initialize _everything_ 
-> > > separately.
-> > > 
-> > Ok, here is an updated version with an updated matroxfb and the sm501fb
-> > change reverted.
-> > 
-> > Signed-off-by: Paul Mundt <lethal@linux-sh.org>
-> > 
-> > ---
-> > 
-> 
-> This is incorrect way to fix this as some drivers do not use the framebuffer_alloc() 
-> at all. They use global (for a file) fb_info structure. I have done some cleanups to
-> the fbdev layer before the 2.6.31 and there should no drivers which uses kmalloc or
-> kzalloc to allocate the fb_info (your patch would break these drivers too).
-> 
-> A root of the whole mm_lock issue is that the fb_mmap() BKL protected two fb_info
-> fields which were never protected when set. I changed this by add the mm_lock 
-> around these fields but only in drivers which modified this fields AFTER call
-> to the register_framebuffer(). Some drivers set these fields using the same
-> function before and after the register_framebuffer(). I strongly believe that
-> setting these fields before the register_framebuffer() is wrong or redundant for
-> these drivers. See my fix for the sisfb driver below. 
-> 
-> I have tested the patch below. Wu Zhangjin, can you also confirm that this 
-> works for you (without your patch)?
-> 
-
-This patch also works for me, thanks!
-
-Regards,
-Wu Zhangjin
-
-> I will look into the matroxfb and sm501fb drivers now. The same problem is
-> already fixed for the mx3fb driver and the patch is sent to Andrew Morton.
 > 
 > Regards,
-> Krzysztof
-> 
-> 
-> From: Krzysztof Helt <krzysztof.h1@wp.pl>
-> 
-> Remove redundant call to the sisfb_get_fix() before sis frambuffer is registered.
-> 
-> This fixes a problem with uninitialized the fb_info->mm_lock mutex.
-> 
-> Signed-off-by: Krzysztof Helt <krzysztof.h1@wp.pl>
-> ---
-> 
-> diff -urp linux-ref/drivers/video/sis/sis_main.c linux-next/drivers/video/sis/sis_main.c
-> --- linux-ref/drivers/video/sis/sis_main.c	2009-07-01 18:07:05.000000000 +0200
-> +++ linux-next/drivers/video/sis/sis_main.c	2009-07-05 17:20:33.000000000 +0200
-> @@ -6367,7 +6367,6 @@ error_3:	vfree(ivideo->bios_abase);
->  		sis_fb_info->fix = ivideo->sisfb_fix;
->  		sis_fb_info->screen_base = ivideo->video_vbase + ivideo->video_offset;
->  		sis_fb_info->fbops = &sisfb_ops;
-> -		sisfb_get_fix(&sis_fb_info->fix, -1, sis_fb_info);
->  		sis_fb_info->pseudo_palette = ivideo->pseudo_palette;
->  
->  		fb_alloc_cmap(&sis_fb_info->cmap, 256 , 0);
-> 
-> 
-> 
-> ----------------------------------------------------------------------
-> Najlepsze OC i AC tylko w Ergo Hestia
-> http://link.interia.pl/f222
-> 
+> Andy
 
+Looks good. Minor suggestion below:
+
+> 
+> diff -r d754a2d5a376 linux/drivers/media/video/ir-kbd-i2c.c
+> --- a/linux/drivers/media/video/ir-kbd-i2c.c	Wed Jul 15 07:28:02 2009 -0300
+> +++ b/linux/drivers/media/video/ir-kbd-i2c.c	Fri Jul 17 16:05:28 2009 -0400
+> @@ -478,7 +480,34 @@
+>  
+>  		ir_codes = init_data->ir_codes;
+>  		name = init_data->name;
+> +		if (init_data->type)
+> +			ir_type = init_data->type;
+>  		ir->get_key = init_data->get_key;
+> +		switch (init_data->internal_get_key_func) {
+> +		case IR_KBD_GET_KEY_PIXELVIEW:
+> +			ir->get_key = get_key_pixelview;
+> +			break;
+> +		case IR_KBD_GET_KEY_PV951:
+> +			ir->get_key = get_key_pv951;
+> +			break;
+> +		case IR_KBD_GET_KEY_HAUP:
+> +			ir->get_key = get_key_haup;
+> +			break;
+> +		case IR_KBD_GET_KEY_KNC1:
+> +			ir->get_key = get_key_knc1;
+> +			break;
+> +		case IR_KBD_GET_KEY_FUSIONHDTV:
+> +			ir->get_key = get_key_fusionhdtv;
+> +			break;
+> +		case IR_KBD_GET_KEY_HAUP_XVR:
+> +			ir->get_key = get_key_haup_xvr;
+> +			break;
+> +		case IR_KBD_GET_KEY_AVERMEDIA_CARDBUS:
+> +			ir->get_key = get_key_avermedia_cardbus;
+> +			break;
+> +		default:
+> +			break;
+> +		}
+>  	}
+>  
+>  	/* Make sure we are all setup before going on */
+> diff -r d754a2d5a376 linux/include/media/ir-kbd-i2c.h
+> --- a/linux/include/media/ir-kbd-i2c.h	Wed Jul 15 07:28:02 2009 -0300
+> +++ b/linux/include/media/ir-kbd-i2c.h	Fri Jul 17 16:05:28 2009 -0400
+> @@ -24,10 +24,27 @@
+>  	int                    (*get_key)(struct IR_i2c*, u32*, u32*);
+>  };
+>  
+> +enum ir_kbd_get_key_fn {
+> +	IR_KBD_GET_KEY_NONE = 0,
+
+As you never use IR_KBD_GET_KEY_NONE, you might as well not define it
+and start with IR_KBD_GET_KEY_PIXELVIEW = 1. This would have the added
+advantage that you could get rid of the "default" statement in the
+above switch, letting gcc warn you (or any other developer) if you ever
+add a new enum value and forget to handle it in ir_probe().
+
+> +	IR_KBD_GET_KEY_PIXELVIEW,
+> +	IR_KBD_GET_KEY_PV951,
+> +	IR_KBD_GET_KEY_HAUP,
+> +	IR_KBD_GET_KEY_KNC1,
+> +	IR_KBD_GET_KEY_FUSIONHDTV,
+> +	IR_KBD_GET_KEY_HAUP_XVR,
+> +	IR_KBD_GET_KEY_AVERMEDIA_CARDBUS,
+> +};
+> +
+>  /* Can be passed when instantiating an ir_video i2c device */
+>  struct IR_i2c_init_data {
+>  	IR_KEYTAB_TYPE         *ir_codes;
+>  	const char             *name;
+> +	int                    type; /* IR_TYPE_RC5, IR_TYPE_PD, etc */
+> +	/*
+> +	 * Specify either a function pointer or a value indicating one of
+> +	 * ir_kbd_i2c's internal get_key functions
+> +	 */
+>  	int                    (*get_key)(struct IR_i2c*, u32*, u32*);
+> +	enum ir_kbd_get_key_fn internal_get_key_func;
+>  };
+>  #endif
+
+
+-- 
+Jean Delvare
