@@ -1,117 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2623 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750813AbZGBSRS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jul 2009 14:17:18 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id n62IHKLG086617
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 2 Jul 2009 20:17:20 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 2 Jul 2009 20:17:20 +0200 (CEST)
-Message-Id: <200907021817.n62IHKLG086617@smtp-vbr10.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mx2.redhat.com ([66.187.237.31]:42718 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751724AbZGTKQ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2009 06:16:28 -0400
+Date: Mon, 20 Jul 2009 07:16:21 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: AceLan Kao <acelan.kao@canonical.com>
+Cc: Jean-Francois Moine <moinejf@free.fr>, hugh@canonical.com,
+	linux-media@vger.kernel.org
+Subject: Re: Lenovo webcam problem which using gspca's vc032x driver
+Message-ID: <20090720071621.37c552f7@pedra.chehab.org>
+In-Reply-To: <91b198a70907200004y5418796dkbf491d2cae877fb7@mail.gmail.com>
+References: <91b198a70907100305t762a4596r734e44f7f4f88bc3@mail.gmail.com>
+	<20090711185415.3756dc26@pedra.chehab.org>
+	<91b198a70907130042y6594a96do8634eebdfef8ba5c@mail.gmail.com>
+	<91b198a70907162030l760bd7c5r32daaf6823c1dbe6@mail.gmail.com>
+	<20090717043225.4c786455@pedra.chehab.org>
+	<20090717124431.1bd3ea43@free.fr>
+	<91b198a70907200004y5418796dkbf491d2cae877fb7@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Em Mon, 20 Jul 2009 15:04:05 +0800
+AceLan Kao <acelan.kao@canonical.com> escreveu:
 
-Results of the daily build of v4l-dvb:
+> Dear Jean-Francois,
+> 
+> I use "Lenovo WebCam Center" and "Dorgem" to do the webcam preview
+> function, there are the following resolution settings
+> 160x120
+> 176x144
+> 320x240
+> 352x288
+> 640x480
+> Do you need all the resolutions logs?
+> 
+> I try to use "Device Monitoring Studio" to log the USB traffic this time.
+> You can download the QVGA and VGA USB snoop log and the .INF file from here.
+> http://people.canonical.com/~acelan//bugs/lp310760/
+> 
+> Dear Mauro,
+> 
+> Sure, I'll give you the patches against the V4L/DVB hg tree.
+> But I think I should come out a conclusion with Jean-Francois, right?
 
-date:        Thu Jul  2 19:00:03 CEST 2009
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   12167:966ce12c444d
-gcc version: gcc (GCC) 4.3.1
-hardware:    x86_64
-host os:     2.6.26
+Yes, please.
 
-linux-2.6.22.19-armv5: OK
-linux-2.6.23.12-armv5: OK
-linux-2.6.24.7-armv5: OK
-linux-2.6.25.11-armv5: OK
-linux-2.6.26-armv5: OK
-linux-2.6.27-armv5: OK
-linux-2.6.28-armv5: OK
-linux-2.6.29.1-armv5: OK
-linux-2.6.30-armv5: OK
-linux-2.6.31-rc1-armv5: OK
-linux-2.6.27-armv5-ixp: WARNINGS
-linux-2.6.28-armv5-ixp: WARNINGS
-linux-2.6.29.1-armv5-ixp: WARNINGS
-linux-2.6.30-armv5-ixp: WARNINGS
-linux-2.6.31-rc1-armv5-ixp: ERRORS
-linux-2.6.28-armv5-omap2: WARNINGS
-linux-2.6.29.1-armv5-omap2: WARNINGS
-linux-2.6.30-armv5-omap2: WARNINGS
-linux-2.6.31-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.12-i686: WARNINGS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.11-i686: WARNINGS
-linux-2.6.26-i686: WARNINGS
-linux-2.6.27-i686: WARNINGS
-linux-2.6.28-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30-i686: WARNINGS
-linux-2.6.31-rc1-i686: ERRORS
-linux-2.6.23.12-m32r: OK
-linux-2.6.24.7-m32r: OK
-linux-2.6.25.11-m32r: OK
-linux-2.6.26-m32r: OK
-linux-2.6.27-m32r: OK
-linux-2.6.28-m32r: OK
-linux-2.6.29.1-m32r: OK
-linux-2.6.30-m32r: OK
-linux-2.6.31-rc1-m32r: OK
-linux-2.6.30-mips: WARNINGS
-linux-2.6.31-rc1-mips: ERRORS
-linux-2.6.27-powerpc64: WARNINGS
-linux-2.6.28-powerpc64: WARNINGS
-linux-2.6.29.1-powerpc64: WARNINGS
-linux-2.6.30-powerpc64: WARNINGS
-linux-2.6.31-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.12-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.11-x86_64: WARNINGS
-linux-2.6.26-x86_64: WARNINGS
-linux-2.6.27-x86_64: WARNINGS
-linux-2.6.28-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30-x86_64: WARNINGS
-linux-2.6.31-rc1-x86_64: ERRORS
-sparse (linux-2.6.30): OK
-sparse (linux-2.6.31-rc1): OK
-linux-2.6.16.61-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.5-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.61-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.5-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+-- 
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The V4L2 specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/v4l2.html
-
-The DVB API specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
-
+Cheers,
+Mauro
