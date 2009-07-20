@@ -1,62 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f184.google.com ([209.85.210.184]:62932 "EHLO
-	mail-yx0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751463AbZGWMDH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Jul 2009 08:03:07 -0400
-Received: by yxe14 with SMTP id 14so318877yxe.33
-        for <linux-media@vger.kernel.org>; Thu, 23 Jul 2009 05:03:07 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <d9def9db0907230446k291db7bfm1ebcb314d0c97c2@mail.gmail.com>
-References: <d9def9db0907230240w6d3a41fcv2fcef6cbb6e2cb8c@mail.gmail.com>
-	 <829197380907230441q18e21e4fn63b186370b3711de@mail.gmail.com>
-	 <d9def9db0907230443x49dd1b56m143b293e9bdbaaec@mail.gmail.com>
-	 <d9def9db0907230446k291db7bfm1ebcb314d0c97c2@mail.gmail.com>
-Date: Thu, 23 Jul 2009 08:03:07 -0400
-Message-ID: <829197380907230503y3a2ca24y4434ed759c1f4009@mail.gmail.com>
-Subject: Re: em28xx driver crashes device
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Markus Rechberger <mrechberger@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail1.radix.net ([207.192.128.31]:40121 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751135AbZGTLU6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2009 07:20:58 -0400
+Subject: Re: Regression 2.6.31:  ioctl(EVIOCGNAME) no longer returns device
+ name
+From: Andy Walls <awalls@radix.net>
+To: Mark Lord <lkml@rtr.ca>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Jean Delvare <khali@linux-fr.org>, linux-media@vger.kernel.org,
+	Jarod Wilson <jarod@redhat.com>, Mike Isely <isely@pobox.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Janne Grunau <j@jannau.net>,
+	Linux Kernel <linux-kernel@vger.kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-input@vger.kernel.org
+In-Reply-To: <4A637EB9.5040004@rtr.ca>
+References: <1247862937.10066.21.camel@palomino.walls.org>
+	 <20090719144749.689c2b3a@hyperion.delvare> <4A6316F9.4070109@rtr.ca>
+	 <20090719145513.0502e0c9@hyperion.delvare> <4A631B41.5090301@rtr.ca>
+	 <4A631CEA.4090802@rtr.ca> <4A632FED.1000809@rtr.ca>
+	 <20090719190833.29451277@hyperion.delvare> <4A63656D.4070901@rtr.ca>
+	 <4A637212.2000002@rtr.ca> <20090719193952.GC17495@dtor-d630.eng.vmware.com>
+	 <4A637EB9.5040004@rtr.ca>
+Content-Type: text/plain
+Date: Mon, 20 Jul 2009 07:21:16 -0400
+Message-Id: <1248088876.3143.2.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 23, 2009 at 7:46 AM, Markus Rechberger<mrechberger@gmail.com> wrote:
-> one thing, you might remove that autodetecting part and taking a
-> footprint of unknown devices
-> this causes more problems than everything else with those devices.
-> Maybe make this optional if someone wants to force autodetection over
-> it it might be acceptable
-> but doing that by default can also heat up devices.
-> Also if it thinks it has detected something, after toggling some gpios
-> the footprint might look different
-> again after reloading it.. it's just a failed technique doing it that way...
+On Sun, 2009-07-19 at 16:14 -0400, Mark Lord wrote:
+> Dmitry Torokhov wrote:
+> > On Sun, Jul 19, 2009 at 03:20:50PM -0400, Mark Lord wrote:
 
-I agree that I'm not particularly happy with how the autodetection
-logic works today.  The current logic though is based on the
-power-on-reset states of the GPIOs and GPOs though, so we are only
-changing the GPIOs if the board matches a known profile.
+> > Should be fixed by f936601471d1454dacbd3b2a961fd4d883090aeb in the
+> > for-linus branch of my tree.
+> ..
+> 
+> Peachy.  Push it, or post it here and I can re-test with it.
+> 
+> (does anyone else find it spooky that a google search for the
+>  above commit id actually finds Dmitry's email quoted above ?
+>  Mere seconds after he posted it for the very first time ??)
 
-That said, unless the hardware design was laid out such that the
-device would burn out if no driver were loaded at all, I think the
-risk is pretty minimal for a device that does not match a known
-profile.
+Not since he's using a Gmail account, no.  Google probably indexes it on
+the way in.  Very effcient.
 
-If Empia wants to describe a better heuristic for identifying their
-various hardware designs with the same USB ID but different board
-layouts and GPIO configs, that would be useful information and
-eliminate the need for autodetection code.
+The google is reading ur e-mail...
 
-Anyway, I'll take a look at the code and see if I can determine
-specifically where the errors are occurring in your case.
 
-The fun of dealing with hardware vendors that let their customers use
-default USB IDs for different hardware designs....  :-)
+-Andy
 
-Devin
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+
