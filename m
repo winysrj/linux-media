@@ -1,66 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:30018 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754965AbZG0NyJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jul 2009 09:54:09 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv13 0/8] FM Transmitter (si4713) and another changes
-Date: Mon, 27 Jul 2009 16:42:51 +0300
-Message-Id: <1248702179-10403-1-git-send-email-eduardo.valentin@nokia.com>
+Received: from mx2.redhat.com ([66.187.237.31]:47831 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751322AbZGTOVx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2009 10:21:53 -0400
+Received: from int-mx2.corp.redhat.com (int-mx2.corp.redhat.com [172.16.27.26])
+	by mx2.redhat.com (8.13.8/8.13.8) with ESMTP id n6KELrDg018342
+	for <linux-media@vger.kernel.org>; Mon, 20 Jul 2009 10:21:53 -0400
+Received: from ns3.rdu.redhat.com (ns3.rdu.redhat.com [10.11.255.199])
+	by int-mx2.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n6KELqC2009028
+	for <linux-media@vger.kernel.org>; Mon, 20 Jul 2009 10:21:52 -0400
+Received: from xavier.bos.redhat.com (xavier.bos.redhat.com [10.16.16.50])
+	by ns3.rdu.redhat.com (8.13.8/8.13.8) with ESMTP id n6KELqIi030862
+	for <linux-media@vger.kernel.org>; Mon, 20 Jul 2009 10:21:52 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] dvb: make digital side of pcHDTV HD-3000 functional again
+Date: Mon, 20 Jul 2009 10:20:47 -0400
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200907201020.47581.jarod@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hello guys,
+The dvb side of the pcHDTV HD-3000 doesn't work since at least 2.6.29.
+The crux of the problem is this: the HD-3000's device ID matches the
+modalias for the cx8800 driver, but not the cx8802 driver, which is
+required to set up the digital side of the card. You can load up
+cx8802 just fine, but cx88-dvb falls on its face, because the call
+to cx8802_register_driver() attempts to traverse the cx8802_devlist,
+which is completely empty. The list is only populated by the
+cx8802_probe() function, which never gets called for the HD-3000, as
+its device ID isn't matched by the cx8802 driver, so you wind up
+getting an -ENODEV return from cx8802_register_driver() back to
+cx88-dvb, and as a result, no digital side of the card for you.
 
-This is version 13 of this series.
+Long story short, by simply adding a vendor/device/subvendor/subdevice
+block to cx88-mpeg.c, cx8802_probe() will run, the cx88-2_devlist
+will get populated, cx8802_register_driver() won't fail, and cx88-dvb
+can actually load up all the way on this card. Channel scanning is
+of course currently failing for me still (works fine on several other
+cards I have handy), but that's another problem for another day...
 
-A littler mistake was made on last one: wrong access to user
-pointers was being performed during string control manipulation.
-Also I forgot to update v4l2 specs.
+There might be a Better Way to do this, and I'm open to suggestions
+and willing to try them out, but this Works For Me.
 
-Comments, as usual, are appreciated.
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
 
-BR,
+diff -r d754a2d5a376 linux/drivers/media/video/cx88/cx88-mpeg.c
+--- a/linux/drivers/media/video/cx88/cx88-mpeg.c	Wed Jul 15 07:28:02 2009 -0300
++++ b/linux/drivers/media/video/cx88/cx88-mpeg.c	Sat Jul 18 02:07:37 2009 -0400
+@@ -893,6 +893,11 @@
+ 		.device       = 0x8802,
+ 		.subvendor    = PCI_ANY_ID,
+ 		.subdevice    = PCI_ANY_ID,
++	},{	/* pcHDTV HD-3000 */
++		.vendor       = 0x14f1,
++		.device       = 0x8800,
++		.subvendor    = 0x7063,
++		.subdevice    = 0x3000,
+ 	},{
+ 		/* --- end of list --- */
+ 	}
 
-
-Eduardo Valentin (8):
-  v4l2-subdev.h: Add g_modulator callbacks to subdev api
-  v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX controls
-  v4l2: video device: Add FM TX controls default configurations
-  v4l2-spec: Add documentation description for FM TX extended control
-    class
-  FM TX: si4713: Add files to add radio interface for si4713
-  FM TX: si4713: Add files to handle si4713 i2c device
-  FM TX: si4713: Add Kconfig and Makefile entries
-  FM TX: si4713: Add document file
-
- linux/Documentation/video4linux/si4713.txt      |  176 ++
- linux/drivers/media/radio/Kconfig               |   22 +
- linux/drivers/media/radio/Makefile              |    2 +
- linux/drivers/media/radio/radio-si4713.c        |  367 ++++
- linux/drivers/media/radio/si4713-i2c.c          | 2065 +++++++++++++++++++++++
- linux/drivers/media/radio/si4713-i2c.h          |  237 +++
- linux/drivers/media/video/v4l2-common.c         |   50 +
- linux/drivers/media/video/v4l2-compat-ioctl32.c |    8 +-
- linux/include/linux/videodev2.h                 |   34 +
- linux/include/media/radio-si4713.h              |   30 +
- linux/include/media/si4713.h                    |   49 +
- linux/include/media/v4l2-subdev.h               |    2 +
- v4l2-spec/Makefile                              |    1 +
- v4l2-spec/controls.sgml                         |  215 +++
- 14 files changed, 3257 insertions(+), 1 deletions(-)
- create mode 100644 linux/Documentation/video4linux/si4713.txt
- create mode 100644 linux/drivers/media/radio/radio-si4713.c
- create mode 100644 linux/drivers/media/radio/si4713-i2c.c
- create mode 100644 linux/drivers/media/radio/si4713-i2c.h
- create mode 100644 linux/include/media/radio-si4713.h
- create mode 100644 linux/include/media/si4713.h
-
+-- 
+Jarod Wilson
+jarod@redhat.com
