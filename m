@@ -1,56 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:32969 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752456AbZGXMFr (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:47525 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751511AbZGTUkc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2009 08:05:47 -0400
-Date: Fri, 24 Jul 2009 09:06:00 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Markus Rechberger <mrechberger@gmail.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: em28xx driver crashes device
-Message-ID: <20090724090600.525c86b8@pedra.chehab.org>
-In-Reply-To: <d9def9db0907240354x15927f29k2fc0939d25202e1@mail.gmail.com>
-References: <d9def9db0907230240w6d3a41fcv2fcef6cbb6e2cb8c@mail.gmail.com>
-	<829197380907230441q18e21e4fn63b186370b3711de@mail.gmail.com>
-	<d9def9db0907230443x49dd1b56m143b293e9bdbaaec@mail.gmail.com>
-	<d9def9db0907230446k291db7bfm1ebcb314d0c97c2@mail.gmail.com>
-	<829197380907230503y3a2ca24y4434ed759c1f4009@mail.gmail.com>
-	<d9def9db0907230510h31d1d225pb1d317c9a41fa210@mail.gmail.com>
-	<829197380907230705w4f1c3126r9cf156ca30aa2b5b@mail.gmail.com>
-	<d9def9db0907230729k4cc14707v763d242e14292ebb@mail.gmail.com>
-	<20090723155935.285f9cba@pedra.chehab.org>
-	<d9def9db0907240354x15927f29k2fc0939d25202e1@mail.gmail.com>
+	Mon, 20 Jul 2009 16:40:32 -0400
+Date: Mon, 20 Jul 2009 13:40:24 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: linux-media@vger.kernel.org, bugzilla-daemon@bugzilla.kernel.org,
+	bugme-daemon@bugzilla.kernel.org, bugzilla.kernel.org@boris64.net
+Subject: Re: [Bugme-new] [Bug 13709] New: b2c2-flexcop: no frontend driver
+ found for this B2C2/FlexCop adapter w/ kernel-2.6.31-rc2
+Message-Id: <20090720134024.274fbb6c.akpm@linux-foundation.org>
+In-Reply-To: <Pine.LNX.4.58.0907201318440.11911@shell2.speakeasy.net>
+References: <bug-13709-10286@http.bugzilla.kernel.org/>
+	<20090720130412.b186e5f1.akpm@linux-foundation.org>
+	<Pine.LNX.4.58.0907201318440.11911@shell2.speakeasy.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 24 Jul 2009 12:54:27 +0200
-Markus Rechberger <mrechberger@gmail.com> escreveu:
+On Mon, 20 Jul 2009 13:21:33 -0700 (PDT)
+Trent Piepho <xyzzy@speakeasy.org> wrote:
 
-> someone has problems here? We also support available opensource
-> players and will contribute some patches which can be used by all
-> devices.
+> On Mon, 20 Jul 2009, Andrew Morton wrote:
+> >
+> > (switched to email.  Please respond via emailed reply-to-all, not via the
+> > bugzilla web interface).
+> >
+> >
+> > Guys, this is reportedly a post-2.6.30 regression - I'll ask Rafael to
+> > add it to the regression tracking list.
+> >
+> > btw, does the flexcop driver have a regular maintainer?  Or someone who
+> > wants to volunteer?  MAINTAINERS is silent about it..
+> 
+> I produced a patch that fixed this problem over a month ago,
+> http://www.linuxtv.org/hg/~tap/v4l-dvb/rev/748c762fcf3e
 
-This mailing list, the freenode irc channels #v4l and #linuxtv, the V4L and the
-LinuxTV mailing lists were created for discussing open source development
-related to the kernel linux media drivers, the usability of those drivers and
-related open source themes.
+Where is that patch now?  It isn't present in linux-next.
 
-Anything related to binary only userspace stuff is completely out of topic and
-shouldn't be posted on the above places.
-
-Despiste what you're saying, your intention to drop support to open source is
-clear: you are playing against open source since 2007, when you firstly proposed a
-frontend hook at the kernel driver for userspace. This year, you dropped all
-open source trees you used to have. So, it is clear that you're out of open
-source business, and you won't be giving any open source support. So, please
-stop posting at the open source forums
+If it needs to be resent, please cc me on it?
 
 
+Also, is there any way of avoiding this?
 
-Cheers,
-Mauro
++#define FE_SUPPORTED(fe) (defined(CONFIG_DVB_##fe) || \
++ (defined(CONFIG_DVB_##fe##_MODULE) && defined(MODULE)))
+
+That's just way too tricky.  It expects all versions of the
+preprocessor to be correctly implemented (unlikely) and there are other
+tools like unifdef which want to parse kernel #defines.
+
+otoh the trick does produce a nice result and doing it any other way
+(which I can think of) would make a mess.
+
+> Maybe it should go into 2.6.31?
+
+It depends on the seriousness of the regression (number of people
+affected, whether there's a workaround, etc) and upon the riskiness of
+the patch.
+
+But sure, we don't want regressions and letting one be released when we
+already know about it and have a fix would be bad!
+
+If the patch is judged too risky at this time, there might be a simpler
+one, perhaps.
+
+Or just revert whichever patch broke things.  Your changelog describes
+this as simply "A recent patch" (bad changelog!) so I am unable to judge this.
+
