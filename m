@@ -1,212 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f226.google.com ([209.85.219.226]:35451 "EHLO
-	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754219AbZGSOTZ convert rfc822-to-8bit (ORCPT
+Received: from mail3.sea5.speakeasy.net ([69.17.117.5]:45813 "EHLO
+	mail3.sea5.speakeasy.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752595AbZGTUVe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jul 2009 10:19:25 -0400
-Received: by ewy26 with SMTP id 26so1791056ewy.37
-        for <linux-media@vger.kernel.org>; Sun, 19 Jul 2009 07:19:24 -0700 (PDT)
+	Mon, 20 Jul 2009 16:21:34 -0400
+Date: Mon, 20 Jul 2009 13:21:33 -0700 (PDT)
+From: Trent Piepho <xyzzy@speakeasy.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+cc: linux-media@vger.kernel.org, bugzilla-daemon@bugzilla.kernel.org,
+	bugme-daemon@bugzilla.kernel.org, bugzilla.kernel.org@boris64.net
+Subject: Re: [Bugme-new] [Bug 13709] New: b2c2-flexcop: no frontend driver
+ found for this B2C2/FlexCop adapter w/ kernel-2.6.31-rc2
+In-Reply-To: <20090720130412.b186e5f1.akpm@linux-foundation.org>
+Message-ID: <Pine.LNX.4.58.0907201318440.11911@shell2.speakeasy.net>
+References: <bug-13709-10286@http.bugzilla.kernel.org/>
+ <20090720130412.b186e5f1.akpm@linux-foundation.org>
 MIME-Version: 1.0
-In-Reply-To: <4A5C145D.30300@samsung.com>
-References: <4A5C145D.30300@samsung.com>
-Date: Sun, 19 Jul 2009 18:19:24 +0400
-Message-ID: <208cbae30907190719v3fcffee0g1f15d05da5e182f2@mail.gmail.com>
-Subject: Re: [PATCH v2 4/4] radio-si470x: add i2c driver for si470x
-From: Alexey Klimov <klimov.linux@gmail.com>
-To: Joonyoung Shim <jy0922.shim@samsung.com>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	tobias.lorenz@gmx.net, kyungmin.park@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Mon, 20 Jul 2009, Andrew Morton wrote:
+>
+> (switched to email.  Please respond via emailed reply-to-all, not via the
+> bugzilla web interface).
+>
+>
+> Guys, this is reportedly a post-2.6.30 regression - I'll ask Rafael to
+> add it to the regression tracking list.
+>
+> btw, does the flexcop driver have a regular maintainer?  Or someone who
+> wants to volunteer?  MAINTAINERS is silent about it..
 
-On Tue, Jul 14, 2009 at 9:15 AM, Joonyoung Shim<jy0922.shim@samsung.com> wrote:
-> This patch supports i2c interface of si470x. The i2c specific part
-> exists in radio-si470x-i2c.c file and the common part uses
-> radio-si470x-common.c file. The '#if defined' is inserted inevitably
-> because of parts used only si470x usb in the common file.
->
-> The current driver version doesn't support the RDS.
->
-> Signed-off-by: Joonyoung Shim <jy0922.shim@samsung.com>
-> ---
->  linux/drivers/media/radio/si470x/Kconfig           |   13 +
->  linux/drivers/media/radio/si470x/Makefile          |    2 +
->  .../media/radio/si470x/radio-si470x-common.c       |    6 +
->  .../drivers/media/radio/si470x/radio-si470x-i2c.c  |  254 ++++++++++++++++++++
->  linux/drivers/media/radio/si470x/radio-si470x.h    |    6 +
->  5 files changed, 281 insertions(+), 0 deletions(-)
->  create mode 100644 linux/drivers/media/radio/si470x/radio-si470x-i2c.c
->
-> diff --git a/linux/drivers/media/radio/si470x/Kconfig b/linux/drivers/media/radio/si470x/Kconfig
-> index 20d05c0..a466654 100644
-> --- a/linux/drivers/media/radio/si470x/Kconfig
-> +++ b/linux/drivers/media/radio/si470x/Kconfig
-> @@ -22,3 +22,16 @@ config USB_SI470X
->
->          To compile this driver as a module, choose M here: the
->          module will be called radio-usb-si470x.
-> +
-> +config I2C_SI470X
-> +       tristate "Silicon Labs Si470x FM Radio Receiver support with I2C"
-> +       depends on I2C && RADIO_SI470X && !USB_SI470X
-> +       ---help---
-> +         This is a driver for I2C devices with the Silicon Labs SI470x
-> +         chip.
-> +
-> +         Say Y here if you want to connect this type of radio to your
-> +         computer's I2C port.
-> +
-> +         To compile this driver as a module, choose M here: the
-> +         module will be called radio-i2c-si470x.
-> diff --git a/linux/drivers/media/radio/si470x/Makefile b/linux/drivers/media/radio/si470x/Makefile
-> index 3cb777f..0696481 100644
-> --- a/linux/drivers/media/radio/si470x/Makefile
-> +++ b/linux/drivers/media/radio/si470x/Makefile
-> @@ -3,5 +3,7 @@
->  #
->
->  radio-usb-si470x-objs  := radio-si470x-usb.o radio-si470x-common.o
-> +radio-i2c-si470x-objs  := radio-si470x-i2c.o radio-si470x-common.o
->
->  obj-$(CONFIG_USB_SI470X) += radio-usb-si470x.o
-> +obj-$(CONFIG_I2C_SI470X) += radio-i2c-si470x.o
-> diff --git a/linux/drivers/media/radio/si470x/radio-si470x-common.c b/linux/drivers/media/radio/si470x/radio-si470x-common.c
-> index 84cbea3..0a48159 100644
-> --- a/linux/drivers/media/radio/si470x/radio-si470x-common.c
-> +++ b/linux/drivers/media/radio/si470x/radio-si470x-common.c
-> @@ -581,8 +581,12 @@ static int si470x_vidioc_g_tuner(struct file *file, void *priv,
->        /* driver constants */
->        strcpy(tuner->name, "FM");
->        tuner->type = V4L2_TUNER_RADIO;
-> +#if defined(CONFIG_USB_SI470X) || defined(CONFIG_USB_SI470X_MODULE)
->        tuner->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO |
->                            V4L2_TUNER_CAP_RDS;
-> +#else
-> +       tuner->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
-> +#endif
->
->        /* range limits */
->        switch ((radio->registers[SYSCONFIG2] & SYSCONFIG2_BAND) >> 6) {
-> @@ -608,10 +612,12 @@ static int si470x_vidioc_g_tuner(struct file *file, void *priv,
->                tuner->rxsubchans = V4L2_TUNER_SUB_MONO;
->        else
->                tuner->rxsubchans = V4L2_TUNER_SUB_MONO | V4L2_TUNER_SUB_STEREO;
-> +#if defined(CONFIG_USB_SI470X) || defined(CONFIG_USB_SI470X_MODULE)
->        /* If there is a reliable method of detecting an RDS channel,
->           then this code should check for that before setting this
->           RDS subchannel. */
->        tuner->rxsubchans |= V4L2_TUNER_SUB_RDS;
-> +#endif
->
->        /* mono/stereo selector */
->        if ((radio->registers[POWERCFG] & POWERCFG_MONO) == 0)
-> diff --git a/linux/drivers/media/radio/si470x/radio-si470x-i2c.c b/linux/drivers/media/radio/si470x/radio-si470x-i2c.c
-> new file mode 100644
-> index 0000000..2181021
-> --- /dev/null
-> +++ b/linux/drivers/media/radio/si470x/radio-si470x-i2c.c
-> @@ -0,0 +1,254 @@
-> +/*
-> + * drivers/media/radio/si470x/radio-si470x-i2c.c
-> + *
-> + * I2C driver for radios with Silicon Labs Si470x FM Radio Receivers
-> + *
-> + * Copyright (C) 2009 Samsung Electronics Co.Ltd
-> + * Author: Joonyoung Shim <jy0922.shim@samsung.com>
-> + *
-> + *  This program is free software; you can redistribute  it and/or modify it
-> + *  under  the terms of  the GNU General  Public License as published by the
-> + *  Free Software Foundation;  either version 2 of the  License, or (at your
-> + *  option) any later version.
-> + *
-> + *
-> + * TODO:
-> + * - RDS support
-> + *
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/init.h>
-> +#include <linux/i2c.h>
-> +#include <linux/delay.h>
-> +
-> +#include "radio-si470x.h"
-> +
-> +#define DRIVER_KERNEL_VERSION  KERNEL_VERSION(1, 0, 0)
-> +#define DRIVER_CARD            "Silicon Labs Si470x FM Radio Receiver"
-> +#define DRIVER_VERSION         "1.0.0"
-> +
-> +/* starting with the upper byte of register 0x0a */
-> +#define READ_REG_NUM           RADIO_REGISTER_NUM
-> +#define READ_INDEX(i)          ((i + RADIO_REGISTER_NUM - 0x0a) % READ_REG_NUM)
-> +
-> +static int si470x_get_all_registers(struct si470x_device *radio)
-> +{
-> +       int i;
-> +       u16 buf[READ_REG_NUM];
-> +       struct i2c_msg msgs[1] = {
-> +               { radio->client->addr, I2C_M_RD, sizeof(u16) * READ_REG_NUM,
-> +                       (void *)buf },
-> +       };
-> +
-> +       if (i2c_transfer(radio->client->adapter, msgs, 1) != 1)
-> +               return -EIO;
-> +
-> +       for (i = 0; i < READ_REG_NUM; i++)
-> +               radio->registers[i] = __be16_to_cpu(buf[READ_INDEX(i)]);
-> +
-> +       return 0;
-> +}
-> +
-> +int si470x_get_register(struct si470x_device *radio, int regnr)
-> +{
-> +       u16 buf[READ_REG_NUM];
-> +       struct i2c_msg msgs[1] = {
-> +               { radio->client->addr, I2C_M_RD, sizeof(u16) * READ_REG_NUM,
-> +                       (void *)buf },
-> +       };
-> +
-> +       if (i2c_transfer(radio->client->adapter, msgs, 1) != 1)
-> +               return -EIO;
-> +
-> +       radio->registers[regnr] = __be16_to_cpu(buf[READ_INDEX(regnr)]);
-> +
-> +       return 0;
-> +}
-> +
-> +/* starting with the upper byte of register 0x02h */
-> +#define WRITE_REG_NUM          8
-> +#define WRITE_INDEX(i)         (i + 0x02)
-> +
-> +int si470x_set_register(struct si470x_device *radio, int regnr)
-> +{
-> +       int i;
-> +       u16 buf[WRITE_REG_NUM];
-> +       struct i2c_msg msgs[1] = {
-> +               { radio->client->addr, 0, sizeof(u16) * WRITE_REG_NUM,
-> +                       (void *)buf },
-> +       };
-> +
-> +       for (i = 0; i < WRITE_REG_NUM; i++)
-> +               buf[i] = __cpu_to_be16(radio->registers[WRITE_INDEX(i)]);
-> +
-> +       if (i2c_transfer(radio->client->adapter, msgs, 1) != 1)
-> +               return -EIO;
-> +
-> +       return 0;
-> +}
-> +
-> +int si470x_disconnect_check(struct si470x_device *radio)
-> +{
-> +       return 0;
-> +}
+I produced a patch that fixed this problem over a month ago,
+http://www.linuxtv.org/hg/~tap/v4l-dvb/rev/748c762fcf3e
 
-Looks like this function is empty and it's called few times. Is it
-good to make it inline?
+Maybe it should go into 2.6.31?
 
--- 
-Best regards, Klimov Alexey
+> Thanks.
+>
+> On Sun, 5 Jul 2009 01:36:31 GMT
+> bugzilla-daemon@bugzilla.kernel.org wrote:
+>
+> > http://bugzilla.kernel.org/show_bug.cgi?id=13709
+> >
+> >            Summary: b2c2-flexcop: no frontend driver found for this
+> >                     B2C2/FlexCop adapter w/ kernel-2.6.31-rc2
+> >            Product: v4l-dvb
+> >            Version: unspecified
+> >     Kernel Version: 2.6.31-rc1
+> >           Platform: All
+> >         OS/Version: Linux
+> >               Tree: Mainline
+> >             Status: NEW
+> >           Severity: normal
+> >           Priority: P1
+> >          Component: dvb-frontend
+> >         AssignedTo: v4l-dvb_dvb-frontend@kernel-bugs.osdl.org
+> >         ReportedBy: bugzilla.kernel.org@boris64.net
+> >         Regression: Yes
+> >
+> >
+> > Hi kernel people!
+> >
+> > Since kernel-2.6.31-rc1 my Technisat SkyStar2 DVB card isn't
+> > working anymore, because no frontend driver is found.
+> > The frontend 'ST STV0299 DVB-S' is compiled into the kernel
+> > and _did_ work fine in pre-2.6.31 kernels.
+> >
+> >
+> > [lspci]
+> > ...
+> > 05:02.0 Network controller: Techsan Electronics Co Ltd B2C2 FlexCopII DVB chip
+> > / Technisat SkyStar2 DVB card (rev 02)
+> > [/lspci]
+> >
+> > [dmesg]
+> > Working kernel-2.6.30.1:
+> > ------------------------
+> > ...
+> > b2c2-flexcop: B2C2 FlexcopII/II(b)/III digital TV receiver chip loaded
+> > successfully
+> > b2c2_flexcop_pci 0000:05:02.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
+> > b2c2-flexcop: MAC address = 00:d0:d7:0f:30:58
+> > b2c2-flexcop: found 'ST STV0299 DVB-S' .
+> > b2c2-flexcop: initialization of 'Air2PC/AirStar 2 ATSC 3rd generation (HD5000)'
+> > at the 'PCI' bus controlled by a 'FlexCopIIb' complete
+> > ...
+> >
+> > Non-working kernel-2.6.31-rc:
+> > ------------------------
+> > ...
+> > b2c2-flexcop: B2C2 FlexcopII/II(b)/III digital TV receiver chip loaded
+> > successfully
+> > b2c2_flexcop_pci 0000:05:02.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
+> > b2c2-flexcop: MAC address = 00:d0:d7:0f:30:58
+> > b2c2-flexcop: no frontend driver found for this B2C2/FlexCop adapter
+> > b2c2_flexcop_pci 0000:05:02.0: PCI INT A disabled
+> > ...
+> > [/dmesg]
+> >
+> >
+> > I'll attach full dmesg+lspci.
+> > Please feel free to contact me if you need more infos.
+> > Thank you in advance ;)
+> >
+> > --
+> > Configure bugmail: http://bugzilla.kernel.org/userprefs.cgi?tab=email
+> > ------- You are receiving this mail because: -------
+> > You are on the CC list for the bug.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
