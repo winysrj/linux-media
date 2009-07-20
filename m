@@ -1,62 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay01.cambriumhosting.nl ([217.19.16.173]:33065 "EHLO
-	relay01.cambriumhosting.nl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755891AbZGCQBH (ORCPT
+Received: from mail-qy0-f198.google.com ([209.85.221.198]:57965 "EHLO
+	mail-qy0-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750849AbZGTEev (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Jul 2009 12:01:07 -0400
-Message-ID: <4A4E2B45.8080607@powercraft.nl>
-Date: Fri, 03 Jul 2009 18:01:09 +0200
-From: Jelle de Jong <jelledejong@powercraft.nl>
+	Mon, 20 Jul 2009 00:34:51 -0400
+Received: by qyk36 with SMTP id 36so600182qyk.33
+        for <linux-media@vger.kernel.org>; Sun, 19 Jul 2009 21:34:50 -0700 (PDT)
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Afatech AF9013 DVB-T not working with mplayer radio streams
-References: <4A4481AC.4050302@powercraft.nl> <4A4D34B3.8050605@iki.fi>
-In-Reply-To: <4A4D34B3.8050605@iki.fi>
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <1248062429.4416.33.camel@moose.localdomain>
+References: <1248062429.4416.33.camel@moose.localdomain>
+Date: Mon, 20 Jul 2009 14:26:44 +1000
+Message-ID: <ee0ad0230907192126kf917093k3a8f53c1cc973340@mail.gmail.com>
+Subject: Re: [linux-dvb] Hauppauge Okemo-B / Siano Mobile Digital MDTV
+	Receiver and sms1xxx-nova-b-dvbt-01.fw
+From: Damien Morrissey <damien@damienandlaurel.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Antti Palosaari wrote:
-> On 06/26/2009 11:07 AM, Jelle de Jong wrote:
->> Hi all,
->>
->> Because i now use a new kernel and new mplayer versions I did some
->> testing again on one of my long standing issues.
->>
->> My Afatech AF9015 DVB-T USB2.0 stick does not work with mplayer, other
->> em28xx devices do work with mplayer.
->>
->> Would somebody be willing to do some tests and see if mplayers works on
->> your devices?
->>
->> Debian 2.6.30-1
->>
->> /usr/bin/mplayer -identify -v -dvbin timeout=10 dvb://"3FM(Digitenne)"
->>
->> See the attachments for full details.
-> 
-> For me, this works. I tested this with MT2060 tuner device, as you have 
-> also. If I remember correctly it worked for you also when channel is 
-> selected by using tzap. I don't know what mplayer does differently.
-> 
-> Do the television channels in that same multiplex work with mplayer?
-> /usr/bin/mplayer -identify -v -dvbin timeout=10 dvb://"TELEVISION CHANNEL"
-> 
-> I added some delay for demod to wait lock. Could you try if this helps?
-> http://linuxtv.org/hg/~anttip/af9015_delay/
-> 
-> regards
-> Antti
+Hi mate. Tried warm booting after running a windows session? It might
+load the firmware for you as a first step?
 
-Hi Antti,
+On 7/20/09, Rodd Clarkson <rodd@clarkson.id.au> wrote:
+> Hi All
+>
+> I recently acquired a Dell Studio XPS 16 laptop that comes equiped with
+> a TV tuner card which I would like to get working with Linux.
+>
+> As a reference point, I'm using Fedora 11 and I live in Australia.
+>
+> Looking in dmesg, it wants to load sms1xxx-nova-b-dvbt-01.fw, but I
+> don't have the file in  /lib/firmware
+>
+> I've searched for it on google, but apart from some kernel patches (that
+> seem to help better identify the right firmware for the card) the only
+> page that seems to help (and it's in German, which I don't speak) is
+> this:
+>
+> http://www.der-schnorz.de/?p=92
+>
+> This page suggests renaming the sms1xxx-hcw-55xxx-dvbt-01.fw, which I've
+> tried, but with which I'm not having a lot of luck.
+>
+> Initially in MythTV it detected the channels, but it never tuned into
+> channels and now won't even detect the channels.
+>
+> Looking at the kernel source for Fedora 11, there's
+> driver/media/dvd/siano, but again, I don't think this is actual firmware
+> for the card.
+>
+> I guess what I'm getting to is:
+>
+> Is this card supported at this stage?
+> Where do I get the correct firmware from?
+>
+> The www.siano-ms.com site seems to suggest they support Linux, but
+> there's no download pages and no search which makes finding firmware
+> hard.
+>
+>
+> Rodd
+>
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
 
-I will get back to this next week, its a lot of work for me to compile
-the drivers but I will see if i can get it running. (a pre-compiled
-driver and some insmod for the 686 2.9.30 kernel would be an fast track
-option if you want to test it a.s.a.p.)
-
-Thanks in advance,
-
-Jelle de Jong
+-- 
+Sent from my mobile device
