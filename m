@@ -1,47 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgw2.jenoptik.com ([213.248.109.130]:8002 "EHLO
-	mailgw2.jenoptik.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932554AbZGPQFg (ORCPT
+Received: from mail-gx0-f213.google.com ([209.85.217.213]:48778 "EHLO
+	mail-gx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750729AbZGTCcL convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2009 12:05:36 -0400
-Received: from hermes.jena-optronik.de (hermes [10.128.0.8])
- 	by julia.jena-optronik.de (Postfix) with ESMTP id 94D172102B
- 	for <linux-media@vger.kernel.org>; Thu, 16 Jul 2009 17:55:34 +0200 (CEST)
-Received: from hermes.jena-optronik.de (localhost.localdomain [127.0.0.1])
- 	by hermes.jena-optronik.de (8.13.8/8.13.8) with ESMTP id n6GFtYfh030371
- 	for <linux-media@vger.kernel.org>; Thu, 16 Jul 2009 17:55:34 +0200
-Date: Thu, 16 Jul 2009 17:55:18 +0200
-From: "Jesko Schwarzer" <jesko.schwarzer@jena-optronik.de>
-To: <linux-media@vger.kernel.org>
-Message-ID: <"4430.36471247759733.hermes.jena-optronik.de*"@MHS>
-In-Reply-To: <20090716124649.488941bd@pedra.chehab.org>
-Subject: Force driver to load (tcm825x)
+	Sun, 19 Jul 2009 22:32:11 -0400
 MIME-Version: 1.0
-Content-Type: text/plain;
- 	charset="US-ASCII"
-Content-Disposition: inline
+In-Reply-To: <4A63D407.6090109@rtr.ca>
+References: <4A631C8F.7000002@rtr.ca>
+	 <829197380907190706i686fd1afwdca0d8be648129@mail.gmail.com>
+	 <4A6337C1.6080104@rtr.ca> <4A63416E.2070103@rtr.ca>
+	 <4A63A15F.8040804@rtr.ca>
+	 <829197380907191812v185e0869j2e5fa47483a4de4c@mail.gmail.com>
+	 <4A63D407.6090109@rtr.ca>
+Date: Sun, 19 Jul 2009 22:32:10 -0400
+Message-ID: <829197380907191932p56391dedj660d2bfc941a53a8@mail.gmail.com>
+Subject: Re: Regression 2.6.31: xc5000 no longer works with Myth-0.21-fixes
+	branch
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mark Lord <lkml@rtr.ca>
+Cc: Steven Toth <stoth@linuxtv.org>, linux-media@vger.kernel.org,
+	Linux Kernel <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sun, Jul 19, 2009 at 10:18 PM, Mark Lord<lkml@rtr.ca> wrote:
+> Devin Heitmueller wrote:
+>>
+>> Yeah, the situation with the seven second firmware load time is well
+>> known.  It's actually a result of the i2c's implementation in the
+>> au0828 hardware not properly supporting i2c clock stretching.  Because
+>> of some bugs in the hardware, I have it clocked down to something like
+>> 30KHz as a workaround.  I spent about a week investigating the i2c bus
+>> issue with my logic analyzer, and had to move on to other things.  I
+>> documented the gory details here back in March if you really care:
+>
+> ..
+>
+> From your livejournal comments, it sounded like the slow clock might
+> not be necessary until *after* the firmware transfer.
+>
+> Mmm.. I wonder if perhaps a higher clock speed could be used
+> during the firmware download, and then switch to the slower 30KHz
+> speed afterward ?
+>
+> This could reduce the firmware transfer to a couple of seconds,
+> much better than the current 6-7 second pause.
 
-Hello,
+I did experiment with introducing a tuner callback to inform the
+bridge to enter a high speed mode, which in theory would have allowed
+the firmware load at 250Khz (and then revert to the slower speed after
+the load finished).  However, for some unknown reason the tuner would
+not work after the load.  I would see i2c errors on the bus when doing
+the tune, and I was not able to identify the cause.
 
-I am working to get the omap34xxcam with the tcm825x running. Currently I
-was not successful in forcing the driver to load and register (in absence of
-a real sensor). I do a probe when the driver starts and uncommented the i2c
-things.
+I spent a couple of nights playing with the idea, but didn't have more
+time to spend on it.
 
-It fails when calling the
+Devin
 
-vidioc_int_g_priv()
-
-Function in the device-register function of the "omap34xxcam.c".
-How do I get it accepting the data ?
-
-Is there any documentation to find?
-
-Any hint would be perfect.
-
-Kind regards
-/Jesko
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
