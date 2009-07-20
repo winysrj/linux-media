@@ -1,64 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:45322 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750903AbZG3SXW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2009 14:23:22 -0400
-Date: Thu, 30 Jul 2009 20:23:36 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Valentin Longchamp <valentin.longchamp@epfl.ch>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	"m-karicheri2@ti.com" <m-karicheri2@ti.com>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Paulius Zaleckas <paulius.zaleckas@teltonika.lt>,
-	Darius Augulis <augulis.darius@gmail.com>
-Subject: Re: [PATCH 0/4] soc-camera: cleanup + scaling / cropping API fix
-In-Reply-To: <4A71A159.60903@epfl.ch>
-Message-ID: <Pine.LNX.4.64.0907302019270.6813@axis700.grange>
-References: <Pine.LNX.4.64.0907291640010.4983@axis700.grange> <4A71A159.60903@epfl.ch>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:53439 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752181AbZGTUER (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2009 16:04:17 -0400
+Date: Mon, 20 Jul 2009 13:04:12 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: linux-media@vger.kernel.org
+Cc: bugzilla-daemon@bugzilla.kernel.org,
+	bugme-daemon@bugzilla.kernel.org, bugzilla.kernel.org@boris64.net
+Subject: Re: [Bugme-new] [Bug 13709] New: b2c2-flexcop: no frontend driver
+ found for this B2C2/FlexCop adapter w/ kernel-2.6.31-rc2
+Message-Id: <20090720130412.b186e5f1.akpm@linux-foundation.org>
+In-Reply-To: <bug-13709-10286@http.bugzilla.kernel.org/>
+References: <bug-13709-10286@http.bugzilla.kernel.org/>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 30 Jul 2009, Valentin Longchamp wrote:
 
-> Hi Guennadi,
+(switched to email.  Please respond via emailed reply-to-all, not via the
+bugzilla web interface).
+
+
+Guys, this is reportedly a post-2.6.30 regression - I'll ask Rafael to
+add it to the regression tracking list.
+
+btw, does the flexcop driver have a regular maintainer?  Or someone who
+wants to volunteer?  MAINTAINERS is silent about it..
+
+Thanks.
+
+On Sun, 5 Jul 2009 01:36:31 GMT
+bugzilla-daemon@bugzilla.kernel.org wrote:
+
+> http://bugzilla.kernel.org/show_bug.cgi?id=13709
 > 
-> Guennadi Liakhovetski wrote:
-> > Hi all
-> > 
-> > here goes a new iteration of the soc-camera scaling / cropping API
-> > compliance fix. In fact, this is only the first _complete_ one, the previous
-> > version only converted one platform - i.MX31 and one camera driver -
-> > MT9T031. This patch converts all soc-camera drivers. The most difficult one
-> > is the SuperH driver, since it is currently the only host driver
-> > implementing own scaling and cropping on top of those of sensor drivers. The
-> > first three patches in the series are purely cosmetic, unifying device
-> > objects, used in dev_dbg, dev_info... functions. These patches extend the
-> > patch series uploaded at
-> > http://download.open-technology.de/soc-camera/20090701/ with the actual
-> > scaling / cropping patch still in
-> > http://download.open-technology.de/testing/. The series is still based on
-> > the git://git.pengutronix.de/git/imx/linux-2.6.git (now gone) for-rmk
-> > branch, but the i.MX31 patches, that my patch-series depends on, are now in
-> > the mainline, so, I will be rebasing the stack soon. In the meantime, I'm
-> > afraid, it might require some fiddling to test the stack.
+>            Summary: b2c2-flexcop: no frontend driver found for this
+>                     B2C2/FlexCop adapter w/ kernel-2.6.31-rc2
+>            Product: v4l-dvb
+>            Version: unspecified
+>     Kernel Version: 2.6.31-rc1
+>           Platform: All
+>         OS/Version: Linux
+>               Tree: Mainline
+>             Status: NEW
+>           Severity: normal
+>           Priority: P1
+>          Component: dvb-frontend
+>         AssignedTo: v4l-dvb_dvb-frontend@kernel-bugs.osdl.org
+>         ReportedBy: bugzilla.kernel.org@boris64.net
+>         Regression: Yes
 > 
-> I'd love to give your patches a try. But the fiddling looks very hard for me
-> ... patch 0010 does not apply correctly for me, and a 130K patch to do by hand
-> is .. looooong.
-
-Ok, a rebased patch set is under 
-
-http://download.open-technology.de/soc-camera/20090730/
-
-now based on 2.6.31-rc4. Notice, all patches are now in the above 
-directory, .../testing is empty again.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> 
+> Hi kernel people!
+> 
+> Since kernel-2.6.31-rc1 my Technisat SkyStar2 DVB card isn't
+> working anymore, because no frontend driver is found.
+> The frontend 'ST STV0299 DVB-S' is compiled into the kernel
+> and _did_ work fine in pre-2.6.31 kernels.
+> 
+> 
+> [lspci]
+> ...
+> 05:02.0 Network controller: Techsan Electronics Co Ltd B2C2 FlexCopII DVB chip
+> / Technisat SkyStar2 DVB card (rev 02)
+> [/lspci]
+> 
+> [dmesg]
+> Working kernel-2.6.30.1:
+> ------------------------
+> ...
+> b2c2-flexcop: B2C2 FlexcopII/II(b)/III digital TV receiver chip loaded
+> successfully
+> b2c2_flexcop_pci 0000:05:02.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
+> b2c2-flexcop: MAC address = 00:d0:d7:0f:30:58
+> b2c2-flexcop: found 'ST STV0299 DVB-S' .
+> b2c2-flexcop: initialization of 'Air2PC/AirStar 2 ATSC 3rd generation (HD5000)'
+> at the 'PCI' bus controlled by a 'FlexCopIIb' complete
+> ...
+> 
+> Non-working kernel-2.6.31-rc:
+> ------------------------
+> ...
+> b2c2-flexcop: B2C2 FlexcopII/II(b)/III digital TV receiver chip loaded
+> successfully
+> b2c2_flexcop_pci 0000:05:02.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
+> b2c2-flexcop: MAC address = 00:d0:d7:0f:30:58
+> b2c2-flexcop: no frontend driver found for this B2C2/FlexCop adapter
+> b2c2_flexcop_pci 0000:05:02.0: PCI INT A disabled
+> ...
+> [/dmesg]
+> 
+> 
+> I'll attach full dmesg+lspci.
+> Please feel free to contact me if you need more infos.
+> Thank you in advance ;)
+> 
+> -- 
+> Configure bugmail: http://bugzilla.kernel.org/userprefs.cgi?tab=email
+> ------- You are receiving this mail because: -------
+> You are on the CC list for the bug.
