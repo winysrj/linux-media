@@ -1,216 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:59221 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750893AbZGYP0U (ORCPT
+Received: from mail-in-10.arcor-online.net ([151.189.21.50]:34210 "EHLO
+	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754592AbZGUDYN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jul 2009 11:26:20 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv11 8/8] FM TX: si4713: Add document file
-Date: Sat, 25 Jul 2009 18:15:28 +0300
-Message-Id: <1248534928-21659-1-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <200907251719.29801.hverkuil@xs4all.nl>
-References: <200907251719.29801.hverkuil@xs4all.nl>
+	Mon, 20 Jul 2009 23:24:13 -0400
+Subject: Re: Problems with Pinnacle 310i (saa7134) and recent kernels
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Avl Jawrowski <avljawrowski@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <loom.20090720T224156-477@post.gmane.org>
+References: <loom.20090718T135733-267@post.gmane.org>
+	 <1248033581.3667.40.camel@pc07.localdom.local>
+	 <loom.20090720T224156-477@post.gmane.org>
+Content-Type: text/plain
+Date: Tue, 21 Jul 2009 05:20:56 +0200
+Message-Id: <1248146456.3239.6.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a document file for si4713 device driver.
-It describes the driver interfaces and organization.
+Hi,
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- linux/Documentation/video4linux/si4713.txt |  176 ++++++++++++++++++++++++++++
- 1 files changed, 176 insertions(+), 0 deletions(-)
- create mode 100644 linux/Documentation/video4linux/si4713.txt
+Am Montag, den 20.07.2009, 23:30 +0000 schrieb Avl Jawrowski:
+> Hi, thank you!
+> 
+> hermann pitton <hermann-pitton <at> arcor.de> writes:
+> 
+> > > tuner 1-004b: chip found @ 0x96 (saa7133[0])
+> > > tda829x 1-004b: setting tuner address to 61
+> > > tda829x 1-004b: type set to tda8290+75a
+> > 
+> > Nothing about the IR, but at least all tuner modules seem to be
+> > correctly loaded.
+> 
+> Im not using the IR because for now I dont need it, but I will try it.
+>  
+> > What was your last good working kernel and was your eeprom already
+> > failing there too, or is that new?
+> 
+> I don't remember the last working kernel.
+> I tried to recompile 2.6.25 but I obtain this error:
+> 
+> DVB: Unable to find symbol tda10046_attach()
+> saa7133[0]/dvb: frontend initialization failed
+> 
+> The eeprom was working a few months ago giving this messages:
+> 
+> saa7133[0]: found at 0000:01:02.0, rev: 209, irq: 19, latency: 64, mmio: 0xcfddf
+> 800
+> saa7133[0]: subsystem: ffff:ffff, board: UNKNOWN/GENERIC [card=0,autodetected]
+> saa7133[0]: board init: gpio is 600e000
+> saa7133[0]: i2c eeprom 00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+> saa7133[0]: registered device video0 [v4l2]
+> saa7133[0]: registered device vbi0
+> 
+> Even then the card was not recognised.
+> 
+> > Usually such is caused by bad contacts of the PCI slot or by a bad PSU,
+> > but we have reports from a Pinnacle 50i with the same i2c remote.
+> > 
+> > It has i2c troubles (ARB_LOST) and then also problems on loading the
+> > tuner modules correctly. With disable_ir=1 for saa7134 it became at
+> > least somewhat usable again.
+> >
+> > But for the 310i is another problem reported starting with kernel
+> > 2.6.26.
+> > 
+> > The 310i and the HVR1110 are the only cards with LowNoiseAmplifier
+> > config = 1. Before 2.6.26 two buffers were sent to the tuner at 0x61,
+> > doing some undocumented LNA configuration, since 2.6.26 they go to the
+> > analog IF demodulator tda8290 at 0x4b.
+> > 
+> > This was bisected here on the list and is wrong for the 300i.
+> > Thread is "2.6.26 regression ..."
+> > 
+> > The HVR1110 using the same new configuration seems to come in variants
+> > with and without LNA and nobody knows, how to make a difference for
+> > those cards. At least still no reports about troubles with the new LNA
+> > configuration there.
+> > 
+> > The attached patch against recent mercurial master v4l-dvb at
+> > linuxtv.org tries to restore the pre 2.6.26 behaviour for DVB-T on the
+> > 300i.
+> > 
+> > It changes also the i2c remote address of the Upmost Purple TV from 0x7a
+> > to 0x3d, since recent i2c on >= 2.6.30 complains about it as invalid
+> > 7-bit address, just in case.
+> > 
+> > Good luck,
+> > 
+> > Hermann
+> > 
+> > 
+> > Attachment (saa7134-try_to_improve_the_310i.patch): text/x-patch, 1925 bytes
+> 
+> I tried the patch with 2.6.30.2 on v4l-dvb-1cb6f19d2c9d, but I get only some
+> errors (I have rebooted):
+> 
+> videodev: exports duplicate symbol video_unregister_device (owned by kernel)
+> v4l2_common: exports duplicate symbol v4l2_chip_ident_i2c_client (owned by kerne
+> l)
+> saa7134: Unknown symbol v4l_bound_align_image
+> 
+> I get these errors even not applying the patch.
+> 
 
-diff --git a/linux/Documentation/video4linux/si4713.txt b/linux/Documentation/video4linux/si4713.txt
-new file mode 100644
-index 0000000..8b97fb6
---- /dev/null
-+++ b/linux/Documentation/video4linux/si4713.txt
-@@ -0,0 +1,176 @@
-+Driver for I2C radios for the Silicon Labs Si4713 FM Radio Transmitters
-+
-+Copyright (c) 2009 Nokia Corporation
-+Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
-+
-+
-+Information about the Device
-+============================
-+This chip is a Silicon Labs product. It is a I2C device, currently on 0x63 address.
-+Basically, it has transmission and signal noise level measurement features.
-+
-+The Si4713 integrates transmit functions for FM broadcast stereo transmission.
-+The chip also allows integrated receive power scanning to identify low signal
-+power FM channels.
-+
-+The chip is programmed using commands and responses. There are also several
-+properties which can change the behavior of this chip.
-+
-+Users must comply with local regulations on radio frequency (RF) transmission.
-+
-+Device driver description
-+=========================
-+There are two modules to handle this device. One is a I2C device driver
-+and the other is a platform driver.
-+
-+The I2C device driver exports a v4l2-subdev interface to the kernel.
-+All properties can also be accessed by v4l2 extended controls interface, by
-+using the v4l2-subdev calls (g_ext_ctrls, s_ext_ctrls).
-+
-+The platform device driver exports a v4l2 radio device interface to user land.
-+So, it uses the I2C device driver as a sub device in order to send the user
-+commands to the actual device. Basically it is a wrapper to the I2C device driver.
-+
-+Applications can use v4l2 radio API to specify frequency of operation, mute state,
-+etc. But mostly of its properties will be present in the extended controls.
-+
-+When the v4l2 mute property is set to 1 (true), the driver will turn the chip off.
-+
-+Properties description
-+======================
-+
-+The properties can be accessed using v4l2 extended controls.
-+Here is an output from v4l2-ctl util:
-+/ # v4l2-ctl -d /dev/radio0 --all -L
-+Driver Info:
-+        Driver name   : radio-si4713
-+        Card type     : Silicon Labs Si4713 Modulator
-+        Bus info      :
-+        Driver version: 0
-+        Capabilities  : 0x00080800
-+                RDS Output
-+                Modulator
-+Audio output: 0 (FM Modulator Audio Out)
-+Frequency: 1408000 (88.000000 MHz)
-+Video Standard = 0x00000000
-+Modulator:
-+        Name                 : FM Modulator
-+        Capabilities         : 62.5 Hz stereo rds
-+        Frequency range      : 76.0 MHz - 108.0 MHz
-+        Subchannel modulation: mono+rds
-+
-+User Controls
-+
-+                           mute (bool) : default=1 value=0
-+
-+FM Radio Modulator Controls
-+
-+                 rds_program_id (int)  : min=0 max=65535 step=1 default=0 value=0
-+               rds_program_type (int)  : min=0 max=31 step=1 default=0 value=0
-+           rds_signal_deviation (int)  : min=0 max=90000 step=10 default=200 value=200 flags=slider
-+                    rds_ps_name (str)  : min=0 max=97 value='Si4713  '
-+                 rds_radio_text (str)  : min=0 max=385 value='Si4713  \r'
-+  audio_limiter_feature_enabled (bool) : default=1 value=1
-+     audio_limiter_release_time (int)  : min=250 max=102390 step=50 default=5010 value=5010 flags=slider
-+        audio_limiter_deviation (int)  : min=0 max=90000 step=10 default=66250 value=66250 flags=slider
-+audio_compression_feature_enabl (bool) : default=1 value=1
-+         audio_compression_gain (int)  : min=0 max=20 step=1 default=15 value=15 flags=slider
-+    audio_compression_threshold (int)  : min=-40 max=0 step=1 default=-40 value=-40 flags=slider
-+  audio_compression_attack_time (int)  : min=0 max=5000 step=500 default=0 value=0 flags=slider
-+ audio_compression_release_time (int)  : min=100000 max=1000000 step=100000 default=1000000 value=1000000 flags=slider
-+     pilot_tone_feature_enabled (bool) : default=1 value=1
-+           pilot_tone_deviation (int)  : min=0 max=90000 step=10 default=6750 value=6750 flags=slider
-+           pilot_tone_frequency (int)  : min=0 max=19000 step=1 default=19000 value=19000 flags=slider
-+          pre_emphasis_settings (menu) : min=0 max=2 default=1 value=1
-+               tune_power_level (int)  : min=0 max=120 step=1 default=88 value=88 flags=slider
-+         tune_antenna_capacitor (int)  : min=0 max=191 step=1 default=0 value=109 flags=slider
-+/ #
-+
-+Here is a summary of them:
-+
-+* Pilot is an audible tone sent by the device.
-+
-+pilot_frequency - Configures the frequency of the stereo pilot tone.
-+pilot_deviation - Configures pilot tone frequency deviation level.
-+pilot_enabled - Enables or disables the pilot tone feature.
-+
-+* The si4713 device is capable of applying audio compression to the transmitted signal.
-+
-+acomp_enabled - Enables or disables the audio dynamic range control feature.
-+acomp_gain - Sets the gain for audio dynamic range control.
-+acomp_threshold - Sets the threshold level for audio dynamic range control.
-+acomp_attack_time - Sets the attack time for audio dynamic range control.
-+acomp_release_time - Sets the release time for audio dynamic range control.
-+
-+* Limiter setups audio deviation limiter feature. Once a over deviation occurs,
-+it is possible to adjust the front-end gain of the audio input and always
-+prevent over deviation.
-+
-+limiter_enabled - Enables or disables the limiter feature.
-+limiter_deviation - Configures audio frequency deviation level.
-+limiter_release_time - Sets the limiter release time.
-+
-+* Tuning power
-+
-+power_level - Sets the output power level for signal transmission.
-+antenna_capacitor - This selects the value of antenna tuning capacitor manually
-+or automatically if set to zero.
-+
-+* RDS related
-+
-+rds_ps_name - Sets the RDS ps name field for transmission.
-+rds_radio_text - Sets the RDS radio text for transmission.
-+rds_pi - Sets the RDS PI field for transmission.
-+rds_pty - Sets the RDS PTY field for transmission.
-+
-+* Region related
-+
-+preemphasis - sets the preemphasis to be applied for transmission.
-+
-+RNL
-+===
-+
-+This device also has an interface to measure received noise level. To do that, you should
-+ioctl the device node. Here is an code of example:
-+
-+int main (int argc, char *argv[])
-+{
-+        struct si4713_rnl rnl;
-+        int fd = open("/dev/radio0", O_RDWR);
-+        int rval;
-+
-+        if (argc < 2)
-+                return -EINVAL;
-+
-+        if (fd < 0)
-+                return fd;
-+
-+        sscanf(argv[1], "%d", &rnl.frequency);
-+
-+        rval = ioctl(fd, SI4713_IOC_MEASURE_RNL, &rnl);
-+        if (rval < 0)
-+                return rval;
-+
-+        printf("received noise level: %d\n", rnl.rnl);
-+
-+        close(fd);
-+}
-+
-+The struct si4713_rnl and SI4713_IOC_MEASURE_RNL are defined under
-+include/media/si4713.h.
-+
-+Stereo/Mono and RDS subchannels
-+===============================
-+
-+The device can also be configured using the available sub channels for
-+transmission. To do that use S/G_MODULATOR ioctl and configure txsubchans properly.
-+Refer to v4l2-spec for proper use of this ioctl.
-+
-+Testing
-+=======
-+Testing is usually done with v4l2-ctl utility for managing FM tuner cards.
-+The tool can be found in v4l-dvb repository under v4l2-apps/util directory.
-+
-+Example for setting rds ps name:
-+# v4l2-ctl -d /dev/radio0 --set-ctrl=rds_ps_name="Dummy"
-+
--- 
-1.6.2.GIT
+there is no excuse for getting errors on linux ;)
+
+Where you got this card from and did it ever work on the same machine
+with m$ stuff?
+
+Clean up your module mess, read again, and if the eeprom has still
+nothing to tell than 1 for all, get rid of it.
+
+Cheers,
+Hermann
+
 
