@@ -1,41 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:53122 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754506AbZGNQcZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jul 2009 12:32:25 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so921611fga.17
-        for <linux-media@vger.kernel.org>; Tue, 14 Jul 2009 09:32:24 -0700 (PDT)
-Message-ID: <4A5CB315.5050300@googlemail.com>
-Date: Tue, 14 Jul 2009 18:32:21 +0200
-From: Michael Riepe <michael.riepe@googlemail.com>
+Received: from smtp4-g21.free.fr ([212.27.42.4]:57435 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754585AbZGUOaG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jul 2009 10:30:06 -0400
+Message-ID: <4A65D0E2.4060108@zerezo.com>
+Date: Tue, 21 Jul 2009 16:29:54 +0200
+From: Antoine Jacquet <royale@zerezo.com>
 MIME-Version: 1.0
-To: aldoric@gmx.de
-CC: linux-media@vger.kernel.org
-Subject: Re: [Question] USB-Web-Cam becomes slower as darker the image becomes
-References: <20090714161428.49520@gmx.net>
-In-Reply-To: <20090714161428.49520@gmx.net>
-Content-Type: text/plain; charset=us-ascii
+To: Lamarque Vieira Souza <lamarque@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, video4linux-list@redhat.com
+Subject: Re: [PATCH] Implement changing resolution on the fly for zr364xx
+ driver
+References: <200907152054.56581.lamarque@gmail.com> <200907202046.43194.lamarque@gmail.com>
+In-Reply-To: <200907202046.43194.lamarque@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Hi,
 
-aldoric@gmx.de wrote:
-> Hello,
-> 
-> I'm new to v4l-development. I was able to get the raw image into my application successfully. But the current problem is not only in limited to my self-developed application.
-> 
-> All of my USB-webcams will get less FPS as darker the image becomes. In optimal cases I get around 30 frames per second. But if it's really dark I only get around 2-3 FPS.
+> This patch implements changing resolution in zr364xx_vidioc_s_fmt_vid_cap for 
+> zr364xx driver. This version is synced with v4l-dvb as of 20/Jul/2009. Tested 
+> with Creative PC-CAM 880.
 
-I suppose the camera (or the driver) is increasing the exposure time to
-compensate for the lack of light and/or reduce noise.
+Nice, I successfully tested your patch with 2 compatible webcams.
+ From the users feedbacks I had before, it seems that some devices do 
+not support the 640x480 resolution, but I was not able to verify this 
+myself.
+This is the only concern I have, since some users may think the driver 
+is not working if the application automatically switches to the maximum 
+resolution with an incompatible device.
 
-> I think that it might be the software gamma-correction. On v4l2ucp I didn't find a way to disable it.
+> OBS: I had to increase MAX_FRAME_SIZE to prevent a hard crash in my notebook 
+> (caps lock blinking) when testing with mplayer, which automatically sets 
+> resolution to the maximum (640x480). Maybe we should add code to auto-detect 
+> frame size to prevent this kind of crash in the future.
 
-I don't think that will help. But you may try to turn off auto-exposure.
+Yes, I also had this issue before. I don't know what is the good 
+approach to determine the best size with JPEG compression.
+
+I will push your changes to my tree and send a pull request to Mauro later.
+
+Regards,
+
+Antoine
 
 -- 
-Michael "Tired" Riepe <michael.riepe@googlemail.com>
-X-Tired: Each morning I get up I die a little
+Antoine "Royale" Jacquet
+http://royale.zerezo.com
