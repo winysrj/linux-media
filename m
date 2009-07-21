@@ -1,81 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f218.google.com ([209.85.220.218]:56974 "EHLO
-	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753684AbZGFIql (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Jul 2009 04:46:41 -0400
-Received: by fxm18 with SMTP id 18so3851700fxm.37
-        for <linux-media@vger.kernel.org>; Mon, 06 Jul 2009 01:46:44 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <68fea9390907020826w404eb64ep93cb30aed66496fe@mail.gmail.com>
-References: <496CB23D.6000606@libertysurf.fr> <496D7204.6030501@rogers.com>
-	 <496DB023.3090402@libertysurf.fr>
-	 <68676e00901150743q5576fefane2d2818dc6cd9cb0@mail.gmail.com>
-	 <004701c9aeef$0d127520$27375f60$@net>
-	 <68fea9390907020826w404eb64ep93cb30aed66496fe@mail.gmail.com>
-Date: Mon, 6 Jul 2009 09:46:44 +0100
-Message-ID: <68fea9390907060146m10effaf8s5283057c32514ba5@mail.gmail.com>
-Subject: Fwd: [linux-dvb] Pinnacle dual Hybrid pro PCI-express - linuxTV!
-From: Matt <mattmoran76@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail1.radix.net ([207.192.128.31]:35587 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754406AbZGUAHg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2009 20:07:36 -0400
+Subject: Re: ir-kbd-i2c: Drop irrelevant inline keywords
+From: Andy Walls <awalls@radix.net>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: LMML <linux-media@vger.kernel.org>
+In-Reply-To: <20090719145936.0c21917f@hyperion.delvare>
+References: <20090719145936.0c21917f@hyperion.delvare>
+Content-Type: text/plain
+Date: Mon, 20 Jul 2009 20:09:44 -0400
+Message-Id: <1248134984.3148.78.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Sun, 2009-07-19 at 14:59 +0200, Jean Delvare wrote:
+> Functions which are referenced by their address can't be inlined by
+> definition.
+> 
+> Signed-off-by: Jean Delvare <khali@linux-fr.org>
 
-Is this thread saying that the Pinnacle 3010i is now supported under
-linux? if so does this go for the Pinnacle 7010i too?
+Jean,
 
-Thanks,
+Looks godd to me, but you forgot to add [PATCH] to the subject.  I'll
+add this one to my revised patch set I submit to the list, unless you
+object.
 
-Matt
+Regards,
+Andy
 
-2009/3/27 dCrypt <dcrypt@telefonica.net>:
-> Hi,
->
-> I also own a pair of Pinnacle 3010ix.
->
-> Luca, where should the PCI ID go? I can't believe that adding a new card to
-> the supported card list is just that simple. Do you know a web page with
-> information about it?.
->
-> Thanks
->
-> -----Mensaje original-----
-> De: linux-dvb-bounces@linuxtv.org [mailto:linux-dvb-bounces@linuxtv.org] En
-> nombre de Luca Tettamanti
-> Enviado el: jueves, 15 de enero de 2009 16:44
-> Para: Catimimi
-> CC: linux-dvb@linuxtv.org; Linux-media
-> Asunto: Re: [linux-dvb] Pinnacle dual Hybrid pro PCI-express - linuxTV!
->
-> On Wed, Jan 14, 2009 at 10:28 AM, Catimimi <catimimi@libertysurf.fr> wrote:
->> try without the ".ko", i.e. instead, use:
->>
->> modprobe saa716x_hybrid
->>
->> OK, shame on me, it works but nothing happens.
->
-> Of course ;-) The PCI ID of the card is not listed. I happen to have
-> the same card, you can add the ID to the list but note that the
-> frontend is not there yet... so the module will load, will print some
-> something... and that's it.
-> I have a couple of patches queued and I plan to do some
-> experimentation in the weekend though ;)
->
-> Luca
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
+> ---
+>  linux/drivers/media/video/ir-kbd-i2c.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> --- v4l-dvb.orig/linux/drivers/media/video/ir-kbd-i2c.c	2009-07-19 14:30:29.000000000 +0200
+> +++ v4l-dvb/linux/drivers/media/video/ir-kbd-i2c.c	2009-07-19 14:50:30.000000000 +0200
+> @@ -127,12 +127,12 @@ static int get_key_haup_common(struct IR
+>  	return 1;
+>  }
+>  
+> -static inline int get_key_haup(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+> +static int get_key_haup(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+>  {
+>  	return get_key_haup_common (ir, ir_key, ir_raw, 3, 0);
+>  }
+>  
+> -static inline int get_key_haup_xvr(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+> +static int get_key_haup_xvr(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+>  {
+>  	return get_key_haup_common (ir, ir_key, ir_raw, 6, 3);
+>  }
+> 
+> 
+
