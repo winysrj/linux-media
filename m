@@ -1,73 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay02.cambriumhosting.nl ([217.19.16.174]:34917 "EHLO
-	relay02.cambriumhosting.nl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756559AbZGILvC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Jul 2009 07:51:02 -0400
-Message-ID: <4A55D9A3.4070502@powercraft.nl>
-Date: Thu, 09 Jul 2009 13:50:59 +0200
-From: Jelle de Jong <jelledejong@powercraft.nl>
+Received: from web26904.mail.ukl.yahoo.com ([217.146.176.93]:25294 "HELO
+	web26904.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750870AbZGULxP convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jul 2009 07:53:15 -0400
+Message-ID: <244663.51282.qm@web26904.mail.ukl.yahoo.com>
+Date: Tue, 21 Jul 2009 11:46:33 +0000 (GMT)
+From: SebaX75 <sebax75@yahoo.it>
+Subject: Problem with Pinnacle Dazzle Hybrid Stick (320E variant)
+To: linux-media@vger.kernel.org
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Call for testers: Terratec Cinergy T XS USB support
-References: <829197380906290700n16a0f4faxd29caa12587222f7@mail.gmail.com> <4A4E220B.8090800@powercraft.nl>
-In-Reply-To: <4A4E220B.8090800@powercraft.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jelle de Jong schreef:
-> Devin Heitmueller wrote:
->> Hello all,
->>
->> A few weeks ago, I did some work on support for the Terratec Cinergy T
->> XS USB product.  I successfully got the zl10353 version working and
->> issued a PULL request last week
->> (http://www.kernellabs.com/hg/~dheitmueller/em28xx-terratec-zl10353)
->>
->> However, the other version of the product, which contains a mt352 is
->> not yet working.
->>
->> I am looking for people who own the device and would be willing to do
->> testing of a tree to help debug the issue.  Ideal candidates should
->> have the experience using DVB devices under Linux in addition to some
->> other known-working tuner product so we can be sure that certain
->> frequencies are available and that the antenna/location work properly.
->>  If you are willing to provide remote SSH access for short periods of
->> time if necessary, also indicate that in your email.
->>
->> Please email me if you are interested in helping out getting the device working.
->>
->> Thank you,
->>
->> Devin
->>
-> 
-> Not much time to do the actual coding and compiling but I will set you
-> up with :-)
-> 
-> I will get you a dedicated machine with ssh access you can play with as
-> much as you like, it will be up and running next week after Wednesday.
-> 
-> Have you ever heard of ssh gateways, I am kind of good at this I build
-> my support systems around this. So I will set you up with an account :D
 
-As said I made you a very nice dvb-t test station, you can log into it
-with a ssh gateway that I created for you. There are several usb dvb-t
-en hybrid devices attached, all with dvb-t signals, analog is also possible.
+Hi,
+as in subject I've a problem with this hardware, identified as USB device with id eb1a:2881.
+I've already seen that someone has it working on different arch and kernel version (http://www.mail-archive.com/linux-media@vger.kernel.org/msg07551.html); I've no error on build time, nor in module loading, all required module are present, but the tuner don't work correctly and recognize only one MUX at 474000000 and mplayer is very slow to tune on a channel, before it was not slow as now.
+Before, with kernel 2.6.27 + v4l patch + em28xx-new patch, and now only with windows, all was working. Now, with kernel 2.6.29.5 (on Fedora 11) and last patch tree (20/07/2009) from v4l is not possible to have this hardware working.
+I've tried to search help on irc channel #V4L (log available at http://linuxtv.org/irc/v4l/index.php?date=2009-07-20 and http://linuxtv.org/irc/v4l/index.php?date=2009-07-21) and I've found devinheitmueller, that tried to help me checking my dmesg/lsmod/scandvb output and asking what don't work.
+At the end of problem inspection, he has told that is likely a problem with the configuration for the xc3028 or zl10353 or a sort of sensitivity problem and only with debugging and a developer I can solve my problem.
 
-I send you an additional private email with the information you need to
-login into the systems. You have full root access and can compile what
-ever you want ;-p
+Now I ask if one developer is interested and able to help me for this hardware, I'm not a programmer, but a sysadmin, and I've some basic knowledge about how to debug code and / or patches, but without help I don't know where to start.
 
-If you got any question you can contact me on IRC with the nickname
-tuxcrafter or use the pct-support-chat[1] tool.
+Thanks to anyone that contact me,
+Sebastian
 
-Best regards,
 
-Jelle de Jong
-
-[1]
-https://secure.powercraft.nl/svn/packages/trunk/source/pct-support-scripts/
+      
