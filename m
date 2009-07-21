@@ -1,105 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:53439 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752181AbZGTUER (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1124 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754891AbZGUGZH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2009 16:04:17 -0400
-Date: Mon, 20 Jul 2009 13:04:12 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
+	Tue, 21 Jul 2009 02:25:07 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id n6L6P4WJ018259
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 21 Jul 2009 08:25:05 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 21 Jul 2009 08:25:04 +0200 (CEST)
+Message-Id: <200907210625.n6L6P4WJ018259@smtp-vbr9.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: bugzilla-daemon@bugzilla.kernel.org,
-	bugme-daemon@bugzilla.kernel.org, bugzilla.kernel.org@boris64.net
-Subject: Re: [Bugme-new] [Bug 13709] New: b2c2-flexcop: no frontend driver
- found for this B2C2/FlexCop adapter w/ kernel-2.6.31-rc2
-Message-Id: <20090720130412.b186e5f1.akpm@linux-foundation.org>
-In-Reply-To: <bug-13709-10286@http.bugzilla.kernel.org/>
-References: <bug-13709-10286@http.bugzilla.kernel.org/>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-(switched to email.  Please respond via emailed reply-to-all, not via the
-bugzilla web interface).
+Results of the daily build of v4l-dvb:
 
+date:        Tue Jul 21 08:14:53 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12321:824d2ff85bd5
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-Guys, this is reportedly a post-2.6.30 regression - I'll ask Rafael to
-add it to the regression tracking list.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc1-armv5: OK
+linux-2.6.27-armv5-ixp: ERRORS
+linux-2.6.28-armv5-ixp: ERRORS
+linux-2.6.29.1-armv5-ixp: ERRORS
+linux-2.6.30-armv5-ixp: ERRORS
+linux-2.6.31-rc1-armv5-ixp: ERRORS
+linux-2.6.28-armv5-omap2: ERRORS
+linux-2.6.29.1-armv5-omap2: ERRORS
+linux-2.6.30-armv5-omap2: ERRORS
+linux-2.6.31-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.12-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.11-i686: ERRORS
+linux-2.6.26-i686: ERRORS
+linux-2.6.27-i686: ERRORS
+linux-2.6.28-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30-i686: ERRORS
+linux-2.6.31-rc1-i686: ERRORS
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc1-m32r: OK
+linux-2.6.30-mips: ERRORS
+linux-2.6.31-rc1-mips: ERRORS
+linux-2.6.27-powerpc64: ERRORS
+linux-2.6.28-powerpc64: ERRORS
+linux-2.6.29.1-powerpc64: ERRORS
+linux-2.6.30-powerpc64: ERRORS
+linux-2.6.31-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.12-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.11-x86_64: ERRORS
+linux-2.6.26-x86_64: ERRORS
+linux-2.6.27-x86_64: ERRORS
+linux-2.6.28-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30-x86_64: ERRORS
+linux-2.6.31-rc1-x86_64: ERRORS
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc1): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-btw, does the flexcop driver have a regular maintainer?  Or someone who
-wants to volunteer?  MAINTAINERS is silent about it..
+Detailed results are available here:
 
-Thanks.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-On Sun, 5 Jul 2009 01:36:31 GMT
-bugzilla-daemon@bugzilla.kernel.org wrote:
+Full logs are available here:
 
-> http://bugzilla.kernel.org/show_bug.cgi?id=13709
-> 
->            Summary: b2c2-flexcop: no frontend driver found for this
->                     B2C2/FlexCop adapter w/ kernel-2.6.31-rc2
->            Product: v4l-dvb
->            Version: unspecified
->     Kernel Version: 2.6.31-rc1
->           Platform: All
->         OS/Version: Linux
->               Tree: Mainline
->             Status: NEW
->           Severity: normal
->           Priority: P1
->          Component: dvb-frontend
->         AssignedTo: v4l-dvb_dvb-frontend@kernel-bugs.osdl.org
->         ReportedBy: bugzilla.kernel.org@boris64.net
->         Regression: Yes
-> 
-> 
-> Hi kernel people!
-> 
-> Since kernel-2.6.31-rc1 my Technisat SkyStar2 DVB card isn't
-> working anymore, because no frontend driver is found.
-> The frontend 'ST STV0299 DVB-S' is compiled into the kernel
-> and _did_ work fine in pre-2.6.31 kernels.
-> 
-> 
-> [lspci]
-> ...
-> 05:02.0 Network controller: Techsan Electronics Co Ltd B2C2 FlexCopII DVB chip
-> / Technisat SkyStar2 DVB card (rev 02)
-> [/lspci]
-> 
-> [dmesg]
-> Working kernel-2.6.30.1:
-> ------------------------
-> ...
-> b2c2-flexcop: B2C2 FlexcopII/II(b)/III digital TV receiver chip loaded
-> successfully
-> b2c2_flexcop_pci 0000:05:02.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
-> b2c2-flexcop: MAC address = 00:d0:d7:0f:30:58
-> b2c2-flexcop: found 'ST STV0299 DVB-S' .
-> b2c2-flexcop: initialization of 'Air2PC/AirStar 2 ATSC 3rd generation (HD5000)'
-> at the 'PCI' bus controlled by a 'FlexCopIIb' complete
-> ...
-> 
-> Non-working kernel-2.6.31-rc:
-> ------------------------
-> ...
-> b2c2-flexcop: B2C2 FlexcopII/II(b)/III digital TV receiver chip loaded
-> successfully
-> b2c2_flexcop_pci 0000:05:02.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
-> b2c2-flexcop: MAC address = 00:d0:d7:0f:30:58
-> b2c2-flexcop: no frontend driver found for this B2C2/FlexCop adapter
-> b2c2_flexcop_pci 0000:05:02.0: PCI INT A disabled
-> ...
-> [/dmesg]
-> 
-> 
-> I'll attach full dmesg+lspci.
-> Please feel free to contact me if you need more infos.
-> Thank you in advance ;)
-> 
-> -- 
-> Configure bugmail: http://bugzilla.kernel.org/userprefs.cgi?tab=email
-> ------- You are receiving this mail because: -------
-> You are on the CC list for the bug.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L2 specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
+
+The DVB API specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
+
