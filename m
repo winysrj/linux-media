@@ -1,37 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42003 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757239AbZGMUud (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Jul 2009 16:50:33 -0400
-Message-ID: <4A5B9E11.4000803@iki.fi>
-Date: Mon, 13 Jul 2009 23:50:25 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Nils Kassube <kassube@gmx.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: Fix for crash in dvb-usb-af9015
-References: <200907071232.00459.kassube@gmx.net> <200907071634.00168.kassube@gmx.net> <4A57D371.4070307@iki.fi> <200907110802.42115.kassube@gmx.net>
-In-Reply-To: <200907110802.42115.kassube@gmx.net>
-Content-Type: text/plain; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:47019 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751032AbZGUFAa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jul 2009 01:00:30 -0400
+Received: from epmmp1 (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0KN400LHX8KTQZ@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 21 Jul 2009 14:00:29 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0KN400A0T8KTQA@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 21 Jul 2009 14:00:29 +0900 (KST)
+Date: Tue, 21 Jul 2009 14:00:29 +0900
+From: Joonyoung Shim <jy0922.shim@samsung.com>
+Subject: Re: [PATCH v2 4/4] radio-si470x: add i2c driver for si470x
+In-reply-to: <208cbae30907190719v3fcffee0g1f15d05da5e182f2@mail.gmail.com>
+To: Alexey Klimov <klimov.linux@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	tobias.lorenz@gmx.net, kyungmin.park@samsung.com
+Message-id: <4A654B6D.1070805@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7BIT
+References: <4A5C145D.30300@samsung.com>
+ <208cbae30907190719v3fcffee0g1f15d05da5e182f2@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/11/2009 09:02 AM, Nils Kassube wrote:
-> Antti Palosaari wrote:
->> I need your signed off by tag in order to forward this mainline.
->> Patch is correct and I tested it also.
->
-> OK, here it is again with the requested line. And thanks for taking care
-> of the issue.
->
-> Signed-off-by: Nils Kassube<kassube@gmx.net>
+<snip>
 
-Patchwork have already taken this patch.
+>> +
+>> +int si470x_disconnect_check(struct si470x_device *radio)
+>> +{
+>> +       return 0;
+>> +}
+> 
+> Looks like this function is empty and it's called few times. Is it
+> good to make it inline?
+> 
 
-Acked-by: Antti Palosaari <crope@iki.fi>
-
-regards
-Antti
--- 
-http://palosaari.fi/
+Yes, this function is empty. It looks fine to me too.
+I will modify it, thanks.
