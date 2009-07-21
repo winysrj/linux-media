@@ -1,68 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:45641 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751923AbZGVQS0 (ORCPT
+Received: from zone0.gcu-squad.org ([212.85.147.21]:13388 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751411AbZGUHqm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2009 12:18:26 -0400
-Date: Wed, 22 Jul 2009 13:18:17 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Steve Castellotti <sc@eyemagnet.com>, linux-media@vger.kernel.org,
-	Hans de Goede <j.w.r.degoede@hhs.nl>
-Subject: Re: offering bounty for GPL'd dual em28xx support
-Message-ID: <20090722131817.725cf309@pedra.chehab.org>
-In-Reply-To: <829197380907220902p5044e931jf54edcec48b4c26f@mail.gmail.com>
-References: <4A6666CC.7020008@eyemagnet.com>
-	<829197380907211842p4c9886a3q96a8b50e58e63cbf@mail.gmail.com>
-	<4A667735.40002@eyemagnet.com>
-	<829197380907211932v6048d099h2ebb50da05959d89@mail.gmail.com>
-	<4A668BB9.1020700@eyemagnet.com>
-	<20090722024320.2f1d9990@pedra.chehab.org>
-	<829197380907220902p5044e931jf54edcec48b4c26f@mail.gmail.com>
+	Tue, 21 Jul 2009 03:46:42 -0400
+Date: Tue, 21 Jul 2009 09:45:37 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Andy Walls <awalls@radix.net>
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: Re: ir-kbd-i2c: Drop irrelevant inline keywords
+Message-ID: <20090721094537.1679c654@hyperion.delvare>
+In-Reply-To: <1248134984.3148.78.camel@palomino.walls.org>
+References: <20090719145936.0c21917f@hyperion.delvare>
+	<1248134984.3148.78.camel@palomino.walls.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 22 Jul 2009 12:02:48 -0400
-Devin Heitmueller <dheitmueller@kernellabs.com> escreveu:
-
-> Hello Mauro,
+On Mon, 20 Jul 2009 20:09:44 -0400, Andy Walls wrote:
+> On Sun, 2009-07-19 at 14:59 +0200, Jean Delvare wrote:
+> > Functions which are referenced by their address can't be inlined by
+> > definition.
+> > 
+> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
 > 
-> As far as I know, the em28xx has no capability to adjust the frame
-> rate.  It will forward the frames at whatever rate the ITU656 stream
-> is delivered from the decoder.
+> Jean,
+> 
+> Looks godd to me, but you forgot to add [PATCH] to the subject.  I'll
+> add this one to my revised patch set I submit to the list, unless you
+> object.
 
-Ok. So, the fps changing will be limited to the decoder and/or sensor that
-supports it.
+Oops, you're right. Yes, please pick it up and push it forward, thanks!
 
->  I also don't think the tvp5150 will
-> deliver frames at any rather other than the NTSC/PAL standard in
-> question (but I would have to double-check the tvp5150 datasheet to be
-> sure).
-
-On a very quick check on saa7114/saa7115 and tvp5150, I couldn't find any way
-do do spatial decimation to reduce fps. So, it seems that we'll have this
-feature only with webcams where such type of control is common.
-
-> I would like to spend some time looking closer at the formula used to
-> calculate the set_alternate() call.  I just haven't had the time to
-> invest in such an investigation given all the other stuff I am working
-> on right now (in particular the three or four em28xx devices I am
-> adding support for, the xc4000 driver work, and hvr-950q analog
-> fixes).
-
-Maybe that magic calculus took from experimentation are due to vbi and/or audio
-streams. It would be nice to adjust it to be less conservative.
-
-> I didn't know about the 80% utilization cap for isoc, so thanks for
-> providing the reference to that previous thread, which has some pretty
-> interesting information.
-
-Anytime.
-
-
-
-Cheers,
-Mauro
+-- 
+Jean Delvare
