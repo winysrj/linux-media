@@ -1,142 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:31392 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753046AbZGBOum (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jul 2009 10:50:42 -0400
-Date: Thu, 2 Jul 2009 16:50:35 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Andrzej Hajda <andrzej.hajda@wp.pl>,
-	Trent Piepho <xyzzy@speakeasy.org>
-Subject: [PATCH] cx88: High resolution timer for Remote Controls
-Message-ID: <20090702165035.3683b4cb@hyperion.delvare>
+Received: from mail1.radix.net ([207.192.128.31]:35575 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754619AbZGUAHG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Jul 2009 20:07:06 -0400
+Subject: Re: [PATCH 1/3] ir-kbd-i2c: Allow use of ir-kdb-i2c internal
+ get_key  funcs and set ir_type
+From: Andy Walls <awalls@radix.net>
+To: Jean Delvare <khali@linux-fr.org>
+Cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	Mark Lord <lkml@rtr.ca>, Mike Isely <isely@pobox.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Janne Grunau <j@jannau.net>
+In-Reply-To: <20090719144749.689c2b3a@hyperion.delvare>
+References: <1247862585.10066.16.camel@palomino.walls.org>
+	 <1247862937.10066.21.camel@palomino.walls.org>
+	 <20090719144749.689c2b3a@hyperion.delvare>
+Content-Type: text/plain
+Date: Mon, 20 Jul 2009 20:07:50 -0400
+Message-Id: <1248134870.3148.76.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andrzej Hajda <andrzej.hajda@wp.pl>
+On Sun, 2009-07-19 at 14:47 +0200, Jean Delvare wrote:
+> Hi Andy,
+> 
+> On Fri, 17 Jul 2009 16:35:37 -0400, Andy Walls wrote:
+> > This patch augments the init data passed by bridge drivers to ir-kbd-i2c
+> > so that the ir_type can be set explicitly and so ir-kbd-i2c internal
+> > get_key functions can be reused without requiring symbols from
+> > ir-kbd-i2c in the bridge driver.
+> > 
+> > 
+> > Regards,
+> > Andy
+> 
+> Looks good. Minor suggestion below:
 
-Patch solves problem of missed keystrokes on some remote controls,
-as reported on http://bugzilla.kernel.org/show_bug.cgi?id=9637 .
+Jean,
 
-Signed-off-by: Andrzej Hajda <andrzej.hajda@wp.pl>
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
-Resending because last attempt resulted in folded lines:
-http://www.spinics.net/lists/linux-media/msg06884.html
-Patch was already resent by Andrzej on June 4th but apparently it was
-overlooked.
+Thanks for the reply.  My responses are inline.
 
-Trent Piepho commented on the compatibility with kernels older than
-2.6.20 being possibly broken:
-http://www.spinics.net/lists/linux-media/msg06885.html
-I don't think this is the case. The kernel version test was there
-because the workqueue API changed in 2.6.20, but the hrtimer API did
-not have such a change. This is why the version check has gone.
+> > 
+> > diff -r d754a2d5a376 linux/drivers/media/video/ir-kbd-i2c.c
+> > --- a/linux/drivers/media/video/ir-kbd-i2c.c	Wed Jul 15 07:28:02 2009 -0300
+> > +++ b/linux/drivers/media/video/ir-kbd-i2c.c	Fri Jul 17 16:05:28 2009 -0400
+> > @@ -478,7 +480,34 @@
+> >  
+> >  		ir_codes = init_data->ir_codes;
+> >  		name = init_data->name;
+> > +		if (init_data->type)
+> > +			ir_type = init_data->type;
+> >  		ir->get_key = init_data->get_key;
+> > +		switch (init_data->internal_get_key_func) {
+> > +		case IR_KBD_GET_KEY_PIXELVIEW:
+> > +			ir->get_key = get_key_pixelview;
+> > +			break;
+> > +		case IR_KBD_GET_KEY_PV951:
+> > +			ir->get_key = get_key_pv951;
+> > +			break;
+> > +		case IR_KBD_GET_KEY_HAUP:
+> > +			ir->get_key = get_key_haup;
+> > +			break;
+> > +		case IR_KBD_GET_KEY_KNC1:
+> > +			ir->get_key = get_key_knc1;
+> > +			break;
+> > +		case IR_KBD_GET_KEY_FUSIONHDTV:
+> > +			ir->get_key = get_key_fusionhdtv;
+> > +			break;
+> > +		case IR_KBD_GET_KEY_HAUP_XVR:
+> > +			ir->get_key = get_key_haup_xvr;
+> > +			break;
+> > +		case IR_KBD_GET_KEY_AVERMEDIA_CARDBUS:
+> > +			ir->get_key = get_key_avermedia_cardbus;
+> > +			break;
+> > +		default:
+> > +			break;
+> > +		}
+> >  	}
+> >  
+> >  	/* Make sure we are all setup before going on */
+> > diff -r d754a2d5a376 linux/include/media/ir-kbd-i2c.h
+> > --- a/linux/include/media/ir-kbd-i2c.h	Wed Jul 15 07:28:02 2009 -0300
+> > +++ b/linux/include/media/ir-kbd-i2c.h	Fri Jul 17 16:05:28 2009 -0400
+> > @@ -24,10 +24,27 @@
+> >  	int                    (*get_key)(struct IR_i2c*, u32*, u32*);
+> >  };
+> >  
+> > +enum ir_kbd_get_key_fn {
+> > +	IR_KBD_GET_KEY_NONE = 0,
+> 
+> As you never use IR_KBD_GET_KEY_NONE, you might as well not define it
+> and start with IR_KBD_GET_KEY_PIXELVIEW = 1. This would have the added
+> advantage that you could get rid of the "default" statement in the
+> above switch, letting gcc warn you (or any other developer) if you ever
+> add a new enum value and forget to handle it in ir_probe().
 
-It is highly probable that the hrtimer API had its own incompatible
-changes since it was introduced in kernel 2.6.16. By looking at the
-code, I found the following ones:
+>From gcc-4.0.1 docs:
 
-* hrtimer_forward_now() was added with kernel 2.6.25 only:
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=5e05ad7d4e3b11f935998882b5d9c3b257137f1b
-But this is an inline function, so I presume this shouldn't be too
-difficult to add to a compatibility header.
+-Wswitch
+        Warn whenever a switch statement has an index of enumerated type
+        and lacks a case for one or more of the named codes of that
+        enumeration. (The presence of a default label prevents this
+        warning.) case labels outside the enumeration range also provoke
+        warnings when this option is used. This warning is enabled by
+        -Wall. 
+        
+Since a calling driver may provide a value of 0 via a memset, I'd choose
+keeping the enum label of IR_KBD_GET_KEY_NONE, add a case for it in the
+switch(), and remove the "default:" case.  It just seems wrong to let
+drivers pass in 0 value for "internal_get_key_func" and the switch()
+neither have an explicit nor a "default:" case for it.  (Maybe it's just
+the years of Ada programming that beat things like this into me...)
 
-* Before 2.6.21, HRTIMER_MODE_REL was named HRTIMER_REL:
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=c9cb2e3d7c9178ab75d0942f96abb3abe0369906
-This too should be solvable in a compatibility header.
+My idea was that a driver would
 
-The rest doesn't seem to cause compatibility issues, but only actual
-testing would confirm that.
+a. for a driver provided function, specify a pointer to the driver's
+function in "get_key" and set the "internal_get_key_func" field set to 0
+(IR_KBD_GET_KEY_NONE) likely via memset().
 
-This bug affects me, which is why I am motivated to get this fix
-upstream. Please let me know how I can help.
+b. for a ir-kbd-i2c provided function, specify a NULL pointer in
+"get_key", and use an enumerated value in "internal_get_key_func".
 
- linux/drivers/media/video/cx88/cx88-input.c |   37 ++++++++++++---------------
- 1 file changed, 17 insertions(+), 20 deletions(-)
+If both are specified, the switch() will set to use the ir-kbd-i2c
+internal function, unless an invalid enum value was used.
 
---- v4l-dvb.orig/linux/drivers/media/video/cx88/cx88-input.c	2009-07-02 15:13:08.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/cx88/cx88-input.c	2009-07-02 15:35:04.000000000 +0200
-@@ -23,10 +23,10 @@
-  */
- 
- #include <linux/init.h>
--#include <linux/delay.h>
- #include <linux/input.h>
- #include <linux/pci.h>
- #include <linux/module.h>
-+#include <linux/hrtimer.h>
- 
- #include "compat.h"
- #include "cx88.h"
-@@ -49,7 +49,7 @@ struct cx88_IR {
- 
- 	/* poll external decoder */
- 	int polling;
--	struct delayed_work work;
-+	struct hrtimer timer;
- 	u32 gpio_addr;
- 	u32 last_gpio;
- 	u32 mask_keycode;
-@@ -145,31 +145,28 @@ static void cx88_ir_handle_key(struct cx
- 	}
- }
- 
--#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20)
--static void cx88_ir_work(void *data)
--#else
--static void cx88_ir_work(struct work_struct *work)
--#endif
-+enum hrtimer_restart cx88_ir_work(struct hrtimer *timer)
- {
--#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20)
--	struct cx88_IR *ir = data;
--#else
--	struct cx88_IR *ir = container_of(work, struct cx88_IR, work.work);
--#endif
-+	unsigned long missed;
-+	struct cx88_IR *ir = container_of(timer, struct cx88_IR, timer);
- 
- 	cx88_ir_handle_key(ir);
--	schedule_delayed_work(&ir->work, msecs_to_jiffies(ir->polling));
-+	missed = hrtimer_forward_now(&ir->timer,
-+				     ktime_set(0, ir->polling * 1000000));
-+	if (missed > 1)
-+		ir_dprintk("Missed ticks %ld\n", missed - 1);
-+
-+	return HRTIMER_RESTART;
- }
- 
- void cx88_ir_start(struct cx88_core *core, struct cx88_IR *ir)
- {
- 	if (ir->polling) {
--#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,20)
--		INIT_DELAYED_WORK(&ir->work, cx88_ir_work, ir);
--#else
--		INIT_DELAYED_WORK(&ir->work, cx88_ir_work);
--#endif
--		schedule_delayed_work(&ir->work, 0);
-+		hrtimer_init(&ir->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
-+		ir->timer.function = cx88_ir_work;
-+		hrtimer_start(&ir->timer,
-+			      ktime_set(0, ir->polling * 1000000),
-+			      HRTIMER_MODE_REL);
- 	}
- 	if (ir->sampling) {
- 		core->pci_irqmask |= PCI_INT_IR_SMPINT;
-@@ -186,7 +183,7 @@ void cx88_ir_stop(struct cx88_core *core
- 	}
- 
- 	if (ir->polling)
--		cancel_delayed_work_sync(&ir->work);
-+		hrtimer_cancel(&ir->timer);
- }
- 
- /* ---------------------------------------------------------------------- */
+Regards,
+Andy
 
+> > +	IR_KBD_GET_KEY_PIXELVIEW,
+> > +	IR_KBD_GET_KEY_PV951,
+> > +	IR_KBD_GET_KEY_HAUP,
+> > +	IR_KBD_GET_KEY_KNC1,
+> > +	IR_KBD_GET_KEY_FUSIONHDTV,
+> > +	IR_KBD_GET_KEY_HAUP_XVR,
+> > +	IR_KBD_GET_KEY_AVERMEDIA_CARDBUS,
+> > +};
+> > +
+> >  /* Can be passed when instantiating an ir_video i2c device */
+> >  struct IR_i2c_init_data {
+> >  	IR_KEYTAB_TYPE         *ir_codes;
+> >  	const char             *name;
+> > +	int                    type; /* IR_TYPE_RC5, IR_TYPE_PD, etc */
+> > +	/*
+> > +	 * Specify either a function pointer or a value indicating one of
+> > +	 * ir_kbd_i2c's internal get_key functions
+> > +	 */
+> >  	int                    (*get_key)(struct IR_i2c*, u32*, u32*);
+> > +	enum ir_kbd_get_key_fn internal_get_key_func;
+> >  };
+> >  #endif
+> 
+> 
 
--- 
-Jean Delvare
