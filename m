@@ -1,45 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caiajhbdccac.dreamhost.com ([208.97.132.202]:45894 "EHLO
-	spunkymail-a12.g.dreamhost.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1750759AbZGDJHY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 4 Jul 2009 05:07:24 -0400
-Received: from emy (124-254-80-117-static-dsl.ispone.net.au [124.254.80.117])
-	by spunkymail-a12.g.dreamhost.com (Postfix) with ESMTP id 59AAF7FA7
-	for <linux-media@vger.kernel.org>; Sat,  4 Jul 2009 02:07:26 -0700 (PDT)
-Date: Sat, 04 Jul 2009 19:11:00 +1000
-To: linux-media@vger.kernel.org
-Subject: New DVB-T scan file: au-FraserCoast-Bundaberg
-From: Vertelemming <vertelemming@flackabase.com>
-Content-Type: text/plain; format=flowed; delsp=yes; charset=utf-8
+Received: from mgw1.diku.dk ([130.225.96.91]:49385 "EHLO mgw1.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754035AbZGUQu2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jul 2009 12:50:28 -0400
+Date: Tue, 21 Jul 2009 18:47:46 +0200 (CEST)
+From: Julia Lawall <julia@diku.dk>
+To: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [PATCH] drivers/media/dvb: Use dst_type field instead of type_flags
+Message-ID: <Pine.LNX.4.64.0907211847190.26529@ask.diku.dk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Message-ID: <op.uwjc4mbewb4l13@emy>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Julia Lawall <julia@diku.dk>
 
-Hi,
+It seems from other code that it is the dst_type field rather than the
+type_flags field that contains values of the form DST_TYPE_IS...
+The type_flags field contains values of the form DST_TYPE_HAS...
 
-I've put together a scan file for my local DVB-T stations, covering the
-Wide Bay/Fraser Coast region. As far as I've been able to tell,
-this file works fine and covers all the locally available transponders.
-Feel free to add it to the rest.
+The semantic match that finds this problem is as follows:
+(http://www.emn.fr/x-info/coccinelle/)
 
+// <smpl>
+@@ struct dst_state E; @@
 
-Thanks
+(
+*E.type_flags == 
+  \( DST_TYPE_IS_SAT\|DST_TYPE_IS_TERR\|DST_TYPE_IS_CABLE\|DST_TYPE_IS_ATSC \)
+|
+*E.type_flags != 
+  \( DST_TYPE_IS_SAT\|DST_TYPE_IS_TERR\|DST_TYPE_IS_CABLE\|DST_TYPE_IS_ATSC \)
+)
+// </smpl>
 
---
+Signed-off-by: Julia Lawall <julia@diku.dk>
 
-# Australia / QLD / Fraser Coast - Bundaberg / Mt Goonaneman
-#
-# ABC VHF9A
-T 205625000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-# SBS UHF28
-T 529500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
-# Seven VHF7
-T 184625000 7MHz 2/3 NONE QAM64 8k 1/16 NONE
-# WIN Wide Bay VHF10
-T 212500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
-# Southern Cross Ten VHF9
-T 198525000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+---
+ drivers/media/dvb/bt8xx/dst.c       |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/dvb/bt8xx/dst.c b/drivers/media/dvb/bt8xx/dst.c
+index fec1d77..91353a6 100644
+--- a/drivers/media/dvb/bt8xx/dst.c
++++ b/drivers/media/dvb/bt8xx/dst.c
+@@ -1059,7 +1059,7 @@ static int dst_get_tuner_info(struct dst_state *state)
+ 		dprintk(verbose, DST_ERROR, 1, "DST type has TS=188");
+ 	}
+ 	if (state->board_info[0] == 0xbc) {
+-		if (state->type_flags != DST_TYPE_IS_ATSC)
++		if (state->dst_type != DST_TYPE_IS_ATSC)
+ 			state->type_flags |= DST_TYPE_HAS_TS188;
+ 		else
+ 			state->type_flags |= DST_TYPE_HAS_NEWTUNE_2;
