@@ -1,70 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:47880 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751448AbZGCGVE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Jul 2009 02:21:04 -0400
-Date: Fri, 3 Jul 2009 03:21:00 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Joel Jordan <zcacjxj@hotmail.com>
-Cc: <video4linux-list@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: eMPIA Silvercrest 2710
-Message-ID: <20090703032100.64c3f70d@pedra.chehab.org>
-In-Reply-To: <BAY103-W483504B84F25BC84275FAAC190@phx.gbl>
-References: <BAY103-W483504B84F25BC84275FAAC190@phx.gbl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from qw-out-2122.google.com ([74.125.92.27]:35913 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755268AbZGUPOx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jul 2009 11:14:53 -0400
+Received: by qw-out-2122.google.com with SMTP id 8so1213710qwh.37
+        for <linux-media@vger.kernel.org>; Tue, 21 Jul 2009 08:14:52 -0700 (PDT)
+From: Lamarque Vieira Souza <lamarque@gmail.com>
+To: Antoine Jacquet <royale@zerezo.com>
+Subject: Re: [PATCH] Implement changing resolution on the fly for zr364xx driver
+Date: Tue, 21 Jul 2009 12:14:45 -0300
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, video4linux-list@redhat.com
+References: <200907152054.56581.lamarque@gmail.com> <200907202046.43194.lamarque@gmail.com> <4A65D0E2.4060108@zerezo.com>
+In-Reply-To: <4A65D0E2.4060108@zerezo.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200907211214.46226.lamarque@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Joel,
+Em Terça-feira 21 Julho 2009, Antoine Jacquet escreveu:
+> Hi,
 
-Em Fri, 7 Nov 2008 10:10:45 +0000
-Joel Jordan <zcacjxj@hotmail.com> escreveu:
+	Hi,
 
- 
->   Has there been any work done on the eMPIA Silvercrest EM2710 (device for webcams)?
+> > This patch implements changing resolution in zr364xx_vidioc_s_fmt_vid_cap
+> > for zr364xx driver. This version is synced with v4l-dvb as of
+> > 20/Jul/2009. Tested with Creative PC-CAM 880.
+>
+> Nice, I successfully tested your patch with 2 compatible webcams.
+>  From the users feedbacks I had before, it seems that some devices do
+> not support the 640x480 resolution, but I was not able to verify this
+> myself.
+> This is the only concern I have, since some users may think the driver
+> is not working if the application automatically switches to the maximum
+> resolution with an incompatible device.
 
-I borrowed a Silvercrest 1.3 Mpix camera, based on em2710 and mt9v011 with a
-friend, at the end of a conference that happened last week. After spending some
-spare time on it at the airplane while returning back home, I discovered how to
-enable stream on it.
+	Maybe we should add a quirk list to prevent such cases or if send_control_msg 
+returns error in such cases I can change the code to revert the change and 
+keep the old resolution.
 
-Basically, there were just a very few registers that was needing a different
-initialization, plus a driver to the sensor inside.
+> > OBS: I had to increase MAX_FRAME_SIZE to prevent a hard crash in my
+> > notebook (caps lock blinking) when testing with mplayer, which
+> > automatically sets resolution to the maximum (640x480). Maybe we should
+> > add code to auto-detect frame size to prevent this kind of crash in the
+> > future.
+>
+> Yes, I also had this issue before. I don't know what is the good
+> approach to determine the best size with JPEG compression.
 
-Could you please test the latest development code and see if this works for you also?
+	The driver reads data from USB port in 4096-bytes chunks, so before adding 
+the data to frm->lpvbits we could verify if frm->lpvbits has enough space to 
+hold it. If there is no enough space we can dynamically increase frm->lpvbits. 
+In user space that can be done using realloc, I just do not know if there is a 
+similar function in kernel space. OBS: frm->lpvbits had be increased without 
+loosing the old data and of course we should have a upper limit, maybe 640 x 
+480 * 3 (3 bytes per pixel) = 921600 bytes.
 
-It is at:
-	http://linuxtv.org/hg/v4l-dvb
+> I will push your changes to my tree and send a pull request to Mauro later.
 
-The driver is the em28xx. As the camera uses the generic vendor usb id
-(eb1a:2820), you'll need to force the driver to load the proper card
-parameters, by using card=71 at module probing. This can be done by calling:
+	Ok, thanks.
 
-	modprobe em28xx card=71
-
-Or by adding an options line on your /etc/modprobe.conf (or the equivalent file on your machine):
-	options em28xx card=71
-
-You need to do one of the above procedures _before_ plug the camera, or
-otherwise it will take the generic entry that won't work.
-
-Currently, the driver offers a very basic support. Only 640x480 with auto gain, auto
-bright, etc. The normal controls (contrast, bright, etc) are not available.
-
-When I have more spare time, I'll try to play with the sensors and see what
-else we can enable. The sensor seems to support some fancy things like digital
-zoom, and CIF/QVGA resolutions at higher rate. However, don't expect too much
-time from me on it, due to my other duties.
-
-If you also want to play with it, the specs of the sensor is available at:
-	http://download.micron.com/pdf/datasheets/imaging/MT9V011.pdf
-
-Feel free to submit us patches to improve the webcam support
-
-
-
-Cheers,
-Mauro
+-- 
+Lamarque V. Souza
+http://www.geographicguide.com/brazil.htm
+Linux User #57137 - http://counter.li.org/
