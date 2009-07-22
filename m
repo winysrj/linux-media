@@ -1,49 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:44147 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750928AbZG3OX6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2009 10:23:58 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	v4l2_linux <linux-media@vger.kernel.org>,
-	Dongsoo Kim <dongsoo45.kim@samsung.com>,
-	=?ks_c_5601-1987?B?udqw5rnO?= <kyungmin.park@samsung.com>,
-	"jm105.lee@samsung.com" <jm105.lee@samsung.com>,
-	=?ks_c_5601-1987?B?wMy8vLmu?= <semun.lee@samsung.com>,
-	=?ks_c_5601-1987?B?tOvAzrHi?= <inki.dae@samsung.com>,
-	=?ks_c_5601-1987?B?sejH/MHY?= <riverful.kim@samsung.com>
-Date: Thu, 30 Jul 2009 09:23:41 -0500
-Subject: RE: How to save number of times using memcpy?
-Message-ID: <A69FA2915331DC488A831521EAE36FE401450FB10B@dlee06.ent.ti.com>
-References: <5e9665e10907271756l114f6e6ekeefa04d976b95c66@mail.gmail.com>
- <200907292106.11862.laurent.pinchart@skynet.be>
- <A69FA2915331DC488A831521EAE36FE401450FAF9A@dlee06.ent.ti.com>
- <200907300056.32787.laurent.pinchart@skynet.be>
-In-Reply-To: <200907300056.32787.laurent.pinchart@skynet.be>
-Content-Language: en-US
-Content-Type: text/plain; charset="ks_c_5601-1987"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:38890 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755227AbZGVH6I (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jul 2009 03:58:08 -0400
+Date: Wed, 22 Jul 2009 00:57:57 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Trent Piepho <xyzzy@speakeasy.org>
+Cc: linux-media@vger.kernel.org, bugzilla-daemon@bugzilla.kernel.org,
+	bugme-daemon@bugzilla.kernel.org, bugzilla.kernel.org@boris64.net
+Subject: Re: [Bugme-new] [Bug 13709] New: b2c2-flexcop: no frontend driver
+ found for this B2C2/FlexCop adapter w/ kernel-2.6.31-rc2
+Message-Id: <20090722005757.54e9b4dd.akpm@linux-foundation.org>
+In-Reply-To: <Pine.LNX.4.58.0907212358510.11911@shell2.speakeasy.net>
+References: <bug-13709-10286@http.bugzilla.kernel.org/>
+	<20090720130412.b186e5f1.akpm@linux-foundation.org>
+	<Pine.LNX.4.58.0907201318440.11911@shell2.speakeasy.net>
+	<20090720134024.274fbb6c.akpm@linux-foundation.org>
+	<Pine.LNX.4.58.0907212358510.11911@shell2.speakeasy.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-TGF1cmVudCwNCg0KPFNuaXA+DQoNCj5JIGhhdmVuJ3QgdHJpZWQgdG8gbXlzZWxmLCBpdCdzIGp1
-c3QgYW4gaWRlYSB0aGF0IEknbSB0aHJvd2luZyBpbiB0aGUNCj5kaXNjdXNzaW9uLg0KT25lIG9m
-IG91ciBhcHBsaWNhdGlvbiBlbmdpbmVlciBoYWQgZG9uZSB0aGlzIGFuZCBpdCBzZWVtcyB0byB3
-b3JrIGZpbmUuIEJ1dCBoZSBtZW50aW9uZWQgc29tZSBpc3N1ZXMgd2l0aCBtbWFwIChkaWRuJ3Qg
-cmVtZW1iZXIgd2hhdCBpc3N1ZSBoZSBoYWQpLg0KPg0KPj4gVGhlIGRyaXZlciBpcyBiYXNpY2Fs
-bHkgd3JpdHRlbiB0byBhbGxvY2F0ZSBtdWx0aXBsZSBwb29scyBhbmQgYnVmZmVycw0KPnBlcg0K
-Pj4gcG9vbCB0byBzYXRpc2ZpZXMgdmFyaW91cyBtZW1vcnkgYWxsb2NhdGlvbiByZXF1aXJlbWVu
-dHMgaW5zaWRlIG91ciBUSQ0KPlNESy4NCj4NCg0KDQo8U25pcD4NCg0KPkFyZSB5b3UgcmVmZXJy
-aW5nIHRvIHRoZSBjbWVtayBkcml2ZXIgPyANClllcy4gQ01FTS4NCg0KSXQgc2VlbXMgdG8gcmVh
-bGx5IGJlIGEgcXVpY2sgaGFjaw0KPnRvDQo+c2hvcnQtY2lyY3VpdCBhbGwgdGhlIExpbnV4IGtl
-cm5lbCBtZW1vcnkgbWFuYWdlbWVudCBpbmZyYXN0cnVjdHVyZSBhbmQgbGV0DQo+dXNlcnNwYWNl
-IGFsbG9jYXRlIHBoeXNpY2FsIG1lbW9yeSBmcm9tIGEgcHJpdmF0ZSBwb29sIG9mIHJlc2VydmVk
-IFNEUkFNLg0KPkknZA0KPmJlIHF1aXRlIHN1cnByaXNlZCBpZiBzb21ldGhpbmcgbGlrZSB0aGF0
-IGV2ZXIgZW5kcyB1cCBpbiBtYWlubGluZS4NCj4NClJlYWxseS4gSSBsb29rZWQgYXQgdGhlIGNv
-ZGUgYW5kIGl0IHNlZW1zIHRvIGRvIGlvX3JlbWFwKCkgb24gdGhlIGVudGlyZSBtZW1vcnkgcmVn
-aW9uIGFuZCBkbyBtbWFwIG9mIHRoZSBidWZmZXIgdG8gdXNlciBzcGFjZS4gSSBhbSBub3Qgc3Vy
-ZSB3aHkgeW91IHRoaW5rIGl0IGlzIHNob3J0IGNpcmN1aXRpbmcgdGhlIGtlcm5lbCBtZW1vcnkg
-bWFuYWdlbWVudC4NCg0KPlJlZ2FyZHMsDQo+DQo+TGF1cmVudCBQaW5jaGFydA0KPg0KDQo=
+On Wed, 22 Jul 2009 00:19:00 -0700 (PDT) Trent Piepho <xyzzy@speakeasy.org> wrote:
+
+> On Mon, 20 Jul 2009, Andrew Morton wrote:
+> > On Mon, 20 Jul 2009 13:21:33 -0700 (PDT)
+> > Trent Piepho <xyzzy@speakeasy.org> wrote:
+> > > On Mon, 20 Jul 2009, Andrew Morton wrote:
+> > > I produced a patch that fixed this problem over a month ago,
+> > > http://www.linuxtv.org/hg/~tap/v4l-dvb/rev/748c762fcf3e
+> >
+> > Where is that patch now?  It isn't present in linux-next.
+> 
+> Mauro has how pulled it from me and so it will probably show up in his tree
+> soon.
+> 
+> > Also, is there any way of avoiding this?
+> >
+> > +#define FE_SUPPORTED(fe) (defined(CONFIG_DVB_##fe) || \
+> > + (defined(CONFIG_DVB_##fe##_MODULE) && defined(MODULE)))
+> >
+> > That's just way too tricky.  It expects all versions of the
+> > preprocessor to be correctly implemented (unlikely) and there are other
+> > tools like unifdef which want to parse kernel #defines.
+> 
+> What's so tricky about it?  A quick grep shows hundreds of uses of
+> ## for concatenation.
+
+Not the concatenation, of course.
+
+The worrisomie thing is the macro which expands to preprocessor
+statements.  It requires that the preprocessor run itself multiple
+times across the same line.  Or something.  I don't recall seeing that
+trick used elsewhere in the kernel and I have vague memories of it
+causing problems in the past.
+
+
