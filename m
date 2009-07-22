@@ -1,223 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:58653 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751565AbZGYPIi (ORCPT
+Received: from mail-bw0-f228.google.com ([209.85.218.228]:58017 "EHLO
+	mail-bw0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751929AbZGVUH2 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jul 2009 11:08:38 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv11 8/8] FM TX: si4713: Add document file
-Date: Sat, 25 Jul 2009 17:57:42 +0300
-Message-Id: <1248533862-20860-9-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1248533862-20860-8-git-send-email-eduardo.valentin@nokia.com>
-References: <1248533862-20860-1-git-send-email-eduardo.valentin@nokia.com>
- <1248533862-20860-2-git-send-email-eduardo.valentin@nokia.com>
- <1248533862-20860-3-git-send-email-eduardo.valentin@nokia.com>
- <1248533862-20860-4-git-send-email-eduardo.valentin@nokia.com>
- <1248533862-20860-5-git-send-email-eduardo.valentin@nokia.com>
- <1248533862-20860-6-git-send-email-eduardo.valentin@nokia.com>
- <1248533862-20860-7-git-send-email-eduardo.valentin@nokia.com>
- <1248533862-20860-8-git-send-email-eduardo.valentin@nokia.com>
+	Wed, 22 Jul 2009 16:07:28 -0400
+Received: by bwz28 with SMTP id 28so422468bwz.37
+        for <linux-media@vger.kernel.org>; Wed, 22 Jul 2009 13:07:27 -0700 (PDT)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Help Request: DM1105 STV0299 DVB-S PCI - Unable to tune
+Date: Wed, 22 Jul 2009 23:07:25 +0300
+Cc: Shaun Murdoch <scrauny@gmail.com>
+References: <79fc70d20907221001v3a56a142v445d9167197ecf0d@mail.gmail.com> <d2f7e03e0907221018t53077d2dq1a530670c79320f1@mail.gmail.com> <79fc70d20907221143l530692d3hfaaa1f9a9a4a6be@mail.gmail.com>
+In-Reply-To: <79fc70d20907221143l530692d3hfaaa1f9a9a4a6be@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200907222307.25701.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a document file for si4713 device driver.
-It describes the driver interfaces and organization.
+On 22 ÉÀÌÑ 2009 21:43:01 Shaun Murdoch wrote:
+> Hi,
+>
+> Thanks for the suggestion.
+>
+> I think there's something a bit weird with dvbtune. According to it's
+> man page the units for frequency (-f) are Hz. I am trying to tell it
+> 11.778 GHz - but you get errors if you do -f 11778000000. Equally you
+> also get errors if you assume it is MHz, i.e. -f 11778.   Anyway, if
+> it prints FE_HAS_SIGNAL and FE_HAS_CARRIER that must mean the
+> frequency I gave it is OK?
+>
+> In any case, scan doesn't work, nor does Kaffeine, so I don't think
+> it's that my use of dvbtune is wrong.
+>
+> Anyone got any other suggestions on what I can do to get this to lock?
+>
+> Thanks,
+> Shaun
+>
+> 2009/7/22 Seyyed Mohammad mohammadzadeh <softnhard.es@gmail.com>:
+> > Hello,
+> >
+> > I don't know what is the exact cause of your problem but I think you
+> > are tuning to a wrong frequency. You wrote:
+> >
+> >  dvbtune -f 1177800 -s 27500 -p v -m
+> >
+> > in which the frequency parameters has two extra zeros which cause the
+> > frequency to interpret as : 1,177,800 MHz !!!!!!!
+> >
+> > 2009/7/22 Shaun Murdoch <scrauny@gmail.com>
+> >
+> >> Hi everyone,
+> >> First post so please be gentle :-)
+> >> I was wondering if anyone can help me please - I am trying to get a
+> >> DVB-S PCI card working with Linux (Ubuntu 9.04). So far I can get the
+> >> card recognised by Linux, but it won't tune - Kaffeine does tell me that
+> >> there is 95% signal and 80% SNR, and I am using the same frequencies etc
+> >> that a standard Sky box uses. The card is very common on eBay so I am
+> >> sure there are plenty people who have tried this / would want this
+> >> working. Some details that I hope will help someone who knows more than
+> >> I do about this! The card is one of these:
+> >> http://cgi.ebay.co.uk/DVB-S-Satellite-TV-Tuner-Video-Capture-PCI-Card-Re
+> >>mote_W0QQitemZ130314645048QQcmdZViewItemQQptZUK_Computing_Computer_Compon
+> >>ents_Graphics_Video_TV_Cards_TW?hash=item1e575bae38&_trksid=p3286.c0.m14&
+> >>_trkparms=65:12|66:2|39:1|72:1690|293:1|294:50 lspci:
+> >> 03:09.0 Ethernet controller: Device 195d:1105 (rev 10)
+> >> My dmesg output - looks ok?:
+> >>
+> >> $ dmesg | grep DVB
+> >> [   12.174738] DVB: registering new adapter (dm1105)
+> >> [   12.839501] DVB: registering adapter 0 frontend 0 (ST STV0299
+> >> DVB-S)... [   12.839633] input: DVB on-card IR receiver as
+> >> /devices/pci0000:00/0000:00:1e.0/0000:03:09.0/input/input
+> >>
+> >> My output from scan - the problem:
+> >>
+> >> $ sudo scan -vvvvvv /usr/share/dvb/dvb-s/Astra-28.2E
+> >> scanning /usr/share/dvb/dvb-s/Astra-28.2E
+> >> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> >>
+> >> >>> tune to: 11778:v:0:27500
+> >>
+> >> DiSEqC: switch pos 0, 13V, hiband (index 2)
+> >> diseqc_send_msg:56: DiSEqC: e0 10 38 f1 00 00
+> >> DVB-S IF freq is 1178000
+> >>
+> >> >>> tuning status == 0x03
+> >> >>> tuning status == 0x03
+> >> >>> tuning status == 0x03
+> >> >>> tuning status == 0x03
+> >> >>> tuning status == 0x03
+> >> >>> tuning status == 0x03
+> >> >>> tuning status == 0x03
+> >> >>> tuning status == 0x03
+> >> >>> tuning status == 0x03
+> >> >>> tuning status == 0x03
+> >>
+> >> WARNING: >>> tuning failed!!!
+> >>
+> >> This is the correct satellite for my location (south UK), I believe.
+> >> Have tried plenty. Nothing locks. I'm using the latest liplianin drivers
+> >> - did a mercurial checkout and build today:
+> >>
+> >> $ modinfo dm1105
+> >> filename:      
+> >> /lib/modules/2.6.28-13-server/kernel/drivers/media/dvb/dm1105/dm1105.ko
+> >> license:        GPL
+> >> description:    SDMC DM1105 DVB driver
+> >> author:         Igor M. Liplianin <liplianin@me.by>
+> >> srcversion:     46C1B3C3627D1937F75D732
+> >> alias:          pci:v0000195Dd00001105sv*sd*bc*sc*i*
+> >> alias:          pci:v0000109Fd0000036Fsv*sd*bc*sc*i*
+> >> depends:        ir-common,dvb-core
+> >> vermagic:       2.6.28-13-server SMP mod_unload modversions
+> >> parm:           card:card type (array of int)
+> >> parm:           ir_debug:enable debugging information for IR decoding
+> >> (int) parm:           adapter_nr:DVB adapter numbers (array of short)
+> >>
+> >> Have also tried the latest v4l-dvb drivers and get exactly the same
+> >> tuning problems. Finally, dvbtune appears to say I have signal but
+> >> cannot lock:
+> >>
+> >> $ sudo dvbtune -f 1177800 -s 27500 -p v -m -tone 1 -vvvvvvvvvvv
+> >> [sudo] password for shaun:
+> >> Using DVB card "ST STV0299 DVB-S"
+> >> tuning DVB-S to L-Band:0, Pol:V Srate=27500000, 22kHz=on
+> >> polling....
+> >> Getting frontend event
+> >> FE_STATUS:
+> >> polling....
+> >> Getting frontend event
+> >> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER FE_HAS_VITERBI
+> >> polling....
+> >> Getting frontend event
+> >> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
+> >> polling....
+> >> Getting frontend event
+> >> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER FE_HAS_VITERBI
+> >> polling....
+> >> Getting frontend event
+> >> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
+> >> polling....
+> >> Getting frontend event
+> >> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER FE_HAS_VITERBI
+> >> polling....
+> >> Getting frontend event
+> >> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
+> >>
+> >> So I am thinking that this could be a driver issue? If the card has good
+> >> signal and SNR in Kaffeine, and dvbtune says it has signal and carrier -
+> >> but cannot lock? Please can someone help me debug this?
+> >> Thanks a lot!
+> >> Shaun
+> >>
+> >>
+> >>
+> >>
+> >>
+> >>
+> >>
+> >> _______________________________________________
+> >> linux-dvb users mailing list
+> >> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> >> linux-dvb@linuxtv.org
+> >> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Shaun,
+Did you read something on tuner can?
+Or maybe you take a picture of tuner can without cover.
+Also close look picture of card would be nice.
+Though definately demod is stv0299, but tuner chip may be different.
+I suspect it is stb6000, but such combination(stb6000 + stv0299) not supported in the driver now.
+Anyway, you can try modprobe dm1105 with parameter card=1 from s2-liplianin tree.
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- linux/Documentation/video4linux/si4713.txt |  176 ++++++++++++++++++++++++++++
- 1 files changed, 176 insertions(+), 0 deletions(-)
- create mode 100644 linux/Documentation/video4linux/si4713.txt
-
-diff --git a/linux/Documentation/video4linux/si4713.txt b/linux/Documentation/video4linux/si4713.txt
-new file mode 100644
-index 0000000..8b97fb6
---- /dev/null
-+++ b/linux/Documentation/video4linux/si4713.txt
-@@ -0,0 +1,176 @@
-+Driver for I2C radios for the Silicon Labs Si4713 FM Radio Transmitters
-+
-+Copyright (c) 2009 Nokia Corporation
-+Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
-+
-+
-+Information about the Device
-+============================
-+This chip is a Silicon Labs product. It is a I2C device, currently on 0Ã—63 address.
-+Basically, it has transmission and signal noise level measurement features.
-+
-+The Si4713 integrates transmit functions for FM broadcast stereo transmission.
-+The chip also allows integrated receive power scanning to identify low signal
-+power FM channels.
-+
-+The chip is programmed using commands and responses. There are also several
-+properties which can change the behavior of this chip.
-+
-+Users must comply with local regulations on radio frequency (RF) transmission.
-+
-+Device driver description
-+=========================
-+There are two modules to handle this device. One is a I2C device driver
-+and the other is a platform driver.
-+
-+The I2C device driver exports a v4l2-subdev interface to the kernel.
-+All properties can also be accessed by v4l2 extended controls interface, by
-+using the v4l2-subdev calls (g_ext_ctrls, s_ext_ctrls).
-+
-+The platform device driver exports a v4l2 radio device interface to user land.
-+So, it uses the I2C device driver as a sub device in order to send the user
-+commands to the actual device. Basically it is a wrapper to the I2C device driver.
-+
-+Applications can use v4l2 radio API to specify frequency of operation, mute state,
-+etc. But mostly of its properties will be present in the extended controls.
-+
-+When the v4l2 mute property is set to 1 (true), the driver will turn the chip off.
-+
-+Properties description
-+======================
-+
-+The properties can be accessed using v4l2 extended controls.
-+Here is an output from v4l2-ctl util:
-+/ # v4l2-ctl -d /dev/radio0 --all -L
-+Driver Info:
-+        Driver name   : radio-si4713
-+        Card type     : Silicon Labs Si4713 Modulator
-+        Bus info      :
-+        Driver version: 0
-+        Capabilities  : 0x00080800
-+                RDS Output
-+                Modulator
-+Audio output: 0 (FM Modulator Audio Out)
-+Frequency: 1408000 (88.000000 MHz)
-+Video Standard = 0x00000000
-+Modulator:
-+        Name                 : FM Modulator
-+        Capabilities         : 62.5 Hz stereo rds
-+        Frequency range      : 76.0 MHz - 108.0 MHz
-+        Subchannel modulation: mono+rds
-+
-+User Controls
-+
-+                           mute (bool) : default=1 value=0
-+
-+FM Radio Modulator Controls
-+
-+                 rds_program_id (int)  : min=0 max=65535 step=1 default=0 value=0
-+               rds_program_type (int)  : min=0 max=31 step=1 default=0 value=0
-+           rds_signal_deviation (int)  : min=0 max=90000 step=10 default=200 value=200 flags=slider
-+                    rds_ps_name (str)  : min=0 max=97 value='Si4713  '
-+                 rds_radio_text (str)  : min=0 max=385 value='Si4713  \r'
-+  audio_limiter_feature_enabled (bool) : default=1 value=1
-+     audio_limiter_release_time (int)  : min=250 max=102390 step=50 default=5010 value=5010 flags=slider
-+        audio_limiter_deviation (int)  : min=0 max=90000 step=10 default=66250 value=66250 flags=slider
-+audio_compression_feature_enabl (bool) : default=1 value=1
-+         audio_compression_gain (int)  : min=0 max=20 step=1 default=15 value=15 flags=slider
-+    audio_compression_threshold (int)  : min=-40 max=0 step=1 default=-40 value=-40 flags=slider
-+  audio_compression_attack_time (int)  : min=0 max=5000 step=500 default=0 value=0 flags=slider
-+ audio_compression_release_time (int)  : min=100000 max=1000000 step=100000 default=1000000 value=1000000 flags=slider
-+     pilot_tone_feature_enabled (bool) : default=1 value=1
-+           pilot_tone_deviation (int)  : min=0 max=90000 step=10 default=6750 value=6750 flags=slider
-+           pilot_tone_frequency (int)  : min=0 max=19000 step=1 default=19000 value=19000 flags=slider
-+          pre_emphasis_settings (menu) : min=0 max=2 default=1 value=1
-+               tune_power_level (int)  : min=0 max=120 step=1 default=88 value=88 flags=slider
-+         tune_antenna_capacitor (int)  : min=0 max=191 step=1 default=0 value=109 flags=slider
-+/ #
-+
-+Here is a summary of them:
-+
-+* Pilot is an audible tone sent by the device.
-+
-+pilot_frequency - Configures the frequency of the stereo pilot tone.
-+pilot_deviation - Configures pilot tone frequency deviation level.
-+pilot_enabled - Enables or disables the pilot tone feature.
-+
-+* The si4713 device is capable of applying audio compression to the transmitted signal.
-+
-+acomp_enabled - Enables or disables the audio dynamic range control feature.
-+acomp_gain - Sets the gain for audio dynamic range control.
-+acomp_threshold - Sets the threshold level for audio dynamic range control.
-+acomp_attack_time - Sets the attack time for audio dynamic range control.
-+acomp_release_time - Sets the release time for audio dynamic range control.
-+
-+* Limiter setups audio deviation limiter feature. Once a over deviation occurs,
-+it is possible to adjust the front-end gain of the audio input and always
-+prevent over deviation.
-+
-+limiter_enabled - Enables or disables the limiter feature.
-+limiter_deviation - Configures audio frequency deviation level.
-+limiter_release_time - Sets the limiter release time.
-+
-+* Tuning power
-+
-+power_level - Sets the output power level for signal transmission.
-+antenna_capacitor - This selects the value of antenna tuning capacitor manually
-+or automatically if set to zero.
-+
-+* RDS related
-+
-+rds_ps_name - Sets the RDS ps name field for transmission.
-+rds_radio_text - Sets the RDS radio text for transmission.
-+rds_pi - Sets the RDS PI field for transmission.
-+rds_pty - Sets the RDS PTY field for transmission.
-+
-+* Region related
-+
-+preemphasis - sets the preemphasis to be applied for transmission.
-+
-+RNL
-+===
-+
-+This device also has an interface to measure received noise level. To do that, you should
-+ioctl the device node. Here is an code of example:
-+
-+int main (int argc, char *argv[])
-+{
-+        struct si4713_rnl rnl;
-+        int fd = open("/dev/radio0", O_RDWR);
-+        int rval;
-+
-+        if (argc < 2)
-+                return -EINVAL;
-+
-+        if (fd < 0)
-+                return fd;
-+
-+        sscanf(argv[1], "%d", &rnl.frequency);
-+
-+        rval = ioctl(fd, SI4713_IOC_MEASURE_RNL, &rnl);
-+        if (rval < 0)
-+                return rval;
-+
-+        printf("received noise level: %d\n", rnl.rnl);
-+
-+        close(fd);
-+}
-+
-+The struct si4713_rnl and SI4713_IOC_MEASURE_RNL are defined under
-+include/media/si4713.h.
-+
-+Stereo/Mono and RDS subchannels
-+===============================
-+
-+The device can also be configured using the available sub channels for
-+transmission. To do that use S/G_MODULATOR ioctl and configure txsubchans properly.
-+Refer to v4l2-spec for proper use of this ioctl.
-+
-+Testing
-+=======
-+Testing is usually done with v4l2-ctl utility for managing FM tuner cards.
-+The tool can be found in v4l-dvb repository under v4l2-apps/util directory.
-+
-+Example for setting rds ps name:
-+# v4l2-ctl -d /dev/radio0 --set-ctrl=rds_ps_name="Dummy"
-+
--- 
-1.6.2.GIT
+Igor
 
