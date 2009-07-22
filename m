@@ -1,129 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:55601 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751597AbZG1A2Q (ORCPT
+Received: from mail-yx0-f197.google.com ([209.85.210.197]:40426 "EHLO
+	mail-yx0-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751092AbZGVPGN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jul 2009 20:28:16 -0400
-Date: Mon, 27 Jul 2009 21:28:11 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: acano@fastmail.fm
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] em28xx: enable usb audio for plextor px-tv100u
-Message-ID: <20090727212811.5b7dc041@pedra.chehab.org>
-In-Reply-To: <20090718173758.GA32708@localhost.localdomain>
-References: <20090718173758.GA32708@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Wed, 22 Jul 2009 11:06:13 -0400
+Received: by yxe35 with SMTP id 35so401547yxe.33
+        for <linux-media@vger.kernel.org>; Wed, 22 Jul 2009 08:06:13 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4A6729CF.8080804@powercraft.nl>
+References: <4A6666CC.7020008@eyemagnet.com>
+	 <829197380907211842p4c9886a3q96a8b50e58e63cbf@mail.gmail.com>
+	 <4A66E59E.9040502@powercraft.nl>
+	 <829197380907220748kab85c63g6ebbaad07084c255@mail.gmail.com>
+	 <4A6729CF.8080804@powercraft.nl>
+Date: Wed, 22 Jul 2009 11:06:12 -0400
+Message-ID: <829197380907220806p4ed7a02bw3beff7c6776a858a@mail.gmail.com>
+Subject: Re: offering bounty for GPL'd dual em28xx support
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Jelle de Jong <jelledejong@powercraft.nl>
+Cc: "linux-media@vger.kernel.org >> \"linux-media@vger.kernel.org\""
+	<linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Acano,
+On Wed, Jul 22, 2009 at 11:01 AM, Jelle de
+Jong<jelledejong@powercraft.nl> wrote:
+> Funky timing of those mails :D.
+>
+> I saw only after sending my mail that Steve was talking about analog and
+> that this is indeed different. Dual analog tuner support should be
+> possible right? Maybe with some other analog usb chipsets? I don't know
+> what the usb blocksize is or if they are isochronous transfers or bulk
+> or control.
+>
+> I assume the video must be uncompressed transferred over usb because the
+> decoding chip is on the usb device is not capable of doing compression
+> encoding after the analog video decoding? Are there usb devices that do
+> such tricks?
 
-Em Sat, 18 Jul 2009 13:37:58 -0400
-acano@fastmail.fm escreveu:
+There were older devices that did compression, mainly designed to fit
+the stream inside of 12Mbps USB.  However, they required onboard RAM
+to buffer the frame which added considerable cost (in addition to the
+overhead of doing the compression), and as a result pretty much all of
+the USB 2.0 designs I have seen do not do any on-chip compression.
 
-> @@ -1950,6 +1950,10 @@ void em28xx_pre_card_setup(struct em28xx
->  		/* FIXME guess */
->  		/* Turn on analog audio output */
->  		em28xx_write_reg(dev, EM28XX_R08_GPIO, 0xfd);
+The example which comes to mind is the Hauppauge Win-TV USB which uses
+the usbvision chipset.
 
-This is legacy. While here, it is better to move the gpio setup it to the
-proper place.
+Devin
 
-> +
-> +		/* enable audio 12mhz i2s */
-> +		em28xx_write_reg(dev, EM28XX_R0F_XCLK, 0xa7);
-
-Instead of writing directly at xclk, the best is to initialize its value at
-the boards struct.
-
-> +		dev->i2s_speed = 2048000;
->  		break;
->  	case EM2861_BOARD_KWORLD_PVRTV_300U:
->  	case EM2880_BOARD_KWORLD_DVB_305U:
-> diff -r 27ddf3fe0ed9 linux/drivers/media/video/em28xx/em28xx-video.c
-> --- a/linux/drivers/media/video/em28xx/em28xx-video.c	Wed Jun 17 04:38:12 2009 +0000
-> +++ b/linux/drivers/media/video/em28xx/em28xx-video.c	Sat Jul 18 13:32:04 2009 -0400
-> @@ -1087,9 +1087,12 @@ static int vidioc_s_ctrl(struct file *fi
->  
->  	mutex_lock(&dev->lock);
->  
-> -	if (dev->board.has_msp34xx)
-> +	if (dev->board.has_msp34xx) {
-> +		/*FIXME hack to unmute usb audio stream */
-> +		em28xx_set_ctrl(dev, ctrl);
-
-Hmm... this function were removed. In thesis, you shouldn't need to do anything
-to unmute.
-
-> +
->  		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_ctrl, ctrl);
-> -	else {
-> +	} else {
->  		rc = 1;
->  		for (i = 0; i < ARRAY_SIZE(em28xx_qctrl); i++) {
->  			if (ctrl->id == em28xx_qctrl[i].id) {
-
-Could you please try the enclosed patch and see if this is enough to fix for
-Plextor? If so, please send me a Tested-by: tag for me to add it at 2.6.31 fix
-patches.
-
-Cheers,
-Mauro
-
-em28xx: fix audio on Plextor PX-TV100U
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-
-diff --git a/linux/drivers/media/video/em28xx/em28xx-cards.c b/linux/drivers/media/video/em28xx/em28xx-cards.c
---- a/linux/drivers/media/video/em28xx/em28xx-cards.c
-+++ b/linux/drivers/media/video/em28xx/em28xx-cards.c
-@@ -639,22 +639,27 @@ struct em28xx_board em28xx_boards[] = {
- 	},
- 	[EM2861_BOARD_PLEXTOR_PX_TV100U] = {
- 		.name         = "Plextor ConvertX PX-TV100U",
--		.valid        = EM28XX_BOARD_NOT_VALIDATED,
- 		.tuner_type   = TUNER_TNF_5335MF,
-+		.xclk         = EM28XX_XCLK_I2S_MSB_TIMING |
-+				EM28XX_XCLK_FREQUENCY_12MHZ,
- 		.tda9887_conf = TDA9887_PRESENT,
- 		.decoder      = EM28XX_TVP5150,
-+		.has_msp34xx  = 1,
- 		.input        = { {
- 			.type     = EM28XX_VMUX_TELEVISION,
- 			.vmux     = TVP5150_COMPOSITE0,
- 			.amux     = EM28XX_AMUX_LINE_IN,
-+			.gpio     = pinnacle_hybrid_pro_analog,
- 		}, {
- 			.type     = EM28XX_VMUX_COMPOSITE1,
- 			.vmux     = TVP5150_COMPOSITE1,
- 			.amux     = EM28XX_AMUX_LINE_IN,
-+			.gpio     = pinnacle_hybrid_pro_analog,
- 		}, {
- 			.type     = EM28XX_VMUX_SVIDEO,
- 			.vmux     = TVP5150_SVIDEO,
- 			.amux     = EM28XX_AMUX_LINE_IN,
-+			.gpio     = pinnacle_hybrid_pro_analog,
- 		} },
- 	},
- 
-@@ -1948,9 +1953,8 @@ void em28xx_pre_card_setup(struct em28xx
- 	/* request some modules */
- 	switch (dev->model) {
- 	case EM2861_BOARD_PLEXTOR_PX_TV100U:
--		/* FIXME guess */
--		/* Turn on analog audio output */
--		em28xx_write_reg(dev, EM28XX_R08_GPIO, 0xfd);
-+		/* Sets the msp34xx I2S speed */
-+		dev->i2s_speed = 2048000;
- 		break;
- 	case EM2861_BOARD_KWORLD_PVRTV_300U:
- 	case EM2880_BOARD_KWORLD_DVB_305U:
-
-
-
-
-Cheers,
-Mauro
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
