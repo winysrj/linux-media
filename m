@@ -1,53 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ozgw.promptu.com ([203.144.27.9]:1469 "EHLO
-	surfers.oz.promptu.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751406AbZGVBsY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jul 2009 21:48:24 -0400
-Received: from pacific.oz.agile.tv (pacific.oz.promptu.com [192.168.16.16])
-	by surfers.oz.promptu.com (Postfix) with SMTP id 2D59BA65E6
-	for <linux-media@vger.kernel.org>; Wed, 22 Jul 2009 11:48:06 +1000 (EST)
-Date: Wed, 22 Jul 2009 11:48:06 +1000
-From: Bob Hepple <bhepple@promptu.com>
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH] dvb: make digital side of pcHDTV HD-3000 functional
- again
-Message-Id: <20090722114806.39c8c1ea.bhepple@promptu.com>
-In-Reply-To: <200907212135.47557.jarod@redhat.com>
-References: <200907201020.47581.jarod@redhat.com>
-	<200907201650.23749.jarod@redhat.com>
-	<4A65CF79.1040703@kernellabs.com>
-	<200907212135.47557.jarod@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp4-g21.free.fr ([212.27.42.4]:41302 "EHLO smtp4-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752426AbZGVX6O (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jul 2009 19:58:14 -0400
+Message-ID: <4A67A78B.8080701@zerezo.com>
+Date: Thu, 23 Jul 2009 01:58:03 +0200
+From: Antoine Jacquet <royale@zerezo.com>
+MIME-Version: 1.0
+To: Lamarque Vieira Souza <lamarque@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, video4linux-list@redhat.com
+Subject: Re: [PATCH] Implement changing resolution on the fly for zr364xx
+ driver
+References: <200907152054.56581.lamarque@gmail.com> <200907211942.02503.lamarque@gmail.com> <4A67690C.4030401@zerezo.com> <200907221654.51859.lamarque@gmail.com>
+In-Reply-To: <200907221654.51859.lamarque@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 21 Jul 2009 21:35:47 -0400
-Jarod Wilson <jarod@redhat.com> wrote:
+Hi,
 
-> So its either I have *two* machines with bad, but only slightly bad,
-> and in the same way, PCI slots which seem to work fine with any other
-> card I have (uh, unlikely), 
+Lamarque Vieira Souza wrote:
+> Em Quarta-feira 22 Julho 2009, Antoine Jacquet escreveu:
+>> Hi,
+>>
+>> Lamarque Vieira Souza wrote:
+>>> 	I have made some changes to the patch:
+>> Since I already included your previous patch and sent a pull request to
+>> Mauro, could you send a patch against my current tree:
+>> 	http://linuxtv.org/hg/~ajacquet/zr364xx/
+>>
+>> Thanks,
+>>
+>> Antoine
+> 
+> Here it is
 
-... not unlikely if the two machines are similar - many motherboards
-have borked PCI slots in one way or another - design faults or
-idiosyncratic interpretation of the PCI standard.  I've seen it with
-HP, Compaq, Digital m/bs just to name big names, smaller mfrs also get
-it wrong. Sometimes just using another slot helps. Sometimes you need
-to try a totally different motherboard.
+Thanks, I pushed the patch to my tree.
+Sorry BTW, I just noticed the incremental version was already in your 
+first email.
 
-Maybe wrong to 'blame' the m/b mfr - it could just as easily be an
-out-of-spec or creatively interpreted PCI standard on the card.
+Regards,
 
-
-
-Cheers
-
-
-Bob
+Antoine
 
 -- 
-Bob Hepple <bhepple@promptu.com>
-ph: 07-5584-5908 Fx: 07-5575-9550
+Antoine "Royale" Jacquet
+http://royale.zerezo.com
