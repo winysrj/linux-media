@@ -1,51 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:10716 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754238AbZGSM7n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jul 2009 08:59:43 -0400
-Received: from jdelvare.pck.nerim.net ([62.212.121.182] helo=hyperion.delvare)
-	by services.gcu-squad.org (GCU Mailer Daemon) with esmtpsa id 1MSX7E-00013T-1s
-	(TLSv1:AES256-SHA:256)
-	(envelope-from <khali@linux-fr.org>)
-	for linux-media@vger.kernel.org; Sun, 19 Jul 2009 16:11:48 +0200
-Date: Sun, 19 Jul 2009 14:59:36 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Subject: ir-kbd-i2c: Drop irrelevant inline keywords
-Message-ID: <20090719145936.0c21917f@hyperion.delvare>
+Received: from mail1.radix.net ([207.192.128.31]:56469 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751511AbZGVBPe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jul 2009 21:15:34 -0400
+Subject: [PATCH v2 0/4] ir-kbd-i2c, cx18: IR devices for CX23418 boards
+From: Andy Walls <awalls@radix.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Cc: Jean Delvare <khali@linux-fr.org>, Mark Lord <lkml@rtr.ca>,
+	Jarod Wilson <jarod@redhat.com>, Mike Isely <isely@pobox.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Janne Grunau <j@jannau.net>
+Content-Type: text/plain
+Date: Tue, 21 Jul 2009 21:16:47 -0400
+Message-Id: <1248225407.3191.46.camel@palomino.walls.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Functions which are referenced by their address can't be inlined by
-definition.
+Mauro,
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
----
- linux/drivers/media/video/ir-kbd-i2c.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+The following revised patch series, incorporating comments I received,
+will allow the cx18 bridge driver to properly set up supported IR
+devices to allow use by ir-kbd-i2c, lirc_i2c, lirc_pvr150, and
+lirc_zilog for both old and new (>= 2.6.30) kernels.
 
---- v4l-dvb.orig/linux/drivers/media/video/ir-kbd-i2c.c	2009-07-19 14:30:29.000000000 +0200
-+++ v4l-dvb/linux/drivers/media/video/ir-kbd-i2c.c	2009-07-19 14:50:30.000000000 +0200
-@@ -127,12 +127,12 @@ static int get_key_haup_common(struct IR
- 	return 1;
- }
- 
--static inline int get_key_haup(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
-+static int get_key_haup(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- {
- 	return get_key_haup_common (ir, ir_key, ir_raw, 3, 0);
- }
- 
--static inline int get_key_haup_xvr(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
-+static int get_key_haup_xvr(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- {
- 	return get_key_haup_common (ir, ir_key, ir_raw, 6, 3);
- }
+They are:
 
+1/4: ir-kbd-i2c: Remove superfulous inlines
+2/4: ir-kbd-i2c: Allow use of ir-kdb-i2c internal get_key funcs and set ir_type
+3/4: cx18: Add i2c initialization for Z8F0811/Hauppage IR transceivers
+4/4: ir-kbd-i2c: Add support for Z8F0811/Hauppage IR transceivers
 
--- 
-Jean Delvare
+I will *not* add these to a repository and send a pull request, unless
+necessary.
+
+Once these changes are merged into the main v4l-dvb repository, I will
+write a patch to fix up ivtv for boards with Zilog Z8F0811 based IR.
+
+Regards,
+Andy
+
