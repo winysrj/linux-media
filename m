@@ -1,36 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fmmailgate01.web.de ([217.72.192.221]:34802 "EHLO
-	fmmailgate01.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751993AbZGRQvE convert rfc822-to-8bit (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:50819 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750847AbZGVSAC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jul 2009 12:51:04 -0400
-Received: from smtp06.web.de (fmsmtp06.dlan.cinetic.de [172.20.5.172])
-	by fmmailgate01.web.de (Postfix) with ESMTP id 525DA10C51DB6
-	for <linux-media@vger.kernel.org>; Sat, 18 Jul 2009 18:51:03 +0200 (CEST)
-Received: from [217.228.192.251] (helo=[172.16.99.2])
-	by smtp06.web.de with asmtp (TLSv1:AES256-SHA:256)
-	(WEB.DE 4.110 #277)
-	id 1MSD7n-0002OE-00
-	for linux-media@vger.kernel.org; Sat, 18 Jul 2009 18:51:03 +0200
-Message-ID: <4A61FD76.8010409@magic.ms>
-Date: Sat, 18 Jul 2009 18:51:02 +0200
-From: emagick@magic.ms
+	Wed, 22 Jul 2009 14:00:02 -0400
+From: Laurent Pinchart <laurent.pinchart@skynet.be>
+To: linux-media@vger.kernel.org, linux-uvc-devel@lists.berlios.de
+Subject: [PATCH 0/2] uvcvideo: Multiple streaming interfaces support
+Date: Wed, 22 Jul 2009 19:58:11 +0200
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Cinergy T2 stopped working with kernel 2.6.30
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200907221958.12027.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-My Cinergy T2 (T²) doesn't work with kernels 2.6.30, 2.6.30.1, and 2.6.31-rc3,
-but it works with kernel 2.6.29. The kernel logs
+Hi everybody,
 
-    dvb-usb: recv bulk message failed: -110
+this patch series introduces support for multiple streaming interfaces in a 
+single UVC device. This will mainly be used by devices that can stream 
+compressed and preview video concurrently (think about MPEG2-TS and MJPEG), 
+but could also accommodate USB-to-USB devices such as hardware codecs.
 
-and the application (I've tried mythtv and mplayer) trying to access the DVB receiver
-times out when trying to tune to a channel.
+I've tested the patches here and haven't noticed any issue (otherwise I 
+wouldn't be sending them :-)). However, testing with devices exposing multiple 
+streaming interfaces was limited as I don't own any such device.
 
-Is there anyone for whom dvb_usb_cinergyT2 of kernel 2.6.30 or later does work?
+Before sending them to mainline, I would like to make sure the patches don't 
+introduce any regression for the single streaming interface case. Please patch 
+your V4L tree (you might need the uvcvideo tree until Mauro pulls the two last 
+changesets I've submitted) and report bugs and other issues.
 
+Mauro, I'd like this to go to 2.6.32. If nobody reports any blocking issue, 
+can you apply the patches before submitting your 2.6.32 pull request to Linus 
+? Depending on the timing I might apply them to my tree and ask you to pull if 
+I get enough positive feedback before the merge window opens.
+
+Regards,
+
+Laurent Pinchart
 
