@@ -1,56 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f214.google.com ([209.85.219.214]:33654 "EHLO
-	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750933AbZG3Q0N convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:54799 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751467AbZGVOsK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2009 12:26:13 -0400
-Received: by ewy10 with SMTP id 10so882247ewy.37
-        for <linux-media@vger.kernel.org>; Thu, 30 Jul 2009 09:26:12 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4A719F60.7020205@kernellabs.com>
-References: <e3538fbd0907292246k2c75a950u38c2c91d5190f4f7@mail.gmail.com>
-	 <4A719F60.7020205@kernellabs.com>
-Date: Thu, 30 Jul 2009 12:26:12 -0400
-Message-ID: <37219a840907300926x49b6a84bx7591c4a4036d7641@mail.gmail.com>
-Subject: Re: [PATCH] cx23885-417: fix setting tvnorms
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Steven Toth <stoth@kernellabs.com>
-Cc: Joseph Yasi <joe.yasi@gmail.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 22 Jul 2009 10:48:10 -0400
+Date: Wed, 22 Jul 2009 11:48:01 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Jelle de Jong <jelledejong@powercraft.nl>
+Cc: "linux-media@vger.kernel.org >> \"linux-media@vger.kernel.org\""
+	<linux-media@vger.kernel.org>
+Subject: Re: offering bounty for GPL'd dual em28xx support
+Message-ID: <20090722114801.6b4ea47d@pedra.chehab.org>
+In-Reply-To: <4A66E59E.9040502@powercraft.nl>
+References: <4A6666CC.7020008@eyemagnet.com>
+	<829197380907211842p4c9886a3q96a8b50e58e63cbf@mail.gmail.com>
+	<4A66E59E.9040502@powercraft.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 30, 2009 at 9:25 AM, Steven Toth<stoth@kernellabs.com> wrote:
-> On 7/30/09 1:46 AM, Joseph Yasi wrote:
->>
->> Currently, the VIDIOC_S_STD ioctl just returns -EINVAL regardless of
->> the norm passed.  This patch sets cx23885_mpeg_template.tvnorms and
->> cx23885_mpeg_template.current_norm so that the VIDIOC_S_STD will work.
->>
->> Signed-off-by: Joseph A. Yasi<joe.yasi@gmail.com>
->
-> Joseph, thank you for raising this.
->
-> We have this change and a few others already stacked up in this tree:
->
-> http://www.kernellabs.com/hg/~mkrufky/cx23885-api/rev/0391fb200be2
->
-> The end result is to get MythTV using the HVR1800 analog encoder correctly.
->
-> The tree itself is considered experimental but during testing we had noticed
-> the same issue, so, again, thank you for raising the same issue. Two people
-> reporting the same issue is always better than none.
->
-> - Steve
+Em Wed, 22 Jul 2009 12:10:38 +0200
+Jelle de Jong <jelledejong@powercraft.nl> escreveu:
 
-I will break out this patch from the huge patch-mess in my cx23885-api
-tree so that it can be merged separately from the other less-obvious
-fixes.
+> Devin Heitmueller wrote:
+> 
+> <snip>
+> 
+> > The issue occurs with various different drivers.  Basically the issue
+> > is the device attempts to reserve a certain amount of bandwidth on the
+> > USB bus for the isoc stream, and in the case of analog video at
+> > 640x480 this adds up to about 200Mbps.  As a result, connecting
+> > multiple devices can result in exceeding the available bandwidth on
+> > the USB bus.
+> > 
+> > Depending on your how many devices you are trying to connect, what
+> > your target capture resolution is, and whether you can put each device
+> > on its own USB bus will dictate what solution you can go with.
+> 
+> Hi all,
+> 
+> So I felt like doing  a field test, with my dvb-t test system.
+> 
+> Bus 001 Device 008: ID 2040:6502 Hauppauge WinTV HVR-900
+> Bus 001 Device 007: ID 2304:0226 Pinnacle Systems, Inc. [hex] PCTV 330e
+> Bus 001 Device 005: ID 0b05:173f ASUSTek Computer, Inc.
+> Bus 001 Device 003: ID 2304:0236 Pinnacle Systems, Inc. [hex]
+> Bus 001 Device 002: ID 15a4:9016
+> 
+> I have now three devices with dvb-t channels running with different
+> channels and audio on an atom based cpu without problems.
+> 
+> two:
+> dvb-usb-dib0700
+> 
+> and one:
+> dvb-usb-af9015
+> 
+> the dvb-usb-af9015 takes way more cpu interrupts because of the usb
+> block size.
+> 
+> prove:
+> http://imagebin.ca/img/xM9Q7_A.jpg
+> 
+> I will be demonstrating this at har2009 (see demonstration village)
+> 
+> Devin could you login onto the dvb-t test system and see if you can get
+> those em28xx device running with your new code?
+> 
+> I will probably make an other test system with some more cpu power to
+> see if even more usb devices are possible, or I may use my nice powerful
+> multiseat quad core system for it.
+> 
+> Best regards,
+> 
+> Jelle de Jong
 
-Thanks again for pointing it out -- I'll see this fix gets merged
-sooner than later ;-)
+Jelle,
+
+DVB-T is less consuming than analog, since the streams are mpeg compressed. The
+issue with em28xx is that, on analog mode, all data come uncompressed. So, the
+worse case is a NTSC stream with 16 bit YUY2 frame with using 720x480x30x2 Mbps (e. g.
+207 Mbps) for the payload, plus some additional bandwidth for the transport
+headers. On HD, mpeg stream are up to 23 Mbps on DTV systems (ISDB full-seg is the
+worse case on DTV).
+
+So, analog demands about 9x more bandwidth than digital at USB bus.
+
+
 
 Cheers,
-
-Mike
+Mauro
