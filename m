@@ -1,43 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rtr.ca ([76.10.145.34]:34717 "EHLO mail.rtr.ca"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752448AbZGTCSt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jul 2009 22:18:49 -0400
-Message-ID: <4A63D407.6090109@rtr.ca>
-Date: Sun, 19 Jul 2009 22:18:47 -0400
-From: Mark Lord <lkml@rtr.ca>
+Received: from ey-out-2122.google.com ([74.125.78.25]:61151 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751865AbZGVR2Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jul 2009 13:28:24 -0400
+Received: by ey-out-2122.google.com with SMTP id 9so152590eyd.37
+        for <linux-media@vger.kernel.org>; Wed, 22 Jul 2009 10:28:23 -0700 (PDT)
+Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Steven Toth <stoth@linuxtv.org>, linux-media@vger.kernel.org,
-	Linux Kernel <linux-kernel@vger.kernel.org>
-Subject: Re: Regression 2.6.31: xc5000 no longer works with Myth-0.21-fixes
- 	branch
-References: <4A631C8F.7000002@rtr.ca>	 <829197380907190706i686fd1afwdca0d8be648129@mail.gmail.com>	 <4A6337C1.6080104@rtr.ca> <4A63416E.2070103@rtr.ca>	 <4A63A15F.8040804@rtr.ca> <829197380907191812v185e0869j2e5fa47483a4de4c@mail.gmail.com>
-In-Reply-To: <829197380907191812v185e0869j2e5fa47483a4de4c@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
+Subject: [PATCH] gspca - sn9c20x: Fix up i2c_r functions
+Message-Id: <1de19b8eee9846374757.1248283699@ubuntu.sys76.lan>
+Date: Wed, 22 Jul 2009 13:28:19 -0400
+From: Brian Johnson <brijohn@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Jean-Francois Moine <moinejf@free.fr>,
+	Brian Johnson <brijohn@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
->
-> Yeah, the situation with the seven second firmware load time is well
-> known.  It's actually a result of the i2c's implementation in the
-> au0828 hardware not properly supporting i2c clock stretching.  Because
-> of some bugs in the hardware, I have it clocked down to something like
-> 30KHz as a workaround.  I spent about a week investigating the i2c bus
-> issue with my logic analyzer, and had to move on to other things.  I
-> documented the gory details here back in March if you really care:
-..
+Fixes the following issues
 
->From your livejournal comments, it sounded like the slow clock might
-not be necessary until *after* the firmware transfer.
+* use i2c_w instead of reg_w
+* return error on failure
+* read the correct number of bytes
 
-Mmm.. I wonder if perhaps a higher clock speed could be used
-during the firmware download, and then switch to the slower 30KHz
-speed afterward ?
+Signed-off-by: Brian Johnson <brijohn@gmail.com>
 
-This could reduce the firmware transfer to a couple of seconds,
-much better than the current 6-7 second pause.
-
-Cheers
+diff --git a/linux/drivers/media/video/gspca/sn9c20x.c b/linux/drivers/media/video/gspca/sn9c20x.c
+--- a/linux/drivers/media/video/gspca/sn9c20x.c
++++ b/linux/drivers/media/video/gspca/sn9c20x.c
+@@ -1099,12 +1099,12 @@
+ 		reg_r(gspca_dev, 0x10c0, 1);
+ 		if (gspca_dev->usb_buf[0] & 0x04) {
+ 			if (gspca_dev->usb_buf[0] & 0x08)
+-				return -1;
++				return -EIO;
+ 			return 0;
+ 		}
+ 		msleep(1);
+ 	}
+-	return -1;
++	return -EIO;
+ }
+ 
+ int i2c_w1(struct gspca_dev *gspca_dev, u8 reg, u8 val)
+@@ -1155,7 +1155,7 @@
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 	u8 row[8];
+ 
+-	row[0] = 0x81 | 0x10;
++	row[0] = 0x81 | (1 << 4);
+ 	row[1] = sd->i2c_addr;
+ 	row[2] = reg;
+ 	row[3] = 0;
+@@ -1163,14 +1163,15 @@
+ 	row[5] = 0;
+ 	row[6] = 0;
+ 	row[7] = 0x10;
+-	reg_w(gspca_dev, 0x10c0, row, 8);
+-	msleep(1);
+-	row[0] = 0x81 | (2 << 4) | 0x02;
++	if (i2c_w(gspca_dev, row) < 0)
++		return -EIO;
++	row[0] = 0x81 | (1 << 4) | 0x02;
+ 	row[2] = 0;
+-	reg_w(gspca_dev, 0x10c0, row, 8);
+-	msleep(1);
+-	reg_r(gspca_dev, 0x10c2, 5);
+-	*val = gspca_dev->usb_buf[3];
++	if (i2c_w(gspca_dev, row) < 0)
++		return -EIO;
++	if (reg_r(gspca_dev, 0x10c2, 5) < 0)
++		return -EIO;
++	*val = gspca_dev->usb_buf[4];
+ 	return 0;
+ }
+ 
+@@ -1179,7 +1180,7 @@
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 	u8 row[8];
+ 
+-	row[0] = 0x81 | 0x10;
++	row[0] = 0x81 | (1 << 4);
+ 	row[1] = sd->i2c_addr;
+ 	row[2] = reg;
+ 	row[3] = 0;
+@@ -1187,14 +1188,15 @@
+ 	row[5] = 0;
+ 	row[6] = 0;
+ 	row[7] = 0x10;
+-	reg_w(gspca_dev, 0x10c0, row, 8);
+-	msleep(1);
+-	row[0] = 0x81 | (3 << 4) | 0x02;
++	if (i2c_w(gspca_dev, row) < 0)
++		return -EIO;
++	row[0] = 0x81 | (2 << 4) | 0x02;
+ 	row[2] = 0;
+-	reg_w(gspca_dev, 0x10c0, row, 8);
+-	msleep(1);
+-	reg_r(gspca_dev, 0x10c2, 5);
+-	*val = (gspca_dev->usb_buf[2] << 8) | gspca_dev->usb_buf[3];
++	if (i2c_w(gspca_dev, row) < 0)
++		return -EIO;
++	if (reg_r(gspca_dev, 0x10c2, 5) < 0)
++		return -EIO;
++	*val = (gspca_dev->usb_buf[3] << 8) | gspca_dev->usb_buf[4];
+ 	return 0;
+ }
+ 
