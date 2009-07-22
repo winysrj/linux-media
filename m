@@ -1,70 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38358 "EHLO comal.ext.ti.com"
+Received: from eyemagnet.com ([202.160.117.202]:46892 "EHLO eyemagnet.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753386AbZG2TMc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jul 2009 15:12:32 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Laurent Pinchart <laurent.pinchart@skynet.be>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	v4l2_linux <linux-media@vger.kernel.org>,
-	Dongsoo Kim <dongsoo45.kim@samsung.com>,
-	=?ks_c_5601-1987?B?udqw5rnO?= <kyungmin.park@samsung.com>,
-	"jm105.lee@samsung.com" <jm105.lee@samsung.com>,
-	=?ks_c_5601-1987?B?wMy8vLmu?= <semun.lee@samsung.com>,
-	=?ks_c_5601-1987?B?tOvAzrHi?= <inki.dae@samsung.com>,
-	=?ks_c_5601-1987?B?sejH/MHY?= <riverful.kim@samsung.com>
-Date: Wed, 29 Jul 2009 14:12:16 -0500
-Subject: RE: How to save number of times using memcpy?
-Message-ID: <A69FA2915331DC488A831521EAE36FE401450FAE42@dlee06.ent.ti.com>
-References: <5e9665e10907271756l114f6e6ekeefa04d976b95c66@mail.gmail.com>
- <200907290926.41488.laurent.pinchart@skynet.be>
- <A69FA2915331DC488A831521EAE36FE401450FADF1@dlee06.ent.ti.com>
- <200907292106.11862.laurent.pinchart@skynet.be>
-In-Reply-To: <200907292106.11862.laurent.pinchart@skynet.be>
-Content-Language: en-US
-Content-Type: text/plain; charset="ks_c_5601-1987"
-Content-Transfer-Encoding: base64
+	id S1752455AbZGVB2T (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jul 2009 21:28:19 -0400
+Received: from [192.168.1.192] (unknown [64.81.73.170])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by eyemagnet.com (Postfix) with ESMTP id E7AAE8223
+	for <linux-media@vger.kernel.org>; Wed, 22 Jul 2009 13:09:34 +1200 (NZST)
+Message-ID: <4A6666CC.7020008@eyemagnet.com>
+Date: Tue, 21 Jul 2009 18:09:32 -0700
+From: Steve Castellotti <sc@eyemagnet.com>
 MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: offering bounty for GPL'd dual em28xx support
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZyb206IExhdXJlbnQgUGluY2hhcnQg
-W21haWx0bzpsYXVyZW50LnBpbmNoYXJ0QHNreW5ldC5iZV0NCj5TZW50OiBXZWRuZXNkYXksIEp1
-bHkgMjksIDIwMDkgMzowNiBQTQ0KPlRvOiBLYXJpY2hlcmksIE11cmFsaWRoYXJhbg0KPkNjOiBN
-YXVybyBDYXJ2YWxobyBDaGVoYWI7IERvbmdzb28sIE5hdGhhbmllbCBLaW07IHY0bDJfbGludXg7
-IERvbmdzb28gS2ltOw0KPrnasOa5zjsgam0xMDUubGVlQHNhbXN1bmcuY29tOyDAzLy8ua47ILTr
-wM6x4jsgsejH/MHYDQo+U3ViamVjdDogUmU6IEhvdyB0byBzYXZlIG51bWJlciBvZiB0aW1lcyB1
-c2luZyBtZW1jcHk/DQo+DQo+T24gV2VkbmVzZGF5IDI5IEp1bHkgMjAwOSAyMDozNjoyNSBLYXJp
-Y2hlcmksIE11cmFsaWRoYXJhbiB3cm90ZToNCj4+IDxTbmlwPg0KPj4NCj4+ID4gPiB0aGUgZGV0
-YWlscywgYnV0IEkgdGhpbmsgdGhlIHN0cmF0ZWd5IHdlcmUgdG8gcGFzcyBhIHBhcmFtZXRlciBk
-dXJpbmcNCj4+ID4gPiBrZXJuZWwgYm9vdCwgZm9yIGl0IHRvIHJlc2VydmUgc29tZSBhbW91bnQg
-b2YgbWVtb3J5IHRoYXQgd291bGQgbGF0ZXINCj5iZQ0KPj4gPiA+IGNsYWltZWQgYnkgdGhlIFY0
-TCBkZXZpY2UuDQo+PiA+DQo+PiA+IEl0J3MgYWN0dWFsbHkgYSBwcmV0dHkgY29tbW9uIHN0cmF0
-ZWd5IGZvciBlbWJlZGRlZCBoYXJkd2FyZSAodGhlDQo+PiA+ICJnZW5lcmFsLSBwdXJwb3NlIG1h
-Y2hpbmUiIGNhc2UgZG9lc24ndCAtIGZvciBub3cgLSBtYWtlIG11Y2ggc2Vuc2Ugb24NCj5hbg0K
-Pj4gPiBPTUFQIHByb2Nlc3NvciBmb3IgaW5zdGFuY2UpLiBBIG1lbW9yeSBjaHVuayB3b3VsZCBi
-ZSByZXNlcnZlZCBhdCBib290DQo+PiA+IHRpbWUgYXQgdGhlIGVuZCBvZiB0aGUgcGh5c2ljYWwg
-bWVtb3J5IGJ5IHBhc3NpbmcgdGhlIG1lbT0gcGFyYW1ldGVyIHRvDQo+PiA+IHRoZSBrZXJuZWwu
-IFZpZGVvIGFwcGxpY2F0aW9ucyB3b3VsZCB0aGVuIG1tYXAoKSAvZGV2L21lbSB0byBhY2Nlc3MN
-Cj50aGF0DQo+PiA+IG1lbW9yeSAoSSdkIGhhdmUgdG8gY2hlY2sgdGhlIGRldGFpbHMgb24gdGhh
-dCBvbmUsIHRoYXQncyBmcm9tIG15DQo+bWVtb3J5KSwNCj4+ID4gYW5kIHBhc3MgdGhlIHBvaW50
-ZXIgdGhlIHRoZSB2NGwyIGRyaXZlciB1c2luZyB1c2VycHRyIEkvTy4gVGhpcw0KPnJlcXVpcmVz
-DQo+PiA+IHJvb3QgcHJpdmlsZWdlcywgYW5kIHBlb3BsZSB1c3VhbGx5IGRvbid0IGNhcmUgYWJv
-dXQgdGhhdCB3aGVuIHRoZQ0KPmZpbmFsDQo+PiA+IGFwcGxpY2F0aW9uIGlzIGEgY2FtZXJhICh1
-c3VhbGx5IGVtYmVkZGVkIGluIHNvbWUgZGV2aWNlIGxpa2UgYSBtZWRpYQ0KPj4gPiBwbGF5ZXIs
-IGFuIElQIGNhbWVyYSwgLi4uKS4NCj4+DQo+PiBZZXMuIFRoaXMgaXMgZXhhY3RseSB3aGF0IHdl
-IGFyZSBkb2luZyBpbiB0aGUgY2FzZSBvZiBkYXZpbmNpIHByb2Nlc3NvcnMuDQo+PiBXZSBoYXZl
-IGEga2VybmVsIG1vZHVsZSB0aGF0IHVzZXMgbWVtb3J5IGZyb20gdGhlIGVuZCBvZiBTRFJBTSBz
-cGFjZSBhbmQNCj4+IG1tYXAgaXQgdG8gYXBwbGljYXRpb24gdGhyb3VnaCBhIHNldCBvZiBBUElz
-LiBUaGV5IGFsbG9jYXRlIGNvbnRpZ3VvdXMNCj4+IG1lbW9yeSBwb29scyBhbmQgcmV0dXJuIHRo
-ZSBzYW1lIHRvIGFwcGxpY2F0aW9uIHRocm91Z2ggSU9DVExzLiBJIGhhdmUNCj4+IHRlc3RlZCB2
-cGZlIGNhcHR1cmUgdXNpbmcgdGhpcyBhcHByb2FjaCAoYnV0IHlldCB0byBwdXNoIHRoZSBzYW1l
-IHRvIHY0bDINCj4+IGNvbW11bml0eSBmb3IgcmV2aWV3KS4gVGhlIHNhbWUgYXBwcm9hY2ggbWF5
-IGJlIHVzZWQgYWNyb3NzIG90aGVyDQo+cGxhdGZvcm1zDQo+PiBhcyB3ZWxsLiBTbyBkb2Vzbid0
-IGl0IG1ha2Ugc2Vuc2UgdG8gYWRkIHRoaXMga2VybmVsIG1vZHVsZSB0byB0aGUga2VybmVsDQo+
-PiB0cmVlIHNvIHRoYXQgZXZlcnlvbmUgY2FuIHVzZSBpdD8NCj4NCj5XaGF0J3Mgd3Jvbmcgd2l0
-aCBtbWFwKCknaW5nIC9kZXYvbWVtID8gV2h5IGRvIHlvdSBuZWVkIGEgc3BlY2lhbCBkcml2ZXIg
-Pw0KPg0KQ291bGQgeW91IHBsZWFzZSBleHBsYWluIHRoaXM/IEkgYW0gbm90IHN1cmUgd2hhdCB5
-b3VyIHN1Z2dlc3Rpb24gaXMuDQo+UmVnYXJkcywNCj4NCj5MYXVyZW50IFBpbmNoYXJ0DQo+DQoN
-Cg==
+Hello everyone-
+
+     Apologies in advance for spamming the list, but we're after adding 
+dual device support for the existing, GPL'd em28xx tuner driver 
+currently in the mainline Linux kernel. We do not have this development 
+resource in house and had hoped perhaps someone on the list might be 
+capable and interested (or able to point us in the appropriate direction).
+
+
+     By way of more detail, it seems that multiple times in the past, 
+other users have also requested this feature, but it is still not 
+currently available in the current GPL'd driver. For some time support 
+may have been present in the "em28xx-new" driver, provided by Markus 
+Rechberger, but I have since been told it is "discontinued, and does not 
+compile anymore with the latest kernels."
+
+
+     This message thread as recently as April 9th, 2009, seems to 
+indicate interest is still present at the community level, but no 
+resolution was reached by the tail of the conversation:
+
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg04245.html
+
+
+     Going further back, it does seem that the em28xx-new driver at one 
+point successfully addressed this issue, so supporting multiple devices 
+should be possible with driver modification:
+
+http://mcentral.de/pipermail/em28xx/2008-November/002111.html
+
+
+     We can confirm that a development system running Fedora 11 with the 
+latest stable kernel (2.6.29.5-191.fc11.i686.PAE), with identical em28xx 
+devices connected still exhibits the error message "v4l2: ioctl queue 
+buffer failed: No space left on device" when attempting to display video 
+input on two identical em28xx devices simultaneously.
+
+     On the other hand, display is successful through either device when 
+trying to display individually (with both still connected).
+
+
+     We are a small company, which relies on the Linux platform for the 
+core of our products and services. Occasionally a situation presents 
+itself for us to contribute back to the Open Source community (in 
+however small a fashion), either by releasing existing code or 
+contracting a small amount of work to be performed and subsequently 
+released under the GPL. This is one such instance.
+
+
+     If anyone is interested in contributing such work and is prepared 
+to quote for what they feel their time would be worth, please do not 
+hesitate to contact me.
+
+     Again, apologies if this message appears to be a misuse of the 
+mailing list, hopefully our intentions are understandable!
+
+
+Cheers
+
+
+-- 
+
+Steve Castellotti
+sc@eyemagnet.com
+Technical Director
+Eyemagnet Limited
+http://www.eyemagnet.com
