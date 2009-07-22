@@ -1,49 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198]:49623 "EHLO
-	mta3.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753253AbZGUOYA (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59931 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752278AbZGVU7k (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jul 2009 10:24:00 -0400
-Received: from steven-toths-macbook-pro.local
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta3.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KN400FIXYNTY5O0@mta3.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Tue, 21 Jul 2009 10:23:55 -0400 (EDT)
-Date: Tue, 21 Jul 2009 10:23:53 -0400
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: [PATCH] dvb: make digital side of pcHDTV HD-3000 functional again
-In-reply-to: <200907201650.23749.jarod@redhat.com>
-To: Jarod Wilson <jarod@redhat.com>
-Cc: Trent Piepho <xyzzy@speakeasy.org>, linux-media@vger.kernel.org
-Message-id: <4A65CF79.1040703@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <200907201020.47581.jarod@redhat.com>
- <Pine.LNX.4.58.0907201240490.11911@shell2.speakeasy.net>
- <200907201650.23749.jarod@redhat.com>
+	Wed, 22 Jul 2009 16:59:40 -0400
+Date: Wed, 22 Jul 2009 13:58:58 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: sam.linux.kernel@gmail.com, rbultje@ronald.bitfreak.net,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [patch] drivers/media/video/zoran_card.c: en/decoder loading
+Message-Id: <20090722135858.f2d0fe16.akpm@linux-foundation.org>
+In-Reply-To: <20090722135757.1653962f.akpm@linux-foundation.org>
+References: <20080127190129.6a1554ef.sam.linux.kernel@gmail.com>
+	<20090722135757.1653962f.akpm@linux-foundation.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Hrm, okay, I'll double-check that... If its not there, perhaps the card
-> isn't quite seated correctly. Or the machine is bunk. Or the card has
-> gone belly up. Amusing that it works as much as it does though, if any
-> of the above is the case...
->
-> Thanks for the info!
->
+On Wed, 22 Jul 2009 13:57:57 -0700
+Andrew Morton <akpm@linux-foundation.org> wrote:
 
-Jrod,
+> (cc linux-media)
+> 
+> On Sun, 27 Jan 2008 19:01:29 +0100
 
-Yeah. If the pci enable bit for the transport engine is not enabled (thus 
-showing up as pci device 8802) then I'm going to be surprised if the risc engine 
-runs up at all (or runs perfectly).
+oops
 
-I've seen issue like this in the past with various cx88 boards and it invariable 
-turn out to be a corrupt eeprom or a badly seated PCI card.
+> Martin Samuelsson <sam.linux.kernel@gmail.com> wrote:
+> 
+> > This enables the avs6eyes to load the bt866 and ks0127 drivers automatically.
+> > 
+> > Signed-off-by: Martin Samuelsson <sam.linux.kernel@gmail.com>
+> > ---
+> >  zoran_card.c |    6 ++++++
+> >  1 file changed, 6 insertions(+)
+> > --- linux-2.6.24-ori/drivers/media/video/zoran_card.c	2008-01-24 23:58:37.000000000 +0100
+> > +++ linux-2.6.24-sam/drivers/media/video/zoran_card.c	2008-01-27 17:16:51.000000000 +0100
+> > @@ -366,6 +366,12 @@ i2cid_to_modulename (u16 i2c_id)
+> >  	case I2C_DRIVERID_MSE3000:
+> >  		name = "mse3000";
+> >  		break;*/
+> > +	case I2C_DRIVERID_BT866:
+> > +		name = "bt866";
+> > +		break;
+> > +	case I2C_DRIVERID_KS0127:
+> > +		name = "ks0127";
+> > +		break;
+> >  	default:
+> >  		break;
+> >  	}
+> 
+> The Zoran driver has changed a lot since 2.6.24 and I can't find
+> anywhere where a patch like this might be applied.
+> 
+> Please check a current kernel and update the patch if it is still needed?
 
-or, no eeprom at all (unlikely on this board).
-
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+sorry, operator error.
