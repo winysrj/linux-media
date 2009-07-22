@@ -1,82 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-12.arcor-online.net ([151.189.21.52]:37481 "EHLO
-	mail-in-12.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750832AbZGDQ6G (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:59226 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753464AbZGVU6c (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 4 Jul 2009 12:58:06 -0400
-Subject: Re: regression : saa7134  with Pinnacle PCTV 50i (analog) can not
-	tune anymore
-From: hermann pitton <hermann-pitton@arcor.de>
-To: eric.paturage@orange.fr
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <200907041316.n64DGiQ04366@neptune.localwarp.net>
-References: <200907041316.n64DGiQ04366@neptune.localwarp.net>
-Content-Type: text/plain
-Date: Sat, 04 Jul 2009 18:48:44 +0200
-Message-Id: <1246726124.3947.19.camel@pc07.localdom.local>
+	Wed, 22 Jul 2009 16:58:32 -0400
+Date: Wed, 22 Jul 2009 13:57:57 -0700
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Martin Samuelsson <sam.linux.kernel@gmail.com>
+Cc: rbultje@ronald.bitfreak.net, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [patch] drivers/media/video/zoran_card.c: en/decoder loading
+Message-Id: <20090722135757.1653962f.akpm@linux-foundation.org>
+In-Reply-To: <20080127190129.6a1554ef.sam.linux.kernel@gmail.com>
+References: <20080127190129.6a1554ef.sam.linux.kernel@gmail.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+(cc linux-media)
 
-Am Samstag, den 04.07.2009, 15:16 +0200 schrieb eric.paturage@orange.fr:
-> hello 
+On Sun, 27 Jan 2008 19:01:29 +0100
+Martin Samuelsson <sam.linux.kernel@gmail.com> wrote:
+
+> This enables the avs6eyes to load the bt866 and ks0127 drivers automatically.
 > 
-> I had my  Pinnacle PCTV 50i analog tv card working quite well for several years
-> with linux . but since mid june it can not tune anymore when using the latest mercurial version 
-> of the v4l2 drivers . 
-> It is working fine up to the official V4l2 driver of 2.6.30 .
-> 
-> 
-> here is an example of /var/log/messages with official v4l2 drivers of 2.6.27.4 (working well) :
+> Signed-off-by: Martin Samuelsson <sam.linux.kernel@gmail.com>
+> ---
+>  zoran_card.c |    6 ++++++
+>  1 file changed, 6 insertions(+)
+> --- linux-2.6.24-ori/drivers/media/video/zoran_card.c	2008-01-24 23:58:37.000000000 +0100
+> +++ linux-2.6.24-sam/drivers/media/video/zoran_card.c	2008-01-27 17:16:51.000000000 +0100
+> @@ -366,6 +366,12 @@ i2cid_to_modulename (u16 i2c_id)
+>  	case I2C_DRIVERID_MSE3000:
+>  		name = "mse3000";
+>  		break;*/
+> +	case I2C_DRIVERID_BT866:
+> +		name = "bt866";
+> +		break;
+> +	case I2C_DRIVERID_KS0127:
+> +		name = "ks0127";
+> +		break;
+>  	default:
+>  		break;
+>  	}
 
-[snip]
-> saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> TUNER: Unable to find symbol tda829x_probe()
-..^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The Zoran driver has changed a lot since 2.6.24 and I can't find
+anywhere where a patch like this might be applied.
 
-> tuner 1-004b: chip found @ 0x96 (saa7133[0])
-> DVB: Unable to find symbol tda9887_attach()
-> saa7133[0]: registered device video0 [v4l2]
-> saa7133[0]: registered device vbi0
-> saa7133[0]: registered device radio0
-> saa7134 ALSA driver for DMA sound loaded
-> IRQ 11/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-> saa7133[0]/alsa: saa7133[0] at 0xed800000 irq 11 registered as card -1
-> 
-> Jul  2 09:12:43 neptune kernel: tuner 1-004b: Tuner has no way to set tv freq
-> Jul  2 09:19:14 neptune kernel: tuner 1-004b: Tuner has no way to set tv freq
-> Jul  2 09:20:16 neptune kernel: tuner 1-004b: Tuner has no way to set tv freq
-> Jul  2 09:20:26 neptune kernel: tuner 1-004b: Tuner has no way to set tv freq
-> 
-> 
-> 
-> any idea what is going on ? 
-
-out of some reason you don't have the tda8290 analog IF demodulator
-module.
-
-In theory this should be only possible, if you have selected
-"Customize analog and hybrid tuner modules to build" and deselected
-"TDA 8290/8295 + 8275(a)/18271 tuner combo".
-
-I'm writing from a 2.6.29 and don't have such problems, but what makes
-me wonder is, that you also don't have the tda9887. You don't need it
-for that card, but I can't even deselect it at all.
-
-With deselected tda8290 it gets loaded here instead, since within the
-same address range.
-
-Can you check with make xconfig/menuconfig, if the tda8290 is selected
-on your build and watch if it is compiled at the beginning of "make"?
-
-Cheers,
-Hermann
-
-
-
-
-
-
+Please check a current kernel and update the patch if it is still needed?
