@@ -1,55 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out.m-online.net ([212.18.0.10]:35422 "EHLO
-	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750738AbZGUHOp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jul 2009 03:14:45 -0400
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: lsmod path hardcoded in v4l/Makefile
-Date: Tue, 21 Jul 2009 09:14:36 +0200
-Cc: linux-media@vger.kernel.org, Trent Piepho <xyzzy@speakeasy.org>,
-	Andy Walls <awalls@radix.net>
-References: <200906221636.25006.zzam@gentoo.org> <200906230950.26287.zzam@gentoo.org> <Pine.LNX.4.58.0906231214360.6411@shell2.speakeasy.net>
-In-Reply-To: <Pine.LNX.4.58.0906231214360.6411@shell2.speakeasy.net>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Received: from eyemagnet.com ([202.160.117.202]:46224 "EHLO eyemagnet.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751331AbZGVSy1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jul 2009 14:54:27 -0400
+Received: from [10.0.5.239] (unknown [63.164.47.227])
+	(using SSLv3 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by eyemagnet.com (Postfix) with ESMTP id 5FF748221
+	for <linux-media@vger.kernel.org>; Thu, 23 Jul 2009 06:54:26 +1200 (NZST)
+Subject: Re: offering bounty for GPL'd dual em28xx support
+From: Steve Castellotti <sc@eyemagnet.com>
+To: linux-media@vger.kernel.org
+In-Reply-To: <20090722131817.725cf309@pedra.chehab.org>
+References: <4A6666CC.7020008@eyemagnet.com>
+	 <829197380907211842p4c9886a3q96a8b50e58e63cbf@mail.gmail.com>
+	 <4A667735.40002@eyemagnet.com>
+	 <829197380907211932v6048d099h2ebb50da05959d89@mail.gmail.com>
+	 <4A668BB9.1020700@eyemagnet.com> <20090722024320.2f1d9990@pedra.chehab.org>
+	 <829197380907220902p5044e931jf54edcec48b4c26f@mail.gmail.com>
+	 <20090722131817.725cf309@pedra.chehab.org>
+Content-Type: text/plain
+Date: Wed, 22 Jul 2009 11:54:36 -0700
+Message-Id: <1248288876.4254.6.camel@odyssey.sc.user.nz.vpn>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907210914.37819.zzam@gentoo.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Dienstag, 23. Juni 2009, Trent Piepho wrote:
-> On Tue, 23 Jun 2009, Matthias Schwarzott wrote:
-> > > On Mon, 2009-06-22 at 16:36 +0200, Matthias Schwarzott wrote:
-> > > > It seems the path to lsmod tool is hardcoded in the Makefile for
-> > > > out-of-tree building of v4l-dvb.
-> >
-> > Shouldn't $PATH of root be considered safe? Else the distro or the system
->
-> I believe make will set the variable whenever the makefile is used, even
-> when building as non-root.
->
-> It turns out that it was just lsmod with no path originally, but Michael
-> Krufky changed it back in 2005 (commit b0e7b40744ef) to have a hardcoded
-> path.  Then later in commit c91e7f84a1d6 the only use of 'v4l_modules' was
-> deleted, so we can just delete this line and not worry about sbin and
-> paths.
->
-> Mauro,
->
-> Please pull from http://linuxtv.org/hg/~tap/fix
->
-> for the following changeset:
->
-> build: Remove module list cruft
-> http://linuxtv.org/hg/~tap/fix?cmd=changeset;node=fb228bb1ad9f
+On Wed, 2009-07-22 at 13:18 -0300, Mauro Carvalho Chehab wrote: 
+> > I didn't know about the 80% utilization cap for isoc, so thanks for
+> > providing the reference to that previous thread, which has some pretty
+> > interesting information.
+> 
+> Anytime.
 
-Hi Mauro!
+    Yeah have to agree, thanks so much for the illuminating and
+informative discussion everyone!
 
-is there any reason to not pull this besides time?
+-- 
+Steve Castellotti
+Technical Director
+Eyemagnet - New Zealand
 
-Regards
-Matthias
