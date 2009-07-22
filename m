@@ -1,44 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:44757 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752071AbZG3KeH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2009 06:34:07 -0400
-From: Tobias Lorenz <tobias.lorenz@gmx.net>
-To: Joonyoung Shim <jy0922.shim@samsung.com>
-Subject: Re: [PATCH v2 0/4] radio-si470x: separate usb and i2c interface
-Date: Thu, 30 Jul 2009 12:26:10 +0200
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	kyungmin.park@samsung.com, klimov.linux@gmail.com
-References: <4A5C137A.2010104@samsung.com>
-In-Reply-To: <4A5C137A.2010104@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Received: from mail1.radix.net ([207.192.128.31]:56547 "EHLO mail1.radix.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754318AbZGVBSt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jul 2009 21:18:49 -0400
+Subject: [PATCH v2 1/4] ir-kbd-i2c: Remove superfulous inlines
+From: Andy Walls <awalls@radix.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Cc: Jean Delvare <khali@linux-fr.org>, Mark Lord <lkml@rtr.ca>,
+	Jarod Wilson <jarod@redhat.com>, Mike Isely <isely@pobox.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Janne Grunau <j@jannau.net>
+Content-Type: text/plain
+Date: Tue, 21 Jul 2009 21:20:32 -0400
+Message-Id: <1248225632.3191.51.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907301226.10965.tobias.lorenz@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+(This is a resubmission of a patch by Jean Delvare)
 
-> I send the radio-si470x patches worked on http://linuxtv.org/hg/v4l-dvb.
-> The patches is updated to version 2.
+Functions which are referenced by their address can't be inlined by
+definition.
+ 
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Signed-off-by: Andy Walls <awalls@radix.net>
 
-The patchset looks good. I'll give my feedback in the following mails.
 
-> Tobias informed me the base code for seperating at 
-> http://linuxtv.org/hg/~tlorenz/v4l-dvb of Tobias repository in above
-> mail, i based on it, but it cannot find now at Tobias repository.
+diff -r 6477aa1782d5 linux/drivers/media/video/ir-kbd-i2c.c
+--- a/linux/drivers/media/video/ir-kbd-i2c.c	Tue Jul 21 09:17:24 2009 -0300
++++ b/linux/drivers/media/video/ir-kbd-i2c.c	Tue Jul 21 20:55:54 2009 -0400
+@@ -127,12 +127,12 @@
+ 	return 1;
+ }
+ 
+-static inline int get_key_haup(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++static int get_key_haup(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ {
+ 	return get_key_haup_common (ir, ir_key, ir_raw, 3, 0);
+ }
+ 
+-static inline int get_key_haup_xvr(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
++static int get_key_haup_xvr(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ {
+ 	return get_key_haup_common (ir, ir_key, ir_raw, 6, 3);
+ }
 
-Before sending a pull request, I usually clean up the archive from any other patches.
-But nevertheless, you and me still have the I2C patches. They now reached a quality to finally bring them in the kernel.
-Good work.
 
-> The patch 1/4 is for separating common and usb code.
-> The patch 2/4 is about using dev_* macro instead of printk.
-> The patch 3/4 is about adding disconnect check function for i2c interface.
-> The patch 4/4 is for supporting si470x i2c interface.
 
-Bye,
-Toby
