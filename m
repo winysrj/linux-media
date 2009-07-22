@@ -1,70 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:8430 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752587AbZG0SFB (ORCPT
+Received: from mail-gx0-f213.google.com ([209.85.217.213]:49276 "EHLO
+	mail-gx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752107AbZGVQGG convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jul 2009 14:05:01 -0400
-Received: by qw-out-2122.google.com with SMTP id 8so1723935qwh.37
-        for <linux-media@vger.kernel.org>; Mon, 27 Jul 2009 11:05:01 -0700 (PDT)
+	Wed, 22 Jul 2009 12:06:06 -0400
+Received: by gxk9 with SMTP id 9so494350gxk.13
+        for <linux-media@vger.kernel.org>; Wed, 22 Jul 2009 09:06:06 -0700 (PDT)
 MIME-Version: 1.0
-Date: Mon, 27 Jul 2009 14:05:01 -0400
-Message-ID: <de8cad4d0907271105o1ec1b425ocd903434aa39e2f5@mail.gmail.com>
-Subject: Warnings in Compile
-From: Brandon Jenkins <bcjenkins@tvwhere.com>
-To: linux-media@vger.kernel.org
+In-Reply-To: <4A673638.2090001@kernellabs.com>
+References: <200907201020.47581.jarod@redhat.com>
+	 <200907201650.23749.jarod@redhat.com>
+	 <4A65CF79.1040703@kernellabs.com>
+	 <200907212135.47557.jarod@redhat.com>
+	 <20090722114806.39c8c1ea.bhepple@promptu.com>
+	 <4A673638.2090001@kernellabs.com>
+Date: Wed, 22 Jul 2009 12:06:05 -0400
+Message-ID: <829197380907220906q1bfacf45nad4a6e5b45230c3c@mail.gmail.com>
+Subject: Re: [PATCH] dvb: make digital side of pcHDTV HD-3000 functional again
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Steven Toth <stoth@kernellabs.com>
+Cc: Bob Hepple <bhepple@promptu.com>, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Greetings,
+On Wed, Jul 22, 2009 at 11:54 AM, Steven Toth<stoth@kernellabs.com> wrote:
+> On 7/21/09 9:48 PM, Bob Hepple wrote:
+>>
+>> On Tue, 21 Jul 2009 21:35:47 -0400
+>> Jarod Wilson<jarod@redhat.com>  wrote:
+>>
+>>> So its either I have *two* machines with bad, but only slightly bad,
+>>> and in the same way, PCI slots which seem to work fine with any other
+>>> card I have (uh, unlikely),
+>>
+>> ... not unlikely if the two machines are similar - many motherboards
+>> have borked PCI slots in one way or another - design faults or
+>> idiosyncratic interpretation of the PCI standard.  I've seen it with
+>> HP, Compaq, Digital m/bs just to name big names, smaller mfrs also get
+>> it wrong. Sometimes just using another slot helps. Sometimes you need
+>> to try a totally different motherboard.
+>>
+>> Maybe wrong to 'blame' the m/b mfr - it could just as easily be an
+>> out-of-spec or creatively interpreted PCI standard on the card.
+>
+> My guess is that the eeprom was trashed.
 
-I received the following warnings while compiling a fresh pull today
-from v4l-dvb.
+I hate to be the one to make this observation, but since this card is
+specifically targeted at the Linux market, has anyone considered
+reaching out to the vendor to ask for help?
 
-  CC [M]  /root/drivers/v4l-dvb/v4l/pvrusb2-hdw.o
-/root/drivers/v4l-dvb/v4l/pvrusb2-hdw.c: In function 'pvr2_hdw_load_modules':
-/root/drivers/v4l-dvb/v4l/pvrusb2-hdw.c:2145: warning: format not a
-string literal and no format arguments
+If their card really is broken in current kernels, I would think a
+company that specializes in selling Linux tuner products would be
+interested in such.
 
-  CC [M]  /root/drivers/v4l-dvb/v4l/pvrusb2-std.o
-/root/drivers/v4l-dvb/v4l/pvrusb2-std.c: In function 'pvr2_std_id_to_str':
-/root/drivers/v4l-dvb/v4l/pvrusb2-std.c:220: warning: format not a
-string literal and no format arguments
+Devin
 
-  CC [M]  /root/drivers/v4l-dvb/v4l/zoran_card.o
-/root/drivers/v4l-dvb/v4l/zoran_card.c: In function 'zoran_probe':
-/root/drivers/v4l-dvb/v4l/zoran_card.c:1379: warning: format not a
-string literal and no format arguments
-/root/drivers/v4l-dvb/v4l/zoran_card.c:1391: warning: format not a
-string literal and no format arguments
-
-  CC [M]  /root/drivers/v4l-dvb/v4l/v4l2-common.o
-/root/drivers/v4l-dvb/v4l/v4l2-common.c: In function 'v4l2_i2c_new_subdev':
-/root/drivers/v4l-dvb/v4l/v4l2-common.c:835: warning: format not a
-string literal and no format arguments
-/root/drivers/v4l-dvb/v4l/v4l2-common.c: In function
-'v4l2_i2c_new_probed_subdev':
-/root/drivers/v4l-dvb/v4l/v4l2-common.c:908: warning: format not a
-string literal and no format arguments
-/root/drivers/v4l-dvb/v4l/v4l2-common.c: In function
-'v4l2_i2c_new_subdev_board':
-/root/drivers/v4l-dvb/v4l/v4l2-common.c:990: warning: format not a
-string literal and no format arguments
-
-  CC [M]  /root/drivers/v4l-dvb/v4l/tvaudio.o
-/root/drivers/v4l-dvb/v4l/tvaudio.c: In function 'tvaudio_probe':
-/root/drivers/v4l-dvb/v4l/tvaudio.c:2075: warning: format not a string
-literal and no format arguments
-
-  CC [M]  /root/drivers/v4l-dvb/v4l/cx2341x.o
-/root/drivers/v4l-dvb/v4l/cx2341x.c: In function 'cx2341x_ctrl_query_fill':
-/root/drivers/v4l-dvb/v4l/cx2341x.c:494: warning: format not a string
-literal and no format arguments
-
-This is running Ubuntu 9.0.4: Linux 2.6.28-11-server #42-Ubuntu SMP
-Fri Apr 17 02:45:36 UTC 2009 x86_64 GNU/Linux
-
-HIH,
-
-Brandon
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
