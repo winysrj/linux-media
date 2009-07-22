@@ -1,68 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f188.google.com ([209.85.210.188]:33323 "EHLO
-	mail-yx0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757139AbZGCCJx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Jul 2009 22:09:53 -0400
-Received: by yxe26 with SMTP id 26so2977620yxe.33
-        for <linux-media@vger.kernel.org>; Thu, 02 Jul 2009 19:09:55 -0700 (PDT)
-From: Lamarque Vieira Souza <lamarque@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] Implement V4L2_CAP_STREAMING for zr364xx driver
-Date: Thu, 2 Jul 2009 23:09:47 -0300
-Cc: Antoine Jacquet <royale@zerezo.com>, linux-media@vger.kernel.org,
-	video4linux-list@redhat.com
-References: <200903252025.11544.lamarque@gmail.com> <20090328063448.66ff0340@pedra.chehab.org> <200903280711.37892.lamarque@gmail.com>
-In-Reply-To: <200903280711.37892.lamarque@gmail.com>
+Received: from relay02.cambriumhosting.nl ([217.19.16.174]:56102 "EHLO
+	relay02.cambriumhosting.nl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754171AbZGVKKl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jul 2009 06:10:41 -0400
+Received: from relay02.cambriumhosting.nl (localhost [127.0.0.1])
+	by relay02.cambriumhosting.nl (Postfix) with ESMTP id 87CE460001C0
+	for <linux-media@vger.kernel.org>; Wed, 22 Jul 2009 12:10:39 +0200 (CEST)
+Received: from ashley.powercraft.nl (84-245-3-195.dsl.cambrium.nl [84.245.3.195])
+	by relay02.cambriumhosting.nl (Postfix) with ESMTP id 7531060001BA
+	for <linux-media@vger.kernel.org>; Wed, 22 Jul 2009 12:10:39 +0200 (CEST)
+Received: from [192.168.1.239] (unknown [192.168.1.239])
+	by ashley.powercraft.nl (Postfix) with ESMTPSA id 3279A23BC5E1
+	for <linux-media@vger.kernel.org>; Wed, 22 Jul 2009 12:10:39 +0200 (CEST)
+Message-ID: <4A66E59E.9040502@powercraft.nl>
+Date: Wed, 22 Jul 2009 12:10:38 +0200
+From: Jelle de Jong <jelledejong@powercraft.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: "linux-media@vger.kernel.org >> \"linux-media@vger.kernel.org\""
+	<linux-media@vger.kernel.org>
+Subject: Re: offering bounty for GPL'd dual em28xx support
+References: <4A6666CC.7020008@eyemagnet.com> <829197380907211842p4c9886a3q96a8b50e58e63cbf@mail.gmail.com>
+In-Reply-To: <829197380907211842p4c9886a3q96a8b50e58e63cbf@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907022309.47562.lamarque@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-	Hi all,
+Devin Heitmueller wrote:
 
-	I have noticed the patch mentioned in the subject was not included in 2.6.30. 
-Do you plan to add it to 2.6.31?
+<snip>
 
-Em Saturday 28 March 2009, Lamarque Vieira Souza escreveu:
-> This patch implements V4L2_CAP_STREAMING for the zr364xx driver, by
-> converting the driver to use videobuf.
->
-> Tested with Creative PC-CAM 880.
->
-> It basically:
-> . implements V4L2_CAP_STREAMING using videobuf;
->
-> . re-implements V4L2_CAP_READWRITE using videobuf;
->
-> . copies cam->udev->product to the card field of the v4l2_capability
-> struct. That gives more information to the users about the webcam;
->
-> . moves the brightness setting code from before requesting a frame (in
-> read_frame) to the vidioc_s_ctrl ioctl. This way the brightness code is
-> executed only when the application requests a change in brightness and
-> not before every frame read;
->
-> . comments part of zr364xx_vidioc_try_fmt_vid_cap that says that Skype +
-> libv4l do not work.
->
-> This patch fixes zr364xx for applications such as mplayer,
-> Kopete+libv4l and Skype+libv4l can make use of the webcam that comes
-> with zr364xx chip.
->
-> Signed-off-by: Lamarque V. Souza <lamarque@gmail.com>
-> ---
->
-> --- v4l-dvb/linux/drivers/media/video/zr364xx.c	2009-03-27
-> 15:18:54.050413997 -0300
-> +++ v4l-dvb/linux-lvs/drivers/media/video/zr364xx.c	2009-03-27
-> 15:22:47.914414277 -0300
-... stripped off to not bloat the e-mail.
+> The issue occurs with various different drivers.  Basically the issue
+> is the device attempts to reserve a certain amount of bandwidth on the
+> USB bus for the isoc stream, and in the case of analog video at
+> 640x480 this adds up to about 200Mbps.  As a result, connecting
+> multiple devices can result in exceeding the available bandwidth on
+> the USB bus.
+> 
+> Depending on your how many devices you are trying to connect, what
+> your target capture resolution is, and whether you can put each device
+> on its own USB bus will dictate what solution you can go with.
 
--- 
-Lamarque V. Souza
-http://www.geographicguide.com/brazil.htm
-Linux User #57137 - http://counter.li.org/
+Hi all,
+
+So I felt like doing  a field test, with my dvb-t test system.
+
+Bus 001 Device 008: ID 2040:6502 Hauppauge WinTV HVR-900
+Bus 001 Device 007: ID 2304:0226 Pinnacle Systems, Inc. [hex] PCTV 330e
+Bus 001 Device 005: ID 0b05:173f ASUSTek Computer, Inc.
+Bus 001 Device 003: ID 2304:0236 Pinnacle Systems, Inc. [hex]
+Bus 001 Device 002: ID 15a4:9016
+
+I have now three devices with dvb-t channels running with different
+channels and audio on an atom based cpu without problems.
+
+two:
+dvb-usb-dib0700
+
+and one:
+dvb-usb-af9015
+
+the dvb-usb-af9015 takes way more cpu interrupts because of the usb
+block size.
+
+prove:
+http://imagebin.ca/img/xM9Q7_A.jpg
+
+I will be demonstrating this at har2009 (see demonstration village)
+
+Devin could you login onto the dvb-t test system and see if you can get
+those em28xx device running with your new code?
+
+I will probably make an other test system with some more cpu power to
+see if even more usb devices are possible, or I may use my nice powerful
+multiseat quad core system for it.
+
+Best regards,
+
+Jelle de Jong
+
