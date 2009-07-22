@@ -1,133 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:45358 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753016AbZGVRLq convert rfc822-to-8bit (ORCPT
+Received: from relay02.cambriumhosting.nl ([217.19.16.174]:40985 "EHLO
+	relay02.cambriumhosting.nl" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751669AbZGVPBh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2009 13:11:46 -0400
-Received: by fg-out-1718.google.com with SMTP id e12so948653fga.17
-        for <linux-media@vger.kernel.org>; Wed, 22 Jul 2009 10:11:45 -0700 (PDT)
+	Wed, 22 Jul 2009 11:01:37 -0400
+Message-ID: <4A6729CF.8080804@powercraft.nl>
+Date: Wed, 22 Jul 2009 17:01:35 +0200
+From: Jelle de Jong <jelledejong@powercraft.nl>
 MIME-Version: 1.0
-In-Reply-To: <79fc70d20907221004n7338cb27h3dd5eebed8ec3a45@mail.gmail.com>
-References: <79fc70d20907221001v3a56a142v445d9167197ecf0d@mail.gmail.com>
-	 <79fc70d20907221004n7338cb27h3dd5eebed8ec3a45@mail.gmail.com>
-Date: Wed, 22 Jul 2009 18:11:45 +0100
-Message-ID: <79fc70d20907221011sdcefd55rcd3ed6867cb20dd@mail.gmail.com>
-Subject: Help Request: DM1105 STV0299 DVB-S PCI - Unable to tune
-From: Shaun Murdoch <scrauny@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: "linux-media@vger.kernel.org >> \"linux-media@vger.kernel.org\""
+	<linux-media@vger.kernel.org>
+Subject: Re: offering bounty for GPL'd dual em28xx support
+References: <4A6666CC.7020008@eyemagnet.com>	 <829197380907211842p4c9886a3q96a8b50e58e63cbf@mail.gmail.com>	 <4A66E59E.9040502@powercraft.nl> <829197380907220748kab85c63g6ebbaad07084c255@mail.gmail.com>
+In-Reply-To: <829197380907220748kab85c63g6ebbaad07084c255@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everyone,
+Devin Heitmueller wrote:
+> On Wed, Jul 22, 2009 at 6:10 AM, Jelle de Jong<jelledejong@powercraft.nl> wrote:
+>> So I felt like doing ï¿½a field test, with my dvb-t test system.
+>>
+>> Bus 001 Device 008: ID 2040:6502 Hauppauge WinTV HVR-900
+>> Bus 001 Device 007: ID 2304:0226 Pinnacle Systems, Inc. [hex] PCTV 330e
+>> Bus 001 Device 005: ID 0b05:173f ASUSTek Computer, Inc.
+>> Bus 001 Device 003: ID 2304:0236 Pinnacle Systems, Inc. [hex]
+>> Bus 001 Device 002: ID 15a4:9016
+>>
+>> I have now three devices with dvb-t channels running with different
+>> channels and audio on an atom based cpu without problems.
+>>
+>> two:
+>> dvb-usb-dib0700
+>>
+>> and one:
+>> dvb-usb-af9015
+>>
+>> the dvb-usb-af9015 takes way more cpu interrupts because of the usb
+>> block size.
+>>
+>> prove:
+>> http://imagebin.ca/img/xM9Q7_A.jpg
+>>
+>> I will be demonstrating this at har2009 (see demonstration village)
+>>
+>> Devin could you login onto the dvb-t test system and see if you can get
+>> those em28xx device running with your new code?
+>>
+>> I will probably make an other test system with some more cpu power to
+>> see if even more usb devices are possible, or I may use my nice powerful
+>> multiseat quad core system for it.
+> 
+> Hello Jelle,
+> 
+> Please understand that your experiment isn't really an appropriate
+> test.  The original user was referring to analog capture mode, in
+> which the uncompressed video is coming across the USB bus.  Analog
+> mode uses about 200Mbps while digital mode uses only 10-20Mbps.  If
+> you had tried capturing analog video with those devices you would have
+> seen similar results to what Steve described.
+> 
+> I haven't forgotten about your test environment, and I look forward to
+> getting the HVR-900 R2 and PCTV 330e working.  I have been sick in bed
+> for the last two days and have done no LinuxTV related work.  I look
+> forward to getting back to it this week.
+> 
+> Cheers,
+> 
+> Devin
+> 
 
-First post so please be gentle :-)  [Resending to this list as
-linux-dvb is deprecated apparently and I wasn't a member of
-linux-media. Apologies if this gets to you multiple times.]
+Funky timing of those mails :D.
 
-I was wondering if anyone can help me please - I am trying to get a
-DVB-S PCI card working with Linux (Ubuntu 9.04). So far I can get the
-card recognised by Linux, but it won't tune - Kaffeine does tell me
-that there is 95% signal and 80% SNR, and I am using the same
-frequencies etc that a standard Sky box uses.
+I saw only after sending my mail that Steve was talking about analog and
+that this is indeed different. Dual analog tuner support should be
+possible right? Maybe with some other analog usb chipsets? I don't know
+what the usb blocksize is or if they are isochronous transfers or bulk
+or control.
 
-The card is very common on eBay so I am sure there are plenty people
-who have tried this / would want this working.
+I assume the video must be uncompressed transferred over usb because the
+decoding chip is on the usb device is not capable of doing compression
+encoding after the analog video decoding? Are there usb devices that do
+such tricks?
 
-Some details that I hope will help someone who knows more than I do about this!
+Best regards,
 
-The card is one of these:
-
-http://cgi.ebay.co.uk/DVB-S-Satellite-TV-Tuner-Video-Capture-PCI-Card-Remote_W0QQitemZ130314645048QQcmdZViewItemQQptZUK_Computing_Computer_Components_Graphics_Video_TV_Cards_TW?hash=item1e575bae38&_trksid=p3286.c0.m14&_trkparms=65:12|66:2|39:1|72:1690|293:1|294:50
-
-lspci:
-03:09.0 Ethernet controller: Device 195d:1105 (rev 10)
-
-My dmesg output - looks ok?:
-$ dmesg | grep DVB
-[   12.174738] DVB: registering new adapter (dm1105)
-[   12.839501] DVB: registering adapter 0 frontend 0 (ST STV0299 DVB-S)...
-[   12.839633] input: DVB on-card IR receiver as
-/devices/pci0000:00/0000:00:1e.0/0000:03:09.0/input/input
-
-My output from scan - the problem:
-
-$ sudo scan -vvvvvv /usr/share/dvb/dvb-s/Astra-28.2E
-scanning /usr/share/dvb/dvb-s/Astra-28.2E
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-
->>> tune to: 11778:v:0:27500
-DiSEqC: switch pos 0, 13V, hiband (index 2)
-diseqc_send_msg:56: DiSEqC: e0 10 38 f1 00 00
-DVB-S IF freq is 1178000
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
->>> tuning status == 0x03
-WARNING: >>> tuning failed!!!
-
-This is the correct satellite for my location (south UK), I believe.
-Have tried plenty. Nothing locks.
-I'm using the latest liplianin drivers - did a mercurial checkout and
-build today:
-
-$ modinfo dm1105
-filename:
-/lib/modules/2.6.28-13-server/kernel/drivers/media/dvb/dm1105/dm1105.ko
-license:        GPL
-description:    SDMC DM1105 DVB driver
-author:         Igor M. Liplianin <liplianin@me.by>
-srcversion:     46C1B3C3627D1937F75D732
-alias:          pci:v0000195Dd00001105sv*sd*bc*sc*i*
-alias:          pci:v0000109Fd0000036Fsv*sd*bc*sc*i*
-depends:        ir-common,dvb-core
-vermagic:       2.6.28-13-server SMP mod_unload modversions
-parm:           card:card type (array of int)
-parm:           ir_debug:enable debugging information for IR decoding (int)
-parm:           adapter_nr:DVB adapter numbers (array of short)
-
-Have also tried the latest v4l-dvb drivers and get exactly the same
-tuning problems.
-Finally, dvbtune appears to say I have signal but cannot lock:
-
-$ sudo dvbtune -f 1177800 -s 27500 -p v -m -tone 1 -vvvvvvvvvvv
-[sudo] password for shaun:
-Using DVB card "ST STV0299 DVB-S"
-tuning DVB-S to L-Band:0, Pol:V Srate=27500000, 22kHz=on
-polling....
-Getting frontend event
-FE_STATUS:
-polling....
-Getting frontend event
-FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER FE_HAS_VITERBI
-polling....
-Getting frontend event
-FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
-polling....
-Getting frontend event
-FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER FE_HAS_VITERBI
-polling....
-Getting frontend event
-FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
-polling....
-Getting frontend event
-FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER FE_HAS_VITERBI
-polling....
-Getting frontend event
-FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
-
-So I am thinking that this could be a driver issue? If the card has
-good signal and SNR in Kaffeine, and dvbtune says it has signal and
-carrier - but cannot lock?
-
-Please can someone help me debug this?
-
-Thanks a lot!
-Shaun
+Jelle
