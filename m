@@ -1,105 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:51740 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754002AbZG2XFk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jul 2009 19:05:40 -0400
-From: Laurent Pinchart <laurent.pinchart@skynet.be>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: How to save number of times using memcpy?
-Date: Thu, 30 Jul 2009 01:07:12 +0200
-Cc: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>,
-	"v4l2_linux" <linux-media@vger.kernel.org>,
-	Dongsoo Kim <dongsoo45.kim@samsung.com>,
-	=?utf-8?q?=C3=AB=C2=B0=E2=80=A2=C3=AA=C2=B2=C2=BD=C3=AB=C2=AF=C2=BC?=
-	<kyungmin.park@samsung.com>,
-	"jm105.lee@samsung.com" <jm105.lee@samsung.com>,
-	=?utf-8?q?=C3=AC=EF=BF=BD=C2=B4=C3=AC=E2=80=9E=C2=B8=C3=AB=C2=AC=C2=B8?=
-	<semun.lee@samsung.com>,
-	=?utf-8?q?=C3=AB=C5=92=E2=82=AC=C3=AC=EF=BF=BD=C2=B8=C3=AA=C2=B8=C2=B0?=
-	<inki.dae@samsung.com>,
-	=?utf-8?q?=C3=AA=C2=B9=E2=82=AC=C3=AD=CB=9C=E2=80=A2=C3=AC=C2=A4?=
-	 =?utf-8?q?=E2=82=AC?= <riverful.kim@samsung.com>
-References: <10799.62.70.2.252.1248852719.squirrel@webmail.xs4all.nl> <A69FA2915331DC488A831521EAE36FE401450FAE31@dlee06.ent.ti.com> <200907292352.00179.hverkuil@xs4all.nl>
-In-Reply-To: <200907292352.00179.hverkuil@xs4all.nl>
+Received: from eyemagnet.com ([202.160.117.202]:39343 "EHLO eyemagnet.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755701AbZGVCTg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jul 2009 22:19:36 -0400
+Received: from [192.168.1.192] (unknown [64.81.73.170])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by eyemagnet.com (Postfix) with ESMTP id ECFD48223
+	for <linux-media@vger.kernel.org>; Wed, 22 Jul 2009 14:19:35 +1200 (NZST)
+Message-ID: <4A667735.40002@eyemagnet.com>
+Date: Tue, 21 Jul 2009 19:19:33 -0700
+From: Steve Castellotti <sc@eyemagnet.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="windows-1252"
+To: linux-media@vger.kernel.org
+Subject: Re: offering bounty for GPL'd dual em28xx support
+References: <4A6666CC.7020008@eyemagnet.com> <829197380907211842p4c9886a3q96a8b50e58e63cbf@mail.gmail.com>
+In-Reply-To: <829197380907211842p4c9886a3q96a8b50e58e63cbf@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907300107.13036.laurent.pinchart@skynet.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 29 July 2009 23:52:00 Hans Verkuil wrote:
-> On Wednesday 29 July 2009 21:06:17 Karicheri, Muralidharan wrote:
-> > Hans,
-> >
-> > >True. However, my experience is that this approach isn't needed in most
-> > >cases as long as the v4l driver is compiled into the kernel. In that
-> > > case it is called early enough in the boot sequence that there is still
-> > > enough unfragmented memory available. This should definitely be the
-> > > default case for drivers merged into v4l-dvb.
-> >
-> > In my understanding, the buffer is allocated in the video buffer layer
-> > when driver makes the videobuf_reqbufs() call.
+On 07/21/2009 06:42 PM, Devin Heitmueller wrote:
+> On Tue, Jul 21, 2009 at 9:09 PM, Steve Castellotti<sc@eyemagnet.com>  wrote:
+>>     We can confirm that a development system running Fedora 11 with the
+>> latest stable kernel (2.6.29.5-191.fc11.i686.PAE), with identical em28xx
+>> devices connected still exhibits the error message "v4l2: ioctl queue buffer
+>> failed: No space left on device" when attempting to display video input on
+>> two identical em28xx devices simultaneously.
+>>
+>>     On the other hand, display is successful through either device when
+>> trying to display individually (with both still connected).
+>>      
 >
-> That depends completely on the driver implementation. In the case of the
-> davinci driver it will allocate memory for X buffers when the driver is
-> first initialized and it will use those when the application calls reqbufs.
-> If the app wants more than X buffers the driver will attempt to dynamically
-> allocate additional buffers, but those are usually hard to obtain.
+> Hello Steve,
 >
-> In my experience there is no problem for the driver to allocate the
-> required memory if it is done during driver initialization and if the
-> driver is compiled into the kernel.
+> The issue occurs with various different drivers.  Basically the issue
+> is the device attempts to reserve a certain amount of bandwidth on the
+> USB bus for the isoc stream, and in the case of analog video at
+> 640x480 this adds up to about 200Mbps.  As a result, connecting
+> multiple devices can result in exceeding the available bandwidth on
+> the USB bus.
 >
-> > Since this happens after
-> > the kernel is up, this is indeed a serious issue when we require HD
-> > resolution buffers. When I have tested vpfe capture from MT9T031 with
-> > 2048x1536 resolution buffer, the video buffer layer gives an oops due to
-> > failure to allocate buffer( I think video buffer layer is not handling
-> > error case when there are not enough buffers to allocate). Since buffer
-> > allocation happens very late (not at initialization), it is unlikely to
-> > succeed due to fragmentation issue.
+> Depending on your how many devices you are trying to connect, what
+> your target capture resolution is, and whether you can put each device
+> on its own USB bus will dictate what solution you can go with.
 >
-> That is really a driver problem: omap should use the same allocation scheme
-> as davinci does. That works pretty reliably. Of course, if someone tries to
-> squeeze the last drop out of their system, then they still may have to use
-> nasty tricks to get it to work (like using the mem= kernel option). But
-> such tricks are a last resort in my opinion.
+> I've done a considerable amount of work with the mainline em28xx
+> driver, so if you would like to discuss your desired configuration
+> further and what we might be able to do to accommodate those
+> requirements (including possibly optimizing the driver to better
+> support more devices), feel free to email me off-list.
 >
-> > So I have added support for USERPTR
-> > IO in vpfe capture to handle high resolution capture. This requires a
-> > kernel module to allocate contiguous buffer and the same is returned to
-> > application using an IOCTL. The physical/logical address can then be
-> > given to driver through USERPTR IO.
+> Regards,
 >
-> What exactly is the point of doing this? I gather it is used to pass the
-> same physical memory from e.g. a capture device to e.g. a resizer device,
-> right? Otherwise I see no benefit to doing this as opposed to regular mmap
-> I/O.
+> Devin
+>    
 
-This could be used in conjunction with reserved memory to allocate bug buffers 
-in userspace when not enough contiguous pages can be allocated from 
-kernelspace.
+Devin-
 
-Assume a device with 128MB (0x08000000) of SDRAM, mapped in physical memory at 
-address 0x80000000. If you pass mem=80M to the kernel, a userspace process 
-could (with appropriate permissions, and assuming it actually works :-)) do
+     Thanks for the quick response. Happy to take the conversation 
+off-list, but first, to clarify what may be useful to future web searchers:
 
-size_t length = 48 << 20;
-off_t address = 0x80000000 + (128 << 20) - (48 << 20);
+     So if I'm working with a USB 2.0 bus, which should have a 
+theoretical maximum of 480 Mbps, if the only two ports connected are 
+both em28xx capture devices running at (say) 640x480, shouldn't that be 
+sufficient for displaying both streams simultaneously?
 
-fd = open("/dev/mem", O_RDWR);
-mem = mmap(NULL, length, PROT_READ | PROT_WRITE, MAP_SHARED, fd, address);
+     Talking in the general sense of course, perhaps some details vary 
+from system to system - any idea what sort of variables might affect 
+that however?
 
-to get a pointer to 48MB area of reserved physical memory, and allocate big 
-USERPTR buffers from that.
+     I would assume most systems only have a single USB bus (regardless 
+of whether plugs are present on the front/back/side). If a given system 
+has a second USB bus or chipset, them perhaps plugging the second device 
+into that would solve the problem, but that surely that would be a rare 
+situation?
 
-Regards,
+     Most of the systems we use do not have expansion slots, so adding a 
+PCI USB board is not possible (in which case we would probably just add 
+a PCI TV Capture board anyway!).
 
-Laurent Pinchart
+
+     That said, if you do have some thoughts or suggestions as to how we 
+might be able to investigate specific hardware, or there is some other 
+way you think you might be able to help address this particular problem 
+(ideally in a way that benefits the larger community too!) please let me 
+know.
+
+
+Thanks again
+
+Steve
+
+-- 
+
+Steve Castellotti
+sc@eyemagnet.com
+Technical Director
+Eyemagnet Limited
+http://www.eyemagnet.com
+
 
