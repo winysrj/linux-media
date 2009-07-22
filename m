@@ -1,149 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-03.arcor-online.net ([151.189.21.43]:50365 "EHLO
-	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757396AbZGKAl7 (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.157]:45358 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753016AbZGVRLq convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jul 2009 20:41:59 -0400
-Subject: Re: regression : saa7134  with Pinnacle PCTV 50i (analog) can not
-	tune anymore
-From: hermann pitton <hermann-pitton@arcor.de>
-To: eric.paturage@orange.fr, Jean Delvare <khali@linux-fr.org>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <200907100551.n6A5p9i03931@neptune.localwarp.net>
-References: <200907100551.n6A5p9i03931@neptune.localwarp.net>
-Content-Type: text/plain
-Date: Sat, 11 Jul 2009 02:40:56 +0200
-Message-Id: <1247272856.3159.14.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 22 Jul 2009 13:11:46 -0400
+Received: by fg-out-1718.google.com with SMTP id e12so948653fga.17
+        for <linux-media@vger.kernel.org>; Wed, 22 Jul 2009 10:11:45 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <79fc70d20907221004n7338cb27h3dd5eebed8ec3a45@mail.gmail.com>
+References: <79fc70d20907221001v3a56a142v445d9167197ecf0d@mail.gmail.com>
+	 <79fc70d20907221004n7338cb27h3dd5eebed8ec3a45@mail.gmail.com>
+Date: Wed, 22 Jul 2009 18:11:45 +0100
+Message-ID: <79fc70d20907221011sdcefd55rcd3ed6867cb20dd@mail.gmail.com>
+Subject: Help Request: DM1105 STV0299 DVB-S PCI - Unable to tune
+From: Shaun Murdoch <scrauny@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[snip]
-> >> > 
-> >> 
-> >> H Hermann 
-> >> 
-> >> thanks for your suggestion .
-> >> No  improvement with changing the quirk to 0xfd , 
-> >> I still get the same error messages : 
-> >> i2c-adapter i2c-1: Invalid 7-bit address 0x7a
-> >> saa7133[0]: i2c xfer: < 8e >
-> >> input: i2c IR (Pinnacle PCTV) as /class/input/input4
-> >> ir-kbd-i2c: i2c IR (Pinnacle PCTV) detected at i2c-1/1-0047/ir0 [saa7133[0]]
-> >> saa7133[0]: i2c xfer: < 8f ERROR: ARB_LOST
-> >> saa7133[0]: i2c xfer: < 84 ERROR: NO_DEVICE
-> >> saa7133[0]: i2c xfer: < 86 ERROR: ARB_LOST
-> >> saa7133[0]: i2c xfer: < 94 ERROR: NO_DEVICE
-> >> saa7133[0]: i2c xfer: < 96 ERROR: ARB_LOST
-> >> saa7133[0]: i2c xfer: < c0 ERROR: NO_DEVICE
-> >> saa7133[0]: i2c xfer: < c2 ERROR: NO_DEVICE
-> >> saa7133[0]: i2c xfer: < c4 ERROR: NO_DEVICE
-> >> saa7133[0]: i2c xfer: < c6 ERROR: NO_DEVICE
-> >> saa7133[0]: i2c xfer: < c8 ERROR: NO_DEVICE      
-> >> 
-> >> 
-> >> Regards 
-> >> 
-> > 
-> > Hi Eric,
-> > 
-> > thanks for your time and testing.
-> > 
-> > Before we need to start with v4l-dvb bisecting.
-> > 
-> > There have only been a few changes for the saa7134 driver since what
-> > Mauro did send for 2.6.30.
-> > 
-> > Mostly for ir-kbd-i2c and for your remote was no tester found.
-> > 
-> > All i2c errors seem to start from the remote and that i2c remote stuff I
-> > don't have and can't fake.
-> > 
-> > Did you try with options saa7134 disable_ir=1 already too?
-> > 
-> > Cheers,
-> > Hermann
-> > 
-> > 
-> 
-> Hi Hermann 
-> 
-> I  tried this morning with the option disable_ir=1 (mercurial from 7/7/2009)
-> there is some progress :
-> 
-> case 1 : modprobe saa7134 
-> the tuner does not load any submodule 
-> message Jul 10 06:49:04 neptune kernel: TUNER: Unable to find symbol tda829x_probe()
-> Jul 10 06:49:05 neptune kernel: DVB: Unable to find symbol tda9887_attach()
-> Jul 10 06:51:21 neptune kernel: TUNER: Unable to find symbol tda829x_probe()
-> Jul 10 06:51:21 neptune kernel: DVB: Unable to find symbol tda9887_attach()
-> Jul 10 06:55:01 neptune kernel: TUNER: Unable to find symbol tda829x_probe()
-> 
-> message" neptune kernel: tuner 1-004b: Tuner has no way to set tv freq
-> equency " in /var/log/message 
-> 
-> no pic with xawtv 
-> xdtv hangs badly 
-> 
-> tried with quirk at both values (0xfe and 0xfd )
-> 
-> ----------------------------------------------------------------------------------------
-> 
-> case 2 :  modprobe saa7134  with having before manualy preloaded  tda827x and tda8290
-> xawtv give a picture after maybe 10 sec  , it is very very slow to tune (about 6 or 7 sec ) .
-> xdtv hangs completely  , no picture , no channel change (time out and try reset). 
-> 
-> tried with quirk at both values (0xfe and 0xfd )
-> 
-> Jul 10 07:29:16 neptune kernel: tuner 1-004b: chip found @ 0x96 (saa7133[0])
-> Jul 10 07:29:16 neptune kernel: tda829x 1-004b: setting tuner address to 61
-> Jul 10 07:29:16 neptune kernel: tda829x 1-004b: type set to tda8290+75a
-> Jul 10 07:29:19 neptune kernel: saa7133[0]: registered device video0 [v4l2]
-> Jul 10 07:29:19 neptune kernel: saa7133[0]: registered device vbi0
-> Jul 10 07:29:19 neptune kernel: saa7133[0]: registered device radio0
-> Jul 10 07:29:19 neptune kernel: saa7134 ALSA driver for DMA sound loaded
-> Jul 10 07:29:19 neptune kernel: IRQ 11/saa7133[0]: IRQF_DISABLED is not guarante
-> ed on shared IRQs
-> Jul 10 07:29:19 neptune kernel: saa7133[0]/alsa: saa7133[0] at 0xed800000 irq 11
->  registered as card -1
-> Jul 10 07:29:52 neptune kernel: 
-> Jul 10 07:29:52 neptune kernel:  01 20 >
-> Jul 10 07:30:02 neptune kernel: 
-> Jul 10 07:30:57 neptune last message repeated 23 times
-> Jul 10 07:31:19 neptune last message repeated 29 times
-> Jul 10 07:34:40 neptune kernel: INFO: task xdtv:3912 blocked for more than 120 s
-> econds.
-> 
-> 
-> I can provide  more detailed dmesg , if needed . 
-> 
-> regards 
-> 
+Hi everyone,
 
-Hi,
+First post so please be gentle :-)  [Resending to this list as
+linux-dvb is deprecated apparently and I wasn't a member of
+linux-media. Apologies if this gets to you multiple times.]
 
-so it seems we can forget about Mike's i2c quirk change and need to look
-at Jean's ir-kbd-i2c changes next without having a tester.
+I was wondering if anyone can help me please - I am trying to get a
+DVB-S PCI card working with Linux (Ubuntu 9.04). So far I can get the
+card recognised by Linux, but it won't tune - Kaffeine does tell me
+that there is 95% signal and 80% SNR, and I am using the same
+frequencies etc that a standard Sky box uses.
 
-There seems to be some read/write address mess.
+The card is very common on eBay so I am sure there are plenty people
+who have tried this / would want this working.
 
-I can only suggest to follow what is printed with i2c_debug=1 on
-changing a channel with the remote disabled and compare to what I have.
+Some details that I hope will help someone who knows more than I do about this!
 
-Something more in between?
+The card is one of these:
 
-Also, if on previously flaky attempts the tuner initialization sequence
-should have been disturbed, only a cold boot can improve that.
+http://cgi.ebay.co.uk/DVB-S-Satellite-TV-Tuner-Video-Capture-PCI-Card-Remote_W0QQitemZ130314645048QQcmdZViewItemQQptZUK_Computing_Computer_Components_Graphics_Video_TV_Cards_TW?hash=item1e575bae38&_trksid=p3286.c0.m14&_trkparms=65:12|66:2|39:1|72:1690|293:1|294:50
 
-It seems I have to report from Marathon here again and i don't like it
-at all ... ;)
+lspci:
+03:09.0 Ethernet controller: Device 195d:1105 (rev 10)
 
-Cheers,
-Hermann
+My dmesg output - looks ok?:
+$ dmesg | grep DVB
+[   12.174738] DVB: registering new adapter (dm1105)
+[   12.839501] DVB: registering adapter 0 frontend 0 (ST STV0299 DVB-S)...
+[   12.839633] input: DVB on-card IR receiver as
+/devices/pci0000:00/0000:00:1e.0/0000:03:09.0/input/input
 
+My output from scan - the problem:
 
+$ sudo scan -vvvvvv /usr/share/dvb/dvb-s/Astra-28.2E
+scanning /usr/share/dvb/dvb-s/Astra-28.2E
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
 
+>>> tune to: 11778:v:0:27500
+DiSEqC: switch pos 0, 13V, hiband (index 2)
+diseqc_send_msg:56: DiSEqC: e0 10 38 f1 00 00
+DVB-S IF freq is 1178000
+>>> tuning status == 0x03
+>>> tuning status == 0x03
+>>> tuning status == 0x03
+>>> tuning status == 0x03
+>>> tuning status == 0x03
+>>> tuning status == 0x03
+>>> tuning status == 0x03
+>>> tuning status == 0x03
+>>> tuning status == 0x03
+>>> tuning status == 0x03
+WARNING: >>> tuning failed!!!
 
+This is the correct satellite for my location (south UK), I believe.
+Have tried plenty. Nothing locks.
+I'm using the latest liplianin drivers - did a mercurial checkout and
+build today:
 
+$ modinfo dm1105
+filename:
+/lib/modules/2.6.28-13-server/kernel/drivers/media/dvb/dm1105/dm1105.ko
+license:        GPL
+description:    SDMC DM1105 DVB driver
+author:         Igor M. Liplianin <liplianin@me.by>
+srcversion:     46C1B3C3627D1937F75D732
+alias:          pci:v0000195Dd00001105sv*sd*bc*sc*i*
+alias:          pci:v0000109Fd0000036Fsv*sd*bc*sc*i*
+depends:        ir-common,dvb-core
+vermagic:       2.6.28-13-server SMP mod_unload modversions
+parm:           card:card type (array of int)
+parm:           ir_debug:enable debugging information for IR decoding (int)
+parm:           adapter_nr:DVB adapter numbers (array of short)
 
+Have also tried the latest v4l-dvb drivers and get exactly the same
+tuning problems.
+Finally, dvbtune appears to say I have signal but cannot lock:
+
+$ sudo dvbtune -f 1177800 -s 27500 -p v -m -tone 1 -vvvvvvvvvvv
+[sudo] password for shaun:
+Using DVB card "ST STV0299 DVB-S"
+tuning DVB-S to L-Band:0, Pol:V Srate=27500000, 22kHz=on
+polling....
+Getting frontend event
+FE_STATUS:
+polling....
+Getting frontend event
+FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER FE_HAS_VITERBI
+polling....
+Getting frontend event
+FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
+polling....
+Getting frontend event
+FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER FE_HAS_VITERBI
+polling....
+Getting frontend event
+FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
+polling....
+Getting frontend event
+FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER FE_HAS_VITERBI
+polling....
+Getting frontend event
+FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
+
+So I am thinking that this could be a driver issue? If the card has
+good signal and SNR in Kaffeine, and dvbtune says it has signal and
+carrier - but cannot lock?
+
+Please can someone help me debug this?
+
+Thanks a lot!
+Shaun
