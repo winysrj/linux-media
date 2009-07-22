@@ -1,50 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4-g21.free.fr ([212.27.42.4]:41302 "EHLO smtp4-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752426AbZGVX6O (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2009 19:58:14 -0400
-Message-ID: <4A67A78B.8080701@zerezo.com>
-Date: Thu, 23 Jul 2009 01:58:03 +0200
-From: Antoine Jacquet <royale@zerezo.com>
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:54276 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751632AbZGVRSs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Jul 2009 13:18:48 -0400
+Received: by fxm18 with SMTP id 18so333191fxm.37
+        for <linux-media@vger.kernel.org>; Wed, 22 Jul 2009 10:18:46 -0700 (PDT)
 MIME-Version: 1.0
-To: Lamarque Vieira Souza <lamarque@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, video4linux-list@redhat.com
-Subject: Re: [PATCH] Implement changing resolution on the fly for zr364xx
- driver
-References: <200907152054.56581.lamarque@gmail.com> <200907211942.02503.lamarque@gmail.com> <4A67690C.4030401@zerezo.com> <200907221654.51859.lamarque@gmail.com>
-In-Reply-To: <200907221654.51859.lamarque@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <79fc70d20907221001v3a56a142v445d9167197ecf0d@mail.gmail.com>
+References: <79fc70d20907221001v3a56a142v445d9167197ecf0d@mail.gmail.com>
+Date: Wed, 22 Jul 2009 21:48:46 +0430
+Message-ID: <d2f7e03e0907221018t53077d2dq1a530670c79320f1@mail.gmail.com>
+Subject: Re: [linux-dvb] Help Request: DM1105 STV0299 DVB-S PCI - Unable to
+	tune
+From: Seyyed Mohammad mohammadzadeh <softnhard.es@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hello,
 
-Lamarque Vieira Souza wrote:
-> Em Quarta-feira 22 Julho 2009, Antoine Jacquet escreveu:
->> Hi,
->>
->> Lamarque Vieira Souza wrote:
->>> 	I have made some changes to the patch:
->> Since I already included your previous patch and sent a pull request to
->> Mauro, could you send a patch against my current tree:
->> 	http://linuxtv.org/hg/~ajacquet/zr364xx/
->>
->> Thanks,
->>
->> Antoine
-> 
-> Here it is
+I don't know what is the exact cause of your problem but I think you
+are tuning to a wrong frequency. You wrote:
 
-Thanks, I pushed the patch to my tree.
-Sorry BTW, I just noticed the incremental version was already in your 
-first email.
+ dvbtune -f 1177800 -s 27500 -p v -m
 
-Regards,
+in which the frequency parameters has two extra zeros which cause the
+frequency to interpret as : 1,177,800 MHz !!!!!!!
 
-Antoine
-
--- 
-Antoine "Royale" Jacquet
-http://royale.zerezo.com
+2009/7/22 Shaun Murdoch <scrauny@gmail.com>
+>
+> Hi everyone,
+> First post so please be gentle :-)
+> I was wondering if anyone can help me please - I am trying to get a DVB-S PCI card working with Linux (Ubuntu 9.04). So far I can get the card recognised by Linux, but it won't tune - Kaffeine does tell me that there is 95% signal and 80% SNR, and I am using the same frequencies etc that a standard Sky box uses.
+> The card is very common on eBay so I am sure there are plenty people who have tried this / would want this working.
+> Some details that I hope will help someone who knows more than I do about this!
+> The card is one of these:
+> http://cgi.ebay.co.uk/DVB-S-Satellite-TV-Tuner-Video-Capture-PCI-Card-Remote_W0QQitemZ130314645048QQcmdZViewItemQQptZUK_Computing_Computer_Components_Graphics_Video_TV_Cards_TW?hash=item1e575bae38&_trksid=p3286.c0.m14&_trkparms=65:12|66:2|39:1|72:1690|293:1|294:50
+> lspci:
+> 03:09.0 Ethernet controller: Device 195d:1105 (rev 10)
+> My dmesg output - looks ok?:
+>
+> $ dmesg | grep DVB
+> [   12.174738] DVB: registering new adapter (dm1105)
+> [   12.839501] DVB: registering adapter 0 frontend 0 (ST STV0299 DVB-S)...
+> [   12.839633] input: DVB on-card IR receiver as /devices/pci0000:00/0000:00:1e.0/0000:03:09.0/input/input
+>
+> My output from scan - the problem:
+>
+> $ sudo scan -vvvvvv /usr/share/dvb/dvb-s/Astra-28.2E
+> scanning /usr/share/dvb/dvb-s/Astra-28.2E
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>
+> >>> tune to: 11778:v:0:27500
+> DiSEqC: switch pos 0, 13V, hiband (index 2)
+> diseqc_send_msg:56: DiSEqC: e0 10 38 f1 00 00
+> DVB-S IF freq is 1178000
+> >>> tuning status == 0x03
+> >>> tuning status == 0x03
+> >>> tuning status == 0x03
+> >>> tuning status == 0x03
+> >>> tuning status == 0x03
+> >>> tuning status == 0x03
+> >>> tuning status == 0x03
+> >>> tuning status == 0x03
+> >>> tuning status == 0x03
+> >>> tuning status == 0x03
+> WARNING: >>> tuning failed!!!
+>
+> This is the correct satellite for my location (south UK), I believe. Have tried plenty. Nothing locks.
+> I'm using the latest liplianin drivers - did a mercurial checkout and build today:
+>
+> $ modinfo dm1105
+> filename:       /lib/modules/2.6.28-13-server/kernel/drivers/media/dvb/dm1105/dm1105.ko
+> license:        GPL
+> description:    SDMC DM1105 DVB driver
+> author:         Igor M. Liplianin <liplianin@me.by>
+> srcversion:     46C1B3C3627D1937F75D732
+> alias:          pci:v0000195Dd00001105sv*sd*bc*sc*i*
+> alias:          pci:v0000109Fd0000036Fsv*sd*bc*sc*i*
+> depends:        ir-common,dvb-core
+> vermagic:       2.6.28-13-server SMP mod_unload modversions
+> parm:           card:card type (array of int)
+> parm:           ir_debug:enable debugging information for IR decoding (int)
+> parm:           adapter_nr:DVB adapter numbers (array of short)
+>
+> Have also tried the latest v4l-dvb drivers and get exactly the same tuning problems.
+> Finally, dvbtune appears to say I have signal but cannot lock:
+>
+> $ sudo dvbtune -f 1177800 -s 27500 -p v -m -tone 1 -vvvvvvvvvvv
+> [sudo] password for shaun:
+> Using DVB card "ST STV0299 DVB-S"
+> tuning DVB-S to L-Band:0, Pol:V Srate=27500000, 22kHz=on
+> polling....
+> Getting frontend event
+> FE_STATUS:
+> polling....
+> Getting frontend event
+> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER FE_HAS_VITERBI
+> polling....
+> Getting frontend event
+> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
+> polling....
+> Getting frontend event
+> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER FE_HAS_VITERBI
+> polling....
+> Getting frontend event
+> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
+> polling....
+> Getting frontend event
+> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER FE_HAS_VITERBI
+> polling....
+> Getting frontend event
+> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
+>
+> So I am thinking that this could be a driver issue? If the card has good signal and SNR in Kaffeine, and dvbtune says it has signal and carrier - but cannot lock?
+> Please can someone help me debug this?
+> Thanks a lot!
+> Shaun
+>
+>
+>
+>
+>
+>
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
