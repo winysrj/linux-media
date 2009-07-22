@@ -1,126 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1169 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752296AbZGYNDr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jul 2009 09:03:47 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: Re: [PATCHv10 3/8] v4l2: video device: Add FM_TX controls default configurations
-Date: Sat, 25 Jul 2009 15:03:33 +0200
-Cc: "ext Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>
-References: <1248453448-1668-1-git-send-email-eduardo.valentin@nokia.com> <1248453448-1668-3-git-send-email-eduardo.valentin@nokia.com> <1248453448-1668-4-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1248453448-1668-4-git-send-email-eduardo.valentin@nokia.com>
+Received: from mail.gmx.net ([213.165.64.20]:43414 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1756141AbZGVDnV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jul 2009 23:43:21 -0400
+From: "cyber.bogh" <cyber.bogh@gmx.de>
+To: hermann pitton <hermann-pitton@arcor.de>
+Subject: Re: [Bugme-new] [Bug 13709] New: b2c2-flexcop: no frontend driver found for this B2C2/FlexCop adapter w/ kernel-2.6.31-rc2
+Date: Wed, 22 Jul 2009 05:42:04 +0200
+References: <bug-13709-10286@http.bugzilla.kernel.org/> <200907211120.02036.cyber.bogh@gmx.de> <1248214614.16720.13.camel@pc07.localdom.local>
+In-Reply-To: <1248214614.16720.13.camel@pc07.localdom.local>
+Cc: linux-media@vger.kernel.org, bugzilla-daemon@bugzilla.kernel.org,
+	bugme-daemon@bugzilla.kernel.org, bugzilla.kernel.org@boris64.net,
+	Trent Piepho <xyzzy@speakeasy.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200907251503.33713.hverkuil@xs4all.nl>
+Message-Id: <200907220542.04717.cyber.bogh@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 24 July 2009 18:37:23 Eduardo Valentin wrote:
-> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
-> ---
->  linux/drivers/media/video/v4l2-common.c |   63 ++++++++++++++++++++++++++++++-
->  1 files changed, 62 insertions(+), 1 deletions(-)
-> 
-> diff --git a/linux/drivers/media/video/v4l2-common.c b/linux/drivers/media/video/v4l2-common.c
-> index bd13702..6fc0559 100644
-> --- a/linux/drivers/media/video/v4l2-common.c
-> +++ b/linux/drivers/media/video/v4l2-common.c
-> @@ -343,6 +343,12 @@ const char **v4l2_ctrl_get_menu(u32 id)
->  		"Sepia",
->  		NULL
->  	};
-> +	static const char *fm_tx_preemphasis[] = {
-> +		"No preemphasis",
-> +		"50 useconds",
-> +		"75 useconds",
-> +		NULL,
-> +	};
->  
->  	switch (id) {
->  		case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-> @@ -381,6 +387,8 @@ const char **v4l2_ctrl_get_menu(u32 id)
->  			return camera_exposure_auto;
->  		case V4L2_CID_COLORFX:
->  			return colorfx;
-> +		case V4L2_CID_FM_TX_PREEMPHASIS:
-> +			return fm_tx_preemphasis;
->  		default:
->  			return NULL;
->  	}
-> @@ -479,6 +487,28 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
->  	case V4L2_CID_PRIVACY:			return "Privacy";
->  
-> +	/* FM Radio Modulator control */
-> +	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
-> +	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
-> +	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
-> +	case V4L2_CID_RDS_TX_DEVIATION:		return "RDS Signal Deviation";
-> +	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
-> +	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
-> +	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
-> +	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
-> +	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
-> +	case V4L2_CID_AUDIO_COMPRESSION_ENABLED: return "Audio Compression Feature Enabled";
-> +	case V4L2_CID_AUDIO_COMPRESSION_GAIN:	return "Audio Compression Gain";
-> +	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD: return "Audio Compression Threshold";
-> +	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME: return "Audio Compression Attack Time";
-> +	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME: return "Audio Compression Release Time";
-> +	case V4L2_CID_PILOT_TONE_ENABLED:	return "Pilot Tone Feature Enabled";
-> +	case V4L2_CID_PILOT_TONE_DEVIATION:	return "Pilot Tone Deviation";
-> +	case V4L2_CID_PILOT_TONE_FREQUENCY:	return "Pilot Tone Frequency";
-> +	case V4L2_CID_FM_TX_PREEMPHASIS:	return "Pre-emphasis settings";
-> +	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
-> +	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
-> +
->  	default:
->  		return NULL;
->  	}
-> @@ -500,7 +530,18 @@ EXPORT_SYMBOL(v4l2_ctrl_is_value64);
->   * This information is used inside v4l2_compat_ioctl32. */
->  int v4l2_ctrl_is_pointer(u32 id)
->  {
-> -	return 0;
-> +	int is_pointer;
-> +
-> +	switch (id) {
-> +	case V4L2_CID_RDS_TX_PS_NAME:
-> +	case V4L2_CID_RDS_TX_RADIO_TEXT:
-> +		is_pointer = 1;
-> +		break;
-> +	default:
-> +		is_pointer = 0;
-> +	}
-> +
-> +	return is_pointer;
->  }
+Am Mittwoch 22 Juli 2009 00:16:54 schrieben Sie:
+> Am Dienstag, den 21.07.2009, 11:20 +0200 schrieb cyber.bogh:
+> > Am Dienstag 21 Juli 2009 05:27:01 schrieben Sie:
+> > > Am Montag, den 20.07.2009, 13:40 -0700 schrieb Andrew Morton:
+> > > > On Mon, 20 Jul 2009 13:21:33 -0700 (PDT)
+> > > >
+> > > > Trent Piepho <xyzzy@speakeasy.org> wrote:
+> > > > > On Mon, 20 Jul 2009, Andrew Morton wrote:
+> > > > > > (switched to email.  Please respond via emailed reply-to-all, not
+> > > > > > via the bugzilla web interface).
+> > > > > >
+> > > > > >
+> > > > > > Guys, this is reportedly a post-2.6.30 regression - I'll ask
+> > > > > > Rafael to add it to the regression tracking list.
+> > > > > >
+> > > > > > btw, does the flexcop driver have a regular maintainer?  Or
+> > > > > > someone who wants to volunteer?  MAINTAINERS is silent about it..
+> > > > >
+> > > > > I produced a patch that fixed this problem over a month ago,
+> > > > > http://www.linuxtv.org/hg/~tap/v4l-dvb/rev/748c762fcf3e
+> > > >
+> > > > Where is that patch now?  It isn't present in linux-next.
+> > > >
+> > > > If it needs to be resent, please cc me on it?
+> > > >
+> > > >
+> > > > Also, is there any way of avoiding this?
+> > > >
+> > > > +#define FE_SUPPORTED(fe) (defined(CONFIG_DVB_##fe) || \
+> > > > + (defined(CONFIG_DVB_##fe##_MODULE) && defined(MODULE)))
+> > > >
+> > > > That's just way too tricky.  It expects all versions of the
+> > > > preprocessor to be correctly implemented (unlikely) and there are
+> > > > other tools like unifdef which want to parse kernel #defines.
+> > > >
+> > > > otoh the trick does produce a nice result and doing it any other way
+> > > > (which I can think of) would make a mess.
+> > > >
+> > > > > Maybe it should go into 2.6.31?
+> > > >
+> > > > It depends on the seriousness of the regression (number of people
+> > > > affected, whether there's a workaround, etc) and upon the riskiness
+> > > > of the patch.
+> > > >
+> > > > But sure, we don't want regressions and letting one be released when
+> > > > we already know about it and have a fix would be bad!
+> > > >
+> > > > If the patch is judged too risky at this time, there might be a
+> > > > simpler one, perhaps.
+> > > >
+> > > > Or just revert whichever patch broke things.  Your changelog
+> > > > describes this as simply "A recent patch" (bad changelog!) so I am
+> > > > unable to judge this.
+> > >
+> > > Just revert it and let's wait for the next better attempt.
+> > >
+> > > We might get a lot of noise, but the patch was wrong.
+> >
+> > Absolutely nothing was wrong.
+> > Your pure existance here is wrong if there is something wrong here!
+> > As long as you do not have any clue about the subject I advise you to
+> > simply shut up, Pitton!
+> > Is that clear, Pitton???
+> >
+> > cyber.bogh
+>
+> As always and as expected ;)
+>
+> Uwe, use at least your real name, if you say you are not trolling this
+> time and serious about it. Bad enough, that you always have to come with
+> new names and addresses.
+>
+> The way you dealt with Boris reporting his trouble was disgusting.
 
-There is no need for a temp variable. Just do this:
+As long as idiots do not start to think they should be smashed right into 
+their faces.....
 
-int v4l2_ctrl_is_pointer(u32 id)
-{
-	switch (id) {
-	case V4L2_CID_RDS_TX_PS_NAME:
-	case V4L2_CID_RDS_TX_RADIO_TEXT:
-		return 1;
-	default:
-		return 0;
-	}
-}
+> Started here.
+> http://www.spinics.net/lists/linux-media/msg07746.html
+>
+> Likely Matthias giving the hint with the #ifdef MODULE stuff has no clue
+> either ???
+>
+> Trent's patches converting the tuners to dvb-pll later are not yet in
+> rc3 and the above fix attempt also not, but are all in mercurial
+> v4l-dvb. All not needed?
 
-Regards,
+The question is:
+Why is this crap in Mercurial?
 
-	Hans
+The answer is: Chehab policy!
 
+What does "Chehab policy" mean?
+Well, it means that if you're Trent Piepho your stuff will be pulled in, even 
+if it is the biggest thinkable crap that one ever can imagine.
+For every other person really investigating and bringing in substantially 
+better stuff there will be a public request whether there are objections or not 
+(plus other possible hindrances of the more unfair kind), while people owing a 
+repo at linuxtv.org are being trusted blindly.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+This policy I would compare to the functionality of a small reactionary 
+village of petit bourgeois small brains (i. e. IQ extremely limited - 
+somewhere in the Southern states of the US perhaps?).
+
+In other and thus quite non-misunderstanding words:
+
+It's definitely NOT the task of Andrew Morton to take care that crap like this 
+never reaches any relevant tree, may it be kernel or may it be Mercurial:
+
++#define FE_SUPPORTED(fe) (defined(CONFIG_DVB_##fe) || \
++ (defined(CONFIG_DVB_##fe##_MODULE) && defined(MODULE)))
+
+It's Chehab's task and noone else's. Basta!
+
+And shall I tell you what the biggest pain about it all is?
+
+Chehab is no single example.
+So-called "maintainers" more and more degenerate to gatekeepers and patch 
+samplers that wink through untested crap and thus produce unusable kernels.
+"Responsible and honest behaviour" does not seem to exist in those no brains.
+
+But:
+Sorry if I overestimated your real IQ capabilities, Pitton!
+
+cyber.bogh
+
+> Why you don't provide Andrew with the information he is asking for?
+>
+> Cheers,
+> Hermann
+
