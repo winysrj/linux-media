@@ -1,49 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta2.srv.hcvlny.cv.net ([167.206.4.197]:53331 "EHLO
-	mta2.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751052AbZG3NZw (ORCPT
+Received: from dscas1.ad.uiuc.edu ([128.174.68.119]:4992 "EHLO
+	dscas1.ad.uiuc.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756177AbZGVDIX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2009 09:25:52 -0400
-Received: from steven-toths-macbook-pro.local
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta2.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0KNL001ZCJZ4DY20@mta2.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Thu, 30 Jul 2009 09:25:53 -0400 (EDT)
-Date: Thu, 30 Jul 2009 09:25:52 -0400
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: [PATCH] cx23885-417: fix setting tvnorms
-In-reply-to: <e3538fbd0907292246k2c75a950u38c2c91d5190f4f7@mail.gmail.com>
-To: Joseph Yasi <joe.yasi@gmail.com>
-Cc: linux-media@vger.kernel.org
-Message-id: <4A719F60.7020205@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <e3538fbd0907292246k2c75a950u38c2c91d5190f4f7@mail.gmail.com>
+	Tue, 21 Jul 2009 23:08:23 -0400
+From: Stoyan Gaydarov <sgayda2@uiuc.edu>
+To: linux-kernel@vger.kernel.org
+CC: Stoyan Gaydarov <sgayda2@uiuc.edu>, moinejf@free.fr,
+	linux-media@vger.kernel.org
+Subject: [PATCH 3/7] [video] ARRAY_SIZE changes
+Date: Tue, 21 Jul 2009 22:02:29 -0500
+Message-ID: <1248231753-8344-4-git-send-email-sgayda2@uiuc.edu>
+In-Reply-To: <1248231753-8344-3-git-send-email-sgayda2@uiuc.edu>
+References: <1248231753-8344-1-git-send-email-sgayda2@uiuc.edu>
+ <1248231753-8344-2-git-send-email-sgayda2@uiuc.edu>
+ <1248231753-8344-3-git-send-email-sgayda2@uiuc.edu>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 7/30/09 1:46 AM, Joseph Yasi wrote:
-> Currently, the VIDIOC_S_STD ioctl just returns -EINVAL regardless of
-> the norm passed.  This patch sets cx23885_mpeg_template.tvnorms and
-> cx23885_mpeg_template.current_norm so that the VIDIOC_S_STD will work.
->
-> Signed-off-by: Joseph A. Yasi<joe.yasi@gmail.com>
+These changes were a direct result of using a semantic patch
+More information can be found at http://www.emn.fr/x-info/coccinelle/
 
-Joseph, thank you for raising this.
+Signed-off-by: Stoyan Gaydarov <sgayda2@uiuc.edu>
+---
+ drivers/media/video/gspca/conex.c   |    2 +-
+ drivers/media/video/gspca/etoms.c   |    4 ++--
+ drivers/media/video/gspca/spca501.c |    2 +-
+ drivers/media/video/gspca/spca506.c |    2 +-
+ drivers/media/video/gspca/sunplus.c |    6 +++---
+ drivers/media/video/gspca/zc3xx.c   |    2 +-
+ drivers/media/video/tveeprom.c      |    4 ++--
+ 7 files changed, 11 insertions(+), 11 deletions(-)
 
-We have this change and a few others already stacked up in this tree:
-
-http://www.kernellabs.com/hg/~mkrufky/cx23885-api/rev/0391fb200be2
-
-The end result is to get MythTV using the HVR1800 analog encoder correctly.
-
-The tree itself is considered experimental but during testing we had noticed the 
-same issue, so, again, thank you for raising the same issue. Two people 
-reporting the same issue is always better than none.
-
-- Steve
-
+diff --git a/drivers/media/video/gspca/conex.c b/drivers/media/video/gspca/conex.c
+index 219cfa6..11aa91d 100644
+--- a/drivers/media/video/gspca/conex.c
++++ b/drivers/media/video/gspca/conex.c
+@@ -820,7 +820,7 @@ static int sd_config(struct gspca_dev *gspca_dev,
+ 
+ 	cam = &gspca_dev->cam;
+ 	cam->cam_mode = vga_mode;
+-	cam->nmodes = sizeof vga_mode / sizeof vga_mode[0];
++	cam->nmodes = ARRAY_SIZE(vga_mode);
+ 
+ 	sd->brightness = BRIGHTNESS_DEF;
+ 	sd->contrast = CONTRAST_DEF;
+diff --git a/drivers/media/video/gspca/etoms.c b/drivers/media/video/gspca/etoms.c
+index 2c20d06..c1461e6 100644
+--- a/drivers/media/video/gspca/etoms.c
++++ b/drivers/media/video/gspca/etoms.c
+@@ -635,10 +635,10 @@ static int sd_config(struct gspca_dev *gspca_dev,
+ 	sd->sensor = id->driver_info;
+ 	if (sd->sensor == SENSOR_PAS106) {
+ 		cam->cam_mode = sif_mode;
+-		cam->nmodes = sizeof sif_mode / sizeof sif_mode[0];
++		cam->nmodes = ARRAY_SIZE(sif_mode);
+ 	} else {
+ 		cam->cam_mode = vga_mode;
+-		cam->nmodes = sizeof vga_mode / sizeof vga_mode[0];
++		cam->nmodes = ARRAY_SIZE(vga_mode);
+ 		gspca_dev->ctrl_dis = (1 << COLOR_IDX);
+ 	}
+ 	sd->brightness = BRIGHTNESS_DEF;
+diff --git a/drivers/media/video/gspca/spca501.c b/drivers/media/video/gspca/spca501.c
+index d48b27c..b74a342 100644
+--- a/drivers/media/video/gspca/spca501.c
++++ b/drivers/media/video/gspca/spca501.c
+@@ -1923,7 +1923,7 @@ static int sd_config(struct gspca_dev *gspca_dev,
+ 
+ 	cam = &gspca_dev->cam;
+ 	cam->cam_mode = vga_mode;
+-	cam->nmodes = sizeof vga_mode / sizeof vga_mode[0];
++	cam->nmodes = ARRAY_SIZE(vga_mode);
+ 	sd->subtype = id->driver_info;
+ 	sd->brightness = sd_ctrls[MY_BRIGHTNESS].qctrl.default_value;
+ 	sd->contrast = sd_ctrls[MY_CONTRAST].qctrl.default_value;
+diff --git a/drivers/media/video/gspca/spca506.c b/drivers/media/video/gspca/spca506.c
+index 3a0c893..a199298 100644
+--- a/drivers/media/video/gspca/spca506.c
++++ b/drivers/media/video/gspca/spca506.c
+@@ -286,7 +286,7 @@ static int sd_config(struct gspca_dev *gspca_dev,
+ 
+ 	cam = &gspca_dev->cam;
+ 	cam->cam_mode = vga_mode;
+-	cam->nmodes = sizeof vga_mode / sizeof vga_mode[0];
++	cam->nmodes = ARRAY_SIZE(vga_mode);
+ 	sd->brightness = sd_ctrls[SD_BRIGHTNESS].qctrl.default_value;
+ 	sd->contrast = sd_ctrls[SD_CONTRAST].qctrl.default_value;
+ 	sd->colors = sd_ctrls[SD_COLOR].qctrl.default_value;
+diff --git a/drivers/media/video/gspca/sunplus.c b/drivers/media/video/gspca/sunplus.c
+index 9623f29..6ddffdc 100644
+--- a/drivers/media/video/gspca/sunplus.c
++++ b/drivers/media/video/gspca/sunplus.c
+@@ -840,15 +840,15 @@ static int sd_config(struct gspca_dev *gspca_dev,
+ /*	case BRIDGE_SPCA504: */
+ /*	case BRIDGE_SPCA536: */
+ 		cam->cam_mode = vga_mode;
+-		cam->nmodes = sizeof vga_mode / sizeof vga_mode[0];
++		cam->nmodes = ARRAY_SIZE(vga_mode);
+ 		break;
+ 	case BRIDGE_SPCA533:
+ 		cam->cam_mode = custom_mode;
+-		cam->nmodes = sizeof custom_mode / sizeof custom_mode[0];
++		cam->nmodes = ARRAY_SIZE(custom_mode);
+ 		break;
+ 	case BRIDGE_SPCA504C:
+ 		cam->cam_mode = vga_mode2;
+-		cam->nmodes = sizeof vga_mode2 / sizeof vga_mode2[0];
++		cam->nmodes = ARRAY_SIZE(vga_mode2);
+ 		break;
+ 	}
+ 	sd->brightness = sd_ctrls[SD_BRIGHTNESS].qctrl.default_value;
+diff --git a/drivers/media/video/gspca/zc3xx.c b/drivers/media/video/gspca/zc3xx.c
+index 08422d3..02043ef 100644
+--- a/drivers/media/video/gspca/zc3xx.c
++++ b/drivers/media/video/gspca/zc3xx.c
+@@ -7572,7 +7572,7 @@ static int sd_get_jcomp(struct gspca_dev *gspca_dev,
+ static const struct sd_desc sd_desc = {
+ 	.name = MODULE_NAME,
+ 	.ctrls = sd_ctrls,
+-	.nctrls = sizeof sd_ctrls / sizeof sd_ctrls[0],
++	.nctrls = ARRAY_SIZE(sd_ctrls),
+ 	.config = sd_config,
+ 	.init = sd_init,
+ 	.start = sd_start,
+diff --git a/drivers/media/video/tveeprom.c b/drivers/media/video/tveeprom.c
+index ac02808..d533ea5 100644
+--- a/drivers/media/video/tveeprom.c
++++ b/drivers/media/video/tveeprom.c
+@@ -646,14 +646,14 @@ void tveeprom_hauppauge_analog(struct i2c_client *c, struct tveeprom *tvee,
+ 		tvee->has_radio = 1;
+ 	}
+ 
+-	if (tuner1 < sizeof(hauppauge_tuner)/sizeof(struct HAUPPAUGE_TUNER)) {
++	if (tuner1 < ARRAY_SIZE(hauppauge_tuner)) {
+ 		tvee->tuner_type = hauppauge_tuner[tuner1].id;
+ 		t_name1 = hauppauge_tuner[tuner1].name;
+ 	} else {
+ 		t_name1 = "unknown";
+ 	}
+ 
+-	if (tuner2 < sizeof(hauppauge_tuner)/sizeof(struct HAUPPAUGE_TUNER)) {
++	if (tuner2 < ARRAY_SIZE(hauppauge_tuner)) {
+ 		tvee->tuner2_type = hauppauge_tuner[tuner2].id;
+ 		t_name2 = hauppauge_tuner[tuner2].name;
+ 	} else {
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+1.6.3.3
+
