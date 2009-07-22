@@ -1,60 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43783 "EHLO mail.kapsi.fi"
+Received: from mail1.radix.net ([207.192.128.31]:56857 "EHLO mail1.radix.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751964AbZGJVMs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Jul 2009 17:12:48 -0400
-Message-ID: <4A57AEC9.9040602@iki.fi>
-Date: Sat, 11 Jul 2009 00:12:41 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Jelle de Jong <jelledejong@powercraft.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Afatech AF9013 DVB-T not working with mplayer radio streams
-References: <4A4481AC.4050302@powercraft.nl> <4A4D34B3.8050605@iki.fi>	 <4A4E2B45.8080607@powercraft.nl>	 <829197380907091805h10bcf548kbf5435feeb30e067@mail.gmail.com>	 <4A572F7E.6010701@iki.fi> <829197380907100816o4a3daa22k78a424da5bebed1e@mail.gmail.com>
-In-Reply-To: <829197380907100816o4a3daa22k78a424da5bebed1e@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	id S1752492AbZGVB2Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Jul 2009 21:28:24 -0400
+Subject: [PATCH v2 3/4] cx18: Add i2c initialization for Z8F0811/Hauppage
+ IR transceivers
+From: Andy Walls <awalls@radix.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Cc: Jean Delvare <khali@linux-fr.org>, Mark Lord <lkml@rtr.ca>,
+	Jarod Wilson <jarod@redhat.com>, Mike Isely <isely@pobox.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, Janne Grunau <j@jannau.net>
+Content-Type: text/plain
+Date: Tue, 21 Jul 2009 21:30:04 -0400
+Message-Id: <1248226204.3191.61.camel@palomino.walls.org>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/10/2009 06:16 PM, Devin Heitmueller wrote:
-> On Fri, Jul 10, 2009 at 8:09 AM, Antti Palosaari<crope@iki.fi>  wrote:
->> af9013 is correct in my mind. af9013 will return -EINVAL (error invalid
->> value) in case of first garbage value met (maybe better to switch auto mode
->> when garbage value meet and print debug log?).
->>
->> Of course there should be at least debug printing to inform that... but fix
->> you suggest is better for compatibility. You can do that, it is ok for me.
->
->> From a purist standpoint, I agree that the application at fault, and
-> if it were some no-name application I would just say "fix the broken
-> application".  Except it's not a no-name application - it's mplayer.
->
-> Are you familiar with Postel's Law?
+This patch add support to the cx18 driver for setting up the
+Z8F0811/Hauppauge IR Tx/Rx chip with the i2c binding model in newer
+kernels.
 
-No :)
 
-> http://en.wikipedia.org/wiki/Postel%27s_Law
->
-> Saying "this demod is not going to work properly with all versions of
-> one of the most popular applications", especially when other demods
-> handle the condition gracefully, is the sort of thing that causes real
-> problems for the Linux community.
->
-> I'm not the maintainer for this demod, so I'm not the best person to
-> make such a fix.  I spent four hours and debugged the issue as a favor
-> to Jelle de Jong since he loaned me some hardware a couple of months
-> ago.  I guess I can make the fix, but it's just going to take away
-> from time better spent on things I am more qualified to work on.
->
-> Devin
+Signed-off-by: Andy Walls <awalls@radix.net>
+Reviewed-by: Jean Delvare <khali@linux-fr.org>
 
-I will fix that just right now. I think I will change demodulator from 
-"return error invalid value" to "force detect transmission parameters 
-automatically" in case of broken parameters given.
 
-thanks,
-Antti
--- 
-http://palosaari.fi/
+diff -r 6477aa1782d5 linux/drivers/media/video/cx18/cx18-cards.c
+--- a/linux/drivers/media/video/cx18/cx18-cards.c	Tue Jul 21 09:17:24 2009 -0300
++++ b/linux/drivers/media/video/cx18/cx18-cards.c	Tue Jul 21 20:55:54 2009 -0400
+@@ -56,7 +56,8 @@
+ 	.hw_audio_ctrl = CX18_HW_418_AV,
+ 	.hw_muxer = CX18_HW_CS5345,
+ 	.hw_all = CX18_HW_TVEEPROM | CX18_HW_418_AV | CX18_HW_TUNER |
+-		  CX18_HW_CS5345 | CX18_HW_DVB | CX18_HW_GPIO_RESET_CTRL,
++		  CX18_HW_CS5345 | CX18_HW_DVB | CX18_HW_GPIO_RESET_CTRL |
++		  CX18_HW_Z8F0811_IR_HAUP,
+ 	.video_inputs = {
+ 		{ CX18_CARD_INPUT_VID_TUNER,  0, CX18_AV_COMPOSITE7 },
+ 		{ CX18_CARD_INPUT_SVIDEO1,    1, CX18_AV_SVIDEO1    },
+@@ -102,7 +103,8 @@
+ 	.hw_audio_ctrl = CX18_HW_418_AV,
+ 	.hw_muxer = CX18_HW_CS5345,
+ 	.hw_all = CX18_HW_TVEEPROM | CX18_HW_418_AV | CX18_HW_TUNER |
+-		  CX18_HW_CS5345 | CX18_HW_DVB | CX18_HW_GPIO_RESET_CTRL,
++		  CX18_HW_CS5345 | CX18_HW_DVB | CX18_HW_GPIO_RESET_CTRL |
++		  CX18_HW_Z8F0811_IR_HAUP,
+ 	.video_inputs = {
+ 		{ CX18_CARD_INPUT_VID_TUNER,  0, CX18_AV_COMPOSITE7 },
+ 		{ CX18_CARD_INPUT_SVIDEO1,    1, CX18_AV_SVIDEO1    },
+diff -r 6477aa1782d5 linux/drivers/media/video/cx18/cx18-cards.h
+--- a/linux/drivers/media/video/cx18/cx18-cards.h	Tue Jul 21 09:17:24 2009 -0300
++++ b/linux/drivers/media/video/cx18/cx18-cards.h	Tue Jul 21 20:55:54 2009 -0400
+@@ -22,13 +22,17 @@
+  */
+ 
+ /* hardware flags */
+-#define CX18_HW_TUNER		(1 << 0)
+-#define CX18_HW_TVEEPROM	(1 << 1)
+-#define CX18_HW_CS5345		(1 << 2)
+-#define CX18_HW_DVB		(1 << 3)
+-#define CX18_HW_418_AV		(1 << 4)
+-#define CX18_HW_GPIO_MUX	(1 << 5)
+-#define CX18_HW_GPIO_RESET_CTRL	(1 << 6)
++#define CX18_HW_TUNER			(1 << 0)
++#define CX18_HW_TVEEPROM		(1 << 1)
++#define CX18_HW_CS5345			(1 << 2)
++#define CX18_HW_DVB			(1 << 3)
++#define CX18_HW_418_AV			(1 << 4)
++#define CX18_HW_GPIO_MUX		(1 << 5)
++#define CX18_HW_GPIO_RESET_CTRL		(1 << 6)
++#define CX18_HW_Z8F0811_IR_TX_HAUP	(1 << 7)
++#define CX18_HW_Z8F0811_IR_RX_HAUP	(1 << 8)
++#define CX18_HW_Z8F0811_IR_HAUP	(CX18_HW_Z8F0811_IR_RX_HAUP | \
++				 CX18_HW_Z8F0811_IR_TX_HAUP)
+ 
+ /* video inputs */
+ #define	CX18_CARD_INPUT_VID_TUNER	1
+diff -r 6477aa1782d5 linux/drivers/media/video/cx18/cx18-i2c.c
+--- a/linux/drivers/media/video/cx18/cx18-i2c.c	Tue Jul 21 09:17:24 2009 -0300
++++ b/linux/drivers/media/video/cx18/cx18-i2c.c	Tue Jul 21 20:55:54 2009 -0400
+@@ -28,6 +28,9 @@
+ #include "cx18-gpio.h"
+ #include "cx18-i2c.h"
+ #include "cx18-irq.h"
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
++#include <media/ir-kbd-i2c.h>
++#endif
+ 
+ #define CX18_REG_I2C_1_WR   0xf15000
+ #define CX18_REG_I2C_1_RD   0xf15008
+@@ -40,16 +43,20 @@
+ #define GETSDL_BIT      0x0008
+ 
+ #define CX18_CS5345_I2C_ADDR		0x4c
++#define CX18_Z8F0811_IR_TX_I2C_ADDR	0x70
++#define CX18_Z8F0811_IR_RX_I2C_ADDR	0x71
+ 
+ /* This array should match the CX18_HW_ defines */
+ static const u8 hw_addrs[] = {
+-	0,			/* CX18_HW_TUNER */
+-	0,			/* CX18_HW_TVEEPROM */
+-	CX18_CS5345_I2C_ADDR,	/* CX18_HW_CS5345 */
+-	0,			/* CX18_HW_DVB */
+-	0,			/* CX18_HW_418_AV */
+-	0,			/* CX18_HW_GPIO_MUX */
+-	0,			/* CX18_HW_GPIO_RESET_CTRL */
++	0,				/* CX18_HW_TUNER */
++	0,				/* CX18_HW_TVEEPROM */
++	CX18_CS5345_I2C_ADDR,		/* CX18_HW_CS5345 */
++	0,				/* CX18_HW_DVB */
++	0,				/* CX18_HW_418_AV */
++	0,				/* CX18_HW_GPIO_MUX */
++	0,				/* CX18_HW_GPIO_RESET_CTRL */
++	CX18_Z8F0811_IR_TX_I2C_ADDR,	/* CX18_HW_Z8F0811_IR_TX_HAUP */
++	CX18_Z8F0811_IR_RX_I2C_ADDR,	/* CX18_HW_Z8F0811_IR_RX_HAUP */
+ };
+ 
+ /* This array should match the CX18_HW_ defines */
+@@ -62,6 +69,8 @@
+ 	0,	/* CX18_HW_418_AV */
+ 	0,	/* CX18_HW_GPIO_MUX */
+ 	0,	/* CX18_HW_GPIO_RESET_CTRL */
++	0,	/* CX18_HW_Z8F0811_IR_TX_HAUP */
++	0,	/* CX18_HW_Z8F0811_IR_RX_HAUP */
+ };
+ 
+ /* This array should match the CX18_HW_ defines */
+@@ -73,6 +82,8 @@
+ 	NULL,		/* CX18_HW_418_AV */
+ 	NULL,		/* CX18_HW_GPIO_MUX */
+ 	NULL,		/* CX18_HW_GPIO_RESET_CTRL */
++	NULL,		/* CX18_HW_Z8F0811_IR_TX_HAUP */
++	NULL,		/* CX18_HW_Z8F0811_IR_RX_HAUP */
+ };
+ 
+ /* This array should match the CX18_HW_ defines */
+@@ -84,8 +95,41 @@
+ 	"cx23418_AV",
+ 	"gpio_mux",
+ 	"gpio_reset_ctrl",
++	"ir_tx_z8f0811_haup",
++	"ir_rx_z8f0811_haup",
+ };
+ 
++static int cx18_i2c_new_ir(struct i2c_adapter *adap, u32 hw, const char *type,
++			   u8 addr)
++{
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 30)
++	struct i2c_board_info info;
++	struct IR_i2c_init_data ir_init_data;
++	unsigned short addr_list[2] = { addr, I2C_CLIENT_END };
++
++	memset(&info, 0, sizeof(struct i2c_board_info));
++	strlcpy(info.type, type, I2C_NAME_SIZE);
++
++	/* Our default information for ir-kbd-i2c.c to use */
++	switch (hw) {
++	case CX18_HW_Z8F0811_IR_RX_HAUP:
++		memset(&ir_init_data, 0, sizeof(struct IR_i2c_init_data));
++		ir_init_data.ir_codes = ir_codes_hauppauge_new;
++		ir_init_data.internal_get_key_func = IR_KBD_GET_KEY_HAUP_XVR;
++		ir_init_data.type = IR_TYPE_RC5;
++		ir_init_data.name = "CX23418 Z8F0811 Hauppauge";
++		info.platform_data = &ir_init_data;
++		break;
++	default:
++		break;
++	}
++
++	return i2c_new_probed_device(adap, &info, addr_list) == NULL ? -1 : 0;
++#else
++	return -1;
++#endif
++}
++
+ int cx18_i2c_register(struct cx18 *cx, unsigned idx)
+ {
+ 	struct v4l2_subdev *sd;
+@@ -115,11 +159,14 @@
+ 		return sd != NULL ? 0 : -1;
+ 	}
+ 
++	if (hw & CX18_HW_Z8F0811_IR_HAUP)
++		return cx18_i2c_new_ir(adap, hw, type, hw_addrs[idx]);
++
+ 	/* Is it not an I2C device or one we do not wish to register? */
+ 	if (!hw_addrs[idx])
+ 		return -1;
+ 
+-	/* It's an I2C device other than an analog tuner */
++	/* It's an I2C device other than an analog tuner or IR chip */
+ 	sd = v4l2_i2c_new_subdev(&cx->v4l2_dev, adap, mod, type, hw_addrs[idx]);
+ 	if (sd != NULL)
+ 		sd->grp_id = hw;
+
+
