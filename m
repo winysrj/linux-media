@@ -1,137 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:60268 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751137AbZG1Dfx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jul 2009 23:35:53 -0400
-Date: Tue, 28 Jul 2009 00:35:48 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com>
-Cc: v4l2_linux <linux-media@vger.kernel.org>,
-	Dongsoo Kim <dongsoo45.kim@samsung.com>,
-	=?UTF-8?B?67CV6rK966+8?= <kyungmin.park@samsung.com>,
-	jm105.lee@samsung.com,
-	=?UTF-8?B?7J207IS4?= =?UTF-8?B?66y4?= <semun.lee@samsung.com>,
-	=?UTF-8?B?64yA7J246riw?= <inki.dae@samsung.com>,
-	=?UTF-8?B?6rmA7ZiV7KSA?= <riverful.kim@samsung.com>
-Subject: Re: How to save number of times using memcpy?
-Message-ID: <20090728003548.1a99224a@pedra.chehab.org>
-In-Reply-To: <5e9665e10907271756l114f6e6ekeefa04d976b95c66@mail.gmail.com>
-References: <5e9665e10907271756l114f6e6ekeefa04d976b95c66@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:34741 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751079AbZGWLKO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Jul 2009 07:10:14 -0400
+Content-Type: text/plain; charset="iso-8859-1"
+Date: Thu, 23 Jul 2009 13:10:06 +0200
+From: anderse@gmx.de
+Message-ID: <20090723111006.59010@gmx.net>
+MIME-Version: 1.0
+Subject: Re: [linux-dvb] Terratec Cinergy HTC USB XS HD
+To: linux-media@vger.kernel.org
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dongsoo,
+>On Sat, Jul 18, 2009 at 12:46 PM, Mario Fetka<mario.fe...@gmail.com> wrote:
+>> On Saturday, 18. July 2009 04:06:13 Alain Kalker wrote:
+>>> Op maandag 15-06-2009 om 22:36 uur [tijdzone +0200], schreef sacha:
+>>> > Hello
+>>> >
+>>> > Does anybody know if this devise will ever work with Linux?
+>>> > It was promised by one person last year the support will be available
+>>> > within months. One year has gone, nothing happens.
+>>> > Is there any alternatives to develop a driver for this devise aside from
+>>> > this person?
+>>>
+>>> Since there has been no answer to your question for some time, I think I
+>>> will step in.
+>>>
+>>> >From http://mcentral.de/wiki/index.php5/Terratec_HTC_XS , the future for
+>>>
+>>> a driver from Markus for this device does seem to look quite bleak.
+>>> However, from looking in the mailinglist archive I gather that Steven
+>>> Toth has offered to try getting it to work if someone is willing to
+>>> provide him with a device.
+>>> Maybe you two could get in contact.
+>>> I myself am also interested in a driver for this device but I haven't
+>>> got one yet.
+>>>
+>>> Kind regards,
+>>>
+>>> Alain
+>>>
+>> as far as i know there already exists a driver but it could not be published
+>> as it is based on the micronas refernce driver
+>>
+>> i think the problem is related to
+>>
+>> http://www.linuxtv.org/pipermail/linux-dvb/2008-December/030738.html
+>>
+>> but this new situation with
+>> http://www.tridentmicro.com/Product_drx_39xyK.asp
+>>
+>> can maby change something about this chip
+>>
+>> and it would be possible to get the rights to publish the driver under  gpl-2
+>>
 
-Em Tue, 28 Jul 2009 09:56:05 +0900
-"Dongsoo, Nathaniel Kim" <dongsoo.kim@gmail.com> escreveu:
+>This won't solve the issue that the AVFB4910 has been discontinued.
+>This affects FM Radio, Analogue TV, Composite and S-Video, that IC
+>didn't get bought by Trident.
 
-> Hello everyone,
-> 
-> What I'm gonna ask might be quite a bit tough couple of questions, but
-> definitely necessary in multimedia device driver area.
-> 
-> My first question is "Is any driver using using continuous physical
-> memory has any chance to be adopted in main line kernel?"
-> Because I'm afraid what I'm talking about is all about multimedia,
-> which is consuming plenty of memory.
-> But please note that in this case all the drivers I take care of are
-> ARM SoC's peripheral device drivers.(ie. camera interface driver in
-> Samsung CPU). And whenever we choose to use continuous physical
-> memory, then current videobuf cannot be used in those kind of device
-> drivers because of the io-remapping.
-> 
-> 
-> And the other one is about how to handle the buffer used between
-> couple of multimedia devices.
-> Let me take an example of a camcorder scenario which takes series of
-> pictures and encode them in some sort of multimedia encoded format.
-> And let's assume that we are using a device of a SoC H/W which has
-> it's own camera and multimedia encoder device as well.
-> 
-> The scenario might be going like following order ordinarily.
-> 1. User application: open camera device node and tries to mmap
-> buffer(A) to be used.
-> 2. Camera interface: try to allocate memory in kernel space and creates mapping.
-> 3. User application: open encoder device node and tries to mmap
-> buffer(B) as input buffer and buffer(C) as output buffer to be used.
-> 4. Start streaming
-> 5. Camera interface: fetch data from external camera module and writes
-> to the allocated buffer in kernel space and give back the memory
-> address to user application through dqbuf
-> 6. User application: memcpy(1st) returned buffer(A) to frame buffer
-> therefore we can see as preview
-> 7. User application: memcpy(2nd) returned buffer(A) to buffer(B) of
-> encoder device.
-> 7. Encoder device: encodes the data copied into buffer(B) and returns
-> to user application through buffer(C)
-> 8. User application: memcpy(3nd) encoded data from buffer(C) and save as file
-> 9. do loop from 5 to 8 as long as you want to keep recording
-> 
-> As you see above, at least three times of memcpy per frame are
-> necessary to make the recording and preview happened. Of course I took
-> a worst case for example because we can even take in-place thing for
-> encoder buffer, but I jut wanted to consider of drivers not capable to
-> take care of in-place algorithm for some reasons.
-> 
-> Now let's imagine that we are recording 1920*1080 sized frame. can you
-> draw the picture in your mind how it might be inefficient?
-> 
+>regards,
+>Markus
 
-I'm not sure if I understood your problem. Videobuf consists of 2 separate parts:
-	a common core part, responsible for controlling the buffers;
-	a memory allocation specific part.
+Did Devin Heitmueller comment on that? AFAIK he already finished a driver for the DRX-3933J and I would think he might have interest to get in contact with trident in order of being allowed to publish his work.
+Should be a rather small step compared to the work he has done so far.
+And Trident has some history in cooperating together with XFree developers, 
+letting them develop graphics card drivers.
 
-There are currently 3 different implementations for the memory-specific one:
-	- dma scatter/gather buffers;
-	- dma contiguous buffer;
-	- vmalloc buffer.
+What about this AVFB4910? Is it possible to get a working DVB-C/DVB-T solution without getting in contact with this chip? And once this would be done, there should still be the option of reverse engineering the protocol of that one.
 
-The first two are currently used by PCI devices (although they probably work
-with other buses), while the third one is used on USB devices, where we need to
-remove the USB transport data from the stream, so, data needs to be copied.
+Meanwhile, Terratec has dicontinued the Cinergy HTC USB XS HD, but what about the H5? Does anyone know about its internals already? 
 
-If you use one of the dma implementations, a stream is received from the
-capture device, and can be directly mapped at the userspace application, via
-mmap() ioctl. In this case, there's no memory copy between userspace and
-kernelspace. The application will directly see the data.
+AFAIK, these are still the only non-PCI DVB-C solutions on the market.
 
-There's also an special type of transfer called overlay mode. On the overlay
-mode, the DMA transfers are mapped directly into the output device.
+Hmm, did micronas give up this full range of products? Sold the 'interesting' part to trident and ceased production of everything else? Maybe half a year ago, they didn't want to disturb ongoing selling negotiations by giving away their intellectual property for free in parallel, and now, after all is settled, maybe they don't mind anymore. 
+So contacting those people again could be worth it, too.
 
-In general, the drivers that implement overlay mode also mmap(), but this is
-done, on those drivers, via a separate DMA transfer. 
+best regards, 
 
-The applications that benefit with overlay mode, uses overlay for display and
-mmap for record, and may have different resolutions on each mode.
+Raimund
 
-> 
-> So, my second question is "Is V4L2 covering the best practice of video
-> recording for embedded system?"
-> As you know, embedded systems are running out of memories..and don't
-> have much enough memory bandwidth either.
-> I'm not seeing any standard way for "device to device" buffer handling
-> in V4L2 documents. If nobody has been considering this issue, can I
-> bring it on the table for make it in a unified way, therefor we can
-> make any improvement in opensource multimedia middlewares and drivers
-> as well.
 
-Nothing stops you from proposing newer modules, but there are several embedded
-systems using it.
-> 
-> 
-> By the way.. among the examples above I mentioned, I took an example
-> of codec device. right? How far are we with codec devices in V4L2
-> community? Thanks to the ultimate H/W in these days, we are facing
-> tremendous issues as well.
-
-It depends. When vendor helps, then Linux can have the bleeding edge drivers. For
-example, the first O. S. with USB 3.0 is Linux, since the vendor supported the
-development of the kernel driver for it. Each time, more vendors are interested
-on supporting Linux. This happens on all areas of the kernel, including V4L.
-
-Cheers,
-Mauro
+-- 
+Neu: GMX Doppel-FLAT mit Internet-Flatrate + Telefon-Flatrate
+für nur 19,99 Euro/mtl.!* http://portal.gmx.net/de/go/dsl02
