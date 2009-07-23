@@ -1,74 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet12.oracle.com ([141.146.126.234]:33052 "EHLO
-	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751416AbZGaWsW (ORCPT
+Received: from mail-ew0-f226.google.com ([209.85.219.226]:50691 "EHLO
+	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753823AbZGWLyt convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jul 2009 18:48:22 -0400
-Date: Fri, 31 Jul 2009 15:47:17 -0700
-From: Randy Dunlap <randy.dunlap@oracle.com>
-To: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-media@vger.kernel.org, akpm <akpm@linux-foundation.org>
-Cc: lkml <linux-kernel@vger.kernel.org>, linux-next@vger.kernel.org,
-	Antoine Jacquet <royale@zerezo.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH -next] media/zr364xx: fix build errors
-Message-Id: <20090731154717.43efbbfc.randy.dunlap@oracle.com>
-In-Reply-To: <20090731180943.8f30c49d.sfr@canb.auug.org.au>
-References: <20090731180943.8f30c49d.sfr@canb.auug.org.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Thu, 23 Jul 2009 07:54:49 -0400
+Received: by ewy26 with SMTP id 26so909175ewy.37
+        for <linux-media@vger.kernel.org>; Thu, 23 Jul 2009 04:54:48 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <829197380907230451o302dba16nb2fe7fc395ec80ab@mail.gmail.com>
+References: <20090723111006.59010@gmx.net>
+	 <829197380907230451o302dba16nb2fe7fc395ec80ab@mail.gmail.com>
+Date: Thu, 23 Jul 2009 13:54:48 +0200
+Message-ID: <d9def9db0907230454r6706249fxef347e57f191b672@mail.gmail.com>
+Subject: Re: [linux-dvb] Terratec Cinergy HTC USB XS HD
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: anderse@gmx.de, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+On Thu, Jul 23, 2009 at 1:51 PM, Devin
+Heitmueller<dheitmueller@kernellabs.com> wrote:
+> On Thu, Jul 23, 2009 at 7:10 AM, <anderse@gmx.de> wrote:
+>> Did Devin Heitmueller comment on that? AFAIK he already finished a driver for the DRX-3933J and I would think he might have interest to get in contact with trident in order of being allowed to publish his work.
+>
+> I was aware of the Micronas sale.  At this point I would continue to
+> encourage users interested in Linux support for tuners to stay away
+> from the products that include the drx-k or drx-j.
+>
 
-Fix build errors in zr364xx by adding selects:
+we now do offer professional Linux support for DRX-K and DRX-J devices
+for customers.
 
-zr364xx.c:(.text+0x195ed7): undefined reference to `videobuf_streamon'
-zr364xx.c:(.text+0x196030): undefined reference to `videobuf_dqbuf'
-zr364xx.c:(.text+0x1960c4): undefined reference to `videobuf_qbuf'
-zr364xx.c:(.text+0x196123): undefined reference to `videobuf_querybuf'
-zr364xx.c:(.text+0x196182): undefined reference to `videobuf_reqbufs'
-zr364xx.c:(.text+0x196224): undefined reference to `videobuf_queue_is_busy'
-zr364xx.c:(.text+0x196390): undefined reference to `videobuf_vmalloc_free'
-zr364xx.c:(.text+0x196571): undefined reference to `videobuf_iolock'
-zr364xx.c:(.text+0x196678): undefined reference to `videobuf_mmap_mapper'
-zr364xx.c:(.text+0x196760): undefined reference to `videobuf_poll_stream'
-zr364xx.c:(.text+0x19689a): undefined reference to `videobuf_read_one'
-zr364xx.c:(.text+0x1969ec): undefined reference to `videobuf_mmap_free'
-zr364xx.c:(.text+0x197862): undefined reference to `videobuf_queue_vmalloc_init'
-zr364xx.c:(.text+0x197a28): undefined reference to `videobuf_streamoff'
-zr364xx.c:(.text+0x198203): undefined reference to `videobuf_to_vmalloc'
-zr364xx.c:(.text+0x198603): undefined reference to `videobuf_streamoff'
-drivers/built-in.o: In function `free_buffer':
-zr364xx.c:(.text+0x19930c): undefined reference to `videobuf_vmalloc_free'
-drivers/built-in.o: In function `zr364xx_open':
-zr364xx.c:(.text+0x19a7de): undefined reference to `videobuf_queue_vmalloc_init'
-drivers/built-in.o: In function `read_pipe_completion':
-zr364xx.c:(.text+0x19b17f): undefined reference to `videobuf_to_vmalloc'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
----
- drivers/media/video/Kconfig |    2 ++
- 1 file changed, 2 insertions(+)
-
---- linux-next-20090729.orig/drivers/media/video/Kconfig
-+++ linux-next-20090729/drivers/media/video/Kconfig
-@@ -991,6 +991,8 @@ source "drivers/media/video/pwc/Kconfig"
- config USB_ZR364XX
- 	tristate "USB ZR364XX Camera support"
- 	depends on VIDEO_V4L2
-+	select VIDEOBUF_GEN
-+	select VIDEOBUF_VMALLOC
- 	---help---
- 	  Say Y here if you want to connect this type of camera to your
- 	  computer's USB port.
-
-
-
-
----
-~Randy
-LPC 2009, Sept. 23-25, Portland, Oregon
-http://linuxplumbersconf.org/2009/
+Best Regards,
+Markus
