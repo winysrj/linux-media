@@ -1,57 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acoma.photonsoftware.net ([65.254.60.10]:48362 "EHLO
-	acoma.photonsoftware.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751026AbZG3N0b (ORCPT
+Received: from mail-ew0-f226.google.com ([209.85.219.226]:34826 "EHLO
+	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752178AbZGWVOr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2009 09:26:31 -0400
-Received: from localhost ([127.0.0.1] helo=[127.0.0.100])
-	by acoma.photonsoftware.net with esmtpa (Exim 4.69)
-	(envelope-from <ldone@hubstar.net>)
-	id 1MWVeL-0005ku-OA
-	for linux-media@vger.kernel.org; Thu, 30 Jul 2009 14:26:25 +0100
-Message-ID: <4A719F82.3060202@hubstar.net>
-Date: Thu, 30 Jul 2009 14:26:26 +0100
-From: "ldone@hubstar.net" <ldone@hubstar.net>
-Reply-To: "l d one"@hubstar.net
+	Thu, 23 Jul 2009 17:14:47 -0400
+Received: by ewy26 with SMTP id 26so1335422ewy.37
+        for <linux-media@vger.kernel.org>; Thu, 23 Jul 2009 14:14:46 -0700 (PDT)
+Message-ID: <4A68D357.3010502@gmail.com>
+Date: Thu, 23 Jul 2009 23:17:11 +0200
+From: Roel Kluin <roel.kluin@gmail.com>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: SAA7164 - Analogue Support on HVR devices
-References: <4A7176D4.2090401@nildram.co.uk> <4A719D9E.20803@kernellabs.com>
-In-Reply-To: <4A719D9E.20803@kernellabs.com>
+To: mchehab@redhat.com, linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: [PATCH] Read buffer overflow
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Steven Toth wrote:
-> On 7/30/09 6:32 AM, Lou Otway wrote:
->>
->> First I'd like to say thanks to the maintainers of the various HVR
->> drivers, the amount of work that goes in is much appreciated.
->>
->> I notice from www.kernellabs.com that progress on the digital side for
->> SAA7164 devices is going well and a stable driver is nearly ready.
->>
->> I, like many people, would really like to have analogue support for
->> these devices, is there any news on when this functionality might be
->> available?
->
-> Thank you.
->
-> If you read back far enough with the SAA7164 related posts you'll see
-> that finalizing DTV is the primary focus, everything else is up for
-> review once this task is complete.
->
+parport[n] is checked before n < MAX_CAMS
 
-Hi
-I don't have this card, but I have some other hauppauge cards.
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+probably harmless
 
-What is meant by analogue support?
-
->From my perspective I understand if TV analogue is dropping priority but
-for me the Composite/Svideo analogue on Hauppauge cards is more
-important - since I use them to hook up to my Satellite boxes.
-
-Do you count that as analogue too?
-
-Thanks
+diff --git a/drivers/media/video/bw-qcam.c b/drivers/media/video/bw-qcam.c
+index 10dbd4a..9e39bc5 100644
+--- a/drivers/media/video/bw-qcam.c
++++ b/drivers/media/video/bw-qcam.c
+@@ -992,7 +992,7 @@ static int accept_bwqcam(struct parport *port)
+ 
+ 	if (parport[0] && strncmp(parport[0], "auto", 4) != 0) {
+ 		/* user gave parport parameters */
+-		for(n=0; parport[n] && n<MAX_CAMS; n++){
++		for (n = 0; n < MAX_CAMS && parport[n]; n++) {
+ 			char *ep;
+ 			unsigned long r;
+ 			r = simple_strtoul(parport[n], &ep, 0);
