@@ -1,60 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f226.google.com ([209.85.217.226]:55054 "EHLO
-	mail-gx0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755770AbZGIPwX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Jul 2009 11:52:23 -0400
-Received: by gxk26 with SMTP id 26so395590gxk.13
-        for <linux-media@vger.kernel.org>; Thu, 09 Jul 2009 08:52:22 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <200907091144.48125.jarod@redhat.com>
-References: <20090406174448.118f574e@hyperion.delvare>
-	 <20090407075029.21d14f4a@pedra.chehab.org>
-	 <20090407143617.2c2adbf7@hyperion.delvare>
-	 <200907091144.48125.jarod@redhat.com>
-Date: Thu, 9 Jul 2009 11:52:22 -0400
-Message-ID: <829197380907090852o2dcb61f7lbebedfcbdcb193c7@mail.gmail.com>
-Subject: Re: [RFC] Anticipating lirc breakage
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Jarod Wilson <jarod@redhat.com>
-Cc: Jean Delvare <khali@linux-fr.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Mike Isely <isely@pobox.com>, isely@isely.net,
-	LMML <linux-media@vger.kernel.org>,
-	Andy Walls <awalls@radix.net>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Janne Grunau <j@jannau.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([192.100.122.230]:33203 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751203AbZGWN4t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Jul 2009 09:56:49 -0400
+Received: from vaebh106.NOE.Nokia.com (vaebh106.europe.nokia.com [10.160.244.32])
+	by mgw-mx03.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id n6NDuSaU010987
+	for <linux-media@vger.kernel.org>; Thu, 23 Jul 2009 16:56:41 +0300
+From: tuukka.o.toivonen@nokia.com
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com,
+	tuukka.o.toivonen@nokia.com
+Subject: [PATCH] omap34xxcam: each video buffer takes multiple of PAGE_SIZE bytes
+Date: Thu, 23 Jul 2009 16:56:27 +0300
+Message-Id: <1248357387-14720-4-git-send-email-tuukka.o.toivonen@nokia.com>
+In-Reply-To: <1248357387-14720-3-git-send-email-tuukka.o.toivonen@nokia.com>
+References: <1248357387-14720-1-git-send-email-tuukka.o.toivonen@nokia.com>
+ <1248357387-14720-2-git-send-email-tuukka.o.toivonen@nokia.com>
+ <1248357387-14720-3-git-send-email-tuukka.o.toivonen@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 9, 2009 at 11:44 AM, Jarod Wilson<jarod@redhat.com> wrote:
-> On Tuesday 07 April 2009 08:36:17 Jean Delvare wrote:
->> > So, let's just forget the workarounds and go straight to the point: focus on
->> > merging lirc-i2c drivers.
->>
->> Will this happen next week? I fear not. Which is why I can't wait for
->> it. And anyway, in order to merge the lirc_i2c driver, it must be
->> turned into a new-style I2C driver first, so bridge drivers must be
->> prepared for this, which is exactly what my patches are doing.
->
-> For what its worth, I fixed up lirc_i2c a few days ago, and now have
-> it working just fine with my pvr-250 under 2.6.31-rc2.
->
-> Real Soon Now (I swear), I'm hoping to get up another head of steam
-> for submitting lirc upstream. Multiple drivers have received a bunch
-> of love in the past few weeks, so I think we're in a pretty good state
-> to have another go at it...
->
-> --
-> Jarod Wilson
-> jarod@redhat.com
+From: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
 
-Jarod,
+When restricting the required memory for video buffers,
+take into account that each buffer allocation takes multiple
+of PAGE_SIZE bytes.
 
-This is excellent news.  Keep up the good work!
+Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+---
+ drivers/media/video/omap34xxcam.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-Devin
-
+diff --git a/drivers/media/video/omap34xxcam.c b/drivers/media/video/omap34xxcam.c
+index 08d8253..be2dd2d 100644
+--- a/drivers/media/video/omap34xxcam.c
++++ b/drivers/media/video/omap34xxcam.c
+@@ -154,7 +154,8 @@ static int omap34xxcam_vbq_setup(struct videobuf_queue *vbq, unsigned int *cnt,
+ 
+ 	*size = vdev->pix.sizeimage;
+ 
+-	while (*size * *cnt > fh->vdev->vdev_sensor_config.capture_mem)
++	while (PAGE_ALIGN(*size) * *cnt >
++	       fh->vdev->vdev_sensor_config.capture_mem)
+ 		(*cnt)--;
+ 
+ 	return isp_vbq_setup(vdev->cam->isp, vbq, cnt, size);
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.5.4.3
+
