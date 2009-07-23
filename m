@@ -1,45 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f213.google.com ([209.85.217.213]:32944 "EHLO
-	mail-gx0-f213.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753906AbZGRWNe convert rfc822-to-8bit (ORCPT
+Received: from mail-ew0-f226.google.com ([209.85.219.226]:34964 "EHLO
+	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752056AbZGWSOe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Jul 2009 18:13:34 -0400
-Received: by gxk9 with SMTP id 9so2802965gxk.13
-        for <linux-media@vger.kernel.org>; Sat, 18 Jul 2009 15:13:32 -0700 (PDT)
+	Thu, 23 Jul 2009 14:14:34 -0400
+Received: by ewy26 with SMTP id 26so1207013ewy.37
+        for <linux-media@vger.kernel.org>; Thu, 23 Jul 2009 11:14:33 -0700 (PDT)
+Message-ID: <4A68A919.8070404@gmail.com>
+Date: Thu, 23 Jul 2009 20:16:57 +0200
+From: Roel Kluin <roel.kluin@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20090718213428.GA8854@localhost.localdomain>
-References: <20090718213428.GA8854@localhost.localdomain>
-Date: Sat, 18 Jul 2009 18:13:30 -0400
-Message-ID: <829197380907181513mbd8dc5ag7facc128a2b2a951@mail.gmail.com>
-Subject: Re: [PATCH] em28xx: kworld 340u
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: acano@fastmail.fm
-Cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>
+To: mchehab@infradead.org, uris@siano-ms.com,
+	linux-media@vger.kernel.org,
+	Andrew Morton <akpm@linux-foundation.org>
+Subject: [PATCH] Siano: Read buffer overflow
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 18, 2009 at 5:34 PM, <acano@fastmail.fm> wrote:
-> support for kworld 340u.  8vsb and qam256 work, qam64 untested.
->
->
+With mode DEVICE_MODE_RAW_TUNER a read occurs past the end of smscore_fw_lkup[].
+Subsequently an attempt is made to load the firmware from the resulting
+filename.
 
-Hello Acano,
+Signed-off-by: Roel Kluin <roel.kluin@gmail.com>
+---
+This can be reached only when coredev->device_flags contains SMS_DEVICE_FAMILY2,
+codedev->modes_supported does not include the DEVICE_MODE_RAW_TUNER bit flag,
+and the initial attempt to load firmware. Can this happen in practice on the
+hardware in question?
 
-You should talk to Jarod Wilson about this.  He did a bunch of work to
-get the 340u working over the last couple of months, and you two could
-probably collaborate on a unified solution.  There were also some
-problems related to the fact that the device can have either the
-tda18271c1 or the c2 (both have the same USB id), which would have to
-be accommodated in the final solution.
-
-The patch itself also needs alot of cleanup and doesn't meet the
-coding standards.  It would need considerable cleanup before it could
-be taken upstream.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+diff --git a/drivers/media/dvb/siano/smscoreapi.c b/drivers/media/dvb/siano/smscoreapi.c
+index a246903..bd9ab9d 100644
+--- a/drivers/media/dvb/siano/smscoreapi.c
++++ b/drivers/media/dvb/siano/smscoreapi.c
+@@ -816,7 +816,7 @@ int smscore_set_device_mode(struct smscore_device_t *coredev, int mode)
+ 
+ 	sms_debug("set device mode to %d", mode);
+ 	if (coredev->device_flags & SMS_DEVICE_FAMILY2) {
+-		if (mode < DEVICE_MODE_DVBT || mode > DEVICE_MODE_RAW_TUNER) {
++		if (mode < DEVICE_MODE_DVBT || mode >= DEVICE_MODE_RAW_TUNER) {
+ 			sms_err("invalid mode specified %d", mode);
+ 			return -EINVAL;
+ 		}
