@@ -1,68 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:47704 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750757AbZGSTWU (ORCPT
+Received: from mail-ew0-f226.google.com ([209.85.219.226]:59791 "EHLO
+	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751881AbZGWLnd convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jul 2009 15:22:20 -0400
-Date: Sun, 19 Jul 2009 21:22:06 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Andy Walls <awalls@radix.net>
-Cc: linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Mark Lord <lkml@rtr.ca>, Mike Isely <isely@pobox.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Janne Grunau <j@jannau.net>
-Subject: Re: [PATCH 3/3] ir-kbd-i2c: Add support for Z8F0811/Hauppage IR
- transceivers
-Message-ID: <20090719212206.593f9eeb@hyperion.delvare>
-In-Reply-To: <1247863795.10066.36.camel@palomino.walls.org>
-References: <1247862585.10066.16.camel@palomino.walls.org>
-	<1247863795.10066.36.camel@palomino.walls.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Thu, 23 Jul 2009 07:43:33 -0400
+Received: by ewy26 with SMTP id 26so902731ewy.37
+        for <linux-media@vger.kernel.org>; Thu, 23 Jul 2009 04:43:31 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <829197380907230441q18e21e4fn63b186370b3711de@mail.gmail.com>
+References: <d9def9db0907230240w6d3a41fcv2fcef6cbb6e2cb8c@mail.gmail.com>
+	 <829197380907230441q18e21e4fn63b186370b3711de@mail.gmail.com>
+Date: Thu, 23 Jul 2009 13:43:31 +0200
+Message-ID: <d9def9db0907230443x49dd1b56m143b293e9bdbaaec@mail.gmail.com>
+Subject: Re: em28xx driver crashes device
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
+On Thu, Jul 23, 2009 at 1:41 PM, Devin
+Heitmueller<dheitmueller@kernellabs.com> wrote:
+> On Thu, Jul 23, 2009 at 5:40 AM, Markus Rechberger<mrechberger@gmail.com> wrote:
+>> Hey,
+>>
+>> [24004.018614] EEPROM ID= 0x9567eb1a, hash = 0x1067368a
+>> [24004.018618] Vendor/Product ID= eb1a:2861
+>> [24004.018622] AC97 audio (5 sample rates)
+>> [24004.018626] 500mA max power
+>> [24004.018629] Table at 0x04, strings=0x206a, 0x0000, 0x0000
+>> [24004.049201]  failed!
+>> [24004.049210] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.049444]  failed!
+>> [24004.049451] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.049655]  failed!
+>> [24004.049659] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.049891]  failed!
+>> [24004.049895] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.050141]  failed!
+>> [24004.050145] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.050393]  failed!
+>> [24004.050396] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.050641]  failed!
+>> [24004.050644] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.050890]  failed!
+>> [24004.050894] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.051141]  failed!
+>> [24004.051145] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.051392]  failed!
+>> [24004.051395] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.051641]  failed!
+>> [24004.051645] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.051892]  failed!
+>> [24004.051895] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.052140]  failed!
+>> [24004.052143] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.052393]  failed!
+>> [24004.052396] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.052642]  failed!
+>> [24004.052645] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.052892]  failed!
+>> [24004.052895] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.057741]  failed!
+>> [24004.057746] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.057880]  failed!
+>> [24004.057884] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.058125]  failed!
+>> [24004.058129] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.058379]  failed!
+>> [24004.058383] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.058628]  failed!
+>> [24004.058633] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.058880]  failed!
+>> [24004.058883] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.059128]  failed!
+>> [24004.059131] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.059380]  failed!
+>> [24004.059383] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.059636]  failed!
+>> [24004.059640] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.059914]  failed!
+>> [24004.059917] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.060140]  failed!
+>> [24004.060145] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.060388]  failed!
+>> [24004.060392] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.060636]  failed!
+>> [24004.060640] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.060884]  failed!
+>> [24004.060887] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.061126]  failed!
+>> [24004.061132] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.062214]  failed!
+>> [24004.062219] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.062378]  failed!
+>> [24004.062383] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.062632]  failed!
+>> [24004.062636] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.062884]  failed!
+>> [24004.062889] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.063126]  failed!
+>> [24004.063131] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.063375]  failed!
+>> [24004.063380] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.063626]  failed!
+>> [24004.063631] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.063875]  failed!
+>> [24004.063880] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.064127]  failed!
+>> [24004.064132] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.064376]  failed!
+>> [24004.064380] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.064625]  failed!
+>> [24004.064630] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.064876]  failed!
+>> [24004.064881] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.065126]  failed!
+>> [24004.065130] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.065376]  failed!
+>> [24004.065381] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.065626]  failed!
+>> [24004.065632] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.065875]  failed!
+>> [24004.065880] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.066126]  failed!
+>> [24004.066131] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.066376]  failed!
+>> [24004.066381] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.066625]  failed!
+>> [24004.066629] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.066875]  failed!
+>> [24004.066880] em28xx #0: reading from i2c device failed (error=-71)
+>> [24004.066890] em28xx #0: Your board has no unique USB ID and thus
+>> need a hint to be detected.
+>> [24004.066900] em28xx #0: You may try to use card=<n> insmod option to
+>> workaround that.
+>> [24004.066908] em28xx #0: Please send an email with this log to:
+>> [24004.066916] em28xx #0:       V4L Mailing List <video4linux-list@redhat.com>
+>> [24004.066924] em28xx #0: Board eeprom hash is 0x1067368a
+>>
+>>
+>> can someone just check for errors if one error occures stop it?
+>> We're facing that this driver crashes entire devices.
+>>
+>> regards,
+>> Markus
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+> Hey Markus,
+>
+> Could you stick a dump_stack() line in there so we can see where it is
+> stuck in the loop?
 
-On Fri, 17 Jul 2009 16:49:55 -0400, Andy Walls wrote:
-> This patch adds support for Zilog Z8F0811 IR transceiver chips on
-> CX2341[68] based boards to ir-kbd-i2c for both the old i2c binding model
-> and the new i2c binding model.
-> 
-> Regards,
-> Andy
-> 
-> diff -r d754a2d5a376 linux/drivers/media/video/ir-kbd-i2c.c
-> --- a/linux/drivers/media/video/ir-kbd-i2c.c	Wed Jul 15 07:28:02 2009 -0300
-> +++ b/linux/drivers/media/video/ir-kbd-i2c.c	Fri Jul 17 16:05:28 2009 -0400
-> @@ -442,9 +442,11 @@
->  	case 0x47:
->  	case 0x71:
->  	case 0x2d:
-> -		if (adap->id == I2C_HW_B_CX2388x) {
-> +		if (adap->id == I2C_HW_B_CX2388x ||
-> +		    adap->id == I2C_HW_B_CX2341X) {
->  			/* Handled by cx88-input */
-> -			name        = "CX2388x remote";
-> +			name = adap->id == I2C_HW_B_CX2341X ? "CX2341x remote"
-> +							    : "CX2388x remote";
->  			ir_type     = IR_TYPE_RC5;
->  			ir->get_key = get_key_haup_xvr;
->  			if (hauppauge == 1) {
-> @@ -697,7 +726,8 @@
->  static const struct i2c_device_id ir_kbd_id[] = {
->  	/* Generic entry for any IR receiver */
->  	{ "ir_video", 0 },
-> -	/* IR device specific entries could be added here */
-> +	/* IR device specific entries should be added here */
-> +	{ "ir_rx_z8f0811_haup", 0 },
->  	{ }
->  };
->  
 
-Yes, looks good.
+no sorry it's a customer's system, just make it stop whenever an error
+occures in the usb control part.
+I removed the driver on his system now it works.
 
--- 
-Jean Delvare
+regards,
+Markus
