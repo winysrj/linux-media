@@ -1,88 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:58648 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751772AbZGYPIg (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.25]:65017 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752432AbZGWO3D convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Jul 2009 11:08:36 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv11 2/8] v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX controls
-Date: Sat, 25 Jul 2009 17:57:36 +0300
-Message-Id: <1248533862-20860-3-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1248533862-20860-2-git-send-email-eduardo.valentin@nokia.com>
-References: <1248533862-20860-1-git-send-email-eduardo.valentin@nokia.com>
- <1248533862-20860-2-git-send-email-eduardo.valentin@nokia.com>
+	Thu, 23 Jul 2009 10:29:03 -0400
+Received: by ey-out-2122.google.com with SMTP id 9so297911eyd.37
+        for <linux-media@vger.kernel.org>; Thu, 23 Jul 2009 07:29:02 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <829197380907230705w4f1c3126r9cf156ca30aa2b5b@mail.gmail.com>
+References: <d9def9db0907230240w6d3a41fcv2fcef6cbb6e2cb8c@mail.gmail.com>
+	 <829197380907230441q18e21e4fn63b186370b3711de@mail.gmail.com>
+	 <d9def9db0907230443x49dd1b56m143b293e9bdbaaec@mail.gmail.com>
+	 <d9def9db0907230446k291db7bfm1ebcb314d0c97c2@mail.gmail.com>
+	 <829197380907230503y3a2ca24y4434ed759c1f4009@mail.gmail.com>
+	 <d9def9db0907230510h31d1d225pb1d317c9a41fa210@mail.gmail.com>
+	 <829197380907230705w4f1c3126r9cf156ca30aa2b5b@mail.gmail.com>
+Date: Thu, 23 Jul 2009 16:29:02 +0200
+Message-ID: <d9def9db0907230729k4cc14707v763d242e14292ebb@mail.gmail.com>
+Subject: Re: em28xx driver crashes device
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds a new class of extended controls. This class
-is intended to support FM Radio Modulators properties such as:
-rds, audio limiters, audio compression, pilot tone generation,
-tuning power levels and preemphasis properties.
+On Thu, Jul 23, 2009 at 4:05 PM, Devin
+Heitmueller<dheitmueller@kernellabs.com> wrote:
+> On Thu, Jul 23, 2009 at 8:10 AM, Markus Rechberger<mrechberger@gmail.com> wrote:
+>> There's a pretty good disclosed detection from Empia available, the
+>> linux kernel driver
+>> just doesn't support it and very likely will never support it. Instead
+>> of doing it the
+>> wrong way it's better to turn it off or explicitly ask the user if he
+>> wants to do something
+>> undefined with his device.
+>> The nvidia setup tools also provide an option to force it instead of
+>> letting the software
+>> just do whatever some developers don't know what it will cause...
+>> You don't know what will happen to the device when doing that detection.
+>> The initial device in question had to be replugged after we removed
+>> the driver from the system.
+>> You shouldn't invite people to do undefined things with their hardware
+>> so they might break them
+>> I think I will submit a few photos what physically can happen to the
+>> device with wrong settings.
+>
+> Well, if there is a known heuristic, I would be very happy to get rid
+> of the autodetection logic.  I haven't looked at the Empia code in
+> months so I should probably do that.
+>
+> Since I used to design hardware for a living, I am quite familiar with
+> what can happen with incorrect GPIOs so I do not believe you need to
+> attempt to convince me with photos, which is why I am in favor of
+> removing the logic in question.  We just need to figure out how to do
+> it without causing a regression in current device support.
+>
+> Interesting...  I took a quick look at the code, and it seems like the
+> USB errors occur before we change any GPIOs, and more interesting it
+> appears that the em2861 itself is wedged (which I believe is the first
+> time I've seen that).  The code in the log above suggests that the
+> autodetection concluded that the profile was not known, so it did not
+> arbitrarily pick some incorrect device.  I am a bit surprised that
+> just reading the eeprom once and doing a scan of the i2c bus would
+> wedge the chip.
+>
+> Is there any information you can give about the board in question in
+> terms of what product it is or what components it contains?
+>
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- linux/include/linux/videodev2.h |   34 ++++++++++++++++++++++++++++++++++
- 1 files changed, 34 insertions(+), 0 deletions(-)
+it was a simple TVP5150 based device...
 
-diff --git a/linux/include/linux/videodev2.h b/linux/include/linux/videodev2.h
-index f68d3b1..2e84ec2 100644
---- a/linux/include/linux/videodev2.h
-+++ b/linux/include/linux/videodev2.h
-@@ -817,6 +817,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
- #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
- #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
-+#define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
- 
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-@@ -1156,6 +1157,39 @@ enum  v4l2_exposure_auto_type {
- 
- #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
- 
-+/* FM Modulator class control IDs */
-+#define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
-+#define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
-+
-+#define V4L2_CID_RDS_TX_PI			(V4L2_CID_FM_TX_CLASS_BASE + 1)
-+#define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 2)
-+#define V4L2_CID_RDS_TX_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 3)
-+#define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 4)
-+#define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 5)
-+
-+#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 6)
-+#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 7)
-+#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FM_TX_CLASS_BASE + 8)
-+
-+#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FM_TX_CLASS_BASE + 9)
-+#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FM_TX_CLASS_BASE + 10)
-+#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FM_TX_CLASS_BASE + 11)
-+#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 12)
-+#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 13)
-+
-+#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 14)
-+#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 15)
-+#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FM_TX_CLASS_BASE + 16)
-+
-+#define V4L2_CID_FM_TX_PREEMPHASIS		(V4L2_CID_FM_TX_CLASS_BASE + 17)
-+enum v4l2_preemphasis {
-+	V4L2_PREEMPHASIS_DISABLED	= 0,
-+	V4L2_PREEMPHASIS_50_uS		= 1,
-+	V4L2_PREEMPHASIS_75_uS		= 2,
-+};
-+#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 18)
-+#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 19)
-+
- /*
-  *	T U N I N G
-  */
--- 
-1.6.2.GIT
+I do not mean my old code either it's also a failure as I got more information
+for the new driver after we dropped the old project.
+As you know the new driver is entirely in Userpace and supported by all involved
+chipcompanies, it comes with its own LinuxDVB and video4linux2 Stack.
 
+Also vendors have a very low interest in supporting those devices in Kernelspace
+as installing devices which should be sold now are not supported by
+any distributions.
+Devices which have been sold one year ago have a very low till no
+motivation anymore.
+Most people are simply not able to compile the drivers and/or prepare
+the kernel development
+environment just for installing and using a TV Card.
+
+Regards,
+Markus
