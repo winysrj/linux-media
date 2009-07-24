@@ -1,38 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:59717 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753318AbZGGJHB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Jul 2009 05:07:01 -0400
-Content-Type: text/plain; charset="iso-8859-1"
-Date: Tue, 07 Jul 2009 11:06:58 +0200
-From: anderse@gmx.de
-Message-ID: <20090707090658.79870@gmx.net>
-MIME-Version: 1.0
-Subject: Status of Terratec Cinergy HTC USB XS HD?
-To: linux-media@vger.kernel.org
+Received: from smtp3-g21.free.fr ([212.27.42.3]:36524 "EHLO smtp3-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752638AbZGXLOp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jul 2009 07:14:45 -0400
+Date: Fri, 24 Jul 2009 13:14:36 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: AceLan Kao <acelan.kao@canonical.com>
+Cc: hugh@canonical.com, linux-media@vger.kernel.org
+Subject: Re: Lenovo webcam problem which using gspca's vc032x driver
+Message-ID: <20090724131436.69fab6ce@tele>
+In-Reply-To: <91b198a70907232325p4ad94fc5n680ccb7e06daa65e@mail.gmail.com>
+References: <91b198a70907100305t762a4596r734e44f7f4f88bc3@mail.gmail.com>
+	<91b198a70907130042y6594a96do8634eebdfef8ba5c@mail.gmail.com>
+	<91b198a70907162030l760bd7c5r32daaf6823c1dbe6@mail.gmail.com>
+	<20090717043225.4c786455@pedra.chehab.org>
+	<20090717124431.1bd3ea43@free.fr>
+	<91b198a70907200004y5418796dkbf491d2cae877fb7@mail.gmail.com>
+	<20090720105325.26f2ae1a@free.fr>
+	<91b198a70907201918l68435905u1ad590144d664a29@mail.gmail.com>
+	<91b198a70907220215t14d509e7u8b33623cecafa26f@mail.gmail.com>
+	<20090723114758.49a7026c@tele>
+	<91b198a70907232325p4ad94fc5n680ccb7e06daa65e@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Fri, 24 Jul 2009 14:25:33 +0800
+AceLan Kao <acelan.kao@canonical.com> wrote:
 
-can anyone tell me something about the current status of the Terratec Cinergy HTC USB XS HD (0ccd:008e)?
-AFAIK it consists of an empia EM2884 chip, which seem to be not a big problem to handle, and then there's the micronas DRX 3926KA1, which is the heart of the device. (http://www.linuxtv.org/pipermail/linux-dvb/2008-July/027276.html).
+> It sounds like that the Lenovo webcam(0x17ef, 0x4802) sensor and the
+> 0x041e, 0x405b device sensor doesn't be placed at the same direction
+> and the initial tables seems not so compatible.
+> Do you think that it would be better to split the code for these two
+> model of webcams? If yes, I can do some help.
 
-Now there's this statement:
-"Linux support for Micronas hardware is very difficult because Micronas seem unwilling to release documentation for their hardware." (http://www.quantexzone.com/guides/mic_ngene.htm)
-But i wonder if this may have changed as it's not really a micronas chip anymore:
-http://www.micronas.com/investor/investornewsadhocpublicity/articles/PR0903/index.html?newslang=1
+Hi Acelan Kao,
 
-So maybe it gets easier to ask for information here? http://www.tridentmicro.com/Product_drx_39xyK.asp
+An other guy with the 405b said that all modes were correct but 640x
+and 320x upside down.
 
-Meanwhile, I'm waiting for more than a year for linux support of this IMHO very attractive hardware, but though Terratec announced a linux driver more than half a year ago, now they don't answer on questions about it's status. This is really a nuisance!! This device seems to be totally hushed up from  several sides within the last months, but there are many users who would like to use it under linux and who are puzzling about whats going on at the moment.
+Looking at the .inf of the ms-win driver, it seems that the Mirror and
+Vertical controls exist for the mi1310_soc sensor. May you change them
+on ms-win? If yes, may you do a snoop to know which registers do the
+job? Then, in the vc032x subdriver, only the set h/v flip had to be
+inverted for the 2 webcam types.
 
-Of course I'm willing to provide help, i.e. for beta testing on x86 and amd64 hardware or if there's anything else to get some advancements.
+Otherwise, I compared the sequences of the ms-win files C0130Dev.inf
+(041e:405b) and usbvm323.inf (17ef:4802). The bridge sequences are
+close enough, but the sensors sequences are completely different, as if
+the sensors were different! So, it is not easy to find how the image
+may be upside down...
 
-Thanks,
+BTW, I can't read your binary USB snoop. Have you any tool to read it
+or may you send me a more readable version?
 
-Raimund
+Best regards.
+
 -- 
-Neu: GMX Doppel-FLAT mit Internet-Flatrate + Telefon-Flatrate
-für nur 19,99 Euro/mtl.!* http://portal.gmx.net/de/go/dsl02
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
