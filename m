@@ -1,42 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out1.smtp.messagingengine.com ([66.111.4.25]:40170 "EHLO
-	out1.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751120AbZG2WN4 (ORCPT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4086 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750826AbZGXI2Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jul 2009 18:13:56 -0400
-Date: Wed, 29 Jul 2009 18:13:36 -0400
-From: acano@fastmail.fm
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] em28xx: enable usb audio for plextor px-tv100u
-Message-ID: <20090729221336.GA4352@localhost.localdomain>
-References: <20090718173758.GA32708@localhost.localdomain>
- <20090727212811.5b7dc041@pedra.chehab.org>
- <20090729000753.GA24496@localhost.localdomain>
- <20090729015730.34ab86c6@pedra.chehab.org>
+	Fri, 24 Jul 2009 04:28:25 -0400
+Message-ID: <45562.62.70.2.252.1248424102.squirrel@webmail.xs4all.nl>
+Date: Fri, 24 Jul 2009 10:28:22 +0200 (CEST)
+Subject: Re: New tree with final (?) string control implementation
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: eduardo.valentin@nokia.com
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20090729015730.34ab86c6@pedra.chehab.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 29, 2009 at 01:57:30AM -0300, Mauro Carvalho Chehab wrote:
-> Ah, yes, there's a missing mute/unmute issue there. Instead of using
-> your code, I opted to duplicate part of ac97_set_ctrl code there.
->
-> I opted to have a small duplicated code, but, IMO, it is now clearer
-> to see why we still need to call em28xx_audio_analog_set(). You will
-> notice that I've rearranged the place where I update volume and
-> mute. The rationale is that v4l2_device_call_all() might eventually
-> change a value for volume/mute.
->
-> Another reason is that, IMO, v4l2_device_call_all() should return values. In
-> the specific case of volume/mute, if the user tries to specify a
-> value outside the range, the -ERANGE should be returned.
->
-> I've already committed the patches at the tree. Please double-check.
->
 
-It doesn't work.  Mplayer locks up.  There's no video window, but sound
-works.  The only way to kill mplayer is rebooting the machine.
+> Hi Hans,
+>
+> On Thu, Jul 23, 2009 at 11:54:46PM +0200, ext Hans Verkuil wrote:
+>> Hi Eduardo,
+>>
+>> I've prepared a new tree:
+>>
+>> http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-strctrl
+>
+> good.
+>
+>>
+>> This contains the full string control implementation, including updates
+>> to
+>> the v4l2-spec, based on the RFC that I posted on Monday.
+>
+> Right.
+>
+>>
+>> Can you prepare your si4713 patches against this tree and verify that
+>> everything is working well?
+>
+> Sure, I've been off work last two weeks. But now I'm back and will get
+> this
+> task soon.
+>
+>>
+>> If it is, then I can make a pull request for this tree and soon after
+>> that
+>> you should be able to merge your si4713 driver as well. If I'm not
+>> mistaken
+>> the string controls API is the only missing bit that prevents your
+>> driver
+>> from being merged.
+>
+> Yeah. There use to have three dependencies: subdev changes (i2c),
+> modulator
+> capabilities and ext ctl string support. I recall now that subdev is
+> already
+> merged. I'm not sure about the modulator support.
+
+That was also merged about a week ago. So this is now the only missing piece.
+
+Two things to keep in mind when preparing the new patches:
+
+1) The v4l2-spec documentation on the new string controls must also
+specify what character encoding is used. In this case you can refer to the
+RDS standard.
+
+2) In media/video/v4l2-common.c there is a function
+v4l2_ctrl_is_pointer(). This should return 1 for all string controls. It
+is needed to ensure that string controls are converted correctly in
+v4l2-compat-ioctl32.c. Not really an issue on most embedded systems, but
+on intel platforms it is important to get this right.
+
+Regards,
+
+       Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG
+
