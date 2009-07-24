@@ -1,65 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:37303 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751046AbZGATxp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Jul 2009 15:53:45 -0400
-Received: by qw-out-2122.google.com with SMTP id 9so538737qwb.37
-        for <linux-media@vger.kernel.org>; Wed, 01 Jul 2009 12:53:48 -0700 (PDT)
+Received: from smtp.nokia.com ([192.100.122.233]:54159 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751445AbZGXHbS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jul 2009 03:31:18 -0400
+Date: Fri, 24 Jul 2009 10:20:53 +0300
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: ext Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: New tree with final (?) string control implementation
+Message-ID: <20090724072053.GA32642@esdhcp037198.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+References: <200907232354.46673.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Date: Wed, 1 Jul 2009 15:53:48 -0400
-Message-ID: <18b102300907011253s6a942be8jf09665a4c8bb8f9b@mail.gmail.com>
-Subject: Sabrent TV-USBHD
-From: James Klaas <jklaas@appalachian.dyndns.org>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200907232354.46673.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I recently got one of these and I've been experimenting with it a little.
+Hi Hans,
 
-I downloaded the mercurial tree from around June 5, 2009 and patched
-it using the patches here:
-http://linuxtv.org/hg/~mkrufky/teledongle/rev/676e2f4475ed
+On Thu, Jul 23, 2009 at 11:54:46PM +0200, ext Hans Verkuil wrote:
+> Hi Eduardo,
+> 
+> I've prepared a new tree:
+> 
+> http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-strctrl
 
-I got it to compile fine and the drivers seem to load without
-complaint.  I'm mostly interested in getting the QAM stuff to work.
-Here's partial output from w_scan
+good.
 
--------------
-$ w_scan -a1 -A3 -t3
-w_scan version 20081106
--_-_-_-_ Getting frontend capabilities-_-_-_-_
-frontend Auvitek AU8522 QAM/8VSB Frontend supports
-FE_CAN_8VSB
-FE_CAN_QAM_64
-FE_CAN_QAM_256
--_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
-57000:
-...
-597000:
-603000:
-609000: signal ok (ch88 QAM)
-615000:
-621000: signal ok (ch90 QAM)
-627000:
-633000: signal ok (ch92 QAM)
-639000:
-...
-tune to:
-----------no signal----------
-tune to:  (no signal)
-----------no signal----------
-ERROR: Sorry - i couldn't get any working frequency/transponder
- Nothing to scan!!
-dumping lists (0 services)
-Done.
-----------------
+> 
+> This contains the full string control implementation, including updates to 
+> the v4l2-spec, based on the RFC that I posted on Monday.
 
-I'm curious to know why I get some "signal ok"s but when I tries to do
-a "tune to", nothing seems to be there?  Also, this finds a much
-smaller list of signals than my other cards.  I'm not sure where to
-poke around to try getting this better, but I'm happy to test out code
-anyone wants to throw my way.
+Right.
 
-James
+> 
+> Can you prepare your si4713 patches against this tree and verify that 
+> everything is working well?
+
+Sure, I've been off work last two weeks. But now I'm back and will get this
+task soon.
+
+> 
+> If it is, then I can make a pull request for this tree and soon after that 
+> you should be able to merge your si4713 driver as well. If I'm not mistaken 
+> the string controls API is the only missing bit that prevents your driver 
+> from being merged.
+
+Yeah. There use to have three dependencies: subdev changes (i2c), modulator
+capabilities and ext ctl string support. I recall now that subdev is already
+merged. I'm not sure about the modulator support.
+
+> 
+> Thanks,
+> 
+> 	Hans
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
+
+-- 
+Eduardo Valentin
