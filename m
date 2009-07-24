@@ -1,21 +1,21 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from bld-mail19.adl2.internode.on.net ([150.101.137.104]
-	helo=mail.internode.on.net)
+Received: from cpe.atm2-0-10473.boanxx12.customer.tele.dk ([80.160.58.50]
+	helo=cow.netcompartner.com)
 	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <SRS0+pH7c+45+clarkson.id.au=rodd@internode.on.net>)
-	id 1MSk3P-00032x-FC
-	for linux-dvb@linuxtv.org; Mon, 20 Jul 2009 06:00:44 +0200
-Received: from [192.168.1.5] (unverified [118.208.162.180])
-	by mail.internode.on.net (SurgeMail 3.8f2) with ESMTP id
-	2508305-1927428
-	for <linux-dvb@linuxtv.org>; Mon, 20 Jul 2009 13:30:29 +0930 (CST)
-From: Rodd Clarkson <rodd@clarkson.id.au>
+	(envelope-from <lth@cow.dk>) id 1MUDqD-0003pd-6y
+	for linux-dvb@linuxtv.org; Fri, 24 Jul 2009 08:01:13 +0200
+Received: from [218.111.43.50] (helo=ncpws04.netcompartner.com)
+	by cow.netcompartner.com with esmtpsa
+	(TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32) (Exim 4.69)
+	(envelope-from <lth@cow.dk>) id 1MUDq3-0002pS-JW
+	for linux-dvb@linuxtv.org; Fri, 24 Jul 2009 08:01:09 +0200
+From: Lars Boegild Thomsen <lth@cow.dk>
 To: linux-dvb@linuxtv.org
-Date: Mon, 20 Jul 2009 14:00:28 +1000
-Message-Id: <1248062429.4416.33.camel@moose.localdomain>
-Mime-Version: 1.0
-Subject: [linux-dvb] Hauppauge Okemo-B / Siano Mobile Digital MDTV Receiver
- and sms1xxx-nova-b-dvbt-01.fw
+Date: Fri, 24 Jul 2009 14:00:59 +0800
+MIME-Version: 1.0
+Content-Disposition: inline
+Message-Id: <200907241400.59944.lth@cow.dk>
+Subject: [linux-dvb] Hauppauge HVR-1200 - CX23885 - S-Video capture
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -24,54 +24,54 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi All
-
-I recently acquired a Dell Studio XPS 16 laptop that comes equiped with
-a TV tuner card which I would like to get working with Linux.
-
-As a reference point, I'm using Fedora 11 and I live in Australia.
-
-Looking in dmesg, it wants to load sms1xxx-nova-b-dvbt-01.fw, but I
-don't have the file in  /lib/firmware
-
-I've searched for it on google, but apart from some kernel patches (that
-seem to help better identify the right firmware for the card) the only
-page that seems to help (and it's in German, which I don't speak) is
-this:
-
-http://www.der-schnorz.de/?p=92
-
-This page suggests renaming the sms1xxx-hcw-55xxx-dvbt-01.fw, which I've
-tried, but with which I'm not having a lot of luck.
-
-Initially in MythTV it detected the channels, but it never tuned into
-channels and now won't even detect the channels.
-
-Looking at the kernel source for Fedora 11, there's
-driver/media/dvd/siano, but again, I don't think this is actual firmware
-for the card.
-
-I guess what I'm getting to is:
-
-Is this card supported at this stage?
-Where do I get the correct firmware from?
-
-The www.siano-ms.com site seems to suggest they support Linux, but
-there's no download pages and no search which makes finding firmware
-hard.
-
-
-Rodd
-
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+SSBoYXZlIGJlZW4gc3RydWdnbGluZyB3aXRoIExpbnV4IGRyaXZlcnMgZm9yIHRoZSBhYm92ZSBt
+ZW50aW9uZWQgY2FyZC4gCkRvaW5nIGFuIGxzcGNpIC12IHJlcG9ydHM6CgowMzowMC4wIE11bHRp
+bWVkaWEgdmlkZW8gY29udHJvbGxlcjogQ29uZXhhbnQgU3lzdGVtcywgSW5jLiBDWDIzODg1IFBD
+SQpWaWRlbyBhbmQgQXVkaW8gRGVjb2RlciAocmV2IDAyKQrCoCDCoCDCoCDCoCBTdWJzeXN0ZW06
+IEhhdXBwYXVnZSBjb21wdXRlciB3b3JrcyBJbmMuIERldmljZSA3MWQzCsKgIMKgIMKgIMKgIEZs
+YWdzOiBidXMgbWFzdGVyLCBmYXN0IGRldnNlbCwgbGF0ZW5jeSAwLCBJUlEgMTYKwqAgwqAgwqAg
+wqAgTWVtb3J5IGF0IGVmODAwMDAwICg2NC1iaXQsIG5vbi1wcmVmZXRjaGFibGUpIFtzaXplPTJN
+XQrCoCDCoCDCoCDCoCBDYXBhYmlsaXRpZXM6IFs0MF0gRXhwcmVzcyBFbmRwb2ludCwgTVNJIDAw
+CsKgIMKgIMKgIMKgIENhcGFiaWxpdGllczogWzgwXSBQb3dlciBNYW5hZ2VtZW50IHZlcnNpb24g
+MgrCoCDCoCDCoCDCoCBDYXBhYmlsaXRpZXM6IFs5MF0gVml0YWwgUHJvZHVjdCBEYXRhCsKgIMKg
+IMKgIMKgIENhcGFiaWxpdGllczogW2EwXSBNU0k6IEVuYWJsZS0gQ291bnQ9MS8xIE1hc2thYmxl
+LSA2NGJpdCsKwqAgwqAgwqAgwqAgQ2FwYWJpbGl0aWVzOiBbMTAwXSBBZHZhbmNlZCBFcnJvciBS
+ZXBvcnRpbmcKwqAgwqAgwqAgwqAgQ2FwYWJpbGl0aWVzOiBbMjAwXSBWaXJ0dWFsIENoYW5uZWwg
+PD8+CsKgIMKgIMKgIMKgIEtlcm5lbCBkcml2ZXIgaW4gdXNlOiBjeDIzODg1CsKgIMKgIMKgIMKg
+IEtlcm5lbCBtb2R1bGVzOiBjeDIzODg1CgpJIGhhdmUgYmVlbiBnb29nbGluZyBhIGxvdCBhbmQg
+SSBhbSBzb21ld2hhdCBjb25mdXNlZCBpZiB0aGUgY3VycmVudCBkcml2ZXJzCnN1cHBvcnRzIHZp
+ZGVvIGNhcHR1cmUgb24gdGhlIFMtVmlkZW8gY29ubmVjdG9yLiDCoE1vc3QgbWFpbGluZyBsaXN0
+IGVudHJpZXMKc2F5IHRoYXQgb25seSBkaWdpdGFsIGNhcHR1cmUgaXMgcG9zc2libGUsIGhvd2V2
+ZXIgSSBkaWQgbm90aWNlIHNvbWUKY2hhbmdlcyBpbiB0aGUgY3gyMzg4NS1jYXJkcy5jOgoKwqAg
+wqAgwqAgwqAgW0NYMjM4ODVfQk9BUkRfSEFVUFBBVUdFX0hWUjEyMDBdID0gewrCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCAubmFtZSDCoCDCoCDCoCDCoCDCoCA9ICJIYXVwcGF1Z2UgV2luVFYtSFZS
+MTIwMCIsCsKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5wb3J0YyDCoCDCoCDCoCDCoCDCoD0gQ1gy
+Mzg4NV9NUEVHX0RWQiwKwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLmlucHV0IMKgIMKgIMKgIMKg
+IMKgPSB7ewrCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAudHlwZSDCoCA9IENY
+MjM4ODVfVk1VWF9URUxFVklTSU9OLArCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCAudm11eCDCoCA9IDAsCsKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5ncGlv
+MCDCoD0gMHhmZjAwLArCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCB9LCB7CsKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIC50eXBlIMKgID0gQ1gyMzg4NV9WTVVYX0RFQlVHLArCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAudm11eCDCoCA9IDAsCsKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5ncGlvMCDCoD0gMHhmZjAxLArCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCB9LCB7CsKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC50eXBl
+IMKgID0gQ1gyMzg4NV9WTVVYX0NPTVBPU0lURTEsCsKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIC52bXV4IMKgID0gMSwKwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgLmdwaW8wIMKgPSAweGZmMDIsCsKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIH0sIHsKwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLnR5cGUgwqAgPSBDWDIzODg1X1ZNVVhfU1ZJ
+REVPLArCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAudm11eCDCoCA9IDIsCsKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC5ncGlvMCDCoD0gMHhmZjAyLArCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCB9IH0sCsKgIMKgIMKgIMKgIH0sCgpXaGljaCBzb3J0IG9mIGlu
+ZGljYXRlcyB0aGF0IHRoZSBkcml2ZXIgaXMgYXdhcmUgb2YgdGhlIGNvbm5lY3Rvci4gwqBDYW4K
+YW55Ym9keSBoZWxwIG1lIHdoYXQgaXMgdGhlIGN1cnJlbnQgc3RhdHVzIG9mIHRoaXMgZHJpdmVy
+L2NhcmQgY29tYmluYXRpb24/CgotLSAKTGFycwpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpsaW51eC1kdmIgdXNlcnMgbWFpbGluZyBsaXN0CkZvciBWNEwv
+RFZCIGRldmVsb3BtZW50LCBwbGVhc2UgdXNlIGluc3RlYWQgbGludXgtbWVkaWFAdmdlci5rZXJu
+ZWwub3JnCmxpbnV4LWR2YkBsaW51eHR2Lm9yZwpodHRwOi8vd3d3LmxpbnV4dHYub3JnL2NnaS1i
+aW4vbWFpbG1hbi9saXN0aW5mby9saW51eC1kdmI=
