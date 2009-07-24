@@ -1,77 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-g21.free.fr ([212.27.42.3]:60587 "EHLO smtp3-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751315AbZGaIiS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jul 2009 04:38:18 -0400
-Date: Fri, 31 Jul 2009 10:38:08 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: amol verule <amol.debian@gmail.com>
-Cc: Denis Loginov <dinvlad@gmail.com>,
-	Linux Media <linux-media@vger.kernel.org>
-Subject: Re: driver for 041e:4055 Creative Technology, Ltd Live! Cam Video
- IM
-Message-ID: <20090731103808.46480a31@tele>
-In-Reply-To: <77ca8eab0907302124n50bb8122p128f6f6934b2faf5@mail.gmail.com>
-References: <200907261604.30661.dinvlad@gmail.com>
-	<77ca8eab0907302124n50bb8122p128f6f6934b2faf5@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from mail.gmx.net ([213.165.64.20]:50164 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753295AbZGXRgB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Jul 2009 13:36:01 -0400
+From: "cyber.bogh" <cyber.bogh@gmx.de>
+To: Steven Toth <stoth@kernellabs.com>
+Subject: Re: em28xx driver crashes device
+Date: Fri, 24 Jul 2009 19:34:43 +0200
+References: <d9def9db0907230240w6d3a41fcv2fcef6cbb6e2cb8c@mail.gmail.com> <d9def9db0907240631y495b65a1mc85571b5339ad518@mail.gmail.com> <4A69E492.2070208@kernellabs.com>
+In-Reply-To: <4A69E492.2070208@kernellabs.com>
+Cc: Markus Rechberger <mrechberger@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200907241934.43672.cyber.bogh@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 31 Jul 2009 09:54:19 +0530
-amol verule <amol.debian@gmail.com> wrote:
+Am Freitag 24 Juli 2009 18:42:58 schrieben Sie:
+> >>>> This mailing list, the freenode irc channels #v4l and #linuxtv, the
+> >>>> V4L and the LinuxTV mailing lists were created for discussing open
+> >>>> source development related to the kernel linux media drivers, the
+> >>>> usability of those drivers and related open source themes.
+> >>>>
+> >>>> Anything related to binary only userspace stuff is completely out of
+> >>>> topic and shouldn't be posted on the above places.
+>
+> Markus,
+>
+> The Linux community supports it's in-kernel dvb / v4l trees using this
+> channel. Your attempt to use these channels to de-value the in-kernel
+> driver and your agenda to promote your (partially) closed source
+> alternative it is off topic.
 
-> thanks denis,
->                        after following these steps it worked me to
-> detect device but not to read or get picture from device. it is
-> giving error as usb 5-5: new high speed USB device using ehci_hcd and
-> address 3 usb 5-5: configuration #1 chosen from 1 choice
-> Linux video capture interface: v2.00
-> gspca: main v2.7.0 registered
-> gspca: probing 041e:4055
-> zc3xx: Sensor Tas5130 (VF0250)
-> gspca: probe ok
-> usbcore: registered new interface driver zc3xx
-> zc3xx: registered
-> usb 5-5: USB disconnect, address 3
-> gspca: usb_submit_urb alt 2 err -19
-> gspca: disconnect complete
-> gspca: open failed err -19
-> gspca: open failed err -19
->                                what this error means ..i think
-> problem in device driver it is not able to open device..how to
-> resolve this error???
->  
-> On Sun, Jul 26, 2009 at 6:34 PM, Denis Loginov <dinvlad@gmail.com>
-> wrote:
-> 
-> > Actually, according to http://linux-uvc.berlios.de/ , you can just
-> > try 'USB
-> > Video Class' Driver, i.e. Device Drivers -> Multimedia Devices ->
-> > Video Capture Adapters -> V4L USB Devices -> (M) USB Video Class
-> > (UVC) & (y) UVC input events device support
-> > (CONFIG_USB_VIDEO_CLASS=m & USB_VIDEO_CLASS_INPUT_EVDEV=y).
+Toth,
 
-Hello Amol and Denis,
+from profound resources I do know that you personally do not know anything 
+about what excesses your highly specific card knowledge, which definitely does 
+not even touch Empia devices at least superficially.
 
-This webcam is not handled by gspca (it is VF0230, and not VF0250).
+In other words:
+Your personal voice counts absolutely NOTHING as far as the discussed issue is 
+concerned.
 
-I already got a usbsnoop and I may say that it if not UVC compliant too.
+I would personally suggest you to volunteer as ordinary soldier for 
+Afghanistan sitting in the first row. This is the perfect place of getting rid 
+of small brained reactionary people like you, isn't it?
 
-With the usbsnoop and the register names in the V0230Dev.inf of the
-ms-win driver, it should be easy to create a new driver, but:
+I decide to keep for me what I think about your physiognomy that can be seen 
+on a photograph shot after a Linux conference somewhere in the US.....
+You can call that a rest of politeness.......
+I am not use to people like you in the open source movement, if not to say:
+I do regard you personally as a displaced impurity.
 
-- it seems it asks for a firmware which may be copyrighted,
+> This is not the first time people have had to say this.
 
-- the images are compressed and the encoding is not known...
+The authoritarian character (if not to say fascistoid character) described in 
+the studies of Theodor Adorno tends very often to use "we" or "people" instead 
+of using the "I".
+This is a proof that the accordant person was kept down from the beginning of 
+childhood, trained to function like a robot without any unsuppressed attempt 
+of thinking freely. Characters of that rather distorted kind very often (but 
+not always) become cops or soldiers as profession to earn their living.
 
-BTW, the linux video stuff is now discussed in the linux-media mailing
-list (see Cc:).
+You will not help Mauro in his displaced position anyway, Toth! 
+Lessons @ Richard Stallman would possibly help, although I am not too 
+optimistic in your case to be honest......
 
-Best regards.
+> You're only damaging your reputation further using tactics like this.
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+This is what I call a (stupid) boomerang.
+Psychologists would call that a "projection".
+
+The truth about you, Toth, is that you yourself do not only damage your 
+personal reputation by helping reactionary people like Mauro Chehab to betray 
+the open source philosophy in its deepest essence.
+
+But in fact you show that you are a mismatch as far as human qualifications are 
+concerned.
+
