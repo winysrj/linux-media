@@ -1,34 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from toc.rii.ricoh.com ([205.226.66.129]:51275 "EHLO
-	mailx.crc.ricoh.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753373AbZGNQte (ORCPT
+Received: from mail-qy0-f196.google.com ([209.85.221.196]:61545 "EHLO
+	mail-qy0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751092AbZGXQdl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Jul 2009 12:49:34 -0400
-Date: Tue, 14 Jul 2009 09:49:18 -0700 (PDT)
-From: Zach LeRoy <zleroy@rii.ricoh.com>
-To: "Aguirre Rodriguez, Sergio" <saaguirre@ti.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	linux-omap <linux-omap@vger.kernel.org>
-Message-ID: <15157053.23861247590158808.JavaMail.root@mailx.crc.ricoh.com>
-In-Reply-To: <17937063.23811247589353235.JavaMail.root@mailx.crc.ricoh.com>
-Subject: Problems configuring OMAP35x ISP driver
+	Fri, 24 Jul 2009 12:33:41 -0400
+Received: by qyk34 with SMTP id 34so355484qyk.33
+        for <linux-media@vger.kernel.org>; Fri, 24 Jul 2009 09:33:41 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <f5bb005e0907240632s53e537b1j7c5f64c1f89c4af5@mail.gmail.com>
+References: <1f8bbe3c0907232102t5c658d66o571571707ecdb1f4@mail.gmail.com>
+	 <1248411383.3247.18.camel@pc07.localdom.local>
+	 <1f8bbe3c0907232218g45c89eeapc4b86e9d07217037@mail.gmail.com>
+	 <1248415576.3245.16.camel@pc07.localdom.local>
+	 <1f8bbe3c0907240624q14ef3603l520e3bee1bcded2c@mail.gmail.com>
+	 <f5bb005e0907240632s53e537b1j7c5f64c1f89c4af5@mail.gmail.com>
+Date: Fri, 24 Jul 2009 22:03:41 +0530
+Message-ID: <1f8bbe3c0907240933l2db4bcdajbf3ae7210df4e4b8@mail.gmail.com>
+Subject: Re: Problem with My Tuner card
+From: unni krishnan <unnikrishnan.a@gmail.com>
+To: Robert Martin <robertltux@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sergio,
+> at least you will need to recompile the modules that you changed
 
-I spoke with you earlier about using the ISP and omap34xxcam drivers with a micron mt9d111 SOC sensor.  I have since been able to take pictures, but the sensor data is not making it through the ISP data-path correctly.  I know the problem is in the ISP data-path because I am configuring the sensor the exact same way as I have been on my working PXA system.  I am expecting 4:2:2 packed YUV data, but all of the U and V data is no more than 2 bits where it should be 8.  I know the ISP has a lot of capabilities, but all I want to use it for is grabbing 8-bit data from my sensor and putting it in a buffer untouched using the CCDC interface (and of course clocking and timing).  What are the key steps to take to get this type of configuration?  
+Ho can I do that ?
 
-Other Questions:
 
-Is there any processing done on YUV data in the ISP driver by default that I am missing?
-Has any one else experienced similar problems while adding new sensor support?
+> Standard Cold boot Method
+> 1 do a proper shutdown of your computer
+> 2 unplug the power from your system unit
+> 3 make and then drink a cup of tea
+> 4 replug your computer
+> 5 restart your computer
+>
 
-Any help here would be greatly appreciated.
+I have already done many reboots, that will not solve the issue.
+---------------------
+With regards,
+Unni
 
-Thank you,
-
-Zach LeRoy
+"A candle loses nothing by lighting another candle"
