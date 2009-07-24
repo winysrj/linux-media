@@ -1,92 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nschwqsrv03p.mx.bigpond.com ([61.9.189.237]:40530 "EHLO
-	nschwqsrv03p.mx.bigpond.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753648AbZGFKsX (ORCPT
+Received: from smtp.nokia.com ([192.100.122.233]:39432 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751362AbZGXQsM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Jul 2009 06:48:23 -0400
-Received: from nschwotgx01p.mx.bigpond.com ([124.183.155.229])
-          by nschwmtas04p.mx.bigpond.com with ESMTP
-          id <20090706102116.YHMI2030.nschwmtas04p.mx.bigpond.com@nschwotgx01p.mx.bigpond.com>
-          for <linux-media@vger.kernel.org>; Mon, 6 Jul 2009 10:21:16 +0000
-Received: from 9CMDW1S ([124.183.155.229]) by nschwotgx01p.mx.bigpond.com
-          with SMTP
-          id <20090706102115.LAAK12022.nschwotgx01p.mx.bigpond.com@9CMDW1S>
-          for <linux-media@vger.kernel.org>; Mon, 6 Jul 2009 10:21:15 +0000
-Message-ID: <6AA752628FE8450481603E1B34A9F54F@ap.panavision.com>
-From: "Collier Family" <judithc@bigpond.net.au>
-To: <linux-media@vger.kernel.org>
-References: <ecc841d80907060142y29a7c7au136574d1cfc392c8@mail.gmail.com>
-Subject: DVICO Fusion Dual Express
-Date: Mon, 6 Jul 2009 20:21:15 +1000
-MIME-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+	Fri, 24 Jul 2009 12:48:12 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv10 0/8] FM Transmitter (si4713) and another changes
+Date: Fri, 24 Jul 2009 19:37:20 +0300
+Message-Id: <1248453448-1668-1-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have a Dvico Fusion Dual Express. It is unfortunately rev 4 and the 
-firmware is not correct.
+Hello guys,
 
-lspci -vv -nn
+ Here is the version 10 of fm transmitter work.
 
-04:00.0 0400: 14f1:8852 (rev 04)
-        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- 
-Step
-ping- SERR- FastB2B-
-        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- 
-<TAbort-
-<MAbort- >SERR- <PERR-
-        Latency: 0
-        Interrupt: pin A routed to IRQ 193
-        Region 0: Memory at 57200000 (64-bit, non-prefetchable) [size=2M]
-        Capabilities: [40] Express Endpoint IRQ 0
-                Device: Supported: MaxPayload 128 bytes, PhantFunc 0, 
-ExtTag-
-                Device: Latency L0s <64ns, L1 <1us
-                Device: AtnBtn- AtnInd- PwrInd-
-                Device: Errors: Correctable- Non-Fatal- Fatal- Unsupported-
-                Device: RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
-                Device: MaxPayload 128 bytes, MaxReadReq 512 bytes
-                Link: Supported Speed 2.5Gb/s, Width x1, ASPM L0s L1, Port 0
-                Link: Latency L0s <2us, L1 <4us
-                Link: ASPM Disabled RCB 64 bytes CommClk+ ExtSynch-
-                Link: Speed 2.5Gb/s, Width x1
-        Capabilities: [80] Power Management version 2
-                Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA 
-PME(D0+,D1+,D2+,D3hot
-+,D3cold-)
-                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-        Capabilities: [90] Vital Product Data
-        Capabilities: [a0] Message Signalled Interrupts: 64bit+ Queue=0/0 
-Enable
--
-                Address: 0000000000000000  Data: 0000
+ The difference between previous version is that now it is
+based only on http://www.linuxtv.org/hg/~hverkuil/v4l-dvb-strctrl,
+which contains the string support for our extended control api.
 
-the system recognises it 2.6.18-128.1.10.el5 using 
-video4linux-20090415-88.0.4.el5.x86_64 from atrpms
+Also, I've added a new extended control on the fm tx class:
+rds deviation. This control was missing from previous versions.
+It used to be set to default value. But I believe it would be good
+to have it configurable.
 
-I'm getting the following from firmware load
+Another minor change is about s_frequency call back. In the
+conversion from sysfs to extended control only interfaces,
+I forgot to keep the range check. That was missing on version #9.
+Now it is back.
 
-Jul  6 20:18:41 localhost kernel: xc2028 1-0061: Loading firmware for 
-type=BASE F8MHZ (3), id 0000000000000000.
-Jul  6 20:18:42 localhost kernel: xc2028 1-0061: Loading firmware for 
-type=D2633 DTV7 (90), id 0000000000000000.
-Jul  6 20:18:42 localhost kernel: xc2028 1-0061: Loading SCODE for type=DTV6 
-QAM DTV7 DTV78 DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 
-0000000000000000.
-Jul  6 20:18:42 localhost kernel: xc2028 1-0061: Incorrect readback of 
-firmware version.
+I've removed the v4l2-ctl changes, as they are no longer needed
+due to last re-factoring which happened there. All ext controls
+seams to work with v4l2-ctl, including string ones.
 
-I suspect rev 4 uses different firmware.
+I've also updated the documentation, including the new control
+and the references for character encoding of ps name and radio text.
 
-Any help would be greatly appreciated.
+Besides that, every thing is the same.
 
-Stephen
+There is a needed change in v4l2-ctl regarding set/get frequency.
+Nowadays, v4l2-ctl queries only the tuner and forgets about modulators.
+That I will send an initial proposal in a separated patch (I believe
+it is not related to this series anymore).
 
+BR,
 
+Eduardo Valentin (8):
+  v4l2-subdev.h: Add g_modulator callbacks to subdev api
+  v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX controls
+  v4l2: video device: Add FM_TX controls default configurations
+  v4l2-spec: Add documentation description for FM TX extended control
+    class
+  FMTx: si4713: Add files to add radio interface for si4713
+  FMTx: si4713: Add files to handle si4713 i2c device
+  FMTx: si4713: Add Kconfig and Makefile entries
+  FMTx: si4713: Add document file
 
-
+ linux/Documentation/video4linux/si4713.txt |  175 +++
+ linux/drivers/media/radio/Kconfig          |   22 +
+ linux/drivers/media/radio/Makefile         |    2 +
+ linux/drivers/media/radio/radio-si4713.c   |  367 +++++
+ linux/drivers/media/radio/si4713-i2c.c     | 2034 ++++++++++++++++++++++++++++
+ linux/drivers/media/radio/si4713-i2c.h     |  228 ++++
+ linux/drivers/media/video/v4l2-common.c    |   63 +-
+ linux/include/linux/videodev2.h            |   34 +
+ linux/include/media/radio-si4713.h         |   30 +
+ linux/include/media/si4713.h               |   49 +
+ linux/include/media/v4l2-subdev.h          |    2 +
+ v4l2-spec/Makefile                         |    1 +
+ v4l2-spec/controls.sgml                    |  210 +++
+ 13 files changed, 3216 insertions(+), 1 deletions(-)
+ create mode 100644 linux/Documentation/video4linux/si4713.txt
+ create mode 100644 linux/drivers/media/radio/radio-si4713.c
+ create mode 100644 linux/drivers/media/radio/si4713-i2c.c
+ create mode 100644 linux/drivers/media/radio/si4713-i2c.h
+ create mode 100644 linux/include/media/radio-si4713.h
+ create mode 100644 linux/include/media/si4713.h
 
