@@ -1,23 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n6QD4rCu025674
-	for <video4linux-list@redhat.com>; Sun, 26 Jul 2009 09:04:53 -0400
-Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.156])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n6QD4Y50007457
-	for <video4linux-list@redhat.com>; Sun, 26 Jul 2009 09:04:34 -0400
-Received: by fg-out-1718.google.com with SMTP id l27so317169fgb.7
-	for <video4linux-list@redhat.com>; Sun, 26 Jul 2009 06:04:33 -0700 (PDT)
-From: Denis Loginov <dinvlad@gmail.com>
-To: amol.debian@gmail.com
-Date: Sun, 26 Jul 2009 16:04:30 +0300
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n6OGLCpu020956
+	for <video4linux-list@redhat.com>; Fri, 24 Jul 2009 12:21:12 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [18.85.46.34])
+	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n6OGKvC0020281
+	for <video4linux-list@redhat.com>; Fri, 24 Jul 2009 12:20:57 -0400
+Date: Fri, 24 Jul 2009 13:21:13 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: vasaka@gmail.com
+Message-ID: <20090724132113.0c99992e@pedra.chehab.org>
+In-Reply-To: <36c518800907240910m93f253cv19efbdf489e0fb1e@mail.gmail.com>
+References: <20090717174101.GB15611@vanheusden.com>
+	<20090723165929.64cf3933@pedra.chehab.org>
+	<20090723201823.GS11865@vanheusden.com>
+	<36c518800907240758k2a1d8e9btdd841323e4dc2492@mail.gmail.com>
+	<20090724150727.GB11865@vanheusden.com>
+	<20090724124825.672be2d3@pedra.chehab.org>
+	<36c518800907240910m93f253cv19efbdf489e0fb1e@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <200907261604.30661.dinvlad@gmail.com>
 Cc: video4linux-list@redhat.com
-Subject: Re: driver for 041e:4055 Creative Technology, Ltd Live! Cam Video IM
+Subject: Re: video4linux loopback device
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,11 +33,21 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Actually, according to http://linux-uvc.berlios.de/ , you can just try 'USB 
-Video Class' Driver, i.e. Device Drivers -> Multimedia Devices -> Video 
-Capture Adapters -> V4L USB Devices -> (M) USB Video Class (UVC) & (y) UVC 
-input events device support 
-(CONFIG_USB_VIDEO_CLASS=m & USB_VIDEO_CLASS_INPUT_EVDEV=y).
+Em Fri, 24 Jul 2009 19:10:07 +0300
+vasaka@gmail.com escreveu:
+
+
+> Sounds interesting. will libv4l have ability to provide video from
+> sources other than v4l2 devices?
+> One of the things I want to achieve is to provide talking head to
+> video chatting programs instead of usual video stream.
+
+I'm not sure if Hans has plans for it. You may talk with him about it
+
+
+
+Cheers,
+Mauro
 
 --
 video4linux-list mailing list
