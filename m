@@ -1,129 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:46346 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752251AbZGXOYI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Jul 2009 10:24:08 -0400
-From: "cyber.bogh" <cyber.bogh@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: em28xx driver crashes device
-Date: Fri, 24 Jul 2009 16:22:50 +0200
-References: <d9def9db0907230240w6d3a41fcv2fcef6cbb6e2cb8c@mail.gmail.com> <d9def9db0907240515s28490707sfae205813033cad6@mail.gmail.com> <20090724100608.716d8b47@pedra.chehab.org>
-In-Reply-To: <20090724100608.716d8b47@pedra.chehab.org>
-Cc: Markus Rechberger <mrechberger@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1524 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751731AbZGYPcu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jul 2009 11:32:50 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCHv11 6/8] FM TX: si4713: Add files to handle si4713 i2c device
+Date: Sat, 25 Jul 2009 17:32:35 +0200
+Cc: "ext Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+References: <1248533862-20860-1-git-send-email-eduardo.valentin@nokia.com> <1248533862-20860-6-git-send-email-eduardo.valentin@nokia.com> <1248533862-20860-7-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1248533862-20860-7-git-send-email-eduardo.valentin@nokia.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-Message-Id: <200907241622.51011.cyber.bogh@gmx.de>
+Message-Id: <200907251732.35675.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Freitag 24 Juli 2009 15:06:08 schrieben Sie:
-> Em Fri, 24 Jul 2009 14:15:16 +0200
->
-> Markus Rechberger <mrechberger@gmail.com> escreveu:
-> > On Fri, Jul 24, 2009 at 2:06 PM, Mauro Carvalho
-> >
-> > Chehab<mchehab@infradead.org> wrote:
-> > > Em Fri, 24 Jul 2009 12:54:27 +0200
-> > >
-> > > Markus Rechberger <mrechberger@gmail.com> escreveu:
-> > >> someone has problems here? We also support available opensource
-> > >> players and will contribute some patches which can be used by all
-> > >> devices.
-> >
-> > Ah well Mauro,
-> >
-> > > This mailing list, the freenode irc channels #v4l and #linuxtv, the V4L
-> > > and the LinuxTV mailing lists were created for discussing open source
-> > > development related to the kernel linux media drivers, the usability of
-> > > those drivers and related open source themes.
-> > >
-> > > Anything related to binary only userspace stuff is completely out of
-> > > topic and shouldn't be posted on the above places.
-> > >
-> > > Despiste what you're saying, your intention to drop support to open
-> > > source is clear: you are playing against open source since 2007, when
-> > > you firstly proposed a frontend hook at the kernel driver for
-> > > userspace. This year, you dropped all open source trees you used to
-> > > have. So, it is clear that you're out of open source business, and you
-> > > won't be giving any open source support. So, please stop posting at the
-> > > open source forums
-> >
-> > there's no reason to argue with you since you have your own ideas. We
-> > do give opensource support as well. So please find another target to
-> > struggle around with. Let's see who's able to deliver the better
-> > solution for endusers.
->
-> This is not a sort of game to see who has a better solution for end users.
-
-Wrong! For the user who does not look behind the curtain (and the majority of 
-them do not) the recommended solution wins. The essence of the recommendation 
-is the decisive point, nothing else.
-
-> A company that has a serious commit to open source opens their datasheets
-> to allow public development and contributions and submit patches regularly
-> upstream, without any userspace hooks.
-
-Nonsense! How can you talk about "public development" if the majority of 
-developers is forced to sign non-disclosure agreements as a necessary 
-precondition to get access to data sheets?
-
-> Closed source drivers don't fit well at open source market. There are lots
-> of examples of failures to this approach with all sorts of vendors, and
-> lots of buyers decision of not buying a card X because open source driver
-> doesn't exist or is crappy.
-
-Dream on baby, I'm sure tomorrow you will tell us all that pigs can fly :)
-The majority is still MS, and you and I won't change that - unfortunately.
-
-> Anyway, it might have some space for your driver, but not on this forum.
-
-Who gives you the right to say that to anybody?
-You should perhaps take some lessons about the philosophical basics of open 
-source @ Mister Richard Stallman:
-There you will learn what "freedom" in the deeper sense of open source means:
-It does not mean "free beer". But in fact it is equivalent to "free speech".
-
-And this equivalent to "freedom of speech" definitely excludes fascistoid small 
-brained gestures like "I am the boss" or "You are not allowed to speak in that 
-forum" and other Machoist stupid omnipotence phantasies of that rather poor 
-and primitive no brain kind.
-
-> Cheers,
-> Mauro
->
+On Saturday 25 July 2009 16:57:40 Eduardo Valentin wrote:
+> This patch adds files to control si4713 devices.
+> Internal functions to control device properties
+> and initialization procedures are into these files.
+> Also, a v4l2 subdev interface is also exported.
+> This way other drivers can use this as v4l2 i2c subdevice.
+> 
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 > ---
->
-> "What we're saying today is that you're either part of the solution or
-> you're part of the problem." [1968 E. Cleaver Speech (in R. Scheer,
-> Eldridge Cleaver (1969) 32)] --
+>  linux/drivers/media/radio/si4713-i2c.c | 2034 ++++++++++++++++++++++++++++++++
+>  linux/drivers/media/radio/si4713-i2c.h |  237 ++++
+>  linux/include/media/si4713.h           |   49 +
+>  3 files changed, 2320 insertions(+), 0 deletions(-)
+>  create mode 100644 linux/drivers/media/radio/si4713-i2c.c
+>  create mode 100644 linux/drivers/media/radio/si4713-i2c.h
+>  create mode 100644 linux/include/media/si4713.h
+> 
+> diff --git a/linux/drivers/media/radio/si4713-i2c.c b/linux/drivers/media/radio/si4713-i2c.c
+> new file mode 100644
+> index 0000000..9525f1d
+> --- /dev/null
+> +++ b/linux/drivers/media/radio/si4713-i2c.c
 
-I'd call that fascist crap.
+> +/* write string property */
+> +static int si4713_write_econtrol_string(struct si4713_device *sdev,
+> +				struct v4l2_ext_control *control)
+> +{
+> +	char ps_name[MAX_RDS_PS_NAME + 1];
+> +	char radio_text[MAX_RDS_RADIO_TEXT + 1];
+> +	int size;
+> +	s32 rval = 0;
+> +
+> +	switch (control->id) {
+> +	case V4L2_CID_RDS_TX_PS_NAME:
+> +		size = control->length - 1;
 
-And to teach you, Chehab, (and of course all your brothers and sisters in 
-mind) in how far you are a wrong and a completely displaced person I will give 
-you a citation of John Lennon from 1966.
-It treats the difference of the pure idea of "christian religion" and small 
-brained human hypocritic practice on the other hand:
+You should add a check against control->length == 0 here and return -EINVAL
+if it is 0. I noticed that the minimum lengths is set to 0 in v4l2_queryctrl.
+That should be at least 1 (the length of an empty string).
 
-"Jesus was alright, but his disciples were nothing but thick and ordinary.
-It's them twisting it that ruins it for me."
+You can also go ahead and check that size is a multiple of 8. Don't forget
+to update the corresponding v4l2_ctrl_query_fill() with the new step value.
 
-Available here: http://quotationsbook.com/quote/21607/
+> +		if (size > MAX_RDS_PS_NAME)
+> +			size = MAX_RDS_PS_NAME;
+> +		rval = copy_from_user(ps_name, control->string, size);
+> +		if (rval < 0)
+> +			goto exit;
+> +		ps_name[size] = '\0';
+> +		rval = si4713_set_rds_ps_name(sdev, ps_name);
+> +		break;
+> +
+> +	case V4L2_CID_RDS_TX_RADIO_TEXT:
+> +		size = control->length - 1;
 
-So everyone reading that who can really think further without external 
-leadership (following the studies of Immanuel Kant) will easily understand in 
-how far Markus' decision to quit linuxtv.org was NOT a pure technical one.
+Ditto.
 
-To make open source a real fun and pleasure we need large minded, real 
-liberal, progressive thinking maintainers, NOT blind functioning brain-washed 
-soldiers of the rather disgusting primitive fascistoid kind.
+What is the step value for radio text? Looking at the RDS spec I'd say that
+it depends on whether it is transmitted in block 2A or 2B.
 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+What happens if the user passes an empty string? Is that even allowed?
+If it isn't allowed, then the minimum string lengths should be updated.
 
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
