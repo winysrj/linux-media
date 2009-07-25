@@ -1,70 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:49912 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964866AbZGQQKQ (ORCPT
+Received: from smtp.nokia.com ([192.100.122.233]:31047 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751342AbZGYPW0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Jul 2009 12:10:16 -0400
-Date: Fri, 17 Jul 2009 18:10:14 +0200 (CEST)
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-Subject: Re: [PATCH] firedtv: refine AVC debugging
-To: Henrik Kurelid <henke@kurelid.se>
-cc: linux-media@vger.kernel.org
-In-Reply-To: <2f15391f4f76f6a3126c0e8a9d61562c.squirrel@mail.kurelid.se>
-Message-ID: <tkrat.32ec89ba5c818f88@s5r6.in-berlin.de>
-References: <2f15391f4f76f6a3126c0e8a9d61562c.squirrel@mail.kurelid.se>
+	Sat, 25 Jul 2009 11:22:26 -0400
+Date: Sat, 25 Jul 2009 18:11:43 +0300
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: ext Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
+	ext Mauro Carvalho Chehab <mchehab@infradead.org>,
+	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCHv11 8/8] FM TX: si4713: Add document file
+Message-ID: <20090725151143.GA21232@esdhcp037198.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+References: <1248533862-20860-1-git-send-email-eduardo.valentin@nokia.com>
+ <1248533862-20860-8-git-send-email-eduardo.valentin@nokia.com>
+ <1248533862-20860-9-git-send-email-eduardo.valentin@nokia.com>
+ <200907251719.29801.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; CHARSET=us-ascii
-Content-Disposition: INLINE
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <200907251719.29801.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17 Jul, Henrik Kurelid wrote:
-[I wrote]
->> Shouldn't the three return statements in debug_fcp_opcode_flag_set be
->> 'return 0' rather than one?
-> I gave this some thought when I implemented it. These are "should not
-> happend"-situations where the drivers or hardware sends unknown/
-> unimplemented commands. Rather than making sure that they are never
-> seen in the logs I wanted them to always be logged (as long as some
-> debug logging is turned on) since they indicate driver/hw problems.
+On Sat, Jul 25, 2009 at 05:19:29PM +0200, ext Hans Verkuil wrote:
+> On Saturday 25 July 2009 16:57:42 Eduardo Valentin wrote:
+> > This patch adds a document file for si4713 device driver.
+> > It describes the driver interfaces and organization.
+> > 
+> > Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+> > ---
+> >  linux/Documentation/video4linux/si4713.txt |  176 ++++++++++++++++++++++++++++
+> >  1 files changed, 176 insertions(+), 0 deletions(-)
+> >  create mode 100644 linux/Documentation/video4linux/si4713.txt
+> > 
+> > diff --git a/linux/Documentation/video4linux/si4713.txt b/linux/Documentation/video4linux/si4713.txt
+> > new file mode 100644
+> > index 0000000..8b97fb6
+> > --- /dev/null
+> > +++ b/linux/Documentation/video4linux/si4713.txt
+> > @@ -0,0 +1,176 @@
+> > +Driver for I2C radios for the Silicon Labs Si4713 FM Radio Transmitters
+> > +
+> > +Copyright (c) 2009 Nokia Corporation
+> > +Contact: Eduardo Valentin <eduardo.valentin@nokia.com>
+> > +
+> > +
+> > +Information about the Device
+> > +============================
+> > +This chip is a Silicon Labs product. It is a I2C device, currently on 0×63 address.
+> 
+> Something went wrong here with the i2c address, it should probably be '0x63'.
+> I don't know whether this is in your original text or whether it got messed
+> up in some mailer.
 
-Ah, that's why.  Could be documented:
+It got messed during the mailing processes somehow. I'll resend only this one.
 
-static int debug_fcp_opcode_flag_set(unsigned int opcode,
-				     const u8 *data, int length)
-{
-	switch (opcode) {
-	case AVC_OPCODE_VENDOR:			break;
-	case AVC_OPCODE_READ_DESCRIPTOR:	return avc_debug & AVC_DEBUG_READ_DESCRIPTOR;
-	case AVC_OPCODE_DSIT:			return avc_debug & AVC_DEBUG_DSIT;
-	case AVC_OPCODE_DSD:			return avc_debug & AVC_DEBUG_DSD;
-	default:				goto unknown_opcode;
-	}
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
-	if (length < 7 ||
-	    data[3] != SFE_VENDOR_DE_COMPANYID_0 ||
-	    data[4] != SFE_VENDOR_DE_COMPANYID_1 ||
-	    data[5] != SFE_VENDOR_DE_COMPANYID_2)
-		goto unknown_opcode;
-
-	switch (data[6]) {
-	case SFE_VENDOR_OPCODE_REGISTER_REMOTE_CONTROL:	return avc_debug & AVC_DEBUG_REGISTER_REMOTE_CONTROL;
-	case SFE_VENDOR_OPCODE_LNB_CONTROL:		return avc_debug & AVC_DEBUG_LNB_CONTROL;
-	case SFE_VENDOR_OPCODE_TUNE_QPSK:		return avc_debug & AVC_DEBUG_TUNE_QPSK;
-	case SFE_VENDOR_OPCODE_TUNE_QPSK2:		return avc_debug & AVC_DEBUG_TUNE_QPSK2;
-	case SFE_VENDOR_OPCODE_HOST2CA:			return avc_debug & AVC_DEBUG_HOST2CA;
-	case SFE_VENDOR_OPCODE_CA2HOST:			return avc_debug & AVC_DEBUG_CA2HOST;
-	}
-
-unknown_opcode:  /* should never happen, log it */
-	return 1;
-}
-
-
-By the way, from here it looks as if your MUA converted tabs to spaces.
-In your other patch too.
 -- 
-Stefan Richter
--=====-==--= -=== =---=
-http://arcgraph.de/sr/
-
+Eduardo Valentin
