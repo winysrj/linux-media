@@ -1,118 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:52485 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751903AbZG3DGp (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1188 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752848AbZGYNbp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Jul 2009 23:06:45 -0400
-Date: Thu, 30 Jul 2009 00:06:34 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Cc: acano@fastmail.fm, linux-media@vger.kernel.org
-Subject: Re: [PATCH] em28xx: enable usb audio for plextor px-tv100u
-Message-ID: <20090730000634.21fea61a@pedra.chehab.org>
-In-Reply-To: <cb2af7c6ef118cb5fe1fab2720ec7973.squirrel@webmail.xs4all.nl>
-References: <20090718173758.GA32708@localhost.localdomain>
-	<20090729000753.GA24496@localhost.localdomain>
-	<20090729015730.34ab86c6@pedra.chehab.org>
-	<200907290809.32089.hverkuil@xs4all.nl>
-	<20090729094009.6dc01728@pedra.chehab.org>
-	<7aa4c771a5b1cf3117cf9faf027cc05c.squirrel@webmail.xs4all.nl>
-	<20090729114211.065ed01f@pedra.chehab.org>
-	<cb2af7c6ef118cb5fe1fab2720ec7973.squirrel@webmail.xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Sat, 25 Jul 2009 09:31:45 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: eduardo.valentin@nokia.com
+Subject: Re: [PATCHv10 6/8] FMTx: si4713: Add files to handle si4713 i2c device
+Date: Sat, 25 Jul 2009 15:31:29 +0200
+Cc: ext Mauro Carvalho Chehab <mchehab@infradead.org>,
+	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+References: <1248453448-1668-1-git-send-email-eduardo.valentin@nokia.com> <200907251520.53119.hverkuil@xs4all.nl> <20090725131524.GB10561@esdhcp037198.research.nokia.com>
+In-Reply-To: <20090725131524.GB10561@esdhcp037198.research.nokia.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200907251531.29726.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 29 Jul 2009 17:08:31 +0200
-"Hans Verkuil" <hverkuil@xs4all.nl> escreveu:
-
-> > I did some tests here: if we replace -EINVAL with -ENOIOCTLCMD, we can
-> > properly
-> > make v4l2_device_call_until_err() to work, fixing the lack of a proper
-> > error
-> > report at the drivers. This error code seems also appropriate for this
-> > case.
+On Saturday 25 July 2009 15:15:24 Eduardo Valentin wrote:
+> On Sat, Jul 25, 2009 at 03:20:53PM +0200, ext Hans Verkuil wrote:
+> > > +     switch (control->id) {
+> > > +     case V4L2_CID_RDS_TX_PS_NAME:
+> > > +             if (strlen(sdev->rds_info.ps_name) + 1 > control->length) {
+> > > +                     control->length = strlen(sdev->rds_info.ps_name) + 1;
+> > 
+> > I recommend setting length to the actual maximum MAX_RDS_PS_NAME+1.
+> > 
+> > > +                     rval = -ENOSPC;
+> > > +                     goto exit;
+> > > +             }
+> > > +             rval = copy_to_user(control->string, sdev->rds_info.ps_name,
+> > > +                                     strlen(sdev->rds_info.ps_name) + 1);
+> > > +             break;
+> > > +
+> > > +     case V4L2_CID_RDS_TX_RADIO_TEXT:
+> > > +             if (strlen(sdev->rds_info.radio_text) + 1 > control->length) {
+> > > +                     control->length = strlen(sdev->rds_info.radio_text) + 1;
+> > 
+> > Ditto.
 > 
-> This is not sufficient: v4l2_device_call_until_err is not really suitable
-> for this. 
-
-Agreed. Yet, the tests helped to see what changes were needed.
-
->This would be better:
+> Right, I think doing the way you are proposing is to avoid changes that may generate
+> failures in the following reads.
 > 
-> #define __v4l2_device_call_subdevs_ctrls(v4l2_dev, cond, o, f, args...) \
-> ({                                                                      \
->         struct v4l2_subdev *sd;                                         \
->         long err = 0;                                                   \
->                                                                         \
->         list_for_each_entry(sd, &(v4l2_dev)->subdevs, list) {           \
->                 if ((cond) && sd->ops->o && sd->ops->o->f)              \
->                         err = sd->ops->o->f(sd , ##args);               \
->                 if (err && err != -ENOIOCTLCMD)                         \
+> I 'll change this in the v11 as well.
 
-No, this is not right. In the case of controls, it should be, instead:
+OK.
 
-                 if (err != -ENOIOCTLCMD)
+> > > +struct rds_info {
+> > > +     u32 pi;
+> > > +#define MAX_RDS_PTY                  31
+> > > +     u32 pty;
+> > > +#define MAX_RDS_DEVIATION            90000
+> > > +     u32 deviation;
+> > > +#define MAX_RDS_PS_NAME                      96
+> > > +     u8 ps_name[MAX_RDS_PS_NAME + 1];
+> > > +#define MAX_RDS_RADIO_TEXT           384
+> > 
+> > I'm surprised at these MAX string lengths. Looking at the RDS standard it
+> > seems that the max length for the PS_NAME is 8 and for RADIO_TEXT it is
+> > either 32 (2A group) or 64 (2B group). I don't know which group the si4713
+> > uses.
+> > 
+> > Can you clarify how this is used?
 
-Also, such routine is has nothing specific for ctrls, so, the naming doesn't
-look nice. I'll find a better name.
+Did you see this comment as well? I'm quite interested in this.
 
->                         break;                                          \
->         }                                                               \
->         (err == -ENOIOCTLCMD) ? -EINVAL : err;                          \
-> })
-> 
-> This way -EINVAL is returned if the control isn't handled anywhere.
+	Hans
 
-Ok, but I'm in doubt if -EINVAL is the better return code on such case, but, in
-order to not break backward compatibility, better to return -EINVAL.
-
-> >
-> > This means several trivial patches on each v4l device driver, just
-> > replacing
-> > the error codes for 3 ioctl handlers (s_ctrl, g_ctrl, queryctrl).
-> >
-> > I'll try to write such patches for v4l devices, since I want to get rid of
-> > this
-> > bug on 2.6.31, at least on em28xx driver. If I have more time, I'll fix
-> > other
-> > bridge drivers as well.
-> 
-> Keep in mind that changing this for one i2c driver will mean that you have
-> to check its behavior on all v4l2 drivers that use that i2c driver.
-
-As drivers currently don't check for the returned code (maybe except for a very
-few ones), this probably is not a big issue. Yet, I'll use a semantic check to
-generate the patches, to be sure that all cases were covered.
-
-> >> Currently the control handling code in our v4l drivers is, to be blunt,
-> >> a
-> >> pile of crap. And it is ideal to move this into the v4l2 framework since
-> >> 90% of this is common code.
-> >
-> > Hmm, except for a few places that still implement this at the old way,
-> > most of
-> > the common code is already at v4l2 core. So, I'm not sure what you're
-> > referring.
-> 
-> Just to name a few:
-> 
-> 1) Range checking of the control values.
-> 2) Generic handling of QUERYCTRL/QUERYMENU including standard support for
-> the V4L2_CTRL_FLAG_NEXT_CTRL.
-> 3) Generic handling of the VIDIOC_G/S/TRY_EXT_CTRLS ioctls so all drivers
-> can handle them.
-> 4) Controls that are handled in subdevs should be automatically detected
-> by the core so that they are enumerated correctly.
-> 
-> There really is no support for this in the core, except for some utility
-> functions in v4l2-common.c.
-
-Ok.
-
-
-
-Cheers,
-Mauro
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
