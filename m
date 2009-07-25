@@ -1,53 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cp-out8.libero.it ([212.52.84.108]:37753 "EHLO
-	cp-out8.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751772AbZGaGhN (ORCPT
+Received: from mail-in-08.arcor-online.net ([151.189.21.48]:42592 "EHLO
+	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752576AbZGYDqn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 Jul 2009 02:37:13 -0400
-Received: from [192.168.1.21] (151.59.219.29) by cp-out8.libero.it (8.5.107) (authenticated as efa@iol.it)
-        id 4A5EF7510185ADDC for linux-media@vger.kernel.org; Fri, 31 Jul 2009 08:37:12 +0200
-Message-ID: <4A729117.6010001@iol.it>
-Date: Fri, 31 Jul 2009 08:37:11 +0200
-From: Valerio Messina <efa@iol.it>
-Reply-To: efa@iol.it
-MIME-Version: 1.0
-CC: linux-media@vger.kernel.org
-Subject: Re: Terratec Cinergy HibridT XS
-References: <4A6F8AA5.3040900@iol.it>	 <829197380907281744o5c3a7eb7rd0d2cb8c53cd646f@mail.gmail.com>	 <4A7140DD.7040405@iol.it> <829197380907300533l488acd0bt2188c4c599417966@mail.gmail.com>
-In-Reply-To: <829197380907300533l488acd0bt2188c4c599417966@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+	Fri, 24 Jul 2009 23:46:43 -0400
+Subject: Re: em28xx driver crashes device
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Steven Toth <stoth@kernellabs.com>
+Cc: Markus Rechberger <mrechberger@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+In-Reply-To: <4A69E492.2070208@kernellabs.com>
+References: <d9def9db0907230240w6d3a41fcv2fcef6cbb6e2cb8c@mail.gmail.com>
+	 <829197380907230503y3a2ca24y4434ed759c1f4009@mail.gmail.com>
+	 <d9def9db0907230510h31d1d225pb1d317c9a41fa210@mail.gmail.com>
+	 <829197380907230705w4f1c3126r9cf156ca30aa2b5b@mail.gmail.com>
+	 <d9def9db0907230729k4cc14707v763d242e14292ebb@mail.gmail.com>
+	 <20090723155935.285f9cba@pedra.chehab.org>
+	 <d9def9db0907240354x15927f29k2fc0939d25202e1@mail.gmail.com>
+	 <20090724090600.525c86b8@pedra.chehab.org>
+	 <d9def9db0907240515s28490707sfae205813033cad6@mail.gmail.com>
+	 <20090724100608.716d8b47@pedra.chehab.org>
+	 <d9def9db0907240631y495b65a1mc85571b5339ad518@mail.gmail.com>
+	 <4A69E492.2070208@kernellabs.com>
+Content-Type: text/plain; charset=UTF-8
+Date: Sat, 25 Jul 2009 05:44:39 +0200
+Message-Id: <1248493479.3245.6.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller ha scritto:
-> How are you testing the IR support?
 
-starting Kaffeine with a Digital TV channel, pressing numeric key of the 
-remote in front of IR receiver connected to Terratec Cinergy Hybrid T XS.
+Am Freitag, den 24.07.2009, 12:42 -0400 schrieb Steven Toth:
+> >>>> This mailing list, the freenode irc channels #v4l and #linuxtv, the V4L and the
+> >>>> LinuxTV mailing lists were created for discussing open source development
+> >>>> related to the kernel linux media drivers, the usability of those drivers and
+> >>>> related open source themes.
+> >>>>
+> >>>> Anything related to binary only userspace stuff is completely out of topic and
+> >>>> shouldn't be posted on the above places.
+> 
+> Markus,
+> 
+> The Linux community supports it's in-kernel dvb / v4l trees using this channel. 
+> Your attempt to use these channels to de-value the in-kernel driver and your 
+> agenda to promote your (partially) closed source alternative it is off topic.
+> 
+> This is not the first time people have had to say this.
+> 
+> You're only damaging your reputation further using tactics like this.
+> 
 
-> And are you using the Terratec
-> remote control that came with the product?
+there are also SILVERCREST empia webcams with older revisions of the
+sensor chip going over the desk here for 5€ already 18 months back.
 
-yes, the one showed in this picture:
-http://www.terratec.it/prodotti/schede_tv/TerraTec%20Cinergy%20Hybrid%20T%20USB%20XS/CinergyHybridTUSBXSscope.jpg
+Really interesting bullshit.
 
-> Have you tried opening a
-> text editor, hitting the "1" key, and seeing if the character appears?
+The vista driver took more than one year to be present ...
 
-I tried last evening, and no, does not appear any digit.
+Great stuff !
 
-My lsusb ID is:
-Bus 001 Device 007:
-ID 0ccd:0042 TerraTec Electronic GmbH Cinergy Hybrid T XS
+Chears,
+Hermann
 
-Note: with Ubuntu 8.04 K2.6.24-21-generic the TV and IR always worked.
-With Ubuntu 8.10 and kernel
-2.6.27.7-generic, 2.6.27.9-generic, 2.6.27.11-generic, 2.6.27-14-generic
-I needed to add some media Kheaders, but then TV and IR always worked.
-The problem appear just after upgrade to Ubuntu 9.04 kernel
-2.6.28-13-generic and happen the same for 2.6.28-14-generic
-
-Valerio
 
