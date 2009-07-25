@@ -1,38 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40074 "EHLO bear.ext.ti.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:56928 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932496AbZGPPcY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Jul 2009 11:32:24 -0400
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id n6GFWJ1b026040
-	for <linux-media@vger.kernel.org>; Thu, 16 Jul 2009 10:32:24 -0500
-Received: from dlep20.itg.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id n6GFWI9j014315
-	for <linux-media@vger.kernel.org>; Thu, 16 Jul 2009 10:32:18 -0500 (CDT)
-Received: from dlee75.ent.ti.com (localhost [127.0.0.1])
-	by dlep20.itg.ti.com (8.12.11/8.12.11) with ESMTP id n6GFWIoJ006455
-	for <linux-media@vger.kernel.org>; Thu, 16 Jul 2009 10:32:18 -0500 (CDT)
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Thu, 16 Jul 2009 10:32:17 -0500
-Subject: two instances of tvp514x module required for DM6467. Any suggestion?
-Message-ID: <A69FA2915331DC488A831521EAE36FE40144F1E560@dlee06.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	id S1752006AbZGYKz7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jul 2009 06:55:59 -0400
+Message-ID: <4A6AE4B7.5030801@iki.fi>
+Date: Sat, 25 Jul 2009 13:55:51 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
+To: Mart Raudsepp <mart.raudsepp@artecdesign.ee>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] V4L/DVB: af9015: add new USB ID for KWorld PlusTV Dual
+ DVB-T Stick (DVB-T 399U)
+References: <1248453941.5546.18.camel@martr-gentoo.artec>
+In-Reply-To: <1248453941.5546.18.camel@martr-gentoo.artec>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Mart Raudsepp wrote:
+> Add new USB ID (1b80:e400) for KWorld PlusTV Dual DVB-T Stick (DVB-T 399U).
+> The model number on the devices sticker label is "KW-DVB-T 399UR".
+> 
+> Signed-off-by: Mart Raudsepp <mart.raudsepp@artecdesign.ee>
 
-I am working to add support for DM6467 capture driver. This evm has two tvp5147 chips with different i2c addresses. So will I be able to call v4l2_i2c_new_subdev_board() twice to have two instances of this driver running? 
+Acked-by: Antti Palosaari <crope@iki.fi>
 
-Murali Karicheri
-Software Design Engineer
-Texas Instruments Inc.
-Germantown, MD 20874
-Phone : 301-515-3736
-email: m-karicheri2@ti.com
-
+thanks!
+-- 
+http://palosaari.fi/
