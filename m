@@ -1,59 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.radix.net ([207.192.128.31]:56941 "EHLO mail1.radix.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750804AbZGVBcH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Jul 2009 21:32:07 -0400
-Subject: [PATCH v2 4/4] ir-kbd-i2c: Add support for Z8F0811/Hauppage IR
- transceivers
-From: Andy Walls <awalls@radix.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Cc: Jean Delvare <khali@linux-fr.org>, Mark Lord <lkml@rtr.ca>,
-	Jarod Wilson <jarod@redhat.com>, Mike Isely <isely@pobox.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, Janne Grunau <j@jannau.net>
-Content-Type: text/plain
-Date: Tue, 21 Jul 2009 21:33:50 -0400
-Message-Id: <1248226430.3191.65.camel@palomino.walls.org>
-Mime-Version: 1.0
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2587 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751952AbZGYQo4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jul 2009 12:44:56 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: eduardo.valentin@nokia.com
+Subject: Changes to the string control handling
+Date: Sat, 25 Jul 2009 18:44:44 +0200
+Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	"dougsland@gmail.com" <dougsland@gmail.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <1248453448-1668-1-git-send-email-eduardo.valentin@nokia.com> <200907251639.18441.hverkuil@xs4all.nl> <20090725144127.GI10561@esdhcp037198.research.nokia.com>
+In-Reply-To: <20090725144127.GI10561@esdhcp037198.research.nokia.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200907251844.45017.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for Zilog Z8F0811 IR transceiver chips on
-CX2341[68] based boards to ir-kbd-i2c for both the old i2c binding model
-and the new i2c binding model.
+Hi Eduardo,
 
-Signed-off-by: Andy Walls <awalls@radix.net>
-Reviewed-by: Jean Delvare <khali@linux-fr.org>
+On Saturday 25 July 2009 16:41:27 Eduardo Valentin wrote:
+> On Sat, Jul 25, 2009 at 04:39:18PM +0200, ext Hans Verkuil wrote:
+> > If the string must be exactly 8 x n long, then I think that it is a good idea
+> > to start using the 'step' value of v4l2_queryctrl: this can be used to tell
+> > the application that string lengths should be a multiple of the step value.
+> > I've toyed with that idea before but I couldn't think of a good use case,
+> > but this might be it.
+> 
+> I think that would be good. It is a way to report to user land what can be
+> done in these cases which strings can be chopped in small pieces. Of course,
+> documenting this part it is appreciated.
 
- 
+Ok, I've implemented this. While doing this I realized that I had to change
+a few things:
 
-diff -r 6477aa1782d5 linux/drivers/media/video/ir-kbd-i2c.c
---- a/linux/drivers/media/video/ir-kbd-i2c.c	Tue Jul 21 09:17:24 2009 -0300
-+++ b/linux/drivers/media/video/ir-kbd-i2c.c	Tue Jul 21 20:55:54 2009 -0400
-@@ -442,9 +442,11 @@
- 	case 0x47:
- 	case 0x71:
- 	case 0x2d:
--		if (adap->id == I2C_HW_B_CX2388x) {
-+		if (adap->id == I2C_HW_B_CX2388x ||
-+		    adap->id == I2C_HW_B_CX2341X) {
- 			/* Handled by cx88-input */
--			name        = "CX2388x remote";
-+			name = adap->id == I2C_HW_B_CX2341X ? "CX2341x remote"
-+							    : "CX2388x remote";
- 			ir_type     = IR_TYPE_RC5;
- 			ir->get_key = get_key_haup_xvr;
- 			if (hauppauge == 1) {
-@@ -697,7 +728,8 @@
- static const struct i2c_device_id ir_kbd_id[] = {
- 	/* Generic entry for any IR receiver */
- 	{ "ir_video", 0 },
--	/* IR device specific entries could be added here */
-+	/* IR device specific entries should be added here */
-+	{ "ir_rx_z8f0811_haup", 0 },
- 	{ }
- };
- 
+1) the 'length' field in v4l2_ext_control has been renamed to 'size'. The
+name 'length' was too easy to confuse with 'string length' while in reality
+it referred to the memory size of the control payload. 'size' is more
+appropriate.
 
+2) the 'minimum' and 'maximum' fields of v4l2_queryctrl now return the min
+and max string lengths, i.e. *without* terminating zero. I realized that what
+VIDIOC_QUERYCTRL returns has nothing to do with how much memory to reserve
+for the string control. It is about the properties of the string itself
+and it is not normal to include the terminating zero when talking about a
+string length.
 
+I've incorporated everything in my v4l-dvb-strctrl tree. I apologize for the
+fact that you have to make yet another series of patches, but these changes
+are typical when you start implementing and documenting a new feature for
+the first time.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
