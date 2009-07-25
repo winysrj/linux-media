@@ -1,283 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:30013 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754887AbZG0NyF (ORCPT
+Received: from mail-in-07.arcor-online.net ([151.189.21.47]:45362 "EHLO
+	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752289AbZGYVw7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Jul 2009 09:54:05 -0400
-From: Eduardo Valentin <eduardo.valentin@nokia.com>
-To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
-	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
-	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
-	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
-	Linux-Media <linux-media@vger.kernel.org>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>
-Subject: [PATCHv13 4/8] v4l2-spec: Add documentation description for FM TX extended control class
-Date: Mon, 27 Jul 2009 16:42:55 +0300
-Message-Id: <1248702179-10403-5-git-send-email-eduardo.valentin@nokia.com>
-In-Reply-To: <1248702179-10403-4-git-send-email-eduardo.valentin@nokia.com>
-References: <1248702179-10403-1-git-send-email-eduardo.valentin@nokia.com>
- <1248702179-10403-2-git-send-email-eduardo.valentin@nokia.com>
- <1248702179-10403-3-git-send-email-eduardo.valentin@nokia.com>
- <1248702179-10403-4-git-send-email-eduardo.valentin@nokia.com>
+	Sat, 25 Jul 2009 17:52:59 -0400
+Subject: Re: Problem with My Tuner card
+From: hermann pitton <hermann-pitton@arcor.de>
+To: unni krishnan <unnikrishnan.a@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <1f8bbe3c0907250856h6c059658m6caa838a0ac6f9c2@mail.gmail.com>
+References: <1f8bbe3c0907232102t5c658d66o571571707ecdb1f4@mail.gmail.com>
+	 <1248411383.3247.18.camel@pc07.localdom.local>
+	 <1f8bbe3c0907232218g45c89eeapc4b86e9d07217037@mail.gmail.com>
+	 <1248415576.3245.16.camel@pc07.localdom.local>
+	 <1f8bbe3c0907250856h6c059658m6caa838a0ac6f9c2@mail.gmail.com>
+Content-Type: text/plain
+Date: Sat, 25 Jul 2009 23:49:08 +0200
+Message-Id: <1248558548.3341.116.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This single patch adds documentation description for FM Modulator (FM TX)
-Extended Control Class and its Control IDs. The text was added under
-"Extended Controls" section.
+Hi,
 
-Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
----
- v4l2-spec/Makefile      |    1 +
- v4l2-spec/controls.sgml |  215 +++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 216 insertions(+), 0 deletions(-)
+Am Samstag, den 25.07.2009, 21:26 +0530 schrieb unni krishnan:
+> Hi hermann,
+> 
+> I have recompiled the kernel and it is working now, thanks.
+> 
+> I have used :
+> 
+> modprobe saa7134 card=3
 
-diff --git a/v4l2-spec/Makefile b/v4l2-spec/Makefile
-index 4f11745..7a8d161 100644
---- a/v4l2-spec/Makefile
-+++ b/v4l2-spec/Makefile
-@@ -243,6 +243,7 @@ ENUMS = \
- 	v4l2_power_line_frequency \
- 	v4l2_priority \
- 	v4l2_tuner_type \
-+	v4l2_preemphasis \
- 
- STRUCTS = \
- 	v4l2_audio \
-diff --git a/v4l2-spec/controls.sgml b/v4l2-spec/controls.sgml
-index 8e0e024..da7b5f6 100644
---- a/v4l2-spec/controls.sgml
-+++ b/v4l2-spec/controls.sgml
-@@ -458,6 +458,12 @@ video is actually encoded into that format.</para>
-       <para>Unfortunately, the original control API lacked some
- features needed for these new uses and so it was extended into the
- (not terribly originally named) extended control API.</para>
-+
-+      <para>Even though the MPEG encoding API was the first effort
-+to use the Extended Control API, nowadays there are also other classes
-+of Extended Controls, such as Camera Controls and FM Transmitter Controls.
-+The Extended Controls API as well as all Extended Controls classes are
-+described in the following text.</para>
-     </section>
- 
-     <section>
-@@ -1815,6 +1821,215 @@ control must support read access and may support write access.</entry>
-       </tgroup>
-     </table>
-   </section>
-+
-+    <section id="fm-tx-controls">
-+      <title>FM Transmitter Control Reference</title>
-+
-+      <para>The FM Transmitter (FM_TX) class includes controls for common features of
-+FM transmissions capable devices. Currently this class includes parameters for audio
-+compression, pilot tone generation, audio deviation limiter, RDS transmission and
-+tuning power features.</para>
-+
-+      <table pgwide="1" frame="none" id="fm-tx-control-id">
-+      <title>FM_TX Control IDs</title>
-+
-+      <tgroup cols="4">
-+	<colspec colname="c1" colwidth="1*">
-+	<colspec colname="c2" colwidth="6*">
-+	<colspec colname="c3" colwidth="2*">
-+	<colspec colname="c4" colwidth="6*">
-+	<spanspec namest="c1" nameend="c2" spanname="id">
-+	<spanspec namest="c2" nameend="c4" spanname="descr">
-+	<thead>
-+	  <row>
-+	    <entry spanname="id" align="left">ID</entry>
-+	    <entry align="left">Type</entry>
-+	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-+	  </row>
-+	</thead>
-+	<tbody valign="top">
-+	  <row><entry></entry></row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_FM_TX_CLASS</constant>&nbsp;</entry>
-+	    <entry>class</entry>
-+	  </row><row><entry spanname="descr">The FM_TX class
-+descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
-+description of this control class.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RDS_TX_PI</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the RDS Programme Identification field
-+for transmission.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RDS_TX_PTY</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the RDS Programme Type field for transmission.
-+This encodes up to 31 pre-defined programme types.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RDS_TX_DEVIATION</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Configures RDS signal frequency deviation level in Hz.
-+The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RDS_TX_PS_NAME</constant>&nbsp;</entry>
-+	    <entry>string</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the Programme Service name (PS_NAME) for transmission.
-+It is intended for static display on a receiver. It is the primary id to listeners in programme service
-+identification and selection.  In Annex E of <xref linkend="en50067">, the RDS specification,
-+there is a full description of the correct character encoding for Programme Service name strings.
-+Also from RDS specification, PS is usually a single eight character text. However, it is also possible
-+to find receiver which can scroll strings sized as 8 x N characters. So, this control must be configured
-+with steps of 8 characters. The result is it must always contain a string with size multiple of 8.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_RDS_TX_RADIO_TEXT</constant>&nbsp;</entry>
-+	    <entry>string</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the Radio Text info for transmission. It is a textual description of
-+what is being broadcasted. RDS Radio Text can be applied when broadcaster wishes to transmit longer PS names,
-+programme-related information or any other text. In these cases, RadioText should be used in addition to
-+<constant>V4L2_CID_RDS_TX_PS_NAME</constant>. The encoding for Radio Text strings is also fully described
-+in Annex E of <xref linkend="en50067">. The length of Radio Text strings depends on which RDS Block is being
-+used to transmit it, either 32 (2A block) or 64 (2B block).  However, it is also possible
-+to find receiver which can scroll strings sized as 32 x N or 64 x N characters. So, this control must be configured
-+with steps of 32 or 64 characters. The result is it must always contain a string with size multiple of 32 or 64. </entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_ENABLED</constant>&nbsp;</entry>
-+	    <entry>boolean</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Enables or disables the audio deviation limiter feature.
-+The limiter is useful when trying to maximize the audio volume, minimize receiver-generated
-+distortion and prevent overmodulation.
-+</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_RELEASE_TIME</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the audio deviation limiter feature release time.
-+Unit is in useconds. Step and range are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_DEVIATION</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Configures audio frequency deviation level in Hz.
-+The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_ENABLED</constant>&nbsp;</entry>
-+	    <entry>boolean</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Enables or disables the audio compression feature.
-+This feature amplifies signals below the threshold by a fixed gain and compresses audio
-+signals above the threshold by the ratio of Threshold/(Gain + Threshold).</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_GAIN</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the gain for audio compression feature. It is
-+a dB value. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_THRESHOLD</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the threshold level for audio compression freature.
-+It is a dB value. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the attack time for audio compression feature.
-+It is a useconds value. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the release time for audio compression feature.
-+It is a useconds value. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_ENABLED</constant>&nbsp;</entry>
-+	    <entry>boolean</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Enables or disables the pilot tone generation feature.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_DEVIATION</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Configures pilot tone frequency deviation level. Unit is
-+in Hz. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_FREQUENCY</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Configures pilot tone frequency value. Unit is
-+in Hz. The range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_FM_TX_PREEMPHASIS</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row id="v4l2-preemphasis"><entry spanname="descr">Configures the pre-emphasis value for broadcasting.
-+A pre-emphasis filter is applied to the broadcast to accentuate the high audio frequencies.
-+Depending on the region, a time constant of either 50 or 75 useconds is used. The enum&nbsp;v4l2_preemphasis
-+defines possible values for pre-emphasis. Here they are:</entry>
-+	</row><row>
-+	<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_PREEMPHASIS_DISABLED</constant>&nbsp;</entry>
-+		      <entry>No pre-emphasis is applied.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_PREEMPHASIS_50_uS</constant>&nbsp;</entry>
-+		      <entry>A pre-emphasis of 50 uS is used.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_PREEMPHASIS_75_uS</constant>&nbsp;</entry>
-+		      <entry>A pre-emphasis of 75 uS is used.</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_TUNE_POWER_LEVEL</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">Sets the output power level for signal transmission.
-+Unit is in dBuV. Range and step are driver-specific.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_TUNE_ANTENNA_CAPACITOR</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">This selects the value of antenna tuning capacitor
-+manually or automatically if set to zero. Unit, range and step are driver-specific.</entry>
-+	  </row>
-+	  <row><entry></entry></row>
-+	</tbody>
-+      </tgroup>
-+      </table>
-+
-+<para>For more details about RDS specification, refer to
-+<xref linkend="en50067"> document, from CENELEC.</para>
-+    </section>
- </section>
- 
-   <!--
--- 
-1.6.2.GIT
+fine. So at least something working as a start.
+
+It seems to me we have to add a new entry for your card.
+Does it have a unique name they sell it, do you know the manufacturer?
+Is there a website or did you investigate all the printings on the PCB
+already.
+
+The tuner type label is often hidden under a OEM vendor label.
+Sometimes a drop of salad oil is enough to make the upper sticker
+transparent. Tuner factory label underneath is in most cases close to
+the antenna connector.
+
+Please read a little at our wiki about information we need.
+http://www.linuxtv.org/wiki/index.php/Development:_How_to_add_support_for_a_device
+
+> But there are two problems now :
+> 
+> 1. My speakers will produce the channel sound even after closing
+> tvtime and I need to remove the module using rmmod saa7134 to solve
+> that, is there any solution for that ?
+
+This is typical for saa7130 chips. They have no hardware mute on chip.
+
+It also shows that your card is in more different than the TV vmux.
+The FlyVideo2000 has hardware mute via its external audio mux chip.
+
+You have some mux chip too, and by pure luck card=3 makes the TV sound
+coming through from the tuner for you too.
+The saa7134 driver uses so called masked writes to deal with single or
+groups of the 28 (0-27) gpio pins it has. Only pins high in the gpio
+mask are switchable.
+
+For the FlyVideo2000 Wan Tat Chee uses a gpiomask of 0xe000.
+If you convert to bin you see pin 13,14,15 dec are used for switching.
+In hex pin 0x2000, 0x4000 and 0x8000.
+
+All audio inputs are connected to the same pair of audio input on the
+saa7130 called LINE2. All the audio routing on the card is completely
+done by the external mux chip controlled with this three gpio pins of
+the saa7130.
+
+For having TV sound all this three pins are set to 0 (low/input).
+This does not mean that this is really needed on your card.
+
+Since 0x8000 does not work for mute on your card, you can try 0x4000 and
+0x2000 in the mute section.
+
+For cards without external mux, one must switch to an unused audio
+input. That could be LINE1 on your card.
+
+> 2. In Linux I am not getting all the channels that I can get in
+> windows using this tuner card. I have scanned all the channels using
+> tvtime scanner but some channels are missing, is there anything we can
+> do to resolve it ?
+
+Yes, find the right tuner. Your tuner=55 does use LG API.
+Are the missing channels above 450MHz in UHF ranges?
+
+/* ------------ TUNER_TCL_2002MB - TCL PAL ------------ */
+
+static struct tuner_range tuner_tcl_2002mb_pal_ranges[] = {
+	{ 16 * 170.00 /*MHz*/, 0xce, 0x01, },
+	{ 16 * 450.00 /*MHz*/, 0xce, 0x02, },
+	{ 16 * 999.99        , 0xce, 0x08, },
+};
+
+static struct tuner_params tuner_tcl_2002mb_params[] = {
+	{
+		.type   = TUNER_PARAM_TYPE_PAL,
+		.ranges = tuner_tcl_2002mb_pal_ranges,
+		.count  = ARRAY_SIZE(tuner_tcl_2002mb_pal_ranges),
+	},
+};
+
+Then we might have to switch to a tuner using MK3 API.
+
+If the missing channels are only close to the takeover frequencies of
+170 and 450MHz, then the correct or at least better tuner needs to be
+found. You might enable debug=1 for tuner and tuner-simple.
+
+For example, if you have missing channels between 450 and 471.25 MHz,
+you can try with tuner=69 again.
+
+Is for that card FM radio support announced?
+
+Cheers,
+Hermann
+
+> On Fri, Jul 24, 2009 at 11:36 AM, hermann pitton<hermann-pitton@arcor.de> wrote:
+> > Hi,
+> >
+> > Am Freitag, den 24.07.2009, 10:48 +0530 schrieb unni krishnan:
+> >> > Hi Unni,
+> >> Hi Hermann,
+> >>
+> >> >
+> >> > we have lots of saa7130 cards without eeprom on it providing not at
+> >> > least a valid PCI subvendor and subdevice, so we can't know what it is
+> >> > at all, neither for the tuner type and also not for how video and audio
+> >> > inputs are connected.
+> >> >
+> >> > If you can tell a card with working video and another one with working
+> >> > audio, it should not be hard to get something together for both on TV
+> >> > from the tuner as a start.
+> >>
+> >> The option
+> >>
+> >> modprobe saa7134 card=3 tuner=55
+> >>
+> >> gives me sound without much noise but no video
+> >
+> > You need the external audio mux gpio switching of the FlyVideo2000
+> > card=3.
+> >
+> >> This gives me video, but no audio
+> >>
+> >> modprobe saa7134 card=37 tuner=55
+> >>
+> >
+> > But you also need the vmux=3 of card=37 for it.
+> > Change the vmux of card = 3 in saa7134-cards.c from one to 3 and
+> > recompile and install and try again with your "maybe" tuner.
+> >
+> >
+> >        [SAA7134_BOARD_FLYVIDEO2000] = {
+> >                /* "TC Wan" <tcwan@cs.usm.my> */
+> >                .name           = "LifeView/Typhoon FlyVIDEO2000",
+> >                .audio_clock    = 0x00200000,
+> >                .tuner_type     = TUNER_LG_PAL_NEW_TAPC,
+> >                .radio_type     = UNSET,
+> >                .tuner_addr     = ADDR_UNSET,
+> >                .radio_addr     = ADDR_UNSET,
+> >
+> >                .gpiomask       = 0xe000,
+> >                .inputs         = {{
+> >                        .name = name_tv,
+> >                        .vmux = 1,        <--change to vmux = 3
+> >                        .amux = LINE2,
+> >                        .gpio = 0x0000,
+> >                        .tv   = 1,
+> >                },{
+> >                        .name = name_comp1,
+> >                        .vmux = 0,
+> >                        .amux = LINE2,
+> >                        .gpio = 0x4000,
+> >                },{
+> >                        .name = name_comp2,
+> >                        .vmux = 3,
+> >                        .amux = LINE2,
+> >                        .gpio = 0x4000,
+> >                },{
+> >                        .name = name_svideo,
+> >                        .vmux = 8,
+> >                        .amux = LINE2,
+> >                        .gpio = 0x4000,
+> >                }},
+> >                .radio = {
+> >                        .name = name_radio,
+> >                        .amux = LINE2,
+> >                        .gpio = 0x2000,
+> >                },
+> >                .mute = {
+> >                        .name = name_mute,
+> >                        .amux = LINE2,
+> >                        .gpio = 0x8000,
+> >                },
+> >        },
+> >
+> >
+> >> >
+> >> > Also, if you do a cold boot without forcing any card, there might be a
+> >> > slight chance, that the gpio configuration on card init has been seen
+> >> > previously.
+> >>
+> >> Sorry, do you want me to just reboot the system ? I have already
+> >> rebooted the system many times. Is there any other thing that I need
+> >> to do before/after reboot ? I am new to Linux devices
+> >>
+> >
+> > If you tried different cards with different gpio configurations
+> > previously, those settings are not cleared, except you take care for it.
+> >
+> > Easiest is to do a cold boot, to see the card coming up untouched on
+> > gpios.
+> >
+> > I did not care yet, if we have it already duplicate, but likely try to
+> > look it up in the evening here.
+> >
+> > Cheers,
+> > Hermann
+> >
+> >
+> >
+> 
+> 
+> 
 
