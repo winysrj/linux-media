@@ -1,47 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bar.sig21.net ([80.81.252.164]:40094 "EHLO bar.sig21.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751850AbZGZPm2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jul 2009 11:42:28 -0400
-Received: from p54bddb1c.dip.t-dialin.net ([84.189.219.28] helo=abc.local)
-	by bar.sig21.net with esmtpsa (TLS-1.0:RSA_ARCFOUR_SHA1:16)
-	(Exim 4.63)
-	(envelope-from <js@sig21.net>)
-	id 1MV5rm-0006wf-Sf
-	for linux-media@vger.kernel.org; Sun, 26 Jul 2009 17:42:28 +0200
-Received: from js by abc.local with local (Exim 4.69)
-	(envelope-from <js@sig21.net>)
-	id 1MV5uT-0001yb-9h
-	for linux-media@vger.kernel.org; Sun, 26 Jul 2009 17:45:13 +0200
-Date: Sun, 26 Jul 2009 17:45:13 +0200
-From: Johannes Stezenbach <js@linuxtv.org>
-To: linux-media@vger.kernel.org
-Subject: Re: linuxtv.org downtime today due to software updates
-Message-ID: <20090726154513.GA7560@linuxtv.org>
-References: <20090726123709.GA6081@linuxtv.org>
+Received: from smtp.nokia.com ([192.100.122.230]:52516 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752827AbZGYNgI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jul 2009 09:36:08 -0400
+Date: Sat, 25 Jul 2009 16:25:21 +0300
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: ext Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
+	"mchehab@infradead.org" <mchehab@infradead.org>,
+	"dougsland@gmail.com" <dougsland@gmail.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCHv10 6/8] FMTx: si4713: Add files to handle si4713 i2c
+ device
+Message-ID: <20090725132521.GE10561@esdhcp037198.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+References: <1248453448-1668-1-git-send-email-eduardo.valentin@nokia.com>
+ <200907251520.53119.hverkuil@xs4all.nl>
+ <1FFEF31EBAA4F64B80D33027D4297760047DF3D655@NOK-EUMSG-02.mgdnok.nokia.com>
+ <200907251533.55361.hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20090726123709.GA6081@linuxtv.org>
+In-Reply-To: <200907251533.55361.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jul 26, 2009 at 02:37:09PM +0200, Johannes Stezenbach wrote:
+On Sat, Jul 25, 2009 at 03:33:55PM +0200, ext Hans Verkuil wrote:
+> On Saturday 25 July 2009 15:29:38 ext-Eero.Nurkkala@nokia.com wrote:
+> > 
+> > > I'm surprised at these MAX string lengths. Looking at the RDS standard it
+> > > seems that the max length for the PS_NAME is 8 and for RADIO_TEXT it is
+> > > either 32 (2A group) or 64 (2B group). I don't know which group the si4713
+> > > uses.
+> > > 
+> > > Can you clarify how this is used?
+> > > 
+> > > Regards,
+> > > 
+> > >         Hans
+> > 
+> > Well, PS_NAME can be 8 x n, but only 8 bytes are shown at once...
+> > so it keeps 'scrolling', or changes periodically. There's even commercial
+> > radio stations that do so.
 > 
-> sorry for short notice, but today I have enough spare time
-> to do the long overdue Etch -> Lenny update on linuxtv.org.
-> ssh and http access wil be blocked during the update.
-> I'll start in one or two hours from now and expect it to
-> take about two hours.
+> And I'm assuming that the same is true for radio text. However, this behavior
+> contradicts the control description in the spec, so that should be clarified.
 
-Mission accomplished.
+Yes, I'll add a comment explaining this for those defines.
 
-Please note that I installed mercurial-1.3.1 on the server
-and used the default "paper" style in favour of the
-linuxtv-customized gitweb style, because it has this nice
-merge graph feature.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
-Let me know if something isn't working as expected.
-
-
-Johannes
+-- 
+Eduardo Valentin
