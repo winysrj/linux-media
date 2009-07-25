@@ -1,117 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f171.google.com ([209.85.212.171]:44479 "EHLO
-	mail-vw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752437AbZGTIFk convert rfc822-to-8bit (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:58648 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751772AbZGYPIg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Jul 2009 04:05:40 -0400
-Received: by vwj1 with SMTP id 1so331172vwj.33
-        for <linux-media@vger.kernel.org>; Mon, 20 Jul 2009 01:05:39 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20090717124431.1bd3ea43@free.fr>
-References: <91b198a70907100305t762a4596r734e44f7f4f88bc3@mail.gmail.com>
-	 <20090711185415.3756dc26@pedra.chehab.org>
-	 <91b198a70907130042y6594a96do8634eebdfef8ba5c@mail.gmail.com>
-	 <91b198a70907162030l760bd7c5r32daaf6823c1dbe6@mail.gmail.com>
-	 <20090717043225.4c786455@pedra.chehab.org>
-	 <20090717124431.1bd3ea43@free.fr>
-Date: Mon, 20 Jul 2009 15:04:05 +0800
-Message-ID: <91b198a70907200004y5418796dkbf491d2cae877fb7@mail.gmail.com>
-Subject: Re: Lenovo webcam problem which using gspca's vc032x driver
-From: AceLan Kao <acelan.kao@canonical.com>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>, hugh@canonical.com,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Sat, 25 Jul 2009 11:08:36 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv11 2/8] v4l2: video device: Add V4L2_CTRL_CLASS_FM_TX controls
+Date: Sat, 25 Jul 2009 17:57:36 +0300
+Message-Id: <1248533862-20860-3-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1248533862-20860-2-git-send-email-eduardo.valentin@nokia.com>
+References: <1248533862-20860-1-git-send-email-eduardo.valentin@nokia.com>
+ <1248533862-20860-2-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Jean-Francois,
+This patch adds a new class of extended controls. This class
+is intended to support FM Radio Modulators properties such as:
+rds, audio limiters, audio compression, pilot tone generation,
+tuning power levels and preemphasis properties.
 
-I use "Lenovo WebCam Center" and "Dorgem" to do the webcam preview
-function, there are the following resolution settings
-160x120
-176x144
-320x240
-352x288
-640x480
-Do you need all the resolutions logs?
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ linux/include/linux/videodev2.h |   34 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 34 insertions(+), 0 deletions(-)
 
-I try to use "Device Monitoring Studio" to log the USB traffic this time.
-You can download the QVGA and VGA USB snoop log and the .INF file from here.
-http://people.canonical.com/~acelan//bugs/lp310760/
-
-Dear Mauro,
-
-Sure, I'll give you the patches against the V4L/DVB hg tree.
-But I think I should come out a conclusion with Jean-Francois, right?
-
-Best regards,
-AceLan Kao.
-
-2009/7/17 Jean-Francois Moine <moinejf@free.fr>:
-> On Fri, 17 Jul 2009 04:32:25 -0300
-> Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
->
->> Em Fri, 17 Jul 2009 11:30:24 +0800
->> AceLan Kao <acelan.kao@canonical.com> escreveu:
->        [snip]
->> > Thanks for your advice and links, I have found out the correct i2c
->> > commands to turn on/off the LED flash for Lenovo
->> > webcam(SENSOR_MI1310_SOC). Also, I fixed the upstream kernel, so
->> > that the camera preview and capture function are working now.
->> > The problem came from these two patches
->> > 6af4e7a V4L/DVB (10424): gspca - vc032x: Add resolution 1280x1024
->> > for sensor mi1310_soc.
->> > a92e906 V4L/DVB (10420): gspca - vc032x: Webcam 041e:405b added and
->> > mi1310_soc updated.
->> > I just disable the 1280x1024 resolution and revert back to the
->> > origin mi1310_soc VGA and QVGA settings.
->        [snip]
->> Also, since Jean-Francois added 1280x1024 resolution and changed the
->> initialization tables, I suspect that this worked fine with some
->> webcam model.
->>
->> So, probably, the bug is specific to this cam model (or related to a
->> poor USB performance at Lenovo internal usb bus). So, it is important
->> to know what is broken and what is not at the i2c sequence of
->> commands, in order to not break other similar devices.
->
-> Hi AceLan Kao,
->
-> Sorry to be a bit late on the problem, I'm busy with too many other
-> webcams!
->
-> First about the LEDs. 0x89 as the request value in USB control messages
-> seems to control to GPIO. It may turn on/off the LEDs and also does
-> sensor selection for the Samsung Q1. It should be specific to the
-> webcam.
->
-> Then, about the mi1310_soc. The zs328.inf and the C0130Dev.inf
-> extracted from the ms-win driver and the usb snoop I have contain almost
-> identical sequences, the ones which are in the driver since the
-> addition of the webcam 041e:405b. Three guys use this webcam. Indeed,
-> they have problems (mainly image freeze with frame overflow messages in
-> the kernel traces).
->
-> For now, I may ask the 041e:405b owners to check if your patch works.
->
-> Otherwise, I thought to add the YUYV mode to the mi1310_soc, as it is
-> for the mi1320_soc (the usb snoop I have is in this mode).
->
-> Also, as you have the webcam and surely the ms-win driver, may you send
-> me usb snoops in all resolutions and the .INF?
->
-> Thanks.
->
-> --
-> Ken ar c'hentañ |             ** Breizh ha Linux atav! **
-> Jef             |               http://moinejf.free.fr/
->
-
-
-
+diff --git a/linux/include/linux/videodev2.h b/linux/include/linux/videodev2.h
+index f68d3b1..2e84ec2 100644
+--- a/linux/include/linux/videodev2.h
++++ b/linux/include/linux/videodev2.h
+@@ -817,6 +817,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_CLASS_USER 0x00980000	/* Old-style 'user' controls */
+ #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+ #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
++#define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
+ 
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -1156,6 +1157,39 @@ enum  v4l2_exposure_auto_type {
+ 
+ #define V4L2_CID_PRIVACY			(V4L2_CID_CAMERA_CLASS_BASE+16)
+ 
++/* FM Modulator class control IDs */
++#define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
++#define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
++
++#define V4L2_CID_RDS_TX_PI			(V4L2_CID_FM_TX_CLASS_BASE + 1)
++#define V4L2_CID_RDS_TX_PTY			(V4L2_CID_FM_TX_CLASS_BASE + 2)
++#define V4L2_CID_RDS_TX_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 3)
++#define V4L2_CID_RDS_TX_PS_NAME			(V4L2_CID_FM_TX_CLASS_BASE + 4)
++#define V4L2_CID_RDS_TX_RADIO_TEXT		(V4L2_CID_FM_TX_CLASS_BASE + 5)
++
++#define V4L2_CID_AUDIO_LIMITER_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 6)
++#define V4L2_CID_AUDIO_LIMITER_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 7)
++#define V4L2_CID_AUDIO_LIMITER_DEVIATION	(V4L2_CID_FM_TX_CLASS_BASE + 8)
++
++#define V4L2_CID_AUDIO_COMPRESSION_ENABLED	(V4L2_CID_FM_TX_CLASS_BASE + 9)
++#define V4L2_CID_AUDIO_COMPRESSION_GAIN		(V4L2_CID_FM_TX_CLASS_BASE + 10)
++#define V4L2_CID_AUDIO_COMPRESSION_THRESHOLD	(V4L2_CID_FM_TX_CLASS_BASE + 11)
++#define V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 12)
++#define V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME	(V4L2_CID_FM_TX_CLASS_BASE + 13)
++
++#define V4L2_CID_PILOT_TONE_ENABLED		(V4L2_CID_FM_TX_CLASS_BASE + 14)
++#define V4L2_CID_PILOT_TONE_DEVIATION		(V4L2_CID_FM_TX_CLASS_BASE + 15)
++#define V4L2_CID_PILOT_TONE_FREQUENCY		(V4L2_CID_FM_TX_CLASS_BASE + 16)
++
++#define V4L2_CID_FM_TX_PREEMPHASIS		(V4L2_CID_FM_TX_CLASS_BASE + 17)
++enum v4l2_preemphasis {
++	V4L2_PREEMPHASIS_DISABLED	= 0,
++	V4L2_PREEMPHASIS_50_uS		= 1,
++	V4L2_PREEMPHASIS_75_uS		= 2,
++};
++#define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 18)
++#define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 19)
++
+ /*
+  *	T U N I N G
+  */
 -- 
-Chia-Lin Kao(AceLan)
-http://blog.acelan.idv.tw/
-E-Mail: acelan.kaoATcanonical.com (s/AT/@/)
+1.6.2.GIT
+
