@@ -1,51 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:60853 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754215AbZGBWoZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Jul 2009 18:44:25 -0400
-Message-ID: <4A4D384C.3090101@iki.fi>
-Date: Fri, 03 Jul 2009 01:44:28 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Jelle de Jong <jelledejong@powercraft.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Afatech AF9013 DVB-T not working with mplayer radio streams
-References: <4A4481AC.4050302@powercraft.nl> <4A4A71B9.5010603@powercraft.nl> <4A4C7349.2080705@powercraft.nl>
-In-Reply-To: <4A4C7349.2080705@powercraft.nl>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Received: from mail-px0-f184.google.com ([209.85.216.184]:63586 "EHLO
+	mail-px0-f184.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751877AbZGYJmq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jul 2009 05:42:46 -0400
+Received: by pxi14 with SMTP id 14so733610pxi.33
+        for <linux-media@vger.kernel.org>; Sat, 25 Jul 2009 02:42:46 -0700 (PDT)
+Subject: [PATCH] dibusb-mc: New USB ID for Humax/Coex DVB-T USB Stick 2.0
+ High Speed
+From: Pham Thanh Nam <phamthanhnam.ptn@gmail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain
+Date: Sat, 25 Jul 2009 16:42:40 +0700
+Message-Id: <1248514960.19977.6.camel@AcerAspire4710>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/02/2009 11:43 AM, Jelle de Jong wrote:
-> Some extra information about the lockups of my AF9015, this is a serious
-> blocker issue for me. It happens when I watch a channel with totem-xine
-> and switch to an other channel, the device is then unable to lock to the
-> new channel, and totem-xine hangs. There are no messages in dmesg.
->
-> Rebooting the system does not help getting the device working again, the
-> only way i found is to replug the usb device and this is not an option
-> for my systems because the usb devices are hidden.
+Signed-off-by: Pham Thanh Nam <phamthanhnam.ptn@gmail.com>
+Add new USB ID for Humax/Coex DVB-T USB Stick 2.0 High Speed
 
-I have seen that also with Totem-xine few times. Totem-xine hags totally 
-and it must be killed. But after that my device starts working without 
-replug (if I remember correctly). One thing could be power issue. If you 
-have possibility to test with powered USB -hub please do.
+diff -ur a/linux/drivers/media/dvb/dvb-usb/dibusb-mc.c
+b/linux/drivers/media/dvb/dvb-usb/dibusb-mc.c
+--- a/linux/drivers/media/dvb/dvb-usb/dibusb-mc.c	2009-07-12
+20:52:32.000000000 +0700
++++ b/linux/drivers/media/dvb/dvb-usb/dibusb-mc.c	2009-07-12
+20:12:56.000000000 +0700
+@@ -42,6 +42,8 @@
+ /* 11 */	{ USB_DEVICE(USB_VID_ULTIMA_ELECTRONIC,
+USB_PID_ARTEC_T14_WARM) },
+ /* 12 */	{ USB_DEVICE(USB_VID_LEADTEK,
+USB_PID_WINFAST_DTV_DONGLE_COLD) },
+ /* 13 */	{ USB_DEVICE(USB_VID_LEADTEK,
+USB_PID_WINFAST_DTV_DONGLE_WARM) },
++/* 14 */	{ USB_DEVICE(USB_VID_HUMAX_COEX,
+USB_PID_DVB_T_USB_STICK_HIGH_SPEED_COLD) },
++/* 15 */	{ USB_DEVICE(USB_VID_HUMAX_COEX,
+USB_PID_DVB_T_USB_STICK_HIGH_SPEED_WARM) },
+ 			{ }		/* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE (usb, dibusb_dib3000mc_table);
+@@ -66,7 +68,7 @@
+ 	/* parameter for the MPEG2-data transfer */
+ 			.stream = {
+ 				.type = USB_BULK,
+-				.count = 7,
++				.count = 8,
+ 				.endpoint = 0x06,
+ 				.u = {
+ 					.bulk = {
+@@ -88,7 +90,7 @@
+ 
+ 	.generic_bulk_ctrl_endpoint = 0x01,
+ 
+-	.num_device_descs = 7,
++	.num_device_descs = 8,
+ 	.devices = {
+ 		{   "DiBcom USB2.0 DVB-T reference design (MOD3000P)",
+ 			{ &dibusb_dib3000mc_table[0], NULL },
+@@ -119,6 +121,10 @@
+ 			{ &dibusb_dib3000mc_table[12], NULL },
+ 			{ &dibusb_dib3000mc_table[13], NULL },
+ 		},
++		{   "Humax/Coex DVB-T USB Stick 2.0 High Speed",
++			{ &dibusb_dib3000mc_table[14], NULL },
++			{ &dibusb_dib3000mc_table[15], NULL },
++		},
+ 		{ NULL },
+ 	}
+ };
+diff -ur a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+--- a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2009-07-12
+20:52:32.000000000 +0700
++++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2009-07-12
+21:23:29.000000000 +0700
+@@ -58,6 +58,7 @@
+ #define USB_VID_GIGABYTE			0x1044
+ #define USB_VID_YUAN				0x1164
+ #define USB_VID_XTENSIONS			0x1ae7
++#define USB_VID_HUMAX_COEX			0x10b9
+ 
+ /* Product IDs */
+ #define USB_PID_ADSTECH_USB2_COLD			0xa333
+@@ -259,5 +260,7 @@
+ #define USB_PID_SONY_PLAYTV				0x0003
+ #define USB_PID_ELGATO_EYETV_DTT			0x0021
+ #define USB_PID_ELGATO_EYETV_DTT_Dlx			0x0020
++#define USB_PID_DVB_T_USB_STICK_HIGH_SPEED_COLD		0x5000
++#define USB_PID_DVB_T_USB_STICK_HIGH_SPEED_WARM		0x5001
+ 
+ #endif
 
-> Is there an other USB DVB-T device that works out of the box with the
-> 2.9.30 kernel? Could somebody show me a link or name of this device so I
-> can buy and test it?
-
-DibCOM based sticks are usually good choice. There is many models from 
-many vendors, TerraTec, Artec (Artec T14BR is sold here in Finland 20-30e).
-
-DibCOM also uses big USB block size which seems to reduce system load. 
-Look examples from here:
-http://www.linuxtv.org/wiki/index.php/User:Hlangos
-
-Could someone explain why USB block size have so big effect to load?
-
-regards
-Antti
--- 
-http://palosaari.fi/
