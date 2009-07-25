@@ -1,115 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:45443 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753730AbZGVMlX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2009 08:41:23 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1MTb8I-0006lO-DQ
-	for linux-media@vger.kernel.org; Wed, 22 Jul 2009 12:41:18 +0000
-Received: from host-78-14-98-178.cust-adsl.tiscali.it ([78.14.98.178])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 22 Jul 2009 12:41:18 +0000
-Received: from avljawrowski by host-78-14-98-178.cust-adsl.tiscali.it with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 22 Jul 2009 12:41:18 +0000
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1340 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751652AbZGYSZt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Jul 2009 14:25:49 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id n6PIPmjB053754
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 25 Jul 2009 20:25:48 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 25 Jul 2009 20:25:48 +0200 (CEST)
+Message-Id: <200907251825.n6PIPmjB053754@smtp-vbr10.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-From: Avl Jawrowski <avljawrowski@gmail.com>
-Subject: Re: Problems with Pinnacle 310i (saa7134) and recent kernels
-Date: Wed, 22 Jul 2009 12:41:03 +0000 (UTC)
-Message-ID: <loom.20090722T123703-889@post.gmane.org>
-References: <loom.20090718T135733-267@post.gmane.org>  <1248033581.3667.40.camel@pc07.localdom.local>  <loom.20090720T224156-477@post.gmane.org> <1248146456.3239.6.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: WARNINGS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-hermann pitton <hermann-pitton <at> arcor.de> writes:
+Results of the daily build of v4l-dvb:
 
-> there is no excuse for getting errors on linux ;)
-> 
-> Where you got this card from and did it ever work on the same machine
-> with m$ stuff?
+date:        Sat Jul 25 19:00:05 CEST 2009
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   12339:f8f134705b65
+gcc version: gcc (GCC) 4.3.1
+hardware:    x86_64
+host os:     2.6.26
 
-I don't have m$ stuff.
+linux-2.6.22.19-armv5: OK
+linux-2.6.23.12-armv5: OK
+linux-2.6.24.7-armv5: OK
+linux-2.6.25.11-armv5: OK
+linux-2.6.26-armv5: OK
+linux-2.6.27-armv5: OK
+linux-2.6.28-armv5: OK
+linux-2.6.29.1-armv5: OK
+linux-2.6.30-armv5: OK
+linux-2.6.31-rc3-armv5: OK
+linux-2.6.27-armv5-ixp: OK
+linux-2.6.28-armv5-ixp: OK
+linux-2.6.29.1-armv5-ixp: OK
+linux-2.6.30-armv5-ixp: OK
+linux-2.6.31-rc3-armv5-ixp: OK
+linux-2.6.28-armv5-omap2: OK
+linux-2.6.29.1-armv5-omap2: OK
+linux-2.6.30-armv5-omap2: OK
+linux-2.6.31-rc3-armv5-omap2: OK
+linux-2.6.22.19-i686: OK
+linux-2.6.23.12-i686: OK
+linux-2.6.24.7-i686: OK
+linux-2.6.25.11-i686: OK
+linux-2.6.26-i686: OK
+linux-2.6.27-i686: OK
+linux-2.6.28-i686: OK
+linux-2.6.29.1-i686: OK
+linux-2.6.30-i686: WARNINGS
+linux-2.6.31-rc3-i686: OK
+linux-2.6.23.12-m32r: OK
+linux-2.6.24.7-m32r: OK
+linux-2.6.25.11-m32r: OK
+linux-2.6.26-m32r: OK
+linux-2.6.27-m32r: OK
+linux-2.6.28-m32r: OK
+linux-2.6.29.1-m32r: OK
+linux-2.6.30-m32r: OK
+linux-2.6.31-rc3-m32r: OK
+linux-2.6.30-mips: WARNINGS
+linux-2.6.31-rc3-mips: WARNINGS
+linux-2.6.27-powerpc64: WARNINGS
+linux-2.6.28-powerpc64: WARNINGS
+linux-2.6.29.1-powerpc64: WARNINGS
+linux-2.6.30-powerpc64: WARNINGS
+linux-2.6.31-rc3-powerpc64: OK
+linux-2.6.22.19-x86_64: OK
+linux-2.6.23.12-x86_64: OK
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.11-x86_64: OK
+linux-2.6.26-x86_64: OK
+linux-2.6.27-x86_64: OK
+linux-2.6.28-x86_64: OK
+linux-2.6.29.1-x86_64: OK
+linux-2.6.30-x86_64: WARNINGS
+linux-2.6.31-rc3-x86_64: OK
+sparse (linux-2.6.30): OK
+sparse (linux-2.6.31-rc3): OK
+linux-2.6.16.61-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.5-i686: ERRORS
+linux-2.6.20.21-i686: OK
+linux-2.6.21.7-i686: OK
+linux-2.6.16.61-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.5-x86_64: ERRORS
+linux-2.6.20.21-x86_64: OK
+linux-2.6.21.7-x86_64: OK
 
-> Clean up your module mess, read again, and if the eeprom has still
-> nothing to tell than 1 for all, get rid of it.
+Detailed results are available here:
 
-The errors were caused by a statically compiled v4l module.
-However the patch seems makes no difference. Maybe it make working
-the EPG but I haven't test it enough because the card works occasionally.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-Is the eeprom so important? With a certain kernel configuration (all modules
-compiled) gives no errors but only "f"s:
+Full logs are available here:
 
-Linux video capture interface: v2.00
-saa7130/34: v4l2 driver version 0.2.15 loaded
-saa7134 0000:01:01.0: PCI INT A -> GSI 21 (level, low) -> IRQ 21
-saa7133[0]: found at 0000:01:01.0, rev: 209, irq: 21, latency: 32, mmio:
-0xcfddf800
-saa7133[0]: subsystem: ffff:ffff, board: Pinnacle PCTV 310i [card=101,insmod
-option]
-saa7133[0]: board init: gpio is 600e000
-IRQ 21/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-saa7133[0]: i2c eeprom 00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-tuner 1-004b: chip found @ 0x96 (saa7133[0])
-tda829x 1-004b: setting tuner address to 61
-tda829x 1-004b: type set to tda8290+75a
-saa7133[0]: registered device video0 [v4l2]
-saa7133[0]: registered device vbi0
-saa7133[0]: registered device radio0
-dvb_init() allocating 1 frontend
-DVB: registering new adapter (saa7133[0])
-DVB: registering adapter 0 frontend 0 (Philips TDA10046H DVB-T)...
-tda1004x: setting up plls for 48MHz sampling clock
-tda1004x: found firmware revision 29 -- ok
-saa7134 ALSA driver for DMA sound loaded
-IRQ 21/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-saa7133[0]/alsa: saa7133[0] at 0xcfddf800 irq 21 registered as card -1
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-But now the card don't works not even with Kaffeine:
+The V4L2 specification from this daily build is here:
 
-/dev/dvb/adapter0/frontend0 : opened ( Philips TDA10046H DVB-T ) (0ms)
-0 EPG plugins loaded for device 0:0.
-Loaded epg data : 0 events (0 msecs)
-DvbCam::probe(): /dev/dvb/adapter0/ca0: : No such file or directory
-Using DVB device 0:0 "Philips TDA10046H DVB-T"
-Not able to lock to the signal on the given frequency
-Frontend closed
-Tuning delay: 1701 ms
+http://www.xs4all.nl/~hverkuil/spec/v4l2.html
 
-I think the occasional nonfunctional are caused by this error:
+The DVB API specification from this daily build is here:
 
-IRQ 21/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-
-Is it possible?
-
-The option disable_ir=1 has no effect. Changing PCI slot makes no difference.
-Anyway with w_scan and Kaffeine in normal conditions the tuner works almost
-always.
-
-> Cheers,
-> Hermann
-
-Thank you!
-
+http://www.xs4all.nl/~hverkuil/spec/dvbapi.pdf
 
