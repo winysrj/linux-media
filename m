@@ -1,90 +1,278 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay02.cambriumhosting.nl ([217.19.16.174]:40985 "EHLO
-	relay02.cambriumhosting.nl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751669AbZGVPBh (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:58642 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751509AbZGYPId (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Jul 2009 11:01:37 -0400
-Message-ID: <4A6729CF.8080804@powercraft.nl>
-Date: Wed, 22 Jul 2009 17:01:35 +0200
-From: Jelle de Jong <jelledejong@powercraft.nl>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: "linux-media@vger.kernel.org >> \"linux-media@vger.kernel.org\""
-	<linux-media@vger.kernel.org>
-Subject: Re: offering bounty for GPL'd dual em28xx support
-References: <4A6666CC.7020008@eyemagnet.com>	 <829197380907211842p4c9886a3q96a8b50e58e63cbf@mail.gmail.com>	 <4A66E59E.9040502@powercraft.nl> <829197380907220748kab85c63g6ebbaad07084c255@mail.gmail.com>
-In-Reply-To: <829197380907220748kab85c63g6ebbaad07084c255@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Sat, 25 Jul 2009 11:08:33 -0400
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: "ext Hans Verkuil" <hverkuil@xs4all.nl>,
+	"ext Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>,
+	Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: [PATCHv11 4/8] v4l2-spec: Add documentation description for FM TX extended control class
+Date: Sat, 25 Jul 2009 17:57:38 +0300
+Message-Id: <1248533862-20860-5-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1248533862-20860-4-git-send-email-eduardo.valentin@nokia.com>
+References: <1248533862-20860-1-git-send-email-eduardo.valentin@nokia.com>
+ <1248533862-20860-2-git-send-email-eduardo.valentin@nokia.com>
+ <1248533862-20860-3-git-send-email-eduardo.valentin@nokia.com>
+ <1248533862-20860-4-git-send-email-eduardo.valentin@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> On Wed, Jul 22, 2009 at 6:10 AM, Jelle de Jong<jelledejong@powercraft.nl> wrote:
->> So I felt like doing �a field test, with my dvb-t test system.
->>
->> Bus 001 Device 008: ID 2040:6502 Hauppauge WinTV HVR-900
->> Bus 001 Device 007: ID 2304:0226 Pinnacle Systems, Inc. [hex] PCTV 330e
->> Bus 001 Device 005: ID 0b05:173f ASUSTek Computer, Inc.
->> Bus 001 Device 003: ID 2304:0236 Pinnacle Systems, Inc. [hex]
->> Bus 001 Device 002: ID 15a4:9016
->>
->> I have now three devices with dvb-t channels running with different
->> channels and audio on an atom based cpu without problems.
->>
->> two:
->> dvb-usb-dib0700
->>
->> and one:
->> dvb-usb-af9015
->>
->> the dvb-usb-af9015 takes way more cpu interrupts because of the usb
->> block size.
->>
->> prove:
->> http://imagebin.ca/img/xM9Q7_A.jpg
->>
->> I will be demonstrating this at har2009 (see demonstration village)
->>
->> Devin could you login onto the dvb-t test system and see if you can get
->> those em28xx device running with your new code?
->>
->> I will probably make an other test system with some more cpu power to
->> see if even more usb devices are possible, or I may use my nice powerful
->> multiseat quad core system for it.
-> 
-> Hello Jelle,
-> 
-> Please understand that your experiment isn't really an appropriate
-> test.  The original user was referring to analog capture mode, in
-> which the uncompressed video is coming across the USB bus.  Analog
-> mode uses about 200Mbps while digital mode uses only 10-20Mbps.  If
-> you had tried capturing analog video with those devices you would have
-> seen similar results to what Steve described.
-> 
-> I haven't forgotten about your test environment, and I look forward to
-> getting the HVR-900 R2 and PCTV 330e working.  I have been sick in bed
-> for the last two days and have done no LinuxTV related work.  I look
-> forward to getting back to it this week.
-> 
-> Cheers,
-> 
-> Devin
-> 
+This single patch adds documentation description for FM Modulator (FM TX)
+Extended Control Class and its Control IDs. The text was added under
+"Extended Controls" section.
 
-Funky timing of those mails :D.
+Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+---
+ v4l2-spec/Makefile      |    1 +
+ v4l2-spec/controls.sgml |  210 +++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 211 insertions(+), 0 deletions(-)
 
-I saw only after sending my mail that Steve was talking about analog and
-that this is indeed different. Dual analog tuner support should be
-possible right? Maybe with some other analog usb chipsets? I don't know
-what the usb blocksize is or if they are isochronous transfers or bulk
-or control.
+diff --git a/v4l2-spec/Makefile b/v4l2-spec/Makefile
+index 4f11745..7a8d161 100644
+--- a/v4l2-spec/Makefile
++++ b/v4l2-spec/Makefile
+@@ -243,6 +243,7 @@ ENUMS = \
+ 	v4l2_power_line_frequency \
+ 	v4l2_priority \
+ 	v4l2_tuner_type \
++	v4l2_preemphasis \
+ 
+ STRUCTS = \
+ 	v4l2_audio \
+diff --git a/v4l2-spec/controls.sgml b/v4l2-spec/controls.sgml
+index 8e0e024..791df4d 100644
+--- a/v4l2-spec/controls.sgml
++++ b/v4l2-spec/controls.sgml
+@@ -458,6 +458,12 @@ video is actually encoded into that format.</para>
+       <para>Unfortunately, the original control API lacked some
+ features needed for these new uses and so it was extended into the
+ (not terribly originally named) extended control API.</para>
++
++      <para>Even though the MPEG encoding API was the first effort
++to use the Extended Control API, nowadays there are also other classes
++of Extended Controls, such as Camera Controls and FM Transmitter Controls.
++The Extended Controls API as well as all Extended Controls classes are
++described in the following text.</para>
+     </section>
+ 
+     <section>
+@@ -1815,6 +1821,210 @@ control must support read access and may support write access.</entry>
+       </tgroup>
+     </table>
+   </section>
++
++    <section id="fm-tx-controls">
++      <title>FM Transmitter Control Reference</title>
++
++      <para>The FM Transmitter (FM_TX) class includes controls for common features of
++FM transmissions capable devices. Currently this class includes parameters for audio
++compression, pilot tone generation, audio deviation limiter, RDS transmission and
++tuning power features.</para>
++
++      <table pgwide="1" frame="none" id="fm-tx-control-id">
++      <title>FM_TX Control IDs</title>
++
++      <tgroup cols="4">
++	<colspec colname="c1" colwidth="1*">
++	<colspec colname="c2" colwidth="6*">
++	<colspec colname="c3" colwidth="2*">
++	<colspec colname="c4" colwidth="6*">
++	<spanspec namest="c1" nameend="c2" spanname="id">
++	<spanspec namest="c2" nameend="c4" spanname="descr">
++	<thead>
++	  <row>
++	    <entry spanname="id" align="left">ID</entry>
++	    <entry align="left">Type</entry>
++	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row><entry></entry></row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FM_TX_CLASS</constant>&nbsp;</entry>
++	    <entry>class</entry>
++	  </row><row><entry spanname="descr">The FM_TX class
++descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
++description of this control class.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_TX_PI</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the RDS Programme Identification field
++for transmission.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_TX_PTY</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the RDS Programme Type field for transmission.
++This encodes up to 31 pre-defined programme types.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_TX_DEVIATION</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures RDS signal frequency deviation level in Hz.
++The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_TX_PS_NAME</constant>&nbsp;</entry>
++	    <entry>string</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the Programme Service name (PS_NAME) for transmission.
++It is intended for static display on a receiver. It is the primary aid to listeners in programme service
++identification and selection. The use of PS to transmit text other than a single eight character name is
++not permitted.  In Annex E of <xref linkend="en50067">, the RDS specification,
++there is a full description of the correct character encoding for Programme Service name strings.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_RDS_TX_RADIO_TEXT</constant>&nbsp;</entry>
++	    <entry>string</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the Radio Text info for transmission. It is a textual description of
++what is being broadcasted. RDS Radio Text can be applied when broadcaster wishes to transmit longer PS names,
++programme-related information or any other text. In these cases, RadioText should be used in addition to
++<constant>V4L2_CID_RDS_TX_PS_NAME</constant>. The encoding for Radio Text strings is also fully described
++in Annex E of <xref linkend="en50067">.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_ENABLED</constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row><entry spanname="descr">Enables or disables the audio deviation limiter feature.
++The limiter is useful when trying to maximize the audio volume, minimize receiver-generated
++distortion and prevent overmodulation.
++</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_RELEASE_TIME</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the audio deviation limiter feature release time.
++Unit is in useconds. Step and range are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_LIMITER_DEVIATION</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures audio frequency deviation level in Hz.
++The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_ENABLED</constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row><entry spanname="descr">Enables or disables the audio compression feature.
++This feature amplifies signals below the threshold by a fixed gain and compresses audio
++signals above the threshold by the ratio of Threshold/(Gain + Threshold).</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_GAIN</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the gain for audio compression feature. It is
++a dB value. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_THRESHOLD</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the threshold level for audio compression freature.
++It is a dB value. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the attack time for audio compression feature.
++It is a useconds value. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the release time for audio compression feature.
++It is a useconds value. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_ENABLED</constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row>
++	  <row><entry spanname="descr">Enables or disables the pilot tone generation feature.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_DEVIATION</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures pilot tone frequency deviation level. Unit is
++in Hz. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_PILOT_TONE_FREQUENCY</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Configures pilot tone frequency value. Unit is
++in Hz. The range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FM_TX_PREEMPHASIS</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row id="v4l2-preemphasis"><entry spanname="descr">Configures the pre-emphasis value for broadcasting.
++A pre-emphasis filter is applied to the broadcast to accentuate the high audio frequencies.
++Depending on the region, a time constant of either 50 or 75 useconds is used. The enum&nbsp;v4l2_preemphasis
++defines possible values for pre-emphasis. Here they are:</entry>
++	</row><row>
++	<entrytbl spanname="descr" cols="2">
++		  <tbody valign="top">
++		    <row>
++		      <entry><constant>V4L2_PREEMPHASIS_DISABLED</constant>&nbsp;</entry>
++		      <entry>No pre-emphasis is applied.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_PREEMPHASIS_50_uS</constant>&nbsp;</entry>
++		      <entry>A pre-emphasis of 50 uS is used.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_PREEMPHASIS_75_uS</constant>&nbsp;</entry>
++		      <entry>A pre-emphasis of 75 uS is used.</entry>
++		    </row>
++		  </tbody>
++		</entrytbl>
++
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_TUNE_POWER_LEVEL</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">Sets the output power level for signal transmission.
++Unit is in dBuV. Range and step are driver-specific.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_TUNE_ANTENNA_CAPACITOR</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">This selects the value of antenna tuning capacitor
++manually or automatically if set to zero. Unit, range and step are driver-specific.</entry>
++	  </row>
++	  <row><entry></entry></row>
++	</tbody>
++      </tgroup>
++      </table>
++
++<para>For more details about RDS specification, refer to
++<xref linkend="en50067"> document, from CENELEC.</para>
++    </section>
+ </section>
+ 
+   <!--
+-- 
+1.6.2.GIT
 
-I assume the video must be uncompressed transferred over usb because the
-decoding chip is on the usb device is not capable of doing compression
-encoding after the analog video decoding? Are there usb devices that do
-such tricks?
-
-Best regards,
-
-Jelle
