@@ -1,47 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f188.google.com ([209.85.210.188]:44317 "EHLO
-	mail-yx0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750701AbZG3Mdq (ORCPT
+Received: from smtp.nokia.com ([192.100.122.230]:50194 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752006AbZGYNNh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Jul 2009 08:33:46 -0400
-Received: by yxe26 with SMTP id 26so2440109yxe.4
-        for <linux-media@vger.kernel.org>; Thu, 30 Jul 2009 05:33:46 -0700 (PDT)
+	Sat, 25 Jul 2009 09:13:37 -0400
+Date: Sat, 25 Jul 2009 16:02:52 +0300
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: ext Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>,
+	ext Mauro Carvalho Chehab <mchehab@infradead.org>,
+	ext Douglas Schilling Landgraf <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+Subject: Re: [PATCHv10 3/8] v4l2: video device: Add FM_TX controls default
+ configurations
+Message-ID: <20090725130252.GA10561@esdhcp037198.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+References: <1248453448-1668-1-git-send-email-eduardo.valentin@nokia.com>
+ <1248453448-1668-3-git-send-email-eduardo.valentin@nokia.com>
+ <1248453448-1668-4-git-send-email-eduardo.valentin@nokia.com>
+ <200907251503.33713.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <4A7140DD.7040405@iol.it>
-References: <4A6F8AA5.3040900@iol.it>
-	 <829197380907281744o5c3a7eb7rd0d2cb8c53cd646f@mail.gmail.com>
-	 <4A7140DD.7040405@iol.it>
-Date: Thu, 30 Jul 2009 08:33:46 -0400
-Message-ID: <829197380907300533l488acd0bt2188c4c599417966@mail.gmail.com>
-Subject: Re: Terratec Cinergy HibridT XS
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: efa@iol.it
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <200907251503.33713.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 30, 2009 at 2:42 AM, Valerio Messina<efa@iol.it> wrote:
- yesterday evening I downloaded the sources with mercurial, compiled and
-> installed.
-> Same result, from dmesg the firmware file 'xc3028-v27.fw' is missing.
-> When I put it in /lib/firmware Kaffeine video/audio work, but no IR.
->
-> ready to help in debugging,
-> Valerio
+On Sat, Jul 25, 2009 at 03:03:33PM +0200, ext Hans Verkuil wrote:
+> On Friday 24 July 2009 18:37:23 Eduardo Valentin wrote:
+> > Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+> > ---
+> >  linux/drivers/media/video/v4l2-common.c |   63 ++++++++++++++++++++++++++++++-
+> >  1 files changed, 62 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/linux/drivers/media/video/v4l2-common.c b/linux/drivers/media/video/v4l2-common.c
+> > index bd13702..6fc0559 100644
+> > --- a/linux/drivers/media/video/v4l2-common.c
+> > +++ b/linux/drivers/media/video/v4l2-common.c
+> > @@ -343,6 +343,12 @@ const char **v4l2_ctrl_get_menu(u32 id)
+> >  		"Sepia",
+> >  		NULL
+> >  	};
+> > +	static const char *fm_tx_preemphasis[] = {
+> > +		"No preemphasis",
+> > +		"50 useconds",
+> > +		"75 useconds",
+> > +		NULL,
+> > +	};
+> >  
+> >  	switch (id) {
+> >  		case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+> > @@ -381,6 +387,8 @@ const char **v4l2_ctrl_get_menu(u32 id)
+> >  			return camera_exposure_auto;
+> >  		case V4L2_CID_COLORFX:
+> >  			return colorfx;
+> > +		case V4L2_CID_FM_TX_PREEMPHASIS:
+> > +			return fm_tx_preemphasis;
+> >  		default:
+> >  			return NULL;
+> >  	}
+> > @@ -479,6 +487,28 @@ const char *v4l2_ctrl_get_name(u32 id)
+> >  	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
+> >  	case V4L2_CID_PRIVACY:			return "Privacy";
+> >  
+> > +	/* FM Radio Modulator control */
+> > +	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
+> > +	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
+> > +	case V4L2_CID_RDS_TX_PTY:		return "RDS Program Type";
+> > +	case V4L2_CID_RDS_TX_DEVIATION:		return "RDS Signal Deviation";
+> > +	case V4L2_CID_RDS_TX_PS_NAME:		return "RDS PS Name";
+> > +	case V4L2_CID_RDS_TX_RADIO_TEXT:	return "RDS Radio Text";
+> > +	case V4L2_CID_AUDIO_LIMITER_ENABLED:	return "Audio Limiter Feature Enabled";
+> > +	case V4L2_CID_AUDIO_LIMITER_RELEASE_TIME: return "Audio Limiter Release Time";
+> > +	case V4L2_CID_AUDIO_LIMITER_DEVIATION:	return "Audio Limiter Deviation";
+> > +	case V4L2_CID_AUDIO_COMPRESSION_ENABLED: return "Audio Compression Feature Enabled";
+> > +	case V4L2_CID_AUDIO_COMPRESSION_GAIN:	return "Audio Compression Gain";
+> > +	case V4L2_CID_AUDIO_COMPRESSION_THRESHOLD: return "Audio Compression Threshold";
+> > +	case V4L2_CID_AUDIO_COMPRESSION_ATTACK_TIME: return "Audio Compression Attack Time";
+> > +	case V4L2_CID_AUDIO_COMPRESSION_RELEASE_TIME: return "Audio Compression Release Time";
+> > +	case V4L2_CID_PILOT_TONE_ENABLED:	return "Pilot Tone Feature Enabled";
+> > +	case V4L2_CID_PILOT_TONE_DEVIATION:	return "Pilot Tone Deviation";
+> > +	case V4L2_CID_PILOT_TONE_FREQUENCY:	return "Pilot Tone Frequency";
+> > +	case V4L2_CID_FM_TX_PREEMPHASIS:	return "Pre-emphasis settings";
+> > +	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
+> > +	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
+> > +
+> >  	default:
+> >  		return NULL;
+> >  	}
+> > @@ -500,7 +530,18 @@ EXPORT_SYMBOL(v4l2_ctrl_is_value64);
+> >   * This information is used inside v4l2_compat_ioctl32. */
+> >  int v4l2_ctrl_is_pointer(u32 id)
+> >  {
+> > -	return 0;
+> > +	int is_pointer;
+> > +
+> > +	switch (id) {
+> > +	case V4L2_CID_RDS_TX_PS_NAME:
+> > +	case V4L2_CID_RDS_TX_RADIO_TEXT:
+> > +		is_pointer = 1;
+> > +		break;
+> > +	default:
+> > +		is_pointer = 0;
+> > +	}
+> > +
+> > +	return is_pointer;
+> >  }
+> 
+> There is no need for a temp variable. Just do this:
+> 
+> int v4l2_ctrl_is_pointer(u32 id)
+> {
+> 	switch (id) {
+> 	case V4L2_CID_RDS_TX_PS_NAME:
+> 	case V4L2_CID_RDS_TX_RADIO_TEXT:
+> 		return 1;
+> 	default:
+> 		return 0;
+> 	}
+> }
+> 
+> Regards,
+> 
+> 	Hans
 
-You are correct that you will continue to see the message about
-'xc3028-v27.fw' being missing until you install the firmware.  We do
-not currently have the rights to redistribute it, which is why you
-have to install it manually.
 
-How are you testing the IR support?  And are you using the Terratec
-remote control that came with the product?  Have you tried opening a
-text editor, hitting the "1" key, and seeing if the character appears?
+Right, resending v11 with this minor change.
 
-Devin
+> 
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Eduardo Valentin
