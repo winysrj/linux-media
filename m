@@ -1,72 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f181.google.com ([209.85.221.181]:44691 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753685AbZGZPsq (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2253 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751290AbZGYOLL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jul 2009 11:48:46 -0400
-Received: by qyk11 with SMTP id 11so94432qyk.33
-        for <linux-media@vger.kernel.org>; Sun, 26 Jul 2009 08:48:46 -0700 (PDT)
+	Sat, 25 Jul 2009 10:11:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Eduardo Valentin <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 1/1] v4l2-ctl: Add G_MODULATOR before set/get frequency
+Date: Sat, 25 Jul 2009 16:10:53 +0200
+Cc: "ext Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	"ext Douglas Schilling Landgraf" <dougsland@gmail.com>,
+	"Nurkkala Eero.An (EXT-Offcode/Oulu)" <ext-Eero.Nurkkala@nokia.com>,
+	"Aaltonen Matti.J (Nokia-D/Tampere)" <matti.j.aaltonen@nokia.com>,
+	Linux-Media <linux-media@vger.kernel.org>
+References: <1248453732-1966-1-git-send-email-eduardo.valentin@nokia.com>
+In-Reply-To: <1248453732-1966-1-git-send-email-eduardo.valentin@nokia.com>
 MIME-Version: 1.0
-In-Reply-To: <1248558423.3341.115.camel@pc07.localdom.local>
-References: <1f8bbe3c0907232102t5c658d66o571571707ecdb1f4@mail.gmail.com>
-	 <1248411383.3247.18.camel@pc07.localdom.local>
-	 <1f8bbe3c0907232218g45c89eeapc4b86e9d07217037@mail.gmail.com>
-	 <1248415576.3245.16.camel@pc07.localdom.local>
-	 <1f8bbe3c0907250856h6c059658m6caa838a0ac6f9c2@mail.gmail.com>
-	 <1248558423.3341.115.camel@pc07.localdom.local>
-Date: Sun, 26 Jul 2009 21:11:46 +0530
-Message-ID: <1f8bbe3c0907260841p2b7f94c7i109f1b9597fc9783@mail.gmail.com>
-Subject: Re: Problem with My Tuner card
-From: unni krishnan <unnikrishnan.a@gmail.com>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200907251610.53698.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Friday 24 July 2009 18:42:12 Eduardo Valentin wrote:
+> As there can be modulator devices with get/set frequency
+> callbacks, this patch adds support to them in v4l2-ctl utility.
+
+Thanks for this patch.
+
+I've implemented it somewhat differently (using the new V4L2_CAP_MODULATOR
+to decide whether to call G_TUNER or G_MODULATOR) and pushed it to my
+v4l-dvb-strctrl tree. I've also improved the string print function so things
+like newlines and carriage returns are printed as \r and \n.
+
+Can you mail me the output of 'v4l2-ctl --all -L' based on this updated
+version of v4l2-ctl? I'd like to check whether everything is now reported
+correctly.
+
+Regards,
+
+	Hans
+
+> 
+> Signed-off-by: Eduardo Valentin <eduardo.valentin@nokia.com>
+> ---
+>  v4l2-apps/util/v4l2-ctl.cpp |   10 +++++++++-
+>  1 files changed, 9 insertions(+), 1 deletions(-)
+> 
+> diff --git a/v4l2-apps/util/v4l2-ctl.cpp b/v4l2-apps/util/v4l2-ctl.cpp
+> index fc9e459..ff74177 100644
+> --- a/v4l2-apps/util/v4l2-ctl.cpp
+> +++ b/v4l2-apps/util/v4l2-ctl.cpp
+> @@ -1962,12 +1962,16 @@ int main(int argc, char **argv)
+>  
+>  	if (options[OptSetFreq]) {
+>  		double fac = 16;
+> +		struct v4l2_modulator mt;
+>  
+> +		memset(&mt, 0, sizeof(struct v4l2_modulator));
+>  		if (doioctl(fd, VIDIOC_G_TUNER, &tuner, "VIDIOC_G_TUNER") == 0) {
+>  			fac = (tuner.capability & V4L2_TUNER_CAP_LOW) ? 16000 : 16;
+> +			vf.type = tuner.type;
+> +		} else if (doioctl(fd, VIDIOC_G_MODULATOR, &mt, "VIDIOC_G_MODULATOR") == 0) {
+> +			fac = (mt.capability & V4L2_TUNER_CAP_LOW) ? 16000 : 16;
+>  		}
+>  		vf.tuner = 0;
+> -		vf.type = tuner.type;
+>  		vf.frequency = __u32(freq * fac);
+>  		if (doioctl(fd, VIDIOC_S_FREQUENCY, &vf,
+>  			"VIDIOC_S_FREQUENCY") == 0)
+> @@ -2418,9 +2422,13 @@ set_vid_fmt_error:
+>  
+>  	if (options[OptGetFreq]) {
+>  		double fac = 16;
+> +		struct v4l2_modulator mt;
+>  
+> +		memset(&mt, 0, sizeof(struct v4l2_modulator));
+>  		if (doioctl(fd, VIDIOC_G_TUNER, &tuner, "VIDIOC_G_TUNER") == 0) {
+>  			fac = (tuner.capability & V4L2_TUNER_CAP_LOW) ? 16000 : 16;
+> +		} else if (doioctl(fd, VIDIOC_G_MODULATOR, &mt, "VIDIOC_G_MODULATOR") == 0) {
+> +			fac = (mt.capability & V4L2_TUNER_CAP_LOW) ? 16000 : 16;
+>  		}
+>  		vf.tuner = 0;
+>  		if (doioctl(fd, VIDIOC_G_FREQUENCY, &vf, "VIDIOC_G_FREQUENCY") == 0)
 
 
-> It seems to me we have to add a new entry for your card.
-> Does it have a unique name they sell it, do you know the manufacturer?
 
-Yes, card is called SSD-TV-675 (
-http://www.techcomindia.com/home.php?vaction=showprodd&cat=102&catt=TV%20Tuners&subcat=&subcatt=&prodid=501
-)
-
-> Is there a website or did you investigate all the printings on the PCB
-> already.
-> The tuner type label is often hidden under a OEM vendor label.
-> Sometimes a drop of salad oil is enough to make the upper sticker
-> transparent. Tuner factory label underneath is in most cases close to
-> the antenna connector.
-
-I got that :
-
-QSD-MT-S73 BD . I think this is the site
-http://www.szqsd.cn/en/product_show.asp?id=89
-
-> Since 0x8000 does not work for mute on your card, you can try 0x4000 and
-> 0x2000 in the mute section.
-
-Note sure how I can do that. Need more help :-)
-
-> For example, if you have missing channels between 450 and 471.25 MHz,
-> you can try with tuner=69 again.
-
-It was my problem. The tvtime chooses the default frequency as
-us-cable network. I used --frequency=custom to fix that. Its working
-now.
-
-> Is for that card FM radio support announced?
-
-Not sure about that. Its not working I think.
-
-Again, thanks for all your help. You are a genius :-)
-
----------------------
-With regards,
-Unni
-
-"A candle loses nothing by lighting another candle"
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG Telecom
