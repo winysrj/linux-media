@@ -1,54 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rtr.ca ([76.10.145.34]:36794 "EHLO mail.rtr.ca"
+Received: from bar.sig21.net ([80.81.252.164]:32996 "EHLO bar.sig21.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754527AbZGSPxT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jul 2009 11:53:19 -0400
-Message-ID: <4A63416E.2070103@rtr.ca>
-Date: Sun, 19 Jul 2009 11:53:18 -0400
-From: Mark Lord <lkml@rtr.ca>
+	id S1752055AbZGZQVP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jul 2009 12:21:15 -0400
+Date: Sun, 26 Jul 2009 18:23:54 +0200
+From: Johannes Stezenbach <js@linuxtv.org>
+To: linux-media@vger.kernel.org
+Cc: CityK <cityk@rogers.com>, "H. Langos" <henrik-dvb@prak.org>
+Subject: old V4L Wiki
+Message-ID: <20090726162354.GA7896@linuxtv.org>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Steven Toth <stoth@linuxtv.org>, linux-media@vger.kernel.org,
-	Linux Kernel <linux-kernel@vger.kernel.org>
-Subject: Re: Regression 2.6.31: xc5000 no longer works with Myth-0.21-fixes
- 	branch
-References: <4A631C8F.7000002@rtr.ca> <829197380907190706i686fd1afwdca0d8be648129@mail.gmail.com> <4A6337C1.6080104@rtr.ca>
-In-Reply-To: <4A6337C1.6080104@rtr.ca>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mark Lord wrote:
-..
-> Really, the mythfrontend DOES NOT DEAL WITH TUNERS directly,
-> leaving that to the mythbackend.  EXCEPT for when it wants to show
-> a signal strength/quality indication onscreen, which is done
-> when tuning to a new channel.
-> 
-> So it's got to be something on that pathway, I suspect,
-> but despite being a kernel developer, I'm not terribly
-> knowledgeable about V4L, DVB, or the MythTV internals.
-..
+Hi,
 
-Okay, got it.  Sort of.  :)
+the merge of the content from the old V4L Wiki into
+the V4L-DVB Wiki has been nearly completed, but seems
+to have come to a halt?  I would like to kill off the
+old V4L Wiki soon.  IMHO most of the remaining pages
+are old user discussions, maybe it's best
+if the users themselves take care of copying it over
+to the V4L-DVB Wiki if they think their content is
+still relevant.
 
-1. Patched mythtv to not show the signal strength info.  No effect.
+My plan is to delete the old Wiki soon after Sep. 1.
 
-2. Substituted a different brand/model/chipset DVB tuner for the 950Q,
-and everything was working fine again.  So we know it's not a generic issue.
+New account creation in the V4L Wiki has been disabled.
 
-3. In mythtv-setup -> CaptureCards -> DVB:1 -> RecordingOptions
-there is a tickbox for "Open DVB Card on Demand".  It was ticked,
-so I un-ticked that box.  Everything now works!
 
-When that tickbox was selected, the xc5000 took five (5) seconds to "open",
-as it did the firmware upload every time.  This appeared to exceed some
-timeout inside myth.
+List of remaining pages:
+http://linuxtv.org/v4lwiki/index.php/Special:AllPages
 
-With the tickbox NOT ticked, myth just opens the tuner once at startup,
-and keeps it open, so no more delay when it wants to use it.
+  Namespace Main:
+    Em2880/remote
+    Firewire devices
+    People behind V4L
+    Wiki merger
 
-I wonder if we can be smarter/faster about the xc5000 firmware uploads?
+  Namespace Talk:
+    Em2820
 
-Cheers 
+  Namespace User:
+    Fabien
+    Gouchi
+    Hthevath
+    IDamir
+    Jkrzyszt
+    Lucarasp
+    Lux
+    MarkusRechberger/Bugs
+    Mpapet
+    Navratil
+    Peter
+    Sakis
+    Satarsa
+    SunnyBUG
+    Tobru
+    TvY2k
+    Varogami
+
+  Namespace User-talk:
+    Heiner
+    Liplianin
+    Luckyboy
+    Nvicf
+    Santod
+    Satarsa
+    Uniface
+
+
+Thanks
+Johannes
