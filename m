@@ -1,53 +1,24 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:35629 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752588AbZGSNxN (ORCPT
+Received: from smtp5.clear.net.nz ([203.97.33.68]:35102 "EHLO
+	smtp5.clear.net.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752242AbZGZCXl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jul 2009 09:53:13 -0400
-Date: Sun, 19 Jul 2009 10:53:01 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: Brian Johnson <brijohn@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/2] gspca sn9c20x subdriver rev3
-Message-ID: <20090719105301.3ddb2f14@pedra.chehab.org>
-In-Reply-To: <20090719111145.50db44ee@free.fr>
-References: <1247976652-17031-1-git-send-email-brijohn@gmail.com>
-	<20090719111145.50db44ee@free.fr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Sat, 25 Jul 2009 22:23:41 -0400
+Received: from clear.net.nz (lb2-srcnat.clear.net.nz [203.97.32.237])
+ by smtp5.clear.net.nz (CLEAR Net Mail)
+ with SMTP id <0KND00K7HAMHLL10@smtp5.clear.net.nz> for
+ linux-media@vger.kernel.org; Sun, 26 Jul 2009 14:23:06 +1200 (NZST)
+Date: Sun, 26 Jul 2009 14:23:05 +1200
+From: Mr Song Li <song_lipte1@yahoo.com.hk>
+Subject: Contact Me Asap
+To: lipte@yahoo.com.hk
+Reply-to: song_lipte1@yahoo.com.hk
+Message-id: <4a6bbe09.394.4152.18364@clear.net.nz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 19 Jul 2009 11:11:45 +0200
-Jean-Francois Moine <moinejf@free.fr> escreveu:
-
-> On Sun, 19 Jul 2009 00:10:50 -0400
-> Brian Johnson <brijohn@gmail.com> wrote:
-> 
-> > Ok this one just has the following minor changes:
-> > 
-> > * operations set/get_register in the sd descriptor only exist if
-> > CONFIG_VIDEO_ADV_DEBUG is defined
-> > * use lowercase letters in hexidecimal notation
-> > * add new supported webcams to
-> > linux/Documentation/video4linux/gspca.txt
-> > * check for NULL after kmalloc when creating jpg_hdr
-> 
-> Hello, Brian and Mauro,
-> 
-> I got the patches and sent a pull request. The changesets have a high
-> priority.
-> 
-> I just fixed a compilation warning issued when USB_GSPCA_SN9C20X_EVDEV
-> was not set.
-> 
-> Mauro, I could not update the maintainers list. Do you want Brian sends
-> a new patch for that?
-
-Yes. Please send your acked-by: after his patch
-
-
-
-Cheers,
-Mauro
+Good Day,I have a Business of $19.5m for you to handle with
+me from my bank,If interested please send me your full
+Contact Details and after that I shall provide you with more
+details of this operation.We shall then share in the ratio
+of 70% for me, 30% for you.Regard Song Lile
