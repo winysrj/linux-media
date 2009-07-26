@@ -1,30 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx3.redhat.com (mx3.redhat.com [172.16.48.32])
-	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n63Kg5VU025661
-	for <video4linux-list@redhat.com>; Fri, 3 Jul 2009 16:42:06 -0400
-Received: from ciao.gmane.org (main.gmane.org [80.91.229.2])
-	by mx3.redhat.com (8.13.8/8.13.8) with ESMTP id n63Kfort018694
-	for <video4linux-list@redhat.com>; Fri, 3 Jul 2009 16:41:50 -0400
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1MMpZp-0008Lu-E9
-	for video4linux-list@redhat.com; Fri, 03 Jul 2009 20:41:45 +0000
-Received: from h-72-244-63-143.dnvtco56.dynamic.covad.net ([72.244.63.143])
-	by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-	id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Fri, 03 Jul 2009 20:41:45 +0000
-Received: from hendersj by h-72-244-63-143.dnvtco56.dynamic.covad.net with
-	local (Gmexim 0.1 (Debian)) id 1AlnuQ-0007hv-00
-	for <video4linux-list@redhat.com>; Fri, 03 Jul 2009 20:41:45 +0000
-To: video4linux-list@redhat.com
-From: Jim Henderson <hendersj@gmail.com>
-Date: Fri, 3 Jul 2009 20:41:33 +0000 (UTC)
-Message-ID: <h2lqdt$lts$1@ger.gmane.org>
-References: <h2lgu9$r6b$1@ger.gmane.org>
-	<829197380907031314q4829787cu7d7c6cf35a006377@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: Pinnacle 880e Development?
+Received: from mx1.redhat.com (mx1.redhat.com [172.16.48.31])
+	by int-mx1.corp.redhat.com (8.13.1/8.13.1) with ESMTP id n6QD4rCu025674
+	for <video4linux-list@redhat.com>; Sun, 26 Jul 2009 09:04:53 -0400
+Received: from fg-out-1718.google.com (fg-out-1718.google.com [72.14.220.156])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id n6QD4Y50007457
+	for <video4linux-list@redhat.com>; Sun, 26 Jul 2009 09:04:34 -0400
+Received: by fg-out-1718.google.com with SMTP id l27so317169fgb.7
+	for <video4linux-list@redhat.com>; Sun, 26 Jul 2009 06:04:33 -0700 (PDT)
+From: Denis Loginov <dinvlad@gmail.com>
+To: amol.debian@gmail.com
+Date: Sun, 26 Jul 2009 16:04:30 +0300
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <200907261604.30661.dinvlad@gmail.com>
+Cc: video4linux-list@redhat.com
+Subject: Re: driver for 041e:4055 Creative Technology, Ltd Live! Cam Video IM
 List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -36,35 +29,11 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, 03 Jul 2009 16:14:35 -0400, Devin Heitmueller wrote:
-
-> I've had a couple of people ask about support for this device recently. 
-> I pretty much had the analog video support working on all three inputs
-> (tuner/composite/s-video), although the driver was nowhere near a state
-> where it could be merged upstream.  I considered making the tree
-> available in its current state, but I wasn't sure how useful it would be
-> to people without the digital support and I hadn't gotten the audio
-> working yet.
-
-Thanks for the info, Devin - unfortunately I don't really have the skills 
-or knowledge to do any work on the driver development (I wish I did) - as 
-you have assessed, analog support isn't my primary interest because of 
-the broadcast switch to ATSC here in the US.
-
-If someone else picks up development, that'd be great and if I decide to 
-keep the device (I have a son who has a Windows machine so it might be of 
-use to him), then I'll be happy to help out with any testing that needs 
-to be done.
-
-Thanks again,
-
-Jim
-
-
-
--- 
- Jim Henderson
- Please keep on-topic replies on the list so everyone benefits
+Actually, according to http://linux-uvc.berlios.de/ , you can just try 'USB 
+Video Class' Driver, i.e. Device Drivers -> Multimedia Devices -> Video 
+Capture Adapters -> V4L USB Devices -> (M) USB Video Class (UVC) & (y) UVC 
+input events device support 
+(CONFIG_USB_VIDEO_CLASS=m & USB_VIDEO_CLASS_INPUT_EVDEV=y).
 
 --
 video4linux-list mailing list
