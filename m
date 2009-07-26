@@ -1,76 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bar.sig21.net ([80.81.252.164]:32996 "EHLO bar.sig21.net"
+Received: from bar.sig21.net ([80.81.252.164]:40094 "EHLO bar.sig21.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752055AbZGZQVP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Jul 2009 12:21:15 -0400
-Date: Sun, 26 Jul 2009 18:23:54 +0200
+	id S1751850AbZGZPm2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jul 2009 11:42:28 -0400
+Received: from p54bddb1c.dip.t-dialin.net ([84.189.219.28] helo=abc.local)
+	by bar.sig21.net with esmtpsa (TLS-1.0:RSA_ARCFOUR_SHA1:16)
+	(Exim 4.63)
+	(envelope-from <js@sig21.net>)
+	id 1MV5rm-0006wf-Sf
+	for linux-media@vger.kernel.org; Sun, 26 Jul 2009 17:42:28 +0200
+Received: from js by abc.local with local (Exim 4.69)
+	(envelope-from <js@sig21.net>)
+	id 1MV5uT-0001yb-9h
+	for linux-media@vger.kernel.org; Sun, 26 Jul 2009 17:45:13 +0200
+Date: Sun, 26 Jul 2009 17:45:13 +0200
 From: Johannes Stezenbach <js@linuxtv.org>
 To: linux-media@vger.kernel.org
-Cc: CityK <cityk@rogers.com>, "H. Langos" <henrik-dvb@prak.org>
-Subject: old V4L Wiki
-Message-ID: <20090726162354.GA7896@linuxtv.org>
+Subject: Re: linuxtv.org downtime today due to software updates
+Message-ID: <20090726154513.GA7560@linuxtv.org>
+References: <20090726123709.GA6081@linuxtv.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <20090726123709.GA6081@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Sun, Jul 26, 2009 at 02:37:09PM +0200, Johannes Stezenbach wrote:
+> 
+> sorry for short notice, but today I have enough spare time
+> to do the long overdue Etch -> Lenny update on linuxtv.org.
+> ssh and http access wil be blocked during the update.
+> I'll start in one or two hours from now and expect it to
+> take about two hours.
 
-the merge of the content from the old V4L Wiki into
-the V4L-DVB Wiki has been nearly completed, but seems
-to have come to a halt?  I would like to kill off the
-old V4L Wiki soon.  IMHO most of the remaining pages
-are old user discussions, maybe it's best
-if the users themselves take care of copying it over
-to the V4L-DVB Wiki if they think their content is
-still relevant.
+Mission accomplished.
 
-My plan is to delete the old Wiki soon after Sep. 1.
+Please note that I installed mercurial-1.3.1 on the server
+and used the default "paper" style in favour of the
+linuxtv-customized gitweb style, because it has this nice
+merge graph feature.
 
-New account creation in the V4L Wiki has been disabled.
-
-
-List of remaining pages:
-http://linuxtv.org/v4lwiki/index.php/Special:AllPages
-
-  Namespace Main:
-    Em2880/remote
-    Firewire devices
-    People behind V4L
-    Wiki merger
-
-  Namespace Talk:
-    Em2820
-
-  Namespace User:
-    Fabien
-    Gouchi
-    Hthevath
-    IDamir
-    Jkrzyszt
-    Lucarasp
-    Lux
-    MarkusRechberger/Bugs
-    Mpapet
-    Navratil
-    Peter
-    Sakis
-    Satarsa
-    SunnyBUG
-    Tobru
-    TvY2k
-    Varogami
-
-  Namespace User-talk:
-    Heiner
-    Liplianin
-    Luckyboy
-    Nvicf
-    Santod
-    Satarsa
-    Uniface
+Let me know if something isn't working as expected.
 
 
-Thanks
 Johannes
