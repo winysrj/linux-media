@@ -1,73 +1,229 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rtr.ca ([76.10.145.34]:39016 "EHLO mail.rtr.ca"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754740AbZGSSPq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Jul 2009 14:15:46 -0400
-Message-ID: <4A6362D0.1030400@rtr.ca>
-Date: Sun, 19 Jul 2009 14:15:44 -0400
-From: Mark Lord <lkml@rtr.ca>
+Received: from mail-ew0-f226.google.com ([209.85.219.226]:59097 "EHLO
+	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753406AbZGZMra convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Jul 2009 08:47:30 -0400
+Received: by ewy26 with SMTP id 26so2626836ewy.37
+        for <linux-media@vger.kernel.org>; Sun, 26 Jul 2009 05:47:30 -0700 (PDT)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] Help Request: DM1105 STV0299 DVB-S PCI - Unable to tune
+Date: Sun, 26 Jul 2009 15:47:24 +0300
+Cc: Shaun Murdoch <scrauny@gmail.com>, Simon Kenyon <simon@koala.ie>
+References: <79fc70d20907221001v3a56a142v445d9167197ecf0d@mail.gmail.com> <200907222307.25701.liplianin@me.by> <79fc70d20907251512i3cf15f57n1c2d653b18cba085@mail.gmail.com>
+In-Reply-To: <79fc70d20907251512i3cf15f57n1c2d653b18cba085@mail.gmail.com>
 MIME-Version: 1.0
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Andy Walls <awalls@radix.net>, linux-media@vger.kernel.org,
-	Jarod Wilson <jarod@redhat.com>, Mike Isely <isely@pobox.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Janne Grunau <j@jannau.net>
-Subject: Re: [PATCH 1/3] ir-kbd-i2c: Allow use of ir-kdb-i2c internal get_key
-    funcs and set ir_type
-References: <1247862585.10066.16.camel@palomino.walls.org>	<1247862937.10066.21.camel@palomino.walls.org>	<20090719144749.689c2b3a@hyperion.delvare>	<4A6316F9.4070109@rtr.ca>	<20090719145513.0502e0c9@hyperion.delvare>	<4A631B41.5090301@rtr.ca>	<4A631CEA.4090802@rtr.ca>	<4A632FED.1000809@rtr.ca> <20090719190833.29451277@hyperion.delvare>
-In-Reply-To: <20090719190833.29451277@hyperion.delvare>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <200907261547.24281.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jean Delvare wrote:
-> On Sun, 19 Jul 2009 10:38:37 -0400, Mark Lord wrote:
->> I'm debugging various other b0rked things in 2.6.31 here right now,
->> so I had a closer look at the Hauppauge I/R remote issue.
->>
->> The ir_kbd_i2c driver *does* still find it after all.
->> But the difference is that the output from 'lsinput' has changed
->> and no longer says "Hauppauge".  Which prevents the application from
->> finding the remote control in the same way as before.
-> 
-> OK, thanks for the investigation.
-> 
->> I'll hack the application code here now to use the new output,
->> but I wonder what the the thousands of other users will do when
->> they first try 2.6.31 after release ?
-> 
-> Where does lsinput get the string from?
-..
+On 26 июля 2009 01:12:14 Shaun Murdoch wrote:
+> Hi Igor,
+>
+> I've taken some photos of the tuner so that hopefully you'll be able
+> to help work out why it won't tune in Linux.
+>
+> Please see the following link for the images:
+> http://www.flickr.com/photos/7690303@N04/sets/72157621703527801/
+I have a few dm1105 based cards, but yours looks different from mine.
 
-Here's a test program for you:
+>
+> The only chip on display is:
+> SDMC
+> DM1105N
+> D735  E280034
+Please try recent v4l-dvb, as I've commited some change.
+Now You can try
+	modprobe dm1105 card=1
+>
+> Also - I tested the card in a Windows box today, so I am now certain
+> that both the card and the satellite connection are OK. The settings
+> that work with Windows (frequency, etc), don't lock in Linux. (I do
+> get a good signal reading in Kaffeine that is the same as Windows
+> gives, but no lock.)
+>
+> I hope this will help you work out what is wrong.
+>
+> Thanks!
+> Shaun
+>
+> 2009/7/22 Igor M. Liplianin <liplianin@me.by>:
+> > On 22 июля 2009 21:43:01 Shaun Murdoch wrote:
+> >> Hi,
+> >>
+> >> Thanks for the suggestion.
+> >>
+> >> I think there's something a bit weird with dvbtune. According to it's
+> >> man page the units for frequency (-f) are Hz. I am trying to tell it
+> >> 11.778 GHz - but you get errors if you do -f 11778000000. Equally you
+> >> also get errors if you assume it is MHz, i.e. -f 11778.   Anyway, if
+> >> it prints FE_HAS_SIGNAL and FE_HAS_CARRIER that must mean the
+> >> frequency I gave it is OK?
+> >>
+> >> In any case, scan doesn't work, nor does Kaffeine, so I don't think
+> >> it's that my use of dvbtune is wrong.
+> >>
+> >> Anyone got any other suggestions on what I can do to get this to lock?
+> >>
+> >> Thanks,
+> >> Shaun
+> >>
+> >> 2009/7/22 Seyyed Mohammad mohammadzadeh <softnhard.es@gmail.com>:
+> >> > Hello,
+> >> >
+> >> > I don't know what is the exact cause of your problem but I think you
+> >> > are tuning to a wrong frequency. You wrote:
+> >> >
+> >> >  dvbtune -f 1177800 -s 27500 -p v -m
+> >> >
+> >> > in which the frequency parameters has two extra zeros which cause the
+> >> > frequency to interpret as : 1,177,800 MHz !!!!!!!
+> >> >
+> >> > 2009/7/22 Shaun Murdoch <scrauny@gmail.com>
+> >> >
+> >> >> Hi everyone,
+> >> >> First post so please be gentle :-)
+> >> >> I was wondering if anyone can help me please - I am trying to get a
+> >> >> DVB-S PCI card working with Linux (Ubuntu 9.04). So far I can get the
+> >> >> card recognised by Linux, but it won't tune - Kaffeine does tell me
+> >> >> that there is 95% signal and 80% SNR, and I am using the same
+> >> >> frequencies etc that a standard Sky box uses. The card is very common
+> >> >> on eBay so I am sure there are plenty people who have tried this /
+> >> >> would want this working. Some details that I hope will help someone
+> >> >> who knows more than I do about this! The card is one of these:
+> >> >> http://cgi.ebay.co.uk/DVB-S-Satellite-TV-Tuner-Video-Capture-PCI-Card
+> >> >>-Re
+> >> >> mote_W0QQitemZ130314645048QQcmdZViewItemQQptZUK_Computing_Computer_Co
+> >> >>mpon
+> >> >> ents_Graphics_Video_TV_Cards_TW?hash=item1e575bae38&_trksid=p3286.c0.
+> >> >>m14& _trkparms=65:12|66:2|39:1|72:1690|293:1|294:50 lspci:
+> >> >> 03:09.0 Ethernet controller: Device 195d:1105 (rev 10)
+> >> >> My dmesg output - looks ok?:
+> >> >>
+> >> >> $ dmesg | grep DVB
+> >> >> [   12.174738] DVB: registering new adapter (dm1105)
+> >> >> [   12.839501] DVB: registering adapter 0 frontend 0 (ST STV0299
+> >> >> DVB-S)... [   12.839633] input: DVB on-card IR receiver as
+> >> >> /devices/pci0000:00/0000:00:1e.0/0000:03:09.0/input/input
+> >> >>
+> >> >> My output from scan - the problem:
+> >> >>
+> >> >> $ sudo scan -vvvvvv /usr/share/dvb/dvb-s/Astra-28.2E
+> >> >> scanning /usr/share/dvb/dvb-s/Astra-28.2E
+> >> >> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> >> >>
+> >> >> >>> tune to: 11778:v:0:27500
+> >> >>
+> >> >> DiSEqC: switch pos 0, 13V, hiband (index 2)
+> >> >> diseqc_send_msg:56: DiSEqC: e0 10 38 f1 00 00
+> >> >> DVB-S IF freq is 1178000
+> >> >>
+> >> >> >>> tuning status == 0x03
+> >> >> >>> tuning status == 0x03
+> >> >> >>> tuning status == 0x03
+> >> >> >>> tuning status == 0x03
+> >> >> >>> tuning status == 0x03
+> >> >> >>> tuning status == 0x03
+> >> >> >>> tuning status == 0x03
+> >> >> >>> tuning status == 0x03
+> >> >> >>> tuning status == 0x03
+> >> >> >>> tuning status == 0x03
+> >> >>
+> >> >> WARNING: >>> tuning failed!!!
+> >> >>
+> >> >> This is the correct satellite for my location (south UK), I believe.
+> >> >> Have tried plenty. Nothing locks. I'm using the latest liplianin
+> >> >> drivers - did a mercurial checkout and build today:
+> >> >>
+> >> >> $ modinfo dm1105
+> >> >> filename:
+> >> >> /lib/modules/2.6.28-13-server/kernel/drivers/media/dvb/dm1105/dm1105.
+> >> >>ko license:        GPL
+> >> >> description:    SDMC DM1105 DVB driver
+> >> >> author:         Igor M. Liplianin <liplianin@me.by>
+> >> >> srcversion:     46C1B3C3627D1937F75D732
+> >> >> alias:          pci:v0000195Dd00001105sv*sd*bc*sc*i*
+> >> >> alias:          pci:v0000109Fd0000036Fsv*sd*bc*sc*i*
+> >> >> depends:        ir-common,dvb-core
+> >> >> vermagic:       2.6.28-13-server SMP mod_unload modversions
+> >> >> parm:           card:card type (array of int)
+> >> >> parm:           ir_debug:enable debugging information for IR decoding
+> >> >> (int) parm:           adapter_nr:DVB adapter numbers (array of short)
+> >> >>
+> >> >> Have also tried the latest v4l-dvb drivers and get exactly the same
+> >> >> tuning problems. Finally, dvbtune appears to say I have signal but
+> >> >> cannot lock:
+> >> >>
+> >> >> $ sudo dvbtune -f 1177800 -s 27500 -p v -m -tone 1 -vvvvvvvvvvv
+> >> >> [sudo] password for shaun:
+> >> >> Using DVB card "ST STV0299 DVB-S"
+> >> >> tuning DVB-S to L-Band:0, Pol:V Srate=27500000, 22kHz=on
+> >> >> polling....
+> >> >> Getting frontend event
+> >> >> FE_STATUS:
+> >> >> polling....
+> >> >> Getting frontend event
+> >> >> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER FE_HAS_VITERBI
+> >> >> polling....
+> >> >> Getting frontend event
+> >> >> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
+> >> >> polling....
+> >> >> Getting frontend event
+> >> >> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER FE_HAS_VITERBI
+> >> >> polling....
+> >> >> Getting frontend event
+> >> >> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
+> >> >> polling....
+> >> >> Getting frontend event
+> >> >> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER FE_HAS_VITERBI
+> >> >> polling....
+> >> >> Getting frontend event
+> >> >> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
+> >> >>
+> >> >> So I am thinking that this could be a driver issue? If the card has
+> >> >> good signal and SNR in Kaffeine, and dvbtune says it has signal and
+> >> >> carrier - but cannot lock? Please can someone help me debug this?
+> >> >> Thanks a lot!
+> >> >> Shaun
+> >> >>
+> >> >>
+> >> >>
+> >> >>
+> >> >>
+> >> >>
+> >> >>
+> >> >> _______________________________________________
+> >> >> linux-dvb users mailing list
+> >> >> For V4L/DVB development, please use instead
+> >> >> linux-media@vger.kernel.org linux-dvb@linuxtv.org
+> >> >> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> >> >
+> >> > --
+> >> > To unsubscribe from this list: send the line "unsubscribe linux-media"
+> >> > in the body of a message to majordomo@vger.kernel.org
+> >> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> >> in the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> > Hi Shaun,
+> > Did you read something on tuner can?
+> > Or maybe you take a picture of tuner can without cover.
+> > Also close look picture of card would be nice.
+> > Though definately demod is stv0299, but tuner chip may be different.
+> > I suspect it is stb6000, but such combination(stb6000 + stv0299) not
+> > supported in the driver now. Anyway, you can try modprobe dm1105 with
+> > parameter card=1 from s2-liplianin tree.
+> >
+> > Igor
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <linux/input.h>
-
-// Invoke with "/dev/input/event4" as argv[1]
-//
-// On 2.6.30, this gives the real name, eg. "i2c IR (Hauppauge)".
-// On 2.6.31, it simply gives "event4" as the "name".
-
-int main(int argc, char *argv[])
-{
-	char buf[32];
-	int fd, rc;
-
-	fd = open(argv[1], O_RDONLY);
-	if (fd == -1) {
-		perror(argv[1]);
-		exit(1);
-	}
-	rc = ioctl(fd,EVIOCGNAME(sizeof(buf)),buf);
-	if (rc >= 0)
-		fprintf(stderr,"   name    : \"%.*s\"\n", rc, buf);
-	return 0;
-}
+-- 
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
