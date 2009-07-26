@@ -1,74 +1,74 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.cooptel.qc.ca ([216.144.115.12] helo=amy.cooptel.qc.ca)
-	by mail.linuxtv.org with esmtp (Exim 4.63)
-	(envelope-from <rlemieu@cooptel.qc.ca>) id 1MMLj5-0001vg-6R
-	for linux-dvb@linuxtv.org; Thu, 02 Jul 2009 14:49:19 +0200
-Message-ID: <4A4CACAA.5060204@cooptel.qc.ca>
-Date: Thu, 02 Jul 2009 08:48:42 -0400
-From: Richard Lemieux <rlemieu@cooptel.qc.ca>
+Received: from mail-fx0-f220.google.com ([209.85.220.220])
+	by mail.linuxtv.org with esmtp (Exim 4.69)
+	(envelope-from <alexander.saers@gmail.com>) id 1MVC4S-0006nV-KI
+	for linux-dvb@linuxtv.org; Mon, 27 Jul 2009 00:19:56 +0200
+Received: by fxm20 with SMTP id 20so2297509fxm.17
+	for <linux-dvb@linuxtv.org>; Sun, 26 Jul 2009 15:19:23 -0700 (PDT)
 MIME-Version: 1.0
+Date: Mon, 27 Jul 2009 00:19:23 +0200
+Message-ID: <7606f7c10907261519s2fa5fe07oe5e0678f25293906@mail.gmail.com>
+From: Alexander Saers <alex@saers.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] kernel configuration: CX88 and RealTime kernel rt22.
+Subject: [linux-dvb] DVB-C usb device
 Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
 List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="===============1826290685=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+--===============1826290685==
+Content-Type: multipart/alternative; boundary=001636c5a6dec8d614046fa33a49
 
-I applied patch-2.6.29.5-rt22.bz2 to a copy of my running 2.6.29.5
-kernel and I find that this removes support for CX88.  This is
-my first attempt at compiling/using the real-time kernel.
+--001636c5a6dec8d614046fa33a49
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Just running 'menuconfig' without selecting other option purges
-CX88_DVB from the .config file.
+Hello
 
-pc3:/sa107/wa_rlx/linux-2.6.29.5-rt22$ cp /c/boot/sa103/config-2.6.29.5 .config
-pc3:/sa107/wa_rlx/linux-2.6.29.5-rt22$ grep CX88 .config
-CONFIG_VIDEO_CX88=m
-CONFIG_VIDEO_CX88_ALSA=m
-# CONFIG_VIDEO_CX88_BLACKBIRD is not set
-CONFIG_VIDEO_CX88_DVB=m
-CONFIG_VIDEO_CX88_MPEG=m
-CONFIG_VIDEO_CX88_VP3054=m
-pc3:/sa107/wa_rlx/linux-2.6.29.5-rt22$ make menuconfig
-scripts/kconfig/mconf arch/x86/Kconfig
-#
-# configuration written to .config
-#
+I'm looking for recommendation on external DVB-C devices. I'm planing on
+building a small system and need something that is none-pci. Some month ago
+i bought a Terratec Cinergy HTC USB XS HD card with the hope that a driver
+should soon be released. It never did. So is there anybody that has a
+working dvb-c solution (preferable working with ubuntu kernel, but that is
+not a requirement).
 
+Br
+Alexander Saers
 
-*** End of Linux kernel configuration.
-*** Execute 'make' to build the kernel or try 'make help'.
+--001636c5a6dec8d614046fa33a49
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-pc3:/sa107/wa_rlx/linux-2.6.29.5-rt22$ grep CX88 .config
-pc3:/sa107/wa_rlx/linux-2.6.29.5-rt22$
+Hello<br><br>I&#39;m
+looking for recommendation on external DVB-C devices. I&#39;m planing on
+building a small system and need something that is none-pci. Some month
+ago i bought a Terratec Cinergy HTC USB XS HD card with the hope that a
+driver should soon be released. It never did. So is there anybody that
+has a working dvb-c solution (preferable working with ubuntu kernel,
+but that is not a requirement).<br>
+<br>Br<br><font color="#888888">Alexander Saers</font>
 
-
-All symbols with CX88 have disappeared from the .config file.
-
-Trying menuconfig and xconfig, both seem to know about CX88_DVB
-but there is no way to find 'Conexant 2388x' driver.
-
-Was this intended by the CX88 team or is it just just an error from
-the real-time team?  This is not that I absolutely need the realtime
-kernel, but I am just curious, and a number applications including
-'jack' would be happier with it.
+--001636c5a6dec8d614046fa33a49--
 
 
-Richard
+--===============1826290685==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1826290685==--
